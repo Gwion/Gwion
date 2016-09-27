@@ -25,6 +25,7 @@ new features:
 	* Switch
 	* Doc
 	* variadic functions
+	* unamed global unions (in class and named unions to come)
 
 linux (ALSA) only for now
 
@@ -32,7 +33,7 @@ Abstract Syntaxic Tree
 ======================
 	* Stmt_List
 	* Class_Def
-	*	Func_Def
+	* Func_Def
 
 
 STaTeMenT
