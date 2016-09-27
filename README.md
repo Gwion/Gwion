@@ -39,7 +39,7 @@ Abstract Syntaxic Tree
 STaTeMenT
 =========
 	* Expression
-	*	Code
+	* Code
 	* While
 	* Until
 	* Loop
