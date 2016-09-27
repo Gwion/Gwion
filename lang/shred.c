@@ -1,0 +1,157 @@
+#include "defs.h"
+#include "vm.h"
+#include "type.h"
+#include "err_msg.h"
+#include "instr.h"
+#include "lang.h"
+#include "import.h"
+#include <libgen.h>
+
+struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
+m_uint o_shred_me;
+
+M_Object new_Shred(VM* vm, VM_Shred shred)
+{
+  M_Object obj = new_M_Object();
+  initialize_object(obj, &t_shred);
+  ME(obj) = shred;
+  return obj;
+}
+
+static void vm_shred_exit(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  s->is_running = 0;
+  s->is_done = 1;
+}
+
+static void vm_shred_id(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  RETURN->v_uint = s ? s->xid : -1;
+}
+
+static void vm_shred_is_running(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  RETURN->v_uint = s ? s->is_running : 0;
+}
+
+static void vm_shred_is_done(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  RETURN->v_uint = s ? s->is_done: 0;
+}
+
+static void shred_yield(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  Shreduler sh = shred->vm_ref->shreduler;
+	shreduler_remove(sh, s, 0);
+//  s->is_running = 0;
+  shredule(sh, s, get_now(sh) +.5);
+	RETURN->v_uint = 1;
+}
+
+static void vm_shred_from_id(DL_Return * RETURN, VM_Shred shred)
+{
+/*  VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)shred->mem);*/
+  VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
+  if(!s)
+    RETURN->v_uint = 0;
+  else
+    RETURN->v_uint = (m_uint)s->me;
+}
+
+static void shred_args(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  RETURN->v_uint = s->args ? vector_size(s->args) : 0;
+}
+
+static void shred_arg(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  M_Object obj = new_M_Object();
+  initialize_object(obj, &t_string);
+  STRING(obj) = vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
+  RETURN->v_uint = (m_uint)obj;
+}
+
+static void shred_path(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  M_Object obj = new_M_Object();
+  initialize_object(obj, &t_string);
+  STRING(obj) = basename(strdup(s->code->filename));
+  RETURN->v_uint = (m_uint)obj;
+}
+
+static void shred_dir(M_Object o, DL_Return * RETURN, VM_Shred shred)
+{
+  VM_Shred  s = ME(o);
+  M_Object obj = new_M_Object();
+  initialize_object(obj, &t_string);
+  STRING(obj) = dirname(strdup(s->code->filename));
+  RETURN->v_uint = (m_uint)obj;
+}
+
+m_bool import_shred(Env env)
+{
+  DL_Func* fun;
+  DL_Value* arg;
+ 	Func f;
+ 
+  CHECK_BB(add_global_type(env, &t_shred))
+  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, NULL))
+	env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
+
+  o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");
+  CHECK_BB(o_shred_me)
+
+  fun = new_DL_Func("void", "exit", (m_uint)vm_shred_exit);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "make the shred exit";
+
+  fun = new_DL_Func("int", "running", (m_uint)vm_shred_is_running);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return 1 if shred is done, 0 otherwise";
+
+  fun = new_DL_Func("int", "done", (m_uint)vm_shred_is_done);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return 1 if shred is done, 0 otherwise";
+
+  fun = new_DL_Func("int", "id", (m_uint)vm_shred_id);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return shred's id";
+
+  fun = new_DL_Func("Shred", "fromId", (m_uint)vm_shred_from_id);
+  arg = dl_func_add_arg(fun, "int", "arg1");
+  arg->doc = "id of the shred";
+  CHECK_OB((f = import_sfun(env, fun)))
+  f->doc = "get a shred from it's id";
+
+  fun = new_DL_Func("int", "yield", (m_uint)shred_yield);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "let other shreds a chance to compute";
+
+  fun = new_DL_Func("int", "args", (m_uint)shred_args);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return shred's arguments number";
+
+  fun = new_DL_Func("string", "arg", (m_uint)shred_arg);
+  dl_func_add_arg(fun, "int", "n");
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return shred's nth argument";
+
+  fun = new_DL_Func("string", "path", (m_uint)shred_path);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return shred's basename";
+
+  fun = new_DL_Func("string", "dir", (m_uint)shred_dir);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "return shred's dirname";
+
+  CHECK_BB(import_class_end(env))
+  return 1;
+}
