@@ -4,9 +4,9 @@ Gwion
 
 gwion is a object-oriented programming language, aimed at making music
 
-It is strongly inspired by ['chuck'](http://chuck.stanford.edu/), and as chuck it is 'strongly timed'
+It is strongly inspired by [chuck](http://chuck.stanford.edu/), and as chuck it is 'strongly timed'
 
-	* based on ['soundpipe']( http://paulbatchelor.github.io/proj/soundpipe.html)
+	* based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)
 	* plugin system
 
 primitive type:
