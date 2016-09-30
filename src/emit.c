@@ -482,7 +482,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     type = value->m_type;
     is_obj = isa(type, &t_object) > 0 || list->self->array;
     is_ref = decl->type->ref;
-    is_init = 0;        
+    is_init = 0;
     kind = kindof(type);
 
     if(is_obj)
@@ -512,6 +512,10 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         alloc_m ->execute = Alloc_Member_Word_Float;
       else  if(kind == Kindof_Complex)
         alloc_m ->execute = Alloc_Member_Word_Complex;
+      else  if(kind == Kindof_Vec3)
+        alloc_m ->execute = Alloc_Member_Word_Vec3;
+      else  if(kind == Kindof_Vec4)
+        alloc_m ->execute = Alloc_Member_Word_Vec4;
       alloc_m->m_val = value->offset;
     }
     else
@@ -530,6 +534,10 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           instr->execute = Alloc_Word_Float;
         if(type->xid == t_complex.xid || type->xid == t_polar.xid)
           instr->execute = Alloc_Word_Complex;
+				else if(isa(type, &t_vec3) > 0)
+          instr->execute = Alloc_Word_Vec3;
+				else if(isa(type, &t_vec4) > 0)
+          instr->execute = Alloc_Word_Vec4;
       }
       else // static
       {

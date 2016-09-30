@@ -88,6 +88,8 @@ void complex_imag(VM * vm, VM_Shred shred, Instr instr);
 void Alloc_Word(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Float(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Complex(VM* vm, VM_Shred shred, Instr instr);
+void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr);
+void Alloc_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
 
 /* function */
 void Spork(VM * vm, VM_Shred shred, Instr instr);
@@ -106,6 +108,8 @@ void Assign_Object(VM * vm, VM_Shred shred, Instr instr);
 void Alloc_Member_Word(VM * vm, VM_Shred shred, Instr instr);
 void Alloc_Member_Word_Float(VM * vm, VM_Shred shred, Instr instr);
 void Alloc_Member_Word_Complex(VM * vm, VM_Shred shred, Instr instr);
+void Alloc_Member_Word_Vec3(VM* vm, VM_Shred shred, Instr instr);
+void Alloc_Member_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
 //void Alloc_Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
 void Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
 void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr);

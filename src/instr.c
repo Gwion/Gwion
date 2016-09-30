@@ -227,6 +227,24 @@ void Alloc_Word_Complex(VM* vm, VM_Shred shred, Instr instr)
   shred->reg += SZ_INT;
 }
 
+void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
+#endif
+  *(VEC3_T**)shred->reg = &*(VEC3_T*)(shred->mem + instr->m_val);
+  shred->reg += SZ_INT;
+}
+
+void Alloc_Word_Vec4(VM* vm, VM_Shred shred, Instr instr)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "instr alloc word vec4 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
+#endif
+  *(VEC4_T**)shred->reg = &*(VEC4_T*)(shred->mem + instr->m_val);
+  shred->reg += SZ_INT;
+}
+
 /* branching */
 void Branch_Switch(VM* vm, VM_Shred shred, Instr instr)
 {
@@ -843,6 +861,28 @@ void Alloc_Member_Word_Complex(VM * vm, VM_Shred shred, Instr instr)
   M_Object obj = *(M_Object*)shred->mem;
   *(complex*)(obj->data + instr->m_val) = 0.0;
   *(complex**)shred->reg = &*(complex*)(obj->data + instr->m_val);
+  shred->reg += SZ_INT;
+}
+
+void Alloc_Member_Word_Vec3(VM * vm, VM_Shred shred, Instr instr)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "alloc member vec3: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
+#endif
+  M_Object obj = *(M_Object*)shred->mem;
+  memset((obj->data + instr->m_val), 0, SZ_VEC3);
+  *(VEC3_T**)shred->reg = &*(VEC3_T*)(obj->data + instr->m_val);
+  shred->reg += SZ_INT;
+}
+
+void Alloc_Member_Word_Vec4(VM * vm, VM_Shred shred, Instr instr)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "alloc member vec4: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
+#endif
+  M_Object obj = *(M_Object*)shred->mem;
+  memset((obj->data + instr->m_val), 0, SZ_VEC4);
+  *(VEC4_T**)shred->reg = &*(VEC4_T*)(obj->data + instr->m_val);
   shred->reg += SZ_INT;
 }
 

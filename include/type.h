@@ -67,7 +67,7 @@ m_int str2char( const m_str c, m_int linepos );
 extern struct Type_ t_void;
 extern struct Type_ t_int;     
 extern struct Type_ t_float;     
-extern struct Type_ t_complex, t_polar;
+extern struct Type_ t_complex, t_polar, t_vec3, t_vec4;
 extern struct Type_ t_function;  
 extern struct Type_ t_func_ptr;
 extern struct Type_ t_dur;  
