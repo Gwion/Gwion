@@ -43,6 +43,17 @@ complex c_vector_at(M_Vector* v, m_uint i)
 {
   return *(complex*)(v->ptr + i*v->size);
 }
+
+VEC3_T v3_vector_at(M_Vector* v, m_uint i)
+{
+  return *(VEC3_T*)(v->ptr + i*v->size);
+}
+
+VEC4_T v4_vector_at(M_Vector* v, m_uint i)
+{
+  return *(VEC4_T*)(v->ptr + i*v->size);
+}
+
 void i_vector_append(M_Vector* v, m_uint i)
 {
   v->len++;
@@ -64,6 +75,20 @@ void c_vector_append(M_Vector* v, complex c)
   *(complex*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
+void v3_vector_append(M_Vector* v, VEC3_T c)
+{
+  v->len++;
+  v->ptr = realloc(v->ptr, v->len * v->size);
+  *(VEC3_T*)(v->ptr + (v->len - 1)*v->size) = c;
+}
+
+void v4_vector_append(M_Vector* v, VEC4_T c)
+{
+  v->len++;
+  v->ptr = realloc(v->ptr, v->len * v->size);
+  *(VEC4_T*)(v->ptr + (v->len - 1)*v->size) = c;
+}
+
 void i_vector_set(M_Vector* v, m_uint i, m_uint data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
@@ -79,7 +104,19 @@ void f_vector_set(M_Vector* v, m_uint i, m_float data)
 void c_vector_set(M_Vector* v, m_uint i, complex data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
-  *(m_float*)(v->ptr + i * v->size) = data;
+  *(complex*)(v->ptr + i * v->size) = data;
+}
+
+void v3_vector_set(M_Vector* v, m_uint i, VEC3_T data)
+{
+  v->ptr = realloc(v->ptr, v->len * v->size);
+  *(VEC3_T*)(v->ptr + i * v->size) = data;
+}
+
+void v4_vector_set(M_Vector* v, m_uint i, VEC4_T data)
+{
+  v->ptr = realloc(v->ptr, v->len * v->size);
+  *(VEC4_T*)(v->ptr + i * v->size) = data;
 }
 
 
@@ -92,10 +129,22 @@ m_float*  f_vector_addr(M_Vector* v, m_uint i)
 {
   return &*(m_float*)(v->ptr + i*v->size);
 }
+
 complex*  c_vector_addr(M_Vector* v, m_uint i)
 {
   return &*(complex*)(v->ptr + i*v->size);
 }
+
+VEC3_T*  v3_vector_addr(M_Vector* v, m_uint i)
+{
+  return &*(VEC3_T*)(v->ptr + i*v->size);
+}
+
+VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i)
+{
+  return &*(VEC4_T*)(v->ptr + i*v->size);
+}
+
 void vm_vector_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   if(!o)
@@ -113,17 +162,29 @@ INSTR(Array_Append)
     o = *(M_Object*)(shred->reg);
     i_vector_append(o->array, *(m_uint*)(shred->reg+SZ_INT));
   }
-  if(instr->m_val == Kindof_Float)
+  else if(instr->m_val == Kindof_Float)
   {
     shred->reg -= SZ_FLOAT;
     o = *(M_Object*)(shred->reg);
     f_vector_append(o->array, *(m_float*)(shred->reg+SZ_INT));
   }
-  if(instr->m_val == Kindof_Complex)
+  else if(instr->m_val == Kindof_Complex)
   {
     shred->reg -= SZ_COMPLEX;
     o = *(M_Object*)(shred->reg);
     c_vector_append(o->array, *(complex*)(shred->reg+SZ_INT));
+  }
+  else if(instr->m_val == Kindof_Vec3)
+  {
+    shred->reg -= SZ_VEC3;
+    o = *(M_Object*)(shred->reg);
+    v3_vector_append(o->array, *(VEC3_T*)(shred->reg+SZ_INT));
+  }
+  else if(instr->m_val == Kindof_Vec4)
+  {
+    shred->reg -= SZ_VEC4;
+    o = *(M_Object*)(shred->reg);
+    v4_vector_append(o->array, *(VEC4_T*)(shred->reg+SZ_INT));
   }
   *(M_Object*)(shred->reg) = o;
   shred->reg += SZ_INT;

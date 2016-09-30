@@ -485,7 +485,6 @@ INSTR(MkVararg)
   {
     arg->k[i] = (Kindof)vector_at(kinds, i);
     printf("arg->k[i] %i\n", arg->k[i]);
-  
   }
   arg->o = 0;
   arg->i = 0;
@@ -908,6 +907,16 @@ void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr)
     *(complex*)shred->reg = *(complex*)instr->m_val;
     shred->reg += SZ_COMPLEX;
   }
+  else if(instr->m_val2 == Kindof_Vec3)
+  {
+    *(VEC3_T*)shred->reg = *(VEC3_T*)instr->m_val;
+    shred->reg += SZ_VEC3;
+  }
+  else if(instr->m_val2 == Kindof_Vec4)
+  {
+    *(VEC4_T*)shred->reg = *(VEC4_T*)instr->m_val;
+    shred->reg += SZ_VEC4;
+  }
 }
 
 void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr)
@@ -946,7 +955,16 @@ void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr)
     *(complex*)shred->reg = *(complex*)(obj->data + instr->m_val);
     shred->reg += SZ_COMPLEX;
   }
-  else exit(5);
+  else if(instr->m_val2 == Kindof_Vec3)
+  {
+    *(VEC3_T*)shred->reg = *(VEC3_T*)instr->m_val;
+    shred->reg += SZ_VEC3;
+  }
+  else if(instr->m_val2 == Kindof_Vec4)
+  {
+    *(VEC4_T*)shred->reg = *(VEC4_T*)instr->m_val;
+    shred->reg += SZ_VEC4;
+  }
 }
 
 void Release_Object2(VM* vm, VM_Shred shred, Instr instr)
@@ -1141,10 +1159,14 @@ void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr)
   {
     if(instr->m_val2 == Kindof_Int)
       *(m_uint**)shred->reg = i_vector_addr(obj->array, i);
-    if(instr->m_val2 == Kindof_Float)
+    else if(instr->m_val2 == Kindof_Float)
       *(m_float**)shred->reg = f_vector_addr(obj->array, i);
-    if(instr->m_val2 == Kindof_Complex)
+    else if(instr->m_val2 == Kindof_Complex)
       *(complex**)shred->reg = c_vector_addr(obj->array, i);
+    else if(instr->m_val2 == Kindof_Vec3)
+      *(VEC3_T**)shred->reg = v3_vector_addr(obj->array, i);
+    else if(instr->m_val2 == Kindof_Vec3)
+      *(VEC4_T**)shred->reg = v4_vector_addr(obj->array, i);
       shred->reg += SZ_INT;
   }
   // take care of kind (instr->m_val2)
@@ -1157,11 +1179,21 @@ void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr)
   {
     *(m_float*)shred->reg = f_vector_at(obj->array, i);
     shred->reg += SZ_FLOAT;
-  }  
+  }
   else if(instr->m_val2 == Kindof_Complex)
   {
     *(complex*)shred->reg = c_vector_at(obj->array, i);
     shred->reg += SZ_COMPLEX;
+  }
+  else if(instr->m_val2 == Kindof_Vec3)
+  {
+    *(VEC3_T*)shred->reg = v3_vector_at(obj->array, i);
+    shred->reg += SZ_VEC3;
+  }
+  else if(instr->m_val2 == Kindof_Vec4)
+  {
+    *(VEC4_T*)shred->reg = v4_vector_at(obj->array, i);
+    shred->reg += SZ_VEC4;
   }
   return;
 
@@ -1216,11 +1248,21 @@ void Instr_Array_Access_Multi(VM* vm, VM_Shred shred, Instr instr)
   {
     *(m_float*)shred->reg = f_vector_at(obj->array, i);
     shred->reg += SZ_FLOAT;
-  }  
+  }
   else if(instr->m_val2 == Kindof_Complex)
   {
     *(complex*)shred->reg = c_vector_at(obj->array, i);
     shred->reg += SZ_COMPLEX;
+  }
+  else if(instr->m_val2 == Kindof_Vec3)
+  {
+    *(VEC3_T*)shred->reg = v3_vector_at(obj->array, i);
+    shred->reg += SZ_VEC3;
+  }
+  else if(instr->m_val2 == Kindof_Vec4)
+  {
+    *(VEC4_T*)shred->reg = v4_vector_at(obj->array, i);
+    shred->reg += SZ_VEC4;
   }
   return;
 

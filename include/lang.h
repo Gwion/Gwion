@@ -10,6 +10,8 @@ extern m_bool import_int(Env env);
 extern m_bool import_array(Env env);
 extern m_bool import_float(Env env);
 extern m_bool import_complex(Env env);
+extern m_bool import_vec3(Env env);
+extern m_bool import_vec4(Env env);
 extern m_bool import_shred(Env env);
 extern m_bool import_machine(Env env);
 extern m_bool import_object(Env env);

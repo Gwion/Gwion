@@ -12,7 +12,8 @@ typedef long  unsigned int  m_uint;
 typedef short int           m_bool;
 typedef double              m_float;
 typedef char *              m_str;
-
+typedef struct { m_float x, y, z; }  VEC3_T;
+typedef struct { m_float x, y, z, w; } VEC4_T;
 /* pointer types */
 typedef struct Ast_       * Ast;
 typedef struct Func_Def_  * Func_Def;
@@ -49,7 +50,7 @@ typedef enum
 } te_type;
 typedef enum { ae_func_spec_none, ae_func_spec_dtor, ae_func_spec_op } ae_func_spec;
 
-typedef enum { Kindof_Void, Kindof_Int, Kindof_Float, Kindof_Complex, Kindof_Ptr} Kindof;
+typedef enum { Kindof_Void, Kindof_Int, Kindof_Float, Kindof_Complex, Kindof_Vec3, Kindof_Vec4, Kindof_Ptr} Kindof;
 
 typedef enum {
 // arithmetic
@@ -103,6 +104,8 @@ enum
 #define SZ_INT 8
 #define SZ_FLOAT 8
 #define SZ_COMPLEX 16
+#define SZ_VEC3 24
+#define SZ_VEC4 32
 
 #define NEXT_INT     (s)  *(m_int*)    (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_UINT    (s)  *(m_uint*)   (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
