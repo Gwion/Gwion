@@ -145,6 +145,9 @@ void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr)
   else
     *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->mem  + instr->m_val);
   shred->reg += SZ_VEC3;
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] 'vec3' push mem ");
+#endif
 }
 
 void Reg_Push_Mem_Vec4(VM* vm, VM_Shred shred, Instr instr)

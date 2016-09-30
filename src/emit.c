@@ -169,9 +169,8 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 /*    exit(12);*/
 /*  }*/
 
-    
   if(emit_var)
-  { 
+  {
     instr = add_instr(emit, Reg_Push_Mem_Addr);
     instr->m_val = v->offset;
     instr->m_val2 = v->is_context_global;
@@ -193,7 +192,6 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     {
       if(isa(v->m_type, &t_vararg) > 0)
       {
-        printf("emit->env->func_def %p\n", emit->env->func);
         m_uint offset = 0;
         Arg_List l = emit->env->func->def->arg_list;
         while(l)
@@ -202,8 +200,6 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
           l = l->next;
         }
         instr->m_val = offset;
-/*        exit(2);*/
-      
       }
       if(kind == Kindof_Int)
         instr->execute = Reg_Push_Mem;
@@ -2201,11 +2197,8 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
   m_uint offset = 0;
 
   t_base = base_static ? member->t_base->actual_type : member->t_base;
-  
   if(t_base->xid ==t_complex.xid)
   {
-    if(emit_addr)
-      member->base->emit_var = 1;
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
     if(!strcmp(value->name, "re"))
@@ -2223,13 +2216,27 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       add_instr(emit, complex_real);
     else
       add_instr(emit, complex_imag);
+    instr->m_val = emit_addr;
+    return 1;
+  }
+  if(t_base->xid ==t_vec3.xid)
+  {
+		Instr instr;
+    CHECK_BB(emit_Expression(emit, member->base, 0))
+    value = find_value(t_base, member->xid);
+    if(!strcmp(value->name, "x"))
+      instr = add_instr(emit, complex_real);
+    else if(!strcmp(value->name, "y"))
+      instr = add_instr(emit, complex_imag);
+    else if(!strcmp(value->name, "z"))
+      instr = add_instr(emit, vec3_z);
+		else exit(2);
+//		else return -1;
+    instr->m_val = emit_addr;
     return 1;
   }
   if(t_base->xid ==t_vararg.xid)
   {
-    printf("value %p\n", value);
-    printf("value %p\n", emit->env->func->def);
-    printf("value %p\n", namespace_lookup_value(emit->env->curr, insert_symbol("vararg"), -1));
     m_uint offset = 0;
     Arg_List l =  emit->env->func->def->arg_list;
     while(l)
@@ -2247,7 +2254,6 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       emit->env->func->variadic_start = add_instr(emit, Vararg_start);
       emit->env->func->variadic_start->m_val = offset;
       emit->env->func->variadic_index = vector_size(emit->code->code);
-/*  exit(2);*/
       return 1;
     }
       if(!strcmp(S_name(member->xid), "end"))
@@ -2276,9 +2282,15 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "o"))
+      if(!strcmp(S_name(member->xid), "v3"))
       {
-        Instr instr = add_instr(emit, Vararg_object);
+        Instr instr = add_instr(emit, Vararg_Vec3);
+        instr->m_val  = offset;
+        return 1;
+      }
+      if(!strcmp(S_name(member->xid), "v4"))
+      {
+        Instr instr = add_instr(emit, Vararg_Vec3);
         instr->m_val  = offset;
         return 1;
       }

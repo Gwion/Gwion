@@ -136,5 +136,9 @@ INSTR(Vararg_int);
 INSTR(Vararg_float);
 INSTR(Vararg_complex);
 INSTR(Vararg_object);
+INSTR(Vararg_Vec3);
+INSTR(Vararg_Vec4);
 INSTR(Free_Func); // for template
 
+
+INSTR(vec3_z);

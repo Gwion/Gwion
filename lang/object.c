@@ -229,6 +229,21 @@ INSTR(Vararg_object)
   *(M_Object*)shred->reg = *(M_Object*)(arg->d + arg->o);
   shred->reg += SZ_INT;
 }
+
+INSTR(Vararg_Vec3)
+{
+  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
+  *(VEC3_T*)shred->reg = *(VEC3_T*)(arg->d + arg->o);
+  shred->reg += SZ_VEC3;
+}
+
+INSTR(Vararg_Vec4)
+{
+  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
+  *(VEC4_T*)shred->reg = *(VEC4_T*)(arg->d + arg->o);
+  shred->reg += SZ_VEC4;
+}
+
 m_bool import_object(Env env)
 {
   DL_Func* fun;

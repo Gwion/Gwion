@@ -164,11 +164,30 @@ INSTR(vec3_divide_float)
 	*(m_float*)shred->reg = r.z; shred->reg += SZ_FLOAT;
 }
 
+INSTR(vec3_z)
+{
+	shred->reg -= SZ_VEC3;
+	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
+	shred->reg += SZ_FLOAT;
+
+}
+
+INSTR(vec4_w)
+{
+	shred->reg -= SZ_VEC4;
+	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*3);
+	shred->reg += SZ_FLOAT;
+
+}
 m_bool import_vec3(Env env)
 {
 	DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec3))
 	CHECK_BB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
+  //o_complex_real = 
+	import_mvar(env, "float", "x",   0, 0, "real part");
+	import_mvar(env, "float", "y",   0, 0, "real part");
+	import_mvar(env, "float", "z",   0, 0, "real part");
 	fun = new_DL_Func("void", "set", (m_uint)vec3_set);
 		dl_func_add_arg(fun, "float", "x");
 		dl_func_add_arg(fun, "float", "y");
@@ -344,7 +363,10 @@ m_bool import_vec4(Env env)
 	DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec4))
 	CHECK_BB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
-
+	import_mvar(env, "float", "x",   0, 0, "real part");
+	import_mvar(env, "float", "y",   0, 0, "real part");
+	import_mvar(env, "float", "z",   0, 0, "real part");
+	import_mvar(env, "float", "w",   0, 0, "real part");
 	fun = new_DL_Func("void", "set", (m_uint)vec4_set);
 		dl_func_add_arg(fun, "float", "x");
 		dl_func_add_arg(fun, "float", "y");

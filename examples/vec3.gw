@@ -1,4 +1,9 @@
-Vec3 v;
+Vec3 v, w;
 v;
 <<<v>>>;
-v.magnitude();
+<<<v.z>>>;
+v + w;
+v *2.;
+<<<12 => v.z>>>;
+<<<v.z>>>;
+//v.magnitude();
