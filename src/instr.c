@@ -122,7 +122,7 @@ void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr)
 }
 
 void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr)
-{ 
+{
   char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'complex' push mem ");
@@ -132,6 +132,32 @@ void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr)
   else
     *(complex*)shred->reg = *(complex*)(shred->mem  + instr->m_val);
   shred->reg += SZ_COMPLEX;
+}
+
+void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr)
+{
+  char* s = instr->m_val2 ? shred->base : shred->mem;
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] 'vec3' push mem ");
+#endif
+  if(instr->m_val2) // global
+    *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->base + instr->m_val);
+  else
+    *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->mem  + instr->m_val);
+  shred->reg += SZ_VEC3;
+}
+
+void Reg_Push_Mem_Vec4(VM* vm, VM_Shred shred, Instr instr)
+{
+  char* s = instr->m_val2 ? shred->base : shred->mem;
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] 'vec4' push mem ");
+#endif
+  if(instr->m_val2) // global
+    *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->base + instr->m_val);
+  else
+    *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->mem  + instr->m_val);
+  shred->reg += SZ_VEC4;
 }
 
 void Reg_Push_Ptr(VM* vm, VM_Shred shred, Instr instr)
@@ -448,6 +474,12 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
         creal(*(complex*)(shred->reg)), 
         cimag(*(complex*)(shred->reg))/ M_PI);    
     }
+		else if(type->xid == t_vec3.xid)
+		{
+			fprintf(stdout, "%%(%f %f %f)", *(m_float*)(shred->reg), *(m_float*)(shred->reg + SZ_FLOAT), 
+*(m_float*)(shred->reg+SZ_FLOAT*2));
+
+		}
     else if(type->xid == t_string.xid)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);    

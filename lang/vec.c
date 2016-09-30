@@ -6,7 +6,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_vec3 = { "Vec3", SZ_VEC3};
+struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
 MFUN(vec3_set)
 {
 	VEC3_T* v = (VEC3_T*)o;
@@ -40,7 +40,6 @@ MFUN(vec3_normalize)
 		v->z /= mag;
 	}
 }
-
 
 MFUN(vec3_interp)
 {
@@ -211,11 +210,13 @@ m_bool import_vec3(Env env)
 	CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_float, &t_vec3, vec3_times_float	, 1))
 	CHECK_BB(add_binary_op(env, op_divide, &t_vec3,   &t_float, &t_vec3, vec3_divide_float	, 1))
 	CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec3, &t_vec3,  float_times_vec3	, 1))
+
 	CHECK_BB(import_class_end(env))
+	t_vec3.size = SZ_VEC3;
 	return 1;
 }
 
-struct Type_ t_vec4 = { "Vec3", SZ_VEC4};
+struct Type_ t_vec4 = { "Vec3", SZ_VEC4, NULL, te_vec4};
 
 MFUN(vec4_set)
 {
@@ -253,7 +254,6 @@ MFUN(vec4_normalize)
 		v->w /= mag;
 	}
 }
-
 
 INSTR(vec4_add)
 {
@@ -342,8 +342,8 @@ INSTR(vec4_divide_float)
 m_bool import_vec4(Env env)
 {
 	DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_vec3))
-	CHECK_BB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
+  CHECK_BB(add_global_type(env, &t_vec4))
+	CHECK_BB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
 
 	fun = new_DL_Func("void", "set", (m_uint)vec4_set);
 		dl_func_add_arg(fun, "float", "x");
@@ -365,5 +365,6 @@ m_bool import_vec4(Env env)
 	CHECK_BB(add_binary_op(env, op_divide, &t_vec4,   &t_float, &t_vec4,  vec4_divide_float	, 1))
 	CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec4,  &t_vec4,  float_times_vec4	, 1))
 	CHECK_BB(import_class_end(env))
+	t_vec4.size = SZ_VEC4;
 	return 1;
 }

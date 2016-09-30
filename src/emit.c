@@ -211,6 +211,10 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
         instr->execute = Reg_Push_Mem2;
       else if(kind == Kindof_Complex)
         instr->execute = Reg_Push_Mem_Complex;
+      else if(kind == Kindof_Vec3)
+        instr->execute = Reg_Push_Mem_Vec3;
+      else if(kind == Kindof_Vec4)
+        instr->execute = Reg_Push_Mem_Vec4;
       }
   }
   return 1;

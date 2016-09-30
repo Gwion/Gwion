@@ -41,6 +41,8 @@ void Mem_Set_Imm(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr);
+void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr);
+void Reg_Push_Mem_Vec4(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Ptr(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Code(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Dup_Last(VM* vm, VM_Shred shred, Instr instr);

@@ -1,0 +1,4 @@
+Vec3 v;
+v;
+<<<v>>>;
+v.magnitude();

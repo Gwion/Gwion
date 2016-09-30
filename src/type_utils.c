@@ -269,7 +269,10 @@ Kindof kindof(Type type)
     return Kindof_Int;
   else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0 )
     return Kindof_Float;
-/*  else if(isa(type, &t_polar) > 0 || isa(type, &t_complex))*/
+  else if(isa(type, &t_vec3) > 0)
+    return Kindof_Vec3;
+  else if(isa(type, &t_vec4) > 0)
+    return Kindof_Vec4;
   return Kindof_Int;
 }
 
