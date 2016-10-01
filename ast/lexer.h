@@ -343,7 +343,7 @@ extern int minimal_lex \
 #undef YY_DECL
 #endif
 
-#line 251 "gwion.l"
+#line 252 "gwion.l"
 
 
 #line 350 "lexer.h"

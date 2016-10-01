@@ -447,6 +447,33 @@ Polar* new_polar(Expression mod, int pos)
   a->pos = pos;  
   return a;
 }
+Vec new_Vec(Expression e, int pos)
+{
+	Vec a = calloc(1, sizeof(struct Vec_));
+	a->args = e;
+  while( e ) // count number of dims
+  {
+  	a->numdims++;
+    e = e->next;
+	}
+	a->pos = pos;
+	return a;
+}
+Expression new_exp_from_vec(Vec exp, int pos)
+{
+    Expression a = calloc(1, sizeof(struct Expression_));
+    a->exp_type = Primary_Expression_type;
+    a->meta = ae_meta_value;
+    a->primary_exp = calloc(1, sizeof(Primary_Expression));
+    a->primary_exp->type = ae_primary_vec;
+    a->primary_exp->vec = exp;
+    a->primary_exp->pos = pos;
+    a->pos = pos;
+    a->primary_exp->vec->self = a;
+    a->primary_exp->self = a;
+    return a;
+}
+
 Expression new_exp_from_unary(Operator oper, Expression exp, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));

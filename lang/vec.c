@@ -9,7 +9,7 @@
 struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
 MFUN(vec3_set)
 {
-	VEC3_T* v = (VEC3_T*)o;
+	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
 	v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT*2);
@@ -17,7 +17,7 @@ MFUN(vec3_set)
 
 MFUN(vec3_setAll)
 {
-	VEC3_T* v = (VEC3_T*)o;
+	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 	v->z = *(m_float*)(shred->mem + SZ_INT);
@@ -25,13 +25,13 @@ MFUN(vec3_setAll)
 
 MFUN(vec3_magnitude)
 {
-	VEC3_T* v = (VEC3_T*)o;
+	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	RETURN->v_float = sqrt( v->x*v->x + v->y*v->y + v->z*v->z);
 }
 
 MFUN(vec3_normalize)
 {
-	VEC3_T* v = (VEC3_T*)o;
+	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	m_float mag = sqrt( v->x*v->x + v->y*v->y + v->z*v->z);
 	if(mag  > 0)
 	{
@@ -43,48 +43,48 @@ MFUN(vec3_normalize)
 
 MFUN(vec3_interp)
 {
-	VEC3_T* v = (VEC3_T*)o;
+	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = (v->y -v->x) * v->z + v->x;
 	RETURN->v_float = v->x;
 }
 
 MFUN(vec3_float)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = (v->y -v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT)) + v->x;
 	RETURN->v_float = v->x;
 }
 
 MFUN(vec3_dur)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = (v->y -v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT)/ shred->vm_ref->bbq->sp->sr) + v->x;
 	RETURN->v_float = v->x;
 }
 
 MFUN(vec3_update)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 }
 
 MFUN(vec3_update_slew)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 	v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
 }
 
 MFUN(vec3_update_set)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 
 }
 MFUN(vec3_update_set_slew)
 {
-	VEC3_T* v = (VEC3_T*)o;
+  VEC3_T* v =  &*(VEC3_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 	v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
@@ -93,7 +93,7 @@ MFUN(vec3_update_set_slew)
 INSTR(vec3_add)
 {
 	VEC3_T r, * t = (VEC3_T*)shred->reg;
-	shred->reg -= SZ_FLOAT*2;
+	shred->reg -= SZ_VEC3*2;
 	r.x = t->x + (t+1)->x;
 	r.y = t->y + (t+1)->y;
 	r.z = t->z + (t+1)->z;
@@ -166,9 +166,22 @@ INSTR(vec3_divide_float)
 
 INSTR(vec3_z)
 {
+#ifdef DEBUG_INSTR
+	err_msg(INSTR_, 0, "vec_z %i", instr->m_val);
+#endif
 	shred->reg -= SZ_VEC3;
-	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
+//	VEC3_T* r = *(VEC3_T**)(shred->reg);
+	m_float r = *(m_float*)(shred->reg + SZ_FLOAT*2);
+//	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
+	if(instr->m_val)
+		*(m_float**)shred->reg = &*(m_float*)(shred->reg + SZ_FLOAT*2);
+//		*(m_float**)shred->reg = &r->z;
+	else
+		*(m_float*)shred->reg = r;
 	shred->reg += SZ_FLOAT;
+#ifdef DEBUG_INSTR
+	err_msg(INSTR_, 0, "vec_z");
+#endif
 
 }
 
@@ -239,7 +252,7 @@ struct Type_ t_vec4 = { "Vec3", SZ_VEC4, NULL, te_vec4};
 
 MFUN(vec4_set)
 {
-	VEC4_T* v = (VEC4_T*)o;
+  VEC4_T* v =  &*(VEC4_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
 	v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT*2);
@@ -248,7 +261,7 @@ MFUN(vec4_set)
 
 MFUN(vec4_setAll)
 {
-	VEC4_T* v = (VEC4_T*)o;
+  VEC4_T* v =  &*(VEC4_T*)(shred->mem);
 	v->x = *(m_float*)(shred->mem + SZ_INT);
 	v->y = *(m_float*)(shred->mem + SZ_INT);
 	v->z = *(m_float*)(shred->mem + SZ_INT);
@@ -257,13 +270,13 @@ MFUN(vec4_setAll)
 
 MFUN(vec4_magnitude)
 {
-	VEC4_T* v = (VEC4_T*)o;
+  VEC4_T* v =  &*(VEC4_T*)(shred->mem);
 	RETURN->v_float = sqrt( v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w);
 }
 
 MFUN(vec4_normalize)
 {
-	VEC4_T* v = (VEC4_T*)o;
+	VEC4_T* v =  &*(VEC4_T*)(shred->mem);
 	m_float mag = sqrt( v->x*v->x + v->y*v->y + v->z*v->z + v->w*v->w);
 	if(mag  > 0)
 	{

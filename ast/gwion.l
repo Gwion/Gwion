@@ -167,6 +167,7 @@ static int doc_adjust(void* data, char* str);
 ">>>"                               { adjust(yyscanner); return R_HACK;}
 "#("                               { adjust(yyscanner); return SHARPPAREN;}
 "%("                               { adjust(yyscanner); return PERCENTPAREN;}
+"@("                               { adjust(yyscanner); return ATPAREN;}
 "template"                               { adjust(yyscanner); return TEMPLATE;}
 
 "+"                    					    { adjust(yyscanner); return PLUS; }

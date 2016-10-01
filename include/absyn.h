@@ -152,9 +152,19 @@ typedef struct
 Expression new_exp_from_polar(Polar* exp, int pos);
 Expression new_exp_from_char( c_str chr, int pos );
 
+typedef struct Vec_* Vec;
+struct Vec_
+{
+	Expression args;
+	m_uint numdims;
+	m_uint pos;
+	Expression self;
+};
+Vec new_Vec( Expression e, int pos );
+Expression new_exp_from_vec( Vec a, int pos );
 typedef enum { ae_primary_var, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
-               ae_primary_hack, ae_primary_complex, ae_primary_polar,
+               ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,
                ae_primary_char, ae_primary_nil
              } ae_Exp_Primary_Type;
 typedef struct
@@ -173,7 +183,8 @@ typedef struct
         Expression exp;
         Complex* cmp;
         Polar* polar;
-    };
+    		Vec vec;
+		};
 
     int pos;
     Expression self;

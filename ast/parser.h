@@ -152,12 +152,13 @@ extern int minimal_debug;
     GTB = 362,
     VARARG = 363,
     UNION = 364,
-    NUM = 365,
-    FLOAT = 366,
-    ID = 367,
-    STRING_LIT = 368,
-    CHAR_LIT = 369,
-    DOC = 370
+    ATPAREN = 365,
+    NUM = 366,
+    FLOAT = 367,
+    ID = 368,
+    STRING_LIT = 369,
+    CHAR_LIT = 370,
+    DOC = 371
   };
 #endif
 
@@ -173,6 +174,7 @@ union YYSTYPE
 	double fval;
   Complex* c_val;
   Polar* polar;
+	Vec vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
@@ -194,7 +196,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 198 "parser.h" /* yacc.c:1909  */
+#line 200 "parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

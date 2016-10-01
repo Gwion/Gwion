@@ -261,6 +261,12 @@ void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
+	VEC3_T v = *(VEC3_T*)shred->mem;
+printf("%p\n", v);
+	v.x = 0;
+	v.y = 0;
+	v.z = 0;
+//	z(VEC3_T**)(shred->mem + instr->m_val) = malloc(sizeof(VEC3_T));
   *(VEC3_T**)shred->reg = &*(VEC3_T*)(shred->mem + instr->m_val);
   shred->reg += SZ_INT;
 }
@@ -671,30 +677,40 @@ void Dot_Static_Func(VM * vm, VM_Shred shred, Instr instr)
   *(m_uint*)(shred->reg - SZ_INT) = instr->m_val;
 }
 
-/*
+INSTR(Reg_Dup_Last_Vec3)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "dup last vec3");
+#endif
+	
+	*(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_VEC3);
+  shred->reg += SZ_INT;
+
+}
 void member_function(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "string function %p [%i]", *(M_Object*)(shred->reg - SZ_INT), instr->m_val); 
+  debug_msg("instr", "member function %p [%i] %p", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr, 
+instr->m_val));
 #endif
   shred->reg -= SZ_INT;
-  M_Object obj = *(M_Object*)shred->reg;
+  /*
+M_Object obj = *(M_Object*)shred->reg;
   if(!obj)
-    goto error;
-  *(m_uint**)shred->reg = vector_at((Type)instr->ptr, instr->m_val);
-  shred->reg += SZ_INT;
-  return;
-
-error:
-  fprintf( stderr,
-     "[chuck](VM): NullPointerException: shred[id=%lu:%s], PC=[%lu]\n",
-     shred->xid, shred->name, shred->pc );
-
-  // do something!
-  shred->is_running = 0;
-  shred->is_done = 1;
-}
+	{
+		Except(shred);
+		return;
+	}
 */
+	*(VM_Code*)shred->reg = ((Func)vector_at((Vector)instr->ptr, instr->m_val))->code;
+  shred->reg += SZ_INT;
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "member function %i [%i]", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr, instr->m_val));
+#endif
+  return;
+}
+
+
 void Dot_Member_Func(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
@@ -770,10 +786,9 @@ void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
     for(i = 0; i < stack_depth/SZ_INT; i++)
       *(m_uint*)(shred->mem + SZ_INT*i) = *(m_uint*)(shred->reg + SZ_INT*i);
   }
-
   if(func->need_this)
     shred->mem -= SZ_INT;
-    
+
   if(overflow_(shred->mem))
   {
     handle_overflow(shred);
@@ -787,6 +802,7 @@ void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
   else
   {
     f_mfun f = (f_mfun)func->native_func;
+printf("here %p\n", f);
     f((*(M_Object*)shred->mem), &retval, shred);
     dl_return_push(retval, shred, instr->m_val);
   }

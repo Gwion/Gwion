@@ -527,6 +527,42 @@ static Type check_array_lit(Env env, Primary_Expression *exp)
   );
 /*      exit(12);*/
 }
+
+static Type check_Vec(Env env, Primary_Expression* exp )
+{
+    Type t = NULL;
+		Vec val = exp->vec;
+    if(val->numdims > 4)
+    {
+    	err_msg(TYPE_, exp->pos,
+     		"vector dimensions not supported > 4...\n"
+        "    --> format: %@(x,y,z,w)" );
+        return NULL;
+    }
+    Expression e = val->args;
+    // count
+    int count = 1;
+    // loop over arguments
+    while(e)
+    {
+    	if(!(t = check_Expression(env, e)))
+      	return NULL;
+      if(isa( t, &t_int) > 0) e->cast_to = &t_float;
+      else if(isa( t, &t_float) < 0)
+      {
+	    	err_msg(TYPE_, exp->pos,
+        	"invalid type '%s' in vector value #%d...\n"
+        	"    (must be of type 'int' or 'float')", t->name, count );
+      	return NULL;
+      }
+      count++;
+      e = e->next;
+    }
+    if(val->numdims < 4)
+        return &t_vec3;
+    return &t_vec4;
+}
+
 static Type check_Primary_Expression(Env env, Primary_Expression* primary)
 {
 #ifdef DEBUG_TYPE
@@ -699,6 +735,9 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
         primary->polar->phase->cast_to = &t_float;
       }
       t = &t_polar;
+      break;
+    case ae_primary_vec:
+      t = check_Vec(env, primary);
       break;
     case ae_primary_nil:
       t = &t_void;

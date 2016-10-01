@@ -140,5 +140,6 @@ INSTR(Vararg_Vec3);
 INSTR(Vararg_Vec4);
 INSTR(Free_Func); // for template
 
-
+INSTR(member_function);
 INSTR(vec3_z);
+INSTR(Reg_Dup_Last_Vec3);

@@ -364,7 +364,17 @@ static m_bool emit_Array(Emitter emit, Array* array)
   }
   return 1;
 }
-
+static m_bool emit_Vec(Emitter emit, Vec val)
+{
+	CHECK_BB(emit_Expression(emit, val->args, 0));
+	m_uint n = 3 - val->numdims;
+	while(n > 0)
+	{
+		add_instr(emit, Reg_Push_Imm2),
+		n--;
+	}
+	return 1;
+}
 static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 {
 #ifdef DEBUG_EMIT
@@ -424,6 +434,9 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 
     case ae_primary_polar:
       CHECK_BB(emit_Expression(emit, primary->polar->mod, 0));
+      break;
+    case ae_primary_vec:
+      CHECK_BB(emit_Vec(emit, primary->vec));
       break;
 
     case ae_primary_str:
@@ -2230,7 +2243,16 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr = add_instr(emit, complex_imag);
     else if(!strcmp(value->name, "z"))
       instr = add_instr(emit, vec3_z);
-		else exit(2);
+		else
+		{
+printf("here\n");
+			add_instr(emit, Reg_Dup_Last_Vec3);
+			Instr f = add_instr(emit, member_function);
+			f->ptr = t_base->info->obj_v_table;
+		f->m_val = value->func_ref->vt_index;
+//exit(2);
+		return 1;
+		}
 //		else return -1;
     instr->m_val = emit_addr;
     return 1;

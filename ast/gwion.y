@@ -60,6 +60,7 @@ static m_str get_arg_doc(void* data)
 	double fval;
   Complex* c_val;
   Polar* polar;
+	Vec vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
@@ -102,7 +103,7 @@ static m_str get_arg_doc(void* data)
   TEMPLATE
   NOELSE ARROW_LEFT ARROW_RIGHT
   LTB GTB
-  VARARG UNION
+  VARARG UNION ATPAREN
 
 %token<ival> NUM
 %token<fval> FLOAT
@@ -138,6 +139,7 @@ static m_str get_arg_doc(void* data)
 %type <exp> dur_exp
 %type<polar> polar_exp
 %type<c_val> complex_exp
+%type<vec> vec_exp
 %type<exp> postfix_exp
 %type<exp> cast_exp
 %type<exp> arrow_expression
@@ -500,6 +502,8 @@ polar_exp
   : PERCENTPAREN exp RPAREN
     { $$ = new_polar($2, get_pos(scanner)); }
   ;
+vec_exp // ge: added 1.3.5.3
+	: ATPAREN exp RPAREN { $$ = new_Vec($2, get_pos(scanner)); }
 
 conditional_expression
   : logical_or_expression
@@ -669,6 +673,7 @@ primary_exp
   | array_exp         { $$ = new_exp_from_array_lit(            $1, get_pos(scanner)); }  
   | complex_exp       { $$ = new_exp_from_complex(              $1, get_pos(scanner)); }
   | polar_exp         { $$ = new_exp_from_polar(                $1, get_pos(scanner)); }
+	| vec_exp						{ $$ = new_exp_from_vec(                 $1, get_pos(scanner)); }
   | L_HACK exp R_HACK { $$ = new_Hack_Expression(               $2, get_pos(scanner)); }
   | LPAREN exp RPAREN { $$ = $2; }
   | LPAREN RPAREN     { $$ = new_Primary_Expression_from_nil(       get_pos(scanner)); }
