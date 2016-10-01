@@ -190,10 +190,19 @@ INSTR(vec3_z)
 
 INSTR(vec4_w)
 {
+	if(instr->m_val)
+	{
+		shred->reg -= SZ_INT;
+		VEC4_T* v = *(VEC4_T**)(shred->reg);
+		 *(m_float**)shred->reg = &v->z;
+		shred->reg += SZ_INT;
+	}
+	else
+	{
 	shred->reg -= SZ_VEC4;
-	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*3);
-	shred->reg += SZ_FLOAT;
-
+		*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*3);
+		shred->reg += SZ_FLOAT;
+	}
 }
 m_bool import_vec3(Env env)
 {
