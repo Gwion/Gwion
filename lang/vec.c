@@ -169,16 +169,19 @@ INSTR(vec3_z)
 #ifdef DEBUG_INSTR
 	err_msg(INSTR_, 0, "vec_z %i", instr->m_val);
 #endif
-	shred->reg -= SZ_VEC3;
-//	VEC3_T* r = *(VEC3_T**)(shred->reg);
-	m_float r = *(m_float*)(shred->reg + SZ_FLOAT*2);
-//	*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
 	if(instr->m_val)
-		*(m_float**)shred->reg = &*(m_float*)(shred->reg + SZ_FLOAT*2);
-//		*(m_float**)shred->reg = &r->z;
+	{
+		shred->reg -= SZ_INT;
+		VEC3_T* v = *(VEC3_T**)(shred->reg);
+		 *(m_float**)shred->reg = &v->z;
+		shred->reg += SZ_INT;
+	}
 	else
-		*(m_float*)shred->reg = r;
-	shred->reg += SZ_FLOAT;
+	{
+	shred->reg -= SZ_VEC3;
+		*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
+		shred->reg += SZ_FLOAT;
+	}
 #ifdef DEBUG_INSTR
 	err_msg(INSTR_, 0, "vec_z");
 #endif

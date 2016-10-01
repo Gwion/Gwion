@@ -262,11 +262,6 @@ void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr)
   debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
 	VEC3_T v = *(VEC3_T*)shred->mem;
-printf("%p\n", v);
-	v.x = 0;
-	v.y = 0;
-	v.z = 0;
-//	z(VEC3_T**)(shred->mem + instr->m_val) = malloc(sizeof(VEC3_T));
   *(VEC3_T**)shred->reg = &*(VEC3_T*)(shred->mem + instr->m_val);
   shred->reg += SZ_INT;
 }
