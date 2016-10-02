@@ -142,5 +142,6 @@ INSTR(Free_Func); // for template
 
 INSTR(member_function);
 INSTR(vec3_z);
+INSTR(vec4_z);
 INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);

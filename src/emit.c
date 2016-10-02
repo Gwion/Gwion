@@ -2223,7 +2223,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     instr->m_val = emit_addr;
     return 1;
   }
-  if(t_base->xid ==t_polar.xid)
+  else if(t_base->xid ==t_polar.xid)
   {
     if(member->base->meta == ae_meta_var)
     	member->base->emit_var = 1;
@@ -2236,7 +2236,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
 //    instr->m_val = emit_addr;
     return 1;
   }
-  if(t_base->xid ==t_vec3.xid || t_base->xid == t_vec4.xid)
+  else if(t_base->xid ==t_vec3.xid)
   {
 		Instr instr;
     if(member->base->meta == ae_meta_var)
@@ -2249,7 +2249,31 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr = add_instr(emit, complex_imag);
     else if(!strcmp(value->name, "z"))
       instr = add_instr(emit, vec3_z);
-    else if(t_base->xid == t_vec4.xid && !strcmp(value->name, "w"))
+		else
+		{
+			add_instr(emit, Reg_Dup_Last_Vec3);
+			Instr f = add_instr(emit, member_function);
+			f->ptr = t_base->info->obj_v_table;
+			f->m_val = value->func_ref->vt_index;
+			return 1;
+		}
+    instr->m_val = emit_addr;
+    return 1;
+  }
+  else if(t_base->xid ==t_vec4.xid)
+  {
+		Instr instr;
+    if(member->base->meta == ae_meta_var)
+    	member->base->emit_var = 1;
+    CHECK_BB(emit_Expression(emit, member->base, 0))
+    value = find_value(t_base, member->xid);
+    if(!strcmp(value->name, "x"))
+      instr = add_instr(emit, complex_real);
+    else if(!strcmp(value->name, "y"))
+      instr = add_instr(emit, complex_imag);
+    else if(!strcmp(value->name, "z"))
+      instr = add_instr(emit, vec4_z);
+    else if(!strcmp(value->name, "w"))
       instr = add_instr(emit, vec4_w);
 		else
 		{

@@ -182,10 +182,26 @@ INSTR(vec3_z)
 		*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
 		shred->reg += SZ_FLOAT;
 	}
-#ifdef DEBUG_INSTR
-	err_msg(INSTR_, 0, "vec_z");
-#endif
+}
 
+INSTR(vec4_z)
+{
+#ifdef DEBUG_INSTR
+	err_msg(INSTR_, 0, "vec_z %i", instr->m_val);
+#endif
+	if(instr->m_val)
+	{
+		shred->reg -= SZ_INT;
+		VEC4_T* v = *(VEC4_T**)(shred->reg);
+		 *(m_float**)shred->reg = &v->z;
+		shred->reg += SZ_INT;
+	}
+	else
+	{
+	shred->reg -= SZ_VEC4;
+		*(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT*2);
+		shred->reg += SZ_FLOAT;
+	}
 }
 
 INSTR(vec4_w)
