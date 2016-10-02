@@ -2,7 +2,7 @@ PRG=Gwion
 LDFLAGS = -lsoundpipe
 LDFLAGS += -g -lm -pthread -lasound -lsndfile -fno-strict-aliasing
 LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -pipe \
-  -levdev -ldl -rdynamic -lrt -lcgraph -lgvc
+  -levdev -ldl -rdynamic -lrt -lcgraph -lgvc -lportaudio
 CFLAGS+=-Iinclude -I/usr/include/libevdev-1.0
 CC = cc
 

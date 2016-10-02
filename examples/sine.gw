@@ -1,0 +1,6 @@
+SinOsc s => dac;
+while(true)
+{
+	Math.rand2f(200, 1200) => s.freq;
+	samp => now;
+}

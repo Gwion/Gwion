@@ -22,3 +22,4 @@ Driver* alsa_driver();
 #endif
 Driver* dummy_driver();
 Driver* silent_driver();
+Driver* pa_driver();
