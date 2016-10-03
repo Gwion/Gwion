@@ -39,9 +39,8 @@ static int js_filter(const struct dirent* dir)
 
 static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
 {
-  FILE* f, *file = fopen("/usr/lib/Gwion/doc/search/list.js", "w");
-  FILE* all  = fopen("/usr/lib/Gwion/doc/search/all.js", "w");
-  if(!file || !all)
+  FILE*f, * all  = fopen("/usr/lib/Gwion/doc/search/all.js", "w");
+  if(!all)
     return;
   struct dirent **namelist;
   char* line = NULL;
@@ -50,13 +49,11 @@ static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
   ssize_t read;
   size_t len = 0;
   n = scandir("/usr/lib/Gwion/doc/dat", &namelist, js_filter, alphasort);
-  fprintf(file, "var indexSectionNames = \n[\n");
   fprintf(all , "var searchData = \n[\n");
   if (n > 0)
   {
     while (n--)
     {
-      printf("\t'%s', \n", namelist[n]->d_name);
       char name[128];
       memset(name, 0, 128);
       strcat(name, "/usr/lib/Gwion/doc/dat/");
@@ -65,16 +62,14 @@ static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
       printf("\t'%s', \n", name);
       while((read = getline(&line, &len, f)) != -1)
         fprintf(all, "%s\n", line);
-//      free(namelist[n]);
+      free(namelist[n]);
       fclose(f);
     }
   }
     free(namelist);
     free(line);
-    fprintf(file, "];");
     fprintf(all, "];");
     fclose(all);
-    fclose(file);
 }
 
 static void machine_adept(DL_Return * RETURN, VM_Shred shred)

@@ -479,7 +479,7 @@ void mkdoc_context(Env env, m_str str)
 		return;
   fprintf(doc->html, "<meta http-equiv=\"Content-Type\" content=\"text/xhtml;charset=UTF-8\"/>\
 <title>Gwion: %s</title>\
-<body>\
+<html><body>\
 <section class=\"page-header\">\
 <h1 class=\"project-name\">Gwion</h1>\
 <h2 class=\"project-tagline\">A strongly timed musical programming language</h2>\
