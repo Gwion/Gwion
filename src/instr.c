@@ -5,7 +5,7 @@
 void EOC(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Shred [%i]: End of Code", shred->xid); 
+  debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
 #endif
   shred->is_running = 0;
   shred->is_done = 1;
@@ -97,7 +97,7 @@ void assign_func(VM* vm, VM_Shred shred, Instr instr)
 }
 
 void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr)
-{ 
+{
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] reg push '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
@@ -109,7 +109,7 @@ void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr)
 }
 
 void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr)
-{ 
+{
   char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] reg push float '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
@@ -172,7 +172,7 @@ void Reg_Push_Ptr(VM* vm, VM_Shred shred, Instr instr)
 }
 
 void Reg_Push_Code(VM* vm, VM_Shred shred, Instr instr)
-{ 
+{
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push code [%i]", instr->m_val);
 #endif
@@ -191,7 +191,7 @@ void Reg_Dup_Last(VM* vm, VM_Shred shred, Instr instr)
 
 void Reg_AddRef_Object3(VM* vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg -SZ_INT) : *(M_Object*)(shred->reg -SZ_INT));
 #endif
     M_Object obj = instr->m_val ? **(M_Object**)(shred->reg -SZ_INT) : *(M_Object*)(shred->reg -SZ_INT);
@@ -302,7 +302,7 @@ void Branch_Eq_Int(VM* vm, VM_Shred shred, Instr instr)
 
 void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "branch !=");
 #endif
   shred->reg -= SZ_INT*2;
@@ -326,7 +326,7 @@ void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr)
 
 void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "branch != float");
 #endif
   shred->reg -= SZ_FLOAT*2;
@@ -334,11 +334,11 @@ void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr)
   m_float r = *(m_float*)(shred->reg + SZ_INT);
   if(l != r)
     shred->next_pc = instr->m_val;
-}  
+}
 
 void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr )
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "init loop counter");
 #endif
   shred->reg -= SZ_INT;
@@ -348,7 +348,7 @@ void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr )
 
 void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "reg  push deref %i", instr->m_val);
 #endif
   *(m_int*)shred->reg = *(m_int*)instr->m_val;
@@ -357,7 +357,7 @@ void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr)
 
 void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "dec int addr");
 #endif
   (*((m_int*)(instr->m_val)))--;
@@ -366,7 +366,7 @@ void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr)
 void Goto(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "goto %i", instr->m_val); 
+  debug_msg("instr", "goto %i", instr->m_val);
 #endif
   shred->next_pc = instr->m_val;
 }
@@ -375,7 +375,7 @@ void Goto(VM * vm, VM_Shred shred, Instr instr)
 void Cast_i2f(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "cast i2f"); 
+  debug_msg("instr", "cast i2f");
 #endif
   shred->reg -= SZ_INT;
   *(m_float*)shred->reg = *(m_int*)shred->reg;
@@ -385,7 +385,7 @@ void Cast_i2f(VM * vm, VM_Shred shred, Instr instr)
 void Cast_f2i(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "castf2i"); 
+  debug_msg("instr", "castf2i");
 #endif
   shred->reg -= SZ_FLOAT;
   *(m_int*)shred->reg = *(m_float*)shred->reg;
@@ -395,7 +395,7 @@ void Cast_f2i(VM * vm, VM_Shred shred, Instr instr)
 /* debugging */
 void Gack(VM* vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "gack");
 #endif
   Type type;
@@ -416,9 +416,9 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
   {
 #ifdef DEBUG
 #ifdef COLOR
-    fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%i\033[0m] ", shred->xid); 
+    fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%i\033[0m] ", shred->xid);
 #else
-    fprintf(stdout, "[DEBUG] [%i] ", shred->xid); 
+    fprintf(stdout, "[DEBUG] [%i] ", shred->xid);
 #endif
 #endif
   type = vector_at(v, size-i);
@@ -461,34 +461,34 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
     else if(type->xid == t_complex.xid)
     {
 #ifdef COLOR
-      fprintf(stdout, "\033[33m#(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[0m\033[33m)\033[0m", 
+      fprintf(stdout, "\033[33m#(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[0m\033[33m)\033[0m",
 #else
-      fprintf(stdout, "#(%.4f, %.4f)", 
+      fprintf(stdout, "#(%.4f, %.4f)",
 #endif
-        creal(*(complex*)(shred->reg)), 
-        cimag(*(complex*)(shred->reg)));    
+        creal(*(complex*)(shred->reg)),
+        cimag(*(complex*)(shred->reg)));
     }
     else if(type->xid == t_polar.xid)
     {
 #ifdef COLOR
-      fprintf(stdout, "\033[33m%%(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[36m*\033[34mpi\033[0m\033[33m)\033[0m", 
+      fprintf(stdout, "\033[33m%%(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[36m*\033[34mpi\033[0m\033[33m)\033[0m",
 #else
-      fprintf(stdout, "%%(%.4f, %.4f*pi)", 
+      fprintf(stdout, "%%(%.4f, %.4f*pi)",
 #endif
-        creal(*(complex*)(shred->reg)), 
-        cimag(*(complex*)(shred->reg))/ M_PI);    
+        creal(*(complex*)(shred->reg)),
+        cimag(*(complex*)(shred->reg))/ M_PI);
     }
 		else if(type->xid == t_vec3.xid)
 		{
-			fprintf(stdout, "%%(%f %f %f)", *(m_float*)(shred->reg), *(m_float*)(shred->reg + SZ_FLOAT), 
+			fprintf(stdout, "%%(%f %f %f)", *(m_float*)(shred->reg), *(m_float*)(shred->reg + SZ_FLOAT),
 *(m_float*)(shred->reg+SZ_FLOAT*2));
 
 		}
     else if(type->xid == t_string.xid)
 #ifdef COLOR
-      fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);    
+      fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);
 #else
-      fprintf(stdout, "%s", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);    
+      fprintf(stdout, "%s", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);
 #endif
     else if(type->xid == t_void.xid)
       fprintf(stdout, "(void)");
@@ -524,7 +524,7 @@ struct Vararg
 INSTR(MkVararg)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Make Vararg %i %p", instr->m_val, instr->m_val2); 
+  debug_msg("instr", "Make Vararg %i %p", instr->m_val, instr->m_val2);
 #endif
   shred->reg -= instr->m_val;
   m_uint i;
@@ -538,12 +538,10 @@ INSTR(MkVararg)
   for(i = 0; i < arg->s; i++)
   {
     arg->k[i] = (Kindof)vector_at(kinds, i);
-    printf("arg->k[i] %i\n", arg->k[i]);
   }
   arg->o = 0;
   arg->i = 0;
   memcpy(arg->d, shred->reg, instr->m_val);
-  printf("vararg: %p %i\n", arg, vector_size(kinds));
   free_Vector(kinds);
   *(struct Vararg**)(shred->reg)= arg;
   shred->reg += SZ_INT;
@@ -552,7 +550,7 @@ INSTR(MkVararg)
 void Spork(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Spork"); 
+  debug_msg("instr", "Spork");
 #endif
   m_uint i, this_ptr = 0;
   VM_Code code;
@@ -578,7 +576,7 @@ void Spork(VM * vm, VM_Shred shred, Instr instr)
     func = (Func)instr->m_val2;
 /*    exit(89);*/
   }
-  
+
   if(func->is_member)
   {
     shred->reg -= SZ_INT;
@@ -618,7 +616,7 @@ void handle_overflow(VM_Shred shred)
 void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "func call"); 
+  debug_msg("instr", "func call");
 #endif
   m_uint i;
   VM_Code func;
@@ -629,7 +627,7 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT); 
+  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT);
   push = prev_stack + local_depth;
   next = shred->pc + 1;
   m_uint* mem = (m_uint*)shred->mem;
@@ -640,7 +638,6 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
   *mem = stack_depth; mem++;
   shred->next_pc = 0;
   shred->code = func;
-  printf("stack_depth %i\n", stack_depth);
   if(stack_depth)
   {
     if(stack_depth == 7 || stack_depth == 5 || stack_depth == 6)
@@ -648,7 +645,7 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
     shred->reg -= stack_depth;
     if(func->need_this)
     {
-      *mem = *(m_uint*)(shred->reg + stack_depth - SZ_INT); 
+      *mem = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
       mem++;
       stack_depth -= SZ_INT;
     }
@@ -667,7 +664,7 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
 void Dot_Static_Func(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "dot static func %s", ((Func)instr->m_val)->name); 
+  debug_msg("instr", "dot static func %s", ((Func)instr->m_val)->name);
 #endif
   *(m_uint*)(shred->reg - SZ_INT) = instr->m_val;
 }
@@ -677,7 +674,7 @@ INSTR(Reg_Dup_Last_Vec3)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-	
+
 	*(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_VEC3);
   shred->reg += SZ_INT;
 
@@ -685,7 +682,7 @@ INSTR(Reg_Dup_Last_Vec3)
 void member_function(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "member function %p [%i] %p", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr, 
+  debug_msg("instr", "member function %p [%i] %p", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr,
 instr->m_val));
 #endif
   shred->reg -= SZ_INT;
@@ -709,8 +706,8 @@ M_Object obj = *(M_Object*)shred->reg;
 void Dot_Member_Func(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "dot member func"); 
-  debug_msg("instr", "dot member func %p [%i]", *(M_Object*)(shred->reg - SZ_INT), instr->m_val); 
+  debug_msg("instr", "dot member func");
+  debug_msg("instr", "dot member func %p [%i]", *(M_Object*)(shred->reg - SZ_INT), instr->m_val);
 #endif
   shred->reg -= SZ_INT;
   M_Object obj = *(M_Object*)shred->reg;
@@ -723,14 +720,14 @@ void Dot_Member_Func(VM * vm, VM_Shred shred, Instr instr)
 void Instr_Func_Call_Static(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "func call static"); 
+  debug_msg("instr", "func call static");
 #endif
 
   f_sfun f;
   m_uint i, local_depth, stack_depth;
   VM_Code func;
   DL_Return retval;
-  
+
   shred->reg -= SZ_INT*2;
   func        = *(VM_Code*)shred->reg;
   f           = (f_sfun)func->native_func;
@@ -755,7 +752,7 @@ void Instr_Func_Call_Static(VM * vm, VM_Shred shred, Instr instr)
 
 void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "func call member");
 #endif
 
@@ -763,7 +760,7 @@ void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
   DL_Return retval;
   VM_Code func;
   m_uint local_depth, stack_depth;
-  
+
   shred->reg -= SZ_INT*2;
   func = *(VM_Code*)shred->reg;
   local_depth =   *(m_uint*)(shred->reg + SZ_INT);
@@ -797,17 +794,16 @@ void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
   else
   {
     f_mfun f = (f_mfun)func->native_func;
-printf("here %p\n", f);
     f((*(M_Object*)shred->mem), &retval, shred);
     dl_return_push(retval, shred, instr->m_val);
   }
   shred->mem -= local_depth;
-} 
+}
 
 void Func_Return(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "func return"); 
+  debug_msg("instr", "func return");
 #endif
   shred->mem -= SZ_INT * 2;
   shred->next_pc = *(m_uint*)shred->mem;
@@ -845,7 +841,7 @@ void Reg_Push_This(VM * vm, VM_Shred shred, Instr instr)
 void Pre_Constructor(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "pre constructor"); 
+  debug_msg("instr", "pre constructor");
 #endif
   call_pre_constructor(vm, shred, (VM_Code)instr->m_val, instr->m_val2);
 }
@@ -860,7 +856,7 @@ static void instantiate_object(VM * vm, VM_Shred shred, Type type )
   *(M_Object*)shred->reg =  object;
   shred->reg += SZ_INT;
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "instantiate object (internal)%p %s", object, type->name); 
+  debug_msg("instr", "instantiate object (internal)%p %s", object, type->name);
 #endif
   return;
 
@@ -871,7 +867,7 @@ error:
 
 void Instantiate_Object(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "instantiate object %p", instr->ptr);
 #endif
   instantiate_object(vm, shred, instr->ptr);
@@ -879,7 +875,7 @@ void Instantiate_Object(VM * vm, VM_Shred shred, Instr instr)
 
 void Alloc_Member_Word(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "alloc member word: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
@@ -890,7 +886,7 @@ void Alloc_Member_Word(VM * vm, VM_Shred shred, Instr instr)
 
 void Alloc_Member_Word_Float(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "alloc member float: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
@@ -901,7 +897,7 @@ void Alloc_Member_Word_Float(VM * vm, VM_Shred shred, Instr instr)
 
 void Alloc_Member_Word_Complex(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "alloc member complex: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
@@ -934,18 +930,18 @@ void Alloc_Member_Word_Vec4(VM * vm, VM_Shred shred, Instr instr)
 
 void Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "Dot STATIC DATA: [%i] (%i) (emit:%i)", instr->m_val, instr->m_val2, instr->ptr);
 #endif
   Type t;
-  
+
   shred->reg -= SZ_INT;
   t = *(Type*)shred->reg;
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr)
   {
     *(m_uint**)shred->reg = &*(m_uint*)(t->info->class_data + instr->m_val);
-    shred->reg += SZ_INT;  
+    shred->reg += SZ_INT;
   }
   /* take care of Kind (instr->m_val2)*/
   else if(instr->m_val2 == Kindof_Int)
@@ -955,7 +951,6 @@ void Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr)
   }
   else if(instr->m_val2 == Kindof_Float)
   {
-printf("dot static data %f", *(m_float*)(t->info->class_data + instr->m_val));
     *(m_float*)shred->reg = *(m_float*)(t->info->class_data + instr->m_val);
     shred->reg += SZ_FLOAT;
   }
@@ -964,18 +959,28 @@ printf("dot static data %f", *(m_float*)(t->info->class_data + instr->m_val));
     *(complex*)shred->reg = *(complex*)(t->info->class_data + instr->m_val);
     shred->reg += SZ_COMPLEX;
   }
+  else if(instr->m_val2 == Kindof_Vec3)
+  {
+    *(VEC3_T*)shred->reg = *(VEC3_T*)(t->info->class_data + instr->m_val);
+    shred->reg += SZ_VEC3;
+  }
+  else if(instr->m_val2 == Kindof_Vec4)
+  {
+    *(VEC4_T*)shred->reg = *(VEC4_T*)(t->info->class_data + instr->m_val);
+    shred->reg += SZ_VEC4;
+  }
 }
 
 void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "Dot STATIC Import DATA: %p", instr->ptr);
 #endif
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr)
   {
     *(m_uint**)shred->reg = &*(m_uint*)instr->m_val;
-    shred->reg += SZ_INT;  
+    shred->reg += SZ_INT;
   }
   /* take care of Kind (instr->m_val2)*/
   if(instr->m_val2 == Kindof_Int)
@@ -1007,7 +1012,7 @@ void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr)
 
 void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)(shred->reg-SZ_INT), instr->m_val, instr->m_val2, instr->ptr);
 #endif
 
@@ -1022,7 +1027,7 @@ void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr)
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr)
   {
-    *(m_uint**)shred->reg = &*(m_uint*)(obj->data + instr->m_val);  
+    *(m_uint**)shred->reg = &*(m_uint*)(obj->data + instr->m_val);
     shred->reg += SZ_INT;
   }
   /* take care of Kind (instr->m_val2)*/
@@ -1074,7 +1079,7 @@ void Instr_Pre_Ctor_Array_Top(VM * vm, VM_Shred shred, Instr instr)
 
 void Instr_Pre_Ctor_Array_Bottom(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "array alloc bottom");
 #endif
   shred->reg -= SZ_INT;
@@ -1088,7 +1093,7 @@ void Instr_Pre_Ctor_Array_Bottom(VM * vm, VM_Shred shred, Instr instr)
 
 void Instr_Pre_Ctor_Array_Post(VM * vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "array alloc post");
 #endif
   shred->reg -= SZ_INT * 3;
@@ -1098,7 +1103,7 @@ void Instr_Pre_Ctor_Array_Post(VM * vm, VM_Shred shred, Instr instr)
 
 static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   Type type, m_bool is_obj, m_uint* objs, m_int* index )
-{  
+{
   M_Object base = NULL, next = NULL;
   m_int i = 0;
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
@@ -1143,12 +1148,12 @@ negative_array_size:
 error:
   if(base)
     release(base, shred);
-    return NULL;  
+    return NULL;
 }
 
 void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr) // for litteral array
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "array init");
 #endif
   m_uint i;
@@ -1164,7 +1169,7 @@ void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr) // for litteral array
 
 void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr)
 {
-#ifdef DEBUG_INSTR 
+#ifdef DEBUG_INSTR
   debug_msg("instr", "array alloc");
 #endif
   VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
@@ -1175,9 +1180,9 @@ void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr)
   m_uint* obj_array = NULL;
   m_uint obj_array_size = 0;
   m_uint depth = info->depth;
-  
+
   if(info->is_obj && !info->is_ref)
-  {    
+  {
     m_int curr = -info->depth;
     m_int top = - 1;
     m_int tmp;

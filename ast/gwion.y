@@ -250,7 +250,7 @@ id_dot
 
 stmt_list
   : stmt { $$ = new_Stmt_List($1, NULL, get_pos(scanner));}
-  | stmt stmt_list { printf("exp stmt %p %p\n", $$, $1); $$ = new_Stmt_List($1, $2, get_pos(scanner));}
+  | stmt stmt_list { $$ = new_Stmt_List($1, $2, get_pos(scanner));}
   ;
 
 static_decl
@@ -287,7 +287,7 @@ code_segment
   ;
 
 stmt
-  : exp_stmt      {printf("exp stmt %p\n", $$->stmt_exp);}
+  : exp_stmt
   | loop_stmt
   | selection_stmt
   | code_segment
@@ -298,7 +298,7 @@ stmt
   | enum_stmt
   | jump_stmt
 	| func_ptr
-	| union { $$ = new_stmt_from_Union($1, 0); printf("new Union Stmt %p %p\n", $$, $1); }
+	| union { $$ = new_stmt_from_Union($1, 0); }
   ;
 
 enum_stmt
@@ -362,7 +362,7 @@ exp_stmt
 
 exp
   : binary_exp            { $$ = $1; }
-  | binary_exp COMMA exp  { printf("prepend %p %p\n", $1, $3); $$ = prepend_Expression($1, $3, get_pos(scanner)); }
+  | binary_exp COMMA exp  { $$ = prepend_Expression($1, $3, get_pos(scanner)); }
   //| exp COMMA unary_expression { $$ = prepend_Expression($1, $3, get_pos(scanner)); }
   ;
 arrow_operator
@@ -475,12 +475,12 @@ type_decl
 
   
 decl_list
-  : decl_exp SEMICOLON { printf("new decl_List\n"); $$ = new_Decl_List($1->decl_exp, NULL); }
-  | decl_exp SEMICOLON decl_list { printf("new decl_List\n"); $$ = new_Decl_List($1->decl_exp, $3); }
+  : decl_exp SEMICOLON { $$ = new_Decl_List($1->decl_exp, NULL); }
+  | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->decl_exp, $3); }
   ;
   
 union
-  : UNION LBRACE decl_list RBRACE SEMICOLON {printf("new Union %p\n", $3); $$ = new_Union($3); }
+  : UNION LBRACE decl_list RBRACE SEMICOLON {$$ = new_Union($3); }
   ;
 var_decl_list
   : var_decl  { $$ = new_Var_Decl_List($1, NULL, get_pos(scanner)); $$->doc = get_doc(scanner); }

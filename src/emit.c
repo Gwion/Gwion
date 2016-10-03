@@ -137,7 +137,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 
   /* HACK: constant value */
   if(v->is_const)
-  {  
+  {
     if(v->func_ref)
     {
       instr = add_instr(emit, Reg_Push_Imm);
@@ -152,7 +152,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 /*      instr->f_val = (m_float)(m_uint)v->ptr;*/
       instr->f_val = *(m_float*)v->ptr;
       return 1;
-    }    
+    }
     else
     {
       instr = add_instr(emit, Reg_Push_Imm);
@@ -321,7 +321,7 @@ static m_bool emit_Array(Emitter emit, Array* array)
   Array_Sub sub = NULL;
   Expression exp = NULL;
   m_uint is_var = 0;
- 
+
   type = array->self->type;
   base_type = array->base->type;
   is_var = array->self->emit_var;
@@ -345,7 +345,7 @@ static m_bool emit_Array(Emitter emit, Array* array)
     err_msg(EMIT_, array->pos,
       "internal error: NULL array exp..." );
     return -1;
-  }  
+  }
   CHECK_BB(emit_Expression(emit, array->base, 0))
   CHECK_BB(emit_Expression(emit, exp, 0))
   if(depth == 1)
@@ -354,7 +354,7 @@ static m_bool emit_Array(Emitter emit, Array* array)
 /*    instr->m_val  = (is_var || type->array_depth);*/
     instr->m_val  = is_var;
     instr->m_val2 = kindof(type);
-  } 
+  }
   else
   {
     instr = add_instr(emit, Instr_Array_Access_Multi);
@@ -416,7 +416,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = temp;
       break;
-    
+
     case ae_primary_char:
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = str2char(primary->chr, primary->pos);
@@ -468,7 +468,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
       err_msg(EMIT_,  primary->pos, "(emit): unhandled primary type '%i'...", primary->type);
       return -1;
   }
-  return 1;  
+  return 1;
 }
 
 static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
@@ -534,7 +534,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     else
     {
       if(!emit->env->class_def || !decl->is_static)
-      {      
+      {
         local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
         if(!local)
           return -1;
@@ -583,7 +583,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           dot_static->ptr    = (m_uint*)1;
         }
       }
-    }    
+    }
     is_init = 0;
 
     // if object, assign
@@ -624,8 +624,8 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       {
         Instr set = add_instr(emit, Mem_Set_Imm);
         set->ptr = namespace_lookup_func(emit->env->curr, insert_symbol(value->m_type->name), -1);
-        set->m_val = value->offset;    
-      
+        set->m_val = value->offset;
+
       }
     }
 */
@@ -655,11 +655,11 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
       push->m_val = set_mem->m_val = value->offset;
 
       printf("%p\n",
-      
+
       find_value(binary->rhs->dot_member->t_base->parent, insert_symbol(binary->rhs->dot_member->t_base->name))
-      
+
       );
-    
+
     }
     set_mem->ptr   = binary->func;
     return 1;
@@ -670,7 +670,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     Instr instr = add_instr(emit, assign_func); // should be assign_func
 /*    instr->m_val = */
     return 1;
-    
+
     }
   CHECK_BB(emit_Expression(emit, binary->lhs, 1))
   CHECK_BB(emit_Expression(emit, binary->rhs, 1))
@@ -693,11 +693,11 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 
   if(binary->lhs->type->array_depth || binary->rhs->type->array_depth)
   {
-    if(binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth) 
+    if(binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
       add_instr(emit, Assign_Object);
     return 1;
   }
-  
+
   if(isa(binary->rhs->type, &t_object) > 0 && isa(binary->lhs->type, &t_null) > 0 && binary->op == op_at_chuck)
   {
     add_instr(emit, Assign_Object);
@@ -735,7 +735,7 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "cast");
-#endif 
+#endif
   Type  to = cast->self->type;
   Type  from = cast->exp->type;
   if(isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0)
@@ -771,7 +771,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
   f_instr instr;
   CHECK_BB(emit_Expression(emit, postfix->exp, 0))
 
-//  return 
+//  return
 /*get_instr(emit, postfix->op, postfix->exp->type, NULL);*/
   // emit
   switch(postfix->op)
@@ -835,9 +835,9 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 #endif
   m_uint size = type->size;
   Instr  code, offset, call;
-  
+
 /*  Instr prev;*/
-  
+
 /*m_uint ptr;  */
   if(!func->code)
   { // calling function pointer in func
@@ -851,7 +851,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
       }
      if(emit_Func_Def(emit, func->def) < 0)
         exit(0);
-      func->code = func->def->func->code; 
+      func->code = func->def->func->code;
       func->code->name = func->name;
       code = add_instr(emit, Reg_Push_Ptr);
       code->ptr = func->code;
@@ -860,7 +860,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     {
     code = add_instr(emit, Reg_Push_Code);
     code->m_val =  f->value_ref->offset;
-    
+
     }
   }
   else
@@ -919,7 +919,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   op = add_instr(emit, Mem_Push_Imm);
 
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
-      
+
   add_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
 
@@ -955,7 +955,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
   switch(unary->op)
   {
     case op_plusplus:
-      if(unary->self->meta != ae_meta_var || 
+      if(unary->self->meta != ae_meta_var ||
         unary->self->exp_type == Primary_Expression_type &&
         unary->self->primary_exp->value->is_const)  // TODO: check const
       {
@@ -967,7 +967,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
         add_instr(emit, inc);
       break;
     case op_minusminus:
-      if( unary->self->meta != ae_meta_var|| 
+      if( unary->self->meta != ae_meta_var||
         unary->self->exp_type == Primary_Expression_type &&
         unary->self->primary_exp->value->is_const )  // TODO: check const
       {
@@ -1001,19 +1001,19 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       // spork ~ { ... }
       else if(unary->code)
       {
-      
+
         Instr op = NULL, push_code = NULL, spork = NULL;
         VM_Code code;
         ID_List list = new_id_list("sporked", unary->pos);
         Func f = new_Func("sporked", new_Func_Def(0,0, new_Type_Decl(list, 0, unary->pos), "sporked", NULL, unary->code, unary->pos));
-        
+
         if(emit->env->class_def)
         {
           add_instr(emit, Reg_Push_This);
         }
         Instr push = add_instr(emit, Reg_Push_Imm);
         push->m_val = (m_uint)f;
-        
+
         vector_append(emit->stack, emit->code);
         emit->code = new_Code();
         f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
@@ -1038,7 +1038,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
             "(emit): internal error: sporking non-function call..." );
         return -1;
       }
-      break;  
+      break;
 
       case op_minus:
       if(isa(unary->self->type, &t_int) >0)
@@ -1053,7 +1053,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
         return -1;
       }
       break;
-      
+
       case op_new:
         if(isa(unary->self->type, &t_object) > 0)
           CHECK_BB(emit_instantiate_object( emit, unary->self->type, unary->array, unary->type->ref))
@@ -1062,7 +1062,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
         err_msg(EMIT_, unary->pos,
           "(emit): internal error: unhandled type '%s' for unary '%s' operator", op2str(unary->op));
         return -1;
-      
+
   }
   return 1;
 }
@@ -1092,7 +1092,6 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* func_call )
 /*        instr->m_val = e->type->size;*/
         size         += e->type->size;
         vector_append(kinds, (m_uint*)kindof(e->type));
-        printf("extra arg %i\n", size);
       }
       else
         offset += e->type->size;
@@ -1100,16 +1099,10 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* func_call )
       if(l)
         l = l->next;
     }
-    
-    printf("lol %p\n", namespace_lookup_value(emit->env->curr, insert_symbol("vararg"), 1));
-    
-    /*    add_instr(emit, Reg_Push_Imm);*/
-/*    add_instr(emit, Reg_Pop_Word4);*/
     Instr instr = add_instr(emit, MkVararg);
     instr->m_val = size;
     instr->m_val2 = (m_uint)kinds;
   }
-  printf("func_call->m_func->def->is_variadic %i\n", func_call->m_func->def->is_variadic);
   return 1;
 }
 
@@ -1177,7 +1170,7 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to)
 #endif
   if(from->xid == t_int.xid && to->xid == t_float.xid)
     add_instr(emit, Cast_i2f);
-  else 
+  else
   if(from->xid == t_float.xid && to->xid == t_int.xid)
     add_instr(emit, Cast_f2i);
   else if(isa(to, from) < 0 && isa(from, to) < 0)
@@ -1241,7 +1234,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
 #endif
   Expression tmp = exp;
   Instr instr;
-  
+
   while(tmp)
   {
     switch(tmp->exp_type)
@@ -1416,7 +1409,7 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
 #endif
   m_bool ret = 1;
   m_uint index = vector_size(emit->code->code);
-  
+
   Instr op = new_Instr();
   Instr tmp;
   Instr goto_;
@@ -1424,7 +1417,7 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   frame_push_scope(emit->code->frame);
   emit_add_cont(emit, NULL);
   emit_add_break(emit, NULL);
-  
+
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
   switch( stmt->cond->type->xid )
@@ -1601,7 +1594,7 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   Instr _goto = add_instr(emit, Goto);
   _goto->m_val = index;
   op->m_val = vector_size(emit->code->code);
-  
+
   while( vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont))
   {
     Instr instr = vector_back(emit->code->stack_cont);
@@ -1661,7 +1654,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
   op = add_instr(emit, f);
 /*  op->m_val = vector_size(emit->code->code);*/
   op->m_val = index;
-  
+
   while( vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont))
   {
     Instr instr = vector_back(emit->code->stack_cont);
@@ -1758,7 +1751,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       if(e->type->size == SZ_FLOAT)
           num_words += SZ_FLOAT;
       else if(e->type->size == SZ_INT)
-          num_words += SZ_INT; 
+          num_words += SZ_INT;
       else if(e->type->size == SZ_COMPLEX)
           num_words += SZ_COMPLEX;
       else if(e->type->size != 0)
@@ -1783,10 +1776,10 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   _goto->execute = Goto;
   _goto->m_val = index;
   emit_add_code(emit, _goto);
-  
+
   if(stmt->c2)
     op->m_val = vector_size(emit->code->code);
-    
+
   while( vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont))
   {
     Instr instr = vector_back(emit->code->stack_cont);
@@ -1835,11 +1828,10 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
 /*  emit->append( new Chuck_Instr_Reg_Push_Deref( (t_CKUINT)counter ) ); // ISSUE: 64-bit (fixed 1.3.1.0)*/
   deref = add_instr(emit, Reg_Push_Deref);
   deref->m_val = (m_uint)counter;
-   printf("here\n");
 
   // get the type, taking cast into account
   Type type = stmt->cond->cast_to ? stmt->cond->cast_to : stmt->cond->type;
-  
+
   switch( type->xid )
   {
   case te_int:
@@ -1890,7 +1882,7 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
   vector_pop(emit->code->stack_break);
-  return 1; 
+  return 1;
 }
 
 static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
@@ -1901,7 +1893,7 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
   m_uint i, size;
   Stmt_Goto_Label label;
   if(!stmt->is_label)
-    stmt->data.instr = add_instr(emit, Goto);  
+    stmt->data.instr = add_instr(emit, Goto);
   else
   {
     if(emit->cases && !strcmp(S_name(stmt->name), "default"))
@@ -1909,7 +1901,7 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
       if(emit->default_case_index != -1)
       {
         err_msg(EMIT_, stmt->pos, "default case already defined");
-        return -1;     
+        return -1;
       }
       emit->default_case_index = vector_size(emit->code->code);
       return 1;
@@ -1998,7 +1990,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   }
   else
-  {    
+  {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
     return -1;
   }
@@ -2007,7 +1999,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value);
     return -1;
   }
-  
+
   map_set(emit->cases, (m_uint*)value, (m_uint*)vector_size(emit->code->code));
   return 1;
 }
@@ -2030,7 +2022,7 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   {
     Instr instr;
     v = vector_at(stmt->values, i);
-    
+
     if(!emit->env->class_def)
     {
       local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0);
@@ -2068,7 +2060,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
           exp = exp->primary_exp->exp;
 
         while(exp)
-        { 
+        {
         // get rid of primary str ?
 /*          if(exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_str)*/
           instr = add_instr(emit, Reg_Pop_Word4);
@@ -2082,7 +2074,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
       }
       if(ret < 0)
         return -1;
-    break; 
+    break;
     case ae_stmt_code:
       ret = emit_Stmt_Code(emit, stmt->stmt_code, 1);
       break;
@@ -2391,7 +2383,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         func_i->m_val  = (m_uint)offset;
         func_i->m_val2 = (m_uint)kindof(value->m_type);
         func_i->ptr    = (m_uint*)emit_addr;
-      } 
+      }
     }
     else if(isa(member->self->type, &t_function) > 0) // function
     {
@@ -2481,7 +2473,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       }
     }
   }
-  return 1; 
+  return 1;
 }
 
 
@@ -2497,7 +2489,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
   if(func->code)
   {
-    err_msg(EMIT_, func_def->pos, 
+    err_msg(EMIT_, func_def->pos,
       "function '%s' already emitted...",  S_name(func_def->name) );
     return -1;
   }
@@ -2529,7 +2521,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   sprintf(emit->code->name, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
   emit->code->need_this = func->is_member;
   emit->code->filename = emit->context->filename;
-    
+
   Arg_List a = func_def->arg_list;
   m_bool is_obj = 0;
   m_bool is_ref = 0;
@@ -2554,7 +2546,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     emit->code->stack_depth += type->size;
 
     local = frame_alloc_local( emit->code->frame, type->size, value->name, is_ref, is_obj );
-  
+
     if(!local)
     {
       err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name);
@@ -2571,12 +2563,11 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
         return -1;
     }
     emit->code->stack_depth += SZ_INT;
-    printf("\n%p\n", namespace_lookup_value(emit->env->curr, insert_symbol("vararg"), 0));
   }
-    
+
   // TODO: make sure the calculated stack depth is the same as func_def->stack depth
   // taking into account member function
-  
+
   // add references for objects in the arguments (added 1.3.0.0)
   // NOTE: this isn't in use since currently the caller is reference counting
   // the arguments -- this is to better support sporking, which is more
@@ -2600,13 +2591,13 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   {
     Instr instr = vector_at(emit->code->stack_return, i);
     instr->m_val =  vector_size(emit->code->code);
-  } 
+  }
 
   free_Vector(emit->code->stack_return);
   emit->code->stack_return = new_Vector();
   add_instr(emit, Func_Return);
   func->code = emit_to_code(emit);
-  
+
   if(func->def->spec == ae_func_spec_dtor)
   {
 /*    func->code->stack_depth = SZ_INT;*/
@@ -2626,7 +2617,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   emit->code = vector_back(emit->stack);
   vector_pop(emit->stack);
   return 1;
-}  
+}
 
 static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
 {
@@ -2688,8 +2679,8 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
       break;
     }
     body = body->next;
-  }  
-  
+  }
+
   if(ret > 0)
   {
     add_instr(emit, Func_Return);
@@ -2725,20 +2716,20 @@ m_bool emit_Ast(Emitter emit, Ast ast)
   emit->stack = new_Vector();
   emit->code->name = emit->context->filename;
   frame_push_scope(emit->code->frame);
-  
+
   while(prog && ret > 0)
   {
   	if(!prog->section)
   		return 1;
     switch(prog->section->type)
     {
-      case ae_section_stmt:  
+      case ae_section_stmt:
         ret = emit_Stmt_List(emit, prog->section->stmt_list);
         break;
-      case ae_section_func:  
+      case ae_section_func:
         ret = emit_Func_Def(emit, prog->section->func_def);
         break;
-      case ae_section_class:  
+      case ae_section_class:
         ret = emit_Class_Def(emit, prog->section->class_def);
         break;
     }

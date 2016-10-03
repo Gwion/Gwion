@@ -39,8 +39,9 @@ static Context find_context(Env env, m_str name)
 {
   Context ctx;
   printf("nmae: %s\n", name);
-  if(ctx =map_get(env->known_ctx, insert_symbol(name)))
+  if((ctx =map_get(env->known_ctx, insert_symbol(name))))
     return ctx;
+  printf("nmae: %s\n", name);
   return NULL;
 }
 
@@ -88,6 +89,8 @@ static Doc* new_Doc(Env env, m_str str)
   Doc* doc = malloc(sizeof(Doc));
   doc->env = env;
   doc->ctx = find_context(env, str);
+	if(!doc->ctx)
+		return NULL;
   name = doc->ctx != env->global_context ? usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
   strcat(c, GWION_DOC_DIR);
@@ -451,7 +454,8 @@ void mkdoc_context(Env env, m_str str)
 {
   int i;
   Doc* doc = new_Doc(env, str);
-
+	if(!doc)
+		return;
   fprintf(doc->html, "<meta http-equiv=\"Content-Type\" content=\"text/xhtml;charset=UTF-8\"/>\
 <title>Gwion: %s</title>\
 <script src=\"dynsections.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\

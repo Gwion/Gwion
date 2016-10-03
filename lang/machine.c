@@ -10,9 +10,11 @@
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\
   str = realpath(str, NULL);\
+  if(!str) return;\
   Ast ast = parse(str);\
   if(!ast) return;\
   if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0) return;
+
 static void machine_add(DL_Return * RETURN, VM_Shred shred)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);

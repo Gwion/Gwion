@@ -11,7 +11,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
 {
   Var_Decl_List list = decl->list;
   Type type = decl->m_type;
-  
+
   // shred are to be ref
   if(isa(type, &t_shred) > 0)
     decl->type->ref = 1;
@@ -40,7 +40,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
         "...(primitive types: 'int', 'float', 'time', 'dur')" );
     return -1;
   }
-  
+
   while(list)
   {
     if(isres(env, list->self->xid, list->self->pos) > 0)
@@ -58,7 +58,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       if(verify_array( list->self->array ) < 0)
         return -1;
       Type t2 = type;
-    
+
       if( list->self->array->exp_list )
       {
         if(scan2_Expression(env, list->self->array->exp_list) < 0)
@@ -79,7 +79,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
 
-    
+
     // doc
     if(!env->class_def && ! env->func)
       context_add_value(env->context, list->self->value, new_VM_Object(e_value_obj));
@@ -113,7 +113,7 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
 /*        goto error;*/
       return -1;
     }
-    /*    
+    /*
     // check if reserved
     if( type_engine_check_reserved( env, arg_list->var_decl->xid, arg_list->linepos ) )
     {
@@ -173,10 +173,10 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
   // function args not owned
 /*  v->owner_class = NULL;*/
 /*  v->is_member = 0;*/
-  
+
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
-  
-  
+
+
   // stack
 /*  v->offset = f->stack_depth;*/
 /*  f->stack_depth += arg_list->type->size;*/
@@ -189,10 +189,10 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
     count++;
     // next arg
     arg_list = arg_list->next;
-  
+
   }
   namespace_pop_value(env->curr);
-  
+
   ptr->value->checked = 1;
 /*  if(env->class_def)*/
 /*    namespace_add_value(env->class_def, ptr->xid, ptr->value);*/
@@ -219,10 +219,10 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
 }
 
 static m_bool scan2_Primary_Expression(Env env, Primary_Expression* primary)
-{ 
+{
   if(primary->type == ae_primary_hack)
     CHECK_BB(scan2_Expression(env, primary->exp))
-  return 1;  
+  return 1;
 }
 
 static m_bool scan2_Array(Env env, Array* array)
@@ -247,7 +247,7 @@ static m_bool scan2_Binary_Expression(Env env, Binary_Expression* binary )
 
 static m_bool scan2_Cast_Expression(Env env, Cast_Expression* cast)
 {
-  CHECK_BB(scan2_Expression(env, cast->exp)) 
+  CHECK_BB(scan2_Expression(env, cast->exp))
   return 1;
 }
 
@@ -266,15 +266,15 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix )
           "postfix operator '%s' cannot be used on non-mutable data-type...",op2str( postfix->op ));
         return -1;
       }
-      // TODO: mark somewhere we need to post increment      
+      // TODO: mark somewhere we need to post increment
       return 1;
     break;
-    
+
     default:
       err_msg( SCAN2_, postfix->pos,
         "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op );
       return -1;
-  }  
+  }
   return 1;
 }
 
@@ -320,7 +320,7 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
       return 1;
     }
     else if(func_call->func->exp_type == Dot_Member_type)
-      return 1;    
+      return 1;
     else
       {
         err_msg(SCAN2_, func_call->pos, "unhandled exprssion type '%i' in template func call.", func_call->func->exp_type);
@@ -332,7 +332,6 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
 
 static m_bool scan2_Dot_Member(Env env, Dot_Member* member)
 {
-  printf("scan2 value %p\n", namespace_lookup_value(env->curr, insert_symbol("vararg"), 1));
   CHECK_BB(scan2_Expression(env, member->base))
   return 1;
 }
@@ -409,10 +408,10 @@ static m_bool scan2_Expression(Env env, Expression exp)
 static m_bool scan2_Stmt_Code(Env env, Stmt_Code stmt, m_bool push )
 {
     env->class_scope++;
-    if(push) 
+    if(push)
       namespace_push_value(env->curr);
     m_bool t = scan2_Stmt_List( env, stmt->stmt_list);
-    if(push) 
+    if(push)
       namespace_pop_value(env->curr);
     env->class_scope--;
     return t;
@@ -510,10 +509,10 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
   if(!stmt)
     return 1;
   switch(stmt->type)
-  { 
+  {
     case ae_stmt_exp:
       ret = scan2_Expression(env, stmt->stmt_exp);
-      break; 
+      break;
 
     case ae_stmt_return:
         ret = scan2_return( env, stmt->stmt_return );
@@ -523,7 +522,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
       env->class_scope++;
       ret = scan2_Stmt_Code( env, stmt->stmt_code, 1);
       env->class_scope--;
-      break; 
+      break;
 
     case ae_stmt_if:
       env->class_scope++;
@@ -548,7 +547,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
       namespace_pop_value(env->curr);
       env->class_scope--;
       break;
-    
+
     case ae_stmt_for:
       env->class_scope++;
       namespace_push_value(env->curr);
@@ -570,7 +569,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
       ret = scan2_Switch( env, stmt->stmt_switch);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_case:
       ret = scan2_Case(env, stmt->stmt_case);
       break;
@@ -646,19 +645,19 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     value->is_context_global = (env->class_def == NULL);
     value->func_ref = func;
     add_ref(value->func_ref->obj);
-    func->value_ref = value; 
+    func->value_ref = value;
     add_ref(value->obj);
-    f->func = func; 
+    f->func = func;
     add_ref(f->func->obj);
     value->checked = 1;
     if(overload)
       overload->func_num_overloads++;
     else
-      namespace_add_value(env->curr, insert_symbol(orig_name), value);    
+      namespace_add_value(env->curr, insert_symbol(orig_name), value);
     char name[256];
     sprintf(name, "%s<template>@%i@%s", S_name(f->name), overload ? overload->func_num_overloads : 0, env->curr->name);
     namespace_add_value(env->curr, insert_symbol(name), value);
-    return 1;  
+    return 1;
   }
 
   // overload
@@ -675,7 +674,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       if(!overload->func_ref)
       {
         err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name );
-        return -1;  
+        return -1;
       }
     }
   }
@@ -686,7 +685,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(overload)
   {
     len = strlen(func_name) + ((overload->func_num_overloads + 1)% 10) + strlen(env->curr->name) + 3;
-    snprintf(tmp, len + 1, "%s@%i@%s", func_name, ++overload->func_num_overloads, env->curr->name);    
+    snprintf(tmp, len + 1, "%s@%i@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   }
   else
     snprintf(tmp, len + 1, "%s@0@%s", func_name, env->curr->name);
@@ -717,9 +716,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   value->is_context_global = (env->class_def == NULL);
   value->func_ref = func;
   add_ref(value->func_ref->obj);
-  func->value_ref = value; 
+  func->value_ref = value;
   add_ref(value->obj);
-  f->func = func; 
+  f->func = func;
   add_ref(f->func->obj);
 
   if(overload)
@@ -730,7 +729,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   if(!f->ret_type) // template return value
     f->ret_type = find_type(env, f->type_decl->xid);
-  
+
   if(isprim(f->ret_type) > 0 && f->type_decl->ref)  // TODO: string
   {
     err_msg(SCAN2_,  f->type_decl->pos,
@@ -743,7 +742,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   arg_list = f->arg_list;
   count = 1;
   f->stack_depth = func->is_member ? sizeof(void *) : 0;
-  
+
   namespace_push_value(env->curr);
 
   while(arg_list)
@@ -756,7 +755,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
         goto error;
     }
 
-/*    
+/*
     // check if reserved
     if(is_res(env, arg_list->var_decl->xid, arg_list->linepos) > 0)
     {
@@ -810,7 +809,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   // function args not owned
 /*  v->owner_class = NULL;*/
 /*  v->is_member = 0;*/
-  
+
   namespace_add_value(env->curr, arg_list->var_decl->xid, v);
   // stack
   v->offset = f->stack_depth;
@@ -826,11 +825,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic)
-  {
-  
     f->stack_depth += SZ_INT;
-    printf("f->stack_depth %i\n", f->stack_depth);
-  }
   namespace_pop_value(env->curr);
 
   if(f->spec == ae_func_spec_op)
@@ -862,7 +857,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(!f->is_template) // template func don't check ret_type case
     if(f->ret_type->xid != overload->func_ref->def->ret_type->xid)
     {
-      err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'", 
+      err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'",
         f->ret_type->name, overload->func_ref->def->ret_type->name );
       if(env->class_def)
         err_msg(SCAN2_, f->pos,
@@ -871,7 +866,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
           value->owner_class->name, S_name(f->name) );
         goto error;
     }
-  }  
+  }
 
   env->func = func;
   namespace_push_value(env->curr);
@@ -885,7 +880,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   namespace_pop_value(env->curr);
   env->func = NULL;
-  
+
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;
 
@@ -932,10 +927,10 @@ static m_bool scan2_Class_Def(Env env, Class_Def class_def)
   vector_pop(env->class_stack);
   env->curr = vector_back(env->nspc_stack);
   vector_pop(env->nspc_stack);
- 
+
   if(class_def->doc)
     the_class->doc = class_def->doc;
-  
+
   return ret;
 }
 
@@ -950,10 +945,10 @@ m_bool scan2_Ast(Env env, Ast ast)
       case ae_section_stmt:
         ret = scan2_Stmt_List(env, prog->section->stmt_list);
         break;
-      case ae_section_func:  
+      case ae_section_func:
         ret = scan2_Func_Def(env, prog->section->func_def);
         break;
-      case ae_section_class:  
+      case ae_section_class:
         ret = scan2_Class_Def(env, prog->section->class_def);
         break;
     }

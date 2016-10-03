@@ -54,10 +54,10 @@ static m_bool scan1_Binary_Expression(Env env, Binary_Expression* binary)
 }
 
 static m_bool scan1_Primary_Expression(Env env, Primary_Expression* primary)
-{ 
+{
   if(primary->type == ae_primary_hack) // func ptr ?
     CHECK_BB(scan1_Expression(env, primary->exp))
-  return 1;  
+  return 1;
 }
 /*
 static m_bool scan1_Array_Lit(Env env, Primary_Expression* exp)
@@ -94,7 +94,7 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
 #endif
 // check the exp
   CHECK_BB(scan1_Expression(env, postfix->exp))
-  
+
   switch( postfix->op )
   {
     case op_plusplus:
@@ -105,11 +105,11 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
         err_msg(SCAN1_, postfix->exp->pos, "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
         return -1;
       }
-      
-      // TODO: mark somewhere we need to post increment      
+
+      // TODO: mark somewhere we need to post increment
       return 1;
     break;
-    
+
     default:
       // no match
       err_msg( SCAN1_, postfix->pos,
@@ -129,7 +129,7 @@ static m_bool scan1_Dur(Env env, Exp_Dur* dur)
   return 1;
 }
 
-static m_bool scan1_Func_Call1(Env env, Expression exp_func, Expression args, 
+static m_bool scan1_Func_Call1(Env env, Expression exp_func, Expression args,
   Func func, int pos )
 {
 #ifdef DEBUG_SCAN1
@@ -164,11 +164,11 @@ static m_bool scan1_Func_Call( Env env, Func_Call* func_call )
 }
 
 static m_bool scan1_Dot_Member(Env env, Dot_Member* member)
-{ 
+{
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "dot member");
 #endif
-  CHECK_BB(scan1_Expression(env, member->base)); 
+  CHECK_BB(scan1_Expression(env, member->base));
   return 1;
 }
 
@@ -250,7 +250,7 @@ static m_bool scan1_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
 #endif
   int ret;
   env->class_scope++;
-  if(push) 
+  if(push)
     namespace_push_value(env->curr);
   ret = scan1_Stmt_List(env, stmt->stmt_list);
   if(push)
@@ -361,7 +361,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
     }
     t = type_copy(env, &t_int);
     t->name = stmt->xid ? S_name(stmt->xid) : "int";
-    namespace_add_type(nspc, stmt->xid, t);    
+    namespace_add_type(nspc, stmt->xid, t);
   }
   while(list)
   {
@@ -393,31 +393,23 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
   debug_msg("scan1", "stmt");
 #endif
   m_bool ret = -1;
- Decl_List l;
+  Decl_List l;
   if(!stmt)
     return 1;
-  printf("exp %i %p\n", stmt->type, stmt->stmt_while);
-  
   // DIRTY!!! happens when '1, new Object', for instance
   if(stmt->type == 3 && !stmt->stmt_for) // bad thing in parser, continue
     return 1;
-  
+
   switch( stmt->type )
   {
     case ae_stmt_exp:
       ret = scan1_Expression(env, stmt->stmt_exp);
-  if(ret == -1)
-{
-  printf("ret\n");
-  return -1;
-
-}
-      break; 
+      break;
     case ae_stmt_code:
       env->class_scope++;
       ret = scan1_Stmt_Code( env, stmt->stmt_code, 1);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_return:
         ret = scan1_return( env, stmt->stmt_return);
         break;
@@ -428,42 +420,42 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
       ret = scan1_If(env, stmt->stmt_if);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_while:
       env->class_scope++;
       namespace_push_value(env->curr);
       ret = scan1_While( env, stmt->stmt_while);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_for:
       env->class_scope++;
       namespace_push_value(env->curr);
       ret = scan1_For( env, stmt->stmt_for);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_until:
       env->class_scope++;
       namespace_push_value(env->curr);
       ret = scan1_Until( env, stmt->stmt_until);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_loop:
       env->class_scope++;
       namespace_push_value(env->curr);
       ret = scan1_Loop( env, stmt->stmt_loop);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_switch:
       env->class_scope++;
       namespace_push_value(env->curr);
       ret = scan1_Switch( env, stmt->stmt_switch);
       namespace_pop_value(env->curr);
       env->class_scope--;
-      break; 
+      break;
     case ae_stmt_case:
       ret = scan1_Case(env, stmt->stmt_case);
       break;
@@ -507,7 +499,7 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
   }
   l->self->m_type = t;
   add_ref(l->self->m_type->obj);
-      
+
         l= l->next;
       }
       ret = 1;
@@ -561,7 +553,7 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
   while(arg_list)
   {
     arg_list->type = find_type(env, arg_list->type_decl->xid);
-    if(!arg_list->type)  
+    if(!arg_list->type)
     {
       err_msg(SCAN1_, arg_list->pos, "invalid type in argument %i of func %s",  count , S_name(ptr->xid));
       return -1;
@@ -584,7 +576,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     err_msg(SCAN1_, f->pos, "dtor must be in class def!!");
     return -1;
   }
-  
+
   if(f->types)  // templating. nothing to be done here
     return 1;
 
@@ -594,17 +586,17 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
   m_uint count = 0;
 
   f->ret_type = find_type(env, f->type_decl->xid);
-  
+
   if(!f->ret_type)
   {
     err_msg(SCAN1_, f->pos,"scan1: invalid return type %p", f->type_decl->xid->xid);
 /*    err_msg(SCAN1_, f->pos,"scan1: invalid return type %p", S_name(f->type_decl->xid->xid));*/
     err_msg(SCAN1_, f->pos,"scan1: invalid return type %s", S_name(f->name));
-    err_msg(SCAN1_, f->pos,"scan1: invalid return type '%s' of func '%s'", 
+    err_msg(SCAN1_, f->pos,"scan1: invalid return type '%s' of func '%s'",
       S_name(f->type_decl->xid->xid), S_name(f->name));
     return -1;
   }
-  
+
   // check if array
   if(f->type_decl->array)
   {
@@ -633,8 +625,8 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
 
   while(arg_list)
   {
-    arg_list->type = find_type(env, arg_list->type_decl->xid); 
-    if(!arg_list->type && !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))  
+    arg_list->type = find_type(env, arg_list->type_decl->xid);
+    if(!arg_list->type && !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))
     {
       err_msg(SCAN1_, arg_list->pos, "invalid type '%s' in argument %i of func %s", count , S_name(f->name));
         return -1;
@@ -642,7 +634,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     count++;
     arg_list = arg_list->next;
   }
-  // if operator, 
+  // if operator,
   if(f->spec == ae_func_spec_op)
   {
     // check argument number
@@ -718,10 +710,10 @@ m_bool scan1_Ast(Env env, Ast ast)
       case ae_section_stmt:
         ret = scan1_Stmt_List(env, prog->section->stmt_list);
         break;
-      case ae_section_func:  
+      case ae_section_func:
         ret = scan1_Func_Def(env, prog->section->func_def);
         break;
-      case ae_section_class:  
+      case ae_section_class:
         ret = scan1_Class_Def(env, prog->section->class_def);
         break;
     }

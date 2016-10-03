@@ -57,7 +57,7 @@ if(Pa_OpenStream(
               callback,
               vm ))
 exit(3);;
-/*  
+/*
 if(Pa_OpenDefaultStream(&stream,
                                 2,2,
                                 paFloat32,
@@ -70,7 +70,6 @@ exit(3);
 */
 //		return -1;
 		//return -1;
-	printf("start\n");
 	di->out =2;
 	di->in =2;
 	vm->bbq->n_in = 2;
@@ -91,13 +90,8 @@ static void del(VM* vm, int finish)
 
 static void run(VM* vm, DriverInfo* di)
 {
-printf("ll\n");
-	if(Pa_StartStream(stream) != paNoError)
-exit(4);
-printf("ll\n");
+	Pa_StartStream(stream);
 	Pa_Sleep(48000*50);
-printf("ll\n");
-sleep(12);
 }
 
 Driver* pa_driver()
