@@ -167,7 +167,7 @@ extern int minimal_debug;
 
 union YYSTYPE
 {
-#line 57 "gwion.y" /* yacc.c:1909  */
+#line 50 "gwion.y" /* yacc.c:1909  */
 
 	char* sval;
 	int ival;

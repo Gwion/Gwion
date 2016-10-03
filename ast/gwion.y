@@ -16,19 +16,9 @@ static int get_pos(void* data)
   return arg->line;
 }
 
-static char* append_doc(void* data, m_str str, int i)
+static char* append_doc(void* data, m_str str)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, data);
-  if(i)
-  {
-    m_str c = vector_back(arg->doc);
-    exit(2);
-    if(c)
-    {
-      strcat(c, str);
-      return c;
-    }
-  }
   vector_append(arg->doc, str);
   return str;
 }
@@ -39,6 +29,8 @@ static m_str get_doc(void* data)
   MyArg* arg = (MyArg*)map_get(scan_map, data);
   ret = vector_front(arg->doc);
   vector_remove(arg->doc, 0);
+//  ret = vector_back(arg->doc);
+//  vector_remove(arg->doc, vector_size(arg->doc) - 1);
   return ret;
 }
 
@@ -46,9 +38,10 @@ static m_str get_arg_doc(void* data)
 {
   m_str ret;
   MyArg* arg = (MyArg*)map_get(scan_map, data);
-//  ret = vector_back(arg->doc);
-  ret = vector_at(arg->doc, 1);
-  vector_remove(arg->doc, 1);
+  ret = vector_back(arg->doc);
+  vector_pop(arg->doc);
+//  ret = vector_at(arg->doc, 1);
+//  vector_remove(arg->doc, 1);
   return ret;
 }
 
@@ -83,7 +76,7 @@ static m_str get_arg_doc(void* data)
   Ast ast;
 };
 
-%token SEMICOLON CHUCK COMMA 
+%token SEMICOLON CHUCK COMMA
   ASSIGN DIVIDE TIMES PERCENT
   L_HACK R_HACK LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
   PLUSCHUCK MINUSCHUCK TIMESCHUCK DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG
@@ -97,9 +90,9 @@ static m_str get_arg_doc(void* data)
   CLASS INTERFACE STATIC PRIVATE PUBLIC EXTENDS IMPLEMENTS DOT COLONCOLON
   AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
   DTOR OPERATOR FUNC_PTR
-	RSL RSR RSAND RSOR RSXOR  
+	RSL RSR RSAND RSOR RSXOR
 	RAND ROR REQ RNEQ RGT RGE RLT RLE
-	RINC RDEC RUNINC RUNDEC 
+	RINC RDEC RUNINC RUNDEC
   TEMPLATE
   NOELSE ARROW_LEFT ARROW_RIGHT
   LTB GTB
@@ -193,7 +186,7 @@ section
   | func_def   { $$ = new_section_Func_Def ($1, get_pos(scanner)); }
   | class_def  { $$ = new_section_Class_Def($1, get_pos(scanner)); }
   ;
-  
+
 class_def
   : class_decl CLASS id_list LBRACE class_body RBRACE
       { $$ = new_class_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner); }
@@ -270,15 +263,15 @@ func_ptr
   | FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, $7, get_pos(scanner)); }
   | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(1, $5, $3, $8, get_pos(scanner)); }
   ;
-  
+
 type_decl2
   : type_decl                         { $$ = $1; }
   | type_decl array_empty             { $$ = add_type_decl_array( $1, $2, get_pos(scanner)); }
-  ; 
+  ;
 
 arg_list
-  : type_decl var_decl { $$ = new_Arg_List($1, $2, NULL, get_pos(scanner)); $$->doc = get_doc(scanner); }
-  | type_decl var_decl COMMA arg_list{ $$ = new_Arg_List($1, $2, $4, get_pos(scanner)); $$->doc = get_doc(scanner); }
+  : type_decl var_decl { $$ = new_Arg_List($1, $2, NULL, get_pos(scanner)); $$->doc = get_arg_doc(scanner); }
+  | type_decl var_decl COMMA arg_list{ $$ = new_Arg_List($1, $2, $4, get_pos(scanner)); $$->doc = get_arg_doc(scanner); }
   ;
 
 code_segment
@@ -305,7 +298,7 @@ enum_stmt
   : ENUM LBRACE id_list RBRACE SEMICOLON    { $$ = new_stmt_from_enum($3, NULL, get_pos(scanner)); }
   | ENUM LBRACE id_list RBRACE ID SEMICOLON { $$ = new_stmt_from_enum($3, $5, get_pos(scanner)); }
   ;
-  
+
 label_stmt
   : ID COLON {  $$ = new_stmt_from_gotolabel($1, 1, get_pos(scanner)); }
   ;
@@ -343,7 +336,7 @@ loop_stmt
 selection_stmt
   : IF LPAREN exp RPAREN stmt %prec NOELSE
       { $$ = new_stmt_from_if( $3, $5, NULL, get_pos(scanner)); }
-  | IF LPAREN exp RPAREN stmt ELSE stmt 
+  | IF LPAREN exp RPAREN stmt ELSE stmt
       { $$ = new_stmt_from_if( $3, $5, $7, get_pos(scanner)); }
   ;
 
@@ -357,7 +350,7 @@ jump_stmt
 exp_stmt
   : exp SEMICOLON { $$ = new_Stmt_from_Expression($1,   get_pos(scanner)); }
   | SEMICOLON     { $$ = new_Stmt_from_Expression(NULL, get_pos(scanner)); }
-  | DOC           { $$ = new_Stmt_from_Expression(NULL, get_pos(scanner)); append_doc(scanner, $1, 0); }
+  | DOC           { $$ = new_Stmt_from_Expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
   ;
 
 exp
@@ -438,28 +431,32 @@ decl_exp
   ;
 func_def
   : function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
-    { $$ = new_Func_Def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
-  | function_decl static_decl type_decl2 ID LPAREN RPAREN SEMICOLON 
-    { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
+    { $$ = new_Func_Def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
+  | function_decl static_decl type_decl2 ID LPAREN RPAREN SEMICOLON
+    { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
-    { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
+    { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
+
 //  | function_decl static_decl type_decl2 ID LPAREN variadic_list VARARG RPAREN  code_segment
 //    { $$ = new_Func_Def($1, $2, $3, $4, $6, $9, get_pos(scanner)); $$->is_variadic = 1; $$->type_decl->doc = get_doc(scanner);}
-  | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN SEMICOLON 
-    { $$ = new_Func_Def($1, $2, $3, $4, $6, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
-  //| function_decl static_decl type_decl2 ID LPAREN variadic_list RPAREN SEMICOLON 
+  | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN SEMICOLON
+    { $$ = new_Func_Def($1, $2, $3, $4, $6, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
+
+  //| function_decl static_decl type_decl2 ID LPAREN variadic_list RPAREN SEMICOLON
   //  { $$ = new_Func_Def($1, $2, $3, $4, $6, NULL, get_pos(scanner)); $$->is_variadic = 1; $$->type_decl->doc = get_doc(scanner);}
   | DTOR LPAREN RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_instance, new_Type_Decl(new_id_list("void", get_pos(scanner)), 0, get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->spec = ae_func_spec_dtor; $$->type_decl->doc = get_doc(scanner);}
   | OPERATOR type_decl ID LPAREN RPAREN code_segment
-    { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, NULL, $6, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner);}
-  | OPERATOR type_decl ID LPAREN arg_list RPAREN code_segment
-    { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, $5, $7, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner);}
+    { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, NULL, $6, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
 
-    
+  | OPERATOR type_decl ID LPAREN arg_list RPAREN code_segment
+    { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, $5, $7, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
+
+
+
 
   | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
-    { $$ = new_Func_Def($5, $6, $7, $8, NULL, $11, get_pos(scanner)); 
+    { $$ = new_Func_Def($5, $6, $7, $8, NULL, $11, get_pos(scanner));
       $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
   | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
     { $$ = new_Func_Def($5, $6, $7, $8, $10, $12, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);
@@ -473,12 +470,12 @@ type_decl
   | LT id_dot GT ATSYM { $$ = new_Type_Decl($2,  1, get_pos(scanner)); }
   ;
 
-  
+
 decl_list
   : decl_exp SEMICOLON { $$ = new_Decl_List($1->decl_exp, NULL); }
   | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->decl_exp, $3); }
   ;
-  
+
 union
   : UNION LBRACE decl_list RBRACE SEMICOLON {$$ = new_Union($3); }
   ;
@@ -598,7 +595,7 @@ cast_exp
   | cast_exp DOLLAR type_decl
       { $$ = new_Cast_Expression( $3, $1, get_pos(scanner)); }
   ;
-  
+
 
 unary_expression
   : dur_exp { $$ = $1; }
@@ -655,13 +652,13 @@ postfix_exp
     { $$ = new_Postfix_Expression( $1, op_plusplus, get_pos(scanner)); }
   | postfix_exp MINUSMINUS
     { $$ = new_Postfix_Expression( $1, op_minusminus, get_pos(scanner)); }
-  | postfix_exp template LPAREN RPAREN 
+  | postfix_exp template LPAREN RPAREN
     { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->func_call->types = $2; }
-  | postfix_exp template LPAREN exp RPAREN 
+  | postfix_exp template LPAREN exp RPAREN
     { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->func_call->types = $2; }  ;
-//      | postfix_exp LT type_list GT LPAREN RPAREN 
+//      | postfix_exp LT type_list GT LPAREN RPAREN
 //    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->func_call->types = $3; }
-//  | postfix_exp LT type_list GT LPAREN exp RPAREN 
+//  | postfix_exp LT type_list GT LPAREN exp RPAREN
 //    { $$ = new_Func_Call( $1, $6, get_pos(scanner)); $$->func_call->types = $3; }  ;
 
 primary_exp
@@ -670,7 +667,7 @@ primary_exp
   | FLOAT             { $$ = new_Primary_Expression_from_float( $1, get_pos(scanner)); }
   | STRING_LIT        { $$ = new_Primary_Expression_from_string($1, get_pos(scanner)); }
   | CHAR_LIT          { $$ = new_exp_from_char(                 $1, get_pos(scanner)); }
-  | array_exp         { $$ = new_exp_from_array_lit(            $1, get_pos(scanner)); }  
+  | array_exp         { $$ = new_exp_from_array_lit(            $1, get_pos(scanner)); }
   | complex_exp       { $$ = new_exp_from_complex(              $1, get_pos(scanner)); }
   | polar_exp         { $$ = new_exp_from_polar(                $1, get_pos(scanner)); }
 	| vec_exp						{ $$ = new_exp_from_vec(                 $1, get_pos(scanner)); }
@@ -679,4 +676,3 @@ primary_exp
   | LPAREN RPAREN     { $$ = new_Primary_Expression_from_nil(       get_pos(scanner)); }
   ;
 %%
-

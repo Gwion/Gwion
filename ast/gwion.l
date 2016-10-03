@@ -326,8 +326,11 @@ Ast parse(m_str filename)
   filename = c;
   ast = arg.ast;
   if(vector_front(arg.doc))
+	{
     ast->doc = malloc(sizeof(char));
-  while(vector_front(arg.doc))
+		memset(ast->doc, 0, 1);  
+	}
+	while(vector_front(arg.doc))
   {
     strcat(ast->doc, vector_front(arg.doc));
     vector_remove(arg.doc, 0);

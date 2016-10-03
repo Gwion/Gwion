@@ -15,7 +15,7 @@
 #include "driver.h"
 #include "shreduler.h"
 
-#include <mcheck.h>
+//	#include <mcheck.h>
 #include <string.h>
 
 m_bool ssp_is_running;

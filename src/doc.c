@@ -38,10 +38,8 @@ static m_str usable(m_str name)
 static Context find_context(Env env, m_str name)
 {
   Context ctx;
-  printf("nmae: %s\n", name);
   if((ctx =map_get(env->known_ctx, insert_symbol(name))))
     return ctx;
-  printf("nmae: %s\n", name);
   return NULL;
 }
 
@@ -53,8 +51,11 @@ static Textadept* new_Textadept(Env env, m_str str)
   Textadept* doc = malloc(sizeof(Textadept));
   doc->env = env;
   doc->ctx = find_context(env, str);
-  printf("lol %p\n", doc->ctx);
-
+  if(!doc->ctx)
+  {
+    free(doc);
+    return NULL;
+  }
   name = doc->ctx != env->global_context ? usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
   strcat(c, GWION_API_DIR);
@@ -88,9 +89,13 @@ static Doc* new_Doc(Env env, m_str str)
   m_str name;
   Doc* doc = malloc(sizeof(Doc));
   doc->env = env;
+  printf("failed to build doc\n");
   doc->ctx = find_context(env, str);
-	if(!doc->ctx)
-		return NULL;
+  if(!doc->ctx)
+  {
+    free(doc);
+    return NULL;
+  }
   name = doc->ctx != env->global_context ? usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
   strcat(c, GWION_DOC_DIR);
@@ -198,7 +203,7 @@ static void mkdoc_value(Doc* doc, Value v)
 {
   m_str full = getfull(doc, v->owner, v->name);
   m_str type  = v->m_type->array_type ?
-      getfull(doc, v->m_type->array_type->owner, v->m_type->name) : 
+      getfull(doc, v->m_type->array_type->owner, v->m_type->name) :
       getfull(doc, v->m_type->owner, v->m_type->name);
   m_str file = v->m_type->array_type ?
       usable(v->m_type->array_type->owner->filename) :
@@ -211,8 +216,13 @@ static void mkdoc_value(Doc* doc, Value v)
     fprintf(doc->html, "<em> %s</em></li></p>\n", v->doc);
   else
     fprintf(doc->html, "</li></p>\n");
-  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
-    v->name, v->name, file, full, "]", v->owner->name, v->doc ? v->doc : "");
+//  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+//    v->name, v->name, file, full, "]", v->owner->name, v->doc ? v->doc : "");
+char * str = v->doc ? strndup(v->doc, 16) : "";
+    fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+      v->name, v->name, file, full, "]", v->owner->name, str);
+if(v->doc)
+  free(str);
   free(full);
   free(type);
   free(file);
@@ -227,7 +237,7 @@ static void mkdoc_func(Doc* doc, Func f)
       usable(f->def->ret_type->array_type->owner->filename) :
       usable(f->def->ret_type->owner->filename);
   m_str type  = f->def->ret_type->array_type ?
-      getfull(doc, f->def->ret_type->array_type->owner, f->def->ret_type->name) : 
+      getfull(doc, f->def->ret_type->array_type->owner, f->def->ret_type->name) :
       getfull(doc, f->def->ret_type->owner, f->def->ret_type->name);
   name = strsep(&name, "@");
   fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><a class=\"reference external\" href=\"%s.html#%s\"><li>%s</a> <strong>%s</strong>",
@@ -244,7 +254,7 @@ static void mkdoc_func(Doc* doc, Func f)
     Value v = arg->var_decl->value;
     char a_full[1024];
     m_str a_type  = v->m_type->array_type ?
-        getfull(doc, v->m_type->array_type->owner, v->m_type->name) : 
+        getfull(doc, v->m_type->array_type->owner, v->m_type->name) :
         getfull(doc, v->m_type->owner, v->m_type->name);
     m_str a_file = v->m_type->array_type ?
         usable(v->m_type->array_type->owner->filename) :
@@ -256,20 +266,31 @@ static void mkdoc_func(Doc* doc, Func f)
     strcat(a_full, v->name);
     fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
       a_full, a_file, a_type, print_type(v->m_type), v->name);
-    if(v->doc)
-      fprintf(doc->html, "<em>%s</em></li></p>\n", v->doc);
+//    if(v->doc)
+//      fprintf(doc->html, "<em>%s</em></li></p>\n", v->doc);
+    if(arg->doc)
+      fprintf(doc->html, "<em>%s</em></li></p>\n", arg->doc);
     else
       fprintf(doc->html, "</li></p>\n");
     free(a_type);
     free(a_file);
+    m_str str = v->doc ? strndup(v->doc, 16) : "";
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[argument\%s in <b>%s</b> <em>%s</em> '] ]],\n",
-      v->name, v->name, ufile, a_full, "]", v->owner->name, v->doc ? v->doc : "");
+      v->name, v->name, file, a_full, "]", v->owner->name, str);
+if(v->doc)
+  free(str);
   arg = arg->next;
   }
   fprintf(doc->html, "</ol></blockquote></li></p>\n\n");
+  m_str str = f->doc ? strndup(f->doc, 16) : "";
+//  m_str str2 = strdup(full);
+//  str2 = strsep(&str2, "@");
   fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[function\%s in <b>%s</b> <em>%s</em> '] ]],\n",
-      name, name, ufile, full, "]", f->value_ref->owner->name, f->doc ? f->doc : "");
+      name, name, file, full, "]", f->value_ref->owner->name, str);
 
+  if(f->doc)
+        free(str);
+//  free(str2);
   free(ufile);
   free(name);
   free(full);
@@ -316,7 +337,7 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
   }
   free(v);
 	for(i = 0; i < vector_size(type); i++)
-    mkadt_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);  
+    mkadt_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
   free(type);
 
 	for(i = 0; i < vector_size(m_value); i++)
@@ -373,7 +394,7 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
   free(v);
   fprintf(doc->html, "<div class=\"section\"><h3>Types</h3><blockquote>\n");
 	for(i = 0; i < vector_size(type); i++)
-    mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);  
+    mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
   free(type);
   fprintf(doc->html, "</blockquote></div>\n");
 
@@ -426,9 +447,11 @@ static void mkdoc_type(Doc* doc, Type t)
   if(t->info)
     mkdoc_nspc(doc, t->info);
   fprintf(doc->html, "</blockquote></div>\n");
+  m_str str = t->doc ? strndup(t->doc, 16) : "";
   fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[type\%s in <b>%s</b> <em>%s</em> '] ]],\n",
-      name, t->name, file, full, "]", t->owner->name, t->doc ? t->doc : "");
-
+      name, t->name, file, full, "]", t->owner->name, str);
+  if(t->doc)
+    free(str);
   free(name);
   free(full);
   free(file);
@@ -438,9 +461,7 @@ static void mkdoc_type(Doc* doc, Type t)
 void mkadt_context(Env env, m_str str)
 {
   int i;
-printf("lol %s\n", str);
-Textadept* doc = new_Textadept(env, str);
-printf("lol %s\n", str);
+  Textadept* doc = new_Textadept(env, str);
 	for(i = 0; i < vector_size(doc->ctx->new_types); i++)
     mkadt_type(doc, (Type)vector_at(doc->ctx->new_types, i));
 	for(i = 0; i < vector_size(doc->ctx->new_values); i++)
@@ -458,10 +479,18 @@ void mkdoc_context(Env env, m_str str)
 		return;
   fprintf(doc->html, "<meta http-equiv=\"Content-Type\" content=\"text/xhtml;charset=UTF-8\"/>\
 <title>Gwion: %s</title>\
+<body>\
+<section class=\"page-header\">\
+<h1 class=\"project-name\">Gwion</h1>\
+<h2 class=\"project-tagline\">A strongly timed musical programming language</h2>\
+</section>\
 <script src=\"dynsections.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\
 <script src=\"jquery.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\
 <script src=\"searchdata.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\
+<link rel=\"stylesheet\" href=\"gwion.css\">\
+<link rel=\"stylesheet\" href=\"normalize.css\">\
 <link href=\"search/search.css\" rel=\"stylesheet\" type=\"text/css\"/>\
+<script src=\"search/list.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\
 <script src=\"search/search.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\
 <script type=\"text/javascript\">$(document).ready(function() { searchBox.OnSelectItem(0); });</script>\
 <script type=\"text/javascript\">var searchBox = new SearchBox(\"searchBox\", \"search\",false,'Search');</script>\
@@ -498,24 +527,29 @@ void mkdoc_context(Env env, m_str str)
 <iframe src=\"javascript:void(0)\" frameborder=\"0\"\
         name=\"MSearchResults\" id=\"MSearchResults\">\
 </iframe></div></div>\
-<div class=\"document\"><h1 class=\"title\">%s</h1><div class=\"section\"><h2>Description</h2><em>%s</em></div>\n",
+<section class=\"main-content\">\
+<h1 class=\"title\">%s</h1><h2>Description</h2><em>%s</em>\n",
     doc->ctx->filename, doc->ctx->nspc->name, doc->ctx->tree->doc ? doc->ctx->tree->doc : "");
 
-  fprintf(doc->html, "<div class=\"section\"><h2>Global Types</h2><blockquote>\n");
+  fprintf(doc->html, "<h1>Global Types</h1>\n");
 	for(i = 0; i < vector_size(doc->ctx->new_types); i++)
     mkdoc_type(doc, (Type)vector_at(doc->ctx->new_types, i));
-  fprintf(doc->html, "</blockquote></div>\n");
+  fprintf(doc->html, "</blockquote>\n");
 
-  fprintf(doc->html, "<div class=\"section\"><h2>Global Variables</h2><blockquote>\n");
+  fprintf(doc->html, "<h2>Global Variables</h2><blockquote>\n");
 	for(i = 0; i < vector_size(doc->ctx->new_values); i++)
     mkdoc_value(doc, ((Value)vector_at(doc->ctx->new_values, i)));
-  fprintf(doc->html, "</blockquote></div>\n");
+  fprintf(doc->html, "</blockquote>\n");
 
-  fprintf(doc->html, "<div class=\"section\"><h2>Global Functions</h2><blockquote>\n");
+  fprintf(doc->html, "<h2>Global Functions</h2><blockquote>\n");
 	for(i = 0; i < vector_size(doc->ctx->new_funcs); i++)
     mkdoc_func(doc, ((Func)vector_at(doc->ctx->new_funcs, i)));
-  fprintf(doc->html, "</blockquote></div>\n");
+  fprintf(doc->html, "</blockquote>\n");
 
-  fprintf(doc->html, "</div>\n");
+  fprintf(doc->html, "</section>\n");
+  fprintf(doc->html, "<footer class=\"site-footer\"><span class=\"site-footer-owner\"><a href=\"fennecdjay.github.io\">Gwion</a> is maintained by <a href=\"https://fennecdjay.github.io/Gwion/\">Jérémie Astor</a>.</span>\
+  <span class=\"site-footer-credits\">This page was generated by <a href=\"https://pages.github.com\">GitHub Pages</a>, with a theme based on <a href=\"https://github.com/pietromenna/jekyll-cayman-theme\">Cayman theme</a> by <a\
+href=\"http://github.com/jasonlong\">Jason Long</a>.</span>\
+</footer></body></html>");
   free_Doc(doc);
 }

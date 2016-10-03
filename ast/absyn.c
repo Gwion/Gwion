@@ -1096,6 +1096,7 @@ Ast new_Ast(Section* section, Ast next, int pos)
   ast->section = section;
   ast->next = next;
   ast->pos = pos;
+	ast->doc = NULL;
   return ast;
 }
 
