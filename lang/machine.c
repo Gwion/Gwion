@@ -78,6 +78,13 @@ static void machine_adept(DL_Return * RETURN, VM_Shred shred)
   mkadt_context(shred->vm_ref->env, str);
 }
 
+static void machine_compile(DL_Return * RETURN, VM_Shred shred)
+{
+	RETURN->v_uint = 0;
+  prepare()
+	RETURN->v_uint = 1;
+}
+
 static void machine_shreds(DL_Return * RETURN, VM_Shred shred)
 {
   int i;
@@ -113,8 +120,13 @@ m_bool import_machine(Env env)
 
   fun = new_DL_Func("void",  "doc_update",     (m_uint)machine_doc_update);
   CHECK_BB(import_sfun(env,  fun))
+
   fun = new_DL_Func("void",  "adept",     (m_uint)machine_adept);
   dl_func_add_arg(fun,       "string",  "context");
+  CHECK_BB(import_sfun(env,  fun))
+
+  fun = new_DL_Func("void",  "compile",     (m_uint)machine_compile);
+  dl_func_add_arg(fun,       "string",  "filename");
   CHECK_BB(import_sfun(env,  fun))
 
   CHECK_BB(import_class_end(env))
