@@ -1,7 +1,10 @@
 PRG=Gwion
 LDFLAGS = -lsoundpipe
-LDFLAGS += -g -lm -pthread -lasound -lsndfile -fno-strict-aliasing
+LDFLAGS += -g -lm -pthread -lasound -ljack -lsndfile -fno-strict-aliasing
 LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt -lportaudio
+#LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt 
+PA=../src/portaudio/lib/libportaudio.la
+
 CFLAGS+=-Iinclude -I/usr/include/libevdev-1.0
 #CC = musl-gcc -I/opt/musl/include
 CC = cc
@@ -26,7 +29,8 @@ silent:
 
 default: config.mk core lang ugen drvr
 	@make -C ast
-	@${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+#	@libtool --mode=link gcc -g -O -o ${PRG} ${PA} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
 core: ${core_obj}
 lang: ${lang_obj}

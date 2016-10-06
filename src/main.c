@@ -47,8 +47,8 @@ static const struct option long_option[] = {
 };
 
 typedef Driver* (*f_driver)();
-f_driver d_func = alsa_driver;
-//f_driver d_func = pa_driver;
+//f_driver d_func = alsa_driver;
+f_driver d_func = pa_driver;
 int main(int argc, char** argv)
 {
 /*  mcheck(NULL);*/
@@ -217,10 +217,12 @@ int loop = -1;
     compile(vm, (m_str)vector_at(add, i));
   free_Vector(add);
   free_Vector(rem);
-
+printf("here\n");
 	if(udp)
 		pthread_create(&udp_thread, NULL, &server_thread, vm);
+printf("here pre run\n");
   d->run(vm, &di);
+printf("here\n");
   if(udp)
     server_destroy(udp_thread);
 
