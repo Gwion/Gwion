@@ -47,7 +47,8 @@ static const struct option long_option[] = {
 };
 
 typedef Driver* (*f_driver)();
-f_driver d_func = alsa_driver;
+f_driver d_func = soundio_driver;
+//f_driver d_func = alsa_driver;
 //f_driver d_func = pa_driver;
 int main(int argc, char** argv)
 {
@@ -191,7 +192,8 @@ int loop = -1;
   vm->bbq->sp->sr = di.sr;
   d = d_func();
   d->ini(vm, &di);
-	d->del(vm, 0);
+	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
+	//d->del(vm, 0); // was for alsa driver
   Env env = type_engine_init(vm);
 
   if(!env)

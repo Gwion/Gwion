@@ -23,3 +23,4 @@ Driver* alsa_driver();
 Driver* dummy_driver();
 Driver* silent_driver();
 Driver* pa_driver();
+Driver* soundio_driver();

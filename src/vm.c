@@ -142,6 +142,7 @@ continue;
   }
   if(!ssp_is_running)
     return;
+
 /*printf("lol %i\n", vector_size(vm->ugen));*/
   if(vector_size(vm->ugen) > 3)
   for(i = 0; i < vector_size(vm->ugen); i++)
@@ -168,6 +169,5 @@ continue;
   ugen_compute(vm->blackhole->ugen);
   ugen_compute(vm->dac->ugen);
   ugen_compute(vm->adc->ugen);
-
 }
 

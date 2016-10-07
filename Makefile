@@ -1,7 +1,8 @@
 PRG=Gwion
 LDFLAGS = -lsoundpipe
 LDFLAGS += -g -lm -pthread -lasound -ljack -lsndfile -fno-strict-aliasing
-LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt -lportaudio
+LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt -lportaudio\
+	-lsoundio
 #LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt 
 PA=../src/portaudio/lib/libportaudio.la
 
