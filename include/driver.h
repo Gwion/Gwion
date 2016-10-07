@@ -1,26 +1,5 @@
-typedef struct
-{
-  m_uint in;
-  m_uint out;
-  unsigned int sr;
-  unsigned int buf_num;
-  m_uint  buf_size;
-  m_uint  chan;
-} DriverInfo;
-
-
-typedef struct
-{
-	m_bool (*ini)(VM* vm, DriverInfo* di);
-	void (*run)(VM* vm, DriverInfo* di);
-	void (*del)(VM* vm, int finish);
-} Driver;
-
-void free_Driver(Driver* d, VM* vm);
-#ifdef HAVE_ALSA
-Driver* alsa_driver();
-#endif
-Driver* dummy_driver();
-Driver* silent_driver();
-Driver* pa_driver();
-Driver* soundio_driver();
+#include <soundio/soundio.h>
+m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, char *stream_name, int* 
+sample_rate);
+void sio_run();
+void sio_del();

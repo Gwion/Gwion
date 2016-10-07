@@ -52,11 +52,13 @@ static void underflow_callback(struct SoundIoOutStream *outstream)
     static int count = 0;
     fprintf(stderr, "underflow %d\n", count++);
 }
+
 static void overflow_callback(struct SoundIoInStream *stream)
 {
     static int count = 0;
     fprintf(stderr, "overflow %d\n", count++);
 }
+
 static void write_callback(struct SoundIoOutStream *outstream, int
 frame_count_min, int frame_count_max)
 {
@@ -72,7 +74,8 @@ frame_count_min, int frame_count_max)
   	int count = left;
 		if ((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
 			fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-			exit(1);
+			ssp_is_running = 0;
+			return;
   	}
 
 		if (!count)
@@ -145,14 +148,8 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 }
 
 
-static m_bool ini(VM* vm, DriverInfo* di)
+m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, char *stream_name, int* sample_rate)
 {
-    enum SoundIoBackend backend = SoundIoBackendNone;
-    char *device_id = NULL;
-    bool raw = false;
-    char *stream_name = NULL;
-    double latency = 0.0;
-    int sample_rate = 0;
 		soundio = soundio_create();
     if (!soundio) {
         fprintf(stderr, "out of memory\n");
@@ -167,8 +164,6 @@ static m_bool ini(VM* vm, DriverInfo* di)
         fprintf(stderr, "Unable to connect to backend: %s\n", soundio_strerror(err));
 			return -1;
     }
-		fprintf(stderr, "Backend: %s\n", soundio_backend_name(soundio->current_backend));
-
     soundio_flush_events(soundio);
 
     int selected_device_index = -1;
@@ -193,7 +188,6 @@ static m_bool ini(VM* vm, DriverInfo* di)
         return -1;
     }
 
-    //struct SoundIoDevice *
 		out_device = soundio_get_output_device(soundio, selected_device_index);
     if (!out_device)
 		{
@@ -207,10 +201,6 @@ static m_bool ini(VM* vm, DriverInfo* di)
 			return -1;
 		}
 
-
-
-    fprintf(stderr, "Output device: %s\n", out_device->name);
-
     if(out_device->probe_error) {
         fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
         return -1;
@@ -220,19 +210,17 @@ static m_bool ini(VM* vm, DriverInfo* di)
         return -1;
     }
 
-    //struct SoundIoOutStream *
 		outstream = soundio_outstream_create(out_device);
     if (!outstream) {
         fprintf(stderr, "out of memory\n");
         return -1;
     }
 
-fprintf(stderr, "outstream %p\n", outstream);
     outstream->write_callback = write_callback;
     outstream->underflow_callback = underflow_callback;
     outstream->name = stream_name;
-    outstream->software_latency = latency;
-    outstream->sample_rate = sample_rate;
+    outstream->software_latency = 0;
+    outstream->sample_rate = *sample_rate;
 
 
 		instream = soundio_instream_create(in_device);
@@ -243,13 +231,14 @@ fprintf(stderr, "outstream %p\n", outstream);
     instream->read_callback = read_callback;
     instream->overflow_callback = overflow_callback;
     instream->name = stream_name;
-    instream->software_latency = latency;
-    instream->sample_rate = sample_rate;
+    instream->software_latency = 0;
+    instream->sample_rate = *sample_rate;
 
-    if (soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
+/*    if (soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
         outstream->format = SoundIoFormatFloat32NE;
         write_sample = write_sample_float32ne;
-    } else if (soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
+    } else */
+		if (soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
         outstream->format = SoundIoFormatFloat64NE;
         write_sample = write_sample_float64ne;
     } else if (soundio_device_supports_format(out_device, SoundIoFormatS32NE)) {
@@ -273,20 +262,11 @@ fprintf(stderr, "outstream %p\n", outstream);
 			return -1;
 		}
 	outstream->userdata = vm;
+	*sample_rate = outstream->sample_rate;
+	return 1;
 }
 
-static void del(VM* vm, int finish)
-{
-	if(!finish)
-		return;
-	soundio_outstream_destroy(outstream);
-	soundio_instream_destroy(instream);
-	soundio_device_unref(in_device);
-	soundio_device_unref(out_device);
-	soundio_destroy(soundio);
-}
-
-static void run(VM* vm, DriverInfo* di)
+void sio_run()
 {
 	int err;
   if((err = soundio_outstream_start(outstream)))
@@ -301,11 +281,12 @@ static void run(VM* vm, DriverInfo* di)
 	}
 }
 
-Driver* soundio_driver()
+
+void sio_del()
 {
-  Driver* d = malloc(sizeof(Driver));
-  d->ini = ini;
-  d->run = run;
-  d->del = del;
-  return d;
+	soundio_outstream_destroy(outstream);
+	soundio_instream_destroy(instream);
+	soundio_device_unref(in_device);
+	soundio_device_unref(out_device);
+	soundio_destroy(soundio);
 }

@@ -30,7 +30,10 @@ static const struct option long_option[] = {
   { "add"    , 0, NULL, '+' },
   { "remove"    , 0, NULL, '-' },
   { "quit"   , 0, NULL, 'q' },
-  { "driver" , 1, NULL, 'd' },
+  { "backend" , 1, NULL, 'b' },
+  { "sr"     , 1, NULL, 's' },
+  { "name"    , 1, NULL, 'n' },
+  { "raw"    , 1, NULL, 'r' },
   { "host"   , 1, NULL, 'h' },
   { "port"   , 1, NULL, 'p' },
   { "rate"   , 1, NULL, 'r' },
@@ -38,40 +41,31 @@ static const struct option long_option[] = {
   { "alone"  , 1, NULL, 'a' },
   { "in"     , 1, NULL, 'i' },
   { "out"    , 1, NULL, 'o' },
-  { "bufsize"    , 1, NULL, 'b' },
-  { "bufnum"    , 1, NULL, 'n' },
-  { "samplerate"    , 1, NULL, 's' },
+//  { "bufsize"    , 1, NULL, 'b' },
+//  { "bufnum"    , 1, NULL, 'n' },
   { "loop"   , 1, NULL, 'l' },
 /*  { "status" , 0, NULL, '%' },*/
   { NULL     , 0, NULL, 0   }
 };
 
-typedef Driver* (*f_driver)();
-f_driver d_func = soundio_driver;
-//f_driver d_func = alsa_driver;
-//f_driver d_func = pa_driver;
 int main(int argc, char** argv)
 {
-/*  mcheck(NULL);*/
-/*  mtrace();*/
-/*  mtrace();*/
   int ret, i, index;
   m_str filename;
-  DriverInfo di;
-	Driver* d;
   Vector add = new_Vector();
   Vector rem = new_Vector();
   Vector ref = add;
 
-  di.in  = 2;
-  di.out = 2;
-  di.sr  = 48000;
-  di.buf_num   = 3;
-  di.buf_size  = 64;
-/*  muntrace();*/
-int port = 8888;
-char* hostname = "localhost";
-int loop = -1;
+	enum SoundIoBackend backend = SoundIoBackendNone;
+	int samplerate = 48000;
+	m_str id = "default:CARD=CODEC";
+	m_str name = NULL;
+	m_bool raw = 0;
+	m_uint in = 2;
+	m_uint out = 2;
+	int port = 8888;
+	char* hostname = "localhost";
+	int loop = -1;
   while((i = getopt_long(argc, argv, "+-qh:p:i:o:n:b:s:d:al: ", long_option, &index)) != -1)
   {
     switch(i)
@@ -92,41 +86,40 @@ int loop = -1;
         port        = atoi(optarg);
         break;
       case 'i':
-        di.in       = atoi(optarg);
+        //di.in       = atoi(optarg);
         break;
       case 'o':
-        di.out      = atoi(optarg);
-        break;
-      case 'n':
-        di.buf_num  = atoi(optarg);
-        break;
-      case 'b':
-        di.buf_size = atoi(optarg);
+        //di.out      = atoi(optarg);
         break;
       case 's':
-        di.sr       = atoi(optarg);
+        samplerate       = atoi(optarg);
         break;
       case 'l':
         loop        = atoi(optarg);
         if(loop == 0) loop = -1;
         break;
-      case 'd':
+      case 'b':
 				if(!strcmp("dummy", optarg))
-        	d_func = dummy_driver;
+        	backend = SoundIoBackendDummy;
 				else if(!strcmp("alsa", optarg))
-        	d_func = alsa_driver;
-				else if(!strcmp("dummy", optarg))
-        	d_func = dummy_driver;
-				else if(!strcmp("silent", optarg))
-        	d_func = silent_driver;
-				else if(!strcmp("jackd", optarg))
-{
-        printf("jackd driver not implemented yet\n");  
-  return 1;
-}
+        	backend = SoundIoBackendAlsa;
+				else if(!strcmp("jack", optarg))
+        	backend = SoundIoBackendJack;
+				else if(!strcmp("pulse", optarg))
+        	backend = SoundIoBackendPulseAudio;
+				else if(!strcmp("core", optarg))
+        	backend = SoundIoBackendCoreAudio;
+				else if(!strcmp("Wasapi", optarg))
+        	backend = SoundIoBackendWasapi;
         else
           printf("unknown driver. back to default\n");
 				break;
+      case 'n':
+        name = optarg;
+        break;
+      case 'r':
+        raw = 1;
+        break;
       case 'a':
         udp = 0;
         break;
@@ -144,7 +137,6 @@ int loop = -1;
   {
     if(server_init(hostname, port) == -1)
     {
-      // enter client mode
       if(do_quit)
         Send("quit", 1);
       if(loop > 0)
@@ -188,14 +180,13 @@ int loop = -1;
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   ssp_is_running = 1;
   vm->bbq = calloc(1, sizeof(struct BBQ_));
-	sp_createn(&vm->bbq->sp, di.out);
-  vm->bbq->sp->sr = di.sr;
-  d = d_func();
-  d->ini(vm, &di);
-	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
-	//d->del(vm, 0); // was for alsa driver
-  Env env = type_engine_init(vm);
+	sp_createn(&vm->bbq->sp, 2);
 
+	CHECK_BB(sio_ini(vm, backend, id, raw, name, &samplerate))
+	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
+  vm->bbq->sp->sr = samplerate;
+
+	Env env = type_engine_init(vm);
   if(!env)
   {
     err_msg(COMPILE_, 0, "problem initing environment");
@@ -207,8 +198,8 @@ int loop = -1;
   if(!emit)
   {
     err_msg(COMPILE_, 0, "problem initing emitter");
-		free_VM(vm);
 		free_Emitter(emit);
+		free_VM(vm);
 		return 1;
   }
   vm->emit = emit;
@@ -219,18 +210,15 @@ int loop = -1;
     compile(vm, (m_str)vector_at(add, i));
   free_Vector(add);
   free_Vector(rem);
-printf("here\n");
 	if(udp)
 		pthread_create(&udp_thread, NULL, &server_thread, vm);
-printf("here pre run\n");
-  d->run(vm, &di);
-printf("here\n");
+	sio_run();
   if(udp)
     server_destroy(udp_thread);
 
 	// clean
-/*	free_Driver(d, vm);*/
-/*  free_Map(scan_map);*/
+	sio_del();
+  free_Map(scan_map);
 /*  free_Env(env);*/
 /*  free_Emitter(emit);*/
 /*  free_VM(vm);*/
