@@ -109,7 +109,8 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
     struct SoundIoChannelArea *areas;
     int err;
     int frames_left = frame_count_max;
-
+		BBQ bbq = (BBQ) instream->userdata;
+		m_float* data = bbq->in;
     for (;;) {
         int frame_count = frames_left;
 
@@ -149,6 +150,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 
 
 m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, char *stream_name, int* sample_rate)
+//	enum SoundIoFormat in_format, enum SoundIoFormat out_format)
 {
 		soundio = soundio_create();
     if (!soundio) {
@@ -166,7 +168,7 @@ m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, c
     }
     soundio_flush_events(soundio);
 
-    int selected_device_index = -1;
+    int out_selected_device_index = -1;
     if (device_id) {
         int device_count = soundio_output_device_count(soundio);
         for (int i = 0; i < device_count; i += 1) {
@@ -174,27 +176,48 @@ m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, c
             bool select_this_one = strcmp(device->id, device_id) == 0 && device->is_raw == raw;
             soundio_device_unref(device);
             if (select_this_one) {
-                selected_device_index = i;
+                out_selected_device_index = i;
                 break;
             }
         }
     } else {
-        selected_device_index = soundio_default_output_device_index(soundio);
+        out_selected_device_index = soundio_default_output_device_index(soundio);
     }
 
 
-    if (selected_device_index < 0) {
+    if (out_selected_device_index < 0) {
         fprintf(stderr, "Output device not found\n");
         return -1;
     }
 
-		out_device = soundio_get_output_device(soundio, selected_device_index);
+    int in_selected_device_index = -1;
+    if (device_id) {
+        int device_count = soundio_input_device_count(soundio);
+        for (int i = 0; i < device_count; i += 1) {
+            struct SoundIoDevice *device = soundio_get_input_device(soundio, i);
+            bool select_this_one = strcmp(device->id, device_id) == 0 && device->is_raw == raw;
+            soundio_device_unref(device);
+            if (select_this_one) {
+                in_selected_device_index = i;
+                break;
+            }
+        }
+    } else {
+        in_selected_device_index = soundio_default_input_device_index(soundio);
+    }
+
+    if (in_selected_device_index < 0) {
+        fprintf(stderr, "input device not found\n");
+        return -1;
+    }
+
+		out_device = soundio_get_output_device(soundio, out_selected_device_index);
     if (!out_device)
 		{
       fprintf(stderr, "out of memory\n");
 			return -1;
 		}
-		in_device = soundio_get_input_device(soundio, selected_device_index);
+		in_device = soundio_get_input_device(soundio, in_selected_device_index);
     if (!in_device)
 		{
       fprintf(stderr, "out of memory\n");
@@ -202,13 +225,21 @@ m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, c
 		}
 
     if(out_device->probe_error) {
-        fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+        fprintf(stderr, "Cannot probe output device: %s\n", soundio_strerror(out_device->probe_error));
         return -1;
     }
     if(in_device->probe_error) {
-        fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+        fprintf(stderr, "Cannot probe input device: %s\n", soundio_strerror(in_device->probe_error));
         return -1;
     }
+
+		/* sample rates have to match */
+		if (!soundio_device_supports_sample_rate(in_device, *sample_rate) &&
+			!soundio_device_supports_sample_rate(out_device, *sample_rate))
+		{
+			fprintf(stderr, "incompatible sample rate %i\n", *sample_rate);
+			return -1;
+		}
 
 		outstream = soundio_outstream_create(out_device);
     if (!outstream) {
@@ -252,17 +283,45 @@ m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, c
         return -1;
     }
 
-    if ((err = soundio_outstream_open(outstream))) {
-        fprintf(stderr, "unable to open device: %s", soundio_strerror(err));
+/*    if (soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
+        outstream->format = SoundIoFormatFloat32NE;
+        read_sample = read_sample_float32ne;
+    } else */
+		if (soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
+        instream->format = SoundIoFormatFloat64NE;
+//        read_sample = read_sample_float64ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
+        instream->format = SoundIoFormatS32NE;
+//        read_sample = read_sample_s32ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
+        instream->format = SoundIoFormatS16NE;
+//        read_sample = read_sample_s16ne;
+    } else {
+        fprintf(stderr, "No suitable device format available.\n");
         return -1;
+    }
+
+    if ((err = soundio_outstream_open(outstream))) {
+        fprintf(stderr, "unable to open output device: %s", soundio_strerror(err));
+        return -1;
+    }
+    if((err = soundio_instream_open(instream))) {
+    	fprintf(stderr, "unable to open input device: %s", soundio_strerror(err));
+    	return -1;
     }
     if (outstream->layout_error)
 		{
-      fprintf(stderr, "unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
+      fprintf(stderr, "unable to set output channel layout: %s\n", soundio_strerror(outstream->layout_error));
+			return -1;
+		}
+    if (instream->layout_error)
+		{
+      fprintf(stderr, "unable to set input channel layout: %s\n", soundio_strerror(instream->layout_error));
 			return -1;
 		}
 	outstream->userdata = vm;
-	*sample_rate = outstream->sample_rate;
+	instream->userdata  = vm;
+	vm->bbq = new_BBQ(outstream->layout.channel_count, outstream->sample_rate);
 	return 1;
 }
 
@@ -271,7 +330,12 @@ void sio_run()
 	int err;
   if((err = soundio_outstream_start(outstream)))
 	{
-		fprintf(stderr, "unable to start device: %s\n", soundio_strerror(err));
+		fprintf(stderr, "unable to start out device: %s\n", soundio_strerror(err));
+		return;
+  }
+  if((err = soundio_instream_start(instream)))
+	{
+		fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
 		return;
   }
  	while(ssp_is_running)

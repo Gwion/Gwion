@@ -167,7 +167,7 @@ int main(int argc, char** argv)
       }
       free_Vector(add);
       free_Vector(rem);
-      exit(0);
+      return 0;
     }
   }
   if(do_quit)
@@ -179,12 +179,9 @@ int main(int argc, char** argv)
   VM* vm = new_VM();
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   ssp_is_running = 1;
-  vm->bbq = calloc(1, sizeof(struct BBQ_));
-	sp_createn(&vm->bbq->sp, 2);
-
 	CHECK_BB(sio_ini(vm, backend, id, raw, name, &samplerate))
-	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
-  vm->bbq->sp->sr = samplerate;
+//	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
+//  vm->bbq->sp->sr = samplerate;
 
 	Env env = type_engine_init(vm);
   if(!env)
