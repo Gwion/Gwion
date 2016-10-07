@@ -91,7 +91,6 @@ void vm_run(VM* vm)
   VM_Shred shred;
   Instr    instr;
   UGen     ugen;
-printf("here\n");
   while((shred = shreduler_get(vm->shreduler)))
   {
 #ifdef DEBUG_VM

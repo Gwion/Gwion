@@ -25,7 +25,8 @@ typedef struct
   Ast ast;
   unsigned int line;
   unsigned int pos;
-	unsigned int fd;
+//	unsigned int fd;
+	FILE* file;
 	m_str filename;
 } MyArg;
 

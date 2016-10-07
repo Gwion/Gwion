@@ -47,8 +47,8 @@ static const struct option long_option[] = {
 };
 
 typedef Driver* (*f_driver)();
-//f_driver d_func = alsa_driver;
-f_driver d_func = pa_driver;
+f_driver d_func = alsa_driver;
+//f_driver d_func = pa_driver;
 int main(int argc, char** argv)
 {
 /*  mcheck(NULL);*/

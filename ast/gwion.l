@@ -277,18 +277,26 @@ static int doc_adjust(void* data, char* str)
 int minimal_error(MyArg* arg, char* s)
 {
   m_uint i, pos;
-  char buf[256], sign[256];
-  memset(buf, 0, 256);
+	m_str line = NULL;
+	char sign[256];
+	int n = 1;
+	size_t len = 0;
   memset(sign, 0, 256);
-  pos = lseek(arg->fd, -arg->pos, SEEK_CUR);
-  pread(arg->fd, &buf, 25, 0);
-  m_str str = strdup(buf);
-  str = strsep(&str, "\n");
   err_msg(PARSE_, arg->line, "in file '%s'", arg->filename);  
-  err_msg(PARSE_, arg->line, "%s at pos %i\n%s", s, arg->pos, str);  
-  //fprintf(stderr, )
-  free(str);
-  for(i = 0; i < arg->pos - 1; i++)
+	err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);  
+
+	fseek(arg->file, 0, SEEK_SET);
+	while (getline(&line, &len, arg->file) != -1)
+	{
+		if(n == arg->line)
+		{
+			fprintf(stderr, "%s\n", line);
+  		break;
+		}
+		n++;
+	}
+	free(line);
+	for(i = 0; i < arg->pos - 1; i++)
     strcat(sign, " ");
   strcat(sign, "^\n");
   fprintf(stderr, "%s", sign);
@@ -318,7 +326,8 @@ Ast parse(m_str filename)
     err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
     return NULL;
   }
-  arg.fd = fileno(file);
+//  arg.fd = fileno(file);
+  arg.file = file;
   arg.filename = filename;
   minimal_set_in(file, arg.scanner);
   if(minimal_parse(&arg))
