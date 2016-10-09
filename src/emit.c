@@ -2315,13 +2315,16 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "f"))
+      if(!strcmp(S_name(member->xid), "f") ||
+				 !strcmp(S_name(member->xid), "t") ||
+			 	 !strcmp(S_name(member->xid), "d"))
       {
         Instr instr = add_instr(emit, Vararg_float);
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "c"))
+      if(!strcmp(S_name(member->xid), "c") ||
+				 !strcmp(S_name(member->xid), "p"))
       {
         Instr instr = add_instr(emit, Vararg_complex);
         instr->m_val  = offset;

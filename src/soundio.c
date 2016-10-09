@@ -341,6 +341,7 @@ void sio_run()
  	while(ssp_is_running)
 	{
   	soundio_flush_events(soundio);
+//  	soundio_wait_events(soundio);
 		sleep(1);
 	}
 }
