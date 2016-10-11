@@ -109,6 +109,8 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
     struct SoundIoChannelArea *areas;
     int err;
     int frames_left = frame_count_max;
+		VM* vm = (VM*)outstream->userdata;
+		double* data = vm->bbq->in;
 
     for (;;) {
         int frame_count = frames_left;
@@ -124,12 +126,12 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
             break;
 
         if (!areas) {
-            memset(instream->userdata, 0, frame_count * instream->bytes_per_frame);
+            memset(data, 0, frame_count * instream->bytes_per_frame);
             fprintf(stderr, "Dropped %d frames due to internal overflow\n", frame_count);
         } else {
             for (int frame = 0; frame < frame_count; frame += 1) {
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-                    memcpy(instream->userdata, areas[ch].ptr, instream->bytes_per_sample);
+                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
                     areas[ch].ptr += areas[ch].step;
                 }
             }
@@ -252,16 +254,40 @@ m_bool sio_ini(VM* vm, enum SoundIoBackend backend, char *device_id, bool raw, c
         return -1;
     }
 
+		if (soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
+        instream->format = SoundIoFormatFloat64NE;
+        write_sample = write_sample_float64ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
+        instream->format = SoundIoFormatS32NE;
+        write_sample = write_sample_s32ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
+        instream->format = SoundIoFormatS16NE;
+        // read_sample = write_sample_s16ne;
+    } else {
+        fprintf(stderr, "No suitable device format available.\n");
+        return -1;
+    }
+
     if ((err = soundio_outstream_open(outstream))) {
-        fprintf(stderr, "unable to open device: %s", soundio_strerror(err));
+        fprintf(stderr, "unable to open output device: %s", soundio_strerror(err));
+        return -1;
+    }
+    if ((err = soundio_instream_open(instream))) {
+        fprintf(stderr, "unable to open input device: %s", soundio_strerror(err));
         return -1;
     }
     if (outstream->layout_error)
 		{
-      fprintf(stderr, "unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
+      fprintf(stderr, "unable to set output channel layout: %s\n", soundio_strerror(outstream->layout_error));
+			return -1;
+		}
+    if (instream->layout_error)
+		{
+      fprintf(stderr, "unable to set input channel layout: %s\n", soundio_strerror(instream->layout_error));
 			return -1;
 		}
 	outstream->userdata = vm;
+	instream->userdata = vm;
 	*sample_rate = outstream->sample_rate;
 	return 1;
 }
@@ -271,7 +297,12 @@ void sio_run()
 	int err;
   if((err = soundio_outstream_start(outstream)))
 	{
-		fprintf(stderr, "unable to start device: %s\n", soundio_strerror(err));
+		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
+		return;
+  }
+  if((err = soundio_instream_start(instream)))
+	{
+		fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
 		return;
   }
  	while(ssp_is_running)
