@@ -10,3 +10,5 @@ synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.
 > // let one minute pass  
 > minute => now;  
 > // you're done!
+
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg?maxAge=2592000)]()
