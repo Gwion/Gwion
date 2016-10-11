@@ -1,6 +1,5 @@
 #Gwion#
-![](http://b.repl.ca/v1/version-pre--alpha-orange.png)  
-![](http://b.repl.ca/v1/language-C--alpha-green.png)  
+![](http://b.repl.ca/v1/version-pre--alpha-orange.png) ![](http://b.repl.ca/v1/language-C--alpha-green.png)  
 gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
