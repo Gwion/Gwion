@@ -342,7 +342,7 @@ void sio_run()
 	{
   	soundio_flush_events(soundio);
 //  	soundio_wait_events(soundio);
-		sleep(1);
+		sleep(.1);
 	}
 }
 
