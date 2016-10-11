@@ -1,9 +1,5 @@
 *.o
 *.so
 Gwion
-ast/lexer.c
-ast/lexer.h
-ast/parser.c
-ast/parser.h
-ast/parser.output
-ast/parser.xml
+ast/lexer.*
+ast/parser.*
