@@ -276,7 +276,7 @@ m_bool import_vec3(Env env)
 	return 1;
 }
 
-struct Type_ t_vec4 = { "Vec3", SZ_VEC4, NULL, te_vec4};
+struct Type_ t_vec4 = { "Vec4", SZ_VEC4, NULL, te_vec4};
 
 MFUN(vec4_set)
 {
