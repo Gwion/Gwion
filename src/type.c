@@ -74,7 +74,7 @@ Env type_engine_init(VM* vm)
   CHECK_BO(import_float(env))
   CHECK_BO(import_complex(env))
   CHECK_BO(import_vec3(env))
-//  CHECK_BO(import_vec4(env))
+  CHECK_BO(import_vec4(env))
 
   // base object types
   CHECK_BO(import_object(env))
