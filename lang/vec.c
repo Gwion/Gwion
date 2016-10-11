@@ -6,7 +6,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_vec3 = { "vec3", SZ_VEC3, NULL, te_vec3};
+struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
 MFUN(vec3_set)
 {
 	VEC3_T* v =  &*(VEC3_T*)(shred->mem);
@@ -276,7 +276,7 @@ m_bool import_vec3(Env env)
 	return 1;
 }
 
-struct Type_ t_vec4 = { "vec4", SZ_VEC4, NULL, te_vec4};
+struct Type_ t_vec4 = { "Vec3", SZ_VEC4, NULL, te_vec4};
 
 MFUN(vec4_set)
 {

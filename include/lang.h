@@ -18,7 +18,6 @@ extern m_bool import_object(Env env);
 extern m_bool import_string(Env env);
 extern m_bool import_event(Env env);
 extern m_bool import_fileio(Env env);
-extern m_bool import_vararg(Env env);
 extern m_bool import_lib(Env env);
 extern m_bool import_analys(Env env);
 

@@ -2309,36 +2309,42 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
       return 1;
       }
-      if(!strcmp(S_name(member->xid), "i"))
+      else if(!strcmp(S_name(member->xid), "i"))
       {
         Instr instr = add_instr(emit, Vararg_int);
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "f") ||
-				 !strcmp(S_name(member->xid), "t") ||
-			 	 !strcmp(S_name(member->xid), "d"))
+      else if(!strcmp(S_name(member->xid), "f") ||
+         !strcmp(S_name(member->xid), "t") ||
+         !strcmp(S_name(member->xid), "d"))
       {
         Instr instr = add_instr(emit, Vararg_float);
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "c") ||
-				 !strcmp(S_name(member->xid), "p"))
+      else if(!strcmp(S_name(member->xid), "c") ||
+         !strcmp(S_name(member->xid), "p"))
       {
         Instr instr = add_instr(emit, Vararg_complex);
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "v3"))
+      else if(!strcmp(S_name(member->xid), "v3"))
       {
         Instr instr = add_instr(emit, Vararg_Vec3);
         instr->m_val  = offset;
         return 1;
       }
-      if(!strcmp(S_name(member->xid), "v4"))
+      else if(!strcmp(S_name(member->xid), "v4"))
       {
         Instr instr = add_instr(emit, Vararg_Vec3);
+        instr->m_val  = offset;
+        return 1;
+      }
+      else if(!strcmp(S_name(member->xid), "o"))
+      {
+        Instr instr = add_instr(emit, Vararg_object);
         instr->m_val  = offset;
         return 1;
       }

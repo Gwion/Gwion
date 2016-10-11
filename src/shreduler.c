@@ -8,7 +8,7 @@
 #include "oo.h"
 #include "array.h"
 
-extern m_bool  ssp_is_running;
+extern int ssp_is_running;
 struct  Shreduler_{
 	m_int til_next;
 	VM* vm;
@@ -37,10 +37,9 @@ m_float get_now(Shreduler s) { return s->vm->bbq->sp->pos; }
 void shreduler_set_loop(Shreduler s, m_bool loop) { s->loop = loop; }
 VM_Shred shreduler_get(Shreduler s)
 {
-#ifdef DEBUG_SHREDULER
-  debug_msg("clock", "get");
-#endif
-printf("s %p list %i\n", s, s->vm->shred);
+/*#ifdef DEBUG_SHREDULER*/
+/*  debug_msg("clock", "get");*/
+/*#endif*/
 	VM_Shred shred = s->list;
   
   VM_Shred sh = shred;
@@ -48,11 +47,10 @@ printf("s %p list %i\n", s, s->vm->shred);
   if(!shred)
 	{
 		s->til_next = -1;
-    if(!((int)s->vm->shred) || !vector_size(s->vm->shred) && ! s->loop)
+    if(!vector_size(s->vm->shred) && ! s->loop)
       ssp_is_running = 0;
     return NULL;
   }
-printf("shred %p\n", shred); 
 	if(shred->wake_time <= (get_now(s) + .5))
 	{
 		s->list = shred->next;
@@ -79,29 +77,16 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
   m_uint i, size = out->child ? vector_size(out->child) : 0;
   if(erase)
   {
-/*
     if(out->parent)
       vector_remove(out->parent->child, vector_find(out->parent->child, out));
     if(out->child)
-		{
-	    for(i = 0; i < size; i++)
-	    {
-	      VM_Shred child = vector_front(out->child);
-	      shreduler_remove(s, child, 1);
-	    }
-
-		}
-*/
-printf("%i\n", s->vm);
-printf("%i\n", s->vm->shred);
-//exit(3);
-		if((int)s->vm->shred == 0)
-			return -1;
-
-   vector_remove(s->vm->shred, vector_find(s->vm->shred, out));
-  	return 1;
-	}
-//exit(3);
+    for(i = 0; i < size; i++)
+    {
+      VM_Shred child = vector_front(out->child);
+      shreduler_remove(s, child, 1);
+    }
+    vector_remove(s->vm->shred, vector_find(s->vm->shred, out));
+  }
   out->is_running = 0;
   if(!out->prev && !out->next && out != s->list)
     return -1;

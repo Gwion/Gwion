@@ -1,5 +1,5 @@
 *.o
 *.so
 Gwion
-ast/lexer.*
 ast/parser.*
+ast/lexer.*
