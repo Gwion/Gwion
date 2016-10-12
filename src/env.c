@@ -23,7 +23,7 @@ Env new_Env()
 //	env->binary_map = new_Unary_Operator_Map();
 /*	env->binary_map = new_Binary_Operator_Map();*/
 /*  env->clean = new_Vector();*/
-	env->known_ctx = new_Map();
+  env->known_ctx = new_Map();
   env_reset(env);
   return env;
 }

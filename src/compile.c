@@ -22,12 +22,12 @@ m_bool compile(VM* vm, const m_str filename)
     err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
     return -1;
   }
-#ifdef DEBUG_COMPILE
+#ifdef DEBUG_COMPILE  
   debug_msg("parser", "get full path ok %s", name);
 #endif
   CHECK_OB((ast = parse(name)))
 #ifdef DEBUG_COMPILE
-  debug_msg("lexer", "Ast of '%s' ok", name);
+	  debug_msg("lexer", "Ast of '%s' ok", name);
 #endif
   CHECK_BB(type_engine_check_prog(vm->env, ast, name))
 #ifdef DEBUG_COMPILE
