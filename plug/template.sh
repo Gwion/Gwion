@@ -13,4 +13,3 @@ NAME=$1
 #LDFLAGS+=-I<more LIBS>
 include ../config_post.mk
 " > $1/Makefile
-

@@ -1,5 +1,5 @@
 default: ${OBJ}
-	${CC} -shared -fPIC ${CFLAGS}  ${OBJ} -o ${NAME}.so
+	${CC} ${LDFLAGS} ${CFLAGS}  ${OBJ} -o ${NAME}.so
 clean:
 	rm -f ${OBJ} ${NAME}.so
 .c.o:
