@@ -1,0 +1,3 @@
+Mouse m;
+Keyboard kb;
+minute => now;

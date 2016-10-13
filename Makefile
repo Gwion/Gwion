@@ -4,7 +4,6 @@ LDFLAGS += -g -lm -pthread -lasound -ljack -lsndfile -fno-strict-aliasing
 LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt -lsoundio
 
 CFLAGS+=-Iinclude -I/usr/include/libevdev-1.0
-#CC = musl-gcc -I/opt/musl/include
 CC = cc
 core_src := $(wildcard src/*.c)
 lang_src := $(wildcard lang/*.c)

@@ -5,20 +5,58 @@
 #include "import.h"
 
 #include <SDL2/SDL.h>
+#include <pthread.h>
 static m_uint n_sdl = 0;
 static m_uint n_joy = 0;
 static m_uint n_win = 0;
 
 struct Type_ t_sdl       = {"SdlEvent", SZ_INT, &t_event};
 struct Type_ t_sdl_mouse = {"Mouse",    SZ_INT, &t_sdl};
-struct Type_ t_sdl_kbd   = {"KeyBoard", SZ_INT, &t_sdl};
+struct Type_ t_sdl_kbd   = {"Keyboard", SZ_INT, &t_sdl};
 struct Type_ t_sdl_joy   = {"Joystick", SZ_INT, &t_sdl};
 struct Type_ t_sdl_win   = {"SdlWin",   SZ_INT, &t_sdl};
+
+static pthread_t thread;
+static void* sdl_run(void* data)
+{
+printf("lol\n");
+	SDL_Event e;
+	while(1)
+	{
+//			printf("e.type %i\n", 1);
+	  while(SDL_WaitEvent(&e))
+	  {
+			printf("e.type %i\n", e.type);
+	    switch(e.type)
+	    {
+	      case SDL_KEYUP:
+	      case SDL_KEYDOWN:
+	        printf("key\n");
+	        break;
+				case SDL_MOUSEMOTION:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEWHEEL:
+	        printf("mouse\n");
+	        break;
+	      default:
+	        printf("default\n");
+	        break;
+	    }
+	  }
+	}
+}
 
 static CTOR(sdl_ctor)
 {
 	if(!n_sdl++)
-		SDL_Init(SDL_INIT_EVENTS);
+	{
+		if(SDL_Init(SDL_INIT_EVENTS))
+			Except(shred);
+		SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
+		SDL_CaptureMouse(0);
+		pthread_create(&thread, NULL, sdl_run, NULL);
+	}
 }
 
 static CTOR(joy_ctor)
@@ -36,7 +74,10 @@ static CTOR(win_ctor)
 static DTOR(sdl_dtor)
 {
 	if(!--n_sdl)
+	{
+		pthread_cancel(thread);
 		SDL_Quit();
+	}
 }
 
 static DTOR(joy_dtor)
