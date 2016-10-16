@@ -3,9 +3,6 @@ function make_doc(prefix, str)
 	local doc = string.gsub(tmp, "\n", "")
 	print(prefix.."->doc = \""..doc.."\";")
 end
--- string.gsub(sp[self.name].params[i].description, "\"", "\\\"")
-
---		print("\tenv->curr->doc = \""..string.gsub(object.description, "\"", "\\\"").."\";")
 
 function declare_c_param(param)
 	local type;
@@ -17,21 +14,16 @@ function declare_c_param(param)
 		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);\n\tgw_offset += SZ_FLOAT;")
 	elseif string.match(param.type, "char%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
---		print("\tif(!"..param.name.."_obj)\n\t\tgoto error;")
 		print("\tm_str "..param.name.." = STRING("..param.name.."_obj);")
---		print("\tif(!"..param.name..")\n\t\tgoto error;")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
---		print("\tif(!"..param.name.."_ptr)\n\t\tgoto error;")
 		print("\tm_uint "..param.name.."_iter;")
 		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->array)];")
 		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->array); "..param.name.."_iter++)")
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->array, "..param.name.."_iter));")
 	elseif string.match(param.type, "sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
---		print("\tif(!"..param.name.."_obj)\n\t\tgoto error;")
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
---		print("\tif(!"..param.name..")\n\t\tgoto error;")
 	else
 		print("unknown type:", param.type, ".")
 		os.exit()
@@ -50,7 +42,7 @@ function declare_gw_param(param)
 	elseif string.match(param.type, "sp_ftbl%s%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
 	end
---	print("\t\targ->doc = "..string.gsub(param.description, "\"", "\\\""))
+	make_doc("arg", param)
 end
 
 function print_gen_func(name, func)
@@ -61,7 +53,6 @@ function print_gen_func(name, func)
 	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
 	print("\tCHECK_SIZE(size);")
 	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
-	-- now init with args
 	local i = 1;
 	local args = "";
 	while func.params[i]  do
@@ -99,7 +90,6 @@ function print_mod_func(name, mod)
 		print("\tm_bool is_init;")
 	end
 	print("} GW_"..name..";\n")
-	-- tick
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory) then
@@ -127,7 +117,6 @@ function print_mod_func(name, mod)
 	end
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 	print("}\n")
-	-- ctor
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
 	print("\tsp_"..name.."_create(&ug->osc);")
@@ -139,14 +128,12 @@ function print_mod_func(name, mod)
 	print("\to->ugen->tick = "..name.."_tick;")
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
 	print("}\n")
-	-- dtor
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
 	if(nmandatory) then
 		print("if(ug->is_init)\n\t")
 	end
 	print("\tsp_"..name.."_destroy(&ug->osc);")
 	print("}\n")
-	-- init
 	if nmandatory > 0 then
 		print("MFUN("..name.."_init)\n{")
 		print("\tm_uint gw_offset = SZ_INT;")
@@ -166,7 +153,6 @@ function print_mod_func(name, mod)
 		print("\tsp_"..name.."_init(ug->sp, ug->osc, "..args..");")
 		print("}\n")
 	end
-	-- commmodity
 	if nmandatory == 1 then
 		local tbl = mod.params.mandatory
 		if tbl then
@@ -180,13 +166,10 @@ function print_mod_func(name, mod)
 			end
 		end
 	end
-	-- optional
 	local opt = mod.params.optional
 	if opt then
 		for _, v in pairs(opt) do
-			-- getter
 			print("MFUN("..name.."_get_"..v.name..")\n{")
---			print("\tm_uint gw_offset = SZ_INT;")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
 			if string.match(v.type, "int") then
 				print("\tRETURN->v_uint = ug->osc->"..v.name..";")
@@ -203,7 +186,6 @@ function print_mod_func(name, mod)
 				os.exit(3);
 			end
 			print("}\n")
-			-- setter
 			print("MFUN("..name.."_set_"..v.name..")\n{")
 			print("\tm_uint gw_offset = SZ_INT;")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
@@ -242,7 +224,6 @@ local dir = io.popen("dir "..arg[1])
 		print("failed to read soundpipe data directory.")
 	end
 
--- headers
 print('#include "vm.h"\
 #include "type.h"\
 #include "dl.h"\
@@ -262,7 +243,6 @@ print("#define CHECK_SIZE\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argum
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
--- funcs
 for name, object in pairs(sptbl) do
 	if string.match(object.modtype, "gen") then
 		print_gen_func(name, object)
@@ -271,22 +251,16 @@ for name, object in pairs(sptbl) do
 	end
 end
 
--- types
--- TODO: capitalize
 	print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
 for name, object in pairs(sptbl) do
 	print("struct Type_ t_"..name.." = {\""..name.."\", SZ_INT, &t_ugen};")
 end
 print("")
--- import
--- return 1
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
--- import gen
 print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
 print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
 for gen_name, object in pairs(sptbl) do
 	if string.match(object.modtype, "gen") then
-		--TODO: get  rid of 'gen_'
 		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1;
 		while object.params[i]  do
