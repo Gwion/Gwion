@@ -38,6 +38,7 @@ m_float*  f_vector_addr(M_Vector* v, m_uint i);
 complex*  c_vector_addr(M_Vector* v, m_uint i);
 VEC3_T*  v3_vector_addr(M_Vector* v, m_uint i);
 VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i);
+//M_Object  o_vector_at((M_Vector* v, m_uint i); // check me
 void      i_vector_set (M_Vector* v, m_uint i, m_uint  data);
 void      f_vector_set (M_Vector* v, m_uint i, m_float data);
 void      c_vector_set (M_Vector* v, m_uint i, complex data);

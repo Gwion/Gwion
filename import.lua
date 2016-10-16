@@ -276,6 +276,7 @@ for gen_name, object in pairs(sptbl) do
 		make_doc("f", object)
 	end
 end
+print("env->curr->doc = \"soudpipe float array type")
 --			make_doc("f", mod_name)
 print("\tCHECK_BB(import_class_end(env))\n")
 for mod_name, object in pairs(sptbl) do

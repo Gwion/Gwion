@@ -81,7 +81,17 @@ void ref_compute(UGen u)
 {
   u->tick(u);
   u->done = 1;
+}
 
+void channel_compute(UGen u)
+{
+//	if(u->done)
+//		return;
+	m_uint i;
+	u->in = 0;
+	for(i = 0; i < vector_size(u->ugen); i++)
+		u->in += ((UGen)vector_at(u->ugen, i))->out;
+//	u->done = 1;
 }
 // recursively compute ugen
 void ugen_compute(UGen u)

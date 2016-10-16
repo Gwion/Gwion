@@ -87,6 +87,7 @@ enum
 #define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
+#define TICK(a) m_bool a(UGen u)
 // should be in lang.h, maybe
 // string
 #define STRING(o) *((m_str*)((M_Object)o)->data + o_string_data)
