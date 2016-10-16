@@ -1,0 +1,368 @@
+function make_doc(prefix, str)
+	local tmp = string.gsub(str, "\"", "\\\"")
+	local doc = string.gsub(tmp, "\n", "")
+	print(prefix.."->doc = \""..doc.."\";")
+end
+-- string.gsub(sp[self.name].params[i].description, "\"", "\\\"")
+
+--		print("\tenv->curr->doc = \""..string.gsub(object.description, "\"", "\\\"").."\";")
+
+function declare_c_param(param)
+	local type;
+	if string.match(param.type, "int") then
+		print("\tm_int "..param.name.." = *(m_int*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+	elseif string.match(param.type, "SPFLOAT$") then
+		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);\n\tgw_offset += SZ_FLOAT;")
+	elseif string.match(param.type, "SPFLOAT*") then
+		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);\n\tgw_offset += SZ_FLOAT;")
+	elseif string.match(param.type, "char%s*") then
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+--		print("\tif(!"..param.name.."_obj)\n\t\tgoto error;")
+		print("\tm_str "..param.name.." = STRING("..param.name.."_obj);")
+--		print("\tif(!"..param.name..")\n\t\tgoto error;")
+	elseif string.match(param.type, "sp_ftbl%s%*%*") then
+		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+--		print("\tif(!"..param.name.."_ptr)\n\t\tgoto error;")
+		print("\tm_uint "..param.name.."_iter;")
+		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->array)];")
+		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->array); "..param.name.."_iter++)")
+		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->array, "..param.name.."_iter));")
+	elseif string.match(param.type, "sp_ftbl%s*") then
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
+--		print("\tif(!"..param.name.."_obj)\n\t\tgoto error;")
+		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
+--		print("\tif(!"..param.name..")\n\t\tgoto error;")
+	else
+		print("unknown type:", param.type, ".")
+		os.exit()
+	end
+end
+
+function declare_gw_param(param)
+	if string.match(param.type, "int") then
+		print("\t\targ = dl_func_add_arg(fun, \"int\", \""..param.name.."\");")
+	elseif string.match(param.type, "SPFLOAT") then
+		print("\t\targ = dl_func_add_arg(fun, \"float\", \""..param.name.."\");")
+	elseif string.match(param.type, "char*") then
+		print("\t\targ = dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%s%*%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%s%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+	end
+--	print("\t\targ->doc = "..string.gsub(param.description, "\"", "\\\""))
+end
+
+function print_gen_func(name, func)
+	print("MFUN(ftbl_"..name..")\n{")
+	print("\tsp_ftbl* ftbl = FTBL(o);")
+	print("\tm_uint gw_offset = SZ_INT*2;")
+	print("\tif(FTBL(o))\n    sp_ftbl_destroy(&ftbl);")
+	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
+	print("\tCHECK_SIZE(size);")
+	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
+	-- now init with args
+	local i = 1;
+	local args = "";
+	while func.params[i]  do
+		declare_c_param(func.params[i])
+		args =	string.format("%s, %s", args , func.params[i].name)
+		i = i+1
+	end
+	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
+	print("error:\n\tsp_ftbl_destroy(&ftbl);")
+	print("}\n")
+end
+
+
+function print_mod_func(name, mod)
+	if string.match(name, "^foo$") then
+		return
+	end
+	local ntrig = 0
+	local ninputs = mod.ninputs
+	local nmandatory = 0
+	local tbl = mod.params.mandatory
+	if tbl then
+		for _, v in pairs(tbl) do
+			nmandatory = nmandatory + 1
+		end
+	end
+	for i = 1, ninputs  do
+		if string.match(mod.inputs[i].name, "trig") then
+		ntrig = ntrig + 1
+		ninputs  = ninputs - 1
+		end
+	end
+	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
+	if(nmandatory) then
+		print("\tm_bool is_init;")
+	end
+	print("} GW_"..name..";\n")
+	-- tick
+	print("TICK("..name.."_tick)\n{")
+	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
+  if(nmandatory) then
+		print("\tif(!ug->is_init)\n{\n\tu->out = 0;\n\treturn 1;\n}")
+	end
+	local args = ""
+	if ninputs > 1 then
+		for i = 1, ninputs do
+			args = string.format("%s, &u->channel["..(i - 1).."]->ugen->in", args)
+		end	
+	elseif ninputs == 1 then
+		args = string.format("%s, &u->in", args)
+	elseif ntrig == 0 then
+		args = ", NULL"
+	end
+	if ntrig > 0 then
+		args = string.format("%s, &u->trig->ugen->out", args)
+	end
+	if mod.noutputs > 1 then
+		for i = 1, mod.noutputs do
+			args = string.format("%s, &u->channel["..(i - 1).."]->ugen->out", args)
+		end	
+	elseif mod.noutputs == 1 then
+		args = string.format("%s, &u->out", args)
+	end
+	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
+	print("}\n")
+	-- ctor
+	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
+	print("\tug->sp = shred->vm_ref->bbq->sp;")
+	print("\tsp_"..name.."_create(&ug->osc);")
+  if(nmandatory) then
+		print("\tug->is_init = 0;")
+	else
+		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
+	end
+	print("\to->ugen->tick = "..name.."_tick;")
+	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
+	print("}\n")
+	-- dtor
+	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
+	if(nmandatory) then
+		print("if(ug->is_init)\n\t")
+	end
+	print("\tsp_"..name.."_destroy(&ug->osc);")
+	print("}\n")
+	-- init
+	if nmandatory > 0 then
+		print("MFUN("..name.."_init)\n{")
+		print("\tm_uint gw_offset = SZ_INT;")
+		print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
+		local args = ""
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				declare_c_param(v)
+				if string.match(args, "^$") then
+					args = v.name
+				else
+					args = string.format("%s, %s", args, v.name)
+				end
+			end
+		end
+		print("\tsp_"..name.."_init(ug->sp, ug->osc, "..args..");")
+		print("}\n")
+	end
+	-- commmodity
+	if nmandatory == 1 then
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				print("MFUN("..name.."_"..v.name..")\n{")
+				print("\tm_uint gw_offset = SZ_INT;")
+				print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
+				declare_c_param(v)
+				print("\tsp_"..name.."_init(ug->sp, ug->osc, "..v.name..");")
+				print("}\n")
+			end
+		end
+	end
+	-- optional
+	local opt = mod.params.optional
+	if opt then
+		for _, v in pairs(opt) do
+			-- getter
+			print("MFUN("..name.."_get_"..v.name..")\n{")
+--			print("\tm_uint gw_offset = SZ_INT;")
+			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
+			if string.match(v.type, "int") then
+				print("\tRETURN->v_uint = ug->osc->"..v.name..";")
+			elseif string.match(v.type, "SPFLOAT$") then
+				print("\tRETURN->v_float = ug->osc->"..v.name..";")
+			elseif string.gmatch(v.type, "SPFLOAT*") then
+				print("\tRETURN->v_float = *ug->osc->"..v.name..";")
+			elseif string.gmatch(v.type, "char*") then
+				print("\tRETURN->v_uint = ug->osc->"..v.name.."_obj;")
+			elseif string.gmatch(v.type, "sp_ftbl*") then
+				print("\tRETURN->v_uint = ug->osc->"..v.name.."_obj;")
+			else 
+				print(v.type)
+				os.exit(3);
+			end
+			print("}\n")
+			-- setter
+			print("MFUN("..name.."_set_"..v.name..")\n{")
+			print("\tm_uint gw_offset = SZ_INT;")
+			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
+			declare_c_param(v)
+			if string.match(v.type, "int") then
+				print("\tRETURN->v_uint = (ug->osc->"..v.name.." = "..v.name..");")
+			elseif string.match(v.type, "SPFLOAT$") then
+				print("\tRETURN->v_float = (ug->osc->"..v.name.." = "..v.name..");")
+			elseif string.gmatch(v.type, "SPFLOAT*") then
+				print("\tRETURN->v_float = (*ug->osc->"..v.name.." = "..v.name..");")
+			elseif string.gmatch(v.type, "char*") then
+				print("\tRETURN->v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+			elseif string.gmatch(v.type, "sp_ftbl*") then
+				print("\tRETURN->v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+			end
+			print("}\n")
+		end
+	end
+end
+
+sptbl = {}
+
+if not arg[1] then
+	print("this script takes a valid soudpipe data directory as argument")
+	os.exit(1)
+end
+
+local dir = io.popen("dir "..arg[1])
+	if dir then  
+		for filename in string.gmatch(dir:read("*a"), '([^%s]+)') do
+			if filename:gmatch(".lua$") then
+				dofile(arg[1]..'/'..filename)
+			end
+		end
+	else
+		print("failed to read soundpipe data directory.")
+	end
+
+-- headers
+print('#include "vm.h"\
+#include "type.h"\
+#include "dl.h"\
+#include "err_msg.h"\
+#include "import.h"\
+#include "ugen.h"\
+#include "bbq.h"\
+#include "array.h"\
+#include "func.h"\
+#include "lang.h"\
+#include "object.h"')
+
+print("m_uint o_ftbl_data;")
+print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)")
+print("#define CHECK_SIZE\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
+
+print("\nDTOR(ftbl_dtor)\n{")
+print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
+print("}\n")
+-- funcs
+for name, object in pairs(sptbl) do
+	if string.match(object.modtype, "gen") then
+		print_gen_func(name, object)
+	else
+		print_mod_func(name, object)
+	end
+end
+
+-- types
+-- TODO: capitalize
+	print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
+for name, object in pairs(sptbl) do
+	print("struct Type_ t_"..name.." = {\""..name.."\", SZ_INT, &t_ugen};")
+end
+print("")
+-- import
+-- return 1
+print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
+-- import gen
+print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
+print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
+for gen_name, object in pairs(sptbl) do
+	if string.match(object.modtype, "gen") then
+		--TODO: get  rid of 'gen_'
+		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
+		local i = 1;
+		while object.params[i]  do
+			declare_gw_param(object.params[i])
+			i = i+1
+		end
+		print("\tCHECK_OB((f = import_mfun(env, fun)))")
+		make_doc("f", gen_name)
+	end
+end
+--			make_doc("f", mod_name)
+print("\tCHECK_BB(import_class_end(env))\n")
+for mod_name, object in pairs(sptbl) do
+	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
+		print("\tCHECK_BB(add_global_type(env, &t_"..mod_name.."))")
+		print("\tCHECK_BB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
+		local nmandatory = 0
+		local tbl = object.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				nmandatory = nmandatory + 1
+			end
+		end
+		if nmandatory == 1 then
+			for _, v in pairs(tbl) do
+				print("\tfun = new_DL_Func(\"void\", \""..v.name.."\", (m_uint)"..mod_name.."_init);")
+				declare_gw_param(v)
+			end
+			print("\tCHECK_OB((f = import_mfun(env, fun)))")
+			make_doc("f", mod_name)
+		end
+		if nmandatory > 0 then
+				print("\tfun = new_DL_Func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
+			local tbl = object.params.mandatory
+			if tbl then
+				for _, v in pairs(tbl) do
+				declare_gw_param(v)
+				end
+			end	
+			print("\tCHECK_OB((f = import_mfun(env, fun)))")
+			make_doc("f", mod_name)
+		end
+			local tbl = object.params.optional
+			if tbl then
+				for _, v in pairs(tbl) do
+				if string.match(v.type, "int") then
+					print("\tfun = new_DL_Func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+				elseif string.match(v.type, "SPFLOAT") then
+					print("\tfun = new_DL_Func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+				elseif string.match(v.type, "char") then
+					print("\tfun = new_DL_Func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+				elseif string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\tfun = new_DL_Func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+				elseif string.match(v.type, "sp_ftbl%s%*") then
+					print("\tfun = new_DL_Func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+				end
+				print("\tCHECK_OB((f = import_mfun(env, fun)))")
+				if string.match(v.type, "int") then
+					print("\tfun = new_DL_Func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+				elseif string.match(v.type, "SPFLOAT") then
+					print("\tfun = new_DL_Func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+				elseif string.match(v.type, "char") then
+					print("\tfun = new_DL_Func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+				elseif string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\tfun = new_DL_Func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+				elseif string.match(v.type, "sp_ftbl%s%*") then
+					print("\tfun = new_DL_Func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+				end
+				declare_gw_param(v)
+				print("\tCHECK_OB((f = import_mfun(env, fun)))")
+				make_doc("f", mod_name)
+				end
+			end	
+		make_doc("env->class_def", mod_name)
+		print("\tCHECK_BB(import_class_end(env))\n")
+		print("")
+	end
+end
+print("\treturn 1;\n}")
