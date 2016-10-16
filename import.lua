@@ -1,5 +1,9 @@
-function make_doc(prefix, str)
-	local tmp = string.gsub(str, "\"", "\\\"")
+--local function titleCase( first, rest )
+--   return first:upper()..rest:lower()
+--end
+
+function make_doc(prefix, o)
+	local tmp = string.gsub(o.description, "\"", "\\\"")
 	local doc = string.gsub(tmp, "\n", "")
 	print(prefix.."->doc = \""..doc.."\";")
 end
@@ -253,7 +257,8 @@ end
 
 	print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
 for name, object in pairs(sptbl) do
-	print("struct Type_ t_"..name.." = {\""..name.."\", SZ_INT, &t_ugen};")
+	local title = string.format("%s%s", string.upper(name:sub(1, 1)), string.sub(name, 2))
+	print("struct Type_ t_"..name.." = {\""..title.."\", SZ_INT, &t_ugen};")
 end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
@@ -268,7 +273,7 @@ for gen_name, object in pairs(sptbl) do
 			i = i+1
 		end
 		print("\tCHECK_OB((f = import_mfun(env, fun)))")
-		make_doc("f", gen_name)
+		make_doc("f", object)
 	end
 end
 --			make_doc("f", mod_name)
@@ -290,7 +295,7 @@ for mod_name, object in pairs(sptbl) do
 				declare_gw_param(v)
 			end
 			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("f", mod_name)
+			make_doc("f", object)
 		end
 		if nmandatory > 0 then
 				print("\tfun = new_DL_Func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
@@ -301,7 +306,7 @@ for mod_name, object in pairs(sptbl) do
 				end
 			end	
 			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("f", mod_name)
+			make_doc("f", object)
 		end
 			local tbl = object.params.optional
 			if tbl then
@@ -331,10 +336,10 @@ for mod_name, object in pairs(sptbl) do
 				end
 				declare_gw_param(v)
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
-				make_doc("f", mod_name)
+				make_doc("f", v)
 				end
 			end	
-		make_doc("env->class_def", mod_name)
+		make_doc("env->class_def", object)
 		print("\tCHECK_BB(import_class_end(env))\n")
 		print("")
 	end
