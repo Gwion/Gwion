@@ -16,11 +16,11 @@ simple example code:
 > 5::second => now;  
 > // you're done!
 
-there ara a few *new* features:  	
-	* variadic funcs
-	* templates (func only for now)
-	* function pointers
-	* enums
+there are a few *new* features:  	
+    * variadic funcs
+    * templates (func only for now)
+    * function pointers
+    * enums
 
 ####requires####
 * soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
