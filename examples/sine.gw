@@ -1,4 +1,5 @@
-SinOsc s => dac;
+SinOsc s => Zitarev zita => dac;
+<<<220 => s.freq, s.freq()>>>;
 while(true)
 {
 //	Math.rand2f(200, 1200) => s.freq;

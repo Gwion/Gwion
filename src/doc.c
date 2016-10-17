@@ -89,7 +89,6 @@ static Doc* new_Doc(Env env, m_str str)
   m_str name;
   Doc* doc = malloc(sizeof(Doc));
   doc->env = env;
-  printf("failed to build doc\n");
   doc->ctx = find_context(env, str);
   if(!doc->ctx)
   {
