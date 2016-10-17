@@ -17,6 +17,7 @@ simple example code:
 > // you're done!
 
 there are a few *new* features:  	
+	
     *  variadic funcs
     *  templates (func only for now)
     *  function pointers
