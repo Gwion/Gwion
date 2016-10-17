@@ -20,7 +20,8 @@ static enum SoundIoBackend backend = SoundIoBackendNone;
 static char *device_id = NULL;
 static bool raw = false;
 
-
+void sio_wakeup()
+{ soundio_wakeup(soundio); }
 static void write_sample_s16ne(char *ptr, double sample) {
     int16_t *buf = (int16_t *)ptr;
     double range = (double)INT16_MAX - (double)INT16_MIN;
@@ -306,10 +307,7 @@ void sio_run()
 		return;
   }
  	while(ssp_is_running)
-	{
-  	soundio_flush_events(soundio);
-		sleep(1);
-	}
+		soundio_wait_events(soundio);
 }
 
 

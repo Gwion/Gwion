@@ -23,6 +23,7 @@ m_bool udp = 1;
 
 void sig(int unused) {
 	ssp_is_running = 0;
+	sio_wakeup();
 }
 static int do_quit = 0;
 

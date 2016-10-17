@@ -48,7 +48,10 @@ VM_Shred shreduler_get(Shreduler s)
 	{
 		s->til_next = -1;
     if(!vector_size(s->vm->shred) && ! s->loop)
+		{
       ssp_is_running = 0;
+			sio_wakeup();
+		}
     return NULL;
   }
 	if(shred->wake_time <= (get_now(s) + .5))
