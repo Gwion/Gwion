@@ -16,10 +16,23 @@ simple example code:
 > 5::second => now;  
 > // you're done!
 
-to build, simply edit config.mk to suit your needs, and type make
+there ara a few *new* features:
+	* variadic funcs
+	* templates (func only for now)
+	* function pointers
+	* enums
 
 ####requires####
 * soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
 * libsoundio
+
+####configure####
+simply *config.mk* to suit your needs, 
+
+####build####
+```
+make
+```
+
 
 let me know...
