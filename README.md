@@ -19,7 +19,7 @@ simple example code:
 to build, simply edit config.mk to suit your needs, and type make
 
 ####requires####
-	soundpipe (compiled to use double, [my fork](https://github.com/fennecdjay/Soundpipe)
-	libsoundio
+	* soundpipe compiled to use double, [my fork](https://github.com/fennecdjay/Soundpipe)
+	* libsoundio
 
 let me know...
