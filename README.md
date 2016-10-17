@@ -16,7 +16,7 @@ simple example code:
 > 5::second => now;  
 > // you're done!
 
-there ara a few *new* features:
+there ara a few *new* features:  	
 	* variadic funcs
 	* templates (func only for now)
 	* function pointers
