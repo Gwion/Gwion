@@ -18,15 +18,11 @@ ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 
 include config.mk
 
-STAMP=$(shell cat .parser.stamp)
-NEW_STAMP=$(shell stat -c %X gwion.y )
-
 silent:
 	@make -s default
 
 default: config.mk core lang ugen drvr
 	@make -C ast
-#	@libtool --mode=link gcc -g -O -o ${PRG} ${PA} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
 core: ${core_obj}
@@ -38,8 +34,8 @@ clean:
 	@rm -f core.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
 	@make -s -C ast clean
 
-soundpipe_import:
-	@cd ../import_sp; sh make_sp.sh; cd ../src
+soundpipe_import: import.lua
+	l@ua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
 
 .c.o:
 	@${CC} ${DEF} ${CFLAGS} -c $< -o $(<:.c=.o)
