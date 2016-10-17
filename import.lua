@@ -21,6 +21,9 @@ function declare_c_param(param)
 		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->array)];")
 		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->array); "..param.name.."_iter++)")
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->array, "..param.name.."_iter));")
+	elseif string.match(param.type, "&sp_ftbl%s*") then
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
+		print("\tsp_ftbl** "..param.name.." = &FTBL("..param.name.."_obj);")
 	elseif string.match(param.type, "sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
@@ -262,7 +265,7 @@ for n in ipairs(a) do
 	local name = a[n]
 	local object = sptbl[name]
 	local title = string.format("%s%s", string.upper(name:sub(1, 1)), string.sub(name, 2))
-	if not string.match(name, "foo") then
+	if not string.match(object.modtype, "gen") and not string.match(name, "foo") then
 		print("struct Type_ t_"..name.." = {\""..title.."\", SZ_INT, &t_ugen};")
 	end
 end

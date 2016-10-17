@@ -3264,12 +3264,9 @@ MFUN(ftbl_gen_scrambler)
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	CHECK_SIZE(size);
 	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
-	M_Object dest_ptr = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_uint dest_iter;
-	sp_ftbl* dest[m_vector_size(dest_ptr->array)];
-	for(dest_iter = 0; dest_iter < m_vector_size(dest_ptr->array); dest_iter++)
-		dest[dest_iter] = FTBL((M_Object)i_vector_at(dest_ptr->array, dest_iter));
+	M_Object dest_obj = *(M_Object*)(shred->mem + gw_offset);
+	gw_offset+=SZ_INT;
+	sp_ftbl** dest = &FTBL(dest_obj);
 	sp_gen_scrambler(shred->vm_ref->bbq->sp, ftbl, dest);
 error:
 	sp_ftbl_destroy(&ftbl);
@@ -8238,15 +8235,6 @@ struct Type_ t_fog = {"Fog", SZ_INT, &t_ugen};
 struct Type_ t_fold = {"Fold", SZ_INT, &t_ugen};
 struct Type_ t_fosc = {"Fosc", SZ_INT, &t_ugen};
 struct Type_ t_gbuzz = {"Gbuzz", SZ_INT, &t_ugen};
-struct Type_ t_gen_composite = {"Gen_composite", SZ_INT, &t_ugen};
-struct Type_ t_gen_file = {"Gen_file", SZ_INT, &t_ugen};
-struct Type_ t_gen_gauss = {"Gen_gauss", SZ_INT, &t_ugen};
-struct Type_ t_gen_line = {"Gen_line", SZ_INT, &t_ugen};
-struct Type_ t_gen_padsynth = {"Gen_padsynth", SZ_INT, &t_ugen};
-struct Type_ t_gen_rand = {"Gen_rand", SZ_INT, &t_ugen};
-struct Type_ t_gen_scrambler = {"Gen_scrambler", SZ_INT, &t_ugen};
-struct Type_ t_gen_sinesum = {"Gen_sinesum", SZ_INT, &t_ugen};
-struct Type_ t_gen_xline = {"Gen_xline", SZ_INT, &t_ugen};
 struct Type_ t_hilbert = {"Hilbert", SZ_INT, &t_ugen};
 struct Type_ t_in = {"In", SZ_INT, &t_ugen};
 struct Type_ t_incr = {"Incr", SZ_INT, &t_ugen};
@@ -8362,7 +8350,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Generates a user defined random number distribution.";
 	fun = new_DL_Func("void", "gen_scrambler", (m_uint)ftbl_gen_scrambler);
-		arg = dl_func_add_arg(fun, "ftbl[]", "dest");
+		arg = dl_func_add_arg(fun, "ftbl", "dest");
 		arg->doc = "destination ftable";
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Scrambles phase of ftable.This gen routine will copy the ftable, apply an FFT, applya random phase, and then do an inverse FFT. This effect is ideal for creating pad-like sounds. ";
