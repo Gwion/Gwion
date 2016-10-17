@@ -5,7 +5,7 @@ gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
-audio output is done using [libsoundio](https://github.com/fennecdjay/libsoundio)  
+audio output is done using [libsoundio](http://libsound.io/)  
 
 simple example code:
 > // print hello world
@@ -19,7 +19,7 @@ simple example code:
 to build, simply edit config.mk to suit your needs, and type make
 
 ####requires####
-* soundpipe compiled to use double, [my fork](https://github.com/fennecdjay/Soundpipe)
+* soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
 * libsoundio
 
 let me know...
