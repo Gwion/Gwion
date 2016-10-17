@@ -450,7 +450,8 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
 #else
     fprintf(stdout, ") ");
 #endif
-    for(int j = 0; j < longest - strlen(name); j++)
+    int j;
+    for(j = 0; j < longest - strlen(name); j++)
       fprintf(stdout, " ");
 /*exit(2);*/
     if(type->xid == t_int.xid)
