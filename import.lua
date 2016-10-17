@@ -1,7 +1,3 @@
---local function titleCase( first, rest )
---   return first:upper()..rest:lower()
---end
-
 function make_doc(prefix, o)
 	local tmp = string.gsub(o.description, "\"", "\\\"")
 	local doc = string.gsub(tmp, "\n", "")
@@ -46,7 +42,7 @@ function declare_gw_param(param)
 	elseif string.match(param.type, "sp_ftbl%s%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
 	end
-	make_doc("arg", param)
+	make_doc("\t\targ", param)
 end
 
 function print_gen_func(name, func)
@@ -228,6 +224,10 @@ local dir = io.popen("dir "..arg[1])
 		print("failed to read soundpipe data directory.")
 	end
 
+a = {}
+for n in pairs(sptbl) do table.insert(a, n) end
+table.sort(a)
+
 print('#include "vm.h"\
 #include "type.h"\
 #include "dl.h"\
@@ -247,24 +247,33 @@ print("#define CHECK_SIZE\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argum
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
-for name, object in pairs(sptbl) do
+for n in ipairs(a) do
+	local name = a[n]
+	local object = sptbl[name]
 	if string.match(object.modtype, "gen") then
 		print_gen_func(name, object)
-	else
+	elseif not string.match(name, "foo") then
 		print_mod_func(name, object)
 	end
 end
 
 	print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
-for name, object in pairs(sptbl) do
+for n in ipairs(a) do
+	local name = a[n]
+	local object = sptbl[name]
 	local title = string.format("%s%s", string.upper(name:sub(1, 1)), string.sub(name, 2))
-	print("struct Type_ t_"..name.." = {\""..title.."\", SZ_INT, &t_ugen};")
+	if not string.match(name, "foo") then
+		print("struct Type_ t_"..name.." = {\""..title.."\", SZ_INT, &t_ugen};")
+	end
 end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
 print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
 print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
-for gen_name, object in pairs(sptbl) do
+
+for n in ipairs(a) do
+	local gen_name = a[n]
+	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
 		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1;
@@ -273,13 +282,16 @@ for gen_name, object in pairs(sptbl) do
 			i = i+1
 		end
 		print("\tCHECK_OB((f = import_mfun(env, fun)))")
-		make_doc("f", object)
+		make_doc("\tf", object)
 	end
 end
-print("env->curr->doc = \"soudpipe float array type")
+print("env->class_def->doc = \"soudpipe float array type\";")
 --			make_doc("f", mod_name)
 print("\tCHECK_BB(import_class_end(env))\n")
-for mod_name, object in pairs(sptbl) do
+
+for n in ipairs(a) do
+	local mod_name = a[n]
+	local object = sptbl[mod_name]
 	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
 		print("\tCHECK_BB(add_global_type(env, &t_"..mod_name.."))")
 		print("\tCHECK_BB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
@@ -296,7 +308,7 @@ for mod_name, object in pairs(sptbl) do
 				declare_gw_param(v)
 			end
 			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("f", object)
+			make_doc("\tf", object)
 		end
 		if nmandatory > 0 then
 				print("\tfun = new_DL_Func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
@@ -307,7 +319,7 @@ for mod_name, object in pairs(sptbl) do
 				end
 			end	
 			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("f", object)
+			make_doc("\tf", object)
 		end
 			local tbl = object.params.optional
 			if tbl then
@@ -324,6 +336,7 @@ for mod_name, object in pairs(sptbl) do
 					print("\tfun = new_DL_Func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
+				make_doc("\tf", v)
 				if string.match(v.type, "int") then
 					print("\tfun = new_DL_Func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
@@ -337,12 +350,11 @@ for mod_name, object in pairs(sptbl) do
 				end
 				declare_gw_param(v)
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
-				make_doc("f", v)
+				make_doc("\tf", v)
 				end
 			end	
-		make_doc("env->class_def", object)
+		make_doc("\tenv->class_def", object)
 		print("\tCHECK_BB(import_class_end(env))\n")
-		print("")
 	end
 end
 print("\treturn 1;\n}")
