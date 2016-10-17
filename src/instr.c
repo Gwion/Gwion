@@ -1,7 +1,14 @@
+#include <math.h>
+#include <string.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "instr.h"
-#include <math.h>
+
+#ifndef M_PI
+#define M_PI		3.14159265358979323846
+#endif
+
+
 void EOC(VM * vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
