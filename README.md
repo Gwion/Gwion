@@ -17,17 +17,17 @@ simple example code:
 > // you're done!
 
 there are a few *new* features:  	
-    * variadic funcs
-    * templates (func only for now)
-    * function pointers
-    * enums
+    *  variadic funcs
+    *  templates (func only for now)
+    *  function pointers
+    *  enums
 
 ####requires####
 * soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
 * libsoundio
 
 ####configure####
-simply *config.mk* to suit your needs, 
+simply edit *config.mk* to suit your needs, 
 
 ####build####
 ```
