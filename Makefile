@@ -1,10 +1,10 @@
 PRG=Gwion
 LDFLAGS = -lsoundpipe
-LDFLAGS += -g -lm -pthread -lasound -ljack -lsndfile -fno-strict-aliasing
-LDFLAGS += -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return -ldl -rdynamic -lrt -lsoundio
+LDFLAGS += -lm -pthread -lasound -ljack -lsndfile 
+LDFLAGS += -ldl -rdynamic -lrt -lsoundio
 
-CFLAGS+=-Iinclude
-CC = cc
+CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return 
+CFLAGS += -fno-strict-aliasing -Wall
 core_src := $(wildcard src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)

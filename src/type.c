@@ -1,3 +1,9 @@
+#define _GNU_SOURCE
+#define GNU_SOURCE
+
+#include <stdio.h>
+#include <dlfcn.h>
+#include <dirent.h>
 
 #include "err_msg.h"
 #include "type.h"
@@ -12,13 +18,6 @@
 #include "bbq.h"
 #include "import.h"
 #include "dl.h"
-
-#define _GNU_SOURCE
-#define GNU_SOURCE
-
-#include <stdio.h>
-#include <dlfcn.h>
-#include <dirent.h>
 
 m_bool scan0_Ast(Env, Ast);
 m_bool scan1_Ast(Env, Ast);
