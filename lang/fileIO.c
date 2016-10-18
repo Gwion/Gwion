@@ -41,10 +41,9 @@ void int_to_file(VM * vm, VM_Shred shred, Instr instr )
   debug_msg("instr", "int to file");
 #endif
   shred->reg -= SZ_INT;
-	m_str str;
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
-  sprintf(c, "%i", *(m_int*)(shred->reg - SZ_INT));
+  sprintf(c, "%i", *(int*)(shred->reg - SZ_INT));
   fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
 
@@ -54,7 +53,6 @@ void float_to_file(VM * vm, VM_Shred shred, Instr instr)
   debug_msg("instr", "float to file");
 #endif
   shred->reg -= SZ_INT;
-  m_str str;
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
   sprintf(c, "%f", *(m_float*)(shred->reg - SZ_INT));
@@ -82,7 +80,7 @@ void file_to_int(VM * vm, VM_Shred shred, Instr instr )
   debug_msg("instr", "file => int");
 #endif
   shred->reg -= SZ_INT;
-  m_uint ret;
+  int ret;
   M_Object o = *(M_Object*)(shred->reg -SZ_INT);
   if(IO_ASCII(o))
   {
@@ -187,12 +185,9 @@ SFUN(file_list)
 {
   m_uint i;
   struct dirent **namelist;
-printf("scandir %s\n", STRING(*(M_Object*)(shred->mem + SZ_INT)));
   m_int n = scandir(STRING(*(M_Object*)(shred->mem + SZ_INT)), &namelist, NULL, alphasort);
-printf("scandir %i\n", n);
   if(n<0)
   {
-printf("not dir\n");
     RETURN->v_uint = 0;
     return;
   }
@@ -200,12 +195,9 @@ printf("not dir\n");
   for(i = 0; i < n; i++)
   {
     i_vector_set(ret->array, i, (m_uint)new_String(namelist[i]->d_name));
-/*printf("%i/%i: %s\n", i, m_vector_size(ret->array), namelist[i]->d_name);*/
     free(namelist[i]);
   }
   free(namelist);
-/*printf("%i\n", m_vector_size(ret->array));*/
-/*printf("%i\n", n);*/
   RETURN->v_uint = (m_uint)ret;
 }
 m_bool import_fileio(Env env)

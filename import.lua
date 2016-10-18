@@ -64,7 +64,7 @@ function print_gen_func(name, func)
 		i = i+1
 	end
 	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
-	print("error:\n\tsp_ftbl_destroy(&ftbl);")
+--	print("error:\n\tsp_ftbl_destroy(&ftbl);")
 	print("}\n")
 end
 
@@ -119,7 +119,7 @@ function print_mod_func(name, mod)
 		args = string.format("%s, &u->out", args)
 	end
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
-	print("}\n")
+	print("\t return 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
 	print("\tsp_"..name.."_create(&ug->osc);")
@@ -245,7 +245,7 @@ print('#include "vm.h"\
 
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)")
-print("#define CHECK_SIZE\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
+print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
 
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")

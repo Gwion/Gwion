@@ -367,7 +367,7 @@ SFUN(std_atof)
 
 SFUN(std_itoa)
 {
-  m_int value = *(m_int*)(shred->mem + SZ_INT);
+	int value = *(m_int*)(shred->mem + SZ_INT);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
   STRING(ret) = malloc(sizeof(char));
@@ -481,7 +481,7 @@ SFUN(stat_variance)
   stat_mean(RETURN, shred);
   m_float mean = RETURN->v_float;
   m_uint i, size = m_vector_size(o->array);
-  m_float f, v = 0, min = INFINITY;
+  m_float f, v = 0;
   for(i = 0; i < size; i++)
   {
     f = f -mean;

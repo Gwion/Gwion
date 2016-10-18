@@ -155,7 +155,7 @@ void vm_vector_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
 INSTR(Array_Append)
 {
   shred->reg -= SZ_INT;
-  M_Object o;
+  M_Object o = NULL;
   if(instr->m_val == Kindof_Int)
   {
     shred->reg -= SZ_INT;

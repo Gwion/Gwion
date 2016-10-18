@@ -48,14 +48,9 @@ m_bool base_tick(UGen u)
   return 1;
 }
 
-m_bool blackhole_tick(UGen u)
-{
-  base_tick(u);
-}
-
 m_bool dac_tick(UGen u)
 {
-  m_uint  i, j;
+  m_uint  i;
   sp_data* sp = (sp_data*)u->ug;
   for(i = 0; i < sp->nchan; i++)
     sp->out[i] = 0; 
@@ -66,7 +61,7 @@ m_bool dac_tick(UGen u)
 
 m_bool adc_tick(UGen u)
 {
-  m_uint  i, j;
+  m_uint  i;
   m_float last = 0;
   BBQ sp = (BBQ )u->ug;
   for(i = 0; i < u->n_out; i++)
@@ -96,7 +91,7 @@ void channel_compute(UGen u)
 // recursively compute ugen
 void ugen_compute(UGen u)
 {
-  m_uint  i, j;
+  m_uint  i;
   m_float sum = 0;
   UGen ugen;
   if(!u || u->done)
@@ -273,7 +268,6 @@ static void trig_connect(VM* vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig connect %p %p", **(m_uint**)(shred->reg - SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
-  m_uint i;
   shred->reg -= SZ_INT*2;
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
@@ -290,7 +284,6 @@ static void trig_disconnect(VM* vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig discconnect %p %p", **(m_uint**)(shred->reg - SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
-  m_uint i;
   shred->reg -= SZ_INT*2;
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
@@ -312,9 +305,6 @@ void ugen_ctor(M_Object o, VM_Shred shred)
 
 void ugen_dtor(M_Object o, VM_Shred shred)
 {
-  m_uint i;
-  UGen u;
-  // remove for vm ugen vector
   vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, o->ugen));
 /*  if(o->ugen->to)*/
 /*    for(i = 0; i < vector_size(o->ugen->to); i++)*/

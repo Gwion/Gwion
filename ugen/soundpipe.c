@@ -11,7 +11,7 @@
 #include "object.h"
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)
-#define CHECK_SIZE	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
+#define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
 
 DTOR(ftbl_dtor)
 {
@@ -35,6 +35,7 @@ TICK(adsr_tick)
 	return 1;
 }
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(adsr_ctor)
@@ -131,6 +132,7 @@ TICK(allpass_tick)
 	return 1;
 }
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(allpass_ctor)
@@ -200,6 +202,7 @@ TICK(atone_tick)
 	return 1;
 }
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(atone_ctor)
@@ -251,6 +254,7 @@ TICK(autowah_tick)
 	return 1;
 }
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(autowah_ctor)
@@ -332,6 +336,7 @@ TICK(bal_tick)
 	return 1;
 }
 	sp_bal_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
+	 return 1;
 }
 
 CTOR(bal_ctor)
@@ -368,6 +373,7 @@ TICK(bar_tick)
 	return 1;
 }
 	sp_bar_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(bar_ctor)
@@ -520,6 +526,7 @@ TICK(biquad_tick)
 	return 1;
 }
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(biquad_ctor)
@@ -646,6 +653,7 @@ TICK(biscale_tick)
 	return 1;
 }
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(biscale_ctor)
@@ -712,6 +720,7 @@ TICK(bitcrush_tick)
 	return 1;
 }
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(bitcrush_ctor)
@@ -778,6 +787,7 @@ TICK(blsaw_tick)
 	return 1;
 }
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(blsaw_ctor)
@@ -844,6 +854,7 @@ TICK(blsquare_tick)
 	return 1;
 }
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(blsquare_ctor)
@@ -925,6 +936,7 @@ TICK(bltriangle_tick)
 	return 1;
 }
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(bltriangle_ctor)
@@ -991,6 +1003,7 @@ TICK(butbp_tick)
 	return 1;
 }
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(butbp_ctor)
@@ -1057,6 +1070,7 @@ TICK(butbr_tick)
 	return 1;
 }
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(butbr_ctor)
@@ -1123,6 +1137,7 @@ TICK(buthp_tick)
 	return 1;
 }
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(buthp_ctor)
@@ -1174,6 +1189,7 @@ TICK(butlp_tick)
 	return 1;
 }
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(butlp_ctor)
@@ -1225,6 +1241,7 @@ TICK(clip_tick)
 	return 1;
 }
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(clip_ctor)
@@ -1276,6 +1293,7 @@ TICK(comb_tick)
 	return 1;
 }
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(comb_ctor)
@@ -1345,6 +1363,7 @@ TICK(compressor_tick)
 	return 1;
 }
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(compressor_ctor)
@@ -1441,6 +1460,7 @@ TICK(conv_tick)
 	return 1;
 }
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(conv_ctor)
@@ -1489,6 +1509,7 @@ TICK(count_tick)
 	return 1;
 }
 	sp_count_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(count_ctor)
@@ -1555,6 +1576,7 @@ TICK(crossfade_tick)
 	return 1;
 }
 	sp_crossfade_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
+	 return 1;
 }
 
 CTOR(crossfade_ctor)
@@ -1606,6 +1628,7 @@ TICK(dcblock_tick)
 	return 1;
 }
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(dcblock_ctor)
@@ -1642,6 +1665,7 @@ TICK(delay_tick)
 	return 1;
 }
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(delay_ctor)
@@ -1711,6 +1735,7 @@ TICK(diskin_tick)
 	return 1;
 }
 	sp_diskin_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(diskin_ctor)
@@ -1767,6 +1792,7 @@ TICK(dist_tick)
 	return 1;
 }
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(dist_ctor)
@@ -1863,6 +1889,7 @@ TICK(dmetro_tick)
 	return 1;
 }
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(dmetro_ctor)
@@ -1914,6 +1941,7 @@ TICK(drip_tick)
 	return 1;
 }
 	sp_drip_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(drip_ctor)
@@ -2073,6 +2101,7 @@ TICK(dtrig_tick)
 	return 1;
 }
 	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(dtrig_ctor)
@@ -2174,6 +2203,7 @@ TICK(dust_tick)
 	return 1;
 }
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(dust_ctor)
@@ -2255,6 +2285,7 @@ TICK(eqfil_tick)
 	return 1;
 }
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(eqfil_ctor)
@@ -2336,6 +2367,7 @@ TICK(expon_tick)
 	return 1;
 }
 	sp_expon_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(expon_ctor)
@@ -2417,6 +2449,7 @@ TICK(fof_tick)
 	return 1;
 }
 	sp_fof_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(fof_ctor)
@@ -2590,6 +2623,7 @@ TICK(fofilt_tick)
 	return 1;
 }
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(fofilt_ctor)
@@ -2671,6 +2705,7 @@ TICK(fog_tick)
 	return 1;
 }
 	sp_fog_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(fog_ctor)
@@ -2859,6 +2894,7 @@ TICK(fold_tick)
 	return 1;
 }
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(fold_ctor)
@@ -2910,6 +2946,7 @@ TICK(fosc_tick)
 	return 1;
 }
 	sp_fosc_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(fosc_ctor)
@@ -3041,6 +3078,7 @@ TICK(gbuzz_tick)
 	return 1;
 }
 	sp_gbuzz_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(gbuzz_ctor)
@@ -3161,8 +3199,6 @@ MFUN(ftbl_gen_composite)
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	sp_gen_composite(shred->vm_ref->bbq->sp, ftbl, argstring);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_file)
@@ -3178,8 +3214,6 @@ MFUN(ftbl_gen_file)
 	gw_offset += SZ_INT;
 	m_str filename = STRING(filename_obj);
 	sp_gen_file(shred->vm_ref->bbq->sp, ftbl, filename);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_gauss)
@@ -3196,8 +3230,6 @@ MFUN(ftbl_gen_gauss)
 	m_int seed = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	sp_gen_gauss(shred->vm_ref->bbq->sp, ftbl, scale, seed);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_line)
@@ -3213,8 +3245,6 @@ MFUN(ftbl_gen_line)
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	sp_gen_line(shred->vm_ref->bbq->sp, ftbl, argstring);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_padsynth)
@@ -3234,8 +3264,6 @@ MFUN(ftbl_gen_padsynth)
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	sp_gen_padsynth(shred->vm_ref->bbq->sp, ftbl, amps, f, bw);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_rand)
@@ -3251,8 +3279,6 @@ MFUN(ftbl_gen_rand)
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	sp_gen_rand(shred->vm_ref->bbq->sp, ftbl, argstring);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_scrambler)
@@ -3268,8 +3294,6 @@ MFUN(ftbl_gen_scrambler)
 	gw_offset+=SZ_INT;
 	sp_ftbl** dest = &FTBL(dest_obj);
 	sp_gen_scrambler(shred->vm_ref->bbq->sp, ftbl, dest);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_sinesum)
@@ -3285,8 +3309,6 @@ MFUN(ftbl_gen_sinesum)
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	sp_gen_sinesum(shred->vm_ref->bbq->sp, ftbl, argstring);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 MFUN(ftbl_gen_xline)
@@ -3302,8 +3324,6 @@ MFUN(ftbl_gen_xline)
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	sp_gen_xline(shred->vm_ref->bbq->sp, ftbl, argstring);
-error:
-	sp_ftbl_destroy(&ftbl);
 }
 
 typedef struct
@@ -3322,6 +3342,7 @@ TICK(hilbert_tick)
 	return 1;
 }
 	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(hilbert_ctor)
@@ -3358,6 +3379,7 @@ TICK(in_tick)
 	return 1;
 }
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(in_ctor)
@@ -3394,6 +3416,7 @@ TICK(incr_tick)
 	return 1;
 }
 	sp_incr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(incr_ctor)
@@ -3493,6 +3516,7 @@ TICK(jcrev_tick)
 	return 1;
 }
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(jcrev_ctor)
@@ -3529,6 +3553,7 @@ TICK(jitter_tick)
 	return 1;
 }
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(jitter_ctor)
@@ -3610,6 +3635,7 @@ TICK(line_tick)
 	return 1;
 }
 	sp_line_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(line_ctor)
@@ -3691,6 +3717,7 @@ TICK(lpf18_tick)
 	return 1;
 }
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(lpf18_ctor)
@@ -3772,6 +3799,7 @@ TICK(maygate_tick)
 	return 1;
 }
 	sp_maygate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(maygate_ctor)
@@ -3838,6 +3866,7 @@ TICK(metro_tick)
 	return 1;
 }
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(metro_ctor)
@@ -3889,6 +3918,7 @@ TICK(mincer_tick)
 	return 1;
 }
 	sp_mincer_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(mincer_ctor)
@@ -3990,6 +4020,7 @@ TICK(mode_tick)
 	return 1;
 }
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(mode_ctor)
@@ -4056,6 +4087,7 @@ TICK(moogladder_tick)
 	return 1;
 }
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(moogladder_ctor)
@@ -4122,6 +4154,7 @@ TICK(noise_tick)
 	return 1;
 }
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(noise_ctor)
@@ -4173,6 +4206,7 @@ TICK(nsmp_tick)
 	return 1;
 }
 	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(nsmp_ctor)
@@ -4239,6 +4273,7 @@ TICK(osc_tick)
 	return 1;
 }
 	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(osc_ctor)
@@ -4317,6 +4352,7 @@ TICK(oscmorph_tick)
 	return 1;
 }
 	sp_oscmorph_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(oscmorph_ctor)
@@ -4415,6 +4451,7 @@ TICK(pan2_tick)
 	return 1;
 }
 	sp_pan2_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(pan2_ctor)
@@ -4481,6 +4518,7 @@ TICK(panst_tick)
 	return 1;
 }
 	sp_panst_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(panst_ctor)
@@ -4547,6 +4585,7 @@ TICK(pareq_tick)
 	return 1;
 }
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(pareq_ctor)
@@ -4643,6 +4682,7 @@ TICK(paulstretch_tick)
 	return 1;
 }
 	sp_paulstretch_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(paulstretch_ctor)
@@ -4693,6 +4733,7 @@ TICK(pdhalf_tick)
 	return 1;
 }
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(pdhalf_ctor)
@@ -4744,6 +4785,7 @@ TICK(peaklim_tick)
 	return 1;
 }
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(peaklim_ctor)
@@ -4825,6 +4867,7 @@ TICK(phaser_tick)
 	return 1;
 }
 	sp_phaser_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(phaser_ctor)
@@ -5011,6 +5054,7 @@ TICK(phasor_tick)
 	return 1;
 }
 	sp_phasor_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(phasor_ctor)
@@ -5080,6 +5124,7 @@ TICK(pinknoise_tick)
 	return 1;
 }
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(pinknoise_ctor)
@@ -5131,6 +5176,7 @@ TICK(pitchamdf_tick)
 	return 1;
 }
 	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(pitchamdf_ctor)
@@ -5178,6 +5224,7 @@ TICK(pluck_tick)
 	return 1;
 }
 	sp_pluck_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(pluck_ctor)
@@ -5262,6 +5309,7 @@ TICK(port_tick)
 	return 1;
 }
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(port_ctor)
@@ -5316,6 +5364,7 @@ TICK(posc3_tick)
 	return 1;
 }
 	sp_posc3_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(posc3_ctor)
@@ -5402,6 +5451,7 @@ TICK(progress_tick)
 	return 1;
 }
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(progress_ctor)
@@ -5468,6 +5518,7 @@ TICK(prop_tick)
 	return 1;
 }
 	sp_prop_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(prop_ctor)
@@ -5539,6 +5590,7 @@ TICK(pshift_tick)
 	return 1;
 }
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(pshift_ctor)
@@ -5620,6 +5672,7 @@ TICK(ptrack_tick)
 	return 1;
 }
 	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(ptrack_ctor)
@@ -5667,6 +5720,7 @@ TICK(randh_tick)
 	return 1;
 }
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(randh_ctor)
@@ -5748,6 +5802,7 @@ TICK(randi_tick)
 	return 1;
 }
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(randi_ctor)
@@ -5844,6 +5899,7 @@ TICK(random_tick)
 	return 1;
 }
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(random_ctor)
@@ -5910,6 +5966,7 @@ TICK(reson_tick)
 	return 1;
 }
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(reson_ctor)
@@ -5976,6 +6033,7 @@ TICK(reverse_tick)
 	return 1;
 }
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(reverse_ctor)
@@ -6030,6 +6088,7 @@ TICK(revsc_tick)
 	return 1;
 }
 	sp_revsc_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(revsc_ctor)
@@ -6096,6 +6155,7 @@ TICK(rms_tick)
 	return 1;
 }
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(rms_ctor)
@@ -6147,6 +6207,7 @@ TICK(rpt_tick)
 	return 1;
 }
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(rpt_ctor)
@@ -6201,6 +6262,7 @@ TICK(samphold_tick)
 	return 1;
 }
 	sp_samphold_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(samphold_ctor)
@@ -6237,6 +6299,7 @@ TICK(scale_tick)
 	return 1;
 }
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(scale_ctor)
@@ -6303,6 +6366,7 @@ TICK(sdelay_tick)
 	return 1;
 }
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(sdelay_ctor)
@@ -6357,6 +6421,7 @@ TICK(slice_tick)
 	return 1;
 }
 	sp_slice_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(slice_ctor)
@@ -6421,6 +6486,7 @@ TICK(smoothdelay_tick)
 	return 1;
 }
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(smoothdelay_ctor)
@@ -6498,6 +6564,7 @@ TICK(streson_tick)
 	return 1;
 }
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(streson_ctor)
@@ -6564,6 +6631,7 @@ TICK(switch_tick)
 	return 1;
 }
 	sp_switch_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(switch_ctor)
@@ -6600,6 +6668,7 @@ TICK(tabread_tick)
 	return 1;
 }
 	sp_tabread_compute(ug->sp, ug->osc, NULL, &u->out);
+	 return 1;
 }
 
 CTOR(tabread_ctor)
@@ -6693,6 +6762,7 @@ TICK(tadsr_tick)
 	return 1;
 }
 	sp_tadsr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tadsr_ctor)
@@ -6789,6 +6859,7 @@ TICK(tblrec_tick)
 	return 1;
 }
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tblrec_ctor)
@@ -6845,6 +6916,7 @@ TICK(tbvcf_tick)
 	return 1;
 }
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(tbvcf_ctor)
@@ -6941,6 +7013,7 @@ TICK(tdiv_tick)
 	return 1;
 }
 	sp_tdiv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tdiv_ctor)
@@ -7007,6 +7080,7 @@ TICK(tenv_tick)
 	return 1;
 }
 	sp_tenv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tenv_ctor)
@@ -7088,6 +7162,7 @@ TICK(tenv2_tick)
 	return 1;
 }
 	sp_tenv2_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tenv2_ctor)
@@ -7154,6 +7229,7 @@ TICK(tenvx_tick)
 	return 1;
 }
 	sp_tenvx_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tenvx_ctor)
@@ -7235,6 +7311,7 @@ TICK(tgate_tick)
 	return 1;
 }
 	sp_tgate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tgate_ctor)
@@ -7286,6 +7363,7 @@ TICK(thresh_tick)
 	return 1;
 }
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(thresh_ctor)
@@ -7352,6 +7430,7 @@ TICK(timer_tick)
 	return 1;
 }
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(timer_ctor)
@@ -7388,6 +7467,7 @@ TICK(tin_tick)
 	return 1;
 }
 	sp_tin_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tin_ctor)
@@ -7424,6 +7504,7 @@ TICK(tone_tick)
 	return 1;
 }
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(tone_ctor)
@@ -7475,6 +7556,7 @@ TICK(trand_tick)
 	return 1;
 }
 	sp_trand_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(trand_ctor)
@@ -7541,6 +7623,7 @@ TICK(tseg_tick)
 	return 1;
 }
 	sp_tseg_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tseg_ctor)
@@ -7640,6 +7723,7 @@ TICK(tseq_tick)
 	return 1;
 }
 	sp_tseq_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
+	 return 1;
 }
 
 CTOR(tseq_ctor)
@@ -7711,6 +7795,7 @@ TICK(vdelay_tick)
 	return 1;
 }
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(vdelay_ctor)
@@ -7780,6 +7865,7 @@ TICK(vocoder_tick)
 	return 1;
 }
 	sp_vocoder_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
+	 return 1;
 }
 
 CTOR(vocoder_ctor)
@@ -7861,6 +7947,7 @@ TICK(waveset_tick)
 	return 1;
 }
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(waveset_ctor)
@@ -7930,6 +8017,7 @@ TICK(wpkorg35_tick)
 	return 1;
 }
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
+	 return 1;
 }
 
 CTOR(wpkorg35_ctor)
@@ -8011,6 +8099,7 @@ TICK(zitarev_tick)
 	return 1;
 }
 	sp_zitarev_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
+	 return 1;
 }
 
 CTOR(zitarev_ctor)

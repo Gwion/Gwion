@@ -39,8 +39,8 @@ static void Int_String_Assign(VM * vm, VM_Shred shred, Instr instr)
   shred->reg -= SZ_INT * 2;
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
-  sprintf(str, "%i", lhs);
+  m_str str = malloc(sizeof(char));
+  sprintf(str, "%li", lhs);
   STRING(rhs) = str;
   *(M_Object*)shred->reg =  (M_Object)rhs;
   shred->reg += SZ_INT;
@@ -54,7 +54,7 @@ static void Float_String_Assign(VM * vm, VM_Shred shred, Instr instr)
   shred->reg -= SZ_INT * 2;
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_FLOAT);
-  m_str str;
+  m_str str = malloc(sizeof(char));
   sprintf(str, "%f", lhs);
   STRING(rhs) = str;
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -69,7 +69,7 @@ INSTR(Complex_String_Assign)
   shred->reg -= SZ_INT * 2;
   complex lhs = *(complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
+  m_str str = malloc(sizeof(char));
   sprintf(str, "#(%f, %f)", creal(lhs), cimag(lhs));
   STRING(rhs) = str;
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -83,7 +83,7 @@ INSTR(Object_String_Assign)
   shred->reg -= SZ_INT * 2;
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
+  m_str str = malloc(sizeof(char));
   sprintf(str, "%p", lhs);
   STRING(rhs) = str;
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -98,9 +98,10 @@ INSTR(String_String)
   shred->reg -= SZ_INT * 2;
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
+  m_str str = malloc(sizeof(char));
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
+	free(str);
   shred->reg += SZ_INT;
 }
 
@@ -112,8 +113,8 @@ INSTR(Int_String)
   shred->reg -= SZ_INT * 2;
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
-  sprintf(str, "%i%s", lhs, rhs);
+  m_str str = malloc(sizeof(char));
+  sprintf(str, "%li%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   shred->reg += SZ_INT;
 }
@@ -126,8 +127,8 @@ INSTR(Float_String)
   shred->reg -= SZ_INT * 2;
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
-  sprintf(str, "%f%s", lhs, rhs);
+  m_str str = malloc(sizeof(char));
+  sprintf(str, "%f%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   shred->reg += SZ_INT;
 }
@@ -137,11 +138,11 @@ INSTR(Complex_String)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '+' string");
 #endif
-  shred->reg -= SZ_INT * 2;
-  M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
-  sprintf(str, "%p%s", lhs, rhs);
+  shred->reg -= SZ_INT + SZ_COMPLEX;
+  complex  lhs = *(complex*)shred->reg;
+  M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
+  m_str str = malloc(sizeof(char));
+  sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   shred->reg += SZ_INT;
 }
@@ -152,10 +153,10 @@ INSTR(Object_String)
   debug_msg("instr", "int '+' string");
 #endif
   shred->reg -= SZ_INT * 2;
-  m_float lhs = *(m_float*)shred->reg;
+  M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str;
-  sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), rhs);
+  m_str str = malloc(sizeof(char));
+  sprintf(str, "%p%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   shred->reg += SZ_INT;
 }
@@ -192,7 +193,7 @@ INSTR(Int_String_Plus)
   while(tmp /= 10)
     len++;
   char c[len];
-  sprintf(c, "%s%i", STRING(rhs), lhs);
+  sprintf(c, "%s%li", STRING(rhs), lhs);
 /*  free(STRING(rhs));*/
   STRING(rhs) = strdup(c);
   *(M_Object*)shred->reg = rhs;
@@ -235,7 +236,7 @@ INSTR(Complex_String_Plus)
   while(tmp /= 10)
     len++;
   char c[len];
-  sprintf(c, "%s#(%f, %f)", STRING(rhs), lhs);
+  sprintf(c, "%s#(%f, %f)", STRING(rhs), creal(lhs), cimag(lhs));
 /*  free(STRING(rhs));*/
   STRING(rhs) = strdup(c);
   *(M_Object*)shred->reg = rhs;
@@ -320,7 +321,7 @@ void string_rtrim(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
 	M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-	m_str str = STRING(obj) = strdup(STRING(o));
+	STRING(obj) = strdup(STRING(o));
 	RETURN->v_object = obj;
 }
 
@@ -606,7 +607,6 @@ void string_rfindStr(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str arg = STRING(o);
   m_int len  = strlen(str);
   m_int i = len;
@@ -630,7 +630,6 @@ void string_rfindStrStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
   m_str str = strdup(STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str arg = STRING(o);
   m_int len  = strlen(str);
   m_int i = start;
@@ -657,6 +656,7 @@ void string_erase(M_Object o, DL_Return * RETURN, VM_Shred shred)
   m_int rem = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int len = strlen(str);
   char c[len - rem];
+	memset(c, 0, len -rem);
   for(i = 0; i < start; i++)
     c[i] = str[i];
   for(i = start + rem; i < len; i++)

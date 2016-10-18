@@ -115,7 +115,7 @@ static void fft_init(M_Object o, DL_Return * RETURN, VM_Shred shred)
     if(ana->frq)
       deleteFFTFREQS(ana->frq);
     if(ana->fft)
-      FFTwrapper_destroy(&ana->fft);  
+      FFTwrapper_destroy(&ana->fft);
   }
   m_int size = *(m_int*)(shred->mem + SZ_INT);
   sp_buffer_create(&ana->buf, size);
@@ -129,12 +129,11 @@ static void fft_init(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static void fft_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   m_float* smp;
-  m_uint i;
   FFT* ana = (FFT*)o->ugen->ug;
   if(!ana->buf)
   {
     RETURN->v_uint = 0;
-    return;  
+    return;
   }
   smp = sp_buffer_get(ana->buf);
   smps2freqs(ana->fft, smp, ana->frq);
@@ -531,7 +530,6 @@ static void centroid_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_centroid(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_centroid))
   CHECK_BB(import_class_begin(env, &t_centroid, env->global_nspc, centroid_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -545,7 +543,6 @@ static void spread_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_spread(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_spread))
   CHECK_BB(import_class_begin(env, &t_spread, env->global_nspc, spread_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -559,7 +556,6 @@ static void skewness_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_skewness(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_skewness))
   CHECK_BB(import_class_begin(env, &t_skewness, env->global_nspc, skewness_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -573,7 +569,6 @@ static void kurtosis_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_kurtosis(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_kurtosis))
   CHECK_BB(import_class_begin(env, &t_kurtosis, env->global_nspc, kurtosis_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -587,7 +582,6 @@ static void rms_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_rms(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_rms))
   CHECK_BB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -630,7 +624,6 @@ static void freq_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_freq(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_freq))
   CHECK_BB(import_class_begin(env, &t_freq, env->global_nspc, freq_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -644,7 +637,6 @@ static void asc_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_asc(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_asc))
   CHECK_BB(import_class_begin(env, &t_asc, env->global_nspc, asc_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -658,7 +650,6 @@ static void ass_ctor(M_Object o, VM_Shred shred)
 }
 static m_bool import_ass(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_ass))
   CHECK_BB(import_class_begin(env, &t_ass, env->global_nspc, ass_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -678,7 +669,7 @@ static void fc_dtor(M_Object o, VM_Shred shred)
 
 static void fc_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  m_uint i, *tmp;
+  m_uint i;
   M_Object obj, ret;
   _FFT* _fft;
   f_analys fn;

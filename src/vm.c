@@ -29,8 +29,8 @@ void free_VM_Code(VM_Code a)
 VM_Shred new_VM_Shred(VM_Code c)
 {
   VM_Shred shred    = calloc(1, sizeof(struct VM_Shred_));
-  shred->mem        = calloc(0x1 << 16, sizeof(char));
-  shred->reg        = calloc(0x1 << 14, sizeof(char));
+  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
+  shred->reg        = calloc(SIZEOF_REG, sizeof(char));
   shred->base       = shred->mem;
   shred->pc         = 0;
   shred->next_pc    = 0;
@@ -90,7 +90,6 @@ void vm_run(VM* vm)
   m_uint   i;
   VM_Shred shred;
   Instr    instr;
-  UGen     ugen;
   while((shred = shreduler_get(vm->shreduler)))
   {
 #ifdef DEBUG_VM

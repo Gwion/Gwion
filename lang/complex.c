@@ -308,8 +308,9 @@ m_bool import_complex(Env env)
   CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_polar, &t_polar, &t_polar, polar_minus_r,    0))
   CHECK_BB(add_binary_op(env, op_times_chuck,   &t_polar, &t_polar, &t_polar, polar_times_r,    0))
   CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_polar, &t_polar, &t_polar, polar_divide_r,   0))
-		t_complex.doc   = "complex numbers";
+	t_complex.doc   = "complex numbers";
 	t_polar.doc     = "polar   numbers";
-t_complex.size = 16;
-t_polar.size = 16;
+	t_complex.size = 16;
+	t_polar.size = 16;
+	return 1;
 }

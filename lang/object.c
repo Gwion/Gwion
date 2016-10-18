@@ -73,12 +73,9 @@ static INSTR(parentize)
 }
 void release(M_Object obj, VM_Shred shred)
 {
-m_uint pc = shred->pc;
   if(!obj)
     return;
-  obj->ref--;
-  m_uint i, top;
-  if(!obj->ref)
+  if(!--obj->ref)
   {
     Type t = obj->type_ref;
     while(t)
@@ -97,7 +94,7 @@ m_uint pc = shred->pc;
           VM_Shred sh = new_VM_Shred(code);
           sh->me = new_Shred(shred->vm_ref, sh);
           sh->base = shred->base;
-          memcpy(sh->mem, shred->mem, sizeof(shred->mem));
+          memcpy(sh->mem, shred->mem, SIZEOF_MEM);
           vector_pop(code->instr);
           Instr instr = new_Instr();
           instr->execute = parentize;
@@ -187,6 +184,16 @@ INSTR(Vararg_end)
      case Kindof_Complex:
         arg->o += SZ_COMPLEX;
         break;
+     case Kindof_Vec3:
+        arg->o += SZ_VEC3;
+        break;
+     case Kindof_Vec4:
+        arg->o += SZ_VEC4;
+        break;
+			// can you reach this ?
+     case Kindof_Void:
+     case Kindof_Ptr:
+        break;
   }
   arg->i++;
   if(arg->i == arg->s)
@@ -246,7 +253,6 @@ INSTR(Vararg_Vec4)
 
 m_bool import_object(Env env)
 {
-  DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_object))
   CHECK_BB(import_class_begin(env, &t_object, env->global_nspc, NULL, object_dtor))
 	env->class_def->doc = "the base class";

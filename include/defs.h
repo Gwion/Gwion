@@ -1,5 +1,9 @@
 #ifndef __DEF
 #define __DEF
+
+#define SIZEOF_MEM 0x1 << 16
+#define SIZEOF_REG 0x1 << 14
+
 #define CHECK_BB(f) if(f < 0) return -1;
 #define CHECK_OB(f) if(!f)    return -1;
 #define CHECK_BO(f) if(f < 0) return NULL;

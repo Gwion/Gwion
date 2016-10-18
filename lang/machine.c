@@ -45,7 +45,6 @@ static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
   struct dirent **namelist;
   char* line = NULL;
   int n;
-  char c[256];
   ssize_t read;
   size_t len = 0;
   n = scandir("/usr/lib/Gwion/doc/dat", &namelist, js_filter, alphasort);
