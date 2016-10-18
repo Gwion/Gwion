@@ -5,6 +5,7 @@ LDFLAGS += -ldl -rdynamic -lrt -lsoundio
 
 CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return 
 CFLAGS += -fno-strict-aliasing -Wall
+CFLAGS += -D_GNU_SOURCE
 core_src := $(wildcard src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)

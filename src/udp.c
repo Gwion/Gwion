@@ -123,7 +123,7 @@ int server_init(char* hostname, int port)
 			hostname = strdup("localhost");
 		}
 	}
-	else bcopy( host->h_addr, (char *)&saddr.sin_addr, host->h_length );
+	else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
   saddr.sin_port = htons(port);
 	/* Bind to the local address */
   if (bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
