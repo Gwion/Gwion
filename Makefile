@@ -10,12 +10,12 @@ CFLAGS += -D_GNU_SOURCE
 core_src := $(wildcard src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)
-drvr_src := $(wildcard driver/*.c)
+#drvr_src := $(wildcard driver/*.c)
 
 core_obj := $(core_src:.c=.o)
 lang_obj := $(lang_src:.c=.o)
 ugen_obj := $(ugen_src:.c=.o)
-drvr_obj := $(drvr_src:.c=.o)
+#drvr_obj := $(drvr_src:.c=.o)
 
 ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 

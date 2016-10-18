@@ -1,14 +1,14 @@
-#include <soundio/soundio.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
+#include <soundio/soundio.h>
 
 #include "defs.h"
 #include "vm.h"
 #include "driver.h"
 #include "bbq.h"
 
-#include <stdint.h>
 extern m_bool ssp_is_running;
 static struct SoundIo          *soundio    = NULL;
 static struct SoundIoOutStream *outstream  = NULL;
@@ -151,7 +151,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 }
 
 
-m_bool sio_ini(VM* vm, m_uint backend, char *device_id, m_bool raw, char *stream_name, m_uint* sample_rate)
+static m_bool sio_ini(VM* vm, DriverInfo* di)
 {
 		soundio = soundio_create();
     if (!soundio) {
@@ -221,9 +221,9 @@ m_bool sio_ini(VM* vm, m_uint backend, char *device_id, m_bool raw, char *stream
 
     outstream->write_callback = write_callback;
     outstream->underflow_callback = underflow_callback;
-    outstream->name = stream_name;
+    outstream->name = "Gwion output";
     outstream->software_latency = 0;
-    outstream->sample_rate = *sample_rate;
+    outstream->sample_rate = di->sr;
 
 
 		instream = soundio_instream_create(in_device);
@@ -233,17 +233,16 @@ m_bool sio_ini(VM* vm, m_uint backend, char *device_id, m_bool raw, char *stream
     }
     instream->read_callback = read_callback;
     instream->overflow_callback = overflow_callback;
-    instream->name = stream_name;
+    instream->name = "Gwion input";
     instream->software_latency = 0;
-    instream->sample_rate = *sample_rate;
+    instream->sample_rate = di->sr;
 
-/*    if (soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
-        outstream->format = SoundIoFormatFloat32NE;
-        write_sample = write_sample_float32ne;
-    } else */
 		if (soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
         outstream->format = SoundIoFormatFloat64NE;
         write_sample = write_sample_float64ne;
+		} else if (soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
+        outstream->format = SoundIoFormatFloat32NE;
+        write_sample = write_sample_float32ne;
     } else if (soundio_device_supports_format(out_device, SoundIoFormatS32NE)) {
         outstream->format = SoundIoFormatS32NE;
         write_sample = write_sample_s32ne;
@@ -289,7 +288,6 @@ m_bool sio_ini(VM* vm, m_uint backend, char *device_id, m_bool raw, char *stream
 		}
 	outstream->userdata = vm;
 	instream->userdata = vm;
-	*sample_rate = outstream->sample_rate;
 	return 1;
 }
 
@@ -311,11 +309,20 @@ void sio_run()
 }
 
 
-void sio_del()
+/* static */ void sio_del(VM* vm)
 {
 	soundio_outstream_destroy(outstream);
 	soundio_instream_destroy(instream);
 	soundio_device_unref(in_device);
 	soundio_device_unref(out_device);
 	soundio_destroy(soundio);
+}
+
+Driver* alsa_driver()
+{
+  Driver* d = malloc(sizeof(Driver));
+  d->ini = sio_ini;
+  d->run = sio_run;
+  d->del = sio_del;
+  return d;
 }
