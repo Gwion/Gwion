@@ -228,6 +228,7 @@ local dir = io.popen("dir "..arg[1])
 	end
 
 a = {}
+
 for n in pairs(sptbl) do table.insert(a, n) end
 table.sort(a)
 
