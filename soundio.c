@@ -17,8 +17,8 @@ static struct SoundIoDevice    *out_device = NULL;
 static struct SoundIoDevice    *in_device  = NULL;
 
 static enum SoundIoBackend backend = SoundIoBackendNone;
-static char *device_id = NULL;
-static bool raw = false;
+static m_str  device_id = NULL;
+static m_bool raw = false;
 
 void sio_wakeup()
 { soundio_wakeup(soundio); }
