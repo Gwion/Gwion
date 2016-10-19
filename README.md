@@ -22,11 +22,17 @@ there are a few *new* features:
     *  templates (func only for now)
     *  function pointers
     *  enums
+		* and probably more ...
 
 ####requires####
 * soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
-* libsoundio
 
+###optiional drivers###
+* alsa
+* jack
+* soundio
+* portaudio
+ 
 ####configure####
 simply edit *config.mk* to suit your needs, 
 
@@ -37,3 +43,4 @@ make
 
 
 let me know...
+
