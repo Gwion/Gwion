@@ -28,27 +28,57 @@ void sig(int unused) {
 static int do_quit = 0;
 
 static const struct option long_option[] = {
-  { "add"    , 0, NULL, '+' },
-  { "remove"    , 0, NULL, '-' },
-  { "quit"   , 0, NULL, 'q' },
-  { "driver" , 1, NULL, 'd' },
+  { "add"     , 0, NULL, '+' },
+  { "rem"     , 0, NULL, '-' },
+  { "quit"    , 0, NULL, 'q' },
+  { "driver"  , 1, NULL, 'd' },
   { "backend" , 1, NULL, 'b' },
-  { "sr"     , 1, NULL, 's' },
+  { "sr"      , 1, NULL, 's' },
   { "name"    , 1, NULL, 'n' },
-  { "raw"    , 0, NULL, 'r' },
-  { "host"   , 1, NULL, 'h' },
-  { "port"   , 1, NULL, 'p' },
-  { "rate"   , 1, NULL, 'r' },
-  { "buf"    , 1, NULL, 'b' },
-  { "alone"  , 1, NULL, 'a' },
-  { "in"     , 1, NULL, 'i' },
-  { "out"    , 1, NULL, 'o' },
-//  { "bufsize"    , 1, NULL, 'b' },
-//  { "bufnum"    , 1, NULL, 'n' },
-  { "loop"   , 1, NULL, 'l' },
-/*  { "status" , 0, NULL, '%' },*/
-  { NULL     , 0, NULL, 0   }
+  { "raw"     , 0, NULL, 'r' },
+  { "host"    , 1, NULL, 'h' },
+  { "port"    , 1, NULL, 'p' },
+  { "rate"    , 1, NULL, 'r' },
+  { "alone"   , 1, NULL, 'a' },
+  { "in"      , 1, NULL, 'i' },
+  { "out"     , 1, NULL, 'o' },
+  { "bufsize" , 1, NULL, 'b' },
+  { "bufnum"  , 1, NULL, 'n' },
+  { "loop"    , 1, NULL, 'l' },
+  { "format"  , 1, NULL, 'l' },
+  { "help"    , 0, NULL, '?' },
+/*  { "status"  , 0, NULL, '%' },*/
+  { NULL      , 0, NULL, 0   }
 };
+
+static void usage()
+{
+	printf("usage: Gwion <options>\n");
+	printf("\toption can be any of:\n");
+	printf("GLOBAL options:  <argument>  : description\n");
+	printf("\t--help,   -?\t             : this help\n");
+	printf("VM     options:\n");
+	printf("\t--add,     +\t <file>      : add file\n");
+	printf("\t--rem,     -\t <shred id>  : remove shred\n");
+	printf("\t--quit    -q\t             : quit the vm\n");
+	printf("UDP    options:\n");
+	printf("\t--host    -h\t  <string>   : set host\n");
+	printf("\t--port    -p\t  <number>   : set port\n");
+	printf("\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n");
+	printf("\t--alone   -a\t             : standalone mode. (no udp)\n");
+	printf("DRIVER options:\n");
+	printf("\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent)\n");
+	printf("\t--sr      -s\t  <number>   : set samplerate\n");
+	printf("\t--bufnum  -n\t  <number>   : set number of buffers\n");
+	printf("\t--bufsize -b\t  <number>   : set size   of buffers\n");
+	printf("\t--chan    -v\t  <number>   : (global) channel number\n");
+	printf("\t--in      -i\t  <number>   : number of  input channel\n");
+	printf("\t--out     -o\t  <number>   : number of output channel\n");
+	printf("\t--card    -c\t  <string>   : card identifier (e.g;: \"default\")\n");
+	printf("\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
+	printf("\t--format  -e\t  <string>   : format (one of S16 U16 S24 U24 S32 U32 F32 F64)\ TODO TODO\n");
+	printf("\t--backend -e\t  <string>   : format (one of jack pulse alsa core wasapi dummy) TODO\n");
+}
 
 typedef (*Driver_Func)();
 int main(int argc, char** argv)
@@ -61,11 +91,6 @@ int main(int argc, char** argv)
   Vector ref = add;
 
 	int samplerate = 48000;
-	m_str id = "default:CARD=CODEC";
-	m_str name = NULL;
-	m_bool raw = 0;
-	m_uint in = 2;
-	m_uint out = 2;
 	int port = 8888;
 	char* hostname = "localhost";
 	int loop = -1;
@@ -77,10 +102,14 @@ int main(int argc, char** argv)
 	di.bufsize = 256;
 	di.bufnum = 3;
 	di.card = "default:CARD=CODEC";
-  while((i = getopt_long(argc, argv, "+-qh:p:i:o:n:b:s:d:al:r ", long_option, &index)) != -1)
+	di.raw = 0;
+  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:s:d:al:r ", long_option, &index)) != -1)
   {
     switch(i)
     {
+      case '?':
+				usage();
+				exit(0);
       case '+':
         ref         = add;
         break;
@@ -160,9 +189,6 @@ int main(int argc, char** argv)
           printf("unknown driver. back to default\n");
 				break;
 */
-      case 'n':
-        name = optarg;
-        break;
       case 'r':
         di.raw = 1;
         break;
