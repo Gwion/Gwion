@@ -58,8 +58,8 @@ static void usage()
 	printf("GLOBAL options:  <argument>  : description\n");
 	printf("\t--help,   -?\t             : this help\n");
 	printf("VM     options:\n");
-	printf("\t--add,     +\t <file>      : add file\n");
-	printf("\t--rem,     -\t <shred id>  : remove shred\n");
+	printf("\t--add,    -+\t <file>      : add file\n");
+	printf("\t--rem,    --\t <shred id>  : remove shred\n");
 	printf("\t--quit    -q\t             : quit the vm\n");
 	printf("UDP    options:\n");
 	printf("\t--host    -h\t  <string>   : set host\n");
@@ -76,8 +76,8 @@ static void usage()
 	printf("\t--out     -o\t  <number>   : number of output channel\n");
 	printf("\t--card    -c\t  <string>   : card identifier (e.g;: \"default\")\n");
 	printf("\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
-	printf("\t--format  -e\t  <string>   : format (one of S16 U16 S24 U24 S32 U32 F32 F64)\ TODO TODO\n");
-	printf("\t--backend -e\t  <string>   : format (one of jack pulse alsa core wasapi dummy) TODO\n");
+	printf("\t--format  -f\t  <string>   : format (one of: S16 U16 S24 U24 S32 U32 F32 F64)\ TODO TODO\n");
+	printf("\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy) TODO\n");
 }
 
 typedef (*Driver_Func)();
