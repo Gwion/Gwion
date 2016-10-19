@@ -48,18 +48,9 @@ void* server_thread(void* data)
   VM* vm = (VM*)data;
 	while(ssp_is_running)
 	{
-	  int recvMsgSize;
-		unsigned int cliAddrLen;
-		char echoBuffer[255];
 		const char* buf;
 		int index;
 
-/*    if ((recvMsgSize = recvfrom(sock, echoBuffer, 255, 0,*/
-/*			(struct sockaddr *) &caddr, &cliAddrLen)) < 0)*/
-/*			err_msg(UDP, 0, "recvfrom() failed");*/
-/*    printf("received\n");*/
-      
-/*		buf = strndup(echoBuffer, recvMsgSize);*/
     buf = Recv(0);
     if( strncmp(buf, "bonjour", 7) == 0);
     else if( strncmp(buf, "quit", 4) == 0)
@@ -72,7 +63,6 @@ void* server_thread(void* data)
     {
       buf += 2;
       shreduler_remove(vm->shreduler, vector_at(vm->shred, atoi(buf)), 1);
-    
     }
 //      check_remove_shred(buf);
 		/* status */

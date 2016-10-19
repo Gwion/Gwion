@@ -11,6 +11,14 @@ jack_port_t** oport;
 jack_client_t* client;
 
 extern m_bool ssp_is_running;
+
+void jack_wakeup()
+{
+	jack_deactivate(client);
+exit(2);
+}
+
+
 static void gwion_shutdown (void *arg)
 {
 	ssp_is_running = 0;
@@ -28,20 +36,18 @@ static int gwion_cb(jack_nframes_t nframes, void *arg)
 		vm_run(vm);
 		for(chan = 0; chan < vm->bbq->sp->nchan; chan++)
 			out[chan][i] = vm->bbq->sp->out[chan];
+		vm->bbq->sp->pos++;
 	}
 	return 0;
 }
 
 m_bool jack_ini(VM* vm, DriverInfo* di)
-//m_bool jack_ini(VM* vm, m_uint* i, m_uint* o, m_uint* samplerate)
 {
-	const char** ports;
 	m_str  client_name = "Gwion";
 	const m_str  server_name = NULL;
 	m_uint chan;
 	jack_options_t options = JackNullOption;
 	jack_status_t status;
-
 	iport = malloc(sizeof(jack_port_t *) * di->in);
 	oport = malloc(sizeof(jack_port_t *) * di->out);
 //	client = malloc(sizeof(jack_client_t *));
@@ -82,36 +88,58 @@ m_bool jack_ini(VM* vm, DriverInfo* di)
 	{
     sprintf(chan_name, "input_%d", chan);
     printf("registering %s\n", chan_name);
-    oport[chan] = jack_port_register (client, chan_name,
+    iport[chan] = jack_port_register (client, chan_name,
                       JACK_DEFAULT_AUDIO_TYPE,
                       JackPortIsInput, chan);
 
-    if (oport[chan] == NULL)
+    if (iport[chan] == NULL)
 		{
         fprintf(stderr, "no more JACK input ports available\n");
       return -1;
     }
 	}
 
+//exit(2);
+//	di->sr = jack_get_sample_rate(client);
+	return 1;
+}
+
+void jack_run()
+{
+	const char** ports;
+	m_uint chan;
+	if (jack_activate (client))
+	{
+		fprintf (stderr, "cannot activate client\n");
+		return -1;
+	}
 	ports = jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-	if (ports == NULL) {
+	if (!ports) {
 		fprintf(stderr, "no physical playback ports\n");
 		exit (1);
 	}
-	for(chan = 0; chan < di->out; chan++)
+
+//exit(2);
+//	for(chan = 0; chan < di->out; chan++)
+	for(chan = 0; chan < 2; chan++)
 	{
+		printf("oport %p\n", oport[chan]);
+		printf("oport %s\n", jack_port_name(oport[chan]));
+		printf("%s\n", ports[chan]);
     if(jack_connect(client, jack_port_name (oport[chan]), ports[chan]))
 		{
- //       fprintf (stderr, "cannot connect output ports\n");
+       fprintf (stderr, "cannot connect output ports\n");
     }
 	}
 	free(ports);
 
+//exit(2);
 	ports = jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
 	if (ports == NULL) {
 		fprintf(stderr, "no physical record ports\n");
 //		exit (1);
 	}
+/*
 	for(chan = 0; chan < di->in; chan++)
 	{
     if(jack_connect(client, jack_port_name (iport[chan]), ports[chan]))
@@ -120,20 +148,12 @@ m_bool jack_ini(VM* vm, DriverInfo* di)
     }
 	}
 	free(ports);
-
-	if (jack_activate (client))
-	{
-		fprintf (stderr, "cannot activate client");
-		return -1;
-	}
-	di->sr = jack_get_sample_rate(client);
-	return 1;
-}
-
-void jack_run()
-{
+*/
 	while(ssp_is_running)
 		sleep(1);
+	printf("jack running\n");
+//	jack_deactivate(client);
+	printf("jack running\n");
 }
 
 void jack_del()
@@ -143,10 +163,12 @@ void jack_del()
 	free(oport);
 }
 
-Driver* jack_driver()
+Driver* jack_driver(VM* vm)
 {
 	Driver* d = malloc(sizeof(Driver));
 	d->ini = jack_ini;
 	d->run = jack_run;
 	d->del = jack_del;
+	vm->wakeup = jack_wakeup;
+	return d;
 }

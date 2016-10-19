@@ -11,7 +11,8 @@
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER  (64)
 
-
+extern m_bool ssp_is_running;
+static m_uint bufsize;
 static PaStream *stream = NULL;
 static     PaStreamParameters outputParameters;
 static     PaStreamParameters  inputParameters;
@@ -26,8 +27,8 @@ static int callback( const void *inputBuffer, void *outputBuffer,
   m_bool i, j;
 	for(i = 0; i < framesPerBuffer; i++)
 	{
-//		for(j = 0; j < vm->bbq->n_in; j++)
-//			vm->bbq->in[j] = *in++;
+		for(j = 0; j < vm->bbq->n_in; j++)
+			vm->bbq->in[j] = *in++;
 		vm_run(vm);
 		for(j = 0; j < vm->bbq->sp->nchan; j++)
 		{
@@ -36,43 +37,47 @@ static int callback( const void *inputBuffer, void *outputBuffer,
 //			*out = vm->bbq->sp->out[1] / 4;*out++;
 //			printf("[%i/%i] %f %f\n", i, j, *out, vm->bbq->sp->out[j]);
 		}
+		vm->bbq->sp->pos++;
 	}
 	return paContinue;
 }
 
 static m_bool ini(VM* vm, DriverInfo* di)
 {
-	if(Pa_Initialize() != paNoError)
-exit(2);
-//		return -1;
+		if(Pa_Initialize() != paNoError)
+			return -1;
     outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
     if (outputParameters.device == paNoDevice) {
       fprintf(stderr,"Error: No default output device.\n");
       goto error;
     }
-    outputParameters.channelCount = 2;       /* stereo output */
-//    outputParameters.sampleFormat = paFloat32; /* 32 bit floating point output */
-    outputParameters.sampleFormat = paCustomFormat; /* 32 bit floating point output */
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+		bufsize = di->bufsize;
+    outputParameters.channelCount = 2;
+    outputParameters.sampleFormat = paFloat32;
+//    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 
-     inputParameters.channelCount = 2;       /* stereo output */
-     inputParameters.sampleFormat = paFloat32; /* 32 bit floating point output */
-     inputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    inputParameters.device = Pa_GetDefaultInputDevice(); /* default output device */
+    if (inputParameters.device == paNoDevice) {
+      fprintf(stderr,"Error: No default output device.\n");
+      goto error;
+    }
+     inputParameters.channelCount = di->in;
+     inputParameters.sampleFormat = paFloat32;
+     inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowOutputLatency;
      inputParameters.hostApiSpecificStreamInfo = NULL;
 
+printf("di->sr. %i\n", di->sr);
 if(Pa_OpenStream(
               &stream,
-              NULL, /* no input */
-//               &inputParameters,
+NULL,//               &inputParameters,
               &outputParameters,
-              SAMPLE_RATE,
-              FRAMES_PER_BUFFER,
-//              paFramesPerBufferUnspecified,
-							paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+							di->sr,
+              di->bufsize,
+							paClipOff,
               callback,
               vm ) != paNoError)
-exit(3);;
+	goto error;
 /*
 if(Pa_OpenDefaultStream(&stream,
                                 2,2,
@@ -91,12 +96,15 @@ exit(3);
 //Pa_SetStreamFinishedCallback( stream, NULL);
 //Pa_SetStreamFinishedCallback( stream, &StreamFinished );
 
-	di->out =2;
-	di->in =2;
-	vm->bbq->in = malloc(sizeof(m_float) * 2);
+//	di->out =2;
+//	di->in =2;
+//	vm->bbq->in = malloc(sizeof(m_float) * 2);
 	printf("end of port audio\n");
 	return 1;
-	error: Pa_Terminate();
+
+error:
+	Pa_Terminate();
+	return -1;
 }
 
 static void del(VM* vm)
@@ -108,13 +116,16 @@ static void del(VM* vm)
 static void run(VM* vm, DriverInfo* di)
 {
 	Pa_StartStream(stream);
-	Pa_Sleep(48000*50);
+	while(ssp_is_running)
+		Pa_Sleep(1);
 }
 
-Driver* pa_driver()
+Driver* pa_driver(VM* vm)
 {
   Driver* d = malloc(sizeof(Driver));
   d->ini = ini;
   d->run = run;
   d->del = del;
+	vm->wakeup = no_wakeup;
+	return d;
 }

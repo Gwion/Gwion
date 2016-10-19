@@ -254,7 +254,6 @@ m_int import_svar(Env env, const m_str type,
 error:
   free_ID_List( path );
   return -1;
-    
 }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun)
@@ -263,7 +262,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
   Type_Decl* type_decl = NULL;
   Var_Decl var_decl    = NULL;
   ID_List type_path    = NULL;
-  ID_List name_path    = NULL;
+//  ID_List name_path    = NULL;
   Array_Sub array_sub  = NULL;
   DL_Value* arg        = NULL;
   m_uint array_depth = 0;
@@ -284,7 +283,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
       return NULL;
     }
     type_decl = new_Type_Decl( type_path, 0, 0 );
-    name_path = str2list( arg->name, &array_depth2 );
+//    name_path = str2list( arg->name, &array_depth2 );
     if(array_depth && array_depth2)
     {
       err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module" );

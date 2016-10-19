@@ -189,7 +189,6 @@ static m_bool scan1_Expression(Env env, Expression exp)
   debug_msg("scan1", "exp %p", exp);
 #endif
 	Expression curr = exp;
-	m_bool t;
   m_bool ret = 1;
   while(curr)
 	{

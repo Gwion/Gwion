@@ -101,6 +101,7 @@ m_bool operator_set_doc(m_str doc)
   if(!last)
     return -1;
   last->doc = doc;
+	return 1;
 }
 
 Operator name2op(m_str name)
@@ -109,7 +110,7 @@ Operator name2op(m_str name)
 	for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
 		if(!strcmp(op_name[i], name))
 			return operators[i];
-		return -1;
+	return -1;
 }
 
 m_str op2str(Operator op)
@@ -180,7 +181,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
       op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
     return -1;
   }
-  if(mo = operator_find(v, lhs, rhs))
+  if((mo = operator_find(v, lhs, rhs)))
   {
     err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
       op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
@@ -206,7 +207,6 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   debug_msg(" op", "get return type for operator '%s', for type '%s' and '%s'",
       op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
 #endif
-	m_uint i;
 	Type t, l = lhs, r = lhs;
 /*  NameSpace nspc = env->curr;*/
   NameSpace nspc = env->global_nspc;
@@ -215,18 +215,17 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   {
     Vector v = map_get(nspc->operator, (void*)op);
 
-    if(mo = operator_find(v, lhs, rhs))
+    if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
     l = l->parent;
     while(l)
 		{
-			if(t = get_return_type(env, op, l, rhs))
+			if((t = get_return_type(env, op, l, rhs)))
 				return t;
       r = rhs;
  			while(r)
    		{
-/*				if(t = get_return_type(env, op, l->parent, r->parent))*/
-				if(t = get_return_type(env, op, l, r))
+				if((t = get_return_type(env, op, l, r)))
 					return t;
         r = r->parent;
     	}
@@ -239,18 +238,17 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   {
     Vector v = map_get(nspc->operator, (void*)op);
 
-    if(mo = operator_find(v, lhs, rhs))
+    if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
     r = rhs->parent;
     while(r)
 		{
-			if(t = get_return_type(env, op, lhs, r))
+			if((t = get_return_type(env, op, lhs, r)))
 				return t;
       l = lhs;
  			while(l)
    		{
-/*				if(t = get_return_type(env, op, l->parent, r->parent))*/
-				if(t = get_return_type(env, op, l, r))
+				if((t = get_return_type(env, op, l, r)))
 					return t;
         l = l->parent;
     	}
@@ -282,15 +280,12 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs)
 #ifdef DEBUG_OPERATOR
   debug_msg(" op", 0, "set func'");
 #endif
-
-	m_uint i;
-	Type t;
   NameSpace nspc = env->curr;
   M_Operator* mo;
 	while(nspc)
   {
     Vector v = map_get(nspc->operator, (void*)name2op(S_name(f->def->name)));
-    if(mo = operator_find(v, lhs, rhs))
+    if((mo = operator_find(v, lhs, rhs)))
     {
       mo->func = f;
       return 1;
@@ -306,8 +301,6 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   debug_msg(" op", "get instr for operator '%s', for type '%s' and '%s'",
       op2str(op), lhs->name, rhs->name);
 #endif
-
-	m_uint i;
   Type l = lhs, r = rhs;
   Vector v;
   NameSpace nspc = emit->env->curr;
@@ -315,7 +308,7 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   while(nspc)
   {
     v = map_get(nspc->operator, (void*)op);
-    if(mo = operator_find(v, lhs, rhs))
+    if((mo = operator_find(v, lhs, rhs)))
     {
         if(mo->func)
 				{

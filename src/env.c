@@ -56,7 +56,6 @@ void env_reset(Env env)
 typedef void (*cleaner)();
 void free_Env(Env a)
 {
-  m_uint i;
   free_NameSpace(a->curr);
   // TODO release content ?
   free_Vector(a->contexts);

@@ -80,7 +80,6 @@ void namespace_commit(NameSpace namespace)
 }
 void namespace_rollback(NameSpace namespace)
 {
-  unsigned int i;
   scope_rollback(namespace->value, NULL);
   scope_rollback(namespace->func,  NULL);
   scope_rollback(namespace->type,  NULL);

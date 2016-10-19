@@ -1,9 +1,3 @@
-1 => string str;
-str => string str2;
-SinOsc s => Zitarev zita => dac;
-<<<str,  str2, 220 => s.freq, s.freq()>>>;
-while(true)
-{
-//	Math.rand2f(200, 1200) => s.freq;
-	samp => now;
-}
+SinOsc sinosc => dac;
+samp => now;
+second => now;

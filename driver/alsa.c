@@ -45,8 +45,8 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
   if(!snd_pcm_hw_params_test_rate(handle, params, di->sr, dir))
     snd_pcm_hw_params_set_rate_near(handle, params, &di->sr, &dir);
 
-  if(!snd_pcm_hw_params_test_channels(handle, params, 2))
-    snd_pcm_hw_params_set_channels(handle, params, 2);
+  if(!snd_pcm_hw_params_test_channels(handle, params, di->chan))
+    snd_pcm_hw_params_set_channels(handle, params, di->chan);
   else exit(2);
 
 	if(snd_pcm_hw_params_set_period_size_near(handle, params, &di->bufsize, &dir))
@@ -59,8 +59,8 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 
   snd_pcm_hw_params_get_rate_max(params, &di->sr, &dir);
 	snd_pcm_hw_params_set_rate_near(handle, params, &di->sr, &dir);
-  printf("di->sr %i\n", di->sr);
 
+	period_size = di->bufsize;
   *h = handle;
   return 1;
 }
@@ -70,15 +70,14 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di)
 {
   BBQ bbq = vm->bbq;
   sp_data* sp = vm->bbq->sp;
-/*  void (*cb)(VM*  vm) = vm->bbq->cb;*/
-  if(sp_alsa_init(di, &out, "default",SND_PCM_STREAM_PLAYBACK, 0) < 0)
+  if(sp_alsa_init(di, &out, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0)
   {
     err_msg(ALSA_, 0, "problem with playback");
     return -1;
   }
   di->out = di->chan;
 
-  if(sp_alsa_init(di, &in,  "default", SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC|SND_PCM_NONBLOCK) < 0)
+  if(sp_alsa_init(di, &in,  di->card, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC|SND_PCM_NONBLOCK) < 0)
   {
     err_msg(ALSA_, 0, "problem with capture");
     return -1;
@@ -89,9 +88,7 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di)
 
 static void alsa_run(VM* vm, DriverInfo* di)
 {
-	alsa_ini(vm, di);
-//	snd_pcm_open(&out, "default",SND_PCM_STREAM_PLAYBACK, 0); //hack
-  m_uint i, chan;
+	m_uint i, chan;
   BBQ bbq = vm->bbq;
   sp_data* sp = vm->bbq->sp;
   void (*cb)(VM*  vm) = vm->bbq->cb;
@@ -130,12 +127,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
            bbq->in[chan] = ((m_float**)(_in_buf))[chan][i];
         vm_run(vm);
         for(chan = 0; chan < sp->nchan; chan++)
-        {
-					if(chan==0)
           	out_buf[chan][i] = sp->out[chan];
-					else
-          	out_buf[chan][i] = 0;
-        }
         sp->pos++;
       }
       snd_pcm_writen(out, _out_buf, period_size);
@@ -153,6 +145,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
     while(ssp_is_running)
     {
       int j = 0;
+			sp->nchan = 2;
       snd_pcm_readi(in, in_bufi, period_size);
       for(i = 0; i < period_size; i++)
       {
@@ -196,11 +189,13 @@ static void alsa_del(VM* vm)
   }
 }
 
-Driver* alsa_driver()
+Driver* alsa_driver(VM* vm)
 {
 	Driver* d = malloc(sizeof(Driver));
 	d->ini = alsa_ini;
 	d->run = alsa_run;
 	d->del = alsa_del;
+	vm->wakeup = no_wakeup;
 	return d;
 }
+

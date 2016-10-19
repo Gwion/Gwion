@@ -20,8 +20,8 @@ static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
 
-void sio_wakeup()
-{ soundio_wakeup(soundio); }
+static void sio_wakeup()
+{ exit(2); soundio_wakeup(soundio); }
 static void write_sample_s16ne(char *ptr, double sample) {
     int16_t *buf = (int16_t *)ptr;
     double range = (double)INT16_MAX - (double)INT16_MIN;
@@ -309,7 +309,7 @@ void sio_run()
 }
 
 
-/* static */ void sio_del(VM* vm)
+void sio_del(VM* vm)
 {
 	soundio_outstream_destroy(outstream);
 	soundio_instream_destroy(instream);
@@ -318,11 +318,11 @@ void sio_run()
 	soundio_destroy(soundio);
 }
 
-Driver* alsa_driver()
-{
+Driver* sio_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = sio_ini;
   d->run = sio_run;
   d->del = sio_del;
+	vm->wakeup = sio_wakeup;
   return d;
 }

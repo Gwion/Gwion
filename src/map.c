@@ -132,7 +132,7 @@ void* vector_back(Vector v)
 {
   return (void*)v->ptr[v->len-1];
 }
-
+/*
 void* vector_push_front(Vector v, long unsigned int data)
 {
   Vector tmp;
@@ -145,7 +145,6 @@ void* vector_push_front(Vector v, long unsigned int data)
   }
   *v = *tmp;
   free(tmp);
-
 }
 
 void* vector_insert(Vector v, const long unsigned int index, long unsigned int data)
@@ -155,19 +154,20 @@ void* vector_insert(Vector v, const long unsigned int index, long unsigned int d
   tmp = new_Vector_fixed(v->len + 1);
   tmp->ptr[0] = data;
   for(i = 0; i < v->len; i++)
-  { 
+  {
     if(i == index)
       tmp->ptr[i] = data;
     else
     {
       tmp->ptr[i] = v->ptr[j];
-      j++;    
+      j++;
     }
   }
   *v = *tmp;
   free(tmp);
 
 }
+*/
 long unsigned int vector_size(Vector v)
 {
   return v->len;
@@ -336,7 +336,6 @@ struct Scope_
 
  void scope_rollback(Scope scope, void (*_free)(void* arg))
 {
-  unsigned int i;
   map_rollback(scope->commit_map, _free);
 }
 
