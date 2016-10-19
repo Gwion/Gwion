@@ -27,7 +27,7 @@ there are a few *new* features:
 ####requires####
 * soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
 
-###optiional drivers###
+###optional drivers###
 * alsa
 * jack
 * soundio
