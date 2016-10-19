@@ -27,11 +27,12 @@ static m_str usable(m_str name)
   m_uint i;
   m_str str = strdup(name);
   for(i = 0; i < strlen(str); i++)
-    if(str[i] == '/' || str[i] == '.' || str[i] == '@')
+	{
     if(str[i] == '/' || str[i] == '.' || str[i] == '@')
       str[i] = '_';
     else if(str[i] >= 'A' && str[i] <= 'Z')
       str[i] -= 'A' - 'a';
+	}
   return str;
 }
 
@@ -153,7 +154,7 @@ static m_str print_type(Type t)
   strcat(str, t->name);
   for(i = 0; i < t->array_depth; i++)
     strcat(str, "[]");
-  ret = str;
+  ret = strdup(str); // coub be better
   return ret;
 }
 // t(ype) f(function) v(ariable)
@@ -217,11 +218,11 @@ static void mkdoc_value(Doc* doc, Value v)
     fprintf(doc->html, "</li></p>\n");
 //  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
 //    v->name, v->name, file, full, "]", v->owner->name, v->doc ? v->doc : "");
-char * str = v->doc ? strndup(v->doc, 16) : "";
+	char * str = v->doc ? strndup(v->doc, 16) : "";
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
       v->name, v->name, file, full, "]", v->owner->name, str);
-if(v->doc)
-  free(str);
+	if(v->doc)
+  	free(str);
   free(full);
   free(type);
   free(file);
@@ -276,8 +277,8 @@ static void mkdoc_func(Doc* doc, Func f)
     m_str str = v->doc ? strndup(v->doc, 16) : "";
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[argument\%s in <b>%s</b> <em>%s</em> '] ]],\n",
       v->name, v->name, file, a_full, "]", v->owner->name, str);
-if(v->doc)
-  free(str);
+	if(v->doc)
+  	free(str);
   arg = arg->next;
   }
   fprintf(doc->html, "</ol></blockquote></li></p>\n\n");

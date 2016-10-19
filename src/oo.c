@@ -24,7 +24,8 @@ void add_ref(VM_Object a)
 
 void rem_ref(VM_Object a, void* ptr)
 {
-  if(!a->ref_count-- && !a->lock || !our_locks_in_effects)
+//  if(!a->ref_count-- && !a->lock || !our_locks_in_effects)
+  if((!a->ref_count-- && !a->lock) || !our_locks_in_effects)
   {
     switch(a->type)
     {

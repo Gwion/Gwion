@@ -13,6 +13,12 @@ m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
 
+CTOR(ftbl_ctor)
+{
+	FTBL(o) = NULL;
+}
+
+
 DTOR(ftbl_dtor)
 {
 	if(FTBL(o))
@@ -4289,9 +4295,8 @@ CTOR(osc_ctor)
 DTOR(osc_dtor)
 {
 	GW_osc* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_osc_destroy(&ug->osc);
+//	if(ug->is_init)
+//		sp_osc_destroy(&ug->osc);
 }
 
 MFUN(osc_init)
@@ -8401,7 +8406,9 @@ m_bool import_soundpipe(Env env)
 	Func f;
 
 	CHECK_BB(add_global_type(env, &t_ftbl))
-	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
+	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, ftbl_dtor, ftbl_dtor))
+	o_ftbl_data = import_mvar(env, "int", "@ftbl", 0, 0, "sp_ftbl*");
+	CHECK_BB(o_ftbl_data)
 	fun = new_DL_Func("void", "gen_composite", (m_uint)ftbl_gen_composite);
 		arg = dl_func_add_arg(fun, "string", "argstring");
 		arg->doc = "a string of space-separated parameters, in groups of four:arg 1 is the partial number. must be positive, but it doesn't need to be a whole number.arg 2 is the strength.arg 3 is the initial phase (expressed in degrees)arg 4 is the dc offset. A dc offset of 2 will put a 2-strength sinusoid in the rangefrom (-2,2) to (0, 4)";
@@ -8444,6 +8451,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Scrambles phase of ftable.This gen routine will copy the ftable, apply an FFT, applya random phase, and then do an inverse FFT. This effect is ideal for creating pad-like sounds. ";
 	fun = new_DL_Func("void", "gen_sinesum", (m_uint)ftbl_gen_sinesum);
+		arg = dl_func_add_arg(fun, "int", "size");
 		arg = dl_func_add_arg(fun, "string", "argstring");
 		arg->doc = "A list of amplitudes, in the range 0-1, separated by spaces.Each position coordinates to their partial number. Position 1 is the fundamental amplitude (1 * freq). Position 2 is the first overtone (2 * freq), 3 is the second (3 * freq), etc...";
 	CHECK_OB((f = import_mfun(env, fun)))

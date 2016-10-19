@@ -89,9 +89,8 @@ void frame_pop_scope(Frame* frame, Vector v)
   m_uint i;
   Local* local = NULL;
   local = vector_back(frame->stack);
-  while(i = vector_size(frame->stack) && vector_back(frame->stack))
+  while((i = vector_size(frame->stack) && vector_back(frame->stack)))
   {
-/*    local = vector_at(frame->stack, i - 1);*/
     local = vector_back(frame->stack);
     vector_pop(frame->stack);
     if(local)

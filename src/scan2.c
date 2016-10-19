@@ -233,11 +233,6 @@ static m_bool scan2_Array(Env env, Array* array)
   return 1;
 }
 
-static m_bool scan2_array_lit(Env env, Primary_Expression* exp)
-{
-  return verify_array(exp->array) < 0 ? -1 : 1;
-}
-
 static m_bool scan2_Binary_Expression(Env env, Binary_Expression* binary )
 {
   CHECK_BB(scan2_Expression(env, binary->lhs))
@@ -296,11 +291,6 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
 {
   if(func_call->types)
   {
-    m_str str;
-    m_str name;
-    Type_List list;
-    ID_List base_t;
-    Arg_List base_list, type_t;
     if(func_call->func->exp_type == Primary_Expression_type)
     {
       Value v = namespace_lookup_value(env->curr, func_call->func->primary_exp->var, 1);
@@ -315,8 +305,6 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
         err_msg(SCAN2_, func_call->pos, "template call of non-template function.");
         return -1;
       }
-
-      str = strdup(S_name(func_call->func->primary_exp->var));
       return 1;
     }
     else if(func_call->func->exp_type == Dot_Member_type)
@@ -655,7 +643,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     else
       namespace_add_value(env->curr, insert_symbol(orig_name), value);
     char name[256];
-    sprintf(name, "%s<template>@%i@%s", S_name(f->name), overload ? overload->func_num_overloads : 0, env->curr->name);
+    sprintf(name, "%s<template>@%li@%s", S_name(f->name),
+			overload ? overload->func_num_overloads : 0, env->curr->name);
     namespace_add_value(env->curr, insert_symbol(name), value);
     return 1;
   }
@@ -685,7 +674,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(overload)
   {
     len = strlen(func_name) + ((overload->func_num_overloads + 1)% 10) + strlen(env->curr->name) + 3;
-    snprintf(tmp, len + 1, "%s@%i@%s", func_name, ++overload->func_num_overloads, env->curr->name);
+    snprintf(tmp, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   }
   else
     snprintf(tmp, len + 1, "%s@0@%s", func_name, env->curr->name);
@@ -863,8 +852,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
         err_msg(SCAN2_, f->pos,
           "function '%s.%s' matches '%s.%s' but cannot overload...",
           env->class_def->name, S_name(f->name),
-          value->owner_class->name, S_name(f->name) );
-        goto error;
+         	value->owner_class->name, S_name(f->name) );
+			goto error;
     }
   }
 

@@ -90,7 +90,6 @@ static m_bool gain_tick(UGen u)
 {
   base_tick(u);
   u->out *= *(m_float*)u->ug;
-	return 1;
 }
 
 static void gain_ctor(M_Object o, VM_Shred shred)
@@ -136,7 +135,6 @@ static m_bool impulse_tick(UGen u)
   u->last = u->out = *(m_float*)u->ug;
 	*(m_float*)u->ug = 0;
 	u->done = 1;
-	return 1;
 }
 
 static void impulse_ctor(M_Object o, VM_Shred shred)
@@ -198,7 +196,7 @@ static void fullrect_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_fullrect(Env env)
 {
-//  DL_Func* fun;
+  DL_Func* fun;
 	CHECK_BB(add_global_type(env, &t_fullrect))
 	CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
 	CHECK_BB(import_class_end(env))
@@ -240,7 +238,6 @@ static struct Type_ t_step = { "Step", 1, &t_ugen };
 static m_bool step_tick(UGen u)
 {
   u->out = *(m_float*)u->ug;
-	return 1;
 }
 
 static void step_ctor(M_Object o, VM_Shred shred)
@@ -295,7 +292,6 @@ static m_bool zerox_tick(UGen u)
       u->out = -1;
   }
   *(m_float*)u->ug = u->in;
-	return 1;
 }
 
 static void zerox_ctor(M_Object o, VM_Shred shred)
@@ -312,7 +308,7 @@ static void zerox_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_zerox(Env env)
 {
-//  DL_Func* fun;
+  DL_Func* fun;
 	CHECK_BB(add_global_type(env, &t_zerox))
 	CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
 	CHECK_BB(import_class_end(env))

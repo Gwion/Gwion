@@ -37,20 +37,18 @@ m_float get_now(Shreduler s) { return s->vm->bbq->sp->pos; }
 void shreduler_set_loop(Shreduler s, m_bool loop) { s->loop = loop; }
 VM_Shred shreduler_get(Shreduler s)
 {
-/*#ifdef DEBUG_SHREDULER*/
-/*  debug_msg("clock", "get");*/
-/*#endif*/
+#ifdef DEBUG_SHREDULER
+  debug_msg("clock", "get");
+#endif
 	VM_Shred shred = s->list;
-  
-  VM_Shred sh = shred;
-    
   if(!shred)
 	{
 		s->til_next = -1;
     if(!vector_size(s->vm->shred) && ! s->loop)
 		{
       ssp_is_running = 0;
-			sio_wakeup();
+//			if(s->vm->wakeup)
+			s->vm->wakeup();
 		}
     return NULL;
   }

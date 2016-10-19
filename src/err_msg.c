@@ -17,9 +17,9 @@ void err_msg(a_header header, long int pos, const char* fmt, ...)
 #endif
   if(pos > 0)
 #ifdef COLOR
-    fprintf(stderr, " \033[4mline \033[1m%i\033[0m\t", pos);
+    fprintf(stderr, " \033[4mline \033[1m%li\033[0m\t", pos);
 #else
-    fprintf(stderr, " line: %i\t", pos);
+    fprintf(stderr, " line: %li\t", pos);
 #endif
 	vsnprintf(msg, 256, fmt, arg);
 	fprintf(stderr, "\t%s\n", msg);

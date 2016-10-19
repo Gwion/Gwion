@@ -29,6 +29,7 @@ typedef struct
   M_Object adc, dac, blackhole;
   Emitter emit;
   Env env;
+	void (*wakeup)();
 //	Driver driver;
 } VM;
 

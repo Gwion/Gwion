@@ -8,7 +8,7 @@
 #include "instr.h"
 #include "ugen.h"
 
-extern m_uint ssp_is_running;
+extern m_bool ssp_is_running;
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename)
 {
   VM_Code code = calloc(1, sizeof(struct VM_Code_));
@@ -131,7 +131,9 @@ continue;
 #endif
       instr->execute(vm, shred, instr);
       if(shred->is_done)
+{
         shreduler_remove(vm->shreduler, shred, 1);
+}
 #ifdef DEBUG_VM
 /*  else */
   debug_msg("vm", "shred [%i]: stack: {%i:%i}. pc: (%i,%i / %i)", shred->xid, *shred->reg,
@@ -141,29 +143,20 @@ continue;
   }
   if(!ssp_is_running)
     return;
-
-/*printf("lol %i\n", vector_size(vm->ugen));*/
   if(vector_size(vm->ugen) > 3)
   for(i = 0; i < vector_size(vm->ugen); i++)
   {
     UGen u = vector_at(vm->ugen, i);
-/*printf("u %p u->channel %p\n", u, u->channel);*/
     u->done = 0;
     if(u->channel)
     {
-/*      if(u->n_in)*/
       for(int j = 0; j < u->n_in; j++)
-/*printf("u->channel[j] %p\n", u->channel);*/
         u->channel[j]->ugen->done = 0;
       for(int j = 0; j < u->n_out; j++)
       {
-/*        printf("%p->channel[%i]->done %i\n", u, j, u->channel[j]->ugen->done);*/
         u->channel[j]->ugen->done = 0;
       }
     }
-    if(u->ref)
-      exit(122);
-/*      u->ref->done = 0;*/
   }
   ugen_compute(vm->blackhole->ugen);
   ugen_compute(vm->dac->ugen);

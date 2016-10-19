@@ -1,5 +1,4 @@
 #define _XOPEN_SOURCE 700
-#define _GNU_SOURCE
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
@@ -59,18 +58,13 @@ int isres(Env env, S_Symbol xid, int pos)
 
 int isprim(Type type)
 {
-	// TODO: string ?
 	if(type->array_depth)
 		return -1;
 	if(isa(type, &t_object) > 0)
 		return -1;
 	return 1;
-/*return type->xid  == t_int.xid ? 1 : -1;*/
-/*|| isa(type, &t_float)  || isa(type, &t_dur) || */
-/*isa(type, &t_time) /* ||  isa(type, &t_complex) || isa(type, &t_polar) */
-//)) ? 1 : -1;*/
-/*isa(type, &t_time)) ) ? 1 : -1;*/
 }
+
 Type new_Type(Context context)
 {
   Type type         = calloc(1, sizeof(struct Type_));
@@ -227,7 +221,7 @@ Value find_value(Type type, S_Symbol xid )
   if(!type->info)
     return NULL;
   // -1 for base
-  if(value = namespace_lookup_value(type->info, xid, -1))
+  if((value = namespace_lookup_value(type->info, xid, -1)))
     return value;
   if(type->parent) 
     return find_value(type->parent, xid);
