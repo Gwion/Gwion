@@ -145,15 +145,21 @@ static void alsa_run(VM* vm, DriverInfo* di)
     while(ssp_is_running)
     {
       int j = 0;
+			int k = 0;
 			sp->nchan = 2;
       snd_pcm_readi(in, in_bufi, period_size);
       for(i = 0; i < period_size; i++)
       {
+        for(chan = 0; chan < sp->nchan; chan++)
+				{
+           bbq->in[chan] = ((m_float*)(in_bufi))[j];
+					j++;
+				}
         vm_run(vm);
         for(chan = 0; chan < sp->nchan; chan++)
         {
-          ((m_float*)out_bufi)[j] = sp->out[chan];
-          j++;
+          ((m_float*)out_bufi)[k] = sp->out[chan];
+          k++;
         }
         sp->pos++;
       }

@@ -16,6 +16,9 @@ static struct SoundIoInStream  *instream   = NULL;
 static struct SoundIoDevice    *out_device = NULL;
 static struct SoundIoDevice    *in_device  = NULL;
 
+//static struct SoundIoChannelArea* areas;
+
+
 static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
@@ -84,6 +87,8 @@ static void write_callback(struct SoundIoOutStream *outstream, int
 
 		for (int frame = 0; frame < count; frame++)
 		{
+//			for (int channel = 0; channel < instream->layout.channel_count; channel++)
+//				vm->bbq->in[channel] = *(double*)instream->areas[channel].ptr;
 			vm_run(vm);
 			for (int channel = 0; channel < layout->channel_count; channel++)
 			{
@@ -110,9 +115,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
     struct SoundIoChannelArea *areas;
     int err;
     int frames_left = frame_count_max;
-		VM* vm = (VM*)outstream->userdata;
-		double* data = vm->bbq->in;
-
+		VM* vm = (VM*)instream->userdata;
     for (;;) {
         int frame_count = frames_left;
 
@@ -127,15 +130,23 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
             break;
 
         if (!areas) {
-            memset(data, 0, frame_count * instream->bytes_per_frame);
+//            memset(data, 0, frame_count * instream->bytes_per_frame);
             fprintf(stderr, "Dropped %d frames due to internal overflow\n", frame_count);
         } else {
+//frame_count= 256;
+char* data[SZ_FLOAT];
             for (int frame = 0; frame < frame_count; frame += 1) {
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
                     memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
+vm->bbq->in[ch] = *(m_float*)data;
+printf("*(double*)areas[%i].ptr %f\n", ch, *(double*)data);
+//vm->bbq->in[ch] = *(double*)areas[ch].ptr;
+//printf("*(double*)areas[%i].ptr %f\n", ch, *(double*)areas[ch].ptr);
+//*(m_float*)(vm->bbq->in + ch) = *(m_float*)areas[ch].ptr;
+//printf("vm->bbq->in[%i] %f\n", ch, vm->bbq->in[ch]);
                     areas[ch].ptr += areas[ch].step;
-printf("%f\n", data[0]);
-printf("%f\n", vm->bbq->in[0]);
+//									data++;	
+//data += instream->bytes_per_sample;
                 }
             }
         }
@@ -259,10 +270,8 @@ static m_bool sio_ini(VM* vm, DriverInfo* di)
 
 		if (soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
         instream->format = SoundIoFormatFloat64NE;
-        write_sample = write_sample_float64ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
         instream->format = SoundIoFormatS32NE;
-        write_sample = write_sample_s32ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
         instream->format = SoundIoFormatS16NE;
         // read_sample = write_sample_s16ne;
@@ -297,14 +306,14 @@ static m_bool sio_ini(VM* vm, DriverInfo* di)
 void sio_run()
 {
 	int err;
-  if((err = soundio_outstream_start(outstream)))
-	{
-		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
-		return;
-  }
   if((err = soundio_instream_start(instream)))
 	{
 		fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
+		return;
+  }
+  if((err = soundio_outstream_start(outstream)))
+	{
+		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
 		return;
   }
  	while(ssp_is_running)

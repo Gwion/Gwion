@@ -56,7 +56,7 @@ void* server_thread(void* data)
     else if( strncmp(buf, "quit", 4) == 0)
     {
 			ssp_is_running = 0;
-			sio_wakeup();
+			vm->wakeup();
 		}
 		/* remove */
 		else if( strncmp(buf, "-", 1) == 0)

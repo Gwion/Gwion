@@ -29,6 +29,7 @@ static int callback( const void *inputBuffer, void *outputBuffer,
 	{
 		for(j = 0; j < vm->bbq->n_in; j++)
 			vm->bbq->in[j] = *in++;
+printf("vm->bbq->in[0], %f\n", vm->bbq->in[0]);
 		vm_run(vm);
 		for(j = 0; j < vm->bbq->sp->nchan; j++)
 		{

@@ -1,12 +1,12 @@
 # here you set the default driver
-CFLAGS+=-DD_FUNC=sio_driver
+CFLAGS+=-DD_FUNC=alsa_driver
 
 # set those value to 1 if you want the driver
 # comment thoes you don't want/need/have
 ALSA_D      = 1
-JACK_D      = 1
-PORTAUDIO_D = 1
-SOUNDIO_D   = 1
+#JACK_D      = 1
+#PORTAUDIO_D = 1
+#SOUNDIO_D   = 1
 SPA_D       = 1
 
 #vrious debug flags

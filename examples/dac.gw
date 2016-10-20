@@ -1,2 +1,2 @@
 adc => dac;
-minute => now;
+second => now;
