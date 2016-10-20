@@ -1,3 +1,4 @@
+adc => dac;
 SinOsc sinosc => dac;
 samp => now;
 second => now;

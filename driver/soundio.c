@@ -20,8 +20,8 @@ static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
 
-static void sio_wakeup()
-{ exit(2); soundio_wakeup(soundio); }
+void sio_wakeup()
+{ soundio_wakeup(soundio); }
 static void write_sample_s16ne(char *ptr, double sample) {
     int16_t *buf = (int16_t *)ptr;
     double range = (double)INT16_MAX - (double)INT16_MIN;
@@ -61,7 +61,7 @@ static void overflow_callback(struct SoundIoInStream *stream)
 }
 
 static void write_callback(struct SoundIoOutStream *outstream, int
-frame_count_min, int frame_count_max)
+	frame_count_min, int frame_count_max)
 {
 	double sr = outstream->sample_rate;
 	double seconds_per_frame = 1.0 / sr;
@@ -134,6 +134,8 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
                     memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
                     areas[ch].ptr += areas[ch].step;
+printf("%f\n", data[0]);
+printf("%f\n", vm->bbq->in[0]);
                 }
             }
         }
@@ -154,6 +156,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 static m_bool sio_ini(VM* vm, DriverInfo* di)
 {
 		soundio = soundio_create();
+		device_id = di->card;
     if (!soundio) {
         fprintf(stderr, "out of memory\n");
         return -1;
@@ -309,7 +312,7 @@ void sio_run()
 }
 
 
-void sio_del(VM* vm)
+/* static */ void sio_del(VM* vm)
 {
 	soundio_outstream_destroy(outstream);
 	soundio_instream_destroy(instream);
@@ -318,7 +321,8 @@ void sio_del(VM* vm)
 	soundio_destroy(soundio);
 }
 
-Driver* sio_driver(VM* vm) {
+Driver* sio_driver(VM* vm)
+{
   Driver* d = malloc(sizeof(Driver));
   d->ini = sio_ini;
   d->run = sio_run;

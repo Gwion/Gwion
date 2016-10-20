@@ -43,6 +43,9 @@ endif
 ifeq (${JACK_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
 endif
+ifeq (${SOUNDIO_D}, 1)
+	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
+endif
 ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
