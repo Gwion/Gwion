@@ -314,9 +314,10 @@ Ast parse(m_str filename)
   MyArg arg;
   minimal_lex_init(&arg.scanner);
   minimal_set_extra(&arg, arg.scanner);
+//  minimal_lex_init_extra(&arg, arg.scanner);
   map_set(scan_map, arg.scanner, &arg);
   map_set(scan_map, (void*)(m_uint)minimal_get_extra(arg.scanner), &arg);
-  arg.line = 1; arg.pos  = 0; arg.doc = new_Vector();
+  arg.line = 0; arg.pos  = 0; arg.doc = new_Vector();
   char c[1024];
   memset(c, 0, 1024);
   strcat(c, filename);

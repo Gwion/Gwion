@@ -1,7 +1,8 @@
 %define api.pure full
 %define parse.error verbose
-%lex-param { void* scanner}
-%param { MyArg* arg }
+%parse-param { MyArg* arg }
+%lex-param  { void* scanner }  { MyArg* arg }
+//%param { MyArg* arg }
 %name-prefix "minimal_"
 %{
 #include "absyn.h"
