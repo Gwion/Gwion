@@ -117,7 +117,6 @@ void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr)
 
 void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr)
 {
-  char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] reg push float '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
@@ -130,7 +129,6 @@ void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr)
 
 void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr)
 {
-  char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'complex' push mem ");
 #endif
@@ -143,7 +141,6 @@ void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr)
 
 void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr)
 {
-  char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'vec3' push mem ");
 #endif
@@ -159,7 +156,6 @@ void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr)
 
 void Reg_Push_Mem_Vec4(VM* vm, VM_Shred shred, Instr instr)
 {
-  char* s = instr->m_val2 ? shred->base : shred->mem;
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'vec4' push mem ");
 #endif
@@ -268,7 +264,6 @@ void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-	VEC3_T v = *(VEC3_T*)shred->mem;
   *(VEC3_T**)shred->reg = &*(VEC3_T*)(shred->mem + instr->m_val);
   shred->reg += SZ_INT;
 }
@@ -408,7 +403,6 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
   Type type;
   Vector v = instr->ptr;
   m_uint i, j, size = vector_size(v);
-  m_int offset = 0;;
   m_uint len, longest = 0;
   for(i = 0; i < size; i++)
   {
@@ -456,9 +450,9 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
 /*exit(2);*/
     if(type->xid == t_int.xid)
 #ifdef COLOR
-      fprintf(stdout, "\033[1m%i\033[1m", *(m_uint*)(shred->reg));
+      fprintf(stdout, "\033[1m%li\033[1m", *(m_uint*)(shred->reg));
 #else
-      fprintf(stdout, "%i", *(m_uint*)(shred->reg));
+      fprintf(stdout, "%li", *(m_uint*)(shred->reg));
 #endif
     else if(type->xid == t_float.xid || type->xid == t_dur.xid || isa(type, &t_time) > 0)
 #ifdef COLOR
@@ -511,7 +505,7 @@ void Gack(VM* vm, VM_Shred shred, Instr instr)
     else if(type->xid == t_class.xid)
       fprintf(stdout, "\033[1m%s\033[0m", type->actual_type->name);
     else
-      fprintf(stdout, "%p", *(m_uint*)(shred->reg));
+      fprintf(stdout, "%p", *(M_Object*)(shred->reg));
 #ifdef COLOR
     fprintf(stdout, "\033[0m\n");
 #else
@@ -560,7 +554,7 @@ void Spork(VM * vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Spork");
 #endif
-  m_uint i, this_ptr = 0;
+  m_uint this_ptr = 0;
   VM_Code code;
   Func func;
 
@@ -628,7 +622,6 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
 #endif
   m_uint i;
   VM_Code func;
-  Vector _instr;
   m_uint local_depth, stack_depth, prev_stack = 0, push, next;
 
   shred->reg -= SZ_INT*2;
@@ -1023,10 +1016,7 @@ void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)(shred->reg-SZ_INT), instr->m_val, instr->m_val2, instr->ptr);
 #endif
-
-  Type type = instr->ptr;
-  m_uint  data;
-  M_Object* tmp, obj;
+  M_Object obj;
 
   shred->reg -= SZ_INT;
   obj  = *(M_Object*)shred->reg;
@@ -1156,7 +1146,7 @@ negative_array_size:
 error:
   if(base)
     release(base, shred);
-    return NULL;
+  return NULL;
 }
 
 void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr) // for litteral array
@@ -1186,8 +1176,8 @@ void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr)
   m_int index = 0;
   m_float num = 1.0;
   m_uint* obj_array = NULL;
-  m_uint obj_array_size = 0;
-  m_uint depth = info->depth;
+//  m_uint obj_array_size = 0;
+//  m_uint depth = info->depth;
 
   if(info->is_obj && !info->is_ref)
   {
@@ -1208,7 +1198,7 @@ void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr)
       obj_array = (m_uint*)calloc(num_obj, sizeof(m_uint));
       if(!obj_array)
         goto out_of_memory;
-      obj_array_size = num_obj;
+//      obj_array_size = num_obj;
     }
   }
   ref = (m_uint)do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
@@ -1226,9 +1216,11 @@ void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr)
   }
   return;
 
+/*
 overflow:
   fprintf( stderr, "[chuck](VM): OverFlow: requested array size too big...\n" );
   goto error;
+*/
 out_of_memory:
   fprintf( stderr, "[chuck](VM): OutOfMemory: while allocating arrays...\n" );
   goto error;
@@ -1266,7 +1258,7 @@ void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr)
       *(VEC3_T**)shred->reg = v3_vector_addr(obj->array, i);
     else if(instr->m_val2 == Kindof_Vec3)
       *(VEC4_T**)shred->reg = v4_vector_addr(obj->array, i);
-      shred->reg += SZ_INT;
+ 		shred->reg += SZ_INT;
   }
   // take care of kind (instr->m_val2)
   else if(instr->m_val2 == Kindof_Int)
@@ -1310,7 +1302,6 @@ void Instr_Array_Access_Multi(VM* vm, VM_Shred shred, Instr instr)
   debug_msg("instr", "array access multi");
 #endif
   m_int i , j;
-  m_float fval = 0;
   shred->reg -= SZ_INT * (instr->m_val + 1);
   M_Object obj = NULL, *base = (M_Object*)shred->reg;
   obj = *base;
@@ -1335,7 +1326,7 @@ void Instr_Array_Access_Multi(VM* vm, VM_Shred shred, Instr instr)
       *(m_float**)shred->reg = f_vector_addr(obj->array, i);
     if(instr->m_val2 == Kindof_Complex)
       *(complex**)shred->reg = c_vector_addr(obj->array, i);
-      shred->reg += SZ_INT;
+     shred->reg += SZ_INT;
   }
   // take care of kind (instr->m_val2)
   else if(instr->m_val2 == Kindof_Int)

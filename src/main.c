@@ -32,6 +32,7 @@ static const struct option long_option[] = {
   { "rem"     , 0, NULL, '-' },
   { "quit"    , 0, NULL, 'q' },
   { "driver"  , 1, NULL, 'd' },
+  { "card"  , 1, NULL, 'c' },
   { "backend" , 1, NULL, 'b' },
   { "sr"      , 1, NULL, 's' },
   { "name"    , 1, NULL, 'n' },
@@ -67,34 +68,33 @@ static void usage()
 	printf("\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n");
 	printf("\t--alone   -a\t             : standalone mode. (no udp)\n");
 	printf("DRIVER options:\n");
-	printf("\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent)\n");
+	printf("\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n");
 	printf("\t--sr      -s\t  <number>   : set samplerate\n");
 	printf("\t--bufnum  -n\t  <number>   : set number of buffers\n");
 	printf("\t--bufsize -b\t  <number>   : set size   of buffers\n");
-	printf("\t--chan    -v\t  <number>   : (global) channel number\n");
+	printf("\t--chan    -g\t  <number>   : (global) channel number\n");
 	printf("\t--in      -i\t  <number>   : number of  input channel\n");
 	printf("\t--out     -o\t  <number>   : number of output channel\n");
 	printf("\t--card    -c\t  <string>   : card identifier (e.g;: \"default\")\n");
 	printf("\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
-	printf("\t--format  -f\t  <string>   : format (one of: S16 U16 S24 U24 S32 U32 F32 F64)\ TODO TODO\n");
-	printf("\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy) TODO\n");
+	printf("\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n");
+	printf("\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
 }
 
-typedef (*Driver_Func)();
 int main(int argc, char** argv)
 {
-  int ret, i, index;
-  m_str filename;
-	Driver_Func d_func = D_FUNC;
+	Driver* d = NULL;
+	VM* vm = NULL;
+  int i, index;
   Vector add = new_Vector();
   Vector rem = new_Vector();
   Vector ref = add;
 
-	int samplerate = 48000;
 	int port = 8888;
 	char* hostname = "localhost";
 	int loop = -1;
 	DriverInfo di;
+	di.func = D_FUNC;
 	di.in  = 2;
 	di.out = 2;
 	di.chan = 2;
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 	di.bufnum = 3;
 	di.card = "default:CARD=CODEC";
 	di.raw = 0;
-  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:s:d:al:r ", long_option, &index)) != -1)
+  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:s:d:al:rc: ", long_option, &index)) != -1)
   {
     switch(i)
     {
@@ -116,36 +116,6 @@ int main(int argc, char** argv)
       case '-':
         ref         = rem;
         break;
-			case 'd':
-				if(!strcmp("file", optarg))
-				{
-					d_func = sndfile_driver;
-					di.card = "/tmp/gwion";
-				}
-				else if(!strcmp("dummy", optarg))
-					d_func = dummy_driver;
-				else if(!strcmp("silent", optarg))
-					d_func = silent_driver;
-#ifdef HAVE_ALSA
-				else if(!strcmp("alsa", optarg))
-				{
-					d_func = alsa_driver;
-					di.card = "default";
-				}
-#endif
-#ifdef HAVE_JACK
-				else if(!strcmp("jack", optarg))
-					d_func = jack_driver;
-#endif
-#ifdef HAVE_SOUNDIO
-				else if(!strcmp("soundio", optarg))
-					d_func = sio_driver;
-#endif
-#ifdef HAVE_PORTAUDIO
-				else if(!strcmp("portaudio", optarg))
-					d_func = pa_driver;
-#endif
-				break;
       case 'q':
         do_quit     = 1;
         break;
@@ -158,37 +128,32 @@ int main(int argc, char** argv)
       case 'p':
         port        = atoi(optarg);
         break;
+      case 'g':
+        di.chan       = atoi(optarg);
+        di.in       = atoi(optarg);
+        di.out       = atoi(optarg);
+        break;
       case 'i':
-        //di.in       = atoi(optarg);
+        di.in       = atoi(optarg);
         break;
       case 'o':
-        //di.out      = atoi(optarg);
+        di.out      = atoi(optarg);
         break;
       case 's':
-        samplerate       = atoi(optarg);
+        di.sr      = atoi(optarg);
         break;
       case 'l':
         loop        = atoi(optarg);
         if(loop == 0) loop = -1;
         break;
-/*
-      case 'b':
-				if(!strcmp("dummy", optarg))
-        	backend = SoundIoBackendDummy;
-				else if(!strcmp("alsa", optarg))
-        	backend = SoundIoBackendAlsa;
-				else if(!strcmp("jack", optarg))
-        	backend = SoundIoBackendJack;
-				else if(!strcmp("pulse", optarg))
-        	backend = SoundIoBackendPulseAudio;
-				else if(!strcmp("core", optarg))
-        	backend = SoundIoBackendCoreAudio;
-				else if(!strcmp("Wasapi", optarg))
-        	backend = SoundIoBackendWasapi;
-        else
-          printf("unknown driver. back to default\n");
+			case 'd':
+				select_driver(&di, optarg);
 				break;
-*/
+			case 'f':
+				select_format(&di, optarg);
+				break;
+      case 'e':
+				select_backend(&di, optarg);
       case 'r':
         di.raw = 1;
         break;
@@ -204,10 +169,6 @@ int main(int argc, char** argv)
     while (optind < argc)
       vector_append(ref, argv[optind++]);
   }
-#ifdef HAVE_SPA
-	if(di.raw && d_func == sndfile_driver)
-		d_func = raw_driver;
-#endif
 	pthread_t udp_thread;
   if(udp)
   {
@@ -221,25 +182,21 @@ int main(int argc, char** argv)
         Send("loop 0", 1);
       for(i = 0; i < vector_size(rem); i++)
       {
-        printf("- %s\n", vector_at(add, i));
         m_str file = vector_at(add, i);
         char name[256];
         memset(name, 0, 256);
         strcat(name, "- ");
         strcat(name, file);
         Send(name, 1);
-        printf("send: %s\n", name);
       }
       for(i = 0; i < vector_size(add); i++)
       {
-        printf("+ %s\n", vector_at(add, i));
         m_str file = vector_at(add, i);
         char name[256];
         memset(name, 0, 256);
         strcat(name, "+ ");
         strcat(name, file);
         Send(name, 1);
-        printf("send: %s\n", name);
       }
       free_Vector(add);
       free_Vector(rem);
@@ -247,58 +204,37 @@ int main(int argc, char** argv)
     }
   }
   if(do_quit)
-    return 0;
+    goto clean;
 	signal(SIGINT, sig);
 	signal(SIGTERM, sig);
 	signal(SIGKILL, sig);
   scan_map = new_Map();
-	vm = new_VM();
-  shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
-  ssp_is_running = 1;
-  vm->bbq = calloc(1, sizeof(struct BBQ_));
-	sp_createn(&vm->bbq->sp, 2);
+	vm = new_VM(loop);
+	vm->bbq = new_BBQ(vm, &di, &d);
+	ssp_is_running = 1;
 
-	Driver* d = d_func(vm);
-	CHECK_OO(d->ini(vm, &di))
-	vm->bbq->sp->nchan = di.out;
-	vm->bbq->in   = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
-  vm->bbq->sp->sr = samplerate;
-
-	Env env = type_engine_init(vm);
-  if(!env)
-  {
-    err_msg(COMPILE_, 0, "problem initing environment");
-		free_VM(vm);
-		return 1;
-  }
-
-  Emitter emit = new_Emitter(env);
-  if(!emit)
-  {
-    err_msg(COMPILE_, 0, "problem initing emitter");
-		free_Emitter(emit);
-		free_VM(vm);
-		return 1;
-  }
-  vm->emit = emit;
+	if(!(vm->env = type_engine_init(vm)))
+		goto clean;
+	if(!(vm->emit = new_Emitter(vm->env)))
+		goto clean;
   srand(time(NULL));
-
 
   for(i = 0; i < vector_size(add); i++)
     compile(vm, (m_str)vector_at(add, i));
-  free_Vector(add);
-  free_Vector(rem);
+
 	if(udp)
 		pthread_create(&udp_thread, NULL, &server_thread, vm);
 	d->run(vm, &di);
   if(udp)
     server_destroy(udp_thread);
 
-	// clean
-	free_Driver(d, vm);
+clean:
+  free_Vector(add);
+  free_Vector(rem);
+	if(d)
+		free_Driver(d, vm);
   free_Map(scan_map);
-/*  free_Env(env);*/
-/*  free_Emitter(emit);*/
-/*  free_VM(vm);*/
+//	if(vm)
+//	  free_VM(vm);
   return 0;
 }

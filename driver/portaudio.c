@@ -16,28 +16,22 @@ static m_uint bufsize;
 static PaStream *stream = NULL;
 static     PaStreamParameters outputParameters;
 static     PaStreamParameters  inputParameters;
+
 static int callback( const void *inputBuffer, void *outputBuffer,
 	unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags, void *userData )
 {
 	VM* vm = (VM*)userData;
-	m_float *in  = (m_float*)inputBuffer;
-//	m_float *out = (m_float*)outputBuffer;
+	float *in  = (float*)inputBuffer;
 	float *out = (float*)outputBuffer;
   m_bool i, j;
 	for(i = 0; i < framesPerBuffer; i++)
 	{
 		for(j = 0; j < vm->bbq->n_in; j++)
 			vm->bbq->in[j] = *in++;
-printf("vm->bbq->in[0], %f\n", vm->bbq->in[0]);
 		vm_run(vm);
 		for(j = 0; j < vm->bbq->sp->nchan; j++)
-		{
 			*out++ = vm->bbq->sp->out[j];
-//			out[i+j] = vm->bbq->sp->out[j];
-//			*out = vm->bbq->sp->out[1] / 4;*out++;
-//			printf("[%i/%i] %f %f\n", i, j, *out, vm->bbq->sp->out[j]);
-		}
 		vm->bbq->sp->pos++;
 	}
 	return paContinue;
@@ -54,24 +48,23 @@ static m_bool ini(VM* vm, DriverInfo* di)
     }
 		bufsize = di->bufsize;
     outputParameters.channelCount = 2;
-    outputParameters.sampleFormat = paFloat32;
-//    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    outputParameters.sampleFormat = di->format;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 
     inputParameters.device = Pa_GetDefaultInputDevice(); /* default output device */
     if (inputParameters.device == paNoDevice) {
-      fprintf(stderr,"Error: No default output device.\n");
+      fprintf(stderr,"Error: No default input device.\n");
       goto error;
     }
-     inputParameters.channelCount = di->in;
+     inputParameters.channelCount = 2;
      inputParameters.sampleFormat = paFloat32;
      inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowOutputLatency;
      inputParameters.hostApiSpecificStreamInfo = NULL;
 
-printf("di->sr. %i\n", di->sr);
 if(Pa_OpenStream(
               &stream,
-NULL,//               &inputParameters,
+							&inputParameters,
               &outputParameters,
 							di->sr,
               di->bufsize,

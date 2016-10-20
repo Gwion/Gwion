@@ -68,8 +68,6 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 
 static m_bool alsa_ini(VM* vm, DriverInfo* di)
 {
-  BBQ bbq = vm->bbq;
-  sp_data* sp = vm->bbq->sp;
   if(sp_alsa_init(di, &out, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0)
   {
     err_msg(ALSA_, 0, "problem with playback");
@@ -83,7 +81,6 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di)
     return -1;
   }
   di->in = di->chan;
-  vm->bbq->sp->sr = di->sr;
 }
 
 static void alsa_run(VM* vm, DriverInfo* di)

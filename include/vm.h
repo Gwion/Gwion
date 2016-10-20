@@ -70,6 +70,6 @@ void set_now(Shreduler s, m_uint* pos);
 void shreduler(Shreduler s, m_uint* pos);
 VM_Shred shreduler_get(Shreduler s);
 void vm_run(VM* vm);
-VM* new_VM();
+VM* new_VM(m_bool loop);
 void free_VM(VM* vm);
 #endif

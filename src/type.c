@@ -183,7 +183,6 @@ Env type_engine_init(VM* vm)
     free(namelist);
   }
   namespace_commit(env->global_nspc);
-  vm->env = env;
   return env;
 }
 

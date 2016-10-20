@@ -110,7 +110,6 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, v->is_static,  v->owner_class);
 #endif
   Instr instr;
-  f_instr f;
 // HACK : instantiate type
   if(v->m_type->xid == t_class.xid && !v->m_type->initialize)
   {
@@ -221,7 +220,6 @@ VM_Code emit_to_code(Emitter emit)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "emit to code");
 #endif
-  m_uint i, len;
   Code* c      = emit->code;
   Vector v     = vector_copy(c->code);
   VM_Code code = new_VM_Code(v, c->stack_depth, c->need_this, c->name, c->filename);
@@ -385,7 +383,6 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 /*  m_int temp;*/
   m_uint temp;
   m_float f;
-  complex c;
 /*  exit(0);*/
   switch( primary->type )
   {
@@ -486,7 +483,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
   Instr instr;
   m_bool is_ref;
   m_bool is_obj;
-  m_bool is_init;
+//  m_bool is_init;
   list = exp->list;
   while(list)
   {
@@ -495,7 +492,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     type = value->m_type;
     is_obj = isa(type, &t_object) > 0 || list->self->array;
     is_ref = decl->type->ref;
-    is_init = 0;
+//    is_init = 0;
     kind = kindof(type);
 
     if(is_obj)
@@ -504,14 +501,14 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       {
         if(list->self->array->exp_list)
         {
-          is_init = 1;
+//          is_init = 1;
           if(emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
             return -1;
         }
       }
       else if(!is_ref)
       {
-        is_init = 1;
+//        is_init = 1;
         if(emit_instantiate_object( emit, type, list->self->array, is_ref) < 0)
             return -1;
       }
@@ -584,7 +581,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         }
       }
     }
-    is_init = 0;
+ //   is_init = 0;
 
     // if object, assign
     if(is_obj)
@@ -599,7 +596,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         {
 /*          exit(0);*/
           // set
-          is_init = 1;
+//          is_init = 1;
           // assign
           Instr assign = add_instr(emit, Assign_Object);
           assign->ptr = (m_uint*)1;
@@ -609,7 +606,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
 /*      else if( !is_ref && !value->is_member)*/
       else if(!is_ref)
       {
-        is_init = 1;
+//        is_init = 1;
         Instr assign = add_instr(emit, Assign_Object);
         assign->ptr = (m_uint*)1;
         assign->m_val = value->offset;
@@ -629,6 +626,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       }
     }
 */
+
     list = list->next;
   }
   return 1;

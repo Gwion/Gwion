@@ -29,7 +29,7 @@ static void silent_run(VM* vm, DriverInfo* di)
   }
 }
 
-static m_bool dummy_ini(VM* vm, DriverInfo* di){}
+static m_bool dummy_ini(VM* vm, DriverInfo* di){ return 1;}
 static void dummy_del(VM* vm){}
 
 Driver* silent_driver(VM* vm)

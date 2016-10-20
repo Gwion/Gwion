@@ -55,17 +55,24 @@ void free_VM_Shred(VM_Shred shred)
   free(shred);
 }
 
-VM* new_VM()
+VM* new_VM(m_bool loop)
 {
   VM* vm     = (VM*)calloc(1, sizeof(VM));
   vm->shred  = new_Vector();
   vm->ugen   = new_Vector();
 	vm->shreduler = new_Shreduler(vm);
+	shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
+	vm->env  = NULL;
+	vm->emit = NULL;
   return vm;
 }
 
 void free_VM(VM* vm)
 {
+	if(vm->env)
+	  free_Env(vm->env);
+	if(vm->emit)
+	  free_Emitter(vm->emit);
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
   sp_destroy(&vm->bbq->sp);

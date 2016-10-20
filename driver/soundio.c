@@ -49,7 +49,30 @@ static void write_sample_float64ne(char *ptr, double sample) {
     *buf = sample;
 }
 
+static void read_sample_s16ne(char *ptr, double *sample) {
+    int16_t *buf = (int16_t *)ptr;
+    double range = (double)INT16_MAX - (double)INT16_MIN;
+    double val = *buf * range / 2.0;
+    *sample = val;
+}
+
+static void read_sample_s32ne(char *ptr, double *sample) {
+    int32_t *buf = (int32_t *)ptr;
+    double range = (double)INT32_MAX - (double)INT32_MIN;
+    double val = *buf * range / 2.0;
+    *sample = val;
+}
+
+static void read_sample_float32ne(char *ptr, double *sample) {
+    *sample = *(float *)ptr;
+}
+
+static void read_sample_float64ne(char *ptr, double *sample) {
+    *sample = *(double *)ptr;
+}
+
 static void (*write_sample)(char *ptr, double sample);
+static void (*read_sample)(char *ptr, double *sample);
 
 static void underflow_callback(struct SoundIoOutStream *outstream)
 {
@@ -66,8 +89,8 @@ static void overflow_callback(struct SoundIoInStream *stream)
 static void write_callback(struct SoundIoOutStream *outstream, int
 	frame_count_min, int frame_count_max)
 {
-	double sr = outstream->sample_rate;
-	double seconds_per_frame = 1.0 / sr;
+//	double sr = outstream->sample_rate;
+//	double seconds_per_frame = 1.0 / sr;
 	struct SoundIoChannelArea *areas;
 	int    err;
 	int    left = frame_count_max;
@@ -138,15 +161,8 @@ char* data[SZ_FLOAT];
             for (int frame = 0; frame < frame_count; frame += 1) {
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
                     memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
+// FIXME
 vm->bbq->in[ch] = *(m_float*)data;
-printf("*(double*)areas[%i].ptr %f\n", ch, *(double*)data);
-//vm->bbq->in[ch] = *(double*)areas[ch].ptr;
-//printf("*(double*)areas[%i].ptr %f\n", ch, *(double*)areas[ch].ptr);
-//*(m_float*)(vm->bbq->in + ch) = *(m_float*)areas[ch].ptr;
-//printf("vm->bbq->in[%i] %f\n", ch, vm->bbq->in[ch]);
-                    areas[ch].ptr += areas[ch].step;
-//									data++;	
-//data += instream->bytes_per_sample;
                 }
             }
         }
@@ -270,11 +286,16 @@ static m_bool sio_ini(VM* vm, DriverInfo* di)
 
 		if (soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
         instream->format = SoundIoFormatFloat64NE;
+        read_sample = read_sample_float64ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatFloat32NE)) {
+        instream->format = SoundIoFormatFloat32NE;
+        read_sample = read_sample_float32ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
         instream->format = SoundIoFormatS32NE;
+        read_sample = read_sample_s32ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
         instream->format = SoundIoFormatS16NE;
-        // read_sample = write_sample_s16ne;
+        read_sample = read_sample_s16ne;
     } else {
         fprintf(stderr, "No suitable device format available.\n");
         return -1;
