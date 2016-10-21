@@ -1,3 +1,4 @@
+#include <portaudio.h>
 #include "err_msg.h"
 #include "vm.h"
 #include "bbq.h"
@@ -7,7 +8,6 @@
 #include "ugen.h"
 #include "driver.h"
 
-#include <portaudio.h>
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER  (64)
 

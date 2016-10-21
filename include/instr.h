@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "dl.h"
 #include "func.h"
 #include "lang.h"
@@ -6,8 +9,6 @@
 //#include "vm.h"
 #include "bbq.h"
 #include "object.h"
-#include <stdio.h>
-#include <string.h>
 
 
 //void vm_add_shred(VM* vm, VM_Shred shred);

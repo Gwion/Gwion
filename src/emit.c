@@ -665,7 +665,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     CHECK_BB(emit_Expression(emit, binary->lhs, 1))
     CHECK_BB(emit_Expression(emit, binary->rhs, 1))
 /*    add_instr(emit, Assign_Object); // should be assign_func*/
-    Instr instr = add_instr(emit, assign_func); // should be assign_func
+    add_instr(emit, assign_func); // should be assign_func
 /*    instr->m_val = */
     return 1;
 
@@ -738,21 +738,15 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
   Type  from = cast->exp->type;
   if(isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0)
   {
-      Value v  = namespace_lookup_value(emit->env->curr, insert_symbol(to->name), -1);
-      Func f  = namespace_lookup_func(emit->env->curr, insert_symbol(to->name), -1);
     if(cast->exp->exp_type == Primary_Expression_type)
     {
-      m_uint i;
       char name[1024];
       m_str nspc = strdup(from->name);
       strsep(&nspc, "@");
       strsep(&nspc, "@");
       sprintf(name, "%s@%i@%s",S_name(cast->exp->primary_exp->var), 0, nspc);
-      Value v2 = namespace_lookup_value(emit->env->curr, insert_symbol(name), -1);
-      Func f = namespace_lookup_func(emit->env->curr, insert_symbol(name), -1);
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)cast->func;
-// something to free ?
       return 1;
     }
 /*    return emit_Expression( emit, cast->exp, 0);*/
@@ -831,7 +825,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call1. '%s' offset: %i", func->name, emit->code->frame->curr_offset);
 #endif
-  m_uint size = type->size;
   Instr  code, offset, call;
 
 /*  Instr prev;*/
@@ -868,10 +861,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 /*  code->m_val = func->code;*/
   }
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
-  {
-    Instr prev = add_instr(emit, Mem_Push_Imm);
-/*    prev->m_val = emit->code->stack_depth;  */
-  }
+		add_instr(emit, Mem_Push_Imm);
+
   offset = add_instr(emit, Reg_Push_Imm); // local_stack
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Func_Call);
@@ -954,8 +945,8 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
   {
     case op_plusplus:
       if(unary->self->meta != ae_meta_var ||
-        unary->self->exp_type == Primary_Expression_type &&
-        unary->self->primary_exp->value->is_const)  // TODO: check const
+        (unary->self->exp_type == Primary_Expression_type &&
+        unary->self->primary_exp->value->is_const))  // TODO: check const
       {
         err_msg(EMIT_, unary->self->pos,
             "(emit): target for '++' not mutable..." );
@@ -966,8 +957,8 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       break;
     case op_minusminus:
       if( unary->self->meta != ae_meta_var||
-        unary->self->exp_type == Primary_Expression_type &&
-        unary->self->primary_exp->value->is_const )  // TODO: check const
+        (unary->self->exp_type == Primary_Expression_type &&
+        unary->self->primary_exp->value->is_const))  // TODO: check const
       {
         err_msg(EMIT_, unary->self->pos,
             "(emit): target for '--' not mutable..." );
@@ -1231,8 +1222,6 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
   debug_msg("emit", "expression");
 #endif
   Expression tmp = exp;
-  Instr instr;
-
   while(tmp)
   {
     switch(tmp->exp_type)
@@ -1296,7 +1285,7 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt)
   debug_msg("emit", "emit if");
 #endif
 /*  m_bool ret = 1;*/
-  Instr op = NULL, op2 = NULL, tmp = NULL, tmp2 = NULL;
+  Instr op = NULL, op2 = NULL;
   f_instr f;
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
@@ -1409,10 +1398,9 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   m_uint index = vector_size(emit->code->code);
 
   Instr op = new_Instr();
-  Instr tmp;
   Instr goto_;
-  f_instr f;
-  frame_push_scope(emit->code->frame);
+	f_instr f;
+	frame_push_scope(emit->code->frame);
   emit_add_cont(emit, NULL);
   emit_add_break(emit, NULL);
 
@@ -1421,14 +1409,14 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   switch( stmt->cond->type->xid )
   {
     case te_int:
-      tmp = add_instr(emit, Reg_Push_Imm);
+     	add_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
       break;
 
     case te_float:
     case te_dur:
     case te_time:
-      tmp = add_instr(emit, Reg_Push_Imm2);
+      add_instr(emit, Reg_Push_Imm2);
       f = Branch_Eq_Float;
       break;
 
@@ -1470,7 +1458,7 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
   debug_msg("emit", "do while");
 #endif
   m_bool ret = 1;
-  Instr op = NULL, tmp = NULL;
+  Instr op = NULL;
   m_uint index = vector_size(emit->code->code);
   f_instr f;
   // push stack
@@ -1542,7 +1530,7 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   debug_msg("emit", "until");
 #endif
 /*  t_CKBOOL ret = TRUE;*/
-  Instr op = NULL, tmp = NULL;
+  Instr op = NULL;
   f_instr f;
   frame_push_scope(emit->code->frame);
 
@@ -1556,14 +1544,12 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   switch( stmt->cond->type->xid )
   {
     case te_int:
-      // push 0
-      tmp = add_instr(emit, Reg_Push_Imm);
+      add_instr(emit, Reg_Push_Imm);
       f = Branch_Neq_Int;
       break;
   case te_float:
   case te_dur:
   case te_time:
-      tmp = add_instr(emit, Reg_Push_Imm2);
       f = Branch_Neq_Float;
       break;
 
@@ -1615,7 +1601,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "do until");
 #endif
-  Instr op = NULL, tmp = NULL;
+  Instr op = NULL;
   f_instr f;
   frame_push_scope(emit->code->frame);
 
@@ -1632,13 +1618,13 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
   switch( stmt->cond->type->xid )
   {
     case te_int:
-      tmp = add_instr(emit, Reg_Push_Imm);
+      add_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
       break;
     case te_float:
     case te_dur:
     case te_time:
-      tmp = add_instr(emit, Reg_Push_Imm);
+      add_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Float;
       break;
 
@@ -1677,7 +1663,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "for");
 #endif
-  m_bool ret = 1;
+	f_instr f= NULL;
   Instr op = NULL;
 
   // push the stack
@@ -1687,7 +1673,6 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
     return -1;
 
   m_uint index = vector_size(emit->code->code);
-  m_uint cont_index = 0;
   vector_append(emit->code->stack_cont, NULL);
   vector_append(emit->code->stack_break, NULL);
 
@@ -1700,15 +1685,13 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       {
       case te_int:
         add_instr(emit, Reg_Push_Imm);
-        op = new_Instr();
-        op->execute = Branch_Eq_Int;
+        f = Branch_Eq_Int;
         break;
       case te_float:
       case te_dur:
       case te_time:
         add_instr(emit, Reg_Push_Imm2);
-        op = new_Instr();
-        op->execute = Branch_Eq_Float;
+        f = Branch_Eq_Float;
         break;
 
       default:
@@ -1727,14 +1710,13 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
         return -1;
     }
     // append the op
-    emit_add_code(emit, op);
+    op = add_instr(emit, f);
   }
 
   frame_push_scope(emit->code->frame);
   if(emit_Stmt(emit, stmt->body, 1) < 0)
     return -1;
   emit_pop_scope(emit);
-  cont_index = vector_size(emit->code->code);
    // emit the action
   if( stmt->c3 )
   {
@@ -1801,7 +1783,6 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "loop");
 #endif
-  m_bool ret = 1;
   Instr init = NULL, op = NULL, deref = NULL, tmp = NULL, dec = NULL, _goto = NULL;
   // TODO: SAFE_DELETE( counter )
   m_int* counter = calloc(1, sizeof(m_int));
@@ -1957,7 +1938,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "case");
 #endif
-  m_uint value, i;
+  m_uint value;
   Value v;
   Type t;
   if(!emit->cases)
@@ -2018,7 +1999,6 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   Value v;
   for(i = 0; i < vector_size(stmt->values); i++)
   {
-    Instr instr;
     v = vector_at(stmt->values, i);
 
     if(!emit->env->class_def)
@@ -2632,7 +2612,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   debug_msg("emit", "class def");
 #endif
   Type type = class_def->type;
-  m_bool ret = 1, do_alloc = 0;
+  m_bool ret = 1;
   Class_Body body = class_def->body;
 
   if( type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL )

@@ -1,8 +1,8 @@
+#include <string.h>
 #include "err_msg.h"
 #include "env.h"
 #include "func.h"
 #include "import.h"
-#include <string.h>
 
 m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl);
 m_bool scan1_Func_Def(Env env, Func_Def f);

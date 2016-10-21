@@ -1,3 +1,4 @@
+#include <libgen.h>
 #include "defs.h"
 #include "vm.h"
 #include "type.h"
@@ -5,7 +6,6 @@
 #include "instr.h"
 #include "lang.h"
 #include "import.h"
-#include <libgen.h>
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_uint o_shred_me;

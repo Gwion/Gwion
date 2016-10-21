@@ -1,10 +1,10 @@
+#include <math.h>
+#include <string.h>
+#include <sndfile.h>
 #include "type.h"
 #include "dl.h"
 #include "import.h"
 #include "lang.h"
-#include <math.h>
-#include <string.h>
-#include <sndfile.h>
 #define LOGTWO log(2)
 #define LOGTEN log(10)
 static double mtof( double f )

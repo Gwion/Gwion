@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <dirent.h>
 #include "defs.h"
 #include "vm.h"
 #include "type.h"
@@ -7,8 +9,6 @@
 #include "import.h"
 #include <unistd.h>
 #include "object.h"
-#include <sys/types.h>
-#include <dirent.h>
 
 
 struct Type_ t_io        = { "IO",         sizeof(m_uint), &t_event, te_io };

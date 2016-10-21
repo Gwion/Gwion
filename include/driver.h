@@ -4,7 +4,8 @@ typedef struct containing_driver_info
 	m_uint chan;
 	unsigned int sr;
 	m_uint bufsize;
-	unsigned int bufnum;
+//	unsigned int bufnum;
+	m_uint bufnum;
 	m_str card;
 	m_bool raw;
 	m_uint backend;
@@ -44,3 +45,4 @@ Driver* sio_driver(VM* vm);
 Driver* pa_driver(VM* vm);
 #include <portaudio.h>
 #endif
+BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** d);

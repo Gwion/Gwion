@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <math.h>
+
 #include "defs.h"
 #include "vm.h"
 #include "type.h"
@@ -11,8 +14,6 @@
 #include "object.h"
 #include "err_msg.h"
 
-#include <stdlib.h>
-#include <math.h>
 
 typedef struct
 {

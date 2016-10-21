@@ -1,7 +1,7 @@
+#include <string.h> // use in Func_Def
 #include "err_msg.h"
 #include "absyn.h"
 #include "func.h"
-#include <string.h> // use in Func_Def
 
 static m_bool scan2_Expression(Env env, Expression exp);
 static m_bool scan2_Stmt_List(Env env, Stmt_List list);

@@ -1,11 +1,11 @@
+#include <string.h>
+#include <dirent.h>
 #include "defs.h"
 #include "import.h"
 #include "shreduler.h"
 #include "compile.h"
 #include "lang.h"
 #include "doc.h"
-#include <string.h>
-#include <dirent.h>
 #define prepare() \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\

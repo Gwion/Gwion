@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <getopt.h>
+#include <string.h>
 #include "err_msg.h"
 #include "type.h"
 #include "dl.h"
@@ -14,9 +15,6 @@
 
 #include "driver.h"
 #include "shreduler.h"
-
-//	#include <mcheck.h>
-#include <string.h>
 
 m_bool ssp_is_running;
 m_bool udp = 1;
