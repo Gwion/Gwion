@@ -4294,9 +4294,11 @@ CTOR(osc_ctor)
 
 DTOR(osc_dtor)
 {
+/*
 	GW_osc* ug = o->ugen->ug;
 	if(ug->is_init)
 		sp_osc_destroy(&ug->osc);
+*/
 }
 
 MFUN(osc_init)

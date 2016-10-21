@@ -1741,7 +1741,7 @@ static Type check_Expression(Env env, Expression exp) {
     switch(curr->exp_type)
 		{
 			case Primary_Expression_type:
-        CHECK_BO((curr->type = check_Primary_Expression(env, curr->primary_exp)))
+        curr->type = check_Primary_Expression(env, curr->primary_exp);
         break;
 			case Decl_Expression_type:
         curr->type = check_Decl_Expression(env, curr->decl_exp);
@@ -1750,8 +1750,8 @@ static Type check_Expression(Env env, Expression exp) {
 	      curr->type = check_Unary(env, curr->unary);
         break;
 			case Binary_Expression_type:
-        curr->type = check_Binary_Expression(env, curr->binary_exp);
-        break;
+				curr->type = check_Binary_Expression(env, curr->binary_exp);
+				break;
 			case Postfix_Expression_type:
         curr->type = check_Postfix_Expression(env, curr->postfix_exp);
         break;
@@ -1769,7 +1769,7 @@ static Type check_Expression(Env env, Expression exp) {
 				curr->type = check_exp_if(env, curr->exp_if);
        break;
 			case Dot_Member_type:
-				CHECK_OO((curr->type = check_Dot_Member(env, curr->dot_member)))
+				curr->type = check_Dot_Member(env, curr->dot_member);
         break;
 			case Array_Expression_type:
 				curr->type = check_Array(env, curr->array);
@@ -1779,8 +1779,7 @@ static Type check_Expression(Env env, Expression exp) {
         exp->type = NULL;
         break;
 		}
-    if(!curr->type)
-      return NULL;
+    CHECK_OO(curr->type)
     curr = curr->next;
 	}
   return exp->type;

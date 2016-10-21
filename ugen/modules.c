@@ -14,7 +14,7 @@ typedef struct
 {
   sp_data* sp;
   sp_osc* osc;
-  char is_init;
+  m_bool is_init;
   sp_ftbl*  tbl;
   m_float   phase;
 } SP_osc; // copied from generated osc.c
