@@ -5,8 +5,8 @@ CFLAGS+=-DD_FUNC=jack_driver
 # comment thoes you don't want/need/have
 ALSA_D      = 1
 JACK_D      = 1
-PORTAUDIO_D = 1
-SOUNDIO_D   = 1
+PORTAUDIO_D = 0
+SOUNDIO_D   = 0
 SPA_D       = 1
 
 #vrious debug flags

@@ -1,4 +1,4 @@
-PRG=Gwion
+PRG=gwion
 LDFLAGS = -lsoundpipe
 LDFLAGS += -lm -pthread -lsndfile
 LDFLAGS += -ldl -rdynamic -lrt
@@ -52,6 +52,7 @@ endif
 
 clean:
 	@rm -f core.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
+	@rm -f ${PRG}
 	@make -s -C ast clean
 
 soundpipe_import: import.lua
