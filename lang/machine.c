@@ -77,6 +77,62 @@ static void machine_adept(DL_Return * RETURN, VM_Shred shred)
   mkadt_context(shred->vm_ref->env, str);
 }
 
+static m_str randstring(int length) {
+    char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
+    size_t stringLen = 26*2+10+7;
+    char *randomString;
+
+    randomString = malloc(sizeof(char) * (length +1));
+
+    if (!randomString) {
+        return (char*)0;
+    }
+
+    unsigned int key = 0;
+
+    for (int n = 0;n < length;n++) {
+        key = rand() % stringLen;
+        randomString[n] = string[key];
+    }
+
+    randomString[length] = '\0';
+
+    return randomString;
+}
+
+SFUN(machine_check)
+{
+	char c[104];
+	m_str prefix, filename;
+	M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
+	M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT*2);
+	if(!prefix_obj)
+		prefix = ".";
+	else
+		prefix = STRING(prefix_obj);
+	if(!code_obj)
+	{
+		RETURN->v_uint = 0;
+		return;
+	}
+	filename = randstring(12);
+	sprintf(c, "%s/%s", prefix, filename);
+	FILE* file = fopen(c, "w");
+	fprintf(file, "%s\n", STRING(code_obj));
+	fclose(file);
+  Ast ast = parse(c);
+ 	if(!ast)
+	{
+		RETURN->v_uint = 0;
+		return;
+	}
+  if(type_engine_check_prog(shred->vm_ref->env, ast, c) < 0)
+	{
+		RETURN->v_uint = 0;
+		return;
+	}
+	RETURN->v_uint = (m_uint)new_String(c);
+}
 static void machine_compile(DL_Return * RETURN, VM_Shred shred)
 {
 	RETURN->v_uint = 0;
@@ -122,6 +178,11 @@ m_bool import_machine(Env env)
 
   fun = new_DL_Func("void",  "adept",     (m_uint)machine_adept);
   dl_func_add_arg(fun,       "string",  "context");
+  CHECK_BB(import_sfun(env,  fun))
+
+  fun = new_DL_Func("string",  "check",     (m_uint)machine_check);
+  dl_func_add_arg(fun,       "string",  "prefix");
+  dl_func_add_arg(fun,       "string",  "code");
   CHECK_BB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "compile",     (m_uint)machine_compile);

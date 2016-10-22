@@ -1,0 +1,1 @@
+Machine.check("/tmp", "SinOsc s => dac; second => now;") => Machine.add;
