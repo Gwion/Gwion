@@ -255,10 +255,10 @@ m_bool import_fileio(Env env)
   
   M_Object cout = new_M_Object();
   initialize_object(cout, &t_fileio);
-  IO_FILE(cout) = fdopen(0, "w");
+  IO_FILE(cout) = fdopen(STDOUT_FILENO, "w");
   M_Object cerr = new_M_Object();
   initialize_object(cerr, &t_fileio);
-  IO_FILE(cerr) = fdopen(1, "w");
+  IO_FILE(cerr) = fdopen(STDERR_FILENO, "w");
   add_global_value(env, "cout",            &t_fileio,   1, cout);
   add_global_value(env, "cerr",            &t_fileio,   1, cerr);
 
