@@ -160,9 +160,11 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 char* data[SZ_FLOAT];
             for (int frame = 0; frame < frame_count; frame += 1) {
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
+//                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
 // FIXME
-vm->bbq->in[ch] = *(m_float*)data;
+//vm->bbq->in[ch] = *(m_float*)data;
+read_sample(areas[ch].ptr, &vm->bbq->in[ch]);
+areas[channel].ptr += areas[channel].step;
                 }
             }
         }

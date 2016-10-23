@@ -14,6 +14,7 @@ extern m_bool ssp_is_running;
 
 void jack_wakeup()
 {
+//	jack_client_close(client);
 	jack_deactivate(client);
 }
 

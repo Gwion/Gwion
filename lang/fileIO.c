@@ -117,15 +117,29 @@ void file_to_string(VM * vm, VM_Shred shred, Instr instr )
   M_Object o = *(M_Object*)(shred->reg -SZ_INT);
   M_Object str = **(M_Object**)(shred->reg);
   m_uint size = 0;
-  m_str ret = "\n";
-  if(IO_ASCII(o))
+  m_str ret = strdup("\n");
+//  if(IO_ASCII(o))
   {
+//exit(2);
+char buff[256];
+memset(buff, 0, 256);
+int n;
+if((n = read(0, buff, 256)) > 0)
+	STRING(str) = strndup(buff, n - 1);
+else
+//	STRING(str) = NULL;
+exit(67);
+/*
+printf("here\n");
+      getline(&ret, &size, IO_FILE(o));
+printf("here\n");
     while(!strcmp(ret, "\n"))
       getline(&ret, &size, IO_FILE(o));
     STRING(str) = strsep(&ret, "\n");
     *(M_Object*)(shred->reg -SZ_INT)= str;
+*/
   }
-  else exit(89);
+//  else exit(89);
 }
 
 void file_nl(M_Object o,  DL_Return * RETURN, VM_Shred shred)
@@ -252,15 +266,21 @@ m_bool import_fileio(Env env)
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
 
   CHECK_BB(import_class_end(env))
-  
+
+  M_Object gw_stdin = new_M_Object();
+  initialize_object(gw_stdin, &t_fileio);
+//  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
+  IO_FILE(gw_stdin) = stdin;
+  add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
+
   M_Object cout = new_M_Object();
   initialize_object(cout, &t_fileio);
-  IO_FILE(cout) = fdopen(0, "w");
+  IO_FILE(cout) = fdopen(STDOUT_FILENO, "w");
   M_Object cerr = new_M_Object();
   initialize_object(cerr, &t_fileio);
-  IO_FILE(cerr) = fdopen(1, "w");
-  add_global_value(env, "cout",            &t_fileio,   1, cout);
-  add_global_value(env, "cerr",            &t_fileio,   1, cerr);
+  IO_FILE(cerr) = fdopen(STDERR_FILENO, "w");
+  add_global_value(env, "cout",  &t_fileio,   1, cout);
+  add_global_value(env, "cerr",  &t_fileio,   1, cerr);
 
   return 1;
 }
