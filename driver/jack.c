@@ -29,7 +29,7 @@ static int gwion_cb(jack_nframes_t nframes, void *arg)
 	int frame, chan;
 	VM* vm  = (VM*)arg;
 	jack_default_audio_sample_t  * in[vm->bbq->n_in];
-	jack_default_audio_sample_t  *out[vm->bbq->sp->nchan];
+	jack_default_audio_sample_t  * out[vm->bbq->sp->nchan];
 	for(chan = 0; chan < vm->bbq->n_in; chan++)
 		in[chan] = jack_port_get_buffer (iport[chan], nframes);
 	for(chan = 0; chan < vm->bbq->sp->nchan; chan++)

@@ -73,7 +73,7 @@ static void usage()
 	printf("\t--chan    -g\t  <number>   : (global) channel number\n");
 	printf("\t--in      -i\t  <number>   : number of  input channel\n");
 	printf("\t--out     -o\t  <number>   : number of output channel\n");
-	printf("\t--card    -c\t  <string>   : card identifier (e.g;: \"default\")\n");
+	printf("\t--card    -c\t  <string>   : card identifier or output file (depending on driver\n");
 	printf("\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
 	printf("\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n");
 	printf("\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 	di.bufnum = 3;
 	di.card = "default:CARD=CODEC";
 	di.raw = 0;
-  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:s:d:al:rc: ", long_option, &index)) != -1)
+  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:e:s:d:al:rc: ", long_option, &index)) != -1)
   {
     switch(i)
     {

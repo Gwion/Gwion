@@ -3,3 +3,4 @@
 gwion
 ast/parser.*
 ast/lexer.*
+config.mk

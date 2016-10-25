@@ -28,6 +28,9 @@ default: config.mk core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
+config.mk: config.def.mk
+	cp config.def.mk config.mk
+
 core: ${core_obj}
 lang: ${lang_obj}
 ugen: ${ugen_obj}
