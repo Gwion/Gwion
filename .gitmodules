@@ -1,0 +1,3 @@
+[submodule "Gwion-plug"]
+	path = Gwion-plug
+	url = https://github.com/fennecdjay/Gwion-plug
