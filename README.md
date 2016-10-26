@@ -7,10 +7,10 @@ gwion is a object-oriented programming language, aimed at making music
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
 
 realtime audio output can be done using  
-	* [libsoundio](http://libsound.io/)  
-	* [portaudio](http://portaudio.com/)  
-	* [jack](http://jackaudio.org/)  
-	* [alsa](http://alsa-project.org)
+	*  [libsoundio](http://libsound.io/)  
+	*  [portaudio](http://portaudio.com/)  
+	*  [jack](http://jackaudio.org/)  
+	*  [alsa](http://alsa-project.org)
 
 try 
 ```
