@@ -92,6 +92,7 @@ enum
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)
+#define IMPORT m_bool import(Env env)
 // should be in lang.h, maybe
 // string
 #define STRING(o) *((m_str*)((M_Object)o)->data + o_string_data)

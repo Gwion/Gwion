@@ -603,6 +603,7 @@ m_bool import_float(Env env)
 	CHECK_BB(add_binary_op(env, op_plus,         &t_dur,  &t_dur, &t_dur, plus, 0))
 	CHECK_BB(add_binary_op(env, op_minus,         &t_dur,  &t_dur, &t_dur, minus, 0))
 	CHECK_BB(add_binary_op(env, op_times,         &t_dur,  &t_dur, &t_dur, timesf, 0))
+	CHECK_BB(add_binary_op(env, op_times,         &t_dur,  &t_float, &t_dur, timesf, 0))
 	CHECK_BB(add_binary_op(env, op_divide,        &t_dur,  &t_dur, &t_float, divide, 0))
 	CHECK_BB(add_binary_op(env, op_divide,        &t_dur,  &t_float, &t_dur, divide, 0))
 /*	CHECK_BB(add_binary_op(env, op_chuck,        &t_time, &t_dur, &t_dur, assign, 0))*/
