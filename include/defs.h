@@ -117,4 +117,7 @@ enum
 #define NEXT_FLOAT   (s)  *(m_float*)  (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_FLOAT  )
 #define NEXT_OBJECT  (s)  *(M_Object*) (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_COMPLEX (s)  *(m_complex*)(s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_COMPLEX)
+
+#define GW_PLUG_DIR "/usr/lib/Gwion/plug"
+
 #endif

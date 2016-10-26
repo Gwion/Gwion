@@ -142,11 +142,11 @@ Env type_engine_init(VM* vm)
 
   // plugins
   void* handler;
-  m_str dirname = "/usr/lib/Gwion/plug";
+  m_str dirname = GW_PLUG_DIR;
   struct dirent **namelist;
   int n;
   char c[256];
-  n = scandir("/usr/lib/Gwion/plug", &namelist, so_filter, alphasort);
+  n = scandir(GW_PLUG_DIR, &namelist, so_filter, alphasort);
   if (n > 0)
   {
     while (n--)
