@@ -5,7 +5,18 @@ gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
-audio output is done using [libsoundio](http://libsound.io/)  
+
+realtime audio output can be done using 
+	*[libsoundio](http://libsound.io/)  
+	*[portaudio](http://portaudio.com/)  
+	*[jack](http://jackaudio.org/)  
+	*[alsa](http://alsa-project.org)
+
+try 
+```
+./gwion --help
+```
+to learn more
 
 simple example code:
 > // print hello world
