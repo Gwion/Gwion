@@ -6,12 +6,16 @@ gwion is a object-oriented programming language, aimed at making music
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
 
-realtime audio output can be done using  
+realtime audio input/output can be done using  
 *  [libsoundio](http://libsound.io/)  
 *  [portaudio](http://portaudio.com/)  
 *  [jack](http://jackaudio.org/)  
 *  [alsa](http://alsa-project.org)
 
+there is also:
+*  *silent* driver, which makes no sound
+*  *dummy* driver, runs as fast as possible, with no sound
+*  *file* driver, as fast as possible, writes to a file, either wav or spa, depending on *-r* switch
 try 
 ```
 ./gwion --help
