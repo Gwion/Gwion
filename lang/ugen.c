@@ -347,8 +347,8 @@ static void ugen_get_last(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   if(!o)
     RETURN->v_float = 0;
-  if(!o->ugen)
-    exit(2);
+/*  if(!o->ugen)
+    exit(2); */
   else RETURN->v_float = o->ugen->last;
 }
 

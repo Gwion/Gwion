@@ -82,7 +82,6 @@ static void usage()
 int main(int argc, char** argv)
 {
 	Driver* d = NULL;
-	VM* vm = NULL;
   int i, index;
   Vector add = new_Vector();
   Vector rem = new_Vector();
@@ -229,9 +228,12 @@ int main(int argc, char** argv)
 clean:
   free_Vector(add);
   free_Vector(rem);
+/*
 	if(d)
 		free_Driver(d, vm);
+*/
   free_Map(scan_map);
+
 //	if(vm)
 //	  free_VM(vm);
   return 0;

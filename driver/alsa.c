@@ -45,7 +45,7 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 
   if(!snd_pcm_hw_params_test_channels(handle, params, di->chan))
     snd_pcm_hw_params_set_channels(handle, params, di->chan);
-  else exit(2);
+  else return -1;;
 
 	if(snd_pcm_hw_params_set_period_size_near(handle, params, &di->bufsize, &dir))
       return -1;
