@@ -138,11 +138,14 @@ void jack_run(VM* vm, DriverInfo* di)
        fprintf (stderr, "cannot connect output ports\n");
     }
 	}
+
+
+	while(vm->is_running) usleep(10);
+
 	free(ports);
-
-
-	while(vm->is_running)
-		sleep(1);
+    jack_client_close(client);
+    free(ports);
+    free(iport);
 }
 
 void jack_del()
