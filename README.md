@@ -39,8 +39,7 @@ there are a few *new* features:
     *  enums
 
 ####requires####
-* soundpipe (compiled to use double, you can use [my fork](https://github.com/fennecdjay/Soundpipe))
-* libsoundio
+* [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
 
 ####configure####
 simply edit *config.mk* to suit your needs, 
