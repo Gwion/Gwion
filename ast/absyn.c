@@ -266,7 +266,7 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->cast_to = NULL;
 	return a;
 }
-Expression new_Primary_Expression_from_float(double num, int pos)
+Expression new_Primary_Expression_from_float(m_float num, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Primary_Expression_type;

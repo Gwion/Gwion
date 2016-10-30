@@ -63,6 +63,7 @@ VM* new_VM(m_bool loop)
 	shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
 	vm->env  = NULL;
 	vm->emit = NULL;
+	vm->is_running = 0;
   return vm;
 }
 
@@ -147,8 +148,8 @@ continue;
 #endif
     }
   }
-//  if(!vm->is_running)
-//    return;
+  if(!vm->is_running)
+    return;
 //  if(vector_size(vm->ugen) > 3)
   for(i = 0; i < vector_size(vm->ugen); i++)
   {

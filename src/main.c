@@ -207,7 +207,7 @@ int main(int argc, char** argv)
   scan_map = new_Map();
 	vm = new_VM(loop);
 	vm->bbq = new_BBQ(vm, &di, &d);
-	vm->is_running = 1;
+//	vm->is_running = 1;
 
 	if(!(vm->env = type_engine_init(vm)))
 		goto clean;
@@ -218,6 +218,7 @@ int main(int argc, char** argv)
   for(i = 0; i < vector_size(add); i++)
     compile(vm, (m_str)vector_at(add, i));
 
+	vm->is_running = 1;
 	if(udp)
 		pthread_create(&udp_thread, NULL, &server_thread, vm);
 	d->run(vm, &di);

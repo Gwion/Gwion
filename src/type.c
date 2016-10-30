@@ -139,7 +139,6 @@ Env type_engine_init(VM* vm)
 /*  add_ref(env->global_nspc->obj);*/
 /*  add_ref(env->user_nspc->obj);*/
 /*  env->curr = env->user_nspc;*/
-
   // plugins
   void* handler;
   m_str dirname = GW_PLUG_DIR;

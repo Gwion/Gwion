@@ -10,6 +10,12 @@
 #include "driver.h"
 #include "alsa.h"
 
+#ifdef USE_DOUBLE
+#define ALSA_FORMAT SND_PCM_FORMAT_FLOAT64
+#else
+#define ALSA_FORMAT SND_PCM_FORMAT_FLOAT
+#endif
+
 static snd_pcm_t *out,*in;
 static SPFLOAT  **in_buf,  **out_buf;
 static void     **_in_buf, **_out_buf;
@@ -37,8 +43,8 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
   if(!snd_pcm_hw_params_test_access(handle, params, SP_ALSA_ACCESS))
     snd_pcm_hw_params_set_access(handle, params, SP_ALSA_ACCESS);
 
-  if(!snd_pcm_hw_params_test_format(handle, params, SND_PCM_FORMAT_FLOAT64))
-    snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_FLOAT64);
+  if(!snd_pcm_hw_params_test_format(handle, params, ALSA_FORMAT))
+    snd_pcm_hw_params_set_format(handle, params, ALSA_FORMAT);
 
   if(!snd_pcm_hw_params_test_rate(handle, params, di->sr, dir))
     snd_pcm_hw_params_set_rate_near(handle, params, &di->sr, &dir);

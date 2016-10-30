@@ -107,7 +107,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)
 {
 #ifdef DEBUG_SHREDULER
-  debug_msg("clock", "shredule shred: %i at %f", shred->xid, wake_time);
+  debug_msg("clock", "shredule shred[%i] at %f", shred->xid, wake_time);
 #endif
   m_float diff;
   VM_Shred curr, prev;

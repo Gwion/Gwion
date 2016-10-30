@@ -177,7 +177,7 @@ typedef struct
     {
         S_Symbol var;
         long num;
-        double fnum;
+        m_float fnum;
         m_str chr;
         m_str str;
         Array_Sub array;
@@ -207,7 +207,7 @@ typedef struct
 
 
 Expression new_Primary_Expression_from_int(long i, int pos);
-Expression new_Primary_Expression_from_float(double num, int pos);
+Expression new_Primary_Expression_from_float(m_float num, int pos);
 Expression new_Primary_Expression_from_ID(m_str s, int pos);
 Expression new_Primary_Expression_from_string(m_str s, int pos);
 Expression new_exp_from_array_lit(Array_Sub exp_list, int pos );

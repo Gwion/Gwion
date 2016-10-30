@@ -215,7 +215,7 @@ INSTR(Time_Advance)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
-  shred->reg -= SZ_FLOAT + SZ_INT;
+  shred->reg -= SZ_FLOAT*2;
   // TAKE CARE
 /*  shred->wake_time += *(m_float*)shred->reg + .5;*/
   shred->wake_time += *(m_float*)shred->reg;

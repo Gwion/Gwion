@@ -7,5 +7,4 @@
 #include "defs.h"
 void* alsa_process(void * arg);
 extern m_float* ssp_in;
-extern m_bool ssp_is_running;
 //#endif

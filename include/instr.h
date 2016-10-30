@@ -17,7 +17,7 @@ struct Instr_
 {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
   long int m_val, m_val2;
-  double f_val;
+  m_float f_val;
 	complex c_val;
   void* ptr;
 };

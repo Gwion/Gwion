@@ -52,7 +52,7 @@ static m_str get_arg_doc(void* data)
 %union {
 	char* sval;
 	int ival;
-	double fval;
+	m_float fval;
   Complex* c_val;
   Polar* polar;
 	Vec vec;

@@ -9,7 +9,7 @@
 #include "bbq.h"
 
 extern struct Type_ t_osc;
-static struct Type_ t_sinosc      = { "SinOsc",      1, &t_osc };
+static struct Type_ t_sinosc      = { "SinOsc",      1, &t_ugen };
 typedef struct
 {
   sp_data* sp;
@@ -19,12 +19,28 @@ typedef struct
   m_float   phase;
 } SP_osc; // copied from generated osc.c
 
+TICK(sinosc_tick)
+{
+  SP_osc* ug = (SP_osc*)u->ug;
+  if(!ug->is_init)
+	{
+  	u->out = 0;
+  	return 1;
+	}
+	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
+  return 1;
+}
+
 static void sinosc_ctor(M_Object o, VM_Shred shred)
 {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+//  SP_osc* ug = (SP_osc*)o->ugen->ug;
+	SP_osc* ug = malloc(sizeof(SP_osc));
+	sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, 0.);
+  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+	assign_ugen(o->ugen, 0, 1, 0, ug);
+	o->ugen->tick = sinosc_tick;
   ug->is_init = 1;
 }
 
