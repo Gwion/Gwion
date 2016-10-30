@@ -19,6 +19,7 @@ void jack_wakeup()
 
 static void gwion_shutdown (void *arg)
 {
+    VM *vm = (VM *)arg;
 	vm->is_running = 0;
 }
 
@@ -69,7 +70,7 @@ m_bool jack_ini(VM* vm, DriverInfo* di)
 		fprintf (stderr, "unique name `%s' assigned\n", client_name);
 	}
 	jack_set_process_callback (client, gwion_cb, vm);
-  jack_on_shutdown (client, gwion_shutdown, 0);
+  jack_on_shutdown (client, gwion_shutdown, vm);
 
 	char chan_name[50];
 	for(chan = 0; chan < di->out; chan++)
@@ -137,11 +138,11 @@ void jack_run(VM* vm, DriverInfo* di)
        fprintf (stderr, "cannot connect output ports\n");
     }
 	}
+
 	free(ports);
 
+	while(vm->is_running) usleep(10);
 
-	while(vm->is_running)
-		sleep(1);
 }
 
 void jack_del()
