@@ -139,13 +139,10 @@ void jack_run(VM* vm, DriverInfo* di)
     }
 	}
 
+	free(ports);
 
 	while(vm->is_running) usleep(10);
 
-	free(ports);
-    jack_client_close(client);
-    free(ports);
-    free(iport);
 }
 
 void jack_del()
