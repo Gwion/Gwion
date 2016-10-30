@@ -9,14 +9,7 @@
 #define CHECK_BO(f) if(f < 0) return NULL;
 #define CHECK_OO(f) if(!f)    return NULL;
 
-/* common typedefs */
-typedef long  int           m_int;
-typedef long  unsigned int  m_uint;
-typedef short int           m_bool;
-typedef double              m_float;
-typedef char *              m_str;
-typedef struct { m_float x, y, z; }  VEC3_T;
-typedef struct { m_float x, y, z, w; } VEC4_T;
+#include "generated.h"
 /* pointer types */
 typedef struct Ast_       * Ast;
 typedef struct Func_Def_  * Func_Def;
@@ -105,13 +98,13 @@ enum
 #define IO_FILE(o)	*((FILE**)((M_Object)o)->data + o_fileio_file)
 #define IO_ASCII(o)	*((m_uint*)((M_Object)o)->data + o_fileio_ascii)
 
-
-#define SZ_INT 8
-#define SZ_FLOAT 8
-#define SZ_COMPLEX 16
-#define SZ_VEC3 24
-#define SZ_VEC4 32
-
+/*
+#define SZ_INT sizeof(m_uint)
+#define SZ_FLOAT sizeof(SPFLOAT)
+#define SZ_COMPLEX (sizeof(SPFLOAT) * 2)
+#define SZ_VEC3 (sizeof(SPFLOAT) * 3)
+#define SZ_VEC4 (sizeof(SPFLOAT) * 4)
+*/
 #define NEXT_INT     (s)  *(m_int*)    (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_UINT    (s)  *(m_uint*)   (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_FLOAT   (s)  *(m_float*)  (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_FLOAT  )

@@ -7,12 +7,6 @@ struct Vector_
 	long unsigned int len;
 };
 
-struct fVector_
-{
-  double *ptr;
-	long unsigned int len;
-};
-
 struct Map_
 {
 	void **key;
@@ -42,15 +36,12 @@ Vector new_Vector_fixed(const long unsigned int len)
 }
 void vector_append(Vector v, void* data)
 {
-//printf("kjhkjh %p\n", v->ptr);
   v->len++;
   if(!v->ptr) // shouild not be
     v->ptr = malloc(sizeof(long unsigned int));
   else if(v->len != 1)
     v->ptr = realloc(v->ptr, v->len * sizeof(void*));
-/*printf("kjhkjh\n");*/
   v->ptr[v->len - 1] = (long unsigned int)data;
-/*printf("kjhkjh\n");*/
 }
 
 Vector vector_copy(Vector v)

@@ -46,7 +46,7 @@ char* Recv(int i)
 void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
-	while(ssp_is_running)
+	while(vm->is_running)
 	{
 		const char* buf;
 		int index;
@@ -55,7 +55,7 @@ void* server_thread(void* data)
     if( strncmp(buf, "bonjour", 7) == 0);
     else if( strncmp(buf, "quit", 4) == 0)
     {
-			ssp_is_running = 0;
+			vm->is_running = 0;
 			vm->wakeup();
 		}
 		/* remove */
@@ -79,7 +79,6 @@ void* server_thread(void* data)
 			strsep((char**)&buf, " ");
 			index = atoi(buf);
       shreduler_set_loop(vm->shreduler, index);
-//			ssp_log(0, LOG, "loop mode is %s", loop ? "\033[32mON\033[0m" : "\033[35mOFF\033[0m");
     }
 		/* else it might be a file */
 		else

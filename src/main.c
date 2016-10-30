@@ -16,11 +16,10 @@
 #include "driver.h"
 #include "shreduler.h"
 
-m_bool ssp_is_running;
 m_bool udp = 1;
 static VM* vm = NULL;
 void sig(int unused) {
-	ssp_is_running = 0;
+	vm->is_running = 0;
 	vm->wakeup();
 }
 static int do_quit = 0;
@@ -208,7 +207,7 @@ int main(int argc, char** argv)
   scan_map = new_Map();
 	vm = new_VM(loop);
 	vm->bbq = new_BBQ(vm, &di, &d);
-	ssp_is_running = 1;
+	vm->is_running = 1;
 
 	if(!(vm->env = type_engine_init(vm)))
 		goto clean;

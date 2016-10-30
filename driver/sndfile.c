@@ -9,7 +9,6 @@ static SNDFILE** sf;
 static m_uint nchan;
 static m_uint bufsize;
 VM* vm;
-extern m_bool ssp_is_running;
 
 static m_bool sndfile_ini(VM* v, DriverInfo* di)
 {
@@ -40,7 +39,7 @@ static void sndfile_run()
 {
 	m_uint i, chan;
 	m_float buf[nchan][bufsize];
-	while(ssp_is_running)
+	while(vm->is_running)
 	{
 		for(i = 0; i < bufsize; i++)
 		{
@@ -50,7 +49,11 @@ static void sndfile_run()
       vm->bbq->sp->pos++;
 		}
 		for(chan = 0; chan < nchan; chan++)
+#ifdef USE_DOUBLE
     	sf_write_double(sf[chan], buf[chan], bufsize);
+#else
+    	sf_write_float(sf[chan], buf[chan], bufsize);
+#endif
 	}
 }
 

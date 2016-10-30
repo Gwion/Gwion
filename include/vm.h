@@ -31,6 +31,7 @@ typedef struct
   Env env;
 	void (*wakeup)();
 //	Driver driver;
+	m_bool is_running;
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;

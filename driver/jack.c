@@ -10,8 +10,6 @@ jack_port_t** iport;
 jack_port_t** oport;
 jack_client_t* client;
 
-extern m_bool ssp_is_running;
-
 void jack_wakeup()
 {
 //	jack_client_close(client);
@@ -21,7 +19,7 @@ void jack_wakeup()
 
 static void gwion_shutdown (void *arg)
 {
-	ssp_is_running = 0;
+	vm->is_running = 0;
 }
 
 static int gwion_cb(jack_nframes_t nframes, void *arg)
@@ -142,7 +140,7 @@ void jack_run(VM* vm, DriverInfo* di)
 	free(ports);
 
 
-	while(ssp_is_running)
+	while(vm->is_running)
 		sleep(1);
 }
 

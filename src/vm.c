@@ -8,7 +8,6 @@
 #include "instr.h"
 #include "ugen.h"
 
-extern m_bool ssp_is_running;
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename)
 {
   VM_Code code = calloc(1, sizeof(struct VM_Code_));
@@ -148,8 +147,8 @@ continue;
 #endif
     }
   }
-  if(!ssp_is_running)
-    return;
+//  if(!vm->is_running)
+//    return;
 //  if(vector_size(vm->ugen) > 3)
   for(i = 0; i < vector_size(vm->ugen); i++)
   {

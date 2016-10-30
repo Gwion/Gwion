@@ -111,7 +111,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
   snd_pcm_hwsync(in);
   snd_pcm_start(out);
   snd_pcm_start(in);
-    while(ssp_is_running)
+    while(vm->is_running)
     {
       snd_pcm_readn(in, _in_buf, di->bufsize);
       for(i = 0; i < di->bufsize; i++)
@@ -135,7 +135,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
     snd_pcm_hwsync(in);
     snd_pcm_start(out);
     snd_pcm_start(in);
-    while(ssp_is_running)
+    while(vm->is_running)
     {
       int j = 0;
 			int k = 0;

@@ -11,7 +11,6 @@
 #define SAMPLE_RATE (48000)
 #define FRAMES_PER_BUFFER  (64)
 
-extern m_bool ssp_is_running;
 static m_uint bufsize;
 static PaStream *stream = NULL;
 static     PaStreamParameters outputParameters;
@@ -110,7 +109,7 @@ static void del(VM* vm)
 static void run(VM* vm, DriverInfo* di)
 {
 	Pa_StartStream(stream);
-	while(ssp_is_running)
+	while(vm->is_running)
 		Pa_Sleep(1);
 }
 

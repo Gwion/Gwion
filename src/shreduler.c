@@ -8,7 +8,6 @@
 #include "oo.h"
 #include "array.h"
 
-extern int ssp_is_running;
 struct  Shreduler_{
 	m_int til_next;
 	VM* vm;
@@ -46,8 +45,7 @@ VM_Shred shreduler_get(Shreduler s)
 		s->til_next = -1;
     if(!vector_size(s->vm->shred) && ! s->loop)
 		{
-      ssp_is_running = 0;
-//			if(s->vm->wakeup)
+      s->vm->is_running = 0;
 			s->vm->wakeup();
 		}
     return NULL;

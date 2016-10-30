@@ -9,7 +9,6 @@
 #include "driver.h"
 #include "bbq.h"
 
-extern m_bool ssp_is_running;
 static struct SoundIo          *soundio    = NULL;
 static struct SoundIoOutStream *outstream  = NULL;
 static struct SoundIoInStream  *instream   = NULL;
@@ -101,7 +100,7 @@ static void write_callback(struct SoundIoOutStream *outstream, int
   	int count = left;
 		if ((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
 			fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 			return;
   	}
 
@@ -124,7 +123,7 @@ static void write_callback(struct SoundIoOutStream *outstream, int
 			if (err == SoundIoErrorUnderflow)
 				return;
 			fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 		}
 
     left -= count;
@@ -144,7 +143,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 
         if ((err = soundio_instream_begin_read(instream, &areas, &frame_count)))
 				{
-					ssp_is_running = 0;
+					vm->is_running = 0;
           fprintf(stderr, "begin read error: %s", soundio_strerror(err));
 					return;
 				}
@@ -172,7 +171,7 @@ areas[channel].ptr += areas[channel].step;
 		if ((err = soundio_instream_end_read(instream)))
 		{
  			fprintf(stderr, "end read error: %s", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 			return;
 		}
 		frames_left -= frame_count;
@@ -339,7 +338,7 @@ void sio_run()
 		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
 		return;
   }
- 	while(ssp_is_running)
+ 	while(vm->is_running)
 		soundio_wait_events(soundio);
 }
 

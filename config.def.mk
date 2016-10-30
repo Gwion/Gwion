@@ -30,6 +30,9 @@ SPA_D       = 1
 #CFLAGS+=-DDEBUG_SHREDULER
 
 
+#uncomment this to set the float type to double
+#USE_DOUBLE=1
+
 # if any debug flag is set, we need -DDEBUG
 ifeq ($(findstring DEBUG,$(CFLAGS)), DEBUG)
 CFLAGS+=-DDEBUG
