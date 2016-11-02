@@ -82,7 +82,7 @@ Env type_engine_init(VM* vm)
 //  CHECK_BO(import_io(env))
   start_type_xid();
   // event child
-//  CHECK_BO(import_fileio(env))
+  CHECK_BO(import_fileio(env))
 
   // libs
   CHECK_BO(import_lib(env))
@@ -1737,6 +1737,7 @@ static Type check_Expression(Env env, Expression exp) {
   Expression curr = exp;
 	while(curr)
 	{
+		curr->type = NULL;
     switch(curr->exp_type)
 		{
 			case Primary_Expression_type:
@@ -1749,7 +1750,7 @@ static Type check_Expression(Env env, Expression exp) {
 	      curr->type = check_Unary(env, curr->unary);
         break;
 			case Binary_Expression_type:
-				curr->type = check_Binary_Expression(env, curr->binary_exp);
+			 	curr->type = check_Binary_Expression(env, curr->binary_exp);
 				break;
 			case Postfix_Expression_type:
         curr->type = check_Postfix_Expression(env, curr->postfix_exp);
@@ -1766,7 +1767,7 @@ static Type check_Expression(Env env, Expression exp) {
        break;
       case If_Expression_type:
 				curr->type = check_exp_if(env, curr->exp_if);
-       break;
+       	break;
 			case Dot_Member_type:
 				curr->type = check_Dot_Member(env, curr->dot_member);
         break;

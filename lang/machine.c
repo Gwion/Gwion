@@ -6,6 +6,7 @@
 #include "compile.h"
 #include "lang.h"
 #include "doc.h"
+
 #define prepare() \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\
@@ -17,7 +18,8 @@
 	  if(!ast) return;\
 	  if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0) return;\
 	}
-static void machine_add(DL_Return * RETURN, VM_Shred shred)
+
+static SFUN(machine_add)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
@@ -26,7 +28,7 @@ static void machine_add(DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint= compile(shred->vm_ref, str);
 }
 
-static void machine_doc(DL_Return * RETURN, VM_Shred shred)
+static SFUN(machine_doc)
 {
   prepare()
   mkdoc_context(shred->vm_ref->env, str);
@@ -37,7 +39,7 @@ static int js_filter(const struct dirent* dir)
   return strstr(dir->d_name, ".js") > 0 ? 1 : 0;
 }
 
-static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
+static SFUN(machine_doc_update)
 {
   FILE*f, * all  = fopen("/usr/lib/Gwion/doc/search/all.js", "w");
   if(!all)
@@ -71,7 +73,7 @@ static void machine_doc_update(DL_Return * RETURN, VM_Shred shred)
     fclose(all);
 }
 
-static void machine_adept(DL_Return * RETURN, VM_Shred shred)
+static SFUN(machine_adept)
 {
   prepare()
   mkadt_context(shred->vm_ref->env, str);
@@ -133,14 +135,15 @@ SFUN(machine_check)
 	}
 	RETURN->v_uint = (m_uint)new_String(c);
 }
-static void machine_compile(DL_Return * RETURN, VM_Shred shred)
+
+static SFUN(machine_compile)
 {
 	RETURN->v_uint = 0;
   prepare()
 	RETURN->v_uint = 1;
 }
 
-static void machine_shreds(DL_Return * RETURN, VM_Shred shred)
+static SFUN(machine_shreds)
 {
   int i;
   VM* vm = shred->vm_ref;

@@ -18,32 +18,32 @@ M_Object new_Shred(VM* vm, VM_Shred shred)
   return obj;
 }
 
-static void vm_shred_exit(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(vm_shred_exit)
 {
   VM_Shred  s = ME(o);
   s->is_running = 0;
   s->is_done = 1;
 }
 
-static void vm_shred_id(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(vm_shred_id)
 {
   VM_Shred  s = ME(o);
   RETURN->v_uint = s ? s->xid : -1;
 }
 
-static void vm_shred_is_running(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(vm_shred_is_running)
 {
   VM_Shred  s = ME(o);
   RETURN->v_uint = s ? s->is_running : 0;
 }
 
-static void vm_shred_is_done(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(vm_shred_is_done)
 {
   VM_Shred  s = ME(o);
   RETURN->v_uint = s ? s->is_done: 0;
 }
 
-static void shred_yield(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(shred_yield)
 {
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
@@ -53,7 +53,7 @@ static void shred_yield(M_Object o, DL_Return * RETURN, VM_Shred shred)
 	RETURN->v_uint = 1;
 }
 
-static void vm_shred_from_id(DL_Return * RETURN, VM_Shred shred)
+static SFUN(vm_shred_from_id)
 {
 /*  VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)shred->mem);*/
   VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
@@ -63,13 +63,13 @@ static void vm_shred_from_id(DL_Return * RETURN, VM_Shred shred)
     RETURN->v_uint = (m_uint)s->me;
 }
 
-static void shred_args(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(shred_args)
 {
   VM_Shred  s = ME(o);
   RETURN->v_uint = s->args ? vector_size(s->args) : 0;
 }
 
-static void shred_arg(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(shred_arg)
 {
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();
@@ -78,7 +78,7 @@ static void shred_arg(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = (m_uint)obj;
 }
 
-static void shred_path(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(shred_path)
 {
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();
@@ -87,7 +87,7 @@ static void shred_path(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = (m_uint)obj;
 }
 
-static void shred_dir(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(shred_dir)
 {
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();

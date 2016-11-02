@@ -22,7 +22,7 @@ void event_dtor(M_Object o, VM_Shred shred)
   free_Vector(EV_SHREDS(o));
 }
 
-void Event_Wait(VM* vm, VM_Shred shred, Instr instr)
+INSTR(Event_Wait)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
@@ -38,7 +38,7 @@ void Event_Wait(VM* vm, VM_Shred shred, Instr instr)
 	shred->reg += SZ_INT;
 }
 
-static void event_signal(M_Object o, DL_Return * RETURN, VM_Shred shred, VM* vm)
+static MFUN(event_signal)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr" , "event signal");

@@ -111,7 +111,7 @@ static INSTR(r_divide)
   shred->reg += SZ_COMPLEX;
 }
 
-void complex_real(VM * vm, VM_Shred shred, Instr instr)
+INSTR(complex_real)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'real' %i",  instr->m_val);
@@ -131,7 +131,7 @@ void complex_real(VM * vm, VM_Shred shred, Instr instr)
   }
 }
 
-void complex_imag(VM * vm, VM_Shred shred, Instr instr)
+INSTR(complex_imag)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'imag' #(%f, %f)", 

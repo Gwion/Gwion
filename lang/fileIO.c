@@ -21,21 +21,21 @@ m_int o_fileio_line;
 
 #define IO_LINE(o) *(m_str*)(o->data + o_fileio_line)
 
-void fileio_ctor(M_Object o, VM_Shred shred)
+CTOR(fileio_ctor)
 {
   IO_FILE(o)  = NULL;
   IO_ASCII(o) = 1;
 }
 
-void fileio_dtor(M_Object o, VM_Shred shred)
+DTOR(fileio_dtor)
 {
-/*  if(IO_DIR(o))*/
-/*    closedir(IO_DIR(o));*/
-/*  else */
-  if(IO_FILE(o))
+  if(IO_DIR(o))
+    closedir(IO_DIR(o));
+  else if(IO_FILE(o))
     fclose(IO_FILE(o));
 }
-void int_to_file(VM * vm, VM_Shred shred, Instr instr )
+
+INSTR(int_to_file)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int to file");
@@ -47,7 +47,7 @@ void int_to_file(VM * vm, VM_Shred shred, Instr instr )
   fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
 
-void float_to_file(VM * vm, VM_Shred shred, Instr instr)
+INSTR(float_to_file)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "float to file");
@@ -58,7 +58,8 @@ void float_to_file(VM * vm, VM_Shred shred, Instr instr)
   sprintf(c, "%f", *(m_float*)(shred->reg - SZ_INT));
   fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
-void string_to_file(VM * vm, VM_Shred shred, Instr instr )
+
+INSTR(string_to_file)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "string to file");
@@ -74,7 +75,7 @@ void string_to_file(VM * vm, VM_Shred shred, Instr instr )
   shred->reg += SZ_INT;
 }
 
-void file_to_int(VM * vm, VM_Shred shred, Instr instr )
+INSTR(file_to_int)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => int");
@@ -90,7 +91,7 @@ void file_to_int(VM * vm, VM_Shred shred, Instr instr )
   else exit(89);
 }
 
-void file_to_float(VM * vm, VM_Shred shred, Instr instr )
+INSTR(file_to_float)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => float");
@@ -107,7 +108,22 @@ void file_to_float(VM * vm, VM_Shred shred, Instr instr )
   else exit(89);
 }
 
-void file_to_string(VM * vm, VM_Shred shred, Instr instr )
+m_bool inputAvailable(FILE* f)
+{
+	int fd = fileno(f);
+  struct timeval tv;
+  fd_set fds;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  FD_ZERO(&fds);
+//  FD_SET(STDIN_FILENO, &fds);
+//  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
+  FD_SET(fd, &fds);
+  select(fd+1, &fds, NULL, NULL, &tv);
+  return (FD_ISSET(0, &fds));
+}
+
+INSTR(file_to_string)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => string");
@@ -120,34 +136,19 @@ void file_to_string(VM * vm, VM_Shred shred, Instr instr )
   m_str ret = strdup("\n");
 //  if(IO_ASCII(o))
   {
-//exit(2);
-char buff[256];
-memset(buff, 0, 256);
-int n;
-if((n = read(0, buff, 256)) > 0)
-	STRING(str) = strndup(buff, n - 1);
-else
-//	STRING(str) = NULL;
-exit(67);
-/*
-printf("here\n");
-      getline(&ret, &size, IO_FILE(o));
-printf("here\n");
-    while(!strcmp(ret, "\n"))
-      getline(&ret, &size, IO_FILE(o));
-    STRING(str) = strsep(&ret, "\n");
+		if(inputAvailable(IO_FILE(o)))
+			getline(&ret, &size, IO_FILE(o));
+    STRING(str) = ret;
     *(M_Object*)(shred->reg -SZ_INT)= str;
-*/
   }
-//  else exit(89);
 }
 
-void file_nl(M_Object o,  DL_Return * RETURN, VM_Shred shred)
+MFUN(file_nl)
 {
   RETURN->v_uint = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
 }
 
-void file_open(M_Object o,  DL_Return * RETURN, VM_Shred shred)
+MFUN(file_open)
 {
   DIR* dir;
   M_Object lhs = *(M_Object*)(shred->mem + SZ_INT*2);
@@ -155,29 +156,29 @@ void file_open(M_Object o,  DL_Return * RETURN, VM_Shred shred)
   m_str filename = STRING(rhs);
   m_str mode = STRING(lhs);
 
-/*  if(IO_DIR(o))*/
-/*  {*/
-/*    closedir(IO_DIR(o));*/
-/*    IO_DIR(o) = NULL;*/
-/*  }*/
-/*  else */
-/*  if(IO_FILE(o))*/
-/*  {*/
-/*    fclose(IO_FILE(o));*/
-/*    IO_FILE(o) = NULL;*/
-/*  }*/
+  if(IO_DIR(o))
+  {
+    closedir(IO_DIR(o));
+    IO_DIR(o) = NULL;
+  }
+  else
+  if(IO_FILE(o))
+  {
+    fclose(IO_FILE(o));
+    IO_FILE(o) = NULL;
+  }
   if((dir = opendir(filename)))
   {
     IO_DIR(o) = dir;
     RETURN->v_uint = 2;
     return;
-  }  
+  }
   IO_FILE(o) = fopen(filename, mode);
   IO_DIR(o) = NULL;
   RETURN->v_uint = IO_FILE(o) ? 1 : 0;
 }
 
-void file_close(M_Object o,  DL_Return * RETURN, VM_Shred shred)
+MFUN(file_close)
 {
   if(IO_DIR(o))
   {
@@ -190,7 +191,7 @@ void file_close(M_Object o,  DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = !IO_FILE(o) ? 1 : 0;
 }
 
-void file_remove(DL_Return * RETURN, VM_Shred shred)
+MFUN(file_remove)
 {
   RETURN->v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
 }
@@ -269,8 +270,8 @@ m_bool import_fileio(Env env)
 
   M_Object gw_stdin = new_M_Object();
   initialize_object(gw_stdin, &t_fileio);
-//  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
-  IO_FILE(gw_stdin) = stdin;
+  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
+//  IO_FILE(gw_stdin) = stdin;
   add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
 
   M_Object cout = new_M_Object();

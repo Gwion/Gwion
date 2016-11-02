@@ -26,9 +26,6 @@ ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
-silent:
-	@make -s default
-
 default: config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}

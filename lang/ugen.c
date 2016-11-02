@@ -195,7 +195,7 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug)
 	return 1;
 }
 
-static void ugen_connect(VM* vm, VM_Shred shred, Instr instr)
+static INSTR(ugen_connect)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
@@ -231,7 +231,7 @@ static void ugen_connect(VM* vm, VM_Shred shred, Instr instr)
 	shred->reg += SZ_INT;
 }
 
-static void ugen_disconnect(VM* vm, VM_Shred shred, Instr instr)
+static INSTR(ugen_disconnect)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
@@ -263,7 +263,7 @@ static void ugen_disconnect(VM* vm, VM_Shred shred, Instr instr)
 	shred->reg += SZ_INT;
 }
 
-static void trig_connect(VM* vm, VM_Shred shred, Instr instr)
+static INSTR(trig_connect)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig connect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
@@ -280,7 +280,7 @@ static void trig_connect(VM* vm, VM_Shred shred, Instr instr)
 printf("trig: %p %p %p\n", lhs, rhs, lhs->ugen);
 }
 
-static void trig_disconnect(VM* vm, VM_Shred shred, Instr instr)
+static INSTR(trig_disconnect)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig discconnect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
@@ -319,7 +319,7 @@ void ugen_dtor(M_Object o, VM_Shred shred)
     o->ugen = NULL;
 }
 
-static void ugen_channel(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ugen_channel)
 {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
   if(!o->ugen->channel && !i)
@@ -329,12 +329,12 @@ static void ugen_channel(M_Object o, DL_Return * RETURN, VM_Shred shred)
   else RETURN->v_object = o->ugen->channel[i];
 }
 
-static void ugen_get_op(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ugen_get_op)
 {
   RETURN->v_uint = o->ugen->op;
 }
 
-static void ugen_set_op(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ugen_set_op)
 {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
   if(i < 1 || i > 4)
@@ -344,7 +344,7 @@ static void ugen_set_op(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = o->ugen->op;
 }
 
-static void ugen_get_last(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ugen_get_last)
 {
   if(!o)
     RETURN->v_float = 0;

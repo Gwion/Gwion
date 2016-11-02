@@ -9,6 +9,7 @@
 #include "object.h"
 
 struct Type_ t_object     = { "Object",     sizeof(m_uint), NULL, te_object };
+
 void NullException(VM_Shred shred)
 {
   fprintf( stderr,
@@ -18,13 +19,13 @@ void NullException(VM_Shred shred)
   shred->is_running = 0;
   shred->is_done = 1;
 }
+
 M_Object new_M_Object()
 {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->vtable = NULL;
   a->type_ref = NULL;
   a->size = 0;
-/*  a->array = NULL;*/
   a->data = NULL;
   a->ugen = NULL;
 	a->ref = 1;
@@ -38,6 +39,7 @@ M_Object new_String(m_str str)
   STRING(o) = strdup(str);
   return o;
 }
+
 m_bool initialize_object(M_Object object, Type type)
 {
   if(!type->info)
@@ -122,7 +124,7 @@ void object_dtor(M_Object o, VM_Shred shred)
   o = NULL;
 }
 
-void Assign_Object(VM * vm, VM_Shred shred, Instr instr )
+INSTR(Assign_Object)
 {
 #ifdef DEBUG_INSTR
 /*  debug_msg("instr", "assign object %i %p %p", instr->m_val, *(m_uint*)(shred->reg -SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));*/
@@ -139,7 +141,7 @@ void Assign_Object(VM * vm, VM_Shred shred, Instr instr )
   shred->reg += SZ_INT;
 }
 
-static void eq_Object(VM * vm, VM_Shred shred, Instr instr )
+static INSTR(eq_Object)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "eq Object");
