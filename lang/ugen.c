@@ -104,8 +104,8 @@ void ugen_compute(UGen u)
     {
       ugen = (UGen)vector_at(u->ugen, i);
       if(!ugen) // find a way to remove ugens
-/*      continue;*/
-      exit(12);
+	      continue;
+//      exit(12);
       if(!ugen->done)
         ugen_compute(ugen);
     }
@@ -234,7 +234,7 @@ static void ugen_connect(VM* vm, VM_Shred shred, Instr instr)
 static void ugen_disconnect(VM* vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "ugen connect %p %p", **(m_uint**)(shred->reg - SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
   m_uint i;
   shred->reg -= SZ_INT*2;
@@ -266,7 +266,7 @@ static void ugen_disconnect(VM* vm, VM_Shred shred, Instr instr)
 static void trig_connect(VM* vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "trig connect %p %p", **(m_uint**)(shred->reg - SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "trig connect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
   shred->reg -= SZ_INT*2;
   M_Object lhs = *(M_Object*)shred->reg;
@@ -277,12 +277,13 @@ static void trig_connect(VM* vm, VM_Shred shred, Instr instr)
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
 	shred->reg += SZ_INT;
+printf("trig: %p %p %p\n", lhs, rhs, lhs->ugen);
 }
 
 static void trig_disconnect(VM* vm, VM_Shred shred, Instr instr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "trig discconnect %p %p", **(m_uint**)(shred->reg - SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "trig discconnect %p %p", *(m_uint*)(shred->reg - SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
   shred->reg -= SZ_INT*2;
   M_Object lhs = *(M_Object*)shred->reg;

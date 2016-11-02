@@ -89,13 +89,13 @@ function print_mod_func(name, mod)
 		end
 	end
 	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
-	if(nmandatory) then
+	if(nmandatory > 0) then
 		print("\tm_bool is_init;")
 	end
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
-  if(nmandatory) then
+  if(nmandatory > 0) then
 		print("\tif(!ug->is_init)\n{\n\tu->out = 0;\n\treturn 1;\n}")
 	end
 	local args = ""
@@ -119,11 +119,11 @@ function print_mod_func(name, mod)
 		args = string.format("%s, &u->out", args)
 	end
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
-	print("\t return 1;\n}\n")
+	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
 	print("\tsp_"..name.."_create(&ug->osc);")
-  if(nmandatory) then
+  if(nmandatory > 0) then
 		print("\tug->is_init = 0;")
 	else
 		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
@@ -132,7 +132,7 @@ function print_mod_func(name, mod)
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
 	print("}\n")
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
-	if(nmandatory) then
+	if(nmandatory > 0) then
 		print("if(ug->is_init)\n\t")
 	end
 	print("\tsp_"..name.."_destroy(&ug->osc);")

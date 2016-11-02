@@ -605,7 +605,8 @@ void Spork(VM * vm, VM_Shred shred, Instr instr)
   *(M_Object*)shred->reg = sh->me;
   shred->reg += SZ_INT;
 }
-#define overflow_(c)       ( c >  ( c + (0x1 << 16)) - ((0x1 << 16) / 16))
+
+#define overflow_(c)       ( c >  ( c + (0x1 << SIZEOF_MEM)) - ((0x1 << SIZEOF_MEM) / MEM_STEP))
 void handle_overflow(VM_Shred shred)
 {
   fprintf( stderr,
@@ -628,15 +629,32 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+//  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+  prev_stack = *(m_uint*)(shred->mem - SZ_INT);
   push = prev_stack + local_depth;
   next = shred->pc + 1;
+/*
   m_uint* mem = (m_uint*)shred->mem;
+
   mem += (prev_stack + local_depth)/SZ_INT;
   *mem = push; mem++;
   *mem = (m_uint)shred->code; mem++;
   *mem = next; mem++;
   *mem = stack_depth; mem++;
+*/
+
+// new
+	*(m_uint*)(shred->mem) += push;
+	*(m_uint*)(shred->mem)  = push;
+	shred->mem += SZ_INT;
+	*(m_uint*)(shred->mem)  = (m_uint)shred->code;
+	shred->mem += SZ_INT;
+	*(m_uint*)(shred->mem)  = (m_uint)next;
+	shred->mem += SZ_INT;
+	*(m_uint*)(shred->mem)  = (m_uint)stack_depth;
+	shred->mem += SZ_INT;
+// !new
+
   shred->next_pc = 0;
   shred->code = func;
   if(stack_depth)
@@ -646,17 +664,25 @@ void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr)
     shred->reg -= stack_depth;
     if(func->need_this)
     {
-      *mem = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
-      mem++;
-      stack_depth -= SZ_INT;
+//      *mem = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
+//      mem++;
+      *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
+			shred->mem += SZ_INT;
+			stack_depth -= SZ_INT;
     }
 
+/*
     for(i = 0; i < stack_depth/SZ_INT; i++)
-      *(mem + i) = *(m_uint*)(shred->reg + SZ_INT*i);
-  }
+//      *(mem + i) = *(m_uint*)(shred->reg + SZ_INT*i);
+      *(m_uint*)(shred->mem + i*SZ_INT) = *(m_uint*)(shred->reg + SZ_INT*i);
+    if((stack_depth%SZ_INT))
+			 *(m_float*)(shred->mem + stack_depth - SZ_FLOAT) = *(m_float*)(shred->reg + stack_depth - SZ_FLOAT);
+*/
+		memcpy(shred->mem, shred->reg, stack_depth);
+ }
 
-  shred->mem += prev_stack + local_depth;
-  shred->mem += 4 * SZ_INT;
+//  shred->mem += prev_stack + local_depth;
+//  shred->mem += 4 * SZ_INT;
   if(overflow_(shred->mem))
     handle_overflow(shred);
   return;
@@ -738,8 +764,11 @@ void Instr_Func_Call_Static(VM * vm, VM_Shred shred, Instr instr)
   if(stack_depth)
   {
     shred->reg -=  stack_depth;
+/*
     for(i = 0; i < stack_depth/SZ_INT; i++)
       *(m_uint*)(shred->mem + SZ_INT + SZ_INT*i) = *(m_uint*)(shred->reg + SZ_INT*i);
+*/
+		memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
   }
   if(overflow_(shred->mem))
   {
@@ -776,8 +805,11 @@ void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr)
       shred->mem += SZ_INT;
       stack_depth -= SZ_INT;
     }
+/*
     for(i = 0; i < stack_depth/SZ_INT; i++)
       *(m_uint*)(shred->mem + SZ_INT*i) = *(m_uint*)(shred->reg + SZ_INT*i);
+*/
+		memcpy(shred->mem, shred->reg, stack_depth);
   }
   if(func->need_this)
     shred->mem -= SZ_INT;

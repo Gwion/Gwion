@@ -82,7 +82,7 @@ Env type_engine_init(VM* vm)
 //  CHECK_BO(import_io(env))
   start_type_xid();
   // event child
-  CHECK_BO(import_fileio(env))
+//  CHECK_BO(import_fileio(env))
 
   // libs
   CHECK_BO(import_lib(env))

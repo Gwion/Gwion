@@ -149,9 +149,9 @@ static m_bool import_gain(Env env)
 static struct Type_ t_impulse      = { "Impulse", 1, &t_ugen };
 static m_bool impulse_tick(UGen u)
 {
-  u->last = u->out = *(m_float*)u->ug;
+//  u->out = *(m_float*)u->ug;
 	*(m_float*)u->ug = 0;
-	u->done = 1;
+//	u->done = 1;
 	return 1;
 }
 
@@ -278,7 +278,6 @@ static void step_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 
 static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-	printf("%f\n", *(m_float*)(shred->mem + SZ_INT));
   RETURN->v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 

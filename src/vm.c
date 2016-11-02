@@ -150,7 +150,6 @@ continue;
   }
   if(!vm->is_running)
     return;
-//  if(vector_size(vm->ugen) > 3)
   for(i = 0; i < vector_size(vm->ugen); i++)
   {
     UGen u = vector_at(vm->ugen, i);
@@ -167,6 +166,5 @@ continue;
   }
   ugen_compute(vm->blackhole->ugen);
   ugen_compute(vm->dac->ugen);
-//  ugen_compute(vm->adc->ugen);
 }
 

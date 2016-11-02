@@ -1,7 +1,8 @@
 #ifndef __DEF
 #define __DEF
 
-#define SIZEOF_MEM 0x1 << 16
+#define MEM_STEP 16
+#define SIZEOF_MEM 0x1 << MEM_STEP
 #define SIZEOF_REG 0x1 << 14
 
 #define CHECK_BB(f) if(f < 0) return -1;
