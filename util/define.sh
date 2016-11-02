@@ -25,6 +25,7 @@ sed -i "/$ARG/ s/($ARG//" $1
 #ARG=" *Env *env *"
 #sed -i "/$ARG/ s/m_bool /IMPORT(/" $1
 #sed -i "/$ARG/ s/($ARG//" $1
+sed -i "s/m_bool import(Env env)/IMPORT/" $1
 
 #this for CTOR
 #ARG=" *M_Object *o, *VM_Shred *shred *"
@@ -35,6 +36,3 @@ sed -i "/$ARG/ s/($ARG//" $1
 #ARG=" *M_Object *o, *VM_Shred *shred *"
 #sed -i "/dtor/ s/void /DTOR(/" $1
 #sed -i "/$ARG/ s/($ARG//" $1
-
-
-cat $1

@@ -119,10 +119,10 @@ TICK(allpass_tick)
 {
 	GW_allpass* ug = (GW_allpass*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -140,9 +140,8 @@ CTOR(allpass_ctor)
 DTOR(allpass_dtor)
 {
 	GW_allpass* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_allpass_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_allpass_destroy(&ug->osc);
 }
 
 MFUN(allpass_init)
@@ -336,10 +335,10 @@ TICK(bar_tick)
 {
 	GW_bar* ug = (GW_bar*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_bar_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -357,9 +356,8 @@ CTOR(bar_ctor)
 DTOR(bar_dtor)
 {
 	GW_bar* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_bar_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_bar_destroy(&ug->osc);
 }
 
 MFUN(bar_init)
@@ -1168,10 +1166,10 @@ TICK(comb_tick)
 {
 	GW_comb* ug = (GW_comb*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1189,9 +1187,8 @@ CTOR(comb_ctor)
 DTOR(comb_dtor)
 {
 	GW_comb* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_comb_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_comb_destroy(&ug->osc);
 }
 
 MFUN(comb_init)
@@ -1327,10 +1324,10 @@ TICK(conv_tick)
 {
 	GW_conv* ug = (GW_conv*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1348,9 +1345,8 @@ CTOR(conv_ctor)
 DTOR(conv_dtor)
 {
 	GW_conv* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_conv_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_conv_destroy(&ug->osc);
 }
 
 MFUN(conv_init)
@@ -1508,10 +1504,10 @@ TICK(delay_tick)
 {
 	GW_delay* ug = (GW_delay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1529,9 +1525,8 @@ CTOR(delay_ctor)
 DTOR(delay_dtor)
 {
 	GW_delay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_delay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_delay_destroy(&ug->osc);
 }
 
 MFUN(delay_init)
@@ -1578,10 +1573,10 @@ TICK(diskin_tick)
 {
 	GW_diskin* ug = (GW_diskin*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_diskin_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -1599,9 +1594,8 @@ CTOR(diskin_ctor)
 DTOR(diskin_dtor)
 {
 	GW_diskin* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_diskin_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_diskin_destroy(&ug->osc);
 }
 
 MFUN(diskin_init)
@@ -1768,10 +1762,10 @@ TICK(drip_tick)
 {
 	GW_drip* ug = (GW_drip*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_drip_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -1789,9 +1783,8 @@ CTOR(drip_ctor)
 DTOR(drip_dtor)
 {
 	GW_drip* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_drip_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_drip_destroy(&ug->osc);
 }
 
 MFUN(drip_init)
@@ -1928,10 +1921,10 @@ TICK(dtrig_tick)
 {
 	GW_dtrig* ug = (GW_dtrig*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -1949,9 +1942,8 @@ CTOR(dtrig_ctor)
 DTOR(dtrig_dtor)
 {
 	GW_dtrig* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_dtrig_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_dtrig_destroy(&ug->osc);
 }
 
 MFUN(dtrig_init)
@@ -2252,10 +2244,10 @@ TICK(fof_tick)
 {
 	GW_fof* ug = (GW_fof*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fof_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -2273,9 +2265,8 @@ CTOR(fof_ctor)
 DTOR(fof_dtor)
 {
 	GW_fof* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fof_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fof_destroy(&ug->osc);
 }
 
 MFUN(fof_init)
@@ -2500,10 +2491,10 @@ TICK(fog_tick)
 {
 	GW_fog* ug = (GW_fog*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fog_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -2521,9 +2512,8 @@ CTOR(fog_ctor)
 DTOR(fog_dtor)
 {
 	GW_fog* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fog_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fog_destroy(&ug->osc);
 }
 
 MFUN(fog_init)
@@ -2733,10 +2723,10 @@ TICK(fosc_tick)
 {
 	GW_fosc* ug = (GW_fosc*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fosc_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -2754,9 +2744,8 @@ CTOR(fosc_ctor)
 DTOR(fosc_dtor)
 {
 	GW_fosc* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fosc_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fosc_destroy(&ug->osc);
 }
 
 MFUN(fosc_init)
@@ -2865,10 +2854,10 @@ TICK(gbuzz_tick)
 {
 	GW_gbuzz* ug = (GW_gbuzz*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_gbuzz_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -2886,9 +2875,8 @@ CTOR(gbuzz_ctor)
 DTOR(gbuzz_dtor)
 {
 	GW_gbuzz* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_gbuzz_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_gbuzz_destroy(&ug->osc);
 }
 
 MFUN(gbuzz_init)
@@ -3187,10 +3175,10 @@ TICK(incr_tick)
 {
 	GW_incr* ug = (GW_incr*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_incr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -3208,9 +3196,8 @@ CTOR(incr_ctor)
 DTOR(incr_dtor)
 {
 	GW_incr* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_incr_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_incr_destroy(&ug->osc);
 }
 
 MFUN(incr_init)
@@ -3641,10 +3628,10 @@ TICK(mincer_tick)
 {
 	GW_mincer* ug = (GW_mincer*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_mincer_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -3662,9 +3649,8 @@ CTOR(mincer_ctor)
 DTOR(mincer_dtor)
 {
 	GW_mincer* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_mincer_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_mincer_destroy(&ug->osc);
 }
 
 MFUN(mincer_init)
@@ -3905,10 +3891,10 @@ TICK(nsmp_tick)
 {
 	GW_nsmp* ug = (GW_nsmp*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -3926,9 +3912,8 @@ CTOR(nsmp_ctor)
 DTOR(nsmp_dtor)
 {
 	GW_nsmp* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_nsmp_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_nsmp_destroy(&ug->osc);
 }
 
 MFUN(nsmp_init)
@@ -3972,10 +3957,10 @@ TICK(osc_tick)
 {
 	GW_osc* ug = (GW_osc*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -3993,9 +3978,8 @@ CTOR(osc_ctor)
 DTOR(osc_dtor)
 {
 	GW_osc* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_osc_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_osc_destroy(&ug->osc);
 }
 
 MFUN(osc_init)
@@ -4051,10 +4035,10 @@ TICK(oscmorph_tick)
 {
 	GW_oscmorph* ug = (GW_oscmorph*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_oscmorph_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -4072,9 +4056,8 @@ CTOR(oscmorph_ctor)
 DTOR(oscmorph_dtor)
 {
 	GW_oscmorph* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_oscmorph_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_oscmorph_destroy(&ug->osc);
 }
 
 MFUN(oscmorph_init)
@@ -4357,10 +4340,10 @@ TICK(paulstretch_tick)
 {
 	GW_paulstretch* ug = (GW_paulstretch*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_paulstretch_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -4378,9 +4361,8 @@ CTOR(paulstretch_ctor)
 DTOR(paulstretch_dtor)
 {
 	GW_paulstretch* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_paulstretch_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_paulstretch_destroy(&ug->osc);
 }
 
 MFUN(paulstretch_init)
@@ -4705,10 +4687,10 @@ TICK(phasor_tick)
 {
 	GW_phasor* ug = (GW_phasor*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_phasor_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -4726,9 +4708,8 @@ CTOR(phasor_ctor)
 DTOR(phasor_dtor)
 {
 	GW_phasor* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_phasor_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_phasor_destroy(&ug->osc);
 }
 
 MFUN(phasor_init)
@@ -4819,10 +4800,10 @@ TICK(pitchamdf_tick)
 {
 	GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -4840,9 +4821,8 @@ CTOR(pitchamdf_ctor)
 DTOR(pitchamdf_dtor)
 {
 	GW_pitchamdf* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_pitchamdf_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_pitchamdf_destroy(&ug->osc);
 }
 
 MFUN(pitchamdf_init)
@@ -4867,10 +4847,10 @@ TICK(pluck_tick)
 {
 	GW_pluck* ug = (GW_pluck*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_pluck_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -4888,9 +4868,8 @@ CTOR(pluck_ctor)
 DTOR(pluck_dtor)
 {
 	GW_pluck* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_pluck_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_pluck_destroy(&ug->osc);
 }
 
 MFUN(pluck_init)
@@ -4952,10 +4931,10 @@ TICK(port_tick)
 {
 	GW_port* ug = (GW_port*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -4973,9 +4952,8 @@ CTOR(port_ctor)
 DTOR(port_dtor)
 {
 	GW_port* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_port_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_port_destroy(&ug->osc);
 }
 
 MFUN(port_init)
@@ -5007,10 +4985,10 @@ TICK(posc3_tick)
 {
 	GW_posc3* ug = (GW_posc3*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_posc3_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -5028,9 +5006,8 @@ CTOR(posc3_ctor)
 DTOR(posc3_dtor)
 {
 	GW_posc3* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_posc3_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_posc3_destroy(&ug->osc);
 }
 
 MFUN(posc3_init)
@@ -5153,10 +5130,10 @@ TICK(prop_tick)
 {
 	GW_prop* ug = (GW_prop*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_prop_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -5174,9 +5151,8 @@ CTOR(prop_ctor)
 DTOR(prop_dtor)
 {
 	GW_prop* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_prop_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_prop_destroy(&ug->osc);
 }
 
 MFUN(prop_init)
@@ -5299,10 +5275,10 @@ TICK(ptrack_tick)
 {
 	GW_ptrack* ug = (GW_ptrack*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -5320,9 +5296,8 @@ CTOR(ptrack_ctor)
 DTOR(ptrack_dtor)
 {
 	GW_ptrack* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_ptrack_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_ptrack_destroy(&ug->osc);
 }
 
 MFUN(ptrack_init)
@@ -5628,10 +5603,10 @@ TICK(reverse_tick)
 {
 	GW_reverse* ug = (GW_reverse*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -5649,9 +5624,8 @@ CTOR(reverse_ctor)
 DTOR(reverse_dtor)
 {
 	GW_reverse* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_reverse_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_reverse_destroy(&ug->osc);
 }
 
 MFUN(reverse_init)
@@ -5786,10 +5760,10 @@ TICK(rpt_tick)
 {
 	GW_rpt* ug = (GW_rpt*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -5807,9 +5781,8 @@ CTOR(rpt_ctor)
 DTOR(rpt_dtor)
 {
 	GW_rpt* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_rpt_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_rpt_destroy(&ug->osc);
 }
 
 MFUN(rpt_init)
@@ -5988,10 +5961,10 @@ TICK(sdelay_tick)
 {
 	GW_sdelay* ug = (GW_sdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6009,9 +5982,8 @@ CTOR(sdelay_ctor)
 DTOR(sdelay_dtor)
 {
 	GW_sdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_sdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_sdelay_destroy(&ug->osc);
 }
 
 MFUN(sdelay_init)
@@ -6043,10 +6015,10 @@ TICK(slice_tick)
 {
 	GW_slice* ug = (GW_slice*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_slice_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6064,9 +6036,8 @@ CTOR(slice_ctor)
 DTOR(slice_dtor)
 {
 	GW_slice* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_slice_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_slice_destroy(&ug->osc);
 }
 
 MFUN(slice_init)
@@ -6108,10 +6079,10 @@ TICK(smoothdelay_tick)
 {
 	GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6129,9 +6100,8 @@ CTOR(smoothdelay_ctor)
 DTOR(smoothdelay_dtor)
 {
 	GW_smoothdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_smoothdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_smoothdelay_destroy(&ug->osc);
 }
 
 MFUN(smoothdelay_init)
@@ -6274,10 +6244,10 @@ TICK(tabread_tick)
 {
 	GW_tabread* ug = (GW_tabread*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tabread_compute(ug->sp, ug->osc, NULL, &u->out);
 	return 1;
 }
@@ -6295,9 +6265,8 @@ CTOR(tabread_ctor)
 DTOR(tabread_dtor)
 {
 	GW_tabread* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tabread_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tabread_destroy(&ug->osc);
 }
 
 MFUN(tabread_init)
@@ -6457,10 +6426,10 @@ TICK(tblrec_tick)
 {
 	GW_tblrec* ug = (GW_tblrec*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6478,9 +6447,8 @@ CTOR(tblrec_ctor)
 DTOR(tblrec_dtor)
 {
 	GW_tblrec* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tblrec_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tblrec_destroy(&ug->osc);
 }
 
 MFUN(tblrec_init)
@@ -7133,10 +7101,10 @@ TICK(tseg_tick)
 {
 	GW_tseg* ug = (GW_tseg*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tseg_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7154,9 +7122,8 @@ CTOR(tseg_ctor)
 DTOR(tseg_dtor)
 {
 	GW_tseg* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tseg_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tseg_destroy(&ug->osc);
 }
 
 MFUN(tseg_init)
@@ -7233,10 +7200,10 @@ TICK(tseq_tick)
 {
 	GW_tseq* ug = (GW_tseq*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tseq_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7254,9 +7221,8 @@ CTOR(tseq_ctor)
 DTOR(tseq_dtor)
 {
 	GW_tseq* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tseq_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tseq_destroy(&ug->osc);
 }
 
 MFUN(tseq_init)
@@ -7305,10 +7271,10 @@ TICK(vdelay_tick)
 {
 	GW_vdelay* ug = (GW_vdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -7326,9 +7292,8 @@ CTOR(vdelay_ctor)
 DTOR(vdelay_dtor)
 {
 	GW_vdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_vdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_vdelay_destroy(&ug->osc);
 }
 
 MFUN(vdelay_init)
@@ -7449,10 +7414,10 @@ TICK(waveset_tick)
 {
 	GW_waveset* ug = (GW_waveset*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -7470,9 +7435,8 @@ CTOR(waveset_ctor)
 DTOR(waveset_dtor)
 {
 	GW_waveset* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_waveset_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_waveset_destroy(&ug->osc);
 }
 
 MFUN(waveset_init)

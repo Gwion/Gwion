@@ -96,7 +96,7 @@ function print_mod_func(name, mod)
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory > 0) then
-		print("\tif(!ug->is_init)\n{\n\tu->out = 0;\n\treturn 1;\n}")
+		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
 	end
 	local args = ""
 	if ninputs > 1 then
@@ -133,9 +133,10 @@ function print_mod_func(name, mod)
 	print("}\n")
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
 	if(nmandatory > 0) then
-		print("if(ug->is_init)\n\t")
-	end
+		print("\tif(ug->is_init)\n\t\tsp_"..name.."_destroy(&ug->osc);")
+	else
 	print("\tsp_"..name.."_destroy(&ug->osc);")
+	end
 	print("}\n")
 	if nmandatory > 0 then
 		print("MFUN("..name.."_init)\n{")

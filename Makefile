@@ -34,7 +34,7 @@ config.mk: config.def.mk
 	cp config.def.mk config.mk
 
 include/generated.h:
-	cc ${CFLAGS} util/generate_header.c -o util/generate_header
+	${CC} ${CFLAGS} util/generate_header.c -o util/generate_header
 	./util/generate_header
 	rm ./util/generate_header
 
@@ -70,7 +70,7 @@ soundpipe_import: import.lua
 	l@ua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
 
 .c.o:
-	${CC} ${DEF} ${CFLAGS} -c $< -o $(<:.c=.o)
+	${CC} ${CFLAGS} -c $< -o $(<:.c=.o)
 
 install:
 	cp Gwion ~/bin
