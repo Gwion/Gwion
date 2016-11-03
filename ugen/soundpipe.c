@@ -5861,19 +5861,19 @@ DTOR(saturator_dtor)
 	sp_saturator_destroy(&ug->osc);
 }
 
-MFUN(saturator_get_dcOffset)
+MFUN(saturator_get_dcoffset)
 {
 	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
-	RETURN->v_float = ug->osc->dcOffset;
+	RETURN->v_float = ug->osc->dcoffset;
 }
 
-MFUN(saturator_set_dcOffset)
+MFUN(saturator_set_dcoffset)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
-	m_float dcOffset = *(m_float*)(shred->mem + gw_offset);
+	m_float dcoffset = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
-	RETURN->v_float = (ug->osc->dcOffset = dcOffset);
+	RETURN->v_float = (ug->osc->dcoffset = dcoffset);
 }
 
 MFUN(saturator_get_drive)
@@ -10012,11 +10012,11 @@ env->class_def->doc = "soudpipe float array type";
 
 	CHECK_BB(add_global_type(env, &t_saturator))
 	CHECK_BB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
-	fun = new_DL_Func("float", "dcOffset", (m_uint)saturator_get_dcOffset);
+	fun = new_DL_Func("float", "dcoffset", (m_uint)saturator_get_dcoffset);
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
-	fun = new_DL_Func("float", "dcOffset", (m_uint)saturator_set_dcOffset);
-		arg = dl_func_add_arg(fun, "float", "dcOffset");
+	fun = new_DL_Func("float", "dcoffset", (m_uint)saturator_set_dcoffset);
+		arg = dl_func_add_arg(fun, "float", "dcoffset");
 		arg->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
