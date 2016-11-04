@@ -23,7 +23,15 @@ void namespace_push_value(NameSpace namespace)
 
 void namespace_pop_value(NameSpace namespace)
 {
-  scope_pop(namespace->value);
+  m_uint i;
+  Map map = scope_pop(namespace->value);
+  for(i = 0; i < map_size(map); i++)
+  {
+	Value v = map_at(map, i);
+//	rem_ref(v->obj, v);
+//	free_Value(v);
+  }
+  free_Map(map);
 }
 
 Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb)

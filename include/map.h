@@ -40,7 +40,7 @@ extern void   scope_add(Scope scope, S_Symbol xid, void* value);
 extern void   scope_commit(Scope scope);
 extern void   scope_rollback(Scope scope, void (*_free)(void* arg));
 extern void   scope_push(Scope scope);
-extern void   scope_pop(Scope scope);
+extern Map    scope_pop(Scope scope);
 extern void   free_Scope(Scope a);
 
 // maybe elsewhere ?

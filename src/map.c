@@ -333,9 +333,11 @@ struct Scope_
   vector_append(scope->vector, new_Map());
 }
 
- void scope_pop(Scope scope)
+Map scope_pop(Scope scope)
 {
+  Map map = vector_back(scope->vector);
   vector_pop(scope->vector);
+  return map;
 }
 
 Scope new_Scope()

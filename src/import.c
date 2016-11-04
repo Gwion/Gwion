@@ -201,12 +201,12 @@ m_int import_mvar(Env env, const m_str type,
     var_decl->value->doc = doc;
 
   // cleanup
-  free_ID_List(path);
   free_Expression(exp_decl);
+  free_ID_List(path);
   return var_decl->value->offset;
 error:
-  free_ID_List(path);
   free_Expression(exp_decl);
+  free_ID_List(path);
   return -1;
 }
 
@@ -306,9 +306,9 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
-//    free_DL_Value(arg);
+    free_DL_Value(arg);
   }
-//  free_Vector(dl_fun->args);
+  free_Vector(dl_fun->args);
 //  free(dl_fun);
   return arg_list;
 }
@@ -368,11 +368,12 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
-  
+  free(dl_fun);
   return func_def;
 
  error:
   // clean up
+  free(dl_fun);
   if(!func_def)
     free_Type_Decl(type_decl);
   else

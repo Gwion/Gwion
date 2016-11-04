@@ -143,13 +143,14 @@ void free_Type_Decl(Type_Decl* a)
 
 Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
 {
-	Expression a = calloc(1, sizeof(struct Expression_));
+  Expression a = malloc(sizeof(struct Expression_));
   a->exp_type = Decl_Expression_type;
-	a->decl_exp  = calloc(1, sizeof(Decl_Expression));
-	a->decl_exp->type = type;
-	a->decl_exp->num_decl = 0;
-	a->decl_exp->list = list;
-	a->decl_exp->is_static = is_static;
+  a->meta = ae_meta_var;
+  a->decl_exp  = calloc(1, sizeof(Decl_Expression));
+  a->decl_exp->type = type;
+  a->decl_exp->num_decl = 0;
+  a->decl_exp->list = list;
+  a->decl_exp->is_static = is_static;
   a->pos  = pos;
   a->decl_exp->pos  = pos;
   a->decl_exp->self = a;
