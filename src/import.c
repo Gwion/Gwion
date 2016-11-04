@@ -20,6 +20,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
   ID_List list = NULL;
   char last = '\0';
   m_uint depth = 0;
+  memset(curr, 0, 256);
   while(path[len] != '\0')
     len++;
 

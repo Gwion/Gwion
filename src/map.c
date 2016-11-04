@@ -24,8 +24,8 @@ Vector new_Vector()
 Vector new_Vector_fixed(const long unsigned int len)
 {
   Vector v = calloc(1, sizeof(struct Vector_));
-	v->ptr   = calloc(len,  sizeof(long unsigned int));
-	v->len   = len;
+  v->ptr   = calloc(len,  sizeof(long unsigned int));
+  v->len   = len;
   long unsigned int i;
   for(i = 0; i < len; i++)
   {
@@ -34,13 +34,11 @@ Vector new_Vector_fixed(const long unsigned int len)
   }
   return v;
 }
+
 void vector_append(Vector v, void* data)
 {
   v->len++;
-  if(!v->ptr) // shouild not be
-    v->ptr = malloc(sizeof(long unsigned int));
-  else if(v->len != 1)
-    v->ptr = realloc(v->ptr, v->len * sizeof(void*));
+  v->ptr = realloc(v->ptr, v->len * sizeof(void*));
   v->ptr[v->len - 1] = (long unsigned int)data;
 }
 
@@ -178,7 +176,7 @@ void free_Vector(Vector v)
 
 Map new_Map()
 {
-	Map map  = calloc(1, sizeof(Map));
+	Map map  = calloc(1, sizeof(struct Map_));
 	map->key = calloc(1, sizeof(void*));
 	map->ptr = calloc(1, sizeof(void*));
 	map->len = 0;
@@ -342,7 +340,7 @@ struct Scope_
 
 Scope new_Scope()
 {
-  Scope a = calloc(1, sizeof(Scope));
+  Scope a = calloc(1, sizeof(struct Scope_));
   a->commit_map = new_Map();
   a->vector = new_Vector();
   scope_push(a);
