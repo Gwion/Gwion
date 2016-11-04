@@ -79,7 +79,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
 
 Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_dtor dtor)
 {
-    Type  type_type = NULL;
+//    Type  type_type = NULL;
 
     if(type->info)
     {
@@ -128,8 +128,8 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
     type->obj_size = 0; // TODO
 
     type->is_complete = 1;
-    type_type = type_copy(env, &t_class);
-    type_type->actual_type = type;
+//    type_type = type_copy(env, &t_class);
+//    type_type->actual_type = type;
     // SAFE_REF_ASSIGN( type_type->actual_type, type );
     vector_append(env->nspc_stack, env->curr);
     env->curr = type->info;
@@ -263,7 +263,6 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
   Type_Decl* type_decl = NULL;
   Var_Decl var_decl    = NULL;
   ID_List type_path    = NULL;
-//  ID_List name_path    = NULL;
   Array_Sub array_sub  = NULL;
   DL_Value* arg        = NULL;
   m_uint array_depth = 0;
@@ -272,7 +271,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
 
   for(i = vector_size(dl_fun->args) -1; i >= 0; i--)
   {
-    array_depth = array_depth2 = 0; 
+    array_depth = array_depth2 = 0;
     array_sub = NULL;
     arg = vector_at(dl_fun->args, i);
     type_path = str2list(arg->type, &array_depth);
@@ -293,7 +292,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     }
     // TODO: arrays?
     if(array_depth2)
-      array_depth = array_depth2;        
+      array_depth = array_depth2;
     if(array_depth)
     {
       array_sub = new_array_sub( NULL, 0 );
@@ -303,7 +302,10 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
+//    free_DL_Value(arg);
   }
+//  free_Vector(dl_fun->args);
+//  free(dl_fun);
   return arg_list;
 }
 
@@ -357,18 +359,20 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
     }
 */
 
-  func_def = new_Func_Def( func_decl, static_decl, type_decl, (char *)name,
-                           arg_list, NULL, 0 );
+  func_def = new_Func_Def(func_decl, static_decl, type_decl, (char *)name,
+                           arg_list, NULL, 0);
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
   
   return func_def;
 
- error: 
+ error:
   // clean up
-  // if( !func_def ) delete_type_decl( type_decl );
-  // else delete_func_def( func_def );
+  if(!func_def)
+    free_Type_Decl(type_decl);
+  else
+	free_Func_Def(func_def);
   return NULL;
 }
 

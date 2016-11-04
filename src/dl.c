@@ -47,12 +47,11 @@ void freeDL_Func(DL_Func* a)
 {
   free_Vector(a->args);
   free(a);
-  a = NULL;
 }
 
 DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr)
 {
-  DL_Value* a = calloc(1, sizeof(DL_Value));
+  DL_Value* a = malloc(sizeof(DL_Value));
   a->name = n;
   a->type = t;
   a->is_const  = c;
@@ -61,12 +60,11 @@ DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr)
   return a;
 }
 
-void freeDL_Value(DL_Value* a)
+void free_DL_Value(DL_Value* a)
 {
 /*  if(addr)*/
 /*    free(addr);*/
   free(a);
-  a = NULL;
 }
 
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n)
