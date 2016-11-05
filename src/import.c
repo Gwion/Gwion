@@ -74,6 +74,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
   list->xid = insert_symbol(path);
   if(array_depth)
     *array_depth = depth;
+  free(path);
   return list;
 }
 
