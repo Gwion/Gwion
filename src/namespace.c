@@ -110,7 +110,7 @@ void free_NameSpace(NameSpace a)
   free_Scope(a->value);
   free_Scope(a->type);
   free_Scope(a->func);
-	free_Map(a->label);
+  free_Map(a->label);
   free(a->class_data);
   free_Operator_Map(a->operator);
   free(a);

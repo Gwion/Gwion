@@ -80,7 +80,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
 
 Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_dtor dtor)
 {
-    Type  type_type = NULL;
+//    Type  type_type = NULL;
 
     if(type->info)
     {
@@ -129,8 +129,8 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
     type->obj_size = 0; // TODO
 
     type->is_complete = 1;
-    type_type = type_copy(env, &t_class);
-    type_type->actual_type = type;
+//    type_type = type_copy(env, &t_class);
+//    type_type->actual_type = type;
     // SAFE_REF_ASSIGN( type_type->actual_type, type );
     vector_append(env->nspc_stack, env->curr);
     env->curr = type->info;
@@ -203,9 +203,11 @@ m_int import_mvar(Env env, const m_str type,
 
   // cleanup
   free_ID_List(path);
+  free_Expression(exp_decl);
   return var_decl->value->offset;
 error:
   free_ID_List(path);
+  free_Expression(exp_decl);
   return -1;
 }
 
@@ -304,6 +306,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
+//	free(arg);
   }
   return arg_list;
 }
@@ -363,7 +366,11 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
-  
+//  for(i = 0; i < vector_size(dl_fun->args); i++)
+//	free((DL_Value*)vector_at(dl_fun->args, i));
+//  free_Vector(dl_fun->args);
+//  free(dl_fun);
+
   return func_def;
 
  error: 

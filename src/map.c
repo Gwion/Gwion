@@ -4,7 +4,7 @@
 struct Vector_
 {
   long unsigned int *ptr;
-	long unsigned int len;
+  long unsigned int len;
 };
 
 struct Map_
@@ -17,8 +17,8 @@ struct Map_
 Vector new_Vector()
 {
   Vector v = calloc(1, sizeof(struct Vector_));
-	v->ptr = calloc(1, sizeof(long unsigned int));
-	v->len = 0;
+  v->ptr = calloc(1, sizeof(long unsigned int));
+  v->len = 0;
   return v;
 }
 
@@ -34,6 +34,10 @@ void vector_append(Vector v, void* data)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * sizeof(void*));
+//  long unsigned int* tmp  = realloc(v->ptr, v->len * sizeof(void*));
+//  if(!tmp)
+//	return;
+//  v->ptr = tmp;
   v->ptr[v->len - 1] = (long unsigned int)data;
 }
 
@@ -45,6 +49,7 @@ Vector vector_copy(Vector v)
     ret->ptr[i] = v->ptr[i];
   return ret;
 }
+
 long int vector_find(Vector v, void* data)
 {
   long unsigned int i;
@@ -60,6 +65,7 @@ void vector_set(Vector v, const long unsigned int i, void* arg)
     return;
   v->ptr[i] = (long unsigned int)arg;
 }
+
 void vector_remove(Vector v, const long unsigned int index)
 {
   Vector tmp;
