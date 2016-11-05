@@ -21,6 +21,7 @@ Vector new_Vector()
 	v->len = 0;
   return v;
 }
+
 Vector new_Vector_fixed(const long unsigned int len)
 {
   Vector v = calloc(1, sizeof(struct Vector_));
