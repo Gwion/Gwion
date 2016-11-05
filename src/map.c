@@ -27,12 +27,6 @@ Vector new_Vector_fixed(const long unsigned int len)
   Vector v = calloc(1, sizeof(struct Vector_));
   v->ptr   = calloc(len,  sizeof(long unsigned int));
   v->len   = len;
-  long unsigned int i;
-  for(i = 0; i < len; i++)
-  {
-    v->ptr[i] = (long unsigned int )calloc(1, sizeof(long unsigned int));
-    *(long unsigned int*)v->ptr[i] = 0;
-  }
   return v;
 }
 
