@@ -43,7 +43,7 @@ void free_Context(Context context)
   free_Vector(context->new_values);
   free_Vector(context->new_types);
   free(context);
-  context = NULL;
+
 }
 
 int load_context(Context context, Env env)
