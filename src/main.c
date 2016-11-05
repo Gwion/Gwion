@@ -203,7 +203,6 @@ int main(int argc, char** argv)
     goto clean;
 	signal(SIGINT, sig);
 	signal(SIGTERM, sig);
-	signal(SIGKILL, sig);
   scan_map = new_Map();
 	vm = new_VM(loop);
 	vm->bbq = new_BBQ(vm, &di, &d);
