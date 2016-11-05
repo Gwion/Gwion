@@ -306,7 +306,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
-//	free(arg);
+	free(arg);
   }
   return arg_list;
 }
@@ -368,8 +368,8 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
 
 //  for(i = 0; i < vector_size(dl_fun->args); i++)
 //	free((DL_Value*)vector_at(dl_fun->args, i));
-//  free_Vector(dl_fun->args);
-//  free(dl_fun);
+  free_Vector(dl_fun->args);
+  free(dl_fun);
 
   return func_def;
 
