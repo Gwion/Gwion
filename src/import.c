@@ -74,6 +74,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
   list->xid = insert_symbol(path);
   if(array_depth)
     *array_depth = depth;
+  free(path);
   return list;
 }
 
@@ -203,10 +204,12 @@ m_int import_mvar(Env env, const m_str type,
   // cleanup
   free_Expression(exp_decl);
   free_ID_List(path);
+  free_Expression(exp_decl);
   return var_decl->value->offset;
 error:
   free_Expression(exp_decl);
   free_ID_List(path);
+  free_Expression(exp_decl);
   return -1;
 }
 
@@ -306,7 +309,11 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
+<<<<<<< HEAD
     free_DL_Value(arg);
+=======
+	free(arg);
+>>>>>>> 6bc1b17342f2fdba6aefaf38cdef4e35b6c52dce
   }
   free_Vector(dl_fun->args);
 //  free(dl_fun);
@@ -368,7 +375,15 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
+<<<<<<< HEAD
   free(dl_fun);
+=======
+//  for(i = 0; i < vector_size(dl_fun->args); i++)
+//	free((DL_Value*)vector_at(dl_fun->args, i));
+  free_Vector(dl_fun->args);
+  free(dl_fun);
+
+>>>>>>> 6bc1b17342f2fdba6aefaf38cdef4e35b6c52dce
   return func_def;
 
  error:

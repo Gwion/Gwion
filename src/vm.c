@@ -69,13 +69,15 @@ VM* new_VM(m_bool loop)
 
 void free_VM(VM* vm)
 {
-	if(vm->env)
-	  free_Env(vm->env);
-	if(vm->emit)
-	  free_Emitter(vm->emit);
+  if(vm->env)
+    free_Env(vm->env);
+  if(vm->emit)
+    free_Emitter(vm->emit);
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
   sp_destroy(&vm->bbq->sp);
+printf("free\n");
+  free(vm->bbq->in);
   free(vm->bbq);
   free_Shreduler(vm->shreduler);
   free(vm);

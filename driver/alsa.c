@@ -99,7 +99,6 @@ static void alsa_run(VM* vm, DriverInfo* di)
 
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
   {
-    vm->bbq->in = calloc(sp->nchan, sizeof(SPFLOAT));
     in_buf  = calloc(sp->nchan, sizeof(SPFLOAT*));
     out_buf = calloc(sp->nchan, sizeof(SPFLOAT*));
     _out_buf   = calloc(sp->nchan, sizeof(void*));
@@ -170,9 +169,9 @@ static void alsa_run(VM* vm, DriverInfo* di)
 static void alsa_del(VM* vm)
 {
   m_uint chan;
-  snd_pcm_close(in);
+//  snd_pcm_close(in);
   snd_pcm_hw_free(in);
-  snd_pcm_close(out);
+//  snd_pcm_close(out);
   snd_pcm_hw_free(out);
 
 	if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)

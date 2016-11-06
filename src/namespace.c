@@ -104,6 +104,7 @@ NameSpace new_NameSpace()
   a->label           = new_Map();
   a->class_data_size = 0;
   a->offset          = 0;
+  a->class_data      = NULL;
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
@@ -115,11 +116,13 @@ NameSpace new_NameSpace()
 
 void free_NameSpace(NameSpace a)
 {
+
   free_Scope(a->value);
   free_Scope(a->type);
   free_Scope(a->func);
-	free_Map(a->label);
-  free(a->class_data);
+  free_Map(a->label);
+  if(a->class_data)
+	  free(a->class_data);
   free_Operator_Map(a->operator);
   free(a);
 }

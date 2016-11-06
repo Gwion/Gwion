@@ -227,13 +227,14 @@ int main(int argc, char** argv)
 clean:
   free_Vector(add);
   free_Vector(rem);
-/*
-	if(d)
-		free_Driver(d, vm);
-*/
+  if(d)
+    free_Driver(d, vm);
   free_Map(scan_map);
 
-//	if(vm)
-//	  free_VM(vm);
+  for(i = 0; i < map_size(vm->env->known_ctx); i++)
+	if(i!=1)
+    free_Context(map_at(vm->env->known_ctx, i));
+//  if(vm)
+//    free_VM(vm);
   return 0;
 }
