@@ -37,12 +37,20 @@ static void sinosc_ctor(M_Object o, VM_Shred shred)
 //  SP_osc* ug = (SP_osc*)o->ugen->ug;
 	SP_osc* ug = malloc(sizeof(SP_osc));
 	sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
-  sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+    sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
+    sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
+    sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 	o->ugen->tick = sinosc_tick;
-  ug->is_init = 1;
+    ug->is_init = 1;
+}
+
+DTOR(sinosc_dtor)
+{
+  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  sp_osc_destroy(&ug->osc);
+  sp_ftbl_destroy(&ug->tbl);
+  free(ug);
 }
 
 static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
@@ -86,7 +94,7 @@ static m_bool import_sinosc(Env env){
   Func     f;
   DL_Func* fun;
 	CHECK_BB(add_global_type(env, &t_sinosc))
-	CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, NULL))
+	CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
 	env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
   fun = new_DL_Func("void", "init", (m_uint)sinosc_size);
    dl_func_add_arg(fun, "int", "size");

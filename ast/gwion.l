@@ -13,9 +13,13 @@ static char* strip_lit( char* str )
 
 static char* alloc_str( char* str )
 {
+/*
   char* s = (char*)calloc(1,  strlen(str) + 1 );
   strcpy( s, str );
   return s;
+*/
+ S_Symbol sym = insert_symbol(str);
+ return S_name(sym);
 }
 
 static long htol( char* str )
@@ -277,26 +281,26 @@ static int doc_adjust(void* data, char* str)
 int minimal_error(MyArg* arg, char* s)
 {
   m_uint i, pos;
-	m_str line = NULL;
-	char sign[256];
-	int n = 1;
-	size_t len = 0;
+  m_str line = NULL;
+  char sign[256];
+  int n = 1;
+  size_t len = 0;
   memset(sign, 0, 256);
-  err_msg(PARSE_, arg->line, "in file '%s'", arg->filename);  
-	err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);  
+  err_msg(PARSE_, arg->line, "in file '%s'", arg->filename);
+  err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);
 
-	fseek(arg->file, 0, SEEK_SET);
-	while (getline(&line, &len, arg->file) != -1)
-	{
-		if(n == arg->line)
-		{
-			fprintf(stderr, "%s\n", line);
-  		break;
-		}
-		n++;
-	}
-	free(line);
-	for(i = 0; i < arg->pos - 1; i++)
+  fseek(arg->file, 0, SEEK_SET);
+  while (getline(&line, &len, arg->file) != -1)
+  {
+    if(n == arg->line)
+    {
+      fprintf(stderr, "%s\n", line);
+      break;
+    }
+    n++;
+  }
+  free(line);
+  for(i = 0; i < arg->pos - 1; i++)
     strcat(sign, " ");
   strcat(sign, "^\n");
   fprintf(stderr, "%s", sign);
@@ -332,7 +336,12 @@ Ast parse(m_str filename)
   arg.filename = filename;
   minimal_set_in(file, arg.scanner);
   if(minimal_parse(&arg))
+  {
+    free_Ast(ast);
+    free_Vector(arg.doc);
+    minimal_lex_destroy(arg.scanner);
     return NULL;
+  }
   filename = c;
   ast = arg.ast;
   if(vector_front(arg.doc))

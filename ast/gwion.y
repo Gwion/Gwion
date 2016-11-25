@@ -9,6 +9,7 @@
 #include "absyn.h"
 #define scanner arg->scanner
 
+
 char *strcat(char *dest, const char *src);
 void minimal_error(void* data, const char* s);
 int minimal_lex(void*, void* , void*);
@@ -172,6 +173,7 @@ static m_str get_arg_doc(void* data)
 
 
 %left DOT
+
 %%
 
 ast

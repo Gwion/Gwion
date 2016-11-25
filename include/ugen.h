@@ -12,9 +12,8 @@ struct UGen_
 //  m_float last;
   m_int op;
 //  union {
-    Vector ugen;//, to; // store connected UGens
-//    Vector channel; 
-		M_Object* channel;
+    Vector ugen, to; // store connected UGens
+    M_Object* channel;
 //  };
 //  e_ugen_type type;
   M_Object trig;

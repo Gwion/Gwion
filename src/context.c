@@ -36,7 +36,7 @@ Context new_Context(Ast prog, m_str filename)
 
 void free_Context(Context a)
 {
-    m_uint i;
+//    m_uint i;
 //  free_NameSpace(a->nspc);
     rem_ref(a->nspc->obj, a->nspc);
     free_Vector(a->new_funcs);

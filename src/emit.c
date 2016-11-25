@@ -43,7 +43,7 @@ Emitter new_Emitter(Env env)
 
 void free_Emitter(Emitter emit)
 {
-  if (emit->code)
+  if(emit->code)
     free_Code(emit->code);
   free_Vector(emit->stack);
   free(emit);
@@ -69,6 +69,7 @@ void free_Code(Code* code)
   free_Vector(code->stack_cont);
   free_Vector(code->stack_return);
   free_Frame(code->frame);
+  free(code->name);
   free(code);
 }
 
@@ -211,6 +212,7 @@ VM_Code emit_to_code(Emitter emit)
   Code* c = emit->code;
   Vector v = vector_copy(c->code);
   VM_Code code = new_VM_Code(v, c->stack_depth, c->need_this, c->name, c->filename);
+//  free_Code(c);
   return code;
 }
 
@@ -435,6 +437,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     instr = add_instr(emit, Gack);
     instr->ptr = types;
     instr->execute = Gack;
+//free_Expression(primary->self);
     break;
   default:
     err_msg(EMIT_, primary->pos, "(emit): unhandled primary type '%i'...", primary->type);
@@ -2493,6 +2496,8 @@ m_bool emit_Ast(Emitter emit, Ast ast)
 #endif
   Ast prog = ast;
   int ret = 1;
+//  if(emit->code)
+//    free_Code(emit->code);
   emit->code = new_Code();
   emit->context = emit->env->context;
   emit->nspc = emit->context->nspc;

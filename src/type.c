@@ -221,7 +221,8 @@ m_bool check_Context( Env env, Context context) {
 }
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   int ret = -1;
-  Context context = new_Context(ast, strndup(filename, strlen(filename)));
+//  Context context = new_Context(ast, strndup(filename, strlen(filename)));
+  Context context = new_Context(ast, filename);
   env_reset(env);
   if(load_context(context, env) < 0)
   {

@@ -94,7 +94,6 @@ void ugen_compute(UGen u)
   m_uint  i;
   m_float sum = 0;
   UGen ugen;
-printf("compute\n");
   if(!u || u->done)
     return;
   if(u->channel)
@@ -104,8 +103,8 @@ printf("compute\n");
     for(i = 0; i < vector_size(u->ugen); i++)
     {
       ugen = (UGen)vector_at(u->ugen, i);
-      if(!ugen) // find a way to remove ugens
-	      break;
+//      if(!ugen) // find a way to remove ugens
+//	      break;
       if(!ugen->done)
         ugen_compute(ugen);
     }
@@ -138,9 +137,9 @@ UGen new_UGen()
   UGen u    =  (UGen) calloc(1, sizeof(struct UGen_));
   u->ugen   = NULL;
   u->channel = NULL;
+//  u->to = new_Vector();
   u->ug = NULL;
   u->trig = NULL;
-/*  u->to = NULL;*/
   u->tick = base_tick;
   u->done = 0;
   u->op = 1;
@@ -149,6 +148,7 @@ UGen new_UGen()
 
 void free_UGen(UGen u)
 {
+//  free_Vector(u->to);
   if(u->ugen)
     free_Vector(u->ugen);
   else
@@ -156,7 +156,6 @@ void free_UGen(UGen u)
 m_uint i;
 for(i = 0; i < u->n_chan; i++)
 {
-//printf("clean chan: %i\n", i);
 free_UGen(u->channel[i]->ugen);
 free(u->channel[i]);
 }
@@ -213,7 +212,7 @@ static INSTR(ugen_connect)
 #endif
   m_uint i;
   shred->reg -= SZ_INT*2;
-	M_Object lhs = *(M_Object*)shred->reg;
+  M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
   if(!rhs->ugen->n_in)
@@ -229,9 +228,15 @@ static INSTR(ugen_connect)
     {
       M_Object obj = rhs->ugen->channel[i];
       if(lhs->ugen->n_out > 1)
+      {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i%lhs->ugen->n_out]->ugen);
+//        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+      }
       else
+      {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
+//        vector_append(lhs->ugen->to, (vtype)obj->ugen);
+      }
     }
   }
   else
@@ -264,10 +269,14 @@ static INSTR(ugen_disconnect)
       M_Object obj = rhs->ugen->channel[i];
       UGen ugen = obj->ugen;
       vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
+//      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
     }
   }
   else
+  {
     vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
+//    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
+  }
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -283,12 +292,14 @@ static INSTR(trig_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig)
+  {
     vector_append(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
+//    vector_append(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
+  }
   release(lhs, shred);
   release(rhs, shred);
-	*(M_Object*)shred->reg = rhs;
-	shred->reg += SZ_INT;
-printf("trig: %p %p %p\n", lhs, rhs, lhs->ugen);
+  *(M_Object*)shred->reg = rhs;
+  shred->reg += SZ_INT;
 }
 
 static INSTR(trig_disconnect)
@@ -300,7 +311,10 @@ static INSTR(trig_disconnect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig)
+  {
     vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  (vtype)lhs->ugen));
+//    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
+  }
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -317,17 +331,17 @@ void ugen_ctor(M_Object o, VM_Shred shred)
 
 void ugen_dtor(M_Object o, VM_Shred shred)
 {
-printf("ugens: %i\n", vector_size(shred->vm_ref->ugen));
   vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, (vtype)o->ugen));
-printf("ugens: %i\n", vector_size(shred->vm_ref->ugen));
-/*  if(o->ugen->to)*/
-/*    for(i = 0; i < vector_size(o->ugen->to); i++)*/
-/*    {*/
-/*      u = (UGen)vector_at(o->ugen->to, i);*/
-/*      if(!u)*/
-/*        continue;*/
-/*    vector_remove(u->ugen, (m_uint)vector_find(u->ugen, o->ugen));*/
-/*    } */
+/*
+m_uint i;
+    for(i = 0; i < vector_size(o->ugen->to); i++)
+    {
+      UGen u = (UGen)vector_at(o->ugen->to, i);
+//      if(!u)
+//        continue;
+    vector_remove(u->ugen, (m_uint)vector_find(u->ugen, o->ugen));
+    }
+*/
     free_UGen(o->ugen);
 }
 

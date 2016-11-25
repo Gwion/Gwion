@@ -28,6 +28,7 @@ void free_VM_Code(VM_Code a)
   for(i = 0; i < vector_size(a->instr); i++)
     free((Instr)vector_at(a->instr, i));
   free_Vector(a->instr);
+//  free(a->name);
   free(a);
 }
 
@@ -46,7 +47,7 @@ VM_Shred new_VM_Shred(VM_Code c)
   shred->xid        = -1;
   shred->prev       = NULL;
   shred->next       = NULL;
-  shred->name       = c->name;
+  shred->name       = strdup(c->name);
   shred->me         = NULL;
   shred->child      = NULL;
   shred->parent     = NULL;
@@ -64,7 +65,8 @@ void free_VM_Shred(VM_Shred shred)
   free_VM_Code(shred->code);
   free(shred->mem);
   free(shred->reg);
-//  free(shred->filename);
+  free(shred->name);
+  free(shred->filename);
   free(shred);
 }
 
@@ -154,9 +156,9 @@ continue;
       if(shred->is_done)
 {
  // is this test good ?
-//if(shreduler_remove(vm->shreduler, shred, 1) < 0)
-// break;
-  shreduler_remove(vm->shreduler, shred, 1);
+if(shreduler_remove(vm->shreduler, shred, 1) < 0)
+ break;
+//  shreduler_remove(vm->shreduler, shred, 1);
 }
 #ifdef DEBUG_VM
 /*  else */

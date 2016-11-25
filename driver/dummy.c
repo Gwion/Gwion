@@ -35,7 +35,7 @@ Driver* silent_driver(VM* vm)
   d->ini = dummy_ini;
   d->run = silent_run;
   d->del = dummy_del;
-	vm->wakeup = no_wakeup;
+  vm->wakeup = no_wakeup;
   return d;
 }
 
@@ -45,7 +45,7 @@ Driver* dummy_driver(VM* vm)
   d->ini = dummy_ini;
   d->run = dummy_run;
   d->del = dummy_del;
-	vm->wakeup = no_wakeup;
+  vm->wakeup = no_wakeup;
   return d;
 }
 

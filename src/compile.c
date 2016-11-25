@@ -5,18 +5,20 @@
 
 m_bool compile(VM* vm, const m_str filename)
 {
+    m_bool ret = 1;
     VM_Shred shred;
     VM_Code  code;
     Ast      ast;
     Vector args = NULL;
-    m_str name, d = strdup(filename);
-    name = strsep(&d, ":");
+    m_str _name, name, d = strdup(filename);
+    _name = strsep(&d, ":");
     if(d)
         args = new_Vector();
     while(d)
         vector_append(args, (vtype)strsep(&d, ":"));
     free(d);
-    name = realpath(name, NULL);
+    name = realpath(_name, NULL);
+free(_name);
     if(!name)
     {
         err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
@@ -25,7 +27,12 @@ m_bool compile(VM* vm, const m_str filename)
 #ifdef DEBUG_COMPILE
     debug_msg("parser", "get full path ok %s", name);
 #endif
-    CHECK_OB((ast = parse(name)))
+//    CHECK_OB((ast = parse(name)))
+    if(!(ast = parse(name)))
+    {
+      ret = -1;
+      goto clean;
+    }
 #ifdef DEBUG_COMPILE
     debug_msg("lexer", "Ast of '%s' ok", name);
 #endif
@@ -39,15 +46,14 @@ m_bool compile(VM* vm, const m_str filename)
 #endif
     free_Ast(ast);
     add_instr(vm->emit, EOC);
-    vm->emit->code->name = name;
+    vm->emit->code->name = strdup(name);
     code = emit_to_code(vm->emit);
     shred = new_VM_Shred(code);
     shred->args = args;
     shred->me = new_Shred(vm, shred);
-    shred->code->filename = name;
     vm_add_shred(vm, shred);
-#ifdef DEBUG_COMPILE
-    debug_msg("lexer", "lauching shred [%p] : %i (%p)", shred, shred->xid, shred->args);
-#endif
-    return 1;
+//    free_Code(vm->emit->code);
+clean:
+  free(name);
+  return ret;
 }

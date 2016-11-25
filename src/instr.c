@@ -512,9 +512,10 @@ INSTR(Gack)
 #else
     fprintf(stdout, "\n");
 #endif
+    free(name);
     shred->reg += type->size;
-
   }
+  free_Vector(v);
 }
 
 /* function */

@@ -30,7 +30,7 @@ char* Recv(int i)
 {
 	char buf[255];
     ssize_t len;
-	unsigned int addrlen;
+	unsigned int addrlen = 0;
 	struct sockaddr_in addr;
 
 //	bzero(buf, 255);

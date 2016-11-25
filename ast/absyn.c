@@ -202,8 +202,7 @@ Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, in
 void free_Binary_Expression(Binary_Expression* binary)
 {
   free_Expression(binary->lhs);
-/*  free_Expression(binary->rhs);*/
-/*  free_Expression(binary->self);*/
+  free_Expression(binary->rhs);
   free(binary);
 }
 Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
@@ -333,7 +332,7 @@ Expression new_Primary_Expression_from_nil( int pos )
 
 Expression new_Primary_Expression_from_ID(m_str s, int pos)
 {
-	Expression a = calloc(1, sizeof(struct Expression_));
+  Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_var;
   a->emit_var = 0;
@@ -664,17 +663,21 @@ Expression new_exp_from_member_dot(Expression base, m_str xid, int pos)
 void free_Dot_Member_Expression(Dot_Member* dot)
 {
   if(dot->base)
-  free_Expression(dot->base);
+    free_Expression(dot->base);
   free_Expression(dot->self);
   free(dot);
 }
+
 Expression prepend_Expression(Expression exp, Expression next, int pos)
 {
   exp->next = next;
   return exp;
 }
+
 void free_Primary_Expression(Primary_Expression* primary)
 {
+  if(primary->type == ae_primary_hack)
+    free_Expression(primary->exp);
   free(primary);
 }
 
@@ -695,7 +698,7 @@ void free_Expression(Expression exp)
         free_Unary_Expression(curr->unary);
         break;
 			case Primary_Expression_type:
-        free_Primary_Expression(curr->primary_exp);
+            free_Primary_Expression(curr->primary_exp);
         break;
 			case Func_Call_type:
         free_Func_Call(curr->func_call);
@@ -1004,9 +1007,9 @@ void free_Section(Section* section)
 /*    case ae_section_class:*/
 /*      free_Class_Def(section->class_def);*/
 /*      break;*/
-/*    case ae_section_stmt:*/
-/*      free_Stmt_List(section->stmt_list);*/
-/*      break;*/
+    case ae_section_stmt:
+      free_Stmt_List(section->stmt_list);
+      break;
 /*    case ae_section_stmt:*/
 /*      free_Stmt_Func_Def(section->stmt_func_def);*/
 /*      break;*/
