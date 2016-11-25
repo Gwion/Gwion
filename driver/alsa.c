@@ -133,7 +133,6 @@ static void alsa_run(VM* vm, DriverInfo* di)
   }
   else // interleaved
   {
-    vm->bbq->in   = calloc(sp->nchan, sizeof(SPFLOAT));
     in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
     out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
     snd_pcm_hwsync(out);

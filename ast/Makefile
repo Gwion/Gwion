@@ -15,7 +15,7 @@ default:
 
 objs: ${OBJ}
 .c.o:
-	@${CC} ${DEF} ${CFLAGS} -c $< -o $(<:.c=.o)
+	@${CC} ${DEF} ${CFLAGS} -c $< -o $(<:.c=.o) -g
 
 clean:
 	@rm -f *.o parser.* lexer.*

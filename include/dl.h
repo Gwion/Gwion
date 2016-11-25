@@ -2,6 +2,7 @@
 #define DL_H
 
 #include <stdlib.h>
+#include <complex.h>
 
 #include "defs.h"
 #include "vm.h"

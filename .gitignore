@@ -4,3 +4,5 @@ gwion
 ast/parser.*
 ast/lexer.*
 config.mk
+include/generated.h
+forUncrustifySources.cfg

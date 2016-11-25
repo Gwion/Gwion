@@ -9319,6 +9319,7 @@ env->class_def->doc = "soudpipe float array type";
 	CHECK_BB(add_global_type(env, &t_nsmp))
 	CHECK_BB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
 	fun = new_DL_Func("void", "init", (m_uint)nsmp_init);
+		arg = dl_func_add_arg(fun, "ftbl", "ft");
 		arg->doc = "ftbl of the audio file. It should be mono.";
 		arg = dl_func_add_arg(fun, "int", "sr");
 		arg->doc = "samplerate.";

@@ -29,7 +29,7 @@ static ID_List str2list(m_str path, m_uint* array_depth )
     depth++;
     len -= 2;
   }
-  
+
   for( i = len - 1; i >= 0; i-- )
   {
     char c = path[i];
@@ -50,15 +50,14 @@ static ID_List str2list(m_str path, m_uint* array_depth )
       if( (i != 0 && last != '.' && last != '\0') ||
           (i == 0 && c != '.') )
       {
-        char s;
         m_int size = strlen(curr);
         for( j = 0; j < size/2; j++ )
         {
-          s = curr[j];
+          char s = curr[j];
           curr[j] = curr[size-j-1];
           curr[size-j-1] = s;
         }
-        list = prepend_id_list( curr, list, 0 );
+        list = prepend_id_list(curr, list, 0);
         memset(curr, 0, sizeof(curr));
       }
       else
@@ -99,31 +98,33 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
     if(pre_ctor)
     {
       type->has_constructor = 1;
-      type->info->pre_ctor = new_VM_Code(new_Vector(), sizeof(m_uint), 1, type->name , "[internal ctor definition]");
+      type->info->pre_ctor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal ctor definition]");
+//      type->info->pre_ctor = new_VM_Code(new_Vector(), SZ_INT, 1,"ctor" , "[internal ctor definition]");
       type->info->pre_ctor->native_func = (m_uint)pre_ctor;
       type->info->pre_ctor->native_func_type = NATIVE_CTOR;
       type->info->pre_ctor->need_this = 1;
-      type->info->pre_ctor->stack_depth = sizeof(m_uint);
+      type->info->pre_ctor->stack_depth = SZ_INT;
     }
     if(dtor)
     {
       type->has_destructor = 1;
-      type->info->dtor = new_VM_Code(new_Vector(), sizeof(m_uint), 1, type->name , "[internal dtor definition]");
+      type->info->dtor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal dtor definition]");
       type->info->dtor->native_func = (m_uint)dtor;
       type->info->dtor->native_func_type = NATIVE_DTOR;
       type->info->dtor->need_this = 1;
-        type->info->dtor->stack_depth = sizeof(m_uint);
+      type->info->dtor->stack_depth = SZ_INT;
     }
     if(type->parent)
     {
       type->info->offset = type->parent->obj_size;
+      free_Vector(type->info->obj_v_table);
       type->info->obj_v_table = vector_copy(type->parent->info->obj_v_table);
     }
 
     type->owner = where;
 /*    SAFE_ADD_REF(type->owner);*/
     add_ref(type->owner->obj);
-    type->size = sizeof(m_uint);
+    type->size = SZ_INT;
 //    type->size = 1;
     // set the object size
     type->obj_size = 0; // TODO
@@ -136,7 +137,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
     env->curr = type->info;
     vector_append(env->class_stack, env->class_def);
     env->class_def = type;
-    type->obj = new_VM_Object(e_type_obj);
+//    type->obj = new_VM_Object(e_type_obj);
     // ref count
     add_ref(type->obj);
     return type;
@@ -200,16 +201,14 @@ m_int import_mvar(Env env, const m_str type,
 
   if(doc)
     var_decl->value->doc = doc;
-
+  m_uint ret = var_decl->value->offset;
   // cleanup
+//  free_ID_List(path);
   free_Expression(exp_decl);
-  free_ID_List(path);
-  free_Expression(exp_decl);
-  return var_decl->value->offset;
+  return ret;
 error:
-  free_Expression(exp_decl);
-  free_ID_List(path);
-  free_Expression(exp_decl);
+//  free_ID_List(path);
+//  free_Expression(exp_decl);
   return -1;
 }
 
@@ -255,12 +254,10 @@ m_int import_svar(Env env, const m_str type,
     var_decl->value->doc = doc;
   var_decl->value->is_import = 1;
   // cleanup
-  free_ID_List(path);
-  free_Expression(exp_decl);
+  free_ID_List( path );
   return 1;
 error:
-  free_ID_List(path);
-  free_Expression(exp_decl);
+  free_ID_List( path );
   return -1;
 }
 
@@ -270,6 +267,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
   Type_Decl* type_decl = NULL;
   Var_Decl var_decl    = NULL;
   ID_List type_path    = NULL;
+//  ID_List name_path    = NULL;
   Array_Sub array_sub  = NULL;
   DL_Value* arg        = NULL;
   m_uint array_depth = 0;
@@ -278,7 +276,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
 
   for(i = vector_size(dl_fun->args) -1; i >= 0; i--)
   {
-    array_depth = array_depth2 = 0;
+    array_depth = array_depth2 = 0; 
     array_sub = NULL;
     arg = vector_at(dl_fun->args, i);
     type_path = str2list(arg->type, &array_depth);
@@ -299,7 +297,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     }
     // TODO: arrays?
     if(array_depth2)
-      array_depth = array_depth2;
+      array_depth = array_depth2;        
     if(array_depth)
     {
       array_sub = new_array_sub( NULL, 0 );
@@ -309,10 +307,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     var_decl = new_Var_Decl(arg->name, array_sub, 0 );
     arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
     arg_list->doc = arg->doc;
-    free_DL_Value(arg);
+	free(arg);
   }
-  free_Vector(dl_fun->args);
-//  free(dl_fun);
   return arg_list;
 }
 
@@ -371,18 +367,21 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
+  for(i = 0; i < vector_size(dl_fun->args); i++)
+  {
+    DL_Value* v = (DL_Value*)vector_at(dl_fun->args, i);
+//	free_DL_Value(v);
+//	free(v);
+  }
   free_Vector(dl_fun->args);
   free(dl_fun);
 
   return func_def;
 
- error:
+ error: 
   // clean up
-  free(dl_fun);
-  if(!func_def)
-    free_Type_Decl(type_decl);
-  else
-	free_Func_Def(func_def);
+  // if( !func_def ) delete_type_decl( type_decl );
+  // else delete_func_def( func_def );
   return NULL;
 }
 

@@ -123,17 +123,20 @@ Map new_Operator_Map()
 	m_uint i;
 	Map map = new_Map();
 	for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
-		map_set(map, (void*)operators[i], new_Vector());
+		map_set(map, (vtype)operators[i], (vtype)new_Vector());
 	return map;
 }
 
 void free_Operator_Map(Map map)
 {
-	m_uint i;
+  m_uint i;
   Vector v;
-	for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
+  for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
   {
-     v = (Vector)map_get(map, (void*)operators[i]);
+    m_uint j;
+    v = (Vector)map_get(map, (vtype)operators[i]);
+    for(j = 0; j < vector_size(v); j++)
+		free((M_Operator*)vector_at(v, j));
     free_Vector(v);
   }
   free_Map(map);
@@ -142,18 +145,16 @@ void free_Operator_Map(Map map)
 static M_Operator* operator_find(Vector v, Type lhs, Type rhs)
 {
   m_uint i;
-  M_Operator* mo;
   for(i = 0; i < vector_size(v); i++)
   {
-    mo = vector_at(v, i);
-    if((lhs && mo->lhs && mo->lhs->xid == lhs->xid) && 
+    M_Operator* mo = (M_Operator*)vector_at(v, i);
+    if((lhs && mo->lhs && mo->lhs->xid == lhs->xid) &&
        (rhs && mo->rhs && mo->rhs->xid == rhs->xid))
       return mo;
 /*    if((rhs && mo->rhs && mo->rhs->xid == rhs->xid) && !mo->lhs && !lhs)*/
 /*      return mo;*/
 /*    if((lhs && mo->lhs && mo->lhs->xid == lhs->xid) && !mo->rhs && !rhs)*/
 /*      return mo;*/
-  
   }
   return NULL;
 }
@@ -173,7 +174,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
 	if(global && nspc->parent)
 /*		nspc = nspc->parent;*/
 		nspc = env->global_nspc;
-  v = map_get(nspc->operator, (void*)op);
+  v = (Vector)map_get(nspc->operator, (vtype)op);
 
   if(!v)
   {
@@ -196,7 +197,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
 	mo->func      = NULL;
 	mo->type_func = NULL;
 	mo->doc       = NULL;
-  vector_append(v, mo);
+  vector_append(v, (vtype)mo);
   last = mo;
   return 1;
 }
@@ -211,9 +212,9 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
 /*  NameSpace nspc = env->curr;*/
   NameSpace nspc = env->global_nspc;
   M_Operator* mo;
-	while(nspc)
+  while(nspc)
   {
-    Vector v = map_get(nspc->operator, (void*)op);
+    Vector v = (Vector)map_get(nspc->operator, (vtype)op);
 
     if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
@@ -236,7 +237,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   nspc = env->global_nspc;
 	while(nspc)
   {
-    Vector v = map_get(nspc->operator, (void*)op);
+    Vector v = (Vector)map_get(nspc->operator, (vtype)op);
 
     if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
@@ -281,10 +282,10 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs)
   debug_msg(" op", 0, "set func'");
 #endif
   NameSpace nspc = env->curr;
-  M_Operator* mo;
-	while(nspc)
+  while(nspc)
   {
-    Vector v = map_get(nspc->operator, (void*)name2op(S_name(f->def->name)));
+    M_Operator* mo;
+    Vector v = (Vector)map_get(nspc->operator, (vtype)name2op(S_name(f->def->name)));
     if((mo = operator_find(v, lhs, rhs)))
     {
       mo->func = f;
@@ -304,10 +305,10 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   Type l = lhs, r = rhs;
   Vector v;
   NameSpace nspc = emit->env->curr;
-  M_Operator* mo;
   while(nspc)
   {
-    v = map_get(nspc->operator, (void*)op);
+    M_Operator* mo;
+    v = (Vector)map_get(nspc->operator, (vtype)op);
     if((mo = operator_find(v, lhs, rhs)))
     {
         if(mo->func)
@@ -344,7 +345,7 @@ void operator_doc(Vector v, FILE* file)
   fprintf(file, "@itemize @bullet\n");
   for(i = 0; i <vector_size(v); i++)
   {
-    M_Operator* mo = vector_at(v, i);
+    M_Operator* mo = (M_Operator*)vector_at(v, i);
     fprintf(file, "@item (%s) '%s' %s '%s'\n", mo->ret->name, mo->lhs->name, op2str(i), mo->rhs->name);
     if(mo->doc)
       fprintf(file, "'%s'\n", mo->doc);

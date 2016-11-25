@@ -94,8 +94,9 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 
   if(ret)
   {
-    Value value = NULL;
-    Type  type  = NULL;
+    Value value;
+    Type  type;
+
     type = type_copy(env, &t_class );
     type->actual_type = the_class;
     value = new_Value(env->context, type, the_class->name);

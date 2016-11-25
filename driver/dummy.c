@@ -8,7 +8,6 @@
 //void no_wakeup(){}
 static void dummy_run(VM* vm, DriverInfo* di)
 {
-  vm->bbq->in = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
   while(vm->is_running)
   {
     vm_run(vm);
@@ -19,7 +18,6 @@ static void dummy_run(VM* vm, DriverInfo* di)
 static void silent_run(VM* vm, DriverInfo* di)
 {
   m_uint timer = (vm->bbq->sp->sr / 100000);
-  vm->bbq->in = calloc(vm->bbq->sp->nchan, sizeof(SPFLOAT));
   while(vm->is_running)
   {
     vm_run(vm);

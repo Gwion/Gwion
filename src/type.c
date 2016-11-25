@@ -82,7 +82,7 @@ Env type_engine_init(VM* vm)
 //  CHECK_BO(import_io(env))
   start_type_xid();
   // event child
-  CHECK_BO(import_fileio(env))
+//  CHECK_BO(import_fileio(env))
 
   // libs
   CHECK_BO(import_lib(env))
@@ -130,7 +130,7 @@ Env type_engine_init(VM* vm)
   // doc
   namespace_commit(env->context->nspc);
   map_set(env->known_ctx, insert_symbol(env->global_context->filename), env->global_context);
-  env->global_context->tree = malloc(sizeof(struct Ast_));
+  env->global_context->tree = calloc(1, sizeof(struct Ast_));
   env->global_context->tree->doc = "this is the main context, where basic type and global variables are declared";
   // user namespace
 /*  env->user_nspc = new_NameSpace();*/
@@ -140,18 +140,18 @@ Env type_engine_init(VM* vm)
 /*  add_ref(env->user_nspc->obj);*/
 /*  env->curr = env->user_nspc;*/
   // plugins
-  void* handler;
+//  void* handler;
   m_str dirname = GW_PLUG_DIR;
   struct dirent **namelist;
   int n;
-  char c[256];
   n = scandir(GW_PLUG_DIR, &namelist, so_filter, alphasort);
   if (n > 0)
   {
     while (n--)
     {
+      char c[256];
       sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-      handler = dlopen(c, RTLD_LAZY);
+      void* handler = dlopen(c, RTLD_LAZY);
       {
 /*        if(!handler)*/
 /*        {*/
@@ -326,6 +326,7 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
   the_class->parent = t_parent;
 /*  the_class->ugen_info = t_parent->ugen_info;*/
   the_class->info->offset = t_parent->obj_size;
+free_Vector(the_class->info->obj_v_table);
   the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
   vector_append(env->nspc_stack, env->curr);
   env->curr = the_class->info;
@@ -743,7 +744,6 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
       {
         err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
         return NULL;
-        break;
       }
       CHECK_OO((t = check_Expression(env, primary->exp)))
       break;
@@ -1052,8 +1052,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast) {
   if(isa(t2, &t_func_ptr) > 0)
   {
     Value v = namespace_lookup_value(env->curr, cast->exp->primary_exp->var,  1);
-    Func  f = v->func_ref;
-     f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
+    Func  f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos))
     {
       cast->func = f;
@@ -1206,7 +1205,7 @@ moveon:
 // move to type_utils ?
 Func find_func_match(Func up, Expression args)
 {
-  Func func = NULL;
+  Func func;
 
   func = find_func_match_actual(up, args, 0, 1);
   if(func) return func;
@@ -1705,7 +1704,7 @@ static Type check_Unary(Env env, Unary_Expression* unary)
 }
 static Type check_exp_if(Env env, If_Expression* exp_if )
 {
-#ifdef DEUBG_TYPE
+#ifdef DEBUG_TYPE
   debug_msg("check", "debug exp if");
 #endif
   // check the components
@@ -1927,8 +1926,8 @@ static m_bool check_For(Env env, Stmt_For stmt)
 }
 static m_bool check_Loop(Env env, Stmt_Loop stmt)
 {
-  Type type = NULL;
-  type = check_Expression(env, stmt->cond);
+  Type type = check_Expression(env, stmt->cond);
+
   if(!type)
       return -1;
   if(isa( type, &t_float))
@@ -2063,7 +2062,7 @@ static m_bool check_Goto_Label(Env env, Stmt_Goto_Label stmt)
 }
 
 static m_bool check_Stmt(Env env, Stmt* stmt) {
-#ifdef DEBuG_TYPE
+#ifdef DEBUG_TYPE
   debug_msg("check", "stmt");
 #endif
   m_bool ret = 1;
@@ -2271,7 +2270,7 @@ m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
 
   Arg_List e1 = lhs->arg_list;
   Arg_List e2 = rhs->arg_list;
-  m_uint count = 1;
+//  m_uint count = 1;
 
   // check arguments against the definition
   while(e1 && e2)
@@ -2279,12 +2278,12 @@ m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
       // match types
       if( e1->type != e2->type )
       {
-/*          err_msg(TYPE_, pos, "function signatures differ in argument %i's type...", count );*/
+//          err_msg(TYPE_, pos, "function signatures differ in argument %i's type...", count );
           return -1;
       }
       e1 = e1->next;
       e2 = e2->next;
-      count++;
+//      count++;
   }
   if(e1 || e2)
     return -1;
@@ -2326,10 +2325,10 @@ m_bool check_Func_Def(Env env, Func_Def f)
   else if(value->func_num_overloads)// check if func has ame args
   {
     m_uint i, j;
-    char name[1024];
     if(!f->types)
     for(i = 0; i <= value->func_num_overloads; i++)
     {
+      char name[1024];
       sprintf(name, "%s@%li@%s", S_name(f->name), i, env->curr->name);
       Func f1 = namespace_lookup_func(env->curr, insert_symbol(name), -1);
       for(j = 1; j <= value->func_num_overloads; j++)

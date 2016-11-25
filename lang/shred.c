@@ -55,8 +55,7 @@ static MFUN(shred_yield)
 
 static SFUN(vm_shred_from_id)
 {
-/*  VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)shred->mem);*/
-  VM_Shred s = vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
+  VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
   if(!s)
     RETURN->v_uint = 0;
   else
@@ -74,7 +73,7 @@ static MFUN(shred_arg)
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  STRING(obj) = vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
+  STRING(obj) = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
   RETURN->v_uint = (m_uint)obj;
 }
 

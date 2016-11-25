@@ -14,36 +14,32 @@ void minimal_error(void* data, const char* s);
 int minimal_lex(void*, void* , void*);
 static int get_pos(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   return arg->line;
 }
 
 static char* append_doc(void* data, m_str str)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
-  vector_append(arg->doc, str);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
+  vector_append(arg->doc, (vtype)str);
   return str;
 }
 
 static m_str get_doc(void* data)
 {
   m_str ret;
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
-  ret = vector_front(arg->doc);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
+  ret = (m_str)vector_front(arg->doc);
   vector_remove(arg->doc, 0);
-//  ret = vector_back(arg->doc);
-//  vector_remove(arg->doc, vector_size(arg->doc) - 1);
   return ret;
 }
 
 static m_str get_arg_doc(void* data)
 {
   m_str ret;
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
-  ret = vector_back(arg->doc);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
+  ret = (m_str)vector_back(arg->doc);
   vector_pop(arg->doc);
-//  ret = vector_at(arg->doc, 1);
-//  vector_remove(arg->doc, 1);
   return ret;
 }
 

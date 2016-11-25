@@ -3,7 +3,7 @@ LDFLAGS = -lsoundpipe
 LDFLAGS += -lm -pthread -lsndfile
 LDFLAGS += -ldl -rdynamic -lrt
 
-CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return
+CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native -freg-struct-return
 CFLAGS += -fno-strict-aliasing -Wall
 CFLAGS += -D_GNU_SOURCE
 
@@ -61,7 +61,7 @@ ifeq (${PORTAUDIO_D}, 1)
 endif
 
 clean:
-	@rm -f core.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
+	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
 	@rm -f ${PRG}
 	@rm -f include/generated.h
 	@make -s -C ast clean

@@ -1275,7 +1275,7 @@ INSTR(Instr_Array_Access)
       *(complex**)shred->reg = c_vector_addr(obj->array, i);
     else if(instr->m_val2 == Kindof_Vec3)
       *(VEC3_T**)shred->reg = v3_vector_addr(obj->array, i);
-    else if(instr->m_val2 == Kindof_Vec3)
+    else if(instr->m_val2 == Kindof_Vec4)
       *(VEC4_T**)shred->reg = v4_vector_addr(obj->array, i);
  		shred->reg += SZ_INT;
   }
@@ -1322,7 +1322,7 @@ INSTR(Instr_Array_Access_Multi)
 #endif
   m_int i , j;
   shred->reg -= SZ_INT * (instr->m_val + 1);
-  M_Object obj = NULL, *base = (M_Object*)shred->reg;
+  M_Object obj, *base = (M_Object*)shred->reg;
   obj = *base;
   if(!obj)
     Except(shred);

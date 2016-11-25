@@ -10,6 +10,7 @@
 
 extern struct Type_ t_osc;
 static struct Type_ t_sinosc      = { "SinOsc",      1, &t_ugen };
+
 typedef struct
 {
   sp_data* sp;
