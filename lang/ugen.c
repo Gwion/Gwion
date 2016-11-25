@@ -105,7 +105,6 @@ void ugen_compute(UGen u)
       ugen = (UGen)vector_at(u->ugen, i);
       if(!ugen) // find a way to remove ugens
 	      break;
-//      exit(12);
       if(!ugen->done)
         ugen_compute(ugen);
     }
