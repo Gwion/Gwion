@@ -31,6 +31,7 @@ function declare_c_param(param)
 		print("unknown type:", param.type, ".")
 		os.exit()
 	end
+--	print("gw_offset;")
 end
 
 function declare_gw_param(param)
@@ -42,8 +43,14 @@ function declare_gw_param(param)
 		print("\t\targ = dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%*%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+else print("fuck "..param.type)
+os.exit();
 	end
 	make_doc("\t\targ", param)
 end

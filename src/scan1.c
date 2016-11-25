@@ -531,7 +531,7 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
   debug_msg("scan1", "func ptr");
 #endif
 // TODO: remove type on errors
-  Arg_List arg_list = NULL;
+  Arg_List arg_list;
   int count = 1;
   arg_list = ptr->args;
 

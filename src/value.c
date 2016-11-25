@@ -22,8 +22,19 @@ Value new_Value(Context context, Type type, m_str name)
   return a;
 }
 
+extern struct Type_ t_object;
+extern struct Type_ t_ugen;
 void free_Value(Value a)
 {
-  free(a->ptr);
+  if(a->ptr) // is it necessary ?
+  {
+    if(isprim(a->m_type) > 0)
+//    if(isa(a->m_type, &t_ugen) > 0)
+//exit(2);
+//     release(a->ptr, NULL);
+//else
+//else
+    free(a->ptr);
+  }
   free(a);
 }

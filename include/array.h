@@ -1,6 +1,8 @@
 #ifndef __ARRAY
 #define __ARRAY
+#include <complex.h>
 #include "map.h"
+
 typedef struct VM_Vector_* VM_Vector;
 typedef struct
 {

@@ -20,12 +20,12 @@ m_bool base_tick(UGen u)
     u->out = 0;
     return 1;
   }
-  ugen = vector_at(u->ugen, 0);
+  ugen = (UGen)vector_at(u->ugen, 0);
   u->out = ugen->out;
 /*  u->out = ugen ? ugen->out : 0;*/
   for(i = 1; i < size; i++)
   {
-    ugen = vector_at(u->ugen, i);
+    ugen = (UGen)vector_at(u->ugen, i);
 /*    if(!ugen)*/
 /*      continue;*/
     switch(u->op)
@@ -94,6 +94,7 @@ void ugen_compute(UGen u)
   m_uint  i;
   m_float sum = 0;
   UGen ugen;
+printf("compute\n");
   if(!u || u->done)
     return;
   if(u->channel)
@@ -114,9 +115,9 @@ void ugen_compute(UGen u)
     for(i = 0; i < u->n_in; i++)
       u->ref->channel[i]->ugen->tick(u->ref->channel[i]->ugen);
     ref_compute(u->ref);
-    return; 
+    return;
   }
-  u->tick(u); 
+  u->tick(u);
   if(u->channel)
   {
 /*    for(i = 0; i < u->n_out> u->n_in ? u->n_out : u->n_in; i++)*/
@@ -151,7 +152,18 @@ void free_UGen(UGen u)
   if(u->ugen)
     free_Vector(u->ugen);
   else
+  {
+m_uint i;
+for(i = 0; i < u->n_chan; i++)
+{
+//printf("clean chan: %i\n", i);
+free_UGen(u->channel[i]->ugen);
+free(u->channel[i]);
+}
+//    release(u->channel[i], NULL);
+//    release(u->channel[i], NULL);
     free(u->channel);
+  }
   free(u);
 }
 
@@ -216,14 +228,14 @@ static INSTR(ugen_connect)
     for(i = 0; i < rhs->ugen->n_out; i++)
     {
       M_Object obj = rhs->ugen->channel[i];
-			if(lhs->ugen->n_out > 1)
-				vector_append(obj->ugen->ugen, lhs->ugen->channel[i%lhs->ugen->n_out]->ugen);
+      if(lhs->ugen->n_out > 1)
+        vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i%lhs->ugen->n_out]->ugen);
       else
-				vector_append(obj->ugen->ugen,    lhs->ugen);
+        vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
     }
   }
   else
-    vector_append(rhs->ugen->ugen, lhs->ugen);
+    vector_append(rhs->ugen->ugen, (vtype)lhs->ugen);
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -251,11 +263,11 @@ static INSTR(ugen_disconnect)
     {
       M_Object obj = rhs->ugen->channel[i];
       UGen ugen = obj->ugen;
-      vector_remove(ugen->ugen, vector_find(ugen->ugen,  lhs->ugen));
+      vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
     }
   }
   else
-    vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (m_uint*)lhs->ugen));
+    vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -271,7 +283,7 @@ static INSTR(trig_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig)
-    vector_append(rhs->ugen->trig->ugen->ugen, lhs->ugen);
+    vector_append(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -288,7 +300,7 @@ static INSTR(trig_disconnect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig)
-    vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  lhs->ugen));
+    vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  (vtype)lhs->ugen));
   release(lhs, shred);
   release(rhs, shred);
 	*(M_Object*)shred->reg = rhs;
@@ -299,13 +311,15 @@ void ugen_ctor(M_Object o, VM_Shred shred)
 {
   o->ugen = new_UGen();
 /*  o->ugen->to = new_Vector();*/
-  vector_append(shred->vm_ref->ugen, (m_uint*)o->ugen);
+  vector_append(shred->vm_ref->ugen, (vtype)o->ugen);
 }
 
 
 void ugen_dtor(M_Object o, VM_Shred shred)
 {
-  vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, o->ugen));
+printf("ugens: %i\n", vector_size(shred->vm_ref->ugen));
+  vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, (vtype)o->ugen));
+printf("ugens: %i\n", vector_size(shred->vm_ref->ugen));
 /*  if(o->ugen->to)*/
 /*    for(i = 0; i < vector_size(o->ugen->to); i++)*/
 /*    {*/
@@ -315,7 +329,6 @@ void ugen_dtor(M_Object o, VM_Shred shred)
 /*    vector_remove(u->ugen, (m_uint)vector_find(u->ugen, o->ugen));*/
 /*    } */
     free_UGen(o->ugen);
-    o->ugen = NULL;
 }
 
 static MFUN(ugen_channel)

@@ -1,3 +1,5 @@
 SinOsc sinosc => dac;
 <<<second>>>;
 second => now;
+<<<"end">>>;
+//sinosc =< dac;

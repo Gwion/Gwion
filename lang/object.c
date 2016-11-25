@@ -1,3 +1,4 @@
+
 #include "defs.h"
 #include "vm.h"
 #include "type.h"
@@ -73,6 +74,7 @@ static INSTR(parentize)
   o->type_ref = o->type_ref->parent;
   vm_add_shred(shred->vm_ref, (VM_Shred)instr->m_val2);
 }
+
 void release(M_Object obj, VM_Shred shred)
 {
   if(!obj)
@@ -102,10 +104,10 @@ void release(M_Object obj, VM_Shred shred)
           instr->execute = parentize;
           instr->m_val   = (m_uint)obj;
           instr->m_val2  = (m_uint)shred;
-          vector_append(code->instr, instr);
+          vector_append(code->instr, (vtype)instr);
           Instr eoc = new_Instr();
           eoc->execute = EOC;
-          vector_append(code->instr, eoc);
+          vector_append(code->instr, (vtype)eoc);
           shred->next_pc--;
           // TODO: where do we free code ?
           vm_add_shred(shred->vm_ref, sh);
@@ -115,13 +117,13 @@ void release(M_Object obj, VM_Shred shred)
       t = t->parent;
     }
   }
+printf("object dtor\n");
 }
 
 void object_dtor(M_Object o, VM_Shred shred)
 {
   free(o->data);
   free(o);
-  o = NULL;
 }
 
 INSTR(Assign_Object)

@@ -30,7 +30,7 @@ void rem_ref(VM_Object a, void* ptr)
   {
     switch(a->type)
     {
-      case e_dll_obj: 
+      case e_dll_obj:
         goto error;
       case e_emit_obj:
         free_Emitter(ptr);
@@ -42,7 +42,8 @@ void rem_ref(VM_Object a, void* ptr)
         free_Env(ptr);
         break;
       case e_type_obj:
-        goto error;
+//        goto error;
+        break;
       case e_value_obj:
         free_Value(ptr);
         break;
@@ -52,12 +53,10 @@ void rem_ref(VM_Object a, void* ptr)
       case e_func_obj:
         free_Func(ptr);
         break;
-      default: 
+      default:
         goto error;
     }
-    ptr = NULL;
     free(a);
-    a = NULL;
   }
   return;
 error:

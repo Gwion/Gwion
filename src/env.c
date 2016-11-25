@@ -56,10 +56,28 @@ void env_reset(Env env)
 typedef void (*cleaner)();
 void free_Env(Env a)
 {
-  free_NameSpace(a->curr);
+  m_uint i;
+  free(a->global_context->tree);
+//  free_NameSpace(a->curr);
   // TODO release content ?
+  for(i = 0; i < map_size(a->known_ctx); i++)
+  if(i!=1)
+//    free_Context(map_at(a->known_ctx, i));
+{
+    Context ctx = (Context)map_at(a->known_ctx, i);
+    rem_ref(ctx->obj, ctx);
+}
+  free_Map(a->known_ctx);
   free_Vector(a->contexts);
+  for(i = 0; i < vector_size(a->nspc_stack); i++)
+  {
+    NameSpace  nspc = (NameSpace)vector_at(a->nspc_stack, i);
+    rem_ref(nspc->obj, nspc);
+  }
+//  free_NameSpace(a->global_nspc);
+  free_Vector(a->nspc_stack);
   free_Vector(a->class_stack);
+  free_Vector(a->breaks);
+  free_Vector(a->conts);
   free(a);
-  a = NULL;
 }

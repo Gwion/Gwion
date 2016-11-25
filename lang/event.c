@@ -32,7 +32,7 @@ INSTR(Event_Wait)
   event = *(M_Object*)shred->reg;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
-  vector_append(v, shred);
+  vector_append(v, (vtype)shred);
   shred->next_pc++;
 	*(m_int*)shred->reg = 1;
 	shred->reg += SZ_INT;

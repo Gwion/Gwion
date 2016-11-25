@@ -550,9 +550,9 @@ struct Func_Def_
   m_bool has_code;
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
-	ID_List types;
-	m_bool is_template;
-	m_bool is_variadic;
+  ID_List types;
+  m_bool is_template;
+  m_bool is_variadic;
 };
 
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt* code, int pos);
