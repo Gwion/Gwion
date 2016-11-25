@@ -6,6 +6,7 @@
 /* %param { MyArg* arg } */
 %name-prefix "minimal_"
 %{
+#define YYERROR_VERBOSE
 #include "absyn.h"
 #define scanner arg->scanner
 
