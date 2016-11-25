@@ -52,7 +52,7 @@ free(_name);
     shred->args = args;
     shred->me = new_Shred(vm, shred);
     vm_add_shred(vm, shred);
-//    free_Code(vm->emit->code);
+    free_Code(vm->emit->code);
 clean:
   free(name);
   return ret;

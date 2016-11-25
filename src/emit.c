@@ -43,8 +43,6 @@ Emitter new_Emitter(Env env)
 
 void free_Emitter(Emitter emit)
 {
-  if(emit->code)
-    free_Code(emit->code);
   free_Vector(emit->stack);
   free(emit);
 }
@@ -2496,8 +2494,6 @@ m_bool emit_Ast(Emitter emit, Ast ast)
 #endif
   Ast prog = ast;
   int ret = 1;
-//  if(emit->code)
-//    free_Code(emit->code);
   emit->code = new_Code();
   emit->context = emit->env->context;
   emit->nspc = emit->context->nspc;
