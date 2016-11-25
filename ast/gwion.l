@@ -53,7 +53,7 @@ char * c = str;
 
 static int newline(void*data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   arg->line++;
   arg->pos = 1;
   return 1;
@@ -62,7 +62,7 @@ char *minimal_get_text (yyscan_t yyscanner );
 
 static int doc_newline(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   arg->line++;
   arg->pos = 1;
   strcat(arg->doc_str, "\n");
@@ -71,21 +71,21 @@ static int doc_newline(void* data)
  
 static m_str doc_append(void* data, m_str str)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   sprintf(arg->doc_str, "%s%s", arg->doc_str, str);
   return arg->doc_str;
 }
 
 static m_str doc_set(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   return arg->doc_str;
 }
 
 static int doc_init(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
-  vector_append(arg->doc, "");
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
+  vector_append(arg->doc, (vtype)"");
   //memset(arg->doc_str, 0, sizeof(arg->doc_str));
   return 1;
 }
@@ -258,17 +258,17 @@ static int doc_adjust(void* data, char* str);
 
 static int adjust(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   arg->pos += minimal_get_leng(data);
 }
 
 static int doc_adjust(void* data, char* str)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   arg->pos += minimal_get_leng(data);
-  m_str c = vector_back(arg->doc);
+  m_str c = (m_str)vector_back(arg->doc);
   if(!c)
-    vector_append(arg->doc, str);
+    vector_append(arg->doc, (vtype)str);
   else
     strcat(c, str);
     printf("doc adjust\n%s\nend of doc_adjust\n", vector_front(arg->doc));
@@ -314,9 +314,10 @@ Ast parse(m_str filename)
   MyArg arg;
   minimal_lex_init(&arg.scanner);
   minimal_set_extra(&arg, arg.scanner);
-  map_set(scan_map, arg.scanner, &arg);
-  map_set(scan_map, (void*)(m_uint)minimal_get_extra(arg.scanner), &arg);
-  arg.line = 1; arg.pos  = 0; arg.doc = new_Vector();
+//  minimal_lex_init_extra(&arg, arg.scanner);
+  map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
+  map_set(scan_map, (vtype)minimal_get_extra(arg.scanner), (vtype)&arg);
+  arg.line = 0; arg.pos  = 0; arg.doc = new_Vector();
   char c[1024];
   memset(c, 0, 1024);
   strcat(c, filename);
@@ -335,15 +336,17 @@ Ast parse(m_str filename)
   filename = c;
   ast = arg.ast;
   if(vector_front(arg.doc))
-	{
-    ast->doc = malloc(sizeof(char));
-		memset(ast->doc, 0, 1);  
-	}
-	while(vector_front(arg.doc))
   {
-    strcat(ast->doc, vector_front(arg.doc));
+    ast->doc = malloc(sizeof(char));
+    memset(ast->doc, 0, 1);
+  }
+  while(vector_front(arg.doc))
+  {
+    strcat(ast->doc, (m_str)vector_front(arg.doc));
     vector_remove(arg.doc, 0);
   }
+  free_Vector(arg.doc);
   fclose(file);
+  minimal_lex_destroy(arg.scanner);
   return ast;
 }

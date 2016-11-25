@@ -29,7 +29,7 @@ void Send(const char* c, unsigned int i)
 char* Recv(int i)
 {
 	char buf[255];
-	unsigned int len;
+    ssize_t len;
 	unsigned int addrlen;
 	struct sockaddr_in addr;
 
@@ -46,7 +46,7 @@ char* Recv(int i)
 void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
-	while(ssp_is_running)
+	while(vm->is_running)
 	{
 		const char* buf;
 		int index;
@@ -55,8 +55,8 @@ void* server_thread(void* data)
     if( strncmp(buf, "bonjour", 7) == 0);
     else if( strncmp(buf, "quit", 4) == 0)
     {
-			ssp_is_running = 0;
-			sio_wakeup();
+			vm->is_running = 0;
+			vm->wakeup();
 		}
 		/* remove */
 		else if( strncmp(buf, "-", 1) == 0)
@@ -79,7 +79,6 @@ void* server_thread(void* data)
 			strsep((char**)&buf, " ");
 			index = atoi(buf);
       shreduler_set_loop(vm->shreduler, index);
-//			ssp_log(0, LOG, "loop mode is %s", loop ? "\033[32mON\033[0m" : "\033[35mOFF\033[0m");
     }
 		/* else it might be a file */
 		else
@@ -110,7 +109,10 @@ int server_init(char* hostname, int port)
 		{
 			saddr.sin_addr.s_addr = htonl(INADDR_ANY);
 			err_msg(UDP, 0, "%s not found. setting hostname to localhost", hostname);
-			hostname = strdup("localhost");
+//			hostname = strdup("localhost");
+char** host = &hostname;
+			*host = "localhost";
+//			hostname = "localhost";
 		}
 	}
 	else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
@@ -118,7 +120,7 @@ int server_init(char* hostname, int port)
 	/* Bind to the local address */
   if (bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
   {
-    err_msg(UDP, 0, "can't bind");  
+    err_msg(UDP, 0, "can't bind");
 		return -1;
   }
 	return 1;
@@ -127,5 +129,6 @@ int server_init(char* hostname, int port)
 void server_destroy(pthread_t t)
 {
   pthread_cancel(t);
+  pthread_join(t, NULL);
   shutdown(sock, SHUT_RDWR);
 }

@@ -19,6 +19,7 @@ endif
 ifeq (${SOUNDIO_D}, 1)
   LDFLAGS+=-lsoundio
   CFLAGS+=-DHAVE_SOUNDIO
+	drvr_obj+=driver/soundio.o
 endif
 
 ifeq (${SPA_D}, 1)

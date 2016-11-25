@@ -13,12 +13,6 @@ m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
 
-CTOR(ftbl_ctor)
-{
-	FTBL(o) = NULL;
-}
-
-
 DTOR(ftbl_dtor)
 {
 	if(FTBL(o))
@@ -29,19 +23,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_adsr* osc;
-	m_bool is_init;
 } GW_adsr;
 
 TICK(adsr_tick)
 {
 	GW_adsr* ug = (GW_adsr*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(adsr_ctor)
@@ -49,7 +37,7 @@ CTOR(adsr_ctor)
 	GW_adsr* ug = malloc(sizeof(GW_adsr));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_adsr_create(&ug->osc);
-	ug->is_init = 0;
+	sp_adsr_init(ug->sp, ug->osc);
 	o->ugen->tick = adsr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -57,8 +45,6 @@ CTOR(adsr_ctor)
 DTOR(adsr_dtor)
 {
 	GW_adsr* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_adsr_destroy(&ug->osc);
 }
 
@@ -133,12 +119,12 @@ TICK(allpass_tick)
 {
 	GW_allpass* ug = (GW_allpass*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(allpass_ctor)
@@ -154,9 +140,8 @@ CTOR(allpass_ctor)
 DTOR(allpass_dtor)
 {
 	GW_allpass* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_allpass_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_allpass_destroy(&ug->osc);
 }
 
 MFUN(allpass_init)
@@ -196,19 +181,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_atone* osc;
-	m_bool is_init;
 } GW_atone;
 
 TICK(atone_tick)
 {
 	GW_atone* ug = (GW_atone*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(atone_ctor)
@@ -216,7 +195,7 @@ CTOR(atone_ctor)
 	GW_atone* ug = malloc(sizeof(GW_atone));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_atone_create(&ug->osc);
-	ug->is_init = 0;
+	sp_atone_init(ug->sp, ug->osc);
 	o->ugen->tick = atone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -224,8 +203,6 @@ CTOR(atone_ctor)
 DTOR(atone_dtor)
 {
 	GW_atone* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_atone_destroy(&ug->osc);
 }
 
@@ -248,19 +225,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_autowah* osc;
-	m_bool is_init;
 } GW_autowah;
 
 TICK(autowah_tick)
 {
 	GW_autowah* ug = (GW_autowah*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(autowah_ctor)
@@ -268,7 +239,7 @@ CTOR(autowah_ctor)
 	GW_autowah* ug = malloc(sizeof(GW_autowah));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_autowah_create(&ug->osc);
-	ug->is_init = 0;
+	sp_autowah_init(ug->sp, ug->osc);
 	o->ugen->tick = autowah_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -276,8 +247,6 @@ CTOR(autowah_ctor)
 DTOR(autowah_dtor)
 {
 	GW_autowah* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_autowah_destroy(&ug->osc);
 }
 
@@ -330,19 +299,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_bal* osc;
-	m_bool is_init;
 } GW_bal;
 
 TICK(bal_tick)
 {
 	GW_bal* ug = (GW_bal*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_bal_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(bal_ctor)
@@ -350,7 +313,7 @@ CTOR(bal_ctor)
 	GW_bal* ug = malloc(sizeof(GW_bal));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_bal_create(&ug->osc);
-	ug->is_init = 0;
+	sp_bal_init(ug->sp, ug->osc);
 	o->ugen->tick = bal_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -358,8 +321,6 @@ CTOR(bal_ctor)
 DTOR(bal_dtor)
 {
 	GW_bal* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_bal_destroy(&ug->osc);
 }
 
@@ -374,12 +335,12 @@ TICK(bar_tick)
 {
 	GW_bar* ug = (GW_bar*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_bar_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(bar_ctor)
@@ -395,9 +356,8 @@ CTOR(bar_ctor)
 DTOR(bar_dtor)
 {
 	GW_bar* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_bar_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_bar_destroy(&ug->osc);
 }
 
 MFUN(bar_init)
@@ -520,19 +480,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_biquad* osc;
-	m_bool is_init;
 } GW_biquad;
 
 TICK(biquad_tick)
 {
 	GW_biquad* ug = (GW_biquad*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(biquad_ctor)
@@ -540,7 +494,7 @@ CTOR(biquad_ctor)
 	GW_biquad* ug = malloc(sizeof(GW_biquad));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_biquad_create(&ug->osc);
-	ug->is_init = 0;
+	sp_biquad_init(ug->sp, ug->osc);
 	o->ugen->tick = biquad_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -548,8 +502,6 @@ CTOR(biquad_ctor)
 DTOR(biquad_dtor)
 {
 	GW_biquad* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_biquad_destroy(&ug->osc);
 }
 
@@ -647,19 +599,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_biscale* osc;
-	m_bool is_init;
 } GW_biscale;
 
 TICK(biscale_tick)
 {
 	GW_biscale* ug = (GW_biscale*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(biscale_ctor)
@@ -667,7 +613,7 @@ CTOR(biscale_ctor)
 	GW_biscale* ug = malloc(sizeof(GW_biscale));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_biscale_create(&ug->osc);
-	ug->is_init = 0;
+	sp_biscale_init(ug->sp, ug->osc);
 	o->ugen->tick = biscale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -675,8 +621,6 @@ CTOR(biscale_ctor)
 DTOR(biscale_dtor)
 {
 	GW_biscale* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_biscale_destroy(&ug->osc);
 }
 
@@ -714,19 +658,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_bitcrush* osc;
-	m_bool is_init;
 } GW_bitcrush;
 
 TICK(bitcrush_tick)
 {
 	GW_bitcrush* ug = (GW_bitcrush*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(bitcrush_ctor)
@@ -734,7 +672,7 @@ CTOR(bitcrush_ctor)
 	GW_bitcrush* ug = malloc(sizeof(GW_bitcrush));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_bitcrush_create(&ug->osc);
-	ug->is_init = 0;
+	sp_bitcrush_init(ug->sp, ug->osc);
 	o->ugen->tick = bitcrush_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -742,8 +680,6 @@ CTOR(bitcrush_ctor)
 DTOR(bitcrush_dtor)
 {
 	GW_bitcrush* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_bitcrush_destroy(&ug->osc);
 }
 
@@ -781,19 +717,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_blsaw* osc;
-	m_bool is_init;
 } GW_blsaw;
 
 TICK(blsaw_tick)
 {
 	GW_blsaw* ug = (GW_blsaw*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(blsaw_ctor)
@@ -801,7 +731,7 @@ CTOR(blsaw_ctor)
 	GW_blsaw* ug = malloc(sizeof(GW_blsaw));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_blsaw_create(&ug->osc);
-	ug->is_init = 0;
+	sp_blsaw_init(ug->sp, ug->osc);
 	o->ugen->tick = blsaw_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -809,8 +739,6 @@ CTOR(blsaw_ctor)
 DTOR(blsaw_dtor)
 {
 	GW_blsaw* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_blsaw_destroy(&ug->osc);
 }
 
@@ -848,19 +776,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_blsquare* osc;
-	m_bool is_init;
 } GW_blsquare;
 
 TICK(blsquare_tick)
 {
 	GW_blsquare* ug = (GW_blsquare*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(blsquare_ctor)
@@ -868,7 +790,7 @@ CTOR(blsquare_ctor)
 	GW_blsquare* ug = malloc(sizeof(GW_blsquare));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_blsquare_create(&ug->osc);
-	ug->is_init = 0;
+	sp_blsquare_init(ug->sp, ug->osc);
 	o->ugen->tick = blsquare_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -876,8 +798,6 @@ CTOR(blsquare_ctor)
 DTOR(blsquare_dtor)
 {
 	GW_blsquare* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_blsquare_destroy(&ug->osc);
 }
 
@@ -930,19 +850,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_bltriangle* osc;
-	m_bool is_init;
 } GW_bltriangle;
 
 TICK(bltriangle_tick)
 {
 	GW_bltriangle* ug = (GW_bltriangle*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(bltriangle_ctor)
@@ -950,7 +864,7 @@ CTOR(bltriangle_ctor)
 	GW_bltriangle* ug = malloc(sizeof(GW_bltriangle));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_bltriangle_create(&ug->osc);
-	ug->is_init = 0;
+	sp_bltriangle_init(ug->sp, ug->osc);
 	o->ugen->tick = bltriangle_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -958,8 +872,6 @@ CTOR(bltriangle_ctor)
 DTOR(bltriangle_dtor)
 {
 	GW_bltriangle* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_bltriangle_destroy(&ug->osc);
 }
 
@@ -997,19 +909,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_butbp* osc;
-	m_bool is_init;
 } GW_butbp;
 
 TICK(butbp_tick)
 {
 	GW_butbp* ug = (GW_butbp*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(butbp_ctor)
@@ -1017,7 +923,7 @@ CTOR(butbp_ctor)
 	GW_butbp* ug = malloc(sizeof(GW_butbp));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_butbp_create(&ug->osc);
-	ug->is_init = 0;
+	sp_butbp_init(ug->sp, ug->osc);
 	o->ugen->tick = butbp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1025,8 +931,6 @@ CTOR(butbp_ctor)
 DTOR(butbp_dtor)
 {
 	GW_butbp* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_butbp_destroy(&ug->osc);
 }
 
@@ -1064,19 +968,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_butbr* osc;
-	m_bool is_init;
 } GW_butbr;
 
 TICK(butbr_tick)
 {
 	GW_butbr* ug = (GW_butbr*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(butbr_ctor)
@@ -1084,7 +982,7 @@ CTOR(butbr_ctor)
 	GW_butbr* ug = malloc(sizeof(GW_butbr));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_butbr_create(&ug->osc);
-	ug->is_init = 0;
+	sp_butbr_init(ug->sp, ug->osc);
 	o->ugen->tick = butbr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1092,8 +990,6 @@ CTOR(butbr_ctor)
 DTOR(butbr_dtor)
 {
 	GW_butbr* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_butbr_destroy(&ug->osc);
 }
 
@@ -1131,19 +1027,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_buthp* osc;
-	m_bool is_init;
 } GW_buthp;
 
 TICK(buthp_tick)
 {
 	GW_buthp* ug = (GW_buthp*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(buthp_ctor)
@@ -1151,7 +1041,7 @@ CTOR(buthp_ctor)
 	GW_buthp* ug = malloc(sizeof(GW_buthp));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_buthp_create(&ug->osc);
-	ug->is_init = 0;
+	sp_buthp_init(ug->sp, ug->osc);
 	o->ugen->tick = buthp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1159,8 +1049,6 @@ CTOR(buthp_ctor)
 DTOR(buthp_dtor)
 {
 	GW_buthp* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_buthp_destroy(&ug->osc);
 }
 
@@ -1183,19 +1071,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_butlp* osc;
-	m_bool is_init;
 } GW_butlp;
 
 TICK(butlp_tick)
 {
 	GW_butlp* ug = (GW_butlp*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(butlp_ctor)
@@ -1203,7 +1085,7 @@ CTOR(butlp_ctor)
 	GW_butlp* ug = malloc(sizeof(GW_butlp));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_butlp_create(&ug->osc);
-	ug->is_init = 0;
+	sp_butlp_init(ug->sp, ug->osc);
 	o->ugen->tick = butlp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1211,8 +1093,6 @@ CTOR(butlp_ctor)
 DTOR(butlp_dtor)
 {
 	GW_butlp* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_butlp_destroy(&ug->osc);
 }
 
@@ -1235,19 +1115,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_clip* osc;
-	m_bool is_init;
 } GW_clip;
 
 TICK(clip_tick)
 {
 	GW_clip* ug = (GW_clip*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(clip_ctor)
@@ -1255,7 +1129,7 @@ CTOR(clip_ctor)
 	GW_clip* ug = malloc(sizeof(GW_clip));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_clip_create(&ug->osc);
-	ug->is_init = 0;
+	sp_clip_init(ug->sp, ug->osc);
 	o->ugen->tick = clip_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1263,8 +1137,6 @@ CTOR(clip_ctor)
 DTOR(clip_dtor)
 {
 	GW_clip* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_clip_destroy(&ug->osc);
 }
 
@@ -1294,12 +1166,12 @@ TICK(comb_tick)
 {
 	GW_comb* ug = (GW_comb*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(comb_ctor)
@@ -1315,9 +1187,8 @@ CTOR(comb_ctor)
 DTOR(comb_dtor)
 {
 	GW_comb* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_comb_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_comb_destroy(&ug->osc);
 }
 
 MFUN(comb_init)
@@ -1357,19 +1228,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_compressor* osc;
-	m_bool is_init;
 } GW_compressor;
 
 TICK(compressor_tick)
 {
 	GW_compressor* ug = (GW_compressor*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(compressor_ctor)
@@ -1377,7 +1242,7 @@ CTOR(compressor_ctor)
 	GW_compressor* ug = malloc(sizeof(GW_compressor));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_compressor_create(&ug->osc);
-	ug->is_init = 0;
+	sp_compressor_init(ug->sp, ug->osc);
 	o->ugen->tick = compressor_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1385,8 +1250,6 @@ CTOR(compressor_ctor)
 DTOR(compressor_dtor)
 {
 	GW_compressor* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_compressor_destroy(&ug->osc);
 }
 
@@ -1461,12 +1324,12 @@ TICK(conv_tick)
 {
 	GW_conv* ug = (GW_conv*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(conv_ctor)
@@ -1482,9 +1345,8 @@ CTOR(conv_ctor)
 DTOR(conv_dtor)
 {
 	GW_conv* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_conv_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_conv_destroy(&ug->osc);
 }
 
 MFUN(conv_init)
@@ -1503,19 +1365,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_count* osc;
-	m_bool is_init;
 } GW_count;
 
 TICK(count_tick)
 {
 	GW_count* ug = (GW_count*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_count_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(count_ctor)
@@ -1523,7 +1379,7 @@ CTOR(count_ctor)
 	GW_count* ug = malloc(sizeof(GW_count));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_count_create(&ug->osc);
-	ug->is_init = 0;
+	sp_count_init(ug->sp, ug->osc);
 	o->ugen->tick = count_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -1531,8 +1387,6 @@ CTOR(count_ctor)
 DTOR(count_dtor)
 {
 	GW_count* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_count_destroy(&ug->osc);
 }
 
@@ -1570,19 +1424,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_crossfade* osc;
-	m_bool is_init;
 } GW_crossfade;
 
 TICK(crossfade_tick)
 {
 	GW_crossfade* ug = (GW_crossfade*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_crossfade_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(crossfade_ctor)
@@ -1590,7 +1438,7 @@ CTOR(crossfade_ctor)
 	GW_crossfade* ug = malloc(sizeof(GW_crossfade));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_crossfade_create(&ug->osc);
-	ug->is_init = 0;
+	sp_crossfade_init(ug->sp, ug->osc);
 	o->ugen->tick = crossfade_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -1598,8 +1446,6 @@ CTOR(crossfade_ctor)
 DTOR(crossfade_dtor)
 {
 	GW_crossfade* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_crossfade_destroy(&ug->osc);
 }
 
@@ -1622,19 +1468,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_dcblock* osc;
-	m_bool is_init;
 } GW_dcblock;
 
 TICK(dcblock_tick)
 {
 	GW_dcblock* ug = (GW_dcblock*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(dcblock_ctor)
@@ -1642,7 +1482,7 @@ CTOR(dcblock_ctor)
 	GW_dcblock* ug = malloc(sizeof(GW_dcblock));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_dcblock_create(&ug->osc);
-	ug->is_init = 0;
+	sp_dcblock_init(ug->sp, ug->osc);
 	o->ugen->tick = dcblock_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1650,8 +1490,6 @@ CTOR(dcblock_ctor)
 DTOR(dcblock_dtor)
 {
 	GW_dcblock* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_dcblock_destroy(&ug->osc);
 }
 
@@ -1666,12 +1504,12 @@ TICK(delay_tick)
 {
 	GW_delay* ug = (GW_delay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(delay_ctor)
@@ -1687,9 +1525,8 @@ CTOR(delay_ctor)
 DTOR(delay_dtor)
 {
 	GW_delay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_delay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_delay_destroy(&ug->osc);
 }
 
 MFUN(delay_init)
@@ -1736,12 +1573,12 @@ TICK(diskin_tick)
 {
 	GW_diskin* ug = (GW_diskin*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_diskin_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(diskin_ctor)
@@ -1757,9 +1594,8 @@ CTOR(diskin_ctor)
 DTOR(diskin_dtor)
 {
 	GW_diskin* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_diskin_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_diskin_destroy(&ug->osc);
 }
 
 MFUN(diskin_init)
@@ -1786,19 +1622,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_dist* osc;
-	m_bool is_init;
 } GW_dist;
 
 TICK(dist_tick)
 {
 	GW_dist* ug = (GW_dist*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(dist_ctor)
@@ -1806,7 +1636,7 @@ CTOR(dist_ctor)
 	GW_dist* ug = malloc(sizeof(GW_dist));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_dist_create(&ug->osc);
-	ug->is_init = 0;
+	sp_dist_init(ug->sp, ug->osc);
 	o->ugen->tick = dist_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1814,8 +1644,6 @@ CTOR(dist_ctor)
 DTOR(dist_dtor)
 {
 	GW_dist* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_dist_destroy(&ug->osc);
 }
 
@@ -1883,19 +1711,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_dmetro* osc;
-	m_bool is_init;
 } GW_dmetro;
 
 TICK(dmetro_tick)
 {
 	GW_dmetro* ug = (GW_dmetro*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(dmetro_ctor)
@@ -1903,7 +1725,7 @@ CTOR(dmetro_ctor)
 	GW_dmetro* ug = malloc(sizeof(GW_dmetro));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_dmetro_create(&ug->osc);
-	ug->is_init = 0;
+	sp_dmetro_init(ug->sp, ug->osc);
 	o->ugen->tick = dmetro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -1911,8 +1733,6 @@ CTOR(dmetro_ctor)
 DTOR(dmetro_dtor)
 {
 	GW_dmetro* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_dmetro_destroy(&ug->osc);
 }
 
@@ -1942,12 +1762,12 @@ TICK(drip_tick)
 {
 	GW_drip* ug = (GW_drip*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_drip_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(drip_ctor)
@@ -1963,9 +1783,8 @@ CTOR(drip_ctor)
 DTOR(drip_dtor)
 {
 	GW_drip* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_drip_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_drip_destroy(&ug->osc);
 }
 
 MFUN(drip_init)
@@ -2102,12 +1921,12 @@ TICK(dtrig_tick)
 {
 	GW_dtrig* ug = (GW_dtrig*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(dtrig_ctor)
@@ -2123,9 +1942,8 @@ CTOR(dtrig_ctor)
 DTOR(dtrig_dtor)
 {
 	GW_dtrig* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_dtrig_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_dtrig_destroy(&ug->osc);
 }
 
 MFUN(dtrig_init)
@@ -2197,19 +2015,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_dust* osc;
-	m_bool is_init;
 } GW_dust;
 
 TICK(dust_tick)
 {
 	GW_dust* ug = (GW_dust*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(dust_ctor)
@@ -2217,7 +2029,7 @@ CTOR(dust_ctor)
 	GW_dust* ug = malloc(sizeof(GW_dust));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_dust_create(&ug->osc);
-	ug->is_init = 0;
+	sp_dust_init(ug->sp, ug->osc);
 	o->ugen->tick = dust_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -2225,8 +2037,6 @@ CTOR(dust_ctor)
 DTOR(dust_dtor)
 {
 	GW_dust* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_dust_destroy(&ug->osc);
 }
 
@@ -2279,19 +2089,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_eqfil* osc;
-	m_bool is_init;
 } GW_eqfil;
 
 TICK(eqfil_tick)
 {
 	GW_eqfil* ug = (GW_eqfil*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(eqfil_ctor)
@@ -2299,7 +2103,7 @@ CTOR(eqfil_ctor)
 	GW_eqfil* ug = malloc(sizeof(GW_eqfil));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_eqfil_create(&ug->osc);
-	ug->is_init = 0;
+	sp_eqfil_init(ug->sp, ug->osc);
 	o->ugen->tick = eqfil_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2307,8 +2111,6 @@ CTOR(eqfil_ctor)
 DTOR(eqfil_dtor)
 {
 	GW_eqfil* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_eqfil_destroy(&ug->osc);
 }
 
@@ -2361,19 +2163,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_expon* osc;
-	m_bool is_init;
 } GW_expon;
 
 TICK(expon_tick)
 {
 	GW_expon* ug = (GW_expon*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_expon_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(expon_ctor)
@@ -2381,7 +2177,7 @@ CTOR(expon_ctor)
 	GW_expon* ug = malloc(sizeof(GW_expon));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_expon_create(&ug->osc);
-	ug->is_init = 0;
+	sp_expon_init(ug->sp, ug->osc);
 	o->ugen->tick = expon_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -2389,8 +2185,6 @@ CTOR(expon_ctor)
 DTOR(expon_dtor)
 {
 	GW_expon* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_expon_destroy(&ug->osc);
 }
 
@@ -2450,12 +2244,12 @@ TICK(fof_tick)
 {
 	GW_fof* ug = (GW_fof*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fof_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(fof_ctor)
@@ -2471,9 +2265,8 @@ CTOR(fof_ctor)
 DTOR(fof_dtor)
 {
 	GW_fof* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fof_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fof_destroy(&ug->osc);
 }
 
 MFUN(fof_init)
@@ -2617,19 +2410,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_fofilt* osc;
-	m_bool is_init;
 } GW_fofilt;
 
 TICK(fofilt_tick)
 {
 	GW_fofilt* ug = (GW_fofilt*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(fofilt_ctor)
@@ -2637,7 +2424,7 @@ CTOR(fofilt_ctor)
 	GW_fofilt* ug = malloc(sizeof(GW_fofilt));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_fofilt_create(&ug->osc);
-	ug->is_init = 0;
+	sp_fofilt_init(ug->sp, ug->osc);
 	o->ugen->tick = fofilt_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2645,8 +2432,6 @@ CTOR(fofilt_ctor)
 DTOR(fofilt_dtor)
 {
 	GW_fofilt* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_fofilt_destroy(&ug->osc);
 }
 
@@ -2706,12 +2491,12 @@ TICK(fog_tick)
 {
 	GW_fog* ug = (GW_fog*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fog_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(fog_ctor)
@@ -2727,9 +2512,8 @@ CTOR(fog_ctor)
 DTOR(fog_dtor)
 {
 	GW_fog* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fog_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fog_destroy(&ug->osc);
 }
 
 MFUN(fog_init)
@@ -2888,19 +2672,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_fold* osc;
-	m_bool is_init;
 } GW_fold;
 
 TICK(fold_tick)
 {
 	GW_fold* ug = (GW_fold*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(fold_ctor)
@@ -2908,7 +2686,7 @@ CTOR(fold_ctor)
 	GW_fold* ug = malloc(sizeof(GW_fold));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_fold_create(&ug->osc);
-	ug->is_init = 0;
+	sp_fold_init(ug->sp, ug->osc);
 	o->ugen->tick = fold_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2916,8 +2694,6 @@ CTOR(fold_ctor)
 DTOR(fold_dtor)
 {
 	GW_fold* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_fold_destroy(&ug->osc);
 }
 
@@ -2947,12 +2723,12 @@ TICK(fosc_tick)
 {
 	GW_fosc* ug = (GW_fosc*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_fosc_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(fosc_ctor)
@@ -2968,9 +2744,8 @@ CTOR(fosc_ctor)
 DTOR(fosc_dtor)
 {
 	GW_fosc* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_fosc_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_fosc_destroy(&ug->osc);
 }
 
 MFUN(fosc_init)
@@ -3079,12 +2854,12 @@ TICK(gbuzz_tick)
 {
 	GW_gbuzz* ug = (GW_gbuzz*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_gbuzz_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(gbuzz_ctor)
@@ -3100,9 +2875,8 @@ CTOR(gbuzz_ctor)
 DTOR(gbuzz_dtor)
 {
 	GW_gbuzz* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_gbuzz_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_gbuzz_destroy(&ug->osc);
 }
 
 MFUN(gbuzz_init)
@@ -3336,19 +3110,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_hilbert* osc;
-	m_bool is_init;
 } GW_hilbert;
 
 TICK(hilbert_tick)
 {
 	GW_hilbert* ug = (GW_hilbert*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(hilbert_ctor)
@@ -3356,7 +3124,7 @@ CTOR(hilbert_ctor)
 	GW_hilbert* ug = malloc(sizeof(GW_hilbert));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_hilbert_create(&ug->osc);
-	ug->is_init = 0;
+	sp_hilbert_init(ug->sp, ug->osc);
 	o->ugen->tick = hilbert_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -3364,8 +3132,6 @@ CTOR(hilbert_ctor)
 DTOR(hilbert_dtor)
 {
 	GW_hilbert* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_hilbert_destroy(&ug->osc);
 }
 
@@ -3373,19 +3139,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_in* osc;
-	m_bool is_init;
 } GW_in;
 
 TICK(in_tick)
 {
 	GW_in* ug = (GW_in*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(in_ctor)
@@ -3393,7 +3153,7 @@ CTOR(in_ctor)
 	GW_in* ug = malloc(sizeof(GW_in));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_in_create(&ug->osc);
-	ug->is_init = 0;
+	sp_in_init(ug->sp, ug->osc);
 	o->ugen->tick = in_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3401,8 +3161,6 @@ CTOR(in_ctor)
 DTOR(in_dtor)
 {
 	GW_in* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_in_destroy(&ug->osc);
 }
 
@@ -3417,12 +3175,12 @@ TICK(incr_tick)
 {
 	GW_incr* ug = (GW_incr*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_incr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(incr_ctor)
@@ -3438,9 +3196,8 @@ CTOR(incr_ctor)
 DTOR(incr_dtor)
 {
 	GW_incr* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_incr_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_incr_destroy(&ug->osc);
 }
 
 MFUN(incr_init)
@@ -3510,19 +3267,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_jcrev* osc;
-	m_bool is_init;
 } GW_jcrev;
 
 TICK(jcrev_tick)
 {
 	GW_jcrev* ug = (GW_jcrev*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(jcrev_ctor)
@@ -3530,7 +3281,7 @@ CTOR(jcrev_ctor)
 	GW_jcrev* ug = malloc(sizeof(GW_jcrev));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_jcrev_create(&ug->osc);
-	ug->is_init = 0;
+	sp_jcrev_init(ug->sp, ug->osc);
 	o->ugen->tick = jcrev_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3538,8 +3289,6 @@ CTOR(jcrev_ctor)
 DTOR(jcrev_dtor)
 {
 	GW_jcrev* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_jcrev_destroy(&ug->osc);
 }
 
@@ -3547,19 +3296,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_jitter* osc;
-	m_bool is_init;
 } GW_jitter;
 
 TICK(jitter_tick)
 {
 	GW_jitter* ug = (GW_jitter*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(jitter_ctor)
@@ -3567,7 +3310,7 @@ CTOR(jitter_ctor)
 	GW_jitter* ug = malloc(sizeof(GW_jitter));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_jitter_create(&ug->osc);
-	ug->is_init = 0;
+	sp_jitter_init(ug->sp, ug->osc);
 	o->ugen->tick = jitter_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3575,8 +3318,6 @@ CTOR(jitter_ctor)
 DTOR(jitter_dtor)
 {
 	GW_jitter* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_jitter_destroy(&ug->osc);
 }
 
@@ -3629,19 +3370,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_line* osc;
-	m_bool is_init;
 } GW_line;
 
 TICK(line_tick)
 {
 	GW_line* ug = (GW_line*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_line_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(line_ctor)
@@ -3649,7 +3384,7 @@ CTOR(line_ctor)
 	GW_line* ug = malloc(sizeof(GW_line));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_line_create(&ug->osc);
-	ug->is_init = 0;
+	sp_line_init(ug->sp, ug->osc);
 	o->ugen->tick = line_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -3657,8 +3392,6 @@ CTOR(line_ctor)
 DTOR(line_dtor)
 {
 	GW_line* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_line_destroy(&ug->osc);
 }
 
@@ -3711,19 +3444,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_lpf18* osc;
-	m_bool is_init;
 } GW_lpf18;
 
 TICK(lpf18_tick)
 {
 	GW_lpf18* ug = (GW_lpf18*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(lpf18_ctor)
@@ -3731,7 +3458,7 @@ CTOR(lpf18_ctor)
 	GW_lpf18* ug = malloc(sizeof(GW_lpf18));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_lpf18_create(&ug->osc);
-	ug->is_init = 0;
+	sp_lpf18_init(ug->sp, ug->osc);
 	o->ugen->tick = lpf18_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3739,8 +3466,6 @@ CTOR(lpf18_ctor)
 DTOR(lpf18_dtor)
 {
 	GW_lpf18* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_lpf18_destroy(&ug->osc);
 }
 
@@ -3793,19 +3518,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_maygate* osc;
-	m_bool is_init;
 } GW_maygate;
 
 TICK(maygate_tick)
 {
 	GW_maygate* ug = (GW_maygate*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_maygate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(maygate_ctor)
@@ -3813,7 +3532,7 @@ CTOR(maygate_ctor)
 	GW_maygate* ug = malloc(sizeof(GW_maygate));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_maygate_create(&ug->osc);
-	ug->is_init = 0;
+	sp_maygate_init(ug->sp, ug->osc);
 	o->ugen->tick = maygate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -3821,8 +3540,6 @@ CTOR(maygate_ctor)
 DTOR(maygate_dtor)
 {
 	GW_maygate* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_maygate_destroy(&ug->osc);
 }
 
@@ -3860,19 +3577,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_metro* osc;
-	m_bool is_init;
 } GW_metro;
 
 TICK(metro_tick)
 {
 	GW_metro* ug = (GW_metro*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(metro_ctor)
@@ -3880,7 +3591,7 @@ CTOR(metro_ctor)
 	GW_metro* ug = malloc(sizeof(GW_metro));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_metro_create(&ug->osc);
-	ug->is_init = 0;
+	sp_metro_init(ug->sp, ug->osc);
 	o->ugen->tick = metro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3888,8 +3599,6 @@ CTOR(metro_ctor)
 DTOR(metro_dtor)
 {
 	GW_metro* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_metro_destroy(&ug->osc);
 }
 
@@ -3919,12 +3628,12 @@ TICK(mincer_tick)
 {
 	GW_mincer* ug = (GW_mincer*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_mincer_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(mincer_ctor)
@@ -3940,9 +3649,8 @@ CTOR(mincer_ctor)
 DTOR(mincer_dtor)
 {
 	GW_mincer* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_mincer_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_mincer_destroy(&ug->osc);
 }
 
 MFUN(mincer_init)
@@ -4014,19 +3722,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_mode* osc;
-	m_bool is_init;
 } GW_mode;
 
 TICK(mode_tick)
 {
 	GW_mode* ug = (GW_mode*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(mode_ctor)
@@ -4034,7 +3736,7 @@ CTOR(mode_ctor)
 	GW_mode* ug = malloc(sizeof(GW_mode));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_mode_create(&ug->osc);
-	ug->is_init = 0;
+	sp_mode_init(ug->sp, ug->osc);
 	o->ugen->tick = mode_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4042,8 +3744,6 @@ CTOR(mode_ctor)
 DTOR(mode_dtor)
 {
 	GW_mode* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_mode_destroy(&ug->osc);
 }
 
@@ -4081,19 +3781,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_moogladder* osc;
-	m_bool is_init;
 } GW_moogladder;
 
 TICK(moogladder_tick)
 {
 	GW_moogladder* ug = (GW_moogladder*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(moogladder_ctor)
@@ -4101,7 +3795,7 @@ CTOR(moogladder_ctor)
 	GW_moogladder* ug = malloc(sizeof(GW_moogladder));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_moogladder_create(&ug->osc);
-	ug->is_init = 0;
+	sp_moogladder_init(ug->sp, ug->osc);
 	o->ugen->tick = moogladder_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4109,8 +3803,6 @@ CTOR(moogladder_ctor)
 DTOR(moogladder_dtor)
 {
 	GW_moogladder* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_moogladder_destroy(&ug->osc);
 }
 
@@ -4148,19 +3840,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_noise* osc;
-	m_bool is_init;
 } GW_noise;
 
 TICK(noise_tick)
 {
 	GW_noise* ug = (GW_noise*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(noise_ctor)
@@ -4168,7 +3854,7 @@ CTOR(noise_ctor)
 	GW_noise* ug = malloc(sizeof(GW_noise));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_noise_create(&ug->osc);
-	ug->is_init = 0;
+	sp_noise_init(ug->sp, ug->osc);
 	o->ugen->tick = noise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -4176,8 +3862,6 @@ CTOR(noise_ctor)
 DTOR(noise_dtor)
 {
 	GW_noise* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_noise_destroy(&ug->osc);
 }
 
@@ -4207,12 +3891,12 @@ TICK(nsmp_tick)
 {
 	GW_nsmp* ug = (GW_nsmp*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(nsmp_ctor)
@@ -4228,9 +3912,8 @@ CTOR(nsmp_ctor)
 DTOR(nsmp_dtor)
 {
 	GW_nsmp* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_nsmp_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_nsmp_destroy(&ug->osc);
 }
 
 MFUN(nsmp_init)
@@ -4274,12 +3957,12 @@ TICK(osc_tick)
 {
 	GW_osc* ug = (GW_osc*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(osc_ctor)
@@ -4295,8 +3978,8 @@ CTOR(osc_ctor)
 DTOR(osc_dtor)
 {
 	GW_osc* ug = o->ugen->ug;
-//	if(ug->is_init)
-//		sp_osc_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_osc_destroy(&ug->osc);
 }
 
 MFUN(osc_init)
@@ -4352,12 +4035,12 @@ TICK(oscmorph_tick)
 {
 	GW_oscmorph* ug = (GW_oscmorph*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_oscmorph_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(oscmorph_ctor)
@@ -4373,9 +4056,8 @@ CTOR(oscmorph_ctor)
 DTOR(oscmorph_dtor)
 {
 	GW_oscmorph* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_oscmorph_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_oscmorph_destroy(&ug->osc);
 }
 
 MFUN(oscmorph_init)
@@ -4444,19 +4126,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_pan2* osc;
-	m_bool is_init;
 } GW_pan2;
 
 TICK(pan2_tick)
 {
 	GW_pan2* ug = (GW_pan2*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_pan2_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pan2_ctor)
@@ -4464,7 +4140,7 @@ CTOR(pan2_ctor)
 	GW_pan2* ug = malloc(sizeof(GW_pan2));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_pan2_create(&ug->osc);
-	ug->is_init = 0;
+	sp_pan2_init(ug->sp, ug->osc);
 	o->ugen->tick = pan2_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -4472,8 +4148,6 @@ CTOR(pan2_ctor)
 DTOR(pan2_dtor)
 {
 	GW_pan2* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_pan2_destroy(&ug->osc);
 }
 
@@ -4511,19 +4185,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_panst* osc;
-	m_bool is_init;
 } GW_panst;
 
 TICK(panst_tick)
 {
 	GW_panst* ug = (GW_panst*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_panst_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(panst_ctor)
@@ -4531,7 +4199,7 @@ CTOR(panst_ctor)
 	GW_panst* ug = malloc(sizeof(GW_panst));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_panst_create(&ug->osc);
-	ug->is_init = 0;
+	sp_panst_init(ug->sp, ug->osc);
 	o->ugen->tick = panst_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -4539,8 +4207,6 @@ CTOR(panst_ctor)
 DTOR(panst_dtor)
 {
 	GW_panst* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_panst_destroy(&ug->osc);
 }
 
@@ -4578,19 +4244,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_pareq* osc;
-	m_bool is_init;
 } GW_pareq;
 
 TICK(pareq_tick)
 {
 	GW_pareq* ug = (GW_pareq*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pareq_ctor)
@@ -4598,7 +4258,7 @@ CTOR(pareq_ctor)
 	GW_pareq* ug = malloc(sizeof(GW_pareq));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_pareq_create(&ug->osc);
-	ug->is_init = 0;
+	sp_pareq_init(ug->sp, ug->osc);
 	o->ugen->tick = pareq_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4606,8 +4266,6 @@ CTOR(pareq_ctor)
 DTOR(pareq_dtor)
 {
 	GW_pareq* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_pareq_destroy(&ug->osc);
 }
 
@@ -4682,12 +4340,12 @@ TICK(paulstretch_tick)
 {
 	GW_paulstretch* ug = (GW_paulstretch*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_paulstretch_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(paulstretch_ctor)
@@ -4703,9 +4361,8 @@ CTOR(paulstretch_ctor)
 DTOR(paulstretch_dtor)
 {
 	GW_paulstretch* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_paulstretch_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_paulstretch_destroy(&ug->osc);
 }
 
 MFUN(paulstretch_init)
@@ -4726,19 +4383,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_pdhalf* osc;
-	m_bool is_init;
 } GW_pdhalf;
 
 TICK(pdhalf_tick)
 {
 	GW_pdhalf* ug = (GW_pdhalf*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pdhalf_ctor)
@@ -4746,7 +4397,7 @@ CTOR(pdhalf_ctor)
 	GW_pdhalf* ug = malloc(sizeof(GW_pdhalf));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_pdhalf_create(&ug->osc);
-	ug->is_init = 0;
+	sp_pdhalf_init(ug->sp, ug->osc);
 	o->ugen->tick = pdhalf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4754,8 +4405,6 @@ CTOR(pdhalf_ctor)
 DTOR(pdhalf_dtor)
 {
 	GW_pdhalf* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_pdhalf_destroy(&ug->osc);
 }
 
@@ -4778,19 +4427,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_peaklim* osc;
-	m_bool is_init;
 } GW_peaklim;
 
 TICK(peaklim_tick)
 {
 	GW_peaklim* ug = (GW_peaklim*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(peaklim_ctor)
@@ -4798,7 +4441,7 @@ CTOR(peaklim_ctor)
 	GW_peaklim* ug = malloc(sizeof(GW_peaklim));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_peaklim_create(&ug->osc);
-	ug->is_init = 0;
+	sp_peaklim_init(ug->sp, ug->osc);
 	o->ugen->tick = peaklim_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4806,8 +4449,6 @@ CTOR(peaklim_ctor)
 DTOR(peaklim_dtor)
 {
 	GW_peaklim* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_peaklim_destroy(&ug->osc);
 }
 
@@ -4860,19 +4501,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_phaser* osc;
-	m_bool is_init;
 } GW_phaser;
 
 TICK(phaser_tick)
 {
 	GW_phaser* ug = (GW_phaser*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_phaser_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(phaser_ctor)
@@ -4880,7 +4515,7 @@ CTOR(phaser_ctor)
 	GW_phaser* ug = malloc(sizeof(GW_phaser));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_phaser_create(&ug->osc);
-	ug->is_init = 0;
+	sp_phaser_init(ug->sp, ug->osc);
 	o->ugen->tick = phaser_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -4888,8 +4523,6 @@ CTOR(phaser_ctor)
 DTOR(phaser_dtor)
 {
 	GW_phaser* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_phaser_destroy(&ug->osc);
 }
 
@@ -5054,12 +4687,12 @@ TICK(phasor_tick)
 {
 	GW_phasor* ug = (GW_phasor*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_phasor_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(phasor_ctor)
@@ -5075,9 +4708,8 @@ CTOR(phasor_ctor)
 DTOR(phasor_dtor)
 {
 	GW_phasor* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_phasor_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_phasor_destroy(&ug->osc);
 }
 
 MFUN(phasor_init)
@@ -5117,19 +4749,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_pinknoise* osc;
-	m_bool is_init;
 } GW_pinknoise;
 
 TICK(pinknoise_tick)
 {
 	GW_pinknoise* ug = (GW_pinknoise*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pinknoise_ctor)
@@ -5137,7 +4763,7 @@ CTOR(pinknoise_ctor)
 	GW_pinknoise* ug = malloc(sizeof(GW_pinknoise));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_pinknoise_create(&ug->osc);
-	ug->is_init = 0;
+	sp_pinknoise_init(ug->sp, ug->osc);
 	o->ugen->tick = pinknoise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5145,8 +4771,6 @@ CTOR(pinknoise_ctor)
 DTOR(pinknoise_dtor)
 {
 	GW_pinknoise* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_pinknoise_destroy(&ug->osc);
 }
 
@@ -5176,12 +4800,12 @@ TICK(pitchamdf_tick)
 {
 	GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pitchamdf_ctor)
@@ -5197,9 +4821,8 @@ CTOR(pitchamdf_ctor)
 DTOR(pitchamdf_dtor)
 {
 	GW_pitchamdf* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_pitchamdf_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_pitchamdf_destroy(&ug->osc);
 }
 
 MFUN(pitchamdf_init)
@@ -5224,12 +4847,12 @@ TICK(pluck_tick)
 {
 	GW_pluck* ug = (GW_pluck*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_pluck_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pluck_ctor)
@@ -5245,9 +4868,8 @@ CTOR(pluck_ctor)
 DTOR(pluck_dtor)
 {
 	GW_pluck* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_pluck_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_pluck_destroy(&ug->osc);
 }
 
 MFUN(pluck_init)
@@ -5309,12 +4931,12 @@ TICK(port_tick)
 {
 	GW_port* ug = (GW_port*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(port_ctor)
@@ -5330,9 +4952,8 @@ CTOR(port_ctor)
 DTOR(port_dtor)
 {
 	GW_port* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_port_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_port_destroy(&ug->osc);
 }
 
 MFUN(port_init)
@@ -5364,12 +4985,12 @@ TICK(posc3_tick)
 {
 	GW_posc3* ug = (GW_posc3*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_posc3_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(posc3_ctor)
@@ -5385,9 +5006,8 @@ CTOR(posc3_ctor)
 DTOR(posc3_dtor)
 {
 	GW_posc3* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_posc3_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_posc3_destroy(&ug->osc);
 }
 
 MFUN(posc3_init)
@@ -5444,19 +5064,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_progress* osc;
-	m_bool is_init;
 } GW_progress;
 
 TICK(progress_tick)
 {
 	GW_progress* ug = (GW_progress*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(progress_ctor)
@@ -5464,7 +5078,7 @@ CTOR(progress_ctor)
 	GW_progress* ug = malloc(sizeof(GW_progress));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_progress_create(&ug->osc);
-	ug->is_init = 0;
+	sp_progress_init(ug->sp, ug->osc);
 	o->ugen->tick = progress_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5472,8 +5086,6 @@ CTOR(progress_ctor)
 DTOR(progress_dtor)
 {
 	GW_progress* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_progress_destroy(&ug->osc);
 }
 
@@ -5518,12 +5130,12 @@ TICK(prop_tick)
 {
 	GW_prop* ug = (GW_prop*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_prop_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(prop_ctor)
@@ -5539,9 +5151,8 @@ CTOR(prop_ctor)
 DTOR(prop_dtor)
 {
 	GW_prop* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_prop_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_prop_destroy(&ug->osc);
 }
 
 MFUN(prop_init)
@@ -5583,19 +5194,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_pshift* osc;
-	m_bool is_init;
 } GW_pshift;
 
 TICK(pshift_tick)
 {
 	GW_pshift* ug = (GW_pshift*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(pshift_ctor)
@@ -5603,7 +5208,7 @@ CTOR(pshift_ctor)
 	GW_pshift* ug = malloc(sizeof(GW_pshift));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_pshift_create(&ug->osc);
-	ug->is_init = 0;
+	sp_pshift_init(ug->sp, ug->osc);
 	o->ugen->tick = pshift_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -5611,8 +5216,6 @@ CTOR(pshift_ctor)
 DTOR(pshift_dtor)
 {
 	GW_pshift* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_pshift_destroy(&ug->osc);
 }
 
@@ -5672,12 +5275,12 @@ TICK(ptrack_tick)
 {
 	GW_ptrack* ug = (GW_ptrack*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(ptrack_ctor)
@@ -5693,9 +5296,8 @@ CTOR(ptrack_ctor)
 DTOR(ptrack_dtor)
 {
 	GW_ptrack* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_ptrack_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_ptrack_destroy(&ug->osc);
 }
 
 MFUN(ptrack_init)
@@ -5713,19 +5315,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_randh* osc;
-	m_bool is_init;
 } GW_randh;
 
 TICK(randh_tick)
 {
 	GW_randh* ug = (GW_randh*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(randh_ctor)
@@ -5733,7 +5329,7 @@ CTOR(randh_ctor)
 	GW_randh* ug = malloc(sizeof(GW_randh));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_randh_create(&ug->osc);
-	ug->is_init = 0;
+	sp_randh_init(ug->sp, ug->osc);
 	o->ugen->tick = randh_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5741,8 +5337,6 @@ CTOR(randh_ctor)
 DTOR(randh_dtor)
 {
 	GW_randh* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_randh_destroy(&ug->osc);
 }
 
@@ -5795,19 +5389,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_randi* osc;
-	m_bool is_init;
 } GW_randi;
 
 TICK(randi_tick)
 {
 	GW_randi* ug = (GW_randi*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(randi_ctor)
@@ -5815,7 +5403,7 @@ CTOR(randi_ctor)
 	GW_randi* ug = malloc(sizeof(GW_randi));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_randi_create(&ug->osc);
-	ug->is_init = 0;
+	sp_randi_init(ug->sp, ug->osc);
 	o->ugen->tick = randi_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5823,8 +5411,6 @@ CTOR(randi_ctor)
 DTOR(randi_dtor)
 {
 	GW_randi* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_randi_destroy(&ug->osc);
 }
 
@@ -5892,19 +5478,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_random* osc;
-	m_bool is_init;
 } GW_random;
 
 TICK(random_tick)
 {
 	GW_random* ug = (GW_random*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(random_ctor)
@@ -5912,7 +5492,7 @@ CTOR(random_ctor)
 	GW_random* ug = malloc(sizeof(GW_random));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_random_create(&ug->osc);
-	ug->is_init = 0;
+	sp_random_init(ug->sp, ug->osc);
 	o->ugen->tick = random_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5920,8 +5500,6 @@ CTOR(random_ctor)
 DTOR(random_dtor)
 {
 	GW_random* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_random_destroy(&ug->osc);
 }
 
@@ -5959,19 +5537,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_reson* osc;
-	m_bool is_init;
 } GW_reson;
 
 TICK(reson_tick)
 {
 	GW_reson* ug = (GW_reson*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(reson_ctor)
@@ -5979,7 +5551,7 @@ CTOR(reson_ctor)
 	GW_reson* ug = malloc(sizeof(GW_reson));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_reson_create(&ug->osc);
-	ug->is_init = 0;
+	sp_reson_init(ug->sp, ug->osc);
 	o->ugen->tick = reson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -5987,8 +5559,6 @@ CTOR(reson_ctor)
 DTOR(reson_dtor)
 {
 	GW_reson* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_reson_destroy(&ug->osc);
 }
 
@@ -6033,12 +5603,12 @@ TICK(reverse_tick)
 {
 	GW_reverse* ug = (GW_reverse*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(reverse_ctor)
@@ -6054,9 +5624,8 @@ CTOR(reverse_ctor)
 DTOR(reverse_dtor)
 {
 	GW_reverse* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_reverse_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_reverse_destroy(&ug->osc);
 }
 
 MFUN(reverse_init)
@@ -6081,19 +5650,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_revsc* osc;
-	m_bool is_init;
 } GW_revsc;
 
 TICK(revsc_tick)
 {
 	GW_revsc* ug = (GW_revsc*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_revsc_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(revsc_ctor)
@@ -6101,7 +5664,7 @@ CTOR(revsc_ctor)
 	GW_revsc* ug = malloc(sizeof(GW_revsc));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_revsc_create(&ug->osc);
-	ug->is_init = 0;
+	sp_revsc_init(ug->sp, ug->osc);
 	o->ugen->tick = revsc_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -6109,8 +5672,6 @@ CTOR(revsc_ctor)
 DTOR(revsc_dtor)
 {
 	GW_revsc* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_revsc_destroy(&ug->osc);
 }
 
@@ -6148,19 +5709,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_rms* osc;
-	m_bool is_init;
 } GW_rms;
 
 TICK(rms_tick)
 {
 	GW_rms* ug = (GW_rms*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(rms_ctor)
@@ -6168,7 +5723,7 @@ CTOR(rms_ctor)
 	GW_rms* ug = malloc(sizeof(GW_rms));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_rms_create(&ug->osc);
-	ug->is_init = 0;
+	sp_rms_init(ug->sp, ug->osc);
 	o->ugen->tick = rms_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6176,8 +5731,6 @@ CTOR(rms_ctor)
 DTOR(rms_dtor)
 {
 	GW_rms* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_rms_destroy(&ug->osc);
 }
 
@@ -6207,12 +5760,12 @@ TICK(rpt_tick)
 {
 	GW_rpt* ug = (GW_rpt*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(rpt_ctor)
@@ -6228,9 +5781,8 @@ CTOR(rpt_ctor)
 DTOR(rpt_dtor)
 {
 	GW_rpt* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_rpt_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_rpt_destroy(&ug->osc);
 }
 
 MFUN(rpt_init)
@@ -6255,19 +5807,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_samphold* osc;
-	m_bool is_init;
 } GW_samphold;
 
 TICK(samphold_tick)
 {
 	GW_samphold* ug = (GW_samphold*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_samphold_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(samphold_ctor)
@@ -6275,7 +5821,7 @@ CTOR(samphold_ctor)
 	GW_samphold* ug = malloc(sizeof(GW_samphold));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_samphold_create(&ug->osc);
-	ug->is_init = 0;
+	sp_samphold_init(ug->sp, ug->osc);
 	o->ugen->tick = samphold_tick;
 	assign_ugen(o->ugen, 2, 1, 1, ug);
 }
@@ -6283,28 +5829,79 @@ CTOR(samphold_ctor)
 DTOR(samphold_dtor)
 {
 	GW_samphold* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_samphold_destroy(&ug->osc);
 }
 
 typedef struct
 {
 	sp_data* sp;
+	sp_saturator* osc;
+} GW_saturator;
+
+TICK(saturator_tick)
+{
+	GW_saturator* ug = (GW_saturator*)u->ug;
+	sp_saturator_compute(ug->sp, ug->osc, &u->in, &u->out);
+	return 1;
+}
+
+CTOR(saturator_ctor)
+{
+	GW_saturator* ug = malloc(sizeof(GW_saturator));
+	ug->sp = shred->vm_ref->bbq->sp;
+	sp_saturator_create(&ug->osc);
+	sp_saturator_init(ug->sp, ug->osc);
+	o->ugen->tick = saturator_tick;
+	assign_ugen(o->ugen, 1, 1, 0, ug);
+}
+
+DTOR(saturator_dtor)
+{
+	GW_saturator* ug = o->ugen->ug;
+	sp_saturator_destroy(&ug->osc);
+}
+
+MFUN(saturator_get_dcoffset)
+{
+	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
+	RETURN->v_float = ug->osc->dcoffset;
+}
+
+MFUN(saturator_set_dcoffset)
+{
+	m_uint gw_offset = SZ_INT;
+	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
+	m_float dcoffset = *(m_float*)(shred->mem + gw_offset);
+	gw_offset += SZ_FLOAT;
+	RETURN->v_float = (ug->osc->dcoffset = dcoffset);
+}
+
+MFUN(saturator_get_drive)
+{
+	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
+	RETURN->v_float = ug->osc->drive;
+}
+
+MFUN(saturator_set_drive)
+{
+	m_uint gw_offset = SZ_INT;
+	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
+	m_float drive = *(m_float*)(shred->mem + gw_offset);
+	gw_offset += SZ_FLOAT;
+	RETURN->v_float = (ug->osc->drive = drive);
+}
+
+typedef struct
+{
+	sp_data* sp;
 	sp_scale* osc;
-	m_bool is_init;
 } GW_scale;
 
 TICK(scale_tick)
 {
 	GW_scale* ug = (GW_scale*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(scale_ctor)
@@ -6312,7 +5909,7 @@ CTOR(scale_ctor)
 	GW_scale* ug = malloc(sizeof(GW_scale));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_scale_create(&ug->osc);
-	ug->is_init = 0;
+	sp_scale_init(ug->sp, ug->osc);
 	o->ugen->tick = scale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6320,8 +5917,6 @@ CTOR(scale_ctor)
 DTOR(scale_dtor)
 {
 	GW_scale* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_scale_destroy(&ug->osc);
 }
 
@@ -6366,12 +5961,12 @@ TICK(sdelay_tick)
 {
 	GW_sdelay* ug = (GW_sdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(sdelay_ctor)
@@ -6387,9 +5982,8 @@ CTOR(sdelay_ctor)
 DTOR(sdelay_dtor)
 {
 	GW_sdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_sdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_sdelay_destroy(&ug->osc);
 }
 
 MFUN(sdelay_init)
@@ -6421,12 +6015,12 @@ TICK(slice_tick)
 {
 	GW_slice* ug = (GW_slice*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_slice_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(slice_ctor)
@@ -6442,9 +6036,8 @@ CTOR(slice_ctor)
 DTOR(slice_dtor)
 {
 	GW_slice* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_slice_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_slice_destroy(&ug->osc);
 }
 
 MFUN(slice_init)
@@ -6486,12 +6079,12 @@ TICK(smoothdelay_tick)
 {
 	GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(smoothdelay_ctor)
@@ -6507,9 +6100,8 @@ CTOR(smoothdelay_ctor)
 DTOR(smoothdelay_dtor)
 {
 	GW_smoothdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_smoothdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_smoothdelay_destroy(&ug->osc);
 }
 
 MFUN(smoothdelay_init)
@@ -6557,19 +6149,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_streson* osc;
-	m_bool is_init;
 } GW_streson;
 
 TICK(streson_tick)
 {
 	GW_streson* ug = (GW_streson*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(streson_ctor)
@@ -6577,7 +6163,7 @@ CTOR(streson_ctor)
 	GW_streson* ug = malloc(sizeof(GW_streson));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_streson_create(&ug->osc);
-	ug->is_init = 0;
+	sp_streson_init(ug->sp, ug->osc);
 	o->ugen->tick = streson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6585,8 +6171,6 @@ CTOR(streson_ctor)
 DTOR(streson_dtor)
 {
 	GW_streson* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_streson_destroy(&ug->osc);
 }
 
@@ -6624,19 +6208,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_switch* osc;
-	m_bool is_init;
 } GW_switch;
 
 TICK(switch_tick)
 {
 	GW_switch* ug = (GW_switch*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_switch_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(switch_ctor)
@@ -6644,7 +6222,7 @@ CTOR(switch_ctor)
 	GW_switch* ug = malloc(sizeof(GW_switch));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_switch_create(&ug->osc);
-	ug->is_init = 0;
+	sp_switch_init(ug->sp, ug->osc);
 	o->ugen->tick = switch_tick;
 	assign_ugen(o->ugen, 3, 1, 1, ug);
 }
@@ -6652,8 +6230,6 @@ CTOR(switch_ctor)
 DTOR(switch_dtor)
 {
 	GW_switch* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_switch_destroy(&ug->osc);
 }
 
@@ -6668,12 +6244,12 @@ TICK(tabread_tick)
 {
 	GW_tabread* ug = (GW_tabread*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tabread_compute(ug->sp, ug->osc, NULL, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tabread_ctor)
@@ -6689,9 +6265,8 @@ CTOR(tabread_ctor)
 DTOR(tabread_dtor)
 {
 	GW_tabread* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tabread_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tabread_destroy(&ug->osc);
 }
 
 MFUN(tabread_init)
@@ -6755,19 +6330,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tadsr* osc;
-	m_bool is_init;
 } GW_tadsr;
 
 TICK(tadsr_tick)
 {
 	GW_tadsr* ug = (GW_tadsr*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tadsr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tadsr_ctor)
@@ -6775,7 +6344,7 @@ CTOR(tadsr_ctor)
 	GW_tadsr* ug = malloc(sizeof(GW_tadsr));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tadsr_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tadsr_init(ug->sp, ug->osc);
 	o->ugen->tick = tadsr_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -6783,8 +6352,6 @@ CTOR(tadsr_ctor)
 DTOR(tadsr_dtor)
 {
 	GW_tadsr* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tadsr_destroy(&ug->osc);
 }
 
@@ -6859,12 +6426,12 @@ TICK(tblrec_tick)
 {
 	GW_tblrec* ug = (GW_tblrec*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tblrec_ctor)
@@ -6880,9 +6447,8 @@ CTOR(tblrec_ctor)
 DTOR(tblrec_dtor)
 {
 	GW_tblrec* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tblrec_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tblrec_destroy(&ug->osc);
 }
 
 MFUN(tblrec_init)
@@ -6909,19 +6475,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tbvcf* osc;
-	m_bool is_init;
 } GW_tbvcf;
 
 TICK(tbvcf_tick)
 {
 	GW_tbvcf* ug = (GW_tbvcf*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tbvcf_ctor)
@@ -6929,7 +6489,7 @@ CTOR(tbvcf_ctor)
 	GW_tbvcf* ug = malloc(sizeof(GW_tbvcf));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tbvcf_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tbvcf_init(ug->sp, ug->osc);
 	o->ugen->tick = tbvcf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6937,8 +6497,6 @@ CTOR(tbvcf_ctor)
 DTOR(tbvcf_dtor)
 {
 	GW_tbvcf* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tbvcf_destroy(&ug->osc);
 }
 
@@ -7006,19 +6564,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tdiv* osc;
-	m_bool is_init;
 } GW_tdiv;
 
 TICK(tdiv_tick)
 {
 	GW_tdiv* ug = (GW_tdiv*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tdiv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tdiv_ctor)
@@ -7026,7 +6578,7 @@ CTOR(tdiv_ctor)
 	GW_tdiv* ug = malloc(sizeof(GW_tdiv));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tdiv_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tdiv_init(ug->sp, ug->osc);
 	o->ugen->tick = tdiv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7034,8 +6586,6 @@ CTOR(tdiv_ctor)
 DTOR(tdiv_dtor)
 {
 	GW_tdiv* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tdiv_destroy(&ug->osc);
 }
 
@@ -7073,19 +6623,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tenv* osc;
-	m_bool is_init;
 } GW_tenv;
 
 TICK(tenv_tick)
 {
 	GW_tenv* ug = (GW_tenv*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tenv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tenv_ctor)
@@ -7093,7 +6637,7 @@ CTOR(tenv_ctor)
 	GW_tenv* ug = malloc(sizeof(GW_tenv));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tenv_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tenv_init(ug->sp, ug->osc);
 	o->ugen->tick = tenv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7101,8 +6645,6 @@ CTOR(tenv_ctor)
 DTOR(tenv_dtor)
 {
 	GW_tenv* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tenv_destroy(&ug->osc);
 }
 
@@ -7155,19 +6697,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tenv2* osc;
-	m_bool is_init;
 } GW_tenv2;
 
 TICK(tenv2_tick)
 {
 	GW_tenv2* ug = (GW_tenv2*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tenv2_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tenv2_ctor)
@@ -7175,7 +6711,7 @@ CTOR(tenv2_ctor)
 	GW_tenv2* ug = malloc(sizeof(GW_tenv2));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tenv2_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tenv2_init(ug->sp, ug->osc);
 	o->ugen->tick = tenv2_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7183,8 +6719,6 @@ CTOR(tenv2_ctor)
 DTOR(tenv2_dtor)
 {
 	GW_tenv2* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tenv2_destroy(&ug->osc);
 }
 
@@ -7222,19 +6756,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tenvx* osc;
-	m_bool is_init;
 } GW_tenvx;
 
 TICK(tenvx_tick)
 {
 	GW_tenvx* ug = (GW_tenvx*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tenvx_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tenvx_ctor)
@@ -7242,7 +6770,7 @@ CTOR(tenvx_ctor)
 	GW_tenvx* ug = malloc(sizeof(GW_tenvx));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tenvx_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tenvx_init(ug->sp, ug->osc);
 	o->ugen->tick = tenvx_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7250,8 +6778,6 @@ CTOR(tenvx_ctor)
 DTOR(tenvx_dtor)
 {
 	GW_tenvx* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tenvx_destroy(&ug->osc);
 }
 
@@ -7304,19 +6830,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tgate* osc;
-	m_bool is_init;
 } GW_tgate;
 
 TICK(tgate_tick)
 {
 	GW_tgate* ug = (GW_tgate*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tgate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tgate_ctor)
@@ -7324,7 +6844,7 @@ CTOR(tgate_ctor)
 	GW_tgate* ug = malloc(sizeof(GW_tgate));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tgate_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tgate_init(ug->sp, ug->osc);
 	o->ugen->tick = tgate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7332,8 +6852,6 @@ CTOR(tgate_ctor)
 DTOR(tgate_dtor)
 {
 	GW_tgate* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tgate_destroy(&ug->osc);
 }
 
@@ -7356,19 +6874,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_thresh* osc;
-	m_bool is_init;
 } GW_thresh;
 
 TICK(thresh_tick)
 {
 	GW_thresh* ug = (GW_thresh*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(thresh_ctor)
@@ -7376,7 +6888,7 @@ CTOR(thresh_ctor)
 	GW_thresh* ug = malloc(sizeof(GW_thresh));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_thresh_create(&ug->osc);
-	ug->is_init = 0;
+	sp_thresh_init(ug->sp, ug->osc);
 	o->ugen->tick = thresh_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7384,8 +6896,6 @@ CTOR(thresh_ctor)
 DTOR(thresh_dtor)
 {
 	GW_thresh* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_thresh_destroy(&ug->osc);
 }
 
@@ -7423,19 +6933,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_timer* osc;
-	m_bool is_init;
 } GW_timer;
 
 TICK(timer_tick)
 {
 	GW_timer* ug = (GW_timer*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(timer_ctor)
@@ -7443,7 +6947,7 @@ CTOR(timer_ctor)
 	GW_timer* ug = malloc(sizeof(GW_timer));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_timer_create(&ug->osc);
-	ug->is_init = 0;
+	sp_timer_init(ug->sp, ug->osc);
 	o->ugen->tick = timer_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7451,8 +6955,6 @@ CTOR(timer_ctor)
 DTOR(timer_dtor)
 {
 	GW_timer* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_timer_destroy(&ug->osc);
 }
 
@@ -7460,19 +6962,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tin* osc;
-	m_bool is_init;
 } GW_tin;
 
 TICK(tin_tick)
 {
 	GW_tin* ug = (GW_tin*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tin_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tin_ctor)
@@ -7480,7 +6976,7 @@ CTOR(tin_ctor)
 	GW_tin* ug = malloc(sizeof(GW_tin));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tin_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tin_init(ug->sp, ug->osc);
 	o->ugen->tick = tin_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7488,8 +6984,6 @@ CTOR(tin_ctor)
 DTOR(tin_dtor)
 {
 	GW_tin* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tin_destroy(&ug->osc);
 }
 
@@ -7497,19 +6991,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_tone* osc;
-	m_bool is_init;
 } GW_tone;
 
 TICK(tone_tick)
 {
 	GW_tone* ug = (GW_tone*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tone_ctor)
@@ -7517,7 +7005,7 @@ CTOR(tone_ctor)
 	GW_tone* ug = malloc(sizeof(GW_tone));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_tone_create(&ug->osc);
-	ug->is_init = 0;
+	sp_tone_init(ug->sp, ug->osc);
 	o->ugen->tick = tone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7525,8 +7013,6 @@ CTOR(tone_ctor)
 DTOR(tone_dtor)
 {
 	GW_tone* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_tone_destroy(&ug->osc);
 }
 
@@ -7549,19 +7035,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_trand* osc;
-	m_bool is_init;
 } GW_trand;
 
 TICK(trand_tick)
 {
 	GW_trand* ug = (GW_trand*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_trand_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(trand_ctor)
@@ -7569,7 +7049,7 @@ CTOR(trand_ctor)
 	GW_trand* ug = malloc(sizeof(GW_trand));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_trand_create(&ug->osc);
-	ug->is_init = 0;
+	sp_trand_init(ug->sp, ug->osc);
 	o->ugen->tick = trand_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7577,8 +7057,6 @@ CTOR(trand_ctor)
 DTOR(trand_dtor)
 {
 	GW_trand* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_trand_destroy(&ug->osc);
 }
 
@@ -7623,12 +7101,12 @@ TICK(tseg_tick)
 {
 	GW_tseg* ug = (GW_tseg*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tseg_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tseg_ctor)
@@ -7644,9 +7122,8 @@ CTOR(tseg_ctor)
 DTOR(tseg_dtor)
 {
 	GW_tseg* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tseg_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tseg_destroy(&ug->osc);
 }
 
 MFUN(tseg_init)
@@ -7723,12 +7200,12 @@ TICK(tseq_tick)
 {
 	GW_tseq* ug = (GW_tseq*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_tseq_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(tseq_ctor)
@@ -7744,9 +7221,8 @@ CTOR(tseq_ctor)
 DTOR(tseq_dtor)
 {
 	GW_tseq* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_tseq_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_tseq_destroy(&ug->osc);
 }
 
 MFUN(tseq_init)
@@ -7795,12 +7271,12 @@ TICK(vdelay_tick)
 {
 	GW_vdelay* ug = (GW_vdelay*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(vdelay_ctor)
@@ -7816,9 +7292,8 @@ CTOR(vdelay_ctor)
 DTOR(vdelay_dtor)
 {
 	GW_vdelay* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_vdelay_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_vdelay_destroy(&ug->osc);
 }
 
 MFUN(vdelay_init)
@@ -7858,19 +7333,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_vocoder* osc;
-	m_bool is_init;
 } GW_vocoder;
 
 TICK(vocoder_tick)
 {
 	GW_vocoder* ug = (GW_vocoder*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_vocoder_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(vocoder_ctor)
@@ -7878,7 +7347,7 @@ CTOR(vocoder_ctor)
 	GW_vocoder* ug = malloc(sizeof(GW_vocoder));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_vocoder_create(&ug->osc);
-	ug->is_init = 0;
+	sp_vocoder_init(ug->sp, ug->osc);
 	o->ugen->tick = vocoder_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -7886,8 +7355,6 @@ CTOR(vocoder_ctor)
 DTOR(vocoder_dtor)
 {
 	GW_vocoder* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_vocoder_destroy(&ug->osc);
 }
 
@@ -7947,12 +7414,12 @@ TICK(waveset_tick)
 {
 	GW_waveset* ug = (GW_waveset*)u->ug;
 	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
+	{
+		u->out = 0;
+		return 1;
+	}
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(waveset_ctor)
@@ -7968,9 +7435,8 @@ CTOR(waveset_ctor)
 DTOR(waveset_dtor)
 {
 	GW_waveset* ug = o->ugen->ug;
-if(ug->is_init)
-	
-	sp_waveset_destroy(&ug->osc);
+	if(ug->is_init)
+		sp_waveset_destroy(&ug->osc);
 }
 
 MFUN(waveset_init)
@@ -8010,19 +7476,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_wpkorg35* osc;
-	m_bool is_init;
 } GW_wpkorg35;
 
 TICK(wpkorg35_tick)
 {
 	GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(wpkorg35_ctor)
@@ -8030,7 +7490,7 @@ CTOR(wpkorg35_ctor)
 	GW_wpkorg35* ug = malloc(sizeof(GW_wpkorg35));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_wpkorg35_create(&ug->osc);
-	ug->is_init = 0;
+	sp_wpkorg35_init(ug->sp, ug->osc);
 	o->ugen->tick = wpkorg35_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -8038,8 +7498,6 @@ CTOR(wpkorg35_ctor)
 DTOR(wpkorg35_dtor)
 {
 	GW_wpkorg35* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_wpkorg35_destroy(&ug->osc);
 }
 
@@ -8092,19 +7550,13 @@ typedef struct
 {
 	sp_data* sp;
 	sp_zitarev* osc;
-	m_bool is_init;
 } GW_zitarev;
 
 TICK(zitarev_tick)
 {
 	GW_zitarev* ug = (GW_zitarev*)u->ug;
-	if(!ug->is_init)
-{
-	u->out = 0;
-	return 1;
-}
 	sp_zitarev_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
-	 return 1;
+	return 1;
 }
 
 CTOR(zitarev_ctor)
@@ -8112,7 +7564,7 @@ CTOR(zitarev_ctor)
 	GW_zitarev* ug = malloc(sizeof(GW_zitarev));
 	ug->sp = shred->vm_ref->bbq->sp;
 	sp_zitarev_create(&ug->osc);
-	ug->is_init = 0;
+	sp_zitarev_init(ug->sp, ug->osc);
 	o->ugen->tick = zitarev_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -8120,8 +7572,6 @@ CTOR(zitarev_ctor)
 DTOR(zitarev_dtor)
 {
 	GW_zitarev* ug = o->ugen->ug;
-if(ug->is_init)
-	
 	sp_zitarev_destroy(&ug->osc);
 }
 
@@ -8371,6 +7821,7 @@ struct Type_ t_revsc = {"Revsc", SZ_INT, &t_ugen};
 struct Type_ t_rms = {"Rms", SZ_INT, &t_ugen};
 struct Type_ t_rpt = {"Rpt", SZ_INT, &t_ugen};
 struct Type_ t_samphold = {"Samphold", SZ_INT, &t_ugen};
+struct Type_ t_saturator = {"Saturator", SZ_INT, &t_ugen};
 struct Type_ t_scale = {"Scale", SZ_INT, &t_ugen};
 struct Type_ t_sdelay = {"Sdelay", SZ_INT, &t_ugen};
 struct Type_ t_slice = {"Slice", SZ_INT, &t_ugen};
@@ -8406,9 +7857,7 @@ m_bool import_soundpipe(Env env)
 	Func f;
 
 	CHECK_BB(add_global_type(env, &t_ftbl))
-	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, ftbl_dtor, ftbl_dtor))
-	o_ftbl_data = import_mvar(env, "int", "@ftbl", 0, 0, "sp_ftbl*");
-	CHECK_BB(o_ftbl_data)
+	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
 	fun = new_DL_Func("void", "gen_composite", (m_uint)ftbl_gen_composite);
 		arg = dl_func_add_arg(fun, "string", "argstring");
 		arg->doc = "a string of space-separated parameters, in groups of four:arg 1 is the partial number. must be positive, but it doesn't need to be a whole number.arg 2 is the strength.arg 3 is the initial phase (expressed in degrees)arg 4 is the dc offset. A dc offset of 2 will put a 2-strength sinusoid in the rangefrom (-2,2) to (0, 4)";
@@ -8451,7 +7900,6 @@ m_bool import_soundpipe(Env env)
 	CHECK_OB((f = import_mfun(env, fun)))
 	f->doc = "Scrambles phase of ftable.This gen routine will copy the ftable, apply an FFT, applya random phase, and then do an inverse FFT. This effect is ideal for creating pad-like sounds. ";
 	fun = new_DL_Func("void", "gen_sinesum", (m_uint)ftbl_gen_sinesum);
-		arg = dl_func_add_arg(fun, "int", "size");
 		arg = dl_func_add_arg(fun, "string", "argstring");
 		arg->doc = "A list of amplitudes, in the range 0-1, separated by spaces.Each position coordinates to their partial number. Position 1 is the fundamental amplitude (1 * freq). Position 2 is the first overtone (2 * freq), 3 is the second (3 * freq), etc...";
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9871,6 +9319,7 @@ env->class_def->doc = "soudpipe float array type";
 	CHECK_BB(add_global_type(env, &t_nsmp))
 	CHECK_BB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
 	fun = new_DL_Func("void", "init", (m_uint)nsmp_init);
+		arg = dl_func_add_arg(fun, "ftbl", "ft");
 		arg->doc = "ftbl of the audio file. It should be mono.";
 		arg = dl_func_add_arg(fun, "int", "sr");
 		arg->doc = "samplerate.";
@@ -10560,6 +10009,27 @@ env->class_def->doc = "soudpipe float array type";
 	CHECK_BB(add_global_type(env, &t_samphold))
 	CHECK_BB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
 	env->class_def->doc = "Classic sample and hold";
+	CHECK_BB(import_class_end(env))
+
+	CHECK_BB(add_global_type(env, &t_saturator))
+	CHECK_BB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
+	fun = new_DL_Func("float", "dcoffset", (m_uint)saturator_get_dcoffset);
+	CHECK_OB((f = import_mfun(env, fun)))
+	f->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
+	fun = new_DL_Func("float", "dcoffset", (m_uint)saturator_set_dcoffset);
+		arg = dl_func_add_arg(fun, "float", "dcoffset");
+		arg->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
+	CHECK_OB((f = import_mfun(env, fun)))
+	f->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
+	fun = new_DL_Func("float", "drive", (m_uint)saturator_get_drive);
+	CHECK_OB((f = import_mfun(env, fun)))
+	f->doc = "Input gain into the distortion section, in decibels. Controls overall amount of distortion.";
+	fun = new_DL_Func("float", "drive", (m_uint)saturator_set_drive);
+		arg = dl_func_add_arg(fun, "float", "drive");
+		arg->doc = "Input gain into the distortion section, in decibels. Controls overall amount of distortion.";
+	CHECK_OB((f = import_mfun(env, fun)))
+	f->doc = "Input gain into the distortion section, in decibels. Controls overall amount of distortion.";
+	env->class_def->doc = "Soft clip saturating distortion, based on examples from Abel/Berners' Music 424 course at Stanford.";
 	CHECK_BB(import_class_end(env))
 
 	CHECK_BB(add_global_type(env, &t_scale))

@@ -177,7 +177,7 @@ typedef struct
     {
         S_Symbol var;
         long num;
-        double fnum;
+        m_float fnum;
         m_str chr;
         m_str str;
         Array_Sub array;
@@ -207,7 +207,7 @@ typedef struct
 
 
 Expression new_Primary_Expression_from_int(long i, int pos);
-Expression new_Primary_Expression_from_float(double num, int pos);
+Expression new_Primary_Expression_from_float(m_float num, int pos);
 Expression new_Primary_Expression_from_ID(m_str s, int pos);
 Expression new_Primary_Expression_from_string(m_str s, int pos);
 Expression new_exp_from_array_lit(Array_Sub exp_list, int pos );
@@ -550,9 +550,9 @@ struct Func_Def_
   m_bool has_code;
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
-	ID_List types;
-	m_bool is_template;
-	m_bool is_variadic;
+  ID_List types;
+  m_bool is_template;
+  m_bool is_variadic;
 };
 
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt* code, int pos);

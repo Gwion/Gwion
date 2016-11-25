@@ -8,7 +8,7 @@
 struct Type_ t_string     = { "string",     sizeof(m_uint), &t_object, te_string};
 m_int o_string_data;
 
-static void String_Assign(VM * vm, VM_Shred shred, Instr instr)
+static INSTR(String_Assign)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "string => string");
@@ -31,7 +31,7 @@ static void String_Assign(VM * vm, VM_Shred shred, Instr instr)
   shred->reg += SZ_INT;  
 }
 
-static void Int_String_Assign(VM * vm, VM_Shred shred, Instr instr)
+static INSTR(Int_String_Assign)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '=>' string");
@@ -46,7 +46,7 @@ static void Int_String_Assign(VM * vm, VM_Shred shred, Instr instr)
   shred->reg += SZ_INT;
 }
 
-static void Float_String_Assign(VM * vm, VM_Shred shred, Instr instr)
+static INSTR(Float_String_Assign)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "float '=>' string");
@@ -260,7 +260,7 @@ INSTR(Object_String_Plus)
   *(M_Object*)shred->reg = rhs;
   shred->reg += SZ_INT;
 }
-void Reg_Push_Str(VM* vm, VM_Shred shred, Instr instr)
+INSTR(Reg_Push_Str)
 {
 #ifdef DEBUG_INSTR 
   debug_msg("instr", "push string %s", (m_str)instr->m_val);
@@ -277,12 +277,12 @@ void string_ctor(M_Object o, VM_Shred shred)
   STRING(o) = "this is the default string";
 }
 
-void string_len(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_len)
 {
 	RETURN->v_uint = strlen(STRING(o));
 }
 
-void string_upper(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_upper)
 {
 	m_uint i;
 	M_Object obj = new_M_Object();
@@ -294,7 +294,7 @@ void string_upper(M_Object o, DL_Return * RETURN, VM_Shred shred)
 	RETURN->v_object = obj;
 }
 
-void string_lower(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_lower)
 {
 	m_uint i;
 	M_Object obj = new_M_Object();
@@ -306,7 +306,7 @@ void string_lower(M_Object o, DL_Return * RETURN, VM_Shred shred)
 	RETURN->v_object = obj;
 }
 
-void string_ltrim(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_ltrim)
 {
 	m_uint i = 0;
 	M_Object obj = new_M_Object();
@@ -317,7 +317,7 @@ void string_ltrim(M_Object o, DL_Return * RETURN, VM_Shred shred)
 	RETURN->v_object = obj;
 }
 
-void string_rtrim(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_rtrim)
 {
 	M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
@@ -325,7 +325,7 @@ void string_rtrim(M_Object o, DL_Return * RETURN, VM_Shred shred)
 	RETURN->v_object = obj;
 }
 
-void string_trim(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_trim)
 {
   m_str str = STRING(o);
   m_int i, start = 0, end = 0, len = 0;
@@ -355,7 +355,7 @@ void string_trim(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_charAt(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_charAt)
 {
   m_str str = STRING(o);
   m_int i = *(m_int*)(shred->mem + SZ_INT), len = 0;
@@ -368,7 +368,7 @@ void string_charAt(M_Object o, DL_Return * RETURN, VM_Shred shred)
 }
 
 
-void string_setCharAt(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_setCharAt)
 {
   m_str str = STRING(o);
   m_int i = *(m_int*)(shred->mem + SZ_INT), len = 0;
@@ -385,7 +385,7 @@ void string_setCharAt(M_Object o, DL_Return * RETURN, VM_Shred shred)
   }
 }
 
-void string_substring(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_substring)
 {
   m_str str = strdup(STRING(o));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
@@ -401,7 +401,7 @@ void string_substring(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_substringN(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_substringN)
 {
   m_str str = strdup(STRING(o));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT * 2);
@@ -420,7 +420,7 @@ void string_substringN(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_insert(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_insert)
 {
   m_str str = strdup(STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
@@ -443,7 +443,7 @@ void string_insert(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_replace(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_replace)
 {
   m_str str = strdup(STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
@@ -464,7 +464,7 @@ void string_replace(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_replaceN(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_replaceN)
 {
   m_str str = strdup(STRING(o));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
@@ -488,7 +488,7 @@ void string_replaceN(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_object = obj;
 }
 
-void string_find(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_find)
 {
   m_str str = STRING(o);
   m_int i = 0, ret = -1;
@@ -505,7 +505,7 @@ void string_find(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_findStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_findStart)
 {
   m_str str = STRING(o);
   char pos = *(m_int*)(shred->mem + SZ_INT);
@@ -523,7 +523,7 @@ void string_findStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_findStr(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_findStr)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
@@ -545,7 +545,7 @@ void string_findStr(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_findStrStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_findStrStart)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
@@ -568,7 +568,7 @@ void string_findStrStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_rfind(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_rfind)
 {
   m_str str = STRING(o);
   m_int i = strlen(str), ret = -1;
@@ -585,7 +585,7 @@ void string_rfind(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_rfindStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_rfindStart)
 {
   m_str str = STRING(o);
   char pos = *(m_int*)(shred->mem + SZ_INT);
@@ -603,7 +603,7 @@ void string_rfindStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_rfindStr(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_rfindStr)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
@@ -625,7 +625,7 @@ void string_rfindStr(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_rfindStrStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_rfindStrStart)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
@@ -648,7 +648,7 @@ void string_rfindStrStart(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = ret;
 }
 
-void string_erase(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_erase)
 {
   m_str str = STRING(o);
   m_int i;
@@ -663,10 +663,10 @@ void string_erase(M_Object o, DL_Return * RETURN, VM_Shred shred)
     c[i -rem] = str[i];
 }
 
-void string_toInt(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_toInt)
 { RETURN->v_uint = atoi(STRING(o)); }
 
-void string_toFloat(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(string_toFloat)
 {  RETURN->v_float = atof(STRING(o));	}
 
 m_bool import_string(Env env)

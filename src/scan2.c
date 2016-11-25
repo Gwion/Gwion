@@ -1,7 +1,7 @@
+#include <string.h> // use in Func_Def
 #include "err_msg.h"
 #include "absyn.h"
 #include "func.h"
-#include <string.h> // use in Func_Def
 
 static m_bool scan2_Expression(Env env, Expression exp);
 static m_bool scan2_Stmt_List(Env env, Stmt_List list);
@@ -82,7 +82,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
 
     // doc
     if(!env->class_def && ! env->func)
-      context_add_value(env->context, list->self->value, new_VM_Object(e_value_obj));
+      context_add_value(env->context, list->self->value, list->self->value->obj);
     if(list->doc)
       list->self->value->doc = list->doc;
 
@@ -829,7 +829,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   value->checked = 1;
   // while making doc
   if(!env->class_def)
-    context_add_func(env->context, func, new_VM_Object(e_func_obj));
+    context_add_func(env->context, func, func->obj);
 
   if(!overload)
   {
@@ -863,7 +863,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(f->code && scan2_Stmt_Code(env, f->code->stmt_code, 0) < 0)
   {
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name) );
-    return -1;
     goto error;
   }
 

@@ -1,9 +1,9 @@
+#include <math.h>
 #include "defs.h"
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
 #include "import.h"
-#include <math.h>
 
 struct Type_ t_complex = { "complex", SZ_COMPLEX, NULL, te_complex};
 struct Type_ t_polar   = { "polar",   SZ_COMPLEX, NULL, te_polar};
@@ -111,7 +111,7 @@ static INSTR(r_divide)
   shred->reg += SZ_COMPLEX;
 }
 
-void complex_real(VM * vm, VM_Shred shred, Instr instr)
+INSTR(complex_real)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'real' %i",  instr->m_val);
@@ -131,7 +131,7 @@ void complex_real(VM * vm, VM_Shred shred, Instr instr)
   }
 }
 
-void complex_imag(VM * vm, VM_Shred shred, Instr instr)
+INSTR(complex_imag)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'imag' #(%f, %f)", 

@@ -19,5 +19,4 @@ char* Recv(int i);
 void* server_thread(void* data);
 int server_init(char* hostname, int port);
 void server_destroy();
-extern short int ssp_is_running;
 #endif

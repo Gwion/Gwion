@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <math.h>
+
 #include "defs.h"
 #include "vm.h"
 #include "type.h"
@@ -11,8 +14,6 @@
 #include "object.h"
 #include "err_msg.h"
 
-#include <stdlib.h>
-#include <math.h>
 
 typedef struct
 {
@@ -105,7 +106,7 @@ static void fft_dtor(M_Object o, VM_Shred shred)
   free(ana);
 }
 
-static void fft_init(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(fft_init)
 {
   FFT* ana = (FFT*)o->ugen->ug;
   if(ana)
@@ -126,7 +127,7 @@ static void fft_init(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = size;
 }
 
-static void fft_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(fft_compute)
 {
   m_float* smp;
   FFT* ana = (FFT*)o->ugen->ug;
@@ -444,7 +445,7 @@ m_int o_ana_fft;
 m_int o_ana_fn;
 
 static m_float ana_dummy(FFT* fft){ return 0.0; }
-static void ana_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ana_compute)
 {
   M_Object   fft = *(M_Object*) (o->data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
@@ -454,12 +455,12 @@ static void ana_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_float = f(_fft);
 }
 
-static void ana_get_fft(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ana_get_fft)
 {
   RETURN->v_uint = (m_uint)(o->data + o_ana_fft);
 }
 
-static void ana_set_fft(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(ana_set_fft)
 {
   FFT* ana;
   M_Object fft = *(M_Object*) (o->data + o_ana_fft);
@@ -593,12 +594,12 @@ static void rolloff_ctor(M_Object o, VM_Shred shred)
 {
   *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_rolloff;
 }
-static void rolloff_get_percent(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(rolloff_get_percent)
 {
   _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
   RETURN->v_float = _fft->percent;
 }
-static void rolloff_set_percent(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(rolloff_set_percent)
 {
   _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
   RETURN->v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
@@ -667,7 +668,7 @@ static void fc_dtor(M_Object o, VM_Shred shred)
   free(*(Vector*)(o->data + o_fc_vector));
 }
 
-static void fc_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(fc_compute)
 {
   m_uint i;
   M_Object obj, ret;
@@ -677,7 +678,7 @@ static void fc_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
   ret = new_M_Array(1, vector_size(v));
   initialize_object(ret, &t_array);
   for(i = 0; i < vector_size(v); i++)
-  { 
+  {
     obj  = (M_Object)vector_at(v, i);
     _fft = *(_FFT**)(obj->data + o_ana__fft);
     fn   = *(f_analys*)(obj->data + o_ana_fn);
@@ -688,25 +689,25 @@ static void fc_compute(M_Object o, DL_Return * RETURN, VM_Shred shred)
   RETURN->v_uint = (m_uint)ret;
 }
 
-static void fc_add(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(fc_add)
 {
   Vector v = *(Vector*)(o->data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj)
   {
-    vector_append(v, obj);
+    vector_append(v, (vtype)obj);
     release(obj, shred);
   }
   RETURN->v_uint = (m_uint)obj;
 }
 
-static void fc_rem(M_Object o, DL_Return * RETURN, VM_Shred shred)
+static MFUN(fc_rem)
 {
   Vector v = *(Vector*)(o->data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj)
   {
-    vector_remove(v, vector_find(v, obj));
+    vector_remove(v, vector_find(v, (vtype)obj));
     release(obj, shred);
   }
   RETURN->v_uint = (m_uint)obj;
@@ -721,7 +722,7 @@ INSTR(fc_connect)
     Vector v = *(Vector*)(obj->data + o_fc_vector);
     if(obj)
     {
-      vector_append(v, obj);
+      vector_append(v, (vtype)obj);
       release(obj, shred);
     }
     release(o, shred);
@@ -739,7 +740,7 @@ INSTR(fc_disconnect)
   Vector v = *(Vector*)(obj->data + o_fc_vector);
     if(obj)
     {
-      vector_remove(v, vector_find(v, obj));
+      vector_remove(v, vector_find(v, (vtype)obj));
       release(obj, shred);
     }
     release(o, shred);

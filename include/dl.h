@@ -1,12 +1,13 @@
 #ifndef DL_H
 #define DL_H
 
+#include <stdlib.h>
+
 #include "defs.h"
 #include "vm.h"
 //#include "type.h"
 
 #define CK_DLL_CALL
-#include <stdlib.h>
 
 typedef struct DL_Return
 {

@@ -3,17 +3,12 @@
 #include "bbq.h"
 #include "driver.h"
 
-extern m_bool ssp_is_running;
 static sp_audio spa;
 static m_bool raw_ini(VM* vm, DriverInfo* di)
 {
-/*
-	char c[256];
-	memset(c, 0, 256);
-	strcat(c, di->card);
-	strcat(c, ".raw");
-*/
-	if(spa_open(vm->bbq->sp, &spa, di->card, SPA_WRITE) == SP_NOT_OK)
+	char tmp[104];
+	sprintf(tmp, "%s.raw", di->card);
+	if(spa_open(vm->bbq->sp, &spa, tmp, SPA_WRITE) == SP_NOT_OK)
 	{
 		fprintf(stderr, "Error: could not open file %s.\n", di->card);
 		return -1;
@@ -23,7 +18,7 @@ static m_bool raw_ini(VM* vm, DriverInfo* di)
 
 static void raw_run(VM* vm, DriverInfo* di)
 {
-	while(ssp_is_running)
+	while(vm->is_running)
 	{
 		vm_run(vm);
 		spa_write_buf(vm->bbq->sp, &spa, vm->bbq->sp->out, vm->bbq->sp->nchan);

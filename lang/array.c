@@ -145,7 +145,7 @@ VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i)
   return &*(VEC4_T*)(v->ptr + i*v->size);
 }
 
-void vm_vector_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
+MFUN(vm_vector_size)
 {
   if(!o)
     RETURN->v_uint = -1;

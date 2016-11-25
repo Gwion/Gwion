@@ -2,16 +2,17 @@
 #include "absyn.h"
 
 void free_Expression(Expression exp);
+void free_Arg_List(Arg_List a);
 
 int get_pos(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, data);
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   return arg->line;
 }
 
 Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 {
-	Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
+  Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
   a->xid= insert_symbol(name);
   a->array = array;
   a->pos = pos;
@@ -19,6 +20,8 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 }
 void free_Var_Decl(Var_Decl a)
 {
+  if(a->array)
+    free(a->array);
   free(a);
 }
 Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
@@ -32,8 +35,7 @@ Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
 }
 void free_Var_Decl_List(Var_Decl_List a)
 {
-  Var_Decl_List list = a;
-  Var_Decl_List tmp;
+  Var_Decl_List tmp, list = a;
   while(list)
   {
     free_Var_Decl(list->self);
@@ -138,29 +140,43 @@ Expression new_Array(Expression base, Array_Sub indices, int pos )
 
 void free_Type_Decl(Type_Decl* a)
 {
+  if(a->array)
+  {
+//if(a->array->exp_list)
+//free_Expression(a->array->exp_list);
+    free(a->array);
+  }
+  free_ID_List(a->xid);
   free(a);
 }
 
 Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
 {
-	Expression a = calloc(1, sizeof(struct Expression_));
+  Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Decl_Expression_type;
-	a->decl_exp  = calloc(1, sizeof(Decl_Expression));
-	a->decl_exp->type = type;
-	a->decl_exp->num_decl = 0;
-	a->decl_exp->list = list;
-	a->decl_exp->is_static = is_static;
+  a->decl_exp  = calloc(1, sizeof(Decl_Expression));
+  a->decl_exp->type = type;
+  a->decl_exp->num_decl = 0;
+  a->decl_exp->list = list;
+  a->decl_exp->is_static = is_static;
   a->pos  = pos;
   a->decl_exp->pos  = pos;
   a->decl_exp->self = a;
   a->next = NULL;
   a->cast_to = NULL;
-	return a;
+  return a;
 }
 
 void free_Decl_Expression(Decl_Expression* decl)
 {
   free_Type_Decl(decl->type);
+// free value here ?
+  Var_Decl_List tmp, list = decl->list;
+  while(list)
+  {
+     rem_ref(list->self->value->obj, list->self->value);
+     list = list->next;
+  }
   free_Var_Decl_List(decl->list);
   free(decl);
 }
@@ -266,7 +282,7 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->cast_to = NULL;
 	return a;
 }
-Expression new_Primary_Expression_from_float(double num, int pos)
+Expression new_Primary_Expression_from_float(m_float num, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Primary_Expression_type;
@@ -555,7 +571,7 @@ Expression new_If_Expression(Expression cond, Expression if_exp, Expression else
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt* code, int pos)
 {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
-  a->func_decl = func_decl = func_decl;
+  a->func_decl = func_decl;
   a->static_decl = static_decl;
   a->type_decl = type_decl;
   a->name = insert_symbol(name);
@@ -577,6 +593,12 @@ Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
 
 void free_Func_Def(Func_Def func)
 {
+//  if(func->ret_type->array_type)
+//    free(func->ret_type);
+  if(func->arg_list)
+    free_Arg_List(func->arg_list);
+  free_Type_Decl(func->type_decl);
+  free(func->name);
   free(func);
 }
 
@@ -658,9 +680,9 @@ void free_Primary_Expression(Primary_Expression* primary)
 
 void free_Expression(Expression exp)
 {
-  Expression curr = exp;
-	while(curr)
-	{
+  Expression tmp, curr = exp;
+  while(curr)
+  {
 		switch(curr->exp_type)
 		{
 			case Decl_Expression_type:
@@ -691,7 +713,9 @@ void free_Expression(Expression exp)
 printf("free Expression: unhandled exp type %i\n", curr->exp_type);
         break;
     }
+    tmp = curr;
     curr = curr->next;
+    free(tmp);
   }
 }
 /* FUNC */
@@ -710,6 +734,12 @@ void free_Arg_List(Arg_List a)
   if(a->next)
     free_Arg_List(a->next);
   free_Type_Decl(a->type_decl);
+  if(a->var_decl->value->m_type->array_type)
+  {
+free(a->var_decl->value->m_type->obj);
+    free(a->var_decl->value->m_type);
+  }
+  free(a->var_decl->value);
   free_Var_Decl(a->var_decl);
   free(a);
 
@@ -911,6 +941,7 @@ Union* new_Union(Decl_List l)
   a->l = l;
   a->v = new_Vector();
   a->s = 0;
+  return a;
 }
 
 void free_Stmt(Stmt* stmt)
@@ -981,7 +1012,6 @@ void free_Section(Section* section)
 /*      break;*/
   }
   free(section);
-  section = NULL;
 }
 
 Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
@@ -1092,25 +1122,25 @@ Ast new_Ast(Section* section, Ast next, int pos)
 #ifdef DEBUG_AST
   debug_msg("emit", "new Ast");
 #endif
-  Ast ast = calloc(1, sizeof(struct Ast_));
+  Ast ast = malloc(sizeof(struct Ast_));
   ast->section = section;
   ast->next = next;
   ast->pos = pos;
-	ast->doc = NULL;
+  ast->doc = NULL;
   return ast;
 }
 
-void free_Ast(Ast ast)
+void free_Ast(Ast prog)
 {
 #ifdef DEBUG_AST
   debug_msg("ast", "free AST");
 #endif
-  Ast tmp;
-	while(ast)
-	{
-    tmp = ast;
+  Ast tmp, ast = prog;
+  while(ast)
+  {
+    tmp = prog;
     ast = ast->next;
     free_Section(tmp->section);
+    free(tmp);
   }
-  free(ast);
 }

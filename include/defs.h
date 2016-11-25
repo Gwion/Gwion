@@ -1,7 +1,8 @@
 #ifndef __DEF
 #define __DEF
 
-#define SIZEOF_MEM 0x1 << 16
+#define MEM_STEP 16
+#define SIZEOF_MEM 0x1 << MEM_STEP
 #define SIZEOF_REG 0x1 << 14
 
 #define CHECK_BB(f) if(f < 0) return -1;
@@ -9,14 +10,7 @@
 #define CHECK_BO(f) if(f < 0) return NULL;
 #define CHECK_OO(f) if(!f)    return NULL;
 
-/* common typedefs */
-typedef long  int           m_int;
-typedef long  unsigned int  m_uint;
-typedef short int           m_bool;
-typedef double              m_float;
-typedef char *              m_str;
-typedef struct { m_float x, y, z; }  VEC3_T;
-typedef struct { m_float x, y, z, w; } VEC4_T;
+#include "generated.h"
 /* pointer types */
 typedef struct Ast_       * Ast;
 typedef struct Func_Def_  * Func_Def;
@@ -92,6 +86,7 @@ enum
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)
+#define IMPORT m_bool import(Env env)
 // should be in lang.h, maybe
 // string
 #define STRING(o) *((m_str*)((M_Object)o)->data + o_string_data)
@@ -104,16 +99,19 @@ enum
 #define IO_FILE(o)	*((FILE**)((M_Object)o)->data + o_fileio_file)
 #define IO_ASCII(o)	*((m_uint*)((M_Object)o)->data + o_fileio_ascii)
 
-
-#define SZ_INT 8
-#define SZ_FLOAT 8
-#define SZ_COMPLEX 16
-#define SZ_VEC3 24
-#define SZ_VEC4 32
-
+/*
+#define SZ_INT sizeof(m_uint)
+#define SZ_FLOAT sizeof(SPFLOAT)
+#define SZ_COMPLEX (sizeof(SPFLOAT) * 2)
+#define SZ_VEC3 (sizeof(SPFLOAT) * 3)
+#define SZ_VEC4 (sizeof(SPFLOAT) * 4)
+*/
 #define NEXT_INT     (s)  *(m_int*)    (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_UINT    (s)  *(m_uint*)   (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_FLOAT   (s)  *(m_float*)  (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_FLOAT  )
 #define NEXT_OBJECT  (s)  *(M_Object*) (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_COMPLEX (s)  *(m_complex*)(s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_COMPLEX)
+
+#define GW_PLUG_DIR "/usr/lib/Gwion/plug"
+
 #endif

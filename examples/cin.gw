@@ -1,0 +1,8 @@
+<<<cout, cerr, cin>>>;
+//<<<FileIO.stdin>>>;
+string s;
+<<<s>>>;
+<<<cin => s>>>;
+<<<cin => s>>>;
+//cin => string s;
+//5::second => now;

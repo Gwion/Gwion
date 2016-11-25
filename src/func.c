@@ -14,12 +14,13 @@ Func new_Func(m_str name, Func_Def def)
   func->up = NULL;
   func->is_member = 0;
   func->obj = new_VM_Object(e_func_obj);
-	func->variadic_start = NULL;
+  func->variadic_start = NULL;
   return func;
 }
 
-void free_Func(Func func)
+void free_Func(Func a)
 {
-  free(func);
-  func = NULL;
+  free_Func_Def(a->def);
+  free(a->name);
+  free(a);
 }

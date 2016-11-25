@@ -9,22 +9,39 @@
 #include "bbq.h"
 
 extern struct Type_ t_osc;
-static struct Type_ t_sinosc      = { "SinOsc",      1, &t_osc };
+static struct Type_ t_sinosc      = { "SinOsc",      1, &t_ugen };
+
 typedef struct
 {
   sp_data* sp;
   sp_osc* osc;
-  char is_init;
+  m_bool is_init;
   sp_ftbl*  tbl;
   m_float   phase;
 } SP_osc; // copied from generated osc.c
 
+TICK(sinosc_tick)
+{
+  SP_osc* ug = (SP_osc*)u->ug;
+  if(!ug->is_init)
+	{
+  	u->out = 0;
+  	return 1;
+	}
+	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
+  return 1;
+}
+
 static void sinosc_ctor(M_Object o, VM_Shred shred)
 {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+//  SP_osc* ug = (SP_osc*)o->ugen->ug;
+	SP_osc* ug = malloc(sizeof(SP_osc));
+	sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, 0.);
+  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+	assign_ugen(o->ugen, 0, 1, 0, ug);
+	o->ugen->tick = sinosc_tick;
   ug->is_init = 1;
 }
 
@@ -90,6 +107,7 @@ static m_bool gain_tick(UGen u)
 {
   base_tick(u);
   u->out *= *(m_float*)u->ug;
+	return 1;
 }
 
 static void gain_ctor(M_Object o, VM_Shred shred)
@@ -132,9 +150,10 @@ static m_bool import_gain(Env env)
 static struct Type_ t_impulse      = { "Impulse", 1, &t_ugen };
 static m_bool impulse_tick(UGen u)
 {
-  u->last = u->out = *(m_float*)u->ug;
+//  u->out = *(m_float*)u->ug;
 	*(m_float*)u->ug = 0;
-	u->done = 1;
+//	u->done = 1;
+	return 1;
 }
 
 static void impulse_ctor(M_Object o, VM_Shred shred)
@@ -196,7 +215,6 @@ static void fullrect_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_fullrect(Env env)
 {
-  DL_Func* fun;
 	CHECK_BB(add_global_type(env, &t_fullrect))
 	CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
 	CHECK_BB(import_class_end(env))
@@ -238,6 +256,7 @@ static struct Type_ t_step = { "Step", 1, &t_ugen };
 static m_bool step_tick(UGen u)
 {
   u->out = *(m_float*)u->ug;
+	return 1;
 }
 
 static void step_ctor(M_Object o, VM_Shred shred)
@@ -260,7 +279,6 @@ static void step_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 
 static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-	printf("%f\n", *(m_float*)(shred->mem + SZ_INT));
   RETURN->v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
@@ -292,6 +310,7 @@ static m_bool zerox_tick(UGen u)
       u->out = -1;
   }
   *(m_float*)u->ug = u->in;
+	return 1;
 }
 
 static void zerox_ctor(M_Object o, VM_Shred shred)
@@ -308,7 +327,6 @@ static void zerox_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_zerox(Env env)
 {
-  DL_Func* fun;
 	CHECK_BB(add_global_type(env, &t_zerox))
 	CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
 	CHECK_BB(import_class_end(env))

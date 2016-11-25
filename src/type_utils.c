@@ -155,7 +155,7 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
 	v->owner = env->global_nspc; // ?
   // doc
 //  namespace_add_value(env->global_context->nspc, insert_symbol(name), v);
-  context_add_value(env->global_context, v, new_VM_Object(e_value_obj));
+  context_add_value(env->global_context, v, v->obj);
   return 1;
 }
 
@@ -176,7 +176,7 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
 
   // doc
 //  namespace_add_value(env->global_context->nspc, insert_symbol(name), v);
-  context_add_value(env->global_context, v, new_VM_Object(e_value_obj));
+  context_add_value(env->global_context, v, v->obj);
 //  namespace_add_value(env->context->nspc, insert_symbol(type->name), v);
 
   return 1;
@@ -202,7 +202,7 @@ m_bool add_global_type(Env env, Type type)
   
   // doc
 //  namespace_add_type(env->context->nspc, insert_symbol(type->name), type);
-  context_add_type(env->global_context, type, new_VM_Object(e_type_obj));
+  context_add_type(env->global_context, type, type->obj);
   type->owner = env->curr;
 	if(do_type_xid)
 	{

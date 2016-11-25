@@ -31,6 +31,7 @@ function declare_c_param(param)
 		print("unknown type:", param.type, ".")
 		os.exit()
 	end
+--	print("gw_offset;")
 end
 
 function declare_gw_param(param)
@@ -42,8 +43,14 @@ function declare_gw_param(param)
 		print("\t\targ = dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%*%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+	elseif string.match(param.type, "sp_ftbl%*") then
+		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+else print("fuck "..param.type)
+os.exit();
 	end
 	make_doc("\t\targ", param)
 end
@@ -89,14 +96,14 @@ function print_mod_func(name, mod)
 		end
 	end
 	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
-	if(nmandatory) then
+	if(nmandatory > 0) then
 		print("\tm_bool is_init;")
 	end
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
-  if(nmandatory) then
-		print("\tif(!ug->is_init)\n{\n\tu->out = 0;\n\treturn 1;\n}")
+  if(nmandatory > 0) then
+		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
 	end
 	local args = ""
 	if ninputs > 1 then
@@ -119,11 +126,11 @@ function print_mod_func(name, mod)
 		args = string.format("%s, &u->out", args)
 	end
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
-	print("\t return 1;\n}\n")
+	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
 	print("\tsp_"..name.."_create(&ug->osc);")
-  if(nmandatory) then
+  if(nmandatory > 0) then
 		print("\tug->is_init = 0;")
 	else
 		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
@@ -132,10 +139,11 @@ function print_mod_func(name, mod)
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
 	print("}\n")
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
-	if(nmandatory) then
-		print("if(ug->is_init)\n\t")
-	end
+	if(nmandatory > 0) then
+		print("\tif(ug->is_init)\n\t\tsp_"..name.."_destroy(&ug->osc);")
+	else
 	print("\tsp_"..name.."_destroy(&ug->osc);")
+	end
 	print("}\n")
 	if nmandatory > 0 then
 		print("MFUN("..name.."_init)\n{")

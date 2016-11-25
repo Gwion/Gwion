@@ -1,11 +1,12 @@
-PRG=Gwion
+PRG=gwion
 LDFLAGS = -lsoundpipe
 LDFLAGS += -lm -pthread -lsndfile
 LDFLAGS += -ldl -rdynamic -lrt
 
-CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=core2 -freg-struct-return
+CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native -freg-struct-return
 CFLAGS += -fno-strict-aliasing -Wall
 CFLAGS += -D_GNU_SOURCE
+
 
 core_src := $(wildcard  src/*.c)
 lang_src := $(wildcard lang/*.c)
@@ -21,12 +22,21 @@ ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 include config.mk
 include driver.mk
 
-silent:
-	@make -s default
+ifeq (${USE_DOUBLE}, 1)
+CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
+endif
 
-default: config.mk core lang ugen drvr
+default: config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+
+config.mk: config.def.mk
+	cp config.def.mk config.mk
+
+include/generated.h:
+	${CC} ${CFLAGS} util/generate_header.c -o util/generate_header
+	./util/generate_header
+	rm ./util/generate_header
 
 core: ${core_obj}
 lang: ${lang_obj}
@@ -43,19 +53,24 @@ endif
 ifeq (${JACK_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
 endif
+ifeq (${SOUNDIO_D}, 1)
+	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
+endif
 ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
 
 clean:
-	@rm -f core.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
+	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
+	@rm -f ${PRG}
+	@rm -f include/generated.h
 	@make -s -C ast clean
 
 soundpipe_import: import.lua
 	l@ua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
 
 .c.o:
-	${CC} ${DEF} ${CFLAGS} -c $< -o $(<:.c=.o)
+	${CC} ${CFLAGS} -c $< -o $(<:.c=.o)
 
 install:
 	cp Gwion ~/bin

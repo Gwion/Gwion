@@ -9,19 +9,21 @@
 #include "driver.h"
 #include "bbq.h"
 
-extern m_bool ssp_is_running;
 static struct SoundIo          *soundio    = NULL;
 static struct SoundIoOutStream *outstream  = NULL;
 static struct SoundIoInStream  *instream   = NULL;
 static struct SoundIoDevice    *out_device = NULL;
 static struct SoundIoDevice    *in_device  = NULL;
 
+//static struct SoundIoChannelArea* areas;
+
+
 static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
 
-static void sio_wakeup()
-{ exit(2); soundio_wakeup(soundio); }
+void sio_wakeup()
+{ soundio_wakeup(soundio); }
 static void write_sample_s16ne(char *ptr, double sample) {
     int16_t *buf = (int16_t *)ptr;
     double range = (double)INT16_MAX - (double)INT16_MIN;
@@ -46,7 +48,30 @@ static void write_sample_float64ne(char *ptr, double sample) {
     *buf = sample;
 }
 
+static void read_sample_s16ne(char *ptr, double *sample) {
+    int16_t *buf = (int16_t *)ptr;
+    double range = (double)INT16_MAX - (double)INT16_MIN;
+    double val = *buf * range / 2.0;
+    *sample = val;
+}
+
+static void read_sample_s32ne(char *ptr, double *sample) {
+    int32_t *buf = (int32_t *)ptr;
+    double range = (double)INT32_MAX - (double)INT32_MIN;
+    double val = *buf * range / 2.0;
+    *sample = val;
+}
+
+static void read_sample_float32ne(char *ptr, double *sample) {
+    *sample = *(float *)ptr;
+}
+
+static void read_sample_float64ne(char *ptr, double *sample) {
+    *sample = *(double *)ptr;
+}
+
 static void (*write_sample)(char *ptr, double sample);
+static void (*read_sample)(char *ptr, double *sample);
 
 static void underflow_callback(struct SoundIoOutStream *outstream)
 {
@@ -61,10 +86,10 @@ static void overflow_callback(struct SoundIoInStream *stream)
 }
 
 static void write_callback(struct SoundIoOutStream *outstream, int
-frame_count_min, int frame_count_max)
+	frame_count_min, int frame_count_max)
 {
-	double sr = outstream->sample_rate;
-	double seconds_per_frame = 1.0 / sr;
+//	double sr = outstream->sample_rate;
+//	double seconds_per_frame = 1.0 / sr;
 	struct SoundIoChannelArea *areas;
 	int    err;
 	int    left = frame_count_max;
@@ -75,7 +100,7 @@ frame_count_min, int frame_count_max)
   	int count = left;
 		if ((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
 			fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 			return;
   	}
 
@@ -84,6 +109,8 @@ frame_count_min, int frame_count_max)
 
 		for (int frame = 0; frame < count; frame++)
 		{
+//			for (int channel = 0; channel < instream->layout.channel_count; channel++)
+//				vm->bbq->in[channel] = *(double*)instream->areas[channel].ptr;
 			vm_run(vm);
 			for (int channel = 0; channel < layout->channel_count; channel++)
 			{
@@ -96,7 +123,7 @@ frame_count_min, int frame_count_max)
 			if (err == SoundIoErrorUnderflow)
 				return;
 			fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 		}
 
     left -= count;
@@ -110,15 +137,13 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
     struct SoundIoChannelArea *areas;
     int err;
     int frames_left = frame_count_max;
-		VM* vm = (VM*)outstream->userdata;
-		double* data = vm->bbq->in;
-
+		VM* vm = (VM*)instream->userdata;
     for (;;) {
         int frame_count = frames_left;
 
         if ((err = soundio_instream_begin_read(instream, &areas, &frame_count)))
 				{
-					ssp_is_running = 0;
+					vm->is_running = 0;
           fprintf(stderr, "begin read error: %s", soundio_strerror(err));
 					return;
 				}
@@ -127,13 +152,18 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
             break;
 
         if (!areas) {
-            memset(data, 0, frame_count * instream->bytes_per_frame);
+//            memset(data, 0, frame_count * instream->bytes_per_frame);
             fprintf(stderr, "Dropped %d frames due to internal overflow\n", frame_count);
         } else {
+//frame_count= 256;
+char* data[SZ_FLOAT];
             for (int frame = 0; frame < frame_count; frame += 1) {
                 for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
-                    areas[ch].ptr += areas[ch].step;
+//                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
+// FIXME
+//vm->bbq->in[ch] = *(m_float*)data;
+read_sample(areas[ch].ptr, &vm->bbq->in[ch]);
+areas[channel].ptr += areas[channel].step;
                 }
             }
         }
@@ -141,7 +171,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 		if ((err = soundio_instream_end_read(instream)))
 		{
  			fprintf(stderr, "end read error: %s", soundio_strerror(err));
-			ssp_is_running = 0;
+			vm->is_running = 0;
 			return;
 		}
 		frames_left -= frame_count;
@@ -154,6 +184,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 static m_bool sio_ini(VM* vm, DriverInfo* di)
 {
 		soundio = soundio_create();
+		device_id = di->card;
     if (!soundio) {
         fprintf(stderr, "out of memory\n");
         return -1;
@@ -256,13 +287,16 @@ static m_bool sio_ini(VM* vm, DriverInfo* di)
 
 		if (soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
         instream->format = SoundIoFormatFloat64NE;
-        write_sample = write_sample_float64ne;
+        read_sample = read_sample_float64ne;
+    } else if (soundio_device_supports_format(in_device, SoundIoFormatFloat32NE)) {
+        instream->format = SoundIoFormatFloat32NE;
+        read_sample = read_sample_float32ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
         instream->format = SoundIoFormatS32NE;
-        write_sample = write_sample_s32ne;
+        read_sample = read_sample_s32ne;
     } else if (soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
         instream->format = SoundIoFormatS16NE;
-        // read_sample = write_sample_s16ne;
+        read_sample = read_sample_s16ne;
     } else {
         fprintf(stderr, "No suitable device format available.\n");
         return -1;
@@ -294,22 +328,22 @@ static m_bool sio_ini(VM* vm, DriverInfo* di)
 void sio_run()
 {
 	int err;
-  if((err = soundio_outstream_start(outstream)))
-	{
-		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
-		return;
-  }
   if((err = soundio_instream_start(instream)))
 	{
 		fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
 		return;
   }
- 	while(ssp_is_running)
+  if((err = soundio_outstream_start(outstream)))
+	{
+		fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
+		return;
+  }
+ 	while(vm->is_running)
 		soundio_wait_events(soundio);
 }
 
 
-void sio_del(VM* vm)
+/* static */ void sio_del(VM* vm)
 {
 	soundio_outstream_destroy(outstream);
 	soundio_instream_destroy(instream);
@@ -318,7 +352,8 @@ void sio_del(VM* vm)
 	soundio_destroy(soundio);
 }
 
-Driver* sio_driver(VM* vm) {
+Driver* sio_driver(VM* vm)
+{
   Driver* d = malloc(sizeof(Driver));
   d->ini = sio_ini;
   d->run = sio_run;

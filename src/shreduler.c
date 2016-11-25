@@ -8,7 +8,6 @@
 #include "oo.h"
 #include "array.h"
 
-extern int ssp_is_running;
 struct  Shreduler_{
 	m_int til_next;
 	VM* vm;
@@ -40,34 +39,33 @@ VM_Shred shreduler_get(Shreduler s)
 #ifdef DEBUG_SHREDULER
   debug_msg("clock", "get");
 #endif
-	VM_Shred shred = s->list;
+  VM_Shred shred = s->list;
   if(!shred)
-	{
-		s->til_next = -1;
+  {
+    s->til_next = -1;
     if(!vector_size(s->vm->shred) && ! s->loop)
-		{
-      ssp_is_running = 0;
-//			if(s->vm->wakeup)
-			s->vm->wakeup();
-		}
+    {
+      s->vm->is_running = 0;
+      s->vm->wakeup();
+    }
     return NULL;
   }
-	if(shred->wake_time <= (get_now(s) + .5))
-	{
-		s->list = shred->next;
+  if(shred->wake_time <= (get_now(s) + .5))
+  {
+    s->list = shred->next;
     shred->next = NULL;
-	  shred->prev = NULL;
-	  if(s->list)
-	  {
-			s->list->prev = NULL;
-			s->til_next = s->list->wake_time - get_now(s);
-	   	if(s->til_next < 0)
-	   		s->til_next = 0;
-	  }
+    shred->prev = NULL;
+    if(s->list)
+    {
+      s->list->prev = NULL;
+      s->til_next = s->list->wake_time - get_now(s);
+	  if(s->til_next < 0)
+   	    s->til_next = 0;
+    }
     shred->is_running = 1;
-	  return shred;
-	}
-	return NULL;
+    return shred;
+   }
+   return NULL;
 }
 
 m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
@@ -90,7 +88,10 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
   }
   out->is_running = 0;
   if(!out->prev && !out->next && out != s->list)
+  {
+    free_VM_Shred(out);
     return -1;
+  }
   if(!out->prev)
       s->list = out->next;
   else
@@ -109,7 +110,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)
 {
 #ifdef DEBUG_SHREDULER
-  debug_msg("clock", "shredule shred: %i at %f", shred->xid, wake_time);
+  debug_msg("clock", "shredule shred[%i] at %f", shred->xid, wake_time);
 #endif
   m_float diff;
   VM_Shred curr, prev;
@@ -155,7 +156,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)
 			shred->next = prev->next;
 			shred->prev = prev;
 			if(prev->next)
-        prev->next->prev = shred;
+            prev->next->prev = shred;
 			prev->next = shred;
 		}
 	}
