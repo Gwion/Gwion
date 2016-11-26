@@ -59,6 +59,20 @@ static int so_filter(const struct dirent* dir)
 
 m_bool import_soundpipe(Env env);
 
+static Vector plugs;
+void start_plug() { plugs = new_Vector(); }
+
+void stop_plug()
+{
+  m_uint i;
+  for(i = 0; i < vector_size(plugs); i++)
+{
+    dlclose((void*)vector_at(plugs, i));
+//free((void*)vector_at(plugs, i));
+}
+  free_Vector(plugs);
+}
+
 Env type_engine_init(VM* vm)
 {
   Env env = new_Env();
@@ -141,6 +155,8 @@ Env type_engine_init(VM* vm)
 /*  env->curr = env->user_nspc;*/
   // plugins
 //  void* handler;
+
+  start_plug();
   m_str dirname = GW_PLUG_DIR;
   struct dirent **namelist;
   int n;
@@ -153,28 +169,30 @@ Env type_engine_init(VM* vm)
       sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
       void* handler = dlopen(c, RTLD_LAZY);
       {
-/*        if(!handler)*/
-/*        {*/
-/*          m_str err = dlerror();*/
-/*          err_msg(TYPE_, 0, "error in %s: no import function.", err);      */
-/*          free(err);*/
-/*        }*/
-
+        if(!handler)
+        {
+          m_str err = dlerror();
+          err_msg(TYPE_, 0, "error in %s: file not valid.", err);
+          free(err);
+          goto next;
+        }
       }
       m_bool (*import)(Env) = (m_bool (*)(Env)) dlsym(handler, "import");
       if(import)
-        import(env);
+      {
+        if(import(env) > 0)
+          vector_append(plugs, (vtype)handler);
+        else dlclose(handler);
+      }
       else
       {
           m_str err = dlerror();
           err_msg(TYPE_, 0, "error in %s: no import function.", err);
-/*          free(err);*/
-        err_msg(TYPE_, 0, "error in %s: no import function.", c);
-
-
+          free(err);
       }
       free(namelist[n]);
     }
+next:
     free(namelist);
   }
   namespace_commit(env->global_nspc);

@@ -94,6 +94,7 @@ void free_VM(VM* vm)
     rem_ref(vm->env->obj, vm->env);
   if(vm->emit)
     rem_ref(vm->emit->obj, vm->emit);
+stop_plug();
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
   sp_destroy(&vm->bbq->sp);
