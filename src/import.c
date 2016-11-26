@@ -254,10 +254,10 @@ m_int import_svar(Env env, const m_str type,
     var_decl->value->doc = doc;
   var_decl->value->is_import = 1;
   // cleanup
-  free_ID_List( path );
+  free_Expression(exp_decl);
   return 1;
 error:
-  free_ID_List( path );
+  free_Expression(exp_decl);
   return -1;
 }
 
