@@ -592,12 +592,13 @@ Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
 
 void free_Func_Def(Func_Def func)
 {
-//  if(func->ret_type->array_type)
-//    free(func->ret_type);
+  if(func->ret_type->array_type)
+    free(func->ret_type);
   if(func->arg_list)
     free_Arg_List(func->arg_list);
   free_Type_Decl(func->type_decl);
-  free(func->name);
+
+//  free(func->name); // do not free, this is a symbol
   free(func);
 }
 
@@ -765,8 +766,13 @@ Stmt* new_stmt_from_code(Stmt_List stmt_list, int pos )
     a->pos = pos;
     a->stmt_code->pos = pos;
     a->stmt_code->self = a;
-
     return a;
+}
+
+free_Stmt_Code(Stmt_Code a)
+{
+  free_Stmt_List(a->stmt_list);
+  free(a);
 }
 
 Stmt* new_stmt_from_return(Expression exp, int pos)
@@ -779,6 +785,12 @@ Stmt* new_stmt_from_return(Expression exp, int pos)
   a->stmt_return->pos = pos;
   a->stmt_return->self = a;
   return a;
+}
+
+free_Stmt_Return(Stmt_Return a)
+{
+  free_Expression(a->val);
+  free(a);
 }
 
 Stmt* new_stmt_from_break(int pos)
@@ -954,6 +966,12 @@ void free_Stmt(Stmt* stmt)
     case ae_stmt_exp:
       free_Expression(stmt->stmt_exp);
       break;
+    case ae_stmt_code:
+      free_Stmt_Code(stmt->stmt_code);
+      break;
+    case ae_stmt_return:
+      free_Stmt_Return(stmt->stmt_return);
+      break;
   }
   free(stmt);
 }
@@ -1010,9 +1028,10 @@ void free_Section(Section* section)
     case ae_section_stmt:
       free_Stmt_List(section->stmt_list);
       break;
-/*    case ae_section_func_def:*/
-/*      free_Stmt_Func_Def(section->stmt_func_def);*/
-/*      break;*/
+    case ae_section_func:
+  free_Stmt(section->func_def->code);
+//      free_Func_Def(section->stmt_func_def);
+      break;
   }
   free(section);
 }

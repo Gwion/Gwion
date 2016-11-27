@@ -4,6 +4,8 @@
 #include "vm.h"
 #include <string.h> /* memcpy */
 
+static m_str emit_filename;
+
 static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
 static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop);
 static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member);
@@ -210,7 +212,7 @@ VM_Code emit_to_code(Emitter emit)
   Code* c = emit->code;
   Vector v = vector_copy(c->code);
   VM_Code code = new_VM_Code(v, c->stack_depth, c->need_this, c->name, c->filename);
-//  free_Code(c);
+  free_Code(c);
   return code;
 }
 
@@ -850,7 +852,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   emit->code = new_Code();
   emit->code->need_this = exp->m_func->is_member;
   emit->code->name = "spork~exp";
-  emit->code->filename = emit->context->filename;
+  emit->code->filename = emit_filename;
   op = add_instr(emit, Mem_Push_Imm);
 
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
@@ -948,7 +950,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       emit->code = new_Code();
       f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
       emit->code->name = "spork~code";
-      emit->code->filename = emit->context->filename;
+      emit->code->filename = emit_filename;
       op = add_instr(emit, Mem_Push_Imm);
       CHECK_BB(emit_Stmt(emit, unary->code, 0))
       op->m_val = emit->code->stack_depth;
@@ -2324,8 +2326,8 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   sprintf(c, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
   emit->code->name = strdup(c);
   emit->code->need_this = func->is_member;
-//  emit->code->filename = strdup(emit->context->filename);
-  emit->code->filename = emit->context->filename;
+//  emit->code->filename = strdup(emit_filename);
+  emit->code->filename = emit_filename;
 
 //printf("here\n");
   Arg_List a = func_def->arg_list;
@@ -2410,7 +2412,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
   // delete the code ?
   /*  rem_ref(emit->code->obj, emit->code);*/
-  free_Code(emit->code);
+//  free_Code(emit->code);
   emit->code = vector_back(emit->stack);
   vector_pop(emit->stack);
   return 1;
@@ -2447,7 +2449,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   sprintf(emit->code->name, "class %s", type->name);
 
   emit->code->need_this = 1;
-  emit->code->filename = emit->context->filename;
+  emit->code->filename = emit_filename;
   emit->code->stack_depth += SZ_INT;
   if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
     err_msg(EMIT_, class_def->pos,
@@ -2490,20 +2492,21 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   return ret;
 }
 
-m_bool emit_Ast(Emitter emit, Ast ast)
+m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "Ast %p", emit->env->context);
 #endif
   Ast prog = ast;
   int ret = 1;
+  emit_filename = filename;
   emit->code = new_Code();
   emit->context = emit->env->context;
   emit->nspc = emit->context->nspc;
   emit->func = NULL;
   free_Vector(emit->stack);
   emit->stack = new_Vector();
-  emit->code->name = emit->context->filename;
+  emit->code->name = emit_filename;
   frame_push_scope(emit->code->frame);
 
   while (prog && ret > 0) {

@@ -835,12 +835,12 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   {
     namespace_add_value(env->curr, insert_symbol(orig_name), value);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
-    namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary
+//    namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
   }
   else
   {
-    namespace_add_value(env->curr, insert_symbol(func->name), value );
-    namespace_add_func( env->curr, insert_symbol(func->name), func );
+    namespace_add_value(env->curr, insert_symbol(func->name), value);
+//    namespace_add_func( env->curr, insert_symbol(func->name), func );
     // make sure returns are equal, if not templating
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
     if(!f->is_template) // template func don't check ret_type case
@@ -856,6 +856,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 			goto error;
     }
   }
+  namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
 
   env->func = func;
   namespace_push_value(env->curr);

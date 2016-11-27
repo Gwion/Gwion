@@ -2330,6 +2330,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
   m_str func_name = S_name(f->name);
+//  m_str func_name = strdup(S_name(f->name)); // strdup might be unnnecessary. 27/11/16
   m_uint count = 1;
   m_bool has_code = 0;
 
@@ -2366,8 +2367,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
             Func f2 = namespace_lookup_func(env->curr, insert_symbol(name), -1);
           if(compat_func(f1->def, f2->def, f2->def->pos) > 0)
           {
-            err_msg(TYPE_, f2->def->pos, "global function '%s' already defined for those arguments",
-            S_name(f->name) );
+            err_msg(TYPE_, f2->def->pos, "global function '%s' already defined for those arguments", S_name(f->name));
             return -1;
           }
         }
@@ -2379,7 +2379,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     if(isa(override->m_type, &t_function) < 0)
     {
       err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
-        S_name(f->name) );
+        S_name(f->name));
       err_msg(TYPE_, f->pos, "from super class '%s'...", override->owner_class->name);
       goto error;
     }
@@ -2397,20 +2397,20 @@ m_bool check_Func_Def(Env env, Func_Def f)
     goto error;
   }
 
-  if(f->s_type == ae_func_user) has_code = ( f->code != NULL );
+  if(f->s_type == ae_func_user) has_code = (f->code != NULL);
   else has_code = (f->dl_func_ptr != NULL); // imported
 
   if(env->class_def && env->class_def->def && env->class_def->def->iface && has_code)
   {
     err_msg(TYPE_, f->pos, "interface function signatures cannot contain code..." );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name) );
+    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
     goto error;
   }
 
   if(f->static_decl == ae_key_abstract && has_code)
   {
     err_msg(TYPE_, f->pos, "'pure' function signatures cannot contain code..." );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name) );
+    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
     goto error;
   }
 
@@ -2418,7 +2418,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   {
     err_msg(TYPE_, f->pos, "function declaration must contain code..." );
     err_msg(TYPE_, f->pos, "(unless in interface, or is declared 'pure')" );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name) );
+    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
     goto error;
   }
 
@@ -2437,7 +2437,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
         if(!isa( v->m_type, &t_function))
         {
           err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
-              S_name(f->name) );
+              S_name(f->name));
           err_msg(TYPE_, f->pos, "from super class '%s'...", v->owner_class->name );
           goto error;
         }
@@ -2475,10 +2475,10 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
               "function '%s.%s' resembles '%s.%s' but cannot override...",
               env->class_def->name, S_name(f->name),
-              v->owner_class->name, S_name(f->name) );
+              v->owner_class->name, S_name(f->name));
             err_msg(TYPE_, f->pos,
               "...(reason: '%s.%s' is declared as 'static')",
-              env->class_def->name, S_name(f->name) );
+              env->class_def->name, S_name(f->name));
             goto error;
           }
 
@@ -2488,10 +2488,10 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
                 "function '%s.%s' resembles '%s.%s' but cannot override...",
                 env->class_def->name, S_name(f->name),
-                v->owner_class->name, S_name(f->name) );
+                v->owner_class->name, S_name(f->name));
             err_msg(TYPE_, f->pos,
               "...(reason: '%s.%s' is declared as 'pure')",
-              env->class_def->name, S_name(f->name) );
+              env->class_def->name, S_name(f->name));
             goto error;
           }
 
@@ -2502,7 +2502,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
               "function '%s.%s' matches '%s.%s' but cannot override...",
               env->class_def->name, S_name(f->name),
-              v->owner_class->name, S_name(f->name) );
+              v->owner_class->name, S_name(f->name));
             goto error;
           }
           parent_match = 1;

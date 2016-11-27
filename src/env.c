@@ -61,7 +61,7 @@ void free_Env(Env a)
 //  free_NameSpace(a->curr);
   // TODO release content ?
   for(i = 0; i < map_size(a->known_ctx); i++)
-  if(i!=1)
+//  if(i!=1)
 //    free_Context(map_at(a->known_ctx, i));
 {
     Context ctx = (Context)map_at(a->known_ctx, i);

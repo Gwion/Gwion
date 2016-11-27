@@ -28,7 +28,9 @@ void free_VM_Code(VM_Code a)
   for(i = 0; i < vector_size(a->instr); i++)
     free((Instr)vector_at(a->instr, i));
   free_Vector(a->instr);
-//  free(a->name);
+//  if(a->native_func_type == NATIVE_UNKNOWN) // hint for somethinfg else
+//;
+//  free(a->name); // owned by shred
   free(a);
 }
 
@@ -66,7 +68,7 @@ void free_VM_Shred(VM_Shred shred)
   free_VM_Code(shred->code);
 //  free(shred->mem);
   free(shred->reg);
-//  free(shred->name);
+  free(shred->name);
   free(shred->filename);
   free(shred);
 }

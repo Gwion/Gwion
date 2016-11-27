@@ -128,6 +128,8 @@ s->vm_ref = vm;
 		free(value->m_type);
 
 }
+//    else if(isa(value->m_type, &t_function) > 0)
+//exit(3);
     else if(isa(value->m_type, &t_object) > 0)
 {
 //exit(3);
@@ -205,6 +207,12 @@ free_VM_Shred(s);
   for(i = 0; i < vector_size(v); i++)
   {
     Func func = (Func)vector_at(v, i);
+free(func->value_ref->m_type->name);
+free(func->value_ref->m_type);
+rem_ref(func->value_ref->obj, func->value_ref);
+printf("%s\n", func->name);
+
+
     rem_ref(func->obj, func);
   }
   free_Vector(v);

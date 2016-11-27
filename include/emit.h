@@ -36,7 +36,7 @@ struct Emitter_
 Emitter new_Emitter (Env env);
 void free_Emitter(Emitter emit);
 VM_Code emit_to_code(Emitter emit);
-m_bool emit_Ast(Emitter emit, Ast ast);
+m_bool emit_Ast(Emitter emit, Ast ast, m_str filename);
 
 /* label */
 Vector emit_lookup_label(Emitter emit, S_Symbol xid, int climb);

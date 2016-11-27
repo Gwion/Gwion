@@ -6,3 +6,4 @@ ast/lexer.*
 config.mk
 include/generated.h
 forUncrustifySources.cfg
+NOTES

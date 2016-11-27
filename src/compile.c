@@ -40,7 +40,7 @@ free(_name);
 #ifdef DEBUG_COMPILE
     debug_msg("lexer", "type check  of '%s' ok", name);
 #endif
-    CHECK_BB(emit_Ast(vm->emit, ast))
+    CHECK_BB(emit_Ast(vm->emit, ast, name))
 #ifdef DEBUG_COMPILE
     debug_msg("lexer", "emit   of '%s' ok", name);
 #endif
@@ -52,7 +52,7 @@ free(_name);
     shred->args = args;
     shred->me = new_Shred(vm, shred);
     vm_add_shred(vm, shred);
-    free_Code(vm->emit->code);
+//    free_Code(vm->emit->code);
 clean:
   free(name);
   return ret;
