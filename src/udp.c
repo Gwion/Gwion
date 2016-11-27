@@ -84,7 +84,7 @@ void* server_thread(void* data)
 		else
       compile(data, (m_str)buf);
 	}
-
+//pthread_exit(NULL);
 	return NULL;
 }
 

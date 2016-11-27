@@ -67,6 +67,7 @@ void stop_plug()
   m_uint i;
   for(i = 0; i < vector_size(plugs); i++)
 {
+printf("%p\n", vector_at(plugs, i));
     dlclose((void*)vector_at(plugs, i));
 //free((void*)vector_at(plugs, i));
 }
@@ -166,6 +167,7 @@ Env type_engine_init(VM* vm)
     while (n--)
     {
       char c[256];
+      printf("%s/%s\n", dirname, namelist[n]->d_name);
       sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
       void* handler = dlopen(c, RTLD_LAZY);
       {
@@ -182,17 +184,23 @@ Env type_engine_init(VM* vm)
       {
         if(import(env) > 0)
           vector_append(plugs, (vtype)handler);
-        else dlclose(handler);
+        else
+        {
+          dlclose(handler);
+          goto next;
+        }
       }
       else
       {
           m_str err = dlerror();
           err_msg(TYPE_, 0, "error in %s: no import function.", err);
           free(err);
+          dlclose(handler);
+          goto next;
       }
+next:
       free(namelist[n]);
     }
-next:
     free(namelist);
   }
   namespace_commit(env->global_nspc);

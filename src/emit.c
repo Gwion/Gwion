@@ -792,8 +792,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
         return -1;
       }
-      if (emit_Func_Def(emit, func->def) < 0)
-        exit(0);
+      if(emit_Func_Def(emit, func->def) < 0)
+        exit(12);
       func->code = func->def->func->code;
       func->code->name = func->name;
       code = add_instr(emit, Reg_Push_Ptr);
@@ -807,6 +807,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     code->ptr = func->code;
     /*  code->m_val = func->code;*/
   }
+
   if (!emit->code->stack_depth && !emit->code->frame->curr_offset) {
     Instr instr = add_instr(emit, Mem_Push_Imm);
     instr; // prevent cppcheck warning
@@ -2320,11 +2321,13 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   vector_append(emit->stack, emit->code);
   emit->code = new_Code();
   char c[256];
-  emit->code->name = c;
-  sprintf(emit->code->name, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
+  sprintf(c, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
+  emit->code->name = strdup(c);
   emit->code->need_this = func->is_member;
+//  emit->code->filename = strdup(emit->context->filename);
   emit->code->filename = emit->context->filename;
 
+//printf("here\n");
   Arg_List a = func_def->arg_list;
   m_bool is_obj = 0;
   m_bool is_ref = 0;

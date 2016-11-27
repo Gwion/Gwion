@@ -38,6 +38,7 @@ struct VM_Shred_
   VM_Shred parent;
   char* reg;
   char* mem;
+  char _mem[SIZEOF_MEM];
   char* base;
   m_uint pc, next_pc, xid;
   m_str name;

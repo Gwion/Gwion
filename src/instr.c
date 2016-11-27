@@ -634,22 +634,22 @@ INSTR(Instr_Func_Call)
   push = prev_stack + local_depth;
   next = shred->pc + 1;
 
-	*(m_uint*)(shred->mem) += push;
-	*(m_uint*)(shred->mem)  = push;
-	shred->mem += SZ_INT;
-	*(m_uint*)(shred->mem)  = (m_uint)shred->code;
-	shred->mem += SZ_INT;
-	*(m_uint*)(shred->mem)  = (m_uint)next;
-	shred->mem += SZ_INT;
-	*(m_uint*)(shred->mem)  = (m_uint)stack_depth;
-	shred->mem += SZ_INT;
+  *(m_uint*)(shred->mem) += push;
+  *(m_uint*)(shred->mem)  = push;
+  shred->mem += SZ_INT;
+  *(m_uint*)(shred->mem)  = (m_uint)shred->code;
+  shred->mem += SZ_INT;
+  *(m_uint*)(shred->mem)  = (m_uint)next;
+  shred->mem += SZ_INT;
+  *(m_uint*)(shred->mem)  = (m_uint)stack_depth;
+  shred->mem += SZ_INT;
 
   shred->next_pc = 0;
   shred->code = func;
   if(stack_depth)
   {
-    if(stack_depth == 7 || stack_depth == 5 || stack_depth == 6)
-      stack_depth = SZ_INT;
+//    if(stack_depth == 7 || stack_depth == 5 || stack_depth == 6)
+//      stack_depth = SZ_INT;
     shred->reg -= stack_depth;
     if(func->need_this)
     {

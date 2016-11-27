@@ -35,7 +35,8 @@ void free_VM_Code(VM_Code a)
 VM_Shred new_VM_Shred(VM_Code c)
 {
   VM_Shred shred    = malloc(sizeof(struct VM_Shred_));
-  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
+//  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
+shred->mem = shred->_mem;
   shred->reg        = calloc(SIZEOF_REG, sizeof(char));
   shred->base       = shred->mem;
   shred->pc         = 0;
@@ -63,9 +64,9 @@ void free_VM_Shred(VM_Shred shred)
 {
   release(shred->me, shred);
   free_VM_Code(shred->code);
-  free(shred->mem);
+//  free(shred->mem);
   free(shred->reg);
-  free(shred->name);
+//  free(shred->name);
   free(shred->filename);
   free(shred);
 }
@@ -90,11 +91,12 @@ VM* new_VM(m_bool loop)
 
 void free_VM(VM* vm)
 {
+printf("here\n");
   if(vm->env)
     rem_ref(vm->env->obj, vm->env);
   if(vm->emit)
     rem_ref(vm->emit->obj, vm->emit);
-stop_plug();
+  stop_plug();
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
   sp_destroy(&vm->bbq->sp);

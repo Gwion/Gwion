@@ -639,7 +639,7 @@ Expression new_Func_Call(Expression base, Expression args, int pos )
 
 void free_Func_Call(Func_Call* call)
 {
-/*  free_Expression(call->func);*/
+  free_Expression(call->func);
   if(call->args)
     free_Expression(call->args);
   free(call);
@@ -971,8 +971,8 @@ Stmt_List new_Stmt_List(Stmt* stmt, Stmt_List next, int pos)
 void free_Stmt_List(Stmt_List list)
 {
   Stmt_List tmp;
-	while(list)
-	{
+  while(list)
+  {
     tmp = list;
     list = list->next;
     free_Stmt(tmp->stmt);
@@ -1010,7 +1010,7 @@ void free_Section(Section* section)
     case ae_section_stmt:
       free_Stmt_List(section->stmt_list);
       break;
-/*    case ae_section_stmt:*/
+/*    case ae_section_func_def:*/
 /*      free_Stmt_Func_Def(section->stmt_func_def);*/
 /*      break;*/
   }
@@ -1141,7 +1141,7 @@ void free_Ast(Ast prog)
   Ast tmp, ast = prog;
   while(ast)
   {
-    tmp = prog;
+    tmp = ast;
     ast = ast->next;
     free_Section(tmp->section);
     free(tmp);
