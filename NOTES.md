@@ -2,4 +2,5 @@
 [ ] char* shred->mem => char shred->mem[SIZEOF_MEM];
 TODO this is a fake issue, for testing purpose
 TODO try me
-TODO test
+TODO test hsdf sidhfsd 
+TODO #3 lol
