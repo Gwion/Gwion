@@ -20,11 +20,13 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ", S_name(decl->type->xid->xid));
     return -1;
   }
-  if(t->def && t->def->iface)
+ /*
+ if(t->def && t->def->iface)
   {
     err_msg(SCAN1_, decl->pos, "type '%s' is interface. cannot instantiate", S_name(decl->type->xid->xid));
     return -1;
   }
+*/
   while(list)
   {
     var_decl = list->self;

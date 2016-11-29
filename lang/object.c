@@ -110,7 +110,6 @@ void release(M_Object obj, VM_Shred shred)
 	    t = t->parent;
 	}
     }
-    printf("object dtor\n");
 }
 
 void object_dtor(M_Object o, VM_Shred shred)

@@ -93,7 +93,6 @@ VM* new_VM(m_bool loop)
 
 void free_VM(VM* vm)
 {
-printf("here\n");
   if(vm->env)
     rem_ref(vm->env->obj, vm->env);
   if(vm->emit)

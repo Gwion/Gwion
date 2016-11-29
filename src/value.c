@@ -29,11 +29,6 @@ void free_Value(Value a)
   if(a->ptr) // is it necessary ?
   {
     if(isprim(a->m_type) > 0)
-//    if(isa(a->m_type, &t_ugen) > 0)
-//exit(2);
-//     release(a->ptr, NULL);
-//else
-//else
     free(a->ptr);
   }
   free(a);

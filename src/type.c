@@ -282,12 +282,21 @@ cleanup:
   if(ret > 0)
   {
     namespace_commit(env->global_nspc);
+    map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
   }
   else
+  {
     namespace_rollback(env->global_nspc);
-  map_set(env->known_ctx, insert_symbol(context->filename), context);
-  if(unload_context(context, env) < 0)
-    ret = -1;
+//  rem_ref(context->obj, context);
+  }
+  CHECK_BB(unload_context(context, env)) // no real need to check that
+  if(ret < 0)
+  {
+free_Ast(ast);
+//rem_ref(context->nspc->obj, context->nspc);
+rem_ref(context->obj, context);
+    free(filename);
+  }
 done:
   return ret;
 }

@@ -172,6 +172,7 @@ void free_Decl_Expression(Decl_Expression* decl)
   free_Type_Decl(decl->type);
 // free value here ?
   Var_Decl_List tmp, list = decl->list;
+  if(list->self->value)
   while(list)
   {
      rem_ref(list->self->value->obj, list->self->value);

@@ -1918,7 +1918,8 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
           exp->type->size = SZ_COMPLEX;
         if (isa(exp->type, &t_polar) > 0)
           exp->type->size = SZ_COMPLEX;
-        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->decl_exp->num_decl * exp->type->size : exp->type->size;
+//        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->decl_exp->num_decl * exp->type->size : exp->type->size;
+        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->decl_exp->num_decl * SZ_INT : exp->type->size;
         exp = exp->next;
       }
     }

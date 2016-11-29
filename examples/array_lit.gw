@@ -2,5 +2,3 @@
 <<<[1,2,3,4]>>>;
 [1,2,3,4] @=> int i[];
 <<<i>>>;
-for(int index = 0; index < i.size(); index++)
-	<<<i[index]>>>;

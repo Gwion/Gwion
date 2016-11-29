@@ -202,12 +202,16 @@ void map_commit(Map map, Map commit)
 
 void map_rollback(Map map, void (*_free)(vtype arg))
 {
+
     vtype i;
-    for(i = 0; i < map->len; i++)
-        if(_free)
-            _free(map->ptr[i]);
-    free_Map(map);
-    map = new_Map();
+//    for(i = 0; i < map->len; i++)
+//        if(_free)
+//            _free(map->ptr[i]);
+//    free_Map(map);
+//    map = new_Map();
+//    vector_clear(map->key);
+//    vector_clear(map->ptr);
+    map->len = 0;
 }
 
 vtype map_size(Map map)
