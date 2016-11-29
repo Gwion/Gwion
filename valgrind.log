@@ -1,0 +1,15 @@
+==10577== Memcheck, a memory error detector
+==10577== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==10577== Using Valgrind-3.12.0 and LibVEX; rerun with -h for copyright info
+==10577== Command: ./gwion -d dummy
+==10577== Parent PID: 10576
+==10577== 
+==10577== 
+==10577== HEAP SUMMARY:
+==10577==     in use at exit: 0 bytes in 0 blocks
+==10577==   total heap usage: 62,224 allocs, 62,224 frees, 32,246,784 bytes allocated
+==10577== 
+==10577== All heap blocks were freed -- no leaks are possible
+==10577== 
+==10577== For counts of detected and suppressed errors, rerun with: -v
+==10577== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
