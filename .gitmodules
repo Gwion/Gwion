@@ -1,3 +1,6 @@
 [submodule "Gwion-plug"]
 	path = Gwion-plug
 	url = https://github.com/fennecdjay/Gwion-plug
+[submodule "util/test/test_helper/bats-support"]
+	path = util/test/test_helper/bats-support
+	url = https://github.com/ztombol/bats-support
