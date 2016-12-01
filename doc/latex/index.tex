@@ -1,0 +1,59 @@
+ 
+
+
+\begin{DoxyItemize}
+\item \mbox{[} \mbox{]} test
+\end{DoxyItemize}
+
+gwion is a object-\/oriented programming language, aimed at making music
+
+{\bfseries strongly} inspired by \href{http://chuck.stanford.edu/}{\tt chuck} synthesis is based on \href{http://paulbatchelor.github.io/proj/soundpipe.html}{\tt soundpipe}
+
+realtime audio input/output can be done using
+\begin{DoxyItemize}
+\item \href{http://libsound.io/}{\tt libsoundio}
+\item \href{http://portaudio.com/}{\tt portaudio}
+\item \href{http://jackaudio.org/}{\tt jack}
+\item \href{http://alsa-project.org}{\tt alsa}
+\end{DoxyItemize}
+
+there is also\+:
+\begin{DoxyItemize}
+\item {\itshape silent} driver, which makes no sound
+\item {\itshape dummy} driver, runs as fast as possible, with no sound
+\item {\itshape file} driver, as fast as possible, writes to a file, either wav or spa, depending on $\ast$-\/r$\ast$ switch try 
+\begin{DoxyCode}
+./gwion --help
+\end{DoxyCode}
+ to learn more
+\end{DoxyItemize}
+
+simple example code\+: \begin{quote}
+// print hello world $<$$<$$<$\char`\"{}\+Hello World\char`\"{}$>$$>$$>$; // create a sinusoidal generator and connect it to dac Sin\+Osc s =$>$ dac; // let one minute pass 5\+::second =$>$ now; // you\textquotesingle{}re done! \end{quote}
+
+
+there are a few {\itshape new} features\+: \begin{DoxyVerb}*  variadic funcs
+*  templates (func only for now)
+*  function pointers
+*  enums
+\end{DoxyVerb}
+
+
+\paragraph*{requires}
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/PaulBatchelor/Soundpipe}{\tt soundpipe}
+\end{DoxyItemize}
+
+\paragraph*{configure}
+
+simply edit {\itshape config.\+mk} to suit your needs,
+
+\#\#\#\#build\#\#\#\# 
+\begin{DoxyCode}
+make
+\end{DoxyCode}
+
+
+let me know... 
