@@ -1,0 +1,10 @@
+class C
+{
+  static int si;
+  int i;
+}
+
+C c;
+c;
+<<<c.i>>>;
+<<<c.si>>>;
