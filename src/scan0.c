@@ -56,10 +56,10 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->parent = &t_object;
 	add_ref(the_class->info->obj);
   the_class->info->name = the_class->name;
-  
+
   if(env->context->public_class_def == class_def)
     the_class->info->parent = env->context->nspc;
-  else 
+  else
     the_class->info->parent = env->curr;
   the_class->func = NULL;
   the_class->def = class_def;
@@ -106,9 +106,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     value->checked = 1;
     namespace_add_value(env->curr, insert_symbol(value->name), value );
     class_def->type = the_class;
-
-		if(env->curr == env->context->nspc)
-				context_add_type(env->context, the_class, new_VM_Object(e_type_obj));
+    if(env->curr == env->context->nspc)
+      context_add_type(env->context, the_class, the_class->obj);
   }
   if(class_def->home)
   {

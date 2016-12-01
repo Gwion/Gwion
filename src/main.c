@@ -231,8 +231,8 @@ clean:
   free_Map(scan_map);
 
   set_nspc_vm(vm);
-  if(vm)
-    free_VM(vm);
+//  if(vm)
+//    free_VM(vm);
   free_Symbols();
   return 0;
 }

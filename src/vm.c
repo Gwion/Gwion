@@ -15,8 +15,8 @@ VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
   code->instr            = instr;
   code->stack_depth      = stack_depth;
   code->need_this        = need_this;
-  code->name             = name;
-  code->filename         = filename;
+  code->name             = strdup(name);
+  code->filename         = strdup(filename);
   code->native_func      = 0;
   code->native_func_type = NATIVE_UNKNOWN;
   return code;
@@ -28,17 +28,16 @@ void free_VM_Code(VM_Code a)
   for(i = 0; i < vector_size(a->instr); i++)
     free((Instr)vector_at(a->instr, i));
   free_Vector(a->instr);
-//  if(a->native_func_type == NATIVE_UNKNOWN) // hint for somethinfg else
-//;
-//  free(a->name); // owned by shred
+  free(a->name);
+  free(a->filename);
   free(a);
 }
 
 VM_Shred new_VM_Shred(VM_Code c)
 {
   VM_Shred shred    = malloc(sizeof(struct VM_Shred_));
-//  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
-shred->mem = shred->_mem;
+  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
+//shred->mem = shred->_mem;
   shred->reg        = calloc(SIZEOF_REG, sizeof(char));
   shred->base       = shred->mem;
   shred->pc         = 0;

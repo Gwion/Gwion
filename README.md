@@ -1,8 +1,10 @@
 # Gwion
-![](http://b.repl.ca/v1/version-pre--alpha-red.png)
+![](http://b.repl.ca/v1/version-yet-not-pre--alpha-red.png)
 ![](http://b.repl.ca/v1/language-C-green.png)  
 
--  [ ]  test
+
+  -  [ ]  test
+
 
 gwion is a object-oriented programming language, aimed at making music
 

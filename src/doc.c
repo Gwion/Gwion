@@ -35,10 +35,18 @@ static m_str usable(m_str name)
     return str;
 }
 
+/**
+* @brief find context from name
+*
+* @param env Gwion Environmen
+* @param name name of the context
+*
+* @return found Context or NULL if not found
+*/
 static Context find_context(Env env, m_str name)
 {
     Context ctx;
-    if((ctx = map_get(env->known_ctx, insert_symbol(name))))
+    if((ctx = (Context)map_get(env->known_ctx, (vtype)insert_symbol(name))))
         return ctx;
     return NULL;
 }
@@ -124,18 +132,18 @@ static m_str getfull(Doc* doc, NameSpace nspc, m_str name)
     m_str ret;
     Vector v = new_Vector();
     if(name)
-        vector_append(v, name);
+        vector_append(v, (vtype)name);
     memset(tmp, 0, 2054);
     while(nspc) {
         if(nspc == doc->ctx->nspc || nspc == doc->env->global_nspc)
             break;
-        vector_append(v, nspc->name);
+        vector_append(v, (vtype)nspc->name);
         nspc = nspc->parent;
     }
-    strcat(tmp, vector_back(v));
-    for(i = vector_size(v) - 1; i > 0; i--) {
+    strcat(tmp, (m_str)vector_back(v));
+    for(i = vector_size (v) - 1; i > 0; i--) {
         strcat(tmp, "_");
-        strcat(tmp, vector_at(v, i - 1));
+        strcat(tmp, (m_str)vector_at(v, i - 1));
     }
     ret = usable(tmp);
     free(v);
@@ -312,20 +320,20 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
             continue;
         else if(isa(value->m_type, &t_class) < 0) {
             if(!value->is_member)
-                vector_append(s_value, value);
+                vector_append(s_value, (vtype)value);
             else
-                vector_append(m_value, value);
+                vector_append(m_value, (vtype)value);
         } else
-            vector_append(type, value);
+            vector_append(type, (vtype)value);
     }
     free(v);
     v = scope_get(nspc->func);
     for(i = 0; i < vector_size(v); i++) {
         Func func = (Func)vector_at(v, i);
         if(!func->is_member)
-            vector_append(s_func, func);
+            vector_append(s_func, (vtype)func);
         else
-            vector_append(m_func, func);
+            vector_append(m_func, (vtype)func);
     }
     free(v);
     for(i = 0; i < vector_size(type); i++)
@@ -364,20 +372,20 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
             continue;
         else if(isa(value->m_type, &t_class) < 0) {
             if(!value->is_member)
-                vector_append(s_value, value);
+                vector_append(s_value, (vtype)value);
             else
-                vector_append(m_value, value);
+                vector_append(m_value, (vtype)value);
         } else
-            vector_append(type, value);
+            vector_append(type, (vtype)value);
     }
     free(v);
     v = scope_get(nspc->func);
     for(i = 0; i < vector_size(v); i++) {
         Func func = (Func)vector_at(v, i);
         if(!func->is_member)
-            vector_append(s_func, func);
+            vector_append(s_func, (vtype)func);
         else
-            vector_append(m_func, func);
+            vector_append(m_func, (vtype)func);
     }
     free(v);
     fprintf(doc->html, "<div class=\"section\"><h3>Types</h3><blockquote>\n");
@@ -438,6 +446,7 @@ static void mkdoc_type(Doc* doc, Type t)
     m_str str = t->doc ? strndup(t->doc, 16) : "";
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[type\%s in <b>%s</b> <em>%s</em> '] ]],\n",
             name, t->name, file, full, "]", t->owner->name, str);
+
     if(t->doc)
         free(str);
     free(name);
@@ -524,7 +533,7 @@ void mkdoc_context(Env env, m_str str)
         mkdoc_type(doc, (Type)vector_at(doc->ctx->new_types, i));
     fprintf(doc->html, "</blockquote>\n");
 
-    fprintf(doc->html, "<h2>Global Variables</h2><blockquote>\n");
+	    fprintf(doc->html, "<h2>Global Variables</h2><blockquote>\n");
     for(i = 0; i < vector_size(doc->ctx->new_values); i++)
         mkdoc_value(doc, ((Value)vector_at(doc->ctx->new_values, i)));
     fprintf(doc->html, "</blockquote>\n");

@@ -31,17 +31,29 @@ Context new_Context(Ast prog, m_str filename)
     context->new_funcs = new_Vector();
     context->new_values = new_Vector();
     context->new_types = new_Vector();
+	context->public_class_def = NULL;
     return context;
 }
 
 void free_Context(Context a)
 {
-//    m_uint i;
+    m_uint i;
 //  free_NameSpace(a->nspc);
     rem_ref(a->nspc->obj, a->nspc);
     free_Vector(a->new_funcs);
     free_Vector(a->new_values);
-    free_Vector(a->new_types);
+	// delete user class
+    for(i = 0; i < vector_size(a->new_types); i++)
+{
+if(strcmp(a->filename, "global_context"))
+{
+//	Type t = (Type)vector_at(a->new_types, i);
+//		printf("%s\n", ((Type)vector_at(a->new_types, i))->name);
+//free(t);
+//rem_ref(t->obj, t);
+}
+}
+	free_Vector(a->new_types);
     free(a);
 }
 

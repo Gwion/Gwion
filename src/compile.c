@@ -44,9 +44,10 @@ free(_name);
 #ifdef DEBUG_COMPILE
     debug_msg("lexer", "emit   of '%s' ok", name);
 #endif
-    free_Ast(ast);
+//    free_Ast(ast);
     add_instr(vm->emit, EOC);
     vm->emit->code->name = strdup(name);
+    vm->emit->code->filename = strdup(name);
     code = emit_to_code(vm->emit);
     shred = new_VM_Shred(code);
     shred->args = args;

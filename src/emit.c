@@ -70,6 +70,7 @@ void free_Code(Code* code)
   free_Vector(code->stack_return);
   free_Frame(code->frame);
   free(code->name);
+  free(code->filename);
   free(code);
 }
 
@@ -211,6 +212,14 @@ VM_Code emit_to_code(Emitter emit)
 #endif
   Code* c = emit->code;
   Vector v = vector_copy(c->code);
+printf("%s %s\n", c->name, c->filename);
+// Watch me !
+if(!c->filename)
+{
+err_msg(EMIT_, 0, "code has no filename. this is an error");
+	c->filename =strdup(c->name);
+
+}
   VM_Code code = new_VM_Code(v, c->stack_depth, c->need_this, c->name, c->filename);
   free_Code(c);
   return code;
@@ -546,7 +555,6 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       }
     }
     //   is_init = 0;
-
     // if object, assign
     if (is_obj) {
       // if array
@@ -851,8 +859,8 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   vector_append(emit->stack, emit->code);
   emit->code = new_Code();
   emit->code->need_this = exp->m_func->is_member;
-  emit->code->name = "spork~exp";
-  emit->code->filename = emit_filename;
+  emit->code->name = strdup("spork~exp");
+  emit->code->filename = strdup(emit_filename);
   op = add_instr(emit, Mem_Push_Imm);
 
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
@@ -949,8 +957,8 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       vector_append(emit->stack, emit->code);
       emit->code = new_Code();
       f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
-      emit->code->name = "spork~code";
-      emit->code->filename = emit_filename;
+      emit->code->name = strdup("spork~code");
+      emit->code->filename = strdup(emit_filename);
       op = add_instr(emit, Mem_Push_Imm);
       CHECK_BB(emit_Stmt(emit, unary->code, 0))
       op->m_val = emit->code->stack_depth;
@@ -2327,8 +2335,8 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   sprintf(c, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
   emit->code->name = strdup(c);
   emit->code->need_this = func->is_member;
-//  emit->code->filename = strdup(emit_filename);
-  emit->code->filename = emit_filename;
+  emit->code->filename = strdup(emit_filename);
+//  emit->code->filename = emit_filename;
 
 //printf("here\n");
   Arg_List a = func_def->arg_list;
@@ -2433,7 +2441,6 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
         "(emit): class '%s' already emitted...", type->name);
     return -1;
   }
-
   type->info->class_data = calloc(type->info->class_data_size, sizeof(m_uint));
   if (!type->info->class_data) {
     err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
@@ -2446,11 +2453,14 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   vector_append(emit->stack, emit->code);
   emit->code = new_Code();
   char c[256];
-  emit->code->name = c;
-  sprintf(emit->code->name, "class %s", type->name);
+//  emit->code->name = c;
+//  emit->code->name = malloc(sizeof(char));
+//  sprintf(emit->code->name, "class %s", type->name);
+  sprintf(c, "class %s", type->name);
+  emit->code->name = strdup(c);
 
   emit->code->need_this = 1;
-  emit->code->filename = emit_filename;
+  emit->code->filename = strdup(emit_filename);
   emit->code->stack_depth += SZ_INT;
   if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
     err_msg(EMIT_, class_def->pos,

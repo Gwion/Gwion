@@ -38,6 +38,7 @@ void debug_msg(const char* header, const char* fmt, ...)
 #else
   fprintf(stderr, "%s", header);
 #endif
+	memset(msg, 0, 256);
 	vsnprintf(msg, 256, fmt, arg);
 	fprintf(stderr, "\t%s\n", msg);
 	va_end(arg);

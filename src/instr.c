@@ -515,7 +515,7 @@ INSTR(Gack)
     free(name);
     shred->reg += type->size;
   }
-  free_Vector(v);
+//  free_Vector(v);
 }
 
 /* function */
@@ -629,8 +629,15 @@ INSTR(Instr_Func_Call)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-//  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT);
-  prev_stack = *(m_uint*)(shred->mem - SZ_INT);
+  prev_stack = *(m_uint*)(shred->mem - SZ_INT) == 65553 ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+//printf("%s\n", func->name);
+//printf("(*(m_uint*)(shred->mem - SZ_INT) %i\n", *(m_uint*)(shred->mem - SZ_INT));
+//if(*(m_uint*)(shred->mem - SZ_INT) > 50000)
+//	exit(12);
+ // prev_stack = 0;
+//else
+//  prev_stack = *(m_uint*)(shred->mem - SZ_INT);
+//  prev_stack = *(m_uint*)(shred->mem - SZ_INT);
   push = prev_stack + local_depth;
   next = shred->pc + 1;
 
@@ -646,30 +653,41 @@ INSTR(Instr_Func_Call)
 
   shred->next_pc = 0;
   shred->code = func;
+printf("stack_depth %lu %lu\n", push, stack_depth);
   if(stack_depth)
   {
+printf("stack_detph %lu\n", stack_depth);
 //    if(stack_depth == 7 || stack_depth == 5 || stack_depth == 6)
 //      stack_depth = SZ_INT;
     shred->reg -= stack_depth;
     if(func->need_this)
     {
+//exit(2);
 //      *mem = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
 //      mem++;
-      *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
-			shred->mem += SZ_INT;
-			stack_depth -= SZ_INT;
+printf("this %p %i\n", *(m_uint*)(shred->reg + stack_depth - SZ_INT), stack_depth);
+		*(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
+//		shred->mem += SZ_INT;
+		stack_depth -= SZ_INT;
     }
 
 /*
-    for(i = 0; i < stack_depth/SZ_INT; i++)
+    for(int i = 0; i < stack_depth/SZ_INT; i++)
+{
+printf("%p\n", (m_uint*)(shred->reg + SZ_INT*i));
 //      *(mem + i) = *(m_uint*)(shred->reg + SZ_INT*i);
-      *(m_uint*)(shred->mem + i*SZ_INT) = *(m_uint*)(shred->reg + SZ_INT*i);
-    if((stack_depth%SZ_INT))
-			 *(m_float*)(shred->mem + stack_depth - SZ_FLOAT) = *(m_float*)(shred->reg + stack_depth - SZ_FLOAT);
+//      *(m_uint*)(shred->mem + i*SZ_INT) = *(m_uint*)(shred->reg + SZ_INT*i);
+}
+//   if((stack_depth%SZ_INT))
+//			 *(m_float*)(shred->mem + stack_depth - SZ_FLOAT) = *(m_float*)(shred->reg + stack_depth - SZ_FLOAT);
 */
-		memcpy(shred->mem, shred->reg, stack_depth);
- }
 
+printf("here %lu\n", stack_depth);
+		memcpy(shred->mem, shred->reg, stack_depth);
+printf("here %lu\n", stack_depth);
+ }
+//if(func->need_this)
+//	shred->mem -= SZ_INT;
 //  shred->mem += prev_stack + local_depth;
 //  shred->mem += 4 * SZ_INT;
   if(overflow_(shred->mem))
@@ -824,7 +842,7 @@ INSTR(Instr_Func_Call_Member)
 INSTR(Func_Return)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "func return");
+  debug_msg("instr", "func return %s", (*(VM_Code*)(shred->mem - SZ_INT*3))->name);
 #endif
   shred->mem -= SZ_INT * 2;
   shred->next_pc = *(m_uint*)shred->mem;
@@ -897,9 +915,9 @@ INSTR(Instantiate_Object)
 INSTR(Alloc_Member_Word)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member word: %p[%i] = '%p'", *(m_uint*)(shred->mem -1), instr->m_val, *(m_uint*)shred->mem);
+  debug_msg("instr", "alloc member word: %p[%i]", *(m_uint*)(shred->mem), instr->m_val);
 #endif
-  M_Object obj = *(M_Object*)shred->mem;
+  M_Object obj = *(M_Object*)(shred->mem);
   *(m_uint*)(obj->data + instr->m_val) = 0;
   *(m_uint**)shred->reg = &*(m_uint*)(obj->data + instr->m_val);
   shred->reg += SZ_INT;

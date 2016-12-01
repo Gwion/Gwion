@@ -196,6 +196,8 @@ free_VM_Shred(s);
   free_Scope(type->info->func);
   free_Map(type->info->label);
   free(type->info->obj);
+//if(type->info->class_data_size)
+//	free(type->info->class_data);
   free(type->info);
   }
   rem_ref(type->obj, type); // no op for now

@@ -89,7 +89,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
   out->is_running = 0;
   if(!out->prev && !out->next && out != s->list)
   {
-    free_VM_Shred(out);
+//    free_VM_Shred(out);
     return -1;
   }
   if(!out->prev)

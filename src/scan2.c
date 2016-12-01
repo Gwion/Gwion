@@ -1,3 +1,6 @@
+/** @file src/scan2.c
+ * @brief second level scan
+ */
 #include <string.h> // use in Func_Def
 #include "err_msg.h"
 #include "absyn.h"

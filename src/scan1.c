@@ -1,3 +1,7 @@
+/** @file src/scan1.c
+ * @brief first level scan.
+ */
+
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
