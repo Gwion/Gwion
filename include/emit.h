@@ -14,6 +14,7 @@ typedef struct
   Vector code;
   Vector stack_cont, stack_break, stack_return;
   Frame* frame;
+  Vector gack;
 } Code;
 
 Code* new_Code();

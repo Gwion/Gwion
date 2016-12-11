@@ -1,10 +1,12 @@
 class C
 {
-  static int si;
+//  static int si;
   int i;
+<<<i>>>;
 }
 
+//int i, j, k, l;
 C c;
-c;
-<<<c.i>>>;
-<<<c.si>>>;
+//c;
+//<<<c.i>>>;
+//<<<c.si>>>;

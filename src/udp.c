@@ -17,113 +17,102 @@ pthread_t srv_thread;
 
 void Send(const char* c, unsigned int i)
 {
-	struct sockaddr_in addr = i ? saddr : caddr;
+  struct sockaddr_in addr = i ? saddr : caddr;
   /* don't send if no port */
   if(!addr.sin_port)
     return;
-	if(sendto(sock, c, strlen(c), 0,
-		(struct sockaddr *) &addr, sizeof(addr)) < 1)
-		err_msg(UDP, 0, "problem while sending");
+  if(sendto(sock, c, strlen(c), 0,
+            (struct sockaddr *) &addr, sizeof(addr)) < 1)
+    err_msg(UDP, 0, "problem while sending");
 }
 
 char* Recv(int i)
 {
-	char buf[255];
-    ssize_t len;
-	unsigned int addrlen = 0;
-	struct sockaddr_in addr;
+  char buf[255];
+  ssize_t len;
+  unsigned int addrlen = 0;
+  struct sockaddr_in addr;
 
 //	bzero(buf, 255);
-	memset(buf, 0, 255);
-	addr  = i ? saddr : caddr;
-	if ((len = recvfrom(sock, buf, 255, 0,
-		(struct sockaddr *) &addr, &addrlen)) < 0)
-		err_msg(UDP, 0, "recvfrom() failed");
+  memset(buf, 0, 255);
+  addr  = i ? saddr : caddr;
+  if ((len = recvfrom(sock, buf, 255, 0,
+                      (struct sockaddr *) &addr, &addrlen)) < 0)
+    err_msg(UDP, 0, "recvfrom() failed");
 
-	return strndup(buf, strlen(buf));
+  return strndup(buf, strlen(buf));
 }
 
 void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
-	while(vm->is_running)
-	{
-		const char* buf;
-		int index;
+  while(vm->is_running) {
+    const char* buf;
+    int index;
 
     buf = Recv(0);
     if( strncmp(buf, "bonjour", 7) == 0);
-    else if( strncmp(buf, "quit", 4) == 0)
-    {
-			vm->is_running = 0;
-			vm->wakeup();
-		}
-		/* remove */
-		else if( strncmp(buf, "-", 1) == 0)
-    {
+    else if( strncmp(buf, "quit", 4) == 0) {
+      vm->is_running = 0;
+      vm->wakeup();
+    }
+    /* remove */
+    else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
       shreduler_remove(vm->shreduler, vector_at(vm->shred, atoi(buf)), 1);
     }
 //      check_remove_shred(buf);
-		/* status */
+    /* status */
 //		else if( strncmp(buf, "^", 1) == 0)
 //			status(1);
-		else if( strncmp(buf, "+", 1) == 0)
-    {
+    else if( strncmp(buf, "+", 1) == 0) {
       buf += 2;
-/*      buf++;*/
+      /*      buf++;*/
       compile(data, (m_str)buf);
-    }
-		else if( strncmp(buf, "loop", 4) == 0)
-		{
-			strsep((char**)&buf, " ");
-			index = atoi(buf);
+    } else if( strncmp(buf, "loop", 4) == 0) {
+      strsep((char**)&buf, " ");
+      index = atoi(buf);
       shreduler_set_loop(vm->shreduler, index);
     }
-		/* else it might be a file */
-		else
+    /* else it might be a file */
+    else
       compile(data, (m_str)buf);
-	}
+  }
 //pthread_exit(NULL);
-	return NULL;
+  return NULL;
 }
 
 int server_init(char* hostname, int port)
 {
   struct hostent * host;
-	sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(sock < 0)
-  {
-    err_msg(UDP, 0, "can't create socket");  
-		return -1;
+  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if(sock < 0) {
+    err_msg(UDP, 0, "can't create socket");
+    return -1;
   }
 
-    /* Construct local address structure */
-	memset(&saddr, 0, sizeof(saddr));
-	saddr.sin_family = AF_INET;
+  /* Construct local address structure */
+  memset(&saddr, 0, sizeof(saddr));
+  saddr.sin_family = AF_INET;
   host = gethostbyname( hostname );
-  if(!host)
-  {
-		saddr.sin_addr.s_addr = inet_addr( hostname );
-		if( saddr.sin_addr.s_addr == -1 )
-		{
-			saddr.sin_addr.s_addr = htonl(INADDR_ANY);
-			err_msg(UDP, 0, "%s not found. setting hostname to localhost", hostname);
+  if(!host) {
+    saddr.sin_addr.s_addr = inet_addr( hostname );
+    if( saddr.sin_addr.s_addr == -1 ) {
+      saddr.sin_addr.s_addr = htonl(INADDR_ANY);
+      err_msg(UDP, 0, "%s not found. setting hostname to localhost", hostname);
 //			hostname = strdup("localhost");
-char** host = &hostname;
-			*host = "localhost";
+      char** host = &hostname;
+      *host = "localhost";
 //			hostname = "localhost";
-		}
-	}
-	else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
+    }
+  } else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
   saddr.sin_port = htons(port);
-	/* Bind to the local address */
-  if (bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
-  {
+  /* Bind to the local address */
+  if (bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
     err_msg(UDP, 0, "can't bind");
-		return -1;
+    return -1;
   }
-	return 1;
+  return 1;
 }
 
 void server_destroy(pthread_t t)

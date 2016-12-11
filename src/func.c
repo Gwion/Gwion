@@ -20,8 +20,9 @@ Func new_Func(m_str name, Func_Def def)
 
 void free_Func(Func a)
 {
-  free_Func_Def(a->def);
-  free_VM_Code(a->code);
-  free(a->name);
-  free(a);
+  //free_Func_Def(a->def);
+  if(a->code)
+    free_VM_Code(a->code);
+  //free(a->name);
+  //free(a);
 }

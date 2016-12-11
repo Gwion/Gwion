@@ -1,0 +1,17 @@
+segfault :array_lit.gw:
+segfault :check.gw:
+segfault :class.gw:
+segfault :dac.gw:
+segfault :decl.gw:
+segfault :decl_object.gw:
+segfault :doc.gw:
+segfault :func.gw:
+segfault :maybe.gw:
+segfault :postfix.gw:
+segfault :repeat.gw:
+segfault :sine2.gw:
+segfault :sine.gw:
+segfault :string.gw:
+segfault :union.gw:
+segfault :vec3.gw:
+

@@ -1,0 +1,5 @@
+int i;
+enum
+{
+	first
+} i;

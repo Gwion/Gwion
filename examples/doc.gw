@@ -1,2 +1,3 @@
 // generate main doc
 Machine.doc("global_context");
+Machine.doc("/home/djay/src/git/Gwion/examples/class.gw");

@@ -1,0 +1,4 @@
+union
+{
+	unknown_type unknown_variable;
+};

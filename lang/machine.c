@@ -25,7 +25,7 @@ static SFUN(machine_add)
   m_str str = STRING(obj);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
-  RETURN->v_uint= compile(shred->vm_ref, str);
+  RETURN->v_uint = compile(shred->vm_ref, str);
 }
 
 static SFUN(machine_doc)
@@ -51,10 +51,8 @@ static SFUN(machine_doc_update)
   size_t len = 0;
   n = scandir("/usr/lib/Gwion/doc/dat", &namelist, js_filter, alphasort);
   fprintf(all , "var searchData = \n[\n");
-  if (n > 0)
-  {
-    while (n--)
-    {
+  if (n > 0) {
+    while (n--) {
       char name[128];
       memset(name, 0, 128);
       strcat(name, "/usr/lib/Gwion/doc/dat/");
@@ -67,10 +65,10 @@ static SFUN(machine_doc_update)
       fclose(f);
     }
   }
-    free(namelist);
-    free(line);
-    fprintf(all, "];");
-    fclose(all);
+  free(namelist);
+  free(line);
+  fprintf(all, "];");
+  fclose(all);
 }
 
 static SFUN(machine_adept)
@@ -79,68 +77,66 @@ static SFUN(machine_adept)
   mkadt_context(shred->vm_ref->env, str);
 }
 
-static m_str randstring(int length) {
-    char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
-    size_t stringLen = 26*2+10+7;
-    char *randomString;
+static m_str randstring(int length)
+{
+  char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
+  size_t stringLen = 26 * 2 + 10 + 7;
+  char *randomString;
 
-    randomString = malloc(sizeof(char) * (length +1));
+  randomString = malloc(sizeof(char) * (length + 1));
 
-    if (!randomString) {
-        return (char*)0;
-    }
+  if (!randomString) {
+    return (char*)0;
+  }
 
-    unsigned int key = 0;
+  unsigned int key = 0;
 
-    for (int n = 0;n < length;n++) {
-        key = rand() % stringLen;
-        randomString[n] = string[key];
-    }
+  for (int n = 0; n < length; n++) {
+    key = rand() % stringLen;
+    randomString[n] = string[key];
+  }
 
-    randomString[length] = '\0';
+  randomString[length] = '\0';
 
-    return randomString;
+  return randomString;
 }
 
 SFUN(machine_check)
 {
-	char c[104];
-	m_str prefix, filename;
-	M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
-	M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT*2);
-	if(!prefix_obj)
-		prefix = ".";
-	else
-		prefix = STRING(prefix_obj);
-	if(!code_obj)
-	{
-		RETURN->v_uint = 0;
-		return;
-	}
-	filename = randstring(12);
-	sprintf(c, "%s/%s", prefix, filename);
-	FILE* file = fopen(c, "w");
-	fprintf(file, "%s\n", STRING(code_obj));
-	fclose(file);
+  char c[104];
+  m_str prefix, filename;
+  M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  if(!prefix_obj)
+    prefix = ".";
+  else
+    prefix = STRING(prefix_obj);
+  if(!code_obj) {
+    RETURN->v_uint = 0;
+    return;
+  }
+  filename = randstring(12);
+  sprintf(c, "%s/%s", prefix, filename);
+  FILE* file = fopen(c, "w");
+  fprintf(file, "%s\n", STRING(code_obj));
+  fclose(file);
   Ast ast = parse(c);
- 	if(!ast)
-	{
-		RETURN->v_uint = 0;
-		return;
-	}
-  if(type_engine_check_prog(shred->vm_ref->env, ast, c) < 0)
-	{
-		RETURN->v_uint = 0;
-		return;
-	}
-	RETURN->v_uint = (m_uint)new_String(c);
+  if(!ast) {
+    RETURN->v_uint = 0;
+    return;
+  }
+  if(type_engine_check_prog(shred->vm_ref->env, ast, c) < 0) {
+    RETURN->v_uint = 0;
+    return;
+  }
+  RETURN->v_uint = (m_uint)new_String(c);
 }
 
 static SFUN(machine_compile)
 {
-	RETURN->v_uint = 0;
+  RETURN->v_uint = 0;
   prepare()
-	RETURN->v_uint = 1;
+  RETURN->v_uint = 1;
 }
 
 static SFUN(machine_shreds)
@@ -149,8 +145,7 @@ static SFUN(machine_shreds)
   VM* vm = shred->vm_ref;
   VM_Shred sh;
   M_Object obj = new_M_Array(SZ_INT, vector_size(vm->shred));
-  for(i = 0; i < vector_size(vm->shred); i++)
-  {
+  for(i = 0; i < vector_size(vm->shred); i++) {
     sh = (VM_Shred)vector_at(vm->shred, i);
     i_vector_set(obj->array, i, sh->xid);
   }
@@ -163,7 +158,7 @@ m_bool import_machine(Env env)
 
   CHECK_BB(add_global_type(env, &t_machine))
   CHECK_BB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
-	env->class_def->doc = "access the virtual machine, including docs";
+  env->class_def->doc = "access the virtual machine, including docs";
 
   fun = new_DL_Func("void",  "add",     (m_uint)machine_add);
   dl_func_add_arg(fun,       "string",  "filename");

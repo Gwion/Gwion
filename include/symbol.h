@@ -53,6 +53,8 @@ S_Symbol insert_symbol( c_constr );
 /* Extract the underlying c_str from a symbol */
 c_str S_name(S_Symbol);
 
+// Gwion spec
+void free_Symbols();
 
 #ifdef __TABLE
 /* S_table is a mapping from S_Symbol->any, where "any" is represented

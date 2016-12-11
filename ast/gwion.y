@@ -260,9 +260,9 @@ function_decl
 
 func_ptr
   : FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, NULL, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(1, $5, $3, NULL, get_pos(scanner)); }
+  | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(ae_key_static, $5, $3, NULL, get_pos(scanner)); }
   | FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, $7, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(1, $5, $3, $8, get_pos(scanner)); }
+  | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(ae_key_static, $5, $3, $8, get_pos(scanner)); }
   ;
 
 type_decl2
@@ -271,8 +271,8 @@ type_decl2
   ;
 
 arg_list
-  : type_decl var_decl { $$ = new_Arg_List($1, $2, NULL, get_pos(scanner)); $$->doc = get_arg_doc(scanner); }
-  | type_decl var_decl COMMA arg_list{ $$ = new_Arg_List($1, $2, $4, get_pos(scanner)); $$->doc = get_arg_doc(scanner); }
+  : type_decl var_decl { $$ = new_Arg_List($1, $2, NULL, get_pos(scanner)); /* $$->doc = get_arg_doc(scanner); */ }
+  | type_decl var_decl COMMA arg_list{ $$ = new_Arg_List($1, $2, $4, get_pos(scanner)); /* $$->doc = get_arg_doc(scanner); */ }
   ;
 
 code_segment

@@ -15,8 +15,7 @@
 #include "err_msg.h"
 
 
-typedef struct
-{
+typedef struct {
   unsigned int size;
   unsigned int pos;
   m_float* data;
@@ -54,15 +53,14 @@ static m_float* sp_buffer_get(sp_buffer* buffer)
   m_uint i;
   m_float* ret = calloc(buffer->size, sizeof(m_float));
   for(i = 0; i < buffer->size; i++)
-    ret[i] = buffer->data[(buffer->pos+i)%buffer->size];
+    ret[i] = buffer->data[(buffer->pos + i) % buffer->size];
   return ret;
 }
 
 static struct Type_ t_fft = { "FFT", SZ_INT, &t_ugen};
-typedef struct
-{
+typedef struct {
   sp_buffer*  buf;
-/*  m_float*  (*win)(m_float* buf, m_uint size);*/
+  /*  m_float*  (*win)(m_float* buf, m_uint size);*/
   FFTFREQS*   frq;
   FFTwrapper* fft;
 } FFT;
@@ -76,11 +74,10 @@ static m_bool fft_tick(UGen u)
   if(!ana->buf)
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
-  if(u->trig && u->trig->ugen->out)    // if trigged, compute fft
-  {
+  if(u->trig && u->trig->ugen->out) {  // if trigged, compute fft
     smp = sp_buffer_get(ana->buf);
-/*    if(ana->win)*/                  // do windowing
-/*      ana->win(smp, ana->buf->size);*/
+    /*    if(ana->win)*/                  // do windowing
+    /*      ana->win(smp, ana->buf->size);*/
     smps2freqs(ana->fft, smp, ana->frq);
     free(smp);
   }
@@ -100,7 +97,7 @@ static void fft_dtor(M_Object o, VM_Shred shred)
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq)
-     deleteFFTFREQS(ana->frq);
+    deleteFFTFREQS(ana->frq);
   if(ana->fft)
     FFTwrapper_destroy(&ana->fft);
   free(ana);
@@ -109,8 +106,7 @@ static void fft_dtor(M_Object o, VM_Shred shred)
 static MFUN(fft_init)
 {
   FFT* ana = (FFT*)o->ugen->ug;
-  if(ana)
-  {
+  if(ana) {
     if(ana->buf)
       sp_buffer_destroy(ana->buf);
     if(ana->frq)
@@ -121,8 +117,8 @@ static MFUN(fft_init)
   m_int size = *(m_int*)(shred->mem + SZ_INT);
   sp_buffer_create(&ana->buf, size);
   ana->frq = malloc(sizeof(FFTFREQS));
-  newFFTFREQS(ana->frq, size*2);
-  FFTwrapper_create(&ana->fft, size*2);
+  newFFTFREQS(ana->frq, size * 2);
+  FFTwrapper_create(&ana->fft, size * 2);
   ana->frq->size = size;
   RETURN->v_uint = size;
 }
@@ -131,8 +127,7 @@ static MFUN(fft_compute)
 {
   m_float* smp;
   FFT* ana = (FFT*)o->ugen->ug;
-  if(!ana->buf)
-  {
+  if(!ana->buf) {
     RETURN->v_uint = 0;
     return;
   }
@@ -147,38 +142,37 @@ static m_bool import_fft(Env env)
   CHECK_BB(add_global_type(env, &t_fft))
   CHECK_BB(import_class_begin(env, &t_fft, env->global_nspc, fft_ctor, fft_dtor))
   fun = new_DL_Func("int", "size", (m_uint)fft_init);
-    dl_func_add_arg(fun, "int", "size");
+  dl_func_add_arg(fun, "int", "size");
   CHECK_OB(import_mfun(env, fun))
-/*  fun = new_DL_Func("int", "init", (m_uint)fft_init2);*/
-/*    dl_func_add_arg(fun, "int", "size");*/
-/*    dl_func_add_arg(fun, "float[]", "window");*/
-/*  CHECK_OB(import_mfun(env, fun))*/
-/*  fun = new_DL_Func("int", "init", (m_uint)fft_init3);*/
-/*    dl_func_add_arg(fun, "int", "size");*/
-/*    dl_func_add_arg(fun, "string", "window");*/
-/*  CHECK_OB(import_mfun(env, fun))*/
-/*  fun = new_DL_Func("int", "window", (m_uint)fft_win);*/
-/*    dl_func_add_arg(fun, "float[]", "window");*/
-/*  CHECK_OB(import_mfun(env, fun))*/
-/*  fun = new_DL_Func("int", "window", (m_uint)fft_win_name);*/
-/*    dl_func_add_arg(fun, "string", "name");*/
-/*  CHECK_OB(import_mfun(env, fun))*/
-/*  fun = new_DL_Func("complex[]", "compute", (m_uint)fft_compute);*/
+  /*  fun = new_DL_Func("int", "init", (m_uint)fft_init2);*/
+  /*    dl_func_add_arg(fun, "int", "size");*/
+  /*    dl_func_add_arg(fun, "float[]", "window");*/
+  /*  CHECK_OB(import_mfun(env, fun))*/
+  /*  fun = new_DL_Func("int", "init", (m_uint)fft_init3);*/
+  /*    dl_func_add_arg(fun, "int", "size");*/
+  /*    dl_func_add_arg(fun, "string", "window");*/
+  /*  CHECK_OB(import_mfun(env, fun))*/
+  /*  fun = new_DL_Func("int", "window", (m_uint)fft_win);*/
+  /*    dl_func_add_arg(fun, "float[]", "window");*/
+  /*  CHECK_OB(import_mfun(env, fun))*/
+  /*  fun = new_DL_Func("int", "window", (m_uint)fft_win_name);*/
+  /*    dl_func_add_arg(fun, "string", "name");*/
+  /*  CHECK_OB(import_mfun(env, fun))*/
+  /*  fun = new_DL_Func("complex[]", "compute", (m_uint)fft_compute);*/
   fun = new_DL_Func("void", "compute", (m_uint)fft_compute);
   CHECK_OB(import_mfun(env, fun))
 
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
-typedef struct _FFT
-{
+typedef struct _FFT {
   m_uint size, sr;
   m_float* fval;
   m_float  percent;     // rollof
-/*  m_float* norm, *prev; // flux*/
-/*  m_float* cval[2];*/ // corr
-}_FFT;
+  /*  m_float* norm, *prev; // flux*/
+  /*  m_float* cval[2];*/ // corr
+} _FFT;
 
 typedef double (*f_analys)(_FFT* fft);
 
@@ -186,10 +180,8 @@ m_float array_max(m_float* f, unsigned int size, unsigned int index)
 {
   unsigned int i;
   m_float max = -INFINITY;
-  for(i = 0; i < size; i++)
-  {
-    if(f[i] > max)
-    {
+  for(i = 0; i < size; i++) {
+    if(f[i] > max) {
       max = f[i];
       index = i;
     }
@@ -199,135 +191,129 @@ m_float array_max(m_float* f, unsigned int size, unsigned int index)
 /* from chuck ;-) */
 m_float compute_centroid(_FFT* fft )
 {
-	m_float m0 = 0.0;
-	m_float m1 = 0.0;
-	m_float centroid = 0.0;
-	unsigned int i;
-	/* Compute centroid using moments */
-	for( i = 0; i < fft->size/2; i++ )
-	{
-		m1 += i* fft->fval[i];
-		m0 += fft->fval[i];
-	}
-	if( m0 != 0.0 )
-		centroid = m1 / m0;
-	else
-		centroid = fft->size / 2.0; /* Perfectly balanced */
-	return centroid / fft->size;
+  m_float m0 = 0.0;
+  m_float m1 = 0.0;
+  m_float centroid = 0.0;
+  unsigned int i;
+  /* Compute centroid using moments */
+  for( i = 0; i < fft->size / 2; i++ ) {
+    m1 += i * fft->fval[i];
+    m0 += fft->fval[i];
+  }
+  if( m0 != 0.0 )
+    centroid = m1 / m0;
+  else
+    centroid = fft->size / 2.0; /* Perfectly balanced */
+  return centroid / fft->size;
 }
 
 m_float compute_spread(_FFT* fft)
 {
-	unsigned int i;
-	m_float ret = 0;
-	m_float mu = compute_centroid(fft);
-	for(i = 0; i < fft->size/2; i++)
-		ret+= ( (i - mu) * (i -mu) ) * fft->fval[i];
-	return ret/fft->size;
+  unsigned int i;
+  m_float ret = 0;
+  m_float mu = compute_centroid(fft);
+  for(i = 0; i < fft->size / 2; i++)
+    ret += ( (i - mu) * (i - mu) ) * fft->fval[i];
+  return ret / fft->size;
 }
 
 m_float compute_skewness(_FFT* fft)
 {
-	unsigned int i;
-	m_float ret = 0;
-	m_float mu = compute_centroid(fft);
-	for(i = 0; i < fft->size/2; i++)
-		ret+= ( (i - mu) * (i -mu) * (i -mu) ) * fft->fval[i];
-	return ret/fft->size;
+  unsigned int i;
+  m_float ret = 0;
+  m_float mu = compute_centroid(fft);
+  for(i = 0; i < fft->size / 2; i++)
+    ret += ( (i - mu) * (i - mu) * (i - mu) ) * fft->fval[i];
+  return ret / fft->size;
 }
 
 m_float compute_kurtosis(_FFT* fft)
 {
-	unsigned int i;
-	m_float ret = 0;
-	m_float mu = compute_centroid(fft);
-	for(i = 0; i < fft->size/2; i++)
-		ret+= ( (i - mu) * (i -mu) * (i -mu) * (i -mu)) * fft->fval[i];
-	return ret/fft->size;
+  unsigned int i;
+  m_float ret = 0;
+  m_float mu = compute_centroid(fft);
+  for(i = 0; i < fft->size / 2; i++)
+    ret += ( (i - mu) * (i - mu) * (i - mu) * (i - mu)) * fft->fval[i];
+  return ret / fft->size;
 }
 
 
 m_float compute_rms(_FFT* fft)
 {
   m_float rms = 0.0;
-	m_uint  i;
-	/* get sum of squares */
-	for(i = 0; i < fft->size/2; i++)
-		rms += (fft->fval[i] * fft->fval[i]);
-	rms /= fft->size;
-	rms = sqrt(rms);
-	return rms;
+  m_uint  i;
+  /* get sum of squares */
+  for(i = 0; i < fft->size / 2; i++)
+    rms += (fft->fval[i] * fft->fval[i]);
+  rms /= fft->size;
+  rms = sqrt(rms);
+  return rms;
 }
 
 m_float compute_rolloff(_FFT* fft)
 {
-	m_float sum = 0.0, target;
-	unsigned int i;
-	/* sanity check */
-	/* assert( percent >= 0 && percent <= 1 ); */
-	/* iterate */
-	for( i = 0; i < fft->size/2; i++ )
-		sum += fft->fval[i];
-	/* the target */
-	target = sum * fft->percent/100.;
-	sum = 0.0;
-	/* iterate */
-	for( i = 0; i < fft->size; i++ )
-	{
-		sum += fft->fval[i];
-		if( sum >= target )
-			break;
-	}
-	return i/(m_float)fft->size;
+  m_float sum = 0.0, target;
+  unsigned int i;
+  /* sanity check */
+  /* assert( percent >= 0 && percent <= 1 ); */
+  /* iterate */
+  for( i = 0; i < fft->size / 2; i++ )
+    sum += fft->fval[i];
+  /* the target */
+  target = sum * fft->percent / 100.;
+  sum = 0.0;
+  /* iterate */
+  for( i = 0; i < fft->size; i++ ) {
+    sum += fft->fval[i];
+    if( sum >= target )
+      break;
+  }
+  return i / (m_float)fft->size;
 }
 
 m_float compute_freq(_FFT* fft)
 {
-	unsigned int i;
-	m_float max = -0;
-	m_float where = 0;
-	for(i = 0; i < fft->size/2; i++)
-	{
-/*		if(fft->cval[i][0] > max)*/
-		if(fft->fval[i] > max)
-		{
-/*			max = fft->cval[i][0];*/
-			max = fft->fval[i];
-			where = i;
-		}
-	}
-	return where / fft->size * fft->sr;
+  unsigned int i;
+  m_float max = -0;
+  m_float where = 0;
+  for(i = 0; i < fft->size / 2; i++) {
+    /*		if(fft->cval[i][0] > max)*/
+    if(fft->fval[i] > max) {
+      /*			max = fft->cval[i][0];*/
+      max = fft->fval[i];
+      where = i;
+    }
+  }
+  return where / fft->size * fft->sr;
 }
 
 m_float compute_asc(_FFT* fft)
 {
-	unsigned int i;
-	m_float ret = 0.0;
-	m_float sum = 0.0;
-	for(i = 0; i < fft->size/2; i++)
-	{
-		ret += log2( ( compute_freq(fft) / 1000. ) ) * fft->fval[i];
-		sum += fft->fval[i];
-	}
-	return ret/sum;
+  unsigned int i;
+  m_float ret = 0.0;
+  m_float sum = 0.0;
+  for(i = 0; i < fft->size / 2; i++) {
+    ret += log2( ( compute_freq(fft) / 1000. ) ) * fft->fval[i];
+    sum += fft->fval[i];
+  }
+  return ret / sum;
 }
 
 m_float compute_ass(_FFT* fft)
 {
-	unsigned int i;
-	m_float ret = 0.0;
-	m_float sum = 0.0;
-	m_float asc = compute_asc(fft);
-	for(i = 0; i < fft->size/2; i++)
-	{
-		m_float f;
-		f = log2(compute_freq(fft) / 1000.) - asc;
-		f *= f;
-		f *= fft->fval[i];
-		ret += f;
-		sum += fft->fval[i];
-	}
-	return ret/sum;
+  unsigned int i;
+  m_float ret = 0.0;
+  m_float sum = 0.0;
+  m_float asc = compute_asc(fft);
+  for(i = 0; i < fft->size / 2; i++) {
+    m_float f;
+    f = log2(compute_freq(fft) / 1000.) - asc;
+    f *= f;
+    f *= fft->fval[i];
+    ret += f;
+    sum += fft->fval[i];
+  }
+  return ret / sum;
 }
 
 /*
@@ -444,7 +430,10 @@ m_int o_ana__fft;
 m_int o_ana_fft;
 m_int o_ana_fn;
 
-static m_float ana_dummy(FFT* fft){ return 0.0; }
+static m_float ana_dummy(FFT* fft)
+{
+  return 0.0;
+}
 static MFUN(ana_compute)
 {
   M_Object   fft = *(M_Object*) (o->data + o_ana_fft);
@@ -468,8 +457,7 @@ static MFUN(ana_set_fft)
   if(fft)
     release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
-  if(!fft)
-  {
+  if(!fft) {
     _fft->size = 0;
     _fft->fval = NULL;
     RETURN->v_uint = 0;
@@ -477,15 +465,14 @@ static MFUN(ana_set_fft)
   }
 
   ana = (FFT*)fft->ugen->ug;
-  if(!ana->buf)
-  {
+  if(!ana->buf) {
     err_msg(INSTR_, 0, "FFT '%p' probably not initialised.");
     return;
   }
   _fft->size = ana->fft->fftsize;
   _fft->fval = ana->frq->s;
   *(M_Object*) (o->data + o_ana_fft) = fft;
-  RETURN->v_uint = (m_uint)*(M_Object*)(shred->mem + SZ_INT);
+  RETURN->v_uint = (m_uint) * (M_Object*)(shred->mem + SZ_INT);
 }
 
 static void ana_ctor(M_Object o, VM_Shred shred)
@@ -509,7 +496,7 @@ static m_bool import_ana(Env env)
   CHECK_BB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
   o_ana_fft = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
   CHECK_BB(o_ana__fft)
-  o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1,"fft reference");
+  o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1, "fft reference");
   CHECK_BB(o_ana_fft)
   o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0, "internal compute fonction");
   CHECK_BB(o_ana_fn)
@@ -518,9 +505,9 @@ static m_bool import_ana(Env env)
   fun = new_DL_Func("FFT", "fft", (m_uint)ana_get_fft);
   CHECK_OB(import_mfun(env, fun))
   fun = new_DL_Func("FFT", "fft", (m_uint)ana_set_fft);
-    dl_func_add_arg(fun, "FFT", "arg");
+  dl_func_add_arg(fun, "FFT", "arg");
   CHECK_OB(import_mfun(env, fun))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -611,7 +598,7 @@ static m_bool import_rolloff(Env env)
   CHECK_BB(import_class_begin(env, &t_rolloff, env->global_nspc, rolloff_ctor, NULL))
   fun = new_DL_Func("float", "percent", (m_uint)rolloff_get_percent);
   CHECK_OB(import_mfun(env, fun))
-    fun = new_DL_Func("float", "percent", (m_uint)rolloff_set_percent);
+  fun = new_DL_Func("float", "percent", (m_uint)rolloff_set_percent);
   dl_func_add_arg(fun, "float", "arg");
   CHECK_OB(import_mfun(env, fun))
   CHECK_BB(import_class_end(env))
@@ -677,13 +664,12 @@ static MFUN(fc_compute)
   Vector v = *(Vector*)(o->data + o_fc_vector);
   ret = new_M_Array(1, vector_size(v));
   initialize_object(ret, &t_array);
-  for(i = 0; i < vector_size(v); i++)
-  {
+  for(i = 0; i < vector_size(v); i++) {
     obj  = (M_Object)vector_at(v, i);
     _fft = *(_FFT**)(obj->data + o_ana__fft);
     fn   = *(f_analys*)(obj->data + o_ana_fn);
     m_float f = fn(_fft);
-/*    vector_set(ret->array, i, &f);*/
+    /*    vector_set(ret->array, i, &f);*/
     f_vector_set(ret->array, i, f);
   }
   RETURN->v_uint = (m_uint)ret;
@@ -693,8 +679,7 @@ static MFUN(fc_add)
 {
   Vector v = *(Vector*)(o->data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
-  {
+  if(obj) {
     vector_append(v, (vtype)obj);
     release(obj, shred);
   }
@@ -705,8 +690,7 @@ static MFUN(fc_rem)
 {
   Vector v = *(Vector*)(o->data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
-  {
+  if(obj) {
     vector_remove(v, vector_find(v, (vtype)obj));
     release(obj, shred);
   }
@@ -717,11 +701,9 @@ INSTR(fc_connect)
   shred->reg  -= SZ_INT * 2;
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
-  if(o)
-  {
+  if(o) {
     Vector v = *(Vector*)(obj->data + o_fc_vector);
-    if(obj)
-    {
+    if(obj) {
       vector_append(v, (vtype)obj);
       release(obj, shred);
     }
@@ -735,11 +717,9 @@ INSTR(fc_disconnect)
   shred->reg  -= SZ_INT * 2;
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
-  if(o)
-  {
-  Vector v = *(Vector*)(obj->data + o_fc_vector);
-    if(obj)
-    {
+  if(o) {
+    Vector v = *(Vector*)(obj->data + o_fc_vector);
+    if(obj) {
       vector_remove(v, vector_find(v, (vtype)obj));
       release(obj, shred);
     }
@@ -759,10 +739,10 @@ static m_bool import_fc(Env env)
   fun = new_DL_Func("float[]", "compute", (m_uint)fc_compute);
   CHECK_OB(import_mfun(env, fun))
   fun = new_DL_Func("ANA", "add", (m_uint)fc_add);
-    dl_func_add_arg(fun, "ANA", "arg");
+  dl_func_add_arg(fun, "ANA", "arg");
   CHECK_OB(import_mfun(env, fun))
-    fun = new_DL_Func("ANA", "rem", (m_uint)fc_rem);
-    dl_func_add_arg(fun, "ANA", "arg");
+  fun = new_DL_Func("ANA", "rem", (m_uint)fc_rem);
+  dl_func_add_arg(fun, "ANA", "arg");
   CHECK_OB(import_mfun(env, fun))
   CHECK_BB(import_class_end(env))
   return 1;

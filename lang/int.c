@@ -8,9 +8,9 @@
 static INSTR(assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'=' %i", **(m_int**)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'=' %i", **(m_int**)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -18,9 +18,9 @@ static INSTR(assign)
 static INSTR(plus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'+' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'+' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg += *(m_int*)(shred->reg + SZ_INT);
   shred->reg += SZ_INT;
 }
@@ -28,9 +28,9 @@ static INSTR(plus)
 static INSTR(minus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-   shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg -= *(m_int*)(shred->reg + SZ_INT);
   shred->reg += SZ_INT;
 }
@@ -38,9 +38,9 @@ static INSTR(minus)
 static INSTR(times)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'*' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'*' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg *= *(m_int*)(shred->reg + SZ_INT);
   shred->reg += SZ_INT;
 }
@@ -48,9 +48,9 @@ static INSTR(times)
 static INSTR(divide)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'/' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'/' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg /= *(m_int*)(shred->reg + SZ_INT);
   shred->reg += SZ_INT;
 }
@@ -58,31 +58,31 @@ static INSTR(divide)
 static INSTR(modulo)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'%' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'%' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg %= *(m_int*)(shred->reg + SZ_INT);
   shred->reg += SZ_INT;
 }
 
 // logical
-static INSTR(and)
+static INSTR( and )
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'&&' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'&&' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg && *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
 
 
-static INSTR(or)
+static INSTR( or )
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'||' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'||' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg || *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -90,9 +90,9 @@ static INSTR(or)
 static INSTR(eq)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'==' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'==' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg == *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -100,9 +100,9 @@ static INSTR(eq)
 static INSTR(neq)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'!=' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'!=' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg != *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -110,9 +110,9 @@ static INSTR(neq)
 static INSTR(gt)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'>' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg > *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -120,9 +120,9 @@ static INSTR(gt)
 static INSTR(ge)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'>=' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>=' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg >= *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -130,19 +130,19 @@ static INSTR(ge)
 static INSTR(lt)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'<' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
-  *(m_int*)shred->reg = (*(m_int*)shred->reg < *(m_int*)(shred->reg + SZ_INT));
+  shred->reg -= SZ_INT * 2;
+  *(m_int*)shred->reg = (*(m_int*)shred->reg < * (m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
 
 static INSTR(le)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'<=' %i", *(m_int**)(shred->reg - SZ_INT*2), *(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<=' %i", *(m_int**)(shred->reg - SZ_INT * 2), *(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int**)shred->reg <= *(m_int**)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -151,19 +151,19 @@ static INSTR(le)
 static INSTR(sl)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'<<' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<<' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
-  *(m_int*)shred->reg = (*(m_int*)shred->reg << *(m_int*)(shred->reg + SZ_INT));
+  shred->reg -= SZ_INT * 2;
+  *(m_int*)shred->reg = (*(m_int*)shred->reg << * (m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
 
 static INSTR(sr)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'>>' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>>' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg >> *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -172,9 +172,9 @@ static INSTR(sr)
 static INSTR(sand)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'&' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'&' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg & *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -182,9 +182,9 @@ static INSTR(sand)
 static INSTR(sor)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'|' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'|' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)shred->reg = (*(m_int*)shred->reg | *(m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
@@ -192,10 +192,10 @@ static INSTR(sor)
 static INSTR(xor)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'^' %i", *(m_int*)(shred->reg - SZ_INT*2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'^' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
-  *(m_int*)shred->reg = (*(m_int*)shred->reg ^ *(m_int*)(shred->reg + SZ_INT));
+  shred->reg -= SZ_INT * 2;
+  *(m_int*)shred->reg = (*(m_int*)shred->reg ^ * (m_int*)(shred->reg + SZ_INT));
   shred->reg += SZ_INT;
 }
 
@@ -203,7 +203,7 @@ static INSTR(xor)
 INSTR(negate)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT));
 #endif
   shred->reg -= SZ_INT;
   *(m_int*)shred->reg = -*(m_int*)shred->reg;
@@ -213,7 +213,7 @@ INSTR(negate)
 INSTR(not)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int) %i'!' %i", *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'!' %i", *(m_int*)(shred->reg - SZ_INT));
 #endif
   shred->reg -= SZ_INT;
   *(m_int*)shred->reg = !*(m_int*)shred->reg;
@@ -223,7 +223,7 @@ INSTR(not)
 INSTR(inc)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int++) '++' %i", **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int++) '++' %i", **(m_int**)(shred->reg - SZ_INT));
 #endif
   (**(m_int**)(shred->reg - SZ_INT))++;
   *(m_int*)(shred->reg - SZ_INT) = **(m_int**)(shred->reg - SZ_INT);
@@ -232,7 +232,7 @@ INSTR(inc)
 INSTR(dec)
 {
 #ifdef DEBUG_INSTR
- debug_msg("instr", "(int++) '--' %i", **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int++) '--' %i", **(m_int**)(shred->reg - SZ_INT));
 #endif
   (**(m_int**)(shred->reg - SZ_INT))--;
   *(m_int*)(shred->reg - SZ_INT) = **(m_int**)(shred->reg - SZ_INT);
@@ -242,9 +242,9 @@ INSTR(dec)
 static INSTR(r_assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'=>' %i", *(m_int*)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'=>' %i", *(m_int*)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   **(m_int**)(shred->reg + SZ_INT) = *(m_int*)shred->reg;
   shred->reg += SZ_INT;
 }
@@ -252,9 +252,9 @@ static INSTR(r_assign)
 static INSTR(r_plus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'+=>' %i", *(m_int*)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'+=>' %i", *(m_int*)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) += (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -262,16 +262,16 @@ static INSTR(r_plus)
 static INSTR(r_minus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'-=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'-=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) -= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
 
 static INSTR(r_times)
 {
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) *= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -279,9 +279,9 @@ static INSTR(r_times)
 static INSTR(r_divide)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'/=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'/=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) /= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -289,9 +289,9 @@ static INSTR(r_divide)
 static INSTR(r_modulo)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'%=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'%=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) %= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -300,18 +300,18 @@ static INSTR(r_modulo)
 static INSTR(r_and)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'&&=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'&&=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) && (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
 static INSTR(ror)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'||=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'||=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) || (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -319,9 +319,9 @@ static INSTR(ror)
 static INSTR(req)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'==>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'==>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) == (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -329,9 +329,9 @@ static INSTR(req)
 static INSTR(rneq)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'!=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'!=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) != (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -339,9 +339,9 @@ static INSTR(rneq)
 static INSTR(rgt)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'>=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) > (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -349,9 +349,9 @@ static INSTR(rgt)
 static INSTR(rge)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'>==>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>==>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) >= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -359,9 +359,9 @@ static INSTR(rge)
 static INSTR(rlt)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'<=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) < (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -369,9 +369,9 @@ static INSTR(rlt)
 static INSTR(rle)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'<==>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<==>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) <= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -380,9 +380,9 @@ static INSTR(rle)
 static INSTR(rsl)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'<<=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'<<=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) <<= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -390,9 +390,9 @@ static INSTR(rsl)
 static INSTR(rsr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'>>=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'>>=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) >>= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -400,9 +400,9 @@ static INSTR(rsr)
 static INSTR(rsand)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'&=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'&=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) &= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -410,9 +410,9 @@ static INSTR(rsand)
 static INSTR(rsor)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'|=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'|=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) |= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -420,9 +420,9 @@ static INSTR(rsor)
 static INSTR(rsxor)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'^=>' %i", *(m_int**)(shred->reg - SZ_INT*2), **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'^=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) ^= (*(m_int*)shred->reg));
   shred->reg += SZ_INT;
 }
@@ -431,59 +431,59 @@ static INSTR(rsxor)
 // import function
 m_bool import_int(Env env)
 {
-	CHECK_BB(add_global_type(env, &t_int))
+  CHECK_BB(add_global_type(env, &t_int))
 // arithmetic
-	CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_int, &t_int, assign,     1))
-	CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_int, &t_int, plus,       1))
-	CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_int, &t_int, minus,      1))
-	CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_int, &t_int, times,      1))
-	CHECK_BB(add_binary_op(env, op_divide,        &t_int, &t_int, &t_int, divide,     1))
-	CHECK_BB(add_binary_op(env, op_percent,       &t_int, &t_int, &t_int, modulo,     1))
+  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_int, &t_int, assign,     1))
+  CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_int, &t_int, plus,       1))
+  CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_int, &t_int, minus,      1))
+  CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_int, &t_int, times,      1))
+  CHECK_BB(add_binary_op(env, op_divide,        &t_int, &t_int, &t_int, divide,     1))
+  CHECK_BB(add_binary_op(env, op_percent,       &t_int, &t_int, &t_int, modulo,     1))
 // logical
-	CHECK_BB(add_binary_op(env, op_and,           &t_int, &t_int, &t_int, and,        1))
-	CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or,         1))
-	CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_int, &t_int, &t_int, eq,         1))
-	CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_int, &t_int, &t_int, neq,        1))
-	CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_object, &t_null, &t_int, neq,        1))
-	CHECK_BB(add_binary_op(env, op_gt, 			 	    &t_int, &t_int, &t_int, gt,         1))
-	CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_int, &t_int, &t_int, ge,         1))
-	CHECK_BB(add_binary_op(env, op_lt, 			 	    &t_int, &t_int, &t_int, lt,         1))
-	CHECK_BB(add_binary_op(env, op_le, 			 	    &t_int, &t_int, &t_int, le,         1))
+  CHECK_BB(add_binary_op(env, op_and,           &t_int, &t_int, &t_int, and ,        1))
+  CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or ,         1))
+  CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_int, &t_int, &t_int, eq,         1))
+  CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_int, &t_int, &t_int, neq,        1))
+  CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_object, &t_null, &t_int, neq,        1))
+  CHECK_BB(add_binary_op(env, op_gt, 			 	    &t_int, &t_int, &t_int, gt,         1))
+  CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_int, &t_int, &t_int, ge,         1))
+  CHECK_BB(add_binary_op(env, op_lt, 			 	    &t_int, &t_int, &t_int, lt,         1))
+  CHECK_BB(add_binary_op(env, op_le, 			 	    &t_int, &t_int, &t_int, le,         1))
 // bitwise
-	CHECK_BB(add_binary_op(env, op_shift_right,   &t_int, &t_int, &t_int, sr,         1))
-	CHECK_BB(add_binary_op(env, op_shift_left,    &t_int, &t_int, &t_int, sl,         1))
-	CHECK_BB(add_binary_op(env, op_s_and,         &t_int, &t_int, &t_int, sand,       1))
-	CHECK_BB(add_binary_op(env, op_s_or,          &t_int, &t_int, &t_int, sor,        1))
-	CHECK_BB(add_binary_op(env, op_s_xor, 			  &t_int, &t_int, &t_int, xor,        1))
+  CHECK_BB(add_binary_op(env, op_shift_right,   &t_int, &t_int, &t_int, sr,         1))
+  CHECK_BB(add_binary_op(env, op_shift_left,    &t_int, &t_int, &t_int, sl,         1))
+  CHECK_BB(add_binary_op(env, op_s_and,         &t_int, &t_int, &t_int, sand,       1))
+  CHECK_BB(add_binary_op(env, op_s_or,          &t_int, &t_int, &t_int, sor,        1))
+  CHECK_BB(add_binary_op(env, op_s_xor, 			  &t_int, &t_int, &t_int, xor,        1))
 // unary
-	CHECK_BB(add_binary_op(env, op_minus,         NULL,   &t_int, &t_int, negate,     1))
-	CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_int, &t_int, not,        1))
-	CHECK_BB(add_binary_op(env, op_plusplus,      &t_int, NULL,   &t_int, inc,        1))
-	CHECK_BB(add_binary_op(env, op_plusplus,      NULL,   &t_int, &t_int, inc,        1))
-	CHECK_BB(add_binary_op(env, op_minusminus,    &t_int, NULL,   &t_int, dec,        1))
-	CHECK_BB(add_binary_op(env, op_minusminus,    NULL,   &t_int, &t_int, dec,        1))
+  CHECK_BB(add_binary_op(env, op_minus,         NULL,   &t_int, &t_int, negate,     1))
+  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_int, &t_int, not,        1))
+  CHECK_BB(add_binary_op(env, op_plusplus,      &t_int, NULL,   &t_int, inc,        1))
+  CHECK_BB(add_binary_op(env, op_plusplus,      NULL,   &t_int, &t_int, inc,        1))
+  CHECK_BB(add_binary_op(env, op_minusminus,    &t_int, NULL,   &t_int, dec,        1))
+  CHECK_BB(add_binary_op(env, op_minusminus,    NULL,   &t_int, &t_int, dec,        1))
 // reverse arithmetic
-	CHECK_BB(add_binary_op(env, op_chuck,         &t_int, &t_int, &t_int, r_assign,   1))
-	CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_int, &t_int, &t_int, r_plus,     1))
-	CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_int, &t_int, &t_int, r_minus,    1))
-	CHECK_BB(add_binary_op(env, op_times_chuck,   &t_int, &t_int, &t_int, r_times,    1))
-	CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_int, &t_int, &t_int, r_divide,   1))
-	CHECK_BB(add_binary_op(env, op_modulo_chuck,  &t_int, &t_int, &t_int, r_modulo,   1))
+  CHECK_BB(add_binary_op(env, op_chuck,         &t_int, &t_int, &t_int, r_assign,   1))
+  CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_int, &t_int, &t_int, r_plus,     1))
+  CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_int, &t_int, &t_int, r_minus,    1))
+  CHECK_BB(add_binary_op(env, op_times_chuck,   &t_int, &t_int, &t_int, r_times,    1))
+  CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_int, &t_int, &t_int, r_divide,   1))
+  CHECK_BB(add_binary_op(env, op_modulo_chuck,  &t_int, &t_int, &t_int, r_modulo,   1))
 // reverse logical
-	CHECK_BB(add_binary_op(env, op_rand,          &t_int, &t_int, &t_int, r_and,      1))
-	CHECK_BB(add_binary_op(env, op_ror,           &t_int, &t_int, &t_int,  ror,       1))
-	CHECK_BB(add_binary_op(env, op_req, 			 	  &t_int, &t_int, &t_int, req,        1))
-	CHECK_BB(add_binary_op(env, op_rneq, 			 	  &t_int, &t_int, &t_int, rneq,       1))
-	CHECK_BB(add_binary_op(env, op_rgt, 			 	  &t_int, &t_int, &t_int, rgt,        1))
-	CHECK_BB(add_binary_op(env, op_rge, 			 	  &t_int, &t_int, &t_int, rge,        1))
-	CHECK_BB(add_binary_op(env, op_rlt, 			 	  &t_int, &t_int, &t_int, rlt,        1))
-	CHECK_BB(add_binary_op(env, op_rle, 			 	  &t_int, &t_int, &t_int, rle,        1))
+  CHECK_BB(add_binary_op(env, op_rand,          &t_int, &t_int, &t_int, r_and,      1))
+  CHECK_BB(add_binary_op(env, op_ror,           &t_int, &t_int, &t_int,  ror,       1))
+  CHECK_BB(add_binary_op(env, op_req, 			 	  &t_int, &t_int, &t_int, req,        1))
+  CHECK_BB(add_binary_op(env, op_rneq, 			 	  &t_int, &t_int, &t_int, rneq,       1))
+  CHECK_BB(add_binary_op(env, op_rgt, 			 	  &t_int, &t_int, &t_int, rgt,        1))
+  CHECK_BB(add_binary_op(env, op_rge, 			 	  &t_int, &t_int, &t_int, rge,        1))
+  CHECK_BB(add_binary_op(env, op_rlt, 			 	  &t_int, &t_int, &t_int, rlt,        1))
+  CHECK_BB(add_binary_op(env, op_rle, 			 	  &t_int, &t_int, &t_int, rle,        1))
 // TODO: reverse bitwise
-	CHECK_BB(add_binary_op(env, op_rsl,           &t_int, &t_int, &t_int, rsl,        1))
-	CHECK_BB(add_binary_op(env, op_rsr,           &t_int, &t_int, &t_int, rsr,        1))
-	CHECK_BB(add_binary_op(env, op_rsand,         &t_int, &t_int, &t_int, rsand,      1))
-	CHECK_BB(add_binary_op(env, op_rsor,          &t_int, &t_int, &t_int, rsor,       1))
-	CHECK_BB(add_binary_op(env, op_rsxor, 			  &t_int, &t_int, &t_int, rsxor,      1))
-	t_int.doc       = "integral number";
-	return 1;
+  CHECK_BB(add_binary_op(env, op_rsl,           &t_int, &t_int, &t_int, rsl,        1))
+  CHECK_BB(add_binary_op(env, op_rsr,           &t_int, &t_int, &t_int, rsr,        1))
+  CHECK_BB(add_binary_op(env, op_rsand,         &t_int, &t_int, &t_int, rsand,      1))
+  CHECK_BB(add_binary_op(env, op_rsor,          &t_int, &t_int, &t_int, rsor,       1))
+  CHECK_BB(add_binary_op(env, op_rsxor, 			  &t_int, &t_int, &t_int, rsxor,      1))
+  t_int.doc       = "integral number";
+  return 1;
 }

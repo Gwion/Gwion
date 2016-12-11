@@ -8,3 +8,6 @@ include/generated.h
 forUncrustifySources.cfg
 NOTES
 .github-todos
+doc/html
+doc/latex
+NOTES.journal

@@ -16,32 +16,30 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
   return 1;
 }
-
 static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 {
   Type the_class = NULL;
   m_bool ret = 1;
   Class_Body body = class_def->body;
-  if(class_def->home)
-  {
-/* err_msg(SCAN0_, class_def->pos, "target namespace: '%s'", class_def->home->name); */
-    vector_append(env->nspc_stack, env->curr);
+  if(class_def->home) {
+    /* err_msg(SCAN0_, class_def->pos, "target namespace: '%s'", class_def->home->name); */
+    vector_append(env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
 
-  if(namespace_lookup_type( env->curr, class_def->name->xid, 0))
-  {
+  if(namespace_lookup_type( env->curr, class_def->name->xid, 1)) {
     err_msg(SCAN0_,  class_def->name->pos,
-      "class/type '%s' is already defined in namespace '%s'",
-      S_name(class_def->name->xid), env->curr->name);
-    ret = -1; goto done;
+            "class/type '%s' is already defined in namespace '%s'",
+            S_name(class_def->name->xid), env->curr->name);
+    ret = -1;
+    goto done;
   }
 
-  if(isres(env, class_def->name->xid, class_def->name->pos) > 0)
-  {
-    err_msg(SCAN0_, class_def->name->pos, "...in class definition '%s'",
-        S_name(class_def->name->xid) );
-    ret = -1; goto done;
+  if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
+    err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
+            S_name(class_def->name->xid) );
+    ret = -1;
+    goto done;
   }
 
   the_class = new_Type(env->context);
@@ -52,9 +50,9 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->array_depth = 0;
   the_class->size = sizeof(void *);
   the_class->info = new_NameSpace(); // done filename
-	the_class->info->filename = env->context->filename;
+  the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
-	add_ref(the_class->info->obj);
+  add_ref(the_class->info->obj);
   the_class->info->name = the_class->name;
 
   if(env->context->public_class_def == class_def)
@@ -67,33 +65,30 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->info->pre_ctor = new_VM_Code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   namespace_add_type(env->curr, insert_symbol(the_class->name), the_class);  // URGENT: make this global
   the_class->is_complete = 0;
-  vector_append(env->nspc_stack, env->curr);
+  vector_append(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_append(env->class_stack, env->class_def);
+  vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 
-  while( body && ret > 0)
-  {
-    switch( body->section->type )
-    {
-      case ae_section_stmt:
-      case ae_section_func:
-        break;
-      case ae_section_class:
-        ret = scan0_Class_Def( env, body->section->class_def );
-        break;
+  while( body && ret > 0) {
+    switch( body->section->type ) {
+    case ae_section_stmt:
+    case ae_section_func:
+      break;
+    case ae_section_class:
+      ret = scan0_Class_Def( env, body->section->class_def );
+      break;
     }
     body = body->next;
   }
 
-  env->class_def = vector_back(env->class_stack);
+  env->class_def = (Type)vector_back(env->class_stack);
   vector_pop(env->class_stack);
-  env->curr = vector_back(env->nspc_stack);
+  env->curr = (NameSpace)vector_back(env->nspc_stack);
   vector_pop(env->nspc_stack);
 
-  if(ret)
-  {
+  if(ret) {
     Value value;
     Type  type;
 
@@ -109,13 +104,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     if(env->curr == env->context->nspc)
       context_add_type(env->context, the_class, the_class->obj);
   }
-  if(class_def->home)
-  {
-    env->curr = vector_back(env->nspc_stack);
+  if(class_def->home) {
+    env->curr = (NameSpace)vector_back(env->nspc_stack);
     vector_pop(env->nspc_stack);
-  }
-  else // set the current namespace as home
-	  class_def->home = env->curr;
+  } else // set the current namespace as home
+    class_def->home = env->curr;
 done:
   return ret;
 }
@@ -127,13 +120,12 @@ static m_bool scan0_Stmt(Env env, Stmt* stmt)
   m_bool ret = -1;
   if(!stmt)
     return 1;
-  switch(stmt->type)
-  {
-    case ae_stmt_funcptr:
-      ret = scan0_Func_Ptr(env, stmt->stmt_funcptr);
-      break; 
-    default:
-      ret = 1;
+  switch(stmt->type) {
+  case ae_stmt_funcptr:
+    ret = scan0_Func_Ptr(env, stmt->stmt_funcptr);
+    break;
+  default:
+    ret = 1;
   }
   return ret;
 }
@@ -143,46 +135,41 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list)
   debug_msg("scan1", "stmt list");
 #endif
   Stmt_List curr = list;
-  while(curr)
-  {
+  while(curr) {
     CHECK_BB(scan0_Stmt(env, curr->stmt))
     curr = curr->next;
   }
   return 1;
 }
-m_bool scan0_Ast(Env env, Ast prog/*, te_HowMuch how_much*/)
+m_bool scan0_Ast(Env env, Ast prog)
 {
   m_bool ret = 1;
   CHECK_OB(prog)
-  while( prog && ret > 0)
-  {
-    switch( prog->section->type )
-    {
-      case ae_section_stmt:
-        ret = scan0_Stmt_List(env, prog->section->stmt_list);
-        break;
-      case ae_section_func:
-        break;
-      case ae_section_class:
-        if( prog->section->class_def->decl == ae_key_public )
-        {
-          if(env->context->public_class_def != NULL)
-          {
-            err_msg(SCAN0_, prog->section->class_def->pos,
-              "more than one 'public' class defined..." );
-            ret = -1;
-            continue;
-          }
-          prog->section->class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
-          env->context->public_class_def = prog->section->class_def;
+  while( prog && ret > 0) {
+    switch( prog->section->type ) {
+    case ae_section_stmt:
+      ret = scan0_Stmt_List(env, prog->section->stmt_list);
+      break;
+    case ae_section_func:
+      break;
+    case ae_section_class:
+      if( prog->section->class_def->decl == ae_key_public ) {
+        if(env->context->public_class_def != NULL) {
+          err_msg(SCAN0_, prog->section->class_def->pos,
+                  "more than one 'public' class defined..." );
+          ret = -1;
+          continue;
         }
-        ret = scan0_Class_Def( env, prog->section->class_def );
-        break;    
-      default:
-        err_msg(SCAN0_, prog->pos,
-            "internal error: unrecognized program section in type checker pre-scan..." );
-        ret = -1;
-        break;
+        prog->section->class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
+        env->context->public_class_def = prog->section->class_def;
+      }
+      ret = scan0_Class_Def( env, prog->section->class_def );
+      break;
+    default:
+      err_msg(SCAN0_, prog->pos,
+              "internal error: unrecognized program section in type checker pre-scan..." );
+      ret = -1;
+      break;
     }
     prog = prog->next;
   }

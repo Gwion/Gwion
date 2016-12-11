@@ -1,0 +1,4 @@
+template <{a}>
+function void test (a var){ <<< var>>>; }
+
+test(1);

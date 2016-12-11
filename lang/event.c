@@ -18,7 +18,7 @@ void event_ctor(M_Object o, VM_Shred shred)
 
 void event_dtor(M_Object o, VM_Shred shred)
 {
-/*printf("event dtor. FIXME %p\n", EV_SHREDS(o));*/
+  /*printf("event dtor. FIXME %p\n", EV_SHREDS(o));*/
   free_Vector(EV_SHREDS(o));
 }
 
@@ -28,14 +28,14 @@ INSTR(Event_Wait)
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
 #endif
   M_Object event;
-	shred->reg -= SZ_INT*2;
+  shred->reg -= SZ_INT * 2;
   event = *(M_Object*)shred->reg;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
   vector_append(v, (vtype)shred);
   shred->next_pc++;
-	*(m_int*)shred->reg = 1;
-	shred->reg += SZ_INT;
+  *(m_int*)shred->reg = 1;
+  shred->reg += SZ_INT;
 }
 
 static MFUN(event_signal)
@@ -59,8 +59,7 @@ void broadcast(M_Object o)
 {
   m_uint i;
   VM_Shred sh;
-  for(i = 0; i < vector_size(EV_SHREDS(o)); i++)
-  {
+  for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
     shredule(sh->vm_ref->shreduler, sh, get_now(sh->vm_ref->shreduler) + .5);
   }
@@ -80,7 +79,7 @@ m_bool import_event(Env env)
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_event))
   CHECK_BB(import_class_begin(env, &t_event, env->global_nspc, event_ctor, event_dtor))
-	env->class_def->doc = "Process event, with precise timing";
+  env->class_def->doc = "Process event, with precise timing";
   o_event_shred = import_mvar(env, "int", "@shreds", 0, 0, "the place for blocked shreds");
   CHECK_BB(o_event_shred);
   fun = new_DL_Func("int", "signal", (m_uint)event_signal);

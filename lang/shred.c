@@ -40,17 +40,17 @@ static MFUN(vm_shred_is_running)
 static MFUN(vm_shred_is_done)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->is_done: 0;
+  RETURN->v_uint = s ? s->is_done : 0;
 }
 
 static MFUN(shred_yield)
 {
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
-	shreduler_remove(sh, s, 0);
+  shreduler_remove(sh, s, 0);
 //  s->is_running = 0;
-  shredule(sh, s, get_now(sh) +.5);
-	RETURN->v_uint = 1;
+  shredule(sh, s, get_now(sh) + .5);
+  RETURN->v_uint = 1;
 }
 
 static SFUN(vm_shred_from_id)
@@ -99,11 +99,11 @@ m_bool import_shred(Env env)
 {
   DL_Func* fun;
   DL_Value* arg;
- 	Func f;
- 
+  Func f;
+
   CHECK_BB(add_global_type(env, &t_shred))
   CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, NULL))
-	env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
+  env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");
   CHECK_BB(o_shred_me)

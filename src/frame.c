@@ -35,7 +35,7 @@ Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m
 {
   Local* local = new_Local();
   local->size = size;
-/*  local->size = 1;*/
+  /*  local->size = 1;*/
   local->offset = frame->curr_offset;
   local->is_ref = is_ref;
   local->is_obj = is_obj;
@@ -89,12 +89,10 @@ void frame_pop_scope(Frame* frame, Vector v)
   m_uint i;
   Local* local = vector_back(frame->stack);
 
-  while((i = vector_size(frame->stack) && vector_back(frame->stack)))
-  {
+  while((i = vector_size(frame->stack) && vector_back(frame->stack))) {
     local = vector_back(frame->stack);
     vector_pop(frame->stack);
-    if(local)
-    {
+    if(local) {
       frame->curr_offset -= local->size;
       vector_append(v, local);
     }

@@ -1,5 +1,5 @@
 function float testf(){ return 1.1; }
-function float testf(float f){ <<<f>>>; return f; }
+function float testf(float f){ return f; }
 <<<testf()>>>;
 <<<testf(1.4)>>>;
 <<<1.2>>>;

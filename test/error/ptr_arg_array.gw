@@ -1,0 +1,1 @@
+typedef void(my_func)(int i[4]){}

@@ -10,30 +10,24 @@ m_str type_name(Type type)
   memset(c, 0, 1024);
   for(i = 0; i < type->array_depth; i++)
     strcat(c, "[]");
-  strcat(c, vector_at(v, i));
+  strcat(c, (m_str)vector_at(v, i));
   return strdup(c);
 }
 
 int verify_array(Array_Sub array)
 {
-  if( array->err_num )
-  {
-    if( array->err_num == 1 )
-    {
+  if( array->err_num ) {
+    if( array->err_num == 1 ) {
       err_msg(UTIL_, array->pos,
-        "invalid format for array init [...][...]..." );
+              "invalid format for array init [...][...]..." );
       return -1;
-    }
-    else if(array->err_num == 2 )
-    {
+    } else if(array->err_num == 2 ) {
       err_msg(UTIL_, array->pos,
-        "partially empty array init [...][]..." );
+              "partially empty array init [...][]..." );
       return -1;
-    }
-    else
-    {
+    } else {
       err_msg(UTIL_, array->pos,
-        "internal error: unrecognized array error..." );
+              "internal error: unrecognized array error..." );
       return -1;
     }
   }
@@ -51,18 +45,23 @@ int isa(Type var, Type parent)
 
 int isres(Env env, S_Symbol xid, int pos)
 {
-	if(!strcmp(S_name(xid), "this"))
-		return 1;
+  if(!strcmp(S_name(xid), "this"))
+    goto error;
+  if(!strcmp(S_name(xid), "now"))
+    goto error;
   return -1;
+error:
+  err_msg(UTIL_, 0, "%s is reserved.", S_name(xid));
+  return 1;
 }
 
 int isprim(Type type)
 {
-	if(type->array_depth)
-		return -1;
-	if(isa(type, &t_object) > 0)
-		return -1;
-	return 1;
+  if(type->array_depth)
+    return -1;
+  if(isa(type, &t_object) > 0)
+    return -1;
+  return 1;
 }
 
 Type new_Type(Context context)
@@ -107,28 +106,25 @@ Type find_type(Env env, ID_List path)
 {
   S_Symbol xid = NULL;
   NameSpace nspc;
-  Type t= NULL;
+  Type t = NULL;
   Type type = namespace_lookup_type(env->curr, path->xid, 1);
   if(!type)
     return NULL;
   nspc = type->info;
   path = path->next;
 
-  while(path)
-  {
+  while(path) {
     xid = path->xid;
     t = namespace_lookup_type(nspc, xid, 1);
-    while( !t && type && type->parent )
-    {
-/*        t = namespace_lookup_type( type->parent->info, xid, 1);*/
-        t = namespace_lookup_type(type->parent->info, xid, -1);
-        type = type->parent;
+    while( !t && type && type->parent ) {
+      /*        t = namespace_lookup_type( type->parent->info, xid, 1);*/
+      t = namespace_lookup_type(type->parent->info, xid, -1);
+      type = type->parent;
     }
-    if(!t)
-    {
+    if(!t) {
       err_msg(UTIL_, path->pos,
-        "...(cannot find class '%s' in namespace '%s')",
-        S_name(xid), nspc->name);
+              "...(cannot find class '%s' in namespace '%s')",
+              S_name(xid), nspc->name);
       return NULL;
     }
     type = t;
@@ -148,11 +144,11 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   v->is_const = is_const;
   v->is_context_global = 1;
   if(data)
-      v->ptr = data;
+    v->ptr = data;
   namespace_add_value(env->global_nspc, insert_symbol(name), v);
 //  namespace_add_value(env->curr, insert_symbol(name), v);
 
-	v->owner = env->global_nspc; // ?
+  v->owner = env->global_nspc; // ?
   // doc
 //  namespace_add_value(env->global_context->nspc, insert_symbol(name), v);
   context_add_value(env->global_context, v, v->obj);
@@ -184,14 +180,17 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
 
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
-void start_type_xid(){ do_type_xid = 1; }
+void start_type_xid()
+{
+  do_type_xid = 1;
+}
 
 m_bool add_global_type(Env env, Type type)
 {
   Type v_type = type_copy(env, &t_class);
-  v_type->actual_type= type;
+  v_type->actual_type = type;
   type->obj = new_VM_Object(e_type_obj);
-/*  namespace_add_type(env->global_nspc, insert_symbol(type->name), type);*/
+  /*  namespace_add_type(env->global_nspc, insert_symbol(type->name), type);*/
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_Value(env->global_context, v_type, type->name);
   v->checked = 1;
@@ -199,16 +198,15 @@ m_bool add_global_type(Env env, Type type)
   v->is_context_global = 1;
 //	v->owner = env->curr;
   namespace_add_value(env->curr, insert_symbol(type->name), v);
-  
+
   // doc
 //  namespace_add_type(env->context->nspc, insert_symbol(type->name), type);
   context_add_type(env->global_context, type, type->obj);
   type->owner = env->curr;
-	if(do_type_xid)
-	{
-		type_xid++;
-		type->xid = type_xid;
-	}
+  if(do_type_xid) {
+    type_xid++;
+    type->xid = type_xid;
+  }
 //	printf("type->xid %i.\n", type->xid);
   return 1;
 }
@@ -223,38 +221,37 @@ Value find_value(Type type, S_Symbol xid )
   // -1 for base
   if((value = namespace_lookup_value(type->info, xid, -1)))
     return value;
-  if(type->parent) 
+  if(type->parent)
     return find_value(type->parent, xid);
   return NULL;
 }
 
 const m_str type_path(ID_List path )
 {
-/*  static string str;*/
+  /*  static string str;*/
   m_str str;
 
   // clear it
   str = "";
   // loop over path
-  while( path )
-  {
-      // concatenate
-/*      str += S_name(path->xid);*/
-      strcat(str, S_name(path->xid));
-      // add .
-/*      if( path->next ) str += ".";*/
-      if( path->next )
-        strcat(str, ".");
-      // advance
-      path = path->next;
+  while( path ) {
+    // concatenate
+    /*      str += S_name(path->xid);*/
+    strcat(str, S_name(path->xid));
+    // add .
+    /*      if( path->next ) str += ".";*/
+    if( path->next )
+      strcat(str, ".");
+    // advance
+    path = path->next;
   }
 
   return str;
 }
 Kindof kindof(Type type)
 {
-	if(type->array_depth)
-		return Kindof_Int;
+  if(type->array_depth)
+    return Kindof_Int;
   if(isa(type, &t_void) > 0)
     return Kindof_Void;
   else if(isa(type, &t_complex) > 0 || isa(type, &t_polar) > 0)
@@ -277,16 +274,16 @@ Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, Na
   t->xid = te_array;
   t->name = base_type->name;
   t->parent = array_parent;
-/*  SAFE_ADD_REF(t->parent);*/
-/*  t->size = array_parent->size;*/
+  /*  SAFE_ADD_REF(t->parent);*/
+  /*  t->size = array_parent->size;*/
   t->size = SZ_INT;
   t->array_depth = depth;
   t->array_type = base_type;
   t->info = array_parent->info;
-/*  SAFE_ADD_REF(t->array_type);*/
-/*  SAFE_ADD_REF(t->info);*/
+  /*  SAFE_ADD_REF(t->array_type);*/
+  /*  SAFE_ADD_REF(t->info);*/
   t->owner = owner_nspc;
-/*  SAFE_ADD_REF(t->owner);*/
+  /*  SAFE_ADD_REF(t->owner);*/
   return t;
 }
 Type find_common_anc(Type lhs, Type rhs )
@@ -299,8 +296,7 @@ Type find_common_anc(Type lhs, Type rhs )
   Type t = lhs->parent;
 
   // not at root
-  while(t)
-  {
+  while(t) {
     // check and see again
     if(isa(rhs, t) > 0)
       return t;
@@ -313,28 +309,34 @@ Type find_common_anc(Type lhs, Type rhs )
 }
 m_int str2char( const m_str c, m_int linepos )
 {
-    if(c[0] == '\\')
-    {
-        switch(c[1])
-        {
-            case '0': return '\0';
-            case '\'': return '\'';
-            case '\\': return '\\';
-            case 'a': return '\a';
-            case 'b': return '\b';
-            case 'f': return '\f';
-            case 'n': return '\n';
-            case 'r': return '\r';
-            case 't': return '\t';
-            case 'v': return 'v';
+  if(c[0] == '\\') {
+    switch(c[1]) {
+    case '0':
+      return '\0';
+    case '\'':
+      return '\'';
+    case '\\':
+      return '\\';
+    case 'a':
+      return '\a';
+    case 'b':
+      return '\b';
+    case 'f':
+      return '\f';
+    case 'n':
+      return '\n';
+    case 'r':
+      return '\r';
+    case 't':
+      return '\t';
+    case 'v':
+      return 'v';
 
-            default:
-                err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1] );
-                return -1;
-        }
+    default:
+      err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1] );
+      return -1;
     }
-    else
-    {
-        return c[0];
-    }
+  } else {
+    return c[0];
+  }
 }
