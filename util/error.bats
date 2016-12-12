@@ -2,6 +2,14 @@ load test_helper/bats-support/load
 load test_helper/bats-assert/load
 load notify
 
+@test "non exitant file :test/error/no_file.gw:" {
+  run ./gwion -d dummy test/error/no_file.gw
+  assert_segfault
+  assert_success
+  assert_output --partial "error while opening file"
+  set_icon
+}
+
 @test "multiple public class :test/error/assultiple_public.gw:" {
   run ./gwion -d dummy test/error/class_multiple_public.gw
   assert_segfault

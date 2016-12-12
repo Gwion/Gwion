@@ -1,3 +1,7 @@
+/** @file src/scan0.c
+ *  @brief zero level scan.
+ */
+
 #include "err_msg.h"
 #include "absyn.h"
 static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)

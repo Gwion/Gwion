@@ -64,13 +64,20 @@ clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
 	@rm -f ${PRG}
 	@rm -f include/generated.h
+	@which astyle && astyle -p -s2 --style=kr src/*.c
+	rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig
 	@make -s -C ast clean
 
 soundpipe_import: import.lua
-	l@ua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
+	@lua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
+
+
 
 .c.o:
 	${CC} ${CFLAGS} -c $< -o $(<:.c=.o)
 
 install:
-	cp Gwion ~/bin
+	@echo "'gwion' is in pre-alpha stage, no install for now."
+
+docs:
+	@doxygen doc/Gwion.dox

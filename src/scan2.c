@@ -797,8 +797,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
 
     // check if reserved
-    if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0)
-    {
+    if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name) );
       goto error;
     }

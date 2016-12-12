@@ -10,6 +10,7 @@ void free_Arg_List(Arg_List a);
 void free_Stmt_List(Stmt_List a);
 void free_Stmt_Code(Stmt_Code a);
 void free_Stmt_Return(Stmt_Return a);
+
 int get_pos(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
@@ -24,12 +25,14 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
   a->pos = pos;
   return a;
 }
+
 void free_Var_Decl(Var_Decl a)
 {
   if(a->array)
     free(a->array);
   free(a);
 }
+
 Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
 {
   Var_Decl_List a = calloc(1, sizeof(struct Var_Decl_List_));
@@ -39,6 +42,7 @@ Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
   a->doc = NULL;
   return a;
 }
+
 void free_Var_Decl_List(Var_Decl_List a)
 {
   Var_Decl_List tmp, list = a;
@@ -51,6 +55,7 @@ void free_Var_Decl_List(Var_Decl_List a)
     /*    list = list->next;*/
   }
 }
+
 /*Type_Decl* new_Type_Decl(m_str name, int ref, int pos)*/
 Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
 {
@@ -63,6 +68,7 @@ Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
   a->doc = NULL;
   return a;
 }
+
 Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
 {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
@@ -73,6 +79,7 @@ Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
   a->dot = dot;
   return a;
 }
+
 Array_Sub new_array_sub(Expression exp, int pos)
 {
   Array_Sub a = calloc(1, sizeof(struct Array_Sub_));
@@ -212,6 +219,7 @@ void free_Binary_Expression(Binary_Expression* binary)
   free_Expression(binary->rhs);
   free(binary);
 }
+
 Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
@@ -227,6 +235,7 @@ Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
   a->cast_to = NULL;
   return a;
 }
+
 Expression new_Postfix_Expression(Expression exp, Operator op, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
@@ -249,6 +258,7 @@ void free_Postfix_Expression(Postfix_Expression* postfix)
   /*  free_Expression(postfix->self);*/
   free(postfix);
 }
+
 Expression new_Exp_Dur(Expression base, Expression unit, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
@@ -288,6 +298,7 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->cast_to = NULL;
   return a;
 }
+
 Expression new_Primary_Expression_from_float(m_float num, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
@@ -426,6 +437,7 @@ Expression new_exp_from_array_lit(Array_Sub exp_list, int pos )
    return a;
    }
    */
+
 Expression new_exp_from_complex(Complex* exp, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -469,6 +481,7 @@ Polar* new_polar(Expression mod, int pos)
   a->pos = pos;
   return a;
 }
+
 Vec new_Vec(Expression e, int pos)
 {
   Vec a = calloc(1, sizeof(struct Vec_));
@@ -481,6 +494,7 @@ Vec new_Vec(Expression e, int pos)
   a->pos = pos;
   return a;
 }
+
 Expression new_exp_from_vec(Vec exp, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -512,6 +526,7 @@ Expression new_exp_from_unary(Operator oper, Expression exp, int pos)
   a->cast_to = NULL;
   return a;
 }
+
 Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos )
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -536,6 +551,7 @@ void free_Unary_Expression(Unary_Expression* unary)
 {
   free(unary);
 }
+
 Expression new_exp_from_unary3(Operator oper, Stmt* code, int pos )
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -574,6 +590,7 @@ Expression new_If_Expression(Expression cond, Expression if_exp, Expression else
   a->cast_to = NULL;
   return a;
 }
+
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt* code, int pos)
 {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
@@ -628,6 +645,7 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List arg
   return a;
 
 }
+
 Expression new_Func_Call(Expression base, Expression args, int pos )
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -652,6 +670,7 @@ void free_Func_Call(Func_Call* call)
     free_Expression(call->args);
   free(call);
 }
+
 Expression new_exp_from_member_dot(Expression base, m_str xid, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
@@ -740,6 +759,7 @@ Arg_List new_Arg_List(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list
   a->pos = pos;
   return a;
 }
+
 void free_Arg_List(Arg_List a)
 {
   if(a->next)
@@ -755,6 +775,7 @@ void free_Arg_List(Arg_List a)
   free(a);
 
 }
+
 Stmt* new_Stmt_from_Expression(Expression exp, int pos)
 {
   Stmt* stmt = calloc(1, sizeof(Stmt));
@@ -835,6 +856,7 @@ Stmt* new_stmt_from_while(Expression cond, Stmt* body, m_bool is_do, int pos)
   a->stmt_while->self = a;
   return a;
 }
+
 Stmt* new_stmt_from_until(Expression cond, Stmt* body, m_bool is_do, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
@@ -889,6 +911,7 @@ Stmt* new_stmt_from_loop(Expression cond, Stmt* body, int pos)
   a->stmt_loop->self = a;
   return a;
 }
+
 Stmt* new_stmt_from_if(Expression cond, Stmt* if_body, Stmt* else_body, int pos )
 {
   Stmt* a = calloc(1, sizeof(Stmt));
@@ -941,6 +964,7 @@ Stmt* new_stmt_from_enum(ID_List list, m_str xid, int pos)
   a->stmt_enum->self = a;
   return a;
 }
+
 Stmt* new_stmt_from_Union(Union* u, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
@@ -957,6 +981,7 @@ Decl_List new_Decl_List(Decl_Expression* d, Decl_List l)
   a->next = l;
   return a;
 }
+
 Union* new_Union(Decl_List l)
 {
   Union* a = malloc(sizeof(Union));
@@ -983,8 +1008,6 @@ void free_Stmt(Stmt* stmt)
   free(stmt);
 }
 
-
-
 Stmt_List new_Stmt_List(Stmt* stmt, Stmt_List next, int pos)
 {
   Stmt_List list = calloc(1, sizeof(struct Stmt_List_));
@@ -1004,8 +1027,6 @@ void free_Stmt_List(Stmt_List list)
     free(tmp);
   }
 }
-
-
 
 Section* new_section_Stmt_List(Stmt_List list, int pos)
 {
@@ -1091,7 +1112,6 @@ Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos )
   return a;
 }
 
-
 ID_List new_id_list(const m_str xid, int pos)
 {
   ID_List a = calloc(1,  sizeof( struct ID_List_ ) );
@@ -1118,6 +1138,7 @@ Type_List new_type_list(ID_List list, Type_List next, int pos)
   a->pos = pos;
   return a;
 }
+
 void free_ID_List(ID_List a)
 {
 #ifdef DEBUG_AST

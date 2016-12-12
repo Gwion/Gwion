@@ -1,12 +1,12 @@
 * notes for scan0/1 err_msg
   - [ ] in*scan1.c* , can catch error at line [364] => put it in *scan2.c*
-    - [ ]  do we have to keep it in scan1?
-  - [ ] in *scan1.c* line[614] can't be reached because of parser/lexer  
+   - [ ]  do we have to keep it in scan1?
+  - [ ] in *scan1.c* line[614] can't be reached because of parser/lexer
 
 
 * notes for scan0/1 err_msg
   - [ ] in *scan2.c* line[261], is that bit reachable?
-		skip test for now...
+    skip test for now...
   - [ ] checking for member template call not good. (maybe in *type.c*)
 
   - [ ] the "nested function.. not allowed" can't be reached now.
@@ -19,9 +19,9 @@
 
   - [ ] member template call seem to fail anyway
 
-- [ ] improve test framewok
+  - [ ] improve test framewok
   - [ ] improve TODO
-    - [o] have "doing" marker (o)     
-   
-                    - [ ]                     - [ ]                   
-           - [ ] 
+  - [o] have "doing" marker (o)
+
+  - [ ]                     - [ ]
+  - [ ]
