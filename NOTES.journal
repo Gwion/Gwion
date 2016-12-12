@@ -25,3 +25,9 @@
 
   - [ ]                     - [ ]
   - [ ]
+
+* notes for type.c err_msg
+	skipped array subscript
+
+reach "must provide values/expression for array [...]"
+reach "this message is incorrect"

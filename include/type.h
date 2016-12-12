@@ -58,7 +58,7 @@ int isres(Env env, S_Symbol xid, int pos);
 int verify_array(Array_Sub array);
 Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, NameSpace owner_nspc);
 Type find_common_anc(Type lhs, Type rhs );
-const m_str type_path(ID_List path );
+m_str type_path(ID_List path );
 m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
 m_bool add_global_type(Env env, Type type);
 m_bool add_global_value_double(Env env, m_str name, Type type, m_float data);

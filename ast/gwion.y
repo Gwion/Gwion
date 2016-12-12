@@ -637,12 +637,11 @@ type_list
   : ID { $$ = new_type_list(new_id_list($1, get_pos(scanner)), NULL, get_pos(scanner)); }
   | ID COMMA type_list{ $$ = new_type_list(new_id_list($1, get_pos(scanner)), $3, get_pos(scanner)); }
   ;
+
 postfix_exp
   : primary_exp
   | postfix_exp array_exp
     { $$ = new_Array( $1, $2, get_pos(scanner)); }
-
-
   | postfix_exp LPAREN RPAREN
     { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); }
   | postfix_exp LPAREN exp RPAREN
@@ -663,16 +662,17 @@ postfix_exp
 //    { $$ = new_Func_Call( $1, $6, get_pos(scanner)); $$->func_call->types = $3; }  ;
 
 primary_exp
-  : ID                { $$ = new_Primary_Expression_from_ID(    $1, get_pos(scanner)); }
-  | NUM               { $$ = new_Primary_Expression_from_int(   $1, get_pos(scanner)); }
-  | FLOAT             { $$ = new_Primary_Expression_from_float( $1, get_pos(scanner)); }
-  | STRING_LIT        { $$ = new_Primary_Expression_from_string($1, get_pos(scanner)); }
-  | CHAR_LIT          { $$ = new_exp_from_char(                 $1, get_pos(scanner)); }
-  | array_exp         { $$ = new_exp_from_array_lit(            $1, get_pos(scanner)); }
-  | complex_exp       { $$ = new_exp_from_complex(              $1, get_pos(scanner)); }
-  | polar_exp         { $$ = new_exp_from_polar(                $1, get_pos(scanner)); }
-	| vec_exp						{ $$ = new_exp_from_vec(                 $1, get_pos(scanner)); }
-  | L_HACK exp R_HACK { $$ = new_Hack_Expression(               $2, get_pos(scanner)); }
+  : ID                { $$ = new_Primary_Expression_from_ID(     $1, get_pos(scanner)); }
+  | NUM               { $$ = new_Primary_Expression_from_int(    $1, get_pos(scanner)); }
+  | FLOAT             { $$ = new_Primary_Expression_from_float(  $1, get_pos(scanner)); }
+  | STRING_LIT        { $$ = new_Primary_Expression_from_string( $1, get_pos(scanner)); }
+  | CHAR_LIT          { $$ = new_exp_from_char(                  $1, get_pos(scanner)); }
+  | array_exp         { $$ = new_exp_from_array_lit(             $1, get_pos(scanner)); }
+  | array_empty         { $$ = new_exp_from_array_lit(           $1, get_pos(scanner)); }
+  | complex_exp       { $$ = new_exp_from_complex(               $1, get_pos(scanner)); }
+  | polar_exp         { $$ = new_exp_from_polar(                 $1, get_pos(scanner)); }
+  | vec_exp           { $$ = new_exp_from_vec(                   $1, get_pos(scanner)); }
+  | L_HACK exp R_HACK { $$ = new_Hack_Expression(                $2, get_pos(scanner)); }
   | LPAREN exp RPAREN { $$ = $2; }
   | LPAREN RPAREN     { $$ = new_Primary_Expression_from_nil(       get_pos(scanner)); }
   ;

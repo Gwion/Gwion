@@ -172,8 +172,8 @@ Env type_engine_init(VM* vm)
       {
         if(!handler) {
           m_str err = dlerror();
-          err_msg(TYPE_, 0, "error in %s: file not valid.", err);
-          free(err);
+          err_msg(TYPE_, 0, "error in %s valid.", err);
+          /*free(err);*/
           goto next;
         }
       }
@@ -187,8 +187,8 @@ Env type_engine_init(VM* vm)
         }
       } else {
         m_str err = dlerror();
-        err_msg(TYPE_, 0, "error in %s: no import function.", err);
-        free(err);
+        err_msg(TYPE_, 0, "%s: no import function.", err);
+        /*free(err);*/
         dlclose(handler);
         goto next;
       }
@@ -204,7 +204,7 @@ next:
 m_bool check_Context( Env env, Context context)
 {
 #ifdef DEBUG_TYPE
-  err_msg(TYPE_, 0, "context");
+  debug_msg("type", "context");
 #endif
   int ret = 1;
   Ast prog = context->tree;
@@ -293,7 +293,7 @@ static m_bool check_array_subscripts(Env env, Expression exp_list)
 {
   Expression exp = exp_list;
   while(exp) {
-    if(!isa(exp->type, &t_int)) {
+    if(isa(exp->type, &t_int) < 0) {
       err_msg(TYPE_, exp->pos,
               "incompatible array subscript type '%s'...", exp->type->name);
       return -1;
@@ -314,9 +314,10 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
     if(class_def->ext->extend_id) {
       t_parent = find_type(env, class_def->ext->extend_id);
       if(!t_parent) {
+        m_str path = type_path(class_def->ext->extend_id);
         err_msg(TYPE_, class_def->ext->pos,
-                "undefined super class '%s' in definition of class '%s'",
-                type_path(class_def->ext->extend_id), S_name(class_def->name->xid) );
+                "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid) );
+        free(path);
         return -1;
       }
       if(isprim(t_parent) > 0) {
@@ -404,29 +405,25 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(env->class_def && !env->class_scope &&
         ( value = find_value(env->class_def->parent, list->self->xid))) {
       err_msg(TYPE_, list->self->pos,
-              "'%s' has already been defined in super class '%s'...",
+              "'%s' has already been defined in parent class '%s'...",
               S_name(list->self->xid), value->owner_class->name);
       return NULL;
     }
     var_decl = list->self;
     value = list->self->value;
+
     if(!value) {
       err_msg(TYPE_, list->self->pos, "can't declare in GACK");
       return NULL;
     }
-    type  = value->m_type;
-    //    is_obj = isa(type, &t_object) > 0;
-    //    is_ref = decl->type->ref;
 
+    type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
       CHECK_OO(check_Expression(env, list->self->array->exp_list))
       CHECK_BO(check_array_subscripts(env, list->self->array->exp_list))
     }
     if(value->is_member) {
       value->offset = env->curr->offset;
-      /*      value->owner_class->obj_size++;*/
-      /*      env->class_def->obj_size++;*/
-      /*      env->curr->offset++;*/
       value->owner_class->obj_size += type->size;
       env->class_def->obj_size += type->size;
       env->curr->offset += type->size;
@@ -527,7 +524,7 @@ static Type check_Vec(Env env, Primary_Expression* exp )
   if(val->numdims > 4) {
     err_msg(TYPE_, exp->pos,
             "vector dimensions not supported > 4...\n"
-            "    --> format: %@(x,y,z,w)" );
+            "    --> format: @(x,y,z,w)" );
     return NULL;
   }
   Expression e = val->args;
@@ -597,18 +594,13 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
       t = &t_int;
     } else {
       v = namespace_lookup_value(env->curr, primary->var, 1);
-      if(!v) {
+      if(!v)
         v = find_value(env->class_def, primary->var);
-        if(v) {
-          if(env->class_def) {
-            if(env->func) {
-              if(env->func->def->static_decl == ae_key_static &&
-                  v->is_member && !v->is_static ) {
-                err_msg(TYPE_, primary->pos,
-                        "non-static member '%s' used from static function...", S_name(primary->var) );
-                return NULL;
-              }
-            }
+      if(v) {
+        if(env->class_def && env->func) {
+          if(env->func->def->static_decl == ae_key_static && v->is_member && !v->is_static ) {
+            err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->var) );
+            return NULL;
           }
         }
       }
@@ -655,7 +647,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
       if(isa(primary->cmp->im->type, &t_int) < 0) {
         err_msg(TYPE_, primary->cmp->pos,
                 "invalid type '%s' in imaginary component of complex value...\n"
-                "    (must be of type 'int' or 'float')", primary->cmp->re->type->name);
+                "    (must be of type 'int' or 'float')", primary->cmp->im->type->name);
         return NULL;
       }
       primary->cmp->im->cast_to = &t_float;
@@ -664,7 +656,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
     break;
   case ae_primary_polar:
     if(!primary->polar->phase) {
-      err_msg(TYPE_, primary->cmp->pos, "missing imaginary component of polar value...");
+      err_msg(TYPE_, primary->cmp->pos, "missing phase component of polar value...");
       return NULL;
     }
     if(primary->polar->phase->next) {
@@ -822,7 +814,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       return NULL;
     }
     if(!r_nspc && l_nspc) {
-      err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
+      err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer");
       return NULL;
     }
     if(r_nspc && !l_nspc) {
@@ -834,7 +826,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         sprintf(name, "%s@%li@%s", S_name(f2->def->name), i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
-      if(compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+      if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
         ret_type->func = f2;
         return ret_type;
@@ -844,31 +836,19 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     return NULL;
   }
   // check for arrays
-  if((lhs->type->array_depth == rhs->type->array_depth + 1)
-      /*    if((rhs->type->array_type))*/
-      && op == op_shift_left
-      && isa(lhs->type->array_type, rhs->type) > 0) {
-    /*        rhs->emit_var = 1;*/
+  if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left && isa(lhs->type->array_type, rhs->type) > 0)
     return lhs->type;
-
-  }
-  if(lhs->type->array_depth || rhs->type->array_depth) {
-    if(op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth)
-      return rhs->type;
-  }
-
+  if((lhs->type->array_depth || rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
+    return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
     return check_Func_Call1(env, rhs, lhs, &binary->func, binary->pos);
-
-  if(isa(binary->rhs->type, &t_object) > 0 && isa(binary->lhs->type, &t_null) > 0 && binary->op == op_at_chuck) {
+  if(isa(binary->rhs->type, &t_object) > 0 && isa(binary->lhs->type, &t_null) > 0 && binary->op == op_at_chuck)
     return lhs->type;
-  }
   if(isa(binary->lhs->type, &t_varobj) > 0 && binary->op == op_at_chuck)
     return rhs->type;
   if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
     return rhs->type;
-  t = get_return_type(env, op, lhs->type, rhs->type);
-  if(t)
+  if((t = get_return_type(env, op, lhs->type, rhs->type)))
     return t;
   m_uint i;
   char la[256], ra[256];
@@ -978,7 +958,9 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
 
   Type t2 = find_type(env, cast->type->xid);
   if(!t2) {
-    err_msg(TYPE_, cast->pos, "... in cast expression ..." );
+    m_str path = type_path(cast->type->xid);
+    err_msg(TYPE_, cast->pos, "unknown type '%s' in cast expression.", path);
+    free(path);
     return NULL;
   }
 
@@ -1006,8 +988,6 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   return NULL;
 }
 
-
-
 static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
 {
   // check the exp
@@ -1018,14 +998,16 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
   switch( postfix->op ) {
   case op_plusplus:
   case op_minusminus:
+
+    // see scan1
     // assignable?
-    if(((postfix->exp->meta != ae_meta_var) || (postfix->exp->exp_type == Primary_Expression_type)) &&
-        postfix->exp->primary_exp->value->is_const) {
-      err_msg(TYPE_, postfix->exp->pos,
-              "postfix operator '%s' cannot be used on non-mutable data-type...",
-              op2str( postfix->op ) );
-      return NULL;
-    }
+    /*if(((postfix->exp->meta != ae_meta_var) || (postfix->exp->exp_type == Primary_Expression_type)) &&*/
+    /*postfix->exp->primary_exp->value->is_const) {*/
+    /*err_msg(TYPE_, postfix->exp->pos,*/
+    /*"postfix operator '%s' cannot be used on non-mutable data-type...",*/
+    /*op2str( postfix->op ) );*/
+    /*return NULL;*/
+    /*}*/
 
     postfix->exp->emit_var = 1;
     // TODO: mark somewhere we need to post increment
@@ -1043,9 +1025,8 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
   }
 
   // no match
-  err_msg( TYPE_,  postfix->pos,
-           "no suitable resolutation for postfix operator '%s' on type '%s'...",
-           "++ or --", t->name );
+  err_msg( TYPE_, postfix->pos,
+           "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name );
   return NULL;
 }
 
@@ -1284,8 +1265,6 @@ next:
     err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
     return NULL;
   }
-
-
   if(isa(f, &t_function) < 0) {
     err_msg(TYPE_, exp_func->pos, "function call using a non-function value");
     return NULL;

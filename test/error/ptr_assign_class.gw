@@ -1,0 +1,6 @@
+class C
+{
+	typedef void (test0)();
+	function void test1(){};
+	test1 @=> test0;
+}

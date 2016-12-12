@@ -1,0 +1,2 @@
+class C            { int i; }
+class CC extends C { int i; }

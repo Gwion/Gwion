@@ -356,10 +356,10 @@ static m_bool emit_Array(Emitter emit, Array* array)
 static m_bool emit_Vec(Emitter emit, Vec val)
 {
   CHECK_BB(emit_Expression(emit, val->args, 0));
-  m_uint n = 3 - val->numdims;
+  m_int n = 3 - val->numdims;
   while (n > 0) {
-    add_instr(emit, Reg_Push_Imm2),
-              n--;
+    add_instr(emit, Reg_Push_Imm2);
+    n--;
   }
   return 1;
 }

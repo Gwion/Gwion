@@ -226,28 +226,19 @@ Value find_value(Type type, S_Symbol xid )
   return NULL;
 }
 
-const m_str type_path(ID_List path )
+m_str type_path(ID_List path )
 {
-  /*  static string str;*/
-  m_str str;
-
-  // clear it
-  str = "";
-  // loop over path
-  while( path ) {
-    // concatenate
-    /*      str += S_name(path->xid);*/
+  m_str str = malloc(sizeof(char));
+  memset(str, 0, 1);
+  while(path) {
     strcat(str, S_name(path->xid));
-    // add .
-    /*      if( path->next ) str += ".";*/
-    if( path->next )
+    if(path->next)
       strcat(str, ".");
-    // advance
     path = path->next;
   }
-
   return str;
 }
+
 Kindof kindof(Type type)
 {
   if(type->array_depth)
