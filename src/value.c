@@ -26,9 +26,11 @@ extern struct Type_ t_object;
 extern struct Type_ t_ugen;
 void free_Value(Value a)
 {
-  if(a->ptr) { // is it necessary ?
-    if(isprim(a->m_type) > 0)
-      free(a->ptr);
-  }
+  /*
+    if(a->ptr) { // is it necessary ?
+      if(isprim(a->m_type) > 0)
+        free(a->ptr);
+    }
+  */
   free(a);
 }

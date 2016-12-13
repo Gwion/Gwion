@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "env.h"
 
 void context_add_type(Context context, Type type, VM_Object obj)
@@ -46,14 +47,14 @@ void free_Context(Context a)
   }
   free_Vector(a->new_values);
   // delete user class
-  for(i = 0; i < vector_size(a->new_types); i++) {
-    if(strcmp(a->filename, "global_context")) {
-      Type t = (Type)vector_at(a->new_types, i);
-      printf("%s\n", ((Type)vector_at(a->new_types, i))->name);
+//  for(i = 0; i < vector_size(a->new_types); i++) {
+//    if(strcmp(a->filename, "global_context")) {
+//      Type t = (Type)vector_at(a->new_types, i);
+//      printf("%s\n", ((Type)vector_at(a->new_types, i))->name);
 //free(t);
 //rem_ref(t->obj, t);
-    }
-  }
+//    }
+//  }
   free_Vector(a->new_types);
   free(a);
 }

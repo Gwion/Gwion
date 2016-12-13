@@ -11,8 +11,7 @@
 extern struct Type_ t_osc;
 static struct Type_ t_sinosc      = { "SinOsc",      1, &t_ugen };
 
-typedef struct
-{
+typedef struct {
   sp_data* sp;
   sp_osc* osc;
   m_bool is_init;
@@ -23,26 +22,25 @@ typedef struct
 TICK(sinosc_tick)
 {
   SP_osc* ug = (SP_osc*)u->ug;
-  if(!ug->is_init)
-	{
-  	u->out = 0;
-  	return 1;
-	}
-	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
+  if(!ug->is_init) {
+    u->out = 0;
+    return 1;
+  }
+  sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
   return 1;
 }
 
 static void sinosc_ctor(M_Object o, VM_Shred shred)
 {
 //  SP_osc* ug = (SP_osc*)o->ugen->ug;
-	SP_osc* ug = malloc(sizeof(SP_osc));
-	sp_osc_create(&ug->osc);
-    sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
-    sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-    sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
-	assign_ugen(o->ugen, 0, 1, 0, ug);
-	o->ugen->tick = sinosc_tick;
-    ug->is_init = 1;
+  SP_osc* ug = malloc(sizeof(SP_osc));
+  sp_osc_create(&ug->osc);
+  sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
+  sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
+  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+  assign_ugen(o->ugen, 0, 1, 0, ug);
+  o->ugen->tick = sinosc_tick;
+  ug->is_init = 1;
 }
 
 DTOR(sinosc_dtor)
@@ -56,10 +54,9 @@ DTOR(sinosc_dtor)
 static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   int size = *(m_int*)(shred->mem + SZ_INT);
-  if(size <= 0)
-  {
+  if(size <= 0) {
     err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-      size < 0 ? "negative" : "zero");
+            size < 0 ? "negative" : "zero");
     return;
   }
   SP_osc* ug = (SP_osc*)o->ugen->ug;
@@ -74,11 +71,10 @@ static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
   int size    = *(m_int*)(shred->mem + SZ_INT);
-  float phase = *(m_int*)(shred->mem + SZ_INT*2);
-  if(size <= 0)
-  {
+  float phase = *(m_int*)(shred->mem + SZ_INT * 2);
+  if(size <= 0) {
     err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-      size < 0 ? "negative" : "zero");
+            size < 0 ? "negative" : "zero");
     return;
   }
   SP_osc* ug = (SP_osc*)o->ugen->ug;
@@ -90,23 +86,24 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred)
   sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, phase);
 }
 
-static m_bool import_sinosc(Env env){
+static m_bool import_sinosc(Env env)
+{
   Func     f;
   DL_Func* fun;
-	CHECK_BB(add_global_type(env, &t_sinosc))
-	CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
-	env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
+  CHECK_BB(add_global_type(env, &t_sinosc))
+  CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
+  env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
   fun = new_DL_Func("void", "init", (m_uint)sinosc_size);
-   dl_func_add_arg(fun, "int", "size");
+  dl_func_add_arg(fun, "int", "size");
   CHECK_BB((f = import_mfun(env, fun)))
   f->doc = "alloc other sizes for sinosc. (default: 2048)";
   fun = new_DL_Func("void", "init", (m_uint)sinosc_size_phase);
-   dl_func_add_arg(fun, "int", "size");
-   dl_func_add_arg(fun, "float", "phase");
+  dl_func_add_arg(fun, "int", "size");
+  dl_func_add_arg(fun, "float", "phase");
   CHECK_BB((f = import_mfun(env, fun)))
-/*  f->doc = "alloc other sizes for sinosc. also set phase (default: 2048)";*/
-	CHECK_BB(import_class_end(env))
-	return 1;
+  /*  f->doc = "alloc other sizes for sinosc. also set phase (default: 2048)";*/
+  CHECK_BB(import_class_end(env))
+  return 1;
 }
 
 
@@ -115,7 +112,7 @@ static m_bool gain_tick(UGen u)
 {
   base_tick(u);
   u->out *= *(m_float*)u->ug;
-	return 1;
+  return 1;
 }
 
 static void gain_ctor(M_Object o, VM_Shred shred)
@@ -144,13 +141,13 @@ static m_bool import_gain(Env env)
 {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_gain))
-	CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, gain_dtor))
-	fun = new_DL_Func("float", "gain", (m_uint)gain_get_gain);
+  CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, gain_dtor))
+  fun = new_DL_Func("float", "gain", (m_uint)gain_get_gain);
   CHECK_BB(import_mfun(env, fun))
   fun = new_DL_Func("float", "gain", (m_uint)gain_set_gain);
-	  dl_func_add_arg(fun, "float", "arg0");
+  dl_func_add_arg(fun, "float", "arg0");
   CHECK_BB(import_mfun(env, fun))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -159,9 +156,9 @@ static struct Type_ t_impulse      = { "Impulse", 1, &t_ugen };
 static m_bool impulse_tick(UGen u)
 {
 //  u->out = *(m_float*)u->ug;
-	*(m_float*)u->ug = 0;
+  *(m_float*)u->ug = 0;
 //	u->done = 1;
-	return 1;
+  return 1;
 }
 
 static void impulse_ctor(M_Object o, VM_Shred shred)
@@ -197,7 +194,7 @@ static m_bool import_impulse(Env env)
   fun = new_DL_Func("float", "next", (m_uint)impulse_set_next);
   dl_func_add_arg(fun, "float", "arg0");
   CHECK_BB(import_mfun(env, fun))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -205,7 +202,7 @@ static struct Type_ t_fullrect = { "FullRect", 1, &t_ugen };
 static m_bool fullrect_tick(UGen u)
 {
   base_tick(u);
-    u->out = fabs(u->in);
+  u->out = fabs(u->in);
   return 1;
 }
 
@@ -218,14 +215,14 @@ static void fullrect_ctor(M_Object o, VM_Shred shred)
 
 static void fullrect_dtor(M_Object o, VM_Shred shred)
 {
-	free(o->ugen->ug);
+  free(o->ugen->ug);
 }
 
 static m_bool import_fullrect(Env env)
 {
-	CHECK_BB(add_global_type(env, &t_fullrect))
-	CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(add_global_type(env, &t_fullrect))
+  CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -249,14 +246,14 @@ static void halfrect_ctor(M_Object o, VM_Shred shred)
 
 static void halfrect_dtor(M_Object o, VM_Shred shred)
 {
-	free(o->ugen->ug);
+  free(o->ugen->ug);
 }
 
 static m_bool import_halfrect(Env env)
 {
-	CHECK_BB(add_global_type(env, &t_halfrect))
-	CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, halfrect_dtor))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(add_global_type(env, &t_halfrect))
+  CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, halfrect_dtor))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -264,7 +261,7 @@ static struct Type_ t_step = { "Step", 1, &t_ugen };
 static m_bool step_tick(UGen u)
 {
   u->out = *(m_float*)u->ug;
-	return 1;
+  return 1;
 }
 
 static void step_ctor(M_Object o, VM_Shred shred)
@@ -293,14 +290,14 @@ static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static m_bool import_step(Env env)
 {
   DL_Func* fun;
-	CHECK_BB(add_global_type(env, &t_step))
-	CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, step_dtor))
+  CHECK_BB(add_global_type(env, &t_step))
+  CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, step_dtor))
   fun = new_DL_Func("float", "next", (m_uint)step_get_next);
   CHECK_BB(import_mfun(env, fun))
   fun = new_DL_Func("float", "next", (m_uint)step_set_next);
   dl_func_add_arg(fun, "float", "arg0");
   CHECK_BB(import_mfun(env, fun))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -310,15 +307,14 @@ static m_bool zerox_tick(UGen u)
 {
   base_tick(u);
   u->out = 0;
-  if(!u->in)
-  {
+  if(!u->in) {
     if(*(m_float*)u->ug < 0)
       u->out = 1;
     else if(*(m_float*)u->ug < 1)
       u->out = -1;
   }
   *(m_float*)u->ug = u->in;
-	return 1;
+  return 1;
 }
 
 static void zerox_ctor(M_Object o, VM_Shred shred)
@@ -335,9 +331,9 @@ static void zerox_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_zerox(Env env)
 {
-	CHECK_BB(add_global_type(env, &t_zerox))
-	CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
-	CHECK_BB(import_class_end(env))
+  CHECK_BB(add_global_type(env, &t_zerox))
+  CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
+  CHECK_BB(import_class_end(env))
   return 1;
 }
 
@@ -350,5 +346,5 @@ m_bool import_modules(Env env)
   CHECK_BB(import_halfrect(env))
   CHECK_BB(import_step(env))
   CHECK_BB(import_zerox(env))
-	return 1;
+  return 1;
 }

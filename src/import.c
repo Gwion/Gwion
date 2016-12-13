@@ -4,6 +4,7 @@
 #include "func.h"
 #include "import.h"
 
+void free_Expression(Expression exp);
 m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl);
 m_bool scan1_Func_Def(Env env, Func_Def f);
 m_bool scan2_Func_Def(Env env, Func_Def f);
@@ -121,9 +122,9 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
 //    type_type = type_copy(env, &t_class);
 //    type_type->actual_type = type;
   // SAFE_REF_ASSIGN( type_type->actual_type, type );
-  vector_append(env->nspc_stack, env->curr);
+  vector_append(env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
-  vector_append(env->class_stack, env->class_def);
+  vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
 //    type->obj = new_VM_Object(e_type_obj);
   // ref count
@@ -138,9 +139,9 @@ m_bool import_class_end(Env env)
     return -1;
   }
   env->class_def->obj_size = env->class_def->info->offset;
-  env->class_def = vector_back(env->class_stack);
+  env->class_def = (Type)vector_back(env->class_stack);
   vector_pop(env->class_stack);
-  env->curr = vector_back(env->nspc_stack);
+  env->curr = (NameSpace)vector_back(env->nspc_stack);
   vector_pop(env->nspc_stack);
   return 1;
 }
@@ -260,7 +261,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
   for(i = vector_size(dl_fun->args) - 1; i >= 0; i--) {
     array_depth = array_depth2 = 0;
     array_sub = NULL;
-    arg = vector_at(dl_fun->args, i);
+    arg = (DL_Value*)vector_at(dl_fun->args, i);
     type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
       err_msg(TYPE_,  0, "...at argument '%i'...", i + 1 );
@@ -344,11 +345,11 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void *)dl_fun->mfun;
 
-  for(i = 0; i < vector_size(dl_fun->args); i++) {
-    DL_Value* v = (DL_Value*)vector_at(dl_fun->args, i);
+//  for(i = 0; i < vector_size(dl_fun->args); i++) {
+//    DL_Value* v = (DL_Value*)vector_at(dl_fun->args, i);
 //	free_DL_Value(v);
 //	free(v);
-  }
+//  }
   free_Vector(dl_fun->args);
   free(dl_fun);
 

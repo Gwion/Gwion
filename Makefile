@@ -64,8 +64,8 @@ clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
 	@rm -f ${PRG}
 	@rm -f include/generated.h
-	@which astyle && astyle -p -s2 --style=kr src/*.c
-	rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig
+	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c
+	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
 	@make -s -C ast clean
 
 soundpipe_import: import.lua

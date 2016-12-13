@@ -33,15 +33,15 @@ void env_reset(Env env)
   // TODO: release stack items?
   free_Vector(env->nspc_stack);
   env->nspc_stack = new_Vector();
-  vector_append(env->nspc_stack, env->global_nspc);
+  vector_append(env->nspc_stack, (vtype)env->global_nspc);
 
   if(env->user_nspc)
-    vector_append(env->nspc_stack, env->user_nspc);
+    vector_append(env->nspc_stack, (vtype)env->user_nspc);
 
   // TODO: release stack items?
   free_Vector(env->class_stack);
   env->class_stack = new_Vector();
-  vector_append(env->class_stack, NULL);
+  vector_append(env->class_stack, (vtype)NULL);
 
   // should be at top level
 //  assert( context == &global_context );

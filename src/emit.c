@@ -254,7 +254,7 @@ static m_bool emit_pre_constructor_array(Emitter emit, Type type)
   top->m_val = vector_size(emit->code->code);
   bottom->m_val = start_index;
   post = add_instr(emit, Instr_Pre_Ctor_Array_Post);
-  post; //prevent cppcheck warning
+  (void)post; //prevent cppcheck warning
   return 1;
 }
 
@@ -664,7 +664,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     instr = add_instr(emit, Assign_Object);
     return 1;
   }
-  instr; // prevent cppcheck warning
+  (void)instr; // prevent cppcheck warning
   /*  CHECK_BB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))*/
   CHECK_BB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
   return 1;
@@ -690,7 +690,7 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
     return -1;
   }
   instr = add_instr(emit, f);
-  instr; // prevent cppcheck warning
+  (void)instr; // prevent cppcheck warning
   return 1;
 }
 
@@ -760,7 +760,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
     return -1;
   }
   instr = add_instr(emit, f);
-  instr; // prevent cppcheck warning
+  (void)instr; // prevent cppcheck warning
   return 1;
 
   /*²  err_msg(EMIT_, postfix->pos,*/
@@ -780,7 +780,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     cast = add_instr(emit, Cast_i2f);
   CHECK_BB(emit_Expression(emit, dur->unit, 0))
   mul = add_instr(emit, timesf);
-  cast, mul; // prevent cppcheck warning
+  (void)cast, (void)mul; // prevent cppcheck warning
   return 1;
 }
 
@@ -821,7 +821,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 
   if (!emit->code->stack_depth && !emit->code->frame->curr_offset) {
     Instr instr = add_instr(emit, Mem_Push_Imm);
-    instr; // prevent cppcheck warning
+    (void)instr; // prevent cppcheck warning
   }
 
   offset = add_instr(emit, Reg_Push_Imm); // local_stack
@@ -868,7 +868,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
 
   instr = add_instr(emit, EOC);
-  instr; //pevent cppcheck warning
+  (void)instr; //pevent cppcheck warning
   op->m_val = emit->code->stack_depth;
 
   code = emit_to_code(emit);
@@ -1000,6 +1000,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
             "(emit): internal error: unhandled type '%s' for unary '%s' operator", op2str(unary->op));
     return -1;
   }
+  (void)instr;
   return 1;
 }
 
@@ -1101,7 +1102,7 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to)
     err_msg(EMIT_, 0, "(emit): internal error: cannot cast type '%s' to '%s'", from->name, to->name);
     return -1;
   }
-  instr; // prevent cppcheck warning
+  (void)instr; // prevent cppcheck warning
   return 1;
 }
 
@@ -1133,6 +1134,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if)
             exp_if->cond->type->name);
     return -1;
   }
+  (void)instr;
   op = add_instr(emit, fop);
   ret = emit_Expression(emit, exp_if->if_exp, 0);
   if (!ret)
@@ -1251,6 +1253,7 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt)
             stmt->cond->type->name);
     return -1;
   }
+  (void)instr;
   op = add_instr(emit, f);
   {
     frame_push_scope(emit->code->frame);
@@ -1349,6 +1352,7 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
             stmt->cond->type->name);
     return -1;
   }
+  (void)instr;
   op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->body, 0))
@@ -1424,6 +1428,7 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
     return -1;
   }
   /*  emit_add_code(emit, op);*/
+  (void)instr;
   op = add_instr(emit, f);
   op->m_val = index;
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
@@ -1488,6 +1493,7 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   }
   // append the op
   /*  emit_add_code(emit, op);*/
+  (void)instr;
   op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->body, 1))
@@ -1550,6 +1556,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
     return -1;
   }
   /*  emit_add_code(emit, op);*/
+  (void)instr;
   op = add_instr(emit, f);
   /*  op->m_val = vector_size(emit->code->code);*/
   op->m_val = index;
@@ -1617,6 +1624,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
               stmt->c2->stmt_exp->type->name);
       return -1;
     }
+    (void)instr;
     // append the op
     op = add_instr(emit, f);
   }
@@ -1648,7 +1656,6 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       e = e->next;
     }
     if (num_words) {
-      printf("num_words %i\n", num_words);
       Instr pop = add_instr(emit, Reg_Pop_Word4);
       pop->m_val = num_words;
     }
@@ -1658,6 +1665,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   _goto->m_val = index;
   emit_add_code(emit, _goto);
 
+  /*(void)instr;*/
   if (stmt->c2)
     op->m_val = vector_size(emit->code->code);
 
@@ -2086,7 +2094,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr = add_instr(emit, vec3_z);
     else {
       Instr dup = add_instr(emit, Reg_Dup_Last_Vec3);
-      dup; // prevent cppcheck warning
+      (void)dup; // prevent cppcheck warning
       Instr f = add_instr(emit, member_function);
       f->ptr = t_base->info->obj_v_table;
       f->m_val = value->func_ref->vt_index;
@@ -2110,7 +2118,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr = add_instr(emit, vec4_w);
     else {
       Instr dup = add_instr(emit, Reg_Dup_Last_Vec3);
-      dup; // prevent cppcheck warning
+      (void)dup; // prevent cppcheck warning
       Instr f = add_instr(emit, member_function);
       f->ptr = t_base->info->obj_v_table;
       f->m_val = value->func_ref->vt_index;
@@ -2383,7 +2391,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     Instr push = add_instr(emit, Reg_Push_Imm);
     Instr goto_instr = add_instr(emit, Goto);
     emit_add_return(emit, goto_instr);
-    push; // prevent cppcheck warning
+    (void)push; // prevent cppcheck warning
   }
   emit_pop_scope(emit);
 
@@ -2397,7 +2405,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   emit->code->stack_return = new_Vector();
   Instr instr = add_instr(emit, Func_Return);
   func->code = emit_to_code(emit);
-  instr; // prevent cppcheck warning
+  (void)instr; // prevent cppcheck warning
   if (func->def->spec == ae_func_spec_dtor) {
     /*    func->code->stack_depth = SZ_INT;*/
     emit->env->class_def->info->dtor = func->code;
@@ -2478,7 +2486,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
 
   if (ret > 0) {
     Instr instr = add_instr(emit, Func_Return);
-    instr; // prevent cppcheck warning
+    (void)instr; // prevent cppcheck warning
     type->info->pre_ctor = emit_to_code(emit);
     /*    type->info->pre_ctor->add_ref();*/
   } else {

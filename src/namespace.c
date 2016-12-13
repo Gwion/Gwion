@@ -3,14 +3,16 @@
 #include "emit.h"
 
 static VM* vm;
-
+void release(M_Object o, VM_Shred shred);
+void free_Arg_List(Arg_List list);
+void free_Type_Decl(Type_Decl* type_decl);
 void set_nspc_vm(VM* _vm)
 {
   vm = _vm;
 }
 Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb)
 {
-  Value v = scope_lookup(namespace->value, xid, climb);
+  Value v = (Value)scope_lookup(namespace->value, xid, climb);
   if( climb > 0 && !v && namespace->parent )
     v = namespace_lookup_value(namespace->parent, xid, climb);
   return v;
@@ -18,7 +20,7 @@ Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb)
 
 void namespace_add_value(NameSpace namespace, S_Symbol xid, Value value)
 {
-  scope_add(namespace->value, xid, value);
+  scope_add(namespace->value, xid, (vtype)value);
 }
 
 void namespace_push_value(NameSpace namespace)
@@ -41,7 +43,7 @@ Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb)
 
 void namespace_add_type(NameSpace namespace, S_Symbol xid, Type value)
 {
-  scope_add(namespace->type, xid, value);
+  scope_add(namespace->type, xid, (vtype)value);
 }
 
 void namespace_push_type(NameSpace namespace)
@@ -64,7 +66,7 @@ Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb)
 
 void namespace_add_func(NameSpace namespace, S_Symbol xid, Func value)
 {
-  scope_add(namespace->func, xid, value);
+  scope_add(namespace->func, xid, (vtype)value);
 }
 
 /*

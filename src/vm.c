@@ -9,6 +9,8 @@
 #include "instr.h"
 #include "ugen.h"
 
+void stop_plug();
+
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename)
 {
   VM_Code code           = malloc(sizeof(struct VM_Code_));

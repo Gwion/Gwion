@@ -236,8 +236,6 @@ INSTR(Alloc_Word)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", *(m_uint*)(shred->mem + instr->m_val), instr->m_val);
 #endif
-  printf("%p\n", *(m_uint*)(shred->mem - SZ_INT));
-  printf("%p\n", *(m_uint*)(shred->mem + SZ_INT));
   *(m_uint*)(shred->mem + instr->m_val) = 0; // since template
   *(m_uint**)shred->reg = &*(m_uint*)(shred->mem + instr->m_val);
   PUSH_REG(shred, SZ_INT);
@@ -288,7 +286,7 @@ INSTR(Branch_Switch)
 #endif
   Map map = instr->ptr;
   POP_REG(shred,  SZ_INT);
-  shred->next_pc = (m_int)map_get(map, (void*) * (m_int*)shred->reg);
+  shred->next_pc = (m_int)map_get(map, (vtype) * (m_int*)shred->reg);
   if(!shred->next_pc)
     shred->next_pc = instr->m_val;
 }
@@ -408,7 +406,7 @@ INSTR(Gack)
   m_uint i, j, size = vector_size(v);
   m_uint len, longest = 0;
   for(i = 0; i < size; i++) {
-    type = vector_at(v, i);
+    type = (Type)vector_at(v, i);
     POP_REG(shred,  type->size);
     len = strlen(type->name);
     if(len > longest)
@@ -418,12 +416,12 @@ INSTR(Gack)
   for(i = size; i > 0; i--) {
 #ifdef DEBUG
 #ifdef COLOR
-    fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%i\033[0m] ", shred->xid);
+    fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%li\033[0m] ", shred->xid);
 #else
     fprintf(stdout, "[DEBUG] [%i] ", shred->xid);
 #endif
 #endif
-    type = vector_at(v, size - i);
+    type = (Type)vector_at(v, size - i);
     /*    offset -= type->size;*/
 #ifdef COLOR
     fprintf(stdout, "\033[1m");
@@ -559,7 +557,7 @@ INSTR(Spork)
   sh->parent = shred;
   if(!shred->child)
     shred->child = new_Vector();
-  vector_append(shred->child, sh);
+  vector_append(shred->child, (vtype)sh);
   sh->base = shred->base;
   sh->me = new_Shred(vm, sh);
   sh->me->ref++;
@@ -656,7 +654,6 @@ INSTR(Instr_Func_Call)
   }
   if(overflow_(shred->mem))
     handle_overflow(shred);
-  printf("func %p %s need_this %i depth %i\n", func, func->name, func->need_this, stack_depth);
   return;
 }
 
@@ -801,40 +798,13 @@ INSTR(Func_Return)
   debug_msg("instr", "func return %p", (shred->mem));
   debug_msg("instr", "func return %s", (*(VM_Code*)(shred->mem - SZ_INT * 3))->name);
 #endif
-//printf("%p\n", *(m_uint*)shred->mem);
-//printf("%p\n", *(m_uint*)(shred->mem - SZ_INT));
-//m_uint test = *(m_uint*)(shred->mem - SZ_INT);
-//m_uint test2 = *(m_uint*)(shred->mem);
   POP_MEM(shred,  SZ_INT * 2);
   shred->next_pc = *(m_uint*)shred->mem;
   POP_MEM(shred,  SZ_INT);
-
-  /*if(*/
-//printf("%p\n", shred->code->need_this);
   VM_Code func = *(VM_Code*)shred->mem;
-//printf("%s\n", func->need_this);
   POP_MEM(shred,  SZ_INT);
-  /*
-  printf("%p\n", *(m_uint*)shred->mem);
-  printf("%p\n", *(m_uint*)(shred->mem - SZ_INT*2));
-  printf("%p\n", *(m_uint*)(shred->mem - SZ_INT));
-  printf("%p\n", *(m_uint*)(shred->mem + SZ_INT));
-  printf("%p\n", *(m_uint*)(shred->mem + SZ_INT*2));
-  printf("%p\n", *(m_uint*)(shred->_mem + SZ_INT*4));
-  */
   POP_MEM(shred, *(m_uint*)shred->mem);
   shred->code = func;
-
-
-  /*
-  if(func->native_func_type == NATIVE_UNKNOWN)
-  {
-  //	POP_MEM(shred,  test);
-    *(m_uint*)shred->mem = test2;
-  //	exit(2);
-
-  }
-  */
 }
 
 /* object */

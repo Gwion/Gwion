@@ -79,13 +79,13 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
   m_uint i, size = out->child ? vector_size(out->child) : 0;
   if(erase) {
     if(out->parent)
-      vector_remove(out->parent->child, vector_find(out->parent->child, out));
+      vector_remove(out->parent->child, (vtype)vector_find(out->parent->child, (vtype)out));
     if(out->child)
       for(i = 0; i < size; i++) {
-        VM_Shred child = vector_front(out->child);
+        VM_Shred child = (VM_Shred)vector_front(out->child);
         shreduler_remove(s, child, 1);
       }
-    vector_remove(s->vm->shred, vector_find(s->vm->shred, out));
+    vector_remove(s->vm->shred, (vtype)vector_find(s->vm->shred, (vtype)out));
   }
   out->is_running = 0;
   if(!out->prev && !out->next && out != s->list) {
