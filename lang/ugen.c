@@ -196,7 +196,7 @@ static INSTR(ugen_connect)
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
   m_uint i;
-  shred->reg -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
@@ -222,7 +222,7 @@ static INSTR(ugen_connect)
   release(lhs, shred);
   release(rhs, shred);
   *(M_Object*)shred->reg = rhs;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(ugen_disconnect)
@@ -231,7 +231,7 @@ static INSTR(ugen_disconnect)
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
   m_uint i;
-  shred->reg -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!rhs->ugen->n_in) {
@@ -253,7 +253,7 @@ static INSTR(ugen_disconnect)
   release(lhs, shred);
   release(rhs, shred);
   *(M_Object*)shred->reg = rhs;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(trig_connect)
@@ -261,7 +261,7 @@ static INSTR(trig_connect)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig) {
@@ -271,7 +271,7 @@ static INSTR(trig_connect)
   release(lhs, shred);
   release(rhs, shred);
   *(M_Object*)shred->reg = rhs;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(trig_disconnect)
@@ -279,7 +279,7 @@ static INSTR(trig_disconnect)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig discconnect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig) {
@@ -289,7 +289,7 @@ static INSTR(trig_disconnect)
   release(lhs, shred);
   release(rhs, shred);
   *(M_Object*)shred->reg = rhs;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 void ugen_ctor(M_Object o, VM_Shred shred)

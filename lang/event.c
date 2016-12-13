@@ -28,14 +28,14 @@ INSTR(Event_Wait)
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
 #endif
   M_Object event;
-  shred->reg -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   event = *(M_Object*)shred->reg;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
   vector_append(v, (vtype)shred);
   shred->next_pc++;
   *(m_int*)shred->reg = 1;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static MFUN(event_signal)

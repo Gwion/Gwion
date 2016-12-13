@@ -154,31 +154,31 @@ MFUN(vm_vector_size)
 
 INSTR(Array_Append)
 {
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT);
   M_Object o = NULL;
   if(instr->m_val == Kindof_Int) {
-    shred->reg -= SZ_INT;
+    POP_REG(shred, SZ_INT);
     o = *(M_Object*)(shred->reg);
     i_vector_append(o->array, *(m_uint*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Float) {
-    shred->reg -= SZ_FLOAT;
+    POP_REG(shred, SZ_FLOAT);
     o = *(M_Object*)(shred->reg);
     f_vector_append(o->array, *(m_float*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Complex) {
-    shred->reg -= SZ_COMPLEX;
+    POP_REG(shred, SZ_COMPLEX);
     o = *(M_Object*)(shred->reg);
     c_vector_append(o->array, *(complex*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
-    shred->reg -= SZ_VEC3;
+    POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)(shred->reg);
     v3_vector_append(o->array, *(VEC3_T*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
-    shred->reg -= SZ_VEC4;
+    POP_REG(shred, SZ_VEC4);
     o = *(M_Object*)(shred->reg);
     v4_vector_append(o->array, *(VEC4_T*)(shred->reg + SZ_INT));
   }
   *(M_Object*)(shred->reg) = o;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 m_bool import_array(Env env)

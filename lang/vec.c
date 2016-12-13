@@ -92,134 +92,134 @@ MFUN(vec3_update_set_slew)
 INSTR(vec3_add)
 {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
-  shred->reg -= SZ_VEC3 * 2;
+  POP_REG(shred,SZ_VEC3 * 2);
   r.x = t->x + (t + 1)->x;
   r.y = t->y + (t + 1)->y;
   r.z = t->z + (t + 1)->z;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec3_minus)
 {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
-  shred->reg -= SZ_FLOAT * 2;
+  POP_REG(shred,SZ_FLOAT * 2);
   r.x = t->x - (t + 1)->x;
   r.y = t->y - (t + 1)->y;
   r.z = t->z - (t + 1)->z;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec3_xproduct)
 {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
-  shred->reg -= SZ_FLOAT * 2;
+  POP_REG(shred,SZ_FLOAT * 2);
   r.x = t->x * (t + 1)->x;
   r.y = t->y * (t + 1)->y;
   r.z = t->z * (t + 1)->z;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(float_times_vec3)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC3;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC3);
   m_float f = *(m_float*)(shred->reg);
   VEC3_T r = *(VEC3_T*)(shred->reg + SZ_FLOAT);
   r.x *= f;
   r.y *= f;
   r.z *= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 INSTR(vec3_times_float)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC3;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC3);
   VEC3_T r = *(VEC3_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC3);
   r.x *= f;
   r.y *= f;
   r.z *= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec3_divide_float)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC3;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC3);
   VEC3_T r = *(VEC3_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC3);
   r.x /= f;
   r.y /= f;
   r.z /= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec3_z)
 {
   if(instr->m_val) {
-    shred->reg -= SZ_INT;
+    POP_REG(shred,SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
     *(m_float**)shred->reg = &v->z;
-    shred->reg += SZ_INT;
+    PUSH_REG(shred,  SZ_INT);
   } else {
-    shred->reg -= SZ_VEC3;
+    POP_REG(shred,SZ_VEC3);
     *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-    shred->reg += SZ_FLOAT;
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
 INSTR(vec4_z)
 {
   if(instr->m_val) {
-    shred->reg -= SZ_INT;
+    POP_REG(shred,SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
     *(m_float**)shred->reg = &v->z;
-    shred->reg += SZ_INT;
+    PUSH_REG(shred,  SZ_INT);
   } else {
-    shred->reg -= SZ_VEC4;
+    POP_REG(shred,SZ_VEC4);
     *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-    shred->reg += SZ_FLOAT;
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
 INSTR(vec4_w)
 {
   if(instr->m_val) {
-    shred->reg -= SZ_INT;
+    POP_REG(shred,SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
     *(m_float**)shred->reg = &v->z;
-    shred->reg += SZ_INT;
+    PUSH_REG(shred,  SZ_INT);
   } else {
-    shred->reg -= SZ_VEC4;
+    POP_REG(shred,SZ_VEC4);
     *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 3);
-    shred->reg += SZ_FLOAT;
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 m_bool import_vec3(Env env)
@@ -319,75 +319,75 @@ MFUN(vec4_normalize)
 INSTR(vec4_add)
 {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
-  shred->reg -= SZ_FLOAT * 2;
+  POP_REG(shred,SZ_FLOAT * 2);
   r.x = t->x + (t + 1)->x;
   r.y = t->y + (t + 1)->y;
   r.z = t->z + (t + 1)->z;
   r.w = t->w + (t + 1)->w;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.w;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec4_minus)
 {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
-  shred->reg -= SZ_FLOAT * 2;
+  POP_REG(shred,SZ_FLOAT * 2);
   r.x = t->x - (t + 1)->x;
   r.y = t->y - (t + 1)->y;
   r.z = t->z - (t + 1)->z;
   r.w = t->w - (t + 1)->w;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.w;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec4_xproduct)
 {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
-  shred->reg -= SZ_FLOAT * 2;
+  POP_REG(shred,SZ_FLOAT * 2);
   r.x = t->x * (t + 1)->x;
   r.y = t->y * (t + 1)->y;
   r.z = t->z * (t + 1)->z;
   r.w = t->w * (t + 1)->w;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.w;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(float_times_vec4)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC4;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC4);
   m_float f = *(m_float*)(shred->reg);
   VEC4_T r = *(VEC4_T*)(shred->reg + SZ_FLOAT);
   r.x *= f;
   r.y *= f;
   r.z *= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 INSTR(vec4_times_float)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC4;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC4);
   VEC4_T r = *(VEC4_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC4);
   r.x *= f;
@@ -395,18 +395,18 @@ INSTR(vec4_times_float)
   r.z *= f;
   r.w *= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.w;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(vec4_divide_float)
 {
-  shred->reg -= SZ_FLOAT + SZ_VEC4;
+  POP_REG(shred,SZ_FLOAT + SZ_VEC4);
   VEC4_T r = *(VEC4_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC4);
   r.x /= f;
@@ -414,13 +414,13 @@ INSTR(vec4_divide_float)
   r.z /= f;
   r.w /= f;
   *(m_float*)shred->reg = r.x;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.y;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.z;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
   *(m_float*)shred->reg = r.w;
-  shred->reg += SZ_FLOAT;
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 m_bool import_vec4(Env env)

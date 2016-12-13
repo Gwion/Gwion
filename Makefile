@@ -66,6 +66,7 @@ clean:
 	@rm -f include/generated.h
 	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c
 	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
+	@rm -rf doc/html doc/latex
 	@make -s -C ast clean
 
 soundpipe_import: import.lua

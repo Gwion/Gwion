@@ -86,10 +86,37 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred)
   sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, phase);
 }
 
+MFUN(sinosc_get_freq)
+{
+  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  RETURN->v_float = ug->osc->freq;
+}
+
+MFUN(sinosc_set_freq)
+{
+  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  m_float freq = *(m_float*)(shred->mem + SZ_INT);
+  RETURN->v_float = (ug->osc->freq = freq);
+}
+
+MFUN(sinosc_get_amp)
+{
+  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  RETURN->v_float = ug->osc->amp;
+}
+
+MFUN(sinosc_set_amp)
+{
+  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  m_float amp = *(m_float*)(shred->mem + SZ_INT);
+  RETURN->v_float = (ug->osc->amp = amp);
+}
+
 static m_bool import_sinosc(Env env)
 {
   Func     f;
   DL_Func* fun;
+  DL_Value* arg;
   CHECK_BB(add_global_type(env, &t_sinosc))
   CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
   env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
@@ -102,6 +129,22 @@ static m_bool import_sinosc(Env env)
   dl_func_add_arg(fun, "float", "phase");
   CHECK_BB((f = import_mfun(env, fun)))
   /*  f->doc = "alloc other sizes for sinosc. also set phase (default: 2048)";*/
+  fun = new_DL_Func("float", "freq", (m_uint)sinosc_get_freq);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "Frequency (in Hz)";
+  fun = new_DL_Func("float", "freq", (m_uint)sinosc_set_freq);
+  arg = dl_func_add_arg(fun, "float", "freq");
+  arg->doc = "Frequency (in Hz)";
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "Frequency (in Hz)";
+  fun = new_DL_Func("float", "amp", (m_uint)sinosc_get_amp);
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "Amplitude (typically a value between 0 and 1).";
+  fun = new_DL_Func("float", "amp", (m_uint)sinosc_set_amp);
+  arg = dl_func_add_arg(fun, "float", "amp");
+  arg->doc = "Amplitude (typically a value between 0 and 1).";
+  CHECK_OB((f = import_mfun(env, fun)))
+  f->doc = "Amplitude (typically a value between 0 and 1).";
   CHECK_BB(import_class_end(env))
   return 1;
 }

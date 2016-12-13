@@ -698,7 +698,7 @@ static MFUN(fc_rem)
 }
 INSTR(fc_connect)
 {
-  shred->reg  -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
@@ -710,11 +710,11 @@ INSTR(fc_connect)
     release(o, shred);
   }
   *(M_Object*)shred->reg = obj;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 INSTR(fc_disconnect)
 {
-  shred->reg  -= SZ_INT * 2;
+  POP_REG(shred, SZ_INT * 2);
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
@@ -726,7 +726,7 @@ INSTR(fc_disconnect)
     release(o, shred);
   }
   *(M_Object*)shred->reg = obj;
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static m_bool import_fc(Env env)

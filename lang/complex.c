@@ -16,18 +16,18 @@ static INSTR(assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '=' %p %p", **(complex**)(shred->reg - SZ_COMPLEX * 2), *(complex*)(shred->reg - SZ_COMPLEX));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)(shred->reg) = (**(complex**)shred->reg = *(complex*)(shred->reg + SZ_COMPLEX));
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 static INSTR(plus)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '+' %p %p", *(complex*)(shred->reg - SZ_COMPLEX * 2), *(complex*)(shred->reg - SZ_COMPLEX));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)shred->reg += *(complex*)(shred->reg + SZ_COMPLEX);
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(minus)
@@ -35,9 +35,9 @@ static INSTR(minus)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '-' %p %p", *(complex*)(shred->reg - SZ_COMPLEX * 2), *(complex*)(shred->reg - SZ_COMPLEX));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)shred->reg -= *(complex*)(shred->reg + SZ_COMPLEX);
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(times)
@@ -45,9 +45,9 @@ INSTR(times)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '*' %p %p", *(complex*)(shred->reg - SZ_COMPLEX * 2), *(complex*)(shred->reg - SZ_COMPLEX));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)shred->reg *= *(complex*)(shred->reg + SZ_COMPLEX);
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(divide)
@@ -55,9 +55,9 @@ static INSTR(divide)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '/' %p %p", *(complex*)(shred->reg - SZ_COMPLEX * 2), *(complex*)(shred->reg - SZ_COMPLEX));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)shred->reg /= *(complex*)(shred->reg + SZ_COMPLEX);
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 // reverse arithmetic
@@ -66,9 +66,9 @@ static INSTR(r_assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '=>' %p %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX + SZ_INT;
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
   **(complex**)(shred->reg + SZ_COMPLEX) = *(complex*)shred->reg;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(r_plus)
@@ -76,9 +76,9 @@ static INSTR(r_plus)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '+=>' %p %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX + SZ_INT;
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
   *(complex*)(shred->reg) = (**(complex**)(shred->reg + SZ_COMPLEX) += (*(complex*)shred->reg));
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(r_minus)
@@ -86,9 +86,9 @@ static INSTR(r_minus)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '-=>' %p %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)(shred->reg) = (**(complex**)(shred->reg + SZ_COMPLEX) -= (*(complex*)shred->reg));
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(r_times)
@@ -96,9 +96,9 @@ static INSTR(r_times)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '*=>' %p %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)(shred->reg) = (**(complex**)(shred->reg + SZ_COMPLEX) *= (*(complex*)shred->reg));
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(r_divide)
@@ -106,25 +106,23 @@ static INSTR(r_divide)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '/=>' %p %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   *(complex*)(shred->reg) = (**(complex**)(shred->reg + SZ_COMPLEX) /= (*(complex*)shred->reg));
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(complex_real)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'real' %i",  instr->m_val);
-  /*  debug_msg("instr", "(complex) 'real' #(%f, %f)", */
-  /*    instr->m_val ? creal(*(complex*)(shred->reg - SZ_COMPLEX)), cimag(*(complex*)(shred->reg - SZ_COMPLEX)));*/
 #endif
-  shred->reg -= instr->m_val ? SZ_INT : SZ_COMPLEX;
+  POP_REG(shred, instr->m_val ? SZ_INT : SZ_COMPLEX);
   if(instr->m_val) {
     *(m_float**)(shred->reg) = &**(m_float**)shred->reg;
-    shred->reg += SZ_INT;
+    PUSH_REG(shred, SZ_INT);
   } else {
     *(m_float*)(shred->reg) = *((m_float*)shred->reg);
-    shred->reg += SZ_FLOAT;
+    PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
@@ -134,14 +132,14 @@ INSTR(complex_imag)
   debug_msg("instr", "(complex) 'imag' #(%f, %f)",
             creal(*(complex*)(shred->reg - SZ_COMPLEX)), cimag(*(complex*)(shred->reg - SZ_COMPLEX)));
 #endif
-  shred->reg -= instr->m_val ? SZ_INT : SZ_COMPLEX;
+  POP_REG(shred, instr->m_val ? SZ_INT : SZ_COMPLEX);
   if(instr->m_val) {
     m_float* f = &**(m_float**)(shred->reg);
     *(m_float**)(shred->reg) = &*(f + 1);
-    shred->reg += SZ_INT;
+    PUSH_REG(shred, SZ_INT);
   } else {
     *(m_float*)(shred->reg) = *(m_float*)(shred->reg + SZ_FLOAT);
-    shred->reg += SZ_FLOAT;
+    PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
@@ -150,13 +148,13 @@ INSTR(polar_plus)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(complex*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = *(complex*)(shred->reg + SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
   *(complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_minus)
@@ -164,13 +162,13 @@ INSTR(polar_minus)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(complex*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = *(complex*)(shred->reg + SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
   *(complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_times)
@@ -178,13 +176,13 @@ INSTR(polar_times)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(complex*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = *(complex*)(shred->reg + SZ_COMPLEX);
   m_float mag   = creal(a) * creal(b);
   m_float phase = cimag(a) + cimag(b);
   *(complex*)shred->reg = mag  + phase * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_divide)
@@ -192,13 +190,13 @@ INSTR(polar_divide)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(complex*)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = *(complex*)(shred->reg + SZ_COMPLEX);
   m_float mag   = creal(a) / creal(b);
   m_float phase = cimag(a) - cimag(b);
   *(complex*)shred->reg = mag  + phase * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_plus_r)
@@ -206,14 +204,14 @@ INSTR(polar_plus_r)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+=>' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX + SZ_INT;
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
   complex a = *(complex*)(shred->reg);
   complex b = **(complex**)(shred->reg + SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
   **(complex**)(shred->reg + SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
   *(complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_minus_r)
@@ -221,7 +219,7 @@ INSTR(polar_minus_r)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+=>' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX + SZ_INT;
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
   complex a = *(complex*)(shred->reg);
   complex b = **(complex**)(shred->reg + SZ_COMPLEX);
   m_float re, im;
@@ -229,7 +227,7 @@ INSTR(polar_minus_r)
   im = creal(a) * sin(cimag(a)) - sin(cimag(b));
   **(complex**)(shred->reg + SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
   *(complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_times_r)
@@ -237,14 +235,14 @@ INSTR(polar_times_r)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '*=>' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = **(complex**)(shred->reg + SZ_COMPLEX);
   m_float mag   = creal(a) * creal(b);
   m_float phase = cimag(a) + cimag(b);
   **(complex**)(shred->reg + SZ_COMPLEX) = mag  + phase * I;
   *(complex*)shred->reg = mag  + phase * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(polar_divide_r)
@@ -252,14 +250,14 @@ INSTR(polar_divide_r)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '/=>' %p", *(complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(complex**)(shred->reg - SZ_INT));
 #endif
-  shred->reg -= SZ_COMPLEX * 2;
+  POP_REG(shred, SZ_COMPLEX * 2);
   complex a = *(complex*)(shred->reg);
   complex b = **(complex**)(shred->reg + SZ_COMPLEX);
   m_float mag   = creal(a) / creal(b);
   m_float phase = cimag(a) - cimag(b);
   **(complex**)(shred->reg + SZ_COMPLEX) = mag  + phase * I;
   *(complex*)shred->reg = mag  + phase * I;
-  shred->reg += SZ_COMPLEX;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 

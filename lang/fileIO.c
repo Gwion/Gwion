@@ -40,7 +40,7 @@ INSTR(int_to_file)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int to file");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
   sprintf(c, "%i", *(int*)(shred->reg - SZ_INT));
@@ -52,7 +52,7 @@ INSTR(float_to_file)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "float to file");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
   sprintf(c, "%f", *(m_float*)(shred->reg - SZ_INT));
@@ -64,7 +64,7 @@ INSTR(string_to_file)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "string to file");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   M_Object o = *(M_Object*)shred->reg;
   m_str str;
   M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
@@ -72,7 +72,7 @@ INSTR(string_to_file)
   m_uint i = fwrite(str,  strlen(str), 1, IO_FILE(o));
   *(m_uint*)shred->reg = i;
 //  jmp_u(shred->reg, 1);
-  shred->reg += SZ_INT;
+  PUSH_REG(shred, SZ_INT)
 }
 
 INSTR(file_to_int)
@@ -80,7 +80,7 @@ INSTR(file_to_int)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => int");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
@@ -94,7 +94,7 @@ INSTR(file_to_float)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => float");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
@@ -124,7 +124,7 @@ INSTR(file_to_string)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => string");
 #endif
-  shred->reg -= SZ_INT;
+  POP_REG(shred, SZ_INT)
   /*  char ret[1024];*/
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   M_Object str = **(M_Object**)(shred->reg);
