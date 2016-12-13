@@ -437,31 +437,16 @@ func_def
     { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-
-//  | function_decl static_decl type_decl2 ID LPAREN variadic_list VARARG RPAREN  code_segment
-//    { $$ = new_Func_Def($1, $2, $3, $4, $6, $9, get_pos(scanner)); $$->is_variadic = 1; $$->type_decl->doc = get_doc(scanner);}
-  | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN SEMICOLON
-    { $$ = new_Func_Def($1, $2, $3, $4, $6, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-
-  //| function_decl static_decl type_decl2 ID LPAREN variadic_list RPAREN SEMICOLON
-  //  { $$ = new_Func_Def($1, $2, $3, $4, $6, NULL, get_pos(scanner)); $$->is_variadic = 1; $$->type_decl->doc = get_doc(scanner);}
   | DTOR LPAREN RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_instance, new_Type_Decl(new_id_list("void", get_pos(scanner)), 0, get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->spec = ae_func_spec_dtor; $$->type_decl->doc = get_doc(scanner);}
   | OPERATOR type_decl ID LPAREN RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, NULL, $6, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
-
   | OPERATOR type_decl ID LPAREN arg_list RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, $5, $7, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
-
-
-
-
   | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
-    { $$ = new_Func_Def($5, $6, $7, $8, NULL, $11, get_pos(scanner));
-      $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
+    { $$ = new_Func_Def($5, $6, $7, $8, NULL, $11, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
   | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
-    { $$ = new_Func_Def($5, $6, $7, $8, $10, $12, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);
-      $$->types = $3; }
+    { $$ = new_Func_Def($5, $6, $7, $8, $10, $12, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
   ;
 
 type_decl

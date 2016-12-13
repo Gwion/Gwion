@@ -1,1 +1,1 @@
-function @int test(){}
+function int@ test(){}

@@ -233,7 +233,7 @@ static m_bool scan2_Array(Env env, Array* array)
   return 1;
 }
 
-static m_bool scan2_Binary_Expression(Env env, Binary_Expression* binary )
+static m_bool scan2_Binary_Expression(Env env, Binary_Expression* binary)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Binary");
@@ -252,13 +252,13 @@ static m_bool scan2_Cast_Expression(Env env, Cast_Expression* cast)
   return 1;
 }
 
-static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix )
+static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Postfix");
 #endif
   // check the exp
-  CHECK_BB(scan2_Expression( env, postfix->exp ))
+  CHECK_BB(scan2_Expression(env, postfix->exp))
   switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:

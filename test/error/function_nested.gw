@@ -1,5 +1,4 @@
 function void test()
 {
-<<<"this will fail">>>;
   function void nested(){}
 }
