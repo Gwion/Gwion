@@ -1149,7 +1149,8 @@ static Type_List mk_type_list(Env env, Type type)
   return list;
 }
 /*static */
-Func find_template_match(Env env, Value v, Func m_func, Type_List types, Expression func, Expression args)
+Func find_template_match(Env env, Value v, Func m_func, Type_List types,
+                         Expression func, Expression args)
 {
   m_uint i;
   Func_Def base;
@@ -1164,6 +1165,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[256];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+    printf("find match for '%s' %s\n", name,  v->func_ref->next ? v->func_ref->next->name : "non");
+    printf("def %p %p\n", v->func_ref->def, v->func_ref->next ? v->func_ref->next->def : NULL);
+    if(v->func_ref->next)
+      printf("def %p %p\n", v->func_ref->next->def, v->func_ref->next->next ? v->func_ref->next->next->def : NULL);
+
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
       if(!value)
@@ -1173,36 +1179,61 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
     if(!value)
       continue;
     base = value->func_ref->def;
+    /*base = value->func_ref->next ? value->func_ref->next->def : value->func_ref->def;*/
     if(!base)
       continue;
 
-    {
-      Expression tmp = args;
-      while(tmp) {
-        if(!tmp->type)
-          check_Expression(env, args);
-        tmp = tmp->next;
-      }
-    }
-    Func_Def def = new_Func_Def(base->func_decl, base->static_decl, base->type_decl, S_name(func->primary_exp->var),
+    /*{*/
+    /*Expression tmp = args;*/
+    /*while(tmp) {*/
+    /*if(!tmp->type)*/
+    /*check_Expression(env, args);*/
+    /*tmp = tmp->next;*/
+    /*}*/
+    /*}*/
+    Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
+                                base->type_decl, S_name(func->primary_exp->var),
                                 base->arg_list, base->code, func->pos);
     if(base->is_variadic)
       def->is_variadic = 1;
-    /*      arg_list, base->code, func->pos);*/
     Type_List list = types;
     ID_List base_t = base->types;
     def->is_template = 1;
     namespace_push_type(env->curr);
     while(list) {
-      if(!list->list)
+      printf("base_t %p %p %p\n", base_t, list->list, find_type(env, list->list));
+      if(!base_t)
         break;
-      namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      if(!base_t || !base_t->next)
+      /*exit(12);*/
+      ID_List tmp = base_t->next;;
+      /*if(!list->list)*/
+      /*break;*/
+      if(base_t)
+        namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
+      else exit(12);
+      printf("env: %p\n", env->curr);
+      printf("%s, %s\n", S_name(base_t->xid), type_path(list->list), namespace_lookup_type(env->curr, base_t->xid, 1));
+
+      base_t->next = NULL;
+      printf("%p\n", find_type(env, base_t));
+      base_t->next = tmp;
+
+      if(list->next && !base_t->next) {
+        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
+        printf("%p\n", value->func_ref->next);
         break;
+      }
       base_t = base_t->next;
+      if(base_t & & !list->next) {
+        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
+        /*return NULL;*/
+      }
       list = list->next;
     }
     m_int ret = scan1_Func_Def(env, def);
+    /*printf("%s, %s %s\n", S_name(base_t->xid), type_path(types->list), namespace_lookup_type(env->curr, base->types->xid, 1)->name);*/
+    /*printf("%p\n", find_type(env, insert_symbol("float")));*/
+    /*printf("%s, %s %s\n", S_name(base_t->xid), type_path(types->next->list), namespace_lookup_type(env->curr, base->next->xid, 1)->name);*/
     namespace_pop_type(env->curr);
     if(ret < 0)
       goto next;
@@ -1215,7 +1246,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
     if(args)
       if(check_Expression(env, args) < 0)
         goto next;
-    //    Func next = def->func->next;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
     if(m_func) {
@@ -1228,7 +1258,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
       return m_func;
     }
 next:
-    free_Func(def->func);
+    if(def->func) // is this test necessary
+      free_Func(def->func);
     free_Func_Def(def);
   }
   if(v->owner_class) {
@@ -1296,14 +1327,15 @@ next:
       m_uint i;
       while(list) {
         type_number++;
+        printf("list->xid %s\n", S_name(list->xid));
         list = list->next;
       }
       Expression template_arg = args;
       Type t[type_number];
       Type_List tl[type_number];
-      for(i = 0; i < type_number + 1; i++)
-        t[i] = NULL;
-      /*memset(t, 0, 3 * sizeof(Type));*/
+      /*for(i = 0; i < type_number + 1; i++)*/
+      /*t[i] = NULL;*/
+      memset(t, 0, sizeof(t));
       while(template_arg) {
         /*        for(i = 0; i < arg_number + 1; i++)*/
         for(i = 0; i < type_number; i++) {
@@ -1316,15 +1348,12 @@ next:
         tl[i - 1] = mk_type_list(env, t[i - 1]);
         template_arg = template_arg ->next;
       }
-      // f was func 21/10/16
       Func f = find_template_match(env, value, func, tl[0], exp_func, args);
       if(f) {
-//if(f->def->is_variadic)
-//exit(9);
         *m_func = f;
         Type ret_type  = f->def->ret_type;
         /*free_Func_Def(f->def); // free from 09/09/16*/
-        free_Func(f);
+        /*free_Func(f);*/
         /*exit(6);*/
         /*        *m_func = func;*/
         return ret_type;
@@ -1409,10 +1438,9 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
     } else {
       Type t;
       CHECK_OO(check_Expression(env, func_call->func))
-      if(isa(func_call->func->dot_member->t_base, &t_class) > 0)
-        t = func_call->func->dot_member->t_base->actual_type;
-      else
-        t = func_call->func->dot_member->t_base;
+      t = func_call->func->dot_member->t_base;
+      if(isa(t, &t_class) > 0)
+        t = t->actual_type;
       v = find_value(t, func_call->func->dot_member->xid);
       // added 06/12/16
       if(!v) {
@@ -1428,14 +1456,19 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
         return NULL;
       }
     }
+    printf("v->next %i %p %p\n", v->func_num_overloads, v->func_ref->up, v->func_ref->next);
     // primary case
-    Func ret = find_template_match(env, v, func_call->m_func, func_call->types, func_call->func, func_call->args);
+    Func ret = find_template_match(env, v, func_call->m_func, func_call->types,
+                                   func_call->func, func_call->args);
     if(!ret) {
       err_msg(TYPE_, func_call->pos, "arguments do not match for template call");
       return NULL;
     }
     func_call->m_func = ret;
+    // [template] - please assign the right base
+    // [template] - and test watson for multi-line
     func_call->base = v->func_ref->def->types;
+    /*func_call->base = ret->def->types;*/
     return ret->def->ret_type;
     /*    free_Func_Def(ret->def);*/
     /*    free_Func(ret);*/

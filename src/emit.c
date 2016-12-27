@@ -1055,7 +1055,10 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
     ID_List base_t = func_call->base;
     Type_List list = func_call->types;
     namespace_push_type(emit->env->curr);
-    {
+    printf("here\n");
+    // [template] - if overloaded, find the rigth 'base' (def->types)
+    // [todo] - fix templates
+    while(base_t) {
       namespace_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
       base_t = base_t->next;
       list = list->next;

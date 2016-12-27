@@ -19,7 +19,7 @@ struct  Shreduler_ {
 
 Shreduler new_Shreduler(VM* vm)
 {
-  Shreduler s = (Shreduler)calloc(1, sizeof(struct Shreduler_));
+  Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->til_next = 0;
   s->list = NULL;
   s->vm = vm;
@@ -29,18 +29,19 @@ Shreduler new_Shreduler(VM* vm)
 
 void free_Shreduler(Shreduler s)
 {
-  /*  s->vm = NULL;*/
   free(s);
 }
-/*m_uint get_now(Shreduler s) { m_uint now = (m_uint)*s->now; return now; }*/
+
 m_float get_now(Shreduler s)
 {
   return s->vm->bbq->sp->pos;
 }
+
 void shreduler_set_loop(Shreduler s, m_bool loop)
 {
   s->loop = loop;
 }
+
 VM_Shred shreduler_get(Shreduler s)
 {
 #ifdef DEBUG_SHREDULER
@@ -78,14 +79,19 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
 #endif
   m_uint i, size = out->child ? vector_size(out->child) : 0;
   if(erase) {
-    if(out->parent)
-      vector_remove(out->parent->child, (vtype)vector_find(out->parent->child, (vtype)out));
-    if(out->child)
+    vtype index;
+    if(out->parent) {
+      index = vector_find(out->parent->child, (vtype)out);
+      vector_remove(out->parent->child, index);
+    }
+    if(out->child) {
       for(i = 0; i < size; i++) {
         VM_Shred child = (VM_Shred)vector_front(out->child);
         shreduler_remove(s, child, 1);
       }
-    vector_remove(s->vm->shred, (vtype)vector_find(s->vm->shred, (vtype)out));
+    }
+    index = vector_find(s->vm->shred, (vtype)out);
+    vector_remove(s->vm->shred, index);
   }
   out->is_running = 0;
   if(!out->prev && !out->next && out != s->list) {

@@ -667,12 +667,12 @@ static m_bool scan2_Stmt_List(Env env, Stmt_List list)
 
 m_bool scan2_Func_Def(Env env, Func_Def f)
 {
-  Type type = NULL;
-  Value value = NULL;
-  Func func = NULL;
-  Value overload = NULL;
-  Value v;
+  Type     type     = NULL;
+  Value    value    = NULL;
+  Func     func     = NULL;
+  Value    overload = NULL;
   Arg_List arg_list = NULL;
+  Value    v;
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
@@ -783,7 +783,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   arg_list = f->arg_list;
   count = 1;
-  f->stack_depth = func->is_member ? sizeof(void *) : 0;
+  f->stack_depth = func->is_member ? SZ_INT : 0;
 
   namespace_push_value(env->curr);
 

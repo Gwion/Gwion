@@ -535,7 +535,10 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
   while(arg_list) {
     arg_list->type = find_type(env, arg_list->type_decl->xid);
     if(!arg_list->type) {
-      err_msg(SCAN1_, arg_list->pos, "unknown type in argument %i of func %s",  count , S_name(ptr->xid));
+      m_str path = type_path(arg_list->type_decl->xid);
+      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count , S_name(ptr->xid));
+      /*err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count , S_name(ptr->xid));*/
+      free(path);
       return -1;
     }
     count++;
@@ -603,7 +606,11 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       /*if(!arg_list->type && !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))*/
       /*if(!arg_list->type || !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))*/
     {
-      err_msg(SCAN1_, arg_list->pos, "unknown type in argument %i of func %s", count , S_name(f->name));
+      printf("env: %p\n", env->curr);
+      printf("%s %p\n", S_name(arg_list->type_decl->xid->xid), namespace_lookup_type(env->curr, arg_list->type_decl->xid->xid, 0));
+      m_str path = type_path(arg_list->type_decl->xid);
+      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path, count , S_name(f->name));
+      free(path);
       return -1;
     }
     count++;

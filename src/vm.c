@@ -9,12 +9,14 @@
 #include "instr.h"
 #include "ugen.h"
 
+#include "driver.h"
+
 void stop_plug();
 
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename)
 {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
-//  code->instr            = instr ?  vector_copy(instr) : new_Vector();
+  //  code->instr            = instr ?  vector_copy(instr) : new_Vector();
   code->instr            = instr ?  vector_copy(instr) : NULL;
   code->stack_depth      = stack_depth;
   code->need_this        = need_this;
@@ -22,7 +24,7 @@ VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
   code->filename         = strdup(filename);
   code->native_func      = 0;
   code->native_func_type = NATIVE_UNKNOWN;
-//  code->gack             = new_Vector(); // this is from Code
+  //  code->gack             = new_Vector(); // this is from Code
   return code;
 }
 
@@ -32,16 +34,18 @@ void free_VM_Code(VM_Code a)
   for(i = 0; i < vector_size(a->instr); i++)
     free((Instr)vector_at(a->instr, i));
   free_Vector(a->instr);
-//  free(a->name);
-//  free(a->filename);
-  free(a->gack);
+  for(i = 0; i < vector_size(a->gack); i++)
+    free_Vector((Vector)vector_at(a->gack, i));
+  free_Vector(a->gack);
+  //  free(a->name);
+  //  free(a->filename);
   free(a);
 }
 
 VM_Shred new_VM_Shred(VM_Code c)
 {
   VM_Shred shred    = malloc(sizeof(struct VM_Shred_));
-//  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
+  //  shred->mem        = calloc(SIZEOF_MEM, sizeof(char));
   shred->_mem        = calloc(SIZEOF_MEM, sizeof(char));
   shred->mem = shred->_mem;
   shred->reg        = calloc(SIZEOF_REG, sizeof(char));
@@ -75,12 +79,37 @@ void free_VM_Shred(VM_Shred shred)
 {
   release(shred->me, shred);
   free_VM_Code(shred->code);
-//  free(shred->_mem);
-//  free(shred->mem);
-//  free(shred->reg);
-//  free(shred->name);
-//  free(shred->filename);
+  //  free(shred->_mem);
+  //  free(shred->mem);
+  //  free(shred->reg);
+  //  free(shred->name);
+  //  free(shred->filename);
   free(shred);
+}
+
+BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
+{
+  BBQ a = malloc(sizeof(struct BBQ_));
+  Driver* d = di->func(vm);
+  if(d->ini(vm, di) < 0)
+    goto error;
+  sp_createn(&a->sp, di->out);
+  memset(a->sp->out, 0, di->out * sizeof(SPFLOAT));
+  a->in   = calloc(di->in, sizeof(SPFLOAT));
+  a->n_in = di->in;
+  a->sp->sr = di->sr;
+  *driver = d;
+  return a;
+error:
+  free(a);
+  return NULL;
+}
+
+static void free_BBQ(BBQ a)
+{
+  sp_destroy(&a->sp);
+  free(a->in);
+  free(a);
 }
 
 VM* new_VM(m_bool loop)
@@ -103,16 +132,14 @@ VM* new_VM(m_bool loop)
 
 void free_VM(VM* vm)
 {
-//  if(vm->env)
-//    rem_ref(vm->env->obj, vm->env);
+  //  if(vm->env)
+  //    rem_ref(vm->env->obj, vm->env);
   if(vm->emit)
     rem_ref(vm->emit->obj, vm->emit);
   stop_plug();
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
-  sp_destroy(&vm->bbq->sp);
-  free(vm->bbq->in);
-  free(vm->bbq);
+  free_BBQ(vm->bbq);
   free_Shreduler(vm->shreduler);
   free(vm);
 }
@@ -151,8 +178,8 @@ void vm_run(VM* vm)
                   sh->pc, sh->next_pc, vector_size(sh->code->instr));
 
         break;
-//continue;
-//        shred->is_done = 1;
+        //continue;
+        //        shred->is_done = 1;
       } else if(!instr->execute) {
         err_msg(VM_, 0, "internal error: instruction has no execute function");
         shred->is_done = 1;
@@ -161,10 +188,10 @@ void vm_run(VM* vm)
 #endif
         instr->execute(vm, shred, instr);
       if(shred->is_done) {
-// is this test good ?
+        // is this test good ?
         if(shreduler_remove(vm->shreduler, shred, 1) < 0)
           break;
-//  shreduler_remove(vm->shreduler, shred, 1);
+        //  shreduler_remove(vm->shreduler, shred, 1);
       }
 #ifdef DEBUG_STACK
       /*  else */
