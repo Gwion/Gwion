@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include "defs.h"
 #include "map.h"
@@ -119,10 +118,11 @@ static Doc* new_Doc(Env env, m_str str)
   return doc;
 }
 
-static void free_Doc(Doc* doc)
+static void free_Doc(Doc* a)
 {
-  fclose(doc->html);
-  fclose(doc->data);
+  fclose(a->data);
+  fclose(a->html);
+  free(a);
 }
 
 static m_str getfull(Doc* doc, NameSpace nspc, m_str name)
@@ -215,8 +215,12 @@ static void mkdoc_value(Doc* doc, Value v)
                v->m_type->owner ?
                usable(v->m_type->owner->filename) :
                usable("global_nspc");
+  m_str p_type = print_type(v->m_type);
+//m_str p_type = print_type(v->m_type);
   fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
-          full, file, type, print_type(v->m_type), v->name);
+          //  full, file, type, p_type, v->name);
+          full, file, type, p_type, v->name);
+//free(p_type);
   if(v->doc)
     fprintf(doc->html, "<em> %s</em></li></p>\n", v->doc);
   else
@@ -231,6 +235,7 @@ static void mkdoc_value(Doc* doc, Value v)
   free(full);
   free(type);
   free(file);
+  free(p_type);
 }
 
 static void mkdoc_func(Doc* doc, Func f)
@@ -244,9 +249,11 @@ static void mkdoc_func(Doc* doc, Func f)
   m_str type  = f->def->ret_type->array_type ?
                 getfull(doc, f->def->ret_type->array_type->owner, f->def->ret_type->name) :
                 getfull(doc, f->def->ret_type->owner, f->def->ret_type->name);
+  m_str p_type = print_type(f->def->ret_type);
+
   name = strsep(&name, "@");
   fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><a class=\"reference external\" href=\"%s.html#%s\"><li>%s</a> <strong>%s</strong>",
-          full, file, type, print_type(f->def->ret_type), name);
+          full, file, type, p_type, name);
   if(f->doc)
     fprintf(doc->html, "<em> %s</em>\n", f->doc);
   else
@@ -263,13 +270,13 @@ static void mkdoc_func(Doc* doc, Func f)
     m_str a_file = v->m_type->array_type ?
                    usable(v->m_type->array_type->owner->filename) :
                    usable(v->m_type->owner->filename);
-
+    m_str ap_type = print_type(v->m_type);
     memset(a_full, 0, 1024);
     strcat(a_full, full);
     strcat(a_full, "_");
     strcat(a_full, v->name);
     fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
-            a_full, a_file, a_type, print_type(v->m_type), v->name);
+            a_full, a_file, a_type, ap_type, v->name);
 //    if(v->doc)
 //      fprintf(doc->html, "<em>%s</em></li></p>\n", v->doc);
     if(arg->doc)
@@ -278,6 +285,7 @@ static void mkdoc_func(Doc* doc, Func f)
       fprintf(doc->html, "</li></p>\n");
     free(a_type);
     free(a_file);
+    free(ap_type);
     m_str str = v->doc ? strndup(v->doc, 16) : "";
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[argument\%s in <b>%s</b> <em>%s</em> '] ]],\n",
             v->name, v->name, file, a_full, "]", v->owner->name, str);
@@ -300,6 +308,7 @@ static void mkdoc_func(Doc* doc, Func f)
   free(full);
   free(type);
   free(file);
+  free(p_type);
 }
 
 static void mkdoc_type(Doc* doc, Type t);

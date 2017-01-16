@@ -130,7 +130,7 @@ typedef struct
   Expression exp;
   int pos;
   Expression self;
-	Func func;
+  Func func;
 } Cast_Expression;
 
 typedef struct 
@@ -184,9 +184,8 @@ typedef struct
         Expression exp;
         Complex* cmp;
         Polar* polar;
-    		Vec vec;
-		};
-
+        Vec vec;
+    };
     int pos;
     Expression self;
 }Primary_Expression;
@@ -200,9 +199,9 @@ typedef struct
   VM_Code vm_code;
   int pos;
   Expression self;
-	Type_List types;
-	ID_List base;// hack for template
-	Func    base_func;// hack for template //hack
+  Type_List types;
+  ID_List base;// hack for template
+  Func    base_func;// hack for template //hack
 } Func_Call;
 
 
@@ -253,25 +252,24 @@ typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_ty
 
 typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
 
-typedef struct Stmt_List_ * Stmt_List;
-typedef struct Stmt_Code_ * Stmt_Code;
-typedef struct Stmt_Return_ * Stmt_Return;
-typedef struct Stmt_Continue_ * Stmt_Continue;
-typedef struct Stmt_Return_ * Stmt_Break;
-typedef struct Stmt_While_ * Stmt_While;
-typedef struct Stmt_Until_ * Stmt_Until;
-typedef struct Stmt_For_ * Stmt_For;
-typedef struct Stmt_Loop_ * Stmt_Loop;
-typedef struct Stmt_If_ * Stmt_If;
-typedef struct Stmt_Switch_ * Stmt_Switch;
-typedef struct Stmt_Case_ * Stmt_Case;
-//typedef struct Stmt_Label_ * Stmt_Label;
+typedef struct Stmt_List_       * Stmt_List;
+typedef struct Stmt_Code_       * Stmt_Code;
+typedef struct Stmt_Return_     * Stmt_Return;
+typedef struct Stmt_Continue_   * Stmt_Continue;
+typedef struct Stmt_Return_     * Stmt_Break;
+typedef struct Stmt_While_      * Stmt_While;
+typedef struct Stmt_Until_      * Stmt_Until;
+typedef struct Stmt_For_        * Stmt_For;
+typedef struct Stmt_Loop_       * Stmt_Loop;
+typedef struct Stmt_If_         * Stmt_If;
+typedef struct Stmt_Switch_     * Stmt_Switch;
+typedef struct Stmt_Case_       * Stmt_Case;
 typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
-typedef struct Stmt_Enum_ * Stmt_Enum;
+typedef struct Stmt_Enum_       * Stmt_Enum;
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
-							 ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
+               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
              } ae_Stmt_Type;
 
 typedef struct
@@ -283,9 +281,10 @@ typedef struct
 	Arg_List   args;
 	Type       ret_type;
 	Func       func;
-	Value			 value;
+	Value      value;
 	int        pos;
 	Expression self;
+//    Type ref;
 } Func_Ptr;
 
 typedef struct Decl_List_* Decl_List;
@@ -301,7 +300,7 @@ typedef struct
   Decl_List l;
   Vector v;
   m_uint s;
-	m_uint o;
+  m_uint o;
 } Union;
 
 Union* new_Union(Decl_List l);
@@ -407,8 +406,8 @@ struct Stmt_Continue_
   Stmt* self;
 };
 
-struct Stmt_Break_ 
-{ 
+struct Stmt_Break_
+{
   int pos;
   Stmt* self;
 };
@@ -459,11 +458,11 @@ struct Stmt_Goto_Label_
 {
   S_Symbol name;
   m_bool is_label;
-	union
-	{
-		Vector v;
-		Instr instr;
-	} data;
+  union
+  {
+    Vector v;
+    Instr instr;
+  } data;
   int pos;
   Stmt* self;
 };
@@ -518,7 +517,7 @@ typedef struct Class_Body_ * Class_Body;
 
 struct Class_Def_
 {
-	ae_Keyword decl;
+  ae_Keyword decl;
   ID_List name;
   Class_Ext ext;
   Class_Body body;

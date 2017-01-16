@@ -1,7 +1,3 @@
-/** @file src/scan0.c
- *  @brief zero level scan.
- */
-
 #include "err_msg.h"
 #include "absyn.h"
 static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
@@ -12,11 +8,11 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   t->name = S_name(ptr->xid);
   t->owner = env->curr;
   t->array_depth = 0;
-  t->size = sizeof(void *);
-  t->info = new_NameSpace(); // done filename
+  t->size = SZ_INT;
+  t->info = new_NameSpace(); // done filename // do we nedd this one ?
   t->info->filename = env->context->filename;
   t->parent = &t_func_ptr;
-  add_ref(t->info->obj);
+//  ptr->ref = t;
   namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
   return 1;
 }
@@ -52,7 +48,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->name = S_name(class_def->name->xid);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
-  the_class->size = sizeof(void *);
+  the_class->size = SZ_INT;
   the_class->info = new_NameSpace(); // done filename
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
@@ -96,17 +92,23 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     Value value;
     Type  type;
 
-    type = type_copy(env, &t_class );
+    type = type_copy(env, &t_class);
     type->actual_type = the_class;
     value = new_Value(env->context, type, the_class->name);
     value->owner = env->curr;
     value->is_const = 1;
     value->is_member = 0;
     value->checked = 1;
+//    add_ref(value->obj);
+    add_ref(the_class->obj);
+//the_class->obj->ref_count = 2;
     namespace_add_value(env->curr, insert_symbol(value->name), value );
     class_def->type = the_class;
-    if(env->curr == env->context->nspc)
+    if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
+// 04/01/17
+      context_add_class(env->context, value, value->obj);
+    }
   }
   if(class_def->home) {
     env->curr = (NameSpace)vector_back(env->nspc_stack);
@@ -145,6 +147,9 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list)
   }
   return 1;
 }
+
+static Type public_type = NULL;
+
 m_bool scan0_Ast(Env env, Ast prog)
 {
   m_bool ret = 1;
@@ -161,13 +166,13 @@ m_bool scan0_Ast(Env env, Ast prog)
         if(env->context->public_class_def != NULL) {
           err_msg(SCAN0_, prog->section->class_def->pos,
                   "more than one 'public' class defined..." );
-          ret = -1;
-          continue;
+          return -1;
         }
         prog->section->class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
         env->context->public_class_def = prog->section->class_def;
       }
       ret = scan0_Class_Def( env, prog->section->class_def );
+      public_type = env->context->public_class_def->type;
       break;
     default:
       err_msg(SCAN0_, prog->pos,

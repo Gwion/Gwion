@@ -146,17 +146,23 @@ static m_bool scan1_Func_Call( Env env, Func_Call* func_call )
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call");
 #endif
-  if(func_call->types) {
-    Type_List list = func_call->types;
-    while(list) {
-      Type t = find_type(env, list->list);
-      if(!t) {
-        err_msg(SCAN1_, func_call->pos, "type '%s' unknown in template call", S_name(list->list->xid));
-        return -1;
+  if(func_call->types)
+    return 1;
+  /*
+    if(func_call->types) {
+      Type_List list = func_call->types;
+      while(list) {
+        Type t = find_type(env, list->list);
+        if(!t) {
+          err_msg(SCAN1_, func_call->pos, "type '%s' unknown in template call", S_name(list->list->xid));
+  //        free_Type_List(func_call->types);
+  //		free(func_call->def);
+          return -1;
+        }
+        list = list->next;
       }
-      list = list->next;
     }
-  }
+  */
   return scan1_Func_Call1( env, func_call->func, func_call->args, func_call->m_func, func_call->pos );
 }
 
@@ -353,17 +359,24 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
       err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
       return -1;
     }
-    t = type_copy(env, &t_int);
-    t->name = stmt->xid ? S_name(stmt->xid) : "int";
-    namespace_add_type(nspc, stmt->xid, t);
   }
+  t = type_copy(env, &t_int);
+  t->name = stmt->xid ? S_name(stmt->xid) : "int";
+  t->parent = &t_int;
+//    add_ref(t->obj);
+  namespace_add_type(nspc, stmt->xid, t);
   while(list) {
-    Value v = NULL;
+    Value v;
     if(namespace_lookup_value(nspc, list->xid, 0)) {
       err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, S_name(list->xid));
+//      vector_append(stmt->values, (vtype)v);
+//free(t);
       return -1;
     }
-    v = new_Value(env->context, stmt->xid ? t : &t_int, S_name(list->xid) );
+//    v = new_Value(env->context, stmt->xid ? t : &t_int, S_name(list->xid) );
+    v = new_Value(env->context, t, S_name(list->xid));
+    add_ref(t->obj);
+    add_ref(v->obj);
     v->is_const = 2;
     if(env->class_def) {
       v->owner_class = env->class_def;
@@ -465,8 +478,19 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
     while(l) {
       Var_Decl_List list = l->self->list;
       Var_Decl var_decl = NULL;
+      printf("here %p\n", l->self->type);
+      if(!l->self->type) { // weird bug
+        err_msg(SCAN1_, l->self->pos, "must povide type declaration in enum");
+        free(stmt->stmt_union);
+        stmt->stmt_union = NULL;
+//fake_type
+//l->self->type = calloc(1, sizeof(Type_Decl));
+//l->self->type->xid = calloc(1, sizeof(struct ID_List_));
+        return -1;
+      }
+
       Type t = find_type(env, l->self->type->xid);
-      if(!t) {
+      if(!t) {// TODO better typename
         err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
         return -1;
       }
@@ -484,7 +508,6 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
       }
       l->self->m_type = t;
       add_ref(l->self->m_type->obj);
-
       l = l->next;
     }
     ret = 1;
@@ -524,11 +547,13 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
 
   if(!ptr->ret_type) {
     err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  S_name(ptr->xid));
+    free_Type_Decl(ptr->type);
     return -1;
   }
 
   if(!env->class_def && ptr->key == ae_key_static) {
     err_msg(SCAN1_, ptr->pos, "can't declare func pointer static outside of a class");
+    free_Type_Decl(ptr->type);
     return -1;
   }
 
@@ -536,8 +561,8 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
     arg_list->type = find_type(env, arg_list->type_decl->xid);
     if(!arg_list->type) {
       m_str path = type_path(arg_list->type_decl->xid);
-      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count , S_name(ptr->xid));
-      /*err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count , S_name(ptr->xid));*/
+      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count, S_name(ptr->xid));
+      free_Type_Decl(ptr->type);
       free(path);
       return -1;
     }
@@ -556,7 +581,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
 
   if(f->spec == ae_func_spec_dtor && !env->class_def) {
     err_msg(SCAN1_, f->pos, "dtor must be in class def!!");
-    return -1;
+    goto error;
   }
 
   if(f->types)  // templating. nothing to be done here
@@ -572,7 +597,10 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
   if(!f->ret_type) {
     err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
             S_name(f->type_decl->xid->xid), S_name(f->name));
+//free(f);
+//    free_Func_Def(f);
     return -1;
+//    goto error;
   }
 
   // check if array
@@ -585,7 +613,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     if(f->type_decl->array->exp_list) {
       err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name) );
       err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s" );
-      return -1;
+      goto error;
     }
 
     // create the new array type
@@ -609,9 +637,9 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       printf("env: %p\n", env->curr);
       printf("%s %p\n", S_name(arg_list->type_decl->xid->xid), namespace_lookup_type(env->curr, arg_list->type_decl->xid->xid, 0));
       m_str path = type_path(arg_list->type_decl->xid);
-      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path, count , S_name(f->name));
+      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path, count, S_name(f->name));
       free(path);
-      return -1;
+      goto error;
     }
     count++;
     arg_list = arg_list->next;
@@ -621,19 +649,22 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     // check argument number
     if(count > 3 || count == 1) {
       err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n");
-      return -1;
+      goto error;
     }
     // and name
     if(name2op(S_name(f->name)) < 0) {
       err_msg(SCAN1_, f->pos, "%s is not a valid operator name\n", S_name(f->name));
-      return -1;
+      goto error;
     }
   }
   if(f->code && scan1_Stmt_Code(env, f->code->stmt_code, 0) < 0) {
     err_msg(SCAN1_, f->pos, "...in function '%s'\n", S_name(f->name));
-    return -1;
+    goto error;
   }
   return 1;
+error:
+//  free_Func_Def(f);
+  return -1;
 }
 
 static m_bool scan1_Class_Def(Env env, Class_Def class_def)

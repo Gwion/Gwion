@@ -14,6 +14,12 @@ void context_add_value(Context context, Value value, VM_Object obj)
   vector_append(context->new_values, (vtype)value);
 }
 
+void context_add_class(Context context, Value value, VM_Object obj)
+{
+  obj->ref = context->new_class;
+  vector_append(context->new_class, (vtype)value);
+}
+
 void context_add_func(Context context, Func func, VM_Object obj)
 {
   obj->ref = context->new_funcs;
@@ -32,30 +38,43 @@ Context new_Context(Ast prog, m_str filename)
   context->new_funcs = new_Vector();
   context->new_values = new_Vector();
   context->new_types = new_Vector();
+  context->new_class = new_Vector();
   context->public_class_def = NULL;
   return context;
 }
-
+#include "func.h"
 void free_Context(Context a)
 {
-  m_uint i;
-//  free_NameSpace(a->nspc);
-  rem_ref(a->nspc->obj, a->nspc);
-  free_Vector(a->new_funcs);
-  for(i = 0; i < vector_size(a->new_values); i++) {
-    printf("lol\n");
+  vtype i;
+
+  for(i = 0; i < vector_size(a->new_funcs); i++) {
+    Func f = (Func)vector_at(a->new_funcs, i);
+    if(f->def->spec == ae_func_spec_op) {
+      free(f->value_ref->name);
+      free(f->value_ref->m_type->name);
+      free(f->value_ref->m_type->obj);
+      free(f->value_ref->m_type);
+      rem_ref(f->value_ref->obj, f->value_ref);
+      rem_ref(f->obj, f);
+      continue;
+    } else if(!f->def->is_template) {
+      free(f->value_ref->m_type->name);
+      rem_ref(f->value_ref->m_type->obj, f->value_ref->m_type);
+      free(f->value_ref->name);
+      rem_ref(f->value_ref->obj, f->value_ref);
+    }
   }
+  free_Vector(a->new_funcs);
+
+  for(i = 0; i < vector_size(a->new_class); i++) {
+    Value v = (Value)vector_at(a->new_class, i);
+    rem_ref(v->m_type->obj, v->m_type);
+    rem_ref(v->obj, v);
+  }
+  free_Vector(a->new_class);
   free_Vector(a->new_values);
-  // delete user class
-//  for(i = 0; i < vector_size(a->new_types); i++) {
-//    if(strcmp(a->filename, "global_context")) {
-//      Type t = (Type)vector_at(a->new_types, i);
-//      printf("%s\n", ((Type)vector_at(a->new_types, i))->name);
-//free(t);
-//rem_ref(t->obj, t);
-//    }
-//  }
   free_Vector(a->new_types);
+  rem_ref(a->nspc->obj, a->nspc);
   free(a);
 }
 
@@ -76,7 +95,7 @@ int unload_context(Context context, Env env)
   namespace_pop_value(env->context->nspc);
   env->curr = (NameSpace)vector_back(env->nspc_stack);
   vector_pop(env->nspc_stack);
-//    rem_ref(env->context->obj, env->context);
+//  rem_ref(env->context->obj, env->context);
   env->context = (Context)vector_back(env->contexts);
   vector_pop(env->contexts);
   return 1;

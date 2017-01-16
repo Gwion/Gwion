@@ -8,16 +8,24 @@
 #include "doc.h"
 
 #define prepare() \
+  Ast ast; \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\
 	if(strcmp(str, "global_context"))\
 	{\
 	  str = realpath(str, NULL);\
 	  if(!str) return;\
-	  Ast ast = parse(str);\
+	  ast = parse(str);\
 	  if(!ast) return;\
 	  if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0) return;\
 	}
+
+#define clean() \
+  free_Ast(ast);
+//  if(strcmp(str, "global_context"))\
+//   free(str);\
+//  release(obj, shred);\
+
 
 static SFUN(machine_add)
 {
@@ -30,8 +38,28 @@ static SFUN(machine_add)
 
 static SFUN(machine_doc)
 {
-  prepare()
+//  prepare()
+Ast ast;
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
+  char* str = STRING(obj);
+  m_bool global = strcmp(str, "global_context");
+  if(global) {
+    str = realpath(str, NULL);
+    if(!str)
+      return;
+    ast = parse(str);
+    if(!ast)
+      return;
+    if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0)
+      return;
+  }
+
   mkdoc_context(shred->vm_ref->env, str);
+  free_Ast(ast);
+  release(obj, shred);
+  if(global)
+    free(str);
+//  clean()
 }
 
 static int js_filter(const struct dirent* dir)
@@ -111,6 +139,7 @@ SFUN(machine_check)
     prefix = ".";
   else
     prefix = STRING(prefix_obj);
+  release(prefix_obj, shred);
   if(!code_obj) {
     RETURN->v_uint = 0;
     return;
@@ -119,7 +148,9 @@ SFUN(machine_check)
   sprintf(c, "%s/%s", prefix, filename);
   FILE* file = fopen(c, "w");
   fprintf(file, "%s\n", STRING(code_obj));
+  release(code_obj, shred);
   fclose(file);
+  free(filename);
   Ast ast = parse(c);
   if(!ast) {
     RETURN->v_uint = 0;
@@ -129,6 +160,7 @@ SFUN(machine_check)
     RETURN->v_uint = 0;
     return;
   }
+  free_Ast(ast); // it could be in 'type_engine_check_prog'
   RETURN->v_uint = (m_uint)new_String(c);
 }
 
@@ -149,6 +181,7 @@ static SFUN(machine_shreds)
     sh = (VM_Shred)vector_at(vm->shred, i);
     i_vector_set(obj->array, i, sh->xid);
   }
+printf("obj: %p %i\n",obj, obj->ref);
   RETURN->v_object = obj;
 }
 

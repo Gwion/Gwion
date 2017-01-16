@@ -1,7 +1,4 @@
-/** @file src/scan2.c
- * @brief second level scan
- */
-#include <string.h> // use in Func_Def
+#include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
 #include "func.h"
@@ -19,7 +16,6 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
   Var_Decl_List list = decl->list;
   Type type = decl->m_type;
 
-  // shred are to be ref
   if(isa(type, &t_shred) > 0)
     decl->type->ref = 1;
   if(!type->size) {
@@ -76,14 +72,12 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     list->self->value->is_context_global = !env->class_def && !env->func;
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
-
-
+//	add_ref(list->self->value->obj);
     // doc
-    if(!env->class_def && ! env->func)
+    if(!env->class_def && !env->func)
       context_add_value(env->context, list->self->value, list->self->value->obj);
     if(list->doc)
       list->self->value->doc = list->doc;
-
     list = list->next;
   }
   return 1;
@@ -99,6 +93,7 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
   Value v;
   if(namespace_lookup_value(env->curr, ptr->xid, 0)) {
     err_msg(SCAN2_, ptr->pos, "variable %s has already been defined in the same scope...", S_name(ptr->xid));
+    free_Type_Decl(ptr->type);
     return -1;
   }
   // shouldn't it be later ?
@@ -108,8 +103,9 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
   while(arg_list) {
     if( arg_list->type->size == 0 ) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      /*        goto error;*/
-      return -1;
+      free_Type_Decl(ptr->type);
+      goto error;
+//      return -1;
     }
     /*
     // check if reserved
@@ -128,8 +124,9 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "...(primitive types: 'int', 'float', 'time', 'dur')" );
-      return -1;
-      /*      goto error;*/
+      free_Type_Decl(ptr->type);
+//      return -1;
+      goto error;
     }
 
     if(arg_list->var_decl->array) {
@@ -142,10 +139,11 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
       // should be partial and empty []
       if(arg_list->var_decl->array->exp_list) {
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid) );
-        err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
+        err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid) );
-        return -1;
-        /*        goto error;*/
+        free_Type_Decl(ptr->type);
+//        return -1;
+        goto error;
       }
       // create the new array type
       t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
@@ -154,37 +152,15 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
       arg_list->type = t;
       /*      SAFE_REF_ASSIGN( arg_list->type, t );*/
     }
-    // check if array
 
-    // make new value
     v = calloc(1, sizeof(struct Value_));
     v->m_type = arg_list->type;
-    /*  v->doc = arg_list->doc;*/
-    /*  if(arg_list->doc)*/
-    /*    exit(2);*/
     v->name = S_name(arg_list->var_decl->xid);
-    // remember the owner
     v->owner = env->curr;
-    // function args not owned
-    /*  v->owner_class = NULL;*/
-    /*  v->is_member = 0;*/
-
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
-
-
-    // stack
-    /*  v->offset = f->stack_depth;*/
-    /*  f->stack_depth += arg_list->type->size;*/
-    /*  f->stack_depth++;*/
-
-    // remember
     arg_list->var_decl->value = v;
-
-    // count
     count++;
-    // next arg
     arg_list = arg_list->next;
-
   }
   namespace_pop_value(env->curr);
 
@@ -207,9 +183,13 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
     ptr->func->is_member   = !ptr->key;
   }
   /*  if(env->class_def)*/
-  /*    ptr->func->is_member   = 1;*/
+  //    ptr->func->is_member   = 1;*/
   namespace_add_func(env->curr, ptr->xid, ptr->func);
+  add_ref(ptr->func->obj);
   return 1;
+error:
+  namespace_pop_value(env->curr);
+  return -1;
 }
 
 static m_bool scan2_Primary_Expression(Env env, Primary_Expression* primary)
@@ -311,31 +291,26 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
       Value v = namespace_lookup_value(env->curr, func_call->func->primary_exp->var, 1);
       if(!v) {
         err_msg(SCAN2_, func_call->pos, "template call of non-existant function.");
-        return -1;
+        goto error;
       }
       Func_Def base = v->func_ref->def;
       if(!base->types) {
         err_msg(SCAN2_, func_call->pos, "template call of non-template function.");
-        return -1;
+        goto error;
       }
+      Type_List list = func_call->types;
+      while(list) {
+        Type t = find_type(env, list->list);
+        if(!t) {
+          err_msg(SCAN1_, func_call->pos, "type '%s' unknown in template call", S_name(list->list->xid));
+          return -1;
+        }
+        list = list->next;
+      }
+
       return 1;
     } else if(func_call->func->exp_type == Dot_Member_type) {
-
-      /*find_type(env, func_call->func->dot_member->base->xid);*/
-      /*exit(3);*/
-      /*printf("here %p %s\n",  func_call->func->dot_member->base->xid), S_name(func_call->func->dot_member->xid));*/
-      /*Value v = find_value(func_call->func->dot_member->base->type, func_call->func->dot_member->xid);*/
-      /*if(!v)*/
-      /*{*/
-      /*err_msg(SCAN2_, func_call->pos, "template call of non-existant function.");*/
-      /*return -1;*/
-      /*}*/
-      /*Func_Def base = v->func_ref->def;*/
-      /*if(!base->types)*/
-      /*{*/
-      /*err_msg(SCAN2_, func_call->pos, "template call of non-template function.");*/
-      /*return -1;*/
-      /*}*/
+      // see type.c
       return 1;
     } else {
       err_msg(SCAN2_, func_call->pos, "unhandled expression type '%i' in template func call.", func_call->func->exp_type);
@@ -343,6 +318,10 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
     }
   }
   return scan2_Func_Call1(env, func_call->func, func_call->args, func_call->m_func);
+error: // handle template error
+//  free(func_call->types);
+//  free(func_call->types->list);
+  return -1;
 }
 
 static m_bool scan2_Dot_Member(Env env, Dot_Member* member)
@@ -528,7 +507,7 @@ static m_bool scan2_Case(Env env, Stmt_Case stmt)
 static m_bool scan2_Goto_Label(Env env, Stmt_Goto_Label stmt)
 {
 #ifdef DEBUG_SCAN2
-  debug_msg("scan1", "%s '%'", stmt->is_label ? "label" : "goto", S_name(stmt->name));
+  debug_msg("scan1", "%s '%s'", stmt->is_label ? "label" : "goto", S_name(stmt->name));
 #endif
   Map m;
   m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
@@ -540,10 +519,22 @@ static m_bool scan2_Goto_Label(Env env, Stmt_Goto_Label stmt)
     }
     if(map_get(m, (vtype)stmt->name)) {
       err_msg(SCAN2_, stmt->pos, "label '%s' already defined", S_name(stmt->name));
+      Stmt_Goto_Label l =  (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+      free_Vector(l->data.v);
       return -1;
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     stmt->data.v = new_Vector();
+  }
+  return 1;
+}
+
+static m_bool scan2_Stmt_Enum(Env env, Stmt_Enum stmt)
+{
+  Value v = namespace_lookup_value(env->curr, stmt->xid, 1);
+  if(v) {
+    err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
+    return -1;
   }
   return 1;
 }
@@ -611,6 +602,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
+
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
@@ -618,31 +610,32 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
+
   case ae_stmt_case:
     ret = scan2_Case(env, stmt->stmt_case);
     break;
+
   case ae_stmt_gotolabel:
     ret = scan2_Goto_Label(env, stmt->stmt_gotolabel);
     break;
+
   case ae_stmt_continue:
   case ae_stmt_break:
-  case ae_stmt_enum:
-    if(namespace_lookup_value(env->curr, stmt->stmt_enum->xid, 1)) {
-      err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", S_name(stmt->stmt_enum->xid));
-      return -1;
-    }
-    ret = 1;
     break;
+  case ae_stmt_enum:
+    ret = scan2_Stmt_Enum(env, stmt->stmt_enum);
+    break;
+
   case ae_stmt_funcptr:
     ret = scan2_Func_Ptr(env, stmt->stmt_funcptr);
     break;
+
   case ae_stmt_union:
     l = stmt->stmt_union->l;
     while(l) {
-      CHECK_BB(scan2_Decl_Expression(env, l->self))
+      ret = scan2_Decl_Expression(env, l->self);
       l = l->next;
     }
-    ret = 1;
     break;
 
   default:
@@ -699,7 +692,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->value_ref = value;
     add_ref(value->obj);
     f->func = func;
-    add_ref(f->func->obj);
+//    add_ref(f->func->obj);
     value->checked = 1;
     if(overload)
       overload->func_num_overloads++;
@@ -717,7 +710,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(overload) {
     if(isa(overload->m_type, &t_function) < 0) {
       err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
-      return -1;
+      goto error;
     } else {
       if(!overload->func_ref) {
         err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name );
@@ -737,6 +730,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   func_name = strdup(tmp);
   func = new_Func(func_name, f);
+//  func = new_Func(func_name, tmp);
   func->is_member = (env->class_def && (f->static_decl != ae_key_static));
 
   if(f->s_type == ae_func_builtin) { // actual builtin func import
@@ -749,8 +743,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   type->xid = te_function;
   type->name = strdup(tmp);
   type->parent = &t_function;
-  type->size = sizeof(void *);
+  type->size = SZ_INT;
   type->func = func;
+  type->obj = new_VM_Object(e_type_obj);
   /*printf("%s is member %i\n", S_name(f->name), func->is_member);*/
   value = new_Value(env->context, type, func_name);
   value->is_const = 1;
@@ -761,7 +756,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   value->func_ref = func;
   add_ref(value->func_ref->obj);
   func->value_ref = value;
-  add_ref(value->obj);
   f->func = func;
   add_ref(f->func->obj);
 
@@ -792,6 +786,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       arg_list->type = find_type(env, arg_list->type_decl->xid);
     if(!arg_list->type->size) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
+      namespace_pop_value(env->curr);
       goto error;
     }
 
@@ -799,6 +794,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     // check if reserved
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name) );
+      namespace_pop_value(env->curr);
       goto error;
     }
 
@@ -811,6 +807,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "...(primitive types: 'int', 'float', 'time', 'dur')" );
+      namespace_pop_value(env->curr);
       goto error;
     }
 
@@ -823,6 +820,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name) );
         err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid) );
+        namespace_pop_value(env->curr);
         goto error;
       }
 
@@ -834,17 +832,16 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       arg_list->type = t;
       /*      SAFE_REF_ASSIGN( arg_list->type, t );*/
     }
-
     // make new value
     v = calloc(1, sizeof(struct Value_));
     v->m_type = arg_list->type;
-    /*  v->doc = arg_list->doc;*/
+    //v->doc = arg_list->doc;
     v->name = S_name(arg_list->var_decl->xid);
     // remember the owner
     v->owner = env->curr;
     // function args not owned
-    /*  v->owner_class = NULL;*/
-    /*  v->is_member = 0;*/
+    // v->owner_class = NULL;
+    //  v->is_member = 0;
 
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     // stack
@@ -852,6 +849,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     f->stack_depth += arg_list->type->size;
 
     // remember
+    if(arg_list->var_decl->value)
+      free_Value(arg_list->var_decl->value);
     arg_list->var_decl->value = v;
 
     // count
@@ -860,15 +859,17 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     arg_list = arg_list->next;
   }
 
-  if(f->is_variadic)
-    f->stack_depth += SZ_INT;
   namespace_pop_value(env->curr);
 
-  if(f->spec == ae_func_spec_op) {
-    m_str str = S_name(f->name);
+  if(f->is_variadic)
+    f->stack_depth += SZ_INT;
+  else if(f->spec == ae_func_spec_op) {
+    m_str str = strdup(S_name(f->name));
     str = strsep(&str, "@");
     add_binary_op(env, name2op(str), f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 0);
-    // free op
+    free(str);
+    if(!env->class_def)
+      context_add_func(env->context, func, func->obj);
     return 1;
   }
 
@@ -877,14 +878,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     context_add_func(env->context, func, func->obj);
 
-  if(!overload) {
+  if(!overload)
     namespace_add_value(env->curr, insert_symbol(orig_name), value);
-    namespace_add_value(env->curr, insert_symbol(value->name), value);
-    //    namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
-  } else {
+  else {
     namespace_add_value(env->curr, insert_symbol(func->name), value);
-    //    namespace_add_func( env->curr, insert_symbol(func->name), func );
-    // make sure returns are equal, if not templating
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
       if(!f->is_template) // template func don't check ret_type case
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
@@ -895,7 +892,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, S_name(f->name),
                     value->owner_class->name, S_name(f->name) );
-          goto error;
+//return -1;
+//          goto error;
         }
   }
   namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
@@ -918,7 +916,16 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 error:
   if(func) {
     env->func = NULL;
+    scope_rem(env->curr->func, f->name);
+    func->def = NULL;
+    f->func = NULL;
     rem_ref(func->obj, func);
+  }
+  if(value) {
+    free(value->m_type->name);
+    free(value->name);
+    rem_ref(value->m_type->obj, value->m_type);
+    rem_ref(value->obj, value);
   }
   return -1;
 }

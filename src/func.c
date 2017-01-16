@@ -6,6 +6,7 @@
 Func new_Func(m_str name, Func_Def def)
 {
   Func func = calloc(1, sizeof(struct Func_));
+//  func->name = strdup(name);
   func->name = name;
   func->def = def;
   func->next = NULL;
@@ -20,9 +21,22 @@ Func new_Func(m_str name, Func_Def def)
 
 void free_Func(Func a)
 {
-  //free_Func_Def(a->def);
-  if(a->code)
-    free_VM_Code(a->code);
-  //free(a->name);
-  //free(a);
+//  if(a->code && !a->def->is_template) {
+  if(a->code) {
+//printf("%s\n", a->code->name);
+    if(a->def && !a->def->is_template)
+//    if(!a->def->is_template || !a->def->types)
+      free_VM_Code(a->code);
+  }
+  /*
+    if(a->def && a->def->is_template) {
+  //    free(a->def);
+      //    free(a->name);
+      free_Func_Def(a->def);
+    } else
+  */
+  if(a->def) {
+    free_Func_Def(a->def);
+  }
+  free(a);
 }

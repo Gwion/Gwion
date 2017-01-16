@@ -291,8 +291,8 @@ stmt
   | case_stmt
   | enum_stmt
   | jump_stmt
-	| func_ptr
-	| union { $$ = new_stmt_from_Union($1, 0); }
+  | func_ptr
+  | union { $$ = new_stmt_from_Union($1, 0); }
   ;
 
 enum_stmt
@@ -463,7 +463,7 @@ decl_list
   ;
 
 union
-  : UNION LBRACE decl_list RBRACE SEMICOLON {$$ = new_Union($3); }
+  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_Union($3); }
   ;
 var_decl_list
   : var_decl  { $$ = new_Var_Decl_List($1, NULL, get_pos(scanner)); $$->doc = get_doc(scanner); }
@@ -641,11 +641,7 @@ postfix_exp
     { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->func_call->types = $2; }
   | postfix_exp template LPAREN exp RPAREN
     { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->func_call->types = $2; }  ;
-//      | postfix_exp LT type_list GT LPAREN RPAREN
-//    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->func_call->types = $3; }
-//  | postfix_exp LT type_list GT LPAREN exp RPAREN
-//    { $$ = new_Func_Call( $1, $6, get_pos(scanner)); $$->func_call->types = $3; }  ;
-
+  ;
 primary_exp
   : ID                { $$ = new_Primary_Expression_from_ID(     $1, get_pos(scanner)); }
   | NUM               { $$ = new_Primary_Expression_from_int(    $1, get_pos(scanner)); }

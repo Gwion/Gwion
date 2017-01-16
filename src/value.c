@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <complex.h>
-#include "value.h"
+#include "type.h"
 
 Value new_Value(Context context, Type type, m_str name)
 {
@@ -21,16 +21,11 @@ Value new_Value(Context context, Type type, m_str name)
   a->obj                = new_VM_Object(e_value_obj);
   return a;
 }
-
-extern struct Type_ t_object;
-extern struct Type_ t_ugen;
 void free_Value(Value a)
 {
-  /*
-    if(a->ptr) { // is it necessary ?
-      if(isprim(a->m_type) > 0)
-        free(a->ptr);
-    }
-  */
+  if(a->ptr) { // is it necessary ?
+    if(isprim(a->m_type) > 0)
+      free(a->ptr);
+  }
   free(a);
 }

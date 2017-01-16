@@ -1,6 +1,2 @@
 Vec3 v;
 v.x;
-//FMSynth.TARGET0;
-<<<Math.rand()>>>;
-<<<v>>>;
-float f; dur d;

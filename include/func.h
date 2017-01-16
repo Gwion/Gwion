@@ -12,8 +12,8 @@ struct Func_
   VM_Object obj;
   m_str doc;
   m_uint vt_index;
-	m_uint variadic_index;
-	Instr variadic_start;
+  m_uint variadic_index;
+  Instr variadic_start;
 //m_bool is_template;
 };
 

@@ -30,10 +30,12 @@ INSTR(Event_Wait)
   M_Object event;
   POP_REG(shred, SZ_INT * 2);
   event = *(M_Object*)shred->reg;
+shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
   vector_append(v, (vtype)shred);
   shred->next_pc++;
+//  shred->me->ref++;
   *(m_int*)shred->reg = 1;
   PUSH_REG(shred, SZ_INT);
 }
@@ -47,6 +49,7 @@ static MFUN(event_signal)
   Vector v = EV_SHREDS(o);
   RETURN->v_uint = vector_size(v);
   sh = (VM_Shred)vector_front(v);
+  sh->wait = NULL;
 #ifdef DEBUG_INSTR
   debug_msg("instr" , "event signal");
 #endif
@@ -55,12 +58,14 @@ static MFUN(event_signal)
   shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);
   vector_remove(v, 0);
 }
+
 void broadcast(M_Object o)
 {
   m_uint i;
   VM_Shred sh;
   for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
+//    sh->wait = NULL;
     shredule(sh->vm_ref->shreduler, sh, get_now(sh->vm_ref->shreduler) + .5);
   }
   vector_clear(EV_SHREDS(o));

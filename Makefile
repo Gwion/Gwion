@@ -60,14 +60,16 @@ ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
 
-clean:
+mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o
-	@rm -f ${PRG}
 	@rm -f include/generated.h
 	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c
 	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
 	@rm -rf doc/html doc/latex
 	@make -s -C ast clean
+
+clean: mostly_clean
+	@rm -f ${PRG}
 
 soundpipe_import: import.lua
 	@lua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c

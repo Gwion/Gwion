@@ -14,7 +14,7 @@ struct VM_Code_
   m_uint native_func;
   e_native_func native_func_type;
   m_bool need_this;
-  Vector gack;
+  Vector gack, switches;
 };
 
 typedef struct BBQ_* BBQ;
@@ -40,7 +40,8 @@ struct VM_Shred_
   char* reg;
   char* mem;
 //  char _mem[SIZEOF_MEM];
-  char* _mem;
+  char* _reg;
+//  char* _mem;
   char* base;
   m_uint pc, next_pc, xid;
   m_str name;
@@ -52,6 +53,7 @@ struct VM_Shred_
   M_Object me;
   m_str filename;
   Vector child;
+  M_Object wait;
 #ifdef DEBUG_STACK
   m_int mem_index, reg_index;
 #endif

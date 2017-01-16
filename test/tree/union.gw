@@ -1,0 +1,6 @@
+union
+{
+  int one;
+  string two;
+};
+<<<one, string>>>;

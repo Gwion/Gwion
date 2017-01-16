@@ -5,7 +5,7 @@
 #include "import.h"
 #include "instr.h"
 
-struct Type_ t_string     = { "string",     sizeof(m_uint), &t_object, te_string};
+struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
 m_int o_string_data;
 
 static INSTR(String_Assign)
@@ -263,7 +263,10 @@ INSTR(Reg_Push_Str)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "push string %s", (m_str)instr->m_val);
 #endif
+  // modified 13/01/17 'get rid of litteral strings'
   *(M_Object*)shred->reg = new_String((m_str)instr->m_val);
+  *(M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
+  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
 #ifdef DEBUG_INSTR
   debug_msg("instr", "push string");

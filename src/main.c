@@ -18,11 +18,12 @@
 
 m_bool udp = 1;
 static VM* vm = NULL;
+volatile m_bool signaled = 0;
 void sig(int unused)
 {
-
   vm->is_running = 0;
   vm->wakeup();
+  signaled = 1;
 }
 static int do_quit = 0;
 
@@ -201,7 +202,6 @@ int main(int argc, char** argv)
   scan_map = new_Map();
   vm = new_VM(loop);
   vm->bbq = new_BBQ(vm, &di, &d);
-  //	vm->is_running = 1;
 
   if(!(vm->env = type_engine_init(vm)))
     goto clean;
@@ -218,6 +218,7 @@ int main(int argc, char** argv)
   d->run(vm, &di);
   if(udp)
     server_destroy(udp_thread);
+  printf("clean\n");
 clean:
   free_Vector(add);
   free_Vector(rem);
@@ -226,7 +227,7 @@ clean:
   free_Map(scan_map);
 
   set_nspc_vm(vm);
-  if(vm)
+  if(vm && !signaled)
     free_VM(vm);
   free_Symbols();
   return 0;

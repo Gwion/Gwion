@@ -36,7 +36,8 @@ M_Object new_String(m_str str)
 {
   M_Object o = new_M_Object();
   initialize_object(o, &t_string);
-  STRING(o) = strdup(str);
+  STRING(o) = str;
+  o->ref--;
   return o;
 }
 
@@ -120,16 +121,12 @@ void object_dtor(M_Object o, VM_Shred shred)
 INSTR(Assign_Object)
 {
 #ifdef DEBUG_INSTR
-  /*  debug_msg("instr", "assign object %i %p %p", instr->m_val, *(m_uint*)(shred->reg -SZ_INT*2), *(m_uint*)(shred->reg - SZ_INT));*/
-  debug_msg("instr", "assign object");
+  debug_msg("instr", "assign object %p %p", instr->m_val, *(m_uint*)(shred->reg -SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
-  /*  M_Object src;*/
   POP_REG(shred, SZ_INT * 2);
-  /*  M_Object done = *(M_Object*)shred->reg;*/
-  /*  M_Object done = **(M_Object**)(shred->reg + SZ_INT);*/
-  /*  M_Object done = *(M_Object*)(shred->reg + SZ_INT);*/
-  /*  if(done)*/
-  /*    release(done, shred);*/
+  M_Object done = **(M_Object**)(shred->reg + SZ_INT);
+  if(done)
+    release(done, shred);
   (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
@@ -159,7 +156,10 @@ INSTR(Vararg_start)
 #endif
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
   if (!arg->d)
+  {
     shred->next_pc = instr->m_val2 + 1;
+//    return;
+  }
 //    *(m_uint*)(shred->reg - SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   *(m_uint*)(shred->reg - SZ_INT) = 0;
@@ -168,7 +168,7 @@ INSTR(Vararg_start)
 INSTR(Vararg_end)
 {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_uint*)(shred->reg - SZ_INT) = 0;
+//  *(m_uint*)(shred->reg - SZ_INT) = 0; // removed 02/01/17
   switch (arg->k[arg->i]) {
   case Kindof_Int:
     arg->o += SZ_INT;

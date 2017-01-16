@@ -1,6 +1,3 @@
-/** @file src/type.c type_checking
- * @brief type checking
- * */
 #include <stdio.h>
 #include <dlfcn.h>
 #include <dirent.h>
@@ -43,12 +40,12 @@ struct Type_ t_func_ptr  = { "@func_ptr",   sizeof(m_uint),   &t_function, te_fu
 struct Type_ t_dur       = { "dur",         sizeof(m_float),  NULL, te_dur };
 struct Type_ t_time      = { "time",        sizeof(m_float),  NULL, te_time };
 struct Type_ t_now       = { "@now",        sizeof(m_float),  &t_time, te_now };
-struct Type_ t_class     = { "@Class",       sizeof(m_uint),   NULL, te_class };
+struct Type_ t_class     = { "@Class",       SZ_INT,   NULL, te_class };
 struct Type_ t_std       = { "Std",          0, NULL, te_std};
-struct Type_ t_machine   = { "Machine",      0, NULL , te_machine};
+struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 /*struct Type_ t_template  = { "@Template",    0, NULL , te_template};*/
 /*struct Type_ t_array      = { "@Array",     SZ_INT, &t_object, te_array };*/
-struct Type_ t_array  = { "@Array",     SZ_INT, NULL, te_array };
+struct Type_ t_array  = { "@Array",     SZ_INT, &t_object, te_array };
 struct Type_ t_null  = { "@null",     sizeof(void*), NULL, te_null};
 struct Type_ t_vararg = { "@Vararg",    SZ_INT, &t_object, te_vararg};
 struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
@@ -171,9 +168,10 @@ Env type_engine_init(VM* vm)
       void* handler = dlopen(c, RTLD_LAZY);
       {
         if(!handler) {
+//          dlclose(handler);
           m_str err = dlerror();
           err_msg(TYPE_, 0, "error in %s.", err);
-          /*free(err);*/
+//          free(err);
           goto next;
         }
       }
@@ -188,8 +186,9 @@ Env type_engine_init(VM* vm)
       } else {
         m_str err = dlerror();
         err_msg(TYPE_, 0, "%s: no import function.", err);
-        /*free(err);*/
         dlclose(handler);
+        /*		if(err)
+                free(err); */
         goto next;
       }
 next:
@@ -201,7 +200,7 @@ next:
   return env;
 }
 
-m_bool check_Context( Env env, Context context)
+m_bool check_Context(Env env, Context context)
 {
 #ifdef DEBUG_TYPE
   debug_msg("type", "context");
@@ -209,7 +208,7 @@ m_bool check_Context( Env env, Context context)
   int ret = 1;
   Ast prog = context->tree;
   while(prog && ret > 0) {
-    switch( prog->section->type ) {
+    switch(prog->section->type) {
     case ae_section_stmt:
       ret = check_Stmt_List(env, prog->section->stmt_list);
       break;
@@ -271,18 +270,20 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
   ret = 1;
 
 cleanup:
+//    add_ref(context->obj);
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
+    add_ref(context->obj);
   } else {
-    /*namespace_rollback(env->global_nspc);*/
-    //  rem_ref(context->obj, context);
+    namespace_rollback(env->global_nspc);
+    //rem_ref(context->obj, context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
-    /*free_Ast(ast);*/
-    // rem_ref(context->nspc->obj, context->nspc);
-    //  rem_ref(context->obj, context);
+    free_Ast(ast);
+    //rem_ref(context->nspc->obj, context->nspc);
+    rem_ref(context->obj, context); // breaks function pointer for now
     free(filename);
   }
 done:
@@ -380,12 +381,20 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
     the_class->is_complete = 1;
-  }
-  if(!ret) {
+  } else {
+
+//   scope_rem(env->curr->type, class_def->type);
+//namespace_add_type(env->curr, insert_symbol(class_def->type->name), NULL);
+//free_Type(the_class);
+//free(class_def->type);
+//class_def->type = NULL;
     // delete the class definition
     /*      SAFE_RELEASE( class_def->type );*/
+//add_ref(class_def->type->obj);
+//add_ref(class_def->type->obj);
+//    rem_ref(class_def->type->obj, class_def->type);
     // set the thing to NULL
-    the_class = NULL;
+//    the_class = NULL;
   }
   return ret;
 }
@@ -400,10 +409,8 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
   Var_Decl_List list = decl->list;
   Var_Decl var_decl;
   while(list) {
-    //	  m_bool is_obj = 0;
-    //  	m_bool is_ref = 0;
     if(env->class_def && !env->class_scope &&
-        ( value = find_value(env->class_def->parent, list->self->xid))) {
+        (value = find_value(env->class_def->parent, list->self->xid))) {
       err_msg(TYPE_, list->self->pos,
               "'%s' has already been defined in parent class '%s'...",
               S_name(list->self->xid), value->owner_class->name);
@@ -772,27 +779,76 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     Type r_nspc, l_nspc = NULL;
     m_uint i;
     Func f1, f2 = NULL;
-    Value v;
+    Value v, v2;
     char name[1024];
     Type ret_type;
 
 
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
+      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+//f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+//Type t = namespace_lookup_type(env->curr, insert_symbol(v->name), 1);
+//scope_rem(env->curr->type, insert_symbol(t->name));
+//scope_rem(env->curr->type, insert_symbol(t->name));
+//t->obj->ref_count--;
+//	rem_ref(t->func->obj, t->func);
+//	rem_ref(t->obj, t);
+//t = NULL;
+
+//      v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
+
+//t = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->m_type;
+//scope_rem(env->curr->type, insert_symbol(v->name));
+//printf("HERE HERE %p\n", t->obj);
+//rem_ref(t->obj, t);
+
+//printf("HERE HERE %p\n", binary->rhs->type->obj);
+//binary->lhs->type->obj->ref_count--;
+//binary->rhs->type->obj->ref_count--;
+//free(binary->lhs->type);
+//binary->lhs->type = NULL;
+//add_ref(binary->lhs->type->obj);
+//rem_ref(binary->lhs->type->obj, binary->lhs->typ);
+//printf("here\n");
+//free(binary->lhs->type);
+//      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+//f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+//scope_rem(env->curr->func, f2);
+//scope_rem(env->curr->func, f2);
+      /*
+      f2->obj->ref_count--;
+      v->func_ref = NULL;
+      f2->def->func = NULL;
+      f2->def = NULL;
+      rem_ref(f2->obj, f2);
+      */
       return NULL;
     }
 
     if(env->class_def) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
+      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+      f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+//f2->def = NULL;
+//scope_rem(env->curr->func, f2);
+//scope_rem(env->curr->func, f2);
+//add_ref(f2->obj);
+      f2->obj->ref_count--;
+      v->func_ref = NULL;
+      f2->def->func = NULL;
+      f2->def = NULL;
+      rem_ref(f2->obj, f2);
       return NULL;
     }
+// was here
     if(binary->rhs->exp_type == Primary_Expression_type) {
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->primary_exp->var, -1);*/
       v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
-      f1 = namespace_lookup_func(env->curr, (insert_symbol(v->m_type->name)), -1);
+      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       r_nspc = NULL; // get owner
-      ret_type  = namespace_lookup_type(env->curr, (insert_symbol(v->m_type->name)), -1);
+      ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else {
       v = namespace_lookup_value(binary->rhs->dot_member->t_base->info, binary->rhs->dot_member->xid, 1);
       f1 = namespace_lookup_func(env->curr, (insert_symbol(v->m_type->name)), -1);
@@ -815,6 +871,15 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     }
     if(!r_nspc && l_nspc) {
       err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer");
+//.rem_ref(f2->obj, f2);
+//f2->obj->ref_count--;
+//Type t = find_type(env->curr, insert_symbol(f1->name));
+//printf("type %p\n", binary->rhs->type->obj);
+//printf("type %p\n", binary->rhs->type->obj);
+//rem_ref(ret_type->obj, ret_type);
+//rem_ref(binary->rhs->type->obj, binary->rhs->type);
+//	rem_ref(f1->value_ref->m_type->obj, f1->value_ref->m_type);
+//binary->rhs->type->obj->ref_count--;
       return NULL;
     }
     if(r_nspc && !l_nspc) {
@@ -1148,7 +1213,9 @@ static Type_List mk_type_list(Env env, Type type)
   free_Vector(v);
   return list;
 }
+
 /*static */
+static Func_Call* current;
 Func find_template_match(Env env, Value v, Func m_func, Type_List types,
                          Expression func, Expression args)
 {
@@ -1183,6 +1250,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     if(!base)
       continue;
 
+
+    /**************
+    disable for now
+    ***************/
+//    return NULL;
     /*{*/
     /*Expression tmp = args;*/
     /*while(tmp) {*/
@@ -1201,18 +1273,21 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     def->is_template = 1;
     namespace_push_type(env->curr);
     while(list) {
-      printf("base_t %p %p %p\n", base_t, list->list, find_type(env, list->list));
+      printf("here\n");
+//      printf("base_t %p %p %p\n", base_t, list->list, find_type(env, list->list));
       if(!base_t)
         break;
       /*exit(12);*/
+      printf("here\n");
       ID_List tmp = base_t->next;;
-      /*if(!list->list)*/
-      /*break;*/
-      if(base_t)
-        namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      else exit(12);
+      printf("here\n");
+      if(!list->list)
+        break;
+//      if(base_t)
+      namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
+//      else exit(12);
       printf("env: %p\n", env->curr);
-      printf("%s, %s\n", S_name(base_t->xid), type_path(list->list), namespace_lookup_type(env->curr, base_t->xid, 1));
+//      printf("%s, %s\n", S_name(base_t->xid), type_path(list->list), namespace_lookup_type(env->curr, base_t->xid, 1));
 
       base_t->next = NULL;
       printf("%p\n", find_type(env, base_t));
@@ -1224,16 +1299,13 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
         break;
       }
       base_t = base_t->next;
-      if(base_t & & !list->next) {
+      if(!list->next && base_t) {
         err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
-        /*return NULL;*/
+        //return NULL;
       }
       list = list->next;
     }
     m_int ret = scan1_Func_Def(env, def);
-    /*printf("%s, %s %s\n", S_name(base_t->xid), type_path(types->list), namespace_lookup_type(env->curr, base->types->xid, 1)->name);*/
-    /*printf("%p\n", find_type(env, insert_symbol("float")));*/
-    /*printf("%s, %s %s\n", S_name(base_t->xid), type_path(types->next->list), namespace_lookup_type(env->curr, base->next->xid, 1)->name);*/
     namespace_pop_type(env->curr);
     if(ret < 0)
       goto next;
@@ -1258,8 +1330,18 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       return m_func;
     }
 next:
-    if(def->func) // is this test necessary
+    if(def->func) {// is this test necessary
+      /*
+      Arg_List arg = def->arg_list;
+      while(arg) {
+        free(arg->var_decl->value);
+        arg = arg->next;
+      }
+      */
+//      rem_ref(def->func->value_ref->obj, def->func->value_ref);
       free_Func(def->func);
+    }
+//    free_Arg_List(def->arg_list);
     free_Func_Def(def);
   }
   if(v->owner_class) {
@@ -1309,7 +1391,7 @@ next:
 
   // no func
   if(!func) {
-    Value value = NULL;
+    Value value;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
         value = namespace_lookup_value(env->curr, exp_func->primary_exp->var, 1);
@@ -1320,61 +1402,51 @@ next:
         err_msg(TYPE_, exp_func->pos, "function is template. not enough argument for automatic type guess. this message is incorrect");
         return NULL;
       }
-      // First, get base->types number
+
+      // template guess
       ID_List list = value->func_ref->def->types;
       m_uint type_number = 0;
-      m_uint arg_number = 0;
-      m_uint i;
+      m_uint args_number = 0;
+
       while(list) {
         type_number++;
-        printf("list->xid %s\n", S_name(list->xid));
         list = list->next;
       }
-      Expression template_arg = args;
-      Type t[type_number];
+      list = value->func_ref->def->types;
       Type_List tl[type_number];
-      /*for(i = 0; i < type_number + 1; i++)*/
-      /*t[i] = NULL;*/
-      memset(t, 0, sizeof(t));
-      while(template_arg) {
-        /*        for(i = 0; i < arg_number + 1; i++)*/
-        for(i = 0; i < type_number; i++) {
-          if(t[i] && isa(t[i], template_arg->type) > 0)
-            goto next;;
+      while(list) { // iterate through types
+        Arg_List arg = value->func_ref->def->arg_list;
+        Expression template_arg = args;
+        while(arg && template_arg) {
+          m_str path = type_path(arg->type_decl->xid);
+          if(!strcmp(S_name(list->xid), path)) {
+            tl[args_number] = mk_type_list(env, template_arg->type);
+            if(args_number)
+              tl[args_number - 1]->next = tl[args_number];
+            args_number++;
+            free(path);
+            break;
+          }
+          free(path);
+          arg = arg->next;
+          template_arg = template_arg->next;
         }
-        arg_number++;
-next:
-        t[i - 1] = template_arg->type;
-        tl[i - 1] = mk_type_list(env, t[i - 1]);
-        template_arg = template_arg ->next;
+        list = list->next;
+      }
+      if(args_number < type_number) {
+        err_msg(TYPE_, exp_func->pos, "not able to guess types for template call.");
+        return NULL;
       }
       Func f = find_template_match(env, value, func, tl[0], exp_func, args);
       if(f) {
         *m_func = f;
         Type ret_type  = f->def->ret_type;
-        /*free_Func_Def(f->def); // free from 09/09/16*/
-        /*free_Func(f);*/
-        /*exit(6);*/
-        /*        *m_func = func;*/
+        free_Func_Def(f->def);
+        current->types = tl[0];
+        current->base = value->func_ref->def->types;
         return ret_type;
       }
-
-      {
-        {
-          m_uint i;
-          char name[256];
-          for(i = 0; i < 6; i++)
-            sprintf(name, "%s<template>@%li@%s", value->name, i, env->context->filename);
-        }
-      }
-      /*      Func_Def base = value->func_ref->def;*/
-
-      if(arg_number < type_number) {
-        err_msg(TYPE_, exp_func->pos, "function is template. not enough argument for automatic type guess");
-        return NULL;
-      }
-
-      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not implemented yet.\n\
+      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n\
           please provide template types. eg: '<type1, type2, ...>'");
       return NULL;
     }
@@ -1389,6 +1461,7 @@ next:
       if(!e)
         fprintf(stderr, "\033[32mvoid\033[0m");
       while(e) {
+        m_str path = type_path(e->type_decl->xid);
 #ifdef COLOR
         fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, S_name(e->var_decl->xid));
 #else
@@ -1399,14 +1472,13 @@ next:
         e = e->next;
         if(e)
           fprintf(stderr, ",");
+        free(path);
       }
       up = up->next;
       fprintf(stderr, ". (%s)\n", f->name);
       if(up)
         fprintf(stderr, "or :");
     }
-    /*    if(isa(exp_func, &t_func_ptr)> 0)*/
-    /*      return NULL;*/
     fprintf(stderr, "and not");
     fprintf(stderr, "\n\t");
     Expression e = args;
@@ -1453,6 +1525,8 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
       }
       if(!v->func_ref->def->types) {
         err_msg(TYPE_, func_call->pos, "template call of non-template function.");
+        free_Type_List(func_call->types);
+        func_call->types = NULL;
         return NULL;
       }
     }
@@ -1462,6 +1536,7 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
                                    func_call->func, func_call->args);
     if(!ret) {
       err_msg(TYPE_, func_call->pos, "arguments do not match for template call");
+      free_Type_List(func_call->types);
       return NULL;
     }
     func_call->m_func = ret;
@@ -1470,22 +1545,31 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
     func_call->base = v->func_ref->def->types;
     /*func_call->base = ret->def->types;*/
     return ret->def->ret_type;
-    /*    free_Func_Def(ret->def);*/
-    /*    free_Func(ret);*/
-    /*    return ret_type;*/
+//    Type ret_type = ret->def->ret_type;
+//    free_Func_Def(ret->def);
+//    return ret_type;
   }
+  current = func_call;
   return check_Func_Call1(env, func_call->func, func_call->args,
                           &func_call->m_func, func_call->pos );
 }
 
 static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
 {
-  Type t     = new_Type(env->context);
+#ifdef DEBUG_TYPE
+  debug_msg("check", "func pointer '%s'", S_name(ptr->xid));
+#endif
+  Type t     = ptr->value->is_member ?
+               new_Type(env->context) :
+               namespace_lookup_type(env->curr, ptr->xid, 1);
   t->size    = SZ_INT;
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
+  add_ref(t->obj);
+//  add_ref(t->obj);
   ptr->m_type = t;
+  t->func = ptr->func;
   return 1;
 }
 
@@ -1777,7 +1861,6 @@ static m_bool check_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
 static m_bool check_While(Env env, Stmt_While stmt)
 {
   CHECK_OB(check_Expression(env, stmt->cond))
-
   switch(stmt->cond->type->xid) {
   case te_int:
   case te_float:
@@ -2039,42 +2122,42 @@ static m_bool check_Stmt(Env env, Stmt* stmt)
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_If(env, stmt->stmt_if);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_While( env, stmt->stmt_while);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_Until( env, stmt->stmt_until);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_For( env, stmt->stmt_for);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_Loop( env, stmt->stmt_loop);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
     ret = check_Switch( env, stmt->stmt_switch);
-    namespace_push_value(env->curr);
+    namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
@@ -2233,6 +2316,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   Type parent = NULL;
   Value override = NULL;
   Value  v = NULL;
+  Value vararg = NULL;
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
@@ -2423,7 +2507,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic) {
-    Value vararg = new_Value(env->context, &t_vararg, "vararg");
+    vararg = new_Value(env->context, &t_vararg, "vararg");
     vararg->checked = 1;
     namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
@@ -2432,6 +2516,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
     goto error;
   }
 
+  if(f->is_variadic)
+    rem_ref(vararg->obj, vararg);
   if(f->s_type == ae_func_builtin) { // is this useful ?
     func->code->stack_depth = f->stack_depth;
     func->code->need_this = 1;
@@ -2443,6 +2529,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   return 1;
 
 error:
+  namespace_pop_value(env->curr);
   env->func = NULL;
   return -1;
 }

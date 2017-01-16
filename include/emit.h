@@ -15,6 +15,7 @@ typedef struct
   Vector stack_cont, stack_break, stack_return;
   Frame* frame;
   Vector gack;
+  Vector switches;
 } Code;
 
 Code* new_Code();

@@ -12,6 +12,12 @@ m_int o_array_vector;
 /*void array_ctor(M_Object o, VM_Shred shred)*/
 /*void array_dtor(M_Object o, VM_Shred shred)*/
 
+DTOR(array_dtor)
+{
+  free(o->array->ptr);
+//  free(o->array); // freed as 'o->data' in object_dtor for now
+}
+
 M_Object new_M_Array(m_uint size, m_uint length)
 {
   M_Object a = new_M_Object();
@@ -185,7 +191,7 @@ m_bool import_array(Env env)
 {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_array))
-  CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
   fun = new_DL_Func("int", "size", (m_uint)vm_vector_size);
   CHECK_OB(import_mfun(env, fun))
   env->class_def->doc = "vector structure";

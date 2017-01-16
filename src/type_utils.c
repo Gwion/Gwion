@@ -2,6 +2,8 @@
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
+static m_uint type_xid = te_last;
+static m_bool do_type_xid = 0;
 m_str type_name(Type type)
 {
   m_uint i;
@@ -82,6 +84,19 @@ Type new_Type(Context context)
   type->obj->ref    = context->new_types;
 //  vector_append(context->new_types, type);
   return type;
+}
+
+void free_Type(Type a)
+{
+  if(a->info) {
+    rem_ref(a->info->obj, a->info);
+  }
+  if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
+    free(a);
+  else if(a->xid > type_xid || isa(a, &t_func_ptr) > 0)
+    free(a);
+  else if(a->xid == te_user)
+    free(a);
 }
 
 Type type_copy(Env env, Type type)
@@ -178,8 +193,6 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
   return 1;
 }
 
-static m_uint type_xid = te_last;
-static m_bool do_type_xid = 0;
 void start_type_xid()
 {
   do_type_xid = 1;
@@ -228,15 +241,15 @@ Value find_value(Type type, S_Symbol xid )
 
 m_str type_path(ID_List path )
 {
-  m_str str = malloc(sizeof(char));
-  memset(str, 0, 1);
+  char str[256];
+  memset(str, 0, sizeof(str));
   while(path) {
     strcat(str, S_name(path->xid));
     if(path->next)
       strcat(str, ".");
     path = path->next;
   }
-  return str;
+  return strdup(str);
 }
 
 Kindof kindof(Type type)

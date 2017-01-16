@@ -1,1 +1,5 @@
-<<<"test">>>;
+//<<<"test">>>;
+"test" @=> string @i;
+//"test" => string s;
+string @t;
+//<<<s.size()>>>;

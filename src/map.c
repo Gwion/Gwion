@@ -7,8 +7,10 @@ struct Vector_ {
 };
 
 struct Map_ {
-  vtype*key;
-  vtype*ptr;
+  vtype key[256];
+  vtype ptr[256];
+//  vtype*key;
+//  vtype*ptr;
   vtype len;
 };
 
@@ -129,8 +131,8 @@ void free_Vector(Vector v)
 Map new_Map()
 {
   Map map  = malloc(sizeof(struct Map_));
-  map->key = calloc(1, sizeof(vtype));
-  map->ptr = calloc(1, sizeof(vtype));
+//  map->key = calloc(1, sizeof(vtype));
+//  map->ptr = calloc(1, sizeof(vtype));
   map->len = 0;
   return map;
 }
@@ -168,8 +170,24 @@ void map_set(Map map, vtype key, vtype ptr)
     }
   }
   map->len++;
-  map->key = realloc(map->key, map->len * sizeof(vtype));
-  map->ptr = realloc(map->ptr, map->len * sizeof(vtype));
+  /*
+  void* tmp = map->key;
+  tmp = realloc(map->key, map->len * sizeof(vtype));
+  if(!tmp)
+  	exit(2);
+  	map->key = tmp;
+  tmp = realloc(map->ptr, map->len * sizeof(vtype));
+  if(tmp)
+  	map->ptr = tmp;
+  */
+//if(map->len > 1) {
+
+
+//  map->key = realloc(map->key, map->len * sizeof(vtype));
+//  map->ptr = realloc(map->ptr, map->len * sizeof(vtype));
+
+
+//}
   map->key[map->len - 1] = key;
   map->ptr[map->len - 1] = ptr;
 }
@@ -194,16 +212,14 @@ void map_commit(Map map, Map commit)
 
 void map_rollback(Map map, void (*_free)(vtype arg))
 {
-
-  /*vtype i;*/
+//exit(2);
+//  vtype i;
 //    for(i = 0; i < map->len; i++)
 //        if(_free)
-//            _free(map->ptr[i]);
-//    free_Map(map);
-//    map = new_Map();
+//            free(map->ptr[i]);
 //    vector_clear(map->key);
 //    vector_clear(map->ptr);
-  map->len = 0;
+//  map->len = 0;
 }
 
 vtype map_size(Map map)
@@ -213,8 +229,8 @@ vtype map_size(Map map)
 
 void free_Map(Map map)
 {
-  free(map->key);
-  free(map->ptr);
+//  free(map->key);
+//  free(map->ptr);
   free(map);
 }
 
@@ -261,10 +277,22 @@ void scope_add(Scope scope, S_Symbol xid, vtype value)
   /*  add_ref(((struct Value_*)value)->obj);*/
 }
 
+void scope_rem(Scope scope, S_Symbol xid)
+{
+  Map map;
+  if(vector_front(scope->vector) != vector_back(scope->vector))
+    map = (Map)vector_back(scope->vector);
+  else
+    map = scope->commit_map;
+  map_remove(map, (vtype)xid);
+  /*  rem_ref(((struct Value_*)value)->obj);*/
+}
+
 void scope_commit(Scope scope)
 {
   Map map = (Map)vector_front(scope->vector);
   map_commit(map, scope->commit_map);
+//  map_clean(scope->commit_map);
   free_Map(scope->commit_map);
   scope->commit_map = new_Map();
 }
@@ -296,11 +324,6 @@ Scope new_Scope()
 
 void free_Scope(Scope a)
 {
-//printf("%i\n", vector_size(a->vector));
-//  free_Map(vector_back(a->vector));
-//    vtype i;
-//    for(i = 0; i < vector_size(a->vector); i++);
-//      free_Map(vector_at(a->vector, i));
   free_Map((Map)vector_front(a->vector));
   free_Vector(a->vector);
   free_Map(a->commit_map);

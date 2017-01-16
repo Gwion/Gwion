@@ -56,6 +56,7 @@ void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
+void Free_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
 void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr);
 void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr);
 void Goto(VM * vm, VM_Shred shred, Instr instr);
@@ -146,3 +147,5 @@ INSTR(vec3_z);
 INSTR(vec4_z);
 INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);
+
+INSTR(Mem_Push_Ret); // test on 13/01/17

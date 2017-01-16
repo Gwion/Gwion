@@ -1,0 +1,94 @@
+//Type t = a->public_class_def ? a->public_[01;31m[Kclass_def-[m[K>type : NULL;
+//if(a->public_class_def && a->public_[01;31m[Kclass_def-[m[K>type)
+//  free_Type(a->public_[01;31m[Kclass_def-[m[K>type);
+//  free(a->public_[01;31m[Kclass_def-[m[K>type);
+    a->public_[01;31m[Kclass_def-[m[K>decl = ae_key_this;
+    rem_ref(a->public_[01;31m[Kclass_def-[m[K>type->obj, a->public_[01;31m[Kclass_def-[m[K>type);
+context.c
+      emit->env->[01;31m[Kclass_def-[m[K>info->class_data[v->offset] = i;
+  sprintf(c, "%s%s%s( ... )", emit->env->class_def ? emit->env->[01;31m[Kclass_def-[m[K>name : "", emit->env->class_def ? "." : " ", func->name);
+    emit->env->[01;31m[Kclass_def-[m[K>info->dtor = func->code;
+    emit->env->[01;31m[Kclass_def-[m[K>has_destructor = 1;
+  Type type = [01;31m[Kclass_def-[m[K>type;
+  Class_Body body = [01;31m[Kclass_def-[m[K>body;
+    err_msg(EMIT_, [01;31m[Kclass_def-[m[K>pos,
+    err_msg(EMIT_, [01;31m[Kclass_def-[m[K>pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
+    err_msg(EMIT_, [01;31m[Kclass_def-[m[K>pos,
+emit.c
+  env->[01;31m[Kclass_def-[m[K>obj_size = env->[01;31m[Kclass_def-[m[K>info->offset;
+    err_msg(TYPE_, 0, "... during mvar import '%s.%s'...", env->[01;31m[Kclass_def-[m[K>name, name );
+            env->[01;31m[Kclass_def-[m[K>name, name );
+import.c
+  Class_Body body = [01;31m[Kclass_def-[m[K>body;
+  if([01;31m[Kclass_def-[m[K>home) {
+    /* err_msg(SCAN0_, [01;31m[Kclass_def-[m[K>pos, "target namespace: '%s'", [01;31m[Kclass_def-[m[K>home->name); */
+    env->curr = [01;31m[Kclass_def-[m[K>home;
+  if(namespace_lookup_type( env->curr, [01;31m[Kclass_def-[m[K>name->xid, 1)) {
+    err_msg(SCAN0_,  [01;31m[Kclass_def-[m[K>name->pos,
+            S_name([01;31m[Kclass_def-[m[K>name->xid), env->curr->name);
+  if(isres(env, [01;31m[Kclass_def-[m[K>name->xid, [01;31m[Kclass_def-[m[K>name->pos) > 0) {
+    err_msg(SCAN0_, [01;31m[Kclass_def-[m[K>name->pos, "...in class definition: '%s' is reserved",
+            S_name([01;31m[Kclass_def-[m[K>name->xid) );
+  the_class->name = S_name([01;31m[Kclass_def-[m[K>name->xid);
+    [01;31m[Kclass_def-[m[K>type = the_class;
+  if([01;31m[Kclass_def-[m[K>home) {
+    [01;31m[Kclass_def-[m[K>home = env->curr;
+      if( prog->section->[01;31m[Kclass_def-[m[K>decl == ae_key_public ) {
+          err_msg(SCAN0_, prog->section->[01;31m[Kclass_def-[m[K>pos,
+        prog->section->[01;31m[Kclass_def-[m[K>home = env->user_nspc ? env->user_nspc : env->global_nspc;
+      public_type = env->context->public_[01;31m[Kclass_def-[m[K>type;
+scan0.c
+  NameSpace nspc = env->class_def ? env->[01;31m[Kclass_def-[m[K>info : env->curr;
+  if(env->class_def && env->[01;31m[Kclass_def-[m[K>def && env->[01;31m[Kclass_def-[m[K>def->iface)
+  Class_Body body = [01;31m[Kclass_def-[m[K>body;
+  Type the_class = [01;31m[Kclass_def-[m[K>type;
+scan1.c
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name),
+  Class_Body body = [01;31m[Kclass_def-[m[K>body;
+  Type the_class = [01;31m[Kclass_def-[m[K>type;
+  if([01;31m[Kclass_def-[m[K>doc)
+    the_class->doc = [01;31m[Kclass_def-[m[K>doc;
+scan2.c
+  Class_Body body = [01;31m[Kclass_def-[m[K>body;
+  if([01;31m[Kclass_def-[m[K>ext) {
+    if([01;31m[Kclass_def-[m[K>ext->extend_id) {
+      t_parent = find_type(env, [01;31m[Kclass_def-[m[K>ext->extend_id);
+        m_str path = type_path([01;31m[Kclass_def-[m[K>ext->extend_id);
+        err_msg(TYPE_, [01;31m[Kclass_def-[m[K>ext->pos,
+                "undefined parent class '%s' in definition of class '%s'", path, S_name([01;31m[Kclass_def-[m[K>name->xid) );
+        err_msg(TYPE_, [01;31m[Kclass_def-[m[K>ext->pos,
+        err_msg(TYPE_, [01;31m[Kclass_def-[m[K>ext->pos,
+        err_msg(TYPE_, [01;31m[Kclass_def-[m[K>ext->pos,
+        err_msg(TYPE_, [01;31m[Kclass_def-[m[K>ext->pos,
+  the_class = [01;31m[Kclass_def-[m[K>type;
+      env->[01;31m[Kclass_def-[m[K>has_constructor |= (body->section->stmt_list->stmt != NULL);
+      env->[01;31m[Kclass_def-[m[K>is_complete = 1;
+      env->[01;31m[Kclass_def-[m[K>is_complete = 0;
+//   scope_rem(env->curr->type, [01;31m[Kclass_def-[m[K>type);
+//namespace_add_type(env->curr, insert_symbol([01;31m[Kclass_def-[m[K>type->name), NULL);
+//free([01;31m[Kclass_def-[m[K>type);
+//[01;31m[Kclass_def-[m[K>type = NULL;
+    /*      SAFE_RELEASE( [01;31m[Kclass_def-[m[K>type );*/
+//add_ref([01;31m[Kclass_def-[m[K>type->obj);
+//add_ref([01;31m[Kclass_def-[m[K>type->obj);
+//    rem_ref([01;31m[Kclass_def-[m[K>type->obj, [01;31m[Kclass_def-[m[K>type);
+        (value = find_value(env->[01;31m[Kclass_def-[m[K>parent, list->self->xid))) {
+      env->[01;31m[Kclass_def-[m[K>obj_size += type->size;
+      value->offset = env->[01;31m[Kclass_def-[m[K>info->class_data_size;
+      env->[01;31m[Kclass_def-[m[K>info->class_data_size += type->size;
+      /*      env->[01;31m[Kclass_def-[m[K>info->class_data_size++;*/
+  NameSpace nspc = env->class_def ? env->[01;31m[Kclass_def-[m[K>info : env->curr;
+      v->offset = env->[01;31m[Kclass_def-[m[K>info->class_data_size;
+      env->[01;31m[Kclass_def-[m[K>info->class_data_size += t_int.size;
+      stmt->stmt_union->o = env->[01;31m[Kclass_def-[m[K>obj_size;
+    override = find_value(env->[01;31m[Kclass_def-[m[K>parent, f->name);
+  if(env->class_def && env->[01;31m[Kclass_def-[m[K>def && env->[01;31m[Kclass_def-[m[K>def->iface && has_code) {
+    parent = env->[01;31m[Kclass_def-[m[K>parent;
+      if((v = find_value(env->[01;31m[Kclass_def-[m[K>parent, f->name))) {
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name),
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name),
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name));
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name),
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name));
+                    env->[01;31m[Kclass_def-[m[K>name, S_name(f->name),
+type.c

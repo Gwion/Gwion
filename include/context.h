@@ -11,6 +11,7 @@ struct Context_
   Vector    new_funcs;
   Vector    new_values;
   Vector    new_types;
+  Vector    new_class;
   VM_Object obj;
 };
 

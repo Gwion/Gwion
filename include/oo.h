@@ -12,7 +12,7 @@ typedef enum
 struct VM_Object_
 {
   e_obj  type;
-  m_uint ref_count;  
+  m_uint ref_count;
   m_bool lock;
   Vector ref;
 };

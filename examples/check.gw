@@ -1,1 +1,3 @@
-Machine.check("/tmp", "SinOsc s => dac; second => now;") => Machine.add;
+string @ s;
+Machine.check("/tmp", "SinOsc s => dac; second => now;") @=> s;// => Machine.add;
+NULL @=> s;

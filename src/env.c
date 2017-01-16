@@ -64,15 +64,24 @@ void free_Env(Env a)
   // TODO release content ?
   for(i = 0; i < map_size(a->known_ctx); i++) {
     Context ctx = (Context)map_at(a->known_ctx, i);
+//  for(i = 0; i < map_size(a->known_ctx); i++) {
+//    Context ctx = (Context)map_at(a->known_ctx, i);
+//    Context ctx = (Context)map_at(a->known_ctx, map_size(a->known_ctx) - 1 - i);
+//map_remove(a->known_ctx, ctx);
     rem_ref(ctx->obj, ctx);
   }
   free_Map(a->known_ctx);
+//  rem_ref(a->global_nspc->obj, a->global_nspc);
   free_Vector(a->contexts);
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
-    NameSpace  nspc = (NameSpace)vector_at(a->nspc_stack, i);
+//  for(i = vector_size(a->nspc_stack) - 1; i > -1; i--) {
+    NameSpace  nspc = (NameSpace)vector_back(a->nspc_stack);
+    vector_pop(a->nspc_stack);
+//    NameSpace  nspc = (NameSpace)vector_front(a->nspc_stack);
+// vector_remove(a->nspc_stack, 0);
+//    NameSpace  nspc = (NameSpace)vector_at(a->nspc_stack, i);
     rem_ref(nspc->obj, nspc);
   }
-//  free_NameSpace(a->global_nspc);
   free_Vector(a->nspc_stack);
   free_Vector(a->class_stack);
   free_Vector(a->breaks);

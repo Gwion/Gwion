@@ -1,5 +1,6 @@
 /* use this to generate include/generated.h */
 #include <stdio.h>
+#include <stdarg.h>
 #include <soundpipe.h>
 
 static const char* filename = "include/generated.h";

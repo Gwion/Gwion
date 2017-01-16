@@ -68,11 +68,19 @@ INSTR(Reg_Push_Mem_Addr)
 INSTR(Mem_Push_Imm)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] push imm");
   debug_msg("instr", "[mem] push imm %i %i", instr->m_val, instr->m_val2);
 #endif
   *(m_uint*)shred->mem = instr->m_val;
   PUSH_MEM(shred,  SZ_INT);
+}
+
+// test on 13/01/17
+INSTR(Mem_Push_Ret)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[mem] push ret to mem[%u] %p", instr->m_val, *(M_Object*)(shred->reg - SZ_INT));
+#endif
+  *(M_Object*)(shred->mem + instr->m_val) = *(M_Object*)(shred->reg - SZ_INT);
 }
 
 INSTR(Mem_Set_Imm)
@@ -88,11 +96,14 @@ INSTR(Free_Func)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "free template func '%p'", instr->m_val);
 #endif
-//  Func f = (Func)instr->m_val;
-//  free_Func_Def(f->def);
-//  free_Func(f);
-
+  Func f = (Func)instr->m_val;
+  free(f->value_ref->name);
+  free(f->value_ref->m_type->name);
+  free(f->value_ref->m_type->obj);
+  free(f->value_ref->m_type);
+  rem_ref(f->value_ref->obj, f->value_ref);
 }
+
 // func pointer
 INSTR(assign_func)
 {
@@ -342,11 +353,19 @@ INSTR(Branch_Neq_Float)
 INSTR(Init_Loop_Counter)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "init loop counter");
+  debug_msg("instr", "loop: init counter");
 #endif
   POP_REG(shred,  SZ_INT);
   m_int* sp = (m_int*)shred->reg;
   (*(m_int*)instr->m_val) =  (*sp >= 0 ? *sp : -*sp);
+}
+
+INSTR(Free_Loop_Counter)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "loop: free counter");
+#endif
+  free(instr->m_val);
 }
 
 INSTR(Reg_Push_Deref)
@@ -537,7 +556,7 @@ INSTR(MkVararg)
   arg->i = 0;
   memcpy(arg->d, shred->reg, instr->m_val);
   free_Vector(kinds);
-  *(struct Vararg**)(shred->reg) = arg;
+  *(struct Vararg**)shred->reg = arg;
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -620,10 +639,10 @@ INSTR(Instr_Func_Call)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-  prev_stack = instr ? instr->m_val : *(m_uint*)(shred->mem - SZ_INT);
-  if(prev_stack == 65553) {
-    prev_stack = 0;
-  }
+  prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+//  if(prev_stack == 65553) {
+//    prev_stack = 0;
+//  }
   push = prev_stack + local_depth;
   next = shred->pc + 1;
   PUSH_MEM(shred, push);
@@ -703,13 +722,15 @@ INSTR(Dot_Member_Func)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dot member func");
-  debug_msg("instr", "dot member func %p[%i] %p", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, vector_at((*(M_Object*)(shred->reg - SZ_INT))->vtable, instr->m_val));
+//  debug_msg("instr", "dot member func %p[%i] %p", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, vector_at((*(M_Object*)(shred->reg - SZ_INT))->vtable, instr->m_val));
 #endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)shred->reg;
   if(!obj)
     Except(shred);
+  printf("lol\n");
   *(Func*)shred->reg = (Func)vector_at(obj->vtable, instr->m_val);
+  printf("lol\n");
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -1025,6 +1046,7 @@ INSTR(Release_Object2)
 #endif
   release(*(M_Object*)(shred->mem + instr->m_val), shred);
 }
+
 /* array */
 INSTR(Instr_Pre_Ctor_Array_Top)
 {
@@ -1121,6 +1143,7 @@ INSTR(Instr_Array_Init) // for litteral array
     i_vector_set(obj->array, i, *(m_uint*)(shred->reg + SZ_INT * i));
   *(M_Object*)shred->reg = obj;
   PUSH_REG(shred,  SZ_INT);
+  free(info);
 }
 
 INSTR(Instr_Array_Alloc)
@@ -1153,7 +1176,6 @@ INSTR(Instr_Array_Alloc)
       obj_array = (m_uint*)calloc(num_obj, sizeof(m_uint));
       if(!obj_array)
         goto out_of_memory;
-//      obj_array_size = num_obj;
     }
   }
   ref = (m_uint)do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
@@ -1171,6 +1193,7 @@ INSTR(Instr_Array_Alloc)
     *(m_uint*) shred->reg = num_obj;
     PUSH_REG(shred,  SZ_INT);
   }
+  free(info);
   return;
 
   /*
@@ -1185,6 +1208,7 @@ error:
   fprintf( stderr, "[chuck](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
   shred->is_done = 1;
+  free(info);
 }
 
 
@@ -1248,7 +1272,7 @@ INSTR(Instr_Array_Access_Multi)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "array access multi");
 #endif
-  m_int i , j;
+  m_int i, j;
   POP_REG(shred,  SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)shred->reg;
   obj = *base;

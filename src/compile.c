@@ -42,11 +42,11 @@ m_bool compile(VM* vm, const m_str filename)
 #ifdef DEBUG_COMPILE
   debug_msg("lexer", "emit   of '%s' ok", name);
 #endif
-//    free_Ast(ast);
   add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   vm->emit->code->filename = strdup(name);
   code = emit_to_code(vm->emit);
+  free_Ast(ast);
   shred = new_VM_Shred(code);
   shred->args = args;
   shred->me = new_Shred(vm, shred);

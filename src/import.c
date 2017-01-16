@@ -13,7 +13,9 @@ m_bool check_Func_Def( Env env, Func_Def f );
 m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl);
 Type check_Decl_Expression(Env env, Decl_Expression* decl);
 /*m_bool compile(VM* vm, Emitter emit, Env env, const m_str filename);*/
-static ID_List str2list(m_str path, m_uint* array_depth )
+
+// should be in type_utils
+ID_List str2list(m_str path, m_uint* array_depth )
 {
   m_uint len = 0;
   m_int  i, j;
@@ -89,7 +91,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   if(pre_ctor) {
     type->has_constructor = 1;
 //      type->info->pre_ctor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal ctor definition]");
-    type->info->pre_ctor = new_VM_Code(NULL, SZ_INT, 1, "ctor" , "[internal ctor definition]");
+    type->info->pre_ctor = new_VM_Code(NULL, SZ_INT, 1, "ctor", "[internal ctor definition]");
     type->info->pre_ctor->native_func = (m_uint)pre_ctor;
     type->info->pre_ctor->native_func_type = NATIVE_CTOR;
     type->info->pre_ctor->need_this = 1;
@@ -98,7 +100,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   if(dtor) {
     type->has_destructor = 1;
 //      type->info->dtor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal dtor definition]");
-    type->info->dtor = new_VM_Code(NULL, SZ_INT, 1, type->name , "[internal dtor definition]");
+    type->info->dtor = new_VM_Code(NULL, SZ_INT, 1, type->name, "[internal dtor definition]");
     type->info->dtor->native_func = (m_uint)dtor;
     type->info->dtor->native_func_type = NATIVE_DTOR;
     type->info->dtor->need_this = 1;
@@ -225,7 +227,7 @@ m_int import_svar(Env env, const m_str type,
     var_decl->array->depth = depth;
   }
   Var_Decl_List var_decl_list = new_Var_Decl_List(var_decl, NULL, 0 );
-  Expression exp_decl = new_Decl_Expression(type_decl, var_decl_list , 1, 0);
+  Expression exp_decl = new_Decl_Expression(type_decl, var_decl_list, 1, 0);
   var_decl->addr = (void *)addr;
 
   if(scan1_Decl_Expression(env, exp_decl->decl_exp) < 0)

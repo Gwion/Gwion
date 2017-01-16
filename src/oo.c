@@ -6,7 +6,7 @@
 
 #include "emit.h"
 
-static m_bool our_locks_in_effects;
+static m_bool our_locks_in_effects = 0;
 
 VM_Object new_VM_Object(e_obj type)
 {
@@ -25,8 +25,7 @@ void add_ref(VM_Object a)
 
 void rem_ref(VM_Object a, void* ptr)
 {
-//  if(!a->ref_count-- && !a->lock || !our_locks_in_effects)
-  if((!a->ref_count-- && !a->lock) || !our_locks_in_effects) {
+  if((!--a->ref_count && !a->lock) || !our_locks_in_effects) {
     switch(a->type) {
     case e_dll_obj:
       goto error;
@@ -40,7 +39,7 @@ void rem_ref(VM_Object a, void* ptr)
       free_Env(ptr);
       break;
     case e_type_obj:
-//        goto error;
+      free_Type(ptr);
       break;
     case e_value_obj:
       free_Value(ptr);
