@@ -1,6 +1,7 @@
 #!/bin/sh
 
 setup() {
+    STOP_ON_ERROR=${STOP_ON_ERROR- 0}
 	if [ $STOP_ON_ERROR -eq 1 ]
 	then
 	    [ ! -f ${BATS_PARENT_TMPNAME}.skip ] || skip "skip remaining tests"
@@ -9,6 +10,7 @@ setup() {
 
 teardown() {
 	rm -f /usr/lib/Gwion/plug/invalid.so
+    STOP_ON_ERROR=${STOP_ON_ERROR- 0}
 	if [ $STOP_ON_ERROR -eq 1 ]
     then
 		[ -n "$BATS_TEST_COMPLETED" ] || touch ${BATS_PARENT_TMPNAME}.skip

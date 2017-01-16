@@ -690,37 +690,10 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List arg
 #include "func.h"
 void free_Stmt_Func_Ptr(Func_Ptr* a)
 {
-// look in scan2.c scanXX_Func_Ptr
-//  if(a->type && a->value && !a->value->is_member)
-//    free_Type_Decl(a->type);
-//  rem_ref(a->m_type->obj, a->m_type);
-//  if(a->ret_type)
-//	a->ret_type = NULL;
-// printf("a->def->ret_type %p\n", a->func->def->ret_type);
-//  a->func->def->ret_type = NULL;
-//a->func->def->type_decl = NULL;
-/*
-  if(a->func->def) {
-free(a->func->def);
-a->func->def = NULL;
-//	exit(3);
-  }
-*/
-
-/*
-  if(a->ref) {
-    rem_ref(a->ref->obj, a->ref);
-  }
-*/
   if(a->args)
     free_Arg_List(a->args);
   if(a->value && !a->value->is_member)
     rem_ref(a->value->obj, a->value);
-//add_ref(a->func->obj); // ?
-//  if(a->func && !a->func->def) {
-//    a->m_type->obj->ref_count--;
-//   rem_ref(a->m_type->obj, a->m_type);
-//  }
   free(a);
 }
 
@@ -1160,14 +1133,13 @@ void free_Decl_List(Decl_List a)
 {
   if(a->next)
    free_Decl_List(a->next);
-  free_Decl_Expression(a->self);
+  if(a->self)
+    free_Decl_Expression(a->self);
   free(a);
 }
 
 void free_Stmt_Union(Union* a)
 {
-  if(!a)  // weird bug in scan1 related
-    return;
   free_Decl_List(a->l);
   free_Vector(a->v);
   free(a);

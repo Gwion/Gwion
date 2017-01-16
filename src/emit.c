@@ -1860,7 +1860,7 @@ static m_bool emit_Func_Ptr(Emitter emit, Func_Ptr* ptr)
 {
   namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
   namespace_add_type(emit->env->curr, ptr->xid, ptr->m_type);
-//add_ref(ptr->m_type->obj);
+//  add_ref(ptr->value->obj);
   return 1;
 }
 

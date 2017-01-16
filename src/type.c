@@ -718,6 +718,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
     err_msg(TYPE_, primary->pos, "internal error - unrecognized primary type '%i'...", primary->type);
     return NULL;
   }
+  printf("kuhliuh iluhiluh %p\n", primary->self->type);
   return primary->self->type = t;
 }
 
@@ -774,6 +775,12 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 #endif
 
   Type t;
+
+  if(op == op_chuck && isa(binary->rhs->type, &t_func_ptr) > 0) {
+    err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
+    return NULL;
+  }
+
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     /*    m_bool l_member;*/
     Type r_nspc, l_nspc = NULL;
@@ -816,29 +823,29 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //scope_rem(env->curr->func, f2);
 //scope_rem(env->curr->func, f2);
-/*
-f2->obj->ref_count--;
-v->func_ref = NULL;
-f2->def->func = NULL;
-f2->def = NULL;
-rem_ref(f2->obj, f2);
-*/
+      /*
+      f2->obj->ref_count--;
+      v->func_ref = NULL;
+      f2->def->func = NULL;
+      f2->def = NULL;
+      rem_ref(f2->obj, f2);
+      */
       return NULL;
     }
 
     if(env->class_def) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
       v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
-f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+      f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //f2->def = NULL;
 //scope_rem(env->curr->func, f2);
 //scope_rem(env->curr->func, f2);
 //add_ref(f2->obj);
-f2->obj->ref_count--;
-v->func_ref = NULL;
-f2->def->func = NULL;
-f2->def = NULL;
-rem_ref(f2->obj, f2);
+      f2->obj->ref_count--;
+      v->func_ref = NULL;
+      f2->def->func = NULL;
+      f2->def = NULL;
+      rem_ref(f2->obj, f2);
       return NULL;
     }
 // was here
@@ -846,7 +853,8 @@ rem_ref(f2->obj, f2);
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->primary_exp->var, -1);*/
       v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
-      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+//      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = v->func_ref;
       r_nspc = NULL; // get owner
       ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else {
@@ -880,7 +888,7 @@ rem_ref(f2->obj, f2);
 //rem_ref(binary->rhs->type->obj, binary->rhs->type);
 //	rem_ref(f1->value_ref->m_type->obj, f1->value_ref->m_type);
 //binary->rhs->type->obj->ref_count--;
-     return NULL;
+      return NULL;
     }
     if(r_nspc && !l_nspc) {
       err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
@@ -891,8 +899,13 @@ rem_ref(f2->obj, f2);
         sprintf(name, "%s@%li@%s", S_name(f2->def->name), i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
+      printf("f1 %p iiughlu\n %s\n\n", f2->def->arg_list, name);
+//if(!f1)
+// f1 = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->func_ref;
       if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+        printf("lol %p\n", f1->def->ret_type);
         binary->func = f2;
+        ret_type = f1->def->ret_type;
         ret_type->func = f2;
         return ret_type;
       }
@@ -1362,13 +1375,16 @@ next:
   Type f;
 
   exp_func->type = check_Expression(env, exp_func);
-
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == Primary_Expression_type &&
       exp_func->primary_exp->value &&
       !exp_func->primary_exp->value->is_const) {
-    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->m_type->name), -1);
+    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->name), -1);
+    if(!f) {
+      err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
+      return NULL;
+    }
     if(!f->func) { // func ptr
       up = namespace_lookup_func(env->curr, insert_symbol(exp_func->primary_exp->value->m_type->name), -1);
       f->func = up;
@@ -1422,7 +1438,7 @@ next:
           if(!strcmp(S_name(list->xid), path)) {
             tl[args_number] = mk_type_list(env, template_arg->type);
             if(args_number)
-              tl[args_number -1]->next = tl[args_number];
+              tl[args_number - 1]->next = tl[args_number];
             args_number++;
             free(path);
             break;
@@ -1459,7 +1475,7 @@ next:
       if(!e)
         fprintf(stderr, "\033[32mvoid\033[0m");
       while(e) {
-      m_str path = type_path(e->type_decl->xid);
+        m_str path = type_path(e->type_decl->xid);
 #ifdef COLOR
         fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, S_name(e->var_decl->xid));
 #else
@@ -1538,14 +1554,8 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
       return NULL;
     }
     func_call->m_func = ret;
-    // [template] - please assign the right base
-    // [template] - and test watson for multi-line
     func_call->base = v->func_ref->def->types;
-    /*func_call->base = ret->def->types;*/
     return ret->def->ret_type;
-//    Type ret_type = ret->def->ret_type;
-//    free_Func_Def(ret->def);
-//    return ret_type;
   }
   current = func_call;
   return check_Func_Call1(env, func_call->func, func_call->args,
@@ -1565,7 +1575,6 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
   add_ref(t->obj);
-//  add_ref(t->obj);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -1777,6 +1786,7 @@ static Type check_Expression(Env env, Expression exp)
     switch(curr->exp_type) {
     case Primary_Expression_type:
       curr->type = check_Primary_Expression(env, curr->primary_exp);
+      printf("curr->type %p\n", curr->type);
       break;
     case Decl_Expression_type:
       curr->type = check_Decl_Expression(env, curr->decl_exp);
@@ -2278,13 +2288,14 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
 
 m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
 {
-  // make sure public/private/protected/function match
-  if(lhs->func_decl != rhs->func_decl) {
-    err_msg(TYPE_, pos, "function signatures differ in access modifiers..." );
-    err_msg(TYPE_, pos, "(both must be one of public/private/protected/function)..." );
-    return -1;
-  }
-
+  /*
+    // make sure public/private/protected/function match
+    if(lhs->func_decl != rhs->func_decl) {
+      err_msg(TYPE_, pos, "function signatures differ in access modifiers..." );
+      err_msg(TYPE_, pos, "(both must be one of public/private/protected/function)..." );
+      return -1;
+    }
+  */
   Arg_List e1 = lhs->arg_list;
   Arg_List e2 = rhs->arg_list;
   //  m_uint count = 1;

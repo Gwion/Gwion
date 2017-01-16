@@ -378,12 +378,17 @@ Func import_mfun(Env env, DL_Func * mfun)
   if(!func_def)
     return NULL;
   if(scan1_Func_Def(env, func_def) < 0)
-    return NULL;
+    goto error;
   if(scan2_Func_Def(env, func_def) < 0)
-    return NULL;
+    goto error;
   if(check_Func_Def(env, func_def) < 0)
-    return NULL;
+    goto error;
   return func_def->func;
+error:
+  if(func_def->func)
+    rem_ref(func_def->func->obj, func_def->func);
+  free_Func_Def(func_def);
+  return NULL;
 }
 
 Func import_sfun(Env env, DL_Func * mfun)

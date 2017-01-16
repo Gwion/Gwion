@@ -71,7 +71,7 @@ static m_str get_arg_doc(void* data)
   Type_List type_list; // call template
   Class_Body class_body;
   Class_Ext class_ext;
-  Class_Ext iface_ext;
+//  Class_Ext iface_ext;
   Class_Def class_def;
   Ast ast;
 };
@@ -157,7 +157,7 @@ static m_str get_arg_doc(void* data)
 %type<section> section
 %type<class_def> class_def
 %type<class_ext> class_ext
-%type<class_ext> iface_ext
+//%type<class_ext> iface_ext
 %type<class_body> class_body
 %type<class_body> class_body2
 %type<id_list> id_list
@@ -193,17 +193,17 @@ class_def
       { $$ = new_class_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner); }
   | class_decl CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
-  | class_decl INTERFACE id_list LBRACE class_body RBRACE
-      { $$ = new_iface_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner);}
-  | class_decl INTERFACE id_list iface_ext LBRACE class_body RBRACE
-      { $$ = new_iface_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
+//  | class_decl INTERFACE id_list LBRACE class_body RBRACE
+//      { $$ = new_iface_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner);}
+//  | class_decl INTERFACE id_list iface_ext LBRACE class_body RBRACE
+//      { $$ = new_iface_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
   ;
 
 class_ext
-  : IMPLEMENTS id_list                { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
-  | IMPLEMENTS id_list EXTENDS id_dot { $$ = new_class_ext( $4, $2, get_pos(scanner)); }
-  | EXTENDS id_dot                    { $$ = new_class_ext( $2, NULL, get_pos(scanner)); }
-  | EXTENDS id_dot IMPLEMENTS id_list { $$ = new_class_ext( $2, $4, get_pos(scanner)); }
+//  : IMPLEMENTS id_list                { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
+//  | IMPLEMENTS id_list EXTENDS id_dot { $$ = new_class_ext( $4, $2, get_pos(scanner)); }
+  : EXTENDS id_dot                    { $$ = new_class_ext( $2, NULL, get_pos(scanner)); }
+//  | EXTENDS id_dot IMPLEMENTS id_list { $$ = new_class_ext( $2, $4, get_pos(scanner)); }
   ;
 
 class_decl
@@ -228,9 +228,9 @@ class_section
   | class_def     { $$ = new_section_Class_Def( $1, get_pos(scanner)); }
   ;
 
-iface_ext
-  : EXTENDS id_list   { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
-  ;
+//iface_ext
+//  : EXTENDS id_list   { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
+//  ;
 
 id_list
   : ID                { $$ = new_id_list( $1, get_pos(scanner)); }
@@ -259,6 +259,11 @@ function_decl
   ;
 
 func_ptr
+//  : FUNC_PTR static_decl type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN
+// { $$ = new_Func_Ptr_Stmt($2, $5, $3, $8, get_pos(scanner)); }
+//  | FUNC_PTR static_decl type_decl LPAREN ID RPAREN LPAREN RPAREN
+// { $$ = new_Func_Ptr_Stmt($2, $5, $3, NULL, get_pos(scanner)); }
+
   : FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, NULL, get_pos(scanner)); }
   | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(ae_key_static, $5, $3, NULL, get_pos(scanner)); }
   | FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, $7, get_pos(scanner)); }
@@ -460,11 +465,14 @@ type_decl
 decl_list
   : decl_exp SEMICOLON { $$ = new_Decl_List($1->decl_exp, NULL); }
   | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->decl_exp, $3); }
+  | ID SEMICOLON { $$ = NULL; }
+  | ID SEMICOLON decl_list { $$ = new_Decl_List(NULL, $3); }
   ;
 
 union
   : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_Union($3); }
   ;
+
 var_decl_list
   : var_decl  { $$ = new_Var_Decl_List($1, NULL, get_pos(scanner)); $$->doc = get_doc(scanner); }
   | var_decl  COMMA var_decl_list { $$ = new_Var_Decl_List($1, $3, get_pos(scanner)); $$->doc = get_doc(scanner); }

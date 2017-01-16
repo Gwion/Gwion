@@ -134,6 +134,7 @@ void free_NameSpace(NameSpace a)
         value->func_ref->def = NULL;
         free_VM_Code(value->func_ref->code);
       }
+//printf("value->bame %s\n", value->name);
       free(value->name);
       free(value->m_type->name);
       rem_ref(value->m_type->obj, value->m_type);
@@ -150,24 +151,27 @@ void free_NameSpace(NameSpace a)
     if(type) {
       if(!type->is_complete && type->xid == te_user) {
 
-        printf("lol\n");
+        printf("lol %s %i\n", type->name, isa(type, &t_func_ptr));
+        if(isa(type, &t_func_ptr) > 0) {
+          type->obj->ref_count--;
+//        printf("LOOK at ME %p\n", type->func->value_ref->obj->ref_count);
+          printf("LOOK at ME %i\n", type->obj->ref_count);
+          scope_rem(a->func, type->func);
+          scope_rem(a->func, type->func);
+
+          if(!type->obj->ref_count) {
+            if(type->func)
+              rem_ref(type->func->obj, type->func);
+            rem_ref(type->obj, type);
+          }
+//goto next;
+          continue;
+        }
 //rem_ref(type->obj, type);
         if(type->info)
           rem_ref(type->info->obj, type->info);
         free(type->obj);
         free(type);
-        continue;
-      } else if(isa(type, &t_func_ptr) > 0) {
-        type->obj->ref_count--;
-        printf("LOOK at ME %i\n", type->obj->ref_count);
-        scope_rem(a->func, type->func);
-        scope_rem(a->func, type->func);
-
-        if(!type->obj->ref_count) {
-          if(type->func)
-            rem_ref(type->func->obj, type->func);
-          rem_ref(type->obj, type);
-        }
         continue;
       }
       rem_ref(type->obj, type);

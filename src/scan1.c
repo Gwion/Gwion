@@ -474,13 +474,19 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
     ret = scan1_Func_Ptr(env, stmt->stmt_funcptr);
     break;
   case ae_stmt_union:
+    printf("lol %p\n", stmt->stmt_union->l->self);
     l = stmt->stmt_union->l;
     while(l) {
+      if(!l->self) {
+        err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
+        return -1;
+      }
       Var_Decl_List list = l->self->list;
       Var_Decl var_decl = NULL;
       printf("here %p\n", l->self->type);
+
       if(!l->self->type) { // weird bug
-        err_msg(SCAN1_, l->self->pos, "must povide type declaration in enum");
+        err_msg(SCAN1_, l->self->pos, "must povide type declaration in union");
         free(stmt->stmt_union);
         stmt->stmt_union = NULL;
 //fake_type
@@ -488,7 +494,6 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
 //l->self->type->xid = calloc(1, sizeof(struct ID_List_));
         return -1;
       }
-
       Type t = find_type(env, l->self->type->xid);
       if(!t) {// TODO better typename
         err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
