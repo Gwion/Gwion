@@ -816,29 +816,29 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //scope_rem(env->curr->func, f2);
 //scope_rem(env->curr->func, f2);
-      /*
-      f2->obj->ref_count--;
-      v->func_ref = NULL;
-      f2->def->func = NULL;
-      f2->def = NULL;
-      rem_ref(f2->obj, f2);
-      */
+/*
+f2->obj->ref_count--;
+v->func_ref = NULL;
+f2->def->func = NULL;
+f2->def = NULL;
+rem_ref(f2->obj, f2);
+*/
       return NULL;
     }
 
     if(env->class_def) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
       v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
-      f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //f2->def = NULL;
 //scope_rem(env->curr->func, f2);
 //scope_rem(env->curr->func, f2);
 //add_ref(f2->obj);
-      f2->obj->ref_count--;
-      v->func_ref = NULL;
-      f2->def->func = NULL;
-      f2->def = NULL;
-      rem_ref(f2->obj, f2);
+f2->obj->ref_count--;
+v->func_ref = NULL;
+f2->def->func = NULL;
+f2->def = NULL;
+rem_ref(f2->obj, f2);
       return NULL;
     }
 // was here
@@ -880,7 +880,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //rem_ref(binary->rhs->type->obj, binary->rhs->type);
 //	rem_ref(f1->value_ref->m_type->obj, f1->value_ref->m_type);
 //binary->rhs->type->obj->ref_count--;
-      return NULL;
+     return NULL;
     }
     if(r_nspc && !l_nspc) {
       err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
@@ -1422,7 +1422,7 @@ next:
           if(!strcmp(S_name(list->xid), path)) {
             tl[args_number] = mk_type_list(env, template_arg->type);
             if(args_number)
-              tl[args_number - 1]->next = tl[args_number];
+              tl[args_number -1]->next = tl[args_number];
             args_number++;
             free(path);
             break;
@@ -1451,8 +1451,6 @@ next:
       return NULL;
     }
     m_uint i;
-    // check me dot member
-    /*    err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function '%s'. should be :", S_name(exp_func->primary_exp->var));*/
     err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");
     up = f->func;
     while(up) {
@@ -1461,7 +1459,7 @@ next:
       if(!e)
         fprintf(stderr, "\033[32mvoid\033[0m");
       while(e) {
-        m_str path = type_path(e->type_decl->xid);
+      m_str path = type_path(e->type_decl->xid);
 #ifdef COLOR
         fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, S_name(e->var_decl->xid));
 #else
@@ -2306,6 +2304,7 @@ m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
     return -1;
   return 1;
 }
+
 m_bool check_Func_Def(Env env, Func_Def f)
 {
 #ifdef DEBUG_TYPE
