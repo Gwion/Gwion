@@ -412,8 +412,10 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(env->class_def && !env->class_scope &&
         (value = find_value(env->class_def->parent, list->self->xid))) {
       err_msg(TYPE_, list->self->pos,
-              "'%s' has already been defined in parent class '%s'...",
-              S_name(list->self->xid), value->owner_class->name);
+              "in class '%s': '%s' has already been defined in parent class '%s'...",
+              env->class_def->name, S_name(list->self->xid), value->owner_class->name);
+//      add_ref(env->class_def->obj);
+//      add_ref(env->class_def->obj);
       return NULL;
     }
     var_decl = list->self;

@@ -1,16 +1,14 @@
 
-typedef void (func_ptr)()
+typedef void (test)()
 
 function void test1(){ <<<"test">>>; };
 function void test2(){ <<<"another test">>>; };
 function void test3(){ <<<"yet another test">>>; };
 
-/*
+
 test1 @=> test;
 test();
-/*
 test2 @=> test;
 test();
 test3 @=> test;
 test();
-*/
