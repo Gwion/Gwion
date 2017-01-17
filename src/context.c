@@ -40,6 +40,7 @@ Context new_Context(Ast prog, m_str filename)
   context->new_types = new_Vector();
   context->new_class = new_Vector();
   context->public_class_def = NULL;
+  context->has_ptr = 0;
   return context;
 }
 #include "func.h"
@@ -49,6 +50,14 @@ void free_Context(Context a)
 
   for(i = 0; i < vector_size(a->new_funcs); i++) {
     Func f = (Func)vector_at(a->new_funcs, i);
+    if(a->has_ptr) {
+      free(f->value_ref->m_type->name);
+      free(f->value_ref->name);
+      rem_ref(f->value_ref->m_type->obj, f->value_ref->m_type);
+      rem_ref(f->value_ref->obj, f->value_ref);
+      rem_ref(f->obj, f);
+      continue;
+    }
     if(f->def->spec == ae_func_spec_op) {
       free(f->value_ref->name);
       free(f->value_ref->m_type->name);

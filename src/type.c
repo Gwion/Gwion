@@ -845,7 +845,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       v->func_ref = NULL;
       f2->def->func = NULL;
       f2->def = NULL;
-      rem_ref(f2->obj, f2);
+//      rem_ref(f2->obj, f2);
       return NULL;
     }
 // was here
