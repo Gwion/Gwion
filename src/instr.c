@@ -753,10 +753,6 @@ INSTR(Instr_Func_Call_Static)
   PUSH_MEM(shred,  local_depth);
   if(stack_depth) {
     POP_REG(shred,   stack_depth);
-    /*
-        for(i = 0; i < stack_depth/SZ_INT; i++)
-          *(m_uint*)(shred->mem + SZ_INT + SZ_INT*i) = *(m_uint*)(shred->reg + SZ_INT*i);
-    */
     memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
   }
   if(overflow_(shred->mem)) {
@@ -790,9 +786,6 @@ INSTR(Instr_Func_Call_Member)
       PUSH_MEM(shred,  SZ_INT);
       stack_depth -= SZ_INT;
     }
-
-//    for(int i = 0; i < stack_depth/SZ_INT; i++)
-//      *(m_uint*)(shred->mem + SZ_INT*i) = *(m_uint*)(shred->reg + SZ_INT*i);
     memcpy(shred->mem, shred->reg, stack_depth);
   }
   if(func->need_this)
