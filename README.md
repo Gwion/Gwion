@@ -17,21 +17,23 @@ there is also:
 *  *silent* driver, which makes no sound
 *  *dummy* driver, runs as fast as possible, with no sound
 *  *file* driver, as fast as possible, writes to a file, either wav or spa, depending on *-r* switch
-try 
+try
+ 
 ```
 ./gwion --help
 ```
 to learn more
 
 simple example code:
-> // print hello world
->	<<<"Hello World">>>;
-> // create a sinusoidal generator and connect it to dac  
-> SinOsc s => dac;  
-> // let one minute pass  
-> 5::second => now;  
-> // you're done!
-
+```
+// print hello world
+<<<"Hello World">>>;
+// create a sinusoidal generator and connect it to dac  
+SinOsc s => dac;  
+// let one minute pass  
+5::second => now;  
+// you're done!
+```
 there are a few *new* features:  	
 	
     *  variadic funcs
@@ -40,15 +42,30 @@ there are a few *new* features:
     *  enums
 
 ####requires####
+
 * [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
 
 ####configure####
+
 simply edit *config.mk* to suit your needs, 
 
 ####build####
+
 ```
 make
 ```
 
+####issues####
+
+if anyting goes wrong or seems unclear, please report an [issue](https://github.com/fennecdjay/Gwion/issues/new).  
+
+####help####
+
+Every helping hand is welcome!!!
+if you wish to do something on [Gwion](https://github.com/fennecdjay/Gwion), please use the [issue tracker](https://github.com/fennecdjay/Gwion/issues),
+either to find a issue you can fix, or add a new one.  
+please also check the [Wiki](https://github.com/fennecdjay/Gwion/wiki).
+
+---------
 
 let me know...
