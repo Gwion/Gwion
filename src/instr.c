@@ -365,7 +365,7 @@ INSTR(Free_Loop_Counter)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "loop: free counter");
 #endif
-  free(instr->m_val);
+  free((m_uint*)instr->m_val);
 }
 
 INSTR(Reg_Push_Deref)
@@ -437,7 +437,7 @@ INSTR(Gack)
 #ifdef COLOR
     fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%li\033[0m] ", shred->xid);
 #else
-    fprintf(stdout, "[DEBUG] [%i] ", shred->xid);
+    fprintf(stdout, "[DEBUG] [%lu] ", shred->xid);
 #endif
 #endif
     type = (Type)vector_at(v, size - i);
