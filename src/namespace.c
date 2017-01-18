@@ -113,7 +113,6 @@ void free_NameSpace(NameSpace a)
 
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
-    static m_str last = "";
     if(isa(value->m_type, &t_class) > 0)
       rem_ref(value->m_type->obj, value->m_type);
     else if(isa(value->m_type, &t_object) > 0) {
