@@ -150,22 +150,15 @@ void free_NameSpace(NameSpace a)
     Type type = (Type)vector_at(v, i);
     if(type) {
       if(!type->is_complete && type->xid == te_user) {
-
-//        printf("lol %s %i\n", type->name, isa(type, &t_func_ptr));
         if(type->parent == &t_func_ptr) {
-//        if(isa(type, &t_func_ptr) > 0) {
           type->obj->ref_count--;
-//        printf("LOOK at ME %p\n", type->func->value_ref->obj->ref_count);
-          printf("LOOK at ME %i\n", type->obj->ref_count);
-          scope_rem(a->func, type->func);
-          scope_rem(a->func, type->func);
-
+          scope_rem(a->func, insert_symbol(type->func->name));
+          scope_rem(a->func, insert_symbol(type->func->name));
           if(!type->obj->ref_count) {
             if(type->func)
               rem_ref(type->func->obj, type->func);
             rem_ref(type->obj, type);
           }
-//goto next;
           continue;
         }
 //rem_ref(type->obj, type);
