@@ -19,7 +19,7 @@ struct Context_
 void context_add_type(Context context, Type type, VM_Object obj);
 void context_add_value(Context context, Value value, VM_Object obj);
 void context_add_func(Context context, Func func, VM_Object obj);
-void context_add_class(Context context, Type type, VM_Object obj);
+void context_add_class(Context context, Value value, VM_Object obj);
 int load_context(Context context, Env env);
 int unload_context(Context context, Env env);
 Context new_Context( Ast prog, char* filename );
