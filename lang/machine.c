@@ -8,7 +8,7 @@
 #include "doc.h"
 
 #define prepare() \
-  Ast ast; \
+  Ast ast = NULL; \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\
 	if(strcmp(str, "global_context"))\
@@ -21,11 +21,8 @@
 	}
 
 #define clean() \
-  free_Ast(ast);
-//  if(strcmp(str, "global_context"))\
-//   free(str);\
-//  release(obj, shred);\
-
+  if(ast) \
+    free_Ast(ast);
 
 static SFUN(machine_add)
 {
@@ -39,7 +36,7 @@ static SFUN(machine_add)
 static SFUN(machine_doc)
 {
 //  prepare()
-Ast ast;
+  Ast ast = NULL;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);
   m_bool global = strcmp(str, "global_context");
@@ -55,7 +52,8 @@ Ast ast;
   }
 
   mkdoc_context(shred->vm_ref->env, str);
-  free_Ast(ast);
+  if(ast)
+    free_Ast(ast);
   release(obj, shred);
   if(global)
     free(str);
@@ -181,7 +179,6 @@ static SFUN(machine_shreds)
     sh = (VM_Shred)vector_at(vm->shred, i);
     i_vector_set(obj->array, i, sh->xid);
   }
-printf("obj: %p %i\n",obj, obj->ref);
   RETURN->v_object = obj;
 }
 
