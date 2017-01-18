@@ -19,7 +19,7 @@ void free_Frame(Frame* a)
 {
   vtype i;
   for(i = 0; i < vector_size(a->stack); i++)
-    free(vector_at(a->stack, i));
+    free((Local*)vector_at(a->stack, i));
   free_Vector(a->stack);
   free(a);
 }
