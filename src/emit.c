@@ -421,7 +421,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 
   case ae_primary_str: // modified 13/01/17 'get rid of litteral strings'
     memcpy(&temp, &primary->str, sizeof(temp));
-    l = frame_alloc_local(emit->code->frame, SZ_INT, temp, 0, 1);
+    l = frame_alloc_local(emit->code->frame, SZ_INT, (m_str)temp, 0, 1);
     instr = add_instr(emit, Reg_Push_Str);
     instr->m_val = temp;
     instr->m_val2 = l->offset;;
@@ -847,7 +847,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "spork");
 #endif
-  Instr instr, op = NULL, push_code = NULL, spork = NULL;
+  Instr op = NULL, push_code = NULL, spork = NULL;
   VM_Code code;
 
   CHECK_BB(emit_Func_Args(emit, exp))
@@ -1801,7 +1801,7 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   emit->default_case_index = -1;
   instr = add_instr(emit, Branch_Switch);
   instr->ptr = emit->cases = new_Map();
-  vector_append(emit->code->switches, instr->ptr);
+  vector_append(emit->code->switches, (vtype)instr->ptr);
 //  frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->stmt, 1))
 //  emit_pop_scope(emit);
