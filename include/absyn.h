@@ -581,6 +581,7 @@ struct Class_Body_ { Section* section; Class_Body next; int pos; };
 struct ID_List_    { S_Symbol xid; ID_List next; int pos; };
 struct Type_List_  { ID_List list; Type_List next; int pos; };  // call template list
 Type_List new_type_list(ID_List list, Type_List next, int pos);
+void free_Type_List(Type_List a);
 Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
   Class_Ext ext, Class_Body body, int pos );
 Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
