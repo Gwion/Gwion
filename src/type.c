@@ -788,7 +788,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     Type r_nspc, l_nspc = NULL;
     m_uint i;
     Func f1, f2 = NULL;
-    Value v, v2;
+    Value v;
     char name[1024];
     Type ret_type;
 
@@ -1409,7 +1409,7 @@ next:
 
   // no func
   if(!func) {
-    Value value;
+    Value value = NULL;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
         value = namespace_lookup_value(env->curr, exp_func->primary_exp->var, 1);
@@ -1546,7 +1546,6 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
         return NULL;
       }
     }
-    printf("v->next %i %p %p\n", v->func_num_overloads, v->func_ref->up, v->func_ref->next);
     // primary case
     Func ret = find_template_match(env, v, func_call->m_func, func_call->types,
                                    func_call->func, func_call->args);
