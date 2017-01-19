@@ -48,7 +48,6 @@ static MFUN(shred_yield)
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
-//  s->is_running = 0;
   shredule(sh, s, get_now(sh) + .5);
   RETURN->v_uint = 1;
 }
@@ -94,18 +93,12 @@ static MFUN(shred_dir)
   STRING(obj) = dirname(strdup(s->code->filename));
   RETURN->v_uint = (m_uint)obj;
 }
-/*
+
 static DTOR(shred_dtor)
 {
-  VM_Shred sh = ME(o);
-  free(sh->base);
-  free(sh->_reg);
-  free_VM_Code(sh->code);
-  free(sh->name);
-  free(sh->filename);
-  free(sh);
+  release(o, shred);
 }
-*/
+
 m_bool import_shred(Env env)
 {
   DL_Func* fun;
@@ -113,8 +106,7 @@ m_bool import_shred(Env env)
   Func f;
 
   CHECK_BB(add_global_type(env, &t_shred))
-//  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
-  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
   env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");

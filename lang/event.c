@@ -65,17 +65,18 @@ void broadcast(M_Object o)
   VM_Shred sh;
   for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
-//    sh->wait = NULL;
+    sh->wait = NULL;
     shredule(sh->vm_ref->shreduler, sh, get_now(sh->vm_ref->shreduler) + .5);
   }
   vector_clear(EV_SHREDS(o));
 }
-
+extern m_int o_shred_me;
 static MFUN(event_broadcast)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr" , "event signal");
 #endif
+  release(ME(shred), shred);
   broadcast(o);
 }
 
