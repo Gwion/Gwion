@@ -1,0 +1,15 @@
+12 => int i;
+Object o;
+<<<i>>>;
+<<<"test">>>;
+spork ~ {
+ second => now;
+string s;
+<<<  "test spork exp." >>>;
+//  <<<i, s>>>;
+<<<i, o>>>;
+} @=> Shred shred;
+//me.yield();
+2::second => now;
+<<<i, o, "end test">>>;
+

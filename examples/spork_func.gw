@@ -1,0 +1,9 @@
+function void test() { <<<"here">>>; samp => now; <<<"and now">>>; } 
+
+test();
+
+spork ~test();
+me.yield();
+2::samp => now;
+
+<<<"end of spork func test.">>>;

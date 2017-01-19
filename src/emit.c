@@ -47,8 +47,7 @@ Emitter new_Emitter(Env env)
 void free_Emitter(Emitter a)
 {
   vtype i;
-  for(i = 0; i < vector_size(a->spork); i++)
-  {
+  for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
     rem_ref(f->obj, f);
   }
@@ -870,9 +869,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   emit->code->name = strdup("spork~exp");
   emit->code->filename = strdup(emit_filename);
   op = add_instr(emit, Mem_Push_Imm);
-
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
-
   add_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
 
@@ -966,7 +963,9 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       emit->code->filename = strdup(emit_filename);
       op = add_instr(emit, Mem_Push_Imm);
       vector_append(emit->spork, (vtype)f);
+frame_push_scope(emit->code->frame);
       CHECK_BB(emit_Stmt(emit, unary->code, 0))
+emit_pop_scope(emit);
       op->m_val = emit->code->stack_depth;
       instr = add_instr(emit, EOC);
       op->m_val = emit->code->stack_depth;
