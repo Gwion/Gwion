@@ -24,6 +24,7 @@ struct Emitter_
 {
   Env       env;
   Vector    stack;
+  Vector    spork;
   Code*     code;
   Context   context;
   NameSpace nspc;

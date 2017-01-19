@@ -87,7 +87,7 @@ VM_Shred new_VM_Shred(VM_Code c)
 void free_VM_Shred(VM_Shred shred)
 {
   release(shred->me, shred);
-  if(!strcmp(shred->name, "spork~exp"))
+  if(strstr(shred->name, "spork~"))
     free(shred->_mem);
   else
     free(shred->base);

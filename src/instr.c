@@ -582,12 +582,6 @@ INSTR(Spork)
   vm_add_shred(vm, sh);
   POP_REG(shred,  SZ_INT);
   func = *(Func*)shred->reg;
-
-  if(!func) { // HACK
-    func = (Func)instr->m_val2;
-    /*    exit(89);*/
-  }
-
   if(func->is_member) {
     POP_REG(shred,  SZ_INT);
     this_ptr = *(m_uint*)shred->reg;

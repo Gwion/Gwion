@@ -578,6 +578,10 @@ void free_Unary_Expression(Unary_Expression* a)
 {
   if(a->exp) // sporked func
     free_Expression(a->exp);
+  if(a->type)
+    free_Type_Decl(a->type);
+  if(a->code)
+    free_Stmt(a->code);
   free(a);
 }
 
