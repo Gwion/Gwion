@@ -41,7 +41,7 @@ struct VM_Shred_
   char* mem;
 //  char _mem[SIZEOF_MEM];
   char* _reg;
-//  char* _mem;
+  char* _mem;
   char* base;
   m_uint pc, next_pc, xid;
   m_str name;

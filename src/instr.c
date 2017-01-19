@@ -572,14 +572,13 @@ INSTR(Spork)
   POP_REG(shred,  SZ_INT);
   code = *(VM_Code*)shred->reg;
   VM_Shred sh = new_VM_Shred(code);
-  sh->name = strdup(code->name);
   sh->parent = shred;
   if(!shred->child)
     shred->child = new_Vector();
   vector_append(shred->child, (vtype)sh);
+  sh->_mem = sh->base;
   sh->base = shred->base;
   sh->me = new_Shred(vm, sh);
-  sh->me->ref++;
   vm_add_shred(vm, sh);
   POP_REG(shred,  SZ_INT);
   func = *(Func*)shred->reg;

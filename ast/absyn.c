@@ -574,9 +574,11 @@ Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, 
   return a;
 }
 
-void free_Unary_Expression(Unary_Expression* unary)
+void free_Unary_Expression(Unary_Expression* a)
 {
-  free(unary);
+  if(a->exp) // sporked func
+    free_Expression(a->exp);
+  free(a);
 }
 
 Expression new_exp_from_unary3(Operator oper, Stmt* code, int pos )
