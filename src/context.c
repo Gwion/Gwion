@@ -47,7 +47,6 @@ Context new_Context(Ast prog, m_str filename)
 void free_Context(Context a)
 {
   vtype i;
-
   for(i = 0; i < vector_size(a->new_funcs); i++) {
     Func f = (Func)vector_at(a->new_funcs, i);
     if(a->has_ptr) {

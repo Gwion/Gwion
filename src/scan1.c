@@ -547,7 +547,6 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
   Arg_List arg_list;
   int count = 1;
   arg_list = ptr->args;
-
   ptr->ret_type = find_type(env, ptr->type->xid);
 
   if(!ptr->ret_type) {

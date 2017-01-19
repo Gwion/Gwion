@@ -146,14 +146,11 @@ void free_NameSpace(NameSpace a)
 
   v = scope_get(a->type);
   for(i = 0; i < vector_size(v); i++) {
-//  for(i = vector_size(v) -1; i > -1; i--) {
     Type type = (Type)vector_at(v, i);
     if(type) {
       if(!type->is_complete && type->xid == te_user) {
         if(type->parent == &t_func_ptr) {
           type->obj->ref_count--;
-          scope_rem(a->func, insert_symbol(type->func->name));
-          scope_rem(a->func, insert_symbol(type->func->name));
           if(!type->obj->ref_count) {
             if(type->func)
               rem_ref(type->func->obj, type->func);
@@ -161,7 +158,6 @@ void free_NameSpace(NameSpace a)
           }
           continue;
         }
-//rem_ref(type->obj, type);
         if(type->info)
           rem_ref(type->info->obj, type->info);
         free(type->obj);
