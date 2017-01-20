@@ -963,9 +963,9 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       emit->code->filename = strdup(emit_filename);
       op = add_instr(emit, Mem_Push_Imm);
       vector_append(emit->spork, (vtype)f);
-frame_push_scope(emit->code->frame);
+      frame_push_scope(emit->code->frame);
       CHECK_BB(emit_Stmt(emit, unary->code, 0))
-emit_pop_scope(emit);
+      emit_pop_scope(emit);
       op->m_val = emit->code->stack_depth;
       instr = add_instr(emit, EOC);
       op->m_val = emit->code->stack_depth;
