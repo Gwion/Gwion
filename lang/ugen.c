@@ -128,7 +128,7 @@ UGen new_UGen()
   UGen u    =  (UGen) calloc(1, sizeof(struct UGen_));
   u->ugen   = NULL;
   u->channel = NULL;
-//  u->to = new_Vector();
+  u->to = new_Vector();
   u->ug = NULL;
   u->trig = NULL;
   u->tick = base_tick;
@@ -139,7 +139,7 @@ UGen new_UGen()
 
 void free_UGen(UGen u)
 {
-//  free_Vector(u->to);
+  free_Vector(u->to);
   if(u->ugen)
     free_Vector(u->ugen);
   else {
@@ -212,9 +212,10 @@ static INSTR(ugen_connect)
       if(lhs->ugen->n_out > 1) {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
 //        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
-      } else {
+      }
+else {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
-//        vector_append(lhs->ugen->to, (vtype)obj->ugen);
+        vector_append(lhs->ugen->to, (vtype)obj->ugen);
       }
     }
   } else
@@ -303,16 +304,16 @@ void ugen_ctor(M_Object o, VM_Shred shred)
 void ugen_dtor(M_Object o, VM_Shred shred)
 {
   vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, (vtype)o->ugen));
-  /*
   m_uint i;
-      for(i = 0; i < vector_size(o->ugen->to); i++)
-      {
-        UGen u = (UGen)vector_at(o->ugen->to, i);
-  //      if(!u)
-  //        continue;
-      vector_remove(u->ugen, (m_uint)vector_find(u->ugen, o->ugen));
-      }
-  */
+  for(i = 0; i < vector_size(o->ugen->to); i++)
+  {
+    UGen u = (UGen)vector_at(o->ugen->to, i);
+    m_int index = vector_find(u->ugen, (vtype)o->ugen);
+    if(index > -1)
+      vector_remove(u->ugen, index);
+    else
+      u->trig = NULL;
+  }
   free_UGen(o->ugen);
 }
 

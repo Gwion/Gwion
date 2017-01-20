@@ -202,10 +202,12 @@ void vm_run(VM* vm)
 #endif
       if(shred->is_done) {
         if(shreduler_remove(vm->shreduler, shred, 1) < 0) {
-          break;
+          goto next;
+//          continue;
         }
       }
     }
+next:;
   }
   if(!vm->is_running) {
     printf("here\n");
