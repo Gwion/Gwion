@@ -207,7 +207,8 @@ void vm_run(VM* vm)
         }
       }
     }
-next:;
+next:
+    ;
   }
   if(!vm->is_running) {
     printf("here\n");

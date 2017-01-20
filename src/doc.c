@@ -240,6 +240,9 @@ static void mkdoc_value(Doc* doc, Value v)
 
 static void mkdoc_func(Doc* doc, Func f)
 {
+  // hack while func ptr not fixed
+  if(f->value_ref->is_const)
+    return;
   m_str name = strdup(S_name(f->def->name));
   m_str ufile = usable(doc->ctx->filename);
   m_str full = getfull(doc, f->value_ref->owner, f->name);
@@ -478,8 +481,8 @@ static void mkdoc_type(Doc* doc, Type t)
   free(file);
   free(p_full);
   free(p_file);
-
 }
+
 void mkadt_context(Env env, m_str str)
 {
   int i;
