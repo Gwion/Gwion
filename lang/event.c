@@ -6,6 +6,7 @@
 #include "shreduler.h"
 #include "bbq.h"
 
+extern m_int o_shred_me;
 
 struct Type_ t_event      = { "Event",      sizeof(m_uint), &t_object, te_event };
 
@@ -18,7 +19,6 @@ void event_ctor(M_Object o, VM_Shred shred)
 
 void event_dtor(M_Object o, VM_Shred shred)
 {
-  /*printf("event dtor. FIXME %p\n", EV_SHREDS(o));*/
   free_Vector(EV_SHREDS(o));
 }
 
@@ -30,14 +30,14 @@ INSTR(Event_Wait)
   M_Object event;
   POP_REG(shred, SZ_INT * 2);
   event = *(M_Object*)shred->reg;
-shred->wait = event;
+  shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
   vector_append(v, (vtype)shred);
   shred->next_pc++;
-//  shred->me->ref++;
   *(m_int*)shred->reg = 1;
   PUSH_REG(shred, SZ_INT);
+  release(event, shred);
 }
 
 static MFUN(event_signal)
@@ -50,11 +50,6 @@ static MFUN(event_signal)
   RETURN->v_uint = vector_size(v);
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;
-#ifdef DEBUG_INSTR
-  debug_msg("instr" , "event signal");
-#endif
-  if(!sh)
-    return;
   shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);
   vector_remove(v, 0);
 }
@@ -70,7 +65,6 @@ void broadcast(M_Object o)
   }
   vector_clear(EV_SHREDS(o));
 }
-extern m_int o_shred_me;
 static MFUN(event_broadcast)
 {
 #ifdef DEBUG_INSTR
