@@ -130,17 +130,17 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return 1;
   }
   if (v->owner_class && (v->is_member || v->is_static)) {
+    m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
     dot->dot_member->t_base = v->owner_class;
     dot->emit_var = emit_var;
-    if (emit_Dot_Member(emit, dot->dot_member) < 0) {
+    if((ret = emit_Dot_Member(emit, dot->dot_member)) < 0)
       err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...");
-      return -1;
-    }
-    return 1;
+    free_Expression(dot);
+    return ret;
   }
 
   /* HACK: constant value */
