@@ -66,9 +66,6 @@ Code* new_Code()
   code->stack_cont = new_Vector();
   code->stack_return = new_Vector();
   code->frame = new_Frame();
-// make these optionnal
-  code->gack = new_Vector();
-  code->switches = new_Vector();
   return code;
 }
 
@@ -221,8 +218,6 @@ VM_Code emit_to_code(Emitter emit)
 #endif
   Code* c = emit->code;
   VM_Code code = new_VM_Code(c->code, c->stack_depth, c->need_this, c->name, c->filename);
-  code->gack = c->gack;
-  code->switches = c->switches;
   free_Code(c);
   return code;
 }
@@ -444,14 +439,13 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     e = primary->exp;
     CHECK_BB(emit_Expression(emit, e, 0))
     Vector types = new_Vector();
+    e = primary->exp;
     while (e) {
       vector_append(types, (vtype)e->type);
       e = e->next;
     }
     instr = add_instr(emit, Gack);
     instr->ptr = types;
-    vector_append(emit->code->gack, (vtype)types); // let code then vm_code remember
-    instr->execute = Gack;
     break;
   default:
     err_msg(EMIT_, primary->pos, "(emit): unhandled primary type '%i'...", primary->type);
@@ -1809,7 +1803,6 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   emit->default_case_index = -1;
   instr = add_instr(emit, Branch_Switch);
   instr->ptr = emit->cases = new_Map();
-  vector_append(emit->code->switches, (vtype)instr->ptr);
 //  frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->stmt, 1))
 //  emit_pop_scope(emit);

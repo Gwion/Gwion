@@ -2058,13 +2058,18 @@ static m_bool check_Break(Env env, Stmt_Break cont)
   return 1;
 }
 
-static m_bool check_Switch(Env env, Stmt_Switch stmt)
+static m_bool check_Switch(Env env, Stmt_Switch a)
 {
-  Type t = check_Expression(env, stmt->val);
+  Type t = check_Expression(env, a->val);
   if(!t || t->xid !=  t_int.xid) {
-    err_msg(TYPE_, stmt->pos, "invalid type in '%s' switch expression. should be 'int'", t->name);
+    err_msg(TYPE_, a->pos, "invalid type in '%s' switch expression. should be 'int'", t->name);
     return -1;
   }
+  if(check_Stmt(env, a->stmt) < 0) {
+    err_msg(TYPE_, a->pos, "\t... in switch statement");
+    return -1;
+  }
+
   return 1;
 }
 

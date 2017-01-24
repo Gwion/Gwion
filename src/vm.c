@@ -23,9 +23,6 @@ VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
   code->filename         = strdup(filename);
   code->native_func      = 0;
   code->native_func_type = NATIVE_UNKNOWN;
-// this is not necessary , at set later by emit->code
-  code->gack             = NULL;
-  code->switches             = NULL;
   return code;
 }
 
@@ -33,19 +30,15 @@ void free_VM_Code(VM_Code a)
 {
   m_uint i;
   if(a->instr) {
-    for(i = 0; i < vector_size(a->instr); i++)
+    for(i = 0; i < vector_size(a->instr); i++) {
+      Instr instr = (Instr)vector_at(a->instr, i);
+      if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc ||
+          instr->execute == Gack || instr->execute == Branch_Switch)
+        free(instr->ptr);
+//        exit(5);
       free((Instr)vector_at(a->instr, i));
+    }
     free_Vector(a->instr);
-  }
-  if(a->gack) {
-    for(i = 0; i < vector_size(a->gack); i++)
-      free_Vector((Vector)vector_at(a->gack, i));
-    free_Vector(a->gack);
-  }
-  if(a->switches) {
-    for(i = 0; i < vector_size(a->switches); i++)
-      free_Map((Map)vector_at(a->switches, i));
-    free_Vector(a->switches);
   }
   free(a->name);
   free(a->filename);

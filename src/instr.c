@@ -1129,7 +1129,6 @@ INSTR(Instr_Array_Init) // for litteral array
     i_vector_set(obj->array, i, *(m_uint*)(shred->reg + SZ_INT * i));
   *(M_Object*)shred->reg = obj;
   PUSH_REG(shred,  SZ_INT);
-  free(info);
 }
 
 INSTR(Instr_Array_Alloc)
@@ -1179,7 +1178,6 @@ INSTR(Instr_Array_Alloc)
     *(m_uint*) shred->reg = num_obj;
     PUSH_REG(shred,  SZ_INT);
   }
-  free(info);
   return;
 
   /*
@@ -1194,7 +1192,6 @@ error:
   fprintf( stderr, "[chuck](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
   shred->is_done = 1;
-  free(info);
 }
 
 

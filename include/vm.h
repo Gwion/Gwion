@@ -14,7 +14,6 @@ struct VM_Code_
   m_uint native_func;
   e_native_func native_func_type;
   m_bool need_this;
-  Vector gack, switches;
 };
 
 typedef struct BBQ_* BBQ;
