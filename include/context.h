@@ -13,7 +13,6 @@ struct Context_
   Vector    new_types;
   Vector    new_class;
   VM_Object obj;
-  m_bool has_ptr;
 };
 
 void context_add_type(Context context, Type type, VM_Object obj);

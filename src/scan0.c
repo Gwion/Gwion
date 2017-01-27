@@ -14,7 +14,6 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   t->parent = &t_func_ptr;
 //  ptr->ref = t;
   namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
-  env->context->has_ptr = 1;
   return 1;
 }
 static m_bool scan0_Class_Def(Env env, Class_Def class_def)
