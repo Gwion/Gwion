@@ -42,7 +42,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
 
   while(list) {
     if(isres(env, list->self->xid, list->self->pos) > 0) {
-      err_msg(SCAN2_, list->self->pos, "... in variable declaration", S_name(list->self->xid) );
+      err_msg(SCAN2_, list->self->pos, "... in variable declaration", S_name(list->self->xid));
       return -1;
     }
     if(namespace_lookup_value(env->curr, list->self->xid, 0)) {
