@@ -31,6 +31,7 @@ extern void array_ctor(M_Object o,  VM_Shred shred);
 extern INSTR(Array_Append);
 extern m_int o_string_data;
 extern m_int o_event_shred;
+extern m_int o_shred_me;
 
 void broadcast(M_Object o);
 void release(M_Object obj, VM_Shred shred);

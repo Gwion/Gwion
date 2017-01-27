@@ -6,6 +6,8 @@
 
 static m_str emit_filename;
 
+void free_Expression(Expression a); // absyn.h
+
 static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
 static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop);
 static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member);
@@ -791,6 +793,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   if (!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
 // [todo] emit_func_call1 remove template stuff
+    printf("type->name %s\n", type->name);
     if (!f) { //template with no list
       if (!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
@@ -1859,8 +1862,8 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
 
 static m_bool emit_Func_Ptr(Emitter emit, Func_Ptr* ptr)
 {
-  namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
-  namespace_add_type(emit->env->curr, ptr->xid, ptr->m_type);
+//  namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
+//  namespace_add_type(emit->env->curr, ptr->xid, ptr->m_type);
 //  add_ref(ptr->value->obj);
   return 1;
 }
@@ -2516,7 +2519,11 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     }
     prog = prog->next;
   }
-//  if (ret > 0)
+  if (ret < 0) {
+    free_Ast(ast);
+    printf("emit->code %p\n", emit->code);
+    free_Code(emit->code);
+  }
   emit_pop_scope(emit);
   // else what ?
   return ret;

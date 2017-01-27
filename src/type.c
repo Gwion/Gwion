@@ -855,9 +855,10 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->primary_exp->var, -1);*/
       v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
-//      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-      f1 = v->func_ref;
+      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      /*f1 = v->func_ref;*/
       r_nspc = NULL; // get owner
+      printf("here %p\n", f1);
       ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else {
       v = namespace_lookup_value(binary->rhs->dot_member->t_base->info, binary->rhs->dot_member->xid, 1);
@@ -901,9 +902,9 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         sprintf(name, "%s@%li@%s", S_name(f2->def->name), i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
-      printf("f1 %p iiughlu\n %s\n\n", f2->def->arg_list, name);
-//if(!f1)
-// f1 = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->func_ref;
+      printf("f1 %p %p iiughlu\n %s\n\n", f1, f2->def->arg_list, name);
+      /*if(!f1)*/
+      /*f1 = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->func_ref;*/
       if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         printf("lol %p\n", f1->def->ret_type);
         binary->func = f2;
@@ -1382,7 +1383,8 @@ next:
   if(exp_func->exp_type == Primary_Expression_type &&
       exp_func->primary_exp->value &&
       !exp_func->primary_exp->value->is_const) {
-    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->name), -1);
+    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->m_type->name), -1);
+    /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->name), -1);*/
     if(!f) {
       err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
       return NULL;

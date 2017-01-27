@@ -1,14 +1,13 @@
 #include "err_msg.h"
-#include "vm.h"
-#include "type.h"
-#include "dl.h"
+//#include "vm.h"
+//#include "type.h"
+//#include "dl.h"
 #include "import.h"
 #include "shreduler.h"
-#include "bbq.h"
+//#include "bbq.h"
+#include "lang.h"
 
-extern m_int o_shred_me;
-
-struct Type_ t_event      = { "Event",      sizeof(m_uint), &t_object, te_event };
+struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 
 m_int o_event_shred;
 
@@ -65,12 +64,12 @@ void broadcast(M_Object o)
   }
   vector_clear(EV_SHREDS(o));
 }
+
 static MFUN(event_broadcast)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr" , "event signal");
 #endif
-  release(ME(shred), shred);
   broadcast(o);
 }
 

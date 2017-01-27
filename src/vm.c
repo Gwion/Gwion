@@ -35,7 +35,6 @@ void free_VM_Code(VM_Code a)
       if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc ||
           instr->execute == Gack || instr->execute == Branch_Switch)
         free(instr->ptr);
-//        exit(5);
       free((Instr)vector_at(a->instr, i));
     }
     free_Vector(a->instr);

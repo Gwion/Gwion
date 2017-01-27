@@ -8,7 +8,7 @@
 #include "import.h"
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
-m_uint o_shred_me;
+m_int o_shred_me;
 
 M_Object new_Shred(VM* vm, VM_Shred shred)
 {
