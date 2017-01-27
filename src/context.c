@@ -40,7 +40,6 @@ Context new_Context(Ast prog, m_str filename)
   context->new_types = new_Vector();
   context->new_class = new_Vector();
   context->public_class_def = NULL;
-  context->has_ptr = 0;
   return context;
 }
 #include "func.h"
