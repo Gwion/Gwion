@@ -12,10 +12,8 @@ struct Type_ t_object = { "Object", sizeof(m_uint), NULL, te_object };
 
 void NullException(VM_Shred shred)
 {
-  fprintf(stderr,
-          "[chuck](VM): NullPointerException: shred[id=%lu:%s], PC=[%lu]\n",
-          shred->xid, shred->name, shred->pc);
-  // do something!
+  err_msg(INSTR_, 0, "NullPointerException: shred[id=%lu:%s], PC=[%lu]\n",
+    shred->xid, shred->name, shred->pc);
   shred->is_running = 0;
   shred->is_done = 1;
 }
@@ -82,6 +80,14 @@ void release(M_Object obj, VM_Shred shred)
 #ifdef DEBUG_INSTR
       debug_msg("instr", "dtor loop %p %s", obj, t->name);
 #endif
+      m_uint i;
+      Vector v = scope_get(t->info->value);
+      for(i = 0; i < vector_size(v); i++) {
+        Value value = (Value)vector_at(v, i);
+        if(isprim(value->m_type) < 0)
+          release(*(M_Object*)(obj->data + value->offset), shred);
+      }
+      free_Vector(v);
       if (t->has_destructor) {
         if (t->info->dtor->native_func)
           ((f_dtor)t->info->dtor->native_func)(obj, shred);
@@ -102,7 +108,6 @@ void release(M_Object obj, VM_Shred shred)
           eoc->execute = EOC;
           vector_append(code->instr, (vtype)eoc);
           shred->next_pc--;
-          // TODO: where do we free code ?
           vm_add_shred(shred->vm_ref, sh);
           return;
         }
@@ -156,11 +161,7 @@ INSTR(Vararg_start)
 #endif
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
   if (!arg->d)
-  {
     shred->next_pc = instr->m_val2 + 1;
-//    return;
-  }
-//    *(m_uint*)(shred->reg - SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   *(m_uint*)(shred->reg - SZ_INT) = 0;
 }
@@ -168,7 +169,6 @@ INSTR(Vararg_start)
 INSTR(Vararg_end)
 {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-//  *(m_uint*)(shred->reg - SZ_INT) = 0; // removed 02/01/17
   switch (arg->k[arg->i]) {
   case Kindof_Int:
     arg->o += SZ_INT;
@@ -259,10 +259,6 @@ m_bool import_object(Env env)
   CHECK_BB(add_global_type(env, &t_vararg))
   CHECK_BB(add_global_type(env, &t_varobj))
   CHECK_BB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
-  /*  fun = new_DL_Func("void", "start", (m_uint)Vararg_start);*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
-  /*  fun = new_DL_Func("void", "end", (m_uint)Vararg_end);*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
   import_mvar(env, "int", "start", 1, 0, "start vararg loop");
   import_mvar(env, "int", "end", 1, 0, "end vararg loop");
   import_mvar(env, "int", "i", 1, 0, "vararg int");
