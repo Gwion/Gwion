@@ -133,7 +133,6 @@ void free_NameSpace(NameSpace a)
         value->func_ref->def = NULL;
         free_VM_Code(value->func_ref->code);
       }
-//printf("value->bame %s\n", value->name);
       free(value->name);
       free(value->m_type->name);
       rem_ref(value->m_type->obj, value->m_type);
@@ -149,15 +148,6 @@ void free_NameSpace(NameSpace a)
     Type type = (Type)vector_at(v, i);
     if(type) {
       if(!type->is_complete && type->xid == te_user) {
-        if(type->parent == &t_func_ptr) {
-          type->obj->ref_count--;
-          if(!type->obj->ref_count) {
-            if(type->func)
-              rem_ref(type->func->obj, type->func);
-            rem_ref(type->obj, type);
-          }
-          continue;
-        }
         if(type->info)
           rem_ref(type->info->obj, type->info);
         free(type->obj);
@@ -174,7 +164,6 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
-    /*printf("%s\n", func->name);*/
     rem_ref(func->obj, func);
   }
   free_Vector(v);

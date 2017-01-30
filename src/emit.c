@@ -37,6 +37,7 @@ Emitter new_Emitter(Env env)
   emit->code = NULL;
   emit->stack = new_Vector();
   emit->spork = new_Vector();
+  emit->funcs = new_Vector();
   emit->context = NULL;
   emit->nspc = NULL;
   emit->func = NULL;
@@ -55,6 +56,7 @@ void free_Emitter(Emitter a)
   }
   free_Vector(a->spork);
   free_Vector(a->stack);
+  free_Vector(a->funcs);
   free(a);
 }
 
@@ -793,7 +795,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   if (!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
 // [todo] emit_func_call1 remove template stuff
-    printf("type->name %s\n", type->name);
     if (!f) { //template with no list
       if (!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
@@ -1066,10 +1067,6 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
     }
     func_call->m_func->def->is_template = 1;
     Arg_List arg = func_call->m_func->def->arg_list;
-//if(arg)
-//  free(arg);
-    printf("arg %p\n", arg);
-//exit(3);
     CHECK_BB(scan1_Func_Def(emit->env, func_call->m_func->def))
     CHECK_BB(scan2_Func_Def(emit->env, func_call->m_func->def))
     CHECK_BB(check_Func_Def(emit->env, func_call->m_func->def))
@@ -1862,9 +1859,8 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
 
 static m_bool emit_Func_Ptr(Emitter emit, Func_Ptr* ptr)
 {
-//  namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
-//  namespace_add_type(emit->env->curr, ptr->xid, ptr->m_type);
-//  add_ref(ptr->value->obj);
+  namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
+  vector_append(emit->funcs, (vtype)ptr);
   return 1;
 }
 
@@ -1886,7 +1882,6 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
       v->ptr = (void*)i;
     } else
       emit->env->class_def->info->class_data[v->offset] = i;
-//    add_ref(v->obj);
   }
   return 1;
 }
@@ -2492,6 +2487,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   debug_msg("emit", "Ast %p", emit->env->context);
 #endif
   Ast prog = ast;
+  vtype i;
   int ret = 1;
   emit_filename = filename;
   emit->code = new_Code();
@@ -2519,12 +2515,14 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     }
     prog = prog->next;
   }
+  // handle func pointer
+  for(i = 0; i < vector_size(emit->funcs); i++) {
+    Func_Ptr* ptr = (Func_Ptr*)vector_at(emit->funcs, i);
+    scope_rem(emit->env->curr->func, ptr->xid);
+  }
   if (ret < 0) {
     free_Ast(ast);
-    printf("emit->code %p\n", emit->code);
-    free_Code(emit->code);
   }
   emit_pop_scope(emit);
-  // else what ?
   return ret;
 }
