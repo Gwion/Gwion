@@ -17,6 +17,8 @@ DIR=test/error
 @test "enum defined"                       { gbt $DIR/enum_defined_var.gw   "already declared as variable"; }
 @test "enum already defined as var2"       { gbt $DIR/enum_defined2.gw   "already declared"; }
 @test "enum already defined as var3"       { gbt $DIR/enum_defined3.gw   "already declared"; }
+@test "invalid union declaration."         { gbt $DIR/union_invalid.gw   "invalid union declaration."; }
+@test "union unknown type"                 { gbt $DIR/union_unknown.gw   "unknown type"; }
 @test "union unknown type"                 { gbt $DIR/union_unknown.gw   "unknown type"; }
 @test "union array must be empty"          { gbt $DIR/union_array_empty.gw   "array declaration must be empty in union"; }
 @test "pointer unknown ret type"           { gbt $DIR/pointer_unknown.gw   "unknown type"; }

@@ -1,17 +1,22 @@
-
+// define a function pointer type
 typedef void (Test)()
 
+// define a few functions
 function void test1(){ <<<"test">>>; };
 function void test2(){ <<<"another test">>>; };
 function void test3(){ <<<"yet another test">>>; };
 
+// create a function pointer instance
 Test test;
 
+// assign it a function
 test1 @=> test;
+// test it
 test();
-/*
+
+// ...
 test2 @=> test;
 test();
+
 test3 @=> test;
 test();
-*/

@@ -23,6 +23,7 @@ struct Emitter_
   Env       env;
   Vector    stack;
   Vector    spork;
+  Vector    funcs;
   Code*     code;
   Context   context;
   NameSpace nspc;
