@@ -2,10 +2,10 @@ load test_helper/bats-support/load
 load test_helper/bats-assert/load
 load test_helper/bats-gwion/load
 DIR=test/error
-@test "warn" {
-  diag "testing error messages"
-  assert_success
-}
+#@test "warn" {
+#  diag "testing error messages"
+#  assert_success
+#}
 @test "non exitant file"                   { gbt $DIR/no_file.gw   "error while opening file"; }
 @test "multiple public class"              { gbt $DIR/class_multiple_public.gw   "more than one 'public' class defined"; }
 @test "unknown type in declaration"        { gbt $DIR/unknown_type.gw   "unknown in declaration"; }
