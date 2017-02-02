@@ -1,5 +1,5 @@
 # Gwion
-[TravisCI::StatusBadge]
+[![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=master)](https://travis-ci.org/fennecdjay/Gwion)
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.png)
 ![](http://b.repl.ca/v1/language-C-green.png)  
 
