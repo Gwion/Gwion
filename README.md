@@ -1,4 +1,5 @@
 # Gwion
+[TravisCI::StatusBadge]
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.png)
 ![](http://b.repl.ca/v1/language-C-green.png)  
 
