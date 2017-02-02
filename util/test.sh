@@ -38,4 +38,4 @@ do
 	echo "@test \"$(ls "$ex_file")\" { gbt $ex_file; }" >> $SEG_FILE
 done
 
-bats -p $SEG_FILE $ADD_FILE $AST_FILE
+bats $( [ $CI ] && echo -t) -p $SEG_FILE $ADD_FILE $AST_FILE
