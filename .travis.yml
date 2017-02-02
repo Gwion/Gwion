@@ -1,6 +1,6 @@
 language: bash
 before_install:
-  - sudo apt-get install libsndfile1 libsndfile1-dev
+  - sudo apt-get install libsndfile1 libsndfile1-dev bison
   - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get update -qq
   - sudo apt-get install -qq bats
