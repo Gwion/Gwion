@@ -34,14 +34,6 @@ static m_str usable(m_str name)
   return str;
 }
 
-/**
-* @brief find context from name
-*
-* @param env Gwion Environmen
-* @param name name of the context
-*
-* @return found Context or NULL if not found
-*/
 static Context find_context(Env env, m_str name)
 {
   Context ctx;
@@ -52,7 +44,6 @@ static Context find_context(Env env, m_str name)
 
 static Textadept* new_Textadept(Env env, m_str str)
 {
-// get rid of extension
   char c[1024];
   m_str name;
   Textadept* doc = malloc(sizeof(Textadept));
@@ -154,15 +145,13 @@ static m_str print_type(Type t)
 {
   int i;
   char str[2054];
-  m_str ret;
   memset(str, 0, 2054);
   strcat(str, t->name);
   for(i = 0; i < t->array_depth; i++)
     strcat(str, "[]");
-  ret = strdup(str); // coub be better
-  return ret;
+  return strdup(str);
 }
-// t(ype) f(function) v(ariable)
+
 static void mkadt_value(Textadept* a, Value v)
 {
   fprintf(a->api, "%s %s\n", v->name, v->doc);
@@ -178,9 +167,6 @@ static void mkadt_func(Textadept* a, Func f)
   m_str c = strdup(f->name);
   c = strsep(&c, "@");
   fprintf(a->api, "%s %s\n", c, f->doc);
-  /*  if(f->value_ref->owner != a->ctx->nspc)*/
-  /*    fprintf(a->tag, "%s _ 0;\"\tf class:%s\n", c, f->value_ref->owner->name);*/
-  /*  else*/
   fprintf(a->tag, "%s _ 0;\"\tf\n", c);
   fprintf(a->tok, "f %s\n", c);
   free(c);
@@ -216,17 +202,12 @@ static void mkdoc_value(Doc* doc, Value v)
                usable(v->m_type->owner->filename) :
                usable("global_nspc");
   m_str p_type = print_type(v->m_type);
-//m_str p_type = print_type(v->m_type);
   fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
-          //  full, file, type, p_type, v->name);
           full, file, type, p_type, v->name);
-//free(p_type);
   if(v->doc)
     fprintf(doc->html, "<em> %s</em></li></p>\n", v->doc);
   else
     fprintf(doc->html, "</li></p>\n");
-//  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
-//    v->name, v->name, file, full, "]", v->owner->name, v->doc ? v->doc : "");
   char * str = v->doc ? strndup(v->doc, 16) : "";
   fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
           v->name, v->name, file, full, "]", v->owner->name, str);
@@ -240,9 +221,6 @@ static void mkdoc_value(Doc* doc, Value v)
 
 static void mkdoc_func(Doc* doc, Func f)
 {
-  // hack while func ptr not fixed
-  if(f->value_ref->is_const)
-    return;
   m_str name = strdup(S_name(f->def->name));
   m_str ufile = usable(doc->ctx->filename);
   m_str full = getfull(doc, f->value_ref->owner, f->name);
@@ -280,8 +258,6 @@ static void mkdoc_func(Doc* doc, Func f)
     strcat(a_full, v->name);
     fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
             a_full, a_file, a_type, ap_type, v->name);
-//    if(v->doc)
-//      fprintf(doc->html, "<em>%s</em></li></p>\n", v->doc);
     if(arg->doc)
       fprintf(doc->html, "<em>%s</em></li></p>\n", arg->doc);
     else
@@ -298,14 +274,11 @@ static void mkdoc_func(Doc* doc, Func f)
   }
   fprintf(doc->html, "</ol></blockquote></li></p>\n\n");
   m_str str = f->doc ? strndup(f->doc, 16) : "";
-//  m_str str2 = strdup(full);
-//  str2 = strsep(&str2, "@");
   fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[function\%s in <b>%s</b> <em>%s</em> '] ]],\n",
           name, name, file, full, "]", f->value_ref->owner->name, str);
 
   if(f->doc)
     free(str);
-//  free(str2);
   free(ufile);
   free(name);
   free(full);
@@ -391,7 +364,6 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
     }
     printf("value->name %s\n", value->name);
     printf("value->type->name %s\n", value->m_type->name);
-//       else
     if(isa(value->m_type, &t_class) < 0) {
       if(!value->is_member)
         vector_append(s_value, (vtype)value);
@@ -402,17 +374,16 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
   }
   free(v);
 
-  /*
-      v = scope_get(nspc->func);
-      for(i = 0; i < vector_size(v); i++) {
-          Func func = (Func)vector_at(v, i);
-          if(!func->is_member)
-              vector_append(s_func, (vtype)func);
-          else
-              vector_append(m_func, (vtype)func);
-      }
-      free(v);
-  */
+  v = scope_get(nspc->func);
+  for(i = 0; i < vector_size(v); i++) {
+    Func func = (Func)vector_at(v, i);
+    if(!func->is_member)
+      vector_append(s_func, (vtype)func);
+    else
+      vector_append(m_func, (vtype)func);
+  }
+  free(v);
+
   fprintf(doc->html, "<div class=\"section\"><h3>Types</h3><blockquote>\n");
   for(i = 0; i < vector_size(type); i++)
     mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
@@ -444,7 +415,6 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
   fprintf(doc->html, "</blockquote></div>\n");
 }
 
-//static m_str t_last = "";
 static void mkdoc_type(Doc* doc, Type t)
 {
   m_str name;
@@ -453,10 +423,6 @@ static void mkdoc_type(Doc* doc, Type t)
   m_str p_full;
   m_str p_file;
 
-  // array depth is good, but t_last is weird
-//  if(t->array_depth || !strcmp(t_last, t->name))
-//    return;
-//  t_last = t->name;
   name   = usable(t->name);
   full   = getfull(doc, t->owner, t->name);
   file   = usable(t->owner->filename);
