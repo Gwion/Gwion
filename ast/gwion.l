@@ -275,7 +275,7 @@ static int doc_adjust(void* data, char* str)
     vector_append(arg->doc, (vtype)str);
   else
     strcat(c, str);
-    printf("doc adjust\n%s\nend of doc_adjust\n", vector_front(arg->doc));
+    printf("doc adjust\n%s\nend of doc_adjust\n", (m_str)vector_front(arg->doc));
 }
 
 int minimal_error(MyArg* arg, char* s)
