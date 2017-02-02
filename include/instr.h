@@ -4,14 +4,10 @@
 #include "dl.h"
 #include "func.h"
 #include "lang.h"
-//#include "stack.h"
 #include "shreduler.h"
-//#include "vm.h"
 #include "bbq.h"
 #include "object.h"
 
-
-//void vm_add_shred(VM* vm, VM_Shred shred);
 
 struct Instr_
 {
@@ -21,8 +17,6 @@ struct Instr_
 	complex c_val;
   void* ptr;
 };
-typedef struct Instr_ * Instr;
-typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
 
 Instr new_Instr();
 void EOC(VM * vm, VM_Shred shred, Instr instr);

@@ -9,8 +9,6 @@ struct Vector_ {
 struct Map_ {
   vtype key[256];
   vtype ptr[256];
-//  vtype*key;
-//  vtype*ptr;
   vtype len;
 };
 
@@ -54,7 +52,7 @@ long int vector_find(Vector v, vtype data)
 
 void vector_set(Vector v, const vtype i, vtype arg)
 {
-  if(i < 0 || i >= v->len)
+  if(i >= v->len)
     return;
   v->ptr[i] = (vtype)arg;
 }
@@ -63,7 +61,7 @@ void vector_remove(Vector v, const vtype index)
 {
   Vector tmp;
   vtype i, j = 0;
-  if(!v->len || index < 0 || index >= v->len)
+  if(!v->len || index >= v->len)
     return;
   if(v->len == 1 && !index) {
     v->len--;
@@ -95,14 +93,14 @@ vtype vector_front(Vector v)
 
 vtype vector_at(Vector v, const vtype i)
 {
-  if(i < 0 || i >= v->len)
+  if(i >= v->len)
     return 0;
   return (vtype)v->ptr[i];
 }
 
 vtype vector_addr(Vector v, const vtype i)
 {
-  if(i < 0 || i >= v->len)
+  if(i >= v->len)
     return 0;
   return (vtype)&v->ptr[i];
 }
