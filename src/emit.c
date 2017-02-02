@@ -1066,7 +1066,6 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
       list = list->next;
     }
     func_call->m_func->def->is_template = 1;
-    Arg_List arg = func_call->m_func->def->arg_list;
     CHECK_BB(scan1_Func_Def(emit->env, func_call->m_func->def))
     CHECK_BB(scan2_Func_Def(emit->env, func_call->m_func->def))
     CHECK_BB(check_Func_Def(emit->env, func_call->m_func->def))
