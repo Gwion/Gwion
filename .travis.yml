@@ -6,7 +6,6 @@ before_install:
   - sudo apt-get install -qq bats
   - sudo apt-get install valgrind
   - sudo sudo apt-get install gcc-6
-  - sudo update-alternatives --config gcc
   - sudo apt-get install libsndfile1 libsndfile1-dev
 script:
   - DIR=$PWD
