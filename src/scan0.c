@@ -148,8 +148,6 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list)
   return 1;
 }
 
-static Type public_type = NULL;
-
 m_bool scan0_Ast(Env env, Ast prog)
 {
   m_bool ret = 1;
@@ -172,7 +170,6 @@ m_bool scan0_Ast(Env env, Ast prog)
         env->context->public_class_def = prog->section->class_def;
       }
       ret = scan0_Class_Def( env, prog->section->class_def );
-      public_type = env->context->public_class_def->type;
       break;
     default:
       err_msg(SCAN0_, prog->pos,
