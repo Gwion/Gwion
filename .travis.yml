@@ -6,7 +6,7 @@ before_install:
   - sudo apt-get install valgrind
   - sudo apt-get install libsndfile1 libsndfile1-dev
   - sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}
-  - chmod -R a+rw /usr/lib/Gwion
+  - sudo chmod -R a+rw /usr/lib/Gwion
 script:
   - DIR=$PWD
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
