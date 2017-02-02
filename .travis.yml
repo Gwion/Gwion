@@ -5,5 +5,9 @@ before_install:
   - sudo apt-get install -qq bats
   - sudo apt-get install valgrind
 script:
+  - DIR=$PWD
+  - git clone https://github.com/PaulBatchelor/Soundpipe.git
+  - cd Soundpipe; sudo make install
+  - cd $DIR
   - make
   - sh util/test.sh
