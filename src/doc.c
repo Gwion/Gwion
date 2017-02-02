@@ -444,7 +444,7 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
   fprintf(doc->html, "</blockquote></div>\n");
 }
 
-static m_str t_last = "";
+//static m_str t_last = "";
 static void mkdoc_type(Doc* doc, Type t)
 {
   m_str name;
@@ -454,9 +454,9 @@ static void mkdoc_type(Doc* doc, Type t)
   m_str p_file;
 
   // array depth is good, but t_last is weird
-  if(t->array_depth || !strcmp(t_last, t->name))
-    return;
-  t_last = t->name;
+//  if(t->array_depth || !strcmp(t_last, t->name))
+//    return;
+//  t_last = t->name;
   name   = usable(t->name);
   full   = getfull(doc, t->owner, t->name);
   file   = usable(t->owner->filename);
