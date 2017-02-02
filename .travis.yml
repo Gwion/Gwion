@@ -10,7 +10,7 @@ script:
   - git clone https://github.com/PaulBatchelor/Soundpipe.git
   - cd Soundpipe; sudo make install
   - cd $DIR
-  - sed -i config.def.mk "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy-driver/" .travis.yml
-  - sed -i "/s/ALSA_D/#ALSA_D/" .travis.yml
+  - sed -i "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy-driver/" config.def.mk
+  - sed -i "s/ALSA_D/#ALSA_D/" config.def.mk
   - make
   - sh util/test.sh
