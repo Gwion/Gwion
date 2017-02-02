@@ -1,4 +1,7 @@
-language: bash
+language: c
+compiler:
+  - clang
+  - gcc
 before_install:
   - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get update -qq
@@ -7,9 +10,6 @@ before_install:
   - sudo apt-get install libsndfile1 libsndfile1-dev
   - sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}
   - sudo chmod -R a+rw /usr/lib/Gwion
-compiler:
-  - clang
-  - gcc
 script:
   - DIR=$PWD
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
