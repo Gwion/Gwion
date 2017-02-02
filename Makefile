@@ -3,7 +3,7 @@ LDFLAGS = -lsoundpipe
 LDFLAGS += -lm -pthread -lsndfile
 LDFLAGS += -ldl -rdynamic -lrt
 
-CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native -freg-struct-return
+CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native
 CFLAGS += -fno-strict-aliasing -Wall
 CFLAGS += -D_GNU_SOURCE
 
