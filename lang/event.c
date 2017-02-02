@@ -27,7 +27,7 @@ INSTR(Event_Wait)
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
 #endif
   M_Object event;
-  POP_REG(shred, SZ_INT * 2);
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)shred->reg;
   shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
