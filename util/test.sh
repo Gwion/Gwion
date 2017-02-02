@@ -38,6 +38,6 @@ do
 	echo "@test \"$(ls "$ex_file")\" { gbt $ex_file; }" >> $SEG_FILE
 done
 
-[ $CI = "true" ] && FORMAT=-t
+[ "$CI" = "true" ] && FORMAT=-t
 
 bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
