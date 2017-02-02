@@ -1,17 +1,16 @@
 #ifndef __MAP
 #define __MAP
-
+#include "defs.h"
 #include <symbol.h>
 
-typedef long unsigned int vtype;
+typedef m_uint vtype;
 typedef struct Vector_ * Vector;
 typedef struct Map_    * Map;
-typedef struct Scope_  * Scope;
 
 extern Vector new_Vector();
 extern Vector new_Vector_fixed(const vtype len);
 extern Vector vector_copy(Vector v);
-extern void vector_set(Vector vector, const long unsigned i,vtype data);
+extern void vector_set(Vector vector, const vtype i, vtype data);
 extern long int vector_find(Vector vector, vtype data);
 extern void vector_append(Vector vector, vtype data);
 extern void vector_remove(Vector vector, const vtype index);
