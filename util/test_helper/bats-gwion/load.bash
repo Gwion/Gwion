@@ -2,9 +2,6 @@
 
 setup() {
     STOP_ON_ERROR=${STOP_ON_ERROR- 0}
-    if [ "$CI" = "true" && "$BATS_TEST_NAME" = "examples/doc.gw" ]
-    then skip "skip doc for travis."
-    fi
 	if [ $STOP_ON_ERROR -eq 1 ]
 	then
 	    [ ! -f ${BATS_PARENT_TMPNAME}.skip ] || skip "skip remaining tests"
@@ -21,6 +18,10 @@ teardown() {
 }
 
 gbt() {
+echo "$CI" "$BATS_TEST_DESCRIPTION"
+  if [ "$BATS_TEST_DESCRIPTION" == "examples/doc.gw" ]
+  then return 0
+  fi
   run valgrind --suppressions=util/gwion.supp ./gwion -d dummy "$1"
   [ $status -ne 139 ]
   assert_success
