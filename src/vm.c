@@ -97,7 +97,8 @@ BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
   if(d->ini(vm, di) < 0)
     goto error;
   sp_createn(&a->sp, di->out);
-  memset(a->sp->out, 0, di->out * sizeof(SPFLOAT));
+  free(a->sp->out);
+  a->sp->out   = calloc(di->out, sizeof(SPFLOAT));
   a->in   = calloc(di->in, sizeof(SPFLOAT));
   a->n_in = di->in;
   a->sp->sr = di->sr;
