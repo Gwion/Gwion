@@ -1779,8 +1779,11 @@ static Type check_exp_if(Env env, If_Expression* exp_if )
 
 static Type check_Expression(Env env, Expression exp)
 {
+
+#ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
   Expression curr = exp;
   while(curr) {
     curr->type = NULL;
@@ -1829,7 +1832,9 @@ static Type check_Expression(Env env, Expression exp)
     curr = curr->next;
   }
   return exp->type;
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 }
 
 static m_bool check_Enum(Env env, Stmt_Enum stmt)
