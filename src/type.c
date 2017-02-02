@@ -13,8 +13,6 @@
 #include "object.h"
 #include "string.h"
 #include "bbq.h"
-#include "import.h"
-#include "dl.h"
 
 m_bool scan0_Ast(Env, Ast);
 m_bool scan1_Ast(Env, Ast);
