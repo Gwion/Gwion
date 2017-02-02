@@ -6,7 +6,6 @@
 
 #include "defs.h"
 #include "vm.h"
-//#include "type.h"
 
 #define CK_DLL_CALL
 
@@ -14,17 +13,16 @@ typedef struct DL_Return
 {
 	union
 	{
-	  m_uint   v_uint;
-	  m_float  v_float;
-		complex  v_complex;
-		VEC3_T 	 v_vec3;
-		VEC4_T 	 v_vec4;
-	  M_Object v_object;
+	  m_uint    v_uint;
+	  m_float   v_float;
+      m_complex v_complex;
+	  VEC3_T 	v_vec3;
+      VEC4_T 	v_vec4;
+      M_Object  v_object;
 	};
 	m_uint offset;
 } DL_Return;
 
-//static void dl_return_push(const DL_Return retval, VM_Shred shred, Kindof kind);
 void dl_return_push(const DL_Return retval, VM_Shred shred, int kind);
 
 typedef void (CK_DLL_CALL * f_ctor)(M_Object o, VM_Shred sh);
@@ -38,19 +36,18 @@ typedef struct
   m_str name;
   m_str type;
   m_bool is_const;
-  void * static_addr;  
+  void * static_addr;
   m_str doc;
 } DL_Value;
 
 DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr);
 
-typedef struct 
+typedef struct
 {
   m_str name;
   m_str type;
   union { f_ctor ctor; f_dtor dtor; f_mfun mfun; f_sfun sfun; m_uint addr; };
   Vector args;
-//  m_str doc;
 } DL_Func;
 
 

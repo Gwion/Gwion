@@ -30,7 +30,8 @@ int main()
 	fprintf(file,
 "/* common typedefs */\ntypedef long          int m_int;\ntypedef long unsigned int m_uint;\n\
 typedef short         int m_bool;\ntypedef %s            m_float;\ntypedef char *            m_str;\n\
-typedef struct { m_float x, y, z; }  VEC3_T;\ntypedef struct { m_float x, y, z, w; } VEC4_T;\n", type);
+typedef struct { m_float x, y, z; }  VEC3_T;\ntypedef struct { m_float x, y, z, w; } VEC4_T;\n\
+typedef _Complex %s m_complex;\n", type, type);
 	fprintf(file, "#define SZ_INT     %lu\n", sizeof(long unsigned int));
 	fprintf(file, "#define SZ_FLOAT   %lu\n", sizeof(SPFLOAT));
 	fprintf(file, "#define SZ_COMPLEX %lu\n", sizeof(SPFLOAT) * 2);

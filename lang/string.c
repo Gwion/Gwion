@@ -65,7 +65,7 @@ INSTR(Complex_String_Assign)
   debug_msg("instr", "Complex '=>' string");
 #endif
   POP_REG(shred, SZ_INT * 2);
-  complex lhs = *(complex*)shred->reg;
+  m_complex lhs = *(m_complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   m_str str = malloc(sizeof(char));
   sprintf(str, "#(%f, %f)", creal(lhs), cimag(lhs));
@@ -137,7 +137,7 @@ INSTR(Complex_String)
   debug_msg("instr", "int '+' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  complex  lhs = *(complex*)shred->reg;
+  m_complex  lhs = *(m_complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
   m_str str = malloc(sizeof(char));
   sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));

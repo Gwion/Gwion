@@ -19,6 +19,7 @@ typedef struct Array_Sub_ * Array_Sub;
 
 typedef struct VM_Object_ * VM_Object;
 typedef struct NameSpace_ * NameSpace;
+typedef struct Scope_     * Scope;
 typedef struct Type_      * Type;
 typedef struct Value_     * Value;
 typedef struct Func_      * Func;

@@ -219,7 +219,7 @@ INSTR(Vararg_float)
 INSTR(Vararg_complex)
 {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(complex*)shred->reg = *(complex*)(arg->d + arg->o);
+  *(m_complex*)shred->reg = *(m_complex*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 

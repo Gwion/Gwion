@@ -32,18 +32,30 @@ struct VM_Array_
 m_uint    m_vector_size(M_Vector* v);
 m_uint    i_vector_at  (M_Vector* v, m_uint i);
 m_float   f_vector_at  (M_Vector* v, m_uint i);
-complex   c_vector_at  (M_Vector* v, m_uint i);
+#ifdef USE_DOUBLE
+complex double  c_vector_at  (M_Vector* v, m_uint i);
+#else
+complex float  c_vector_at  (M_Vector* v, m_uint i);
+#endif
 VEC3_T   v3_vector_at  (M_Vector* v, m_uint i);
 VEC4_T   v4_vector_at  (M_Vector* v, m_uint i);
 m_uint*   i_vector_addr(M_Vector* v, m_uint i);
 m_float*  f_vector_addr(M_Vector* v, m_uint i);
-complex*  c_vector_addr(M_Vector* v, m_uint i);
+#ifdef USE_DOUBLE
+complex double*  c_vector_addr(M_Vector* v, m_uint i);
+#else
+complex float*  c_vector_addr(M_Vector* v, m_uint i);
+#endif
 VEC3_T*  v3_vector_addr(M_Vector* v, m_uint i);
 VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i);
 //M_Object  o_vector_at((M_Vector* v, m_uint i); // check me
 void      i_vector_set (M_Vector* v, m_uint i, m_uint  data);
 void      f_vector_set (M_Vector* v, m_uint i, m_float data);
-void      c_vector_set (M_Vector* v, m_uint i, complex data);
+#ifdef USE_DOUBLE
+void      c_vector_set (M_Vector* v, m_uint i, complex double data);
+#else
+void      c_vector_set (M_Vector* v, m_uint i, complex float data);
+#endif
 void     v3_vector_set (M_Vector* v, m_uint i, VEC3_T  data);
 void     v4_vector_set (M_Vector* v, m_uint i, VEC4_T  data);
 M_Object new_M_Array  (m_uint size, m_uint length);

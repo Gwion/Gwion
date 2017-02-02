@@ -73,12 +73,16 @@ double dbtorms( double f )
 // start here
 SFUN(std_abs)
 {
-  RETURN->v_uint = abs(*(m_int*)(shred->mem + SZ_INT));
+  RETURN->v_uint = labs(*(m_int*)(shred->mem + SZ_INT));
 }
 
 SFUN(std_fabs)
 {
-  RETURN->v_float = abs(*(m_float*)(shred->mem + SZ_FLOAT));
+#ifdef USE_DOUBLE
+  RETURN->v_float = fabs(*(m_float*)(shred->mem + SZ_FLOAT));
+#else
+  RETURN->v_float = fabsf(*(m_float*)(shred->mem + SZ_FLOAT));
+#endif
 }
 
 SFUN(std_rand)

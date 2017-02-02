@@ -9,8 +9,6 @@
 #include "object.h"
 
 m_int o_array_vector;
-/*void array_ctor(M_Object o, VM_Shred shred)*/
-/*void array_dtor(M_Object o, VM_Shred shred)*/
 
 DTOR(array_dtor)
 {
@@ -45,9 +43,9 @@ m_float f_vector_at(M_Vector* v, m_uint i)
   return *(m_float*)(v->ptr + i * v->size);
 }
 
-complex c_vector_at(M_Vector* v, m_uint i)
+m_complex c_vector_at(M_Vector* v, m_uint i)
 {
-  return *(complex*)(v->ptr + i * v->size);
+  return *(m_complex*)(v->ptr + i * v->size);
 }
 
 VEC3_T v3_vector_at(M_Vector* v, m_uint i)
@@ -74,11 +72,11 @@ void f_vector_append(M_Vector* v, m_float f)
   *(m_float*)(v->ptr + (v->len - 1)*v->size) = f;
 }
 
-void c_vector_append(M_Vector* v, complex c)
+void c_vector_append(M_Vector* v, m_complex c)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
-  *(complex*)(v->ptr + (v->len - 1)*v->size) = c;
+  *(m_complex*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
 void v3_vector_append(M_Vector* v, VEC3_T c)
@@ -107,10 +105,10 @@ void f_vector_set(M_Vector* v, m_uint i, m_float data)
   *(m_float*)(v->ptr + i * v->size) = data;
 }
 
-void c_vector_set(M_Vector* v, m_uint i, complex data)
+void c_vector_set(M_Vector* v, m_uint i, m_complex data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
-  *(complex*)(v->ptr + i * v->size) = data;
+  *(m_complex*)(v->ptr + i * v->size) = data;
 }
 
 void v3_vector_set(M_Vector* v, m_uint i, VEC3_T data)
@@ -136,9 +134,9 @@ m_float*  f_vector_addr(M_Vector* v, m_uint i)
   return &*(m_float*)(v->ptr + i * v->size);
 }
 
-complex*  c_vector_addr(M_Vector* v, m_uint i)
+m_complex*  c_vector_addr(M_Vector* v, m_uint i)
 {
-  return &*(complex*)(v->ptr + i * v->size);
+  return &*(m_complex*)(v->ptr + i * v->size);
 }
 
 VEC3_T*  v3_vector_addr(M_Vector* v, m_uint i)
@@ -173,7 +171,7 @@ INSTR(Array_Append)
   } else if(instr->m_val == Kindof_Complex) {
     POP_REG(shred, SZ_COMPLEX);
     o = *(M_Object*)(shred->reg);
-    c_vector_append(o->array, *(complex*)(shred->reg + SZ_INT));
+    c_vector_append(o->array, *(m_complex*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)(shred->reg);

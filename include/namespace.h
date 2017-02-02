@@ -2,8 +2,6 @@
 #include "vm.h"
 #include "operator.h"
 
-typedef struct Scope_* Scope;
-
 struct NameSpace_
 {
   m_str     name;
