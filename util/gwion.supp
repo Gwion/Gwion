@@ -6,11 +6,3 @@
 	fun:dlopen
 	fun:type_engine_init
 }
-{
-	is it a 'Valgrind' bug ?
-	Memcheck:Leak
-	match-leak-kinds: definite
-	fun:calloc
-	fun:new_Decl_Expression
-	fun:minimal_parse
-}
