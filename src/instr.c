@@ -30,7 +30,6 @@ INSTR(Reg_Pop_Word4)
 INSTR(Reg_Push_Imm)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm");
   debug_msg("instr", "[reg] push imm %p %i", instr->m_val, instr->m_val2);
 #endif
   *(m_uint*)(shred->reg) = instr->m_val;
