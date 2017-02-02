@@ -31,7 +31,6 @@ typedef void (CK_DLL_CALL * f_ctor)(M_Object o, VM_Shred sh);
 typedef void (CK_DLL_CALL * f_dtor)(M_Object o, VM_Shred sh);
 typedef void (CK_DLL_CALL * f_mfun)(M_Object o, DL_Return * RETURN, VM_Shred sh);
 typedef void (CK_DLL_CALL * f_sfun)(DL_Return * RETURN, VM_Shred sh);
-typedef void (CK_DLL_CALL * f_sfun)(DL_Return * RETURN, VM_Shred sh);
 typedef m_bool (CK_DLL_CALL * f_init)(Env env);
 
 typedef struct
