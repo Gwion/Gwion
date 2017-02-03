@@ -100,40 +100,40 @@ static INSTR(neq)
 static INSTR(gt)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '>' %f %f", *(m_float*)(shred->reg - SZ_INT * 2), *(m_float*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT*2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg > *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg > *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(ge)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '>=' %f %f", *(m_float*)(shred->reg - SZ_INT * 2), *(m_float*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '>=' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT*2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg >= *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg >= *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(lt)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '<' %f %f", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '<' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT*2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg < * (m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg < * (m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(le)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '<=' %f %f", *(m_float*)(shred->reg - SZ_INT * 2), *(m_float*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '<=' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT*2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg <= *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg <= *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -142,7 +142,7 @@ static INSTR(le)
 INSTR(negatef)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '-' %f", *(m_float*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '-' %f", *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT)
   *(m_float*)shred->reg = -*(m_float*)shred->reg;
@@ -152,7 +152,7 @@ INSTR(negatef)
 INSTR(notf)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '!' %f", *(m_float*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '!' %f", *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT)
   *(m_int*)shred->reg = !*(m_float*)shred->reg;
@@ -216,8 +216,6 @@ INSTR(Time_Advance)
   debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT*2);
-  // TAKE CARE
-  /*  shred->wake_time += *(m_float*)shred->reg + .5;*/
   shred->wake_time += *(m_float*)shred->reg;
   shred->is_running = 0;
   shredule(vm->shreduler, shred, shred->wake_time);
@@ -608,10 +606,10 @@ m_bool import_float(Env env)
   CHECK_BB(add_binary_op(env, op_divide,        &t_dur,  &t_float, &t_dur, divide, 0))
   /*	CHECK_BB(add_binary_op(env, op_chuck,        &t_time, &t_dur, &t_dur, assign, 0))*/
 
-  CHECK_BB(add_binary_op(env, op_gt,           &t_dur,  &t_dur, &t_dur, gt,   0))
-  CHECK_BB(add_binary_op(env, op_ge,           &t_dur,  &t_dur, &t_dur, ge,   0))
-  CHECK_BB(add_binary_op(env, op_lt,           &t_dur,  &t_dur, &t_dur, lt,   0))
-  CHECK_BB(add_binary_op(env, op_le,           &t_dur,  &t_dur, &t_dur, le,   0))
+  CHECK_BB(add_binary_op(env, op_gt,           &t_dur,  &t_dur, &t_int, gt,   0))
+  CHECK_BB(add_binary_op(env, op_ge,           &t_dur,  &t_dur, &t_int, ge,   0))
+  CHECK_BB(add_binary_op(env, op_lt,           &t_dur,  &t_dur, &t_int, lt,   0))
+  CHECK_BB(add_binary_op(env, op_le,           &t_dur,  &t_dur, &t_int, le,   0))
   t_dur.doc       = "duration expression";
 
   CHECK_BB(add_global_type(env, &t_time))

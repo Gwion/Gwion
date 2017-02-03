@@ -258,7 +258,7 @@ INSTR(Alloc_Word_Float)
 #endif
   *(m_float*)(shred->mem + instr->m_val) = 0; // since template
   *(m_float**)shred->reg = &*(m_float*)(shred->mem + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(Alloc_Word_Complex)
@@ -267,7 +267,7 @@ INSTR(Alloc_Word_Complex)
   debug_msg("instr", "instr alloc word complex %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   *(m_complex**)shred->reg = &*(m_complex*)(shred->mem + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(Alloc_Word_Vec3)
@@ -328,11 +328,11 @@ INSTR(Branch_Neq_Int)
 INSTR(Branch_Eq_Float)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "branch eq int %i %i %i", instr->m_val,  *(m_int*)(shred->reg - SZ_INT * 2),  *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "branch eq int %i %f %f", instr->m_val,  *(m_float*)(shred->reg - SZ_FLOAT * 2),  *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
   m_float l = *(m_float*)shred->reg;
-  m_float r = *(m_float*)(shred->reg + SZ_INT);
+  m_float r = *(m_float*)(shred->reg + SZ_FLOAT);
   if(l == r)
     shred->next_pc = instr->m_val;
 }
@@ -340,11 +340,11 @@ INSTR(Branch_Eq_Float)
 INSTR(Branch_Neq_Float)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "branch != float");
+  debug_msg("instr", "branch != float %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
   m_float l = *(m_float*)shred->reg;
-  m_float r = *(m_float*)(shred->reg + SZ_INT);
+  m_float r = *(m_float*)(shred->reg + SZ_FLOAT);
   if(l != r)
     shred->next_pc = instr->m_val;
 }
