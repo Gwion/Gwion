@@ -1,16 +1,20 @@
 language: c
 
+os:
+  - linux
+  - osx
+
 
 compiler:
   - clang
   - gcc
 
 before_install:
-#  - sudo add-apt-repository ppa:duggan/bats --yes
-  - sudo apt-get update -qq
-#  - sudo apt-get install -qq bats
-  - sudo apt-get install valgrind
-  - sudo apt-get install libsndfile1 libsndfile1-dev
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then brew install valgrind libsndfile; else sudo sudo apt-get install valgrind libsndfile1 libsndfile1-dev; fi
+
+#  - sudo apt-get update -qq
+#  - sudo apt-get install valgrind
+#  - sudo apt-get install libsndfile1 libsndfile1-dev
   - git clone https://github.com/sstephenson/bats.git
   - pushd bats && sudo ./install.sh /usr/local && popd
   - sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}
