@@ -116,7 +116,7 @@ enum
 
 #ifndef GW_PLUG_DIR
 #define GW_PLUG_DIR "/usr/lib/Gwion/plug"
-#define
+#endif
 
 #ifdef DEBUG_STACK
 #define PUSH_MEM(a, b) \
