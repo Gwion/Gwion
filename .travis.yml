@@ -14,8 +14,6 @@ addons:
       - libsndfile1-dev
 
 env:
-  global:
-    - CFLAGS=Soundipe/h
   matrix:
     - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
     - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
@@ -69,5 +67,5 @@ before_script:
 #    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 
 script:
-  - make
+  - CFLAGS+=Soundpipe/h make
   - sh util/test.sh
