@@ -36,7 +36,7 @@ before_script:
   - export PATH=$PATH:bats/bin
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
   - tar -xzf bison-3.0.4.tar.gz
-  - pushd bison-3.0.4 && ./configure && make && popd && export PATH=$PATH:bison-3.0.4  
+  - pushd bison-3.0.4 && ./configure && make && popd && export PATH=bison-3.0.4:PATH
   - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
   - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
   - export CFLAGS+=-ISoundpipe/h
