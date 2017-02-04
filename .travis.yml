@@ -16,6 +16,7 @@ before_install:
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
   - tar -xzf bison-3.0.4.tar.gz
   - pushd bison-3.0.4 && ./configure && make && sudo make install && popd
+  - git clone https://github.com/paulbatchelor/Soundpipe.git
   - if [ $TRAVIS_OS_NAME = "osx" ]; then sh util/osx_prepare.sh; else sh util/linux_prepare.sh; fi
 
 env:
