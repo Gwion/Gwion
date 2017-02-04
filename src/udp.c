@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 #include "defs.h"
 #include "vm.h"
 #include "compile.h"
@@ -33,14 +34,30 @@ char* Recv(int i)
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
+  fd_set read_flags,write_flags;
+  struct timeval waitd = {10, 0};
+
+  FD_ZERO(&read_flags);
+  FD_ZERO(&write_flags);
+  FD_SET(sock, &read_flags);
+  FD_SET(sock, &write_flags);
 //	bzero(buf, 255);
+
   memset(buf, 0, 255);
   addr  = i ? saddr : caddr;
+
+
+  if(select(sock+1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
+	return NULL;
+if(FD_ISSET(sock, &read_flags)) {
+  FD_CLR(sock, &read_flags);
   if ((len = recvfrom(sock, buf, 255, 0,
                       (struct sockaddr *) &addr, &addrlen)) < 0)
     err_msg(UDP, 0, "recvfrom() failed");
 
   return strndup(buf, strlen(buf));
+}
+return NULL;
 }
 
 void* server_thread(void* data)
@@ -51,7 +68,9 @@ void* server_thread(void* data)
     int index;
 
     buf = Recv(0);
-    if( strncmp(buf, "bonjour", 7) == 0);
+    if(!buf)
+      continue;
+    if(strncmp(buf, "bonjour", 7) == 0);
     else if( strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
@@ -82,6 +101,12 @@ void* server_thread(void* data)
   return NULL;
 }
 
+static void set_nonblock(int socket) {
+    int flags;
+    flags = fcntl(socket,F_GETFL,0);
+    fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+}
+
 int server_init(char* hostname, int port)
 {
   struct hostent * host;
@@ -91,12 +116,15 @@ int server_init(char* hostname, int port)
     return -1;
   }
 
+  //set non blocking
+  set_nonblock(sock);
+
   /* Construct local address structure */
   memset(&saddr, 0, sizeof(saddr));
   saddr.sin_family = AF_INET;
-  host = gethostbyname( hostname );
+  host = gethostbyname(hostname);
   if(!host) {
-    saddr.sin_addr.s_addr = inet_addr( hostname );
+    saddr.sin_addr.s_addr = inet_addr(hostname);
     if( saddr.sin_addr.s_addr == -1 ) {
       saddr.sin_addr.s_addr = htonl(INADDR_ANY);
       err_msg(UDP, 0, "%s not found. setting hostname to localhost", hostname);
@@ -117,7 +145,7 @@ int server_init(char* hostname, int port)
 
 void server_destroy(pthread_t t)
 {
-  pthread_cancel(t);
+//  pthread_cancel(t);
   pthread_join(t, NULL);
   shutdown(sock, SHUT_RDWR);
 }
