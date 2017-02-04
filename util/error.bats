@@ -61,20 +61,20 @@ DIR=test/error
 # type.c #
 ##########
 @test "invalid plugin" {
-  touch /usr/lib/Gwion/plug/invalid.so
+  touch $GWION_PLUG_DIR/invalid.so
   run ./gwion -d dummy
   [ $status -ne 139 ]
   assert_success
   assert_output --partial "error in"
-  rm /usr/lib/Gwion/plug/invalid.so
+  rm $GWION_PLUG_DIR/invalid.so
 }
 
 @test "invalid plugin2" {
-  echo "static int i;" > /usr/lib/Gwion/plug/invalid.c
-  cc -shared -fPIC /usr/lib/Gwion/plug/invalid.c -o /usr/lib/Gwion/plug/invalid.so
-  rm /usr/lib/Gwion/plug/invalid.c
+  echo "static int i;" > $GWION_PLUG_DIR/invalid.c
+  cc -shared -fPIC $GWION_PLUG_DIR/invalid.c -o $GWION_PLUG_DIR/invalid.so
+  rm $GWION_PLUG_DIR/invalid.c
   gbt "NOFILE" "no import function"
-  rm /usr/lib/Gwion/plug/invalid.so
+  rm $GWION_PLUG_DIR/invalid.so
 }
 
 @test "compat sub"                           { gbt $DIR/no_compat_sub.gw   "must be of type 'int'"; }
