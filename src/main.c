@@ -213,8 +213,12 @@ int main(int argc, char** argv)
     compile(vm, (m_str)vector_at(add, i));
 
   vm->is_running = 1;
-  if(udp)
-    pthread_create(&udp_thread, NULL, &server_thread, vm);
+  if(udp) {
+    pthread_create(&udp_thread, NULL, server_thread, vm);
+//#ifndef __linux__
+//  pthread_detach(thid);
+//#endif
+  }
   d->run(vm, &di);
   if(udp)
     server_destroy(udp_thread);
