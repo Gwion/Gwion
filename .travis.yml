@@ -12,7 +12,7 @@ compiler:
 matrix:
   fast_finish: true
   allow_failures:
-    os: osx
+  -  os: osx
 
 before_install:
 #bats
