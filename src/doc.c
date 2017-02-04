@@ -3,7 +3,19 @@
 #include "map.h"
 #include "func.h"
 
+#ifndef GWION_DOC_DIR
 #define GWION_DOC_DIR "/usr/lib/Gwion/doc/"
+#endif
+#ifndef GWION_API_DIR
+#define GWION_API_DIR "/usr/lib/Gwion/api/"
+#endif
+#ifndef GWION_TAG_DIR
+#define GWION_TAG_DIR "/usr/lib/Gwion/tags/"
+#endif
+#ifndef GWION_TOK_DIR
+#define GWION_TOK_DIR "/usr/lib/Gwion/tok/"
+#endif
+
 typedef struct {
   Env env;
   Context ctx;
@@ -17,9 +29,6 @@ typedef struct {
   FILE *api, *tag, *tok;
 } Textadept;
 
-#define GWION_API_DIR "/usr/lib/Gwion/api/"
-#define GWION_TAG_DIR "/usr/lib/Gwion/tags/"
-#define GWION_TOK_DIR "/usr/lib/Gwion/tok/"
 
 static m_str usable(m_str name)
 {
