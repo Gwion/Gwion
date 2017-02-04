@@ -1,4 +1,4 @@
-dist:trusty
+dist: trusty
 language: c
 
 # container-based infrastructure
