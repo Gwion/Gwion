@@ -42,8 +42,9 @@ script:
   - if [ $TRAVIS_OS_NAME = "osx" ]; then export GWION_API_DIR="./api"; fi
   - if [ $TRAVIS_OS_NAME = "osx" ]; then export GWION_TOK_DIR="./tok"; fi
   - if [ $TRAVIS_OS_NAME = "osx" ]; then export GWION_TAG_DIR="./tag"; fi
-  - sed -i "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-  - sed -i "s/ALSA_D/#ALSA_D/" config.def.mk
-  - if [ "$GW_FLOAT_TYPE" = "float" ]; then sed -i "s/USE_DOUBLE/#USE_DOUBLE/" config.def.mk; fi
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then SED_FLAG='' ; fi
+  - sed -i $SED_FLAG "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
+  - sed -i $SED_FLAG "s/ALSA_D/#ALSA_D/" config.def.mk
+  - if [ "$GW_FLOAT_TYPE" = "float" ]; then sed -i $SED_FLAG "s/USE_DOUBLE/#USE_DOUBLE/" config.def.mk; fi
   - make
   - sh util/test.sh
