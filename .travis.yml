@@ -31,7 +31,8 @@ env:
 
 before_script:
   - git clone https://github.com/sstephenson/bats.git
-  - pushd bats && ./install.sh /bats && popd && export PATH=$PATH:bats
+  - pushd bats && ./install.sh ./bin && popd && export 
+PATH=$PATH:bats/bin
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
   - tar -xzf bison-3.0.4.tar.gz
   - pushd bison-3.0.4 && ./configure && && popd && export PATH=$PATH:bison-3.0.4  
