@@ -38,6 +38,7 @@ script:
   - cd Soundpipe; 
   - if [ "$GW_FLOAT_TYPE" = "double" && $TRAVIS_OS_NAME  = "osx" ]; then sed -i '' 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk; fi
   - if [ "$GW_FLOAT_TYPE" = "double" && $TRAVIS_OS_NAME != "osx" ]; then sed -i    's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk; fi
+  - if [ "$GW_FLOAT_TYPE" = "double" && $TRAVIS_OS_NAME  = "osx" ]; then sed -i    's/-lrt//'                  Makefile;      fi
   - make
   - sudo make install
   - cd $DIR
