@@ -1,5 +1,5 @@
 # container-based infrastructure
-#sudo: false
+sudo: false
 
 language: c
 
@@ -17,28 +17,18 @@ matrix:
   allow_failures:
   -  os: osx
 
-#addons:
-#  apt:
-#    - valgrind
-#    - libsndfile1
-#    - libsndfile1-dev
+addons:
+  apt:
+    - valgrind
+    - libsndfile1
+    - libsndfile1-dev
 
-#before_script:
-#  - git clone https://github.com/sstephenson/bats.git
-#  - pushd bats && ./install.sh /bats && popd && export PATH=$PATH:bats
-#  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-#  - tar -xzf bison-3.0.4.tar.gz
-#  - pushd bison-3.0.4 && ./configure && && popd && export PATH=$PATH:bison-3.0.4  
-#  - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
-#  - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
-
-before_install:
-#bats
+before_script:
   - git clone https://github.com/sstephenson/bats.git
-  - pushd bats && sudo ./install.sh /usr/local && popd
+  - pushd bats && ./install.sh /bats && popd && export PATH=$PATH:bats
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
   - tar -xzf bison-3.0.4.tar.gz
-  - pushd bison-3.0.4 && ./configure && make && sudo make install && popd
+  - pushd bison-3.0.4 && ./configure && && popd && export PATH=$PATH:bison-3.0.4  
   - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
   - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
   - mkdir -p "$GWION_DOC_DIR"
@@ -46,6 +36,21 @@ before_install:
   - mkdir -p "$GWION_TOK_DIR"
   - mkdir -p "$GWION_TAG_DIR"
   - mkdir -p "$GWION_PLUG_DIR"
+
+before_install:
+#bats
+#  - git clone https://github.com/sstephenson/bats.git
+#  - pushd bats && sudo ./install.sh /usr/local && popd
+#  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
+#  - tar -xzf bison-3.0.4.tar.gz
+#  - pushd bison-3.0.4 && ./configure && make && sudo make install && popd
+#  - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
+#  - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
+#  - mkdir -p "$GWION_DOC_DIR"
+#  - mkdir -p "$GWION_API_DIR"
+#  - mkdir -p "$GWION_TOK_DIR"
+#  - mkdir -p "$GWION_TAG_DIR"
+#  - mkdir -p "$GWION_PLUG_DIR"
 
 env:
    matrix:
