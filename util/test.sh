@@ -40,6 +40,6 @@ done
 
 [ "$CI" = "true" ] && FORMAT=-t
 
-[ -r "$GWION_DOC_DIR" ] || export GWION_PLUG_DIR="/usr/lib/Gwion/plug"
+[ -n "${$GWION_PLUG_DIR+1}" ] || export GWION_PLUG_DIR="/usr/lib/Gwion/plug"
 
 bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
