@@ -9,6 +9,11 @@ compiler:
   - clang
   - gcc
 
+matrix:
+  - fast_finish: true
+  - allow_failures:
+    - os: osx
+
 before_install:
 #bats
   - git clone https://github.com/sstephenson/bats.git
