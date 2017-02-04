@@ -146,6 +146,6 @@ int server_init(char* hostname, int port)
 void server_destroy(pthread_t t)
 {
 //  pthread_cancel(t);
-  pthread_join(t, NULL);
+//  pthread_join(t, NULL);
   shutdown(sock, SHUT_RDWR);
 }
