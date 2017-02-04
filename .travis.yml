@@ -10,9 +10,9 @@ compiler:
   - gcc
 
 matrix:
-  - fast_finish: true
-  - allow_failures:
-    - os: osx
+  fast_finish: true
+  allow_failures:
+    os: osx
 
 before_install:
 #bats
