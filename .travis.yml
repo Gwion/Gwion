@@ -17,8 +17,7 @@ before_install:
 #  - sudo apt-get install libsndfile1 libsndfile1-dev
   - git clone https://github.com/sstephenson/bats.git
   - pushd bats && sudo ./install.sh /usr/local && popd
-  - sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}
-  - sudo chmod -R a+rw /usr/lib/Gwion
+  - if [ $TRAVIS_OS_NAME != "osx" ]; then sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}; sudo chmod -R a+rw /usr/lib/Gwion; fi
   
 env:
    matrix:
