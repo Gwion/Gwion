@@ -1,27 +1,33 @@
+language: c
+
 # container-based infrastructure
 sudo: false
 
-language: c
 
-os:
-  - linux
-  - osx
-
-
-compiler:
-  - clang
-  - gcc
-
-matrix:
-  fast_finish: true
-  allow_failures:
-  -  os: osx
-
+#os:
+#      - linux
 addons:
   apt:
-    - valgrind
-    - libsndfile1
-    - libsndfile1-dev
+    packages:
+      - valgrind
+      - libsndfile1
+      - libsndfile1-dev
+
+env:
+  - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+  - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+#  - osx
+
+
+#compiler:
+#  - clang
+#7  - gcc
+
+#matrix:
+#  fast_finish: true
+#  allow_failures:
+#  -  os: osx
+
 
 before_script:
   - git clone https://github.com/sstephenson/bats.git
@@ -37,7 +43,7 @@ before_script:
   - mkdir -p "$GWION_TAG_DIR"
   - mkdir -p "$GWION_PLUG_DIR"
 
-before_install:
+#before_install:
 #bats
 #  - git clone https://github.com/sstephenson/bats.git
 #  - pushd bats && sudo ./install.sh /usr/local && popd
@@ -52,10 +58,10 @@ before_install:
 #  - mkdir -p "$GWION_TAG_DIR"
 #  - mkdir -p "$GWION_PLUG_DIR"
 
-env:
-   matrix:
-    - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
-    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+#env:
+#   matrix:
+#    - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+#    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 
 script:
   - make
