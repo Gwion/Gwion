@@ -148,7 +148,7 @@ void server_destroy(pthread_t t)
 #ifdef __linux__
   pthread_cancel(t);
 #else
-  pthread_kill(t);
+  pthread_kill(t, SIG_DFL);
 #endif
   pthread_join(t, NULL);
   shutdown(sock, SHUT_RDWR);
