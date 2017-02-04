@@ -215,9 +215,9 @@ int main(int argc, char** argv)
   vm->is_running = 1;
   if(udp) {
     pthread_create(&udp_thread, NULL, server_thread, vm);
-//#ifndef __linux__
-//  pthread_detach(thid);
-//#endif
+#ifndef __linux__
+  pthread_detach(thid);
+#endif
   }
   d->run(vm, &di);
   if(udp)
