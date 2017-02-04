@@ -113,7 +113,10 @@ enum
 #define NEXT_OBJECT  (s)  *(M_Object*) (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
 #define NEXT_COMPLEX (s)  *(m_complex*)(s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_COMPLEX)
 
+
+#ifndef GW_PLUG_DIR
 #define GW_PLUG_DIR "/usr/lib/Gwion/plug"
+#define
 
 #ifdef DEBUG_STACK
 #define PUSH_MEM(a, b) \

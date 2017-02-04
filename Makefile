@@ -38,6 +38,10 @@ ifdef ($GWION_TAG_DIR)
 CFLAGS += -DGWION_TAG_DIR=${GWION_TAG_DIR}
 endif
 
+ifdef ($GWION_PLUG_DIR)
+CFLAGS += -DGWION_PLUG_DIR=${GWION_PLUG_DIR}
+endif
+
 ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif

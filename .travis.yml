@@ -14,6 +14,18 @@ matrix:
   allow_failures:
   -  os: osx
 
+#addons:
+#  apt:
+#    - valgrind
+#    - libsndfile1
+#    - libsndfile1-dev
+
+#before_script:
+#  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
+#  - tar -xzf bison-3.0.4.tar.gz
+#  - pushd bison-3.0.4 && ./configure && make && sudo make install && popd
+#  - export PATH=$PATH:bison-3.0.4  
+
 before_install:
 #bats
   - git clone https://github.com/sstephenson/bats.git
