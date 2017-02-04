@@ -67,5 +67,6 @@ before_script:
 #    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 
 script:
-  - CFLAGS+=Soundpipe/h make
+  - cp Soundpipe/hsoundpipe.h include
+  - make
   - sh util/test.sh
