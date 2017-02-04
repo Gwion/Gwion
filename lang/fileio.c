@@ -84,7 +84,7 @@ INSTR(file_to_int)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
-    fscanf(IO_FILE(o), "%i", &ret);
+    (void)fscanf(IO_FILE(o), "%i", &ret);
     *(m_uint*)shred->reg = (**(m_uint**)(shred->reg) = ret);
   } else exit(89);
 }
@@ -99,7 +99,7 @@ INSTR(file_to_float)
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
-    fscanf(IO_FILE(o), "%f", &ret);
+    (void)fscanf(IO_FILE(o), "%f", &ret);
     *(m_float*)(shred->reg - SZ_INT) = (**(m_float**)(shred->reg) = ret);
   } else exit(89);
 }
@@ -126,16 +126,16 @@ INSTR(file_to_string)
 #endif
   POP_REG(shred, SZ_INT)
   /*  char ret[1024];*/
-  M_Object o = *(M_Object*)(shred->reg - SZ_INT);
-  M_Object str = **(M_Object**)(shred->reg);
-  m_uint size = 0;
-  m_str ret = strdup("\n");
+  M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
+  M_Object s    = **(M_Object**)(shred->reg);
+  m_str    c    = strdup("\n");
+  m_uint   size = 0;
 //  if(IO_ASCII(o))
   {
     if(inputAvailable(IO_FILE(o)))
-      getline(&ret, &size, IO_FILE(o));
-    STRING(str) = ret;
-    *(M_Object*)(shred->reg - SZ_INT) = str;
+      (void)getline(&c, &size, IO_FILE(o));
+    STRING(s) = c;
+    *(M_Object*)(shred->reg - SZ_INT) = s;
   }
 }
 
