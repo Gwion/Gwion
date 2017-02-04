@@ -39,7 +39,7 @@ before_script:
   - pushd bison-3.0.4 && ./configure && make && popd && export PATH=$PATH:bison-3.0.4  
   - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
   - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
-  - export CFLAGS+=Soundpipe/h
+  - export CFLAGS+=-ISoundpipe/h
   - mkdir -p "$GWION_DOC_DIR"
   - mkdir -p "$GWION_API_DIR"
   - mkdir -p "$GWION_TOK_DIR"
@@ -67,6 +67,6 @@ before_script:
 #    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 
 script:
-  - cp Soundpipe/h/soundpipe.h include
+#  - cp Soundpipe/h/soundpipe.h include
   - make
   - sh util/test.sh
