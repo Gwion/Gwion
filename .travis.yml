@@ -69,5 +69,6 @@ before_script:
 
 script:
 #  - cp Soundpipe/h/soundpipe.h include
+  - export LIBARY_PATH=$PWD
   - make
   - sh util/test.sh
