@@ -26,7 +26,7 @@ sed -i '' 's/-lrt//'                                                      Makefi
 sed -i '' "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
 sed -i '' "s/ALSA_D/#ALSA_D/"                                             config.def.mk
 sed -i '' "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-#sed -i '' "s/YACC ?= bison/YACC=../bison-3.0.4
+sed -i '' "s/YACC ?= bison/YACC=$PWD/bison-3.0.4/src/bison"
 #sed -i '' "s/-o parser.c -dv gwion.y -x/-o parser.c -dv gwion.y/" ast/Makefile
 
 #export doc dirs
