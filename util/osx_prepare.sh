@@ -22,6 +22,8 @@ sed -i '' 's/-lrt//'                                                      Makefi
 #remove alsa driver
 sed -i '' "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
 sed -i '' "s/ALSA_D/#ALSA_D/"                                             config.def.mk
+sed -i '' "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
+sed -i '' "s/-o parser.c -dv gwion.y -x/-o parser.c -dv gwion.y/" ast/Makefile
 
 #export doc dirs
 export GWION_DOC_DIR="./doc"
