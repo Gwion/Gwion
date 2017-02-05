@@ -231,9 +231,9 @@ clean:
   free_Map(scan_map);
 
   set_nspc_vm(vm);
-
-sleep(10);
-
+#ifndef __linux__
+  sleep(10);
+#endif
   if(vm && !signaled)
     free_VM(vm);
   free_Symbols();
