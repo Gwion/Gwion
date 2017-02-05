@@ -45,7 +45,7 @@ before_script:
   - export CFLAGS+=-ISoundpipe/h
   - export LIBARY_PATH=Soundpipe
   - export BISON=$PWD/bison-3.0.4/src/bison
-  - export M4=$PWD/bison-3.0.4/data/m4sugar/m4sugar.m4
+#  - export M4=$PWD/bison-3.0.4/data/m4sugar/m4sugar.m4
   - mkdir -p "$GWION_DOC_DIR"
   - mkdir -p "$GWION_API_DIR"
   - mkdir -p "$GWION_TOK_DIR"
