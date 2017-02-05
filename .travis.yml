@@ -74,5 +74,6 @@ before_script:
 
 script:
 #  - cp Soundpipe/h/soundpipe.h include
-  - make
-  - sh util/test.sh
+  - cat Makefile
+  - ls
+  - make && sh util/test.sh
