@@ -33,3 +33,6 @@ export GWION_API_DIR="./api"
 export GWION_TOK_DIR="./tok"
 export GWION_TAG_DIR="./tag"
 export GWION_PLUG_DIR="./plug"
+
+echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> ~/.bash_profile
+echo 'export LDFLAGS:  -L/usr/local/opt/bison/lib' >> ~/.bash_profile
