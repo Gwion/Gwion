@@ -45,7 +45,7 @@ before_script:
   - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
   - export CFLAGS+=-ISoundpipe/h
   - export LIBARY_PATH=Soundpipe
-  - export BISON=Soundpipe/src/bison
+  - export BISON=$PWD/bison-3.0.4/src/bison
   - mkdir -p "$GWION_DOC_DIR"
   - mkdir -p "$GWION_API_DIR"
   - mkdir -p "$GWION_TOK_DIR"
