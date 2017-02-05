@@ -75,5 +75,6 @@ before_script:
 script:
 #  - cp Soundpipe/h/soundpipe.h include
   - cat ast/Makefile
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' "s/${YACC}/..\/bison-3.0.4\/src\/bison/" ast/Makefile; fi
   - ls
   - make && sh util/test.sh
