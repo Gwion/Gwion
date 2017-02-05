@@ -39,12 +39,13 @@ before_script:
   - export PATH=$PATH:bats/bin
   - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
   - tar -xzf bison-3.0.4.tar.gz
-  - pushd bison-3.0.4 && ./configure \-\-prefix=$PWD && make && popd && export PATH=bison-3.0.4/src:$PATH
+  - pushd bison-3.0.4 && ./configure \-\-prefix=$PWD/../bison && make install && popd && export PATH=bison-3.0.4/src:$PATH
   - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
   - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
   - export CFLAGS+=-ISoundpipe/h
   - export LIBARY_PATH=Soundpipe
   - export BISON=$PWD/bison-3.0.4/src/bison
+  - export PATH=$PWD/bin:$PATH
 #  - export M4=$PWD/bison-3.0.4/data/m4sugar/m4sugar.m4
   - mkdir -p "$GWION_DOC_DIR"
   - mkdir -p "$GWION_API_DIR"
