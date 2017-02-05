@@ -21,9 +21,9 @@ env:
 #  - osx
 
 
-#compiler:
-#  - clang
-#7  - gcc
+compiler:
+  - clang
+  - gcc
 
 #matrix:
 #  fast_finish: true
