@@ -5,8 +5,10 @@ language: c
 sudo: false
 
 
-#os:
-#      - linux
+os:
+  - linux
+  - osx
+
 addons:
   apt:
     packages:
