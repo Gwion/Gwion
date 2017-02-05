@@ -1,7 +1,7 @@
-CC = cc
-YACC = bison
+CC ?= cc
+YACC ?= bison
 YFLAGS = -o parser.c -dv gwion.y -x
-LEX = flex
+LEX ?= flex
 LFLAGS =  -o lexer.c gwion.l
 
 OBJ = lexer.o parser.o absyn.o
