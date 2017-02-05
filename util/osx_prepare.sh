@@ -1,5 +1,7 @@
 #!/bin/sh
-brew install valgrind libsndfile
+brew unlink bison
+brew install valgrind libsndfile bison
+
 
 pushd Soundpipe
 if [ "$GW_FLOAT_TYPE" = "double" ]
