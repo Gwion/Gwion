@@ -28,7 +28,7 @@ sed -i '' "s/ALSA_D/#ALSA_D/"                                             config
 sed -i '' "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
 sed -i '' "s/YACC ?= bison/YACC=$PWD/bison-3.0.4/src/bison"
 #sed -i '' "s/-o parser.c -dv gwion.y -x/-o parser.c -dv gwion.y/" ast/Makefile
-
+sed -i '' "s/${YACC}/..\/bison-3.0.4\/src\/bison/" ast/Makefile
 #export doc dirs
 #export GWION_DOC_DIR="./doc"
 #export GWION_API_DIR="./api"
