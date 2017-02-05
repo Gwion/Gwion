@@ -21,7 +21,7 @@ fi
 
 sed -i "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
 sed -i "s/ALSA_D/#ALSA_D/" config.def.mk
-sed -i "s/LDFLAGS = -lsoundpipe/LDFLAGS = Soundpipe/libsoundpipe.a/" Makefile
+sed -i "s/-lsoundpipe/Soundpipe/libsoundpipe.a/" Makefile
 
 #sudo mkdir -p /usr/lib/Gwion/{doc,api,plug,tags,tok}
 #sudo chmod -R a+rw /usr/lib/Gwion
