@@ -89,7 +89,7 @@ static m_str get_arg_doc(void* data)
   NEW SPORK SIZEOF TYPEOF
   CLASS INTERFACE STATIC PRIVATE PUBLIC EXTENDS IMPLEMENTS DOT COLONCOLON
   AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
-  DTOR OPERATOR FUNC_PTR
+  AST_DTOR OPERATOR FUNC_PTR
 	RSL RSR RSAND RSOR RSXOR
 	RAND ROR REQ RNEQ RGT RGE RLT RLE
 	RINC RDEC RUNINC RUNDEC
@@ -442,7 +442,7 @@ func_def
     { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-  | DTOR LPAREN RPAREN code_segment
+  | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_instance, new_Type_Decl(new_id_list("void", get_pos(scanner)), 0, get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->spec = ae_func_spec_dtor; $$->type_decl->doc = get_doc(scanner);}
   | OPERATOR type_decl ID LPAREN RPAREN code_segment
     { $$ = new_Func_Def(ae_key_func, ae_key_static, $2, $3, NULL, $6, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }

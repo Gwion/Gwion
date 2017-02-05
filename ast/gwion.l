@@ -217,7 +217,7 @@ static int doc_adjust(void* data, char* str);
 
 
 "class"                 					  { adjust(yyscanner); return CLASS;}
-"dtor"                 					    { adjust(yyscanner); return DTOR;}
+"dtor"                 					    { adjust(yyscanner); return AST_DTOR;}
 "operator"                 					    { adjust(yyscanner); return OPERATOR;}
 "interface"             					  { adjust(yyscanner); return INTERFACE;}
 "extends"               					  { adjust(yyscanner); return EXTENDS;}
