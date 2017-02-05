@@ -1,6 +1,7 @@
 #!/bin/sh
-brew unlink bison
-brew install valgrind libsndfile bison
+#brew unlink bison
+#brew install valgrind libsndfile bison
+brew install valgrind libsndfile
 
 
 pushd Soundpipe
@@ -9,7 +10,7 @@ then
 	sed -i '' 's/#USE_DOUBLE/USE_DOUBLE/'                                     config.def.mk
 fi
 make
-sudo make install
+#sudo make install
 popd
 
 
@@ -28,11 +29,11 @@ sed -i '' "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
 #sed -i '' "s/-o parser.c -dv gwion.y -x/-o parser.c -dv gwion.y/" ast/Makefile
 
 #export doc dirs
-export GWION_DOC_DIR="./doc"
-export GWION_API_DIR="./api"
-export GWION_TOK_DIR="./tok"
-export GWION_TAG_DIR="./tag"
-export GWION_PLUG_DIR="./plug"
+#export GWION_DOC_DIR="./doc"
+#export GWION_API_DIR="./api"
+#export GWION_TOK_DIR="./tok"
+#export GWION_TAG_DIR="./tag"
+#export GWION_PLUG_DIR="./plug"
 
 #echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> ~/.bash_profile
 #echo 'export LDFLAGS:  -L/usr/local/opt/bison/lib' >> ~/.bash_profile
