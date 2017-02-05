@@ -29,7 +29,8 @@ sed -i '' "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
 sed -i '' "s/YACC ?= bison/YACC=$PWD/bison-3.0.4/src/bison"
 sed -i '' "s/-o parser.c -dv gwion.y -x/-o parser.c -dv gwion.y/" ast/Makefile
 sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile
-cp -r data share
+mkdir /Users/travis/build/fennecdjay/Gwion/bison-3.0.4/share/bison/
+cp -r bison-3.0.4/data bison-3.0.4/share/bison
 #export doc dirs
 #export GWION_DOC_DIR="./doc"
 #export GWION_API_DIR="./api"
