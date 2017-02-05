@@ -17,14 +17,15 @@ addons:
       - libsndfile1-dev
 
 env:
-  matrix:
-    fast_finish: true
-    allow_failures:
-      -  os: osx
     - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
     - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 #  - osx
 
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    -  os: osx
 
 compiler:
   - clang
