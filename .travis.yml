@@ -46,42 +46,23 @@ before_script:
   - export LIBARY_PATH=Soundpipe
   - export BISON=$PWD/bison-3.0.4/src/bison
   - export PATH=$PWD/bin:$PATH
-#  - export M4=$PWD/bison-3.0.4/data/m4sugar/m4sugar.m4
   - mkdir -p "$GWION_DOC_DIR"
   - mkdir -p "$GWION_API_DIR"
   - mkdir -p "$GWION_TOK_DIR"
   - mkdir -p "$GWION_TAG_DIR"
   - mkdir -p "$GWION_PLUG_DIR"
-
-#before_install:
-#bats
-#  - git clone https://github.com/sstephenson/bats.git
-#  - pushd bats && sudo ./install.sh /usr/local && popd
-#  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-#  - tar -xzf bison-3.0.4.tar.gz
-#  - pushd bison-3.0.4 && ./configure && make && sudo make install && popd
-#  - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
-#  - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
-#  - mkdir -p "$GWION_DOC_DIR"
-#  - mkdir -p "$GWION_API_DIR"
-#  - mkdir -p "$GWION_TOK_DIR"
-#  - mkdir -p "$GWION_TAG_DIR"
-#  - mkdir -p "$GWION_PLUG_DIR"
-
-#env:
-#   matrix:
-#    - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
-#    - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+  - git checkout Travis-CI/verify; git rm -f "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m"..."; git push; git checkout "$TRAVIS_BRANCH"
 
 script:
-#  - cp Soundpipe/h/soundpipe.h include
-  - cat ast/Makefile
   - if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
-  - ls
   - make && sh util/test.sh
 
 branches:
   - only:
     - dev
     - coverity_scan
+
+
+after_success:
+  - git checkout Travis-CI/verify; touch "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git add "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m "..."; git push; sh ./travis_check.sh; git checkout "$TRAVIS_BRANCH"
 
