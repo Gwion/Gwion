@@ -79,3 +79,8 @@ script:
   - if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
   - ls
   - make && sh util/test.sh
+
+branches:
+  - only:
+    - dev
+    - coverity_scan
