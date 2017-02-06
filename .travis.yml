@@ -84,3 +84,4 @@ branches:
   - only:
     - dev
     - coverity_scan
+
