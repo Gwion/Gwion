@@ -51,7 +51,7 @@ before_script:
   - mkdir -p "$GWION_TOK_DIR"
   - mkdir -p "$GWION_TAG_DIR"
   - mkdir -p "$GWION_PLUG_DIR"
-  - git checkout Travis-CI/verify; git rm -f "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m"..."; git push; git checkout "$TRAVIS_BRANCH"
+  - git checkout Travis/verify; git rm -f "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m"..."; git push; git checkout "$TRAVIS_BRANCH"
 
 script:
   - if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
@@ -64,5 +64,5 @@ branches:
 
 
 after_success:
-  - git checkout Travis-CI/verify; touch "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git add "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m "..."; git push; sh ./travis_check.sh; git checkout "$TRAVIS_BRANCH"
+  - git checkout Travis/verify; touch "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git add "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m "..."; git push; sh ./travis_check.sh; git checkout "$TRAVIS_BRANCH"
 
