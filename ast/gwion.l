@@ -105,6 +105,8 @@ static int doc_adjust(void* data, char* str);
 %option reentrant
 %option header-file="lexer.h"
 %option prefix="minimal_"
+%option noinput
+%option nounput
 
 %x comment
 %x cdoc
