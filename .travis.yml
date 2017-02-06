@@ -31,9 +31,8 @@ before_script:
   && export PATH=bison-3.0.4/src:$PATH
 - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
 - if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh; fi
-  - git clone -b Travis/verify https://github.com/fennecdjay/Gwion
-  - pushd Gwion; git rm "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m "..."; git push https://$(cat ../.travis_encrypt)@github.com/fennecdjay/gwion.git Travis/verify; popd
-
+- git clone -b Travis/verify https://github.com/fennecdjay/Gwion
+- pushd Gwion; git rm "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"; git commit -m "..."; git push https://$(cat ../.travis_encrypt)@github.com/fennecdjay/gwion.git Travis/verify; popd
 - export CFLAGS+=-ISoundpipe/h
 - export LIBARY_PATH=Soundpipe
 - export BISON=$PWD/bison-3.0.4/src/bison
