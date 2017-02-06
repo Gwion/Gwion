@@ -53,6 +53,7 @@ branches:
 after_success:
 - cd Gwion
 - touch "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"
+- git pull
 - git add "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"
 - git commit -m "..."
 - git push https://$(cat ../.travis_encrypt)@github.com/fennecdjay/gwion.git Travis/verify
