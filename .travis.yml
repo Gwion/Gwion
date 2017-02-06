@@ -55,7 +55,7 @@ after_success:
 - touch "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"
 - git add "$TRAVIS_OS_NAME-$CC-$GW_FLOAT_TYPE"
 - git commit -m "..."
-- git push https://$(cat ../.travis_encrypt)/github.com/fennecdjay/gwion.git Travis/verify
+- git push https://$(cat ../.travis_encrypt)@github.com/fennecdjay/gwion.git Travis/verify
 - sh ./travis_check.sh $(cat ../.travis_encrypt)
 before_install:
   - openssl aes-256-cbc -K $encrypted_c04698045216_key -iv $encrypted_c04698045216_iv -in .travis_encrypt.enc -out .travis_encrypt -d
