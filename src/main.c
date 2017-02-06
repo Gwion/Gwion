@@ -232,7 +232,7 @@ clean:
 
   set_nspc_vm(vm);
 #ifndef __linux__
-  sleep(10);
+  sleep(1);
 #endif
   if(vm && !signaled)
     free_VM(vm);
