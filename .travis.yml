@@ -1,6 +1,6 @@
 dist: trusty
 language: c
-sudo: false
+#sudo: false
 os:
 - linux
 - osx
@@ -43,8 +43,7 @@ before_script:
 - mkdir -p "$GWION_TAG_DIR"
 - mkdir -p "$GWION_PLUG_DIR"
 script:
-- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/'
-  ast/Makefile; fi
+#- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
 - make && sh util/test.sh
 branches:
 - only:
