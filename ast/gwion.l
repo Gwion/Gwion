@@ -264,6 +264,7 @@ static int adjust(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   arg->pos += minimal_get_leng(data);
+  return 0;
 }
 
 static int doc_adjust(void* data, char* str)
@@ -276,6 +277,7 @@ static int doc_adjust(void* data, char* str)
   else
     strcat(c, str);
     printf("doc adjust\n%s\nend of doc_adjust\n", (m_str)vector_front(arg->doc));
+  return 0;
 }
 
 int minimal_error(MyArg* arg, char* s)
