@@ -62,7 +62,7 @@ static SFUN(machine_doc)
 
 static int js_filter(const struct dirent* dir)
 {
-  return strstr(dir->d_name, ".js") > 0 ? 1 : 0;
+  return strstr(dir->d_name, ".js") ? 1 : 0;
 }
 
 static SFUN(machine_doc_update)
