@@ -4,7 +4,7 @@ LDFLAGS += -lm -pthread -lsndfile
 LDFLAGS += -ldl -rdynamic -lrt
 
 CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native
-CFLAGS += -fno-strict-aliasing -Wall
+CFLAGS += -fno-strict-aliasing -Wall -pedantic
 CFLAGS += -D_GNU_SOURCE
 
 
@@ -47,6 +47,7 @@ CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
 faster: include/generated.h
+	@make soundpipe_import
 	@make -C ast
 	@make -j 8 all
 
@@ -98,8 +99,8 @@ mostly_clean:
 clean: mostly_clean
 	@rm -f ${PRG}
 
-soundpipe_import: import.lua
-	@lua import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
+soundpipe_import: util/import.lua
+	@lua util/import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
 
 
 
