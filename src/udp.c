@@ -50,8 +50,8 @@ char* Recv(int i)
 #ifndef __linux__
   if(select(sock+1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
 	return NULL;
-if(FD_ISSET(sock, &read_flags)) {
-  FD_CLR(sock, &read_flags);
+  if(FD_ISSET(sock, &read_flags)) {
+    FD_CLR(sock, &read_flags);
 #endif
   if((len = recvfrom(sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
     err_msg(UDP, 0, "recvfrom() failed");
@@ -95,9 +95,9 @@ void* server_thread(void* data)
 
 #ifndef __linux__
 static void set_nonblock(int socket) {
-    int flags;
-    flags = fcntl(socket,F_GETFL,0);
-    fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+  int flags;
+  flags = fcntl(socket,F_GETFL,0);
+  fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 }
 #endif
 
