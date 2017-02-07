@@ -281,46 +281,46 @@ static m_bool scan2_Func_Call1(Env env, Expression func, Expression args, Func m
   return 1;
 }
 
-static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
+static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Func Call");
 #endif
-  if(func_call->types) {
-    if(func_call->func->exp_type == Primary_Expression_type) {
-      Value v = namespace_lookup_value(env->curr, func_call->func->primary_exp->d.var, 1);
+  if(exp_func->types) {
+    if(exp_func->func->exp_type == Primary_Expression_type) {
+      Value v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary->d.var, 1);
       if(!v) {
-        err_msg(SCAN2_, func_call->pos, "template call of non-existant function.");
+        err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
         goto error;
       }
       Func_Def base = v->func_ref->def;
       if(!base->types) {
-        err_msg(SCAN2_, func_call->pos, "template call of non-template function.");
+        err_msg(SCAN2_, exp_func->pos, "template call of non-template function.");
         goto error;
       }
-      Type_List list = func_call->types;
+      Type_List list = exp_func->types;
       while(list) {
         Type t = find_type(env, list->list);
         if(!t) {
-          err_msg(SCAN1_, func_call->pos, "type '%s' unknown in template call", S_name(list->list->xid));
+          err_msg(SCAN1_, exp_func->pos, "type '%s' unknown in template call", S_name(list->list->xid));
           return -1;
         }
         list = list->next;
       }
 
       return 1;
-    } else if(func_call->func->exp_type == Dot_Member_type) {
+    } else if(exp_func->func->exp_type == Dot_Member_type) {
       // see type.c
       return 1;
     } else {
-      err_msg(SCAN2_, func_call->pos, "unhandled expression type '%i' in template func call.", func_call->func->exp_type);
+      err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
       return -1;
     }
   }
-  return scan2_Func_Call1(env, func_call->func, func_call->args, func_call->m_func);
+  return scan2_Func_Call1(env, exp_func->func, exp_func->args, exp_func->m_func);
 error: // handle template error
-//  free(func_call->types);
-//  free(func_call->types->list);
+//  free(exp_func->types);
+//  free(exp_func->types->list);
   return -1;
 }
 
@@ -353,46 +353,46 @@ static m_bool scan2_Expression(Env env, Expression exp)
   while(curr && ret > 0) {
     switch(exp->exp_type) {
     case Primary_Expression_type:
-      ret = scan2_Primary_Expression(env, exp->primary_exp);
+      ret = scan2_Primary_Expression(env, exp->d.exp_primary);
       break;
     case Decl_Expression_type:
-      ret = scan2_Decl_Expression(env, exp->decl_exp);
+      ret = scan2_Decl_Expression(env, exp->d.exp_decl);
       break;
     case Unary_Expression_type:
-      if(exp->unary->code) {
+      if(exp->d.exp_unary->code) {
         if(env->func)
-          ret = scan2_Stmt(env, exp->unary->code);
+          ret = scan2_Stmt(env, exp->d.exp_unary->code);
         else {
           env->func = (Func)1; // check me
-          ret = scan2_Stmt(env, exp->unary->code);
+          ret = scan2_Stmt(env, exp->d.exp_unary->code);
           env->func = NULL;
         }
       } else
         ret = 1;
       break;
     case Binary_Expression_type:
-      ret = scan2_Binary_Expression(env, exp->binary_exp);
+      ret = scan2_Binary_Expression(env, exp->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      ret = scan2_Postfix_Expression(env, exp->postfix_exp);
+      ret = scan2_Postfix_Expression(env, exp->d.exp_postfix);
       break;
     case Cast_Expression_type:
-      ret = scan2_Cast_Expression(env, exp->cast_exp);
+      ret = scan2_Cast_Expression(env, exp->d.exp_cast);
       break;
     case Func_Call_type:
-      ret = scan2_Func_Call(env, exp->func_call);
+      ret = scan2_Func_Call(env, exp->d.exp_func);
       break;
     case Array_Expression_type:
-      ret = scan2_Array(env, exp->array);
+      ret = scan2_Array(env, exp->d.exp_array);
       break;
     case Dot_Member_type:
-      ret = scan2_Dot_Member(env, exp->dot_member);
+      ret = scan2_Dot_Member(env, exp->d.exp_dot);
       break;
     case If_Expression_type:
-      ret = scan2_exp_if(env, exp->exp_if);
+      ret = scan2_exp_if(env, exp->d.exp_if);
       break;
     case Dur_Expression_type:
-      ret = scan2_Dur(env, exp->dur);
+      ret = scan2_Dur(env, exp->d.exp_dur);
       break;
     default:
       err_msg(SCAN2_, exp->pos, "unhandled expression type '%i'", curr->exp_type);

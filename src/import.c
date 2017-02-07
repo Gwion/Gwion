@@ -178,12 +178,12 @@ m_int import_mvar(Env env, const m_str type,
   }
   var_decl_list = new_Var_Decl_List( var_decl, NULL, 0 );
   exp_decl = new_Decl_Expression( type_decl, var_decl_list, 0, 0 );
-  if(scan1_Decl_Expression(env, exp_decl->decl_exp) < 0)
+  if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
-  if(scan2_Decl_Expression(env, exp_decl->decl_exp) < 0)
+  if(scan2_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
   var_decl->value->is_const = is_const;
-  if(!check_Decl_Expression(env, exp_decl->decl_exp))
+  if(!check_Decl_Expression(env, exp_decl->d.exp_decl))
     goto error;
 
   if(doc)
@@ -230,11 +230,11 @@ m_int import_svar(Env env, const m_str type,
   Expression exp_decl = new_Decl_Expression(type_decl, var_decl_list, 1, 0);
   var_decl->addr = (void *)addr;
 
-  if(scan1_Decl_Expression(env, exp_decl->decl_exp) < 0)
+  if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
-  if( scan2_Decl_Expression(env, exp_decl->decl_exp) < 0)
+  if( scan2_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
-  if(!check_Decl_Expression(env, exp_decl->decl_exp))
+  if(!check_Decl_Expression(env, exp_decl->d.exp_decl))
     goto error;
   if(doc)
     var_decl->value->doc = doc;

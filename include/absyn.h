@@ -360,27 +360,25 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List ar
 
 struct Expression_
 {
-	Expression_type exp_type;
+  Expression_type exp_type;
   ae_Exp_Meta meta;
   int emit_var;
   Type type;
   Type cast_to;
-//  m_bool is_now; /* dirty ?*/
-	union
-	{
-		Postfix_Expression*   postfix_exp;
-		Primary_Expression*   primary_exp;
-		Decl_Expression*      decl_exp;
-		Unary_Expression*      unary;
-		Binary_Expression*    binary_exp;
-		Cast_Expression*      cast_exp;
-    Func_Call*            func_call;
+  union
+  {
+	Postfix_Expression*   exp_postfix;
+	Primary_Expression*   exp_primary;
+	Decl_Expression*      exp_decl;
+	Unary_Expression*     exp_unary;
+	Binary_Expression*    exp_binary;
+	Cast_Expression*      exp_cast;
+    Func_Call*            exp_func;
     If_Expression*        exp_if;
-    Dot_Member*           dot_member;
-    Array*                array;
-    Exp_Dur*              dur;
-    Func_Ptr*              func_ptr;
-	};
+    Dot_Member*           exp_dot;
+    Array*                exp_array;
+    Exp_Dur*              exp_dur;
+  } d;
   int pos;
   Expression next;
 };

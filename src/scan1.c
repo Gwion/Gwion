@@ -141,29 +141,29 @@ static m_bool scan1_Func_Call1(Env env, Expression exp_func, Expression args,
   return 1;
 }
 
-static m_bool scan1_Func_Call( Env env, Func_Call* func_call )
+static m_bool scan1_Func_Call( Env env, Func_Call* exp_func )
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call");
 #endif
-  if(func_call->types)
+  if(exp_func->types)
     return 1;
   /*
-    if(func_call->types) {
-      Type_List list = func_call->types;
+    if(exp_func->types) {
+      Type_List list = exp_func->types;
       while(list) {
         Type t = find_type(env, list->list);
         if(!t) {
-          err_msg(SCAN1_, func_call->pos, "type '%s' unknown in template call", S_name(list->list->xid));
-  //        free_Type_List(func_call->types);
-  //		free(func_call->def);
+          err_msg(SCAN1_, exp_func->pos, "type '%s' unknown in template call", S_name(list->list->xid));
+  //        free_Type_List(exp_func->types);
+  //		free(exp_func->def);
           return -1;
         }
         list = list->next;
       }
     }
   */
-  return scan1_Func_Call1( env, func_call->func, func_call->args, func_call->m_func, func_call->pos );
+  return scan1_Func_Call1( env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos );
 }
 
 static m_bool scan1_Dot_Member(Env env, Dot_Member* member)
@@ -196,40 +196,40 @@ static m_bool scan1_Expression(Env env, Expression exp)
   while(curr) {
     switch(curr->exp_type) {
     case Primary_Expression_type:
-      ret = scan1_Primary_Expression(env, curr->primary_exp);
+      ret = scan1_Primary_Expression(env, curr->d.exp_primary);
       break;
     case Decl_Expression_type:
-      ret = scan1_Decl_Expression(env, curr->decl_exp);
+      ret = scan1_Decl_Expression(env, curr->d.exp_decl);
       break;
     case Unary_Expression_type:
-      if(exp->unary->code)
-        ret = scan1_Stmt(env, exp->unary->code);
+      if(exp->d.exp_unary->code)
+        ret = scan1_Stmt(env, exp->d.exp_unary->code);
       else
         ret = 1;
       break;
     case Binary_Expression_type:
-      ret = scan1_Binary_Expression(env, curr->binary_exp);
+      ret = scan1_Binary_Expression(env, curr->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      ret = scan1_Postfix_Expression(env, curr->postfix_exp);
+      ret = scan1_Postfix_Expression(env, curr->d.exp_postfix);
       break;
     case Cast_Expression_type:
-      ret = scan1_Cast_Expression(env, curr->cast_exp);
+      ret = scan1_Cast_Expression(env, curr->d.exp_cast);
       break;
     case Func_Call_type:
-      ret = scan1_Func_Call(env, curr->func_call);
+      ret = scan1_Func_Call(env, curr->d.exp_func);
       break;
     case Array_Expression_type:
-      ret = scan1_Array(env, curr->array);
+      ret = scan1_Array(env, curr->d.exp_array);
       break;
     case Dot_Member_type:
-      ret = scan1_Dot_Member(env, curr->dot_member);
+      ret = scan1_Dot_Member(env, curr->d.exp_dot);
       break;
     case Dur_Expression_type:
-      ret = scan1_Dur(env, curr->dur);
+      ret = scan1_Dur(env, curr->d.exp_dur);
       break;
     case If_Expression_type:
-      ret = scan1_exp_if(env, curr->exp_if);
+      ret = scan1_exp_if(env, curr->d.exp_if);
       break;
     default:
       err_msg(SCAN1_, exp->pos, "unhandled expression type '%i'", curr->exp_type);

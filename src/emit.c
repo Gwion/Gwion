@@ -139,9 +139,9 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
-    dot->dot_member->t_base = v->owner_class;
+    dot->d.exp_dot->t_base = v->owner_class;
     dot->emit_var = emit_var;
-    if((ret = emit_Dot_Member(emit, dot->dot_member)) < 0)
+    if((ret = emit_Dot_Member(emit, dot->d.exp_dot)) < 0)
       err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...");
     free_Expression(dot);
     return ret;
@@ -602,7 +602,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
   return 1;
 }
 
-static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork);
+static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork);
 static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 {
 #ifdef DEBUG_EMIT
@@ -616,15 +616,15 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
        Instr set_mem = add_instr(emit, Mem_Set_Imm);
     //    Instr push    = add_instr(emit, Reg_Push_Mem);
     Instr push    = add_instr(emit, Reg_Push_Mem_Addr);
-    push->m_val = set_mem->m_val = binary->rhs->primary_exp->value->offset;
+    push->m_val = set_mem->m_val = binary->rhs->d.exp_primary->value->offset;
     if(binary->rhs->exp_type == Dot_Member_type)
     {
-    Value value = find_value(binary->rhs->dot_member->t_base, binary->rhs->dot_member->xid);
+    Value value = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
     push->m_val = set_mem->m_val = value->offset;
 
     printf("%p\n",
 
-    find_value(binary->rhs->dot_member->t_base->parent, insert_symbol(binary->rhs->dot_member->t_base->name))
+    find_value(binary->rhs->d.exp_dot->t_base->parent, insert_symbol(binary->rhs->d.exp_dot->t_base->name))
 
     );
 
@@ -709,7 +709,7 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
       m_str nspc = strdup(from->name);
       strsep(&nspc, "@");
       strsep(&nspc, "@");
-      sprintf(name, "%s@%i@%s", S_name(cast->exp->primary_exp->d.var), 0, nspc);
+      sprintf(name, "%s@%i@%s", S_name(cast->exp->d.exp_primary->d.var), 0, nspc);
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)cast->func;
       return 1;
@@ -794,7 +794,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   Instr code, offset, call;
   if (!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
-// [todo] emit_func_call1 remove template stuff
+// [todo] emit_exp_func1 remove template stuff
     if (!f) { //template with no list
       if (!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
@@ -846,7 +846,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   return 1;
 }
 
-static m_bool emit_Func_Args(Emitter emit, Func_Call* func_call);
+static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func);
 static m_bool emit_spork(Emitter emit, Func_Call* exp)
 {
 #ifdef DEBUG_EMIT
@@ -895,59 +895,59 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   return 1;
 }
 
-static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
+static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
 {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "unary");
+  debug_msg("emit", "exp_unary");
 #endif
   Instr instr;
-  Type t = unary->self->type;
-  if (unary->op != op_spork && emit_Expression(emit, unary->exp, 0) < 0)
+  Type t = exp_unary->self->type;
+  if (exp_unary->op != op_spork && emit_Expression(emit, exp_unary->exp, 0) < 0)
     return -1;
-  switch (unary->op) {
+  switch (exp_unary->op) {
   case op_plusplus:
-    if (unary->self->meta != ae_meta_var || (unary->self->exp_type == Primary_Expression_type && unary->self->primary_exp->value->is_const)) { // TODO: check const
-      err_msg(EMIT_, unary->self->pos,
+    if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
+      err_msg(EMIT_, exp_unary->self->pos,
               "(emit): target for '++' not mutable...");
       return -1;
     }
-    if (isa(unary->exp->type, &t_int) > 0)
+    if (isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, inc);
     break;
   case op_minusminus:
-    if (unary->self->meta != ae_meta_var || (unary->self->exp_type == Primary_Expression_type && unary->self->primary_exp->value->is_const)) { // TODO: check const
-      err_msg(EMIT_, unary->self->pos,
+    if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
+      err_msg(EMIT_, exp_unary->self->pos,
               "(emit): target for '--' not mutable...");
       return -1;
     }
-    if (isa(unary->exp->type, &t_int) > 0)
+    if (isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, dec);
     break;
   case op_exclamation:
-    if (isa(unary->exp->type, &t_int) > 0 || isa(unary->self->type, &t_object) > 0)
+    if (isa(exp_unary->exp->type, &t_int) > 0 || isa(exp_unary->self->type, &t_object) > 0)
       instr = add_instr(emit, not);
-    else if (isa(unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
+    else if (isa(exp_unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
       instr = add_instr(emit, notf);
     else {
-      err_msg(EMIT_, unary->self->pos,
+      err_msg(EMIT_, exp_unary->self->pos,
               "(emit): internal error: unhandled type '%s' for ! operator",
-              unary->self->type->name);
+              exp_unary->self->type->name);
       return -1;
     }
     break;
 
   case op_spork:
-    if (unary->exp && unary->exp->exp_type == Func_Call_type) {
-      if (emit_spork(emit, unary->exp->func_call) < 0)
+    if (exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) {
+      if (emit_spork(emit, exp_unary->exp->d.exp_func) < 0)
         return -1;
     }
     // spork ~ { ... }
-    else if (unary->code) {
+    else if (exp_unary->code) {
 
       Instr op = NULL, push_code = NULL, spork = NULL;
       VM_Code code;
-      ID_List list = new_id_list("sporked", unary->pos);
-      Func f = new_Func("sporked", new_Func_Def(0, 0, new_Type_Decl(list, 0, unary->pos), "sporked", NULL, unary->code, unary->pos));
+      ID_List list = new_id_list("sporked", exp_unary->pos);
+      Func f = new_Func("sporked", new_Func_Def(0, 0, new_Type_Decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
 
       if (emit->env->class_def)
         instr = add_instr(emit, Reg_Push_This);
@@ -962,7 +962,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       op = add_instr(emit, Mem_Push_Imm);
       vector_append(emit->spork, (vtype)f);
       frame_push_scope(emit->code->frame);
-      CHECK_BB(emit_Stmt(emit, unary->code, 0))
+      CHECK_BB(emit_Stmt(emit, exp_unary->code, 0))
       emit_pop_scope(emit);
       op->m_val = emit->code->stack_depth;
       instr = add_instr(emit, EOC);
@@ -975,52 +975,52 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* unary)
       spork = add_instr(emit, Spork);
       spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
     } else {
-      err_msg(EMIT_, unary->pos,
+      err_msg(EMIT_, exp_unary->pos,
               "(emit): internal error: sporking non-function call...");
       return -1;
     }
     break;
 
   case op_minus:
-    if (isa(unary->self->type, &t_int) > 0)
+    if (isa(exp_unary->self->type, &t_int) > 0)
       instr = add_instr(emit, negate);
-    else if (isa(unary->self->type, &t_float) > 0)
+    else if (isa(exp_unary->self->type, &t_float) > 0)
       instr = add_instr(emit, negatef);
     else {
-      err_msg(EMIT_, unary->pos,
-              "(emit): internal error: unhandled type '%s' for unary '-' operator",
-              unary->exp->type->name);
+      err_msg(EMIT_, exp_unary->pos,
+              "(emit): internal error: unhandled type '%s' for exp_unary '-' operator",
+              exp_unary->exp->type->name);
       return -1;
     }
     break;
 
   case op_new:
-    if (isa(unary->self->type, &t_object) > 0)
-      CHECK_BB(emit_instantiate_object(emit, unary->self->type, unary->array, unary->type->ref))
+    if (isa(exp_unary->self->type, &t_object) > 0)
+      CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
   default:
-    err_msg(EMIT_, unary->pos,
-            "(emit): internal error: unhandled type '%s' for unary '%s' operator", op2str(unary->op));
+    err_msg(EMIT_, exp_unary->pos,
+            "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));
     return -1;
   }
   (void)instr;
   return 1;
 }
 
-static m_bool emit_Func_Args(Emitter emit, Func_Call* func_call)
+static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func args");
 #endif
-  if (emit_Expression(emit, func_call->args, 1) < 0) {
-    err_msg(EMIT_, func_call->pos, "(emit): internal error in emitting function call arguments...");
+  if (emit_Expression(emit, exp_func->args, 1) < 0) {
+    err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...");
     return -1;
   }
-  if (func_call->m_func->def->is_variadic) {
+  if (exp_func->m_func->def->is_variadic) {
     /*    exit(6);*/
     m_uint offset = 0, size = 0;
-    Expression e = func_call->args;
-    Arg_List l = func_call->m_func->def->arg_list;
+    Expression e = exp_func->args;
+    Arg_List l = exp_func->m_func->def->arg_list;
     Vector kinds = new_Vector();
     while (e) {
       if (!l) {
@@ -1041,22 +1041,22 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* func_call)
   return 1;
 }
 
-static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
+static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call");
 #endif
   // templating
-  if (func_call->types) {
-    if (func_call->m_func->value_ref->owner_class) {
+  if (exp_func->types) {
+    if (exp_func->m_func->value_ref->owner_class) {
       vector_append(emit->env->nspc_stack, (vtype)emit->env->curr);
-      emit->env->curr = func_call->m_func->value_ref->owner_class->info;
+      emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
       vector_append(emit->env->class_stack, (vtype)emit->env->class_def);
-      emit->env->class_def = func_call->m_func->value_ref->owner_class;
+      emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0;
     }
-    ID_List base_t = func_call->base;
-    Type_List list = func_call->types;
+    ID_List base_t = exp_func->base;
+    Type_List list = exp_func->types;
     namespace_push_type(emit->env->curr);
     // [template] - if overloaded, find the rigth 'base' (def->types)
     // [todo] - fix templates
@@ -1065,12 +1065,12 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
       base_t = base_t->next;
       list = list->next;
     }
-    func_call->m_func->def->is_template = 1;
-    CHECK_BB(scan1_Func_Def(emit->env, func_call->m_func->def))
-    CHECK_BB(scan2_Func_Def(emit->env, func_call->m_func->def))
-    CHECK_BB(check_Func_Def(emit->env, func_call->m_func->def))
+    exp_func->m_func->def->is_template = 1;
+    CHECK_BB(scan1_Func_Def(emit->env, exp_func->m_func->def))
+    CHECK_BB(scan2_Func_Def(emit->env, exp_func->m_func->def))
+    CHECK_BB(check_Func_Def(emit->env, exp_func->m_func->def))
     namespace_pop_type(emit->env->curr);
-    if (func_call->m_func->value_ref->owner_class) {
+    if (exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_back(emit->env->class_stack);
       vector_pop(emit->env->class_stack);
       emit->env->curr = (NameSpace)vector_back(emit->env->nspc_stack);
@@ -1078,19 +1078,19 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* func_call, m_bool spork)
     }
   }
 
-  if (func_call->args && !spork) {
-    if (emit_Func_Args(emit, func_call) < 0) {
-      err_msg(EMIT_, func_call->pos,
+  if (exp_func->args && !spork) {
+    if (emit_Func_Args(emit, exp_func) < 0) {
+      err_msg(EMIT_, exp_func->pos,
               "internal error in evaluating function arguments...");
       return -1;
     }
   }
-  if (emit_Expression(emit, func_call->func, 0) < 0) {
-    err_msg(EMIT_, func_call->pos,
+  if (emit_Expression(emit, exp_func->func, 0) < 0) {
+    err_msg(EMIT_, exp_func->pos,
             "internal error in evaluating function call...");
     return -1;
   }
-  return emit_Func_Call1(emit, func_call->m_func, func_call->ret_type, func_call->pos);
+  return emit_Func_Call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
 static m_bool emit_implicit_cast(Emitter emit, Type from, Type to)
@@ -1163,37 +1163,37 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
   while (tmp) {
     switch (tmp->exp_type) {
     case Decl_Expression_type:
-      CHECK_BB(emit_Decl_Expression(emit, tmp->decl_exp))
+      CHECK_BB(emit_Decl_Expression(emit, tmp->d.exp_decl))
       break;
     case Primary_Expression_type:
-      CHECK_BB(emit_Primary_Expression(emit, tmp->primary_exp))
+      CHECK_BB(emit_Primary_Expression(emit, tmp->d.exp_primary))
       break;
     case Unary_Expression_type:
-      CHECK_BB(emit_Unary(emit, tmp->unary))
+      CHECK_BB(emit_Unary(emit, tmp->d.exp_unary))
       break;
     case Binary_Expression_type:
-      CHECK_BB(emit_Binary_Expression(emit, tmp->binary_exp))
+      CHECK_BB(emit_Binary_Expression(emit, tmp->d.exp_binary))
       break;
     case Postfix_Expression_type:
-      CHECK_BB(emit_Postfix_Expression(emit, tmp->postfix_exp))
+      CHECK_BB(emit_Postfix_Expression(emit, tmp->d.exp_postfix))
       break;
     case Cast_Expression_type:
-      CHECK_BB(emit_Cast_Expression(emit, tmp->cast_exp))
+      CHECK_BB(emit_Cast_Expression(emit, tmp->d.exp_cast))
       break;
     case Dot_Member_type:
-      CHECK_BB(emit_Dot_Member(emit, tmp->dot_member))
+      CHECK_BB(emit_Dot_Member(emit, tmp->d.exp_dot))
       break;
     case Func_Call_type:
-      CHECK_BB(emit_Func_Call(emit, tmp->func_call, 0))
+      CHECK_BB(emit_Func_Call(emit, tmp->d.exp_func, 0))
       break;
     case Array_Expression_type:
-      CHECK_BB(emit_Array(emit, tmp->array))
+      CHECK_BB(emit_Array(emit, tmp->d.exp_array))
       break;
     case If_Expression_type:
-      CHECK_BB(emit_exp_if(emit, tmp->exp_if))
+      CHECK_BB(emit_exp_if(emit, tmp->d.exp_if))
       break;
     case Dur_Expression_type:
-      CHECK_BB(emit_Dur(emit, tmp->dur))
+      CHECK_BB(emit_Dur(emit, tmp->d.exp_dur))
       break;
     default:
       err_msg(EMIT_, tmp->pos, "unhandled expression type '%i'\n", tmp->exp_type);
@@ -1829,19 +1829,19 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     return -1;
   }
   if (stmt->val->exp_type == Primary_Expression_type) {
-    if (stmt->val->primary_exp->type == ae_primary_num)
-      value = stmt->val->primary_exp->d.num;
+    if (stmt->val->d.exp_primary->type == ae_primary_num)
+      value = stmt->val->d.exp_primary->d.num;
     else {
-      if (!stmt->val->primary_exp->value->is_const) {
+      if (!stmt->val->d.exp_primary->value->is_const) {
         err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
         return -1;
       }
-      value = stmt->val->primary_exp->value->is_const == 2 ? (m_uint)stmt->val->primary_exp->value->ptr : // for enum
-              *(m_uint*)stmt->val->primary_exp->value->ptr;                                                   // for primary variable
+      value = stmt->val->d.exp_primary->value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary->value->ptr : // for enum
+              *(m_uint*)stmt->val->d.exp_primary->value->ptr;                                                   // for primary variable
     }
   } else if (stmt->val->exp_type == Dot_Member_type) {
-    t = isa(stmt->val->dot_member->t_base, &t_class) > 0 ? stmt->val->dot_member->t_base->actual_type : stmt->val->dot_member->t_base;
-    v = find_value(t, stmt->val->dot_member->xid);
+    t = isa(stmt->val->d.exp_dot->t_base, &t_class) > 0 ? stmt->val->d.exp_dot->t_base->actual_type : stmt->val->d.exp_dot->t_base;
+    v = find_value(t, stmt->val->d.exp_dot->xid);
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
@@ -1906,18 +1906,18 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
 // check 'stmt->d.stmt_exp->type'for switch
     if (ret > 0 && pop && stmt->d.stmt_exp->type && stmt->d.stmt_exp->type->size > 0) {
       Expression exp = stmt->d.stmt_exp;
-      if (exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_hack)
-        exp = exp->primary_exp->d.exp;
+      if (exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_hack)
+        exp = exp->d.exp_primary->d.exp;
       while (exp) {
         // get rid of primary str ?
-        /*          if(exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_str)*/
+        /*          if(exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_str)*/
         instr = add_instr(emit, Reg_Pop_Word4);
         if (isa(exp->type, &t_complex) > 0 && exp->exp_type != Decl_Expression_type)
           exp->type->size = SZ_COMPLEX;
         if (isa(exp->type, &t_polar) > 0)
           exp->type->size = SZ_COMPLEX;
-        //        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->decl_exp->num_decl * exp->type->size : exp->type->size;
-        instr->m_val = (exp->exp_type == Decl_Expression_type ? exp->decl_exp->num_decl * SZ_INT : exp->type->size);
+        //        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
+        instr->m_val = (exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * SZ_INT : exp->type->size);
         exp = exp->next;
       }
     }

@@ -463,8 +463,8 @@ type_decl
 
 
 decl_list
-  : decl_exp SEMICOLON { $$ = new_Decl_List($1->decl_exp, NULL); }
-  | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->decl_exp, $3); }
+  : decl_exp SEMICOLON { $$ = new_Decl_List($1->d.exp_decl, NULL); }
+  | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->d.exp_decl, $3); }
   | ID SEMICOLON { $$ = NULL; }
   | ID SEMICOLON decl_list { $$ = new_Decl_List(NULL, $3); }
   ;
@@ -646,9 +646,9 @@ postfix_exp
   | postfix_exp MINUSMINUS
     { $$ = new_Postfix_Expression( $1, op_minusminus, get_pos(scanner)); }
   | postfix_exp template LPAREN RPAREN
-    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->func_call->types = $2; }
+    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->d.exp_func->types = $2; }
   | postfix_exp template LPAREN exp RPAREN
-    { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->func_call->types = $2; }  ;
+    { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->d.exp_func->types = $2; }  ;
   ;
 primary_exp
   : ID                { $$ = new_Primary_Expression_from_ID(     $1, get_pos(scanner)); }

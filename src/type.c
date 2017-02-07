@@ -24,7 +24,7 @@ static m_bool check_Stmt(Env env, Stmt* stmt);
 static Type check_Dot_Member(Env env, Dot_Member* member);
 static m_bool check_Stmt_List(Env env, Stmt_List list);
 /* static */ Type check_Func_Call1(Env env, Expression exp_func, Expression args, Func *m_func, int pos );
-static Type check_Func_Call(Env env, Func_Call* func_call);
+static Type check_Func_Call(Env env, Func_Call* exp_func);
 static m_bool check_Class_Def(Env env, Class_Def class_def);
 /* static  */ Func find_func_match(Func up, Expression args);
 
@@ -792,7 +792,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
 //f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //Type t = namespace_lookup_type(env->curr, insert_symbol(v->name), 1);
 //scope_rem(env->curr->type, insert_symbol(t->name));
@@ -802,9 +802,9 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //	rem_ref(t->obj, t);
 //t = NULL;
 
-//      v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
+//      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1);
 
-//t = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->m_type;
+//t = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->m_type;
 //scope_rem(env->curr->type, insert_symbol(v->name));
 //printf("HERE HERE %p\n", t->obj);
 //rem_ref(t->obj, t);
@@ -818,7 +818,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //rem_ref(binary->lhs->type->obj, binary->lhs->typ);
 //printf("here\n");
 //free(binary->lhs->type);
-//      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->var, 1);
 //f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //scope_rem(env->curr->func, f2);
 //scope_rem(env->curr->func, f2);
@@ -834,7 +834,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(env->class_def) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //f2->def = NULL;
 //scope_rem(env->curr->func, f2);
@@ -850,26 +850,26 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 // was here
     if(binary->rhs->exp_type == Primary_Expression_type) {
 
-      /*      f1 = namespace_lookup_func(env->curr, binary->rhs->primary_exp->var, -1);*/
-      v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->d.var, 1);
+      /*      f1 = namespace_lookup_func(env->curr, binary->rhs->d.exp_primary->var, -1);*/
+      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
       f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       /*f1 = v->func_ref;*/
       r_nspc = NULL; // get owner
       printf("here %p\n", f1);
       ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else {
-      v = namespace_lookup_value(binary->rhs->dot_member->t_base->info, binary->rhs->dot_member->xid, 1);
+      v = namespace_lookup_value(binary->rhs->d.exp_dot->t_base->info, binary->rhs->d.exp_dot->xid, 1);
       f1 = namespace_lookup_func(env->curr, (insert_symbol(v->m_type->name)), -1);
       r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
       ret_type  = namespace_lookup_type(env->curr, (insert_symbol(v->m_type->name)), -1);
     }
     if(binary->lhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = NULL; // get owner
       if(!f2) exit(140);
     } else if(binary->lhs->exp_type == Dot_Member_type) {
-      v = find_value(binary->lhs->dot_member->t_base, binary->lhs->dot_member->xid);
+      v = find_value(binary->lhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     }
@@ -901,7 +901,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       }
       printf("f1 %p %p iiughlu\n %s\n\n", f1, f2->def->arg_list, name);
       /*if(!f1)*/
-      /*f1 = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1)->func_ref;*/
+      /*f1 = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->func_ref;*/
       if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         printf("lol %p\n", f1->def->ret_type);
         binary->func = f2;
@@ -1043,7 +1043,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
-    Value v = namespace_lookup_value(env->curr, cast->exp->primary_exp->d.var,  1);
+    Value v = namespace_lookup_value(env->curr, cast->exp->d.exp_primary->d.var,  1);
     Func  f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos)) {
       cast->func = f;
@@ -1080,7 +1080,7 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
     // see scan1
     // assignable?
     /*if(((postfix->exp->meta != ae_meta_var) || (postfix->exp->exp_type == Primary_Expression_type)) &&*/
-    /*postfix->exp->primary_exp->value->is_const) {*/
+    /*postfix->exp->d.exp_primary->value->is_const) {*/
     /*err_msg(TYPE_, postfix->exp->pos,*/
     /*"postfix operator '%s' cannot be used on non-mutable data-type...",*/
     /*op2str( postfix->op ) );*/
@@ -1277,7 +1277,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     /*}*/
     /*}*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
-                                base->type_decl, S_name(func->primary_exp->d.var),
+                                base->type_decl, S_name(func->d.exp_primary->d.var),
                                 base->arg_list, base->code, func->pos);
     if(base->is_variadic)
       def->is_variadic = 1;
@@ -1378,16 +1378,16 @@ next:
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == Primary_Expression_type &&
-      exp_func->primary_exp->value &&
-      !exp_func->primary_exp->value->is_const) {
-    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->m_type->name), -1);
-    /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->primary_exp->value->name), -1);*/
+      exp_func->d.exp_primary->value &&
+      !exp_func->d.exp_primary->value->is_const) {
+    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
+    /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
     if(!f) {
       err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
       return NULL;
     }
     if(!f->func) { // func ptr
-      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->primary_exp->value->m_type->name), -1);
+      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
       f->func = up;
     }
   }
@@ -1411,9 +1411,9 @@ next:
     Value value = NULL;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
-        value = namespace_lookup_value(env->curr, exp_func->primary_exp->d.var, 1);
+        value = namespace_lookup_value(env->curr, exp_func->d.exp_primary->d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
-        value = find_value(exp_func->dot_member->t_base, exp_func->dot_member->xid);
+        value = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
 
       if(!value) {
         err_msg(TYPE_, exp_func->pos, "function is template. not enough argument for automatic type guess. this message is incorrect");
@@ -1516,50 +1516,50 @@ next:
   return func->def->ret_type;
 }
 
-static Type check_Func_Call(Env env, Func_Call* func_call)
+static Type check_Func_Call(Env env, Func_Call* exp_func)
 {
-  if(func_call->types) {
+  if(exp_func->types) {
     Value v;
-    if(func_call->func->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, func_call->func->primary_exp->d.var, 1);
+    if(exp_func->func->exp_type == Primary_Expression_type) {
+      v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary->d.var, 1);
     } else {
       Type t;
-      CHECK_OO(check_Expression(env, func_call->func))
-      t = func_call->func->dot_member->t_base;
+      CHECK_OO(check_Expression(env, exp_func->func))
+      t = exp_func->func->d.exp_dot->t_base;
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
-      v = find_value(t, func_call->func->dot_member->xid);
+      v = find_value(t, exp_func->func->d.exp_dot->xid);
       // added 06/12/16
       if(!v) {
-        err_msg(TYPE_, func_call->pos, "unknown template function.");
+        err_msg(TYPE_, exp_func->pos, "unknown template function.");
         return NULL;
       }
       if(!v->func_ref) {
-        err_msg(TYPE_, func_call->pos, "non-function template call.");
+        err_msg(TYPE_, exp_func->pos, "non-function template call.");
         return NULL;
       }
       if(!v->func_ref->def->types) {
-        err_msg(TYPE_, func_call->pos, "template call of non-template function.");
-        free_Type_List(func_call->types);
-        func_call->types = NULL;
+        err_msg(TYPE_, exp_func->pos, "template call of non-template function.");
+        free_Type_List(exp_func->types);
+        exp_func->types = NULL;
         return NULL;
       }
     }
     // primary case
-    Func ret = find_template_match(env, v, func_call->m_func, func_call->types,
-                                   func_call->func, func_call->args);
+    Func ret = find_template_match(env, v, exp_func->m_func, exp_func->types,
+                                   exp_func->func, exp_func->args);
     if(!ret) {
-      err_msg(TYPE_, func_call->pos, "arguments do not match for template call");
-      free_Type_List(func_call->types);
+      err_msg(TYPE_, exp_func->pos, "arguments do not match for template call");
+      free_Type_List(exp_func->types);
       return NULL;
     }
-    func_call->m_func = ret;
-    func_call->base = v->func_ref->def->types;
+    exp_func->m_func = ret;
+    exp_func->base = v->func_ref->def->types;
     return ret->def->ret_type;
   }
-  current = func_call;
-  return check_Func_Call1(env, func_call->func, func_call->args,
-                          &func_call->m_func, func_call->pos );
+  current = exp_func;
+  return check_Func_Call1(env, exp_func->func, exp_func->args,
+                          &exp_func->m_func, exp_func->pos );
 }
 
 static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
@@ -1580,39 +1580,39 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
   return 1;
 }
 
-/// check unary expression
-static Type check_Unary(Env env, Unary_Expression* unary)
+/// check exp_unary expression
+static Type check_Unary(Env env, Unary_Expression* exp_unary)
 {
   Type t = NULL;
-  if(unary->exp) {
-    if(unary->op == op_new) {
-      err_msg(TYPE_, unary->pos, "internal error: unary expression not with 'new'");
+  if(exp_unary->exp) {
+    if(exp_unary->op == op_new) {
+      err_msg(TYPE_, exp_unary->pos, "internal error: exp_unary expression not with 'new'");
       return NULL;
     }
-    t = check_Expression(env, unary->exp);
+    t = check_Expression(env, exp_unary->exp);
     if(!t)
       return NULL;
   }
   // check code stmt; this is to eventually support sporking of code (added 1.3.0.0)
-  if(unary->code)
-    CHECK_BO(check_Stmt(env, unary->code))
+  if(exp_unary->code)
+    CHECK_BO(check_Stmt(env, exp_unary->code))
 
-    switch(unary->op) {
+    switch(exp_unary->op) {
     case op_plusplus:
     case op_minusminus:
       // assignable?
-      if((unary->exp->meta != ae_meta_var || unary->exp->exp_type == Primary_Expression_type) &&
-          unary->exp->primary_exp->value->is_const)
-        //if(unary->exp->meta != ae_meta_var)
+      if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
+          exp_unary->exp->d.exp_primary->value->is_const)
+        //if(exp_unary->exp->meta != ae_meta_var)
       {
-        err_msg(TYPE_, unary->pos,
-                "prefix unary operator '%s' cannot "
-                "be used on non-mutable data-types...", op2str( unary->op ) );
+        err_msg(TYPE_, exp_unary->pos,
+                "prefix exp_unary operator '%s' cannot "
+                "be used on non-mutable data-types...", op2str( exp_unary->op ) );
         return NULL;
       }
 
       // assign
-      unary->exp->emit_var = 1;
+      exp_unary->exp->emit_var = 1;
 
       // check type
       if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
@@ -1630,22 +1630,22 @@ static Type check_Unary(Env env, Unary_Expression* unary)
       break;
 
     case op_spork:
-      if(unary->exp && unary->exp->exp_type == Func_Call_type) return &t_shred;
+      if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
       // spork shred (by code segment)
-      else if(unary->code) {
+      else if(exp_unary->code) {
         // TODO : in class
         if(env->func) {
           env->class_scope++;
           namespace_push_value(env->curr);
-          int ret = check_Stmt(env, unary->code);
+          int ret = check_Stmt(env, exp_unary->code);
           namespace_pop_value(env->curr);
           env->class_scope--;
           if(ret < 0)
             return NULL;
           else return &t_shred;
           break;
-        } else if(check_Stmt(env, unary->code) < 0) {
-          err_msg(TYPE_, unary->pos, "problem in evaluating sporked code");
+        } else if(check_Stmt(env, exp_unary->code) < 0) {
+          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code");
           break;
 
         }
@@ -1653,39 +1653,39 @@ static Type check_Unary(Env env, Unary_Expression* unary)
       }
       // got a problem
       else {
-        err_msg(TYPE_,  unary->pos, "only function calls can be sporked..." );
+        err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked..." );
         return NULL;
       }
       break;
 
     case op_new:
-      t = find_type(env, unary->type->xid);
+      t = find_type(env, exp_unary->type->xid);
       if(!t) {
-        err_msg(TYPE_,  unary->pos,
+        err_msg(TYPE_,  exp_unary->pos,
                 "... in 'new' expression ..." );
         return NULL;
       }
-      if(unary->array) {
-        CHECK_BO(verify_array(unary->array))
-        if(!unary->array->exp_list) {
-          err_msg(TYPE_, unary->pos, "cannot use empty [] with 'new'..." );
+      if(exp_unary->array) {
+        CHECK_BO(verify_array(exp_unary->array))
+        if(!exp_unary->array->exp_list) {
+          err_msg(TYPE_, exp_unary->pos, "cannot use empty [] with 'new'..." );
           return NULL;
         }
-        CHECK_OO(check_Expression(env, unary->array->exp_list))
-        CHECK_BO(check_array_subscripts(env, unary->array->exp_list))
-        t = new_array_type(env, &t_array, unary->array->depth, t, env->curr);
+        CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
+        CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
+        t = new_array_type(env, &t_array, exp_unary->array->depth, t, env->curr);
 
       }
       if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
-        err_msg(TYPE_,  unary->pos,
+        err_msg(TYPE_,  exp_unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...",
                 t->name);
-        err_msg(TYPE_,  unary->pos,
+        err_msg(TYPE_,  exp_unary->pos,
                 "...(primitive types: 'int', 'float', 'time', 'dur')" );
         return NULL;
       }
-      if( unary->type->ref && !unary->array ) {
-        err_msg(TYPE_,  unary->pos,
+      if( exp_unary->type->ref && !exp_unary->array ) {
+        err_msg(TYPE_,  exp_unary->pos,
                 "cannot instantiate/(new) single object references (@)..." );
         return NULL;
       }
@@ -1742,9 +1742,9 @@ static Type check_Unary(Env env, Unary_Expression* unary)
     case op_untrig:
       break;
     }
-  err_msg(TYPE_, unary->pos,
-          "no suitable resolution for prefix unary operator '%s' on type '%s...",
-          op2str( unary->op ), t->name );
+  err_msg(TYPE_, exp_unary->pos,
+          "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
+          op2str( exp_unary->op ), t->name );
   return NULL;
 }
 static Type check_exp_if(Env env, If_Expression* exp_if )
@@ -1788,39 +1788,39 @@ static Type check_Expression(Env env, Expression exp)
     curr->type = NULL;
     switch(curr->exp_type) {
     case Primary_Expression_type:
-      curr->type = check_Primary_Expression(env, curr->primary_exp);
+      curr->type = check_Primary_Expression(env, curr->d.exp_primary);
       printf("curr->type %p\n", curr->type);
       break;
     case Decl_Expression_type:
-      curr->type = check_Decl_Expression(env, curr->decl_exp);
+      curr->type = check_Decl_Expression(env, curr->d.exp_decl);
       break;
     case Unary_Expression_type:
-      curr->type = check_Unary(env, curr->unary);
+      curr->type = check_Unary(env, curr->d.exp_unary);
       break;
     case Binary_Expression_type:
-      curr->type = check_Binary_Expression(env, curr->binary_exp);
+      curr->type = check_Binary_Expression(env, curr->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      curr->type = check_Postfix_Expression(env, curr->postfix_exp);
+      curr->type = check_Postfix_Expression(env, curr->d.exp_postfix);
       break;
     case Dur_Expression_type:
-      curr->type = check_Dur(env, curr->dur);
+      curr->type = check_Dur(env, curr->d.exp_dur);
       break;
     case Cast_Expression_type:
-      curr->type = check_Cast_Expression(env, curr->cast_exp);
+      curr->type = check_Cast_Expression(env, curr->d.exp_cast);
       break;
     case Func_Call_type:
-      curr->type = check_Func_Call(env, curr->func_call);
-      curr->func_call->ret_type = curr->type;
+      curr->type = check_Func_Call(env, curr->d.exp_func);
+      curr->d.exp_func->ret_type = curr->type;
       break;
     case If_Expression_type:
-      curr->type = check_exp_if(env, curr->exp_if);
+      curr->type = check_exp_if(env, curr->d.exp_if);
       break;
     case Dot_Member_type:
-      curr->type = check_Dot_Member(env, curr->dot_member);
+      curr->type = check_Dot_Member(env, curr->d.exp_dot);
       break;
     case Array_Expression_type:
-      curr->type = check_Array(env, curr->array);
+      curr->type = check_Array(env, curr->d.exp_array);
       break;
     default:
       err_msg(TYPE_, curr->pos, "internal error: unhandled expression type '%i'", curr->exp_type);
