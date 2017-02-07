@@ -93,7 +93,8 @@ static int doc_init(void* data)
   //memset(arg->doc_str, 0, sizeof(arg->doc_str));
   return 1;
 }
-static int doc_adjust(void* data, char* str);
+
+//static int doc_adjust(void* data, char* str);
 */
 static int adjust(void* data);
 %}
@@ -268,7 +269,7 @@ static int adjust(void* data)
   arg->pos += minimal_get_leng(data);
   return 0;
 }
-
+/*
 static int doc_adjust(void* data, char* str)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
@@ -281,10 +282,10 @@ static int doc_adjust(void* data, char* str)
     printf("doc adjust\n%s\nend of doc_adjust\n", (m_str)vector_front(arg->doc));
   return 0;
 }
-
+*/
 int minimal_error(MyArg* arg, char* s)
 {
-  m_uint i, pos;
+  m_uint i;
   m_str line = NULL;
   char sign[256];
   int n = 1;
