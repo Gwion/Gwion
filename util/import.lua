@@ -280,7 +280,7 @@ end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
 print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
-print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
+print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
 
 for n in ipairs(a) do
 	local gen_name = a[n]
@@ -305,7 +305,7 @@ for n in ipairs(a) do
 	local object = sptbl[mod_name]
 	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
 		print("\tCHECK_BB(add_global_type(env, &t_"..mod_name.."))")
-		print("\tCHECK_BB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
+		print("\tCHECK_OB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
 		local nmandatory = 0
 		local tbl = object.params.mandatory
 		if tbl then
