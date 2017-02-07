@@ -100,7 +100,6 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
   out->is_running = 0;
 
   if(!out->prev && !out->next && out != s->list) {
-    printf("%p %p\n", out->parent, out->child);
 //    release(out->me, out);
     if(!out->wait && !out->child)
       free_VM_Shred(out);
