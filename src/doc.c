@@ -218,7 +218,7 @@ static void mkdoc_value(Doc* doc, Value v)
   else
     fprintf(doc->html, "</li></p>\n");
   char * str = v->doc ? strndup(v->doc, 16) : "";
-  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[variable\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \\[variable\\%s in <b>%s</b> <em>%s</em> '] ]],\n",
           v->name, v->name, file, full, "]", v->owner->name, str);
   if(v->doc)
     free(str);
@@ -275,7 +275,7 @@ static void mkdoc_func(Doc* doc, Func f)
     free(a_file);
     free(ap_type);
     m_str str = v->doc ? strndup(v->doc, 16) : "";
-    fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[argument\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+    fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \\[argument\\%s in <b>%s</b> <em>%s</em> '] ]],\n",
             v->name, v->name, file, a_full, "]", v->owner->name, str);
     if(v->doc)
       free(str);
@@ -283,7 +283,7 @@ static void mkdoc_func(Doc* doc, Func f)
   }
   fprintf(doc->html, "</ol></blockquote></li></p>\n\n");
   m_str str = f->doc ? strndup(f->doc, 16) : "";
-  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[function\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \\[function\\%s in <b>%s</b> <em>%s</em> '] ]],\n",
           name, name, file, full, "]", f->value_ref->owner->name, str);
 
   if(f->doc)
@@ -446,7 +446,7 @@ static void mkdoc_type(Doc* doc, Type t)
     mkdoc_nspc(doc, t->info);
   fprintf(doc->html, "</blockquote></div>\n");
   m_str str = t->doc ? strndup(t->doc, 16) : "";
-  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \[type\%s in <b>%s</b> <em>%s</em> '] ]],\n",
+  fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \\[type\\%s in <b>%s</b> <em>%s</em> '] ]],\n",
           name, t->name, file, full, "]", t->owner->name, str);
 
   if(t->doc)
