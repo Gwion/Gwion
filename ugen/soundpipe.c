@@ -7823,7 +7823,7 @@ m_bool import_soundpipe(Env env)
   Func f;
 
   CHECK_BB(add_global_type(env, &t_ftbl))
-  CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
+  CHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
   fun = new_DL_Func("void", "gen_composite", (m_uint)ftbl_gen_composite);
   arg = dl_func_add_arg(fun, "string", "argstring");
   arg->doc = "a string of space-separated parameters, in groups of four:arg 1 is the partial number. must be positive, but it doesn't need to be a whole number.arg 2 is the strength.arg 3 is the initial phase (expressed in degrees)arg 4 is the dc offset. A dc offset of 2 will put a 2-strength sinusoid in the rangefrom (-2,2) to (0, 4)";
@@ -7879,7 +7879,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_adsr))
-  CHECK_BB(import_class_begin(env, &t_adsr, env->global_nspc, adsr_ctor, adsr_dtor))
+  CHECK_OB(import_class_begin(env, &t_adsr, env->global_nspc, adsr_ctor, adsr_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)adsr_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time (in seconds)";
@@ -7916,7 +7916,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_allpass))
-  CHECK_BB(import_class_begin(env, &t_allpass, env->global_nspc, allpass_ctor, allpass_dtor))
+  CHECK_OB(import_class_begin(env, &t_allpass, env->global_nspc, allpass_ctor, allpass_dtor))
   fun = new_DL_Func("void", "looptime", (m_uint)allpass_init);
   arg = dl_func_add_arg(fun, "float", "looptime");
   arg->doc = "The loop time of the filter, in seconds. This can also be thought of as the delay time.";
@@ -7939,7 +7939,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_atone))
-  CHECK_BB(import_class_begin(env, &t_atone, env->global_nspc, atone_ctor, atone_dtor))
+  CHECK_OB(import_class_begin(env, &t_atone, env->global_nspc, atone_ctor, atone_dtor))
   fun = new_DL_Func("float", "hp", (m_uint)atone_get_hp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "The response curve's half power point (cutoff frequency).";
@@ -7952,7 +7952,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_autowah))
-  CHECK_BB(import_class_begin(env, &t_autowah, env->global_nspc, autowah_ctor, autowah_dtor))
+  CHECK_OB(import_class_begin(env, &t_autowah, env->global_nspc, autowah_ctor, autowah_dtor))
   fun = new_DL_Func("float", "level", (m_uint)autowah_get_level);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Overall level (between 0 and 1)";
@@ -7981,12 +7981,12 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_bal))
-  CHECK_BB(import_class_begin(env, &t_bal, env->global_nspc, bal_ctor, bal_dtor))
+  CHECK_OB(import_class_begin(env, &t_bal, env->global_nspc, bal_ctor, bal_dtor))
   env->class_def->doc = "Balance the gain of one signal based on another signal    This is often used to restore gain lost in the output of a filter.In the source code, the value \"ihp\" is set to a static 10hz. This is the default value in Csound, and should not often need to be changed.";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_bar))
-  CHECK_BB(import_class_begin(env, &t_bar, env->global_nspc, bar_ctor, bar_dtor))
+  CHECK_OB(import_class_begin(env, &t_bar, env->global_nspc, bar_ctor, bar_dtor))
   fun = new_DL_Func("void", "init", (m_uint)bar_init);
   arg = dl_func_add_arg(fun, "float", "iK");
   arg->doc = "Dimensionless stiffness parameter";
@@ -8054,7 +8054,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_biquad))
-  CHECK_BB(import_class_begin(env, &t_biquad, env->global_nspc, biquad_ctor, biquad_dtor))
+  CHECK_OB(import_class_begin(env, &t_biquad, env->global_nspc, biquad_ctor, biquad_dtor))
   fun = new_DL_Func("float", "b0", (m_uint)biquad_get_b0);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "biquad coefficient.";
@@ -8107,7 +8107,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_biscale))
-  CHECK_BB(import_class_begin(env, &t_biscale, env->global_nspc, biscale_ctor, biscale_dtor))
+  CHECK_OB(import_class_begin(env, &t_biscale, env->global_nspc, biscale_ctor, biscale_dtor))
   fun = new_DL_Func("float", "min", (m_uint)biscale_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value to scale to.";
@@ -8128,7 +8128,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_bitcrush))
-  CHECK_BB(import_class_begin(env, &t_bitcrush, env->global_nspc, bitcrush_ctor, bitcrush_dtor))
+  CHECK_OB(import_class_begin(env, &t_bitcrush, env->global_nspc, bitcrush_ctor, bitcrush_dtor))
   fun = new_DL_Func("float", "bitdepth", (m_uint)bitcrush_get_bitdepth);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Bit depth. Expects an integer in the range of 1-16. Fractional values will be truncated.";
@@ -8149,7 +8149,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_blsaw))
-  CHECK_BB(import_class_begin(env, &t_blsaw, env->global_nspc, blsaw_ctor, blsaw_dtor))
+  CHECK_OB(import_class_begin(env, &t_blsaw, env->global_nspc, blsaw_ctor, blsaw_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)blsaw_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Frequency, (range 0-20000)";
@@ -8170,7 +8170,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_blsquare))
-  CHECK_BB(import_class_begin(env, &t_blsquare, env->global_nspc, blsquare_ctor, blsquare_dtor))
+  CHECK_OB(import_class_begin(env, &t_blsquare, env->global_nspc, blsquare_ctor, blsquare_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)blsquare_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Frequency, (range 0-20000)";
@@ -8199,7 +8199,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_bltriangle))
-  CHECK_BB(import_class_begin(env, &t_bltriangle, env->global_nspc, bltriangle_ctor, bltriangle_dtor))
+  CHECK_OB(import_class_begin(env, &t_bltriangle, env->global_nspc, bltriangle_ctor, bltriangle_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)bltriangle_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Frequency, (range 0-20000)";
@@ -8220,7 +8220,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_butbp))
-  CHECK_BB(import_class_begin(env, &t_butbp, env->global_nspc, butbp_ctor, butbp_dtor))
+  CHECK_OB(import_class_begin(env, &t_butbp, env->global_nspc, butbp_ctor, butbp_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)butbp_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Center Frequency. (in Hertz)";
@@ -8241,7 +8241,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_butbr))
-  CHECK_BB(import_class_begin(env, &t_butbr, env->global_nspc, butbr_ctor, butbr_dtor))
+  CHECK_OB(import_class_begin(env, &t_butbr, env->global_nspc, butbr_ctor, butbr_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)butbr_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Center Frequency. (in Hertz)";
@@ -8262,7 +8262,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_buthp))
-  CHECK_BB(import_class_begin(env, &t_buthp, env->global_nspc, buthp_ctor, buthp_dtor))
+  CHECK_OB(import_class_begin(env, &t_buthp, env->global_nspc, buthp_ctor, buthp_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)buthp_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Cutoff Frequency.";
@@ -8275,7 +8275,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_butlp))
-  CHECK_BB(import_class_begin(env, &t_butlp, env->global_nspc, butlp_ctor, butlp_dtor))
+  CHECK_OB(import_class_begin(env, &t_butlp, env->global_nspc, butlp_ctor, butlp_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)butlp_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Cutoff Frequency.";
@@ -8288,7 +8288,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_clip))
-  CHECK_BB(import_class_begin(env, &t_clip, env->global_nspc, clip_ctor, clip_dtor))
+  CHECK_OB(import_class_begin(env, &t_clip, env->global_nspc, clip_ctor, clip_dtor))
   fun = new_DL_Func("float", "lim", (m_uint)clip_get_lim);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "threshold / limiting value.";
@@ -8301,7 +8301,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_clock))
-  CHECK_BB(import_class_begin(env, &t_clock, env->global_nspc, clock_ctor, clock_dtor))
+  CHECK_OB(import_class_begin(env, &t_clock, env->global_nspc, clock_ctor, clock_dtor))
   fun = new_DL_Func("float", "bpm", (m_uint)clock_get_bpm);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Clock tempo, in beats per minute.";
@@ -8322,7 +8322,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_comb))
-  CHECK_BB(import_class_begin(env, &t_comb, env->global_nspc, comb_ctor, comb_dtor))
+  CHECK_OB(import_class_begin(env, &t_comb, env->global_nspc, comb_ctor, comb_dtor))
   fun = new_DL_Func("void", "looptime", (m_uint)comb_init);
   arg = dl_func_add_arg(fun, "float", "looptime");
   arg->doc = "The loop time of the filter, in seconds. This can also be thought of as the delay time.";
@@ -8345,7 +8345,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_compressor))
-  CHECK_BB(import_class_begin(env, &t_compressor, env->global_nspc, compressor_ctor, compressor_dtor))
+  CHECK_OB(import_class_begin(env, &t_compressor, env->global_nspc, compressor_ctor, compressor_dtor))
   fun = new_DL_Func("float", "ratio", (m_uint)compressor_get_ratio);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Ratio to compress with, a value > 1 will compress";
@@ -8382,7 +8382,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_conv))
-  CHECK_BB(import_class_begin(env, &t_conv, env->global_nspc, conv_ctor, conv_dtor))
+  CHECK_OB(import_class_begin(env, &t_conv, env->global_nspc, conv_ctor, conv_dtor))
   fun = new_DL_Func("void", "init", (m_uint)conv_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "Ftable used as the impulse response. ";
@@ -8394,7 +8394,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_count))
-  CHECK_BB(import_class_begin(env, &t_count, env->global_nspc, count_ctor, count_dtor))
+  CHECK_OB(import_class_begin(env, &t_count, env->global_nspc, count_ctor, count_dtor))
   fun = new_DL_Func("float", "count", (m_uint)count_get_count);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Number to count up to (count - 1). Decimal points will be truncated.";
@@ -8415,7 +8415,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_crossfade))
-  CHECK_BB(import_class_begin(env, &t_crossfade, env->global_nspc, crossfade_ctor, crossfade_dtor))
+  CHECK_OB(import_class_begin(env, &t_crossfade, env->global_nspc, crossfade_ctor, crossfade_dtor))
   fun = new_DL_Func("float", "pos", (m_uint)crossfade_get_pos);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Crossfade position. 0 = all signal 1, 1 = all signal 2";
@@ -8428,12 +8428,12 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_dcblock))
-  CHECK_BB(import_class_begin(env, &t_dcblock, env->global_nspc, dcblock_ctor, dcblock_dtor))
+  CHECK_OB(import_class_begin(env, &t_dcblock, env->global_nspc, dcblock_ctor, dcblock_dtor))
   env->class_def->doc = "A simple DC block filter";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_delay))
-  CHECK_BB(import_class_begin(env, &t_delay, env->global_nspc, delay_ctor, delay_dtor))
+  CHECK_OB(import_class_begin(env, &t_delay, env->global_nspc, delay_ctor, delay_dtor))
   fun = new_DL_Func("void", "time", (m_uint)delay_init);
   arg = dl_func_add_arg(fun, "float", "time");
   arg->doc = "Delay time, in seconds.";
@@ -8456,7 +8456,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_diode))
-  CHECK_BB(import_class_begin(env, &t_diode, env->global_nspc, diode_ctor, diode_dtor))
+  CHECK_OB(import_class_begin(env, &t_diode, env->global_nspc, diode_ctor, diode_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)diode_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "";
@@ -8477,7 +8477,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_diskin))
-  CHECK_BB(import_class_begin(env, &t_diskin, env->global_nspc, diskin_ctor, diskin_dtor))
+  CHECK_OB(import_class_begin(env, &t_diskin, env->global_nspc, diskin_ctor, diskin_dtor))
   fun = new_DL_Func("void", "filename", (m_uint)diskin_init);
   arg = dl_func_add_arg(fun, "string", "filename");
   arg->doc = "Filename of the audio file.";
@@ -8492,7 +8492,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_dist))
-  CHECK_BB(import_class_begin(env, &t_dist, env->global_nspc, dist_ctor, dist_dtor))
+  CHECK_OB(import_class_begin(env, &t_dist, env->global_nspc, dist_ctor, dist_dtor))
   fun = new_DL_Func("float", "pregain", (m_uint)dist_get_pregain);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Gain applied before waveshaping.";
@@ -8529,7 +8529,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_dmetro))
-  CHECK_BB(import_class_begin(env, &t_dmetro, env->global_nspc, dmetro_ctor, dmetro_dtor))
+  CHECK_OB(import_class_begin(env, &t_dmetro, env->global_nspc, dmetro_ctor, dmetro_dtor))
   fun = new_DL_Func("float", "time", (m_uint)dmetro_get_time);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Time between triggers (in seconds). This will update at the start of each trigger.";
@@ -8542,7 +8542,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_drip))
-  CHECK_BB(import_class_begin(env, &t_drip, env->global_nspc, drip_ctor, drip_dtor))
+  CHECK_OB(import_class_begin(env, &t_drip, env->global_nspc, drip_ctor, drip_dtor))
   fun = new_DL_Func("void", "dettack", (m_uint)drip_init);
   arg = dl_func_add_arg(fun, "float", "dettack");
   arg->doc = "Period of time over which all sound is stopped.";
@@ -8613,7 +8613,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_dtrig))
-  CHECK_BB(import_class_begin(env, &t_dtrig, env->global_nspc, dtrig_ctor, dtrig_dtor))
+  CHECK_OB(import_class_begin(env, &t_dtrig, env->global_nspc, dtrig_ctor, dtrig_dtor))
   fun = new_DL_Func("void", "ft", (m_uint)dtrig_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "An ftable containing times in seconds.";
@@ -8652,7 +8652,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_dust))
-  CHECK_BB(import_class_begin(env, &t_dust, env->global_nspc, dust_ctor, dust_dtor))
+  CHECK_OB(import_class_begin(env, &t_dust, env->global_nspc, dust_ctor, dust_dtor))
   fun = new_DL_Func("float", "amp", (m_uint)dust_get_amp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "";
@@ -8681,7 +8681,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_eqfil))
-  CHECK_BB(import_class_begin(env, &t_eqfil, env->global_nspc, eqfil_ctor, eqfil_dtor))
+  CHECK_OB(import_class_begin(env, &t_eqfil, env->global_nspc, eqfil_ctor, eqfil_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)eqfil_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "The center frequency of the filter";
@@ -8710,7 +8710,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_expon))
-  CHECK_BB(import_class_begin(env, &t_expon, env->global_nspc, expon_ctor, expon_dtor))
+  CHECK_OB(import_class_begin(env, &t_expon, env->global_nspc, expon_ctor, expon_dtor))
   fun = new_DL_Func("float", "a", (m_uint)expon_get_a);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Inital point.";
@@ -8739,7 +8739,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_fof))
-  CHECK_BB(import_class_begin(env, &t_fof, env->global_nspc, fof_ctor, fof_dtor))
+  CHECK_OB(import_class_begin(env, &t_fof, env->global_nspc, fof_ctor, fof_dtor))
   fun = new_DL_Func("void", "init", (m_uint)fof_init);
   arg = dl_func_add_arg(fun, "ftbl", "sine");
   arg->doc = "ftable for sine wave.";
@@ -8819,7 +8819,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_fofilt))
-  CHECK_BB(import_class_begin(env, &t_fofilt, env->global_nspc, fofilt_ctor, fofilt_dtor))
+  CHECK_OB(import_class_begin(env, &t_fofilt, env->global_nspc, fofilt_ctor, fofilt_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)fofilt_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Center frequency.";
@@ -8848,7 +8848,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_fog))
-  CHECK_BB(import_class_begin(env, &t_fog, env->global_nspc, fog_ctor, fog_dtor))
+  CHECK_OB(import_class_begin(env, &t_fog, env->global_nspc, fog_ctor, fog_dtor))
   fun = new_DL_Func("void", "init", (m_uint)fog_init);
   arg = dl_func_add_arg(fun, "ftbl", "wav");
   arg->doc = "ftable for sample.";
@@ -8936,7 +8936,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_fold))
-  CHECK_BB(import_class_begin(env, &t_fold, env->global_nspc, fold_ctor, fold_dtor))
+  CHECK_OB(import_class_begin(env, &t_fold, env->global_nspc, fold_ctor, fold_dtor))
   fun = new_DL_Func("float", "incr", (m_uint)fold_get_incr);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Increment";
@@ -8949,7 +8949,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_fosc))
-  CHECK_BB(import_class_begin(env, &t_fosc, env->global_nspc, fosc_ctor, fosc_dtor))
+  CHECK_OB(import_class_begin(env, &t_fosc, env->global_nspc, fosc_ctor, fosc_dtor))
   fun = new_DL_Func("void", "tbl", (m_uint)fosc_init);
   arg = dl_func_add_arg(fun, "ftbl", "tbl");
   arg->doc = "Wavetable to read from. Note: the size of this table must be a power of 2.";
@@ -9004,7 +9004,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_gbuzz))
-  CHECK_BB(import_class_begin(env, &t_gbuzz, env->global_nspc, gbuzz_ctor, gbuzz_dtor))
+  CHECK_OB(import_class_begin(env, &t_gbuzz, env->global_nspc, gbuzz_ctor, gbuzz_dtor))
   fun = new_DL_Func("void", "init", (m_uint)gbuzz_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "Soundpipe function table used internally. This should be a sine wave.";
@@ -9056,17 +9056,17 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_hilbert))
-  CHECK_BB(import_class_begin(env, &t_hilbert, env->global_nspc, hilbert_ctor, hilbert_dtor))
+  CHECK_OB(import_class_begin(env, &t_hilbert, env->global_nspc, hilbert_ctor, hilbert_dtor))
   env->class_def->doc = "Hilbert transform";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_in))
-  CHECK_BB(import_class_begin(env, &t_in, env->global_nspc, in_ctor, in_dtor))
+  CHECK_OB(import_class_begin(env, &t_in, env->global_nspc, in_ctor, in_dtor))
   env->class_def->doc = "Reads from standard input.    Expects type of SPFLOAT, which by default is a float. If the input data is larger than the number of samples, you will get a complaint about a broken pipe (but it will still work). If there is no input data from STDIN, it will hang.The expected use case of sp_in is to utilize pipes from the commandline, like so:cat /dev/urandom | ./my_programAssuming my_program is using sp_in, this will write /dev/urandom (essentially white noise) to an audio file.";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_incr))
-  CHECK_BB(import_class_begin(env, &t_incr, env->global_nspc, incr_ctor, incr_dtor))
+  CHECK_OB(import_class_begin(env, &t_incr, env->global_nspc, incr_ctor, incr_dtor))
   fun = new_DL_Func("void", "val", (m_uint)incr_init);
   arg = dl_func_add_arg(fun, "float", "val");
   arg->doc = "Initial value";
@@ -9105,12 +9105,12 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_jcrev))
-  CHECK_BB(import_class_begin(env, &t_jcrev, env->global_nspc, jcrev_ctor, jcrev_dtor))
+  CHECK_OB(import_class_begin(env, &t_jcrev, env->global_nspc, jcrev_ctor, jcrev_dtor))
   env->class_def->doc = "John Chowning reverberator    This is was built using the JC reverb implentation found in FAUST. According to the source code, the specifications forthis implementation were found on an old SAIL DART backup tape.  This class is derived from the CLM JCRev function, which is based on the use of  networks of simple allpass and comb delay filters.  This class implements three series  allpass units, followed by four parallel comb filters, and two decorrelation delay lines in  parallel at the output.";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_jitter))
-  CHECK_BB(import_class_begin(env, &t_jitter, env->global_nspc, jitter_ctor, jitter_dtor))
+  CHECK_OB(import_class_begin(env, &t_jitter, env->global_nspc, jitter_ctor, jitter_dtor))
   fun = new_DL_Func("float", "amp", (m_uint)jitter_get_amp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "The amplitude of the line. Will produce values in the range of (+/-)amp.";
@@ -9139,7 +9139,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_line))
-  CHECK_BB(import_class_begin(env, &t_line, env->global_nspc, line_ctor, line_dtor))
+  CHECK_OB(import_class_begin(env, &t_line, env->global_nspc, line_ctor, line_dtor))
   fun = new_DL_Func("float", "a", (m_uint)line_get_a);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Inital point.";
@@ -9168,7 +9168,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_lpf18))
-  CHECK_BB(import_class_begin(env, &t_lpf18, env->global_nspc, lpf18_ctor, lpf18_dtor))
+  CHECK_OB(import_class_begin(env, &t_lpf18, env->global_nspc, lpf18_ctor, lpf18_dtor))
   fun = new_DL_Func("float", "cutoff", (m_uint)lpf18_get_cutoff);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Filter cutoff frequency, in Hertz";
@@ -9197,7 +9197,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_maygate))
-  CHECK_BB(import_class_begin(env, &t_maygate, env->global_nspc, maygate_ctor, maygate_dtor))
+  CHECK_OB(import_class_begin(env, &t_maygate, env->global_nspc, maygate_ctor, maygate_dtor))
   fun = new_DL_Func("float", "prob", (m_uint)maygate_get_prob);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Probability of maygate. This is a value between 0-1. The closer to 1, the more likely the maygate will let a signal through.";
@@ -9218,7 +9218,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_metro))
-  CHECK_BB(import_class_begin(env, &t_metro, env->global_nspc, metro_ctor, metro_dtor))
+  CHECK_OB(import_class_begin(env, &t_metro, env->global_nspc, metro_ctor, metro_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)metro_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "The frequency to repeat.";
@@ -9231,7 +9231,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_mincer))
-  CHECK_BB(import_class_begin(env, &t_mincer, env->global_nspc, mincer_ctor, mincer_dtor))
+  CHECK_OB(import_class_begin(env, &t_mincer, env->global_nspc, mincer_ctor, mincer_dtor))
   fun = new_DL_Func("void", "init", (m_uint)mincer_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "ftable containing an audio file.";
@@ -9267,7 +9267,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_mode))
-  CHECK_BB(import_class_begin(env, &t_mode, env->global_nspc, mode_ctor, mode_dtor))
+  CHECK_OB(import_class_begin(env, &t_mode, env->global_nspc, mode_ctor, mode_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)mode_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Resonant frequency of the filter.";
@@ -9288,7 +9288,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_moogladder))
-  CHECK_BB(import_class_begin(env, &t_moogladder, env->global_nspc, moogladder_ctor, moogladder_dtor))
+  CHECK_OB(import_class_begin(env, &t_moogladder, env->global_nspc, moogladder_ctor, moogladder_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)moogladder_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Filter cutoff frequency.";
@@ -9309,7 +9309,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_noise))
-  CHECK_BB(import_class_begin(env, &t_noise, env->global_nspc, noise_ctor, noise_dtor))
+  CHECK_OB(import_class_begin(env, &t_noise, env->global_nspc, noise_ctor, noise_dtor))
   fun = new_DL_Func("float", "amp", (m_uint)noise_get_amp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Amplitude. (Value between 0-1).";
@@ -9322,7 +9322,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_nsmp))
-  CHECK_BB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
+  CHECK_OB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
   fun = new_DL_Func("void", "init", (m_uint)nsmp_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "ftbl of the audio file. It should be mono.";
@@ -9344,7 +9344,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_osc))
-  CHECK_BB(import_class_begin(env, &t_osc, env->global_nspc, osc_ctor, osc_dtor))
+  CHECK_OB(import_class_begin(env, &t_osc, env->global_nspc, osc_ctor, osc_dtor))
   fun = new_DL_Func("void", "init", (m_uint)osc_init);
   arg = dl_func_add_arg(fun, "ftbl", "tbl");
   arg->doc = "Wavetable to read from. Note: the size of this table must be a power of 2.";
@@ -9372,7 +9372,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_oscmorph))
-  CHECK_BB(import_class_begin(env, &t_oscmorph, env->global_nspc, oscmorph_ctor, oscmorph_dtor))
+  CHECK_OB(import_class_begin(env, &t_oscmorph, env->global_nspc, oscmorph_ctor, oscmorph_dtor))
   fun = new_DL_Func("void", "init", (m_uint)oscmorph_init);
   arg = dl_func_add_arg(fun, "ftbl[]", "tbl");
   arg->doc = "An array of ftables to read from. Note: the size of these tables must be a power of 2 (and the same size as well).";
@@ -9410,7 +9410,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pan2))
-  CHECK_BB(import_class_begin(env, &t_pan2, env->global_nspc, pan2_ctor, pan2_dtor))
+  CHECK_OB(import_class_begin(env, &t_pan2, env->global_nspc, pan2_ctor, pan2_dtor))
   fun = new_DL_Func("int", "type", (m_uint)pan2_get_type);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Panning type. 0 = equal power, 1 = square root, 2 = linear,3 = alternative equal power. Values outside this range will wrap. ";
@@ -9431,7 +9431,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_panst))
-  CHECK_BB(import_class_begin(env, &t_panst, env->global_nspc, panst_ctor, panst_dtor))
+  CHECK_OB(import_class_begin(env, &t_panst, env->global_nspc, panst_ctor, panst_dtor))
   fun = new_DL_Func("int", "type", (m_uint)panst_get_type);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Panning type. 0 = equal power, 1 = square root, 2 = linear,3 = alternative equal power. Values outside this range will wrap. ";
@@ -9452,7 +9452,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pareq))
-  CHECK_BB(import_class_begin(env, &t_pareq, env->global_nspc, pareq_ctor, pareq_dtor))
+  CHECK_OB(import_class_begin(env, &t_pareq, env->global_nspc, pareq_ctor, pareq_dtor))
   fun = new_DL_Func("float", "fc", (m_uint)pareq_get_fc);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Center frequency in peak mode, corner frequency in shelving mode.";
@@ -9489,7 +9489,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_paulstretch))
-  CHECK_BB(import_class_begin(env, &t_paulstretch, env->global_nspc, paulstretch_ctor, paulstretch_dtor))
+  CHECK_OB(import_class_begin(env, &t_paulstretch, env->global_nspc, paulstretch_ctor, paulstretch_dtor))
   fun = new_DL_Func("void", "init", (m_uint)paulstretch_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "ftable containing audio data";
@@ -9503,7 +9503,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pdhalf))
-  CHECK_BB(import_class_begin(env, &t_pdhalf, env->global_nspc, pdhalf_ctor, pdhalf_dtor))
+  CHECK_OB(import_class_begin(env, &t_pdhalf, env->global_nspc, pdhalf_ctor, pdhalf_dtor))
   fun = new_DL_Func("float", "amount", (m_uint)pdhalf_get_amount);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Amount of distortion, within the range [-1, 1]. 0 is no distortion.";
@@ -9516,7 +9516,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_peaklim))
-  CHECK_BB(import_class_begin(env, &t_peaklim, env->global_nspc, peaklim_ctor, peaklim_dtor))
+  CHECK_OB(import_class_begin(env, &t_peaklim, env->global_nspc, peaklim_ctor, peaklim_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)peaklim_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time, in seconds";
@@ -9545,7 +9545,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_phaser))
-  CHECK_BB(import_class_begin(env, &t_phaser, env->global_nspc, phaser_ctor, phaser_dtor))
+  CHECK_OB(import_class_begin(env, &t_phaser, env->global_nspc, phaser_ctor, phaser_dtor))
   fun = new_DL_Func("float", "MaxNotch1Freq", (m_uint)phaser_get_MaxNotch1Freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Between 20 and 10000";
@@ -9630,7 +9630,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_phasor))
-  CHECK_BB(import_class_begin(env, &t_phasor, env->global_nspc, phasor_ctor, phasor_dtor))
+  CHECK_OB(import_class_begin(env, &t_phasor, env->global_nspc, phasor_ctor, phasor_dtor))
   fun = new_DL_Func("void", "iphs", (m_uint)phasor_init);
   arg = dl_func_add_arg(fun, "float", "iphs");
   arg->doc = "initial phase";
@@ -9653,7 +9653,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pinknoise))
-  CHECK_BB(import_class_begin(env, &t_pinknoise, env->global_nspc, pinknoise_ctor, pinknoise_dtor))
+  CHECK_OB(import_class_begin(env, &t_pinknoise, env->global_nspc, pinknoise_ctor, pinknoise_dtor))
   fun = new_DL_Func("float", "amp", (m_uint)pinknoise_get_amp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Amplitude. (Value between 0-1).";
@@ -9666,7 +9666,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pitchamdf))
-  CHECK_BB(import_class_begin(env, &t_pitchamdf, env->global_nspc, pitchamdf_ctor, pitchamdf_dtor))
+  CHECK_OB(import_class_begin(env, &t_pitchamdf, env->global_nspc, pitchamdf_ctor, pitchamdf_dtor))
   fun = new_DL_Func("void", "init", (m_uint)pitchamdf_init);
   arg = dl_func_add_arg(fun, "float", "min");
   arg->doc = "Minimum expected frequency to detect";
@@ -9678,7 +9678,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pluck))
-  CHECK_BB(import_class_begin(env, &t_pluck, env->global_nspc, pluck_ctor, pluck_dtor))
+  CHECK_OB(import_class_begin(env, &t_pluck, env->global_nspc, pluck_ctor, pluck_dtor))
   fun = new_DL_Func("void", "ifreq", (m_uint)pluck_init);
   arg = dl_func_add_arg(fun, "float", "ifreq");
   arg->doc = "Sets the initial frequency. This frequency is used to allocate all the buffers needed for the delay. This should be the lowest frequency you plan on using.";
@@ -9709,7 +9709,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_port))
-  CHECK_BB(import_class_begin(env, &t_port, env->global_nspc, port_ctor, port_dtor))
+  CHECK_OB(import_class_begin(env, &t_port, env->global_nspc, port_ctor, port_dtor))
   fun = new_DL_Func("void", "htime", (m_uint)port_init);
   arg = dl_func_add_arg(fun, "float", "htime");
   arg->doc = "";
@@ -9724,7 +9724,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_posc3))
-  CHECK_BB(import_class_begin(env, &t_posc3, env->global_nspc, posc3_ctor, posc3_dtor))
+  CHECK_OB(import_class_begin(env, &t_posc3, env->global_nspc, posc3_ctor, posc3_dtor))
   fun = new_DL_Func("void", "tbl", (m_uint)posc3_init);
   arg = dl_func_add_arg(fun, "ftbl", "tbl");
   arg->doc = "Wavetable to read from. Note: the size of this table must be a power of 2.";
@@ -9755,7 +9755,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_progress))
-  CHECK_BB(import_class_begin(env, &t_progress, env->global_nspc, progress_ctor, progress_dtor))
+  CHECK_OB(import_class_begin(env, &t_progress, env->global_nspc, progress_ctor, progress_dtor))
   fun = new_DL_Func("int", "nbars", (m_uint)progress_get_nbars);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "";
@@ -9776,7 +9776,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_prop))
-  CHECK_BB(import_class_begin(env, &t_prop, env->global_nspc, prop_ctor, prop_dtor))
+  CHECK_OB(import_class_begin(env, &t_prop, env->global_nspc, prop_ctor, prop_dtor))
   fun = new_DL_Func("void", "str", (m_uint)prop_init);
   arg = dl_func_add_arg(fun, "string", "str");
   arg->doc = "Prop string to be parsed.";
@@ -9799,7 +9799,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_pshift))
-  CHECK_BB(import_class_begin(env, &t_pshift, env->global_nspc, pshift_ctor, pshift_dtor))
+  CHECK_OB(import_class_begin(env, &t_pshift, env->global_nspc, pshift_ctor, pshift_dtor))
   fun = new_DL_Func("float", "shift", (m_uint)pshift_get_shift);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Pitch shift (in semitones), range -24/24.";
@@ -9828,7 +9828,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_ptrack))
-  CHECK_BB(import_class_begin(env, &t_ptrack, env->global_nspc, ptrack_ctor, ptrack_dtor))
+  CHECK_OB(import_class_begin(env, &t_ptrack, env->global_nspc, ptrack_ctor, ptrack_dtor))
   fun = new_DL_Func("void", "init", (m_uint)ptrack_init);
   arg = dl_func_add_arg(fun, "int", "ihopsize");
   arg->doc = "hop size.";
@@ -9840,7 +9840,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_randh))
-  CHECK_BB(import_class_begin(env, &t_randh, env->global_nspc, randh_ctor, randh_dtor))
+  CHECK_OB(import_class_begin(env, &t_randh, env->global_nspc, randh_ctor, randh_dtor))
   fun = new_DL_Func("float", "min", (m_uint)randh_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value to use.";
@@ -9869,7 +9869,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_randi))
-  CHECK_BB(import_class_begin(env, &t_randi, env->global_nspc, randi_ctor, randi_dtor))
+  CHECK_OB(import_class_begin(env, &t_randi, env->global_nspc, randi_ctor, randi_dtor))
   fun = new_DL_Func("float", "min", (m_uint)randi_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value";
@@ -9906,7 +9906,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_random))
-  CHECK_BB(import_class_begin(env, &t_random, env->global_nspc, random_ctor, random_dtor))
+  CHECK_OB(import_class_begin(env, &t_random, env->global_nspc, random_ctor, random_dtor))
   fun = new_DL_Func("float", "min", (m_uint)random_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value.";
@@ -9927,7 +9927,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_reson))
-  CHECK_BB(import_class_begin(env, &t_reson, env->global_nspc, reson_ctor, reson_dtor))
+  CHECK_OB(import_class_begin(env, &t_reson, env->global_nspc, reson_ctor, reson_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)reson_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Center frequency of the filter, or frequency position of the peak response.";
@@ -9948,7 +9948,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_reverse))
-  CHECK_BB(import_class_begin(env, &t_reverse, env->global_nspc, reverse_ctor, reverse_dtor))
+  CHECK_OB(import_class_begin(env, &t_reverse, env->global_nspc, reverse_ctor, reverse_dtor))
   fun = new_DL_Func("void", "delay", (m_uint)reverse_init);
   arg = dl_func_add_arg(fun, "float", "delay");
   arg->doc = "Delay time in seconds.";
@@ -9963,7 +9963,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_revsc))
-  CHECK_BB(import_class_begin(env, &t_revsc, env->global_nspc, revsc_ctor, revsc_dtor))
+  CHECK_OB(import_class_begin(env, &t_revsc, env->global_nspc, revsc_ctor, revsc_dtor))
   fun = new_DL_Func("float", "feedback", (m_uint)revsc_get_feedback);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Value between 0-1 that sets feedback value. The larger the value, the longer the decay.";
@@ -9984,7 +9984,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_rms))
-  CHECK_BB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, rms_dtor))
+  CHECK_OB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, rms_dtor))
   fun = new_DL_Func("float", "ihp", (m_uint)rms_get_ihp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Half-power point (in Hz) of internal lowpass filter. This parameter is fixed at 10Hz and is not yet mutable.";
@@ -9997,7 +9997,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_rpt))
-  CHECK_BB(import_class_begin(env, &t_rpt, env->global_nspc, rpt_ctor, rpt_dtor))
+  CHECK_OB(import_class_begin(env, &t_rpt, env->global_nspc, rpt_ctor, rpt_dtor))
   fun = new_DL_Func("void", "maxdur", (m_uint)rpt_init);
   arg = dl_func_add_arg(fun, "float", "maxdur");
   arg->doc = "Maximum delay duration in seconds. This will set the buffer size.";
@@ -10012,12 +10012,12 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_samphold))
-  CHECK_BB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
+  CHECK_OB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
   env->class_def->doc = "Classic sample and hold";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_saturator))
-  CHECK_BB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
+  CHECK_OB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
   fun = new_DL_Func("float", "dcoffset", (m_uint)saturator_get_dcoffset);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Constant linear offset applied to the signal. A small offset will introduce odd harmonics into the distoration spectrum, whereas a zero offset will have only even harmonics.";
@@ -10038,7 +10038,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_scale))
-  CHECK_BB(import_class_begin(env, &t_scale, env->global_nspc, scale_ctor, scale_dtor))
+  CHECK_OB(import_class_begin(env, &t_scale, env->global_nspc, scale_ctor, scale_dtor))
   fun = new_DL_Func("float", "min", (m_uint)scale_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value to scale to.";
@@ -10059,7 +10059,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_sdelay))
-  CHECK_BB(import_class_begin(env, &t_sdelay, env->global_nspc, sdelay_ctor, sdelay_dtor))
+  CHECK_OB(import_class_begin(env, &t_sdelay, env->global_nspc, sdelay_ctor, sdelay_dtor))
   fun = new_DL_Func("void", "size", (m_uint)sdelay_init);
   arg = dl_func_add_arg(fun, "float", "size");
   arg->doc = "Size of delay (in samples)";
@@ -10074,7 +10074,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_slice))
-  CHECK_BB(import_class_begin(env, &t_slice, env->global_nspc, slice_ctor, slice_dtor))
+  CHECK_OB(import_class_begin(env, &t_slice, env->global_nspc, slice_ctor, slice_dtor))
   fun = new_DL_Func("void", "init", (m_uint)slice_init);
   arg = dl_func_add_arg(fun, "ftbl", "vals");
   arg->doc = "A table containing slice points, in samples";
@@ -10094,7 +10094,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_smoothdelay))
-  CHECK_BB(import_class_begin(env, &t_smoothdelay, env->global_nspc, smoothdelay_ctor, smoothdelay_dtor))
+  CHECK_OB(import_class_begin(env, &t_smoothdelay, env->global_nspc, smoothdelay_ctor, smoothdelay_dtor))
   fun = new_DL_Func("void", "init", (m_uint)smoothdelay_init);
   arg = dl_func_add_arg(fun, "float", "maxdel");
   arg->doc = "Maximum delay time (in seconds)";
@@ -10122,7 +10122,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_streson))
-  CHECK_BB(import_class_begin(env, &t_streson, env->global_nspc, streson_ctor, streson_dtor))
+  CHECK_OB(import_class_begin(env, &t_streson, env->global_nspc, streson_ctor, streson_dtor))
   fun = new_DL_Func("float", "freq", (m_uint)streson_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Fundamental frequency of string.";
@@ -10143,12 +10143,12 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_switch))
-  CHECK_BB(import_class_begin(env, &t_switch, env->global_nspc, switch_ctor, switch_dtor))
+  CHECK_OB(import_class_begin(env, &t_switch, env->global_nspc, switch_ctor, switch_dtor))
   env->class_def->doc = "Switch between two signals    By default, the incoming first signal is selected. When triggered, the output signal will switch to the other signal.";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tabread))
-  CHECK_BB(import_class_begin(env, &t_tabread, env->global_nspc, tabread_ctor, tabread_dtor))
+  CHECK_OB(import_class_begin(env, &t_tabread, env->global_nspc, tabread_ctor, tabread_dtor))
   fun = new_DL_Func("void", "init", (m_uint)tabread_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "A properly allocated table (using a function like sp_gen_file).";
@@ -10184,7 +10184,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tadsr))
-  CHECK_BB(import_class_begin(env, &t_tadsr, env->global_nspc, tadsr_ctor, tadsr_dtor))
+  CHECK_OB(import_class_begin(env, &t_tadsr, env->global_nspc, tadsr_ctor, tadsr_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)tadsr_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time";
@@ -10221,7 +10221,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tblrec))
-  CHECK_BB(import_class_begin(env, &t_tblrec, env->global_nspc, tblrec_ctor, tblrec_dtor))
+  CHECK_OB(import_class_begin(env, &t_tblrec, env->global_nspc, tblrec_ctor, tblrec_dtor))
   fun = new_DL_Func("void", "bar", (m_uint)tblrec_init);
   arg = dl_func_add_arg(fun, "ftbl", "bar");
   arg->doc = "";
@@ -10236,7 +10236,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tbvcf))
-  CHECK_BB(import_class_begin(env, &t_tbvcf, env->global_nspc, tbvcf_ctor, tbvcf_dtor))
+  CHECK_OB(import_class_begin(env, &t_tbvcf, env->global_nspc, tbvcf_ctor, tbvcf_dtor))
   fun = new_DL_Func("float", "fco", (m_uint)tbvcf_get_fco);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Filter cutoff frequency";
@@ -10273,7 +10273,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tdiv))
-  CHECK_BB(import_class_begin(env, &t_tdiv, env->global_nspc, tdiv_ctor, tdiv_dtor))
+  CHECK_OB(import_class_begin(env, &t_tdiv, env->global_nspc, tdiv_ctor, tdiv_dtor))
   fun = new_DL_Func("float", "num", (m_uint)tdiv_get_num);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Triggers every N times.";
@@ -10294,7 +10294,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tenv))
-  CHECK_BB(import_class_begin(env, &t_tenv, env->global_nspc, tenv_ctor, tenv_dtor))
+  CHECK_OB(import_class_begin(env, &t_tenv, env->global_nspc, tenv_ctor, tenv_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)tenv_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time, in seconds.";
@@ -10323,7 +10323,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tenv2))
-  CHECK_BB(import_class_begin(env, &t_tenv2, env->global_nspc, tenv2_ctor, tenv2_dtor))
+  CHECK_OB(import_class_begin(env, &t_tenv2, env->global_nspc, tenv2_ctor, tenv2_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)tenv2_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time (in seconds).";
@@ -10344,7 +10344,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tenvx))
-  CHECK_BB(import_class_begin(env, &t_tenvx, env->global_nspc, tenvx_ctor, tenvx_dtor))
+  CHECK_OB(import_class_begin(env, &t_tenvx, env->global_nspc, tenvx_ctor, tenvx_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)tenvx_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Tau attack time, in seconds. Must be non-zero.";
@@ -10373,7 +10373,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tgate))
-  CHECK_BB(import_class_begin(env, &t_tgate, env->global_nspc, tgate_ctor, tgate_dtor))
+  CHECK_OB(import_class_begin(env, &t_tgate, env->global_nspc, tgate_ctor, tgate_dtor))
   fun = new_DL_Func("float", "time", (m_uint)tgate_get_time);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Duration of the gate (in seconds)";
@@ -10386,7 +10386,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_thresh))
-  CHECK_BB(import_class_begin(env, &t_thresh, env->global_nspc, thresh_ctor, thresh_dtor))
+  CHECK_OB(import_class_begin(env, &t_thresh, env->global_nspc, thresh_ctor, thresh_dtor))
   fun = new_DL_Func("float", "thresh", (m_uint)thresh_get_thresh);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Threshold level";
@@ -10407,17 +10407,17 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_timer))
-  CHECK_BB(import_class_begin(env, &t_timer, env->global_nspc, timer_ctor, timer_dtor))
+  CHECK_OB(import_class_begin(env, &t_timer, env->global_nspc, timer_ctor, timer_dtor))
   env->class_def->doc = "Tap-tempo like timerWhen triggered, timer will begin an internal stopwatch until it is triggered again.The output of the timer will be the time elapsed in seconds.";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tin))
-  CHECK_BB(import_class_begin(env, &t_tin, env->global_nspc, tin_ctor, tin_dtor))
+  CHECK_OB(import_class_begin(env, &t_tin, env->global_nspc, tin_ctor, tin_dtor))
   env->class_def->doc = "Similar to in, tin reads SPFLOATs (by default, this is a 4 byte binary float) from standard input every time it is triggered. behaves like a sample and hold, retaining the previous value (initial set to 0) until triggered. ";
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tone))
-  CHECK_BB(import_class_begin(env, &t_tone, env->global_nspc, tone_ctor, tone_dtor))
+  CHECK_OB(import_class_begin(env, &t_tone, env->global_nspc, tone_ctor, tone_dtor))
   fun = new_DL_Func("float", "hp", (m_uint)tone_get_hp);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "The response curve's half power point (aka cutoff frequency).";
@@ -10430,7 +10430,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_trand))
-  CHECK_BB(import_class_begin(env, &t_trand, env->global_nspc, trand_ctor, trand_dtor))
+  CHECK_OB(import_class_begin(env, &t_trand, env->global_nspc, trand_ctor, trand_dtor))
   fun = new_DL_Func("float", "min", (m_uint)trand_get_min);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Minimum value to use.";
@@ -10451,7 +10451,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tseg))
-  CHECK_BB(import_class_begin(env, &t_tseg, env->global_nspc, tseg_ctor, tseg_dtor))
+  CHECK_OB(import_class_begin(env, &t_tseg, env->global_nspc, tseg_ctor, tseg_dtor))
   fun = new_DL_Func("void", "ibeg", (m_uint)tseg_init);
   arg = dl_func_add_arg(fun, "float", "ibeg");
   arg->doc = "Beginning value.";
@@ -10490,7 +10490,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_tseq))
-  CHECK_BB(import_class_begin(env, &t_tseq, env->global_nspc, tseq_ctor, tseq_dtor))
+  CHECK_OB(import_class_begin(env, &t_tseq, env->global_nspc, tseq_ctor, tseq_dtor))
   fun = new_DL_Func("void", "ft", (m_uint)tseq_init);
   arg = dl_func_add_arg(fun, "ftbl", "ft");
   arg->doc = "An ftable of values";
@@ -10513,7 +10513,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_vdelay))
-  CHECK_BB(import_class_begin(env, &t_vdelay, env->global_nspc, vdelay_ctor, vdelay_dtor))
+  CHECK_OB(import_class_begin(env, &t_vdelay, env->global_nspc, vdelay_ctor, vdelay_dtor))
   fun = new_DL_Func("void", "maxdel", (m_uint)vdelay_init);
   arg = dl_func_add_arg(fun, "float", "maxdel");
   arg->doc = "The maximum delay time, in seconds.";
@@ -10536,7 +10536,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_vocoder))
-  CHECK_BB(import_class_begin(env, &t_vocoder, env->global_nspc, vocoder_ctor, vocoder_dtor))
+  CHECK_OB(import_class_begin(env, &t_vocoder, env->global_nspc, vocoder_ctor, vocoder_dtor))
   fun = new_DL_Func("float", "atk", (m_uint)vocoder_get_atk);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Attack time . (Range 0.001 and 0.5 seconds)";
@@ -10565,7 +10565,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_waveset))
-  CHECK_BB(import_class_begin(env, &t_waveset, env->global_nspc, waveset_ctor, waveset_dtor))
+  CHECK_OB(import_class_begin(env, &t_waveset, env->global_nspc, waveset_ctor, waveset_dtor))
   fun = new_DL_Func("void", "ilen", (m_uint)waveset_init);
   arg = dl_func_add_arg(fun, "float", "ilen");
   arg->doc = "Length of buffer (in seconds).";
@@ -10588,7 +10588,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_wpkorg35))
-  CHECK_BB(import_class_begin(env, &t_wpkorg35, env->global_nspc, wpkorg35_ctor, wpkorg35_dtor))
+  CHECK_OB(import_class_begin(env, &t_wpkorg35, env->global_nspc, wpkorg35_ctor, wpkorg35_dtor))
   fun = new_DL_Func("float", "cutoff", (m_uint)wpkorg35_get_cutoff);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Filter cutoff";
@@ -10617,7 +10617,7 @@ m_bool import_soundpipe(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_zitarev))
-  CHECK_BB(import_class_begin(env, &t_zitarev, env->global_nspc, zitarev_ctor, zitarev_dtor))
+  CHECK_OB(import_class_begin(env, &t_zitarev, env->global_nspc, zitarev_ctor, zitarev_dtor))
   fun = new_DL_Func("float", "in_delay", (m_uint)zitarev_get_in_delay);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "Delay in ms before reverberation begins.";
