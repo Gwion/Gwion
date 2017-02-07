@@ -84,7 +84,10 @@ INSTR(file_to_int)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
-    (void)fscanf(IO_FILE(o), "%i", &ret);
+    if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
+      Except(shred);
+      return;
+    }
     *(m_uint*)shred->reg = (**(m_uint**)(shred->reg) = ret);
   } else exit(89);
 }
@@ -99,7 +102,10 @@ INSTR(file_to_float)
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
-    (void)fscanf(IO_FILE(o), "%f", &ret);
+    if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
+       Except(shred);
+       return;
+    }
     *(m_float*)(shred->reg - SZ_INT) = (**(m_float**)(shred->reg) = ret);
   } else exit(89);
 }
@@ -133,7 +139,10 @@ INSTR(file_to_string)
 //  if(IO_ASCII(o))
   {
     if(inputAvailable(IO_FILE(o)))
-      (void)getline(&c, &size, IO_FILE(o));
+      if(getline(&c, &size, IO_FILE(o)) < 0) {
+        Except(shred);
+        return;
+      }
     STRING(s) = c;
     *(M_Object*)(shred->reg - SZ_INT) = s;
   }

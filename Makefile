@@ -88,6 +88,9 @@ ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
 
+ifndef $SOUNDPIPE_DATA_DIR
+export SOUNDPIPE_DATA_DIR= ../Soundpipe/modules/data
+endif
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c
 	@rm -f include/generated.h
@@ -100,7 +103,7 @@ clean: mostly_clean
 	@rm -f ${PRG}
 
 soundpipe_import: util/import.lua
-	@lua util/import.lua ../Soundpipe/modules/data > ugen/soundpipe.c
+	@lua util/import.lua ${SOUNDPIPE_DATA_DIR} > ugen/soundpipe.c
 
 
 
@@ -110,5 +113,12 @@ soundpipe_import: util/import.lua
 install:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
-docs:
-	@doxygen doc/Gwion.dox
+coverity:
+#	@git branch -D coverity_scan
+#	@git branch -D origin/coverity_scan
+	@git branch coverity_scan1
+	@git checkout coverity_scan1
+	@cp .travis.yml travis.yml
+	@cp  util/coverity.yml .travis.yml
+	@git add .travis.yml
+	@git commit -m"push to Travis to coverity"
