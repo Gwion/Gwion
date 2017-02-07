@@ -474,7 +474,6 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
     ret = scan1_Func_Ptr(env, stmt->stmt_funcptr);
     break;
   case ae_stmt_union:
-    printf("lol %p\n", stmt->stmt_union->l->self);
     l = stmt->stmt_union->l;
     while(l) {
       if(!l->self) {
@@ -483,7 +482,6 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
       }
       Var_Decl_List list = l->self->list;
       Var_Decl var_decl = NULL;
-      printf("here %p\n", l->self->type);
 
       if(!l->self->type) { // weird bug
         err_msg(SCAN1_, l->self->pos, "must povide type declaration in union");
@@ -638,8 +636,6 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       /*if(!arg_list->type && !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))*/
       /*if(!arg_list->type || !(arg_list->type = namespace_lookup_type(env->curr, f->type_decl->xid->xid, 1)))*/
     {
-      printf("env: %p\n", env->curr);
-      printf("%s %p\n", S_name(arg_list->type_decl->xid->xid), namespace_lookup_type(env->curr, arg_list->type_decl->xid->xid, 0));
       m_str path = type_path(arg_list->type_decl->xid);
       err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path, count, S_name(f->name));
       free(path);
