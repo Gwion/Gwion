@@ -684,13 +684,13 @@ static m_bool scan1_Class_Def(Env env, Class_Def class_def)
   while(body) {
     switch(body->section->type) {
     case ae_section_stmt:
-      ret = scan1_Stmt_List(env, body->section->stmt_list);
+      ret = scan1_Stmt_List(env, body->section->d.stmt_list);
       break;
     case ae_section_func:
-      ret = scan1_Func_Def(env, body->section->func_def);
+      ret = scan1_Func_Def(env, body->section->d.func_def);
       break;
     case ae_section_class:
-      ret = scan1_Class_Def(env, body->section->class_def);
+      ret = scan1_Class_Def(env, body->section->d.class_def);
       break;
     }
     CHECK_BB(ret)
@@ -713,13 +713,13 @@ m_bool scan1_Ast(Env env, Ast ast)
   while(prog && ret > 0) {
     switch(prog->section->type) {
     case ae_section_stmt:
-      ret = scan1_Stmt_List(env, prog->section->stmt_list);
+      ret = scan1_Stmt_List(env, prog->section->d.stmt_list);
       break;
     case ae_section_func:
-      ret = scan1_Func_Def(env, prog->section->func_def);
+      ret = scan1_Func_Def(env, prog->section->d.func_def);
       break;
     case ae_section_class:
-      ret = scan1_Class_Def(env, prog->section->class_def);
+      ret = scan1_Class_Def(env, prog->section->d.class_def);
       break;
     }
     CHECK_BB(ret);

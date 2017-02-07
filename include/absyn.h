@@ -52,12 +52,12 @@ struct Array_Sub_
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
 
-typedef struct 
-{ 
+typedef struct
+{
   Expression base;
   Array_Sub indices;
   int pos;
-  Expression self; 
+  Expression self;
 } Array_Expression;
 
 typedef struct
@@ -134,7 +134,7 @@ typedef struct
   Func func;
 } Cast_Expression;
 
-typedef struct 
+typedef struct
 {
   Expression re;
   Expression im;
@@ -144,7 +144,7 @@ typedef struct
 Complex* new_complex( Expression re, int pos );
 Expression new_exp_from_complex(Complex* exp, int pos);
 
-typedef struct 
+typedef struct
 {
   Expression mod;
   Expression phase;
@@ -231,18 +231,18 @@ typedef struct
 
 typedef struct
 {
-  Expression cond; 
+  Expression cond;
   Expression if_exp;
   Expression else_exp;
   int pos;
   Expression self;
 } If_Expression;
 
-typedef struct 
-{ 
-  Expression base; 
-  Expression unit; 
-  int pos; 
+typedef struct
+{
+  Expression base;
+  Expression unit;
+  int pos;
   Expression self;
 } Exp_Dur;
 
@@ -339,7 +339,7 @@ typedef struct
   Stmt* code;
 	m_uint code_depth;
 	int pos;
-  Expression self; 
+  Expression self;
 } Unary_Expression;
 Expression new_exp_from_unary(Operator oper, Expression exp, int pos );
 Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos );
@@ -386,9 +386,9 @@ struct Expression_
 
 struct Stmt_Code_
 {
-  Stmt_List stmt_list; 
-  int pos; 
-  Stmt* self; 
+  Stmt_List stmt_list;
+  int pos;
+  Stmt* self;
 };
 
 struct Stmt_Return_
@@ -398,8 +398,8 @@ struct Stmt_Return_
   Stmt* self;
 };
 
-struct Stmt_Continue_ 
-{ 
+struct Stmt_Continue_
+{
   int pos;
   Stmt* self;
 };
@@ -566,7 +566,7 @@ typedef struct
       Stmt_List stmt_list;
       Class_Def class_def;
       Func_Def func_def;
-    };
+    } d;
     int pos;
 } Section;
 Section* new_section_Stmt_List(Stmt_List list, int pos);

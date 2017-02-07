@@ -1239,18 +1239,18 @@ void free_Stmt_List(Stmt_List list)
 
 Section* new_section_Stmt_List(Stmt_List list, int pos)
 {
-  Section* section = calloc(1, sizeof(Section));
-  section->type = ae_section_stmt;
-  section->stmt_list = list;
-  section->pos = pos;
-  return section;
+  Section* a = calloc(1, sizeof(Section));
+  a->type = ae_section_stmt;
+  a->d.stmt_list = list;
+  a->pos = pos;
+  return a;
 }
 
 Section* new_section_Func_Def( Func_Def func_def, int pos )
 {
   Section* a = calloc(1, sizeof(Section));
   a->type = ae_section_func;
-  a->func_def = func_def;
+  a->d.func_def = func_def;
   a->pos = pos;
   return a;
 }
@@ -1280,28 +1280,28 @@ void free_Section(Section* section)
   switch(section->type)
   {
     case ae_section_class:
-      free_Class_Def(section->class_def);
+      free_Class_Def(section->d.class_def);
       break;
     case ae_section_stmt:
-      free_Stmt_List(section->stmt_list);
+      free_Stmt_List(section->d.stmt_list);
       break;
     case ae_section_func:
-if(!section->func_def)
+if(!section->d.func_def)
 break;
-      free_Stmt(section->func_def->code);
-if(section->func_def->types) {
-  if(section->func_def->arg_list)
-    free_Arg_List(section->func_def->arg_list);
-  free_ID_List(section->func_def->types);
-  free_Type_Decl(section->func_def->type_decl);
-  rem_ref(section->func_def->func->value_ref->obj, section->func_def->func->value_ref);
-  free(section->func_def->func->obj);
-  free(section->func_def->func);
-  free(section->func_def);
+      free_Stmt(section->d.func_def->code);
+if(section->d.func_def->types) {
+  if(section->d.func_def->arg_list)
+    free_Arg_List(section->d.func_def->arg_list);
+  free_ID_List(section->d.func_def->types);
+  free_Type_Decl(section->d.func_def->type_decl);
+  rem_ref(section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+  free(section->d.func_def->func->obj);
+  free(section->d.func_def->func);
+  free(section->d.func_def);
 }
 else {
- if(!section->func_def->func)
-   free_Func_Def(section->func_def);
+ if(!section->d.func_def->func)
+   free_Func_Def(section->d.func_def);
 }
       break;
   }
@@ -1413,7 +1413,7 @@ Section* new_section_Class_Def(Class_Def class_def, int pos )
 #endif
   Section* a = calloc(1, sizeof(Section));
   a->type = ae_section_class;
-  a->class_def = class_def;
+  a->d.class_def = class_def;
   a->pos = pos;
   return a;
 }

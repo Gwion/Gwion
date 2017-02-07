@@ -2447,15 +2447,15 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   while (body && ret > 0) {
     switch (body->section->type) {
     case ae_section_stmt:
-      ret = emit_Stmt_List(emit, body->section->stmt_list);
+      ret = emit_Stmt_List(emit, body->section->d.stmt_list);
       break;
 
     case ae_section_func:
-      ret = emit_Func_Def(emit, body->section->func_def);
+      ret = emit_Func_Def(emit, body->section->d.func_def);
       break;
 
     case ae_section_class:
-      ret = emit_Class_Def(emit, body->section->class_def);
+      ret = emit_Class_Def(emit, body->section->d.class_def);
       break;
     }
     body = body->next;
@@ -2503,13 +2503,13 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
       return 1;
     switch (prog->section->type) {
     case ae_section_stmt:
-      ret = emit_Stmt_List(emit, prog->section->stmt_list);
+      ret = emit_Stmt_List(emit, prog->section->d.stmt_list);
       break;
     case ae_section_func:
-      ret = emit_Func_Def(emit, prog->section->func_def);
+      ret = emit_Func_Def(emit, prog->section->d.func_def);
       break;
     case ae_section_class:
-      ret = emit_Class_Def(emit, prog->section->class_def);
+      ret = emit_Class_Def(emit, prog->section->d.class_def);
       break;
     }
     prog = prog->next;

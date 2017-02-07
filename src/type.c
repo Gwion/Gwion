@@ -208,15 +208,15 @@ m_bool check_Context(Env env, Context context)
   while(prog && ret > 0) {
     switch(prog->section->type) {
     case ae_section_stmt:
-      ret = check_Stmt_List(env, prog->section->stmt_list);
+      ret = check_Stmt_List(env, prog->section->d.stmt_list);
       break;
 
     case ae_section_func:
-      ret = check_Func_Def(env, prog->section->func_def);
+      ret = check_Func_Def(env, prog->section->d.func_def);
       break;
 
     case ae_section_class:
-      ret = check_Class_Def(env, prog->section->class_def);
+      ret = check_Class_Def(env, prog->section->d.class_def);
       break;
     }
     CHECK_BB(ret);
@@ -355,18 +355,18 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
   while(body && ret > 0) {
     switch(body->section->type) {
     case ae_section_stmt:
-      env->class_def->has_constructor |= (body->section->stmt_list->stmt != NULL);
-      ret = check_Stmt_List(env, body->section->stmt_list);
+      env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
+      ret = check_Stmt_List(env, body->section->d.stmt_list);
       break;
 
     case ae_section_func:
       env->class_def->is_complete = 1;
-      ret = check_Func_Def(env, body->section->func_def);
+      ret = check_Func_Def(env, body->section->d.func_def);
       env->class_def->is_complete = 0;
       break;
 
     case ae_section_class:
-      ret = check_Class_Def( env, body->section->class_def);
+      ret = check_Class_Def( env, body->section->d.class_def);
       break;
     }
     body = body->next;

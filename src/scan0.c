@@ -77,7 +77,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     case ae_section_func:
       break;
     case ae_section_class:
-      ret = scan0_Class_Def( env, body->section->class_def );
+      ret = scan0_Class_Def( env, body->section->d.class_def );
       break;
     }
     body = body->next;
@@ -155,21 +155,21 @@ m_bool scan0_Ast(Env env, Ast prog)
   while( prog && ret > 0) {
     switch( prog->section->type ) {
     case ae_section_stmt:
-      ret = scan0_Stmt_List(env, prog->section->stmt_list);
+      ret = scan0_Stmt_List(env, prog->section->d.stmt_list);
       break;
     case ae_section_func:
       break;
     case ae_section_class:
-      if( prog->section->class_def->decl == ae_key_public ) {
+      if( prog->section->d.class_def->decl == ae_key_public ) {
         if(env->context->public_class_def != NULL) {
-          err_msg(SCAN0_, prog->section->class_def->pos,
+          err_msg(SCAN0_, prog->section->d.class_def->pos,
                   "more than one 'public' class defined..." );
           return -1;
         }
-        prog->section->class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
-        env->context->public_class_def = prog->section->class_def;
+        prog->section->d.class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
+        env->context->public_class_def = prog->section->d.class_def;
       }
-      ret = scan0_Class_Def( env, prog->section->class_def );
+      ret = scan0_Class_Def( env, prog->section->d.class_def );
       break;
     default:
       err_msg(SCAN0_, prog->pos,
