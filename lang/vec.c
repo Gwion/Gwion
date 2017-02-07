@@ -226,7 +226,7 @@ m_bool import_vec3(Env env)
 {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec3))
-  CHECK_BB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
   //o_complex_real
   import_mvar(env, "float", "x",   0, 0, "real part");
   import_mvar(env, "float", "y",   0, 0, "real part");
@@ -427,7 +427,7 @@ m_bool import_vec4(Env env)
 {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec4))
-  CHECK_BB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
   import_mvar(env, "float", "x",   0, 0, "real part");
   import_mvar(env, "float", "y",   0, 0, "real part");
   import_mvar(env, "float", "z",   0, 0, "real part");

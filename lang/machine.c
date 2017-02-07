@@ -187,35 +187,35 @@ m_bool import_machine(Env env)
   DL_Func* fun;
 
   CHECK_BB(add_global_type(env, &t_machine))
-  CHECK_BB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   env->class_def->doc = "access the virtual machine, including docs";
 
   fun = new_DL_Func("void",  "add",     (m_uint)machine_add);
   dl_func_add_arg(fun,       "string",  "filename");
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("int[]", "shreds", (m_uint)machine_shreds);
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "doc",     (m_uint)machine_doc);
   dl_func_add_arg(fun,       "string",  "context");
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "doc_update",     (m_uint)machine_doc_update);
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "adept",     (m_uint)machine_adept);
   dl_func_add_arg(fun,       "string",  "context");
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("string",  "check",     (m_uint)machine_check);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "code");
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "compile",     (m_uint)machine_compile);
   dl_func_add_arg(fun,       "string",  "filename");
-  CHECK_BB(import_sfun(env,  fun))
+  CHECK_OB(import_sfun(env,  fun))
 
   CHECK_BB(import_class_end(env))
   return 1;

@@ -106,7 +106,7 @@ m_bool import_shred(Env env)
   Func f;
 
   CHECK_BB(add_global_type(env, &t_shred))
-  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
+  CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
   env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");

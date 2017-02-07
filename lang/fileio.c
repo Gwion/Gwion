@@ -209,14 +209,14 @@ m_bool import_fileio(Env env)
 
   // hack
   CHECK_BB(add_global_type(env, &t_io))
-  CHECK_BB(import_class_begin(env, &t_io, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_io, env->global_nspc, NULL, NULL))
   env->class_def->doc = "io operations";
   CHECK_BB(import_class_end(env))
   // !hack
 
 
   CHECK_BB(add_global_type(env, &t_fileio))
-  CHECK_BB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, NULL))
+  CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, NULL))
   env->class_def->doc = "read/write files";
 
   // import vars

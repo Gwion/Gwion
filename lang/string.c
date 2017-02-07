@@ -660,7 +660,7 @@ MFUN(string_toFloat)
 m_bool import_string(Env env)
 {
   CHECK_BB(add_global_type(env, &t_string));
-  CHECK_BB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
+  CHECK_OB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
   env->class_def->doc = "chain of characters";
 
   o_string_data = import_mvar(env, "int", "@data",   1, 0, "place to hold the string");

@@ -189,7 +189,7 @@ m_bool import_array(Env env)
 {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_array))
-  CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
+  CHECK_OB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
   fun = new_DL_Func("int", "size", (m_uint)vm_vector_size);
   CHECK_OB(import_mfun(env, fun))
   env->class_def->doc = "vector structure";

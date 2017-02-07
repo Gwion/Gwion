@@ -502,7 +502,7 @@ m_bool import_lib(Env env)
   DL_Func* fun;
 
   CHECK_BB(add_global_type(env, &t_math))
-  CHECK_BB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
   fun = new_DL_Func("int", "abs",    (m_uint)std_abs);
@@ -650,7 +650,7 @@ m_bool import_lib(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_std))
-  CHECK_BB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
   fun = new_DL_Func("int", "clamp",     (m_uint)std_clamp);
@@ -736,7 +736,7 @@ m_bool import_lib(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_stat))
-  CHECK_BB(import_class_begin(env, &t_stat, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_stat, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Statistical tools";
   fun = new_DL_Func("float", "mean",  (m_uint)stat_mean);
   dl_func_add_arg(fun, "float[]", "value");
@@ -750,7 +750,7 @@ m_bool import_lib(Env env)
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_sndfile))
-  CHECK_BB(import_class_begin(env, &t_sndfile, env->global_nspc, NULL, NULL))
+  CHECK_OB(import_class_begin(env, &t_sndfile, env->global_nspc, NULL, NULL))
   fun = new_DL_Func("int", "size",  (m_uint)sndfile_size);
   dl_func_add_arg(fun, "string", "filename");
   CHECK_OB(import_sfun(env, fun))
