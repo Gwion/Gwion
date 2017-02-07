@@ -1,6 +1,3 @@
-#ifdef USE_DOUBLE
-#undef USE_DOUBLE
-#endif
 
 #include <stdlib.h>
 #include "vm.h"
