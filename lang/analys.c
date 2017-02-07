@@ -436,9 +436,9 @@ static m_float ana_dummy(FFT* fft)
 }
 static MFUN(ana_compute)
 {
-  M_Object   fft = *(M_Object*) (o->data + o_ana_fft);
-  _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
-  f_analys f = *(f_analys*)(o->data + o_ana_fn);
+  M_Object   fft = *(M_Object*) (o->d.data + o_ana_fft);
+  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
+  f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
   if(!fft)
     return;
   RETURN->v_float = f(_fft);
@@ -446,14 +446,14 @@ static MFUN(ana_compute)
 
 static MFUN(ana_get_fft)
 {
-  RETURN->v_uint = (m_uint)(o->data + o_ana_fft);
+  RETURN->v_uint = (m_uint)(o->d.data + o_ana_fft);
 }
 
 static MFUN(ana_set_fft)
 {
   FFT* ana;
-  M_Object fft = *(M_Object*) (o->data + o_ana_fft);
-  _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
+  M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
+  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   if(fft)
     release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
@@ -471,21 +471,21 @@ static MFUN(ana_set_fft)
   }
   _fft->size = ana->fft->fftsize;
   _fft->fval = ana->frq->s;
-  *(M_Object*) (o->data + o_ana_fft) = fft;
+  *(M_Object*) (o->d.data + o_ana_fft) = fft;
   RETURN->v_uint = (m_uint) * (M_Object*)(shred->mem + SZ_INT);
 }
 
 static void ana_ctor(M_Object o, VM_Shred shred)
 {
-  _FFT* _fft = *(_FFT**)(o->data + o_ana__fft) = malloc(sizeof(_FFT));
+  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft) = malloc(sizeof(_FFT));
   _fft->sr = shred->vm_ref->bbq->sp->sr;
   _fft->percent = 50; // rolloff;
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)ana_dummy;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
 }
 static void ana_dtor(M_Object o, VM_Shred shred)
 {
-  free(*(_FFT**)(o->data + o_ana__fft));
-  M_Object fft = *(M_Object*) (o->data + o_ana_fft);
+  free(*(_FFT**)(o->d.data + o_ana__fft));
+  M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
   if(fft)
     release(fft, shred);
 }
@@ -514,7 +514,7 @@ static m_bool import_ana(Env env)
 static struct Type_ t_centroid = { "Centroid", SZ_INT, &t_ana };
 static void centroid_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_centroid;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_centroid;
 }
 static m_bool import_centroid(Env env)
 {
@@ -527,7 +527,7 @@ static m_bool import_centroid(Env env)
 static struct Type_ t_spread = { "Spread", SZ_INT, &t_ana };
 static void spread_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_spread;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_spread;
 }
 static m_bool import_spread(Env env)
 {
@@ -540,7 +540,7 @@ static m_bool import_spread(Env env)
 static struct Type_ t_skewness = { "Skewness", SZ_INT, &t_ana };
 static void skewness_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_skewness;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_skewness;
 }
 static m_bool import_skewness(Env env)
 {
@@ -553,7 +553,7 @@ static m_bool import_skewness(Env env)
 static struct Type_ t_kurtosis = { "Kurtosis", SZ_INT, &t_ana };
 static void kurtosis_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_kurtosis;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_kurtosis;
 }
 static m_bool import_kurtosis(Env env)
 {
@@ -566,7 +566,7 @@ static m_bool import_kurtosis(Env env)
 static struct Type_ t_rms = { "RMS", SZ_INT, &t_ana };
 static void rms_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_rms;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rms;
 }
 static m_bool import_rms(Env env)
 {
@@ -579,16 +579,16 @@ static m_bool import_rms(Env env)
 static struct Type_ t_rolloff = { "Rolloff", SZ_INT, &t_ana };
 static void rolloff_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_rolloff;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rolloff;
 }
 static MFUN(rolloff_get_percent)
 {
-  _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
+  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   RETURN->v_float = _fft->percent;
 }
 static MFUN(rolloff_set_percent)
 {
-  _FFT* _fft = *(_FFT**)(o->data + o_ana__fft);
+  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   RETURN->v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
 }
 static m_bool import_rolloff(Env env)
@@ -608,7 +608,7 @@ static m_bool import_rolloff(Env env)
 static struct Type_ t_freq = { "Freq", SZ_INT, &t_ana };
 static void freq_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_freq;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_freq;
 }
 static m_bool import_freq(Env env)
 {
@@ -621,7 +621,7 @@ static m_bool import_freq(Env env)
 static struct Type_ t_asc = { "ASC", SZ_INT, &t_ana };
 static void asc_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_asc;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_asc;
 }
 static m_bool import_asc(Env env)
 {
@@ -634,7 +634,7 @@ static m_bool import_asc(Env env)
 static struct Type_ t_ass = { "ASS", SZ_INT, &t_ana };
 static void ass_ctor(M_Object o, VM_Shred shred)
 {
-  *(f_analys*)(o->data + o_ana_fn) = (f_analys)compute_ass;
+  *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_ass;
 }
 static m_bool import_ass(Env env)
 {
@@ -648,11 +648,11 @@ static struct Type_ t_fc = { "FC", SZ_INT, &t_object };
 static m_int o_fc_vector;
 static void fc_ctor(M_Object o, VM_Shred shred)
 {
-  *(Vector*)(o->data + o_fc_vector) = new_Vector();
+  *(Vector*)(o->d.data + o_fc_vector) = new_Vector();
 }
 static void fc_dtor(M_Object o, VM_Shred shred)
 {
-  free(*(Vector*)(o->data + o_fc_vector));
+  free(*(Vector*)(o->d.data + o_fc_vector));
 }
 
 static MFUN(fc_compute)
@@ -661,23 +661,23 @@ static MFUN(fc_compute)
   M_Object obj, ret;
   _FFT* _fft;
   f_analys fn;
-  Vector v = *(Vector*)(o->data + o_fc_vector);
+  Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(1, vector_size(v));
   initialize_object(ret, &t_array);
   for(i = 0; i < vector_size(v); i++) {
     obj  = (M_Object)vector_at(v, i);
-    _fft = *(_FFT**)(obj->data + o_ana__fft);
-    fn   = *(f_analys*)(obj->data + o_ana_fn);
+    _fft = *(_FFT**)(obj->d.data + o_ana__fft);
+    fn   = *(f_analys*)(obj->d.data + o_ana_fn);
     m_float f = fn(_fft);
     /*    vector_set(ret->array, i, &f);*/
-    f_vector_set(ret->array, i, f);
+    f_vector_set(ret->d.array, i, f);
   }
   RETURN->v_uint = (m_uint)ret;
 }
 
 static MFUN(fc_add)
 {
-  Vector v = *(Vector*)(o->data + o_fc_vector);
+  Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
     vector_append(v, (vtype)obj);
@@ -688,7 +688,7 @@ static MFUN(fc_add)
 
 static MFUN(fc_rem)
 {
-  Vector v = *(Vector*)(o->data + o_fc_vector);
+  Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
     vector_remove(v, vector_find(v, (vtype)obj));
@@ -702,7 +702,7 @@ INSTR(fc_connect)
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
-    Vector v = *(Vector*)(obj->data + o_fc_vector);
+    Vector v = *(Vector*)(obj->d.data + o_fc_vector);
     if(obj) {
       vector_append(v, (vtype)obj);
       release(obj, shred);
@@ -718,7 +718,7 @@ INSTR(fc_disconnect)
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
-    Vector v = *(Vector*)(obj->data + o_fc_vector);
+    Vector v = *(Vector*)(obj->d.data + o_fc_vector);
     if(obj) {
       vector_remove(v, vector_find(v, (vtype)obj));
       release(obj, shred);

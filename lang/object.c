@@ -24,7 +24,7 @@ M_Object new_M_Object()
   a->vtable = NULL;
   a->type_ref = NULL;
   a->size = 0;
-  a->data = NULL;
+  a->d.data = NULL;
   a->ugen = NULL;
   a->ref = 1;
   return a;
@@ -49,12 +49,12 @@ m_bool initialize_object(M_Object object, Type type)
   object->type_ref = type;
   object->size = type->obj_size;
   if (object->size) {
-    object->data = calloc(object->size, sizeof(unsigned char));
-    if (!object->data)
+    object->d.data = calloc(object->size, sizeof(unsigned char));
+    if (!object->d.data)
       goto out_of_memory;
-    memset(object->data, 0, object->size);
+    memset(object->d.data, 0, object->size);
   } else
-    object->data = NULL;
+    object->d.data = NULL;
   return 1;
 
 out_of_memory:
@@ -85,7 +85,7 @@ void release(M_Object obj, VM_Shred shred)
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
         if(isprim(value->m_type) < 0)
-          release(*(M_Object*)(obj->data + value->offset), shred);
+          release(*(M_Object*)(obj->d.data + value->offset), shred);
       }
       free_Vector(v);
       if (t->has_destructor) {
@@ -119,7 +119,7 @@ void release(M_Object obj, VM_Shred shred)
 
 void object_dtor(M_Object o, VM_Shred shred)
 {
-  free(o->data);
+  free(o->d.data);
   free(o);
 }
 

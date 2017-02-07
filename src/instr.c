@@ -878,8 +878,8 @@ INSTR(Alloc_Member_Word)
   debug_msg("instr", "alloc member word: %p[%i]", *(m_uint*)(shred->mem), instr->m_val);
 #endif
   M_Object obj = *(M_Object*)(shred->mem);
-  *(m_uint*)(obj->data + instr->m_val) = 0;
-  *(m_uint**)shred->reg = &*(m_uint*)(obj->data + instr->m_val);
+  *(m_uint*)(obj->d.data + instr->m_val) = 0;
+  *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -889,8 +889,8 @@ INSTR(Alloc_Member_Word_Float)
   debug_msg("instr", "alloc member float: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
-  *(m_float*)(obj->data + instr->m_val) = 0.0;
-  *(m_float**)shred->reg = &*(m_float*)(obj->data + instr->m_val);
+  *(m_float*)(obj->d.data + instr->m_val) = 0.0;
+  *(m_float**)shred->reg = &*(m_float*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -900,8 +900,8 @@ INSTR(Alloc_Member_Word_Complex)
   debug_msg("instr", "alloc member complex: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
-  *(m_complex*)(obj->data + instr->m_val) = 0.0;
-  *(m_complex**)shred->reg = &*(m_complex*)(obj->data + instr->m_val);
+  *(m_complex*)(obj->d.data + instr->m_val) = 0.0;
+  *(m_complex**)shred->reg = &*(m_complex*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -911,8 +911,8 @@ INSTR(Alloc_Member_Word_Vec3)
   debug_msg("instr", "alloc member vec3: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
-  memset((obj->data + instr->m_val), 0, SZ_VEC3);
-  *(VEC3_T**)shred->reg = &*(VEC3_T*)(obj->data + instr->m_val);
+  memset((obj->d.data + instr->m_val), 0, SZ_VEC3);
+  *(VEC3_T**)shred->reg = &*(VEC3_T*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -922,8 +922,8 @@ INSTR(Alloc_Member_Word_Vec4)
   debug_msg("instr", "alloc member vec4: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
-  memset((obj->data + instr->m_val), 0, SZ_VEC4);
-  *(VEC4_T**)shred->reg = &*(VEC4_T*)(obj->data + instr->m_val);
+  memset((obj->d.data + instr->m_val), 0, SZ_VEC4);
+  *(VEC4_T**)shred->reg = &*(VEC4_T*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -1002,18 +1002,18 @@ INSTR(Dot_Member_Data)
     Except(shred);
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr) {
-    *(m_uint**)shred->reg = &*(m_uint*)(obj->data + instr->m_val);
+    *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_INT);
   }
   /* take care of Kind (instr->m_val2)*/
   else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)shred->reg = *(m_uint*)(obj->data + instr->m_val);
+    *(m_uint*)shred->reg = *(m_uint*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_INT);
   } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)shred->reg = *(m_float*)(obj->data + instr->m_val);
+    *(m_float*)shred->reg = *(m_float*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_FLOAT);
   } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)shred->reg = *(m_complex*)(obj->data + instr->m_val);
+    *(m_complex*)shred->reg = *(m_complex*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
     *(VEC3_T*)shred->reg = *(VEC3_T*)instr->m_val;
@@ -1082,7 +1082,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
       goto out_of_memory;
     if(is_obj && objs) {
       for( i = 0; i < cap; i++ ) {
-        objs[*index] = (m_uint)i_vector_addr(base->array, i);
+        objs[*index] = (m_uint)i_vector_addr(base->d.array, i);
         (*index)++;
       }
     }
@@ -1096,7 +1096,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     if(!next)
       goto error;
     // set that, with ref count
-    i_vector_set(base->array, i, (m_uint)next);
+    i_vector_set(base->d.array, i, (m_uint)next);
   }
   return base;
 
@@ -1125,7 +1125,7 @@ INSTR(Instr_Array_Init) // for litteral array
   POP_REG(shred,  SZ_INT * info->length);
   obj = new_M_Array(info->type->size, info->length);
   for(i = 0; i < info->length; i++)
-    i_vector_set(obj->array, i, *(m_uint*)(shred->reg + SZ_INT * i));
+    i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
   *(M_Object*)shred->reg = obj;
   PUSH_REG(shred,  SZ_INT);
 }
@@ -1206,37 +1206,37 @@ INSTR(Instr_Array_Access)
   if(!obj)
     Except(shred);
   i = *(m_int*)(shred->reg + SZ_INT);
-  if(i < 0 || i >= m_vector_size(obj->array))
+  if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
   // take care of emit_addr (instr->m_val)
   if(instr->m_val) {
     if(instr->m_val2 == Kindof_Int)
-      *(m_uint**)shred->reg = i_vector_addr(obj->array, i);
+      *(m_uint**)shred->reg = i_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Float)
-      *(m_float**)shred->reg = f_vector_addr(obj->array, i);
+      *(m_float**)shred->reg = f_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Complex)
-      *(m_complex**)shred->reg = c_vector_addr(obj->array, i);
+      *(m_complex**)shred->reg = c_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec3)
-      *(VEC3_T**)shred->reg = v3_vector_addr(obj->array, i);
+      *(VEC3_T**)shred->reg = v3_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec4)
-      *(VEC4_T**)shred->reg = v4_vector_addr(obj->array, i);
+      *(VEC4_T**)shred->reg = v4_vector_addr(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   }
   // take care of kind (instr->m_val2)
   else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)shred->reg = i_vector_at(obj->array, i);
+    *(m_uint*)shred->reg = i_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)shred->reg = f_vector_at(obj->array, i);
+    *(m_float*)shred->reg = f_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_FLOAT);
   } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)shred->reg = c_vector_at(obj->array, i);
+    *(m_complex*)shred->reg = c_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = v3_vector_at(obj->array, i);
+    *(VEC3_T*)shred->reg = v3_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = v4_vector_at(obj->array, i);
+    *(VEC4_T*)shred->reg = v4_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC4);
   }
   return;
@@ -1262,9 +1262,9 @@ INSTR(Instr_Array_Access_Multi)
     Except(shred);
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)(shred->reg + SZ_INT * (j + 1));
-    if(i < 0 || i >= m_vector_size(obj->array))
+    if(i < 0 || i >= m_vector_size(obj->d.array))
       goto array_out_of_bound;
-    obj = (M_Object)i_vector_at(obj->array, i);
+    obj = (M_Object)i_vector_at(obj->d.array, i);
     if(!obj)
       Except(shred);
   }
@@ -1272,28 +1272,28 @@ INSTR(Instr_Array_Access_Multi)
   // take care of emit_addr (instr->ptr)
   if(instr->ptr) {
     if(instr->m_val2 == Kindof_Int)
-      *(m_uint**)shred->reg = i_vector_addr(obj->array, i);
+      *(m_uint**)shred->reg = i_vector_addr(obj->d.array, i);
     if(instr->m_val2 == Kindof_Float)
-      *(m_float**)shred->reg = f_vector_addr(obj->array, i);
+      *(m_float**)shred->reg = f_vector_addr(obj->d.array, i);
     if(instr->m_val2 == Kindof_Complex)
-      *(m_complex**)shred->reg = c_vector_addr(obj->array, i);
+      *(m_complex**)shred->reg = c_vector_addr(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   }
   // take care of kind (instr->m_val2)
   else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)shred->reg = i_vector_at(obj->array, i);
+    *(m_uint*)shred->reg = i_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)shred->reg = f_vector_at(obj->array, i);
+    *(m_float*)shred->reg = f_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_FLOAT);
   } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)shred->reg = c_vector_at(obj->array, i);
+    *(m_complex*)shred->reg = c_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = v3_vector_at(obj->array, i);
+    *(VEC3_T*)shred->reg = v3_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = v4_vector_at(obj->array, i);
+    *(VEC4_T*)shred->reg = v4_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC4);
   }
   return;

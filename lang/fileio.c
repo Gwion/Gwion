@@ -19,7 +19,7 @@ m_int o_fileio_file;
 m_int o_fileio_ascii;
 m_int o_fileio_line;
 
-#define IO_LINE(o) *(m_str*)(o->data + o_fileio_line)
+#define IO_LINE(o) *(m_str*)(o->d.data + o_fileio_line)
 
 CTOR(fileio_ctor)
 {
@@ -197,7 +197,7 @@ SFUN(file_list)
   }
   M_Object ret = new_M_Array(SZ_INT, n);
   for(i = 0; i < n; i++) {
-    i_vector_set(ret->array, i, (m_uint)new_String(namelist[i]->d_name));
+    i_vector_set(ret->d.array, i, (m_uint)new_String(namelist[i]->d_name));
     free(namelist[i]);
   }
   free(namelist);

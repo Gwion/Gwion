@@ -10,7 +10,7 @@
 #include "lang.h"
 #include "object.h"
 m_uint o_ftbl_data;
-#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)
+#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
 
 DTOR(ftbl_dtor)
@@ -4104,9 +4104,9 @@ MFUN(oscmorph_init)
   M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
   gw_offset += SZ_INT;
   m_uint tbl_iter;
-  sp_ftbl* tbl[m_vector_size(tbl_ptr->array)];
-  for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->array); tbl_iter++)
-    tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->array, tbl_iter));
+  sp_ftbl* tbl[m_vector_size(tbl_ptr->d.array)];
+  for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->d.array); tbl_iter++)
+    tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->d.array, tbl_iter));
   m_int nft = *(m_int*)(shred->mem + gw_offset);
   gw_offset += SZ_INT;
   m_float phase = *(m_float*)(shred->mem + gw_offset);

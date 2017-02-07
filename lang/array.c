@@ -12,18 +12,18 @@ m_int o_array_vector;
 
 DTOR(array_dtor)
 {
-  free(o->array->ptr);
-//  free(o->array); // freed as 'o->data' in object_dtor for now
+  free(o->d.array->ptr);
+//  free(o->d.array); // freed as 'o->d.data' in object_dtor for now
 }
 
 M_Object new_M_Array(m_uint size, m_uint length)
 {
   M_Object a = new_M_Object();
   initialize_object(a, &t_array);
-  a->array 	    = malloc(sizeof(M_Vector));
-  a->array->ptr  = calloc(length , size);
-  a->array->size = size;
-  a->array->len  = length * size;
+  a->d.array 	    = malloc(sizeof(M_Vector));
+  a->d.array->ptr  = calloc(length , size);
+  a->d.array->size = size;
+  a->d.array->len  = length * size;
   return a;
 }
 
@@ -153,7 +153,7 @@ MFUN(vm_vector_size)
 {
   if(!o)
     RETURN->v_uint = -1;
-  RETURN->v_uint = m_vector_size(o->array);
+  RETURN->v_uint = m_vector_size(o->d.array);
 }
 
 INSTR(Array_Append)
@@ -163,23 +163,23 @@ INSTR(Array_Append)
   if(instr->m_val == Kindof_Int) {
     POP_REG(shred, SZ_INT);
     o = *(M_Object*)(shred->reg);
-    i_vector_append(o->array, *(m_uint*)(shred->reg + SZ_INT));
+    i_vector_append(o->d.array, *(m_uint*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Float) {
     POP_REG(shred, SZ_FLOAT);
     o = *(M_Object*)(shred->reg);
-    f_vector_append(o->array, *(m_float*)(shred->reg + SZ_INT));
+    f_vector_append(o->d.array, *(m_float*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Complex) {
     POP_REG(shred, SZ_COMPLEX);
     o = *(M_Object*)(shred->reg);
-    c_vector_append(o->array, *(m_complex*)(shred->reg + SZ_INT));
+    c_vector_append(o->d.array, *(m_complex*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)(shred->reg);
-    v3_vector_append(o->array, *(VEC3_T*)(shred->reg + SZ_INT));
+    v3_vector_append(o->d.array, *(VEC3_T*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
     POP_REG(shred, SZ_VEC4);
     o = *(M_Object*)(shred->reg);
-    v4_vector_append(o->array, *(VEC4_T*)(shred->reg + SZ_INT));
+    v4_vector_append(o->d.array, *(VEC4_T*)(shred->reg + SZ_INT));
   }
   *(M_Object*)(shred->reg) = o;
   PUSH_REG(shred, SZ_INT);

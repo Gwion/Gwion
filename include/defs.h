@@ -90,15 +90,15 @@ enum
 #define IMPORT m_bool import(Env env)
 // should be in lang.h, maybe
 // string
-#define STRING(o) *((m_str*)((M_Object)o)->data + o_string_data)
+#define STRING(o) *((m_str*)((M_Object)o)->d.data + o_string_data)
 // shred
-#define ME(o) *((VM_Shred*)((M_Object)o)->data + o_shred_me)
+#define ME(o) *((VM_Shred*)((M_Object)o)->d.data + o_shred_me)
 // event
-#define EV_SHREDS(o) *((Vector*)((M_Object)o)->data + o_event_shred)
+#define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
 // fileio
-#define IO_DIR(o)	  *((DIR**)((M_Object)o)->data + o_fileio_dir)
-#define IO_FILE(o)	*((FILE**)((M_Object)o)->data + o_fileio_file)
-#define IO_ASCII(o)	*((m_uint*)((M_Object)o)->data + o_fileio_ascii)
+#define IO_DIR(o)	  *((DIR**)((M_Object)o)->d.data + o_fileio_dir)
+#define IO_FILE(o)	*((FILE**)((M_Object)o)->d.data + o_fileio_file)
+#define IO_ASCII(o)	*((m_uint*)((M_Object)o)->d.data + o_fileio_ascii)
 
 /*
 #define SZ_INT sizeof(m_uint)

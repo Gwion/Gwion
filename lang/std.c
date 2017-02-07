@@ -440,9 +440,9 @@ SFUN(stat_mean)
   M_Object o = *(M_Object*)(shred->mem + SZ_INT);
   m_uint i;
   m_float mean = 0;
-  for(i = 0; i < m_vector_size(o->array); i++)
-    mean += f_vector_at(o->array, i);
-  mean /= m_vector_size(o->array);
+  for(i = 0; i < m_vector_size(o->d.array); i++)
+    mean += f_vector_at(o->d.array, i);
+  mean /= m_vector_size(o->d.array);
   RETURN->v_float = mean;
 }
 
@@ -451,8 +451,8 @@ SFUN(stat_max)
   M_Object o = *(M_Object*)(shred->mem + SZ_INT);
   m_uint i;
   m_float f, max = -INFINITY;
-  for(i = 0; i < m_vector_size(o->array); i++) {
-    f = f_vector_at(o->array, i);
+  for(i = 0; i < m_vector_size(o->d.array); i++) {
+    f = f_vector_at(o->d.array, i);
     if(f > max)
       max = f;
   }
@@ -464,8 +464,8 @@ SFUN(stat_min)
   M_Object o = *(M_Object*)(shred->mem + SZ_INT);
   m_uint i;
   m_float f, min = INFINITY;
-  for(i = 0; i < m_vector_size(o->array); i++) {
-    f = f_vector_at(o->array, i);
+  for(i = 0; i < m_vector_size(o->d.array); i++) {
+    f = f_vector_at(o->d.array, i);
     if(f < min)
       min = f;
   }
@@ -477,7 +477,7 @@ SFUN(stat_variance)
   M_Object o = *(M_Object*)(shred->mem + SZ_INT);
   stat_mean(RETURN, shred);
   m_float mean = RETURN->v_float;
-  m_uint i, size = m_vector_size(o->array);
+  m_uint i, size = m_vector_size(o->d.array);
   m_float f, v = 0;
   for(i = 0; i < size; i++) {
     f = f - mean;

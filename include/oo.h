@@ -31,7 +31,7 @@ struct M_Object_
   {
     M_Vector* array;
     unsigned char* data;
-  };
+  } d;
   UGen ugen;
 };
 M_Object new_M_UGen();
