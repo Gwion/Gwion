@@ -679,15 +679,15 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List arg
 {
   Stmt* a                = calloc(1, sizeof(Stmt));
   a->type                = ae_stmt_funcptr;
-  a->stmt_funcptr        = calloc(1, sizeof(Func_Ptr));
-  a->stmt_funcptr->key   = key;
-  a->stmt_funcptr->type  = decl;
-  a->stmt_funcptr->xid   = insert_symbol(xid);
-  a->stmt_funcptr->args  = args;
-  a->stmt_funcptr->func  = NULL;
-  a->stmt_funcptr->value = NULL;
+  a->d.stmt_funcptr        = calloc(1, sizeof(Func_Ptr));
+  a->d.stmt_funcptr->key   = key;
+  a->d.stmt_funcptr->type  = decl;
+  a->d.stmt_funcptr->xid   = insert_symbol(xid);
+  a->d.stmt_funcptr->args  = args;
+  a->d.stmt_funcptr->func  = NULL;
+  a->d.stmt_funcptr->value = NULL;
 //  a->stmt_funcptr->ref   = NULL;
-  a->stmt_funcptr->pos   = pos;
+  a->d.stmt_funcptr->pos   = pos;
   a->pos             = pos;
   return a;
 
@@ -858,7 +858,7 @@ Stmt* new_Stmt_from_Expression(Expression exp, int pos)
 {
   Stmt* stmt = calloc(1, sizeof(Stmt));
   stmt->type = ae_stmt_exp;
-  stmt->stmt_exp = exp;
+  stmt->d.stmt_exp = exp;
   stmt->pos = pos;
   return stmt;
 }
@@ -867,11 +867,11 @@ Stmt* new_stmt_from_code(Stmt_List stmt_list, int pos )
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_code;
-  a->stmt_code = calloc(1, sizeof(struct Stmt_Code_));
-  a->stmt_code->stmt_list = stmt_list;
+  a->d.stmt_code = calloc(1, sizeof(struct Stmt_Code_));
+  a->d.stmt_code->stmt_list = stmt_list;
   a->pos = pos;
-  a->stmt_code->pos = pos;
-  a->stmt_code->self = a;
+  a->d.stmt_code->pos = pos;
+  a->d.stmt_code->self = a;
   return a;
 }
 
@@ -885,11 +885,11 @@ Stmt* new_stmt_from_return(Expression exp, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_return;
-  a->stmt_return = calloc(1, sizeof(struct Stmt_Return_));
-  a->stmt_return->val = exp;
+  a->d.stmt_return = calloc(1, sizeof(struct Stmt_Return_));
+  a->d.stmt_return->val = exp;
   a->pos = pos;
-  a->stmt_return->pos = pos;
-  a->stmt_return->self = a;
+  a->d.stmt_return->pos = pos;
+  a->d.stmt_return->self = a;
   return a;
 }
 
@@ -903,10 +903,10 @@ Stmt* new_stmt_from_break(int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_break;
-  a->stmt_break = calloc(1, sizeof(struct Stmt_Break_));
+  a->d.stmt_break = calloc(1, sizeof(struct Stmt_Break_));
   a->pos = pos;
-  a->stmt_break->pos = pos;
-  a->stmt_break->self = a;
+  a->d.stmt_break->pos = pos;
+  a->d.stmt_break->self = a;
   return a;
 }
 
@@ -914,10 +914,10 @@ Stmt* new_stmt_from_continue( int pos )
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_continue;
-  a->stmt_return = calloc(1, sizeof(struct Stmt_Continue_));
+  a->d.stmt_return = calloc(1, sizeof(struct Stmt_Continue_));
   a->pos = pos;
-  a->stmt_continue->pos = pos;
-  a->stmt_continue->self = a;
+  a->d.stmt_continue->pos = pos;
+  a->d.stmt_continue->self = a;
   return a;
 }
 
@@ -925,13 +925,13 @@ Stmt* new_stmt_from_while(Expression cond, Stmt* body, m_bool is_do, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_while;
-  a->stmt_while = calloc(1, sizeof(struct Stmt_While_));
-  a->stmt_while->is_do = is_do;
-  a->stmt_while->cond = cond;
-  a->stmt_while->body = body;
+  a->d.stmt_while = calloc(1, sizeof(struct Stmt_While_));
+  a->d.stmt_while->is_do = is_do;
+  a->d.stmt_while->cond = cond;
+  a->d.stmt_while->body = body;
   a->pos = pos;
-  a->stmt_while->pos = pos;
-  a->stmt_while->self = a;
+  a->d.stmt_while->pos = pos;
+  a->d.stmt_while->self = a;
   return a;
 }
 
@@ -946,13 +946,13 @@ Stmt* new_stmt_from_until(Expression cond, Stmt* body, m_bool is_do, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_until;
-  a->stmt_until = calloc(1, sizeof(struct Stmt_Until_));
-  a->stmt_until->is_do = 0;
-  a->stmt_until->cond = cond;
-  a->stmt_until->body = body;
+  a->d.stmt_until = calloc(1, sizeof(struct Stmt_Until_));
+  a->d.stmt_until->is_do = 0;
+  a->d.stmt_until->cond = cond;
+  a->d.stmt_until->body = body;
   a->pos = pos;
-  a->stmt_until->pos = pos;
-  a->stmt_until->self = a;
+  a->d.stmt_until->pos = pos;
+  a->d.stmt_until->self = a;
   return a;
 }
 
@@ -967,14 +967,14 @@ Stmt* new_stmt_from_for(Stmt* c1, Stmt* c2, Expression c3, Stmt* body, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_for;
-  a->stmt_for = calloc(1, sizeof(struct Stmt_For_));
-  a->stmt_for->c1 = c1;
-  a->stmt_for->c2 = c2;
-  a->stmt_for->c3 = c3;
-  a->stmt_for->body = body;
+  a->d.stmt_for = calloc(1, sizeof(struct Stmt_For_));
+  a->d.stmt_for->c1 = c1;
+  a->d.stmt_for->c2 = c2;
+  a->d.stmt_for->c3 = c3;
+  a->d.stmt_for->body = body;
   a->pos = pos;
-  a->stmt_for->pos = pos;
-  a->stmt_for->self = a;
+  a->d.stmt_for->pos = pos;
+  a->d.stmt_for->self = a;
   return a;
 }
 
@@ -991,12 +991,12 @@ Stmt* new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_gotolabel;
-  a->stmt_gotolabel = calloc(1, sizeof(struct Stmt_Goto_Label_));
-  a->stmt_gotolabel->name = insert_symbol( xid );
-  a->stmt_gotolabel->is_label = is_label;
+  a->d.stmt_gotolabel = calloc(1, sizeof(struct Stmt_Goto_Label_));
+  a->d.stmt_gotolabel->name = insert_symbol( xid );
+  a->d.stmt_gotolabel->is_label = is_label;
   a->pos = pos;
-  a->stmt_gotolabel->pos = pos;
-  a->stmt_gotolabel->self = a;
+  a->d.stmt_gotolabel->pos = pos;
+  a->d.stmt_gotolabel->self = a;
   return a;
 }
 
@@ -1012,12 +1012,12 @@ Stmt* new_stmt_from_loop(Expression cond, Stmt* body, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_loop;
-  a->stmt_loop = calloc(1, sizeof(struct Stmt_Loop_));
-  a->stmt_loop->cond = cond;
-  a->stmt_loop->body = body;
+  a->d.stmt_loop = calloc(1, sizeof(struct Stmt_Loop_));
+  a->d.stmt_loop->cond = cond;
+  a->d.stmt_loop->body = body;
   a->pos = pos;
-  a->stmt_loop->pos = pos;
-  a->stmt_loop->self = a;
+  a->d.stmt_loop->pos = pos;
+  a->d.stmt_loop->self = a;
   return a;
 }
 
@@ -1032,13 +1032,13 @@ Stmt* new_stmt_from_if(Expression cond, Stmt* if_body, Stmt* else_body, int pos 
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_if;
-  a->stmt_if = calloc(1, sizeof(struct Stmt_If_));
-  a->stmt_if->cond = cond;
-  a->stmt_if->if_body = if_body;
-  a->stmt_if->else_body = else_body;
+  a->d.stmt_if = calloc(1, sizeof(struct Stmt_If_));
+  a->d.stmt_if->cond = cond;
+  a->d.stmt_if->if_body = if_body;
+  a->d.stmt_if->else_body = else_body;
   a->pos = pos;
-  a->stmt_if->pos = pos;
-  a->stmt_if->self = a;
+  a->d.stmt_if->pos = pos;
+  a->d.stmt_if->self = a;
   return a;
 }
 
@@ -1054,12 +1054,12 @@ Stmt* new_stmt_from_switch(Expression val, Stmt* stmt, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_switch;
-  a->stmt_switch = calloc(1, sizeof(struct Stmt_Switch_));
-  a->stmt_switch->val = val;
-  a->stmt_switch->stmt = stmt;
+  a->d.stmt_switch = calloc(1, sizeof(struct Stmt_Switch_));
+  a->d.stmt_switch->val = val;
+  a->d.stmt_switch->stmt = stmt;
   a->pos = pos;
-  a->stmt_switch->pos = pos;
-  a->stmt_switch->self = a;
+  a->d.stmt_switch->pos = pos;
+  a->d.stmt_switch->self = a;
   return a;
 }
 
@@ -1074,11 +1074,11 @@ Stmt* new_stmt_from_case(Expression val, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_case;
-  a->stmt_case= calloc(1, sizeof(struct Stmt_Case_));
-  a->stmt_case->val = val;
+  a->d.stmt_case= calloc(1, sizeof(struct Stmt_Case_));
+  a->d.stmt_case->val = val;
   a->pos = pos;
-  a->stmt_case->pos = pos;
-  a->stmt_case->self = a;
+  a->d.stmt_case->pos = pos;
+  a->d.stmt_case->self = a;
   return a;
 }
 
@@ -1092,13 +1092,13 @@ Stmt* new_stmt_from_enum(ID_List list, m_str xid, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_enum;
-  a->stmt_enum = calloc(1, sizeof(struct Stmt_Enum_));
-  a->stmt_enum->xid = xid ? insert_symbol(xid) : NULL;
-  a->stmt_enum->list = list;
-  a->stmt_enum->values = new_Vector();
+  a->d.stmt_enum = calloc(1, sizeof(struct Stmt_Enum_));
+  a->d.stmt_enum->xid = xid ? insert_symbol(xid) : NULL;
+  a->d.stmt_enum->list = list;
+  a->d.stmt_enum->values = new_Vector();
   a->pos = pos;
-  a->stmt_enum->pos = pos;
-  a->stmt_enum->self = a;
+  a->d.stmt_enum->pos = pos;
+  a->d.stmt_enum->self = a;
   return a;
 }
 
@@ -1121,7 +1121,7 @@ Stmt* new_stmt_from_Union(Union* u, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_union;
-  a->stmt_union = u;
+  a->d.stmt_union = u;
   a->pos = pos;
   return a;
 }
@@ -1166,52 +1166,52 @@ void free_Stmt(Stmt* stmt)
   switch(stmt->type)
   {
     case ae_stmt_exp:
-      free_Expression(stmt->stmt_exp);
+      free_Expression(stmt->d.stmt_exp);
       break;
     case ae_stmt_while:
-      free_Stmt_While(stmt->stmt_while);
+      free_Stmt_While(stmt->d.stmt_while);
       break;
     case ae_stmt_until:
-      free_Stmt_Until(stmt->stmt_until);
+      free_Stmt_Until(stmt->d.stmt_until);
       break;
     case ae_stmt_for:
-      free_Stmt_For(stmt->stmt_for);
+      free_Stmt_For(stmt->d.stmt_for);
       break;
     case ae_stmt_loop:
-      free_Stmt_Loop(stmt->stmt_loop);
+      free_Stmt_Loop(stmt->d.stmt_loop);
       break;
     case ae_stmt_if:
-      free_Stmt_If(stmt->stmt_if);
+      free_Stmt_If(stmt->d.stmt_if);
       break;
     case ae_stmt_code:
-      free_Stmt_Code(stmt->stmt_code);
+      free_Stmt_Code(stmt->d.stmt_code);
       break;
    case ae_stmt_switch:
-      free_Stmt_Switch(stmt->stmt_switch);
+      free_Stmt_Switch(stmt->d.stmt_switch);
       break;
    case ae_stmt_break:
-     free(stmt->stmt_break);
+     free(stmt->d.stmt_break);
      break;
    case ae_stmt_continue:
-     free(stmt->stmt_continue);
+     free(stmt->d.stmt_continue);
      break;
     case ae_stmt_return:
-      free_Stmt_Return(stmt->stmt_return);
+      free_Stmt_Return(stmt->d.stmt_return);
       break;
     case ae_stmt_case:
-      free_Stmt_Case(stmt->stmt_case);
+      free_Stmt_Case(stmt->d.stmt_case);
       break;
     case ae_stmt_gotolabel:
-      free_Stmt_GotoLabel(stmt->stmt_gotolabel);
+      free_Stmt_GotoLabel(stmt->d.stmt_gotolabel);
       break;
     case ae_stmt_enum:
-      free_Stmt_Enum(stmt->stmt_enum);
+      free_Stmt_Enum(stmt->d.stmt_enum);
       break;
     case ae_stmt_funcptr:
-      free_Stmt_Func_Ptr(stmt->stmt_funcptr);
+      free_Stmt_Func_Ptr(stmt->d.stmt_funcptr);
       break;
     case ae_stmt_union:
-      free_Stmt_Union(stmt->stmt_union);
+      free_Stmt_Union(stmt->d.stmt_union);
       break;
   }
   free(stmt);

@@ -1940,7 +1940,7 @@ static m_bool check_For(Env env, Stmt_For stmt)
   }
 
   // ensure that conditional has valid type
-  switch( stmt->c2->stmt_exp->type->xid ) {
+  switch( stmt->c2->d.stmt_exp->type->xid ) {
   case te_int:
   case te_float:
   case te_dur:
@@ -1949,12 +1949,12 @@ static m_bool check_For(Env env, Stmt_For stmt)
 
   default:
     // check for IO
-    if(isa( stmt->c2->stmt_exp->type, &t_io ) > 0)
+    if(isa( stmt->c2->d.stmt_exp->type, &t_io ) > 0)
       break;
 
     // error
-    err_msg(EMIT_,  stmt->c2->stmt_exp->pos,
-            "invalid type '%s' in for condition", stmt->c2->stmt_exp->type->name);
+    err_msg(EMIT_,  stmt->c2->d.stmt_exp->pos,
+            "invalid type '%s' in for condition", stmt->c2->d.stmt_exp->type->name);
     return -1;
   }
 
@@ -2119,87 +2119,87 @@ static m_bool check_Stmt(Env env, Stmt* stmt)
     return 1;
   switch( stmt->type ) {
   case ae_stmt_exp:
-    if(stmt->stmt_exp)
-      ret = (check_Expression(env, stmt->stmt_exp) ? 1 : -1);
+    if(stmt->d.stmt_exp)
+      ret = (check_Expression(env, stmt->d.stmt_exp) ? 1 : -1);
     break;
   case ae_stmt_code:
     env->class_scope++;
-    ret = check_Stmt_Code( env, stmt->stmt_code, 1);
+    ret = check_Stmt_Code( env, stmt->d.stmt_code, 1);
     env->class_scope--;
     break;
   case ae_stmt_return:
-    ret = check_Return(env, stmt->stmt_return);
+    ret = check_Return(env, stmt->d.stmt_return);
     break;
   case ae_stmt_break:
-    ret = check_Break(env, stmt->stmt_break);
+    ret = check_Break(env, stmt->d.stmt_break);
     break;
   case ae_stmt_continue:
-    ret = check_Continue(env, stmt->stmt_continue);
+    ret = check_Continue(env, stmt->d.stmt_continue);
     break;
   case ae_stmt_if:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_If(env, stmt->stmt_if);
+    ret = check_If(env, stmt->d.stmt_if);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_While( env, stmt->stmt_while);
+    ret = check_While( env, stmt->d.stmt_while);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_Until( env, stmt->stmt_until);
+    ret = check_Until( env, stmt->d.stmt_until);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_For( env, stmt->stmt_for);
+    ret = check_For( env, stmt->d.stmt_for);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_Loop( env, stmt->stmt_loop);
+    ret = check_Loop( env, stmt->d.stmt_loop);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_Switch( env, stmt->stmt_switch);
+    ret = check_Switch( env, stmt->d.stmt_switch);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
-    ret = check_Case(env, stmt->stmt_case);
+    ret = check_Case(env, stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
-    ret = check_Enum(env, stmt->stmt_enum);
+    ret = check_Enum(env, stmt->d.stmt_enum);
     break;
   case ae_stmt_gotolabel:
-    ret = check_Goto_Label(env, stmt->stmt_gotolabel);
+    ret = check_Goto_Label(env, stmt->d.stmt_gotolabel);
     break;
   case ae_stmt_funcptr:
-    ret = check_Func_Ptr(env, stmt->stmt_funcptr);
+    ret = check_Func_Ptr(env, stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
-    l = stmt->stmt_union->l;
+    l = stmt->d.stmt_union->l;
     if(env->class_def) {
-      stmt->stmt_union->o = env->class_def->obj_size;
+      stmt->d.stmt_union->o = env->class_def->obj_size;
 
     }
     while(l) {
       CHECK_OB(check_Decl_Expression(env, l->self))
-      if(l->self->m_type->size > stmt->stmt_union->s)
-        stmt->stmt_union->s = l->self->m_type->size;
+      if(l->self->m_type->size > stmt->d.stmt_union->s)
+        stmt->d.stmt_union->s = l->self->m_type->size;
       l = l->next;
     }
     ret = 1;
@@ -2531,7 +2531,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     vararg->checked = 1;
     namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
-  if(f->code && check_Stmt_Code(env, f->code->stmt_code, 0) < 0) {
+  if(f->code && check_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
     err_msg(TYPE_, f->pos, "...in function '%s'", S_name(f->name));
     goto error;
   }

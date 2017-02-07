@@ -323,9 +323,9 @@ typedef struct
     Stmt_Switch      stmt_switch;
     Stmt_Case        stmt_case;
     Stmt_Enum        stmt_enum;
-		Func_Ptr*        stmt_funcptr;
-		Union*           stmt_union;
-  };
+    Func_Ptr*        stmt_funcptr;
+    Union*           stmt_union;
+  } d;
   int pos;
 } Stmt;
 

@@ -401,69 +401,69 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
   if(!stmt)
     return 1;
   // DIRTY!!! happens when '1, new Object', for instance
-  if(stmt->type == 3 && !stmt->stmt_for) // bad thing in parser, continue
+  if(stmt->type == 3 && !stmt->d.stmt_for) // bad thing in parser, continue
     return 1;
 
   switch( stmt->type ) {
   case ae_stmt_exp:
-    ret = scan1_Expression(env, stmt->stmt_exp);
+    ret = scan1_Expression(env, stmt->d.stmt_exp);
     break;
   case ae_stmt_code:
     env->class_scope++;
-    ret = scan1_Stmt_Code( env, stmt->stmt_code, 1);
+    ret = scan1_Stmt_Code( env, stmt->d.stmt_code, 1);
     env->class_scope--;
     break;
   case ae_stmt_return:
-    ret = scan1_return( env, stmt->stmt_return);
+    ret = scan1_return( env, stmt->d.stmt_return);
     break;
 
   case ae_stmt_if:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_If(env, stmt->stmt_if);
+    ret = scan1_If(env, stmt->d.stmt_if);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_While( env, stmt->stmt_while);
+    ret = scan1_While( env, stmt->d.stmt_while);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_For( env, stmt->stmt_for);
+    ret = scan1_For( env, stmt->d.stmt_for);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_Until( env, stmt->stmt_until);
+    ret = scan1_Until( env, stmt->d.stmt_until);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_Loop( env, stmt->stmt_loop);
+    ret = scan1_Loop( env, stmt->d.stmt_loop);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan1_Switch( env, stmt->stmt_switch);
+    ret = scan1_Switch( env, stmt->d.stmt_switch);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
-    ret = scan1_Case(env, stmt->stmt_case);
+    ret = scan1_Case(env, stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
-    ret = scan1_Enum(env, stmt->stmt_enum);
+    ret = scan1_Enum(env, stmt->d.stmt_enum);
     break;
   case ae_stmt_continue:
   case ae_stmt_break:
@@ -471,10 +471,10 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
     ret = 1;
     break;
   case ae_stmt_funcptr:
-    ret = scan1_Func_Ptr(env, stmt->stmt_funcptr);
+    ret = scan1_Func_Ptr(env, stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
-    l = stmt->stmt_union->l;
+    l = stmt->d.stmt_union->l;
     while(l) {
       if(!l->self) {
         err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
@@ -485,8 +485,8 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
 
       if(!l->self->type) { // weird bug
         err_msg(SCAN1_, l->self->pos, "must povide type declaration in union");
-        free(stmt->stmt_union);
-        stmt->stmt_union = NULL;
+        free(stmt->d.stmt_union);
+        stmt->d.stmt_union = NULL;
 //fake_type
 //l->self->type = calloc(1, sizeof(Type_Decl));
 //l->self->type->xid = calloc(1, sizeof(struct ID_List_));
@@ -657,7 +657,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       goto error;
     }
   }
-  if(f->code && scan1_Stmt_Code(env, f->code->stmt_code, 0) < 0) {
+  if(f->code && scan1_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN1_, f->pos, "...in function '%s'\n", S_name(f->name));
     goto error;
   }

@@ -1602,7 +1602,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   // emit the cond - keep the result on the stack
   CHECK_BB(emit_Stmt(emit, stmt->c2, 0))
   if (stmt->c2) {
-    switch (stmt->c2->stmt_exp->type->xid) {
+    switch (stmt->c2->d.stmt_exp->type->xid) {
     case te_int:
       instr = add_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
@@ -1616,7 +1616,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
 
     default:
       // check for IO
-      /*        if( isa( stmt->c2->stmt_exp->type, &t_io ) )*/
+      /*        if( isa( stmt->c2->d.stmt_exp->type, &t_io ) )*/
       /*        {*/
       // push 0
       /*          emit->append( new Chuck_Instr_Reg_Push_Imm( 0 ) );*/
@@ -1624,9 +1624,9 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       /*          break;*/
       /*        }*/
 
-      err_msg(EMIT_, stmt->c2->stmt_exp->pos,
+      err_msg(EMIT_, stmt->c2->d.stmt_exp->pos,
               "(emit): internal error: unhandled type '%s' in for conditional",
-              stmt->c2->stmt_exp->type->name);
+              stmt->c2->d.stmt_exp->type->name);
       return -1;
     }
     (void)instr;
@@ -1900,12 +1900,12 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
     return 1;
   switch (stmt->type) {
   case ae_stmt_exp:
-    if (!stmt->stmt_exp)
+    if (!stmt->d.stmt_exp)
       return 1;
-    ret = emit_Expression(emit, stmt->stmt_exp, 0);
-// check 'stmt->stmt_exp->type'for switch
-    if (ret > 0 && pop && stmt->stmt_exp->type && stmt->stmt_exp->type->size > 0) {
-      Expression exp = stmt->stmt_exp;
+    ret = emit_Expression(emit, stmt->d.stmt_exp, 0);
+// check 'stmt->d.stmt_exp->type'for switch
+    if (ret > 0 && pop && stmt->d.stmt_exp->type && stmt->d.stmt_exp->type->size > 0) {
+      Expression exp = stmt->d.stmt_exp;
       if (exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_hack)
         exp = exp->primary_exp->d.exp;
       while (exp) {
@@ -1925,68 +1925,68 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
       return -1;
     break;
   case ae_stmt_code:
-    ret = emit_Stmt_Code(emit, stmt->stmt_code, 1);
+    ret = emit_Stmt_Code(emit, stmt->d.stmt_code, 1);
     break;
   case ae_stmt_if:
-    ret = emit_If(emit, stmt->stmt_if);
+    ret = emit_If(emit, stmt->d.stmt_if);
     break;
   case ae_stmt_return:
-    ret = emit_Return(emit, stmt->stmt_return);
+    ret = emit_Return(emit, stmt->d.stmt_return);
     break;
 
   case ae_stmt_break:
-    ret = emit_Break(emit, stmt->stmt_break);
+    ret = emit_Break(emit, stmt->d.stmt_break);
     break;
 
   case ae_stmt_continue:
-    ret = emit_Continue(emit, stmt->stmt_continue);
+    ret = emit_Continue(emit, stmt->d.stmt_continue);
     break;
 
   case ae_stmt_while:
-    if (stmt->stmt_while->is_do)
-      ret = emit_Do_While(emit, stmt->stmt_while);
+    if (stmt->d.stmt_while->is_do)
+      ret = emit_Do_While(emit, stmt->d.stmt_while);
     else
-      ret = emit_While(emit, stmt->stmt_while);
+      ret = emit_While(emit, stmt->d.stmt_while);
     break;
   case ae_stmt_until:
-    if (stmt->stmt_until->is_do)
-      ret = emit_Do_Until(emit, stmt->stmt_until);
+    if (stmt->d.stmt_until->is_do)
+      ret = emit_Do_Until(emit, stmt->d.stmt_until);
     else
-      ret = emit_Until(emit, stmt->stmt_until);
+      ret = emit_Until(emit, stmt->d.stmt_until);
     break;
   case ae_stmt_for:
-    ret = emit_For(emit, stmt->stmt_for);
+    ret = emit_For(emit, stmt->d.stmt_for);
     break;
   case ae_stmt_loop:
-    ret = emit_Loop(emit, stmt->stmt_loop);
+    ret = emit_Loop(emit, stmt->d.stmt_loop);
     break;
   case ae_stmt_gotolabel:
-    ret = emit_Goto_Label(emit, stmt->stmt_gotolabel);
+    ret = emit_Goto_Label(emit, stmt->d.stmt_gotolabel);
     break;
   case ae_stmt_case:
-    ret = emit_Case(emit, stmt->stmt_case);
+    ret = emit_Case(emit, stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
-    ret = emit_Enum(emit, stmt->stmt_enum);
+    ret = emit_Enum(emit, stmt->d.stmt_enum);
     break;
   case ae_stmt_switch:
-    ret = emit_Switch(emit, stmt->stmt_switch);
+    ret = emit_Switch(emit, stmt->d.stmt_switch);
     break;
   case ae_stmt_funcptr:
-    ret = emit_Func_Ptr(emit, stmt->stmt_funcptr);
+    ret = emit_Func_Ptr(emit, stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
-    l = stmt->stmt_union->l;
+    l = stmt->d.stmt_union->l;
     is_member = l->self->list->self->value->is_member;
     if (!is_member) {
-      local = frame_alloc_local(emit->code->frame, stmt->stmt_union->s, "union", 1, 0);
-      stmt->stmt_union->o = local->offset;
+      local = frame_alloc_local(emit->code->frame, stmt->d.stmt_union->s, "union", 1, 0);
+      stmt->d.stmt_union->o = local->offset;
     } else
       local = NULL;
     while (l) {
       var_list = l->self->list;
       while (var_list) {
-        var_list->self->value->offset = stmt->stmt_union->o;
+        var_list->self->value->offset = stmt->d.stmt_union->o;
         var_list = var_list->next;
       }
       l = l->next;

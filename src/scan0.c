@@ -128,7 +128,7 @@ static m_bool scan0_Stmt(Env env, Stmt* stmt)
     return 1;
   switch(stmt->type) {
   case ae_stmt_funcptr:
-    ret = scan0_Func_Ptr(env, stmt->stmt_funcptr);
+    ret = scan0_Func_Ptr(env, stmt->d.stmt_funcptr);
     break;
   default:
     ret = 1;
