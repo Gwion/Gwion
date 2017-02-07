@@ -82,7 +82,7 @@ INSTR(Object_String_Assign)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   m_str str = malloc(sizeof(char));
-  sprintf(str, "%p", lhs);
+  sprintf(str, "%p", (void*)lhs);
   STRING(rhs) = str;
   *(M_Object*)shred->reg = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
@@ -154,7 +154,7 @@ INSTR(Object_String)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   m_str str = malloc(sizeof(char));
-  sprintf(str, "%p%s", lhs, STRING(rhs));
+  sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   PUSH_REG(shred, SZ_INT);
 }
@@ -251,7 +251,7 @@ INSTR(Object_String_Plus)
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   m_uint len = strlen(STRING(rhs)) + 9;
   char c[len];
-  sprintf(c, "%s%p", STRING(rhs), lhs);
+  sprintf(c, "%s%p", STRING(rhs), (void*)lhs);
   /*  free(STRING(rhs));*/
   STRING(rhs) = strdup(c);
   /*  STRING(rhs) = c;*/
