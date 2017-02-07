@@ -508,7 +508,7 @@ INSTR(Gack)
     else if(type->xid == t_function.xid)
       /*      fprintf(stdout, "%p %s", type, type->name, type->func ? type->func->name : "");*/
       fprintf(stdout, "%s %p %p", type->name, (void*) * (Func*)(shred->reg),
-              (*(Func*)(shred->reg))->code);
+              (void*)(*(Func*)(shred->reg))->code);
     else if(isa(type, &t_func_ptr) > 0)
       fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)(shred->reg));
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)(shred->reg),*/
