@@ -88,7 +88,9 @@ ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
 
-ifndef $SOUNDPIPE_DATA_DIR
+ifdef $SOUNDPIPE_DATA_DIR
+;
+else
 export SOUNDPIPE_DATA_DIR=../Soundpipe/modules/data
 endif
 mostly_clean:
