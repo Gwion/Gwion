@@ -12,7 +12,7 @@ addons:
     - libsndfile1
     - libsndfile1-dev
 env:
--global:
+  global:
   - SOUNDPIPE_DATA_DIR=Soundpipe/modules/data
 - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
 - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
