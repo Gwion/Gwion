@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 #include <dirent.h>
-
+#include <inttypes.h>
 #include "err_msg.h"
 #include "type.h"
 #include "absyn.h"
@@ -52,7 +52,7 @@ struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
 
 static int so_filter(const struct dirent* dir)
 {
-  return strstr(dir->d_name, ".so") > 0 ? 1 : 0;
+  return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
 m_bool import_soundpipe(Env env);
@@ -173,7 +173,7 @@ Env type_engine_init(VM* vm)
           goto next;
         }
       }
-      m_bool (*import)(Env) = (m_bool (*)(Env)) dlsym(handler, "import");
+      m_bool (*import)(Env) = (m_bool (*)(Env)) (intptr_t)dlsym(handler, "import");
       if(import) {
         if(import(env) > 0)
           vector_append(plugs, (vtype)handler);
@@ -738,7 +738,7 @@ Type check_Array(Env env, Array* array )
     return NULL;
   }
 
-  CHECK_BO(check_Expression(env, array->indices->exp_list))
+  CHECK_OO(check_Expression(env, array->indices->exp_list))
 
   Expression e = array->indices->exp_list;
   depth = 0;
@@ -855,7 +855,6 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       /*f1 = v->func_ref;*/
       r_nspc = NULL; // get owner
-      printf("here %p\n", f1);
       ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else {
       v = namespace_lookup_value(binary->rhs->d.exp_dot->t_base->info, binary->rhs->d.exp_dot->xid, 1);
@@ -899,11 +898,9 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         sprintf(name, "%s@%li@%s", S_name(f2->def->name), i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
-      printf("f1 %p %p iiughlu\n %s\n\n", f1, f2->def->arg_list, name);
       /*if(!f1)*/
       /*f1 = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->func_ref;*/
       if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-        printf("lol %p\n", f1->def->ret_type);
         binary->func = f2;
         ret_type = f1->def->ret_type;
         ret_type->func = f2;
@@ -1245,10 +1242,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[256];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    printf("find match for '%s' %s\n", name,  v->func_ref->next ? v->func_ref->next->name : "non");
-    printf("def %p %p\n", v->func_ref->def, v->func_ref->next ? v->func_ref->next->def : NULL);
-    if(v->func_ref->next)
-      printf("def %p %p\n", v->func_ref->next->def, v->func_ref->next->next ? v->func_ref->next->next->def : NULL);
 
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
@@ -1286,29 +1279,20 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     def->is_template = 1;
     namespace_push_type(env->curr);
     while(list) {
-      printf("here\n");
 //      printf("base_t %p %p %p\n", base_t, list->list, find_type(env, list->list));
       if(!base_t)
         break;
       /*exit(12);*/
-      printf("here\n");
       ID_List tmp = base_t->next;;
-      printf("here\n");
       if(!list->list)
         break;
 //      if(base_t)
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
-//      else exit(12);
-      printf("env: %p\n", env->curr);
-//      printf("%s, %s\n", S_name(base_t->xid), type_path(list->list), namespace_lookup_type(env->curr, base_t->xid, 1));
-
       base_t->next = NULL;
-      printf("%p\n", find_type(env, base_t));
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
         err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
-        printf("%p\n", value->func_ref->next);
         break;
       }
       base_t = base_t->next;
@@ -1326,10 +1310,10 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       goto next;
     if(check_Func_Def(env, def) < 0)
       goto next;
-    if(check_Expression(env, func) < 0)
+    if(!check_Expression(env, func))
       goto next;
     if(args)
-      if(check_Expression(env, args) < 0)
+      if(!check_Expression(env, args))
         goto next;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
@@ -1789,7 +1773,6 @@ static Type check_Expression(Env env, Expression exp)
     switch(curr->exp_type) {
     case Primary_Expression_type:
       curr->type = check_Primary_Expression(env, curr->d.exp_primary);
-      printf("curr->type %p\n", curr->type);
       break;
     case Decl_Expression_type:
       curr->type = check_Decl_Expression(env, curr->d.exp_decl);
@@ -2514,7 +2497,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   arg_list = f->arg_list;
   while(arg_list) {
     v = arg_list->var_decl->value;
-    if(namespace_lookup_value( env->curr, arg_list->var_decl->xid, 0) > 0) {
+    if(namespace_lookup_value( env->curr, arg_list->var_decl->xid, 0)) {
       err_msg(TYPE_, arg_list->pos, "argument %i '%s' is already defined in this scope",
               count, S_name(arg_list->var_decl->xid) );
       err_msg(TYPE_, arg_list->pos, "in function '%s':", S_name(f->name));
