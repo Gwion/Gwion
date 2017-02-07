@@ -26,7 +26,7 @@ MFUN(vec3_setAll)
 MFUN(vec3_magnitude)
 {
   VEC3_T* v =  &*(VEC3_T*)(shred->mem);
-  RETURN->v_float = sqrt( v->x * v->x + v->y * v->y + v->z * v->z);
+  RETURN->d.v_float = sqrt( v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
 MFUN(vec3_normalize)
@@ -44,21 +44,21 @@ MFUN(vec3_interp)
 {
   VEC3_T* v =  &*(VEC3_T*)(shred->mem);
   v->x = (v->y - v->x) * v->z + v->x;
-  RETURN->v_float = v->x;
+  RETURN->d.v_float = v->x;
 }
 
 MFUN(vec3_float)
 {
   VEC3_T* v =  &*(VEC3_T*)(shred->mem);
   v->x = (v->y - v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT)) + v->x;
-  RETURN->v_float = v->x;
+  RETURN->d.v_float = v->x;
 }
 
 MFUN(vec3_dur)
 {
   VEC3_T* v =  &*(VEC3_T*)(shred->mem);
   v->x = (v->y - v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT) / shred->vm_ref->bbq->sp->sr) + v->x;
-  RETURN->v_float = v->x;
+  RETURN->d.v_float = v->x;
 }
 
 MFUN(vec3_update)
@@ -301,7 +301,7 @@ MFUN(vec4_setAll)
 MFUN(vec4_magnitude)
 {
   VEC4_T* v =  &*(VEC4_T*)(shred->mem);
-  RETURN->v_float = sqrt( v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+  RETURN->d.v_float = sqrt( v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
 MFUN(vec4_normalize)

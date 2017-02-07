@@ -4,19 +4,19 @@
 void dl_return_push(const DL_Return retval, VM_Shred shred, int kind)
 {
   if(kind == Kindof_Int) {
-    *(m_uint*)shred->reg = retval.v_uint;
+    *(m_uint*)shred->reg = retval.d.v_uint;
     PUSH_REG(shred, SZ_INT);
   } else if(kind == Kindof_Float) {
-    *(m_float*)shred->reg = retval.v_float;
+    *(m_float*)shred->reg = retval.d.v_float;
     PUSH_REG(shred, SZ_FLOAT);
   } else if(kind == Kindof_Complex) {
-    *(m_complex*)shred->reg = retval.v_complex;
+    *(m_complex*)shred->reg = retval.d.v_complex;
     PUSH_REG(shred, SZ_COMPLEX);
   } else if(kind == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = retval.v_vec3;
+    *(VEC3_T*)shred->reg = retval.d.v_vec3;
     PUSH_REG(shred, SZ_VEC3);
   } else if(kind == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = retval.v_vec4;
+    *(VEC4_T*)shred->reg = retval.d.v_vec4;
     PUSH_REG(shred, SZ_VEC4);
   }
   return;

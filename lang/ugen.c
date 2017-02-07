@@ -321,15 +321,15 @@ static MFUN(ugen_channel)
 {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
   if(!o->ugen->channel && !i)
-    RETURN->v_object = o;
+    RETURN->d.v_object = o;
   else if(i < 0 || i >= o->ugen->n_out)
-    RETURN->v_object = NULL;
-  else RETURN->v_object = o->ugen->channel[i];
+    RETURN->d.v_object = NULL;
+  else RETURN->d.v_object = o->ugen->channel[i];
 }
 
 static MFUN(ugen_get_op)
 {
-  RETURN->v_uint = o->ugen->op;
+  RETURN->d.v_uint = o->ugen->op;
 }
 
 static MFUN(ugen_set_op)
@@ -339,16 +339,16 @@ static MFUN(ugen_set_op)
     err_msg(INSTR_, 0, "invalid op %i", i);
   else
     o->ugen->op = i;
-  RETURN->v_uint = o->ugen->op;
+  RETURN->d.v_uint = o->ugen->op;
 }
 
 static MFUN(ugen_get_last)
 {
   if(!o)
-    RETURN->v_float = 0;
+    RETURN->d.v_float = 0;
   /*  if(!o->ugen)
       exit(2); */
-  else RETURN->v_float = o->ugen->last;
+  else RETURN->d.v_float = o->ugen->last;
 }
 
 m_bool import_ugen(Env env)

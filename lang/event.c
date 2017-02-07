@@ -46,7 +46,7 @@ static MFUN(event_signal)
 #endif
   VM_Shred sh;
   Vector v = EV_SHREDS(o);
-  RETURN->v_uint = vector_size(v);
+  RETURN->d.v_uint = vector_size(v);
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;
   shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);

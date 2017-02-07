@@ -19,7 +19,7 @@ typedef struct DL_Return
 	  VEC3_T 	v_vec3;
       VEC4_T 	v_vec4;
       M_Object  v_object;
-	};
+	} d;
 	m_uint offset;
 } DL_Return;
 

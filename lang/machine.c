@@ -30,7 +30,7 @@ static SFUN(machine_add)
   m_str str = STRING(obj);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
-  RETURN->v_uint = compile(shred->vm_ref, str);
+  RETURN->d.v_uint = compile(shred->vm_ref, str);
 }
 
 static SFUN(machine_doc)
@@ -139,7 +139,7 @@ SFUN(machine_check)
     prefix = STRING(prefix_obj);
   release(prefix_obj, shred);
   if(!code_obj) {
-    RETURN->v_uint = 0;
+    RETURN->d.v_uint = 0;
     return;
   }
   filename = randstring(12);
@@ -151,22 +151,22 @@ SFUN(machine_check)
   free(filename);
   Ast ast = parse(c);
   if(!ast) {
-    RETURN->v_uint = 0;
+    RETURN->d.v_uint = 0;
     return;
   }
   if(type_engine_check_prog(shred->vm_ref->env, ast, c) < 0) {
-    RETURN->v_uint = 0;
+    RETURN->d.v_uint = 0;
     return;
   }
   free_Ast(ast); // it could be in 'type_engine_check_prog'
-  RETURN->v_uint = (m_uint)new_String(c);
+  RETURN->d.v_uint = (m_uint)new_String(c);
 }
 
 static SFUN(machine_compile)
 {
-  RETURN->v_uint = 0;
+  RETURN->d.v_uint = 0;
   prepare()
-  RETURN->v_uint = 1;
+  RETURN->d.v_uint = 1;
 }
 
 static SFUN(machine_shreds)
@@ -179,7 +179,7 @@ static SFUN(machine_shreds)
     sh = (VM_Shred)vector_at(vm->shred, i);
     i_vector_set(obj->d.array, i, sh->xid);
   }
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 m_bool import_machine(Env env)

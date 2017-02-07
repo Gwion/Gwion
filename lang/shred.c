@@ -28,19 +28,19 @@ static MFUN(vm_shred_exit)
 static MFUN(vm_shred_id)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->xid : -1;
+  RETURN->d.v_uint = s ? s->xid : -1;
 }
 
 static MFUN(vm_shred_is_running)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->is_running : 0;
+  RETURN->d.v_uint = s ? s->is_running : 0;
 }
 
 static MFUN(vm_shred_is_done)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->is_done : 0;
+  RETURN->d.v_uint = s ? s->is_done : 0;
 }
 
 static MFUN(shred_yield)
@@ -49,22 +49,22 @@ static MFUN(shred_yield)
   Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
   shredule(sh, s, get_now(sh) + .5);
-  RETURN->v_uint = 1;
+  RETURN->d.v_uint = 1;
 }
 
 static SFUN(vm_shred_from_id)
 {
   VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
   if(!s)
-    RETURN->v_uint = 0;
+    RETURN->d.v_uint = 0;
   else
-    RETURN->v_uint = (m_uint)s->me;
+    RETURN->d.v_uint = (m_uint)s->me;
 }
 
 static MFUN(shred_args)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s->args ? vector_size(s->args) : 0;
+  RETURN->d.v_uint = s->args ? vector_size(s->args) : 0;
 }
 
 static MFUN(shred_arg)
@@ -73,7 +73,7 @@ static MFUN(shred_arg)
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   STRING(obj) = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
-  RETURN->v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)obj;
 }
 
 static MFUN(shred_path)
@@ -82,7 +82,7 @@ static MFUN(shred_path)
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   STRING(obj) = basename(strdup(s->code->filename));
-  RETURN->v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)obj;
 }
 
 static MFUN(shred_dir)
@@ -91,7 +91,7 @@ static MFUN(shred_dir)
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   STRING(obj) = dirname(strdup(s->code->filename));
-  RETURN->v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)obj;
 }
 
 static DTOR(shred_dtor)

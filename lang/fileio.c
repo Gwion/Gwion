@@ -141,7 +141,7 @@ INSTR(file_to_string)
 
 MFUN(file_nl)
 {
-  RETURN->v_uint = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
+  RETURN->d.v_uint = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
 }
 
 MFUN(file_open)
@@ -161,29 +161,29 @@ MFUN(file_open)
   }
   if((dir = opendir(filename))) {
     IO_DIR(o) = dir;
-    RETURN->v_uint = 2;
+    RETURN->d.v_uint = 2;
     return;
   }
   IO_FILE(o) = fopen(filename, mode);
   IO_DIR(o) = NULL;
-  RETURN->v_uint = IO_FILE(o) ? 1 : 0;
+  RETURN->d.v_uint = IO_FILE(o) ? 1 : 0;
 }
 
 MFUN(file_close)
 {
   if(IO_DIR(o)) {
-    RETURN->v_uint = closedir(IO_DIR(o));
+    RETURN->d.v_uint = closedir(IO_DIR(o));
     IO_DIR(o) = NULL;
     return;
   }
   if(IO_FILE(o))
     fclose(IO_FILE(o));
-  RETURN->v_uint = !IO_FILE(o) ? 1 : 0;
+  RETURN->d.v_uint = !IO_FILE(o) ? 1 : 0;
 }
 
 MFUN(file_remove)
 {
-  RETURN->v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
+  RETURN->d.v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
 }
 
 SFUN(file_list)
@@ -192,7 +192,7 @@ SFUN(file_list)
   struct dirent **namelist;
   m_int n = scandir(STRING(*(M_Object*)(shred->mem + SZ_INT)), &namelist, NULL, alphasort);
   if(n < 0) {
-    RETURN->v_uint = 0;
+    RETURN->d.v_uint = 0;
     return;
   }
   M_Object ret = new_M_Array(SZ_INT, n);
@@ -201,7 +201,7 @@ SFUN(file_list)
     free(namelist[i]);
   }
   free(namelist);
-  RETURN->v_uint = (m_uint)ret;
+  RETURN->d.v_uint = (m_uint)ret;
 }
 m_bool import_fileio(Env env)
 {

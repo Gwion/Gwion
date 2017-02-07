@@ -280,7 +280,7 @@ void string_ctor(M_Object o, VM_Shred shred)
 
 MFUN(string_len)
 {
-  RETURN->v_uint = strlen(STRING(o));
+  RETURN->d.v_uint = strlen(STRING(o));
 }
 
 MFUN(string_upper)
@@ -292,7 +292,7 @@ MFUN(string_upper)
   for(i = 0; i < strlen(str); i++)
     if(str[i]  >= 'a' && str[i] <= 'z')
       str[i] += 'A' - 'a';
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_lower)
@@ -304,7 +304,7 @@ MFUN(string_lower)
   for(i = 0; i < strlen(str); i++)
     if(str[i]  >= 'A' && str[i] <= 'Z')
       str[i] -= 'A' - 'a';
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_ltrim)
@@ -317,7 +317,7 @@ MFUN(string_ltrim)
     i++;
     str++;
   }
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_rtrim)
@@ -325,7 +325,7 @@ MFUN(string_rtrim)
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   STRING(obj) = strdup(STRING(o));
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_trim)
@@ -353,7 +353,7 @@ MFUN(string_trim)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_charAt)
@@ -363,9 +363,9 @@ MFUN(string_charAt)
   while(str[len] != '\0')
     len++;
   if(i < 0 || i >= len)
-    RETURN->v_uint = -1;
+    RETURN->d.v_uint = -1;
   else
-    RETURN->v_uint = str[i];
+    RETURN->d.v_uint = str[i];
 }
 
 
@@ -377,11 +377,11 @@ MFUN(string_setCharAt)
   while(str[len] != '\0')
     len++;
   if(i < 0 || i >= len)
-    RETURN->v_uint = -1;
+    RETURN->d.v_uint = -1;
   else {
     str[i] = c;
     STRING(o) = strdup(str);
-    RETURN->v_uint = c;
+    RETURN->d.v_uint = c;
   }
 }
 
@@ -398,7 +398,7 @@ MFUN(string_substring)
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_substringN)
@@ -417,7 +417,7 @@ MFUN(string_substringN)
     c[i - index] = str[i];
   c[i - index] = '\0';
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_insert)
@@ -440,7 +440,7 @@ MFUN(string_insert)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_replace)
@@ -461,7 +461,7 @@ MFUN(string_replace)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_replaceN)
@@ -485,7 +485,7 @@ MFUN(string_replaceN)
     c[i] = str[i];
   c[len] = '\0';
   STRING(obj) = strdup(c);
-  RETURN->v_object = obj;
+  RETURN->d.v_object = obj;
 }
 
 MFUN(string_find)
@@ -500,7 +500,7 @@ MFUN(string_find)
     }
     i++;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_findStart)
@@ -516,7 +516,7 @@ MFUN(string_findStart)
     }
     i++;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_findStr)
@@ -536,7 +536,7 @@ MFUN(string_findStr)
     i++;
     str++;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_findStrStart)
@@ -557,7 +557,7 @@ MFUN(string_findStrStart)
     i++;
     str++;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_rfind)
@@ -572,7 +572,7 @@ MFUN(string_rfind)
     }
     i--;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_rfindStart)
@@ -588,7 +588,7 @@ MFUN(string_rfindStart)
     }
     i--;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_rfindStr)
@@ -608,7 +608,7 @@ MFUN(string_rfindStr)
     i--;
     str--;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_rfindStrStart)
@@ -629,7 +629,7 @@ MFUN(string_rfindStrStart)
     i--;
     str--;
   }
-  RETURN->v_uint = ret;
+  RETURN->d.v_uint = ret;
 }
 
 MFUN(string_erase)
@@ -649,12 +649,12 @@ MFUN(string_erase)
 
 MFUN(string_toInt)
 {
-  RETURN->v_uint = atoi(STRING(o));
+  RETURN->d.v_uint = atoi(STRING(o));
 }
 
 MFUN(string_toFloat)
 {
-  RETURN->v_float = atof(STRING(o));
+  RETURN->d.v_float = atof(STRING(o));
 }
 
 m_bool import_string(Env env)

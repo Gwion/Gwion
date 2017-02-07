@@ -89,27 +89,27 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred)
 MFUN(sinosc_get_freq)
 {
   SP_osc* ug = (SP_osc*)o->ugen->ug;
-  RETURN->v_float = ug->osc->freq;
+  RETURN->d.v_float = ug->osc->freq;
 }
 
 MFUN(sinosc_set_freq)
 {
   SP_osc* ug = (SP_osc*)o->ugen->ug;
   m_float freq = *(m_float*)(shred->mem + SZ_INT);
-  RETURN->v_float = (ug->osc->freq = freq);
+  RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
 MFUN(sinosc_get_amp)
 {
   SP_osc* ug = (SP_osc*)o->ugen->ug;
-  RETURN->v_float = ug->osc->amp;
+  RETURN->d.v_float = ug->osc->amp;
 }
 
 MFUN(sinosc_set_amp)
 {
   SP_osc* ug = (SP_osc*)o->ugen->ug;
   m_float amp = *(m_float*)(shred->mem + SZ_INT);
-  RETURN->v_float = (ug->osc->amp = amp);
+  RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
 static m_bool import_sinosc(Env env)
@@ -172,12 +172,12 @@ static void gain_dtor(M_Object o, VM_Shred shred)
 
 static void gain_get_gain(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)o->ugen->ug;
 }
 
 static void gain_set_gain(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_FLOAT);
+  RETURN->d.v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_FLOAT);
 }
 
 static m_bool import_gain(Env env)
@@ -219,12 +219,12 @@ static void impulse_dtor(M_Object o, VM_Shred shred)
 
 static void impulse_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)o->ugen->ug;
 }
 
 static void impulse_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = (*(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT));
+  RETURN->d.v_float = (*(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT));
 }
 
 static m_bool import_impulse(Env env)
@@ -322,12 +322,12 @@ static void step_dtor(M_Object o, VM_Shred shred)
 
 static void step_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)o->ugen->ug;
 }
 
 static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 {
-  RETURN->v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT);
+  RETURN->d.v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
 static m_bool import_step(Env env)
