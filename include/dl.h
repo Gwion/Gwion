@@ -46,7 +46,7 @@ typedef struct
 {
   m_str name;
   m_str type;
-  union { f_ctor ctor; f_dtor dtor; f_mfun mfun; f_sfun sfun; m_uint addr; };
+  union { f_ctor ctor; f_dtor dtor; f_mfun mfun; f_sfun sfun; m_uint addr; } d;
   Vector args;
 } DL_Func;
 

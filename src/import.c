@@ -345,7 +345,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def = new_Func_Def(func_decl, static_decl, type_decl, (char *)name,
                           arg_list, NULL, 0);
   func_def->s_type = ae_func_builtin;
-  func_def->dl_func_ptr = (void *)dl_fun->mfun;
+  func_def->dl_func_ptr = (void *)dl_fun->d.mfun;
 
 //  for(i = 0; i < vector_size(dl_fun->args); i++) {
 //    DL_Value* v = (DL_Value*)vector_at(dl_fun->args, i);

@@ -25,10 +25,9 @@ void dl_return_push(const DL_Return retval, VM_Shred shred, int kind)
 DL_Func* new_DL_Func(const m_str t, const m_str n, m_uint addr)
 {
   DL_Func* a = malloc(sizeof(DL_Func));
-  a->ctor = NULL;
   a->name = n;
   a->type = t;
-  a->addr = addr;
+  a->d.addr = addr;
   a->args = new_Vector();
   return a;
 }
