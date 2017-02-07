@@ -183,15 +183,15 @@ function print_mod_func(name, mod)
 			print("MFUN("..name.."_get_"..v.name..")\n{")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
 			if string.match(v.type, "int") then
-				print("\tRETURN->v_uint = ug->osc->"..v.name..";")
+				print("\tRETURN->d.v_uint = ug->osc->"..v.name..";")
 			elseif string.match(v.type, "SPFLOAT$") then
-				print("\tRETURN->v_float = ug->osc->"..v.name..";")
+				print("\tRETURN->d.v_float = ug->osc->"..v.name..";")
 			elseif string.gmatch(v.type, "SPFLOAT*") then
-				print("\tRETURN->v_float = *ug->osc->"..v.name..";")
+				print("\tRETURN->d.v_float = *ug->osc->"..v.name..";")
 			elseif string.gmatch(v.type, "char*") then
-				print("\tRETURN->v_uint = ug->osc->"..v.name.."_obj;")
+				print("\tRETURN->d.v_uint = ug->osc->"..v.name.."_obj;")
 			elseif string.gmatch(v.type, "sp_ftbl*") then
-				print("\tRETURN->v_uint = ug->osc->"..v.name.."_obj;")
+				print("\tRETURN->d.v_uint = ug->osc->"..v.name.."_obj;")
 			else 
 				print(v.type)
 				os.exit(3);
@@ -202,15 +202,15 @@ function print_mod_func(name, mod)
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
 			declare_c_param(v)
 			if string.match(v.type, "int") then
-				print("\tRETURN->v_uint = (ug->osc->"..v.name.." = "..v.name..");")
+				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.match(v.type, "SPFLOAT$") then
-				print("\tRETURN->v_float = (ug->osc->"..v.name.." = "..v.name..");")
+				print("\tRETURN->d.v_float = (ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.gmatch(v.type, "SPFLOAT*") then
-				print("\tRETURN->v_float = (*ug->osc->"..v.name.." = "..v.name..");")
+				print("\tRETURN->d.v_float = (*ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.gmatch(v.type, "char*") then
-				print("\tRETURN->v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
 			elseif string.gmatch(v.type, "sp_ftbl*") then
-				print("\tRETURN->v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
 			end
 			print("}\n")
 		end
