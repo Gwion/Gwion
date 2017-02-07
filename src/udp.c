@@ -35,7 +35,7 @@ char* Recv(int i)
   struct sockaddr_in addr;
 
 #ifndef __linux__
-  fd_set read_flags, write_flags;
+  fd_set read_flags,write_flags;
   struct timeval waitd = {10, 0};
 
   FD_ZERO(&read_flags);
@@ -48,15 +48,15 @@ char* Recv(int i)
   addr  = i ? saddr : caddr;
 
 #ifndef __linux__
-  if(select(sock + 1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
-    return NULL;
-  if(FD_ISSET(sock, &read_flags)) {
-    FD_CLR(sock, &read_flags);
+  if(select(sock+1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
+	return NULL;
+if(FD_ISSET(sock, &read_flags)) {
+  FD_CLR(sock, &read_flags);
 #endif
-    if((len = recvfrom(sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
-      err_msg(UDP, 0, "recvfrom() failed");
+  if((len = recvfrom(sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
+    err_msg(UDP, 0, "recvfrom() failed");
 
-    return strndup(buf, strlen(buf));
+  return strndup(buf, strlen(buf));
 #ifndef __linux__
   }
 #endif
@@ -94,11 +94,10 @@ void* server_thread(void* data)
 }
 
 #ifndef __linux__
-static void set_nonblock(int socket)
-{
-  int flags;
-  flags = fcntl(socket, F_GETFL, 0);
-  fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+static void set_nonblock(int socket) {
+    int flags;
+    flags = fcntl(socket,F_GETFL,0);
+    fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 }
 #endif
 
