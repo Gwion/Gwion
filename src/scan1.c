@@ -59,7 +59,7 @@ static m_bool scan1_Binary_Expression(Env env, Binary_Expression* binary)
 static m_bool scan1_Primary_Expression(Env env, Primary_Expression* primary)
 {
   if(primary->type == ae_primary_hack) // func ptr ?
-    CHECK_BB(scan1_Expression(env, primary->exp))
+    CHECK_BB(scan1_Expression(env, primary->d.exp))
     return 1;
 }
 /*

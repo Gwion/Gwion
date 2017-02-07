@@ -173,7 +173,6 @@ typedef struct
 {
     ae_Exp_Primary_Type type;
     Value value;
-    
     union
     {
         S_Symbol var;
@@ -186,7 +185,7 @@ typedef struct
         Complex* cmp;
         Polar* polar;
         Vec vec;
-    };
+    } d;
     int pos;
     Expression self;
 }Primary_Expression;

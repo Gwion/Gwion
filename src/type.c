@@ -470,9 +470,9 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
 static Type check_array_lit(Env env, Primary_Expression *exp)
 {
   Type t = NULL, type = NULL, common = NULL;
-  if(verify_array(exp->array) < 0)
+  if(verify_array(exp->d.array) < 0)
     return NULL;
-  Expression e = exp->array->exp_list;
+  Expression e = exp->d.array->exp_list;
 
   // can't be []
   if(!e) {
@@ -527,7 +527,7 @@ static Type check_array_lit(Env env, Primary_Expression *exp)
 static Type check_Vec(Env env, Primary_Expression* exp )
 {
   Type t = NULL;
-  Vec val = exp->vec;
+  Vec val = exp->d.vec;
   if(val->numdims > 4) {
     err_msg(TYPE_, exp->pos,
             "vector dimensions not supported > 4...\n"
@@ -567,7 +567,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
 
   switch(primary->type) {
   case ae_primary_var:
-    str = S_name(primary->var);      // first look for reserved words
+    str = S_name(primary->d.var);      // first look for reserved words
     if(!strcmp(str, "this")) { // this
       // in class def
       if( !env->class_def ) {
@@ -600,20 +600,20 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
       primary->self->meta = ae_meta_value;
       t = &t_int;
     } else {
-      v = namespace_lookup_value(env->curr, primary->var, 1);
+      v = namespace_lookup_value(env->curr, primary->d.var, 1);
       if(!v)
-        v = find_value(env->class_def, primary->var);
+        v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
           if(env->func->def->static_decl == ae_key_static && v->is_member && !v->is_static ) {
-            err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->var) );
+            err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->d.var) );
             return NULL;
           }
         }
       }
       // check me
       if(!v || !v->checked) {
-        str = S_name(primary->var);
+        str = S_name(primary->d.var);
         err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
                 str ? str : "", v);
         return NULL;
@@ -631,64 +631,64 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
     t = &t_float;
     break;
   case ae_primary_complex:
-    if(!primary->cmp->im) {
-      err_msg(TYPE_, primary->cmp->pos, "missing imaginary component of complex value...");
+    if(!primary->d.cmp->im) {
+      err_msg(TYPE_, primary->d.cmp->pos, "missing imaginary component of complex value...");
       return NULL;
     }
-    if(primary->cmp->im->next) {
-      err_msg(TYPE_, primary->cmp->pos, "extraneous component of complex value...");
+    if(primary->d.cmp->im->next) {
+      err_msg(TYPE_, primary->d.cmp->pos, "extraneous component of complex value...");
       return NULL;
     }
-    CHECK_OO(check_Expression(env, primary->cmp->re))
+    CHECK_OO(check_Expression(env, primary->d.cmp->re))
     /*      CHECK_OO(check_Expression(env, primary->cmp->im))*/
-    if(isa(primary->cmp->re->type, &t_float) < 0) {
-      if(isa(primary->cmp->re->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->cmp->pos,
+    if(isa(primary->d.cmp->re->type, &t_float) < 0) {
+      if(isa(primary->d.cmp->re->type, &t_int) < 0) {
+        err_msg(TYPE_, primary->d.cmp->pos,
                 "invalid type '%s' in real component of complex value...\n"
-                "    (must be of type 'int' or 'float')", primary->cmp->re->type->name);
+                "    (must be of type 'int' or 'float')", primary->d.cmp->re->type->name);
         return NULL;
       }
-      primary->cmp->re->cast_to = &t_float;
+      primary->d.cmp->re->cast_to = &t_float;
     }
-    if(isa(primary->cmp->im->type, &t_float) < 0) {
-      if(isa(primary->cmp->im->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->cmp->pos,
+    if(isa(primary->d.cmp->im->type, &t_float) < 0) {
+      if(isa(primary->d.cmp->im->type, &t_int) < 0) {
+        err_msg(TYPE_, primary->d.cmp->pos,
                 "invalid type '%s' in imaginary component of complex value...\n"
-                "    (must be of type 'int' or 'float')", primary->cmp->im->type->name);
+                "    (must be of type 'int' or 'float')", primary->d.cmp->im->type->name);
         return NULL;
       }
-      primary->cmp->im->cast_to = &t_float;
+      primary->d.cmp->im->cast_to = &t_float;
     }
     t = &t_complex;
     break;
   case ae_primary_polar:
-    if(!primary->polar->phase) {
-      err_msg(TYPE_, primary->cmp->pos, "missing phase component of polar value...");
+    if(!primary->d.polar->phase) {
+      err_msg(TYPE_, primary->d.polar->pos, "missing phase component of polar value...");
       return NULL;
     }
-    if(primary->polar->phase->next) {
-      err_msg(TYPE_, primary->cmp->pos, "extraneous component of polar value...");
+    if(primary->d.polar->phase->next) {
+      err_msg(TYPE_, primary->d.polar->pos, "extraneous component of polar value...");
       return NULL;
     }
-    CHECK_OO(check_Expression(env, primary->polar->mod))
+    CHECK_OO(check_Expression(env, primary->d.polar->mod))
     /*      CHECK_OO(check_Expression(env, primary->polar->phase))*/
-    if(isa(primary->polar->mod->type, &t_float) < 0) {
-      if(isa(primary->polar->mod->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->cmp->pos,
+    if(isa(primary->d.polar->mod->type, &t_float) < 0) {
+      if(isa(primary->d.polar->mod->type, &t_int) < 0) {
+        err_msg(TYPE_, primary->d.polar->pos,
                 "invalid type '%s' in modulus component of polar value...\n"
-                "    (must be of type 'int' or 'float')", primary->cmp->re->type->name);
+                "    (must be of type 'int' or 'float')", primary->d.polar->mod->type->name);
         return NULL;
       }
-      primary->polar->mod->cast_to = &t_float;
+      primary->d.polar->mod->cast_to = &t_float;
     }
-    if(isa(primary->polar->phase->type, &t_float) < 0) {
-      if(isa(primary->polar->phase->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->cmp->pos,
+    if(isa(primary->d.polar->phase->type, &t_float) < 0) {
+      if(isa(primary->d.polar->phase->type, &t_int) < 0) {
+        err_msg(TYPE_, primary->d.polar->pos,
                 "invalid type '%s' in phase component of polar value...\n"
-                "    (must be of type 'int' or 'float')", primary->cmp->re->type->name);
+                "    (must be of type 'int' or 'float')", primary->d.polar->phase->type->name);
         return NULL;
       }
-      primary->polar->phase->cast_to = &t_float;
+      primary->d.polar->phase->cast_to = &t_float;
     }
     t = &t_polar;
     break;
@@ -702,11 +702,11 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
     t = &t_string;
     break;
   case ae_primary_hack:
-    if(primary->exp->exp_type == Decl_Expression_type) {
+    if(primary->d.exp->exp_type == Decl_Expression_type) {
       err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
       return NULL;
     }
-    CHECK_OO((t = check_Expression(env, primary->exp)))
+    CHECK_OO((t = check_Expression(env, primary->d.exp)))
     break;
   case ae_primary_array:
     t = check_array_lit(env, primary);
@@ -718,7 +718,6 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
     err_msg(TYPE_, primary->pos, "internal error - unrecognized primary type '%i'...", primary->type);
     return NULL;
   }
-  printf("kuhliuh iluhiluh %p\n", primary->self->type);
   return primary->self->type = t;
 }
 
@@ -793,7 +792,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
 //f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //Type t = namespace_lookup_type(env->curr, insert_symbol(v->name), 1);
 //scope_rem(env->curr->type, insert_symbol(t->name));
@@ -835,7 +834,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(env->class_def) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
 //f2->def = NULL;
 //scope_rem(env->curr->func, f2);
@@ -852,7 +851,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     if(binary->rhs->exp_type == Primary_Expression_type) {
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->primary_exp->var, -1);*/
-      v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->var, 1);
+      v = namespace_lookup_value(env->curr, binary->rhs->primary_exp->d.var, 1);
       f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       /*f1 = v->func_ref;*/
       r_nspc = NULL; // get owner
@@ -865,7 +864,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       ret_type  = namespace_lookup_type(env->curr, (insert_symbol(v->m_type->name)), -1);
     }
     if(binary->lhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->primary_exp->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = NULL; // get owner
       if(!f2) exit(140);
@@ -1044,7 +1043,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
-    Value v = namespace_lookup_value(env->curr, cast->exp->primary_exp->var,  1);
+    Value v = namespace_lookup_value(env->curr, cast->exp->primary_exp->d.var,  1);
     Func  f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos)) {
       cast->func = f;
@@ -1278,7 +1277,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     /*}*/
     /*}*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
-                                base->type_decl, S_name(func->primary_exp->var),
+                                base->type_decl, S_name(func->primary_exp->d.var),
                                 base->arg_list, base->code, func->pos);
     if(base->is_variadic)
       def->is_variadic = 1;
@@ -1412,7 +1411,7 @@ next:
     Value value = NULL;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
-        value = namespace_lookup_value(env->curr, exp_func->primary_exp->var, 1);
+        value = namespace_lookup_value(env->curr, exp_func->primary_exp->d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
         value = find_value(exp_func->dot_member->t_base, exp_func->dot_member->xid);
 
@@ -1522,7 +1521,7 @@ static Type check_Func_Call(Env env, Func_Call* func_call)
   if(func_call->types) {
     Value v;
     if(func_call->func->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, func_call->func->primary_exp->var, 1);
+      v = namespace_lookup_value(env->curr, func_call->func->primary_exp->d.var, 1);
     } else {
       Type t;
       CHECK_OO(check_Expression(env, func_call->func))

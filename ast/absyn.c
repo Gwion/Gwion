@@ -299,7 +299,7 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->emit_var = 0;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_num;
-  a->primary_exp->num = i;
+  a->primary_exp->d.num = i;
   a->pos =pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -316,7 +316,7 @@ Expression new_Primary_Expression_from_float(m_float num, int pos)
   a->emit_var = 0; // ???
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_float;
-  a->primary_exp->fnum = num;
+  a->primary_exp->d.fnum = num;
   a->pos = pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -333,7 +333,7 @@ Expression new_Primary_Expression_from_string(m_str s, int pos)
   a->emit_var = 0; // ???
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_str;
-  a->primary_exp->str = s;
+  a->primary_exp->d.str = s;
   a->pos = pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -365,7 +365,7 @@ Expression new_Primary_Expression_from_ID(m_str s, int pos)
   a->emit_var = 0;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_var;
-  a->primary_exp->var = insert_symbol(s);
+  a->primary_exp->d.var = insert_symbol(s);
   a->pos = pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -381,7 +381,7 @@ Expression new_Hack_Expression(Expression exp, int pos)
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_hack;
-  a->primary_exp->exp = exp;
+  a->primary_exp->d.exp = exp;
   a->primary_exp->pos = pos;
   a->pos = pos;
   a->primary_exp->self = a;
@@ -414,7 +414,7 @@ Expression new_exp_from_char( c_str chr, int pos )
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_char;
-  a->primary_exp->chr = chr;
+  a->primary_exp->d.chr = chr;
   a->pos = pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -430,7 +430,7 @@ Expression new_exp_from_array_lit(Array_Sub exp_list, int pos )
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_array;
-  a->primary_exp->array = exp_list;
+  a->primary_exp->d.array = exp_list;
   a->pos = pos;
   a->primary_exp->pos = pos;
   a->primary_exp->self = a;
@@ -461,10 +461,10 @@ Expression new_exp_from_complex(Complex* exp, int pos)
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_complex;
-  a->primary_exp->cmp = exp;
+  a->primary_exp->d.cmp = exp;
   a->primary_exp->pos = pos;
   a->pos = pos;
-  a->primary_exp->cmp->self = a;
+  a->primary_exp->d.cmp->self = a;
   a->primary_exp->self = a;
   a->next = NULL;
   a->cast_to = NULL;
@@ -478,10 +478,10 @@ Expression new_exp_from_polar(Polar* exp, int pos)
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_polar;
-  a->primary_exp->polar = exp;
+  a->primary_exp->d.polar = exp;
   a->primary_exp->pos = pos;
   a->pos = pos;
-  a->primary_exp->polar->self = a;
+  a->primary_exp->d.polar->self = a;
   a->primary_exp->self = a;
   a->next = NULL;
   a->cast_to = NULL;
@@ -530,10 +530,10 @@ Expression new_exp_from_vec(Vec exp, int pos)
   a->meta = ae_meta_value;
   a->primary_exp = calloc(1, sizeof(Primary_Expression));
   a->primary_exp->type = ae_primary_vec;
-  a->primary_exp->vec = exp;
+  a->primary_exp->d.vec = exp;
   a->primary_exp->pos = pos;
   a->pos = pos;
-  a->primary_exp->vec->self = a;
+  a->primary_exp->d.vec->self = a;
   a->primary_exp->self = a;
   return a;
 }
@@ -765,15 +765,15 @@ Expression prepend_Expression(Expression exp, Expression next, int pos)
 void free_Primary_Expression(Primary_Expression* a)
 {
   if(a->type == ae_primary_hack)
-    free_Expression(a->exp);
+    free_Expression(a->d.exp);
   else if (a->type == ae_primary_array)
-	free_Array_Sub(a->array);
+	free_Array_Sub(a->d.array);
   else if (a->type == ae_primary_complex)
-	free_complex(a->cmp);
+	free_complex(a->d.cmp);
   else if (a->type == ae_primary_polar)
-	free_polar(a->polar);
+	free_polar(a->d.polar);
   else if (a->type == ae_primary_vec)
-	free_Vec(a->vec);
+	free_Vec(a->d.vec);
   free(a);
 }
 

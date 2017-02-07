@@ -198,7 +198,7 @@ static m_bool scan2_Primary_Expression(Env env, Primary_Expression* primary)
   debug_msg("scan2", "Primary");
 #endif
   if(primary->type == ae_primary_hack)
-    CHECK_BB(scan2_Expression(env, primary->exp))
+    CHECK_BB(scan2_Expression(env, primary->d.exp))
     return 1;
 }
 
@@ -288,7 +288,7 @@ static m_bool scan2_Func_Call(Env env, Func_Call* func_call)
 #endif
   if(func_call->types) {
     if(func_call->func->exp_type == Primary_Expression_type) {
-      Value v = namespace_lookup_value(env->curr, func_call->func->primary_exp->var, 1);
+      Value v = namespace_lookup_value(env->curr, func_call->func->primary_exp->d.var, 1);
       if(!v) {
         err_msg(SCAN2_, func_call->pos, "template call of non-existant function.");
         goto error;

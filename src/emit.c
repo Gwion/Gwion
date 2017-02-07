@@ -378,55 +378,55 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
   /*  exit(0);*/
   switch (primary->type) {
   case ae_primary_var:
-    if (primary->var == insert_symbol("this"))
+    if (primary->d.var == insert_symbol("this"))
       instr = add_instr(emit, Reg_Push_This);
-    else if (primary->var == insert_symbol("me"))
+    else if (primary->d.var == insert_symbol("me"))
       instr = add_instr(emit, Reg_Push_Me);
-    else if (primary->var == insert_symbol("now"))
+    else if (primary->d.var == insert_symbol("now"))
       instr = add_instr(emit, Reg_Push_Now);
-    else if (primary->var == insert_symbol("false"))
+    else if (primary->d.var == insert_symbol("false"))
       instr = add_instr(emit, Reg_Push_Maybe);
-    else if (primary->var == insert_symbol("true")) {
+    else if (primary->d.var == insert_symbol("true")) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = 1;
-    } else if (primary->var == insert_symbol("maybe"))
+    } else if (primary->d.var == insert_symbol("maybe"))
       instr = add_instr(emit, Reg_Push_Maybe);
-    else if (primary->var == insert_symbol("null") || primary->var == insert_symbol("NULL"))
+    else if (primary->d.var == insert_symbol("null") || primary->d.var == insert_symbol("NULL"))
       instr = add_instr(emit, Reg_Push_Imm);
     else
-      emit_symbol(emit, primary->var, primary->value, primary->self->emit_var, primary->pos);
+      emit_symbol(emit, primary->d.var, primary->value, primary->self->emit_var, primary->pos);
     break;
 
   case ae_primary_num:
-    memcpy(&temp, &primary->num, sizeof(temp));
+    memcpy(&temp, &primary->d.num, sizeof(temp));
     instr = add_instr(emit, Reg_Push_Imm);
     instr->m_val = temp;
     break;
 
   case ae_primary_char:
     instr = add_instr(emit, Reg_Push_Imm);
-    instr->m_val = str2char(primary->chr, primary->pos);
+    instr->m_val = str2char(primary->d.chr, primary->pos);
     break;
 
   case ae_primary_float:
-    memcpy(&f, &primary->fnum, sizeof(f));
+    memcpy(&f, &primary->d.fnum, sizeof(f));
     instr = add_instr(emit, Reg_Push_Imm2);
     instr->f_val = f;
     break;
 
   case ae_primary_complex:
-    CHECK_BB(emit_Expression(emit, primary->cmp->re, 0));
+    CHECK_BB(emit_Expression(emit, primary->d.cmp->re, 0));
     break;
 
   case ae_primary_polar:
-    CHECK_BB(emit_Expression(emit, primary->polar->mod, 0));
+    CHECK_BB(emit_Expression(emit, primary->d.polar->mod, 0));
     break;
   case ae_primary_vec:
-    CHECK_BB(emit_Vec(emit, primary->vec));
+    CHECK_BB(emit_Vec(emit, primary->d.vec));
     break;
 
   case ae_primary_str: // modified 13/01/17 'get rid of litteral strings'
-    memcpy(&temp, &primary->str, sizeof(temp));
+    memcpy(&temp, &primary->d.str, sizeof(temp));
     l = frame_alloc_local(emit->code->frame, SZ_INT, (m_str)temp, 0, 1);
     instr = add_instr(emit, Reg_Push_Str);
     instr->m_val = temp;
@@ -434,16 +434,16 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     break;
 
   case ae_primary_array:
-    CHECK_BB(emit_array_lit(emit, primary->array))
+    CHECK_BB(emit_array_lit(emit, primary->d.array))
     break;
   case ae_primary_nil:
     instr = add_instr(emit, Reg_Push_Imm);
     break;
   case ae_primary_hack:
-    e = primary->exp;
+    e = primary->d.exp;
     CHECK_BB(emit_Expression(emit, e, 0))
     Vector types = new_Vector();
-    e = primary->exp;
+    e = primary->d.exp;
     while (e) {
       vector_append(types, (vtype)e->type);
       e = e->next;
@@ -709,7 +709,7 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
       m_str nspc = strdup(from->name);
       strsep(&nspc, "@");
       strsep(&nspc, "@");
-      sprintf(name, "%s@%i@%s", S_name(cast->exp->primary_exp->var), 0, nspc);
+      sprintf(name, "%s@%i@%s", S_name(cast->exp->primary_exp->d.var), 0, nspc);
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)cast->func;
       return 1;
@@ -1830,7 +1830,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
   }
   if (stmt->val->exp_type == Primary_Expression_type) {
     if (stmt->val->primary_exp->type == ae_primary_num)
-      value = stmt->val->primary_exp->num;
+      value = stmt->val->primary_exp->d.num;
     else {
       if (!stmt->val->primary_exp->value->is_const) {
         err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
@@ -1907,7 +1907,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
     if (ret > 0 && pop && stmt->stmt_exp->type && stmt->stmt_exp->type->size > 0) {
       Expression exp = stmt->stmt_exp;
       if (exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_hack)
-        exp = exp->primary_exp->exp;
+        exp = exp->primary_exp->d.exp;
       while (exp) {
         // get rid of primary str ?
         /*          if(exp->exp_type == Primary_Expression_type && exp->primary_exp->type == ae_primary_str)*/
