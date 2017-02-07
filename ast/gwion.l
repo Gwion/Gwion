@@ -63,7 +63,7 @@ static int newline(void*data)
   return 1;
 }
 char *minimal_get_text (yyscan_t yyscanner );
-
+/*
 static int doc_newline(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
@@ -93,9 +93,9 @@ static int doc_init(void* data)
   //memset(arg->doc_str, 0, sizeof(arg->doc_str));
   return 1;
 }
-static int adjust(void* data);
 static int doc_adjust(void* data, char* str);
-
+*/
+static int adjust(void* data);
 %}
 
 

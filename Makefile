@@ -46,6 +46,13 @@ ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
+faster: include/generated.h
+	@make -C ast
+	@make -j 8 all
+
+all: config.mk core lang ugen drvr
+	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+
 default: config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
