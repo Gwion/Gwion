@@ -1,3 +1,6 @@
+#ifdef USE_DOUBLE
+#undef USE_DOUBLE
+#endif
 #ifndef SOUNDPIPE_H
 #include <soundpipe.h>
 #endif

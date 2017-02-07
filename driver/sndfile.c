@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <soundpipe.h>
 #include <sndfile.h>
 #include "vm.h"
 #include "bbq.h"

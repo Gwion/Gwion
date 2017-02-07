@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include "err_msg.h"
 #include "shreduler.h"
-
+#ifdef USE_DOUBLE
+#undef USE_DOUBLE
+#endif
 #include "soundpipe.h"
 #include "bbq.h"
 #include "map.h"
