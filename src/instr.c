@@ -30,7 +30,7 @@ INSTR(Reg_Pop_Word4)
 INSTR(Reg_Push_Imm)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm %p %i", instr->m_val, instr->m_val2);
+  debug_msg("instr", "[reg] push imm %p %i", (void*)instr->m_val, instr->m_val2);
 #endif
   *(m_uint*)(shred->reg) = instr->m_val;
   PUSH_REG(shred,  SZ_INT);
@@ -48,7 +48,7 @@ INSTR(Reg_Push_Imm2)
 INSTR(Reg_Push_ImmC)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm complex %p", instr->c_val);
+  debug_msg("instr", "[reg] push imm complex %p", (void*)instr->c_val);
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
   *(m_complex*)(shred->reg) = ((*(m_float*)shred->reg) + (*(m_float*)(shred->reg + SZ_FLOAT)) * I);
@@ -77,7 +77,7 @@ INSTR(Mem_Push_Imm)
 INSTR(Mem_Push_Ret)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] push ret to mem[%u] %p", instr->m_val, *(M_Object*)(shred->reg - SZ_INT));
+  debug_msg("instr", "[mem] push ret to mem[%u] %p", instr->m_val, (void*) * (M_Object*)(shred->reg - SZ_INT));
 #endif
   *(M_Object*)(shred->mem + instr->m_val) = *(M_Object*)(shred->reg - SZ_INT);
 }
@@ -93,7 +93,7 @@ INSTR(Mem_Set_Imm)
 INSTR(Free_Func)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "free template func '%p'", instr->m_val);
+  debug_msg("instr", "free template func '%p'", (void*)instr->m_val);
 #endif
   Func f = (Func)instr->m_val;
   free(f->value_ref->name);
@@ -180,7 +180,7 @@ INSTR(Reg_Push_Mem_Vec4)
 INSTR(Reg_Push_Ptr)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push ptr (%p)", instr->ptr);
+  debug_msg("instr", "[reg] push ptr (%p)", (void*)instr->ptr);
 #endif
   *(m_uint*)(shred->reg - SZ_INT) = (m_uint)instr->ptr;
 }
@@ -197,7 +197,7 @@ INSTR(Reg_Push_Code)
 INSTR(Reg_Dup_Last)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] dup last %p", *(m_uint*)(shred->reg  - SZ_INT));
+  debug_msg("instr", "[reg] dup last %p", (void*) * (m_uint*)(shred->reg  - SZ_INT));
 #endif
   *(m_uint*)shred->reg = *(m_uint*)(shred->reg  - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
@@ -206,7 +206,7 @@ INSTR(Reg_Dup_Last)
 INSTR(Reg_AddRef_Object3)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : * (M_Object*)(shred->reg - SZ_INT));
+  debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : (void*) * (M_Object*)(shred->reg - SZ_INT));
 #endif
   M_Object obj = instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : *(M_Object*)(shred->reg - SZ_INT);
   if(obj)
@@ -216,7 +216,7 @@ INSTR(Reg_AddRef_Object3)
 INSTR(Reg_Push_Me)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push me %p", shred->me);
+  debug_msg("instr", "[reg] push me %p", (void*)shred->me);
 #endif
   *(M_Object*)shred->reg = shred->me;
   PUSH_REG(shred, SZ_INT);
@@ -244,7 +244,7 @@ INSTR(Reg_Push_Maybe)
 INSTR(Alloc_Word)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", *(m_uint*)(shred->mem + instr->m_val), instr->m_val);
+  debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", (void*) * (m_uint*)(shred->mem + instr->m_val), instr->m_val);
 #endif
   *(m_uint*)(shred->mem + instr->m_val) = 0; // since template
   *(m_uint**)shred->reg = &*(m_uint*)(shred->mem + instr->m_val);
@@ -507,16 +507,16 @@ INSTR(Gack)
       fprintf(stdout, "(void)");
     else if(type->xid == t_function.xid)
       /*      fprintf(stdout, "%p %s", type, type->name, type->func ? type->func->name : "");*/
-      fprintf(stdout, "%s %p %p", type->name, *(Func*)(shred->reg),
+      fprintf(stdout, "%s %p %p", type->name, (void*) * (Func*)(shred->reg),
               (*(Func*)(shred->reg))->code);
     else if(isa(type, &t_func_ptr) > 0)
-      fprintf(stdout, "%p %s  %p", type, type->name, *(Func*)(shred->reg));
+      fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)(shred->reg));
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)(shred->reg),*/
     /*      *(m_uint*)(shred->reg) ? (*(Func*)(shred->reg))->code : 0);*/
     else if(type->xid == t_class.xid)
-      fprintf(stdout, "\033[1m%s\033[0m %p", type->actual_type->name, *(Func*)(shred->reg));
+      fprintf(stdout, "\033[1m%s\033[0m %p", type->actual_type->name, (void*) * (Func*)(shred->reg));
     else
-      fprintf(stdout, "%p", *(M_Object*)(shred->reg));
+      fprintf(stdout, "%p", (void*) * (M_Object*)(shred->reg));
 #ifdef COLOR
     fprintf(stdout, "\033[0m\n");
 #else
@@ -537,7 +537,7 @@ struct Vararg {
 INSTR(MkVararg)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Make Vararg %i %p", instr->m_val, instr->m_val2);
+  debug_msg("instr", "Make Vararg %i %p", instr->m_val, (void*)instr->m_val2);
 #endif
   POP_REG(shred,  instr->m_val);
   m_uint i;
