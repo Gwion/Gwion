@@ -88,11 +88,6 @@ ifeq (${PORTAUDIO_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
 endif
 
-ifdef $SOUNDPIPE_DATA_DIR
-;
-else
-export SOUNDPIPE_DATA_DIR=../Soundpipe/modules/data
-endif
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c
 	@rm -f include/generated.h

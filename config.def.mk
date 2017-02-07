@@ -37,3 +37,6 @@ USE_DOUBLE=1
 ifeq ($(findstring DEBUG,$(CFLAGS)), DEBUG)
 CFLAGS+=-DDEBUG
 endif
+
+#this must point to a valid soundpipe data directory
+SOUNDPIPE_DATA_DIR=../Soundpipe/modules/data
