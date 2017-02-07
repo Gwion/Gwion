@@ -89,7 +89,7 @@ ifeq (${PORTAUDIO_D}, 1)
 endif
 
 ifndef $SOUNDPIPE_DATA_DIR
-export SOUNDPIPE_DATA_DIR= ../Soundpipe/modules/data
+export SOUNDPIPE_DATA_DIR=../Soundpipe/modules/data
 endif
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c
