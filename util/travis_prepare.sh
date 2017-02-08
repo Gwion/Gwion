@@ -39,6 +39,7 @@ install_soundpipe() {
 # use double (or not)
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	make
+	ls h/soundpipe.h
 	popd
 }
 
