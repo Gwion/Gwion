@@ -1,5 +1,5 @@
 #ifdef USE_DOUBLE
-#define sf_write sf_write_float
+#define sf_write sf_write_double
 #else
 #define sf_write sf_write_float
 #endif
