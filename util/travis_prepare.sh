@@ -2,11 +2,17 @@
 
 # needs $BISON_VERSION
 
-if [ "$TRAVIS_OS_NAME" = "osx" ];
-then SED="sed -i ''"           # osx   sed
-else SED="sed -i   "           # linux sed
+if [ "$TRAVIS_OS_NAME" = "osx" ]
+then SED_OPT="''";
+else SED_OPT="";
 fi
 
+SED() {
+	if [ "$TRAVIS_OS_NAME" = "osx" ]
+	then echo "sed -i ''";
+	else echo "sed -i";
+	fi
+}
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
@@ -31,20 +37,20 @@ install_soundpipe() {
 	git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
 # use double (or not)
-	[ "$GW_FLOAT_TYPE" = "double" ] && "$SED" 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
+	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	make
 	popd
 }
 
 configure_Gwion() {
 # use double (or not)
-	[ "$GW_FLOAT_TYPE" = "double" ] && "$SED" 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
+	[ "$GW_FLOAT_TYPE" = "double" ] && sed -i "$SED_OPT" 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 # dummy driver
-	"$SED" "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
+	$(SED) "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
 # don't build default driver
-	"$SED" "s/ALSA_D/#ALSA_D/" config.def.mk
+	$(SED) "s/ALSA_D/#ALSA_D/" config.def.mk
 # compile with local static soundpipe
-	"$SED" "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
+	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
 }
 
 prepare_directories() {
@@ -55,9 +61,10 @@ prepare_directories() {
 	mkdir -p "$GWION_PLUG_DIR"
 }
 
-[ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
-install_bison
-install_bats
-install_soundpipe
-configure_Gwion
-prepare_directories
+#[ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
+#install_bison
+#install_bats
+#install_soundpipe
+#configure_Gwion
+#prepare_directories
+#exit 0
