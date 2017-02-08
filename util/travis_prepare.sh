@@ -2,11 +2,6 @@
 
 # needs $BISON_VERSION
 
-if [ "$TRAVIS_OS_NAME" = "osx" ]
-then SED_OPT="''";
-else SED_OPT="";
-fi
-
 SED() {
 	if [ "$TRAVIS_OS_NAME" = "osx" ]
 	then echo "sed -i ''";
@@ -30,7 +25,6 @@ install_bison() {
 
 install_bats() {
 	git clone https://github.com/sstephenson/bats.git
-#	export PATH=$PATH:bats/bin
 }
 
 install_soundpipe() {
@@ -43,14 +37,16 @@ install_soundpipe() {
 }
 
 configure_Gwion() {
-# use double (or not)
-	[ "$GW_FLOAT_TYPE" = "double" ] && sed -i "$SED_OPT" 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-# dummy driver
+	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	$(SED) "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-# don't build default driver
 	$(SED) "s/ALSA_D/#ALSA_D/" config.def.mk
-# compile with local static soundpipe
 	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
+    if [ "$TRAVIS_OS_NAME" = "osx" ]
+	then
+		$(SED) "s/YACC ?= bison/YACC=$PWD\/bison-3.0.4\/src\/bison/" ast/Makefile
+		mkdir /Users/travis/build/fennecdjay/Gwion/bison-3.0.4/share/bison/
+		cp -r bison-3.0.4/data bison-3.0.4/share/bison
+	fi
 }
 
 prepare_directories() {
