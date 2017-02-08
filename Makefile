@@ -102,8 +102,6 @@ clean: mostly_clean
 soundpipe_import: util/import.lua
 	lua util/import.lua ${SOUNDPIPE_DATA_DIR} > ugen/soundpipe.c
 
-
-
 .c.o:
 	${CC} ${CFLAGS} -c $< -o $(<:.c=.o)
 

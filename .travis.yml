@@ -1,9 +1,11 @@
 dist: trusty
 language: c
 sudo: false
+
 os:
-- linux
-- osx
+  - linux
+  - osx
+
 addons:
   apt:
     packages:
@@ -11,44 +13,36 @@ addons:
     - valgrind
     - libsndfile1
     - libsndfile1-dev
+
 env:
   global:
     - SOUNDPIPE_DATA_DIR=Soundpipe/modules/data
+    - BISON_VERSION=bison-3.0.4
   matrix:
     - GW_FLOAT_TYPE=float  GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
     - GW_FLOAT_TYPE=double GWION_DOC_DIR="./doc" GWION_API_DIR="./api" GWION_TOK_DIR="./tok" GWION_TAG_DIR="./tag" GWION_PLUG_DIR="./plug"
+
 matrix:
   fast_finish: true
   allow_failures:
   - os: osx
+
 compiler:
 - clang
 - gcc
+
 before_script:
-- git clone https://github.com/sstephenson/bats.git
+- sh util/travis_prepare.sh
 - export PATH=$PATH:bats/bin
-- wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-- tar -xzf bison-3.0.4.tar.gz
-- pushd bison-3.0.4 && ./configure \-\-prefix=$PWD/../bison && make install && popd
-  && export PATH=bison-3.0.4/src:$PATH
-- git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
-- if [ $TRAVIS_OS_NAME = "osx" ]; then bash util/osx_prepare.sh; else bash util/linux_prepare.sh;
-  fi
+- export PATH=bison-3.0.4/src:$PATH
 - export CFLAGS+=-ISoundpipe/h
 - export LIBARY_PATH=Soundpipe
 - export BISON=$PWD/bison-3.0.4/src/bison
 - export PATH=$PWD/bin:$PATH
-- mkdir -p "$GWION_DOC_DIR"
-- mkdir -p "$GWION_API_DIR"
-- mkdir -p "$GWION_TOK_DIR"
-- mkdir -p "$GWION_TAG_DIR"
-- mkdir -p "$GWION_PLUG_DIR"
 
 script:
-- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
-- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/..\/Soundpipe\/modules\/data/Soundpipe\/modules\/data/' config.def.mk; else  sed -i 's/..\/Soundpipe\/modules\/data/Soundpipe\/modules\/data/' config.def.mk;fi
-- make && sh util/test.sh
+  - make && sh util/test.sh
 
 branches:
-- only:
-  - dev
+  - only:
+    - dev
