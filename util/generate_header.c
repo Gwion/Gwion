@@ -1,6 +1,9 @@
 /* use this to generate include/generated.h */
 #include <stdio.h>
 #include <stdarg.h>
+#ifdef USE_DOUBLE
+#undef USE_DOUBLE
+#endif
 #include <soundpipe.h>
 
 static const char* filename = "include/generated.h";
