@@ -39,4 +39,4 @@ CFLAGS+=-DDEBUG
 endif
 
 #this must point to a valid soundpipe data directory
-SOUNDPIPE_DATA_DIR=../Soundpipe/modules/data
+SOUNDPIPE_DATA_DIR?=../Soundpipe/modules/data
