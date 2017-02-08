@@ -46,7 +46,7 @@ before_script:
 
 script:
 - if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile; fi
-- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/..\/Soundpipe\/module\/data/Soundpipe\/module\/data/' config.def.mk; else  sed -i 's/..\/Soundpipe\/module\/data/Soundpipe\/module\/data/' config.def.mk;fi
+- if [ $TRAVIS_OS_NAME = "osx" ]; then sed -i '' 's/..\/Soundpipe\/module\/data/Soundpipe\/modules\/data/' config.def.mk; else  sed -i 's/..\/Soundpipe\/module\/data/Soundpipe\/modules\/data/' config.def.mk;fi
 - make && sh util/test.sh
 
 branches:
