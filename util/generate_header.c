@@ -5,7 +5,7 @@
 #define GW_DOUBLE
 #undef USE_DOUBLE
 #endif
-#include <soundpipe.h>
+#include "soundpipe.h"
 
 #ifdef GW_DOUBLE
 #define USE_DOUBLE
