@@ -47,9 +47,9 @@ CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
 faster: include/generated.h
-	@make soundpipe_import
-	@make -C ast
-	@make -j 8 all
+	make soundpipe_import
+	make -C ast
+	make -j 8 all
 
 all: config.mk core lang ugen drvr
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
