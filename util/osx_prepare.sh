@@ -1,6 +1,6 @@
 #!/bin/sh
 #brew unlink bison
-brew install valgrind libsndfile bison
+brew install valgrind libsndfile bison lua
 #brew install valgrind libsndfile
 brew link bison
 
