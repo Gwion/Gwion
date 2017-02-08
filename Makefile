@@ -100,7 +100,7 @@ clean: mostly_clean
 	@rm -f ${PRG}
 
 soundpipe_import: util/import.lua
-	@lua util/import.lua ${SOUNDPIPE_DATA_DIR} > ugen/soundpipe.c
+	lua util/import.lua ${SOUNDPIPE_DATA_DIR} > ugen/soundpipe.c
 
 
 
