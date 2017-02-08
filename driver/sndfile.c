@@ -53,11 +53,7 @@ static void sndfile_run()
       vm->bbq->sp->pos++;
 		}
 		for(chan = 0; chan < nchan; chan++)
-#ifdef USE_DOUBLE
-    	sf_write_double(sf[chan], buf[chan], bufsize);
-#else
-    	sf_write_float(sf[chan], buf[chan], bufsize);
-#endif
+    	sf_write(sf[chan], buf[chan], bufsize);
 	}
 }
 
