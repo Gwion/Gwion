@@ -55,7 +55,7 @@ prepare_directories() {
 	mkdir -p "$GWION_PLUG_DIR"
 }
 
-[ "$TRAVIS_OS_NAME" = "osx ] && brew_dependencies
+[ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
 install_bison
 install_bats
 install_soundpipe
