@@ -44,6 +44,7 @@ configure_Gwion() {
     if [ "$TRAVIS_OS_NAME" = "osx" ]
 	then
 #		$(SED) "s/YACC ?= bison/YACC=$PWD\/bison-3.0.4\/src\/bison/" ast/Makefile
+		$(SED) "s/-lrt//" Makefile
 		mkdir /Users/travis/build/fennecdjay/Gwion/bison-3.0.4/share/bison/
 		cp -r bison-3.0.4/data bison-3.0.4/share/bison
 	fi
