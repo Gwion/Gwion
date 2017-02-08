@@ -18,14 +18,16 @@ env:
   global:
     - SOUNDPIPE_DATA_DIR=$HOME/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
-    - GWION_DOC_DIR="./doc"
-    - GWION_API_DIR="./api"
-    - GWION_TOK_DIR="./tok"
-    - GWION_TAG_DIR="./tag"
-    - GWION_PLUG_DIR="./plug"
+    - GWION_DOC_DIR=./doc
+    - GWION_API_DIR=./api
+    - GWION_TOK_DIR=./tok
+    - GWION_TAG_DIR=./tag
+    - GWION_PLUG_DIR=./plug
   matrix:
-    - GW_FLOAT_TYPE="float"
-    - GW_FLOAT_TYPE="double"
+    - GW_FLOAT_TYPE=float  SP_BRANCH=dev
+    - GW_FLOAT_TYPE=double SP_BRANCH=dev
+    - GW_FLOAT_TYPE=float  SP_BRANCH=master
+    - GW_FLOAT_TYPE=double SP_BRANCH=master
 
 matrix:
   fast_finish: true
@@ -37,11 +39,11 @@ compiler:
 - gcc
 
 before_script:
-- export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
-- export CFLAGS+=-ISoundpipe/h
-- export LIBARY_PATH=Soundpipe
-- export YACC=$PWD/bison-3.0.4/src/bison
-- bash util/travis_prepare.sh
+  - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
+  - export CFLAGS+=-ISoundpipe/h
+  - export LIBARY_PATH=Soundpipe
+  - export YACC=$PWD/bison-3.0.4/src/bison
+  - bash util/travis_prepare.sh
 
 script:
   - make && sh util/test.sh
