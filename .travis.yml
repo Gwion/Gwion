@@ -32,7 +32,7 @@ compiler:
 - gcc
 
 before_script:
-- sh util/travis_prepare.sh
+- bash util/travis_prepare.sh
 - export PATH=$PATH:bats/bin
 - export PATH=bison-3.0.4/src:$PATH
 - export CFLAGS+=-ISoundpipe/h

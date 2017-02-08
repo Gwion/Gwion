@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 # needs $BISON_VERSION
 
-if [ $TRAVIS_OS_NAME = "osx" ];
+if [ "$TRAVIS_OS_NAME" = "osx" ];
 then SED="sed -i ''"           # osx   sed
 else SED="sed -i   "           # linux sed
 fi
