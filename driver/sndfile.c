@@ -1,3 +1,8 @@
+#ifdef USE_DOUBLE
+#define sf_write sf_write_float
+#else
+#define sf_write sf_write_float
+#endif
 #include <stdlib.h>
 #include <sndfile.h>
 #include "vm.h"
