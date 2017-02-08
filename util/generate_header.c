@@ -2,9 +2,15 @@
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef USE_DOUBLE
+#define GW_DOUBLE
 #undef USE_DOUBLE
 #endif
 #include <soundpipe.h>
+
+#ifdef GW_DOUBLE
+#define USE_DOUBLE
+#undef GW_DOUBLE
+#endif
 
 static const char* filename = "include/generated.h";
 
@@ -21,7 +27,7 @@ int main()
 	FILE* file;
 	if(SZ != sizeof(SPFLOAT))
 	{
-		fprintf(stderr, "sizes do not match. please recomile soundpipe to use %s.\n", type);
+		fprintf(stderr, "sizes do not match. please recompile soundpipe to use %s.\n", type);
 		return 1;
 	}
 	file = fopen(filename, "w");
