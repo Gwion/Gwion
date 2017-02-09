@@ -1,5 +1,6 @@
 # here you set the default driver
-CFLAGS+=-DD_FUNC=alsa_driver
+D_FUNC?=alsa_driver
+CFLAGS+=-DD_FUNC=${D_FUNC}
 # one of:
 # mandatory (shipped with gwion)
 #  sndfile_driver dummy_driver silent_driver
@@ -9,11 +10,11 @@ CFLAGS+=-DD_FUNC=alsa_driver
 # set those value to 1 or uncomment if you want the driver
 # set to 0 or comment thoes you don't want/need/have
 # if DD_FUNC is one of the optional driver, this driver has to be set to 1
-ALSA_D      = 1
-#JACK_D      = 1
-#PORTAUDIO_D = 1
-#SOUNDIO_D   = 1
-SPA_D       = 1
+ALSA_D      ?= 1
+#JACK_D      ? = 1
+#PORTAUDIO_D ?= 1
+#SOUNDIO_D   ?= 1
+SPA_D       ?= 1
 
 # colorize output
 #CFLAGS+=-DCOLOR

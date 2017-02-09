@@ -16,6 +16,8 @@ addons:
 
 env:
   global:
+    - D_FUNC = dummy_driver
+    - ALSA_D = 0
     - SOUNDPIPE_DATA_DIR=$HOME/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
@@ -26,8 +28,8 @@ env:
   matrix:
     - GW_FLOAT_TYPE=float  SP_BRANCH=dev
     - GW_FLOAT_TYPE=double SP_BRANCH=dev
-    - GW_FLOAT_TYPE=float  SP_BRANCH=master
-    - GW_FLOAT_TYPE=double SP_BRANCH=master
+    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
+    - GW_FLOAT_TYPE=double SP_BRANCH=master SPA_D=0
 
 matrix:
   fast_finish: true
