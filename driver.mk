@@ -29,6 +29,13 @@ SOUNDIO_D=1
 DRIVER_OK=1
 endif
 
+ifeq (${D_FUNC}, dummy_driver)
+DRIVER_OK=1
+endif
+ifeq (${D_FUNC}, silent_driver)
+DRIVER_OK=1
+endif
+
 ############################
 
 

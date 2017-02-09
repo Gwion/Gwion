@@ -54,7 +54,7 @@ faster: check_driver include/generated.h
 check_driver:
 	echo ${D_FUNC}
 	echo ${DRIVER_OK}
-	[ ${DRIVER_OK} -eq 1 ] || $(error "invalid driver function ${D_FUNC}")
+	[ ${DRIVER_OK} -eq 1 ] || exit 1
 
 all: config.mk core lang ugen drvr
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
