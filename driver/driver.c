@@ -20,11 +20,13 @@ void select_driver(DriverInfo* di, const m_str d)
 		di->func = sndfile_driver;
 		di->card = "/tmp/gwion";
 	}
+#ifdef HAVE_SPA
 	else if(!strcmp("raw", d))
 	{
 		di->func = raw_driver;
 		di->card = "/tmp/gwion";
 	}
+#endif
 
 #ifdef HAVE_ALSA
 	else if(!strcmp("alsa", d))

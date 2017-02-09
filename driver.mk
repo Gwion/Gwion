@@ -1,28 +1,35 @@
+ifeq (${SNDFILE_D}, 1)
+  LDFLAGS+=-lsndfile
+  CFLAGS+=-DHAVE_SNDFILE
+  drvr_src+=driver/sndfile.c
+endif
+
+ifeq (${SPA_D}, 1)
+  CFLAGS+=-DHAVE_SPA
+  drvr_src+=driver/raw.c
+endif
+
 ifeq (${ALSA_D}, 1)
   LDFLAGS+=-lasound
   CFLAGS+=-DHAVE_ALSA
-	drvr_obj+=driver/alsa.o
+  drvr_src+=driver/alsa.c
 endif
 
 ifeq (${JACK_D}, 1)
   LDFLAGS+=-ljack
   CFLAGS+=-DHAVE_JACK
-	drvr_obj+=driver/jack.o
+  drvr_src+=driver/jack.c
 endif
 
 ifeq (${PORTAUDIO_D}, 1)
   LDFLAGS+=-lportaudio
   CFLAGS+=-DHAVE_PORTAUDIO
-	drvr_obj+=driver/portaudio.o
+  drvr_src+=driver/portaudio.c
 endif
 
 ifeq (${SOUNDIO_D}, 1)
   LDFLAGS+=-lsoundio
   CFLAGS+=-DHAVE_SOUNDIO
-	drvr_obj+=driver/soundio.o
+  drvr_src+=driver/soundio.c
 endif
 
-ifeq (${SPA_D}, 1)
-  CFLAGS+=-DHAVE_SPA
-	drvr_obj+=driver/raw.o
-endif

@@ -11,16 +11,16 @@ CFLAGS += -D_GNU_SOURCE
 core_src := $(wildcard  src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)
-drvr_src := driver/driver.c driver/sndfile.c driver/dummy.c
+drvr_src := driver/driver.c driver/dummy.c
 
 core_obj := $(core_src:.c=.o)
 lang_obj := $(lang_src:.c=.o)
 ugen_obj := $(ugen_src:.c=.o)
-drvr_obj := $(drvr_src:.c=.o)
 ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 
 include config.mk
 include driver.mk
+drvr_obj := $(drvr_src:.c=.o)
 
 ifdef ($GWION_DOC_DIR)
 CFLAGS += -DGWION_DOC_DIR=${GWION_DOC_DIR}
@@ -70,23 +70,23 @@ core: ${core_obj}
 lang: ${lang_obj}
 ugen: ${ugen_obj}
 
-drvr:
-	${CC} ${CFLAGS} -c driver/driver.c -o driver/driver.o
-	${CC} ${CFLAGS} -c driver/dummy.c -o driver/dummy.o
-	${CC} ${CFLAGS} -c driver/sndfile.c -o driver/sndfile.o
+drvr: ${drvr_obj}
 
-ifeq (${ALSA_D}, 1)
-	${CC} -I include ${CFLAGS} -c driver/alsa.c -o driver/alsa.o
-endif
-ifeq (${JACK_D}, 1)
-	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
-endif
-ifeq (${SOUNDIO_D}, 1)
-	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
-endif
-ifeq (${PORTAUDIO_D}, 1)
-	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
-endif
+#ifeq (${SNDFILE_D}, 1)
+#	${CC} ${CFLAGS} -c driver/sndfile.c -o driver/sndfile.o
+#endif
+#ifeq (${ALSA_D}, 1)
+#	${CC} -I include ${CFLAGS} -c driver/alsa.c -o driver/alsa.o
+#endif
+#ifeq (${JACK_D}, 1)
+#	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
+#endif
+#ifeq (${SOUNDIO_D}, 1)
+#	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
+#endif
+#ifeq (${PORTAUDIO_D}, 1)
+#	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
+#endif
 
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c
