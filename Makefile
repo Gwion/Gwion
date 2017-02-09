@@ -46,10 +46,15 @@ ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
-faster: include/generated.h
+faster: check_driver include/generated.h
 	make soundpipe_import
 	make -C ast
 	make -j 8 all
+
+check_driver:
+	echo ${D_FUNC}
+	echo ${DRIVER_OK}
+	[ ${DRIVER_OK} -eq 1 ] || $(error "invalid driver function ${D_FUNC}")
 
 all: config.mk core lang ugen drvr
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
@@ -57,6 +62,7 @@ all: config.mk core lang ugen drvr
 default: config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+
 
 config.mk: config.def.mk
 	cp config.def.mk config.mk
