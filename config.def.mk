@@ -7,13 +7,16 @@ CFLAGS+=-DD_FUNC=${D_FUNC}
 # optionnal (depends on libs)
 #  alsa_driver jack_driver soundio_driver portaudio_driver
 
-# set those value to 1 or uncomment if you want the driver
-# set to 0 or comment thoes you don't want/need/have
+# set those value to 1 if you want the driver
+# set to 0
 # if DD_FUNC is one of the optional driver, this driver has to be set to 1
+# TODO: make it automatic
+
+SNDFILE_D   ?= 1
 ALSA_D      ?= 1
-#JACK_D      ? = 1
-#PORTAUDIO_D ?= 1
-#SOUNDIO_D   ?= 1
+JACK_D      ?= 0
+PORTAUDIO_D ?= 0
+SOUNDIO_D   ?= 0
 SPA_D       ?= 1
 
 # colorize output
