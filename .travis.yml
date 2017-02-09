@@ -47,7 +47,7 @@ before_install:
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-ISoundpipe/h
-  - [ $CC = gcc && $ GW_FLOAT_TYPE = float  && SP_BRANCH = dev ] && CFLAGS+=--coverage
+  - if [ $CC = gcc && $ GW_FLOAT_TYPE = float  && SP_BRANCH = dev ]; then CFLAGS+=--coverage; fi
   - export LIBARY_PATH=Soundpipe
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
@@ -60,4 +60,4 @@ branches:
     - dev
 
 after_success:
-  - [ $CC = gcc && $ GW_FLOAT_TYPE = float  && SP_BRANCH = dev ] && - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
+  - if [ $CC = gcc && $ GW_FLOAT_TYPE = float  && SP_BRANCH = dev ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; fi
