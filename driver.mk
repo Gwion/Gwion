@@ -24,4 +24,5 @@ endif
 
 ifeq (${SPA_D}, 1)
   CFLAGS+=-DHAVE_SPA
+	drvr_obj+=driver/spa.o
 endif

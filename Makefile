@@ -11,7 +11,7 @@ CFLAGS += -D_GNU_SOURCE
 core_src := $(wildcard  src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)
-drvr_src := driver/driver.c driver/sndfile.c driver/dummy.c driver/raw.c
+drvr_src := driver/driver.c driver/sndfile.c driver/dummy.c
 
 core_obj := $(core_src:.c=.o)
 lang_obj := $(lang_src:.c=.o)
