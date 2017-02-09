@@ -74,7 +74,7 @@ drvr:
 	${CC} ${CFLAGS} -c driver/driver.c -o driver/driver.o
 	${CC} ${CFLAGS} -c driver/dummy.c -o driver/dummy.o
 	${CC} ${CFLAGS} -c driver/sndfile.c -o driver/sndfile.o
-	${CC} ${CFLAGS} -c driver/raw.c -o driver/raw.o
+
 ifeq (${ALSA_D}, 1)
 	${CC} -I include ${CFLAGS} -c driver/alsa.c -o driver/alsa.o
 endif
