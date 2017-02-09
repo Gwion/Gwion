@@ -60,5 +60,4 @@ branches:
     - dev
 
 after_success:
-  - if [ ($CC = gcc) && ($GW_FLOAT_TYPE = float)  && ($SP_BRANCH = dev) ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; 
-fi
+  - if [ ($CC = gcc) && ($GW_FLOAT_TYPE = float)  && ($SP_BRANCH = dev) ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; fi
