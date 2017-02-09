@@ -16,8 +16,8 @@ addons:
 
 env:
   global:
-    - D_FUNC = dummy_driver
-    - ALSA_D = 0
+    - D_FUNC=dummy_driver
+    - ALSA_D=0
     - SOUNDPIPE_DATA_DIR=$HOME/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
