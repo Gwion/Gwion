@@ -31,7 +31,11 @@ install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-	make
+	 pushd modules/data
+	wget https://gist.githubusercontent.com/fennecdjay/9cfa29ccdbd11a06d6ea0f5bacc8f77c/raw/665c1b2ce5218ac26d4104e99df8558f05969daa/data_fix.diff
+	path -p1 < data_fix.diff
+ 	popd
+    make
 	popd
 }
 
