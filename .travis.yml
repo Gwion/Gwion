@@ -18,13 +18,14 @@ env:
   global:
     - D_FUNC=dummy_driver
     - ALSA_D=0
-    - SOUNDPIPE_DATA_DIR=$HOME/Soundpipe/modules/data
+    - SOUNDPIPE_DATA_DIR=$HOME/Gwion/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
     - GWION_API_DIR=./api
     - GWION_TOK_DIR=./tok
     - GWION_TAG_DIR=./tag
     - GWION_PLUG_DIR=./plug
+    - MY_PATH=$PATH
   matrix:
     - GW_FLOAT_TYPE=float  SP_BRANCH=dev
     - GW_FLOAT_TYPE=double SP_BRANCH=dev
