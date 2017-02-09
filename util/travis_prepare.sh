@@ -33,7 +33,7 @@ install_soundpipe() {
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
     if [ "$SP_BRANCH" = "master" ]
     then
-		wget https://gist.githubusercontent.com/fennecdjay/b48b36059c79b957a8edf5bbde0b6021/raw/bdcb0dec6341c4b0b61605800c7e1ff2ebe113da/data_fix.diff
+		wget https://gist.githubusercontent.com/fennecdjay/8fa8bd4952691b7936d7a7a760db2ef6/raw/d371b41506d3ca19b3a2c146e19aec1c18b541bf/data_fix.diff
 		patch -p1 < data_fix.diff
  	fi
 	rm data_fix.diff
