@@ -28,7 +28,7 @@ install_bats() {
 }
 
 install_soundpipe() {
-	git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
+	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
 # use double (or not)
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
