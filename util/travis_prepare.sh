@@ -32,7 +32,7 @@ install_soundpipe() {
 	pushd Soundpipe
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	pushd modules/data
-	wget https://gist.githubusercontent.com/fennecdjay/9cfa29ccdbd11a06d6ea0f5bacc8f77c/raw/665c1b2ce5218ac26d4104e99df8558f05969daa/data_fix.diff
+    wget https://gist.githubusercontent.com/fennecdjay/04cdb6957e01f1b682ca24e501ce47dc/raw/fbe518ef20b0e706ad0c13a620637af79ecfc994/data_fix.diff
 	patch -p1 < data_fix.diff
  	rm data_fix.diff
     popd
