@@ -38,6 +38,7 @@ install_soundpipe() {
  	fi
 	rm data_fix.diff
     make
+    echo "$PWD"
 	popd
 }
 
