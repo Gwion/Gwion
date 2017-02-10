@@ -29,7 +29,7 @@ function declare_c_param(param)
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
 	else
 		print("unknown type:", param.type, ".")
-		os.exit()
+		os.exit(1)
 	end
 --	print("gw_offset;")
 end
@@ -49,8 +49,8 @@ function declare_gw_param(param)
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*") then
 		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
-else print("fuck "..param.type)
-os.exit();
+else print("unknown "..param.type)
+os.exit(1);
 	end
 	make_doc("\t\targ", param)
 end
@@ -193,8 +193,8 @@ function print_mod_func(name, mod)
 			elseif string.gmatch(v.type, "sp_ftbl*") then
 				print("\tRETURN->d.v_uint = ug->osc->"..v.name.."_obj;")
 			else 
-				print(v.type)
-				os.exit(3);
+				print("unknown type "..v.type)
+				os.exit(1);
 			end
 			print("}\n")
 			print("MFUN("..name.."_set_"..v.name..")\n{")
@@ -234,6 +234,7 @@ end
 		end
 	else
 		print("failed to read soundpipe data directory.")
+		os.exit(1);
 	end
 
 a = {}

@@ -33,13 +33,12 @@ install_soundpipe() {
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
     if [ "$SP_BRANCH" = "master" ]
     then
-		wget https://gist.githubusercontent.com/fennecdjay/31a246c396201690a357a72fd41eee6a/raw/3626b8d510618130deb3176a2b3154451eef31af/data_fix.diff
-		patch -p1 -i data_fix.diff
+		wget https://gist.githubusercontent.com/fennecdjay/e412e67d92b34bd2a497da2ba780c6b7/raw/3d4334cb8070368312af5929a68ff7b4a0512e6e/soundpipe_data_master.patch
+		patch -p1 -i /soundpipe_data_master.patch
  	fi
-	rm data_fix.diff
+	rm /soundpipe_data_master.patch
+    rm modules/data/padsynth.lua
     make
-    echo "$PWD"
-    ls "$PWD/modules/data"
 	popd
 }
 
