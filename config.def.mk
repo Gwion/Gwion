@@ -35,10 +35,14 @@ SOUNDIO_D   ?= 0
 
 
 #uncomment this to set the float type to double
-#USE_DOUBLE=1
+USE_DOUBLE=1
 
 # if any debug flag is set, we need -DDEBUG
 ifeq ($(findstring DEBUG,$(CFLAGS)), DEBUG)
+CFLAGS+=-DDEBUG -g
+endif
+
+ifeq (${DEBUG}, 1)
 CFLAGS+=-DDEBUG -g
 endif
 

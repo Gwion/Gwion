@@ -16,6 +16,7 @@ addons:
 
 env:
   global:
+	- DEBUG=1
     - D_FUNC=dummy_driver
     - ALSA_D=0
     - SOUNDPIPE_D=0
@@ -46,8 +47,7 @@ before_install:
 
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
-  - export CFLAGS+= -I$TRAVIS_BUILD_DIR/Soundpipe/h
-  - export CFLAGS+= -DDEBUG=1
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
 
