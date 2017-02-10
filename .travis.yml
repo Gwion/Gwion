@@ -42,7 +42,7 @@ compiler:
 - gcc
 
 before_install:
-  - [ $COVERAGE -eq 1 ] && [ $TRAVIS_OS_NAME = 'linux' ] && pip install --user cpp-coveralls
+  - if [ $COVERAGE -eq 1 ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi
 
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
@@ -58,4 +58,4 @@ branches:
     - dev
 
 after_success:
-  - [ $COVERAGE -eq 1 ] && [ $TRAVIS_OS_NAME = 'linux' ] &&coveralls --exclude bison*--exclude Soundpipe --exclude test --exclude examples --exclude utils --gcov-options '\-lp'
+  - if [ $COVERAGE -eq 1 ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude bison*--exclude Soundpipe --exclude test --exclude examples --exclude utils --gcov-options '\-lp'
