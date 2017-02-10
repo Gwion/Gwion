@@ -21,7 +21,7 @@ include config.mk
 include driver.mk
 drvr_obj := $(drvr_src:.c=.o)
 
-ifeq (${CC}, gcc*)
+ifeq (${CC}, gcc)
 LDFLAGS+=-lpthread
 ifeq (${COVERAGE}, 1)
 CFLAGS+= --coverage
