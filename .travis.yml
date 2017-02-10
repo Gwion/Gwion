@@ -60,4 +60,4 @@ branches:
     - dev
 
 after_success:
-  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; fi; fi; fi
+  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then coveralls --exclude bison*--exclude Soundpipe --exclude test --exclude examples --exclude utils --gcov-options '\-lp'; fi; fi; fi
