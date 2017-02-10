@@ -7,7 +7,6 @@ CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native
 CFLAGS += -fno-strict-aliasing -Wall -pedantic
 CFLAGS += -D_GNU_SOURCE
 
-
 core_src := $(wildcard  src/*.c)
 lang_src := $(wildcard lang/*.c)
 ugen_src := $(wildcard ugen/*.c)
@@ -75,24 +74,7 @@ include/generated.h:
 core: ${core_obj}
 lang: ${lang_obj}
 ugen: ${ugen_obj}
-
 drvr: ${drvr_obj}
-
-#ifeq (${SNDFILE_D}, 1)
-#	${CC} ${CFLAGS} -c driver/sndfile.c -o driver/sndfile.o
-#endif
-#ifeq (${ALSA_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/alsa.c -o driver/alsa.o
-#endif
-#ifeq (${JACK_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
-#endif
-#ifeq (${SOUNDIO_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
-#endif
-#ifeq (${PORTAUDIO_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
-#endif
 
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c

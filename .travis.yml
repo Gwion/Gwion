@@ -48,6 +48,7 @@ before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then CFLAGS+=' --coverage'; LDFLAGS+='  -lgcov';fi; fi; fi
+  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then LDFLAGS+='  -lgcov';fi; fi; fi
   - export LIBARY_PATH=Soundpipe
   - export YACC=$PWD/bison-3.0.4/src/bison
   - echo $TRAVIS_BUILD_DIR
