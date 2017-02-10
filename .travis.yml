@@ -45,11 +45,13 @@ before_install:
   - pip install --user cpp-coveralls
 
 before_script:
+#  - export $TRAVIS_BUILD_DIR/Soundpipe/modules/data
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-ISoundpipe/h
   - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then CFALGS+=--coverage; fi; fi; fi
   - export LIBARY_PATH=Soundpipe
   - export YACC=$PWD/bison-3.0.4/src/bison
+  - echo $TRAVIS_BUILD_DIR
   - bash util/travis_prepare.sh
 
 script:
