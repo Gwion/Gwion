@@ -1,5 +1,6 @@
 # Gwion
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=dev)](https://travis-ci.org/fennecdjay/Gwion)
+[![Coverage Status](https://coveralls.io/repos/github/fennecdjay/Gwion/badge.svg?branch=dev)](https://coveralls.io/github/fennecdjay/Gwion?branch=dev)
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.png)
 ![](http://b.repl.ca/v1/language-C-green.png)  
 
