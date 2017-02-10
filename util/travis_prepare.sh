@@ -1,17 +1,35 @@
 #!/bin/bash
 
-# needs $BISON_VERSION
+# TODO: output error message
+check_variable() {
+	if [ -z "$1" ]
+	then
+		echo "unknown variable $2."
+		exit 1
+	fi
+}
+
+check_variable "$BISON_VERSION"  BISON_VERSION
+check_variable "$TRAVIS_OS_NAME" TRAVIS_OS_NAME
+check_variable "$SP_BRANCH"      SP_BRANCH
+check_variable "$GWION_DOC_DIR"  GWION_DOC_DIR
+check_variable "$GWION_API_DIR"  GWION_API_DIR
+check_variable "$GWION_TOK_DIR"  GWION_TOK_DIR
+check_variable "$GWION_TAG_DIR"  GWION_TAG_DIR
+check_variable "$GWION_PLUG_DIR" GWION_PLUG_DIR
+check_variable "$GW_FLOAT_TYPE"  GW_FLOAT_TYPE
 
 SED() {
 	if [ "$TRAVIS_OS_NAME" = "osx" ]
-	then echo "sed -i ''";
-	else echo "sed -i";
+	then echo "sed -i ''"
+	else echo "sed -i"
 	fi
 }
+
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
-	brew install lua        # need for importing soundpipe
+	brew install lua        # needed for importing soundpipe
 }
 
 install_bison() {
@@ -44,17 +62,8 @@ install_soundpipe() {
 
 configure_Gwion() {
     ls "$PWD/Soundpipe/modules/data"
-	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-	$(SED) "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-	$(SED) "s/ALSA_D/#ALSA_D/" config.def.mk
+#	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-    if [ "$TRAVIS_OS_NAME" = "osx" ]
-	then
-#		$(SED) "s/YACC ?= bison/YACC=$PWD\/bison-3.0.4\/src\/bison/" ast/Makefile
-		$(SED) "s/-lrt//" Makefile
-		mkdir /Users/travis/build/fennecdjay/Gwion/bison-3.0.4/share/bison/
-		cp -r bison-3.0.4/data bison-3.0.4/share/bison
-	fi
 }
 
 prepare_directories() {
@@ -66,9 +75,11 @@ prepare_directories() {
 }
 
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
+
 install_bison
 install_bats
 install_soundpipe
 configure_Gwion
 prepare_directories
+
 exit 0

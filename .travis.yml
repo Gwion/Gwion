@@ -18,6 +18,7 @@ env:
   global:
     - D_FUNC=dummy_driver
     - ALSA_D=0
+    - SOUNDPIPE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
@@ -25,9 +26,8 @@ env:
     - GWION_TOK_DIR=./tok
     - GWION_TAG_DIR=./tag
     - GWION_PLUG_DIR=./plug
-    - MY_PATH=$PATH
   matrix:
-    - GW_FLOAT_TYPE=float  SP_BRANCH=dev
+    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVVERAGE=1
     - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
     - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
     - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
@@ -42,12 +42,11 @@ compiler:
 - gcc
 
 before_install:
-  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then pip install --user cpp-coveralls
+  - [ $COVERAGE -eq 1 ] && [ $TRAVIS_OS_NAME = 'linux' ] && pip install --user cpp-coveralls
 
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
-  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
-  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then export COVERAGE=1;fi; fi; fi
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h -DDEBUG
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
 
@@ -59,4 +58,4 @@ branches:
     - dev
 
 after_success:
-  - if [ $CC = 'gcc' ]; then if [ $GW_FLOAT_TYPE = 'float' ]; then if [ $SP_BRANCH = 'dev' ]; then coveralls --exclude bison*--exclude Soundpipe --exclude test --exclude examples --exclude utils --gcov-options '\-lp'; fi; fi; fi
+  - [ $COVERAGE -eq 1 ] && [ $TRAVIS_OS_NAME = 'linux' ] &&coveralls --exclude bison*--exclude Soundpipe --exclude test --exclude examples --exclude utils --gcov-options '\-lp'

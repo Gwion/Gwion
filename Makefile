@@ -1,9 +1,9 @@
 PRG=gwion
 LDFLAGS += -lsoundpipe
 LDFLAGS += -lm -pthread -lsndfile
-LDFLAGS += -ldl -rdynamic -lrt
+LDFLAGS += -ldl -rdynamic
 
-CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native
 CFLAGS += -fno-strict-aliasing -Wall -pedantic
 CFLAGS += -D_GNU_SOURCE
 
@@ -20,6 +20,14 @@ ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 include config.mk
 include driver.mk
 drvr_obj := $(drvr_src:.c=.o)
+
+ifeq (${CC}, gcc*)
+LDFLAGS+=-lpthread
+endif
+
+ifeq ($(shell uname), Linux)
+LDFLAGS+=-lrt
+endif
 
 ifdef ($GWION_DOC_DIR)
 CFLAGS += -DGWION_DOC_DIR=${GWION_DOC_DIR}
