@@ -3,7 +3,7 @@ language: c
 sudo: false
 
 os:
-  - linux
+#  - linux
   - osx
 
 addons:
@@ -39,7 +39,7 @@ matrix:
 
 compiler:
 - clang
-- gcc
+#- gcc
 
 before_install:
   - pip install --user cpp-coveralls
