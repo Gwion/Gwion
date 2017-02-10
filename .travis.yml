@@ -59,4 +59,4 @@ branches:
     - dev
 
 after_success:
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude utils --gcov-options '\-lp';fi; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude utils --gcov-options '\-lp';fi; fi; fi

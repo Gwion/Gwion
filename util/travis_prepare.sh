@@ -49,6 +49,7 @@ install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
+    $(SED) "s/-DSPFLOAT=float/-DSPFLOAT=double/" Makefile
     if [ "$SP_BRANCH" = "master" ]
     then
 		wget https://gist.githubusercontent.com/fennecdjay/a5dbc54342bcf6f0c8d5f9a03355580b/raw/f7a6a000b6687fb5edc494c2d5fe05e8bb30bc40/soundpipe_data_master.patch
