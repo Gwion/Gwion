@@ -34,9 +34,9 @@ install_soundpipe() {
     if [ "$SP_BRANCH" = "master" ]
     then
 		wget https://gist.githubusercontent.com/fennecdjay/e412e67d92b34bd2a497da2ba780c6b7/raw/3d4334cb8070368312af5929a68ff7b4a0512e6e/soundpipe_data_master.patch
-		patch -p1 -i /soundpipe_data_master.patch
+		patch -p1 -i soundpipe_data_master.patch
  	fi
-	rm /soundpipe_data_master.patch
+	rm soundpipe_data_master.patch
     rm modules/data/padsynth.lua
     make
 	popd
