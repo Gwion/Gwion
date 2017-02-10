@@ -39,10 +39,12 @@ install_soundpipe() {
 	rm data_fix.diff
     make
     echo "$PWD"
+    ls "$PWD/modules/data"
 	popd
 }
 
 configure_Gwion() {
+    ls "$PWD/Soundpipe/modules/data"
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	$(SED) "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
 	$(SED) "s/ALSA_D/#ALSA_D/" config.def.mk
