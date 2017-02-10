@@ -46,7 +46,8 @@ before_install:
 
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
-  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h -DDEBUG
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+  - export CFLAGS+=-DDEBUG=1
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
 
