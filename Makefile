@@ -23,6 +23,10 @@ drvr_obj := $(drvr_src:.c=.o)
 
 ifeq (${CC}, gcc*)
 LDFLAGS+=-lpthread
+ifeq (${COVERAGE}, 1)
+CFLAGS+= --coverage
+LDFLAGS+= -lgcov
+endif
 endif
 
 ifeq ($(shell uname), Linux)
@@ -51,11 +55,6 @@ endif
 
 ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
-endif
-
-ifeq (${COVERAGE}, 1)
-CFLAGS+= --coverage
-LDFLAGS+= -lgcov
 endif
 
 faster: check_driver include/generated.h
