@@ -225,6 +225,7 @@ if not arg[1] then
 end
 
 local dir = io.popen("dir "..arg[1])
+-- local dir = io.popen("ls "..arg[1])
 	if dir then  
 		for filename in string.gmatch(dir:read("*a"), '([^%s]+)') do
 			if filename:gmatch(".lua$") then
