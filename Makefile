@@ -45,6 +45,11 @@ ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
+ifeq (${COVERAGE}, 1)
+CFLAGS+= --coverage
+LDFLAGS+= -lgcov
+endif
+
 faster: check_driver include/generated.h
 	make soundpipe_import
 	make -C ast
