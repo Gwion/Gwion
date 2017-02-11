@@ -143,7 +143,7 @@ INSTR(Reg_Push_Mem_Complex)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'complex' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2) // global
+  if(instr->m_val2)
     *(m_complex*)shred->reg = *(m_complex*)(shred->base + instr->m_val);
   else
     *(m_complex*)shred->reg = *(m_complex*)(shred->mem  + instr->m_val);
@@ -155,14 +155,11 @@ INSTR(Reg_Push_Mem_Vec3)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'vec3' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2) // global
+  if(instr->m_val2)
     *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->base + instr->m_val);
   else
     *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->mem  + instr->m_val);
   PUSH_REG(shred, SZ_VEC3);
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'vec3' push mem ");
-#endif
 }
 
 INSTR(Reg_Push_Mem_Vec4)
@@ -681,10 +678,8 @@ INSTR(Reg_Dup_Last_Vec3)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-  *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_VEC3);
+  *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
-//  *(m_uint*)shred->reg = *(m_uint*)(shred->reg  - SZ_INT);
-//  PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(member_function)
