@@ -42,7 +42,7 @@ INSTR(Event_Wait)
 static MFUN(event_signal)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr" , "event signal");
+  debug_msg("instr", "event signal");
 #endif
   VM_Shred sh;
   Vector v = EV_SHREDS(o);
@@ -68,7 +68,7 @@ void broadcast(M_Object o)
 static MFUN(event_broadcast)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr" , "event signal");
+  debug_msg("instr", "event signal");
 #endif
   broadcast(o);
 }

@@ -1,6 +1,6 @@
 PRG=gwion
 LDFLAGS += -lsoundpipe
-LDFLAGS += -lm -pthread -lsndfile
+LDFLAGS += -lm -lpthread
 LDFLAGS += -ldl -rdynamic
 
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native
@@ -21,16 +21,12 @@ include config.mk
 include driver.mk
 drvr_obj := $(drvr_src:.c=.o)
 
-ifeq (${CC}, gcc)
-LDFLAGS+=-lpthread
-ifeq (${COVERAGE}, 1)
-CFLAGS+= --coverage
-LDFLAGS+= -lgcov
-endif
-endif
-
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
+ifeq (${COVERAGE}, 1)
+endif
+CFLAGS+= --coverage
+LDFLAGS+= -lgcov
 endif
 
 ifdef ($GWION_DOC_DIR)
@@ -63,14 +59,12 @@ faster: check_driver include/generated.h
 	make -j 8 all
 
 check_driver:
-	echo ${D_FUNC}
-	echo ${DRIVER_OK}
 	[ ${DRIVER_OK} -eq 1 ] || exit 1
 
 all: config.mk core lang ugen drvr
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
-default: config.mk include/generated.h core lang ugen drvr
+default: soundpipe_import config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
@@ -91,7 +85,7 @@ drvr: ${drvr_obj}
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c *.gcno
 	@rm -f include/generated.h
-	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c
+	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c ast/*.c lang/*.c include/*.h
 	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
 	@rm -rf doc/html doc/latex
 	@make -s -C ast clean

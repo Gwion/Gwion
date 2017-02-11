@@ -20,7 +20,7 @@ int get_pos(void* data)
 Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 {
   Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
-  a->xid= insert_symbol(name);
+  a->xid = insert_symbol(name);
   a->array = array;
   a->pos = pos;
   return a;
@@ -38,12 +38,12 @@ void free_Var_Decl(Var_Decl a)
     if(!a->value->obj) // func argument. this migth change
       free_Value(a->value);
     else if(!a->value->owner_class) { // breaks for loop ?
-		if(a->value->m_type->array_type) {
-			free(a->value->m_type->obj);
-			free(a->value->m_type);
-        }
-	  rem_ref(a->value->obj, a->value);
-	}
+      if(a->value->m_type->array_type) {
+        free(a->value->m_type->obj);
+        free(a->value->m_type);
+      }
+      rem_ref(a->value->obj, a->value);
+    }
   }
   if(a->array)
     free_Array_Sub(a->array);
@@ -63,8 +63,7 @@ Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
 void free_Var_Decl_List(Var_Decl_List a)
 {
   Var_Decl_List tmp, list = a;
-  while(list)
-  {
+  while(list) {
     free_Var_Decl(list->self);
     tmp = list;
     list = list->next;
@@ -109,21 +108,18 @@ Array_Sub prepend_array_sub(Array_Sub a, Expression exp, int pos)
 {
   if(a->err_num)
     goto error;
-  if(exp && exp->next)
-  {
+  if(exp && exp->next) {
     a->err_num = 1;
     a->err_pos = exp->pos;
     goto error;
   }
-  if((exp && !a->exp_list) || (!exp && a->exp_list))
-  {
+  if((exp && !a->exp_list) || (!exp && a->exp_list)) {
     a->err_num = 2;
     a->err_pos = pos;
     goto error;
   }
 
-  if(exp)
-  {
+  if(exp) {
     exp->next = a->exp_list;
     a->exp_list = exp;
   }
@@ -166,8 +162,7 @@ void free_Array_Expression(Array* a)
 
 void free_Type_Decl(Type_Decl* a)
 {
-  if(a->array)
-  {
+  if(a->array) {
     free(a->array);
   }
   free_ID_List(a->xid);
@@ -300,7 +295,7 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
   a->d.exp_primary->type = ae_primary_num;
   a->d.exp_primary->d.num = i;
-  a->pos =pos;
+  a->pos = pos;
   a->d.exp_primary->pos = pos;
   a->d.exp_primary->self = a;
   a->next = NULL;
@@ -508,8 +503,7 @@ Vec new_Vec(Expression e, int pos)
 {
   Vec a = calloc(1, sizeof(struct Vec_));
   a->args = e;
-  while(e)
-  {
+  while(e) {
     a->numdims++;
     e = e->next;
   }
@@ -610,7 +604,7 @@ Expression new_If_Expression(Expression cond, Expression if_exp, Expression else
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = If_Expression_type;
   a->meta = ( ( if_exp->meta == ae_meta_var &&
-        else_exp->meta == ae_meta_var ) ? ae_meta_var : ae_meta_value );
+                else_exp->meta == ae_meta_var ) ? ae_meta_var : ae_meta_value );
   a->d.exp_if = calloc(1, sizeof(If_Expression));
   a->d.exp_if->cond = cond;
   a->d.exp_if->if_exp = if_exp;
@@ -645,8 +639,7 @@ Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
   a->stack_depth = 0;
   a->pos = pos;
   a->spec = ae_func_spec_none;
-  if(a->func_decl == ae_key_variadic)
-  {
+  if(a->func_decl == ae_key_variadic) {
     a->func_decl = ae_key_func;
     a->is_variadic = 1;
   }
@@ -657,18 +650,17 @@ void free_Func_Def(Func_Def a)
 {
   if(!a->is_template) {
     if(a->types)
-	  free_ID_List(a->types);
+      free_ID_List(a->types);
     if(a->ret_type && a->ret_type->array_type) {
       free(a->ret_type->obj);
-	  free(a->ret_type);
-	}
+      free(a->ret_type);
+    }
     if(a->arg_list)
       free_Arg_List(a->arg_list);
 //	if(a->type_decl)
     free_Type_Decl(a->type_decl);
     free(a);
-  }
-  else {
+  } else {
     printf("def name %s\n", S_name(a->name));
 //	free(a);
 //  else free(a->name);
@@ -767,59 +759,57 @@ void free_Primary_Expression(Primary_Expression* a)
   if(a->type == ae_primary_hack)
     free_Expression(a->d.exp);
   else if (a->type == ae_primary_array)
-	free_Array_Sub(a->d.array);
+    free_Array_Sub(a->d.array);
   else if (a->type == ae_primary_complex)
-	free_complex(a->d.cmp);
+    free_complex(a->d.cmp);
   else if (a->type == ae_primary_polar)
-	free_polar(a->d.polar);
+    free_polar(a->d.polar);
   else if (a->type == ae_primary_vec)
-	free_Vec(a->d.vec);
+    free_Vec(a->d.vec);
   free(a);
 }
 
 void free_Expression(Expression exp)
 {
   Expression tmp, curr = exp;
-  while(curr)
-  {
-    switch(curr->exp_type)
-    {
-      case Decl_Expression_type:
-        free_Decl_Expression(curr->d.exp_decl);
-        break;
-      case Binary_Expression_type:
-        free_Binary_Expression(curr->d.exp_binary);
-        break;
-      case Unary_Expression_type:
-        free_Unary_Expression(curr->d.exp_unary);
-        break;
-      case Primary_Expression_type:
-        free_Primary_Expression(curr->d.exp_primary);
-        break;
-      case Cast_Expression_type:
-        free_Cast_Expression(curr->d.exp_cast);
-        break;
-      case Postfix_Expression_type:
-        free_Postfix_Expression(curr->d.exp_postfix);
-        break;
-      case Func_Call_type:
-        free_Func_Call(curr->d.exp_func);
-        break;
-      case Array_Expression_type:
-        free_Array_Expression(curr->d.exp_array);
-        break;
-      case If_Expression_type:
-        free_If_Expression(curr->d.exp_if);
-        break;
-      case Dot_Member_type:
-        free_Dot_Member_Expression(curr->d.exp_dot);
-        break;
-      case Dur_Expression_type:
-        free_Dur_Expression(curr->d.exp_dur);
-        break;
-      default:
-        printf("free Expression: unhandled exp type %i\n", curr->exp_type);
-        break;
+  while(curr) {
+    switch(curr->exp_type) {
+    case Decl_Expression_type:
+      free_Decl_Expression(curr->d.exp_decl);
+      break;
+    case Binary_Expression_type:
+      free_Binary_Expression(curr->d.exp_binary);
+      break;
+    case Unary_Expression_type:
+      free_Unary_Expression(curr->d.exp_unary);
+      break;
+    case Primary_Expression_type:
+      free_Primary_Expression(curr->d.exp_primary);
+      break;
+    case Cast_Expression_type:
+      free_Cast_Expression(curr->d.exp_cast);
+      break;
+    case Postfix_Expression_type:
+      free_Postfix_Expression(curr->d.exp_postfix);
+      break;
+    case Func_Call_type:
+      free_Func_Call(curr->d.exp_func);
+      break;
+    case Array_Expression_type:
+      free_Array_Expression(curr->d.exp_array);
+      break;
+    case If_Expression_type:
+      free_If_Expression(curr->d.exp_if);
+      break;
+    case Dot_Member_type:
+      free_Dot_Member_Expression(curr->d.exp_dot);
+      break;
+    case Dur_Expression_type:
+      free_Dur_Expression(curr->d.exp_dur);
+      break;
+    default:
+      printf("free Expression: unhandled exp type %i\n", curr->exp_type);
+      break;
     }
     tmp = curr;
     curr = curr->next;
@@ -980,11 +970,11 @@ Stmt* new_stmt_from_for(Stmt* c1, Stmt* c2, Expression c3, Stmt* body, int pos)
 
 void free_Stmt_For(Stmt_For a)
 {
-	free_Stmt(a->c1);
-	free_Stmt(a->c2);
-	free_Expression(a->c3);
-	free_Stmt(a->body);
-	free(a);
+  free_Stmt(a->c1);
+  free_Stmt(a->c2);
+  free_Expression(a->c3);
+  free_Stmt(a->body);
+  free(a);
 }
 
 Stmt* new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos)
@@ -1074,7 +1064,7 @@ Stmt* new_stmt_from_case(Expression val, int pos)
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_case;
-  a->d.stmt_case= calloc(1, sizeof(struct Stmt_Case_));
+  a->d.stmt_case = calloc(1, sizeof(struct Stmt_Case_));
   a->d.stmt_case->val = val;
   a->pos = pos;
   a->d.stmt_case->pos = pos;
@@ -1108,9 +1098,9 @@ void free_Stmt_Enum(Stmt_Enum a)
   if(a->list)
     free_ID_List(a->list);
   for(i = 0; i < vector_size(a->values); i++) {
-	Value v = (Value)vector_at(a->values, i);
-  free(v->obj);
-  free(v);
+    Value v = (Value)vector_at(a->values, i);
+    free(v->obj);
+    free(v);
 //    rem_ref(v->obj, v);
   }
   free_Vector(a->values);
@@ -1138,7 +1128,7 @@ Decl_List new_Decl_List(Decl_Expression* d, Decl_List l)
 void free_Decl_List(Decl_List a)
 {
   if(a->next)
-   free_Decl_List(a->next);
+    free_Decl_List(a->next);
   if(a->self)
     free_Decl_Expression(a->self);
   free(a);
@@ -1163,56 +1153,55 @@ Union* new_Union(Decl_List l)
 
 void free_Stmt(Stmt* stmt)
 {
-  switch(stmt->type)
-  {
-    case ae_stmt_exp:
-      free_Expression(stmt->d.stmt_exp);
-      break;
-    case ae_stmt_while:
-      free_Stmt_While(stmt->d.stmt_while);
-      break;
-    case ae_stmt_until:
-      free_Stmt_Until(stmt->d.stmt_until);
-      break;
-    case ae_stmt_for:
-      free_Stmt_For(stmt->d.stmt_for);
-      break;
-    case ae_stmt_loop:
-      free_Stmt_Loop(stmt->d.stmt_loop);
-      break;
-    case ae_stmt_if:
-      free_Stmt_If(stmt->d.stmt_if);
-      break;
-    case ae_stmt_code:
-      free_Stmt_Code(stmt->d.stmt_code);
-      break;
-   case ae_stmt_switch:
-      free_Stmt_Switch(stmt->d.stmt_switch);
-      break;
-   case ae_stmt_break:
-     free(stmt->d.stmt_break);
-     break;
-   case ae_stmt_continue:
-     free(stmt->d.stmt_continue);
-     break;
-    case ae_stmt_return:
-      free_Stmt_Return(stmt->d.stmt_return);
-      break;
-    case ae_stmt_case:
-      free_Stmt_Case(stmt->d.stmt_case);
-      break;
-    case ae_stmt_gotolabel:
-      free_Stmt_GotoLabel(stmt->d.stmt_gotolabel);
-      break;
-    case ae_stmt_enum:
-      free_Stmt_Enum(stmt->d.stmt_enum);
-      break;
-    case ae_stmt_funcptr:
-      free_Stmt_Func_Ptr(stmt->d.stmt_funcptr);
-      break;
-    case ae_stmt_union:
-      free_Stmt_Union(stmt->d.stmt_union);
-      break;
+  switch(stmt->type) {
+  case ae_stmt_exp:
+    free_Expression(stmt->d.stmt_exp);
+    break;
+  case ae_stmt_while:
+    free_Stmt_While(stmt->d.stmt_while);
+    break;
+  case ae_stmt_until:
+    free_Stmt_Until(stmt->d.stmt_until);
+    break;
+  case ae_stmt_for:
+    free_Stmt_For(stmt->d.stmt_for);
+    break;
+  case ae_stmt_loop:
+    free_Stmt_Loop(stmt->d.stmt_loop);
+    break;
+  case ae_stmt_if:
+    free_Stmt_If(stmt->d.stmt_if);
+    break;
+  case ae_stmt_code:
+    free_Stmt_Code(stmt->d.stmt_code);
+    break;
+  case ae_stmt_switch:
+    free_Stmt_Switch(stmt->d.stmt_switch);
+    break;
+  case ae_stmt_break:
+    free(stmt->d.stmt_break);
+    break;
+  case ae_stmt_continue:
+    free(stmt->d.stmt_continue);
+    break;
+  case ae_stmt_return:
+    free_Stmt_Return(stmt->d.stmt_return);
+    break;
+  case ae_stmt_case:
+    free_Stmt_Case(stmt->d.stmt_case);
+    break;
+  case ae_stmt_gotolabel:
+    free_Stmt_GotoLabel(stmt->d.stmt_gotolabel);
+    break;
+  case ae_stmt_enum:
+    free_Stmt_Enum(stmt->d.stmt_enum);
+    break;
+  case ae_stmt_funcptr:
+    free_Stmt_Func_Ptr(stmt->d.stmt_funcptr);
+    break;
+  case ae_stmt_union:
+    free_Stmt_Union(stmt->d.stmt_union);
+    break;
   }
   free(stmt);
 }
@@ -1228,8 +1217,7 @@ Stmt_List new_Stmt_List(Stmt* stmt, Stmt_List next, int pos)
 void free_Stmt_List(Stmt_List list)
 {
   Stmt_List tmp;
-  while(list)
-  {
+  while(list) {
     tmp = list;
     list = list->next;
     free_Stmt(tmp->stmt);
@@ -1266,10 +1254,10 @@ void free_Class_Def(Class_Def a)
   Class_Body tmp, b = a->body;
   while(b) {
     tmp = b;
-	if(b->section)
-		free_Section(b->section);
+    if(b->section)
+      free_Section(b->section);
     b = b->next;
-	free(tmp);
+    free(tmp);
   }
   free_ID_List(a->name);
   free(a);
@@ -1277,39 +1265,37 @@ void free_Class_Def(Class_Def a)
 
 void free_Section(Section* section)
 {
-  switch(section->type)
-  {
-    case ae_section_class:
-      free_Class_Def(section->d.class_def);
+  switch(section->type) {
+  case ae_section_class:
+    free_Class_Def(section->d.class_def);
+    break;
+  case ae_section_stmt:
+    free_Stmt_List(section->d.stmt_list);
+    break;
+  case ae_section_func:
+    if(!section->d.func_def)
       break;
-    case ae_section_stmt:
-      free_Stmt_List(section->d.stmt_list);
-      break;
-    case ae_section_func:
-if(!section->d.func_def)
-break;
-      free_Stmt(section->d.func_def->code);
-if(section->d.func_def->types) {
-  if(section->d.func_def->arg_list)
-    free_Arg_List(section->d.func_def->arg_list);
-  free_ID_List(section->d.func_def->types);
-  free_Type_Decl(section->d.func_def->type_decl);
-  rem_ref(section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
-  free(section->d.func_def->func->obj);
-  free(section->d.func_def->func);
-  free(section->d.func_def);
-}
-else {
- if(!section->d.func_def->func)
-   free_Func_Def(section->d.func_def);
-}
-      break;
+    free_Stmt(section->d.func_def->code);
+    if(section->d.func_def->types) {
+      if(section->d.func_def->arg_list)
+        free_Arg_List(section->d.func_def->arg_list);
+      free_ID_List(section->d.func_def->types);
+      free_Type_Decl(section->d.func_def->type_decl);
+      rem_ref(section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+      free(section->d.func_def->func->obj);
+      free(section->d.func_def->func);
+      free(section->d.func_def);
+    } else {
+      if(!section->d.func_def->func)
+        free_Func_Def(section->d.func_def);
+    }
+    break;
   }
   free(section);
 }
 
 Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
-    Class_Ext ext, Class_Body body, int pos )
+                         Class_Ext ext, Class_Body body, int pos )
 {
   Class_Def a = calloc(1, sizeof(struct Class_Def_));
   a->decl = class_decl;
@@ -1324,7 +1310,7 @@ Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
 }
 
 Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
-    Class_Ext ext, Class_Body body, int pos )
+                         Class_Ext ext, Class_Body body, int pos )
 {
   Class_Def a = new_class_def( class_decl, name, ext, body, pos );
   a->iface = 1;
@@ -1381,8 +1367,7 @@ void free_ID_List(ID_List a)
   debug_msg("emit", "free_ID_LIST");
 #endif
   ID_List tmp, curr = a;
-  while(curr)
-  {
+  while(curr) {
     tmp = curr;
     curr = curr->next;
     free(tmp);
@@ -1437,8 +1422,7 @@ void free_Ast(Ast prog)
   debug_msg("ast", "free AST");
 #endif
   Ast tmp, ast = prog;
-  while(ast)
-  {
+  while(ast) {
     tmp = ast;
     ast = ast->next;
     free_Section(tmp->section);

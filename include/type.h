@@ -19,8 +19,7 @@ typedef struct
 	m_uint in, out, trig;
 } UGenInfo;
 */
-struct Type_
-{
+struct Type_ {
   m_str     name;
   m_uint    size;
   Type      parent;
@@ -66,12 +65,12 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data);
 Kindof kindof(Type type);
 m_int str2char( const m_str c, m_int linepos );
 extern struct Type_ t_void;
-extern struct Type_ t_int;     
-extern struct Type_ t_float;     
+extern struct Type_ t_int;
+extern struct Type_ t_float;
 extern struct Type_ t_complex, t_polar, t_vec3, t_vec4;
-extern struct Type_ t_function;  
+extern struct Type_ t_function;
 extern struct Type_ t_func_ptr;
-extern struct Type_ t_dur;  
+extern struct Type_ t_dur;
 extern struct Type_ t_time;
 extern struct Type_ t_now;
 extern struct Type_ t_class;

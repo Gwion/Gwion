@@ -121,7 +121,7 @@ static INSTR(ge)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'>=' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  POP_REG(shred,SZ_INT * 2);
+  POP_REG(shred, SZ_INT * 2);
   *(m_int*)shred->reg = (*(m_int*)shred->reg >= *(m_int*)(shred->reg + SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
@@ -131,7 +131,7 @@ static INSTR(lt)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'<' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
-  POP_REG(shred,SZ_INT * 2);
+  POP_REG(shred, SZ_INT * 2);
   *(m_int*)shred->reg = (*(m_int*)shred->reg < * (m_int*)(shred->reg + SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
@@ -381,7 +381,7 @@ static INSTR(rsl)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'<<=>' %i", *(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
-  POP_REG(shred,SZ_INT * 2);
+  POP_REG(shred, SZ_INT * 2);
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) <<= (*(m_int*)shred->reg));
   PUSH_REG(shred,  SZ_INT);
 }
@@ -439,8 +439,8 @@ m_bool import_int(Env env)
   CHECK_BB(add_binary_op(env, op_divide,        &t_int, &t_int, &t_int, divide,     1))
   CHECK_BB(add_binary_op(env, op_percent,       &t_int, &t_int, &t_int, modulo,     1))
 // logical
-  CHECK_BB(add_binary_op(env, op_and,           &t_int, &t_int, &t_int, and ,        1))
-  CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or ,         1))
+  CHECK_BB(add_binary_op(env, op_and,           &t_int, &t_int, &t_int, and,        1))
+  CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or,         1))
   CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_int, &t_int, &t_int, eq,         1))
   CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_int, &t_int, &t_int, neq,        1))
   CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_object, &t_null, &t_int, neq,        1))

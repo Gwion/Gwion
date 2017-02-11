@@ -2,14 +2,13 @@
 #include "vm.h"
 #include "operator.h"
 
-struct NameSpace_
-{
+struct NameSpace_ {
   m_str     name;
-	m_str     filename;
+  m_str     filename;
   Scope     value;
   Scope     type;
   Scope     func;
-	Map   		label; // 09/09/16
+  Map   		label; // 09/09/16
   m_uint    offset;
   Vector    obj_v_table;
   NameSpace parent;

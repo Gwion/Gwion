@@ -6,8 +6,7 @@
 
 typedef struct VM_Code_* VM_Code;
 typedef enum { NATIVE_UNKNOWN, NATIVE_CTOR, NATIVE_DTOR, NATIVE_MFUN, NATIVE_SFUN } e_native_func;
-struct VM_Code_
-{
+struct VM_Code_ {
   Vector instr;
   m_str name, filename;
   m_uint stack_depth;
@@ -18,22 +17,20 @@ struct VM_Code_
 
 typedef struct BBQ_* BBQ;
 typedef struct Shreduler_* Shreduler;
-typedef struct
-{
+typedef struct {
   Vector shred, ugen;
-	BBQ bbq;
-	Shreduler shreduler;
+  BBQ bbq;
+  Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;
   Env env;
-	void (*wakeup)();
+  void (*wakeup)();
 //	Driver driver;
-	m_bool is_running;
+  m_bool is_running;
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;
-struct VM_Shred_
-{
+struct VM_Shred_ {
   VM_Code code;
   VM_Shred parent;
   char* reg;

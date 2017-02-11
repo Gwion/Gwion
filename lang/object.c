@@ -13,7 +13,7 @@ struct Type_ t_object = { "Object", sizeof(m_uint), NULL, te_object };
 void NullException(VM_Shred shred)
 {
   err_msg(INSTR_, 0, "NullPointerException: shred[id=%lu:%s], PC=[%lu]\n",
-    shred->xid, shred->name, shred->pc);
+          shred->xid, shred->name, shred->pc);
   shred->is_running = 0;
   shred->is_done = 1;
 }
@@ -126,7 +126,7 @@ void object_dtor(M_Object o, VM_Shred shred)
 INSTR(Assign_Object)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "assign object %p %p", instr->m_val, *(m_uint*)(shred->reg -SZ_INT*2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "assign object %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object done = **(M_Object**)(shred->reg + SZ_INT);

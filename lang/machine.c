@@ -37,7 +37,8 @@ static SFUN(machine_doc)
 {
 //  prepare()
   Ast ast = NULL;
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  \
   char* str = STRING(obj);
   m_bool global = strcmp(str, "global_context");
   if(global) {
@@ -76,7 +77,7 @@ static SFUN(machine_doc_update)
   ssize_t read;
   size_t len = 0;
   n = scandir("/usr/lib/Gwion/doc/dat", &namelist, js_filter, alphasort);
-  fprintf(all , "var searchData = \n[\n");
+  fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
       char name[128];

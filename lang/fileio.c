@@ -103,8 +103,8 @@ INSTR(file_to_float)
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
-       Except(shred);
-       return;
+      Except(shred);
+      return;
     }
     *(m_float*)(shred->reg - SZ_INT) = (**(m_float**)(shred->reg) = ret);
   } else exit(89);

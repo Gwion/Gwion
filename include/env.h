@@ -5,8 +5,7 @@
 #include "oo.h"
 #include "context.h"
 #include "absyn.h"
-struct Env_
-{
+struct Env_ {
   NameSpace curr;
   NameSpace global_nspc;
   NameSpace user_nspc;
@@ -25,7 +24,7 @@ struct Env_
 //	Map				unary_map;
 //	Map				binary_map;
   VM_Object obj;
-	Map known_ctx;
+  Map known_ctx;
 //  Vector clean;
 };
 Env new_Env();

@@ -35,15 +35,14 @@ typedef struct M_Object_  * M_Object;
 typedef struct VM_Array_  * VM_Array;
 typedef struct UGen_      * UGen;
 
-typedef enum
-{
+typedef enum {
   te_int, te_float, te_dur, te_time, te_now, te_string, te_void, te_function, te_func_ptr,
   te_object, te_class, te_user, te_null,
   te_io, te_fileio, te_polar, te_complex, te_vec3, te_vec4, te_array, te_shred, te_machine, te_event,
   te_std,
-	te_template,
-	te_ugen,
-	te_vararg,
+  te_template,
+  te_ugen,
+  te_vararg,
   te_last
 } te_type;
 typedef enum { ae_func_spec_none, ae_func_spec_dtor, ae_func_spec_op } ae_func_spec;
@@ -55,7 +54,7 @@ typedef enum {
   op_assign, op_plus, op_minus, op_times, op_divide, op_percent,
 // logical
   op_and, op_or, op_eq, op_neq,
-	op_gt, op_ge, op_lt, op_le,
+  op_gt, op_ge, op_lt, op_le,
   // bitwise
   op_shift_left, op_shift_right,
   op_s_or, op_s_and, op_s_xor,
@@ -63,12 +62,12 @@ typedef enum {
   op_plusplus, op_minusminus, op_exclamation, op_tilda,
   op_new, op_spork, op_typeof, op_sizeof,
 // reverse arithmetic
-  op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck, 
+  op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
 // reverse logical
   op_rand, op_ror, op_req, op_rneq,
   op_rgt, op_rge, op_rlt, op_rle,
 // reverse bitwise
-	op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
+  op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
 // unchuck and others
   op_unchuck, op_rinc, op_rdec, op_runinc, op_rundec,
 // at
@@ -77,9 +76,8 @@ typedef enum {
   op_trig, op_untrig
 } Operator;
 // more
-enum
-{
-	ae_op_arrow_left, ae_op_arrow_right
+enum {
+  ae_op_arrow_left, ae_op_arrow_right
 };
 #define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
 #define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
@@ -128,7 +126,7 @@ enum
 {\
   a->mem_index -= b; \
   a->mem -= b;\
-} 
+}
 #define PUSH_REG(a, b) \
 {\
   a->reg_index += b; \
