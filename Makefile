@@ -32,9 +32,9 @@ endif
 endif
 
 ifeq (${CC}, gcc)
-LDFLAGS+= -lpthread
+LDFLAGS += -lpthread
 else
-CFLAGS=-pthread
+CFLAGS  += -pthread
 endif
 
 ifdef ($GWION_DOC_DIR)
