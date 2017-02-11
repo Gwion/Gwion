@@ -28,6 +28,7 @@ echo "$CI" "$BATS_TEST_DESCRIPTION"
   refute_output --partial "Invalid write of size "
   refute_output --partial "Invalid read of size "
   refute_output --partial "Invalid free() / delete / delete[] / realloc()"
+  refute_output --partial "depends on uninitialised value"
   assert_output --partial "All heap blocks were freed -- no leaks are possible"  &2> /dev/null && return 0
   assert_output --partial "definitely lost: 0 bytes in 0 blocks"
   assert_output --partial "indirectly lost: 0 bytes in 0 blocks"
