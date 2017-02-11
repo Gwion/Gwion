@@ -1,5 +1,5 @@
 PRG=gwion
-LDFLAGS += -lsoundpipe
+LDFLAGS += -lsoundpipe -lsoundpipe
 LDFLAGS += -lm -lpthread
 LDFLAGS += -ldl -rdynamic
 
