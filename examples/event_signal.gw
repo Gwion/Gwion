@@ -1,0 +1,3 @@
+Event e;
+spork ~ { second => now; e.signal(); };
+e => now;
