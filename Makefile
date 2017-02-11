@@ -24,9 +24,9 @@ drvr_obj := $(drvr_src:.c=.o)
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
 ifeq (${COVERAGE}, 1)
-endif
 CFLAGS+= --coverage
 LDFLAGS+= -lgcov
+endif
 endif
 
 ifdef ($GWION_DOC_DIR)
