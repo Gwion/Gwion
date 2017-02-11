@@ -1,6 +1,6 @@
 PRG=gwion
-LDFLAGS += -lsoundpipe -lsoundpipe
-LDFLAGS += -lm -lpthread
+LDFLAGS += -lsoundpipe
+LDFLAGS += -lm
 LDFLAGS += -ldl -rdynamic
 
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native
@@ -29,6 +29,10 @@ CFLAGS+= --coverage
 LDFLAGS+= -lgcov
 endif
 endif
+endif
+
+ifeq (${CC}, gcc)
+LDFLAGS+= -lpthread
 endif
 
 ifdef ($GWION_DOC_DIR)
