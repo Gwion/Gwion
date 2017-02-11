@@ -9,8 +9,7 @@
 #include "object.h"
 
 
-struct Instr_
-{
+struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
   m_uint m_val, m_val2;
   m_float f_val;
@@ -82,7 +81,7 @@ void negatef(VM * vm, VM_Shred shred, Instr instr);
 void complex_real(VM * vm, VM_Shred shred, Instr instr);
 void complex_imag(VM * vm, VM_Shred shred, Instr instr);
 
-/* alloc (instr.c)*/ 
+/* alloc (instr.c)*/
 void Alloc_Word(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Float(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Complex(VM* vm, VM_Shred shred, Instr instr);

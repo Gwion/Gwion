@@ -1,7 +1,6 @@
 #include "vm.h"
 #include "absyn.h"
-struct Func_
-{
+struct Func_ {
   m_str name;
   Func_Def def;
   VM_Code code;

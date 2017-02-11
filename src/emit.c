@@ -1912,10 +1912,10 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
         // get rid of primary str ?
         /*          if(exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_str)*/
         instr = add_instr(emit, Reg_Pop_Word4);
-        if (isa(exp->type, &t_complex) > 0 && exp->exp_type != Decl_Expression_type)
-          exp->type->size = SZ_COMPLEX;
-        if (isa(exp->type, &t_polar) > 0)
-          exp->type->size = SZ_COMPLEX;
+        /*        if (isa(exp->type, &t_complex) > 0 && exp->exp_type != Decl_Expression_type)
+                  exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl;
+                if (isa(exp->type, &t_polar) > 0 && exp->exp_type != Decl_Expression_type)
+                  exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl; */
         //        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
         instr->m_val = (exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * SZ_INT : exp->type->size);
         exp = exp->next;

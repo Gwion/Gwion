@@ -2,8 +2,7 @@
 #include "map.h"
 #include "oo.h"
 
-struct Context_
-{
+struct Context_ {
   m_str     filename;
   Ast       tree;
   NameSpace nspc;

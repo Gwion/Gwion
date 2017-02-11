@@ -212,8 +212,7 @@ static INSTR(ugen_connect)
       if(lhs->ugen->n_out > 1) {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
 //        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
-      }
-else {
+      } else {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
         vector_append(lhs->ugen->to, (vtype)obj->ugen);
       }
@@ -305,8 +304,7 @@ void ugen_dtor(M_Object o, VM_Shred shred)
 {
   vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, (vtype)o->ugen));
   m_uint i;
-  for(i = 0; i < vector_size(o->ugen->to); i++)
-  {
+  for(i = 0; i < vector_size(o->ugen->to); i++) {
     UGen u = (UGen)vector_at(o->ugen->to, i);
     m_int index = vector_find(u->ugen, (vtype)o->ugen);
     if(index > -1)

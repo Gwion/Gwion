@@ -1,17 +1,35 @@
 #!/bin/bash
 
-# needs $BISON_VERSION
+# TODO: output error message
+check_variable() {
+	if [ -z "$1" ]
+	then
+		echo "unknown variable $2."
+		exit 1
+	fi
+}
+
+check_variable "$BISON_VERSION"  BISON_VERSION
+check_variable "$TRAVIS_OS_NAME" TRAVIS_OS_NAME
+check_variable "$SP_BRANCH"      SP_BRANCH
+check_variable "$GWION_DOC_DIR"  GWION_DOC_DIR
+check_variable "$GWION_API_DIR"  GWION_API_DIR
+check_variable "$GWION_TOK_DIR"  GWION_TOK_DIR
+check_variable "$GWION_TAG_DIR"  GWION_TAG_DIR
+check_variable "$GWION_PLUG_DIR" GWION_PLUG_DIR
+check_variable "$GW_FLOAT_TYPE"  GW_FLOAT_TYPE
 
 SED() {
 	if [ "$TRAVIS_OS_NAME" = "osx" ]
-	then echo "sed -i ''";
-	else echo "sed -i";
+	then echo "sed -i ''"
+	else echo "sed -i"
 	fi
 }
+
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
-	brew install lua        # need for importing soundpipe
+	brew install lua        # needed for importing soundpipe
 }
 
 install_bison() {
@@ -30,24 +48,23 @@ install_bats() {
 install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
-# use double (or not)
 	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-	make
+    $(SED) "s/-DSPFLOAT=float/-DSPFLOAT=double/" Makefile
+    if [ "$SP_BRANCH" = "master" ]
+    then
+		wget https://gist.githubusercontent.com/fennecdjay/a5dbc54342bcf6f0c8d5f9a03355580b/raw/f7a6a000b6687fb5edc494c2d5fe05e8bb30bc40/soundpipe_data_master.patch
+		patch -p1 -i soundpipe_data_master.patch
+		rm soundpipe_data_master.patch
+		rm modules/data/padsynth.lua
+ 	fi
+    make
 	popd
 }
 
 configure_Gwion() {
-	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-	$(SED) "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-	$(SED) "s/ALSA_D/#ALSA_D/" config.def.mk
+    ls "$PWD/Soundpipe/modules/data"
+#	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-    if [ "$TRAVIS_OS_NAME" = "osx" ]
-	then
-#		$(SED) "s/YACC ?= bison/YACC=$PWD\/bison-3.0.4\/src\/bison/" ast/Makefile
-		$(SED) "s/-lrt//" Makefile
-		mkdir /Users/travis/build/fennecdjay/Gwion/bison-3.0.4/share/bison/
-		cp -r bison-3.0.4/data bison-3.0.4/share/bison
-	fi
 }
 
 prepare_directories() {
@@ -59,9 +76,11 @@ prepare_directories() {
 }
 
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
+
 install_bison
 install_bats
 install_soundpipe
 configure_Gwion
 prepare_directories
+
 exit 0

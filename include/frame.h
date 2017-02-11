@@ -1,8 +1,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 #include "defs.h"
-typedef struct
-{
+typedef struct {
   m_str name;
   m_uint size;
   m_bool is_ref;
@@ -12,8 +11,7 @@ typedef struct
 Local* new_Local();
 void free_Local(Local* local);
 
-typedef struct
-{
+typedef struct {
   m_str name;
   m_uint curr_offset;
   m_uint num_access;

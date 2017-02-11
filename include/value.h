@@ -2,13 +2,12 @@
 #include "map.h"
 #include "oo.h"
 
-struct Value_
-{
-	te_type type;
+struct Value_ {
+  te_type type;
   Type m_type;
-	m_str name;
+  m_str name;
 //	void* ptr;
-	m_uint* ptr;
+  m_uint* ptr;
   Func func_ref;
   m_uint offset;
   m_uint func_num_overloads;
@@ -22,7 +21,7 @@ struct Value_
   VM_Object obj;
   m_str doc;
 
-m_bool is_import;// use this?
+  m_bool is_import;// use this?
 //m_bool is_template;// template
 };
 

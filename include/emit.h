@@ -5,8 +5,7 @@
 
 m_bool get_instr(Emitter emit, Operator op, Type rhs, Type lhs);
 
-typedef struct
-{
+typedef struct {
   m_str name;
   m_str filename;
   m_uint stack_depth;
@@ -18,8 +17,7 @@ typedef struct
 
 Code* new_Code();
 void free_Code(Code* code);
-struct Emitter_
-{
+struct Emitter_ {
   Env       env;
   Vector    stack;
   Vector    spork;
@@ -31,7 +29,7 @@ struct Emitter_
   VM_Object obj;
 //  Scope     labels;
   Map       cases;
-	m_int			default_case_index;
+  m_int			default_case_index;
 };
 
 

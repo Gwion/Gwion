@@ -12,12 +12,12 @@ CFLAGS+=-DD_FUNC=${D_FUNC}
 # if DD_FUNC is one of the optional driver, this driver has to be set to 1
 # TODO: make it automatic
 
+SPA_D       ?= 1
 SNDFILE_D   ?= 1
 ALSA_D      ?= 1
 JACK_D      ?= 0
 PORTAUDIO_D ?= 0
 SOUNDIO_D   ?= 0
-SPA_D       ?= 1
 
 # colorize output
 #CFLAGS+=-DCOLOR
@@ -32,6 +32,7 @@ SPA_D       ?= 1
 #CFLAGS+=-DDEBUG_VM
 #CFLAGS+=-DDEBUG_INSTR
 #CFLAGS+=-DDEBUG_SHREDULER
+#CFLAGS+=-DDEBUG_STACK
 
 
 #uncomment this to set the float type to double
@@ -39,7 +40,11 @@ USE_DOUBLE=1
 
 # if any debug flag is set, we need -DDEBUG
 ifeq ($(findstring DEBUG,$(CFLAGS)), DEBUG)
-CFLAGS+=-DDEBUG
+CFLAGS+=-DDEBUG -g
+endif
+
+ifeq (${DEBUG}, 1)
+CFLAGS+=-DDEBUG -g
 endif
 
 #this must point to a valid soundpipe data directory

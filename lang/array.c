@@ -21,7 +21,7 @@ M_Object new_M_Array(m_uint size, m_uint length)
   M_Object a = new_M_Object();
   initialize_object(a, &t_array);
   a->d.array 	    = malloc(sizeof(M_Vector));
-  a->d.array->ptr  = calloc(length , size);
+  a->d.array->ptr  = calloc(length, size);
   a->d.array->size = size;
   a->d.array->len  = length * size;
   return a;

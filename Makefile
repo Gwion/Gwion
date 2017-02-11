@@ -1,12 +1,11 @@
 PRG=gwion
-LDFLAGS = -lsoundpipe
-LDFLAGS += -lm -pthread -lsndfile
-LDFLAGS += -ldl -rdynamic -lrt
+LDFLAGS += -lsoundpipe
+LDFLAGS += -lm
+LDFLAGS += -ldl -rdynamic
 
-CFLAGS += -Iinclude -g -std=c99 -O3 -mfpmath=sse -mtune=native
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native
 CFLAGS += -fno-strict-aliasing -Wall -pedantic
 CFLAGS += -D_GNU_SOURCE
-
 
 core_src := $(wildcard  src/*.c)
 lang_src := $(wildcard lang/*.c)
@@ -21,6 +20,23 @@ ast_obj = ast/absyn.o ast/parser.o ast/lexer.o
 include config.mk
 include driver.mk
 drvr_obj := $(drvr_src:.c=.o)
+
+ifeq ($(shell uname), Linux)
+LDFLAGS+=-lrt
+ifeq (${COVERAGE}, 1)
+ifeq (${CC}, gcc)
+CFLAGS+= --coverage
+LDFLAGS+= -lgcov
+endif
+endif
+endif
+
+ifeq (${CC}, gcc)
+LDFLAGS += -lpthread
+else
+CFLAGS  += -pthread
+LDFLAGS += -lpthread
+endif
 
 ifdef ($GWION_DOC_DIR)
 CFLAGS += -DGWION_DOC_DIR=${GWION_DOC_DIR}
@@ -46,17 +62,21 @@ ifeq (${USE_DOUBLE}, 1)
 CFLAGS += -DUSE_DOUBLE -DSPFLOAT=double
 endif
 
-faster: include/generated.h
+faster: check_driver include/generated.h
 	make soundpipe_import
 	make -C ast
 	make -j 8 all
 
+check_driver:
+	[ ${DRIVER_OK} -eq 1 ] || exit 1
+
 all: config.mk core lang ugen drvr
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
 
-default: config.mk include/generated.h core lang ugen drvr
+default: soundpipe_import config.mk include/generated.h core lang ugen drvr
 	@make -C ast
 	${CC} ${core_obj} ${lang_obj} ${ugen_obj} ${drvr_obj} ${ast_obj} ${LDFLAGS} -o ${PRG}
+
 
 config.mk: config.def.mk
 	cp config.def.mk config.mk
@@ -69,29 +89,12 @@ include/generated.h:
 core: ${core_obj}
 lang: ${lang_obj}
 ugen: ${ugen_obj}
-
 drvr: ${drvr_obj}
 
-#ifeq (${SNDFILE_D}, 1)
-#	${CC} ${CFLAGS} -c driver/sndfile.c -o driver/sndfile.o
-#endif
-#ifeq (${ALSA_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/alsa.c -o driver/alsa.o
-#endif
-#ifeq (${JACK_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/jack.c -o driver/jack.o
-#endif
-#ifeq (${SOUNDIO_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/soundio.c -o driver/soundio.o
-#endif
-#ifeq (${PORTAUDIO_D}, 1)
-#	${CC} -I include ${CFLAGS} -c driver/portaudio.c -o driver/portaudio.o
-#endif
-
 mostly_clean:
-	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c
+	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c *.gcno
 	@rm -f include/generated.h
-	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c
+	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c ast/*.c lang/*.c include/*.h
 	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
 	@rm -rf doc/html doc/latex
 	@make -s -C ast clean

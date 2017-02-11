@@ -1,0 +1,13 @@
+polar a, b;
+a.mod;
+a.phase;
+//b = a;
+//a + b;
+//a - b;
+//a * b;
+//a / b;
+a +=> b;
+a -=> b;
+a *=> b;
+1 => a.mod;
+a /=> b;

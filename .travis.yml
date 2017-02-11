@@ -16,9 +16,13 @@ addons:
 
 env:
   global:
+    - DEBUG=1
     - D_FUNC=dummy_driver
     - ALSA_D=0
-    - SOUNDPIPE_DATA_DIR=$HOME/Soundpipe/modules/data
+    - SOUNDPIPE_D=0
+    - SPA_D=0
+#    - SNDFILE_D=0
+    - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
     - GWION_API_DIR=./api
@@ -26,10 +30,10 @@ env:
     - GWION_TAG_DIR=./tag
     - GWION_PLUG_DIR=./plug
   matrix:
-    - GW_FLOAT_TYPE=float  SP_BRANCH=dev
-    - GW_FLOAT_TYPE=double SP_BRANCH=dev
+    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
+    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
     - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
-    - GW_FLOAT_TYPE=double SP_BRANCH=master SPA_D=0
+    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
 
 matrix:
   fast_finish: true
@@ -40,10 +44,12 @@ compiler:
 - clang
 - gcc
 
+before_install:
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
+
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
-  - export CFLAGS+=-ISoundpipe/h
-  - export LIBARY_PATH=Soundpipe
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
 
@@ -53,3 +59,6 @@ script:
 branches:
   - only:
     - dev
+
+after_success:
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude utils --exclude driver --gcov-options '\-lp';fi; fi; fi

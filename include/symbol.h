@@ -40,48 +40,48 @@
 extern "C" {
 #endif
 
-typedef const char* c_constr; 
-typedef char* c_str; 
+  typedef const char* c_constr;
+  typedef char* c_str;
 
-typedef struct S_Symbol_ * S_Symbol;
+  typedef struct S_Symbol_ * S_Symbol;
 
-/* Make a unique symbol from a given c_str.  
- *  Different calls to make_symbol("foo") will yield the same S_Symbol
- *  value, even if the "foo" c_str are at different locations. */
-S_Symbol insert_symbol( c_constr );
+  /* Make a unique symbol from a given c_str.
+   *  Different calls to make_symbol("foo") will yield the same S_Symbol
+   *  value, even if the "foo" c_str are at different locations. */
+  S_Symbol insert_symbol( c_constr );
 
-/* Extract the underlying c_str from a symbol */
-c_str S_name(S_Symbol);
+  /* Extract the underlying c_str from a symbol */
+  c_str S_name(S_Symbol);
 
 // Gwion spec
-void free_Symbols();
+  void free_Symbols();
 
 #ifdef __TABLE
-/* S_table is a mapping from S_Symbol->any, where "any" is represented
- *     here by void*  */
-typedef struct TAB_table_ *S_table;
+  /* S_table is a mapping from S_Symbol->any, where "any" is represented
+   *     here by void*  */
+  typedef struct TAB_table_ *S_table;
 
-/* Make a new table */
-S_table S_empty(void);
-S_table S_empty2(unsigned int size);
+  /* Make a new table */
+  S_table S_empty(void);
+  S_table S_empty2(unsigned int size);
 
-/* Enter a binding "sym->value" into "t", shadowing but not deleting
- *    any previous binding of "sym". */
-void S_enter(S_table t, S_Symbol sym, void * value);
-void S_enter2(S_table t, c_constr str, void * value);
+  /* Enter a binding "sym->value" into "t", shadowing but not deleting
+   *    any previous binding of "sym". */
+  void S_enter(S_table t, S_Symbol sym, void * value);
+  void S_enter2(S_table t, c_constr str, void * value);
 
-/* Look up the most recent binding of "sym" in "t", or return NULL
- *    if sym is unbound. */
-void * S_look(S_table t, S_Symbol sym);
-void * S_look2(S_table t, c_constr str);
+  /* Look up the most recent binding of "sym" in "t", or return NULL
+   *    if sym is unbound. */
+  void * S_look(S_table t, S_Symbol sym);
+  void * S_look2(S_table t, c_constr str);
 
-/* Start a new "scope" in "t".  Scopes are nested. */
-void S_beginScope(S_table t);
+  /* Start a new "scope" in "t".  Scopes are nested. */
+  void S_beginScope(S_table t);
 
-/* Remove any bindings entered since the current scope began,
-   and end the current scope. */
-void S_endScope(S_table t);
-void S_pop(S_table t);
+  /* Remove any bindings entered since the current scope began,
+     and end the current scope. */
+  void S_endScope(S_table t);
+  void S_pop(S_table t);
 #endif
 
 #if defined(_cplusplus) || defined(__cplusplus)

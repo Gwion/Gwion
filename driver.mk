@@ -1,3 +1,44 @@
+DRIVER_OK=0
+ifeq (${D_FUNC}, raw_driver)
+SPA_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, sndfile_driver)
+SNDFILE_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, alsa_driver)
+ALSA_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, jack_driver)
+JACK_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, pa_driver)
+PORTAUDIO_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, sio_driver)
+SOUNDIO_D=1
+DRIVER_OK=1
+endif
+
+ifeq (${D_FUNC}, dummy_driver)
+DRIVER_OK=1
+endif
+ifeq (${D_FUNC}, silent_driver)
+DRIVER_OK=1
+endif
+
+############################
+
+
 ifeq (${SNDFILE_D}, 1)
   LDFLAGS+=-lsndfile
   CFLAGS+=-DHAVE_SNDFILE

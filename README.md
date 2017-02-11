@@ -4,6 +4,7 @@
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.svg)
 ![](https://img.shields.io/badge/version-pre--pre--alpha-red.svg)
 ![](https://img.shields.io/badge/language-C-yellowgreen.svg)  
+
 gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
@@ -21,13 +22,15 @@ there is also:
 *  *file* driver, as fast as possible, writes to a file, either wav or spa, depending on *-r* switch
 try
  
-```
+```sh
 ./gwion --help
 ```
+
 to learn more
 
 simple example code:
-```
+
+```cpp
 // print hello world
 <<<"Hello World">>>;
 // create a sinusoidal generator and connect it to dac  
@@ -36,12 +39,13 @@ SinOsc s => dac;
 5::second => now;  
 // you're done!
 ```
+
 there are a few *new* features:  	
 	
-    *  variadic funcs
-    *  templates (func only for now)
-    *  function pointers
-    *  enums
+*  variadic funcs
+*  templates (func only for now)
+*  function pointers
+*  enums
 
 ####requires####
 

@@ -6,6 +6,14 @@ DIR=test/error
 #  diag "testing error messages"
 #  assert_success
 #}
+
+@test "silent driver"                      { ./gwion -d silent; }
+@test "host invalid (short)"               { gbt "--host non_existant_host"  "setting hostname to localhost."; }
+@test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }
+@test "port invalid (short)"               { gbt "--port 1"  "can't bind."; }
+@test "port invalid (long)"                { gbt "-p 1"  "can't bind."; }
+
+
 @test "non exitant file"                   { gbt $DIR/no_file.gw   "error while opening file"; }
 @test "multiple public class"              { gbt $DIR/class_multiple_public.gw   "more than one 'public' class defined"; }
 @test "unknown type in declaration"        { gbt $DIR/unknown_type.gw   "unknown in declaration"; }
