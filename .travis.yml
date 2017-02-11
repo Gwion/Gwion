@@ -21,7 +21,7 @@ env:
     - ALSA_D=0
     - SOUNDPIPE_D=0
     - SPA_D=0
-    - SNDFILE_D=0
+#    - SNDFILE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=./doc
@@ -61,4 +61,4 @@ branches:
     - dev
 
 after_success:
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude utils --gcov-options '\-lp';fi; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude utils --exclude driver --gcov-options '\-lp';fi; fi; fi
