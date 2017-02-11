@@ -1,5 +1,8 @@
 *.o
 *.so
+*.gcno
+*.gcov
+*.gcda
 gwion
 ast/parser.*
 ast/lexer.*

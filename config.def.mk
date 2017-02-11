@@ -32,6 +32,7 @@ SOUNDIO_D   ?= 0
 #CFLAGS+=-DDEBUG_VM
 #CFLAGS+=-DDEBUG_INSTR
 #CFLAGS+=-DDEBUG_SHREDULER
+#CFLAGS+=-DDEBUG_STACK
 
 
 #uncomment this to set the float type to double

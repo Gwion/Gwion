@@ -48,7 +48,7 @@ INSTR(Reg_Push_Imm2)
 INSTR(Reg_Push_ImmC)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm complex %p", (void*)instr->c_val);
+  debug_msg("instr", "[reg] push imm complex");
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
   *(m_complex*)(shred->reg) = ((*(m_float*)shred->reg) + (*(m_float*)(shred->reg + SZ_FLOAT)) * I);
@@ -141,7 +141,7 @@ INSTR(Reg_Push_Mem2)
 INSTR(Reg_Push_Mem_Complex)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'complex' push mem ");
+  debug_msg("instr", "[reg] 'complex' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   if(instr->m_val2) // global
     *(m_complex*)shred->reg = *(m_complex*)(shred->base + instr->m_val);
@@ -153,7 +153,7 @@ INSTR(Reg_Push_Mem_Complex)
 INSTR(Reg_Push_Mem_Vec3)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'vec3' push mem ");
+  debug_msg("instr", "[reg] 'vec3' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   if(instr->m_val2) // global
     *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->base + instr->m_val);
@@ -168,7 +168,7 @@ INSTR(Reg_Push_Mem_Vec3)
 INSTR(Reg_Push_Mem_Vec4)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'vec4' push mem ");
+  debug_msg("instr", "[reg] 'vec4' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   if(instr->m_val2) // global
     *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->base + instr->m_val);
