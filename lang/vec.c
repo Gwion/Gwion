@@ -189,9 +189,13 @@ INSTR(vec3_z)
     *(m_float**)shred->reg = &v->z;
     PUSH_REG(shred,  SZ_INT);
   } else {
-    POP_REG(shred, SZ_VEC3);
-    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-    PUSH_REG(shred,  SZ_FLOAT);
+//    POP_REG(shred, SZ_VEC3);
+    POP_REG(shred, SZ_INT);
+    VEC3_T* v = *(VEC3_T**)(shred->reg);
+    *(m_float*)shred->reg = v->z;
+    PUSH_REG(shred,  SZ_INT);
+//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -203,9 +207,13 @@ INSTR(vec4_z)
     *(m_float**)shred->reg = &v->z;
     PUSH_REG(shred,  SZ_INT);
   } else {
-    POP_REG(shred, SZ_VEC4);
-    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float*)shred->reg = v->z;
     PUSH_REG(shred,  SZ_FLOAT);
+//    POP_REG(shred, SZ_VEC4);
+//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -217,9 +225,13 @@ INSTR(vec4_w)
     *(m_float**)shred->reg = &v->z;
     PUSH_REG(shred,  SZ_INT);
   } else {
-    POP_REG(shred, SZ_VEC4);
-    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 3);
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float*)shred->reg = v->z;
     PUSH_REG(shred,  SZ_FLOAT);
+//    POP_REG(shred, SZ_VEC4);
+//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 3);
+//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 m_bool import_vec3(Env env)
@@ -258,10 +270,10 @@ m_bool import_vec3(Env env)
   dl_func_add_arg(fun, "float", "goal");
   dl_func_add_arg(fun, "float", "slew");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "update", (m_uint)vec3_update_set);
+  fun = new_DL_Func("float", "supdate", (m_uint)vec3_update_set);
   dl_func_add_arg(fun, "float", "goalAndValue");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "update", (m_uint)vec3_update_set_slew);
+  fun = new_DL_Func("float", "supdate", (m_uint)vec3_update_set_slew);
   dl_func_add_arg(fun, "float", "goalAndValue");
   dl_func_add_arg(fun, "float", "slew");
   CHECK_OB(import_mfun(env, fun))

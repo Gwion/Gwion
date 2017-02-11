@@ -1,2 +1,13 @@
 Vec3 v;
-v.x;
+
+<<< v.x >>>;
+<<< v.y >>>;
+<<< v.z >>>;
+
+<<< "setAll",     v.setAll(1.2) >>>;
+<<< "should be 1.2 1.2 1.2", v >>>;
+<<< "magnitude", v.magnitude() >>>;
+<<< "normalize", v.normalize() >>>;
+<<< "interp",    v.interp() >>>;
+<<< "interp",    v.interp(2.3) >>>;
+<<< "interp",    v.interp(2.3::samp) >>>;

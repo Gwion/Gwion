@@ -1,0 +1,11 @@
+Vec4 v;
+
+<<< v.x >>>;
+<<< v.y >>>;
+<<< v.z >>>;
+<<< v.w >>>;
+
+<<< "setAll",    v.setAll(1.2) >>>;
+<<< "should be 1.2 1.2 1.2", v >>>;
+<<< "magnitude", v.magnitude() >>>;
+<<< "normalize", v.normalize() >>>;
