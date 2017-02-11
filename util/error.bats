@@ -7,6 +7,7 @@ DIR=test/error
 #  assert_success
 #}
 
+@test "silent driver"                      { ./gwion -d silent; }
 @test "host invalid (short)"               { gbt "--host non_existant_host"  "setting hostname to localhost."; }
 @test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }
 @test "port invalid (short)"               { gbt "--port 1"  "can't bind."; }
