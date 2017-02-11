@@ -24,6 +24,7 @@ drvr_obj := $(drvr_src:.c=.o)
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
 ifeq (${COVERAGE}, 1)
+ifeq(${CC}, gcc)
 CFLAGS+= --coverage
 LDFLAGS+= -lgcov
 endif
