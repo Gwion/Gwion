@@ -1,8 +1,9 @@
 # Gwion
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=dev)](https://travis-ci.org/fennecdjay/Gwion)
 [![Coverage Status](https://coveralls.io/repos/github/fennecdjay/Gwion/badge.svg?branch=dev)](https://coveralls.io/github/fennecdjay/Gwion?branch=dev)
-![](http://b.repl.ca/v1/version-pre--pre--alpha-red.png)
-![](http://b.repl.ca/v1/language-C-green.png)  
+![](http://b.repl.ca/v1/version-pre--pre--alpha-red.svg)
+![](https://img.shields.io/badge/version-pre--pre--alpha-red.svg)
+![](https://img.shields.io/badge/language-C-yellowgreen.svg)  
 
 gwion is a object-oriented programming language, aimed at making music
 
@@ -49,6 +50,8 @@ there are a few *new* features:
 ####requires####
 
 * [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
+	(the [dev](https://github.com/PaulBatchelor/Soundpipe/tree/dev) branch, or [master](https://github.com/PaulBatchelor/Soundpipe/tree/master) with 
+[this](https://gist.github.com/fennecdjay/a5dbc54342bcf6f0c8d5f9a03355580b) patch).
 
 ####configure####
 
