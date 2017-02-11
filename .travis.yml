@@ -52,9 +52,10 @@ before_script:
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then ./gwion test/bug/*;fi ; fi; fi
+
 script:
   - make && sh util/test.sh
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then ./gwion test/bug/*;fi ; fi; fi
 
 branches:
   - only:
