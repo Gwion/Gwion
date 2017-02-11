@@ -7,6 +7,8 @@ DIR=test/error
 #  assert_success
 #}
 
+@test "interrupt"                          { ./gwion -l 1 & sleep 1; killall gwion; }
+@test "arguments"                          { ./gwion example/check.gw:12; }
 @test "silent driver"                      { ./gwion -d silent; }
 @test "host invalid (short)"               { gbt "--host non_existant_host"  "setting hostname to localhost."; }
 @test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }

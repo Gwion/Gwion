@@ -681,11 +681,12 @@ INSTR(Reg_Dup_Last_Vec3)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-
   *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_VEC3);
   PUSH_REG(shred,  SZ_INT);
-
+//  *(m_uint*)shred->reg = *(m_uint*)(shred->reg  - SZ_INT);
+//  PUSH_REG(shred,  SZ_INT);
 }
+
 INSTR(member_function)
 {
 #ifdef DEBUG_INSTR

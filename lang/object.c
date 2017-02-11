@@ -43,7 +43,7 @@ m_bool initialize_object(M_Object object, Type type)
 {
   if (!type->info) {
     err_msg(TYPE_, 0, "internal error: no type->info for type '%s'", type->name);
-    exit(72);
+    return -1;
   }
   object->vtable = type->info->obj_v_table;
   object->type_ref = type;
@@ -58,7 +58,7 @@ m_bool initialize_object(M_Object object, Type type)
   return 1;
 
 out_of_memory:
-  fprintf(stderr, "[chuck](VM): OutOfMemory: while instantiating object '%s'\n", type->name);
+    err_msg(TYPE_, 0, "OutOfMemory: while instantiating object '%s'\n", type->name);
   return -1;
 }
 
