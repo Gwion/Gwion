@@ -9,8 +9,8 @@ export type_name_global
 #export type_defs_array=(${type_defs_global//:/ })
 #export type_name_array=(${type_name_global//:/ })
 
-# generate files form ./lang
-for file in lang/*.c
+# generate files from ./lang and ./ugen
+for file in lang/*.c ugen/*.c
 do
 	bash util/op2sign.sh "$file" "$PWD"
 done
