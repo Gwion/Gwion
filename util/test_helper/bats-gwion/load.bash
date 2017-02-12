@@ -18,7 +18,6 @@ teardown() {
 }
 
 gbt() {
-echo "$CI" "$BATS_TEST_DESCRIPTION"
   if [ "$BATS_TEST_DESCRIPTION" == "examples/doc.gw" ]
   then return 0
   fi

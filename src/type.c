@@ -41,14 +41,10 @@ struct Type_ t_now       = { "@now",        sizeof(m_float),  &t_time, te_now };
 struct Type_ t_class     = { "@Class",       SZ_INT,   NULL, te_class };
 struct Type_ t_std       = { "Std",          0, NULL, te_std};
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
-/*struct Type_ t_template  = { "@Template",    0, NULL , te_template};*/
-/*struct Type_ t_array      = { "@Array",     SZ_INT, &t_object, te_array };*/
 struct Type_ t_array  = { "@Array",     SZ_INT, &t_object, te_array };
 struct Type_ t_null  = { "@null",     sizeof(void*), NULL, te_null};
 struct Type_ t_vararg = { "@Vararg",    SZ_INT, &t_object, te_vararg};
 struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
-
-//static m_uint type_xid = te_last;
 
 static int so_filter(const struct dirent* dir)
 {
