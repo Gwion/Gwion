@@ -1,6 +1,7 @@
 #!/bin/bash
 rm -rf coverage
 
+echo "get info"
 type_defs_global=$(cat ./*/*.c | grep "struct Type_ "| sed 's/static //' | sed 's/extern //' | grep "= {"  | grep -v '@' | cut -d ' ' -f 3 | tr '\n' ':')
 type_name_global=$(cat ./*/*.c | grep "struct Type_ "| sed 's/static //' | sed 's/extern //' | grep "= {"  | grep -v '@' | cut -d '"' -f 2 | tr '\n' ':')
 export type_defs_global
@@ -12,6 +13,7 @@ export type_name_global
 # generate files from ./lang and ./ugen
 for file in lang/*.c ugen/*.c
 do
+	echo "generate from $file"
 	bash util/op2sign.sh "$file" "$PWD"
 done
 
@@ -20,6 +22,7 @@ mkdir -p coverage/{run,seg,leak,log}
 cd "$PWD" || exit
 for file in *.gw
 do
+	echo "test $file"
 	./gwion -d dummy "$file"
 	if [ "$?" = 0 ]
 	then mv "$file" coverage/run
@@ -31,6 +34,7 @@ done
 cd coverage/run || exit
 for file in *.gw
 do
+	echo "memcheck $file"
 	valgrind --log-file="../log/$file.log" ../..//gwion -d dummy "$file"
 	grep 'Invalid write of size ' "../$file.log" > /dev/null && mv "$file" ../leak
 	grep 'Invalid read  of size ' "../$file.log" > /dev/null && mv "$file" ../leak
