@@ -38,23 +38,11 @@ CFLAGS  += -pthread
 LDFLAGS += -lpthread
 endif
 
-ifdef ($GWION_DOC_DIR)
+ifeq (${GWION_HAS_DIR}, 1)
 CFLAGS += -DGWION_DOC_DIR=${GWION_DOC_DIR}
-endif
-
-ifdef ($GWION_API_DIR)
 CFLAGS += -DGWION_API_DIR=${GWION_API_DIR}
-endif
-
-ifdef ($GWION_TOK_DIR)
 CFLAGS += -DGWION_TOK_DIR=${GWION_TOK_DIR}
-endif
-
-ifdef ($GWION_TAG_DIR)
 CFLAGS += -DGWION_TAG_DIR=${GWION_TAG_DIR}
-endif
-
-ifdef ($GWION_PLUG_DIR)
 CFLAGS += -DGWION_PLUG_DIR=${GWION_PLUG_DIR}
 endif
 

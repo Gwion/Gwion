@@ -16,6 +16,7 @@ addons:
 
 env:
   global:
+	- GWION_HAS_DIR=1
     - DEBUG=1
     - D_FUNC=dummy_driver
     - ALSA_D=0

@@ -76,7 +76,7 @@ op2sign() {
 	[ "$1" = "op_at_chuck"     ] && echo "@=>"    && return 0
 	[ "$1" = "op_at_unchuck"   ] && echo "@=<"    && return 0
 	[ "$1" = "op_trig"         ] && echo "]=>"    && return 0
-	[ "$1" = "op_untrig"       ] && echo "[=<"    && return 0
+	[ "$1" = "op_untrig"       ] && echo "]=<"    && return 0
 	return 1
 }
 
