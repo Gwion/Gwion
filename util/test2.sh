@@ -14,7 +14,7 @@ export type_name_global
 for file in lang/*.c ugen/*.c
 do
 	echo "generate from $file"
-	bash util/op2sign.sh "$file" "$PWD"
+	bash util/coverage.sh "$file" "$PWD"
 done
 
 # try file
