@@ -8,7 +8,7 @@ before_install:
       - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 before_install:
-  - sudo apt-get install libsndfile1 libsndfile1-dev lua
+  - sudo apt-get install libsndfile1 libsndfile1-dev lua5.2
 
 before_script:
 # need recent bison
