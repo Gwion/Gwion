@@ -1,39 +1,67 @@
+dist: trusty
 language: c
+sudo: false
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    - lua5.2
+    - valgrind
+    - libsndfile1
+    - libsndfile1-dev
 
 env:
   global:
-   - secure: "DnhraXW8wdrP5UzvQbAtarIUFk0i78py+in2VHphS7PG4Tp2qmAyAcf3NNZTm75E/vDQbeGQpEPHORxYxHr3KLfhpqeumQ+o/TzGD42zNHOedSKmr4khVkYohAaI7yC/+j/W5ndvnohMdrNAkdxVMg6g1HmY8nqnn41qHzebqzpFytxbBQpNe4pCxHZb4ujArxFIZcaYSudQS5CpdEzVafZvtcqLyZzrgpH+ys8AYxbspdHT5VvY/cG4fZZyfz9v3I/YadP+/Yes+CbAeZHdv3+2vBiXllHspcfkSA5yS93Mmzm0zT1obl3F1TCIQG7BDML96haZfW7sqcYXMnJfK5TamUGB1pVDf8kV10rm+Fc8jlnmmdQENktaPZs+5Y4SEcFdc9mgjDPjvxQ1vXr5LkJs/daNzhhK8psSy/PcVKKrpuHEc9I3VVE8MN81f+HYIdkM428H7H8nUqAxutvvrIES3ZA2U/+Yyzb4i+G1FQGzynM3YJkjoSWoXMjoMY9Mu1Posvbs6bAgS7nHOX2IHS+WUezjEb4A9eL7nfIn1WMMFKTv73yIVsykjPCNnQBasZakleRgsUrcqvRDR3ak42xjOlTw+PN07F/3szuA8Uk06us/6F2kABu+FZmX+hkHmONmFRF5biB2T4nyWZqoQgB/DB+G/kQ4On+WmvMkSkk="
+    - GWION_HAS_DIR=1
+    - DEBUG=1
+    - D_FUNC=dummy_driver
+    - ALSA_D=0
+    - SOUNDPIPE_D=0
+    - SPA_D=0
+#    - SNDFILE_D=0
+    - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - BISON_VERSION=bison-3.0.4
+    - GWION_DOC_DIR='\"doc\"'
+    - GWION_API_DIR='\"api\"'
+    - GWION_TOK_DIR='\"tok\"'
+    - GWION_TAG_DIR='\"tag\"'
+    - GWION_PLUG_DIR='\"plug\"'
+  matrix:
+    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
+    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
+    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
+    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - os: osx
+
+compiler:
+- clang
+- gcc
 
 before_install:
-      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-
-before_install:
-  - sudo apt-get install libsndfile1 libsndfile1-dev
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
 
 before_script:
-# need recent bison
-  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-  - tar -xzf bison-3.0.4.tar.gz
-  - pushd bison-3.0.4 && ./configure \-\-prefix=$PWD/../bison && make install && popd && export PATH=bison-3.0.4/src:$PATH
-#soundpipe (dev) part
-  - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
-  - pushd Soundpipe && sed -i 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk && make && popd
-  - export CFLAGS+=-ISoundpipe/h
-  - export LIBARY_PATH=Soundpipe
-  - sed -i "s/ALSA_D/#ALSA_D/" config.def.mk
-  - sed -i "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-  - sed -i 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile
-  - export PATH=$PWD/bin:$PATH
-  - export BISON=$PWD/bison-3.0.4/src/bison
-  - sed -i "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
+  - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+  - export YACC=$PWD/bison-3.0.4/src/bison
+  - bash util/travis_prepare.sh
 
-addons:
-  coverity_scan:
-    project:
-      name: "fennecdjay/Gwion"
-      description: "Build submitted via Travis CI"
-    notification_email: astor.jeremie@wanadoo.fr
-    build_command_prepend: "make && make clean"
-    build_command:   "make"
+script:
+  - make && sh util/test.sh
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in test/bug/*; do ./gwion $a; done;fi ; fi; fi
 
-branch_pattern: coverity_scan
+branches:
+  - only:
+    - dev
+
+after_success:
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then bash util/test2.sh; fi; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude utils --exclude driver --gcov-options '\-lp';fi; fi; fi
