@@ -4,6 +4,8 @@
 #include "err_msg.h"
 #include "instr.h"
 
+struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
+
 // arithmetic
 static INSTR(assign)
 {
@@ -443,7 +445,7 @@ m_bool import_int(Env env)
   CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or,         1))
   CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_int, &t_int, &t_int, eq,         1))
   CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_int, &t_int, &t_int, neq,        1))
-  CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_object, &t_null, &t_int, neq,        1))
+  CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_object, &t_null, &t_int, neq, 1))
   CHECK_BB(add_binary_op(env, op_gt, 			 	    &t_int, &t_int, &t_int, gt,         1))
   CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_int, &t_int, &t_int, ge,         1))
   CHECK_BB(add_binary_op(env, op_lt, 			 	    &t_int, &t_int, &t_int, lt,         1))

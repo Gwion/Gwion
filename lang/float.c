@@ -5,6 +5,7 @@
 #include "err_msg.h"
 #include "instr.h"
 
+struct Type_ t_float     = { "float",      sizeof(m_float),  NULL,  te_float };
 // arithmetic
 static INSTR(assign)
 {

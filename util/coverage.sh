@@ -82,10 +82,19 @@ op2sign() {
 
 type_operator() {
 	operator=$(op2sign $(echo "$1" | cut -d ',' -f2))
-	left=$(defs2name $(echo "$1" | cut -d ',' -f3 | sed 's/\&//'))
-	right=$(defs2name $(echo "$1" | cut -d ',' -f4 | sed 's/\&//'))
+	left=$(echo "$1" | cut -d ',' -f3 | sed 's/\&//')
+	right=$(echo "$1" | cut -d ',' -f4 | sed 's/\&//')
+	[ "$left" = " NULL" ] || left=$(defs2name $(echo "$1" | cut -d ',' -f3 | sed 's/\&//'))
+	[ "right" = " NULL" ] || right=$(defs2name $(echo "$1" | cut -d ',' -f4 | sed 's/\&//'))
 	echo "//testing operator for $left and $right" >> "$2"
-	echo -e "{\n\t$left\tvariable1;\n\t$right\tvariable2;\n\t<<<variable1 $operator variable2>>>;\n}\n\n" >> "$2"
+	printf "{\n" >> "$2"
+	[ "$left"  ] && printf "\t%s\tvariable1;\n" "$left"  >> "$2"
+	[ "$right" ] && printf "\t%s\tvariable2;\n" "$right" >> "$2"
+	printf "<<< " >> "$2"
+	[ "$left"  ] && printf "variable1" >> "$2"
+	printf "%s" "$operator" >> "$2"
+	[ "$right" ] && printf "variable2" >> "$2"
+	printf " >>>;\n}\n\n" >> "$2"
 }
 
 type_function() {

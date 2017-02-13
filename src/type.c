@@ -30,8 +30,6 @@ static m_bool check_Class_Def(Env env, Class_Def class_def);
 
 
 struct Type_ t_void      = { "void",       0, NULL, te_void};
-struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
-struct Type_ t_float     = { "float",      sizeof(m_float),  NULL,  te_float };
 struct Type_ t_complex;
 struct Type_ t_function  = { "@function",   sizeof(m_uint),   NULL, te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",   sizeof(m_uint),   &t_function, te_func_ptr};
