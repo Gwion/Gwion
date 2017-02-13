@@ -4,7 +4,7 @@ env:
   global:
     - secure: "DnhraXW8wdrP5UzvQbAtarIUFk0i78py+in2VHphS7PG4Tp2qmAyAcf3NNZTm75E/vDQbeGQpEPHORxYxHr3KLfhpqeumQ+o/TzGD42zNHOedSKmr4khVkYohAaI7yC/+j/W5ndvnohMdrNAkdxVMg6g1HmY8nqnn41qHzebqzpFytxbBQpNe4pCxHZb4ujArxFIZcaYSudQS5CpdEzVafZvtcqLyZzrgpH+ys8AYxbspdHT5VvY/cG4fZZyfz9v3I/YadP+/Yes+CbAeZHdv3+2vBiXllHspcfkSA5yS93Mmzm0zT1obl3F1TCIQG7BDML96haZfW7sqcYXMnJfK5TamUGB1pVDf8kV10rm+Fc8jlnmmdQENktaPZs+5Y4SEcFdc9mgjDPjvxQ1vXr5LkJs/daNzhhK8psSy/PcVKKrpuHEc9I3VVE8MN81f+HYIdkM428H7H8nUqAxutvvrIES3ZA2U/+Yyzb4i+G1FQGzynM3YJkjoSWoXMjoMY9Mu1Posvbs6bAgS7nHOX2IHS+WUezjEb4A9eL7nfIn1WMMFKTv73yIVsykjPCNnQBasZakleRgsUrcqvRDR3ak42xjOlTw+PN07F/3szuA8Uk06us/6F2kABu+FZmX+hkHmONmFRF5biB2T4nyWZqoQgB/DB+G/kQ4On+WmvMkSkk="
     - ALSA_D=0
-
+    - D_FUNC=dummy_driver
 before_install:
       - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
