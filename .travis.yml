@@ -36,5 +36,6 @@ addons:
       name: "fennecdjay/Gwion"
       description: "Build submitted via Travis CI"
     notification_email: astor.jeremie@wanadoo.fr
-    build_command_prepend: "make && make clean"
+    build_command_prepend: "echo prepare"
     build_command:   "make"
+    branch_pattern: coverity_sca
