@@ -39,4 +39,4 @@ addons:
     notification_email: astor.jeremie@wanadoo.fr
     build_command_prepend: "echo prepare"
     build_command:   "make"
-    branch_pattern: coverity_sca
+    branch_pattern: coverity_scan
