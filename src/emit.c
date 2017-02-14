@@ -2417,7 +2417,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
             "(emit): class '%s' already emitted...", type->name);
     return -1;
   }
-  type->info->class_data = calloc(type->info->class_data_size, sizeof(m_uint));
+  type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
   if (!type->info->class_data) {
     err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
     ret = -1;

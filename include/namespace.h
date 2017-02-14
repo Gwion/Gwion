@@ -16,7 +16,7 @@ struct NameSpace_ {
   VM_Code   dtor;
   VM_Object obj;
 //  m_uint*		class_data;
-  m_bool*		class_data;
+  char*		class_data;
   m_uint    class_data_size;
   Map      	operator;
 };

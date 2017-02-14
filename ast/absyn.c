@@ -904,7 +904,7 @@ Stmt* new_stmt_from_continue( int pos )
 {
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_continue;
-  a->d.stmt_return = calloc(1, sizeof(struct Stmt_Continue_));
+  a->d.stmt_continue = calloc(1, sizeof(struct Stmt_Continue_));
   a->pos = pos;
   a->d.stmt_continue->pos = pos;
   a->d.stmt_continue->self = a;

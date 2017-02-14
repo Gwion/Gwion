@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     while (optind < argc)
       vector_append(ref, (vtype)argv[optind++]);
   }
-  pthread_t udp_thread;
+  pthread_t udp_thread = 0;
   if(udp) {
     if(server_init(hostname, port) == -1) {
       if(do_quit)

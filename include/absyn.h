@@ -237,7 +237,7 @@ typedef struct Stmt_List_       * Stmt_List;
 typedef struct Stmt_Code_       * Stmt_Code;
 typedef struct Stmt_Return_     * Stmt_Return;
 typedef struct Stmt_Continue_   * Stmt_Continue;
-typedef struct Stmt_Return_     * Stmt_Break;
+typedef struct Stmt_Break_      * Stmt_Break;
 typedef struct Stmt_While_      * Stmt_While;
 typedef struct Stmt_Until_      * Stmt_Until;
 typedef struct Stmt_For_        * Stmt_For;
