@@ -44,7 +44,7 @@ char* Recv(int i)
   FD_SET(sock, &write_flags);
 #endif
 
-  memset(buf, 0, 255);
+  memset(buf, 0, 256);
   addr  = i ? saddr : caddr;
 
 #ifndef __linux__

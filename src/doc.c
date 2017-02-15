@@ -88,6 +88,7 @@ static void free_Textadept(Textadept* a)
   fclose(a->api);
   fclose(a->tag);
   fclose(a->tok);
+  free(a);
 }
 
 static Doc* new_Doc(Env env, m_str str)

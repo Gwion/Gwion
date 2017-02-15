@@ -80,8 +80,8 @@ static SFUN(machine_doc_update)
   fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
-      char name[128];
-      memset(name, 0, 128);
+      char name[256];
+      memset(name, 0, 256);
       strcat(name, "/usr/lib/Gwion/doc/dat/");
       strcat(name, namelist[n]->d_name);
       f = fopen(name, "r");
@@ -155,7 +155,7 @@ SFUN(machine_check)
     RETURN->d.v_uint = 0;
     return;
   }
-  if(type_engine_check_prog(shred->vm_ref->env, ast, c) < 0) {
+  if(type_engine_check_prog(shred->vm_ref->env, ast, strdup(c)) < 0) {
     RETURN->d.v_uint = 0;
     return;
   }

@@ -38,12 +38,10 @@ void free_Var_Decl(Var_Decl a)
     if(!a->value->obj) // func argument. this migth change
       free_Value(a->value);
     else if(!a->value->owner_class) { // breaks for loop ?
-      /*
-            if(a->value->m_type->array_type) {
+      /*      if(a->value->m_type->array_type) {
               free(a->value->m_type->obj);
               free(a->value->m_type);
-            }
-      */
+            }*/
       rem_ref(a->value->obj, a->value);
     }
   }

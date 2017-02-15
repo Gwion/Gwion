@@ -1329,7 +1329,8 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   m_bool ret = 1;
   m_uint index = vector_size(emit->code->code);
 
-  Instr instr, op = new_Instr();
+//  Instr instr, op = new_Instr();
+  Instr instr, op;
   Instr goto_;
   f_instr f;
   frame_push_scope(emit->code->frame);

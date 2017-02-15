@@ -169,7 +169,7 @@ INSTR(String_Plus)
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   m_uint l_len = strlen(STRING(lhs));
   m_uint r_len = strlen(STRING(rhs));
-  char c[l_len + r_len];
+  char c[l_len + r_len + 1];
   sprintf(c, "%s%s", STRING(rhs), STRING(lhs));
   /*  free(STRING(rhs));*/
   STRING(rhs) = strdup(c);
@@ -484,7 +484,7 @@ MFUN(string_replaceN)
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
   c[len] = '\0';
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
