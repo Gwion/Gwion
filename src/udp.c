@@ -29,7 +29,7 @@ void Send(const char* c, unsigned int i)
 
 char* Recv(int i)
 {
-  char buf[255];
+  char buf[256];
   ssize_t len;
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
