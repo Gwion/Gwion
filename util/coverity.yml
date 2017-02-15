@@ -6,6 +6,8 @@ env:
     - secure: "wfw4th54cfcaGP8AIuAR65KJvcTNYbtl1Hh09biCC1q7uZH7dztvvPi+FvDnw3/W2ZDEOPdz7BcGd/Byap/8H9iFH0WIx95PyiByD6QXLgkyRgQ+fEYJ3DvwCcT0iq94/trptz6M0kMj5hL49nfpW4h3GJisDJanTgFILnogred1+1vj0QR9bsVcBEW1um/TiMppFedPnElz0CqVSrsFWyFLOpVvnB8lq1WWEz0anAIwYDblTxOfLp9rNjRo97+GbwuiuUQQs0LSMIkP/mUW5YAttkxnF8w+1zzq+UBRSfve/8nG0Lz99hXD0IHHUa2eUxlU/EkAIISt6uHFV9RILKARsqFHEeL8sxgpi6fOnKS4uY53T69rg8UD4Y4uGmhKeyzEJ8aeIOXKvznvO8KwnMNQePnDKg6LxGWlcQTS8GZyJWuL7jTzPhxqwb9Nb1p9JmaYFCoAdNvS39TqWPApzJ31e3SsN/LAXu3veDZDJaeUM4xX5sGYRCoEpK3mD978jTljap6jIwOq2QOKCG4qDi0twlA8E6LmQxnTrNKddW29/koR50d6UZ7JBOqtj4WPdelhjRRIpOkbU19xPOjp+mTtx+HKPjpIHGvq0N1V1AH8D/DWsoqPk1Upv4CvC6vAmIh2IsdL30dBdf0v7KXuv4UIl3dSHEZf/RLc0AAWQ8M="
     - ALSA_D=0
     - D_FUNC=dummy_driver
+    - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+
 before_install:
       - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
