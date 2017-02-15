@@ -49,7 +49,7 @@ install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
 #	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-	$(SED) 's/CFLAGS+=-DUSE_DOUBLE/#CFLAGS+=-DUSE_DOUBLE' Makefile
+	$(SED) 's/CFLAGS+=-DUSE_DOUBLE/#CFLAGS+=-DUSE_DOUBLE/' Makefile
     $(SED) 's/-DSPFLOAT=float/-DSPFLOAT=${SPFLOAT}/' Makefile
     if [ "$SP_BRANCH" = "master" ]
     then
