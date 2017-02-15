@@ -531,6 +531,7 @@ struct Vararg {
   char* d;   // d(ata)
   m_uint o, i, s;  // o(ffset)
 };
+
 INSTR(MkVararg)
 {
 #ifdef DEBUG_INSTR
@@ -540,9 +541,10 @@ INSTR(MkVararg)
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;
   struct Vararg* arg = malloc(sizeof(struct Vararg));
-  if(instr->m_val)
+  if(instr->m_val) {
     arg->d = malloc(instr->m_val);
-  else arg->d = NULL;
+    memcpy(arg->d, shred->reg, instr->m_val);
+  }  else arg->d = NULL;
   arg->s = vector_size(kinds);
   arg->k = calloc(arg->s, sizeof(Kindof));
   for(i = 0; i < arg->s; i++) {
@@ -550,7 +552,6 @@ INSTR(MkVararg)
   }
   arg->o = 0;
   arg->i = 0;
-  memcpy(arg->d, shred->reg, instr->m_val);
   free_Vector(kinds);
   *(struct Vararg**)shred->reg = arg;
   PUSH_REG(shred,  SZ_INT);

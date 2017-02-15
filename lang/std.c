@@ -478,7 +478,8 @@ SFUN(stat_variance)
   stat_mean(RETURN, shred);
   m_float mean = RETURN->d.v_float;
   m_uint i, size = m_vector_size(o->d.array);
-  m_float f, v = 0;
+  m_float f = 0;
+  m_float v = 0;
   for(i = 0; i < size; i++) {
     f = f - mean;
     f *= f;

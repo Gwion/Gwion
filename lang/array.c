@@ -151,9 +151,7 @@ VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i)
 
 MFUN(vm_vector_size)
 {
-  if(!o)
-    RETURN->d.v_uint = -1;
-  RETURN->d.v_uint = m_vector_size(o->d.array);
+  RETURN->d.v_uint = o ? m_vector_size(o->d.array) : - 1;
 }
 
 INSTR(Array_Append)

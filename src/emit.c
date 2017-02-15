@@ -2346,7 +2346,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   }
   if (func_def->is_variadic) {
     if (!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
-      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'vararg'...");
+      err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...");
       return -1;
     }
     emit->code->stack_depth += SZ_INT;

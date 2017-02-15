@@ -937,7 +937,7 @@ static Type check_Binary_Expression( Env env, Binary_Expression* binary )
 #ifdef DEBUG_TYPE
   debug_msg("check", "binary expression '%p' '%p'", binary->lhs, binary->rhs);
 #endif
-  Type ret;
+  Type ret = NULL;
   Expression cl = binary->lhs, cr = binary->rhs;
 
   CHECK_OO(check_Expression(env, cl))
@@ -1408,7 +1408,9 @@ next:
         list = list->next;
       }
       list = value->func_ref->def->types;
-      Type_List tl[type_number];
+      Type_List tl[type_number ? type_number : 1];
+      if(!type_number)
+        tl[0] = NULL;
       while(list) { // iterate through types
         Arg_List arg = value->func_ref->def->arg_list;
         Expression template_arg = args;
