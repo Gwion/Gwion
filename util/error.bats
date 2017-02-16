@@ -24,6 +24,7 @@ DIR=test/error
 @test "card invalid (short)"               { gbt "-c default"; }
 @test "card invalid (long)"                { gbt "--card default";}
 @test "channels (short)"                   { gbt "-g 2"; }
+@test "channels (long)"                    { gbt "--chan 2"; }
 @test "inputs   (short)"                   { gbt "-i 2"; }
 @test "buffers number  (long)"             { gbt "--bufnum 3"; }
 @test "buffers number  (short)"            { gbt "-n 256"; }
