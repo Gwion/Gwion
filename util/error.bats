@@ -8,15 +8,40 @@ DIR=test/error
 #}
 
 @test "interrupt"                          { ./gwion -l 1 & sleep 1; killall gwion; }
+@test "quit (short)"                       { ./gwion -l 1 & sleep 1; ./gwion -q; }
+@test "quit (long)"                        { ./gwion -l 1 & sleep 1; ./gwion --quit; }
 @test "loop off"                           { ./gwion -l 1 & sleep 1; ./gwion -l 0; }
 @test "add file"                           { ./gwion -l 1 & sleep 1; ./gwion + examples/doc.c; }
-@test "rem file"                           { ./gwion -l 1 examples/sine.gw& sleep 1; ./gwion -1; }
+@test "rem file"                           { ./gwion -l 1 examples/sine.gw& sleep 1; ./gwion - 1; }
 @test "arguments"                          { ./gwion examples/check.gw:12; }
 @test "silent driver"                      { ./gwion -d silent; }
+@test "help (short)"                       { gbt "-?"; }
+@test "help (long)"                        { gbt "--help"; }
 @test "host invalid (short)"               { gbt "--host non_existant_host"  "setting hostname to localhost."; }
 @test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }
 @test "port invalid (short)"               { gbt "--port 1"  "can't bind."; }
 @test "port invalid (long)"                { gbt "-p 1"  "can't bind."; }
+@test "card invalid (short)"               { gbt "-c default"; }
+@test "card invalid (long)"                { gbt "--card default";}
+@test "channels (short)"                   { gbt "-g 2"; }
+@test "inputs   (short)"                   { gbt "-i 2"; }
+@test "buffers number  (long)"             { gbt "--bufnum 3"; }
+@test "buffers number  (short)"            { gbt "-n 256"; }
+@test "buffers size  (long)"               { gbt "--bufsize 3"; }
+@test "buffers size  (short)"              { gbt "-b 256"; }
+@test "inputs   (long)"                    { gbt "--in 2"; }
+@test "outputs   (short)"                  { gbt "-o 2"; }
+@test "outputs   (long)"                   { gbt "--out 2"; }
+@test "raw   (short)"                      { gbt "-r"; }
+@test "raw   (long)"                       { gbt "--raw"; }
+@test "samplerate   (short)"               { gbt "-s 44100"; }
+@test "samplerate   (long)"                { gbt "--sr 44100"; }
+@test "standalone   (short)"               { gbt "-a"; }
+@test "standalone   (long)"                { gbt "--alone"; }
+@test "format   (short)"                   { gbt "-f test_format"; }
+@test "format   (long)"                    { gbt "--format test_format"; }
+@test "backend   (short)"                  { gbt "-e test_backend"; }
+@test "backend   (long)"                   { gbt "--backend test_backend"; }
 
 
 @test "non exitant file"                   { gbt $DIR/no_file.gw   "error while opening file"; }

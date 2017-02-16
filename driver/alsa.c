@@ -16,9 +16,9 @@
 #define ALSA_FORMAT SND_PCM_FORMAT_FLOAT
 #endif
 
-static snd_pcm_t *out,*in;
-static SPFLOAT  **in_buf,  **out_buf;
-static void     **_in_buf, **_out_buf;
+static snd_pcm_t *out = NULL,*in = NULL;
+static SPFLOAT  **in_buf = NULL,  **out_buf = NULL;
+static void     **_in_buf = NULL, **_out_buf = NULL;
 
 void* in_bufi;
 void* out_bufi;
@@ -27,13 +27,14 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 {
   snd_pcm_t* handle;
   snd_pcm_hw_params_t* params;
-	unsigned int num = di->bufnum;
+  unsigned int num = di->bufnum;
   int dir = 0;
 
   if(snd_pcm_open(&handle, device, stream, mode) > 0)
     return -1;
 
   snd_pcm_hw_params_alloca(&params);
+
   if(snd_pcm_hw_params_any(handle, params) > 0)
   {
     snd_pcm_close(handle);
@@ -78,14 +79,13 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di)
     return -1;
   }
   di->out = di->chan;
-
   if(sp_alsa_init(di, &in,  di->card, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC|SND_PCM_NONBLOCK) < 0)
   {
     err_msg(ALSA_, 0, "problem with capture");
     return -1;
   }
   di->in = di->chan;
-	return 1;
+  return 1;
 }
 
 static void alsa_run(VM* vm, DriverInfo* di)
@@ -173,22 +173,28 @@ static void alsa_del(VM* vm)
 //  snd_pcm_close(out);
   snd_pcm_hw_free(out);
 
-	if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
-	{
-		for(chan = 0; chan < vm->bbq->sp->nchan; chan++)
-		{
-			free(in_buf[chan]);
-			free(out_buf[chan]);
-		}
-    free(in_buf);
-    free(out_buf);
-    free(_in_buf);
+  if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
+  {
+    if(in_buf && out_buf) {
+  	  for(chan = 0; chan < vm->bbq->sp->nchan; chan++)
+      {
+        free(in_buf[chan]);
+        free(out_buf[chan]);
+      }
+      free(in_buf);
+      free(out_buf);
+    }
+    if(_in_buf)
+     free(_in_buf);
+    if(_out_buf)
     free(_out_buf);
   }
   else /* interleaved */
   {
-  	free(in_bufi);
-    free(out_bufi);
+    if(in_bufi)
+      free(in_bufi);
+    if(out_bufi)
+      free(out_bufi);
   }
 }
 

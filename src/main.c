@@ -119,6 +119,12 @@ int main(int argc, char** argv)
     case 'p':
       port        = atoi(optarg);
       break;
+    case 'n':
+      di.bufnum    = atoi(optarg);
+      break;
+    case 'b':
+      di.bufsize    = atoi(optarg);
+      break;
     case 'g':
       di.chan       = atoi(optarg);
       di.in       = atoi(optarg);
