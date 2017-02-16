@@ -77,8 +77,10 @@ VM_Shred shreduler_get(Shreduler s)
 m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
 {
 #ifdef DEBUG_SHREDULER
-  debug_msg("clock", "%s %i", erase ? "erase" : "wait", out->xid);
+  debug_msg("clock", "%s %i", erase ? "erase" : "wait", out ? out->xid : -1);
 #endif
+  if(!out)
+    return -1;
   m_uint i, size = out->child ? vector_size(out->child) : 0;
   if(erase) {
     vtype index;

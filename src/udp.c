@@ -79,7 +79,7 @@ void* server_thread(void* data)
       vm->wakeup();
     } else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
-      shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf)), 1);
+      shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf) - 1), 1);
     } else if( strncmp(buf, "+", 1) == 0) {
       buf += 2;
       compile(data, (m_str)buf);

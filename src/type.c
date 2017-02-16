@@ -1048,10 +1048,10 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   // check if cast valid
   /*  if( !type_engine_check_cast_valid( env, t2, t ) )*/
 //  {
-    /*    err_msg(TYPE_, cast->linepos,*/
-    /*      "invalid cast to '%s' from '%s'...",*/
-    /*      S_name( cast->type->xid->xid ), t->name );*/
-    /*    return NULL;*/
+  /*    err_msg(TYPE_, cast->linepos,*/
+  /*      "invalid cast to '%s' from '%s'...",*/
+  /*      S_name( cast->type->xid->xid ), t->name );*/
+  /*    return NULL;*/
 //  }
   /*  return t2;*/
   return NULL;

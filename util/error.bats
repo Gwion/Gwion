@@ -8,7 +8,10 @@ DIR=test/error
 #}
 
 @test "interrupt"                          { ./gwion -l 1 & sleep 1; killall gwion; }
-@test "arguments"                          { ./gwion example/check.gw:12; }
+@test "loop off"                           { ./gwion -l 1 & sleep 1; ./gwion -l 0; }
+@test "add file"                           { ./gwion -l 1 & sleep 1; ./gwion + examples/doc.c; }
+@test "rem file"                           { ./gwion -l 1 examples/sine.gw& sleep 1; ./gwion -1; }
+@test "arguments"                          { ./gwion examples/check.gw:12; }
 @test "silent driver"                      { ./gwion -d silent; }
 @test "host invalid (short)"               { gbt "--host non_existant_host"  "setting hostname to localhost."; }
 @test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }

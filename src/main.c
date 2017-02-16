@@ -102,17 +102,11 @@ int main(int argc, char** argv)
   di.bufnum = 3;
   di.card = "default:CARD=CODEC";
   di.raw = 0;
-  while((i = getopt_long(argc, argv, "?+-qh:p:i:o:n:b:e:s:d:al:rc: ", long_option, &index)) != -1) {
+  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:rc: ", long_option, &index)) != -1) {
     switch(i) {
     case '?':
       usage();
       exit(0);
-    case '+':
-      ref         = add;
-      break;
-    case '-':
-      ref         = rem;
-      break;
     case 'q':
       do_quit     = 1;
       break;
@@ -162,8 +156,17 @@ int main(int argc, char** argv)
     }
   }
   if(optind < argc) {
-    while (optind < argc)
-      vector_append(ref, (vtype)argv[optind++]);
+    while (optind < argc) {
+      m_str str = argv[optind++];
+      if(!strcmp(str, "-")) {
+        ref = rem;
+        str = argv[optind++];
+      } else if(!strcmp(str, "+")) {
+        ref = add;
+        str = argv[optind++];
+      }
+      vector_append(ref, (vtype)str);
+    }
   }
   pthread_t udp_thread = 0;
   if(udp) {
@@ -175,11 +178,11 @@ int main(int argc, char** argv)
       else if(loop < 0)
         Send("loop 0", 1);
       for(i = 0; i < vector_size(rem); i++) {
-        m_str file = (m_str)vector_at(add, i);
-        char name[256];
-        memset(name, 0, 256);
-        strcat(name, "- ");
-        strcat(name, file);
+        m_str file = (m_str)vector_at(rem, i);
+        char name[1024 + 2];
+        memset(name, 0, 1024 + 2);
+        strncpy(name, "- ", 2);
+        strncat(name, file, 1024);
         Send(name, 1);
       }
       for(i = 0; i < vector_size(add); i++) {

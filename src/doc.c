@@ -77,7 +77,7 @@ static Textadept* new_Textadept(Env env, m_str str)
   strncat(c, ".tag", 4);
   doc->tag = fopen(c, "w");
   memset(c, 0, 1024);
-  strncpy(c, GWION_TOK_DIR, 1024 -len - 4);
+  strncpy(c, GWION_TOK_DIR, 1024 - len - 4);
   strncat(c, name, len);
   strncat(c, ".tok", 4);
   doc->tok = fopen(c, "w");
@@ -156,11 +156,11 @@ static m_str getfull(Doc* doc, NameSpace nspc, m_str name)
 static m_str print_type(Type t)
 {
   int i;
-  char str[strlen(t->name) + t->array_depth*2 + 1];
+  char str[strlen(t->name) + t->array_depth * 2 + 1];
   strcpy(str, t->name);
   for(i = 0; i < t->array_depth; i++)
     strcat(str, "[]");
-  str[strlen(t->name) + t->array_depth*2] = '\0';
+  str[strlen(t->name) + t->array_depth * 2] = '\0';
   return strdup(str);
 }
 

@@ -1,4 +1,4 @@
 SinOsc sinosc => dac;
-.5::second => now;
-//220 => sinosc.freq;
-.5::second => now;
+1::second => now;
+220 => sinosc.freq;
+1::second => now;
