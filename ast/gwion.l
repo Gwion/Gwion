@@ -327,8 +327,8 @@ Ast parse(m_str filename)
   map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
   map_set(scan_map, (vtype)minimal_get_extra(arg.scanner), (vtype)&arg);
   arg.line = 1; arg.pos  = 0; arg.doc = new_Vector();
-  char c[1024];
-  memset(c, 0, 1024);
+  char c[1025];
+  memset(c, 0, 1025);
   strncat(c, filename, 1024);
 
   if(!(file = fopen(c, "r")))
