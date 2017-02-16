@@ -864,7 +864,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(f->is_variadic)
     f->stack_depth += SZ_INT;
   else if(f->spec == ae_func_spec_op) {
-    m_int ret;
+    m_bool ret;
     m_str str = strdup(S_name(f->name));
     str = strsep(&str, "@");
     ret = name2op(str);
@@ -873,10 +873,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       err_msg(SCAN2_, f->pos, "Invalid operator.");
       return -1;
     } else
-      add_binary_op(env, ret, f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 0);
+      ret = add_binary_op(env, ret, f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 0);
     if(!env->class_def)
       context_add_func(env->context, func, func->obj);
-    return 1;
+    return ret;
   }
 
   value->checked = 1;

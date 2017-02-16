@@ -272,7 +272,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
       return NULL;
     }
     type_decl = new_Type_Decl( type_path, 0, 0 );
-//    name_path = str2list( arg->name, &array_depth2 );
+    str2list(arg->name, &array_depth2 );
     if(array_depth && array_depth2) {
       err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module" );
       // TODO: cleanup

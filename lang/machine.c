@@ -40,7 +40,7 @@ static SFUN(machine_doc)
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   \
   char* str = STRING(obj);
-  m_bool global = strcmp(str, "global_context");
+  m_bool global = strcmp(str, "global_context") ? 1 : 0;
   if(global) {
     str = realpath(str, NULL);
     if(!str)

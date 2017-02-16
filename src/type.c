@@ -2045,7 +2045,7 @@ static m_bool check_Switch(Env env, Stmt_Switch a)
 {
   Type t = check_Expression(env, a->val);
   if(!t || t->xid !=  t_int.xid) {
-    err_msg(TYPE_, a->pos, "invalid type in '%s' switch expression. should be 'int'", t->name);
+    err_msg(TYPE_, a->pos, "invalid type '%s' in switch expression. should be 'int'", t ? t->name : "unknown");
     return -1;
   }
   if(check_Stmt(env, a->stmt) < 0) {

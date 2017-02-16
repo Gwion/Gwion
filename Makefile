@@ -100,11 +100,14 @@ install:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
 coverity:
-#	@git branch -D coverity_scan
+#	git push origin :coverity_scan
+	@git branch -D coverity_scan
 #	@git branch -D origin/coverity_scan
-	@git branch coverity_scan1
-	@git checkout coverity_scan1
-	@cp .travis.yml travis.yml
+	@git branch coverity_scan
+	@git checkout coverity_scan
+	@cp .travis.yml util/travis.yml
 	@cp  util/coverity.yml .travis.yml
 	@git add .travis.yml
 	@git commit -m"push to Travis to coverity"
+	@git push
+	@git checkout dev
