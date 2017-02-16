@@ -55,6 +55,7 @@ static Textadept* new_Textadept(Env env, m_str str)
 {
   char c[1024];
   m_str name;
+  int len;
   Textadept* doc = malloc(sizeof(Textadept));
   doc->env = env;
   doc->ctx = find_context(env, str);
@@ -64,20 +65,21 @@ static Textadept* new_Textadept(Env env, m_str str)
   }
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
+  len = strlen(name);
   memset(c, 0, 1024);
-  strcat(c, GWION_API_DIR);
-  strcat(c, name);
-  strcat(c, ".api");
+  strncpy(c, GWION_API_DIR, 1024 - len - 4);
+  strncat(c, name, len);
+  strncat(c, ".api", 4);
   doc->api = fopen(c, "w");
   memset(c, 0, 1024);
-  strcat(c, GWION_TAG_DIR);
-  strcat(c, name);
-  strcat(c, ".tag");
+  strncpy(c, GWION_TAG_DIR, 1024 - len - 4);
+  strncat(c, name, len);
+  strncat(c, ".tag", 4);
   doc->tag = fopen(c, "w");
   memset(c, 0, 1024);
-  strcat(c, GWION_TOK_DIR);
-  strcat(c, name);
-  strcat(c, ".tok");
+  strncpy(c, GWION_TOK_DIR, 1024 -len - 4);
+  strncat(c, name, len);
+  strncat(c, ".tok", 4);
   doc->tok = fopen(c, "w");
   free(name);
   return doc;
@@ -154,11 +156,11 @@ static m_str getfull(Doc* doc, NameSpace nspc, m_str name)
 static m_str print_type(Type t)
 {
   int i;
-  char str[2054];
-  memset(str, 0, 2054);
-  strcat(str, t->name);
+  char str[strlen(t->name) + t->array_depth*2 + 1];
+  strcpy(str, t->name);
   for(i = 0; i < t->array_depth; i++)
     strcat(str, "[]");
+  str[strlen(t->name) + t->array_depth*2] = '\0';
   return strdup(str);
 }
 

@@ -329,7 +329,7 @@ Ast parse(m_str filename)
   arg.line = 1; arg.pos  = 0; arg.doc = new_Vector();
   char c[1024];
   memset(c, 0, 1024);
-  strcat(c, filename);
+  strncat(c, filename, 1024);
 
   if(!(file = fopen(c, "r")))
   {

@@ -100,7 +100,7 @@ install:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
 coverity:
-	@git ls-remote --heads origin coverity_scan && git push origin :coverity_scan
+	@git ls-remote --heads origin coverity_scan | wc -l || git push origin :coverity_scan
 	@git show-ref --heads --quiet coverity_scan && git branch -D coverity_scan
 	@git branch coverity_scan
 	@git checkout coverity_scan

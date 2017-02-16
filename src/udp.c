@@ -53,7 +53,7 @@ char* Recv(int i)
   if(FD_ISSET(sock, &read_flags)) {
     FD_CLR(sock, &read_flags);
 #endif
-    if((len = recvfrom(sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
+    if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed");
 
     return strndup(buf, strlen(buf));
