@@ -1,0 +1,21 @@
+==3824== Memcheck, a memory error detector
+==3824== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==3824== Using Valgrind-3.12.0 and LibVEX; rerun with -h for copyright info
+==3824== Command: ../..//gwion -a -d dummy Tbvcf.gw
+==3824== Parent PID: 12296
+==3824== 
+==3824== 
+==3824== HEAP SUMMARY:
+==3824==     in use at exit: 16 bytes in 1 blocks
+==3824==   total heap usage: 37,083 allocs, 37,082 frees, 40,647,952 bytes allocated
+==3824== 
+==3824== LEAK SUMMARY:
+==3824==    definitely lost: 16 bytes in 1 blocks
+==3824==    indirectly lost: 0 bytes in 0 blocks
+==3824==      possibly lost: 0 bytes in 0 blocks
+==3824==    still reachable: 0 bytes in 0 blocks
+==3824==         suppressed: 0 bytes in 0 blocks
+==3824== Rerun with --leak-check=full to see details of leaked memory
+==3824== 
+==3824== For counts of detected and suppressed errors, rerun with: -v
+==3824== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

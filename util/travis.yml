@@ -47,6 +47,7 @@ compiler:
 
 before_install:
   - export SPFLOAT=$GW_FLOAT_TYPE
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
 
 before_script:
@@ -65,4 +66,4 @@ branches:
 
 after_success:
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then bash util/test2.sh; fi; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude utils --exclude driver --gcov-options '\-lp';fi; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude utils --exclude driver --exclude coverage --gcov-options '\-lp';fi; fi; fi

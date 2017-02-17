@@ -1,0 +1,21 @@
+==4044== Memcheck, a memory error detector
+==4044== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==4044== Using Valgrind-3.12.0 and LibVEX; rerun with -h for copyright info
+==4044== Command: ../..//gwion -a -d dummy Wpkorg35.gw
+==4044== Parent PID: 12296
+==4044== 
+==4044== 
+==4044== HEAP SUMMARY:
+==4044==     in use at exit: 16 bytes in 1 blocks
+==4044==   total heap usage: 37,018 allocs, 37,017 frees, 40,606,581 bytes allocated
+==4044== 
+==4044== LEAK SUMMARY:
+==4044==    definitely lost: 16 bytes in 1 blocks
+==4044==    indirectly lost: 0 bytes in 0 blocks
+==4044==      possibly lost: 0 bytes in 0 blocks
+==4044==    still reachable: 0 bytes in 0 blocks
+==4044==         suppressed: 0 bytes in 0 blocks
+==4044== Rerun with --leak-check=full to see details of leaked memory
+==4044== 
+==4044== For counts of detected and suppressed errors, rerun with: -v
+==4044== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

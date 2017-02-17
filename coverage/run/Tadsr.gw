@@ -1,0 +1,33 @@
+// testing 'dec'
+{
+	float	dec;
+
+	a.dec(dec);
+}
+
+// testing 'sus'
+{
+
+	a.sus();
+}
+
+// testing 'sus'
+{
+	float	sus;
+
+	a.sus(sus);
+}
+
+// testing 'rel'
+{
+
+	a.rel();
+}
+
+// testing 'rel'
+{
+	float	rel;
+
+	a.rel(rel);
+}
+
