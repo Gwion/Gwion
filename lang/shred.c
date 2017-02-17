@@ -73,7 +73,6 @@ static MFUN(shred_arg)
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   STRING(obj) = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
-printf("%s\n", vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT)));
   RETURN->d.v_uint = (m_uint)obj;
 }
 
