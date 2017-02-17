@@ -47,7 +47,7 @@ compiler:
 
 before_install:
   - export SPFLOAT=$GW_FLOAT_TYPE
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
 
 before_script:
