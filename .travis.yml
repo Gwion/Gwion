@@ -66,4 +66,5 @@ branches:
 
 after_success:
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then bash util/test2.sh; fi; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude utils --exclude driver --gcov-options '\-lp';fi; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude 
+$BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude utils --exclude driver --exclude coverage --gcov-options '\-lp';fi; fi; fi
