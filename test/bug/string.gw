@@ -16,12 +16,12 @@ string @t;
 <<<"find", s.find('e')>>>;
 <<<"find",  s.find(2, 't')>>>;
 <<<"rfind", s.rfind('t')>>>;
-//<<<"rfind", s.rfind('t', 1)>>>;
+<<<"rfind", s.rfind('t', 1)>>>;
 <<<"find", s.find("e")>>>;
-<<<"find",  s.find(2, "t")>>>;
 <<<"2".toInt()>>>;
 
+//<<<"find",  s.find(2, "t")>>>;
 //<<<"rfind", s.rfind("t")>>>;
 //<<<"rfind", s.rfind(2, "t")>>>;
-//<<<"erase", s.erase(2, 3)>>>;
+<<<"erase", s.erase(2, 3)>>>;
 //<<<"78.23".toFloat()>>>;
