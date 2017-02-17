@@ -32,7 +32,7 @@ DL_Func* new_DL_Func(const m_str t, const m_str n, m_uint addr)
   return a;
 }
 
-void freeDL_Func(DL_Func* a)
+void free_DL_Func(DL_Func* a)
 {
   free_Vector(a->args);
   free(a);
@@ -49,7 +49,7 @@ DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr)
   return a;
 }
 
-void freeDL_Value(DL_Value* a)
+void free_DL_Value(DL_Value* a)
 {
   /*  if(addr)*/
   /*    free(addr);*/

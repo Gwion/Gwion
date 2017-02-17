@@ -14,8 +14,8 @@ typedef struct DL_Return {
     m_uint    v_uint;
     m_float   v_float;
     m_complex v_complex;
-    VEC3_T 	v_vec3;
-    VEC4_T 	v_vec4;
+    VEC3_T 	  v_vec3;
+    VEC4_T 	  v_vec4;
     M_Object  v_object;
   } d;
   m_uint offset;
@@ -38,6 +38,7 @@ typedef struct {
 } DL_Value;
 
 DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr);
+void free_DL_Value(DL_Value* a);
 
 typedef struct {
   m_str name;
@@ -55,6 +56,6 @@ typedef struct {
 
 DL_Func* new_DL_Func(const m_str t, const m_str n, m_uint addr);
 
-void freeDL_Func(DL_Func* a);
+void free_DL_Func(DL_Func* a);
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #endif
