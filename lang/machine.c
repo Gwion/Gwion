@@ -28,8 +28,6 @@ static SFUN(machine_add)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
-  M_Object ret = new_M_Object();
-  initialize_object(ret, &t_string);
   RETURN->d.v_uint = compile(shred->vm_ref, str);
 }
 
