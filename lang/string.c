@@ -293,10 +293,12 @@ MFUN(string_upper)
   m_uint i;
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  m_str str = STRING(obj) = strdup(STRING(o));
-  for(i = 0; i < strlen(str); i++)
-    if(str[i]  >= 'a' && str[i] <= 'z')
-      str[i] += 'A' - 'a';
+  char c[strlen(STRING(o))];
+  strcpy(c, STRING(o));
+  for(i = 0; i < strlen(c); i++)
+    if(c[i]  >= 'a' && c[i] <= 'z')
+      c[i] += 'A' - 'a';
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -305,10 +307,12 @@ MFUN(string_lower)
   m_uint i;
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  m_str str = STRING(obj) = strdup(STRING(o));
-  for(i = 0; i < strlen(str); i++)
-    if(str[i]  >= 'A' && str[i] <= 'Z')
-      str[i] -= 'A' - 'a';
+  char c[strlen(STRING(o))];
+  strcpy(c, STRING(o));
+  for(i = 0; i < strlen(c); i++)
+    if(c[i]  >= 'A' && c[i] <= 'Z')
+      c[i] -= 'A' - 'a';
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -545,6 +549,7 @@ MFUN(string_findStr)
   }
   str -= i;
   free(str);
+  release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
@@ -566,8 +571,9 @@ MFUN(string_findStrStart)
     i++;
     str++;
   }
-  str -= i;
+  str -= (i-1);
   free(str);
+  release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
@@ -592,7 +598,8 @@ MFUN(string_rfindStart)
   char pos = *(m_int*)(shred->mem + SZ_INT);
   char arg = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int i = pos, ret = -1;
-  while(str[i] != '\0') {
+  while(i > 0 && str[i] != '\0') {
+printf("%i i\n", i);
     if(str[i] == arg) {
       ret = i;
       break;
@@ -606,6 +613,7 @@ MFUN(string_rfindStr)
 {
   m_str str = strdup(STRING(o));
   m_int ret = -1;
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str arg = STRING(o);
   m_int len  = strlen(str);
   m_int i = len;
@@ -619,8 +627,9 @@ MFUN(string_rfindStr)
     i--;
     str--;
   }
-  str -= i;
+  str -= (i-1);
   free(str);
+  release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
@@ -629,12 +638,24 @@ MFUN(string_rfindStrStart)
   m_str str = strdup(STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
-  m_str arg = STRING(o);
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  m_str arg = STRING(obj);
+
+printf("here: %s %s\n", STRING(o), STRING(obj));
+printf("here: %s %s\n", str, arg);
+
+//  m_str str = strdup(STRING(o));
+  m_str buf = str;
+//  m_int ret = -1;
+//  m_int start = *(m_int*)(shred->mem + SZ_INT);
+//  M_Object obj = *(M_Object*)(shred->mem + SZ_INT *2);
+//  m_str arg = STRING(obj);
   m_int len  = strlen(str);
   m_int i = start;
   m_int arg_len = strlen(arg);
   str += len - 1;
-  while(i < len) {
+//  while(i < len - 1) {
+  while(i > -1) {
     if(!strncmp(str, arg, arg_len)) {
       ret = i;
       break;
@@ -642,8 +663,9 @@ MFUN(string_rfindStrStart)
     i--;
     str--;
   }
-  str -= i;
-  free(str);
+//  str -= i ? i : 0;
+  free(buf);
+  release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
@@ -679,10 +701,8 @@ m_bool import_string(Env env)
   env->class_def->doc = "chain of characters";
 
   o_string_data = import_mvar(env, "int", "@data",   1, 0, "place to hold the string");
-
-  /*  import_svar(env, "int", "trs",   1, malloc(sizeof(m_uint)), "place to hold the string");*/
-  /*exit(2);*/
   CHECK_BB(o_string_data)
+
   DL_Func* fun = new_DL_Func("int", "size", (m_uint)string_len);
   CHECK_OB(import_mfun(env, fun))
 

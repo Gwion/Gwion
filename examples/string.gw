@@ -1,0 +1,14 @@
+string s;
+s.size();
+s.upper();
+s.lower();
+s.find('o');
+s.find(1, 'i');
+s.find("su");
+s.find(1, "su");
+s.rfind('o');
+s.rfind(1, 'i');
+s.rfind("su");
+s.rfind(1, "su");
+s.erase(1, 2);
+//NULL @=> s;
