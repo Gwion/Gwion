@@ -101,9 +101,9 @@ install:
 
 coverity:
 	@git ls-remote --heads origin coverity_scan | wc -l || git push origin :coverity_scan
-	@git show-ref --heads --quiet coverity_scan && git branch -D coverity_scan
-	@git branch coverity_scan
-	@git checkout coverity_scan
+#	@git show-ref --heads --quiet coverity_scan && git branch -D coverity_scan
+#	@git branch coverity_scan
+	@git checkout --orphan coverity_scan
 	@cp .travis.yml util/travis.yml
 	@cp  util/coverity.yml .travis.yml
 	@git add .travis.yml

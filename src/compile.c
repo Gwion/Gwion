@@ -15,7 +15,7 @@ m_bool compile(VM* vm, const m_str filename)
   if(d)
     args = new_Vector();
   while(d)
-    vector_append(args, (vtype)strsep(&d, ":"));
+    vector_append(args, (vtype)S_name(insert_symbol(strsep(&d, ":"))));
   free(d);
   name = realpath(_name, NULL);
   free(_name);
