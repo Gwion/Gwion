@@ -81,7 +81,7 @@ static MFUN(shred_path)
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  STRING(obj) = basename(strdup(s->code->filename));
+  STRING(obj) = s->code->filename;
   RETURN->d.v_uint = (m_uint)obj;
 }
 
