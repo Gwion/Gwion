@@ -15,16 +15,21 @@ static INSTR(String_Assign)
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
-  if(!lhs) {
-    lhs = new_M_Object();
-    initialize_object(lhs, &t_string);
-  }
+  /*
+    if(!lhs) {
+      lhs = new_M_Object();
+      initialize_object(lhs, &t_string);
+    }
+  */
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!rhs) {
-    rhs = new_M_Object();
-    initialize_object(rhs, &t_string);
+    err_msg(INSTR_, 0, "assigning to empty string.");
+    Except(shred);
+    return;
+//    rhs = new_M_Object();
+//    initialize_object(rhs, &t_string);
   }
-  STRING(rhs) = STRING(lhs);
+  STRING(rhs) = lhs ? STRING(lhs) : NULL;
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -439,7 +444,7 @@ MFUN(string_insert)
   for(i = index; i < len; i++)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -460,7 +465,7 @@ MFUN(string_replace)
   for(i = 0; i < len_insert; i++)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -484,6 +489,8 @@ MFUN(string_replaceN)
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
   c[len] = '\0';
+  free(insert);
+  free(str);
   STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
@@ -536,6 +543,8 @@ MFUN(string_findStr)
     i++;
     str++;
   }
+  str -= i;
+  free(str);
   RETURN->d.v_uint = ret;
 }
 
@@ -557,6 +566,8 @@ MFUN(string_findStrStart)
     i++;
     str++;
   }
+  str -= i;
+  free(str);
   RETURN->d.v_uint = ret;
 }
 
@@ -608,6 +619,8 @@ MFUN(string_rfindStr)
     i--;
     str--;
   }
+  str -= i;
+  free(str);
   RETURN->d.v_uint = ret;
 }
 
@@ -629,6 +642,8 @@ MFUN(string_rfindStrStart)
     i--;
     str--;
   }
+  str -= i;
+  free(str);
   RETURN->d.v_uint = ret;
 }
 
