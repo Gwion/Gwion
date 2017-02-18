@@ -702,8 +702,8 @@ INSTR(fc_connect)
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
-    Vector v = *(Vector*)(obj->d.data + o_fc_vector);
     if(obj) {
+      Vector v = *(Vector*)(obj->d.data + o_fc_vector);
       vector_append(v, (vtype)obj);
       release(obj, shred);
     }

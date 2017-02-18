@@ -293,7 +293,7 @@ MFUN(string_upper)
   m_uint i;
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  char c[strlen(STRING(o))];
+  char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
@@ -307,7 +307,7 @@ MFUN(string_lower)
   m_uint i;
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  char c[strlen(STRING(o))];
+  char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
@@ -454,7 +454,8 @@ MFUN(string_insert)
 
 MFUN(string_replace)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o)) + 1];
+  strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str insert = strdup(STRING(arg));
@@ -475,11 +476,13 @@ MFUN(string_replace)
 
 MFUN(string_replaceN)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o)) + 1];
+  strcpy(str, STRING(o));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 3);
   m_int _len = *(m_int*)(shred->mem + SZ_INT * 2);
-  m_str insert = strdup(STRING(arg));
+  char insert[strlen(STRING(arg)) + 1];
+  strcpy(str, STRING(arg));
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   while(str[len] != '\0')
@@ -493,8 +496,6 @@ MFUN(string_replaceN)
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
   c[len] = '\0';
-  free(insert);
-  free(str);
   STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
@@ -571,7 +572,7 @@ MFUN(string_findStrStart)
     i++;
     str++;
   }
-  str -= (i-1);
+  str -= (i - 1);
   free(str);
   release(obj, shred);
   RETURN->d.v_uint = ret;
@@ -599,7 +600,6 @@ MFUN(string_rfindStart)
   char arg = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int i = pos, ret = -1;
   while(i > 0 && str[i] != '\0') {
-printf("%i i\n", i);
     if(str[i] == arg) {
       ret = i;
       break;
@@ -627,7 +627,7 @@ MFUN(string_rfindStr)
     i--;
     str--;
   }
-  str -= (i-1);
+  str -= (i - 1);
   free(str);
   release(obj, shred);
   RETURN->d.v_uint = ret;
@@ -641,8 +641,8 @@ MFUN(string_rfindStrStart)
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str arg = STRING(obj);
 
-printf("here: %s %s\n", STRING(o), STRING(obj));
-printf("here: %s %s\n", str, arg);
+  printf("here: %s %s\n", STRING(o), STRING(obj));
+  printf("here: %s %s\n", str, arg);
 
 //  m_str str = strdup(STRING(o));
   m_str buf = str;
