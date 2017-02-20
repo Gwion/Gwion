@@ -151,6 +151,7 @@ int main(int argc, char** argv)
       break;
     case 'e':
       select_backend(&di, optarg);
+      break;
     case 'r':
       di.raw = 1;
       break;
