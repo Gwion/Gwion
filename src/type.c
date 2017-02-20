@@ -1603,6 +1603,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     case op_minus:
       if(isa(t, &t_int) || isa(t, &t_float) > 0)
         return t;
+      break;
     case op_tilda:
     case op_exclamation:
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)

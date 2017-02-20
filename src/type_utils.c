@@ -244,7 +244,7 @@ m_str type_path(ID_List path )
   char str[256];
   memset(str, 0, sizeof(str));
   while(path) {
-    strcat(str, S_name(path->xid));
+    strncat(str, S_name(path->xid), 256 - strlen(str));
     if(path->next)
       strcat(str, ".");
     path = path->next;

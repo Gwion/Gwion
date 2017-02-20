@@ -96,7 +96,7 @@ S_Symbol insert_symbol(c_constr name)
   S_Symbol syms = NULL, sym;
   int index;
   if(!name)
-	return NULL;
+    return NULL;
   index = hash(name) % SIZE;
   syms = hashtable[index];
   for(sym = syms; sym; sym = sym->next)

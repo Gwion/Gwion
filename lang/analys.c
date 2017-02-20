@@ -720,7 +720,7 @@ INSTR(fc_disconnect)
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
   if(o) {
     if(obj) {
-	  Vector v = *(Vector*)(obj->d.data + o_fc_vector);
+      Vector v = *(Vector*)(obj->d.data + o_fc_vector);
       vector_remove(v, vector_find(v, (vtype)obj));
       release(obj, shred);
     }
