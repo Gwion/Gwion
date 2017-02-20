@@ -94,8 +94,10 @@ static int streq(c_constr a, c_constr b)
 S_Symbol insert_symbol(c_constr name)
 {
   S_Symbol syms = NULL, sym;
-  int index = hash(name) % SIZE;
-  if( !name ) return NULL;
+  int index;
+  if(!name)
+	return NULL;
+  index = hash(name) % SIZE;
   syms = hashtable[index];
   for(sym = syms; sym; sym = sym->next)
     if (streq(sym->name, name))
