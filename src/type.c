@@ -2255,8 +2255,8 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   if(!value) {
     m_uint i;
     /*    m_str s = strdup(the_base->name);*/
-    char s[1024];
-    memset(s, 0, 1024);
+    char s[1025];
+    memset(s, 0, 1025);
     strncpy(s, the_base->name, 1024);
     for(i = 0; i < the_base->array_depth; i++)
       strcat(s, "[]");
