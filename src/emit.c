@@ -950,7 +950,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       Func f = new_Func("sporked", new_Func_Def(0, 0, new_Type_Decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
 
       if (emit->env->class_def)
-        instr = add_instr(emit, Reg_Push_This);
+        add_instr(emit, Reg_Push_This);
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)f;
 
