@@ -901,7 +901,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         return ret_type;
       }
     }
-    err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) "[broken]");
+    err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
     return NULL;
   }
   // check for arrays
