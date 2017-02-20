@@ -55,7 +55,7 @@ char* Recv(int i)
 #endif
     if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed");
-
+    buf[255] = '\0';
     return strndup(buf, strlen(buf));
 #ifndef __linux__
   }
