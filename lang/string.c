@@ -482,7 +482,7 @@ MFUN(string_replaceN)
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 3);
   m_int _len = *(m_int*)(shred->mem + SZ_INT * 2);
   char insert[strlen(STRING(arg)) + 1];
-  strcpy(str, STRING(arg));
+  strcpy(insert, STRING(arg));
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   while(str[len] != '\0')
