@@ -265,9 +265,9 @@ static void mkdoc_func(Doc* doc, Func f)
                    usable(v->m_type->owner->filename);
     m_str ap_type = print_type(v->m_type);
     memset(a_full, 0, 1024);
-    strcat(a_full, full);
-    strcat(a_full, "_");
-    strcat(a_full, v->name);
+    strncpy(a_full, full, 1023 - strlen(v->name));
+    strncat(a_full, "_", 1);
+    strncat(a_full, v->name, strlen(v->name));
     fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
             a_full, a_file, a_type, ap_type, v->name);
     if(arg->doc)
