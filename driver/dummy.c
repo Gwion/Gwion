@@ -8,8 +8,7 @@
 //void no_wakeup(){}
 static void dummy_run(VM* vm, DriverInfo* di)
 {
-  while(vm->is_running)
-  {
+  while(vm->is_running) {
     vm_run(vm);
     vm->bbq->sp->pos++;
   }
@@ -18,16 +17,18 @@ static void dummy_run(VM* vm, DriverInfo* di)
 static void silent_run(VM* vm, DriverInfo* di)
 {
   m_uint timer = (vm->bbq->sp->sr / 100000);
-  while(vm->is_running)
-  {
+  while(vm->is_running) {
     vm_run(vm);
     vm->bbq->sp->pos++;
     usleep(timer);
   }
 }
 
-static m_bool dummy_ini(VM* vm, DriverInfo* di){ return 1;}
-static void dummy_del(VM* vm){}
+static m_bool dummy_ini(VM* vm, DriverInfo* di)
+{
+  return 1;
+}
+static void dummy_del(VM* vm) {}
 
 Driver* silent_driver(VM* vm)
 {

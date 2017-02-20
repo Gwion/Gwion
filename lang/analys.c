@@ -114,6 +114,7 @@ static MFUN(fft_init)
     if(ana->fft)
       FFTwrapper_destroy(&ana->fft);
   }
+  ana = NULL;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
   sp_buffer_create(&ana->buf, size);
   ana->frq = malloc(sizeof(FFTFREQS));
