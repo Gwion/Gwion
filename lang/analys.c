@@ -106,16 +106,14 @@ static void fft_dtor(M_Object o, VM_Shred shred)
 static MFUN(fft_init)
 {
   FFT* ana = (FFT*)o->ugen->ug;
-  if(ana) {
-    if(ana->buf)
-      sp_buffer_destroy(ana->buf);
-    if(ana->frq)
-      deleteFFTFREQS(ana->frq);
-    if(ana->fft)
-      FFTwrapper_destroy(&ana->fft);
-  }
-  ana = NULL;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
+
+  if(ana->buf)
+    sp_buffer_destroy(ana->buf);
+  if(ana->frq)
+    deleteFFTFREQS(ana->frq);
+  if(ana->fft)
+    FFTwrapper_destroy(&ana->fft);
   sp_buffer_create(&ana->buf, size);
   ana->frq = malloc(sizeof(FFTFREQS));
   newFFTFREQS(ana->frq, size * 2);
