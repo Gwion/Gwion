@@ -196,7 +196,6 @@ INSTR(Vararg_end)
     free(arg->d);
     free(arg->k);
     free(arg);
-    shred->next_pc = shred->next_pc;
   } else {
     *(m_uint*)(shred->reg - SZ_INT) = 0;
     shred->next_pc = instr->m_val2;
