@@ -113,22 +113,20 @@ static Doc* new_Doc(Env env, m_str str)
   if(!(doc->html = fopen(c, "w"))) {
     free(name);
     free(doc);
-    return NULL:
+    return NULL;
   }
   memset(c, 0, 1024);
   strncpy(c, GWION_DOC_DIR, 1023);
   strncat(c, "dat/", 1023 - strlen(c));
   strncat(c, name, 1023 - strlen(c));
   strncat(c, ".js", 1023 -strlen(c));
-  doc->data = fopen(c, "w");
-  if(!(doc->html = fopen(c, "w"))) {
+  if(!(doc->data = fopen(c, "w"))) {
     free(name);
     fclose(doc->html);
     free(doc);
-    return NULL:
+    return NULL;
   }
   free(name);
-printf("here %s\n", c);
   return doc;
 }
 
