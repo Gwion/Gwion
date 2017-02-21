@@ -74,6 +74,9 @@ prepare_directories() {
 	mkdir -p "$GWION_TOK_DIR"
 	mkdir -p "$GWION_TAG_DIR"
 	mkdir -p "$GWION_PLUG_DIR"
+	echo "pwd $PWD"
+	ls data
+	ls
 }
 
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
