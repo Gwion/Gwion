@@ -89,8 +89,11 @@ static MFUN(shred_dir)
 {
   VM_Shred  s = ME(o);
   M_Object obj = new_M_Object();
+  char c[strlen(s->code->filename) + 1];
+  memset(c, 0, strlen(s->code->filename) + 1);
+  strncpy(c, s->code->filename, strlen(s->code->filename));
   initialize_object(obj, &t_string);
-  STRING(obj) = dirname(strdup(s->code->filename));
+  STRING(obj) = S_name(insert_symbol(dirname(c)));
   RETURN->d.v_uint = (m_uint)obj;
 }
 

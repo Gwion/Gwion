@@ -279,6 +279,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
       err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module" );
       // TODO: cleanup
       free_Type_Decl(type_decl);
+      free_Arg_List(arg_list);
       return NULL;
     }
     // TODO: arrays?

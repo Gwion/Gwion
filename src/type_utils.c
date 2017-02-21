@@ -13,6 +13,7 @@ m_str type_name(Type type)
   for(i = 0; i < type->array_depth; i++)
     strcat(c, "[]");
   strcat(c, (m_str)vector_at(v, i));
+  free_Vector(v);
   return strdup(c);
 }
 

@@ -48,7 +48,7 @@ struct Array_Sub_ {
 };
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
-
+void free_Array_Sub(Array_Sub a);
 typedef struct {
   Expression base;
   Array_Sub indices;
@@ -329,7 +329,7 @@ struct Arg_List_ {
   int pos;
 };
 Arg_List new_Arg_List(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, int pos);
-
+void free_Arg_List(Arg_List a);
 Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List args, int pos);
 
 struct Expression_ {

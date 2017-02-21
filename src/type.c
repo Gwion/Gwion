@@ -1663,6 +1663,9 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
                 t->name);
         err_msg(TYPE_,  exp_unary->pos,
                 "...(primitive types: 'int', 'float', 'time', 'dur')" );
+        free_Array_Sub(exp_unary->array);
+        free(t->obj);
+        free(t);
         return NULL;
       }
       if( exp_unary->type->ref && !exp_unary->array ) {

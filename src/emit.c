@@ -710,6 +710,7 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
       strsep(&nspc, "@");
       strsep(&nspc, "@");
       sprintf(name, "%s@%i@%s", S_name(cast->exp->d.exp_primary->d.var), 0, nspc);
+      free(nspc); // coverity
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)cast->func;
       return 1;
@@ -1202,10 +1203,10 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
     }
     if (tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
-    if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
-      Instr ref = add_instr(emit, Reg_AddRef_Object3);
-      ref->m_val = tmp->emit_var;
-    }
+      if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
+        Instr ref = add_instr(emit, Reg_AddRef_Object3);
+        ref->m_val = tmp->emit_var;
+      }
     tmp = tmp->next;
   }
 #ifdef DEBUG_EMIT
