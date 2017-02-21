@@ -175,14 +175,14 @@ typedef struct _FFT {
 
 typedef double (*f_analys)(_FFT* fft);
 
-m_float array_max(m_float* f, unsigned int size, unsigned int index)
+m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 {
   unsigned int i;
   m_float max = -INFINITY;
   for(i = 0; i < size; i++) {
     if(f[i] > max) {
       max = f[i];
-      index = i;
+      *index = i;
     }
   }
   return max;
