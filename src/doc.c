@@ -95,7 +95,6 @@ static void free_Textadept(Textadept* a)
 
 static Doc* new_Doc(Env env, m_str str)
 {
-printf("here\n");
   char c[1024];
   m_str name;
   Doc* doc = malloc(sizeof(Doc));
@@ -105,20 +104,29 @@ printf("here\n");
     free(doc);
     return NULL;
   }
-printf("here again\n");
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
   strncpy(c, GWION_DOC_DIR, 1023);
   strncat(c, name, 1023 - strlen(GWION_DOC_DIR));
   strncat(c, ".html", 1023 - strlen(c));
-  doc->html = fopen(c, "w");
+  if(!(doc->html = fopen(c, "w"))) {
+    free(name);
+    free(doc);
+    return NULL:
+  }
   memset(c, 0, 1024);
   strncpy(c, GWION_DOC_DIR, 1023);
   strncat(c, "dat/", 1023 - strlen(c));
   strncat(c, name, 1023 - strlen(c));
   strncat(c, ".js", 1023 -strlen(c));
   doc->data = fopen(c, "w");
+  if(!(doc->html = fopen(c, "w"))) {
+    free(name);
+    fclose(doc->html);
+    free(doc);
+    return NULL:
+  }
   free(name);
 printf("here %s\n", c);
   return doc;
