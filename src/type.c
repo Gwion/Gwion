@@ -2017,7 +2017,7 @@ static m_bool check_Return(Env env, Stmt_Return stmt)
     ret_type = &t_void;
   if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)
     return 1;
-  if(ret_type && isa(ret_type, env->func->def->ret_type) < 0) {
+  if(isa(ret_type, env->func->def->ret_type) < 0) {
     err_msg(TYPE_, stmt->pos,
             "invalid return type '%s' -- expecting '%s'",
             ret_type->name, env->func->def->ret_type->name);

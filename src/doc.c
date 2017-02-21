@@ -107,15 +107,15 @@ static Doc* new_Doc(Env env, m_str str)
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
-  strcat(c, GWION_DOC_DIR);
-  strcat(c, name);
-  strcat(c, ".html");
+  strncpy(c, GWION_DOC_DIR, 1023);
+  strncat(c, name, 1023 - strlen(GWION_DOC_DIR));
+  strncat(c, ".html", 1023 - strlen(c));
   doc->html = fopen(c, "w");
   memset(c, 0, 1024);
-  strcat(c, GWION_DOC_DIR);
-  strcat(c, "dat/");
-  strcat(c, name);
-  strcat(c, ".js");
+  strncpy(c, GWION_DOC_DIR, 1023);
+  strncat(c, "dat/", 1023 - strlen(c));
+  strncat(c, name, 1023 - strlen(c));
+  strncat(c, ".js", 1023 -strlen(c));
   doc->data = fopen(c, "w");
   free(name);
   return doc;
@@ -265,9 +265,9 @@ static void mkdoc_func(Doc* doc, Func f)
                    usable(v->m_type->owner->filename);
     m_str ap_type = print_type(v->m_type);
     memset(a_full, 0, 1024);
-    strncpy(a_full, full, 1023 - strlen(v->name));
-    strncat(a_full, "_", 1);
-    strncat(a_full, v->name, strlen(v->name));
+    strncpy(a_full, full, 1023);
+    strncat(a_full, "_", 1023 - strlen(a_full));
+    strncat(a_full, v->name, 1023 - strlen(a_full));
     fprintf(doc->html, "<a class=\"anchor\" id=\"%s\"> </a><p class=\"first\"><li><a class=\"reference external\" href=\"%s.html#%s\">%s</a> <strong>%s</strong>",
             a_full, a_file, a_type, ap_type, v->name);
     if(arg->doc)
