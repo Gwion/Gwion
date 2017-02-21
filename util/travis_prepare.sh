@@ -69,11 +69,11 @@ configure_Gwion() {
 }
 
 prepare_directories() {
-	mkdir -p $GWION_DOC_DIR/{dat,dot,map,png,rst,search,tex}
-	mkdir -p $GWION_API_DIR
-	mkdir -p $GWION_TOK_DIR
-	mkdir -p $GWION_TAG_DIR
-	mkdir -p $GWION_PLUG_DIR
+	mkdir -p doc/{dat,dot,map,png,rst,search,tex}
+	mkdir -p api
+	mkdir -p tag
+	mkdir -p tok
+	mkdir -p plug
 	echo "pwd $PWD"
 	ls data
 	ls
