@@ -60,6 +60,7 @@ script:
   - make && sh util/test.sh
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in test/bug/*; do ./gwion $a; done;fi ; fi; fi
   - ./gwion examples/doc.gw
+  - return 0
 
 branches:
   - only:
