@@ -95,6 +95,7 @@ static void free_Textadept(Textadept* a)
 
 static Doc* new_Doc(Env env, m_str str)
 {
+printf("here\n");
   char c[1024];
   m_str name;
   Doc* doc = malloc(sizeof(Doc));
@@ -104,6 +105,7 @@ static Doc* new_Doc(Env env, m_str str)
     free(doc);
     return NULL;
   }
+printf("here again\n");
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
@@ -118,6 +120,7 @@ static Doc* new_Doc(Env env, m_str str)
   strncat(c, ".js", 1023 -strlen(c));
   doc->data = fopen(c, "w");
   free(name);
+printf("here %s\n", c);
   return doc;
 }
 
