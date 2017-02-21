@@ -487,7 +487,6 @@ void mkdoc_context(Env env, m_str str)
 {
   int i;
   Doc* doc = new_Doc(env, str);
-printf("here %p\n", doc->html);
   if(!doc)
     return;
   fprintf(doc->html, "<meta http-equiv=\"Content-Type\" content=\"text/xhtml;charset=UTF-8\"/>\

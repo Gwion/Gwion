@@ -4,7 +4,7 @@ sudo: false
 
 os:
   - linux
-  - osx
+#  - osx
 
 addons:
   apt:
@@ -32,9 +32,9 @@ env:
     - GWION_PLUG_DIR='\"plug/\"'
   matrix:
     - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
-    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
-    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
-    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
+#    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
+#    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
+#    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
 
 matrix:
   fast_finish: true
@@ -42,7 +42,7 @@ matrix:
   - os: osx
 
 compiler:
-- clang
+#- clang
 - gcc
 
 before_install:
@@ -57,7 +57,7 @@ before_script:
   - bash util/travis_prepare.sh
 
 script:
-  - make && sh util/test.sh
+  - make # && sh util/test.sh
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in test/bug/*; do ./gwion $a; done;fi ; fi; fi
   - ./gwion examples/doc.gw
 
