@@ -85,10 +85,10 @@ Env type_engine_init(VM* vm)
   CHECK_BO(import_ugen(env))
   CHECK_BO(import_array(env))
 
-  //  CHECK_BO(import_io(env))
+//  CHECK_BO(import_io(env))
   start_type_xid();
   // event child
-  //  CHECK_BO(import_fileio(env))
+  CHECK_BO(import_fileio(env))
 
   // libs
   CHECK_BO(import_lib(env))
@@ -894,7 +894,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       }
       /*if(!f1)*/
       /*f1 = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->func_ref;*/
-      if(f1 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+      if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
         ret_type = f1->def->ret_type;
         ret_type->func = f2;
@@ -2012,8 +2012,9 @@ static m_bool check_Return(Env env, Stmt_Return stmt)
     err_msg(TYPE_, stmt->pos, "'return' statement found outside function definition");
     return -1;
   }
-  if(stmt->val)
-    ret_type = check_Expression(env, stmt->val);
+  if(stmt->val) {
+    CHECK_OB((ret_type = check_Expression(env, stmt->val)))
+  }
   else
     ret_type = &t_void;
   if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)

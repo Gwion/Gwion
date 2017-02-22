@@ -229,7 +229,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
 
     if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
-    l = l->parent;
+    l = l ? l->parent : NULL;
     while(l) {
       if((t = get_return_type(env, op, l, rhs)))
         return t;
