@@ -47,7 +47,7 @@ compiler:
 
 before_install:
   - pip install hererocks
-  - hererocks lua_install -r^ "lua=5.2"
+  - hererocks lua_install -r^ --"lua=5.2"
   - export PATH=$PATH:$PWD/lua_install/bin
   - export SPFLOAT=$GW_FLOAT_TYPE
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
