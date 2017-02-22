@@ -181,6 +181,17 @@ INSTR(vec3_divide_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
+INSTR(vec3_r_assign)
+{
+  POP_REG(shred, SZ_VEC3 + SZ_INT);
+  VEC3_T r = *(VEC3_T*)(shred->reg + SZ_VEC3);
+  r.x = *(m_float*)(shred->reg);
+  r.y = *(m_float*)(shred->reg + SZ_FLOAT);
+  r.y = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+  *(VEC3_T*)shred->reg = r;
+  PUSH_REG(shred, SZ_VEC3);
+}
+
 INSTR(vec3_z)
 {
   if(instr->m_val) {
@@ -284,6 +295,8 @@ m_bool import_vec3(Env env)
   CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_float, &t_vec3, vec3_times_float, 1))
   CHECK_BB(add_binary_op(env, op_divide, &t_vec3,   &t_float, &t_vec3, vec3_divide_float, 1))
   CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec3, &t_vec3,  float_times_vec3, 1))
+
+  CHECK_BB(add_binary_op(env, op_chuck,  &t_vec3,   &t_vec3, &t_vec3,  vec3_r_assign, 1))
 
   CHECK_BB(import_class_end(env))
   t_vec3.size = SZ_VEC3;
@@ -438,6 +451,18 @@ INSTR(vec4_divide_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
+INSTR(vec4_r_assign)
+{
+  POP_REG(shred, SZ_VEC4 + SZ_INT);
+  VEC4_T r = *(VEC4_T*)(shred->reg + SZ_VEC4);
+  r.x = *(m_float*)(shred->reg);
+  r.y = *(m_float*)(shred->reg + SZ_FLOAT);
+  r.z = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+  r.w = *(m_float*)(shred->reg + SZ_FLOAT * 3);
+  *(VEC4_T*)shred->reg = r;
+  PUSH_REG(shred, SZ_VEC3);
+}
+
 m_bool import_vec4(Env env)
 {
   DL_Func* fun;
@@ -466,6 +491,7 @@ m_bool import_vec4(Env env)
   CHECK_BB(add_binary_op(env, op_times,  &t_vec4,   &t_float, &t_vec4,  vec4_times_float, 1))
   CHECK_BB(add_binary_op(env, op_divide, &t_vec4,   &t_float, &t_vec4,  vec4_divide_float, 1))
   CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec4,  &t_vec4,  float_times_vec4, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,   &t_vec4,   &t_vec4,  &t_vec4,  vec4_r_assign, 1))
   CHECK_BB(import_class_end(env))
   t_vec4.size = SZ_VEC4;
   return 1;

@@ -293,6 +293,8 @@ m_bool import_complex(Env env)
   CHECK_BB(add_binary_op(env, op_times_chuck,   &t_complex, &t_complex, &t_complex, r_times,    0))
   CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_complex, &t_complex, &t_complex, r_divide,   0))
   /*	CHECK_BB(add_binary_op(env, op_modulo_chuck,  &t_complex, &t_complex, &t_complex, r_modulo,   0)) */
+  CHECK_BB(add_binary_op(env, op_assign,        &t_polar, &t_polar, &t_polar, assign,           0))
+  CHECK_BB(add_binary_op(env, op_chuck,         &t_polar, &t_polar, &t_polar, r_assign,         0))
   CHECK_BB(add_binary_op(env, op_plus,          &t_polar, &t_polar, &t_polar, polar_plus,       0))
   CHECK_BB(add_binary_op(env, op_minus,         &t_polar, &t_polar, &t_polar, polar_minus,      0))
   CHECK_BB(add_binary_op(env, op_times,         &t_polar, &t_polar, &t_polar, polar_times,      0))
