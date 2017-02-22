@@ -17,8 +17,8 @@ clean() {
 }
 
 _fancy_output() {
-	[ $(echo "$COUNT >= 100" |  bc) ] && printf "\b"
-	[ $(echo "$COUNT >= 10" |  bc) ] && printf "\b"
+	[ $(lua -e "print ($COUNT >= 100)" ] && printf "\b"
+	[ $(lua -e "print ($COUNT >= 10)"  ] && printf "\b"
 	printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b $COUNT seconds $1 "
 }
 fancy_output() {
@@ -28,17 +28,16 @@ fancy_output() {
     do
 		_fancy_output "|"
         sleep .5
-#        COUNT=$(echo $COUNT + 0.5 | bc)
         COUNT=$(lua -e "print ($COUNT + 0.5)")
 		_fancy_output "/"
         sleep .5
-#        COUNT=$(echo $COUNT + 0.5 | bc)
+        COUNT=$(lua -e "print ($COUNT + 0.5)")
 		_fancy_output "-"
         sleep .5
-#        COUNT=$(echo $COUNT + 0.5 | bc)
+        COUNT=$(lua -e "print ($COUNT + 0.5)")
 		_fancy_output "\\"
         sleep .5
-#        COUNT=$(echo $COUNT + 0.5 | bc)
+        COUNT=$(lua -e "print ($COUNT + 0.5)")
     done
 }
 
