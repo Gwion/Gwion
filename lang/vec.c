@@ -187,7 +187,7 @@ INSTR(vec3_r_assign)
   VEC3_T r = *(VEC3_T*)(shred->reg + SZ_VEC3);
   r.x = *(m_float*)(shred->reg);
   r.y = *(m_float*)(shred->reg + SZ_FLOAT);
-  r.y = *(m_float*)(shred->reg + SZ_FLOAT * 2);
+  r.z = *(m_float*)(shred->reg + SZ_FLOAT * 2);
   *(VEC3_T*)shred->reg = r;
   PUSH_REG(shred, SZ_VEC3);
 }
