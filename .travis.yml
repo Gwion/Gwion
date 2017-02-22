@@ -9,7 +9,7 @@ os:
 addons:
   apt:
     packages:
-    - lua5.2
+#    - lua5.2
     - valgrind
     - libsndfile1
     - libsndfile1-dev
@@ -46,9 +46,15 @@ compiler:
 - gcc
 
 before_install:
+  - pip install hererocks
+  - hererocks lua_install -r^ "lua=5.2"
+  - export PATH=$PATH:$PWD/lua_install/bin
   - export SPFLOAT=$GW_FLOAT_TYPE
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
+
+#install: #next test system?
+#  - luarocks install busted
 
 before_script:
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
