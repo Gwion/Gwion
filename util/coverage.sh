@@ -17,8 +17,8 @@ clean() {
 }
 
 _fancy_output() {
-	[ $(lua -e "print ($COUNT >= 100)" ] && printf "\b"
-	[ $(lua -e "print ($COUNT >= 10)"  ] && printf "\b"
+	[ $(lua -e "print ($COUNT >= 100)") ] && printf "\b"
+	[ $(lua -e "print ($COUNT >= 10)")  ] && printf "\b"
 	printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b $COUNT seconds $1 "
 }
 fancy_output() {
