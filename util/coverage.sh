@@ -1,17 +1,7 @@
 #!/bin/bash
-
-
-
-
-
-echo "get info"
 type_defs_global=$(cat ./*/*.c | grep "struct Type_ "| sed 's/static //' | sed 's/extern //' | grep "= {"  | grep -v '@' | cut -d ' ' -f 3 | tr '\n' ':')
 type_name_global=$(cat ./*/*.c | grep "struct Type_ "| sed 's/static //' | sed 's/extern //' | grep "= {"  | grep -v '@' | cut -d '"' -f 2 | tr '\n' ':')
-#export type_defs_global
-#export type_name_global
-#export 
 type_defs_array=(${type_defs_global//:/ })
-#export 
 type_name_array=(${type_name_global//:/ })
 
 trap "clean; exit" SIGHUP SIGINT SIGTERM
@@ -38,16 +28,17 @@ fancy_output() {
     do
 		_fancy_output "|"
         sleep .5
-        COUNT=$(echo $COUNT + 0.5 | bc)
+#        COUNT=$(echo $COUNT + 0.5 | bc)
+        COUNT=$(lua -e "print ($COUNT + 0.5)")
 		_fancy_output "/"
         sleep .5
-        COUNT=$(echo $COUNT + 0.5 | bc)
+#        COUNT=$(echo $COUNT + 0.5 | bc)
 		_fancy_output "-"
         sleep .5
-        COUNT=$(echo $COUNT + 0.5 | bc)
+#        COUNT=$(echo $COUNT + 0.5 | bc)
 		_fancy_output "\\"
         sleep .5
-        COUNT=$(echo $COUNT + 0.5 | bc)
+#        COUNT=$(echo $COUNT + 0.5 | bc)
     done
 }
 
