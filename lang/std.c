@@ -101,11 +101,11 @@ SFUN(std_rand2)
     RETURN->d.v_uint = min;
   else {
     if( range > 0 )
-      RETURN->d.v_uint = min + (m_int)( (1.0 + range) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) ) 
-);
+      RETURN->d.v_uint = min + (m_int)( (1.0 + range) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) )
+                                      );
     else
-      RETURN->d.v_uint = min - (m_int)( (-range + 1.0) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) ) 
-);
+      RETURN->d.v_uint = min - (m_int)( (-range + 1.0) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) )
+                                      );
   }
 }
 

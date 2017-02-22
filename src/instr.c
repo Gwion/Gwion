@@ -233,7 +233,7 @@ INSTR(Reg_Push_Maybe)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push maybe");
 #endif
-  *(m_uint*)shred->reg = (rand() > (RAND_MAX / 2)) ? 1 : 0;
+  *(m_uint*)shred->reg = (sp_rand(shred->vm_ref->bbq->sp) > (RAND_MAX / 2)) ? 1 : 0;
   PUSH_REG(shred, SZ_INT);
 }
 
