@@ -2014,8 +2014,7 @@ static m_bool check_Return(Env env, Stmt_Return stmt)
   }
   if(stmt->val) {
     CHECK_OB((ret_type = check_Expression(env, stmt->val)))
-  }
-  else
+  } else
     ret_type = &t_void;
   if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)
     return 1;
