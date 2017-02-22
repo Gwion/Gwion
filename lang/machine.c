@@ -1,11 +1,14 @@
 #include <string.h>
 #include <dirent.h>
+#include <soundpipe.h> // for sp_rand
 #include "defs.h"
 #include "import.h"
 #include "shreduler.h"
 #include "compile.h"
 #include "lang.h"
 #include "doc.h"
+
+#include "bbq.h"  // for sp_rand also
 
 #define prepare() \
   Ast ast = NULL; \
@@ -102,7 +105,7 @@ static SFUN(machine_adept)
   mkadt_context(shred->vm_ref->env, str);
 }
 
-static m_str randstring(int length)
+static m_str randstring(VM* vm, int length)
 {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
   size_t stringLen = 26 * 2 + 10 + 7;
@@ -117,7 +120,7 @@ static m_str randstring(int length)
   unsigned int key = 0;
 
   for (int n = 0; n < length; n++) {
-    key = rand() % stringLen;
+    key = sp_rand(vm->bbq->sp) % stringLen;
     randomString[n] = string[key];
   }
 
@@ -141,7 +144,7 @@ SFUN(machine_check)
     RETURN->d.v_uint = 0;
     return;
   }
-  filename = randstring(12);
+  filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s", prefix, filename);
   FILE* file = fopen(c, "w");
   fprintf(file, "%s\n", STRING(code_obj));

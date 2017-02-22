@@ -5,6 +5,8 @@
 #include "dl.h"
 #include "import.h"
 #include "lang.h"
+#include "bbq.h"
+
 #define LOGTWO log(2)
 #define LOGTEN log(10)
 static double mtof( double f )
@@ -87,7 +89,7 @@ SFUN(std_fabs)
 
 SFUN(std_rand)
 {
-  RETURN->d.v_uint = rand();
+  RETURN->d.v_uint = sp_rand(shred->vm_ref->bbq->sp);
 }
 
 SFUN(std_rand2)
@@ -99,22 +101,24 @@ SFUN(std_rand2)
     RETURN->d.v_uint = min;
   else {
     if( range > 0 )
-      RETURN->d.v_uint = min + (m_int)( (1.0 + range) * ( rand() / (RAND_MAX + 1.0) ) );
+      RETURN->d.v_uint = min + (m_int)( (1.0 + range) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) ) 
+);
     else
-      RETURN->d.v_uint = min - (m_int)( (-range + 1.0) * ( rand() / (RAND_MAX + 1.0) ) );
+      RETURN->d.v_uint = min - (m_int)( (-range + 1.0) * ( sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0) ) 
+);
   }
 }
 
 SFUN(std_randf)
 {
-  RETURN->d.v_float = 2.0 * rand() / RAND_MAX - 1.0;
+  RETURN->d.v_float = 2.0 * sp_rand(shred->vm_ref->bbq->sp) / RAND_MAX - 1.0;
 }
 
 SFUN(std_rand2f)
 {
   m_float min = *(m_float*)(shred->mem + SZ_FLOAT);
   m_float max = *(m_float*)(shred->mem + SZ_FLOAT * 2);
-  RETURN->d.v_float = min + (max - min) * (rand() / (m_float)RAND_MAX);
+  RETURN->d.v_float = min + (max - min) * (sp_rand(shred->vm_ref->bbq->sp) / (m_float)RAND_MAX);
 }
 
 SFUN(std_srand)
