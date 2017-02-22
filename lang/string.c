@@ -449,6 +449,7 @@ MFUN(string_insert)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   STRING(obj) = S_name(insert_symbol(c));
+  free(str);
   free(insert);
   RETURN->d.v_object = obj;
 }
