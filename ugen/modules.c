@@ -9,7 +9,7 @@
 #include "bbq.h"
 
 extern struct Type_ t_osc;
-static struct Type_ t_sinosc      = { "SinOsc",      1, &t_ugen };
+static struct Type_ t_sinosc      = { "SinOsc",      SZ_INT, &t_ugen };
 
 typedef struct {
   sp_data* sp;
@@ -150,7 +150,7 @@ static m_bool import_sinosc(Env env)
 }
 
 
-static struct Type_ t_gain      = { "Gain", 1, &t_ugen };
+static struct Type_ t_gain      = { "Gain", SZ_INT, &t_ugen };
 static m_bool gain_tick(UGen u)
 {
   base_tick(u);
@@ -195,7 +195,7 @@ static m_bool import_gain(Env env)
 }
 
 
-static struct Type_ t_impulse      = { "Impulse", 1, &t_ugen };
+static struct Type_ t_impulse      = { "Impulse", SZ_INT, &t_ugen };
 static m_bool impulse_tick(UGen u)
 {
 //  u->out = *(m_float*)u->ug;
@@ -241,7 +241,7 @@ static m_bool import_impulse(Env env)
   return 1;
 }
 
-static struct Type_ t_fullrect = { "FullRect", 1, &t_ugen };
+static struct Type_ t_fullrect = { "FullRect", SZ_INT, &t_ugen };
 static m_bool fullrect_tick(UGen u)
 {
   base_tick(u);
@@ -269,7 +269,7 @@ static m_bool import_fullrect(Env env)
   return 1;
 }
 
-static struct Type_ t_halfrect = { "HalfRect", 1, &t_ugen };
+static struct Type_ t_halfrect = { "HalfRect", SZ_INT, &t_ugen };
 static m_bool halfrect_tick(UGen u)
 {
   base_tick(u);
@@ -300,7 +300,7 @@ static m_bool import_halfrect(Env env)
   return 1;
 }
 
-static struct Type_ t_step = { "Step", 1, &t_ugen };
+static struct Type_ t_step = { "Step", SZ_INT, &t_ugen };
 static m_bool step_tick(UGen u)
 {
   u->out = *(m_float*)u->ug;
@@ -344,7 +344,7 @@ static m_bool import_step(Env env)
   return 1;
 }
 
-static struct Type_ t_zerox       = { "ZeroX",       1, &t_ugen };
+static struct Type_ t_zerox       = { "ZeroX",       SZ_INT, &t_ugen };
 
 static m_bool zerox_tick(UGen u)
 {
