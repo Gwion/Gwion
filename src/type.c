@@ -2024,7 +2024,7 @@ static m_bool check_Return(Env env, Stmt_Return stmt)
             ret_type->name, env->func->def->ret_type->name);
     return -1;
   }
-  return ret_type != NULL;
+  return 1;
 }
 
 static m_bool check_Continue(Env env, Stmt_Continue cont)
