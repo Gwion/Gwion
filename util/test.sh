@@ -41,5 +41,4 @@ done
 [ "$CI" = "true" ] && FORMAT=-t
 
 [ -z "${GWION_PLUG_DIR}" ] && export GWION_PLUG_DIR="/usr/lib/Gwion/plug"
-export GWION_PLUG_DIR="$(echo $GWION_PLUG_DIR | xargs)"
-bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
+GWION_PLUG_DIR="$(echo $GWION_PLUG_DIR | xargs)" bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
