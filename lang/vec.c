@@ -200,13 +200,10 @@ INSTR(vec3_z)
     *(m_float**)shred->reg = &v->z;
     PUSH_REG(shred,  SZ_INT);
   } else {
-//    POP_REG(shred, SZ_VEC3);
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
     *(m_float*)shred->reg = v->z;
     PUSH_REG(shred,  SZ_INT);
-//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -222,9 +219,6 @@ INSTR(vec4_z)
     VEC4_T* v = *(VEC4_T**)(shred->reg);
     *(m_float*)shred->reg = v->z;
     PUSH_REG(shred,  SZ_FLOAT);
-//    POP_REG(shred, SZ_VEC4);
-//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -240,9 +234,6 @@ INSTR(vec4_w)
     VEC4_T* v = *(VEC4_T**)(shred->reg);
     *(m_float*)shred->reg = v->z;
     PUSH_REG(shred,  SZ_FLOAT);
-//    POP_REG(shred, SZ_VEC4);
-//    *(m_float*)shred->reg = *(m_float*)(shred->reg + SZ_FLOAT * 3);
-//    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 m_bool import_vec3(Env env)
@@ -250,7 +241,6 @@ m_bool import_vec3(Env env)
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec3))
   CHECK_OB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
-  //o_complex_real
   import_mvar(env, "float", "x",   0, 0, "real part");
   import_mvar(env, "float", "y",   0, 0, "real part");
   import_mvar(env, "float", "z",   0, 0, "real part");
