@@ -1,4 +1,5 @@
 // generate main doc
+Machine.add("examples/int.gw");
 Machine.doc("global_context");
 Machine.adept("global_context");
 Machine.doc("examples/class.gw");
