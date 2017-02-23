@@ -1203,10 +1203,10 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
     }
     if (tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
-    if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
+      if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
         Instr ref = add_instr(emit, Reg_AddRef_Object3);
-      ref->m_val = tmp->emit_var;
-    }
+        ref->m_val = tmp->emit_var;
+      }
     tmp = tmp->next;
   }
 #ifdef DEBUG_EMIT

@@ -889,8 +889,8 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     }
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == Primary_Expression_type) {
-        m_str name = f2 && f2->def ? S_name(f2->def->name) : NULL;
-        sprintf(name, "%s@%li@%s", name, i, env->curr->name);
+        m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
+        sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
       /*if(!f1)*/

@@ -264,21 +264,23 @@ m_bool import_fileio(Env env)
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
 
   CHECK_BB(import_class_end(env))
-
+/*
   M_Object gw_stdin = new_M_Object();
   initialize_object(gw_stdin, &t_fileio);
-  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
-//  IO_FILE(gw_stdin) = stdin;
+//  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
+  IO_FILE(gw_stdin) = stdin;
   add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
 
   M_Object cout = new_M_Object();
   initialize_object(cout, &t_fileio);
-  IO_FILE(cout) = fdopen(STDOUT_FILENO, "w");
+//  IO_FILE(cout) = fdopen(STDOUT_FILENO, "w");
+  IO_FILE(cout) = stdout;
   M_Object cerr = new_M_Object();
   initialize_object(cerr, &t_fileio);
-  IO_FILE(cerr) = fdopen(STDERR_FILENO, "w");
-  add_global_value(env, "cout",  &t_fileio,   1, cout);
-  add_global_value(env, "cerr",  &t_fileio,   1, cerr);
-
+//  IO_FILE(cerr) = fdopen(STDERR_FILENO, "w");
+//  IO_FILE(cerr) = stderr;
+//  add_global_value(env, "cout",  &t_fileio,   1, cout);
+//  add_global_value(env, "cerr",  &t_fileio,   1, cerr);
+*/
   return 1;
 }
