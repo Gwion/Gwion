@@ -137,9 +137,10 @@ SFUN(machine_check)
   M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   if(!prefix_obj)
     prefix = ".";
-  else
+  else {
     prefix = STRING(prefix_obj);
-  release(prefix_obj, shred);
+    release(prefix_obj, shred);
+  }
   if(!code_obj) {
     RETURN->d.v_uint = 0;
     return;
