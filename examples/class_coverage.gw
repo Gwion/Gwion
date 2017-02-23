@@ -1,0 +1,14 @@
+class C
+{
+	int i;
+	float f;
+	complex c;
+	polar p;
+	Vec3 v;
+	Vec4 w;
+	Object o;
+//	dtor() { <<<"dtor">>>; }
+}
+
+C c;
+<<<c>>>;

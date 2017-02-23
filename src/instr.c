@@ -614,7 +614,7 @@ INSTR(Spork)
 void handle_overflow(VM_Shred shred)
 {
   fprintf( stderr,
-           "[chuck](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
+           "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
            shred->xid, shred->name, shred->pc );
   // do something!
   shred->is_running = 0;
@@ -1177,16 +1177,11 @@ INSTR(Instr_Array_Alloc)
   }
   return;
 
-  /*
-  overflow:
-    fprintf( stderr, "[chuck](VM): OverFlow: requested array size too big...\n" );
-    goto error;
-  */
 out_of_memory:
-  fprintf( stderr, "[chuck](VM): OutOfMemory: while allocating arrays...\n" );
+  fprintf( stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n" );
   goto error;
 error:
-  fprintf( stderr, "[chuck](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
+  fprintf( stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
   shred->is_done = 1;
 }
