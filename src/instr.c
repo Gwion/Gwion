@@ -494,6 +494,9 @@ INSTR(Gack)
       fprintf(stdout, "%%(%f %f %f)", *(m_float*)(shred->reg), *(m_float*)(shred->reg + SZ_FLOAT),
               *(m_float*)(shred->reg + SZ_FLOAT * 2));
 
+    } else if(type->xid == t_vec4.xid) {
+      fprintf(stdout, "%%(%f, %f, %f, %f)", *(m_float*)(shred->reg), *(m_float*)(shred->reg + SZ_FLOAT),
+              *(m_float*)(shred->reg + SZ_FLOAT * 2), *(m_float*)(shred->reg + SZ_FLOAT * 3));
     } else if(type->xid == t_string.xid)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);

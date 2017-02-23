@@ -2132,7 +2132,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr->m_val = offset;
       return 1;
     } else if (!strcmp(S_name(member->xid), "v4")) {
-      Instr instr = add_instr(emit, Vararg_Vec3);
+      Instr instr = add_instr(emit, Vararg_Vec4);
       instr->m_val = offset;
       return 1;
     } else if (!strcmp(S_name(member->xid), "o")) {
