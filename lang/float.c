@@ -231,8 +231,8 @@ static INSTR(if_assign)
   debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
-  PUSH_REG(shred, SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(if_plus)
@@ -406,6 +406,17 @@ static INSTR(ifr_divide)
   PUSH_REG(shred, SZ_FLOAT);
 }
 // float to int
+static INSTR(fi_assign)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT + SZ_INT), *(m_float*)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_int*)(shred->reg + SZ_INT));
+  PUSH_REG(shred, SZ_FLOAT);
+}
+
+
 static INSTR(fi_plus)
 {
 #ifdef DEBUG_INSTR
@@ -527,6 +538,58 @@ static INSTR(fi_le)
   *(m_int*)shred->reg = (*(m_float*)shred->reg <= *(m_int*)(shred->reg + SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
+
+static INSTR(fi_r_assign)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '=>' f i %f %i", *(m_float*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_int**)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_FLOAT + SZ_INT);
+  **(m_int**)(shred->reg + SZ_FLOAT) = *(m_float*)shred->reg;
+  *(m_int*)shred->reg = **(m_int**)(shred->reg + SZ_FLOAT);
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(fi_r_plus)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '+=>' %i %f", *(m_int*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_int**)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) += (*(m_float*)shred->reg));
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(fi_r_minus)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '+=>' %i %f", *(m_int*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_int**)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) += (*(m_float*)shred->reg));
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(fi_r_times)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '+=>' %i %f", *(m_int*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_int**)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) *= (*(m_float*)shred->reg));
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(fi_r_divide)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(float) '+=>' %i %f", *(m_int*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_int**)(shred->reg - SZ_INT));
+#endif
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) /= (*(m_float*)shred->reg));
+  PUSH_REG(shred, SZ_INT);
+}
+
 m_bool import_float(Env env)
 {
   CHECK_BB(add_global_type(env, &t_float))
@@ -558,7 +621,7 @@ m_bool import_float(Env env)
 
 // int to float
   // arithmetic
-  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_float, &t_float, if_assign,   0))
+  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_float, &t_int,   if_assign,   0))
   CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_float, &t_float, if_plus,     0))
   CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_float, &t_float, if_minus,    0))
   CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_float, &t_float, if_timesf,   0))
@@ -581,7 +644,7 @@ m_bool import_float(Env env)
 
 // float to int
   // arithmetic
-  /*	CHECK_BB(add_binary_op(env, op_plus,          &t_float,  &t_int,  &t_float, if_assign, 0))*/
+  CHECK_BB(add_binary_op(env, op_assign,        &t_float,  &t_int,  &t_float, fi_assign, 0))
   CHECK_BB(add_binary_op(env, op_plus,          &t_float,  &t_int,  &t_float, fi_plus,   0))
   CHECK_BB(add_binary_op(env, op_minus,         &t_float,  &t_int,  &t_float, fi_minus,  0))
   CHECK_BB(add_binary_op(env, op_times,         &t_float,  &t_int,  &t_float, fi_timesf, 0))
@@ -595,6 +658,12 @@ m_bool import_float(Env env)
   CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_float, &t_int, &t_int, fi_ge,         0))
   CHECK_BB(add_binary_op(env, op_lt, 			 	    &t_float, &t_int, &t_int, fi_lt,         0))
   CHECK_BB(add_binary_op(env, op_le, 			 	    &t_float, &t_int, &t_int, fi_le,         0))
+  // reverse arithmetic
+  CHECK_BB(add_binary_op(env, op_chuck,        &t_float,  &t_int, &t_int, fi_r_assign, 0))
+  CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_float, &t_int, &t_int, fi_r_plus,    0))
+  CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_float, &t_int, &t_int, fi_r_minus,   0))
+  CHECK_BB(add_binary_op(env, op_times_chuck,   &t_float, &t_int, &t_int, fi_r_times,   0))
+  CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_float, &t_int, &t_int, fi_r_divide,  0))
   t_float.doc     = "floating point number";
 
   CHECK_BB(add_global_type(env, &t_dur))

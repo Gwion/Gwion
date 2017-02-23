@@ -610,38 +610,13 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 #endif
   Instr instr;
   if (binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
-    // do not emit both expression for now
-    // this might be temporary
-    /*
-       Instr set_mem = add_instr(emit, Mem_Set_Imm);
-    //    Instr push    = add_instr(emit, Reg_Push_Mem);
-    Instr push    = add_instr(emit, Reg_Push_Mem_Addr);
-    push->m_val = set_mem->m_val = binary->rhs->d.exp_primary->value->offset;
-    if(binary->rhs->exp_type == Dot_Member_type)
-    {
-    Value value = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
-    push->m_val = set_mem->m_val = value->offset;
-
-    printf("%p\n",
-
-    find_value(binary->rhs->d.exp_dot->t_base->parent, insert_symbol(binary->rhs->d.exp_dot->t_base->name))
-
-    );
-
-    }
-    set_mem->ptr   = binary->func;
-    return 1;
-    */
     CHECK_BB(emit_Expression(emit, binary->lhs, 1))
     CHECK_BB(emit_Expression(emit, binary->rhs, 1))
-    /*    add_instr(emit, Assign_Object); // should be assign_func*/
-    instr = add_instr(emit, assign_func); // should be assign_func
-    /*    instr->m_val = */
+    instr = add_instr(emit, assign_func);
     return 1;
   }
   CHECK_BB(emit_Expression(emit, binary->lhs, 1))
   CHECK_BB(emit_Expression(emit, binary->rhs, 1))
-  /*  Instr instr = new_Instr();*/
 
   if (binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
     return emit_Func_Call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
@@ -667,7 +642,6 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     return 1;
   }
   (void)instr; // prevent cppcheck warning
-  /*  CHECK_BB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))*/
   CHECK_BB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
   return 1;
 }

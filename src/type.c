@@ -1012,7 +1012,7 @@ static Type check_Binary_Expression( Env env, Binary_Expression* binary )
   }
 
   while(cr) {
-    CHECK_OO((ret = check_op( env, binary->op, cl, cr, binary )))
+    CHECK_OO((ret = check_op(env, binary->op, cl, cr, binary)))
     cr = cr->next;
   }
   return ret;
