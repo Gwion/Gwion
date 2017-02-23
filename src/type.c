@@ -1274,7 +1274,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     def->is_template = 1;
     namespace_push_type(env->curr);
     while(list) {
-//      printf("base_t %p %p %p\n", base_t, list->list, find_type(env, list->list));
       if(!base_t)
         break;
       /*exit(12);*/

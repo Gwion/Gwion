@@ -232,7 +232,6 @@ int main(int argc, char** argv)
   d->run(vm, &di);
   if(udp)
     server_destroy(udp_thread);
-  printf("clean\n");
 clean:
   free_Vector(add);
   free_Vector(rem);

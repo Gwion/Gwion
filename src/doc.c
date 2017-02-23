@@ -364,7 +364,6 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
 }
 static void mkdoc_nspc(Doc* doc, NameSpace nspc)
 {
-  printf("mkdoc nspc '%s'\n", nspc->name);
   int i;
   Vector type    = new_Vector();
   Vector m_value = new_Vector();
@@ -380,11 +379,8 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
     if(value->func_ref)
       continue;
     if(!value->m_type) {
-      printf("value->name %s\n", value->name);
       continue;
     }
-    printf("value->name %s\n", value->name);
-    printf("value->type->name %s\n", value->m_type->name);
     if(isa(value->m_type, &t_class) < 0) {
       if(!value->is_member)
         vector_append(s_value, (vtype)value);
@@ -543,7 +539,6 @@ void mkdoc_context(Env env, m_str str)
 <h1 class=\"title\">%s</h1><h2>Description</h2><em>%s</em>\n",
           doc->ctx->filename, doc->ctx->nspc->name, doc->ctx->tree->doc ? doc->ctx->tree->doc : "");
 
-  printf("here too ;-) %p\n", doc);
   fprintf(doc->html, "<h1>Global Types</h1>\n");
   for(i = 0; i < vector_size(doc->ctx->new_types); i++)
     mkdoc_type(doc, (Type)vector_at(doc->ctx->new_types, i));

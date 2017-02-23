@@ -221,7 +221,6 @@ m_bool add_global_type(Env env, Type type)
     type_xid++;
     type->xid = type_xid;
   }
-//	printf("type->xid %i.\n", type->xid);
   return 1;
 }
 

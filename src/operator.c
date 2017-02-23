@@ -109,19 +109,10 @@ m_int name2op(m_str name)
   m_uint i = 0;
 //	for(i = 0; i < (sizeof(operators) / sizeof(Operator)) - 1; i++)
   while(op_name[i] && op_str[i]) {
-    printf("lol %s %s\n", name, op_name[i]);
-    printf("lol %s %s\n", name, op_str[i]);
-    printf("lol %s %s\n", name, op_name[i + 1]);
-    printf("lol %s %s\n", name, op_str[i + 1]);
     if(!strcmp(op_name[i], name)) {
-      printf("kjhkj\n");
       return operators[i];
     }
     if(!op_name[i + 1]) {
-//  exit(3);
-//		break;
-      printf("kjhkj\n");
-
       return -1;
     }
     i++;

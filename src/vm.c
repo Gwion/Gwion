@@ -203,7 +203,6 @@ next:
     ;
   }
   if(!vm->is_running) {
-    printf("here\n");
     return;
   }
   for(i = 0; i < vector_size(vm->ugen); i++) {

@@ -717,9 +717,7 @@ INSTR(Dot_Member_Func)
   M_Object obj = *(M_Object*)shred->reg;
   if(!obj)
     Except(shred);
-  printf("lol\n");
   *(Func*)shred->reg = (Func)vector_at(obj->vtable, instr->m_val);
-  printf("lol\n");
   PUSH_REG(shred,  SZ_INT);
 }
 

@@ -82,9 +82,9 @@ drvr: ${drvr_obj}
 mostly_clean:
 	@rm -f core.* vgcore.* src/*.o lang/*.o driver/*.o parser.c lexer.c *.output *.h ugen/*.o ugen/soundpipe.c */*.gcno
 	@rm -f include/generated.h
-	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c ast/*.c lang/*.c include/*.h
-	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
-	@rm -rf doc/html doc/latex
+#	@which astyle > /dev/null && astyle -q -p -s2 --style=kr src/*.c ugen/*.c ast/*.c lang/*.c include/*.h
+#	@rm -rf src/*.orig lang/*.orig ast/*.orig driver/*.orig ugen/*.orig
+#	@rm -rf doc/html doc/latex
 	@make -s -C ast clean
 
 clean: mostly_clean

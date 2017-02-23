@@ -746,7 +746,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   type->size = SZ_INT;
   type->func = func;
   type->obj = new_VM_Object(e_type_obj);
-  /*printf("%s is member %i\n", S_name(f->name), func->is_member);*/
   value = new_Value(env->context, type, func_name);
   value->is_const = 1;
   value->owner = env->curr;
