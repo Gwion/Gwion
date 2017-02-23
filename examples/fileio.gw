@@ -1,0 +1,4 @@
+FileIO f;
+f.open("examples/fileio.gw", "r");
+f.close();
+//1 => cerr;

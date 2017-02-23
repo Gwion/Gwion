@@ -11,9 +11,13 @@
 #include "object.h"
 
 
-struct Type_ t_io        = { "IO",         sizeof(m_uint), &t_event, te_io };
-struct Type_ t_fileio    = { "FileIO",     sizeof(m_uint), &t_io,    te_fileio };
-
+struct Type_ t_io      = { "IO",         sizeof(m_uint), &t_event, te_io };
+struct Type_ t_fileio = { "FileIO",     sizeof(m_uint), &t_io,    te_fileio };
+/*
+struct Type_ t_cout   = { "@Cout",     sizeof(m_uint), &t_io,    te_fileio };
+struct Type_ t_cerr   = { "@Cerr",     sizeof(m_uint), &t_io,    te_fileio };
+struct Type_ t_cin    = { "@Cin",     sizeof(m_uint), &t_io,    te_fileio  };
+*/
 m_int o_fileio_dir;
 m_int o_fileio_file;
 m_int o_fileio_ascii;
@@ -23,6 +27,7 @@ m_int o_fileio_line;
 
 CTOR(fileio_ctor)
 {
+  IO_DIR(o)  = NULL;
   IO_FILE(o)  = NULL;
   IO_ASCII(o) = 1;
 }
@@ -30,9 +35,16 @@ CTOR(fileio_ctor)
 DTOR(fileio_dtor)
 {
   if(IO_DIR(o))
-    closedir(IO_DIR(o));
+	closedir(IO_DIR(o));
   else if(IO_FILE(o))
     fclose(IO_FILE(o));
+}
+
+DTOR(static_fileio_dtor)
+{
+//exit(2);
+  *(FILE**)(o->d.data + o_fileio_file) = NULL;
+//  IO_FILE(o) = NULL;
 }
 
 INSTR(int_to_file)
@@ -43,6 +55,11 @@ INSTR(int_to_file)
   POP_REG(shred, SZ_INT)
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
+  if(!IO_FILE(o)) {
+    err_msg(INSTR_, 0, "trying to write an empty file.");
+    Except(shred);
+    return;
+  }
   sprintf(c, "%i", *(int*)(shred->reg - SZ_INT));
   fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
@@ -71,7 +88,6 @@ INSTR(string_to_file)
   str = STRING(lhs);
   m_uint i = fwrite(str,  strlen(str), 1, IO_FILE(o));
   *(m_uint*)shred->reg = i;
-//  jmp_u(shred->reg, 1);
   PUSH_REG(shred, SZ_INT)
 }
 
@@ -160,6 +176,8 @@ MFUN(file_open)
   M_Object rhs = *(M_Object*)(shred->mem + SZ_INT);
   m_str filename = STRING(rhs);
   m_str mode = STRING(lhs);
+  release(rhs, shred);
+  release(lhs, shred);
 
   if(IO_DIR(o)) {
     closedir(IO_DIR(o));
@@ -185,8 +203,10 @@ MFUN(file_close)
     IO_DIR(o) = NULL;
     return;
   }
-  if(IO_FILE(o))
+  if(IO_FILE(o)) {
     fclose(IO_FILE(o));
+    IO_FILE(o) = NULL;
+  }
   RETURN->d.v_uint = !IO_FILE(o) ? 1 : 0;
 }
 
@@ -212,6 +232,7 @@ SFUN(file_list)
   free(namelist);
   RETURN->d.v_uint = (m_uint)ret;
 }
+
 m_bool import_fileio(Env env)
 {
   DL_Func* fun;
@@ -225,7 +246,7 @@ m_bool import_fileio(Env env)
 
 
   CHECK_BB(add_global_type(env, &t_fileio))
-  CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, NULL))
+  CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
   env->class_def->doc = "read/write files";
 
   // import vars
@@ -234,7 +255,7 @@ m_bool import_fileio(Env env)
   o_fileio_file = import_mvar(env, "int", "@file",  0, 0, "place for the file");
   CHECK_BB(o_fileio_file)
   o_fileio_ascii = import_mvar(env, "int", "ascii", 0, 0, "ascii or binary");
-  CHECK_BB(o_fileio_file)
+  CHECK_BB(o_fileio_ascii)
   o_fileio_line = import_mvar(env, "int", "@line",  0, 0, "place for the file");
   CHECK_BB(o_fileio_line)
 
@@ -262,25 +283,38 @@ m_bool import_fileio(Env env)
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_float,  &t_float,   file_to_float, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_string, &t_fileio,  &t_int,    string_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
-
   CHECK_BB(import_class_end(env))
 /*
-  M_Object gw_stdin = new_M_Object();
-  initialize_object(gw_stdin, &t_fileio);
-//  IO_FILE(gw_stdin) = fdopen(STDIN_FILENO, "r");
-  IO_FILE(gw_stdin) = stdin;
-  add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
+  CHECK_BB(add_global_type(env, &t_cout))
+  CHECK_OB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_end(env))
 
-  M_Object cout = new_M_Object();
-  initialize_object(cout, &t_fileio);
-//  IO_FILE(cout) = fdopen(STDOUT_FILENO, "w");
-  IO_FILE(cout) = stdout;
-  M_Object cerr = new_M_Object();
-  initialize_object(cerr, &t_fileio);
-//  IO_FILE(cerr) = fdopen(STDERR_FILENO, "w");
-//  IO_FILE(cerr) = stderr;
-//  add_global_value(env, "cout",  &t_fileio,   1, cout);
-//  add_global_value(env, "cerr",  &t_fileio,   1, cerr);
+  CHECK_BB(add_global_type(env, &t_cerr))
+  CHECK_OB(import_class_begin(env, &t_cerr, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_end(env))
+
+  CHECK_BB(add_global_type(env, &t_cin))
+  CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_end(env))
+
+  M_Object gw_stdin = new_M_Object();
+  initialize_object(gw_stdin, &t_cin);
+//  IO_FILE(gw_stdin) = freopen("CON", "r", stdin);
+//  IO_FILE(gw_stdin) = freopen(stdin);
+
+  M_Object gw_cout = new_M_Object();
+  initialize_object(gw_cout, &t_cout);
+IO_FILE(gw_cout) = stdout;
+//  IO_FILE(cout) = freopen("CON", "w", stdout);
+//  IO_FILE(gw_stdin) = fdopen(1, "w");
+  M_Object gw_cerr = new_M_Object();
+  initialize_object(gw_cerr, &t_cerr);
+IO_FILE(gw_cerr) = stderr;
+//  IO_FILE(cerr) = freopen("CON", "w", stderr);
+//  IO_FILE(gw_stdin) = fdopen(2, "w");
+  add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
+  add_global_value(env, "cout",  &t_fileio,   1, gw_cout);
+  add_global_value(env, "cerr",  &t_fileio,   1, gw_cerr);
 */
   return 1;
 }

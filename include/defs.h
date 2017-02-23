@@ -94,8 +94,9 @@ enum {
 // event
 #define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
 // fileio
-#define IO_DIR(o)	  *((DIR**)((M_Object)o)->d.data + o_fileio_dir)
-#define IO_FILE(o)	*((FILE**)((M_Object)o)->d.data + o_fileio_file)
+//#define IO_DIR(o)	  *((DIR**)((M_Object)o)->d.data + o_fileio_dir)
+#define IO_DIR(o) *(DIR**)(((M_Object)o)->d.data + o_fileio_dir)
+#define IO_FILE(o)	*(FILE**)(((M_Object)o)->d.data + o_fileio_file)
 #define IO_ASCII(o)	*((m_uint*)((M_Object)o)->d.data + o_fileio_ascii)
 
 /*
