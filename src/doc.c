@@ -543,7 +543,6 @@ void mkdoc_context(Env env, m_str str)
 <h1 class=\"title\">%s</h1><h2>Description</h2><em>%s</em>\n",
           doc->ctx->filename, doc->ctx->nspc->name, doc->ctx->tree->doc ? doc->ctx->tree->doc : "");
 
-  printf("here too ;-) %p\n", doc);
   fprintf(doc->html, "<h1>Global Types</h1>\n");
   for(i = 0; i < vector_size(doc->ctx->new_types); i++)
     mkdoc_type(doc, (Type)vector_at(doc->ctx->new_types, i));

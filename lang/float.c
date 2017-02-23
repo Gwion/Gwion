@@ -228,11 +228,11 @@ INSTR(Time_Advance)
 static INSTR(if_assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT + SZ_INT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
-  PUSH_REG(shred, SZ_FLOAT);
+  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(if_plus)
@@ -558,7 +558,7 @@ m_bool import_float(Env env)
 
 // int to float
   // arithmetic
-  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_float, &t_float, if_assign,   0))
+  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_float, &t_int, if_assign,   0))
   CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_float, &t_float, if_plus,     0))
   CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_float, &t_float, if_minus,    0))
   CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_float, &t_float, if_timesf,   0))
