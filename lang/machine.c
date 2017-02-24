@@ -76,7 +76,8 @@ static int js_filter(const struct dirent* dir)
 static SFUN(machine_doc_update)
 {
   FILE* f, * all;
-  char c[strlen(GWION_DOC_DIR) + 16];
+  char c[strlen(GWION_DOC_DIR) + 15];
+  memset(c, 0, strlen(GWION_DOC_DIR) + 15);
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
   strncat(c, "/search/all.js", 14);
   all = fopen(c, "w");

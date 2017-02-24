@@ -27,6 +27,9 @@ ifeq (${COVERAGE}, 1)
 ifeq (${CC}, gcc)
 CFLAGS+= --coverage
 LDFLAGS+= -lgcov
+else
+CFLAGS+= -fprofile-arcs -ftest-coverage
+LDFLAGS+= --coverage
 endif
 endif
 endif
