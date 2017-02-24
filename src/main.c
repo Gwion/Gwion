@@ -212,6 +212,12 @@ int main(int argc, char** argv)
   scan_map = new_Map();
   vm = new_VM(loop);
   vm->bbq = new_BBQ(vm, &di, &d);
+printf("bbq %p\n", vm->bbq);
+  if(!vm->bbq) {
+//free_VM(vm);
+//exit(1);
+    goto clean;
+   }
 
   if(!(vm->env = type_engine_init(vm)))
     goto clean;

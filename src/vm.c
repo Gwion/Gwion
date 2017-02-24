@@ -92,9 +92,14 @@ void free_VM_Shred(VM_Shred shred)
 BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
 {
   BBQ a = malloc(sizeof(struct BBQ_));
-  Driver* d = di->func(vm);
-  if(d->ini(vm, di) < 0)
+  Driver* d;
+
+  if(!(d = di->func(vm)))
     goto error;
+
+  if(d->ini(vm, di) < 0) {
+    goto error;
+  }
   sp_createn(&a->sp, di->out);
   free(a->sp->out);
   a->sp->out   = calloc(di->out, sizeof(SPFLOAT));
@@ -142,7 +147,8 @@ void free_VM(VM* vm)
   stop_plug();
   free_Vector(vm->shred);
   free_Vector(vm->ugen);
-  free_BBQ(vm->bbq);
+  if(vm->bbq)
+    free_BBQ(vm->bbq);
   free_Shreduler(vm->shreduler);
   free(vm);
 }

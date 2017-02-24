@@ -51,7 +51,7 @@ static int so_filter(const struct dirent* dir)
 
 m_bool import_soundpipe(Env env);
 
-static Vector plugs;
+static Vector plugs = NULL;
 void start_plug()
 {
   plugs = new_Vector();
@@ -60,6 +60,8 @@ void start_plug()
 void stop_plug()
 {
   m_uint i;
+  if(!plugs)
+    return;
   for(i = 0; i < vector_size(plugs); i++)
     dlclose((void*)vector_at(plugs, i));
   free_Vector(plugs);

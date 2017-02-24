@@ -25,14 +25,15 @@ void* out_bufi;
 
 static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int stream, int mode)
 {
-  snd_pcm_t* handle;
+  snd_pcm_t* handle = NULL;
   snd_pcm_hw_params_t* params;
   unsigned int num = di->bufnum;
   int dir = 0;
 
-  if(snd_pcm_open(&handle, device, stream, mode) > 0)
+  if(snd_pcm_open(&handle, device, stream, mode) > 0 || !handle)
     return -1;
 
+//
   snd_pcm_hw_params_alloca(&params);
 
   if(snd_pcm_hw_params_any(handle, params) > 0) {
@@ -72,11 +73,13 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 
 static m_bool alsa_ini(VM* vm, DriverInfo* di)
 {
+  out = NULL;
   if(sp_alsa_init(di, &out, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
     err_msg(ALSA_, 0, "problem with playback");
     return -1;
   }
   di->out = di->chan;
+  in = NULL;
   if(sp_alsa_init(di, &in,  di->card, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC | SND_PCM_NONBLOCK) < 0) {
     err_msg(ALSA_, 0, "problem with capture");
     return -1;
