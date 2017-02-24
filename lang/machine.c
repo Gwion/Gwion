@@ -80,7 +80,6 @@ static SFUN(machine_doc_update)
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
   strncat(c, "/search/all.js", 14);
   all = fopen(c, "w");
-        printf("c: %s %p\n", c, all);
   if(!all)
     return;
   struct dirent **namelist;
@@ -91,9 +90,7 @@ static SFUN(machine_doc_update)
   memset(c, 0, strlen(c));
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
   strncat(c, "/dat/", 14);
-        printf("c: %s %p\n", c, all);
   n = scandir(c, &namelist, js_filter, alphasort);
-        printf("c: %s %i\n", c, n);
   fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
@@ -104,8 +101,7 @@ static SFUN(machine_doc_update)
       f = fopen(name, "r");
       printf("\t'%s', \n", name);
       while((read = getline(&line, &len, f)) != -1)
-//        fprintf(all, "%s\n", line);
-        printf("%s\n", line);
+        fprintf(all, "%s\n", line);
       free(namelist[n]);
       fclose(f);
     }

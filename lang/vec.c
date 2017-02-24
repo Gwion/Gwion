@@ -450,7 +450,7 @@ INSTR(vec4_r_assign)
   r.z = *(m_float*)(shred->reg + SZ_FLOAT * 2);
   r.w = *(m_float*)(shred->reg + SZ_FLOAT * 3);
   *(VEC4_T*)shred->reg = r;
-  PUSH_REG(shred, SZ_VEC3);
+  PUSH_REG(shred, SZ_VEC4);
 }
 
 m_bool import_vec4(Env env)
