@@ -79,7 +79,7 @@ config.mk: config.def.mk
 	cp config.def.mk config.mk
 
 include/generated.h:
-	${CC} ${CFLAGS} -DDEBUG util/generate_header.c src/err_msg.c -o util/generate_header
+	${CC} ${CFLAGS} ${LDFLAGS} -DDEBUG util/generate_header.c src/err_msg.c -o util/generate_header
 	./util/generate_header
 	rm ./util/generate_header
 
