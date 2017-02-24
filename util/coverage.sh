@@ -236,6 +236,7 @@ place_files() {
 }
 
 run() {
+    ./util/generate_header
 	generate_files "$1"
 	try
 	place_files
