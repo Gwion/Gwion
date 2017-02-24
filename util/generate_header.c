@@ -12,6 +12,8 @@
 #undef GW_DOUBLE
 #endif
 
+#include <err_msg.h>
+
 static const char* filename = "include/generated.h";
 
 #ifdef USE_DOUBLE
@@ -26,12 +28,12 @@ int main()
 {
   FILE* file;
   if(SZ != sizeof(SPFLOAT)) {
-    fprintf(stderr, "sizes do not match. please recompile soundpipe to use %s.\n", type);
+    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", type);
     return 1;
   }
   file = fopen(filename, "w");
   if(!file) {
-    fprintf(stderr, "can't open '%s' for writing.", filename);
+    err_msg(INSTR_, 0, "can't open '%s' for writing.", filename);
     return 1;
   }
   fprintf(file,
@@ -45,5 +47,6 @@ typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_VEC3    %lu\n", sizeof(SPFLOAT) * 3);
   fprintf(file, "#define SZ_VEC4    %lu\n", sizeof(SPFLOAT) * 4);
   fclose(file);
+  err_msg(INSTR_, 0, "config written to '%s'.", filename);
   return 0;
 }
