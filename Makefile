@@ -81,7 +81,7 @@ config.mk: config.def.mk
 include/generated.h:
 	${CC} ${CFLAGS} ${LDFLAGS} -DDEBUG util/generate_header.c src/err_msg.c -o util/generate_header
 	./util/generate_header
-	rm ./util/generate_header
+#	rm ./util/generate_header
 
 core: ${core_obj}
 lang: ${lang_obj}
