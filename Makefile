@@ -44,6 +44,12 @@ CFLAGS += -DGWION_API_DIR=${GWION_API_DIR}
 CFLAGS += -DGWION_TOK_DIR=${GWION_TOK_DIR}
 CFLAGS += -DGWION_TAG_DIR=${GWION_TAG_DIR}
 CFLAGS += -DGWION_PLUG_DIR=${GWION_PLUG_DIR}
+else
+CFLAGS += -DGWION_DOC_DIR='"/usr/lib/Gwion/doc"'
+CFLAGS += -DGWION_API_DIR='"/usr/lib/Gwion/api"'
+CFLAGS += -DGWION_TOK_DIR='"/usr/lib/Gwion/tok"'
+CFLAGS += -DGWION_TAG_DIR='"/usr/lib/Gwion/tag"'
+CFLAGS += -DGWION_PLUG_DIR='"/usr/lib/Gwion/plug"'
 endif
 
 ifeq (${USE_DOUBLE}, 1)

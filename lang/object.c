@@ -92,11 +92,12 @@ void release(M_Object obj, VM_Shred shred)
         if (t->info->dtor->native_func)
           ((f_dtor)t->info->dtor->native_func)(obj, shred);
         else {
-          shreduler_remove(shred->vm_ref->shreduler, shred, 0);
+//          shreduler_remove(shred->vm_ref->shreduler, shred, 0);
           VM_Code code = new_VM_Code(t->info->dtor->instr, SZ_INT, 1, t->name, "[in code dtor exec]");
           VM_Shred sh = new_VM_Shred(code);
           sh->me = new_Shred(shred->vm_ref, sh);
-          sh->base = shred->base;
+//          sh->mem = shred->base;
+//          sh->base = shred->base;
           memcpy(sh->mem, shred->mem, SIZEOF_MEM);
           vector_pop(code->instr);
           Instr instr = new_Instr();

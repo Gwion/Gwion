@@ -14,6 +14,7 @@
   Ast ast = NULL; \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
   char* str = STRING(obj);\
+  release(obj, shred); \
 	if(strcmp(str, "global_context"))\
 	{\
 	  str = realpath(str, NULL);\
@@ -30,7 +31,12 @@
 static SFUN(machine_add)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj)
+	return;
   m_str str = STRING(obj);
+  release(obj, shred);
+  if(!str)
+    return;
   RETURN->d.v_uint = compile(shred->vm_ref, str);
 }
 
@@ -69,7 +75,11 @@ static int js_filter(const struct dirent* dir)
 
 static SFUN(machine_doc_update)
 {
-  FILE*f, * all  = fopen("/usr/lib/Gwion/doc/search/all.js", "w");
+  FILE* f, * all;
+  char c[strlen(GWION_DOC_DIR) + 15];
+  strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
+  strncat(c, "/search/all.js", 14);
+  all = fopen(c, "w");
   if(!all)
     return;
   struct dirent **namelist;
@@ -77,11 +87,13 @@ static SFUN(machine_doc_update)
   int n;
   ssize_t read;
   size_t len = 0;
-  n = scandir("/usr/lib/Gwion/doc/dat", &namelist, js_filter, alphasort);
+  strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
+  strncat(c, "/doc/dat", 14);
+  n = scandir(c, &namelist, js_filter, alphasort);
   fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
-      char name[256];
+      char name[strlen(c) + strlen(namelist[n]->d_name) + 1];
       memset(name, 0, 256);
       strcat(name, "/usr/lib/Gwion/doc/dat/");
       strcat(name, namelist[n]->d_name);
@@ -157,10 +169,12 @@ SFUN(machine_check)
     RETURN->d.v_uint = 0;
     return;
   }
-  if(type_engine_check_prog(shred->vm_ref->env, ast, strdup(c)) < 0) {
+  m_str s = strdup(c);
+  if(type_engine_check_prog(shred->vm_ref->env, ast, s) < 0) {
     RETURN->d.v_uint = 0;
     return;
   }
+  free(s);
   free_Ast(ast); // it could be in 'type_engine_check_prog'
   RETURN->d.v_uint = (m_uint)new_String(c);
 }
