@@ -88,14 +88,14 @@ static SFUN(machine_doc_update)
   ssize_t read;
   size_t len = 0;
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
-  strncat(c, "/doc/dat", 14);
+  strncat(c, "/doc/dat/", 14);
   n = scandir(c, &namelist, js_filter, alphasort);
   fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
       char name[strlen(c) + strlen(namelist[n]->d_name) + 1];
       memset(name, 0, 256);
-      strcat(name, "/usr/lib/Gwion/doc/dat/");
+      strcat(name, c);
       strcat(name, namelist[n]->d_name);
       f = fopen(name, "r");
       printf("\t'%s', \n", name);
