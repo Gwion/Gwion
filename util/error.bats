@@ -21,8 +21,10 @@ DIR=test/error
 @test "host invalid (long)"                { gbt "-h non_existant_host"  "setting hostname to localhost."; }
 @test "port invalid (short)"               { gbt "--port 1"  "can't bind."; }
 @test "port invalid (long)"                { gbt "-p 1"  "can't bind."; }
-@test "card invalid (short)"               { gbt "-c default"; }
-@test "card invalid (long)"                { gbt "--card default";}
+@test "card default (short)"               { gbt "-c default"; }
+@test "card default (long)"                { gbt "--card default";}
+@test "card invalid (short)"               { gbt "-c invalid"; }
+@test "card invalid (long)"                { gbt "--card invalid";}
 @test "channels (short)"                   { gbt "-g 2"; }
 @test "channels (long)"                    { gbt "--chan 2"; }
 @test "inputs   (short)"                   { gbt "-i 2"; }

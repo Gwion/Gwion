@@ -104,7 +104,7 @@ void f_vector_set(M_Vector* v, m_uint i, m_float data)
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_float*)(v->ptr + i * v->size) = data;
 }
-
+/*
 void c_vector_set(M_Vector* v, m_uint i, m_complex data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
@@ -122,7 +122,7 @@ void v4_vector_set(M_Vector* v, m_uint i, VEC4_T data)
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(VEC4_T*)(v->ptr + i * v->size) = data;
 }
-
+*/
 
 m_uint*  i_vector_addr(M_Vector* v, m_uint i)
 {
