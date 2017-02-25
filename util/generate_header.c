@@ -27,6 +27,7 @@ static const char* type	= "float ";
 int main()
 {
   FILE* file;
+  debug_msg("config", "creating Gwion header.");
   if(SZ != sizeof(SPFLOAT)) {
     err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", type);
     return 1;
@@ -47,6 +48,6 @@ typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_VEC3    %lu\n", sizeof(SPFLOAT) * 3);
   fprintf(file, "#define SZ_VEC4    %lu\n", sizeof(SPFLOAT) * 4);
   fclose(file);
-  err_msg(INSTR_, 0, "config written to '%s'.", filename);
+  debug_msg("config", "config written to '%s'.", filename);
   return 0;
 }
