@@ -2,13 +2,13 @@
 #include "map.h"
 
 struct Vector_ {
-  vtype ptr[256];
+  vtype ptr[MAP_MAX];
   vtype len;
 };
 
 struct Map_ {
-  vtype key[256];
-  vtype ptr[256];
+  vtype key[MAP_MAX];
+  vtype ptr[MAP_MAX];
   vtype len;
 };
 
