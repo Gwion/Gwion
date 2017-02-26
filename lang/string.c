@@ -5,6 +5,11 @@
 #include "import.h"
 #include "instr.h"
 
+// needed for polar
+#ifndef M_PI
+#define M_PI        3.14159265358979323846
+#endif
+
 struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
 m_int o_string_data;
 
@@ -82,6 +87,23 @@ INSTR(Complex_String_Assign)
   release(rhs, shred);
 }
 
+INSTR(Polar_String_Assign)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "Polar '=>' string");
+#endif
+  POP_REG(shred, SZ_INT + SZ_COMPLEX);
+  m_complex lhs = *(m_complex*)shred->reg;
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
+  char str[1024];
+  sprintf(str, "#(%f, %f)",  creal(lhs),
+              cimag(lhs) / M_PI);
+  STRING(rhs) = S_name(insert_symbol(str));
+  *(M_Object*)shred->reg = (M_Object)rhs;
+  PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
+}
+
 INSTR(Vec3_String_Assign)
 {
 #ifdef DEBUG_INSTR
@@ -139,11 +161,12 @@ INSTR(String_String)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  char str[1024];
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
-  free(str);
   PUSH_REG(shred, SZ_INT);
+  release(lhs, shred);
+  release(rhs, shred);
 }
 
 INSTR(Int_String)
@@ -154,10 +177,12 @@ INSTR(Int_String)
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  char str[1024];
   sprintf(str, "%li%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
+//  release(*(M_Object*)shred->reg, shred);
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 INSTR(Float_String)
@@ -165,10 +190,10 @@ INSTR(Float_String)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '+' string");
 #endif
-  POP_REG(shred, SZ_INT * 2);
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  M_Object rhs = *(M_Object*)(shred->reg + SZ_FLOAT);
+  char str[1024];
   sprintf(str, "%f%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   PUSH_REG(shred, SZ_INT);
@@ -182,7 +207,7 @@ INSTR(Complex_String)
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
-  m_str str = malloc(sizeof(char));
+  char str[1024];
   sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   PUSH_REG(shred, SZ_INT);
@@ -196,7 +221,7 @@ INSTR(Object_String)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  char str[1024];
   sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   PUSH_REG(shred, SZ_INT);
@@ -214,9 +239,7 @@ INSTR(String_Plus)
   m_uint r_len = strlen(STRING(rhs));
   char c[l_len + r_len + 1];
   sprintf(c, "%s%s", STRING(rhs), STRING(lhs));
-  /*  free(STRING(rhs));*/
-  STRING(rhs) = strdup(c);
-  /*  STRING(rhs) = c;*/
+  STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -235,8 +258,7 @@ INSTR(Int_String_Plus)
     len++;
   char c[len];
   sprintf(c, "%s%li", STRING(rhs), lhs);
-  /*  free(STRING(rhs));*/
-  STRING(rhs) = strdup(c);
+  STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -255,8 +277,7 @@ INSTR(Float_String_Plus)
     len++;
   char c[len];
   sprintf(c, "%s%f", STRING(rhs), lhs);
-  /*  free(STRING(rhs));*/
-  STRING(rhs) = strdup(c);
+  STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -278,8 +299,7 @@ INSTR(Complex_String_Plus)
     len++;
   char c[len];
   sprintf(c, "%s#(%f, %f)", STRING(rhs), creal(lhs), cimag(lhs));
-  /*  free(STRING(rhs));*/
-  STRING(rhs) = strdup(c);
+  STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -295,9 +315,7 @@ INSTR(Object_String_Plus)
   m_uint len = strlen(STRING(rhs)) + 9;
   char c[len];
   sprintf(c, "%s%p", STRING(rhs), (void*)lhs);
-  /*  free(STRING(rhs));*/
-  STRING(rhs) = strdup(c);
-  /*  STRING(rhs) = c;*/
+  STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
@@ -847,6 +865,7 @@ m_bool import_string(Env env)
   CHECK_BB(add_binary_op(env, op_chuck, &t_int,     &t_string, &t_string, Int_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_float,   &t_string, &t_string, Float_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_complex, &t_string, &t_string, Complex_String_Assign, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_polar,   &t_string, &t_string, Polar_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_vec3,    &t_string, &t_string, Vec3_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_vec4,    &t_string, &t_string, Vec4_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_object,  &t_string, &t_string, Object_String_Assign, 1))
