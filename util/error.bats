@@ -7,7 +7,7 @@ DIR=test/error
 #  assert_success
 #}
 
-@test "header wrong target"                { ./util/generate_header "/invalid"; }
+@test "header wrong target"                { run ./util/generate_header "/invalid"; assert_failure; }
 @test "interrupt"                          { ./gwion -l 1 & sleep 1; killall gwion; }
 @test "quit (short)"                       { ./gwion -l 1 & sleep 1; ./gwion -q; }
 @test "quit (long)"                        { ./gwion -l 1 & sleep 1; ./gwion --quit; }
