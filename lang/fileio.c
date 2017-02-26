@@ -13,11 +13,11 @@
 
 struct Type_ t_io      = { "IO",         sizeof(m_uint), &t_event, te_io };
 struct Type_ t_fileio = { "FileIO",     sizeof(m_uint), &t_io,    te_fileio };
-/*
-struct Type_ t_cout   = { "@Cout",     sizeof(m_uint), &t_io,    te_fileio };
-struct Type_ t_cerr   = { "@Cerr",     sizeof(m_uint), &t_io,    te_fileio };
-struct Type_ t_cin    = { "@Cin",     sizeof(m_uint), &t_io,    te_fileio  };
-*/
+
+struct Type_ t_cout   = { "@Cout",     sizeof(m_uint), &t_fileio,    te_fileio };
+struct Type_ t_cerr   = { "@Cerr",     sizeof(m_uint), &t_fileio,    te_fileio };
+struct Type_ t_cin    = { "@Cin",      sizeof(m_uint), &t_fileio,    te_fileio  };
+
 m_int o_fileio_dir;
 m_int o_fileio_file;
 m_int o_fileio_ascii;
@@ -43,7 +43,7 @@ DTOR(fileio_dtor)
 DTOR(static_fileio_dtor)
 {
 //exit(2);
-  *(FILE**)(o->d.data + o_fileio_file) = NULL;
+  IO_FILE(o) = NULL;
 //  IO_FILE(o) = NULL;
 }
 
@@ -284,7 +284,7 @@ m_bool import_fileio(Env env)
   CHECK_BB(add_binary_op(env, op_chuck,     &t_string, &t_fileio,  &t_int,    string_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
   CHECK_BB(import_class_end(env))
-/*
+
   CHECK_BB(add_global_type(env, &t_cout))
   CHECK_OB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
@@ -315,6 +315,6 @@ IO_FILE(gw_cerr) = stderr;
   add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
   add_global_value(env, "cout",  &t_fileio,   1, gw_cout);
   add_global_value(env, "cerr",  &t_fileio,   1, gw_cerr);
-*/
+
   return 1;
 }
