@@ -24,7 +24,7 @@ static const char* type	= "float ";
 #define SZ sizeof(float)
 #endif
 
-int main()
+int main(int argc , char** argv)
 {
   FILE* file;
   debug_msg("config", "creating Gwion header.");
@@ -32,6 +32,8 @@ int main()
     err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", type);
     return 1;
   }
+  if(argc >= 2)
+	filename = argv[1];
   file = fopen(filename, "w");
   if(!file) {
     err_msg(INSTR_, 0, "can't open '%s' for writing.", filename);
