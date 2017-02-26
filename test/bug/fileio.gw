@@ -9,4 +9,4 @@ cerr.nl();
 f.open("/tmp/trash", "w");
 f.close();
 f.remove("/tmp/trash");
-//f.list(".");
+f.list(".");

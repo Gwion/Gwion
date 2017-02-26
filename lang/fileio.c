@@ -86,9 +86,27 @@ INSTR(string_to_file)
   m_str str;
   M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
   str = STRING(lhs);
+  release(lhs, shred);
   m_uint i = fwrite(str,  strlen(str), 1, IO_FILE(o));
   *(m_uint*)shred->reg = i;
   PUSH_REG(shred, SZ_INT)
+}
+
+INSTR(object_to_file)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "object to file");
+#endif
+  POP_REG(shred, SZ_INT)
+  char c[256];
+  M_Object o = *(M_Object*)shred->reg;
+  if(!IO_FILE(o)) {
+    err_msg(INSTR_, 0, "trying to write an empty file.");
+    Except(shred);
+    return;
+  }
+  sprintf(c, "%p", *(void**)(shred->reg - SZ_INT));
+  fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
 
 INSTR(file_to_int)
@@ -210,8 +228,12 @@ MFUN(file_close)
   RETURN->d.v_uint = !IO_FILE(o) ? 1 : 0;
 }
 
-MFUN(file_remove)
+SFUN(file_remove)
 {
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj)
+	return;
+  release(obj, shred);
   RETURN->d.v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
 }
 
@@ -219,7 +241,15 @@ SFUN(file_list)
 {
   m_uint i;
   struct dirent **namelist;
-  m_int n = scandir(STRING(*(M_Object*)(shred->mem + SZ_INT)), &namelist, NULL, alphasort);
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  m_str str;
+  if(!obj)
+    return;
+  str = STRING(obj);
+  release(obj, shred);
+  if(!str)
+    return;
+  m_int n = scandir(str, &namelist, NULL, alphasort);
   if(n < 0) {
     RETURN->d.v_uint = 0;
     return;
@@ -283,6 +313,8 @@ m_bool import_fileio(Env env)
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_float,  &t_float,   file_to_float, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_string, &t_fileio,  &t_int,    string_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,     &t_object, &t_fileio,  &t_int,    object_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,     &t_null,   &t_fileio,  &t_int,    object_to_file, 1))
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_cout))
