@@ -94,7 +94,6 @@ static void fft_ctor(M_Object o, VM_Shred shred)
 static DTOR(fft_dtor)
 {
   FFT* ana = (FFT*)o->ugen->ug;
-printf("here\n");
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq)
