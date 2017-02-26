@@ -793,7 +793,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
     add_instr(emit, Mem_Push_Imm);
-
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Func_Call);

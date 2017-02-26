@@ -3,6 +3,8 @@
 #include "defs.h"
 #include <symbol.h>
 
+#define MAP_MAX 1024
+
 typedef m_uint vtype;
 typedef struct Vector_ * Vector;
 typedef struct Map_    * Map;
