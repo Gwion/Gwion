@@ -26,3 +26,17 @@ fc.rem(rms);
 fc.add(rms);
 fc.compute();
 fc.rem(rms);
+
+centroid => fc;
+centroid =< fc;
+
+centroid.compute();
+spread.compute();
+skewness.compute();
+kurtosis.compute();
+rms.compute();
+rolloff.compute();
+freq.compute();
+asc.compute();
+ass.compute();
+

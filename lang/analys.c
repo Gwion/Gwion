@@ -656,7 +656,7 @@ static void fc_ctor(M_Object o, VM_Shred shred)
 }
 static void fc_dtor(M_Object o, VM_Shred shred)
 {
-  free(*(Vector*)(o->d.data + o_fc_vector));
+  free_Vector(*(Vector*)(o->d.data + o_fc_vector));
 }
 
 static MFUN(fc_compute)
@@ -701,6 +701,7 @@ static MFUN(fc_rem)
     vector_remove(v, vector_find(v, (vtype)obj));
   RETURN->d.v_uint = (m_uint)obj;
 }
+
 INSTR(fc_connect)
 {
   POP_REG(shred, SZ_INT * 2);
@@ -709,7 +710,7 @@ INSTR(fc_connect)
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
-      vector_append(v, (vtype)obj);
+      vector_append(v, (vtype)o);
       release(obj, shred);
     }
     release(o, shred);
@@ -717,15 +718,16 @@ INSTR(fc_connect)
   *(M_Object*)shred->reg = obj;
   PUSH_REG(shred, SZ_INT);
 }
+
 INSTR(fc_disconnect)
 {
   POP_REG(shred, SZ_INT * 2);
   M_Object o   = *(M_Object*)(shred->reg);
-  M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
+  M_Object obj = *(M_Object*)(shred->reg + SZ_INT); // WARN inconsistency
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
-      vector_remove(v, vector_find(v, (vtype)obj));
+      vector_remove(v, vector_find(v, (vtype)o));
       release(obj, shred);
     }
     release(o, shred);
