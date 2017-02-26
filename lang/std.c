@@ -188,6 +188,12 @@ SFUN(std_tanh)
   RETURN->d.v_float = tanh(ret);
 }
 
+SFUN(std_atanh)
+{
+  m_float ret = *(m_float*)(shred->mem + SZ_FLOAT);
+  RETURN->d.v_float = atanh(ret);
+}
+
 SFUN(std_atan2)
 {
   m_float ret1 = *(m_float*)(shred->mem + SZ_FLOAT);
@@ -579,7 +585,7 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "atan2",      (m_uint)std_atan2);
+  fun = new_DL_Func("float", "atanh",    (m_uint)std_atanh);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
