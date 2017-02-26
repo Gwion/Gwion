@@ -196,21 +196,20 @@ int a;
 <<< variable1-=>variable2 >>>;
 }
 
-/*
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
 <<< variable1*=>variable2 >>>;
 }
-/*
+
 //testing operator for int and int
 {
 	1 => int	variable1;
 	1 => int	variable2;
 <<< variable1/=>variable2 >>>;
 }
-/*
+
 //testing operator for int and int
 {
 	1 => int	variable1;
@@ -308,4 +307,3 @@ int a;
 	int	variable2;
 <<< variable1^=>variable2 >>>;
 }
-*/
