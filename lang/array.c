@@ -13,7 +13,6 @@ m_int o_array_vector;
 DTOR(array_dtor)
 {
   free(o->d.array->ptr);
-//  free(o->d.array); // freed as 'o->d.data' in object_dtor for now
 }
 
 M_Object new_M_Array(m_uint size, m_uint length)

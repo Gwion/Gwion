@@ -61,7 +61,7 @@ static struct Type_ t_fft = { "FFT", SZ_INT, &t_ugen};
 typedef struct {
   sp_buffer*  buf;
   /*  m_float*  (*win)(m_float* buf, m_uint size);*/
-  FFTFREQS*   frq;
+  FFTFREQS*    frq;
   FFTwrapper* fft;
 } FFT;
 
@@ -96,8 +96,10 @@ static DTOR(fft_dtor)
   FFT* ana = (FFT*)o->ugen->ug;
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
-  if(ana->frq)
+  if(ana->frq) {
     deleteFFTFREQS(ana->frq);
+    free(ana->frq);
+  }
   if(ana->fft)
     FFTwrapper_destroy(&ana->fft);
   free(ana);
@@ -110,14 +112,16 @@ static MFUN(fft_init)
 
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
-  if(ana->frq)
+  if(ana->frq) {
     deleteFFTFREQS(ana->frq);
+    free(ana->frq);
+  }
   if(ana->fft)
     FFTwrapper_destroy(&ana->fft);
   sp_buffer_create(&ana->buf, size);
-  ana->frq = malloc(sizeof(FFTFREQS));
-  newFFTFREQS(ana->frq, size * 2);
-  FFTwrapper_create(&ana->fft, size * 2);
+  ana->frq = calloc(size, sizeof(FFTFREQS));
+  newFFTFREQS(ana->frq, size);
+  FFTwrapper_create(&ana->fft, size);
   ana->frq->size = size;
   RETURN->d.v_uint = size;
 }
@@ -126,6 +130,8 @@ static MFUN(fft_compute)
 {
   m_float* smp;
   FFT* ana = (FFT*)o->ugen->ug;
+  if(!ana)
+	return;
   if(!ana->buf) {
     RETURN->d.v_uint = 0;
     return;
@@ -140,7 +146,7 @@ static m_bool import_fft(Env env)
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_fft))
   CHECK_OB(import_class_begin(env, &t_fft, env->global_nspc, fft_ctor, fft_dtor))
-  fun = new_DL_Func("int", "size", (m_uint)fft_init);
+  fun = new_DL_Func("int", "init", (m_uint)fft_init);
   dl_func_add_arg(fun, "int", "size");
   CHECK_OB(import_mfun(env, fun))
   /*  fun = new_DL_Func("int", "init", (m_uint)fft_init2);*/
@@ -445,7 +451,7 @@ static MFUN(ana_compute)
 
 static MFUN(ana_get_fft)
 {
-  RETURN->d.v_uint = (m_uint)(o->d.data + o_ana_fft);
+  RETURN->d.v_uint = (m_uint)*(M_Object*) (o->d.data + o_ana_fft);
 }
 
 static MFUN(ana_set_fft)
@@ -453,19 +459,19 @@ static MFUN(ana_set_fft)
   FFT* ana;
   M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
-  if(fft)
-    release(fft, shred);
+//  if(fft)
+//    release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
+  fft->ref++;
   if(!fft) {
     _fft->size = 0;
     _fft->fval = NULL;
     RETURN->d.v_uint = 0;
     return;
   }
-
   ana = (FFT*)fft->ugen->ug;
-  if(!ana->buf) {
-    err_msg(INSTR_, 0, "FFT '%p' probably not initialised.");
+  if(!ana || !ana->buf) {
+    err_msg(INSTR_, 0, "FFT probably not initialised.");
     return;
   }
   _fft->size = ana->fft->fftsize;
@@ -481,13 +487,12 @@ static void ana_ctor(M_Object o, VM_Shred shred)
   _fft->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
 }
+
 static void ana_dtor(M_Object o, VM_Shred shred)
 {
   free(*(_FFT**)(o->d.data + o_ana__fft));
-  M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
-  if(fft)
-    release(fft, shred);
 }
+
 static m_bool import_ana(Env env)
 {
   DL_Func* fun;
@@ -657,18 +662,23 @@ static void fc_dtor(M_Object o, VM_Shred shred)
 static MFUN(fc_compute)
 {
   m_uint i;
-  M_Object obj, ret;
-  _FFT* _fft;
-  f_analys fn;
+  M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(1, vector_size(v));
-  initialize_object(ret, &t_array);
   for(i = 0; i < vector_size(v); i++) {
-    obj  = (M_Object)vector_at(v, i);
-    _fft = *(_FFT**)(obj->d.data + o_ana__fft);
-    fn   = *(f_analys*)(obj->d.data + o_ana_fn);
+    M_Object obj = (M_Object)vector_at(v, i);
+    if(!obj)
+      continue;
+    _FFT* _fft   = *(_FFT**)(obj->d.data + o_ana__fft);
+    if(!_fft)
+      continue;
+    FFT* fft   = *(FFT**)(obj->d.data + o_ana_fft);
+    if(!fft)
+      continue;
+    f_analys fn  = *(f_analys*)(obj->d.data + o_ana_fn);
+printf("here\n");
     m_float f = fn(_fft);
-    /*    vector_set(ret->array, i, &f);*/
+printf("here\n");
     f_vector_set(ret->d.array, i, f);
   }
   RETURN->d.v_uint = (m_uint)ret;
@@ -678,10 +688,8 @@ static MFUN(fc_add)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj) {
+  if(obj)
     vector_append(v, (vtype)obj);
-    release(obj, shred);
-  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 
@@ -689,10 +697,8 @@ static MFUN(fc_rem)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj) {
+  if(obj)
     vector_remove(v, vector_find(v, (vtype)obj));
-    release(obj, shred);
-  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 INSTR(fc_connect)
