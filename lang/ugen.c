@@ -312,6 +312,8 @@ void ugen_dtor(M_Object o, VM_Shred shred)
     else
       u->trig = NULL;
   }
+  if(o->ugen->trig)
+	release(o->ugen->trig, shred);
   free_UGen(o->ugen);
 }
 
