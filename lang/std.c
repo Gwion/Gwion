@@ -351,12 +351,14 @@ SFUN(std_system)
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
   RETURN->d.v_uint = system(str);
+  release(obj, shred);
 }
 
 SFUN(std_getenv)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
+  release(obj, shred);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
   STRING(ret) = getenv(str);
@@ -367,8 +369,10 @@ SFUN(std_setenv)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str key = STRING(obj);
+  release(obj, shred);
   obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str value = STRING(obj);
+  release(obj, shred);
   RETURN->d.v_uint = setenv(key, value, 1);
 }
 
@@ -376,6 +380,7 @@ SFUN(std_atoi)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str value = STRING(obj);
+  release(obj, shred);
   RETURN->d.v_uint = atoi(value);
 }
 
@@ -383,26 +388,29 @@ SFUN(std_atof)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str value = STRING(obj);
+  release(obj, shred);
   RETURN->d.v_float = atof(value);
 }
 
 SFUN(std_itoa)
 {
+  char c[1024];
   int value = *(m_int*)(shred->mem + SZ_INT);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
-  STRING(ret) = malloc(sizeof(char));
-  sprintf(STRING(ret), "%i", value);
+  sprintf(c, "%i", value);
+  STRING(ret) = S_name(insert_symbol(c));
   RETURN->d.v_object = ret;
 }
 
 SFUN(std_ftoa)
 {
+  char c[1024];
   m_float value = *(m_float*)(shred->mem + SZ_FLOAT);
   M_Object ret = new_M_Object();
   initialize_object(ret, &t_string);
-  STRING(ret) = malloc(sizeof(char));
-  sprintf(STRING(ret), "%f", value);
+  sprintf(c, "%f", value);
+  STRING(ret) = S_name(insert_symbol(c));
   RETURN->d.v_object = ret;
 }
 
@@ -737,10 +745,14 @@ m_bool import_lib(Env env)
   CHECK_OB(import_sfun(env, fun))
 
   fun = new_DL_Func("int", "ftoi",  (m_uint)std_ftoi);
-  dl_func_add_arg(fun, "string", "value");
+  dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
   fun = new_DL_Func("float", "mtof",  (m_uint)std_mtof);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "ftom",  (m_uint)std_ftom);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
