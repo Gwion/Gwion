@@ -261,6 +261,7 @@ INSTR(Int_String_Plus)
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 INSTR(Float_String_Plus)
@@ -280,6 +281,7 @@ INSTR(Float_String_Plus)
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 INSTR(Complex_String_Plus)
@@ -302,6 +304,7 @@ INSTR(Complex_String_Plus)
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 INSTR(Object_String_Plus)
@@ -318,7 +321,9 @@ INSTR(Object_String_Plus)
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
+
 INSTR(Reg_Push_Str)
 {
 #ifdef DEBUG_INSTR
