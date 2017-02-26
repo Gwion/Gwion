@@ -188,6 +188,18 @@ SFUN(std_tanh)
   RETURN->d.v_float = tanh(ret);
 }
 
+SFUN(std_asinh)
+{
+  m_float ret = *(m_float*)(shred->mem + SZ_FLOAT);
+  RETURN->d.v_float = sinh(ret);
+}
+
+SFUN(std_acosh)
+{
+  m_float ret = *(m_float*)(shred->mem + SZ_FLOAT);
+  RETURN->d.v_float = cosh(ret);
+}
+
 SFUN(std_atanh)
 {
   m_float ret = *(m_float*)(shred->mem + SZ_FLOAT);
@@ -585,9 +597,20 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "atanh",    (m_uint)std_atanh);
+  fun = new_DL_Func("float", "tanh",      (m_uint)std_tanh);
   dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "asinh",      (m_uint)std_asinh);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "acosh",      (m_uint)std_acosh);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "atanh",      (m_uint)std_atanh);
+  dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
   fun = new_DL_Func("float", "pow",      (m_uint)std_pow);
@@ -619,7 +642,7 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "floor",      (m_uint)std_ceil);
+  fun = new_DL_Func("float", "ceil",      (m_uint)std_ceil);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
