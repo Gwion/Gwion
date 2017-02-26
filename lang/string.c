@@ -41,12 +41,13 @@ static INSTR(Int_String_Assign)
 #endif
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  char str[1024];
   sprintf(str, "%li", lhs);
-  STRING(rhs) = str;
+  STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg =  (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 static INSTR(Float_String_Assign)
@@ -56,12 +57,13 @@ static INSTR(Float_String_Assign)
 #endif
   POP_REG(shred, SZ_INT * 2);
   m_float lhs = *(m_float*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_FLOAT);
-  m_str str = malloc(sizeof(char));
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  char str[1024];
   sprintf(str, "%f", lhs);
-  STRING(rhs) = str;
+  STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
 
 INSTR(Complex_String_Assign)
@@ -69,15 +71,49 @@ INSTR(Complex_String_Assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Complex '=>' string");
 #endif
-  POP_REG(shred, SZ_INT * 2);
+  POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex lhs = *(m_complex*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
+  char str[1024];
   sprintf(str, "#(%f, %f)", creal(lhs), cimag(lhs));
-  STRING(rhs) = str;
+  STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
 }
+
+INSTR(Vec3_String_Assign)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "Vec3 '=>' string");
+#endif
+  POP_REG(shred, SZ_INT + SZ_VEC3);
+  VEC3_T lhs = *(VEC3_T*)shred->reg;
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC3);
+  char str[1024];
+  sprintf(str, "#(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
+  STRING(rhs) = S_name(insert_symbol(str));
+  *(M_Object*)shred->reg = (M_Object)rhs;
+  PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
+}
+
+INSTR(Vec4_String_Assign)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "Vec4 '=>' string");
+#endif
+  POP_REG(shred, SZ_INT + SZ_VEC4);
+  VEC4_T lhs = *(VEC4_T*)shred->reg;
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC4);
+  char str[1024];
+  sprintf(str, "#(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
+  STRING(rhs) = S_name(insert_symbol(str));
+  *(M_Object*)shred->reg = (M_Object)rhs;
+  PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
+}
+
 INSTR(Object_String_Assign)
 {
 #ifdef DEBUG_INSTR
@@ -85,12 +121,14 @@ INSTR(Object_String_Assign)
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  m_str str = malloc(sizeof(char));
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  char str[1024];
   sprintf(str, "%p", (void*)lhs);
-  STRING(rhs) = str;
+  STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
+  release(rhs, shred);
+  release(lhs, shred);
 }
 
 INSTR(String_String)
@@ -139,7 +177,7 @@ INSTR(Float_String)
 INSTR(Complex_String)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "int '+' string");
+  debug_msg("instr", "complex '+' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)shred->reg;
@@ -809,7 +847,10 @@ m_bool import_string(Env env)
   CHECK_BB(add_binary_op(env, op_chuck, &t_int,     &t_string, &t_string, Int_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_float,   &t_string, &t_string, Float_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_complex, &t_string, &t_string, Complex_String_Assign, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_vec3,    &t_string, &t_string, Vec3_String_Assign, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_vec4,    &t_string, &t_string, Vec4_String_Assign, 1))
   CHECK_BB(add_binary_op(env, op_chuck, &t_object,  &t_string, &t_string, Object_String_Assign, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_null,    &t_string, &t_string, Object_String_Assign, 1))
 
   CHECK_BB(add_binary_op(env, op_plus, &t_string,  &t_string, &t_string, String_String, 1))
   CHECK_BB(add_binary_op(env, op_plus, &t_int,     &t_string, &t_string, Int_String, 1))
