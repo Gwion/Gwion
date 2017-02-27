@@ -462,13 +462,13 @@ static MFUN(ana_set_fft)
 //  if(fft)
 //    release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
-  fft->ref++;
   if(!fft) {
     _fft->size = 0;
     _fft->fval = NULL;
     RETURN->d.v_uint = 0;
     return;
   }
+  fft->ref++;
   ana = (FFT*)fft->ugen->ug;
   if(!ana || !ana->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
