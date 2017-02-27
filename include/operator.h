@@ -1,4 +1,5 @@
 #include "vm.h"
+
 typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
 
 m_str op2str(Operator op);
@@ -8,5 +9,6 @@ Type get_return_type(Env env, Operator op, Type rhs, Type lhs);
 m_int name2op(m_str);
 //m_bool operator_set_func(Env env, Func f);
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs);
+//m_bool operator_set_func(Env env, Func f, Type lhs, Expression rhs);
 Map new_Operator_Map();
 void free_Operator_Map();

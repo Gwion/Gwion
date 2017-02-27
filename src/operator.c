@@ -212,7 +212,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
 #endif
   Type t, l = lhs, r = lhs;
-  /*  NameSpace nspc = env->curr;*/
+/*  NameSpace nspc = env->curr; */
   NameSpace nspc = env->global_nspc;
   M_Operator* mo;
   while(nspc) {
@@ -306,7 +306,7 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
       if(mo->func) {
         add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
         if(emit_Func_Call1(emit, mo->func, mo->func->def->ret_type, 0) < 0)
-          continue;
+          return -1;;
         return 1;
       } else
         add_instr(emit, mo->instr);

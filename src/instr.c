@@ -620,6 +620,7 @@ void handle_overflow(VM_Shred shred)
   shred->is_running = 0;
   shred->is_done = 1;
 }
+
 INSTR(Instr_Func_Call)
 {
 #ifdef DEBUG_INSTR
@@ -633,9 +634,6 @@ INSTR(Instr_Func_Call)
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
   prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
-//  if(prev_stack == 65553) {
-//    prev_stack = 0;
-//  }
   push = prev_stack + local_depth;
   next = shred->pc + 1;
   PUSH_MEM(shred, push);
@@ -657,8 +655,72 @@ INSTR(Instr_Func_Call)
       stack_depth -= SZ_INT;
     }
     if(stack_depth) {
-      //	exit(2);
       memcpy(shred->mem, shred->reg, stack_depth);
+    }
+    if(func->need_this) {
+      POP_MEM(shred,  SZ_INT);
+    }
+  }
+  if(overflow_(shred->mem))
+    handle_overflow(shred);
+  return;
+}
+
+INSTR(Instr_Op_Call_Binary)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "func call");
+#endif
+  VM_Code func;
+  m_uint local_depth, stack_depth, prev_stack = 0, push, next;
+
+  POP_REG(shred,  SZ_INT * 2);
+  func = *(VM_Code*)shred->reg;
+  stack_depth = func->stack_depth;
+  local_depth = *(m_uint*)(shred->reg + SZ_INT);
+  prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+  push = prev_stack + local_depth;
+  next = shred->pc + 1;
+  PUSH_MEM(shred, push);
+  *(m_uint*)(shred->mem)  = push;
+  PUSH_MEM(shred,  SZ_INT);
+  *(m_uint*)(shred->mem)  = (m_uint)shred->code;
+  PUSH_MEM(shred,  SZ_INT);
+  *(m_uint*)(shred->mem)  = (m_uint)next;
+  PUSH_MEM(shred,  SZ_INT);
+  *(m_uint*)(shred->mem)  = (m_uint)stack_depth;
+  PUSH_MEM(shred,  SZ_INT);
+  shred->next_pc = 0;
+  shred->code = func;
+  if(stack_depth) {
+    POP_REG(shred,  stack_depth);
+    if(func->need_this) {
+      *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
+      PUSH_MEM(shred,  SZ_INT);
+      stack_depth -= SZ_INT;
+    }
+    if(stack_depth) {
+      m_uint size = stack_depth - instr->m_val2;
+      if(instr->m_val2 == SZ_INT)
+        *(m_uint*)(shred->mem) = *(m_uint*)shred->reg;
+      else if(instr->m_val2 == SZ_FLOAT)
+        *(m_float*)(shred->mem) = *(m_float*)shred->reg;
+      else if(instr->m_val2 == SZ_COMPLEX)
+        *(m_complex*)(shred->mem) = *(m_complex*)shred->reg;
+      else if(instr->m_val2 == SZ_VEC3)
+        *(VEC3_T*)(shred->mem) = *(VEC3_T*)shred->reg;
+      else if(instr->m_val2 == SZ_VEC4)
+        *(VEC4_T*)(shred->mem) = *(VEC4_T*)shred->reg;
+      if(size == SZ_INT)
+         *(m_uint*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
+      else if(size == SZ_FLOAT)
+         *(m_float*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
+      else if(size == SZ_COMPLEX)
+         *(m_complex*)(shred->mem + instr->m_val2) = **(m_complex**)(shred->reg + instr->m_val2);
+      else if(size == SZ_VEC3)
+         *(VEC3_T*)(shred->mem + instr->m_val2) = **(VEC3_T**)(shred->reg + instr->m_val2);
+      else if(size == SZ_VEC4)
+         *(VEC4_T*)(shred->mem + instr->m_val2) = **(VEC4_T**)(shred->reg + instr->m_val2);
     }
     if(func->need_this) {
       POP_MEM(shred,  SZ_INT);

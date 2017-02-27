@@ -804,7 +804,12 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     else
       call->execute = Instr_Func_Call_Static;
   }
-
+  else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
+    call->execute = Instr_Op_Call_Binary;
+	call->m_val2 = func->def->arg_list->type->size;
+  }
+//printf("func>name %s\n", S_name(func->def->name));
+func->def->spec;
   if (func->def->is_template) {
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;

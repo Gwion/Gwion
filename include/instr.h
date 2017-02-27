@@ -142,3 +142,5 @@ INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);
 
 INSTR(Mem_Push_Ret); // test on 13/01/17
+
+INSTR(Instr_Op_Call_Binary);
