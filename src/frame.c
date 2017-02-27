@@ -2,12 +2,6 @@
 #include "map.h"
 #include "frame.h"
 
-Local* new_Local()
-{
-  Local* local  = calloc(1, sizeof(Local));
-  return local;
-}
-
 Frame* new_Frame()
 {
   Frame* frame = calloc(1, sizeof(Frame));
@@ -26,7 +20,7 @@ void free_Frame(Frame* a)
 
 Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m_bool is_obj)
 {
-  Local* local = new_Local();
+  Local* local = calloc(1, sizeof(Local));
   local->size = size;
   local->offset = frame->curr_offset;
   local->is_ref = is_ref;
@@ -56,9 +50,4 @@ void frame_pop_scope(Frame* frame, Vector v)
     }
   }
   vector_pop(frame->stack);
-}
-
-m_uint frame_next(Frame* frame)
-{
-  return vector_size(frame->stack);
 }
