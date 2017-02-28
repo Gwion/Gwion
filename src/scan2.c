@@ -669,11 +669,11 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
+
   if(env->func) {
     err_msg(SCAN2_, f->pos, "nested function definitions are not (yet) allowed");
     goto error;
   }
-
 
   if(f->types) {
     func = new_Func(func_name, f);
@@ -692,7 +692,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->value_ref = value;
     add_ref(value->obj);
     f->func = func;
-//    add_ref(f->func->obj);
     value->checked = 1;
     if(overload)
       overload->func_num_overloads++;
@@ -914,6 +913,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   namespace_pop_value(env->curr);
   env->func = NULL;
 
+  if(f->spec == ae_func_spec_dtor) {
+	f->func->is_dtor = 1;
+    add_ref(f->func->value_ref->obj);
+  }
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;
 

@@ -1277,6 +1277,15 @@ void free_Section(Section* section)
       break;
     free_Stmt(section->d.func_def->code);
     if(section->d.func_def->types) {
+      if(section->d.func_def->func->value_ref->owner_class) {
+        scope_rem(section->d.func_def->func->value_ref->owner_class->info->value, 
+        insert_symbol(section->d.func_def->func->value_ref->name));
+        section->d.func_def->func->value_ref->func_ref = NULL;
+        free(section->d.func_def->func->obj);
+        free(section->d.func_def->func);
+        free_Func_Def(section->d.func_def);
+        break;
+      }
       if(section->d.func_def->arg_list)
         free_Arg_List(section->d.func_def->arg_list);
       free_ID_List(section->d.func_def->types);

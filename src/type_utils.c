@@ -92,7 +92,6 @@ void free_Type(Type a)
   if(!a->is_complete && a->xid == te_user) {
     if(a->info)
       rem_ref(a->info->obj, a->info);
-//    free(type->obj);
     free(a);
     return;
   }

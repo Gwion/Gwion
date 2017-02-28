@@ -14,6 +14,7 @@ struct Func_ {
   m_uint variadic_index;
   Instr variadic_start;
 //m_bool is_template;
+m_bool is_dtor;
 };
 
 Func new_Func(m_str name, Func_Def def);

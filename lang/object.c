@@ -93,24 +93,27 @@ void release(M_Object obj, VM_Shred shred)
           ((f_dtor)t->info->dtor->native_func)(obj, shred);
         else {
 //          shreduler_remove(shred->vm_ref->shreduler, shred, 0);
-          VM_Code code = new_VM_Code(t->info->dtor->instr, SZ_INT, 1, t->name, "[in code dtor exec]");
+//          VM_Code code = new_VM_Code(t->info->dtor->instr, SZ_INT, 1, t->name, "[in code dtor exec]");
+          VM_Code code = new_VM_Code(t->info->dtor->instr, SZ_INT, 1, "[dtor]", "[in code dtor exec]");
           VM_Shred sh = new_VM_Shred(code);
           sh->me = new_Shred(shred->vm_ref, sh);
 //          sh->mem = shred->base;
 //          sh->base = shred->base;
-          memcpy(sh->mem, shred->mem, SIZEOF_MEM)
+          memcpy(sh->mem, shred->mem, SIZEOF_MEM);
 		  vector_pop(code->instr);
+/*
           Instr instr = new_Instr();
           instr->execute = parentize;
           instr->m_val = (m_uint)obj;
           instr->m_val2 = (m_uint)shred;
           vector_append(code->instr, (vtype)instr);
+*/
           Instr eoc = new_Instr();
           eoc->execute = EOC;
           vector_append(code->instr, (vtype)eoc);
-          shred->next_pc--;
+//          shred->next_pc--;
           vm_add_shred(shred->vm_ref, sh);
-          return;
+//          return;
         }
       }
       t = t->parent;

@@ -101,6 +101,10 @@ INSTR(Free_Func)
   free(f->value_ref->m_type->obj);
   free(f->value_ref->m_type);
   rem_ref(f->value_ref->obj, f->value_ref);
+  free_VM_Code(f->code);
+//free(f->def);
+//f->def = NULL;
+//  free_Func(f);
 }
 
 // func pointer
@@ -862,7 +866,7 @@ INSTR(Func_Return)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func return %p", (shred->mem));
-  debug_msg("instr", "func return %s", (*(VM_Code*)(shred->mem - SZ_INT * 3))->name);
+//  debug_msg("instr", "func return %s", (*(VM_Code*)(shred->mem - SZ_INT * 3))->name);
 #endif
   POP_MEM(shred,  SZ_INT * 2);
   shred->next_pc = *(m_uint*)shred->mem;

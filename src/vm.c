@@ -28,12 +28,15 @@ VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
 void free_VM_Code(VM_Code a)
 {
   m_uint i;
-  if(a->instr) {
-    for(i = 0; i < vector_size(a->instr); i++) {
-      Instr instr = (Instr)vector_at(a->instr, i);
-      if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc ||
-          instr->execute == Gack || instr->execute == Branch_Switch)
-        free(instr->ptr);
+  if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
+    free((void*)vector_back(a->instr));
+    free_Vector(a->instr);
+  } else if(a->instr) {
+      for(i = 0; i < vector_size(a->instr); i++) {
+        Instr instr = (Instr)vector_at(a->instr, i);
+        if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc ||
+            instr->execute == Gack || instr->execute == Branch_Switch)
+          free(instr->ptr);
       free((Instr)vector_at(a->instr, i));
     }
     free_Vector(a->instr);
@@ -83,6 +86,8 @@ void free_VM_Shred(VM_Shred shred)
   else
     free(shred->base);
   free(shred->_reg);
+printf("%s\n", shred->code->name);
+//  if(!strcmp(shred->code->filename, "[in code dtor exec]"))
   free_VM_Code(shred->code);
   free(shred->name);
   free(shred->filename);

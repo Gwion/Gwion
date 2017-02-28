@@ -23,10 +23,31 @@ void free_Func(Func a)
 {
 //  if(a->code && !a->def->is_template) {
   if(a->code) {
+//printf("a->name %s\n", a->name);
 //printf("%s\n", a->code->name);
-    if(a->def && !a->def->is_template)
-//    if(!a->def->is_template || !a->def->types)
-      free_VM_Code(a->code);
+    if(a->def && !a->def->is_template) {
+      if(a->def->spec != ae_func_spec_dtor) {
+        free_VM_Code(a->code);
+      } 
+else {
+/*
+//        free_VM_Code(a->code);
+        free(a->code->name);
+        free(a->code->filename);
+        free_Vector(a->code->instr);
+        free(a->code);
+//        free(a->code);
+        a->value_ref->owner->dtor = NULL;
+//rem_ref(a->value_ref->m_type->obj, a->value_ref->m_type);
+free(a->value_ref->m_type->name);
+free(a->value_ref->m_type->obj);
+free_Type(a->value_ref->m_type);
+rem_ref(a->value_ref->obj, a->value_ref);
+//rem_ref(a->value_ref->obj, a->value_ref);
+free(a->name);
+*/
+      }
+    }
   }
   /*
     if(a->def && a->def->is_template) {

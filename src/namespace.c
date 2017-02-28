@@ -110,7 +110,6 @@ void free_NameSpace(NameSpace a)
 {
   m_uint i;
   Vector v = scope_get(a->value);
-
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     if(isa(value->m_type, &t_class) > 0)
@@ -128,28 +127,28 @@ void free_NameSpace(NameSpace a)
     } else if(isa(value->m_type, &t_func_ptr) > 0) {
 //  just catch func pointer
     } else if(isa(value->m_type, &t_function) > 0) {
-      if(value->func_ref && value->func_ref->def->is_template) {
+      if(value->func_ref && value->func_ref->def && value->func_ref->def->is_template) {
+/*
+	if(value->func_ref->def->spec == ae_func_spec_dtor) {
         free(value->func_ref->def);
         value->func_ref->def = NULL;
         free_VM_Code(value->func_ref->code);
+//value->owner_class->info->dtor = NULL;
+continue;
+}
+*/
       }
-      free(value->name);
-      free(value->m_type->name);
-      rem_ref(value->m_type->obj, value->m_type);
+      if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
+        free(value->name);
+        free(value->m_type->name);
+        rem_ref(value->m_type->obj, value->m_type);
+      }
     }
     rem_ref(value->obj, value);
 
   }
   free_Vector(v);
   free_Scope(a->value);
-
-  v = scope_get(a->type);
-  for(i = 0; i < vector_size(v); i++) {
-    Type type = (Type)vector_at(v, i);
-      rem_ref(type->obj, type);
-  }
-  free_Vector(v);
-  free_Scope(a->type);
 
 
   v = scope_get(a->func);
@@ -160,6 +159,14 @@ void free_NameSpace(NameSpace a)
   free_Vector(v);
   free_Scope(a->func);
 
+  v = scope_get(a->type);
+  for(i = 0; i < vector_size(v); i++) {
+    Type type = (Type)vector_at(v, i);
+      rem_ref(type->obj, type);
+  }
+  free_Vector(v);
+  free_Scope(a->type);
+
   for(i = 0; i < map_size(a->label); i++)
     free_Map((Map)map_at(a->label, i));
   free_Map(a->label);
@@ -169,6 +176,7 @@ void free_NameSpace(NameSpace a)
     free_Vector(a->obj_v_table);
   if(a->pre_ctor)
     free_VM_Code(a->pre_ctor);
+//  if(a->dtor && strcmp(a->dtor->filename, "[in code dtor exec]"))
   if(a->dtor)
     free_VM_Code(a->dtor);
   free_Operator_Map(a->operator);
