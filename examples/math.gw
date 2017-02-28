@@ -14,6 +14,7 @@
 <<< Math.sgn(1.0)            >>>;
 <<< Math.sgn(-1.0)           >>>;
 
+<<< Math.hypot(4,5)          >>>;
 // sin
 <<< Math.sin(1)              >>>;
 <<< Math.sin(1.0)            >>>;
