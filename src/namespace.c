@@ -146,16 +146,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->type);
   for(i = 0; i < vector_size(v); i++) {
     Type type = (Type)vector_at(v, i);
-    if(type) {
-      if(!type->is_complete && type->xid == te_user) {
-        if(type->info)
-          rem_ref(type->info->obj, type->info);
-        free(type->obj);
-        free(type);
-        continue;
-      }
       rem_ref(type->obj, type);
-    }
   }
   free_Vector(v);
   free_Scope(a->type);
