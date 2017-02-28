@@ -98,8 +98,8 @@ void release(M_Object obj, VM_Shred shred)
           sh->me = new_Shred(shred->vm_ref, sh);
 //          sh->mem = shred->base;
 //          sh->base = shred->base;
-          memcpy(sh->mem, shred->mem, SIZEOF_MEM);
-          vector_pop(code->instr);
+          memcpy(sh->mem, shred->mem, SIZEOF_MEM)
+		  vector_pop(code->instr);
           Instr instr = new_Instr();
           instr->execute = parentize;
           instr->m_val = (m_uint)obj;
