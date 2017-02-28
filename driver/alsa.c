@@ -33,7 +33,6 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
   if(snd_pcm_open(&handle, device, stream, mode) > 0 || !handle)
     return -1;
 
-//
   snd_pcm_hw_params_alloca(&params);
 
   if(snd_pcm_hw_params_any(handle, params) > 0) {
