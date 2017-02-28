@@ -158,11 +158,13 @@ static void alsa_run(VM* vm, DriverInfo* di)
 static void alsa_del(VM* vm)
 {
   m_uint chan;
-//  snd_pcm_close(in);
-  snd_pcm_hw_free(in);
-//  snd_pcm_close(out);
-  snd_pcm_hw_free(out);
-
+  snd_pcm_close(in);
+//  snd_pcm_hw_free(in);
+  snd_pcm_close(out);
+//  snd_pcm_hw_free(out);
+  snd_config_update_free_global();
+//snd_dlclose(out);
+//snd_dlclose(in);
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
     if(in_buf && out_buf) {
       for(chan = 0; chan < vm->bbq->sp->nchan; chan++) {
