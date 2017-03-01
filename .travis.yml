@@ -4,7 +4,7 @@ sudo: false
 
 os:
   - linux
-#  - osx
+  - osx
 
 addons:
   apt:
@@ -46,8 +46,8 @@ matrix:
   - os: osx
 
 compiler:
-#- clang
-- gcc
+  - gcc
+  - clang
 
 before_install:
   - pip install hererocks
