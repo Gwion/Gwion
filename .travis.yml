@@ -35,10 +35,7 @@ env:
     - GWION_PLUG_DIR=plug
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
-#    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
-#    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
-#    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
-#    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
+    - USE_DOUBLE=0 SP_BRANCH=dev
 
 matrix:
   fast_finish: true
@@ -56,8 +53,8 @@ before_install:
 
 before_script:
   - echo $TRAVIS_JOB_NUMBER
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then export USE_COVERAGE=1; fi
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then pip install --user cpp-coveralls; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
@@ -68,7 +65,4 @@ branches:
     - dev
 
 after_success:
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then for a in tests/bug/*; do ./gwion $a; done; fi
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then ./gwion examples/doc.gw; fi
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then bash util/coverage.sh run; fi
-  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
