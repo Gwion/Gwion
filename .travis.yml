@@ -24,6 +24,7 @@ env:
     - SPA_D=0
 #    - SNDFILE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data # configure
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR='\"doc/\"'
     - GWION_API_DIR='\"api/\"'
@@ -50,7 +51,7 @@ before_install:
   - hererocks lua_install -r^ --"lua=5.2"
   - export PATH=$PATH:$PWD/lua_install/bin
   - export SPFLOAT=$GW_FLOAT_TYPE
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
+#  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
 
 #install: #next test system?
@@ -64,8 +65,6 @@ before_script:
 
 script:
   - make && sh util/test.sh
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in tests/bug/*; do ./gwion $a; done;fi ; fi; fi
-  - ./gwion examples/doc.gw
   - return 0
 
 branches:
@@ -73,5 +72,7 @@ branches:
     - dev
 
 after_success:
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in tests/bug/*; do ./gwion $a; done;fi ; fi; fi
+  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; ./gwion examples/doc.gw; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then bash util/coverage.sh run; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude driver --exclude coverage --exclude lua_install --exclude ast/lexer.c --exclude ast/parser.c --gcov-options '\-lp';fi; fi; fi
