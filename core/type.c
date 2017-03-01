@@ -165,7 +165,7 @@ Env type_engine_init(VM* vm)
 //          dlclose(handler);
           m_str err = dlerror();
           err_msg(TYPE_, 0, "error in %s.", err);
-//          free(err);
+          free(err);
           goto next;
         }
       }
