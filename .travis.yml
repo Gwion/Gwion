@@ -24,8 +24,8 @@ env:
     - SPA_D=0
 #    - SNDFILE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
-    - SOUNDPIPE_LIB=Soundpipe/libsoundpipe.a
-    - SOUNDPIPE_INC=Soundpipe/h
+    - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
+    - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
     - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR='\"doc/\"'
