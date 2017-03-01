@@ -718,6 +718,7 @@ echo -e 'ifeq (${DEBUG_STACK}, on)\nCFLAGS += -DDEBUG_STACK\nendif' >> Makefile
 echo -e 'ifeq (${DEBUG_STACK}, 1)\nCFLAGS += -DDEBUG_STACK\nendif' >> Makefile
 echo "# add soundpipe" >> Makefile
 echo -e 'LDFLAGS+=${SOUNDPIPE_LIB}' >> Makefile
+echo -e 'CFLAGS+=${SOUNDPIPE_INC}' >> Makefile
 echo "# os specific" >> Makefile
 [ Linux = "Linux" ] && echo "LDFLAGS+=-lrt" >> Makefile
 # initialize object lists

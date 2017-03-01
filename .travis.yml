@@ -25,7 +25,8 @@ env:
 #    - SNDFILE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - SOUNDPIPE_LIB=Soundpipe/libsoundpipe.a
-    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data # configure
+    - SOUNDPIPE_INC=Soundpipe/h
+    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR='\"doc/\"'
     - GWION_API_DIR='\"api/\"'

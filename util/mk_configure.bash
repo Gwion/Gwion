@@ -282,6 +282,7 @@ done
 
 echo 'echo "# add soundpipe" >> Makefile' >> configure
 echo "echo -e 'LDFLAGS+=\${SOUNDPIPE_LIB}' >> Makefile" >> configure
+echo "echo -e 'CFLAGS+=\${SOUNDPIPE_INC}' >> Makefile" >> configure
 #os specific
 echo 'echo "# os specific" >> Makefile' >> configure
 # todo coverage
