@@ -53,10 +53,6 @@ before_install:
   - pip install hererocks
   - hererocks lua_install -r^ --"lua=5.2"
   - export PATH=$PATH:$PWD/lua_install/bin
-#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
-
-#install: #next test system?
-#  - luarocks install busted
 
 before_script:
   - echo $TRAVIS_JOB_NUMBER
@@ -72,7 +68,7 @@ branches:
     - dev
 
 after_success:
-#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && for a in tests/bug/*; do ./gwion $a; done
-#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && ./gwion examples/doc.gw
-#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && bash util/coverage.sh run
-#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then for a in tests/bug/*; do ./gwion $a; done; fi
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then ./gwion examples/doc.gw; fi
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then bash util/coverage.sh run; fi
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'; fi
