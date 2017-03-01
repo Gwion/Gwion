@@ -34,7 +34,8 @@ env:
     - GWION_TAG_DIR='\"tag/\"'
     - GWION_PLUG_DIR='\"plug/\"'
   matrix:
-    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
+    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev COVERAGE=1
+#    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
 #    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
 #    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
 #    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=master SPA_D=0
