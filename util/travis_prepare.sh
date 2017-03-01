@@ -17,7 +17,7 @@ check_variable "$GWION_API_DIR"  GWION_API_DIR
 check_variable "$GWION_TOK_DIR"  GWION_TOK_DIR
 check_variable "$GWION_TAG_DIR"  GWION_TAG_DIR
 check_variable "$GWION_PLUG_DIR" GWION_PLUG_DIR
-check_variable "$GW_FLOAT_TYPE"  GW_FLOAT_TYPE
+#check_variable "$GW_FLOAT_TYPE"  GW_FLOAT_TYPE
 
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
