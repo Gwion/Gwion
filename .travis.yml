@@ -34,7 +34,7 @@ env:
     - GWION_TAG_DIR=tag
     - GWION_PLUG_DIR=plug
   matrix:
-    - USE_DOUBLE=1 SP_BRANCH=dev COVERAGE=1
+    - USE_DOUBLE=1 SP_BRANCH=dev
 #    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
 #    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
 #    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
@@ -53,10 +53,9 @@ before_install:
   - pip install hererocks
   - hererocks lua_install -r^ --"lua=5.2"
   - export PATH=$PATH:$PWD/lua_install/bin
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then export USE_COVERAGE=1; fi; fi; fi
-#  - export SPFLOAT=$GW_FLOAT_TYPE
-#  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
+  - echo !!!!!!!!!!!!!!$TRAVIS_JOB_NUMBER !!!!!!!!!!!!
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && export USE_COVERAGE=1
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
 
 #install: #next test system?
 #  - luarocks install busted
@@ -72,7 +71,7 @@ branches:
     - dev
 
 after_success:
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then for a in tests/bug/*; do ./gwion $a; done;fi ; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; ./gwion examples/doc.gw; fi; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then bash util/coverage.sh run; fi; fi; fi
-  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude driver --exclude coverage --exclude lua_install --exclude ast/lexer.c --exclude ast/parser.c --gcov-options '\-lp';fi; fi; fi
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && for a in tests/bug/*; do ./gwion $a; done
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && ./gwion examples/doc.gw
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && bash util/coverage.sh run
+  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'
