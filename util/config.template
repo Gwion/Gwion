@@ -6,6 +6,7 @@ OPT: lex  :::flex
 OPT: data :::../Soundpipe/modules/data
 OPT: prefix :::/usr/local
 OPT: soundpipe_lib:::-lsoundpipe
+OPT: soundpipe_inc:::
 #OPT: cflags :::'-Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE'
 #OPT: LDFLAGS :::'-lm -ldl -rdynamic'
 #OPT: memflags  :::off

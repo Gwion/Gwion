@@ -127,7 +127,7 @@ done
 #done
 echo "set -e " >> configure
 echo 'if [ "$_arg_double" = "on" ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double"; else _CFLAGS+=" -DSPFLOAT=float";fi' >> configure
-echo "\$_arg_cc -Iinclude $\_arg_soundpipe_inc -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)"  >> configure
+echo "\$_arg_cc -Iinclude \$_arg_soundpipe_inc -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)"  >> configure
 # generate header
 echo "echo generate header" >> configure
 echo "./util/generate_header || exit 1" >> configure

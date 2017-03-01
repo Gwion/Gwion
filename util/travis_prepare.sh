@@ -19,13 +19,6 @@ check_variable "$GWION_TAG_DIR"  GWION_TAG_DIR
 check_variable "$GWION_PLUG_DIR" GWION_PLUG_DIR
 check_variable "$GW_FLOAT_TYPE"  GW_FLOAT_TYPE
 
-SED() {
-	if [ "$TRAVIS_OS_NAME" = "osx" ]
-	then echo "sed -i ''"
-	else echo "sed -i"
-	fi
-}
-
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
@@ -59,12 +52,6 @@ install_soundpipe() {
 	popd
 }
 
-#configure_Gwion() {
-#    ls "$PWD/Soundpipe/modules/data"
-#	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
-#	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-#}
-
 prepare_directories() {
 	mkdir -p doc/{dat,dot,map,png,rst,search,tex}
 	mkdir -p api
@@ -78,7 +65,6 @@ prepare_directories() {
 install_bison
 install_bats
 install_soundpipe
-#configure_Gwion
 prepare_directories
 
 exit 0

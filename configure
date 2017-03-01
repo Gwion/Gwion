@@ -5,6 +5,7 @@
 # ARG_OPTIONAL_SINGLE([data],[],[value for DATA],[../Soundpipe/modules/data])
 # ARG_OPTIONAL_SINGLE([prefix],[],[value for PREFIX],[/usr/local])
 # ARG_OPTIONAL_SINGLE([soundpipe_lib],[],[value for SOUNDPIPE_LIB],[-lsoundpipe])
+# ARG_OPTIONAL_SINGLE([soundpipe_inc],[],[value for SOUNDPIPE_INC],[])
 # ARG_OPTIONAL_BOOLEAN([double],[],[debug double],[on])
 # ARG_OPTIONAL_BOOLEAN([coverage],[],[debug coverage],[off])
 # ARG_OPTIONAL_BOOLEAN([memcheck],[],[debug memcheck],[off])
@@ -77,6 +78,8 @@ die()
 : ${_arg_prefix:="$PREFIX"}
 : ${SOUNDPIPE_LIB:="-lsoundpipe"}
 : ${_arg_soundpipe_lib:="$SOUNDPIPE_LIB"}
+: ${SOUNDPIPE_INC:=}
+: ${_arg_soundpipe_inc:="$SOUNDPIPE_INC"}
 : ${USE_DOUBLE:=on}
 : ${_arg_double:="$USE_DOUBLE"}
 : ${USE_COVERAGE:=off}
@@ -157,7 +160,7 @@ _arg_soundio_inc=()
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--data <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--api <arg>] [--doc <arg>] [--tag <arg>] [--tok <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--data <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--api <arg>] [--doc <arg>] [--tag <arg>] [--tok <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: '"gwion"')"
 	printf "\t%s\n" "--cc: value for CC (default: '"gcc"')"
 	printf "\t%s\n" "--yacc: value for YACC (default: '"yacc"')"
@@ -165,6 +168,7 @@ print_help ()
 	printf "\t%s\n" "--data: value for DATA (default: '"../Soundpipe/modules/data"')"
 	printf "\t%s\n" "--prefix: value for PREFIX (default: '"/usr/local"')"
 	printf "\t%s\n" "--soundpipe_lib: value for SOUNDPIPE_LIB (default: '"-lsoundpipe"')"
+	printf "\t%s\n" "--soundpipe_inc: value for SOUNDPIPE_INC (no default)"
 	printf "\t%s\n" "--double,--no-double: debug double (on by default)"
 	printf "\t%s\n" "--coverage,--no-coverage: debug coverage (off by default)"
 	printf "\t%s\n" "--memcheck,--no-memcheck: debug memcheck (off by default)"
@@ -283,6 +287,16 @@ do
 				shift
 			fi
 			_arg_soundpipe_lib="$_val"
+			;;
+		--soundpipe_inc|--soundpipe_inc=*)
+			_val="${_key##--soundpipe_inc=}"
+			if test "$_val" = "$_key"
+			then
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_val="$2"
+				shift
+			fi
+			_arg_soundpipe_inc="$_val"
 			;;
 		--no-double|--double)
 			_arg_double="on"
@@ -586,7 +600,7 @@ done
 [ -f Makefile  ] && rm Makefile
 set -e 
 if [ "$_arg_double" = "on" ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double"; else _CFLAGS+=" -DSPFLOAT=float";fi
-$_arg_cc -Iinclude $\_arg_soundpipe_inc -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)
+$_arg_cc -Iinclude $_arg_soundpipe_inc -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)
 echo generate header
 ./util/generate_header || exit 1
 echo generate parser
@@ -604,6 +618,7 @@ echo "LEX ?= ${_arg_lex}" >> Makefile
 echo "DATA ?= ${_arg_data}" >> Makefile
 echo "PREFIX ?= ${_arg_prefix}" >> Makefile
 echo "SOUNDPIPE_LIB ?= ${_arg_soundpipe_lib}" >> Makefile
+echo "SOUNDPIPE_INC ?= ${_arg_soundpipe_inc}" >> Makefile
 
 cat <<  EOF >> Makefile
 
