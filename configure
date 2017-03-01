@@ -586,13 +586,13 @@ done
 [ -f Makefile  ] && rm Makefile
 set -e 
 if [ "$_arg_double" = "on" ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double"; else _CFLAGS+=" -DSPFLOAT=float";fi
-$_arg_cc -Iinclude -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)
+$_arg_cc -Iinclude -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)
 echo generate header
 ./util/generate_header || exit 1
 echo generate parser
-$_arg_yacc -o ast/parser.c -dv ast/gwion.y -x || exit 1
+$_arg_yacc -o eval/parser.c -dv eval/gwion.y -x || exit 1
 echo generate lexer
-$_arg_lex -o ast/lexer.c ast/gwion.l || exit 1
+$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1
 echo generate soundpipe wrapper
 lua util/import.lua $_arg_data > ugen/soundpipe.c || exit 1
 # handle options
@@ -653,15 +653,15 @@ echo '# initialize source lists' >> Makefile
 for tgt in "core" "lang" "ugen" "eval"
 do echo "${tgt}_src := \$(wildcard ${tgt}/*.c)" >> Makefile
 done
-echo 'drvr_src := driver/driver.c' >> Makefile
+echo 'drvr_src := drvr/driver.c' >> Makefile
 echo -e "\n# add libraries" >> Makefile
-echo -e 'ifeq (${DUMMY_D}, on)\nCFLAGS += -DHAVE_DUMMY\ndrvr_src += driver/dummy.c\nelse ifeq (${DUMMY_D}, 1)\nCFLAGS +=-DHAVE_DUMMY\ndrvr_src +=driver/dummy.c\nendif\n' >> Makefile
-echo -e 'ifeq (${SPA_D}, on)\nCFLAGS += -DHAVE_SPA\ndrvr_src += driver/spa.c\nelse ifeq (${SPA_D}, 1)\nCFLAGS +=-DHAVE_SPA\ndrvr_src +=driver/spa.c\nendif\n' >> Makefile
-echo -e 'ifeq (${SNDFILE_D}, on)\nLDFLAGS += -lsndfile\nCFLAGS += -DHAVE_SNDFILE\ndrvr_src += driver/sndfile.c\nelse ifeq (${SNDFILE_D}, 1)\nLDFLAGS += -lsndfile\nCFLAGS +=-DHAVE_SNDFILE\ndrvr_src +=driver/sndfile.c\nendif\n' >> Makefile
-echo -e 'ifeq (${ALSA_D}, on)\nLDFLAGS += -lasound\nCFLAGS += -DHAVE_ALSA\ndrvr_src += driver/alsa.c\nelse ifeq (${ALSA_D}, 1)\nLDFLAGS += -lasound\nCFLAGS +=-DHAVE_ALSA\ndrvr_src +=driver/alsa.c\nendif\n' >> Makefile
-echo -e 'ifeq (${JACK_D}, on)\nCFLAGS += -DHAVE_JACK\ndrvr_src += driver/jack.c\nelse ifeq (${JACK_D}, 1)\nCFLAGS +=-DHAVE_JACK\ndrvr_src +=driver/jack.c\nendif\n' >> Makefile
-echo -e 'ifeq (${PORTAUDIO_D}, on)\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += driver/portaudio.c\nelse ifeq (${PORTAUDIO_D}, 1)\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=driver/portaudio.c\nendif\n' >> Makefile
-echo -e 'ifeq (${SOUNDIO_D}, on)\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += driver/soundio.c\nelse ifeq (${SOUNDIO_D}, 1)\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=driver/soundio.c\nendif\n' >> Makefile
+echo -e 'ifeq (${DUMMY_D}, on)\nCFLAGS += -DHAVE_DUMMY\ndrvr_src += drvr/dummy.c\nelse ifeq (${DUMMY_D}, 1)\nCFLAGS +=-DHAVE_DUMMY\ndrvr_src +=drvr/dummy.c\nendif\n' >> Makefile
+echo -e 'ifeq (${SPA_D}, on)\nCFLAGS += -DHAVE_SPA\ndrvr_src += drvr/spa.c\nelse ifeq (${SPA_D}, 1)\nCFLAGS +=-DHAVE_SPA\ndrvr_src +=drvr/spa.c\nendif\n' >> Makefile
+echo -e 'ifeq (${SNDFILE_D}, on)\nLDFLAGS += -lsndfile\nCFLAGS += -DHAVE_SNDFILE\ndrvr_src += drvr/sndfile.c\nelse ifeq (${SNDFILE_D}, 1)\nLDFLAGS += -lsndfile\nCFLAGS +=-DHAVE_SNDFILE\ndrvr_src +=drvr/sndfile.c\nendif\n' >> Makefile
+echo -e 'ifeq (${ALSA_D}, on)\nLDFLAGS += -lasound\nCFLAGS += -DHAVE_ALSA\ndrvr_src += drvr/alsa.c\nelse ifeq (${ALSA_D}, 1)\nLDFLAGS += -lasound\nCFLAGS +=-DHAVE_ALSA\ndrvr_src +=drvr/alsa.c\nendif\n' >> Makefile
+echo -e 'ifeq (${JACK_D}, on)\nCFLAGS += -DHAVE_JACK\ndrvr_src += drvr/jack.c\nelse ifeq (${JACK_D}, 1)\nCFLAGS +=-DHAVE_JACK\ndrvr_src +=drvr/jack.c\nendif\n' >> Makefile
+echo -e 'ifeq (${PORTAUDIO_D}, on)\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += drvr/portaudio.c\nelse ifeq (${PORTAUDIO_D}, 1)\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=drvr/portaudio.c\nendif\n' >> Makefile
+echo -e 'ifeq (${SOUNDIO_D}, on)\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += drvr/soundio.c\nelse ifeq (${SOUNDIO_D}, 1)\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=drvr/soundio.c\nendif\n' >> Makefile
 echo "# add boolean" >> Makefile
 echo -e 'ifeq (${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nendif\n' >> Makefile
 echo -e 'ifeq (${USE_COVERAGE}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile

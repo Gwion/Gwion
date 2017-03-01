@@ -2,7 +2,7 @@
 
 <bison-xml-report version="3.0.4" bug-report="bug-bison@gnu.org" url="http://www.gnu.org/software/bison/">
 
-  <filename>ast/gwion.y</filename>
+  <filename>eval/gwion.y</filename>
 
   <grammar>
     <rules>

@@ -7,12 +7,7 @@
 #endif
 #include <soundpipe.h>
 
-#ifdef GW_DOUBLE
-#define USE_DOUBLE
-#undef GW_DOUBLE
-#endif
-
-#include <err_msg.h>
+#include "err_msg.h"
 
 static const char* filename = "include/generated.h";
 

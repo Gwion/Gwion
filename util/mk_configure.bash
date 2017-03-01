@@ -127,16 +127,16 @@ done
 #done
 echo "set -e " >> configure
 echo 'if [ "$_arg_double" = "on" ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double"; else _CFLAGS+=" -DSPFLOAT=float";fi' >> configure
-echo "\$_arg_cc -Iinclude -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)"  >> configure
+echo "\$_arg_cc -Iinclude -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; return 1;)"  >> configure
 # generate header
 echo "echo generate header" >> configure
 echo "./util/generate_header || exit 1" >> configure
 # generate parser
 echo "echo generate parser" >> configure
-echo "\$_arg_yacc -o ast/parser.c -dv ast/gwion.y -x || exit 1" >> configure
+echo "\$_arg_yacc -o eval/parser.c -dv eval/gwion.y -x || exit 1" >> configure
 # generate lexer
 echo "echo generate lexer" >> configure
-echo "\$_arg_lex -o ast/lexer.c ast/gwion.l || exit 1" >> configure
+echo "\$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1" >> configure
 # generate soundpipe
 echo "echo generate soundpipe wrapper" >> configure
 echo "lua util/import.lua \$_arg_data > ugen/soundpipe.c || exit 1" >> configure
@@ -219,7 +219,7 @@ echo '# initialize source lists' >> Makefile
 for tgt in "core" "lang" "ugen" "eval"
 do echo "\${tgt}_src := \\\$(wildcard \${tgt}/*.c)" >> Makefile
 done
-echo 'drvr_src := driver/driver.c' >> Makefile
+echo 'drvr_src := drvr/driver.c' >> Makefile
 EOF
 
 echo 'echo -e "\n# add libraries" >> Makefile' >> configure
@@ -232,8 +232,8 @@ do
   then val=1
   else val=0
   fi
-  [ -z "$lib" ] && echo "echo -e 'ifeq (\${${key~~}_D}, "on")\nCFLAGS += -DHAVE_${key~~}\ndrvr_src += driver/${key}.c\nelse ifeq (\${${key~~}_D}, "1")\nCFLAGS +=-DHAVE_${key~~}\ndrvr_src +=driver/${key}.c\nendif\n' >> Makefile"  >> configure
-  [ -z "$lib" ] || echo "echo -e 'ifeq (\${${key~~}_D}, "on")\nLDFLAGS += ${lib}\nCFLAGS += -DHAVE_${key~~}\ndrvr_src += driver/${key}.c\nelse ifeq (\${${key~~}_D}, "1")\nLDFLAGS += ${lib}\nCFLAGS +=-DHAVE_${key~~}\ndrvr_src +=driver/${key}.c\nendif\n' >> Makefile"  >> configure
+  [ -z "$lib" ] && echo "echo -e 'ifeq (\${${key~~}_D}, "on")\nCFLAGS += -DHAVE_${key~~}\ndrvr_src += drvr/${key}.c\nelse ifeq (\${${key~~}_D}, "1")\nCFLAGS +=-DHAVE_${key~~}\ndrvr_src +=drvr/${key}.c\nendif\n' >> Makefile"  >> configure
+  [ -z "$lib" ] || echo "echo -e 'ifeq (\${${key~~}_D}, "on")\nLDFLAGS += ${lib}\nCFLAGS += -DHAVE_${key~~}\ndrvr_src += drvr/${key}.c\nelse ifeq (\${${key~~}_D}, "1")\nLDFLAGS += ${lib}\nCFLAGS +=-DHAVE_${key~~}\ndrvr_src +=drvr/${key}.c\nendif\n' >> Makefile"  >> configure
 done
 
 echo 'echo "# add boolean" >> Makefile' >> configure

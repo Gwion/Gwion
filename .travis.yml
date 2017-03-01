@@ -24,6 +24,7 @@ env:
     - SPA_D=0
 #    - SNDFILE_D=0
     - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - SOUNDPIPE_LIB=Soundpipe/libsoundpipe.a
     - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data # configure
     - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR='\"doc/\"'
@@ -62,10 +63,6 @@ before_script:
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
-
-script:
-  - make && sh util/test.sh
-  - return 0
 
 branches:
   - only:
