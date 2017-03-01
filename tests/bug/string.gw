@@ -1,0 +1,27 @@
+//<<<"test">>>;
+//"test" @=> string @i;
+"test" => string s;
+string @t;
+<<<"size", s.size()>>>;
+<<<"upper", s.upper()>>>;
+<<<"lower", s.lower()>>>;
+<<<"ltrim", s.trim()>>>;
+<<<"rltrim", s.ltrim()>>>;
+<<<"tltrim", s.rtrim()>>>;
+<<<"charAt", s.charAt(1)>>>;
+<<<"substring", s.substring(2)>>>;
+<<<"substring", s.substring(2, 3)>>>;
+<<<"insert", s.insert(1, "S")>>>;
+<<<"replace", s.replace(3, 2, "test")>>>;
+<<<"find", s.find('e')>>>;
+<<<"find",  s.find(2, 't')>>>;
+<<<"rfind", s.rfind('t')>>>;
+<<<"rfind", s.rfind('t', 1)>>>;
+<<<"find", s.find("e")>>>;
+<<<"2".toInt()>>>;
+
+//<<<"find",  s.find(2, "t")>>>;
+//<<<"rfind", s.rfind("t")>>>;
+//<<<"rfind", s.rfind(2, "t")>>>;
+<<<"erase", s.erase(2, 3)>>>;
+//<<<"78.23".toFloat()>>>;

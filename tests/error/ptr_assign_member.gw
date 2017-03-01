@@ -1,0 +1,4 @@
+typedef void (test)();
+class D { function void test(){} }
+D d;
+d.test @=> test;

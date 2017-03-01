@@ -1,0 +1,5 @@
+union
+{
+  int i;
+  int array[4];
+};

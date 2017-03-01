@@ -1,0 +1,1 @@
+static typedef void (my_function)(){}

@@ -1,0 +1,6 @@
+int i;
+now + 3::samp => time t;
+while(now < t) {
+  i++;
+  samp => now;
+}
