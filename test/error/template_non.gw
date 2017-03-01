@@ -1,2 +1,0 @@
-function void my_func(){}
-my_func<{int}>();

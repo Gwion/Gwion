@@ -1,6 +1,0 @@
-samp;
-minute;
-5::samp;
-float f;
-2.4 => f;
-f ::samp => now;

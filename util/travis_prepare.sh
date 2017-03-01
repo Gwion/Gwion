@@ -59,11 +59,11 @@ install_soundpipe() {
 	popd
 }
 
-configure_Gwion() {
+#configure_Gwion() {
 #    ls "$PWD/Soundpipe/modules/data"
 #	[ "$GW_FLOAT_TYPE" = "double" ] && $(SED) 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk
 #	$(SED) "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-}
+#}
 
 prepare_directories() {
 	mkdir -p doc/{dat,dot,map,png,rst,search,tex}
@@ -78,7 +78,7 @@ prepare_directories() {
 install_bison
 install_bats
 install_soundpipe
-configure_Gwion
+#configure_Gwion
 prepare_directories
 
 exit 0

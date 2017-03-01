@@ -1,3 +1,0 @@
-int i[];
-Machine.shreds() @=> i;
-//NULL @=> i;

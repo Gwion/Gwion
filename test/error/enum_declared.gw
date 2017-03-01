@@ -1,5 +1,0 @@
-int i;
-enum
-{
-  test
-} i;

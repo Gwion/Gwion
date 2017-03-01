@@ -1,2 +1,0 @@
-int i;
-int i;

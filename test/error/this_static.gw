@@ -1,4 +1,0 @@
-class C
-{
-	function static void test() { this; }
-}

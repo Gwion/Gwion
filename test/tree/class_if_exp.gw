@@ -1,4 +1,0 @@
-class C {
-	<<<maybe ? "ok" : "not ok">>>;
-}
-

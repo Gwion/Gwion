@@ -1,3 +1,0 @@
-template<{a, b}>
-function void test(){}
-test();
