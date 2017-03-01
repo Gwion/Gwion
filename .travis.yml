@@ -34,7 +34,7 @@ env:
     - GWION_TAG_DIR='\"tag/\"'
     - GWION_PLUG_DIR='\"plug/\"'
   matrix:
-    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev COVERAGE=1
+    - USE_DOUBLE=1 SP_BRANCH=dev COVERAGE=1
 #    - GW_FLOAT_TYPE=float  SP_BRANCH=dev COVERAGE=1
 #    - GW_FLOAT_TYPE=double USE_DOUBLE=1 SP_BRANCH=dev
 #    - GW_FLOAT_TYPE=float  SP_BRANCH=master SPA_D=0
@@ -53,7 +53,7 @@ before_install:
   - pip install hererocks
   - hererocks lua_install -r^ --"lua=5.2"
   - export PATH=$PATH:$PWD/lua_install/bin
-  - export SPFLOAT=$GW_FLOAT_TYPE
+#  - export SPFLOAT=$GW_FLOAT_TYPE
 #  - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then sed 's/#CFLAGS/CFLAGS/' config.def.mk; fi; fi; fi
   - if [ $COVERAGE -eq 1 ]; then if [ $CC = 'gcc' ]; then if [ $TRAVIS_OS_NAME = 'linux' ]; then pip install --user cpp-coveralls; fi; fi; fi
 

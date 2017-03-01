@@ -131,15 +131,19 @@ echo 'if [ "$_arg_double" = "1"  ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double
 echo '[ "$_arg_double" = "on" ] || [ "$_arg_double" = "1"  ] || _CFLAGS+=" -DSPFLOAT=float"' >> configure
 echo "echo \$_arg_cc -Iinclude \$_arg_soundpipe_inc -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header" >> configure
 echo "\$_arg_cc -Iinclude \$_arg_soundpipe_inc -DDEBUG \$_arg_cflags \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"  >> configure
+
 # generate header
 echo "echo generate header" >> configure
 echo "./util/generate_header || exit 1" >> configure
+
 # generate parser
 echo "echo generate parser" >> configure
 echo "\$_arg_yacc -o eval/parser.c -dv eval/gwion.y -x || exit 1" >> configure
+
 # generate lexer
 echo "echo generate lexer" >> configure
 echo "\$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1" >> configure
+
 # generate soundpipe
 echo "echo generate soundpipe wrapper" >> configure
 echo "lua util/import.lua \$_arg_data > ugen/soundpipe.c || exit 1" >> configure
