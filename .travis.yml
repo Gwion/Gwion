@@ -50,12 +50,12 @@ compiler:
   - clang
 
 before_install:
-  - pip install hererocks
-  - hererocks lua_install -r^ --"lua=5.2"
-  - export PATH=$PATH:$PWD/lua_install/bin
+#  - pip install hererocks
+#  - hererocks lua_install -r^ --"lua=5.2"
+#  - export PATH=$PATH:$PWD/lua_install/bin
   - echo $TRAVIS_JOB_NUMBER
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && export USE_COVERAGE=1
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
+#  - [ $(echo $TRAVIS_JOB_NUMBER | tr-eq 1 ] && export USE_COVERAGE=1
+#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
 
 #install: #next test system?
 #  - luarocks install busted
@@ -71,7 +71,7 @@ branches:
     - dev
 
 after_success:
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && for a in tests/bug/*; do ./gwion $a; done
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && ./gwion examples/doc.gw
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && bash util/coverage.sh run
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'
+#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && for a in tests/bug/*; do ./gwion $a; done
+#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && ./gwion examples/doc.gw
+#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && bash util/coverage.sh run
+#  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && coveralls --exclude Gwion-plug --exclude $BISON_VERSION --exclude Soundpipe --exclude bison --exclude bats --exclude examples --exclude drvr --exclude coverage --exclude lua_install --exclude eval/lexer.c --exclude eval/parser.c --gcov-options '\-lp'
