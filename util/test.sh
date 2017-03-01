@@ -1,6 +1,6 @@
 #!/bin/sh
 EXAMPLE_DIR=examples
-AST_DIR=test/tree
+AST_DIR=tests/tree
 SEG_FILE=/tmp/gwion_segfault.bats
 AST_FILE=/tmp/gwion_ast.bats
 ADD_FILE="util/error.bats"

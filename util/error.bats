@@ -1,7 +1,7 @@
 load test_helper/bats-support/load
 load test_helper/bats-assert/load
 load test_helper/bats-gwion/load
-DIR=test/error
+DIR=tests/error
 #@test "warn" {
 #  diag "testing error messages"
 #  assert_success
