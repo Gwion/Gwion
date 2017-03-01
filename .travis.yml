@@ -60,7 +60,7 @@ before_install:
 
 before_script:
   - echo $TRAVIS_JOB_NUMBER
-  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && export USE_COVERAGE=1
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then export USE_COVERAGE=1; fi
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
