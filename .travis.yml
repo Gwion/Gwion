@@ -50,9 +50,9 @@ compiler:
   - clang
 
 before_install:
-#  - pip install hererocks
-#  - hererocks lua_install -r^ --"lua=5.2"
-#  - export PATH=$PATH:$PWD/lua_install/bin
+  - pip install hererocks
+  - hererocks lua_install -r^ --"lua=5.2"
+  - export PATH=$PATH:$PWD/lua_install/bin
 #  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
 
 #install: #next test system?
@@ -61,6 +61,7 @@ before_install:
 before_script:
   - echo $TRAVIS_JOB_NUMBER
   - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then export USE_COVERAGE=1; fi
+  - if [ $TRAVIS_JOB_NUMBER -eq 1 ]; then pip install --user cpp-coveralls; fi
   - export PATH=$PATH:$PWD/bats/bin:$PWD/bison-3.0.4/src:$PWD/bin:$PATH
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
