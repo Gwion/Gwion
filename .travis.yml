@@ -54,7 +54,7 @@ before_install:
 #  - hererocks lua_install -r^ --"lua=5.2"
 #  - export PATH=$PATH:$PWD/lua_install/bin
   - echo $TRAVIS_JOB_NUMBER
-  - [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ] && export USE_COVERAGE=1
+  - [ "$TRAVIS_JOB_NUMBER" = "${TRAVIS_BUILD_NUMBER}.1" ] && export USE_COVERAGE=1
 #  - [ $TRAVIS_JOB_NUMBER -eq 1 ] && pip install --user cpp-coveralls; fi; fi; fi
 
 #install: #next test system?
