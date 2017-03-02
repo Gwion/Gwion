@@ -117,12 +117,12 @@ INSTR(complex_real)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'real' %i",  instr->m_val);
 #endif
-  POP_REG(shred, instr->m_val ? SZ_INT : SZ_FLOAT);
+  POP_REG(shred, instr->m_val ? SZ_INT : SZ_COMPLEX);
   if(instr->m_val) {
 //    *(m_float**)(shred->reg) = &**(m_float**)shred->reg; // coverity
     PUSH_REG(shred, SZ_INT);
   } else {
-//    *(m_float*)(shred->reg) = *((m_float*)shred->reg);  // coverity
+    *(m_float*)(shred->reg) = *((m_float*)shred->reg);  // coverity
     PUSH_REG(shred, SZ_FLOAT);
   }
 }
@@ -132,7 +132,7 @@ INSTR(complex_imag)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'imag'");
 #endif
-  POP_REG(shred, instr->m_val ? SZ_INT : SZ_FLOAT);
+  POP_REG(shred, instr->m_val ? SZ_INT : SZ_COMPLEX);
   if(instr->m_val) {
     m_float* f = &**(m_float**)(shred->reg);
     *(m_float**)(shred->reg) = &*(f + 1);
@@ -305,7 +305,7 @@ m_bool import_complex(Env env)
   CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_polar, &t_polar, &t_polar, polar_divide_r,   0))
   t_complex.doc   = "complex numbers";
   t_polar.doc     = "polar   numbers";
-  t_complex.size = 16;
-  t_polar.size = 16;
+//  t_complex.size = 16;
+//  t_polar.size = 16;
   return 1;
 }
