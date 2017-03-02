@@ -140,6 +140,7 @@ INSTR(vec3_z);
 INSTR(vec4_z);
 INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);
+INSTR(Reg_Dup_Last_Vec4);
 
 INSTR(Mem_Push_Ret); // test on 13/01/17
 
