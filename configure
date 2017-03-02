@@ -723,7 +723,6 @@ echo "# add soundpipe" >> Makefile
 echo -e 'LDFLAGS+=${SOUNDPIPE_LIB}' >> Makefile
 echo -e 'CFLAGS+=${SOUNDPIPE_INC}' >> Makefile
 echo "# os specific" >> Makefile
-[ Linux = "Linux" ] && echo "LDFLAGS+=-lrt" >> Makefile
 # initialize object lists
 echo '' >> Makefile
 echo '# initialize object lists' >> Makefile
@@ -746,6 +745,12 @@ CFLAGS+=-DDEBUG
 endif
 
 LDFLAGS+=-lsndfile
+
+# os specific
+ifeq (\$(shell uname), Linux)
+LDFLAGS+=-lrt
+endif
+
 # recipes
 all: \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
 	\${CC} \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}

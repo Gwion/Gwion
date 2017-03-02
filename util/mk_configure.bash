@@ -295,7 +295,7 @@ echo 'echo "# os specific" >> Makefile' >> configure
 # todo coverage
 # pthread
 
-echo "[ $(uname) = \"Linux\" ] && echo \"LDFLAGS+=-lrt\" >> Makefile" >> configure
+#echo "[ $(uname) = \"Linux\" ] && echo \"LDFLAGS+=-lrt\" >> Makefile" >> configure
 
 cat << _EOF >> configure
 # initialize object lists
@@ -320,6 +320,12 @@ CFLAGS+=-DDEBUG
 endif
 
 LDFLAGS+=-lsndfile
+
+# os specific
+ifeq (\\\$(shell uname), Linux)
+LDFLAGS+=-lrt
+endif
+
 # recipes
 all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
 	\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
