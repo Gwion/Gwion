@@ -164,7 +164,7 @@ cat << _EOF >> configure
 
 cat <<  EOF >> Makefile
 
-LDFLAGS += -lm -ldl -rdynamic -lpthread
+LDFLAGS += -lm -ldl -rdynamic -lpthread -lsndfile
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
 
 EOF
