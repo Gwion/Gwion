@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "map.h"
 #include "func.h"
+#include "err_msg.h"
 
 #ifndef GWION_DOC_DIR
 #define GWION_DOC_DIR "/usr/lib/Gwion/doc/"
@@ -67,20 +68,39 @@ static Textadept* new_Textadept(Env env, m_str str)
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   len = strlen(name);
   memset(c, 0, 1024);
-  strncpy(c, GWION_API_DIR, 1024 - len - 4);
+  strncpy(c, GWION_API_DIR, 1024 - len - 5);
+  strncat(c, "/", 1);
   strncat(c, name, len);
   strncat(c, ".api", 4);
-  doc->api = fopen(c, "w");
+  if(!(doc->api = fopen(c, "w"))) {
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+	free(name);
+	free(doc);
+	return NULL;
+  }
   memset(c, 0, 1024);
-  strncpy(c, GWION_TAG_DIR, 1024 - len - 4);
+  strncpy(c, GWION_TAG_DIR, 1024 - len - 5);
   strncat(c, name, len);
   strncat(c, ".tag", 4);
-  doc->tag = fopen(c, "w");
+  if(!(doc->tag = fopen(c, "w"))) {
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+	free(name);
+	free(doc->api);
+	free(doc);
+	return NULL;
+  }
   memset(c, 0, 1024);
   strncpy(c, GWION_TOK_DIR, 1024 - len - 4);
   strncat(c, name, len);
   strncat(c, ".tok", 4);
-  doc->tok = fopen(c, "w");
+  if(!(doc->tok = fopen(c, "w"))) {
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+	free(name);
+	free(doc->api);
+	free(doc->tag);
+	free(doc);
+	return NULL;
+  }
   free(name);
   return doc;
 }
@@ -112,7 +132,7 @@ static Doc* new_Doc(Env env, m_str str)
   strncat(c, name, 1022 - strlen(GWION_DOC_DIR));
   strncat(c, ".html", 1022 - strlen(c));
   if(!(doc->html = fopen(c, "w"))) {
-    err_msg(INSTR_, 0, "can't open '%s' while makeing docs. aborting", c);
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
     free(name);
     free(doc);
     return NULL;
@@ -366,6 +386,7 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
     mkadt_func(doc, (Func)vector_at(s_func, i));
   free_Vector(s_func);
 }
+
 static void mkdoc_nspc(Doc* doc, NameSpace nspc)
 {
   int i;
@@ -474,6 +495,8 @@ void mkadt_context(Env env, m_str str)
 {
   int i;
   Textadept* doc = new_Textadept(env, str);
+  if(!doc)
+    return;
   for(i = 0; i < vector_size(doc->ctx->new_types); i++)
     mkadt_type(doc, (Type)vector_at(doc->ctx->new_types, i));
   for(i = 0; i < vector_size(doc->ctx->new_values); i++)
