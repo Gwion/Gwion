@@ -112,6 +112,7 @@ static Doc* new_Doc(Env env, m_str str)
   strncat(c, name, 1022 - strlen(GWION_DOC_DIR));
   strncat(c, ".html", 1022 - strlen(c));
   if(!(doc->html = fopen(c, "w"))) {
+    err_msg(INSTR_, 0, "can't open '%s' while makeing docs. aborting", c);
     free(name);
     free(doc);
     return NULL;
@@ -126,6 +127,7 @@ static Doc* new_Doc(Env env, m_str str)
     free(name);
     fclose(doc->html);
     free(doc);
+    err_msg(INSTR_, 0, "can't open '%s' while makeing docs. aborting", c);
     return NULL;
   }
   free(name);
