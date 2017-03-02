@@ -164,7 +164,7 @@ cat << _EOF >> configure
 
 cat <<  EOF >> Makefile
 
-LDFLAGS += -lm -ldl -rdynamic -lpthread -lsndfile
+LDFLAGS += -lm -ldl -rdynamic -lpthread
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
 
 EOF
@@ -252,7 +252,6 @@ do
   then [ "$key" = "double" ] && val=double;
   else [ "$key" = "double" ] && val=float;
   fi
-  echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=double\nelse ifeq (\${USE_${key~~}}, "1")\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile"  >> configure
   [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -g\nendif' >> Makefile" >> configure
   [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nCFLAGS += -g\nendif' >> Makefile" >> configure
   [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile" >> configure
@@ -260,6 +259,8 @@ do
   [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nLDFLAGS += --coverage\nendif' >> Makefile" >> configure
   [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nLDFLAGS += --coverage\nendif' >> Makefile" >> configure
 done
+key="double"
+echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=double\nelse ifeq (\${USE_${key~~}}, "1")\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile"  >> configure
 
 echo 'echo "# add definitions" >> Makefile' >> configure
 for iter in $DEF
@@ -318,6 +319,7 @@ ifeq (\\\${DEBUG}, 1)
 CFLAGS+=-DDEBUG
 endif
 
+LDFLAGS+=-lsndfile
 # recipes
 all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
 	\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
