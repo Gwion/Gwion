@@ -2055,9 +2055,9 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
     if (!strcmp(value->name, "x"))
-      instr = add_instr(emit, complex_real);
+      instr = add_instr(emit, vec3_x);
     else if (!strcmp(value->name, "y"))
-      instr = add_instr(emit, complex_imag);
+      instr = add_instr(emit, vec3_y);
     else if (!strcmp(value->name, "z"))
       instr = add_instr(emit, vec3_z);
     else {

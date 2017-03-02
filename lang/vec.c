@@ -192,18 +192,78 @@ INSTR(vec3_r_assign)
   PUSH_REG(shred, SZ_VEC3);
 }
 
+INSTR(vec3_x)
+{
+  if(instr->m_val) {
+    POP_REG(shred, SZ_INT);
+    VEC3_T* v = *(VEC3_T**)(shred->reg);
+    *(m_float**)shred->reg = &v->x;
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    POP_REG(shred, SZ_INT);
+    VEC3_T* v = *(VEC3_T**)(shred->reg);
+    *(m_float*)shred->reg = v->x;
+    PUSH_REG(shred,  SZ_INT);
+  }
+}
+
+INSTR(vec3_y)
+{
+  if(instr->m_val) {
+    POP_REG(shred, SZ_INT);
+    VEC3_T* v = *(VEC3_T**)(shred->reg);
+    *(m_float**)shred->reg = &v->y;
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    POP_REG(shred, SZ_INT);
+    VEC3_T* v = *(VEC3_T**)(shred->reg);
+    *(m_float*)shred->reg = v->y;
+    PUSH_REG(shred,  SZ_INT);
+  }
+}
+
 INSTR(vec3_z)
 {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
-    *(m_float**)shred->reg = &v->z;
+    *(m_float**)shred->reg = &v->y;
     PUSH_REG(shred,  SZ_INT);
   } else {
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
-    *(m_float*)shred->reg = v->z;
+    *(m_float*)shred->reg = v->y;
     PUSH_REG(shred,  SZ_INT);
+  }
+}
+
+INSTR(vec4_x)
+{
+  if(instr->m_val) {
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float**)shred->reg = &v->x;
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float*)shred->reg = v->x;
+    PUSH_REG(shred,  SZ_FLOAT);
+  }
+}
+
+INSTR(vec4_y)
+{
+  if(instr->m_val) {
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float**)shred->reg = &v->y;
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    POP_REG(shred, SZ_INT);
+    VEC4_T* v = *(VEC4_T**)(shred->reg);
+    *(m_float*)shred->reg = v->y;
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
