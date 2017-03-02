@@ -259,7 +259,7 @@ after_success() {
 	do
 		EXCLUDE+=" --exclude $exclude"
 	done
-	coveralls "$EXCLUDE" --gcov-options '\-lp'
+	coveralls $EXCLUDE --gcov-options '\-lp'
 }
 
 [ -z "$1" ] && usage
