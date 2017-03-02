@@ -42,4 +42,4 @@ done
 
 [ -z "${GWION_PLUG_DIR}" ] && export GWION_PLUG_DIR="/usr/lib/Gwion/plug"
 
-GWION_PLUG_DIR=plug/ bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
+bats $FORMAT $SEG_FILE $ADD_FILE $AST_FILE
