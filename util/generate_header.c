@@ -12,10 +12,12 @@
 static const char* filename = "include/generated.h";
 
 #ifdef USE_DOUBLE
-static const char* type	= "double";
+static const char* type	 = "double";
+static const char* other = "float ";
 #define SZ sizeof(double)
 #else
-static const char* type	= "float ";
+static const char* type	 = "float ";
+static const char* other = "double";
 #define SZ sizeof(float)
 #endif
 
@@ -24,7 +26,7 @@ int main(int argc , char** argv)
   FILE* file;
   debug_msg("config", "creating Gwion header.");
   if(SZ != sizeof(SPFLOAT)) {
-    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", type);
+    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", other);
     return 1;
   }
   if(argc >= 2)
