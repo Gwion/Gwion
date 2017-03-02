@@ -26,7 +26,7 @@ int main(int argc , char** argv)
   FILE* file;
   debug_msg("config", "creating Gwion header.");
   if(SZ != sizeof(SPFLOAT)) {
-    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.\n", other);
+    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.", other);
     return 1;
   }
   if(argc >= 2)

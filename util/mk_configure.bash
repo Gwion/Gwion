@@ -252,8 +252,7 @@ do
   then [ "$key" = "double" ] && val=double;
   else [ "$key" = "double" ] && val=float;
   fi
-  [ "$key" = "double" ]&&
-  echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=${val}\nelse ifeq (\${USE_${key~~}}, "1")\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=${val}\nendif\n' >> Makefile"  >> configure
+  echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=double\nelse ifeq (\${USE_${key~~}}, "1")\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=double\nelse =\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile"  >> configure
   [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -g\nendif' >> Makefile" >> configure
   [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nCFLAGS += -g\nendif' >> Makefile" >> configure
   [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile" >> configure
