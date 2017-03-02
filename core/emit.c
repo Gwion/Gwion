@@ -2047,6 +2047,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     else
       instr = add_instr(emit, complex_imag);
     instr->m_val = emit_addr;
+printf("emit_addr %i\n", emit_addr);
     return 1;
   } else if (t_base->xid == t_vec3.xid) {
     Instr instr;
@@ -2077,9 +2078,9 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
     if (!strcmp(value->name, "x"))
-      instr = add_instr(emit, complex_real);
+      instr = add_instr(emit, vec4_x);
     else if (!strcmp(value->name, "y"))
-      instr = add_instr(emit, complex_imag);
+      instr = add_instr(emit, vec4_y);
     else if (!strcmp(value->name, "z"))
       instr = add_instr(emit, vec4_z);
     else if (!strcmp(value->name, "w"))
