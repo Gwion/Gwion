@@ -27,7 +27,7 @@ brew_dependencies() {
 
 install_bison() {
 	wget "http://ftp.gnu.org/gnu/bison/$BISON_VERSION.tar.gz"
-	tar -xzf bison-3.0.4.tar.gz
+	tar -xzf "$BISON_VERSION.tar.gz"
 	pushd "$BISON_VERSION"
     ./configure --prefix="$PWD/../bison"
     make install
