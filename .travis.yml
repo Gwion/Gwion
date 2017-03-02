@@ -59,6 +59,7 @@ before_script:
   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
+  - echo USE_DOUBLE: $USE_DOUBLE
 
 branches:
   - only:
