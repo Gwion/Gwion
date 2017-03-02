@@ -107,9 +107,10 @@ static Doc* new_Doc(Env env, m_str str)
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
-  strncpy(c, GWION_DOC_DIR, 1023);
-  strncat(c, name, 1023 - strlen(GWION_DOC_DIR));
-  strncat(c, ".html", 1023 - strlen(c));
+  strncpy(c, GWION_DOC_DIR, 1022);
+  strncat(c, "/", 1);
+  strncat(c, name, 1022 - strlen(GWION_DOC_DIR));
+  strncat(c, ".html", 1022 - strlen(c));
   if(!(doc->html = fopen(c, "w"))) {
     free(name);
     free(doc);
@@ -117,9 +118,10 @@ static Doc* new_Doc(Env env, m_str str)
   }
   memset(c, 0, 1024);
   strncpy(c, GWION_DOC_DIR, 1023);
-  strncat(c, "dat/", 1023 - strlen(c));
-  strncat(c, name, 1023 - strlen(c));
-  strncat(c, ".js", 1023 - strlen(c));
+  strncat(c, "/", 1);
+  strncat(c, "dat/", 1022 - strlen(c));
+  strncat(c, name, 1022 - strlen(c));
+  strncat(c, ".js", 1022 - strlen(c));
   if(!(doc->data = fopen(c, "w"))) {
     free(name);
     fclose(doc->html);
