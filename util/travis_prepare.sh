@@ -41,9 +41,9 @@ install_bats() {
 install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
-	[ "$USE_DOUBLE" -eq 1 ] && export SP_FLOAT="double"
-	[ "$USE_DOUBLE" -eq 0 ] && export SP_FLOAT="float"
-	[ -z "$USE_DOUBLE" ] && export SP_FLOAT="float"
+#	[ "$USE_DOUBLE" -eq 1 ] && export SP_FLOAT="double"
+	[ "$USE_DOUBLE" -eq 0 ] && export SPFLOAT="float"
+	[ -z "$USE_DOUBLE" ] && export SPFLOAT="float"
 	[ -z "$USE_DOUBLE" ] && [ "$USE_DOUBLE" -eq 0 ] && unset USE_DOUBLE
     if [ "$SP_BRANCH" = "master" ]
     then
