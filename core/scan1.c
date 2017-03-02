@@ -352,9 +352,6 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
       err_msg(SCAN1_, stmt->pos, "type '%s' already declared", S_name(stmt->xid));
       return -1;
     }
-
-    /*if(namespace_lookup_value(nspc, stmt->xid, 0))*/
-    /*if(namespace_lookup_value(nspc, stmt->xid, -1))*/
     if(namespace_lookup_value(env->curr, stmt->xid, 1)) {
       err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
       return -1;
@@ -363,17 +360,13 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
   t = type_copy(env, &t_int);
   t->name = stmt->xid ? S_name(stmt->xid) : "int";
   t->parent = &t_int;
-//    add_ref(t->obj);
   namespace_add_type(nspc, stmt->xid, t);
   while(list) {
     Value v;
     if(namespace_lookup_value(nspc, list->xid, 0)) {
       err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, S_name(list->xid));
-//      vector_append(stmt->values, (vtype)v);
-//free(t);
       return -1;
     }
-//    v = new_Value(env->context, stmt->xid ? t : &t_int, S_name(list->xid) );
     v = new_Value(env->context, t, S_name(list->xid));
     add_ref(t->obj);
     add_ref(v->obj);

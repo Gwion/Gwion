@@ -1099,9 +1099,11 @@ void free_Stmt_Enum(Stmt_Enum a)
     free_ID_List(a->list);
   for(i = 0; i < vector_size(a->values); i++) {
     Value v = (Value)vector_at(a->values, i);
+if(!v->owner_class) {
     free(v->obj);
     free(v);
-//    rem_ref(v->obj, v);
+}
+//else    rem_ref(v->obj, v);
   }
   free_Vector(a->values);
   free(a);
