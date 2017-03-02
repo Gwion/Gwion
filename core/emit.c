@@ -2046,7 +2046,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr = add_instr(emit, complex_real);
     else
       instr = add_instr(emit, complex_imag);
-    instr->m_val = member->self->emit_var;
+    instr->m_val = emit->addr;
     return 1;
   } else if (t_base->xid == t_vec3.xid) {
     Instr instr;
@@ -2085,7 +2085,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     else if (!strcmp(value->name, "w"))
       instr = add_instr(emit, vec4_w);
     else {
-      Instr dup = add_instr(emit, Reg_Dup_Last_Vec3);
+      Instr dup = add_instr(emit, Reg_Dup_Last_Vec4);
       (void)dup; // prevent cppcheck warning
       Instr f = add_instr(emit, member_function);
       f->ptr = t_base->info->obj_v_table;
