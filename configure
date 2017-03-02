@@ -681,13 +681,13 @@ echo -e 'ifeq (${JACK_D}, on)\nCFLAGS += -DHAVE_JACK\ndrvr_src += drvr/jack.c\ne
 echo -e 'ifeq (${PORTAUDIO_D}, on)\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += drvr/portaudio.c\nelse ifeq (${PORTAUDIO_D}, 1)\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=drvr/portaudio.c\nendif\n' >> Makefile
 echo -e 'ifeq (${SOUNDIO_D}, on)\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += drvr/soundio.c\nelse ifeq (${SOUNDIO_D}, 1)\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=drvr/soundio.c\nendif\n' >> Makefile
 echo "# add boolean" >> Makefile
-echo -e 'ifeq (${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nelse =\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
-echo -e 'ifeq (${USE_COVERAGE}, on)\nCFLAGS += -DUSE_COVERAGE -DSPFLOAT=double\nelse ifeq (${USE_COVERAGE}, 1)\nCFLAGS +=-DUSE_COVERAGE -DSPFLOAT=double\nelse =\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
+echo -e 'ifeq (${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
+echo -e 'ifeq (${USE_COVERAGE}, on)\nCFLAGS += -DUSE_COVERAGE -DSPFLOAT=double\nelse ifeq (${USE_COVERAGE}, 1)\nCFLAGS +=-DUSE_COVERAGE -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
 echo -e 'ifeq (${USE_COVERAGE}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile
 echo -e 'ifeq (${USE_COVERAGE}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile
 echo -e 'ifeq (${USE_COVERAGE}, on)\nLDFLAGS += --coverage\nendif' >> Makefile
 echo -e 'ifeq (${USE_COVERAGE}, 1)\nLDFLAGS += --coverage\nendif' >> Makefile
-echo -e 'ifeq (${USE_MEMCHECK}, on)\nCFLAGS += -DUSE_MEMCHECK -DSPFLOAT=double\nelse ifeq (${USE_MEMCHECK}, 1)\nCFLAGS +=-DUSE_MEMCHECK -DSPFLOAT=double\nelse =\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
+echo -e 'ifeq (${USE_MEMCHECK}, on)\nCFLAGS += -DUSE_MEMCHECK -DSPFLOAT=double\nelse ifeq (${USE_MEMCHECK}, 1)\nCFLAGS +=-DUSE_MEMCHECK -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
 echo -e 'ifeq (${USE_MEMCHECK}, on)\nCFLAGS += -g\nendif' >> Makefile
 echo -e 'ifeq (${USE_MEMCHECK}, 1)\nCFLAGS += -g\nendif' >> Makefile
 echo "# add definitions" >> Makefile
