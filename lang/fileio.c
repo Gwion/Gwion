@@ -72,7 +72,7 @@ INSTR(float_to_file)
   POP_REG(shred, SZ_INT)
   char c[256];
   M_Object o = *(M_Object*)shred->reg;
-  sprintf(c, "%f", *(m_float*)(shred->reg - SZ_INT));
+  sprintf(c, "%f", *(m_float*)(shred->reg - SZ_FLOAT));
   fwrite(c,  strlen(c), 1, IO_FILE(o));
 }
 
@@ -309,7 +309,7 @@ m_bool import_fileio(Env env)
   // import operators
   CHECK_BB(add_binary_op(env, op_chuck,     &t_int,    &t_fileio, &t_int,     int_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_int,    &t_int,     file_to_int, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_float,  &t_fileio, &t_int,     float_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,     &t_float,  &t_fileio, &t_float,     float_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_float,  &t_float,   file_to_float, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_string, &t_fileio,  &t_int,    string_to_file, 1))
   CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
