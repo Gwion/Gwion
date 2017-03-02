@@ -1,27 +1,43 @@
-//<<<"test">>>;
-//"test" @=> string @i;
-"test" => string s;
-string @t;
-<<<"size", s.size()>>>;
-<<<"upper", s.upper()>>>;
-<<<"lower", s.lower()>>>;
-<<<"ltrim", s.trim()>>>;
-<<<"rltrim", s.ltrim()>>>;
-<<<"tltrim", s.rtrim()>>>;
-<<<"charAt", s.charAt(1)>>>;
-<<<"substring", s.substring(2)>>>;
-<<<"substring", s.substring(2, 3)>>>;
-<<<"insert", s.insert(1, "S")>>>;
-<<<"replace", s.replace(3, 2, "test")>>>;
-<<<"find", s.find('e')>>>;
-<<<"find",  s.find(2, 't')>>>;
-<<<"rfind", s.rfind('t')>>>;
-<<<"rfind", s.rfind('t', 1)>>>;
-<<<"find", s.find("e")>>>;
-<<<"2".toInt()>>>;
+Object o;
+string s;
+s.size();
+s.upper();
+s.lower();
+s.find('o');
+s.find(1, 'i');
+s.find("su");
+s.find(1, "su");
+s.rfind('o');
+s.rfind(1, 'i');
+s.rfind("su");
+s.rfind(1, "su");
+s.erase(1, 2);
+//NULL @=> s;
 
-//<<<"find",  s.find(2, "t")>>>;
-//<<<"rfind", s.rfind("t")>>>;
-//<<<"rfind", s.rfind(2, "t")>>>;
-<<<"erase", s.erase(2, 3)>>>;
-//<<<"78.23".toFloat()>>>;
+<<<1 => s>>>;
+<<<1.0 => s>>>;
+<<< #(2,1) => s >>>;
+<<< %(2,1) => s >>>;
+<<< @(2,1,0) => s >>>;
+<<< @(2,1,0,-1) => s >>>;
+<<< NULL => s >>>;
+<<< o => s>>>;
+
+{ (1 + s)      @=> string @str; }
+{ (2.0 +s)      @=> string  @str; }
+{ (#(2,1) + s) @=> string @str; }
+{ (%(2,1) + s) @=> string @str; }
+{ (@(2,1, 0, -1) + s) @=> string @str; }
+{ (@(2,1, 0, -1) + s) @=> string @str; }
+{ ("test" + s) @=> string @str; }
+
+
+<<<11 +=> s>>>;
+<<<11.0 +=> s>>>;
+<<< #(21,11) +=> s >>>;
+<<< %(22,12) +=> s >>>;
+<<< @(22,11,11) +=> s >>>;
+<<< @(22,11,11,-11) +=> s >>>;
+<<< NULL +=> s >>>;
+<<< o +=> s>>>;
+<<< "test" +=> s>>>;
