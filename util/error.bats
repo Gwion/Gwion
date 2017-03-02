@@ -104,20 +104,20 @@ DIR=tests/error
 ##########
 @test "invalid plugin" {
   skip "skip invalid plugin for now."
-  touch $GWION_PLUG_DIR/invalid.so
+  touch $GWION_ADD_DIR/invalid.so
   run ./gwion -d dummy
   [ $status -ne 139 ]
   assert_success
   assert_output --partial "error in"
-  rm $GWION_PLUG_DIR/invalid.so
+  rm $GWION_ADD_DIR/invalid.so
 }
 
 @test "invalid plugin2" {
-  echo "static int i;" > $GWION_PLUG_DIR/invalid.c
-  cc -shared -fPIC $GWION_PLUG_DIR/invalid.c -o $GWION_PLUG_DIR/invalid.so
-  rm $GWION_PLUG_DIR/invalid.c
+  echo "static int i;" > $GWION_ADD_DIR/invalid.c
+  cc -shared -fPIC $GWION_ADD_DIR/invalid.c -o $GWION_ADD_DIR/invalid.so
+  rm $GWION_ADD_DIR/invalid.c
   gbt "NOFILE" "no import function"
-  rm $GWION_PLUG_DIR/invalid.so
+  rm $GWION_ADD_DIR/invalid.so
 }
 
 @test "compat sub"                           { gbt $DIR/no_compat_sub.gw   "must be of type 'int'"; }
