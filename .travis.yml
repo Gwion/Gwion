@@ -33,6 +33,7 @@ env:
     - GWION_TOK_DIR=tok
     - GWION_TAG_DIR=tag
     - GWION_ADD_DIR=add
+    - USE_MEMCHECK=1
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
     - USE_DOUBLE=0 SP_BRANCH=dev
