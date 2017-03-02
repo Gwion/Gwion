@@ -151,10 +151,10 @@ Env type_engine_init(VM* vm)
   //  void* handler;
 
   start_plug();
-  m_str dirname = GW_PLUG_DIR;
+  m_str dirname = GW_ADD_DIR;
   struct dirent **namelist;
   int n;
-  n = scandir(GW_PLUG_DIR, &namelist, so_filter, alphasort);
+  n = scandir(GW_ADD_DIR, &namelist, so_filter, alphasort);
   if (n > 0) {
     while (n--) {
       char c[256];
