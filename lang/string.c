@@ -47,9 +47,9 @@ static INSTR(Int_String_Assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '=>' string");
 #endif
-  POP_REG(shred, SZ_INT * 2);
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_int lhs = *(m_int*)shred->reg;
-  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_FLOAT);
   char str[1024];
   sprintf(str, "%li", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
