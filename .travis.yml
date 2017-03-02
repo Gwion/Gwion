@@ -35,7 +35,7 @@ env:
     - GWION_PLUG_DIR=plug
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
-    - USE_DOUBLE=0 SP_BRANCH=dev
+    - SP_BRANCH=dev
 
 matrix:
   fast_finish: true
