@@ -1047,16 +1047,17 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   /*  if( t->xid == t2->xid ||*/
   /*    ( t->xid == t_int.xid) && (t2->xid == t_int.xid)*/
   /*  )*/
-  return isa(t, t2) > 0 ? t2 : NULL;
+  if(isa(t, &t_object) < 0)
+	  return isa(t, t2) > 0 ? t2 : NULL;
   // check if cast valid
+  Type type = t;
+  while(type) {
+	if (t2 == type)
+		return t2;
+	type = type->parent;
+  }
   /*  if( !type_engine_check_cast_valid( env, t2, t ) )*/
-//  {
-  /*    err_msg(TYPE_, cast->linepos,*/
-  /*      "invalid cast to '%s' from '%s'...",*/
-  /*      S_name( cast->type->xid->xid ), t->name );*/
-  /*    return NULL;*/
-//  }
-  /*  return t2;*/
+  err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...", S_name( cast->type->xid->xid ), t->name );
   return NULL;
 }
 
