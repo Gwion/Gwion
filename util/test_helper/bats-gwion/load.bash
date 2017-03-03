@@ -21,7 +21,7 @@ gbt() {
   if [ "$BATS_TEST_DESCRIPTION" == "examples/doc.gw" ]
   then return 0
   fi
-  run valgrind --suppressions=util/gwion.supp ./gwion -d dummy "$1"
+  run valgrind --leak-check=yes --suppressions=util/gwion.supp ./gwion -d dummy "$1"
   [ $status -ne 139 ]
   assert_success
   refute_output --partial "Invalid write of size "
