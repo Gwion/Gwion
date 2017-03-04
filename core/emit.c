@@ -386,7 +386,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     else if (primary->d.var == insert_symbol("now"))
       instr = add_instr(emit, Reg_Push_Now);
     else if (primary->d.var == insert_symbol("false"))
-      instr = add_instr(emit, Reg_Push_Maybe);
+      instr = add_instr(emit, Reg_Push_Imm);
     else if (primary->d.var == insert_symbol("true")) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = 1;
