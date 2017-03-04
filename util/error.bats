@@ -12,7 +12,7 @@ DIR=tests/error
 @test "quit (short)"                       { ./gwion -l 1 & sleep 1; ./gwion -q; }
 @test "quit (long)"                        { ./gwion -l 1 & sleep 1; ./gwion --quit; }
 @test "loop off"                           { ./gwion -l 1 & sleep 1; ./gwion -l 0; }
-@test "add file"                           { ./gwion -l 1 & sleep 1; ./gwion + examples/doc.c; }
+@test "add file (+)"                           { ./gwion -l 1 & sleep 1; ./gwion + examples/doc.c; }
 @test "add file"                           { ./gwion -l 1 & sleep 1; ./gwion examples/doc.c; }
 @test "rem file"                           { ./gwion -l 1 examples/sine.gw& sleep 1; ./gwion - 1; }
 @test "arguments"                          { ./gwion examples/check.gw:12; }
