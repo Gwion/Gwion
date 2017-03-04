@@ -67,7 +67,7 @@ void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
   while(vm->is_running) {
-    const char* buf;
+    char* buf;
     int index;
 
     buf = Recv(0);
@@ -80,15 +80,18 @@ void* server_thread(void* data)
     } else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
       shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf) - 1), 1);
+      buf -= 2;
     } else if( strncmp(buf, "+", 1) == 0) {
       buf += 2;
       compile(data, (m_str)buf);
+      buf -= 2;
     } else if( strncmp(buf, "loop", 4) == 0) {
-      strsep((char**)&buf, " ");
-      index = atoi(buf);
+///      strsep((char**)&buf, " ");
+      index = atoi(buf + 5);
       shreduler_set_loop(vm->shreduler, index);
     } else
       compile(data, (m_str)buf);
+    free(buf);
   }
   return NULL;
 }
