@@ -412,7 +412,7 @@ INSTR(Vec3_String_Plus)
 INSTR(Vec4_String_Plus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec3 '+=>' string");
+  debug_msg("instr", "Vec4 '+=>' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
   VEC4_T lhs = *(VEC4_T*)shred->reg;
@@ -441,7 +441,7 @@ INSTR(Vec4_String_Plus)
 INSTR(Object_String_Plus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "string '+=>' string");
+  debug_msg("instr", "Object '+=>' string");
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
