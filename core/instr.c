@@ -1347,6 +1347,10 @@ INSTR(Instr_Array_Access_Multi)
       *(m_float**)shred->reg = f_vector_addr(obj->d.array, i);
     if(instr->m_val2 == Kindof_Complex)
       *(m_complex**)shred->reg = c_vector_addr(obj->d.array, i);
+    else if(instr->m_val2 == Kindof_Vec3)
+      *(VEC3_T**)shred->reg = v3_vector_addr(obj->d.array, i);
+    else if(instr->m_val2 == Kindof_Vec4)
+      *(VEC4_T**)shred->reg = v4_vector_addr(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   }
   // take care of kind (instr->m_val2)

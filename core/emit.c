@@ -349,7 +349,8 @@ static m_bool emit_Array(Emitter emit, Array* array)
   } else {
     instr = add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
-    instr->m_val2 = kindof(array->base->type);
+//    instr->m_val2 = kindof(array->base->type); // was 04/03/17
+    instr->m_val2 = kindof(array->base->type->array_type);
     instr->ptr = (m_uint*)(m_uint)(is_var || type->array_depth);
   }
   return 1;
