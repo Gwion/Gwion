@@ -1,0 +1,8 @@
+SinOsc s => Gain g => HalfRect h => blackhole;
+17 => s.init;
+(17, .17) => s.init;
+Impulse i => FullRect f => blackhole;
+Step step => blackhole;
+second => now;
+<<<"end">>>;
+step =< blackhole;
