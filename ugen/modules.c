@@ -22,17 +22,12 @@ typedef struct {
 TICK(sinosc_tick)
 {
   SP_osc* ug = (SP_osc*)u->ug;
-  if(!ug->is_init) {
-    u->out = 0;
-    return 1;
-  }
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
   return 1;
 }
 
 static void sinosc_ctor(M_Object o, VM_Shred shred)
 {
-//  SP_osc* ug = (SP_osc*)o->ugen->ug;
   SP_osc* ug = malloc(sizeof(SP_osc));
   sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
@@ -65,7 +60,7 @@ static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred)
   sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, size);
   sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, 0.);
+  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
 }
 
 static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred)
