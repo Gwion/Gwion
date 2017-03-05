@@ -246,6 +246,8 @@ after_success() {
 	for a in tests/bug/*; do ./gwion $a; done;
 	bash util/coverage.sh run
 	#./gwion examples/doc.gw
+	./gwion examples/doc.gw
+
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
     EXCLUDE_TARGET+=" $BISON_VERSION"
     EXCLUDE_TARGET+=" Soundpipe"
