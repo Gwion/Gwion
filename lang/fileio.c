@@ -123,7 +123,10 @@ INSTR(file_to_int)
       return;
     }
     *(m_uint*)shred->reg = (**(m_uint**)(shred->reg) = ret);
-  } else exit(89);
+  } else {
+	Except(shred);
+	err_msg(INSTR_, 0, "trying to read from empty file.");
+  }
 }
 
 INSTR(file_to_float)
