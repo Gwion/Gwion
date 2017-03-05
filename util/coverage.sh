@@ -257,7 +257,7 @@ after_success() {
     EXCLUDE_TARGET+=lua_install
 
 	local EXCLUDE
-    for exclude in "$EXCLUDE_TARGET"
+    for exclude in $EXCLUDE_TARGET
 	do
 		EXCLUDE+=" --exclude $exclude"
 	done
@@ -265,4 +265,4 @@ after_success() {
 }
 
 [ -z "$1" ] && usage
-"$1" "$2"
+"$1" "$2" "$3"
