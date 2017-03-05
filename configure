@@ -603,7 +603,7 @@ if [ "$_arg_double" = "on" ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double";fi
 if [ "$_arg_double" = "1"  ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double";fi
 ([ "$_arg_double" = "on" ] || [ "$_arg_double" = "1"  ]) || _CFLAGS+=" -DSPFLOAT=float"
 echo $_arg_cc -Iinclude $_arg_soundpipe_inc -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header
-$_arg_cc -Iinclude $_arg_soundpipe_inc -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)
+$_arg_cc -ftest-coverage -fprofile-arcs --coverage -Iinclude $_arg_soundpipe_inc -DDEBUG $_arg_cflags $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)
 echo generate header
 ./util/generate_header || exit 1
 echo generate parser

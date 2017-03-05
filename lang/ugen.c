@@ -9,7 +9,7 @@
 
 /*#include <soundpipe.h>*/
 
-struct Type_ t_ugen = { "UGen", sizeof(m_uint), &t_object, te_ugen };
+struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 
 m_bool base_tick(UGen u)
 {
