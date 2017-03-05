@@ -254,7 +254,7 @@ after_success() {
     EXCLUDE_TARGET+=" bison bats lua_install "
     EXCLUDE_TARGET+=" examples coverage"
     EXCLUDE_TARGET+=" drvr"
-    EXCLUDE_TARGET+=lua_install
+    EXCLUDE_TARGET+=" lua_install"
 
 	local EXCLUDE
     for exclude in $EXCLUDE_TARGET
