@@ -3,6 +3,7 @@
 <<< Math.fabs(-1.0)          >>>;
 <<< Math.rand()              >>>;
 <<< Math.rand2(-1, 1)        >>>;
+<<< Math.rand2(1, -1)        >>>;
 <<< Math.randf()             >>>;
 <<< Math.rand2f(-1, 1)       >>>;
 <<< Math.rand2f(-1.0, 1)     >>>;
