@@ -142,7 +142,7 @@ m_bool import(Env env)
   return 1;
 }
 EOF
-	gcc -shared -Iinclude -fPIC $GWION_ADD_DIR/svar.c -o $GWION_ADD_DIR/svar.so
+	gcc -ftest-coverage -fprofile-arcs --coverage -shared -Iinclude -fPIC $GWION_ADD_DIR/svar.c -o $GWION_ADD_DIR/svar.so
 	rm $GWION_ADD_DIR/svar.c
 	gbt "NOFILE"
   rm $GWION_ADD_DIR/svar.so
