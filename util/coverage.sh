@@ -248,16 +248,16 @@ after_success() {
 	#./gwion examples/doc.gw
 	./gwion examples/doc.gw
 
-    EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
-    EXCLUDE_TARGET+=" $BISON_VERSION"
-    EXCLUDE_TARGET+=" Soundpipe"
-    EXCLUDE_TARGET+=" bison bats lua_install "
-    EXCLUDE_TARGET+=" examples coverage"
-    EXCLUDE_TARGET+=" drvr"
+    EXCLUDE_TARGET=(" eval/parser.c eval/lexer.c")
+    EXCLUDE_TARGET+=(" $BISON_VERSION")
+    EXCLUDE_TARGET+=(" Soundpipe")
+    EXCLUDE_TARGET+=(" bison bats lua_install ")
+    EXCLUDE_TARGET+=(" examples coverage")
+    EXCLUDE_TARGET+=(" drvr")
     EXCLUDE_TARGET+=lua_install
 
 	local EXCLUDE
-    for exclude in $EXCLUDE_TARGET
+    for exclude in "$EXCLUDE_TARGET"
 	do
 		EXCLUDE+=" --exclude $exclude"
 	done
