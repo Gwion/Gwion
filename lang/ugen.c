@@ -211,7 +211,7 @@ static INSTR(ugen_connect)
       M_Object obj = rhs->ugen->channel[i];
       if(lhs->ugen->n_out > 1) {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
-//        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
       } else {
         vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
         vector_append(lhs->ugen->to, (vtype)obj->ugen);
@@ -235,8 +235,9 @@ static INSTR(ugen_disconnect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!rhs->ugen->n_in) {
-    shred->is_done = 1;
-    shred->is_running = 0;
+	// rhs has no inputs, do nothing
+    release(lhs, shred);
+    release(rhs, shred);
     return;
   }
   if(rhs->ugen->channel) {
@@ -244,11 +245,11 @@ static INSTR(ugen_disconnect)
       M_Object obj = rhs->ugen->channel[i];
       UGen ugen = obj->ugen;
       vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
-//      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
+      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
     }
   } else {
     vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
-//    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
+    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -324,7 +325,10 @@ static MFUN(ugen_channel)
     RETURN->d.v_object = o;
   else if(i < 0 || i >= o->ugen->n_out)
     RETURN->d.v_object = NULL;
-  else RETURN->d.v_object = o->ugen->channel[i];
+  else {
+	RETURN->d.v_object = o->ugen->channel[i];
+	o->ugen->channel[i]->ref++;
+  }
 }
 
 static MFUN(ugen_get_op)
@@ -344,11 +348,7 @@ static MFUN(ugen_set_op)
 
 static MFUN(ugen_get_last)
 {
-  if(!o)
-    RETURN->d.v_float = 0;
-  /*  if(!o->ugen)
-      exit(2); */
-  else RETURN->d.v_float = o->ugen->last;
+  RETURN->d.v_float = o->ugen->last;
 }
 
 m_bool import_ugen(Env env)

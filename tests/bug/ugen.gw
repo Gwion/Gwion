@@ -1,0 +1,21 @@
+UGen @u;
+//u.last(); // should fail => fails.
+SinOsc s => Gain g => dac;
+for(-1 => int i;i < 6; i++)
+	i => g.op;
+samp => now;
+s.last();
+//s.chan(2);
+//dac.chan(1);
+samp => now;
+
+
+// there a bug somewhere.
+// probably deref 'dac' to many times ...
+//dac => blackhole;
+//dac =< blackhole;
+//dac =< s;
+//dac =< s;
+s =< dac;
+s =< dac;
+//dac =< s;
