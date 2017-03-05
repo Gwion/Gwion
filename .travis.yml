@@ -65,8 +65,5 @@ branches:
   - only:
     - dev
 
-after_script:
-  - cat include/generated.h
-
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
