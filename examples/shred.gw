@@ -2,6 +2,7 @@
 <<< "running", me.running()   >>>;
 <<< "done",    me.done()      >>>;
 <<< "from_Id", Shred.fromId(1) >>>;
+<<< "me", me                   >>>;
 <<< "args",    me.args()      >>>;
 for (int i; i < me.args(); i++)
   <<< "arg", i, me.arg(i)>>>;
