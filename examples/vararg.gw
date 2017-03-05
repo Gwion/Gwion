@@ -2,6 +2,7 @@ variadic void test()
 {
   int i;
   vararg.start;
+
 	if(i == 0)
 		<<<vararg.i>>>;
 	else if(i == 1)
