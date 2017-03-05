@@ -1,1 +1,2 @@
-class C extends Undefined {}
+// [contains] undefined parent class
+ class C extends Undefined {}

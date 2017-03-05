@@ -1,4 +1,5 @@
-enum
+// [contains] already declared
+ enum
 {
 	first
 } int;

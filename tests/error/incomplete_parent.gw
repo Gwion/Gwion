@@ -1,2 +1,3 @@
-class C extends UnknownParentClass {}
+// [contains] cannot extend incomplete type
+ class C extends UnknownParentClass {}
 class UnknownParentClass {}

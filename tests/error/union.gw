@@ -1,4 +1,5 @@
-union
+// [contains] 
+ union
 {
   one; two;
 };

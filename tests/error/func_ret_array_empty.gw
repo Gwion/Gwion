@@ -1,1 +1,2 @@
-function void my_func(int i[1]){}
+// [contains] 
+ function void my_func(int i[1]){}

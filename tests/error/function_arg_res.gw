@@ -1,1 +1,2 @@
-#function void test(int now){}
+// [contains] in function
+ #function void test(int now){}

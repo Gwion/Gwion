@@ -1,4 +1,5 @@
-class C
+// [contains] 
+ class C
 {
 	int i;
 	function static void test() { <<<i>>>; }

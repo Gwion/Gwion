@@ -1,1 +1,2 @@
-int @i;
+// [contains] cannot declare references
+ int @i;

@@ -1,4 +1,5 @@
-class C
+// [contains] can't assign function pointer in class for the moment. sorry.
+ class C
 {
 	typedef void (test0)();
 	function void test1(){};

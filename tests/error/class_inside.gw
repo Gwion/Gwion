@@ -1,1 +1,2 @@
-class c { c var; }
+// [contains] declared inside itself
+ class c { c var; }

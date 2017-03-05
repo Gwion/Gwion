@@ -1,1 +1,2 @@
-class now{}
+// [contains] is reserved
+ class now{}

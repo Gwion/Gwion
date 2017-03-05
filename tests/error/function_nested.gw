@@ -1,4 +1,5 @@
-function void test()
+// [contains] 
+ function void test()
 {
   function void nested(){}
 }

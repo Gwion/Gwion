@@ -1,1 +1,2 @@
-operator void chuck(int i, int j, int k){ }
+// [contains] operators can only have one or two arguments
+ operator void chuck(int i, int j, int k){ }

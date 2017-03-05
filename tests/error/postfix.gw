@@ -1,2 +1,2 @@
-// cant't iterate non-mutable data
+// [contains] cannot be used on non-mutable data-type
 1++;

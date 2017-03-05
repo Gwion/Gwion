@@ -1,1 +1,2 @@
-function int@ test(){}
+// [contains] cannot declare references (@) of primitive type
+ function int@ test(){}

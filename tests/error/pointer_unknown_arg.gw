@@ -1,1 +1,2 @@
-typedef void(my_func)(unknown_type type);
+// [contains] unknown type in argument
+ typedef void(my_func)(unknown_type type);

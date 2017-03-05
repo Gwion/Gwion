@@ -1,1 +1,2 @@
-class C extends int {}
+// [contains] cannot extend primitive
+ class C extends int {}

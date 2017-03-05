@@ -1,4 +1,5 @@
-class C { typedef void (test)(); }
+// [contains] can't assign non member function to member function pointer
+ class C { typedef void (test)(); }
 function void test(){}
 C c;
 test @=> c.test;

@@ -1,4 +1,5 @@
-class C
+// [contains] keyword 'this' cannot be used inside static functions...
+ class C
 {
 	function static void test() { this; }
 }

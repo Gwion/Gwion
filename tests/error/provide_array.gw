@@ -1,1 +1,2 @@
-[ ];
+// [contains] must provide values/expressions for array
+ [ ];

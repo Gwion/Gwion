@@ -1,1 +1,2 @@
-Math.rand<{int}>();
+// [contains] 
+ Math.rand<{int}>();

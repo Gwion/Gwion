@@ -1,1 +1,2 @@
-NULL();
+// [contains] function call using a non-function value
+ NULL();
