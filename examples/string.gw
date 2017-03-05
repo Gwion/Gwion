@@ -23,7 +23,7 @@ s.erase(1, 2);
 <<< NULL => s >>>;
 <<< o => s>>>;
 
-me.exit();
+//me.exit();
 
 { (1 + s)      @=> string @str; }
 { (2.0 +s)      @=> string  @str; }
