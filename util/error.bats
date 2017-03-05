@@ -15,7 +15,7 @@ DIR=tests/error
 @test "add file (+)"                           { ./gwion -l 1 & sleep 1; ./gwion + examples/doc.c; }
 @test "add file"                           { ./gwion -l 1 & sleep 1; ./gwion examples/doc.c; }
 @test "rem file"                           { ./gwion -l 1 examples/sine.gw& sleep 1; ./gwion - 1; }
-@test "arguments"                          { ./gwion examples/check.gw:12; }
+@test "arguments"                          { ./gwion examples/shred.gw:12; }
 @test "silent driver"                      { ./gwion -d silent; }
 @test "help (short)"                       { gbt "-?"; }
 @test "help (long)"                        { gbt "--help"; }
