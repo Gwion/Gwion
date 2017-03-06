@@ -64,3 +64,7 @@ s.substring(2);
 //<<< NULL +=> s >>>;
 //<<< o +=> s>>>;
 //<<< "test" +=> s>>>;
+
+Machine.compile("string @s; \"test\" => s;");
+Machine.compile("string s; s.charAt(-1);");
+Machine.compile("string s; s.charAt(-1, 'n');");
