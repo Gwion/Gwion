@@ -41,7 +41,10 @@ s.substring(2);
 <<<"test" => s>>>; // new
 <<<s>>>;
 //<<< NULL => s >>>;
-//<<< o => s>>>;
+
+
+// look at me!!!
+<<< o => s>>>;
 
 //me.exit();
 
