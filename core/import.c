@@ -122,7 +122,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   type->owner = where;
   /*    SAFE_ADD_REF(type->owner);*/
   add_ref(type->owner->obj);
-  type->size = SZ_INT;
+//  type->size = SZ_INT;
 //    type->size = 1;
   // set the object size
   type->obj_size = 0; // TODO

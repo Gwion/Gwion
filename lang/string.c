@@ -588,10 +588,13 @@ MFUN(string_substring)
   m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
-  char c[len - index];
+  char c[len - index + 1];
+  memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  M_Object obj = new_String(c);
+  M_Object obj = new_M_Object();
+  initialize_object(obj, &t_string);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
