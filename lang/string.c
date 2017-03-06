@@ -514,11 +514,11 @@ MFUN(string_ltrim)
   m_uint i = 0;
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  m_str str = STRING(obj) = strdup(STRING(o));
-  while(*str || *str == ' ') {
+  char c[strlen(STRING(o)) + 1];
+  strcpy(c, STRING(o));
+  while(c[i] || c[i] == ' ')
     i++;
-    str++;
-  }
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -526,7 +526,7 @@ MFUN(string_rtrim)
 {
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  STRING(obj) = strdup(STRING(o));
+  STRING(obj) = S_name(insert_symbol(STRING(o)));
   RETURN->d.v_object = obj;
 }
 
@@ -554,7 +554,7 @@ MFUN(string_trim)
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -582,7 +582,7 @@ MFUN(string_setCharAt)
     RETURN->d.v_uint = -1;
   else {
     str[i] = c;
-    STRING(o) = strdup(str);
+    STRING(o) = S_name(insert_symbol(str));
     RETURN->d.v_uint = c;
   }
 }
@@ -599,7 +599,7 @@ MFUN(string_substring)
   char c[len - index];
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
@@ -618,7 +618,7 @@ MFUN(string_substringN)
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  STRING(obj) = strdup(c);
+  STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
 }
 
