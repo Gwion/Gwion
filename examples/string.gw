@@ -23,8 +23,9 @@ s.erase(1, 2);
 <<<" su ".charAt(1, 'n')>>>;
 
 
-//<<<" su ".substring(2)>>>;
-//<<<" su ".substring(2, 1)>>>;
+s.substring(2);
+" su ".substring(2);
+<<<" su ".substring(2, 1)>>>;
 
 
 //<<<" su ".charAt(1, 'n')>>>;
