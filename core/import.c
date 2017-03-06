@@ -4,15 +4,19 @@
 #include "func.h"
 #include "import.h"
 
+#define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
+#define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
+
 void free_Expression(Expression exp);
+
 m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl);
+m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl);
+Type   check_Decl_Expression(Env env, Decl_Expression* decl);
+
 m_bool scan1_Func_Def(Env env, Func_Def f);
 m_bool scan2_Func_Def(Env env, Func_Def f);
 m_bool check_Func_Def( Env env, Func_Def f );
 
-m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl);
-Type check_Decl_Expression(Env env, Decl_Expression* decl);
-/*m_bool compile(VM* vm, Emitter emit, Env env, const m_str filename);*/
 
 // should be in type_utils
 ID_List str2list(m_str path, m_uint* array_depth )
@@ -27,28 +31,28 @@ ID_List str2list(m_str path, m_uint* array_depth )
   while(path[len] != '\0')
     len++;
 
-  while( len > 2 && path[len - 1] == ']' && path[len - 2] == '[' ) {
+  while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
     depth++;
     len -= 2;
   }
 
-  for( i = len - 1; i >= 0; i-- ) {
+  for(i = len - 1; i >= 0; i--) {
     char c = path[i];
-    if( c != '.' ) {
-      if( ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' )
-          || ( c == '_' ) || ( c >= '0' && c <= '9' ) )
+    if(c != '.') {
+      if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+          || (c == '_') || (c >= '0' && c <= '9'))
         curr[i] = c;
       else {
         err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path);
-        free_ID_List( list );
+        free_ID_List(list);
         return NULL;
       }
     }
-    if( c == '.' || i == 0 ) {
-      if( (i != 0 && last != '.' && last != '\0') ||
-          (i == 0 && c != '.') ) {
+    if(c == '.' || i == 0) {
+      if((i != 0 && last != '.' && last != '\0') ||
+          (i == 0 && c != '.')) {
         m_int size = strlen(curr);
-        for( j = 0; j < size / 2; j++ ) {
+        for(j = 0; j < size / 2; j++) {
           char s = curr[j];
           curr[j] = curr[size - j - 1];
           curr[size - j - 1] = s;
@@ -71,16 +75,33 @@ ID_List str2list(m_str path, m_uint* array_depth )
   return list;
 }
 
+static m_bool mk_xtor(Type type, uint d, e_native_func e) {
+	VM_Code* code;
+	m_str name, filename;
+	if(e == NATIVE_CTOR) {
+      type->has_constructor = 1;
+	  name = "ctor";
+	  filename = "[internal ctor definition]";
+	  code = &type->info->pre_ctor;
+	} else {
+      type->has_destructor = 1;
+	  name = type->name;
+	  filename = "[internal dtor definition]";
+	  code = &type->info->dtor;
+    }
+    *code = new_VM_Code(NULL, SZ_INT, 1, name, filename);
+    (*code)->native_func = (m_uint)d;
+    (*code)->native_func_type = e;
+	return 1;
+}
+
 Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_dtor dtor)
 {
-//    Type  type_type = NULL;
-
   if(type->info) {
     err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
     return NULL;
   }
-
-  type->info = new_NameSpace(); // done filename
+  type->info = new_NameSpace();
   type->info->filename = "global_nspc";
   // add reference
   /*    SAFE_ADD_REF(type->info);*/
@@ -88,24 +109,10 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   type->info->name = type->name;
   type->info->parent = where;
   add_ref(type->info->parent->obj);
-  if(pre_ctor) {
-    type->has_constructor = 1;
-//      type->info->pre_ctor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal ctor definition]");
-    type->info->pre_ctor = new_VM_Code(NULL, SZ_INT, 1, "ctor", "[internal ctor definition]");
-    type->info->pre_ctor->native_func = (m_uint)pre_ctor;
-    type->info->pre_ctor->native_func_type = NATIVE_CTOR;
-    type->info->pre_ctor->need_this = 1;
-    type->info->pre_ctor->stack_depth = SZ_INT;
-  }
-  if(dtor) {
-    type->has_destructor = 1;
-//      type->info->dtor = new_VM_Code(new_Vector(), SZ_INT, 1, type->name , "[internal dtor definition]");
-    type->info->dtor = new_VM_Code(NULL, SZ_INT, 1, type->name, "[internal dtor definition]");
-    type->info->dtor->native_func = (m_uint)dtor;
-    type->info->dtor->native_func_type = NATIVE_DTOR;
-    type->info->dtor->need_this = 1;
-    type->info->dtor->stack_depth = SZ_INT;
-  }
+  if(pre_ctor)
+	type->has_constructor = mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
+  if(dtor)
+	type->has_destructor  = mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->obj_size;
     free_Vector(type->info->obj_v_table);
@@ -149,7 +156,7 @@ m_bool import_class_end(Env env)
 }
 
 m_int import_mvar(Env env, const m_str type,
-                  const m_str name, m_bool is_const, m_bool is_ref, const m_str doc )
+                  const m_str name, const m_bool is_const, const m_bool is_ref, const m_str doc )
 {
   m_uint array_depth;
   ID_List path;
@@ -157,10 +164,7 @@ m_int import_mvar(Env env, const m_str type,
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
   Expression exp_decl;
-  if(!env->class_def) {
-    err_msg(TYPE_, 0, "import error: import_mvar '%s' invoked between begin/end", name );
-    return -1;
-  }
+  CHECK_EB(env->class_def)
   if(!(path = str2list(type, &array_depth))) {
     err_msg(TYPE_, 0, "... during mvar import '%s.%s'...", env->class_def->name, name );
     return -1;
@@ -206,10 +210,7 @@ m_int import_svar(Env env, const m_str type,
                   const m_str name, m_bool is_const, m_bool is_ref, m_uint* addr, const m_str doc )
 {
   m_uint depth;
-  if(!env->class_def) {
-    err_msg(TYPE_, 0, "import error: import_svar '%s' invoked between begin/end", name);
-    return -1;
-  }
+  CHECK_EB(env->class_def)
   ID_List path = str2list(type, &depth);
   if(!path) {
     err_msg(TYPE_,  0, "... during svar import '%s.%s'...",
@@ -310,21 +311,20 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   Arg_List arg_list = NULL;
   m_uint i, array_depth = 0;
 
-  func_decl = ae_key_func;
-  static_decl = is_static ? ae_key_static : ae_key_instance;
   type_path = str2list(dl_fun->type, &array_depth);
-  type_decl = new_Type_Decl(type_path, 0, 0);
-
   if(!type_path) {
     // error
     err_msg(TYPE_, 0, "...during function import '%s' (type)...", dl_fun->name);
     goto error;
   }
 
-  // array types
-  // this allows us to define built-in functions that return array types
-  // however doing this without garbage collection is probably a bad idea
-  // -spencer
+  type_decl = new_Type_Decl(type_path, 0, 0);
+  if(!type_decl) {
+    // error
+    err_msg(TYPE_, 0, "...during function import '%s' (type)...", dl_fun->name);
+    goto error;
+  }
+
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++ )
@@ -334,35 +334,12 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
 
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
-  /*
-    if( dl_fun->args.size() > 0 && !arg_list )
-    {
-        // error
-        EM_error2( 0, "...during function import '%s' (arg_list)...",
-            dl_fun->name);
-        // delete type_decl
-        // delete_type_decl( type_decl );
-        type_decl = NULL;
-        goto error;
-    }
-  */
 
-  func_def = new_Func_Def(func_decl, static_decl, type_decl, (char *)name,
-                          arg_list, NULL, 0);
+  func_def = new_Func_Def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
-
-//  for(i = 0; i < vector_size(dl_fun->args); i++) {
-//    DL_Value* v = (DL_Value*)vector_at(dl_fun->args, i);
-//	free_DL_Value(v);
-//	free(v);
-//  }
-//  free_Vector(dl_fun->args);
-//  free(dl_fun);
   free_DL_Func(dl_fun);
-
   return func_def;
-
 error:
   // clean up
   // if( !func_def ) delete_type_decl( type_decl );
@@ -370,52 +347,18 @@ error:
   return NULL;
 }
 
-Func import_mfun(Env env, DL_Func * mfun)
-{
-  Func_Def func_def = NULL;
-  if(!mfun)
-    return NULL;
-  if(!env->class_def) {
-    err_msg(TYPE_, 0,
-            "import error: import_mfun '%s' invoked between begin/end", mfun->name);
-    return NULL;
-  }
-  func_def = make_dll_as_fun(mfun, 0);
-  if(!func_def)
-    return NULL;
-  if(scan1_Func_Def(env, func_def) < 0)
-    goto error;
-  if(scan2_Func_Def(env, func_def) < 0)
-    goto error;
-  if(check_Func_Def(env, func_def) < 0)
-    goto error;
-  return func_def->func;
-error:
-  if(func_def->func)
-    rem_ref(func_def->func->obj, func_def->func);
-  free_Func_Def(func_def);
-  return NULL;
-}
+#define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
 
-Func import_sfun(Env env, DL_Func * mfun)
-{
+static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def = NULL;
-  if(!mfun)
-    return NULL;
-  if(!env->class_def) {
-    err_msg(TYPE_, 0,
-            "import error: import_sfun '%s' invoked between begin/end", mfun->name);
-    return NULL;
-  }
-  func_def = make_dll_as_fun(mfun, 1);
-  if(!func_def)
-    return NULL;
-  if(scan1_Func_Def(env, func_def) < 0)
-    return NULL;
-  if(scan2_Func_Def(env, func_def) < 0)
-    return NULL;
-  if(check_Func_Def(env, func_def) < 0)
-    return NULL;
-
+  CHECK_OO(mfun) // probably deserve an err msg
+  CHECK_EO(env->class_def)
+  CHECK_OO((func_def = make_dll_as_fun(mfun, is_static)))
+  CHECK_FN(scan1_Func_Def(env, func_def))
+  CHECK_FN(scan2_Func_Def(env, func_def))
+  CHECK_FN(check_Func_Def(env, func_def))
   return func_def->func;
 }
+
+Func import_mfun(Env env, DL_Func * fun) { return import_fun(env, fun, 0); }
+Func import_sfun(Env env, DL_Func * fun) { return import_fun(env, fun, 1); }
