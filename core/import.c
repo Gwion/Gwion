@@ -75,7 +75,7 @@ ID_List str2list(m_str path, m_uint* array_depth )
   return list;
 }
 
-static m_bool mk_xtor(Type type, uint d, e_native_func e) {
+static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
 	VM_Code* code;
 	m_str name, filename;
 	if(e == NATIVE_CTOR) {
