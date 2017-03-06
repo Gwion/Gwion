@@ -26,8 +26,9 @@ s.erase(1, 2);
 s.substring(2);
 " su ".substring(2);
 <<<" su ".substring(2, 1)>>>;
-
-
+<<<"su".insert(1, "test")>>>;
+<<<"su".replace(1, "t")>>>;
+<<<"su".replace(1, 2, "t")>>>;
 //<<<" su ".charAt(1, 'n')>>>;
 //NULL @=> s;
 <<<1 => s>>>;

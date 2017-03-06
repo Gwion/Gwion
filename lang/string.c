@@ -619,10 +619,12 @@ MFUN(string_substringN)
 
 MFUN(string_insert)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
-  m_str insert = strdup(STRING(arg));
+  char insert[strlen(STRING(arg) + 1)];
+  strcpy(insert, STRING(arg));
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   while(str[len] != '\0')
@@ -637,8 +639,7 @@ MFUN(string_insert)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   STRING(obj) = S_name(insert_symbol(c));
-  free(str);
-  free(insert);
+  release(arg, shred);
   RETURN->d.v_object = obj;
 }
 
@@ -648,7 +649,8 @@ MFUN(string_replace)
   strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
-  m_str insert = strdup(STRING(arg));
+  char insert[strlen(STRING(arg)) + 1];
+  strcpy(insert, STRING(arg));
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
   while(str[len] != '\0')
@@ -660,9 +662,9 @@ MFUN(string_replace)
   for(i = 0; i < len_insert; i++)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  free(insert);
   STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
+  release(arg, shred);
 }
 
 MFUN(string_replaceN)
@@ -689,6 +691,7 @@ MFUN(string_replaceN)
   c[len] = '\0';
   STRING(obj) = S_name(insert_symbol(c));
   RETURN->d.v_object = obj;
+  release(arg, shred);
 }
 
 MFUN(string_find)
@@ -724,7 +727,8 @@ MFUN(string_findStart)
 
 MFUN(string_findStr)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   m_int ret = -1;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str arg = STRING(obj);
@@ -732,22 +736,20 @@ MFUN(string_findStr)
   m_int i = 0;
   m_int arg_len = strlen(arg);
   while(i < len) {
-    if(!strncmp(str, arg, arg_len)) {
+    if(!strncmp(str +i, arg, arg_len)) {
       ret = i;
       break;
     }
     i++;
-    str++;
   }
-  str -= i;
-  free(str);
   release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
 MFUN(string_findStrStart)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
@@ -756,15 +758,12 @@ MFUN(string_findStrStart)
   m_int i = start;
   m_int arg_len = strlen(arg);
   while(i < len) {
-    if(!strncmp(str, arg, arg_len)) {
+    if(!strncmp(str + i, arg, arg_len)) {
       ret = i;
       break;
     }
     i++;
-    str++;
   }
-  str -= (i - 1);
-  free(str);
   release(obj, shred);
   RETURN->d.v_uint = ret;
 }
@@ -786,7 +785,8 @@ MFUN(string_rfind)
 
 MFUN(string_rfindStart)
 {
-  m_str str = STRING(o);
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   char pos = *(m_int*)(shred->mem + SZ_INT);
   char arg = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int i = pos, ret = -1;
@@ -802,52 +802,44 @@ MFUN(string_rfindStart)
 
 MFUN(string_rfindStr)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   m_int ret = -1;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str arg = STRING(o);
   m_int len  = strlen(str);
-  m_int i = len;
+  m_int i = len - 1;
   m_int arg_len = strlen(arg);
-  str += len - 1;
   while(i) {
-    if(!strncmp(str, arg, arg_len)) {
+    if(!strncmp(str + i, arg, arg_len)) {
       ret = i;
       break;
     }
     i--;
-    str--;
   }
-  str -= (i - 1);
-  free(str);
   release(obj, shred);
   RETURN->d.v_uint = ret;
 }
 
 MFUN(string_rfindStrStart)
 {
-  m_str str = strdup(STRING(o));
+  char str[strlen(STRING(o) + 1)];
+  strcpy(str, STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str arg = STRING(obj);
 
-  m_str buf = str;
   m_int len  = strlen(str);
   m_int i = start;
   m_int arg_len = strlen(arg);
-  str += len - 1;
-//  while(i < len - 1) {
   while(i > -1) {
-    if(!strncmp(str, arg, arg_len)) {
+    if(!strncmp(str + i, arg, arg_len)) {
       ret = i;
       break;
     }
     i--;
-    str--;
   }
-//  str -= i ? i : 0;
-  free(buf);
   release(obj, shred);
   RETURN->d.v_uint = ret;
 }
