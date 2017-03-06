@@ -142,7 +142,8 @@ INSTR(Object_String_Assign)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  char str[1024];
+  char str[10];
+  memset(str, 0, 10);
   sprintf(str, "%p", (void*)lhs);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -830,7 +831,6 @@ MFUN(string_rfindStrStart)
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
   m_str arg = STRING(obj);
 
-  m_int len  = strlen(str);
   m_int i = start;
   m_int arg_len = strlen(arg);
   while(i > -1) {

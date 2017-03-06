@@ -44,7 +44,9 @@ s.substring(2);
 
 
 // look at me!!!
-<<< o => s>>>;
+<<< o => s>>>; // hang . grrr...
+//<<<"test" + "another test" >>>;
+
 
 //me.exit();
 
@@ -54,7 +56,6 @@ s.substring(2);
 { (%(2,1) + s) @=> string @str; }
 { (@(2,1, 0) + s) @=> string @str; }
 { (@(2,1, 0, -1) + s) @=> string @str; }
-//<<<"test" + "another test" >>>;
 //{ ("test" + s) @=> string @str; }
 
 
