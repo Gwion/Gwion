@@ -12,15 +12,21 @@ s.rfind(1, 'i');
 s.rfind("su");
 s.rfind(1, "su");
 s.erase(1, 2);
+
+
 <<<" su".ltrim>>>;
 <<<" su".ltrim()>>>;
 <<<" su ".rtrim()>>>;
 <<<" su ".trim()>>>;
+
 <<<" su ".charAt(1)>>>;
 <<<" su ".charAt(1, 'n')>>>;
-<<<"lol">>>;
-<<<" su ".substring(2)>>>;
-<<<" su ".substring(2, 1)>>>;
+
+
+//<<<" su ".substring(2)>>>;
+//<<<" su ".substring(2, 1)>>>;
+
+
 //<<<" su ".charAt(1, 'n')>>>;
 //NULL @=> s;
 <<<1 => s>>>;
