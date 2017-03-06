@@ -122,7 +122,7 @@ DIR=tests/error
 }
 
 @test "sfun var" {
-	cat << EOF >  $GWION_ADD_DIR/svar.c
+	cat << EOF >  $TRAVIS_BUILD_DIR/svar.c
 #include "defs.h"
 #include "type.h"
 #include "dl.h"
@@ -136,14 +136,14 @@ m_bool import(Env env)
 {
   CHECK_BB(add_global_type(env, &t_plugin))
   CHECK_BB(import_class_begin(env, &t_plugin, env->global_nspc, NULL, NULL))
-  o_plugin_svar = import_mvar(env, "int",  "to", 0, 0, "smple doc");
+  o_plugin_svar = import_mvar(env, "int",  "to", 0, 0, "sample doc");
   CHECK_BB(o_plugin_svar)
   CHECK_BB(import_class_end(env))
   return 1;
 }
 EOF
-	gcc -ftest-coverage -fprofile-arcs --coverage -shared -Iinclude -fPIC $GWION_ADD_DIR/svar.c -o $GWION_ADD_DIR/svar.so
-	rm $GWION_ADD_DIR/svar.c
+	gcc -ftest-coverage -fprofile-arcs --coverage -shared -Iinclude -fPIC $TRAVIS_BUILD_DIR/svar.c -o $GWION_ADD_DIR/svar.so
+#	rm $TRAVIS_BUILD_DIR/svar.c
 	gbt "NOFILE"
   rm $GWION_ADD_DIR/svar.so
 }
