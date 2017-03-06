@@ -44,8 +44,8 @@ s.substring(2);
 
 
 // look at me!!!
-<<< o => s>>>; // hang . grrr...
-//<<<"test" + "another test" >>>;
+//<<< o => s>>>; // hang . grrr...
+<<<"test" + "another test" >>>;
 
 
 //me.exit();
