@@ -23,20 +23,14 @@ static INSTR(String_Assign)
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
-  /*
-    if(!lhs) {
-      lhs = new_M_Object();
-      initialize_object(lhs, &t_string);
-    }
-  */
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!rhs) {
     err_msg(INSTR_, 0, "assigning to empty string.");
     Except(shred);
     return;
-//    rhs = new_M_Object();
-//    initialize_object(rhs, &t_string);
   }
+  release(rhs, shred);
+  release(lhs, shred);
   STRING(rhs) = lhs ? STRING(lhs) : NULL;
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
@@ -47,10 +41,11 @@ static INSTR(Int_String_Assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '=>' string");
 #endif
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  POP_REG(shred, SZ_INT*2);
   m_int lhs = *(m_int*)shred->reg;
-  M_Object rhs = **(M_Object**)(shred->reg + SZ_FLOAT);
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   char str[1024];
+  memset(str, 0, 1024);
   sprintf(str, "%li", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg =  (M_Object)rhs;
@@ -63,9 +58,9 @@ static INSTR(Float_String_Assign)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "float '=>' string");
 #endif
-  POP_REG(shred, SZ_INT * 2);
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)shred->reg;
-  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_FLOAT);
   char str[1024];
   sprintf(str, "%f", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
@@ -570,7 +565,6 @@ MFUN(string_charAt)
     RETURN->d.v_uint = str[i];
 }
 
-
 MFUN(string_setCharAt)
 {
   m_str str = STRING(o);
@@ -589,28 +583,26 @@ MFUN(string_setCharAt)
 
 MFUN(string_substring)
 {
-  m_str str = strdup(STRING(o));
-  m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = str;
+  m_uint i, len = 0;
+  m_int  index = *(m_int*)(shred->mem + SZ_INT);
+  m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
   char c[len - index];
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  STRING(obj) = S_name(insert_symbol(c));
+  M_Object obj = new_String(c);
   RETURN->d.v_object = obj;
 }
 
 MFUN(string_substringN)
 {
-  m_str str = strdup(STRING(o));
-  m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT * 2);
-  m_int end = *(m_int*)(shred->mem + SZ_INT);
+  char str[strlen(STRING(o))+1];
+  strcpy(str, (STRING(o)));
+  m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
+  m_int end = *(m_int*)(shred->mem + SZ_INT*2);
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
-  STRING(obj) = str;
   while(str[len] != '\0')
     len++;
   len -= end;

@@ -18,8 +18,11 @@ s.erase(1, 2);
 <<<" su ".trim()>>>;
 <<<" su ".charAt(1)>>>;
 <<<" su ".charAt(1, 'n')>>>;
+<<<"lol">>>;
+<<<" su ".substring(2)>>>;
+<<<" su ".substring(2, 1)>>>;
+//<<<" su ".charAt(1, 'n')>>>;
 //NULL @=> s;
-
 <<<1 => s>>>;
 <<<1.0 => s>>>;
 <<< #(2,1) => s >>>;
@@ -27,6 +30,8 @@ s.erase(1, 2);
 <<< @(2,1,0) => s >>>;
 <<< @(2,1,0,-1) => s >>>;
 <<<"test" => s>>>; // new
+<<<"test" => s>>>; // new
+<<<s>>>;
 //<<< NULL => s >>>;
 //<<< o => s>>>;
 
@@ -38,7 +43,7 @@ s.erase(1, 2);
 { (%(2,1) + s) @=> string @str; }
 { (@(2,1, 0) + s) @=> string @str; }
 { (@(2,1, 0, -1) + s) @=> string @str; }
-<<<"test" + "another test" >>>;
+//<<<"test" + "another test" >>>;
 //{ ("test" + s) @=> string @str; }
 
 
