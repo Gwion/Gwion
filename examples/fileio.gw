@@ -15,13 +15,22 @@ cerr.nl();
 f.open("/tmp/trash", "w");
 f.close();
 f.remove("/tmp/trash");
-f.list("."); // mem leak (array)
+//f.list("."); // mem leak (array)
 
 
 f.close();
 f.open("/tmp/test_fileio", "w");
 <<<123 => f>>>;
+<<<" " => f>>>;
 <<<.123 => f>>>;
+<<<" " => f>>>;
 <<<"test" => f>>>;
-o => f;
+<<<" " => f>>>;
+//o => f;
+f.close();
+
+f.open("/tmp/test_fileio", "r");
+<<<f => int i>>>;
+<<<f => float g>>>;
+<<<f => string s>>>;
 f.close();

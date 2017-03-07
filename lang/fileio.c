@@ -128,11 +128,12 @@ INSTR(file_to_int)
       Except(shred);
       return;
     }
-    *(m_uint*)shred->reg = (**(m_uint**)(shred->reg) = ret);
+    *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
 	Except(shred);
 	err_msg(INSTR_, 0, "trying to read from empty file.");
   }
+  release(o, shred);
 }
 
 INSTR(file_to_float)
@@ -149,10 +150,14 @@ INSTR(file_to_float)
       Except(shred);
       return;
     }
-    *(m_float*)(shred->reg - SZ_INT) = (**(m_float**)(shred->reg) = ret);
-  } else exit(89);
+    *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
+  } else {
+	Except(shred);
+	err_msg(INSTR_, 0, "trying to read from empty file.");
+  }
+  release(o, shred);
 }
-
+/*
 m_bool inputAvailable(FILE* f)
 {
   int fd = fileno(f);
@@ -167,7 +172,7 @@ m_bool inputAvailable(FILE* f)
   select(fd + 1, &fds, NULL, NULL, &tv);
   return (FD_ISSET(0, &fds));
 }
-
+*/
 INSTR(file_to_string)
 {
 #ifdef DEBUG_INSTR
@@ -177,18 +182,20 @@ INSTR(file_to_string)
   /*  char ret[1024];*/
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
-  m_str    c    = strdup("\n");
-  m_uint   size = 0;
-//  if(IO_ASCII(o))
+  char c[1024];
+  if(IO_ASCII(o))
   {
-    if(inputAvailable(IO_FILE(o)))
-      if(getline(&c, &size, IO_FILE(o)) < 0) {
+//    if(inputAvailable(IO_FILE(o)))
+    if(fscanf(IO_FILE(o), "%s", c) < 0) {
+//      if(getline(&c, &size, IO_FILE(o)) < 0) {
         Except(shred);
         return;
       }
-    STRING(s) = c;
+    STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;
   }
+  release(o, shred);
+  release(s, shred);
 }
 
 MFUN(file_nl)
