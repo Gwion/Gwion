@@ -1,7 +1,8 @@
+#!/bin/bash
 # [test] #28
 n=0
-[ $1 ] && n=$1
-[ $n -eq 0 ] && n=1
+[ "$1" ] && n="$1"
+[ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
 
 run "$n" "test arguments" "examples/shred.gw:12" "file"

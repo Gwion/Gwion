@@ -1,3 +1,4 @@
+#!/bin/bash
 # [test] #0
 
 set -m
