@@ -4,7 +4,7 @@ n=0
 [ $n -eq 0 ] && n=1
 source tests/sh/common.sh
 
-./util/generate_header "/invalid"
+./util/generate_header "/invalid" &> /dev/null
 ret=$?
 if [ $ret ]
 then echo "ok $n header wrong target"
