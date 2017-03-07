@@ -162,10 +162,15 @@ INSTR(String_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
+//  M_Object obj = new_M_Object();
+//  initialize_object(obj, &t_string);
+//  STRING(obj) = S_name(insert_symbol(str));
+//  *(M_Object*)shred->reg = obj;
   *(M_Object*)shred->reg = new_String(str);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
+//  release(*(M_Object*)shred->reg, shred);
 }
 
 INSTR(Int_String)
