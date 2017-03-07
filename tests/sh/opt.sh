@@ -66,6 +66,18 @@ run "$n" "out channels (short)" "-o 2" "file"
 n=$((n+1))
 run "$n" "out channels (long)" "--out 2" "file"
 
+# bufnum
+n=$((n+1))
+run "$n" "bufnum (short)" "-n 2" "file"
+n=$((n+1))
+run "$n" "bufnum (long)" "--bufnum 3" "file"
+
+# bufsize
+n=$((n+1))
+run "$n" "bufsize (short)" "-i 256" "file"
+n=$((n+1))
+run "$n" "bufsize (long)" "--bufsize 256" "file"
+
 # raw
 n=$((n+1))
 run "$n" "raw (short)" "-r" "file"
