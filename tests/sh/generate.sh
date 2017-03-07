@@ -8,6 +8,6 @@ source tests/sh/common.sh
 ret=$?
 if [ $ret ]
 then echo "ok $n header wrong target"
-then echo "not ok $n header wrong target"
+else echo "not ok $n header wrong target"
 fi
 

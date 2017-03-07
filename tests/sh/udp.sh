@@ -4,12 +4,13 @@ n=0
 [ $n -eq 0 ] && n=1
 source tests/sh/common.sh
 
-run "$((n+1))" "quit (remote $((n+1)))" "-l1" "file2"&
-sleep .3
-killall gwion
+
+run "$n" "quit (remote $n)" "-l1" "file2"&
+sleep 1;
+kill %1
 wait
 
-n=$((n+2))
+n=$((n+1))
 run "$((n+1))" "quit (remote $((n+1)))" "-l1" "file2"&
 sleep .3
 run "$n" "quit (short)" "-q" "file"&
