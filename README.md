@@ -59,6 +59,19 @@ simply edit *config.mk* to suit your needs,
 
 ####build####
 
+first you need to generate Makefile:
+
+```
+./configure
+```
+try
+
+```
+./configure --help
+```
+to learn more about options.
+
+then, just
 ```
 make
 ```
