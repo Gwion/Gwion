@@ -47,11 +47,12 @@ s.substring(2);
 
 
 // look at me!!!
-//<<< o => s>>>; // hang . grrr...
+// <<< o => s>>>; // hang . grrr...
 <<<"test" + "another test" >>>; // mem leak
 //<<<"test" + s >>>; // also leak
-<<< NULL +=> s >>>;
-
+// <<< NULL +=> s >>>; // also hang 
+<<<"1".toInt()>>>;
+<<<"1".toFloat()>>>;
 
 //me.exit();
 
