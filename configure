@@ -768,9 +768,9 @@ uninstall:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
 test:
-	@(bash -c "source util/test.sh; do_test async=0 examples tests/error tests/tree tests/sh tests/bug & wait")
+	@(bash -c "source util/test.sh; do_test async=2 examples tests/error tests/tree tests/sh tests/bug & wait")
 # keep soundpipe.c here for now
-	cp ugen/soundpipe.c .
+#	cp ugen/soundpipe.c .
 EOF
 
 # ] <-- needed because of Argbash
