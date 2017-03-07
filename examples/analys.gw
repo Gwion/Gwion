@@ -30,6 +30,17 @@ fc.rem(rms);
 centroid => fc;
 centroid =< fc;
 
+fft => centroid.fft;
+fft => spread.fft;
+fft => skewness.fft;
+fft => kurtosis.fft;
+fft => rms.fft;
+fft => rolloff.fft;
+fft => freq.fft;
+fft => asc.fft;
+fft => ass.fft;
+
+
 centroid.compute();
 spread.compute();
 skewness.compute();
