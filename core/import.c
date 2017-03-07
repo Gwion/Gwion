@@ -155,9 +155,9 @@ m_bool import_class_end(Env env)
   return 1;
 }
 
-m_int import_mvar(Env env, const m_str type,
-                  const m_str name, const m_bool is_const, const m_bool is_ref, const m_str doc )
-{
+static m_int import_var(Env env, const m_str type, const m_str name,
+   const m_bool is_static, const m_bool is_const, const m_bool is_ref, m_uint* addr, const m_str doc) {
+  m_int ret = -1;
   m_uint array_depth;
   ID_List path;
   Type_Decl* type_decl;
@@ -170,18 +170,19 @@ m_int import_mvar(Env env, const m_str type,
     return -1;
   }
 
-  type_decl = new_Type_Decl( path, is_ref, 0 );
+  type_decl = new_Type_Decl(path, is_ref, 0);
   if(array_depth) {
-    type_decl->array = new_array_sub( NULL, 0 );
+    type_decl->array = new_array_sub(NULL, 0);
     type_decl->array->depth = array_depth;
   }
   var_decl = new_Var_Decl(name, NULL, 0);
   if(array_depth) {
-    var_decl->array = new_array_sub( NULL, 0 );
+    var_decl->array = new_array_sub(NULL, 0);
     var_decl->array->depth = array_depth;
   }
-  var_decl_list = new_Var_Decl_List( var_decl, NULL, 0 );
-  exp_decl = new_Decl_Expression( type_decl, var_decl_list, 0, 0 );
+  var_decl_list = new_Var_Decl_List(var_decl, NULL, 0);
+  exp_decl = new_Decl_Expression(type_decl, var_decl_list, 0, 0);
+  var_decl->addr = (void *)addr;
   if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
   if(scan2_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
@@ -192,61 +193,18 @@ m_int import_mvar(Env env, const m_str type,
 
   if(doc)
     var_decl->value->doc = doc;
-//printf("name: '%s'\n", var_decl->value->name);
-//var_decl->value->name = strdup(var_decl->value->name);
-//add_ref(var_decl->value->obj);
-//add_ref(var_decl->value->obj);
-  m_uint ret = var_decl->value->offset;
-  // cleanup
+  var_decl->value->is_import = 1;
+  ret = var_decl->value->offset;
+error:
   free_Expression(exp_decl);
   return ret;
-error:
-//  free_ID_List(path);
-//  free_Expression(exp_decl);
-  return -1;
 }
-
+m_int import_mvar(Env env, const m_str type,
+                  const m_str name, const m_bool is_const, const m_bool is_ref, const m_str doc)
+{ return import_var(env, type, name, 0, is_const, is_ref, NULL, doc); }
 m_int import_svar(Env env, const m_str type,
                   const m_str name, m_bool is_const, m_bool is_ref, m_uint* addr, const m_str doc )
-{
-  m_uint depth;
-  CHECK_EB(env->class_def)
-  ID_List path = str2list(type, &depth);
-  if(!path) {
-    err_msg(TYPE_,  0, "... during svar import '%s.%s'...",
-            env->class_def->name, name );
-    return -1;
-  }
-  Type_Decl* type_decl = new_Type_Decl( path, is_ref, 0 );
-  if(depth) {
-    type_decl->array = new_array_sub( NULL, 0 );
-    type_decl->array->depth = depth;
-  }
-  Var_Decl var_decl = new_Var_Decl( name, NULL, 0);
-  if(depth) {
-    var_decl->array = new_array_sub( NULL, 0 );
-    var_decl->array->depth = depth;
-  }
-  Var_Decl_List var_decl_list = new_Var_Decl_List(var_decl, NULL, 0 );
-  Expression exp_decl = new_Decl_Expression(type_decl, var_decl_list, 1, 0);
-  var_decl->addr = (void *)addr;
-
-  if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
-    goto error;
-  if( scan2_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
-    goto error;
-  if(!check_Decl_Expression(env, exp_decl->d.exp_decl))
-    goto error;
-  if(doc)
-    var_decl->value->doc = doc;
-  var_decl->value->is_import = 1;
-  // cleanup
-  free_Expression(exp_decl);
-  return 1;
-error:
-  free_Expression(exp_decl);
-  return -1;
-}
+{ return import_var(env, type, name, 1, is_const, is_ref, addr, doc); }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun)
 {
@@ -348,9 +306,8 @@ error:
 }
 
 #define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
-
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
-  Func_Def func_def = NULL;
+  Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
   CHECK_EO(env->class_def)
   CHECK_OO((func_def = make_dll_as_fun(mfun, is_static)))
@@ -360,5 +317,6 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   return func_def->func;
 }
 
+// those should be defines
 Func import_mfun(Env env, DL_Func * fun) { return import_fun(env, fun, 0); }
 Func import_sfun(Env env, DL_Func * fun) { return import_fun(env, fun, 1); }
