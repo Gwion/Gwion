@@ -34,10 +34,6 @@ install_bison() {
     popd
 }
 
-install_bats() {
-	git clone https://github.com/sstephenson/bats.git
-}
-
 install_soundpipe() {
 	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 	pushd Soundpipe
@@ -67,7 +63,6 @@ prepare_directories() {
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
 
 install_bison
-install_bats
 install_soundpipe
 prepare_directories
 exit 0
