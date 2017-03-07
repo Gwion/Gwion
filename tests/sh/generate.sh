@@ -9,7 +9,7 @@ source tests/sh/common.sh
 ./util/generate_header "/invalid" &> /dev/null
 ret=$?
 if [ $ret ]
-then echo "ok $n header wrong target"
+then echo "ok  $n header wrong target"
 else echo "not ok $n header wrong target"
 fi
 

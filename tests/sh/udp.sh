@@ -6,9 +6,11 @@ n=0
 source tests/sh/common.sh
 
 
-(run "$n" "quit (remote $n)" "-l1" "file2"&
+#(run "$n" "quit (remote $n)" "-l1" "file2"&
+(./gwion -l1 && echo "ok  $(printf "% 4i" "$n") remote "&
 sleep 1;
-kill %1 &> /dev/null
+killall gwion
+#kill %1 &> /dev/null &>/dev/null
 wait)
 
 n=$((n+1))
