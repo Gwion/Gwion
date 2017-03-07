@@ -38,7 +38,7 @@ void free_DL_Func(DL_Func* a)
   free(a);
 }
 
-DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr)
+static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr)
 {
   DL_Value* a = malloc(sizeof(DL_Value));
   a->name = n;

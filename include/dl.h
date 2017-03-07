@@ -37,7 +37,7 @@ typedef struct {
   m_str doc;
 } DL_Value;
 
-DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr);
+//DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr);
 void free_DL_Value(DL_Value* a);
 
 typedef struct {

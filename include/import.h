@@ -6,7 +6,7 @@ typedef m_bool (*Import_fun)(Env env, DL_Func* f);
 //Func import_fun(Env env, DL_Func * mfun, m_bool is_static);
 //#define import_sfun(env, fun) import_fun(1, env, fun)
 //#define import_fun(1, env, fun) import_sfun(env, fun)
-
+//#define import_sfun(env, fun) import_fun(env, fun, 0)
 Func import_mfun(Env env, DL_Func * fun);
 Func import_sfun(Env env, DL_Func * fun);
 

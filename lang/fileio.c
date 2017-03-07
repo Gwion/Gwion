@@ -347,24 +347,15 @@ m_bool import_fileio(Env env)
 
   gw_cin = new_M_Object();
   initialize_object(gw_cin, &t_cin);
-//  IO_FILE(gw_stdin) = freopen("CON", "r", stdin);
-//  IO_FILE(gw_stdin) = freopen(stdin);
 
   gw_cout = new_M_Object();
   initialize_object(gw_cout, &t_cout);
   IO_FILE(gw_cout) = stdout;
-//  IO_FILE(cout) = freopen("CON", "w", stdout);
-//  IO_FILE(gw_stdin) = fdopen(1, "w");
   gw_cerr = new_M_Object();
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
-//  IO_FILE(cerr) = freopen("CON", "w", stderr);
-//  IO_FILE(gw_stdin) = fdopen(2, "w");
   add_global_value(env, "cin",  &t_fileio, 1, gw_cin);
   add_global_value(env, "cout", &t_fileio, 1, gw_cout);
   add_global_value(env, "cerr", &t_fileio, 1, gw_cerr);
-//  gw_cin->ref++;
-//  gw_cout->ref++;
-//  gw_cerr->ref++;
   return 1;
 }
