@@ -1,14 +1,27 @@
+Object o;
 FileIO f;
+
 f.open("examples/fileio.gw", "r");
 f.close();
-1 => cerr;
-2.0 => cerr;
 
+
+<<<1 => cerr>>>;
+2.0 => cerr;
 "test" => cerr;
+o => cerr;
 NULL => cerr;
 cerr.nl();
+
 f.open("/tmp/trash", "w");
 f.close();
 f.remove("/tmp/trash");
-//f.list(".");
+f.list("."); // mem leak (array)
 
+
+f.close();
+f.open("/tmp/test_fileio", "w");
+<<<123 => f>>>;
+<<<.123 => f>>>;
+<<<"test" => f>>>;
+o => f;
+f.close();

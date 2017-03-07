@@ -11,20 +11,20 @@
 #include "object.h"
 
 
-struct Type_ t_io      = { "IO",         sizeof(m_uint), &t_event, te_io };
-struct Type_ t_fileio = { "FileIO",     sizeof(m_uint), &t_io,    te_fileio };
+struct Type_ t_io      = { "IO",       SZ_INT, &t_event, te_io };
+struct Type_ t_fileio  = { "FileIO",   SZ_INT, &t_io,    te_fileio };
+struct Type_ t_cout    = { "@Cout",    SZ_INT, &t_fileio,    te_fileio };
+struct Type_ t_cerr    = { "@Cerr",    SZ_INT, &t_fileio,    te_fileio };
+struct Type_ t_cin     = { "@Cin",     SZ_INT, &t_fileio,    te_fileio  };
 
-struct Type_ t_cout   = { "@Cout",     sizeof(m_uint), &t_fileio,    te_fileio };
-struct Type_ t_cerr   = { "@Cerr",     sizeof(m_uint), &t_fileio,    te_fileio };
-struct Type_ t_cin    = { "@Cin",      sizeof(m_uint), &t_fileio,    te_fileio  };
-
+static M_Object gw_cin, gw_cout, gw_cerr;
 m_int o_fileio_dir;
 m_int o_fileio_file;
 m_int o_fileio_ascii;
 m_int o_fileio_line;
 
 #define IO_LINE(o) *(m_str*)(o->d.data + o_fileio_line)
-
+#define CHECK_FIO(o)   if(!IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); return; }
 CTOR(fileio_ctor)
 {
   IO_DIR(o)  = NULL;
@@ -53,15 +53,14 @@ INSTR(int_to_file)
   debug_msg("instr", "int to file");
 #endif
   POP_REG(shred, SZ_INT)
-  char c[256];
   M_Object o = *(M_Object*)shred->reg;
-  if(!IO_FILE(o)) {
-    err_msg(INSTR_, 0, "trying to write an empty file.");
-    Except(shred);
-    return;
+  if(o != gw_cout && o != gw_cerr) {
+    o = **(M_Object**)shred->reg;
+    release(o, shred);
   }
-  sprintf(c, "%i", *(int*)(shred->reg - SZ_INT));
-  fwrite(c,  strlen(c), 1, IO_FILE(o));
+  CHECK_FIO(o)
+  fprintf(IO_FILE(o), "%li", *(m_int*)(shred->reg - SZ_INT));
+  *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
 INSTR(float_to_file)
@@ -70,10 +69,15 @@ INSTR(float_to_file)
   debug_msg("instr", "float to file");
 #endif
   POP_REG(shred, SZ_INT)
-  char c[256];
   M_Object o = *(M_Object*)shred->reg;
-  sprintf(c, "%f", *(m_float*)(shred->reg - SZ_FLOAT));
-  fwrite(c,  strlen(c), 1, IO_FILE(o));
+  if(o != gw_cout && o != gw_cerr) {
+    o = **(M_Object**)shred->reg;
+    release(o, shred);
+  }
+  CHECK_FIO(o)
+  fprintf(IO_FILE(o), "%f", *(m_float*)(shred->reg - SZ_FLOAT));
+  PUSH_REG(shred, SZ_FLOAT);
+  *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
 INSTR(string_to_file)
@@ -83,30 +87,32 @@ INSTR(string_to_file)
 #endif
   POP_REG(shred, SZ_INT)
   M_Object o = *(M_Object*)shred->reg;
-  m_str str;
+  if(o != gw_cout && o != gw_cerr) {
+    o = **(M_Object**)shred->reg;
+    release(o, shred);
+  }
   M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
-  str = STRING(lhs);
+  CHECK_FIO(o)
+  fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
+  *(M_Object*)(shred->reg -SZ_INT)= o;
   release(lhs, shred);
-  m_uint i = fwrite(str,  strlen(str), 1, IO_FILE(o));
-  *(m_uint*)shred->reg = i;
-  PUSH_REG(shred, SZ_INT)
 }
 
 INSTR(object_to_file)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "object to file");
+  debug_msg("instr", "string to file");
 #endif
   POP_REG(shred, SZ_INT)
-  char c[256];
   M_Object o = *(M_Object*)shred->reg;
-  if(!IO_FILE(o)) {
-    err_msg(INSTR_, 0, "trying to write an empty file.");
-    Except(shred);
-    return;
+  if(o != gw_cout && o != gw_cerr) {
+    o = **(M_Object**)shred->reg;
+    release(o, shred);
   }
-  sprintf(c, "%p", *(void**)(shred->reg - SZ_INT));
-  fwrite(c,  strlen(c), 1, IO_FILE(o));
+  M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
+  fprintf(IO_FILE(o), "%p", (void*)lhs);
+  *(M_Object*)(shred->reg -SZ_INT)= o;
+  release(lhs, shred);
 }
 
 INSTR(file_to_int)
@@ -310,14 +316,14 @@ m_bool import_fileio(Env env)
   CHECK_OB(import_sfun(env, fun))
 
   // import operators
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_int,    &t_fileio, &t_int,     int_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_int,    &t_int,     file_to_int, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_float,  &t_fileio, &t_float,     float_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_float,  &t_float,   file_to_float, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_string, &t_fileio,  &t_int,    string_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_fileio, &t_string,  &t_string, file_to_string, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_object, &t_fileio,  &t_int,    object_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck,     &t_null,   &t_fileio,  &t_int,    object_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_int,    &t_fileio, &t_fileio, int_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_float,  &t_fileio, &t_fileio, float_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_string, &t_fileio, &t_fileio, string_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_object, &t_fileio, &t_fileio, object_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_null,   &t_fileio, &t_fileio, object_to_file, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_string, &t_string, file_to_string, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_int,    &t_int,    file_to_int, 1))
+  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_float,  &t_float,  file_to_float, 1))
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_cout))
@@ -332,24 +338,26 @@ m_bool import_fileio(Env env)
   CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  M_Object gw_stdin = new_M_Object();
-  initialize_object(gw_stdin, &t_cin);
+  gw_cin = new_M_Object();
+  initialize_object(gw_cin, &t_cin);
 //  IO_FILE(gw_stdin) = freopen("CON", "r", stdin);
 //  IO_FILE(gw_stdin) = freopen(stdin);
 
-  M_Object gw_cout = new_M_Object();
+  gw_cout = new_M_Object();
   initialize_object(gw_cout, &t_cout);
-IO_FILE(gw_cout) = stdout;
+  IO_FILE(gw_cout) = stdout;
 //  IO_FILE(cout) = freopen("CON", "w", stdout);
 //  IO_FILE(gw_stdin) = fdopen(1, "w");
-  M_Object gw_cerr = new_M_Object();
+  gw_cerr = new_M_Object();
   initialize_object(gw_cerr, &t_cerr);
-IO_FILE(gw_cerr) = stderr;
+  IO_FILE(gw_cerr) = stderr;
 //  IO_FILE(cerr) = freopen("CON", "w", stderr);
 //  IO_FILE(gw_stdin) = fdopen(2, "w");
-  add_global_value(env, "cin", &t_fileio,   1, gw_stdin);
-  add_global_value(env, "cout",  &t_fileio,   1, gw_cout);
-  add_global_value(env, "cerr",  &t_fileio,   1, gw_cerr);
-
+  add_global_value(env, "cin",  &t_fileio, 1, gw_cin);
+  add_global_value(env, "cout", &t_fileio, 1, gw_cout);
+  add_global_value(env, "cerr", &t_fileio, 1, gw_cerr);
+//  gw_cin->ref++;
+//  gw_cout->ref++;
+//  gw_cerr->ref++;
   return 1;
 }
