@@ -639,11 +639,11 @@ echo "# handle definitions" >> Makefile
 echo D_FUNC ?= dummy_driver >> Makefile
 # handle directories
 echo "# handle directories" >> Makefile
-echo GWION_API_DIR ?= \${PREFIX}/lib/Gwion/api >> Makefile
-echo GWION_DOC_DIR ?= \${PREFIX}/lib/Gwion/doc >> Makefile
-echo GWION_TAG_DIR ?= \${PREFIX}/lib/Gwion/tag >> Makefile
-echo GWION_TOK_DIR ?= \${PREFIX}/lib/Gwion/tok >> Makefile
-echo GWION_ADD_DIR ?= \${PREFIX}/lib/Gwion/add >> Makefile
+echo "GWION_API_DIR ?= \${PREFIX}/lib/Gwion/api" >> Makefile
+echo "GWION_DOC_DIR ?= \${PREFIX}/lib/Gwion/doc" >> Makefile
+echo "GWION_TAG_DIR ?= \${PREFIX}/lib/Gwion/tag" >> Makefile
+echo "GWION_TOK_DIR ?= \${PREFIX}/lib/Gwion/tok" >> Makefile
+echo "GWION_ADD_DIR ?= \${PREFIX}/lib/Gwion/add" >> Makefile
 # handle libraries
 echo "# handle libraries" >> Makefile
 echo DUMMY_D ?= 1 >> Makefile
@@ -681,47 +681,47 @@ echo -e 'ifeq (${JACK_D}, on)\nCFLAGS += -DHAVE_JACK\ndrvr_src += drvr/jack.c\ne
 echo -e 'ifeq (${PORTAUDIO_D}, on)\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += drvr/portaudio.c\nelse ifeq (${PORTAUDIO_D}, 1)\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=drvr/portaudio.c\nendif\n' >> Makefile
 echo -e 'ifeq (${SOUNDIO_D}, on)\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += drvr/soundio.c\nelse ifeq (${SOUNDIO_D}, 1)\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=drvr/soundio.c\nendif\n' >> Makefile
 echo "# add boolean" >> Makefile
-echo -e 'ifeq (${USE_COVERAGE}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile
-echo -e 'ifeq (${USE_COVERAGE}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile
-echo -e 'ifeq (${USE_COVERAGE}, on)\nLDFLAGS += --coverage\nendif' >> Makefile
-echo -e 'ifeq (${USE_COVERAGE}, 1)\nLDFLAGS += --coverage\nendif' >> Makefile
-echo -e 'ifeq (${USE_MEMCHECK}, on)\nCFLAGS += -g\nendif' >> Makefile
-echo -e 'ifeq (${USE_MEMCHECK}, 1)\nCFLAGS += -g\nendif' >> Makefile
+echo -e "ifeq (\${USE_COVERAGE}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif" >> Makefile
+echo -e "ifeq (\${USE_COVERAGE}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif" >> Makefile
+echo -e "ifeq (\${USE_COVERAGE}, on)\nLDFLAGS += --coverage\nendif" >> Makefile
+echo -e "ifeq (\${USE_COVERAGE}, 1)\nLDFLAGS += --coverage\nendif" >> Makefile
+echo -e "ifeq (\${USE_MEMCHECK}, on)\nCFLAGS += -g\nendif" >> Makefile
+echo -e "ifeq (\${USE_MEMCHECK}, 1)\nCFLAGS += -g\nendif" >> Makefile
 echo -e 'ifeq (${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile
 echo "# add definitions" >> Makefile
 echo 'CFLAGS+= -DD_FUNC=dummy_driver' >> Makefile
 echo "# add directories" >> Makefile
-echo 'CFLAGS+= -DGWION_API_DIR=\"${GWION_API_DIR}\"' >> Makefile
-echo 'CFLAGS+= -DGWION_DOC_DIR=\"${GWION_DOC_DIR}\"' >> Makefile
-echo 'CFLAGS+= -DGWION_TAG_DIR=\"${GWION_TAG_DIR}\"' >> Makefile
-echo 'CFLAGS+= -DGWION_TOK_DIR=\"${GWION_TOK_DIR}\"' >> Makefile
-echo 'CFLAGS+= -DGWION_ADD_DIR=\"${GWION_ADD_DIR}\"' >> Makefile
+echo "CFLAGS+= -DGWION_API_DIR=\"\${GWION_API_DIR}\"" >> Makefile
+echo "CFLAGS+= -DGWION_DOC_DIR=\"\${GWION_DOC_DIR}\"" >> Makefile
+echo "CFLAGS+= -DGWION_TAG_DIR=\"\${GWION_TAG_DIR}\"" >> Makefile
+echo "CFLAGS+= -DGWION_TOK_DIR=\"\${GWION_TOK_DIR}\"" >> Makefile
+echo "CFLAGS+= -DGWION_ADD_DIR=\"\${GWION_ADD_DIR}\"" >> Makefile
 echo "# add debug flags" >> Makefile
-echo -e 'ifeq (${DEBUG_COMPILE}, on)\nCFLAGS += -DDEBUG_COMPILE\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_COMPILE}, 1)\nCFLAGS += -DDEBUG_COMPILE\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_OPERATOR}, on)\nCFLAGS += -DDEBUG_OPERATOR\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_OPERATOR}, 1)\nCFLAGS += -DDEBUG_OPERATOR\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_TYPE}, on)\nCFLAGS += -DDEBUG_TYPE\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_TYPE}, 1)\nCFLAGS += -DDEBUG_TYPE\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN0}, on)\nCFLAGS += -DDEBUG_SCAN0\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN0}, 1)\nCFLAGS += -DDEBUG_SCAN0\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN1}, on)\nCFLAGS += -DDEBUG_SCAN1\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN1}, 1)\nCFLAGS += -DDEBUG_SCAN1\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN2}, on)\nCFLAGS += -DDEBUG_SCAN2\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SCAN2}, 1)\nCFLAGS += -DDEBUG_SCAN2\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_EMIT}, on)\nCFLAGS += -DDEBUG_EMIT\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_EMIT}, 1)\nCFLAGS += -DDEBUG_EMIT\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_VM}, on)\nCFLAGS += -DDEBUG_VM\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_VM}, 1)\nCFLAGS += -DDEBUG_VM\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_INSTR}, on)\nCFLAGS += -DDEBUG_INSTR\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_INSTR}, 1)\nCFLAGS += -DDEBUG_INSTR\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SHREDULER}, on)\nCFLAGS += -DDEBUG_SHREDULER\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_SHREDULER}, 1)\nCFLAGS += -DDEBUG_SHREDULER\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_STACK}, on)\nCFLAGS += -DDEBUG_STACK\nendif' >> Makefile
-echo -e 'ifeq (${DEBUG_STACK}, 1)\nCFLAGS += -DDEBUG_STACK\nendif' >> Makefile
+echo -e "ifeq (\${DEBUG_COMPILE}, on)\nCFLAGS += -DDEBUG_COMPILE\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_COMPILE}, 1)\nCFLAGS += -DDEBUG_COMPILE\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_OPERATOR}, on)\nCFLAGS += -DDEBUG_OPERATOR\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_OPERATOR}, 1)\nCFLAGS += -DDEBUG_OPERATOR\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_TYPE}, on)\nCFLAGS += -DDEBUG_TYPE\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_TYPE}, 1)\nCFLAGS += -DDEBUG_TYPE\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN0}, on)\nCFLAGS += -DDEBUG_SCAN0\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN0}, 1)\nCFLAGS += -DDEBUG_SCAN0\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN1}, on)\nCFLAGS += -DDEBUG_SCAN1\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN1}, 1)\nCFLAGS += -DDEBUG_SCAN1\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN2}, on)\nCFLAGS += -DDEBUG_SCAN2\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SCAN2}, 1)\nCFLAGS += -DDEBUG_SCAN2\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_EMIT}, on)\nCFLAGS += -DDEBUG_EMIT\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_EMIT}, 1)\nCFLAGS += -DDEBUG_EMIT\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_VM}, on)\nCFLAGS += -DDEBUG_VM\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_VM}, 1)\nCFLAGS += -DDEBUG_VM\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_INSTR}, on)\nCFLAGS += -DDEBUG_INSTR\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_INSTR}, 1)\nCFLAGS += -DDEBUG_INSTR\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SHREDULER}, on)\nCFLAGS += -DDEBUG_SHREDULER\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_SHREDULER}, 1)\nCFLAGS += -DDEBUG_SHREDULER\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_STACK}, on)\nCFLAGS += -DDEBUG_STACK\nendif" >> Makefile
+echo -e "ifeq (\${DEBUG_STACK}, 1)\nCFLAGS += -DDEBUG_STACK\nendif" >> Makefile
 echo "# add soundpipe" >> Makefile
-echo -e 'LDFLAGS+=${SOUNDPIPE_LIB}' >> Makefile
-echo -e 'CFLAGS+=${SOUNDPIPE_INC}' >> Makefile
+echo -e "LDFLAGS+=\${SOUNDPIPE_LIB}" >> Makefile
+echo -e "CFLAGS+=\${SOUNDPIPE_INC}" >> Makefile
 echo "# os specific" >> Makefile
 # initialize object lists
 echo '' >> Makefile

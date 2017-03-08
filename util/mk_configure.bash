@@ -196,7 +196,7 @@ for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
   val=$(echo "$dir" | cut -d ":" -f 2)
-  echo "echo GWION_${key~~}_DIR ?= \\\${PREFIX}/lib/Gwion/${val} >> Makefile" >> configure
+  echo "echo \"GWION_${key~~}_DIR ?= \\\${PREFIX}/lib/Gwion/${val}\" >> Makefile" >> configure
 done
 
 echo "# handle libraries" >> configure
@@ -253,12 +253,12 @@ do
   then [ "$key" = "double" ] && val=double;
   else [ "$key" = "double" ] && val=float;
   fi
-  [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -g\nendif' >> Makefile" >> configure
-  [ "$key" = "memcheck" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nCFLAGS += -g\nendif' >> Makefile" >> configure
-  [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile" >> configure
-  [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif' >> Makefile" >> configure
-  [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nLDFLAGS += --coverage\nendif' >> Makefile" >> configure
-  [ "$key" = "coverage" ] && echo "echo -e 'ifeq (\${USE_${key~~}}, 1)\nLDFLAGS += --coverage\nendif' >> Makefile" >> configure
+  [ "$key" = "memcheck" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, on)\nCFLAGS += -g\nendif\" >> Makefile" >> configure
+  [ "$key" = "memcheck" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, 1)\nCFLAGS += -g\nendif\" >> Makefile" >> configure
+  [ "$key" = "coverage" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif\" >> Makefile" >> configure
+  [ "$key" = "coverage" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif\" >> Makefile" >> configure
+  [ "$key" = "coverage" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, on)\nLDFLAGS += --coverage\nendif\" >> Makefile" >> configure
+  [ "$key" = "coverage" ] && echo "echo -e \"ifeq (\\\${USE_${key~~}}, 1)\nLDFLAGS += --coverage\nendif\" >> Makefile" >> configure
 done
 key="double"
 echo "echo -e 'ifeq (\${USE_${key~~}}, "on")\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=double\nelse ifeq (\${USE_${key~~}}, "1")\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n' >> Makefile"  >> configure
@@ -276,7 +276,7 @@ for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
   val=$(echo "$dir" | cut -d ":" -f 2)
-  echo "echo 'CFLAGS+= -DGWION_${key~~}_DIR=\\\"\${GWION_${key~~}_DIR}\\\"' >> Makefile" >> configure
+  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
 done
 
 echo 'echo "# add debug flags" >> Makefile' >> configure
@@ -284,19 +284,17 @@ for iter in $DBG
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
   val=$(echo "$iter" | cut -d ":" -f 2)
-  echo "echo -e 'ifeq (\${DEBUG_${key~~}}, on)\nCFLAGS += -DDEBUG_${key~~}\nendif' >> Makefile" >> configure
-  echo "echo -e 'ifeq (\${DEBUG_${key~~}}, 1)\nCFLAGS += -DDEBUG_${key~~}\nendif' >> Makefile" >> configure
+  echo "echo -e \"ifeq (\\\${DEBUG_${key~~}}, on)\nCFLAGS += -DDEBUG_${key~~}\nendif\" >> Makefile" >> configure
+  echo "echo -e \"ifeq (\\\${DEBUG_${key~~}}, 1)\nCFLAGS += -DDEBUG_${key~~}\nendif\" >> Makefile" >> configure
 done
 
 echo 'echo "# add soundpipe" >> Makefile' >> configure
-echo "echo -e 'LDFLAGS+=\${SOUNDPIPE_LIB}' >> Makefile" >> configure
-echo "echo -e 'CFLAGS+=\${SOUNDPIPE_INC}' >> Makefile" >> configure
+echo "echo -e \"LDFLAGS+=\\\${SOUNDPIPE_LIB}\" >> Makefile" >> configure
+echo "echo -e \"CFLAGS+=\\\${SOUNDPIPE_INC}\" >> Makefile" >> configure
 #os specific
 echo 'echo "# os specific" >> Makefile' >> configure
 # todo coverage
 # pthread
-
-#echo "[ $(uname) = \"Linux\" ] && echo \"LDFLAGS+=-lrt\" >> Makefile" >> configure
 
 cat << _EOF >> configure
 # initialize object lists
