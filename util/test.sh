@@ -8,12 +8,85 @@ set -m
 : "${async:=$ASYNC}"
 
 : "${SEVERITY:=4}"
-: "${async:=$SEVERITY}"
+: "${severity:=$SEVERITY}"
 
 #trap '[ -z $(jobs -p) ] && jobs -p | xargs kill' INT
 #trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' INT
 #trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' EXIT
 #trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' TERM
+
+assert_returns() {
+	[ "$1" -eq 0   ] && return 0
+	[ "$1" -eq 139 ] && echo "segfault" >> "$2"
+	return 1;
+}
+
+assert_contain() {
+	local contains
+	contains=$(grep "// \[contains\]" "$1" | cut -d "]" -f2)
+	contains=${contains:1}
+	[ -z "$contains" ] && return 0
+	grep "$contains" "$2" > /dev/null && return 0
+	"does not contain $contains" >> "$2"
+	return 1
+}
+
+assert_exclude() {
+	local contains
+	contains=$(grep "// \[exclude\]" "$1" | cut -d "]" -f2)
+	contains=${contains:1}
+	[ -z "$contains" ] && return 0
+	grep "$contains" "$2" > /dev/null || return 0
+	"does contain $contains" >> "$2"
+	return 1
+}
+
+assert_rw() {
+	grep "Invalid \(read\|write\) of size" "$2" > /dev/null || return 0
+	echo "invalid read/write" >> "$2"
+	return 1
+}
+
+assert_free() {
+	grep "Invalid free()" "$2" > /dev/null || return 0
+	echo "invalid free" >> "$2"
+	return 1
+}
+
+assert_initial() {
+	grep "Conditional jump or move depends on uninitialised value(s)" "$2"
+	echo "uninitialed value" >> "$2"
+	return 1
+}
+
+assert_syscall() {
+	grep "Syscall param .* uninitialised byte(s)" "$2" > /dev/null || return 0
+	echo "uninitialed value in syscall" >> "$2"
+	return 1
+}
+
+assert_mismatch() {
+	grep "Mismatched free() / delete / delete \[\]" "$2" > /dev/null || return 0
+	echo "mismatched free" >> "$2"
+	return 1
+}
+
+assert_overlap() {
+	grep "Source and destination overlap" "$2" > /dev/null || return 0
+	echo "mem overlap" >> "$2"
+	return 1
+}
+assert_fishy() {
+	grep "Argument 'size' of .* has a fishy (possibly negative) value:" "$2" > /dev/null || return 0
+	echo "fishy alloc" >> "$2"
+	return 1
+}
+
+assert_leak() {
+	grep "All heap blocks were freed -- no leaks are possible" > /dev/null && return 0
+	echo "mem leak" >> "$2"
+	return 1
+}
 
 read_test() {
 #	[ -f /tmp/gwt_bailout ] && exit 1
@@ -34,6 +107,18 @@ success() {
   if [ "$async" -eq 0 ]
   then echo "ok  $(printf "% 4i" "$n") $file"
   else  echo "ok $(printf "% 4i" "$n") $file" > "$log"
+  fi
+  return 0
+}
+
+fail() {
+  local n log
+  n=$1
+  file=$2
+  log=$3
+  if [ "$async" -eq 0 ]
+  then echo "not ok  $(printf "% 4i" "$n") $file"
+  else  echo "not ok $(printf "% 4i" "$n") $file" > "$log"
   fi
   return 0
 }
@@ -61,18 +146,29 @@ test_gw(){
   do_skip "$1" "$n" "" "$log" && return 0
   # enable todo
 
-  # check program runs
-#  [ "$severity" -lt 1 ] &&  success "$n" "$1" > "$file" && return 0
-#  check_return  "$ret" || fail "$n" "$log" "$file" || return 1
-
-  # check program output (include)
-#  [ $severity -lt 2 ] && success "$n" "$1" "$log" && return 0
-#  assert_contain "$2" "$1" "$log" || return 1
-  # cck program output (exclude)
-#  [ $severity -lt 3 ] && success "$n" "$1" "$log" && return 0
-#  assert_exclude "$2" "$1" "$log" || return 1
-#  [ $severity -lt 4 ] && success "$n" "$1" "$log" && return 0
-#  check_invalid "$2" "$1" "$log" || return 1
+  [ "$severity" -lt 1 ]         && success "$n" "$file" "$log" && return 0
+  assert_returns  "$ret" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 2 ]           && success "$n" "$file" "$log" && return 0
+  assert_contain "$file" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 3 ]           && success "$n" "$file" "$log" && return 0
+  assert_exclude "$file" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 4 ]           && success "$n" "$file" "$log" && return 0
+  assert_rw "$file" "$log"      || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 5 ]           && success "$n" "$file" "$log" && return 0
+  assert_initial "$file" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 6 ]           && success "$n" "$file" "$log" && return 0
+  assert_syscall "$file" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 7 ]           && success "$n" "$file" "$log" && return 0
+  assert_free "$file" "$log"    || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 8 ]           && success "$n" "$file" "$log" && return 0
+  assert_mismatch "$file" "$log"|| fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 9 ]           && success "$n" "$file" "$log" && return 0
+  assert_overlap "$file" "$log" || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 10 ]          && success "$n" "$file" "$log" && return 0
+  assert_fishy "$file" "$log"   || fail "$n" "$file" "$log" || return 1
+  [ $severity -lt 11 ]          && success "$n" "$file" "$log" && return 0
+  assert_leak "$file" "$log"    || fail "$n" "$file" "$log" || return 1
+  # check program memory leak
 #  [ $severity -lt 5 ] && echo "ok  $TEST_NUMBER" "$1" > "$log" && return 0
 #  check_leak "$log" || fail "$TEST_NUMBER" "$log" "$1" || return 1
 
@@ -117,15 +213,6 @@ echo "$len" "$2"
 }
 
 test_dir() {
-#	trap 'kill "${pids[@]}"' EXIT
-#	trap 'kill "${pids[@]}"' INT
-#	trap "kill 0" TERM
-#trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' INT
-#trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' EXIT
-#	trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' TERM
-#	trap 'jobs -p | xargs kill' EXIT
-	#trap "kill 0" INT
-	declare -a pids
 	local n offset l
 	l=0
     local n
@@ -135,17 +222,14 @@ test_dir() {
 	offset=$n
 	[ "$async" -lt 0 ] && set -m
 	found=0
-	ls "$1" | grep \.gw > /dev/null && found=1
+	ls "$1"/*.gw &> /dev/null && found=1
 	if [ "$found" -eq 1 ]
 	then
 	for file in "$1"/*.gw
 	do
 #		[ -f /tmp/gwt_bailout ] && exit 1
-		[ "$file" = "$1/*.gw" ] && continue
 		if [ "$async" -ne 0 ]
-		then
-        	test_gw "$file" "$n"&
-			pids+=($!)
+		then test_gw "$file" "$n"&
 		else test_gw "$file" "$n"
 		fi
 		n=$((n+1))
@@ -173,8 +257,7 @@ fi
 
 
 	found=0
-	ls "$1" | grep \.sh > /dev/null && found=1
-#	dir_contains "$1" ".sh" && found=1
+	ls "$1"/*.sh &> /dev/null && found=1
     if [ "$found" -eq 1 ]
 	then
 #		[ -f /tmp/gwt_bailout ] && exit 1
@@ -194,14 +277,7 @@ count_test(){
 	n_test=0
 	for arg in "$@"
 	do
-#			if [ "${arg:0:6}" = "async=" ]
-#		then async=$(echo "$arg" | cut -d '=' -f 2);
-#		elif [ "${arg:0:9}" = "severity=" ]
-#		then severity=$(echo "$arg" | cut -d '=' -f 2);
-#		elif [ "${arg:0:9}" = "bailout=" ]
-#		then bailout=$(echo "$arg" | cut -d '=' -f 2);
-#		el
-if [ -f "$arg" ]
+		if [ -f "$arg" ]
 		then
 			if [ "${arg: -3}" = ".gw" ]
 			then
@@ -228,7 +304,7 @@ do_test() {
 	for arg in "$@"
 	do
 		if [ "${arg:0:6}" = "async=" ]
-		then 
+    then
 			async=$(echo "$arg" | cut -d '=' -f 2);
 			[ "$async" -eq 1 ] && async=0
 		elif [ "${arg:0:9}" = "severity=" ]
