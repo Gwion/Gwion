@@ -90,13 +90,13 @@ assert_leak() {
 
 read_test() {
 #	[ -f /tmp/gwt_bailout ] && exit 1
-    while read -r line
-    do
-        if [ "$line" = "#*" ]
-        then printf "\t%s\n" line >&2
-        else echo "$line"
-        fi
-    done < "$1"
+  while read -r line
+  do
+    if [ "$line" = "#*" ]
+    then printf "\t%s\n" line >&2
+    else echo "$line"
+    fi
+  done < "$1"
 }
 
 success() {
@@ -132,10 +132,13 @@ do_skip() {
   SKIP=0
   skip=$(grep "// \[skip\]" "$1")
   [ "$skip" ] && SKIP=1
-  skip=$(echo "$skip" | cut -d ']' -f2 )
+  if [ "$1" = "*# Skip*" ]
+  then skip=$(echo "$skip" | cut -d ']' -f2 )
+  else skip=
+  fi
   [ $SKIP -eq 1 ] || return 1
   n=$(printf "% 4i" "$2")
-  echo "ok $n $3 # SKIP $skip" > "$4"
+  echo "ok  $(printf "% 4i" "$n") $3 # SKIP $skip" > "$4"
   return 0
 }
 
@@ -179,7 +182,7 @@ test_gw(){
 count_tests_sh(){
 	local count
 	count=$(grep "\[test\] #" "$1" | cut -d '#' -f 3)
-    echo "$count"
+  echo "$count"
 }
 
 count_tests(){
@@ -202,7 +205,6 @@ dir_contains() {
 	for file in "$1"/*
 	do
 		len=${#2}
-echo "$len" "$2"
 		if [ "${1: -$len}" = "$2" ]
 		then return 0
 		fi
@@ -213,10 +215,8 @@ echo "$len" "$2"
 test_dir() {
 	local n offset l
 	l=0
-    local n
 	n=$2
 	[ -z "$n"  ] && n=1
-	local offset
 	offset=$n
 	[ "$async" -lt 0 ] && set -m
 	found=0
@@ -251,7 +251,7 @@ test_dir() {
 		do read_test "/tmp/gwt_$(printf "%04i" "$i").log"
 		done
 	}
-fi
+  fi
 
 
 	found=0
@@ -356,17 +356,28 @@ consummer() {
 # success
     elif [ "${line:0:2}" = "ok" ]
     then
-      base=$(echo "$line" | cut -d "#" -f 1)
-      directive=$(echo "$line" | cut -d "#" -f 2)
-      printf "%s" "$base"
-      [ "$directive" ] && echo " # $directive"
       win=$((win+1))
-      [ "$line" = "* Todo *" ] && todo=$((todo+1))
-      [ "$line" = "* Skip *" ] && skip=$((skip+1))
+      if [ "$line" = "*#*" ]
+      then
+        base=$(echo "$line" | cut -d "#" -f 1)
+        directive=$(echo "$line" | cut -d "#" -f 2)
+        printf "%s" "$base"
+        [ "$directive" ] && echo " # $directive"
+        [ "$line" = "* Todo *" ] && todo=$((todo+1))
+        [ "$line" = "* Skip *" ] && skip=$((skip+1))
+      else echo "$line"
+      fi
 # bail out
     elif [ "${line:0:9}" = "Bail out!" ]
     then
-      echo "Bail out!"
+      if [ "$line" = "*#*" ]
+      then
+        base=$(echo "$line" | cut -d "#" -f 1)
+        directive=$(echo "$line" | cut -d "#" -f 2)
+        printf "%s" "$base"
+        [ "$directive" ] && echo " # $directive"
+      else echo "$line"
+      fi
       exit 1
     fi
 # ignore others
