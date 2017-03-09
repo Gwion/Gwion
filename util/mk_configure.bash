@@ -344,7 +344,7 @@ uninstall:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
 test:
-	@(bash -c "source util/test.sh; do_test severity=10 async=4 examples tests/error tests/tree tests/sh tests/bug & wait")
+	@(bash -c "source util/test.sh; do_test severity=10 async=4 examples tests/error tests/tree tests/sh tests/bug | consummer")
 EOF
 
 # ] <-- needed because of Argbash

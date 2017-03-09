@@ -17,7 +17,7 @@ set -m
 
 assert_returns() {
 	[ "$1" -eq 0   ] && return 0
-	[ "$1" -eq 139 ] && echo "segfault" >> "$2"
+	[ "$1" -eq 139 ] && echo "segfault" > "$2"
 	return 1;
 }
 
@@ -27,7 +27,7 @@ assert_contain() {
 	contains=${contains:1}
 	[ -z "$contains" ] && return 0
 	grep "$contains" "$2" > /dev/null && return 0
-	"does not contain $contains" >> "$2"
+	"does not contain $contains" > "$2"
 	return 1
 }
 
@@ -37,54 +37,54 @@ assert_exclude() {
 	contains=${contains:1}
 	[ -z "$contains" ] && return 0
 	grep "$contains" "$2" > /dev/null || return 0
-	"does contain $contains" >> "$2"
+	"does contain $contains" > "$2"
 	return 1
 }
 
 assert_rw() {
 	grep "Invalid \(read\|write\) of size" "$2" > /dev/null || return 0
-	echo "invalid read/write" >> "$2"
+	echo "invalid read/write" > "$2"
 	return 1
 }
 
 assert_free() {
 	grep "Invalid free()" "$2" > /dev/null || return 0
-	echo "invalid free" >> "$2"
+	echo "invalid free" > "$2"
 	return 1
 }
 
 assert_initial() {
-	grep "Conditional jump or move depends on uninitialised value(s)" "$2"
-	echo "uninitialed value" >> "$2"
+	grep "Conditional jump or move depends on uninitialised value(s)" "$2" > /dev/null || return 0
+	echo "uninitialed value" > "$2"
 	return 1
 }
 
 assert_syscall() {
 	grep "Syscall param .* uninitialised byte(s)" "$2" > /dev/null || return 0
-	echo "uninitialed value in syscall" >> "$2"
+	echo "uninitialed value in syscall" > "$2"
 	return 1
 }
 
 assert_mismatch() {
 	grep "Mismatched free() / delete / delete \[\]" "$2" > /dev/null || return 0
-	echo "mismatched free" >> "$2"
+	echo "mismatched free" > "$2"
 	return 1
 }
 
 assert_overlap() {
 	grep "Source and destination overlap" "$2" > /dev/null || return 0
-	echo "mem overlap" >> "$2"
+	echo "mem overlap" > "$2"
 	return 1
 }
 assert_fishy() {
 	grep "Argument 'size' of .* has a fishy (possibly negative) value:" "$2" > /dev/null || return 0
-	echo "fishy alloc" >> "$2"
+	echo "fishy alloc" > "$2"
 	return 1
 }
 
 assert_leak() {
-	grep "All heap blocks were freed -- no leaks are possible" > /dev/null && return 0
-	echo "mem leak" >> "$2"
+	grep "All heap blocks were freed -- no leaks are possible" "$2" > /dev/null && return 0
+	echo "mem leak" > "$2"
 	return 1
 }
 
@@ -100,27 +100,31 @@ read_test() {
 }
 
 success() {
-  local n log
+  local n log desc
   n=$1
-  file=$2
+  desc=$2
   log=$3
   if [ "$async" -eq 0 ]
-  then echo "ok  $(printf "% 4i" "$n") $file"
-  else  echo "ok $(printf "% 4i" "$n") $file" > "$log"
+  then echo "ok  $(printf "% 4i" "$n") $desc"
+  else echo "ok $(printf "% 4i" "$n") $desc" > "$log"
   fi
   return 0
 }
 
 fail() {
-  local n log
+  local n log desc
   n=$1
-  file=$2
+  desc=$2
   log=$3
   if [ "$async" -eq 0 ]
-  then echo "not ok  $(printf "% 4i" "$n") $file"
-  else  echo "not ok $(printf "% 4i" "$n") $file" > "$log"
+  then
+    echo "not ok $(printf "% 4i" "$n") $desc"
+    echo "# $(cat "$log")"
+  else
+    echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
+    echo "# $(cat "$log")" >> "$log"
   fi
-  return 0
+  return 1
 }
 
 do_skip() {
@@ -146,34 +150,28 @@ test_gw(){
   do_skip "$1" "$n" "" "$log" && return 0
   # enable todo
 
-  [ "$severity" -lt 1 ]         && success "$n" "$file" "$log" && return 0
-  assert_returns  "$ret" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 2 ]           && success "$n" "$file" "$log" && return 0
-  assert_contain "$file" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 3 ]           && success "$n" "$file" "$log" && return 0
-  assert_exclude "$file" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 4 ]           && success "$n" "$file" "$log" && return 0
-  assert_rw "$file" "$log"      || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 5 ]           && success "$n" "$file" "$log" && return 0
-  assert_initial "$file" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 6 ]           && success "$n" "$file" "$log" && return 0
-  assert_syscall "$file" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 7 ]           && success "$n" "$file" "$log" && return 0
-  assert_free "$file" "$log"    || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 8 ]           && success "$n" "$file" "$log" && return 0
-  assert_mismatch "$file" "$log"|| fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 9 ]           && success "$n" "$file" "$log" && return 0
-  assert_overlap "$file" "$log" || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 10 ]          && success "$n" "$file" "$log" && return 0
-  assert_fishy "$file" "$log"   || fail "$n" "$file" "$log" || return 1
-  [ $severity -lt 11 ]          && success "$n" "$file" "$log" && return 0
-  assert_leak "$file" "$log"    || fail "$n" "$file" "$log" || return 1
-  # check program memory leak
-#  [ $severity -lt 5 ] && echo "ok  $TEST_NUMBER" "$1" > "$log" && return 0
-#  check_leak "$log" || fail "$TEST_NUMBER" "$log" "$1" || return 1
-
-  #(check_lost "cat $1)" "[definitely|possibly|indirectly]" || check_leak "$(cat $1)") ||return 1
-
+  [ "$severity" -lt 1 ]          && success "$n" "$file" "$log" && return 0
+  assert_returns  "$ret" "$log"  || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 2 ]            && success "$n" "$file" "$log" && return 0
+  assert_contain  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 3 ]            && success "$n" "$file" "$log" && return 0
+  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 4 ]            && success "$n" "$file" "$log" && return 0
+  assert_rw       "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 5 ]            && success "$n" "$file" "$log" && return 0
+  assert_initial  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 6 ]            && success "$n" "$file" "$log" && return 0
+  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 7 ]            && success "$n" "$file" "$log" && return 0
+  assert_free     "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 8 ]            && success "$n" "$file" "$log" && return 0
+  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 9 ]            && success "$n" "$file" "$log" && return 0
+  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 10 ]           && success "$n" "$file" "$log" && return 0
+  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$log" || return 1
+  [ $severity -lt 11 ]           && success "$n" "$file" "$log" && return 0
+  assert_leak     "$file" "$log" || fail    "$n" "$file" "$log" || return 1
   success "$n" "$file" "$log" && return 0
 }
 
@@ -332,4 +330,48 @@ do_test() {
 			n_test=$((n_test + $(count_tests "$arg")))
 		fi
 	done
+}
+
+consummer() {
+  local win failure skip todo
+  win=0
+  failure=0
+  skip=0
+  todo=0
+  while read -r line
+  do
+# plan
+    if [ "${line:0:4}" = "1..." ]
+    then  echo "$line"
+# diagnostic
+    elif [ "${line:0:1}" = "#" ]
+    then
+      echo "$line" >&2
+      continue
+# failure
+    elif [ "${line:0:6}" = "not ok" ]
+    then
+      echo "$line" >&2
+      failure=$((failure+1))
+# success
+    elif [ "${line:0:2}" = "ok" ]
+    then
+      base=$(echo "$line" | cut -d "#" -f 1)
+      directive=$(echo "$line" | cut -d "#" -f 2)
+      printf "%s" "$base"
+      [ "$directive" ] && echo " # $directive"
+      win=$((win+1))
+      [ "$line" = "* Todo *" ] && todo=$((todo+1))
+      [ "$line" = "* Skip *" ] && skip=$((skip+1))
+# bail out
+    elif [ "${line:0:9}" = "Bail out!" ]
+    then
+      echo "Bail out!"
+      exit 1
+    fi
+# ignore others
+  done <&0
+  echo "# Success: $win $failure $skip $todo" >&2
+  [ "$failure" -gt 0 ] && return 1
+  return 0
 }
