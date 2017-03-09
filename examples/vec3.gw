@@ -1,4 +1,4 @@
-Vec3 v;
+Vec3 v, w;
 
 <<< v.x >>>;
 <<< v.y >>>;
@@ -7,10 +7,23 @@ Vec3 v;
 <<< 2 => v.y >>>;
 <<< -12 => v.z >>>;
 
-<<< "setAll",     v.setAll(1.2) >>>;
+<<< "set",       v.set(1,2,3)  >>>;  
+<<< "setAll",    v.setAll(1.2) >>>;
 <<< "should be 1.2 1.2 1.2", v >>>;
+<<< "Update", v.update(2)>>>;
+<<< "Update", v.update(2, .1)>>>;
+<<< "Update", v.supdate(2)>>>;
+<<< "Update", v.supdate(2, .1)>>>;
 <<< "magnitude", v.magnitude() >>>;
 <<< "normalize", v.normalize() >>>;
 <<< "interp",    v.interp() >>>;
 <<< "interp",    v.interp(2.3) >>>;
 <<< "interp",    v.interp(2.3::samp) >>>;
+
+w.setAll(1);
+v+w;
+v-w;
+v*w;
+v/.1;
+10.*w;
+w*10.;
