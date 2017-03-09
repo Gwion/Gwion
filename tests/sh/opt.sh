@@ -109,3 +109,6 @@ run "$n" "backend (short)" "-e test_backend" "file"
 n=$((n+1))
 run "$n" "backend (long)" "--backend test_backend" "file"
 
+n=$((n+1))
+run "$n" "wrong file" "non_existant_file" "file"
+
