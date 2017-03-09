@@ -226,8 +226,8 @@ test_dir() {
 	offset=$n
 	[ "$async" -lt 0 ] && set -m
 	found=0
-	ls "$1"/*.gw &> /dev/null && found=1
-	if [ "$found" -eq 1 ]
+  grep "\.gw" <<< "$(ls "$1")" &> /dev/null && found=1
+  if [ "$found" -eq 1 ]
 	then
 	for file in "$1"/*.gw
 	do
@@ -261,8 +261,8 @@ test_dir() {
 
 
 	found=0
-	ls "$1"/*.sh &> /dev/null && found=1
-    if [ "$found" -eq 1 ]
+  grep "\.sh" <<< "$(ls "$1")" &> /dev/null && found=1
+  if [ "$found" -eq 1 ]
 	then
 #		[ -f /tmp/gwt_bailout ] && exit 1
 		for file in "$1"/*.sh
