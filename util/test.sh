@@ -130,10 +130,24 @@ do_skip() {
   fi
   [ $SKIP -eq 1 ] || return 1
   n=$(printf "% 4i" "$2")
-  echo "ok  $(printf "% 4i" "$n") $3 # SKIP $skip" > "$4"
+  echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
   return 0
 }
 
+do_todo() {
+  local n SKIP skip
+  SKIP=0
+  skip=$(grep "// \[todo\]" "$1")
+  [ "$skip" ] && SKIP=1
+  if [ "$1" = "*# Skip*" ]
+  then skip=$(echo "$skip" | cut -d ']' -f2 )
+  else skip=
+  fi
+  [ $SKIP -eq 1 ] || return 1
+  n=$(printf "% 4i" "$2")
+  echo "ok  $(printf "% 4i" "$n") $3 # todo $skip" > "$4"
+  return 0
+}
 test_gw(){
   local n file log ret
   n=$(($2))
