@@ -201,7 +201,7 @@ run() {
 }
 
 after_success() {
-	for a in tests/bug/*; do ./gwion "$a"; done;
+#	for a in tests/bug/*; do ./gwion "$a"; done;
 	bash util/coverage.sh run
 
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
