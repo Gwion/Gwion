@@ -1,19 +1,11 @@
 #!/bin/bash
-#declare -a dirs
 set -m
-#declare n_test
-#n_test=0
 
-: "${ASYNC:=4}"
+: "${ASYNC:=0}"
 : "${async:=$ASYNC}"
 
-: "${SEVERITY:=4}"
+: "${SEVERITY:=10}"
 : "${severity:=$SEVERITY}"
-
-#trap '[ -z $(jobs -p) ] && jobs -p | xargs kill' INT
-#trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' INT
-#trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' EXIT
-#trap 'jobs -p | xargs kill -TERM &> /dev/null; wait' TERM
 
 assert_returns() {
 	[ "$1" -eq 0   ] && return 0
@@ -153,23 +145,23 @@ test_gw(){
   do_skip "$1" "$n" "" "$log" && return 0
   # enable todo
 
-  [ "$severity" -lt 1 ]          && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 1  ]           && success "$n" "$file" "$log" && return 0
   assert_returns  "$ret" "$log"  || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 2 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 2  ]           && success "$n" "$file" "$log" && return 0
   assert_contain  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 3 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 3  ]           && success "$n" "$file" "$log" && return 0
   assert_exclude  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 4 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 4  ]           && success "$n" "$file" "$log" && return 0
   assert_rw       "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 5 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 5  ]           && success "$n" "$file" "$log" && return 0
   assert_initial  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 6 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 6  ]           && success "$n" "$file" "$log" && return 0
   assert_syscall  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 7 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 7  ]           && success "$n" "$file" "$log" && return 0
   assert_free     "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 8 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 8  ]           && success "$n" "$file" "$log" && return 0
   assert_mismatch "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 9 ]            && success "$n" "$file" "$log" && return 0
+  [ $severity -lt 9  ]           && success "$n" "$file" "$log" && return 0
   assert_overlap  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
   [ $severity -lt 10 ]           && success "$n" "$file" "$log" && return 0
   assert_fishy    "$file" "$log" || fail    "$n" "$file" "$log" || return 1
