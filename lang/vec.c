@@ -324,17 +324,17 @@ m_bool import_vec3(Env env)
   fun = new_DL_Func("float", "interp", (m_uint)vec3_dur);
   dl_func_add_arg(fun, "dur", "delta");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "update", (m_uint)vec3_update);
+  fun = new_DL_Func("void", "update", (m_uint)vec3_update);
   dl_func_add_arg(fun, "float", "goal");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "update", (m_uint)vec3_update_slew);
+  fun = new_DL_Func("void", "update", (m_uint)vec3_update_slew);
   dl_func_add_arg(fun, "float", "goal");
   dl_func_add_arg(fun, "float", "slew");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "supdate", (m_uint)vec3_update_set);
+  fun = new_DL_Func("void", "supdate", (m_uint)vec3_update_set);
   dl_func_add_arg(fun, "float", "goalAndValue");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("float", "supdate", (m_uint)vec3_update_set_slew);
+  fun = new_DL_Func("void", "supdate", (m_uint)vec3_update_set_slew);
   dl_func_add_arg(fun, "float", "goalAndValue");
   dl_func_add_arg(fun, "float", "slew");
   CHECK_OB(import_mfun(env, fun))
