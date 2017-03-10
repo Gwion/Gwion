@@ -68,10 +68,12 @@ function print_gen_func(name, func)
 	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
 	local i = 1;
 	local args = "";
-	while func.params[i]  do
-		declare_c_param(func.params[i])
-		args =	string.format("%s, %s", args , func.params[i].name)
-		i = i+1
+	if(func.params ~= nil) then
+		while func.params[i]  do
+			declare_c_param(func.params[i])
+			args =	string.format("%s, %s", args , func.params[i].name)
+			i = i+1
+		end
 	end
 	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
 	print("\tFTBL(o) = ftbl;")
