@@ -109,17 +109,16 @@ op2sign() {
 init_variable() {
 	[ "$1" = " NULL" ] && return
 	printf "\t%s\t%s;\n" "$1" "$2" >> "$3"
-	[ "$1" = "ftbl"  ] && {
-		echo "\t\tft.gen_sine(1024)" >> "$3"
-    }
+	[ "$1" = "ftbl"  ] && printf "\t\tft.gen_sine(1024)" >> "$3" # seems useless
 }
 
 type_operator() {
-    operator=$(op2sign $(echo "$1" | cut -d ',' -f2))
-    left=$(echo "$1" | cut -d ',' -f3 | sed 's/\&//')
-    right=$(echo "$1" | cut -d ',' -f4 | sed 's/\&//')
-    [ "$left" = " NULL" ] || left=$(defs2name $left)
-    [ "$right" = " NULL" ] || right=$(defs2name $right)
+    operator=$(echo "$1" | cut -d ',' -f2 | xargs)
+    operator=$(op2sign "$operator")
+    left=$(echo "$1"  | cut -d ',' -f3 | sed 's/\&//' | xargs)
+    right=$(echo "$1" | cut -d ',' -f4 | sed 's/\&//' | xargs)
+    [ "$left" = " NULL" ] || left=$(defs2name "$left")
+    [ "$right" = " NULL" ] || right=$(defs2name "$right")
     echo "//testing operator for $left and $right" >> "$2"
     printf "{\n" >> "$2"
 #    [ "$left"  ] && printf "\t%s\tvariable1;\n" "$left"  >> "$2"
@@ -217,22 +216,24 @@ run() {
 }
 
 after_success() {
+	local EXCLUDE_TARGET # should be array
+	local EXCLUDE
+
 	bash util/coverage.sh run
 
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
     EXCLUDE_TARGET+=" $BISON_VERSION"
     EXCLUDE_TARGET+=" Soundpipe"
-    EXCLUDE_TARGET+=" bison bats lua_install "
-    EXCLUDE_TARGET+=" examples coverage"
+    EXCLUDE_TARGET+=" bison"
+    EXCLUDE_TARGET+=" examples"
     EXCLUDE_TARGET+=" drvr"
-    EXCLUDE_TARGET+=" lua_install"
+    EXCLUDE_TARGET+=" Gwion_plug"
 
-	local EXCLUDE
     for exclude in $EXCLUDE_TARGET
 	do
 		EXCLUDE+=" --exclude $exclude"
 	done
-	coveralls $EXCLUDE --gcov-options '\-lp'
+	bash -c "coveralls $EXCLUDE --gcov-options '\-lp'"
 }
 
 [ -z "$1" ] && usage
