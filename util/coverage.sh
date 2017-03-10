@@ -115,7 +115,6 @@ init_variable() {
 }
 
 type_operator() {
-echo "op $1 $(echo "$1" | cut -d ',' -f3 | sed 's/\&//') $(echo "$1" | cut -d ',' -f4 | sed 's/\&//')"
     operator=$(op2sign $(echo "$1" | cut -d ',' -f2))
     left=$(echo "$1" | cut -d ',' -f3 | sed 's/\&//')
     right=$(echo "$1" | cut -d ',' -f4 | sed 's/\&//')
