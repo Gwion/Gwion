@@ -276,7 +276,7 @@ for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
   val=$(echo "$dir" | cut -d ":" -f 2)
-  echo "echo 'CFLAGS+= -DGWION_${key~~}_DIR=\\\"\${GWION_${key~~}_DIR}\\\"' >> Makefile" >> configure
+  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
 done
 
 echo 'echo "# add debug flags" >> Makefile' >> configure
@@ -284,13 +284,13 @@ for iter in $DBG
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
   val=$(echo "$iter" | cut -d ":" -f 2)
-  echo "echo -e 'ifeq (\${DEBUG_${key~~}}, on)\nCFLAGS += -DDEBUG_${key~~}\nendif' >> Makefile" >> configure
-  echo "echo -e 'ifeq (\${DEBUG_${key~~}}, 1)\nCFLAGS += -DDEBUG_${key~~}\nendif' >> Makefile" >> configure
+  echo "printf \"ifeq (\\\${DEBUG_${key~~}}, on)\nCFLAGS += -DDEBUG_${key~~}\nendif\n\" >> Makefile" >> configure
+  echo "printf \"ifeq (\\\${DEBUG_${key~~}}, 1)\nCFLAGS += -DDEBUG_${key~~}\nendif\n\"  >> Makefile" >> configure
 done
 
 echo 'echo "# add soundpipe" >> Makefile' >> configure
-echo "echo -e 'LDFLAGS+=\${SOUNDPIPE_LIB}' >> Makefile" >> configure
-echo "echo -e 'CFLAGS+=\${SOUNDPIPE_INC}' >> Makefile" >> configure
+echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\" >> Makefile" >> configure
+echo "echo \"CFLAGS+=\${SOUNDPIPE_INC}\"  >> Makefile" >> configure
 #os specific
 echo 'echo "# os specific" >> Makefile' >> configure
 # todo coverage
