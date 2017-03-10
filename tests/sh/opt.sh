@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #32
+# [test] #34
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -109,6 +109,7 @@ run "$n" "backend (short)" "-e test_backend" "file"
 n=$((n+1))
 run "$n" "backend (long)" "--backend test_backend" "file"
 
+# wrong file
 n=$((n+1))
 run "$n" "wrong file" "non_existant_file" "file"
 
