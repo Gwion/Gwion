@@ -106,16 +106,27 @@ op2sign() {
     return 1
 }
 
+init_variable() {
+	[ "$1" = " NULL" ] && return
+	printf "\t%s\t%s;\n" "$1" "$2" >> "$3"
+	[ "$1" = "ftbl"  ] && {
+		echo "\t\tft.gen_sine(1024)" >> "$3"
+    }
+}
+
 type_operator() {
-    operator=$(op2sign "$(echo "$1" | cut -d ',' -f2)")
+echo "op $1 $(echo "$1" | cut -d ',' -f3 | sed 's/\&//') $(echo "$1" | cut -d ',' -f4 | sed 's/\&//')"
+    operator=$(op2sign $(echo "$1" | cut -d ',' -f2))
     left=$(echo "$1" | cut -d ',' -f3 | sed 's/\&//')
     right=$(echo "$1" | cut -d ',' -f4 | sed 's/\&//')
-    [ "$left" = " NULL" ] || left=$(defs2name "$(echo "$1" | cut -d ',' -f3 | sed 's/\&//')")
-    [ "$right" = " NULL" ] || right=$(defs2name "$(echo "$1" | cut -d ',' -f4 | sed 's/\&//')")
+    [ "$left" = " NULL" ] || left=$(defs2name $left)
+    [ "$right" = " NULL" ] || right=$(defs2name $right)
     echo "//testing operator for $left and $right" >> "$2"
     printf "{\n" >> "$2"
-    [ "$left"  ] && printf "\t%s\tvariable1;\n" "$left"  >> "$2"
-    [ "$right" ] && printf "\t%s\tvariable2;\n" "$right" >> "$2"
+#    [ "$left"  ] && printf "\t%s\tvariable1;\n" "$left"  >> "$2"
+#    [ "$right" ] && printf "\t%s\tvariable2;\n" "$right" >> "$2"
+	init_variable "$left"  "variable1" "$2"
+	init_variable "$right" "variable2" "$2"
     printf "\t<<< " >> "$2"
     [ "$left"  ] && printf "variable1" >> "$2"
     printf "%s" "$operator" >> "$2"
@@ -152,7 +163,11 @@ generate() {
                 printf "\t%s" "$(echo "$line" |cut -d '"' -f 4)" >> "$2/$type_name.gw"
             fi
             arg_list_global+=$(echo "$line" |cut -d '"' -f 4):
-            printf ";\n" >> "$type_name.gw" && continue
+            printf ";\n" >> "$type_name.gw"
+			[ "$var_type" = "ftbl" ] && {
+				echo -e "\t$(echo "$line" |cut -d '"' -f 4).init(1024);" >> "$2/$type_name.gw"
+ 			}
+			continue
         }
         check_line "$line" "import_[s|m]fun" && {
             type_function "$FUNC" "${#arg_list_global[@]}" "$2/$type_name.gw"
@@ -174,11 +189,8 @@ type_function() {
 }
 
 check_line() {
-	local ret
-	ret=$(echo "$1" | grep "$2" > /dev/null)
-	[ -z "$ret" ] && return 1
-	return 0
-#    return $(echo "$1" | grep "$2" > /dev/null)
+	echo "$1" | grep "$2" > /dev/null && return 0
+	return 1
 }
 
 type_variable() {

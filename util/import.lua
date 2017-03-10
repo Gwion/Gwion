@@ -15,6 +15,7 @@ function declare_c_param(param)
 	elseif string.match(param.type, "char%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
 		print("\tm_str "..param.name.." = STRING("..param.name.."_obj);")
+		print("\trelease("..param.name.."_obj, shred);")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
 		print("\tm_uint "..param.name.."_iter;")
@@ -27,6 +28,8 @@ function declare_c_param(param)
 	elseif string.match(param.type, "sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
+		print("\trelease("..param.name.."_obj, shred);")
+		print("\tif(!"..param.name..") {\n\t\tExcept(shred)\n\t\trelease(o, shred);\n\t\treturn;\n\t}")
 	else
 		print("unknown type:", param.type, ".")
 		os.exit(1)
@@ -71,6 +74,7 @@ function print_gen_func(name, func)
 		i = i+1
 	end
 	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
+	print("\tFTBL(o) = ftbl;")
 --	print("error:\n\tsp_ftbl_destroy(&ftbl);")
 	print("}\n")
 end
@@ -131,6 +135,7 @@ function print_mod_func(name, mod)
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
     if(nmandatory > 0) then
 		print("\tug->is_init = 0;")
+		print("\tug->osc = NULL;")
 	else
 		print("\tsp_"..name.."_create(&ug->osc);")
 		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
@@ -162,23 +167,25 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
+		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n\t\tug->osc = NULL;\t}");
 		print("\tsp_"..name.."_create(&ug->osc);")
 		print("\tsp_"..name.."_init(ug->sp, ug->osc, "..args..");")
 		print("\tug->is_init = 1;\n}\n")
 	end
-	if nmandatory == 1 then
-		local tbl = mod.params.mandatory
-		if tbl then
-			for _, v in pairs(tbl) do
-				print("MFUN("..name.."_"..v.name..")\n{")
-				print("\tm_uint gw_offset = SZ_INT;")
-				print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
-				declare_c_param(v)
-				print("\tsp_"..name.."_init(ug->sp, ug->osc, "..v.name..");")
-				print("}\n")
-			end
-		end
-	end
+-- helper
+--	if nmandatory == 1 then
+--		local tbl = mod.params.mandatory
+--		if tbl then
+--			for _, v in pairs(tbl) do
+--				print("MFUN("..name.."_"..v.name..")\n{")
+--				print("\tm_uint gw_offset = SZ_INT;")
+--				print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
+--				declare_c_param(v)
+--				print("\tsp_"..name.."_init(ug->sp, ug->osc, "..v.name..");")
+--				print("}\n")
+--			end
+--		end
+--	end
 	local opt = mod.params.optional
 	if opt then
 		for _, v in pairs(opt) do
@@ -291,7 +298,8 @@ for n in ipairs(a) do
 	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
 		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
-		local i = 1;
+		local i = 1; -- why this 'i' ?
+		print("\t\targ = dl_func_add_arg(fun, \"int\", \"size\");")
 		while object.params[i]  do
 			declare_gw_param(object.params[i])
 			i = i+1
@@ -317,14 +325,15 @@ for n in ipairs(a) do
 				nmandatory = nmandatory + 1
 			end
 		end
-		if nmandatory == 1 then
-			for _, v in pairs(tbl) do
-				print("\tfun = new_DL_Func(\"void\", \""..v.name.."\", (m_uint)"..mod_name.."_init);")
-				declare_gw_param(v)
-			end
-			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("\tf", object)
-		end
+-- helper.
+--		if nmandatory == 1 then
+--			for _, v in pairs(tbl) do
+--				print("\tfun = new_DL_Func(\"void\", \""..v.name.."\", (m_uint)"..mod_name.."_init);")
+--				declare_gw_param(v)
+--			end
+--			print("\tCHECK_OB((f = import_mfun(env, fun)))")
+--			make_doc("\tf", object)
+--		end
 		if nmandatory > 0 then
 				print("\tfun = new_DL_Func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
 			local tbl = object.params.mandatory
