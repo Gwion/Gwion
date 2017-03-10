@@ -4,18 +4,6 @@
 #include "absyn.h"
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
-m_str type_name(Type type)
-{
-  m_uint i;
-  char c[1024];
-  Vector v = new_Vector();
-  memset(c, 0, 1024);
-  for(i = 0; i < type->array_depth; i++)
-    strcat(c, "[]");
-  strcat(c, (m_str)vector_at(v, i));
-  free_Vector(v);
-  return strdup(c);
-}
 
 int verify_array(Array_Sub array)
 {
