@@ -213,6 +213,7 @@ generate_files() {
 run() {
 	generate_files "$1"
 	source util/test.sh; do_test "$PWD"
+	source util/test.sh; do_test "tests/ugen_coverage"
 }
 
 after_success() {
