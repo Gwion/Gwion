@@ -1,0 +1,15 @@
+class C
+{
+	static int     i;
+	static float   f;
+	static complex c;
+	static Vec3    v;
+	static Vec4    w;
+	static Object  o;
+}
+<<<C.i>>>;
+<<<C.f>>>;
+<<<C.c>>>;
+<<<C.v>>>;
+<<<C.w>>>;
+<<<C.o>>>;
