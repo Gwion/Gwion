@@ -129,10 +129,10 @@ function print_mod_func(name, mod)
 	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
-	print("\tsp_"..name.."_create(&ug->osc);")
-  if(nmandatory > 0) then
+    if(nmandatory > 0) then
 		print("\tug->is_init = 0;")
 	else
+		print("\tsp_"..name.."_create(&ug->osc);")
 		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
 	end
 	print("\to->ugen->tick = "..name.."_tick;")
@@ -142,8 +142,9 @@ function print_mod_func(name, mod)
 	if(nmandatory > 0) then
 		print("\tif(ug->is_init)\n\t\tsp_"..name.."_destroy(&ug->osc);")
 	else
-	print("\tsp_"..name.."_destroy(&ug->osc);")
+		print("\tsp_"..name.."_destroy(&ug->osc);")
 	end
+	print("\tfree(ug);");
 	print("}\n")
 	if nmandatory > 0 then
 		print("MFUN("..name.."_init)\n{")
@@ -161,8 +162,9 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
+		print("\tsp_"..name.."_create(&ug->osc);")
 		print("\tsp_"..name.."_init(ug->sp, ug->osc, "..args..");")
-		print("}\n")
+		print("\tug->is_init = 1;\n}\n")
 	end
 	if nmandatory == 1 then
 		local tbl = mod.params.mandatory
@@ -283,7 +285,7 @@ print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
 print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
 print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
-
+print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0, \"internal data for ftbl\");")
 for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]
