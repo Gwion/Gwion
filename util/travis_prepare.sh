@@ -35,8 +35,8 @@ install_bison() {
 }
 
 install_soundpipe() {
-#	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
-	git clone -b "$SP_BRANCH" https://github.com/fennecdjay/Soundpipe.git
+	git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
+#	git clone -b "$SP_BRANCH" https://github.com/fennecdjay/Soundpipe.git
 	pushd Soundpipe
 #	[ "$USE_DOUBLE" -eq 1 ] && export SP_FLOAT="double"
 	[ "$USE_DOUBLE" -eq 0 ] && export SPFLOAT="float"
