@@ -227,7 +227,7 @@ after_success() {
     EXCLUDE_TARGET+=" bison"
     EXCLUDE_TARGET+=" examples"
     EXCLUDE_TARGET+=" drvr"
-    EXCLUDE_TARGET+=" Gwion_plug"
+    EXCLUDE_TARGET+=" Gwion-plug"
 
     for exclude in $EXCLUDE_TARGET
 	do
