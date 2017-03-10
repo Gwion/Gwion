@@ -174,7 +174,11 @@ type_function() {
 }
 
 check_line() {
-    return $(echo "$1" | grep "$2" > /dev/null)
+	local ret
+	ret=$(echo "$1" | grep "$2" > /dev/null)
+	[ -z "$ret" ] && return 1
+	return 0
+#    return $(echo "$1" | grep "$2" > /dev/null)
 }
 
 type_variable() {
@@ -201,7 +205,6 @@ run() {
 }
 
 after_success() {
-#	for a in tests/bug/*; do ./gwion "$a"; done;
 	bash util/coverage.sh run
 
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"

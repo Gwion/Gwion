@@ -75,7 +75,7 @@ run "$n" "bufnum (long)" "--bufnum 3" "file"
 
 # bufsize
 n=$((n+1))
-run "$n" "bufsize (short)" "-i 256" "file"
+run "$n" "bufsize (short)" "-b 256" "file"
 n=$((n+1))
 run "$n" "bufsize (long)" "--bufsize 256" "file"
 
@@ -83,7 +83,7 @@ run "$n" "bufsize (long)" "--bufsize 256" "file"
 n=$((n+1))
 run "$n" "raw (short)" "-r" "file"
 n=$((n+1))
-run "$n" "raw (long)" "--r" "file"
+run "$n" "raw (long)" "--raw" "file"
 
 # samplerate
 n=$((n+1))
