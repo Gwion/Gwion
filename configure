@@ -698,11 +698,41 @@ echo -e "ifeq (\${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nels
 echo "# add definitions" >> Makefile
 echo 'CFLAGS+= -DD_FUNC=dummy_driver' >> Makefile
 echo "# add directories" >> Makefile
-echo "CFLAGS+= -DGWION_API_DIR=\"\${GWION_API_DIR}\"" >> Makefile
-echo "CFLAGS+= -DGWION_DOC_DIR=\"\${GWION_DOC_DIR}\"" >> Makefile
-echo "CFLAGS+= -DGWION_TAG_DIR=\"\${GWION_TAG_DIR}\"" >> Makefile
-echo "CFLAGS+= -DGWION_TOK_DIR=\"\${GWION_TOK_DIR}\"" >> Makefile
-echo "CFLAGS+= -DGWION_ADD_DIR=\"\${GWION_ADD_DIR}\"" >> Makefile
+printf 'CFLAGS+= -DGWION_API_DIR=' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '${GWION_API_DIR}' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '\n' >> Makefile
+printf 'CFLAGS+= -DGWION_DOC_DIR=' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '${GWION_DOC_DIR}' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '\n' >> Makefile
+printf 'CFLAGS+= -DGWION_TAG_DIR=' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '${GWION_TAG_DIR}' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '\n' >> Makefile
+printf 'CFLAGS+= -DGWION_TOK_DIR=' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '${GWION_TOK_DIR}' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '\n' >> Makefile
+printf 'CFLAGS+= -DGWION_ADD_DIR=' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '${GWION_ADD_DIR}' >> Makefile
+printf '\' >> Makefile
+printf '"' >> Makefile
+printf '\n' >> Makefile
 echo "# add debug flags" >> Makefile
 printf "ifeq (\${DEBUG_COMPILE}, on)\nCFLAGS += -DDEBUG_COMPILE\nendif\n" >> Makefile
 printf "ifeq (\${DEBUG_COMPILE}, 1)\nCFLAGS += -DDEBUG_COMPILE\nendif\n"  >> Makefile

@@ -276,7 +276,16 @@ for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
   val=$(echo "$dir" | cut -d ":" -f 2)
-  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
+#  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
+  echo "printf 'CFLAGS+= -DGWION_${key~~}_DIR=' >> Makefile" >> configure
+#  echo "printf\"\\\"\\\${GWION_${key~~}_DIR}\\\\" >> Makefile" >> configure
+  echo "printf '\' >> Makefile" >> configure
+  echo "printf '\"' >> Makefile" >> configure
+  echo "printf '\${GWION_${key~~}_DIR}' >> Makefile" >> configure
+  echo "printf '\' >> Makefile" >> configure
+  echo "printf '\"' >> Makefile" >> configure
+  echo "printf '\n' >> Makefile" >> configure
+#  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
 done
 
 echo 'echo "# add debug flags" >> Makefile' >> configure
