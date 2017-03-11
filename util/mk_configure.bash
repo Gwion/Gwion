@@ -227,7 +227,7 @@ echo '' >> Makefile
 	for tgt in "core" "lang" "ugen" "eval"
 	do echo "\${tgt}_src := \\\$(wildcard \${tgt}/*.c)"
 	done
-	printf "drvr_src := drvr/driver.c\n\n# add libraries"
+	printf "drvr_src := drvr/driver.c\n\n# add libraries\n"
 } >> Makefile
 EOF
 

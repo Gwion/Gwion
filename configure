@@ -678,7 +678,7 @@ echo '' >> Makefile
 	for tgt in "core" "lang" "ugen" "eval"
 	do echo "${tgt}_src := \$(wildcard ${tgt}/*.c)"
 	done
-	printf "drvr_src := drvr/driver.c\n\n# add libraries"
+	printf "drvr_src := drvr/driver.c\n\n# add libraries\n"
 } >> Makefile
 echo -e "ifeq (\${DUMMY_D}, on)\nCFLAGS += -DHAVE_DUMMY\ndrvr_src += drvr/dummy.c\nelse ifeq (\${DUMMY_D}, 1)\nCFLAGS +=-DHAVE_DUMMY\ndrvr_src +=drvr/dummy.c\nendif\n" >> Makefile
 echo -e "ifeq (\${SPA_D}, on)\nCFLAGS += -DHAVE_SPA\ndrvr_src += drvr/spa.c\nelse ifeq (\${SPA_D}, 1)\nCFLAGS +=-DHAVE_SPA\ndrvr_src +=drvr/spa.c\nendif\n" >> Makefile
