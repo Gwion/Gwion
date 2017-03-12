@@ -1,7 +1,7 @@
 #!/bin/bash
 set -m
 
-: "${ASYNC:=2}"
+: "${ASYNC:=0}"
 : "${async:=$ASYNC}"
 
 : "${SEVERITY:=10}"
@@ -241,9 +241,6 @@ test_dir() {
 		[ "$async" -ne 0 ] && {
 			if [ $((n % async)) -eq 0 ]
 			then
-for job in `jobs -p`
-do wait $job
-done
 				wait
 				for i in $(seq $offset $n)
 				do
@@ -254,9 +251,6 @@ done
 		}
 	done
  	[ "$async" -ne 0 ] && {
-for job in `jobs -p`
-do wait $job
-done
 		wait
 		local rest=$((n%async))
 		for i in $(seq $((n-rest+1))  $((n-1)))
