@@ -239,10 +239,10 @@ test_dir() {
 		n=$((n+1))
 		l=$((l+1))
 		[ "$async" -ne 0 ] && {
-			sleep .1 # why?
 			if [ $((n % async)) -eq 0 ]
 			then
-				wait;
+				wait
+				wait
 				for i in $(seq $offset $n)
 				do
 					read_test "/tmp/gwt_$(printf "%04i" "$i").log"
@@ -252,6 +252,7 @@ test_dir() {
 		}
 	done
  	[ "$async" -ne 0 ] && {
+		wait
 		wait
 		local rest=$((n%async))
 		for i in $(seq $((n-rest+1))  $((n-1)))
