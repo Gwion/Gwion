@@ -239,6 +239,7 @@ test_dir() {
 		n=$((n+1))
 		l=$((l+1))
 		[ "$async" -ne 0 ] && {
+			sleep .1 # why?
 			if [ $((n % async)) -eq 0 ]
 			then
 				wait;
