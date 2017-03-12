@@ -16,7 +16,7 @@ addons:
 
 cache:
   directories:
-	- Soundpipe
+    - Soundpipe
 
 before_cache:
   - bash util/travis_prepare.sh check_soundpipe
