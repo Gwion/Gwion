@@ -33,13 +33,14 @@ build_soundpipe() {
 }
 
 check_soundpipe() {
-	[ -d Soundpipe ] || {
+rm Soundpipe
+#	[ -d Soundpipe ] || {
 		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		pushd Soundpipe
 		build_soundpipe
 		popd
 		return 0
-	}
+#		}
 	pushd Soundpipe
 	git fetch
 	[ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ] || build_soundpipe
