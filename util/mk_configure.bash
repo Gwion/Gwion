@@ -356,9 +356,7 @@ uninstall:
 	@echo "'gwion' is in pre-alpha stage, no install for now."
 
 test:
-#	@(bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/bug | consummer")
 	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/bug | consummer"
-#	\\\$(shell source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/bug)
 
 parser:
 	\\\${YACC} -o eval/parser.c -dv eval/gwion.y -x
