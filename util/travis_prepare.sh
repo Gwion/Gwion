@@ -89,6 +89,7 @@ prepare_directories() {
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
 
 install_bison
-install_soundpipe
+#install_soundpipe
+check_soundpipe
 prepare_directories
 exit 0

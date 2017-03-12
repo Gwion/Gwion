@@ -18,8 +18,8 @@ cache:
   directories:
     - Soundpipe
 
-before_cache:
-  - bash util/travis_prepare.sh check_soundpipe
+#before_cache:
+#  - bash util/travis_prepare.sh check_soundpipe
 
 env:
   global:
