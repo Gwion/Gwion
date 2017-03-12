@@ -1,9 +1,31 @@
+dist: trusty
 language: c
+sudo: false
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    - lua5.2
+    - valgrind
+    - libsndfile1
+    - libsndfile1-dev
+
+cache:
+  directories:
+	- Soundpipe
+
+before_cache:
+  - bash util/travis_prepare.sh check_soundpipe
 
 env:
   global:
-    - secure: "DnhraXW8wdrP5UzvQbAtarIUFk0i78py+in2VHphS7PG4Tp2qmAyAcf3NNZTm75E/vDQbeGQpEPHORxYxHr3KLfhpqeumQ+o/TzGD42zNHOedSKmr4khVkYohAaI7yC/+j/W5ndvnohMdrNAkdxVMg6g1HmY8nqnn41qHzebqzpFytxbBQpNe4pCxHZb4ujArxFIZcaYSudQS5CpdEzVafZvtcqLyZzrgpH+ys8AYxbspdHT5VvY/cG4fZZyfz9v3I/YadP+/Yes+CbAeZHdv3+2vBiXllHspcfkSA5yS93Mmzm0zT1obl3F1TCIQG7BDML96haZfW7sqcYXMnJfK5TamUGB1pVDf8kV10rm+Fc8jlnmmdQENktaPZs+5Y4SEcFdc9mgjDPjvxQ1vXr5LkJs/daNzhhK8psSy/PcVKKrpuHEc9I3VVE8MN81f+HYIdkM428H7H8nUqAxutvvrIES3ZA2U/+Yyzb4i+G1FQGzynM3YJkjoSWoXMjoMY9Mu1Posvbs6bAgS7nHOX2IHS+WUezjEb4A9eL7nfIn1WMMFKTv73yIVsykjPCNnQBasZakleRgsUrcqvRDR3ak42xjOlTw+PN07F/3szuA8Uk06us/6F2kABu+FZmX+hkHmONmFRF5biB2T4nyWZqoQgB/DB+G/kQ4On+WmvMkSkk="
-    - secure: "wfw4th54cfcaGP8AIuAR65KJvcTNYbtl1Hh09biCC1q7uZH7dztvvPi+FvDnw3/W2ZDEOPdz7BcGd/Byap/8H9iFH0WIx95PyiByD6QXLgkyRgQ+fEYJ3DvwCcT0iq94/trptz6M0kMj5hL49nfpW4h3GJisDJanTgFILnogred1+1vj0QR9bsVcBEW1um/TiMppFedPnElz0CqVSrsFWyFLOpVvnB8lq1WWEz0anAIwYDblTxOfLp9rNjRo97+GbwuiuUQQs0LSMIkP/mUW5YAttkxnF8w+1zzq+UBRSfve/8nG0Lz99hXD0IHHUa2eUxlU/EkAIISt6uHFV9RILKARsqFHEeL8sxgpi6fOnKS4uY53T69rg8UD4Y4uGmhKeyzEJ8aeIOXKvznvO8KwnMNQePnDKg6LxGWlcQTS8GZyJWuL7jTzPhxqwb9Nb1p9JmaYFCoAdNvS39TqWPApzJ31e3SsN/LAXu3veDZDJaeUM4xX5sGYRCoEpK3mD978jTljap6jIwOq2QOKCG4qDi0twlA8E6LmQxnTrNKddW29/koR50d6UZ7JBOqtj4WPdelhjRRIpOkbU19xPOjp+mTtx+HKPjpIHGvq0N1V1AH8D/DWsoqPk1Upv4CvC6vAmIh2IsdL30dBdf0v7KXuv4UIl3dSHEZf/RLc0AAWQ8M="
+    - GWION_HAS_DIR=1
+    - DEBUG=1
+    - D_FUNC=dummy_driver
     - ALSA_D=0
     - SOUNDPIPE_D=0
     - SPA_D=0
@@ -18,42 +40,27 @@ env:
     - GWION_TOK_DIR=tok
     - GWION_TAG_DIR=tag
     - GWION_ADD_DIR=add
+    - USE_MEMCHECK=1
 
-before_install:
-      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  matrix:
+    - USE_DOUBLE=1 SP_BRANCH=dev
+    - USE_DOUBLE=0 SP_BRANCH=dev
 
-before_install:
-  - sudo apt-get install libsndfile1 libsndfile1-dev lua5.2
+matrix:
+  fast_finish: true
+  allow_failures:
+  - os: osx
+
+compiler:
+  - gcc
+  - clang
 
 before_script:
-   - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - export YACC=$PWD/bison-3.0.4/src/bison
   - bash util/travis_prepare.sh
 
-
-# need recent bison
-#  - wget http://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
-#  - tar -xzf bison-3.0.4.tar.gz
-#  - pushd bison-3.0.4 && ./configure \-\-prefix=$PWD/../bison && make install && popd && export PATH=bison-3.0.4/src:$PATH
-#  - git clone -b dev https://github.com/paulbatchelor/Soundpipe.git
-#  - pushd Soundpipe && sed -i 's/#USE_DOUBLE/USE_DOUBLE/' config.def.mk && make && popd
-#  - export CFLAGS+=-ISoundpipe/h
-#  - export LIBARY_PATH=Soundpipe
-#  - sed -i "s/ALSA_D/#ALSA_D/" config.def.mk
-#  - sed -i "s/CFLAGS+=-DD_FUNC=alsa_driver/CFLAGS+=-DD_FUNC=dummy_driver/" config.def.mk
-#  - sed -i 's/${YACC}/..\/bison-3.0.4\/src\/bison/' ast/Makefile
-#  - export PATH=$PWD/bin:$PATH
-#  - export BISON=$PWD/bison-3.0.4/src/bison
-#  - sed -i "s/-lsoundpipe/Soundpipe\/libsoundpipe.a/" Makefile
-
-script:
-  - make
-addons:
-  coverity_scan:
-    project:
-      name: "fennecdjay/Gwion"
-      description: "Build submitted via Travis CI"
-    notification_email: astor.jeremie@wanadoo.fr
-    build_command_prepend: "echo prepare"
-    build_command:   "make"
-    branch_pattern: coverity_scan
+after_success:
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi

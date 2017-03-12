@@ -53,6 +53,28 @@ install_soundpipe() {
 	popd
 }
 
+build_soundpipe() {
+	[ "$USE_DOUBLE" -eq 0 ] && export SPFLOAT="float"
+	[ -z "$USE_DOUBLE" ] && export SPFLOAT="float"
+	[ "$USE_DOUBLE" -eq 0 ] && unset USE_DOUBLE
+	make
+}
+
+check_soundpipe() {
+	[ -d Soundpipe ] && {
+		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
+		pushd Soundpipe
+		build_soundpipe
+		popd
+		return 0
+	}
+	pushd Soundpipe
+	git fetch
+	[ $(git rev-parse HEAD) = $(git rev-parse @{u}) ] || build_soundpipe
+	popd
+	return 0
+}
+
 prepare_directories() {
 	mkdir -p doc/{dat,dot,map,png,rst,search,tex}
 	mkdir -p api
@@ -60,6 +82,9 @@ prepare_directories() {
 	mkdir -p tok
 	mkdir -p add
 }
+
+[ "$#" = 1 ] && [ "$1" = "check_soundpipe" ] && check_soundpipe && return
+
 
 [ "$TRAVIS_OS_NAME" = "osx" ] && brew_dependencies
 
