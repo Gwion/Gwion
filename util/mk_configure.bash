@@ -130,7 +130,9 @@ done
 	echo "if [ \"\$_arg_double\" = \"1\"  ];then _CFLAGS+=\" -DUSE_DOUBLE -DSPFLOAT=double\";fi"
 	echo "([ \"\$_arg_double\" = \"on\" ] || [ \"\$_arg_double\" = \"1\"  ]) || _CFLAGS+=\" -DSPFLOAT=float\""
 	# build with coverage for now
-	echo "\$_arg_cc -ftest-coverage -fprofile-arcs --coverage -Iinclude \$_arg_soundpipe_inc -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
+	echo "if [ \"$USE_COVERAGE\" = \"1\"  ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
+	echo "if [ \"$USE_COVERAGE\" = \"on\" ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
+	echo "\$_arg_cc -Iinclude \$_arg_soundpipe_inc -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
 
 	# generate header
 	echo "echo generate header"

@@ -222,12 +222,9 @@ after_success() {
 	bash util/coverage.sh run
 
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
-    EXCLUDE_TARGET+=" $BISON_VERSION"
     EXCLUDE_TARGET+=" Soundpipe"
-    EXCLUDE_TARGET+=" bison"
     EXCLUDE_TARGET+=" examples"
     EXCLUDE_TARGET+=" drvr"
-    EXCLUDE_TARGET+=" Gwion-plug"
 
     for exclude in $EXCLUDE_TARGET
 	do
