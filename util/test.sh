@@ -96,6 +96,7 @@ success() {
   n=$1
   desc=$2
   log=$3
+echo "$log"
   if [ "$async" -eq 0 ]
   then echo "ok  $(printf "% 4i" "$n") $desc"
   else echo "ok $(printf "% 4i" "$n") $desc" > "$log"
@@ -148,9 +149,10 @@ do_todo() {
   echo "ok  $(printf "% 4i" "$n") $3 # todo $skip" > "$4"
   return 0
 }
+
 test_gw(){
   local n file log ret
-  n=$(($2))
+  n=$2
   file=$1
   log=/tmp/gwt_$(printf "%04i" $n).log
   valgrind ./gwion -a -d dummy "$file" &> "$log" |:
@@ -158,6 +160,7 @@ test_gw(){
   #enable skip
   do_skip "$1" "$n" "" "$log" && return 0
   # enable todo
+  do_todo "$1" "$n" "" "$log" && return 0
 
   [ $severity -lt 1  ]           && success "$n" "$file" "$log" && return 0
   assert_returns  "$ret" "$log"  || fail    "$n" "$file" "$log" || return 1
