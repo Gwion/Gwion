@@ -40,7 +40,7 @@ ID_List str2list(m_str path, m_uint* array_depth )
     char c = path[i];
     if(c != '.') {
       if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-          || (c == '_') || (c >= '0' && c <= '9'))
+          || (c == '_') || (c >= '0' && c <= '9') || (i == 0 && c == '@'))
         curr[i] = c;
       else {
         err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path);

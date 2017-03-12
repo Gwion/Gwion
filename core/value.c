@@ -23,7 +23,7 @@ Value new_Value(Context context, Type type, m_str name)
 }
 void free_Value(Value a)
 {
-  if(a->ptr) { // is it necessary ?
+  if(a->ptr) {
     if(isprim(a->m_type) > 0)
       free(a->ptr);
   }
