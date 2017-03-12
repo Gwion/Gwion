@@ -137,12 +137,12 @@ done
 	echo "./util/generate_header || exit 1"
 
 	# generate parser
-	echo "echo generate parser"
-	echo "\$_arg_yacc -o eval/parser.c -dv eval/gwion.y -x || exit 1"
+#	echo "echo generate parser"
+#	echo "\$_arg_yacc -o eval/parser.c -dv eval/gwion.y -x || exit 1"
 
 	# generate lexer
-	echo "echo generate lexer"
-	echo "\$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1"
+#	echo "echo generate lexer"
+#	echo "\$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1"
 
 	# generate soundpipe
 	echo "echo generate soundpipe wrapper"

@@ -18,9 +18,6 @@ cache:
   directories:
     - Soundpipe
 
-#before_cache:
-#  - bash util/travis_prepare.sh check_soundpipe
-
 env:
   global:
     - GWION_HAS_DIR=1
