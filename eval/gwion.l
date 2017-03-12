@@ -104,7 +104,7 @@ static int adjust(void* data);
 %option noyylineno
 %option bison-bridge
 %option reentrant
-%option header-file="lexer.h"
+%option header-file="eval/lexer.h"
 %option prefix="minimal_"
 %option noinput
 %option nounput

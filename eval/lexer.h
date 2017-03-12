@@ -2,9 +2,9 @@
 #define minimal_HEADER_H 1
 #define minimal_IN_HEADER 1
 
-#line 5 "lexer.h"
+#line 5 "eval/lexer.h"
 
-#line 7 "lexer.h"
+#line 7 "eval/lexer.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -417,9 +417,9 @@ extern int minimal_lex \
 #undef YY_DECL
 #endif
 
-#line 259 "gwion.l"
+#line 259 "eval/gwion.l"
 
 
-#line 423 "lexer.h"
+#line 423 "eval/lexer.h"
 #undef minimal_IN_HEADER
 #endif /* minimal_HEADER_H */
