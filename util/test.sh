@@ -19,7 +19,7 @@ assert_contain() {
 	contains=${contains:1}
 	[ -z "$contains" ] && return 0
 	grep "$contains" "$2" > /dev/null && return 0
-	"does not contain $contains" > "$2"
+	echo "does not contain $contains" > "$2"
 	return 1
 }
 
@@ -29,7 +29,7 @@ assert_exclude() {
 	contains=${contains:1}
 	[ -z "$contains" ] && return 0
 	grep "$contains" "$2" > /dev/null || return 0
-	"does contain $contains" > "$2"
+	echo "does contain $contains" > "$2"
 	return 1
 }
 
