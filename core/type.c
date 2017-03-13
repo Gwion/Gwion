@@ -1235,12 +1235,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     env->curr = v->owner_class->info;
     vector_append(env->class_stack, (vtype)env->class_def);
     env->class_def = v->owner_class;
-    env->class_scope = 0;
+    env->class_scope = 0; // should keep former value somewhere
   }
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[256];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
       if(!value)
@@ -1250,23 +1249,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     if(!value)
       continue;
     base = value->func_ref->def;
-    /*base = value->func_ref->next ? value->func_ref->next->def : value->func_ref->def;*/
     if(!base)
       continue;
-
-
-    /**************
-    disable for now
-    ***************/
-//    return NULL;
-    /*{*/
-    /*Expression tmp = args;*/
-    /*while(tmp) {*/
-    /*if(!tmp->type)*/
-    /*check_Expression(env, args);*/
-    /*tmp = tmp->next;*/
-    /*}*/
-    /*}*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary->d.var),
                                 base->arg_list, base->code, func->pos);
@@ -1276,25 +1260,24 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     ID_List base_t = base->types;
     def->is_template = 1;
     namespace_push_type(env->curr);
-    while(list) {
-      if(!base_t)
+    while(base_t) {
+      if(!list)
         break;
-      /*exit(12);*/
       ID_List tmp = base_t->next;;
       if(!list->list)
         break;
-//      if(base_t)
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
       base_t->next = NULL;
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
-        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
-        break;
+//        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
+        goto next;
       }
       base_t = base_t->next;
       if(!list->next && base_t) {
-        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
+//        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
+        goto next;
         //return NULL;
       }
       list = list->next;
@@ -1321,23 +1304,15 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
         env->curr = (NameSpace)vector_back(env->nspc_stack);
         vector_pop(env->nspc_stack);
       }
+      m_func->is_template = 1;
+      m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
 next:
-    if(def->func) {// is this test necessary
-      /*
-      Arg_List arg = def->arg_list;
-      while(arg) {
-        free(arg->var_decl->value);
-        arg = arg->next;
-      }
-      */
-
-//      rem_ref(def->func->value_ref->obj, def->func->value_ref);
-
+    namespace_pop_type(env->curr);
+    if(def->func) {
       free_Func(def->func);
     }
-//    free_Arg_List(def->arg_list);
     free_Func_Def(def);
   }
   if(v->owner_class) {
@@ -1443,7 +1418,6 @@ next:
       if(f) {
         *m_func = f;
         Type ret_type  = f->def->ret_type;
-        free_Func_Def(f->def);
         current->types = tl[0];
         current->base = value->func_ref->def->types;
         return ret_type;
@@ -1539,7 +1513,6 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
       return NULL;
     }
     exp_func->m_func = ret;
-    exp_func->base = v->func_ref->def->types;
     return ret->def->ret_type;
   }
   current = exp_func;

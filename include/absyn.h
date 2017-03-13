@@ -508,6 +508,7 @@ struct Func_Def_ {
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
+  ID_List base; // 13/03/17
   m_bool is_template;
   m_bool is_variadic;
 };

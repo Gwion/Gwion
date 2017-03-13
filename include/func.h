@@ -13,8 +13,8 @@ struct Func_ {
   m_uint vt_index;
   m_uint variadic_index;
   Instr variadic_start;
-//m_bool is_template;
-m_bool is_dtor;
+  m_bool is_template; // 13/03/17
+  m_bool is_dtor;
 };
 
 Func new_Func(m_str name, Func_Def def);

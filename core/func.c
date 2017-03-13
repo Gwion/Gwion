@@ -56,7 +56,7 @@ free(a->name);
       free_Func_Def(a->def);
     } else
   */
-  if(a->def) {
+  if(a->def && !a->is_template) {
     free_Func_Def(a->def);
   }
   free(a);

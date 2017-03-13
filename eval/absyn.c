@@ -660,11 +660,8 @@ void free_Func_Def(Func_Def a)
 //	if(a->type_decl)
     free_Type_Decl(a->type_decl);
     free(a);
-  } else {
-    printf("def name %s\n", S_name(a->name));
-//	free(a);
-//  else free(a->name);
-  }
+  } else
+      free(a);
 }
 
 Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List args, int pos)

@@ -291,12 +291,12 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
       Value v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary->d.var, 1);
       if(!v) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
-        goto error;
+        return -1;
       }
       Func_Def base = v->func_ref->def;
       if(!base->types) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-template function.");
-        goto error;
+          return -1;
       }
       Type_List list = exp_func->types;
       while(list) {
@@ -307,8 +307,31 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
         }
         list = list->next;
       }
-
-      return 1;
+      // check num types matches.
+      Value value;
+	  m_uint i;
+      m_bool match = -1;
+      {
+		for(i = 0; i < v->func_num_overloads + 1; i++) {
+          char name[256];
+          sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+          value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
+          Type_List tlc = exp_func->types;
+          ID_List tld = value->func_ref->def->types;
+          while(tld) {
+	        if(!tlc)
+              break;
+            tld = tld->next;
+	        if(!tld && tlc->next)
+              break;
+          tlc = tlc->next;
+          }
+		 match = 1;
+        }
+      }
+      if(match < 0)
+        err_msg(SCAN2_, exp_func->pos, "template type number mismatch.");
+      return match;
     } else if(exp_func->func->exp_type == Dot_Member_type) {
       // see type.c
       return 1;
@@ -318,10 +341,6 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
     }
   }
   return scan2_Func_Call1(env, exp_func->func, exp_func->args, exp_func->m_func);
-error: // handle template error
-//  free(exp_func->types);
-//  free(exp_func->types->list);
-  return -1;
 }
 
 static m_bool scan2_Dot_Member(Env env, Dot_Member* member)

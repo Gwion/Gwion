@@ -1035,7 +1035,8 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0;
     }
-    ID_List base_t = exp_func->base;
+//    ID_List base_t = exp_func->base;
+    ID_List base_t = exp_func->m_func->def->base;
     Type_List list = exp_func->types;
     namespace_push_type(emit->env->curr);
     // [template] - if overloaded, find the rigth 'base' (def->types)
