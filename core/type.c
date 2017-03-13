@@ -1332,7 +1332,9 @@ next:
         arg = arg->next;
       }
       */
+
 //      rem_ref(def->func->value_ref->obj, def->func->value_ref);
+
       free_Func(def->func);
     }
 //    free_Arg_List(def->arg_list);
