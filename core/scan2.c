@@ -50,16 +50,16 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       return -1;
     }
     if( list->self->array != NULL ) {
-      if(verify_array( list->self->array ) < 0)
+      if(verify_array(list->self->array) < 0)
         return -1;
       Type t2 = type;
 
-      if( list->self->array->exp_list ) {
+      if(list->self->array->exp_list) {
         if(scan2_Expression(env, list->self->array->exp_list) < 0)
           return -1;
       }
       type = new_array_type(env, &t_array, list->self->array->depth, t2, env->curr);
-      if( !list->self->array->exp_list )
+      if(!list->self->array->exp_list)
         decl->type->ref = 1;
       /*      SAFE_REF_ASSIGN( decl->ck_type, type );*/
       decl->m_type = type;
