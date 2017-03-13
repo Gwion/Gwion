@@ -1156,7 +1156,8 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   if(cap < 0)
     goto negative_array_size;
   if(capacity >= top) {
-    base = new_M_Array(type->size, cap);
+    base = new_M_Array(type->array_type->size, cap);
+    base->type_ref=type;
     if(!base)
       goto out_of_memory;
     if(is_obj && objs) {
@@ -1168,10 +1169,11 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     return base;
   }
   base = new_M_Array(SZ_INT, cap);
+base->type_ref=type;
   if(!base)
     goto out_of_memory;
   for( i = 0; i < cap; i++ ) {
-    next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index );
+    next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index);
     if(!next)
       goto error;
     // set that, with ref count

@@ -268,7 +268,8 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
     CHECK_BB(emit_Expression(emit, array->exp_list, 0))
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
-    info->type = type->array_type;
+//    info->type = type->array_type;
+    info->type = type;
     info->is_obj = isa(type->array_type, &t_object) > 0 ? 1 : 0;
     info->stack_offset = emit->code->frame->curr_offset;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);

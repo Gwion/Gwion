@@ -12,6 +12,11 @@ m_int o_array_vector;
 
 DTOR(array_dtor)
 {
+if(o->type_ref != &t_array) {
+//  rem_ref(o->type_ref->obj, o->type_ref);
+  free(o->type_ref->obj);
+  free(o->type_ref);
+}
   free(o->d.array->ptr);
 }
 
