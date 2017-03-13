@@ -57,8 +57,10 @@ static SFUN(vm_shred_from_id)
   VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT) - 1);
   if(!s)
     RETURN->d.v_uint = 0;
-  else
+  else {
     RETURN->d.v_uint = (m_uint)s->me;
+    s->me->ref++;
+  }
 }
 
 static MFUN(shred_args)
