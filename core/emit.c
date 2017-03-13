@@ -808,6 +808,12 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
     call->execute = Instr_Op_Call_Binary;
 	call->m_val2 = func->def->arg_list->type->size;
+
+// try to relase object arguments. assume ptr is set to 0
+if(isa(func->def->arg_list->type, &t_object) > 0)
+call->ptr = 1;
+if(isa(func->def->arg_list->next->type, &t_object) > 0)
+call->ptr += 2;
   }
 //printf("func>name %s\n", S_name(func->def->name));
 func->def->spec;

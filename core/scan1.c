@@ -475,7 +475,7 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
       }
       Var_Decl_List list = l->self->list;
       Var_Decl var_decl = NULL;
-
+/*
       if(!l->self->type) { // weird bug
         err_msg(SCAN1_, l->self->pos, "must povide type declaration in union");
         free(stmt->d.stmt_union);
@@ -485,6 +485,7 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
 //l->self->type->xid = calloc(1, sizeof(struct ID_List_));
         return -1;
       }
+*/
       Type t = find_type(env, l->self->type->xid);
       if(!t) {// TODO better typename
         err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));

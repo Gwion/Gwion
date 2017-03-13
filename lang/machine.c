@@ -178,7 +178,8 @@ SFUN(machine_check)
   }
   free(s);
   free_Ast(ast); // it could be in 'type_engine_check_prog'
-  RETURN->d.v_uint = (m_uint)new_String(c);
+//  RETURN->d.v_uint = (m_uint)new_String(c);
+  RETURN->d.v_uint = 1;
 }
 
 static SFUN(machine_compile)
@@ -227,7 +228,8 @@ m_bool import_machine(Env env)
   dl_func_add_arg(fun,       "string",  "context");
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("string",  "check",     (m_uint)machine_check);
+//  fun = new_DL_Func("string",  "check",     (m_uint)machine_check);
+  fun = new_DL_Func("int",  "check",     (m_uint)machine_check);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "code");
   CHECK_OB(import_sfun(env,  fun))

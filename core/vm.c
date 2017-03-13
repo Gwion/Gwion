@@ -86,8 +86,6 @@ void free_VM_Shred(VM_Shred shred)
   else
     free(shred->base);
   free(shred->_reg);
-printf("%s\n", shred->code->name);
-//  if(!strcmp(shred->code->filename, "[in code dtor exec]"))
   free_VM_Code(shred->code);
   free(shred->name);
   free(shred->filename);

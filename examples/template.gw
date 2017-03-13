@@ -1,10 +1,10 @@
-//template <{a}>
-//function void test (a var){ <<< var>>>; }
+template <{a}>
+function void test (a var){ <<< var>>>; }
 template <{a, b}>
 function void test (a var, b var2){ <<< var>>>; }
 //function void test (){ }
 
-//test<{int}>(1);
+test<{int}>(1);
 //test<{float}>(1.4);
 //test<{int}>(3, 1.4);
 //test<{float}>(3);

@@ -7,6 +7,9 @@ set -m
 : "${SEVERITY:=10}"
 : "${severity:=$SEVERITY}"
 
+: "${SUPPRESSIONS:=1}"
+: "${suppressions:=$SUPPRESSIONS}"
+
 assert_returns() {
 	[ "$1" -eq 0   ] && return 0
 	[ "$1" -eq 139 ] && echo "segfault" > "$2"
@@ -76,6 +79,10 @@ assert_fishy() {
 
 assert_leak() {
 	grep "All heap blocks were freed -- no leaks are possible" "$2" > /dev/null && return 0
+	[ "$suppressions" -eq 0 ] && echo "mem leak" > "$2" && return 1
+	heap=$(grep "in use at exit:" "$2" | cut -d ":" -f2)
+	supp=$(grep "suppressed: .* bytes"     "$2" | cut -d ":" -f2)
+	[ "$heap" = "$supp" ] && return 0
 	echo "mem leak" > "$2"
 	return 1
 }
@@ -154,7 +161,7 @@ test_gw(){
   n=$2
   file=$1
   log=/tmp/gwt_$(printf "%04i" $n).log
-  valgrind ./gwion -a -d dummy "$file" &> "$log" |:
+  valgrind --suppressions=util/gwion.supp ./gwion -a -d dummy "$file" &> "$log" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "" "$log" && return 0
@@ -315,6 +322,8 @@ do_test() {
 			[ "$async" -eq 1 ] && async=0
 		elif [ "${arg:0:9}" = "severity=" ]
 		then severity=$(echo "$arg" | cut -d '=' -f 2);
+		elif [ "${arg:0:9}" = "suppressions=" ]
+		then suppressions=$(echo "$arg" | cut -d '=' -f 2);
 #		elif [ "${arg:0:9}" = "bailout=" ]
 #		then bailout=$(echo "$arg" | cut -d '=' -f 2);
 		elif [ -f "$arg" ]

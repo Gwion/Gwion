@@ -12,6 +12,6 @@ int i;
 Object o;
 <<<o, i>>>;
 12 => i;
-o => i;
+//o => i;
 C c;
-//o => c;
+o => c;
