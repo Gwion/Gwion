@@ -664,7 +664,7 @@ static MFUN(fc_compute)
   m_uint i;
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
-  ret = new_M_Array(1, vector_size(v));
+  ret = new_M_Array(SZ_FLOAT, vector_size(v));
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
     if(!obj)
@@ -676,9 +676,7 @@ static MFUN(fc_compute)
     if(!fft)
       continue;
     f_analys fn  = *(f_analys*)(obj->d.data + o_ana_fn);
-printf("here\n");
     m_float f = fn(_fft);
-printf("here\n");
     f_vector_set(ret->d.array, i, f);
   }
   RETURN->d.v_uint = (m_uint)ret;
