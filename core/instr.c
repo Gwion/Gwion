@@ -705,24 +705,10 @@ INSTR(Instr_Op_Call_Binary)
       PUSH_MEM(shred,  SZ_INT);
       stack_depth -= SZ_INT;
     }
-printf("call->ptr: %li\n", instr->ptr);
-printf("call->ptr: %li\n", (m_uint)instr->ptr << 1);
-printf("call->ptr: %li\n", 1 << 1);
-printf("call->ptr: %li\n", 1 << 1);
-printf("call->ptr: %li\n", (1 << 1) & (1 << 2));
-if((((m_uint)instr->ptr << 1)& (1 << 1))) {
-  release(*(M_Object*)(shred->reg), shred);
-
-
-printf("object 1st arg\n");
-
-}
-if((((m_uint)instr->ptr << 1)& (1 << 2))) {
-  release(**(M_Object**)(shred->reg + SZ_INT), shred);
-printf("object 2st arg\n");
-
-}
-
+	if((((m_uint)instr->ptr << 1)& (1 << 1)))
+  		release(*(M_Object*)(shred->reg), shred);
+    if((((m_uint)instr->ptr << 1)& (1 << 2)))
+      release(**(M_Object**)(shred->reg + SZ_INT), shred);
     if(stack_depth) {
       m_uint size = stack_depth - instr->m_val2;
       if(instr->m_val2 == SZ_INT)

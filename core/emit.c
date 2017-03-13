@@ -809,14 +809,12 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     call->execute = Instr_Op_Call_Binary;
 	call->m_val2 = func->def->arg_list->type->size;
 
-// try to relase object arguments. assume ptr is set to 0
-if(isa(func->def->arg_list->type, &t_object) > 0)
-call->ptr = 1;
-if(isa(func->def->arg_list->next->type, &t_object) > 0)
-call->ptr += 2;
+// relase object arguments. assume call->ptr is set to 0
+  if(isa(func->def->arg_list->type, &t_object) > 0)
+    call->ptr = 1;
+  if(isa(func->def->arg_list->next->type, &t_object) > 0)
+    call->ptr += 2;
   }
-//printf("func>name %s\n", S_name(func->def->name));
-func->def->spec;
   if (func->def->is_template) {
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;
