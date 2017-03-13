@@ -96,7 +96,6 @@ success() {
   n=$1
   desc=$2
   log=$3
-echo "$log"
   if [ "$async" -eq 0 ]
   then echo "ok  $(printf "% 4i" "$n") $desc"
   else echo "ok $(printf "% 4i" "$n") $desc" > "$log"
