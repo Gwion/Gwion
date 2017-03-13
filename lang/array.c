@@ -12,12 +12,25 @@ m_int o_array_vector;
 
 DTOR(array_dtor)
 {
-if(o->type_ref != &t_array) {
-//  rem_ref(o->type_ref->obj, o->type_ref);
-  free(o->type_ref->obj);
-  free(o->type_ref);
-}
+if(o->type_ref->array_type)
+  if(isa(o->type_ref->array_type, &t_object) > 0) {
+    m_uint i;
+    for(i = 0; i < o->d.array->len; i += SZ_INT) {
+       release(*(M_Object*)(o->d.array->ptr + i), shred);
+
+    }
+  }
   free(o->d.array->ptr);
+// should not compare to t_array. see new_M_Array(Type t, ...
+  if(o->type_ref != &t_array ) {
+    if(!o->ref--) {
+
+//  rem_ref(o->type_ref->obj, o->type_ref);
+printf("FREE!!!!!!!!!!!");
+//      free(o->type_ref->obj);
+//      free(o->type_ref);
+    }
+  }
 }
 
 M_Object new_M_Array(m_uint size, m_uint length)

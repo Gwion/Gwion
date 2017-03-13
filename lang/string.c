@@ -467,9 +467,6 @@ INSTR(Reg_Push_Str)
   *(M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
   (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "push string");
-#endif
 }
 
 void string_ctor(M_Object o, VM_Shred shred)

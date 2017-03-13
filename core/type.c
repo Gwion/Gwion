@@ -516,7 +516,7 @@ static Type check_array_lit(Env env, Primary_Expression *exp)
         type->array_depth ? type->array_type : type,  // the 'array_type'
         env->curr  // the owner namespace
       );
-  /*      exit(12);*/
+  exp->d.array->type = t;
   return t;
 }
 

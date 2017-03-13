@@ -43,6 +43,7 @@ struct Array_Sub_ {
   Expression exp_list;
   int pos;
   Expression self;
+  Type type;
   int err_num;
   int err_pos;
 };

@@ -1157,7 +1157,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     goto negative_array_size;
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap);
-    base->type_ref=type;
+    base->type_ref=type; // /13/03/17
     if(!base)
       goto out_of_memory;
     if(is_obj && objs) {
@@ -1204,10 +1204,14 @@ INSTR(Instr_Array_Init) // for litteral array
   VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
   M_Object obj;
   POP_REG(shred,  SZ_INT * info->length);
-  obj = new_M_Array(info->type->size, info->length);
+  obj = new_M_Array(info->type->array_type->size, info->length);
+  obj->type_ref = info->type;
   for(i = 0; i < info->length; i++)
     i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
+  if(isa(info->type->array_type, &t_object) > 0)
+    obj->ref += info->length;
   *(M_Object*)shred->reg = obj;
+  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -1217,13 +1221,11 @@ INSTR(Instr_Array_Alloc)
   debug_msg("instr", "array alloc");
 #endif
   VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
-  m_uint ref = 0;
+  M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
   m_float num = 1.0;
   m_uint* obj_array = NULL;
-//  m_uint obj_array_size = 0;
-//  m_uint depth = info->depth;
 
   if(info->is_obj && !info->is_ref) {
     m_int curr = -info->depth;
@@ -1243,12 +1245,14 @@ INSTR(Instr_Array_Alloc)
         goto out_of_memory;
     }
   }
-  ref = (m_uint)do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
-  POP_REG(shred,   SZ_INT * info->depth);
+  ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
+  POP_REG(shred, SZ_INT * info->depth);
   if(!ref)
     goto error;
 
-  *(m_uint*)shred->reg = ref;
+  ref->type_ref->obj->ref_count = num_obj;
+
+  *(M_Object*)shred->reg = ref;
   PUSH_REG(shred,  SZ_INT);
   if(info->is_obj && !info->is_ref) {
     *(m_uint**)shred->reg = obj_array;
