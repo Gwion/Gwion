@@ -344,14 +344,10 @@ static struct Type_ t_zerox       = { "ZeroX",       SZ_INT, &t_ugen };
 static m_bool zerox_tick(UGen u)
 {
   base_tick(u);
-  u->out = 0;
-  if(!u->in) {
-    if(*(m_float*)u->ug < 0)
-      u->out = 1;
-    else if(*(m_float*)u->ug < 1)
-      u->out = -1;
-  }
-  *(m_float*)u->ug = u->in;
+  m_float in = (u->in < 0) ? -1 : (u->in > 0);
+  m_float f = *(m_float*)u->ug;
+  u->out = f == in ? 1 : 0;
+  *(m_float*) u->ug = in;
   return 1;
 }
 
