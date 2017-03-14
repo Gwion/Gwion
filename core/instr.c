@@ -1210,8 +1210,10 @@ INSTR(Instr_Array_Init) // for litteral array
   obj->type_ref = info->type;
   for(i = 0; i < info->length; i++)
     i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
-  if(isa(info->type->array_type, &t_object) > 0)
-    obj->ref += info->length;
+//  if(isa(info->type->array_type, &t_object) > 0)
+//    obj->ref += info->length;
+//    obj->ref += info->depth;
+  info->type->obj->ref_count = 1;
   *(M_Object*)shred->reg = obj;
   *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);

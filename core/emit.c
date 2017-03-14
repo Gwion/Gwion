@@ -38,6 +38,7 @@ Emitter new_Emitter(Env env)
   emit->stack = new_Vector();
   emit->spork = new_Vector();
   emit->funcs = new_Vector();
+  emit->array = new_Vector();
   emit->context = NULL;
   emit->nspc = NULL;
   emit->func = NULL;
@@ -57,6 +58,7 @@ void free_Emitter(Emitter a)
   free_Vector(a->spork);
   free_Vector(a->stack);
   free_Vector(a->funcs);
+  free_Vector(a->array);
   free(a);
 }
 
@@ -507,7 +509,12 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           //          is_init = 1;
           if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
             return -1;
-        }
+        } else {
+printf("list->self->array->type %p\n", decl->m_type);
+vector_append(emit->array, decl->m_type);
+
+}
+
       } else if (!is_ref) {
         //        is_init = 1;
         if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
@@ -2523,6 +2530,14 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     Func_Ptr* ptr = (Func_Ptr*)vector_at(emit->funcs, i);
     scope_rem(emit->env->curr->func, ptr->xid);
   }
+  // handle empty array type
+  for(i = 0; i < vector_size(emit->array); i++) {
+    Type t = (Type)vector_at(emit->array, i);
+    free(t->obj);
+    free(t); // all this should be:na
+    // rem_ref(t->obj, t);
+  }
+  vector_clear(emit->array);
   if (ret < 0) {
     free_Ast(ast);
   }
