@@ -274,7 +274,7 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
     info->stack_offset = emit->code->frame->curr_offset;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);
     alloc->ptr = info; // is it uszeful
-    if (isa(type->array_type, &t_object) > 0 && !is_ref)
+    if (!is_ref && isa(type->array_type, &t_object) > 0)
       emit_pre_constructor_array(emit, type->array_type);
   } else if (isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = add_instr(emit, Instantiate_Object);
@@ -304,17 +304,13 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
   }
 
   e = array->exp_list;
-//  Type type = e->cast_to ? e->cast_to : e->type;
   Type type = array->type;
-// should not be '1' but actual depth.
-//  Type type = new_array_type(emit->env, &t_array, 1, e->cast_to ? e->cast_to : e->type, emit->env->curr);
   Instr instr = add_instr(emit, Instr_Array_Init);
   VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
   info->type = type;
   info->length = count;
   instr->ptr = info;
   if(array == array_seed) {
-//exit(2);
     Local* l;
     array_seed = NULL;
     if(!(l = frame_alloc_local(emit->code->frame, SZ_INT, "litteral array", 0, 1))) {

@@ -17,6 +17,7 @@ typedef struct {
   char*  ptr;   // data
   m_uint len;   // number of elements * size
   m_uint size;  // size of objects
+  m_uint depth;
 } M_Vector;
 
 struct VM_Array_ {
@@ -57,5 +58,5 @@ void      c_vector_set (M_Vector* v, m_uint i, complex float data);
 void     v3_vector_set (M_Vector* v, m_uint i, VEC3_T  data);
 void     v4_vector_set (M_Vector* v, m_uint i, VEC4_T  data);
 */
-M_Object new_M_Array  (m_uint size, m_uint length);
+M_Object new_M_Array  (m_uint size, m_uint length, m_uint depth);
 #endif

@@ -270,7 +270,7 @@ SFUN(file_list)
     RETURN->d.v_uint = 0;
     return;
   }
-  M_Object ret = new_M_Array(SZ_INT, n);
+  M_Object ret = new_M_Array(SZ_INT, n, 1);
   for(i = 0; i < n; i++) {
     i_vector_set(ret->d.array, i, (m_uint)new_String(namelist[i]->d_name));
     free(namelist[i]);

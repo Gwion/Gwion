@@ -12,8 +12,8 @@ m_int o_array_vector;
 
 DTOR(array_dtor)
 {
-if(o->type_ref->array_type)
-  if(isa(o->type_ref->array_type, &t_object) > 0) {
+if(o->type_ref->array_type) // maybe unnecessary. preferably check array depth
+  if(o->d.array->depth > 1 || isa(o->type_ref->array_type, &t_object) > 0) {
     m_uint i;
     for(i = 0; i < o->d.array->len; i += SZ_INT) {
        release(*(M_Object*)(o->d.array->ptr + i), shred);
@@ -23,24 +23,23 @@ if(o->type_ref->array_type)
   free(o->d.array->ptr);
 // should not compare to t_array. see new_M_Array(Type t, ...
   if(o->type_ref != &t_array ) {
-    if(!o->ref--) {
-
-//  rem_ref(o->type_ref->obj, o->type_ref);
-printf("FREE!!!!!!!!!!!");
-//      free(o->type_ref->obj);
-//      free(o->type_ref);
+    if(!--o->type_ref->obj->ref_count) {
+      free(o->type_ref->obj);
+      free(o->type_ref);
     }
-  }
+  } else err_msg(INSTR_, 0, "array type not valid. please fix and implement a better new M_Array");
 }
 
-M_Object new_M_Array(m_uint size, m_uint length)
+M_Object new_M_Array(m_uint size, m_uint length, m_uint depth)
 {
+printf("creating array of %lu size.\n", length);
   M_Object a = new_M_Object();
   initialize_object(a, &t_array);
   a->d.array 	    = malloc(sizeof(M_Vector));
-  a->d.array->ptr  = calloc(length, size);
-  a->d.array->size = size;
-  a->d.array->len  = length * size;
+  a->d.array->ptr   = calloc(length, size);
+  a->d.array->size  = size;
+  a->d.array->len   = length * size;
+  a->d.array->depth = depth;
   return a;
 }
 

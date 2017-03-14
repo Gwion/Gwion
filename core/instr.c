@@ -1155,8 +1155,10 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
   if(cap < 0)
     goto negative_array_size;
+  type->obj->ref_count++;
+printf("cpacity %li\n", capacity);
   if(capacity >= top) {
-    base = new_M_Array(type->array_type->size, cap);
+    base = new_M_Array(type->array_type->size, cap, -capacity);
     base->type_ref=type; // /13/03/17
     if(!base)
       goto out_of_memory;
@@ -1168,7 +1170,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     }
     return base;
   }
-  base = new_M_Array(SZ_INT, cap);
+  base = new_M_Array(SZ_INT, cap, -capacity);
 base->type_ref=type;
   if(!base)
     goto out_of_memory;
@@ -1204,7 +1206,7 @@ INSTR(Instr_Array_Init) // for litteral array
   VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
   M_Object obj;
   POP_REG(shred,  SZ_INT * info->length);
-  obj = new_M_Array(info->type->array_type->size, info->length);
+  obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
   for(i = 0; i < info->length; i++)
     i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
@@ -1246,11 +1248,9 @@ INSTR(Instr_Array_Alloc)
     }
   }
   ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
-  POP_REG(shred, SZ_INT * info->depth);
   if(!ref)
     goto error;
-
-  ref->type_ref->obj->ref_count = num_obj;
+  POP_REG(shred, SZ_INT * info->depth);
 
   *(M_Object*)shred->reg = ref;
   PUSH_REG(shred,  SZ_INT);
