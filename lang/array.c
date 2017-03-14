@@ -22,8 +22,8 @@ if(o->type_ref->array_type) // maybe unnecessary. preferably check array depth
   }
   free(o->d.array->ptr);
 // should not compare to t_array. see new_M_Array(Type t, ...
-  if(o->type_ref != &t_array ) {
-    if(!--o->type_ref->obj->ref_count) {
+  if(o->type_ref != &t_array) {
+    if(!--o->type_ref->obj->ref_count && !o->type_ref->owner) {
       free(o->type_ref->obj);
       free(o->type_ref);
     }
