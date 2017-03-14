@@ -131,13 +131,13 @@ do_skip() {
   SKIP=0
   skip=$(grep "// \[skip\]" "$1")
   [ "$skip" ] && SKIP=1
-  if [ "$1" = "*# Skip*" ]
-  then skip=$(echo "$skip" | cut -d ']' -f2 )
-  else skip=
-  fi
-  [ $SKIP -eq 1 ] || return 1
+  [ $SKIP = 0 ] && return 1
+  skip=$(echo "$skip" | cut -d ']' -f2 )
   n=$(printf "% 4i" "$2")
-  echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
+  if [ "$async" -eq 0 ]
+  then  echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip"
+  else echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
+  fi
   return 0
 }
 
@@ -146,13 +146,13 @@ do_todo() {
   SKIP=0
   skip=$(grep "// \[todo\]" "$1")
   [ "$skip" ] && SKIP=1
-  if [ "$1" = "*# Skip*" ]
-  then skip=$(echo "$skip" | cut -d ']' -f2 )
-  else skip=
-  fi
-  [ $SKIP -eq 1 ] || return 1
+  [ $SKIP = 0 ] && return 1
+  skip=$(echo "$skip" | cut -d ']' -f2 )
   n=$(printf "% 4i" "$2")
-  echo "ok  $(printf "% 4i" "$n") $3 # todo $skip" > "$4"
+  if [ "$async" -eq 0 ]
+  then  echo "ok  $(printf "% 4i" "$n") $3 # Todo $skip"
+  else echo "ok  $(printf "% 4i" "$n") $3 # Todo $skip" > "$4"
+  fi
   return 0
 }
 
