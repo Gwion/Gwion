@@ -509,7 +509,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           //          is_init = 1;
           if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
             return -1;
-        } else {
+        } else if (!value->owner_class) {
 printf("list->self->array->type %p\n", decl->m_type);
 vector_append(emit->array, decl->m_type);
 

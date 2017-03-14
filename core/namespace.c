@@ -124,6 +124,10 @@ void free_NameSpace(NameSpace a)
         free_VM_Shred(s);
         free_Vector(instr);
       }
+      if(value->m_type->array_type) {
+        free(value->m_type->obj);
+        free(value->m_type);
+      }
     } else if(isa(value->m_type, &t_func_ptr) > 0) {
 //  just catch func pointer
     } else if(isa(value->m_type, &t_function) > 0) {
