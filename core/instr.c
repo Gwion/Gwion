@@ -1156,7 +1156,6 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   if(cap < 0)
     goto negative_array_size;
   type->obj->ref_count++;
-printf("cpacity %li\n", capacity);
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
     base->type_ref=type; // /13/03/17
@@ -1210,9 +1209,6 @@ INSTR(Instr_Array_Init) // for litteral array
   obj->type_ref = info->type;
   for(i = 0; i < info->length; i++)
     i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
-//  if(isa(info->type->array_type, &t_object) > 0)
-//    obj->ref += info->length;
-//    obj->ref += info->depth;
   info->type->obj->ref_count = 1;
   *(M_Object*)shred->reg = obj;
   *(M_Object*)(shred->mem + instr->m_val) = obj;
