@@ -62,7 +62,7 @@ s.substring(2);
 { (%(2,1) + s) @=> string @str; }
 { (@(2,1, 0) + s) @=> string @str; }
 { (@(2,1, 0, -1) + s) @=> string @str; }
-//{ ("test" + s) @=> string @str; }
+{ ("test" + s) @=> string @str; } // test me.
 
 
 <<<11 +=> s>>>;
