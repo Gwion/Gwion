@@ -61,7 +61,9 @@ end
 function print_gen_func(name, func)
 	print("MFUN(ftbl_"..name..")\n{")
 	print("\tsp_ftbl* ftbl = FTBL(o);")
+if(func.params ~= nil) then
 	print("\tm_uint gw_offset = SZ_INT*2;")
+end
 	print("\tif(FTBL(o))\n    sp_ftbl_destroy(&ftbl);")
 	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
 	print("\tCHECK_SIZE(size);")
