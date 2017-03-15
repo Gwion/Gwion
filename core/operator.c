@@ -92,6 +92,7 @@ typedef struct {
   Func func;
   f_type  type_func;
   m_str doc;
+  m_bool is_new;
 } M_Operator;
 
 static M_Operator* last = NULL;
@@ -201,6 +202,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->func      = NULL;
   mo->type_func = NULL;
   mo->doc       = NULL;
+  mo->is_new = is_new;
   vector_append(v, (vtype)mo);
   last = mo;
   return 1;
@@ -309,8 +311,13 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
         if(emit_Func_Call1(emit, mo->func, mo->func->def->ret_type, 0) < 0)
           return -1;
         return 1;
-      } else
+      } else {
         add_instr(emit, mo->instr);
+        if(mo->is_new) {
+          // should only be M_Object, so use SZ_INT
+		  frame_alloc_local(emit->code->frame, SZ_INT, "operator return value", 0, 1);
+        }
+      }
       return 1;
     }
     if(l && l->parent)
