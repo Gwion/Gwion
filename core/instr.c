@@ -684,7 +684,7 @@ INSTR(Instr_Op_Call_Binary)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-  prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+  prev_stack = instr->m_val;
   push = prev_stack + local_depth;
   next = shred->pc + 1;
   PUSH_MEM(shred, push);
