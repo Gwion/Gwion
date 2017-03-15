@@ -2079,7 +2079,6 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     else
       instr = add_instr(emit, complex_imag);
     instr->m_val = emit_addr;
-printf("emit_addr %i\n", emit_addr);
     return 1;
   } else if (t_base->xid == t_vec3.xid) {
     Instr instr;
