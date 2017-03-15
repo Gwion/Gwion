@@ -43,7 +43,7 @@ s.substring(2);
 <<<"test" => s>>>; // new
 <<<"test" => s>>>; // new
 <<<s>>>;
-//<<< NULL => s >>>;
+<<< NULL => s >>>; //test me
 <<< o => s >>>;
 
 // look at me!!!
