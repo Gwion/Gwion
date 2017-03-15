@@ -62,6 +62,8 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
       /*      SAFE_REF_ASSIGN( decl->ck_type, type );*/
+      if(env->class_def)
+        add_ref(type->obj);
       decl->m_type = type;
     }
     list->self->value = new_Value(env->context, type, S_name(list->self->xid));
