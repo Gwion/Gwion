@@ -163,6 +163,8 @@ INSTR(String_String)
   char str[1024];
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
+  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -984,7 +986,7 @@ m_bool import_string(Env env)
   CHECK_BB(add_binary_op(env, op_chuck, &t_object,  &t_string, &t_string, Object_String_Assign, 1, 0))
   CHECK_BB(add_binary_op(env, op_chuck, &t_null,    &t_string, &t_string, Object_String_Assign, 1, 0))
 
-  CHECK_BB(add_binary_op(env, op_plus, &t_string,  &t_string, &t_string, String_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_string,  &t_string, &t_string, String_String, 1, 1))
   CHECK_BB(add_binary_op(env, op_plus, &t_int,     &t_string, &t_string, Int_String, 1, 0))
   CHECK_BB(add_binary_op(env, op_plus, &t_float,   &t_string, &t_string, Float_String, 1, 0))
   CHECK_BB(add_binary_op(env, op_plus, &t_complex, &t_string, &t_string, Complex_String, 1, 0))
