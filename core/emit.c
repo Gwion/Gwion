@@ -829,14 +829,17 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
       call->execute = Instr_Func_Call_Static;
   }
   else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
+    m_uint val = 0; // wether args are objects
     call->execute = Instr_Op_Call_Binary;
-	call->m_val2 = func->def->arg_list->type->size;
+//	call->m_val2 = func->def->arg_list->type->size;
+	call->m_val2 = kindof(func->def->arg_list->type);
 
 // relase object arguments. assume call->ptr is set to 0
-  if(isa(func->def->arg_list->type, &t_object) > 0)
-    call->ptr = 1;
-  if(isa(func->def->arg_list->next->type, &t_object) > 0)
-    call->ptr += 2;
+    if(isa(func->def->arg_list->type, &t_object) > 0)
+      val = 1;
+    if(isa(func->def->arg_list->next->type, &t_object) > 0)
+      val += 2;
+    call->ptr = (m_uint*)2;
   }
   if (func->def->is_template) {
     Instr clear = add_instr(emit, Free_Func);
