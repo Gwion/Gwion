@@ -86,6 +86,7 @@
 <<< Math.max(2.0, 2)         >>>; 
 <<< Math.max(2, 2.0)         >>>;
 <<< Math.max(2.0, 2.0)       >>>;
+<<< Math.atan2(2.0, 2.0)     >>>;
 <<< Math.isinf(2)            >>>;
 <<< Math.isinf(2.0)          >>>;
 <<< Math.isnan(2)            >>>;
