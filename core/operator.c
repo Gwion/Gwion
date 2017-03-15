@@ -312,10 +312,11 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
           return -1;
         return 1;
       } else {
-        add_instr(emit, mo->instr);
+        Instr instr = add_instr(emit, mo->instr);
         if(mo->is_new) {
           // should only be M_Object, so use SZ_INT
-		  frame_alloc_local(emit->code->frame, SZ_INT, "operator return value", 0, 1);
+		  Local* l = frame_alloc_local(emit->code->frame, SZ_INT, "operator return value", 0, 1);
+          instr->m_val = l->offset;
         }
       }
       return 1;
