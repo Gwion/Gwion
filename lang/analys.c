@@ -767,7 +767,7 @@ m_bool import_analys(Env env)
   CHECK_BB(import_asc(env))
   CHECK_BB(import_ass(env))
   CHECK_BB(import_fc(env))
-  CHECK_BB(add_binary_op(env, op_chuck,   &t_ana, &t_fc, &t_fc, fc_connect,    1))
-  CHECK_BB(add_binary_op(env, op_unchuck, &t_ana, &t_fc, &t_fc, fc_disconnect, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,   &t_ana, &t_fc, &t_fc, fc_connect,    1, 0))
+  CHECK_BB(add_binary_op(env, op_unchuck, &t_ana, &t_fc, &t_fc, fc_disconnect, 1, 0))
   return 1;
 }

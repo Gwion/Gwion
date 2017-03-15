@@ -892,7 +892,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       err_msg(SCAN2_, f->pos, "Invalid operator.");
       return -1;
     } else
-      ret = add_binary_op(env, ret, f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1);
+      ret = add_binary_op(env, ret, f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1, 0);
     if(!env->class_def)
       context_add_func(env->context, func, func->obj);
     return ret;

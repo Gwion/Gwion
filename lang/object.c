@@ -231,9 +231,9 @@ m_bool import_object(Env env)
   CHECK_BB(add_global_type(env, &t_object))
   CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, NULL, object_dtor))
   env->class_def->doc = "the base class";
-  CHECK_BB(add_binary_op(env, op_at_chuck, &t_null, &t_object, &t_object, Assign_Object, 1))
-  CHECK_BB(add_binary_op(env, op_at_chuck, &t_object, &t_object, &t_object, Assign_Object, 1))
-  CHECK_BB(add_binary_op(env, op_eq, &t_object, &t_object, &t_int, eq_Object, 1))
+  CHECK_BB(add_binary_op(env, op_at_chuck, &t_null, &t_object, &t_object, Assign_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_at_chuck, &t_object, &t_object, &t_object, Assign_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_eq, &t_object, &t_object, &t_int, eq_Object, 1, 0))
 
   add_global_value(env, "NULL", &t_object, 1, 0);
 

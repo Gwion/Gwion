@@ -164,8 +164,9 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs)
   return NULL;
 }
 
-m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global)
+m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global, m_bool is_new)
 {
+// is_new unused for now
 #ifdef DEBUG_OPERATOR
   debug_msg(" op  ", "import operator '%s' for type '%s' and '%s', in  '%s'",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL, env->curr->name);

@@ -373,10 +373,10 @@ m_bool import_ugen(Env env)
   fun = new_DL_Func("float", "last", (m_uint)ugen_get_last);
   CHECK_OB(import_mfun(env, fun))
 
-  CHECK_BB(add_binary_op(env, op_chuck,   &t_ugen, &t_ugen, &t_ugen, ugen_connect, 1))
-  CHECK_BB(add_binary_op(env, op_unchuck, &t_ugen, &t_ugen, &t_ugen, ugen_disconnect, 1))
-  CHECK_BB(add_binary_op(env, op_trig,    &t_ugen, &t_ugen, &t_ugen, trig_connect, 1))
-  CHECK_BB(add_binary_op(env, op_untrig,  &t_ugen, &t_ugen, &t_ugen, trig_disconnect, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,   &t_ugen, &t_ugen, &t_ugen, ugen_connect, 1, 0))
+  CHECK_BB(add_binary_op(env, op_unchuck, &t_ugen, &t_ugen, &t_ugen, ugen_disconnect, 1, 0))
+  CHECK_BB(add_binary_op(env, op_trig,    &t_ugen, &t_ugen, &t_ugen, trig_connect, 1, 0))
+  CHECK_BB(add_binary_op(env, op_untrig,  &t_ugen, &t_ugen, &t_ugen, trig_disconnect, 1, 0))
 
   CHECK_BB(import_class_end(env))
   return 1;
