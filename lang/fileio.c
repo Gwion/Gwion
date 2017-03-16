@@ -181,7 +181,7 @@ INSTR(file_to_string)
   /*  char ret[1024];*/
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
-  char c[1024];
+  char c[1025];
   if(IO_ASCII(o))
   {
 //    if(inputAvailable(IO_FILE(o)))
