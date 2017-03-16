@@ -1171,9 +1171,9 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     return base;
   }
   base = new_M_Array(SZ_INT, cap, -capacity);
-base->type_ref=type;
   if(!base)
     goto out_of_memory;
+  base->type_ref=type;
   for( i = 0; i < cap; i++ ) {
     next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index);
     if(!next)
