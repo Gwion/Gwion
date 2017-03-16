@@ -1705,6 +1705,7 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
   Type type;
 
   frame_push_scope(emit->code->frame);
+  /* coverity[leaked_storage] */
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
   init = add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
