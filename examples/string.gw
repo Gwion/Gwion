@@ -43,7 +43,7 @@ s.substring(2);
 <<<"test" => s>>>; // new
 <<<"test" => s>>>; // new
 <<<s>>>;
-<<< NULL => s >>>; //test me
+//<<< NULL => s >>>; //test me
 <<< o => s >>>;
 
 // look at me!!!
@@ -65,14 +65,14 @@ s.substring(2);
 { ("test" + s) @=> string @str; } // leak
 
 
-<<<11 +=> s>>>;
-<<<11.0 +=> s>>>;
+<<< 11 +=> s>>>;
+<<< 11.0 +=> s>>>;
 <<< #(21,11) +=> s >>>;
 <<< %(22,12) +=> s >>>;
 <<< @(22,11,11) +=> s >>>;
 <<< @(22,11,11,-11) +=> s >>>;
-<<< o +=> s>>>;
-<<< "test" +=> s>>>; // test me
+//<<< o +=> s>>>;
+//<<< "test" +=> s>>>; // test me
 
 Machine.compile("string @s; \"test\" => s;");
 Machine.compile("string s; s.charAt(-1);");
