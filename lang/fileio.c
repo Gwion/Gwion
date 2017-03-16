@@ -185,7 +185,7 @@ INSTR(file_to_string)
   if(IO_ASCII(o))
   {
 //    if(inputAvailable(IO_FILE(o)))
-    if(fscanf(IO_FILE(o), "%s", c) < 0) {
+    if(fscanf(IO_FILE(o), "%s1024", c) < 0) {
 //      if(getline(&c, &size, IO_FILE(o)) < 0) {
         Except(shred);
         return;
