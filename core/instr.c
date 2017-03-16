@@ -675,9 +675,11 @@ INSTR(Instr_Func_Call)
 INSTR(Instr_Op_Call_Binary)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "func call");
+  debug_msg("instr", "binary call");
 #endif
   VM_Code func;
+  Type l = (Type)instr->m_val2;
+  Type r = (Type)instr->ptr;
   m_uint local_depth, stack_depth, prev_stack = 0, push, next;
 
   POP_REG(shred,  SZ_INT * 2);
@@ -698,40 +700,39 @@ INSTR(Instr_Op_Call_Binary)
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
   shred->code = func;
+  POP_REG(shred,  stack_depth);
+  if(func->need_this) {
+    *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
+    PUSH_MEM(shred,  SZ_INT);
+    stack_depth -= SZ_INT;
+  }
+  if(isa(l, &t_object) > 0)
+    release(*(M_Object*)(shred->reg), shred);
+  if(isa(r, &t_object) > 0)
+    release(**(M_Object**)(shred->reg + SZ_INT), shred);
   if(stack_depth) {
-    POP_REG(shred,  stack_depth);
-    if(func->need_this) {
-      *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
-      PUSH_MEM(shred,  SZ_INT);
-      stack_depth -= SZ_INT;
-    }
-	if((((m_uint)instr->ptr << 1)& (1 << 1)))
-  		release(*(M_Object*)(shred->reg), shred);
-    if((((m_uint)instr->ptr << 1)& (1 << 2)))
-      release(**(M_Object**)(shred->reg + SZ_INT), shred);
-    if(stack_depth) {
-      m_uint size = stack_depth - instr->m_val2;
-      if(instr->m_val2 == Kindof_Int)
-        *(m_uint*)(shred->mem) = *(m_uint*)shred->reg;
-      else if(instr->m_val2 == Kindof_Float)
-        *(m_float*)(shred->mem) = *(m_float*)shred->reg;
-      else if(instr->m_val2 == Kindof_Complex)
-        *(m_complex*)(shred->mem) = *(m_complex*)shred->reg;
-      else if(instr->m_val2 == Kindof_Vec3)
-        *(VEC3_T*)(shred->mem) = *(VEC3_T*)shred->reg;
-      else if(instr->m_val2 == Kindof_Vec4)
-        *(VEC4_T*)(shred->mem) = *(VEC4_T*)shred->reg;
-      if(size == Kindof_Int)
-         *(m_uint*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
-      else if(size == Kindof_Float)
-         *(m_float*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
-      else if(size == Kindof_Complex)
-         *(m_complex*)(shred->mem + instr->m_val2) = **(m_complex**)(shred->reg + instr->m_val2);
-      else if(size == Kindof_Vec3)
-         *(VEC3_T*)(shred->mem + instr->m_val2) = **(VEC3_T**)(shred->reg + instr->m_val2);
-      else if(size == Kindof_Vec4)
-         *(VEC4_T*)(shred->mem + instr->m_val2) = **(VEC4_T**)(shred->reg + instr->m_val2);
-    }
+    Kindof kl = kindof(l); 
+    Kindof kr = kindof(r); 
+    if(kl == Kindof_Int)
+      *(m_uint*)(shred->mem) = *(m_uint*)shred->reg;
+    else if(kl == Kindof_Float)
+      *(m_float*)(shred->mem) = *(m_float*)shred->reg;
+    else if(kl == Kindof_Complex)
+      *(m_complex*)(shred->mem) = *(m_complex*)shred->reg;
+    else if(kl == Kindof_Vec3)
+      *(VEC3_T*)(shred->mem) = *(VEC3_T*)shred->reg;
+    else if(kl == Kindof_Vec4)
+      *(VEC4_T*)(shred->mem) = *(VEC4_T*)shred->reg;
+    if(kr == Kindof_Int)
+       *(m_uint*)(shred->mem + l->size) = **(m_uint**)(shred->reg + l->size);
+    else if(kr == Kindof_Float)
+       *(m_float*)(shred->mem + l->size) = **(m_float**)(shred->reg + l->size);
+    else if(kr == Kindof_Complex)
+       *(m_complex*)(shred->mem + l->size) = **(m_complex**)(shred->reg + l->size);
+    else if(kr == Kindof_Vec3)
+       *(VEC3_T*)(shred->mem + l->size) = **(VEC3_T**)(shred->reg + l->size);
+    else if(kr == Kindof_Vec4)
+       *(VEC4_T*)(shred->mem + l->size) = **(VEC4_T**)(shred->reg + l->size);
     if(func->need_this) {
       POP_MEM(shred, SZ_INT);
     }
