@@ -228,7 +228,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     if(!type_path) {
       err_msg(TYPE_,  0, "...at argument '%i'...", i + 1 );
       free_Vector(dl_fun->args);
-      /*      free_Arg_List(arg_list);*/
+      if(arg_list)
+        free_Arg_List(arg_list);
       return NULL;
     }
     type_decl = new_Type_Decl( type_path, 0, 0 );
