@@ -1159,9 +1159,9 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   type->obj->ref_count++;
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
-    base->type_ref=type; // /13/03/17
     if(!base)
       goto out_of_memory;
+    base->type_ref=type; // /13/03/17
     if(is_obj && objs) {
       for( i = 0; i < cap; i++ ) {
         objs[*index] = (m_uint)i_vector_addr(base->d.array, i);
