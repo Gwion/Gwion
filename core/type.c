@@ -422,8 +422,16 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
 
     type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
-      CHECK_OO(check_Expression(env, list->self->array->exp_list))
-      CHECK_BO(check_array_subscripts(env, list->self->array->exp_list))
+      if(!check_Expression(env, var_decl->array->exp_list)) {
+        free(type->obj);
+        free(type);
+        return NULL;
+      }
+      if(check_array_subscripts(env, var_decl->array->exp_list) < 0) {
+        free(type->obj);
+        free(type);
+        return NULL;
+      }
     }
     if(value->is_member) {
       value->offset = env->curr->offset;
