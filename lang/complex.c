@@ -119,7 +119,7 @@ INSTR(complex_real)
 #endif
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    *(m_float**)(shred->reg) = &**(m_float**)shred->reg; // coverity
+//    *(m_float**)(shred->reg) = &**(m_float**)shred->reg; // coverity
     PUSH_REG(shred, SZ_INT);
   } else {
     *(m_float*)(shred->reg) = **(m_float**)shred->reg;  // coverity

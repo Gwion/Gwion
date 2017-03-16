@@ -614,7 +614,7 @@ MFUN(string_substring)
 
 MFUN(string_substringN)
 {
-  char str[strlen(STRING(o))+1];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, (STRING(o)));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
   m_int end = *(m_int*)(shred->mem + SZ_INT*2);
@@ -633,11 +633,11 @@ MFUN(string_substringN)
 
 MFUN(string_insert)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
-  char insert[strlen(STRING(arg) + 1)];
+  char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
   M_Object obj = new_M_Object();
   initialize_object(obj, &t_string);
@@ -741,7 +741,7 @@ MFUN(string_findStart)
 
 MFUN(string_findStr)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
@@ -762,7 +762,7 @@ MFUN(string_findStr)
 
 MFUN(string_findStrStart)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
@@ -799,7 +799,7 @@ MFUN(string_rfind)
 
 MFUN(string_rfindStart)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   char pos = *(m_int*)(shred->mem + SZ_INT);
   char arg = *(m_int*)(shred->mem + SZ_INT * 2);
@@ -816,7 +816,7 @@ MFUN(string_rfindStart)
 
 MFUN(string_rfindStr)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
@@ -837,7 +837,7 @@ MFUN(string_rfindStr)
 
 MFUN(string_rfindStrStart)
 {
-  char str[strlen(STRING(o) + 1)];
+  char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);

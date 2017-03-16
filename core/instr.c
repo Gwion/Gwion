@@ -684,7 +684,7 @@ INSTR(Instr_Op_Call_Binary)
   func = *(VM_Code*)shred->reg;
   stack_depth = func->stack_depth;
   local_depth = *(m_uint*)(shred->reg + SZ_INT);
-  prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
+  prev_stack = instr->m_val;
   push = prev_stack + local_depth;
   next = shred->pc + 1;
   PUSH_MEM(shred, push);
@@ -711,25 +711,25 @@ INSTR(Instr_Op_Call_Binary)
       release(**(M_Object**)(shred->reg + SZ_INT), shred);
     if(stack_depth) {
       m_uint size = stack_depth - instr->m_val2;
-      if(instr->m_val2 == SZ_INT)
+      if(instr->m_val2 == Kindof_Int)
         *(m_uint*)(shred->mem) = *(m_uint*)shred->reg;
-      else if(instr->m_val2 == SZ_FLOAT)
+      else if(instr->m_val2 == Kindof_Float)
         *(m_float*)(shred->mem) = *(m_float*)shred->reg;
-      else if(instr->m_val2 == SZ_COMPLEX)
+      else if(instr->m_val2 == Kindof_Complex)
         *(m_complex*)(shred->mem) = *(m_complex*)shred->reg;
-      else if(instr->m_val2 == SZ_VEC3)
+      else if(instr->m_val2 == Kindof_Vec3)
         *(VEC3_T*)(shred->mem) = *(VEC3_T*)shred->reg;
-      else if(instr->m_val2 == SZ_VEC4)
+      else if(instr->m_val2 == Kindof_Vec4)
         *(VEC4_T*)(shred->mem) = *(VEC4_T*)shred->reg;
-      if(size == SZ_INT)
+      if(size == Kindof_Int)
          *(m_uint*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
-      else if(size == SZ_FLOAT)
+      else if(size == Kindof_Float)
          *(m_float*)(shred->mem + instr->m_val2) = **(m_uint**)(shred->reg + instr->m_val2);
-      else if(size == SZ_COMPLEX)
+      else if(size == Kindof_Complex)
          *(m_complex*)(shred->mem + instr->m_val2) = **(m_complex**)(shred->reg + instr->m_val2);
-      else if(size == SZ_VEC3)
+      else if(size == Kindof_Vec3)
          *(VEC3_T*)(shred->mem + instr->m_val2) = **(VEC3_T**)(shred->reg + instr->m_val2);
-      else if(size == SZ_VEC4)
+      else if(size == Kindof_Vec4)
          *(VEC4_T*)(shred->mem + instr->m_val2) = **(VEC4_T**)(shred->reg + instr->m_val2);
     }
     if(func->need_this) {

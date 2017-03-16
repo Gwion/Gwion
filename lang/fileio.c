@@ -24,7 +24,7 @@ m_int o_fileio_ascii;
 m_int o_fileio_line;
 
 #define IO_LINE(o) *(m_str*)(o->d.data + o_fileio_line)
-#define CHECK_FIO(o)   if(!IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); return; }
+#define CHECK_FIO(o)   if(!IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); }
 CTOR(fileio_ctor)
 {
   IO_DIR(o)  = NULL;
@@ -125,13 +125,13 @@ INSTR(file_to_int)
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   if(IO_ASCII(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
+	err_msg(INSTR_, 0, "problem while reading file.");
       Except(shred);
-      return;
     }
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
-	Except(shred);
 	err_msg(INSTR_, 0, "trying to read from empty file.");
+	Except(shred);
   }
   release(o, shred);
 }
@@ -148,12 +148,11 @@ INSTR(file_to_float)
   if(IO_ASCII(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
       Except(shred);
-      return;
     }
     *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
   } else {
-	Except(shred);
 	err_msg(INSTR_, 0, "trying to read from empty file.");
+	Except(shred);
   }
   release(o, shred);
 }
