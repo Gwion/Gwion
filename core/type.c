@@ -434,6 +434,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
       }
     }
     if(value->is_member) {
+      if(!env->class_def) return NULL;// coverity, should not happen , but deserves err msg.
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
       env->class_def->obj_size += type->size;
@@ -1566,6 +1567,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     switch(exp_unary->op) {
     case op_plusplus:
     case op_minusminus:
+      if(!exp->unary->exp) return NULL; //coverity. unlikely, deserves err_msg
       // assignable?
       if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
           exp_unary->exp->d.exp_primary->value->is_const)
@@ -1592,6 +1594,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       break;
     case op_tilda:
     case op_exclamation:
+      if(!t) return NULL; // coverity
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
         return &t_int;
       break;
