@@ -685,6 +685,8 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
     f = Cast_i2f;
   else if (isa(from, to) > 0)
     return 1;
+  else if(isa(from, &t_null) > 0 && isa(to, &t_object) > 0)
+    return 1;
   else {
     err_msg(EMIT_, 0, "cannot cast '%s' to '%s'", from->name, to->name);
     return -1;
