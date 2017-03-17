@@ -437,7 +437,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(value->is_member) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
-      /* coverity[var_deref_op = FALSE] */
+      /* coverity[var_deref_op : FALSE] */
       env->class_def->obj_size += type->size;
       env->curr->offset += type->size;
     } else if( decl->is_static ) { // static
@@ -1569,7 +1569,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     case op_plusplus:
     case op_minusminus:
       // assignable?
-      /* coverity[var_deref_op] */
+      /* coverity[var_deref_op : FALSE] */
       if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
           exp_unary->exp->d.exp_primary->value->is_const)
         //if(exp_unary->exp->meta != ae_meta_var)
@@ -1595,7 +1595,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       break;
     case op_tilda:
     case op_exclamation:
-      /* coverity[var_deref_model = FALSE] */
+      /* coverity[var_deref_model : FALSE] */
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, 
         &t_dur) > 0)
         return &t_int;
