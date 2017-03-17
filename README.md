@@ -47,16 +47,16 @@ there are a few *new* features:
 *  function pointers
 *  enums
 
-####requires####
+#### requires
 
 * [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
 	(the [dev](https://github.com/PaulBatchelor/Soundpipe/tree/dev) branch
 
-####configure####
+#### configure
 
 simply edit *config.mk* to suit your needs, 
 
-####build####
+#### build
 
 first you need to generate Makefile:
 
@@ -75,16 +75,16 @@ then, just
 make
 ```
 
-####issues####
+#### issues
 
 if anyting goes wrong or seems unclear, please report an [issue](https://github.com/fennecdjay/Gwion/issues/new).  
 
-####help####
+#### contribute 
 
 Every helping hand is welcome!!!
 if you wish to do something on [Gwion](https://github.com/fennecdjay/Gwion), please use the [issue tracker](https://github.com/fennecdjay/Gwion/issues),
 either to find a issue you can fix, or add a new one.  
-please also check the [Wiki](https://github.com/fennecdjay/Gwion/wiki).
+You can also use the [Wiki](https://github.com/fennecdjay/Gwion/wiki).
 
 ---------
 

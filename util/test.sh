@@ -259,8 +259,8 @@ test_dir() {
 				offset=$((offset + async));
 			fi
 		}
-    n=$((n+1))
-    l=$((l+1))
+		n=$((n+1))
+		l=$((l+1))
 	done
  	[ "$async" -ne 0 ] && {
 		wait
