@@ -259,6 +259,8 @@ test_dir() {
 				offset=$((offset + async));
 			fi
 		}
+    n=$((n+1))
+    l=$((l+1))
 	done
  	[ "$async" -ne 0 ] && {
 		wait
@@ -267,8 +269,6 @@ test_dir() {
 		do read_test "/tmp/gwt_$(printf "%04i" "$i").log"
 		done
 	}
-  n=$((n+1))
-  l=$((l+1))
   fi
 
 
