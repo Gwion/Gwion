@@ -231,7 +231,7 @@ dir_contains() {
 test_dir() {
 	local n offset l
 	l=0
-	n=$2
+	n=$(($2-1))
 	[ -z "$n"  ] && n=1
 	offset=$n
 	[ "$async" -lt 0 ] && set -m
