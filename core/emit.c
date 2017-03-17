@@ -1,8 +1,9 @@
+#include <string.h> /* memcpy */
 #include "emit.h"
 #include "err_msg.h"
 #include "instr.h"
 #include "vm.h"
-#include <string.h> /* memcpy */
+#include "context.h"
 
 static m_str emit_filename;
 
@@ -509,12 +510,8 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           //          is_init = 1;
           if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
             return -1;
-        } else if (!value->owner_class) {
-printf("list->self->array->type %p\n", decl->m_type);
-vector_append(emit->array, decl->m_type);
-
-}
-
+        } else if (!value->owner_class)
+          vector_append(emit->array, (vtype)decl->m_type);
       } else if (!is_ref) {
         //        is_init = 1;
         if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
@@ -832,7 +829,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   }
   else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
     call->execute = Instr_Op_Call_Binary;
-	call->m_val2  = func->def->arg_list->type;
+	call->m_val2  = (m_uint)func->def->arg_list->type;
 	call->ptr     = func->def->arg_list->next->type;
   }
   if (func->def->is_template) {

@@ -1,5 +1,7 @@
 #include "err_msg.h"
 #include "absyn.h"
+#include "context.h"
+
 static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
 {
   Type t = new_Type(env->context);
@@ -169,7 +171,8 @@ m_bool scan0_Ast(Env env, Ast prog)
                   "more than one 'public' class defined..." );
           return -1;
         }
-        prog->section->d.class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
+//        prog->section->d.class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
+        prog->section->d.class_def->home = env->global_nspc;
         env->context->public_class_def = prog->section->d.class_def;
       }
       ret = scan0_Class_Def( env, prog->section->d.class_def );

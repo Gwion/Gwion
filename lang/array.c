@@ -12,19 +12,15 @@ m_int o_array_vector;
 
 DTOR(array_dtor)
 {
-if(o->type_ref->array_type) // maybe unnecessary. preferably check array depth
-  if(o->d.array->depth > 1 || isa(o->type_ref->array_type, &t_object) > 0) {
-    m_uint i;
-    for(i = 0; i < o->d.array->len; i += SZ_INT) {
-       release(*(M_Object*)(o->d.array->ptr + i), shred);
-
-    }
+  if(o->type_ref->array_type) // maybe unnecessary. preferably check array depth
+    if(o->d.array->depth > 1 || isa(o->type_ref->array_type, &t_object) > 0) {
+      m_uint i;
+      for(i = 0; i < o->d.array->len; i += SZ_INT)
+        release(*(M_Object*)(o->d.array->ptr + i), shred);
   }
   free(o->d.array->ptr);
 // should not compare to t_array. see new_M_Array(Type t, ...
   if(o->type_ref != &t_array) {
-// do we need owner test ?
-//    if(!--o->type_ref->obj->ref_count && !o->type_ref->owner) {
     if(!--o->type_ref->obj->ref_count) {
       free(o->type_ref->obj);
       free(o->type_ref);

@@ -1,6 +1,7 @@
 #include <string.h>
 #include "defs.h"
 #include "map.h"
+#include "context.h"
 #include "func.h"
 #include "err_msg.h"
 

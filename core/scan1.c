@@ -666,7 +666,6 @@ static m_bool scan1_Class_Def(Env env, Class_Def class_def)
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "class def");
 #endif
-printf("value->name %p\n", namespace_lookup_value(env->curr, class_def->name->xid, 1));
   m_bool ret = 1;
   Class_Body body = class_def->body;
   Type the_class = class_def->type;

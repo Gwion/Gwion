@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "map.h"
+#include "context.h"
 #include "func.h"
 #include "oo.h"
 

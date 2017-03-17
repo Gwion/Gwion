@@ -6,6 +6,7 @@
 #include "type.h"
 #include "absyn.h"
 #include "env.h"
+#include "context.h"
 #include "func.h"
 #include "import.h"
 #include "lang.h"

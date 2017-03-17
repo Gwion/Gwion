@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "map.h"
 #include "emit.h"
 #include "func.h"

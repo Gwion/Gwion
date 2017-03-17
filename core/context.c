@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include "env.h"
+#include "defs.h"
+#include "context.h"
+#include "func.h"
 
 void context_add_type(Context context, Type type, VM_Object obj)
 {
@@ -42,7 +44,7 @@ Context new_Context(Ast prog, m_str filename)
   context->public_class_def = NULL;
   return context;
 }
-#include "func.h"
+
 void free_Context(Context a)
 {
   vtype i;

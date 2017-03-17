@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <soundpipe.h> // for sp_rand
 #include "defs.h"
+#include "absyn.h"
 #include "import.h"
 #include "shreduler.h"
 #include "compile.h"

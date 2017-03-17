@@ -1,6 +1,6 @@
 #include "defs.h"
 #include "err_msg.h"
-#include "emit.h"
+//#include "emit.h"
 #include "instr.h"
 
 static Operator operators[] = {

@@ -7,6 +7,7 @@
 #include "lang.h"
 #include "alsa.h"
 
+#include "absyn.h"
 #include "emit.h"
 #include "vm.h"
 #include "compile.h"

@@ -1,6 +1,7 @@
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
+#include "context.h"
 #include "func.h"
 
 m_bool scan2_Func_Def(Env env, Func_Def f);
