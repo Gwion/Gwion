@@ -8,7 +8,7 @@
 struct Env_ {
   NameSpace curr;
   NameSpace global_nspc;
-  NameSpace user_nspc;
+//  NameSpace user_nspc;
   m_uint    class_scope;
   Context   global_context;
   Context   context;
