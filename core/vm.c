@@ -110,6 +110,7 @@ BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
   a->n_in = di->in;
   a->sp->sr = di->sr;
   *driver = d;
+  sp_srand(a->sp, time(NULL));
   return a;
 error:
   free(a);

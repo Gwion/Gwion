@@ -121,8 +121,8 @@ static SFUN(machine_adept)
 
 static m_str randstring(VM* vm, int length)
 {
-  char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
-  size_t stringLen = 26 * 2 + 10 + 7;
+  char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+  size_t stringLen = 26 * 2 + 10 + 2;
   char *randomString;
 
   randomString = malloc(sizeof(char) * (length + 1));
@@ -184,9 +184,29 @@ SFUN(machine_check)
 
 static SFUN(machine_compile)
 {
-  RETURN->d.v_uint = 0;
-  prepare()
-  RETURN->d.v_uint = 1;
+
+  char c[104];
+  m_str prefix, filename;
+  M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  if(!prefix_obj)
+    prefix = ".";
+  else {
+    prefix = STRING(prefix_obj);
+    release(prefix_obj, shred);
+  }
+  if(!code_obj) {
+    RETURN->d.v_uint = 0;
+    return;
+  }
+  filename = randstring(shred->vm_ref, 12);
+  sprintf(c, "%s/%s.gw", prefix, filename);
+  FILE* file = fopen(c, "w");
+  fprintf(file, "%s\n", STRING(code_obj));
+  release(code_obj, shred);
+  fclose(file);
+  free(filename);
+  compile(shred->vm_ref, c);
 }
 
 static SFUN(machine_shreds)
@@ -235,6 +255,7 @@ m_bool import_machine(Env env)
   CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("void",  "compile",     (m_uint)machine_compile);
+  dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))
 
