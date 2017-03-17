@@ -50,8 +50,7 @@ there are a few *new* features:
 ####requires####
 
 * [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
-	(the [dev](https://github.com/PaulBatchelor/Soundpipe/tree/dev) branch, or [master](https://github.com/PaulBatchelor/Soundpipe/tree/master) with 
-[this](https://gist.github.com/fennecdjay/a5dbc54342bcf6f0c8d5f9a03355580b) patch).
+	(the [dev](https://github.com/PaulBatchelor/Soundpipe/tree/dev) branch
 
 ####configure####
 
