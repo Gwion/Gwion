@@ -142,8 +142,8 @@ INSTR(Object_String_Assign)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  char str[11];
-  str[10] = '\0';
+  char str[12];
+  str[11] = '\0';
 //  memset(str, 0, 10);
 //  sprintf(str, "%p", (void*)lhs);
   sprintf(str, "0x%08lu" , (uintptr_t)lhs);
