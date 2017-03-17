@@ -196,6 +196,7 @@ INSTR(Array_Append)
     o = *(M_Object*)(shred->reg);
     v4_vector_append(o->d.array, *(VEC4_T*)(shred->reg + SZ_INT));
   }
+  release(o, shred);
   *(M_Object*)(shred->reg) = o;
   PUSH_REG(shred, SZ_INT);
 }
