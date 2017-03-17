@@ -1,7 +1,7 @@
 #!/bin/bash
 set -m
 
-: "${ASYNC:=0}"
+: "${ASYNC:=4}"
 : "${async:=$ASYNC}"
 
 : "${SEVERITY:=10}"
