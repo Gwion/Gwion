@@ -14,7 +14,7 @@ valgrind ./gwion -d silent  &> "file"
 ok=0
 grep "$good" "file" > /dev/null && ok=1
 if [ $ok ]
-then echo "ok  $N test driver"
+then echo "ok $N test driver"
 else echo "not ok $N test driver"
 fi
 rm "file"

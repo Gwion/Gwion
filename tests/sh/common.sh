@@ -11,7 +11,7 @@ run() {
     ok=0
     grep "$good" "$4" > /dev/null && ok=1
     if [ $ok ]
-    then echo "ok  $n $2"
+    then echo "ok $n $2"
     else echo "not ok $n $2"
     fi
     rm "$4"
