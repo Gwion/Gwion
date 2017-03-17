@@ -269,9 +269,14 @@ SFUN(file_list)
     RETURN->d.v_uint = 0;
     return;
   }
+  Type t = new_array_type(shred->vm_ref->env, &t_array, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
+  ret->type_ref = t;
+  t->obj->ref_count = 1;
   for(i = 0; i < n; i++) {
-    i_vector_set(ret->d.array, i, (m_uint)new_String(namelist[i]->d_name));
+    M_Object string = new_String(namelist[i]->d_name);
+    string->ref = 1;
+    i_vector_set(ret->d.array, i, (m_uint)string);
     free(namelist[i]);
   }
   free(namelist);
