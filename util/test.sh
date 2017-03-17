@@ -241,6 +241,8 @@ test_dir() {
 	then
 	for file in "$1"/*.gw
 	do
+    n=$((n+1))
+    l=$((l+1))
 #		[ -f /tmp/gwt_bailout ] && exit 1
 		if [ "$async" -ne 0 ]
 		then test_gw "$file" "$n"&
@@ -259,8 +261,6 @@ test_dir() {
 				offset=$((offset + async));
 			fi
 		}
-    n=$((n+1))
-    l=$((l+1))
 	done
  	[ "$async" -ne 0 ] && {
 		wait
