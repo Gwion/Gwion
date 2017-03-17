@@ -458,9 +458,10 @@ INSTR(Object_String_Plus)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  m_uint len = strlen(STRING(rhs)) + 9;
+  m_uint len = strlen(STRING(rhs)) + 10;
   char c[len];
   sprintf(c, "%s%p", STRING(rhs), (void*)lhs);
+//  sprintf(c, "%s0x%lu" , STRING(rhs), (uintptr_t)lhs);
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
