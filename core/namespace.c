@@ -112,7 +112,6 @@ void free_NameSpace(NameSpace a)
   Vector v = scope_get(a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
-      printf("%s %p %s\n", a->name, value, value->name);
     if(isa(value->m_type, &t_class) > 0) {
       rem_ref(value->m_type->obj, value->m_type);
     }

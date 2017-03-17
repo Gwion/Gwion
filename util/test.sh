@@ -120,8 +120,9 @@ fail() {
     echo "not ok $(printf "% 4i" "$n") $desc"
     echo "# $(cat "$log")"
   else
+	local info=$(cat "$log")
     echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
-    echo "# $(cat "$log")" >> "$log"
+    echo "# $info" >> "$log"
   fi
   return 1
 }

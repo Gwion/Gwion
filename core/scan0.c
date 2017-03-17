@@ -108,7 +108,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
       context_add_type(env->context, the_class, the_class->obj);
 // 04/01/17
       context_add_class(env->context, value, value->obj);
-    } else {
+    } else if(class_def->decl != ae_key_public) {
 context_add_class(env->context, value, value->obj);
 }
 
