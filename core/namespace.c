@@ -115,6 +115,7 @@ void free_NameSpace(NameSpace a)
     if(isa(value->m_type, &t_class) > 0)
       rem_ref(value->m_type->obj, value->m_type);
     else if(isa(value->m_type, &t_object) > 0) {
+printf("HERE %s %i\n", value->name, value->is_static);
       if(value->ptr) {
         Vector instr = new_Vector();
         VM_Code code = new_VM_Code(instr, 0, 0, "", "");
@@ -127,6 +128,15 @@ void free_NameSpace(NameSpace a)
       if(value->m_type->array_type) {
         free(value->m_type->obj);
         free(value->m_type);
+      }
+      if(value->is_static) {
+        Vector instr = new_Vector();
+        VM_Code code = new_VM_Code(instr, 0, 0, "", "");
+        VM_Shred s = new_VM_Shred(code);
+        s->vm_ref = vm;
+        release(*(M_Object*)(a->class_data + value->offset), s);
+        free_VM_Shred(s);
+        free_Vector(instr);
       }
     } else if(isa(value->m_type, &t_func_ptr) > 0) {
 //  just catch func pointer
