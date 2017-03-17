@@ -1,5 +1,8 @@
 #include <string.h>
 #include <dirent.h>
+#ifdef USE_DOUBLE
+#undef USE_DOUBLE
+#endif
 #include <soundpipe.h> // for sp_rand
 #include "defs.h"
 #include "absyn.h"

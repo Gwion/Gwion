@@ -318,7 +318,7 @@ INSTR(Int_String_Plus)
   debug_msg("instr", "int '+=>' string");
 #endif
   POP_REG(shred, SZ_INT * 2);
-  m_uint lhs = *(m_uint*)shred->reg;
+  m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   m_uint len = strlen(STRING(rhs)) + 1;
   m_uint tmp = abs(lhs);

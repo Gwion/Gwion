@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include "vm.h"
 
 // get rid of that
