@@ -102,13 +102,16 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 //    add_ref(value->obj);
     add_ref(the_class->obj);
 //the_class->obj->ref_count = 2;
-    namespace_add_value(env->curr, insert_symbol(value->name), value );
+    namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
 // 04/01/17
       context_add_class(env->context, value, value->obj);
-    }
+    } else {
+context_add_class(env->context, value, value->obj);
+}
+
   }
   if(class_def->home) {
     env->curr = (NameSpace)vector_back(env->nspc_stack);

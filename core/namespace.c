@@ -112,10 +112,11 @@ void free_NameSpace(NameSpace a)
   Vector v = scope_get(a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
-    if(isa(value->m_type, &t_class) > 0)
+      printf("%s %p %s\n", a->name, value, value->name);
+    if(isa(value->m_type, &t_class) > 0) {
       rem_ref(value->m_type->obj, value->m_type);
+    }
     else if(isa(value->m_type, &t_object) > 0) {
-printf("HERE %s %i\n", value->name, value->is_static);
       if(value->ptr) {
         Vector instr = new_Vector();
         VM_Code code = new_VM_Code(instr, 0, 0, "", "");
