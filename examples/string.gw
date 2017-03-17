@@ -48,7 +48,7 @@ s.substring(2);
 //<<<o>>>;
 <<<"test" + "another test" >>>; // mem leak
 //<<<"test" + s >>>; // also leak
- <<< NULL +=> s >>>; // also hang 
+// <<< NULL +=> s >>>; // also hang 
 <<<"1".toInt()>>>;
 <<<"1".toFloat()>>>;
 
