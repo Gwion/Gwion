@@ -44,8 +44,8 @@ s.substring(2);
 <<<"test" => s>>>; // new
 <<<s>>>;
 //<<< NULL => s >>>; //test me
-<<< o => s >>>;
-<<<o>>>;
+//<<< o => s >>>;
+//<<<o>>>;
 // look at me!!!
 // <<< o => s>>>; // hang . grrr...
 <<<"test" + "another test" >>>; // mem leak
