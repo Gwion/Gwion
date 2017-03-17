@@ -142,8 +142,9 @@ INSTR(Object_String_Assign)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  char str[10];
-  memset(str, 0, 10);
+  char str[11];
+  str[10] = '\0';
+//  memset(str, 0, 10);
 //  sprintf(str, "%p", (void*)lhs);
   sprintf(str, "0x%08lu" , (uintptr_t)lhs);
   STRING(rhs) = S_name(insert_symbol(str));
@@ -281,7 +282,7 @@ INSTR(Object_String)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  char str[1024];
+  char str[11 + strlen(STRING(rhs))];
   sprintf(str, "0x%08lu%s" , (uintptr_t)lhs, STRING(rhs));
 //  sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
