@@ -145,7 +145,7 @@ INSTR(Object_String_Assign)
   char str[10];
   memset(str, 0, 10);
 //  sprintf(str, "%p", (void*)lhs);
-  sprintf(c, "0x%08lu" , (uintptr_t)lhs);
+  sprintf(str, "0x%08lu" , (uintptr_t)lhs);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
@@ -282,7 +282,7 @@ INSTR(Object_String)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
-  sprintf(c, "0x%08lu%s" , (uintptr_t)lhs, STRING(rhs));
+  sprintf(str, "0x%08lu%s" , (uintptr_t)lhs, STRING(rhs));
 //  sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
