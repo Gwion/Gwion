@@ -229,11 +229,12 @@ dir_contains() {
 }
 
 test_dir() {
-	local n offset l
+	local n offset l base
 	l=0
 	n=$2
-	[ -z "$n"  ] && n=1
+#	[ -z "$n"  ] && n=1
 	offset=$n
+	base=$((n-1))
 	[ "$async" -lt 0 ] && set -m
 	found=0
   grep "\.gw" <<< "$(ls "$1")" &> /dev/null && found=1
@@ -249,7 +250,7 @@ test_dir() {
 #		n=$((n+1))
 #		l=$((l+1))
 		[ "$async" -ne 0 ] && {
-			if [ $((n % async)) -eq 0 ]
+			if [ $(( $((n-base)) % async)) -eq 0 ]
 			then
 				wait
 				for i in $(seq $offset $n)
@@ -264,8 +265,8 @@ test_dir() {
 	done
  	[ "$async" -ne 0 ] && {
 		wait
-		local rest=$((n%async))
-		for i in $(seq $((n-rest+1))  $((n-1)))
+		local rest=$(( $((n-base-1)) %async))
+		for i in $(seq $((n-rest))  $((n-1)))
 		do read_test "/tmp/gwt_$(printf "%04i" "$i").log"
 		done
 	}
@@ -280,7 +281,7 @@ test_dir() {
 		for file in "$1"/*.sh
 		do
 			[ "$file" = "$1/*.sh" ] && continue
-			bash "$file" "$n"
+			bash "$file" "$((n))"
 			local count
 			count=$(grep "\[test\] #" "$file" | cut -d '#' -f 3)
 			n=$((n+count))
