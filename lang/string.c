@@ -462,7 +462,7 @@ INSTR(Object_String_Plus)
   char c[len+1];
   c[len] = '\0';
 //  sprintf(c, "%s%p", STRING(rhs), (void*)lhs);
-  sprintf(c, "%s0x%lu" , STRING(rhs), (uintptr_t)lhs);
+  sprintf(c, "%s0x%08lu" , STRING(rhs), (uintptr_t)lhs);
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
