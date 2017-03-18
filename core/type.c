@@ -760,6 +760,8 @@ Type check_Array(Env env, Array* array )
               /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
               "array index %i must be of type 'int', not '%s'",
               depth, e->type->name);
+    free(t_base->obj);
+    free(t_base);
       return NULL;
     }
     e = e->next;
