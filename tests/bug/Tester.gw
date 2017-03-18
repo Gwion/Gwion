@@ -1,0 +1,28 @@
+class Tester
+{
+	template<{A}>
+	function int assert_equal(string description, A a, A b){ if(a == b) return 0; return 1; }
+	template<{A}>
+	function int assert_not_equal(string description, A a, A b){ if(a != b) return 0; return 1; }
+}
+
+Tester t;
+Object o;
+Object @ref;
+"test" => string s;
+//<<<t.assert_equal("test", 1, 1)>>>;
+//<<<t.assert_equal("test", 2, 1)>>>;
+<<<t.assert_equal(s, 1, 1)>>>;
+<<<t.assert_equal(s, 2, 1 + 1)>>>;
+<<<t.assert_equal(s, 2, 1)>>>;
+<<<t.assert_equal(s, o, o)>>>;
+<<<t.assert_equal(s, o, NULL)>>>;
+<<<t.assert_equal(s, NULL $ Object, NULL)>>>;
+<<<t.assert_equal(s, ref, NULL)>>>;
+<<<t.assert_not_equal(s, 1, 1)>>>;
+<<<t.assert_not_equal(s, 2, 1 + 1)>>>;
+<<<t.assert_not_equal(s, 2, 1)>>>;
+<<<t.assert_not_equal(s, o, o)>>>;
+<<<t.assert_not_equal(s, o, NULL)>>>;
+<<<t.assert_not_equal(s, NULL $ Object, NULL)>>>;
+<<<t.assert_not_equal(s, ref, NULL)>>>;

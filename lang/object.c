@@ -130,7 +130,19 @@ static INSTR(eq_Object)
   POP_REG(shred, SZ_INT * 2);
   m_uint* lhs = *(m_uint**)shred->reg;
   m_uint* rhs = *(m_uint**)(shred->reg + SZ_INT);
-  *(m_uint*)shred->reg = (*lhs == *rhs);
+  *(m_uint*)shred->reg = (lhs == rhs);
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(neq_Object)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "neq Object");
+#endif
+  POP_REG(shred, SZ_INT * 2);
+  m_uint* lhs = *(m_uint**)shred->reg;
+  m_uint* rhs = *(m_uint**)(shred->reg + SZ_INT);
+  *(m_uint*)shred->reg = (lhs != rhs);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -236,7 +248,12 @@ m_bool import_object(Env env)
   env->class_def->doc = "the base class";
   CHECK_BB(add_binary_op(env, op_at_chuck, &t_null, &t_object, &t_object, Assign_Object, 1, 0))
   CHECK_BB(add_binary_op(env, op_at_chuck, &t_object, &t_object, &t_object, Assign_Object, 1, 0))
-  CHECK_BB(add_binary_op(env, op_eq, &t_object, &t_object, &t_int, eq_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_eq,  &t_object, &t_object, &t_int,  eq_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_neq, &t_object, &t_object, &t_int, neq_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_eq,  &t_null,   &t_object, &t_int,  eq_Object, 1, 0))
+  CHECK_BB(add_binary_op(env, op_neq, &t_null,   &t_object, &t_int, neq_Object, 1, 0))
+//  CHECK_BB(add_binary_op(env, op_eq,  &t_object, &t_null, &t_int,  eq_Object, 1, 0))
+//  CHECK_BB(add_binary_op(env, op_neq, &t_object, &t_null, &t_int, neq_Object, 1, 0))
 
   add_global_value(env, "NULL", &t_object, 1, 0);
 
