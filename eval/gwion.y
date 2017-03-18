@@ -175,6 +175,7 @@ static m_str get_arg_doc(void* data)
 
 %left DOT
 
+%destructor { printf("!!!!\n"); free_Type_Decl($$); } <type_decl>
 %%
 
 ast

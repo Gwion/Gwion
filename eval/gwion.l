@@ -309,6 +309,7 @@ int minimal_error(MyArg* arg, char* s)
     strcat(sign, " ");
   strcat(sign, "^\n");
   fprintf(stderr, "%s", sign);
+  fclose(arg->file);
   return 0;
 }
 
