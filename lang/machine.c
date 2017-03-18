@@ -32,6 +32,8 @@
   if(ast) \
     free_Ast(ast);
 
+struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
+
 static SFUN(machine_add)
 {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);

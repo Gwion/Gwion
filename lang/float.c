@@ -5,7 +5,11 @@
 #include "err_msg.h"
 #include "instr.h"
 
-struct Type_ t_float     = { "float",      sizeof(m_float),  NULL,  te_float };
+struct Type_ t_float     = { "float", SZ_FLOAT,  NULL,    te_float };
+struct Type_ t_dur       = { "dur",   SZ_FLOAT,  NULL,    te_dur };
+struct Type_ t_time      = { "time",  SZ_FLOAT,  NULL,    te_time };
+struct Type_ t_now       = { "@now",  SZ_FLOAT,  &t_time, te_now };
+
 // arithmetic
 static INSTR(assign)
 {

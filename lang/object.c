@@ -8,7 +8,10 @@
 
 #include "object.h"
 
-struct Type_ t_object = { "Object", sizeof(m_uint), NULL, te_object };
+struct Type_ t_null   = { "@null",     SZ_INT, NULL,      te_null};
+struct Type_ t_object = { "Object",    SZ_INT, NULL,      te_object };
+struct Type_ t_vararg = { "@Vararg",   SZ_INT, &t_object, te_vararg};
+struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
 
 void NullException(VM_Shred shred)
 {

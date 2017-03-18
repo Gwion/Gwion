@@ -461,7 +461,8 @@ static SFUN(std_lintodb)
   RETURN->d.v_float = 20.0 * log10(*(m_float*)(shred->mem + SZ_FLOAT));
 }
 
-static struct Type_ t_math    = { "Math",    0, NULL};
+static struct Type_ t_std  = { "Std",  0, NULL, te_std};
+static struct Type_ t_math = { "Math", 0, NULL};
 
 m_bool import_lib(Env env)
 {

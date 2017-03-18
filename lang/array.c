@@ -8,6 +8,7 @@
 
 #include "object.h"
 
+struct Type_ t_array  = { "@Array",     SZ_INT, &t_object, te_array };
 m_int o_array_vector;
 
 DTOR(array_dtor)

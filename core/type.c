@@ -31,19 +31,9 @@ static m_bool check_Class_Def(Env env, Class_Def class_def);
 
 
 struct Type_ t_void      = { "void",       0, NULL, te_void};
-struct Type_ t_complex;
 struct Type_ t_function  = { "@function",   sizeof(m_uint),   NULL, te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",   sizeof(m_uint),   &t_function, te_func_ptr};
-struct Type_ t_dur       = { "dur",         sizeof(m_float),  NULL, te_dur };
-struct Type_ t_time      = { "time",        sizeof(m_float),  NULL, te_time };
-struct Type_ t_now       = { "@now",        sizeof(m_float),  &t_time, te_now };
 struct Type_ t_class     = { "@Class",       SZ_INT,   NULL, te_class };
-struct Type_ t_std       = { "Std",          0, NULL, te_std};
-struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
-struct Type_ t_array  = { "@Array",     SZ_INT, &t_object, te_array };
-struct Type_ t_null  = { "@null",     sizeof(void*), NULL, te_null};
-struct Type_ t_vararg = { "@Vararg",    SZ_INT, &t_object, te_vararg};
-struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
 
 static int so_filter(const struct dirent* dir)
 {
