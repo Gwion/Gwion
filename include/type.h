@@ -74,7 +74,7 @@ extern struct Type_ t_dur;
 extern struct Type_ t_time;
 extern struct Type_ t_now;
 extern struct Type_ t_class;
-extern struct Type_ t_std;
+//extern struct Type_ t_std;
 extern struct Type_ t_machine;
 //extern struct Type_ t_template;
 extern struct Type_ t_null;
