@@ -701,18 +701,9 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
   Type to = cast->self->type;
   Type from = cast->exp->type;
   if (isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0) {
-    if (cast->exp->exp_type == Primary_Expression_type) {
-      char name[1024];
-      m_str nspc = strdup(from->name);
-      strsep(&nspc, "@");
-      strsep(&nspc, "@");
-      sprintf(name, "%s@%i@%s", S_name(cast->exp->d.exp_primary->d.var), 0, nspc);
-      free(nspc); // coverity
-      Instr push = add_instr(emit, Reg_Push_Imm);
-      push->m_val = (m_uint)cast->func;
-      return 1;
-    }
-    /*    return emit_Expression( emit, cast->exp, 0);*/
+    Instr push = add_instr(emit, Reg_Push_Imm);
+    push->m_val = (m_uint)cast->func;
+    return 1;
   }
   CHECK_BB(emit_Expression(emit, cast->exp, 0))
   return emit_Cast_Expression1(emit, to, from);

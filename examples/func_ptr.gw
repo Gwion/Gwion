@@ -20,3 +20,5 @@ test();
 
 test3 @=> test;
 test();
+
+<<< test3 $ Test>>>;
