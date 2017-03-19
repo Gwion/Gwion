@@ -194,6 +194,10 @@ INSTR(Reg_Push_Code)
   debug_msg("instr", "[reg] push code [%i]", instr->m_val);
 #endif
   Func f = *(Func*)(shred->mem + instr->m_val);
+  if(!f) {
+    err_msg(INSTR_, 0, "trying to call empty func pointer.");
+	Except(shred);
+  }
   *(VM_Code*)(shred->reg - SZ_INT) = f->code;
 }
 

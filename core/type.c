@@ -1347,10 +1347,12 @@ next:
       !exp_func->d.exp_primary->value->is_const) {
     f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
     /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
+/*
     if(!f) {
       err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
       return NULL;
     }
+*/
     if(!f->func) { // func ptr
       up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
       f->func = up;
