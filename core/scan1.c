@@ -543,13 +543,11 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
 
   if(!ptr->ret_type) {
     err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  S_name(ptr->xid));
-    free_Type_Decl(ptr->type);
     return -1;
   }
 
   if(!env->class_def && ptr->key == ae_key_static) {
     err_msg(SCAN1_, ptr->pos, "can't declare func pointer static outside of a class");
-    free_Type_Decl(ptr->type);
     return -1;
   }
 
@@ -558,7 +556,6 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
     if(!arg_list->type) {
       m_str path = type_path(arg_list->type_decl->xid);
       err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count, S_name(ptr->xid));
-      free_Type_Decl(ptr->type);
       free(path);
       return -1;
     }

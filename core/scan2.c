@@ -110,7 +110,7 @@ exit(6);
   while(arg_list) {
     if( arg_list->type->size == 0 ) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      free_Type_Decl(ptr->type);
+//      free_Type_Decl(ptr->type);
       goto error;
 //      return -1;
     }
@@ -131,7 +131,7 @@ exit(6);
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "...(primitive types: 'int', 'float', 'time', 'dur')" );
-      free_Type_Decl(ptr->type);
+//      free_Type_Decl(ptr->type);
 //      return -1;
       goto error;
     }
@@ -148,7 +148,7 @@ exit(6);
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid) );
         err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid) );
-        free_Type_Decl(ptr->type);
+//        free_Type_Decl(ptr->type);
 //        return -1;
         goto error;
       }
