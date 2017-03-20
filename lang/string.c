@@ -166,7 +166,6 @@ INSTR(String_String)
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -184,7 +183,6 @@ INSTR(Int_String)
   sprintf(str, "%li%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -201,7 +199,6 @@ INSTR(Float_String)
   sprintf(str, "%f%s", lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -218,7 +215,6 @@ INSTR(Complex_String)
   sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -235,7 +231,6 @@ INSTR(Polar_String)
   sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -252,7 +247,6 @@ INSTR(Vec3_String)
   sprintf(str, "@(%f, %f, %f)%s", lhs.x, lhs.y, lhs.z, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -269,7 +263,6 @@ INSTR(Vec4_String)
   sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -287,7 +280,6 @@ INSTR(Object_String)
 //  sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(str);
   *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -481,7 +473,6 @@ INSTR(Reg_Push_Str)
   // modified 13/01/17 'get rid of litteral strings'
   *(M_Object*)shred->reg = new_String((m_str)instr->m_val);
   *(M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
-  (*(M_Object*)shred->reg)->ref++;
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -498,59 +489,51 @@ MFUN(string_len)
 MFUN(string_upper)
 {
   m_uint i;
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_lower)
 {
   m_uint i;
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_ltrim)
 {
   m_uint i = 0;
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
   while(c[i] || c[i] == ' ')
     i++;
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_rtrim)
 {
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = S_name(insert_symbol(STRING(o)));
-  RETURN->d.v_object = obj;
+  m_str str = STRING(o);
+  m_uint len = strlen(str) -1;
+  while(str[len] == ' ')
+    len--;
+  char c[len + 2];
+  strncpy(c, str, len+1);
+  c[len+1] = '\0';
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_trim)
 {
   m_str str = STRING(o);
   m_int i, start = 0, end = 0, len = 0;
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = str;
   while(str[len] != '\0')
     len++;
   for(i = 0; i < len; i++) {
@@ -568,8 +551,7 @@ MFUN(string_trim)
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_charAt)
@@ -611,10 +593,7 @@ MFUN(string_substring)
   memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_substringN)
@@ -623,8 +602,6 @@ MFUN(string_substringN)
   strcpy(str, (STRING(o)));
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
   m_int end = *(m_int*)(shred->mem + SZ_INT*2);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   while(str[len] != '\0')
     len++;
   len -= end;
@@ -632,8 +609,7 @@ MFUN(string_substringN)
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);
 }
 
 MFUN(string_insert)
@@ -644,8 +620,6 @@ MFUN(string_insert)
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   while(str[len] != '\0')
     len++;
   len_insert =  strlen(insert);
@@ -657,9 +631,8 @@ MFUN(string_insert)
   for(i = index; i < len; i++)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
-  STRING(obj) = S_name(insert_symbol(c));
   release(arg, shred);
-  RETURN->d.v_object = obj;
+  RETURN->d.v_object = new_String(c);;
 }
 
 MFUN(string_replace)
@@ -670,8 +643,6 @@ MFUN(string_replace)
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   while(str[len] != '\0')
     len++;
   len_insert =  strlen(insert);
@@ -681,9 +652,8 @@ MFUN(string_replace)
   for(i = 0; i < len_insert; i++)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
   release(arg, shred);
+  RETURN->d.v_object = new_String(c);;
 }
 
 MFUN(string_replaceN)
@@ -695,8 +665,6 @@ MFUN(string_replaceN)
   m_int _len = *(m_int*)(shred->mem + SZ_INT * 2);
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
   while(str[len] != '\0')
     len++;
   len = len > index + _len ? len : index + _len;
@@ -708,9 +676,8 @@ MFUN(string_replaceN)
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
   c[len] = '\0';
-  STRING(obj) = S_name(insert_symbol(c));
-  RETURN->d.v_object = obj;
   release(arg, shred);
+  RETURN->d.v_object = new_String(c);;
 }
 
 MFUN(string_find)

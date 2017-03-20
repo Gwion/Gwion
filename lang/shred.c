@@ -71,32 +71,29 @@ static MFUN(shred_args)
 
 static MFUN(shred_arg)
 {
+  m_str str;
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
-  RETURN->d.v_uint = (m_uint)obj;
+  if(!s->args) {
+    RETURN->d.v_uint = 0;
+	return;
+  }
+  str = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
+  RETURN->d.v_uint = str ? (m_uint)new_String(str) : 0;
 }
 
 static MFUN(shred_path)
 {
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = s->code->filename;
-  RETURN->d.v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)new_String(s->code->filename);
 }
 
 static MFUN(shred_dir)
 {
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
   char c[strlen(s->code->filename) + 1];
   memset(c, 0, strlen(s->code->filename) + 1);
   strncpy(c, s->code->filename, strlen(s->code->filename));
-  initialize_object(obj, &t_string);
-  STRING(obj) = S_name(insert_symbol(dirname(c)));
-  RETURN->d.v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)new_String(dirname(c));
 }
 
 static DTOR(shred_dtor)

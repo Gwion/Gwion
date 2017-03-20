@@ -275,7 +275,6 @@ SFUN(file_list)
   t->obj->ref_count = 1;
   for(i = 0; i < n; i++) {
     M_Object string = new_String(namelist[i]->d_name);
-    string->ref = 1;
     i_vector_set(ret->d.array, i, (m_uint)string);
     free(namelist[i]);
   }

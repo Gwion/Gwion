@@ -505,9 +505,9 @@ INSTR(Gack)
               *(m_float*)(shred->reg + SZ_FLOAT * 2), *(m_float*)(shred->reg + SZ_FLOAT * 3));
     } else if(type->xid == t_string.xid)
 #ifdef COLOR
-      fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);
+      fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : "(null string)");
 #else
-      fprintf(stdout, "%s", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : NULL);
+      fprintf(stdout, "%s", *(M_Object*)(shred->reg) ? STRING(*(M_Object*)(shred->reg)) : "(null string)");
 #endif
     else if(type->xid == t_void.xid)
       fprintf(stdout, "(void)");
@@ -531,7 +531,6 @@ INSTR(Gack)
     free(name);
     PUSH_REG(shred,  type->size);
   }
-//  free_Vector(v);
 }
 
 /* function */

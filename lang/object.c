@@ -38,7 +38,6 @@ M_Object new_String(m_str str)
   M_Object o = new_M_Object();
   initialize_object(o, &t_string);
   STRING(o) = S_name(insert_symbol(str));
-  o->ref--;
   return o;
 }
 
