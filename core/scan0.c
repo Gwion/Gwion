@@ -13,12 +13,10 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   t->owner = env->curr;
   t->array_depth = 0;
   t->size = SZ_INT;
-  t->info = new_NameSpace(); // done filename // do we nedd this one ?
+  t->info = new_NameSpace();
   t->info->filename = env->context->filename;
   t->parent = &t_func_ptr;
-//  ptr->ref = t;
-  namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
-
+  namespace_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
   type->actual_type = t;
   v = new_Value(env->context, type, S_name(ptr->xid));
@@ -26,11 +24,8 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   v->is_const = 1;
   v->is_member = 0;
   v->checked = 1;
-//    add_ref(v->obj);
-//  add_ref(type->obj);
-//the_class->obj->ref_count = 2;
   namespace_add_value(env->curr, ptr->xid, v);
-ptr->value = v;
+  ptr->value = v;
   return 1;
 }
 
@@ -70,7 +65,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   m_bool ret = 1;
   Class_Body body = class_def->body;
   if(class_def->home) {
-    /* err_msg(SCAN0_, class_def->pos, "target namespace: '%s'", class_def->home->name); */
     vector_append(env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
@@ -97,7 +91,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
-  the_class->info = new_NameSpace(); // done filename
+  the_class->info = new_NameSpace();
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
   add_ref(the_class->info->obj);
@@ -111,7 +105,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->def = class_def;
 
   the_class->info->pre_ctor = new_VM_Code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
-  namespace_add_type(env->curr, insert_symbol(the_class->name), the_class);  // URGENT: make this global
+  namespace_add_type(env->curr, insert_symbol(the_class->name), the_class);
   the_class->is_complete = 0;
   vector_append(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
@@ -147,24 +141,20 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     value->is_const = 1;
     value->is_member = 0;
     value->checked = 1;
-//    add_ref(value->obj);
     add_ref(the_class->obj);
-//the_class->obj->ref_count = 2;
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
-// 04/01/17
       context_add_class(env->context, value, value->obj);
     } else if(class_def->decl != ae_key_public) {
-context_add_class(env->context, value, value->obj);
-}
-
+      context_add_class(env->context, value, value->obj);
+    }
   }
   if(class_def->home) {
     env->curr = (NameSpace)vector_back(env->nspc_stack);
     vector_pop(env->nspc_stack);
-  } else // set the current namespace as home
+  } else
     class_def->home = env->curr;
 done:
   return ret;
