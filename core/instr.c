@@ -96,17 +96,12 @@ INSTR(Free_Func)
   debug_msg("instr", "free template func '%p'", (void*)instr->m_val);
 #endif
   Func f = (Func)instr->m_val;
-//  if(!f->value_ref->owner_class)
-//    free(f->def);
-
   free(f->value_ref->name);
   free(f->value_ref->m_type->name);
   free(f->value_ref->m_type->obj);
   free(f->value_ref->m_type);
   rem_ref(f->value_ref->obj, f->value_ref);
   free_VM_Code(f->code);
-//f->def = NULL;
-//  free_Func(f);
 }
 
 // func pointer
@@ -118,9 +113,7 @@ INSTR(assign_func)
   POP_REG(shred,  SZ_INT * 2);
 if(!*(m_uint*)(shred->reg + SZ_INT)) exit(12);
   *(m_uint*)shred->reg = (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
-//  *(m_uint*)shred->reg = (*(m_uint*)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
   PUSH_REG(shred,  SZ_INT);
-//exit(6);
 }
 
 INSTR(Reg_Push_Mem)
