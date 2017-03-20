@@ -834,19 +834,8 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     }
 
     if(env->class_def) {
-      err_msg(TYPE_, binary->pos, "can't assign function pointer in class for the moment. sorry.");
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
-      f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-//f2->def = NULL;
-//scope_rem(env->curr->func, f2);
-//scope_rem(env->curr->func, f2);
-//add_ref(f2->obj);
-      f2->obj->ref_count--;
-      v->func_ref = NULL;
-      f2->def->func = NULL;
-      f2->def = NULL;
-//      rem_ref(f2->obj, f2);
-      return NULL;
+	  return v->m_type;
     }
 // was here
     if(binary->rhs->exp_type == Primary_Expression_type) {
@@ -1346,6 +1335,9 @@ next:
       exp_func->d.exp_primary->value &&
       !exp_func->d.exp_primary->value->is_const) {
     f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
+printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
+printf("%s %p\n", f->name, f->func);
+printf("%s %p\n", f->name, f->func->up);
     /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
 /*
     if(!f) {
