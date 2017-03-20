@@ -4,6 +4,8 @@
 
 static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
 {
+  Value v;
+  Type type;
   Type t = new_Type(env->context);
   add_ref(t->obj);
   t->xid = te_user;
@@ -16,6 +18,19 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   t->parent = &t_func_ptr;
 //  ptr->ref = t;
   namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
+
+  type = type_copy(env, &t_class);
+  type->actual_type = t;
+  v = new_Value(env->context, type, S_name(ptr->xid));
+  v->owner = env->curr;
+  v->is_const = 1;
+  v->is_member = 0;
+  v->checked = 1;
+//    add_ref(v->obj);
+//  add_ref(type->obj);
+//the_class->obj->ref_count = 2;
+  namespace_add_value(env->curr, ptr->xid, v);
+ptr->value = v;
   return 1;
 }
 
@@ -125,7 +140,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   if(ret) {
     Value value;
     Type  type;
-
     type = type_copy(env, &t_class);
     type->actual_type = the_class;
     value = new_Value(env->context, type, the_class->name);

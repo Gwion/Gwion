@@ -687,8 +687,10 @@ void free_Stmt_Func_Ptr(Func_Ptr* a)
 {
   if(a->args)
     free_Arg_List(a->args);
-  if(a->value && !a->value->is_member)
+  if(a->value && !a->value->is_member) {
+    rem_ref(a->value->m_type->obj, a->value->m_type);
     rem_ref(a->value->obj, a->value);
+  }
   free(a);
 }
 

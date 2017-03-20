@@ -94,14 +94,14 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
   m_uint count = 1;
   Arg_List arg_list = ptr->args;
   Value v;
-  if(namespace_lookup_value(env->curr, ptr->xid, 0)) {
+  if((v = namespace_lookup_value(env->curr, ptr->xid, 0)) && v->m_type->actual_type != namespace_lookup_type(env->curr, ptr->xid, 1)) {
     err_msg(SCAN2_, ptr->pos, "variable %s has already been defined in the same scope...", S_name(ptr->xid));
     free_Type_Decl(ptr->type);
     return -1;
   }
   // shouldn't it be later ?
   /*  ptr->value = new_Value(env->context, &t_function, S_name(ptr->xid));*/
-  ptr->value = new_Value(env->context, &t_func_ptr, S_name(ptr->xid));
+//  ptr->value = new_Value(env->context, &t_func_ptr, S_name(ptr->xid));
   namespace_push_value(env->curr);
   while(arg_list) {
     if( arg_list->type->size == 0 ) {

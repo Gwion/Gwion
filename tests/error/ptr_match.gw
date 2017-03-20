@@ -1,4 +1,4 @@
-// [contains] not match found for function
+// [contains] not match found for operator
 typedef void (test0)()
 function void test1(int i){}
 test1 @=> test0;

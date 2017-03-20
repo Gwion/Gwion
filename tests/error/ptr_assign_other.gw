@@ -1,5 +1,5 @@
 // [contains] can't assign member function to member function pointer of an other class
- class C { typedef void (test)(); }
+class C { typedef void (Test)(); Test test; }
 class D { function void test(){} }
 C c;
 D d;
