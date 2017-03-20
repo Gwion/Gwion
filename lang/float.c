@@ -14,7 +14,7 @@ struct Type_ t_now       = { "@now",  SZ_FLOAT,  &t_time, te_now };
 static INSTR(assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '=' %f %f", **(m_float**)(shred->reg - SZ_FLOAT + SZ_INT), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "(float) '=' %f %f", **(m_float**)(shred->reg - SZ_FLOAT - SZ_INT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
@@ -232,7 +232,7 @@ INSTR(Time_Advance)
 static INSTR(if_assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_FLOAT + SZ_INT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
