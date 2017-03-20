@@ -833,26 +833,27 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       return NULL;
     }
 
-    if(env->class_def) { // needs better check
-      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
-	  return v->m_type;
-    }
+//    if(env->class_def) { // needs better check
+//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
+//	  return v->m_type;
+//    }
     if(binary->rhs->exp_type == Primary_Expression_type) {
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->d.exp_primary->var, -1);*/
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
-      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-      /*f1 = v->func_ref;*/
-      r_nspc = NULL; // get owner
-      ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, 
+insert_symbol(v->m_type->name), -1);
+//      r_nspc = NULL; // get owner
+      r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+//      ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
-      v = find_value(binary->rhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
+      v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
       f1 = v->func_ref;
-      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+      r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
       f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-	  l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+	  r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
       f1 = v->m_type->func;
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
@@ -861,7 +862,11 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     if(binary->lhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-      l_nspc = NULL; // get owner
+      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+    } else if(binary->lhs->exp_type == Dot_Member_type) {
+      v = find_value(binary->lhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
+      f2 = v->func_ref;
+      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs).");
       return NULL;
@@ -887,6 +892,8 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
       return NULL;
     }
+printf("l->nspc %p r_nspc %p\n", l_nspc, r_nspc);
+printf("f2      %p f1     %p\n", f2,     f1);
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == Primary_Expression_type) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
@@ -897,8 +904,9 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       /*f1 = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->func_ref;*/
       if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
-        ret_type = f1->def->ret_type;
-        ret_type->func = f2;
+ret_type = f1->value_ref->m_type;
+//        ret_type = f1->def->ret_type;
+//        ret_type->func = f2;
         return ret_type;
       }
     }
@@ -1538,9 +1546,7 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
 #ifdef DEBUG_TYPE
   debug_msg("check", "func pointer '%s'", S_name(ptr->xid));
 #endif
-  Type t     = ptr->value->is_member ?
-               new_Type(env->context) :
-               namespace_lookup_type(env->curr, ptr->xid, 1);
+  Type t     = namespace_lookup_type(env->curr, ptr->xid, 1);
   t->size    = SZ_INT;
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;

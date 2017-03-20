@@ -116,8 +116,11 @@ INSTR(assign_func)
   debug_msg("instr", "assign func");
 #endif
   POP_REG(shred,  SZ_INT * 2);
+if(!*(m_uint*)(shred->reg + SZ_INT)) exit(12);
   *(m_uint*)shred->reg = (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
+//  *(m_uint*)shred->reg = (*(m_uint*)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
   PUSH_REG(shred,  SZ_INT);
+//exit(6);
 }
 
 INSTR(Reg_Push_Mem)

@@ -18,6 +18,37 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   namespace_add_type(env->curr, ptr->xid, t);  // URGENT: make this global
   return 1;
 }
+
+static m_bool scan0_Stmt(Env env, Stmt* stmt)
+{
+#ifdef DEBUG_SCAN0
+  debug_msg("scan1", "stmt");
+#endif
+  m_bool ret = -1;
+  if(!stmt)
+    return 1;
+  switch(stmt->type) {
+  case ae_stmt_funcptr:
+    ret = scan0_Func_Ptr(env, stmt->d.stmt_funcptr);
+    break;
+  default:
+    ret = 1;
+  }
+  return ret;
+}
+static m_bool scan0_Stmt_List(Env env, Stmt_List list)
+{
+#ifdef DEBUG_SCAN0
+  debug_msg("scan1", "stmt list");
+#endif
+  Stmt_List curr = list;
+  while(curr) {
+    CHECK_BB(scan0_Stmt(env, curr->stmt))
+    curr = curr->next;
+  }
+  return 1;
+}
+
 static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 {
   Type the_class = NULL;
@@ -76,10 +107,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   while( body && ret > 0) {
     switch( body->section->type ) {
     case ae_section_stmt:
+      ret = scan0_Stmt_List(env, body->section->d.stmt_list);
     case ae_section_func:
       break;
     case ae_section_class:
-      ret = scan0_Class_Def( env, body->section->d.class_def );
+      ret = scan0_Class_Def(env, body->section->d.class_def);
       break;
     }
     body = body->next;
@@ -122,35 +154,6 @@ context_add_class(env->context, value, value->obj);
     class_def->home = env->curr;
 done:
   return ret;
-}
-static m_bool scan0_Stmt(Env env, Stmt* stmt)
-{
-#ifdef DEBUG_SCAN0
-  debug_msg("scan1", "stmt");
-#endif
-  m_bool ret = -1;
-  if(!stmt)
-    return 1;
-  switch(stmt->type) {
-  case ae_stmt_funcptr:
-    ret = scan0_Func_Ptr(env, stmt->d.stmt_funcptr);
-    break;
-  default:
-    ret = 1;
-  }
-  return ret;
-}
-static m_bool scan0_Stmt_List(Env env, Stmt_List list)
-{
-#ifdef DEBUG_SCAN0
-  debug_msg("scan1", "stmt list");
-#endif
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(scan0_Stmt(env, curr->stmt))
-    curr = curr->next;
-  }
-  return 1;
 }
 
 m_bool scan0_Ast(Env env, Ast prog)
