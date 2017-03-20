@@ -1,9 +1,0 @@
-// [contains] can't assign function pointer in class for the moment. sorry.
- class C
-{
-	typedef void (Test)();
-	function void test1(){};
-    Test test0;
-	<<<test1 @=> test0>>>;
-}
-C c;
