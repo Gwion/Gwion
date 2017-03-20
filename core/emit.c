@@ -780,6 +780,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call1. '%s' offset: %i", func->name, emit->code->frame->curr_offset);
 #endif
+  m_bool is_ptr = 0;
   Instr code, offset, call;
   if (!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
@@ -798,7 +799,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
       code->ptr = func->code;
     } else {
       code = add_instr(emit, Reg_Push_Code);
-      code->m_val = f->value_ref->offset;
+      code->m_val = func->value_ref->offset;
+      is_ptr = 1;
     }
   } else {
     code = add_instr(emit, Reg_Push_Ptr);
@@ -834,6 +836,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     Instr instr = add_instr(emit, Mem_Push_Ret);
     instr->m_val = l->offset;
   }
+  if(is_ptr)
+    free(func);
 
   return 1;
 }

@@ -833,11 +833,10 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       return NULL;
     }
 
-    if(env->class_def) {
+    if(env->class_def) { // needs better check
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
 	  return v->m_type;
     }
-// was here
     if(binary->rhs->exp_type == Primary_Expression_type) {
 
       /*      f1 = namespace_lookup_func(env->curr, binary->rhs->d.exp_primary->var, -1);*/
@@ -846,21 +845,26 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
       /*f1 = v->func_ref;*/
       r_nspc = NULL; // get owner
       ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
+    } else if(binary->rhs->exp_type == Dot_Member_type) {
+      v = find_value(binary->rhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
+      f1 = v->func_ref;
+      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+    } else if(binary->rhs->exp_type == Decl_Expression_type) {
+      v = binary->rhs->d.exp_decl->list->self->value;
+      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+	  l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+      f1 = v->m_type->func;
     } else {
-      v = namespace_lookup_value(binary->rhs->d.exp_dot->t_base->info, binary->rhs->d.exp_dot->xid, 1);
-      f1 = namespace_lookup_func(env->curr, (insert_symbol(v->m_type->name)), -1);
-      r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
-      ret_type  = namespace_lookup_type(env->curr, (insert_symbol(v->m_type->name)), -1);
+      err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
+      return NULL;
     }
     if(binary->lhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = NULL; // get owner
-      if(!f2) exit(140);
-    } else if(binary->lhs->exp_type == Dot_Member_type) {
-      v = find_value(binary->lhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
-      f2 = v->func_ref;
-      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+    } else {
+      err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs).");
+      return NULL;
     }
     if((r_nspc && l_nspc) && (r_nspc != l_nspc)) {
       err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class");
@@ -1327,29 +1331,32 @@ next:
   Func func = NULL;
   Func up = NULL;
   Type f;
+  Value ptr = NULL; // 20/03/17
 
   exp_func->type = check_Expression(env, exp_func);
   f = exp_func->type;
   // primary func_ptr
+//printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
   if(exp_func->exp_type == Primary_Expression_type &&
       exp_func->d.exp_primary->value &&
       !exp_func->d.exp_primary->value->is_const) {
-    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
-printf("%s %p\n", f->name, f->func);
-printf("%s %p\n", f->name, f->func->up);
+ptr = exp_func->d.exp_primary->value;
+//    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
+//namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
     /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
 /*
     if(!f) {
       err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
       return NULL;
+
     }
 */
-    if(!f->func) { // func ptr
-      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-      f->func = up;
-    }
+//    if(!f->func) { // func ptr
+//      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
+//      f->func = up;
+//    }
   }
+
   if(!f) {
     err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
     return NULL;
@@ -1362,10 +1369,8 @@ printf("%s %p\n", f->name, f->func->up);
 
   if(args)
     CHECK_OO(check_Expression(env, args))
-    // look for a match
-    func = find_func_match(up, args);
-
-  // no func
+  // look for a match
+  func = find_func_match(up, args);
   if(!func) {
     Value value = NULL;
     if(!f->func) {
@@ -1471,6 +1476,13 @@ printf("%s %p\n", f->name, f->func->up);
     }
     fprintf(stderr, "\n");
     return NULL;
+  }
+  if(ptr) {
+    Func f = malloc(sizeof(struct Func_));
+    memcpy(f, func, sizeof(struct Func_));
+    f->value_ref = ptr;
+    func = f;
+//up->value_ref = exp_func->d.exp_primary->value;
   }
   *m_func = func;
   return func->def->ret_type;
