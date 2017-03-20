@@ -1054,7 +1054,17 @@ INSTR(Dot_Static_Import_Data)
 #endif
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr) {
-    *(m_uint**)shred->reg = &*(m_uint*)instr->m_val;
+    if(instr->m_val2 == Kindof_Int) {
+      *(m_uint**)shred->reg = &*(m_uint*)instr->m_val;
+    } else if(instr->m_val2 == Kindof_Float) {
+      *(m_float**)shred->reg = &*(m_float*)instr->m_val;
+    } else if(instr->m_val2 == Kindof_Complex) {
+      *(m_complex**)shred->reg = &*(m_complex*)instr->m_val;
+    } else if(instr->m_val2 == Kindof_Vec3) {
+      *(VEC3_T**)shred->reg = &*(VEC3_T*)instr->m_val;
+    } else if(instr->m_val2 == Kindof_Vec4) {
+      *(VEC4_T**)shred->reg = &*(VEC4_T*)instr->m_val;
+    }
     PUSH_REG(shred,  SZ_INT);
   }
   /* take care of Kind (instr->m_val2)*/
@@ -1089,7 +1099,17 @@ INSTR(Dot_Member_Data)
     Except(shred);
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr) {
-    *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
+    if(instr->m_val2 == Kindof_Int) {
+      *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Float) {
+      *(m_float**)shred->reg = &*(m_float*)(obj->d.data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Complex) {
+      *(m_complex**)shred->reg = &*(m_complex*)(obj->d.data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Vec3) {
+      *(VEC3_T**)shred->reg = &*(VEC3_T*)instr->m_val;
+    } else if(instr->m_val2 == Kindof_Vec4) {
+      *(VEC4_T**)shred->reg = &*(VEC4_T*)instr->m_val;
+    }
     PUSH_REG(shred,  SZ_INT);
   }
   /* take care of Kind (instr->m_val2)*/
