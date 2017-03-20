@@ -1025,7 +1025,17 @@ INSTR(Dot_Static_Data)
   t = *(Type*)shred->reg;
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr) {
-    *(m_uint**)shred->reg = &*(m_uint*)(t->info->class_data + instr->m_val);
+    if(instr->m_val2 == Kindof_Int) {
+      *(m_uint**)shred->reg = &*(m_uint*)(t->info->class_data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Float) {
+      *(m_float**)shred->reg = &*(m_float*)(t->info->class_data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Complex) {
+      *(m_complex**)shred->reg = &*(m_complex*)(t->info->class_data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Vec3) {
+      *(VEC3_T**)shred->reg = &*(VEC3_T*)(t->info->class_data + instr->m_val);
+    } else if(instr->m_val2 == Kindof_Vec4) {
+      *(VEC4_T**)shred->reg = &*(VEC4_T*)(t->info->class_data + instr->m_val);
+    }
     PUSH_REG(shred,  SZ_INT);
   }
   /* take care of Kind (instr->m_val2)*/
