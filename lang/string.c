@@ -313,7 +313,7 @@ INSTR(Int_String_Plus)
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   m_uint len = strlen(STRING(rhs)) + 1;
-  m_uint tmp = abs(lhs);
+  m_uint tmp = labs(lhs);
   while(tmp /= 10)
     len++;
   char c[len];
