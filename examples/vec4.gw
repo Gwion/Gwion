@@ -1,0 +1,26 @@
+Vec4 v, w;
+<<<v>>>;
+
+<<< v.x >>>;
+<<< v.y >>>;
+<<< v.z >>>;
+<<< v.w >>>;
+
+<<< 1 => v.x >>>;
+<<< 1 => v.y >>>;
+<<< 1 => v.z >>>;
+<<< 1 => v.w >>>;
+
+
+<<< "setAll",    v.setAll(1.2) >>>;
+<<< "should be 1.2 1.2 1.2", v >>>;
+<<< "magnitude", v.magnitude() >>>;
+<<< "normalize", v.normalize() >>>;
+w.setAll(1);
+v+w;
+v-w;
+v*w;
+v*2.0;
+.5*v;
+v/.2;
+v=>w;

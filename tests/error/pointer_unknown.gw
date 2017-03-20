@@ -1,0 +1,2 @@
+// [contains] unknown type
+ typedef unknown_type (my_function)(){}

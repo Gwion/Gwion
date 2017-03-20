@@ -2,16 +2,13 @@
 #include "vm.h"
 #include "operator.h"
 
-typedef struct Scope_* Scope;
-
-struct NameSpace_
-{
+struct NameSpace_ {
   m_str     name;
-	m_str     filename;
+  m_str     filename;
   Scope     value;
   Scope     type;
   Scope     func;
-	Map   		label; // 09/09/16
+  Map   		label; // 09/09/16
   m_uint    offset;
   Vector    obj_v_table;
   NameSpace parent;
@@ -19,7 +16,7 @@ struct NameSpace_
   VM_Code   dtor;
   VM_Object obj;
 //  m_uint*		class_data;
-  m_bool*		class_data;
+  char*		class_data;
   m_uint    class_data_size;
   Map      	operator;
 };

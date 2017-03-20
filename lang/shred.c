@@ -8,7 +8,7 @@
 #include "import.h"
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
-m_uint o_shred_me;
+m_int o_shred_me;
 
 M_Object new_Shred(VM* vm, VM_Shred shred)
 {
@@ -28,82 +28,88 @@ static MFUN(vm_shred_exit)
 static MFUN(vm_shred_id)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->xid : -1;
+  RETURN->d.v_uint = s ? s->xid : -1;
 }
 
 static MFUN(vm_shred_is_running)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->is_running : 0;
+  RETURN->d.v_uint = s ? s->is_running : 0;
 }
 
 static MFUN(vm_shred_is_done)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s ? s->is_done: 0;
+  RETURN->d.v_uint = s ? s->is_done : 0;
 }
 
 static MFUN(shred_yield)
 {
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
-	shreduler_remove(sh, s, 0);
-//  s->is_running = 0;
-  shredule(sh, s, get_now(sh) +.5);
-	RETURN->v_uint = 1;
+  shreduler_remove(sh, s, 0);
+  shredule(sh, s, get_now(sh) + .5);
+  RETURN->d.v_uint = 1;
 }
 
 static SFUN(vm_shred_from_id)
 {
-  VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT));
+  VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT) - 1);
   if(!s)
-    RETURN->v_uint = 0;
-  else
-    RETURN->v_uint = (m_uint)s->me;
+    RETURN->d.v_uint = 0;
+  else {
+    RETURN->d.v_uint = (m_uint)s->me;
+    s->me->ref++;
+  }
 }
 
 static MFUN(shred_args)
 {
   VM_Shred  s = ME(o);
-  RETURN->v_uint = s->args ? vector_size(s->args) : 0;
+  RETURN->d.v_uint = s->args ? vector_size(s->args) : 0;
 }
 
 static MFUN(shred_arg)
 {
+  m_str str;
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
-  RETURN->v_uint = (m_uint)obj;
+  if(!s->args) {
+    RETURN->d.v_uint = 0;
+	return;
+  }
+  str = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
+  RETURN->d.v_uint = str ? (m_uint)new_String(str) : 0;
 }
 
 static MFUN(shred_path)
 {
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = basename(strdup(s->code->filename));
-  RETURN->v_uint = (m_uint)obj;
+  RETURN->d.v_uint = (m_uint)new_String(s->code->filename);
 }
 
 static MFUN(shred_dir)
 {
   VM_Shred  s = ME(o);
-  M_Object obj = new_M_Object();
-  initialize_object(obj, &t_string);
-  STRING(obj) = dirname(strdup(s->code->filename));
-  RETURN->v_uint = (m_uint)obj;
+  char c[strlen(s->code->filename) + 1];
+  memset(c, 0, strlen(s->code->filename) + 1);
+  strncpy(c, s->code->filename, strlen(s->code->filename));
+  RETURN->d.v_uint = (m_uint)new_String(dirname(c));
+}
+
+static DTOR(shred_dtor)
+{
+  release(o, shred);
 }
 
 m_bool import_shred(Env env)
 {
   DL_Func* fun;
   DL_Value* arg;
- 	Func f;
- 
+  Func f;
+
   CHECK_BB(add_global_type(env, &t_shred))
-  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, NULL))
-	env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
+  CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
+  env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");
   CHECK_BB(o_shred_me)

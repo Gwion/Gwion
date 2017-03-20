@@ -1,17 +1,18 @@
 #ifndef __MAP
 #define __MAP
-
+#include "defs.h"
 #include <symbol.h>
 
-typedef long unsigned int vtype;
+#define MAP_MAX 1024
+
+typedef m_uint vtype;
 typedef struct Vector_ * Vector;
 typedef struct Map_    * Map;
-typedef struct Scope_  * Scope;
 
 extern Vector new_Vector();
 extern Vector new_Vector_fixed(const vtype len);
 extern Vector vector_copy(Vector v);
-extern void vector_set(Vector vector, const long unsigned i,vtype data);
+extern void vector_set(Vector vector, const vtype i, vtype data);
 extern long int vector_find(Vector vector, vtype data);
 extern void vector_append(Vector vector, vtype data);
 extern void vector_remove(Vector vector, const vtype index);
@@ -38,6 +39,7 @@ extern Scope  new_Scope();
 extern Vector scope_get(Scope a);
 extern vtype  scope_lookup(Scope scope, S_Symbol xid, int climb);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
+extern void   scope_rem(Scope scope, S_Symbol xid);
 extern void   scope_commit(Scope scope);
 extern void   scope_rollback(Scope scope, void (*_free)(vtype arg));
 extern void   scope_push(Scope scope);

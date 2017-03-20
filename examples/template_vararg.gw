@@ -1,0 +1,8 @@
+template <{a}>
+variadic void test()
+{
+  vararg.start;
+<<<vararg.i>>>;
+  vararg.end;
+}
+test<{int}>(1, 2);

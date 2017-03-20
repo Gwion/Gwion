@@ -1,0 +1,5 @@
+Event e;
+//spork ~{second => now; e.broadcast(); };
+//2::second => now;
+.2::second => now;
+//e => now;

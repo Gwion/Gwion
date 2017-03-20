@@ -1,0 +1,2 @@
+// [contains] must be defined with empty
+ function int[] my_func(int i[2]){}

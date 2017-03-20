@@ -1,6 +1,12 @@
 [1,2,3,4];
+[ [1,2,3,4], [1,2,3,4] ];
 <<<[1,2,3,4]>>>;
-[1,2,3,4] @=> int i[];
-<<<i>>>;
-for(int index = 0; index < i.size(); index++)
-	<<<i[index]>>>;
+int i[];
+int j[3];
+Object o[2];
+Object p[2][3];
+Object r[2][3][4];
+Object s[2][3][4][5];
+Object t[2][12][3][4][5];
+[1,2,3,4] @=> i;
+int k[1][1];

@@ -5,8 +5,7 @@
 
 m_bool get_instr(Emitter emit, Operator op, Type rhs, Type lhs);
 
-typedef struct
-{
+typedef struct {
   m_str name;
   m_str filename;
   m_uint stack_depth;
@@ -18,10 +17,12 @@ typedef struct
 
 Code* new_Code();
 void free_Code(Code* code);
-struct Emitter_
-{
+struct Emitter_ {
   Env       env;
   Vector    stack;
+  Vector    spork;
+  Vector    funcs;
+  Vector    array; // a vector to hold empty array types.
   Code*     code;
   Context   context;
   NameSpace nspc;
@@ -29,14 +30,14 @@ struct Emitter_
   VM_Object obj;
 //  Scope     labels;
   Map       cases;
-	m_int			default_case_index;
+  m_int			default_case_index;
 };
 
 
 Emitter new_Emitter (Env env);
 void free_Emitter(Emitter emit);
 VM_Code emit_to_code(Emitter emit);
-m_bool emit_Ast(Emitter emit, Ast ast);
+m_bool emit_Ast(Emitter emit, Ast ast, m_str filename);
 
 /* label */
 Vector emit_lookup_label(Emitter emit, S_Symbol xid, int climb);

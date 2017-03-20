@@ -1,0 +1,3 @@
+// [contains] function signatures differ in return type
+ function void test(){}
+function int  test(){}

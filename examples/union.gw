@@ -1,6 +1,6 @@
 union
 {
-	int i, j;
+	int i;
 	Object o;
 
 };

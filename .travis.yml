@@ -1,0 +1,66 @@
+dist: trusty
+language: c
+sudo: false
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    - lua5.2
+    - valgrind
+    - libsndfile1
+    - libsndfile1-dev
+
+cache:
+  directories:
+    - Soundpipe
+
+env:
+  global:
+    - GWION_HAS_DIR=1
+    - DEBUG=1
+    - D_FUNC=dummy_driver
+    - ALSA_D=0
+    - SOUNDPIPE_D=0
+    - SPA_D=0
+    - SNDFILE_D=0
+    - SOUNDPIPE_DATA_DIR=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
+    - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - BISON_VERSION=bison-3.0.4
+    - GWION_DOC_DIR=doc
+    - GWION_API_DIR=api
+    - GWION_TOK_DIR=tok
+    - GWION_TAG_DIR=tag
+    - GWION_ADD_DIR=add
+    - USE_MEMCHECK=1
+
+  matrix:
+    - USE_DOUBLE=1 SP_BRANCH=dev
+    - USE_DOUBLE=0 SP_BRANCH=dev
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - os: osx
+
+compiler:
+  - gcc
+  - clang
+
+before_script:
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
+  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+  - bash util/travis_prepare.sh
+
+after_success:
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
+
+git:
+  submodules: false
+

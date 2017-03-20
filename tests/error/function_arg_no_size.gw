@@ -1,0 +1,2 @@
+// [contains] cannot declare variables of size
+ function void test(void v){}

@@ -1,0 +1,3 @@
+// [contains] template call of non-template function
+ function void my_func(){}
+my_func<{int}>();

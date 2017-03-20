@@ -1,0 +1,6 @@
+// [contains] array declaration must be empty in union
+ union
+{
+  int i;
+  int array[4];
+};

@@ -1,0 +1,12 @@
+<<< "id", me.id()             >>>;
+<<< "running", me.running()   >>>;
+<<< "done",    me.done()      >>>;
+<<< "from_Id", Shred.fromId(0) >>>;
+<<< "from_Id", Shred.fromId(1) >>>;
+<<< "me", me                   >>>;
+<<< "args",    me.args()      >>>;
+for (int i; i < me.args(); i++)
+  <<< "arg", i, me.arg(i)>>>;
+// TODO : test arg
+<<<me.dir(), me.path()>>>;
+//me.exit();

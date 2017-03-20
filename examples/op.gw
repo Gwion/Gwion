@@ -1,0 +1,17 @@
+//! test operator
+
+operator void chuck(Object o, int i){ <<<o, i, "success">>>; }
+
+class C {
+	Object @ref;
+}
+
+operator void chuck(Object o, C c){ o @=> c.ref; <<<"success">>>; }
+//operator int plusplus(NULL d, int i){}
+int i;
+Object o;
+<<<o, i>>>;
+12 => i;
+//o => i;
+C c;
+o => c;

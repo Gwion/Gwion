@@ -1,0 +1,5 @@
+// [contains] already declared
+ enum
+{
+	first
+} blackhole;

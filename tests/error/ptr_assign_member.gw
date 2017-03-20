@@ -1,0 +1,6 @@
+// [contains] can't assign member function to non member function pointer
+typedef void (Test)();
+Test test;
+class D { function void test(){} }
+D d;
+d.test @=> test;

@@ -1,0 +1,2 @@
+// [contains] unknown return type
+ function unknwon_type my_function(){}

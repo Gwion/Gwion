@@ -1,0 +1,3 @@
+// [contains] exceeds defined dimension
+ int i[2];
+i[0][0];

@@ -1,0 +1,2 @@
+// [contains] must be defined with empty
+ typedef void(my_func)(int i[4]){}

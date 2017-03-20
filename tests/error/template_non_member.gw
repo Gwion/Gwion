@@ -1,0 +1,2 @@
+// [contains] 
+ Math.rand<{int}>();

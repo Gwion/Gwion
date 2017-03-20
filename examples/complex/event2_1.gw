@@ -1,0 +1,9 @@
+public class TestEvent {
+	static Event e;
+}
+second => now;
+//second => now;
+<<<"base", me>>>;
+//TestEvent.e => now;
+<<<"ok">>>;
+second => now;

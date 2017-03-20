@@ -1,0 +1,6 @@
+// [contains] already declared
+ int i;
+enum
+{
+	first
+} i;

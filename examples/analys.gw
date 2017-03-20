@@ -1,0 +1,53 @@
+FFT fft => dac;
+second => now;
+1024 => fft.init;
+second => now;
+fft.compute();
+
+ANA ana;
+
+ana.compute();
+ana.fft();
+ana.fft(fft);
+
+Centroid centroid;
+Spread spread;
+Skewness skewness;
+Kurtosis kurtosis;
+RMS rms;
+Rolloff rolloff;
+Freq freq;
+ASC asc;
+ASS ass;
+
+FC fc;
+fc.compute();
+fc.rem(rms);
+fc.add(rms);
+fc.compute();
+fc.rem(rms);
+
+centroid => fc;
+centroid =< fc;
+
+fft => centroid.fft;
+fft => spread.fft;
+fft => skewness.fft;
+fft => kurtosis.fft;
+fft => rms.fft;
+fft => rolloff.fft;
+fft => freq.fft;
+fft => asc.fft;
+fft => ass.fft;
+
+
+centroid.compute();
+spread.compute();
+skewness.compute();
+kurtosis.compute();
+rms.compute();
+rolloff.compute();
+freq.compute();
+asc.compute();
+ass.compute();
+

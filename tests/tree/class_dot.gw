@@ -1,0 +1,9 @@
+class C {
+	int i[];
+	int j[2];
+//	Machine.shreds() @=> i;
+//	NULL @=> i;
+}
+
+C c;
+<<<c.j[1]>>>;

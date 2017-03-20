@@ -1,0 +1,2 @@
+// [contains] cannot declare references (@) of primitive type
+ typedef void (my_func)(int @i){}

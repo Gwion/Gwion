@@ -1,0 +1,2 @@
+// [contains] cannot declare variables of size '0'
+ typedef void (my_func)(void arg){}

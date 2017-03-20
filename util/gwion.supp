@@ -1,0 +1,32 @@
+{
+	Might be a 'dl' bug
+	Memcheck:Leak
+	fun:calloc
+	obj:/usr/lib/libdl*
+	fun:dlopen
+	fun:type_engine_init
+}
+
+{
+	Migth be a valgrind bug
+    Memchek:Leak
+	match-leak-kinds: definite
+	fun:calloc
+	fun:new_Decl_Expression
+	fun:minimal_parse
+	fun:parse
+	fun:compile
+	fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:new_Decl_Expression
+   fun:minimal_parse
+   fun:parse
+   fun:compile
+   fun:main
+}
+

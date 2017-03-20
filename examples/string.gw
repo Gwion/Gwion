@@ -1,0 +1,75 @@
+Object o;
+string s;
+"CamelCase" => s;
+s.size();
+s.upper();
+s.lower();
+s.find('o');
+s.find(1, 'i');
+s.find("su");
+s.find(1, "su");
+s.rfind('o');
+s.rfind(1, 'i');
+s.rfind("su");
+s.rfind(1, "su");
+s.erase(1, 2);
+
+
+<<<" su".ltrim>>>;
+<<<" su".ltrim()>>>;
+<<<" su ".rtrim()>>>;
+<<<" su ".trim()>>>;
+
+<<<" su ".charAt(1)>>>;
+<<<" su ".charAt(1, 'n')>>>;
+<<<" su ".charAt(-1)>>>;
+<<<" su ".charAt(-1, 'n')>>>;
+
+
+s.substring(2);
+" su ".substring(2);
+<<<" su ".substring(2, 1)>>>;
+<<<"su".insert(1, "test")>>>;
+<<<"su".replace(1, "t")>>>;
+<<<"su".replace(1, 2, "turlututu")>>>;
+//<<<" su ".charAt(1, 'n')>>>;
+//NULL @=> s;
+<<<1 => s>>>;
+<<<1.0 => s>>>;
+<<< #(2,1) => s >>>;
+<<< %(2,1) => s >>>;
+<<< @(2,1,0) => s >>>;
+<<< @(2,1,0,-1) => s >>>;
+<<<"test" => s>>>; // new
+<<<"test" => s>>>; // new
+<<<s>>>;
+<<< NULL => s >>>; //test me
+<<< o => s >>>;
+<<<o>>>;
+// look at me!!!
+<<< o => s>>>; // hang . grrr...
+<<<"test" + "another test" >>>; // mem leak
+<<<"1".toInt()>>>;
+<<<"1".toFloat()>>>;
+
+//me.exit();
+
+{ (1 + s)      @=> string @str; }
+{ (2.0 +s)      @=> string  @str; }
+{ (#(2,1) + s) @=> string @str; }
+{ (%(2,1) + s) @=> string @str; }
+{ (@(2,1, 0) + s) @=> string @str; }
+{ (@(2,1, 0, -1) + s) @=> string @str; }
+//{ ("test" + s) @=> string @str; } // leak
+
+
+<<< 11 +=> s>>>;
+<<< 11.0 +=> s>>>;
+<<< #(21,11) +=> s >>>;
+<<< %(22,12) +=> s >>>;
+<<< @(22,11,11) +=> s >>>;
+<<< @(22,11,11,-11) +=> s >>>;
+<<< o +=> s>>>;
+<<<"test" + s >>>; // also leak
+<<< NULL +=> s >>>; // also hang 
+<<< "test" +=> s>>>; // test me

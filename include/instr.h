@@ -4,25 +4,18 @@
 #include "dl.h"
 #include "func.h"
 #include "lang.h"
-//#include "stack.h"
 #include "shreduler.h"
-//#include "vm.h"
 #include "bbq.h"
 #include "object.h"
 
 
-//void vm_add_shred(VM* vm, VM_Shred shred);
-
-struct Instr_
-{
+struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
-  long int m_val, m_val2;
+  m_uint m_val, m_val2;
   m_float f_val;
-	complex c_val;
+  m_complex c_val;
   void* ptr;
 };
-typedef struct Instr_ * Instr;
-typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
 
 Instr new_Instr();
 void EOC(VM * vm, VM_Shred shred, Instr instr);
@@ -56,6 +49,7 @@ void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
+void Free_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
 void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr);
 void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr);
 void Goto(VM * vm, VM_Shred shred, Instr instr);
@@ -87,7 +81,7 @@ void negatef(VM * vm, VM_Shred shred, Instr instr);
 void complex_real(VM * vm, VM_Shred shred, Instr instr);
 void complex_imag(VM * vm, VM_Shred shred, Instr instr);
 
-/* alloc (instr.c)*/ 
+/* alloc (instr.c)*/
 void Alloc_Word(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Float(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Word_Complex(VM* vm, VM_Shred shred, Instr instr);
@@ -142,7 +136,16 @@ INSTR(Vararg_Vec4);
 INSTR(Free_Func); // for template
 
 INSTR(member_function);
+INSTR(vec3_x);
+INSTR(vec3_y);
 INSTR(vec3_z);
+INSTR(vec4_x);
+INSTR(vec4_y);
 INSTR(vec4_z);
 INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);
+INSTR(Reg_Dup_Last_Vec4);
+
+INSTR(Mem_Push_Ret); // test on 13/01/17
+
+INSTR(Instr_Op_Call_Binary);

@@ -1,0 +1,2 @@
+// [contains] left-side operand is not mutable
+ 2 = 1;

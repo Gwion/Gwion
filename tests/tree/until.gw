@@ -1,0 +1,8 @@
+int i;
+now + 1.0::samp => time t;
+until(now >= t) {
+  i++;
+  if(i == 3)
+    me.exit();
+  samp => now;
+}

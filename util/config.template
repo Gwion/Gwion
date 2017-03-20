@@ -1,0 +1,48 @@
+# options
+OPT: prg   :::gwion
+OPT: cc   :::gcc
+OPT: yacc :::yacc
+OPT: lex  :::flex
+OPT: data :::../Soundpipe/modules/data
+OPT: prefix :::/usr/local
+OPT: soundpipe_lib:::-lsoundpipe
+OPT: soundpipe_inc:::
+#OPT: cflags :::'-Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE'
+#OPT: LDFLAGS :::'-lm -ldl -rdynamic'
+#OPT: memflags  :::off
+
+USE: double:::on
+USE: coverage:::off
+USE: memcheck:::off
+
+DEF: d_func:::dummy
+
+#LIB: soundpipe:::on
+
+LIB: dummy:::on
+LIB: spa:::off
+LIB: sndfile:::on:'/usr/include' '/usr/local/include':-lsndfile
+LIB: alsa:::on::-lasound
+LIB: jack:::off
+LIB: portaudio:::off
+LIB: soundio:::off
+
+
+DIR: api:::api
+DIR: doc:::doc
+DIR: tag:::tag
+DIR: tok:::tok
+DIR: add:::add
+
+DBG: compile   :::off
+DBG: operator  :::off
+DBG: type      :::off
+DBG: scan0     :::off
+DBG: scan1     :::off
+DBG: scan2     :::off
+DBG: emit      :::off
+DBG: vm        :::off
+DBG: instr     :::off
+DBG: shreduler :::off
+DBG: stack     :::off
+

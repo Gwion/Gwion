@@ -1,0 +1,3 @@
+// [contains] is already defined in namespace
+ class C{}
+class C{}

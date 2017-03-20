@@ -1,0 +1,12 @@
+FileIO f;
+f.open("examples/fileio.gw", "r");
+f.close();
+1 => cerr;
+2.0 => cerr;
+"test" => cerr;
+NULL => cerr;
+cerr.nl();
+f.open("/tmp/trash", "w");
+f.close();
+f.remove("/tmp/trash");
+f.list(".");

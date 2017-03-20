@@ -1,0 +1,93 @@
+<<< Math.abs(-1)             >>>;
+<<< Math.fabs(-1)            >>>;
+<<< Math.fabs(-1.0)          >>>;
+<<< Math.rand()              >>>;
+<<< Math.rand2(0, 0)         >>>;
+<<< Math.rand2(-1, 1)        >>>;
+<<< Math.rand2(1, -1)        >>>;
+<<< Math.randf()             >>>;
+<<< Math.rand2f(-1, 1)       >>>;
+<<< Math.rand2f(-1.0, 1)     >>>;
+<<< Math.rand2f(-1, 1.0)     >>>;
+<<< Math.rand2f(-1.0, 1.0)   >>>;
+<<< Math.srand(1.2)          >>>;
+<<< Math.sgn(1)              >>>;
+<<< Math.sgn(-1)             >>>;
+<<< Math.sgn(1.0)            >>>;
+<<< Math.sgn(-1.0)           >>>;
+
+<<< Math.hypot(4,5)          >>>;
+// sin
+<<< Math.sin(1)              >>>;
+<<< Math.sin(1.0)            >>>;
+<<< Math.sinh(1)             >>>;
+<<< Math.sinh(1.0)           >>>;
+<<< Math.asin(1)             >>>;
+<<< Math.asin(1.0)           >>>;
+<<< Math.asinh(1)            >>>;
+<<< Math.asinh(1.0)         >>>;
+
+// cos
+<<< Math.cos(1)              >>>;
+<<< Math.cos(1.0)            >>>;
+<<< Math.cosh(1)             >>>;
+<<< Math.cosh(1.0)           >>>;
+<<< Math.acos(1)             >>>;
+<<< Math.acos(1.0)           >>>;
+<<< Math.acosh(1)            >>>;
+<<< Math.acosh(1.0)          >>>;
+
+// tan
+<<< Math.tan(1)              >>>;
+<<< Math.tan(1.0)            >>>;
+<<< Math.tanh(1)             >>>;
+<<< Math.tanh(1.0)           >>>;
+<<< Math.atan(1)             >>>;
+<<< Math.atan(1.0)           >>>;
+<<< Math.atanh(1)            >>>;
+<<< Math.atanh(1.0)          >>>;
+
+<<< Math.pow(2, 2)           >>>;        
+<<< Math.pow(2.0, 2)         >>>; 
+<<< Math.pow(2, 2.0)         >>>;
+<<< Math.pow(2.0, 2.0)       >>>;
+
+<<< Math.sqrt(2)             >>>;
+<<< Math.sqrt(2.0)           >>>;
+<<< Math.exp(2)              >>>;
+<<< Math.exp(2.0)            >>>;
+<<< Math.log(2)              >>>;
+<<< Math.log(2.0)            >>>;
+<<< Math.log2(2)             >>>;
+<<< Math.log2(2.0)           >>>;
+<<< Math.log10(2)            >>>;
+<<< Math.log10(2.0)          >>>;
+<<< Math.floor(2)            >>>;
+<<< Math.floor(2.0)          >>>;
+<<< Math.ceil(2)             >>>;
+<<< Math.ceil(2.0)           >>>;
+<<< Math.round(2)            >>>;
+<<< Math.round(2.0)          >>>;
+<<< Math.trunc(2)            >>>;
+<<< Math.trunc(2.0)          >>>;
+<<< Math.fmod(2, 2)          >>>;        
+<<< Math.fmod(2.0, 2)        >>>; 
+<<< Math.fmod(2, 2.0)        >>>;
+<<< Math.fmod(2.0, 2.0)      >>>;
+<<< Math.remainder(2, 2)     >>>;        
+<<< Math.remainder(2.0, 2)   >>>; 
+<<< Math.remainder(2, 2.0)   >>>;
+<<< Math.remainder(2.0, 2.0) >>>;
+<<< Math.min(2, 2)           >>>;        
+<<< Math.min(2.0, 2)         >>>; 
+<<< Math.min(2, 2.0)         >>>;
+<<< Math.min(2.0, 2.0)       >>>;
+<<< Math.max(2, 2)           >>>;        
+<<< Math.max(2.0, 2)         >>>; 
+<<< Math.max(2, 2.0)         >>>;
+<<< Math.max(2.0, 2.0)       >>>;
+<<< Math.atan2(2.0, 2.0)     >>>;
+<<< Math.isinf(2)            >>>;
+<<< Math.isinf(2.0)          >>>;
+<<< Math.isnan(2)            >>>;
+<<< Math.isnan(2.0)          >>>;

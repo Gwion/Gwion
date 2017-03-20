@@ -1,0 +1,5 @@
+// [contains] unknown_type
+union
+{
+	unknown_type unknown_variable;
+};
