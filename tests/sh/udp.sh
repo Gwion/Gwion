@@ -7,9 +7,15 @@ source tests/sh/common.sh
 
 
 #(run "$n" "quit (remote $n)" "-l1" "file2"&
-(./gwion -l1 && echo "ok  $(printf "% 4i" "$n") remote "&
+#(./gwion -l1 && echo "ok  $(printf "% 4i" "$n") remote "&
+#(
+(ret=`./gwion -l1 &> /dev/null`&
 sleep 1;
 killall gwion
+if [ $ret ]
+then echo "not ok  $(printf "% 4i" "$n") remote "
+else echo "ok $(printf "% 4i" "$n") remote "
+fi
 #kill %1 &> /dev/null &>/dev/null
 wait)
 
