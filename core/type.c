@@ -782,7 +782,6 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
   }
 
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
-    /*    m_bool l_member;*/
     Type r_nspc, l_nspc = NULL;
     m_uint i;
     Func f1, f2 = NULL;
@@ -790,75 +789,26 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
     char name[1024];
     Type ret_type;
 
-
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
-//f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-//Type t = namespace_lookup_type(env->curr, insert_symbol(v->name), 1);
-//scope_rem(env->curr->type, insert_symbol(t->name));
-//scope_rem(env->curr->type, insert_symbol(t->name));
-//t->obj->ref_count--;
-//	rem_ref(t->func->obj, t->func);
-//	rem_ref(t->obj, t);
-//t = NULL;
-
-//      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1);
-
-//t = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->m_type;
-//scope_rem(env->curr->type, insert_symbol(v->name));
-//printf("HERE HERE %p\n", t->obj);
-//rem_ref(t->obj, t);
-
-//printf("HERE HERE %p\n", binary->rhs->type->obj);
-//binary->lhs->type->obj->ref_count--;
-//binary->rhs->type->obj->ref_count--;
-//free(binary->lhs->type);
-//binary->lhs->type = NULL;
-//add_ref(binary->lhs->type->obj);
-//rem_ref(binary->lhs->type->obj, binary->lhs->typ);
-//printf("here\n");
-//free(binary->lhs->type);
-//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->var, 1);
-//f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-//scope_rem(env->curr->func, f2);
-//scope_rem(env->curr->func, f2);
-      /*
-      f2->obj->ref_count--;
-      v->func_ref = NULL;
-      f2->def->func = NULL;
-      f2->def = NULL;
-      rem_ref(f2->obj, f2);
-      */
       return NULL;
     }
 
-//    if(env->class_def) { // needs better check
-//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
-//	  return v->m_type;
-//    }
     if(binary->rhs->exp_type == Primary_Expression_type) {
-
-      /*      f1 = namespace_lookup_func(env->curr, binary->rhs->d.exp_primary->var, -1);*/
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
-      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, 
-insert_symbol(v->m_type->name), -1);
-//      r_nspc = NULL; // get owner
-      r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
-//      ret_type  = namespace_lookup_type(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
       v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
       f1 = v->func_ref;
-      r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
-      f1 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-	  r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
       f1 = v->m_type->func;
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
       return NULL;
     }
+	r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
@@ -877,36 +827,21 @@ insert_symbol(v->m_type->name), -1);
     }
     if(!r_nspc && l_nspc) {
       err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer");
-//.rem_ref(f2->obj, f2);
-//f2->obj->ref_count--;
-//Type t = find_type(env->curr, insert_symbol(f1->name));
-//printf("type %p\n", binary->rhs->type->obj);
-//printf("type %p\n", binary->rhs->type->obj);
-//rem_ref(ret_type->obj, ret_type);
-//rem_ref(binary->rhs->type->obj, binary->rhs->type);
-//	rem_ref(f1->value_ref->m_type->obj, f1->value_ref->m_type);
-//binary->rhs->type->obj->ref_count--;
       return NULL;
     }
     if(r_nspc && !l_nspc) {
       err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
       return NULL;
     }
-printf("l->nspc %p r_nspc %p\n", l_nspc, r_nspc);
-printf("f2      %p f1     %p\n", f2,     f1);
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == Primary_Expression_type) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
       }
-      /*if(!f1)*/
-      /*f1 = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->var, 1)->func_ref;*/
       if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
-ret_type = f1->value_ref->m_type;
-//        ret_type = f1->def->ret_type;
-//        ret_type->func = f2;
+        ret_type = f1->value_ref->m_type;
         return ret_type;
       }
     }
