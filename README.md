@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=dev)](https://travis-ci.org/fennecdjay/Gwion)
 [![Coveralls branch](https://img.shields.io/coveralls/fennecdjay/Gwion/dev.svg)](https://coveralls.io/github/fennecdjay/Gwion?branch=dev)
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.svg)
-![](https://img.shields.io/badge/version-pre--pre--alpha-red.svg)
+[![release](http://github-release-version.herokuapp.com/github/fennecdjay/Gwion/release.svg)](https://github.com/fennecdjay/Gwion/releases/latest)
 ![](https://img.shields.io/badge/language-C-yellowgreen.svg)  
 
 gwion is a object-oriented programming language, aimed at making music
