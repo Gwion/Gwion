@@ -16,16 +16,14 @@ function post()
 function deploy()
 {
 	git add .
-	git commit -am 'Yeah. Built from subdir'
+	git commit -am 'Pre-deploy commit :smile:'
 	git push
 	bundle exec jekyll b
 	mv _site /tmp
-	rm .jekyll-metadata
 	git checkout gh-pages
 	git rm -rf *
 	rm -rf *
 	mv /tmp/_site/* .
-#	rmdir /tmp/_site
 	git add .
 	git commit -am 'Yeah. Built from subdir'
 	git push
