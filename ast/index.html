@@ -1,22 +1,10 @@
 ---
-layout: post-index
+layout: default
 title: Ast
 ---
 
 {% for post in site.pages %}
-	{{ post.title }}
 	{% if post.categories contains 'ast' %}
-	lol
-      <h1 class="entry-title"><a href="{{ site.url }}{{ post.url }}" rel="bookmark" title="{{ post.title }}" itemprop="url">{{ post.title}}</a></h1>
-	{% endif %}
-{% endfor %}
-
-
-posts:
-{% for post in site.posts %}
-	{{ post.title }}
-	{% if post.categories contains 'ast' %}
-	lol
       <h1 class="entry-title"><a href="{{ site.url }}{{ post.url }}" rel="bookmark" title="{{ post.title }}" itemprop="url">{{ post.title}}</a></h1>
 	{% endif %}
 {% endfor %}

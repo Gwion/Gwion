@@ -1,6 +1,6 @@
 ---
 layout: default
 categories: [stmt]
-title: "Statement Expression"
+title: "Statement Goto label"
 ---
 fill me
