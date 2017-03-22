@@ -1,0 +1,22 @@
+# Belongs at: /_data/navigation.yml
+
+- title: Gwion
+  url: /
+
+- title: AST
+  url: /ast
+#  sublinks:
+#    - title: Sections
+#      url: /group/si1
+
+- title: Plugins
+  url: /plugins
+  sublinks:
+    - title: Sections
+      url: /Plugin/*
+
+- title: Features
+  url: /features
+
+- title: Examples
+  url: /examples

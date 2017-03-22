@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <meta charset="utf-8">
+<title>example template_vararg &#8211; Gwion</title>
+<meta name="description" content="">
+
+
+
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="example template_vararg">
+<meta property="og:description" content="">
+<meta property="og:url" content="/examples/template_vararg.html">
+<meta property="og:site_name" content="Gwion">
+
+
+
+
+
+<link rel="canonical" href="/examples/template_vararg.html">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Gwion Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<link href="//fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic" rel="stylesheet" type="text/css">
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- Load Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+<!-- 32x32 -->
+<link rel="shortcut icon" href="/favicon.png">
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">
+
+<!-- hack -->
+<a href="https://github.comfennecdjay/Gwion"><img style="position: absolute; top: 0; right: 0; border: 0;"
+src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
+
+
+<!-- from https://buttons.github.io/ -->
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<!-- /from https://buttons.github.io/ -->
+
+<!-- /hack -->
+
+
+  <body>
+    <section class="page-header">
+<!--  <h1 class="project-name">Gwion</h1> -->
+  <h1 class="project-name">Gwion</h1>
+  <h2 class="project-tagline">A strongly timed musical programming language</h2>
+</section>
+
+
+    <section class="main-content">
+    <nav id="dl-menu" class="dl-menuwrapper" role="navigation">
+	<button class="dl-trigger">Open Menu</button>
+	<ul class="dl-menu">
+		<li><a href="/">Home</a></li>
+		<li>
+			<a href="#">About</a>
+			<ul class="dl-submenu">
+				<li>
+					<img src="/images/" alt=" photo" class="author-photo">
+					<h4></h4>
+					<p></p>
+				</li>
+				<li><a href="/about/"><span class="btn btn-inverse">Learn More</span></a></li>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+			</ul><!-- /.dl-submenu -->
+		</li>
+		<li>
+			<a href="#">Posts</a>
+			<ul class="dl-submenu">
+				<li><a href="/posts/">All Posts</a></li>
+				<li><a href="/tags/">All Tags</a></li>
+			</ul>
+		</li>
+<!-- hack -->
+		<li>
+			<a href="#">Ast</a>
+			<ul class="dl-submenu">
+				<li><a href="/ast/">Ast</a></li>
+				<li><a href="/tags/">All Tags</a></li>
+			</ul>
+		</li>
+<!-- /hack -->
+		
+	    
+	    <li><a href="/" >Gwion</a></li>
+	  
+	    
+	    <li><a href="/ast" >AST</a></li>
+	  
+	    
+	    <li><a href="/plugins" >Plugins</a></li>
+	  
+	    
+	    <li><a href="/features" >Features</a></li>
+	  
+	    
+	    <li><a href="/examples" >Examples</a></li>
+	  
+	</ul><!-- /.dl-menu -->
+</nav><!-- /.dl-menuwrapper -->
+
+      <br>this page documents 
+<b>template_vararg.gw</b><br><p>
+<div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="p">{</span><span class="n">a</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="n">variadic</span> <span class="kt">void</span> <span class="n">test</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">vararg</span><span class="p">.</span><span class="n">start</span><span class="p">;</span>
+<span class="o">&lt;&lt;&lt;</span><span class="n">vararg</span><span class="p">.</span><span class="n">i</span><span class="o">&gt;&gt;&gt;</span><span class="p">;</span>
+  <span class="n">vararg</span><span class="p">.</span><span class="n">end</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">test</span><span class="o">&lt;</span><span class="p">{</span><span class="kt">int</span><span class="p">}</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+</pre></div>
+</p>
+
+
+    </section>
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">Gwion</a> is maintained by <a href="https://fennecdjay.github.io/Gwion/">Jérémie Astor</a>.</span>
+  <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+</footer>
+
+
+
+  </body>
+</html>
