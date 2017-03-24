@@ -35,7 +35,7 @@ simple example code:
 <<<"Hello World">>>;
 // create a sinusoidal generator and connect it to dac  
 SinOsc s => dac;  
-// let one minute pass  
+// let 5 seconds pass  
 5::second => now;  
 // you're done!
 ```
