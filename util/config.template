@@ -11,7 +11,7 @@ OPT: soundpipe_inc:::
 #OPT: LDFLAGS :::'-lm -ldl -rdynamic'
 #OPT: memflags  :::off
 
-USE: double:::on
+USE: double:::off
 USE: coverage:::off
 USE: memcheck:::off
 

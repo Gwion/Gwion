@@ -7,7 +7,7 @@
 # ARG_OPTIONAL_SINGLE([prefix],[],[value for PREFIX],[/usr/local])
 # ARG_OPTIONAL_SINGLE([soundpipe_lib],[],[value for SOUNDPIPE_LIB],[-lsoundpipe])
 # ARG_OPTIONAL_SINGLE([soundpipe_inc],[],[value for SOUNDPIPE_INC],[])
-# ARG_OPTIONAL_BOOLEAN([double],[],[debug double],[on])
+# ARG_OPTIONAL_BOOLEAN([double],[],[debug double],[off])
 # ARG_OPTIONAL_BOOLEAN([coverage],[],[debug coverage],[off])
 # ARG_OPTIONAL_BOOLEAN([memcheck],[],[debug memcheck],[off])
 # ARG_OPTIONAL_SINGLE([d_func],[],[debug d_func],[dummy])
@@ -81,7 +81,7 @@ die()
 : "${_arg_soundpipe_lib:=$SOUNDPIPE_LIB}"
 : "${SOUNDPIPE_INC:=}"
 : "${_arg_soundpipe_inc:=$SOUNDPIPE_INC}"
-: "${USE_DOUBLE:=on}"
+: "${USE_DOUBLE:=off}"
 : "${_arg_double:=$USE_DOUBLE}"
 : "${USE_COVERAGE:=off}"
 : "${_arg_coverage:=$USE_COVERAGE}"
@@ -176,7 +176,7 @@ print_help ()
 	printf "\t%s\n" "--prefix: value for PREFIX (default: '/usr/local')"
 	printf "\t%s\n" "--soundpipe_lib: value for SOUNDPIPE_LIB (default: '-lsoundpipe')"
 	printf "\t%s\n" "--soundpipe_inc: value for SOUNDPIPE_INC (no default)"
-	printf "\t%s\n" "--double,--no-double: debug double (on by default)"
+	printf "\t%s\n" "--double,--no-double: debug double (off by default)"
 	printf "\t%s\n" "--coverage,--no-coverage: debug coverage (off by default)"
 	printf "\t%s\n" "--memcheck,--no-memcheck: debug memcheck (off by default)"
 	printf "\t%s\n" "--d_func: debug d_func (default: 'dummy')"
