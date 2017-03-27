@@ -49,10 +49,8 @@ m_bool dac_tick(UGen u)
 {
   m_uint  i;
   sp_data* sp = (sp_data*)u->ug;
-  for(i = 0; i < sp->nchan; i++)
-    sp->out[i] = 0;
   for(i = 0; i < u->n_out; i++)
-    sp->out[i] += u->channel[i]->ugen->out;
+    sp->out[i] = u->channel[i]->ugen->out;
   return 1;
 }
 
@@ -63,9 +61,10 @@ m_bool adc_tick(UGen u)
   BBQ sp = (BBQ )u->ug;
   for(i = 0; i < u->n_out; i++) {
     M_Object obj = u->channel[i];
+	obj->ugen->last = sp->in[i];
     last += (obj->ugen->out = sp->in[i]);
   }
-  last /= u->n_out;
+  u->last = last;
   return 1;
 }
 void ref_compute(UGen u)
@@ -76,19 +75,19 @@ void ref_compute(UGen u)
 
 void channel_compute(UGen u)
 {
-//	if(u->done)
-//		return;
+  if(u->done)
+    return;
   m_uint i;
   u->in = 0;
   for(i = 0; i < vector_size(u->ugen); i++)
     u->in += ((UGen)vector_at(u->ugen, i))->out;
-//	u->done = 1;
+  u->last = u->in;
+  u->done = 1;
 }
 // recursively compute ugen
 void ugen_compute(UGen u)
 {
   m_uint  i;
-  m_float sum = 0;
   UGen ugen;
   if(!u || u->done)
     return;
@@ -112,6 +111,7 @@ void ugen_compute(UGen u)
   }
   u->tick(u);
   if(u->channel) {
+    m_float sum = 0;
     /*    for(i = 0; i < u->n_out> u->n_in ? u->n_out : u->n_in; i++)*/
     for(i = 0; i < u->n_out; i++) {
       M_Object obj = u->channel[i];
