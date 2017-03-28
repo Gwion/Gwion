@@ -357,6 +357,8 @@ parser:
 lexer:
 	\\\${LEX}  -o eval/lexer.c eval/gwion.l
 
+directories:
+	mkdir -p ${GWION_API_DIR} ${GWION_DOC_DIR} ${GWION_TAG_DIR} ${GWION_TOK_DIR} ${GWION_ADD_DIR}
 EOF
 
 # ] <-- needed because of Argbash

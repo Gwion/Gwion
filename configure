@@ -780,6 +780,8 @@ parser:
 lexer:
 	\${LEX}  -o eval/lexer.c eval/gwion.l
 
+directories:
+	mkdir -p     
 EOF
 
 # ] <-- needed because of Argbash
