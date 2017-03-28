@@ -57,8 +57,20 @@ argbash configure -o configure
 # remove footer
 head -n -1 configure > /tmp/_test.argbash
 mv /tmp/_test.argbash configure
-#cat configure
+
 echo "[ -f Makefile  ] && rm Makefile" >> configure
+
+# test valid d_func
+printf "VALID_DRIVER=\"" >> configure
+for iter in $LIB
+do
+  key=$(echo "${iter}" | cut -d ":" -f 1)
+  printf " $key"
+done >> configure
+#echo "echo \"\$VALID_DRIVER\" | grep \"\$_arg_d_func\" || exit 1" >> configure
+echo -e "\"\ngrep \"\$_arg_d_func\" <<<  \"\$VALID_DRIVER\" || { echo \"invalid default driver\";exit 1; }" >> configure
+#echo -e "\"\necho \"\$VALID_DRIVER\" | grep \"\$_arg_d_func\" || { echo \"invalid default driver\";exit 1}" >> configure
+
 for iter in $OPT
 do
   key=$(echo "${iter}" | cut -d ":" -f 1)
