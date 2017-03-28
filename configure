@@ -25,13 +25,13 @@
 # ARG_OPTIONAL_SINGLE([alsa-lib],[],[alsa library],[-lasound])
 # ARG_OPTIONAL_BOOLEAN([jack],[],[enable jack],[off])
 # ARG_OPTIONAL_REPEATED([jack-inc],[],[Directories where to look for include files for jack],[])
-# ARG_OPTIONAL_SINGLE([jack-lib],[],[jack library],[])
+# ARG_OPTIONAL_SINGLE([jack-lib],[],[jack library],[-ljack])
 # ARG_OPTIONAL_BOOLEAN([portaudio],[],[enable portaudio],[off])
 # ARG_OPTIONAL_REPEATED([portaudio-inc],[],[Directories where to look for include files for portaudio],[])
-# ARG_OPTIONAL_SINGLE([portaudio-lib],[],[portaudio library],[])
+# ARG_OPTIONAL_SINGLE([portaudio-lib],[],[portaudio library],[-lportaudio])
 # ARG_OPTIONAL_BOOLEAN([soundio],[],[enable soundio],[off])
 # ARG_OPTIONAL_REPEATED([soundio-inc],[],[Directories where to look for include files for soundio],[])
-# ARG_OPTIONAL_SINGLE([soundio-lib],[],[soundio library],[])
+# ARG_OPTIONAL_SINGLE([soundio-lib],[],[soundio library],[-lsoundio])
 # ARG_OPTIONAL_SINGLE([api],[],[api path],[api])
 # ARG_OPTIONAL_SINGLE([doc],[],[doc path],[doc])
 # ARG_OPTIONAL_SINGLE([tag],[],[tag path],[tag])
@@ -117,19 +117,19 @@ die()
 : "${_arg_jack:=$JACK_D}"
 : "${JACK_INC:=}"
 : "${_arg_jack_inc:=$JACK_INC}"
-: "${JACK_LIB:=}"
+: "${JACK_LIB:="-ljack"}"
 : "${_arg_jack_lib:=$JACK_LIB}"
 : "${PORTAUDIO_D:=off}"
 : "${_arg_portaudio:=$PORTAUDIO_D}"
 : "${PORTAUDIO_INC:=}"
 : "${_arg_portaudio_inc:=$PORTAUDIO_INC}"
-: "${PORTAUDIO_LIB:=}"
+: "${PORTAUDIO_LIB:="-lportaudio"}"
 : "${_arg_portaudio_lib:=$PORTAUDIO_LIB}"
 : "${SOUNDIO_D:=off}"
 : "${_arg_soundio:=$SOUNDIO_D}"
 : "${SOUNDIO_INC:=}"
 : "${_arg_soundio_inc:=$SOUNDIO_INC}"
-: "${SOUNDIO_LIB:=}"
+: "${SOUNDIO_LIB:="-lsoundio"}"
 : "${_arg_soundio_lib:=$SOUNDIO_LIB}"
 : "${API_DIR:="api"}"
 : "${_arg_api:=$API_DIR}"
@@ -194,13 +194,13 @@ print_help ()
 	printf "\t%s\n" "--alsa-lib: alsa library (default: '-lasound')"
 	printf "\t%s\n" "--jack,--no-jack: enable jack (off by default)"
 	printf "\t%s\n" "--jack-inc: Directories where to look for include files for jack (empty by default)"
-	printf "\t%s\n" "--jack-lib: jack library (no default)"
+	printf "\t%s\n" "--jack-lib: jack library (default: '-ljack')"
 	printf "\t%s\n" "--portaudio,--no-portaudio: enable portaudio (off by default)"
 	printf "\t%s\n" "--portaudio-inc: Directories where to look for include files for portaudio (empty by default)"
-	printf "\t%s\n" "--portaudio-lib: portaudio library (no default)"
+	printf "\t%s\n" "--portaudio-lib: portaudio library (default: '-lportaudio')"
 	printf "\t%s\n" "--soundio,--no-soundio: enable soundio (off by default)"
 	printf "\t%s\n" "--soundio-inc: Directories where to look for include files for soundio (empty by default)"
-	printf "\t%s\n" "--soundio-lib: soundio library (no default)"
+	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
 	printf "\t%s\n" "--api: api path (default: 'api')"
 	printf "\t%s\n" "--doc: doc path (default: 'doc')"
 	printf "\t%s\n" "--tag: tag path (default: 'tag')"
@@ -643,7 +643,7 @@ echo "USE_COVERAGE ?= $_arg_coverage" >> Makefile
 echo "USE_MEMCHECK ?= $_arg_memcheck" >> Makefile
 # handle definitions
 echo "# handle definitions" >> Makefile
-echo "D_FUNC ?= dummy_driver" >> Makefile
+echo "D_FUNC ?= ${_arg_d_func}_driver" >> Makefile
 # handle directories
 echo "# handle directories" >> Makefile
 echo "GWION_API_DIR ?= \${PREFIX}/lib/Gwion/api" >> Makefile
@@ -653,13 +653,13 @@ echo "GWION_TOK_DIR ?= \${PREFIX}/lib/Gwion/tok" >> Makefile
 echo "GWION_ADD_DIR ?= \${PREFIX}/lib/Gwion/add" >> Makefile
 # handle libraries
 echo "# handle libraries" >> Makefile
-echo "DUMMY_D ?= 1" >> Makefile
-echo "SPA_D ?= 0" >> Makefile
-echo "SNDFILE_D ?= 1" >> Makefile
-echo "ALSA_D ?= 1" >> Makefile
-echo "JACK_D ?= 0" >> Makefile
-echo "PORTAUDIO_D ?= 0" >> Makefile
-echo "SOUNDIO_D ?= 0" >> Makefile
+echo "DUMMY_D ?= $_arg_dummy" >> Makefile
+echo "SPA_D ?= $_arg_spa" >> Makefile
+echo "SNDFILE_D ?= $_arg_sndfile" >> Makefile
+echo "ALSA_D ?= $_arg_alsa" >> Makefile
+echo "JACK_D ?= $_arg_jack" >> Makefile
+echo "PORTAUDIO_D ?= $_arg_portaudio" >> Makefile
+echo "SOUNDIO_D ?= $_arg_soundio" >> Makefile
 # handle debug
 echo "# handle debug" >> Makefile
 echo "DEBUG_COMPILE ?= $_arg_debug_compile" >> Makefile
@@ -685,9 +685,9 @@ echo -e "ifeq (\${DUMMY_D}, on)\nCFLAGS += -DHAVE_DUMMY\ndrvr_src += drvr/dummy.
 echo -e "ifeq (\${SPA_D}, on)\nCFLAGS += -DHAVE_SPA\ndrvr_src += drvr/spa.c\nelse ifeq (\${SPA_D}, 1)\nCFLAGS +=-DHAVE_SPA\ndrvr_src +=drvr/spa.c\nendif\n" >> Makefile
 echo -e "ifeq (\${SNDFILE_D}, on)\nLDFLAGS += -lsndfile\nCFLAGS += -DHAVE_SNDFILE\ndrvr_src += drvr/sndfile.c\nelse ifeq (\${SNDFILE_D}, 1)\nLDFLAGS += -lsndfile\nCFLAGS +=-DHAVE_SNDFILE\ndrvr_src +=drvr/sndfile.c\nendif\n" >> Makefile
 echo -e "ifeq (\${ALSA_D}, on)\nLDFLAGS += -lasound\nCFLAGS += -DHAVE_ALSA\ndrvr_src += drvr/alsa.c\nelse ifeq (\${ALSA_D}, 1)\nLDFLAGS += -lasound\nCFLAGS +=-DHAVE_ALSA\ndrvr_src +=drvr/alsa.c\nendif\n" >> Makefile
-echo -e "ifeq (\${JACK_D}, on)\nCFLAGS += -DHAVE_JACK\ndrvr_src += drvr/jack.c\nelse ifeq (\${JACK_D}, 1)\nCFLAGS +=-DHAVE_JACK\ndrvr_src +=drvr/jack.c\nendif\n" >> Makefile
-echo -e "ifeq (\${PORTAUDIO_D}, on)\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += drvr/portaudio.c\nelse ifeq (\${PORTAUDIO_D}, 1)\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=drvr/portaudio.c\nendif\n" >> Makefile
-echo -e "ifeq (\${SOUNDIO_D}, on)\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += drvr/soundio.c\nelse ifeq (\${SOUNDIO_D}, 1)\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=drvr/soundio.c\nendif\n" >> Makefile
+echo -e "ifeq (\${JACK_D}, on)\nLDFLAGS += -ljack\nCFLAGS += -DHAVE_JACK\ndrvr_src += drvr/jack.c\nelse ifeq (\${JACK_D}, 1)\nLDFLAGS += -ljack\nCFLAGS +=-DHAVE_JACK\ndrvr_src +=drvr/jack.c\nendif\n" >> Makefile
+echo -e "ifeq (\${PORTAUDIO_D}, on)\nLDFLAGS += -lportaudio\nCFLAGS += -DHAVE_PORTAUDIO\ndrvr_src += drvr/portaudio.c\nelse ifeq (\${PORTAUDIO_D}, 1)\nLDFLAGS += -lportaudio\nCFLAGS +=-DHAVE_PORTAUDIO\ndrvr_src +=drvr/portaudio.c\nendif\n" >> Makefile
+echo -e "ifeq (\${SOUNDIO_D}, on)\nLDFLAGS += -lsoundio\nCFLAGS += -DHAVE_SOUNDIO\ndrvr_src += drvr/soundio.c\nelse ifeq (\${SOUNDIO_D}, 1)\nLDFLAGS += -lsoundio\nCFLAGS +=-DHAVE_SOUNDIO\ndrvr_src +=drvr/soundio.c\nendif\n" >> Makefile
 echo "# add boolean" >> Makefile
 echo -e "ifeq (\${USE_COVERAGE}, on)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif" >> Makefile
 echo -e "ifeq (\${USE_COVERAGE}, 1)\nCFLAGS += -ftest-coverage -fprofile-arcs\nendif" >> Makefile
@@ -697,7 +697,7 @@ echo -e "ifeq (\${USE_MEMCHECK}, on)\nCFLAGS += -g\nendif" >> Makefile
 echo -e "ifeq (\${USE_MEMCHECK}, 1)\nCFLAGS += -g\nendif" >> Makefile
 echo -e "ifeq (\${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (\${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n" >> Makefile
 echo "# add definitions" >> Makefile
-echo 'CFLAGS+= -DD_FUNC=dummy_driver' >> Makefile
+echo "CFLAGS+= -DD_FUNC=\${D_FUNC}" >> Makefile
 echo "# add directories" >> Makefile
 printf 'CFLAGS+= -DGWION_API_DIR=' >> Makefile
 printf '\' >> Makefile

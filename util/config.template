@@ -23,9 +23,9 @@ LIB: dummy:::on
 LIB: spa:::off
 LIB: sndfile:::on:'/usr/include' '/usr/local/include':-lsndfile
 LIB: alsa:::on::-lasound
-LIB: jack:::off
-LIB: portaudio:::off
-LIB: soundio:::off
+LIB: jack:::off::-ljack
+LIB: portaudio:::off::-lportaudio
+LIB: soundio:::off::-lsoundio
 
 
 DIR: api:::api

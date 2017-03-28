@@ -181,7 +181,6 @@ echo 'echo "# handle boolean options" >> Makefile' >> configure
 for iter in $USE
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
-  val=$(echo "$iter" | cut -d ":" -f 2)
   echo "echo \"USE_${key~~} ?= \$_arg_${key}\" >> Makefile" >> configure
 done
 
@@ -190,8 +189,7 @@ echo 'echo "# handle definitions" >> Makefile' >> configure
 for dir in $DEF
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
-  val=$(echo "$dir" | cut -d ":" -f 2)
-  echo "echo \"${key~~} ?= ${val}_driver\" >> Makefile" >> configure
+  echo "echo \"${key~~} ?= \${_arg_${key}}_driver\" >> Makefile" >> configure
 done
 
 echo "# handle directories" >> configure
@@ -208,12 +206,7 @@ echo 'echo "# handle libraries" >> Makefile' >> configure
 for lib in $LIB
 do
   key=$(echo "${lib}" | cut -d ":" -f 1)
-  val=$(echo "${lib}" | cut -d ":" -f 2)
-  if [ "${val}" = "on" ]
-  then val=1
-  else val=0
-  fi
-  echo "echo \"${key~~}_D ?= ${val}\" >> Makefile" >> configure
+  echo "echo \"${key~~}_D ?= \$_arg_${key}\" >> Makefile" >> configure
 done
 
 echo "# handle debug" >> configure
@@ -272,8 +265,8 @@ echo 'echo "# add definitions" >> Makefile' >> configure
 for iter in $DEF
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
-  val=$(echo "$iter" | cut -d ":" -f 2)
-  echo "echo 'CFLAGS+= -D${key~~}=${val}_driver' >> Makefile" >> configure
+#  val=$(echo "$iter" | cut -d ":" -f 2)
+  echo "echo \"CFLAGS+= -D${key~~}=\\\${${key~~}}\" >> Makefile" >> configure
 done
 
 echo 'echo "# add directories" >> Makefile' >> configure
