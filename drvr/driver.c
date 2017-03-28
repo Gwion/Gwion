@@ -61,6 +61,8 @@ void select_driver(DriverInfo* di, const m_str d)
     di->card = "default";
   }
 #endif
+  else
+    fprintf(stderr, "invalid driver specified. using default.\n");
 }
 
 void select_backend(DriverInfo* di, const m_str d)
