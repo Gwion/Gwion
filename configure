@@ -14,7 +14,7 @@
 # ARG_OPTIONAL_BOOLEAN([dummy],[],[enable dummy],[on])
 # ARG_OPTIONAL_REPEATED([dummy-inc],[],[Directories where to look for include files for dummy],[])
 # ARG_OPTIONAL_SINGLE([dummy-lib],[],[dummy library],[])
-# ARG_OPTIONAL_BOOLEAN([spa],[],[enable spa],[off])
+# ARG_OPTIONAL_BOOLEAN([spa],[],[enable spa],[on])
 # ARG_OPTIONAL_REPEATED([spa-inc],[],[Directories where to look for include files for spa],[])
 # ARG_OPTIONAL_SINGLE([spa-lib],[],[spa library],[])
 # ARG_OPTIONAL_BOOLEAN([sndfile],[],[enable sndfile],[on])
@@ -95,7 +95,7 @@ die()
 : "${_arg_dummy_inc:=$DUMMY_INC}"
 : "${DUMMY_LIB:=}"
 : "${_arg_dummy_lib:=$DUMMY_LIB}"
-: "${SPA_D:=off}"
+: "${SPA_D:=on}"
 : "${_arg_spa:=$SPA_D}"
 : "${SPA_INC:=}"
 : "${_arg_spa_inc:=$SPA_INC}"
@@ -183,7 +183,7 @@ print_help ()
 	printf "\t%s\n" "--dummy,--no-dummy: enable dummy (on by default)"
 	printf "\t%s\n" "--dummy-inc: Directories where to look for include files for dummy (empty by default)"
 	printf "\t%s\n" "--dummy-lib: dummy library (no default)"
-	printf "\t%s\n" "--spa,--no-spa: enable spa (off by default)"
+	printf "\t%s\n" "--spa,--no-spa: enable spa (on by default)"
 	printf "\t%s\n" "--spa-inc: Directories where to look for include files for spa (empty by default)"
 	printf "\t%s\n" "--spa-lib: spa library (no default)"
 	printf "\t%s\n" "--sndfile,--no-sndfile: enable sndfile (on by default)"

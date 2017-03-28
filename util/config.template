@@ -20,7 +20,7 @@ DEF: d_func:::dummy
 #LIB: soundpipe:::on
 
 LIB: dummy:::on
-LIB: spa:::off
+LIB: spa:::on
 LIB: sndfile:::on:'/usr/include' '/usr/local/include':-lsndfile
 LIB: alsa:::on::-lasound
 LIB: jack:::off::-ljack

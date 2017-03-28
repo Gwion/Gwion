@@ -28,7 +28,7 @@ void select_format(DriverInfo* di, const m_str d);
 
 Driver* dummy_driver(VM* vm);
 #ifdef HAVE_SPA
-Driver* raw_driver(VM* vm);
+Driver* spa_driver(VM* vm);
 #endif
 #ifdef HAVE_SNDFILE
 Driver* sndfile_driver(VM* vm);

@@ -16,16 +16,16 @@ void select_driver(DriverInfo* di, const m_str d)
   else if(!strcmp("silent", d))
     di->func = silent_driver;
 
-#ifdef HAVE_DNFILE
-  else if(!strcmp("file", d)) {
+#ifdef HAVE_SNDFILE
+  else if(!strcmp("sndfile", d)) {
     di->func = sndfile_driver;
     di->card = "/tmp/gwion";
   }
 #endif
 
 #ifdef HAVE_SPA
-  else if(!strcmp("raw", d)) {
-    di->func = raw_driver;
+  else if(!strcmp("spa", d)) {
+    di->func = spa_driver;
     di->card = "/tmp/gwion";
   }
 #endif
