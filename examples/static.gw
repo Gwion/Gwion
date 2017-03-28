@@ -6,6 +6,13 @@ class C
 	static Vec3 v;
 	static Vec4 w;
 	static Object o;
+	function static int     _i() { return i; }
+	function static float   _f() { return f; }
+	function static complex _c() { return c; }
+	function static Vec3    _v() { return v; }
+	function static Vec4    _w() { return w; }
+	function static Object  _o() { return o; }
 }
 
 <<< C.i, C.f, C.v, C.w, C.o >>>;
+<<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>;
