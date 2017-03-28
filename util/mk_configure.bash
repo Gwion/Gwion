@@ -343,10 +343,11 @@ clean:
 	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
 install:
-	@echo "'gwion' is in pre-alpha stage, no install for now."
+	mkdir -p \\\${PREFIX}
+	cp \\\${PRG} \\\${PREFIX}
 
 uninstall:
-	@echo "'gwion' is in pre-alpha stage, no install for now."
+	rm \\\${PREFIX}/\\\${PRG}
 
 test:
 	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/bug | consummer"
