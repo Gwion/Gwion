@@ -625,7 +625,7 @@ CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing
 EOF
 # handle boolean options
 echo -e "\n# handle boolean options" >> Makefile
-echo "USE_DOUBLE ?= $_arg_double" >> Makefile
+echo "USE_DOUBLE  = $_arg_double" >> Makefile
 echo "USE_COVERAGE ?= $_arg_coverage" >> Makefile
 echo "USE_MEMCHECK ?= $_arg_memcheck" >> Makefile
 # handle definitions

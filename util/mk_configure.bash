@@ -188,8 +188,11 @@ echo 'echo -e "\n# handle boolean options" >> Makefile' >> configure
 for iter in $USE
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
-  echo "echo \"USE_${key~~} ?= \$_arg_${key}\" >> Makefile" >> configure
-done
+  if [ "$key" = "double" ]
+  then echo "echo \"USE_${key~~}  = \$_arg_${key}\" >> Makefile"
+  else echo "echo \"USE_${key~~} ?= \$_arg_${key}\" >> Makefile"
+  fi
+done >> configure
 
 echo "# handle definitions" >> configure
 echo 'echo -e "\n# handle definitions" >> Makefile' >> configure
