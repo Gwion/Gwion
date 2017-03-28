@@ -50,25 +50,16 @@ there are a few *new* features:
 #### requires
 
 * [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
-	(the [dev](https://github.com/PaulBatchelor/Soundpipe/tree/dev) branch
-
-#### configure
-
-simply edit *config.mk* to suit your needs, 
 
 #### build
 
-first you need to generate Makefile:
-
-```
-./configure
-```
-try
+first you need to configure rthe build system., look [here](https://github.com/fennecdjay/Gwion/Configure.md).
+also, 
 
 ```
 ./configure --help
 ```
-to learn more about options.
+should show a list of available options.
 
 then, just
 ```
