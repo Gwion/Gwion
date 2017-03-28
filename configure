@@ -3,7 +3,6 @@
 # ARG_OPTIONAL_SINGLE([cc],[],[value for CC],[gcc])
 # ARG_OPTIONAL_SINGLE([yacc],[],[value for YACC],[yacc])
 # ARG_OPTIONAL_SINGLE([lex],[],[value for LEX],[flex])
-# ARG_OPTIONAL_SINGLE([data],[],[value for DATA],[../Soundpipe/modules/data])
 # ARG_OPTIONAL_SINGLE([prefix],[],[value for PREFIX],[/usr/local])
 # ARG_OPTIONAL_SINGLE([soundpipe_lib],[],[value for SOUNDPIPE_LIB],[-lsoundpipe])
 # ARG_OPTIONAL_SINGLE([soundpipe_inc],[],[value for SOUNDPIPE_INC],[])
@@ -73,8 +72,6 @@ die()
 : "${_arg_yacc:=$YACC}"
 : "${LEX:="flex"}"
 : "${_arg_lex:=$LEX}"
-: "${DATA:="../Soundpipe/modules/data"}"
-: "${_arg_data:=$DATA}"
 : "${PREFIX:="/usr/local"}"
 : "${_arg_prefix:=$PREFIX}"
 : "${SOUNDPIPE_LIB:="-lsoundpipe"}"
@@ -167,12 +164,11 @@ die()
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--data <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--api <arg>] [--doc <arg>] [--tag <arg>] [--tok <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--api <arg>] [--doc <arg>] [--tag <arg>] [--tok <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
 	printf "\t%s\n" "--lex: value for LEX (default: 'flex')"
-	printf "\t%s\n" "--data: value for DATA (default: '../Soundpipe/modules/data')"
 	printf "\t%s\n" "--prefix: value for PREFIX (default: '/usr/local')"
 	printf "\t%s\n" "--soundpipe_lib: value for SOUNDPIPE_LIB (default: '-lsoundpipe')"
 	printf "\t%s\n" "--soundpipe_inc: value for SOUNDPIPE_INC (no default)"
@@ -264,16 +260,6 @@ do
 				shift
 			fi
 			_arg_lex="$_val"
-			;;
-		--data|--data=*)
-			_val="${_key##--data=}"
-			if test "$_val" = "$_key"
-			then
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
-				shift
-			fi
-			_arg_data="$_val"
 			;;
 		--prefix|--prefix=*)
 			_val="${_key##--prefix=}"
@@ -626,7 +612,6 @@ echo "PRG ?= ${_arg_prg}"
 echo "CC ?= ${_arg_cc}"
 echo "YACC ?= ${_arg_yacc}"
 echo "LEX ?= ${_arg_lex}"
-echo "DATA ?= ${_arg_data}"
 echo "PREFIX ?= ${_arg_prefix}"
 echo "SOUNDPIPE_LIB ?= ${_arg_soundpipe_lib}"
 echo "SOUNDPIPE_INC ?= ${_arg_soundpipe_inc}"

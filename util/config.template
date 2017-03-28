@@ -3,7 +3,7 @@ OPT: prg   :::gwion
 OPT: cc   :::gcc
 OPT: yacc :::yacc
 OPT: lex  :::flex
-OPT: data :::../Soundpipe/modules/data
+#OPT: data :::../Soundpipe/modules/data
 OPT: prefix :::/usr/local
 OPT: soundpipe_lib:::-lsoundpipe
 OPT: soundpipe_inc:::
