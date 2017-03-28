@@ -631,28 +631,28 @@ echo "SOUNDPIPE_INC ?= ${_arg_soundpipe_inc}"
 } >> Makefile
 
 cat <<-  EOF >> Makefile
+
 # base flags
 LDFLAGS += -lm -ldl -rdynamic -lpthread
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
-
 EOF
 # handle boolean options
-echo "# handle boolean options" >> Makefile
+echo -e "\n# handle boolean options" >> Makefile
 echo "USE_DOUBLE ?= $_arg_double" >> Makefile
 echo "USE_COVERAGE ?= $_arg_coverage" >> Makefile
 echo "USE_MEMCHECK ?= $_arg_memcheck" >> Makefile
 # handle definitions
-echo "# handle definitions" >> Makefile
+echo -e "\n# handle definitions" >> Makefile
 echo "D_FUNC ?= ${_arg_d_func}_driver" >> Makefile
 # handle directories
-echo "# handle directories" >> Makefile
+echo -e "\n# handle directories" >> Makefile
 echo "GWION_API_DIR ?= \${PREFIX}/lib/Gwion/api" >> Makefile
 echo "GWION_DOC_DIR ?= \${PREFIX}/lib/Gwion/doc" >> Makefile
 echo "GWION_TAG_DIR ?= \${PREFIX}/lib/Gwion/tag" >> Makefile
 echo "GWION_TOK_DIR ?= \${PREFIX}/lib/Gwion/tok" >> Makefile
 echo "GWION_ADD_DIR ?= \${PREFIX}/lib/Gwion/add" >> Makefile
 # handle libraries
-echo "# handle libraries" >> Makefile
+echo -e "\n# handle libraries" >> Makefile
 echo "DUMMY_D ?= $_arg_dummy" >> Makefile
 echo "SPA_D ?= $_arg_spa" >> Makefile
 echo "SNDFILE_D ?= $_arg_sndfile" >> Makefile
@@ -661,7 +661,7 @@ echo "JACK_D ?= $_arg_jack" >> Makefile
 echo "PORTAUDIO_D ?= $_arg_portaudio" >> Makefile
 echo "SOUNDIO_D ?= $_arg_soundio" >> Makefile
 # handle debug
-echo "# handle debug" >> Makefile
+echo -e "\n# handle debug" >> Makefile
 echo "DEBUG_COMPILE ?= $_arg_debug_compile" >> Makefile
 echo "DEBUG_OPERATOR ?= $_arg_debug_operator" >> Makefile
 echo "DEBUG_TYPE ?= $_arg_debug_type" >> Makefile
@@ -696,45 +696,25 @@ echo -e "ifeq (\${USE_COVERAGE}, 1)\nLDFLAGS += --coverage\nendif" >> Makefile
 echo -e "ifeq (\${USE_MEMCHECK}, on)\nCFLAGS += -g\nendif" >> Makefile
 echo -e "ifeq (\${USE_MEMCHECK}, 1)\nCFLAGS += -g\nendif" >> Makefile
 echo -e "ifeq (\${USE_DOUBLE}, on)\nCFLAGS += -DUSE_DOUBLE -DSPFLOAT=double\nelse ifeq (\${USE_DOUBLE}, 1)\nCFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n" >> Makefile
-echo "# add definitions" >> Makefile
+echo -e "\n# add definitions" >> Makefile
 echo "CFLAGS+= -DD_FUNC=\${D_FUNC}" >> Makefile
-echo "# add directories" >> Makefile
-printf 'CFLAGS+= -DGWION_API_DIR=' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '${GWION_API_DIR}' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '\n' >> Makefile
-printf 'CFLAGS+= -DGWION_DOC_DIR=' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '${GWION_DOC_DIR}' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '\n' >> Makefile
-printf 'CFLAGS+= -DGWION_TAG_DIR=' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '${GWION_TAG_DIR}' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '\n' >> Makefile
-printf 'CFLAGS+= -DGWION_TOK_DIR=' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '${GWION_TOK_DIR}' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '\n' >> Makefile
-printf 'CFLAGS+= -DGWION_ADD_DIR=' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '${GWION_ADD_DIR}' >> Makefile
-printf '\' >> Makefile
-printf '"' >> Makefile
-printf '\n' >> Makefile
-echo "# add debug flags" >> Makefile
+echo -e "\n# add directories" >> Makefile
+printf 'CFLAGS+= -DGWION_API_DIR=\\' >> Makefile
+printf "\"\${GWION_API_DIR}" >> Makefile
+printf '\\"\n' >> Makefile
+printf 'CFLAGS+= -DGWION_DOC_DIR=\\' >> Makefile
+printf "\"\${GWION_DOC_DIR}" >> Makefile
+printf '\\"\n' >> Makefile
+printf 'CFLAGS+= -DGWION_TAG_DIR=\\' >> Makefile
+printf "\"\${GWION_TAG_DIR}" >> Makefile
+printf '\\"\n' >> Makefile
+printf 'CFLAGS+= -DGWION_TOK_DIR=\\' >> Makefile
+printf "\"\${GWION_TOK_DIR}" >> Makefile
+printf '\\"\n' >> Makefile
+printf 'CFLAGS+= -DGWION_ADD_DIR=\\' >> Makefile
+printf "\"\${GWION_ADD_DIR}" >> Makefile
+printf '\\"\n' >> Makefile
+echo -e "\n# add debug flags" >> Makefile
 printf "ifeq (\${DEBUG_COMPILE}, on)\nCFLAGS += -DDEBUG_COMPILE\nendif\n" >> Makefile
 printf "ifeq (\${DEBUG_COMPILE}, 1)\nCFLAGS += -DDEBUG_COMPILE\nendif\n"  >> Makefile
 printf "ifeq (\${DEBUG_OPERATOR}, on)\nCFLAGS += -DDEBUG_OPERATOR\nendif\n" >> Makefile
@@ -757,10 +737,9 @@ printf "ifeq (\${DEBUG_SHREDULER}, on)\nCFLAGS += -DDEBUG_SHREDULER\nendif\n" >>
 printf "ifeq (\${DEBUG_SHREDULER}, 1)\nCFLAGS += -DDEBUG_SHREDULER\nendif\n"  >> Makefile
 printf "ifeq (\${DEBUG_STACK}, on)\nCFLAGS += -DDEBUG_STACK\nendif\n" >> Makefile
 printf "ifeq (\${DEBUG_STACK}, 1)\nCFLAGS += -DDEBUG_STACK\nendif\n"  >> Makefile
-echo "# add soundpipe" >> Makefile
+echo -e "\n# add soundpipe" >> Makefile
 echo "LDFLAGS+=${SOUNDPIPE_LIB}" >> Makefile
 echo "CFLAGS+=${SOUNDPIPE_INC}"  >> Makefile
-echo "# os specific" >> Makefile
 # initialize object lists
 echo '' >> Makefile
 echo '# initialize object lists' >> Makefile

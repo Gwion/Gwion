@@ -166,18 +166,16 @@ done
 cat << _EOF
 
 cat <<-  EOF >> Makefile
+
 # base flags
 LDFLAGS += -lm -ldl -rdynamic -lpthread
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
-
 EOF
 _EOF
 } >> configure
 
-
-
 echo "# handle boolean options" >> configure
-echo 'echo "# handle boolean options" >> Makefile' >> configure
+echo 'echo -e "\n# handle boolean options" >> Makefile' >> configure
 for iter in $USE
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
@@ -185,7 +183,7 @@ do
 done
 
 echo "# handle definitions" >> configure
-echo 'echo "# handle definitions" >> Makefile' >> configure
+echo 'echo -e "\n# handle definitions" >> Makefile' >> configure
 for dir in $DEF
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
@@ -193,7 +191,7 @@ do
 done
 
 echo "# handle directories" >> configure
-echo 'echo "# handle directories" >> Makefile' >> configure
+echo 'echo -e "\n# handle directories" >> Makefile' >> configure
 for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
@@ -202,7 +200,7 @@ do
 done
 
 echo "# handle libraries" >> configure
-echo 'echo "# handle libraries" >> Makefile' >> configure
+echo 'echo -e "\n# handle libraries" >> Makefile' >> configure
 for lib in $LIB
 do
   key=$(echo "${lib}" | cut -d ":" -f 1)
@@ -210,7 +208,7 @@ do
 done
 
 echo "# handle debug" >> configure
-echo 'echo "# handle debug" >> Makefile' >> configure
+echo 'echo -e "\n# handle debug" >> Makefile' >> configure
 for dir in $DBG
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
@@ -261,7 +259,7 @@ done
 key="double"
 echo "echo -e \"ifeq (\\\${USE_${key~~}}, on)\nCFLAGS += -DUSE_${key~~} -DSPFLOAT=double\nelse ifeq (\\\${USE_${key~~}}, 1)\nCFLAGS +=-DUSE_${key~~} -DSPFLOAT=double\nelse\nCFLAGS+=-DSPFLOAT=float\nendif\n\" >> Makefile"  >> configure
 
-echo 'echo "# add definitions" >> Makefile' >> configure
+echo 'echo -e "\n# add definitions" >> Makefile' >> configure
 for iter in $DEF
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
@@ -269,39 +267,28 @@ do
   echo "echo \"CFLAGS+= -D${key~~}=\\\${${key~~}}\" >> Makefile" >> configure
 done
 
-echo 'echo "# add directories" >> Makefile' >> configure
+echo 'echo -e "\n# add directories" >> Makefile' >> configure
 for dir in $DIR
 do
   key=$(echo "$dir" | cut -d ":" -f 1)
   val=$(echo "$dir" | cut -d ":" -f 2)
-#  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
-  echo "printf 'CFLAGS+= -DGWION_${key~~}_DIR=' >> Makefile" >> configure
-#  echo "printf\"\\\"\\\${GWION_${key~~}_DIR}\\\\" >> Makefile" >> configure
-  echo "printf '\' >> Makefile" >> configure
-  echo "printf '\"' >> Makefile" >> configure
-  echo "printf '\${GWION_${key~~}_DIR}' >> Makefile" >> configure
-  echo "printf '\' >> Makefile" >> configure
-  echo "printf '\"' >> Makefile" >> configure
-  echo "printf '\n' >> Makefile" >> configure
-#  echo "echo \"CFLAGS+= -DGWION_${key~~}_DIR=\\\"\\\${GWION_${key~~}_DIR}\\\"\" >> Makefile" >> configure
+  echo "printf 'CFLAGS+= -DGWION_${key~~}_DIR=\\\' >> Makefile" >> configure
+  echo "printf \"\\\"\\\${GWION_${key~~}_DIR}\" >> Makefile" >> configure
+  echo "printf '\\\\\"\n' >> Makefile" >> configure
 done
 
-echo 'echo "# add debug flags" >> Makefile' >> configure
+echo 'echo -e "\n# add debug flags" >> Makefile' >> configure
 for iter in $DBG
 do
   key=$(echo "$iter" | cut -d ":" -f 1)
-  val=$(echo "$iter" | cut -d ":" -f 2)
   echo "printf \"ifeq (\\\${DEBUG_${key~~}}, on)\nCFLAGS += -DDEBUG_${key~~}\nendif\n\" >> Makefile" >> configure
   echo "printf \"ifeq (\\\${DEBUG_${key~~}}, 1)\nCFLAGS += -DDEBUG_${key~~}\nendif\n\"  >> Makefile" >> configure
 done
 
 {
-	echo 'echo "# add soundpipe" >> Makefile'
+	echo 'echo -e "\n# add soundpipe" >> Makefile'
 	echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\" >> Makefile"
 	echo "echo \"CFLAGS+=\${SOUNDPIPE_INC}\"  >> Makefile"
-	#os specific
-	echo 'echo "# os specific" >> Makefile'
-# pthread
 } >> configure
 
 cat << _EOF >> configure
