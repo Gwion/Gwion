@@ -99,7 +99,6 @@ void release(M_Object obj, VM_Shred shred)
       }
       t = t->parent;
     }
-    obj = NULL;
   }
 }
 
