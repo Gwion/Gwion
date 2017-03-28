@@ -150,6 +150,7 @@ done
 
 	# generate soundpipe
 	echo "echo generate soundpipe wrapper"
+	echo "[ -d \"\$arg_data\" ] || exit 1 "
 	echo "lua util/import.lua \"\$_arg_data\" > ugen/soundpipe.c || exit 1"
 ############
 # Makefile #
