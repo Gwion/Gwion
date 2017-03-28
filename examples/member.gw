@@ -1,0 +1,12 @@
+class C
+{
+	int i;
+	float f;
+	complex c;
+	Vec3 v;
+	Vec4 w;
+	Object o;
+}
+
+C c;
+<<< c.i, c.f, c.v, c.w, c.o >>>;
