@@ -58,19 +58,6 @@ argbash configure -o configure
 head -n -1 configure > /tmp/_test.argbash
 mv /tmp/_test.argbash configure
 
-echo "[ -f Makefile  ] && rm Makefile" >> configure
-
-# test valid d_func
-printf "VALID_DRIVER=\"" >> configure
-for iter in $LIB
-do
-  key=$(echo "${iter}" | cut -d ":" -f 1)
-  printf " $key"
-done >> configure
-#echo "echo \"\$VALID_DRIVER\" | grep \"\$_arg_d_func\" || exit 1" >> configure
-echo -e "\"\ngrep \"\$_arg_d_func\" <<<  \"\$VALID_DRIVER\" || { echo \"invalid default driver\";exit 1; }" >> configure
-#echo -e "\"\necho \"\$VALID_DRIVER\" | grep \"\$_arg_d_func\" || { echo \"invalid default driver\";exit 1}" >> configure
-
 for iter in $OPT
 do
   key=$(echo "${iter}" | cut -d ":" -f 1)
@@ -137,7 +124,16 @@ done
   #echo "_CFLAGS+=$lib" >> configure
 #done
 {
-	echo "set -e "
+	echo "set -e"
+	echo -e "\n# remove Makefile\n[ -f Makefile  ] && rm Makefile"
+	echo -e "\n# test valid d_func"
+	printf "VALID_DRIVER=\""
+	for iter in $LIB
+	do
+		key=$(echo "${iter}" | cut -d ":" -f 1)
+		printf " $key"
+		done
+	echo -e "\"\ngrep \"\$_arg_d_func\" <<<  \"\$VALID_DRIVER\" || { echo \"invalid default driver\";exit 1; }\n"
 	echo "if [ \"\$_arg_double\" = \"on\" ]; then _CFLAGS+=\" -DUSE_DOUBLE -DSPFLOAT=double\";fi"
 	echo "if [ \"\$_arg_double\" = \"1\"  ];then _CFLAGS+=\" -DUSE_DOUBLE -DSPFLOAT=double\";fi"
 	echo "([ \"\$_arg_double\" = \"on\" ] || [ \"\$_arg_double\" = \"1\"  ]) || _CFLAGS+=\" -DSPFLOAT=float\""
@@ -162,7 +158,7 @@ done
 
 	# generate soundpipe
 	echo "echo generate soundpipe wrapper"
-	echo "[ -d \"\$_arg_data\" ] || exit 1 "
+	echo "[ -d \"\$_arg_data\" ] || exit 1"
 	echo "lua util/import.lua \"\$_arg_data\" > ugen/soundpipe.c || exit 1"
 ############
 # Makefile #
