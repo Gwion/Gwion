@@ -22,7 +22,6 @@ env:
   global:
     - GWION_HAS_DIR=1
     - DEBUG=1
-    - D_FUNC=dummy
     - ALSA_D=0
     - SOUNDPIPE_D=0
     - SPA_D=0
