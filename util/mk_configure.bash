@@ -105,7 +105,7 @@ for iter in $DEF
 do
   key=$(echo "${iter}" | cut -d ":" -f 1)
   val=$(echo "${iter}" | cut -d ":" -f 2)
-  sed -i "s/^_arg_${key}=\(.*\)/: \"\${${key~~}:=${val}_driver}\"\n: \"\$\{_arg_${key}:=${key~~}\}\"/" configure
+  sed -i "s/^_arg_${key}=\(.*\)/: \"\${${key~~}:=${val}}\"\n: \"\$\{_arg_${key}:=\$${key~~}\}\"/" configure
 done
 
 ############
@@ -126,14 +126,16 @@ done
 {
 	echo "set -e"
 	echo -e "\n# remove Makefile\n[ -f Makefile  ] && rm Makefile"
-	echo -e "\n# test valid d_func"
+	# check default driver
+	echo -e "\n# check default driver"
 	printf "VALID_DRIVER=\""
 	for iter in $LIB
 	do
 		key=$(echo "${iter}" | cut -d ":" -f 1)
 		printf " $key"
-		done
-	echo -e "\"\ngrep \"\$_arg_d_func\" <<<  \"\$VALID_DRIVER\" || { echo \"invalid default driver\";exit 1; }\n"
+	done
+	echo -e "\"\ngrep \"\$_arg_d_func\" <<<  \"\$VALID_DRIVER\" > /dev/null || { echo \"invalid default driver\";exit 1; }\n"
+
 	echo "if [ \"\$_arg_double\" = \"on\" ]; then _CFLAGS+=\" -DUSE_DOUBLE -DSPFLOAT=double\";fi"
 	echo "if [ \"\$_arg_double\" = \"1\"  ];then _CFLAGS+=\" -DUSE_DOUBLE -DSPFLOAT=double\";fi"
 	echo "([ \"\$_arg_double\" = \"on\" ] || [ \"\$_arg_double\" = \"1\"  ]) || _CFLAGS+=\" -DSPFLOAT=float\""
@@ -141,11 +143,9 @@ done
 	echo "if [ \"\$USE_COVERAGE\" = \"1\"  ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
 	echo "if [ \"\$USE_COVERAGE\" = \"on\" ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
 	echo "if [ \"\$_arg_soundpipe_inc\" ]; then _CFLAGS+=\" \$_arg_soundpipe_inc\";fi"
-	echo "echo \"\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)\""
 	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
 
 	# generate header
-	echo "echo generate header"
 	echo "./util/generate_header || exit 1"
 
 	# generate parser
@@ -157,20 +157,21 @@ done
 #	echo "\$_arg_lex -o eval/lexer.c eval/gwion.l || exit 1"
 
 	# generate soundpipe
-	echo "echo generate soundpipe wrapper"
-	echo "[ -d \"\$_arg_data\" ] || exit 1"
-	echo "lua util/import.lua \"\$_arg_data\" > ugen/soundpipe.c || exit 1"
+#	echo "echo generate soundpipe wrapper"
+#	echo "[ -d \"\$_arg_data\" ] || exit 1"
+#	echo "lua util/import.lua \"\$_arg_data\" > ugen/soundpipe.c || exit 1"
+
+
 ############
 # Makefile #
 ############
-	echo "{"
-	for iter in $OPT
-	do
-	  key=$(echo "$iter" | cut -d ":" -f 1)
-	  echo "echo \"${key~~} ?= \${_arg_${key}}\""
-	done
-	echo "} >> Makefile"
-#cat << _EOF >> configure
+echo "{"
+for iter in $OPT
+do
+	key=$(echo "$iter" | cut -d ":" -f 1)
+	echo "echo \"${key~~} ?= \${_arg_${key}}\""
+done
+echo "} >> Makefile"
 cat << _EOF
 
 cat <<-  EOF >> Makefile
