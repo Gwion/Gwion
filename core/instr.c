@@ -1125,10 +1125,10 @@ INSTR(Dot_Member_Data)
     *(m_complex*)shred->reg = *(m_complex*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = *(VEC3_T*)instr->m_val;
+    *(VEC3_T*)shred->reg = *(VEC3_T*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = *(VEC4_T*)instr->m_val;
+    *(VEC4_T*)shred->reg = *(VEC4_T*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC4);
   }
 }
