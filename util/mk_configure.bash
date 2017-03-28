@@ -342,8 +342,7 @@ clean:
 .c.o:
 	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
-install:
-	mkdir -p \\\${PREFIX}
+install: directories
 	cp \\\${PRG} \\\${PREFIX}
 
 uninstall:
@@ -359,6 +358,7 @@ lexer:
 	\\\${LEX}  -o eval/lexer.c eval/gwion.l
 
 directories:
+	mkdir -p \\\${PREFIX}
 	mkdir -p ${GWION_API_DIR} ${GWION_DOC_DIR} ${GWION_TAG_DIR} ${GWION_TOK_DIR} ${GWION_ADD_DIR}
 EOF
 

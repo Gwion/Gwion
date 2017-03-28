@@ -765,8 +765,7 @@ clean:
 .c.o:
 	\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)
 
-install:
-	mkdir -p \${PREFIX}
+install: directories
 	cp \${PRG} \${PREFIX}
 
 uninstall:
@@ -782,6 +781,7 @@ lexer:
 	\${LEX}  -o eval/lexer.c eval/gwion.l
 
 directories:
+	mkdir -p \${PREFIX}
 	mkdir -p     
 EOF
 
