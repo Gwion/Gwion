@@ -53,7 +53,7 @@ there are a few *new* features:
 
 #### build
 
-first you need to configure rthe build system., look [here](https://github.com/fennecdjay/Gwion/Configure.md).
+first you need to configure rthe build system., look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md).
 also, 
 
 ```
