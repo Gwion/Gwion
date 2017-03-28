@@ -2262,7 +2262,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   m_str func_name = S_name(f->name);
   //  m_str func_name = strdup(S_name(f->name)); // strdup might be unnnecessary. 27/11/16
   m_uint count = 1;
-  m_bool has_code = 0;
+//  m_bool has_code = 0; // since remove of iface/abstract
 
 
   if(f->types) // templating, check at call time
@@ -2311,15 +2311,20 @@ m_bool check_Func_Def(Env env, Func_Def f)
     // TODO: ref count
     func->up = override;
   }
+/*
+// remove abstract /28/03/2017
   if(!env->class_def && f->static_decl == ae_key_abstract) {
     err_msg(TYPE_, f->pos, "non-class function cannot be declared as 'pure'...");
     err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name) );
     goto error;
   }
+*/
 
-  if(f->s_type == ae_func_user) has_code = (f->code != NULL);
-  else has_code = (f->dl_func_ptr != NULL); // imported
+//  if(f->s_type == ae_func_user) has_code = (f->code != NULL);
+//  else has_code = (f->dl_func_ptr != NULL); // imported
 
+/*
+// remove abstract /28/03/2017
   if(env->class_def && env->class_def->def && env->class_def->def->iface && has_code) {
     err_msg(TYPE_, f->pos, "interface function signatures cannot contain code..." );
     err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
@@ -2338,7 +2343,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
     goto error;
   }
-
+*/
   // TODO if overload, check arguments do not match
 
   // if overriding super class function, then check signatures
@@ -2390,7 +2395,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
                     env->class_def->name, S_name(f->name));
             goto error;
           }
-
+/*
+// remove abstract /28/03/2017
           // see if function is pure
           if(f->static_decl == ae_key_abstract) {
             err_msg(TYPE_, f->pos,
@@ -2402,7 +2408,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
                     env->class_def->name, S_name(f->name));
             goto error;
           }
-
+*/
           // make sure returns are equal
           if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
             err_msg(TYPE_, f->pos, "function signatures differ in return type..." );

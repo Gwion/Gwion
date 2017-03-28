@@ -14,7 +14,8 @@ extern Map scan_map;
 
 typedef enum {
   ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_protected,
-  ae_key_private, ae_key_static, ae_key_instance, ae_key_abstract, ae_key_variadic
+  ae_key_private, ae_key_static, ae_key_instance, ae_key_variadic
+//  ae_key_private, ae_key_static, ae_key_instance, ae_key_abstract, ae_key_variadic
 } ae_Keyword;
 
 typedef struct {
@@ -482,7 +483,7 @@ struct Class_Def_ {
   Class_Ext ext;
   Class_Body body;
   Type type;
-  int iface;
+//  int iface;
   NameSpace home;
   m_str doc;
   int pos;
@@ -557,8 +558,8 @@ Type_List new_type_list(ID_List list, Type_List next, int pos);
 void free_Type_List(Type_List a);
 Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
                          Class_Ext ext, Class_Body body, int pos );
-Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
-                         Class_Ext ext, Class_Body body, int pos );
+//Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
+//                         Class_Ext ext, Class_Body body, int pos );
 Class_Body new_class_body( Section* section, int pos );
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos );
 Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos );

@@ -1322,7 +1322,7 @@ Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
   a->type = NULL;
   return a;
 }
-
+/*
 Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
                          Class_Ext ext, Class_Body body, int pos )
 {
@@ -1330,7 +1330,7 @@ Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
   a->iface = 1;
   return a;
 }
-
+*/
 Class_Body new_class_body(Section* section, int pos)
 {
   Class_Body a = calloc(1, sizeof(struct Class_Body_));

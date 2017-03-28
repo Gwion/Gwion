@@ -228,7 +228,6 @@ static int adjust(void* data);
 "public"                					  { adjust(yyscanner); return PUBLIC;}
 "static "               					  { adjust(yyscanner); return STATIC;}
 "private"               					  { adjust(yyscanner); return PRIVATE;}
-"pure"               					      { adjust(yyscanner); return ABSTRACT;}
 "."                     					  { adjust(yyscanner); return DOT;}
 
 "if"                					      { adjust(yyscanner); return IF;}

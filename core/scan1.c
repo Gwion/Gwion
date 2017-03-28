@@ -579,9 +579,11 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
 
   if(f->types)  // templating. nothing to be done here
     return 1;
-
+/*
+// remove abstract /27/03/17
   if(env->class_def && env->class_def->def && env->class_def->def->iface)
     f->static_decl = ae_key_abstract;
+*/
   Arg_List arg_list = NULL;
   m_uint count = 0;
 

@@ -80,7 +80,8 @@ static m_str get_arg_doc(void* data)
   ASSIGN DIVIDE TIMES PERCENT
   L_HACK R_HACK LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
   PLUSCHUCK MINUSCHUCK TIMESCHUCK DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG
-  PERCENTPAREN SHARPPAREN PROTECTED ABSTRACT
+//  PERCENTPAREN SHARPPAREN PROTECTED ABSTRACT
+  PERCENTPAREN SHARPPAREN PROTECTED
   ATSYM FUNCTION DOLLAR TILDA
   QUESTION COLON EXCLAMATION
   IF ELSE WHILE DO UNTIL LOOP FOR GOTO SWITCH CASE ENUM
@@ -250,7 +251,6 @@ stmt_list
 
 static_decl
   : STATIC                            { $$ = ae_key_static;   }
-  | ABSTRACT                          { $$ = ae_key_abstract; }
   |                                   { $$ = ae_key_instance; }
   ;
 
@@ -439,8 +439,8 @@ decl_exp
 func_def
   : function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-  | function_decl static_decl type_decl2 ID LPAREN RPAREN SEMICOLON
-    { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
+//  | function_decl static_decl type_decl2 ID LPAREN RPAREN SEMICOLON
+//    { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | AST_DTOR LPAREN RPAREN code_segment
