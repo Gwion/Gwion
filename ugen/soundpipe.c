@@ -342,6 +342,7 @@ TICK(bar_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_bar_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -1216,6 +1217,7 @@ typedef struct
 TICK(clock_tick)
 {
 	GW_clock* ug = (GW_clock*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_clock_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -1491,6 +1493,7 @@ typedef struct
 TICK(count_tick)
 {
 	GW_count* ug = (GW_count*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_count_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -1950,6 +1953,7 @@ TICK(drip_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_drip_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -2108,6 +2112,7 @@ TICK(dtrig_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -2352,6 +2357,7 @@ typedef struct
 TICK(expon_tick)
 {
 	GW_expon* ug = (GW_expon*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_expon_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -3425,6 +3431,7 @@ TICK(incr_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_incr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -3622,6 +3629,7 @@ typedef struct
 TICK(line_tick)
 {
 	GW_line* ug = (GW_line*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_line_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -3772,6 +3780,7 @@ typedef struct
 TICK(maygate_tick)
 {
 	GW_maygate* ug = (GW_maygate*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_maygate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -4150,6 +4159,7 @@ TICK(nsmp_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -5159,6 +5169,7 @@ TICK(pluck_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_pluck_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6083,6 +6094,7 @@ TICK(rpt_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6130,6 +6142,7 @@ typedef struct
 TICK(samphold_tick)
 {
 	GW_samphold* ug = (GW_samphold*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_samphold_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6339,6 +6352,7 @@ TICK(slice_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_slice_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6662,6 +6676,7 @@ typedef struct
 TICK(switch_tick)
 {
 	GW_switch* ug = (GW_switch*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_switch_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6794,6 +6809,7 @@ typedef struct
 TICK(tadsr_tick)
 {
 	GW_tadsr* ug = (GW_tadsr*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tadsr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -6890,6 +6906,7 @@ TICK(tblrec_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7029,6 +7046,7 @@ typedef struct
 TICK(tdiv_tick)
 {
 	GW_tdiv* ug = (GW_tdiv*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tdiv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7089,6 +7107,7 @@ typedef struct
 TICK(tenv_tick)
 {
 	GW_tenv* ug = (GW_tenv*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tenv_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7164,6 +7183,7 @@ typedef struct
 TICK(tenv2_tick)
 {
 	GW_tenv2* ug = (GW_tenv2*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tenv2_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7224,6 +7244,7 @@ typedef struct
 TICK(tenvx_tick)
 {
 	GW_tenvx* ug = (GW_tenvx*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tenvx_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7299,6 +7320,7 @@ typedef struct
 TICK(tgate_tick)
 {
 	GW_tgate* ug = (GW_tgate*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tgate_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7434,6 +7456,7 @@ typedef struct
 TICK(tin_tick)
 {
 	GW_tin* ug = (GW_tin*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_tin_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7509,6 +7532,7 @@ typedef struct
 TICK(trand_tick)
 {
 	GW_trand* ug = (GW_trand*)u->ug;
+	ugen_compute(u->trig->ugen);
 	sp_trand_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7575,6 +7599,7 @@ TICK(tseg_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_tseg_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }
@@ -7673,6 +7698,7 @@ TICK(tseq_tick)
 		u->out = 0;
 		return 1;
 	}
+	ugen_compute(u->trig->ugen);
 	sp_tseq_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
 }

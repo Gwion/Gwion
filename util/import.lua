@@ -136,6 +136,9 @@ function print_mod_func(name, mod)
 	elseif mod.noutputs == 1 then
 		args = string.format("%s, &u->out", args)
 	end
+	if ntrig > 0 then
+		print("\tugen_compute(u->trig->ugen);")
+	end
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
