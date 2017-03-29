@@ -28,7 +28,7 @@ try
 
 to learn more
 
-simple example code:
+simple example code (helo_worl.gw):
 
 ```cpp
 // print hello world
@@ -39,6 +39,18 @@ SinOsc s => dac;
 5::second => now;  
 // you're done!
 ```
+to run this, do
+
+```sh
+./gwion hello_world.gw
+```
+
+learn more about opptions:
+
+```
+./gwion --help
+```
+
 
 there are a few *new* features:  	
 	
