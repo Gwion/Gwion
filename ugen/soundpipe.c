@@ -141,8 +141,10 @@ CTOR(allpass_ctor)
 DTOR(allpass_dtor)
 {
 	GW_allpass* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_allpass_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -357,8 +359,10 @@ CTOR(bar_ctor)
 DTOR(bar_dtor)
 {
 	GW_bar* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_bar_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -1295,8 +1299,10 @@ CTOR(comb_ctor)
 DTOR(comb_dtor)
 {
 	GW_comb* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_comb_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -1451,8 +1457,10 @@ CTOR(conv_ctor)
 DTOR(conv_dtor)
 {
 	GW_conv* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_conv_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -1645,8 +1653,10 @@ CTOR(delay_ctor)
 DTOR(delay_dtor)
 {
 	GW_delay* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_delay_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -1771,8 +1781,10 @@ CTOR(diskin_ctor)
 DTOR(diskin_dtor)
 {
 	GW_diskin* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_diskin_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -1959,8 +1971,10 @@ CTOR(drip_ctor)
 DTOR(drip_dtor)
 {
 	GW_drip* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_drip_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -2115,8 +2129,10 @@ CTOR(dtrig_ctor)
 DTOR(dtrig_dtor)
 {
 	GW_dtrig* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_dtrig_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -2442,8 +2458,10 @@ CTOR(fof_ctor)
 DTOR(fof_dtor)
 {
 	GW_fof* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_fof_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -2706,8 +2724,10 @@ CTOR(fog_ctor)
 DTOR(fog_dtor)
 {
 	GW_fog* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_fog_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -2955,8 +2975,10 @@ CTOR(fosc_ctor)
 DTOR(fosc_dtor)
 {
 	GW_fosc* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_fosc_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -3087,8 +3109,10 @@ CTOR(gbuzz_ctor)
 DTOR(gbuzz_dtor)
 {
 	GW_gbuzz* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_gbuzz_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -3453,8 +3477,10 @@ CTOR(incr_ctor)
 DTOR(incr_dtor)
 {
 	GW_incr* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_incr_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -3909,8 +3935,10 @@ CTOR(mincer_ctor)
 DTOR(mincer_dtor)
 {
 	GW_mincer* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_mincer_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -4178,8 +4206,10 @@ CTOR(nsmp_ctor)
 DTOR(nsmp_dtor)
 {
 	GW_nsmp* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_nsmp_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -4256,8 +4286,10 @@ CTOR(osc_ctor)
 DTOR(osc_dtor)
 {
 	GW_osc* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_osc_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -4345,8 +4377,12 @@ CTOR(oscmorph_ctor)
 DTOR(oscmorph_dtor)
 {
 	GW_oscmorph* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
+		free(ug->osc->tbl);
+
 		sp_oscmorph_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -4357,7 +4393,7 @@ MFUN(oscmorph_init)
 	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_uint tbl_iter;
-	sp_ftbl* tbl[m_vector_size(tbl_ptr->d.array)];
+	sp_ftbl** tbl = malloc(m_vector_size(tbl_ptr->d.array) * sizeof(sp_ftbl));
 	for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->d.array); tbl_iter++)
 		tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->d.array, tbl_iter));
 	m_int nft = *(m_int*)(shred->mem + gw_offset);
@@ -4659,8 +4695,10 @@ CTOR(paulstretch_ctor)
 DTOR(paulstretch_dtor)
 {
 	GW_paulstretch* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_paulstretch_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5020,8 +5058,10 @@ CTOR(phasor_ctor)
 DTOR(phasor_dtor)
 {
 	GW_phasor* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_phasor_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5131,8 +5171,10 @@ CTOR(pitchamdf_ctor)
 DTOR(pitchamdf_dtor)
 {
 	GW_pitchamdf* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_pitchamdf_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5184,8 +5226,10 @@ CTOR(pluck_ctor)
 DTOR(pluck_dtor)
 {
 	GW_pluck* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_pluck_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5265,8 +5309,10 @@ CTOR(port_ctor)
 DTOR(port_dtor)
 {
 	GW_port* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_port_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5316,8 +5362,10 @@ CTOR(posc3_ctor)
 DTOR(posc3_dtor)
 {
 	GW_posc3* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_posc3_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5463,8 +5511,10 @@ CTOR(prop_ctor)
 DTOR(prop_dtor)
 {
 	GW_prop* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_prop_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5606,8 +5656,10 @@ CTOR(ptrack_ctor)
 DTOR(ptrack_dtor)
 {
 	GW_ptrack* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_ptrack_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -5944,8 +5996,10 @@ CTOR(reverse_ctor)
 DTOR(reverse_dtor)
 {
 	GW_reverse* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_reverse_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6100,8 +6154,10 @@ CTOR(rpt_ctor)
 DTOR(rpt_dtor)
 {
 	GW_rpt* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_rpt_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6301,8 +6357,10 @@ CTOR(sdelay_ctor)
 DTOR(sdelay_dtor)
 {
 	GW_sdelay* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_sdelay_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6352,8 +6410,10 @@ CTOR(slice_ctor)
 DTOR(slice_dtor)
 {
 	GW_slice* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_slice_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6432,8 +6492,10 @@ CTOR(smoothdelay_ctor)
 DTOR(smoothdelay_dtor)
 {
 	GW_smoothdelay* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_smoothdelay_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6515,8 +6577,10 @@ CTOR(spa_ctor)
 DTOR(spa_dtor)
 {
 	GW_spa* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_spa_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6568,8 +6632,10 @@ CTOR(sparec_ctor)
 DTOR(sparec_dtor)
 {
 	GW_sparec* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_sparec_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6711,8 +6777,10 @@ CTOR(tabread_ctor)
 DTOR(tabread_dtor)
 {
 	GW_tabread* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_tabread_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -6905,8 +6973,10 @@ CTOR(tblrec_ctor)
 DTOR(tblrec_dtor)
 {
 	GW_tblrec* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_tblrec_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -7592,8 +7662,10 @@ CTOR(tseg_ctor)
 DTOR(tseg_dtor)
 {
 	GW_tseg* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_tseg_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -7688,8 +7760,10 @@ CTOR(tseq_ctor)
 DTOR(tseq_dtor)
 {
 	GW_tseq* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_tseq_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -7760,8 +7834,10 @@ CTOR(vdelay_ctor)
 DTOR(vdelay_dtor)
 {
 	GW_vdelay* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_vdelay_destroy(&ug->osc);
+	}
 	free(ug);
 }
 
@@ -7901,8 +7977,10 @@ CTOR(waveset_ctor)
 DTOR(waveset_dtor)
 {
 	GW_waveset* ug = o->ugen->ug;
-	if(ug->is_init)
+	if(ug->is_init) {
+
 		sp_waveset_destroy(&ug->osc);
+	}
 	free(ug);
 }
 

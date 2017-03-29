@@ -19,7 +19,8 @@ function declare_c_param(param)
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
 		print("\tm_uint "..param.name.."_iter;")
-		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->d.array)];")
+--		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->d.array)];")
+		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * sizeof(sp_ftbl));")
 		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->d.array); "..param.name.."_iter++)")
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->d.array, "..param.name.."_iter));")
 	elseif string.match(param.type, "&sp_ftbl%s*") then
@@ -149,7 +150,16 @@ function print_mod_func(name, mod)
 	print("}\n")
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
 	if(nmandatory > 0) then
-		print("\tif(ug->is_init)\n\t\tsp_"..name.."_destroy(&ug->osc);")
+		print("\tif(ug->is_init) {\n")
+		local arg = mod.params.mandatory
+		if arg then
+			for _, v in pairs(arg) do	
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\t\tfree(ug->osc->"..v.name..");\n")
+				end
+			end
+		print("\t\tsp_"..name.."_destroy(&ug->osc);\n\t}")
+		end
 	else
 		print("\tsp_"..name.."_destroy(&ug->osc);")
 	end
