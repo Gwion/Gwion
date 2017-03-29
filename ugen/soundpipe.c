@@ -1472,10 +1472,6 @@ MFUN(conv_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float iPartLen = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
@@ -2144,10 +2140,6 @@ MFUN(dtrig_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_dtrig_destroy(&ug->osc);
 		ug->osc = NULL;	}
@@ -2473,18 +2465,10 @@ MFUN(fof_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* sine = FTBL(sine_obj);
 	release(sine_obj, shred);
-	if(!sine) {
-		release(o, shred);
-		Except(shred)
-}
 	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl* win = FTBL(win_obj);
 	release(win_obj, shred);
-	if(!win) {
-		release(o, shred);
-		Except(shred)
-}
 	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
@@ -2739,18 +2723,10 @@ MFUN(fog_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* wav = FTBL(wav_obj);
 	release(wav_obj, shred);
-	if(!wav) {
-		release(o, shred);
-		Except(shred)
-}
 	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl* win = FTBL(win_obj);
 	release(win_obj, shred);
-	if(!win) {
-		release(o, shred);
-		Except(shred)
-}
 	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
@@ -2990,10 +2966,6 @@ MFUN(fosc_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* tbl = FTBL(tbl_obj);
 	release(tbl_obj, shred);
-	if(!tbl) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_fosc_destroy(&ug->osc);
 		ug->osc = NULL;	}
@@ -3124,10 +3096,6 @@ MFUN(gbuzz_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
@@ -3294,10 +3262,6 @@ MFUN(ftbl_gen_padsynth)
 	gw_offset+=SZ_INT;
 	sp_ftbl* amps = FTBL(amps_obj);
 	release(amps_obj, shred);
-	if(!amps) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float f = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
@@ -3335,6 +3299,7 @@ MFUN(ftbl_gen_scrambler)
 	M_Object dest_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl** dest = &FTBL(dest_obj);
+	release(dest_obj, shred);
 	sp_gen_scrambler(shred->vm_ref->bbq->sp, ftbl, dest);
 	FTBL(o) = ftbl;
 }
@@ -3950,10 +3915,6 @@ MFUN(mincer_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_int winsize = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	if(ug->osc) {
@@ -4221,10 +4182,6 @@ MFUN(nsmp_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_int sr = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	M_Object init_obj = *(M_Object*)(shred->mem + gw_offset);
@@ -4301,10 +4258,6 @@ MFUN(osc_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* tbl = FTBL(tbl_obj);
 	release(tbl_obj, shred);
-	if(!tbl) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
@@ -4396,6 +4349,7 @@ MFUN(oscmorph_init)
 	sp_ftbl** tbl = malloc(m_vector_size(tbl_ptr->d.array) * sizeof(sp_ftbl));
 	for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->d.array); tbl_iter++)
 		tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->d.array, tbl_iter));
+	release(tbl_ptr, shred);
 	m_int nft = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_float phase = *(m_float*)(shred->mem + gw_offset);
@@ -4710,10 +4664,6 @@ MFUN(paulstretch_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float windowsize = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	m_float stretch = *(m_float*)(shred->mem + gw_offset);
@@ -5377,10 +5327,6 @@ MFUN(posc3_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* tbl = FTBL(tbl_obj);
 	release(tbl_obj, shred);
-	if(!tbl) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_posc3_destroy(&ug->osc);
 		ug->osc = NULL;	}
@@ -6425,18 +6371,10 @@ MFUN(slice_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* vals = FTBL(vals_obj);
 	release(vals_obj, shred);
-	if(!vals) {
-		release(o, shred);
-		Except(shred)
-}
 	M_Object buf_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl* buf = FTBL(buf_obj);
 	release(buf_obj, shred);
-	if(!buf) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_slice_destroy(&ug->osc);
 		ug->osc = NULL;	}
@@ -6792,10 +6730,6 @@ MFUN(tabread_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
@@ -6988,10 +6922,6 @@ MFUN(tblrec_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* bar = FTBL(bar_obj);
 	release(bar_obj, shred);
-	if(!bar) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_tblrec_destroy(&ug->osc);
 		ug->osc = NULL;	}
@@ -7775,10 +7705,6 @@ MFUN(tseq_init)
 	gw_offset+=SZ_INT;
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
-	if(!ft) {
-		release(o, shred);
-		Except(shred)
-}
 	if(ug->osc) {
 		sp_tseq_destroy(&ug->osc);
 		ug->osc = NULL;	}

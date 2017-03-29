@@ -8,7 +8,7 @@ Oscmorph a;
 	tbl[0].gen_sine(1024);
 	tbl[1].gen_sine(1024);
 
-	1024 => int	nft;
+	2 => int	nft;
 	float	phase;
 
 	a.init(tbl, nft, phase);

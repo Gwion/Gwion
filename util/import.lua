@@ -23,14 +23,16 @@ function declare_c_param(param)
 		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * sizeof(sp_ftbl));")
 		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->d.array); "..param.name.."_iter++)")
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->d.array, "..param.name.."_iter));")
+		print("\trelease("..param.name.."_ptr, shred);")
 	elseif string.match(param.type, "&sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
 		print("\tsp_ftbl** "..param.name.." = &FTBL("..param.name.."_obj);")
+		print("\trelease("..param.name.."_obj, shred);")
 	elseif string.match(param.type, "sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
 		print("\trelease("..param.name.."_obj, shred);")
-		print("\tif(!"..param.name..") {\n\t\trelease(o, shred);\n\t\tExcept(shred)\n}")
+--		print("\tif(!"..param.name..") {\n\t\trelease(o, shred);\n\t\tExcept(shred)\n}")
 	else
 		print("unknown type:", param.type, ".")
 		os.exit(1)
