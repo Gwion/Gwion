@@ -97,14 +97,14 @@ vtype vector_at(Vector v, const vtype i)
     return 0;
   return (vtype)v->ptr[i];
 }
-
+/*
 vtype vector_addr(Vector v, const vtype i)
 {
   if(i >= v->len)
     return 0;
   return (vtype)&v->ptr[i];
 }
-
+*/
 vtype vector_back(Vector v)
 {
   return (vtype)v->ptr[v->len - 1];
