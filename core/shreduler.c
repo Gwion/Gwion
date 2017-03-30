@@ -88,7 +88,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
       index = vector_find(out->parent->child, (vtype)out);
       vector_remove(out->parent->child, index);
       if(!vector_size(out->parent->child)) {
-        free(out->parent->child);
+        free_Vector(out->parent->child);
         out->parent->child = NULL;
       }
     }

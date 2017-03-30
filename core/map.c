@@ -2,7 +2,7 @@
 #include "map.h"
 
 struct Vector_ {
-  vtype ptr[MAP_MAX];
+  vtype* ptr;
   vtype len;
 };
 
@@ -15,6 +15,7 @@ struct Map_ {
 Vector new_Vector()
 {
   Vector v = malloc(sizeof(struct Vector_));
+  v->ptr = calloc(MAP_MAX, sizeof(vtype));
   v->len = 0;
   return v;
 }
@@ -22,6 +23,7 @@ Vector new_Vector()
 Vector new_Vector_fixed(const vtype len)
 {
   Vector v = malloc(sizeof(struct Vector_));
+  v->ptr = calloc(MAP_MAX, sizeof(vtype));
   v->len   = len;
   return v;
 }
@@ -34,8 +36,10 @@ void vector_append(Vector v, vtype data)
 
 Vector vector_copy(Vector v)
 {
-  Vector ret = new_Vector_fixed(v->len);
   vtype i;
+  Vector ret = malloc(sizeof(struct Vector_));
+  ret->ptr = calloc(MAP_MAX, sizeof(vtype));
+  ret->len   = v->len;
   for(i = 0; i < v->len; i++)
     ret->ptr[i] = v->ptr[i];
   return ret;
@@ -59,7 +63,7 @@ void vector_set(Vector v, const vtype i, vtype arg)
 
 void vector_remove(Vector v, const vtype index)
 {
-  Vector tmp;
+  vtype* tmp;
   vtype i, j = 0;
   if(!v->len || index >= v->len)
     return;
@@ -68,15 +72,19 @@ void vector_remove(Vector v, const vtype index)
     return;
   }
 
-  tmp = new_Vector_fixed(v->len - 1);
+//  should be (v->len - 1);
+  tmp = malloc(MAP_MAX * sizeof(vtype));
   for(i = 0; i < v->len; i++) {
     if(i != index) {
-      tmp->ptr[j] = v->ptr[i];
+      tmp[j] = v->ptr[i];
       j++;
     }
   }
-  *v = *tmp;
-  free(tmp);
+//  *v = *tmp;
+//  free(tmp);
+  free(v->ptr);
+  v->ptr = tmp;
+  v->len--;
 }
 
 void vector_pop(Vector v)
@@ -122,6 +130,7 @@ void vector_clear(Vector v)
 
 void free_Vector(Vector v)
 {
+  free(v->ptr);
   free(v);
   v = NULL;
 }
