@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include "map.h"
 
+#define MAP_CAP 4
+
 struct Vector_ {
   vtype* ptr;
   vtype len;
+  vtype cap;
 };
 
 struct Map_ {
@@ -15,21 +18,28 @@ struct Map_ {
 Vector new_Vector()
 {
   Vector v = malloc(sizeof(struct Vector_));
-  v->ptr = calloc(MAP_MAX, sizeof(vtype));
+  v->ptr = calloc(MAP_CAP, sizeof(vtype));
   v->len = 0;
+  v->cap = MAP_CAP;
   return v;
 }
 
 Vector new_Vector_fixed(const vtype len)
 {
   Vector v = malloc(sizeof(struct Vector_));
-  v->ptr = calloc(MAP_MAX, sizeof(vtype));
+  v->cap = ((len / MAP_CAP) + 1) * MAP_CAP;
+  v->ptr = calloc(v->cap, sizeof(vtype));
   v->len   = len;
   return v;
 }
 
 void vector_append(Vector v, vtype data)
 {
+  if ((v->len + 1) > v->cap)
+  {
+    v->cap = (v->cap ? v->cap : MAP_CAP) * 2;
+    v->ptr = realloc(v->ptr, v->cap * sizeof(vtype));
+  }
   v->len++;
   v->ptr[v->len - 1] = (vtype)data;
 }
@@ -38,8 +48,9 @@ Vector vector_copy(Vector v)
 {
   vtype i;
   Vector ret = malloc(sizeof(struct Vector_));
-  ret->ptr = calloc(MAP_MAX, sizeof(vtype));
+  ret->ptr = calloc(v->cap, sizeof(vtype));
   ret->len   = v->len;
+  ret->cap = v->cap;
   for(i = 0; i < v->len; i++)
     ret->ptr[i] = v->ptr[i];
   return ret;
@@ -73,6 +84,7 @@ void vector_remove(Vector v, const vtype index)
   }
 
 //  should be (v->len - 1);
+  v->cap = (((v->len -1)/ MAP_CAP) + 1) * MAP_CAP;
   tmp = malloc(MAP_MAX * sizeof(vtype));
   for(i = 0; i < v->len; i++) {
     if(i != index) {
