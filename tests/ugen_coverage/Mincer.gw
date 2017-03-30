@@ -49,5 +49,6 @@ Mincer a;
 
 	a.pitch(pitch);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

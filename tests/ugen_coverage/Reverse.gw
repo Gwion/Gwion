@@ -8,5 +8,6 @@ Reverse a;
 
 	a.init(delay);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

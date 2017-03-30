@@ -24,5 +24,6 @@ Nsmp a;
 
 	a.index(index);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

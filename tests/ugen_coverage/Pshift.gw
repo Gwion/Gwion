@@ -40,5 +40,6 @@ Pshift a;
 
 	a.xfade(xfade);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

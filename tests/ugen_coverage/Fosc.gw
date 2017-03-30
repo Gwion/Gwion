@@ -74,5 +74,6 @@ Fosc a;
 
 	a.indx(indx);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

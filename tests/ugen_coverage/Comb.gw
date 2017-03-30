@@ -21,5 +21,6 @@ Comb a;
 
 	a.revtime(revtime);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

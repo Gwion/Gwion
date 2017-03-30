@@ -8,5 +8,6 @@ Rpt a;
 
 	a.init(maxdur);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

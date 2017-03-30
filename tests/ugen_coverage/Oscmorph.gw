@@ -52,5 +52,6 @@ Oscmorph a;
 
 	a.wtpos(wtpos);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

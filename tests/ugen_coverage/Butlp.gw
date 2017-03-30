@@ -14,5 +14,6 @@ Butlp a;
 
 	a.freq(freq);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

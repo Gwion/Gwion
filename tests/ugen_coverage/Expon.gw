@@ -40,5 +40,6 @@ Expon a;
 
 	a.b(b);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

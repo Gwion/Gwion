@@ -100,5 +100,6 @@ Bar a;
 
 	a.wid(wid);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

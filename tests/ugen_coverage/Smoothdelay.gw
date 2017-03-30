@@ -35,5 +35,6 @@ Smoothdelay a;
 
 	a.del(del);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

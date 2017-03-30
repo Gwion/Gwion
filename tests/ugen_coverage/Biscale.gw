@@ -27,5 +27,6 @@ Biscale a;
 
 	a.max(max);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

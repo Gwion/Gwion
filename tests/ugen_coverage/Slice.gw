@@ -24,5 +24,6 @@ Slice a;
 
 	a.id(id);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -40,5 +40,6 @@ Wpkorg35 a;
 
 	a.saturation(saturation);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

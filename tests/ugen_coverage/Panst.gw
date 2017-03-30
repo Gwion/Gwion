@@ -27,5 +27,6 @@ Panst a;
 
 	a.pan(pan);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -27,5 +27,6 @@ Bitcrush a;
 
 	a.srate(srate);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

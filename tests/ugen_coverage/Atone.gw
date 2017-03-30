@@ -14,5 +14,6 @@ Atone a;
 
 	a.hp(hp);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

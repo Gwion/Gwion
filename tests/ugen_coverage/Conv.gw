@@ -10,5 +10,6 @@ Conv a;
 
 	a.init(ft, iPartLen);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

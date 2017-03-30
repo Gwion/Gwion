@@ -53,5 +53,6 @@ Dist a;
 
 	a.shape2(shape2);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

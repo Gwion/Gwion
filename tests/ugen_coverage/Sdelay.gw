@@ -8,5 +8,6 @@ Sdelay a;
 
 	a.init(size);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -8,5 +8,6 @@ Port a;
 
 	a.init(htime);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

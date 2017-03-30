@@ -40,5 +40,6 @@ Eqfil a;
 
 	a.gain(gain);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

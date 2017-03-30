@@ -40,5 +40,6 @@ Autowah a;
 
 	a.mix(mix);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

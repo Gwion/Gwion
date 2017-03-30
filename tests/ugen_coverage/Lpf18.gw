@@ -40,5 +40,6 @@ Lpf18 a;
 
 	a.dist(dist);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

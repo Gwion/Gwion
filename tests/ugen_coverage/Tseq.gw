@@ -22,5 +22,6 @@ Tseq a;
 
 	a.shuf(shuf);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -14,5 +14,6 @@ Clip a;
 
 	a.lim(lim);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

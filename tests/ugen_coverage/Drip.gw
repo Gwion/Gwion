@@ -99,5 +99,6 @@ Drip a;
 
 	a.freq2(freq2);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -48,5 +48,6 @@ Dtrig a;
 
 	a.scale(scale);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

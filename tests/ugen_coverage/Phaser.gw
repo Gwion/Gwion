@@ -131,5 +131,6 @@ Phaser a;
 
 	a.lfobpm(lfobpm);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

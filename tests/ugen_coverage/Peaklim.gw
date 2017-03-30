@@ -40,5 +40,6 @@ Peaklim a;
 
 	a.thresh(thresh);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

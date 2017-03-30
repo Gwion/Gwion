@@ -9,5 +9,6 @@ Tblrec a;
 
 	a.init(bar);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

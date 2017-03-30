@@ -14,5 +14,6 @@ Dmetro a;
 
 	a.time(time);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

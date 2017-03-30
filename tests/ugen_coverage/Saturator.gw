@@ -27,5 +27,6 @@ Saturator a;
 
 	a.dcoffset(dcoffset);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

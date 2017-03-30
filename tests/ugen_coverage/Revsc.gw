@@ -27,5 +27,6 @@ Revsc a;
 
 	a.lpfreq(lpfreq);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

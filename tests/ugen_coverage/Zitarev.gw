@@ -144,5 +144,6 @@ Zitarev a;
 
 	a.level(level);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -27,5 +27,6 @@ Moogladder a;
 
 	a.res(res);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

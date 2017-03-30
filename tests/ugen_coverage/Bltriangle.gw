@@ -27,5 +27,6 @@ Bltriangle a;
 
 	a.amp(amp);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

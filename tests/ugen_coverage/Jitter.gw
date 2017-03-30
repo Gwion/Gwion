@@ -40,5 +40,6 @@ Jitter a;
 
 	a.cpsMax(cpsMax);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

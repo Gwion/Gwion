@@ -14,5 +14,6 @@ Crossfade a;
 
 	a.pos(pos);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

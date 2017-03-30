@@ -30,5 +30,6 @@ s ]=> a;
 
 	a.rel(rel);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

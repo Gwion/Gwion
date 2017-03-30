@@ -40,5 +40,6 @@ Blsquare a;
 
 	a.width(width);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

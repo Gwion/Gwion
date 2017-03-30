@@ -27,5 +27,6 @@ Butbr a;
 
 	a.bw(bw);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

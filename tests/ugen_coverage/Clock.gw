@@ -27,5 +27,6 @@ Clock a;
 
 	a.subdiv(subdiv);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

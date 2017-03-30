@@ -130,5 +130,6 @@ Fog a;
 
 	a.dur(dur);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

@@ -47,5 +47,6 @@ Tseg a;
 
 	a.type(type);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

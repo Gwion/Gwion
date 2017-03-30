@@ -27,5 +27,6 @@ Progress a;
 
 	a.skip(skip);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

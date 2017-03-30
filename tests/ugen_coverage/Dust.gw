@@ -40,5 +40,6 @@ Dust a;
 
 	a.bipolar(bipolar);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

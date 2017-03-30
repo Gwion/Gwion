@@ -27,5 +27,6 @@ Mode a;
 
 	a.q(q);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

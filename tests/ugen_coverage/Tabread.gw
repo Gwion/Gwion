@@ -49,5 +49,6 @@ Tabread a;
 
 	a.wrap(wrap);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

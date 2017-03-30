@@ -75,5 +75,6 @@ Gbuzz a;
 
 	a.mul(mul);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

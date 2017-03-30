@@ -40,5 +40,6 @@ Fofilt a;
 
 	a.dec(dec);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

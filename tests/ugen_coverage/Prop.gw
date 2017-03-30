@@ -21,5 +21,6 @@ Prop a;
 
 	a.bpm(bpm);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

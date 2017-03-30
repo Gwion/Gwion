@@ -8,5 +8,6 @@ Sparec a;
 
 	a.init(filename);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

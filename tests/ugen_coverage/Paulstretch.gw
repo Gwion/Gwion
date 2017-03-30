@@ -11,5 +11,6 @@ Paulstretch a;
 
 	a.init(ft, windowsize, stretch);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

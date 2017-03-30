@@ -14,5 +14,6 @@ Pdhalf a;
 
 	a.amount(amount);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

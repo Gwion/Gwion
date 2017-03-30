@@ -53,5 +53,6 @@ Pareq a;
 
 	a.mode(mode);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

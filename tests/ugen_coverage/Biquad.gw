@@ -79,5 +79,6 @@ Biquad a;
 
 	a.a2(a2);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

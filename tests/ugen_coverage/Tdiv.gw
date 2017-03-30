@@ -27,5 +27,6 @@ Tdiv a;
 
 	a.offset(offset);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;

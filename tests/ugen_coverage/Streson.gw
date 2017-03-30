@@ -27,5 +27,6 @@ Streson a;
 
 	a.fdbgain(fdbgain);
 }
-a => dac;
+samp => now;
+a=> dac;
 second => now;
