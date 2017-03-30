@@ -3,13 +3,11 @@ FileIO f;
 
 f.open("examples/fileio.gw", "r");
 f.close();
-/*
 <<<1 => cerr>>>;
 2.0 => cerr;
 "test" => cerr;
 o => cerr;
 NULL => cerr;
-*/
 cerr.nl();
 
 f.open("/tmp/trash", "w");
@@ -30,10 +28,10 @@ f.open("/tmp/test_fileio", "w");
 //o => f;
 f.close();
 
-/*
+
 f.open("/tmp/test_fileio", "r");
 <<<f => int i>>>;
 <<<f => float g>>>;
 //<<<f => string s>>>;
 f.close();
-*/
+

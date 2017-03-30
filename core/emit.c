@@ -167,6 +167,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     } else {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (m_uint)v->ptr;
+      instr->m_val2 = emit_var;
     }
     return 1;
   }
