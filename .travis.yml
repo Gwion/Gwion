@@ -53,6 +53,8 @@ before_script:
 #  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
   - bash util/travis_prepare.sh
 
+after_script:
+  - ./gwion string.gw
 #after_success:
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
 
