@@ -437,6 +437,7 @@ INSTR(Vec4_String_Plus)
   tmp = fabs(lhs.w);
   while(tmp /= 10)
     len++;
+  len += 6*4; // 31/03/17
   char c[len];
   sprintf(c, "%s#(%f, %f, %f, %f)", STRING(rhs), lhs.x, lhs.y, lhs.z, lhs.w);
   STRING(rhs) = S_name(insert_symbol(c));
