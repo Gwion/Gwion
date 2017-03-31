@@ -42,9 +42,7 @@ DTOR(fileio_dtor)
 
 DTOR(static_fileio_dtor)
 {
-//exit(2);
   IO_FILE(o) = NULL;
-//  IO_FILE(o) = NULL;
 }
 
 INSTR(int_to_file)
@@ -350,16 +348,15 @@ m_bool import_fileio(Env env)
 
   gw_cin = new_M_Object();
   initialize_object(gw_cin, &t_cin);
-EV_SHREDS(gw_cin) = new_Vector();
+  EV_SHREDS(gw_cin) = new_Vector();
   gw_cout = new_M_Object();
   initialize_object(gw_cout, &t_cout);
   IO_FILE(gw_cout) = stdout;
-EV_SHREDS(gw_cout) = new_Vector();
+  EV_SHREDS(gw_cout) = new_Vector();
   gw_cerr = new_M_Object();
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
-EV_SHREDS(gw_cerr) = new_Vector();
-printf("%p\n", gw_cerr);
+  EV_SHREDS(gw_cerr) = new_Vector();
   add_global_value(env, "cin",  &t_fileio, 1, gw_cin);
   add_global_value(env, "cout", &t_fileio, 1, gw_cout);
   add_global_value(env, "cerr", &t_fileio, 1, gw_cerr);
