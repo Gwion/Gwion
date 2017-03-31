@@ -51,7 +51,7 @@ before_script:
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
 #  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
-#  - bash util/travis_prepare.sh
+  - bash util/travis_prepare.sh
 
 #after_success:
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
