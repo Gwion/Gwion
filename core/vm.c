@@ -35,11 +35,12 @@ void free_VM_Code(VM_Code a)
   } else if(a->instr) {
       for(i = 0; i < vector_size(a->instr); i++) {
         Instr instr = (Instr)vector_at(a->instr, i);
-        if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc ||
-            instr->execute == Branch_Switch)
+        if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
           free(instr->ptr);
         else if(instr->execute == Gack)
           free_Vector((Vector)instr->ptr);
+        else if(instr->execute == Branch_Switch)
+          free_Map((Map)instr->ptr);
       free((Instr)vector_at(a->instr, i));
     }
     free_Vector(a->instr);

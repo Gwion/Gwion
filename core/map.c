@@ -10,9 +10,10 @@ struct Vector_ {
 };
 
 struct Map_ {
-  vtype key[MAP_MAX];
-  vtype ptr[MAP_MAX];
+  vtype* key;
+  vtype* ptr;
   vtype len;
+  vtype cap;
 };
 
 Vector new_Vector()
@@ -150,9 +151,10 @@ void free_Vector(Vector v)
 Map new_Map()
 {
   Map map  = malloc(sizeof(struct Map_));
-//  map->key = calloc(1, sizeof(vtype));
-//  map->ptr = calloc(1, sizeof(vtype));
+  map->key = calloc(MAP_CAP, sizeof(vtype));
+  map->ptr = calloc(MAP_CAP, sizeof(vtype));
   map->len = 0;
+  map->cap = MAP_CAP;
   return map;
 }
 
@@ -188,6 +190,12 @@ void map_set(Map map, vtype key, vtype ptr)
       return;
     }
   }
+  if ((map->len + 1) > map->cap)
+  {
+    map->cap = map->cap * 2;
+    map->ptr = realloc(map->ptr, map->cap * sizeof(vtype));
+    map->key = realloc(map->key, map->cap * sizeof(vtype));
+  }
   map->len++;
   /*
   void* tmp = map->key;
@@ -218,7 +226,12 @@ void map_remove(Map map, vtype key)
   for(i = 0; i < map->len; i++)
     if(map->key[i] != key)
       map_set(tmp, key, map->ptr[i]);
-  *map = *tmp;
+  free(map->ptr);
+  free(map->key);
+  map->ptr = tmp->ptr;
+  map->key = tmp->key;
+  map->len = tmp->len;
+  map->cap = tmp->cap;
   free(tmp);
 }
 
@@ -248,8 +261,8 @@ vtype map_size(Map map)
 
 void free_Map(Map map)
 {
-//  free(map->key);
-//  free(map->ptr);
+  free(map->key);
+  free(map->ptr);
   free(map);
 }
 
@@ -311,6 +324,12 @@ void scope_commit(Scope scope)
 {
   Map map = (Map)vector_front(scope->vector);
   map_commit(map, scope->commit_map);
+/*
+  scope->commit_map->ptr = realloc(map->ptr, MAP_CAP * sizeof(vtype));
+  scope->commit_map->key = realloc(map->key, MAP_CAP * sizeof(vtype));
+  scope->commit_map->len = 0;
+  scope->commit_map->cap = MAP_CAP;
+*/
 //  map_clean(scope->commit_map);
   free_Map(scope->commit_map);
   scope->commit_map = new_Map();
