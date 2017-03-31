@@ -85,7 +85,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   }
 
   the_class = new_Type(env->context);
-  add_ref(the_class->obj);
+//  add_ref(the_class->obj);
   the_class->xid = te_user;
   the_class->name = S_name(class_def->name->xid);
   the_class->owner = env->curr;
@@ -94,7 +94,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->info = new_NameSpace();
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
-  add_ref(the_class->info->obj);
+//  add_ref(the_class->info->obj);
   the_class->info->name = the_class->name;
 
   if(env->context->public_class_def == class_def)
@@ -141,7 +141,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     value->is_const = 1;
     value->is_member = 0;
     value->checked = 1;
-    add_ref(the_class->obj);
+//    add_ref(the_class->obj);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {

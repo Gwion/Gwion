@@ -1782,7 +1782,7 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
       label = (Stmt_Goto_Label)vector_at(stmt->data.v, i);
       label->data.instr->m_val = vector_size(emit->code->code);
     }
-    free(stmt->data.v);
+    free_Vector(stmt->data.v);
   }
   return 1;
 }
