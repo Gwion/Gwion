@@ -48,15 +48,12 @@ compiler:
   - clang
 
 before_script:
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
-#  - export CFLAGS+=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
   - bash util/travis_prepare.sh
 
-after_script:
-  - ./gwion string.gw
-#after_success:
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
+after_success:
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
 
 git:
   submodules: false
