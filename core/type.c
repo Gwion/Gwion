@@ -1153,7 +1153,7 @@ static Type_List mk_type_list(Env env, Type type)
   Vector v = new_Vector();
   vector_append(v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_append(v, (vtype)strdup(nspc->name));
+    vector_append(v, (vtype)S_name(insert_symbol((nspc->name))));
     nspc = nspc->parent;
   }
   ID_List id = NULL;
