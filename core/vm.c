@@ -41,6 +41,8 @@ void free_VM_Code(VM_Code a)
           free_Vector((Vector)instr->ptr);
         else if(instr->execute == Branch_Switch)
           free_Map((Map)instr->ptr);
+        else if(instr->execute == Init_Loop_Counter)
+          free((m_int*)instr->m_val);
       free((Instr)vector_at(a->instr, i));
     }
     free_Vector(a->instr);

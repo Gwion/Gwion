@@ -364,14 +364,6 @@ INSTR(Init_Loop_Counter)
   (*(m_int*)instr->m_val) =  (*sp >= 0 ? *sp : -*sp);
 }
 
-INSTR(Free_Loop_Counter)
-{
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "loop: free counter");
-#endif
-  free((m_uint*)instr->m_val);
-}
-
 INSTR(Reg_Push_Deref)
 {
 #ifdef DEBUG_INSTR

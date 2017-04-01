@@ -49,7 +49,6 @@ void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
-void Free_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
 void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr);
 void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr);
 void Goto(VM * vm, VM_Shred shred, Instr instr);

@@ -1694,7 +1694,7 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "loop");
 #endif
-  Instr init = NULL, op = NULL, deref, tmp = NULL, dec = NULL, _goto = NULL;
+  Instr init = NULL, op = NULL, deref, dec = NULL, _goto = NULL;
   m_int* counter = calloc(1, sizeof(m_int));
   m_uint index;
   Type type;
@@ -1749,8 +1749,6 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
   vector_pop(emit->code->stack_break);
-  tmp = add_instr(emit, Free_Loop_Counter);
-  tmp->m_val = (m_uint)counter;
   return 1;
 }
 
