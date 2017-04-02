@@ -25,7 +25,7 @@ clean:
 	${CC} -fPIC ${CFLAGS} -c $< -o $(<:.c=.o)
 
 install: ${NAME}.so
-	install ${NAME}.so ${GWION_ADD_DIR}
+	install ${NAME}.so ../../${GWION_ADD_DIR}
 
 uninstall:
-	rm ${PLUG_DIR}/${NAME}.so
+	rm ../../${GWION_ADD_DIR}/${NAME}.so
