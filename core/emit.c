@@ -1296,6 +1296,8 @@ static m_bool emit_Return(Emitter emit, Stmt_Return stmt)
   debug_msg("emit", "return");
 #endif
   CHECK_BB(emit_Expression(emit, stmt->val, 0))
+  if(isa(stmt->val->type, &t_object) > 0)
+	add_instr(emit, Reg_AddRef_Object3);
   Instr op = add_instr(emit, Goto);
   emit_add_return(emit, op);
   return 1;
