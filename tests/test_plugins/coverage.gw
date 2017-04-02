@@ -1,5 +1,5 @@
-Coverage.i();
-Coverage.f();
-Coverage.c();
-Coverage.v();
-Coverage.w();
+<<< Coverage.i() >>>;
+<<< Coverage.f() >>>;
+<<< Coverage.c() >>>;
+<<< Coverage.v() >>>;
+<<< Coverage.w() >>>;

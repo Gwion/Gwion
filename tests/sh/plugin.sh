@@ -10,4 +10,5 @@ NAME=coverage make install
 ../../gwion coverage.gw
 NAME=coverage make uninstall clean
 popd
+N=$(printf "% 4i" "$n")
 echo "ok $N test coverage plugin"
