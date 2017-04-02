@@ -1971,6 +1971,7 @@ static m_bool check_Continue(Env env, Stmt_Continue cont)
   }
   return 1;
 }
+
 static m_bool check_Break(Env env, Stmt_Break cont)
 {
   if(!vector_size(env->breaks)) {
@@ -1988,11 +1989,12 @@ static m_bool check_Switch(Env env, Stmt_Switch a)
     err_msg(TYPE_, a->pos, "invalid type '%s' in switch expression. should be 'int'", t ? t->name : "unknown");
     return -1;
   }
+  vector_append(env->breaks, (vtype)a->self);
   if(check_Stmt(env, a->stmt) < 0) {
     err_msg(TYPE_, a->pos, "\t... in switch statement");
     return -1;
   }
-
+  vector_pop(env->breaks);
   return 1;
 }
 
