@@ -15,5 +15,4 @@ class C
 }
 
 <<< C.i, C.f, C.v, C.w, C.o >>>;
-<<< C._i(), C._f(), C._c(), C._v(), C._w()>>>;//
-//, C._o()>>>; // still segfaults
+<<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>; // still segfaults

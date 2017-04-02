@@ -1,6 +1,9 @@
 int i;
 <<<"test", i>>>;
 switch(i) {
+  case 1:
+	<<<"'i' is 1">>>;
+	break;
   default:
 <<<1, 2>>>;
 //<<<i>>>;
