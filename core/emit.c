@@ -808,7 +808,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     code = add_instr(emit, Reg_Push_Ptr);
     code->ptr = func->code;
   }
-
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
     add_instr(emit, Mem_Push_Imm);
   offset = add_instr(emit, Reg_Push_Imm);
@@ -1076,7 +1075,6 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
       vector_pop(emit->env->nspc_stack);
     }
   }
-
   if (exp_func->args && !spork) {
     if (emit_Func_Args(emit, exp_func) < 0) {
       err_msg(EMIT_, exp_func->pos,
@@ -1089,6 +1087,8 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
             "internal error in evaluating function call...");
     return -1;
   }
+  if(exp_func->m_func->def->is_variadic && !exp_func->args) // handle empty call to variadic functions
+    add_instr(emit, Reg_Push_Imm);
   return emit_Func_Call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
@@ -2118,7 +2118,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     //    instr->m_val = emit_addr;
     return 1;
   }
-  if (t_base->xid == t_vararg.xid) {
+  if(t_base->xid == t_vararg.xid) {
     m_uint offset = 0;
     Arg_List l = emit->env->func->def->arg_list;
     while (l) {
