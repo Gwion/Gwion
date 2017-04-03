@@ -988,6 +988,8 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   /*  if( t->xid == t2->xid ||*/
   /*    ( t->xid == t_int.xid) && (t2->xid == t_int.xid)*/
   /*  )*/
+  if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
+    return t;
   if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
     return t2;
   if(isa(t, &t_object) < 0)
