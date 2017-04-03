@@ -200,8 +200,6 @@ INSTR(Reg_AddRef_Object3)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : (void*) * (M_Object*)(shred->reg - SZ_INT));
-
-  debug_msg("instr", "[reg] add ref %i %p %p", instr->m_val, **(M_Object**)(shred->reg - SZ_INT) , (void*) * (M_Object*)(shred->reg - SZ_INT));
 #endif
   M_Object obj = instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : *(M_Object*)(shred->reg - SZ_INT);
   if(obj)
