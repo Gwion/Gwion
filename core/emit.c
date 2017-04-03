@@ -998,9 +998,9 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   case op_new:
     if(isa(exp_unary->self->type, &t_object) > 0) {
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
-frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
-}
-      break;
+      frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
+    }
+    break;
   default:
     err_msg(EMIT_, exp_unary->pos,
             "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));
