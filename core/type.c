@@ -966,7 +966,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
 #ifdef DEBUG_TYPE
   debug_msg("check", "cast expression");
 #endif// check the exp
-  Type t = check_Expression( env, cast->exp );
+  Type t = check_Expression(env, cast->exp);
   if(!t) return NULL;
 
   Type t2 = find_type(env, cast->type->xid);
