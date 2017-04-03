@@ -102,6 +102,8 @@ void release(M_Object obj, VM_Shred shred)
   }
 }
 
+
+CTOR(object_ctor){}
 void object_dtor(M_Object o, VM_Shred shred)
 {
   free(o->d.data);
@@ -111,12 +113,15 @@ void object_dtor(M_Object o, VM_Shred shred)
 INSTR(Assign_Object)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "assign object %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - 
+SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
-  M_Object done = **(M_Object**)(shred->reg + SZ_INT);
-  if(done)
-    release(done, shred);
+  M_Object old = **(M_Object**)(shred->reg + SZ_INT);
+  if(old)
+    release(old, shred);
+  if(instr->m_val)
+    release(old, shred);
   (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
@@ -243,7 +248,7 @@ INSTR(Vararg_Vec4)
 m_bool import_object(Env env)
 {
   CHECK_BB(add_global_type(env, &t_object))
-  CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, NULL, object_dtor))
+  CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
   env->class_def->doc = "the base class";
   CHECK_BB(add_binary_op(env, op_at_chuck, &t_null, &t_object, &t_object, Assign_Object, 1, 0))
   CHECK_BB(add_binary_op(env, op_at_chuck, &t_object, &t_object, &t_object, Assign_Object, 1, 0))

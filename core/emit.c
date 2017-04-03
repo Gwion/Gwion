@@ -662,8 +662,10 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     return 1;
   }
 
-  if (isa(binary->rhs->type, &t_object) > 0 && isa(binary->lhs->type, &t_null) > 0 && binary->op == op_at_chuck) {
+  if(binary->op == op_at_chuck && isa(binary->rhs->type, &t_object) > 0 &&
+      (isa(binary->lhs->type, &t_null) > 0 || isa(binary->lhs->type, &t_object) > 0)) {
     instr = add_instr(emit, Assign_Object);
+    instr->m_val = 1;
     return 1;
   }
   (void)instr; // prevent cppcheck warning
@@ -994,8 +996,10 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     break;
 
   case op_new:
-    if (isa(exp_unary->self->type, &t_object) > 0)
+    if(isa(exp_unary->self->type, &t_object) > 0) {
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
+frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
+}
       break;
   default:
     err_msg(EMIT_, exp_unary->pos,
