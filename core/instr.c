@@ -1228,11 +1228,44 @@ INSTR(Instr_Array_Init) // for litteral array
   m_uint i;
   VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
   M_Object obj;
-  POP_REG(shred,  SZ_INT * info->length);
+  switch(instr->m_val2) {
+    case Kindof_Int:
+      POP_REG(shred,  SZ_INT * info->length);
+      break;
+    case Kindof_Float:
+      POP_REG(shred,  SZ_FLOAT * info->length);
+      break;
+    case Kindof_Complex:
+      POP_REG(shred,  SZ_COMPLEX * info->length);
+      break;
+    case Kindof_Vec3:
+      POP_REG(shred,  SZ_VEC3 * info->length);
+      break;
+    case Kindof_Vec4:
+      POP_REG(shred,  SZ_VEC4 * info->length);
+      break;
+  }
   obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
-  for(i = 0; i < info->length; i++)
-    i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
+  for(i = 0; i < info->length; i++) {
+    switch(instr->m_val2) {
+    case Kindof_Int:
+      i_vector_set(obj->d.array, i, *(m_uint*)(shred->reg + SZ_INT * i));
+      break;
+    case Kindof_Float:
+      f_vector_set(obj->d.array, i, *(m_float*)(shred->reg + SZ_FLOAT * i));
+      break;
+    case Kindof_Complex:
+      c_vector_set(obj->d.array, i, *(m_complex*)(shred->reg + SZ_COMPLEX * i));
+      break;
+    case Kindof_Vec3:
+      v3_vector_set(obj->d.array, i, *(VEC3_T*)(shred->reg + SZ_VEC3 * i));
+      break;
+    case Kindof_Vec4:
+      v4_vector_set(obj->d.array, i, *(VEC4_T*)(shred->reg + SZ_VEC4 * i));
+      break;
+   }
+  }
   info->type->obj->ref_count = 1;
   *(M_Object*)shred->reg = obj;
   *(M_Object*)(shred->mem + instr->m_val) = obj;
