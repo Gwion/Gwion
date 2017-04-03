@@ -1,0 +1,7 @@
+float f;
+if(f)
+	<<<"not ok">>>;
+else
+	<<<"ok">>>;
+while(f)
+	<<<"not ok">>>;
