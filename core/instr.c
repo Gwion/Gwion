@@ -45,16 +45,6 @@ INSTR(Reg_Push_Imm2)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(Reg_Push_ImmC)
-{
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm complex");
-#endif
-  POP_REG(shred,  SZ_FLOAT * 2);
-  *(m_complex*)(shred->reg) = ((*(m_float*)shred->reg) + (*(m_float*)(shred->reg + SZ_FLOAT)) * I);
-  PUSH_REG(shred,  SZ_COMPLEX);
-}
-
 INSTR(Reg_Push_Mem_Addr)
 {
 #ifdef DEBUG_INSTR
