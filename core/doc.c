@@ -183,7 +183,7 @@ static m_str getfull(Doc* doc, NameSpace nspc, m_str name)
     strcat(tmp, (m_str)vector_at(v, i - 1));
   }
   ret = usable(tmp);
-  free(v);
+  free_Vector(v);
   return ret;
 }
 
@@ -357,7 +357,8 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
     } else
       vector_append(type, (vtype)value);
   }
-  free(v);
+  free_Vector(v);
+
   v = scope_get(nspc->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
@@ -366,10 +367,11 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
     else
       vector_append(m_func, (vtype)func);
   }
-  free(v);
+  free_Vector(v);
+
   for(i = 0; i < vector_size(type); i++)
     mkadt_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
-  free(type);
+  free_Vector(type);
 
   for(i = 0; i < vector_size(m_value); i++)
     mkadt_value(doc, (Value)vector_at(m_value, i));
@@ -415,7 +417,7 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
     } else
       vector_append(type, (vtype)value);
   }
-  free(v);
+  free_Vector(v);
 
   v = scope_get(nspc->func);
   for(i = 0; i < vector_size(v); i++) {
@@ -425,12 +427,12 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
     else
       vector_append(m_func, (vtype)func);
   }
-  free(v);
+  free_Vector(v);
 
   fprintf(doc->html, "<div class=\"section\"><h3>Types</h3><blockquote>\n");
   for(i = 0; i < vector_size(type); i++)
     mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
-  free(type);
+  free_Vector(type);
   fprintf(doc->html, "</blockquote></div>\n");
 
   fprintf(doc->html, "<div class=\"section\"><h3>Member Variables</h3><blockquote>\n");
