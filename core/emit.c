@@ -564,6 +564,8 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           dot_static->m_val2 = kindof(emit->env->class_def);
           dot_static->ptr = (m_uint*)1;
           instr = add_instr(emit, Assign_Object);
+          Instr pop = add_instr(emit, Reg_Pop_Word4);
+          pop->m_val = SZ_INT;
           emit->code = code;
           return 1;
         } else {
