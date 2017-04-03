@@ -1,0 +1,9 @@
+new Object;
+new Object @=> Object @ref;
+new Event;
+Event ev;
+ev @=> 
+Event @e;
+new Event @=> e;
+ev @=> e;
+NULL @=> e;
