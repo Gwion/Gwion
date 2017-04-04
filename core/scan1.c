@@ -6,6 +6,7 @@
 #include "absyn.h"
 #include "type.h"
 
+extern void free_Expression(Expression exp);
 static m_bool scan1_Expression(Env env, Expression exp);
 static m_bool scan1_Stmt_List(Env env, Stmt_List list);
 static m_bool scan1_Stmt(Env env, Stmt* stmt);
@@ -23,13 +24,6 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ", S_name(decl->type->xid->xid));
     return -1;
   }
-  /*
-     if(t->def && t->def->iface)
-     {
-     err_msg(SCAN1_, decl->pos, "type '%s' is interface. cannot instantiate", S_name(decl->type->xid->xid));
-     return -1;
-     }
-     */
   while(list) {
     var_decl = list->self;
     decl->num_decl++;
@@ -37,7 +31,6 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
       CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_Expression( env, var_decl->array->exp_list ))
-        /* no need to scan subscripts at this point */
       }
     list = list->next;
   }

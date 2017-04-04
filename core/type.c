@@ -322,7 +322,6 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
         return -1;
       }
     }
-    // TODO: interface
   }
 
 
@@ -2320,39 +2319,6 @@ m_bool check_Func_Def(Env env, Func_Def f)
     // TODO: ref count
     func->up = override;
   }
-/*
-// remove abstract /28/03/2017
-  if(!env->class_def && f->static_decl == ae_key_abstract) {
-    err_msg(TYPE_, f->pos, "non-class function cannot be declared as 'pure'...");
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name) );
-    goto error;
-  }
-*/
-
-//  if(f->s_type == ae_func_user) has_code = (f->code != NULL);
-//  else has_code = (f->dl_func_ptr != NULL); // imported
-
-/*
-// remove abstract /28/03/2017
-  if(env->class_def && env->class_def->def && env->class_def->def->iface && has_code) {
-    err_msg(TYPE_, f->pos, "interface function signatures cannot contain code..." );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
-    goto error;
-  }
-
-  if(f->static_decl == ae_key_abstract && has_code) {
-    err_msg(TYPE_, f->pos, "'pure' function signatures cannot contain code..." );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
-    goto error;
-  }
-
-  if(f->static_decl != ae_key_abstract && !has_code) {
-    err_msg(TYPE_, f->pos, "function declaration must contain code..." );
-    err_msg(TYPE_, f->pos, "(unless in interface, or is declared 'pure')" );
-    err_msg(TYPE_, f->pos, "...at function '%s'", S_name(f->name));
-    goto error;
-  }
-*/
   // TODO if overload, check arguments do not match
 
   // if overriding super class function, then check signatures
