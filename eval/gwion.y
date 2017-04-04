@@ -157,7 +157,6 @@ static m_str get_arg_doc(void* data)
 %type<section> section
 %type<class_def> class_def
 %type<class_ext> class_ext
-//%type<class_ext> iface_ext
 %type<class_body> class_body
 %type<class_body> class_body2
 %type<id_list> id_list
@@ -194,10 +193,6 @@ class_def
       { $$ = new_class_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner); }
   | class_decl CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
-//  | class_decl INTERFACE id_list LBRACE class_body RBRACE
-//      { $$ = new_iface_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner);}
-//  | class_decl INTERFACE id_list iface_ext LBRACE class_body RBRACE
-//      { $$ = new_iface_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
   ;
 
 class_ext
@@ -225,10 +220,6 @@ class_section
   | class_def     { $$ = new_section_Class_Def( $1, get_pos(scanner)); }
   ;
 
-//iface_ext
-//  : EXTENDS id_list   { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
-//  ;
-
 id_list
   : ID                { $$ = new_id_list( $1, get_pos(scanner)); }
   | ID COMMA id_list  { $$ = prepend_id_list( $1, $3, get_pos(scanner)); }
@@ -255,11 +246,6 @@ function_decl
   ;
 
 func_ptr
-//  : FUNC_PTR static_decl type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN
-// { $$ = new_Func_Ptr_Stmt($2, $5, $3, $8, get_pos(scanner)); }
-//  | FUNC_PTR static_decl type_decl LPAREN ID RPAREN LPAREN RPAREN
-// { $$ = new_Func_Ptr_Stmt($2, $5, $3, NULL, get_pos(scanner)); }
-
   : FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, NULL, get_pos(scanner)); }
   | STATIC FUNC_PTR type_decl LPAREN ID RPAREN LPAREN RPAREN { $$ = new_Func_Ptr_Stmt(ae_key_static, $5, $3, NULL, get_pos(scanner)); }
   | FUNC_PTR type_decl LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_Func_Ptr_Stmt(0, $4, $2, $7, get_pos(scanner)); }
@@ -359,8 +345,8 @@ exp_stmt
 exp
   : binary_exp            { $$ = $1; }
   | binary_exp COMMA exp  { $$ = prepend_Expression($1, $3, get_pos(scanner)); }
-  //| exp COMMA unary_expression { $$ = prepend_Expression($1, $3, get_pos(scanner)); }
   ;
+
 arrow_operator
         : ARROW_LEFT                        { $$ = ae_op_arrow_left; }
         | ARROW_RIGHT                       { $$ = ae_op_arrow_right; }
@@ -426,13 +412,12 @@ array_empty
 decl_exp
   : conditional_expression
   | type_decl var_decl_list { $$= new_Decl_Expression($1, $2, 0, get_pos(scanner)); }
+  | STATIC type_decl var_decl_list { $$= new_Decl_Expression($2, $3, 1, get_pos(scanner)); }
   ;
 
 func_def
   : function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-//  | function_decl static_decl type_decl2 ID LPAREN RPAREN SEMICOLON
-//    { $$ = new_Func_Def($1, $2, $3, $4, NULL, NULL, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
   | AST_DTOR LPAREN RPAREN code_segment
