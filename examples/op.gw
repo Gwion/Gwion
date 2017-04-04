@@ -6,6 +6,7 @@ class C {
 	Object @ref;
 }
 
+//! assign object to C.ref
 operator void chuck(Object o, C c){ o @=> c.ref; <<<"success">>>; }
 //operator int plusplus(NULL d, int i){}
 int i;
