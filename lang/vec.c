@@ -287,12 +287,12 @@ INSTR(vec4_w)
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
-    *(m_float**)shred->reg = &v->z;
+    *(m_float**)shred->reg = &v->w;
     PUSH_REG(shred,  SZ_INT);
   } else {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
-    *(m_float*)shred->reg = v->z;
+    *(m_float*)shred->reg = v->w;
     PUSH_REG(shred,  SZ_FLOAT);
   }
 }
