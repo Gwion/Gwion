@@ -72,7 +72,7 @@ void ref_compute(UGen u)
   u->tick(u);
   u->done = 1;
 }
-
+/*
 void channel_compute(UGen u)
 {
   if(u->done)
@@ -84,6 +84,7 @@ void channel_compute(UGen u)
   u->last = u->in;
   u->done = 1;
 }
+*/
 // recursively compute ugen
 void ugen_compute(UGen u)
 {

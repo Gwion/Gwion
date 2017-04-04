@@ -184,11 +184,11 @@ INSTR(vec3_divide_float)
 INSTR(vec3_r_assign)
 {
   POP_REG(shred, SZ_VEC3 + SZ_INT);
-  VEC3_T r = *(VEC3_T*)(shred->reg + SZ_VEC3);
-  r.x = *(m_float*)(shred->reg);
-  r.y = *(m_float*)(shred->reg + SZ_FLOAT);
-  r.z = *(m_float*)(shred->reg + SZ_FLOAT * 2);
-  *(VEC3_T*)shred->reg = r;
+  VEC3_T* r = *(VEC3_T**)(shred->reg + SZ_VEC3);
+  r->x = *(m_float*)(shred->reg);
+  r->y = *(m_float*)(shred->reg + SZ_FLOAT);
+  r->z = *(m_float*)(shred->reg + SZ_COMPLEX);
+  *(VEC3_T*)shred->reg = *r;
   PUSH_REG(shred, SZ_VEC3);
 }
 
