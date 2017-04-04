@@ -417,7 +417,7 @@ extern int minimal_lex \
 #undef YY_DECL
 #endif
 
-#line 258 "eval/gwion.l"
+#line 254 "eval/gwion.l"
 
 
 #line 423 "eval/lexer.h"

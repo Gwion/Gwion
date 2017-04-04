@@ -71,93 +71,89 @@ extern int minimal_debug;
     UNTRIG = 281,
     PERCENTPAREN = 282,
     SHARPPAREN = 283,
-    PROTECTED = 284,
-    ATSYM = 285,
-    FUNCTION = 286,
-    DOLLAR = 287,
-    TILDA = 288,
-    QUESTION = 289,
-    COLON = 290,
-    EXCLAMATION = 291,
-    IF = 292,
-    ELSE = 293,
-    WHILE = 294,
-    DO = 295,
-    UNTIL = 296,
-    LOOP = 297,
-    FOR = 298,
-    GOTO = 299,
-    SWITCH = 300,
-    CASE = 301,
-    ENUM = 302,
-    RETURN = 303,
-    BREAK = 304,
-    CONTINUE = 305,
-    PLUSPLUS = 306,
-    MINUSMINUS = 307,
-    NEW = 308,
-    SPORK = 309,
-    SIZEOF = 310,
-    TYPEOF = 311,
-    CLASS = 312,
-    INTERFACE = 313,
-    STATIC = 314,
-    PRIVATE = 315,
-    PUBLIC = 316,
-    EXTENDS = 317,
-    IMPLEMENTS = 318,
-    DOT = 319,
-    COLONCOLON = 320,
-    AND = 321,
-    EQ = 322,
-    GE = 323,
-    GT = 324,
-    LE = 325,
-    LT = 326,
-    MINUS = 327,
-    PLUS = 328,
-    NEQ = 329,
-    SHIFT_LEFT = 330,
-    SHIFT_RIGHT = 331,
-    S_AND = 332,
-    S_OR = 333,
-    S_XOR = 334,
-    OR = 335,
-    AST_DTOR = 336,
-    OPERATOR = 337,
-    FUNC_PTR = 338,
-    RSL = 339,
-    RSR = 340,
-    RSAND = 341,
-    RSOR = 342,
-    RSXOR = 343,
-    RAND = 344,
-    ROR = 345,
-    REQ = 346,
-    RNEQ = 347,
-    RGT = 348,
-    RGE = 349,
-    RLT = 350,
-    RLE = 351,
-    RINC = 352,
-    RDEC = 353,
-    RUNINC = 354,
-    RUNDEC = 355,
-    TEMPLATE = 356,
-    NOELSE = 357,
-    ARROW_LEFT = 358,
-    ARROW_RIGHT = 359,
-    LTB = 360,
-    GTB = 361,
-    VARARG = 362,
-    UNION = 363,
-    ATPAREN = 364,
-    NUM = 365,
-    FLOAT = 366,
-    ID = 367,
-    STRING_LIT = 368,
-    CHAR_LIT = 369,
-    DOC = 370
+    ATSYM = 284,
+    FUNCTION = 285,
+    DOLLAR = 286,
+    TILDA = 287,
+    QUESTION = 288,
+    COLON = 289,
+    EXCLAMATION = 290,
+    IF = 291,
+    ELSE = 292,
+    WHILE = 293,
+    DO = 294,
+    UNTIL = 295,
+    LOOP = 296,
+    FOR = 297,
+    GOTO = 298,
+    SWITCH = 299,
+    CASE = 300,
+    ENUM = 301,
+    RETURN = 302,
+    BREAK = 303,
+    CONTINUE = 304,
+    PLUSPLUS = 305,
+    MINUSMINUS = 306,
+    NEW = 307,
+    SPORK = 308,
+    SIZEOF = 309,
+    TYPEOF = 310,
+    CLASS = 311,
+    STATIC = 312,
+    PUBLIC = 313,
+    EXTENDS = 314,
+    DOT = 315,
+    COLONCOLON = 316,
+    AND = 317,
+    EQ = 318,
+    GE = 319,
+    GT = 320,
+    LE = 321,
+    LT = 322,
+    MINUS = 323,
+    PLUS = 324,
+    NEQ = 325,
+    SHIFT_LEFT = 326,
+    SHIFT_RIGHT = 327,
+    S_AND = 328,
+    S_OR = 329,
+    S_XOR = 330,
+    OR = 331,
+    AST_DTOR = 332,
+    OPERATOR = 333,
+    FUNC_PTR = 334,
+    RSL = 335,
+    RSR = 336,
+    RSAND = 337,
+    RSOR = 338,
+    RSXOR = 339,
+    RAND = 340,
+    ROR = 341,
+    REQ = 342,
+    RNEQ = 343,
+    RGT = 344,
+    RGE = 345,
+    RLT = 346,
+    RLE = 347,
+    RINC = 348,
+    RDEC = 349,
+    RUNINC = 350,
+    RUNDEC = 351,
+    TEMPLATE = 352,
+    NOELSE = 353,
+    ARROW_LEFT = 354,
+    ARROW_RIGHT = 355,
+    LTB = 356,
+    GTB = 357,
+    VARARG = 358,
+    UNION = 359,
+    ATPAREN = 360,
+    NUM = 361,
+    FLOAT = 362,
+    ID = 363,
+    STRING_LIT = 364,
+    CHAR_LIT = 365,
+    DOC = 366
   };
 #endif
 /* Tokens.  */
@@ -187,93 +183,89 @@ extern int minimal_debug;
 #define UNTRIG 281
 #define PERCENTPAREN 282
 #define SHARPPAREN 283
-#define PROTECTED 284
-#define ATSYM 285
-#define FUNCTION 286
-#define DOLLAR 287
-#define TILDA 288
-#define QUESTION 289
-#define COLON 290
-#define EXCLAMATION 291
-#define IF 292
-#define ELSE 293
-#define WHILE 294
-#define DO 295
-#define UNTIL 296
-#define LOOP 297
-#define FOR 298
-#define GOTO 299
-#define SWITCH 300
-#define CASE 301
-#define ENUM 302
-#define RETURN 303
-#define BREAK 304
-#define CONTINUE 305
-#define PLUSPLUS 306
-#define MINUSMINUS 307
-#define NEW 308
-#define SPORK 309
-#define SIZEOF 310
-#define TYPEOF 311
-#define CLASS 312
-#define INTERFACE 313
-#define STATIC 314
-#define PRIVATE 315
-#define PUBLIC 316
-#define EXTENDS 317
-#define IMPLEMENTS 318
-#define DOT 319
-#define COLONCOLON 320
-#define AND 321
-#define EQ 322
-#define GE 323
-#define GT 324
-#define LE 325
-#define LT 326
-#define MINUS 327
-#define PLUS 328
-#define NEQ 329
-#define SHIFT_LEFT 330
-#define SHIFT_RIGHT 331
-#define S_AND 332
-#define S_OR 333
-#define S_XOR 334
-#define OR 335
-#define AST_DTOR 336
-#define OPERATOR 337
-#define FUNC_PTR 338
-#define RSL 339
-#define RSR 340
-#define RSAND 341
-#define RSOR 342
-#define RSXOR 343
-#define RAND 344
-#define ROR 345
-#define REQ 346
-#define RNEQ 347
-#define RGT 348
-#define RGE 349
-#define RLT 350
-#define RLE 351
-#define RINC 352
-#define RDEC 353
-#define RUNINC 354
-#define RUNDEC 355
-#define TEMPLATE 356
-#define NOELSE 357
-#define ARROW_LEFT 358
-#define ARROW_RIGHT 359
-#define LTB 360
-#define GTB 361
-#define VARARG 362
-#define UNION 363
-#define ATPAREN 364
-#define NUM 365
-#define FLOAT 366
-#define ID 367
-#define STRING_LIT 368
-#define CHAR_LIT 369
-#define DOC 370
+#define ATSYM 284
+#define FUNCTION 285
+#define DOLLAR 286
+#define TILDA 287
+#define QUESTION 288
+#define COLON 289
+#define EXCLAMATION 290
+#define IF 291
+#define ELSE 292
+#define WHILE 293
+#define DO 294
+#define UNTIL 295
+#define LOOP 296
+#define FOR 297
+#define GOTO 298
+#define SWITCH 299
+#define CASE 300
+#define ENUM 301
+#define RETURN 302
+#define BREAK 303
+#define CONTINUE 304
+#define PLUSPLUS 305
+#define MINUSMINUS 306
+#define NEW 307
+#define SPORK 308
+#define SIZEOF 309
+#define TYPEOF 310
+#define CLASS 311
+#define STATIC 312
+#define PUBLIC 313
+#define EXTENDS 314
+#define DOT 315
+#define COLONCOLON 316
+#define AND 317
+#define EQ 318
+#define GE 319
+#define GT 320
+#define LE 321
+#define LT 322
+#define MINUS 323
+#define PLUS 324
+#define NEQ 325
+#define SHIFT_LEFT 326
+#define SHIFT_RIGHT 327
+#define S_AND 328
+#define S_OR 329
+#define S_XOR 330
+#define OR 331
+#define AST_DTOR 332
+#define OPERATOR 333
+#define FUNC_PTR 334
+#define RSL 335
+#define RSR 336
+#define RSAND 337
+#define RSOR 338
+#define RSXOR 339
+#define RAND 340
+#define ROR 341
+#define REQ 342
+#define RNEQ 343
+#define RGT 344
+#define RGE 345
+#define RLT 346
+#define RLE 347
+#define RINC 348
+#define RDEC 349
+#define RUNINC 350
+#define RUNDEC 351
+#define TEMPLATE 352
+#define NOELSE 353
+#define ARROW_LEFT 354
+#define ARROW_RIGHT 355
+#define LTB 356
+#define GTB 357
+#define VARARG 358
+#define UNION 359
+#define ATPAREN 360
+#define NUM 361
+#define FLOAT 362
+#define ID 363
+#define STRING_LIT 364
+#define CHAR_LIT 365
+#define DOC 366
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -309,7 +301,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 313 "eval/parser.h" /* yacc.c:1909  */
+#line 305 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

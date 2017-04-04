@@ -169,7 +169,6 @@ static int adjust(void* data);
 "function"                              { adjust(yyscanner); return FUNCTION;}
 "variadic"                    			{ adjust(yyscanner); return VARARG; }
 "typedef"                              { adjust(yyscanner); return FUNC_PTR;}
-"protected"                         { adjust(yyscanner); return PROTECTED;}
 "<<<"                               { adjust(yyscanner); return L_HACK;}
 ">>>"                               { adjust(yyscanner); return R_HACK;}
 "#("                               { adjust(yyscanner); return SHARPPAREN;}
@@ -222,12 +221,9 @@ static int adjust(void* data);
 "class"                 					  { adjust(yyscanner); return CLASS;}
 "dtor"                 					    { adjust(yyscanner); return AST_DTOR;}
 "operator"                 					    { adjust(yyscanner); return OPERATOR;}
-"interface"             					  { adjust(yyscanner); return INTERFACE;}
 "extends"               					  { adjust(yyscanner); return EXTENDS;}
-"implement"             					  { adjust(yyscanner); return IMPLEMENTS;}
 "public"                					  { adjust(yyscanner); return PUBLIC;}
 "static "               					  { adjust(yyscanner); return STATIC;}
-"private"               					  { adjust(yyscanner); return PRIVATE;}
 "."                     					  { adjust(yyscanner); return DOT;}
 
 "if"                					      { adjust(yyscanner); return IF;}

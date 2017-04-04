@@ -80,14 +80,14 @@ static m_str get_arg_doc(void* data)
   ASSIGN DIVIDE TIMES PERCENT
   L_HACK R_HACK LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
   PLUSCHUCK MINUSCHUCK TIMESCHUCK DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG
-  PERCENTPAREN SHARPPAREN PROTECTED
+  PERCENTPAREN SHARPPAREN
   ATSYM FUNCTION DOLLAR TILDA
   QUESTION COLON EXCLAMATION
   IF ELSE WHILE DO UNTIL LOOP FOR GOTO SWITCH CASE ENUM
   RETURN BREAK CONTINUE
   PLUSPLUS MINUSMINUS
   NEW SPORK SIZEOF TYPEOF
-  CLASS INTERFACE STATIC PRIVATE PUBLIC EXTENDS IMPLEMENTS DOT COLONCOLON
+  CLASS STATIC PUBLIC EXTENDS DOT COLONCOLON
   AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
   AST_DTOR OPERATOR FUNC_PTR
 	RSL RSR RSAND RSOR RSXOR
@@ -201,15 +201,11 @@ class_def
   ;
 
 class_ext
-//  : IMPLEMENTS id_list                { $$ = new_class_ext( NULL, $2, get_pos(scanner)); }
-//  | IMPLEMENTS id_list EXTENDS id_dot { $$ = new_class_ext( $4, $2, get_pos(scanner)); }
   : EXTENDS id_dot                    { $$ = new_class_ext( $2, NULL, get_pos(scanner)); }
-//  | EXTENDS id_dot IMPLEMENTS id_list { $$ = new_class_ext( $2, $4, get_pos(scanner)); }
   ;
 
 class_decl
   : PUBLIC  { $$ = ae_key_public; }
-  | PRIVATE { $$ = ae_key_private; }
   |         { $$ = ae_key_private; }
   ;
 
@@ -430,12 +426,8 @@ array_empty
 decl_exp
   : conditional_expression
   | type_decl var_decl_list { $$= new_Decl_Expression($1, $2, 0, get_pos(scanner)); }
-  | STATIC type_decl var_decl_list { $$= new_Decl_Expression($2, $3, 1, get_pos(scanner)); }
-  | PRIVATE type_decl var_decl_list { $$= new_Decl_Expression($2, $3, 2, get_pos(scanner)); }
-  | STATIC PRIVATE type_decl var_decl_list { $$= new_Decl_Expression($3, $4, 3, get_pos(scanner)); }
-  | PROTECTED type_decl var_decl_list { $$= new_Decl_Expression($2, $3, 4, get_pos(scanner)); }
-  | STATIC PROTECTED type_decl var_decl_list { $$= new_Decl_Expression($3, $4, 5, get_pos(scanner)); }
   ;
+
 func_def
   : function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
     { $$ = new_Func_Def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
