@@ -13,9 +13,8 @@ typedef struct Arg_List_ * Arg_List;
 extern Map scan_map;
 
 typedef enum {
-  ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_protected,
-  ae_key_private, ae_key_static, ae_key_instance, ae_key_variadic
-//  ae_key_private, ae_key_static, ae_key_instance, ae_key_abstract, ae_key_variadic
+  ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_private,
+  ae_key_static, ae_key_instance, ae_key_variadic
 } ae_Keyword;
 
 typedef struct {
