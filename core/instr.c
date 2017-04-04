@@ -1368,6 +1368,7 @@ array_out_of_bound:
   fprintf( stderr,
            "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
            shred->xid, shred->name, shred->pc, i );
+  release(obj, shred);
   shred->is_running = 0;
   shred->is_done = 1;
 }
