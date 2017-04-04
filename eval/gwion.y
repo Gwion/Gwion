@@ -274,6 +274,7 @@ func_ptr
 type_decl2
   : type_decl                         { $$ = $1; }
   | type_decl array_empty             { $$ = add_type_decl_array( $1, $2, get_pos(scanner)); }
+  | type_decl array_exp               { $$ = add_type_decl_array( $1, $2, get_pos(scanner)); }
   ;
 
 arg_list

@@ -608,6 +608,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     if(f->type_decl->array->exp_list) {
       err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name) );
       err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s" );
+      free_Expression(f->type_decl->array->exp_list);
       goto error;
     }
 

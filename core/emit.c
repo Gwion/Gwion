@@ -1297,16 +1297,34 @@ static m_bool emit_Stmt_Code(Emitter emit, Stmt_Code stmt, m_bool push)
   return 1;
 }
 
+static void emit_func_release(Emitter emit) {
+  m_uint i;
+  Vector v = emit->code->frame->stack;
+  i = vector_size(v) - 1;
+  for(i = vector_size(v) - 1; i >= 0; i--) {
+    Local* l = (Local*)vector_at(v, i);
+    if(!l)
+	  break;
+    else if(l->is_obj) {
+	  Instr rel = add_instr(emit, Release_Object2);
+      rel->m_val = l->offset;
+    }
+  }
+}
+
 static m_bool emit_Return(Emitter emit, Stmt_Return stmt)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "return");
 #endif
   CHECK_BB(emit_Expression(emit, stmt->val, 0))
+  emit_func_release(emit); // /04/04/2017
   if(isa(stmt->val->type, &t_object) > 0)
 	add_instr(emit, Reg_AddRef_Object3);
   Instr op = add_instr(emit, Goto);
   emit_add_return(emit, op);
+
+
   return 1;
 }
 static m_bool emit_Continue(Emitter emit, Stmt_Continue cont)
@@ -2374,6 +2392,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
   // ensure return
   if (func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
+    emit_func_release(emit); // /04/04/2017
     add_instr(emit, Reg_Push_Imm);
     Instr goto_instr = add_instr(emit, Goto);
     emit_add_return(emit, goto_instr);

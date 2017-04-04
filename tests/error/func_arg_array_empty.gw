@@ -1,2 +1,2 @@
-// [contains] must be defined with empty
- function int[] my_func(int i[2]){}
+// [contains] return array type must be defined with empty \[\]'s
+function int[] my_func(int i[2]){}
