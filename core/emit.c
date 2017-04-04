@@ -1001,6 +1001,10 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
     }
     break;
+  case op_sizeof:
+    instr = add_instr(emit, Reg_Push_Imm);
+    instr->m_val = exp_unary->self->type->size;
+    break;
   default:
     err_msg(EMIT_, exp_unary->pos,
             "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));
