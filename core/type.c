@@ -2225,14 +2225,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
 
 m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
 {
-  /*
-    // make sure public/private/protected/function match
-    if(lhs->func_decl != rhs->func_decl) {
-      err_msg(TYPE_, pos, "function signatures differ in access modifiers..." );
-      err_msg(TYPE_, pos, "(both must be one of public/private/protected/function)..." );
-      return -1;
-    }
-  */
   Arg_List e1 = lhs->arg_list;
   Arg_List e2 = rhs->arg_list;
   //  m_uint count = 1;
