@@ -14,13 +14,16 @@ class C
 	function static Object  _o() { return o; }
 }
 
+// read static data
 <<< C.i, C.f, C.v, C.w, C.o >>>;
 
-
+// write static data
 <<< 12 => C.i >>>;
 <<< .5 => C.f >>>;
 <<< #(0.2, 0.3) => C.c >>>;
 <<< @(0.2, 0.3, 0.4) => C.v >>>;
 <<< @(0.2, 0.3, 0.4, 0.5) => C.w >>>;
 <<< NULL @=> C.o >>>;
+
 <<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>; // still segfaults
+<<<C.i>>>;
