@@ -819,7 +819,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     code = add_instr(emit, Reg_Push_Ptr);
     code->ptr = func->code;
   }
-  if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
+  if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !(func->def->static_decl == ae_key_static && func->def->s_type ==
+ae_func_user))
     add_instr(emit, Mem_Push_Imm);
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
