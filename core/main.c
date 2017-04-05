@@ -30,7 +30,7 @@ static int do_quit = 0;
 
 static const struct option long_option[] = {
   { "add",      0, NULL, '+' },
-  { "rem",      0, NULL, '-' },
+  { "rem",      0, NULL, 'z' },
   { "quit",     0, NULL, 'q' },
   { "driver",   1, NULL, 'd' },
   { "card",     1, NULL, 'c' },
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
   di.bufnum = 3;
   di.card = "default:CARD=CODEC";
   di.raw = 0;
-  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:rc: ", long_option, &index)) != -1) {
+  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:-:rc: ", long_option, &index)) != -1) {
     switch(i) {
     case '?':
       usage();
@@ -187,10 +187,11 @@ int main(int argc, char** argv)
         Send("loop 0", 1);
       for(i = 0; i < vector_size(rem); i++) {
         m_str file = (m_str)vector_at(rem, i);
-        char name[1024 + 2];
-        memset(name, 0, 1024 + 2);
-        strncpy(name, "- ", 2);
-        strncat(name, file, 1024);
+        m_uint size = strlen(file) + 3;
+        char name[size];
+        memset(name, 0, size);
+        strcpy(name, "- ");
+        strcat(name, file);
         Send(name, 1);
       }
       for(i = 0; i < vector_size(add); i++) {

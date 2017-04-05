@@ -690,10 +690,11 @@ INSTR(Instr_Op_Call_Binary)
   if(isa(l, &t_object) > 0)
     release(*(M_Object*)(shred->reg), shred);
   if(isa(r, &t_object) > 0)
-    release(**(M_Object**)(shred->reg + SZ_INT), shred);
+//    release(**(M_Object**)(shred->reg + SZ_INT), shred);
+    release(**(M_Object**)(shred->reg + l->size), shred);
   if(stack_depth) {
-    Kindof kl = kindof(l); 
-    Kindof kr = kindof(r); 
+    Kindof kl = kindof(l);
+    Kindof kr = kindof(r);
     if(kl == Kindof_Int)
       *(m_uint*)(shred->mem) = *(m_uint*)shred->reg;
     else if(kl == Kindof_Float)

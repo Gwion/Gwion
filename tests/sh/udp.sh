@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #15
+# [test] #19
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -63,6 +63,14 @@ sleep .3
 run "$n" "rem file" "- 1" "file"&
 sleep .3
 run "$n" "rem file" "-l0" "file3"&
+wait
+
+n=$((n+3))
+run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file2"&
+sleep .3
+run "$n" "rem file" "- 1 2 3 4" "file"&
+sleep .3
+run "$n" "quit" "-l0" "file3"&
 wait
 
 exit 0
