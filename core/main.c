@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
   int port = 8888;
   char* hostname = "localhost";
-  int loop = -1;
+  int loop = 0;
   DriverInfo di;
   di.func = D_FUNC;
   di.in  = 2;
