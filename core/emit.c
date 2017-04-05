@@ -557,6 +557,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           emit->code = (Code*)vector_back(emit->stack);
           if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
             return -1;
+// init the object in main code
           Instr push = add_instr(emit, Reg_Push_Imm);
           push->m_val = (m_uint)emit->env->class_def;
           Instr dot_static = add_instr(emit, Dot_Static_Data);
@@ -567,6 +568,12 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           Instr pop = add_instr(emit, Reg_Pop_Word4);
           pop->m_val = SZ_INT;
           emit->code = code;
+          // add ref
+          Instr push_obj = add_instr(emit, Dot_Static_Data);
+          push_obj->m_val = value->offset;
+          add_instr(emit, Reg_AddRef_Object3);
+          Instr pop2 = add_instr(emit, Reg_Pop_Word4);
+          pop2->m_val = SZ_INT;
           return 1;
         } else {
           // emit the type
