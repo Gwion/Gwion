@@ -196,10 +196,18 @@ type_variable() {
     echo "<<<a.$(echo "$1" | cut -d '"' -f4)>>>;" >> "$2"
 }
 
+basic_output() {
+	while true
+	do sleep 5; echo "please wait..."
+	done
+}
+
+
 generate_files() {
 	set -m
 	trap "kill %1; exit" SIGHUP SIGINT SIGTERM
-	fancy_output&
+#	fancy_output&
+	basic_output&
 	(for file in lang/*.c ugen/*.c
 	do
 		echo "generate from $file"

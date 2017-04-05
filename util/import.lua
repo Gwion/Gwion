@@ -147,8 +147,8 @@ function print_mod_func(name, mod)
 		print("\tug->is_init = 0;")
 		print("\tug->osc = NULL;")
 	else
-		print("\tsp_"..name.."_create(&ug->osc);")
-		print("\tsp_"..name.."_init(ug->sp, ug->osc);")
+		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
+		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc))")
 	end
 	print("\to->ugen->tick = "..name.."_tick;")
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
@@ -186,9 +186,9 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
-		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n\t\tug->osc = NULL;\t}");
-		print("\tsp_"..name.."_create(&ug->osc);")
-		print("\tsp_"..name.."_init(ug->sp, ug->osc, "..args..");")
+		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n\t\tug->osc = NULL;\n\t}");
+		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
+		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc, "..args.."))")
 		print("\tug->is_init = 1;\n}\n")
 	end
 -- helper
@@ -284,7 +284,7 @@ print('#include "vm.h"\
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
-
+print("#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)")
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
