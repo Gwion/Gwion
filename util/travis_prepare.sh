@@ -22,7 +22,7 @@ check_variable "$GWION_ADD_DIR" GWION_PLUG_DIR
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
-	brew install lua        # needed for importing soundpipe
+#	brew install lua        # needed for importing soundpipe
 }
 
 build_soundpipe() {
