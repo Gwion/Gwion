@@ -1330,7 +1330,7 @@ static m_bool emit_Return(Emitter emit, Stmt_Return stmt)
 #endif
   CHECK_BB(emit_Expression(emit, stmt->val, 0))
   emit_func_release(emit); // /04/04/2017
-  if(isa(stmt->val->type, &t_object) > 0)
+  if(stmt->val && isa(stmt->val->type, &t_object) > 0) // void doesn't have ->val
 	add_instr(emit, Reg_AddRef_Object3);
   Instr op = add_instr(emit, Goto);
   emit_add_return(emit, op);
