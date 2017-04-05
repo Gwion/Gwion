@@ -6,6 +6,14 @@ class C
 	static Vec3 v;
 	static Vec4 w;
 	static Object o;
+
+	function int     m_i() { return i; }
+	function float   m_f() { return f; }
+	function complex m_c() { return c; }
+	function Vec3    m_v() { return v; }
+	function Vec4    m_w() { return w; }
+	function Object  m_o() { return o; }
+
 	function static int     _i() { return i; }
 	function static float   _f() { return f; }
 	function static complex _c() { return c; }
@@ -14,16 +22,16 @@ class C
 	function static Object  _o() { return o; }
 }
 
-// read static data
-<<< C.i, C.f, C.v, C.w, C.o >>>;
+// read members
+<<< C.i, C.c, C.f, C.v, C.w, C.o >>>;
 
-// write static data
-<<< 12 => C.i >>>;
-<<< .5 => C.f >>>;
-<<< #(0.2, 0.3) => C.c >>>;
-<<< @(0.2, 0.3, 0.4) => C.v >>>;
-<<< @(0.2, 0.3, 0.4, 0.5) => C.w >>>;
+// call function members
+<<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>;
+
+// write members
+<<< 12  => C.i >>>;
+<<< 1.2 => C.f >>>;
+<<< #(0.1, 2.3) => C.c >>>;
+<<< @(0.1, 2.3, 3.4) => C.v >>>;
+<<< @(0.1, 2.3, 3.4, 5.4) => C.w >>>;
 <<< NULL @=> C.o >>>;
-
-<<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>; // still segfaults
-<<<C.i>>>;
