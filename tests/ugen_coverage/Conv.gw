@@ -5,7 +5,7 @@ Conv a;
 // testing 'init'
 {
 	ftbl	ft;
-	ft.init(1024);
+	ft.gen_sine(1024);(1024);
 	float	iPartLen;
 
 	a.init(ft, iPartLen);

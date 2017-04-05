@@ -4,14 +4,12 @@ RMS a;
 
 // testing 'ihp'
 {
-
 	a.ihp();
 }
 
 // testing 'ihp'
 {
 	float	ihp;
-
 	a.ihp(ihp);
 }
 samp => now;

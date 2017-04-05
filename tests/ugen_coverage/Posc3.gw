@@ -5,7 +5,7 @@ Posc3 a;
 // testing 'init'
 {
 	ftbl	tbl;
-	tbl.init(1024);
+	tbl.gen_sine(1024);
 
 	a.init(tbl);
 }

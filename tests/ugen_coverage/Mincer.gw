@@ -5,8 +5,8 @@ Mincer a;
 // testing 'init'
 {
 	ftbl	ft;
-	ft.init(1024);
-	int	winsize;
+	ft.gen_sine(1024);
+	1024 => int	winsize;
 
 	a.init(ft, winsize);
 }

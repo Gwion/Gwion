@@ -5,7 +5,7 @@ Tblrec a;
 // testing 'init'
 {
 	ftbl	bar;
-	bar.init(1024);
+	bar.gen_sine(1024);
 
 	a.init(bar);
 }

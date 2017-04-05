@@ -5,11 +5,11 @@ Fof a;
 // testing 'init'
 {
 	ftbl	sine;
-	sine.init(1024);
+	sine.gen_sine(1024);
 	ftbl	win;
-	win.init(1024);
-	int	iolaps;
-	float	iphs;
+	win.gen_sine(1024);
+	12 => int	iolaps;
+	12.3 => float	iphs;
 
 	a.init(sine, win, iolaps, iphs);
 }
@@ -117,6 +117,7 @@ Fof a;
 
 	a.dur(dur);
 }
+
 samp => now;
 a=> dac;
 second => now;

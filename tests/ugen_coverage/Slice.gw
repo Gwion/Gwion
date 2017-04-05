@@ -5,9 +5,9 @@ Slice a;
 // testing 'init'
 {
 	ftbl	vals;
-	vals.init(1024);
+	vals.gen_sine(1024);
 	ftbl	buf;
-	buf.init(1024);
+	buf.gen_sine(1024);
 
 	a.init(vals, buf);
 }

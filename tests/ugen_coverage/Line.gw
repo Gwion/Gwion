@@ -10,9 +10,9 @@ Line a;
 
 // testing 'a'
 {
-	float	a;
+	float	f;
 
-	a.a(a);
+	a.a(f);
 }
 
 // testing 'dur'
