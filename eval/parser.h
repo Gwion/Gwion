@@ -141,19 +141,17 @@ extern int minimal_debug;
     RUNDEC = 351,
     TEMPLATE = 352,
     NOELSE = 353,
-    ARROW_LEFT = 354,
-    ARROW_RIGHT = 355,
-    LTB = 356,
-    GTB = 357,
-    VARARG = 358,
-    UNION = 359,
-    ATPAREN = 360,
-    NUM = 361,
-    FLOAT = 362,
-    ID = 363,
-    STRING_LIT = 364,
-    CHAR_LIT = 365,
-    DOC = 366
+    LTB = 354,
+    GTB = 355,
+    VARARG = 356,
+    UNION = 357,
+    ATPAREN = 358,
+    NUM = 359,
+    FLOAT = 360,
+    ID = 361,
+    STRING_LIT = 362,
+    CHAR_LIT = 363,
+    DOC = 364
   };
 #endif
 /* Tokens.  */
@@ -253,19 +251,17 @@ extern int minimal_debug;
 #define RUNDEC 351
 #define TEMPLATE 352
 #define NOELSE 353
-#define ARROW_LEFT 354
-#define ARROW_RIGHT 355
-#define LTB 356
-#define GTB 357
-#define VARARG 358
-#define UNION 359
-#define ATPAREN 360
-#define NUM 361
-#define FLOAT 362
-#define ID 363
-#define STRING_LIT 364
-#define CHAR_LIT 365
-#define DOC 366
+#define LTB 354
+#define GTB 355
+#define VARARG 356
+#define UNION 357
+#define ATPAREN 358
+#define NUM 359
+#define FLOAT 360
+#define ID 361
+#define STRING_LIT 362
+#define CHAR_LIT 363
+#define DOC 364
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -301,7 +297,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 305 "eval/parser.h" /* yacc.c:1909  */
+#line 301 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

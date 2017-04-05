@@ -94,7 +94,7 @@ static m_str get_arg_doc(void* data)
 	RAND ROR REQ RNEQ RGT RGE RLT RLE
 	RINC RDEC RUNINC RUNDEC
   TEMPLATE
-  NOELSE ARROW_LEFT ARROW_RIGHT
+  NOELSE
   LTB GTB
   VARARG UNION ATPAREN
 
@@ -104,7 +104,6 @@ static m_str get_arg_doc(void* data)
 
 %type<ival> op
 %type<ival> unary_operator
-%type<ival> arrow_operator
 %type<ival> class_decl
 %type<ival> static_decl
 %type<ival> function_decl
@@ -127,7 +126,6 @@ static m_str get_arg_doc(void* data)
 %type <exp> shift_expression
 %type <exp> additive_expression
 %type <exp> multiplicative_expression
-%type <exp> tilda_expression
 %type <exp> unary_expression
 %type <exp> dur_exp
 %type<polar> polar_exp
@@ -135,7 +133,6 @@ static m_str get_arg_doc(void* data)
 %type<vec> vec_exp
 %type<exp> postfix_exp
 %type<exp> cast_exp
-%type<exp> arrow_expression
 %type<exp> exp
 %type<stmt> stmt
 %type<stmt> loop_stmt
@@ -347,24 +344,14 @@ exp
   | binary_exp COMMA exp  { $$ = prepend_Expression($1, $3, get_pos(scanner)); }
   ;
 
-arrow_operator
-        : ARROW_LEFT                        { $$ = ae_op_arrow_left; }
-        | ARROW_RIGHT                       { $$ = ae_op_arrow_right; }
-        ;
 binary_exp
-  : arrow_expression      { $$ = $1; }
-  | binary_exp op arrow_expression     { $$ = new_Binary_Expression($1, $2, $3, get_pos(scanner)); }
+  : decl_exp      { $$ = $1; }
+  | binary_exp op decl_exp     { $$ = new_Binary_Expression($1, $2, $3, get_pos(scanner)); }
   ;
-
-arrow_expression
-  : decl_exp                   { $$ = $1; }
-  | arrow_expression arrow_operator decl_exp
-    { $$ = new_Binary_Expression( $1, $2, $3, get_pos(scanner)); }
 
 template
   : LTB type_list GTB { $$ = $2; }
   ;
-
 
 op
   : CHUCK       { $$ = op_chuck; }
@@ -547,19 +534,13 @@ additive_expression
   ;
 
 multiplicative_expression
-  : tilda_expression { $$ = $1; }
-  | multiplicative_expression TIMES tilda_expression
+  : cast_exp { $$ = $1; }
+  | multiplicative_expression TIMES cast_exp
       { $$ = new_Binary_Expression( $1, op_times, $3, get_pos(scanner)); }
-  | multiplicative_expression DIVIDE tilda_expression
+  | multiplicative_expression DIVIDE cast_exp
       { $$ = new_Binary_Expression( $1, op_divide, $3, get_pos(scanner)); }
-  | multiplicative_expression PERCENT tilda_expression
+  | multiplicative_expression PERCENT cast_exp
       { $$ = new_Binary_Expression( $1, op_percent, $3, get_pos(scanner)); }
-  ;
-
-tilda_expression
-  : cast_exp  { $$ = $1; }
-  | tilda_expression TILDA cast_exp
-      { $$ = new_Binary_Expression( $1, op_tilda, $3, get_pos(scanner)); }
   ;
 
 cast_exp
@@ -592,11 +573,9 @@ unary_expression
 unary_operator
   : PLUS                              { $$ = op_plus; }
   | MINUS                             { $$ = op_minus; }
-  | TILDA                             { $$ = op_tilda; }
   | EXCLAMATION                       { $$ = op_exclamation; }
   | TIMES                             { $$ = op_times; }
   | SPORK TILDA                       { $$ = op_spork; }
-  // | S_AND                             { $$ = ae_op_s_and; }
   ;
 
 dur_exp
@@ -628,6 +607,7 @@ postfix_exp
   | postfix_exp template LPAREN exp RPAREN
     { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->d.exp_func->types = $2; }  ;
   ;
+
 primary_exp
   : ID                { $$ = new_Primary_Expression_from_ID(     $1, get_pos(scanner)); }
   | NUM               { $$ = new_Primary_Expression_from_int(    $1, get_pos(scanner)); }
