@@ -196,10 +196,11 @@ int main(int argc, char** argv)
       }
       for(i = 0; i < vector_size(add); i++) {
         m_str file = (m_str)vector_at(add, i);
-        char name[1024 + 2];
-        memset(name, 0, 1024 + 2);
-        strncpy(name, "+ ", 2);
-        strncat(name, file, 1024);
+        m_uint size = strlen(file) + 3;
+        char name[size];
+        memset(name, 0, size);
+        strcpy(name, "+ ");
+        strcat(name, file);
         Send(name, 1);
       }
       free_Vector(add);
