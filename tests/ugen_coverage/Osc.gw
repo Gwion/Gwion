@@ -7,7 +7,7 @@ a =< dac;
 // testing 'init'
 {
 	ftbl	tbl;
-	tbl.init(1024);
+	tbl.gen_sine(1024);
 	float	phase;
 
 	a.init(tbl, phase);a.init(tbl, phase);
