@@ -1,0 +1,2 @@
+// [contains] ...in function 'test'
+function void test() { <<<b>>>; }

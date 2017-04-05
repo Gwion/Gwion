@@ -211,6 +211,8 @@ int main(int argc, char** argv)
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   scan_map = new_Map();
+  if(!loop)
+    loop = -1;
   if(!(vm = new_VM(loop)))
     goto clean;
   if(!(vm->bbq = new_BBQ(vm, &di, &d)))

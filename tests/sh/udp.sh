@@ -37,25 +37,27 @@ sleep .3
 run "$n" "add file (+)" "+ examples/int.gw" "file"&
 sleep .3
 run "$((n + 2))" "add + (remote $((n + 2)))" "-l0" "file3"&
-#sleep 1
+sleep 1
 wait
 
 n=$((n+3))
 run "$((n+1))" "add (remote $((n+1)))" "-l1" "file2"&
 sleep .3
-run "$n" "add file " "examples/int.gw" "file"&
+run "$n" "add file " "examples/int.gw" "file"
 sleep .3
-run "$((n + 2))" "add (remote $((n + 2)))" "-l0" "file3"&
-#sleep 1
+run "$((n + 2))" "add (remote $((n + 2)))" "-l0" "file3"
+sleep 1
 wait
 
 n=$((n+3))
 run "$((n+1))" "add and remove (remote $((n+1)))" "-l1" "file2"&
 sleep .3
-run "$n" "add file" "examples/int.gw -l0" "file"&
+run "$n" "add file" "examples/int.gw" "file"
+sleep .3
+run "$((n+2))" "add file" "-l0" "file"
 wait
 
-n=$((n+2))
+n=$((n+3))
 run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file2"&
 sleep .3
 run "$n" "rem file" "- 1" "file"&
