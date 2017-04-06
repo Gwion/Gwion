@@ -32,7 +32,7 @@ IMPORT
   m_uint* i = malloc(sizeof(m_uint));
   *i = 5;
   import_svar(env, "int", "s_i", 1, 0, i, "");
-
+printf("%p\n", i);
   m_float* f = malloc(sizeof(m_float));
   *f = 2.1;
   import_svar(env, "float", "s_f", 1, 0, (void*)f, "");
