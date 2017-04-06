@@ -1,10 +1,19 @@
 int i;
-<<<"test", i>>>;
-switch(i) {
-  case 1:
-	<<<"'i' is 1">>>;
-	break;
-  default:
-    <<<1, 2>>>;
-  break;
+
+function void test(int i) {
+ switch(i) {
+	  case 1:
+		<<<"'i' is 1">>>;
+		break;
+	  case 2:
+		<<<"'i' is 2">>>;
+		break;
+	  default:
+	    <<<1, 2>>>;
+	  break;
+	}
 }
+
+2 => i => test;
+1 => i => test;
+0 => i => test;

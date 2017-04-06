@@ -1,9 +1,10 @@
 complex a, b;
-//a.re;
-//a.im;
-//b = a;
+a;
+a.re;
+a.im;
+b = a;
 a + b;
-/*
+
 a - b;
 a * b;
 a / b;
@@ -13,4 +14,3 @@ a -=> b;
 a *=> b;
 a /=> b;
 
-*/
