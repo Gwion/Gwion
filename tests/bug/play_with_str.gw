@@ -1,0 +1,4 @@
+"lol" @=> string @s;
+"test" => s;
+
+<<<"testmem".replace(2, 3, "UKUH")>>>;
