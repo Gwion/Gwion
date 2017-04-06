@@ -32,7 +32,7 @@ INSTR(Reg_Push_Imm)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push imm %p %i", (void*)instr->m_val, instr->m_val2);
 #endif
-  *(m_uint*)(shred->reg) = instr->m_val2 ? (m_uint)&instr->m_val : instr->m_val;
+  *(m_uint*)(shred->reg) = instr->m_val2 ? (m_uint) &instr->m_val : instr->m_val;
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -815,7 +815,7 @@ INSTR(Instr_Func_Call_Static)
   }
   f(&retval, shred);
   dl_return_push(retval, shred, instr->m_val);
-  POP_MEM(shred,  local_depth);
+  POP_MEM(shred, local_depth ? local_depth : SZ_INT);
 }
 
 INSTR(Instr_Func_Call_Member)

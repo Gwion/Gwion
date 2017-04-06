@@ -181,7 +181,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     var_decl->array->depth = array_depth;
   }
   var_decl_list = new_Var_Decl_List(var_decl, NULL, 0);
-  exp_decl = new_Decl_Expression(type_decl, var_decl_list, 0, 0);
+  exp_decl = new_Decl_Expression(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
   if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
     goto error;
@@ -232,7 +232,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
         free_Arg_List(arg_list);
       return NULL;
     }
-    type_decl = new_Type_Decl( type_path, 0, 0 );
+    type_decl = new_Type_Decl(type_path, 0, 0);
     type_path2 = str2list(arg->name, &array_depth2 );
     free_ID_List(type_path2);
     if(array_depth && array_depth2) {
@@ -251,8 +251,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
       for(j = 1; j < array_depth; j++ )
         array_sub = prepend_array_sub( array_sub, NULL, 0 );
     }
-    var_decl = new_Var_Decl(arg->name, array_sub, 0 );
-    arg_list = new_Arg_List( type_decl, var_decl, arg_list, 0 );
+    var_decl = new_Var_Decl(arg->name, array_sub, 0);
+    arg_list = new_Arg_List(type_decl, var_decl, arg_list, 0);
     arg_list->doc = arg->doc;
     free_DL_Value(arg); /* could be free(arg) */
   }
