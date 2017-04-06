@@ -28,5 +28,31 @@ IMPORT
   CHECK_OB(import_sfun(env, fun))
   fun = new_DL_Func("Vec4", "w", (m_uint)coverage_vec4);
   CHECK_OB(import_sfun(env, fun))
+
+  m_uint* i = malloc(sizeof(m_uint));
+  *i = 5;
+  import_svar(env, "int", "s_i", 1, 0, i, "");
+
+  m_float* f = malloc(sizeof(m_float));
+  *f = 2.1;
+  import_svar(env, "float", "s_f", 1, 0, (void*)f, "");
+
+  m_complex* c = malloc(sizeof(m_complex));
+  *c = 2.1;
+  import_svar(env, "complex", "s_c", 1, 0, (void*)c, "");
+
+  VEC3_T* v = malloc(sizeof(VEC3_T));
+  v->x = 2.1;
+  v->y = 2.2;
+  v->z = 2.3;
+  import_svar(env, "Vec3", "s_v", 1, 0, (void*)v, "");
+
+  VEC4_T* w = malloc(sizeof(VEC4_T));
+  w->x = 2.1;
+  w->y = 2.2;
+  w->z = 2.3;
+  w->w = 2.4;
+  import_svar(env, "Vec4", "s_w", 1, 0, (void*)w, "");
+
   CHECK_BB(import_class_end(env))
 }

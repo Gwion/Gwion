@@ -1,5 +1,16 @@
+float f;
 <<< Coverage.i() >>>;
 <<< Coverage.f() >>>;
 <<< Coverage.c() >>>;
 <<< Coverage.v() >>>;
 <<< Coverage.w() >>>;
+
+<<<Coverage.s_i>>>;
+<<<Coverage.s_f>>>;
+<<<Coverage.s_c>>>;
+<<<Coverage.s_v>>>;
+<<<Coverage.s_w>>>;
+//<<< 1 => Coverage.s_i>>>;
+
+//<<< 1.2 => Coverage.s_f>>>;
+///<<< Coverage.s_f => f>>>;
