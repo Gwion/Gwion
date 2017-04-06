@@ -1,0 +1,3 @@
+Rms a => dac;
+a.ihp();
+a.ihp(.2);
