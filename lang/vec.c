@@ -203,7 +203,7 @@ INSTR(vec3_x)
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
     *(m_float*)shred->reg = v->x;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -218,7 +218,7 @@ INSTR(vec3_y)
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
     *(m_float*)shred->reg = v->y;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 
@@ -233,7 +233,7 @@ INSTR(vec3_z)
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
     *(m_float*)shred->reg = v->z;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 

@@ -1,0 +1,20 @@
+class C
+{
+   float f;
+}
+
+operator float   chuck(C       c, C d){ <<<"float   => C", c.f   => d.f>>>; return 2.0;}
+operator float   chuck(float   f, C d){ <<<"float   => C", f     => d.f>>>; return 2.0;}
+operator complex chuck(complex c, C d){ <<<"complex => C", c.re  => d.f>>>; return #(1.2, 6.1);}
+operator polar   chuck(polar   c, C d){ <<<"complex => C", c.mod => d.f>>>; return %(2.3, 4.1);}
+operator Vec3    chuck(Vec3    c, C d){ <<<c.z   => d.f>>>; return @(1.2, 6.1, 2.3);}
+operator Vec4    chuck(Vec4    c, C d){ <<<"Vec4    => C", c.w   => d.f>>>; return @(1.2, 6.1, 2.3, 9.3);}
+
+C c, d;
+12.3 => c.f;
+<<< c                     => d >>>;
+<<< #(7.2, 1.4)           => d >>>;
+<<< %(7.2, 1.4)           => d >>>;
+<<< @(7.2, 1.4, 8.3)>>>;
+<<< @(7.2, 1.4, 8.3)      => d >>>;
+<<< @(7.2, 1.4, 8.3, 2.3) => d >>>;

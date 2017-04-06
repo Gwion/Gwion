@@ -935,7 +935,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name) );
     goto error;
   }
-
   namespace_pop_value(env->curr);
   env->func = NULL;
 
