@@ -5,3 +5,5 @@ class C
 	class D { int i;}
 }	
 C c;
+<C.D> d;
+<<< c, d >>>;

@@ -1,0 +1,2 @@
+// [contains ] assigning to empty string
+"test" => string @s;
