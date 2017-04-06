@@ -15,8 +15,10 @@ variadic void test()
 		<<<vararg.v3>>>;
 	else if(i == 5)
 		<<<vararg.v4>>>;
+	else if(i == 6)
+		<<<vararg.o>>>;
   	i++;
   vararg.end;
 }
 test(1);
-test(1, 2.3, #(3, 2), %(3, 2.1), @(1,2,3), @(1,2,3,4));
+test(1, 2.3, #(3, 2), %(3, 2.1), @(1,2,3), @(1,2,3,4), NULL);
