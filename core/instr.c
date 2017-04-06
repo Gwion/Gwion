@@ -1053,7 +1053,7 @@ INSTR(Dot_Static_Import_Data)
     PUSH_REG(shred,  SZ_INT);
   }
   /* take care of Kind (instr->m_val2)*/
-  if(instr->m_val2 == Kindof_Int) {
+  else if(instr->m_val2 == Kindof_Int) {
     *(m_uint*)shred->reg = *(m_uint*)instr->m_val;
     PUSH_REG(shred,  SZ_INT);
   } else if(instr->m_val2 == Kindof_Float) {
