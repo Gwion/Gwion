@@ -48,7 +48,7 @@ compiler:
 
 before_script:
   - which nc
-  - echo "quit" | -u 127.0.0.1 8888
+  - echo "quit" | nc -u 127.0.0.1 8888
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
   - bash util/travis_prepare.sh
