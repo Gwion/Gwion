@@ -1611,14 +1611,11 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
         return NULL;
       }
       return t;
-      break;
     case op_typeof:
       err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)" );
       break;
     case op_sizeof:
       return &t_int;
-      err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)" );
-      break;
     // avoid compiler warning
     case op_assign:
     case op_plus:
