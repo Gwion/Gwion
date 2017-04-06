@@ -10,11 +10,10 @@
 #include "err_msg.h"
 #include "udp.h"
 #include "shreduler.h"
-unsigned int loop;
 
-int sock;
-struct sockaddr_in saddr;
-struct sockaddr_in caddr;
+static int sock;
+static struct sockaddr_in saddr;
+static struct sockaddr_in caddr;
 pthread_t srv_thread;
 
 void Send(const char* c, unsigned int i)
@@ -67,30 +66,27 @@ void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
   while(vm->is_running) {
-    char* buf;
-    int index;
+    m_str buf;
 
-    buf = Recv(0);
-    if(!buf)
+    if(!(buf = Recv(0)))
       continue;
-    if(strncmp(buf, "bonjour", 7) == 0);
-    else if( strncmp(buf, "quit", 4) == 0) {
+    if(strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
     } else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
       shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf) - 1), 1);
       buf -= 2;
-    } else if( strncmp(buf, "+", 1) == 0) {
+    } else if(strncmp(buf, "+", 1) == 0) {
       buf += 2;
+      if(buf[strlen(buf) -1] == '\n')
+        buf[strlen(buf) -1] = '\0';
       compile(data, (m_str)buf);
       buf -= 2;
-    } else if( strncmp(buf, "loop", 4) == 0) {
-///      strsep((char**)&buf, " ");
-      index = atoi(buf + 5);
-      shreduler_set_loop(vm->shreduler, index);
-    } else
-      compile(data, (m_str)buf);
+    } else if(strncmp(buf, "loop", 4) == 0)
+      shreduler_set_loop(vm->shreduler, atoi(buf+5));
+    else
+      compile(data, buf);
     free(buf);
   }
   return NULL;
@@ -131,7 +127,7 @@ int server_init(char* hostname, int port)
     }
   } else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
   saddr.sin_port = htons(port);
-  if (bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
+  if(bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
     err_msg(UDP, 0, "can't bind");
     return -1;
   }
