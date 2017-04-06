@@ -18,25 +18,17 @@ struct Type_ t_cerr    = { "@Cerr",    SZ_INT, &t_fileio,    te_fileio };
 struct Type_ t_cin     = { "@Cin",     SZ_INT, &t_fileio,    te_fileio  };
 
 static M_Object gw_cin, gw_cout, gw_cerr;
-m_int o_fileio_dir;
 m_int o_fileio_file;
-m_int o_fileio_ascii;
-m_int o_fileio_line;
 
-#define IO_LINE(o) *(m_str*)(o->d.data + o_fileio_line)
 #define CHECK_FIO(o)   if(!IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); }
 CTOR(fileio_ctor)
 {
-  IO_DIR(o)  = NULL;
   IO_FILE(o)  = NULL;
-  IO_ASCII(o) = 1;
 }
 
 DTOR(fileio_dtor)
 {
-  if(IO_DIR(o))
-	closedir(IO_DIR(o));
-  else if(IO_FILE(o))
+  if(IO_FILE(o))
     fclose(IO_FILE(o));
 }
 
@@ -121,9 +113,9 @@ INSTR(file_to_int)
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
-  if(IO_ASCII(o)) {
+  if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
-	err_msg(INSTR_, 0, "problem while reading file.");
+      err_msg(INSTR_, 0, "problem while reading file.");
       Except(shred);
     }
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
@@ -143,7 +135,7 @@ INSTR(file_to_float)
   /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
-  if(IO_ASCII(o)) {
+  if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
       Except(shred);
     }
@@ -180,7 +172,7 @@ INSTR(file_to_string)
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
   char c[1025];
-  if(IO_ASCII(o))
+  if(IO_FILE(o))
   {
 //    if(inputAvailable(IO_FILE(o)))
     if(fscanf(IO_FILE(o), "%s1024", c) < 0) {
@@ -202,38 +194,22 @@ MFUN(file_nl)
 
 MFUN(file_open)
 {
-  DIR* dir;
   M_Object lhs = *(M_Object*)(shred->mem + SZ_INT * 2);
   M_Object rhs = *(M_Object*)(shred->mem + SZ_INT);
   m_str filename = STRING(rhs);
   m_str mode = STRING(lhs);
   release(rhs, shred);
   release(lhs, shred);
-
-  if(IO_DIR(o)) {
-    closedir(IO_DIR(o));
-    IO_DIR(o) = NULL;
-  } else if(IO_FILE(o)) {
+  if(IO_FILE(o)) {
     fclose(IO_FILE(o));
     IO_FILE(o) = NULL;
   }
-  if((dir = opendir(filename))) {
-    IO_DIR(o) = dir;
-    RETURN->d.v_uint = 2;
-    return;
-  }
   IO_FILE(o) = fopen(filename, mode);
-  IO_DIR(o) = NULL;
   RETURN->d.v_uint = IO_FILE(o) ? 1 : 0;
 }
 
 MFUN(file_close)
 {
-  if(IO_DIR(o)) {
-    RETURN->d.v_uint = closedir(IO_DIR(o));
-    IO_DIR(o) = NULL;
-    return;
-  }
   if(IO_FILE(o)) {
     fclose(IO_FILE(o));
     IO_FILE(o) = NULL;
@@ -297,15 +273,8 @@ m_bool import_fileio(Env env)
   env->class_def->doc = "read/write files";
 
   // import vars
-  o_fileio_dir = import_mvar(env, "int",  "@dir",   0, 0, "place for the directory");
-  CHECK_BB(o_fileio_dir)
   o_fileio_file = import_mvar(env, "int", "@file",  0, 0, "place for the file");
   CHECK_BB(o_fileio_file)
-  o_fileio_ascii = import_mvar(env, "int", "ascii", 0, 0, "ascii or binary");
-  CHECK_BB(o_fileio_ascii)
-  o_fileio_line = import_mvar(env, "int", "@line",  0, 0, "place for the file");
-  CHECK_BB(o_fileio_line)
-
 
   // import funcs
   fun = new_DL_Func("int", "nl", (m_uint)file_nl);

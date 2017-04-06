@@ -1,3 +1,0 @@
-Object o;
-"Object: " => string s;
-<<<s + (o + "")>>>;
