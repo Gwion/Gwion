@@ -73,25 +73,25 @@ sleep .3
 run "$n" "quit" "-l0" "file3"&
 wait
 
-n=$((n+3))
+#n=$((n+3))
 # nedds nc
 #run "$((n))" "run loop" "-l1" "file" &
-./gwion -l1 &> /dev/null &
-sleep .3
-echo here
-echo '+ examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
-sleep .3
-echo '- 1' | nc -q 1 -u 127.0.0.1 8888
-sleep .3
-echo 'quit' | nc -q 1 -u 127.0.0.1 8888
-wait
+#./gwion -l1 &> /dev/null &
+#sleep .3
+#echo here
+#echo '+ examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
+#sleep .3
+#echo '- 1' | nc -q 1 -u 127.0.0.1 8888
+#sleep .3
+#echo 'quit' | nc -q 1 -u 127.0.0.1 8888
+#wait
 
-n=$((n+1))
-./gwion -l1 &> /dev/null &
+#n=$((n+1))
+#./gwion -l1 &> /dev/null &
 #run "$((n))" "../../gwion" "-l1" "file" &
-sleep .3
-echo 'examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
-sleep .3
-echo 'loop 0' | nc -q 1 -u 127.0.0.1 8888
-wait
-exit 0
+#sleep .3
+#echo 'examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
+#sleep .3
+#echo 'loop 0' | nc -q 1 -u 127.0.0.1 8888
+#wait
+#exit 0
