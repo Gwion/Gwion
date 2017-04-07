@@ -73,4 +73,12 @@ sleep .3
 run "$n" "quit" "-l0" "file3"&
 wait
 
+n=$((n+3))
+# nedds nc
+run "$((n))" "./gwion -l1"&
+echo '+ examples/sine.gw' | nc -uc 127.0.0.1 8888
+sleep .3
+echo '- 1' | nc -uc 127.0.0.1 8888
+echo '-l0' | nc -uc 127.0.0.1 8888
+wait
 exit 0
