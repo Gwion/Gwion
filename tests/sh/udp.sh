@@ -75,17 +75,23 @@ wait
 
 n=$((n+3))
 # nedds nc
-run "$((n))" "../../gwion -l1" "file" &
+#run "$((n))" "run loop" "-l1" "file" &
+./gwion -l1 &> /dev/null &
+sleep .3
+echo here
 echo '+ examples/sine.gw' | nc -uc 127.0.0.1 8888
 sleep .3
 echo '- 1' | nc -uc 127.0.0.1 8888
-echo '-l0' | nc -uc 127.0.0.1 8888
+sleep .3
+echo 'quit' | nc -uc 127.0.0.1 8888
 wait
 
 n=$((n+1))
-run "$((n))" "../../gwion -l1" "file" &
+./gwion -l1 &> /dev/null &
+#run "$((n))" "../../gwion" "-l1" "file" &
 sleep .3
 echo 'examples/sine.gw' | nc -uc 127.0.0.1 8888
-echo 'quit' | nc -uc 127.0.0.1 8888
+sleep .3
+echo 'loop 0' | nc -uc 127.0.0.1 8888
 wait
 exit 0
