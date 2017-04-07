@@ -177,7 +177,7 @@ continue;
   v = scope_get(a->type);
   for(i = 0; i < vector_size(v); i++) {
     Type type = (Type)vector_at(v, i);
-      rem_ref(type->obj, type);
+    rem_ref(type->obj, type);
   }
   free_Vector(v);
   free_Scope(a->type);

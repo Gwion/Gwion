@@ -166,7 +166,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   Expression exp_decl;
   CHECK_EB(env->class_def)
   if(!(path = str2list(type, &array_depth))) {
-    err_msg(TYPE_, 0, "... during mvar import '%s.%s'...", env->class_def->name, name );
+    err_msg(TYPE_, 0, "... during %svar import '%s.%s'...", is_static ? "s" : "m", env->class_def->name, name);
     return -1;
   }
 
@@ -270,18 +270,11 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   Arg_List arg_list = NULL;
   m_uint i, array_depth = 0;
 
-  type_path = str2list(dl_fun->type, &array_depth);
-  if(!type_path) {
+  if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
+     !(type_decl = new_Type_Decl(type_path, 0, 0))) {
     // error
-    err_msg(TYPE_, 0, "...during function import '%s' (type)...", dl_fun->name);
-    goto error;
-  }
-
-  type_decl = new_Type_Decl(type_path, 0, 0);
-  if(!type_decl) {
-    // error
-    err_msg(TYPE_, 0, "...during function import '%s' (type)...", dl_fun->name);
-    goto error;
+    err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name);
+    return NULL;
   }
 
   if(array_depth) {
@@ -299,11 +292,6 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_DL_Func(dl_fun);
   return func_def;
-error:
-  // clean up
-  // if( !func_def ) delete_type_decl( type_decl );
-  // else delete_func_def( func_def );
-  return NULL;
 }
 
 #define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
@@ -311,7 +299,14 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
   CHECK_EO(env->class_def)
-  CHECK_OO((func_def = make_dll_as_fun(mfun, is_static)))
+//  CHECK_OO((
+  func_def = make_dll_as_fun(mfun, is_static);//)))
+  if(!func_def) {
+    free_DL_Func(mfun);
+    scope_rem(env->global_nspc->type, insert_symbol(env->class_def->name));
+    rem_ref(env->class_def->obj, env->class_def);
+    return NULL;
+  }
   CHECK_FN(scan1_Func_Def(env, func_def))
   CHECK_FN(scan2_Func_Def(env, func_def))
   CHECK_FN(check_Func_Def(env, func_def))
