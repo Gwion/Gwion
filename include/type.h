@@ -87,4 +87,6 @@ extern struct Type_ t_array;
 //extern struct Type_ t_io, t_fileio, t_oscsend, t_oscin, t_evdev, t_midiout;
 extern struct Type_ t_io, t_fileio;
 extern struct Type_ t_vararg, t_varobj;
+
+m_bool name_valid(m_str a); // /07/04/17
 #endif

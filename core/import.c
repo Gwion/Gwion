@@ -298,6 +298,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
+  CHECK_BO(name_valid(mfun->name));
   CHECK_EO(env->class_def)
 //  CHECK_OO((
   func_def = make_dll_as_fun(mfun, is_static);//)))

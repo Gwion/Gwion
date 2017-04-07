@@ -197,12 +197,28 @@ void start_type_xid()
   do_type_xid = 1;
 }
 
+m_bool name_valid(m_str a) {
+  m_uint i, len = strlen(a);
+  for(i = 0; i < len; i++) {
+    char c = a[i];
+    if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+          || (c == '_') || (c >= '0' && c <= '9') || (i == 0 && c == '@'))
+      continue;
+    else {
+      err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", a, a);
+      return -1;
+    }
+  }
+  return 1;
+}
+
 m_bool add_global_type(Env env, Type type)
 {
+  if(type->name[0] != '@')
+   CHECK_BB(name_valid(type->name));
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
   type->obj = new_VM_Object(e_type_obj);
-  /*  namespace_add_type(env->global_nspc, insert_symbol(type->name), type);*/
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_Value(env->global_context, v_type, type->name);
   v->checked = 1;
