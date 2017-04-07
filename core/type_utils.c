@@ -202,10 +202,10 @@ m_bool name_valid(m_str a) {
   for(i = 0; i < len; i++) {
     char c = a[i];
     if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-          || (c == '_') || (c >= '0' && c <= '9') || (i == 0 && c == '@'))
+          || (c == '_') || (c >= '0' && c <= '9'))
       continue;
     else {
-      err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", a, a);
+      err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", a, a);
       return -1;
     }
   }
