@@ -70,6 +70,8 @@ void* server_thread(void* data)
 
     if(!(buf = Recv(0)))
       continue;
+    if(buf[strlen(buf) -1] == '\n')
+      buf[strlen(buf) -1] = '\0';
     if(strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
@@ -79,8 +81,6 @@ void* server_thread(void* data)
       buf -= 2;
     } else if(strncmp(buf, "+", 1) == 0) {
       buf += 2;
-      if(buf[strlen(buf) -1] == '\n')
-        buf[strlen(buf) -1] = '\0';
       compile(data, (m_str)buf);
       buf -= 2;
     } else if(strncmp(buf, "loop", 4) == 0)
