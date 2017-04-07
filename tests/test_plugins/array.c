@@ -14,7 +14,7 @@ IMPORT
   CHECK_BB(import_class_begin(env, &t_invalid_var_name, env->global_nspc, NULL, NULL))
 
   import_mvar(env, "int[]", "int_array", 0,0,"invalid name"); // import array var
-  fun = new_DL_Func("float[]", "f", (m_uint)test_mfun);
+  fun = new_DL_Func("float[][]", "f", (m_uint)test_mfun);
   CHECK_OB(import_mfun(env, fun))
 
   CHECK_BB(import_class_end(env))

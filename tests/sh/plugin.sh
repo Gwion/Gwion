@@ -27,6 +27,7 @@ test_plugin end_class
 test_plugin invalid_type1
 test_plugin invalid_type2
 test_plugin invalid_func
+test_plugin invalid_array
 
 # clean
 rm -f *.gcda *.gcno vgcore.* *.o *.so
