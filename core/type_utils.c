@@ -245,7 +245,6 @@ Value find_value(Type type, S_Symbol xid )
     return NULL;
   if(!type->info)
     return NULL;
-  // -1 for base
   if((value = namespace_lookup_value(type->info, xid, -1)))
     return value;
   if(type->parent)

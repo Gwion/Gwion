@@ -175,8 +175,8 @@ continue;
   free_Scope(a->func);
 
   v = scope_get(a->type);
-  for(i = 0; i < vector_size(v); i++) {
-    Type type = (Type)vector_at(v, i);
+  for(i =vector_size(v); i > 0; i--) { // changed /07/04/17 for reverse order.
+    Type type = (Type)vector_at(v, i-1);
     rem_ref(type->obj, type);
   }
   free_Vector(v);
