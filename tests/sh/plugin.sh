@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #2
+# [test] #7
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -16,6 +16,7 @@ test_plugin() {
     make uninstall clean
 	N=$(printf "% 4i" "$n")
 	echo "ok $N test $NAME plugin"
+    n=$((n+1))
 }
 
 pushd tests/test_plugins
@@ -23,8 +24,11 @@ test_plugin coverage
 test_plugin array
 test_plugin begin_class
 test_plugin end_class
+test_plugin invalid_type1
+test_plugin invalid_type2
+test_plugin invalid_func
 
 # clean
-rm *.gcda *.gcno vgcore.* *.o *.so
+rm -f *.gcda *.gcno vgcore.* *.o *.so
 
 popd
