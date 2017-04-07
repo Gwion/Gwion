@@ -24,14 +24,12 @@ static INSTR(String_Assign)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  if(!rhs) {
-    err_msg(INSTR_, 0, "assigning to empty string.");
-    Except(shred);
-    return;
-  }
-  release(rhs, shred);
-  release(lhs, shred);
-  STRING(rhs) = lhs ? STRING(lhs) : NULL;
+  if(rhs->d.data) { // assigning with chuck a empty ref
+    release(lhs, shred);
+    release(rhs, shred);
+    STRING(rhs) = lhs ? STRING(lhs) : NULL;
+  } else
+    **(M_Object**)(shred->reg + SZ_INT) = lhs;
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
