@@ -79,19 +79,19 @@ n=$((n+3))
 ./gwion -l1 &> /dev/null &
 sleep .3
 echo here
-echo '+ examples/sine.gw' | nc -u 127.0.0.1 8888
+echo '+ examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
 sleep .3
-echo '- 1' | nc -u 127.0.0.1 8888
+echo '- 1' | nc -q 1 -u 127.0.0.1 8888
 sleep .3
-echo 'quit' | nc -u 127.0.0.1 8888
+echo 'quit' | nc -q 1 -u 127.0.0.1 8888
 wait
 
 n=$((n+1))
 ./gwion -l1 &> /dev/null &
 #run "$((n))" "../../gwion" "-l1" "file" &
 sleep .3
-echo 'examples/sine.gw' | nc -u 127.0.0.1 8888
+echo 'examples/sine.gw' | nc -q 1 -u 127.0.0.1 8888
 sleep .3
-echo 'loop 0' | nc -u 127.0.0.1 8888
+echo 'loop 0' | nc -q 1 -u 127.0.0.1 8888
 wait
 exit 0
