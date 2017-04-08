@@ -262,7 +262,7 @@ cleanup:
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
     add_ref(context->obj);
   } else {
-    namespace_rollback(env->global_nspc);
+//    namespace_rollback(env->global_nspc);
     //rem_ref(context->obj, context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
