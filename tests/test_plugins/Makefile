@@ -11,7 +11,7 @@ LDFLAGS  = -fPIC --coverage
 ifeq ($(shell uname), Linux)
 LDFLAGS  = -shared
 else
-LDFLAGS+=-bundle --bundle_loader=./gwion
+LDFLAGS+=-bundle -bundle_loader=./gwion
 endif
 
 default: ${NAME}.so
