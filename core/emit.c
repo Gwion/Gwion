@@ -315,6 +315,7 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
   info->length = count;
   instr->ptr = info;
   instr->m_val2 = kindof(type->array_type);
+/*
   if(array == array_seed) {
     Local* l;
     array_seed = NULL;
@@ -324,6 +325,7 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
     }
     instr->m_val = l->offset;
   }
+*/
   return 1;
 }
 

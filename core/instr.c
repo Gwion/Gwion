@@ -1236,6 +1236,7 @@ INSTR(Instr_Array_Init) // for litteral array
   }
   obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
+  vector_append(shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++) {
     switch(instr->m_val2) {
     case Kindof_Int:
@@ -1257,7 +1258,7 @@ INSTR(Instr_Array_Init) // for litteral array
   }
   info->type->obj->ref_count = 1;
   *(M_Object*)shred->reg = obj;
-  *(M_Object*)(shred->mem + instr->m_val) = obj;
+//  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);
 }
 
