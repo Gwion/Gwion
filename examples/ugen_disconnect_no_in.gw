@@ -1,0 +1,3 @@
+Gain a;
+SinOsc s => blackhole;
+a =< s;

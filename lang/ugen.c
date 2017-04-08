@@ -201,25 +201,21 @@ static INSTR(ugen_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
-  if(!rhs->ugen->n_in) {
-    shred->is_done = 1;
-    shred->is_running = 0;
-    err_msg(INSTR_, 0, "'%s' has no inputs", rhs->type_ref->name);
-    return;
-  }
-  if(rhs->ugen->channel) {
-    for(i = 0; i < rhs->ugen->n_out; i++) {
-      M_Object obj = rhs->ugen->channel[i];
-      if(lhs->ugen->n_out > 1) {
-        vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
-        vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
-      } else {
-        vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
-        vector_append(lhs->ugen->to, (vtype)obj->ugen);
+  if(rhs->ugen->n_in) {
+    if(rhs->ugen->channel) {
+      for(i = 0; i < rhs->ugen->n_out; i++) {
+        M_Object obj = rhs->ugen->channel[i];
+        if(lhs->ugen->n_out > 1) {
+          vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
+          vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+        } else {
+          vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
+          vector_append(lhs->ugen->to, (vtype)obj->ugen);
+        }
       }
-    }
-  } else
-    vector_append(rhs->ugen->ugen, (vtype)lhs->ugen);
+    } else
+      vector_append(rhs->ugen->ugen, (vtype)lhs->ugen);
+  }
   release(lhs, shred);
   release(rhs, shred);
   *(M_Object*)shred->reg = rhs;
@@ -235,22 +231,18 @@ static INSTR(ugen_disconnect)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  if(!rhs->ugen->n_in) {
-	// rhs has no inputs, do nothing
-    release(lhs, shred);
-    release(rhs, shred);
-    return;
-  }
-  if(rhs->ugen->channel) {
-    for(i = 0; i < rhs->ugen->n_out; i++) {
-      M_Object obj = rhs->ugen->channel[i];
-      UGen ugen = obj->ugen;
-      vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
-      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
+  if(rhs->ugen->n_in) {
+    if(rhs->ugen->channel) {
+      for(i = 0; i < rhs->ugen->n_out; i++) {
+        M_Object obj = rhs->ugen->channel[i];
+        UGen ugen = obj->ugen;
+        vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
+        vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
+      }
+    } else {
+      vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
+      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
     }
-  } else {
-    vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
-    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
   }
   release(lhs, shred);
   release(rhs, shred);
