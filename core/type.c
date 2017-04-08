@@ -1994,7 +1994,7 @@ static m_bool check_Switch(Env env, Stmt_Switch a)
   }
   vector_append(env->breaks, (vtype)a->self);
   if(check_Stmt(env, a->stmt) < 0) {
-    err_msg(TYPE_, a->pos, "\t... in switch statement");
+    err_msg(TYPE_, a->val->pos, "\t... in switch statement");
     return -1;
   }
   vector_pop(env->breaks);
@@ -2421,7 +2421,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
   if(f->code && check_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
-    err_msg(TYPE_, f->pos, "...in function '%s'", S_name(f->name));
+    err_msg(TYPE_, f->type_decl->pos, "...in function '%s'", S_name(f->name));
     goto error;
   }
 
