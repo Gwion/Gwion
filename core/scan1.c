@@ -683,10 +683,8 @@ static m_bool scan1_Class_Def(Env env, Class_Def class_def)
     CHECK_BB(ret)
     body = body->next;
   }
-  env->class_def = (Type)vector_back(env->class_stack);
-  vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
   return ret;
 }
 

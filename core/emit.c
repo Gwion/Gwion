@@ -883,8 +883,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   code = emit_to_code(emit);
   exp->vm_code = code;
   //exp->ck_vm_code->add_ref();
-  emit->code = (Code*)vector_back(emit->stack);
-  vector_pop(emit->stack);
+  emit->code = (Code*)vector_pop(emit->stack);
 
   Expression e = exp->args;
   m_uint size = 0;
@@ -977,8 +976,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       instr = add_instr(emit, EOC);
       op->m_val = emit->code->stack_depth;
       code = emit_to_code(emit);
-      emit->code = (Code*)vector_back(emit->stack);
-      vector_pop(emit->stack);
+      emit->code = (Code*)vector_pop(emit->stack);
       push_code = add_instr(emit, Reg_Push_Imm);
       push_code->m_val = (m_uint)code;
       spork = add_instr(emit, Spork);
@@ -1087,10 +1085,8 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
     CHECK_BB(check_Func_Def(emit->env, exp_func->m_func->def))
     namespace_pop_type(emit->env->curr);
     if (exp_func->m_func->value_ref->owner_class) {
-      emit->env->class_def = (Type)vector_back(emit->env->class_stack);
-      vector_pop(emit->env->class_stack);
-      emit->env->curr = (NameSpace)vector_back(emit->env->nspc_stack);
-      vector_pop(emit->env->nspc_stack);
+      emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
+      emit->env->curr = (NameSpace)vector_pop(emit->env->nspc_stack);
     }
   }
   if (exp_func->args && !spork) {
@@ -1405,14 +1401,12 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   goto_->m_val = index;
   op->m_val = vector_size(emit->code->code);
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1475,14 +1469,12 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
   op = add_instr(emit, f);
   op->m_val = index;
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1547,14 +1539,12 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   op->m_val = vector_size(emit->code->code);
 
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit ->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1605,14 +1595,12 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
   op->m_val = index;
 
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1708,19 +1696,16 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   _goto->m_val = index;
   emit_add_code(emit, _goto);
 
-  /*(void)instr;*/
   if (stmt->c2)
     op->m_val = vector_size(emit->code->code);
 
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1776,14 +1761,12 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
 
   op->m_val = vector_size(emit->code->code);
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_cont);
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
-    vector_pop(emit->code->stack_cont);
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_back(emit->code->stack_break);
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   emit_pop_scope(emit);
   vector_pop(emit->code->stack_cont);
@@ -1847,12 +1830,11 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   instr->m_val = emit->default_case_index > -1 ? emit->default_case_index : vector_size(emit->code->code);
   emit->default_case_index = -1;
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    _break = (Instr)vector_back(emit->code->stack_break);
+    _break = (Instr)vector_pop(emit->code->stack_break);
     _break->m_val = vector_size(emit->code->code);
-    vector_pop(emit->code->stack_break);
   }
   vector_pop(emit->code->stack_break);
-add_instr(emit, stop_gc);
+  add_instr(emit, stop_gc);
   return 1;
 }
 
@@ -2439,8 +2421,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   // delete the code ?
   /*  rem_ref(emit->code->obj, emit->code);*/
   //  free_Code(emit->code);
-  emit->code = (Code*)vector_back(emit->stack);
-  vector_pop(emit->stack);
+  emit->code = (Code*)vector_pop(emit->stack);
   return 1;
 }
 
@@ -2513,12 +2494,10 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     /*    SAFE_DELETE(type->info->pre_ctor);*/
     free(type->info->class_data);
   }
-  emit->env->class_def = (Type)vector_back(emit->env->class_stack);
-  vector_pop(emit->env->class_stack);
+  emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
   // delete the code
   //    SAFE_DELETE( emit->code );
-  emit->code = (Code*)vector_back(emit->stack);
-  vector_pop(emit->stack);
+  emit->code = (Code*)vector_pop(emit->stack);
   return ret;
 }
 

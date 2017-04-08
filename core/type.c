@@ -358,10 +358,8 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
     }
     body = body->next;
   }
-  env->class_def = (Type)vector_back(env->class_stack);
-  vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
@@ -1243,10 +1241,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     m_func = find_func_match(def->func, args);
     if(m_func) {
       if(v->owner_class) {
-        env->class_def = (Type)vector_back(env->class_stack);
-        vector_pop(env->class_stack);
-        env->curr = (NameSpace)vector_back(env->nspc_stack);
-        vector_pop(env->nspc_stack);
+        env->class_def = (Type)vector_pop(env->class_stack);
+        env->curr = (NameSpace)vector_pop(env->nspc_stack);
       }
       m_func->is_template = 1;
       m_func->def->base = value->func_ref->def->types;
@@ -1260,10 +1256,8 @@ next:
     free_Func_Def(def);
   }
   if(v->owner_class) {
-    env->class_def = (Type)vector_back(env->class_stack);
-    vector_pop(env->class_stack);
-    env->curr = (NameSpace)vector_back(env->nspc_stack);
-    vector_pop(env->nspc_stack);
+    env->class_def = (Type)vector_pop(env->class_stack);
+    env->curr = (NameSpace)vector_pop(env->nspc_stack);
   }
   return NULL;
 }
