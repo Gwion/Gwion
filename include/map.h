@@ -16,7 +16,7 @@ extern void vector_set(Vector vector, const vtype i, vtype data);
 extern long int vector_find(Vector vector, vtype data);
 extern void vector_append(Vector vector, vtype data);
 extern void vector_remove(Vector vector, const vtype index);
-extern void vector_pop(Vector vector);
+extern vtype vector_pop(Vector vector);
 extern vtype vector_front(Vector vector);
 extern vtype vector_at(Vector vector, const vtype);
 extern vtype vector_back(Vector vector);

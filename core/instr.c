@@ -1438,12 +1438,18 @@ array_out_of_bound:
 
 /* try to garbage collect strings in switch */
 INSTR(start_gc) {
-  shred->gc = new_Vector();
+  if(!shred->gc)
+    shred->gc = new_Vector();
+//  vector_append(shred->gc, NULL); enable scoping
 }
 
 INSTR(stop_gc) {
   m_uint i;
-  for(i = 0; i < vector_size(shred->gc); i++)
-    release((M_Object)vector_at(shred->gc, i), shred);
+  M_Object o;
+  while((o = vector_pop(shred->gc)))
+//  for(i = 0; i < vector_size(shred->gc); i++)
+    release(o, shred);
+// vector_pop(shred->gc); // scoping
+// if(vector_size(shred->gc) == 1) // dynamic assign with scoping
   free_Vector(shred->gc);
 }

@@ -100,9 +100,14 @@ void vector_remove(Vector v, const vtype index)
   v->len--;
 }
 
-void vector_pop(Vector v)
+vtype vector_pop(Vector v)
 {
+  vtype ret;
+  if(!v->len)
+    return 0;
+  ret = v->ptr[v->len - 1];
   vector_remove(v, v->len - 1);
+  return ret;
 }
 
 vtype vector_front(Vector v)
