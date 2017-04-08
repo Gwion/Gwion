@@ -7,6 +7,11 @@ CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs
 
 LDFLAGS  = -shared -fPIC --coverage
 
+# os specific
+ifeq ($(shell uname), Linux)
+LDFLAGS+=-bundle -bundle_loader=./gwion
+endif
+
 default: ${NAME}.so
 
 
