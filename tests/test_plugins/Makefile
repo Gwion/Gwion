@@ -5,10 +5,12 @@ SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
 CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs
 
-LDFLAGS  = -shared -fPIC --coverage
+LDFLAGS  = -fPIC --coverage
 
 # os specific
 ifeq ($(shell uname), Linux)
+LDFLAGS  = -shared
+else
 LDFLAGS+=-bundle -bundle_loader=./gwion
 endif
 
