@@ -66,14 +66,14 @@ long int vector_find(Vector v, vtype data)
       return i;
   return -1;
 }
-/*
+
 void vector_set(Vector v, const vtype i, vtype arg)
 {
   if(i >= v->len)
     return;
   v->ptr[i] = (vtype)arg;
 }
-*/
+
 void vector_remove(Vector v, const vtype index)
 {
   vtype* tmp;
