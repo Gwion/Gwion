@@ -13,4 +13,5 @@ IMPORT
   CHECK_BB(add_global_type(env, &t_invalid_var_name))
   CHECK_BB(import_class_begin(env, &t_invalid_var_name, env->global_nspc, NULL, NULL))
   CHECK_BB(import_class_begin(env, &t_invalid_var_name, env->global_nspc, NULL, NULL))
+  return 1;
 }

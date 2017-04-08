@@ -54,4 +54,5 @@ IMPORT
   import_svar(env, "Vec4", "s_w", 1, 0, (void*)w, "");
 
   CHECK_BB(import_class_end(env))
+  return 1;
 }

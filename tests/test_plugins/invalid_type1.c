@@ -15,4 +15,5 @@ IMPORT
   import_mvar(env, "i|nt", "test", 0, 0, "");
 //  import_mvar(env, ".int", "test", 0, 0, "");
   CHECK_BB(import_class_end(env))
+  return 1;
 }
