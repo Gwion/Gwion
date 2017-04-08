@@ -1,5 +1,5 @@
 INC      = ../../include
-CC       = gcc
+CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
