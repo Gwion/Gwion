@@ -1434,3 +1434,16 @@ array_out_of_bound:
   shred->is_running = 0;
   shred->is_done = 1;
 }
+
+
+/* try to garbage collect strings in switch */
+INSTR(start_gc) {
+  shred->gc = new_Vector();
+}
+
+INSTR(stop_gc) {
+  m_uint i;
+  for(i = 0; i < vector_size(shred->gc); i++)
+    release((M_Object)vector_at(shred->gc, i), shred);
+  free_Vector(shred->gc);
+}

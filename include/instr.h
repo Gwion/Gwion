@@ -148,3 +148,6 @@ INSTR(Reg_Dup_Last_Vec4);
 INSTR(Mem_Push_Ret); // test on 13/01/17
 
 INSTR(Instr_Op_Call_Binary);
+
+INSTR(start_gc);
+INSTR(stop_gc);

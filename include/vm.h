@@ -50,6 +50,7 @@ struct VM_Shred_ {
   m_str filename;
   Vector child;
   M_Object wait;
+  Vector gc;
 #ifdef DEBUG_STACK
   m_int mem_index, reg_index;
 #endif

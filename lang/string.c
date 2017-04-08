@@ -472,6 +472,8 @@ INSTR(Reg_Push_Str)
   // modified 13/01/17 'get rid of litteral strings'
   *(M_Object*)shred->reg = new_String((m_str)instr->m_val);
   *(M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
+  if(shred->gc) // garbage collect strings in switch
+    vector_append(shred->gc, (vtype)*(M_Object*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
 

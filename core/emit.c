@@ -1837,11 +1837,16 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
     return -1;
   }
   emit->default_case_index = -1;
+add_instr(emit, start_gc);
   instr = add_instr(emit, Branch_Switch);
   instr->ptr = emit->cases = new_Map();
-//  frame_push_scope(emit->code->frame);
+
+  frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->stmt, 1))
-//  emit_pop_scope(emit);
+//while(vector_back(emit->code->frame->stack))
+//  vector_pop(emit->code->frame->stack);
+//vector_pop(emit->code->frame->stack);
+  emit_pop_scope(emit);
   instr->m_val = emit->default_case_index > -1 ? emit->default_case_index : vector_size(emit->code->code);
   emit->default_case_index = -1;
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
@@ -1850,6 +1855,7 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
     vector_pop(emit->code->stack_break);
   }
   vector_pop(emit->code->stack_break);
+add_instr(emit, stop_gc);
   return 1;
 }
 
