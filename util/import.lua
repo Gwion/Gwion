@@ -69,8 +69,6 @@ if(func.params ~= nil) then
 end
 	print("\tif(FTBL(o))\n    sp_ftbl_destroy(&ftbl);")
 	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
-	print("\tCHECK_SIZE(size);")
-	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
 	local i = 1;
 	local args = "";
 	if(func.params ~= nil) then
@@ -80,6 +78,8 @@ end
 			i = i+1
 		end
 	end
+	print("\tCHECK_SIZE(size);")
+	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
 	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
 	print("\tFTBL(o) = ftbl;")
 --	print("error:\n\tsp_ftbl_destroy(&ftbl);")

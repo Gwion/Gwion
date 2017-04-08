@@ -1438,9 +1438,9 @@ array_out_of_bound:
 
 /* try to garbage collect strings in switch */
 INSTR(start_gc) {
-//  if(!shred->gc) //  dynamic assign
+  if(!shred->gc) //  dynamic assign
     shred->gc = new_Vector();
-//  vector_append(shred->gc, NULL); enable scoping
+  vector_append(shred->gc, (vtype)NULL); // enable scoping
 }
 
 INSTR(stop_gc) {
@@ -1448,6 +1448,6 @@ INSTR(stop_gc) {
   while((o = (M_Object)vector_pop(shred->gc)))
     release(o, shred);
 // vector_pop(shred->gc); // scoping
-// if(vector_size(shred->gc) == 1) // dynamic assign with scoping
-  free_Vector(shred->gc);
+// if(!vector_size(shred->gc)) // dynamic assign with scoping
+//  free_Vector(shred->gc);
 }

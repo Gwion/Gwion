@@ -449,10 +449,10 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 
   case ae_primary_str: // modified 13/01/17 'get rid of litteral strings'
     memcpy(&temp, &primary->d.str, sizeof(temp));
-    l = frame_alloc_local(emit->code->frame, SZ_INT, (m_str)temp, 0, 1);
+//    l = frame_alloc_local(emit->code->frame, SZ_INT, (m_str)temp, 0, 1);
     instr = add_instr(emit, Reg_Push_Str);
     instr->m_val = temp;
-    instr->m_val2 = l->offset;;
+//    instr->m_val2 = l->offset;;
     break;
 
   case ae_primary_array:
@@ -872,11 +872,13 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   }
   vector_append(emit->stack, (vtype)emit->code);
   emit->code = new_Code();
+  add_instr(emit, start_gc);
   emit->code->need_this = exp->m_func->is_member;
   emit->code->name = strdup("spork~exp");
   emit->code->filename = strdup(emit_filename);
   op = add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_Func_Call1(emit, exp->m_func, exp->ret_type, exp->pos))
+  add_instr(emit, stop_gc);
   add_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
 
@@ -970,7 +972,10 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       op = add_instr(emit, Mem_Push_Imm);
       vector_append(emit->spork, (vtype)f);
       frame_push_scope(emit->code->frame);
+
+      add_instr(emit, start_gc);
       CHECK_BB(emit_Stmt(emit, exp_unary->code, 0))
+      add_instr(emit, stop_gc);
       emit_pop_scope(emit);
       op->m_val = emit->code->stack_depth;
       instr = add_instr(emit, EOC);
@@ -2518,7 +2523,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   emit->stack = new_Vector();
   //  emit->code->name = strdup(emit_filename);
   frame_push_scope(emit->code->frame);
-
+add_instr(emit, start_gc);
   while (prog && ret > 0) {
     if (!prog->section)
       return 1;
@@ -2535,6 +2540,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     }
     prog = prog->next;
   }
+  add_instr(emit, stop_gc);
   // handle func pointer
   for(i = 0; i < vector_size(emit->funcs); i++) {
     Func_Ptr* ptr = (Func_Ptr*)vector_at(emit->funcs, i);

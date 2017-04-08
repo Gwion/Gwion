@@ -3207,12 +3207,12 @@ MFUN(ftbl_gen_composite)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_composite(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3224,12 +3224,12 @@ MFUN(ftbl_gen_file)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_file(shred->vm_ref->bbq->sp, ftbl, filename);
 	FTBL(o) = ftbl;
 }
@@ -3241,12 +3241,12 @@ MFUN(ftbl_gen_gauss)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	m_float scale = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	m_int seed = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_gauss(shred->vm_ref->bbq->sp, ftbl, scale, seed);
 	FTBL(o) = ftbl;
 }
@@ -3258,12 +3258,12 @@ MFUN(ftbl_gen_line)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_line(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3275,8 +3275,6 @@ MFUN(ftbl_gen_padsynth)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object amps_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl* amps = FTBL(amps_obj);
@@ -3285,6 +3283,8 @@ MFUN(ftbl_gen_padsynth)
 	gw_offset += SZ_FLOAT;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_padsynth(shred->vm_ref->bbq->sp, ftbl, amps, f, bw);
 	FTBL(o) = ftbl;
 }
@@ -3296,12 +3296,12 @@ MFUN(ftbl_gen_rand)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_rand(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3313,12 +3313,12 @@ MFUN(ftbl_gen_scrambler)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object dest_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl** dest = &FTBL(dest_obj);
 	release(dest_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_scrambler(shred->vm_ref->bbq->sp, ftbl, dest);
 	FTBL(o) = ftbl;
 }
@@ -3342,12 +3342,12 @@ MFUN(ftbl_gen_sinesum)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_sinesum(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3359,12 +3359,12 @@ MFUN(ftbl_gen_xline)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_xline(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
