@@ -830,8 +830,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   }
 
 
-  if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !(func->def->static_decl == ae_key_static && func->def->s_type ==
-ae_func_user))
+//  if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !(func->def->static_decl == ae_key_static && func->def->s_type ==ae_func_user))
+  if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
     add_instr(emit, Mem_Push_Imm);
 
   offset = add_instr(emit, Reg_Push_Imm);
@@ -906,9 +906,6 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
-
-  if(emit->code->need_this)
-    size += SZ_INT;
 
   push_code = add_instr(emit, Reg_Push_Imm);
   push_code->m_val = (m_uint)code;
