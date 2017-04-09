@@ -63,7 +63,9 @@ INSTR(Mem_Push_Imm)
   PUSH_MEM(shred,  SZ_INT);
 }
 
+/*
 // test on 13/01/17
+// removed on 09/04/17
 INSTR(Mem_Push_Ret)
 {
 #ifdef DEBUG_INSTR
@@ -71,7 +73,7 @@ INSTR(Mem_Push_Ret)
 #endif
   *(M_Object*)(shred->mem + instr->m_val) = *(M_Object*)(shred->reg - SZ_INT);
 }
-
+*/
 INSTR(Mem_Set_Imm)
 {
 #ifdef DEBUG_INSTR
