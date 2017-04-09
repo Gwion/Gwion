@@ -9,9 +9,9 @@ LDFLAGS  = -fPIC --coverage
 
 # os specific
 ifeq ($(shell uname), Linux)
-LDFLAGS  = -shared
+LDFLAGS += -shared
 else
-LDFLAGS+=-bundle -undefined dynamic_lookup
+LDFLAGS += -bundle -undefined dynamic_lookup
 endif
 
 default: ${NAME}.so
