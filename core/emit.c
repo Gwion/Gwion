@@ -1594,7 +1594,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
   case te_float:
   case te_dur:
   case te_time:
-    instr = add_instr(emit, Reg_Push_Imm);
+    instr = add_instr(emit, Reg_Push_Imm2);
     f = Branch_Eq_Float;
     break;
 
