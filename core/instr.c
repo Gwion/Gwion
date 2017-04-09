@@ -681,16 +681,16 @@ INSTR(Instr_Op_Call_Binary)
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
   shred->code = func;
-  POP_REG(shred,  stack_depth);
+//  POP_REG(shred,  stack_depth);
+  POP_REG(shred,  l->size + SZ_INT);
   if(func->need_this) {
     *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
     PUSH_MEM(shred,  SZ_INT);
     stack_depth -= SZ_INT;
   }
-  if(isa(l, &t_object) > 0)
-    release(*(M_Object*)(shred->reg), shred);
+ if(isa(l, &t_object) > 0)
+   release(*(M_Object*)(shred->reg), shred);
   if(isa(r, &t_object) > 0)
-//    release(**(M_Object**)(shred->reg + SZ_INT), shred);
     release(**(M_Object**)(shred->reg + l->size), shred);
   if(stack_depth) {
     Kindof kl = kindof(l);
