@@ -151,4 +151,4 @@ INSTR(Instr_Op_Call_Binary);
 
 INSTR(start_gc);
 INSTR(stop_gc);
-INSTR(add_gc);
+//INSTR(add_gc);
