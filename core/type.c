@@ -986,7 +986,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   /*    ( t->xid == t_int.xid) && (t2->xid == t_int.xid)*/
   /*  )*/
   if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
-    return t;
+    return t2;
   if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
     return t2;
   if(isa(t, &t_object) < 0)
@@ -1679,9 +1679,10 @@ static Type check_exp_if(Env env, If_Expression* exp_if )
     return NULL;
 
   // check the type
-  if(isa(cond, &t_int) < 0)
+  if(isa(cond, &t_int) < 0 && isa(cond, &t_float) < 0) {
+    err_msg(TYPE_, exp_if->pos, "Invalid type '%s' in if expression condition.", cond);
     return NULL;
-
+  }
   // make sure the if and else have compatible types
   // TODO: the lesser of two types
   /*  if( !( *if_exp == *else_exp ) )*/
