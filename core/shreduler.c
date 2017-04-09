@@ -8,6 +8,7 @@
 #include "bbq.h"
 #include "map.h"
 #include "oo.h"
+#include "object.h"
 #include "array.h"
 
 struct  Shreduler_ {

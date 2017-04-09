@@ -395,7 +395,6 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 #endif
   Expression e;
   Instr instr;
-  Local* l; // remove litteral string
   /*  m_int temp;*/
   m_uint temp;
   m_float f;
@@ -697,7 +696,6 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "cast %s to %s", from->name, to->name);
 #endif
-  Instr instr;
   f_instr f;
   if (to->xid == from->xid)
     return 1;
@@ -713,8 +711,7 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
     err_msg(EMIT_, 0, "cannot cast '%s' to '%s'", from->name, to->name);
     return -1;
   }
-  instr = add_instr(emit, f);
-  (void)instr; // prevent cppcheck warning
+  add_instr(emit, f);
   return 1;
 }
 
