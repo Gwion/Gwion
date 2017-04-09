@@ -164,8 +164,13 @@ INSTR(Vararg_start)
   debug_msg("instr", "vararg start %i", instr->m_val);
 #endif
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  if (!arg->d)
+  if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
+  if(!arg->s) {
+    POP_REG(shred, SZ_INT); // pop vararg
+    free(arg);
+    return;
+  }
   PUSH_REG(shred, SZ_INT);
   *(m_uint*)(shred->reg - SZ_INT) = 0;
 }
@@ -196,7 +201,7 @@ INSTR(Vararg_end)
   }
   PUSH_REG(shred, SZ_INT);
   arg->i++;
-  if (arg->i == arg->s) {
+  if(arg->i == arg->s) {
     free(arg->d);
     free(arg->k);
     free(arg);

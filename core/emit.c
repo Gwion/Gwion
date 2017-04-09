@@ -828,9 +828,12 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     code = add_instr(emit, Reg_Push_Ptr);
     code->ptr = func->code;
   }
+
+
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !(func->def->static_decl == ae_key_static && func->def->s_type ==
 ae_func_user))
     add_instr(emit, Mem_Push_Imm);
+
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Func_Call);
@@ -1046,15 +1049,12 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func)
     return -1;
   }
   if (exp_func->m_func->def->is_variadic) {
-    /*    exit(6);*/
     m_uint offset = 0, size = 0;
     Expression e = exp_func->args;
     Arg_List l = exp_func->m_func->def->arg_list;
     Vector kinds = new_Vector();
     while (e) {
       if (!l) {
-        /*        Instr instr  = add_instr(emit, Reg_Pop_Word4);*/
-        /*        instr->m_val = e->type->size;*/
         size += e->type->size;
         vector_append(kinds, (vtype)kindof(e->type));
       } else
@@ -1118,7 +1118,10 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
     return -1;
   }
   if(exp_func->m_func->def->is_variadic && !exp_func->args) // handle empty call to variadic functions
+  {
+    Instr vararg = add_instr(emit, MkVararg);
     add_instr(emit, Reg_Push_Imm);
+  }
   return emit_Func_Call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 

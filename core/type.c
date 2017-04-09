@@ -1083,6 +1083,7 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
       e = args;
       e1 = func->def->arg_list;
       count = 1;
+
       while(e) {
         if(e1 == NULL) {
           if(func->def->is_variadic)
