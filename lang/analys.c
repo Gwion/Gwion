@@ -459,9 +459,11 @@ static MFUN(ana_set_fft)
   FFT* ana;
   M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
-//  if(fft)
-//    release(fft, shred);
+  if(fft)
+    release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
+  if(fft)
+    release(fft, shred);
   if(!fft) {
     _fft->size = 0;
     _fft->fval = NULL;
@@ -665,6 +667,7 @@ static MFUN(fc_compute)
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(SZ_FLOAT, vector_size(v), 1);
+  vector_append(shred->gc, (vtype)ret);
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
     if(!obj)

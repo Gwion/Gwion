@@ -567,8 +567,9 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           dot_static->m_val2 = kindof(emit->env->class_def);
           dot_static->ptr = (m_uint*)1;
           instr = add_instr(emit, Assign_Object);
-          Instr pop = add_instr(emit, Reg_Pop_Word4);
-          pop->m_val = SZ_INT;
+//add_instr(emit, add_gc);
+//          Instr pop = add_instr(emit, Reg_Pop_Word4);
+//          pop->m_val = SZ_INT;
           emit->code = code;
           // add ref
           Instr push_obj = add_instr(emit, Dot_Static_Data);
@@ -614,7 +615,16 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         Instr assign = add_instr(emit, Assign_Object);
         assign->ptr = (m_uint*)1;
         assign->m_val = value->offset;
-        /*        assign->m_val2 = value->is_context_global;*/
+//if(value->is_member) {
+//add_instr(emit, add_gc);
+          // add ref
+//          Instr push_obj = add_instr(emit, Dot_Member_Data);
+//          push_obj->m_val = value->offset;
+//          push_obj->m_val2 = Kindof_Int;
+//          add_instr(emit, Reg_AddRef_Object3);
+//          Instr pop2 = add_instr(emit, Reg_Pop_Word4);
+//          pop2->m_val = SZ_INT;
+//}
       }
     }
     /*
@@ -844,13 +854,14 @@ ae_func_user))
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;
   }
-
+/*
   // test on 13/01/17 'Keep track of returned Object'
   if(isa(func->def->ret_type, &t_object) > 0) {
     Local* l = frame_alloc_local(emit->code->frame, SZ_INT, func->name, 0, 1);
     Instr instr = add_instr(emit, Mem_Push_Ret);
     instr->m_val = l->offset;
   }
+*/
   if(is_ptr)
     free(func);
 
@@ -1011,7 +1022,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   case op_new:
     if(isa(exp_unary->self->type, &t_object) > 0) {
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
-      add_instr(emit, add_gc);
+//      add_instr(emit, add_gc);
 //      frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
     }
     break;
@@ -1335,8 +1346,8 @@ static m_bool emit_Return(Emitter emit, Stmt_Return stmt)
 #endif
   CHECK_BB(emit_Expression(emit, stmt->val, 0))
   emit_func_release(emit); // /04/04/2017
-  if(stmt->val && isa(stmt->val->type, &t_object) > 0) // void doesn't have ->val
-	add_instr(emit, Reg_AddRef_Object3);
+//  if(stmt->val && isa(stmt->val->type, &t_object) > 0) // void doesn't have ->val
+//	add_instr(emit, Reg_AddRef_Object3);
   Instr op = add_instr(emit, Goto);
   emit_add_return(emit, op);
 

@@ -162,8 +162,8 @@ INSTR(String_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
   sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred, str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -179,8 +179,8 @@ INSTR(Int_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
   sprintf(str, "%li%s", lhs, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred,str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -195,8 +195,8 @@ INSTR(Float_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_FLOAT);
   char str[1024];
   sprintf(str, "%f%s", lhs, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred,str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -211,8 +211,8 @@ INSTR(Complex_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
   char str[1024];
   sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred,str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -227,8 +227,8 @@ INSTR(Polar_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
   char str[1024];
   sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred,str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -243,8 +243,8 @@ INSTR(Vec3_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC3);
   char str[1024];
   sprintf(str, "@(%f, %f, %f)%s", lhs.x, lhs.y, lhs.z, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred, str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -259,8 +259,8 @@ INSTR(Vec4_String)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC4);
   char str[1024];
   sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred, str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -276,8 +276,8 @@ INSTR(Object_String)
   char str[11 + strlen(STRING(rhs))];
   sprintf(str, "0x%08lu%s" , (uintptr_t)lhs, STRING(rhs));
 //  sprintf(str, "%p%s", (void*)lhs, STRING(rhs));
-  *(M_Object*)shred->reg = new_String(str);
-  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
+  *(M_Object*)shred->reg = new_String(shred,str);
+//  *(M_Object*)(shred->mem + instr->m_val) =*(M_Object*)shred->reg;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -470,10 +470,10 @@ INSTR(Reg_Push_Str)
   debug_msg("instr", "push string %s", (m_str)instr->m_val);
 #endif
   // modified 13/01/17 'get rid of litteral strings'
-  *(M_Object*)shred->reg = new_String((m_str)instr->m_val);
+  *(M_Object*)shred->reg = new_String(shred,(m_str)instr->m_val);
 //M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
-  if(shred->gc) // garbage collect strings in switch
-    vector_append(shred->gc, (vtype)*(M_Object*)shred->reg);
+//  if(shred->gc) // garbage collect strings in switch
+//    vector_append(shred->gc, (vtype)*(M_Object*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -495,7 +495,7 @@ MFUN(string_upper)
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 MFUN(string_lower)
@@ -506,7 +506,7 @@ MFUN(string_lower)
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 MFUN(string_ltrim)
@@ -516,7 +516,7 @@ MFUN(string_ltrim)
   strcpy(c, STRING(o));
   while(c[i] || c[i] == ' ')
     i++;
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred,c);
 }
 
 MFUN(string_rtrim)
@@ -528,7 +528,7 @@ MFUN(string_rtrim)
   char c[len + 2];
   strncpy(c, str, len+1);
   c[len+1] = '\0';
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 MFUN(string_trim)
@@ -552,7 +552,7 @@ MFUN(string_trim)
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 MFUN(string_charAt)
@@ -594,7 +594,7 @@ MFUN(string_substring)
   memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred,c);
 }
 
 MFUN(string_substringN)
@@ -610,7 +610,7 @@ MFUN(string_substringN)
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred,c);
 }
 
 MFUN(string_insert)
@@ -633,7 +633,7 @@ MFUN(string_insert)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(c);;
+  RETURN->d.v_object = new_String(shred,c);;
 }
 
 MFUN(string_replace)
@@ -654,7 +654,7 @@ MFUN(string_replace)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(c);;
+  RETURN->d.v_object = new_String(shred,c);;
 }
 
 MFUN(string_replaceN)
@@ -678,7 +678,7 @@ MFUN(string_replaceN)
     c[i] = str[i];
   c[len] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(c);;
+  RETURN->d.v_object = new_String(shred,c);;
 }
 
 MFUN(string_find)
@@ -973,15 +973,15 @@ m_bool import_string(Env env)
   CHECK_BB(add_binary_op(env, op_chuck, &t_object,  &t_string, &t_string, Object_String_Assign, 1, 0))
   CHECK_BB(add_binary_op(env, op_chuck, &t_null,    &t_string, &t_string, Object_String_Assign, 1, 0))
 
-  CHECK_BB(add_binary_op(env, op_plus, &t_string,  &t_string, &t_string, String_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_int,     &t_string, &t_string, Int_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_float,   &t_string, &t_string, Float_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_complex, &t_string, &t_string, Complex_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_polar,   &t_string, &t_string, Polar_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_vec3,    &t_string, &t_string, Vec3_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_vec4,    &t_string, &t_string, Vec4_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_object,  &t_string, &t_string, Object_String, 1, 1))
-  CHECK_BB(add_binary_op(env, op_plus, &t_null,  &t_string, &t_string, Object_String, 1, 1))
+  CHECK_BB(add_binary_op(env, op_plus, &t_string,  &t_string, &t_string, String_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_int,     &t_string, &t_string, Int_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_float,   &t_string, &t_string, Float_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_complex, &t_string, &t_string, Complex_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_polar,   &t_string, &t_string, Polar_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_vec3,    &t_string, &t_string, Vec3_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_vec4,    &t_string, &t_string, Vec4_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_object,  &t_string, &t_string, Object_String, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus, &t_null,  &t_string, &t_string, Object_String, 1, 0))
 
   CHECK_BB(add_binary_op(env, op_plus_chuck, &t_string,  &t_string, &t_string, String_Plus, 1, 0))
   CHECK_BB(add_binary_op(env, op_plus_chuck, &t_int,     &t_string, &t_string, Int_String_Plus, 1, 0))

@@ -158,7 +158,7 @@ void free_UGen(UGen u)
 
 M_Object new_M_UGen()
 {
-  M_Object o = new_M_Object();
+  M_Object o = new_M_Object(NULL);
   initialize_object(o, &t_ugen);
   o->ugen = new_UGen();
   return o;

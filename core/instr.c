@@ -909,8 +909,7 @@ INSTR(Pre_Constructor)
 
 static void instantiate_object(VM * vm, VM_Shred shred, Type type )
 {
-
-  M_Object object = new_M_Object();
+  M_Object object = new_M_Object(NULL);
   if(!object)
     goto error;
   initialize_object(object, type);

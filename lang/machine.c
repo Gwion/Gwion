@@ -184,7 +184,7 @@ SFUN(machine_check)
   }
   free(s);
   free_Ast(ast); // it could be in 'type_engine_check_prog'
-//  RETURN->d.v_uint = (m_uint)new_String(c);
+//  RETURN->d.v_uint = (m_uint)new_String(shred,c);
   RETURN->d.v_uint = 1;
 }
 

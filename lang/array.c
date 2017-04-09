@@ -31,7 +31,7 @@ DTOR(array_dtor)
 
 M_Object new_M_Array(m_uint size, m_uint length, m_uint depth)
 {
-  M_Object a = new_M_Object();
+  M_Object a = new_M_Object(NULL);
   initialize_object(a, &t_array);
   a->d.array 	    = malloc(sizeof(M_Vector));
   a->d.array->ptr   = calloc(length, size);

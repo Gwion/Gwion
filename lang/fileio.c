@@ -245,10 +245,11 @@ SFUN(file_list)
   }
   Type t = new_array_type(shred->vm_ref->env, &t_array, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
+  vector_append(shred->gc, (vtype)ret);
   ret->type_ref = t;
   t->obj->ref_count = 1;
   for(i = 0; i < n; i++) {
-    M_Object string = new_String(namelist[i]->d_name);
+    M_Object string = new_String(NULL,namelist[i]->d_name);
     i_vector_set(ret->d.array, i, (m_uint)string);
     free(namelist[i]);
   }
@@ -315,14 +316,14 @@ m_bool import_fileio(Env env)
   CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  gw_cin = new_M_Object();
+  gw_cin = new_M_Object(NULL);
   initialize_object(gw_cin, &t_cin);
   EV_SHREDS(gw_cin) = new_Vector();
-  gw_cout = new_M_Object();
+  gw_cout = new_M_Object(NULL);
   initialize_object(gw_cout, &t_cout);
   IO_FILE(gw_cout) = stdout;
   EV_SHREDS(gw_cout) = new_Vector();
-  gw_cerr = new_M_Object();
+  gw_cerr = new_M_Object(NULL);
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_Vector();

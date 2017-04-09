@@ -21,7 +21,7 @@ void NullException(VM_Shred shred)
   shred->is_done = 1;
 }
 
-M_Object new_M_Object()
+M_Object new_M_Object(VM_Shred shred)
 {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->vtable = NULL;
@@ -30,12 +30,14 @@ M_Object new_M_Object()
   a->d.data = NULL;
   a->ugen = NULL;
   a->ref = 1;
+  if(shred)
+    vector_append(shred->gc, (vtype)a);
   return a;
 }
 
-M_Object new_String(m_str str)
+M_Object new_String(VM_Shred shred, m_str str)
 {
-  M_Object o = new_M_Object();
+  M_Object o = new_M_Object(shred);
   initialize_object(o, &t_string);
   STRING(o) = S_name(insert_symbol(str));
   return o;
