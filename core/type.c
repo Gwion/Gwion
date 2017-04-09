@@ -30,10 +30,10 @@ static m_bool check_Class_Def(Env env, Class_Def class_def);
 /* static  */ Func find_func_match(Func up, Expression args);
 
 
-struct Type_ t_void      = { "void",       0, NULL, te_void};
-struct Type_ t_function  = { "@function",   sizeof(m_uint),   NULL, te_function };
-struct Type_ t_func_ptr  = { "@func_ptr",   sizeof(m_uint),   &t_function, te_func_ptr};
-struct Type_ t_class     = { "@Class",       SZ_INT,   NULL, te_class };
+struct Type_ t_void      = { "void",       0,      NULL,        te_void};
+struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
+struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
+struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 
 static int so_filter(const struct dirent* dir)
 {
@@ -1074,7 +1074,7 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
   Func func;
   int match = -1;
   // see if args is nil
-  if(args && args->type == &t_void)
+  if(args && isa(args->type, &t_void) > 0)
     args = NULL;
 
   while(up) {

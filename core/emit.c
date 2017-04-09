@@ -450,17 +450,14 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 
   case ae_primary_str: // modified 13/01/17 'get rid of litteral strings'
     memcpy(&temp, &primary->d.str, sizeof(temp));
-//    l = frame_alloc_local(emit->code->frame, SZ_INT, (m_str)temp, 0, 1);
     instr = add_instr(emit, Reg_Push_Str);
     instr->m_val = temp;
-//    instr->m_val2 = l->offset;;
     break;
 
   case ae_primary_array:
     CHECK_BB(emit_array_lit(emit, primary->d.array))
     break;
-  case ae_primary_nil:
-    instr = add_instr(emit, Reg_Push_Imm);
+  case ae_primary_nil: // was Reg_Push_Imm
     break;
   case ae_primary_hack:
     e = primary->d.exp;
