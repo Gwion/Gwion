@@ -1,3 +1,10 @@
 int i;
 do { <<<i++>>>; }
 while(i < 6);
+do { <<<i-->>>; }
+while(i);
+
+6 => float f;
+do { <<<1 -=> f>>>; }
+while(f);
+
