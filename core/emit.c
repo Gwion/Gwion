@@ -1011,7 +1011,8 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   case op_new:
     if(isa(exp_unary->self->type, &t_object) > 0) {
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
-      frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
+      add_instr(emit, add_gc);
+//      frame_alloc_local(emit->code->frame, SZ_INT, "new", exp_unary->type->ref, 1);
     }
     break;
   case op_sizeof:

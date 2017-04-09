@@ -1452,3 +1452,7 @@ INSTR(stop_gc) {
 // if(!vector_size(shred->gc)) // dynamic assign with scoping
 //  free_Vector(shred->gc);
 }
+
+INSTR(add_gc) {
+  vector_append(shred->gc, *(vtype*)(shred->reg - SZ_INT));
+}
