@@ -760,7 +760,7 @@ MFUN(string_rfind)
   m_str str = STRING(o);
   m_int i = strlen(str) - 1, ret = -1;
   char arg = *(m_int*)(shred->mem + SZ_INT);
-  while(str[i] != '\0') {
+  while(i > -1 && str[i] != '\0') {
     if(str[i] == arg) {
       ret = i;
       break;
