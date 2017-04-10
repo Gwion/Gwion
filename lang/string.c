@@ -758,7 +758,7 @@ MFUN(string_findStrStart)
 MFUN(string_rfind)
 {
   m_str str = STRING(o);
-  m_int i = strlen(str), ret = -1;
+  m_int i = strlen(str) - 1, ret = -1;
   char arg = *(m_int*)(shred->mem + SZ_INT);
   while(str[i] != '\0') {
     if(str[i] == arg) {
