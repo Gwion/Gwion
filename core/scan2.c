@@ -189,8 +189,9 @@ exit(6);
     ptr->value->owner_class = env->class_def;
     ptr->func->is_member   = !ptr->key;
   }
-  /*  if(env->class_def)*/
-  //    ptr->func->is_member   = 1;*/
+//  if(env->class_def) {
+//      ptr->func->is_member   = 1;
+//  }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
   add_ref(ptr->func->obj);
   return 1;

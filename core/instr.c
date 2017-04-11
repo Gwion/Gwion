@@ -102,10 +102,28 @@ INSTR(assign_func)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign func");
 #endif
+
+if(!instr->m_val) {
   POP_REG(shred,  SZ_INT * 2);
   **(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg;
-  PUSH_REG(shred,  SZ_INT);
+//  PUSH_REG(shred,  SZ_INT);
+} else {
+//printf("%p\n", (*(Func*)(shred->reg - SZ_INT))->name);
+printf("offset %i %i\n", instr->m_val, instr->m_val2);
+printf("%p %s\n", *(Func*)(shred->reg - SZ_INT*3), (*(Func*)(shred->reg - SZ_INT*3))->name);
+printf("%p\n", *(m_uint*)(shred->reg - SZ_INT*2));
+  POP_REG(shred,  SZ_INT* 4);
+printf("%s\n", (*(Func*)(shred->reg + SZ_INT))->name);
 
+Func f = (Func) *(m_uint*)(shred->reg + SZ_INT);
+M_Object obj = *(M_Object*)(shred->reg + SZ_INT*2);
+*(Func*)(obj->d.data + instr->m_val2) = f;
+
+  *(m_uint*)shred->reg = *(m_uint*)(shred->reg + SZ_INT);
+*(Func**)(shred->reg + SZ_INT*4) = &f;
+//  *(Func*)(( *(M_Object*)(shred->reg + SZ_INT*2))->d.data + instr->m_val2) = *(m_uint*)(shred->reg + SZ_INT);
+}
+  PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_Push_Mem)
@@ -179,11 +197,17 @@ INSTR(Reg_Push_Ptr)
 INSTR(Reg_Push_Code)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push code [%i]", instr->m_val);
+  debug_msg("instr", "[reg] push code [%i] (%i)", instr->m_val, instr->m_val2);
 #endif
-  Func f = *(Func*)(shred->mem + instr->m_val);
+  Func f;
+  if(instr->m_val2)
+     f =  *(Func*)(shred->reg - SZ_INT);
+  else
+     f =  *(Func*)(shred->mem + instr->m_val);
   if(!f) {
     err_msg(INSTR_, 0, "trying to call empty func pointer.");
+    if(instr->m_val2) // if any, release owner on error
+      release(*(M_Object*)(shred->reg - SZ_INT*2), shred);
 	Except(shred);
   }
   *(VM_Code*)(shred->reg - SZ_INT) = f->code;

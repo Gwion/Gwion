@@ -649,10 +649,28 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
   debug_msg("emit", "binary");
 #endif
   Instr instr;
+// function pointer assignement
   if (binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
+    Value v;
     CHECK_BB(emit_Expression(emit, binary->lhs, 1))
     CHECK_BB(emit_Expression(emit, binary->rhs, 1))
     instr = add_instr(emit, assign_func);
+    switch(binary->rhs->exp_type) {
+      case Dot_Member_type:
+        v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
+        instr->m_val2 = v->offset;
+        instr->m_val = 1;
+        break;
+      case Primary_Expression_type:
+        if(binary->rhs->d.exp_primary->value->is_member) {
+          v = binary->rhs->d.exp_primary->value;
+          instr->m_val = 1;
+          instr->m_val2 = v->offset;
+        }
+        break;
+        default:
+          return -1;
+    }
     return 1;
   }
   CHECK_BB(emit_Expression(emit, binary->lhs, 1))
@@ -817,9 +835,14 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
       code = add_instr(emit, Reg_Push_Ptr);
       code->ptr = func->code;
     } else {
+//printf("value->is_member %p value->owner_class %p\n", func->value_ref->is_member, func->value_ref->owner_class);
+//printf("value->is_member %p value->owner_class %p\n", f);
+//exit(3);
       code = add_instr(emit, Reg_Push_Code);
+//      code->m_val = func->value_ref->is_member ? func->vt_index : func->value_ref->offset;
       code->m_val = func->value_ref->offset;
-      is_ptr = 1;
+      code->m_val2 = func->value_ref->owner_class ? 1 : 0;
+      is_ptr = !func->value_ref->owner_class;
     }
   } else {
     code = add_instr(emit, Reg_Push_Ptr);
@@ -1406,8 +1429,8 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   }
   (void)instr;
   op = add_instr(emit, f);
-  frame_push_scope(emit->code->frame);
-  CHECK_BB(emit_Stmt(emit, stmt->body, 0))
+  frame_push_scope(emit->code->frame); // get down the stack if not code
+  CHECK_BB(emit_Stmt(emit, stmt->body, stmt->body->type == ae_stmt_code ? 0 : 1))
   emit_pop_scope(emit);
 
   goto_ = add_instr(emit, Goto);
@@ -1895,6 +1918,11 @@ static m_bool emit_Func_Ptr(Emitter emit, Func_Ptr* ptr)
 {
   namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_append(emit->funcs, (vtype)ptr);
+if(ptr->key) {
+//rem_ref(ptr->func->obj, ptr->func);
+//add_ref(ptr->func->obj);
+  scope_rem(ptr->value->owner_class->info->func, ptr->xid);
+}
   return 1;
 }
 
@@ -2553,6 +2581,12 @@ add_instr(emit, start_gc);
   for(i = 0; i < vector_size(emit->funcs); i++) {
     Func_Ptr* ptr = (Func_Ptr*)vector_at(emit->funcs, i);
     scope_rem(emit->env->curr->func, ptr->xid);
+if(ptr->key) {
+//exit(12);
+//free(ptr->func->def);
+//  rem_ref(ptr->func->obj, ptr->func);
+//    scope_rem(emit->env->curr->func, ptr->xid);
+}
   }
   // handle empty array type
   for(i = 0; i < vector_size(emit->array); i++) {

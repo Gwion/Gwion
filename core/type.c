@@ -796,10 +796,16 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(binary->rhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
-      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+//      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
+printf("f1 %p f2 %p\n", f1, f2);
       v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
-      f1 = v->func_ref;
+//      f1 = (v->owner_class && v->is_member) ? v->func_ref :
+printf("f1 %p\n", v);
+//if(!v) exit(6);
+//printf("f1 %s %s %lu\n", v->m_type->name, v->name, v->is_member);
+f1 = namespace_lookup_func(binary->rhs->d.exp_dot->t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
       f1 = v->m_type->func;
@@ -844,6 +850,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         return ret_type;
       }
     }
+printf("f1 %p f2 %p\n", f1, f2);
     err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
     return NULL;
   }
@@ -1279,25 +1286,23 @@ next:
   // primary func_ptr
 //printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
   if(exp_func->exp_type == Primary_Expression_type &&
-      exp_func->d.exp_primary->value &&
-      !exp_func->d.exp_primary->value->is_const) {
-ptr = exp_func->d.exp_primary->value;
-//    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-//namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-    /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
+      exp_func->d.exp_primary->value && !exp_func->d.exp_primary->value->is_const) {
+        if(env->class_def && exp_func->d.exp_primary->value->owner_class == env->class_def) {
+      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+          return NULL;
+        }
+        ptr = exp_func->d.exp_primary->value;
+      }
 /*
-    if(!f) {
-      err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
-      return NULL;
-
-    }
+  else if(exp_func->exp_type == Dot_Member_type) {
+        Value v = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
+        if(v && v->owner_class == env->class_def) {
+      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+          return NULL;
+        }
+//        ptr = exp_func->d.exp_primary->value;
+      }
 */
-//    if(!f->func) { // func ptr
-//      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-//      f->func = up;
-//    }
-  }
-
   if(!f) {
     err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
     return NULL;
