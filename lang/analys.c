@@ -689,8 +689,10 @@ static MFUN(fc_add)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
+  if(obj) {
     vector_append(v, (vtype)obj);
+    release(obj, shred);
+  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 
@@ -698,8 +700,10 @@ static MFUN(fc_rem)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
+  if(obj) {
     vector_remove(v, vector_find(v, (vtype)obj));
+    release(obj, shred);
+  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 
