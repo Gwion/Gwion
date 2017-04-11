@@ -773,11 +773,13 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
   Type t;
 
+/*
+  // use this to forbid (..) => fuc_pointer
   if(op == op_chuck && isa(binary->rhs->type, &t_func_ptr) > 0) {
     err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
     return NULL;
   }
-
+*/
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Type r_nspc, l_nspc = NULL;
     m_uint i;
