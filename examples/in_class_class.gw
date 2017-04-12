@@ -6,4 +6,6 @@ class C
 }	
 C c;
 <C.D> d;
+<C.D> @d_ref;
+
 <<< c, d >>>;

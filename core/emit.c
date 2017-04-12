@@ -1429,8 +1429,8 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   }
   (void)instr;
   op = add_instr(emit, f);
-  frame_push_scope(emit->code->frame); // get down the stack if not code
-  CHECK_BB(emit_Stmt(emit, stmt->body, stmt->body->type == ae_stmt_code ? 0 : 1))
+  frame_push_scope(emit->code->frame);
+  CHECK_BB(emit_Stmt(emit, stmt->body, 1)) // was '0' , then 'stmt->body->type == ae_stmt_code ? 0 : 1'
   emit_pop_scope(emit);
 
   goto_ = add_instr(emit, Goto);
@@ -1699,6 +1699,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
+m_uint action_index = vector_size(emit->code->code);
   // emit the action
   if(stmt->c3) {
     CHECK_BB(emit_Expression(emit, stmt->c3, 0))
@@ -1737,7 +1738,9 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
 
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
+//    instr->m_val = index;
+    instr->m_val = action_index;
+//    instr->m_val = vector_size(emit->code->code) - 1;
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
