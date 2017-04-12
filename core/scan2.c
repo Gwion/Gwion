@@ -571,7 +571,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Stmt");
 #endif
-  m_bool ret = -1;
+  m_bool ret = 1;
   Decl_List l;
   if(!stmt)
     return 1;
