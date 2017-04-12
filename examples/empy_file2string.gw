@@ -1,2 +1,3 @@
 FileIO file;
-file => string s;
+string s; // BUG: string have to be declared before
+file => s;
