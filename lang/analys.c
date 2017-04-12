@@ -180,7 +180,7 @@ typedef struct _FFT {
 } _FFT;
 
 typedef double (*f_analys)(_FFT* fft);
-
+/*
 m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 {
   unsigned int i;
@@ -193,6 +193,7 @@ m_float array_max(m_float* f, unsigned int size, unsigned int* index)
   }
   return max;
 }
+*/
 /* from chuck ;-) */
 m_float compute_centroid(_FFT* fft )
 {

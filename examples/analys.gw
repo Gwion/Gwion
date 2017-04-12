@@ -1,13 +1,22 @@
-FFT fft => dac;
+SinOsc s => FFT fft => dac;
+Metro m => blackhole;
+m ]=> fft => blackhole;
+s ]=> fft => blackhole;
 second => now;
+fft.compute();
+1024 => fft.init;
 1024 => fft.init;
 second => now;
 fft.compute();
 
 ANA ana;
 
+FFT dummy;
 ana.compute();
 ana.fft();
+ana.fft(NULL);
+ana.fft(dummy);
+ana.fft(fft);
 ana.fft(fft);
 
 Centroid centroid;
@@ -44,6 +53,18 @@ fft => freq.fft;
 fft => asc.fft;
 fft => ass.fft;
 
+
+centroid.compute();
+spread.compute();
+skewness.compute();
+kurtosis.compute();
+rms.compute();
+rolloff.compute();
+freq.compute();
+asc.compute();
+ass.compute();
+
+second => now;
 
 centroid.compute();
 spread.compute();
