@@ -7,5 +7,5 @@ source tests/sh/common.sh
 cat << EOF > /tmp/In.gw
 In in => dac;
 2::samp => now;
-./gwion /tmp/In.gw &&
-echo "$1 +
+EOF
+run "$(n)" "/tmp/In.gw"
