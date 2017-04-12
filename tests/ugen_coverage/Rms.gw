@@ -1,3 +1,4 @@
 Rms a => dac;
 a.ihp();
 a.ihp(.2);
+samp => now
