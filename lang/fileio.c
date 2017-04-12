@@ -172,14 +172,10 @@ INSTR(file_to_string)
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
   char c[1025];
-  if(IO_FILE(o))
-  {
-//    if(inputAvailable(IO_FILE(o)))
+  if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%s1024", c) < 0) {
-//      if(getline(&c, &size, IO_FILE(o)) < 0) {
-        Except(shred);
-        return;
-      }
+      Except(shred);
+    }
     STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;
   }
