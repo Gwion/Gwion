@@ -120,7 +120,8 @@ fail() {
     echo "not ok $(printf "% 4i" "$n") $desc"
     echo "# $(cat "$log")"
   else
-	local info=$(cat "$log")
+	local info
+  info=$(cat "$log")
     echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
     echo "# $info" >> "$log"
   fi
@@ -161,7 +162,7 @@ test_gw(){
   local n file log ret
   n=$2
   file=$1
-  log=/tmp/gwt_$(printf "%04i" $n).log
+  log=/tmp/gwt_$(printf "%04i" "$n").log
   valgrind --suppressions=util/gwion.supp ./gwion -a -d dummy "$file" &> "$log" |:
   ret=$?
   #enable skip
@@ -253,7 +254,7 @@ test_dir() {
 			if [ $(( $((n-base)) % async)) -eq 0 ]
 			then
 				wait
-				for i in $(seq $offset $n)
+				for i in $(seq "$offset" "$n")
 				do
 					read_test "/tmp/gwt_$(printf "%04i" "$i").log"
 				done

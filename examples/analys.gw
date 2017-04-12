@@ -20,6 +20,10 @@ Freq freq;
 ASC asc;
 ASS ass;
 
+// rolloff specific
+<<< rolloff.percent() >>>;
+<<< rolloff.percent(80) >>>;
+
 FC fc;
 fc.compute();
 fc.rem(rms);
