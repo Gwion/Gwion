@@ -64,7 +64,19 @@ freq.compute();
 asc.compute();
 ass.compute();
 
+centroid => fc.add;
+spread => fc.add;
+skewness => fc.add;
+kurtosis => fc.add;
+rms => fc.add;
+rolloff => fc.add;
+freq => fc.add;
+asc => fc.add;
+ass => fc.add;
+
+fc.compute();
 second => now;
+fc.compute();
 
 centroid.compute();
 spread.compute();
