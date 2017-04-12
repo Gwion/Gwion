@@ -685,7 +685,7 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List arg
 #include "func.h"
 void free_Stmt_Func_Ptr(Func_Ptr* a)
 {
-//  if(a->args)
+//  if(a->args) // commented 13/04/17 for typedef int[]
 //    free_Arg_List(a->args);
   if(a->key != ae_key_static && a->value && !a->value->is_member) {
     if(!a->func)
