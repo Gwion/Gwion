@@ -1,6 +1,6 @@
-SinOsc s => FFT fft => dac;
+Noise n => Tone t => FFT fft => dac;
 
-
+20 => t.hp;
 Step step ]=> fft;
 step => dac;
 1 => step.next;
@@ -23,6 +23,7 @@ ana.fft(NULL);
 ana.fft(dummy);
 ana.fft(fft);
 ana.fft(fft);
+ana.compute();
 
 Centroid centroid;
 Spread spread;

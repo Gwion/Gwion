@@ -113,6 +113,14 @@ function print_mod_func(name, mod)
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
+	if  ninputs > 1 then
+-- unpack loop as we can
+		for i = 1, ninputs do
+			print("\tbase_tick(u->channel["..i.."]->ugen);\n");
+		end
+	elseif ninputs == 1 then
+		print("\tbase_tick(u);\n");
+	end
   if(nmandatory > 0) then
 		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
 	end
