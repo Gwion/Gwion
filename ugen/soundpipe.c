@@ -316,10 +316,8 @@ typedef struct
 TICK(bal_tick)
 {
 	GW_bal* ug = (GW_bal*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_bal_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -1593,10 +1591,8 @@ typedef struct
 TICK(crossfade_tick)
 {
 	GW_crossfade* ug = (GW_crossfade*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_crossfade_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -4568,10 +4564,8 @@ typedef struct
 TICK(panst_tick)
 {
 	GW_panst* ug = (GW_panst*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_panst_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -4908,10 +4902,8 @@ typedef struct
 TICK(phaser_tick)
 {
 	GW_phaser* ug = (GW_phaser*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_phaser_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -6100,10 +6092,8 @@ typedef struct
 TICK(revsc_tick)
 {
 	GW_revsc* ug = (GW_revsc*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_revsc_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -6821,10 +6811,8 @@ typedef struct
 TICK(switch_tick)
 {
 	GW_switch* ug = (GW_switch*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	ugen_compute(u->trig->ugen);
 	sp_switch_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -7997,10 +7985,8 @@ typedef struct
 TICK(vocoder_tick)
 {
 	GW_vocoder* ug = (GW_vocoder*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_vocoder_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -8224,10 +8210,8 @@ typedef struct
 TICK(zitarev_tick)
 {
 	GW_zitarev* ug = (GW_zitarev*)u->ug;
+	base_tick(u->channel[0]->ugen);
 	base_tick(u->channel[1]->ugen);
-
-	base_tick(u->channel[2]->ugen);
-
 	sp_zitarev_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }

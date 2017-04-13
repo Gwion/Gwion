@@ -116,7 +116,7 @@ function print_mod_func(name, mod)
 	if  ninputs > 1 then
 -- unpack loop as we can
 		for i = 1, ninputs do
-			print("\tbase_tick(u->channel["..i.."]->ugen);\n");
+			print("\tbase_tick(u->channel["..(i - 1).."]->ugen);");
 		end
 	elseif ninputs == 1 then
 		print("\tbase_tick(u);\n");
