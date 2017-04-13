@@ -8,4 +8,4 @@ cat << EOF > /tmp/In.gw
 In in => dac;
 2::samp => now;
 EOF
-run "$(n)" "/tmp/In.gw"
+echo -e "1\n2\n3\n" | run "$n" "test In module" "/tmp/In.gw" "file"
