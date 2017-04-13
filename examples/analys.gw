@@ -1,7 +1,12 @@
 SinOsc s => FFT fft => dac;
-Metro m => blackhole;
-m ]=> fft => blackhole;
-s ]=> fft => blackhole;
+
+
+Step step ]=> fft;
+step => dac;
+1 => step.next;
+//Metro m => blackhole;
+//m ]=> fft => blackhole;
+//s ]=> fft => blackhole;
 second => now;
 fft.compute();
 1024 => fft.init;

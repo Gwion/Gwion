@@ -74,12 +74,15 @@ static m_bool fft_tick(UGen u)
   if(!ana->buf)
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
-  if(u->trig && u->trig->ugen->out) {  // if trigged, compute fft
-    smp = sp_buffer_get(ana->buf);
+  if(u->trig) {
+    ugen_compute(u->trig->ugen);
+    if(u->trig->ugen->out) {  // if trigged, compute fft
+      smp = sp_buffer_get(ana->buf);
     /*    if(ana->win)*/                  // do windowing
     /*      ana->win(smp, ana->buf->size);*/
-    smps2freqs(ana->fft, smp, ana->frq);
-    free(smp);
+      smps2freqs(ana->fft, smp, ana->frq);
+      free(smp);
+    }
   }
   return 1;
 }
