@@ -82,7 +82,7 @@ Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
   a->doc = NULL;
   return a;
 }
-
+/*
 Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
 {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
@@ -93,7 +93,7 @@ Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
   a->dot = dot;
   return a;
 }
-
+*/
 Array_Sub new_array_sub(Expression exp, int pos)
 {
   Array_Sub a = calloc(1, sizeof(struct Array_Sub_));

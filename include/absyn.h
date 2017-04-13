@@ -93,7 +93,7 @@ typedef struct {
   m_str doc;
 } Type_Decl;
 Type_Decl* new_Type_Decl(ID_List name, int ref, int pos);
-Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos);
+//Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos);
 void free_Type_Decl(Type_Decl* a);
 
 typedef struct {
