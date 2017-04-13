@@ -1,0 +1,4 @@
+// [contains] used but not defined
+goto here;
+here:
+goto test;
