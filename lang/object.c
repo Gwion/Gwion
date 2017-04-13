@@ -45,10 +45,6 @@ M_Object new_String(VM_Shred shred, m_str str)
 
 m_bool initialize_object(M_Object object, Type type)
 {
-  if (!type->info) {
-    err_msg(TYPE_, 0, "internal error: no type->info for type '%s'", type->name);
-    return -1;
-  }
   object->vtable = type->info->obj_v_table;
   object->type_ref = type;
   object->size = type->obj_size;
