@@ -938,7 +938,7 @@ Stmt* new_stmt_from_until(Expression cond, Stmt* body, m_bool is_do, int pos)
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_until;
   a->d.stmt_until = calloc(1, sizeof(struct Stmt_Until_));
-  a->d.stmt_until->is_do = 0;
+  a->d.stmt_until->is_do = is_do;
   a->d.stmt_until->cond = cond;
   a->d.stmt_until->body = body;
   a->pos = pos;
