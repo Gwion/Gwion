@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #22
+# [test] #26
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -77,6 +77,16 @@ n=$((n+3))
 run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file"&
 sleep .3
 run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file2"&
+sleep .3
+run "$n" "quit" "-l0" "file3"&
+wait
+
+n=$((n+3))
+run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file"&
+sleep .3
+run "$((n+1))" "remove (remote $((n+1)))" "+ sine.gw" "file2"&
+sleep .3
+run "$((n+1))" "remove (remote $((n+1)))" "- 1" "file3"&
 sleep .3
 run "$n" "quit" "-l0" "file3"&
 wait
