@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #19
+# [test] #22
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -73,10 +73,18 @@ sleep .3
 run "$n" "quit" "-l0" "file3"&
 wait
 
-if [ $(uname) == "Linux" ]
-then NC_TIMEOUT="-q"
-else NC_TIMEOUT="-w"
-fi
+n=$((n+3))
+run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file"&
+sleep .3
+run "$((n+1))" "remove (remote $((n+1)))" "-l1 sine.gw" "file2"&
+sleep .3
+run "$n" "quit" "-l0" "file3"&
+wait
+
+#if [ $(uname) == "Linux" ]
+#then NC_TIMEOUT="-q"
+#else NC_TIMEOUT="-w"
+#fi
 
 #n=$((n+3))
 #run "$((n))" "run loop" "-l1" "file" &
