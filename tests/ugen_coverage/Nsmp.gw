@@ -9,7 +9,7 @@ a =< dac;
 	ftbl	ft;
 	ft.gen_sine(1024);
 	int	sr;
-	string	init;
+	"examples/data/out.ini" => string	init;
 
 	a.init(ft, sr, init);a.init(ft, sr, init);
 }
