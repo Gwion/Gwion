@@ -1,9 +1,10 @@
 Noise n => Tone t => FFT fft => dac;
 
 20 => t.hp;
-Step step ]=> fft;
-step => dac;
-1 => step.next;
+Metro m => fft;
+//Step step ]=> fft;
+//step => dac;
+//1 => step.next;
 //Metro m => blackhole;
 //m ]=> fft => blackhole;
 //s ]=> fft => blackhole;

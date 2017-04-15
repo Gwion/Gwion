@@ -138,24 +138,6 @@ UGen new_UGen()
   return u;
 }
 
-void free_UGen(UGen u)
-{
-  free_Vector(u->to);
-  if(u->ugen)
-    free_Vector(u->ugen);
-  else {
-    m_uint i;
-    for(i = 0; i < u->n_chan; i++) {
-      free_UGen(u->channel[i]->ugen);
-      free(u->channel[i]);
-    }
-//    release(u->channel[i], NULL);
-//    release(u->channel[i], NULL);
-    free(u->channel);
-  }
-  free(u);
-}
-
 M_Object new_M_UGen()
 {
   M_Object o = new_M_Object(NULL);
@@ -213,8 +195,10 @@ static INSTR(ugen_connect)
           vector_append(lhs->ugen->to, (vtype)obj->ugen);
         }
       }
-    } else
+    } else {
       vector_append(rhs->ugen->ugen, (vtype)lhs->ugen);
+      vector_append(lhs->ugen->to, (vtype)rhs->ugen);
+    }
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -260,7 +244,7 @@ static INSTR(trig_connect)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig) {
     vector_append(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
-//    vector_append(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
+    vector_append(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -278,7 +262,7 @@ static INSTR(trig_disconnect)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(rhs->ugen->trig) {
     vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  (vtype)lhs->ugen));
-//    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
+    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -286,29 +270,44 @@ static INSTR(trig_disconnect)
   PUSH_REG(shred, SZ_INT);
 }
 
-void ugen_ctor(M_Object o, VM_Shred shred)
-{
+static CTOR(ugen_ctor) {
   o->ugen = new_UGen();
-  /*  o->ugen->to = new_Vector();*/
   vector_append(shred->vm_ref->ugen, (vtype)o->ugen);
 }
 
-
-void ugen_dtor(M_Object o, VM_Shred shred)
-{
-  vector_remove(shred->vm_ref->ugen, (m_uint)vector_find(shred->vm_ref->ugen, (vtype)o->ugen));
-  m_uint i;
-  for(i = 0; i < vector_size(o->ugen->to); i++) {
-    UGen u = (UGen)vector_at(o->ugen->to, i);
-    m_int index = vector_find(u->ugen, (vtype)o->ugen);
-    if(index > -1)
-      vector_remove(u->ugen, index);
-    else
-      u->trig = NULL;
+static DTOR(ugen_dtor) {
+  UGen ug = o->ugen;
+  m_uint i = vector_find(shred->vm_ref->ugen, (vtype)ug);
+  if(i > -1)
+    vector_remove(shred->vm_ref->ugen, i);
+  for(i = 0; i < vector_size(ug->to); i++) {
+    UGen u = (UGen)vector_at(ug->to, i);
+    if(u->ugen) {
+      m_int index = vector_find(u->ugen, (vtype)ug);
+      if(index > -1)
+        vector_remove(u->ugen, index);
+    }
   }
-  if(o->ugen->trig)
-	release(o->ugen->trig, shred);
-  free_UGen(o->ugen);
+
+  if(ug->ugen) {
+    for(i = 0; i < vector_size(ug->ugen); i++) {
+      UGen u = (UGen)vector_at(ug->ugen, i);
+printf("%p\n", u);
+printf("%p\n", u->to);
+      m_int index = vector_find(u->to, (vtype)ug);
+      if(index > -1)
+        vector_remove(u->to, index);
+    }
+    free_Vector(ug->ugen);
+  } else {
+    for(i = 0; i < ug->n_chan; i++)
+      release(ug->channel[i], shred);
+    free(ug->channel);
+  }
+  if(ug->trig)
+    release(ug->trig, shred);
+  free_Vector(ug->to);
+  free(ug);
 }
 
 static MFUN(ugen_channel)

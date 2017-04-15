@@ -55,7 +55,8 @@ ftbl a;
 // testing 'gen_scrambler'
 {
 	ftbl	dest;
-	dest.gen_sine(1024);
+//	dest.gen_sine(1024);
+	a.gen_sine(1024);
 
 	a.gen_scrambler(size, dest);
 }

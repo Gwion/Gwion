@@ -109,6 +109,14 @@ function print_mod_func(name, mod)
 	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
 	if(nmandatory > 0) then
 		print("\tm_bool is_init;")
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\tsp_ftbl** "..v.name..";\n")
+				end
+			end
+		end
 	end
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
@@ -193,9 +201,26 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
-		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n\t\tug->osc = NULL;\n\t}");
+		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n")
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\t\tfree(ug->"..v.name..");\n")
+				end
+			end
+		end
+		print("\t\tug->osc = NULL;\n\t}");
 		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
 		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc, "..args.."))")
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\tug->"..v.name.." = "..v.name..";\n")
+				end
+			end
+		end
 		print("\tug->is_init = 1;\n}\n")
 	end
 -- helper

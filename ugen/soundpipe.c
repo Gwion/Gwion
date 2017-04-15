@@ -157,6 +157,7 @@ MFUN(allpass_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_allpass_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_allpass_create(&ug->osc))
@@ -381,6 +382,7 @@ MFUN(bar_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_bar_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_bar_create(&ug->osc))
@@ -1321,6 +1323,7 @@ MFUN(comb_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_comb_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_comb_create(&ug->osc))
@@ -1484,6 +1487,7 @@ MFUN(conv_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_conv_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_conv_create(&ug->osc))
@@ -1676,6 +1680,7 @@ MFUN(delay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_delay_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_delay_create(&ug->osc))
@@ -1807,6 +1812,7 @@ MFUN(diskin_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_diskin_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_diskin_create(&ug->osc))
@@ -1997,6 +2003,7 @@ MFUN(drip_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_drip_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_drip_create(&ug->osc))
@@ -2159,6 +2166,7 @@ MFUN(dtrig_init)
 	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_dtrig_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_dtrig_create(&ug->osc))
@@ -2494,6 +2502,7 @@ MFUN(fof_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fof_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fof_create(&ug->osc))
@@ -2753,6 +2762,7 @@ MFUN(fog_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fog_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fog_create(&ug->osc))
@@ -2989,6 +2999,7 @@ MFUN(fosc_init)
 	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_fosc_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fosc_create(&ug->osc))
@@ -3122,6 +3133,7 @@ MFUN(gbuzz_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_gbuzz_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_gbuzz_create(&ug->osc))
@@ -3481,6 +3493,7 @@ MFUN(incr_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_incr_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_incr_create(&ug->osc))
@@ -3946,6 +3959,7 @@ MFUN(mincer_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_mincer_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_mincer_create(&ug->osc))
@@ -4219,6 +4233,7 @@ MFUN(nsmp_init)
 	release(init_obj, shred);
 	if(ug->osc) {
 		sp_nsmp_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_nsmp_create(&ug->osc))
@@ -4292,6 +4307,7 @@ MFUN(osc_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_osc_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_osc_create(&ug->osc))
@@ -4334,6 +4350,8 @@ typedef struct
 	sp_data* sp;
 	sp_oscmorph* osc;
 	m_bool is_init;
+	sp_ftbl** tbl;
+
 } GW_oscmorph;
 
 TICK(oscmorph_tick)
@@ -4387,10 +4405,15 @@ MFUN(oscmorph_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_oscmorph_destroy(&ug->osc);
+
+		free(ug->tbl);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_oscmorph_create(&ug->osc))
 	SP_CHECK(sp_oscmorph_init(ug->sp, ug->osc, tbl, nft, phase))
+	ug->tbl = tbl;
+
 	ug->is_init = 1;
 }
 
@@ -4704,6 +4727,7 @@ MFUN(paulstretch_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_paulstretch_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_paulstretch_create(&ug->osc))
@@ -5060,6 +5084,7 @@ MFUN(phasor_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_phasor_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_phasor_create(&ug->osc))
@@ -5176,6 +5201,7 @@ MFUN(pitchamdf_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pitchamdf_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_pitchamdf_create(&ug->osc))
@@ -5231,6 +5257,7 @@ MFUN(pluck_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pluck_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_pluck_create(&ug->osc))
@@ -5315,6 +5342,7 @@ MFUN(port_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_port_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_port_create(&ug->osc))
@@ -5371,6 +5399,7 @@ MFUN(posc3_init)
 	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_posc3_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_posc3_create(&ug->osc))
@@ -5517,6 +5546,7 @@ MFUN(prop_init)
 	release(str_obj, shred);
 	if(ug->osc) {
 		sp_prop_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_prop_create(&ug->osc))
@@ -5663,6 +5693,7 @@ MFUN(ptrack_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_ptrack_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_ptrack_create(&ug->osc))
@@ -6002,6 +6033,7 @@ MFUN(reverse_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_reverse_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_reverse_create(&ug->osc))
@@ -6164,6 +6196,7 @@ MFUN(rpt_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_rpt_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_rpt_create(&ug->osc))
@@ -6369,6 +6402,7 @@ MFUN(sdelay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_sdelay_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_sdelay_create(&ug->osc))
@@ -6430,6 +6464,7 @@ MFUN(slice_init)
 	release(buf_obj, shred);
 	if(ug->osc) {
 		sp_slice_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_slice_create(&ug->osc))
@@ -6501,6 +6536,7 @@ MFUN(smoothdelay_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_smoothdelay_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_smoothdelay_create(&ug->osc))
@@ -6587,6 +6623,7 @@ MFUN(spa_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_spa_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_spa_create(&ug->osc))
@@ -6643,6 +6680,7 @@ MFUN(sparec_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_sparec_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_sparec_create(&ug->osc))
@@ -6794,6 +6832,7 @@ MFUN(tabread_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tabread_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tabread_create(&ug->osc))
@@ -6987,6 +7026,7 @@ MFUN(tblrec_init)
 	release(bar_obj, shred);
 	if(ug->osc) {
 		sp_tblrec_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tblrec_create(&ug->osc))
@@ -7679,6 +7719,7 @@ MFUN(tseg_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tseg_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tseg_create(&ug->osc))
@@ -7781,6 +7822,7 @@ MFUN(tseq_init)
 	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_tseq_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tseq_create(&ug->osc))
@@ -7850,6 +7892,7 @@ MFUN(vdelay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_vdelay_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_vdelay_create(&ug->osc))
@@ -7996,6 +8039,7 @@ MFUN(waveset_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_waveset_destroy(&ug->osc);
+
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_waveset_create(&ug->osc))
