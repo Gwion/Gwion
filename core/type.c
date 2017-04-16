@@ -2387,7 +2387,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
                     "function '%s.%s' matches '%s.%s' but cannot override...",
                     env->class_def->name, S_name(f->name),
                     v->owner_class->name, S_name(f->name));
-            goto error;
+return -1;
+//            goto error;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
