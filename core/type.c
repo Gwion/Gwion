@@ -2352,7 +2352,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
                     "...(reason: '%s.%s' is declared as 'static')",
                     v->owner_class->name, S_name(f->name) );
-            goto error;
+//            goto error;
+            return -1;
           }
 
           // see if function is static
@@ -2364,7 +2365,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name));
-            goto error;
+            return -1;
+//            goto error;
           }
 /*
 // remove abstract /28/03/2017
