@@ -22,7 +22,7 @@ test_plugin() {
 
 # empty plug file
 touch "${GWION_ADD_DIR}/empty.so"
-../../gwion &> /dev/null
+./gwion &> /dev/null
 N=$(printf "% 4i" "$n")
 echo "ok $N test empty plugin"
 n=$((n+1))
