@@ -2393,7 +2393,8 @@ return -1;
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
           vector_set(env->curr->obj_v_table, func->vt_index, (vtype)func);
-          func_name = parent_func->name;
+          free(func->name);
+          func_name = strdup(parent_func->name);
           func->name = func_name;
           value->name = func_name;
         }
