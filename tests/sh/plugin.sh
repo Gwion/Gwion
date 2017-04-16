@@ -1,5 +1,6 @@
 #!/bin/bash
-# [test] #7
+# [test] #8
+
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -19,6 +20,15 @@ test_plugin() {
     n=$((n+1))
 }
 
+# empty plug file
+touch "${GWION_ADD_DIR}/empty.so"
+../../gwion &> /dev/null
+N=$(printf "% 4i" "$n")
+echo "ok $N test empty plugin"
+n=$((n+1))
+rm "${GWION_ADD_DIR}/empty.so"
+
+
 pushd tests/test_plugins
 test_plugin coverage
 test_plugin array
@@ -29,6 +39,7 @@ test_plugin invalid_type2
 test_plugin invalid_func
 test_plugin invalid_array
 test_plugin invalid_arg
+test_plugin no_import
 
 # clean
 rm -f *.gcda *.gcno vgcore.* *.o *.so
