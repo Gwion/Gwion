@@ -33,7 +33,7 @@ check_soundpipe() {
 		then
 			git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		else
-			git clone -b https://github.com/paulbatchelor/Soundpipe.git
+			git clone https://github.com/paulbatchelor/Soundpipe.git
 		fi
 		pushd Soundpipe
 		build_soundpipe
