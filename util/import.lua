@@ -284,7 +284,7 @@ print('#include "vm.h"\
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
-print("#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)")
+print("#define SP_CHECK(a) if(a == SP_NOT_OK){ free(ug); Except(shred)}" )
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")

@@ -12,7 +12,7 @@
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
-#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)
+#define SP_CHECK(a) if(a == SP_NOT_OK){ free(ug); Except(shred)}
 
 DTOR(ftbl_dtor)
 {
