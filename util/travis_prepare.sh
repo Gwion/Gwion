@@ -15,8 +15,6 @@ check_variable "$GWION_TOK_DIR" GWION_TOK_DIR
 check_variable "$GWION_TAG_DIR" GWION_TAG_DIR
 check_variable "$GWION_ADD_DIR" GWION_PLUG_DIR
 
-: "${SP_BRANCH:="master"}"
-
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test

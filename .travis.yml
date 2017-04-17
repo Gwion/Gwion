@@ -29,6 +29,7 @@ env:
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - USE_MEMCHECK=1
     - PREFIX=$TRAVIS_BUILD_DIR
+    - SP_BRANCH=master
   matrix:
     - USE_DOUBLE=1
     - USE_DOUBLE=0
