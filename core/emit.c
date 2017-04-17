@@ -1758,13 +1758,14 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
   debug_msg("emit", "loop");
 #endif
   Instr init = NULL, op = NULL, deref, dec = NULL, _goto = NULL;
-  m_int* counter = calloc(1, sizeof(m_int));
+  m_int* counter;
   m_uint index;
   Type type;
 
   frame_push_scope(emit->code->frame);
   /* coverity[leaked_storage] */
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
+  counter = calloc(1, sizeof(m_int));
   init = add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
   index = vector_size(emit->code->code);
