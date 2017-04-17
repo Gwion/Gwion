@@ -15,6 +15,8 @@ check_variable "$GWION_TOK_DIR" GWION_TOK_DIR
 check_variable "$GWION_TAG_DIR" GWION_TAG_DIR
 check_variable "$GWION_ADD_DIR" GWION_PLUG_DIR
 
+: "${SP_BRANCH:="master"}"
+
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
 	brew install valgrind   # needed for test
@@ -29,12 +31,7 @@ build_soundpipe() {
 
 check_soundpipe() {
 	[ -d Soundpipe ] || {
-	    if [ "$SP_BRANCH" ]
-		then
-			git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
-		else
-			git clone https://github.com/paulbatchelor/Soundpipe.git
-		fi
+		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		pushd Soundpipe
 		build_soundpipe
 		popd
