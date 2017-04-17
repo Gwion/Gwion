@@ -12,7 +12,7 @@
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
-#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)
+#define SP_CHECK(a) if(a == SP_NOT_OK){ free(ug); Except(shred)}
 
 DTOR(ftbl_dtor)
 {
@@ -157,7 +157,6 @@ MFUN(allpass_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_allpass_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_allpass_create(&ug->osc))
@@ -309,8 +308,6 @@ typedef struct
 TICK(bal_tick)
 {
 	GW_bal* ug = (GW_bal*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_bal_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -382,7 +379,6 @@ MFUN(bar_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_bar_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_bar_create(&ug->osc))
@@ -1323,7 +1319,6 @@ MFUN(comb_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_comb_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_comb_create(&ug->osc))
@@ -1487,7 +1482,6 @@ MFUN(conv_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_conv_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_conv_create(&ug->osc))
@@ -1565,8 +1559,6 @@ typedef struct
 TICK(crossfade_tick)
 {
 	GW_crossfade* ug = (GW_crossfade*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_crossfade_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -1680,7 +1672,6 @@ MFUN(delay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_delay_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_delay_create(&ug->osc))
@@ -1812,7 +1803,6 @@ MFUN(diskin_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_diskin_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_diskin_create(&ug->osc))
@@ -2003,7 +1993,6 @@ MFUN(drip_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_drip_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_drip_create(&ug->osc))
@@ -2166,7 +2155,6 @@ MFUN(dtrig_init)
 	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_dtrig_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_dtrig_create(&ug->osc))
@@ -2502,7 +2490,6 @@ MFUN(fof_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fof_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fof_create(&ug->osc))
@@ -2762,7 +2749,6 @@ MFUN(fog_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fog_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fog_create(&ug->osc))
@@ -2999,7 +2985,6 @@ MFUN(fosc_init)
 	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_fosc_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_fosc_create(&ug->osc))
@@ -3133,7 +3118,6 @@ MFUN(gbuzz_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_gbuzz_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_gbuzz_create(&ug->osc))
@@ -3223,12 +3207,12 @@ MFUN(ftbl_gen_composite)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_composite(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3240,12 +3224,12 @@ MFUN(ftbl_gen_file)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_file(shred->vm_ref->bbq->sp, ftbl, filename);
 	FTBL(o) = ftbl;
 }
@@ -3257,12 +3241,12 @@ MFUN(ftbl_gen_gauss)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	m_float scale = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
 	m_int seed = *(m_int*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_gauss(shred->vm_ref->bbq->sp, ftbl, scale, seed);
 	FTBL(o) = ftbl;
 }
@@ -3274,12 +3258,12 @@ MFUN(ftbl_gen_line)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_line(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3291,6 +3275,8 @@ MFUN(ftbl_gen_padsynth)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object amps_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl* amps = FTBL(amps_obj);
@@ -3299,8 +3285,6 @@ MFUN(ftbl_gen_padsynth)
 	gw_offset += SZ_FLOAT;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	gw_offset += SZ_FLOAT;
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_padsynth(shred->vm_ref->bbq->sp, ftbl, amps, f, bw);
 	FTBL(o) = ftbl;
 }
@@ -3312,12 +3296,12 @@ MFUN(ftbl_gen_rand)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_rand(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3329,12 +3313,12 @@ MFUN(ftbl_gen_scrambler)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object dest_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset+=SZ_INT;
 	sp_ftbl** dest = &FTBL(dest_obj);
 	release(dest_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_scrambler(shred->vm_ref->bbq->sp, ftbl, dest);
 	FTBL(o) = ftbl;
 }
@@ -3358,12 +3342,12 @@ MFUN(ftbl_gen_sinesum)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_sinesum(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3375,12 +3359,12 @@ MFUN(ftbl_gen_xline)
 	if(FTBL(o))
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
+	CHECK_SIZE(size);
+	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
 	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
-	CHECK_SIZE(size);
-	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_xline(shred->vm_ref->bbq->sp, ftbl, argstring);
 	FTBL(o) = ftbl;
 }
@@ -3493,7 +3477,6 @@ MFUN(incr_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_incr_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_incr_create(&ug->osc))
@@ -3959,7 +3942,6 @@ MFUN(mincer_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_mincer_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_mincer_create(&ug->osc))
@@ -4233,7 +4215,6 @@ MFUN(nsmp_init)
 	release(init_obj, shred);
 	if(ug->osc) {
 		sp_nsmp_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_nsmp_create(&ug->osc))
@@ -4307,7 +4288,6 @@ MFUN(osc_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_osc_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_osc_create(&ug->osc))
@@ -4350,8 +4330,6 @@ typedef struct
 	sp_data* sp;
 	sp_oscmorph* osc;
 	m_bool is_init;
-	sp_ftbl** tbl;
-
 } GW_oscmorph;
 
 TICK(oscmorph_tick)
@@ -4405,15 +4383,10 @@ MFUN(oscmorph_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_oscmorph_destroy(&ug->osc);
-
-		free(ug->tbl);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_oscmorph_create(&ug->osc))
 	SP_CHECK(sp_oscmorph_init(ug->sp, ug->osc, tbl, nft, phase))
-	ug->tbl = tbl;
-
 	ug->is_init = 1;
 }
 
@@ -4531,8 +4504,6 @@ typedef struct
 TICK(panst_tick)
 {
 	GW_panst* ug = (GW_panst*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_panst_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -4727,7 +4698,6 @@ MFUN(paulstretch_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_paulstretch_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_paulstretch_create(&ug->osc))
@@ -4864,8 +4834,6 @@ typedef struct
 TICK(phaser_tick)
 {
 	GW_phaser* ug = (GW_phaser*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_phaser_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -5084,7 +5052,6 @@ MFUN(phasor_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_phasor_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_phasor_create(&ug->osc))
@@ -5201,7 +5168,6 @@ MFUN(pitchamdf_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pitchamdf_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_pitchamdf_create(&ug->osc))
@@ -5257,7 +5223,6 @@ MFUN(pluck_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pluck_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_pluck_create(&ug->osc))
@@ -5342,7 +5307,6 @@ MFUN(port_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_port_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_port_create(&ug->osc))
@@ -5399,7 +5363,6 @@ MFUN(posc3_init)
 	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_posc3_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_posc3_create(&ug->osc))
@@ -5546,7 +5509,6 @@ MFUN(prop_init)
 	release(str_obj, shred);
 	if(ug->osc) {
 		sp_prop_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_prop_create(&ug->osc))
@@ -5693,7 +5655,6 @@ MFUN(ptrack_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_ptrack_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_ptrack_create(&ug->osc))
@@ -6033,7 +5994,6 @@ MFUN(reverse_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_reverse_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_reverse_create(&ug->osc))
@@ -6050,8 +6010,6 @@ typedef struct
 TICK(revsc_tick)
 {
 	GW_revsc* ug = (GW_revsc*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_revsc_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }
@@ -6196,7 +6154,6 @@ MFUN(rpt_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_rpt_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_rpt_create(&ug->osc))
@@ -6402,7 +6359,6 @@ MFUN(sdelay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_sdelay_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_sdelay_create(&ug->osc))
@@ -6464,7 +6420,6 @@ MFUN(slice_init)
 	release(buf_obj, shred);
 	if(ug->osc) {
 		sp_slice_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_slice_create(&ug->osc))
@@ -6536,7 +6491,6 @@ MFUN(smoothdelay_init)
 	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_smoothdelay_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_smoothdelay_create(&ug->osc))
@@ -6623,7 +6577,6 @@ MFUN(spa_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_spa_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_spa_create(&ug->osc))
@@ -6680,7 +6633,6 @@ MFUN(sparec_init)
 	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_sparec_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_sparec_create(&ug->osc))
@@ -6757,8 +6709,6 @@ typedef struct
 TICK(switch_tick)
 {
 	GW_switch* ug = (GW_switch*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	ugen_compute(u->trig->ugen);
 	sp_switch_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -6832,7 +6782,6 @@ MFUN(tabread_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tabread_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tabread_create(&ug->osc))
@@ -7026,7 +6975,6 @@ MFUN(tblrec_init)
 	release(bar_obj, shred);
 	if(ug->osc) {
 		sp_tblrec_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tblrec_create(&ug->osc))
@@ -7719,7 +7667,6 @@ MFUN(tseg_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tseg_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tseg_create(&ug->osc))
@@ -7822,7 +7769,6 @@ MFUN(tseq_init)
 	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_tseq_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_tseq_create(&ug->osc))
@@ -7892,7 +7838,6 @@ MFUN(vdelay_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_vdelay_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_vdelay_create(&ug->osc))
@@ -7924,8 +7869,6 @@ typedef struct
 TICK(vocoder_tick)
 {
 	GW_vocoder* ug = (GW_vocoder*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_vocoder_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->out);
 	return 1;
 }
@@ -8039,7 +7982,6 @@ MFUN(waveset_init)
 	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_waveset_destroy(&ug->osc);
-
 		ug->osc = NULL;
 	}
 	SP_CHECK(sp_waveset_create(&ug->osc))
@@ -8146,8 +8088,6 @@ typedef struct
 TICK(zitarev_tick)
 {
 	GW_zitarev* ug = (GW_zitarev*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	sp_zitarev_compute(ug->sp, ug->osc, &u->channel[0]->ugen->in, &u->channel[1]->ugen->in, &u->channel[0]->ugen->out, &u->channel[1]->ugen->out);
 	return 1;
 }

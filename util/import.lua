@@ -69,6 +69,8 @@ if(func.params ~= nil) then
 end
 	print("\tif(FTBL(o))\n    sp_ftbl_destroy(&ftbl);")
 	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
+	print("\tCHECK_SIZE(size);")
+	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
 	local i = 1;
 	local args = "";
 	if(func.params ~= nil) then
@@ -78,8 +80,6 @@ end
 			i = i+1
 		end
 	end
-	print("\tCHECK_SIZE(size);")
-	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
 	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
 	print("\tFTBL(o) = ftbl;")
 --	print("error:\n\tsp_ftbl_destroy(&ftbl);")
@@ -109,25 +109,10 @@ function print_mod_func(name, mod)
 	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
 	if(nmandatory > 0) then
 		print("\tm_bool is_init;")
-		local tbl = mod.params.mandatory
-		if tbl then
-			for _, v in pairs(tbl) do
-				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tsp_ftbl** "..v.name..";\n")
-				end
-			end
-		end
 	end
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
-	if ninputs == 1 and noutputs == 1 then
-		print("\tbase_tick(u);");
-	elseif ninputs > 1 then
-		for i = 1, ninputs do
-			print("\tbase_tick(u->channel["..(i - 1).."]->ugen);");
-		end
-	end
   if(nmandatory > 0) then
 		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
 	end
@@ -201,26 +186,9 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
-		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n")
-		local tbl = mod.params.mandatory
-		if tbl then
-			for _, v in pairs(tbl) do
-				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree(ug->"..v.name..");\n")
-				end
-			end
-		end
-		print("\t\tug->osc = NULL;\n\t}");
+		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n\t\tug->osc = NULL;\n\t}");
 		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
 		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc, "..args.."))")
-		local tbl = mod.params.mandatory
-		if tbl then
-			for _, v in pairs(tbl) do
-				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tug->"..v.name.." = "..v.name..";\n")
-				end
-			end
-		end
 		print("\tug->is_init = 1;\n}\n")
 	end
 -- helper
@@ -316,7 +284,7 @@ print('#include "vm.h"\
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
-print("#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)")
+print("#define SP_CHECK(a) if(a == SP_NOT_OK){ free(ug); Except(shred)}" )
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
