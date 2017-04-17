@@ -63,37 +63,37 @@ Env type_engine_init(VM* vm)
   Env env = new_Env();
 
   /* add primitive types */
-  CHECK_BO(add_global_type(env, &t_void))
-  CHECK_BO(import_int(env))
-  /* coverity[leaked_storage : FALSE] */
-  CHECK_BO(import_float(env))
-  CHECK_BO(import_complex(env))
-  CHECK_BO(import_vec3(env))
-  CHECK_BO(import_vec4(env))
+  if(add_global_type(env, &t_void) < 0) goto error;
+
+  if(import_int(env)       < 0) goto error;
+  if(import_float(env)     < 0) goto error;
+  if(import_complex(env)   < 0) goto error;
+  if(import_vec3(env)      < 0) goto error;
+  if(import_vec4(env)      < 0) goto error;
 
   // base object types
-  CHECK_BO(import_object(env))
-  CHECK_BO(import_string(env))
-  CHECK_BO(import_shred(env))
-  CHECK_BO(import_event(env))
-  CHECK_BO(import_ugen(env))
-  CHECK_BO(import_array(env))
+  if(import_object(env)    < 0) goto error;
+  if(import_string(env)    < 0) goto error;
+  if(import_shred(env)     < 0) goto error;
+  if(import_event(env)     < 0) goto error;
+  if(import_ugen(env)      < 0) goto error;
+  if(import_array(env)     < 0) goto error;
 
-//  CHECK_BO(import_io(env))
+//  if(import_io(env) < 0) goto error;
   start_type_xid();
   // event child
-  CHECK_BO(import_fileio(env))
+  if(import_fileio(env)    < 0) goto error;
 
   // libs
-  CHECK_BO(import_lib(env))
-  CHECK_BO(import_machine(env))
+  if(import_lib(env)       < 0) goto error;
+  if(import_machine(env)   < 0) goto error;
 
   // SOUNDPIPE
-  CHECK_BO(import_soundpipe(env))
+  if(import_soundpipe(env) < 0) goto error;
 
-  CHECK_BO(import_analys(env))
+  if(import_analys(env)    < 0) goto error;
   // additionnal UGen modules
-  CHECK_BO(import_modules(env))
+  if(import_modules(env)   < 0) goto error;
 
   vm->dac       = new_M_UGen();
   vm->adc       = new_M_UGen();
@@ -184,6 +184,10 @@ next:
   }
   namespace_commit(env->global_nspc);
   return env;
+
+error:
+  free(env);
+  return NULL;
 }
 
 m_bool check_Context(Env env, Context context)
