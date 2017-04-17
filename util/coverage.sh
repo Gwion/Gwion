@@ -229,6 +229,7 @@ after_success() {
 
 	bash util/coverage.sh run
 
+    EXCLUDE_TARGET=" tests include"
     EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
     EXCLUDE_TARGET+=" Soundpipe"
     EXCLUDE_TARGET+=" examples"
