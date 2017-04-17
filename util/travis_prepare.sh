@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # TODO: output error message
 check_variable() {
 	if [ -z "$1" ]
@@ -30,7 +29,8 @@ build_soundpipe() {
 
 check_soundpipe() {
 	[ -d Soundpipe ] || {
-	    if [ "$SP_BRANCH"" ]
+	    if [ "$SP_BRANCH" ]
+		then
 			git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		else
 			git clone -b https://github.com/paulbatchelor/Soundpipe.git
@@ -42,7 +42,7 @@ check_soundpipe() {
 	}
 	pushd Soundpipe
 	git fetch
-	[ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ] || build_soundpipe
+	[ "$(git rev-parse HEAD)" = "$(git rev-parse @\{u\})" ] || build_soundpipe
 	popd
 	return 0
 }
