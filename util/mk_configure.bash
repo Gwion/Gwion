@@ -143,7 +143,7 @@ done
 	echo "if [ \"\$USE_COVERAGE\" = \"1\"  ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
 	echo "if [ \"\$USE_COVERAGE\" = \"on\" ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
 	echo "if [ \"\$_arg_soundpipe_inc\" ]; then _CFLAGS+=\" \$_arg_soundpipe_inc\";fi"
-	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
+	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS \${_arg_soundpipe_inc} util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
 
 	# generate header
 	echo "./util/generate_header || exit 1"
