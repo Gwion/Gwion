@@ -19,9 +19,13 @@ cache:
 
 env:
   global:
+    - GWION_HAS_DIR=1
+    - DEBUG=1
     - ALSA_D=0
     - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
     - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
+    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+    - BISON_VERSION=bison-3.0.4
     - GWION_DOC_DIR=$TRAVIS_BUILD_DIR/doc
     - GWION_API_DIR=$TRAVIS_BUILD_DIR/api
     - GWION_TOK_DIR=$TRAVIS_BUILD_DIR/tok
@@ -29,10 +33,9 @@ env:
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - USE_MEMCHECK=1
     - PREFIX=$TRAVIS_BUILD_DIR
-    - SP_BRANCH=master
   matrix:
-    - USE_DOUBLE=1
-    - USE_DOUBLE=0
+    - USE_DOUBLE=1 SP_BRANCH=dev
+    - USE_DOUBLE=0 SP_BRANCH=dev
 
 matrix:
   fast_finish: true

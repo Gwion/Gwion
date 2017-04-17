@@ -2307,8 +2307,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
       err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
               S_name(f->name));
       err_msg(TYPE_, f->pos, "from super class '%s'...", override->owner_class->name);
-      return -1;
-//      goto error;
+      goto error;
     }
   }
   if(override) {
@@ -2325,7 +2324,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     while( parent && !parent_match ) {
       if((v = find_value(env->class_def->parent, f->name))) {
         // see if the target is a function
-        if(isa( v->m_type, &t_function) < 0) {
+        if(!isa( v->m_type, &t_function)) {
           err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
                   S_name(f->name));
           err_msg(TYPE_, f->pos, "from super class '%s'...", v->owner_class->name );
