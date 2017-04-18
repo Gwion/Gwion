@@ -223,7 +223,7 @@ function print_mod_func(name, mod)
 		if tbl then
 			for _, v in pairs(tbl) do
 				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree(ug->"..v.name..");")
+					print("\t\tfree("..v.name..");")
 				end
 			end
 		end
@@ -233,7 +233,7 @@ function print_mod_func(name, mod)
 		if tbl then
 			for _, v in pairs(tbl) do
 				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree(ug->"..v.name..");")
+					print("\t\tfree("..v.name..");")
 				end
 			end
 		end

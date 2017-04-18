@@ -4332,11 +4332,11 @@ MFUN(oscmorph_init)
 	gw_offset +=SZ_INT;
 	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	if(sp_oscmorph_create(&ug->osc) == SP_NOT_OK) {
-		free(ug->tbl);
+		free(tbl);
 		Except(shred)
 	}
 	if(sp_oscmorph_init(ug->sp, ug->osc, tbl, nft, phase) == SP_NOT_OK) {
-		free(ug->tbl);
+		free(tbl);
 		Except(shred)
 	}
 	ug->tbl = tbl;

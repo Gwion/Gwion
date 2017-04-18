@@ -429,8 +429,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(value->is_member) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
-      /* coverity[var_deref_op : FALSE] */
-      env->class_def->obj_size += type->size;
+//      env->class_def->obj_size += type->size;
       env->curr->offset += type->size;
     } else if( decl->is_static ) { // static
       if(!env->class_def || env->class_scope > 0 ) {
@@ -1532,18 +1531,23 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       exp_unary->exp->emit_var = 1;
 
       // check type
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
         return t;
       // TODO: check overloading
       break;
 
     case op_minus:
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) || isa(t, &t_float) > 0)
         return t;
       break;
     case op_tilda:
     case op_exclamation:
-      /* coverity[var_deref_model : FALSE] */
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, 
         &t_dur) > 0)
         return &t_int;
@@ -1670,7 +1674,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     }
   err_msg(TYPE_, exp_unary->pos,
           "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
-          op2str( exp_unary->op ), t->name );
+          op2str( exp_unary->op ), t ? "unknown" : t->name );
   return NULL;
 }
 static Type check_exp_if(Env env, If_Expression* exp_if )

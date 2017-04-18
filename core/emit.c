@@ -939,7 +939,6 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   push_code->m_val = (m_uint)code;
   spork = add_instr(emit, Spork);
   spork->m_val = size;
-  spork->m_val2 = (m_uint)exp->m_func; // HACK
   return 1;
 }
 
