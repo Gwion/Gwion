@@ -164,8 +164,13 @@ function print_mod_func(name, mod)
 		print("\tug->is_init = 0;")
 		print("\tug->osc = NULL;")
 	else
+--[=====[
+-- check errors 
 		print("\tif(sp_"..name.."_create(&ug->osc) == SP_NOT_OK) {\n\t\tfree(ug);\n\t\tExcept(shred);\n\t}")
 		print("\tif(sp_"..name.."_init(ug->sp, ug->osc) == SP_NOT_OK) {\n\t\tfree(ug);\n\t\tExcept(shred);\n\t}")
+--]=====]
+		print("sp_"..name.."_create(&ug->osc);")
+		print("sp_"..name.."_init(ug->sp, ug->osc);")
 	end
 	print("\to->ugen->tick = "..name.."_tick;")
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")

@@ -170,8 +170,8 @@ INSTR(file_to_string)
   POP_REG(shred, SZ_INT)
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
-  char c[1025];
   if(IO_FILE(o)) {
+    char c[1025];
     if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
       Except(shred);
     }

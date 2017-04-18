@@ -512,10 +512,11 @@ MFUN(string_lower)
 MFUN(string_ltrim)
 {
   m_uint i = 0;
-  char c[strlen(STRING(o)) + 1];
-  strcpy(c, STRING(o));
-  while(c[i] || c[i] == ' ')
+  m_str str = STRING(o);
+  while(str[i] == ' ')
     i++;
+  char c[strlen(str) - i + 1];
+  strcpy(c, STRING(o) + i);
   RETURN->d.v_object = new_String(shred,c);
 }
 
@@ -837,12 +838,15 @@ MFUN(string_erase)
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   m_int rem = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int len = strlen(str);
-  char c[len - rem];
-  memset(c, 0, len - rem);
+  m_uint size = len -rem + 1;
+  char c[size];
+//  memset(c, 0, len - rem);
+  c[size -1] = '\0';
   for(i = 0; i < start; i++)
     c[i] = str[i];
   for(i = start + rem; i < len; i++)
     c[i - rem] = str[i];
+  STRING(o) = S_name(insert_symbol(c));
 }
 
 MFUN(string_toInt)

@@ -37,14 +37,8 @@ CTOR(adsr_ctor)
 {
 	GW_adsr* ug = malloc(sizeof(GW_adsr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_adsr_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_adsr_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_adsr_create(&ug->osc);
+sp_adsr_init(ug->sp, ug->osc);
 	o->ugen->tick = adsr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -202,14 +196,8 @@ CTOR(atone_ctor)
 {
 	GW_atone* ug = malloc(sizeof(GW_atone));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_atone_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_atone_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_atone_create(&ug->osc);
+sp_atone_init(ug->sp, ug->osc);
 	o->ugen->tick = atone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -253,14 +241,8 @@ CTOR(autowah_ctor)
 {
 	GW_autowah* ug = malloc(sizeof(GW_autowah));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_autowah_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_autowah_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_autowah_create(&ug->osc);
+sp_autowah_init(ug->sp, ug->osc);
 	o->ugen->tick = autowah_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -333,14 +315,8 @@ CTOR(bal_ctor)
 {
 	GW_bal* ug = malloc(sizeof(GW_bal));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_bal_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_bal_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_bal_create(&ug->osc);
+sp_bal_init(ug->sp, ug->osc);
 	o->ugen->tick = bal_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -529,14 +505,8 @@ CTOR(biquad_ctor)
 {
 	GW_biquad* ug = malloc(sizeof(GW_biquad));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_biquad_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_biquad_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_biquad_create(&ug->osc);
+sp_biquad_init(ug->sp, ug->osc);
 	o->ugen->tick = biquad_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -650,14 +620,8 @@ CTOR(biscale_ctor)
 {
 	GW_biscale* ug = malloc(sizeof(GW_biscale));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_biscale_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_biscale_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_biscale_create(&ug->osc);
+sp_biscale_init(ug->sp, ug->osc);
 	o->ugen->tick = biscale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -715,14 +679,8 @@ CTOR(bitcrush_ctor)
 {
 	GW_bitcrush* ug = malloc(sizeof(GW_bitcrush));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_bitcrush_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_bitcrush_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_bitcrush_create(&ug->osc);
+sp_bitcrush_init(ug->sp, ug->osc);
 	o->ugen->tick = bitcrush_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -779,14 +737,8 @@ CTOR(blsaw_ctor)
 {
 	GW_blsaw* ug = malloc(sizeof(GW_blsaw));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_blsaw_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_blsaw_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_blsaw_create(&ug->osc);
+sp_blsaw_init(ug->sp, ug->osc);
 	o->ugen->tick = blsaw_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -843,14 +795,8 @@ CTOR(blsquare_ctor)
 {
 	GW_blsquare* ug = malloc(sizeof(GW_blsquare));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_blsquare_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_blsquare_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_blsquare_create(&ug->osc);
+sp_blsquare_init(ug->sp, ug->osc);
 	o->ugen->tick = blsquare_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -921,14 +867,8 @@ CTOR(bltriangle_ctor)
 {
 	GW_bltriangle* ug = malloc(sizeof(GW_bltriangle));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_bltriangle_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_bltriangle_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_bltriangle_create(&ug->osc);
+sp_bltriangle_init(ug->sp, ug->osc);
 	o->ugen->tick = bltriangle_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -985,14 +925,8 @@ CTOR(brown_ctor)
 {
 	GW_brown* ug = malloc(sizeof(GW_brown));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_brown_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_brown_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_brown_create(&ug->osc);
+sp_brown_init(ug->sp, ug->osc);
 	o->ugen->tick = brown_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -1022,14 +956,8 @@ CTOR(butbp_ctor)
 {
 	GW_butbp* ug = malloc(sizeof(GW_butbp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_butbp_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_butbp_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_butbp_create(&ug->osc);
+sp_butbp_init(ug->sp, ug->osc);
 	o->ugen->tick = butbp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1087,14 +1015,8 @@ CTOR(butbr_ctor)
 {
 	GW_butbr* ug = malloc(sizeof(GW_butbr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_butbr_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_butbr_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_butbr_create(&ug->osc);
+sp_butbr_init(ug->sp, ug->osc);
 	o->ugen->tick = butbr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1152,14 +1074,8 @@ CTOR(buthp_ctor)
 {
 	GW_buthp* ug = malloc(sizeof(GW_buthp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_buthp_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_buthp_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_buthp_create(&ug->osc);
+sp_buthp_init(ug->sp, ug->osc);
 	o->ugen->tick = buthp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1203,14 +1119,8 @@ CTOR(butlp_ctor)
 {
 	GW_butlp* ug = malloc(sizeof(GW_butlp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_butlp_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_butlp_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_butlp_create(&ug->osc);
+sp_butlp_init(ug->sp, ug->osc);
 	o->ugen->tick = butlp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1254,14 +1164,8 @@ CTOR(clip_ctor)
 {
 	GW_clip* ug = malloc(sizeof(GW_clip));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_clip_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_clip_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_clip_create(&ug->osc);
+sp_clip_init(ug->sp, ug->osc);
 	o->ugen->tick = clip_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1306,14 +1210,8 @@ CTOR(clock_ctor)
 {
 	GW_clock* ug = malloc(sizeof(GW_clock));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_clock_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_clock_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_clock_create(&ug->osc);
+sp_clock_init(ug->sp, ug->osc);
 	o->ugen->tick = clock_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -1443,14 +1341,8 @@ CTOR(compressor_ctor)
 {
 	GW_compressor* ug = malloc(sizeof(GW_compressor));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_compressor_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_compressor_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_compressor_create(&ug->osc);
+sp_compressor_init(ug->sp, ug->osc);
 	o->ugen->tick = compressor_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1599,14 +1491,8 @@ CTOR(count_ctor)
 {
 	GW_count* ug = malloc(sizeof(GW_count));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_count_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_count_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_count_create(&ug->osc);
+sp_count_init(ug->sp, ug->osc);
 	o->ugen->tick = count_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -1665,14 +1551,8 @@ CTOR(crossfade_ctor)
 {
 	GW_crossfade* ug = malloc(sizeof(GW_crossfade));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_crossfade_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_crossfade_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_crossfade_create(&ug->osc);
+sp_crossfade_init(ug->sp, ug->osc);
 	o->ugen->tick = crossfade_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -1716,14 +1596,8 @@ CTOR(dcblock_ctor)
 {
 	GW_dcblock* ug = malloc(sizeof(GW_dcblock));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_dcblock_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_dcblock_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_dcblock_create(&ug->osc);
+sp_dcblock_init(ug->sp, ug->osc);
 	o->ugen->tick = dcblock_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1825,14 +1699,8 @@ CTOR(diode_ctor)
 {
 	GW_diode* ug = malloc(sizeof(GW_diode));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_diode_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_diode_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_diode_create(&ug->osc);
+sp_diode_init(ug->sp, ug->osc);
 	o->ugen->tick = diode_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1949,14 +1817,8 @@ CTOR(dist_ctor)
 {
 	GW_dist* ug = malloc(sizeof(GW_dist));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_dist_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_dist_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_dist_create(&ug->osc);
+sp_dist_init(ug->sp, ug->osc);
 	o->ugen->tick = dist_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2041,14 +1903,8 @@ CTOR(dmetro_ctor)
 {
 	GW_dmetro* ug = malloc(sizeof(GW_dmetro));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_dmetro_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_dmetro_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_dmetro_create(&ug->osc);
+sp_dmetro_init(ug->sp, ug->osc);
 	o->ugen->tick = dmetro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -2351,14 +2207,8 @@ CTOR(dust_ctor)
 {
 	GW_dust* ug = malloc(sizeof(GW_dust));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_dust_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_dust_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_dust_create(&ug->osc);
+sp_dust_init(ug->sp, ug->osc);
 	o->ugen->tick = dust_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -2430,14 +2280,8 @@ CTOR(eqfil_ctor)
 {
 	GW_eqfil* ug = malloc(sizeof(GW_eqfil));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_eqfil_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_eqfil_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_eqfil_create(&ug->osc);
+sp_eqfil_init(ug->sp, ug->osc);
 	o->ugen->tick = eqfil_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2510,14 +2354,8 @@ CTOR(expon_ctor)
 {
 	GW_expon* ug = malloc(sizeof(GW_expon));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_expon_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_expon_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_expon_create(&ug->osc);
+sp_expon_init(ug->sp, ug->osc);
 	o->ugen->tick = expon_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -2768,14 +2606,8 @@ CTOR(fofilt_ctor)
 {
 	GW_fofilt* ug = malloc(sizeof(GW_fofilt));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_fofilt_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_fofilt_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_fofilt_create(&ug->osc);
+sp_fofilt_init(ug->sp, ug->osc);
 	o->ugen->tick = fofilt_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3040,14 +2872,8 @@ CTOR(fold_ctor)
 {
 	GW_fold* ug = malloc(sizeof(GW_fold));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_fold_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_fold_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_fold_create(&ug->osc);
+sp_fold_init(ug->sp, ug->osc);
 	o->ugen->tick = fold_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3510,14 +3336,8 @@ CTOR(hilbert_ctor)
 {
 	GW_hilbert* ug = malloc(sizeof(GW_hilbert));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_hilbert_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_hilbert_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_hilbert_create(&ug->osc);
+sp_hilbert_init(ug->sp, ug->osc);
 	o->ugen->tick = hilbert_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -3546,14 +3366,8 @@ CTOR(in_ctor)
 {
 	GW_in* ug = malloc(sizeof(GW_in));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_in_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_in_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_in_create(&ug->osc);
+sp_in_init(ug->sp, ug->osc);
 	o->ugen->tick = in_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3684,14 +3498,8 @@ CTOR(jcrev_ctor)
 {
 	GW_jcrev* ug = malloc(sizeof(GW_jcrev));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_jcrev_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_jcrev_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_jcrev_create(&ug->osc);
+sp_jcrev_init(ug->sp, ug->osc);
 	o->ugen->tick = jcrev_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3720,14 +3528,8 @@ CTOR(jitter_ctor)
 {
 	GW_jitter* ug = malloc(sizeof(GW_jitter));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_jitter_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_jitter_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_jitter_create(&ug->osc);
+sp_jitter_init(ug->sp, ug->osc);
 	o->ugen->tick = jitter_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3800,14 +3602,8 @@ CTOR(line_ctor)
 {
 	GW_line* ug = malloc(sizeof(GW_line));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_line_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_line_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_line_create(&ug->osc);
+sp_line_init(ug->sp, ug->osc);
 	o->ugen->tick = line_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -3879,14 +3675,8 @@ CTOR(lpf18_ctor)
 {
 	GW_lpf18* ug = malloc(sizeof(GW_lpf18));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_lpf18_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_lpf18_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_lpf18_create(&ug->osc);
+sp_lpf18_init(ug->sp, ug->osc);
 	o->ugen->tick = lpf18_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3959,14 +3749,8 @@ CTOR(maygate_ctor)
 {
 	GW_maygate* ug = malloc(sizeof(GW_maygate));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_maygate_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_maygate_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_maygate_create(&ug->osc);
+sp_maygate_init(ug->sp, ug->osc);
 	o->ugen->tick = maygate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -4023,14 +3807,8 @@ CTOR(metro_ctor)
 {
 	GW_metro* ug = malloc(sizeof(GW_metro));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_metro_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_metro_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_metro_create(&ug->osc);
+sp_metro_init(ug->sp, ug->osc);
 	o->ugen->tick = metro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -4177,14 +3955,8 @@ CTOR(mode_ctor)
 {
 	GW_mode* ug = malloc(sizeof(GW_mode));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_mode_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_mode_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_mode_create(&ug->osc);
+sp_mode_init(ug->sp, ug->osc);
 	o->ugen->tick = mode_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4242,14 +4014,8 @@ CTOR(moogladder_ctor)
 {
 	GW_moogladder* ug = malloc(sizeof(GW_moogladder));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_moogladder_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_moogladder_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_moogladder_create(&ug->osc);
+sp_moogladder_init(ug->sp, ug->osc);
 	o->ugen->tick = moogladder_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4306,14 +4072,8 @@ CTOR(noise_ctor)
 {
 	GW_noise* ug = malloc(sizeof(GW_noise));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_noise_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_noise_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_noise_create(&ug->osc);
+sp_noise_init(ug->sp, ug->osc);
 	o->ugen->tick = noise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -4642,14 +4402,8 @@ CTOR(pan2_ctor)
 {
 	GW_pan2* ug = malloc(sizeof(GW_pan2));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_pan2_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_pan2_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_pan2_create(&ug->osc);
+sp_pan2_init(ug->sp, ug->osc);
 	o->ugen->tick = pan2_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -4708,14 +4462,8 @@ CTOR(panst_ctor)
 {
 	GW_panst* ug = malloc(sizeof(GW_panst));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_panst_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_panst_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_panst_create(&ug->osc);
+sp_panst_init(ug->sp, ug->osc);
 	o->ugen->tick = panst_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -4773,14 +4521,8 @@ CTOR(pareq_ctor)
 {
 	GW_pareq* ug = malloc(sizeof(GW_pareq));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_pareq_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_pareq_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_pareq_create(&ug->osc);
+sp_pareq_init(ug->sp, ug->osc);
 	o->ugen->tick = pareq_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4929,14 +4671,8 @@ CTOR(pdhalf_ctor)
 {
 	GW_pdhalf* ug = malloc(sizeof(GW_pdhalf));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_pdhalf_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_pdhalf_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_pdhalf_create(&ug->osc);
+sp_pdhalf_init(ug->sp, ug->osc);
 	o->ugen->tick = pdhalf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4980,14 +4716,8 @@ CTOR(peaklim_ctor)
 {
 	GW_peaklim* ug = malloc(sizeof(GW_peaklim));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_peaklim_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_peaklim_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_peaklim_create(&ug->osc);
+sp_peaklim_init(ug->sp, ug->osc);
 	o->ugen->tick = peaklim_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -5060,14 +4790,8 @@ CTOR(phaser_ctor)
 {
 	GW_phaser* ug = malloc(sizeof(GW_phaser));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_phaser_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_phaser_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_phaser_create(&ug->osc);
+sp_phaser_init(ug->sp, ug->osc);
 	o->ugen->tick = phaser_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -5307,14 +5031,8 @@ CTOR(pinknoise_ctor)
 {
 	GW_pinknoise* ug = malloc(sizeof(GW_pinknoise));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_pinknoise_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_pinknoise_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_pinknoise_create(&ug->osc);
+sp_pinknoise_init(ug->sp, ug->osc);
 	o->ugen->tick = pinknoise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5648,14 +5366,8 @@ CTOR(progress_ctor)
 {
 	GW_progress* ug = malloc(sizeof(GW_progress));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_progress_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_progress_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_progress_create(&ug->osc);
+sp_progress_init(ug->sp, ug->osc);
 	o->ugen->tick = progress_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5786,14 +5498,8 @@ CTOR(pshift_ctor)
 {
 	GW_pshift* ug = malloc(sizeof(GW_pshift));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_pshift_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_pshift_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_pshift_create(&ug->osc);
+sp_pshift_init(ug->sp, ug->osc);
 	o->ugen->tick = pshift_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -5923,14 +5629,8 @@ CTOR(randh_ctor)
 {
 	GW_randh* ug = malloc(sizeof(GW_randh));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_randh_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_randh_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_randh_create(&ug->osc);
+sp_randh_init(ug->sp, ug->osc);
 	o->ugen->tick = randh_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -6001,14 +5701,8 @@ CTOR(randi_ctor)
 {
 	GW_randi* ug = malloc(sizeof(GW_randi));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_randi_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_randi_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_randi_create(&ug->osc);
+sp_randi_init(ug->sp, ug->osc);
 	o->ugen->tick = randi_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -6093,14 +5787,8 @@ CTOR(random_ctor)
 {
 	GW_random* ug = malloc(sizeof(GW_random));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_random_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_random_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_random_create(&ug->osc);
+sp_random_init(ug->sp, ug->osc);
 	o->ugen->tick = random_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -6158,14 +5846,8 @@ CTOR(reson_ctor)
 {
 	GW_reson* ug = malloc(sizeof(GW_reson));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_reson_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_reson_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_reson_create(&ug->osc);
+sp_reson_init(ug->sp, ug->osc);
 	o->ugen->tick = reson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6282,14 +5964,8 @@ CTOR(revsc_ctor)
 {
 	GW_revsc* ug = malloc(sizeof(GW_revsc));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_revsc_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_revsc_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_revsc_create(&ug->osc);
+sp_revsc_init(ug->sp, ug->osc);
 	o->ugen->tick = revsc_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -6347,14 +6023,8 @@ CTOR(rms_ctor)
 {
 	GW_rms* ug = malloc(sizeof(GW_rms));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_rms_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_rms_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_rms_create(&ug->osc);
+sp_rms_init(ug->sp, ug->osc);
 	o->ugen->tick = rms_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6460,14 +6130,8 @@ CTOR(samphold_ctor)
 {
 	GW_samphold* ug = malloc(sizeof(GW_samphold));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_samphold_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_samphold_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_samphold_create(&ug->osc);
+sp_samphold_init(ug->sp, ug->osc);
 	o->ugen->tick = samphold_tick;
 	assign_ugen(o->ugen, 2, 1, 1, ug);
 }
@@ -6497,14 +6161,8 @@ CTOR(saturator_ctor)
 {
 	GW_saturator* ug = malloc(sizeof(GW_saturator));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_saturator_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_saturator_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_saturator_create(&ug->osc);
+sp_saturator_init(ug->sp, ug->osc);
 	o->ugen->tick = saturator_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6562,14 +6220,8 @@ CTOR(scale_ctor)
 {
 	GW_scale* ug = malloc(sizeof(GW_scale));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_scale_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_scale_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_scale_create(&ug->osc);
+sp_scale_init(ug->sp, ug->osc);
 	o->ugen->tick = scale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6971,14 +6623,8 @@ CTOR(streson_ctor)
 {
 	GW_streson* ug = malloc(sizeof(GW_streson));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_streson_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_streson_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_streson_create(&ug->osc);
+sp_streson_init(ug->sp, ug->osc);
 	o->ugen->tick = streson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7039,14 +6685,8 @@ CTOR(switch_ctor)
 {
 	GW_switch* ug = malloc(sizeof(GW_switch));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_switch_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_switch_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_switch_create(&ug->osc);
+sp_switch_init(ug->sp, ug->osc);
 	o->ugen->tick = switch_tick;
 	assign_ugen(o->ugen, 3, 1, 1, ug);
 }
@@ -7180,14 +6820,8 @@ CTOR(tadsr_ctor)
 {
 	GW_tadsr* ug = malloc(sizeof(GW_tadsr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tadsr_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tadsr_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tadsr_create(&ug->osc);
+sp_tadsr_init(ug->sp, ug->osc);
 	o->ugen->tick = tadsr_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7335,14 +6969,8 @@ CTOR(tbvcf_ctor)
 {
 	GW_tbvcf* ug = malloc(sizeof(GW_tbvcf));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tbvcf_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tbvcf_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tbvcf_create(&ug->osc);
+sp_tbvcf_init(ug->sp, ug->osc);
 	o->ugen->tick = tbvcf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7429,14 +7057,8 @@ CTOR(tdiv_ctor)
 {
 	GW_tdiv* ug = malloc(sizeof(GW_tdiv));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tdiv_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tdiv_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tdiv_create(&ug->osc);
+sp_tdiv_init(ug->sp, ug->osc);
 	o->ugen->tick = tdiv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7495,14 +7117,8 @@ CTOR(tenv_ctor)
 {
 	GW_tenv* ug = malloc(sizeof(GW_tenv));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tenv_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tenv_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tenv_create(&ug->osc);
+sp_tenv_init(ug->sp, ug->osc);
 	o->ugen->tick = tenv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7575,14 +7191,8 @@ CTOR(tenv2_ctor)
 {
 	GW_tenv2* ug = malloc(sizeof(GW_tenv2));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tenv2_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tenv2_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tenv2_create(&ug->osc);
+sp_tenv2_init(ug->sp, ug->osc);
 	o->ugen->tick = tenv2_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7641,14 +7251,8 @@ CTOR(tenvx_ctor)
 {
 	GW_tenvx* ug = malloc(sizeof(GW_tenvx));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tenvx_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tenvx_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tenvx_create(&ug->osc);
+sp_tenvx_init(ug->sp, ug->osc);
 	o->ugen->tick = tenvx_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7721,14 +7325,8 @@ CTOR(tgate_ctor)
 {
 	GW_tgate* ug = malloc(sizeof(GW_tgate));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tgate_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tgate_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tgate_create(&ug->osc);
+sp_tgate_init(ug->sp, ug->osc);
 	o->ugen->tick = tgate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7772,14 +7370,8 @@ CTOR(thresh_ctor)
 {
 	GW_thresh* ug = malloc(sizeof(GW_thresh));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_thresh_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_thresh_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_thresh_create(&ug->osc);
+sp_thresh_init(ug->sp, ug->osc);
 	o->ugen->tick = thresh_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7837,14 +7429,8 @@ CTOR(timer_ctor)
 {
 	GW_timer* ug = malloc(sizeof(GW_timer));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_timer_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_timer_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_timer_create(&ug->osc);
+sp_timer_init(ug->sp, ug->osc);
 	o->ugen->tick = timer_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7875,14 +7461,8 @@ CTOR(tin_ctor)
 {
 	GW_tin* ug = malloc(sizeof(GW_tin));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tin_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tin_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tin_create(&ug->osc);
+sp_tin_init(ug->sp, ug->osc);
 	o->ugen->tick = tin_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7912,14 +7492,8 @@ CTOR(tone_ctor)
 {
 	GW_tone* ug = malloc(sizeof(GW_tone));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_tone_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_tone_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_tone_create(&ug->osc);
+sp_tone_init(ug->sp, ug->osc);
 	o->ugen->tick = tone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7964,14 +7538,8 @@ CTOR(trand_ctor)
 {
 	GW_trand* ug = malloc(sizeof(GW_trand));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_trand_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_trand_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_trand_create(&ug->osc);
+sp_trand_init(ug->sp, ug->osc);
 	o->ugen->tick = trand_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -8278,14 +7846,8 @@ CTOR(vocoder_ctor)
 {
 	GW_vocoder* ug = malloc(sizeof(GW_vocoder));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_vocoder_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_vocoder_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_vocoder_create(&ug->osc);
+sp_vocoder_init(ug->sp, ug->osc);
 	o->ugen->tick = vocoder_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -8429,14 +7991,8 @@ CTOR(wpkorg35_ctor)
 {
 	GW_wpkorg35* ug = malloc(sizeof(GW_wpkorg35));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_wpkorg35_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_wpkorg35_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_wpkorg35_create(&ug->osc);
+sp_wpkorg35_init(ug->sp, ug->osc);
 	o->ugen->tick = wpkorg35_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -8509,14 +8065,8 @@ CTOR(zitarev_ctor)
 {
 	GW_zitarev* ug = malloc(sizeof(GW_zitarev));
 	ug->sp = shred->vm_ref->bbq->sp;
-	if(sp_zitarev_create(&ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
-	if(sp_zitarev_init(ug->sp, ug->osc) == SP_NOT_OK) {
-		free(ug);
-		Except(shred);
-	}
+sp_zitarev_create(&ug->osc);
+sp_zitarev_init(ug->sp, ug->osc);
 	o->ugen->tick = zitarev_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }

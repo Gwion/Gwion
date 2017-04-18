@@ -850,6 +850,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         return ret_type;
       }
     }
+printf("f1 %p f2 %p\n", f1, f2);
     err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
     return NULL;
   }
@@ -1498,7 +1499,6 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
 static Type check_Unary(Env env, Unary_Expression* exp_unary)
 {
   Type t = NULL;
-/*
   if(exp_unary->exp) {
     if(exp_unary->op == op_new) {
       err_msg(TYPE_, exp_unary->pos, "internal error: exp_unary expression not with 'new'");
@@ -1508,10 +1508,6 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     if(!t)
       return NULL;
   }
-*/
-    if(exp_unary->op != op_new || exp_unary->op == op_spork)
-		CHECK_OO((t = check_Expression(env, exp_unary->exp)))
-
   // check code stmt; this is to eventually support sporking of code (added 1.3.0.0)
   if(exp_unary->code)
     CHECK_BO(check_Stmt(env, exp_unary->code))
