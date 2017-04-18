@@ -319,7 +319,7 @@ static MFUN(ugen_channel)
     RETURN->d.v_object = NULL;
   else {
 	RETURN->d.v_object = o->ugen->channel[i];
-	o->ugen->channel[i]->ref++;
+//	o->ugen->channel[i]->ref++;
   }
 }
 

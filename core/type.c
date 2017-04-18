@@ -850,7 +850,6 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
         return ret_type;
       }
     }
-printf("f1 %p f2 %p\n", f1, f2);
     err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
     return NULL;
   }
@@ -1219,7 +1218,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       if(!list->list)
         break;
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      base_t->next = NULL;
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
@@ -1284,7 +1282,6 @@ next:
   exp_func->type = check_Expression(env, exp_func);
   f = exp_func->type;
   // primary func_ptr
-//printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
   if(exp_func->exp_type == Primary_Expression_type &&
       exp_func->d.exp_primary->value && !exp_func->d.exp_primary->value->is_const) {
         if(env->class_def && exp_func->d.exp_primary->value->owner_class == env->class_def) {
@@ -1499,6 +1496,7 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
 static Type check_Unary(Env env, Unary_Expression* exp_unary)
 {
   Type t = NULL;
+/*
   if(exp_unary->exp) {
     if(exp_unary->op == op_new) {
       err_msg(TYPE_, exp_unary->pos, "internal error: exp_unary expression not with 'new'");
@@ -1508,6 +1506,9 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     if(!t)
       return NULL;
   }
+*/
+  if(exp_unary->op != op_new && !exp_unary->code)
+    CHECK_OO((t = check_Expression(env, exp_unary->exp)))
   // check code stmt; this is to eventually support sporking of code (added 1.3.0.0)
   if(exp_unary->code)
     CHECK_BO(check_Stmt(env, exp_unary->code))
