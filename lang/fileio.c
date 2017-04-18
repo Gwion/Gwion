@@ -171,9 +171,9 @@ INSTR(file_to_string)
   /*  char ret[1024];*/
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
-  char c[1025];
   if(IO_FILE(o)) {
-    if(fscanf(IO_FILE(o), "%s1024", c) < 0) {
+    char c[1025];
+    if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
       Except(shred);
     }
     STRING(s) = S_name(insert_symbol(c));

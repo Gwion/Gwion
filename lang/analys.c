@@ -68,7 +68,6 @@ typedef struct {
 
 static m_bool fft_tick(UGen u)
 {
-  m_float* smp;
   FFT* ana = (FFT*)u->ug;
   base_tick(u);                         // compute inputs
   if(!ana->buf)
@@ -77,7 +76,7 @@ static m_bool fft_tick(UGen u)
   if(u->trig) {
     ugen_compute(u->trig->ugen);
     if(u->trig->ugen->out) {  // if trigged, compute fft
-      smp = sp_buffer_get(ana->buf);
+      m_float* smp = sp_buffer_get(ana->buf);
     /*    if(ana->win)*/                  // do windowing
     /*      ana->win(smp, ana->buf->size);*/
       smps2freqs(ana->fft, smp, ana->frq);

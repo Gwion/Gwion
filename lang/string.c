@@ -514,7 +514,7 @@ MFUN(string_ltrim)
   m_uint i = 0;
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
-  while(c[i] || c[i] == ' ')
+  while(c != '\0' || c[i] == ' ')
     i++;
   RETURN->d.v_object = new_String(shred,c);
 }
@@ -843,6 +843,7 @@ MFUN(string_erase)
     c[i] = str[i];
   for(i = start + rem; i < len; i++)
     c[i - rem] = str[i];
+  STRING(o) = S_name(insert_symbol(c));
 }
 
 MFUN(string_toInt)

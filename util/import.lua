@@ -4,20 +4,23 @@ function make_doc(prefix, o)
 	print(prefix.."->doc = \""..doc.."\";")
 end
 
-function declare_c_param(param)
+function declare_c_param(param, offset)
 	local type;
+	local increment = "SZ_INT"
 	if string.match(param.type, "int") then
-		print("\tm_int "..param.name.." = *(m_int*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+		print("\tm_int "..param.name.." = *(m_int*)(shred->mem + gw_offset);")
 	elseif string.match(param.type, "SPFLOAT$") then
-		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);\n\tgw_offset += SZ_FLOAT;")
+		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);")
+		increment = "SZ_FLOAT"
 	elseif string.match(param.type, "SPFLOAT*") then
-		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);\n\tgw_offset += SZ_FLOAT;")
+		print("\tm_float "..param.name.." = *(m_float*)(shred->mem + gw_offset);")
+		increment = "SZ_FLOAT"
 	elseif string.match(param.type, "char%s*") then
-		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);")
 		print("\tm_str "..param.name.." = STRING("..param.name.."_obj);")
 		print("\trelease("..param.name.."_obj, shred);")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
-		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
+		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);")
 		print("\tm_uint "..param.name.."_iter;")
 --		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->d.array)];")
 		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * sizeof(sp_ftbl));")
@@ -25,11 +28,11 @@ function declare_c_param(param)
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->d.array, "..param.name.."_iter));")
 		print("\trelease("..param.name.."_ptr, shred);")
 	elseif string.match(param.type, "&sp_ftbl%s*") then
-		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);")
 		print("\tsp_ftbl** "..param.name.." = &FTBL("..param.name.."_obj);")
 		print("\trelease("..param.name.."_obj, shred);")
 	elseif string.match(param.type, "sp_ftbl%s*") then
-		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset+=SZ_INT;")
+		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);\n")
 		print("\tsp_ftbl* "..param.name.." = FTBL("..param.name.."_obj);")
 		print("\trelease("..param.name.."_obj, shred);")
 --		print("\tif(!"..param.name..") {\n\t\trelease(o, shred);\n\t\tExcept(shred)\n}")
@@ -37,7 +40,9 @@ function declare_c_param(param)
 		print("unknown type:", param.type, ".")
 		os.exit(1)
 	end
---	print("gw_offset;")
+	if offset == false then
+		print("\tgw_offset += "..increment..";")
+	end
 end
 
 function declare_gw_param(param)
@@ -69,13 +74,14 @@ if(func.params ~= nil) then
 end
 	print("\tif(FTBL(o))\n    sp_ftbl_destroy(&ftbl);")
 	print("\tm_int size = *(m_int*)(shred->mem + SZ_INT);")
-	local i = 1;
+--	local i = 1;
 	local args = "";
 	if(func.params ~= nil) then
-		while func.params[i]  do
-			declare_c_param(func.params[i])
-			args =	string.format("%s, %s", args , func.params[i].name)
-			i = i+1
+--		while func.params[i]  do
+		for i, v in pairs(func.params) do
+			declare_c_param(v, (i == #func.params))
+			args =	string.format("%s, %s", args , v.name)
+--			i = i+1
 		end
 	end
 	print("\tCHECK_SIZE(size);")
@@ -107,8 +113,8 @@ function print_mod_func(name, mod)
 		end
 	end
 	print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
+	print("\tm_bool is_init;")
 	if(nmandatory > 0) then
-		print("\tm_bool is_init;")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do
@@ -121,20 +127,18 @@ function print_mod_func(name, mod)
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
-	if ninputs == 1 and noutputs == 1 then
+	print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
+	if mod.ninputs == 1 and mod.noutputs == 1 then
 		print("\tbase_tick(u);");
 	elseif ninputs > 1 then
 		for i = 1, ninputs do
-			print("\tbase_tick(u->channel["..(i - 1).."]->ugen);");
+			print("\tbase_tick(u->channel["..(i-1).."]->ugen);");
 		end
-	end
-  if(nmandatory > 0) then
-		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
 	end
 	local args = ""
 	if ninputs > 1 then
 		for i = 1, ninputs do
-			args = string.format("%s, &u->channel["..(i - 1).."]->ugen->in", args)
+			args = string.format("%s, &u->channel["..(i-1).."]->ugen->in", args)
 		end	
 	elseif ninputs == 1 then
 		args = string.format("%s, &u->in", args)
@@ -158,19 +162,20 @@ function print_mod_func(name, mod)
 	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
 	print("\tug->sp = shred->vm_ref->bbq->sp;")
+	print("\tug->is_init = 0;")
     if(nmandatory > 0) then
-		print("\tug->is_init = 0;")
 		print("\tug->osc = NULL;")
 	else
 		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
 		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc))")
+		print("\tug->is_init = 1;")
 	end
 	print("\to->ugen->tick = "..name.."_tick;")
 	print("\tassign_ugen(o->ugen, "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
 	print("}\n")
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
+	print("\tif(ug->is_init) {\n")
 	if(nmandatory > 0) then
-		print("\tif(ug->is_init) {\n")
 		local arg = mod.params.mandatory
 		if arg then
 			for _, v in pairs(arg) do	
@@ -178,13 +183,13 @@ function print_mod_func(name, mod)
 					print("\t\tfree(ug->osc->"..v.name..");\n")
 				end
 			end
-		print("\t\tsp_"..name.."_destroy(&ug->osc);\n\t}")
+		print("\t\tsp_"..name.."_destroy(&ug->osc);")
 		end
 	else
 		print("\tsp_"..name.."_destroy(&ug->osc);")
 	end
-	print("\tfree(ug);");
-	print("}\n")
+	print("\t\tfree(ug);");
+	print("\t}\n}\n")
 	if nmandatory > 0 then
 		print("MFUN("..name.."_init)\n{")
 		print("\tm_uint gw_offset = SZ_INT;")
@@ -192,8 +197,8 @@ function print_mod_func(name, mod)
 		local args = ""
 		local tbl = mod.params.mandatory
 		if tbl then
-			for _, v in pairs(tbl) do
-				declare_c_param(v)
+			for i, v in pairs(tbl) do
+				declare_c_param(v, (i == #tbl))
 				if string.match(args, "^$") then
 					args = v.name
 				else
@@ -239,7 +244,7 @@ function print_mod_func(name, mod)
 --	end
 	local opt = mod.params.optional
 	if opt then
-		for _, v in pairs(opt) do
+		for i, v in pairs(opt) do
 			print("MFUN("..name.."_get_"..v.name..")\n{")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
 			if string.match(v.type, "int") then
@@ -260,7 +265,7 @@ function print_mod_func(name, mod)
 			print("MFUN("..name.."_set_"..v.name..")\n{")
 			print("\tm_uint gw_offset = SZ_INT;")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
-			declare_c_param(v)
+			declare_c_param(v, true)
 			if string.match(v.type, "int") then
 				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.match(v.type, "SPFLOAT$") then
