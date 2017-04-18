@@ -81,7 +81,7 @@ static int js_filter(const struct dirent* dir)
 
 static SFUN(machine_doc_update)
 {
-  FILE* all;
+  FILE* f, * all;
   char c[strlen(GWION_DOC_DIR) + 15];
   memset(c, 0, strlen(GWION_DOC_DIR) + 15);
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
@@ -92,6 +92,7 @@ static SFUN(machine_doc_update)
   struct dirent **namelist;
   char* line = NULL;
   int n;
+  ssize_t read;
   size_t len = 0;
   memset(c, 0, strlen(c));
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
@@ -100,8 +101,6 @@ static SFUN(machine_doc_update)
   fprintf(all, "var searchData = \n[\n");
   if (n > 0) {
     while (n--) {
-      FILE* f;
-      ssize_t read;
       char name[strlen(c) + strlen(namelist[n]->d_name) + 1];
       memset(name, 0, strlen(c) + strlen(namelist[n]->d_name) + 1);
       strcat(name, c);
@@ -138,8 +137,10 @@ static m_str randstring(VM* vm, int length)
     return (char*)0;
   }
 
+  unsigned int key = 0;
+
   for (int n = 0; n < length; n++) {
-    unsigned int key = sp_rand(vm->bbq->sp) % stringLen;
+    key = sp_rand(vm->bbq->sp) % stringLen;
     randomString[n] = string[key];
   }
 

@@ -307,7 +307,7 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
     e = e->next;
   }
 
-//  e = array->exp_list;
+  e = array->exp_list;
   Type type = array->type;
   Instr instr = add_instr(emit, Instr_Array_Init);
   VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
@@ -1007,7 +1007,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       CHECK_BB(emit_Stmt(emit, exp_unary->code, 0))
       add_instr(emit, stop_gc);
       emit_pop_scope(emit);
-//      op->m_val = emit->code->stack_depth;
+      op->m_val = emit->code->stack_depth;
       instr = add_instr(emit, EOC);
       op->m_val = emit->code->stack_depth;
       code = emit_to_code(emit);
@@ -1136,7 +1136,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
   }
   if(exp_func->m_func->def->is_variadic && !exp_func->args) // handle empty call to variadic functions
   {
-    add_instr(emit, MkVararg);
+    Instr vararg = add_instr(emit, MkVararg);
     add_instr(emit, Reg_Push_Imm);
   }
   return emit_Func_Call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
@@ -1757,7 +1757,7 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "loop");
 #endif
-  Instr init, op = NULL, deref, dec = NULL, _goto = NULL;
+  Instr init = NULL, op = NULL, deref, dec = NULL, _goto = NULL;
   m_int* counter;
   m_uint index;
   Type type;

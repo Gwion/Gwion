@@ -1223,6 +1223,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       if(!list->list)
         break;
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
+      base_t->next = NULL;
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
