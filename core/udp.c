@@ -29,7 +29,6 @@ void Send(const char* c, unsigned int i)
 char* Recv(int i)
 {
   char buf[256];
-  ssize_t len;
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -52,6 +51,7 @@ char* Recv(int i)
   if(FD_ISSET(sock, &read_flags)) {
     FD_CLR(sock, &read_flags);
 #endif
+    ssize_t len;
     if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed");
     buf[255] = '\0';
