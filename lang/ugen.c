@@ -311,14 +311,12 @@ static DTOR(ugen_dtor) {
 static MFUN(ugen_channel)
 {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
-  if(!o->ugen->channel && !i)
-    RETURN->d.v_object = o;
+  if(!o->ugen->channel)
+    RETURN->d.v_object = !i ? o : NULL;
   else if(i < 0 || i >= o->ugen->n_out)
     RETURN->d.v_object = NULL;
-  else {
+  else
 	RETURN->d.v_object = o->ugen->channel[i];
-//	o->ugen->channel[i]->ref++;
-  }
 }
 
 static MFUN(ugen_get_op)

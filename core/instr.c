@@ -469,7 +469,7 @@ INSTR(Gack)
     fprintf(stdout, ") ");
 #endif
     int j;
-    for(j = 0; j < longest - strlen(name); j++)
+    for(j = 0; j < longest - (name ? strlen(name) : 0); j++)
       fprintf(stdout, " ");
     /*exit(2);*/
     if(type->xid == t_int.xid)

@@ -410,20 +410,20 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
   switch (primary->type) {
   case ae_primary_var:
     if (primary->d.var == insert_symbol("this"))
-      instr = add_instr(emit, Reg_Push_This);
+      sadd_instr(emit, Reg_Push_This);
     else if (primary->d.var == insert_symbol("me"))
-      instr = add_instr(emit, Reg_Push_Me);
+      sadd_instr(emit, Reg_Push_Me);
     else if (primary->d.var == insert_symbol("now"))
-      instr = add_instr(emit, Reg_Push_Now);
+      sadd_instr(emit, Reg_Push_Now);
     else if (primary->d.var == insert_symbol("false"))
-      instr = add_instr(emit, Reg_Push_Imm);
+      sadd_instr(emit, Reg_Push_Imm);
     else if (primary->d.var == insert_symbol("true")) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = 1;
     } else if (primary->d.var == insert_symbol("maybe"))
-      instr = add_instr(emit, Reg_Push_Maybe);
+      sadd_instr(emit, Reg_Push_Maybe);
     else if (primary->d.var == insert_symbol("null") || primary->d.var == insert_symbol("NULL"))
-      instr = add_instr(emit, Reg_Push_Imm);
+      sadd_instr(emit, Reg_Push_Imm);
     else
       emit_symbol(emit, primary->d.var, primary->value, primary->self->emit_var, primary->pos);
     break;
@@ -570,7 +570,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           dot_static->m_val = value->offset;
           dot_static->m_val2 = kindof(emit->env->class_def);
           dot_static->ptr = (m_uint*)1;
-          instr = add_instr(emit, Assign_Object);
+          sadd_instr(emit, Assign_Object);
 //add_instr(emit, add_gc);
 //          Instr pop = add_instr(emit, Reg_Pop_Word4);
 //          pop->m_val = SZ_INT;
@@ -699,7 +699,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 
   if (binary->lhs->type->array_depth || binary->rhs->type->array_depth) {
     if (binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
-      instr = add_instr(emit, Assign_Object);
+      sadd_instr(emit, Assign_Object);
     return 1;
   }
 
@@ -1351,7 +1351,6 @@ static m_bool emit_Stmt_Code(Emitter emit, Stmt_Code stmt, m_bool push)
 static void emit_func_release(Emitter emit) {
   m_uint i;
   Vector v = emit->code->frame->stack;
-  i = vector_size(v) - 1;
   for(i = vector_size(v) - 1; i; i--) {
     Local* l = (Local*)vector_at(v, i);
     if(!l)
@@ -2264,7 +2263,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
           err_msg(EMIT_, member->pos, "... in member function");
           return -1;
         }
-        push_i = add_instr(emit, Reg_Dup_Last);
+        sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Dot_Member_Data);
         func_i->m_val = value->offset;
         func_i->m_val2 = Kindof_Int;
@@ -2286,7 +2285,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
           err_msg(EMIT_, member->pos, "... in member function");
           return -1;
         }
-        push_i = add_instr(emit, Reg_Dup_Last);
+        sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Dot_Member_Func);
         func_i->m_val = func->vt_index;
       } else { // static
@@ -2492,10 +2491,13 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
             "(emit): class '%s' already emitted...", type->name);
     return -1;
   }
-  type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
-  if (!type->info->class_data) {
-    err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
-    ret = -1;
+  if(type->info->class_data_size) {
+    type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
+    if (!type->info->class_data) {
+      err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
+//      ret = -1;
+      return -1;
+    }
   }
   memset(type->info->class_data, 0, type->info->class_data_size);
   // set the class

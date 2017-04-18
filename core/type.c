@@ -793,7 +793,7 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
+//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       return NULL;
     }
 
@@ -1674,7 +1674,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     }
   err_msg(TYPE_, exp_unary->pos,
           "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
-          op2str( exp_unary->op ), t ? "unknown" : t->name );
+          op2str( exp_unary->op ), t ? t->name : "unknown");
   return NULL;
 }
 static Type check_exp_if(Env env, If_Expression* exp_if )
@@ -1760,7 +1760,7 @@ static Type check_Expression(Env env, Expression exp)
     CHECK_OO(curr->type)
     curr = curr->next;
   }
-  return exp->type;
+  return exp ? exp->type : NULL;
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
@@ -2268,11 +2268,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
-  m_str func_name = S_name(f->name);
-  //  m_str func_name = strdup(S_name(f->name)); // strdup might be unnnecessary. 27/11/16
+  m_str func_name;// = S_name(f->name);
   m_uint count = 1;
-//  m_bool has_code = 0; // since remove of iface/abstract
-
 
   if(f->types) // templating, check at call time
     return 1;

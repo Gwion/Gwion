@@ -68,6 +68,8 @@ ID_List str2list(m_str path, m_uint* array_depth )
     last = c;
   }
   path = strndup(path, len);
+  if(!list)
+	return NULL;
   list->xid = insert_symbol(path);
   if(array_depth)
     *array_depth = depth;

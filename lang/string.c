@@ -549,6 +549,10 @@ MFUN(string_trim)
       end++;
     else break;
   }
+  if(len - start - end <= 0) {
+	RETURN->d.v_uint = 0;
+	return;
+  }
   char c[len - start - end + 1];
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];

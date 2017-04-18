@@ -44,7 +44,7 @@ static void write_sample_s32ne(char *ptr, double sample)
 
 static void write_sample_float32ne(char *ptr, double sample)
 {
-  float *buf = (float *)ptr;
+  float *buf = (float*)ptr;
   *buf = sample;
 }
 
