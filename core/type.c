@@ -803,13 +803,9 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
-printf("f1 %p f2 %p\n", f1, f2);
       v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
-printf("f1 %p\n", v);
-//if(!v) exit(6);
-//printf("f1 %s %s %lu\n", v->m_type->name, v->name, v->is_member);
-f1 = namespace_lookup_func(binary->rhs->d.exp_dot->t_base->info, insert_symbol(v->m_type->name), -1);
+      f1 = namespace_lookup_func(binary->rhs->d.exp_dot->t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
       f1 = v->m_type->func;

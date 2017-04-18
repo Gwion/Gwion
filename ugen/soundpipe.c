@@ -12,7 +12,6 @@
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
-#define SP_CHECK(a) if(a == SP_NOT_OK) { free(ug->osc); Except(shred) }
 
 DTOR(ftbl_dtor)
 {
@@ -38,8 +37,14 @@ CTOR(adsr_ctor)
 {
 	GW_adsr* ug = malloc(sizeof(GW_adsr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_adsr_create(&ug->osc))
-	SP_CHECK(sp_adsr_init(ug->sp, ug->osc))
+	if(sp_adsr_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_adsr_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = adsr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -62,7 +67,6 @@ MFUN(adsr_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_adsr* ug = (GW_adsr*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -77,7 +81,6 @@ MFUN(adsr_set_dec)
 	m_uint gw_offset = SZ_INT;
 	GW_adsr* ug = (GW_adsr*)o->ugen->ug;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dec = dec);
 }
 
@@ -92,7 +95,6 @@ MFUN(adsr_set_sus)
 	m_uint gw_offset = SZ_INT;
 	GW_adsr* ug = (GW_adsr*)o->ugen->ug;
 	m_float sus = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->sus = sus);
 }
 
@@ -107,7 +109,6 @@ MFUN(adsr_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_adsr* ug = (GW_adsr*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -121,12 +122,12 @@ typedef struct
 TICK(allpass_tick)
 {
 	GW_allpass* ug = (GW_allpass*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -155,12 +156,11 @@ MFUN(allpass_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_allpass* ug = (GW_allpass*)o->ugen->ug;
-	m_float looptime = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_allpass_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float looptime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_allpass_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -181,7 +181,6 @@ MFUN(allpass_set_revtime)
 	m_uint gw_offset = SZ_INT;
 	GW_allpass* ug = (GW_allpass*)o->ugen->ug;
 	m_float revtime = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->revtime = revtime);
 }
 
@@ -203,8 +202,14 @@ CTOR(atone_ctor)
 {
 	GW_atone* ug = malloc(sizeof(GW_atone));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_atone_create(&ug->osc))
-	SP_CHECK(sp_atone_init(ug->sp, ug->osc))
+	if(sp_atone_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_atone_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = atone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -227,7 +232,6 @@ MFUN(atone_set_hp)
 	m_uint gw_offset = SZ_INT;
 	GW_atone* ug = (GW_atone*)o->ugen->ug;
 	m_float hp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->hp = hp);
 }
 
@@ -249,8 +253,14 @@ CTOR(autowah_ctor)
 {
 	GW_autowah* ug = malloc(sizeof(GW_autowah));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_autowah_create(&ug->osc))
-	SP_CHECK(sp_autowah_init(ug->sp, ug->osc))
+	if(sp_autowah_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_autowah_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = autowah_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -273,7 +283,6 @@ MFUN(autowah_set_level)
 	m_uint gw_offset = SZ_INT;
 	GW_autowah* ug = (GW_autowah*)o->ugen->ug;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->level = level);
 }
 
@@ -288,7 +297,6 @@ MFUN(autowah_set_wah)
 	m_uint gw_offset = SZ_INT;
 	GW_autowah* ug = (GW_autowah*)o->ugen->ug;
 	m_float wah = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->wah = wah);
 }
 
@@ -303,7 +311,6 @@ MFUN(autowah_set_mix)
 	m_uint gw_offset = SZ_INT;
 	GW_autowah* ug = (GW_autowah*)o->ugen->ug;
 	m_float mix = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->mix = mix);
 }
 
@@ -326,8 +333,14 @@ CTOR(bal_ctor)
 {
 	GW_bal* ug = malloc(sizeof(GW_bal));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_bal_create(&ug->osc))
-	SP_CHECK(sp_bal_init(ug->sp, ug->osc))
+	if(sp_bal_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_bal_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = bal_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -349,12 +362,12 @@ typedef struct
 TICK(bar_tick)
 {
 	GW_bar* ug = (GW_bar*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_bar_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -384,14 +397,13 @@ MFUN(bar_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
-	m_float iK = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
-	m_float ib = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_bar_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float iK = *(m_float*)(shred->mem + gw_offset);
+	gw_offset +=SZ_FLOAT;
+	m_float ib = *(m_float*)(shred->mem + gw_offset);
 	if(sp_bar_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -412,7 +424,6 @@ MFUN(bar_set_bcL)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float bcL = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bcL = bcL);
 }
 
@@ -427,7 +438,6 @@ MFUN(bar_set_bcR)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float bcR = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bcR = bcR);
 }
 
@@ -442,7 +452,6 @@ MFUN(bar_set_T30)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float T30 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->T30 = T30);
 }
 
@@ -457,7 +466,6 @@ MFUN(bar_set_scan)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float scan = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->scan = scan);
 }
 
@@ -472,7 +480,6 @@ MFUN(bar_set_pos)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float pos = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pos = pos);
 }
 
@@ -487,7 +494,6 @@ MFUN(bar_set_vel)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float vel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->vel = vel);
 }
 
@@ -502,7 +508,6 @@ MFUN(bar_set_wid)
 	m_uint gw_offset = SZ_INT;
 	GW_bar* ug = (GW_bar*)o->ugen->ug;
 	m_float wid = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->wid = wid);
 }
 
@@ -524,8 +529,14 @@ CTOR(biquad_ctor)
 {
 	GW_biquad* ug = malloc(sizeof(GW_biquad));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_biquad_create(&ug->osc))
-	SP_CHECK(sp_biquad_init(ug->sp, ug->osc))
+	if(sp_biquad_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_biquad_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = biquad_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -548,7 +559,6 @@ MFUN(biquad_set_b0)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float b0 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->b0 = b0);
 }
 
@@ -563,7 +573,6 @@ MFUN(biquad_set_b1)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float b1 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->b1 = b1);
 }
 
@@ -578,7 +587,6 @@ MFUN(biquad_set_b2)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float b2 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->b2 = b2);
 }
 
@@ -593,7 +601,6 @@ MFUN(biquad_set_a0)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float a0 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->a0 = a0);
 }
 
@@ -608,7 +615,6 @@ MFUN(biquad_set_a1)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float a1 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->a1 = a1);
 }
 
@@ -623,7 +629,6 @@ MFUN(biquad_set_a2)
 	m_uint gw_offset = SZ_INT;
 	GW_biquad* ug = (GW_biquad*)o->ugen->ug;
 	m_float a2 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->a2 = a2);
 }
 
@@ -645,8 +650,14 @@ CTOR(biscale_ctor)
 {
 	GW_biscale* ug = malloc(sizeof(GW_biscale));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_biscale_create(&ug->osc))
-	SP_CHECK(sp_biscale_init(ug->sp, ug->osc))
+	if(sp_biscale_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_biscale_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = biscale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -669,7 +680,6 @@ MFUN(biscale_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_biscale* ug = (GW_biscale*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -684,7 +694,6 @@ MFUN(biscale_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_biscale* ug = (GW_biscale*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -706,8 +715,14 @@ CTOR(bitcrush_ctor)
 {
 	GW_bitcrush* ug = malloc(sizeof(GW_bitcrush));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_bitcrush_create(&ug->osc))
-	SP_CHECK(sp_bitcrush_init(ug->sp, ug->osc))
+	if(sp_bitcrush_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_bitcrush_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = bitcrush_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -730,7 +745,6 @@ MFUN(bitcrush_set_bitdepth)
 	m_uint gw_offset = SZ_INT;
 	GW_bitcrush* ug = (GW_bitcrush*)o->ugen->ug;
 	m_float bitdepth = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bitdepth = bitdepth);
 }
 
@@ -745,7 +759,6 @@ MFUN(bitcrush_set_srate)
 	m_uint gw_offset = SZ_INT;
 	GW_bitcrush* ug = (GW_bitcrush*)o->ugen->ug;
 	m_float srate = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->srate = srate);
 }
 
@@ -766,8 +779,14 @@ CTOR(blsaw_ctor)
 {
 	GW_blsaw* ug = malloc(sizeof(GW_blsaw));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_blsaw_create(&ug->osc))
-	SP_CHECK(sp_blsaw_init(ug->sp, ug->osc))
+	if(sp_blsaw_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_blsaw_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = blsaw_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -790,7 +809,6 @@ MFUN(blsaw_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_blsaw* ug = (GW_blsaw*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->freq = freq);
 }
 
@@ -805,7 +823,6 @@ MFUN(blsaw_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_blsaw* ug = (GW_blsaw*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->amp = amp);
 }
 
@@ -826,8 +843,14 @@ CTOR(blsquare_ctor)
 {
 	GW_blsquare* ug = malloc(sizeof(GW_blsquare));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_blsquare_create(&ug->osc))
-	SP_CHECK(sp_blsquare_init(ug->sp, ug->osc))
+	if(sp_blsquare_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_blsquare_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = blsquare_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -850,7 +873,6 @@ MFUN(blsquare_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_blsquare* ug = (GW_blsquare*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->freq = freq);
 }
 
@@ -865,7 +887,6 @@ MFUN(blsquare_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_blsquare* ug = (GW_blsquare*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->amp = amp);
 }
 
@@ -880,7 +901,6 @@ MFUN(blsquare_set_width)
 	m_uint gw_offset = SZ_INT;
 	GW_blsquare* ug = (GW_blsquare*)o->ugen->ug;
 	m_float width = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->width = width);
 }
 
@@ -901,8 +921,14 @@ CTOR(bltriangle_ctor)
 {
 	GW_bltriangle* ug = malloc(sizeof(GW_bltriangle));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_bltriangle_create(&ug->osc))
-	SP_CHECK(sp_bltriangle_init(ug->sp, ug->osc))
+	if(sp_bltriangle_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_bltriangle_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = bltriangle_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -925,7 +951,6 @@ MFUN(bltriangle_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_bltriangle* ug = (GW_bltriangle*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->freq = freq);
 }
 
@@ -940,7 +965,6 @@ MFUN(bltriangle_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_bltriangle* ug = (GW_bltriangle*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->amp = amp);
 }
 
@@ -961,8 +985,14 @@ CTOR(brown_ctor)
 {
 	GW_brown* ug = malloc(sizeof(GW_brown));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_brown_create(&ug->osc))
-	SP_CHECK(sp_brown_init(ug->sp, ug->osc))
+	if(sp_brown_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_brown_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = brown_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -992,8 +1022,14 @@ CTOR(butbp_ctor)
 {
 	GW_butbp* ug = malloc(sizeof(GW_butbp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_butbp_create(&ug->osc))
-	SP_CHECK(sp_butbp_init(ug->sp, ug->osc))
+	if(sp_butbp_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_butbp_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = butbp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1016,7 +1052,6 @@ MFUN(butbp_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_butbp* ug = (GW_butbp*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -1031,7 +1066,6 @@ MFUN(butbp_set_bw)
 	m_uint gw_offset = SZ_INT;
 	GW_butbp* ug = (GW_butbp*)o->ugen->ug;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bw = bw);
 }
 
@@ -1053,8 +1087,14 @@ CTOR(butbr_ctor)
 {
 	GW_butbr* ug = malloc(sizeof(GW_butbr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_butbr_create(&ug->osc))
-	SP_CHECK(sp_butbr_init(ug->sp, ug->osc))
+	if(sp_butbr_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_butbr_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = butbr_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1077,7 +1117,6 @@ MFUN(butbr_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_butbr* ug = (GW_butbr*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -1092,7 +1131,6 @@ MFUN(butbr_set_bw)
 	m_uint gw_offset = SZ_INT;
 	GW_butbr* ug = (GW_butbr*)o->ugen->ug;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bw = bw);
 }
 
@@ -1114,8 +1152,14 @@ CTOR(buthp_ctor)
 {
 	GW_buthp* ug = malloc(sizeof(GW_buthp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_buthp_create(&ug->osc))
-	SP_CHECK(sp_buthp_init(ug->sp, ug->osc))
+	if(sp_buthp_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_buthp_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = buthp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1138,7 +1182,6 @@ MFUN(buthp_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_buthp* ug = (GW_buthp*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -1160,8 +1203,14 @@ CTOR(butlp_ctor)
 {
 	GW_butlp* ug = malloc(sizeof(GW_butlp));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_butlp_create(&ug->osc))
-	SP_CHECK(sp_butlp_init(ug->sp, ug->osc))
+	if(sp_butlp_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_butlp_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = butlp_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1184,7 +1233,6 @@ MFUN(butlp_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_butlp* ug = (GW_butlp*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -1206,8 +1254,14 @@ CTOR(clip_ctor)
 {
 	GW_clip* ug = malloc(sizeof(GW_clip));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_clip_create(&ug->osc))
-	SP_CHECK(sp_clip_init(ug->sp, ug->osc))
+	if(sp_clip_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_clip_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = clip_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1230,7 +1284,6 @@ MFUN(clip_set_lim)
 	m_uint gw_offset = SZ_INT;
 	GW_clip* ug = (GW_clip*)o->ugen->ug;
 	m_float lim = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->lim = lim);
 }
 
@@ -1253,8 +1306,14 @@ CTOR(clock_ctor)
 {
 	GW_clock* ug = malloc(sizeof(GW_clock));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_clock_create(&ug->osc))
-	SP_CHECK(sp_clock_init(ug->sp, ug->osc))
+	if(sp_clock_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_clock_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = clock_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -1277,7 +1336,6 @@ MFUN(clock_set_bpm)
 	m_uint gw_offset = SZ_INT;
 	GW_clock* ug = (GW_clock*)o->ugen->ug;
 	m_float bpm = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bpm = bpm);
 }
 
@@ -1292,7 +1350,6 @@ MFUN(clock_set_subdiv)
 	m_uint gw_offset = SZ_INT;
 	GW_clock* ug = (GW_clock*)o->ugen->ug;
 	m_float subdiv = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->subdiv = subdiv);
 }
 
@@ -1306,12 +1363,12 @@ typedef struct
 TICK(comb_tick)
 {
 	GW_comb* ug = (GW_comb*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1340,12 +1397,11 @@ MFUN(comb_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_comb* ug = (GW_comb*)o->ugen->ug;
-	m_float looptime = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_comb_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float looptime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_comb_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -1366,7 +1422,6 @@ MFUN(comb_set_revtime)
 	m_uint gw_offset = SZ_INT;
 	GW_comb* ug = (GW_comb*)o->ugen->ug;
 	m_float revtime = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->revtime = revtime);
 }
 
@@ -1388,8 +1443,14 @@ CTOR(compressor_ctor)
 {
 	GW_compressor* ug = malloc(sizeof(GW_compressor));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_compressor_create(&ug->osc))
-	SP_CHECK(sp_compressor_init(ug->sp, ug->osc))
+	if(sp_compressor_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_compressor_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = compressor_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1412,7 +1473,6 @@ MFUN(compressor_set_ratio)
 	m_uint gw_offset = SZ_INT;
 	GW_compressor* ug = (GW_compressor*)o->ugen->ug;
 	m_float ratio = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->ratio = ratio);
 }
 
@@ -1427,7 +1487,6 @@ MFUN(compressor_set_thresh)
 	m_uint gw_offset = SZ_INT;
 	GW_compressor* ug = (GW_compressor*)o->ugen->ug;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->thresh = thresh);
 }
 
@@ -1442,7 +1501,6 @@ MFUN(compressor_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_compressor* ug = (GW_compressor*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->atk = atk);
 }
 
@@ -1457,7 +1515,6 @@ MFUN(compressor_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_compressor* ug = (GW_compressor*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->rel = rel);
 }
 
@@ -1471,12 +1528,12 @@ typedef struct
 TICK(conv_tick)
 {
 	GW_conv* ug = (GW_conv*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1505,16 +1562,15 @@ MFUN(conv_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_conv* ug = (GW_conv*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_float iPartLen = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_conv_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_float iPartLen = *(m_float*)(shred->mem + gw_offset);
 	if(sp_conv_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -1543,8 +1599,14 @@ CTOR(count_ctor)
 {
 	GW_count* ug = malloc(sizeof(GW_count));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_count_create(&ug->osc))
-	SP_CHECK(sp_count_init(ug->sp, ug->osc))
+	if(sp_count_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_count_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = count_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -1567,7 +1629,6 @@ MFUN(count_set_count)
 	m_uint gw_offset = SZ_INT;
 	GW_count* ug = (GW_count*)o->ugen->ug;
 	m_float count = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->count = count);
 }
 
@@ -1582,7 +1643,6 @@ MFUN(count_set_mode)
 	m_uint gw_offset = SZ_INT;
 	GW_count* ug = (GW_count*)o->ugen->ug;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->mode = mode);
 }
 
@@ -1605,8 +1665,14 @@ CTOR(crossfade_ctor)
 {
 	GW_crossfade* ug = malloc(sizeof(GW_crossfade));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_crossfade_create(&ug->osc))
-	SP_CHECK(sp_crossfade_init(ug->sp, ug->osc))
+	if(sp_crossfade_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_crossfade_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = crossfade_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -1629,7 +1695,6 @@ MFUN(crossfade_set_pos)
 	m_uint gw_offset = SZ_INT;
 	GW_crossfade* ug = (GW_crossfade*)o->ugen->ug;
 	m_float pos = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pos = pos);
 }
 
@@ -1651,8 +1716,14 @@ CTOR(dcblock_ctor)
 {
 	GW_dcblock* ug = malloc(sizeof(GW_dcblock));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_dcblock_create(&ug->osc))
-	SP_CHECK(sp_dcblock_init(ug->sp, ug->osc))
+	if(sp_dcblock_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_dcblock_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = dcblock_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1674,12 +1745,12 @@ typedef struct
 TICK(delay_tick)
 {
 	GW_delay* ug = (GW_delay*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -1708,12 +1779,11 @@ MFUN(delay_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_delay* ug = (GW_delay*)o->ugen->ug;
-	m_float time = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_delay_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float time = *(m_float*)(shred->mem + gw_offset);
 	if(sp_delay_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -1734,7 +1804,6 @@ MFUN(delay_set_feedback)
 	m_uint gw_offset = SZ_INT;
 	GW_delay* ug = (GW_delay*)o->ugen->ug;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->feedback = feedback);
 }
 
@@ -1756,8 +1825,14 @@ CTOR(diode_ctor)
 {
 	GW_diode* ug = malloc(sizeof(GW_diode));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_diode_create(&ug->osc))
-	SP_CHECK(sp_diode_init(ug->sp, ug->osc))
+	if(sp_diode_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_diode_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = diode_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1780,7 +1855,6 @@ MFUN(diode_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_diode* ug = (GW_diode*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -1795,7 +1869,6 @@ MFUN(diode_set_res)
 	m_uint gw_offset = SZ_INT;
 	GW_diode* ug = (GW_diode*)o->ugen->ug;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->res = res);
 }
 
@@ -1842,14 +1915,13 @@ MFUN(diskin_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_diskin* ug = (GW_diskin*)o->ugen->ug;
-	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_str filename = STRING(filename_obj);
-	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_diskin_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
+	m_str filename = STRING(filename_obj);
+	release(filename_obj, shred);
 	if(sp_diskin_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -1877,8 +1949,14 @@ CTOR(dist_ctor)
 {
 	GW_dist* ug = malloc(sizeof(GW_dist));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_dist_create(&ug->osc))
-	SP_CHECK(sp_dist_init(ug->sp, ug->osc))
+	if(sp_dist_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_dist_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = dist_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -1901,7 +1979,6 @@ MFUN(dist_set_pregain)
 	m_uint gw_offset = SZ_INT;
 	GW_dist* ug = (GW_dist*)o->ugen->ug;
 	m_float pregain = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pregain = pregain);
 }
 
@@ -1916,7 +1993,6 @@ MFUN(dist_set_postgain)
 	m_uint gw_offset = SZ_INT;
 	GW_dist* ug = (GW_dist*)o->ugen->ug;
 	m_float postgain = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->postgain = postgain);
 }
 
@@ -1931,7 +2007,6 @@ MFUN(dist_set_shape1)
 	m_uint gw_offset = SZ_INT;
 	GW_dist* ug = (GW_dist*)o->ugen->ug;
 	m_float shape1 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->shape1 = shape1);
 }
 
@@ -1946,7 +2021,6 @@ MFUN(dist_set_shape2)
 	m_uint gw_offset = SZ_INT;
 	GW_dist* ug = (GW_dist*)o->ugen->ug;
 	m_float shape2 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->shape2 = shape2);
 }
 
@@ -1967,8 +2041,14 @@ CTOR(dmetro_ctor)
 {
 	GW_dmetro* ug = malloc(sizeof(GW_dmetro));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_dmetro_create(&ug->osc))
-	SP_CHECK(sp_dmetro_init(ug->sp, ug->osc))
+	if(sp_dmetro_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_dmetro_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = dmetro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -1991,7 +2071,6 @@ MFUN(dmetro_set_time)
 	m_uint gw_offset = SZ_INT;
 	GW_dmetro* ug = (GW_dmetro*)o->ugen->ug;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->time = time);
 }
 
@@ -2005,12 +2084,12 @@ typedef struct
 TICK(drip_tick)
 {
 	GW_drip* ug = (GW_drip*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_drip_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -2040,12 +2119,11 @@ MFUN(drip_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
-	m_float dettack = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_drip_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float dettack = *(m_float*)(shred->mem + gw_offset);
 	if(sp_drip_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -2066,7 +2144,6 @@ MFUN(drip_set_num_tubes)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float num_tubes = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->num_tubes = num_tubes);
 }
 
@@ -2081,7 +2158,6 @@ MFUN(drip_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -2096,7 +2172,6 @@ MFUN(drip_set_damp)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float damp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->damp = damp);
 }
 
@@ -2111,7 +2186,6 @@ MFUN(drip_set_shake_max)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float shake_max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->shake_max = shake_max);
 }
 
@@ -2126,7 +2200,6 @@ MFUN(drip_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -2141,7 +2214,6 @@ MFUN(drip_set_freq1)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float freq1 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq1 = freq1);
 }
 
@@ -2156,7 +2228,6 @@ MFUN(drip_set_freq2)
 	m_uint gw_offset = SZ_INT;
 	GW_drip* ug = (GW_drip*)o->ugen->ug;
 	m_float freq2 = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq2 = freq2);
 }
 
@@ -2170,12 +2241,12 @@ typedef struct
 TICK(dtrig_tick)
 {
 	GW_dtrig* ug = (GW_dtrig*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -2205,14 +2276,13 @@ MFUN(dtrig_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_dtrig* ug = (GW_dtrig*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_dtrig_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
 	if(sp_dtrig_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -2233,7 +2303,6 @@ MFUN(dtrig_set_loop)
 	m_uint gw_offset = SZ_INT;
 	GW_dtrig* ug = (GW_dtrig*)o->ugen->ug;
 	m_int loop = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->loop = loop);
 }
 
@@ -2248,7 +2317,6 @@ MFUN(dtrig_set_delay)
 	m_uint gw_offset = SZ_INT;
 	GW_dtrig* ug = (GW_dtrig*)o->ugen->ug;
 	m_float delay = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->delay = delay);
 }
 
@@ -2263,7 +2331,6 @@ MFUN(dtrig_set_scale)
 	m_uint gw_offset = SZ_INT;
 	GW_dtrig* ug = (GW_dtrig*)o->ugen->ug;
 	m_float scale = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->scale = scale);
 }
 
@@ -2284,8 +2351,14 @@ CTOR(dust_ctor)
 {
 	GW_dust* ug = malloc(sizeof(GW_dust));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_dust_create(&ug->osc))
-	SP_CHECK(sp_dust_init(ug->sp, ug->osc))
+	if(sp_dust_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_dust_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = dust_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -2308,7 +2381,6 @@ MFUN(dust_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_dust* ug = (GW_dust*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -2323,7 +2395,6 @@ MFUN(dust_set_density)
 	m_uint gw_offset = SZ_INT;
 	GW_dust* ug = (GW_dust*)o->ugen->ug;
 	m_float density = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->density = density);
 }
 
@@ -2338,7 +2409,6 @@ MFUN(dust_set_bipolar)
 	m_uint gw_offset = SZ_INT;
 	GW_dust* ug = (GW_dust*)o->ugen->ug;
 	m_int bipolar = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->bipolar = bipolar);
 }
 
@@ -2360,8 +2430,14 @@ CTOR(eqfil_ctor)
 {
 	GW_eqfil* ug = malloc(sizeof(GW_eqfil));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_eqfil_create(&ug->osc))
-	SP_CHECK(sp_eqfil_init(ug->sp, ug->osc))
+	if(sp_eqfil_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_eqfil_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = eqfil_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2384,7 +2460,6 @@ MFUN(eqfil_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_eqfil* ug = (GW_eqfil*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -2399,7 +2474,6 @@ MFUN(eqfil_set_bw)
 	m_uint gw_offset = SZ_INT;
 	GW_eqfil* ug = (GW_eqfil*)o->ugen->ug;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bw = bw);
 }
 
@@ -2414,7 +2488,6 @@ MFUN(eqfil_set_gain)
 	m_uint gw_offset = SZ_INT;
 	GW_eqfil* ug = (GW_eqfil*)o->ugen->ug;
 	m_float gain = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->gain = gain);
 }
 
@@ -2437,8 +2510,14 @@ CTOR(expon_ctor)
 {
 	GW_expon* ug = malloc(sizeof(GW_expon));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_expon_create(&ug->osc))
-	SP_CHECK(sp_expon_init(ug->sp, ug->osc))
+	if(sp_expon_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_expon_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = expon_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -2461,7 +2540,6 @@ MFUN(expon_set_a)
 	m_uint gw_offset = SZ_INT;
 	GW_expon* ug = (GW_expon*)o->ugen->ug;
 	m_float a = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->a = a);
 }
 
@@ -2476,7 +2554,6 @@ MFUN(expon_set_dur)
 	m_uint gw_offset = SZ_INT;
 	GW_expon* ug = (GW_expon*)o->ugen->ug;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dur = dur);
 }
 
@@ -2491,7 +2568,6 @@ MFUN(expon_set_b)
 	m_uint gw_offset = SZ_INT;
 	GW_expon* ug = (GW_expon*)o->ugen->ug;
 	m_float b = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->b = b);
 }
 
@@ -2538,22 +2614,21 @@ MFUN(fof_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
-	M_Object sine_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* sine = FTBL(sine_obj);
-	release(sine_obj, shred);
-	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* win = FTBL(win_obj);
-	release(win_obj, shred);
-	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_float iphs = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fof_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object sine_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* sine = FTBL(sine_obj);
+	release(sine_obj, shred);
+	gw_offset +=SZ_INT;
+	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* win = FTBL(win_obj);
+	release(win_obj, shred);
+	gw_offset +=SZ_INT;
+	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
+	gw_offset +=SZ_INT;
+	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_fof_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -2574,7 +2649,6 @@ MFUN(fof_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -2589,7 +2663,6 @@ MFUN(fof_set_fund)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float fund = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->fund = fund);
 }
 
@@ -2604,7 +2677,6 @@ MFUN(fof_set_form)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float form = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->form = form);
 }
 
@@ -2619,7 +2691,6 @@ MFUN(fof_set_oct)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float oct = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->oct = oct);
 }
 
@@ -2634,7 +2705,6 @@ MFUN(fof_set_band)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float band = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->band = band);
 }
 
@@ -2649,7 +2719,6 @@ MFUN(fof_set_ris)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float ris = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->ris = ris);
 }
 
@@ -2664,7 +2733,6 @@ MFUN(fof_set_dec)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dec = dec);
 }
 
@@ -2679,7 +2747,6 @@ MFUN(fof_set_dur)
 	m_uint gw_offset = SZ_INT;
 	GW_fof* ug = (GW_fof*)o->ugen->ug;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dur = dur);
 }
 
@@ -2701,8 +2768,14 @@ CTOR(fofilt_ctor)
 {
 	GW_fofilt* ug = malloc(sizeof(GW_fofilt));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_fofilt_create(&ug->osc))
-	SP_CHECK(sp_fofilt_init(ug->sp, ug->osc))
+	if(sp_fofilt_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_fofilt_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = fofilt_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -2725,7 +2798,6 @@ MFUN(fofilt_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_fofilt* ug = (GW_fofilt*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -2740,7 +2812,6 @@ MFUN(fofilt_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_fofilt* ug = (GW_fofilt*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -2755,7 +2826,6 @@ MFUN(fofilt_set_dec)
 	m_uint gw_offset = SZ_INT;
 	GW_fofilt* ug = (GW_fofilt*)o->ugen->ug;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dec = dec);
 }
 
@@ -2802,22 +2872,21 @@ MFUN(fog_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
-	M_Object wav_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* wav = FTBL(wav_obj);
-	release(wav_obj, shred);
-	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* win = FTBL(win_obj);
-	release(win_obj, shred);
-	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_float iphs = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_fog_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object wav_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* wav = FTBL(wav_obj);
+	release(wav_obj, shred);
+	gw_offset +=SZ_INT;
+	M_Object win_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* win = FTBL(win_obj);
+	release(win_obj, shred);
+	gw_offset +=SZ_INT;
+	m_int iolaps = *(m_int*)(shred->mem + gw_offset);
+	gw_offset +=SZ_INT;
+	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_fog_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -2838,7 +2907,6 @@ MFUN(fog_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -2853,7 +2921,6 @@ MFUN(fog_set_dens)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float dens = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dens = dens);
 }
 
@@ -2868,7 +2935,6 @@ MFUN(fog_set_trans)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float trans = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->trans = trans);
 }
 
@@ -2883,7 +2949,6 @@ MFUN(fog_set_spd)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float spd = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->spd = spd);
 }
 
@@ -2898,7 +2963,6 @@ MFUN(fog_set_oct)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float oct = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->oct = oct);
 }
 
@@ -2913,7 +2977,6 @@ MFUN(fog_set_band)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float band = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->band = band);
 }
 
@@ -2928,7 +2991,6 @@ MFUN(fog_set_ris)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float ris = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->ris = ris);
 }
 
@@ -2943,7 +3005,6 @@ MFUN(fog_set_dec)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dec = dec);
 }
 
@@ -2958,7 +3019,6 @@ MFUN(fog_set_dur)
 	m_uint gw_offset = SZ_INT;
 	GW_fog* ug = (GW_fog*)o->ugen->ug;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dur = dur);
 }
 
@@ -2980,8 +3040,14 @@ CTOR(fold_ctor)
 {
 	GW_fold* ug = malloc(sizeof(GW_fold));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_fold_create(&ug->osc))
-	SP_CHECK(sp_fold_init(ug->sp, ug->osc))
+	if(sp_fold_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_fold_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = fold_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3004,7 +3070,6 @@ MFUN(fold_set_incr)
 	m_uint gw_offset = SZ_INT;
 	GW_fold* ug = (GW_fold*)o->ugen->ug;
 	m_float incr = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->incr = incr);
 }
 
@@ -3051,14 +3116,13 @@ MFUN(fosc_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
-	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* tbl = FTBL(tbl_obj);
-	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_fosc_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* tbl = FTBL(tbl_obj);
+	release(tbl_obj, shred);
 	if(sp_fosc_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -3079,7 +3143,6 @@ MFUN(fosc_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -3094,7 +3157,6 @@ MFUN(fosc_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -3109,7 +3171,6 @@ MFUN(fosc_set_car)
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
 	m_float car = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->car = car);
 }
 
@@ -3124,7 +3185,6 @@ MFUN(fosc_set_mod)
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
 	m_float mod = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->mod = mod);
 }
 
@@ -3139,7 +3199,6 @@ MFUN(fosc_set_indx)
 	m_uint gw_offset = SZ_INT;
 	GW_fosc* ug = (GW_fosc*)o->ugen->ug;
 	m_float indx = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->indx = indx);
 }
 
@@ -3186,16 +3245,15 @@ MFUN(gbuzz_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_float iphs = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_gbuzz_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_gbuzz_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -3216,7 +3274,6 @@ MFUN(gbuzz_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -3231,7 +3288,6 @@ MFUN(gbuzz_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -3246,7 +3302,6 @@ MFUN(gbuzz_set_nharm)
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
 	m_float nharm = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->nharm = nharm);
 }
 
@@ -3261,7 +3316,6 @@ MFUN(gbuzz_set_lharm)
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
 	m_float lharm = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->lharm = lharm);
 }
 
@@ -3276,7 +3330,6 @@ MFUN(gbuzz_set_mul)
 	m_uint gw_offset = SZ_INT;
 	GW_gbuzz* ug = (GW_gbuzz*)o->ugen->ug;
 	m_float mul = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->mul = mul);
 }
 
@@ -3288,7 +3341,6 @@ MFUN(ftbl_gen_composite)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
 	CHECK_SIZE(size);
@@ -3305,7 +3357,6 @@ MFUN(ftbl_gen_file)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
 	CHECK_SIZE(size);
@@ -3322,9 +3373,8 @@ MFUN(ftbl_gen_gauss)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	m_float scale = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
+	gw_offset +=SZ_FLOAT;
 	m_int seed = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	CHECK_SIZE(size);
 	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_gauss(shred->vm_ref->bbq->sp, ftbl, scale, seed);
@@ -3339,7 +3389,6 @@ MFUN(ftbl_gen_line)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
 	CHECK_SIZE(size);
@@ -3356,13 +3405,12 @@ MFUN(ftbl_gen_padsynth)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object amps_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
 	sp_ftbl* amps = FTBL(amps_obj);
 	release(amps_obj, shred);
+	gw_offset +=SZ_INT;
 	m_float f = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
+	gw_offset +=SZ_FLOAT;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	CHECK_SIZE(size);
 	sp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);
 	sp_gen_padsynth(shred->vm_ref->bbq->sp, ftbl, amps, f, bw);
@@ -3377,7 +3425,6 @@ MFUN(ftbl_gen_rand)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
 	CHECK_SIZE(size);
@@ -3394,7 +3441,6 @@ MFUN(ftbl_gen_scrambler)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object dest_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
 	sp_ftbl** dest = &FTBL(dest_obj);
 	release(dest_obj, shred);
 	CHECK_SIZE(size);
@@ -3423,7 +3469,6 @@ MFUN(ftbl_gen_sinesum)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
 	CHECK_SIZE(size);
@@ -3440,7 +3485,6 @@ MFUN(ftbl_gen_xline)
     sp_ftbl_destroy(&ftbl);
 	m_int size = *(m_int*)(shred->mem + SZ_INT);
 	M_Object argstring_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	m_str argstring = STRING(argstring_obj);
 	release(argstring_obj, shred);
 	CHECK_SIZE(size);
@@ -3466,8 +3510,14 @@ CTOR(hilbert_ctor)
 {
 	GW_hilbert* ug = malloc(sizeof(GW_hilbert));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_hilbert_create(&ug->osc))
-	SP_CHECK(sp_hilbert_init(ug->sp, ug->osc))
+	if(sp_hilbert_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_hilbert_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = hilbert_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -3496,8 +3546,14 @@ CTOR(in_ctor)
 {
 	GW_in* ug = malloc(sizeof(GW_in));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_in_create(&ug->osc))
-	SP_CHECK(sp_in_init(ug->sp, ug->osc))
+	if(sp_in_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_in_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = in_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3519,12 +3575,12 @@ typedef struct
 TICK(incr_tick)
 {
 	GW_incr* ug = (GW_incr*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_incr_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -3554,12 +3610,11 @@ MFUN(incr_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_incr* ug = (GW_incr*)o->ugen->ug;
-	m_float val = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_incr_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float val = *(m_float*)(shred->mem + gw_offset);
 	if(sp_incr_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -3580,7 +3635,6 @@ MFUN(incr_set_step)
 	m_uint gw_offset = SZ_INT;
 	GW_incr* ug = (GW_incr*)o->ugen->ug;
 	m_float step = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->step = step);
 }
 
@@ -3595,7 +3649,6 @@ MFUN(incr_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_incr* ug = (GW_incr*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -3610,7 +3663,6 @@ MFUN(incr_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_incr* ug = (GW_incr*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -3632,8 +3684,14 @@ CTOR(jcrev_ctor)
 {
 	GW_jcrev* ug = malloc(sizeof(GW_jcrev));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_jcrev_create(&ug->osc))
-	SP_CHECK(sp_jcrev_init(ug->sp, ug->osc))
+	if(sp_jcrev_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_jcrev_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = jcrev_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3662,8 +3720,14 @@ CTOR(jitter_ctor)
 {
 	GW_jitter* ug = malloc(sizeof(GW_jitter));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_jitter_create(&ug->osc))
-	SP_CHECK(sp_jitter_init(ug->sp, ug->osc))
+	if(sp_jitter_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_jitter_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = jitter_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3686,7 +3750,6 @@ MFUN(jitter_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_jitter* ug = (GW_jitter*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -3701,7 +3764,6 @@ MFUN(jitter_set_cpsMin)
 	m_uint gw_offset = SZ_INT;
 	GW_jitter* ug = (GW_jitter*)o->ugen->ug;
 	m_float cpsMin = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->cpsMin = cpsMin);
 }
 
@@ -3716,7 +3778,6 @@ MFUN(jitter_set_cpsMax)
 	m_uint gw_offset = SZ_INT;
 	GW_jitter* ug = (GW_jitter*)o->ugen->ug;
 	m_float cpsMax = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->cpsMax = cpsMax);
 }
 
@@ -3739,8 +3800,14 @@ CTOR(line_ctor)
 {
 	GW_line* ug = malloc(sizeof(GW_line));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_line_create(&ug->osc))
-	SP_CHECK(sp_line_init(ug->sp, ug->osc))
+	if(sp_line_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_line_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = line_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -3763,7 +3830,6 @@ MFUN(line_set_a)
 	m_uint gw_offset = SZ_INT;
 	GW_line* ug = (GW_line*)o->ugen->ug;
 	m_float a = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->a = a);
 }
 
@@ -3778,7 +3844,6 @@ MFUN(line_set_dur)
 	m_uint gw_offset = SZ_INT;
 	GW_line* ug = (GW_line*)o->ugen->ug;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dur = dur);
 }
 
@@ -3793,7 +3858,6 @@ MFUN(line_set_b)
 	m_uint gw_offset = SZ_INT;
 	GW_line* ug = (GW_line*)o->ugen->ug;
 	m_float b = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->b = b);
 }
 
@@ -3815,8 +3879,14 @@ CTOR(lpf18_ctor)
 {
 	GW_lpf18* ug = malloc(sizeof(GW_lpf18));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_lpf18_create(&ug->osc))
-	SP_CHECK(sp_lpf18_init(ug->sp, ug->osc))
+	if(sp_lpf18_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_lpf18_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = lpf18_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -3839,7 +3909,6 @@ MFUN(lpf18_set_cutoff)
 	m_uint gw_offset = SZ_INT;
 	GW_lpf18* ug = (GW_lpf18*)o->ugen->ug;
 	m_float cutoff = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->cutoff = cutoff);
 }
 
@@ -3854,7 +3923,6 @@ MFUN(lpf18_set_res)
 	m_uint gw_offset = SZ_INT;
 	GW_lpf18* ug = (GW_lpf18*)o->ugen->ug;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->res = res);
 }
 
@@ -3869,7 +3937,6 @@ MFUN(lpf18_set_dist)
 	m_uint gw_offset = SZ_INT;
 	GW_lpf18* ug = (GW_lpf18*)o->ugen->ug;
 	m_float dist = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dist = dist);
 }
 
@@ -3892,8 +3959,14 @@ CTOR(maygate_ctor)
 {
 	GW_maygate* ug = malloc(sizeof(GW_maygate));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_maygate_create(&ug->osc))
-	SP_CHECK(sp_maygate_init(ug->sp, ug->osc))
+	if(sp_maygate_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_maygate_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = maygate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -3916,7 +3989,6 @@ MFUN(maygate_set_prob)
 	m_uint gw_offset = SZ_INT;
 	GW_maygate* ug = (GW_maygate*)o->ugen->ug;
 	m_float prob = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->prob = prob);
 }
 
@@ -3931,7 +4003,6 @@ MFUN(maygate_set_mode)
 	m_uint gw_offset = SZ_INT;
 	GW_maygate* ug = (GW_maygate*)o->ugen->ug;
 	m_int mode = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->mode = mode);
 }
 
@@ -3952,8 +4023,14 @@ CTOR(metro_ctor)
 {
 	GW_metro* ug = malloc(sizeof(GW_metro));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_metro_create(&ug->osc))
-	SP_CHECK(sp_metro_init(ug->sp, ug->osc))
+	if(sp_metro_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_metro_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = metro_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -3976,7 +4053,6 @@ MFUN(metro_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_metro* ug = (GW_metro*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -4023,16 +4099,15 @@ MFUN(mincer_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_mincer* ug = (GW_mincer*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_int winsize = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_mincer_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_int winsize = *(m_int*)(shred->mem + gw_offset);
 	if(sp_mincer_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -4053,7 +4128,6 @@ MFUN(mincer_set_time)
 	m_uint gw_offset = SZ_INT;
 	GW_mincer* ug = (GW_mincer*)o->ugen->ug;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->time = time);
 }
 
@@ -4068,7 +4142,6 @@ MFUN(mincer_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_mincer* ug = (GW_mincer*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -4083,7 +4156,6 @@ MFUN(mincer_set_pitch)
 	m_uint gw_offset = SZ_INT;
 	GW_mincer* ug = (GW_mincer*)o->ugen->ug;
 	m_float pitch = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pitch = pitch);
 }
 
@@ -4105,8 +4177,14 @@ CTOR(mode_ctor)
 {
 	GW_mode* ug = malloc(sizeof(GW_mode));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_mode_create(&ug->osc))
-	SP_CHECK(sp_mode_init(ug->sp, ug->osc))
+	if(sp_mode_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_mode_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = mode_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4129,7 +4207,6 @@ MFUN(mode_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_mode* ug = (GW_mode*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -4144,7 +4221,6 @@ MFUN(mode_set_q)
 	m_uint gw_offset = SZ_INT;
 	GW_mode* ug = (GW_mode*)o->ugen->ug;
 	m_float q = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->q = q);
 }
 
@@ -4166,8 +4242,14 @@ CTOR(moogladder_ctor)
 {
 	GW_moogladder* ug = malloc(sizeof(GW_moogladder));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_moogladder_create(&ug->osc))
-	SP_CHECK(sp_moogladder_init(ug->sp, ug->osc))
+	if(sp_moogladder_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_moogladder_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = moogladder_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4190,7 +4272,6 @@ MFUN(moogladder_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_moogladder* ug = (GW_moogladder*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -4205,7 +4286,6 @@ MFUN(moogladder_set_res)
 	m_uint gw_offset = SZ_INT;
 	GW_moogladder* ug = (GW_moogladder*)o->ugen->ug;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->res = res);
 }
 
@@ -4226,8 +4306,14 @@ CTOR(noise_ctor)
 {
 	GW_noise* ug = malloc(sizeof(GW_noise));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_noise_create(&ug->osc))
-	SP_CHECK(sp_noise_init(ug->sp, ug->osc))
+	if(sp_noise_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_noise_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = noise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -4250,7 +4336,6 @@ MFUN(noise_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_noise* ug = (GW_noise*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -4264,12 +4349,12 @@ typedef struct
 TICK(nsmp_tick)
 {
 	GW_nsmp* ug = (GW_nsmp*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -4299,20 +4384,19 @@ MFUN(nsmp_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_nsmp* ug = (GW_nsmp*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_int sr = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	M_Object init_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_str init = STRING(init_obj);
-	release(init_obj, shred);
 	if(ug->osc) {
 		sp_nsmp_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_int sr = *(m_int*)(shred->mem + gw_offset);
+	gw_offset +=SZ_INT;
+	M_Object init_obj = *(M_Object*)(shred->mem + gw_offset);
+	m_str init = STRING(init_obj);
+	release(init_obj, shred);
 	if(sp_nsmp_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -4333,7 +4417,6 @@ MFUN(nsmp_set_index)
 	m_uint gw_offset = SZ_INT;
 	GW_nsmp* ug = (GW_nsmp*)o->ugen->ug;
 	m_int index = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->index = index);
 }
 
@@ -4380,16 +4463,15 @@ MFUN(osc_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_osc* ug = (GW_osc*)o->ugen->ug;
-	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* tbl = FTBL(tbl_obj);
-	release(tbl_obj, shred);
-	m_float phase = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_osc_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* tbl = FTBL(tbl_obj);
+	release(tbl_obj, shred);
+	gw_offset +=SZ_INT;
+	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	if(sp_osc_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -4410,7 +4492,6 @@ MFUN(osc_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_osc* ug = (GW_osc*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -4425,7 +4506,6 @@ MFUN(osc_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_osc* ug = (GW_osc*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -4476,22 +4556,21 @@ MFUN(oscmorph_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_oscmorph* ug = (GW_oscmorph*)o->ugen->ug;
-	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_uint tbl_iter;
-	sp_ftbl** tbl = malloc(m_vector_size(tbl_ptr->d.array) * SZ_INT);
-	for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->d.array); tbl_iter++)
-		tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->d.array, tbl_iter));
-	release(tbl_ptr, shred);
-	m_int nft = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_float phase = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_oscmorph_destroy(&ug->osc);
 		free(ug->tbl);
 		ug->osc = NULL;
 	}
+	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
+	m_uint tbl_iter;
+	sp_ftbl** tbl = malloc(m_vector_size(tbl_ptr->d.array) * SZ_INT);
+	for(tbl_iter = 0; tbl_iter < m_vector_size(tbl_ptr->d.array); tbl_iter++)
+		tbl[tbl_iter] = FTBL((M_Object)i_vector_at(tbl_ptr->d.array, tbl_iter));
+	release(tbl_ptr, shred);
+	gw_offset +=SZ_INT;
+	m_int nft = *(m_int*)(shred->mem + gw_offset);
+	gw_offset +=SZ_INT;
+	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	if(sp_oscmorph_create(&ug->osc) == SP_NOT_OK) {
 		free(ug->tbl);
 		Except(shred)
@@ -4515,7 +4594,6 @@ MFUN(oscmorph_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_oscmorph* ug = (GW_oscmorph*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -4530,7 +4608,6 @@ MFUN(oscmorph_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_oscmorph* ug = (GW_oscmorph*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -4545,7 +4622,6 @@ MFUN(oscmorph_set_wtpos)
 	m_uint gw_offset = SZ_INT;
 	GW_oscmorph* ug = (GW_oscmorph*)o->ugen->ug;
 	m_float wtpos = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->wtpos = wtpos);
 }
 
@@ -4566,8 +4642,14 @@ CTOR(pan2_ctor)
 {
 	GW_pan2* ug = malloc(sizeof(GW_pan2));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_pan2_create(&ug->osc))
-	SP_CHECK(sp_pan2_init(ug->sp, ug->osc))
+	if(sp_pan2_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_pan2_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = pan2_tick;
 	assign_ugen(o->ugen, 1, 2, 0, ug);
 }
@@ -4590,7 +4672,6 @@ MFUN(pan2_set_type)
 	m_uint gw_offset = SZ_INT;
 	GW_pan2* ug = (GW_pan2*)o->ugen->ug;
 	m_int type = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->type = type);
 }
 
@@ -4605,7 +4686,6 @@ MFUN(pan2_set_pan)
 	m_uint gw_offset = SZ_INT;
 	GW_pan2* ug = (GW_pan2*)o->ugen->ug;
 	m_float pan = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pan = pan);
 }
 
@@ -4628,8 +4708,14 @@ CTOR(panst_ctor)
 {
 	GW_panst* ug = malloc(sizeof(GW_panst));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_panst_create(&ug->osc))
-	SP_CHECK(sp_panst_init(ug->sp, ug->osc))
+	if(sp_panst_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_panst_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = panst_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -4652,7 +4738,6 @@ MFUN(panst_set_type)
 	m_uint gw_offset = SZ_INT;
 	GW_panst* ug = (GW_panst*)o->ugen->ug;
 	m_int type = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->type = type);
 }
 
@@ -4667,7 +4752,6 @@ MFUN(panst_set_pan)
 	m_uint gw_offset = SZ_INT;
 	GW_panst* ug = (GW_panst*)o->ugen->ug;
 	m_float pan = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->pan = pan);
 }
 
@@ -4689,8 +4773,14 @@ CTOR(pareq_ctor)
 {
 	GW_pareq* ug = malloc(sizeof(GW_pareq));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_pareq_create(&ug->osc))
-	SP_CHECK(sp_pareq_init(ug->sp, ug->osc))
+	if(sp_pareq_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_pareq_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = pareq_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4713,7 +4803,6 @@ MFUN(pareq_set_fc)
 	m_uint gw_offset = SZ_INT;
 	GW_pareq* ug = (GW_pareq*)o->ugen->ug;
 	m_float fc = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->fc = fc);
 }
 
@@ -4728,7 +4817,6 @@ MFUN(pareq_set_v)
 	m_uint gw_offset = SZ_INT;
 	GW_pareq* ug = (GW_pareq*)o->ugen->ug;
 	m_float v = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->v = v);
 }
 
@@ -4743,7 +4831,6 @@ MFUN(pareq_set_q)
 	m_uint gw_offset = SZ_INT;
 	GW_pareq* ug = (GW_pareq*)o->ugen->ug;
 	m_float q = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->q = q);
 }
 
@@ -4758,7 +4845,6 @@ MFUN(pareq_set_mode)
 	m_uint gw_offset = SZ_INT;
 	GW_pareq* ug = (GW_pareq*)o->ugen->ug;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->mode = mode);
 }
 
@@ -4805,18 +4891,17 @@ MFUN(paulstretch_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_paulstretch* ug = (GW_paulstretch*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_float windowsize = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
-	m_float stretch = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_paulstretch_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_float windowsize = *(m_float*)(shred->mem + gw_offset);
+	gw_offset +=SZ_FLOAT;
+	m_float stretch = *(m_float*)(shred->mem + gw_offset);
 	if(sp_paulstretch_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -4844,8 +4929,14 @@ CTOR(pdhalf_ctor)
 {
 	GW_pdhalf* ug = malloc(sizeof(GW_pdhalf));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_pdhalf_create(&ug->osc))
-	SP_CHECK(sp_pdhalf_init(ug->sp, ug->osc))
+	if(sp_pdhalf_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_pdhalf_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = pdhalf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4868,7 +4959,6 @@ MFUN(pdhalf_set_amount)
 	m_uint gw_offset = SZ_INT;
 	GW_pdhalf* ug = (GW_pdhalf*)o->ugen->ug;
 	m_float amount = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amount = amount);
 }
 
@@ -4890,8 +4980,14 @@ CTOR(peaklim_ctor)
 {
 	GW_peaklim* ug = malloc(sizeof(GW_peaklim));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_peaklim_create(&ug->osc))
-	SP_CHECK(sp_peaklim_init(ug->sp, ug->osc))
+	if(sp_peaklim_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_peaklim_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = peaklim_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -4914,7 +5010,6 @@ MFUN(peaklim_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_peaklim* ug = (GW_peaklim*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -4929,7 +5024,6 @@ MFUN(peaklim_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_peaklim* ug = (GW_peaklim*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -4944,7 +5038,6 @@ MFUN(peaklim_set_thresh)
 	m_uint gw_offset = SZ_INT;
 	GW_peaklim* ug = (GW_peaklim*)o->ugen->ug;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->thresh = thresh);
 }
 
@@ -4967,8 +5060,14 @@ CTOR(phaser_ctor)
 {
 	GW_phaser* ug = malloc(sizeof(GW_phaser));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_phaser_create(&ug->osc))
-	SP_CHECK(sp_phaser_init(ug->sp, ug->osc))
+	if(sp_phaser_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_phaser_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = phaser_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -4991,7 +5090,6 @@ MFUN(phaser_set_MaxNotch1Freq)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float MaxNotch1Freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->MaxNotch1Freq = MaxNotch1Freq);
 }
 
@@ -5006,7 +5104,6 @@ MFUN(phaser_set_MinNotch1Freq)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float MinNotch1Freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->MinNotch1Freq = MinNotch1Freq);
 }
 
@@ -5021,7 +5118,6 @@ MFUN(phaser_set_Notch_width)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float Notch_width = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->Notch_width = Notch_width);
 }
 
@@ -5036,7 +5132,6 @@ MFUN(phaser_set_NotchFreq)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float NotchFreq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->NotchFreq = NotchFreq);
 }
 
@@ -5051,7 +5146,6 @@ MFUN(phaser_set_VibratoMode)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float VibratoMode = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->VibratoMode = VibratoMode);
 }
 
@@ -5066,7 +5160,6 @@ MFUN(phaser_set_depth)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float depth = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->depth = depth);
 }
 
@@ -5081,7 +5174,6 @@ MFUN(phaser_set_feedback_gain)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float feedback_gain = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->feedback_gain = feedback_gain);
 }
 
@@ -5096,7 +5188,6 @@ MFUN(phaser_set_invert)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float invert = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->invert = invert);
 }
 
@@ -5111,7 +5202,6 @@ MFUN(phaser_set_level)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->level = level);
 }
 
@@ -5126,7 +5216,6 @@ MFUN(phaser_set_lfobpm)
 	m_uint gw_offset = SZ_INT;
 	GW_phaser* ug = (GW_phaser*)o->ugen->ug;
 	m_float lfobpm = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->lfobpm = lfobpm);
 }
 
@@ -5173,12 +5262,11 @@ MFUN(phasor_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_phasor* ug = (GW_phasor*)o->ugen->ug;
-	m_float iphs = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_phasor_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_phasor_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5199,7 +5287,6 @@ MFUN(phasor_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_phasor* ug = (GW_phasor*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -5220,8 +5307,14 @@ CTOR(pinknoise_ctor)
 {
 	GW_pinknoise* ug = malloc(sizeof(GW_pinknoise));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_pinknoise_create(&ug->osc))
-	SP_CHECK(sp_pinknoise_init(ug->sp, ug->osc))
+	if(sp_pinknoise_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_pinknoise_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = pinknoise_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5244,7 +5337,6 @@ MFUN(pinknoise_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_pinknoise* ug = (GW_pinknoise*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -5291,14 +5383,13 @@ MFUN(pitchamdf_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_pitchamdf* ug = (GW_pitchamdf*)o->ugen->ug;
-	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
-	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pitchamdf_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float min = *(m_float*)(shred->mem + gw_offset);
+	gw_offset +=SZ_FLOAT;
+	m_float max = *(m_float*)(shred->mem + gw_offset);
 	if(sp_pitchamdf_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5318,12 +5409,12 @@ typedef struct
 TICK(pluck_tick)
 {
 	GW_pluck* ug = (GW_pluck*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_pluck_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -5353,12 +5444,11 @@ MFUN(pluck_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_pluck* ug = (GW_pluck*)o->ugen->ug;
-	m_float ifreq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_pluck_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float ifreq = *(m_float*)(shred->mem + gw_offset);
 	if(sp_pluck_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5379,7 +5469,6 @@ MFUN(pluck_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_pluck* ug = (GW_pluck*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -5394,7 +5483,6 @@ MFUN(pluck_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_pluck* ug = (GW_pluck*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -5408,12 +5496,12 @@ typedef struct
 TICK(port_tick)
 {
 	GW_port* ug = (GW_port*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -5442,12 +5530,11 @@ MFUN(port_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_port* ug = (GW_port*)o->ugen->ug;
-	m_float htime = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_port_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float htime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_port_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5500,14 +5587,13 @@ MFUN(posc3_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_posc3* ug = (GW_posc3*)o->ugen->ug;
-	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* tbl = FTBL(tbl_obj);
-	release(tbl_obj, shred);
 	if(ug->osc) {
 		sp_posc3_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object tbl_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* tbl = FTBL(tbl_obj);
+	release(tbl_obj, shred);
 	if(sp_posc3_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5528,7 +5614,6 @@ MFUN(posc3_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_posc3* ug = (GW_posc3*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -5543,7 +5628,6 @@ MFUN(posc3_set_amp)
 	m_uint gw_offset = SZ_INT;
 	GW_posc3* ug = (GW_posc3*)o->ugen->ug;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->amp = amp);
 }
 
@@ -5564,8 +5648,14 @@ CTOR(progress_ctor)
 {
 	GW_progress* ug = malloc(sizeof(GW_progress));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_progress_create(&ug->osc))
-	SP_CHECK(sp_progress_init(ug->sp, ug->osc))
+	if(sp_progress_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_progress_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = progress_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5588,7 +5678,6 @@ MFUN(progress_set_nbars)
 	m_uint gw_offset = SZ_INT;
 	GW_progress* ug = (GW_progress*)o->ugen->ug;
 	m_int nbars = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->nbars = nbars);
 }
 
@@ -5603,7 +5692,6 @@ MFUN(progress_set_skip)
 	m_uint gw_offset = SZ_INT;
 	GW_progress* ug = (GW_progress*)o->ugen->ug;
 	m_int skip = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->skip = skip);
 }
 
@@ -5650,14 +5738,13 @@ MFUN(prop_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_prop* ug = (GW_prop*)o->ugen->ug;
-	M_Object str_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_str str = STRING(str_obj);
-	release(str_obj, shred);
 	if(ug->osc) {
 		sp_prop_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object str_obj = *(M_Object*)(shred->mem + gw_offset);
+	m_str str = STRING(str_obj);
+	release(str_obj, shred);
 	if(sp_prop_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5678,7 +5765,6 @@ MFUN(prop_set_bpm)
 	m_uint gw_offset = SZ_INT;
 	GW_prop* ug = (GW_prop*)o->ugen->ug;
 	m_float bpm = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bpm = bpm);
 }
 
@@ -5700,8 +5786,14 @@ CTOR(pshift_ctor)
 {
 	GW_pshift* ug = malloc(sizeof(GW_pshift));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_pshift_create(&ug->osc))
-	SP_CHECK(sp_pshift_init(ug->sp, ug->osc))
+	if(sp_pshift_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_pshift_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = pshift_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -5724,7 +5816,6 @@ MFUN(pshift_set_shift)
 	m_uint gw_offset = SZ_INT;
 	GW_pshift* ug = (GW_pshift*)o->ugen->ug;
 	m_float shift = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->shift = shift);
 }
 
@@ -5739,7 +5830,6 @@ MFUN(pshift_set_window)
 	m_uint gw_offset = SZ_INT;
 	GW_pshift* ug = (GW_pshift*)o->ugen->ug;
 	m_float window = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->window = window);
 }
 
@@ -5754,7 +5844,6 @@ MFUN(pshift_set_xfade)
 	m_uint gw_offset = SZ_INT;
 	GW_pshift* ug = (GW_pshift*)o->ugen->ug;
 	m_float xfade = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->xfade = xfade);
 }
 
@@ -5801,14 +5890,13 @@ MFUN(ptrack_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_ptrack* ug = (GW_ptrack*)o->ugen->ug;
-	m_int ihopsize = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_int ipeaks = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_ptrack_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_int ihopsize = *(m_int*)(shred->mem + gw_offset);
+	gw_offset +=SZ_INT;
+	m_int ipeaks = *(m_int*)(shred->mem + gw_offset);
 	if(sp_ptrack_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -5835,8 +5923,14 @@ CTOR(randh_ctor)
 {
 	GW_randh* ug = malloc(sizeof(GW_randh));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_randh_create(&ug->osc))
-	SP_CHECK(sp_randh_init(ug->sp, ug->osc))
+	if(sp_randh_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_randh_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = randh_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5859,7 +5953,6 @@ MFUN(randh_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_randh* ug = (GW_randh*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -5874,7 +5967,6 @@ MFUN(randh_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_randh* ug = (GW_randh*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -5889,7 +5981,6 @@ MFUN(randh_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_randh* ug = (GW_randh*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -5910,8 +6001,14 @@ CTOR(randi_ctor)
 {
 	GW_randi* ug = malloc(sizeof(GW_randi));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_randi_create(&ug->osc))
-	SP_CHECK(sp_randi_init(ug->sp, ug->osc))
+	if(sp_randi_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_randi_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = randi_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -5934,7 +6031,6 @@ MFUN(randi_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_randi* ug = (GW_randi*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -5949,7 +6045,6 @@ MFUN(randi_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_randi* ug = (GW_randi*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -5964,7 +6059,6 @@ MFUN(randi_set_cps)
 	m_uint gw_offset = SZ_INT;
 	GW_randi* ug = (GW_randi*)o->ugen->ug;
 	m_float cps = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->cps = cps);
 }
 
@@ -5979,7 +6073,6 @@ MFUN(randi_set_mode)
 	m_uint gw_offset = SZ_INT;
 	GW_randi* ug = (GW_randi*)o->ugen->ug;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->mode = mode);
 }
 
@@ -6000,8 +6093,14 @@ CTOR(random_ctor)
 {
 	GW_random* ug = malloc(sizeof(GW_random));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_random_create(&ug->osc))
-	SP_CHECK(sp_random_init(ug->sp, ug->osc))
+	if(sp_random_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_random_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = random_tick;
 	assign_ugen(o->ugen, 0, 1, 0, ug);
 }
@@ -6024,7 +6123,6 @@ MFUN(random_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_random* ug = (GW_random*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -6039,7 +6137,6 @@ MFUN(random_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_random* ug = (GW_random*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -6061,8 +6158,14 @@ CTOR(reson_ctor)
 {
 	GW_reson* ug = malloc(sizeof(GW_reson));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_reson_create(&ug->osc))
-	SP_CHECK(sp_reson_init(ug->sp, ug->osc))
+	if(sp_reson_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_reson_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = reson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6085,7 +6188,6 @@ MFUN(reson_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_reson* ug = (GW_reson*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -6100,7 +6202,6 @@ MFUN(reson_set_bw)
 	m_uint gw_offset = SZ_INT;
 	GW_reson* ug = (GW_reson*)o->ugen->ug;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->bw = bw);
 }
 
@@ -6114,12 +6215,12 @@ typedef struct
 TICK(reverse_tick)
 {
 	GW_reverse* ug = (GW_reverse*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6148,12 +6249,11 @@ MFUN(reverse_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_reverse* ug = (GW_reverse*)o->ugen->ug;
-	m_float delay = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_reverse_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float delay = *(m_float*)(shred->mem + gw_offset);
 	if(sp_reverse_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6182,8 +6282,14 @@ CTOR(revsc_ctor)
 {
 	GW_revsc* ug = malloc(sizeof(GW_revsc));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_revsc_create(&ug->osc))
-	SP_CHECK(sp_revsc_init(ug->sp, ug->osc))
+	if(sp_revsc_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_revsc_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = revsc_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -6206,7 +6312,6 @@ MFUN(revsc_set_feedback)
 	m_uint gw_offset = SZ_INT;
 	GW_revsc* ug = (GW_revsc*)o->ugen->ug;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->feedback = feedback);
 }
 
@@ -6221,7 +6326,6 @@ MFUN(revsc_set_lpfreq)
 	m_uint gw_offset = SZ_INT;
 	GW_revsc* ug = (GW_revsc*)o->ugen->ug;
 	m_float lpfreq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->lpfreq = lpfreq);
 }
 
@@ -6243,8 +6347,14 @@ CTOR(rms_ctor)
 {
 	GW_rms* ug = malloc(sizeof(GW_rms));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_rms_create(&ug->osc))
-	SP_CHECK(sp_rms_init(ug->sp, ug->osc))
+	if(sp_rms_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_rms_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = rms_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6267,7 +6377,6 @@ MFUN(rms_set_ihp)
 	m_uint gw_offset = SZ_INT;
 	GW_rms* ug = (GW_rms*)o->ugen->ug;
 	m_float ihp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->ihp = ihp);
 }
 
@@ -6281,13 +6390,13 @@ typedef struct
 TICK(rpt_tick)
 {
 	GW_rpt* ug = (GW_rpt*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u->channel[0]->ugen);
+	base_tick(u->channel[1]->ugen);
 	ugen_compute(u->trig->ugen);
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -6317,12 +6426,11 @@ MFUN(rpt_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_rpt* ug = (GW_rpt*)o->ugen->ug;
-	m_float maxdur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_rpt_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float maxdur = *(m_float*)(shred->mem + gw_offset);
 	if(sp_rpt_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6352,8 +6460,14 @@ CTOR(samphold_ctor)
 {
 	GW_samphold* ug = malloc(sizeof(GW_samphold));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_samphold_create(&ug->osc))
-	SP_CHECK(sp_samphold_init(ug->sp, ug->osc))
+	if(sp_samphold_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_samphold_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = samphold_tick;
 	assign_ugen(o->ugen, 2, 1, 1, ug);
 }
@@ -6383,8 +6497,14 @@ CTOR(saturator_ctor)
 {
 	GW_saturator* ug = malloc(sizeof(GW_saturator));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_saturator_create(&ug->osc))
-	SP_CHECK(sp_saturator_init(ug->sp, ug->osc))
+	if(sp_saturator_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_saturator_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = saturator_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6407,7 +6527,6 @@ MFUN(saturator_set_drive)
 	m_uint gw_offset = SZ_INT;
 	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
 	m_float drive = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->drive = drive);
 }
 
@@ -6422,7 +6541,6 @@ MFUN(saturator_set_dcoffset)
 	m_uint gw_offset = SZ_INT;
 	GW_saturator* ug = (GW_saturator*)o->ugen->ug;
 	m_float dcoffset = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dcoffset = dcoffset);
 }
 
@@ -6444,8 +6562,14 @@ CTOR(scale_ctor)
 {
 	GW_scale* ug = malloc(sizeof(GW_scale));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_scale_create(&ug->osc))
-	SP_CHECK(sp_scale_init(ug->sp, ug->osc))
+	if(sp_scale_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_scale_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = scale_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6468,7 +6592,6 @@ MFUN(scale_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_scale* ug = (GW_scale*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -6483,7 +6606,6 @@ MFUN(scale_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_scale* ug = (GW_scale*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -6497,12 +6619,12 @@ typedef struct
 TICK(sdelay_tick)
 {
 	GW_sdelay* ug = (GW_sdelay*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6531,12 +6653,11 @@ MFUN(sdelay_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_sdelay* ug = (GW_sdelay*)o->ugen->ug;
-	m_float size = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_sdelay_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float size = *(m_float*)(shred->mem + gw_offset);
 	if(sp_sdelay_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6556,12 +6677,12 @@ typedef struct
 TICK(slice_tick)
 {
 	GW_slice* ug = (GW_slice*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_slice_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -6591,18 +6712,17 @@ MFUN(slice_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_slice* ug = (GW_slice*)o->ugen->ug;
-	M_Object vals_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* vals = FTBL(vals_obj);
-	release(vals_obj, shred);
-	M_Object buf_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* buf = FTBL(buf_obj);
-	release(buf_obj, shred);
 	if(ug->osc) {
 		sp_slice_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object vals_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* vals = FTBL(vals_obj);
+	release(vals_obj, shred);
+	gw_offset +=SZ_INT;
+	M_Object buf_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* buf = FTBL(buf_obj);
+	release(buf_obj, shred);
 	if(sp_slice_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6623,7 +6743,6 @@ MFUN(slice_set_id)
 	m_uint gw_offset = SZ_INT;
 	GW_slice* ug = (GW_slice*)o->ugen->ug;
 	m_float id = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->id = id);
 }
 
@@ -6637,12 +6756,12 @@ typedef struct
 TICK(smoothdelay_tick)
 {
 	GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6671,14 +6790,13 @@ MFUN(smoothdelay_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_smoothdelay* ug = (GW_smoothdelay*)o->ugen->ug;
-	m_float maxdel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
-	m_int interp = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	if(ug->osc) {
 		sp_smoothdelay_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float maxdel = *(m_float*)(shred->mem + gw_offset);
+	gw_offset +=SZ_FLOAT;
+	m_int interp = *(m_int*)(shred->mem + gw_offset);
 	if(sp_smoothdelay_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6699,7 +6817,6 @@ MFUN(smoothdelay_set_feedback)
 	m_uint gw_offset = SZ_INT;
 	GW_smoothdelay* ug = (GW_smoothdelay*)o->ugen->ug;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->feedback = feedback);
 }
 
@@ -6714,7 +6831,6 @@ MFUN(smoothdelay_set_del)
 	m_uint gw_offset = SZ_INT;
 	GW_smoothdelay* ug = (GW_smoothdelay*)o->ugen->ug;
 	m_float del = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->del = del);
 }
 
@@ -6761,14 +6877,13 @@ MFUN(spa_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_spa* ug = (GW_spa*)o->ugen->ug;
-	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_str filename = STRING(filename_obj);
-	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_spa_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
+	m_str filename = STRING(filename_obj);
+	release(filename_obj, shred);
 	if(sp_spa_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6788,12 +6903,12 @@ typedef struct
 TICK(sparec_tick)
 {
 	GW_sparec* ug = (GW_sparec*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_sparec_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -6822,14 +6937,13 @@ MFUN(sparec_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_sparec* ug = (GW_sparec*)o->ugen->ug;
-	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
-	m_str filename = STRING(filename_obj);
-	release(filename_obj, shred);
 	if(ug->osc) {
 		sp_sparec_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object filename_obj = *(M_Object*)(shred->mem + gw_offset);
+	m_str filename = STRING(filename_obj);
+	release(filename_obj, shred);
 	if(sp_sparec_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -6857,8 +6971,14 @@ CTOR(streson_ctor)
 {
 	GW_streson* ug = malloc(sizeof(GW_streson));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_streson_create(&ug->osc))
-	SP_CHECK(sp_streson_init(ug->sp, ug->osc))
+	if(sp_streson_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_streson_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = streson_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -6881,7 +7001,6 @@ MFUN(streson_set_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_streson* ug = (GW_streson*)o->ugen->ug;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
@@ -6896,7 +7015,6 @@ MFUN(streson_set_fdbgain)
 	m_uint gw_offset = SZ_INT;
 	GW_streson* ug = (GW_streson*)o->ugen->ug;
 	m_float fdbgain = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->fdbgain = fdbgain);
 }
 
@@ -6921,8 +7039,14 @@ CTOR(switch_ctor)
 {
 	GW_switch* ug = malloc(sizeof(GW_switch));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_switch_create(&ug->osc))
-	SP_CHECK(sp_switch_init(ug->sp, ug->osc))
+	if(sp_switch_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_switch_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = switch_tick;
 	assign_ugen(o->ugen, 3, 1, 1, ug);
 }
@@ -6977,16 +7101,15 @@ MFUN(tabread_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_tabread* ug = (GW_tabread*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
-	m_float mode = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tabread_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
+	gw_offset +=SZ_INT;
+	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	if(sp_tabread_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -7007,7 +7130,6 @@ MFUN(tabread_set_index)
 	m_uint gw_offset = SZ_INT;
 	GW_tabread* ug = (GW_tabread*)o->ugen->ug;
 	m_float index = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->index = index);
 }
 
@@ -7022,7 +7144,6 @@ MFUN(tabread_set_offset)
 	m_uint gw_offset = SZ_INT;
 	GW_tabread* ug = (GW_tabread*)o->ugen->ug;
 	m_float offset = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->offset = offset);
 }
 
@@ -7037,7 +7158,6 @@ MFUN(tabread_set_wrap)
 	m_uint gw_offset = SZ_INT;
 	GW_tabread* ug = (GW_tabread*)o->ugen->ug;
 	m_float wrap = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->wrap = wrap);
 }
 
@@ -7060,8 +7180,14 @@ CTOR(tadsr_ctor)
 {
 	GW_tadsr* ug = malloc(sizeof(GW_tadsr));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tadsr_create(&ug->osc))
-	SP_CHECK(sp_tadsr_init(ug->sp, ug->osc))
+	if(sp_tadsr_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tadsr_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tadsr_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7084,7 +7210,6 @@ MFUN(tadsr_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_tadsr* ug = (GW_tadsr*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -7099,7 +7224,6 @@ MFUN(tadsr_set_dec)
 	m_uint gw_offset = SZ_INT;
 	GW_tadsr* ug = (GW_tadsr*)o->ugen->ug;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dec = dec);
 }
 
@@ -7114,7 +7238,6 @@ MFUN(tadsr_set_sus)
 	m_uint gw_offset = SZ_INT;
 	GW_tadsr* ug = (GW_tadsr*)o->ugen->ug;
 	m_float sus = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->sus = sus);
 }
 
@@ -7129,7 +7252,6 @@ MFUN(tadsr_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_tadsr* ug = (GW_tadsr*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -7143,13 +7265,13 @@ typedef struct
 TICK(tblrec_tick)
 {
 	GW_tblrec* ug = (GW_tblrec*)u->ug;
-	base_tick(u->channel[0]->ugen);
-	base_tick(u->channel[1]->ugen);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u->channel[0]->ugen);
+	base_tick(u->channel[1]->ugen);
 	ugen_compute(u->trig->ugen);
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -7179,14 +7301,13 @@ MFUN(tblrec_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_tblrec* ug = (GW_tblrec*)o->ugen->ug;
-	M_Object bar_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* bar = FTBL(bar_obj);
-	release(bar_obj, shred);
 	if(ug->osc) {
 		sp_tblrec_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object bar_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* bar = FTBL(bar_obj);
+	release(bar_obj, shred);
 	if(sp_tblrec_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -7214,8 +7335,14 @@ CTOR(tbvcf_ctor)
 {
 	GW_tbvcf* ug = malloc(sizeof(GW_tbvcf));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tbvcf_create(&ug->osc))
-	SP_CHECK(sp_tbvcf_init(ug->sp, ug->osc))
+	if(sp_tbvcf_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tbvcf_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tbvcf_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7238,7 +7365,6 @@ MFUN(tbvcf_set_fco)
 	m_uint gw_offset = SZ_INT;
 	GW_tbvcf* ug = (GW_tbvcf*)o->ugen->ug;
 	m_float fco = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->fco = fco);
 }
 
@@ -7253,7 +7379,6 @@ MFUN(tbvcf_set_res)
 	m_uint gw_offset = SZ_INT;
 	GW_tbvcf* ug = (GW_tbvcf*)o->ugen->ug;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->res = res);
 }
 
@@ -7268,7 +7393,6 @@ MFUN(tbvcf_set_dist)
 	m_uint gw_offset = SZ_INT;
 	GW_tbvcf* ug = (GW_tbvcf*)o->ugen->ug;
 	m_float dist = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dist = dist);
 }
 
@@ -7283,7 +7407,6 @@ MFUN(tbvcf_set_asym)
 	m_uint gw_offset = SZ_INT;
 	GW_tbvcf* ug = (GW_tbvcf*)o->ugen->ug;
 	m_float asym = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->asym = asym);
 }
 
@@ -7306,8 +7429,14 @@ CTOR(tdiv_ctor)
 {
 	GW_tdiv* ug = malloc(sizeof(GW_tdiv));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tdiv_create(&ug->osc))
-	SP_CHECK(sp_tdiv_init(ug->sp, ug->osc))
+	if(sp_tdiv_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tdiv_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tdiv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7330,7 +7459,6 @@ MFUN(tdiv_set_num)
 	m_uint gw_offset = SZ_INT;
 	GW_tdiv* ug = (GW_tdiv*)o->ugen->ug;
 	m_float num = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->num = num);
 }
 
@@ -7345,7 +7473,6 @@ MFUN(tdiv_set_offset)
 	m_uint gw_offset = SZ_INT;
 	GW_tdiv* ug = (GW_tdiv*)o->ugen->ug;
 	m_float offset = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->offset = offset);
 }
 
@@ -7368,8 +7495,14 @@ CTOR(tenv_ctor)
 {
 	GW_tenv* ug = malloc(sizeof(GW_tenv));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tenv_create(&ug->osc))
-	SP_CHECK(sp_tenv_init(ug->sp, ug->osc))
+	if(sp_tenv_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tenv_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tenv_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7392,7 +7525,6 @@ MFUN(tenv_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_tenv* ug = (GW_tenv*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -7407,7 +7539,6 @@ MFUN(tenv_set_hold)
 	m_uint gw_offset = SZ_INT;
 	GW_tenv* ug = (GW_tenv*)o->ugen->ug;
 	m_float hold = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->hold = hold);
 }
 
@@ -7422,7 +7553,6 @@ MFUN(tenv_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_tenv* ug = (GW_tenv*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -7445,8 +7575,14 @@ CTOR(tenv2_ctor)
 {
 	GW_tenv2* ug = malloc(sizeof(GW_tenv2));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tenv2_create(&ug->osc))
-	SP_CHECK(sp_tenv2_init(ug->sp, ug->osc))
+	if(sp_tenv2_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tenv2_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tenv2_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7469,7 +7605,6 @@ MFUN(tenv2_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_tenv2* ug = (GW_tenv2*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -7484,7 +7619,6 @@ MFUN(tenv2_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_tenv2* ug = (GW_tenv2*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -7507,8 +7641,14 @@ CTOR(tenvx_ctor)
 {
 	GW_tenvx* ug = malloc(sizeof(GW_tenvx));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tenvx_create(&ug->osc))
-	SP_CHECK(sp_tenvx_init(ug->sp, ug->osc))
+	if(sp_tenvx_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tenvx_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tenvx_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7531,7 +7671,6 @@ MFUN(tenvx_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_tenvx* ug = (GW_tenvx*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->atk = atk);
 }
 
@@ -7546,7 +7685,6 @@ MFUN(tenvx_set_hold)
 	m_uint gw_offset = SZ_INT;
 	GW_tenvx* ug = (GW_tenvx*)o->ugen->ug;
 	m_float hold = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->hold = hold);
 }
 
@@ -7561,7 +7699,6 @@ MFUN(tenvx_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_tenvx* ug = (GW_tenvx*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rel = rel);
 }
 
@@ -7584,8 +7721,14 @@ CTOR(tgate_ctor)
 {
 	GW_tgate* ug = malloc(sizeof(GW_tgate));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tgate_create(&ug->osc))
-	SP_CHECK(sp_tgate_init(ug->sp, ug->osc))
+	if(sp_tgate_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tgate_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tgate_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7608,7 +7751,6 @@ MFUN(tgate_set_time)
 	m_uint gw_offset = SZ_INT;
 	GW_tgate* ug = (GW_tgate*)o->ugen->ug;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->time = time);
 }
 
@@ -7630,8 +7772,14 @@ CTOR(thresh_ctor)
 {
 	GW_thresh* ug = malloc(sizeof(GW_thresh));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_thresh_create(&ug->osc))
-	SP_CHECK(sp_thresh_init(ug->sp, ug->osc))
+	if(sp_thresh_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_thresh_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = thresh_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7654,7 +7802,6 @@ MFUN(thresh_set_thresh)
 	m_uint gw_offset = SZ_INT;
 	GW_thresh* ug = (GW_thresh*)o->ugen->ug;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->thresh = thresh);
 }
 
@@ -7669,7 +7816,6 @@ MFUN(thresh_set_mode)
 	m_uint gw_offset = SZ_INT;
 	GW_thresh* ug = (GW_thresh*)o->ugen->ug;
 	m_int mode = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->mode = mode);
 }
 
@@ -7691,8 +7837,14 @@ CTOR(timer_ctor)
 {
 	GW_timer* ug = malloc(sizeof(GW_timer));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_timer_create(&ug->osc))
-	SP_CHECK(sp_timer_init(ug->sp, ug->osc))
+	if(sp_timer_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_timer_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = timer_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7723,8 +7875,14 @@ CTOR(tin_ctor)
 {
 	GW_tin* ug = malloc(sizeof(GW_tin));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tin_create(&ug->osc))
-	SP_CHECK(sp_tin_init(ug->sp, ug->osc))
+	if(sp_tin_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tin_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tin_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7754,8 +7912,14 @@ CTOR(tone_ctor)
 {
 	GW_tone* ug = malloc(sizeof(GW_tone));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_tone_create(&ug->osc))
-	SP_CHECK(sp_tone_init(ug->sp, ug->osc))
+	if(sp_tone_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_tone_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = tone_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -7778,7 +7942,6 @@ MFUN(tone_set_hp)
 	m_uint gw_offset = SZ_INT;
 	GW_tone* ug = (GW_tone*)o->ugen->ug;
 	m_float hp = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->hp = hp);
 }
 
@@ -7801,8 +7964,14 @@ CTOR(trand_ctor)
 {
 	GW_trand* ug = malloc(sizeof(GW_trand));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_trand_create(&ug->osc))
-	SP_CHECK(sp_trand_init(ug->sp, ug->osc))
+	if(sp_trand_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_trand_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = trand_tick;
 	assign_ugen(o->ugen, 1, 1, 1, ug);
 }
@@ -7825,7 +7994,6 @@ MFUN(trand_set_min)
 	m_uint gw_offset = SZ_INT;
 	GW_trand* ug = (GW_trand*)o->ugen->ug;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->min = min);
 }
 
@@ -7840,7 +8008,6 @@ MFUN(trand_set_max)
 	m_uint gw_offset = SZ_INT;
 	GW_trand* ug = (GW_trand*)o->ugen->ug;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->max = max);
 }
 
@@ -7854,12 +8021,12 @@ typedef struct
 TICK(tseg_tick)
 {
 	GW_tseg* ug = (GW_tseg*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_tseg_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -7889,12 +8056,11 @@ MFUN(tseg_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_tseg* ug = (GW_tseg*)o->ugen->ug;
-	m_float ibeg = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_tseg_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float ibeg = *(m_float*)(shred->mem + gw_offset);
 	if(sp_tseg_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -7915,7 +8081,6 @@ MFUN(tseg_set_end)
 	m_uint gw_offset = SZ_INT;
 	GW_tseg* ug = (GW_tseg*)o->ugen->ug;
 	m_float end = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->end = end);
 }
 
@@ -7930,7 +8095,6 @@ MFUN(tseg_set_dur)
 	m_uint gw_offset = SZ_INT;
 	GW_tseg* ug = (GW_tseg*)o->ugen->ug;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->dur = dur);
 }
 
@@ -7945,7 +8109,6 @@ MFUN(tseg_set_type)
 	m_uint gw_offset = SZ_INT;
 	GW_tseg* ug = (GW_tseg*)o->ugen->ug;
 	m_float type = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->type = type);
 }
 
@@ -7959,12 +8122,12 @@ typedef struct
 TICK(tseq_tick)
 {
 	GW_tseq* ug = (GW_tseq*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	ugen_compute(u->trig->ugen);
 	sp_tseq_compute(ug->sp, ug->osc, &u->trig->ugen->out, &u->out);
 	return 1;
@@ -7994,14 +8157,13 @@ MFUN(tseq_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_tseq* ug = (GW_tseq*)o->ugen->ug;
-	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
-	gw_offset+=SZ_INT;
-	sp_ftbl* ft = FTBL(ft_obj);
-	release(ft_obj, shred);
 	if(ug->osc) {
 		sp_tseq_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	M_Object ft_obj = *(M_Object*)(shred->mem + gw_offset);
+	sp_ftbl* ft = FTBL(ft_obj);
+	release(ft_obj, shred);
 	if(sp_tseq_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -8022,7 +8184,6 @@ MFUN(tseq_set_shuf)
 	m_uint gw_offset = SZ_INT;
 	GW_tseq* ug = (GW_tseq*)o->ugen->ug;
 	m_int shuf = *(m_int*)(shred->mem + gw_offset);
-	gw_offset += SZ_INT;
 	RETURN->d.v_uint = (ug->osc->shuf = shuf);
 }
 
@@ -8036,12 +8197,12 @@ typedef struct
 TICK(vdelay_tick)
 {
 	GW_vdelay* ug = (GW_vdelay*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -8070,12 +8231,11 @@ MFUN(vdelay_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_vdelay* ug = (GW_vdelay*)o->ugen->ug;
-	m_float maxdel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_vdelay_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float maxdel = *(m_float*)(shred->mem + gw_offset);
 	if(sp_vdelay_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -8096,7 +8256,6 @@ MFUN(vdelay_set_del)
 	m_uint gw_offset = SZ_INT;
 	GW_vdelay* ug = (GW_vdelay*)o->ugen->ug;
 	m_float del = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->del = del);
 }
 
@@ -8119,8 +8278,14 @@ CTOR(vocoder_ctor)
 {
 	GW_vocoder* ug = malloc(sizeof(GW_vocoder));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_vocoder_create(&ug->osc))
-	SP_CHECK(sp_vocoder_init(ug->sp, ug->osc))
+	if(sp_vocoder_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_vocoder_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = vocoder_tick;
 	assign_ugen(o->ugen, 2, 1, 0, ug);
 }
@@ -8143,7 +8308,6 @@ MFUN(vocoder_set_atk)
 	m_uint gw_offset = SZ_INT;
 	GW_vocoder* ug = (GW_vocoder*)o->ugen->ug;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->atk = atk);
 }
 
@@ -8158,7 +8322,6 @@ MFUN(vocoder_set_rel)
 	m_uint gw_offset = SZ_INT;
 	GW_vocoder* ug = (GW_vocoder*)o->ugen->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->rel = rel);
 }
 
@@ -8173,7 +8336,6 @@ MFUN(vocoder_set_bwratio)
 	m_uint gw_offset = SZ_INT;
 	GW_vocoder* ug = (GW_vocoder*)o->ugen->ug;
 	m_float bwratio = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->bwratio = bwratio);
 }
 
@@ -8187,12 +8349,12 @@ typedef struct
 TICK(waveset_tick)
 {
 	GW_waveset* ug = (GW_waveset*)u->ug;
-	base_tick(u);
 	if(!ug->is_init)
 	{
 		u->out = 0;
 		return 1;
 	}
+	base_tick(u);
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
 	return 1;
 }
@@ -8221,12 +8383,11 @@ MFUN(waveset_init)
 {
 	m_uint gw_offset = SZ_INT;
 	GW_waveset* ug = (GW_waveset*)o->ugen->ug;
-	m_float ilen = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	if(ug->osc) {
 		sp_waveset_destroy(&ug->osc);
 		ug->osc = NULL;
 	}
+	m_float ilen = *(m_float*)(shred->mem + gw_offset);
 	if(sp_waveset_create(&ug->osc) == SP_NOT_OK) {
 		Except(shred)
 	}
@@ -8247,7 +8408,6 @@ MFUN(waveset_set_rep)
 	m_uint gw_offset = SZ_INT;
 	GW_waveset* ug = (GW_waveset*)o->ugen->ug;
 	m_float rep = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->rep = rep);
 }
 
@@ -8269,8 +8429,14 @@ CTOR(wpkorg35_ctor)
 {
 	GW_wpkorg35* ug = malloc(sizeof(GW_wpkorg35));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_wpkorg35_create(&ug->osc))
-	SP_CHECK(sp_wpkorg35_init(ug->sp, ug->osc))
+	if(sp_wpkorg35_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_wpkorg35_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = wpkorg35_tick;
 	assign_ugen(o->ugen, 1, 1, 0, ug);
 }
@@ -8293,7 +8459,6 @@ MFUN(wpkorg35_set_cutoff)
 	m_uint gw_offset = SZ_INT;
 	GW_wpkorg35* ug = (GW_wpkorg35*)o->ugen->ug;
 	m_float cutoff = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->cutoff = cutoff);
 }
 
@@ -8308,7 +8473,6 @@ MFUN(wpkorg35_set_res)
 	m_uint gw_offset = SZ_INT;
 	GW_wpkorg35* ug = (GW_wpkorg35*)o->ugen->ug;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->res = res);
 }
 
@@ -8323,7 +8487,6 @@ MFUN(wpkorg35_set_saturation)
 	m_uint gw_offset = SZ_INT;
 	GW_wpkorg35* ug = (GW_wpkorg35*)o->ugen->ug;
 	m_float saturation = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (ug->osc->saturation = saturation);
 }
 
@@ -8346,8 +8509,14 @@ CTOR(zitarev_ctor)
 {
 	GW_zitarev* ug = malloc(sizeof(GW_zitarev));
 	ug->sp = shred->vm_ref->bbq->sp;
-	SP_CHECK(sp_zitarev_create(&ug->osc))
-	SP_CHECK(sp_zitarev_init(ug->sp, ug->osc))
+	if(sp_zitarev_create(&ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
+	if(sp_zitarev_init(ug->sp, ug->osc) == SP_NOT_OK) {
+		free(ug);
+		Except(shred);
+	}
 	o->ugen->tick = zitarev_tick;
 	assign_ugen(o->ugen, 2, 2, 0, ug);
 }
@@ -8370,7 +8539,6 @@ MFUN(zitarev_set_in_delay)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float in_delay = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->in_delay = in_delay);
 }
 
@@ -8385,7 +8553,6 @@ MFUN(zitarev_set_lf_x)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float lf_x = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->lf_x = lf_x);
 }
 
@@ -8400,7 +8567,6 @@ MFUN(zitarev_set_rt60_low)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float rt60_low = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->rt60_low = rt60_low);
 }
 
@@ -8415,7 +8581,6 @@ MFUN(zitarev_set_rt60_mid)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float rt60_mid = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->rt60_mid = rt60_mid);
 }
 
@@ -8430,7 +8595,6 @@ MFUN(zitarev_set_hf_damping)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float hf_damping = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->hf_damping = hf_damping);
 }
 
@@ -8445,7 +8609,6 @@ MFUN(zitarev_set_eq1_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float eq1_freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->eq1_freq = eq1_freq);
 }
 
@@ -8460,7 +8623,6 @@ MFUN(zitarev_set_eq1_level)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float eq1_level = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->eq1_level = eq1_level);
 }
 
@@ -8475,7 +8637,6 @@ MFUN(zitarev_set_eq2_freq)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float eq2_freq = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->eq2_freq = eq2_freq);
 }
 
@@ -8490,7 +8651,6 @@ MFUN(zitarev_set_eq2_level)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float eq2_level = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->eq2_level = eq2_level);
 }
 
@@ -8505,7 +8665,6 @@ MFUN(zitarev_set_mix)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float mix = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->mix = mix);
 }
 
@@ -8520,7 +8679,6 @@ MFUN(zitarev_set_level)
 	m_uint gw_offset = SZ_INT;
 	GW_zitarev* ug = (GW_zitarev*)o->ugen->ug;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
-	gw_offset += SZ_FLOAT;
 	RETURN->d.v_float = (*ug->osc->level = level);
 }
 
