@@ -375,6 +375,7 @@ for n in ipairs(a) do
 		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1; -- why this 'i' ?
 		print("\t\targ = dl_func_add_arg(fun, \"int\", \"size\");")
+		print("\t\targ->doc = \"size of the ftbl\";")
 		if(object.params ~= nil) then
 			while object.params[i]  do
 				declare_gw_param(object.params[i])

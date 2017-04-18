@@ -292,8 +292,6 @@ static DTOR(ugen_dtor) {
   if(ug->ugen) {
     for(i = 0; i < vector_size(ug->ugen); i++) {
       UGen u = (UGen)vector_at(ug->ugen, i);
-printf("%p\n", u);
-printf("%p\n", u->to);
       m_int index = vector_find(u->to, (vtype)ug);
       if(index > -1)
         vector_remove(u->to, index);
