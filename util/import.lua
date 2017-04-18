@@ -20,7 +20,7 @@ function declare_c_param(param)
 		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);\n\tgw_offset += SZ_INT;")
 		print("\tm_uint "..param.name.."_iter;")
 --		print("\tsp_ftbl* "..param.name.."[m_vector_size("..param.name.."_ptr->d.array)];")
-		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * sizeof(sp_ftbl));")
+		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * SZ_INT);")
 		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->d.array); "..param.name.."_iter++)")
 		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->d.array, "..param.name.."_iter));")
 		print("\trelease("..param.name.."_ptr, shred);")
@@ -201,23 +201,41 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
-		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);\n")
+		print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do
 				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree(ug->"..v.name..");\n")
+					print("\t\tfree(ug->"..v.name..");")
 				end
 			end
 		end
 		print("\t\tug->osc = NULL;\n\t}");
-		print("\tSP_CHECK(sp_"..name.."_create(&ug->osc))")
-		print("\tSP_CHECK(sp_"..name.."_init(ug->sp, ug->osc, "..args.."))")
+		print("\tif(sp_"..name.."_create(&ug->osc) == SP_NOT_OK) {")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do
 				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tug->"..v.name.." = "..v.name..";\n")
+					print("\t\tfree(ug->"..v.name..");")
+				end
+			end
+		end
+		print("\t\tExcept(shred)\n\t}")
+		print("\tif(sp_"..name.."_init(ug->sp, ug->osc, "..args..") == SP_NOT_OK) {")
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\t\tfree(ug->"..v.name..");")
+				end
+			end
+		end
+		print("\t\tExcept(shred)\n\t}")
+		local tbl = mod.params.mandatory
+		if tbl then
+			for _, v in pairs(tbl) do
+				if string.match(v.type, "sp_ftbl%s%*%*") then
+					print("\tug->"..v.name.." = "..v.name..";")
 				end
 			end
 		end
@@ -316,7 +334,7 @@ print('#include "vm.h"\
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
-print("#define SP_CHECK(a) if(a == SP_NOT_OK)Except(shred)")
+print("#define SP_CHECK(a) if(a == SP_NOT_OK) { free(ug->osc); Except(shred) }")
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
