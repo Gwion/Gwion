@@ -121,10 +121,10 @@ function print_mod_func(name, mod)
 	print("} GW_"..name..";\n")
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
-	if ninputs == 1 and noutputs == 1 then
+	if mod.ninputs == 1 and mod.noutputs == 1 then
 		print("\tbase_tick(u);");
-	elseif ninputs > 1 then
-		for i = 1, ninputs do
+	elseif mod.ninputs > 1 then
+		for i = 1, mod.ninputs do
 			print("\tbase_tick(u->channel["..(i - 1).."]->ugen);");
 		end
 	end
