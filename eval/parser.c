@@ -1621,7 +1621,7 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytoken != YYEMPTY ? yytnamerr (YY_NULLPTR, yytname[yytoken]) : 0;
   YYSIZE_T yysize = yysize0;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
@@ -1708,7 +1708,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
     }
 
   {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
+    YYSIZE_T yysize1 = yysize + yyformat ? yystrlen (yyformat) : 0;
     if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
       return 2;
     yysize = yysize1;
@@ -3252,7 +3252,7 @@ yyerrlab:
 #if ! YYERROR_VERBOSE
       yyerror (arg, YY_("syntax error"));
 #else
-# define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
+# define YYSYNTAX_ERROR yytoken == YYEMPTY ? 0 : yysyntax_error (&yymsg_alloc, &yymsg, \
                                         yyssp, yytoken)
       {
         char const *yymsgp = YY_("syntax error");
