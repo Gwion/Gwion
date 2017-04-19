@@ -166,7 +166,7 @@ void vm_add_shred(VM* vm, VM_Shred shred)
 {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
-    shred->xid = vector_size(vm->shred);
+//    shred->xid = vector_size(vm->shred);
     vector_append(vm->shred, (vtype)shred);
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
