@@ -40,6 +40,7 @@ test_plugin invalid_func
 test_plugin invalid_array
 test_plugin invalid_arg
 test_plugin no_import
+test_plugin op_err
 
 # clean
 rm -f *.gcda *.gcno vgcore.* *.o *.so
