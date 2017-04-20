@@ -113,6 +113,7 @@ INSTR(file_to_int)
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
       err_msg(INSTR_, 0, "problem while reading file.");
@@ -121,9 +122,9 @@ INSTR(file_to_int)
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
 	err_msg(INSTR_, 0, "trying to read from empty file.");
+    release(o, shred);
 	Except(shred);
   }
-  release(o, shred);
 }
 
 INSTR(file_to_float)
@@ -135,16 +136,17 @@ INSTR(file_to_float)
   /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
       Except(shred);
     }
     *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
   } else {
-	err_msg(INSTR_, 0, "trying to read from empty file.");
-	Except(shred);
+    err_msg(INSTR_, 0, "trying to read from empty file. %lu", o->ref);
+    release(o, shred);
+    Except(shred);
   }
-  release(o, shred);
 }
 /*
 m_bool inputAvailable(FILE* f)
