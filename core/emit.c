@@ -2441,7 +2441,26 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   // ensure return
   if (func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
     emit_func_release(emit); // /04/04/2017
-    sadd_instr(emit, Reg_Push_Imm);
+    Kindof k = kindof(func_def->ret_type);
+    f_instr f = Reg_Push_Imm;
+	switch(k) {
+		case Kindof_Int:
+			f = Reg_Push_Imm;
+            break;
+		case Kindof_Float:
+			f = Reg_Push_Imm2;
+            break;
+		case Kindof_Complex:
+			f = Reg_Push_ImmC;
+            break;
+		case Kindof_Vec3:
+			f = Reg_Push_ImmV3;
+            break;
+		case Kindof_Vec4:
+			f = Reg_Push_ImmV4;
+            break;
+    }
+    sadd_instr(emit, f);
     Instr goto_instr = add_instr(emit, Goto);
     emit_add_return(emit, goto_instr);
   }
