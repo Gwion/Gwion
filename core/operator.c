@@ -123,6 +123,8 @@ m_int name2op(m_str name)
 
 m_str op2str(Operator op)
 {
+  if(op >= (sizeof(operators) / sizeof(Operator)))
+    return NULL;
   return op_str[op];
 }
 
@@ -333,6 +335,9 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   return -1;
 }
 
+/*
+// commented before doc move
+// also , outputs rst (should be markdown.)
 void operator_doc(Vector v, FILE* file)
 {
 #ifdef DEBUG_OPERATOR
@@ -350,3 +355,4 @@ void operator_doc(Vector v, FILE* file)
   }
   fprintf(file, "@end itemize\n");
 }
+*/

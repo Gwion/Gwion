@@ -6,7 +6,8 @@ OBJ = $(SRC:.c=.o)
 CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs
 
 LDFLAGS  = -fPIC --coverage
-
+PREFIX ?= /usr
+GWION_ADD_DIR ?= ${PREFIX}/lib/Gwion/add
 # os specific
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
