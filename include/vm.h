@@ -51,6 +51,7 @@ struct VM_Shred_ {
   Vector child;
   M_Object wait;
   Vector gc;
+  Vector gc1;
 #ifdef DEBUG_STACK
   m_int mem_index, reg_index;
 #endif

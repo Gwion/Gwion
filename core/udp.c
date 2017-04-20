@@ -9,6 +9,7 @@
 #include "compile.h"
 #include "err_msg.h"
 #include "udp.h"
+#include "lang.h"
 #include "shreduler.h"
 
 static int sock;
@@ -77,7 +78,11 @@ void* server_thread(void* data)
       vm->wakeup();
     } else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
-      shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf) - 1), 1);
+      m_uint i;
+      VM_Shred shred =  (VM_Shred)vector_at(vm->shred, atoi(buf) - 1);
+      for(i = 0; i < vector_size(shred->gc1); i++)
+        release((M_Object)vector_at(shred->gc1, i), shred);
+      shreduler_remove(vm->shreduler, shred, 1);
       buf -= 2;
     } else if(strncmp(buf, "+", 1) == 0) {
       buf += 2;

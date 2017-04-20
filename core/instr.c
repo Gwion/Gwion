@@ -986,6 +986,7 @@ INSTR(Instantiate_Object)
   debug_msg("instr", "instantiate object %p", instr->ptr);
 #endif
   instantiate_object(vm, shred, instr->ptr);
+  vector_append(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
 }
 
 INSTR(Alloc_Member_Word)

@@ -20,9 +20,12 @@ M_Object new_Shred(VM* vm, VM_Shred shred)
 
 static MFUN(vm_shred_exit)
 {
+  m_uint i;
   VM_Shred  s = ME(o);
   s->is_running = 0;
   s->is_done = 1;
+  for(i = 0; i < vector_size(shred->gc1); i++)
+    release((M_Object)vector_at(shred->gc1, i), shred);
 }
 
 static MFUN(vm_shred_id)
