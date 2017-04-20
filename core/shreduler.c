@@ -187,8 +187,6 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)
     }
   }
   diff = s->list->wake_time - get_now(s);
-  if(diff < 0)
-    diff = 0;
-  s->til_next = diff;
+  s->til_next = diff < 0 ? 0 : diff;
   return 1;
 }

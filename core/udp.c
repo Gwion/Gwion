@@ -80,9 +80,11 @@ void* server_thread(void* data)
       buf += 2;
       m_uint i;
       VM_Shred shred =  (VM_Shred)vector_at(vm->shred, atoi(buf) - 1);
-      for(i = 0; i < vector_size(shred->gc1); i++)
-        release((M_Object)vector_at(shred->gc1, i), shred);
-      shreduler_remove(vm->shreduler, shred, 1);
+      if(shred) {
+        for(i = 0; i < vector_size(shred->gc1); i++)
+          release((M_Object)vector_at(shred->gc1, i), shred);
+        shreduler_remove(vm->shreduler, shred, 1);
+      }
       buf -= 2;
     } else if(strncmp(buf, "+", 1) == 0) {
       buf += 2;

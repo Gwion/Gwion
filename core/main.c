@@ -103,7 +103,7 @@ int main(int argc, char** argv)
   di.bufnum = 3;
   di.card = "default:CARD=CODEC";
   di.raw = 0;
-  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:-:rc: ", long_option, &index)) != -1) {
+  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:-:rc:f: ", long_option, &index)) != -1) {
     switch(i) {
     case '?':
       usage();
