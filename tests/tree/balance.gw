@@ -5,6 +5,12 @@ function float test(complex c) {}
 function float test(Vec3 v) {}
 function float test(Vec4 w) {}
 
+function complex ctest(){}
+function Vec3    vtest(){}
+function Vec4    wtest(){}
+ctest();
+vtest();
+wtest();
 test();
 () => test;
 

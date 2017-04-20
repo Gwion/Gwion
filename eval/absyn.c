@@ -11,12 +11,6 @@ static void free_Section();
 
 void free_Type_List(Type_List a);
 
-int get_pos(void* data)
-{
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  return arg->line;
-}
-
 Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 {
   Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
