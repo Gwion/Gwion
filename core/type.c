@@ -30,10 +30,10 @@ static m_bool check_Class_Def(Env env, Class_Def class_def);
 /* static  */ Func find_func_match(Func up, Expression args);
 
 
-struct Type_ t_void      = { "void",       0, NULL, te_void};
-struct Type_ t_function  = { "@function",   sizeof(m_uint),   NULL, te_function };
-struct Type_ t_func_ptr  = { "@func_ptr",   sizeof(m_uint),   &t_function, te_func_ptr};
-struct Type_ t_class     = { "@Class",       SZ_INT,   NULL, te_class };
+struct Type_ t_void      = { "void",       0,      NULL,        te_void};
+struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
+struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
+struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 
 static int so_filter(const struct dirent* dir)
 {
@@ -63,37 +63,37 @@ Env type_engine_init(VM* vm)
   Env env = new_Env();
 
   /* add primitive types */
-  CHECK_BO(add_global_type(env, &t_void))
-  CHECK_BO(import_int(env))
-  /* coverity[leaked_storage : FALSE] */
-  CHECK_BO(import_float(env))
-  CHECK_BO(import_complex(env))
-  CHECK_BO(import_vec3(env))
-  CHECK_BO(import_vec4(env))
+  if(add_global_type(env, &t_void) < 0) goto error;
+
+  if(import_int(env)       < 0) goto error;
+  if(import_float(env)     < 0) goto error;
+  if(import_complex(env)   < 0) goto error;
+  if(import_vec3(env)      < 0) goto error;
+  if(import_vec4(env)      < 0) goto error;
 
   // base object types
-  CHECK_BO(import_object(env))
-  CHECK_BO(import_string(env))
-  CHECK_BO(import_shred(env))
-  CHECK_BO(import_event(env))
-  CHECK_BO(import_ugen(env))
-  CHECK_BO(import_array(env))
+  if(import_object(env)    < 0) goto error;
+  if(import_string(env)    < 0) goto error;
+  if(import_shred(env)     < 0) goto error;
+  if(import_event(env)     < 0) goto error;
+  if(import_ugen(env)      < 0) goto error;
+  if(import_array(env)     < 0) goto error;
 
-//  CHECK_BO(import_io(env))
+//  if(import_io(env) < 0) goto error;
   start_type_xid();
   // event child
-  CHECK_BO(import_fileio(env))
+  if(import_fileio(env)    < 0) goto error;
 
   // libs
-  CHECK_BO(import_lib(env))
-  CHECK_BO(import_machine(env))
+  if(import_lib(env)       < 0) goto error;
+  if(import_machine(env)   < 0) goto error;
 
   // SOUNDPIPE
-  CHECK_BO(import_soundpipe(env))
+  if(import_soundpipe(env) < 0) goto error;
 
-  CHECK_BO(import_analys(env))
+  if(import_analys(env)    < 0) goto error;
   // additionnal UGen modules
-  CHECK_BO(import_modules(env))
+  if(import_modules(env)   < 0) goto error;
 
   vm->dac       = new_M_UGen();
   vm->adc       = new_M_UGen();
@@ -184,6 +184,10 @@ next:
   }
   namespace_commit(env->global_nspc);
   return env;
+
+error:
+  free(env);
+  return NULL;
 }
 
 m_bool check_Context(Env env, Context context)
@@ -262,7 +266,7 @@ cleanup:
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
     add_ref(context->obj);
   } else {
-    namespace_rollback(env->global_nspc);
+//    namespace_rollback(env->global_nspc);
     //rem_ref(context->obj, context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
@@ -358,10 +362,8 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
     }
     body = body->next;
   }
-  env->class_def = (Type)vector_back(env->class_stack);
-  vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
@@ -427,8 +429,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(value->is_member) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
-      /* coverity[var_deref_op : FALSE] */
-      env->class_def->obj_size += type->size;
+//      env->class_def->obj_size += type->size;
       env->curr->offset += type->size;
     } else if( decl->is_static ) { // static
       if(!env->class_def || env->class_scope > 0 ) {
@@ -775,11 +776,13 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
   Type t;
 
+/*
+  // use this to forbid (..) => fuc_pointer
   if(op == op_chuck && isa(binary->rhs->type, &t_func_ptr) > 0) {
     err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
     return NULL;
   }
-
+*/
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Type r_nspc, l_nspc = NULL;
     m_uint i;
@@ -790,16 +793,18 @@ static Type check_op( Env env, Operator op, Expression lhs, Expression rhs, Bina
 
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
+//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       return NULL;
     }
 
     if(binary->rhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
-      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+//      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
       v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
-      f1 = v->func_ref;
+//      f1 = (v->owner_class && v->is_member) ? v->func_ref :
+      f1 = namespace_lookup_func(binary->rhs->d.exp_dot->t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
       f1 = v->m_type->func;
@@ -988,7 +993,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   /*    ( t->xid == t_int.xid) && (t2->xid == t_int.xid)*/
   /*  )*/
   if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
-    return t;
+    return t2;
   if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
     return t2;
   if(isa(t, &t_object) < 0)
@@ -1076,7 +1081,7 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
   Func func;
   int match = -1;
   // see if args is nil
-  if(args && args->type == &t_void)
+  if(args && isa(args->type, &t_void) > 0)
     args = NULL;
 
   while(up) {
@@ -1085,6 +1090,7 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
       e = args;
       e1 = func->def->arg_list;
       count = 1;
+
       while(e) {
         if(e1 == NULL) {
           if(func->def->is_variadic)
@@ -1211,7 +1217,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       if(!list->list)
         break;
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      base_t->next = NULL;
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
@@ -1243,10 +1248,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     m_func = find_func_match(def->func, args);
     if(m_func) {
       if(v->owner_class) {
-        env->class_def = (Type)vector_back(env->class_stack);
-        vector_pop(env->class_stack);
-        env->curr = (NameSpace)vector_back(env->nspc_stack);
-        vector_pop(env->nspc_stack);
+        env->class_def = (Type)vector_pop(env->class_stack);
+        env->curr = (NameSpace)vector_pop(env->nspc_stack);
       }
       m_func->is_template = 1;
       m_func->def->base = value->func_ref->def->types;
@@ -1260,10 +1263,8 @@ next:
     free_Func_Def(def);
   }
   if(v->owner_class) {
-    env->class_def = (Type)vector_back(env->class_stack);
-    vector_pop(env->class_stack);
-    env->curr = (NameSpace)vector_back(env->nspc_stack);
-    vector_pop(env->nspc_stack);
+    env->class_def = (Type)vector_pop(env->class_stack);
+    env->curr = (NameSpace)vector_pop(env->nspc_stack);
   }
   return NULL;
 }
@@ -1280,27 +1281,24 @@ next:
   exp_func->type = check_Expression(env, exp_func);
   f = exp_func->type;
   // primary func_ptr
-//printf("%s %p\n", f->name, exp_func->d.exp_primary->value->is_member);
   if(exp_func->exp_type == Primary_Expression_type &&
-      exp_func->d.exp_primary->value &&
-      !exp_func->d.exp_primary->value->is_const) {
-ptr = exp_func->d.exp_primary->value;
-//    f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-//namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-    /*f = namespace_lookup_type(env->curr, insert_symbol(exp_func->d.exp_primary->value->name), -1);*/
+      exp_func->d.exp_primary->value && !exp_func->d.exp_primary->value->is_const) {
+        if(env->class_def && exp_func->d.exp_primary->value->owner_class == env->class_def) {
+      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+          return NULL;
+        }
+        ptr = exp_func->d.exp_primary->value;
+      }
 /*
-    if(!f) {
-      err_msg(TYPE_, exp_func->pos, "trying to call empty func pointer.");
-      return NULL;
-
-    }
+  else if(exp_func->exp_type == Dot_Member_type) {
+        Value v = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
+        if(v && v->owner_class == env->class_def) {
+      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+          return NULL;
+        }
+//        ptr = exp_func->d.exp_primary->value;
+      }
 */
-//    if(!f->func) { // func ptr
-//      up = namespace_lookup_func(env->curr, insert_symbol(exp_func->d.exp_primary->value->m_type->name), -1);
-//      f->func = up;
-//    }
-  }
-
   if(!f) {
     err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
     return NULL;
@@ -1497,6 +1495,7 @@ static m_bool check_Func_Ptr(Env env, Func_Ptr* ptr)
 static Type check_Unary(Env env, Unary_Expression* exp_unary)
 {
   Type t = NULL;
+/*
   if(exp_unary->exp) {
     if(exp_unary->op == op_new) {
       err_msg(TYPE_, exp_unary->pos, "internal error: exp_unary expression not with 'new'");
@@ -1506,6 +1505,9 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     if(!t)
       return NULL;
   }
+*/
+  if(exp_unary->op != op_new && !exp_unary->code)
+    CHECK_OO((t = check_Expression(env, exp_unary->exp)))
   // check code stmt; this is to eventually support sporking of code (added 1.3.0.0)
   if(exp_unary->code)
     CHECK_BO(check_Stmt(env, exp_unary->code))
@@ -1529,18 +1531,23 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       exp_unary->exp->emit_var = 1;
 
       // check type
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
         return t;
       // TODO: check overloading
       break;
 
     case op_minus:
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) || isa(t, &t_float) > 0)
         return t;
       break;
     case op_tilda:
     case op_exclamation:
-      /* coverity[var_deref_model : FALSE] */
+      if(!t)
+        return NULL;
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, 
         &t_dur) > 0)
         return &t_int;
@@ -1667,7 +1674,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     }
   err_msg(TYPE_, exp_unary->pos,
           "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
-          op2str( exp_unary->op ), t->name );
+          op2str( exp_unary->op ), t ? t->name : "unknown");
   return NULL;
 }
 static Type check_exp_if(Env env, If_Expression* exp_if )
@@ -1685,9 +1692,10 @@ static Type check_exp_if(Env env, If_Expression* exp_if )
     return NULL;
 
   // check the type
-  if(isa(cond, &t_int) < 0)
+  if(isa(cond, &t_int) < 0 && isa(cond, &t_float) < 0) {
+    err_msg(TYPE_, exp_if->pos, "Invalid type '%s' in if expression condition.", cond);
     return NULL;
-
+  }
   // make sure the if and else have compatible types
   // TODO: the lesser of two types
   /*  if( !( *if_exp == *else_exp ) )*/
@@ -1752,7 +1760,7 @@ static Type check_Expression(Env env, Expression exp)
     CHECK_OO(curr->type)
     curr = curr->next;
   }
-  return exp->type;
+  return exp ? exp->type : NULL;
 #ifndef __clang__
 #pragma GCC diagnostic pop
 #endif
@@ -2023,6 +2031,10 @@ static m_bool check_Goto_Label(Env env, Stmt_Goto_Label stmt)
   if(stmt->is_label)
     return 1;
   m = (Map)map_get(env->curr->label, (vtype)key);
+  if(!m) {
+    err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
+    return -1;
+  }
   ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
   if(!ref) {
     err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
@@ -2256,11 +2268,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
-  m_str func_name = S_name(f->name);
-  //  m_str func_name = strdup(S_name(f->name)); // strdup might be unnnecessary. 27/11/16
+  m_str func_name;// = S_name(f->name);
   m_uint count = 1;
-//  m_bool has_code = 0; // since remove of iface/abstract
-
 
   if(f->types) // templating, check at call time
     return 1;
@@ -2300,7 +2309,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
       err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
               S_name(f->name));
       err_msg(TYPE_, f->pos, "from super class '%s'...", override->owner_class->name);
-      goto error;
+      return -1;
+//      goto error;
     }
   }
   if(override) {
@@ -2345,7 +2355,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
                     "...(reason: '%s.%s' is declared as 'static')",
                     v->owner_class->name, S_name(f->name) );
-            goto error;
+//            goto error;
+            return -1;
           }
 
           // see if function is static
@@ -2357,7 +2368,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
             err_msg(TYPE_, f->pos,
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name));
-            goto error;
+            return -1;
+//            goto error;
           }
 /*
 // remove abstract /28/03/2017
@@ -2380,12 +2392,14 @@ m_bool check_Func_Def(Env env, Func_Def f)
                     "function '%s.%s' matches '%s.%s' but cannot override...",
                     env->class_def->name, S_name(f->name),
                     v->owner_class->name, S_name(f->name));
-            goto error;
+return -1;
+//            goto error;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
           vector_set(env->curr->obj_v_table, func->vt_index, (vtype)func);
-          func_name = parent_func->name;
+          free(func->name);
+          func_name = strdup(parent_func->name);
           func->name = func_name;
           value->name = func_name;
         }

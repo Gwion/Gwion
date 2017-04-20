@@ -11,4 +11,5 @@ IMPORT
 {
   DL_Func* fun;
   CHECK_BB(import_class_end(env))
+  return 1;
 }

@@ -20,4 +20,5 @@ IMPORT
   CHECK_OB(import_mfun(env, fun))
 
   CHECK_BB(import_class_end(env))
+  return 1;
 }

@@ -10,3 +10,6 @@ run "$((n))" "remove " "- 1" "file2"
 run "$((n+1))" "add  " "+ examples/int.gw -l1" "file3"
 run "$((n+2))" "add  " "-l0" "file4"
 wait
+
+n=$((n+4))
+run "$n" "format " "-f F32" "file"

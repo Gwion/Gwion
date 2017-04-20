@@ -76,6 +76,8 @@ VM_Shred new_VM_Shred(VM_Code c)
   shred->args       = NULL;
   shred->me         = NULL;
   shred->filename   = NULL;
+  shred->gc         = NULL;
+  shred->gc1        = new_Vector();
 #ifdef DEBUG_STACK
   shred->mem_index  = 0;
   shred->reg_index  = 0;
@@ -94,6 +96,7 @@ void free_VM_Shred(VM_Shred shred)
   free_VM_Code(shred->code);
   free(shred->name);
   free(shred->filename);
+  free_Vector(shred->gc1);
   free(shred);
 }
 
@@ -166,7 +169,7 @@ void vm_add_shred(VM* vm, VM_Shred shred)
 {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
-    shred->xid = vector_size(vm->shred);
+//    shred->xid = vector_size(vm->shred);
     vector_append(vm->shred, (vtype)shred);
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);

@@ -21,7 +21,7 @@ void NullException(VM_Shred shred)
   shred->is_done = 1;
 }
 
-M_Object new_M_Object()
+M_Object new_M_Object(VM_Shred shred)
 {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->vtable = NULL;
@@ -30,12 +30,14 @@ M_Object new_M_Object()
   a->d.data = NULL;
   a->ugen = NULL;
   a->ref = 1;
+  if(shred)
+    vector_append(shred->gc, (vtype)a);
   return a;
 }
 
-M_Object new_String(m_str str)
+M_Object new_String(VM_Shred shred, m_str str)
 {
-  M_Object o = new_M_Object();
+  M_Object o = new_M_Object(shred);
   initialize_object(o, &t_string);
   STRING(o) = S_name(insert_symbol(str));
   return o;
@@ -43,10 +45,6 @@ M_Object new_String(m_str str)
 
 m_bool initialize_object(M_Object object, Type type)
 {
-  if (!type->info) {
-    err_msg(TYPE_, 0, "internal error: no type->info for type '%s'", type->name);
-    return -1;
-  }
   object->vtable = type->info->obj_v_table;
   object->type_ref = type;
   object->size = type->obj_size;
@@ -162,8 +160,13 @@ INSTR(Vararg_start)
   debug_msg("instr", "vararg start %i", instr->m_val);
 #endif
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  if (!arg->d)
+  if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
+  if(!arg->s) {
+    POP_REG(shred, SZ_INT); // pop vararg
+    free(arg);
+    return;
+  }
   PUSH_REG(shred, SZ_INT);
   *(m_uint*)(shred->reg - SZ_INT) = 0;
 }
@@ -194,7 +197,7 @@ INSTR(Vararg_end)
   }
   PUSH_REG(shred, SZ_INT);
   arg->i++;
-  if (arg->i == arg->s) {
+  if(arg->i == arg->s) {
     free(arg->d);
     free(arg->k);
     free(arg);

@@ -95,10 +95,8 @@ int load_context(Context context, Env env)
 int unload_context(Context context, Env env)
 {
   namespace_pop_value(env->context->nspc);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
 //  rem_ref(env->context->obj, env->context);
-  env->context = (Context)vector_back(env->contexts);
-  vector_pop(env->contexts);
+  env->context = (Context)vector_pop(env->contexts);
   return 1;
 }

@@ -1,11 +1,19 @@
 INC      = ../../include
-CC       = gcc
+CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
 CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs
 
-LDFLAGS  = -shared -fPIC --coverage
+LDFLAGS  = -fPIC --coverage
+PREFIX ?= /usr
+GWION_ADD_DIR ?= ${PREFIX}/lib/Gwion/add
+# os specific
+ifeq ($(shell uname), Linux)
+LDFLAGS += -shared
+else
+LDFLAGS += -bundle -undefined dynamic_lookup
+endif
 
 default: ${NAME}.so
 

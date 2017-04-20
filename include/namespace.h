@@ -37,7 +37,7 @@ extern void  namespace_add_func     (NameSpace namespace, S_Symbol xid, Func val
 //extern void  namespace_pop_func     (NameSpace namespace);
 
 extern void  namespace_commit       (NameSpace namespace);
-extern void  namespace_rollback     (NameSpace namespace);
+//extern void  namespace_rollback     (NameSpace namespace);
 
 extern NameSpace new_NameSpace();
 extern void free_NameSpace(NameSpace a);

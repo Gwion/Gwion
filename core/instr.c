@@ -45,6 +45,38 @@ INSTR(Reg_Push_Imm2)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
+INSTR(Reg_Push_ImmC)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+#endif
+  *(m_complex*)(shred->reg) = 0;
+  PUSH_REG(shred,  SZ_COMPLEX);
+}
+
+INSTR(Reg_Push_ImmV3)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+#endif
+  *(m_float*)(shred->reg)              = 0;
+  *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
+  *(m_float*)(shred->reg + SZ_COMPLEX) = 0;
+  PUSH_REG(shred,  SZ_VEC3);
+}
+
+INSTR(Reg_Push_ImmV4)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+#endif
+  *(m_float*)(shred->reg)              = 0;
+  *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
+  *(m_float*)(shred->reg + SZ_COMPLEX) = 0;
+  *(m_float*)(shred->reg + SZ_VEC3)    = 0;
+  PUSH_REG(shred,  SZ_VEC4);
+}
+
 INSTR(Reg_Push_Mem_Addr)
 {
 #ifdef DEBUG_INSTR
@@ -63,7 +95,9 @@ INSTR(Mem_Push_Imm)
   PUSH_MEM(shred,  SZ_INT);
 }
 
+/*
 // test on 13/01/17
+// removed on 09/04/17
 INSTR(Mem_Push_Ret)
 {
 #ifdef DEBUG_INSTR
@@ -71,7 +105,7 @@ INSTR(Mem_Push_Ret)
 #endif
   *(M_Object*)(shred->mem + instr->m_val) = *(M_Object*)(shred->reg - SZ_INT);
 }
-
+*/
 INSTR(Mem_Set_Imm)
 {
 #ifdef DEBUG_INSTR
@@ -100,9 +134,23 @@ INSTR(assign_func)
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign func");
 #endif
+
+if(!instr->m_val) {
   POP_REG(shred,  SZ_INT * 2);
-if(!*(m_uint*)(shred->reg + SZ_INT)) exit(12);
-  *(m_uint*)shred->reg = (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
+  **(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg;
+//  PUSH_REG(shred,  SZ_INT);
+} else {
+//printf("%p\n", (*(Func*)(shred->reg - SZ_INT))->name);
+  POP_REG(shred,  SZ_INT* 4);
+
+  Func f = (Func) *(m_uint*)(shred->reg + SZ_INT);
+  M_Object obj = *(M_Object*)(shred->reg + SZ_INT*2);
+  *(Func*)(obj->d.data + instr->m_val2) = f;
+
+  *(m_uint*)shred->reg = *(m_uint*)(shred->reg + SZ_INT);
+  *(Func**)(shred->reg + SZ_INT*4) = &f;
+//  *(Func*)(( *(M_Object*)(shred->reg + SZ_INT*2))->d.data + instr->m_val2) = *(m_uint*)(shred->reg + SZ_INT);
+}
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -177,11 +225,17 @@ INSTR(Reg_Push_Ptr)
 INSTR(Reg_Push_Code)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push code [%i]", instr->m_val);
+  debug_msg("instr", "[reg] push code [%i] (%i)", instr->m_val, instr->m_val2);
 #endif
-  Func f = *(Func*)(shred->mem + instr->m_val);
+  Func f;
+  if(instr->m_val2)
+     f =  *(Func*)(shred->reg - SZ_INT);
+  else
+     f =  *(Func*)(shred->mem + instr->m_val);
   if(!f) {
     err_msg(INSTR_, 0, "trying to call empty func pointer.");
+    if(instr->m_val2) // if any, release owner on error
+      release(*(M_Object*)(shred->reg - SZ_INT*2), shred);
 	Except(shred);
   }
   *(VM_Code*)(shred->reg - SZ_INT) = f->code;
@@ -447,7 +501,7 @@ INSTR(Gack)
     fprintf(stdout, ") ");
 #endif
     int j;
-    for(j = 0; j < longest - strlen(name); j++)
+    for(j = 0; j < longest - (name ? strlen(name) : 0); j++)
       fprintf(stdout, " ");
     /*exit(2);*/
     if(type->xid == t_int.xid)
@@ -530,19 +584,20 @@ INSTR(MkVararg)
   POP_REG(shred,  instr->m_val);
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;
-  struct Vararg* arg = malloc(sizeof(struct Vararg));
+  struct Vararg* arg =calloc(1, sizeof(struct Vararg));
   if(instr->m_val) {
     arg->d = malloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
-  arg->s = vector_size(kinds);
-  arg->k = calloc(arg->s, sizeof(Kindof));
+  arg->s = kinds ? vector_size(kinds) : 0;
+  arg->k = arg->s ? calloc(arg->s, sizeof(Kindof)) : NULL;
   for(i = 0; i < arg->s; i++) {
     arg->k[i] = (Kindof)vector_at(kinds, i);
   }
   arg->o = 0;
   arg->i = 0;
-  free_Vector(kinds);
+  if(kinds)
+    free_Vector(kinds);
   *(struct Vararg**)shred->reg = arg;
   PUSH_REG(shred,  SZ_INT);
 }
@@ -681,16 +736,16 @@ INSTR(Instr_Op_Call_Binary)
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
   shred->code = func;
-  POP_REG(shred,  stack_depth);
+//  POP_REG(shred,  stack_depth);
+  POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1
   if(func->need_this) {
     *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
     PUSH_MEM(shred,  SZ_INT);
     stack_depth -= SZ_INT;
   }
-  if(isa(l, &t_object) > 0)
-    release(*(M_Object*)(shred->reg), shred);
+ if(isa(l, &t_object) > 0)
+   release(*(M_Object*)(shred->reg), shred);
   if(isa(r, &t_object) > 0)
-//    release(**(M_Object**)(shred->reg + SZ_INT), shred);
     release(**(M_Object**)(shred->reg + l->size), shred);
   if(stack_depth) {
     Kindof kl = kindof(l);
@@ -909,8 +964,7 @@ INSTR(Pre_Constructor)
 
 static void instantiate_object(VM * vm, VM_Shred shred, Type type )
 {
-
-  M_Object object = new_M_Object();
+  M_Object object = new_M_Object(NULL);
   if(!object)
     goto error;
   initialize_object(object, type);
@@ -932,6 +986,7 @@ INSTR(Instantiate_Object)
   debug_msg("instr", "instantiate object %p", instr->ptr);
 #endif
   instantiate_object(vm, shred, instr->ptr);
+  vector_append(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
 }
 
 INSTR(Alloc_Member_Word)
@@ -1236,6 +1291,7 @@ INSTR(Instr_Array_Init) // for litteral array
   }
   obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
+  vector_append(shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++) {
     switch(instr->m_val2) {
     case Kindof_Int:
@@ -1257,7 +1313,7 @@ INSTR(Instr_Array_Init) // for litteral array
   }
   info->type->obj->ref_count = 1;
   *(M_Object*)shred->reg = obj;
-  *(M_Object*)(shred->mem + instr->m_val) = obj;
+//  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -1434,3 +1490,25 @@ array_out_of_bound:
   shred->is_running = 0;
   shred->is_done = 1;
 }
+
+
+/* try to garbage collect strings in switch */
+INSTR(start_gc) {
+  if(!shred->gc) //  dynamic assign
+    shred->gc = new_Vector();
+  vector_append(shred->gc, (vtype)NULL); // enable scoping
+}
+
+INSTR(stop_gc) {
+  M_Object o;
+  while((o = (M_Object)vector_pop(shred->gc)))
+    release(o, shred);
+// vector_pop(shred->gc); // scoping
+// if(!vector_size(shred->gc)) // dynamic assign with scoping
+//  free_Vector(shred->gc);
+}
+/*
+INSTR(add_gc) {
+  vector_append(shred->gc, *(vtype*)(shred->reg - SZ_INT));
+}
+*/

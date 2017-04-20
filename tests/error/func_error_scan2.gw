@@ -1,0 +1,2 @@
+// [contains] unknown in declaration
+function void test() { skfuv sd; }

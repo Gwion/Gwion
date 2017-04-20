@@ -90,7 +90,7 @@ typedef struct {
   Type lhs, rhs, ret;
   f_instr instr;
   Func func;
-  f_type  type_func;
+//  f_type  type_func;
   m_str doc;
   m_bool is_new;
 } M_Operator;
@@ -123,6 +123,8 @@ m_int name2op(m_str name)
 
 m_str op2str(Operator op)
 {
+  if(op >= (sizeof(operators) / sizeof(Operator)))
+    return NULL;
   return op_str[op];
 }
 
@@ -200,7 +202,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->ret       = ret;
   mo->instr     = f;
   mo->func      = NULL;
-  mo->type_func = NULL;
+//  mo->type_func = NULL;
   mo->doc       = NULL;
   mo->is_new = is_new;
   vector_append(v, (vtype)mo);
@@ -260,6 +262,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   return NULL;
 }
 
+/*
 // use for C operator
 m_bool operator_set_type_func(f_type  f)
 {
@@ -273,6 +276,7 @@ m_bool operator_set_type_func(f_type  f)
   last->type_func = f;
   return 1;
 }
+*/
 
 // use for in code operator
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs)
@@ -333,6 +337,9 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   return -1;
 }
 
+/*
+// commented before doc move
+// also , outputs rst (should be markdown.)
 void operator_doc(Vector v, FILE* file)
 {
 #ifdef DEBUG_OPERATOR
@@ -350,3 +357,4 @@ void operator_doc(Vector v, FILE* file)
   }
   fprintf(file, "@end itemize\n");
 }
+*/

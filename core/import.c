@@ -68,6 +68,8 @@ ID_List str2list(m_str path, m_uint* array_depth )
     last = c;
   }
   path = strndup(path, len);
+  if(!list)
+	return NULL;
   list->xid = insert_symbol(path);
   if(array_depth)
     *array_depth = depth;
@@ -148,10 +150,8 @@ m_bool import_class_end(Env env)
     return -1;
   }
   env->class_def->obj_size = env->class_def->info->offset;
-  env->class_def = (Type)vector_back(env->class_stack);
-  vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
   return 1;
 }
 

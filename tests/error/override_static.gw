@@ -1,0 +1,10 @@
+// [contains] but cannot override
+class C
+{
+	function static void test() {}
+}
+
+class D extends C
+{
+	function void test() {}
+}

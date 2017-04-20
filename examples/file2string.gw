@@ -1,0 +1,5 @@
+FileIO f;
+string s;
+f.open("examples/analys.gw", "r");
+<<<f>>>;
+f => s;

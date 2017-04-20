@@ -79,7 +79,6 @@ static Textadept* new_Textadept(Env env, m_str str)
 	free(doc);
 	return NULL;
   }
-  memset(c, 0, 1024);
   strncpy(c, GWION_TAG_DIR, 1024 - len - 5);
   strncat(c, name, len);
   strncat(c, ".tag", 4);
@@ -90,7 +89,6 @@ static Textadept* new_Textadept(Env env, m_str str)
 	free(doc);
 	return NULL;
   }
-  memset(c, 0, 1024);
   strncpy(c, GWION_TOK_DIR, 1024 - len - 4);
   strncat(c, name, len);
   strncat(c, ".tok", 4);
@@ -138,7 +136,6 @@ static Doc* new_Doc(Env env, m_str str)
     free(doc);
     return NULL;
   }
-  memset(c, 0, 1024);
   strncpy(c, GWION_DOC_DIR, 1023);
   strncat(c, "/", 1);
   strncat(c, "dat/", 1022 - strlen(c));

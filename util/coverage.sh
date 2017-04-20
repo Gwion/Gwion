@@ -218,8 +218,8 @@ generate_files() {
 }
 
 run() {
-	generate_files "$1"
-	source util/test.sh; do_test "$PWD"
+#	generate_files "$1"
+#	source util/test.sh; do_test "$PWD"
 	source util/test.sh; do_test "tests/ugen_coverage"
 }
 
@@ -229,7 +229,8 @@ after_success() {
 
 	bash util/coverage.sh run
 
-    EXCLUDE_TARGET=" eval/parser.c eval/lexer.c"
+    EXCLUDE_TARGET=" tests include"
+    EXCLUDE_TARGET+=" eval/parser.c eval/lexer.c"
     EXCLUDE_TARGET+=" Soundpipe"
     EXCLUDE_TARGET+=" examples"
     EXCLUDE_TARGET+=" drvr"

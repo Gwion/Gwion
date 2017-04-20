@@ -32,6 +32,6 @@ struct M_Object_ {
   } d;
   UGen ugen;
 };
-M_Object new_M_UGen();
-M_Object new_M_Object();
+//M_Object new_M_UGen();
+//M_Object new_M_Object(VM_Shred shred);
 #endif

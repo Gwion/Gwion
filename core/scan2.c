@@ -189,8 +189,9 @@ exit(6);
     ptr->value->owner_class = env->class_def;
     ptr->func->is_member   = !ptr->key;
   }
-  /*  if(env->class_def)*/
-  //    ptr->func->is_member   = 1;*/
+//  if(env->class_def) {
+//      ptr->func->is_member   = 1;
+//  }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
   add_ref(ptr->func->obj);
   return 1;
@@ -570,7 +571,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Stmt");
 #endif
-  m_bool ret = -1;
+  m_bool ret = 1;
   Decl_List l;
   if(!stmt)
     return 1;
@@ -990,10 +991,8 @@ static m_bool scan2_Class_Def(Env env, Class_Def class_def)
     body = body->next;
   }
 
-  env->class_def = (Type)vector_back(env->class_stack);
-  vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_back(env->nspc_stack);
-  vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
 
   if(class_def->doc)
     the_class->doc = class_def->doc;

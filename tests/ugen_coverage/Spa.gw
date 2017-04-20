@@ -6,9 +6,10 @@ a =< dac;
 
 // testing 'init'
 {
-	string	filename;
+	"examples/data/oneart.spa" => string filename;
 
-	a.init(filename);a.init(filename);
+    a.init(filename);
+    a.init(filename);
 }
 samp => now;
 a=> dac;

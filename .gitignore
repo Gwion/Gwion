@@ -1,4 +1,6 @@
 *.o
+*.gc*
+cscope.*
 gwion
 include/generated.h
 util/generate_header

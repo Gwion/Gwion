@@ -64,8 +64,7 @@ void free_Env(Env a)
   free_Map(a->known_ctx);
 
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
-    NameSpace  nspc = (NameSpace)vector_back(a->nspc_stack);
-    vector_pop(a->nspc_stack);
+    NameSpace  nspc = (NameSpace)vector_pop(a->nspc_stack);
     rem_ref(nspc->obj, nspc);
   }
   free_Vector(a->nspc_stack);

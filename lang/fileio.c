@@ -113,6 +113,7 @@ INSTR(file_to_int)
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
       err_msg(INSTR_, 0, "problem while reading file.");
@@ -121,9 +122,9 @@ INSTR(file_to_int)
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
 	err_msg(INSTR_, 0, "trying to read from empty file.");
+    release(o, shred);
 	Except(shred);
   }
-  release(o, shred);
 }
 
 INSTR(file_to_float)
@@ -135,16 +136,17 @@ INSTR(file_to_float)
   /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
       Except(shred);
     }
     *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
   } else {
-	err_msg(INSTR_, 0, "trying to read from empty file.");
-	Except(shred);
+    err_msg(INSTR_, 0, "trying to read from empty file. %lu", o->ref);
+    release(o, shred);
+    Except(shred);
   }
-  release(o, shred);
 }
 /*
 m_bool inputAvailable(FILE* f)
@@ -168,18 +170,13 @@ INSTR(file_to_string)
   debug_msg("instr", "file => string");
 #endif
   POP_REG(shred, SZ_INT)
-  /*  char ret[1024];*/
   M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
   M_Object s    = **(M_Object**)(shred->reg);
-  char c[1025];
-  if(IO_FILE(o))
-  {
-//    if(inputAvailable(IO_FILE(o)))
-    if(fscanf(IO_FILE(o), "%s1024", c) < 0) {
-//      if(getline(&c, &size, IO_FILE(o)) < 0) {
-        Except(shred);
-        return;
-      }
+  if(IO_FILE(o)) {
+    char c[1025];
+    if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
+      Except(shred);
+    }
     STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;
   }
@@ -245,10 +242,11 @@ SFUN(file_list)
   }
   Type t = new_array_type(shred->vm_ref->env, &t_array, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
+  vector_append(shred->gc, (vtype)ret);
   ret->type_ref = t;
   t->obj->ref_count = 1;
   for(i = 0; i < n; i++) {
-    M_Object string = new_String(namelist[i]->d_name);
+    M_Object string = new_String(NULL,namelist[i]->d_name);
     i_vector_set(ret->d.array, i, (m_uint)string);
     free(namelist[i]);
   }
@@ -315,14 +313,14 @@ m_bool import_fileio(Env env)
   CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  gw_cin = new_M_Object();
+  gw_cin = new_M_Object(NULL);
   initialize_object(gw_cin, &t_cin);
   EV_SHREDS(gw_cin) = new_Vector();
-  gw_cout = new_M_Object();
+  gw_cout = new_M_Object(NULL);
   initialize_object(gw_cout, &t_cout);
   IO_FILE(gw_cout) = stdout;
   EV_SHREDS(gw_cout) = new_Vector();
-  gw_cerr = new_M_Object();
+  gw_cerr = new_M_Object(NULL);
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_Vector();

@@ -29,7 +29,9 @@ void Reg_Pop_Word4( VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Imm(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem_Addr(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Imm2(VM* vm, VM_Shred shred, Instr instr);
-//void Reg_Push_ImmC(VM* vm, VM_Shred shred, Instr instr);
+void Reg_Push_ImmC(VM* vm, VM_Shred shred, Instr instr);
+void Reg_Push_ImmV3(VM* vm, VM_Shred shred, Instr instr);
+void Reg_Push_ImmV4(VM* vm, VM_Shred shred, Instr instr);
 void Mem_Push_Imm(VM* vm, VM_Shred shred, Instr instr);
 void Mem_Set_Imm(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr);
@@ -145,6 +147,10 @@ INSTR(vec4_w);
 INSTR(Reg_Dup_Last_Vec3);
 INSTR(Reg_Dup_Last_Vec4);
 
-INSTR(Mem_Push_Ret); // test on 13/01/17
+//INSTR(Mem_Push_Ret); // test on 13/01/17 // removed 09/04/17
 
 INSTR(Instr_Op_Call_Binary);
+
+INSTR(start_gc);
+INSTR(stop_gc);
+//INSTR(add_gc);

@@ -9,7 +9,6 @@ check_variable() {
 	fi
 }
 
-check_variable "$BISON_VERSION"  BISON_VERSION
 check_variable "$TRAVIS_OS_NAME" TRAVIS_OS_NAME
 check_variable "$SP_BRANCH"      SP_BRANCH
 check_variable "$GWION_DOC_DIR"  GWION_DOC_DIR

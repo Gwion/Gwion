@@ -359,7 +359,7 @@ static SFUN(std_getenv)
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
   release(obj, shred);
-  RETURN->d.v_object = new_String(getenv(str));
+  RETURN->d.v_object = new_String(shred, getenv(str));
 }
 
 static SFUN(std_setenv)
@@ -394,7 +394,7 @@ static SFUN(std_itoa)
   char c[1024];
   int value = *(m_int*)(shred->mem + SZ_INT);
   sprintf(c, "%i", value);
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred ,c);
 }
 
 static SFUN(std_ftoa)
@@ -402,7 +402,7 @@ static SFUN(std_ftoa)
   char c[1024];
   m_float value = *(m_float*)(shred->mem + SZ_FLOAT);
   sprintf(c, "%f", value);
-  RETURN->d.v_object = new_String(c);
+  RETURN->d.v_object = new_String(shred ,c);
 }
 
 static SFUN(std_ftoi)

@@ -78,14 +78,14 @@ void namespace_commit(NameSpace namespace)
   scope_commit(namespace->func);
   scope_commit(namespace->type);
 }
-
+/*
 void namespace_rollback(NameSpace namespace)
 {
   scope_rollback(namespace->value, NULL);
   scope_rollback(namespace->func,  NULL);
   scope_rollback(namespace->type,  NULL);
 }
-
+*/
 NameSpace new_NameSpace()
 {
   NameSpace a = calloc(1, sizeof(struct NameSpace_));

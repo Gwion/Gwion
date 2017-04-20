@@ -68,18 +68,20 @@ typedef struct {
 
 static m_bool fft_tick(UGen u)
 {
-  m_float* smp;
   FFT* ana = (FFT*)u->ug;
   base_tick(u);                         // compute inputs
   if(!ana->buf)
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
-  if(u->trig && u->trig->ugen->out) {  // if trigged, compute fft
-    smp = sp_buffer_get(ana->buf);
+  if(u->trig) {
+    ugen_compute(u->trig->ugen);
+    if(u->trig->ugen->out) {  // if trigged, compute fft
+      m_float* smp = sp_buffer_get(ana->buf);
     /*    if(ana->win)*/                  // do windowing
     /*      ana->win(smp, ana->buf->size);*/
-    smps2freqs(ana->fft, smp, ana->frq);
-    free(smp);
+      smps2freqs(ana->fft, smp, ana->frq);
+      free(smp);
+    }
   }
   return 1;
 }
@@ -180,7 +182,7 @@ typedef struct _FFT {
 } _FFT;
 
 typedef double (*f_analys)(_FFT* fft);
-
+/*
 m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 {
   unsigned int i;
@@ -193,6 +195,7 @@ m_float array_max(m_float* f, unsigned int size, unsigned int* index)
   }
   return max;
 }
+*/
 /* from chuck ;-) */
 m_float compute_centroid(_FFT* fft )
 {
@@ -459,8 +462,8 @@ static MFUN(ana_set_fft)
   FFT* ana;
   M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
-//  if(fft)
-//    release(fft, shred);
+  if(fft)
+    release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
   if(!fft) {
     _fft->size = 0;
@@ -468,10 +471,10 @@ static MFUN(ana_set_fft)
     RETURN->d.v_uint = 0;
     return;
   }
-  fft->ref++;
   ana = (FFT*)fft->ugen->ug;
   if(!ana || !ana->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
+    release(fft, shred);
     return;
   }
   _fft->size = ana->fft->fftsize;
@@ -665,6 +668,7 @@ static MFUN(fc_compute)
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(SZ_FLOAT, vector_size(v), 1);
+  vector_append(shred->gc, (vtype)ret);
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
     if(!obj)
@@ -686,8 +690,10 @@ static MFUN(fc_add)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
+  if(obj) {
     vector_append(v, (vtype)obj);
+    release(obj, shred);
+  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 
@@ -695,8 +701,10 @@ static MFUN(fc_rem)
 {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(obj)
+  if(obj) {
     vector_remove(v, vector_find(v, (vtype)obj));
+    release(obj, shred);
+  }
   RETURN->d.v_uint = (m_uint)obj;
 }
 

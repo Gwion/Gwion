@@ -1,0 +1,2 @@
+FileIO file;
+file => int i;

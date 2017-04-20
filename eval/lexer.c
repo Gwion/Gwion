@@ -2961,7 +2961,7 @@ Ast parse(m_str filename)
     minimal_lex_destroy(arg.scanner);
     return NULL;
   }
-  filename = c;
+//  filename = c;
   ast = arg.ast;
   if(vector_front(arg.doc))
   {

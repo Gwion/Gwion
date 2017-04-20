@@ -11,12 +11,6 @@ static void free_Section();
 
 void free_Type_List(Type_List a);
 
-int get_pos(void* data)
-{
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  return arg->line;
-}
-
 Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 {
   Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
@@ -82,7 +76,7 @@ Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
   a->doc = NULL;
   return a;
 }
-
+/*
 Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
 {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
@@ -93,7 +87,7 @@ Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
   a->dot = dot;
   return a;
 }
-
+*/
 Array_Sub new_array_sub(Expression exp, int pos)
 {
   Array_Sub a = calloc(1, sizeof(struct Array_Sub_));
@@ -685,8 +679,8 @@ Stmt* new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List arg
 #include "func.h"
 void free_Stmt_Func_Ptr(Func_Ptr* a)
 {
-  if(a->args)
-    free_Arg_List(a->args);
+//  if(a->args) // commented 13/04/17 for typedef int[]
+//    free_Arg_List(a->args);
   if(a->key != ae_key_static && a->value && !a->value->is_member) {
     if(!a->func)
       free_Type_Decl(a->type);
@@ -938,7 +932,7 @@ Stmt* new_stmt_from_until(Expression cond, Stmt* body, m_bool is_do, int pos)
   Stmt* a = calloc(1, sizeof(Stmt));
   a->type = ae_stmt_until;
   a->d.stmt_until = calloc(1, sizeof(struct Stmt_Until_));
-  a->d.stmt_until->is_do = 0;
+  a->d.stmt_until->is_do = is_do;
   a->d.stmt_until->cond = cond;
   a->d.stmt_until->body = body;
   a->pos = pos;

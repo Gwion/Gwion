@@ -7,9 +7,9 @@ a =< dac;
 // testing 'init'
 {
 	ftbl	ft;
-	ft.gen_sine(1024);(1024);
+	ft.gen_sine(1024);
 	int	sr;
-	string	init;
+	"examples/data/oneart.ini" => string init;
 
 	a.init(ft, sr, init);a.init(ft, sr, init);
 }

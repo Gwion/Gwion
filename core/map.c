@@ -25,6 +25,7 @@ Vector new_Vector()
   return v;
 }
 
+/*
 Vector new_Vector_fixed(const vtype len)
 {
   Vector v = malloc(sizeof(struct Vector_));
@@ -33,7 +34,7 @@ Vector new_Vector_fixed(const vtype len)
   v->len   = len;
   return v;
 }
-
+*/
 void vector_append(Vector v, vtype data)
 {
   if ((v->len + 1) > v->cap)
@@ -100,9 +101,14 @@ void vector_remove(Vector v, const vtype index)
   v->len--;
 }
 
-void vector_pop(Vector v)
+vtype vector_pop(Vector v)
 {
+  vtype ret;
+  if(!v->len)
+    return 0;
+  ret = v->ptr[v->len - 1];
   vector_remove(v, v->len - 1);
+  return ret;
 }
 
 vtype vector_front(Vector v)
@@ -173,14 +179,14 @@ vtype map_at(Map map, const vtype index)
     return 0;
   return map->ptr[index];
 }
-
+/*
 vtype map_key(Map map, const vtype index)
 {
   if(index > map->len)
     return 0;
   return map->key[index];
 }
-
+*/
 void map_set(Map map, vtype key, vtype ptr)
 {
   vtype i;
@@ -241,7 +247,7 @@ void map_commit(Map map, Map commit)
   for(i = 0; i < commit->len; i++)
     map_set(map, commit->key[i], commit->ptr[i]);
 }
-
+/*
 void map_rollback(Map map, void (*_free)(vtype arg))
 {
 //exit(2);
@@ -253,7 +259,7 @@ void map_rollback(Map map, void (*_free)(vtype arg))
 //    vector_clear(map->ptr);
 //  map->len = 0;
 }
-
+*/
 vtype map_size(Map map)
 {
   return map->len;
@@ -334,12 +340,12 @@ void scope_commit(Scope scope)
   free_Map(scope->commit_map);
   scope->commit_map = new_Map();
 }
-
+/*
 void scope_rollback(Scope scope, void (*_free)(vtype arg))
 {
-  map_rollback(scope->commit_map, _free);
+//  map_rollback(scope->commit_map, _free);
 }
-
+*/
 void scope_push(Scope scope)
 {
   vector_append(scope->vector, (vtype)new_Map());

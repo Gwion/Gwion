@@ -1,0 +1,33 @@
+function void test() { <<<"member function.">>>; }
+class C {
+	typedef void (func_t)();
+//	static typedef void (s_func_t)();
+	func_t func_p;
+//	static func_t s_func_p;
+//	static s_func_t s_ptr;
+	function void test() { <<<"member function.">>>; }
+	function void test2() { <<<"member function variant.">>>; }
+//	function static void s_test() { <<<"member function.">>>; }
+//	test @=> func_p;
+//	test @=> s_ptr;
+
+/* those are forbidden */
+//func_p();
+//this.func_p();
+
+	test2 @=> func_p;
+
+//func_p();
+test();
+//<<<test>>>;//, func_p>>>;
+}
+
+
+C c;
+c.func_p();
+
+test @=> c.s_func_p;
+c.test @=> c.func_p;
+c.func_p();
+c.test2 @=> c.func_p;
+c.func_p();

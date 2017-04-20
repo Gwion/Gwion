@@ -9,6 +9,7 @@
 #include "compile.h"
 #include "err_msg.h"
 #include "udp.h"
+#include "lang.h"
 #include "shreduler.h"
 
 static int sock;
@@ -29,7 +30,6 @@ void Send(const char* c, unsigned int i)
 char* Recv(int i)
 {
   char buf[256];
-  ssize_t len;
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -52,6 +52,7 @@ char* Recv(int i)
   if(FD_ISSET(sock, &read_flags)) {
     FD_CLR(sock, &read_flags);
 #endif
+    ssize_t len;
     if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed");
     buf[255] = '\0';
@@ -77,7 +78,13 @@ void* server_thread(void* data)
       vm->wakeup();
     } else if( strncmp(buf, "-", 1) == 0) {
       buf += 2;
-      shreduler_remove(vm->shreduler, (VM_Shred)vector_at(vm->shred, atoi(buf) - 1), 1);
+      m_uint i;
+      VM_Shred shred =  (VM_Shred)vector_at(vm->shred, atoi(buf) - 1);
+      if(shred) {
+        for(i = 0; i < vector_size(shred->gc1); i++)
+          release((M_Object)vector_at(shred->gc1, i), shred);
+        shreduler_remove(vm->shreduler, shred, 1);
+      }
       buf -= 2;
     } else if(strncmp(buf, "+", 1) == 0) {
       buf += 2;
