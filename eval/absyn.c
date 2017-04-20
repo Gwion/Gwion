@@ -1433,6 +1433,8 @@ void free_Ast(Ast prog)
   while(ast) {
     tmp = ast;
     ast = ast->next;
+	if(tmp->doc)
+		free(tmp->doc);
     free_Section(tmp->section);
     free(tmp);
   }

@@ -122,8 +122,8 @@ static int adjust(void* data);
 
 "/*!"                               { BEGIN(CDOC); }
 <CDOC>"!*/"                         { adjust(yyscanner); BEGIN(INITIAL); }
-<CDOC>"\n"                          { newline(yyscanner);  strcat(yylval->sval, "\n\n"); }
-<CDOC>.             		            { adjust(yyscanner); yylval->sval =  strndup(yytext, strlen(yytext) - 4); return DOC;}
+<CDOC>"\n"                          { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); */}
+<CDOC>.*             		        { adjust(yyscanner); yylval->sval =  strdup(yytext); return DOC; }
 
 "//"                                { BEGIN(comment); }
 <comment>.                          { adjust(yyscanner); continue;}
@@ -352,8 +352,11 @@ Ast parse(m_str filename)
   }
   while(vector_front(arg.doc))
   {
-    strcat(ast->doc, (m_str)vector_front(arg.doc));
+	m_str doc = (m_str)vector_front(arg.doc);
+    ast->doc = realloc(ast->doc, strlen(ast->doc) +  strlen(doc) + 1);
+    strcat(ast->doc, doc);
     vector_remove(arg.doc, 0);
+    free(doc);
   }
   free_Vector(arg.doc);
   fclose(file);

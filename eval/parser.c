@@ -1708,7 +1708,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
     }
 
   {
-    YYSIZE_T yysize1 = yysize + (yyformat ? yystrlen (yyformat) : 0);
+   YYSIZE_T yysize1 = yysize + (yyformat ? yystrlen (yyformat) : 0);
     if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
       return 2;
     yysize = yysize1;
