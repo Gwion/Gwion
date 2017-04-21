@@ -1,4 +1,4 @@
-##!/bin/bash
+#!/bin/bash
 NORMAL=$(tput sgr0)
 YELLOW=$(tput setaf 3)
 RED=$(tput setaf 1)
