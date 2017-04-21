@@ -1,7 +1,7 @@
 #!/bin/bash
 mk_header() {
-	echo "# $1"
-	printf "\n# %s\nprintf \"\\\n# %s\\\n\" >> Makefile\n" "$1" "$1" >> configure
+	echo "# $1" >&5
+	printf "\n# %s\nprintf \"\\\n# %s\\\n\"\n" "$1" "$1"
 }
 
 do_expand() {
@@ -34,65 +34,70 @@ do_expand2() {
   printf "\ndo\n\tkey=\$(echo \"\$iter\" | cut -d ':' -f 1)\n\tval=\$(echo \"\$iter\" | cut -d ':' -f 2)\n\tlib=\$(echo \"\$iter\" | cut -d ':' -f 4)\n\t"
 }
 
-set -e
-[ -f configure ] && rm configure
-[ -f Makefile  ] && rm Makefile
-while read -r line
-do
-  line=$(echo "$line" | cut -d"#" -f1)
-  [ -z "$line" ] && continue
-  category=$(echo "$line" | cut -d ":" -f1 | xargs)
-  long=$(    echo "$line" | cut -d ":" -f2 | xargs)
-#  short=$(   echo "$line" | cut -d ":" -f3 | xargs)
-#  help=$(    echo "$line" | cut -d ":" -f4 | xargs)
-  default=$( echo "$line" | cut -d ":" -f5)
+config_init() {
+  set -e
+  [ -f configure ] && rm configure
+  [ -f Makefile  ] && rm Makefile
+  while read -r line
+  do
+    line=$(echo "$line" | cut -d"#" -f1)
+    [ -z "$line" ] && continue
+    category=$(echo "$line" | cut -d ":" -f1 | xargs)
+    long=$(    echo "$line" | cut -d ":" -f2 | xargs)
+  #  short=$(   echo "$line" | cut -d ":" -f3 | xargs)
+  #  help=$(    echo "$line" | cut -d ":" -f4 | xargs)
+    default=$( echo "$line" | cut -d ":" -f5)
 
-  inc=$( echo "$line" | cut -d ":" -f6)
-  lib=$( echo "$line" | cut -d ":" -f7)
-  if [ "$category" = "LIB"  ]
-  then
-    echo "# ARG_OPTIONAL_BOOLEAN([$long],, [enable $long], [$default])"
-    echo "# ARG_OPTIONAL_REPEATED([${long}-inc], , [Directories where to look for include files for $long], [$inc])"
-    echo "# ARG_OPTIONAL_SINGLE([$long-lib], , [${long} library], [$lib])"
-    inc=$( echo "$inc" | tr " " ",")
-    LIB+="$long:$default:$inc:$lib "
-  elif [ "$category" = "OPT" ]
-  then
-#    default=$(echo "$default" | sed 's/ /\\ /g')
-    default=${default/ /\\ /}
-    OPT+="$long:\"${default}\" "
-    echo "# ARG_OPTIONAL_SINGLE([$long], , [value for ${long~~}], [$default])"
-  elif [ "$category" = "DIR" ]
-  then
-    echo "# ARG_OPTIONAL_SINGLE([$long], , [$long path], [$default])"
-    DIR+="${long}:$default "
-  elif [ "$category" = "DBG" ]
-  then
-    DBG+="$long:$default "
-    echo "# ARG_OPTIONAL_BOOLEAN([debug-${long}], , [debug $long], [$default])"
-  elif [ "$category" = "USE" ]
-  then
-    USE+="$long:$default "
-    echo "# ARG_OPTIONAL_BOOLEAN([${long}], , [debug $long], [$default])"
-  elif [ "$category" = "DEF" ]
-  then
-    DEF+="$long:$default "
-    echo "# ARG_OPTIONAL_SINGLE([${long}], , [debug $long], [$default])"
- fi
-done < "$1" >> configure
-
-cat << EOF >> configure
+    inc=$( echo "$line" | cut -d ":" -f6)
+    lib=$( echo "$line" | cut -d ":" -f7)
+    if [ "$category" = "LIB"  ]
+    then
+      echo "# ARG_OPTIONAL_BOOLEAN([$long],, [enable $long], [$default])"
+      echo "# ARG_OPTIONAL_REPEATED([${long}-inc], , [Directories where to look for include files for $long], [$inc])"
+      echo "# ARG_OPTIONAL_SINGLE([$long-lib], , [${long} library], [$lib])"
+      inc=$( echo "$inc" | tr " " ",")
+      LIB+="$long:$default:$inc:$lib "
+    elif [ "$category" = "OPT" ]
+    then
+  #    default=$(echo "$default" | sed 's/ /\\ /g')
+      default=${default/ /\\ /}
+      OPT+="$long:\"${default}\" "
+      echo "# ARG_OPTIONAL_SINGLE([$long], , [value for ${long~~}], [$default])"
+    elif [ "$category" = "DIR" ]
+    then
+      echo "# ARG_OPTIONAL_SINGLE([$long], , [$long path], [$default])"
+      DIR+="${long}:$default "
+    elif [ "$category" = "DBG" ]
+    then
+      DBG+="$long:$default "
+      echo "# ARG_OPTIONAL_BOOLEAN([debug-${long}], , [debug $long], [$default])"
+    elif [ "$category" = "USE" ]
+    then
+      USE+="$long:$default "
+      echo "# ARG_OPTIONAL_BOOLEAN([${long}], , [debug $long], [$default])"
+    elif [ "$category" = "DEF" ]
+    then
+      DEF+="$long:$default "
+      echo "# ARG_OPTIONAL_SINGLE([${long}], , [debug $long], [$default])"
+   fi
+  done < "$1"
+  cat << EOF
 # ARG_HELP([The general script's help msg])
 # ARGBASH_GO
 
 EOF
+}
+config_init "$1" > configure.tmp
 
-argbash configure -o configure
+
+
+argbash configure.tmp -o configure.argbash
+rm configure.tmp
 #exit
 # remove footer
-head -n -1 configure > /tmp/_test.argbash
-mv /tmp/_test.argbash configure
-
+head -n -1 configure.argbash > configure.tmp
+mv configure.tmp configure
+rm configure.argbash
 #mk_header "prepare configure" # needs other func
 for iter in $OPT
 do
@@ -108,9 +113,9 @@ do
   sed -i "s/^_arg_${key}_lib=\(\(.*\)\)/: \"\${${key~~}_LIB:=\1}\"\n: \"\$\{_arg_${key}_lib:=\$${key~~}_LIB\}\"/" configure
 done
 
-for dir in $DIR
+for iter in $DIR
 do
-  key=$(echo "${dir}" | cut -d ":" -f 1)
+  key=$(echo "${iter}" | cut -d ":" -f 1)
   sed -i "s/^_arg_${key}=\(.*\)/: \"\${${key~~}_DIR:=\1}\"\n: \"\$\{_arg_${key}:=\$${key~~}_DIR\}\"/" configure
 done
 
@@ -166,77 +171,55 @@ done
 ############
 # Makefile #
 ############
-echo "echo \"# generated by ./configure\" >> Makefile" >> configure
+exec 5<&1
+exec >> configure
+echo "exec >> Makefile"
+echo "echo \"# generated by ./configure\""
 mk_header "handle base options"
-{
-  do_expand "$OPT"
-  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}\"\ndone >> Makefile\n"
-} >> configure
-#cat << _EOF >> configure
-
-#cat <<-  EOF >> Makefile
-{
-	echo " echo -e \"
+do_expand "$OPT"
+printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}\"\ndone\n"
+echo " echo -e \"
 # base flags
 LDFLAGS += -lm -ldl -rdynamic -lpthread
-CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\" >> Makefile"
-} >> configure
-#EOF"
-
-#_EOF
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\""
 
 mk_header "handle boolean options"
-{
-  do_expand "$USE"
-  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
-  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone >> Makefile\n"
-} >> configure
+do_expand "$USE"
+printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
+printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
 
 mk_header "handle definitions"
-{
-  do_expand "$DEF"
-  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone >> Makefile;\n"
-} >> configure
+do_expand "$DEF"
+printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
 
 mk_header "handle directories"
-{
-  do_expand2 "$DIR"
-  printf "echo \"GWION_\${key~~}_DIR ?= \\\${PREFIX}/lib/Gwion/\${val}\"\ndone >> Makefile"
-} >> configure
+do_expand2 "$DIR"
+printf "echo \"GWION_\${key~~}_DIR ?= \\\${PREFIX}/lib/Gwion/\${val}\"\ndone"
 
 mk_header "handle libraries"
-{
-  do_expand "$LIB"
-  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone >> Makefile\n"
-} >> configure
+do_expand "$LIB"
+printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
 
 mk_header "handle debug"
-{
-  do_expand2 "$DBG"
-  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone >> Makefile\n"
-} >> configure
+do_expand2 "$DBG"
+printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
 
 mk_header "initialize source lists"
-{
-  do_expand "core lang ugen eval"
-  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone >> Makefile\necho \"drvr_src := drvr/driver.c\" >> Makefile\n"
-} >> configure
+do_expand "core lang ugen eval"
+printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"drvr_src := drvr/driver.c\"\n"
 
 mk_header "add libraries"
-{
-  do_expand2 "$LIB"
-  printf "if [ \"\${val}\" = \"on\" ]\n\tthen val=1\n\telse val=0\n\tfi\n"
-  cat << EOF
+do_expand2 "$LIB"
+printf "if [ \"\${val}\" = \"on\" ]\n\tthen val=1\n\telse val=0\n\tfi\n"
+cat << EOF
 	[ -z "\$lib" ] && printf "ifeq (\\\${%s_D}, on)\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" "\${key~~}" "\${key~~}" "\${key}" "\${key~~}" "\${key~~}" "\${key}"
 	[ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" "\${key~~}" "\${lib}" "\${key~~}" "\${key}" "\${key~~}" "\${lib}" "\${key~~}" "\${key}"
-	done >> Makefile
+	done
 EOF
-} >> configure
 
 mk_header "add boolean"
-{
-  do_expand2 "$USE"
-  cat << EOF
+do_expand2 "$USE"
+cat << EOF
 if [ "\${val}" = "on" ]
 then [ "\$key" = "double" ] && val=double;
 else [ "\$key" = "double" ] && val=float;
@@ -247,48 +230,37 @@ fi
 [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\${key~~}"
 [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\${key~~}"
 [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\${key~~}"
-done >> Makefile
+done
 key="double"
-printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s} -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\${key~~}" "\${key~~}" "\${key~~}" "\${key~~}" >> Makefile
+printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s} -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\${key~~}" "\${key~~}" "\${key~~}" "\${key~~}"
 EOF
-} >> configure
 
 mk_header "add definitions"
-{
-  do_expand2 "$DEF"
-  printf "echo \"CFLAGS+= -D\${key~~}=\\\${\${key~~}}\"\ndone >> Makefile\n"
-} >> configure
+do_expand2 "$DEF"
+printf "echo \"CFLAGS+= -D\${key~~}=\\\${\${key~~}}\"\ndone\n"
 
 mk_header "add directories"
-{
-  do_expand "$DIR"
-  printf "printf \"CFLAGS+=-DGWION_%%s_DIR=%q\\\${GWION_%%s_DIR}%q\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone >> Makefile\n" '\\\"' '\\\"'
-} >> configure
+do_expand "$DIR"
+printf "printf \"CFLAGS+=-DGWION_%%s_DIR=%q\\\${GWION_%%s_DIR}%q\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone\n" '\\\"' '\\\"'
 
 mk_header "add debug flags"
-{
-  do_expand "$DBG"
-  printf "printf \"ifeq (\\\${DEBUG_%%s}, on)\\\nCFLAGS += -DDEBUG_%%s\\\nelse \" \"\${iter~~}\" \"\${iter~~}\"\n"
-  printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone >> Makefile\n"
-} >> configure
+do_expand "$DBG"
+printf "printf \"ifeq (\\\${DEBUG_%%s}, on)\\\nCFLAGS += -DDEBUG_%%s\\\nelse \" \"\${iter~~}\" \"\${iter~~}\"\n"
+printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone\n"
 
 mk_header "add soundpipe"
-{
-  echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\" >> Makefile"
-  echo "echo \"CFLAGS+=\${SOUNDPIPE_INC}\"  >> Makefile"
-} >> configure
+echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\""
+echo "echo \"CFLAGS+=\${SOUNDPIPE_INC}\""
 
 mk_header "initialize object lists"
-{
-  do_expand "core lang ugen eval drvr"
-  printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone >> Makefile\n"
-} >> configure
+do_expand "core lang ugen eval drvr"
+printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone\n"
 
-cat << _EOF >> configure
+cat << _EOF
 ###########
 # recipes #
 ###########
-cat << EOF >> Makefile
+cat << EOF
 
 # if any debug flag is set, we need -DDEBUG
 ifeq (\\\$(findstring DEBUG,\\\$(CFLAGS)), DEBUG)
