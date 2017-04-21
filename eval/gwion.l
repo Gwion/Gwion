@@ -117,8 +117,7 @@ static int adjust(void* data);
 
 "//!"                               { BEGIN(cdoc); }
 <cdoc>\n                            { newline(yyscanner); BEGIN(INITIAL); }
-<cdoc>.*  		                      { adjust(yyscanner); yylval->sval = alloc_str(yytext); return DOC;}
-
+<cdoc>.*  		                      { adjust(yyscanner); yylval->sval = strdup(yytext); return DOC;}
 
 "/*!"                               { BEGIN(CDOC); }
 <CDOC>"!*/"                         { adjust(yyscanner); BEGIN(INITIAL); }
