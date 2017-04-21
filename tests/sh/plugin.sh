@@ -43,6 +43,6 @@ test_plugin no_import
 test_plugin op_err
 
 # clean
-rm -f *.gcda *.gcno vgcore.* *.o *.so
+rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
 
 popd
