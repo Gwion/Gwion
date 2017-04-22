@@ -96,6 +96,7 @@ typedef struct {
 } M_Operator;
 
 static M_Operator* last = NULL;
+
 m_bool operator_set_doc(m_str doc)
 {
   if(!last)

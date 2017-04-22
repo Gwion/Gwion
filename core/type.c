@@ -1600,7 +1600,8 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
         t = new_array_type(env, &t_array, exp_unary->array->depth, t, env->curr);
 
       }
-      if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
+//      if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
+      if(isa(t, &t_object) < 0) {
         err_msg(TYPE_,  exp_unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...",
                 t->name);
@@ -1858,7 +1859,7 @@ static m_bool check_For(Env env, Stmt_For stmt)
   if(check_Stmt(env, stmt->c2) < 0)
     return -1;
   // check for empty for loop conditional (added 1.3.0.0)
-  if( stmt->c2 == NULL ) {
+  if(stmt->c2 == NULL || !stmt->c2->d.stmt_exp) {
     // error
     err_msg(EMIT_, stmt->pos,
             "empty for loop condition..." );
@@ -1868,9 +1869,8 @@ static m_bool check_For(Env env, Stmt_For stmt)
             "...(e.g., 'for( ; true; ){ /*...*/ }')" );
     return -1;
   }
-
   // ensure that conditional has valid type
-  switch( stmt->c2->d.stmt_exp->type->xid ) {
+  switch(stmt->c2->d.stmt_exp->type->xid) {
   case te_int:
   case te_float:
   case te_dur:
@@ -2327,7 +2327,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     while( parent && !parent_match ) {
       if((v = find_value(env->class_def->parent, f->name))) {
         // see if the target is a function
-        if(!isa( v->m_type, &t_function)) {
+        if(isa( v->m_type, &t_function) < 0) {
           err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
                   S_name(f->name));
           err_msg(TYPE_, f->pos, "from super class '%s'...", v->owner_class->name );

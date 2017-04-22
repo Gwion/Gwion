@@ -1,0 +1,4 @@
+// [contains] loop * conditionnal must be of type 'int'
+complex c;
+repeat(c)
+	<<<"error">>>;

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO: output error message
 check_variable() {
 	if [ -z "$1" ]
 	then
