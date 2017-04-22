@@ -1,4 +1,5 @@
 # Gwion
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7669efe4c1c84b888cea5885201c79ae)](https://www.codacy.com/app/fennecdjay/Gwion?utm_source=github.com&utm_medium=referral&utm_content=fennecdjay/Gwion&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=dev)](https://travis-ci.org/fennecdjay/Gwion)
 [![Coveralls branch](https://img.shields.io/coveralls/fennecdjay/Gwion/dev.svg)](https://coveralls.io/github/fennecdjay/Gwion?branch=dev)
 ![](http://b.repl.ca/v1/version-pre--pre--alpha-red.svg)
