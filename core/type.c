@@ -1908,7 +1908,7 @@ static m_bool check_Loop(Env env, Stmt_Loop stmt)
 
   if(!type)
     return -1;
-  if(isa( type, &t_float))
+  if(isa( type, &t_float) > 0)
     stmt->cond->cast_to = &t_int;
   else if(isa( type, &t_int) < 0) { // must be int
     err_msg(TYPE_, stmt->pos,
