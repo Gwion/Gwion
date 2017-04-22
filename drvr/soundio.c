@@ -101,13 +101,12 @@ static void write_callback(struct SoundIoOutStream *outstream, int
 //	double sr = outstream->sample_rate;
 //	double seconds_per_frame = 1.0 / sr;
   struct SoundIoChannelArea *areas;
-  int    err;
   int    left = frame_count_max;
   const struct SoundIoChannelLayout *layout = &outstream->layout;
   VM* vm = (VM*)outstream->userdata;
   double* data = vm->bbq->sp->out;
   for (;;) {
-    int count = left;
+    int err, count = left;
     if ((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
       fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
       vm->is_running = 0;
@@ -144,11 +143,10 @@ static void write_callback(struct SoundIoOutStream *outstream, int
 static void read_callback(struct SoundIoInStream *instream, int frame_count_min, int frame_count_max)
 {
   struct SoundIoChannelArea *areas;
-  int err;
   int frames_left = frame_count_max;
   VM* vm = (VM*)instream->userdata;
   for (;;) {
-    int frame_count = frames_left;
+    int err, frame_count = frames_left;
 
     if ((err = soundio_instream_begin_read(instream, &areas, &frame_count))) {
       vm->is_running = 0;

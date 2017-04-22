@@ -1344,7 +1344,6 @@ static m_bool emit_Stmt_Code(Emitter emit, Stmt_Code stmt, m_bool push)
     CHECK_BB(emit_Stmt(emit, list->stmt, 1))
     list = list->next;
   }
-  // TODO: push
   return 1;
 }
 
