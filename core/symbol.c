@@ -1,10 +1,4 @@
 /*----------------------------------------------------------------------------
-  ChucK Concurrent, On-the-fly Audio Programming Language
-    Compiler and Virtual Machine
-
-  Copyright (c) 2004 Ge Wang and Perry R. Cook.  All rights reserved.
-    http://chuck.stanford.edu/
-    http://chuck.cs.princeton.edu/
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,20 +17,19 @@
 -----------------------------------------------------------------------------*/
 
 //-----------------------------------------------------------------------------
-// file: chuck_symbol.cpp
+// file: symbol.c
 // desc: symbols in the syntax, adapted from Tiger compiler by Appel Appel
-//
-// author: Ge Wang (ge@ccrma.stanford.edu | gewang@cs.princeton.edu)
+// adapted from
+// adapted from
+//   author: Ge Wang (ge@ccrma.stanford.edu | gewang@cs.princeton.edu)
+//   file: chuck_symbol.cpp
 // adapted from: Andrew Appel (appel@cs.princeton.edu)
 // date: Autumn 2002
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
-//#include <stdio.h>
 #include <string.h>
 #include "symbol.h"
-//#include "table.h"
 
-// S_Symbol
 struct S_Symbol_ {
   c_str name;
   S_Symbol next;
@@ -75,8 +68,7 @@ void free_Symbols()
     }
   }
 }
-/*static unsigned int Hash(const char *s0)*/
-/*{ return hash(s0);}*/
+
 static unsigned int hash(const char *s0)
 {
   unsigned int h = 0;
@@ -111,61 +103,3 @@ c_str S_name( S_Symbol sym )
 {
   return sym->name;
 }
-#ifdef __TABLE
-S_table S_empty( void )
-{
-  return TAB_empty();
-}
-
-S_table S_empty2( unsigned int size )
-{
-  return TAB_empty2(size);
-}
-
-void S_enter( S_table t, S_Symbol sym, void *value )
-{
-  TAB_enter(t, sym, value);
-}
-
-void S_enter2( S_table t, c_constr str, void * value )
-{
-  TAB_enter(t, insert_symbol(str), value);
-}
-
-void * S_look( S_table t, S_Symbol sym )
-{
-  return TAB_look(t, sym);
-}
-
-void * S_look2( S_table t, c_constr str )
-{
-  return TAB_look(t, insert_symbol(str));
-}
-
-// BUG: this could result in a bad free if the S_Symbol ever gets cleaned up
-static struct S_Symbol_ marksym = { (char *)"<mark>", 0 };
-
-void S_beginScope( S_table t )
-{
-  S_enter( t, &marksym, NULL );
-}
-
-void S_endScope( S_table t )
-{
-  S_Symbol s;
-  do s = (S_Symbol)TAB_pop(t);
-  while (s != &marksym);
-}
-
-void S_pop( S_table t )
-{
-  TAB_pop(t);
-}
-
-void S_dump( S_table t, void (*show)(S_Symbol sym, void *binding) )
-{
-  TAB_dump( t, (void (*)(void *, void *)) show );
-}
-
-/* the str->whatever table */
-#endif

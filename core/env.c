@@ -29,7 +29,6 @@ Env new_Env()
 
 void env_reset(Env env)
 {
-  // TODO: release stack items?
   free_Vector(env->nspc_stack);
   env->nspc_stack = new_Vector();
   vector_append(env->nspc_stack, (vtype)env->global_nspc);
@@ -41,7 +40,6 @@ void env_reset(Env env)
   env->class_stack = new_Vector();
   vector_append(env->class_stack, (vtype)NULL);
 
-  // should be at top level
 //  if(env->user_nspc)
 //    env->curr = env->user_nspc;
 //  else
@@ -50,7 +48,6 @@ void env_reset(Env env)
   env->func = NULL;
   env->class_scope = 0;
 }
-//typedef void (*cleaner)();
 
 void free_Env(Env a)
 {
