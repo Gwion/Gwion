@@ -479,7 +479,7 @@ m_bool import_int(Env env)
   CHECK_BB(add_binary_op(env, op_rge, 			 	  &t_int, &t_int, &t_int, rge,        1, 0))
   CHECK_BB(add_binary_op(env, op_rlt, 			 	  &t_int, &t_int, &t_int, rlt,        1, 0))
   CHECK_BB(add_binary_op(env, op_rle, 			 	  &t_int, &t_int, &t_int, rle,        1, 0))
-// TODO: reverse bitwise
+// reverse bitwise
   CHECK_BB(add_binary_op(env, op_rsl,           &t_int, &t_int, &t_int, rsl,        1, 0))
   CHECK_BB(add_binary_op(env, op_rsr,           &t_int, &t_int, &t_int, rsr,        1, 0))
   CHECK_BB(add_binary_op(env, op_rsand,         &t_int, &t_int, &t_int, rsand,      1, 0))
