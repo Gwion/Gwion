@@ -160,8 +160,6 @@ void free_Type_Decl(Type_Decl* a)
     free(a->array);
   }
   free_ID_List(a->xid);
-  if(a->doc)
-	free(a->doc);
   free(a);
 }
 
