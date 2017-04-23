@@ -1023,6 +1023,11 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
 
     // see scan1
     // assignable?
+    if(postfix->exp->meta != ae_meta_var) {
+      err_msg(TYPE_, postfix->exp->pos,
+        "postfix operator '%s' cannot be used on non-mutable data-type...", op2str( postfix->op));
+        return NULL;
+    }
     /*if(((postfix->exp->meta != ae_meta_var) || (postfix->exp->exp_type == Primary_Expression_type)) &&*/
     /*postfix->exp->d.exp_primary->value->is_const) {*/
     /*err_msg(TYPE_, postfix->exp->pos,*/

@@ -250,6 +250,7 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
   switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:
+/* // done in type.c
     // assignable?
     if(postfix->exp->meta != ae_meta_var) {
       // is it needed
@@ -257,6 +258,7 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
               "postfix operator '%s' cannot be used on non-mutable data-type...", op2str( postfix->op ));
       return -1;
     }
+*/
     // TODO: mark somewhere we need to post increment
     return 1;
     break;
