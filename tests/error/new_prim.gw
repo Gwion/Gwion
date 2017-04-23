@@ -1,0 +1,2 @@
+// [contains] cannot instantiate/(new) primitive type
+new int;

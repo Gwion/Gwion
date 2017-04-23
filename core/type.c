@@ -1593,10 +1593,12 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       }
       if(exp_unary->array) {
         CHECK_BO(verify_array(exp_unary->array))
-        if(!exp_unary->array->exp_list) {
+/* // prevented by parser 
+       if(!exp_unary->array->exp_list) {
           err_msg(TYPE_, exp_unary->pos, "cannot use empty [] with 'new'..." );
           return NULL;
         }
+*/
         CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
         CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
         t = new_array_type(env, &t_array, exp_unary->array->depth, t, env->curr);
@@ -1605,21 +1607,16 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
 //      if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
       if(isa(t, &t_object) < 0) {
         err_msg(TYPE_,  exp_unary->pos,
-                "cannot instantiate/(new) primitive type '%s'...",
-                t->name);
-        err_msg(TYPE_,  exp_unary->pos,
-                "...(primitive types: 'int', 'float', 'time', 'dur')" );
-        if(exp_unary->array)
-          free_Array_Sub(exp_unary->array);
-        free(t->obj);
-        free(t);
+                "cannot instantiate/(new) primitive type '%s'...", t->name);
+        err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')" );
         return NULL;
       }
+/*    // disabledin parser
       if( exp_unary->type->ref && !exp_unary->array ) {
-        err_msg(TYPE_,  exp_unary->pos,
-                "cannot instantiate/(new) single object references (@)..." );
+        err_msg(TYPE_,  exp_unary->pos, "cannot instantiate/(new) single object references (@)..." );
         return NULL;
       }
+*/
       return t;
     case op_typeof:
       err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)" );
