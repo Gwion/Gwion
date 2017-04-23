@@ -1443,6 +1443,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
       v = find_value(t, exp_func->func->d.exp_dot->xid);
+/*    // checked in scan2
       // added 06/12/16
       if(!v) {
         err_msg(TYPE_, exp_func->pos, "unknown template function.");
@@ -1452,6 +1453,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
         err_msg(TYPE_, exp_func->pos, "non-function template call.");
         return NULL;
       }
+*/
       if(!v->func_ref->def->types) {
         err_msg(TYPE_, exp_func->pos, "template call of non-template function.");
         free_Type_List(exp_func->types);

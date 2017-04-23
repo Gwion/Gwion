@@ -301,6 +301,10 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
         err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
         return -1;
       }
+      if(!v->func_ref) {
+        err_msg(SCAN2_, exp_func->pos, "template call of non-function value.");
+        return -1;
+      }
       Func_Def base = v->func_ref->def;
       if(!base->types) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-template function.");
