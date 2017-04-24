@@ -122,8 +122,6 @@ Env type_engine_init(VM* vm)
   add_global_value_double(env, "week",       &t_dur,    (m_float)7 * 24 * 60 * 60 * vm->bbq->sp->sr);
 
 
-  /* TODO ? reserved words */
-
   /* commit */
   namespace_commit(env->global_nspc);
 
@@ -217,7 +215,7 @@ m_bool check_Context(Env env, Context context)
   /*
      if( !ret )
      {
-  // TODO: remove the effects of the context in the env
+  // remove the effects of the context in the env
   // ---> insert code here <----
 
   // flag the context with error, so more stuff gets deleted
@@ -1542,7 +1540,6 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
         return NULL;
       if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
         return t;
-      // TODO: check overloading
       break;
 
     case op_minus:
@@ -1564,7 +1561,6 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
       // spork shred (by code segment)
       else if(exp_unary->code) {
-        // TODO : in class
         if(env->func) {
           env->class_scope++;
           namespace_push_value(env->curr);
@@ -1702,8 +1698,6 @@ static Type check_exp_if(Env env, If_Expression* exp_if )
     return NULL;
   }
   // make sure the if and else have compatible types
-  // TODO: the lesser of two types
-  /*  if( !( *if_exp == *else_exp ) )*/
   if(!find_common_anc(if_exp, else_exp)) {
     err_msg(TYPE_, exp_if->pos,
             "incompatible types '%s' and '%s' in if expression...", if_exp->name, else_exp->name);
@@ -1898,7 +1892,6 @@ static m_bool check_For(Env env, Stmt_For stmt)
   // for break and continue statement
   vector_append(env->breaks, (vtype)stmt->self);
   // check body
-  // TODO: restore break stack? (same for other loops)
   if(check_Stmt(env, stmt->body) < 0)
     return -1;
 
@@ -2319,11 +2312,8 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
   if(override) {
     // make reference to parent
-    // TODO: ref count
     func->up = override;
   }
-  // TODO if overload, check arguments do not match
-
   // if overriding super class function, then check signatures
   if(env->class_def) {
     // get parent
