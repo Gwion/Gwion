@@ -136,6 +136,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, v->is_static, v->owner_class);
 #endif
   Instr instr;
+/*
   // HACK : instantiate type
   if (v->m_type->xid == t_class.xid && !v->m_type->initialize) {
     instr = add_instr(emit, Reg_Push_Imm);
@@ -143,6 +144,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     v->m_type->initialize = 1;
     return 1;
   }
+*/
   if (v->owner_class && (v->is_member || v->is_static)) {
     m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
