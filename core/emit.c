@@ -571,7 +571,6 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           Instr dot_static = add_instr(emit, Dot_Static_Data);
           dot_static->m_val = value->offset;
           dot_static->m_val2 = kindof(emit->env->class_def);
-          /*          dot_static->ptr    = emit->env->class_def; //hack*/
           dot_static->ptr = (m_uint*)1;
         }
       }
@@ -786,7 +785,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   Instr code, offset, call;
   if (!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
-// [todo] emit_exp_func1 remove template stuff
     if (!f) { //template with no list
       if (!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
@@ -800,11 +798,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
       code = add_instr(emit, Reg_Push_Ptr);
       code->ptr = func->code;
     } else {
-//printf("value->is_member %p value->owner_class %p\n", func->value_ref->is_member, func->value_ref->owner_class);
-//printf("value->is_member %p value->owner_class %p\n", f);
-//exit(3);
       code = add_instr(emit, Reg_Push_Code);
-//      code->m_val = func->value_ref->is_member ? func->vt_index : func->value_ref->offset;
       code->m_val = func->value_ref->offset;
       code->m_val2 = func->value_ref->owner_class ? 1 : 0;
       is_ptr = !func->value_ref->owner_class;
@@ -814,8 +808,6 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
     code->ptr = func->code;
   }
 
-
-//  if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !(func->def->static_decl == ae_key_static && func->def->s_type ==ae_func_user))
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
     sadd_instr(emit, Mem_Push_Imm);
 
@@ -1063,12 +1055,9 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0;
     }
-//    ID_List base_t = exp_func->base;
     ID_List base_t = exp_func->m_func->def->base;
     Type_List list = exp_func->types;
     namespace_push_type(emit->env->curr);
-    // [template] - if overloaded, find the rigth 'base' (def->types)
-    // [todo] - fix templates
     while(base_t) {
       namespace_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
       base_t = base_t->next;
@@ -1659,32 +1648,14 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
-m_uint action_index = vector_size(emit->code->code);
-  // emit the action
+  m_uint action_index = vector_size(emit->code->code);
   if(stmt->c3) {
     CHECK_BB(emit_Expression(emit, stmt->c3, 0))
-
-    // HACK!
     Expression e = stmt->c3;
     m_uint num_words = 0;
     while (e) {
       num_words += e->type->size;
-/*
-      if (e->type->size == SZ_FLOAT)
-        num_words += SZ_FLOAT;
-      else if (e->type->size == SZ_INT)
-        num_words += SZ_INT;
-      else if (e->type->size == SZ_COMPLEX)
-        num_words += SZ_COMPLEX;
-      else if (e->type->size != 0) {
-        err_msg(EMIT_, e->pos,
-                "(emit): internal error: non-void type size '%i' unhandled...",
-                e->type->size);
-        return -1;
-      }
-      //      num_words++;
-*/
-    e = e->next;
+      e = e->next;
     }
     if (num_words) {
       Instr pop = add_instr(emit, Reg_Pop_Word4);
@@ -1701,9 +1672,7 @@ m_uint action_index = vector_size(emit->code->code);
 
   while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-//    instr->m_val = index;
     instr->m_val = action_index;
-//    instr->m_val = vector_size(emit->code->code) - 1;
   }
   while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
@@ -2382,17 +2351,6 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     }
     emit->code->stack_depth += SZ_INT;
   }
-
-  // TODO: make sure the calculated stack depth is the same as func_def->stack depth
-  // taking into account member function
-
-  // add references for objects in the arguments (added 1.3.0.0)
-  // NOTE: this isn't in use since currently the caller is reference counting
-  // the arguments -- this is to better support sporking, which is more
-  // asynchronous.  the code below is left in as reference for callee ref counting
-  // emit->addref_on_scope();
-
-  // emit the code
   CHECK_BB(emit_Stmt(emit, func_def->code, 0))
 
   // ensure return
