@@ -54,7 +54,7 @@ before_script:
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.10 ]; then for a in test/bug/*; do ./gwion $a; done; fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.9 ]; then for a in test/bug/*; do echo $a; ./gwion $a; done; fi
 
 git:
   submodules: false
