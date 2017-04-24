@@ -32,6 +32,7 @@ build_soundpipe() {
 
 check_soundpipe() {
 ls
+rm -rf Soundpipe
 	[ -d Soundpipe ] || {
 		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		pushd Soundpipe
