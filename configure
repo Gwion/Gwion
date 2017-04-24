@@ -566,9 +566,8 @@ make_handle() {
 printf "\n# handle base options\n"
 for iter in prg cc yacc lex prefix soundpipe_lib soundpipe_inc
 do
-	arg="_arg_${iter}"
-	echo "${iter~~} ?= ${!arg}"
-done
+	echo "${iter~~} ?=$(eval echo \$_arg_$iter)"
+	done
  echo -e "
   LDFLAGS += -lm -ldl -rdynamic -lpthread
   CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE"
@@ -576,10 +575,9 @@ done
 printf "\n# handle boolean options\n"
 for iter in double coverage memcheck
 do
-	arg="_arg_$iter"
 	if [ "$iter" = "double" ]
-	then echo "USE_${iter~~}  = ${!arg}"
-	else echo "USE_${iter~~} ?= ${!arg}"
+	then echo "USE_${iter~~} = $(eval echo \$_arg_$iter)"
+	else echo "USE_${iter~~} ?= $(eval echo \$_arg_$iter)"
 	fi
 done
 
@@ -588,8 +586,7 @@ d_func=d_func
 for iter in $d_func
 
 do
-	arg="_arg_${iter}"
-	echo "${iter~~} ?= ${!arg}_driver"
+	echo "${iter~~} ?= $(eval echo \$_arg_${iter})_driver"
 done
 
 printf "\n# handle directories\n"
@@ -603,8 +600,7 @@ done
 printf "\n# handle libraries\n"
 for iter in dummy spa sndfile alsa jack portaudio soundio
 do
-	arg="_arg_$iter"
-	echo "${iter~~}_D ?= ${!arg}"
+	echo "${iter~~}_D ?= $(eval echo \$_arg_$iter)"
 done
 
 printf "\n# handle debug\n"
@@ -613,8 +609,7 @@ do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
 	lib=$(echo "$iter" | cut -d ':' -f 4)
-	arg="_arg_debug_$key"
-	echo "DEBUG_${key~~} ?= ${!arg}"
+	echo "${key~~} ?= $(eval echo "\$_arg_debug_$key")"
 done
 
 printf "\n# initialize source lists\n"

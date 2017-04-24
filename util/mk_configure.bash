@@ -171,7 +171,8 @@ make_handle() {
   echo "make_handle() {"
   mk_header "handle base options"
   do_expand "$OPT"
-  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}\"\ndone\n"
+printf "echo \"\${iter~~} ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
+#  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}\"\ndone\n"
   echo " echo -e \"
   # base flags
   LDFLAGS += -lm -ldl -rdynamic -lpthread
@@ -179,12 +180,15 @@ make_handle() {
 
   mk_header "handle boolean options"
   do_expand "$USE"
-  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
-  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
+  printf "if [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~} = \$(eval echo \\\$_arg_\$iter)\"\n"
+  printf "\telse echo \"USE_\${iter~~} ?= \$(eval echo \\\$_arg_\$iter)\"\n\tfi\ndone\n"
+#  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
+#  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
 
   mk_header "handle definitions"
   do_expand "$DEF"
-  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
+  printf "echo \"\${iter~~} ?= \$(eval echo \\\$_arg_\${iter})_driver\"\ndone\n"
+#  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
 
   mk_header "handle directories"
   do_expand2 "$DIR"
@@ -192,11 +196,13 @@ make_handle() {
 
   mk_header "handle libraries"
   do_expand "$LIB"
-  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
+  printf "echo \"\${iter~~}_D ?= \$(eval echo \\\$_arg_\$iter)\"\ndone\n"
+#  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
 
   mk_header "handle debug"
   do_expand2 "$DBG"
-  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
+  printf "echo \"\${key~~} ?= \$(eval echo \"\\\$_arg_debug_\$key\")\"\ndone\n"
+#  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
 
   mk_header "initialize source lists"
   do_expand "core lang ugen eval"

@@ -6,8 +6,12 @@
 
 #do_test severity=11 ASYNC=0 tests/sh/ examples tests/error tests/tree tests/bug tests/ugen_coverage | consummer
 
-lcov --capture --directory core --directory eval/absyn.c --directory lang --directory ugen --output-file gwion.info
+lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file gwion.info
+LIST=( '"eval/lexer.c"' '"eval/parser.c"' )
 
+#echo ${LIST[@]} | xargs lcov -o gwion.info.cleaned -r gwion.info
+lcov -o gwion.info.cleaned -r gwion.info "*/eval/parser.c" "*/eval/lexer.c"
+mv gwion.info.cleaned gwion.info
 genhtml -o lcov gwion.info
 
 cat << EOF > lcov/helper_gcov.js
