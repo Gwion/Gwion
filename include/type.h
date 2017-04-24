@@ -37,7 +37,7 @@ struct Type_ {
   m_uint    obj_size;
   m_bool has_constructor;
   m_bool has_destructor;
-  m_bool initialize; // hack for gack
+//  m_bool initialize; // hack for gack
 //	UGenInfo ugen_info;
 };
 

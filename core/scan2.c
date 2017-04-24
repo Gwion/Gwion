@@ -32,8 +32,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     }
   }
 
-  /*  if((isprim(type) > 0 || isa(type, &t_string ) > 0) && decl->type->ref)  // TODO: string*/
-  if((isprim(type) > 0) && decl->type->ref) { // TODO: string
+  if((isprim(type) > 0) && decl->type->ref) {
     err_msg(SCAN2_, decl->pos,
             "cannot declare references (@) of primitive type '%s'...", type->name);
     err_msg(SCAN2_, decl->pos,
@@ -62,7 +61,6 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       type = new_array_type(env, &t_array, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
-      /*      SAFE_REF_ASSIGN( decl->ck_type, type );*/
       if(env->class_def)
         add_ref(type->obj);
       decl->m_type = type;
@@ -94,25 +92,12 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
   m_uint count = 1;
   Arg_List arg_list = ptr->args;
   Value v;
-/*
-// done in decl_exp
-  if((v = namespace_lookup_value(env->curr, ptr->xid, 0)) && v->m_type->actual_type != namespace_lookup_type(env->curr, ptr->xid, 1)) {
-    err_msg(SCAN2_, ptr->pos, "variable %s has already been defined in the same scope...", S_name(ptr->xid));
-exit(6);
-    free_Type_Decl(ptr->type);
-    return -1;
-  }
-*/
-  // shouldn't it be later ?
-  /*  ptr->value = new_Value(env->context, &t_function, S_name(ptr->xid));*/
-//  ptr->value = new_Value(env->context, &t_func_ptr, S_name(ptr->xid));
+
   namespace_push_value(env->curr);
   while(arg_list) {
     if( arg_list->type->size == 0 ) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-//      free_Type_Decl(ptr->type);
       goto error;
-//      return -1;
     }
     /*
     // check if reserved
@@ -124,15 +109,12 @@ exit(6);
     */
 
     // primitive
-    if( (isprim( arg_list->type ) > 0)
-        && arg_list->type_decl->ref ) { // TODO: string
+    if( (isprim( arg_list->type ) > 0) && arg_list->type_decl->ref ) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "cannot declare references (@) of primitive type '%s'...",
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "...(primitive types: 'int', 'float', 'time', 'dur')" );
-//      free_Type_Decl(ptr->type);
-//      return -1;
       goto error;
     }
 
@@ -148,16 +130,12 @@ exit(6);
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid) );
         err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid) );
-//        free_Type_Decl(ptr->type);
-//        return -1;
         goto error;
       }
       // create the new array type
       t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
-      // set ref
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
-      /*      SAFE_REF_ASSIGN( arg_list->type, t );*/
     }
 
     v = calloc(1, sizeof(struct Value_));
@@ -177,8 +155,6 @@ exit(6);
   /*  else*/
   namespace_add_value(env->curr, ptr->xid, ptr->value);
 
-  /*  Func_Def def = new_Func_Def(!env->class_def ? ae_key_func : ae_key_instance, ptr->key, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);*/
-  /*  Func_Def def = new_Func_Def(ae_key_func, ptr->key, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);*/
   Func_Def def = new_Func_Def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_Func(S_name(ptr->xid), def);
@@ -250,15 +226,6 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
   switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:
-/* // done in type.c
-    // assignable?
-    if(postfix->exp->meta != ae_meta_var) {
-      // is it needed
-      err_msg(SCAN2_, postfix->exp->pos,
-              "postfix operator '%s' cannot be used on non-mutable data-type...", op2str( postfix->op ));
-      return -1;
-    }
-*/
     // TODO: mark somewhere we need to post increment
     return 1;
     break;
@@ -798,7 +765,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!f->ret_type) // template return value
     f->ret_type = find_type(env, f->type_decl->xid);
 
-  if(isprim(f->ret_type) > 0 && f->type_decl->ref) { // TODO: string
+  if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
     err_msg(SCAN2_,  f->type_decl->pos,
             "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name );
     err_msg(SCAN2_, f->type_decl->pos,
@@ -832,7 +799,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
     // primitive
     if( (isprim( arg_list->type ) > 0)
-        && arg_list->type_decl->ref ) { // TODO: string
+        && arg_list->type_decl->ref ) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "cannot declare references (@) of primitive type '%s'...",
               arg_list->type->name);
