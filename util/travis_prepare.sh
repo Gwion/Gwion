@@ -41,6 +41,7 @@ ls
 	}
 ls
 	pushd Soundpipe
+echo "in SP"
 ls
 	git fetch
 #	[ "$(git rev-parse HEAD)" = "$(git rev-parse "@{u}")" ] || build_soundpipe
