@@ -2374,6 +2374,8 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 		case Kindof_Vec4:
 			f = Reg_Push_ImmV4;
             break;
+        case Kindof_Void: // won't reach
+            return -1;
     }
     sadd_instr(emit, f);
     Instr goto_instr = add_instr(emit, Goto);

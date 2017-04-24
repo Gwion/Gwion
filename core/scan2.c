@@ -30,9 +30,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
               "...(note: object of type '%s' declared inside itself)", type->name);
       return -1;
     }
-  }
-
-  if((isprim(type) > 0) && decl->type->ref) {
+  } else if((isprim(type) > 0)) {
     err_msg(SCAN2_, decl->pos,
             "cannot declare references (@) of primitive type '%s'...", type->name);
     err_msg(SCAN2_, decl->pos,
@@ -99,15 +97,13 @@ static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       goto error;
     }
-    /*
     // check if reserved
-    if( type_engine_check_reserved( env, arg_list->var_decl->xid, arg_list->linepos ) )
+//    if( type_engine_check_reserved( env, arg_list->var_decl->xid, arg_list->linepos ) )
+    if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0)
     {
-    EM_error2( arg_list->linepos, "in function '%s'", S_name(f->name) );
-    goto error;
+      err_msg(SCAN2_, arg_list->pos, "in function '%s'", S_name(ptr->xid) );
+      goto error;
     }
-    */
-
     // primitive
     if( (isprim( arg_list->type ) > 0) && arg_list->type_decl->ref ) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
@@ -513,7 +509,7 @@ static m_bool scan2_Goto_Label(Env env, Stmt_Goto_Label stmt)
   m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
   if(stmt->is_label) {
     m = (Map)map_get(env->curr->label, (vtype)key);
-    if(!m) { // create map for func
+    if(!m) {
       m = new_Map();
       map_set(env->curr->label, (vtype)key, (vtype)m);
     }
@@ -632,7 +628,7 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
 
   case ae_stmt_union:
     l = stmt->d.stmt_union->l;
-    while(l) {
+    while(l && ret > 0) {
       ret = scan2_Decl_Expression(env, l->self);
       l = l->next;
     }
@@ -729,7 +725,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   func_name = strdup(tmp);
   func = new_Func(func_name, f);
-//  func = new_Func(func_name, tmp);
   func->is_member = (env->class_def && (f->static_decl != ae_key_static));
 
   if(f->s_type == ae_func_builtin) { // actual builtin func import
@@ -788,14 +783,12 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       goto error;
     }
 
-
     // check if reserved
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name) );
       namespace_pop_value(env->curr);
       goto error;
     }
-
 
     // primitive
     if( (isprim( arg_list->type ) > 0)
@@ -821,25 +814,14 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
         namespace_pop_value(env->curr);
         goto error;
       }
-
-      // create the new array type
       t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
-
-      // set ref
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
-      /*      SAFE_REF_ASSIGN( arg_list->type, t );*/
     }
-    // make new value
     v = calloc(1, sizeof(struct Value_));
     v->m_type = arg_list->type;
-    //v->doc = arg_list->doc;
     v->name = S_name(arg_list->var_decl->xid);
-    // remember the owner
     v->owner = env->curr;
-    // function args not owned
-    // v->owner_class = NULL;
-    //  v->is_member = 0;
 
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     // stack
@@ -887,18 +869,17 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   else {
     namespace_add_value(env->curr, insert_symbol(func->name), value);
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
-      if(!f->is_template) // template func don't check ret_type case
+      if(!f->is_template)
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
           err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'",
                   f->ret_type->name, overload->func_ref->def->ret_type->name );
-          if(env->class_def)
-            err_msg(SCAN2_, f->pos,
-                    "function '%s.%s' matches '%s.%s' but cannot overload...",
-                    env->class_def->name, S_name(f->name),
-                    value->owner_class->name, S_name(f->name) );
-            return -1;
-//          goto error;
-        }
+        if(env->class_def)
+          err_msg(SCAN2_, f->pos,
+            "function '%s.%s' matches '%s.%s' but cannot overload...",
+             env->class_def->name, S_name(f->name),
+             value->owner_class->name, S_name(f->name) );
+      return -1;
+    }
   }
   namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
 
@@ -979,21 +960,19 @@ m_bool scan2_Ast(Env env, Ast ast)
   debug_msg("scan2", "Ast");
 #endif
   Ast prog = ast;
-  m_bool ret = 1;
-  while(prog && ret > 0) {
+  while(prog) {
     switch(prog->section->type) {
     case ae_section_stmt:
-      ret = scan2_Stmt_List(env, prog->section->d.stmt_list);
+      CHECK_BB(scan2_Stmt_List(env, prog->section->d.stmt_list))
       break;
     case ae_section_func:
-      ret = scan2_Func_Def(env, prog->section->d.func_def);
+      CHECK_BB(scan2_Func_Def(env, prog->section->d.func_def))
       break;
     case ae_section_class:
-      ret = scan2_Class_Def(env, prog->section->d.class_def);
+      CHECK_BB(scan2_Class_Def(env, prog->section->d.class_def))
       break;
     }
-    CHECK_BB(ret)
     prog = prog->next;
   }
-  return ret;
+  return 1;
 }
