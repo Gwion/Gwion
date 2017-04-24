@@ -896,7 +896,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, S_name(f->name),
                     value->owner_class->name, S_name(f->name) );
-//return -1;
+            return -1;
 //          goto error;
         }
   }
