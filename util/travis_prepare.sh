@@ -31,6 +31,7 @@ build_soundpipe() {
 }
 
 check_soundpipe() {
+ls
 	[ -d Soundpipe ] || {
 		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		pushd Soundpipe
@@ -38,7 +39,9 @@ check_soundpipe() {
 		popd
 		return 0
 	}
+ls
 	pushd Soundpipe
+ls
 	git fetch
 #	[ "$(git rev-parse HEAD)" = "$(git rev-parse "@{u}")" ] || build_soundpipe
 	[ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ] || build_soundpipe
