@@ -136,15 +136,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, v->is_static, v->owner_class);
 #endif
   Instr instr;
-/*
-  // HACK : instantiate type
-  if (v->m_type->xid == t_class.xid && !v->m_type->initialize) {
-    instr = add_instr(emit, Reg_Push_Imm);
-    instr->m_val = (m_uint)v->m_type;
-    v->m_type->initialize = 1;
-    return 1;
-  }
-*/
+
   if (v->owner_class && (v->is_member || v->is_static)) {
     m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
@@ -159,18 +151,13 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return ret;
   }
 
-  /* HACK: constant value */
   if (v->is_const) {
     if (v->func_ref) {
       instr = add_instr(emit, Reg_Push_Imm);
-      /*      exit(2);*/
       instr->m_val = (m_uint)v->func_ref;
       return 1;
-    }
-
-    if (isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
+    } else if (isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
       instr = add_instr(emit, Reg_Push_Imm2);
-      /*      instr->f_val = (m_float)(m_uint)v->ptr;*/
       instr->f_val = *(m_float*)v->ptr;
       return 1;
     } else {
@@ -180,14 +167,6 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     }
     return 1;
   }
-
-  /*  if(isa(v->m_type, &t_func_ptr) > 0)*/
-  /*  {*/
-  /*    instr = add_instr(emit, Reg_Push_Imm);*/
-  /*    instr->m_val = &v->func_ref;*/
-  /*    return 1;  */
-  /*    exit(12);*/
-  /*  }*/
 
   if (emit_var) {
     instr = add_instr(emit, Reg_Push_Mem_Addr);
