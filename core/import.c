@@ -105,8 +105,6 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
   type->info = new_NameSpace();
   type->info->filename = "global_nspc";
-  // add reference
-  /*    SAFE_ADD_REF(type->info);*/
   add_ref(type->info->obj);
   type->info->name = type->name;
   type->info->parent = where;
@@ -122,23 +120,14 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
 
   type->owner = where;
-  /*    SAFE_ADD_REF(type->owner);*/
   add_ref(type->owner->obj);
-//  type->size = SZ_INT;
-//    type->size = 1;
-  // set the object size
-  type->obj_size = 0; // TODO
+  type->obj_size = 0;
 
   type->is_complete = 1;
-//    type_type = type_copy(env, &t_class);
-//    type_type->actual_type = type;
-  // SAFE_REF_ASSIGN( type_type->actual_type, type );
   vector_append(env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
   vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-//    type->obj = new_VM_Object(e_type_obj);
-  // ref count
   add_ref(type->obj);
   return type;
 }
@@ -213,7 +202,6 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
   Var_Decl var_decl    = NULL;
   ID_List type_path    = NULL;
   ID_List type_path2    = NULL;
-//  ID_List name_path    = NULL;
   Array_Sub array_sub  = NULL;
   DL_Value* arg        = NULL;
   m_uint array_depth = 0;
@@ -227,7 +215,6 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
       err_msg(TYPE_,  0, "...at argument '%i'...", i + 1 );
-      //free_Vector(dl_fun->args);
       if(arg_list)
         free_Arg_List(arg_list);
       return NULL;
@@ -237,13 +224,11 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     free_ID_List(type_path2);
     if(array_depth && array_depth2) {
       err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module" );
-      // TODO: cleanup
       free_Type_Decl(type_decl);
       if(arg_list)
         free_Arg_List(arg_list);
       return NULL;
     }
-    // TODO: arrays?
     if(array_depth2)
       array_depth = array_depth2;
     if(array_depth) {
@@ -272,7 +257,6 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
 
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
      !(type_decl = new_Type_Decl(type_path, 0, 0))) {
-    // error
     err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name);
     return NULL;
   }
@@ -300,8 +284,7 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   CHECK_OO(mfun) // probably deserve an err msg
   CHECK_BO(name_valid(mfun->name));
   CHECK_EO(env->class_def)
-//  CHECK_OO((
-  func_def = make_dll_as_fun(mfun, is_static);//)))
+  func_def = make_dll_as_fun(mfun, is_static);
   if(!func_def) {
     free_DL_Func(mfun);
     scope_rem(env->global_nspc->type, insert_symbol(env->class_def->name));
