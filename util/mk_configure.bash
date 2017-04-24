@@ -175,7 +175,7 @@ make_handle() {
   do_expand "$OPT"
 printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 #  printf "arg=\"_arg_\${iter}\"\n\techo \"\$(to_upper iter) ?= \${!arg}\"\ndone\n"
-  echo " printf \"LDFLAGS += -lm -ldl -rdynamic -lpthread\nCFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\n\""
+  printf " printf \"LDFLAGS += -lm -ldl -rdynamic -lpthread\\\nCFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\\\n\"\n"
 
   mk_header "handle boolean options"
   do_expand "$USE"
