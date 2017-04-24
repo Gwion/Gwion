@@ -619,32 +619,8 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         Instr assign = add_instr(emit, Assign_Object);
         assign->ptr = (m_uint*)1;
         assign->m_val = value->offset;
-//if(value->is_member) {
-//add_instr(emit, add_gc);
-          // add ref
-//          Instr push_obj = add_instr(emit, Dot_Member_Data);
-//          push_obj->m_val = value->offset;
-//          push_obj->m_val2 = Kindof_Int;
-//          add_instr(emit, Reg_AddRef_Object3);
-//          Instr pop2 = add_instr(emit, Reg_Pop_Word4);
-//          pop2->m_val = SZ_INT;
-//}
       }
     }
-    /*
-    // HACK func pointer
-    if(isa(type, &t_func_ptr) > 0)
-    {
-    if(!emit->env->class_def || !decl->is_static)
-    {
-    Instr set = add_instr(emit, Mem_Set_Imm);
-    set->ptr = namespace_lookup_func(emit->env->curr, insert_symbol(value->m_type->name), -1);
-    set->m_val = value->offset;
-
-    }
-    }
-    */
-
     list = list->next;
   }
   return 1;
@@ -954,8 +930,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   switch (exp_unary->op) {
   case op_plusplus:
     if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
-      err_msg(EMIT_, exp_unary->self->pos,
-              "(emit): target for '++' not mutable...");
+      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable...");
       return -1;
     }
     if (isa(exp_unary->exp->type, &t_int) > 0)
@@ -963,8 +938,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     break;
   case op_minusminus:
     if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
-      err_msg(EMIT_, exp_unary->self->pos,
-              "(emit): target for '--' not mutable...");
+      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable...");
       return -1;
     }
     if (isa(exp_unary->exp->type, &t_int) > 0)
@@ -1713,6 +1687,8 @@ m_uint action_index = vector_size(emit->code->code);
     Expression e = stmt->c3;
     m_uint num_words = 0;
     while (e) {
+      num_words += e->type->size;
+/*
       if (e->type->size == SZ_FLOAT)
         num_words += SZ_FLOAT;
       else if (e->type->size == SZ_INT)
@@ -1726,7 +1702,8 @@ m_uint action_index = vector_size(emit->code->code);
         return -1;
       }
       //      num_words++;
-      e = e->next;
+*/
+    e = e->next;
     }
     if (num_words) {
       Instr pop = add_instr(emit, Reg_Pop_Word4);

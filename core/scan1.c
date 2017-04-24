@@ -259,7 +259,6 @@ static m_bool scan1_return(Env env, Stmt_Return stmt )
 #endif
   return stmt->val ? scan1_Expression(env, stmt->val) : 1;
 }
-// TODO: same as if - ensure the type in conditional is valid
 
 static m_bool scan1_While(Env env, Stmt_While stmt)
 {
@@ -468,19 +467,8 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
       }
       Var_Decl_List list = l->self->list;
       Var_Decl var_decl = NULL;
-/*
-      if(!l->self->type) { // weird bug
-        err_msg(SCAN1_, l->self->pos, "must povide type declaration in union");
-        free(stmt->d.stmt_union);
-        stmt->d.stmt_union = NULL;
-//fake_type
-//l->self->type = calloc(1, sizeof(Type_Decl));
-//l->self->type->xid = calloc(1, sizeof(struct ID_List_));
-        return -1;
-      }
-*/
       Type t = find_type(env, l->self->type->xid);
-      if(!t) {// TODO better typename
+      if(!t) {
         err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
         return -1;
       }
@@ -528,7 +516,6 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func ptr");
 #endif
-  // TODO: remove type on errors
   Arg_List arg_list;
   int count = 1;
   arg_list = ptr->args;
@@ -608,10 +595,8 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     // create the new array type
     t = new_array_type(env, &t_array, f->type_decl->array->depth, t2, env->curr);
 
-    // TODO: verify
     f->type_decl->ref = 1;
     f->ret_type = t;
-    /*    SAFE_REF_ASSIGN( f->ret_type, t );*/
   }
   arg_list = f->arg_list;
   count = 1;
