@@ -37,8 +37,8 @@ env:
 
 matrix:
   include: 
-    - os: osx
-    -env: USE_DOUBLE=0 SP_BRANCH=dev
+    os: osx
+    env: USE_DOUBLE=0 SP_BRANCH=dev
   fast_finish: true
   allow_failures:
   - os: osx
