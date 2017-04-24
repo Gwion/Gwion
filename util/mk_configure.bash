@@ -94,6 +94,7 @@ config_prep() {
   head -n -1 configure.argbash > configure.tmp
   mv configure.tmp configure
   rm configure.argbash
+
   for iter in $OPT
   do
     key=$(echo "${iter}" | cut -d ":" -f 1)
@@ -138,6 +139,7 @@ config_prep() {
 config_check() {
   echo "set -e"
   echo -e "\n# remove Makefile\n[ -f Makefile  ] && rm Makefile"
+printf "to_upper(){\n\techo \"\$1\" | tr '[:lower:]' '[:upper:]'\n}\n\n"
   echo "config_check() {"
   # check default driver
   echo -e "\n# check default driver"
@@ -171,37 +173,34 @@ make_handle() {
   echo "make_handle() {"
   mk_header "handle base options"
   do_expand "$OPT"
-printf "echo \"\${iter~~} ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
-#  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}\"\ndone\n"
-  echo " echo -e \"
-  # base flags
-  LDFLAGS += -lm -ldl -rdynamic -lpthread
-  CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\""
+printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
+#  printf "arg=\"_arg_\${iter}\"\n\techo \"\$(to_upper iter) ?= \${!arg}\"\ndone\n"
+  echo " printf \"LDFLAGS += -lm -ldl -rdynamic -lpthread\nCFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\n\""
 
   mk_header "handle boolean options"
   do_expand "$USE"
-  printf "if [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~} = \$(eval echo \\\$_arg_\$iter)\"\n"
-  printf "\telse echo \"USE_\${iter~~} ?= \$(eval echo \\\$_arg_\$iter)\"\n\tfi\ndone\n"
+  printf "if [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\$(to_upper \$iter) = \$(eval echo \\\$_arg_\$iter)\"\n"
+  printf "\telse echo \"USE_\$(to_upper \$iter) ?= \$(eval echo \\\$_arg_\$iter)\"\n\tfi\ndone\n"
 #  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
 #  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
 
   mk_header "handle definitions"
   do_expand "$DEF"
-  printf "echo \"\${iter~~} ?= \$(eval echo \\\$_arg_\${iter})_driver\"\ndone\n"
+  printf "echo \"\$(to_upper \$iter) ?= \$(eval echo \\\$_arg_\${iter})_driver\"\ndone\n"
 #  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
 
   mk_header "handle directories"
   do_expand2 "$DIR"
-  printf "echo \"GWION_\${key~~}_DIR ?= \\\${PREFIX}/lib/Gwion/\${val}\"\ndone"
+  printf "echo \"GWION_\$(to_upper \"\$key\")_DIR ?= \\\${PREFIX}/lib/Gwion/\${val}\"\ndone"
 
   mk_header "handle libraries"
   do_expand "$LIB"
-  printf "echo \"\${iter~~}_D ?= \$(eval echo \\\$_arg_\$iter)\"\ndone\n"
+  printf "echo \"\$(to_upper \$iter)_D ?= \$(eval echo \\\$_arg_\$iter)\"\ndone\n"
 #  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
 
   mk_header "handle debug"
   do_expand2 "$DBG"
-  printf "echo \"\${key~~} ?= \$(eval echo \"\\\$_arg_debug_\$key\")\"\ndone\n"
+  printf "echo \"DEBUG_\$(to_upper \"\$key\") ?= \$(eval echo \"\\\$_arg_debug_\$key\")\"\ndone\n"
 #  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
 
   mk_header "initialize source lists"
@@ -216,8 +215,10 @@ make_add() {
   do_expand2 "$LIB"
   printf "if [ \"\${val}\" = \"on\" ]\n\tthen val=1\n\telse val=0\n\tfi\n"
   cat << EOF
-  [ -z "\$lib" ] && printf "ifeq (\\\${%s_D}, on)\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" "\${key~~}" "\${key~~}" "\${key}" "\${key~~}" "\${key~~}" "\${key}"
-  [ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" "\${key~~}" "\${lib}" "\${key~~}" "\${key}" "\${key~~}" "\${lib}" "\${key~~}" "\${key}"
+  [ -z "\$lib" ] && printf "ifeq (\\\${%s_D}, on)\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" \
+    "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\$key" "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\${key}"
+  [ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" \
+    "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}" "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}"
     done
 EOF
 
@@ -228,29 +229,29 @@ EOF
     then [ "\$key" = "double" ] && val=double;
     else [ "\$key" = "double" ] && val=float;
     fi
-    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -g\\\nelse " "\${key~~}"
-    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -g\\\nendif\n" "\${key~~}"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\nelse " "\${key~~}"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\${key~~}"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\${key~~}"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\${key~~}"
+    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -g\\\nelse " "\$(to_upper "\$key")"
+    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -g\\\nendif\n" "\$(to_upper "\$key")"
+    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\nelse " "\$(to_upper "\$key")"
+    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\$(to_upper "\$key")"
+    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\$(to_upper "\$key")"
+    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\$(to_upper "\$key")"
   done
   key="double"
-  printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s} -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\${key~~}" "\${key~~}" "\${key~~}" "\${key~~}"
+  printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s} -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)"
 EOF
 
   mk_header "add definitions"
   do_expand2 "$DEF"
-  printf "echo \"CFLAGS+= -D\${key~~}=\\\${\${key~~}}\"\ndone\n"
+  printf "echo \"CFLAGS+= -D\$(to_upper \"\$key\")=\\\${\$(to_upper \"\$key\")}\"\ndone\n"
 
   mk_header "add directories"
   do_expand "$DIR"
-  printf "printf \"CFLAGS+=-DGWION_%%s_DIR=%q\\\${GWION_%%s_DIR}%q\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone\n" '\\\"' '\\\"'
+  printf "printf \"CFLAGS+=-DGWION_%%s_DIR=%q\\\${GWION_%%s_DIR}%q\\\n\" \"\$(to_upper \$iter)\" \"\$(to_upper \$iter)\"\ndone\n" '\\\"' '\\\"'
 
   mk_header "add debug flags"
   do_expand "$DBG"
-  printf "printf \"ifeq (\\\${DEBUG_%%s}, on)\\\nCFLAGS += -DDEBUG_%%s\\\nelse \" \"\${iter~~}\" \"\${iter~~}\"\n"
-  printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\${iter~~}\" \"\${iter~~}\"\ndone\n"
+  printf "printf \"ifeq (\\\${DEBUG_%%s}, on)\\\nCFLAGS += -DDEBUG_%%s\\\nelse \" \"\$(to_upper \$iter)\" \"\$(to_upper \$iter)\"\n"
+  printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\$(to_upper \"\$key\")\" \"\$(to_upper \"\$key\")\"\ndone\n"
 
   mk_header "add soundpipe"
   echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\""
@@ -260,7 +261,7 @@ EOF
   do_expand "core lang ugen eval drvr"
   printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone\n"
   echo "}"
-} 
+}
 
 make_recipe() {
   cat << _EOF
