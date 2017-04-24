@@ -40,7 +40,8 @@ check_soundpipe() {
 	}
 	pushd Soundpipe
 	git fetch
-	[ "$(git rev-parse HEAD)" = "$(git rev-parse "@{u}")" ] || build_soundpipe
+#	[ "$(git rev-parse HEAD)" = "$(git rev-parse "@{u}")" ] || build_soundpipe
+	[ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ] || build_soundpipe
 	popd
 	return 0
 }
