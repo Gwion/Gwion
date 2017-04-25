@@ -10,7 +10,6 @@ addons:
   apt:
     packages:
     - valgrind
-    - libsndfile1
     - libsndfile1-dev
     - lcov
 
@@ -38,9 +37,7 @@ env:
 matrix:
   include: 
     os: osx
-    compiler:
-      - clang
-      - gcc
+    compiler: clang
     env: USE_DOUBLE=0 SP_BRANCH=dev
   fast_finish: true
   allow_failures:
