@@ -15,9 +15,6 @@ static struct SoundIoInStream  *instream   = NULL;
 static struct SoundIoDevice    *out_device = NULL;
 static struct SoundIoDevice    *in_device  = NULL;
 
-//static struct SoundIoChannelArea* areas;
-
-
 static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
@@ -98,8 +95,6 @@ static void overflow_callback(struct SoundIoInStream *stream)
 static void write_callback(struct SoundIoOutStream *outstream, int
                            frame_count_min, int frame_count_max)
 {
-//	double sr = outstream->sample_rate;
-//	double seconds_per_frame = 1.0 / sr;
   struct SoundIoChannelArea *areas;
   int    left = frame_count_max;
   const struct SoundIoChannelLayout *layout = &outstream->layout;
@@ -117,8 +112,6 @@ static void write_callback(struct SoundIoOutStream *outstream, int
       break;
 
     for (int frame = 0; frame < count; frame++) {
-//			for (int channel = 0; channel < instream->layout.channel_count; channel++)
-//				vm->bbq->in[channel] = *(double*)instream->areas[channel].ptr;
       vm_run(vm);
       for (int channel = 0; channel < layout->channel_count; channel++) {
         write_sample(areas[channel].ptr, data[channel]);
@@ -161,13 +154,9 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
 //            memset(data, 0, frame_count * instream->bytes_per_frame);
       fprintf(stderr, "Dropped %d frames due to internal overflow\n", frame_count);
     } else {
-//frame_count= 256;
       char* data[SZ_FLOAT];
       for (int frame = 0; frame < frame_count; frame += 1) {
         for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-//                    memcpy(data, areas[ch].ptr, instream->bytes_per_sample);
-// FIXME
-//vm->bbq->in[ch] = *(m_float*)data;
           read_sample(areas[ch].ptr, &vm->bbq->in[ch]);
           areas[channel].ptr += areas[channel].step;
         }
