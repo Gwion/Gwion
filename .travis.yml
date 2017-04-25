@@ -20,7 +20,6 @@ cache:
 
 env:
   global:
-    - DEBUG=1
     - ALSA_D=0
     - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
     - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
