@@ -1,0 +1,7 @@
+// [contains] can't call pointers in constructor.
+class C
+{
+	typedef void (test)() {}
+	test t;
+	t();
+}
