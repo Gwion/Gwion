@@ -9,6 +9,13 @@
 lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file gwion.info
 lcov -o gwion.info.cleaned -r gwion.info "*/eval/parser.c" "*/eval/lexer.c"
 mv gwion.info.cleaned gwion.info
+
+[ -z "$TRAVIS_BUILD_DIR" ] || {
+# run bug suite here
+	source util/test.sh; do_test "tests/bug"
+	exit
+}
+
 genhtml -o lcov gwion.info
 
 cat << EOF > lcov/helper_gcov.js
