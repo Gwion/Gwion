@@ -102,15 +102,12 @@ void free_VM_Shred(VM_Shred shred)
 
 BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
 {
-  BBQ a = malloc(sizeof(struct BBQ_));
+  BBQ a;
   Driver* d;
 
-  if(!(d = di->func(vm)))
-    goto error;
-
-  if(d->ini(vm, di) < 0) {
-    goto error;
-  }
+  if(!(d = di->func(vm)) || d->ini(vm, di) < 0)
+    return NULL; // LCOV_EXCL_LINE
+  a = malloc(sizeof(struct BBQ_));
   sp_createn(&a->sp, di->out);
   free(a->sp->out);
   a->sp->out   = calloc(di->out, sizeof(SPFLOAT));
@@ -120,9 +117,6 @@ BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver)
   *driver = d;
   sp_srand(a->sp, time(NULL));
   return a;
-error:
-  free(a);
-  return NULL;
 }
 
 static void free_BBQ(BBQ a)

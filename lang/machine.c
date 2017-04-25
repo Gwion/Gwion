@@ -13,7 +13,7 @@
 #include "doc.h"
 
 #include "bbq.h"  // for sp_rand also
-
+#include <err_msg.h>
 #define prepare() \
   Ast ast = NULL; \
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
@@ -86,9 +86,10 @@ static SFUN(machine_doc_update)
   memset(c, 0, strlen(GWION_DOC_DIR) + 15);
   strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
   strncat(c, "/search/all.js", 14);
-  all = fopen(c, "w");
-  if(!all)
+  if(!(all = fopen(c, "w"))) { // LCOV_EXCL_START
+    err_msg(INSTR_, 0, "file '%s' is not writable. can't update documentation search.");
     return;
+  } // LCOV_EXCL_STOP
   struct dirent **namelist;
   char* line = NULL;
   int n;
