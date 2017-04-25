@@ -88,24 +88,17 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "postfix");
 #endif
-  // check the exp
   CHECK_BB(scan1_Expression(env, postfix->exp))
-
   switch( postfix->op ) {
   case op_plusplus:
   case op_minusminus:
-    // assignable?
     if(postfix->exp->meta != ae_meta_var) {
       err_msg(SCAN1_, postfix->exp->pos, "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
       return -1;
     }
-
-    // TODO: mark somewhere we need to post increment
     return 1;
     break;
-
   default:
-    // no match
     err_msg( SCAN1_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", op2str(postfix->op));
     return -1;

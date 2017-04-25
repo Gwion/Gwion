@@ -217,15 +217,12 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Postfix");
 #endif
-  // check the exp
   CHECK_BB(scan2_Expression(env, postfix->exp))
   switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:
-    // TODO: mark somewhere we need to post increment
     return 1;
     break;
-
   default:
     err_msg( SCAN2_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op );

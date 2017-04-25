@@ -72,9 +72,12 @@ void not(VM * vm, VM_Shred shred, Instr instr);
 //void PostDec_Int(VM * vm, VM_Shred shred, Instr instr);
 //void PreInc_Int(VM * vm, VM_Shred shred, Instr instr);
 //void PreDec_Int(VM * vm, VM_Shred shred, Instr instr);
-void inc(VM * vm, VM_Shred shred, Instr instr);
-void dec(VM * vm, VM_Shred shred, Instr instr);
-
+//void inc(VM * vm, VM_Shred shred, Instr instr);
+//void dec(VM * vm, VM_Shred shred, Instr instr);
+INSTR(pre_inc);
+INSTR(pre_dec);
+INSTR(post_inc);
+INSTR(post_dec);
 void timesf(VM * vm, VM_Shred shred, Instr instr);
 void notf(VM * vm, VM_Shred shred, Instr instr);
 void negatef(VM * vm, VM_Shred shred, Instr instr);

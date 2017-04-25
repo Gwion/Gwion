@@ -221,22 +221,36 @@ INSTR(not)
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(inc)
+INSTR(pre_inc)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int++) '++' %i", **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(++int) %i", **(m_int**)(shred->reg - SZ_INT));
 #endif
-  (**(m_int**)(shred->reg - SZ_INT))++;
-  *(m_int*)(shred->reg - SZ_INT) = **(m_int**)(shred->reg - SZ_INT);
+  *(m_int*)(shred->reg - SZ_INT) = (++**(m_int**)(shred->reg - SZ_INT));
 }
 
-INSTR(dec)
+INSTR(pre_dec)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int++) '--' %i", **(m_int**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(--int) %i", **(m_int**)(shred->reg - SZ_INT));
 #endif
-  (**(m_int**)(shred->reg - SZ_INT))--;
-  *(m_int*)(shred->reg - SZ_INT) = **(m_int**)(shred->reg - SZ_INT);
+  *(m_int*)(shred->reg - SZ_INT) = (--**(m_int**)(shred->reg - SZ_INT));
+}
+
+INSTR(post_inc)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(int++) %i", **(m_int**)(shred->reg - SZ_INT));
+#endif
+  *(m_int*)(shred->reg - SZ_INT) = (**(m_int**)(shred->reg - SZ_INT))++;
+}
+
+INSTR(post_dec)
+{
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "(int++) %i", **(m_int**)(shred->reg - SZ_INT));
+#endif
+  *(m_int*)(shred->reg - SZ_INT) = (**(m_int**)(shred->reg - SZ_INT))--;
 }
 
 // reverse arithmetic
@@ -459,10 +473,10 @@ m_bool import_int(Env env)
 // unary
   CHECK_BB(add_binary_op(env, op_minus,         NULL,   &t_int, &t_int, negate,     1, 0))
   CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_int, &t_int, not,        1, 0))
-  CHECK_BB(add_binary_op(env, op_plusplus,      &t_int, NULL,   &t_int, inc,        1, 0))
-  CHECK_BB(add_binary_op(env, op_plusplus,      NULL,   &t_int, &t_int, inc,        1, 0))
-  CHECK_BB(add_binary_op(env, op_minusminus,    &t_int, NULL,   &t_int, dec,        1, 0))
-  CHECK_BB(add_binary_op(env, op_minusminus,    NULL,   &t_int, &t_int, dec,        1, 0))
+  CHECK_BB(add_binary_op(env, op_plusplus,      &t_int, NULL,   &t_int, post_inc,   1, 0))
+  CHECK_BB(add_binary_op(env, op_plusplus,      NULL,   &t_int, &t_int, pre_inc,    1, 0))
+  CHECK_BB(add_binary_op(env, op_minusminus,    &t_int, NULL,   &t_int, post_dec,   1, 0))
+  CHECK_BB(add_binary_op(env, op_minusminus,    NULL,   &t_int, &t_int, pre_dec,    1, 0))
 // reverse arithmetic
   CHECK_BB(add_binary_op(env, op_chuck,         &t_int, &t_int, &t_int, r_assign,   1, 0))
   CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_int, &t_int, &t_int, r_plus,     1, 0))

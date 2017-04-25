@@ -725,7 +725,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
   switch (postfix->op) {
   case op_plusplus:
     if (postfix->exp->type->xid == t_int.xid)
-      f = inc;
+      f = post_inc;
     else {
       err_msg(EMIT_, postfix->pos,
               "(emit): internal error: unhandled type '%s' for post '++' operator",
@@ -736,7 +736,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
 
   case op_minusminus:
     if (postfix->exp->type->xid == t_int.xid)
-      f = dec;
+      f = post_dec;
     else {
       err_msg(EMIT_, postfix->pos,
               "(emit): internal error: unhandled type '%s' for post '--' operator",
@@ -907,7 +907,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       return -1;
     }
     if (isa(exp_unary->exp->type, &t_int) > 0)
-      instr = add_instr(emit, inc);
+      instr = add_instr(emit, pre_inc);
     break;
   case op_minusminus:
     if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
@@ -915,7 +915,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       return -1;
     }
     if (isa(exp_unary->exp->type, &t_int) > 0)
-      instr = add_instr(emit, dec);
+      instr = add_instr(emit, pre_dec);
     break;
   case op_exclamation:
     if (isa(exp_unary->exp->type, &t_int) > 0 || isa(exp_unary->self->type, &t_object) > 0)
