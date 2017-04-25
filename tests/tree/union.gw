@@ -2,5 +2,6 @@ union
 {
   int one;
   string two;
+  float f;
 };
 <<<one, string>>>;
