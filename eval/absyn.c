@@ -684,7 +684,7 @@ void free_Stmt_Func_Ptr(Func_Ptr* a)
   if(a->key != ae_key_static && a->value && !a->value->is_member) {
     if(!a->func)
       free_Type_Decl(a->type);
-    rem_ref(a->value->m_type->obj, a->value->m_type);
+/*    rem_ref(a->value->m_type->obj, a->value->m_type); */
     rem_ref(a->value->obj, a->value);
   }
   free(a);

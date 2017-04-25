@@ -1,0 +1,3 @@
+// [contains] cannot access member
+class C { int i; }
+C.i;

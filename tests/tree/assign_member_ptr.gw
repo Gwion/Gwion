@@ -1,0 +1,16 @@
+/*
+typedef void (Test)();
+<<<Test>>>;
+Test t;
+<<<t>>>;
+<<<t>>>;
+*/
+
+class C
+{
+	typedef void (Test)();
+	Test test;
+	function void func(){}
+}
+C c;
+c.func @=> c.test;
