@@ -1,0 +1,2 @@
+// [contains] incompatible types
+maybe ? NULL : 1;

@@ -1673,7 +1673,7 @@ static Type check_exp_if(Env env, If_Expression* exp_if)
 
   // check the type
   if(isa(cond, &t_int) < 0 && isa(cond, &t_float) < 0) {
-    err_msg(TYPE_, exp_if->pos, "Invalid type '%s' in if expression condition.", cond);
+    err_msg(TYPE_, exp_if->pos, "Invalid type '%s' in if expression condition.", cond->name);
     return NULL;
   }
   // make sure the if and else have compatible types
