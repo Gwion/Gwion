@@ -192,7 +192,7 @@ INSTR(Vararg_end)
     break;
   // can you reach this ?
   case Kindof_Void:
-  case Kindof_Ptr:
+//  case Kindof_Ptr:
     break;
   }
   PUSH_REG(shred, SZ_INT);

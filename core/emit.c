@@ -970,6 +970,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       push_code->m_val = (m_uint)code;
       spork = add_instr(emit, Spork);
       spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
+//      spork->ptr = (m_uint*)(emit->env->func ? emit->code->stack_depth : 0); // don't push func info on the stack
     } else {
       err_msg(EMIT_, exp_unary->pos,
               "(emit): internal error: sporking non-function call...");

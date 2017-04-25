@@ -120,7 +120,7 @@ if(out->gc) {
 
   if(!out->prev && !out->next && out != s->list) {
 //    release(out->me, out);
-    if(!out->wait && !out->child)
+    if(!out->wait && !out->child && erase)
       free_VM_Shred(out);
     return -1;
   }

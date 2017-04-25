@@ -636,18 +636,15 @@ INSTR(Spork)
   /*    memcpy(sh->reg, shred->reg, sizeof(shred->reg));*/
   if(instr->ptr)
     memcpy(sh->mem, shred->mem, (m_uint)instr->ptr);
-//  sh->reg += instr->m_val;
   PUSH_REG(sh, instr->m_val);
 
   if(func->is_member) {
     *(m_uint*)sh->reg = this_ptr;
-//    sh->reg += SZ_INT;
     PUSH_REG(sh, SZ_INT);
   }
   if(instr->ptr && code->need_this) // sporked function
     *(m_uint*)sh->mem = this_ptr;
   *(Func*)sh->reg = func;
-//  sh->reg += SZ_INT;
   PUSH_REG(sh, SZ_INT);
   *(M_Object*)shred->reg = sh->me;
   PUSH_REG(shred,  SZ_INT);

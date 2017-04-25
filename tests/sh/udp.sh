@@ -98,7 +98,7 @@ run "$((n))" "remove (remote $((n+1)))" "+ sine.gw" "file2"&
 sleep .3
 run "$((n+1))" "remove (remote $((n+1)))" "- 1" "file3"&
 sleep .3
-run "$((n+2))" "quit" "-l0" "file3"&
+run "$((n+2))" "quit" "-l0" "file4"&
 wait
 
 #if [ $(uname) == "Linux" ]
