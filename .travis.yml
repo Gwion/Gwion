@@ -1,10 +1,13 @@
-dist: trusty
 language: c
 sudo: false
 
 os:
   - linux
   - osx
+
+compiler:
+  - gcc
+  - clang
 
 addons:
   apt:
@@ -38,29 +41,19 @@ env:
 matrix:
   include: 
     os: osx
-    compliler:
-      - clang
-      - gcc
     env: USE_DOUBLE=0 SP_BRANCH=dev
   fast_finish: true
   allow_failures:
   - os: osx
 
-compiler:
-  - gcc
-  - clang
-
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then gem install coveralls-lcov; fi
 
-
 before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then pip install --user cpp-coveralls; fi
   - bash util/travis_prepare.sh
 
 after_success:
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/coverage.sh after_success; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then bash util/lcov_helper.sh; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then coveralls-lcov gwion.info; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.9 ]; then for a in test/bug/*; do echo $a; ./gwion $a; done; fi
