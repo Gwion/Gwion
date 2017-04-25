@@ -902,7 +902,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     return -1;
   switch (exp_unary->op) {
   case op_plusplus:
-    if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
+    if (exp_unary->self->meta != ae_meta_var) {
       err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable...");
       return -1;
     }
@@ -910,7 +910,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       instr = add_instr(emit, pre_inc);
     break;
   case op_minusminus:
-    if (exp_unary->self->meta != ae_meta_var || (exp_unary->self->exp_type == Primary_Expression_type && exp_unary->self->d.exp_primary->value->is_const)) { // TODO: check const
+    if (exp_unary->self->meta != ae_meta_var) {
       err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable...");
       return -1;
     }

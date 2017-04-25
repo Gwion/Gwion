@@ -1502,10 +1502,9 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     case op_minusminus:
       // assignable?
       /* coverity[var_deref_op : FALSE] */
-      if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
-          exp_unary->exp->d.exp_primary->value->is_const)
-        //if(exp_unary->exp->meta != ae_meta_var)
-      {
+//      if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
+//          exp_unary->exp->d.exp_primary->value->is_const)
+      if(exp_unary->exp->meta != ae_meta_var) {
         err_msg(TYPE_, exp_unary->pos,
                 "prefix exp_unary operator '%s' cannot "
                 "be used on non-mutable data-types...", op2str(exp_unary->op));
