@@ -1,3 +1,4 @@
+dist: trusty
 language: c
 sudo: false
 
@@ -5,14 +6,11 @@ os:
   - linux
   - osx
 
-compiler:
-  - gcc
-  - clang
-
 addons:
   apt:
     packages:
     - valgrind
+    - libsndfile1
     - libsndfile1-dev
     - lcov
 
@@ -40,13 +38,21 @@ env:
 matrix:
   include: 
     os: osx
+    compiler:
+      - clang
+      - gcc
     env: USE_DOUBLE=0 SP_BRANCH=dev
   fast_finish: true
   allow_failures:
   - os: osx
 
+compiler:
+  - gcc
+  - clang
+
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then gem install coveralls-lcov; fi
+
 
 before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1 ]; then export USE_COVERAGE=1; fi
