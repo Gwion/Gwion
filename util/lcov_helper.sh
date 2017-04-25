@@ -6,15 +6,13 @@
 
 #do_test severity=11 ASYNC=0 tests/sh/ examples tests/error tests/tree tests/bug tests/ugen_coverage | consummer
 
+[ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
+
 lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file gwion.info
 lcov -o gwion.info.cleaned -r gwion.info "*/eval/parser.c" "*/eval/lexer.c"
 mv gwion.info.cleaned gwion.info
 
-[ -z "$TRAVIS_BUILD_DIR" ] || {
-# run bug suite here
-	source util/test.sh; do_test "tests/bug"
-	exit
-}
+[ -z "$TRAVIS_BUILD_DIR" ] || exit
 
 genhtml -o lcov gwion.info
 
