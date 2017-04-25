@@ -1,3 +1,7 @@
+/** @file src/scan1.c
+ *  @brief first level scan.
+ */
+
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
@@ -51,7 +55,14 @@ static m_bool scan1_Primary_Expression(Env env, Primary_Expression* primary)
     CHECK_BB(scan1_Expression(env, primary->d.exp))
     return 1;
 }
-
+/*
+   static m_bool scan1_Array_Lit(Env env, Primary_Expression* exp)
+   {
+   if(verify_array( exp->array ) < 0)
+   return -1;
+   return 1;
+   }
+   */
 static m_bool scan1_Array(Env env, Array* array)
 {
 #ifdef DEBUG_SCAN1
@@ -85,11 +96,12 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
       err_msg(SCAN1_, postfix->exp->pos, "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
       return -1;
     }
+    return 1;
     break;
-  default: // LCOV_EXCL_START
+  default:
     err_msg( SCAN1_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", op2str(postfix->op));
-    return -1; // LCOV_EXCL_STOP
+    return -1;
   }
   return 1;
 }
@@ -122,6 +134,21 @@ static m_bool scan1_Func_Call( Env env, Func_Call* exp_func )
 #endif
   if(exp_func->types)
     return 1;
+  /*
+    if(exp_func->types) {
+      Type_List list = exp_func->types;
+      while(list) {
+        Type t = find_type(env, list->list);
+        if(!t) {
+          err_msg(SCAN1_, exp_func->pos, "type '%s' unknown in template call", S_name(list->list->xid));
+  //        free_Type_List(exp_func->types);
+  //		free(exp_func->def);
+          return -1;
+        }
+        list = list->next;
+      }
+    }
+  */
   return scan1_Func_Call1( env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos );
 }
 
@@ -151,46 +178,55 @@ static m_bool scan1_Expression(Env env, Expression exp)
   debug_msg("scan1", "exp %p", exp);
 #endif
   Expression curr = exp;
+  m_bool ret = 1;
   while(curr) {
     switch(curr->exp_type) {
     case Primary_Expression_type:
-      CHECK_BB(scan1_Primary_Expression(env, curr->d.exp_primary))
+      ret = scan1_Primary_Expression(env, curr->d.exp_primary);
       break;
     case Decl_Expression_type:
-      CHECK_BB(scan1_Decl_Expression(env, curr->d.exp_decl))
+      ret = scan1_Decl_Expression(env, curr->d.exp_decl);
       break;
     case Unary_Expression_type:
       if(exp->d.exp_unary->code)
-        CHECK_BB(scan1_Stmt(env, exp->d.exp_unary->code))
+        ret = scan1_Stmt(env, exp->d.exp_unary->code);
+      else
+        ret = 1;
       break;
     case Binary_Expression_type:
-      CHECK_BB(scan1_Binary_Expression(env, curr->d.exp_binary))
+      ret = scan1_Binary_Expression(env, curr->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      CHECK_BB(scan1_Postfix_Expression(env, curr->d.exp_postfix))
+      ret = scan1_Postfix_Expression(env, curr->d.exp_postfix);
       break;
     case Cast_Expression_type:
-      CHECK_BB(scan1_Cast_Expression(env, curr->d.exp_cast))
+      ret = scan1_Cast_Expression(env, curr->d.exp_cast);
       break;
     case Func_Call_type:
-      CHECK_BB(scan1_Func_Call(env, curr->d.exp_func))
+      ret = scan1_Func_Call(env, curr->d.exp_func);
       break;
     case Array_Expression_type:
-      CHECK_BB(scan1_Array(env, curr->d.exp_array))
+      ret = scan1_Array(env, curr->d.exp_array);
       break;
     case Dot_Member_type:
-      CHECK_BB(scan1_Dot_Member(env, curr->d.exp_dot))
+      ret = scan1_Dot_Member(env, curr->d.exp_dot);
       break;
     case Dur_Expression_type:
-      CHECK_BB(scan1_Dur(env, curr->d.exp_dur))
+      ret = scan1_Dur(env, curr->d.exp_dur);
       break;
     case If_Expression_type:
-      CHECK_BB(scan1_exp_if(env, curr->d.exp_if))
+      ret = scan1_exp_if(env, curr->d.exp_if);
+      break;
+    default:
+      err_msg(SCAN1_, exp->pos, "unhandled expression type '%i'", curr->exp_type);
+      ret = -1;
       break;
     }
+    if(ret < 0)
+      return -1;
     curr = curr->next;
   }
-  return 1;
+  return ret;
 }
 
 static m_bool scan1_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
@@ -333,47 +369,19 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
   return 1;
 }
 
-static m_bool scan1_Stmt_Union(Env env, Union* u){
-  Decl_List l = u->l;
-  while(l) {
-    if(!l->self) {
-      err_msg(SCAN1_, l->self->pos, "invalid union declaration.");
-      return -1;
-    }
-    Var_Decl_List list = l->self->list;
-    Var_Decl var_decl = NULL;
-    Type t = find_type(env, l->self->type->xid);
-    if(!t) {
-      err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
-      return -1;
-    }
-    while(list) {
-      var_decl = list->self;
-      l->self->num_decl++;
-      if(var_decl->array) {
-        CHECK_BB(verify_array(var_decl->array))
-        if(var_decl->array->exp_list) {
-          err_msg(SCAN1_, l->self->pos, "array declaration must be empty in union.");
-          return -1;
-        }
-      }
-      list = list->next;
-    }
-    l->self->m_type = t;
-    add_ref(l->self->m_type->obj);
-    l = l->next;
-  }
-  return 1;
-}
-
 static m_bool scan1_Stmt(Env env, Stmt* stmt)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "stmt");
 #endif
   m_bool ret = -1;
+  Decl_List l;
   if(!stmt)
     return 1;
+  // DIRTY!!! happens when '1, new Object', for instance
+  if(stmt->type == 3 && !stmt->d.stmt_for) // bad thing in parser, continue
+    return 1;
+
   switch( stmt->type ) {
   case ae_stmt_exp:
     ret = scan1_Expression(env, stmt->d.stmt_exp);
@@ -444,8 +452,40 @@ static m_bool scan1_Stmt(Env env, Stmt* stmt)
     ret = scan1_Func_Ptr(env, stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
-    ret = scan1_Stmt_Union(env, stmt->d.stmt_union);
+    l = stmt->d.stmt_union->l;
+    while(l) {
+      if(!l->self) {
+        err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
+        return -1;
+      }
+      Var_Decl_List list = l->self->list;
+      Var_Decl var_decl = NULL;
+      Type t = find_type(env, l->self->type->xid);
+      if(!t) {
+        err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
+        return -1;
+      }
+      while(list) {
+        var_decl = list->self;
+        l->self->num_decl++;
+        if(var_decl->array) {
+          CHECK_BB(verify_array(var_decl->array))
+          if(var_decl->array->exp_list) {
+            err_msg(SCAN1_, l->self->pos, "array declaration must be empty in union.");
+            return -1;
+          }
+        }
+        list = list->next;
+      }
+      l->self->m_type = t;
+      add_ref(l->self->m_type->obj);
+      l = l->next;
+    }
+    ret = 1;
     break;
+  default:
+    err_msg(SCAN1_, stmt->pos, "unhandled statement type '%i', sorry.", stmt->type);
+    ret = -1;
   }
   return ret;
 }
@@ -507,11 +547,16 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
 
   if(f->spec == ae_func_spec_dtor && !env->class_def) {
     err_msg(SCAN1_, f->pos, "dtor must be in class def!!");
-    return -1;
+    goto error;
   }
 
   if(f->types)  // templating. nothing to be done here
     return 1;
+/*
+// remove abstract /27/03/17
+  if(env->class_def && env->class_def->def && env->class_def->def->iface)
+    f->static_decl = ae_key_abstract;
+*/
   Arg_List arg_list = NULL;
   m_uint count = 0;
 
@@ -520,9 +565,13 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
   if(!f->ret_type) {
     err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
             S_name(f->type_decl->xid->xid), S_name(f->name));
+//free(f);
+//    free_Func_Def(f);
     return -1;
+//    goto error;
   }
 
+  // check if array
   if(f->type_decl->array) {
     CHECK_BB(verify_array(f->type_decl->array))
 
@@ -533,7 +582,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name) );
       err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s" );
       free_Expression(f->type_decl->array->exp_list);
-      return -1;
+      goto error;
     }
 
     // create the new array type
@@ -555,7 +604,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       m_str path = type_path(arg_list->type_decl->xid);
       err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path, count, S_name(f->name));
       free(path);
-      return -1;
+      goto error;
     }
     count++;
     arg_list = arg_list->next;
@@ -565,19 +614,22 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     // check argument number
     if(count > 3 || count == 1) {
       err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n");
-      return -1;
+      goto error;
     }
     // and name
     if(name2op(S_name(f->name)) < 0) {
       err_msg(SCAN1_, f->pos, "%s is not a valid operator name\n", S_name(f->name));
-      return -1;
+      goto error;
     }
   }
   if(f->code && scan1_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN1_, f->pos, "...in function '%s'\n", S_name(f->name));
-      return -1;
+    goto error;
   }
   return 1;
+error:
+//  free_Func_Def(f);
+  return -1;
 }
 
 static m_bool scan1_Class_Def(Env env, Class_Def class_def)
@@ -620,19 +672,21 @@ m_bool scan1_Ast(Env env, Ast ast)
   debug_msg("scan1", "Ast");
 #endif
   Ast prog = ast;
-  while(prog) {
+  m_bool ret = 1;
+  while(prog && ret > 0) {
     switch(prog->section->type) {
     case ae_section_stmt:
-      CHECK_BB(scan1_Stmt_List(env, prog->section->d.stmt_list))
+      ret = scan1_Stmt_List(env, prog->section->d.stmt_list);
       break;
     case ae_section_func:
-      CHECK_BB(scan1_Func_Def(env, prog->section->d.func_def))
+      ret = scan1_Func_Def(env, prog->section->d.func_def);
       break;
     case ae_section_class:
-      CHECK_BB(scan1_Class_Def(env, prog->section->d.class_def))
+      ret = scan1_Class_Def(env, prog->section->d.class_def);
       break;
     }
+    CHECK_BB(ret);
     prog = prog->next;
   }
-  return 1;
+  return ret;
 }
