@@ -181,11 +181,6 @@ m_bool scan0_Ast(Env env, Ast prog)
       }
       ret = scan0_Class_Def( env, prog->section->d.class_def );
       break;
-    default:
-      err_msg(SCAN0_, prog->pos,
-              "internal error: unrecognized program section in type checker pre-scan..." );
-      ret = -1;
-      break;
     }
     prog = prog->next;
   }
