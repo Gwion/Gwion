@@ -80,16 +80,13 @@ Type new_Type(Context context)
 void free_Type(Type a)
 {
   if(!a->is_complete && a->xid == te_user) {
-    if(a->info) {
+    if(a->info)
       rem_ref(a->info->obj, a->info);
-}
     free(a);
     return;
   }
-
-  if(a->info) {
+  if(a->info)
     rem_ref(a->info->obj, a->info);
-  }
   if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
     free(a);
   else if(a->xid > type_xid || isa(a, &t_func_ptr) > 0)

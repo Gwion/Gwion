@@ -846,14 +846,17 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     str = strsep(&str, "@");
     ret = name2op(str);
     free(str);
+/*
     if(ret == -1) {
       err_msg(SCAN2_, f->pos, "Invalid operator.");
       return -1;
     } else
-      ret = add_binary_op(env, ret, f->arg_list->var_decl->value->m_type, f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1, 0);
+*/
+    CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
+      f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1, 0))
     if(!env->class_def)
       context_add_func(env->context, func, func->obj);
-    return ret;
+    return 1;
   }
 
   value->checked = 1;
@@ -885,7 +888,14 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
   if(f->code && scan2_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name) );
-    goto error;
+// should be in free_context, at least.
+free(value->m_type->name);
+free(value->m_type->obj);
+free(value->m_type);
+f->func->value_ref->m_type = NULL;
+  namespace_pop_value(env->curr);
+      return -1;
+//    goto error;
   }
   namespace_pop_value(env->curr);
   env->func = NULL;

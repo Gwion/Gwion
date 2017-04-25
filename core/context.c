@@ -59,8 +59,10 @@ void free_Context(Context a)
       rem_ref(f->obj, f);
       continue;
     } else if(!f->def->is_template) {
+if(f->value_ref->m_type) { // error in scan2
       free(f->value_ref->m_type->name);
       rem_ref(f->value_ref->m_type->obj, f->value_ref->m_type);
+}
       free(f->value_ref->name);
       rem_ref(f->value_ref->obj, f->value_ref);
     }

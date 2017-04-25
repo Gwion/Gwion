@@ -1,0 +1,2 @@
+// [contains] this is reserved
+function void test(int this){}
