@@ -38,8 +38,10 @@ env:
 matrix:
   include: 
     os: osx
-    env: USE_DOUBLE=0 SP_BRANCH=dev CC=gcc
-    env: USE_DOUBLE=0 SP_BRANCH=dev CC=clang
+    compliler:
+      - clang
+      - gcc
+    env: USE_DOUBLE=0 SP_BRANCH=dev
   fast_finish: true
   allow_failures:
   - os: osx
