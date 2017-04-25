@@ -223,11 +223,11 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
   case op_minusminus:
     return 1;
     break;
-  default:
+  default: // LCOV_EXCL_START
     err_msg( SCAN2_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op );
     return -1;
-  }
+  }        // LCOV_EXCL_STOP
   return 1;
 }
 
@@ -386,10 +386,6 @@ static m_bool scan2_Expression(Env env, Expression exp)
       break;
     case Dur_Expression_type:
       ret = scan2_Dur(env, exp->d.exp_dur);
-      break;
-    default:
-      err_msg(SCAN2_, exp->pos, "unhandled expression type '%i'", curr->exp_type);
-      ret = -1;
       break;
     }
     curr = curr->next;
@@ -630,10 +626,6 @@ static m_bool scan2_Stmt(Env env, Stmt* stmt)
       l = l->next;
     }
     break;
-
-  default:
-    err_msg(SCAN2_, stmt->pos, "unhandled statement type '%i', sorry.", stmt->type);
-    ret = -1;
   }
   return ret;
 }

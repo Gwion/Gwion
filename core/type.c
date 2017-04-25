@@ -43,10 +43,10 @@ static int so_filter(const struct dirent* dir)
 m_bool import_soundpipe(Env env);
 
 static Vector plugs = NULL;
-void start_plug()
-{
-  plugs = new_Vector();
-}
+/*void start_plug()*/
+/*{*/
+/*plugs = new_Vector();*/
+/*}*/
 
 void stop_plug()
 {
@@ -140,7 +140,8 @@ Env type_engine_init(VM* vm)
   // plugins
   //  void* handler;
 
-  start_plug();
+  /*start_plug();*/
+  plugs = new_Vector();
   m_str dirname = GWION_ADD_DIR;
   struct dirent **namelist;
   int n;
@@ -183,99 +184,9 @@ next:
   namespace_commit(env->global_nspc);
   return env;
 
-error:
+error:          // LCOV_EXCL_START
   free(env);
-  return NULL;
-}
-
-m_bool check_Context(Env env, Context context)
-{
-#ifdef DEBUG_TYPE
-  debug_msg("type", "context");
-#endif
-  int ret = 1;
-  Ast prog = context->tree;
-  while(prog && ret > 0) {
-    switch(prog->section->type) {
-    case ae_section_stmt:
-      ret = check_Stmt_List(env, prog->section->d.stmt_list);
-      break;
-
-    case ae_section_func:
-      ret = check_Func_Def(env, prog->section->d.func_def);
-      break;
-
-    case ae_section_class:
-      ret = check_Class_Def(env, prog->section->d.class_def);
-      break;
-    }
-    CHECK_BB(ret);
-    prog = prog->next;
-  }
-  /*
-     if(!ret)
-     {
-  // remove the effects of the context in the env
-  // ---> insert code here <----
-
-  // flag the context with error, so more stuff gets deleted
-  env->context->has_error = TRUE;
-  }
-  */
-
-  return 1;
-}
-m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
-{
-  m_bool ret = -1;
-  //  Context context = new_Context(ast, strndup(filename, strlen(filename)));
-  Context context = new_Context(ast, filename);
-  env_reset(env);
-  if(load_context(context, env) < 0) {
-    ret = -1;
-    goto done;
-  }
-
-  if(scan0_Ast(env, ast) < 0) {
-    ret = -1;
-    goto cleanup;
-  }
-  /*if(scan1_Ast(env, ast) < 0)*/
-  /*m_bool ret = */
-  ret = scan1_Ast(env, ast);
-  if(ret < 0) {
-    ret = -3;
-    goto cleanup;
-  }
-  if(scan2_Ast(env, ast) < 0) {
-    ret = -1;
-    goto cleanup;
-  }
-  if(check_Context(env, context) < 0) {
-    ret = -5;
-    goto cleanup;
-  }
-  ret = 1;
-
-cleanup:
-//    add_ref(context->obj);
-  if(ret > 0) {
-    namespace_commit(env->global_nspc);
-    map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    add_ref(context->obj);
-  } else {
-//    namespace_rollback(env->global_nspc);
-    //rem_ref(context->obj, context);
-  }
-  CHECK_BB(unload_context(context, env)) // no real need to check that
-  if(ret < 0) {
-    free_Ast(ast);
-    //rem_ref(context->nspc->obj, context->nspc);
-    rem_ref(context->obj, context); // breaks function pointer for now
-    free(filename);
-  }
-done:
-  return ret;
+  return NULL; // LCOV_EXCL_STOP
 }
 
 static m_bool check_array_subscripts(Env env, Expression exp_list)
@@ -290,98 +201,6 @@ static m_bool check_array_subscripts(Env env, Expression exp_list)
     exp = exp->next;
   }
   return 1;
-}
-
-static m_bool check_Class_Def(Env env, Class_Def class_def)
-{
-  Type the_class = NULL;
-  Type t_parent = NULL;
-  m_bool ret = 1;
-  Class_Body body = class_def->body;
-
-  if(class_def->ext) {
-    if(class_def->ext->extend_id) {
-      t_parent = find_type(env, class_def->ext->extend_id);
-      if(!t_parent) {
-        m_str path = type_path(class_def->ext->extend_id);
-        err_msg(TYPE_, class_def->ext->pos,
-                "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
-        free(path);
-        return -1;
-      }
-      if(isprim(t_parent) > 0) {
-        err_msg(TYPE_, class_def->ext->pos,
-                "cannot extend primitive type '%s'", t_parent->name);
-        err_msg(TYPE_, class_def->ext->pos,
-                "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
-        return -1;
-      }
-      if(!t_parent->is_complete) {
-        err_msg(TYPE_, class_def->ext->pos,
-                "cannot extend incomplete type '%s'", t_parent->name);
-        err_msg(TYPE_, class_def->ext->pos,
-                "...(note: the parent's declaration must preceed child's)");
-        return -1;
-      }
-    }
-  }
-
-
-  if(!t_parent)
-    t_parent = &t_object;
-  the_class = class_def->type;
-  the_class->parent = t_parent;
-  /*  the_class->ugen_info = t_parent->ugen_info;*/
-  the_class->info->offset = t_parent->obj_size;
-  free_Vector(the_class->info->obj_v_table);
-  the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
-  vector_append(env->nspc_stack, (vtype)env->curr);
-  env->curr = the_class->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
-  env->class_def = the_class;
-  env->class_scope = 0;
-
-  while(body && ret > 0) {
-    switch(body->section->type) {
-    case ae_section_stmt:
-      env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
-      ret = check_Stmt_List(env, body->section->d.stmt_list);
-      break;
-
-    case ae_section_func:
-      env->class_def->is_complete = 1;
-      ret = check_Func_Def(env, body->section->d.func_def);
-      env->class_def->is_complete = 0;
-      break;
-
-    case ae_section_class:
-      ret = check_Class_Def(env, body->section->d.class_def);
-      break;
-    }
-    body = body->next;
-  }
-  env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
-
-  if(ret > 0) {
-    the_class->obj_size = the_class->info->offset;
-    the_class->is_complete = 1;
-  } else {
-
-//   scope_rem(env->curr->type, class_def->type);
-//namespace_add_type(env->curr, insert_symbol(class_def->type->name), NULL);
-//free_Type(the_class);
-//free(class_def->type);
-//class_def->type = NULL;
-    // delete the class definition
-    /*      SAFE_RELEASE(class_def->type);*/
-//add_ref(class_def->type->obj);
-//add_ref(class_def->type->obj);
-//    rem_ref(class_def->type->obj, class_def->type);
-    // set the thing to NULL
-//    the_class = NULL;
-  }
-  return ret;
 }
 
 Type check_Decl_Expression(Env env, Decl_Expression* decl)
@@ -703,9 +522,6 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
   case ae_primary_char:
     t = &t_int;
     break;
-  default:
-    err_msg(TYPE_, primary->pos, "internal error - unrecognized primary type '%i'...", primary->type);
-    return NULL;
   }
   return primary->self->type = t;
 }
@@ -1001,35 +817,24 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
 
 static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
 {
-  // check the exp
   Type t = check_Expression(env, postfix->exp);
   if(!t) return NULL;
-
-  // syntax
   switch(postfix->op) {
-  case op_plusplus:
-  case op_minusminus:
-
-    // see scan1
-    // assignable?
-    if(postfix->exp->meta != ae_meta_var) {
-      err_msg(TYPE_, postfix->exp->pos,
-        "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
-        return NULL;
-    }
-    postfix->exp->emit_var = 1;
-    if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
-      return t;
-    break;
-
-  default:
-    // no match
-    err_msg(TYPE_, postfix->pos,
-             "internal compiler error: unrecognized postfix '%i'", postfix->op);
-    return NULL;
+    case op_plusplus:
+    case op_minusminus:
+      if(postfix->exp->meta != ae_meta_var) {
+        err_msg(TYPE_, postfix->exp->pos,
+          "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
+          return NULL;
+      }
+      postfix->exp->emit_var = 1;
+      if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
+        return t;
+      break;
+    default: // LCOV_EXCL_START
+      err_msg(TYPE_, postfix->pos, "internal compiler error: unrecognized postfix '%i'", postfix->op);
+      return NULL; // LCOV_EXCL_STOP
   }
-
-  // no match
   err_msg(TYPE_, postfix->pos,
            "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
   return NULL;
@@ -1730,10 +1535,6 @@ static Type check_Expression(Env env, Expression exp)
     case Array_Expression_type:
       curr->type = check_Array(env, curr->d.exp_array);
       break;
-    default:
-      err_msg(TYPE_, curr->pos, "internal error: unhandled expression type '%i'", curr->exp_type);
-      exp->type = NULL;
-      break;
     }
     CHECK_OO(curr->type)
     curr = curr->next;
@@ -2116,9 +1917,6 @@ static m_bool check_Stmt(Env env, Stmt* stmt)
     }
     ret = 1;
     break;
-  default:
-    err_msg(TYPE_, stmt->pos, "invalid statement type '%i'", stmt->type);
-    return -1;
   }
   return ret;
 }
@@ -2429,3 +2227,158 @@ error:
   env->func = NULL;
   return -1;
 }
+
+static m_bool check_Class_Def(Env env, Class_Def class_def)
+{
+  Type the_class = NULL;
+  Type t_parent = NULL;
+  m_bool ret = 1;
+  Class_Body body = class_def->body;
+
+  if(class_def->ext) {
+    if(class_def->ext->extend_id) {
+      t_parent = find_type(env, class_def->ext->extend_id);
+      if(!t_parent) {
+        m_str path = type_path(class_def->ext->extend_id);
+        err_msg(TYPE_, class_def->ext->pos,
+                "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
+        free(path);
+        return -1;
+      }
+      if(isprim(t_parent) > 0) {
+        err_msg(TYPE_, class_def->ext->pos,
+                "cannot extend primitive type '%s'", t_parent->name);
+        err_msg(TYPE_, class_def->ext->pos,
+                "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
+        return -1;
+      }
+      if(!t_parent->is_complete) {
+        err_msg(TYPE_, class_def->ext->pos,
+                "cannot extend incomplete type '%s'", t_parent->name);
+        err_msg(TYPE_, class_def->ext->pos,
+                "...(note: the parent's declaration must preceed child's)");
+        return -1;
+      }
+    }
+  }
+
+
+  if(!t_parent)
+    t_parent = &t_object;
+  the_class = class_def->type;
+  the_class->parent = t_parent;
+  /*  the_class->ugen_info = t_parent->ugen_info;*/
+  the_class->info->offset = t_parent->obj_size;
+  free_Vector(the_class->info->obj_v_table);
+  the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
+  vector_append(env->nspc_stack, (vtype)env->curr);
+  env->curr = the_class->info;
+  vector_append(env->class_stack, (vtype)env->class_def);
+  env->class_def = the_class;
+  env->class_scope = 0;
+
+  while(body && ret > 0) {
+    switch(body->section->type) {
+    case ae_section_stmt:
+      env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
+      ret = check_Stmt_List(env, body->section->d.stmt_list);
+      break;
+
+    case ae_section_func:
+      env->class_def->is_complete = 1;
+      ret = check_Func_Def(env, body->section->d.func_def);
+      env->class_def->is_complete = 0;
+      break;
+
+    case ae_section_class:
+      ret = check_Class_Def(env, body->section->d.class_def);
+      break;
+    }
+    body = body->next;
+  }
+  env->class_def = (Type)vector_pop(env->class_stack);
+  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+
+  if(ret > 0) {
+    the_class->obj_size = the_class->info->offset;
+    the_class->is_complete = 1;
+  }
+  return ret;
+}
+
+static m_bool check_Context(Env env, Context context)
+{
+#ifdef DEBUG_TYPE
+  debug_msg("type", "context");
+#endif
+  Ast prog = context->tree;
+  while(prog) {
+    switch(prog->section->type) {
+    case ae_section_stmt:
+      CHECK_BB(check_Stmt_List(env, prog->section->d.stmt_list))
+      break;
+    case ae_section_func:
+      CHECK_BB(check_Func_Def(env, prog->section->d.func_def))
+      break;
+    case ae_section_class:
+      CHECK_BB(check_Class_Def(env, prog->section->d.class_def))
+      break;
+    }
+    prog = prog->next;
+  }
+  return 1;
+}
+
+m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
+{
+  m_bool ret = -1;
+  //  Context context = new_Context(ast, strndup(filename, strlen(filename)));
+  Context context = new_Context(ast, filename);
+  env_reset(env);
+  if(load_context(context, env) < 0) {
+    ret = -1;
+    goto done;
+  }
+
+  if(scan0_Ast(env, ast) < 0) {
+    ret = -1;
+    goto cleanup;
+  }
+  /*if(scan1_Ast(env, ast) < 0)*/
+  /*m_bool ret = */
+  ret = scan1_Ast(env, ast);
+  if(ret < 0) {
+    ret = -3;
+    goto cleanup;
+  }
+  if(scan2_Ast(env, ast) < 0) {
+    ret = -1;
+    goto cleanup;
+  }
+  if(check_Context(env, context) < 0) {
+    ret = -5;
+    goto cleanup;
+  }
+  ret = 1;
+
+cleanup:
+//    add_ref(context->obj);
+  if(ret > 0) {
+    namespace_commit(env->global_nspc);
+    map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
+    add_ref(context->obj);
+  } else {
+//    namespace_rollback(env->global_nspc);
+    //rem_ref(context->obj, context);
+  }
+  CHECK_BB(unload_context(context, env)) // no real need to check that
+  if(ret < 0) {
+    free_Ast(ast);
+    //rem_ref(context->nspc->obj, context->nspc);
+    rem_ref(context->obj, context); // breaks function pointer for now
+    free(filename);
+  }
+done:
+  return ret;
+}
+
