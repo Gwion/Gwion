@@ -650,7 +650,8 @@ INSTR(Spork)
   PUSH_REG(shred,  SZ_INT);
 }
 
-void handle_overflow(VM_Shred shred) // LCOV_EXCL_START
+// LCOV_EXCL_START
+void handle_overflow(VM_Shred shred)
 {
   fprintf( stderr,
            "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
@@ -658,7 +659,8 @@ void handle_overflow(VM_Shred shred) // LCOV_EXCL_START
   // do something!
   shred->is_running = 0;
   shred->is_done = 1;
-}                                    // LCOV_EXCL_STOP
+}
+// LCOV_EXCL_STOP
 
 INSTR(Instr_Func_Call)
 {
