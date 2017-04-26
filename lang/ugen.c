@@ -67,7 +67,7 @@ m_bool adc_tick(UGen u)
   u->last = last;
   return 1;
 }
-void ref_compute(UGen u)
+__inline void ref_compute(UGen u)
 {
   u->tick(u);
   u->done = 1;

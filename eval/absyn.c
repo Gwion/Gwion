@@ -20,7 +20,7 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
   return a;
 }
 
-void free_Array_Sub(Array_Sub a)
+__inline void free_Array_Sub(Array_Sub a)
 {
   free_Expression(a->exp_list);
   free(a);
@@ -228,7 +228,7 @@ Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
   return a;
 }
 
-void free_Cast_Expression(Cast_Expression* a)
+__inline void free_Cast_Expression(Cast_Expression* a)
 {
   free_Type_Decl(a->type);
   free_Expression(a->exp);
@@ -389,7 +389,7 @@ Complex* new_complex(Expression re, int pos)
   return a;
 }
 
-void free_complex(Complex* a)
+__inline void free_complex(Complex* a)
 {
   free_Expression(a->re);
   free(a);
@@ -505,7 +505,7 @@ Vec new_Vec(Expression e, int pos)
   return a;
 }
 
-void free_Vec(Vec a)
+__inline void free_Vec(Vec a)
 {
   free_Expression(a->args);
   free(a);
@@ -802,9 +802,6 @@ void free_Expression(Expression exp)
     case Dur_Expression_type:
       free_Dur_Expression(curr->d.exp_dur);
       break;
-    default:
-      printf("free Expression: unhandled exp type %i\n", curr->exp_type);
-      break;
     }
     tmp = curr;
     curr = curr->next;
@@ -878,7 +875,7 @@ Stmt* new_stmt_from_return(Expression exp, int pos)
   return a;
 }
 
-void free_Stmt_Return(Stmt_Return a)
+__inline void free_Stmt_Return(Stmt_Return a)
 {
   free_Expression(a->val);
   free(a);
@@ -985,7 +982,7 @@ Stmt* new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos)
   return a;
 }
 
-void free_Stmt_GotoLabel(Stmt_Goto_Label a)
+__inline void free_Stmt_GotoLabel(Stmt_Goto_Label a)
 {
 //  if(a->is_label && a->data.v)
 //    free_Vector(a->data.v);
@@ -1067,7 +1064,7 @@ Stmt* new_stmt_from_case(Expression val, int pos)
   return a;
 }
 
-void free_Stmt_Case(Stmt_Case a)
+__inline void free_Stmt_Case(Stmt_Case a)
 {
   free_Expression(a->val);
   free(a);
@@ -1433,8 +1430,8 @@ void free_Ast(Ast prog)
   while(ast) {
     tmp = ast;
     ast = ast->next;
-	if(tmp->doc)
-		free(tmp->doc);
+    if(tmp->doc)
+      free(tmp->doc);
     free_Section(tmp->section);
     free(tmp);
   }
