@@ -6,7 +6,6 @@ void free_Arg_List(Arg_List a);
 void free_Stmt(Stmt* a);
 void free_Stmt_List(Stmt_List a);
 void free_Stmt_Code(Stmt_Code a);
-void free_Stmt_Return(Stmt_Return a);
 static void free_Section();
 
 void free_Type_List(Type_List a);

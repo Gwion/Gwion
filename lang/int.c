@@ -30,7 +30,7 @@ static INSTR(plus)
 static INSTR(minus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i '-' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
   *(m_int*)shred->reg -= *(m_int*)(shred->reg + SZ_INT);
@@ -204,10 +204,10 @@ static INSTR(xor)
 INSTR(negate)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'-' %i", *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) '-' %i", *(m_int*)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_INT);
-  *(m_int*)shred->reg = -*(m_int*)shred->reg;
+  *(m_int*)shred->reg *= -1;
   PUSH_REG(shred, SZ_INT);
 }
 

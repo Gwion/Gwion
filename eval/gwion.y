@@ -386,14 +386,15 @@ op
   ;
 
 array_exp
-  : LBRACK exp RBRACK          { $$ = new_array_sub( $2, get_pos(scanner) ); }
-  | LBRACK exp RBRACK array_exp
-      { $$ = prepend_array_sub( $4, $2, get_pos(scanner)); }
+  : LBRACK exp RBRACK           { $$ = new_array_sub( $2, get_pos(scanner) ); }
+  | LBRACK exp RBRACK array_exp { $$ = prepend_array_sub( $4, $2, get_pos(scanner)); }
+  | LBRACK exp RBRACK LBRACK RBRACK { $$ = prepend_array_sub( new_array_sub( NULL, get_pos(scanner)), $2, get_pos(scanner)); }
   ;
 
 array_empty
-  : LBRACK RBRACK                     { $$ = new_array_sub( NULL, get_pos(scanner)); }
-  | array_empty LBRACK RBRACK         { $$ = prepend_array_sub( $1, NULL, get_pos(scanner)); }
+  : LBRACK RBRACK             { $$ = new_array_sub( NULL, get_pos(scanner)); }
+  | array_empty LBRACK RBRACK { $$ = prepend_array_sub( $1, NULL, get_pos(scanner)); }
+  | array_empty array_exp     { $$ = prepend_array_sub( $1, $2->exp_list, get_pos(scanner)); }
   ;
 
 decl_exp

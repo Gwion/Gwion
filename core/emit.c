@@ -146,7 +146,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     dot->d.exp_dot->t_base = v->owner_class;
     dot->emit_var = emit_var;
     if((ret = emit_Dot_Member(emit, dot->d.exp_dot)) < 0)
-      err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...");
+      err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed..."); // LCOV_EXCL_LINE
     free_Expression(dot);
     return ret;
   }
@@ -370,11 +370,13 @@ static m_bool emit_Array(Emitter emit, Array* array)
 static m_bool emit_Vec(Emitter emit, Vec val)
 {
   CHECK_BB(emit_Expression(emit, val->args, 0));
+/*
   m_int n = 3 - val->numdims;
   while (n > 0) {
     sadd_instr(emit, Reg_Push_Imm2);
     n--;
   }
+*/
   return 1;
 }
 static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
@@ -460,9 +462,6 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     instr = add_instr(emit, Gack);
     instr->ptr = types;
     break;
-  default:
-    err_msg(EMIT_, primary->pos, "(emit): unhandled primary type '%i'...", primary->type);
-    return -1;
   }
   return 1;
 }
@@ -791,9 +790,9 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
         return -1;
       }
       if(emit_Func_Def(emit, func->def) < 0) {
-        err_msg(EMIT_, 0, "can't emit func.");
+        err_msg(EMIT_, 0, "can't emit func."); // LCOV_EXCL_START
         return -1;
-      }
+      }                                        // LCOV_EXCL_STOP
       func->code = func->def->func->code;
       code = add_instr(emit, Reg_Push_Ptr);
       code->ptr = func->code;
@@ -856,10 +855,10 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
 
   CHECK_BB(emit_Func_Args(emit, exp))
   if (emit_Expression(emit, exp->func, 0) < 0) {
-    err_msg(EMIT_, exp->pos,
+    err_msg(EMIT_, exp->pos, // LCOV_EXCL_START
             "(emit): internal error in evaluating function call...");
     return -1;
-  }
+  }                          // LCOV_EXCL_STOP
   vector_append(emit->stack, (vtype)emit->code);
   emit->code = new_Code();
   sadd_instr(emit, start_gc);
@@ -1196,11 +1195,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
     case Dur_Expression_type:
       CHECK_BB(emit_Dur(emit, tmp->d.exp_dur))
       break;
-    default:
-      err_msg(EMIT_, tmp->pos, "unhandled expression type '%i'\n", tmp->exp_type);
-      return -1;
-      break;
-    }
+	}
     if (tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
     if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
@@ -2009,9 +2004,6 @@ static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
 
     ret = 1;
     break;
-  default:
-    err_msg(EMIT_, stmt->pos, "unhandled statement type. sorry");
-    ret = -1;
   }
 #ifdef DEBUG_EMIT
   debug_msg("emit", "Stmt %i", ret);
@@ -2323,9 +2315,9 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   if(func->is_member) {
     emit->code->stack_depth += SZ_INT;
     if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0)) {
-      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'...");
+      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_START
       return -1;
-    }
+    }                                                                                    // LCOV_EXCL_STOP
   }
 
   frame_push_scope(emit->code->frame);
@@ -2339,17 +2331,17 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
 
     if (!local) {
-      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name);
+      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name); // LCOV_EXCL_START
       return -1;
-    }
+    }                                                                                               // LCOV_EXCL_STOP
     value->offset = local->offset;
     a = a->next;
   }
   if (func_def->is_variadic) {
     if (!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
-      err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...");
+      err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'..."); // LCOV_EXCL_START
       return -1;
-    }
+    }                                                                                             // LCOV_EXCL_STOP
     emit->code->stack_depth += SZ_INT;
   }
   CHECK_BB(emit_Stmt(emit, func_def->code, 0))

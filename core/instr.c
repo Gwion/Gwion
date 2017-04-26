@@ -650,7 +650,7 @@ INSTR(Spork)
   PUSH_REG(shred,  SZ_INT);
 }
 
-void handle_overflow(VM_Shred shred)
+void handle_overflow(VM_Shred shred) // LCOV_EXCL_START
 {
   fprintf( stderr,
            "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
@@ -658,7 +658,7 @@ void handle_overflow(VM_Shred shred)
   // do something!
   shred->is_running = 0;
   shred->is_done = 1;
-}
+}                                    // LCOV_EXCL_STOP
 
 INSTR(Instr_Func_Call)
 {
@@ -1248,8 +1248,8 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   return base;
 
 out_of_memory:
-  fprintf(stderr, "[chuck](VM): OutOfMemory: while allocating arrays...\n" );
-  goto error;
+  fprintf(stderr, "[chuck](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
+  goto error;                                                                 // LCOV_EXCL_LINE
 
 negative_array_size:
   fprintf(stderr, "[chuck](VM): NegativeArraySize: while allocating arrays...\n" );
@@ -1362,8 +1362,8 @@ INSTR(Instr_Array_Alloc)
   return;
 
 out_of_memory:
-  fprintf( stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n" );
-  goto error;
+  fprintf( stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
+  goto error;                                                                  // LCOV_EXCL_LINE
 error:
   fprintf( stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
@@ -1447,6 +1447,8 @@ INSTR(Instr_Array_Access_Multi)
       Except(shred);
   }
   i = *(m_int*)(shred->reg + SZ_INT * (j + 1));
+  if(i < 0 || i >= m_vector_size(obj->d.array))
+    goto array_out_of_bound;
   // take care of emit_addr (instr->ptr)
   if(instr->ptr) {
     if(instr->m_val2 == Kindof_Int)

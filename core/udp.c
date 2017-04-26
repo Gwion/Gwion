@@ -20,11 +20,11 @@ pthread_t srv_thread;
 void Send(const char* c, unsigned int i)
 {
   struct sockaddr_in addr = i ? saddr : caddr;
-  if(!addr.sin_port)
-    return;
+//  if(!addr.sin_port)
+//    return;
   if(sendto(sock, c, strlen(c), 0,
             (struct sockaddr *) &addr, sizeof(addr)) < 1)
-    err_msg(UDP, 0, "problem while sending");
+    err_msg(UDP, 0, "problem while sending"); // LCOV_EXCL_LINE
 }
 
 char* Recv(int i)
@@ -54,7 +54,7 @@ char* Recv(int i)
 #endif
     ssize_t len;
     if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
-      err_msg(UDP, 0, "recvfrom() failed");
+      err_msg(UDP, 0, "recvfrom() failed"); // LCOV_EXCL_LINE
     buf[255] = '\0';
     return strndup(buf, strlen(buf));
 #ifndef __linux__
@@ -111,10 +111,9 @@ static void set_nonblock(int socket)
 int server_init(char* hostname, int port)
 {
   struct hostent * host;
-  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  if(sock < 0) {
-    err_msg(UDP, 0, "can't create socket");
-    return -1;
+  if((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+    err_msg(UDP, 0, "can't create socket"); // LCOV_EXCL_LINE
+    return -1;                              // LCOV_EXCL_LINE
   }
 
 #ifndef __linux__
