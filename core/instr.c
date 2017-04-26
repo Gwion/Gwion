@@ -964,8 +964,7 @@ INSTR(Pre_Constructor)
 static void instantiate_object(VM * vm, VM_Shred shred, Type type )
 {
   M_Object object = new_M_Object(NULL);
-  if(!object)
-    goto error;
+  if(!object) Except(shred);
   initialize_object(object, type);
   *(M_Object*)shred->reg =  object;
   PUSH_REG(shred,  SZ_INT);
@@ -973,10 +972,6 @@ static void instantiate_object(VM * vm, VM_Shred shred, Type type )
   debug_msg("instr", "instantiate object (internal)%p %s", object, type->name);
 #endif
   return;
-
-error:
-  shred->is_running = 0;
-  shred->is_done = 1;
 }
 
 INSTR(Instantiate_Object)

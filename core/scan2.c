@@ -697,8 +697,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       goto error;
     } else {
       if(!overload->func_ref) {
-        err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name );
-        return -1;
+        err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name ); // LCOV_EXCL_LINE
+        return -1;                                                                         // LCOV_EXCL_LINE
       }
     }
   }
