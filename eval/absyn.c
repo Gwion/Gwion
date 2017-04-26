@@ -487,7 +487,7 @@ Polar* new_polar(Expression mod, int pos)
   return a;
 }
 
-void free_polar(Polar* a)
+__inline void free_polar(Polar* a)
 {
   free_Expression(a->mod);
   free(a);
