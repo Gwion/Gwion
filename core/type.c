@@ -575,7 +575,28 @@ Type check_Array(Env env, Array* array)
   return t;
 }
 
-m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos);
+__inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
+{
+  Arg_List e1 = lhs->arg_list;
+  Arg_List e2 = rhs->arg_list;
+  //  m_uint count = 1;
+
+  // check arguments against the definition
+  while(e1 && e2) {
+    // match types
+    if(e1->type != e2->type) {
+      //          err_msg(TYPE_, pos, "function signatures differ in argument %i's type...", count);
+      return -1;
+    }
+    e1 = e1->next;
+    e2 = e2->next;
+    //      count++;
+  }
+  if(e1 || e2)
+    return -1;
+  return 1;
+}
+
 static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binary_Expression* binary)
 {
 #ifdef DEBUG_TYPE
@@ -2004,28 +2025,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   if(value->is_const == 2) // for enum
     member->self->meta = ae_meta_value;
   return value->m_type;
-}
-
-m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
-{
-  Arg_List e1 = lhs->arg_list;
-  Arg_List e2 = rhs->arg_list;
-  //  m_uint count = 1;
-
-  // check arguments against the definition
-  while(e1 && e2) {
-    // match types
-    if(e1->type != e2->type) {
-      //          err_msg(TYPE_, pos, "function signatures differ in argument %i's type...", count);
-      return -1;
-    }
-    e1 = e1->next;
-    e2 = e2->next;
-    //      count++;
-  }
-  if(e1 || e2)
-    return -1;
-  return 1;
 }
 
 m_bool check_Func_Def(Env env, Func_Def f)
