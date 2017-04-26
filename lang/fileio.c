@@ -174,8 +174,9 @@ INSTR(file_to_string)
   M_Object s    = **(M_Object**)(shred->reg);
   if(IO_FILE(o)) {
     char c[1025];
-    if(fscanf(IO_FILE(o), "%1024s", c) < 0)
-      Except(shred); // LCOV_EXCL_LINE
+    if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
+      Except(shred);
+    }
     STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;
   }

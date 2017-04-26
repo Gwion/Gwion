@@ -49,7 +49,7 @@ struct Array_Sub_ {
 };
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
-//extern void free_Array_Sub(Array_Sub a);
+void free_Array_Sub(Array_Sub a);
 typedef struct {
   Expression base;
   Array_Sub indices;
