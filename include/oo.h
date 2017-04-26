@@ -5,8 +5,8 @@
 #include "array.h"
 
 typedef enum {
-  e_dll_obj, e_emit_obj, e_namespace_obj, e_env_obj, e_context_obj,
-  e_ugen_obj, e_type_obj, e_value_obj, e_func_obj, e_array_obj
+  e_emit_obj, e_namespace_obj, e_env_obj, e_context_obj,
+  e_type_obj, e_value_obj, e_func_obj
 } e_obj;
 
 

@@ -28,8 +28,6 @@ void rem_ref(VM_Object a, void* ptr)
 {
   if((!--a->ref_count && !a->lock) || !our_locks_in_effects) {
     switch(a->type) {
-    case e_dll_obj:
-      goto error;
     case e_emit_obj:
       free_Emitter(ptr);
       break;
@@ -51,12 +49,8 @@ void rem_ref(VM_Object a, void* ptr)
     case e_func_obj:
       free_Func(ptr);
       break;
-    default:
-      goto error;
     }
     free(a);
   }
   return;
-error:
-  printf("error in rem_ref: unhandled object type: %i\n", a->type);
 }

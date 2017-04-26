@@ -59,8 +59,8 @@ m_bool initialize_object(M_Object object, Type type)
 
 out_of_memory: // LCOV_EXCL_START
   err_msg(TYPE_, 0, "OutOfMemory: while instantiating object '%s'\n", type->name);
-  return -1;  // LCOV_EXCL_STOP
-}
+  return -1;
+}             // LCOV_EXCL_STOP
 
 void release(M_Object obj, VM_Shred shred)
 {

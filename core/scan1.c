@@ -90,8 +90,8 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
   default: // LCOV_EXCL_START
     err_msg( SCAN1_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", op2str(postfix->op));
-    return -1; // LCOV_EXCL_STOP
-  }
+    return -1;
+  }        // LCOV_EXCL_STOP
   return 1;
 }
 
