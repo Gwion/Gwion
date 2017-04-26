@@ -107,7 +107,9 @@ Array_Sub prepend_array_sub(Array_Sub a, Expression exp, int pos)
     a->err_pos = exp->pos;
     goto error;
   }
-  if((exp && !a->exp_list) || (!exp->next && a->exp_list->next)) {
+  if((exp && !a->exp_list) || ((!exp || !exp->next) &&
+      (a->exp_list && a->exp_list->next))) {
+//  if((exp && !a->exp_list) || ((!exp || !exp->next) && a->exp_list && a->exp_list->next)) {
 //  if((exp && !a->exp_list) || (!exp && a->exp_list->next)) {
     a->err_num = 2;
     a->err_pos = pos;
