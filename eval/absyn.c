@@ -6,7 +6,7 @@ void free_Arg_List(Arg_List a);
 void free_Stmt(Stmt* a);
 void free_Stmt_List(Stmt_List a);
 void free_Stmt_Code(Stmt_Code a);
-void free_Stmt_Return(Stmt_Return a);
+//void free_Stmt_Return(Stmt_Return a);
 static void free_Section();
 
 void free_Type_List(Type_List a);
@@ -107,7 +107,8 @@ Array_Sub prepend_array_sub(Array_Sub a, Expression exp, int pos)
     a->err_pos = exp->pos;
     goto error;
   }
-  if((exp && !a->exp_list) || (!exp && a->exp_list)) {
+  if((exp && !a->exp_list) || (!exp->next && a->exp_list->next)) {
+//  if((exp && !a->exp_list) || (!exp && a->exp_list->next)) {
     a->err_num = 2;
     a->err_pos = pos;
     goto error;
