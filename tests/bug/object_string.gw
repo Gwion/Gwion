@@ -1,3 +1,4 @@
 Object o;
 "Object: " => string s;
+o + s;
 //<<<s + (o + "")>>>;
