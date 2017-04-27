@@ -1411,7 +1411,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
 
       }
 //      if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
-      if(isa(t, &t_object) < 0) {
+else      if(isa(t, &t_object) < 0) {
         err_msg(TYPE_,  exp_unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...", t->name);
         err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");

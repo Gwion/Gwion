@@ -334,21 +334,18 @@ static m_bool emit_Array(Emitter emit, Array* array)
   is_var = array->self->emit_var;
   depth = base_type->array_depth - type->array_depth;
   if (!depth) {
-    err_msg(EMIT_, array->pos,
-            "internal error: array with 0 depth...");
-    return -1;
+    err_msg(EMIT_, array->pos, "internal error: array with 0 depth..."); // LCOV_EXCL_LINE
+    return -1;                                                           // LCOV_EXCL_LINE
   }
   sub = array->indices;
   if (!sub) {
-    err_msg(EMIT_, array->pos,
-            "internal error: NULL array sub...");
-    return -1;
+    err_msg(EMIT_, array->pos, "internal error: NULL array sub...");     // LCOV_EXCL_LINE
+    return -1;                                                           // LCOV_EXCL_LINE 
   }
   exp = sub->exp_list;
   if (!exp) {
-    err_msg(EMIT_, array->pos,
-            "internal error: NULL array exp...");
-    return -1;
+    err_msg(EMIT_, array->pos, "internal error: NULL array exp...");     // LCOV_EXCL_LINE
+    return -1;                                                           // LCOV_EXCL_LINE
   }
   CHECK_BB(emit_Expression(emit, array->base, 0))
   CHECK_BB(emit_Expression(emit, exp, 0))
@@ -686,8 +683,8 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
   else if(isa(from, &t_null) > 0 && isa(to, &t_object) > 0)
     return 1;
   else {
-    err_msg(EMIT_, 0, "cannot cast '%s' to '%s'", from->name, to->name);
-    return -1;
+    err_msg(EMIT_, 0, "cannot cast '%s' to '%s'", from->name, to->name); // LCOV_EXCL_LINE
+    return -1;                                                           // LCOV_EXCL_LINE
   }
   sadd_instr(emit, f);
   return 1;
@@ -726,38 +723,33 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
     if (postfix->exp->type->xid == t_int.xid)
       f = post_inc;
     else {
-      err_msg(EMIT_, postfix->pos,
-              "(emit): internal error: unhandled type '%s' for post '++' operator",
-              postfix->exp->type->name);
+      err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
+        "(emit): internal error: unhandled type '%s' for post '++' operator",
+        postfix->exp->type->name);
       return -1;
-    }
+    }                              // LCOV_EXCL_STOP
     break;
 
   case op_minusminus:
     if (postfix->exp->type->xid == t_int.xid)
       f = post_dec;
     else {
-      err_msg(EMIT_, postfix->pos,
+      err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
               "(emit): internal error: unhandled type '%s' for post '--' operator",
               postfix->exp->type->name);
       return -1;
-    }
+    }                              // LCOV_EXCL_STOP
     break;
 
   default:
-    err_msg(EMIT_, postfix->pos,
+    err_msg(EMIT_, postfix->pos,   // LCOV_EXCL_START
             "(emit): internal error: unhandled postfix operator '%s'",
             op2str(postfix->op));
     return -1;
-  }
+  }                                // LCOV_EXCL_STOP
   instr = add_instr(emit, f);
   (void)instr; // prevent cppcheck warning
   return 1;
-
-  /*²  err_msg(EMIT_, postfix->pos,*/
-  /*    "(emit): internal error: unhandled postfix operator '%s'",*/
-  /*    op2str(postfix->op));*/
-  /*  return -1;*/
 }
 
 static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
@@ -902,17 +894,17 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   switch (exp_unary->op) {
   case op_plusplus:
     if (exp_unary->self->meta != ae_meta_var) {
-      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable...");
-      return -1;
+      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable..."); // LCOV_EXCL_LINE
+      return -1;                                                                      // LCOV_EXCL_LINE
     }
     if (isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_inc);
     break;
   case op_minusminus:
     if (exp_unary->self->meta != ae_meta_var) {
-      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable...");
-      return -1;
-    }
+      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable..."); // LCOV_EXCL_LINE
+      return -1;                                                                      // LCOV_EXCL_LINE
+    } 
     if (isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_dec);
     break;
@@ -921,12 +913,12 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       instr = add_instr(emit, not);
     else if (isa(exp_unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
       instr = add_instr(emit, notf);
-    else {
-      err_msg(EMIT_, exp_unary->self->pos,
-              "(emit): internal error: unhandled type '%s' for ! operator",
-              exp_unary->self->type->name);
+    else { 
+      err_msg(EMIT_, exp_unary->self->pos, // LCOV_EXCL_START
+        "(emit): internal error: unhandled type '%s' for ! operator",
+         exp_unary->self->type->name);
       return -1;
-    }
+    }                                      // LCOV_EXCL_STOP
     break;
 
   case op_spork:
@@ -971,9 +963,8 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
 //      spork->ptr = (m_uint*)(emit->env->func ? emit->code->stack_depth : 0); // don't push func info on the stack
     } else {
-      err_msg(EMIT_, exp_unary->pos,
-              "(emit): internal error: sporking non-function call...");
-      return -1;
+      err_msg(EMIT_, exp_unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE
+      return -1;                                                                               // LCOV_EXCL_LINE
     }
     break;
 
@@ -982,12 +973,12 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
       instr = add_instr(emit, negate);
     else if (isa(exp_unary->self->type, &t_float) > 0)
       instr = add_instr(emit, negatef);
-    else {
-      err_msg(EMIT_, exp_unary->pos,
+    else { 
+      err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
               "(emit): internal error: unhandled type '%s' for exp_unary '-' operator",
               exp_unary->exp->type->name);
       return -1;
-    }
+    }                                // LCOV_EXCL_STOP
     break;
 
   case op_new:
@@ -1002,10 +993,10 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     instr->m_val = exp_unary->self->type->size;
     break;
   default:
-    err_msg(EMIT_, exp_unary->pos,
+    err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));
     return -1;
-  }
+  }                                // LCOV_EXCL_STOP
   (void)instr;
   return 1;
 }
@@ -1016,8 +1007,8 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func)
   debug_msg("emit", "func args");
 #endif
   if (emit_Expression(emit, exp_func->args, 1) < 0) {
-    err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...");
-    return -1;
+    err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments..."); // LCOV_EXCL_LINE
+    return -1;                                                                                      // LCOV_EXCL_LINE
   }
   if (exp_func->m_func->def->is_variadic) {
     m_uint offset = 0, size = 0;
@@ -1047,7 +1038,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
   debug_msg("emit", "func call");
 #endif
   // templating
-  if (exp_func->types) {
+  if  (exp_func->types) {
     if (exp_func->m_func->value_ref->owner_class) {
       vector_append(emit->env->nspc_stack, (vtype)emit->env->curr);
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
@@ -1068,25 +1059,23 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
     CHECK_BB(scan2_Func_Def(emit->env, exp_func->m_func->def))
     CHECK_BB(check_Func_Def(emit->env, exp_func->m_func->def))
     namespace_pop_type(emit->env->curr);
-    if (exp_func->m_func->value_ref->owner_class) {
+    if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
       emit->env->curr = (NameSpace)vector_pop(emit->env->nspc_stack);
     }
   }
-  if (exp_func->args && !spork) {
-    if (emit_Func_Args(emit, exp_func) < 0) {
-      err_msg(EMIT_, exp_func->pos,
-              "internal error in evaluating function arguments...");
-      return -1;
+  if ( exp_func->args && !spork) {
+    if  (emit_Func_Args(emit, exp_func) < 0) {
+      err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments..."); // LCOV_EXCL_LINE
+      return -1;                                                                           // LCOV_EXCL_LINE
     }
   }
   if (emit_Expression(emit, exp_func->func, 0) < 0) {
-    err_msg(EMIT_, exp_func->pos,
-            "internal error in evaluating function call...");
-    return -1;
+    err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call..."); // LCOV_EXCL_LINE
+    return -1;                                                                      // LCOV_EXCL_LINE
   }
   if(exp_func->m_func->def->is_variadic && !exp_func->args) // handle empty call to variadic functions
-  {
+  { 
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
   }
@@ -1134,11 +1123,11 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if)
     break;
 
   default:
-    err_msg(EMIT_, exp_if->cond->pos,
+    err_msg(EMIT_, exp_if->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in if condition",
             exp_if->cond->type->name);
     return -1;
-  }
+  }                                   // LCOV_EXCL_STOP
   (void)instr;
   op = add_instr(emit, fop);
   ret = emit_Expression(emit, exp_if->if_exp, 0);
@@ -1367,11 +1356,11 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
     break;
 
   default:
-    err_msg(EMIT_, stmt->cond->pos,
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in while conditional",
             stmt->cond->type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
   (void)instr;
   op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
@@ -1440,11 +1429,11 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
     /*            break;*/
     /*        }*/
 
-    err_msg(EMIT_, stmt->cond->pos,
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in do/while conditional",
             stmt->cond->type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
   /*  emit_add_code(emit, op);*/
   (void)instr;
   op = add_instr(emit, f);
@@ -1502,11 +1491,11 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
     /*          break;*/
     /*      }*/
 
-    err_msg(EMIT_, stmt->cond->pos,
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in until conditional",
             stmt->cond->type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
   // append the op
   /*  emit_add_code(emit, op);*/
   (void)instr;
@@ -1564,11 +1553,11 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
     break;
 
   default:
-    err_msg(EMIT_, stmt->cond->pos,
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in do/until conditional",
             stmt->cond->type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
   /*  emit_add_code(emit, op);*/
   (void)instr;
   op = add_instr(emit, f);
@@ -1631,15 +1620,15 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       /*          break;*/
       /*        }*/
 
-      err_msg(EMIT_, stmt->c2->d.stmt_exp->pos,
+      err_msg(EMIT_, stmt->c2->d.stmt_exp->pos, // LCOV_EXCL_START
               "(emit): internal error: unhandled type '%s' in for conditional",
               stmt->c2->d.stmt_exp->type->name);
       return -1;
-    }
+     }                                          // LCOV_EXCL_STOP
     (void)instr;
     // append the op
     op = add_instr(emit, f);
-  }
+  } 
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Stmt(emit, stmt->body, 1))
@@ -1711,10 +1700,10 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
     break;
 
   default:
-    err_msg(EMIT_, stmt->cond->pos,
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in while conditional", type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
 
   emit_add_code(emit, op);
   dec = add_instr(emit, Dec_int_Addr);
@@ -2277,16 +2266,15 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   Local* local = NULL;
 
   if (func->code) {
-    err_msg(EMIT_, func_def->pos,
-            "function '%s' already emitted...", S_name(func_def->name));
-    return -1;
+    err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name)); // LCOV_EXCL_LINE
+    return -1;                                                                                 // LCOV_EXCL_LINE
   }
 
-  if (emit->env->func) {
-    err_msg(EMIT_, func_def->pos,
-            "internal error: nested function definition...", func_def->pos);
-    return -1;
-  }
+  /*if (emit->env->func) {*/
+  /*err_msg(EMIT_, func_def->pos,*/
+  /*"internal error: nested function definition...", func_def->pos);*/
+  /*return -1;*/
+  /*}*/
 
   if (func_def->types) // don't check template definition
     return 1;
@@ -2415,19 +2403,16 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   Class_Body body = class_def->body;
 
   if (type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL) {
-    //  if (type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL && vector_size(type->info->pre_ctor->instr)) {
-    err_msg(EMIT_, class_def->pos,
-            "(emit): class '%s' already emitted...", type->name);
-    return -1;
-  }
+    err_msg(EMIT_, class_def->pos, "(emit): class '%s' already emitted...", type->name); // LCOV_EXCL_LINE
+    return -1;                                                                           // LCOV_EXCL_LINE
+  } 
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
     if (!type->info->class_data) {
-      err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name);
-//      ret = -1;
-      return -1;
-    }
-  }
+      err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name); // LCOV_EXCL_LINE
+      return -1;                                                                                      // LCOV_EXCL_LINE
+     }
+  } 
   memset(type->info->class_data, 0, type->info->class_data_size);
   // set the class
   vector_append(emit->env->class_stack, (vtype)emit->env->class_def);
@@ -2445,12 +2430,11 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   emit->code->filename = strdup(emit_filename);
   emit->code->stack_depth += SZ_INT;
   if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
-    err_msg(EMIT_, class_def->pos,
-            "(emit): internal error: cannot allocate local 'this'...");
-    return -1;
+    err_msg(EMIT_, class_def->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_LINE
+    return -1;                                                                                 // LCOV_EXCL_LINE
   }
 
-  while (body && ret > 0) {
+  while (body && ret > 0) { 
     switch (body->section->type) {
     case ae_section_stmt:
       ret = emit_Stmt_List(emit, body->section->d.stmt_list);
@@ -2473,10 +2457,8 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     free_VM_Code(type->info->pre_ctor);
     type->info->pre_ctor = emit_to_code(emit);
     /*    type->info->pre_ctor->add_ref();*/
-  } else {
-    /*    SAFE_DELETE(type->info->pre_ctor);*/
-    free(type->info->class_data);
-  }
+  } else
+    free(type->info->class_data); // LCOV_EXCL_LINE
   emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
   // delete the code
   //    SAFE_DELETE( emit->code );
