@@ -38,7 +38,7 @@ matrix:
   include: 
     os: osx
     compiler: clang
-    env: USE_DOUBLE=0 SP_BRANCH=dev
+    env: USE_DOUBLE=0 SP_BRANCH=dev DEGUG_INSTR=1
   fast_finish: true
   allow_failures:
   - os: osx
