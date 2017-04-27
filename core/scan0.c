@@ -136,6 +136,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     type->actual_type = the_class;
     value = new_Value(env->context, type, the_class->name);
     value->owner = env->curr;
+if(value->owner != env->global_nspc)
+  vector_remove(env->context->new_class, vector_find(env->context->new_class, value));
     value->is_const = 1;
     value->is_member = 0;
     value->checked = 1;
@@ -145,9 +147,9 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
       context_add_class(env->context, value, value->obj);
-    } else if(class_def->decl != ae_key_public) {
+    } /* else if(class_def->decl != ae_key_public) {
       context_add_class(env->context, value, value->obj);
-    }
+    } */
   }
   if(class_def->home) {
     env->curr = (NameSpace)vector_pop(env->nspc_stack);
