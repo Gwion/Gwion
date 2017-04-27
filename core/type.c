@@ -2046,12 +2046,12 @@ m_bool check_Func_Def(Env env, Func_Def f)
 
   if(f->types) // templating, check at call time
     return 1;
-
+/*
   if(env->func) {
     err_msg(TYPE_, f->pos, "nested function definitions are not (yet) allowed");
     return -1;
   }
-
+*/
   func = f->func;
   value = func->value_ref;
 
