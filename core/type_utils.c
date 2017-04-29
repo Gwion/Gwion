@@ -9,18 +9,14 @@ static m_bool do_type_xid = 0;
 
 int verify_array(Array_Sub array)
 {
-  if( array->err_num ) {
-    if( array->err_num == 1 ) {
+  if(array->err_num) {
+    if(array->err_num == 1) {
       err_msg(UTIL_, array->pos,
               "invalid format for array init [...][...]..." );
       return -1;
-    } else if(array->err_num == 2 ) {
+    } else if(array->err_num == 2) {
       err_msg(UTIL_, array->pos,
               "partially empty array init [...][]..." );
-      return -1;
-    } else {
-      err_msg(UTIL_, array->pos,
-              "internal error: unrecognized array error..." );
       return -1;
     }
   }
