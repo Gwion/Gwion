@@ -379,7 +379,7 @@ consummer() {
       # failure
     elif [ "${line:0:6}" = "not ok" ]
     then
-      echo "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
+      echo "\${ANSI_RED}not ok\${ANSI_RESET}${line:6}" >&2
       failure=$((failure+1))
       # success
     elif [ "${line:0:2}" = "ok" ]
@@ -389,11 +389,11 @@ consummer() {
       then
         base=$(echo "$line" | cut -d "#" -f 1)
         directive=$(echo "$line" | cut -d "#" -f 2)
-        printf "${ANSI_GREEN}ok   ${ANSI_RESET}%s" "${base:2}"
+        printf "\${ANSI_GREEN}ok   \${ANSI_RESET}%s" "${base:2}"
         [ "$directive" ] && echo " # $directive"
         [ "$line" = "* Todo *" ] && todo=$((todo+1))
         [ "$line" = "* Skip *" ] && skip=$((skip+1))
-      else echo "${ANSI_GREEN}ok   ${ANSI_RESET}${line:2}"
+      else echo "\${ANSI_GREEN}ok   \${ANSI_RESET}${line:2}"
       fi
       # bail out
     elif [ "${line:0:9}" = "Bail out!" ]
