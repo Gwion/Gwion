@@ -16,6 +16,18 @@ IMPORT
     dl_func_add_arg(fun, "int[][]", "i");
     dl_func_add_arg(fun, "int", "j[]");
     dl_func_add_arg(fun, "int[]", "k[]");
+    dl_func_add_arg(fun, "int", "l");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("int[]", "func", (m_uint)test_mfun);
+    dl_func_add_arg(fun, "int", "j[][]");
+    dl_func_add_arg(fun, "int[]", "+k[][][]");
+    dl_func_add_arg(fun, "int", "l");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("int[]", "func", (m_uint)test_mfun);
+    dl_func_add_arg(fun, "+int", "j[][]");
+    dl_func_add_arg(fun, "int[]", "+k[][][]");
   CHECK_OB(import_sfun(env, fun))
 
   CHECK_BB(import_class_end(env))
