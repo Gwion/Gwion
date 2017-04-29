@@ -1,6 +1,11 @@
 #!/bin/bash
 set -m
 
+: "${ANSI_RED:=\033[31;1m}"
+: "${ANSI_GREEN:=\033[32;1m}"
+: "${ANSI_RESET:=\033[0m}"
+: "${ANSI_CLEAR:=\033[0K}"
+
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"
 
@@ -374,7 +379,7 @@ consummer() {
       # failure
     elif [ "${line:0:6}" = "not ok" ]
     then
-      echo "$line" >&2
+      echo "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
       failure=$((failure+1))
       # success
     elif [ "${line:0:2}" = "ok" ]
@@ -384,11 +389,11 @@ consummer() {
       then
         base=$(echo "$line" | cut -d "#" -f 1)
         directive=$(echo "$line" | cut -d "#" -f 2)
-        printf "%s" "$base"
+        printf "${ANSI_GREEN}ok   ${ANSI_RESET}%s" "${base:2}"
         [ "$directive" ] && echo " # $directive"
         [ "$line" = "* Todo *" ] && todo=$((todo+1))
         [ "$line" = "* Skip *" ] && skip=$((skip+1))
-      else echo "$line"
+      else echo "${ANSI_GREEN}ok   ${ANSI_RESET}${line:2}"
       fi
       # bail out
     elif [ "${line:0:9}" = "Bail out!" ]
