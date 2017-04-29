@@ -5,6 +5,7 @@ set -m
 : "${ANSI_GREEN:=\033[32;1m}"
 : "${ANSI_RESET:=\033[0m}"
 : "${ANSI_CLEAR:=\033[0K}"
+: "${ANSI_BOLD:=\033[33;1m}"
 
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"
@@ -354,6 +355,11 @@ do_test() {
     then
       #			[ -f /tmp/gwt_bailout ] && exit 1
       [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
+# make header
+for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+echo -e "\n# $arg #"
+for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+echo -e "\n"
       test_dir "$arg" "$n_test"
       n_test=$((n_test + $(count_tests "$arg")))
     fi
@@ -374,12 +380,13 @@ consummer() {
       # diagnostic
     elif [ "${line:0:1}" = "#" ]
     then
-      echo "$line" >&2
+      echo -e "${ANSI_BOLD}$line${ANSI_RESET}" >&2
       continue
       # failure
     elif [ "${line:0:6}" = "not ok" ]
     then
-      echo "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
+#      echo -e "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
+      printf "${ANSI_RED}not ok${ANSI_RESET}%s " "${line:6}">&2
       failure=$((failure+1))
       # success
     elif [ "${line:0:2}" = "ok" ]
