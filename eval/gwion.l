@@ -121,7 +121,7 @@ static int adjust(void* data);
 
 "/*!"                               { BEGIN(CDOC); }
 <CDOC>"!*/"                         { adjust(yyscanner); BEGIN(INITIAL); }
-<CDOC>"\n"                          { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); */}
+<CDOC>\n                            { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); */}
 <CDOC>.*             		        { adjust(yyscanner); yylval->sval =  strdup(yytext); return DOC; }
 
 "//"                                { BEGIN(comment); }
@@ -254,7 +254,9 @@ static int adjust(void* data);
 '(\\.|[^\\'])'          						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return CHAR_LIT;   }
 
 . { printf("error: stray in program\n"); }
-%%
+
+%% // LCOV_EXCL_LINE
+// LCOV_EXCL_LINE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -331,10 +333,10 @@ Ast parse(m_str filename)
   strncat(c, filename, 1024);
 
   if(!(file = fopen(c, "r")))
-  {
+  { // LCOV_EXCL_START
     err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
     return NULL;
-  }
+  } // LCOV_EXCL_STOP
 //  arg.fd = fileno(file);
   arg.file = file;
   arg.filename = filename;

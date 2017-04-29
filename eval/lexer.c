@@ -1749,7 +1749,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 257 "eval/gwion.l"
+#line 258 "eval/gwion.l"
 ECHO;
 	YY_BREAK
 #line 1755 "eval/lexer.c"
@@ -2895,8 +2895,9 @@ void minimal_free (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 257 "eval/gwion.l"
+#line 258 "eval/gwion.l"
 
+// LCOV_EXCL_LINE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -2973,10 +2974,10 @@ Ast parse(m_str filename)
   strncat(c, filename, 1024);
 
   if(!(file = fopen(c, "r")))
-  {
+  { // LCOV_EXCL_START
     err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
     return NULL;
-  }
+  } // LCOV_EXCL_STOP
 //  arg.fd = fileno(file);
   arg.file = file;
   arg.filename = filename;
