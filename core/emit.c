@@ -2510,13 +2510,19 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   for(i = 0; i < vector_size(emit->array); i++) {
     Type t = (Type)vector_at(emit->array, i);
     free(t->obj);
-    free(t); // all this should be:na
+    free(t); // all this should be
     // rem_ref(t->obj, t);
   }
   vector_clear(emit->array);
-  if (ret < 0) {
+  emit_pop_scope(emit);
+  if (ret < 0) { // should free all stack.
+//    for(i = 0; i < vector_size(emit->stack); i++)
+//      free_Code((Code*)vector_at(emit->stack, i));
+    for(i = 0; i < vector_size(emit->code->code); i++)
+      free(vector_at(emit->code->code, i));
+    free(filename);
+    free_Code(emit->code);
     free_Ast(ast);
   }
-  emit_pop_scope(emit);
   return ret;
 }
