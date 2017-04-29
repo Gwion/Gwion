@@ -178,7 +178,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     instr = add_instr(emit, NULL); // dangerous
     instr->m_val = v->offset;
     instr->m_val2 = v->is_context_global;
-
+/*
     if (v->func_ref) {
       instr->execute = Reg_Push_Imm;
       instr->m_val = (m_uint)v->func_ref;
@@ -192,16 +192,24 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
         }
         instr->m_val = offset;
       }
-      if (kind == Kindof_Int)
+*/
+     switch(kind) {
+      case Kindof_Int:
         instr->execute = Reg_Push_Mem;
-      else if (kind == Kindof_Float)
+        break;
+      case Kindof_Float:
         instr->execute = Reg_Push_Mem2;
-      else if (kind == Kindof_Complex)
+        break;
+      case Kindof_Complex:
         instr->execute = Reg_Push_Mem_Complex;
-      else if (kind == Kindof_Vec3)
+        break;
+      case Kindof_Vec3:
         instr->execute = Reg_Push_Mem_Vec3;
-      else if (kind == Kindof_Vec4)
+        break;
+      case Kindof_Vec4:
         instr->execute = Reg_Push_Mem_Vec4;
+        break;
+      case Kindof_Void: break; // unreachable
     }
   }
   return 1;
@@ -1219,11 +1227,10 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt)
       f = Branch_Eq_Int;
       break;
     }
-    err_msg(EMIT_, stmt->cond->pos,
-            "(emit): internal error: unhandled type '%s' in if condition",
-            stmt->cond->type->name);
+    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
+      "internal error: unhandled type '%s' in if condition", stmt->cond->type->name);
     return -1;
-  }
+  }                                 // LCOV_EXCL_STOP
   (void)instr;
   op = add_instr(emit, f);
   {
@@ -2149,8 +2156,8 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       value = find_value(t_base, member->xid);
       if (value->is_member) { // member
         if (emit_Expression(emit, member->base, 0) < 0) {
-          err_msg(EMIT_, member->pos, "... in member function");
-          return -1;
+          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_LINE
+          return -1;                                             // LCOV_EXCL_LINE
         }
         sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Dot_Member_Data);
@@ -2171,8 +2178,8 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       func = value->func_ref;
       if (func->is_member) { // member
         if (emit_Expression(emit, member->base, 0) < 0) {
-          err_msg(EMIT_, member->pos, "... in member function");
-          return -1;
+          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_LINE
+          return -1;                                             // LCOV_EXCL_LINE
         }
         sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Dot_Member_Func);
@@ -2500,7 +2507,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
 //    for(i = 0; i < vector_size(emit->stack); i++)
 //      free_Code((Code*)vector_at(emit->stack, i));
     for(i = 0; i < vector_size(emit->code->code); i++)
-      free(vector_at(emit->code->code, i));
+      free((Instr)vector_at(emit->code->code, i));
     free(filename);
     free_Code(emit->code);
     free_Ast(ast);
