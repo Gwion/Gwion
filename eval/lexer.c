@@ -1150,7 +1150,7 @@ case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
 #line 124 "eval/gwion.l"
-{ newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); */}
+{ newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); LCOV_EXCL_LINE */}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP

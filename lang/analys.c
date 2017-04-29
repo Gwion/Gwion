@@ -673,8 +673,7 @@ static MFUN(fc_compute)
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add
     _FFT* _fft   = *(_FFT**)(obj->d.data + o_ana__fft);
-    if(!_fft)
-      continue;
+//    if(!_fft) continue; // seems prevented somehow. (this is unclear)
     FFT* fft   = *(FFT**)(obj->d.data + o_ana_fft);
     if(!fft)
       continue;

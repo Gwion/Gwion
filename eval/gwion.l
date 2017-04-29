@@ -121,7 +121,7 @@ static int adjust(void* data);
 
 "/*!"                               { BEGIN(CDOC); }
 <CDOC>"!*/"                         { adjust(yyscanner); BEGIN(INITIAL); }
-<CDOC>\n                            { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); */}
+<CDOC>\n                            { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); LCOV_EXCL_LINE */}
 <CDOC>.*             		        { adjust(yyscanner); yylval->sval =  strdup(yytext); return DOC; }
 
 "//"                                { BEGIN(comment); }

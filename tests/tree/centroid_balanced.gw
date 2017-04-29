@@ -1,0 +1,6 @@
+FFT fft;
+Centroid c;
+1024 => fft.init;
+fft => c.fft;
+c.compute();
+

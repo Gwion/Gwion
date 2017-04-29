@@ -116,8 +116,8 @@ INSTR(file_to_int)
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
-      err_msg(INSTR_, 0, "problem while reading file.");
-      Except(shred);
+      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
+      Except(shred);                                     // LCOV_EXCL_LINE
     }
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
@@ -139,7 +139,8 @@ INSTR(file_to_float)
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
-      Except(shred);
+      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
+      Except(shred);                                     // LCOV_EXCL_LINE
     }
     *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
   } else {
@@ -175,7 +176,8 @@ INSTR(file_to_string)
   if(IO_FILE(o)) {
     char c[1025];
     if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
-      Except(shred);
+      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
+      Except(shred);                                     // LCOV_EXCL_LINE
     }
     STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;

@@ -783,7 +783,8 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
   }
 
   if(binary->op == op_at_chuck) {
-    if(isa(binary->lhs->type, &t_void) > 0 && isa(binary->rhs->type, &t_object) > 0)
+//    if(isa(binary->lhs->type, &t_void) > 0 && isa(binary->rhs->type, &t_object) > 0)
+    if(isa(binary->lhs->type, &t_null) > 0 && isa(binary->rhs->type, &t_object) > 0)
       return cl->type;
   }
 
@@ -1612,8 +1613,8 @@ static m_bool check_While(Env env, Stmt_While stmt)
     break;
 
   default:
-    if(isa(stmt->cond->type, &t_io) > 0)
-      break;
+/*    if(isa(stmt->cond->type, &t_io) > 0)
+      break; */
     err_msg(TYPE_,  stmt->cond->pos,
             "invalid type '%s' in while condition", stmt->cond->type->name);
     return -1;
@@ -1639,8 +1640,8 @@ static m_bool check_Until(Env env, Stmt_Until stmt)
     break;
 
   default:
-    if(isa(stmt->cond->type, &t_io) > 0)
-      break;
+/*    if(isa(stmt->cond->type, &t_io) > 0)
+      break; */
 
     err_msg(TYPE_,  stmt->cond->pos,
             "invalid type '%s' in until condition", stmt->cond->type->name);
@@ -1678,8 +1679,8 @@ static m_bool check_For(Env env, Stmt_For stmt)
 
   default:
     // check for IO
-    if(isa(stmt->c2->d.stmt_exp->type, &t_io) > 0)
-      break;
+/*    if(isa(stmt->c2->d.stmt_exp->type, &t_io) > 0)
+      break; */
 
     // error
     err_msg(EMIT_,  stmt->c2->d.stmt_exp->pos,
@@ -1732,8 +1733,8 @@ static m_bool check_If(Env env, Stmt_If stmt)
 
   default:
     // check for IO
-    if(isa(stmt->cond->type, &t_io) > 0)
-      break;
+/*    if(isa(stmt->cond->type, &t_io) > 0)
+      break; */
     if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
       break;
     // error

@@ -356,6 +356,7 @@ template
 op
   : CHUCK       { $$ = op_chuck; }
   | UNCHUCK     { $$ = op_unchuck; }
+  | EQ          { $$ = op_eq; /* LCOV_EXCL_LINE */ }
   | ATCHUCK     { $$ = op_at_chuck; }
   | PLUSCHUCK   { $$ = op_plus_chuck; }
   | MINUSCHUCK  { $$ = op_minus_chuck; }
@@ -381,7 +382,6 @@ op
   | RDEC         { $$ = op_rdec; }
   | RUNINC         { $$ = op_runinc; }
   | RUNDEC         { $$ = op_rundec; }
-  | EQ          { $$ = op_eq; }
   | ASSIGN      { $$ = op_assign; }
   ;
 

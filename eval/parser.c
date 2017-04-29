@@ -879,9 +879,9 @@ static const yytype_uint8 yydefact[] =
       71,   175,   176,   125,   180,   187,   179,   178,     0,     0,
       21,     0,     0,     0,     0,    33,     0,     0,     0,   126,
       54,     1,     3,     0,    25,     0,    24,    72,    80,     0,
-     108,    83,    84,    85,    86,    87,    82,    81,    88,    89,
-     107,    90,    91,    92,    93,    94,    95,    96,    97,    98,
-      99,   100,   101,   102,   103,   104,   105,   106,     0,     0,
+     108,    84,    85,    86,    87,    88,    83,    81,    89,    90,
+      82,    91,    92,    93,    94,    95,    96,    97,    98,    99,
+     100,   101,   102,   103,   104,   105,   106,   107,     0,     0,
      114,   136,   116,   134,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,   177,     0,     0,     0,   197,   198,
@@ -2475,157 +2475,157 @@ yyreduce:
 
   case 82:
 #line 359 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_at_chuck; }
+    { (yyval.ival) = op_eq; /* LCOV_EXCL_LINE */ }
 #line 2480 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 83:
 #line 360 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_plus_chuck; }
+    { (yyval.ival) = op_at_chuck; }
 #line 2486 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 84:
 #line 361 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_minus_chuck; }
+    { (yyval.ival) = op_plus_chuck; }
 #line 2492 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 85:
 #line 362 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_times_chuck; }
+    { (yyval.ival) = op_minus_chuck; }
 #line 2498 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 86:
 #line 363 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_divide_chuck; }
+    { (yyval.ival) = op_times_chuck; }
 #line 2504 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 87:
 #line 364 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_modulo_chuck; }
+    { (yyval.ival) = op_divide_chuck; }
 #line 2510 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 88:
 #line 365 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_trig; }
+    { (yyval.ival) = op_modulo_chuck; }
 #line 2516 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 89:
 #line 366 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_untrig; }
+    { (yyval.ival) = op_trig; }
 #line 2522 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 90:
 #line 367 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rsl; }
+    { (yyval.ival) = op_untrig; }
 #line 2528 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 91:
 #line 368 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rsr; }
+    { (yyval.ival) = op_rsl; }
 #line 2534 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 92:
 #line 369 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rsand; }
+    { (yyval.ival) = op_rsr; }
 #line 2540 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 93:
 #line 370 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rsor; }
+    { (yyval.ival) = op_rsand; }
 #line 2546 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 94:
 #line 371 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rsxor; }
+    { (yyval.ival) = op_rsor; }
 #line 2552 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 95:
 #line 372 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rand; }
+    { (yyval.ival) = op_rsxor; }
 #line 2558 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 96:
 #line 373 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_ror; }
+    { (yyval.ival) = op_rand; }
 #line 2564 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 97:
 #line 374 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_req; }
+    { (yyval.ival) = op_ror; }
 #line 2570 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 98:
 #line 375 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rneq; }
+    { (yyval.ival) = op_req; }
 #line 2576 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 99:
 #line 376 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rgt; }
+    { (yyval.ival) = op_rneq; }
 #line 2582 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 100:
 #line 377 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rge; }
+    { (yyval.ival) = op_rgt; }
 #line 2588 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 101:
 #line 378 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rlt; }
+    { (yyval.ival) = op_rge; }
 #line 2594 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 102:
 #line 379 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rle; }
+    { (yyval.ival) = op_rlt; }
 #line 2600 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 103:
 #line 380 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rinc; }
+    { (yyval.ival) = op_rle; }
 #line 2606 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 104:
 #line 381 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rdec; }
+    { (yyval.ival) = op_rinc; }
 #line 2612 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 105:
 #line 382 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_runinc; }
+    { (yyval.ival) = op_rdec; }
 #line 2618 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 106:
 #line 383 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_rundec; }
+    { (yyval.ival) = op_runinc; }
 #line 2624 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 107:
 #line 384 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = op_eq; }
+    { (yyval.ival) = op_rundec; }
 #line 2630 "eval/parser.c" /* yacc.c:1646  */
     break;
 
