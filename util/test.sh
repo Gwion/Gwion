@@ -357,7 +357,7 @@ do_test() {
       [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
 # make header
 for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-echo -e "\n# $arg #"
+echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
 for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
 echo -e "\n"
       test_dir "$arg" "$n_test"
@@ -367,7 +367,7 @@ echo -e "\n"
 }
 
 consummer() {
-  local win failure skip todo
+  local win failure skip todo expected
   win=0
   failure=0
   skip=0
@@ -376,7 +376,9 @@ consummer() {
   do
     # plan
     if [ "${line:0:4}" = "1..." ]
-    then  echo "$line"
+    then
+#		echo "$line"
+		expected="${line:4}"
       # diagnostic
     elif [ "${line:0:1}" = "#" ]
     then
@@ -417,7 +419,14 @@ consummer() {
     fi
     # ignore others
   done <&0
-  echo "# Success: $win $failure $skip $todo" >&2
+  if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
+  then echo -e "\n\t${ANSI_GREEN}Everything is OK!${ANSI_RESET}\n"
+  else
+	echo -e "\n\t${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
+	echo -e "\t${ANSI_RED}Failure: $failure${ANSI_RESET}"
+    echo -e "\tSkipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
+    echo -e "\ttodo   : ${ANSI_BOLD}$todo${ANSI_RESET}\n" >&2
+  fi
   [ "$failure" -gt 0 ] && return 1
   return 0
 }
