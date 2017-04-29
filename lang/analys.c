@@ -671,8 +671,7 @@ static MFUN(fc_compute)
   vector_append(shred->gc, (vtype)ret);
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
-    if(!obj)
-      continue;
+//    if(!obj) continue; // prevented in fc.add
     _FFT* _fft   = *(_FFT**)(obj->d.data + o_ana__fft);
     if(!_fft)
       continue;

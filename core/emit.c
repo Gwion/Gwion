@@ -276,26 +276,18 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
   return 1;
 }
 
-static Array_Sub array_seed = NULL;
 static m_bool emit_array_lit(Emitter emit, Array_Sub array)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "array lit");
 #endif
   m_uint count = 0;
-  if (emit_Expression(emit, array->exp_list, 0) < 0) {
-    array_seed = NULL;
-    return -1;
-  }
-  if(!array_seed)
-	array_seed = array;
+  CHECK_BB(emit_Expression(emit, array->exp_list, 0))
   Expression e = array->exp_list;
   while (e) {
     count++;
     e = e->next;
   }
-
-//  e = array->exp_list;
   Type type = array->type;
   Instr instr = add_instr(emit, Instr_Array_Init);
   VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
@@ -303,17 +295,6 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
   info->length = count;
   instr->ptr = info;
   instr->m_val2 = kindof(type->array_type);
-/*
-  if(array == array_seed) {
-    Local* l;
-    array_seed = NULL;
-    if(!(l = frame_alloc_local(emit->code->frame, SZ_INT, "litteral array", 0, 1))) {
-      err_msg(EMIT_, array->pos, "can't allocate litteral array.");
-      return -1;
-    }
-    instr->m_val = l->offset;
-  }
-*/
   return 1;
 }
 
