@@ -1,0 +1,6 @@
+Metro m ]=> 
+FFT fft => dac;
+1024 => fft.init;
+//30::
+second => now;
+//minute => now;
