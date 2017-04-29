@@ -163,6 +163,10 @@ static int adjust(void* data);
 ">=>"                     					  { adjust(yyscanner); return RGT; }
 "<==>"                    					  { adjust(yyscanner); return RLE; }
 ">==>"                    					  { adjust(yyscanner); return RGE; }
+"++=>"                                { adjust(yyscanner); return RINC;}
+"--=>"                                { adjust(yyscanner); return RDEC;}
+"++=<"                                { adjust(yyscanner); return RUNINC;}
+"--=<"                                { adjust(yyscanner); return RUNDEC;}
 "++"                                { adjust(yyscanner); return PLUSPLUS;}
 "--"                                { adjust(yyscanner); return MINUSMINUS;}
 "function"                              { adjust(yyscanner); return FUNCTION;}

@@ -654,12 +654,13 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
-
+/*
+// disabled in parser
   if(env->func) {
     err_msg(SCAN2_, f->pos, "nested function definitions are not (yet) allowed");
     goto error;
   }
-
+*/
   if(f->types) {
     func = new_Func(func_name, f);
     overload = namespace_lookup_value(env->curr,  f->name, 0);
