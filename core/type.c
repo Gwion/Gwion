@@ -1146,9 +1146,7 @@ next:
         list = list->next;
       }
       list = value->func_ref->def->types;
-      Type_List tl[type_number ? type_number : 1];
-      if(!type_number)
-        tl[0] = NULL;
+      Type_List tl[type_number];
       while(list) { // iterate through types
         Arg_List arg = value->func_ref->def->arg_list;
         Expression template_arg = args;
