@@ -1789,7 +1789,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
   m_uint value;
   Value v;
   Type t;
-  if (!emit->cases) {
+  if(!emit->cases) {
     err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now");
     return -1;
   }
@@ -1797,14 +1797,24 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     if (stmt->val->d.exp_primary->type == ae_primary_num)
       value = stmt->val->d.exp_primary->d.num;
     else {
-      if (!stmt->val->d.exp_primary->value->is_const) {
-        err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
+      if(stmt->val->d.exp_primary->d.var == insert_symbol("true"))
+        value = 1;
+      else if(stmt->val->d.exp_primary->d.var == insert_symbol("false"))
+        value = 0;
+      else if(stmt->val->d.exp_primary->d.var == insert_symbol("maybe")) {
+        err_msg(EMIT_, stmt->val->d.exp_primary->pos, "'maybe' is not constant.");
         return -1;
+      } else  {
+        if(!stmt->val->d.exp_primary->value->is_const) {
+          err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
+          return -1;
+        }
+//        value = stmt->val->d.exp_primary->value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary->value->ptr : // for enum
+//              *(m_uint*)stmt->val->d.exp_primary->value->ptr;                                                   // for primary variable
+          value = (m_uint)stmt->val->d.exp_primary->value->ptr; // assume enum.
       }
-      value = stmt->val->d.exp_primary->value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary->value->ptr : // for enum
-              *(m_uint*)stmt->val->d.exp_primary->value->ptr;                                                   // for primary variable
     }
-  } else if (stmt->val->exp_type == Dot_Member_type) {
+  } else if(stmt->val->exp_type == Dot_Member_type) {
     t = isa(stmt->val->d.exp_dot->t_base, &t_class) > 0 ? stmt->val->d.exp_dot->t_base->actual_type : stmt->val->d.exp_dot->t_base;
     v = find_value(t, stmt->val->d.exp_dot->xid);
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
