@@ -20,16 +20,13 @@ pthread_t srv_thread;
 void Send(const char* c, unsigned int i)
 {
   struct sockaddr_in addr = i ? saddr : caddr;
-//  if(!addr.sin_port)
-//    return;
   if(sendto(sock, c, strlen(c), 0,
             (struct sockaddr *) &addr, sizeof(addr)) < 1)
     err_msg(UDP, 0, "problem while sending"); // LCOV_EXCL_LINE
 }
 
-char* Recv(int i)
+static m_bool Recv(int i, char* buf)
 {
-  char buf[256];
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -48,53 +45,49 @@ char* Recv(int i)
 
 #ifndef __linux__
   if(select(sock + 1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
-    return NULL;
+    return -1;
   if(FD_ISSET(sock, &read_flags)) {
     FD_CLR(sock, &read_flags);
 #endif
     ssize_t len;
     if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed"); // LCOV_EXCL_LINE
-    buf[255] = '\0';
-    return strndup(buf, strlen(buf));
+//    buf[255] = '\0';
+//    return strndup(buf, strlen(buf));
+    return 1;
 #ifndef __linux__
   }
 #endif
-  return NULL;
+  return -1;
 }
 
 void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
   while(vm->is_running) {
-    m_str buf;
-
-    if(!(buf = Recv(0)))
-      continue;
-    if(buf[strlen(buf) -1] == '\n')
-      buf[strlen(buf) -1] = '\0';
+    char buf[256];
+    if(Recv(0, buf) < 0)
+      continue; // LCOV_EXCL_LINE
     if(strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
     } else if( strncmp(buf, "-", 1) == 0) {
-      buf += 2;
       m_uint i;
-      VM_Shred shred =  (VM_Shred)vector_at(vm->shred, atoi(buf) - 1);
+      VM_Shred shred = NULL;// =  (VM_Shred)vector_at(vm->shred, atoi(buf + 2) - 1);
+      for(i = 0; i < vector_size(vm->shred); i++) {
+        shred = (VM_Shred)vector_at(vm->shred, i);
+		if(shred->xid == atoi(buf +2) -1)
+          break;
+      }
       if(shred) {
         for(i = 0; i < vector_size(shred->gc1); i++)
           release((M_Object)vector_at(shred->gc1, i), shred);
         shreduler_remove(vm->shreduler, shred, 1);
       }
-      buf -= 2;
     } else if(strncmp(buf, "+", 1) == 0) {
-      buf += 2;
-      compile(data, (m_str)buf);
-      buf -= 2;
+      compile(data, (m_str)buf + 2);
     } else if(strncmp(buf, "loop", 4) == 0)
       shreduler_set_loop(vm->shreduler, atoi(buf+5));
-    else
-      compile(data, buf);
-    free(buf);
   }
   return NULL;
 }

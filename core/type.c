@@ -1493,7 +1493,7 @@ static Type check_exp_if(Env env, If_Expression* exp_if)
   Type cond     = check_Expression(env, exp_if->cond);
   Type if_exp   = check_Expression(env, exp_if->if_exp);
   Type else_exp = check_Expression(env, exp_if->else_exp);
-
+  Type ret;
   // make sure everything good
   if(!cond || !if_exp || !else_exp)
     return NULL;
@@ -1504,12 +1504,12 @@ static Type check_exp_if(Env env, If_Expression* exp_if)
     return NULL;
   }
   // make sure the if and else have compatible types
-  if(!find_common_anc(if_exp, else_exp)) {
+  if(!(ret = find_common_anc(if_exp, else_exp))) {
     err_msg(TYPE_, exp_if->pos,
             "incompatible types '%s' and '%s' in if expression...", if_exp->name, else_exp->name);
     return NULL;
   }
-  return if_exp;
+  return ret;
 }
 
 static Type check_Expression(Env env, Expression exp)

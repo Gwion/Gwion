@@ -85,8 +85,8 @@ void free_Type(Type a)
     rem_ref(a->info->obj, a->info);
   if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
     free(a);
-  else if(a->xid > type_xid || isa(a, &t_func_ptr) > 0)
-    free(a);
+/*  else if(a->xid > type_xid || isa(a, &t_func_ptr) > 0)
+    free(a); */
   else if(a->xid == te_user)
     free(a);
 }
@@ -296,27 +296,27 @@ Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, Na
   /*  SAFE_ADD_REF(t->owner);*/
   return t;
 }
+
 Type find_common_anc(Type lhs, Type rhs )
 {
-  // check to see if either is child of other
-  if(isa(lhs, rhs) > 0) return rhs;
-  if(isa(rhs, lhs) > 0) return lhs;
-
-  // move up
-  Type t = lhs->parent;
-
-  // not at root
-  while(t) {
-    // check and see again
-    if(isa(rhs, t) > 0)
-      return t;
-    // move up
-    t = t->parent;
+  if(lhs->xid != te_user && rhs->xid != te_user) {
+    if(isa(lhs, rhs) > 0) return rhs;
+    if(isa(rhs, lhs) > 0) return lhs;
+    return NULL;
   }
-
-  // didn't find
+  Type t1 = lhs->parent;
+  while(t1) {
+    Type t2 = rhs;
+    while(t2) {
+      if(t2 == t1)
+        return t1;
+      t2 = t2->parent;
+    }
+    t1 = t1->parent;
+  }
   return NULL;
 }
+
 m_int str2char( const m_str c, m_int linepos )
 {
   if(c[0] == '\\') {
