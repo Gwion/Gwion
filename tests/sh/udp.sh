@@ -74,7 +74,7 @@ wait
 
 # 18 - 20
 n=$((n+3))
-run "$((n+2))" "remove (remote $((n+2)))" "-l1 sine.gw" "file2"&
+run "$((n+2))" "remove (remote $((n+2)))" "-d silent -l1 examples/sine.gw" "file2"&
 sleep .3
 run "$n" "rem file" "- 1 2 3 4" "file"&
 sleep .3
@@ -92,15 +92,22 @@ wait
 
 # 24 - 27
 n=$((n+3))
-run "$((n+3))" "remove (remote $((n+1)))" "-l1 sine.gw" "file"&
-sleep .3
-run "$((n))" "remove (remote $((n+1)))" "+ sine.gw" "file2"&
-sleep .3
+run "$((n+3))" "remove (remote $((n+1)))" "-d silent -l1 examples/sine.gw" "file"&
+sleep .1
+run "$((n))" "remove (remote $((n+1)))" "+ examples/sine.gw" "file2"&
+sleep .1
 run "$((n+1))" "remove (remote $((n+1)))" "- 1" "file3"&
-sleep .3
+sleep .1
 run "$((n+2))" "quit" "-l0" "file4"&
 wait
 
+
+./gwion -d silent examples/sine.gw&
+sleep .1
+./gwion + examples/sine.gw
+sleep .1
+./gwion - 1
+wait
 #if [ $(uname) == "Linux" ]
 #then NC_TIMEOUT="-q"
 #else NC_TIMEOUT="-w"
