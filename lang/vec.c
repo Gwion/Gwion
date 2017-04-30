@@ -339,14 +339,14 @@ m_bool import_vec3(Env env)
   dl_func_add_arg(fun, "float", "slew");
   CHECK_OB(import_mfun(env, fun))
 
-  CHECK_BB(add_binary_op(env, op_plus,   &t_vec3,   &t_vec3, &t_vec3,  vec3_add, 1, 0))
-  CHECK_BB(add_binary_op(env, op_minus,  &t_vec3,   &t_vec3, &t_vec3,  vec3_minus, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_vec3, &t_vec3,  vec3_xproduct, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_float, &t_vec3, vec3_times_float, 1, 0))
-  CHECK_BB(add_binary_op(env, op_divide, &t_vec3,   &t_float, &t_vec3, vec3_divide_float, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec3, &t_vec3,  float_times_vec3, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus,   &t_vec3,   &t_vec3, &t_vec3,  vec3_add, 1))
+  CHECK_BB(add_binary_op(env, op_minus,  &t_vec3,   &t_vec3, &t_vec3,  vec3_minus, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_vec3, &t_vec3,  vec3_xproduct, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_vec3,   &t_float, &t_vec3, vec3_times_float, 1))
+  CHECK_BB(add_binary_op(env, op_divide, &t_vec3,   &t_float, &t_vec3, vec3_divide_float, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec3, &t_vec3,  float_times_vec3, 1))
 
-  CHECK_BB(add_binary_op(env, op_chuck,  &t_vec3,   &t_vec3, &t_vec3,  vec3_r_assign, 1, 0))
+  CHECK_BB(add_binary_op(env, op_chuck,  &t_vec3,   &t_vec3, &t_vec3,  vec3_r_assign, 1))
 
   CHECK_BB(import_class_end(env))
   t_vec3.size = SZ_VEC3;
@@ -535,13 +535,13 @@ m_bool import_vec4(Env env)
   CHECK_OB(import_mfun(env, fun))
   fun = new_DL_Func("void", "normalize", (m_uint)vec4_normalize);
   CHECK_OB(import_mfun(env, fun))
-  CHECK_BB(add_binary_op(env, op_plus,   &t_vec4,   &t_vec4,  &t_vec4,  vec4_add, 1, 0))
-  CHECK_BB(add_binary_op(env, op_minus,  &t_vec4,   &t_vec4,  &t_vec4,  vec4_minus, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_vec4,   &t_vec4,  &t_vec4,  vec4_xproduct, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_vec4,   &t_float, &t_vec4,  vec4_times_float, 1, 0))
-  CHECK_BB(add_binary_op(env, op_divide, &t_vec4,   &t_float, &t_vec4,  vec4_divide_float, 1, 0))
-  CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec4,  &t_vec4,  float_times_vec4, 1, 0))
-  CHECK_BB(add_binary_op(env, op_chuck,   &t_vec4,   &t_vec4,  &t_vec4,  vec4_r_assign, 1, 0))
+  CHECK_BB(add_binary_op(env, op_plus,   &t_vec4,   &t_vec4,  &t_vec4,  vec4_add, 1))
+  CHECK_BB(add_binary_op(env, op_minus,  &t_vec4,   &t_vec4,  &t_vec4,  vec4_minus, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_vec4,   &t_vec4,  &t_vec4,  vec4_xproduct, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_vec4,   &t_float, &t_vec4,  vec4_times_float, 1))
+  CHECK_BB(add_binary_op(env, op_divide, &t_vec4,   &t_float, &t_vec4,  vec4_divide_float, 1))
+  CHECK_BB(add_binary_op(env, op_times,  &t_float,  &t_vec4,  &t_vec4,  float_times_vec4, 1))
+  CHECK_BB(add_binary_op(env, op_chuck,   &t_vec4,   &t_vec4,  &t_vec4,  vec4_r_assign, 1))
   CHECK_BB(import_class_end(env))
   t_vec4.size = SZ_VEC4;
   return 1;

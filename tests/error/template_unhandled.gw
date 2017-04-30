@@ -1,0 +1,5 @@
+// [contains] template func call
+template<{a, b}>
+function void test(){};
+
+(test())<{int, float}>();

@@ -290,6 +290,7 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
           char name[256];
           sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
           value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
+          if(!value)continue;
           Type_List tlc = exp_func->types;
           ID_List tld = value->func_ref->def->types;
           while(tld) {
@@ -300,7 +301,8 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
               break;
           tlc = tlc->next;
           }
-		 match = 1;
+          if(!tlc && !tld)
+		    match = 1;
         }
       }
       if(match < 0)
@@ -846,7 +848,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     } else
 */
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
-      f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1, 0))
+      f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1))
     if(!env->class_def)
       context_add_func(env->context, func, func->obj);
     return 1;

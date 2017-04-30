@@ -92,7 +92,6 @@ typedef struct {
   Func func;
 //  f_type  type_func;
   m_str doc;
-  m_bool is_new;
 } M_Operator;
 
 static M_Operator* last = NULL;
@@ -168,9 +167,8 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs)
   return NULL;
 }
 
-m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global, m_bool is_new)
+m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global)
 {
-// is_new unused for now
 #ifdef DEBUG_OPERATOR
   debug_msg(" op  ", "import operator '%s' for type '%s' and '%s', in  '%s'",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL, env->curr->name);
@@ -203,9 +201,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->ret       = ret;
   mo->instr     = f;
   mo->func      = NULL;
-//  mo->type_func = NULL;
   mo->doc       = NULL;
-  mo->is_new = is_new;
   vector_append(v, (vtype)mo);
   last = mo;
   return 1;
@@ -218,8 +214,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
 #endif
   Type t, l = lhs, r = lhs;
-/*  NameSpace nspc = env->curr; */
-  NameSpace nspc = env->global_nspc;
+  NameSpace nspc = env->curr;
   M_Operator* mo;
   while(nspc) {
     Vector v = (Vector)map_get(nspc->operator, (vtype)op);
@@ -240,12 +235,8 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
     }
     nspc = nspc->parent;
   }
-  nspc = env->global_nspc;
+  nspc = env->curr;
   while(nspc) {
-    Vector v = (Vector)map_get(nspc->operator, (vtype)op);
-
-    if((mo = operator_find(v, lhs, rhs)))
-      return mo->ret;
     r = rhs->parent;
     while(r) {
       if((t = get_return_type(env, op, lhs, r)))
@@ -286,16 +277,11 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs)
   debug_msg(" op", 0, "set func'");
 #endif
   NameSpace nspc = env->curr;
-  while(nspc) {
-    M_Operator* mo;
-    Vector v = (Vector)map_get(nspc->operator, (vtype)name2op(S_name(f->def->name)));
-    if((mo = operator_find(v, lhs, rhs))) {
-      mo->func = f;
-      return 1;
-    }
-    nspc = nspc->parent;
-  }
-  return -1;
+  M_Operator* mo;
+  Vector v = (Vector)map_get(nspc->operator, (vtype)name2op(S_name(f->def->name)));
+  mo = operator_find(v, lhs, rhs);
+  mo->func = f;
+  return 1;
 }
 
 m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
@@ -317,12 +303,7 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
           return -1;
         return 1;
       } else {
-        Instr instr = add_instr(emit, mo->instr);
-        if(mo->is_new) {
-          // should only be M_Object, so use SZ_INT
-		  Local* l = frame_alloc_local(emit->code->frame, SZ_INT, "operator return value", 0, 1);
-          instr->m_val = l->offset;
-        }
+        add_instr(emit, mo->instr);
       }
       return 1;
     }
