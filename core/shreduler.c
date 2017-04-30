@@ -60,14 +60,14 @@ VM_Shred shreduler_get(Shreduler s)
     return NULL;
   }
   if(shred->wake_time <= (get_now(s) + .5)) {
+    m_float til_next;
     s->list = shred->next;
     shred->next = NULL;
     shred->prev = NULL;
     if(s->list) {
       s->list->prev = NULL;
-      s->til_next = s->list->wake_time - get_now(s);
-      if(s->til_next < 0)
-        s->til_next = 0;
+      til_next = s->list->wake_time - get_now(s);
+      s->til_next = til_next < 0 ? 0 : til_next;
     }
     shred->is_running = 1;
     return shred;
@@ -146,16 +146,14 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)
   m_float diff;
   VM_Shred curr, prev;
   if(shred->prev || shred->next) {
-    err_msg(VM_, 0, "[chuck](VM): internal sanity check failed in shredule()");
-    err_msg(VM_, 0, "[chuck](VM): (shred shreduled while shreduled)");
+    err_msg(VM_, 0, "[chuck](VM): internal sanity check failed in shredule()"); // LCOV_EXCL_LINE
+    err_msg(VM_, 0, "[chuck](VM): (shred shreduled while shreduled)");          // LCOV_EXCL_LINE
   }
 
   if(wake_time < get_now(s) + .5) {
-    err_msg(VM_, 0,  "[chuck](VM): internal sanity check failed in shredule()");
-    err_msg(VM_, 0,  "[chuck](VM): (wake time is past) - %f : %f for shred %i", wake_time, get_now(s), shred->xid);
-    /*    wake_time = get_now(s) + .5; // hack*/
+    err_msg(VM_, 0,  "[chuck](VM): internal sanity check failed in shredule()"); // LCOV_EXCL_LINE
+    err_msg(VM_, 0,  "[chuck](VM): (wake time is past) - %f : %f for shred %i", wake_time, get_now(s), shred->xid); // LCOV_EXCL_LINE
   }
-  // assign id if new shred
   if(shred->xid == -1) {
     shred->xid = s->n_shred;
     s->n_shred++;
