@@ -186,8 +186,8 @@ next:
 
 error:          // LCOV_EXCL_START
   free(env);
-  return NULL; // LCOV_EXCL_STOP
-}
+  return NULL;
+}              // LCOV_EXCL_STOP
 
 static m_bool check_array_subscripts(Env env, Expression exp_list)
 {
@@ -1378,8 +1378,8 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
           else return &t_shred;
           break;
         } else if(check_Stmt(env, exp_unary->code) < 0) {
-          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code");
-          break;
+          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
+          break;                                                                // LCOV_EXCL_LINE
 
         }
         return &t_shred;
@@ -1616,7 +1616,7 @@ static m_bool check_While(Env env, Stmt_While stmt)
 /*    if(isa(stmt->cond->type, &t_io) > 0)
       break; */
     err_msg(TYPE_,  stmt->cond->pos,
-            "invalid type '%s' in while condition", stmt->cond->type->name);
+      "invalid type '%s' in while condition", stmt->cond->type->name);
     return -1;
   }
   vector_append(env->breaks, (vtype)stmt->self);
@@ -1991,6 +1991,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
               "keyword 'this' must be associated with object instance...");
       return NULL;
     }
+
     if(env->func && !env->func->is_member) {
       err_msg(TYPE_, member->pos,
               "keyword 'this' cannot be used inside static functions...");
