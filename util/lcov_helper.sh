@@ -14,7 +14,7 @@ mv gwion.info.cleaned gwion.info
 
 [ -z "$TRAVIS_BUILD_DIR" ] || exit
 
-genhtml -o lcov gwion.info
+genhtml -o lcov gwion.info --precision 2
 
 cat << EOF > lcov/helper_gcov.js
 var i = 1;
