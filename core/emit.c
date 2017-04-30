@@ -1076,16 +1076,14 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "implicit cast '%s' to '%s'", from->name, to->name);
 #endif
-  Instr instr;
   if (from->xid == t_int.xid && to->xid == t_float.xid)
-    instr = add_instr(emit, Cast_i2f);
+    sadd_instr(emit, Cast_i2f);
   else if (from->xid == t_float.xid && to->xid == t_int.xid)
-    instr = add_instr(emit, Cast_f2i);
-  else if (isa(to, from) < 0 && isa(from, to) < 0) {
-    err_msg(EMIT_, 0, "(emit): internal error: cannot cast type '%s' to '%s'", from->name, to->name);
-    return -1;
+    sadd_instr(emit, Cast_f2i);
+  else if (isa(to, from) < 0 && isa(from, to) < 0) {                                                  // LCOV_EXCL_LINE
+    err_msg(EMIT_, 0, "(emit): internal error: cannot cast type '%s' to '%s'", from->name, to->name); // LCOV_EXCL_LINE
+    return -1;                                                                                        // LCOV_EXCL_LINE
   }
-  (void)instr; // prevent cppcheck warning
   return 1;
 }
 

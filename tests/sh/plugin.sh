@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #12
+# [test] #13
 
 n=0
 [ "$1" ] && n="$1"
@@ -36,6 +36,7 @@ test_plugin begin_class
 test_plugin end_class
 test_plugin invalid_type1
 test_plugin invalid_type2
+test_plugin invalid_type3
 test_plugin invalid_func
 test_plugin invalid_array
 test_plugin invalid_arg

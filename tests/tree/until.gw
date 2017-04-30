@@ -6,3 +6,8 @@ until(now >= t) {
     me.exit();
   samp => now;
 }
+float f;
+until(f) {
+	1 +=> f;
+}
+

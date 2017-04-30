@@ -1,0 +1,5 @@
+// [contains] value is not const. this is not allowed for now
+int i;
+switch(maybe) {
+	case i:
+}

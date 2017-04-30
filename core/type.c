@@ -1811,12 +1811,8 @@ static m_bool check_Switch(Env env, Stmt_Switch a)
 static m_bool check_Case(Env env, Stmt_Case stmt)
 {
   Type t = check_Expression(env, stmt->val);
-  if(!t) {
-    err_msg(TYPE_, stmt->pos, "... in case");
-    return -1;
-  }
-  if(t->xid !=  t_int.xid) {
-    err_msg(TYPE_, stmt->pos, "invalid type in '%s' case expression. should be 'int'", t->name);
+  if(!t || t->xid !=  t_int.xid) {
+    err_msg(TYPE_, stmt->pos, "invalid type '%s' case expression. should be 'int'", t ? t->name : "unknown");
     return -1;
   }
   return 1;

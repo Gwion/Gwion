@@ -746,10 +746,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-
+/*
   if(!f->ret_type) // template return value
     f->ret_type = find_type(env, f->type_decl->xid);
-
+*/
   if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
     err_msg(SCAN2_,  f->type_decl->pos,
             "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name );
@@ -765,8 +765,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   namespace_push_value(env->curr);
 
   while(arg_list) {
-    if(!arg_list->type) // template
-      arg_list->type = find_type(env, arg_list->type_decl->xid);
+/*    if(!arg_list->type) // template
+      arg_list->type = find_type(env, arg_list->type_decl->xid); */
     if(!arg_list->type->size) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       namespace_pop_value(env->curr);
