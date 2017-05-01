@@ -7,6 +7,9 @@ set -m
 : "${ANSI_CLEAR:=\033[0K}"
 : "${ANSI_BOLD:=\033[33;1m}"
 
+: "${UDP:=-a}"
+: "${DRIVER:=dummy}"
+
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"
 
@@ -171,7 +174,7 @@ test_gw(){
   n=$2
   file=$1
   log=/tmp/gwt_$(printf "%04i" "$n").log
-  valgrind --suppressions=util/gwion.supp ./gwion -a -d dummy "$file" &> "$log" |:
+  valgrind --suppressions=util/gwion.supp ./gwion $UDP -d $DRIVER "$file" &> "$log" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "" "$log" && return 0

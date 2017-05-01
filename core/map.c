@@ -318,9 +318,10 @@ void scope_add(Scope scope, S_Symbol xid, vtype value)
 void scope_rem(Scope scope, S_Symbol xid)
 {
   Map map;
-  if(vector_front(scope->vector) != vector_back(scope->vector))
-    map = (Map)vector_back(scope->vector);
-  else
+// to know how to reach those
+//  if(vector_front(scope->vector) != vector_back(scope->vector))
+//    map = (Map)vector_back(scope->vector);
+//  else
     map = scope->commit_map;
   map_remove(map, (vtype)xid);
   /*  rem_ref(((struct Value_*)value)->obj);*/

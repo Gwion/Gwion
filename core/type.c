@@ -855,8 +855,8 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
       break;
     default: // LCOV_EXCL_START
       err_msg(TYPE_, postfix->pos, "internal compiler error: unrecognized postfix '%i'", postfix->op);
-      return NULL; // LCOV_EXCL_STOP
-  }
+      return NULL;
+  }          // LCOV_EXCL_STOP
   err_msg(TYPE_, postfix->pos,
            "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
   return NULL;
@@ -1982,7 +1982,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   }
 
   str = S_name(member->xid);
-
   if(!strcmp(str, "this")) {
     if(base_static) {
       err_msg(TYPE_,  member->pos,
