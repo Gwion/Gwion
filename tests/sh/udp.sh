@@ -18,6 +18,6 @@ run "$((n+3))" "unset loop" "-l0" "file5"
 run "$((n+4))" "quit" "-q" "file6"
 wait
 run "$((n+6))" "quit" "-h invalid -l 1" "file7"&
-#sleep .1
+sleep .1
 kill %1
 wait
