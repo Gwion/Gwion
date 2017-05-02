@@ -1,6 +1,9 @@
 #!/bin/bash
 set -m
 
+: "${GWT_OUTDIR:=/tmp}"
+: "${GWT_PREFIX:=gwt_}"
+
 : "${ANSI_RED:=\033[31;1m}"
 : "${ANSI_GREEN:=\033[32;1m}"
 : "${ANSI_RESET:=\033[0m}"
@@ -30,8 +33,8 @@ assert_contain() {
   contains=$(grep "// \[contains\]" "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
-  grep "$contains" "$2" > /dev/null && return 0
-  echo "does not contain $contains" > "$2"
+  grep "$contains" "$2.err.log" > /dev/null && return 0
+  echo "does not contain $contains" > "$2.log"
   return 1
 }
 
@@ -40,66 +43,66 @@ assert_exclude() {
   contains=$(grep "// \[exclude\]" "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
-  grep "$contains" "$2" > /dev/null || return 0
-  echo "does contain $contains" > "$2"
+  grep "$contains" "$2.err.log" > /dev/null || return 0
+  echo "does contain $contains" > "$2.log"
   return 1
 }
 
 assert_rw() {
-  grep "Invalid \(read\|write\) of size" "$2" > /dev/null || return 0
-  echo "invalid read/write" > "$2"
+  grep "Invalid \(read\|write\) of size" "$2.valgrind.log" > /dev/null || return 0
+  echo "invalid read/write" > "$2.log"
   return 1
 }
 
 assert_free() {
-  grep "Invalid free()" "$2" > /dev/null || return 0
-  echo "invalid free" > "$2"
+  grep "Invalid free()" "$2.valgrind.log" > /dev/null || return 0
+  echo "invalid free" > "$2.log"
   return 1
 }
 
 assert_initial() {
-  grep "Conditional jump or move depends on uninitialised value(s)" "$2" > /dev/null || return 0
-  echo "uninitialed value" > "$2"
+  grep "Conditional jump or move depends on uninitialised value(s)" "$2.valgrind.log" > /dev/null || return 0
+  echo "uninitialed value" > "$2.log"
   return 1
 }
 
 assert_syscall() {
-  grep "Syscall param .* uninitialised byte(s)" "$2" > /dev/null || return 0
-  echo "uninitialed value in syscall" > "$2"
+  grep "Syscall param .* uninitialised byte(s)" "$2.valgrind.log" > /dev/null || return 0
+  echo "uninitialed value in syscall" > "$2.log"
   return 1
 }
 
 assert_mismatch() {
-  grep "Mismatched free() / delete / delete \[\]" "$2" > /dev/null || return 0
-  echo "mismatched free" > "$2"
+  grep "Mismatched free() / delete / delete \[\]" "$2.valgrind.log" > /dev/null || return 0
+  echo "mismatched free" > "$2.log"
   return 1
 }
 
 assert_overlap() {
-  grep "Source and destination overlap" "$2" > /dev/null || return 0
-  echo "mem overlap" > "$2"
+  grep "Source and destination overlap" "$2.valgrind.log" > /dev/null || return 0
+  echo "mem overlap" > "$2.log"
   return 1
 
 }
 
 assert_fishy() {
-  grep "Argument 'size' of .* has a fishy (possibly negative) value:" "$2" > /dev/null || return 0
-  echo "fishy alloc" > "$2"
+  grep "Argument 'size' of .* has a fishy (possibly negative) value:" "$2.valgrind.log" > /dev/null || return 0
+  echo "fishy alloc" > "$2.log"
   return 1
 }
 
 assert_leak() {
-  grep "All heap blocks were freed -- no leaks are possible" "$2" > /dev/null && return 0
-  [ "$suppressions" -eq 0 ] && echo "mem leak" > "$2" && return 1
-  heap=$(grep "in use at exit:" "$2" | cut -d ":" -f2)
-  supp=$(grep "suppressed: .* bytes"     "$2" | cut -d ":" -f2)
+  grep "All heap blocks were freed -- no leaks are possible" "$2.valgrind.log" > /dev/null && return 0
+  [ "$suppressions" -eq 0 ] && echo "mem leak" > "$2.log" && return 1
+  heap=$(grep "in use at exit:" "$2.valgrind.log" | cut -d ":" -f2)
+  supp=$(grep "suppressed: .* bytes"     "$2.valgrind.log" | cut -d ":" -f2)
   [ "$heap" = "$supp" ] && return 0
-  echo "mem leak" > "$2"
+  echo "mem leak" > "$2.log"
   return 1
 }
 
 read_test() {
-  #	[ -f /tmp/gwt_bailout ] && exit 1
+  #	[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
   while read -r line
   do
     if [ "$line" = "#*" ]
@@ -173,37 +176,41 @@ test_gw(){
   local n file log ret
   n=$2
   file=$1
-  log=/tmp/gwt_$(printf "%04i" "$n").log
-  valgrind --suppressions=util/gwion.supp ./gwion $UDP -d $DRIVER "$file" &> "$log" |:
+   log=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n")
+  slog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").std.log
+  elog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").err.log
+  vlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").valgrind.log
+  rlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").log
+  valgrind --log-file="$vlog" --suppressions=util/gwion.supp ./gwion $UDP -d $DRIVER "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
-  do_skip "$1" "$n" "" "$log" && return 0
+  do_skip "$1" "$n" "" "$rlog" && return 0
   # enable todo
-  do_todo "$1" "$n" "" "$log" && return 0
+  do_todo "$1" "$n" "" "$rlog" && return 0
 
-  [ $severity -lt 1  ]           && success "$n" "$file" "$log" && return 0
-  assert_returns  "$ret" "$log"  || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 2  ]           && success "$n" "$file" "$log" && return 0
-  assert_contain  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 3  ]           && success "$n" "$file" "$log" && return 0
-  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 4  ]           && success "$n" "$file" "$log" && return 0
-  assert_rw       "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 5  ]           && success "$n" "$file" "$log" && return 0
-  assert_initial  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 6  ]           && success "$n" "$file" "$log" && return 0
-  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 7  ]           && success "$n" "$file" "$log" && return 0
-  assert_free     "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 8  ]           && success "$n" "$file" "$log" && return 0
-  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 9  ]           && success "$n" "$file" "$log" && return 0
-  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 10 ]           && success "$n" "$file" "$log" && return 0
-  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  [ $severity -lt 11 ]           && success "$n" "$file" "$log" && return 0
-  assert_leak     "$file" "$log" || fail    "$n" "$file" "$log" || return 1
-  success "$n" "$file" "$log" && return 0
+  [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_rw       "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 5  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_initial  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 6  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 7  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_free     "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 8  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 9  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 10 ]           && success "$n" "$file" "$rlog" && return 0
+  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 11 ]           && success "$n" "$file" "$rlog" && return 0
+  assert_leak     "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  success "$n" "$file" "$rlog" && return 0
 }
 
 count_tests_sh(){
@@ -253,7 +260,7 @@ test_dir() {
   then
     for file in "$1"/*.gw
     do
-      #		[ -f /tmp/gwt_bailout ] && exit 1
+      #		[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
       if [ "$async" -ne 0 ]
       then test_gw "$file" "$n"&
       else test_gw "$file" "$n"
@@ -266,7 +273,7 @@ test_dir() {
         wait
         for i in $(seq "$offset" "$n")
         do
-          read_test "/tmp/gwt_$(printf "%04i" "$i").log"
+          read_test "${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$i").log"
         done
         offset=$((offset + async));
       fi
@@ -278,7 +285,7 @@ test_dir() {
   wait
   local rest=$(( $((n-base-1)) %async))
   for i in $(seq $((n-rest))  $((n-1)))
-  do read_test "/tmp/gwt_$(printf "%04i" "$i").log"
+  do read_test "${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$i").log"
   done
 }
   fi
@@ -288,7 +295,7 @@ test_dir() {
   grep "\.sh" <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
   then
-    #		[ -f /tmp/gwt_bailout ] && exit 1
+    #		[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
     for file in "$1"/*.sh
     do
       [ "$file" = "$1/*.sh" ] && continue
@@ -343,7 +350,7 @@ do_test() {
       #		then bailout=$(echo "$arg" | cut -d '=' -f 2);
     elif [ -f "$arg" ]
     then
-      #			[ -f /tmp/gwt_bailout ] && exit 1
+      #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
       if [ "${arg: -3}" = ".gw" ]
       then test_gw "$arg" "$n_test"
         n_test=$((n_test + 1))
@@ -356,13 +363,13 @@ do_test() {
       fi
     elif [ -d "$arg" ]
     then
-      #			[ -f /tmp/gwt_bailout ] && exit 1
+      #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
       [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
-# make header
-for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
-for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-echo -e "\n"
+      # make header
+      for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+      echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
+      for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+      echo -e "\n"
       test_dir "$arg" "$n_test"
       n_test=$((n_test + $(count_tests "$arg")))
     fi
@@ -380,8 +387,8 @@ consummer() {
     # plan
     if [ "${line:0:4}" = "1..." ]
     then
-#		echo "$line"
-		expected="${line:4}"
+      #		echo "$line"
+      expected="${line:4}"
       # diagnostic
     elif [ "${line:0:1}" = "#" ]
     then
@@ -390,7 +397,7 @@ consummer() {
       # failure
     elif [ "${line:0:6}" = "not ok" ]
     then
-#      echo -e "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
+      #      echo -e "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
       printf "${ANSI_RED}not ok${ANSI_RESET}%s " "${line:6}">&2
       failure=$((failure+1))
       # success
@@ -425,11 +432,15 @@ consummer() {
   if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
   then echo -e "\n\t${ANSI_GREEN}Everything is OK!${ANSI_RESET}\n"
   else
-	echo -e "\n\t${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
-	echo -e "\t${ANSI_RED}Failure: $failure${ANSI_RESET}"
+    echo -e "\n\t${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
+    echo -e "\t${ANSI_RED}Failure: $failure${ANSI_RESET}"
     echo -e "\tSkipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
     echo -e "\ttodo   : ${ANSI_BOLD}$todo${ANSI_RESET}\n" >&2
   fi
   [ "$failure" -gt 0 ] && return 1
   return 0
+}
+
+clean() {
+  rm -f ${GWT_OUTDIR}/${GWT_PREFIX}{*.log,bailout}
 }

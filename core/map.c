@@ -25,19 +25,9 @@ Vector new_Vector()
   return v;
 }
 
-/*
-Vector new_Vector_fixed(const vtype len)
-{
-  Vector v = malloc(sizeof(struct Vector_));
-  v->cap = ((len / MAP_CAP) + 1) * MAP_CAP;
-  v->ptr = calloc(v->cap, sizeof(vtype));
-  v->len   = len;
-  return v;
-}
-*/
 void vector_append(Vector v, vtype data)
 {
-  if ((v->len + 1) > v->cap)
+  if(!(v->cap - v->len))
   {
     v->cap = (v->cap ? v->cap : MAP_CAP) * 2;
     v->ptr = realloc(v->ptr, v->cap * sizeof(vtype));
@@ -69,9 +59,7 @@ long int vector_find(Vector v, vtype data)
 
 void vector_set(Vector v, const vtype i, vtype arg)
 {
-  if(i >= v->len)
-    return;
-  v->ptr[i] = (vtype)arg;
+  v->ptr[i] = (i >= v->len) ? 0 : arg;
 }
 
 void vector_remove(Vector v, const vtype index)
@@ -85,7 +73,6 @@ void vector_remove(Vector v, const vtype index)
     return;
   }
 
-//  should be (v->len - 1);
   v->cap = (((v->len -1)/ MAP_CAP) + 1) * MAP_CAP;
   tmp = malloc(MAP_MAX * sizeof(vtype));
   for(i = 0; i < v->len; i++) {
@@ -94,8 +81,6 @@ void vector_remove(Vector v, const vtype index)
       j++;
     }
   }
-//  *v = *tmp;
-//  free(tmp);
   free(v->ptr);
   v->ptr = tmp;
   v->len--;
@@ -113,25 +98,14 @@ vtype vector_pop(Vector v)
 
 vtype vector_front(Vector v)
 {
-  if(!v->len)
-    return 0;
-  return (vtype)v->ptr[0];
+  return v->len ? v->ptr[0] : 0;
 }
 
 vtype vector_at(Vector v, const vtype i)
 {
-  if(i >= v->len)
-    return 0;
-  return (vtype)v->ptr[i];
+  return (i >= v->len) ? 0 :v->ptr[i];
 }
-/*
-vtype vector_addr(Vector v, const vtype i)
-{
-  if(i >= v->len)
-    return 0;
-  return (vtype)&v->ptr[i];
-}
-*/
+
 vtype vector_back(Vector v)
 {
   return (vtype)v->ptr[v->len - 1];
@@ -169,7 +143,7 @@ vtype map_get(Map map, vtype key)
   vtype i;
   for(i = 0; i < map->len; i++)
     if(map->key[i] == key)
-      return (vtype)map->ptr[i];
+      return map->ptr[i];
   return 0;
 }
 
@@ -179,14 +153,7 @@ vtype map_at(Map map, const vtype index)
     return 0;
   return map->ptr[index];
 }
-/*
-vtype map_key(Map map, const vtype index)
-{
-  if(index > map->len)
-    return 0;
-  return map->key[index];
-}
-*/
+
 void map_set(Map map, vtype key, vtype ptr)
 {
   vtype i;
@@ -202,27 +169,9 @@ void map_set(Map map, vtype key, vtype ptr)
     map->ptr = realloc(map->ptr, map->cap * sizeof(vtype));
     map->key = realloc(map->key, map->cap * sizeof(vtype));
   }
+  map->key[map->len] = key;
+  map->ptr[map->len] = ptr;
   map->len++;
-  /*
-  void* tmp = map->key;
-  tmp = realloc(map->key, map->len * sizeof(vtype));
-  if(!tmp)
-  	exit(2);
-  	map->key = tmp;
-  tmp = realloc(map->ptr, map->len * sizeof(vtype));
-  if(tmp)
-  	map->ptr = tmp;
-  */
-//if(map->len > 1) {
-
-
-//  map->key = realloc(map->key, map->len * sizeof(vtype));
-//  map->ptr = realloc(map->ptr, map->len * sizeof(vtype));
-
-
-//}
-  map->key[map->len - 1] = key;
-  map->ptr[map->len - 1] = ptr;
 }
 
 void map_remove(Map map, vtype key)
@@ -247,19 +196,7 @@ void map_commit(Map map, Map commit)
   for(i = 0; i < commit->len; i++)
     map_set(map, commit->key[i], commit->ptr[i]);
 }
-/*
-void map_rollback(Map map, void (*_free)(vtype arg))
-{
-//exit(2);
-//  vtype i;
-//    for(i = 0; i < map->len; i++)
-//        if(_free)
-//            free(map->ptr[i]);
-//    vector_clear(map->key);
-//    vector_clear(map->ptr);
-//  map->len = 0;
-}
-*/
+
 vtype map_size(Map map)
 {
   return map->len;
@@ -331,22 +268,10 @@ void scope_commit(Scope scope)
 {
   Map map = (Map)vector_front(scope->vector);
   map_commit(map, scope->commit_map);
-/*
-  scope->commit_map->ptr = realloc(map->ptr, MAP_CAP * sizeof(vtype));
-  scope->commit_map->key = realloc(map->key, MAP_CAP * sizeof(vtype));
-  scope->commit_map->len = 0;
-  scope->commit_map->cap = MAP_CAP;
-*/
-//  map_clean(scope->commit_map);
   free_Map(scope->commit_map);
   scope->commit_map = new_Map();
 }
-/*
-void scope_rollback(Scope scope, void (*_free)(vtype arg))
-{
-//  map_rollback(scope->commit_map, _free);
-}
-*/
+
 void scope_push(Scope scope)
 {
   vector_append(scope->vector, (vtype)new_Map());

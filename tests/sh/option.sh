@@ -3,6 +3,7 @@
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
+DRIVER=silent
 source tests/sh/common.sh
 
 run "$((n+3))" "remove " "-l1" "file1"&

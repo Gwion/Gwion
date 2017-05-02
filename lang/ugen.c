@@ -13,19 +13,16 @@ struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 
 m_bool base_tick(UGen u)
 {
-  m_uint i, size = vector_size(u->ugen);
   UGen ugen;
+  m_uint i, size = vector_size(u->ugen);
   if(!size) {
     u->out = 0;
     return 1;
   }
   ugen = (UGen)vector_at(u->ugen, 0);
   u->out = ugen->out;
-  /*  u->out = ugen ? ugen->out : 0;*/
   for(i = 1; i < size; i++) {
     ugen = (UGen)vector_at(u->ugen, i);
-    /*    if(!ugen)*/
-    /*      continue;*/
     switch(u->op) {
     case 1:
       u->out += ugen->out;
@@ -58,7 +55,7 @@ m_bool adc_tick(UGen u)
 {
   m_uint  i;
   m_float last = 0;
-  BBQ sp = (BBQ )u->ug;
+  BBQ sp = (BBQ)u->ug;
   for(i = 0; i < u->n_out; i++) {
     M_Object obj = u->channel[i];
 	obj->ugen->last = sp->in[i];
@@ -72,20 +69,7 @@ __inline void ref_compute(UGen u)
   u->tick(u);
   u->done = 1;
 }
-/*
-void channel_compute(UGen u)
-{
-  if(u->done)
-    return;
-  m_uint i;
-  u->in = 0;
-  for(i = 0; i < vector_size(u->ugen); i++)
-    u->in += ((UGen)vector_at(u->ugen, i))->out;
-  u->last = u->in;
-  u->done = 1;
-}
-*/
-// recursively compute ugen
+
 void ugen_compute(UGen u)
 {
   m_uint  i;
@@ -93,29 +77,27 @@ void ugen_compute(UGen u)
   if(!u || u->done)
     return;
   if(u->channel)
-    for(i = 0; i < u->n_out; i++)
-      ugen_compute(u->channel[i]->ugen);
-  else
+    for(i = u->n_out; --i;)
+      ugen_compute(u->channel[i-1]->ugen);
+  else {
     for(i = 0; i < vector_size(u->ugen); i++) {
       ugen = (UGen)vector_at(u->ugen, i);
-//      if(!ugen) // find a way to remove ugens
-//	      break;
       if(!ugen->done)
         ugen_compute(ugen);
     }
+  }
   if(u->ref) {
     u->tick(u);
-    for(i = 0; i < u->n_in; i++)
-      u->ref->channel[i]->ugen->tick(u->ref->channel[i]->ugen);
+    for(i = u->n_in; --i;)
+      u->ref->channel[i-1]->ugen->tick(u->ref->channel[i-1]->ugen);
     ref_compute(u->ref);
     return;
   }
   u->tick(u);
   if(u->channel) {
     m_float sum = 0;
-    /*    for(i = 0; i < u->n_out> u->n_in ? u->n_out : u->n_in; i++)*/
-    for(i = 0; i < u->n_out; i++) {
-      M_Object obj = u->channel[i];
+    for(i = u->n_out; --i;) {
+      M_Object obj = u->channel[i-1];
       sum += obj->ugen->out;
     }
     u->last = sum / u->n_out;
