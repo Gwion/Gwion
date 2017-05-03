@@ -1982,6 +1982,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   }
 
   str = S_name(member->xid);
+
   if(!strcmp(str, "this")) {
     if(base_static) {
       err_msg(TYPE_,  member->pos,

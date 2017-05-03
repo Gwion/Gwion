@@ -108,7 +108,7 @@ vtype vector_at(Vector v, const vtype i)
 
 vtype vector_back(Vector v)
 {
-  return (vtype)v->ptr[v->len - 1];
+  return v->ptr[v->len - 1];
 }
 
 vtype vector_size(Vector v)
