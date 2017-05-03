@@ -295,6 +295,8 @@ test_dir() {
   grep "\.sh" <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
   then
+    local old_async=$async
+    async=0;
     #		[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
     for file in "$1"/*.sh
     do
@@ -304,6 +306,7 @@ test_dir() {
       count=$(grep "\[test\] #" "$file" | cut -d '#' -f 3)
       n=$((n+count))
     done
+    async=$old_async
   fi
 }
 
@@ -356,10 +359,13 @@ do_test() {
         n_test=$((n_test + 1))
       elif [ "${arg: -3}" = ".sh" ]
       then
+        local old_async=$async
+        async=0
         bash "$arg" "$n_test"
         local c
         c=$(count_tests_sh "$arg")
         n_test=$((n_test + c))
+        async=$old_async
       fi
     elif [ -d "$arg" ]
     then

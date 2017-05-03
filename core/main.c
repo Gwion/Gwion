@@ -243,7 +243,8 @@ clean:
   free_Vector(rem);
   if(d)
     free_Driver(d, vm);
-  free_Map(scan_map);
+  if(scan_map)
+    free_Map(scan_map);
 
   set_nspc_vm(vm);
 #ifndef __linux__

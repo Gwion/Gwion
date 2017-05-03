@@ -87,9 +87,10 @@ void ugen_compute(UGen u)
     }
   }
   if(u->ref) {
-    u->tick(u);
-    for(i = u->n_in; --i;)
-      u->ref->channel[i-1]->ugen->tick(u->ref->channel[i-1]->ugen);
+    for(i = u->n_in + 1; --i;){
+	  ugen = u->ref->channel[i -1]->ugen;
+	  ugen->tick(ugen);
+    }
     ref_compute(u->ref);
     return;
   }
