@@ -137,7 +137,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     value = new_Value(env->context, type, the_class->name);
     value->owner = env->curr;
 if(value->owner != env->global_nspc)
-  vector_remove(env->context->new_class, vector_find(env->context->new_class, value));
+  vector_remove(env->context->new_class, vector_find(env->context->new_class, (vtype)value));
     value->is_const = 1;
     value->is_member = 0;
     value->checked = 1;

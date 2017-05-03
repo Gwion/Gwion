@@ -678,7 +678,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
         return ret_type;
       }
     }
-    err_msg(TYPE_, 0, "not match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
+    err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
     return NULL;
   }
   // check for arrays
@@ -704,7 +704,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
     strcat(ra, "[]");
-  err_msg(TYPE_, 0, "not match found for operator '%s' on types '%s%s' and '%s%s'",
+  err_msg(TYPE_, 0, "no match found for operator '%s' on types '%s%s' and '%s%s'",
           op2str(op), lhs->type->name, la, rhs->type->name, ra);
   return NULL;
 }
@@ -1982,7 +1982,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   }
 
   str = S_name(member->xid);
-
+// TODO: rewrite this
   if(!strcmp(str, "this")) {
     if(base_static) {
       err_msg(TYPE_,  member->pos,
@@ -1996,7 +1996,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
       return NULL;
     }
 */
-    return env->class_def;
+//    return env->class_def;
   }
 
   value = find_value(the_base, member->xid);
@@ -2092,7 +2092,9 @@ m_bool check_Func_Def(Env env, Func_Def f)
     // get parent
     parent = env->class_def->parent;
     while(parent && !parent_match) {
-      if((v = find_value(env->class_def->parent, f->name))) {
+
+     if((v = find_value(env->class_def->parent, f->name))) {
+/*
         // see if the target is a function
         if(isa(v->m_type, &t_function) < 0) {
           err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
@@ -2100,7 +2102,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
           err_msg(TYPE_, f->pos, "from super class '%s'...", v->owner_class->name);
           goto error;
         }
-
+*/
         // parent func
         parent_func = v->func_ref;
 

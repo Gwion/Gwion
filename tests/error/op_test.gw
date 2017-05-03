@@ -1,3 +1,9 @@
 // [contains] no match found for operator
- Object o;
-NULL +=> o;
+class C
+{
+
+}
+
+C c[1];
+C d[2][4];
+c => d;
