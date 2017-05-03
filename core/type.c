@@ -1989,12 +1989,13 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
               "keyword 'this' must be associated with object instance...");
       return NULL;
     }
-
+/*
     if(env->func && !env->func->is_member) {
       err_msg(TYPE_, member->pos,
               "keyword 'this' cannot be used inside static functions...");
       return NULL;
     }
+*/
     return env->class_def;
   }
 
