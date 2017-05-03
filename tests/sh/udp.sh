@@ -30,4 +30,5 @@ sleep .1
 ./gwion -l1 &> /dev/null
 sleep .1
 ./gwion -q &> /dev/null
+echo here >&2
 #wait

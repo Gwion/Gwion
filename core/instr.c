@@ -836,8 +836,7 @@ INSTR(Dot_Member_Func)
 #endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)shred->reg;
-  if(!obj)
-    Except(shred);
+//  if(!obj) Except(shred);
   *(Func*)shred->reg = (Func)vector_at(obj->vtable, instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
@@ -1245,16 +1244,15 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   return base;
 
 out_of_memory:
-  fprintf(stderr, "[chuck](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
+  fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
   goto error;                                                                 // LCOV_EXCL_LINE
 
 negative_array_size:
-  fprintf(stderr, "[chuck](VM): NegativeArraySize: while allocating arrays...\n" );
+  fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n" );
   goto error;
 
 error:
-  if(base)
-    release(base, shred);
+//  if(base) release(base, shred);
   return NULL;
 }
 
@@ -1440,8 +1438,7 @@ INSTR(Instr_Array_Access_Multi)
     if(i < 0 || i >= m_vector_size(obj->d.array))
       goto array_out_of_bound;
     obj = (M_Object)i_vector_at(obj->d.array, i);
-    if(!obj)
-      Except(shred);
+//    if(!obj) Except(shred); // this probably should not be commented
   }
   i = *(m_int*)(shred->reg + SZ_INT * (j + 1));
   if(i < 0 || i >= m_vector_size(obj->d.array))
