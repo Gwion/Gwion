@@ -312,7 +312,7 @@ static void mkdoc_func(Doc* doc, Func f)
     fprintf(doc->data, "['%s', ['%s', ['../%s.html#%s', 1, ' \\[argument\\%s in <b>%s</b> <em>%s</em> '] ]],\n",
             v->name, v->name, file, a_full, "]", v->owner->name, str);
     if(v->doc)
-      free(str);
+      free(str); // LCOV_EXCL_LINE
     arg = arg->next;
   }
   fprintf(doc->html, "</ol></blockquote></li></p>\n\n");
