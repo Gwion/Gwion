@@ -619,13 +619,13 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     Value v;
     char name[1024];
     Type ret_type;
-
+/*
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
 //      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
       return NULL;
     }
-
+*/
     if(binary->rhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
@@ -650,6 +650,9 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       v = find_value(binary->lhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+/*    } else if(binary->lhs->exp_type == Decl_Expression_type) {
+      v = binary->lhs->d.exp_decl->list->self->value;
+      f2 = v->m_type->func; */
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs).");
       return NULL;
