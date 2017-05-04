@@ -1,0 +1,6 @@
+// [contains] unhandled function pointer assignement (rhs).
+typedef void (Test)();
+function void test(){};
+// no ptr array for now.
+Test t[1];
+test @=> t[0];

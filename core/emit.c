@@ -617,8 +617,11 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
           instr->m_val2 = v->offset;
         }
         break;
-        default:
-          return -1;
+        case Decl_Expression_type:
+          v = binary->rhs->d.exp_decl->list->self->value;
+          instr->m_val2 = v->offset;
+          /*instr->m_val = 1;*/
+          break;
     }
     return 1;
   }
@@ -2377,7 +2380,6 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     emit->env->class_def->has_destructor = 1;
   } else if (func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
-
   // add reference
   add_ref(func->obj);
   emit->env->func = NULL;

@@ -688,8 +688,6 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
     return check_Func_Call1(env, rhs, lhs, &binary->func, binary->pos);
-  if(isa(binary->rhs->type, &t_object) > 0 && isa(binary->lhs->type, &t_null) > 0 && binary->op == op_at_chuck)
-    return lhs->type;
   if(isa(binary->lhs->type, &t_varobj) > 0 && binary->op == op_at_chuck)
     return rhs->type;
   if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
@@ -1002,15 +1000,12 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
-      if(!value)
-        value = v;
+      /*if(!value) value = v;*/
     } else
       value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
-    if(!value)
-      continue;
+    /*if(!value) continue;*/
     base = value->func_ref->def;
-    if(!base)
-      continue;
+    /*if(!base) continue;*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary->d.var),
                                 base->arg_list, base->code, func->pos);
@@ -1031,6 +1026,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
 
       if(list->next && !base_t->next) {
 //        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
+
+namespace_pop_type(env->curr);
         goto next;
       }
       base_t = base_t->next;
@@ -1066,11 +1063,12 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       return m_func;
     }
 next:
-    namespace_pop_type(env->curr);
-    if(def->func) {
-      free_Func(def->func);
-    }
-    free_Func_Def(def);
+    /*if(!env->class_def) {*/
+    /*if(def->func)*/
+    /*vector_remove(env->context->new_funcs, vector_find(env->context->new_funcs, (vtype)def->func));*/
+    /*free_Func_Def(def);*/
+    /*}*/
+;
   }
   if(v->owner_class) {
     env->class_def = (Type)vector_pop(env->class_stack);
@@ -1274,7 +1272,6 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
                                    exp_func->func, exp_func->args);
     if(!ret) {
       err_msg(TYPE_, exp_func->pos, "arguments do not match for template call");
-      free_Type_List(exp_func->types);
       return NULL;
     }
     exp_func->m_func = ret;

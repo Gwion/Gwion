@@ -95,7 +95,6 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)
     }
     if(out->child) {
       for(i = 0; i < size; i++) {
-        printf("fiund child!\n");
         VM_Shred child = (VM_Shred)vector_front(out->child);
         child->prev = NULL;
         child->next = NULL;

@@ -1,0 +1,12 @@
+// [contains] arguments do not match for template call
+class C
+{
+	template <{a}>
+	function void test(float f) {}
+	template <{a}>
+	function void test() {}
+}
+C c;
+//c.test<{int}>();
+c.test<{int}>(2.3);
+c.test<{int}>(2.3, 2.3);

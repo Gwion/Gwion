@@ -93,7 +93,8 @@ void free_VM_Shred(VM_Shred shred)
   else
     free(shred->base);
   free(shred->_reg);
-  free_VM_Code(shred->code);
+  if(!strstr(shred->name, "spork~"))
+    free_VM_Code(shred->code);
   free(shred->name);
   free(shred->filename);
   free_Vector(shred->gc1);

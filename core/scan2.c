@@ -709,7 +709,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   memset(tmp, 0, 256);
   m_uint len = strlen(func_name) + strlen("0") + strlen(env->curr->name) + 3;
 
-  if(overload) {
+  if(overload && !f->is_template) {
     len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
     snprintf(tmp, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
@@ -841,6 +841,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     str = strsep(&str, "@");
     ret = name2op(str);
     free(str);
+    if(env->class_def)f->func->is_member = 1; // 04/05/17
 /*
     if(ret == -1) {
       err_msg(SCAN2_, f->pos, "Invalid operator.");
