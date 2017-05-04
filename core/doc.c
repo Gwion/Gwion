@@ -321,7 +321,7 @@ static void mkdoc_func(Doc* doc, Func f)
           name, name, file, full, "]", f->value_ref->owner->name, str);
 
   if(f->doc)
-    free(str);
+    free(str); // LCOV_EXCL_LINE
   free(ufile);
   free(name);
   free(full);
@@ -348,11 +348,11 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
       continue;
     else if(isa(value->m_type, &t_class) < 0) {
       if(!value->is_member)
-        vector_append(s_value, (vtype)value);
+        vector_append(s_value, (vtype)value); // LCOV_EXCL_LINE
       else
         vector_append(m_value, (vtype)value);
     } else
-      vector_append(type, (vtype)value);
+      vector_append(type, (vtype)value); // LCOV_EXCL_LINE
   }
   free_Vector(v);
 
@@ -367,7 +367,7 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
   free_Vector(v);
 
   for(i = 0; i < vector_size(type); i++)
-    mkadt_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
+    mkadt_type(doc, ((Value)vector_at(type, i))->m_type->actual_type); // LCOV_EXCL_LINE
   free_Vector(type);
 
   for(i = 0; i < vector_size(m_value); i++)
@@ -375,7 +375,7 @@ static void mkadt_nspc(Textadept* doc, NameSpace nspc)
   free_Vector(m_value);
 
   for(i = 0; i < vector_size(s_value); i++)
-    mkadt_value(doc, (Value)vector_at(s_value, i));
+    mkadt_value(doc, (Value)vector_at(s_value, i)); // LCOV_EXCL_LINE
   free_Vector(s_value);
 
   for(i = 0; i < vector_size(m_func); i++)
@@ -403,16 +403,13 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
 
     if(value->func_ref)
       continue;
-    if(!value->m_type) {
-      continue;
-    }
     if(isa(value->m_type, &t_class) < 0) {
       if(!value->is_member)
-        vector_append(s_value, (vtype)value);
+        vector_append(s_value, (vtype)value); // LCOV_EXCL_LINE
       else
         vector_append(m_value, (vtype)value);
     } else
-      vector_append(type, (vtype)value);
+      vector_append(type, (vtype)value); // LCOV_EXCL_LINE
   }
   free_Vector(v);
 
@@ -428,7 +425,7 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
 
   fprintf(doc->html, "<div class=\"section\"><h3>Types</h3><blockquote>\n");
   for(i = 0; i < vector_size(type); i++)
-    mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type);
+    mkdoc_type(doc, ((Value)vector_at(type, i))->m_type->actual_type); // LCOV_EXCL_LINE
   free_Vector(type);
   fprintf(doc->html, "</blockquote></div>\n");
 
@@ -440,7 +437,7 @@ static void mkdoc_nspc(Doc* doc, NameSpace nspc)
 
   fprintf(doc->html, "<div class=\"section\"><h3>Static Variables</h3><blockquote>\n");
   for(i = 0; i < vector_size(s_value); i++)
-    mkdoc_value(doc, (Value)vector_at(s_value, i));
+    mkdoc_value(doc, (Value)vector_at(s_value, i)); // LCOV_EXCL_LINE
   free_Vector(s_value);
   fprintf(doc->html, "</blockquote></div>\n");
 
@@ -501,8 +498,8 @@ void mkadt_context(Env env, m_str str)
     mkadt_type(doc, (Type)vector_at(doc->ctx->new_types, i));
   for(i = 0; i < vector_size(doc->ctx->new_values); i++)
     mkadt_value(doc, ((Value)vector_at(doc->ctx->new_values, i)));
-  for(i = 0; i < vector_size(doc->ctx->new_funcs); i++)
-    mkadt_func(doc, ((Func)vector_at(doc->ctx->new_funcs, i)));
+  for(i = 0; i < vector_size(doc->ctx->new_funcs); i++) // LCOV_EXCL_LINE
+    mkadt_func(doc, ((Func)vector_at(doc->ctx->new_funcs, i))); // LCOV_EXCL_LINE
   free_Textadept(doc);
 }
 
@@ -578,7 +575,7 @@ void mkdoc_context(Env env, m_str str)
 
   fprintf(doc->html, "<h2>Global Functions</h2><blockquote>\n");
   for(i = 0; i < vector_size(doc->ctx->new_funcs); i++)
-    mkdoc_func(doc, ((Func)vector_at(doc->ctx->new_funcs, i)));
+    mkdoc_func(doc, ((Func)vector_at(doc->ctx->new_funcs, i))); // LCOV_EXCL_LINE
   fprintf(doc->html, "</blockquote>\n");
 
   fprintf(doc->html, "</section>\n");
