@@ -1,0 +1,9 @@
+class C
+{
+	operator void chuck(C c, int i){}
+//	this => this;
+//function void test_op(C c){ this => c; }
+	this => int i;
+}
+C c;
+//c.test_op(c);
