@@ -311,9 +311,9 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
     } else if(exp_func->func->exp_type == Dot_Member_type) {
       // see type.c
       return 1;
-    } else {
+/*    } else {
       err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
-      return -1;
+      return -1; */
     }
   }
   return scan2_Func_Call1(env, exp_func->func, exp_func->args, exp_func->m_func);

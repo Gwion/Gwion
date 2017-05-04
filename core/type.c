@@ -1125,15 +1125,14 @@ next:
   // look for a match
   func = find_func_match(up, args);
   if(!func) {
-    Value value = NULL;
+    Value value;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
         value = namespace_lookup_value(env->curr, exp_func->d.exp_primary->d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
         value = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
-
-      if(!value) {
-        err_msg(TYPE_, exp_func->pos, "function is template. not enough argument for automatic type guess. this message is incorrect");
+      else {
+        err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
         return NULL;
       }
 
@@ -1179,9 +1178,8 @@ next:
         current->base = value->func_ref->def->types;
         return ret_type;
       }
-      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n\
-          please provide template types. eg: '<type1, type2, ...>'");
-      return NULL;
+      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\nplease provide template types. eg: '<type1, type2, ...>'"); // LCOV_EXCL_LINE
+      return NULL; //LCOV_EXCL_LINE
     }
     m_uint i;
     err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");

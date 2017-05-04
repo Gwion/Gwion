@@ -1,5 +1,5 @@
-// [contains] template func call
-template<{a, b}>
-function void test(){};
+// [contains] unhandled expression type '8' in template call
+template<{a}>
+function void test(){}
 
-(test())<{int, float}>();
+(maybe ? test : test)();

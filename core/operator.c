@@ -215,10 +215,9 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
 #endif
   Type t, l = lhs, r = lhs;
   NameSpace nspc = env->curr;
-  M_Operator* mo;
   while(nspc) {
     Vector v = (Vector)map_get(nspc->operator, (vtype)op);
-
+    M_Operator* mo;
     if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
     l = l ? l->parent : NULL;
