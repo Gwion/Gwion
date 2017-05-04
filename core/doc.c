@@ -62,9 +62,9 @@ static Textadept* new_Textadept(Env env, m_str str)
   doc->env = env;
   doc->ctx = find_context(env, str);
   if(!doc->ctx) {
-    free(doc);
+    free(doc); // LCOV_EXCL_START
     return NULL;
-  }
+  } // LCOV_EXCL_STOP
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   len = strlen(name);
@@ -74,32 +74,32 @@ static Textadept* new_Textadept(Env env, m_str str)
   strncat(c, name, len);
   strncat(c, ".api", 4);
   if(!(doc->api = fopen(c, "w"))) {
-    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c); // LCOV_EXCL_START
 	free(name);
 	free(doc);
 	return NULL;
-  }
+  } // LCOV_EXCL_STOP
   strncpy(c, GWION_TAG_DIR, 1024 - len - 5);
   strncat(c, name, len);
   strncat(c, ".tag", 4);
   if(!(doc->tag = fopen(c, "w"))) {
-    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c); // LCOV_EXCL_START
 	free(name);
 	free(doc->api);
 	free(doc);
 	return NULL;
-  }
+  } // LCOV_EXCL_STOP
   strncpy(c, GWION_TOK_DIR, 1024 - len - 4);
   strncat(c, name, len);
   strncat(c, ".tok", 4);
   if(!(doc->tok = fopen(c, "w"))) {
-    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c); // LCOV_EXCL_START
 	free(name);
 	free(doc->api);
 	free(doc->tag);
 	free(doc);
 	return NULL;
-  }
+  } // LCOV_EXCL_STOP
   free(name);
   return doc;
 }
@@ -120,9 +120,9 @@ static Doc* new_Doc(Env env, m_str str)
   doc->env = env;
   doc->ctx = find_context(env, str);
   if(!doc->ctx) {
-    free(doc);
+    free(doc);  // LCOV_EXCL_START
     return NULL;
-  }
+  } // LCOV_EXCL_STOP
   name = doc->ctx != env->global_context ?
          usable(doc->ctx->filename) : strdup(env->global_nspc->name);
   memset(c, 0, 1024);
@@ -131,23 +131,23 @@ static Doc* new_Doc(Env env, m_str str)
   strncat(c, name, 1022 - strlen(GWION_DOC_DIR));
   strncat(c, ".html", 1022 - strlen(c));
   if(!(doc->html = fopen(c, "w"))) {
-    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);
+    err_msg(INSTR_, 0, "can't open '%s'. aborting", c);  // LCOV_EXCL_START
     free(name);
     free(doc);
     return NULL;
-  }
+  }  // LCOV_EXCL_STOP
   strncpy(c, GWION_DOC_DIR, 1023);
   strncat(c, "/", 1);
   strncat(c, "dat/", 1022 - strlen(c));
   strncat(c, name, 1022 - strlen(c));
   strncat(c, ".js", 1022 - strlen(c));
   if(!(doc->data = fopen(c, "w"))) {
+    err_msg(INSTR_, 0, "can't open '%s' while makeing docs. aborting", c); // LCOV_EXCL_START
     free(name);
     fclose(doc->html);
     free(doc);
-    err_msg(INSTR_, 0, "can't open '%s' while makeing docs. aborting", c);
     return NULL;
-  }
+  }  // LCOV_EXCL_STOP
   free(name);
   return doc;
 }

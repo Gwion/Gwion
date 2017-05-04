@@ -124,7 +124,7 @@ function print_mod_func(name, mod)
 	print("TICK("..name.."_tick)\n{")
 	print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
 	if(nmandatory > 0) then
-		print("\tif(!ug->is_init)\n\t{\n\t\tu->out = 0;\n\t\treturn 1;\n\t}")
+		print("\tif(!ug->is_init)\n\t{ // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn 1;\n\t} // LCOV_EXCL_STOP")
 	end
 	if mod.ninputs == 1 and mod.noutputs == 1 then
 		print("\tbase_tick(u);");
@@ -218,26 +218,16 @@ function print_mod_func(name, mod)
 			end
 		end
 		local tbl = mod.params.mandatory
-		print("\tif(sp_"..name.."_create(&ug->osc) == SP_NOT_OK) {")
+		print("\tif(sp_"..name.."_create(&ug->osc) == SP_NOT_OK || sp_"..name.."_init(ug->sp, ug->osc, "..args..") == SP_NOT_OK) {")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do
 				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree("..v.name..");")
+					print("\t\tfree("..v.name.."); // LCOV_EXCL_LINE")
 				end
 			end
 		end
-		print("\t\tExcept(shred)\n\t}")
-		print("\tif(sp_"..name.."_init(ug->sp, ug->osc, "..args..") == SP_NOT_OK) {")
-		local tbl = mod.params.mandatory
-		if tbl then
-			for _, v in pairs(tbl) do
-				if string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\t\tfree("..v.name..");")
-				end
-			end
-		end
-		print("\t\tExcept(shred)\n\t}")
+		print("\t\tExcept(shred) // LCOV_EXCL_LINE\n\t}")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do
