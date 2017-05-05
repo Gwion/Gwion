@@ -164,7 +164,6 @@ void vm_add_shred(VM* vm, VM_Shred shred)
 {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
-//    shred->xid = vector_size(vm->shred);
     vector_append(vm->shred, (vtype)shred);
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
@@ -198,17 +197,14 @@ void vm_run(VM* vm)
 #endif
         instr->execute(vm, shred, instr);
 #ifdef DEBUG_STACK
-      /*  else */
       debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid, shred->mem_index, shred->reg_index);
 #endif
 #ifdef DEBUG_VM
-      /*  else */
       debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc, shred->next_pc, vector_size(shred->code->instr));
 #endif
       if(shred->is_done) {
         if(shreduler_remove(vm->shreduler, shred, 1) < 0) {
           goto next;
-//          continue;
         }
       }
     }
@@ -222,10 +218,10 @@ next:
     UGen u = (UGen)vector_at(vm->ugen, i);
     u->done = 0;
     if(u->channel) {
-      for(int j = 0; j < u->n_in; j++)
-        u->channel[j]->ugen->done = 0;
-      for(int j = 0; j < u->n_out; j++)
-        u->channel[j]->ugen->done = 0;
+      m_uint j;
+      m_uint max = u->n_out >= u->n_in ? u->n_out : u->n_in;
+      for(j = max; --j;)
+        u->channel[j-1]->ugen->done = 0;
     }
   }
   ugen_compute(vm->blackhole->ugen);

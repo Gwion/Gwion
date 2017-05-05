@@ -74,7 +74,7 @@ static m_bool fft_tick(UGen u)
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
   if(u->trig) {
-    ugen_compute(u->trig->ugen);
+    base_tick(u->trig->ugen);
     if(u->trig->ugen->out) {  // if trigged, compute fft
       m_float* smp = sp_buffer_get(ana->buf);
     /*    if(ana->win)*/                  // do windowing
