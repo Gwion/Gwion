@@ -82,7 +82,7 @@ static INSTR(or)
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(eq)
+static INSTR(f_eq)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(float) '==' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
@@ -607,7 +607,7 @@ m_bool import_float(Env env)
 // logical
   CHECK_BB(add_binary_op(env, op_and,           &t_float, &t_float, &t_int, and,         0))
   CHECK_BB(add_binary_op(env, op_or,            &t_float, &t_float, &t_int, or,          0))
-  CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_float, &t_float, &t_int, eq,          0))
+  CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_float, &t_float, &t_int, f_eq,          0))
   CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_float, &t_float, &t_int, neq,         0))
   CHECK_BB(add_binary_op(env, op_gt, 			 	    &t_float, &t_float, &t_int, gt,          0))
   CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_float, &t_float, &t_int, ge,          0))
