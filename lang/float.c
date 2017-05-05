@@ -65,10 +65,10 @@ static INSTR(divide)
 static INSTR(and)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '&&' %f %f", *(m_float*)(shred->reg - SZ_FLOAT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "(float) '&&' %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg && *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg && *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -78,7 +78,7 @@ static INSTR(or)
   debug_msg("instr", "(float) '||' %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg || *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg || *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -98,7 +98,7 @@ static INSTR(neq)
   debug_msg("instr", "(float) '!=' %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg != *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)shred->reg = (*(m_float*)shred->reg != *(m_float*)(shred->reg + SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -178,7 +178,7 @@ static INSTR(r_assign)
 static INSTR(r_plus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '+=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT + SZ_INT), **(m_float**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '+=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_float**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) += (*(m_float*)shred->reg));
@@ -188,7 +188,7 @@ static INSTR(r_plus)
 static INSTR(r_minus)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '-=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT + SZ_INT), **(m_float**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '-=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_float**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) -= (*(m_float*)shred->reg));
@@ -198,7 +198,7 @@ static INSTR(r_minus)
 static INSTR(r_times)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '*=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT + SZ_INT), **(m_float**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '*=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_float**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) *= (*(m_float*)shred->reg));
@@ -208,7 +208,7 @@ static INSTR(r_times)
 static INSTR(r_divide)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '/=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT + SZ_INT), **(m_float**)(shred->reg - SZ_INT));
+  debug_msg("instr", "(float) '/=>' %f %f", *(m_float*)(shred->reg - SZ_FLOAT - SZ_INT), **(m_float**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) /= (*(m_float*)shred->reg));
@@ -218,7 +218,7 @@ static INSTR(r_divide)
 INSTR(Time_Advance)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT -SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_FLOAT * 2);
   shred->wake_time += *(m_float*)shred->reg;
