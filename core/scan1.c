@@ -5,7 +5,7 @@
 extern void free_Expression(Expression exp);
 static m_bool scan1_Expression(Env env, Expression exp);
 static m_bool scan1_Stmt_List(Env env, Stmt_List list);
-static m_bool scan1_Stmt(Env env, Stmt* stmt);
+static m_bool scan1_Stmt(Env env, Stmt stmt);
 static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr);
 
 m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
@@ -334,7 +334,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
   return 1;
 }
 
-static m_bool scan1_Stmt(Env env, Stmt* stmt)
+static m_bool scan1_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "stmt");

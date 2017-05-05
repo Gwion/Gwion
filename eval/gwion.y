@@ -60,7 +60,7 @@ static m_str get_arg_doc(void* data)
   Type_Decl* type_decl;
   Expression   exp;
   Func_Ptr* func_ptr;
-  Stmt* stmt;
+  Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
   Decl_List decl_list; // for union

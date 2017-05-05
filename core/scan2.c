@@ -7,7 +7,7 @@
 m_bool scan2_Func_Def(Env env, Func_Def f);
 static m_bool scan2_Expression(Env env, Expression exp);
 static m_bool scan2_Stmt_List(Env env, Stmt_List list);
-static m_bool scan2_Stmt(Env env, Stmt* stmt);
+static m_bool scan2_Stmt(Env env, Stmt stmt);
 
 m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
 {
@@ -530,7 +530,7 @@ static m_bool scan2_Stmt_Enum(Env env, Stmt_Enum stmt)
   return 1;
 }
 
-static m_bool scan2_Stmt(Env env, Stmt* stmt)
+static m_bool scan2_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Stmt");

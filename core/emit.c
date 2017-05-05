@@ -10,7 +10,7 @@ static m_str emit_filename;
 void free_Expression(Expression a); // absyn.h
 
 static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
-static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop);
+static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop);
 static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member);
 static m_bool emit_Stmt_List(Emitter emit, Stmt_List list);
 /* static */ m_bool emit_Func_Call1(Emitter emit, Func func, Type type, int pos);
@@ -1868,7 +1868,7 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   return 1;
 }
 
-static m_bool emit_Stmt(Emitter emit, Stmt* stmt, m_bool pop)
+static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "Stmt (pop: %s)", pop ? "yes" : "no");

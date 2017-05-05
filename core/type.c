@@ -21,7 +21,7 @@ m_bool scan2_Ast(Env, Ast);
 
 m_bool check_Func_Def(Env env, Func_Def f);
 static Type check_Expression(Env env, Expression exp);
-static m_bool check_Stmt(Env env, Stmt* stmt);
+static m_bool check_Stmt(Env env, Stmt stmt);
 static Type check_Dot_Member(Env env, Dot_Member* member);
 static m_bool check_Stmt_List(Env env, Stmt_List list);
 /* static */ Type check_Func_Call1(Env env, Expression exp_func, Expression args, Func *m_func, int pos);
@@ -1835,7 +1835,7 @@ static m_bool check_Goto_Label(Env env, Stmt_Goto_Label stmt)
   return 1;
 }
 
-static m_bool check_Stmt(Env env, Stmt* stmt)
+static m_bool check_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_TYPE
   debug_msg("check", "stmt");

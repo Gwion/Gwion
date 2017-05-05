@@ -29,7 +29,7 @@ static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
   return 1;
 }
 
-static m_bool scan0_Stmt(Env env, Stmt* stmt)
+static m_bool scan0_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_SCAN0
   debug_msg("scan1", "stmt");
