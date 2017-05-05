@@ -1855,13 +1855,13 @@ static m_bool check_Stmt(Env env, Stmt stmt)
     env->class_scope--;
     break;
   case ae_stmt_return:
-    ret = check_Return(env, stmt->d.stmt_return);
+    ret = check_Return(env, &stmt->d.stmt_return);
     break;
   case ae_stmt_break:
-    ret = check_Break(env, stmt->d.stmt_break);
+    ret = check_Break(env, &stmt->d.stmt_break);
     break;
   case ae_stmt_continue:
-    ret = check_Continue(env, stmt->d.stmt_continue);
+    ret = check_Continue(env, &stmt->d.stmt_continue);
     break;
   case ae_stmt_if:
     env->class_scope++;
@@ -1873,14 +1873,14 @@ static m_bool check_Stmt(Env env, Stmt stmt)
   case ae_stmt_while:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_While(env, stmt->d.stmt_while);
+    ret = check_While(env, &stmt->d.stmt_while);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = check_Until(env, stmt->d.stmt_until);
+    ret = check_Until(env, &stmt->d.stmt_until);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -1906,7 +1906,7 @@ static m_bool check_Stmt(Env env, Stmt stmt)
     env->class_scope--;
     break;
   case ae_stmt_case:
-    ret = check_Case(env, stmt->d.stmt_case);
+    ret = check_Case(env, &stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
     ret = check_Enum(env, stmt->d.stmt_enum);
@@ -1915,7 +1915,7 @@ static m_bool check_Stmt(Env env, Stmt stmt)
     ret = check_Goto_Label(env, stmt->d.stmt_gotolabel);
     break;
   case ae_stmt_funcptr:
-    ret = check_Func_Ptr(env, stmt->d.stmt_funcptr);
+    ret = check_Func_Ptr(env, &stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
     l = stmt->d.stmt_union->l;

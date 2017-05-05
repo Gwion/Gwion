@@ -16,8 +16,10 @@ killall gwion
 wait
 
 #run "$n" "main loop" "examples/sine.gw" "file"&
-./gwion -d silent examples/sine.gw &> /dev/null &
+./gwion -d silent examples/sine.gw &> /dev/null & # crashes for now
+#./gwion -d silent &> /dev/null &
 sleep .1
+#./gwion + examples/sine.gw &> /dev/null
 ./gwion + examples/sine.gw &> /dev/null
 #run "$n" "add file (w/ '+')" "+ examples/sine.gw" "file1"
 sleep .1

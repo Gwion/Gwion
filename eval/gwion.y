@@ -59,7 +59,7 @@ static m_str get_arg_doc(void* data)
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Expression   exp;
-  Func_Ptr* func_ptr;
+  Func_Ptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;

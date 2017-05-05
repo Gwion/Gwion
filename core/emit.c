@@ -1914,28 +1914,28 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
     ret = emit_If(emit, stmt->d.stmt_if);
     break;
   case ae_stmt_return:
-    ret = emit_Return(emit, stmt->d.stmt_return);
+    ret = emit_Return(emit, &stmt->d.stmt_return);
     break;
 
   case ae_stmt_break:
-    ret = emit_Break(emit, stmt->d.stmt_break);
+    ret = emit_Break(emit, &stmt->d.stmt_break);
     break;
 
   case ae_stmt_continue:
-    ret = emit_Continue(emit, stmt->d.stmt_continue);
+    ret = emit_Continue(emit, &stmt->d.stmt_continue);
     break;
 
   case ae_stmt_while:
-    if (stmt->d.stmt_while->is_do)
-      ret = emit_Do_While(emit, stmt->d.stmt_while);
+    if (stmt->d.stmt_while.is_do)
+      ret = emit_Do_While(emit, &stmt->d.stmt_while);
     else
-      ret = emit_While(emit, stmt->d.stmt_while);
+      ret = emit_While(emit, &stmt->d.stmt_while);
     break;
   case ae_stmt_until:
-    if (stmt->d.stmt_until->is_do)
-      ret = emit_Do_Until(emit, stmt->d.stmt_until);
+    if (stmt->d.stmt_until.is_do)
+      ret = emit_Do_Until(emit, &stmt->d.stmt_until);
     else
-      ret = emit_Until(emit, stmt->d.stmt_until);
+      ret = emit_Until(emit, &stmt->d.stmt_until);
     break;
   case ae_stmt_for:
     ret = emit_For(emit, stmt->d.stmt_for);
@@ -1947,7 +1947,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
     ret = emit_Goto_Label(emit, stmt->d.stmt_gotolabel);
     break;
   case ae_stmt_case:
-    ret = emit_Case(emit, stmt->d.stmt_case);
+    ret = emit_Case(emit, &stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
     ret = emit_Enum(emit, stmt->d.stmt_enum);
@@ -1956,7 +1956,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
     ret = emit_Switch(emit, stmt->d.stmt_switch);
     break;
   case ae_stmt_funcptr:
-    ret = emit_Func_Ptr(emit, stmt->d.stmt_funcptr);
+    ret = emit_Func_Ptr(emit, &stmt->d.stmt_funcptr);
     break;
   case ae_stmt_union:
     l = stmt->d.stmt_union->l;

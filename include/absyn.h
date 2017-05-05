@@ -235,18 +235,19 @@ typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_ty
 typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
 typedef struct Stmt_            *Stmt;
 
+// add Stmt_Exp
 typedef struct Stmt_List_       * Stmt_List;
 typedef struct Stmt_Code_       * Stmt_Code;
-typedef struct Stmt_Return_     * Stmt_Return;
-typedef struct Stmt_Continue_   * Stmt_Continue;
-typedef struct Stmt_Break_      * Stmt_Break;
-typedef struct Stmt_While_      * Stmt_While;
-typedef struct Stmt_Until_      * Stmt_Until;
+typedef struct Stmt_Exp_        * Stmt_Return;
+typedef struct Stmt_Basic_      * Stmt_Continue;
+typedef struct Stmt_Basic_      * Stmt_Break;
+typedef struct Stmt_Flow_       * Stmt_While;
+typedef struct Stmt_Flow_       * Stmt_Until;
 typedef struct Stmt_For_        * Stmt_For;
 typedef struct Stmt_Loop_       * Stmt_Loop;
 typedef struct Stmt_If_         * Stmt_If;
 typedef struct Stmt_Switch_     * Stmt_Switch;
-typedef struct Stmt_Case_       * Stmt_Case;
+typedef struct Stmt_Exp_        * Stmt_Case;
 typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
 typedef struct Stmt_Enum_       * Stmt_Enum;
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
@@ -285,25 +286,44 @@ typedef struct {
 
 Union* new_Union(Decl_List l);
 
+struct Stmt_Basic_ {
+  int pos;
+  Stmt self;
+};
+struct Stmt_Exp_ {
+  Expression val;
+  int pos;
+  Stmt self;
+};
+
+struct Stmt_Flow_ {
+  int is_do;
+  Expression cond;
+  Stmt body;
+  int pos;
+  Stmt self;
+};
+
+
 struct Stmt_{
   ae_Stmt_Type type;
   union {
-    Expression       stmt_exp;
-    Stmt_Code        stmt_code;
-    Stmt_While       stmt_while;
-    Stmt_Until       stmt_until;
-    Stmt_Loop        stmt_loop;
-    Stmt_For         stmt_for;
-    Stmt_If          stmt_if;
-    Stmt_Break       stmt_break;
-    Stmt_Continue    stmt_continue;
-    Stmt_Return      stmt_return;
-    Stmt_Goto_Label  stmt_gotolabel;
-    Stmt_Switch      stmt_switch;
-    Stmt_Case        stmt_case;
-    Stmt_Enum        stmt_enum;
-    Func_Ptr*        stmt_funcptr;
-    Union*           stmt_union;
+    Expression         stmt_exp;
+    Stmt_Code          stmt_code;
+    struct Stmt_Flow_  stmt_while;
+    struct Stmt_Flow_  stmt_until;
+    Stmt_Loop          stmt_loop;
+    Stmt_For           stmt_for;
+    Stmt_If            stmt_if;
+    struct Stmt_Basic_ stmt_break;
+    struct Stmt_Basic_ stmt_continue;
+    struct Stmt_Exp_   stmt_return;
+    Stmt_Goto_Label    stmt_gotolabel;
+    Stmt_Switch        stmt_switch;
+    struct Stmt_Exp_   stmt_case;
+    Stmt_Enum          stmt_enum;
+    Func_Ptr           stmt_funcptr;
+    Union*             stmt_union;
   } d;
   int pos;
 };
@@ -364,38 +384,6 @@ struct Stmt_Code_ {
   int pos;
   Stmt self;
 };
-
-struct Stmt_Return_ {
-  Expression val;
-  int pos;
-  Stmt self;
-};
-
-struct Stmt_Continue_ {
-  int pos;
-  Stmt self;
-};
-
-struct Stmt_Break_ {
-  int pos;
-  Stmt self;
-};
-
-struct Stmt_While_ {
-  int is_do;
-  Expression cond;
-  Stmt body;
-  int pos;
-  Stmt self;
-};
-struct Stmt_Until_ {
-  int is_do;
-  Expression cond;
-  Stmt body;
-  int pos;
-  Stmt self;
-};
-
 struct Stmt_For_ {
   Stmt c1;
   Stmt c2;
@@ -404,7 +392,6 @@ struct Stmt_For_ {
   int pos;
   Stmt self;
 };
-
 struct Stmt_Loop_ {
   Expression cond;
   Stmt body;
@@ -428,20 +415,12 @@ struct Stmt_Goto_Label_ {
   int pos;
   Stmt self;
 };
-
 struct Stmt_Switch_ {
   Expression val;
   Stmt stmt;
   int pos;
   Stmt self;
 };
-
-struct  Stmt_Case_ {
-  Expression val;
-  int pos;
-  Stmt self;
-};
-
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;

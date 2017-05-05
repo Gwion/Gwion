@@ -78,8 +78,8 @@ void* server_thread(void* data)
       for(i = 0; i < vector_size(vm->shred); i++) {
         shred = (VM_Shred)vector_at(vm->shred, i);
 		if(shred->xid == atoi(buf +2) -1) {
-          for(i = 0; i < vector_size(shred->gc1); i++)
-            release((M_Object)vector_at(shred->gc1, i), shred);
+//          for(i = 0; i < vector_size(shred->gc1); i++)
+//            release((M_Object)vector_at(shred->gc1, i), shred);
           shreduler_remove(vm->shreduler, shred, 1);
         }
       }

@@ -545,7 +545,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
     break;
 
   case ae_stmt_return:
-    ret = scan2_return( env, stmt->d.stmt_return );
+    ret = scan2_return( env, &stmt->d.stmt_return );
     break;
 
   case ae_stmt_code:
@@ -565,7 +565,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_while:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_While(env, stmt->d.stmt_while);
+    ret = scan2_While(env, &stmt->d.stmt_while);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -573,7 +573,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_until:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_Until(env, stmt->d.stmt_until);
+    ret = scan2_Until(env, &stmt->d.stmt_until);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -603,7 +603,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
     break;
 
   case ae_stmt_case:
-    ret = scan2_Case(env, stmt->d.stmt_case);
+    ret = scan2_Case(env, &stmt->d.stmt_case);
     break;
 
   case ae_stmt_gotolabel:
@@ -618,7 +618,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
     break;
 
   case ae_stmt_funcptr:
-    ret = scan2_Func_Ptr(env, stmt->d.stmt_funcptr);
+    ret = scan2_Func_Ptr(env, &stmt->d.stmt_funcptr);
     break;
 
   case ae_stmt_union:
