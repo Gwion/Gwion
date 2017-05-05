@@ -1,14 +1,7 @@
-// generate main doc
 Machine.add("examples/int.gw");
-Machine.doc("global_context");
-Machine.adept("global_context");
-Machine.doc("examples/class.gw");
-
 Machine.compile("/tmp", "int i;<<<120>>>;");
 //Machine.compile("/tmp", "int i[error];");
 
 <<<Machine.check("/tmp/","int i;")>>>;
 Machine.check("/tmp/", "int i[error];"); // leak parsed invalid array.
-
 Machine.check(NULL, NULL);
-Machine.doc_update();

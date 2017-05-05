@@ -14,118 +14,7 @@
 
 #include "bbq.h"  // for sp_rand also
 #include <err_msg.h>
-#define prepare() \
-  Ast ast = NULL; \
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);\
-  char* str = STRING(obj);\
-  release(obj, shred); \
-	if(strcmp(str, "global_context"))\
-	{\
-	  str = realpath(str, NULL);\
-	  if(!str) return;\
-	  ast = parse(str);\
-	  if(!ast) return;\
-	  if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0) return;\
-	}
-
-#define clean() \
-  if(ast) \
-    free_Ast(ast);
-
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
-
-static SFUN(machine_add)
-{
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  if(!obj)
-	return;
-  m_str str = STRING(obj);
-  release(obj, shred);
-  if(!str)
-    return;
-  RETURN->d.v_uint = compile(shred->vm_ref, str);
-}
-
-static SFUN(machine_doc)
-{
-//  prepare()
-  Ast ast = NULL;
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  char* str = STRING(obj);
-  m_bool global = strcmp(str, "global_context") ? 1 : 0;
-
-  if(global) {
-    str = realpath(str, NULL);
-    if(!str)
-      return;
-    ast = parse(str);
-    if(!ast)
-      return;
-    if(type_engine_check_prog(shred->vm_ref->env, ast, str) < 0)
-      return;
-  }
-
-  mkdoc_context(shred->vm_ref->env, str);
-  if(ast)
-    free_Ast(ast);
-  release(obj, shred);
-  if(global)
-    free(str);
-//  clean()
-}
-
-static int js_filter(const struct dirent* dir)
-{
-  return strstr(dir->d_name, ".js") ? 1 : 0;
-}
-
-static SFUN(machine_doc_update)
-{
-  FILE* all;
-  char c[strlen(GWION_DOC_DIR) + 15];
-  memset(c, 0, strlen(GWION_DOC_DIR) + 15);
-  strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
-  strncat(c, "/search/all.js", 14);
-  if(!(all = fopen(c, "w"))) { // LCOV_EXCL_START
-    err_msg(INSTR_, 0, "file '%s' is not writable. can't update documentation search.");
-    return;
-  } // LCOV_EXCL_STOP
-  struct dirent **namelist;
-  char* line = NULL;
-  int n;
-  size_t len = 0;
-  memset(c, 0, strlen(c));
-  strncpy(c, GWION_DOC_DIR, strlen(GWION_DOC_DIR));
-  strncat(c, "/dat/", 14);
-  n = scandir(c, &namelist, js_filter, alphasort);
-  fprintf(all, "var searchData = \n[\n");
-  if (n > 0) {
-    while (n--) {
-      FILE* f;
-      ssize_t read;
-      char name[strlen(c) + strlen(namelist[n]->d_name) + 1];
-      memset(name, 0, strlen(c) + strlen(namelist[n]->d_name) + 1);
-      strcat(name, c);
-      strcat(name, namelist[n]->d_name);
-      f = fopen(name, "r");
-      printf("\t'%s', \n", name);
-      while((read = getline(&line, &len, f)) != -1)
-        fprintf(all, "%s\n", line);
-      free(namelist[n]);
-      fclose(f);
-    }
-  }
-  free(namelist);
-  free(line);
-  fprintf(all, "];");
-  fclose(all);
-}
-
-static SFUN(machine_adept)
-{
-  prepare()
-  mkadt_context(shred->vm_ref->env, str);
-}
 
 static m_str randstring(VM* vm, int length)
 {
@@ -149,7 +38,19 @@ static m_str randstring(VM* vm, int length)
   return randomString;
 }
 
-SFUN(machine_check)
+static SFUN(machine_add)
+{
+  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj)
+	return;
+  m_str str = STRING(obj);
+  release(obj, shred);
+  if(!str)
+    return;
+  RETURN->d.v_uint = compile(shred->vm_ref, str);
+}
+
+static SFUN(machine_check)
 {
   char c[104];
   m_str prefix, filename;
@@ -243,18 +144,6 @@ m_bool import_machine(Env env)
   fun = new_DL_Func("int[]", "shreds", (m_uint)machine_shreds);
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("void",  "doc",     (m_uint)machine_doc);
-  dl_func_add_arg(fun,       "string",  "context");
-  CHECK_OB(import_sfun(env,  fun))
-
-  fun = new_DL_Func("void",  "doc_update",     (m_uint)machine_doc_update);
-  CHECK_OB(import_sfun(env,  fun))
-
-  fun = new_DL_Func("void",  "adept",     (m_uint)machine_adept);
-  dl_func_add_arg(fun,       "string",  "context");
-  CHECK_OB(import_sfun(env,  fun))
-
-//  fun = new_DL_Func("string",  "check",     (m_uint)machine_check);
   fun = new_DL_Func("int",  "check",     (m_uint)machine_check);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "code");
