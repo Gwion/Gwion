@@ -123,7 +123,8 @@ static void alsa_run(VM* vm, DriverInfo* di)
           out_buf[chan][i] = sp->out[chan];
         sp->pos++;
       }
-      snd_pcm_writen(out, _out_buf, di->bufsize);
+      if(snd_pcm_writen(out, _out_buf, di->bufsize) < 0)
+       snd_pcm_prepare(out);
     }
   } else { // interleaved
     in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
@@ -149,7 +150,9 @@ static void alsa_run(VM* vm, DriverInfo* di)
         }
         sp->pos++;
       }
-      snd_pcm_writei(out, out_bufi, di->bufsize);
+      if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
+        snd_pcm_prepare(out);
+
     }
   }
 }
