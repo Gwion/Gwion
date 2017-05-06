@@ -216,8 +216,7 @@ next:
     u->done = 0;
     if(u->channel) {
       m_uint j;
-      m_uint max = u->n_out >= u->n_in ? u->n_out : u->n_in;
-      for(j = max; --j;)
+      for(j = u->n_chan; --j;)
         u->channel[j-1]->ugen->done = 0;
     }
   }
