@@ -78,10 +78,6 @@ VM_Shred new_VM_Shred(VM_Code c)
   shred->filename   = NULL;
   shred->gc         = NULL;
   shred->gc1        = new_Vector();
-#ifdef DEBUG_STACK
-  shred->mem_index  = 0;
-  shred->reg_index  = 0;
-#endif
   return shred;
 }
 
@@ -197,7 +193,8 @@ void vm_run(VM* vm)
 #endif
         instr->execute(vm, shred, instr);
 #ifdef DEBUG_STACK
-      debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid, shred->mem_index, shred->reg_index);
+      debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
+        shred->mem - shred->base, shred->reg - shred->_reg);
 #endif
 #ifdef DEBUG_VM
       debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc, shred->next_pc, vector_size(shred->code->instr));

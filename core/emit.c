@@ -622,6 +622,8 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
           instr->m_val2 = v->offset;
           /*instr->m_val = 1;*/
           break;
+		default: // LCOV_EXCL_LINE // won't reach anyway.
+          break; // LCOV_EXCL_LINE
     }
     return 1;
   }
