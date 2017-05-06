@@ -3140,13 +3140,13 @@ yyreduce:
 
   case 199:
 #line 607 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_Func_Call( (yyvsp[-3].exp), NULL, get_pos(scanner)); (yyval.exp)->d.exp_func->types = (yyvsp[-2].type_list); }
+    { (yyval.exp) = new_Func_Call( (yyvsp[-3].exp), NULL, get_pos(scanner)); (yyval.exp)->d.exp_func.types = (yyvsp[-2].type_list); }
 #line 3145 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 200:
 #line 609 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_Func_Call( (yyvsp[-4].exp), (yyvsp[-1].exp), get_pos(scanner)); (yyval.exp)->d.exp_func->types = (yyvsp[-3].type_list); }
+    { (yyval.exp) = new_Func_Call( (yyvsp[-4].exp), (yyvsp[-1].exp), get_pos(scanner)); (yyval.exp)->d.exp_func.types = (yyvsp[-3].type_list); }
 #line 3151 "eval/parser.c" /* yacc.c:1646  */
     break;
 

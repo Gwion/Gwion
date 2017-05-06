@@ -143,9 +143,9 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
-    dot->d.exp_dot->t_base = v->owner_class;
+    dot->d.exp_dot.t_base = v->owner_class;
     dot->emit_var = emit_var;
-    if((ret = emit_Dot_Member(emit, dot->d.exp_dot)) < 0)
+    if((ret = emit_Dot_Member(emit, &dot->d.exp_dot)) < 0)
       err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed..."); // LCOV_EXCL_LINE
     free_Expression(dot);
     return ret;
@@ -606,7 +606,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
     instr = add_instr(emit, assign_func);
     switch(binary->rhs->exp_type) {
       case Dot_Member_type:
-        v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
+        v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
         instr->m_val2 = v->offset;
         instr->m_val = 1;
         break;
@@ -915,7 +915,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
 
   case op_spork:
     if (exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) {
-      if (emit_spork(emit, exp_unary->exp->d.exp_func) < 0)
+      if (emit_spork(emit, &exp_unary->exp->d.exp_func) < 0)
         return -1;
     }
     // spork ~ { ... }
@@ -1154,25 +1154,25 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
       CHECK_BB(emit_Binary_Expression(emit, tmp->d.exp_binary))
       break;
     case Postfix_Expression_type:
-      CHECK_BB(emit_Postfix_Expression(emit, tmp->d.exp_postfix))
+      CHECK_BB(emit_Postfix_Expression(emit, &tmp->d.exp_postfix))
       break;
     case Cast_Expression_type:
       CHECK_BB(emit_Cast_Expression(emit, tmp->d.exp_cast))
       break;
     case Dot_Member_type:
-      CHECK_BB(emit_Dot_Member(emit, tmp->d.exp_dot))
+      CHECK_BB(emit_Dot_Member(emit, &tmp->d.exp_dot))
       break;
     case Func_Call_type:
-      CHECK_BB(emit_Func_Call(emit, tmp->d.exp_func, 0))
+      CHECK_BB(emit_Func_Call(emit, &tmp->d.exp_func, 0))
       break;
     case Array_Expression_type:
-      CHECK_BB(emit_Array(emit, tmp->d.exp_array))
+      CHECK_BB(emit_Array(emit, &tmp->d.exp_array))
       break;
     case If_Expression_type:
-      CHECK_BB(emit_exp_if(emit, tmp->d.exp_if))
+      CHECK_BB(emit_exp_if(emit, &tmp->d.exp_if))
       break;
     case Dur_Expression_type:
-      CHECK_BB(emit_Dur(emit, tmp->d.exp_dur))
+      CHECK_BB(emit_Dur(emit, &tmp->d.exp_dur))
       break;
 	}
     if (tmp->cast_to)
@@ -1818,8 +1818,8 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
       }
     }
   } else if(stmt->val->exp_type == Dot_Member_type) {
-    t = isa(stmt->val->d.exp_dot->t_base, &t_class) > 0 ? stmt->val->d.exp_dot->t_base->actual_type : stmt->val->d.exp_dot->t_base;
-    v = find_value(t, stmt->val->d.exp_dot->xid);
+    t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ? stmt->val->d.exp_dot.t_base->actual_type : stmt->val->d.exp_dot.t_base;
+    v = find_value(t, stmt->val->d.exp_dot.xid);
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);

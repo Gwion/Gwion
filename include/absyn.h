@@ -252,11 +252,7 @@ typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
 typedef struct Stmt_Enum_       * Stmt_Enum;
 typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
-typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
-               ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
-               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
-               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
-             } ae_Stmt_Type;
+
 
 
 
@@ -268,6 +264,13 @@ struct Decl_List_ {
 
 Decl_List new_Decl_List(Decl_Expression* d, Decl_List l);
 
+// stmt types
+typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
+               ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
+               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
+               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
+             } ae_Stmt_Type;
+// Stmt structs
 struct Stmt_Basic_ {
   int pos;
   Stmt self;
@@ -377,6 +380,22 @@ struct Stmt_{
   int pos;
 };
 
+// stmt creation functions
+Stmt new_stmt_from_expression(Expression exp, int pos);
+Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
+Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
+Stmt new_stmt_from_return(Expression exp, int pos);
+Stmt new_stmt_from_break(int pos);
+Stmt new_stmt_from_continue(int pos);
+Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
+Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos);
+Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
+Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos);
+Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
+Stmt new_stmt_from_case(Expression exp, int pos);
+Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
+Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
+Stmt new_stmt_from_union(Decl_List l, int pos);
 
 typedef struct {
   Operator op;
@@ -411,39 +430,21 @@ struct Expression_ {
   Type type;
   Type cast_to;
   union {
-    Postfix_Expression*   exp_postfix;
+    Postfix_Expression   exp_postfix;
     Primary_Expression*   exp_primary;
     Decl_Expression*      exp_decl;
     Unary_Expression*     exp_unary;
     Binary_Expression*    exp_binary;
     Cast_Expression*      exp_cast;
-    Func_Call*            exp_func;
-    If_Expression*        exp_if;
-    Dot_Member*           exp_dot;
-    Array*                exp_array;
-    Exp_Dur*              exp_dur;
+    Func_Call            exp_func;
+    If_Expression        exp_if;
+    Dot_Member           exp_dot;
+    Array                exp_array;
+    Exp_Dur              exp_dur;
   } d;
   int pos;
   Expression next;
 };
-
-
-
-Stmt new_stmt_from_expression(Expression exp, int pos);
-Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
-Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
-Stmt new_stmt_from_return(Expression exp, int pos);
-Stmt new_stmt_from_break(int pos);
-Stmt new_stmt_from_continue(int pos);
-Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
-Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos);
-Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
-Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos);
-Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
-Stmt new_stmt_from_case(Expression exp, int pos);
-Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
-Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
-Stmt new_stmt_from_union(Decl_List l, int pos);
 
 struct Stmt_List_ {
   Stmt stmt;

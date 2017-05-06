@@ -631,9 +631,9 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
-      v = find_value(binary->rhs->d.exp_dot->t_base, binary->rhs->d.exp_dot->xid);
+      v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
-      f1 = namespace_lookup_func(binary->rhs->d.exp_dot->t_base->info, insert_symbol(v->m_type->name), -1);
+      f1 = namespace_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl->list->self->value;
       f1 = v->m_type->func;
@@ -647,7 +647,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     } else if(binary->lhs->exp_type == Dot_Member_type) {
-      v = find_value(binary->lhs->d.exp_dot->t_base, binary->lhs->d.exp_dot->xid);
+      v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
 /*    } else if(binary->lhs->exp_type == Decl_Expression_type) {
@@ -1102,7 +1102,7 @@ next:
       }
 /*
   else if(exp_func->exp_type == Dot_Member_type) {
-        Value v = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
+        Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
         if(v && v->owner_class == env->class_def) {
       	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
           return NULL;
@@ -1130,7 +1130,7 @@ next:
       if(exp_func->exp_type == Primary_Expression_type)
         value = namespace_lookup_value(env->curr, exp_func->d.exp_primary->d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
-        value = find_value(exp_func->d.exp_dot->t_base, exp_func->d.exp_dot->xid);
+        value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
       else {
         err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
         return NULL;
@@ -1246,10 +1246,10 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
     } else {
       Type t;
       CHECK_OO(check_Expression(env, exp_func->func))
-      t = exp_func->func->d.exp_dot->t_base;
+      t = exp_func->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
-      v = find_value(t, exp_func->func->d.exp_dot->xid);
+      v = find_value(t, exp_func->func->d.exp_dot.xid);
 /*    // checked in scan2
       // added 06/12/16
       if(!v) {
@@ -1532,26 +1532,26 @@ static Type check_Expression(Env env, Expression exp)
       curr->type = check_Binary_Expression(env, curr->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      curr->type = check_Postfix_Expression(env, curr->d.exp_postfix);
+      curr->type = check_Postfix_Expression(env, &curr->d.exp_postfix);
       break;
     case Dur_Expression_type:
-      curr->type = check_Dur(env, curr->d.exp_dur);
+      curr->type = check_Dur(env, &curr->d.exp_dur);
       break;
     case Cast_Expression_type:
       curr->type = check_Cast_Expression(env, curr->d.exp_cast);
       break;
     case Func_Call_type:
-      curr->type = check_Func_Call(env, curr->d.exp_func);
-      curr->d.exp_func->ret_type = curr->type;
+      curr->type = check_Func_Call(env, &curr->d.exp_func);
+      curr->d.exp_func.ret_type = curr->type;
       break;
     case If_Expression_type:
-      curr->type = check_exp_if(env, curr->d.exp_if);
+      curr->type = check_exp_if(env, &curr->d.exp_if);
       break;
     case Dot_Member_type:
-      curr->type = check_Dot_Member(env, curr->d.exp_dot);
+      curr->type = check_Dot_Member(env, &curr->d.exp_dot);
       break;
     case Array_Expression_type:
-      curr->type = check_Array(env, curr->d.exp_array);
+      curr->type = check_Array(env, &curr->d.exp_array);
       break;
     }
     CHECK_OO(curr->type)

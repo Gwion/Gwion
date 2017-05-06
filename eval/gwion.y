@@ -604,9 +604,9 @@ postfix_exp
   | postfix_exp MINUSMINUS
     { $$ = new_Postfix_Expression( $1, op_minusminus, get_pos(scanner)); }
   | postfix_exp template LPAREN RPAREN
-    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->d.exp_func->types = $2; }
+    { $$ = new_Func_Call( $1, NULL, get_pos(scanner)); $$->d.exp_func.types = $2; }
   | postfix_exp template LPAREN exp RPAREN
-    { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->d.exp_func->types = $2; }  ;
+    { $$ = new_Func_Call( $1, $4, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
   ;
 
 primary_exp

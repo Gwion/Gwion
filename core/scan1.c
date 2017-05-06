@@ -167,25 +167,25 @@ static m_bool scan1_Expression(Env env, Expression exp)
       CHECK_BB(scan1_Binary_Expression(env, curr->d.exp_binary))
       break;
     case Postfix_Expression_type:
-      CHECK_BB(scan1_Postfix_Expression(env, curr->d.exp_postfix))
+      CHECK_BB(scan1_Postfix_Expression(env, &curr->d.exp_postfix))
       break;
     case Cast_Expression_type:
       CHECK_BB(scan1_Cast_Expression(env, curr->d.exp_cast))
       break;
     case Func_Call_type:
-      CHECK_BB(scan1_Func_Call(env, curr->d.exp_func))
+      CHECK_BB(scan1_Func_Call(env, &curr->d.exp_func))
       break;
     case Array_Expression_type:
-      CHECK_BB(scan1_Array(env, curr->d.exp_array))
+      CHECK_BB(scan1_Array(env, &curr->d.exp_array))
       break;
     case Dot_Member_type:
-      CHECK_BB(scan1_Dot_Member(env, curr->d.exp_dot))
+      CHECK_BB(scan1_Dot_Member(env, &curr->d.exp_dot))
       break;
     case Dur_Expression_type:
-      CHECK_BB(scan1_Dur(env, curr->d.exp_dur))
+      CHECK_BB(scan1_Dur(env, &curr->d.exp_dur))
       break;
     case If_Expression_type:
-      CHECK_BB(scan1_exp_if(env, curr->d.exp_if))
+      CHECK_BB(scan1_exp_if(env, &curr->d.exp_if))
       break;
     }
     curr = curr->next;

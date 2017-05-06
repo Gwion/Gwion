@@ -369,25 +369,25 @@ static m_bool scan2_Expression(Env env, Expression exp)
       ret = scan2_Binary_Expression(env, exp->d.exp_binary);
       break;
     case Postfix_Expression_type:
-      ret = scan2_Postfix_Expression(env, exp->d.exp_postfix);
+      ret = scan2_Postfix_Expression(env, &exp->d.exp_postfix);
       break;
     case Cast_Expression_type:
       ret = scan2_Cast_Expression(env, exp->d.exp_cast);
       break;
     case Func_Call_type:
-      ret = scan2_Func_Call(env, exp->d.exp_func);
+      ret = scan2_Func_Call(env, &exp->d.exp_func);
       break;
     case Array_Expression_type:
-      ret = scan2_Array(env, exp->d.exp_array);
+      ret = scan2_Array(env, &exp->d.exp_array);
       break;
     case Dot_Member_type:
-      ret = scan2_Dot_Member(env, exp->d.exp_dot);
+      ret = scan2_Dot_Member(env, &exp->d.exp_dot);
       break;
     case If_Expression_type:
-      ret = scan2_exp_if(env, exp->d.exp_if);
+      ret = scan2_exp_if(env, &exp->d.exp_if);
       break;
     case Dur_Expression_type:
-      ret = scan2_Dur(env, exp->d.exp_dur);
+      ret = scan2_Dur(env, &exp->d.exp_dur);
       break;
     }
     curr = curr->next;

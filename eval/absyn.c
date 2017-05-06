@@ -133,12 +133,11 @@ Expression new_Array(Expression base, Array_Sub indices, int pos )
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Array_Expression_type;
   a->meta = ae_meta_var;
-  a->d.exp_array = calloc(1, sizeof(Array));
-  a->d.exp_array->base = base;
-  a->d.exp_array->indices = indices;
+  a->d.exp_array.base = base;
+  a->d.exp_array.indices = indices;
   a->pos = pos;
-  a->d.exp_array->pos = pos;
-  a->d.exp_array->self = a;
+  a->d.exp_array.pos = pos;
+  a->d.exp_array.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -148,7 +147,6 @@ static void free_Array_Expression(Array* a)
 {
   free_Array_Sub(a->indices);
   free_Expression(a->base);
-  free(a);
 }
 
 ID_List new_id_list(const m_str xid, int pos)
@@ -267,12 +265,11 @@ Expression new_Postfix_Expression(Expression exp, Operator op, int pos)
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Postfix_Expression_type;
   a->meta = ae_meta_var;
-  a->d.exp_postfix = calloc(1, sizeof(Postfix_Expression));
-  a->d.exp_postfix->exp = exp;
-  a->d.exp_postfix->op = op;
+  a->d.exp_postfix.exp = exp;
+  a->d.exp_postfix.op = op;
   a->pos = pos;
-  a->d.exp_postfix->pos = pos;
-  a->d.exp_postfix->self = a;
+  a->d.exp_postfix.pos = pos;
+  a->d.exp_postfix.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -281,7 +278,6 @@ Expression new_Postfix_Expression(Expression exp, Operator op, int pos)
 static void free_Postfix_Expression(Postfix_Expression* postfix)
 {
   free_Expression(postfix->exp);
-  free(postfix);
 }
 
 Expression new_Exp_Dur(Expression base, Expression unit, int pos)
@@ -289,22 +285,20 @@ Expression new_Exp_Dur(Expression base, Expression unit, int pos)
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Dur_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_dur = calloc(1, sizeof(Exp_Dur));
-  a->d.exp_dur->base = base;
-  a->d.exp_dur->unit = unit;
+  a->d.exp_dur.base = base;
+  a->d.exp_dur.unit = unit;
   a->pos = pos;
-  a->d.exp_dur->pos = pos;
-  a->d.exp_dur->self = a;
+  a->d.exp_dur.pos = pos;
+  a->d.exp_dur.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
 }
 
 static void free_Dur_Expression(Exp_Dur* a)
-{
+{ 
   free_Expression(a->base);
   free_Expression(a->unit);
-  free(a);
 }
 
 Expression new_Primary_Expression_from_int(long i, int pos)
@@ -626,13 +620,12 @@ Expression new_If_Expression(Expression cond, Expression if_exp, Expression else
   a->exp_type = If_Expression_type;
   a->meta = ( ( if_exp->meta == ae_meta_var &&
                 else_exp->meta == ae_meta_var ) ? ae_meta_var : ae_meta_value );
-  a->d.exp_if = calloc(1, sizeof(If_Expression));
-  a->d.exp_if->cond = cond;
-  a->d.exp_if->if_exp = if_exp;
-  a->d.exp_if->else_exp = else_exp;
+  a->d.exp_if.cond = cond;
+  a->d.exp_if.if_exp = if_exp;
+  a->d.exp_if.else_exp = else_exp;
   a->pos = pos;
-  a->d.exp_if->pos = pos;
-  a->d.exp_if->self = a;
+  a->d.exp_if.pos = pos;
+  a->d.exp_if.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -643,7 +636,6 @@ static void free_If_Expression(If_Expression* a)
   free_Expression(a->cond);
   free_Expression(a->if_exp);
   free_Expression(a->else_exp);
-  free(a);
 }
 
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos)
@@ -719,14 +711,13 @@ Expression new_Func_Call(Expression base, Expression args, int pos )
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Func_Call_type;
   a->meta = ae_meta_value;
-  a->d.exp_func = calloc(1, sizeof(Func_Call));
-  a->d.exp_func->func = base;
-  a->d.exp_func->args = args;
-  a->d.exp_func->types = NULL;
+  a->d.exp_func.func = base;
+  a->d.exp_func.args = args;
+  a->d.exp_func.types = NULL;
   a->pos = pos;
-  a->d.exp_func->m_func = NULL;
-  a->d.exp_func->pos = pos;
-  a->d.exp_func->self = a;
+  a->d.exp_func.m_func = NULL;
+  a->d.exp_func.pos = pos;
+  a->d.exp_func.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -741,7 +732,6 @@ static void free_Func_Call(Func_Call* a)
   free_Expression(a->func);
   if(a->args)
     free_Expression(a->args);
-  free(a);
 }
 
 Expression new_exp_from_member_dot(Expression base, m_str xid, int pos)
@@ -749,12 +739,11 @@ Expression new_exp_from_member_dot(Expression base, m_str xid, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Dot_Member_type;
   a->meta = ae_meta_var;
-  a->d.exp_dot = calloc(1, sizeof(Dot_Member));
-  a->d.exp_dot->base = base;
-  a->d.exp_dot->xid = insert_symbol( xid );
+  a->d.exp_dot.base = base;
+  a->d.exp_dot.xid = insert_symbol( xid );
   a->pos = pos;
-  a->d.exp_dot->pos = pos;
-  a->d.exp_dot->self = a;
+  a->d.exp_dot.pos = pos;
+  a->d.exp_dot.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -764,7 +753,6 @@ static void free_Dot_Member_Expression(Dot_Member* dot)
 {
   if(dot->base)
     free_Expression(dot->base);
-  free(dot);
 }
 
 Expression prepend_Expression(Expression exp, Expression next, int pos)
@@ -809,22 +797,22 @@ void free_Expression(Expression exp)
       free_Cast_Expression(curr->d.exp_cast);
       break;
     case Postfix_Expression_type:
-      free_Postfix_Expression(curr->d.exp_postfix);
+      free_Postfix_Expression(&curr->d.exp_postfix);
       break;
     case Func_Call_type:
-      free_Func_Call(curr->d.exp_func);
+      free_Func_Call(&curr->d.exp_func);
       break;
     case Array_Expression_type:
-      free_Array_Expression(curr->d.exp_array);
+      free_Array_Expression(&curr->d.exp_array);
       break;
     case If_Expression_type:
-      free_If_Expression(curr->d.exp_if);
+      free_If_Expression(&curr->d.exp_if);
       break;
     case Dot_Member_type:
-      free_Dot_Member_Expression(curr->d.exp_dot);
+      free_Dot_Member_Expression(&curr->d.exp_dot);
       break;
     case Dur_Expression_type:
-      free_Dur_Expression(curr->d.exp_dur);
+      free_Dur_Expression(&curr->d.exp_dur);
       break;
     }
     tmp = curr;
