@@ -46,10 +46,8 @@ m_bool dac_tick(UGen u)
 {
   m_uint  i;
   sp_data* sp = (sp_data*)u->ug;
-//  for(i = 0; i < u->n_out; i++)
-//    sp->out[i] = u->channel[i]->ugen->out;
-  for(i = u->n_out; --i;)
-    sp->out[i] = u->channel[i - 1]->ugen->out;
+  for(i = u->n_out + 1; --i;)
+    sp->out[i - 1] = u->channel[i - 1]->ugen->out;
   return 1;
 }
 
@@ -82,8 +80,6 @@ void ugen_compute(UGen u)
     for(i = u->n_out; --i;)
       ugen_compute(u->channel[i-1]->ugen);
   else {
-//    for(i = 0; i < vector_size(u->ugen); i++) {
-//      ugen = (UGen)vector_at(u->ugen, i);
     for(i = vector_size(u->ugen) + 1; --i; ) {
       ugen = (UGen)vector_at(u->ugen, i - 1);
       if(!ugen->done)
@@ -92,7 +88,7 @@ void ugen_compute(UGen u)
     }
   }
   if(u->ref) {
-    for(i = u->n_in + 1; --i;){
+    for(i = u->ref->n_chan + 1; --i;){
 	  ugen = u->ref->channel[i -1]->ugen;
 	  ugen->tick(ugen);
     }
@@ -102,7 +98,7 @@ void ugen_compute(UGen u)
   u->tick(u);
   if(u->channel) {
     m_float sum = 0;
-    for(i = u->n_out; --i;) {
+    for(i = u->n_out + 1; --i;) {
       M_Object obj = u->channel[i-1];
       sum += obj->ugen->out;
     }
