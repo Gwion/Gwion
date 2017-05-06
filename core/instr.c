@@ -1252,7 +1252,7 @@ negative_array_size:
   goto error;
 
 error:
-//  if(base) release(base, shred);
+  if(base) release(base, shred); // LCOV_EXCL_LINE
   return NULL;
 }
 

@@ -292,7 +292,7 @@ all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
 	\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 clean:
-	@rm -f */*.o \${PRG}
+	@rm -f */*.o */*.gcda */*.gcno \${PRG}
 
 .c.o:
 	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)

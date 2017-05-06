@@ -28,10 +28,10 @@ LIB: portaudio:::off::-lportaudio
 LIB: soundio:::off::-lsoundio
 
 
-DIR: api:::api
-DIR: doc:::doc
-DIR: tag:::tag
-DIR: tok:::tok
+#DIR: api:::api
+#DIR: doc:::doc
+#DIR: tag:::tag
+#DIR: tok:::tok
 DIR: add:::add
 
 DBG: compile   :::off

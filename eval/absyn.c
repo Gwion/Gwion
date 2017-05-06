@@ -1050,7 +1050,7 @@ if(!v->owner_class) {
 }
 
 Stmt new_stmt_from_union(Decl_List l, int pos)
-{ 
+{
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_union;
   a->d.stmt_union.l = l;

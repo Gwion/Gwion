@@ -83,14 +83,6 @@ begins_with_short_option()
 : "${_arg_soundio_inc:=$SOUNDIO_INC}"
 : "${SOUNDIO_LIB:="-lsoundio"}"
 : "${_arg_soundio_lib:=$SOUNDIO_LIB}"
-: "${API_DIR:="api"}"
-: "${_arg_api:=$API_DIR}"
-: "${DOC_DIR:="doc"}"
-: "${_arg_doc:=$DOC_DIR}"
-: "${TAG_DIR:="tag"}"
-: "${_arg_tag:=$TAG_DIR}"
-: "${TOK_DIR:="tok"}"
-: "${_arg_tok:=$TOK_DIR}"
 : "${ADD_DIR:="add"}"
 : "${_arg_add:=$ADD_DIR}"
 : "${DEBUG_COMPILE:=off}"
@@ -119,7 +111,7 @@ begins_with_short_option()
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--api <arg>] [--doc <arg>] [--tag <arg>] [--tok <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -152,10 +144,6 @@ print_help ()
 	printf "\t%s\n" "--soundio,--no-soundio: enable soundio (off by default)"
 	printf "\t%s\n" "--soundio-inc: Directories where to look for include files for soundio (empty by default)"
 	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
-	printf "\t%s\n" "--api: api path (default: 'api')"
-	printf "\t%s\n" "--doc: doc path (default: 'doc')"
-	printf "\t%s\n" "--tag: tag path (default: 'tag')"
-	printf "\t%s\n" "--tok: tok path (default: 'tok')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
 	printf "\t%s\n" "--debug-compile,--no-debug-compile: debug compile (off by default)"
 	printf "\t%s\n" "--debug-operator,--no-debug-operator: debug operator (off by default)"
@@ -435,46 +423,6 @@ do
 			fi
 			_arg_soundio_lib="$_val"
 			;;
-		--api|--api=*)
-			_val="${_key##--api=}"
-			if test "$_val" = "$_key"
-			then
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
-				shift
-			fi
-			_arg_api="$_val"
-			;;
-		--doc|--doc=*)
-			_val="${_key##--doc=}"
-			if test "$_val" = "$_key"
-			then
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
-				shift
-			fi
-			_arg_doc="$_val"
-			;;
-		--tag|--tag=*)
-			_val="${_key##--tag=}"
-			if test "$_val" = "$_key"
-			then
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
-				shift
-			fi
-			_arg_tag="$_val"
-			;;
-		--tok|--tok=*)
-			_val="${_key##--tok=}"
-			if test "$_val" = "$_key"
-			then
-				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
-				shift
-			fi
-			_arg_tok="$_val"
-			;;
 		--add|--add=*)
 			_val="${_key##--add=}"
 			if test "$_val" = "$_key"
@@ -592,7 +540,9 @@ do
 done
 
 printf "\n# handle directories\n"
-for iter in api:api doc:doc tag:tag tok:tok add:add
+add=add
+for iter in $add
+
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
@@ -669,7 +619,9 @@ do
 done
 
 printf "\n# add directories\n"
-for iter in api doc tag tok add
+add=add
+for iter in $add
+
 do
 	printf "CFLAGS+=-DGWION_%s_DIR=\\\\\\\"\${GWION_%s_DIR}\\\\\\\"\n" "$(to_upper $iter)" "$(to_upper $iter)"
 done
@@ -712,7 +664,7 @@ all: \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
 	\${CC} \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 clean:
-	@rm -f */*.o ${PRG}
+	@rm -f */*.o */*.gcda */*.gcno ${PRG}
 
 .c.o:
 	\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)

@@ -1044,16 +1044,16 @@ namespace_pop_type(env->curr);
     m_int ret = scan1_Func_Def(env, def);
     namespace_pop_type(env->curr);
     if(ret < 0)
-      goto next;
+      goto error;
     if(scan2_Func_Def(env, def) < 0)
-      goto next;
+      goto error;
     if(check_Func_Def(env, def) < 0)
-      goto next;
+      goto error;
     if(!check_Expression(env, func))
-      goto next;
+      goto error;
     if(args)
       if(!check_Expression(env, args))
-        goto next;
+        goto error;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
     if(m_func) {
@@ -1065,12 +1065,10 @@ namespace_pop_type(env->curr);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
+	goto next;
+error:
+    free_Func_Def(def); // LCOV_EXCL_LINE
 next:
-    /*if(!env->class_def) {*/
-    /*if(def->func)*/
-    /*vector_remove(env->context->new_funcs, vector_find(env->context->new_funcs, (vtype)def->func));*/
-    /*free_Func_Def(def);*/
-    /*}*/
 ;
   }
   if(v->owner_class) {
