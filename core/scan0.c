@@ -2,7 +2,7 @@
 #include "absyn.h"
 #include "context.h"
 
-static m_bool scan0_Func_Ptr(Env env, Func_Ptr* ptr)
+static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
 {
   Value v;
   Type type;
@@ -39,7 +39,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt)
     return 1;
   switch(stmt->type) {
   case ae_stmt_funcptr:
-    ret = scan0_Func_Ptr(env, &stmt->d.stmt_funcptr);
+    ret = scan0_Func_Ptr(env, &stmt->d.stmt_ptr);
     break;
   default:
     ret = 1;

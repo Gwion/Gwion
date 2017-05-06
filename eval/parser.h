@@ -281,12 +281,11 @@ union YYSTYPE
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Expression   exp;
-  Func_Ptr func_ptr;
+  Stmt_Ptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
   Decl_List decl_list; // for union
-  Union* union_stmt; // for union
   Func_Def func_def;
   Section* section;
   ID_List id_list;
@@ -297,7 +296,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 301 "eval/parser.h" /* yacc.c:1909  */
+#line 300 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

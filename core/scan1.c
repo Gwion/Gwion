@@ -6,7 +6,6 @@ extern void free_Expression(Expression exp);
 static m_bool scan1_Expression(Env env, Expression exp);
 static m_bool scan1_Stmt_List(Env env, Stmt_List list);
 static m_bool scan1_Stmt(Env env, Stmt stmt);
-static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr);
 
 m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
 {
@@ -334,138 +333,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
   return 1;
 }
 
-static m_bool scan1_Stmt(Env env, Stmt stmt)
-{
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "stmt");
-#endif
-  m_bool ret = -1;
-  Decl_List l;
-  if(!stmt)
-    return 1;
-  // DIRTY!!! happens when '1, new Object', for instance
-  if(stmt->type == 3 && !stmt->d.stmt_for) // bad thing in parser, continue
-    return 1;
-
-  switch( stmt->type ) {
-    case ae_stmt_exp:
-      ret = scan1_Expression(env, stmt->d.stmt_exp);
-      break;
-    case ae_stmt_code:
-      env->class_scope++;
-      ret = scan1_Stmt_Code( env, stmt->d.stmt_code, 1);
-      env->class_scope--;
-      break;
-    case ae_stmt_return:
-      ret = scan1_return( env, &stmt->d.stmt_return);
-      break;
-    case ae_stmt_if:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_If(env, stmt->d.stmt_if);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_while:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_While( env, &stmt->d.stmt_while);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_for:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_For( env, stmt->d.stmt_for);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_until:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_Until( env, &stmt->d.stmt_until);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_loop:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_Loop( env, stmt->d.stmt_loop);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_switch:
-      env->class_scope++;
-      namespace_push_value(env->curr);
-      ret = scan1_Switch( env, stmt->d.stmt_switch);
-      namespace_pop_value(env->curr);
-      env->class_scope--;
-      break;
-    case ae_stmt_case:
-      ret = scan1_Case(env, &stmt->d.stmt_case);
-      break;
-    case ae_stmt_enum:
-      ret = scan1_Enum(env, stmt->d.stmt_enum);
-      break;
-    case ae_stmt_continue:
-    case ae_stmt_break:
-    case ae_stmt_gotolabel:
-      ret = 1;
-      break;
-    case ae_stmt_funcptr:
-      ret = scan1_Func_Ptr(env, &stmt->d.stmt_funcptr);
-      break;
-    case ae_stmt_union:
-    l = stmt->d.stmt_union->l;
-    while(l) {
-      if(!l->self) {
-        err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
-        return -1;
-      }
-      Var_Decl_List list = l->self->list;
-      Var_Decl var_decl = NULL;
-      Type t = find_type(env, l->self->type->xid);
-      if(!t) {
-        err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
-        return -1;
-      }
-      while(list) {
-        var_decl = list->self;
-        l->self->num_decl++;
-        if(var_decl->array) {
-          CHECK_BB(verify_array(var_decl->array))
-          if(var_decl->array->exp_list) {
-            err_msg(SCAN1_, l->self->pos, "array declaration must be empty in union.");
-            return -1;
-          }
-        }
-        list = list->next;
-      }
-      l->self->m_type = t;
-      add_ref(l->self->m_type->obj);
-      l = l->next;
-    }
-    ret = 1;
-    break;
-  }
-  return ret;
-}
-static m_bool scan1_Stmt_List(Env env, Stmt_List list)
-{
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "stmt list");
-#endif
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(scan1_Stmt(env, curr->stmt))
-    curr = curr->next;
-  }
-  return 1;
-}
-
-#include "func.h"
-
-static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
+static m_bool scan1_Func_Ptr(Env env, Stmt_Ptr ptr)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func ptr");
@@ -499,6 +367,140 @@ static m_bool scan1_Func_Ptr(Env env, Func_Ptr* ptr)
   return 1;
 }
 
+static m_bool scan1_Stmt_Union(Env env, Stmt_Union stmt)
+{
+  Decl_List l = stmt->l;
+  while(l) {
+    if(!l->self) {
+      err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
+      return -1;
+    }
+    Var_Decl_List list = l->self->list;
+    Var_Decl var_decl = NULL;
+    Type t = find_type(env, l->self->type->xid);
+    if(!t) {
+      err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
+      return -1;
+    }
+    while(list) {
+      var_decl = list->self;
+      l->self->num_decl++;
+      if(var_decl->array) {
+        CHECK_BB(verify_array(var_decl->array))
+        if(var_decl->array->exp_list) {
+          err_msg(SCAN1_, l->self->pos, "array declaration must be empty in union.");
+          return -1;
+        }
+      }
+      list = list->next;
+    }
+    l->self->m_type = t;
+    add_ref(l->self->m_type->obj);
+    l = l->next;
+  }
+  return 1;
+}
+
+static m_bool scan1_Stmt(Env env, Stmt stmt)
+{
+#ifdef DEBUG_SCAN1
+  debug_msg("scan1", "stmt");
+#endif
+  m_bool ret = -1;
+  if(!stmt)
+    return 1;
+  // DIRTY!!! happens when '1, new Object', for instance
+  if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
+    return 1;
+
+  switch( stmt->type ) {
+    case ae_stmt_exp:
+      ret = scan1_Expression(env, stmt->d.stmt_exp.val);
+      break;
+    case ae_stmt_code:
+      env->class_scope++;
+      ret = scan1_Stmt_Code(env, &stmt->d.stmt_code, 1);
+      env->class_scope--;
+      break;
+    case ae_stmt_return:
+      ret = scan1_return( env, &stmt->d.stmt_return);
+      break;
+    case ae_stmt_if:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_If(env, &stmt->d.stmt_if);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_while:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_While(env, &stmt->d.stmt_while);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_for:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_For(env, &stmt->d.stmt_for);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_until:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_Until(env, &stmt->d.stmt_until);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_loop:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_Loop(env, &stmt->d.stmt_loop);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_switch:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = scan1_Switch(env, &stmt->d.stmt_switch);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_case:
+      ret = scan1_Case(env, &stmt->d.stmt_case);
+      break;
+    case ae_stmt_enum:
+      ret = scan1_Enum(env, &stmt->d.stmt_enum);
+      break;
+    case ae_stmt_continue:
+    case ae_stmt_break:
+    case ae_stmt_gotolabel:
+      ret = 1;
+      break;
+    case ae_stmt_funcptr:
+      ret = scan1_Func_Ptr(env, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_union:
+    ret = scan1_Stmt_Union(env, &stmt->d.stmt_union);
+    break;
+  }
+  return ret;
+}
+static m_bool scan1_Stmt_List(Env env, Stmt_List list)
+{
+#ifdef DEBUG_SCAN1
+  debug_msg("scan1", "stmt list");
+#endif
+  Stmt_List curr = list;
+  while(curr) {
+    CHECK_BB(scan1_Stmt(env, curr->stmt))
+    curr = curr->next;
+  }
+  return 1;
+}
+
+#include "func.h"
 
 m_bool scan1_Func_Def(Env env, Func_Def f)
 {
@@ -571,7 +573,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       return -1;
     }
   }
-  if(f->code && scan1_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
+  if(f->code && scan1_Stmt_Code(env, &f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN1_, f->pos, "...in function '%s'\n", S_name(f->name));
     return -1;
   }

@@ -82,7 +82,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
   return 1;
 }
 
-static m_bool scan2_Func_Ptr(Env env, Func_Ptr* ptr)
+static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Func Ptr");
@@ -530,34 +530,43 @@ static m_bool scan2_Stmt_Enum(Env env, Stmt_Enum stmt)
   return 1;
 }
 
+static m_bool scan2_Stmt_Union(Env env, Stmt_Union stmt)
+{
+  Decl_List l = stmt->l;
+  while(l) {
+    CHECK_BB(scan2_Decl_Expression(env, l->self))
+    l = l->next;
+  }
+  return 1;
+}
+
 static m_bool scan2_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Stmt");
 #endif
   m_bool ret = 1;
-  Decl_List l;
   if(!stmt)
     return 1;
   switch(stmt->type) {
   case ae_stmt_exp:
-    ret = scan2_Expression(env, stmt->d.stmt_exp);
+    ret = scan2_Expression(env, stmt->d.stmt_exp.val);
     break;
 
   case ae_stmt_return:
-    ret = scan2_return( env, &stmt->d.stmt_return );
+    ret = scan2_return(env, &stmt->d.stmt_return );
     break;
 
   case ae_stmt_code:
     env->class_scope++;
-    ret = scan2_Stmt_Code( env, stmt->d.stmt_code, 1);
+    ret = scan2_Stmt_Code(env, &stmt->d.stmt_code, 1);
     env->class_scope--;
     break;
 
   case ae_stmt_if:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_If(env, stmt->d.stmt_if);
+    ret = scan2_If(env, &stmt->d.stmt_if);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -581,7 +590,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_for:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_For(env, stmt->d.stmt_for);
+    ret = scan2_For(env, &stmt->d.stmt_for);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -589,7 +598,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_loop:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_Loop(env, stmt->d.stmt_loop);
+    ret = scan2_Loop(env, &stmt->d.stmt_loop);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -597,7 +606,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_Switch( env, stmt->d.stmt_switch);
+    ret = scan2_Switch( env, &stmt->d.stmt_switch);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -607,26 +616,22 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
     break;
 
   case ae_stmt_gotolabel:
-    ret = scan2_Goto_Label(env, stmt->d.stmt_gotolabel);
+    ret = scan2_Goto_Label(env, &stmt->d.stmt_gotolabel);
     break;
 
   case ae_stmt_continue:
   case ae_stmt_break:
     break;
   case ae_stmt_enum:
-    ret = scan2_Stmt_Enum(env, stmt->d.stmt_enum);
+    ret = scan2_Stmt_Enum(env, &stmt->d.stmt_enum);
     break;
 
   case ae_stmt_funcptr:
-    ret = scan2_Func_Ptr(env, &stmt->d.stmt_funcptr);
+    ret = scan2_Func_Ptr(env, &stmt->d.stmt_ptr);
     break;
 
   case ae_stmt_union:
-    l = stmt->d.stmt_union->l;
-    while(l && ret > 0) {
-      ret = scan2_Decl_Expression(env, l->self);
-      l = l->next;
-    }
+    ret = scan2_Stmt_Union(env, &stmt->d.stmt_union);
     break;
   }
   return ret;
@@ -882,7 +887,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   env->func = func;
   namespace_push_value(env->curr);
 
-  if(f->code && scan2_Stmt_Code(env, f->code->d.stmt_code, 0) < 0) {
+  if(f->code && scan2_Stmt_Code(env, &f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name) );
 // should be in free_context, at least.
 free(value->m_type->name);

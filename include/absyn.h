@@ -250,25 +250,15 @@ typedef struct Stmt_Switch_     * Stmt_Switch;
 typedef struct Stmt_Exp_        * Stmt_Case;
 typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
 typedef struct Stmt_Enum_       * Stmt_Enum;
+typedef struct Stmt_Ptr_        * Stmt_Ptr;
+typedef struct Stmt_Union_      * Stmt_Union;
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
                ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
              } ae_Stmt_Type;
 
-typedef struct {
-  Type_Decl*    type;
-  Type    m_type;
-  S_Symbol   xid;
-  ae_Keyword key;
-  Arg_List   args;
-  Type       ret_type;
-  Func       func;
-  Value      value;
-  int        pos;
-  Expression self;
-//    Type ref;
-} Func_Ptr;
+
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {
@@ -277,14 +267,6 @@ struct Decl_List_ {
 };
 
 Decl_List new_Decl_List(Decl_Expression* d, Decl_List l);
-typedef struct {
-  Decl_List l;
-  Vector v;
-  m_uint s;
-  m_uint o;
-} Union;
-
-Union* new_Union(Decl_List l);
 
 struct Stmt_Basic_ {
   int pos;
@@ -295,7 +277,6 @@ struct Stmt_Exp_ {
   int pos;
   Stmt self;
 };
-
 struct Stmt_Flow_ {
   int is_do;
   Expression cond;
@@ -303,27 +284,95 @@ struct Stmt_Flow_ {
   int pos;
   Stmt self;
 };
-
+struct Stmt_Code_ {
+  Stmt_List stmt_list;
+  int pos;
+  Stmt self;
+};
+struct Stmt_For_ {
+  Stmt c1;
+  Stmt c2;
+  Expression c3;
+  Stmt body;
+  int pos;
+  Stmt self;
+};
+struct Stmt_Loop_ {
+  Expression cond;
+  Stmt body;
+  int pos;
+  Stmt self;
+};
+struct Stmt_If_ {
+  Expression cond;
+  Stmt if_body;
+  Stmt else_body;
+  int pos;
+  Stmt self;
+};
+struct Stmt_Goto_Label_ {
+  S_Symbol name;
+  m_bool is_label;
+  union {
+    Vector v;
+    Instr instr;
+  } data;
+  int pos;
+  Stmt self;
+};
+struct Stmt_Switch_ {
+  Expression val;
+  Stmt stmt;
+  int pos;
+  Stmt self;
+};
+struct Stmt_Enum_ {
+  ID_List list;
+  S_Symbol xid;
+  Vector values;
+  int pos;
+  Stmt self;
+};
+struct Stmt_Ptr_ {
+  Type_Decl*    type;
+  Type    m_type;
+  S_Symbol   xid;
+  ae_Keyword key;
+  Arg_List   args;
+  Type       ret_type;
+  Func       func;
+  Value      value;
+  int        pos;
+  Expression self;
+};
+struct Stmt_Union_{
+  Decl_List l;
+  Vector v;
+  m_uint s;
+  m_uint o;
+  int pos;
+  Stmt self;
+};
 
 struct Stmt_{
   ae_Stmt_Type type;
   union {
-    Expression         stmt_exp;
-    Stmt_Code          stmt_code;
-    struct Stmt_Flow_  stmt_while;
-    struct Stmt_Flow_  stmt_until;
-    Stmt_Loop          stmt_loop;
-    Stmt_For           stmt_for;
-    Stmt_If            stmt_if;
-    struct Stmt_Basic_ stmt_break;
-    struct Stmt_Basic_ stmt_continue;
-    struct Stmt_Exp_   stmt_return;
-    Stmt_Goto_Label    stmt_gotolabel;
-    Stmt_Switch        stmt_switch;
-    struct Stmt_Exp_   stmt_case;
-    Stmt_Enum          stmt_enum;
-    Func_Ptr           stmt_funcptr;
-    Union*             stmt_union;
+    struct Stmt_Exp_        stmt_exp;
+    struct Stmt_Code_       stmt_code;
+    struct Stmt_Flow_       stmt_while;
+    struct Stmt_Flow_       stmt_until;
+    struct Stmt_Loop_       stmt_loop;
+    struct Stmt_For_        stmt_for;
+    struct Stmt_If_         stmt_if;
+    struct Stmt_Basic_      stmt_break;
+    struct Stmt_Basic_      stmt_continue;
+    struct Stmt_Exp_        stmt_return;
+    struct Stmt_Goto_Label_ stmt_gotolabel;
+    struct Stmt_Switch_     stmt_switch;
+    struct Stmt_Exp_        stmt_case;
+    struct Stmt_Enum_       stmt_enum;
+    struct Stmt_Ptr_        stmt_ptr;
+    struct Stmt_Union_      stmt_union;
   } d;
   int pos;
 };
@@ -379,57 +428,8 @@ struct Expression_ {
 };
 
 
-struct Stmt_Code_ {
-  Stmt_List stmt_list;
-  int pos;
-  Stmt self;
-};
-struct Stmt_For_ {
-  Stmt c1;
-  Stmt c2;
-  Expression c3;
-  Stmt body;
-  int pos;
-  Stmt self;
-};
-struct Stmt_Loop_ {
-  Expression cond;
-  Stmt body;
-  int pos;
-  Stmt self;
-};
-struct Stmt_If_ {
-  Expression cond;
-  Stmt if_body;
-  Stmt else_body;
-  int pos;
-  Stmt self;
-};
-struct Stmt_Goto_Label_ {
-  S_Symbol name;
-  m_bool is_label;
-  union {
-    Vector v;
-    Instr instr;
-  } data;
-  int pos;
-  Stmt self;
-};
-struct Stmt_Switch_ {
-  Expression val;
-  Stmt stmt;
-  int pos;
-  Stmt self;
-};
-struct Stmt_Enum_ {
-  ID_List list;
-  S_Symbol xid;
-  Vector values;
-  int pos;
-  Stmt self;
-};
 
-Stmt new_Stmt_from_Expression(Expression exp, int pos);
+Stmt new_stmt_from_expression(Expression exp, int pos);
 Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
 Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_return(Expression exp, int pos);
@@ -443,8 +443,7 @@ Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
 Stmt new_stmt_from_case(Expression exp, int pos);
 Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
-
-Stmt new_stmt_from_Union(Union* u, int pos);
+Stmt new_stmt_from_union(Decl_List l, int pos);
 
 struct Stmt_List_ {
   Stmt stmt;

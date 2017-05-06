@@ -1587,7 +1587,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   // emit the cond - keep the result on the stack
   CHECK_BB(emit_Stmt(emit, stmt->c2, 0))
   if (stmt->c2) {
-    switch (stmt->c2->d.stmt_exp->type->xid) {
+    switch (stmt->c2->d.stmt_exp.val->type->xid) {
     case te_int:
       instr = add_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
@@ -1609,9 +1609,9 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
       /*          break;*/
       /*        }*/
 
-      err_msg(EMIT_, stmt->c2->d.stmt_exp->pos, // LCOV_EXCL_START
+      err_msg(EMIT_, stmt->c2->d.stmt_exp.pos, // LCOV_EXCL_START
               "(emit): internal error: unhandled type '%s' in for conditional",
-              stmt->c2->d.stmt_exp->type->name);
+              stmt->c2->d.stmt_exp.val->type->name);
       return -1;
      }                                          // LCOV_EXCL_STOP
     (void)instr;
@@ -1834,7 +1834,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
   return 1;
 }
 
-static m_bool emit_Func_Ptr(Emitter emit, Func_Ptr* ptr)
+static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
 {
   namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_append(emit->funcs, (vtype)ptr);
@@ -1868,27 +1868,46 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   return 1;
 }
 
+static m_bool emit_Stmt_Union(Emitter emit, Stmt_Union stmt)
+{
+  m_bool is_member;
+  Decl_List l = stmt->l;
+  Local* local;
+  Var_Decl_List var_list;
+  is_member = l->self->list->self->value->is_member;
+  if (!is_member) {
+    local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
+    stmt->o = local->offset;
+  } else
+    local = NULL;
+  while (l) {
+    var_list = l->self->list;
+    while (var_list) {
+      var_list->self->value->offset = stmt->o;
+      var_list = var_list->next;
+    }
+    l = l->next;
+  }
+  return 1;
+}
+
 static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "Stmt (pop: %s)", pop ? "yes" : "no");
 #endif
   Instr instr;
-  Decl_List l;
-  Local* local;
-  Var_Decl_List var_list;
-  m_bool is_member;
   m_bool ret = 1;
   if (!stmt)
     return 1;
   switch (stmt->type) {
   case ae_stmt_exp:
-    if (!stmt->d.stmt_exp)
+    if (!stmt->d.stmt_exp.val)
       return 1;
-    ret = emit_Expression(emit, stmt->d.stmt_exp, 0);
+    ret = emit_Expression(emit, stmt->d.stmt_exp.val, 0);
 // check 'stmt->d.stmt_exp->type'for switch
-    if (ret > 0 && pop && stmt->d.stmt_exp->type && stmt->d.stmt_exp->type->size > 0) {
-      Expression exp = stmt->d.stmt_exp;
+    if (ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
+      Expression exp = stmt->d.stmt_exp.val;
       if (exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_hack)
         exp = exp->d.exp_primary->d.exp;
       while (exp) {
@@ -1908,10 +1927,10 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
       return -1;
     break;
   case ae_stmt_code:
-    ret = emit_Stmt_Code(emit, stmt->d.stmt_code, 1);
+    ret = emit_Stmt_Code(emit, &stmt->d.stmt_code, 1);
     break;
   case ae_stmt_if:
-    ret = emit_If(emit, stmt->d.stmt_if);
+    ret = emit_If(emit, &stmt->d.stmt_if);
     break;
   case ae_stmt_return:
     ret = emit_Return(emit, &stmt->d.stmt_return);
@@ -1938,59 +1957,28 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
       ret = emit_Until(emit, &stmt->d.stmt_until);
     break;
   case ae_stmt_for:
-    ret = emit_For(emit, stmt->d.stmt_for);
+    ret = emit_For(emit, &stmt->d.stmt_for);
     break;
   case ae_stmt_loop:
-    ret = emit_Loop(emit, stmt->d.stmt_loop);
+    ret = emit_Loop(emit, &stmt->d.stmt_loop);
     break;
   case ae_stmt_gotolabel:
-    ret = emit_Goto_Label(emit, stmt->d.stmt_gotolabel);
+    ret = emit_Goto_Label(emit, &stmt->d.stmt_gotolabel);
     break;
   case ae_stmt_case:
     ret = emit_Case(emit, &stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
-    ret = emit_Enum(emit, stmt->d.stmt_enum);
+    ret = emit_Enum(emit, &stmt->d.stmt_enum);
     break;
   case ae_stmt_switch:
-    ret = emit_Switch(emit, stmt->d.stmt_switch);
+    ret = emit_Switch(emit, &stmt->d.stmt_switch);
     break;
   case ae_stmt_funcptr:
-    ret = emit_Func_Ptr(emit, &stmt->d.stmt_funcptr);
+    ret = emit_Func_Ptr(emit, &stmt->d.stmt_ptr);
     break;
   case ae_stmt_union:
-    l = stmt->d.stmt_union->l;
-    is_member = l->self->list->self->value->is_member;
-    if (!is_member) {
-      local = frame_alloc_local(emit->code->frame, stmt->d.stmt_union->s, "union", 1, 0);
-      stmt->d.stmt_union->o = local->offset;
-    } else
-      local = NULL;
-    while (l) {
-      var_list = l->self->list;
-      while (var_list) {
-        var_list->self->value->offset = stmt->d.stmt_union->o;
-        var_list = var_list->next;
-      }
-      l = l->next;
-    }
-    /*      switch(stmt->stmt_union->s)*/
-    /*      {*/
-    /*        case SZ_COMPLEX:*/
-    /*          add_instr(emit, is_member ? Alloc_Word_Complex : Alloc_Word_Complex);*/
-    /*          break;*/
-    /*        case SZ_INT:*/
-    /*          add_instr(emit, is_member ?  Alloc_Member_Word : Alloc_Word);*/
-    /*          break;*/
-    /*    case SZ_FLOAT:*/
-    /*      add_instr(emit, is_member ? Alloc_Member_Word_Float : Alloc_Word_Float);*/
-    /*      break;*/
-    /*  }*/
-    /*    }*/
-    /*    Instr instr = add_instr(emit, Reg_Pop_Word4);*/
-    /*    instr->m_val = stmt->stmt_union->s;*/
-
-    ret = 1;
+    ret = emit_Stmt_Union(emit, &stmt->d.stmt_union);
     break;
   }
 #ifdef DEBUG_EMIT
@@ -2501,7 +2489,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   sadd_instr(emit, stop_gc);
   // handle func pointer
   for(i = 0; i < vector_size(emit->funcs); i++) {
-    Func_Ptr* ptr = (Func_Ptr*)vector_at(emit->funcs, i);
+    Stmt_Ptr ptr = (Stmt_Ptr)vector_at(emit->funcs, i);
     scope_rem(emit->env->curr->func, ptr->xid);
   }
   // handle empty array type

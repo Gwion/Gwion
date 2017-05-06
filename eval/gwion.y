@@ -59,12 +59,11 @@ static m_str get_arg_doc(void* data)
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Expression   exp;
-  Func_Ptr func_ptr;
+  Stmt_Ptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
   Decl_List decl_list; // for union
-  Union* union_stmt; // for union
   Func_Def func_def;
   Section* section;
   ID_List id_list;
@@ -147,6 +146,7 @@ static m_str get_arg_doc(void* data)
 %type<stmt> switch_stmt
 %type<stmt> enum_stmt
 %type<stmt> func_ptr
+%type<stmt> union_stmt
 %type<arg_list> arg_list
 %type<decl_list> decl_list
 %type<union_stmt> union
@@ -277,7 +277,7 @@ stmt
   | enum_stmt
   | jump_stmt
   | func_ptr
-  | union { $$ = new_stmt_from_Union($1, 0); }
+  | union_stmt
   ;
 
 enum_stmt
@@ -334,9 +334,9 @@ jump_stmt
   ;
 
 exp_stmt
-  : exp SEMICOLON { $$ = new_Stmt_from_Expression($1,   get_pos(scanner)); }
-  | SEMICOLON     { $$ = new_Stmt_from_Expression(NULL, get_pos(scanner)); }
-  | DOC           { $$ = new_Stmt_from_Expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
+  : exp SEMICOLON { $$ = new_stmt_from_expression($1,   get_pos(scanner)); }
+  | SEMICOLON     { $$ = new_stmt_from_expression(NULL, get_pos(scanner)); }
+  | DOC           { $$ = new_stmt_from_expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
   ;
 
 exp
@@ -435,8 +435,8 @@ decl_list
   | ID SEMICOLON decl_list { $$ = new_Decl_List(NULL, $3); }
   ;
 
-union
-  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_Union($3); }
+union_stmt
+  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_stmt_from_union($3, get_pos(scanner)); }
   ;
 
 var_decl_list
