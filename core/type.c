@@ -622,12 +622,12 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
 /*
     if(isa(binary->lhs->type, &t_func_ptr) > 0) {
       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
+//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       return NULL;
     }
 */
     if(binary->rhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary->d.var, 1);
+      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
@@ -635,7 +635,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
 //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
       f1 = namespace_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
-      v = binary->rhs->d.exp_decl->list->self->value;
+      v = binary->rhs->d.exp_decl.list->self->value;
       f1 = v->m_type->func;
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
@@ -643,7 +643,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     }
 	r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary->d.var, 1);
+      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
     } else if(binary->lhs->exp_type == Dot_Member_type) {
@@ -813,7 +813,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
-    Value v = namespace_lookup_value(env->curr, cast->exp->d.exp_primary->d.var,  1);
+    Value v = namespace_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
     Func  f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos)) {
       cast->func = f;
@@ -1010,7 +1010,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     base = value->func_ref->def;
     /*if(!base) continue;*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
-                                base->type_decl, S_name(func->d.exp_primary->d.var),
+                                base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
     if(base->is_variadic)
       def->is_variadic = 1;
@@ -1093,12 +1093,12 @@ next:
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == Primary_Expression_type &&
-      exp_func->d.exp_primary->value && !exp_func->d.exp_primary->value->is_const) {
-        if(env->class_def && exp_func->d.exp_primary->value->owner_class == env->class_def) {
+      exp_func->d.exp_primary.value && !exp_func->d.exp_primary.value->is_const) {
+        if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
       	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
           return NULL;
         }
-        ptr = exp_func->d.exp_primary->value;
+        ptr = exp_func->d.exp_primary.value;
       }
 /*
   else if(exp_func->exp_type == Dot_Member_type) {
@@ -1107,7 +1107,7 @@ next:
       	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
           return NULL;
         }
-//        ptr = exp_func->d.exp_primary->value;
+//        ptr = exp_func->d.exp_primary.value;
       }
 */
   if(!f) {
@@ -1128,7 +1128,7 @@ next:
     Value value;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
-        value = namespace_lookup_value(env->curr, exp_func->d.exp_primary->d.var, 1);
+        value = namespace_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
         value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
       else {
@@ -1231,7 +1231,7 @@ next:
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
     func = f;
-//up->value_ref = exp_func->d.exp_primary->value;
+//up->value_ref = exp_func->d.exp_primary.value;
   }
   *m_func = func;
   return func->def->ret_type;
@@ -1242,7 +1242,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
   if(exp_func->types) {
     Value v;
     if(exp_func->func->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary->d.var, 1);
+      v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
     } else {
       Type t;
       CHECK_OO(check_Expression(env, exp_func->func))
@@ -1326,7 +1326,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       // assignable?
       /* coverity[var_deref_op : FALSE] */
 //      if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
-//          exp_unary->exp->d.exp_primary->value->is_const)
+//          exp_unary->exp->d.exp_primary.value->is_const)
       if(exp_unary->exp->meta != ae_meta_var) {
         err_msg(TYPE_, exp_unary->pos,
                 "prefix exp_unary operator '%s' cannot "
@@ -1520,16 +1520,16 @@ static Type check_Expression(Env env, Expression exp)
     curr->type = NULL;
     switch(curr->exp_type) {
     case Primary_Expression_type:
-      curr->type = check_Primary_Expression(env, curr->d.exp_primary);
+      curr->type = check_Primary_Expression(env, &curr->d.exp_primary);
       break;
     case Decl_Expression_type:
-      curr->type = check_Decl_Expression(env, curr->d.exp_decl);
+      curr->type = check_Decl_Expression(env, &curr->d.exp_decl);
       break;
     case Unary_Expression_type:
-      curr->type = check_Unary(env, curr->d.exp_unary);
+      curr->type = check_Unary(env, &curr->d.exp_unary);
       break;
     case Binary_Expression_type:
-      curr->type = check_Binary_Expression(env, curr->d.exp_binary);
+      curr->type = check_Binary_Expression(env, &curr->d.exp_binary);
       break;
     case Postfix_Expression_type:
       curr->type = check_Postfix_Expression(env, &curr->d.exp_postfix);
@@ -1538,7 +1538,7 @@ static Type check_Expression(Env env, Expression exp)
       curr->type = check_Dur(env, &curr->d.exp_dur);
       break;
     case Cast_Expression_type:
-      curr->type = check_Cast_Expression(env, curr->d.exp_cast);
+      curr->type = check_Cast_Expression(env, &curr->d.exp_cast);
       break;
     case Func_Call_type:
       curr->type = check_Func_Call(env, &curr->d.exp_func);

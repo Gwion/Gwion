@@ -258,7 +258,7 @@ static m_bool scan2_Func_Call(Env env, Func_Call* exp_func)
 #endif
   if(exp_func->types) {
     if(exp_func->func->exp_type == Primary_Expression_type) {
-      Value v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary->d.var, 1);
+      Value v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
       if(!v) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
         return -1;
@@ -348,31 +348,31 @@ static m_bool scan2_Expression(Env env, Expression exp)
   while(curr && ret > 0) {
     switch(exp->exp_type) {
     case Primary_Expression_type:
-      ret = scan2_Primary_Expression(env, exp->d.exp_primary);
+      ret = scan2_Primary_Expression(env, &exp->d.exp_primary);
       break;
     case Decl_Expression_type:
-      ret = scan2_Decl_Expression(env, exp->d.exp_decl);
+      ret = scan2_Decl_Expression(env, &exp->d.exp_decl);
       break;
     case Unary_Expression_type:
-      if(exp->d.exp_unary->code) {
+      if(exp->d.exp_unary.code) {
         if(env->func)
-          ret = scan2_Stmt(env, exp->d.exp_unary->code);
+          ret = scan2_Stmt(env, exp->d.exp_unary.code);
         else {
           env->func = (Func)1; // check me
-          ret = scan2_Stmt(env, exp->d.exp_unary->code);
+          ret = scan2_Stmt(env, exp->d.exp_unary.code);
           env->func = NULL;
         }
       } else
         ret = 1;
       break;
     case Binary_Expression_type:
-      ret = scan2_Binary_Expression(env, exp->d.exp_binary);
+      ret = scan2_Binary_Expression(env, &exp->d.exp_binary);
       break;
     case Postfix_Expression_type:
       ret = scan2_Postfix_Expression(env, &exp->d.exp_postfix);
       break;
     case Cast_Expression_type:
-      ret = scan2_Cast_Expression(env, exp->d.exp_cast);
+      ret = scan2_Cast_Expression(env, &exp->d.exp_cast);
       break;
     case Func_Call_type:
       ret = scan2_Func_Call(env, &exp->d.exp_func);

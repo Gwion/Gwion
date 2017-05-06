@@ -149,7 +149,6 @@ static m_str get_arg_doc(void* data)
 %type<stmt> union_stmt
 %type<arg_list> arg_list
 %type<decl_list> decl_list
-%type<union_stmt> union
 %type<func_def> func_def
 %type<section> section
 %type<class_def> class_def
@@ -429,8 +428,8 @@ type_decl
 
 
 decl_list
-  : decl_exp SEMICOLON { $$ = new_Decl_List($1->d.exp_decl, NULL); }
-  | decl_exp SEMICOLON decl_list { $$ = new_Decl_List($1->d.exp_decl, $3); }
+  : decl_exp SEMICOLON { $$ = new_Decl_List(&$1->d.exp_decl, NULL); }
+  | decl_exp SEMICOLON decl_list { $$ = new_Decl_List(&$1->d.exp_decl, $3); }
   | ID SEMICOLON { $$ = NULL; }
   | ID SEMICOLON decl_list { $$ = new_Decl_List(NULL, $3); }
   ;

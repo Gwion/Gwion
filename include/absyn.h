@@ -431,11 +431,11 @@ struct Expression_ {
   Type cast_to;
   union {
     Postfix_Expression   exp_postfix;
-    Primary_Expression*   exp_primary;
-    Decl_Expression*      exp_decl;
-    Unary_Expression*     exp_unary;
-    Binary_Expression*    exp_binary;
-    Cast_Expression*      exp_cast;
+    Primary_Expression   exp_primary;
+    Decl_Expression      exp_decl;
+    Unary_Expression     exp_unary;
+    Binary_Expression    exp_binary;
+    Cast_Expression      exp_cast;
     Func_Call            exp_func;
     If_Expression        exp_if;
     Dot_Member           exp_dot;

@@ -611,14 +611,14 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
         instr->m_val = 1;
         break;
       case Primary_Expression_type:
-        if(binary->rhs->d.exp_primary->value->is_member) {
-          v = binary->rhs->d.exp_primary->value;
+        if(binary->rhs->d.exp_primary.value->is_member) {
+          v = binary->rhs->d.exp_primary.value;
           instr->m_val = 1;
           instr->m_val2 = v->offset;
         }
         break;
         case Decl_Expression_type:
-          v = binary->rhs->d.exp_decl->list->self->value;
+          v = binary->rhs->d.exp_decl.list->self->value;
           instr->m_val2 = v->offset;
           /*instr->m_val = 1;*/
           break;
@@ -1142,22 +1142,22 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
   while (tmp) {
     switch (tmp->exp_type) {
     case Decl_Expression_type:
-      CHECK_BB(emit_Decl_Expression(emit, tmp->d.exp_decl))
+      CHECK_BB(emit_Decl_Expression(emit, &tmp->d.exp_decl))
       break;
     case Primary_Expression_type:
-      CHECK_BB(emit_Primary_Expression(emit, tmp->d.exp_primary))
+      CHECK_BB(emit_Primary_Expression(emit, &tmp->d.exp_primary))
       break;
     case Unary_Expression_type:
-      CHECK_BB(emit_Unary(emit, tmp->d.exp_unary))
+      CHECK_BB(emit_Unary(emit, &tmp->d.exp_unary))
       break;
     case Binary_Expression_type:
-      CHECK_BB(emit_Binary_Expression(emit, tmp->d.exp_binary))
+      CHECK_BB(emit_Binary_Expression(emit, &tmp->d.exp_binary))
       break;
     case Postfix_Expression_type:
       CHECK_BB(emit_Postfix_Expression(emit, &tmp->d.exp_postfix))
       break;
     case Cast_Expression_type:
-      CHECK_BB(emit_Cast_Expression(emit, tmp->d.exp_cast))
+      CHECK_BB(emit_Cast_Expression(emit, &tmp->d.exp_cast))
       break;
     case Dot_Member_type:
       CHECK_BB(emit_Dot_Member(emit, &tmp->d.exp_dot))
@@ -1797,24 +1797,24 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     return -1;
   }
   if (stmt->val->exp_type == Primary_Expression_type) {
-    if (stmt->val->d.exp_primary->type == ae_primary_num)
-      value = stmt->val->d.exp_primary->d.num;
+    if (stmt->val->d.exp_primary.type == ae_primary_num)
+      value = stmt->val->d.exp_primary.d.num;
     else {
-      if(stmt->val->d.exp_primary->d.var == insert_symbol("true"))
+      if(stmt->val->d.exp_primary.d.var == insert_symbol("true"))
         value = 1;
-      else if(stmt->val->d.exp_primary->d.var == insert_symbol("false"))
+      else if(stmt->val->d.exp_primary.d.var == insert_symbol("false"))
         value = 0;
-      else if(stmt->val->d.exp_primary->d.var == insert_symbol("maybe")) {
-        err_msg(EMIT_, stmt->val->d.exp_primary->pos, "'maybe' is not constant.");
+      else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
+        err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
         return -1;
       } else  {
-        if(!stmt->val->d.exp_primary->value->is_const) {
+        if(!stmt->val->d.exp_primary.value->is_const) {
           err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
           return -1;
         }
-//        value = stmt->val->d.exp_primary->value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary->value->ptr : // for enum
-//              *(m_uint*)stmt->val->d.exp_primary->value->ptr;                                                   // for primary variable
-          value = (m_uint)stmt->val->d.exp_primary->value->ptr; // assume enum.
+//        value = stmt->val->d.exp_primary.value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary.value->ptr : // for enum
+//              *(m_uint*)stmt->val->d.exp_primary.value->ptr;                                                   // for primary variable
+          value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
       }
     }
   } else if(stmt->val->exp_type == Dot_Member_type) {
@@ -1908,8 +1908,8 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
 // check 'stmt->d.stmt_exp->type'for switch
     if (ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
       Expression exp = stmt->d.stmt_exp.val;
-      if (exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_hack)
-        exp = exp->d.exp_primary->d.exp;
+      if (exp->exp_type == Primary_Expression_type && exp->d.exp_primary.type == ae_primary_hack)
+        exp = exp->d.exp_primary.d.exp;
       while (exp) {
         // get rid of primary str ?
         /*          if(exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_str)*/
@@ -1919,7 +1919,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
                 if (isa(exp->type, &t_polar) > 0 && exp->exp_type != Decl_Expression_type)
                   exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl; */
         //        instr->m_val = exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
-        instr->m_val = (exp->exp_type == Decl_Expression_type ? exp->d.exp_decl->num_decl * SZ_INT : exp->type->size);
+        instr->m_val = (exp->exp_type == Decl_Expression_type ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
         exp = exp->next;
       }
     }

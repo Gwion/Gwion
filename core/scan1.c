@@ -154,23 +154,23 @@ static m_bool scan1_Expression(Env env, Expression exp)
   while(curr) {
     switch(curr->exp_type) {
     case Primary_Expression_type:
-      CHECK_BB(scan1_Primary_Expression(env, curr->d.exp_primary))
+      CHECK_BB(scan1_Primary_Expression(env, &curr->d.exp_primary))
       break;
     case Decl_Expression_type:
-      CHECK_BB(scan1_Decl_Expression(env, curr->d.exp_decl))
+      CHECK_BB(scan1_Decl_Expression(env, &curr->d.exp_decl))
       break;
     case Unary_Expression_type:
-      if(exp->d.exp_unary->code)
-        CHECK_BB(scan1_Stmt(env, exp->d.exp_unary->code))
+      if(exp->d.exp_unary.code)
+        CHECK_BB(scan1_Stmt(env, exp->d.exp_unary.code))
       break;
     case Binary_Expression_type:
-      CHECK_BB(scan1_Binary_Expression(env, curr->d.exp_binary))
+      CHECK_BB(scan1_Binary_Expression(env, &curr->d.exp_binary))
       break;
     case Postfix_Expression_type:
       CHECK_BB(scan1_Postfix_Expression(env, &curr->d.exp_postfix))
       break;
     case Cast_Expression_type:
-      CHECK_BB(scan1_Cast_Expression(env, curr->d.exp_cast))
+      CHECK_BB(scan1_Cast_Expression(env, &curr->d.exp_cast))
       break;
     case Func_Call_type:
       CHECK_BB(scan1_Func_Call(env, &curr->d.exp_func))

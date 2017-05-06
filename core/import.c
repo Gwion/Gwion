@@ -172,12 +172,12 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   var_decl_list = new_Var_Decl_List(var_decl, NULL, 0);
   exp_decl = new_Decl_Expression(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
-  if(scan1_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
+  if(scan1_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
-  if(scan2_Decl_Expression(env, exp_decl->d.exp_decl) < 0)
+  if(scan2_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   var_decl->value->is_const = is_const;
-  if(!check_Decl_Expression(env, exp_decl->d.exp_decl))
+  if(!check_Decl_Expression(env, &exp_decl->d.exp_decl))
     goto error;
 
   if(doc)

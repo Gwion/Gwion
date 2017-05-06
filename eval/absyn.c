@@ -192,14 +192,13 @@ Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_st
 {
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Decl_Expression_type;
-  a->d.exp_decl  = calloc(1, sizeof(Decl_Expression));
-  a->d.exp_decl->type = type;
-  a->d.exp_decl->num_decl = 0;
-  a->d.exp_decl->list = list;
-  a->d.exp_decl->is_static = is_static;
+  a->d.exp_decl.type = type;
+  a->d.exp_decl.num_decl = 0;
+  a->d.exp_decl.list = list;
+  a->d.exp_decl.is_static = is_static;
   a->pos  = pos;
-  a->d.exp_decl->pos  = pos;
-  a->d.exp_decl->self = a;
+  a->d.exp_decl.pos  = pos;
+  a->d.exp_decl.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -209,22 +208,19 @@ static void free_Decl_Expression(Decl_Expression* a)
 {
   free_Type_Decl(a->type);
   free_Var_Decl_List(a->list);
-  free(a);
 }
-
 
 Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, int pos)
 {
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Binary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_binary = calloc(1, sizeof(Binary_Expression));
-  a->d.exp_binary->lhs = lhs;
-  a->d.exp_binary->op = op;
-  a->d.exp_binary->rhs = rhs;
+  a->d.exp_binary.lhs = lhs;
+  a->d.exp_binary.op = op;
+  a->d.exp_binary.rhs = rhs;
   a->pos = pos;
-  a->d.exp_binary->pos = pos;
-  a->d.exp_binary->self = a;
+  a->d.exp_binary.pos = pos;
+  a->d.exp_binary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -234,7 +230,6 @@ static void free_Binary_Expression(Binary_Expression* binary)
 {
   free_Expression(binary->lhs);
   free_Expression(binary->rhs);
-  free(binary);
 }
 
 Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
@@ -242,12 +237,11 @@ Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
   Expression a = calloc(1,  sizeof( struct Expression_ ) );
   a->exp_type = Cast_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_cast = calloc(1, sizeof(Cast_Expression));
-  a->d.exp_cast->type = type;
+  a->d.exp_cast.type = type;
   a->pos = pos;
-  a->d.exp_cast->pos = pos;
-  a->d.exp_cast->exp = exp;
-  a->d.exp_cast->self = a;
+  a->d.exp_cast.pos = pos;
+  a->d.exp_cast.exp = exp;
+  a->d.exp_cast.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -257,7 +251,6 @@ __inline static void free_Cast_Expression(Cast_Expression* a)
 {
   free_Type_Decl(a->type);
   free_Expression(a->exp);
-  free(a);
 }
 
 Expression new_Postfix_Expression(Expression exp, Operator op, int pos)
@@ -307,12 +300,11 @@ Expression new_Primary_Expression_from_int(long i, int pos)
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
   a->emit_var = 0;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_num;
-  a->d.exp_primary->d.num = i;
+  a->d.exp_primary.type = ae_primary_num;
+  a->d.exp_primary.d.num = i;
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -324,12 +316,11 @@ Expression new_Primary_Expression_from_float(m_float num, int pos)
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
   a->emit_var = 0; // ???
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_float;
-  a->d.exp_primary->d.fnum = num;
+  a->d.exp_primary.type = ae_primary_float;
+  a->d.exp_primary.d.fnum = num;
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -341,12 +332,11 @@ Expression new_Primary_Expression_from_string(m_str s, int pos)
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
   a->emit_var = 0; // ???
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_str;
-  a->d.exp_primary->d.str = s;
+  a->d.exp_primary.type = ae_primary_str;
+  a->d.exp_primary.d.str = s;
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -357,11 +347,10 @@ Expression new_Primary_Expression_from_nil( int pos )
   Expression  a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_nil;
-  a->d.exp_primary->pos = pos;
+  a->d.exp_primary.type = ae_primary_nil;
+  a->d.exp_primary.pos = pos;
   a->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -373,12 +362,11 @@ Expression new_Primary_Expression_from_ID(m_str s, int pos)
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_var;
   a->emit_var = 0;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_var;
-  a->d.exp_primary->d.var = insert_symbol(s);
+  a->d.exp_primary.type = ae_primary_var;
+  a->d.exp_primary.d.var = insert_symbol(s);
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -389,12 +377,11 @@ Expression new_Hack_Expression(Expression exp, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_hack;
-  a->d.exp_primary->d.exp = exp;
-  a->d.exp_primary->pos = pos;
+  a->d.exp_primary.type = ae_primary_hack;
+  a->d.exp_primary.d.exp = exp;
+  a->d.exp_primary.pos = pos;
   a->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -422,12 +409,11 @@ Expression new_exp_from_char( c_str chr, int pos )
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_char;
-  a->d.exp_primary->d.chr = chr;
+  a->d.exp_primary.type = ae_primary_char;
+  a->d.exp_primary.d.chr = chr;
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -438,12 +424,11 @@ Expression new_exp_from_array_lit(Array_Sub exp_list, int pos )
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_array;
-  a->d.exp_primary->d.array = exp_list;
+  a->d.exp_primary.type = ae_primary_array;
+  a->d.exp_primary.d.array = exp_list;
   a->pos = pos;
-  a->d.exp_primary->pos = pos;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.pos = pos;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -469,13 +454,12 @@ Expression new_exp_from_complex(Complex* exp, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_complex;
-  a->d.exp_primary->d.cmp = exp;
-  a->d.exp_primary->pos = pos;
+  a->d.exp_primary.type = ae_primary_complex;
+  a->d.exp_primary.d.cmp = exp;
+  a->d.exp_primary.pos = pos;
   a->pos = pos;
-  a->d.exp_primary->d.cmp->self = a;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.d.cmp->self = a;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -486,13 +470,12 @@ Expression new_exp_from_polar(Polar* exp, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_polar;
-  a->d.exp_primary->d.polar = exp;
-  a->d.exp_primary->pos = pos;
+  a->d.exp_primary.type = ae_primary_polar;
+  a->d.exp_primary.d.polar = exp;
+  a->d.exp_primary.pos = pos;
   a->pos = pos;
-  a->d.exp_primary->d.polar->self = a;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.d.polar->self = a;
+  a->d.exp_primary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -537,13 +520,12 @@ Expression new_exp_from_vec(Vec exp, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_primary = calloc(1, sizeof(Primary_Expression));
-  a->d.exp_primary->type = ae_primary_vec;
-  a->d.exp_primary->d.vec = exp;
-  a->d.exp_primary->pos = pos;
+  a->d.exp_primary.type = ae_primary_vec;
+  a->d.exp_primary.d.vec = exp;
+  a->d.exp_primary.pos = pos;
   a->pos = pos;
-  a->d.exp_primary->d.vec->self = a;
-  a->d.exp_primary->self = a;
+  a->d.exp_primary.d.vec->self = a;
+  a->d.exp_primary.self = a;
   return a;
 }
 
@@ -552,13 +534,12 @@ Expression new_exp_from_unary(Operator oper, Expression exp, int pos)
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Unary_Expression_type;
   a->meta = exp->meta;
-  a->d.exp_unary = calloc(1, sizeof(Unary_Expression));
-  a->d.exp_unary->op = oper;
-  a->d.exp_unary->exp = exp;
-  a->d.exp_unary->code = NULL;
+  a->d.exp_unary.op = oper;
+  a->d.exp_unary.exp = exp;
+  a->d.exp_unary.code = NULL;
   a->pos = pos;
-  a->d.exp_unary->pos = pos;
-  a->d.exp_unary->self = a;
+  a->d.exp_unary.pos = pos;
+  a->d.exp_unary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
@@ -569,29 +550,17 @@ Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, 
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Unary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_unary = calloc(1, sizeof(Unary_Expression));
-  a->d.exp_unary->exp = NULL;
-  a->d.exp_unary->op = oper;
-  a->d.exp_unary->type = type;
-  a->d.exp_unary->array = array;
-  a->d.exp_unary->code = NULL;
+  a->d.exp_unary.exp = NULL;
+  a->d.exp_unary.op = oper;
+  a->d.exp_unary.type = type;
+  a->d.exp_unary.array = array;
+  a->d.exp_unary.code = NULL;
   a->pos = pos;
-  a->d.exp_unary->pos = pos;
-  a->d.exp_unary->self = a;
+  a->d.exp_unary.pos = pos;
+  a->d.exp_unary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
-}
-
-static void free_Unary_Expression(Unary_Expression* a)
-{
-  if(a->exp) // sporked func
-    free_Expression(a->exp);
-  if(a->type)
-    free_Type_Decl(a->type);
-  if(a->code)
-    free_Stmt(a->code);
-  free(a);
 }
 
 Expression new_exp_from_unary3(Operator oper, Stmt code, int pos )
@@ -599,19 +568,27 @@ Expression new_exp_from_unary3(Operator oper, Stmt code, int pos )
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Unary_Expression_type;
   a->meta = ae_meta_value;
-  a->d.exp_unary = calloc(1, sizeof(Unary_Expression));
-  a->d.exp_unary->exp = NULL;
-  a->d.exp_unary->op = oper;
+  a->d.exp_unary.exp = NULL;
+  a->d.exp_unary.op = oper;
   ID_List id = new_id_list("void", pos);
-  a->d.exp_unary->type = new_Type_Decl(id, 0, pos);
-  a->d.exp_unary->array = NULL;
-  a->d.exp_unary->code = code;
+  a->d.exp_unary.type = new_Type_Decl(id, 0, pos);
+  a->d.exp_unary.array = NULL;
+  a->d.exp_unary.code = code;
   a->pos = pos;
-  a->d.exp_unary->pos = pos;
-  a->d.exp_unary->self = a;
+  a->d.exp_unary.pos = pos;
+  a->d.exp_unary.self = a;
   a->next = NULL;
   a->cast_to = NULL;
   return a;
+}
+static void free_Unary_Expression(Unary_Expression* a)
+{ 
+  if(a->exp) // sporked func
+    free_Expression(a->exp);
+  if(a->type)
+    free_Type_Decl(a->type);
+  if(a->code)
+    free_Stmt(a->code);
 }
 
 Expression new_If_Expression(Expression cond, Expression if_exp, Expression else_exp, int pos )
@@ -773,7 +750,6 @@ static void free_Primary_Expression(Primary_Expression* a)
     free_polar(a->d.polar);
   else if (a->type == ae_primary_vec)
     free_Vec(a->d.vec);
-  free(a);
 }
 
 void free_Expression(Expression exp)
@@ -782,19 +758,19 @@ void free_Expression(Expression exp)
   while(curr) {
     switch(curr->exp_type) {
     case Decl_Expression_type:
-      free_Decl_Expression(curr->d.exp_decl);
+      free_Decl_Expression(&curr->d.exp_decl);
       break;
     case Binary_Expression_type:
-      free_Binary_Expression(curr->d.exp_binary);
+      free_Binary_Expression(&curr->d.exp_binary);
       break;
     case Unary_Expression_type:
-      free_Unary_Expression(curr->d.exp_unary);
+      free_Unary_Expression(&curr->d.exp_unary);
       break;
     case Primary_Expression_type:
-      free_Primary_Expression(curr->d.exp_primary);
+      free_Primary_Expression(&curr->d.exp_primary);
       break;
     case Cast_Expression_type:
-      free_Cast_Expression(curr->d.exp_cast);
+      free_Cast_Expression(&curr->d.exp_cast);
       break;
     case Postfix_Expression_type:
       free_Postfix_Expression(&curr->d.exp_postfix);
