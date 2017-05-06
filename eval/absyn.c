@@ -3,12 +3,10 @@
 
 void free_Expression(Expression exp);
 void free_Arg_List(Arg_List a);
-void free_Stmt(Stmt a);
-void free_Stmt_List(Stmt_List a);
-void free_Stmt_Code(Stmt_Code a);
+static void free_Stmt(Stmt a);
+static void free_Stmt_List(Stmt_List a);
+static void free_Stmt_Code(Stmt_Code a);
 static void free_Section();
-
-void free_Type_List(Type_List a);
 
 Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
 {
@@ -19,13 +17,13 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
   return a;
 }
 
-__inline void free_Array_Sub(Array_Sub a)
+__inline static void free_Array_Sub(Array_Sub a)
 {
   free_Expression(a->exp_list);
   free(a);
 }
 
-void free_Var_Decl(Var_Decl a)
+static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
     if(!a->value->obj) // func argument. this migth change
@@ -53,7 +51,7 @@ Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos)
   return a;
 }
 
-void free_Var_Decl_List(Var_Decl_List a)
+static void free_Var_Decl_List(Var_Decl_List a)
 {
   Var_Decl_List tmp, list = a;
   while(list) {
@@ -146,13 +144,43 @@ Expression new_Array(Expression base, Array_Sub indices, int pos )
   return a;
 }
 
-void free_Array_Expression(Array* a)
+static void free_Array_Expression(Array* a)
 {
   free_Array_Sub(a->indices);
   free_Expression(a->base);
   free(a);
 }
 
+ID_List new_id_list(const m_str xid, int pos)
+{
+  ID_List a = calloc(1,  sizeof( struct ID_List_ ) );
+  a->xid = insert_symbol( xid );
+  a->next = NULL;
+  a->pos = pos;
+  return a;
+}
+
+ID_List prepend_id_list(const m_str xid, ID_List list, int pos)
+{
+
+  ID_List a = new_id_list(xid, pos);
+  a->next = list;
+  a->pos = pos;
+  return a;
+}
+
+void free_ID_List(ID_List a)
+{
+#ifdef DEBUG_AST
+  debug_msg("emit", "free_ID_LIST");
+#endif
+  ID_List tmp, curr = a;
+  while(curr) {
+    tmp = curr;
+    curr = curr->next;
+    free(tmp);
+  }
+}
 void free_Type_Decl(Type_Decl* a)
 {
   if(a->array) {
@@ -179,7 +207,7 @@ Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_st
   return a;
 }
 
-void free_Decl_Expression(Decl_Expression* a)
+static void free_Decl_Expression(Decl_Expression* a)
 {
   free_Type_Decl(a->type);
   free_Var_Decl_List(a->list);
@@ -204,7 +232,7 @@ Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, in
   return a;
 }
 
-void free_Binary_Expression(Binary_Expression* binary)
+static void free_Binary_Expression(Binary_Expression* binary)
 {
   free_Expression(binary->lhs);
   free_Expression(binary->rhs);
@@ -227,7 +255,7 @@ Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos)
   return a;
 }
 
-__inline void free_Cast_Expression(Cast_Expression* a)
+__inline static void free_Cast_Expression(Cast_Expression* a)
 {
   free_Type_Decl(a->type);
   free_Expression(a->exp);
@@ -250,7 +278,7 @@ Expression new_Postfix_Expression(Expression exp, Operator op, int pos)
   return a;
 }
 
-void free_Postfix_Expression(Postfix_Expression* postfix)
+static void free_Postfix_Expression(Postfix_Expression* postfix)
 {
   free_Expression(postfix->exp);
   free(postfix);
@@ -272,7 +300,7 @@ Expression new_Exp_Dur(Expression base, Expression unit, int pos)
   return a;
 }
 
-void free_Dur_Expression(Exp_Dur* a)
+static void free_Dur_Expression(Exp_Dur* a)
 {
   free_Expression(a->base);
   free_Expression(a->unit);
@@ -388,7 +416,7 @@ Complex* new_complex(Expression re, int pos)
   return a;
 }
 
-__inline void free_complex(Complex* a)
+__inline static void free_complex(Complex* a)
 {
   free_Expression(a->re);
   free(a);
@@ -486,7 +514,7 @@ Polar* new_polar(Expression mod, int pos)
   return a;
 }
 
-__inline void free_polar(Polar* a)
+__inline static void free_polar(Polar* a)
 {
   free_Expression(a->mod);
   free(a);
@@ -504,7 +532,7 @@ Vec new_Vec(Expression e, int pos)
   return a;
 }
 
-__inline void free_Vec(Vec a)
+__inline static void free_Vec(Vec a)
 {
   free_Expression(a->args);
   free(a);
@@ -561,7 +589,7 @@ Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, 
   return a;
 }
 
-void free_Unary_Expression(Unary_Expression* a)
+static void free_Unary_Expression(Unary_Expression* a)
 {
   if(a->exp) // sporked func
     free_Expression(a->exp);
@@ -610,7 +638,7 @@ Expression new_If_Expression(Expression cond, Expression if_exp, Expression else
   return a;
 }
 
-void free_If_Expression(If_Expression* a)
+static void free_If_Expression(If_Expression* a)
 {
   free_Expression(a->cond);
   free_Expression(a->if_exp);
@@ -674,7 +702,7 @@ Stmt new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List args
 }
 
 #include "func.h"
-void free_Stmt_Func_Ptr(Stmt_Ptr a)
+static void free_Stmt_Func_Ptr(Stmt_Ptr a)
 { 
 //  if(a->args) // commented 13/04/17 for typedef int[]
 //    free_Arg_List(a->args);
@@ -704,7 +732,7 @@ Expression new_Func_Call(Expression base, Expression args, int pos )
   return a;
 }
 
-void free_Func_Call(Func_Call* a)
+static void free_Func_Call(Func_Call* a)
 {
   if(a->types)
     free_Type_List(a->types);
@@ -732,7 +760,7 @@ Expression new_exp_from_member_dot(Expression base, m_str xid, int pos)
   return a;
 }
 
-void free_Dot_Member_Expression(Dot_Member* dot)
+static void free_Dot_Member_Expression(Dot_Member* dot)
 {
   if(dot->base)
     free_Expression(dot->base);
@@ -745,7 +773,7 @@ Expression prepend_Expression(Expression exp, Expression next, int pos)
   return exp;
 }
 
-void free_Primary_Expression(Primary_Expression* a)
+static void free_Primary_Expression(Primary_Expression* a)
 {
   if(a->type == ae_primary_hack)
     free_Expression(a->d.exp);
@@ -854,7 +882,7 @@ Stmt new_stmt_from_code(Stmt_List stmt_list, int pos )
   return a;
 }
 
-void free_Stmt_Code(Stmt_Code a)
+static void free_Stmt_Code(Stmt_Code a)
 {
   free_Stmt_List(a->stmt_list);
 }
@@ -870,7 +898,7 @@ Stmt new_stmt_from_return(Expression exp, int pos)
   return a;
 }
 
-__inline void free_Stmt_Exp(struct Stmt_Exp_* a)
+__inline static void free_Stmt_Exp(struct Stmt_Exp_* a)
 {
   free_Expression(a->val);
 }
@@ -908,7 +936,7 @@ Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos)
   return a;
 }
 
-void free_Stmt_Flow(struct Stmt_Flow_* a)
+static void free_Stmt_Flow(struct Stmt_Flow_* a)
 { 
   free_Expression(a->cond);
   free_Stmt(a->body);
@@ -941,7 +969,7 @@ Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos)
   return a;
 }
 
-void free_Stmt_For(Stmt_For a)
+static void free_Stmt_For(Stmt_For a)
 {
   free_Stmt(a->c1);
   free_Stmt(a->c2);
@@ -973,7 +1001,7 @@ Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos)
   return a;
 }
 
-void free_Stmt_Loop(Stmt_Loop a)
+static void free_Stmt_Loop(Stmt_Loop a)
 {
   free_Expression(a->cond);
   free_Stmt(a->body);
@@ -992,7 +1020,7 @@ Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos )
   return a;
 }
 
-void free_Stmt_If(Stmt_If a)
+static void free_Stmt_If(Stmt_If a)
 {
   free_Expression(a->cond);
   free_Stmt(a->if_body);
@@ -1041,7 +1069,7 @@ Stmt new_stmt_from_enum(ID_List list, m_str xid, int pos)
   return a;
 }
 
-void free_Stmt_Enum(Stmt_Enum a)
+static void free_Stmt_Enum(Stmt_Enum a)
 {
   vtype i;
   if(a->list)
@@ -1078,7 +1106,7 @@ Decl_List new_Decl_List(Decl_Expression* d, Decl_List l)
   return a;
 }
 
-void free_Decl_List(Decl_List a)
+static void free_Decl_List(Decl_List a)
 {
   if(a->next)
     free_Decl_List(a->next);
@@ -1093,7 +1121,7 @@ __inline static void free_Stmt_Union(Stmt_Union a)
   free_Vector(a->v);
 }
 
-void free_Stmt(Stmt stmt)
+static void free_Stmt(Stmt stmt)
 {
   switch(stmt->type) {
   case ae_stmt_exp:
@@ -1152,7 +1180,7 @@ Stmt_List new_Stmt_List(Stmt stmt, Stmt_List next, int pos)
   return list;
 }
 
-void free_Stmt_List(Stmt_List list)
+static void free_Stmt_List(Stmt_List list)
 {
   Stmt_List tmp;
   while(list) {
@@ -1181,7 +1209,7 @@ Section* new_section_Func_Def( Func_Def func_def, int pos )
   return a;
 }
 
-void free_Class_Def(Class_Def a)
+static void free_Class_Def(Class_Def a)
 {
   if(a->ext) {
     free_ID_List(a->ext->extend_id);
@@ -1201,7 +1229,7 @@ void free_Class_Def(Class_Def a)
   free(a);
 }
 
-void free_Section(Section* section)
+static void free_Section(Section* section)
 {
   switch(section->type) {
   case ae_section_class:
@@ -1290,37 +1318,6 @@ Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos )
   a->impl_list = impl_list;
   a->pos = pos;
   return a;
-}
-
-ID_List new_id_list(const m_str xid, int pos)
-{
-  ID_List a = calloc(1,  sizeof( struct ID_List_ ) );
-  a->xid = insert_symbol( xid );
-  a->next = NULL;
-  a->pos = pos;
-  return a;
-}
-
-ID_List prepend_id_list(const m_str xid, ID_List list, int pos)
-{
-
-  ID_List a = new_id_list(xid, pos);
-  a->next = list;
-  a->pos = pos;
-  return a;
-}
-
-void free_ID_List(ID_List a)
-{
-#ifdef DEBUG_AST
-  debug_msg("emit", "free_ID_LIST");
-#endif
-  ID_List tmp, curr = a;
-  while(curr) {
-    tmp = curr;
-    curr = curr->next;
-    free(tmp);
-  }
 }
 
 Type_List new_type_list(ID_List list, Type_List next, int pos)
