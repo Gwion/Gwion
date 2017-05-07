@@ -31,6 +31,7 @@ static int do_quit = 0;
 static const struct option long_option[] = {
   { "add",      0, NULL, '+' },
   { "rem",      0, NULL, 'z' },
+  { "pludir",   0, NULL, 'P' },
   { "quit",     0, NULL, 'q' },
   { "driver",   1, NULL, 'd' },
   { "card",     1, NULL, 'c' },
@@ -62,6 +63,7 @@ static void usage()
   printf("VM     options:\n");
   printf("\t--add,    -+\t <file>      : add file\n");
   printf("\t--rem,    --\t <shred id>  : remove shred\n");
+  printf("\t--plugdir,-P\t <directory> : add a plugin directory\n");
   printf("\t--quit    -q\t             : quit the vm\n");
   printf("UDP    options:\n");
   printf("\t--host    -h\t  <string>   : set host\n");
@@ -86,9 +88,11 @@ int main(int argc, char** argv)
 {
   Driver* d = NULL;
   int i, index;
-  Vector add = new_Vector();
-  Vector rem = new_Vector();
-  Vector ref = add;
+  Vector add  = new_Vector();
+  Vector rem  = new_Vector();
+  Vector ref  = add;
+
+  Vector plug_dirs = new_Vector();
 
   int port = 8888;
   char* hostname = "localhost";
@@ -103,7 +107,10 @@ int main(int argc, char** argv)
   di.bufnum = 3;
   di.card = "default:CARD=CODEC";
   di.raw = 0;
-  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:-:rc:f: ", long_option, &index)) != -1) {
+
+  vector_append(plug_dirs, (vtype)GWION_ADD_DIR);
+
+  while((i = getopt_long(argc, argv, "?qh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
     case '?':
       usage();
@@ -158,6 +165,9 @@ int main(int argc, char** argv)
       break;
     case 'a':
       udp = 0;
+      break;
+    case 'P':
+      vector_append(plug_dirs, (vtype)optarg);
       break;
     default:
       return 1;
@@ -219,7 +229,7 @@ int main(int argc, char** argv)
     goto clean;
   if(!(vm->bbq = new_BBQ(vm, &di, &d)))
     goto clean;
-  if(!(vm->env = type_engine_init(vm)))
+  if(!(vm->env = type_engine_init(vm, plug_dirs)))
     goto clean;
   if(!(vm->emit = new_Emitter(vm->env)))
     goto clean;
@@ -239,6 +249,7 @@ int main(int argc, char** argv)
   if(udp)
     server_destroy(udp_thread);
 clean:
+  free_Vector(plug_dirs);
   free_Vector(add);
   free_Vector(rem);
   if(d)

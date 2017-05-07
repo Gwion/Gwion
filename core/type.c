@@ -58,7 +58,55 @@ void stop_plug()
   free_Vector(plugs);
 }
 
-Env type_engine_init(VM* vm)
+static void add_plugs(Env env, Vector plug_dirs)
+{
+  m_uint i;
+  plugs = new_Vector();
+
+  for(i = 0; i < vector_size(plug_dirs); i++) {
+    m_str dirname = (m_str)vector_at(plug_dirs, i);
+    struct dirent **namelist;
+    int n;
+    n = scandir(dirname, &namelist, so_filter, alphasort);
+    if (n > 0) {
+      while (n--) {
+        char c[256];
+        sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
+        void* handler = dlopen(c, RTLD_LAZY);
+        {
+          if(!handler) {
+  //          dlclose(handler);
+            m_str err = dlerror();
+            err_msg(TYPE_, 0, "error in %s.", err);
+            free(err);
+            goto next;
+          }
+        }
+        m_bool (*import)(Env) = (m_bool (*)(Env)) (intptr_t)dlsym(handler, "import");
+        if(import) {
+          if(import(env) > 0)
+            vector_append(plugs, (vtype)handler);
+          else {
+            dlclose(handler);
+            goto next;
+          }
+        } else {
+          m_str err = dlerror();
+          err_msg(TYPE_, 0, "%s: no import function.", err);
+          dlclose(handler);
+          /*		if(err)
+                  free(err); */
+          goto next;
+        }
+next:
+        free(namelist[n]);
+       }
+      free(namelist);
+    }
+  }
+}
+
+Env type_engine_init(VM* vm, Vector plug_dirs)
 {
   Env env = new_Env();
 
@@ -140,47 +188,7 @@ Env type_engine_init(VM* vm)
   // plugins
   //  void* handler;
 
-  /*start_plug();*/
-  plugs = new_Vector();
-  m_str dirname = GWION_ADD_DIR;
-  struct dirent **namelist;
-  int n;
-  n = scandir(GWION_ADD_DIR, &namelist, so_filter, alphasort);
-  if (n > 0) {
-    while (n--) {
-      char c[256];
-      sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-      void* handler = dlopen(c, RTLD_LAZY);
-      {
-        if(!handler) {
-//          dlclose(handler);
-          m_str err = dlerror();
-          err_msg(TYPE_, 0, "error in %s.", err);
-          free(err);
-          goto next;
-        }
-      }
-      m_bool (*import)(Env) = (m_bool (*)(Env)) (intptr_t)dlsym(handler, "import");
-      if(import) {
-        if(import(env) > 0)
-          vector_append(plugs, (vtype)handler);
-        else {
-          dlclose(handler);
-          goto next;
-        }
-      } else {
-        m_str err = dlerror();
-        err_msg(TYPE_, 0, "%s: no import function.", err);
-        dlclose(handler);
-        /*		if(err)
-                free(err); */
-        goto next;
-      }
-next:
-      free(namelist[n]);
-    }
-    free(namelist);
-  }
+  add_plugs(env, plug_dirs);
   namespace_commit(env->global_nspc);
   return env;
 
