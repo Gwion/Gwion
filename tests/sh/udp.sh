@@ -19,13 +19,14 @@ wait
 ./gwion -d silent examples/sine.gw &> /dev/null & # crashes for now
 #./gwion -d silent &> /dev/null &
 sleep .1
-#./gwion + examples/sine.gw &> /dev/null
+./gwion + examples/sine.gw &> /dev/null
 ./gwion + examples/sine.gw &> /dev/null
 #run "$n" "add file (w/ '+')" "+ examples/sine.gw" "file1"
 sleep .1
 #run "$n" "remove first shred" "- 1" "file2"
 ./gwion - 1 &> /dev/null
-wait
+#wait
+#echo "test" >&2
 #run "$n" "launch loop" "-l1" "file"&
 ./gwion -l1 &> /dev/null &
 sleep .1

@@ -15,7 +15,10 @@
 static int sock;
 static struct sockaddr_in saddr;
 static struct sockaddr_in caddr;
-pthread_t srv_thread;
+
+static Vector add;
+static Vector rem;
+static m_int state;
 
 void Send(const char* c, unsigned int i)
 {
@@ -64,10 +67,13 @@ static m_bool Recv(int i, char* buf)
 void* server_thread(void* data)
 {
   VM* vm = (VM*)data;
+  add = new_Vector();
+  rem = new_Vector();
   while(vm->is_running) {
     char buf[256];
     if(Recv(0, buf) < 0)
       continue; // LCOV_EXCL_LINE
+    state = 1;
     if(strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
@@ -77,16 +83,20 @@ void* server_thread(void* data)
 
       for(i = 0; i < vector_size(vm->shred); i++) {
         shred = (VM_Shred)vector_at(vm->shred, i);
-		if(shred->xid == atoi(buf +2) -1) {
-//          for(i = 0; i < vector_size(shred->gc1); i++)
-//            release((M_Object)vector_at(shred->gc1, i), shred);
-          shreduler_remove(vm->shreduler, shred, 1);
-        }
+		if(shred->xid == atoi(buf +2) -1)
+          vector_append(rem, (vtype)shred);
       }
+//    } else if(strncmp(buf, "+", 1) == 0) {
+//      compile(data, (m_str)buf + 2);
     } else if(strncmp(buf, "+", 1) == 0) {
-      compile(data, (m_str)buf + 2);
-    } else if(strncmp(buf, "loop", 4) == 0)
-      shreduler_set_loop(vm->shreduler, atoi(buf+5));
+      vector_append(add, (vtype)strdup(buf + 2));
+    } else if(strncmp(buf, "loop", 4) == 0) {
+		m_int i = atoi(buf+5);
+        if(i <= 0)
+          state = -1;
+        else
+          state = 1;
+   }
   }
   return NULL;
 }
@@ -139,4 +149,27 @@ void server_destroy(pthread_t t)
   pthread_join(t, NULL);
 #endif
   shutdown(sock, SHUT_RDWR);
+  free_Vector(add);
+  free_Vector(rem);
+}
+
+void udp_do(VM* vm) {
+  m_uint i;
+  if(!state)
+	return;
+  if(state == -1) {
+    shreduler_set_loop(vm->shreduler, 0);
+  } else if(state == 1) {
+    shreduler_set_loop(vm->shreduler, 1);
+  }
+  for(i = 0; i < vector_size(add); i++) {
+	m_str filename = (m_str)vector_at(add, i);
+	compile(vm, filename);
+    free(filename);
+  }
+  for(i = 0; i < vector_size(rem); i++)
+    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(rem, i), 1);
+  vector_clear(add);
+  vector_clear(rem);
+  state = 0;
 }

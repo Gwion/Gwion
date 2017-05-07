@@ -261,9 +261,10 @@ static CTOR(ugen_ctor) {
 
 static DTOR(ugen_dtor) {
   UGen ug = o->ugen;
-  m_uint i = vector_find(shred->vm_ref->ugen, (vtype)ug);
-  if(i > -1)
-    vector_remove(shred->vm_ref->ugen, i);
+  m_uint i;
+  m_int j = vector_find(shred->vm_ref->ugen, (vtype)ug);
+  if(j > -1)
+    vector_remove(shred->vm_ref->ugen, j);
   for(i = 0; i < vector_size(ug->to); i++) {
     UGen u = (UGen)vector_at(ug->to, i);
     if(u->ugen) {

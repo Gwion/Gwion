@@ -11,8 +11,8 @@
 
 #include "driver.h"
 
-void stop_plug();
-
+void stop_plug(); // TODO better be in env.
+void udp_do(VM* vm);
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename)
 {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
@@ -211,6 +211,7 @@ next:
   if(!vm->is_running) {
     return;
   }
+  udp_do(vm);
   for(i = 0; i < vector_size(vm->ugen); i++) {
     UGen u = (UGen)vector_at(vm->ugen, i);
     u->done = 0;
