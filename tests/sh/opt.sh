@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #33
+# [test] #34
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -112,4 +112,8 @@ run "$n" "backend (long)" "--backend test_backend" "file"
 # wrong file
 n=$((n+1))
 run "$n" "wrong file" "non_existant_file" "file"
+
+# plug_dir
+n=$((n+1))
+run "$n" "plugin directory" "-P non_existant_dir" "file"
 
