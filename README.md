@@ -11,25 +11,7 @@ gwion is a object-oriented programming language, aimed at making music
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
 
-realtime audio input/output can be done using  
-*  [libsoundio](http://libsound.io/)  
-*  [portaudio](http://portaudio.com/)  
-*  [jack](http://jackaudio.org/)  
-*  [alsa](http://alsa-project.org)
-
-there is also:
-*  *silent* driver, which makes no sound
-*  *dummy* driver, runs as fast as possible, with no sound
-*  *file* driver, as fast as possible, writes to a file, either wav or spa, depending on *-r* switch
-try
- 
-```sh
-./gwion --help
-```
-
-to learn more
-
-simple example code (helo_worl.gw):
+#### simple example code (hello_world.gw):
 
 ```cpp
 // print hello world
@@ -46,19 +28,19 @@ to run this, do
 ./gwion hello_world.gw
 ```
 
-learn more about opptions:
+learn more about options:
 
 ```
 ./gwion --help
 ```
 
-
-there are a few *new* features:  	
+there are a few *new* features: (compared to [chuck](http://chuck.stanford.edu/))
 	
 *  variadic funcs
 *  templates (func only for now)
 *  function pointers
 *  enums
+*  unions
 
 #### requires
 
@@ -66,7 +48,7 @@ there are a few *new* features:
 
 #### build
 
-first you need to configure rthe build system., look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md).
+first you need to configure the build system., look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md).
 also, 
 
 ```
@@ -88,8 +70,4 @@ if anyting goes wrong or seems unclear, please report an [issue](https://github.
 Every helping hand is welcome!!!
 if you wish to do something on [Gwion](https://github.com/fennecdjay/Gwion), please use the [issue tracker](https://github.com/fennecdjay/Gwion/issues),
 either to find a issue you can fix, or add a new one.  
-You can also use the [Wiki](https://github.com/fennecdjay/Gwion/wiki).
-
----------
-
-let me know...
+Pull Requests also highly appreciated.

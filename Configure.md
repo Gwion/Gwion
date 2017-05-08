@@ -59,8 +59,7 @@ Also you can add coverage instrumentation to the code with `--coverage`
 Gwion uses a few directories at runtime
 These options **need** argument, e.g.: `--xxx=dir_name`
 
-One is the place of plugins: `add`
-other concern Gwion generated doc: `doc`, `api`, `tag` and `tok`
+  *  the place of plugins: `add`
 
 All directories will be prefixed with `$PREFIX/lib/Gwion/`
 
