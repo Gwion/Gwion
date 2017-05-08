@@ -39,6 +39,7 @@ static m_bool sndfile_ini(VM* v, DriverInfo* di)
 static void sndfile_run()
 {
   m_uint i, chan;
+  sp_data* sp = vm->bbq->sp;
   m_float buf[nchan][bufsize];
   while(vm->is_running) {
     for(i = 0; i < bufsize; i++) {
@@ -49,6 +50,7 @@ static void sndfile_run()
     }
     for(chan = 0; chan < nchan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], bufsize);
+    GWION_CTL
   }
 }
 

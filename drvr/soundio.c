@@ -172,6 +172,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
     if (frames_left <= 0)
       break;
   }
+  GWION_CTL
 }
 
 

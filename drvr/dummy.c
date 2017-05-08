@@ -8,19 +8,23 @@
 //void no_wakeup(){}
 static void dummy_run(VM* vm, DriverInfo* di)
 {
+  sp_data* sp = vm->bbq->sp;
   while(vm->is_running) {
     vm_run(vm);
     vm->bbq->sp->pos++;
+    GWION_CTL
   }
 }
 
 static void silent_run(VM* vm, DriverInfo* di)
 {
+  sp_data* sp = vm->bbq->sp;
   m_uint timer = (vm->bbq->sp->sr / 100000);
   while(vm->is_running) {
     vm_run(vm);
     vm->bbq->sp->pos++;
     usleep(timer);
+	GWION_CTL
   }
 }
 

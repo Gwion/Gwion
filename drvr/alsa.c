@@ -152,9 +152,9 @@ static void alsa_run(VM* vm, DriverInfo* di)
       }
       if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
         snd_pcm_prepare(out);
-
     }
   }
+  GWION_CTL
 }
 
 static void alsa_del(VM* vm)

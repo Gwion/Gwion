@@ -41,6 +41,7 @@ static int gwion_cb(jack_nframes_t nframes, void *arg)
       out[chan][frame] = vm->bbq->sp->out[chan];
     vm->bbq->sp->pos++;
   }
+  GWION_CTL
   return 0;
 }
 

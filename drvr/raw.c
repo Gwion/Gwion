@@ -21,6 +21,7 @@ static void raw_run(VM* vm, DriverInfo* di)
     vm_run(vm);
     spa_write_buf(vm->bbq->sp, &spa, vm->bbq->sp->out, vm->bbq->sp->nchan);
     vm->bbq->sp->pos++;
+	GWION_CTL
   }
 }
 
