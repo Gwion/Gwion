@@ -872,6 +872,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   push_code->m_val = (m_uint)code;
   spork = add_instr(emit, Spork);
   spork->m_val = size;
+  spork->m_val2 = (m_uint)code;
   return 1;
 }
 
@@ -1808,11 +1809,11 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
         value = 0;
       else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
         err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
-        return -1;
+        goto error;
       } else  {
         if(!stmt->val->d.exp_primary.value->is_const) {
           err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
-          return -1;
+          goto error;
         }
 //        value = stmt->val->d.exp_primary.value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary.value->ptr : // for enum
 //              *(m_uint*)stmt->val->d.exp_primary.value->ptr;                                                   // for primary variable
@@ -1825,15 +1826,18 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
-    return -1;
+    goto error;
   }
   if (map_get(emit->cases, (vtype)value)) {
     err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value);
-    return -1;
+    goto error;
   }
 
   map_set(emit->cases, (vtype)value, (vtype)vector_size(emit->code->code));
   return 1;
+error:
+  free_Map(emit->cases);
+  return -1;
 }
 
 static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
