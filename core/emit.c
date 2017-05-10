@@ -799,9 +799,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Func_Call);
-  call->m_val = emit->code->stack_depth;
+  call->m_val = func->def->s_type == ae_func_builtin ? kindof(func->def->ret_type) : emit->code->stack_depth;
   if (func->def->s_type == ae_func_builtin) {
-    call->m_val = kindof(type);
     if (func->is_member)
       call->execute = Instr_Func_Call_Member;
     else
