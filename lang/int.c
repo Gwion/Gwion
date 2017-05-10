@@ -449,7 +449,7 @@ m_bool import_int(Env env)
   CHECK_BB(add_global_type(env, &t_int))
 // arithmetic
   CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_int, &t_int, assign,     1))
-  operator_set_doc("2 => int i; so as i = 2;");
+//  operator_set_doc("2 => int i; so as i = 2;");
   CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_int, &t_int, plus,       1))
   CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_int, &t_int, minus,      1))
   CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_int, &t_int, times,      1))

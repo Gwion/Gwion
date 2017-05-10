@@ -90,20 +90,10 @@ typedef struct {
   Type lhs, rhs, ret;
   f_instr instr;
   Func func;
-//  f_type  type_func;
-  m_str doc;
+//  m_str doc;
 } M_Operator;
 
 static M_Operator* last = NULL;
-
-m_bool operator_set_doc(m_str doc)
-{
-  if(!last)
-    return -1;
-  last->doc = doc;
-  return 1;
-}
-
 //Operatorname2op(m_str name)
 m_int name2op(m_str name)
 {
@@ -201,7 +191,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->ret       = ret;
   mo->instr     = f;
   mo->func      = NULL;
-  mo->doc       = NULL;
+//  mo->doc       = NULL;
   vector_append(v, (vtype)mo);
   last = mo;
   return 1;
