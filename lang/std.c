@@ -9,22 +9,22 @@
 
 #define LOGTWO log(2)
 #define LOGTEN log(10)
-static double mtof( double f )
+static double mtof(double f)
 {
-  if( f <= -1500 ) return (0);
-  else if( f > 1499 ) return (mtof(1499));
+  if(f <= -1500) return (0);
+  else if(f > 1499) return (mtof(1499));
 // else return (8.17579891564 * exp(.0577622650 * f));
-  else return ( pow(2, (f - 69) / 12.0) * 440.0 );
+  else return (pow(2, (f - 69) / 12.0) * 440.0);
 }
 
-static double ftom( double f )
+static double ftom(double f)
 {
   // return (f > 0 ? 17.3123405046 * log(.12231220585 * f) : -1500);
   return (f > 0 ? (log(f / 440.0) / LOGTWO) * 12.0 + 69 : -1500);
 }
-static double powtodb( double f )
+static double powtodb(double f)
 {
-  if( f <= 0 ) return (0);
+  if(f <= 0) return (0);
   else {
     double val = 100 + 10. / LOGTEN * log(f);
     return (val < 0 ? 0 : val);
@@ -36,9 +36,9 @@ static double powtodb( double f )
 // name: rmstodb()
 // desc: ...
 //-----------------------------------------------------------------------------
-static double rmstodb( double f )
+static double rmstodb(double f)
 {
-  if( f <= 0 ) return (0);
+  if(f <= 0) return (0);
   else {
     double val = 100 + 20. / LOGTEN * log(f);
     return (val < 0 ? 0 : val);
@@ -50,21 +50,21 @@ static double rmstodb( double f )
 // name: dbtopow()
 // desc: ...
 //-----------------------------------------------------------------------------
-static double dbtopow( double f )
+static double dbtopow(double f)
 {
-  if( f <= 0 )
+  if(f <= 0)
     return (0);
   else {
-    if( f > 870 ) f = 870;
+    if(f > 870) f = 870;
     return (exp((LOGTEN * 0.1) * (f - 100.)));
   }
 }
-static double dbtorms( double f )
+static double dbtorms(double f)
 {
-  if( f <= 0 )
+  if(f <= 0)
     return (0);
   else {
-    if( f > 485 ) f = 485;
+    if(f > 485) f = 485;
     return (exp((LOGTEN * 0.05) * (f - 100.)));
   }
 }
@@ -94,7 +94,7 @@ static SFUN(std_rand2)
   m_int min = *(m_int*)(shred->mem + SZ_INT);
   m_int max = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int range = max - min;
-  if ( range == 0 )
+  if (range == 0)
     RETURN->d.v_uint = min;
   else {
     if(range > 0)

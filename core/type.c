@@ -1668,7 +1668,7 @@ static m_bool check_For(Env env, Stmt_For stmt)
     err_msg(EMIT_, stmt->pos,
             "...(note: explicitly use 'true' if it's the intent)");
     err_msg(EMIT_, stmt->pos,
-            "...(e.g., 'for( ; true; ){ /*...*/ }')");
+            "...(e.g., 'for(; true;){ /*...*/ }')");
     return -1;
   }
   // ensure that conditional has valid type

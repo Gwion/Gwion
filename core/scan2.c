@@ -21,7 +21,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     decl->type->ref = 1;
   if(!type->size) {
     err_msg(SCAN2_, decl->pos,
-            "cannot declare variables of size '0' (i.e. 'void')..." );
+            "cannot declare variables of size '0' (i.e. 'void')...");
     return -1;
   }
   if(!decl->type->ref) {
@@ -34,7 +34,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     err_msg(SCAN2_, decl->pos,
             "cannot declare references (@) of primitive type '%s'...", type->name);
     err_msg(SCAN2_, decl->pos,
-            "...(primitive types: 'int', 'float', 'time', 'dur')" );
+            "...(primitive types: 'int', 'float', 'time', 'dur')");
     return -1;
   }
 
@@ -47,7 +47,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       err_msg(SCAN2_, list->self->pos, "variable %s has already been defined in the same scope...", S_name(list->self->xid));
       return -1;
     }
-    if( list->self->array != NULL ) {
+    if(list->self->array != NULL) {
       if(verify_array(list->self->array) < 0)
         return -1;
       Type t2 = type;
@@ -93,24 +93,24 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
 
   namespace_push_value(env->curr);
   while(arg_list) {
-    if( arg_list->type->size == 0 ) {
+    if(arg_list->type->size == 0) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       goto error;
     }
     // check if reserved
-//    if( type_engine_check_reserved( env, arg_list->var_decl->xid, arg_list->linepos ) )
+//    if(type_engine_check_reserved(env, arg_list->var_decl->xid, arg_list->linepos))
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0)
     {
-      err_msg(SCAN2_, arg_list->pos, "in function '%s'", S_name(ptr->xid) );
+      err_msg(SCAN2_, arg_list->pos, "in function '%s'", S_name(ptr->xid));
       goto error;
     }
     // primitive
-    if( (isprim( arg_list->type ) > 0) && arg_list->type_decl->ref ) {
+    if((isprim(arg_list->type) > 0) && arg_list->type_decl->ref) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "cannot declare references (@) of primitive type '%s'...",
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
-              "...(primitive types: 'int', 'float', 'time', 'dur')" );
+              "...(primitive types: 'int', 'float', 'time', 'dur')");
       goto error;
     }
 
@@ -123,9 +123,9 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
       Type t2 = t;
       // should be partial and empty []
       if(arg_list->var_decl->array->exp_list) {
-        err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid) );
+        err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid));
         err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
-                count, S_name(arg_list->var_decl->xid) );
+                count, S_name(arg_list->var_decl->xid));
         goto error;
       }
       // create the new array type
@@ -224,8 +224,8 @@ static m_bool scan2_Postfix_Expression(Env env, Postfix_Expression* postfix)
     return 1;
     break;
   default: // LCOV_EXCL_START
-    err_msg( SCAN2_, postfix->pos,
-             "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op );
+    err_msg(SCAN2_, postfix->pos,
+             "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op);
     return -1;
   }        // LCOV_EXCL_STOP
   return 1;
@@ -395,7 +395,7 @@ static m_bool scan2_Expression(Env env, Expression exp)
   return ret;
 }
 
-static m_bool scan2_Stmt_Code(Env env, Stmt_Code stmt, m_bool push )
+static m_bool scan2_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Code");
@@ -403,7 +403,7 @@ static m_bool scan2_Stmt_Code(Env env, Stmt_Code stmt, m_bool push )
   env->class_scope++;
   if(push)
     namespace_push_value(env->curr);
-  m_bool t = scan2_Stmt_List( env, stmt->stmt_list);
+  m_bool t = scan2_Stmt_List(env, stmt->stmt_list);
   if(push)
     namespace_pop_value(env->curr);
   env->class_scope--;
@@ -464,14 +464,14 @@ static m_bool scan2_Loop(Env env, Stmt_Loop stmt)
   return 1;
 }
 
-static m_bool scan2_return(Env env, Stmt_Return stmt )
+static m_bool scan2_return(Env env, Stmt_Return stmt)
 {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Return");
 #endif
   m_bool ret = -1;
   if(stmt->val)
-    ret = scan2_Expression( env, stmt->val );
+    ret = scan2_Expression(env, stmt->val);
   else
     ret = 1;
   return ret;
@@ -554,7 +554,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
     break;
 
   case ae_stmt_return:
-    ret = scan2_return(env, &stmt->d.stmt_return );
+    ret = scan2_return(env, &stmt->d.stmt_return);
     break;
 
   case ae_stmt_code:
@@ -606,7 +606,7 @@ static m_bool scan2_Stmt(Env env, Stmt stmt)
   case ae_stmt_switch:
     env->class_scope++;
     namespace_push_value(env->curr);
-    ret = scan2_Switch( env, &stmt->d.stmt_switch);
+    ret = scan2_Switch(env, &stmt->d.stmt_switch);
     namespace_pop_value(env->curr);
     env->class_scope--;
     break;
@@ -644,7 +644,7 @@ static m_bool scan2_Stmt_List(Env env, Stmt_List list)
 #endif
   Stmt_List curr = list;
   while(curr) {
-    CHECK_BB(scan2_Stmt( env, curr->stmt ))
+    CHECK_BB(scan2_Stmt(env, curr->stmt))
     curr = curr->next;
   }
   return 1;
@@ -705,7 +705,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       goto error;
     } else {
       if(!overload->func_ref) {
-        err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name ); // LCOV_EXCL_LINE
+        err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name); // LCOV_EXCL_LINE
         return -1;                                                                         // LCOV_EXCL_LINE
       }
     }
@@ -759,9 +759,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 */
   if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
     err_msg(SCAN2_,  f->type_decl->pos,
-            "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name );
+            "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name);
     err_msg(SCAN2_, f->type_decl->pos,
-            "...(primitive types: 'int', 'float', 'time', 'dur')" );
+            "...(primitive types: 'int', 'float', 'time', 'dur')");
     goto error;
   }
 
@@ -782,19 +782,19 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
     // check if reserved
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
-      err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name) );
+      err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
       namespace_pop_value(env->curr);
       goto error;
     }
 
     // primitive
-    if( (isprim( arg_list->type ) > 0)
-        && arg_list->type_decl->ref ) {
+    if((isprim(arg_list->type) > 0)
+        && arg_list->type_decl->ref) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "cannot declare references (@) of primitive type '%s'...",
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
-              "...(primitive types: 'int', 'float', 'time', 'dur')" );
+              "...(primitive types: 'int', 'float', 'time', 'dur')");
       namespace_pop_value(env->curr);
       goto error;
     }
@@ -805,9 +805,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       Type t = arg_list->type;
       Type t2 = t;
       if(arg_list->var_decl->array->exp_list) { // should be partial and empty []
-        err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name) );
+        err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name));
         err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
-                count, S_name(arg_list->var_decl->xid) );
+                count, S_name(arg_list->var_decl->xid));
         namespace_pop_value(env->curr);
         goto error;
       }
@@ -873,22 +873,22 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       if(!f->is_template)
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
           err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'",
-                  f->ret_type->name, overload->func_ref->def->ret_type->name );
+                  f->ret_type->name, overload->func_ref->def->ret_type->name);
         if(env->class_def)
           err_msg(SCAN2_, f->pos,
             "function '%s.%s' matches '%s.%s' but cannot overload...",
              env->class_def->name, S_name(f->name),
-             value->owner_class->name, S_name(f->name) );
+             value->owner_class->name, S_name(f->name));
       return -1;
     }
   }
-  namespace_add_func( env->curr, insert_symbol(func->name), func ); // template. is it necessary ?
+  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
 
   env->func = func;
   namespace_push_value(env->curr);
 
   if(f->code && scan2_Stmt_Code(env, &f->code->d.stmt_code, 0) < 0) {
-    err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name) );
+    err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
 // should be in free_context, at least.
 free(value->m_type->name);
 free(value->m_type->obj);
@@ -939,7 +939,7 @@ static m_bool scan2_Class_Def(Env env, Class_Def class_def)
   env->class_scope = 0;
 
   while(body && ret > 0) {
-    switch( body->section->type ) {
+    switch(body->section->type) {
     case ae_section_stmt:
       ret = scan2_Stmt_List(env, body->section->d.stmt_list);
       break;

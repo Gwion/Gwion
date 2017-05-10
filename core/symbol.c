@@ -35,7 +35,7 @@ struct S_Symbol_ {
   S_Symbol next;
 };
 
-static S_Symbol mksymbol( c_constr name, S_Symbol next )
+static S_Symbol mksymbol(c_constr name, S_Symbol next)
 {
   S_Symbol s = calloc(1, sizeof(*s));
   s->name = calloc(1, strlen(name) + 1);
@@ -99,7 +99,7 @@ S_Symbol insert_symbol(c_constr name)
   return sym;
 }
 
-c_str S_name( S_Symbol sym )
+c_str S_name(S_Symbol sym)
 {
   return sym->name;
 }

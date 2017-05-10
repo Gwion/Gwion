@@ -197,18 +197,18 @@ m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 }
 */
 /* from chuck ;-) */
-m_float compute_centroid(_FFT* fft )
+m_float compute_centroid(_FFT* fft)
 {
   m_float m0 = 0.0;
   m_float m1 = 0.0;
   m_float centroid = 0.0;
   unsigned int i;
   /* Compute centroid using moments */
-  for( i = 0; i < fft->size / 2; i++ ) {
+  for(i = 0; i < fft->size / 2; i++) {
     m1 += i * fft->fval[i];
     m0 += fft->fval[i];
   }
-  if( m0 != 0.0 )
+  if(m0 != 0.0)
     centroid = m1 / m0;
   else
     centroid = fft->size / 2.0; /* Perfectly balanced */
@@ -221,7 +221,7 @@ m_float compute_spread(_FFT* fft)
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
   for(i = 0; i < fft->size / 2; i++)
-    ret += ( (i - mu) * (i - mu) ) * fft->fval[i];
+    ret += ((i - mu) * (i - mu)) * fft->fval[i];
   return ret / fft->size;
 }
 
@@ -231,7 +231,7 @@ m_float compute_skewness(_FFT* fft)
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
   for(i = 0; i < fft->size / 2; i++)
-    ret += ( (i - mu) * (i - mu) * (i - mu) ) * fft->fval[i];
+    ret += ((i - mu) * (i - mu) * (i - mu)) * fft->fval[i];
   return ret / fft->size;
 }
 
@@ -241,7 +241,7 @@ m_float compute_kurtosis(_FFT* fft)
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
   for(i = 0; i < fft->size / 2; i++)
-    ret += ( (i - mu) * (i - mu) * (i - mu) * (i - mu)) * fft->fval[i];
+    ret += ((i - mu) * (i - mu) * (i - mu) * (i - mu)) * fft->fval[i];
   return ret / fft->size;
 }
 
@@ -263,17 +263,17 @@ m_float compute_rolloff(_FFT* fft)
   m_float sum = 0.0, target;
   unsigned int i;
   /* sanity check */
-  /* assert( percent >= 0 && percent <= 1 ); */
+  /* assert(percent >= 0 && percent <= 1); */
   /* iterate */
-  for( i = 0; i < fft->size / 2; i++ )
+  for(i = 0; i < fft->size / 2; i++)
     sum += fft->fval[i];
   /* the target */
   target = sum * fft->percent / 100.;
   sum = 0.0;
   /* iterate */
-  for( i = 0; i < fft->size; i++ ) {
+  for(i = 0; i < fft->size; i++) {
     sum += fft->fval[i];
-    if( sum >= target )
+    if(sum >= target)
       break;
   }
   return i / (m_float)fft->size;
@@ -301,7 +301,7 @@ m_float compute_asc(_FFT* fft)
   m_float ret = 0.0;
   m_float sum = 0.0;
   for(i = 0; i < fft->size / 2; i++) {
-    ret += log2( ( compute_freq(fft) / 1000. ) ) * fft->fval[i];
+    ret += log2((compute_freq(fft) / 1000.)) * fft->fval[i];
     sum += fft->fval[i];
   }
   return ret / sum;
@@ -331,23 +331,23 @@ m_float compute_normrms(_FFT* fft)
   m_float energy = 0.0;
 
   // get energy
-  for( i = 0; i < fft->size/2; i++ )
-      energy += ( fft->fval[i]*fft->fval[i] );
+  for(i = 0; i < fft->size/2; i++)
+      energy += (fft->fval[i]*fft->fval[i]);
 
   // check energy
   if (energy == 0.0)
   {
-    for( i = 0; i < fft->size/2; i++ )
+    for(i = 0; i < fft->size/2; i++)
       fft->norm[i] = 0;
     return 0;
   }
   else
-      energy = sqrt( energy );
+      energy = sqrt(energy);
 
-  for( i = 0; i < fft->size/2; i++ )
+  for(i = 0; i < fft->size/2; i++)
   {
-      if( fft->fval[i] > 0.0)
-        fft->norm[i] = ( fft->fval[i] / energy );
+      if(fft->fval[i] > 0.0)
+        fft->norm[i] = (fft->fval[i] / energy);
       else
           fft->norm[i] = 0.0;
   }
@@ -363,12 +363,12 @@ m_float compute_flux(_FFT* fft)
   if(fft->prev)
   {
     // compute normalize rms
-    compute_normrms( fft );
+    compute_normrms(fft);
     // compute flux
-    for( i = 0; i < fft->size; i++ )
+    for(i = 0; i < fft->size; i++)
       result += (fft->fval[i] - fft->prev[i])*(fft->fval[i] - fft->prev[i]);
     // take square root of flux
-    result = sqrt( result );
+    result = sqrt(result);
   }
   else
   {
@@ -376,7 +376,7 @@ m_float compute_flux(_FFT* fft)
     fft->norm = malloc(fft->size * sizeof(m_float));
   }
   // copy curr to prev
-  for( i = 0; i < fft->size; i++ )
+  for(i = 0; i < fft->size; i++)
     fft->prev[i] = fft->norm[i];
   return result;
 }
@@ -398,11 +398,11 @@ m_float compute_corr(_FFT* a,_FFT* b)
   fftw_execute_dft_r2c(b->plan, b->fval, b_spec);
 
   // conjugate a_spec and multiply a and b
-  for( i = 0; i < a->size/2; i++ )
+  for(i = 0; i < a->size/2; i++)
   {
     a_spec[i][1] *= -1;
-    spec[i][0] = ( a_spec[i][0]*b_spec[i][0] - a_spec[i][1]*b_spec[i][1]);
-    spec[i][1] = ( a_spec[i][0]*b_spec[i][1] - a_spec[i][1]*b_spec[i][0]);
+    spec[i][0] = (a_spec[i][0]*b_spec[i][0] - a_spec[i][1]*b_spec[i][1]);
+    spec[i][1] = (a_spec[i][0]*b_spec[i][1] - a_spec[i][1]*b_spec[i][0]);
   }
   // take the ifft of spec
   if(!a->iplan)
@@ -417,7 +417,7 @@ m_float compute_corr(_FFT* a,_FFT* b)
 }
 */
 /*
-#define __SGN(x)  (x >= 0.0f ? 1.0f : -1.0f )
+#define __SGN(x)  (x >= 0.0f ? 1.0f : -1.0f)
 
 m_float compute_zerox(_FFT* fft, m_float* buffer)
 {

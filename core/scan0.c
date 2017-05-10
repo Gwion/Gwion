@@ -69,7 +69,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     env->curr = class_def->home;
   }
 
-  if(namespace_lookup_type( env->curr, class_def->name->xid, 1)) {
+  if(namespace_lookup_type(env->curr, class_def->name->xid, 1)) {
     err_msg(SCAN0_,  class_def->name->pos,
             "class/type '%s' is already defined in namespace '%s'",
             S_name(class_def->name->xid), env->curr->name);
@@ -79,7 +79,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
     err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-            S_name(class_def->name->xid) );
+            S_name(class_def->name->xid));
     ret = -1;
     goto done;
   }
@@ -113,8 +113,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   env->class_def = the_class;
   env->class_scope = 0;
 
-  while( body && ret > 0) {
-    switch( body->section->type ) {
+  while(body && ret > 0) {
+    switch(body->section->type) {
     case ae_section_stmt:
       ret = scan0_Stmt_List(env, body->section->d.stmt_list);
     case ae_section_func:
@@ -163,25 +163,25 @@ m_bool scan0_Ast(Env env, Ast prog)
 {
   m_bool ret = 1;
   CHECK_OB(prog)
-  while( prog && ret > 0) {
-    switch( prog->section->type ) {
+  while(prog && ret > 0) {
+    switch(prog->section->type) {
     case ae_section_stmt:
       ret = scan0_Stmt_List(env, prog->section->d.stmt_list);
       break;
     case ae_section_func:
       break;
     case ae_section_class:
-      if( prog->section->d.class_def->decl == ae_key_public ) {
+      if(prog->section->d.class_def->decl == ae_key_public) {
         if(env->context->public_class_def != NULL) {
           err_msg(SCAN0_, prog->section->d.class_def->pos,
-                  "more than one 'public' class defined..." );
+                  "more than one 'public' class defined...");
           return -1;
         }
 //        prog->section->d.class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
         prog->section->d.class_def->home = env->global_nspc;
         env->context->public_class_def = prog->section->d.class_def;
       }
-      ret = scan0_Class_Def( env, prog->section->d.class_def );
+      ret = scan0_Class_Def(env, prog->section->d.class_def);
       break;
     }
     prog = prog->next;

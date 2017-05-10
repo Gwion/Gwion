@@ -564,10 +564,10 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     // if object, assign
     if (is_obj) {
       // if array
-      /*      if( decl->list->self->array )*/
+      /*      if(decl->list->self->array)*/
       if (list->self->array) {
         // if not []
-        /*        if( decl->list->self->array->exp_list )*/
+        /*        if(decl->list->self->array->exp_list)*/
         if (list->self->array->exp_list) {
           /*          exit(0);*/
           // set
@@ -578,7 +578,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           assign->m_val = value->offset;
         }
       }
-      /*      else if( !is_ref && !value->is_member)*/
+      /*      else if(!is_ref && !value->is_member)*/
       else if (!is_ref) {
         //        is_init = 1;
         Instr assign = add_instr(emit, Assign_Object);
@@ -1059,7 +1059,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
       emit->env->curr = (NameSpace)vector_pop(emit->env->nspc_stack);
     }
   }
-  if ( exp_func->args && !spork) {
+  if (exp_func->args && !spork) {
     if  (emit_Func_Args(emit, exp_func) < 0) {
       err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments..."); // LCOV_EXCL_LINE
       return -1;                                                                           // LCOV_EXCL_LINE
@@ -1218,11 +1218,11 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt)
 
   default:
     // check for IO
-    /*      if( isa( stmt->cond->type, &t_io ) )*/
+    /*      if(isa(stmt->cond->type, &t_io))*/
     /*      {*/
     /*          // push 0*/
-    /*          emit->append( new Chuck_Instr_Reg_Push_Imm( 0 ) );*/
-    /*          op = new Chuck_Instr_Branch_Eq_int_IO_good( 0 );*/
+    /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
+    /*          op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
     /*          break;*/
     /*      }*/
 
@@ -1413,11 +1413,11 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
     break;
   default:
     // check for IO
-    /*        if( isa( stmt->cond->type, &t_io ) )*/
+    /*        if(isa(stmt->cond->type, &t_io))*/
     /*        {*/
     /*            // push 0*/
-    /*            emit->append( new Chuck_Instr_Reg_Push_Imm( 0 ) );*/
-    /*            op = new Chuck_Instr_Branch_Eq_int_IO_good( 0 );*/
+    /*            emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
+    /*            op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
     /*            break;*/
     /*        }*/
 
@@ -1475,11 +1475,11 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
 
   default:
     // check for IO
-    /*      if( isa( stmt->cond->type, &t_io ) )*/
+    /*      if(isa(stmt->cond->type, &t_io))*/
     /*      {*/
     // push 0
-    /*          emit->append( new Chuck_Instr_Reg_Push_Imm( 0 ) );*/
-    /*          op = new Chuck_Instr_Branch_Neq_int_IO_good( 0 );*/
+    /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
+    /*          op = new Chuck_Instr_Branch_Neq_int_IO_good(0);*/
     /*          break;*/
     /*      }*/
 
@@ -1604,11 +1604,11 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
 
     default:
       // check for IO
-      /*        if( isa( stmt->c2->d.stmt_exp->type, &t_io ) )*/
+      /*        if(isa(stmt->c2->d.stmt_exp->type, &t_io))*/
       /*        {*/
       // push 0
-      /*          emit->append( new Chuck_Instr_Reg_Push_Imm( 0 ) );*/
-      /*          op = new Chuck_Instr_Branch_Eq_int_IO_good( 0 );*/
+      /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
+      /*          op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
       /*          break;*/
       /*        }*/
 
@@ -2284,7 +2284,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   vector_append(emit->stack, (vtype)emit->code);
   emit->code = new_Code();
   char c[256];
-  sprintf(c, "%s%s%s( ... )", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
+  sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
   emit->code->name = strdup(c);
   emit->code->need_this = func->is_member;
   emit->code->filename = strdup(emit_filename);
@@ -2453,7 +2453,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     free(type->info->class_data); // LCOV_EXCL_LINE
   emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
   // delete the code
-  //    SAFE_DELETE( emit->code );
+  //    SAFE_DELETE(emit->code);
   emit->code = (Code*)vector_pop(emit->stack);
   return ret;
 }

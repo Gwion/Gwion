@@ -32,7 +32,7 @@ MFUN(vec3_magnitude)
 MFUN(vec3_normalize)
 {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
-  m_float mag = sqrt( v->x * v->x + v->y * v->y + v->z * v->z);
+  m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
   if(mag  > 0) {
     v->x /= mag;
     v->y /= mag;
@@ -376,13 +376,13 @@ MFUN(vec4_setAll)
 MFUN(vec4_magnitude)
 {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
-  RETURN->d.v_float = sqrt( v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+  RETURN->d.v_float = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
 MFUN(vec4_normalize)
 {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
-  m_float mag = sqrt( v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+  m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
   if(mag  > 0) {
     v->x /= mag;
     v->y /= mag;

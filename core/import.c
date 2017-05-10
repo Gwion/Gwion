@@ -15,11 +15,11 @@ Type   check_Decl_Expression(Env env, Decl_Expression* decl);
 
 m_bool scan1_Func_Def(Env env, Func_Def f);
 m_bool scan2_Func_Def(Env env, Func_Def f);
-m_bool check_Func_Def( Env env, Func_Def f );
+m_bool check_Func_Def(Env env, Func_Def f);
 
 
 // should be in type_utils
-ID_List str2list(m_str path, m_uint* array_depth )
+ID_List str2list(m_str path, m_uint* array_depth)
 {
   m_uint len = 0;
   m_int  i, j;
@@ -39,7 +39,7 @@ ID_List str2list(m_str path, m_uint* array_depth )
   for(i = len - 1; i >= 0; i--) {
     char c = path[i];
     if(c != '.') {
-      if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+      if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
           || (c == '_') || (c >= '0' && c <= '9') || (i == 0 && c == '@'))
         curr[i] = c;
       else {
@@ -135,7 +135,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
 m_bool import_class_end(Env env)
 {
   if(!env->class_def) {
-    err_msg(TYPE_, 0, "import: too many class_end called..." );
+    err_msg(TYPE_, 0, "import: too many class_end called...");
     return -1;
   }
   env->class_def->obj_size = env->class_def->info->offset;
@@ -192,7 +192,7 @@ m_int import_mvar(Env env, const m_str type,
                   const m_str name, const m_bool is_const, const m_bool is_ref, const m_str doc)
 { return import_var(env, type, name, 0, is_const, is_ref, NULL, doc); }
 m_int import_svar(Env env, const m_str type,
-                  const m_str name, m_bool is_const, m_bool is_ref, m_uint* addr, const m_str doc )
+                  const m_str name, m_bool is_const, m_bool is_ref, m_uint* addr, const m_str doc)
 { return import_var(env, type, name, 1, is_const, is_ref, addr, doc); }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun)
@@ -214,16 +214,16 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     arg = (DL_Value*)vector_at(dl_fun->args, i);
     type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
-      err_msg(TYPE_,  0, "...at argument '%i'...", i + 1 );
+      err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
       if(arg_list)
         free_Arg_List(arg_list);
       return NULL;
     }
     type_decl = new_Type_Decl(type_path, 0, 0);
-    type_path2 = str2list(arg->name, &array_depth2 );
+    type_path2 = str2list(arg->name, &array_depth2);
     free_ID_List(type_path2);
     if(array_depth && array_depth2) {
-      err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module" );
+      err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module");
       free_Type_Decl(type_decl);
       if(arg_list)
         free_Arg_List(arg_list);
@@ -232,9 +232,9 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun)
     if(array_depth2)
       array_depth = array_depth2;
     if(array_depth) {
-      array_sub = new_array_sub( NULL, 0 );
-      for(j = 1; j < array_depth; j++ )
-        array_sub = prepend_array_sub( array_sub, NULL, 0 );
+      array_sub = new_array_sub(NULL, 0);
+      for(j = 1; j < array_depth; j++)
+        array_sub = prepend_array_sub(array_sub, NULL, 0);
     }
     var_decl = new_Var_Decl(arg->name, array_sub, 0);
     arg_list = new_Arg_List(type_decl, var_decl, arg_list, 0);
@@ -263,7 +263,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
 
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
-    for(i = 1; i < array_depth; i++ )
+    for(i = 1; i < array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL, 0);
     type_decl = add_type_decl_array(type_decl, array_sub, 0);
   }

@@ -77,7 +77,7 @@ void* server_thread(void* data)
     if(strncmp(buf, "quit", 4) == 0) {
       vm->is_running = 0;
       vm->wakeup();
-    } else if( strncmp(buf, "-", 1) == 0) {
+    } else if(strncmp(buf, "-", 1) == 0) {
       m_uint i;
       VM_Shred shred = NULL;
 
@@ -127,13 +127,13 @@ int server_init(char* hostname, int port)
   host = gethostbyname(hostname);
   if(!host) {
     saddr.sin_addr.s_addr = inet_addr(hostname);
-    if( saddr.sin_addr.s_addr == -1 ) {
+    if(saddr.sin_addr.s_addr == -1) {
       saddr.sin_addr.s_addr = htonl(INADDR_ANY);
       err_msg(UDP, 0, "%s not found. setting hostname to localhost", hostname);
       char** host = &hostname;
       *host = "localhost";
     }
-  } else bcopy( host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length );
+  } else bcopy(host->h_addr_list[0], (char *)&saddr.sin_addr, host->h_length);
   saddr.sin_port = htons(port);
   if(bind(sock, (struct sockaddr *) &saddr, sizeof(saddr)) < 0) {
     err_msg(UDP, 0, "can't bind");

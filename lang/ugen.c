@@ -80,7 +80,7 @@ void ugen_compute(UGen u)
     for(i = u->n_out; --i;)
       ugen_compute(u->channel[i-1]->ugen);
   else {
-    for(i = vector_size(u->ugen) + 1; --i; ) {
+    for(i = vector_size(u->ugen) + 1; --i;) {
       ugen = (UGen)vector_at(u->ugen, i - 1);
       if(!ugen->done)
         ugen_compute(ugen);

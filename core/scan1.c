@@ -25,7 +25,7 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     if(var_decl->array) {
       CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
-        CHECK_BB(scan1_Expression( env, var_decl->array->exp_list ))
+        CHECK_BB(scan1_Expression(env, var_decl->array->exp_list))
       }
     list = list->next;
   }
@@ -71,13 +71,13 @@ static m_bool scan1_Cast_Expression(Env env, Cast_Expression* cast)
   return 1;
 }
 
-static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
+static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "postfix");
 #endif
   CHECK_BB(scan1_Expression(env, postfix->exp))
-  switch( postfix->op ) {
+  switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:
     if(postfix->exp->meta != ae_meta_var) {
@@ -87,7 +87,7 @@ static m_bool scan1_Postfix_Expression(Env env, Postfix_Expression* postfix )
     return 1;
     break;
   default: // LCOV_EXCL_START
-    err_msg( SCAN1_, postfix->pos,
+    err_msg(SCAN1_, postfix->pos,
              "internal compiler error (pre-scan): unrecognized postfix '%i'", op2str(postfix->op));
     return -1;
   }        // LCOV_EXCL_STOP
@@ -105,7 +105,7 @@ static m_bool scan1_Dur(Env env, Exp_Dur* dur)
 }
 
 static m_bool scan1_Func_Call1(Env env, Expression exp_func, Expression args,
-                               Func func, int pos )
+                               Func func, int pos)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call1");
@@ -115,14 +115,14 @@ static m_bool scan1_Func_Call1(Env env, Expression exp_func, Expression args,
   return 1;
 }
 
-static m_bool scan1_Func_Call( Env env, Func_Call* exp_func )
+static m_bool scan1_Func_Call(Env env, Func_Call* exp_func)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call");
 #endif
   if(exp_func->types)
     return 1;
-  return scan1_Func_Call1( env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos );
+  return scan1_Func_Call1(env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos);
 }
 
 static m_bool scan1_Dot_Member(Env env, Dot_Member* member)
@@ -209,7 +209,7 @@ static m_bool scan1_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
   return ret;
 }
 
-static m_bool scan1_return(Env env, Stmt_Return stmt )
+static m_bool scan1_return(Env env, Stmt_Return stmt)
 {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "return");
@@ -413,7 +413,7 @@ static m_bool scan1_Stmt(Env env, Stmt stmt)
   if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
     return 1;
 
-  switch( stmt->type ) {
+  switch(stmt->type) {
     case ae_stmt_exp:
       ret = scan1_Expression(env, stmt->d.stmt_exp.val);
       break;
@@ -423,7 +423,7 @@ static m_bool scan1_Stmt(Env env, Stmt stmt)
       env->class_scope--;
       break;
     case ae_stmt_return:
-      ret = scan1_return( env, &stmt->d.stmt_return);
+      ret = scan1_return(env, &stmt->d.stmt_return);
       break;
     case ae_stmt_if:
       env->class_scope++;
@@ -534,8 +534,8 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     Type t2 = f->ret_type;
     // should be partial and empty []
     if(f->type_decl->array->exp_list) {
-      err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name) );
-      err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s" );
+      err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name));
+      err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s");
       free_Expression(f->type_decl->array->exp_list);
       return -1;
     }

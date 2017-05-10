@@ -12,11 +12,11 @@ int verify_array(Array_Sub array)
   if(array->err_num) {
     if(array->err_num == 1) {
       err_msg(UTIL_, array->pos,
-              "invalid format for array init [...][...]..." );
+              "invalid format for array init [...][...]...");
       return -1;
     } else if(array->err_num == 2) {
       err_msg(UTIL_, array->pos,
-              "partially empty array init [...][]..." );
+              "partially empty array init [...][]...");
       return -1;
     }
   }
@@ -123,8 +123,8 @@ Type find_type(Env env, ID_List path)
   while(path) {
     xid = path->xid;
     t = namespace_lookup_type(nspc, xid, 1);
-    while( !t && type && type->parent ) {
-      /*        t = namespace_lookup_type( type->parent->info, xid, 1);*/
+    while(!t && type && type->parent) {
+      /*        t = namespace_lookup_type(type->parent->info, xid, 1);*/
       t = namespace_lookup_type(type->parent->info, xid, -1);
       type = type->parent;
     }
@@ -194,7 +194,7 @@ m_bool name_valid(m_str a) {
   m_uint i, len = strlen(a);
   for(i = 0; i < len; i++) {
     char c = a[i];
-    if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
           || (c == '_') || (c >= '0' && c <= '9'))
       continue;
     else {
@@ -231,7 +231,7 @@ m_bool add_global_type(Env env, Type type)
   return 1;
 }
 
-Value find_value(Type type, S_Symbol xid )
+Value find_value(Type type, S_Symbol xid)
 {
   Value value = NULL;
   if(!type)
@@ -245,7 +245,7 @@ Value find_value(Type type, S_Symbol xid )
   return NULL;
 }
 
-m_str type_path(ID_List path )
+m_str type_path(ID_List path)
 {
   char str[256];
   memset(str, 0, sizeof(str));
@@ -268,7 +268,7 @@ Kindof kindof(Type type)
     return Kindof_Complex;
   if(isa(type, &t_int) > 0 || isa(type, &t_object) > 0)
     return Kindof_Int;
-  else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0 )
+  else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0)
     return Kindof_Float;
   else if(isa(type, &t_vec3) > 0)
     return Kindof_Vec3;
@@ -278,7 +278,7 @@ Kindof kindof(Type type)
 }
 
 
-Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, NameSpace owner_nspc )
+Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, NameSpace owner_nspc)
 {
   Type t = new_Type(env->context);
   t->xid = te_array;
@@ -297,7 +297,7 @@ Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, Na
   return t;
 }
 
-Type find_common_anc(Type lhs, Type rhs )
+Type find_common_anc(Type lhs, Type rhs)
 {
   if(lhs->xid != te_user && rhs->xid != te_user) {
     if(isa(lhs, rhs) > 0) return rhs;
@@ -317,7 +317,7 @@ Type find_common_anc(Type lhs, Type rhs )
   return NULL;
 }
 
-m_int str2char( const m_str c, m_int linepos )
+m_int str2char(const m_str c, m_int linepos)
 {
   if(c[0] == '\\') {
     switch(c[1]) {
@@ -343,7 +343,7 @@ m_int str2char( const m_str c, m_int linepos )
       return 'v';
 
     default:
-      err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1] );
+      err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
       return -1;
     }
   } else {

@@ -68,7 +68,7 @@ static INSTR(modulo)
 }
 
 // logical
-static INSTR( and )
+static INSTR(and)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'&&' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
@@ -78,7 +78,7 @@ static INSTR( and )
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR( or )
+static INSTR(or)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'||' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));

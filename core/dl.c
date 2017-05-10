@@ -58,7 +58,7 @@ void free_DL_Value(DL_Value* a)
 
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n)
 {
-  DL_Value* v = new_DL_Value( t, n, 0, NULL );
+  DL_Value* v = new_DL_Value(t, n, 0, NULL);
   vector_append(a->args, (vtype)v);
   return v;
 }

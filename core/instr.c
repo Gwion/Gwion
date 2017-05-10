@@ -8,7 +8,7 @@
 #define M_PI		3.14159265358979323846
 #endif
 
-#define overflow_(c)       ( c >  ( c + (0x1 << SIZEOF_MEM)) - ((0x1 << SIZEOF_MEM) / MEM_STEP))
+#define overflow_(c)       (c >  (c + (0x1 << SIZEOF_MEM)) - ((0x1 << SIZEOF_MEM) / MEM_STEP))
 
 INSTR(EOC)
 {
@@ -149,7 +149,7 @@ if(!instr->m_val) {
 
   *(m_uint*)shred->reg = *(m_uint*)(shred->reg + SZ_INT);
   *(Func**)(shred->reg + SZ_INT*4) = &f;
-//  *(Func*)(( *(M_Object*)(shred->reg + SZ_INT*2))->d.data + instr->m_val2) = *(m_uint*)(shred->reg + SZ_INT);
+//  *(Func*)((*(M_Object*)(shred->reg + SZ_INT*2))->d.data + instr->m_val2) = *(m_uint*)(shred->reg + SZ_INT);
 }
   PUSH_REG(shred,  SZ_INT);
 }
@@ -628,7 +628,7 @@ INSTR(Spork)
     POP_REG(shred,  SZ_INT);
     this_ptr = *(m_uint*)shred->reg;
     // add to shred so it's ref counted, and released when shred done (1.3.1.2)
-    /*    sh->add_parent_ref( (Chuck_Object *)this_ptr );*/
+    /*    sh->add_parent_ref((Chuck_Object *)this_ptr);*/
   }
   POP_REG(shred,  instr->m_val);
   memcpy(sh->reg, shred->reg, instr->m_val);
@@ -653,9 +653,9 @@ INSTR(Spork)
 // LCOV_EXCL_START
 void handle_overflow(VM_Shred shred)
 {
-  fprintf( stderr,
+  fprintf(stderr,
            "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
-           shred->xid, shred->name, shred->pc );
+           shred->xid, shred->name, shred->pc);
   // do something!
   shred->is_running = 0;
   shred->is_done = 1;
@@ -960,7 +960,7 @@ INSTR(Pre_Constructor)
   call_pre_constructor(vm, shred, (VM_Code)instr->m_val, instr->m_val2);
 }
 
-static void instantiate_object(VM * vm, VM_Shred shred, Type type )
+static void instantiate_object(VM * vm, VM_Shred shred, Type type)
 {
   M_Object object = new_M_Object(NULL);
   if(!object) Except(shred);
@@ -1209,7 +1209,7 @@ INSTR(Instr_Pre_Ctor_Array_Post)
 }
 
 static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
-                               Type type, m_bool is_obj, m_uint* objs, m_int* index )
+                               Type type, m_bool is_obj, m_uint* objs, m_int* index)
 {
   M_Object base = NULL, next = NULL;
   m_int i = 0;
@@ -1223,7 +1223,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
       goto out_of_memory;
     base->type_ref=type; // /13/03/17
     if(is_obj && objs) {
-      for( i = 0; i < cap; i++ ) {
+      for(i = 0; i < cap; i++) {
         objs[*index] = (m_uint)i_vector_addr(base->d.array, i);
         (*index)++;
       }
@@ -1234,7 +1234,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   if(!base)
     goto out_of_memory;
   base->type_ref=type;
-  for( i = 0; i < cap; i++ ) {
+  for(i = 0; i < cap; i++) {
     next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index);
     if(!next)
       goto error;
@@ -1244,11 +1244,11 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   return base;
 
 out_of_memory:
-  fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
+  fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
   goto error;                                                                 // LCOV_EXCL_LINE
 
 negative_array_size:
-  fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n" );
+  fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
   goto error;
 
 error:
@@ -1327,7 +1327,7 @@ INSTR(Instr_Array_Alloc)
     m_int tmp;
     num_obj = 1;
     num = 1.0;
-    while( curr <= top ) {
+    while(curr <= top) {
       tmp = *(m_int*)(shred->reg + SZ_INT * curr);
       num_obj *= tmp;
       num *= (m_float)tmp;
@@ -1357,10 +1357,10 @@ INSTR(Instr_Array_Alloc)
   return;
 
 out_of_memory:
-  fprintf( stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n" ); // LCOV_EXCL_LINE
+  fprintf(stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
   goto error;                                                                  // LCOV_EXCL_LINE
 error:
-  fprintf( stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
+  fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
   shred->is_done = 1;
 }
@@ -1414,9 +1414,9 @@ INSTR(Instr_Array_Access)
   return;
 
 array_out_of_bound:
-  fprintf( stderr,
+  fprintf(stderr,
            "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
-           shred->xid, shred->name, shred->pc, i );
+           shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
   shred->is_running = 0;
   shred->is_done = 1;
@@ -1477,9 +1477,9 @@ INSTR(Instr_Array_Access_Multi)
   return;
 
 array_out_of_bound:
-  fprintf( stderr,
+  fprintf(stderr,
            "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
-           shred->xid, shred->name, shred->pc, i );
+           shred->xid, shred->name, shred->pc, i);
   shred->is_running = 0;
   shred->is_done = 1;
 }

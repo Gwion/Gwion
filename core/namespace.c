@@ -16,7 +16,7 @@ void set_nspc_vm(VM* _vm)
 Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb)
 {
   Value v = (Value)scope_lookup(namespace->value, xid, climb);
-  if( climb > 0 && !v && namespace->parent)
+  if(climb > 0 && !v && namespace->parent)
     v = namespace_lookup_value(namespace->parent, xid, climb);
   return v;
 }
@@ -39,7 +39,7 @@ void namespace_pop_value(NameSpace namespace)
 Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb)
 {
   Type t = (Type)scope_lookup(namespace->type, xid, climb);
-  if( climb > 0 && !t && namespace->parent)
+  if(climb > 0 && !t && namespace->parent)
     t = (Type)namespace_lookup_type(namespace->parent, xid, climb);
   return t;
 }
@@ -62,7 +62,7 @@ void namespace_pop_type(NameSpace namespace)
 Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb)
 {
   Func t = (Func)scope_lookup(namespace->func, xid, climb);
-  if( climb > 0 && !t && namespace->parent)
+  if(climb > 0 && !t && namespace->parent)
     t = (Func)namespace_lookup_func(namespace->parent, xid, climb);
   return t;
 }
