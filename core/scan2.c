@@ -865,6 +865,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     context_add_func(env->context, func, func->obj);
 
+  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
   if(!overload)
     namespace_add_value(env->curr, insert_symbol(orig_name), value);
   else {
@@ -879,10 +880,11 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
             "function '%s.%s' matches '%s.%s' but cannot overload...",
              env->class_def->name, S_name(f->name),
              value->owner_class->name, S_name(f->name));
+//  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
+//rem_ref(func->obj, func);
       return -1;
     }
   }
-  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
 
   env->func = func;
   namespace_push_value(env->curr);
