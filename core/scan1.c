@@ -30,7 +30,7 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     list = list->next;
   }
   decl->m_type = t;
-  add_ref(decl->m_type->obj);
+  add_ref(t->obj);
   return 1;
 }
 

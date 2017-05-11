@@ -1249,8 +1249,8 @@ out_of_memory:
 
 negative_array_size:
   fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-  goto error;
-
+  free(type->obj);
+  free(type);
 error:
   if(base) release(base, shred); // LCOV_EXCL_LINE
   return NULL;
@@ -1480,6 +1480,7 @@ array_out_of_bound:
   fprintf(stderr,
            "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
            shred->xid, shred->name, shred->pc, i);
+  release(*base, shred);
   shred->is_running = 0;
   shred->is_done = 1;
 }

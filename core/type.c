@@ -1835,6 +1835,12 @@ static m_bool check_Goto_Label(Env env, Stmt_Goto_Label stmt)
   ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
   if(!ref) {
     err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
+    printf("%lu\n", map_size(m));
+    m_uint i;
+    for(i = 0; i < map_size(m); i++) {
+      ref = (Stmt_Goto_Label)map_at(m, i);
+      free_Vector(ref->data.v);
+    }
     return -1;
   }
   vector_append(ref->data.v, (vtype)stmt);
@@ -1962,9 +1968,9 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
 #ifdef DEBUG_TYPE
   debug_msg("check", "dot member");
 #endif
-  Value value = NULL;
-  Type  the_base = NULL;
-  m_bool base_static = 0;
+  Value value;
+  Type  the_base;
+  m_bool base_static;
   m_str str;
 
   member->t_base = check_Expression(env, member->base);
@@ -1973,57 +1979,40 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   base_static = member->t_base->xid == t_class.xid;
   the_base = base_static ? member->t_base->actual_type : member->t_base;
 
-  /*  if(the_base == &t_vararg)*/
-  /*  {*/
-  /*    if(member->xid == insert_symbol("start") ||*/
-  /*       member->xid == insert_symbol("end"))*/
-  /*    return &t_void;*/
-  /*  }*/
-
-
   if(!the_base->info && !member->t_base->array_depth) { // ?
     err_msg(TYPE_,  member->base->pos,
             "type '%s' does not have members - invalid use in dot expression of %s",
             the_base->name, S_name(member->xid));
     return NULL;
   }
-
+ 
   str = S_name(member->xid);
-// TODO: rewrite this
-  if(!strcmp(str, "this")) {
-    if(base_static) {
-      err_msg(TYPE_,  member->pos,
-              "keyword 'this' must be associated with object instance...");
-      return NULL;
-    }
-/*
-    if(env->func && !env->func->is_member) {
-      err_msg(TYPE_, member->pos,
-              "keyword 'this' cannot be used inside static functions...");
-      return NULL;
-    }
-*/
-//    return env->class_def;
+  if(!strcmp(str, "this") && base_static) {
+    err_msg(TYPE_,  member->pos,
+      "keyword 'this' must be associated with object instance...");
+    return NULL;
   }
 
   value = find_value(the_base, member->xid);
   if(!value) {
     m_uint i;
-    /*    m_str s = strdup(the_base->name);*/
     char s[1025];
     memset(s, 0, 1025);
     strncpy(s, the_base->name, 1024);
     for(i = 0; i < the_base->array_depth; i++)
       strcat(s, "[]");
     err_msg(TYPE_,  member->base->pos,
-            "class '%s' has no member '%s'", s, S_name(member->xid));
-    /*    free(s);*/
+            "class '%s' has no member '%s'", s, str);
+    if(the_base->array_depth) {
+      free(the_base->obj);
+      free(the_base);
+    }
     return NULL;
   }
   if(base_static && value->is_member) {
     err_msg(TYPE_, member->pos,
             "cannot access member '%s.%s' without object instance...",
-            the_base->name, S_name(member->xid));
+            the_base->name, str);
     return NULL;
   }
   if(value->is_const == 2) // for enum

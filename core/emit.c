@@ -1745,10 +1745,11 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
     size = vector_size(stmt->data.v);
     if (!size) {
       err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name));
+      free_Vector(stmt->data.v);
       return -1;
     }
-    for (i = 0; i < size; i++) {
-      label = (Stmt_Goto_Label)vector_at(stmt->data.v, i);
+    for (i = size + 1; --i;) {
+      label = (Stmt_Goto_Label)vector_at(stmt->data.v, i - 1);
       label->data.instr->m_val = vector_size(emit->code->code);
     }
     free_Vector(stmt->data.v);
@@ -1784,6 +1785,7 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   }
   vector_pop(emit->code->stack_break);
   sadd_instr(emit, stop_gc);
+  emit->cases = NULL;
   return 1;
 }
 
@@ -1809,11 +1811,11 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
         value = 0;
       else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
         err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
-        goto error;
+        return -1;
       } else  {
         if(!stmt->val->d.exp_primary.value->is_const) {
           err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
-          goto error;
+          return -1;
         }
 //        value = stmt->val->d.exp_primary.value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary.value->ptr : // for enum
 //              *(m_uint*)stmt->val->d.exp_primary.value->ptr;                                                   // for primary variable
@@ -1826,18 +1828,15 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
-    goto error;
+    return -1;
   }
   if (map_get(emit->cases, (vtype)value)) {
     err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value);
-    goto error;
+    return -1;
   }
 
   map_set(emit->cases, (vtype)value, (vtype)vector_size(emit->code->code));
   return 1;
-error:
-  free_Map(emit->cases);
-  return -1;
 }
 
 static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
@@ -2493,6 +2492,8 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     prog = prog->next;
   }
   sadd_instr(emit, stop_gc);
+  if(emit->cases)
+    free_Map(emit->cases);
   // handle func pointer
   for(i = 0; i < vector_size(emit->funcs); i++) {
     Stmt_Ptr ptr = (Stmt_Ptr)vector_at(emit->funcs, i);
