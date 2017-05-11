@@ -17,7 +17,7 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos)
   return a;
 }
 
-void free_Array_Sub(Array_Sub a)
+__inline static void free_Array_Sub(Array_Sub a)
 {
   free_Expression(a->exp_list);
   free(a);
