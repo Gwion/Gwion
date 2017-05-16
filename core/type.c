@@ -75,10 +75,8 @@ static void add_plugs(Env env, Vector plug_dirs)
         void* handler = dlopen(c, RTLD_LAZY);
         {
           if(!handler) {
-  //          dlclose(handler);
             m_str err = dlerror();
             err_msg(TYPE_, 0, "error in %s.", err);
-            free(err);
             goto next;
           }
         }
@@ -87,6 +85,8 @@ static void add_plugs(Env env, Vector plug_dirs)
           if(import(env) > 0)
             vector_append(plugs, (vtype)handler);
           else {
+            env->class_def = (Type)vector_pop(env->class_stack);
+            env->curr = (NameSpace)vector_pop(env->nspc_stack);
             dlclose(handler);
             goto next;
           }
@@ -94,8 +94,6 @@ static void add_plugs(Env env, Vector plug_dirs)
           m_str err = dlerror();
           err_msg(TYPE_, 0, "%s: no import function.", err);
           dlclose(handler);
-          /*		if(err)
-                  free(err); */
           goto next;
         }
 next:

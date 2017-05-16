@@ -1338,11 +1338,9 @@ INSTR(Instr_Array_Alloc)
         goto out_of_memory;
     }
   }
-  ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index);
-  if(!ref)
+  if(!(ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index)))
     goto error;
   POP_REG(shred, SZ_INT * info->depth);
-
   *(M_Object*)shred->reg = ref;
   PUSH_REG(shred,  SZ_INT);
   if(info->is_obj && !info->is_ref) {

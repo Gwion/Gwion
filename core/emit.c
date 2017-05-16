@@ -264,17 +264,17 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
 #ifdef DEBUG_EMIT
   debug_msg("emit", "instantiate object");
 #endif
-  if (type->array_depth) {
+  if(type->array_depth) {
     CHECK_BB(emit_Expression(emit, array->exp_list, 0))
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
-//    info->type = type->array_type;
     info->type = type;
     info->is_obj = isa(type->array_type, &t_object) > 0 ? 1 : 0;
     info->stack_offset = emit->code->frame->curr_offset;
+    info->is_ref = is_ref;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);
-    alloc->ptr = info; // is it uszeful
-    if (!is_ref && isa(type->array_type, &t_object) > 0)
+    alloc->ptr = info;
+    if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, type->array_type);
   } else if (isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = add_instr(emit, Instantiate_Object);
@@ -2510,9 +2510,11 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   // handle empty array type
   for(i = 0; i < vector_size(emit->array); i++) {
     Type t = (Type)vector_at(emit->array, i);
-    free(t->obj);
-    free(t); // all this should be
-    // rem_ref(t->obj, t);
+    if(!--t->obj) {
+      free(t->obj);
+      free(t);
+    } // all this should be
+      // rem_ref(t->obj, t);
   }
   vector_clear(emit->array);
   emit_pop_scope(emit);
