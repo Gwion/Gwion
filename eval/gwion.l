@@ -253,7 +253,7 @@ static int adjust(void* data);
 \"(\\.|[^\\"])*\"       						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return STRING_LIT; }
 '(\\.|[^\\'])'          						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return CHAR_LIT;   }
 
-. { printf("error: stray in program\n"); }
+. { printf("error: stray in program\n"); break; }
 
 %% // LCOV_EXCL_LINE
 // LCOV_EXCL_LINE
@@ -291,6 +291,7 @@ int minimal_error(MyArg* arg, char* s)
   int n = 1;
   size_t len = 0;
   memset(sign, 0, 256);
+
   err_msg(PARSE_, arg->line, "in file '%s'", arg->filename);
   err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);
 
@@ -305,7 +306,8 @@ int minimal_error(MyArg* arg, char* s)
     n++;
   }
   free(line);
-  for(i = 0; i < arg->pos - 1; i++)
+  if(arg->pos)
+  for(i = 0; i < arg->pos  -1; i++)
     strcat(sign, " ");
   strcat(sign, "^\n");
   fprintf(stderr, "%s", sign);

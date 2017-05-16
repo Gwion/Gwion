@@ -13,84 +13,232 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 3
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
 
-    #define yy_create_buffer minimal__create_buffer
+#ifdef yy_create_buffer
+#define minimal__create_buffer_ALREADY_DEFINED
+#else
+#define yy_create_buffer minimal__create_buffer
+#endif
 
-    #define yy_delete_buffer minimal__delete_buffer
+#ifdef yy_delete_buffer
+#define minimal__delete_buffer_ALREADY_DEFINED
+#else
+#define yy_delete_buffer minimal__delete_buffer
+#endif
 
-    #define yy_scan_buffer minimal__scan_buffer
+#ifdef yy_scan_buffer
+#define minimal__scan_buffer_ALREADY_DEFINED
+#else
+#define yy_scan_buffer minimal__scan_buffer
+#endif
 
-    #define yy_scan_string minimal__scan_string
+#ifdef yy_scan_string
+#define minimal__scan_string_ALREADY_DEFINED
+#else
+#define yy_scan_string minimal__scan_string
+#endif
 
-    #define yy_scan_bytes minimal__scan_bytes
+#ifdef yy_scan_bytes
+#define minimal__scan_bytes_ALREADY_DEFINED
+#else
+#define yy_scan_bytes minimal__scan_bytes
+#endif
 
-    #define yy_init_buffer minimal__init_buffer
+#ifdef yy_init_buffer
+#define minimal__init_buffer_ALREADY_DEFINED
+#else
+#define yy_init_buffer minimal__init_buffer
+#endif
 
-    #define yy_flush_buffer minimal__flush_buffer
+#ifdef yy_flush_buffer
+#define minimal__flush_buffer_ALREADY_DEFINED
+#else
+#define yy_flush_buffer minimal__flush_buffer
+#endif
 
-    #define yy_load_buffer_state minimal__load_buffer_state
+#ifdef yy_load_buffer_state
+#define minimal__load_buffer_state_ALREADY_DEFINED
+#else
+#define yy_load_buffer_state minimal__load_buffer_state
+#endif
 
-    #define yy_switch_to_buffer minimal__switch_to_buffer
+#ifdef yy_switch_to_buffer
+#define minimal__switch_to_buffer_ALREADY_DEFINED
+#else
+#define yy_switch_to_buffer minimal__switch_to_buffer
+#endif
 
-    #define yypush_buffer_state minimal_push_buffer_state
+#ifdef yypush_buffer_state
+#define minimal_push_buffer_state_ALREADY_DEFINED
+#else
+#define yypush_buffer_state minimal_push_buffer_state
+#endif
 
-    #define yypop_buffer_state minimal_pop_buffer_state
+#ifdef yypop_buffer_state
+#define minimal_pop_buffer_state_ALREADY_DEFINED
+#else
+#define yypop_buffer_state minimal_pop_buffer_state
+#endif
 
-    #define yyensure_buffer_stack minimal_ensure_buffer_stack
+#ifdef yyensure_buffer_stack
+#define minimal_ensure_buffer_stack_ALREADY_DEFINED
+#else
+#define yyensure_buffer_stack minimal_ensure_buffer_stack
+#endif
 
-    #define yylex minimal_lex
+#ifdef yylex
+#define minimal_lex_ALREADY_DEFINED
+#else
+#define yylex minimal_lex
+#endif
 
-    #define yyrestart minimal_restart
+#ifdef yyrestart
+#define minimal_restart_ALREADY_DEFINED
+#else
+#define yyrestart minimal_restart
+#endif
 
-    #define yylex_init minimal_lex_init
+#ifdef yylex_init
+#define minimal_lex_init_ALREADY_DEFINED
+#else
+#define yylex_init minimal_lex_init
+#endif
 
-    #define yylex_init_extra minimal_lex_init_extra
+#ifdef yylex_init_extra
+#define minimal_lex_init_extra_ALREADY_DEFINED
+#else
+#define yylex_init_extra minimal_lex_init_extra
+#endif
 
-    #define yylex_destroy minimal_lex_destroy
+#ifdef yylex_destroy
+#define minimal_lex_destroy_ALREADY_DEFINED
+#else
+#define yylex_destroy minimal_lex_destroy
+#endif
 
-    #define yyget_debug minimal_get_debug
+#ifdef yyget_debug
+#define minimal_get_debug_ALREADY_DEFINED
+#else
+#define yyget_debug minimal_get_debug
+#endif
 
-    #define yyset_debug minimal_set_debug
+#ifdef yyset_debug
+#define minimal_set_debug_ALREADY_DEFINED
+#else
+#define yyset_debug minimal_set_debug
+#endif
 
-    #define yyget_extra minimal_get_extra
+#ifdef yyget_extra
+#define minimal_get_extra_ALREADY_DEFINED
+#else
+#define yyget_extra minimal_get_extra
+#endif
 
-    #define yyset_extra minimal_set_extra
+#ifdef yyset_extra
+#define minimal_set_extra_ALREADY_DEFINED
+#else
+#define yyset_extra minimal_set_extra
+#endif
 
-    #define yyget_in minimal_get_in
+#ifdef yyget_in
+#define minimal_get_in_ALREADY_DEFINED
+#else
+#define yyget_in minimal_get_in
+#endif
 
-    #define yyset_in minimal_set_in
+#ifdef yyset_in
+#define minimal_set_in_ALREADY_DEFINED
+#else
+#define yyset_in minimal_set_in
+#endif
 
-    #define yyget_out minimal_get_out
+#ifdef yyget_out
+#define minimal_get_out_ALREADY_DEFINED
+#else
+#define yyget_out minimal_get_out
+#endif
 
-    #define yyset_out minimal_set_out
+#ifdef yyset_out
+#define minimal_set_out_ALREADY_DEFINED
+#else
+#define yyset_out minimal_set_out
+#endif
 
-    #define yyget_leng minimal_get_leng
+#ifdef yyget_leng
+#define minimal_get_leng_ALREADY_DEFINED
+#else
+#define yyget_leng minimal_get_leng
+#endif
 
-    #define yyget_text minimal_get_text
+#ifdef yyget_text
+#define minimal_get_text_ALREADY_DEFINED
+#else
+#define yyget_text minimal_get_text
+#endif
 
-    #define yyget_lineno minimal_get_lineno
+#ifdef yyget_lineno
+#define minimal_get_lineno_ALREADY_DEFINED
+#else
+#define yyget_lineno minimal_get_lineno
+#endif
 
-    #define yyset_lineno minimal_set_lineno
+#ifdef yyset_lineno
+#define minimal_set_lineno_ALREADY_DEFINED
+#else
+#define yyset_lineno minimal_set_lineno
+#endif
 
-        #define yyget_column minimal_get_column
+#ifdef yyget_column
+#define minimal_get_column_ALREADY_DEFINED
+#else
+#define yyget_column minimal_get_column
+#endif
 
-        #define yyset_column minimal_set_column
+#ifdef yyset_column
+#define minimal_set_column_ALREADY_DEFINED
+#else
+#define yyset_column minimal_set_column
+#endif
 
-    #define yywrap minimal_wrap
+#ifdef yywrap
+#define minimal_wrap_ALREADY_DEFINED
+#else
+#define yywrap minimal_wrap
+#endif
 
-    #define yyget_lval minimal_get_lval
+#ifdef yyget_lval
+#define minimal_get_lval_ALREADY_DEFINED
+#else
+#define yyget_lval minimal_get_lval
+#endif
 
-    #define yyset_lval minimal_set_lval
+#ifdef yyset_lval
+#define minimal_set_lval_ALREADY_DEFINED
+#else
+#define yyset_lval minimal_set_lval
+#endif
 
-    #define yyalloc minimal_alloc
+#ifdef yyalloc
+#define minimal_alloc_ALREADY_DEFINED
+#else
+#define yyalloc minimal_alloc
+#endif
 
-    #define yyrealloc minimal_realloc
+#ifdef yyrealloc
+#define minimal_realloc_ALREADY_DEFINED
+#else
+#define yyrealloc minimal_realloc
+#endif
 
-    #define yyfree minimal_free
+#ifdef yyfree
+#define minimal_free_ALREADY_DEFINED
+#else
+#define yyfree minimal_free
+#endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
 
@@ -162,9 +310,15 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
+
+/* begin standard C++ headers. */
 
 /* TODO: this is always defined, so inline it */
 #define yyconst const
@@ -266,21 +420,21 @@ struct yy_buffer_state
 	};
 #endif /* !YY_STRUCT_YY_BUFFER_STATE */
 
-void minimal_restart ( FILE *input_file , yyscan_t yyscanner );
-void minimal__switch_to_buffer ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__create_buffer ( FILE *file, int size , yyscan_t yyscanner );
-void minimal__delete_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
-void minimal__flush_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
-void minimal_push_buffer_state ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
-void minimal_pop_buffer_state ( yyscan_t yyscanner );
+void yyrestart ( FILE *input_file , yyscan_t yyscanner );
+void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_create_buffer ( FILE *file, int size , yyscan_t yyscanner );
+void yy_delete_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yy_flush_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yypush_buffer_state ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+void yypop_buffer_state ( yyscan_t yyscanner );
 
-YY_BUFFER_STATE minimal__scan_buffer ( char *base, yy_size_t size , yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__scan_string ( const char *yy_str , yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__scan_bytes ( const char *bytes, int len , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_string ( const char *yy_str , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_bytes ( const char *bytes, int len , yyscan_t yyscanner );
 
-void *minimal_alloc ( yy_size_t , yyscan_t yyscanner );
-void *minimal_realloc ( void *, yy_size_t , yyscan_t yyscanner );
-void minimal_free ( void * , yyscan_t yyscanner );
+void *yyalloc ( yy_size_t , yyscan_t yyscanner );
+void *yyrealloc ( void *, yy_size_t , yyscan_t yyscanner );
+void yyfree ( void * , yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
@@ -310,46 +464,46 @@ void minimal_free ( void * , yyscan_t yyscanner );
 #define YY_EXTRA_TYPE void *
 #endif
 
-int minimal_lex_init (yyscan_t* scanner);
+int yylex_init (yyscan_t* scanner);
 
-int minimal_lex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
+int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
-int minimal_lex_destroy ( yyscan_t yyscanner );
+int yylex_destroy ( yyscan_t yyscanner );
 
-int minimal_get_debug ( yyscan_t yyscanner );
+int yyget_debug ( yyscan_t yyscanner );
 
-void minimal_set_debug ( int debug_flag , yyscan_t yyscanner );
+void yyset_debug ( int debug_flag , yyscan_t yyscanner );
 
-YY_EXTRA_TYPE minimal_get_extra ( yyscan_t yyscanner );
+YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 
-void minimal_set_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
+void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 
-FILE *minimal_get_in ( yyscan_t yyscanner );
+FILE *yyget_in ( yyscan_t yyscanner );
 
-void minimal_set_in  ( FILE * _in_str , yyscan_t yyscanner );
+void yyset_in  ( FILE * _in_str , yyscan_t yyscanner );
 
-FILE *minimal_get_out ( yyscan_t yyscanner );
+FILE *yyget_out ( yyscan_t yyscanner );
 
-void minimal_set_out  ( FILE * _out_str , yyscan_t yyscanner );
+void yyset_out  ( FILE * _out_str , yyscan_t yyscanner );
 
-			int minimal_get_leng ( yyscan_t yyscanner );
+			int yyget_leng ( yyscan_t yyscanner );
 
-char *minimal_get_text ( yyscan_t yyscanner );
+char *yyget_text ( yyscan_t yyscanner );
 
-int minimal_get_lineno ( yyscan_t yyscanner );
+int yyget_lineno ( yyscan_t yyscanner );
 
-void minimal_set_lineno ( int _line_number , yyscan_t yyscanner );
+void yyset_lineno ( int _line_number , yyscan_t yyscanner );
 
-int minimal_get_column  ( yyscan_t yyscanner );
+int yyget_column  ( yyscan_t yyscanner );
 
-void minimal_set_column ( int _column_no , yyscan_t yyscanner );
+void yyset_column ( int _column_no , yyscan_t yyscanner );
 
-YYSTYPE * minimal_get_lval ( yyscan_t yyscanner );
+YYSTYPE * yyget_lval ( yyscan_t yyscanner );
 
-void minimal_set_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
+void yyset_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -357,9 +511,9 @@ void minimal_set_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int minimal_wrap ( yyscan_t yyscanner );
+extern "C" int yywrap ( yyscan_t yyscanner );
 #else
-extern int minimal_wrap ( yyscan_t yyscanner );
+extern int yywrap ( yyscan_t yyscanner );
 #endif
 #endif
 
@@ -396,10 +550,10 @@ static int yy_flex_strlen ( const char * , yyscan_t yyscanner);
 #ifndef YY_DECL
 #define YY_DECL_IS_OURS 1
 
-extern int minimal_lex \
+extern int yylex \
                (YYSTYPE * yylval_param , yyscan_t yyscanner);
 
-#define YY_DECL int minimal_lex \
+#define YY_DECL int yylex \
                (YYSTYPE * yylval_param , yyscan_t yyscanner)
 #endif /* !YY_DECL */
 
@@ -417,9 +571,154 @@ extern int minimal_lex \
 #undef YY_DECL
 #endif
 
+#ifndef minimal__create_buffer_ALREADY_DEFINED
+#undef yy_create_buffer
+#endif
+#ifndef minimal__delete_buffer_ALREADY_DEFINED
+#undef yy_delete_buffer
+#endif
+#ifndef minimal__scan_buffer_ALREADY_DEFINED
+#undef yy_scan_buffer
+#endif
+#ifndef minimal__scan_string_ALREADY_DEFINED
+#undef yy_scan_string
+#endif
+#ifndef minimal__scan_bytes_ALREADY_DEFINED
+#undef yy_scan_bytes
+#endif
+#ifndef minimal__init_buffer_ALREADY_DEFINED
+#undef yy_init_buffer
+#endif
+#ifndef minimal__flush_buffer_ALREADY_DEFINED
+#undef yy_flush_buffer
+#endif
+#ifndef minimal__load_buffer_state_ALREADY_DEFINED
+#undef yy_load_buffer_state
+#endif
+#ifndef minimal__switch_to_buffer_ALREADY_DEFINED
+#undef yy_switch_to_buffer
+#endif
+#ifndef minimal_push_buffer_state_ALREADY_DEFINED
+#undef yypush_buffer_state
+#endif
+#ifndef minimal_pop_buffer_state_ALREADY_DEFINED
+#undef yypop_buffer_state
+#endif
+#ifndef minimal_ensure_buffer_stack_ALREADY_DEFINED
+#undef yyensure_buffer_stack
+#endif
+#ifndef minimal_lex_ALREADY_DEFINED
+#undef yylex
+#endif
+#ifndef minimal_restart_ALREADY_DEFINED
+#undef yyrestart
+#endif
+#ifndef minimal_lex_init_ALREADY_DEFINED
+#undef yylex_init
+#endif
+#ifndef minimal_lex_init_extra_ALREADY_DEFINED
+#undef yylex_init_extra
+#endif
+#ifndef minimal_lex_destroy_ALREADY_DEFINED
+#undef yylex_destroy
+#endif
+#ifndef minimal_get_debug_ALREADY_DEFINED
+#undef yyget_debug
+#endif
+#ifndef minimal_set_debug_ALREADY_DEFINED
+#undef yyset_debug
+#endif
+#ifndef minimal_get_extra_ALREADY_DEFINED
+#undef yyget_extra
+#endif
+#ifndef minimal_set_extra_ALREADY_DEFINED
+#undef yyset_extra
+#endif
+#ifndef minimal_get_in_ALREADY_DEFINED
+#undef yyget_in
+#endif
+#ifndef minimal_set_in_ALREADY_DEFINED
+#undef yyset_in
+#endif
+#ifndef minimal_get_out_ALREADY_DEFINED
+#undef yyget_out
+#endif
+#ifndef minimal_set_out_ALREADY_DEFINED
+#undef yyset_out
+#endif
+#ifndef minimal_get_leng_ALREADY_DEFINED
+#undef yyget_leng
+#endif
+#ifndef minimal_get_text_ALREADY_DEFINED
+#undef yyget_text
+#endif
+#ifndef minimal_get_lineno_ALREADY_DEFINED
+#undef yyget_lineno
+#endif
+#ifndef minimal_set_lineno_ALREADY_DEFINED
+#undef yyset_lineno
+#endif
+#ifndef minimal_get_column_ALREADY_DEFINED
+#undef yyget_column
+#endif
+#ifndef minimal_set_column_ALREADY_DEFINED
+#undef yyset_column
+#endif
+#ifndef minimal_wrap_ALREADY_DEFINED
+#undef yywrap
+#endif
+#ifndef minimal_get_lval_ALREADY_DEFINED
+#undef yyget_lval
+#endif
+#ifndef minimal_set_lval_ALREADY_DEFINED
+#undef yyset_lval
+#endif
+#ifndef minimal_get_lloc_ALREADY_DEFINED
+#undef yyget_lloc
+#endif
+#ifndef minimal_set_lloc_ALREADY_DEFINED
+#undef yyset_lloc
+#endif
+#ifndef minimal_alloc_ALREADY_DEFINED
+#undef yyalloc
+#endif
+#ifndef minimal_realloc_ALREADY_DEFINED
+#undef yyrealloc
+#endif
+#ifndef minimal_free_ALREADY_DEFINED
+#undef yyfree
+#endif
+#ifndef minimal_text_ALREADY_DEFINED
+#undef yytext
+#endif
+#ifndef minimal_leng_ALREADY_DEFINED
+#undef yyleng
+#endif
+#ifndef minimal_in_ALREADY_DEFINED
+#undef yyin
+#endif
+#ifndef minimal_out_ALREADY_DEFINED
+#undef yyout
+#endif
+#ifndef minimal__flex_debug_ALREADY_DEFINED
+#undef yy_flex_debug
+#endif
+#ifndef minimal_lineno_ALREADY_DEFINED
+#undef yylineno
+#endif
+#ifndef minimal_tables_fload_ALREADY_DEFINED
+#undef yytables_fload
+#endif
+#ifndef minimal_tables_destroy_ALREADY_DEFINED
+#undef yytables_destroy
+#endif
+#ifndef minimal_TABLES_NAME_ALREADY_DEFINED
+#undef yyTABLES_NAME
+#endif
+
 #line 258 "eval/gwion.l"
 
 
-#line 423 "eval/lexer.h"
+#line 722 "eval/lexer.h"
 #undef minimal_IN_HEADER
 #endif /* minimal_HEADER_H */

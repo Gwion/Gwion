@@ -126,6 +126,7 @@ static SFUN(machine_shreds)
     sh = (VM_Shred)vector_at(vm->shred, i);
     i_vector_set(obj->d.array, i, sh->xid);
   }
+  vector_append(shred->gc, (vtype)obj);
   RETURN->d.v_object = obj;
 }
 

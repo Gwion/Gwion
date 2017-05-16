@@ -2100,6 +2100,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     if (!strcmp(S_name(member->xid), "start")) {
       if (emit->env->func->variadic_start) {
         err_msg(EMIT_, 0, "vararg.start already used. this is an error");
+        free(emit->env->func->variadic_start);
         return -1;
       }
       emit->env->func->variadic_start = add_instr(emit, Vararg_start);
@@ -2108,6 +2109,10 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       return 1;
     }
     if (!strcmp(S_name(member->xid), "end")) {
+      if(!emit->env->func->variadic_start) {
+        err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error");
+        return -1;
+      }
       Instr instr = add_instr(emit, Vararg_end);
       instr->m_val = offset;
       instr->m_val2 = emit->env->func->variadic_index;
@@ -2160,9 +2165,9 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       value = find_value(t_base, member->xid);
       if (value->is_member) { // member
         if (emit_Expression(emit, member->base, 0) < 0) {
-          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_LINE
-          return -1;                                             // LCOV_EXCL_LINE
-        }
+          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_START
+          return -1;
+        } // LCOV_EXCL_STOP
         sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Dot_Member_Data);
         func_i->m_val = value->offset;
@@ -2294,9 +2299,9 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
   if(func->is_member) {
     emit->code->stack_depth += SZ_INT;
-    if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0)) {
+    if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0)) {
       err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_START
-      return -1;
+      goto error;
     }                                                                                    // LCOV_EXCL_STOP
   }
 
@@ -2312,7 +2317,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
     if (!local) {
       err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name); // LCOV_EXCL_START
-      return -1;
+      goto error;
     }                                                                                               // LCOV_EXCL_STOP
     value->offset = local->offset;
     a = a->next;
@@ -2321,10 +2326,12 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     if (!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
       err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'..."); // LCOV_EXCL_START
       return -1;
-    }                                                                                             // LCOV_EXCL_STOP
+    }                                                                                        // LCOV_EXCL_STOP
     emit->code->stack_depth += SZ_INT;
   }
-  CHECK_BB(emit_Stmt(emit, func_def->code, 0))
+
+  if(emit_Stmt(emit, func_def->code, 0) < 0)
+    goto error;
 
   // ensure return
   if (func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
@@ -2348,7 +2355,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 			f = Reg_Push_ImmV4;
             break;
         case Kindof_Void: // won't reach
-            return -1;
+          goto error;
     }
     sadd_instr(emit, f);
     Instr goto_instr = add_instr(emit, Goto);
@@ -2361,7 +2368,6 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
     instr->m_val = vector_size(emit->code->code);
   }
-
   free_Vector(emit->code->stack_return);
   emit->code->stack_return = new_Vector();
   Instr instr = add_instr(emit, Func_Return);
@@ -2382,6 +2388,10 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   //  free_Code(emit->code);
   emit->code = (Code*)vector_pop(emit->stack);
   return 1;
+error:
+  free_Code(emit->code);
+  emit->code = (Code*)vector_pop(emit->stack);
+  return -1;
 }
 
 static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)

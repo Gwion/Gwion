@@ -1,5 +1,5 @@
 #!/bin/bash
-
+OUTFILE=lcov/lcov.info
 #make all
 
 #source util/test.sh
@@ -8,9 +8,9 @@
 
 [ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
 
-lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file gwion.info
-lcov -o gwion.info.cleaned -r gwion.info "*/eval/parser.c" "*/eval/lexer.c"
-mv gwion.info.cleaned gwion.info
+lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file "$OUTFILE"
+lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE} "*/eval/parser.c" "*/eval/lexer.c"
+mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || exit
 

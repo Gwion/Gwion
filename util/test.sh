@@ -332,6 +332,7 @@ count_test(){
       n_dir=$((n_dir+1))
     fi
   done
+  [ $n_test -lt $async ] && async=0
   echo "1...$((n_test-n_dir))"
 }
 
@@ -390,7 +391,7 @@ do_test() {
   local dm=$(echo "$dt3/60" | bc)
   local ds=$(echo "$dt3-60*$dm" | bc)
 
-  printf "# Total runtime: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
+  printf "# Total runtime: %d:%02d:%02d:%s\n" $dd $dh $dm $ds
 }
 
 consummer() {
@@ -461,3 +462,5 @@ consummer() {
 clean() {
   rm -f ${GWT_OUTDIR}/${GWT_PREFIX}{*.log,bailout}
 }
+
+[ $# -ne 0 ] && do_test ${@} | consummer

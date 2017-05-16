@@ -185,14 +185,13 @@ section
   ;
 
 class_def
-  : class_decl CLASS id_list LBRACE class_body RBRACE
-      { $$ = new_class_def( $1, $3, NULL, $5, get_pos(scanner)); $$->doc = get_doc(scanner); }
-  | class_decl CLASS id_list class_ext LBRACE class_body RBRACE
+  : class_decl CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
   ;
 
 class_ext
   : EXTENDS id_dot                    { $$ = new_class_ext( $2, NULL, get_pos(scanner)); }
+  | { $$ = NULL; }
   ;
 
 class_decl
@@ -212,8 +211,8 @@ class_body2
 
 class_section
   : stmt_list    { $$ = new_section_Stmt_List( $1, get_pos(scanner)); }
-  | func_def  { $$ = new_section_Func_Def( $1, get_pos(scanner)); }
-  | class_def     { $$ = new_section_Class_Def( $1, get_pos(scanner)); }
+  | func_def     { $$ = new_section_Func_Def( $1, get_pos(scanner)); }
+  | class_def    { $$ = new_section_Class_Def( $1, get_pos(scanner)); }
   ;
 
 id_list
@@ -615,7 +614,7 @@ primary_exp
   | STRING_LIT        { $$ = new_Primary_Expression_from_string( $1, get_pos(scanner)); }
   | CHAR_LIT          { $$ = new_exp_from_char(                  $1, get_pos(scanner)); }
   | array_exp         { $$ = new_exp_from_array_lit(             $1, get_pos(scanner)); }
-  | array_empty         { $$ = new_exp_from_array_lit(           $1, get_pos(scanner)); }
+  | array_empty       { $$ = new_exp_from_array_lit(           $1, get_pos(scanner)); }
   | complex_exp       { $$ = new_exp_from_complex(               $1, get_pos(scanner)); }
   | polar_exp         { $$ = new_exp_from_polar(                 $1, get_pos(scanner)); }
   | vec_exp           { $$ = new_exp_from_vec(                   $1, get_pos(scanner)); }
