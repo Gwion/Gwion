@@ -14,7 +14,7 @@ mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || exit
 
-genhtml -q -s -t "Gwion: coverage" -o lcov gwion.info --precision 2
+genhtml -q -s -t "Gwion: coverage" -o "$OUTFILE" --precision 2
 
 cat << EOF > lcov/helper_gcov.js
 var i = 1;
@@ -58,11 +58,11 @@ var keyCode = e.keyCode;
 document.addEventListener("keydown", keyDownTextField, false);
 EOF
 
-for file in lcov/*/*.c.gcov.html
-do sed -i "s/<body>/<body><script src=\"..\/helper_gcov.js\"><\/script>/" "$file"
-done
+#for file in lcov/*/*.c.gcov.html
+#do sed -i 's/<body>/<body><script src="..\/helper_gcov.js"><\/script>/' "$file"
+#done
 
-for file in lcov/*/*.*.func*.html
-do sed -i "s/<body>/<body><script src=\"..\/helper_func.js\"><\/script>/" "$file"
-done
+#for file in lcov/*/*.*.func*.html
+#do sed -i 's/<body>/<body><script src="..\/helper_func.js"><\/script>/' "$file"
+#done
 
