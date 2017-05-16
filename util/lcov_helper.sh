@@ -9,7 +9,7 @@ OUTFILE=lcov/lcov.info
 [ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
 
 lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file "$OUTFILE"
-lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE} "*/eval/parser.c" "*/eval/lexer.c"
+lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE}" "*/eval/parser.c" "*/eval/lexer.c"
 mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || exit
@@ -58,11 +58,11 @@ var keyCode = e.keyCode;
 document.addEventListener("keydown", keyDownTextField, false);
 EOF
 
-#for file in lcov/*/*.c.gcov.html
-#do sed -i 's/<body>/<body><script src="..\/helper_gcov.js"><\/script>/' "$file"
-#done
+for file in lcov/*/*.c.gcov.html
+do sed -i 's/<body>/<body><script src="..\/helper_gcov.js"><\/script>/' "$file"
+done
 
-#for file in lcov/*/*.*.func*.html
-#do sed -i 's/<body>/<body><script src="..\/helper_func.js"><\/script>/' "$file"
-#done
+for file in lcov/*/*.*.func*.html
+do sed -i 's/<body>/<body><script src="..\/helper_func.js"><\/script>/' "$file"
+done
 
