@@ -254,8 +254,8 @@ EOF
   printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\$(to_upper \"\$key\")\" \"\$(to_upper \"\$key\")\"\ndone\n"
 
   mk_header "add soundpipe"
-  echo "echo \"LDFLAGS+=\${SOUNDPIPE_LIB}\""
-  echo "echo \"CFLAGS+=\${SOUNDPIPE_INC}\""
+  echo "echo \"LDFLAGS += \\\${SOUNDPIPE_LIB}\""
+  echo "echo \"CFLAGS  += \\\${SOUNDPIPE_INC}\""
 
   mk_header "initialize object lists"
   do_expand "core lang ugen eval drvr"
@@ -280,8 +280,6 @@ ifeq (\\\${DEBUG}, 1)
 CFLAGS+=-DDEBUG
 endif
 
-LDFLAGS+=-lsndfile
-
 # os specific
 ifeq (\\\$(shell uname), Linux)
 LDFLAGS+=-lrt
@@ -293,6 +291,9 @@ all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
 
 clean:
 	@rm -f */*.o */*.gcda */*.gcno \${PRG}
+
+main.o:
+	\\\${CC} \\\${CFLAGS} -c main.c -o main.o -DCFLAGS=\"${CFLAGS}\" -DLDFLAGS=\"${LDFLAGS}\"
 
 .c.o:
 	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)

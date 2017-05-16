@@ -832,11 +832,10 @@ INSTR(Dot_Member_Func)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dot member func");
-//  debug_msg("instr", "dot member func %p[%i] %p", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, vector_at((*(M_Object*)(shred->reg - SZ_INT))->vtable, instr->m_val));
 #endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)shred->reg;
-//  if(!obj) Except(shred);
+  if(!obj) Except(shred);
   *(Func*)shred->reg = (Func)vector_at(obj->vtable, instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }

@@ -634,8 +634,8 @@ do
 done
 
 printf "\n# add soundpipe\n"
-echo "LDFLAGS+=${SOUNDPIPE_LIB}"
-echo "CFLAGS+=${SOUNDPIPE_INC}"
+echo "LDFLAGS += \${SOUNDPIPE_LIB}"
+echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
 for iter in core lang ugen eval drvr
@@ -654,8 +654,6 @@ ifeq (\${DEBUG}, 1)
 CFLAGS+=-DDEBUG
 endif
 
-LDFLAGS+=-lsndfile
-
 ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
@@ -665,6 +663,9 @@ all: \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
 
 clean:
 	@rm -f */*.o */*.gcda */*.gcno ${PRG}
+
+main.o:
+	\${CC} \${CFLAGS} -c main.c -o main.o -DCFLAGS=\"\" -DLDFLAGS=\"\"
 
 .c.o:
 	\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)

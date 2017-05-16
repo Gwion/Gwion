@@ -356,13 +356,11 @@ static m_bool emit_Array(Emitter emit, Array* array)
 static m_bool emit_Vec(Emitter emit, Vec val)
 {
   CHECK_BB(emit_Expression(emit, val->args, 0));
-/*
   m_int n = 3 - val->numdims;
   while (n > 0) {
     sadd_instr(emit, Reg_Push_Imm2);
     n--;
   }
-*/
   return 1;
 }
 static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
