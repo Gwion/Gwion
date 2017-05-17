@@ -538,7 +538,6 @@ Type check_Array(Env env, Array* array)
   m_uint depth;
   // verify there are no errors from the parser...
   CHECK_BO(verify_array(array->indices))
-
   CHECK_OO((t_base = check_Expression(env, array->base)))
 
   if(array->indices->depth > t_base->array_depth) {
@@ -563,14 +562,22 @@ Type check_Array(Env env, Array* array)
               /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
               "array index %i must be of type 'int', not '%s'",
               depth, e->type->name);
-    free(t_base->obj);
-    free(t_base);
+      free(t_base->obj);
+      free(t_base);
       return NULL;
     }
     e = e->next;
   }
 
   t = NULL;
+
+  if(depth != array->indices->depth) {
+    err_msg(TYPE_, array->pos, "invalid array acces expression.");
+    free(t_base->obj);
+    free(t_base);
+    return NULL;
+  }
+
   if(depth == t_base->array_depth)
     t = array->base->type->array_type;
   else {
@@ -740,6 +747,19 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
     cl->emit_var = 1;
     break;
   case op_at_chuck:
+    if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
+      if(isa(cl->type->array_type, cr->type->array_type) < 0) {
+        err_msg(TYPE_, binary->pos, "array types do not match.");
+        return NULL;
+      }
+      if(cl->type->array_depth != cr->type->array_depth) {
+        err_msg(TYPE_, binary->pos, "array depths do not match.");
+        return NULL;
+      }
+      /*      cr->emit_var = cl->emit_var = 1;*/
+      cr->emit_var = 1;
+      break;
+    }
     if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
       /*      cr->emit_var = cl->emit_var = 1;*/
       cr->emit_var = 1;
@@ -1357,6 +1377,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
     case op_exclamation:
       if(!t)
         return NULL;
+      exp_unary->self->meta= ae_meta_value; // /17/05/17
       if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, 
         &t_dur) > 0)
         return &t_int;

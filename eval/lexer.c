@@ -1899,7 +1899,7 @@ YY_RULE_SETUP
 case 124:
 YY_RULE_SETUP
 #line 256 "eval/gwion.l"
-{ printf("error: stray in program\n"); break; }
+{ printf("error: stray in program\n"); return 1; }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
@@ -3107,11 +3107,11 @@ int minimal_error(MyArg* arg, char* s)
   free(line);
   if(arg->pos)
   for(i = 0; i < arg->pos  -1; i++)
-    strcat(sign, " ");
-  strcat(sign, "^\n");
-  fprintf(stderr, "%s", sign);
+    fprintf(stderr, " ");
+  fprintf(stderr, "^\n");
   fclose(arg->file);
   return 0;
+
 }
 
 

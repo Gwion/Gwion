@@ -67,6 +67,10 @@ static INSTR(modulo)
   debug_msg("instr", "(int) %i'%' %i", *(m_int*)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
+  if  (!*(m_int*)(shred->reg + SZ_INT)) {
+    err_msg(INSTR_, 0, "modulo by zero.");
+	Except(shred)
+  }
   *(m_int*)shred->reg %= *(m_int*)(shred->reg + SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
