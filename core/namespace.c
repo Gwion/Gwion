@@ -21,42 +21,12 @@ Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb)
   return v;
 }
 
-void namespace_add_value(NameSpace namespace, S_Symbol xid, Value value)
-{
-  scope_add(namespace->value, xid, (vtype)value);
-}
-
-void namespace_push_value(NameSpace namespace)
-{
-  scope_push(namespace->value);
-}
-
-void namespace_pop_value(NameSpace namespace)
-{
-  scope_pop(namespace->value);
-}
-
 Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb)
 {
   Type t = (Type)scope_lookup(namespace->type, xid, climb);
   if(climb > 0 && !t && namespace->parent)
     t = (Type)namespace_lookup_type(namespace->parent, xid, climb);
   return t;
-}
-
-void namespace_add_type(NameSpace namespace, S_Symbol xid, Type value)
-{
-  scope_add(namespace->type, xid, (vtype)value);
-}
-
-void namespace_push_type(NameSpace namespace)
-{
-  scope_push(namespace->type);
-}
-
-void namespace_pop_type(NameSpace namespace)
-{
-  scope_pop(namespace->type);
 }
 
 Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb)
@@ -67,25 +37,13 @@ Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb)
   return t;
 }
 
-void namespace_add_func(NameSpace namespace, S_Symbol xid, Func value)
-{
-  scope_add(namespace->func, xid, (vtype)value);
-}
-
 void namespace_commit(NameSpace namespace)
 {
   scope_commit(namespace->value);
   scope_commit(namespace->func);
   scope_commit(namespace->type);
 }
-/*
-void namespace_rollback(NameSpace namespace)
-{
-  scope_rollback(namespace->value, NULL);
-  scope_rollback(namespace->func,  NULL);
-  scope_rollback(namespace->type,  NULL);
-}
-*/
+
 NameSpace new_NameSpace()
 {
   NameSpace a = calloc(1, sizeof(struct NameSpace_));
@@ -142,17 +100,6 @@ void free_NameSpace(NameSpace a)
     } else if(isa(value->m_type, &t_func_ptr) > 0) {
 //  just catch func pointer
     } else if(isa(value->m_type, &t_function) > 0) {
-      if(value->func_ref && value->func_ref->def && value->func_ref->def->is_template) {
-/*
-	if(value->func_ref->def->spec == ae_func_spec_dtor) {
-        free(value->func_ref->def);
-        value->func_ref->def = NULL;
-        free_VM_Code(value->func_ref->code);
-//value->owner_class->info->dtor = NULL;
-continue;
-}
-*/
-      }
       if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
         free(value->name);
         free(value->m_type->name);
