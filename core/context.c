@@ -4,30 +4,6 @@
 #include "context.h"
 #include "func.h"
 
-void context_add_type(Context context, Type type, VM_Object obj)
-{
-  obj->ref = context->new_types;
-  vector_append(context->new_types, (vtype)type);
-}
-
-void context_add_value(Context context, Value value, VM_Object obj)
-{
-  obj->ref = context->new_values;
-  vector_append(context->new_values, (vtype)value);
-}
-
-void context_add_class(Context context, Value value, VM_Object obj)
-{
-  obj->ref = context->new_class;
-  vector_append(context->new_class, (vtype)value);
-}
-
-void context_add_func(Context context, Func func, VM_Object obj)
-{
-  obj->ref = context->new_funcs;
-  vector_append(context->new_funcs, (vtype)func);
-}
-
 Context new_Context(Ast prog, m_str filename)
 {
   Context context = malloc(sizeof(struct Context_));
@@ -82,7 +58,7 @@ if(f->value_ref->m_type) { // error in scan2
   free(a);
 }
 
-int load_context(Context context, Env env)
+m_bool load_context(Context context, Env env)
 {
   vector_append(env->contexts, (vtype)env->context);
   env->context = context;
@@ -94,7 +70,7 @@ int load_context(Context context, Env env)
   return 1;
 }
 
-int unload_context(Context context, Env env)
+m_bool unload_context(Context context, Env env)
 {
   namespace_pop_value(env->context->nspc);
   env->curr = (NameSpace)vector_pop(env->nspc_stack);

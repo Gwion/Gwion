@@ -68,7 +68,7 @@ Type new_Type(Context context)
   type->def         = NULL;
   type->obj         = new_VM_Object(e_type_obj);
 //  context_add_type(context, type, type->obj);
-  type->obj->ref    = context->new_types;
+  /*type->obj->ref    = context->new_types;*/
 //  vector_append(context->new_types, type);
   return type;
 }
