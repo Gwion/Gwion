@@ -280,6 +280,9 @@ ifeq (\\\${DEBUG}, 1)
 CFLAGS+=-DDEBUG
 endif
 
+# config flags
+CCFG="\\\${CFLAGS}"
+LDCFG="\\\${LDFLAGS}"
 # os specific
 ifeq (\\\$(shell uname), Linux)
 LDFLAGS+=-lrt
@@ -292,8 +295,10 @@ all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
 clean:
 	@rm -f */*.o */*.gcda */*.gcno \${PRG}
 
-main.o:
-	\\\${CC} \\\${CFLAGS} -c main.c -o main.o -DCFLAGS=\"${CFLAGS}\" -DLDFLAGS=\"${LDFLAGS}\"
+core/main.o:
+	\\\${CC} \\\${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
+#  -DLDFLAGS="\\\${LDFLAGS}"
+#-DCFLAGS='\"\\\$(shell echo \\\${CFLAGS} | xargs)\\"' 
 
 .c.o:
 	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)

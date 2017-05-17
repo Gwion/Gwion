@@ -654,6 +654,8 @@ ifeq (\${DEBUG}, 1)
 CFLAGS+=-DDEBUG
 endif
 
+CCFG="\${CFLAGS}"
+LDCFG="\${LDFLAGS}"
 ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
@@ -664,8 +666,8 @@ all: \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
 clean:
 	@rm -f */*.o */*.gcda */*.gcno ${PRG}
 
-main.o:
-	\${CC} \${CFLAGS} -c main.c -o main.o -DCFLAGS=\"\" -DLDFLAGS=\"\"
+core/main.o:
+	\${CC} \${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
 
 .c.o:
 	\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)
