@@ -3,6 +3,7 @@ OUTFILE=lcov/lcov.info
 #make all
 
 #source util/test.sh
+[ -d lcov ] && mkdir lcov
 
 #do_test severity=11 ASYNC=0 tests/sh/ examples tests/error tests/tree tests/bug tests/ugen_coverage | consummer
 

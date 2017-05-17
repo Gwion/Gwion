@@ -340,7 +340,7 @@ do_test() {
   local n_test
   n_test=1
   count_test "$@"
-  local res1=$(date +%s.%N)
+  which bc && local res1=$(date +%s.%N)
   for arg in "$@"
   do
     if [ "${arg:0:6}" = "async=" ]
@@ -382,16 +382,17 @@ do_test() {
       n_test=$((n_test + $(count_tests "$arg")))
     fi
   done
+  which bc && {
   local res2=$(date +%s.%N)
-  local dt=$(echo "$res2 - $res1" | bc)
-  local dd=$(echo "$dt/86400" | bc)
-  local dt2=$(echo "$dt-86400*$dd" | bc)
-  local dh=$(echo "$dt2/3600" | bc)
-  local dt3=$(echo "$dt2-3600*$dh" | bc)
-  local dm=$(echo "$dt3/60" | bc)
-  local ds=$(echo "$dt3-60*$dm" | bc)
-
-  printf "# Total runtime: %d:%02d:%02d:%s\n" $dd $dh $dm $ds
+	  local dt=$(echo "$res2 - $res1" | bc)
+	  local dd=$(echo "$dt/86400" | bc)
+	  local dt2=$(echo "$dt-86400*$dd" | bc)
+	  local dh=$(echo "$dt2/3600" | bc)
+	  local dt3=$(echo "$dt2-3600*$dh" | bc)
+	  local dm=$(echo "$dt3/60" | bc)
+	  local ds=$(echo "$dt3-60*$dm" | bc)
+	  printf "# Total runtime: %d:%02d:%02d:%s\n" $dd $dh $dm $ds
+  }
 }
 
 consummer() {
