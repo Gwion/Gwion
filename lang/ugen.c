@@ -7,8 +7,6 @@
 #include "ugen.h"
 #include "bbq.h"
 
-/*#include <soundpipe.h>*/
-
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 
 m_bool base_tick(UGen u)
@@ -76,6 +74,8 @@ void ugen_compute(UGen u)
   UGen ugen;
   if(!u || u->done)
     return;
+  u->last = u->out;
+  u->done = 1;
   if(u->channel)
     for(i = u->n_out; --i;)
       ugen_compute(u->channel[i-1]->ugen);
@@ -84,7 +84,6 @@ void ugen_compute(UGen u)
       ugen = (UGen)vector_at(u->ugen, i - 1);
       if(!ugen->done)
         ugen_compute(ugen);
-
     }
   }
   if(u->ref) {
@@ -105,7 +104,6 @@ void ugen_compute(UGen u)
     u->last = sum / u->n_out;
   } else
     u->last = u->out;
-  u->done = 1;
 }
 
 UGen new_UGen()
