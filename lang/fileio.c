@@ -20,7 +20,7 @@ struct Type_ t_cin     = { "@Cin",     SZ_INT, &t_fileio,    te_fileio  };
 static M_Object gw_cin, gw_cout, gw_cerr;
 m_int o_fileio_file;
 
-#define CHECK_FIO(o)   if(!IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); }
+#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); }
 CTOR(fileio_ctor)
 {
   IO_FILE(o)  = NULL;
@@ -43,11 +43,8 @@ INSTR(int_to_file)
   debug_msg("instr", "int to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = *(M_Object*)shred->reg;
-  if(o != gw_cout && o != gw_cerr) {
-    o = **(M_Object**)shred->reg;
-    release(o, shred);
-  }
+  M_Object o = **(M_Object**)shred->reg;
+  release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%li", *(m_int*)(shred->reg - SZ_INT));
   *(M_Object*)(shred->reg - SZ_INT) = o;
@@ -59,11 +56,9 @@ INSTR(float_to_file)
   debug_msg("instr", "float to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = *(M_Object*)shred->reg;
-  if(o != gw_cout && o != gw_cerr) {
-    o = **(M_Object**)shred->reg;
-    release(o, shred);
-  }
+  M_Object o = **(M_Object**)shred->reg;
+  o = **(M_Object**)shred->reg;
+  release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%f", *(m_float*)(shred->reg - SZ_FLOAT));
   PUSH_REG(shred, SZ_FLOAT);
@@ -76,16 +71,13 @@ INSTR(string_to_file)
   debug_msg("instr", "string to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = *(M_Object*)shred->reg;
-  if(o != gw_cout && o != gw_cerr) {
-    o = **(M_Object**)shred->reg;
-    release(o, shred);
-  }
+  M_Object o = **(M_Object**)shred->reg;
   M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
+  release(lhs, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
   *(M_Object*)(shred->reg -SZ_INT)= o;
-  release(lhs, shred);
 }
 
 INSTR(object_to_file)
@@ -94,15 +86,13 @@ INSTR(object_to_file)
   debug_msg("instr", "string to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = *(M_Object*)shred->reg;
-  if(o != gw_cout && o != gw_cerr) {
-    o = **(M_Object**)shred->reg;
-    release(o, shred);
-  }
+  M_Object o = **(M_Object**)shred->reg;
   M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
+  release(o, shred);
+  release(lhs, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%p", (void*)lhs);
   *(M_Object*)(shred->reg -SZ_INT)= o;
-  release(lhs, shred);
 }
 
 INSTR(file_to_int)

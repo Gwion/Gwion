@@ -774,6 +774,10 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
       cr->emit_var = cl->emit_var = 0;
       break;
     }
+    if(isa(cr->type, &t_fileio) > 0) {
+      cr->emit_var = 1;
+      break;
+    }
   case op_plus_chuck:
   case op_minus_chuck:
   case op_times_chuck:
