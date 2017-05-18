@@ -27,19 +27,20 @@ static int gwion_cb(jack_nframes_t nframes, void *arg)
 {
   int frame, chan;
   VM* vm  = (VM*)arg;
+  sp_data* sp = vm->bbq->sp;
   jack_default_audio_sample_t  * in[vm->bbq->n_in];
-  jack_default_audio_sample_t  * out[vm->bbq->sp->nchan];
+  jack_default_audio_sample_t  * out[sp->nchan];
   for(chan = 0; chan < vm->bbq->n_in; chan++)
     in[chan] = jack_port_get_buffer (iport[chan], nframes);
-  for(chan = 0; chan < vm->bbq->sp->nchan; chan++)
+  for(chan = 0; chan < sp->nchan; chan++)
     out[chan] = jack_port_get_buffer (oport[chan], nframes);
   for(frame = 0; frame < nframes; frame++) {
     for(chan = 0; chan < vm->bbq->n_in; chan++)
       vm->bbq->in[chan] = in[chan][frame];
     vm_run(vm);
-    for(chan = 0; chan < vm->bbq->sp->nchan; chan++)
-      out[chan][frame] = vm->bbq->sp->out[chan];
-    vm->bbq->sp->pos++;
+    for(chan = 0; chan < sp->nchan; chan++)
+      out[chan][frame] = sp->out[chan];
+    sp->pos++;
   }
   GWION_CTL
   return 0;
