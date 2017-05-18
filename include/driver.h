@@ -53,4 +53,3 @@ BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** d);
 void udp_do(VM* vm);
 #define GWION_CTL_SIZE 8192
 #define GWION_CTL if(!(sp->pos%GWION_CTL_SIZE))udp_do(vm);
-#define GWION_CTL_PA if(!(vm->bbq->sp->pos%GWION_CTL_SIZE))udp_do(vm);
