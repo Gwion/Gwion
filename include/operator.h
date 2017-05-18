@@ -1,5 +1,3 @@
-#include "vm.h"
-
 typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
 
 m_str op2str(Operator op);
