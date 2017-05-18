@@ -1,4 +1,3 @@
-#include "dl.h"
 #include "type.h"
 
 void dl_return_push(const DL_Return retval, VM_Shred shred, int kind)

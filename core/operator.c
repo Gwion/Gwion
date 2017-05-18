@@ -1,6 +1,5 @@
 #include "defs.h"
 #include "err_msg.h"
-//#include "emit.h"
 #include "instr.h"
 
 static Operator operators[] = {
@@ -86,19 +85,10 @@ static m_str op_name[] = {
 };
 
 typedef Type (*f_type)(Env env, Expression exp);
-typedef struct {
-  Type lhs, rhs, ret;
-  f_instr instr;
-  Func func;
-//  m_str doc;
-} M_Operator;
 
-static M_Operator* last = NULL;
-//Operatorname2op(m_str name)
-m_int name2op(m_str name)
+Operator name2op(m_str name)
 {
   m_uint i = 0;
-//	for(i = 0; i < (sizeof(operators) / sizeof(Operator)) - 1; i++)
   while(op_name[i] && op_str[i]) {
     if(!strcmp(op_name[i], name)) {
       return operators[i];
@@ -168,7 +158,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   Vector v;
   M_Operator* mo;
 
-  last  = NULL;
+//  last  = NULL;
   if(global && nspc->parent)
     /*		nspc = nspc->parent;*/
     nspc = env->global_nspc;
@@ -193,7 +183,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->func      = NULL;
 //  mo->doc       = NULL;
   vector_append(v, (vtype)mo);
-  last = mo;
+//  last = mo;
   return 1;
 }
 
@@ -307,25 +297,3 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   }
   return -1;
 }
-
-/*
-// commented before doc move
-// also , outputs rst (should be markdown.)
-void operator_doc(Vector v, FILE* file)
-{
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", "making doc");
-#endif
-
-  m_uint i;
-
-  fprintf(file, "@itemize @bullet\n");
-  for(i = 0; i < vector_size(v); i++) {
-    M_Operator* mo = (M_Operator*)vector_at(v, i);
-    fprintf(file, "@item (%s) '%s' %s '%s'\n", mo->ret->name, mo->lhs->name, op2str(i), mo->rhs->name);
-    if(mo->doc)
-      fprintf(file, "'%s'\n", mo->doc);
-  }
-  fprintf(file, "@end itemize\n");
-}
-*/
