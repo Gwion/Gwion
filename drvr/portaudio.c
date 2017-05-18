@@ -21,6 +21,7 @@ static int callback( const void *inputBuffer, void *outputBuffer,
                      PaStreamCallbackFlags statusFlags, void *userData )
 {
   VM* vm = (VM*)userData;
+  sp_data* sp = vm->bbq->sp;
   float *in  = (float*)inputBuffer;
   float *out = (float*)outputBuffer;
   m_bool i, j;
@@ -28,9 +29,9 @@ static int callback( const void *inputBuffer, void *outputBuffer,
     for(j = 0; j < vm->bbq->n_in; j++)
       vm->bbq->in[j] = *in++;
     vm_run(vm);
-    for(j = 0; j < vm->bbq->sp->nchan; j++)
-      *out++ = vm->bbq->sp->out[j];
-    vm->bbq->sp->pos++;
+    for(j = 0; j < sp->nchan; j++)
+      *out++ = sp->out[j];
+    sp->pos++;
   }
   GWION_CTL
   return paContinue;
