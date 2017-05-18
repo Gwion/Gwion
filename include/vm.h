@@ -57,7 +57,6 @@ struct VM_Shred_ {
 #endif
 };
 
-typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
 void free_VM_Code(VM_Code a);
 Shreduler new_Shreduler(VM* vm);
