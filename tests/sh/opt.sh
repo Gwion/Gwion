@@ -25,6 +25,12 @@ run "$n" "help (short)" "-?" "file"
 n=$((n+1))
 run "$n" "help (long)" "--help" "file"
 
+# host
+n=$((n+1))
+run "$n" "host invalid (short)" "-h non_existant_host" "file"
+n=$((n+1))
+run "$n" "config (long)" "--config" "file"
+
 # help
 n=$((n+1))
 run "$n" "help (short)" "-?" "file"
