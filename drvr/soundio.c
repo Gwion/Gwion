@@ -99,7 +99,7 @@ static void write_callback(struct SoundIoOutStream *outstream, int
   int    left = frame_count_max;
   const struct SoundIoChannelLayout *layout = &outstream->layout;
   VM* vm = (VM*)outstream->userdata;
-  double* data = vm->bbq->sp->out;
+  double* data = sp->out;
   for (;;) {
     int err, count = left;
     if ((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
@@ -117,7 +117,7 @@ static void write_callback(struct SoundIoOutStream *outstream, int
         write_sample(areas[channel].ptr, data[channel]);
         areas[channel].ptr += areas[channel].step;
       }
-      vm->bbq->sp->pos++;
+      sp->pos++;
     }
     if ((err = soundio_outstream_end_write(outstream))) {
       if (err == SoundIoErrorUnderflow)
@@ -138,6 +138,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
   struct SoundIoChannelArea *areas;
   int frames_left = frame_count_max;
   VM* vm = (VM*)instream->userdata;
+  sp_data* sp = vm->bbq->sp;
   for (;;) {
     int err, frame_count = frames_left;
 
