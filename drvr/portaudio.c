@@ -32,7 +32,7 @@ static int callback( const void *inputBuffer, void *outputBuffer,
       *out++ = vm->bbq->sp->out[j];
     vm->bbq->sp->pos++;
   }
-  GWION_CTL
+  GWION_CTL_PA
   return paContinue;
 }
 
