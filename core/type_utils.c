@@ -7,6 +7,9 @@
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
 
+m_uint get_type_xid() {
+	return type_xid++;
+}
 int verify_array(Array_Sub array)
 {
   if(array->err_num) {

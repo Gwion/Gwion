@@ -111,16 +111,18 @@ void object_dtor(M_Object o, VM_Shred shred)
 INSTR(Assign_Object)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - 
-SZ_INT));
+  debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
+  M_Object old;
   POP_REG(shred, SZ_INT * 2);
-  M_Object old = **(M_Object**)(shred->reg + SZ_INT);
-  if(old)
+  if((old = **(M_Object**)(shred->reg + SZ_INT)))
+    release(old, shred);
+  if(instr->m_val2)
     release(old, shred);
   if(instr->m_val)
-    release(old, shred);
-  (**(m_uint**)(shred->reg + SZ_INT) = *(m_uint*)shred->reg);
+    **(M_Object**)shred->reg = *(M_Object*)shred->reg;
+  else
+    (**(M_Object**)(shred->reg + SZ_INT) = *(M_Object*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
 

@@ -86,7 +86,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
 
   the_class = new_Type(env->context);
 //  add_ref(the_class->obj);
-  the_class->xid = te_user;
+//  the_class->xid = te_user;
+  the_class->xid = get_type_xid();
   the_class->name = S_name(class_def->name->xid);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
