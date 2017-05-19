@@ -48,8 +48,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       return -1;
     }
     if(list->self->array != NULL) {
-      if(verify_array(list->self->array) < 0)
-        return -1;
+      CHECK_BB(verify_array(list->self->array))
       Type t2 = type;
 
       if(list->self->array->exp_list) {
@@ -97,14 +96,11 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       goto error;
     }
-    // check if reserved
-//    if(type_engine_check_reserved(env, arg_list->var_decl->xid, arg_list->linepos))
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0)
     {
       err_msg(SCAN2_, arg_list->pos, "in function '%s'", S_name(ptr->xid));
       goto error;
     }
-    // primitive
     if((isprim(arg_list->type) > 0) && arg_list->type_decl->ref) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "cannot declare references (@) of primitive type '%s'...",
@@ -113,22 +109,16 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
               "...(primitive types: 'int', 'float', 'time', 'dur')");
       goto error;
     }
-
     if(arg_list->var_decl->array) {
-      // verify there are no errors from the parser...
-      if(verify_array(arg_list->var_decl->array) < 0)
-        return -1;
-
+      CHECK_BB(verify_array(arg_list->var_decl->array))
       Type t = arg_list->type;
       Type t2 = t;
-      // should be partial and empty []
       if(arg_list->var_decl->array->exp_list) {
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(ptr->xid));
         err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid));
         goto error;
       }
-      // create the new array type
       t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
@@ -146,9 +136,6 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
   namespace_pop_value(env->curr);
 
   ptr->value->checked = 1;
-  /*  if(env->class_def)*/
-  /*    namespace_add_value(env->class_def, ptr->xid, ptr->value);*/
-  /*  else*/
   namespace_add_value(env->curr, ptr->xid, ptr->value);
 
   Func_Def def = new_Func_Def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
@@ -161,9 +148,6 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     ptr->value->owner_class = env->class_def;
     ptr->func->is_member   = !ptr->key;
   }
-//  if(env->class_def) {
-//      ptr->func->is_member   = 1;
-//  }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
   add_ref(ptr->func->obj);
   return 1;
@@ -661,13 +645,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
-/*
-// disabled in parser
-  if(env->func) {
-    err_msg(SCAN2_, f->pos, "nested function definitions are not (yet) allowed");
-    goto error;
-  }
-*/
+
   if(f->types) {
     func = new_Func(func_name, f);
     overload = namespace_lookup_value(env->curr,  f->name, 0);
@@ -753,15 +731,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-/*
-  if(!f->ret_type) // template return value
-    f->ret_type = find_type(env, f->type_decl->xid);
-*/
   if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
     err_msg(SCAN2_,  f->type_decl->pos,
-            "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name);
-    err_msg(SCAN2_, f->type_decl->pos,
-            "...(primitive types: 'int', 'float', 'time', 'dur')");
+      "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name);
+    err_msg(SCAN2_, f->type_decl->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
     goto error;
   }
 
@@ -772,22 +745,16 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   namespace_push_value(env->curr);
 
   while(arg_list) {
-/*    if(!arg_list->type) // template
-      arg_list->type = find_type(env, arg_list->type_decl->xid); */
     if(!arg_list->type->size) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       namespace_pop_value(env->curr);
       goto error;
     }
-
-    // check if reserved
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
       namespace_pop_value(env->curr);
       goto error;
     }
-
-    // primitive
     if((isprim(arg_list->type) > 0)
         && arg_list->type_decl->ref) {
       err_msg(SCAN2_, arg_list->type_decl->pos,
@@ -804,7 +771,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
 
       Type t = arg_list->type;
       Type t2 = t;
-      if(arg_list->var_decl->array->exp_list) { // should be partial and empty []
+      if(arg_list->var_decl->array->exp_list) {
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name));
         err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid));
@@ -821,18 +788,13 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     v->owner = env->curr;
 
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
-    // stack
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
 
-    // remember
     if(arg_list->var_decl->value)
       free_Value(arg_list->var_decl->value);
     arg_list->var_decl->value = v;
-
-    // count
     count++;
-    // next arg
     arg_list = arg_list->next;
   }
 
@@ -847,12 +809,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     ret = name2op(str);
     free(str);
     if(env->class_def)f->func->is_member = 1; // 04/05/17
-/*
-    if(ret == -1) {
-      err_msg(SCAN2_, f->pos, "Invalid operator.");
-      return -1;
-    } else
-*/
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
       f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1))
     if(!env->class_def)
@@ -880,8 +836,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
             "function '%s.%s' matches '%s.%s' but cannot overload...",
              env->class_def->name, S_name(f->name),
              value->owner_class->name, S_name(f->name));
-//  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
-//rem_ref(func->obj, func);
       return -1;
     }
   }
@@ -898,7 +852,6 @@ free(value->m_type);
 f->func->value_ref->m_type = NULL;
   namespace_pop_value(env->curr);
       return -1;
-//    goto error;
   }
   namespace_pop_value(env->curr);
   env->func = NULL;

@@ -46,7 +46,7 @@ static m_bool scan1_Binary_Expression(Env env, Binary_Expression* binary)
 
 static m_bool scan1_Primary_Expression(Env env, Primary_Expression* primary)
 {
-  if(primary->type == ae_primary_hack) // func ptr ?
+  if(primary->type == ae_primary_hack)
     CHECK_BB(scan1_Expression(env, primary->d.exp))
     return 1;
 }
@@ -409,6 +409,7 @@ static m_bool scan1_Stmt(Env env, Stmt stmt)
   m_bool ret = -1;
   if(!stmt)
     return 1;
+
   // DIRTY!!! happens when '1, new Object', for instance
   if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
     return 1;
@@ -513,7 +514,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     return -1;
   }
 
-  if(f->types)  // templating. nothing to be done here
+  if(f->types)
     return 1;
   Arg_List arg_list = NULL;
   m_uint count = 0;
@@ -526,23 +527,18 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     return -1;
   }
 
-  // check if array
   if(f->type_decl->array) {
     CHECK_BB(verify_array(f->type_decl->array))
 
     Type t = NULL;
     Type t2 = f->ret_type;
-    // should be partial and empty []
     if(f->type_decl->array->exp_list) {
       err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name));
       err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s");
       free_Expression(f->type_decl->array->exp_list);
       return -1;
     }
-
-    // create the new array type
     t = new_array_type(env, &t_array, f->type_decl->array->depth, t2, env->curr);
-
     f->type_decl->ref = 1;
     f->ret_type = t;
   }
@@ -560,14 +556,11 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
     count++;
     arg_list = arg_list->next;
   }
-  // if operator,
   if(f->spec == ae_func_spec_op) {
-    // check argument number
     if(count > 3 || count == 1) {
       err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n");
       return -1;
     }
-    // and name
     if(name2op(S_name(f->name)) < 0) {
       err_msg(SCAN1_, f->pos, "%s is not a valid operator name\n", S_name(f->name));
       return -1;

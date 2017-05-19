@@ -148,9 +148,7 @@ if(value->owner != env->global_nspc)
     if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
       context_add_class(env->context, value, value->obj);
-    } /* else if(class_def->decl != ae_key_public) {
-      context_add_class(env->context, value, value->obj);
-    } */
+    }
   }
   if(class_def->home) {
     env->curr = (NameSpace)vector_pop(env->nspc_stack);
