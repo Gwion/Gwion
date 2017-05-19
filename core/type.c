@@ -962,23 +962,11 @@ moveon:
 Func find_func_match(Func up, Expression args)
 {
   Func func;
-
-  func = find_func_match_actual(up, args, 0, 1);
-  if(func) return func;
-
-
-  func = find_func_match_actual(up, args, 1, 1);
-  if(func) return func;
-
-
-  func = find_func_match_actual(up, args, 0, 0);
-  if(func) return func;
-
-
-  func = find_func_match_actual(up, args, 1, 0);
-  if(func) return func;
-
-  return NULL;
+  if((func = find_func_match_actual(up, args, 0, 1)) ||
+     (func = find_func_match_actual(up, args, 1, 1)) ||
+     (func = find_func_match_actual(up, args, 0, 0)) ||
+     (func = find_func_match_actual(up, args, 1, 0)));
+  return func;
 }
 
 static Type_List mk_type_list(Env env, Type type)
