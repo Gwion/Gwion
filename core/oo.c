@@ -15,13 +15,7 @@ VM_Object new_VM_Object(e_obj type)
   a->type = type;
   a->ref_count = 0;
   a->lock = 0;
-  /*a->ref = NULL;*/
   return a;
-}
-
-void add_ref(VM_Object a)
-{
-  a->ref_count++;
 }
 
 void rem_ref(VM_Object a, void* ptr)

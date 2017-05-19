@@ -17,7 +17,7 @@ struct VM_Object_ {
 };
 
 VM_Object new_VM_Object(e_obj type);
-void add_ref(VM_Object a);
+static inline void add_ref(VM_Object a) { a->ref_count++; }
 void rem_ref(VM_Object a, void* ptr);
 
 
@@ -31,6 +31,4 @@ struct M_Object_ {
   } d;
   UGen ugen;
 };
-//M_Object new_M_UGen();
-//M_Object new_M_Object(VM_Shred shred);
 #endif
