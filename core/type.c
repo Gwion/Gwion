@@ -761,6 +761,10 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
       break;
     }
     if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
+      if(isa(cl->type, cr->type) < 0) {
+        err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name);
+		return NULL;
+      }
       /*      cr->emit_var = cl->emit_var = 1;*/
       cr->emit_var = 1;
       break;
