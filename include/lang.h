@@ -4,7 +4,6 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
-//#include "ugen.h"
 
 extern m_bool import_int(Env env);
 extern m_bool import_array(Env env);
@@ -22,7 +21,6 @@ extern m_bool import_lib(Env env);
 extern m_bool import_analys(Env env);
 
 
-//extern m_bool free_oscin();
 M_Object new_Shred(VM* vm, VM_Shred shred);
 extern m_int o_fileio_file;
 extern m_uint o_object_doc;

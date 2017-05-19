@@ -10,7 +10,6 @@
 #include "shreduler.h"
 #include "compile.h"
 #include "lang.h"
-#include "doc.h"
 
 #include "bbq.h"  // for sp_rand also
 #include <err_msg.h>

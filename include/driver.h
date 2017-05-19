@@ -4,7 +4,6 @@ typedef struct containing_driver_info {
   m_uint chan;
   unsigned int sr;
   m_uint bufsize;
-//	unsigned int bufnum;
   m_uint bufnum;
   m_str card;
   m_bool raw;

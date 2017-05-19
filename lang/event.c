@@ -1,27 +1,23 @@
 #include "err_msg.h"
-//#include "vm.h"
-//#include "type.h"
-//#include "dl.h"
 #include "import.h"
 #include "shreduler.h"
-//#include "bbq.h"
 #include "lang.h"
 
 struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 
 m_int o_event_shred;
 
-void event_ctor(M_Object o, VM_Shred shred)
+static void event_ctor(M_Object o, VM_Shred shred)
 {
   EV_SHREDS(o) = new_Vector();
 }
 
-void event_dtor(M_Object o, VM_Shred shred)
+static void event_dtor(M_Object o, VM_Shred shred)
 {
   free_Vector(EV_SHREDS(o));
 }
 
-INSTR(Event_Wait)
+static INSTR(Event_Wait)
 {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);

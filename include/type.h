@@ -12,13 +12,6 @@
 #include "value.h"
 #include "dl.h"
 
-/*
-typedef struct
-{
-	f_tick tick;
-	m_uint in, out, trig;
-} UGenInfo;
-*/
 struct Type_ {
   m_str     name;
   m_uint    size;
@@ -37,7 +30,6 @@ struct Type_ {
   m_uint    obj_size;
   m_bool has_constructor;
   m_bool has_destructor;
-//  m_bool initialize; // hack for gack
 //	UGenInfo ugen_info;
 };
 

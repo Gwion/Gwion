@@ -98,16 +98,13 @@ void release(M_Object obj, VM_Shred shred)
   }
 }
 
-
-CTOR(object_ctor){}
-void object_dtor(M_Object o, VM_Shred shred)
-{
+static CTOR(object_ctor){}
+static DTOR(object_dtor) {
   free(o->d.data);
   free(o);
 }
 
-INSTR(Assign_Object)
-{
+INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif

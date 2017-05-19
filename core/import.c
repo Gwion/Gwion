@@ -188,11 +188,11 @@ error:
   free_Expression(exp_decl);
   return ret;
 }
-m_int import_mvar(Env env, const m_str type,
-                  const m_str name, const m_bool is_const, const m_bool is_ref, const m_str doc)
+m_int import_mvar(Env env, const m_str type, const m_str name,
+  const m_bool is_const, const m_bool is_ref, const m_str doc)
 { return import_var(env, type, name, 0, is_const, is_ref, NULL, doc); }
-m_int import_svar(Env env, const m_str type,
-                  const m_str name, m_bool is_const, m_bool is_ref, m_uint* addr, const m_str doc)
+m_int import_svar(Env env, const m_str type, const m_str name,
+  const m_bool is_const, const m_bool is_ref, m_uint* addr, const m_str doc)
 { return import_var(env, type, name, 1, is_const, is_ref, addr, doc); }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun)

@@ -8,14 +8,13 @@ struct NameSpace_ {
   Scope     value;
   Scope     type;
   Scope     func;
-  Map   		label; // 09/09/16
+  Map       label; // 09/09/16
   m_uint    offset;
   Vector    obj_v_table;
   NameSpace parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
   VM_Object obj;
-//  m_uint*		class_data;
   char*		class_data;
   m_uint    class_data_size;
   Map      	operator;
@@ -24,7 +23,7 @@ struct NameSpace_ {
 extern NameSpace new_NameSpace();
 extern void free_NameSpace(NameSpace a);
 
-extern Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb);
+extern Value namespace_lookup_value (NameSpace namespace, S_Symbol xid, int climb);
 extern Type  namespace_lookup_type  (NameSpace namespace, S_Symbol xid, int climb);
 extern Func  namespace_lookup_func  (NameSpace namespace, S_Symbol xid, int climb);
 

@@ -5,7 +5,6 @@
 #include "type.h"
 #include "dl.h"
 #include "lang.h"
-#include "alsa.h"
 
 #include "absyn.h"
 #include "emit.h"

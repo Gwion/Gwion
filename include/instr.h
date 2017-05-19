@@ -66,12 +66,6 @@ void Event_Wait(VM* vm, VM_Shred shred, Instr instr);
 
 void negate(VM * vm, VM_Shred shred, Instr instr);
 void not(VM * vm, VM_Shred shred, Instr instr);
-//void PostInc_Int(VM * vm, VM_Shred shred, Instr instr);
-//void PostDec_Int(VM * vm, VM_Shred shred, Instr instr);
-//void PreInc_Int(VM * vm, VM_Shred shred, Instr instr);
-//void PreDec_Int(VM * vm, VM_Shred shred, Instr instr);
-//void inc(VM * vm, VM_Shred shred, Instr instr);
-//void dec(VM * vm, VM_Shred shred, Instr instr);
 INSTR(pre_inc);
 INSTR(pre_dec);
 INSTR(post_inc);

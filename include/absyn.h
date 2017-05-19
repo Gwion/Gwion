@@ -24,7 +24,6 @@ typedef struct {
   Ast ast;
   unsigned int line;
   unsigned int pos;
-//	unsigned int fd;
   FILE* file;
   m_str filename;
 } MyArg;
@@ -93,7 +92,6 @@ typedef struct {
   m_str doc;
 } Type_Decl;
 Type_Decl* new_Type_Decl(ID_List name, int ref, int pos);
-//Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos);
 void free_Type_Decl(Type_Decl* a);
 
 typedef struct {
@@ -233,9 +231,22 @@ typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_ty
              } Expression_type;
 
 typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
-typedef struct Stmt_            *Stmt;
 
-// add Stmt_Exp
+typedef struct Decl_List_* Decl_List;
+struct Decl_List_ {
+  Decl_Expression* self;
+  Decl_List next;
+};
+
+Decl_List new_Decl_List(Decl_Expression* d, Decl_List l);
+
+typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
+               ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
+               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
+               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
+             } ae_Stmt_Type;
+
+typedef struct Stmt_            * Stmt;
 typedef struct Stmt_List_       * Stmt_List;
 typedef struct Stmt_Code_       * Stmt_Code;
 typedef struct Stmt_Exp_        * Stmt_Return;
@@ -253,24 +264,6 @@ typedef struct Stmt_Enum_       * Stmt_Enum;
 typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
 
-
-
-
-typedef struct Decl_List_* Decl_List;
-struct Decl_List_ {
-  Decl_Expression* self;
-  Decl_List next;
-};
-
-Decl_List new_Decl_List(Decl_Expression* d, Decl_List l);
-
-// stmt types
-typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
-               ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
-               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
-               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
-             } ae_Stmt_Type;
-// Stmt structs
 struct Stmt_Basic_ {
   int pos;
   Stmt self;
@@ -380,7 +373,6 @@ struct Stmt_{
   int pos;
 };
 
-// stmt creation functions
 Stmt new_stmt_from_expression(Expression exp, int pos);
 Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
 Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
@@ -463,15 +455,10 @@ struct Class_Def_ {
   Class_Ext ext;
   Class_Body body;
   Type type;
-//  int iface;
   NameSpace home;
   m_str doc;
   int pos;
 };
-
-
-typedef enum { ae_section_stmt, ae_section_func, ae_section_class
-             } ae_Section_Type;
 
 typedef enum { ae_func_builtin, ae_func_user} ae_func_type;
 struct Func_Def_ {
@@ -500,6 +487,8 @@ void free_Func_Def(Func_Def def);
 m_bool scan1_Func_Def(Env env, Func_Def f);
 m_bool scan2_Func_Def(Env env, Func_Def f);
 m_bool check_Func_Def(Env env, Func_Def f);
+
+typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {
   ae_Section_Type type;
 
@@ -533,13 +522,11 @@ struct Type_List_  {
   ID_List list;
   Type_List next;
   int pos;
-};  // call template list
+};
 Type_List new_type_list(ID_List list, Type_List next, int pos);
 void free_Type_List(Type_List a);
 Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
                          Class_Ext ext, Class_Body body, int pos );
-//Class_Def new_iface_def( ae_Keyword class_decl, ID_List name,
-//                         Class_Ext ext, Class_Body body, int pos );
 Class_Body new_class_body( Section* section, int pos );
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos );
 Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos );

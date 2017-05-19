@@ -8,7 +8,10 @@
 #include "dl.h"
 #include "ugen.h"
 #include "driver.h"
-#include "alsa.h"
+
+#ifndef SP_ALSA_ACCESS
+#define SP_ALSA_ACCESS SND_PCM_ACCESS_RW_NONINTERLEAVED
+#endif
 
 #ifdef USE_DOUBLE
 #define ALSA_FORMAT SND_PCM_FORMAT_FLOAT64

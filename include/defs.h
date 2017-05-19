@@ -11,7 +11,7 @@
 #define CHECK_OO(f) if(!f)    return NULL;
 
 #include "generated.h"
-/* pointer types */
+
 typedef struct Ast_       * Ast;
 typedef struct Func_Def_  * Func_Def;
 typedef struct Class_Def_ * Class_Def;
@@ -47,7 +47,6 @@ typedef enum {
 } te_type;
 typedef enum { ae_func_spec_none, ae_func_spec_dtor, ae_func_spec_op } ae_func_spec;
 
-/*typedef enum { Kindof_Void, Kindof_Int, Kindof_Float, Kindof_Complex, Kindof_Vec3, Kindof_Vec4, Kindof_Ptr} Kindof;*/
 typedef enum { Kindof_Void, Kindof_Int, Kindof_Float, Kindof_Complex, Kindof_Vec3, Kindof_Vec4} Kindof;
 
 typedef enum {
@@ -76,10 +75,7 @@ typedef enum {
 // trig
   op_trig, op_untrig
 } Operator;
-// more
-enum {
-  ae_op_arrow_left, ae_op_arrow_right
-};
+
 #define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
 #define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
 #define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)

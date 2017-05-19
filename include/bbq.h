@@ -4,6 +4,7 @@
 #ifndef SOUNDPIPE_H
 #include <soundpipe.h>
 #endif
+
 struct BBQ_ {
   m_uint buf_size, buf_num;
   unsigned int n_in;

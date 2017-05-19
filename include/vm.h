@@ -25,7 +25,6 @@ typedef struct {
   Emitter emit;
   Env env;
   void (*wakeup)();
-//	Driver driver;
   m_bool is_running;
 } VM;
 
@@ -35,7 +34,6 @@ struct VM_Shred_ {
   VM_Shred parent;
   char* reg;
   char* mem;
-//  char _mem[SIZEOF_MEM];
   char* _reg;
   char* _mem;
   char* base;
@@ -59,15 +57,16 @@ struct VM_Shred_ {
 
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
 void free_VM_Code(VM_Code a);
+
 Shreduler new_Shreduler(VM* vm);
-void vm_add_shred(VM* vm, VM_Shred shred);
+VM_Shred shreduler_get(Shreduler s);
 m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
 
 VM_Shred new_VM_Shred(VM_Code code);
 void free_VM_Shred(VM_Shred shred);
-void set_now(Shreduler s, m_uint* pos);
-VM_Shred shreduler_get(Shreduler s);
+
 void vm_run(VM* vm);
 VM* new_VM(m_bool loop);
 void free_VM(VM* vm);
+void vm_add_shred(VM* vm, VM_Shred shred);
 #endif
