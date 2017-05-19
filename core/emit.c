@@ -456,77 +456,58 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
   debug_msg("emit", "decl");
 #endif
   Decl_Expression* exp = decl;
-  Var_Decl_List list;
-  Var_Decl var_decl;
-  Type type;
-  Kindof kind;
-  Local* local;
-  Value value;
-  Instr instr;
-  m_bool is_ref;
-  m_bool is_obj;
-  //  m_bool is_init;
-  list = exp->list;
+  Var_Decl_List list = exp->list;
+
   while (list) {
-    var_decl = list->self;
-    value = var_decl->value;
-    type = value->m_type;
-    is_obj = isa(type, &t_object) > 0 || list->self->array;
-    is_ref = decl->type->ref;
-    //    is_init = 0;
-    kind = kindof(type);
+    Var_Decl var_decl = list->self;
+    Value value = var_decl->value;
+    Type type = value->m_type;
+    m_bool is_obj = isa(type, &t_object) > 0 || list->self->array;
+    m_bool is_ref = decl->type->ref;
+    Kindof kind = kindof(type);
 
     if (is_obj) {
       if (list->self->array) {
         if (list->self->array->exp_list) {
-          //          is_init = 1;
-          if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
-            return -1;
+          CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
         } else if (!value->owner_class)
           vector_append(emit->array, (vtype)decl->m_type);
-      } else if (!is_ref) {
-        //        is_init = 1;
-        if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
-          return -1;
-      }
+      } else if (!is_ref)
+        CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
     }
     if (value->is_member) {
       Instr alloc_m = add_instr(emit, NULL);
-      if (kind == Kindof_Int)
-        alloc_m->execute = Alloc_Member_Word;
-      else if (kind == Kindof_Float)
-        alloc_m->execute = Alloc_Member_Word_Float;
-      else if (kind == Kindof_Complex)
-        alloc_m->execute = Alloc_Member_Word_Complex;
-      else if (kind == Kindof_Vec3)
-        alloc_m->execute = Alloc_Member_Word_Vec3;
-      else if (kind == Kindof_Vec4)
-        alloc_m->execute = Alloc_Member_Word_Vec4;
       alloc_m->m_val = value->offset;
+      switch(kind)  {
+        case Kindof_Int     : alloc_m->execute = Alloc_Member_Word         ; break;
+        case Kindof_Float   : alloc_m->execute = Alloc_Member_Word_Float   ; break;
+        case Kindof_Complex : alloc_m->execute = Alloc_Member_Word_Complex ; break;
+        case Kindof_Vec3    : alloc_m->execute = Alloc_Member_Word_Vec3    ; break;
+        case Kindof_Vec4    : alloc_m->execute = Alloc_Member_Word_Vec4    ; break;
+		case Kindof_Void: break; // LCOV_EXCL_LINE
+      }
     } else {
       if (!emit->env->class_def || !decl->is_static) {
-        local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
+        Local* local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
         if (!local)
           return -1;
-        value->offset = local->offset;
-        instr = add_instr(emit, Alloc_Word);
-        instr->m_val = local->offset;
-        /*        instr->m_val2 = local->is_obj;*/
-        instr->m_val2 = value->is_context_global;
-        if (type->xid == t_float.xid || type->xid == t_time.xid || type->xid == t_dur.xid)
-          instr->execute = Alloc_Word_Float;
-        if (type->xid == t_complex.xid || type->xid == t_polar.xid)
-          instr->execute = Alloc_Word_Complex;
-        else if (isa(type, &t_vec3) > 0)
-          instr->execute = Alloc_Word_Vec3;
-        else if (isa(type, &t_vec4) > 0)
-          instr->execute = Alloc_Word_Vec4;
+        value->offset   = local->offset;
+        Instr alloc_g   = add_instr(emit, Alloc_Word);
+        alloc_g->m_val  = local->offset;
+        alloc_g->m_val2 = value->is_context_global;
+        switch(kind)  {
+          case Kindof_Int     : alloc_g->execute = Alloc_Word         ; break;
+          case Kindof_Float   : alloc_g->execute = Alloc_Word_Float   ; break;
+          case Kindof_Complex : alloc_g->execute = Alloc_Word_Complex ; break;
+          case Kindof_Vec3    : alloc_g->execute = Alloc_Word_Vec3    ; break;
+          case Kindof_Vec4    : alloc_g->execute = Alloc_Word_Vec4    ; break;
+		  case Kindof_Void: break; // LCOV_EXCL_LINE
+        }
       } else { // static
-        if (is_obj) {
+        if(is_obj) {
           Code* code = emit->code;
           emit->code = (Code*)vector_back(emit->stack);
-          if (emit_instantiate_object(emit, type, list->self->array, is_ref) < 0)
-            return -1;
+          CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
 // init the object in main code
           Instr push = add_instr(emit, Reg_Push_Imm);
           push->m_val = (m_uint)emit->env->class_def;
@@ -535,9 +516,6 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           dot_static->m_val2 = kindof(emit->env->class_def);
           dot_static->ptr = (m_uint*)1;
           sadd_instr(emit, Assign_Object);
-//add_instr(emit, add_gc);
-//          Instr pop = add_instr(emit, Reg_Pop_Word4);
-//          pop->m_val = SZ_INT;
           emit->code = code;
           // add ref
           Instr push_obj = add_instr(emit, Dot_Static_Data);
@@ -550,7 +528,6 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
           // emit the type
           Instr push = add_instr(emit, Reg_Push_Imm);
           push->m_val = (m_uint)emit->env->class_def;
-          /*          Instr dot_static   = add_instr(emit, Alloc_Dot_Static_Data);*/
           Instr dot_static = add_instr(emit, Dot_Static_Data);
           dot_static->m_val = value->offset;
           dot_static->m_val2 = kindof(emit->env->class_def);
@@ -558,30 +535,16 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         }
       }
     }
-    //   is_init = 0;
-    // if object, assign
-    if (is_obj) {
-      // if array
-      /*      if(decl->list->self->array)*/
-      if (list->self->array) {
-        // if not []
-        /*        if(decl->list->self->array->exp_list)*/
-        if (list->self->array->exp_list) {
-          /*          exit(0);*/
-          // set
-          //          is_init = 1;
-          // assign
+    if(is_obj) {
+      if(list->self->array) {
+        if(list->self->array->exp_list) {
           Instr assign = add_instr(emit, Assign_Object);
-          assign->ptr = (m_uint*)1;
-          assign->m_val = value->offset;
+          assign->m_val = decl->self->emit_var;
         }
       }
-      /*      else if(!is_ref && !value->is_member)*/
-      else if (!is_ref) {
-        //        is_init = 1;
-        Instr assign = add_instr(emit, Assign_Object);
-        assign->ptr = (m_uint*)1;
-        assign->m_val = value->offset;
+      else if(!is_ref) {
+        Instr assign  = add_instr(emit, Assign_Object);
+        assign->m_val = decl->self->emit_var;
       }
     }
     list = list->next;
@@ -633,9 +596,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 
   // arrays
   if (binary->op == op_shift_left && (binary->lhs->type->array_depth == binary->rhs->type->array_depth + 1)
-      /*)*/
       && isa(binary->lhs->type->array_type, binary->rhs->type) > 0) {
-    /*    exit(2);*/
     instr = add_instr(emit, Array_Append);
     instr->m_val = kindof(binary->rhs->type);
     return 1;
@@ -650,7 +611,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
   if(binary->op == op_at_chuck && isa(binary->rhs->type, &t_object) > 0 &&
       (isa(binary->lhs->type, &t_null) > 0 || isa(binary->lhs->type, &t_object) > 0)) {
     instr = add_instr(emit, Assign_Object);
-    instr->m_val = 1;
+    instr->m_val2 = 1;
     return 1;
   }
   (void)instr; // prevent cppcheck warning
@@ -1068,7 +1029,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
     return -1;                                                                      // LCOV_EXCL_LINE
   }
   if(exp_func->m_func->def->is_variadic && !exp_func->args) // handle empty call to variadic functions
-  { 
+  {
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
   }
