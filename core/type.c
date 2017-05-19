@@ -252,32 +252,16 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(value->is_member) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
-//      env->class_def->obj_size += type->size;
       env->curr->offset += type->size;
-    } else if(decl->is_static) { // static
+    } else if(decl->is_static) {
       if(!env->class_def || env->class_scope > 0) {
         err_msg(TYPE_, decl->pos,
                 "static variables must be declared at class scope...");
         return NULL;
       }
       value->is_static = 1;
-      // offset
       value->offset = env->class_def->info->class_data_size;
-      // move the size
       env->class_def->info->class_data_size += type->size;
-      /*      env->class_def->info->class_data_size++;*/
-      /*
-         if(is_obj && !is_ref)
-         {
-      // for now - no good for static, since we need separate
-      // initialization which we don't have
-      err_msg(TYPE_, var_decl->pos,
-      "cannot declare static non-primitive objects (yet)...");
-      err_msg(TYPE_, var_decl->pos,
-      "...(hint: declare as ref (@) & initialize outside for now)");
-      return NULL;
-      }
-      */
     }
     list->self->value->checked = 1;
     if(!env->class_def || env->class_scope)
@@ -1281,17 +1265,6 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
       v = find_value(t, exp_func->func->d.exp_dot.xid);
-/*    // checked in scan2
-      // added 06/12/16
-      if(!v) {
-        err_msg(TYPE_, exp_func->pos, "unknown template function.");
-        return NULL;
-      }
-      if(!v->func_ref) {
-        err_msg(TYPE_, exp_func->pos, "non-function template call.");
-        return NULL;
-      }
-*/
       if(!v->func_ref->def->types) {
         err_msg(TYPE_, exp_func->pos, "template call of non-template function.");
         free_Type_List(exp_func->types);
@@ -1334,30 +1307,15 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
 static Type check_Unary(Env env, Unary_Expression* exp_unary)
 {
   Type t = NULL;
-/*
-  if(exp_unary->exp) {
-    if(exp_unary->op == op_new) {
-      err_msg(TYPE_, exp_unary->pos, "internal error: exp_unary expression not with 'new'");
-      return NULL;
-    }
-    t = check_Expression(env, exp_unary->exp);
-    if(!t)
-      return NULL;
-  }
-*/
+
   if(exp_unary->op != op_new && !exp_unary->code)
     CHECK_OO((t = check_Expression(env, exp_unary->exp)))
-  // check code stmt; this is to eventually support sporking of code (added 1.3.0.0)
   if(exp_unary->code)
     CHECK_BO(check_Stmt(env, exp_unary->code))
 
     switch(exp_unary->op) {
     case op_plusplus:
     case op_minusminus:
-      // assignable?
-      /* coverity[var_deref_op : FALSE] */
-//      if((exp_unary->exp->meta != ae_meta_var || exp_unary->exp->exp_type == Primary_Expression_type) &&
-//          exp_unary->exp->d.exp_primary.value->is_const)
       if(exp_unary->exp->meta != ae_meta_var) {
         err_msg(TYPE_, exp_unary->pos,
                 "prefix exp_unary operator '%s' cannot "
@@ -1428,30 +1386,16 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
       }
       if(exp_unary->array) {
         CHECK_BO(verify_array(exp_unary->array))
-/* // prevented by parser 
-       if(!exp_unary->array->exp_list) {
-          err_msg(TYPE_, exp_unary->pos, "cannot use empty [] with 'new'...");
-          return NULL;
-        }
-*/
         CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
         CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
         t = new_array_type(env, &t_array, exp_unary->array->depth, t, env->curr);
 
-      }
-//      if(isa(t->array_type ? t->array_type : t, &t_object) < 0) {
-else      if(isa(t, &t_object) < 0) {
+      } else if(isa(t, &t_object) < 0) {
         err_msg(TYPE_,  exp_unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...", t->name);
         err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
         return NULL;
       }
-/*    // disabledin parser
-      if(exp_unary->type->ref && !exp_unary->array) {
-        err_msg(TYPE_,  exp_unary->pos, "cannot instantiate/(new) single object references (@)...");
-        return NULL;
-      }
-*/
       return t;
     case op_typeof:
       err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
@@ -2060,24 +2004,17 @@ m_bool check_Func_Def(Env env, Func_Def f)
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
-  m_str func_name;// = S_name(f->name);
+  m_str func_name;
   m_uint count = 1;
 
   if(f->types) // templating, check at call time
     return 1;
-/*
-  if(env->func) {
-    err_msg(TYPE_, f->pos, "nested function definitions are not (yet) allowed");
-    return -1;
-  }
-*/
   func = f->func;
   value = func->value_ref;
 
-  // look up the value in the parent class
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
-  else if(value->func_num_overloads) { // check if func has ame args
+  else if(value->func_num_overloads) {
     m_uint i, j;
     if(!f->types)
       for(i = 0; i <= value->func_num_overloads; i++) {
@@ -2099,92 +2036,42 @@ m_bool check_Func_Def(Env env, Func_Def f)
   if(env->class_def &&  override) {
     if(isa(override->m_type, &t_function) < 0) {
       err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
-              S_name(f->name));
+        S_name(f->name));
       err_msg(TYPE_, f->pos, "from super class '%s'...", override->owner_class->name);
       return -1;
-//      goto error;
     }
   }
-  if(override) {
-    // make reference to parent
+  if(override)
     func->up = override;
-  }
-  // if overriding super class function, then check signatures
   if(env->class_def) {
-    // get parent
     parent = env->class_def->parent;
     while(parent && !parent_match) {
-
      if((v = find_value(env->class_def->parent, f->name))) {
-/*
-        // see if the target is a function
-        if(isa(v->m_type, &t_function) < 0) {
-          err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
-                  S_name(f->name));
-          err_msg(TYPE_, f->pos, "from super class '%s'...", v->owner_class->name);
-          goto error;
-        }
-*/
-        // parent func
         parent_func = v->func_ref;
-
-        // go through all overloading
         while(parent_func && !parent_match) {
-          // match the prototypes
           if(compat_func(f, parent_func->def, f->pos) < 0) {
-            // next
             parent_func = parent_func->next;
-            // move on
             continue;
           }
-          // see if parent function is static
           if(parent_func->def->static_decl == ae_key_static) {
-            err_msg(TYPE_, f->pos,
-                    "function '%s.%s' resembles '%s.%s' but cannot override...",
-                    env->class_def->name, S_name(f->name),
-                    v->owner_class->name, S_name(f->name));
-            err_msg(TYPE_, f->pos,
-                    "...(reason: '%s.%s' is declared as 'static')",
-                    v->owner_class->name, S_name(f->name));
-//            goto error;
+            err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override...",
+              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+            err_msg(TYPE_, f->pos, "...(reason: '%s.%s' is declared as 'static')",
+              v->owner_class->name, S_name(f->name));
             return -1;
           }
-
-          // see if function is static
           if(f->static_decl == ae_key_static) {
-            err_msg(TYPE_, f->pos,
-                    "function '%s.%s' resembles '%s.%s' but cannot override...",
-                    env->class_def->name, S_name(f->name),
-                    v->owner_class->name, S_name(f->name));
-            err_msg(TYPE_, f->pos,
-                    "...(reason: '%s.%s' is declared as 'static')",
-                    env->class_def->name, S_name(f->name));
+            err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override...",
+              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+            err_msg(TYPE_, f->pos, "...(reason: '%s.%s' is declared as 'static')",
+              env->class_def->name, S_name(f->name));
             return -1;
-//            goto error;
           }
-/*
-// remove abstract /28/03/2017
-          // see if function is pure
-          if(f->static_decl == ae_key_abstract) {
-            err_msg(TYPE_, f->pos,
-                    "function '%s.%s' resembles '%s.%s' but cannot override...",
-                    env->class_def->name, S_name(f->name),
-                    v->owner_class->name, S_name(f->name));
-            err_msg(TYPE_, f->pos,
-                    "...(reason: '%s.%s' is declared as 'pure')",
-                    env->class_def->name, S_name(f->name));
-            goto error;
-          }
-*/
-          // make sure returns are equal
           if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
             err_msg(TYPE_, f->pos, "function signatures differ in return type...");
-            err_msg(TYPE_, f->pos,
-                    "function '%s.%s' matches '%s.%s' but cannot override...",
-                    env->class_def->name, S_name(f->name),
-                    v->owner_class->name, S_name(f->name));
-return -1;
-//            goto error;
+            err_msg(TYPE_, f->pos, "function '%s.%s' matches '%s.%s' but cannot override...",
+              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+              return -1;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
@@ -2195,7 +2082,6 @@ return -1;
           value->name = func_name;
         }
       }
-      // move to next parent
       parent = parent->parent;
     }
   }
@@ -2232,12 +2118,8 @@ return -1;
 
   if(f->is_variadic)
     rem_ref(vararg->obj, vararg);
-  if(f->s_type == ae_func_builtin) { // is this useful ?
+  if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
-    func->code->need_this = 1;
-  }
-//  else
-//    func->code->need_this = 0;
   namespace_pop_value(env->curr);
   env->func = NULL;
   return 1;
@@ -2261,15 +2143,15 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
       if(!t_parent) {
         m_str path = type_path(class_def->ext->extend_id);
         err_msg(TYPE_, class_def->ext->pos,
-                "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
+          "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
         free(path);
         return -1;
       }
       if(isprim(t_parent) > 0) {
         err_msg(TYPE_, class_def->ext->pos,
-                "cannot extend primitive type '%s'", t_parent->name);
+          "cannot extend primitive type '%s'", t_parent->name);
         err_msg(TYPE_, class_def->ext->pos,
-                "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
+          "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
         return -1;
       }
       if(!t_parent->is_complete) {
@@ -2326,12 +2208,12 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
   return ret;
 }
 
-static m_bool check_Context(Env env, Context context)
+static m_bool check_Ast(Env env, Ast ast)
 {
 #ifdef DEBUG_TYPE
   debug_msg("type", "context");
 #endif
-  Ast prog = context->tree;
+  Ast prog = ast;
   while(prog) {
     switch(prog->section->type) {
     case ae_section_stmt:
@@ -2352,33 +2234,18 @@ static m_bool check_Context(Env env, Context context)
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
 {
   m_bool ret = -1;
-  //  Context context = new_Context(ast, strndup(filename, strlen(filename)));
   Context context = new_Context(ast, filename);
   env_reset(env);
-  if(load_context(context, env) < 0) {
-    ret = -1;
-    goto done;
-  }
-
-  if(scan0_Ast(env, ast) < 0) {
-    ret = -1;
+  if(load_context(context, env) < 0)
+    return -1;
+  if(scan0_Ast(env, ast) < 0)
     goto cleanup;
-  }
-  /*if(scan1_Ast(env, ast) < 0)*/
-  /*m_bool ret = */
-  ret = scan1_Ast(env, ast);
-  if(ret < 0) {
-    ret = -3;
+  if(scan1_Ast(env, ast) < 0)
     goto cleanup;
-  }
-  if(scan2_Ast(env, ast) < 0) {
-    ret = -1;
+  if(scan2_Ast(env, ast) < 0)
     goto cleanup;
-  }
-  if(check_Context(env, context) < 0) {
-    ret = -5;
+  if(check_Ast(env, ast) < 0)
     goto cleanup;
-  }
   ret = 1;
 
 cleanup:
@@ -2398,7 +2265,6 @@ cleanup:
     rem_ref(context->obj, context); // breaks function pointer for now
     free(filename);
   }
-done:
   return ret;
 }
 
