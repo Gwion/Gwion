@@ -6,8 +6,6 @@
 #include "lang.h"
 #include "shreduler.h"
 #include "bbq.h"
-#include "object.h"
-
 
 struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);

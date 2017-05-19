@@ -8,8 +8,6 @@
 #include "lang.h"
 #include "import.h"
 #include <unistd.h>
-#include "object.h"
-
 
 struct Type_ t_io      = { "IO",       SZ_INT, &t_event, te_io };
 struct Type_ t_fileio  = { "FileIO",   SZ_INT, &t_io,    te_fileio };

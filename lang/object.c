@@ -6,8 +6,6 @@
 #include "type.h"
 #include "vm.h"
 
-#include "object.h"
-
 struct Type_ t_null   = { "@null",     SZ_INT, NULL,      te_null};
 struct Type_ t_object = { "Object",    SZ_INT, NULL,      te_object };
 struct Type_ t_vararg = { "@Vararg",   SZ_INT, &t_object, te_vararg};

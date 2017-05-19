@@ -325,8 +325,7 @@ print('#include "vm.h"\
 #include "bbq.h"\
 #include "array.h"\
 #include "func.h"\
-#include "lang.h"\
-#include "object.h"')
+#include "lang.h"')
 
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")

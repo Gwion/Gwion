@@ -6,7 +6,12 @@
 #include "lang.h"
 #include "import.h"
 
-#include "object.h"
+struct M_Vector_ {
+  char*  ptr;   // data
+  m_uint len;   // number of elements * size
+  m_uint size;  // size of objects
+  m_uint depth;
+};
 
 struct Type_ t_array  = { "@Array",     SZ_INT, &t_object, te_array };
 m_int o_array_vector;
@@ -33,7 +38,7 @@ M_Object new_M_Array(m_uint size, m_uint length, m_uint depth)
 {
   M_Object a = new_M_Object(NULL);
   initialize_object(a, &t_array);
-  a->d.array 	    = malloc(sizeof(M_Vector));
+  a->d.array 	    = malloc(sizeof(struct M_Vector_));
   a->d.array->ptr   = calloc(length, size);
   a->d.array->size  = size;
   a->d.array->len   = length * size;
@@ -41,123 +46,123 @@ M_Object new_M_Array(m_uint size, m_uint length, m_uint depth)
   return a;
 }
 
-m_uint m_vector_size(M_Vector* v)
+m_uint m_vector_size(M_Vector v)
 {
   return v->len / v->size;
   /*  return v->len;*/
 }
 
-m_uint  i_vector_at(M_Vector* v, m_uint i)
+m_uint  i_vector_at(M_Vector v, m_uint i)
 {
   return *(m_uint*)(v->ptr + i * v->size);
 }
 
-m_float f_vector_at(M_Vector* v, m_uint i)
+m_float f_vector_at(M_Vector v, m_uint i)
 {
   return *(m_float*)(v->ptr + i * v->size);
 }
 
-m_complex c_vector_at(M_Vector* v, m_uint i)
+m_complex c_vector_at(M_Vector v, m_uint i)
 {
   return *(m_complex*)(v->ptr + i * v->size);
 }
 
-VEC3_T v3_vector_at(M_Vector* v, m_uint i)
+VEC3_T v3_vector_at(M_Vector v, m_uint i)
 {
   return *(VEC3_T*)(v->ptr + i * v->size);
 }
 
-VEC4_T v4_vector_at(M_Vector* v, m_uint i)
+VEC4_T v4_vector_at(M_Vector v, m_uint i)
 {
   return *(VEC4_T*)(v->ptr + i * v->size);
 }
 
-void i_vector_append(M_Vector* v, m_uint i)
+void i_vector_append(M_Vector v, m_uint i)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
 }
 
-void f_vector_append(M_Vector* v, m_float f)
+void f_vector_append(M_Vector v, m_float f)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_float*)(v->ptr + (v->len - 1)*v->size) = f;
 }
 
-void c_vector_append(M_Vector* v, m_complex c)
+void c_vector_append(M_Vector v, m_complex c)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_complex*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v3_vector_append(M_Vector* v, VEC3_T c)
+void v3_vector_append(M_Vector v, VEC3_T c)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(VEC3_T*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v4_vector_append(M_Vector* v, VEC4_T c)
+void v4_vector_append(M_Vector v, VEC4_T c)
 {
   v->len++;
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(VEC4_T*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void i_vector_set(M_Vector* v, m_uint i, m_uint data)
+void i_vector_set(M_Vector v, m_uint i, m_uint data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_uint*)(v->ptr + i * v->size) = data;
 }
 
-void f_vector_set(M_Vector* v, m_uint i, m_float data)
+void f_vector_set(M_Vector v, m_uint i, m_float data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_float*)(v->ptr + i * v->size) = data;
 }
 
-void c_vector_set(M_Vector* v, m_uint i, m_complex data)
+void c_vector_set(M_Vector v, m_uint i, m_complex data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(m_complex*)(v->ptr + i * v->size) = data;
 }
 
-void v3_vector_set(M_Vector* v, m_uint i, VEC3_T data)
+void v3_vector_set(M_Vector v, m_uint i, VEC3_T data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(VEC3_T*)(v->ptr + i * v->size) = data;
 }
 
-void v4_vector_set(M_Vector* v, m_uint i, VEC4_T data)
+void v4_vector_set(M_Vector v, m_uint i, VEC4_T data)
 {
   v->ptr = realloc(v->ptr, v->len * v->size);
   *(VEC4_T*)(v->ptr + i * v->size) = data;
 }
 
-m_uint*  i_vector_addr(M_Vector* v, m_uint i)
+m_uint*  i_vector_addr(M_Vector v, m_uint i)
 {
   return &*(m_uint*)(v->ptr + i * v->size);
 }
 
-m_float*  f_vector_addr(M_Vector* v, m_uint i)
+m_float*  f_vector_addr(M_Vector v, m_uint i)
 {
   return &*(m_float*)(v->ptr + i * v->size);
 }
 
-m_complex*  c_vector_addr(M_Vector* v, m_uint i)
+m_complex*  c_vector_addr(M_Vector v, m_uint i)
 {
   return &*(m_complex*)(v->ptr + i * v->size);
 }
 
-VEC3_T*  v3_vector_addr(M_Vector* v, m_uint i)
+VEC3_T*  v3_vector_addr(M_Vector v, m_uint i)
 {
   return &*(VEC3_T*)(v->ptr + i * v->size);
 }
 
-VEC4_T*  v4_vector_addr(M_Vector* v, m_uint i)
+VEC4_T*  v4_vector_addr(M_Vector v, m_uint i)
 {
   return &*(VEC4_T*)(v->ptr + i * v->size);
 }

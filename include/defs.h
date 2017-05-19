@@ -32,7 +32,7 @@ typedef struct Type_List_ * Type_List;
 
 typedef struct Emitter_   * Emitter;
 typedef struct M_Object_  * M_Object;
-typedef struct VM_Array_  * VM_Array;
+typedef struct M_Vector_  * M_Vector;
 typedef struct UGen_      * UGen;
 
 typedef enum {

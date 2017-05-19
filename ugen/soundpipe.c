@@ -8,7 +8,6 @@
 #include "array.h"
 #include "func.h"
 #include "lang.h"
-#include "object.h"
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}

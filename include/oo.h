@@ -19,16 +19,4 @@ struct VM_Object_ {
 VM_Object new_VM_Object(e_obj type);
 static inline void add_ref(VM_Object a) { a->ref_count++; }
 void rem_ref(VM_Object a, void* ptr);
-
-
-struct M_Object_ {
-  Vector vtable;
-  Type type_ref;
-  m_uint size, ref;
-  union {
-    M_Vector* array;
-    unsigned char* data;
-  } d;
-  UGen ugen;
-};
 #endif
