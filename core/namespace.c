@@ -116,7 +116,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
-    rem_ref(func->obj, func);
+    rem_ref(&func->obj, func);
   }
   free_Vector(v);
   free_Scope(a->func);

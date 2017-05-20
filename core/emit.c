@@ -61,7 +61,7 @@ void free_Emitter(Emitter a)
   vtype i;
   for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
-    rem_ref(f->obj, f);
+    rem_ref(&f->obj, f);
   }
   free_Vector(a->spork);
   free_Vector(a->stack);
@@ -2271,7 +2271,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   } else if (func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
-  add_ref(func->obj);
+  add_ref(&func->obj);
   emit->env->func = NULL;
 
   // delete the code ?

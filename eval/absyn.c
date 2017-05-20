@@ -1213,7 +1213,6 @@ static void free_Section(Section* section)
         scope_rem(section->d.func_def->func->value_ref->owner_class->info->value, 
         insert_symbol(section->d.func_def->func->value_ref->name));
         section->d.func_def->func->value_ref->func_ref = NULL;
-        free(section->d.func_def->func->obj);
         free(section->d.func_def->func);
         free_Func_Def(section->d.func_def);
         break;
@@ -1224,7 +1223,6 @@ static void free_Section(Section* section)
       free_Type_Decl(section->d.func_def->type_decl);
       if(section->d.func_def->func) {
 	    rem_ref(&section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
-   	    free(section->d.func_def->func->obj);
         free(section->d.func_def->func);
       }
       free(section->d.func_def);

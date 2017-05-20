@@ -279,7 +279,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   return func_def;
 }
 
-#define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
+#define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(&func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg

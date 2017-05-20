@@ -151,7 +151,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     ptr->value->owner_class = env->class_def;
   }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
-  add_ref(ptr->func->obj);
+  add_ref(&ptr->func->obj);
   return 1;
 error:
   namespace_pop_value(env->curr);
@@ -663,7 +663,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(!env->class_def)
       SET_FLAG(value, ae_value_global);
     value->func_ref = func;
-    add_ref(value->func_ref->obj);
+    add_ref(&value->func_ref->obj);
     func->value_ref = value;
     add_ref(&value->obj);
     f->func = func;
@@ -727,10 +727,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     SET_FLAG(value, ae_value_global);
   value->func_ref = func;
-  add_ref(value->func_ref->obj);
+  add_ref(&value->func_ref->obj);
   func->value_ref = value;
   f->func = func;
-  add_ref(f->func->obj);
+  add_ref(&f->func->obj);
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -815,14 +815,14 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
       f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1))
     if(!env->class_def)
-      context_add_func(env->context, func, func->obj);
+      context_add_func(env->context, func, &func->obj);
     return 1;
   }
 
   SET_FLAG(value, ae_value_checked);
   // while making doc
   if(!env->class_def)
-    context_add_func(env->context, func, func->obj);
+    context_add_func(env->context, func, &func->obj);
 
   namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
   if(!overload)
@@ -873,7 +873,7 @@ error:
     scope_rem(env->curr->func, f->name);
     func->def = NULL;
     f->func = NULL;
-    rem_ref(func->obj, func);
+    rem_ref(&func->obj, func);
   }
   if(value) {
     free(value->m_type->name);
