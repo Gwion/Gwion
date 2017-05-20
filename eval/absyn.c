@@ -26,8 +26,10 @@ __inline static void free_Array_Sub(Array_Sub a)
 static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
-    if(!a->value->obj) // func argument. this migth change
+    if(GET_FLAG(a->value, ae_value_arg)) { // func argument. this migth change
+      free(a->value->obj);
       free_Value(a->value);
+    }
     else if(!a->value->owner_class) { // breaks for loop ?
       /*      if(a->value->m_type->array_type) {
               free(a->value->m_type->obj);

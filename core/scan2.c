@@ -125,10 +125,9 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
       arg_list->type = t;
     }
 
-    v = calloc(1, sizeof(struct Value_));
-    v->m_type = arg_list->type;
-    v->name = S_name(arg_list->var_decl->xid);
+    v = new_Value(env->context, arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
+    SET_FLAG(v, ae_value_arg);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     arg_list->var_decl->value = v;
     count++;
@@ -789,11 +788,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
     }
-    v = calloc(1, sizeof(struct Value_));
-    v->m_type = arg_list->type;
-    v->name = S_name(arg_list->var_decl->xid);
+    v = new_Value(env->context, arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
-
+    SET_FLAG(v, ae_value_arg);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
