@@ -721,6 +721,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   type->size = SZ_INT;
   type->func = func;
   type->obj.type = e_type_obj;
+  type->obj.ref_count = 0;
   value = new_Value(env->context, type, func_name);
   SET_FLAG(value, ae_value_const);
   value->owner = env->curr;

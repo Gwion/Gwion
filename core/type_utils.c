@@ -70,6 +70,7 @@ Type new_Type(Context context)
   type->is_complete = 0;
   type->def         = NULL;
   type->obj.type    = e_type_obj;
+  type->obj.ref_count = 0;
 //  context_add_type(context, type, type->obj);
   /*type->obj->ref    = context->new_types;*/
 //  vector_append(context->new_types, type);
@@ -109,6 +110,7 @@ Type type_copy(Env env, Type type)
   a->is_complete = type->is_complete;
   a->def         = type->def;
   a->obj.type    = e_type_obj;
+  type->obj.ref_count = 0;
   return a;
 }
 
