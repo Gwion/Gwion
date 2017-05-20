@@ -677,7 +677,7 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
 { 
 //  if(a->args) // commented 13/04/17 for typedef int[]
 //    free_Arg_List(a->args);
-  if(a->key != ae_key_static && a->value && !a->value->is_member) {
+  if(a->key != ae_key_static && a->value && !GET_FLAG(a->value, ae_value_member)) {
     if(!a->func)
       free_Type_Decl(a->type);
 /*    rem_ref(a->value->m_type->obj, a->value->m_type); */

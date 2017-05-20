@@ -11,7 +11,6 @@ struct Value_ {
   m_uint offset;
   m_uint func_num_overloads;
   m_bool is_const;
-  m_bool is_member;
   NameSpace owner;
   Type owner_class;
   VM_Object obj;
@@ -20,6 +19,6 @@ struct Value_ {
 };
 
 // TODO reorder enum
-enum { ae_value_none, ae_value_import, ae_value_global, ae_value_static, ae_value_checked };
+enum { ae_value_none, ae_value_import, ae_value_global, ae_value_static, ae_value_checked, ae_value_member };
 Value new_Value(Context context, Type type, m_str name);
 void free_Value(Value a);

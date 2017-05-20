@@ -65,7 +65,8 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     list->self->value = new_Value(env->context, type, S_name(list->self->xid));
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
-    list->self->value->is_member = (env->class_def && !env->class_scope && !env->func && !decl->is_static);
+    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+      SET_FLAG(list->self->value, ae_value_member);
     if(!env->class_def && !env->func)
       SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
@@ -144,9 +145,11 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
   ptr->value->func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
   if(env->class_def) {
-    ptr->value->is_member   = !ptr->key;
+    if(!ptr->key) {
+      SET_FLAG(ptr->value, ae_value_member);
+      ptr->func->is_member   = !ptr->key;
+    }
     ptr->value->owner_class = env->class_def;
-    ptr->func->is_member   = !ptr->key;
   }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
   add_ref(ptr->func->obj);
@@ -656,7 +659,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     value->is_const = 1;
     value->owner = env->curr;
     value->owner_class = env->class_def;
-    value->is_member = func->is_member;
+    if(func->is_member)
+      SET_FLAG(value, ae_value_member);
     if(!env->class_def)
       SET_FLAG(value, ae_value_global);
     value->func_ref = func;
@@ -720,7 +724,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   value->is_const = 1;
   value->owner = env->curr;
   value->owner_class = env->class_def;
-  value->is_member = func->is_member;
+  if(func->is_member)
+    SET_FLAG(value, ae_value_member);
   if(!env->class_def)
     SET_FLAG(value, ae_value_global);
   value->func_ref = func;

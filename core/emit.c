@@ -137,7 +137,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 #endif
   Instr instr;
 
-  if (v->owner_class && (v->is_member || GET_FLAG(v, ae_value_static))) {
+  if (v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
@@ -458,7 +458,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       } else if (!is_ref)
         CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
     }
-    if (value->is_member) {
+    if(GET_FLAG(value, ae_value_member)) {
       Instr alloc_m = add_instr(emit, NULL);
       alloc_m->m_val = value->offset;
       switch(kind)  {
@@ -555,7 +555,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
         instr->m_val = 1;
         break;
       case Primary_Expression_type:
-        if(binary->rhs->d.exp_primary.value->is_member) {
+        if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_value_member)) {
           v = binary->rhs->d.exp_primary.value;
           instr->m_val = 1;
           instr->m_val2 = v->offset;
@@ -1775,7 +1775,7 @@ static m_bool emit_Stmt_Union(Emitter emit, Stmt_Union stmt)
   Decl_List l = stmt->l;
   Local* local;
   Var_Decl_List var_list;
-  is_member = l->self->list->self->value->is_member;
+  is_member = GET_FLAG(l->self->list->self->value, ae_value_member);
   if (!is_member) {
     local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
     stmt->o = local->offset;
@@ -2055,7 +2055,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
   if (!base_static) { // called from instance
     if (isa(member->self->type, &t_func_ptr) > 0) { // function pointer
       value = find_value(t_base, member->xid);
-      if (value->is_member) { // member
+      if(GET_FLAG(value, ae_value_member)) { // member
         if (emit_Expression(emit, member->base, 0) < 0) {
           err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_START
           return -1;
@@ -2094,7 +2094,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     } else { // variable
       value = find_value(t_base, member->xid);
       offset = value->offset;
-      if (value->is_member) { // member
+      if(GET_FLAG(value, ae_value_member)) { // member
         CHECK_BB(emit_Expression(emit, member->base, 0))
         instr = add_instr(emit, Dot_Member_Data);
         instr->m_val = offset;

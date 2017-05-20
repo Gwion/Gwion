@@ -248,7 +248,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
         return NULL;
       }
     }
-    if(value->is_member) {
+    if(GET_FLAG(value, ae_value_member)) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
       env->curr->offset += type->size;
@@ -402,7 +402,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
         v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_key_static && v->is_member && !GET_FLAG(v, ae_value_static)) {
+          if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_value_member) && !GET_FLAG(v, ae_value_static)) {
             err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->d.var));
             return NULL;
           }
@@ -636,15 +636,15 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
       return NULL;
     }
-	r_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+	r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+      l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
     } else if(binary->lhs->exp_type == Dot_Member_type) {
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
-      l_nspc = (v->owner_class && v->is_member) ? v->owner_class : NULL; // get owner
+      l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
 /*    } else if(binary->lhs->exp_type == Decl_Expression_type) {
       v = binary->lhs->d.exp_decl->list->self->value;
       f2 = v->m_type->func; */
@@ -1966,7 +1966,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
     }
     return NULL;
   }
-  if(base_static && value->is_member) {
+  if(base_static && GET_FLAG(value, ae_value_member)) {
     err_msg(TYPE_, member->pos,
             "cannot access member '%s.%s' without object instance...",
             the_base->name, str);
