@@ -57,7 +57,7 @@ static void free_Var_Decl_List(Var_Decl_List a)
   }
 }
 
-Type_Decl* new_Type_Decl(ID_List xid, const m_bool ref, int pos)
+Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
 {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = xid;
@@ -185,7 +185,7 @@ void free_Type_Decl(Type_Decl* a)
   free(a);
 }
 
-Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, const m_bool is_static, int pos)
+Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Decl_Expression_type;
@@ -882,7 +882,7 @@ Stmt new_stmt_from_continue(int pos)
   return a;
 }
 
-Stmt new_stmt_from_while(Expression cond, Stmt body, const m_bool is_do, int pos)
+Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_while;
@@ -901,7 +901,7 @@ static void free_Stmt_Flow(struct Stmt_Flow_* a)
   free_Stmt(a->body);
 }
 
-Stmt new_stmt_from_until(Expression cond, Stmt body, const m_bool is_do, int pos)
+Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_until;
@@ -936,7 +936,7 @@ static void free_Stmt_For(Stmt_For a)
   free_Stmt(a->body);
 }
 
-Stmt new_stmt_from_gotolabel(m_str xid, const m_bool is_label, int pos)
+Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_gotolabel;

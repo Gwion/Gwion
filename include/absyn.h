@@ -9,7 +9,6 @@ typedef struct Expression_ * Expression;
 typedef struct Var_Decl_* Var_Decl;
 typedef struct Var_Decl_List_* Var_Decl_List;
 typedef struct Arg_List_ * Arg_List;
-struct NameSpace;
 
 extern Map scan_map;
 
@@ -23,28 +22,29 @@ typedef struct {
   Vector doc;
   char doc_str[4096];
   Ast ast;
+  unsigned int line;
+  unsigned int pos;
   FILE* file;
   m_str filename;
-  int line;
-  int pos;
 } MyArg;
 
 typedef struct {
   Expression base;
   Type t_base;
   S_Symbol xid;
-  Expression self;
   int pos;
+  Expression self;
 } Dot_Member;
+struct NameSpace;
 
 struct Array_Sub_ {
   m_uint depth;
   Expression exp_list;
+  int pos;
   Expression self;
   Type type;
   int err_num;
   int err_pos;
-  int pos;
 };
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
@@ -52,8 +52,15 @@ Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
 typedef struct {
   Expression base;
   Array_Sub indices;
-  Expression self;
   int pos;
+  Expression self;
+} Array_Expression;
+
+typedef struct {
+  Expression base;
+  Array_Sub indices;
+  int pos;
+  Expression self;
 } Array;
 
 Expression new_Array(Expression base, Array_Sub indices, int pos );
@@ -70,8 +77,8 @@ Var_Decl new_Var_Decl(m_str name, Array_Sub array, int pos);
 struct Var_Decl_List_ {
   Var_Decl self;
   Var_Decl_List next;
-  char* doc;
   int pos;
+  char* doc;
 };
 
 Var_Decl_List new_Var_Decl_List(Var_Decl decl, Var_Decl_List list, int pos);
@@ -80,46 +87,46 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Dot_Member* dot;
-  m_str doc;
+  int ref;
   int pos;
-  m_bool ref;
+  m_str doc;
 } Type_Decl;
-Type_Decl* new_Type_Decl(ID_List name, const m_bool ref, int pos);
+Type_Decl* new_Type_Decl(ID_List name, int ref, int pos);
 void free_Type_Decl(Type_Decl* a);
 
 typedef struct {
   Type_Decl* type;
   Type m_type;
   Var_Decl_List list;
-  Expression self;
   int pos;
   int num_decl;
-  m_bool is_static;
+  int is_static;
+  Expression self;
 } Decl_Expression;
-Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, const m_bool is_static, int pos);
+Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
 Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, int pos);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos );
 
 typedef struct {
   Operator op;
+  int pos;
   Expression exp;
   Expression self;
-  int pos;
 } Postfix_Expression;
 
 typedef struct {
   Type_Decl* type;
   Expression exp;
+  int pos;
   Expression self;
   Func func;
-  int pos;
 } Cast_Expression;
 
 typedef struct {
   Expression re;
   Expression im;
-  Expression self;
   int pos;
+  Expression self;
 } Complex;
 Complex* new_complex( Expression re, int pos );
 Expression new_exp_from_complex(Complex* exp, int pos);
@@ -127,8 +134,8 @@ Expression new_exp_from_complex(Complex* exp, int pos);
 typedef struct {
   Expression mod;
   Expression phase;
-  Expression self;
   int pos;
+  Expression self;
 } Polar;
 Expression new_exp_from_polar(Polar* exp, int pos);
 Expression new_exp_from_char( c_str chr, int pos );
@@ -137,12 +144,11 @@ typedef struct Vec_* Vec;
 struct Vec_ {
   Expression args;
   m_uint numdims;
+  m_uint pos;
   Expression self;
-  int pos;
 };
 Vec new_Vec( Expression e, int pos );
 Expression new_exp_from_vec( Vec a, int pos );
-
 typedef enum { ae_primary_var, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
                ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,
@@ -173,11 +179,11 @@ typedef struct {
   Type ret_type;
   Func m_func;
   VM_Code vm_code;
+  int pos;
   Expression self;
   Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
-  int pos;
 } Func_Call;
 
 
@@ -200,23 +206,23 @@ typedef struct {
   Expression lhs, rhs;
   Operator op;
   Func func;
-  Expression self;
   int pos;
+  Expression self;
 } Binary_Expression;
 
 typedef struct {
   Expression cond;
   Expression if_exp;
   Expression else_exp;
-  Expression self;
   int pos;
+  Expression self;
 } If_Expression;
 
 typedef struct {
   Expression base;
   Expression unit;
-  Expression self;
   int pos;
+  Expression self;
 } Exp_Dur;
 
 typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_type, Primary_Expression_type,
@@ -259,77 +265,70 @@ typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
 
 struct Stmt_Basic_ {
-  Stmt self;
   int pos;
+  Stmt self;
 };
 struct Stmt_Exp_ {
   Expression val;
-  Stmt self;
   int pos;
+  Stmt self;
 };
-
 struct Stmt_Flow_ {
+  int is_do;
   Expression cond;
   Stmt body;
-  Stmt self;
   int pos;
-  m_bool is_do;
+  Stmt self;
 };
-
 struct Stmt_Code_ {
   Stmt_List stmt_list;
-  Stmt self;
   int pos;
+  Stmt self;
 };
-
 struct Stmt_For_ {
   Stmt c1;
   Stmt c2;
   Expression c3;
   Stmt body;
-  Stmt self;
   int pos;
+  Stmt self;
 };
 struct Stmt_Loop_ {
   Expression cond;
   Stmt body;
-  Stmt self;
   int pos;
+  Stmt self;
 };
-
 struct Stmt_If_ {
   Expression cond;
   Stmt if_body;
   Stmt else_body;
-  Stmt self;
   int pos;
+  Stmt self;
 };
-
 struct Stmt_Goto_Label_ {
   S_Symbol name;
   union {
     Vector v;
     Instr instr;
   } data;
-  Stmt self;
   int pos;
+  Stmt self;
   m_bool is_label;
 };
-
 struct Stmt_Switch_ {
   Expression val;
   Stmt stmt;
-  Stmt self;
   int pos;
+  Stmt self;
 };
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
   Vector values;
-  Stmt self;
   int pos;
+  Stmt self;
 };
-
 struct Stmt_Ptr_ {
   Type_Decl*    type;
   Type    m_type;
@@ -339,17 +338,16 @@ struct Stmt_Ptr_ {
   Type       ret_type;
   Func       func;
   Value      value;
-  Expression self;
   int        pos;
+  Expression self;
 };
-
 struct Stmt_Union_{
   Decl_List l;
   Vector v;
   m_uint s;
   m_uint o;
-  Stmt self;
   int pos;
+  Stmt self;
 };
 
 struct Stmt_{
@@ -377,15 +375,15 @@ struct Stmt_{
 
 Stmt new_stmt_from_expression(Expression exp, int pos);
 Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
-Stmt new_stmt_from_while(Expression cond, Stmt body, const m_bool is_do, int pos);
+Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_return(Expression exp, int pos);
 Stmt new_stmt_from_break(int pos);
 Stmt new_stmt_from_continue(int pos);
 Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
-Stmt new_stmt_from_until(Expression cond, Stmt body, const m_bool is_do, int pos);
+Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
 Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos);
-Stmt new_stmt_from_gotolabel(m_str xid, const m_bool is_label, int pos);
+Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
 Stmt new_stmt_from_case(Expression exp, int pos);
 Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
@@ -398,8 +396,8 @@ typedef struct {
   Array_Sub array;
   Stmt code;
   m_uint code_depth;
-  Expression self;
   int pos;
+  Expression self;
 } Unary_Expression;
 Expression new_exp_from_unary(Operator oper, Expression exp, int pos );
 Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos );
@@ -420,6 +418,7 @@ Stmt new_Func_Ptr_Stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List arg
 struct Expression_ {
   Expression_type exp_type;
   ae_Exp_Meta meta;
+  int emit_var;
   Type type;
   Type cast_to;
   union {
@@ -435,9 +434,8 @@ struct Expression_ {
     Array                exp_array;
     Exp_Dur              exp_dur;
   } d;
-  Expression next;
   int pos;
-  m_bool emit_var;
+  Expression next;
 };
 
 struct Stmt_List_ {
@@ -471,6 +469,7 @@ struct Func_Def_ {
   Arg_List arg_list;
   Stmt code;
   Func func;
+  int pos;
   m_uint stack_depth;
   ae_Keyword func_decl;
   ae_Keyword static_decl;
@@ -478,7 +477,6 @@ struct Func_Def_ {
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
-  int pos;
   m_bool is_template;
   m_bool is_variadic;
   m_bool has_code;
@@ -541,8 +539,8 @@ Section* new_section_Class_Def(Class_Def class_def, int pos);
 struct Ast_ {
   Section* section;
   Ast next;
-  m_str doc;
   int pos;
+  m_str doc;
 };
 
 Ast new_Ast(Section* section, Ast next, int pos);
