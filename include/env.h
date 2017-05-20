@@ -17,8 +17,8 @@ struct Env_ {
   Vector    conts;
   Type      class_def;
   Func      func;
-  struct VM_Object_ obj;
   Map known_ctx;
+  struct VM_Object_ obj;
 };
 
 Env new_Env();

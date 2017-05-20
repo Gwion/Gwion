@@ -22,29 +22,29 @@ typedef struct {
   Vector doc;
   char doc_str[4096];
   Ast ast;
-  unsigned int line;
-  unsigned int pos;
   FILE* file;
   m_str filename;
+  int line;
+  int pos;
 } MyArg;
 
 typedef struct {
   Expression base;
   Type t_base;
   S_Symbol xid;
-  int pos;
   Expression self;
+  int pos;
 } Dot_Member;
 struct NameSpace;
 
 struct Array_Sub_ {
   m_uint depth;
   Expression exp_list;
-  int pos;
   Expression self;
   Type type;
   int err_num;
   int err_pos;
+  int pos;
 };
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
@@ -52,15 +52,8 @@ Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
 typedef struct {
   Expression base;
   Array_Sub indices;
-  int pos;
   Expression self;
-} Array_Expression;
-
-typedef struct {
-  Expression base;
-  Array_Sub indices;
   int pos;
-  Expression self;
 } Array;
 
 Expression new_Array(Expression base, Array_Sub indices, int pos );
@@ -87,9 +80,9 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Dot_Member* dot;
-  int ref;
-  int pos;
   m_str doc;
+  int pos;
+  m_bool ref;
 } Type_Decl;
 Type_Decl* new_Type_Decl(ID_List name, int ref, int pos);
 void free_Type_Decl(Type_Decl* a);
@@ -98,10 +91,10 @@ typedef struct {
   Type_Decl* type;
   Type m_type;
   Var_Decl_List list;
+  Expression self;
   int pos;
   int num_decl;
-  int is_static;
-  Expression self;
+  m_bool is_static;
 } Decl_Expression;
 Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
 Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, int pos);
@@ -109,33 +102,33 @@ Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos );
 
 typedef struct {
   Operator op;
-  int pos;
   Expression exp;
   Expression self;
+  int pos;
 } Postfix_Expression;
 
 typedef struct {
   Type_Decl* type;
   Expression exp;
-  int pos;
   Expression self;
   Func func;
+  int pos;
 } Cast_Expression;
 
 typedef struct {
   Expression re;
   Expression im;
-  int pos;
   Expression self;
+  int pos;
 } Complex;
-Complex* new_complex( Expression re, int pos );
+Complex* new_complex(Expression re, int pos);
 Expression new_exp_from_complex(Complex* exp, int pos);
 
 typedef struct {
   Expression mod;
   Expression phase;
-  int pos;
   Expression self;
+  int pos;
 } Polar;
 Expression new_exp_from_polar(Polar* exp, int pos);
 Expression new_exp_from_char( c_str chr, int pos );
@@ -144,8 +137,8 @@ typedef struct Vec_* Vec;
 struct Vec_ {
   Expression args;
   m_uint numdims;
-  m_uint pos;
   Expression self;
+  int pos;
 };
 Vec new_Vec( Expression e, int pos );
 Expression new_exp_from_vec( Vec a, int pos );
@@ -169,8 +162,8 @@ typedef struct {
     Polar* polar;
     Vec vec;
   } d;
-  int pos;
   Expression self;
+  int pos;
 } Primary_Expression;
 
 typedef struct {
@@ -179,11 +172,11 @@ typedef struct {
   Type ret_type;
   Func m_func;
   VM_Code vm_code;
-  int pos;
   Expression self;
   Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
+  int pos;
 } Func_Call;
 
 
@@ -202,27 +195,28 @@ Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos);
 Expression new_If_Expression(Expression cond, Expression if_exp, Expression else_exp, int pos);
 Expression new_Exp_Dur(Expression base, Expression unit, int pos);
 Expression new_exp_from_member_dot(Expression base, m_str xid, int pos);
+
 typedef struct {
   Expression lhs, rhs;
   Operator op;
   Func func;
-  int pos;
   Expression self;
+  int pos;
 } Binary_Expression;
 
 typedef struct {
   Expression cond;
   Expression if_exp;
   Expression else_exp;
-  int pos;
   Expression self;
+  int pos;
 } If_Expression;
 
 typedef struct {
   Expression base;
   Expression unit;
-  int pos;
   Expression self;
+  int pos;
 } Exp_Dur;
 
 typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_type, Primary_Expression_type,
@@ -265,70 +259,75 @@ typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
 
 struct Stmt_Basic_ {
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Exp_ {
   Expression val;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Flow_ {
   int is_do;
   Expression cond;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
+
 struct Stmt_Code_ {
   Stmt_List stmt_list;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_For_ {
   Stmt c1;
   Stmt c2;
   Expression c3;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Loop_ {
   Expression cond;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_If_ {
   Expression cond;
   Stmt if_body;
   Stmt else_body;
-  int pos;
   Stmt self;
+  int pos;
 };
+
 struct Stmt_Goto_Label_ {
   S_Symbol name;
   union {
     Vector v;
     Instr instr;
   } data;
-  int pos;
   Stmt self;
+  int pos;
   m_bool is_label;
 };
+
 struct Stmt_Switch_ {
   Expression val;
   Stmt stmt;
-  int pos;
   Stmt self;
+  int pos;
 };
+
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
   Vector values;
-  int pos;
   Stmt self;
+  int pos;
 };
+
 struct Stmt_Ptr_ {
   Type_Decl*    type;
   Type    m_type;
@@ -338,16 +337,17 @@ struct Stmt_Ptr_ {
   Type       ret_type;
   Func       func;
   Value      value;
-  int        pos;
   Expression self;
+  int        pos;
 };
+
 struct Stmt_Union_{
   Decl_List l;
   Vector v;
   m_uint s;
   m_uint o;
-  int pos;
   Stmt self;
+  int pos;
 };
 
 struct Stmt_{
@@ -396,9 +396,10 @@ typedef struct {
   Array_Sub array;
   Stmt code;
   m_uint code_depth;
-  int pos;
   Expression self;
+  int pos;
 } Unary_Expression;
+
 Expression new_exp_from_unary(Operator oper, Expression exp, int pos );
 Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos );
 Expression new_exp_from_unary3(Operator oper, Stmt code, int pos );
@@ -434,8 +435,8 @@ struct Expression_ {
     Array                exp_array;
     Exp_Dur              exp_dur;
   } d;
-  int pos;
   Expression next;
+  int pos;
 };
 
 struct Stmt_List_ {
@@ -469,7 +470,6 @@ struct Func_Def_ {
   Arg_List arg_list;
   Stmt code;
   Func func;
-  int pos;
   m_uint stack_depth;
   ae_Keyword func_decl;
   ae_Keyword static_decl;
@@ -477,6 +477,7 @@ struct Func_Def_ {
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
+  int pos;
   m_bool is_template;
   m_bool is_variadic;
   m_bool has_code;
@@ -539,8 +540,8 @@ Section* new_section_Class_Def(Class_Def class_def, int pos);
 struct Ast_ {
   Section* section;
   Ast next;
-  int pos;
   m_str doc;
+  int pos;
 };
 
 Ast new_Ast(Section* section, Ast next, int pos);

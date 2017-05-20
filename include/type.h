@@ -24,9 +24,9 @@ struct Type_ {
   m_uint    array_depth;
   Type      array_type;
   Class_Def def;
-  struct VM_Object_ obj;
   m_str      doc;
   m_uint    obj_size;
+  struct VM_Object_ obj;
   m_bool has_constructor;
   m_bool has_destructor;
   m_bool    is_complete;

@@ -15,10 +15,10 @@ struct NameSpace_ {
   NameSpace parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
-  struct VM_Object_ obj;
   char*		class_data;
   m_uint    class_data_size;
   Map      	operator;
+  struct VM_Object_ obj;
 };
 
 extern NameSpace new_NameSpace();
