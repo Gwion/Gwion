@@ -51,8 +51,8 @@ Emitter new_Emitter(Env env)
   emit->nspc = NULL;
   emit->func = NULL;
   emit->cases = NULL;
-  emit->obj = new_VM_Object(e_emit_obj);
   emit->env = env;
+  INIT_OO(emit, e_emit_obj);
   return emit;
 }
 

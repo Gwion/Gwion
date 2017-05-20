@@ -13,7 +13,6 @@ Env new_Env()
   env->class_stack = new_Vector();
   env->nspc_stack = new_Vector();
   env->class_scope = 0;
-  env->obj = new_VM_Object(e_env_obj);
   env->global_nspc = new_NameSpace();
   env->global_nspc->name = "global_nspc";
   env->global_nspc->filename = "global_nspc";
@@ -24,6 +23,7 @@ Env new_Env()
 //  env->user_nspc = NULL;
   env->known_ctx = new_Map();
   env_reset(env);
+  INIT_OO(env, e_env_obj);
   return env;
 }
 
