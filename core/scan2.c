@@ -712,13 +712,12 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->code->native_func = (m_uint)func->def->dl_func_ptr;
   }
 
-  type = calloc(1, sizeof(struct Type_));
+  type = new_Type(env->context);
   type->xid = te_function;
   type->name = strdup(tmp);
   type->parent = &t_function;
   type->size = SZ_INT;
   type->func = func;
-  type->obj = new_VM_Object(e_type_obj);
   value = new_Value(env->context, type, func_name);
   SET_FLAG(value, ae_value_const);
   value->owner = env->curr;
