@@ -308,13 +308,13 @@ struct Stmt_If_ {
 };
 struct Stmt_Goto_Label_ {
   S_Symbol name;
+  m_bool is_label;
   union {
     Vector v;
     Instr instr;
   } data;
   int pos;
   Stmt self;
-  m_bool is_label;
 };
 struct Stmt_Switch_ {
   Expression val;
@@ -473,13 +473,13 @@ struct Func_Def_ {
   m_uint stack_depth;
   ae_Keyword func_decl;
   ae_Keyword static_decl;
+  m_bool has_code;
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
   m_bool is_template;
   m_bool is_variadic;
-  m_bool has_code;
 };
 
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
