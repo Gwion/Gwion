@@ -151,7 +151,8 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   if(!v)
     return -1;
   SET_FLAG(v, ae_value_checked);
-  v->is_const = is_const;
+  if(is_const)
+    SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
   if(data)
     v->ptr = data;
@@ -171,7 +172,8 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
   if(!v)
     return -1;
   SET_FLAG(v, ae_value_checked);
-  v->is_const = 1;
+//  if(is_const)
+    SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
   m_float* f = calloc(1, sizeof(m_float));
   *f = data;
@@ -218,7 +220,7 @@ m_bool add_global_type(Env env, Type type)
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_Value(env->global_context, v_type, type->name);
   SET_FLAG(v, ae_value_checked);
-  v->is_const = 1;
+  SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
 //	v->owner = env->curr;
   namespace_add_value(env->curr, insert_symbol(type->name), v);

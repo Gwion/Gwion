@@ -418,7 +418,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
       t = v->m_type;
       primary->value = v;
     }
-    if(v && v->is_const == 2) // hack for enum
+    if(v && GET_FLAG(v, ae_value_enum)) // hack for enum
       primary->self->meta = ae_meta_value;
     break;
   case ae_primary_num:
@@ -1095,7 +1095,7 @@ next:
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == Primary_Expression_type &&
-      exp_func->d.exp_primary.value && !exp_func->d.exp_primary.value->is_const) {
+      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
         if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
       	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
           return NULL;
@@ -1972,7 +1972,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
             the_base->name, str);
     return NULL;
   }
-  if(value->is_const == 2) // for enum
+  if(GET_FLAG(value, ae_value_enum)) // for enum
     member->self->meta = ae_meta_value;
   return value->m_type;
 }

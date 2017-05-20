@@ -133,7 +133,7 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos)
 {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, GET_FLAG(v, ae_value_static), v->owner_class);
+  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), GET_FLAG(v, ae_value_const) + GET_FLAG(v, ae_value_enum), GET_FLAG(v, ae_value_static), v->owner_class);
 #endif
   Instr instr;
 
@@ -151,7 +151,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return ret;
   }
 
-  if (v->is_const) {
+  if(GET_FLAG(v, ae_value_const)) {
     if (v->func_ref) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (m_uint)v->func_ref;
@@ -1709,7 +1709,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
         err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
         return -1;
       } else  {
-        if(!stmt->val->d.exp_primary.value->is_const) {
+        if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_value_const)) {
           err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
           return -1;
         }
@@ -1721,7 +1721,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
   } else if(stmt->val->exp_type == Dot_Member_type) {
     t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ? stmt->val->d.exp_dot.t_base->actual_type : stmt->val->d.exp_dot.t_base;
     v = find_value(t, stmt->val->d.exp_dot.xid);
-    value = v->is_const == 2 ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
+    value = GET_FLAG(v, ae_value_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
     return -1;

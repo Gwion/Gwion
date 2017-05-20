@@ -656,7 +656,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       func->next = overload->func_ref->next;
     func->is_member = (env->class_def && (f->static_decl != ae_key_static));
     value = new_Value(env->context, &t_function, func_name);
-    value->is_const = 1;
+    SET_FLAG(value, ae_value_const);
     value->owner = env->curr;
     value->owner_class = env->class_def;
     if(func->is_member)
@@ -721,7 +721,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   type->func = func;
   type->obj = new_VM_Object(e_type_obj);
   value = new_Value(env->context, type, func_name);
-  value->is_const = 1;
+  SET_FLAG(value, ae_value_const);
   value->owner = env->curr;
   value->owner_class = env->class_def;
   if(func->is_member)

@@ -21,7 +21,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
   type->actual_type = t;
   v = new_Value(env->context, type, S_name(ptr->xid));
   v->owner = env->curr;
-  v->is_const = 1;
+  SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_checked);
   namespace_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
@@ -138,7 +138,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     value->owner = env->curr;
 if(value->owner != env->global_nspc)
   vector_remove(env->context->new_class, vector_find(env->context->new_class, (vtype)value));
-    value->is_const = 1;
+    SET_FLAG(value, ae_value_const);
     SET_FLAG(value, ae_value_checked);
 //    add_ref(the_class->obj);
     namespace_add_value(env->curr, insert_symbol(value->name), value);

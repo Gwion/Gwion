@@ -176,7 +176,8 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     goto error;
   if(scan2_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
-  var_decl->value->is_const = is_const;
+  if(is_const)
+    SET_FLAG(var_decl->value, ae_value_const);
   if(!check_Decl_Expression(env, &exp_decl->d.exp_decl))
     goto error;
 
