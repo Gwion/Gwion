@@ -67,7 +67,8 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
     list->self->value->is_member = (env->class_def && !env->class_scope && !env->func && !decl->is_static);
-    list->self->value->is_context_global = !env->class_def && !env->func;
+    if(!env->class_def && !env->func)
+      SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
 //	add_ref(list->self->value->obj);
@@ -657,7 +658,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     value->owner = env->curr;
     value->owner_class = env->class_def;
     value->is_member = func->is_member;
-    value->is_context_global = (env->class_def == NULL);
+    if(!env->class_def)
+      SET_FLAG(value, ae_value_global);
     value->func_ref = func;
     add_ref(value->func_ref->obj);
     func->value_ref = value;
@@ -720,7 +722,8 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   value->owner = env->curr;
   value->owner_class = env->class_def;
   value->is_member = func->is_member;
-  value->is_context_global = (env->class_def == NULL);
+  if(!env->class_def)
+    SET_FLAG(value, ae_value_global);
   value->func_ref = func;
   add_ref(value->func_ref->obj);
   func->value_ref = value;

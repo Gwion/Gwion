@@ -182,7 +182,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
 
   if(doc)
     var_decl->value->doc = doc;
-  var_decl->value->is_import = 1;
+  SET_FLAG(var_decl->value, ae_value_import);
   ret = var_decl->value->offset;
 error:
   free_Expression(exp_decl);

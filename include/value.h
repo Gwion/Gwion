@@ -14,13 +14,13 @@ struct Value_ {
   m_bool is_const;
   m_bool is_member;
   m_bool is_static;
-  m_bool is_context_global;
   NameSpace owner;
   Type owner_class;
   VM_Object obj;
   m_str doc;
-  m_bool is_import;// use this?
+  m_uint flag;
 };
 
+enum { ae_value_none, ae_value_import, ae_value_global };
 Value new_Value(Context context, Type type, m_str name);
 void free_Value(Value a);

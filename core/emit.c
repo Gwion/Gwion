@@ -171,13 +171,13 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   if (emit_var) {
     instr = add_instr(emit, Reg_Push_Mem_Addr);
     instr->m_val = v->offset;
-    instr->m_val2 = v->is_context_global;
+    instr->m_val2 = GET_FLAG(v, ae_value_global);
     return 1;
   } else {
     Kindof kind = kindof(v->m_type);
     instr = add_instr(emit, NULL); // dangerous
     instr->m_val = v->offset;
-    instr->m_val2 = v->is_context_global;
+    instr->m_val2 = GET_FLAG(v, ae_value_global);
     switch(kind) {
       case Kindof_Int:
         instr->execute = Reg_Push_Mem;
@@ -477,7 +477,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         value->offset   = local->offset;
         Instr alloc_g   = add_instr(emit, Alloc_Word);
         alloc_g->m_val  = local->offset;
-        alloc_g->m_val2 = value->is_context_global;
+        alloc_g->m_val2 = GET_FLAG(value, ae_value_global);
         switch(kind)  {
           case Kindof_Int     : alloc_g->execute = Alloc_Word         ; break;
           case Kindof_Float   : alloc_g->execute = Alloc_Word_Float   ; break;
@@ -2101,7 +2101,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         instr->m_val2 = kindof(value->m_type);
         instr->ptr = (m_uint*)emit_addr;
       } else { // static
-        if (value->ptr && value->is_import) { // from C
+        if (value->ptr && GET_FLAG(value, ae_value_import)) { // from C
           func_i = add_instr(emit, Dot_Static_Import_Data);
           func_i->m_val = (m_uint)value->ptr;
           func_i->m_val2 = kindof(value->m_type);
@@ -2126,7 +2126,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       func_i->m_val = (m_uint)func;
     } else {
       value = find_value(t_base, member->xid);
-      if (value->ptr && value->is_import) {
+      if (value->ptr && GET_FLAG(value, ae_value_import)) {
         func_i = add_instr(emit, Dot_Static_Import_Data);
         func_i->m_val = (m_uint)value->ptr;
         func_i->m_val2 = kindof(value->m_type);

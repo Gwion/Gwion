@@ -15,7 +15,6 @@ Value new_Value(Context context, Type type, m_str name)
   a->checked            = 0;
   a->is_const           = 0;
   a->is_static          = 0;
-  a->is_context_global  = 0;
   a->owner              = NULL;
   a->owner_class        = NULL;
   a->obj                = new_VM_Object(e_value_obj);
