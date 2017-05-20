@@ -7,7 +7,7 @@ Env new_Env()
 {
   Env env = calloc(1, sizeof(struct Env_));
   env->global_context = new_Context(NULL, "global_context");
-  add_ref(env->global_context->obj);
+  add_ref(&env->global_context->obj);
   env->context = env->global_context;
   env->contexts = new_Vector();
   env->class_stack = new_Vector();
@@ -17,7 +17,7 @@ Env new_Env()
   env->global_nspc->name = "global_nspc";
   env->global_nspc->filename = "global_nspc";
   env->curr = env->global_nspc;
-  add_ref(env->global_nspc->obj);
+  add_ref(&env->global_nspc->obj);
   env->breaks = new_Vector();
   env->conts = new_Vector();
 //  env->user_nspc = NULL;
@@ -55,14 +55,14 @@ void free_Env(Env a)
   free(a->global_context->tree);
   for(i = 0; i < map_size(a->known_ctx); i++) {
     Context ctx = (Context)map_at(a->known_ctx, i);
-    rem_ref(ctx->obj, ctx);
+    rem_ref(&ctx->obj, ctx);
   }
   free_Vector(a->contexts);
   free_Map(a->known_ctx);
 
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
     NameSpace  nspc = (NameSpace)vector_pop(a->nspc_stack);
-    rem_ref(nspc->obj, nspc);
+    rem_ref(&nspc->obj, nspc);
   }
   free_Vector(a->nspc_stack);
   free_Vector(a->class_stack);

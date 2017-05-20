@@ -69,7 +69,7 @@ Type new_Type(Context context)
   type->array_depth = 0;
   type->is_complete = 0;
   type->def         = NULL;
-  type->obj         = new_VM_Object(e_type_obj);
+  INIT_OO(type, e_type_obj);
 //  context_add_type(context, type, type->obj);
   /*type->obj->ref    = context->new_types;*/
 //  vector_append(context->new_types, type);
@@ -80,12 +80,12 @@ void free_Type(Type a)
 {
   if(!a->is_complete && a->xid == te_user) {
     if(a->info)
-      rem_ref(a->info->obj, a->info);
+      rem_ref(&a->info->obj, a->info);
     free(a);
     return;
   }
   if(a->info)
-    rem_ref(a->info->obj, a->info);
+    rem_ref(&a->info->obj, a->info);
   if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
     free(a);
 /*  else if(a->xid > type_xid || isa(a, &t_func_ptr) > 0)
@@ -108,7 +108,7 @@ Type type_copy(Env env, Type type)
   a->array_depth = type->array_depth;
   a->is_complete = type->is_complete;
   a->def         = type->def;
-  a->obj         = new_VM_Object(e_type_obj);
+  INIT_OO(a, e_type_obj);
   return a;
 }
 
@@ -216,7 +216,7 @@ m_bool add_global_type(Env env, Type type)
    CHECK_BB(name_valid(type->name));
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
-  type->obj = new_VM_Object(e_type_obj);
+  INIT_OO(type, e_type_obj);
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_Value(env->global_context, v_type, type->name);
   SET_FLAG(v, ae_value_checked);
@@ -227,7 +227,7 @@ m_bool add_global_type(Env env, Type type)
 
   // doc
 //  namespace_add_type(env->context->nspc, insert_symbol(type->name), type);
-  context_add_type(env->global_context, type, type->obj);
+  context_add_type(env->global_context, type, &type->obj);
   type->owner = env->curr;
   if(do_type_xid) {
     type_xid++;

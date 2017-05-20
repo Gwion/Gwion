@@ -12,12 +12,12 @@ Context new_Context(Ast prog, m_str filename)
   context->tree = prog;
   context->filename = filename;
   context->nspc->name = filename;
-  context->obj = new_VM_Object(e_context_obj);
   context->new_funcs = new_Vector();
   context->new_values = new_Vector();
   context->new_types = new_Vector();
   context->new_class = new_Vector();
   context->public_class_def = NULL;
+  INIT_OO(context, e_context_obj);
   return context;
 }
 
@@ -29,7 +29,6 @@ void free_Context(Context a)
     if(f->def->spec == ae_func_spec_op) {
       free(f->value_ref->name);
       free(f->value_ref->m_type->name);
-      free(f->value_ref->m_type->obj);
       free(f->value_ref->m_type);
       rem_ref(&f->value_ref->obj, f->value_ref);
       rem_ref(&f->obj, f);
@@ -37,7 +36,7 @@ void free_Context(Context a)
     } else if(!f->def->is_template) {
 if(f->value_ref->m_type) { // error in scan2
       free(f->value_ref->m_type->name);
-      rem_ref(f->value_ref->m_type->obj, f->value_ref->m_type);
+      rem_ref(&f->value_ref->m_type->obj, f->value_ref->m_type);
 }
       free(f->value_ref->name);
       rem_ref(&f->value_ref->obj, f->value_ref);
@@ -47,14 +46,14 @@ if(f->value_ref->m_type) { // error in scan2
 
   for(i = 0; i < vector_size(a->new_class); i++) {
     Value v = (Value)vector_at(a->new_class, i);
-    rem_ref(v->m_type->obj, v->m_type);
+    rem_ref(&v->m_type->obj, v->m_type);
     rem_ref(&v->obj, v);
   }
   free_Vector(a->new_class);
 
   free_Vector(a->new_values);
   free_Vector(a->new_types);
-  rem_ref(a->nspc->obj, a->nspc);
+  rem_ref(&a->nspc->obj, a->nspc);
   free(a);
 }
 
@@ -62,7 +61,7 @@ m_bool load_context(Context context, Env env)
 {
   vector_append(env->contexts, (vtype)env->context);
   env->context = context;
-  add_ref(env->context->obj);
+  add_ref(&env->context->obj);
   namespace_push_value(context->nspc);
   vector_append(env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;

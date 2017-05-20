@@ -234,7 +234,7 @@ SFUN(file_list)
   M_Object ret = new_M_Array(SZ_INT, n, 1);
   vector_append(shred->gc, (vtype)ret);
   ret->type_ref = t;
-  t->obj->ref_count = 1;
+  t->obj.ref_count = 1;
   for(i = 0; i < n; i++) {
     M_Object string = new_String(NULL,namelist[i]->d_name);
     i_vector_set(ret->d.array, i, (m_uint)string);

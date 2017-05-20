@@ -122,7 +122,6 @@ INSTR(Free_Func)
   Func f = (Func)instr->m_val;
   free(f->value_ref->name);
   free(f->value_ref->m_type->name);
-  free(f->value_ref->m_type->obj);
   free(f->value_ref->m_type);
   rem_ref(&f->value_ref->obj, f->value_ref);
   free_VM_Code(f->code);
@@ -1215,7 +1214,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
   if(cap < 0)
     goto negative_array_size;
-  type->obj->ref_count++;
+  type->obj.ref_count++; // should be add_ref
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
     if(!base)
@@ -1248,7 +1247,6 @@ out_of_memory:
 
 negative_array_size:
   fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-  free(type->obj);
   free(type);
 error:
   if(base) release(base, shred); // LCOV_EXCL_LINE
@@ -1302,7 +1300,7 @@ INSTR(Instr_Array_Init) // for litteral array
       break;
    }
   }
-  info->type->obj->ref_count = 1;
+  info->type->obj.ref_count = 1; // shoule be add ref
   *(M_Object*)shred->reg = obj;
 //  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);

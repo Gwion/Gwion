@@ -2402,8 +2402,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   // handle empty array type
   for(i = 0; i < vector_size(emit->array); i++) {
     Type t = (Type)vector_at(emit->array, i);
-    if(!--t->obj) {
-      free(t->obj);
+    if(!--t->obj.ref_count) {
       free(t);
     } // all this should be
       // rem_ref(t->obj, t);

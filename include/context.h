@@ -11,7 +11,7 @@ struct Context_ {
   Vector    new_values;
   Vector    new_types;
   Vector    new_class;
-  VM_Object obj;
+  struct VM_Object_ obj;
 };
 
 Context new_Context( Ast prog, char* filename );

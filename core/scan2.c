@@ -59,7 +59,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
       if(env->class_def)
-        add_ref(type->obj);
+        add_ref(&type->obj);
       decl->m_type = type;
     }
     list->self->value = new_Value(env->context, type, S_name(list->self->xid));
@@ -850,7 +850,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
 // should be in free_context, at least.
 free(value->m_type->name);
-free(value->m_type->obj);
 free(value->m_type);
 f->func->value_ref->m_type = NULL;
   namespace_pop_value(env->curr);
@@ -878,7 +877,7 @@ error:
   if(value) {
     free(value->m_type->name);
     free(value->name);
-    rem_ref(value->m_type->obj, value->m_type);
+    rem_ref(&value->m_type->obj, value->m_type);
     rem_ref(&value->obj, value);
   }
   return -1;

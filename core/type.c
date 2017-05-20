@@ -238,12 +238,10 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
       if(!check_Expression(env, var_decl->array->exp_list)) {
-        free(type->obj);
         free(type);
         return NULL;
       }
       if(check_array_subscripts(env, var_decl->array->exp_list) < 0) {
-        free(type->obj);
         free(type);
         return NULL;
       }
@@ -545,7 +543,6 @@ Type check_Array(Env env, Array* array)
               /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
               "array index %i must be of type 'int', not '%s'",
               depth, e->type->name);
-      free(t_base->obj);
       free(t_base);
       return NULL;
     }
@@ -556,7 +553,6 @@ Type check_Array(Env env, Array* array)
 
   if(depth != array->indices->depth) {
     err_msg(TYPE_, array->pos, "invalid array acces expression.");
-    free(t_base->obj);
     free(t_base);
     return NULL;
   }
@@ -1284,7 +1280,7 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
-  add_ref(t->obj);
+  add_ref(&t->obj);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -1961,7 +1957,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
     err_msg(TYPE_,  member->base->pos,
             "class '%s' has no member '%s'", s, str);
     if(the_base->array_depth) {
-      free(the_base->obj);
       free(the_base);
     }
     return NULL;
@@ -2240,7 +2235,7 @@ cleanup:
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    add_ref(context->obj);
+    add_ref(&context->obj);
   } else {
 //    namespace_rollback(env->global_nspc);
     //rem_ref(context->obj, context);
@@ -2249,7 +2244,7 @@ cleanup:
   if(ret < 0) {
     free_Ast(ast);
     //rem_ref(context->nspc->obj, context->nspc);
-    rem_ref(context->obj, context); // breaks function pointer for now
+    rem_ref(&context->obj, context); // breaks function pointer for now
     free(filename);
   }
   return ret;

@@ -7,7 +7,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
   Value v;
   Type type;
   Type t = new_Type(env->context);
-  add_ref(t->obj);
+  add_ref(&t->obj);
   t->xid = te_user;
   t->name = S_name(ptr->xid);
   t->owner = env->curr;
@@ -144,7 +144,7 @@ if(value->owner != env->global_nspc)
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {
-      context_add_type(env->context, the_class, the_class->obj);
+      context_add_type(env->context, the_class, &the_class->obj);
       context_add_class(env->context, value, &value->obj);
     }
   }
