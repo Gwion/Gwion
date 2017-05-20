@@ -262,7 +262,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
       value->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += type->size;
     }
-    list->self->value->checked = 1;
+    SET_FLAG(list->self->value, ae_value_checked);
     if(!env->class_def || env->class_scope)
       namespace_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
@@ -409,7 +409,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
         }
       }
       // check me
-      if(!v || !v->checked) {
+      if(!v || !GET_FLAG(v, ae_value_checked)) {
         str = S_name(primary->d.var);
         err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
                 str ? str : "", v);
@@ -2087,7 +2087,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
       err_msg(TYPE_, arg_list->pos, "in function '%s':", S_name(f->name));
       goto error;
     }
-    v->checked  = 1;
+    SET_FLAG(v, ae_value_checked);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     count++;
     arg_list = arg_list->next;
@@ -2095,7 +2095,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
 
   if(f->is_variadic) {
     vararg = new_Value(env->context, &t_vararg, "vararg");
-    vararg->checked = 1;
+    SET_FLAG(vararg, ae_value_checked);
     namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
   if(f->code && check_Stmt_Code(env, &f->code->d.stmt_code, 0) < 0) {

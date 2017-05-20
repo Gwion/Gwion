@@ -324,7 +324,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_value_static);
     }
-    v->checked = 1;
+    SET_FLAG(v, ae_value_checked);
     namespace_add_value(nspc, list->xid, v);
     vector_append(stmt->values, (vtype)v);
     list = list->next;

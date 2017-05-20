@@ -63,7 +63,6 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       decl->m_type = type;
     }
     list->self->value = new_Value(env->context, type, S_name(list->self->xid));
-    list->self->value->checked = 0;
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
     list->self->value->is_member = (env->class_def && !env->class_scope && !env->func && !decl->is_static);
@@ -136,7 +135,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
   }
   namespace_pop_value(env->curr);
 
-  ptr->value->checked = 1;
+  SET_FLAG(ptr->value, ae_value_checked);
   namespace_add_value(env->curr, ptr->xid, ptr->value);
 
   Func_Def def = new_Func_Def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
@@ -665,7 +664,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->value_ref = value;
     add_ref(value->obj);
     f->func = func;
-    value->checked = 1;
+    SET_FLAG(value, ae_value_checked);
     if(overload)
       overload->func_num_overloads++;
     else
@@ -819,7 +818,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     return 1;
   }
 
-  value->checked = 1;
+  SET_FLAG(value, ae_value_checked);
   // while making doc
   if(!env->class_def)
     context_add_func(env->context, func, func->obj);
