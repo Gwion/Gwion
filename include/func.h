@@ -7,11 +7,11 @@ struct Func_ {
   Value value_ref;
   Value up;
   Func next;
+  struct VM_Object_ obj;
   m_str doc;
   m_uint vt_index;
   m_uint variadic_index;
   Instr variadic_start;
-  struct VM_Object_ obj;
   m_bool is_member;
   m_bool is_template; // 13/03/17
   m_bool is_dtor;

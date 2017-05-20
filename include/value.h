@@ -11,9 +11,9 @@ struct Value_ {
   m_uint func_num_overloads;
   NameSpace owner;
   Type owner_class;
+  struct VM_Object_ obj;
   m_str doc;
   m_uint flag;
-  struct VM_Object_ obj;
 };
 
 // TODO reorder enum
