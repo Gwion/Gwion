@@ -9,10 +9,10 @@ typedef struct {
   m_str name;
   m_str filename;
   m_uint stack_depth;
-  m_bool need_this;
   Vector code;
   Vector stack_cont, stack_break, stack_return;
   Frame* frame;
+  m_bool need_this;
 } Code;
 
 Code* new_Code();

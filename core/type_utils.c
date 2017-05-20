@@ -217,6 +217,7 @@ m_bool add_global_type(Env env, Type type)
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
   type->obj.type = e_type_obj;
+  type->obj.ref_count = 0;
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_Value(env->global_context, v_type, type->name);
   SET_FLAG(v, ae_value_checked);
