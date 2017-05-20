@@ -1,7 +1,6 @@
 typedef m_bool (*f_tick) (UGen ug);
 
 struct UGen_ {
-  m_bool done;
   m_uint n_in, n_out, n_chan;
   m_float in, out, last;
   m_int op;
@@ -13,6 +12,7 @@ struct UGen_ {
   f_tick tick;
   UGen ref;
   void* ug;
+  m_bool done;
 };
 
 m_bool import_ugen(Env env);

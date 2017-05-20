@@ -32,9 +32,9 @@ typedef m_bool (CK_DLL_CALL * f_init)(Env env);
 typedef struct {
   m_str name;
   m_str type;
-  m_bool is_const;
   void * static_addr;
   m_str doc;
+  m_bool is_const;
 } DL_Value;
 
 void free_DL_Value(DL_Value* a);
