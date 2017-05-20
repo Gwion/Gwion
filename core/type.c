@@ -179,8 +179,8 @@ Env type_engine_init(VM* vm, Vector plug_dirs)
   /*  env->user_nspc = new_NameSpace();*/
   /*  env->user_nspc->name = "[user]";*/
   /*  env->user_nspc->parent = env->global_nspc;*/
-  /*  add_ref(env->global_nspc->obj);*/
-  /*  add_ref(env->user_nspc->obj);*/
+  /*  add_ref(add_ref(env->global_nspc->obj);*/
+  /*  add_ref(add_ref(env->user_nspc->obj);*/
   /*  env->curr = env->user_nspc;*/
   // plugins
   //  void* handler;
@@ -223,8 +223,8 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
       err_msg(TYPE_, list->self->pos,
               "in class '%s': '%s' has already been defined in parent class '%s'...",
               env->class_def->name, S_name(list->self->xid), value->owner_class->name);
-//      add_ref(env->class_def->obj);
-//      add_ref(env->class_def->obj);
+//      add_ref(add_ref(env->class_def->obj);
+//      add_ref(add_ref(env->class_def->obj);
       return NULL;
     }
     var_decl = list->self;
@@ -238,12 +238,10 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
       if(!check_Expression(env, var_decl->array->exp_list)) {
-        free(type->obj);
         free(type);
         return NULL;
       }
       if(check_array_subscripts(env, var_decl->array->exp_list) < 0) {
-        free(type->obj);
         free(type);
         return NULL;
       }
@@ -545,7 +543,6 @@ Type check_Array(Env env, Array* array)
               /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
               "array index %i must be of type 'int', not '%s'",
               depth, e->type->name);
-      free(t_base->obj);
       free(t_base);
       return NULL;
     }
@@ -556,7 +553,6 @@ Type check_Array(Env env, Array* array)
 
   if(depth != array->indices->depth) {
     err_msg(TYPE_, array->pos, "invalid array acces expression.");
-    free(t_base->obj);
     free(t_base);
     return NULL;
   }
@@ -1284,7 +1280,7 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
-  add_ref(t->obj);
+  add_ref(&t->obj);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -1961,7 +1957,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
     err_msg(TYPE_,  member->base->pos,
             "class '%s' has no member '%s'", s, str);
     if(the_base->array_depth) {
-      free(the_base->obj);
       free(the_base);
     }
     return NULL;
@@ -2104,7 +2099,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic)
-    rem_ref(vararg->obj, vararg);
+    rem_ref(&vararg->obj, vararg);
   if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
   namespace_pop_value(env->curr);
@@ -2236,11 +2231,11 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
   ret = 1;
 
 cleanup:
-//    add_ref(context->obj);
+//    add_ref(add_ref(context->obj);
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    add_ref(context->obj);
+    add_ref(&context->obj);
   } else {
 //    namespace_rollback(env->global_nspc);
     //rem_ref(context->obj, context);
@@ -2249,7 +2244,7 @@ cleanup:
   if(ret < 0) {
     free_Ast(ast);
     //rem_ref(context->nspc->obj, context->nspc);
-    rem_ref(context->obj, context); // breaks function pointer for now
+    rem_ref(&context->obj, context); // breaks function pointer for now
     free(filename);
   }
   return ret;

@@ -59,7 +59,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
       if(env->class_def)
-        add_ref(type->obj);
+        add_ref(&type->obj);
       decl->m_type = type;
     }
     list->self->value = new_Value(env->context, type, S_name(list->self->xid));
@@ -71,10 +71,10 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
-//	add_ref(list->self->value->obj);
+//	add_ref(&list->self->value->obj);
     // doc
     if(!env->class_def && !env->func)
-      context_add_value(env->context, list->self->value, list->self->value->obj);
+      context_add_value(env->context, list->self->value, &list->self->value->obj);
     if(list->doc)
       list->self->value->doc = list->doc;
     list = list->next;
@@ -128,6 +128,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     v = calloc(1, sizeof(struct Value_));
     v->m_type = arg_list->type;
     v->name = S_name(arg_list->var_decl->xid);
+    SET_FLAG(v, ae_value_arg);
     v->owner = env->curr;
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     arg_list->var_decl->value = v;
@@ -152,7 +153,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     ptr->value->owner_class = env->class_def;
   }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
-  add_ref(ptr->func->obj);
+  add_ref(&ptr->func->obj);
   return 1;
 error:
   namespace_pop_value(env->curr);
@@ -664,9 +665,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(!env->class_def)
       SET_FLAG(value, ae_value_global);
     value->func_ref = func;
-    add_ref(value->func_ref->obj);
+    add_ref(&value->func_ref->obj);
     func->value_ref = value;
-    add_ref(value->obj);
+    add_ref(&value->obj);
     f->func = func;
     SET_FLAG(value, ae_value_checked);
     if(overload)
@@ -719,7 +720,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   type->parent = &t_function;
   type->size = SZ_INT;
   type->func = func;
-  type->obj = new_VM_Object(e_type_obj);
+  type->obj.type = e_type_obj;
   value = new_Value(env->context, type, func_name);
   SET_FLAG(value, ae_value_const);
   value->owner = env->curr;
@@ -729,10 +730,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     SET_FLAG(value, ae_value_global);
   value->func_ref = func;
-  add_ref(value->func_ref->obj);
+  add_ref(&value->func_ref->obj);
   func->value_ref = value;
   f->func = func;
-  add_ref(f->func->obj);
+  add_ref(&f->func->obj);
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -793,7 +794,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     v->m_type = arg_list->type;
     v->name = S_name(arg_list->var_decl->xid);
     v->owner = env->curr;
-
+   SET_FLAG(v, ae_value_arg);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
@@ -819,14 +820,14 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
       f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1))
     if(!env->class_def)
-      context_add_func(env->context, func, func->obj);
+      context_add_func(env->context, func, &func->obj);
     return 1;
   }
 
   SET_FLAG(value, ae_value_checked);
   // while making doc
   if(!env->class_def)
-    context_add_func(env->context, func, func->obj);
+    context_add_func(env->context, func, &func->obj);
 
   namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
   if(!overload)
@@ -854,7 +855,6 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
 // should be in free_context, at least.
 free(value->m_type->name);
-free(value->m_type->obj);
 free(value->m_type);
 f->func->value_ref->m_type = NULL;
   namespace_pop_value(env->curr);
@@ -865,7 +865,7 @@ f->func->value_ref->m_type = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
 	f->func->is_dtor = 1;
-    add_ref(f->func->value_ref->obj);
+    add_ref(&f->func->value_ref->obj);
   }
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;
@@ -877,13 +877,13 @@ error:
     scope_rem(env->curr->func, f->name);
     func->def = NULL;
     f->func = NULL;
-    rem_ref(func->obj, func);
+    rem_ref(&func->obj, func);
   }
   if(value) {
     free(value->m_type->name);
     free(value->name);
-    rem_ref(value->m_type->obj, value->m_type);
-    rem_ref(value->obj, value);
+    rem_ref(&value->m_type->obj, value->m_type);
+    rem_ref(&value->obj, value);
   }
   return -1;
 }

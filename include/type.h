@@ -25,7 +25,7 @@ struct Type_ {
   Type      array_type;
   m_bool    is_complete;
   Class_Def def;
-  VM_Object obj;
+  struct VM_Object_ obj;
   m_str      doc;
   m_uint    obj_size;
   m_bool has_constructor;

@@ -59,7 +59,7 @@ NameSpace new_NameSpace()
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
-  a->obj             = new_VM_Object(e_namespace_obj);
+  a->obj.type        = e_namespace_obj;
   a->obj_v_table     = new_Vector();
   a->operator        = new_Operator_Map();
   return a;
@@ -72,7 +72,7 @@ void free_NameSpace(NameSpace a)
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     if(isa(value->m_type, &t_class) > 0) {
-      rem_ref(value->m_type->obj, value->m_type);
+      rem_ref(&value->m_type->obj, value->m_type);
     }
     else if(isa(value->m_type, &t_object) > 0) {
       if(value->ptr) {
@@ -85,7 +85,6 @@ void free_NameSpace(NameSpace a)
         free_Vector(instr);
       }
       if(value->m_type->array_type) {
-        free(value->m_type->obj);
         free(value->m_type);
       }
       if(GET_FLAG(value, ae_value_static)) {
@@ -103,10 +102,10 @@ void free_NameSpace(NameSpace a)
       if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
         free(value->name);
         free(value->m_type->name);
-        rem_ref(value->m_type->obj, value->m_type);
+        rem_ref(&value->m_type->obj, value->m_type);
       }
     }
-    rem_ref(value->obj, value);
+    rem_ref(&value->obj, value);
 
   }
   free_Vector(v);
@@ -116,7 +115,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
-    rem_ref(func->obj, func);
+    rem_ref(&func->obj, func);
   }
   free_Vector(v);
   free_Scope(a->func);
@@ -124,7 +123,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->type);
   for(i =vector_size(v); i > 0; i--) { // changed /07/04/17 for reverse order.
     Type type = (Type)vector_at(v, i-1);
-    rem_ref(type->obj, type);
+    rem_ref(&type->obj, type);
   }
   free_Vector(v);
   free_Scope(a->type);

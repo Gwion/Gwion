@@ -30,7 +30,7 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     list = list->next;
   }
   decl->m_type = t;
-  add_ref(t->obj);
+  add_ref(&t->obj);
   return 1;
 }
 
@@ -317,8 +317,8 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
       return -1;
     }
     v = new_Value(env->context, t, S_name(list->xid));
-    add_ref(t->obj);
-    add_ref(v->obj);
+    add_ref(&t->obj);
+    add_ref(&v->obj);
     SET_FLAG(v, ae_value_const);
     SET_FLAG(v, ae_value_enum);
     if(env->class_def) {
@@ -396,7 +396,7 @@ static m_bool scan1_Stmt_Union(Env env, Stmt_Union stmt)
       list = list->next;
     }
     l->self->m_type = t;
-    add_ref(l->self->m_type->obj);
+    add_ref(&l->self->m_type->obj);
     l = l->next;
   }
   return 1;

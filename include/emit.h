@@ -27,7 +27,7 @@ struct Emitter_ {
   Context   context;
   NameSpace nspc;
   Func      func;
-  VM_Object obj;
+  struct VM_Object_ obj;
   Map       cases;
   m_int	    default_case_index;
 };
