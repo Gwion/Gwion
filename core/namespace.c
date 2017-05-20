@@ -88,7 +88,7 @@ void free_NameSpace(NameSpace a)
         free(value->m_type->obj);
         free(value->m_type);
       }
-      if(value->is_static) {
+      if(GET_FLAG(value, ae_value_static)) {
         Vector instr = new_Vector();
         VM_Code code = new_VM_Code(instr, 0, 0, "", "");
         VM_Shred s = new_VM_Shred(code);

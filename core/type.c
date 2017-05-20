@@ -258,7 +258,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
                 "static variables must be declared at class scope...");
         return NULL;
       }
-      value->is_static = 1;
+      SET_FLAG(value, ae_value_static);
       value->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += type->size;
     }
@@ -402,7 +402,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
         v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_key_static && v->is_member && !v->is_static) {
+          if(env->func->def->static_decl == ae_key_static && v->is_member && !GET_FLAG(v, ae_value_static)) {
             err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->d.var));
             return NULL;
           }
@@ -1535,7 +1535,7 @@ static m_bool check_Enum(Env env, Stmt_Enum stmt)
     v = namespace_lookup_value(nspc, list->xid, 0);
     if(env->class_def) {
       // enum in classes are static
-      v->is_static = 1;
+      SET_FLAG(v, ae_value_static);
       v->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += t_int.size;
     }

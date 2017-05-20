@@ -13,7 +13,6 @@ struct Value_ {
   m_bool checked;
   m_bool is_const;
   m_bool is_member;
-  m_bool is_static;
   NameSpace owner;
   Type owner_class;
   VM_Object obj;
@@ -21,6 +20,7 @@ struct Value_ {
   m_uint flag;
 };
 
-enum { ae_value_none, ae_value_import, ae_value_global };
+// TODO reorder enum
+enum { ae_value_none, ae_value_import, ae_value_global, ae_value_static };
 Value new_Value(Context context, Type type, m_str name);
 void free_Value(Value a);

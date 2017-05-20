@@ -133,11 +133,11 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos)
 {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, v->is_static, v->owner_class);
+  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), v->is_const, GET_FLAG(v, ae_value_static), v->owner_class);
 #endif
   Instr instr;
 
-  if (v->owner_class && (v->is_member || v->is_static)) {
+  if (v->owner_class && (v->is_member || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);

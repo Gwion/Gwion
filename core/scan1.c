@@ -322,7 +322,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
     v->is_const = 2;
     if(env->class_def) {
       v->owner_class = env->class_def;
-      v->is_static = 1;
+      SET_FLAG(v, ae_value_static);
     }
     v->checked = 1;
     namespace_add_value(nspc, list->xid, v);
