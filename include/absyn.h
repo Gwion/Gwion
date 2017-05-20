@@ -9,7 +9,6 @@ typedef struct Expression_ * Expression;
 typedef struct Var_Decl_* Var_Decl;
 typedef struct Var_Decl_List_* Var_Decl_List;
 typedef struct Arg_List_ * Arg_List;
-struct NameSpace;
 
 extern Map scan_map;
 
@@ -23,8 +22,8 @@ typedef struct {
   Vector doc;
   char doc_str[4096];
   Ast ast;
-  int line;
-  int pos;
+  unsigned int line;
+  unsigned int pos;
   FILE* file;
   m_str filename;
 } MyArg;
@@ -36,6 +35,7 @@ typedef struct {
   int pos;
   Expression self;
 } Dot_Member;
+struct NameSpace;
 
 struct Array_Sub_ {
   m_uint depth;
@@ -48,6 +48,13 @@ struct Array_Sub_ {
 };
 Array_Sub new_array_sub(Expression exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Expression exp, int pos);
+
+typedef struct {
+  Expression base;
+  Array_Sub indices;
+  int pos;
+  Expression self;
+} Array_Expression;
 
 typedef struct {
   Expression base;
@@ -80,11 +87,11 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Dot_Member* dot;
-  m_str doc;
+  int ref;
   int pos;
-  m_bool ref;
+  m_str doc;
 } Type_Decl;
-Type_Decl* new_Type_Decl(ID_List name, const m_bool ref, int pos);
+Type_Decl* new_Type_Decl(ID_List name, int ref, int pos);
 void free_Type_Decl(Type_Decl* a);
 
 typedef struct {
@@ -93,10 +100,10 @@ typedef struct {
   Var_Decl_List list;
   int pos;
   int num_decl;
+  int is_static;
   Expression self;
-  m_bool is_static;
 } Decl_Expression;
-Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, const m_bool is_static, int pos);
+Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
 Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, int pos);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos );
 
@@ -267,11 +274,11 @@ struct Stmt_Exp_ {
   Stmt self;
 };
 struct Stmt_Flow_ {
+  int is_do;
   Expression cond;
   Stmt body;
-  Stmt self;
   int pos;
-  m_bool is_do;
+  Stmt self;
 };
 struct Stmt_Code_ {
   Stmt_List stmt_list;
@@ -283,8 +290,8 @@ struct Stmt_For_ {
   Stmt c2;
   Expression c3;
   Stmt body;
-  Stmt self;
   int pos;
+  Stmt self;
 };
 struct Stmt_Loop_ {
   Expression cond;
@@ -301,13 +308,13 @@ struct Stmt_If_ {
 };
 struct Stmt_Goto_Label_ {
   S_Symbol name;
+  m_bool is_label;
   union {
     Vector v;
     Instr instr;
   } data;
   int pos;
   Stmt self;
-  m_bool is_label;
 };
 struct Stmt_Switch_ {
   Expression val;
@@ -368,15 +375,15 @@ struct Stmt_{
 
 Stmt new_stmt_from_expression(Expression exp, int pos);
 Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
-Stmt new_stmt_from_while(Expression cond, Stmt body, const m_bool is_do, int pos);
+Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_return(Expression exp, int pos);
 Stmt new_stmt_from_break(int pos);
 Stmt new_stmt_from_continue(int pos);
 Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
-Stmt new_stmt_from_until(Expression cond, Stmt body, const m_bool is_do, int pos);
+Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
 Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos);
-Stmt new_stmt_from_gotolabel(m_str xid, const m_bool is_label, int pos);
+Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
 Stmt new_stmt_from_case(Expression exp, int pos);
 Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
@@ -411,6 +418,7 @@ Stmt new_Func_Ptr_Stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List arg
 struct Expression_ {
   Expression_type exp_type;
   ae_Exp_Meta meta;
+  int emit_var;
   Type type;
   Type cast_to;
   union {
@@ -428,7 +436,6 @@ struct Expression_ {
   } d;
   int pos;
   Expression next;
-  m_bool emit_var;
 };
 
 struct Stmt_List_ {
@@ -466,13 +473,13 @@ struct Func_Def_ {
   m_uint stack_depth;
   ae_Keyword func_decl;
   ae_Keyword static_decl;
+  m_bool has_code;
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
   m_bool is_template;
   m_bool is_variadic;
-  m_bool has_code;
 };
 
 Func_Def new_Func_Def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
@@ -532,8 +539,8 @@ Section* new_section_Class_Def(Class_Def class_def, int pos);
 struct Ast_ {
   Section* section;
   Ast next;
-  m_str doc;
   int pos;
+  m_str doc;
 };
 
 Ast new_Ast(Section* section, Ast next, int pos);

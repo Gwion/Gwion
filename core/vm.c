@@ -146,9 +146,9 @@ VM* new_VM(m_bool loop)
 void free_VM(VM* vm)
 {
   if(vm->env)
-    rem_ref(&vm->env->obj, vm->env);
+    rem_ref(vm->env->obj, vm->env);
   if(vm->emit)
-    rem_ref(&vm->emit->obj, vm->emit);
+    rem_ref(vm->emit->obj, vm->emit);
   stop_plug();
   free_Vector(vm->shred);
   free_Vector(vm->ugen);

@@ -2,7 +2,7 @@
 #define __ENV
 #include "defs.h"
 #include "vm.h"
-#include "oo.h"
+
 struct Env_ {
   NameSpace curr;
   NameSpace global_nspc;
@@ -17,7 +17,7 @@ struct Env_ {
   Vector    conts;
   Type      class_def;
   Func      func;
-  struct VM_Object_ obj;
+  VM_Object obj;
   Map known_ctx;
 };
 

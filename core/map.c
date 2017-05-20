@@ -249,7 +249,7 @@ void scope_add(Scope scope, S_Symbol xid, vtype value)
   else
     map = scope->commit_map;
   map_set(map, (vtype)xid, (vtype)value);
-  /*  add_ref(add_ref(((struct Value_*)value)->obj);*/
+  /*  add_ref(((struct Value_*)value)->obj);*/
 }
 
 void scope_rem(Scope scope, S_Symbol xid)

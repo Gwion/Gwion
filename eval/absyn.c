@@ -26,10 +26,15 @@ __inline static void free_Array_Sub(Array_Sub a)
 static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
-    if(GET_FLAG(a->value, ae_value_arg))
+    if(!a->value->obj) // func argument. this migth change
       free_Value(a->value);
-    else if(!a->value->owner_class)
-      rem_ref(&a->value->obj, a->value);
+    else if(!a->value->owner_class) { // breaks for loop ?
+      /*      if(a->value->m_type->array_type) {
+              free(a->value->m_type->obj);
+              free(a->value->m_type);
+            }*/
+      rem_ref(a->value->obj, a->value);
+    }
   }
   if(a->array)
     free_Array_Sub(a->array);
@@ -57,7 +62,7 @@ static void free_Var_Decl_List(Var_Decl_List a)
   }
 }
 
-Type_Decl* new_Type_Decl(ID_List xid, const m_bool ref, int pos)
+Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
 {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = xid;
@@ -185,7 +190,7 @@ void free_Type_Decl(Type_Decl* a)
   free(a);
 }
 
-Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, const m_bool is_static, int pos)
+Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Decl_Expression_type;
@@ -639,6 +644,7 @@ void free_Func_Def(Func_Def a)
     if(a->types)
       free_ID_List(a->types);
     if(a->ret_type && a->ret_type->array_type) {
+      free(a->ret_type->obj);
       free(a->ret_type);
     }
     if(a->arg_list)
@@ -674,8 +680,8 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
   if(a->key != ae_key_static && a->value && !GET_FLAG(a->value, ae_value_member)) {
     if(!a->func)
       free_Type_Decl(a->type);
-/*    rem_ref(&a->value->m_type->obj, a->value->m_type); */
-//    rem_ref(&a->value->obj, a->value);
+/*    rem_ref(a->value->m_type->obj, a->value->m_type); */
+//    rem_ref(a->value->obj, a->value);
   }
 }
 
@@ -811,6 +817,7 @@ void free_Arg_List(Arg_List a)
   free_Type_Decl(a->type_decl);
   if(a->var_decl->value) {
     if(a->var_decl->value->m_type->array_type) {
+      free(a->var_decl->value->m_type->obj);
       free(a->var_decl->value->m_type);
     }
   }
@@ -882,7 +889,7 @@ Stmt new_stmt_from_continue(int pos)
   return a;
 }
 
-Stmt new_stmt_from_while(Expression cond, Stmt body, const m_bool is_do, int pos)
+Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_while;
@@ -901,7 +908,7 @@ static void free_Stmt_Flow(struct Stmt_Flow_* a)
   free_Stmt(a->body);
 }
 
-Stmt new_stmt_from_until(Expression cond, Stmt body, const m_bool is_do, int pos)
+Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_until;
@@ -936,7 +943,7 @@ static void free_Stmt_For(Stmt_For a)
   free_Stmt(a->body);
 }
 
-Stmt new_stmt_from_gotolabel(m_str xid, const m_bool is_label, int pos)
+Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos)
 {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_gotolabel;
@@ -1036,9 +1043,10 @@ static void free_Stmt_Enum(Stmt_Enum a)
   for(i = 0; i < vector_size(a->values); i++) {
     Value v = (Value)vector_at(a->values, i);
 if(!v->owner_class) {
+    free(v->obj);
     free(v);
 }
-//else    rem_ref(&v->obj, v);
+//else    rem_ref(v->obj, v);
   }
   free_Vector(a->values);
 }
@@ -1205,6 +1213,7 @@ static void free_Section(Section* section)
         scope_rem(section->d.func_def->func->value_ref->owner_class->info->value, 
         insert_symbol(section->d.func_def->func->value_ref->name));
         section->d.func_def->func->value_ref->func_ref = NULL;
+        free(section->d.func_def->func->obj);
         free(section->d.func_def->func);
         free_Func_Def(section->d.func_def);
         break;
@@ -1214,7 +1223,8 @@ static void free_Section(Section* section)
       free_ID_List(section->d.func_def->types);
       free_Type_Decl(section->d.func_def->type_decl);
       if(section->d.func_def->func) {
-	    rem_ref(&section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+	    rem_ref(section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+   	    free(section->d.func_def->func->obj);
         free(section->d.func_def->func);
       }
       free(section->d.func_def);

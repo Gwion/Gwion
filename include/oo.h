@@ -13,8 +13,10 @@ typedef enum {
 struct VM_Object_ {
   e_obj  type;
   m_uint ref_count;
+  m_bool lock;
 };
 
+VM_Object new_VM_Object(e_obj type);
 static inline void add_ref(VM_Object a) { a->ref_count++; }
 void rem_ref(VM_Object a, void* ptr);
 #endif

@@ -1,7 +1,6 @@
 #include "defs.h"
 #include "vm.h"
 #include "operator.h"
-#include "oo.h"
 
 struct NameSpace_ {
   m_str     name;
@@ -15,7 +14,7 @@ struct NameSpace_ {
   NameSpace parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
-  struct VM_Object_ obj;
+  VM_Object obj;
   char*		class_data;
   m_uint    class_data_size;
   Map      	operator;

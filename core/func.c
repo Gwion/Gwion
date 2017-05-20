@@ -14,7 +14,7 @@ Func new_Func(m_str name, Func_Def def)
   func->value_ref = NULL;
   func->up = NULL;
   func->is_member = 0;
-  func->obj.type = e_func_obj;
+  func->obj = new_VM_Object(e_func_obj);
   func->variadic_start = NULL;
   return func;
 }

@@ -23,13 +23,13 @@ struct Type_ {
   Type      actual_type;
   m_uint    array_depth;
   Type      array_type;
+  m_bool    is_complete;
   Class_Def def;
-  struct VM_Object_ obj;
+  VM_Object obj;
   m_str      doc;
   m_uint    obj_size;
   m_bool has_constructor;
   m_bool has_destructor;
-  m_bool    is_complete;
 //	UGenInfo ugen_info;
 };
 

@@ -9,9 +9,18 @@
 
 static m_bool our_locks_in_effects = 0;
 
+VM_Object new_VM_Object(e_obj type)
+{
+  VM_Object a = malloc(sizeof(struct VM_Object_));
+  a->type = type;
+  a->ref_count = 0;
+  a->lock = 0;
+  return a;
+}
+
 void rem_ref(VM_Object a, void* ptr)
 {
-  if(!--a->ref_count || !our_locks_in_effects) {
+  if((!--a->ref_count && !a->lock) || !our_locks_in_effects) {
     switch(a->type) {
     case e_emit_obj:
       free_Emitter(ptr);
@@ -35,7 +44,7 @@ void rem_ref(VM_Object a, void* ptr)
       free_Func(ptr);
       break;
     }
-//    free(a);
+    free(a);
   }
   return;
 }

@@ -51,7 +51,7 @@ Emitter new_Emitter(Env env)
   emit->nspc = NULL;
   emit->func = NULL;
   emit->cases = NULL;
-  emit->obj.type = e_emit_obj;
+  emit->obj = new_VM_Object(e_emit_obj);
   emit->env = env;
   return emit;
 }
@@ -61,7 +61,7 @@ void free_Emitter(Emitter a)
   vtype i;
   for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
-    rem_ref(&f->obj, f);
+    rem_ref(f->obj, f);
   }
   free_Vector(a->spork);
   free_Vector(a->stack);
@@ -785,7 +785,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
 
   code = emit_to_code(emit);
   exp->vm_code = code;
-  //exp->vm_code->add_ref(add_ref();
+  //exp->vm_code->add_ref();
   emit->code = (Code*)vector_pop(emit->stack);
 
   Expression e = exp->args;
@@ -1741,7 +1741,7 @@ static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
   vector_append(emit->funcs, (vtype)ptr);
 if(ptr->key) {
 //rem_ref(ptr->func->obj, ptr->func);
-//add_ref(add_ref(ptr->func->obj);
+//add_ref(ptr->func->obj);
   scope_rem(ptr->value->owner_class->info->func, ptr->xid);
 }
   return 1;
@@ -2271,7 +2271,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   } else if (func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
-  add_ref(&func->obj);
+  add_ref(func->obj);
   emit->env->func = NULL;
 
   // delete the code ?
@@ -2347,7 +2347,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     sadd_instr(emit, Func_Return);
     free_VM_Code(type->info->pre_ctor);
     type->info->pre_ctor = emit_to_code(emit);
-    /*    type->info->pre_ctor->add_ref(add_ref();*/
+    /*    type->info->pre_ctor->add_ref();*/
   } else
     free(type->info->class_data); // LCOV_EXCL_LINE
   emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
@@ -2402,7 +2402,8 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   // handle empty array type
   for(i = 0; i < vector_size(emit->array); i++) {
     Type t = (Type)vector_at(emit->array, i);
-    if(!--t->obj.ref_count) {
+    if(!--t->obj) {
+      free(t->obj);
       free(t);
     } // all this should be
       // rem_ref(t->obj, t);

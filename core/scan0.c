@@ -7,7 +7,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
   Value v;
   Type type;
   Type t = new_Type(env->context);
-  add_ref(&t->obj);
+  add_ref(t->obj);
   t->xid = te_user;
   t->name = S_name(ptr->xid);
   t->owner = env->curr;
@@ -84,7 +84,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   }
 
   the_class = new_Type(env->context);
-//  add_ref(add_ref(the_class->obj);
+//  add_ref(the_class->obj);
 //  the_class->xid = te_user;
   the_class->xid = get_type_xid();
   the_class->name = S_name(class_def->name->xid);
@@ -94,7 +94,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   the_class->info = new_NameSpace();
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
-//  add_ref(add_ref(the_class->info->obj);
+//  add_ref(the_class->info->obj);
   the_class->info->name = the_class->name;
 
   if(env->context->public_class_def == class_def)
@@ -140,12 +140,12 @@ if(value->owner != env->global_nspc)
   vector_remove(env->context->new_class, vector_find(env->context->new_class, (vtype)value));
     SET_FLAG(value, ae_value_const);
     SET_FLAG(value, ae_value_checked);
-//    add_ref(add_ref(the_class->obj);
+//    add_ref(the_class->obj);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {
-      context_add_type(env->context, the_class, &the_class->obj);
-      context_add_class(env->context, value, &value->obj);
+      context_add_type(env->context, the_class, the_class->obj);
+      context_add_class(env->context, value, value->obj);
     }
   }
   if(class_def->home) {

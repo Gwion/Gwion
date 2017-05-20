@@ -105,10 +105,10 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
   type->info = new_NameSpace();
   type->info->filename = "global_nspc";
-  add_ref(&type->info->obj);
+  add_ref(type->info->obj);
   type->info->name = type->name;
   type->info->parent = where;
-  add_ref(&type->info->parent->obj);
+  add_ref(type->info->parent->obj);
   if(pre_ctor)
 	type->has_constructor = mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
@@ -120,7 +120,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
 
   type->owner = where;
-  add_ref(&type->owner->obj);
+  add_ref(type->owner->obj);
   type->obj_size = 0;
 
   type->is_complete = 1;
@@ -128,7 +128,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   env->curr = type->info;
   vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-  add_ref(&type->obj);
+  add_ref(type->obj);
   return type;
 }
 
@@ -279,7 +279,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static)
   return func_def;
 }
 
-#define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(&func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
+#define CHECK_FN(a) if(a < 0) { if(func_def->func) rem_ref(func_def->func->obj, func_def->func); free_Func_Def(func_def); return NULL;}
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
@@ -289,7 +289,7 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   if(!func_def) {
     free_DL_Func(mfun);
     scope_rem(env->global_nspc->type, insert_symbol(env->class_def->name));
-    rem_ref(&env->class_def->obj, env->class_def);
+    rem_ref(env->class_def->obj, env->class_def);
     return NULL;
   }
   CHECK_FN(scan1_Func_Def(env, func_def))
