@@ -14,7 +14,7 @@ Value new_Value(Context context, Type type, m_str name)
   a->func_num_overloads = 0;
   a->owner              = NULL;
   a->owner_class        = NULL;
-  a->obj                = new_VM_Object(e_value_obj);
+  INIT_OO(a, e_value_obj);
   return a;
 }
 void free_Value(Value a)

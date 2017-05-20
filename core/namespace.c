@@ -106,7 +106,7 @@ void free_NameSpace(NameSpace a)
         rem_ref(value->m_type->obj, value->m_type);
       }
     }
-    rem_ref(value->obj, value);
+    rem_ref(&value->obj, value);
 
   }
   free_Vector(v);

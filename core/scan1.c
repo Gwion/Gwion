@@ -318,7 +318,7 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
     }
     v = new_Value(env->context, t, S_name(list->xid));
     add_ref(t->obj);
-    add_ref(v->obj);
+    add_ref(&v->obj);
     SET_FLAG(v, ae_value_const);
     SET_FLAG(v, ae_value_enum);
     if(env->class_def) {

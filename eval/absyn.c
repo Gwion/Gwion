@@ -27,7 +27,6 @@ static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
     if(GET_FLAG(a->value, ae_value_arg)) { // func argument. this migth change
-      free(a->value->obj);
       free_Value(a->value);
     }
     else if(!a->value->owner_class) { // breaks for loop ?
@@ -35,7 +34,7 @@ static void free_Var_Decl(Var_Decl a)
               free(a->value->m_type->obj);
               free(a->value->m_type);
             }*/
-      rem_ref(a->value->obj, a->value);
+      rem_ref(&a->value->obj, a->value);
     }
   }
   if(a->array)
@@ -1045,7 +1044,6 @@ static void free_Stmt_Enum(Stmt_Enum a)
   for(i = 0; i < vector_size(a->values); i++) {
     Value v = (Value)vector_at(a->values, i);
 if(!v->owner_class) {
-    free(v->obj);
     free(v);
 }
 //else    rem_ref(v->obj, v);
@@ -1225,7 +1223,7 @@ static void free_Section(Section* section)
       free_ID_List(section->d.func_def->types);
       free_Type_Decl(section->d.func_def->type_decl);
       if(section->d.func_def->func) {
-	    rem_ref(section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+	    rem_ref(&section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
    	    free(section->d.func_def->func->obj);
         free(section->d.func_def->func);
       }

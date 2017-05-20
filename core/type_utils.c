@@ -162,7 +162,7 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   v->owner = env->global_nspc; // ?
   // doc
 //  namespace_add_value(env->global_context->nspc, insert_symbol(name), v);
-  context_add_value(env->global_context, v, v->obj);
+  context_add_value(env->global_context, v, &v->obj);
   return 1;
 }
 
@@ -184,7 +184,7 @@ m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
 
   // doc
 //  namespace_add_value(env->global_context->nspc, insert_symbol(name), v);
-  context_add_value(env->global_context, v, v->obj);
+  context_add_value(env->global_context, v, &v->obj);
 //  namespace_add_value(env->context->nspc, insert_symbol(type->name), v);
 
   return 1;

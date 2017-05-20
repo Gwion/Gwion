@@ -12,9 +12,9 @@ struct Value_ {
   m_uint func_num_overloads;
   NameSpace owner;
   Type owner_class;
-  VM_Object obj;
   m_str doc;
   m_uint flag;
+  struct VM_Object_ obj;
 };
 
 // TODO reorder enum

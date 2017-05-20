@@ -74,7 +74,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
 //	add_ref(list->self->value->obj);
     // doc
     if(!env->class_def && !env->func)
-      context_add_value(env->context, list->self->value, list->self->value->obj);
+      context_add_value(env->context, list->self->value, &list->self->value->obj);
     if(list->doc)
       list->self->value->doc = list->doc;
     list = list->next;
@@ -665,7 +665,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     value->func_ref = func;
     add_ref(value->func_ref->obj);
     func->value_ref = value;
-    add_ref(value->obj);
+    add_ref(&value->obj);
     f->func = func;
     SET_FLAG(value, ae_value_checked);
     if(overload)
@@ -861,7 +861,7 @@ f->func->value_ref->m_type = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
 	f->func->is_dtor = 1;
-    add_ref(f->func->value_ref->obj);
+    add_ref(&f->func->value_ref->obj);
   }
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;
@@ -879,7 +879,7 @@ error:
     free(value->m_type->name);
     free(value->name);
     rem_ref(value->m_type->obj, value->m_type);
-    rem_ref(value->obj, value);
+    rem_ref(&value->obj, value);
   }
   return -1;
 }

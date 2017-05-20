@@ -124,7 +124,7 @@ INSTR(Free_Func)
   free(f->value_ref->m_type->name);
   free(f->value_ref->m_type->obj);
   free(f->value_ref->m_type);
-  rem_ref(f->value_ref->obj, f->value_ref);
+  rem_ref(&f->value_ref->obj, f->value_ref);
   free_VM_Code(f->code);
 }
 

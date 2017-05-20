@@ -31,7 +31,7 @@ void free_Context(Context a)
       free(f->value_ref->m_type->name);
       free(f->value_ref->m_type->obj);
       free(f->value_ref->m_type);
-      rem_ref(f->value_ref->obj, f->value_ref);
+      rem_ref(&f->value_ref->obj, f->value_ref);
       rem_ref(f->obj, f);
       continue;
     } else if(!f->def->is_template) {
@@ -40,7 +40,7 @@ if(f->value_ref->m_type) { // error in scan2
       rem_ref(f->value_ref->m_type->obj, f->value_ref->m_type);
 }
       free(f->value_ref->name);
-      rem_ref(f->value_ref->obj, f->value_ref);
+      rem_ref(&f->value_ref->obj, f->value_ref);
     }
   }
   free_Vector(a->new_funcs);
@@ -48,7 +48,7 @@ if(f->value_ref->m_type) { // error in scan2
   for(i = 0; i < vector_size(a->new_class); i++) {
     Value v = (Value)vector_at(a->new_class, i);
     rem_ref(v->m_type->obj, v->m_type);
-    rem_ref(v->obj, v);
+    rem_ref(&v->obj, v);
   }
   free_Vector(a->new_class);
 

@@ -145,7 +145,7 @@ if(value->owner != env->global_nspc)
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {
       context_add_type(env->context, the_class, the_class->obj);
-      context_add_class(env->context, value, value->obj);
+      context_add_class(env->context, value, &value->obj);
     }
   }
   if(class_def->home) {

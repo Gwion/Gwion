@@ -44,7 +44,6 @@ void rem_ref(VM_Object a, void* ptr)
       free_Func(ptr);
       break;
     }
-    free(a);
   }
   return;
 }

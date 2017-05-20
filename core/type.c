@@ -2104,7 +2104,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic)
-    rem_ref(vararg->obj, vararg);
+    rem_ref(&vararg->obj, vararg);
   if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
   namespace_pop_value(env->curr);
