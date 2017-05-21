@@ -696,7 +696,6 @@ m_bool import_float(Env env)
   CHECK_BB(add_binary_op(env, op_ge,           &t_time,  &t_time, &t_int, ge,   0))
   CHECK_BB(add_binary_op(env, op_lt,           &t_time,  &t_time, &t_int, lt,   0))
   CHECK_BB(add_binary_op(env, op_le,           &t_time,  &t_time, &t_int, le,   0))
-  add_global_value_double(env, "t_zero",       &t_time, 0.);
   t_time.doc      = "time expression";
   return 1;
 }

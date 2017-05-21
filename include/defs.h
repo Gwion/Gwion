@@ -13,6 +13,7 @@
 #define SET_FLAG(a, b) a->flag |= 1 << b
 #define GET_FLAG(a, b) ((a->flag & 1 << b) == 1 << b)
 
+#define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c;
 #include "generated.h"
 
 typedef struct Ast_       * Ast;

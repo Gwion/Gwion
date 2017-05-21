@@ -53,7 +53,6 @@ Type find_common_anc(Type lhs, Type rhs );
 m_str type_path(ID_List path );
 m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
 m_bool add_global_type(Env env, Type type);
-m_bool add_global_value_double(Env env, m_str name, Type type, m_float data);
 Kindof kindof(Type type);
 m_int str2char( const m_str c, m_int linepos );
 extern struct Type_ t_void;

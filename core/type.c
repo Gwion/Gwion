@@ -153,20 +153,28 @@ Env type_engine_init(VM* vm, Vector plug_dirs)
   vector_append(vm->ugen, (vtype)vm->dac->ugen);
   vector_append(vm->ugen, (vtype)vm->adc->ugen);
 
-  add_global_value(env, "adc",               &t_ugen,   1, vm->adc);
-  add_global_value(env, "dac",               &t_ugen,   1, vm->dac);
-  add_global_value(env, "blackhole",         &t_ugen,   1, vm->blackhole);
-  add_global_value_double(env, "d_zero",     &t_dur,    0.);
-  add_global_value_double(env, "samp",       &t_dur,    1.);
-  add_global_value_double(env, "samplerate", &t_float,  (m_float)(vm->bbq->sp->sr));
-  add_global_value_double(env, "ms",         &t_dur,    (m_float)(vm->bbq->sp->sr) / 1000.);
-  add_global_value_double(env, "second",     &t_dur,    (m_float)vm->bbq->sp->sr);
-  add_global_value_double(env, "minute",     &t_dur,    (m_float)60 * vm->bbq->sp->sr);
-  add_global_value_double(env, "hour",       &t_dur,    (m_float)60 * 60 * vm->bbq->sp->sr);
-  add_global_value_double(env, "day",        &t_dur,    (m_float)24 * 60 * 60 * vm->bbq->sp->sr);
-  add_global_value_double(env, "week",       &t_dur,    (m_float)7 * 24 * 60 * 60 * vm->bbq->sp->sr);
+  ALLOC_PTR(d_zero, m_float, 0.0);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sp->sr);
+  ALLOC_PTR(samp,   m_float, 1.0);
+  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
+  ALLOC_PTR(second, m_float, (m_float)*sr);
+  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
+  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
+  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
+  ALLOC_PTR(t_zero, m_float, 0.0);
 
-
+  add_global_value(env, "adc",        &t_ugen, 1, vm->adc);
+  add_global_value(env, "dac",        &t_ugen, 1, vm->dac);
+  add_global_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
+  add_global_value(env, "d_zero",     &t_dur,  1, d_zero);
+  add_global_value(env, "samplerate", &t_dur,  1, sr);
+  add_global_value(env, "samp",       &t_dur,  1, samp);
+  add_global_value(env, "ms",         &t_dur,  1, ms);
+  add_global_value(env, "second",     &t_dur,  1, second);
+  add_global_value(env, "minute",     &t_dur,  1, minute);
+  add_global_value(env, "day",        &t_dur,  1, hour);
+  add_global_value(env, "hour",       &t_dur,  1, day);
+  add_global_value(env, "t_zero",     &t_time, 1, t_zero);
   /* commit */
   namespace_commit(env->global_nspc);
 

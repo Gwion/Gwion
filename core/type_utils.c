@@ -158,25 +158,6 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   return 1;
 }
 
-m_bool add_global_value_double(Env env, m_str name, Type type, m_float data)
-{
-  Value v = new_Value(type, name);
-  if(!v)
-    return -1;
-  SET_FLAG(v, ae_value_checked);
-//  if(is_const)
-    SET_FLAG(v, ae_value_const);
-  SET_FLAG(v, ae_value_global);
-  m_float* f = calloc(1, sizeof(m_float));
-  *f = data;
-  v->ptr = (m_uint*)f;
-  namespace_add_value(env->global_nspc, insert_symbol(name), v);
-  v->owner = env->global_nspc;
-  // doc
-  context_add_value(env->global_context, v, &v->obj);
-  return 1;
-}
-
 void start_type_xid()
 {
   do_type_xid = 1;
