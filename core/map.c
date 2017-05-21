@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "map.h"
 
 #define MAP_CAP 4
@@ -35,14 +36,11 @@ void vector_append(Vector v, vtype data)
 
 Vector vector_copy(Vector v)
 {
-  vtype i;
   Vector ret = malloc(sizeof(struct Vector_));
   ret->ptr = calloc(v->cap, sizeof(vtype));
   ret->len   = v->len;
   ret->cap = v->cap;
   memcpy(ret->ptr, v->ptr, v->cap * SZ_INT);
-//  for(i = 0; i < v->len; i++)
-//    ret->ptr[i] = v->ptr[i];
   return ret;
 }
 
