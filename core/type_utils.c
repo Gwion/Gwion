@@ -259,7 +259,7 @@ Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, Na
   t->array_type = base_type;
   t->info = array_parent->info;
   /*  SAFE_ADD_REF(t->array_type);*/
-  /*  SAFE_ADD_REF(t->info);*/
+  ADD_REF(t->info);
   t->owner = owner_nspc;
   /*  SAFE_ADD_REF(t->owner);*/
   return t;
