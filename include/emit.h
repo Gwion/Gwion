@@ -22,7 +22,6 @@ struct Emitter_ {
   Vector    stack;
   Vector    spork;
   Vector    funcs;
-  Vector    array; // a vector to hold empty array types.
   Code*     code;
   Context   context;
   NameSpace nspc;

@@ -46,7 +46,6 @@ Emitter new_Emitter(Env env)
   emit->stack = new_Vector();
   emit->spork = new_Vector();
   emit->funcs = new_Vector();
-  emit->array = new_Vector();
   emit->context = NULL;
   emit->nspc = NULL;
   emit->func = NULL;
@@ -66,7 +65,6 @@ void free_Emitter(Emitter a)
   free_Vector(a->spork);
   free_Vector(a->stack);
   free_Vector(a->funcs);
-  free_Vector(a->array);
   free(a);
 }
 
@@ -111,19 +109,19 @@ static void emit_pop_scope(Emitter emit)
   free_Vector(v);
 }
 
-static void emit_add_code(Emitter emit, Instr instr)
+static inline void emit_add_code(Emitter emit, Instr instr)
 {
   vector_append(emit->code->code, (vtype)instr);
 }
-static void emit_add_cont(Emitter emit, Instr instr)
+static inline void emit_add_cont(Emitter emit, Instr instr)
 {
   vector_append(emit->code->stack_cont, (vtype)instr);
 }
-static void emit_add_break(Emitter emit, Instr instr)
+static inline void emit_add_break(Emitter emit, Instr instr)
 {
   vector_append(emit->code->stack_break, (vtype)instr);
 }
-static void emit_add_return(Emitter emit, Instr instr)
+static inline void emit_add_return(Emitter emit, Instr instr)
 {
   vector_append(emit->code->stack_return, (vtype)instr);
 }
@@ -453,8 +451,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
       if (list->self->array) {
         if (list->self->array->exp_list) {
           CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
-        } else if (!value->owner_class)
-          vector_append(emit->array, (vtype)decl->m_type);
+        }
       } else if (!is_ref)
         CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
     }
@@ -2399,15 +2396,6 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     Stmt_Ptr ptr = (Stmt_Ptr)vector_at(emit->funcs, i);
     scope_rem(emit->env->curr->func, ptr->xid);
   }
-  // handle empty array type
-  for(i = 0; i < vector_size(emit->array); i++) {
-    Type t = (Type)vector_at(emit->array, i);
-    if(!--t->obj.ref_count) {
-      free(t);
-    } // all this should be
-      // REM_REF(t);
-  }
-  vector_clear(emit->array);
   emit_pop_scope(emit);
   if (ret < 0) { // should free all stack.
 //    for(i = 0; i < vector_size(emit->stack); i++)
