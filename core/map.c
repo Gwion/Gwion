@@ -60,7 +60,7 @@ long int vector_find(Vector v, vtype data)
 
 void vector_set(Vector v, const vtype i, vtype arg)
 {
-  v->ptr[i] = (i >= v->len) ? 0 : arg;
+  v->ptr[i] = arg;
 }
 
 void vector_remove(Vector v, const vtype index)
@@ -74,8 +74,9 @@ void vector_remove(Vector v, const vtype index)
     return;
   }
 
-  v->cap = (((v->len -1)/ MAP_CAP) + 1) * MAP_CAP;
-  tmp = malloc(MAP_MAX * sizeof(vtype));
+  if(v->len-1 < v->cap/2)
+	v->cap /= 2;
+  tmp = malloc(v->cap * sizeof(vtype));
   for(i = 0; i < v->len; i++) {
     if(i != index) {
       tmp[j] = v->ptr[i];
