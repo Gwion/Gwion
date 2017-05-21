@@ -1214,7 +1214,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
   if(cap < 0)
     goto negative_array_size;
-  type->obj.ref_count++; // should be ADD_REF
+  ADD_REF(type);
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
     if(!base)
@@ -1300,7 +1300,7 @@ INSTR(Instr_Array_Init) // for litteral array
       break;
    }
   }
-  info->type->obj.ref_count = 1; // shoule be add ref
+//  info->type->obj.ref_count = 1; // shoule be add ref // done in new_type now
   *(M_Object*)shred->reg = obj;
 //  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);
