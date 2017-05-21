@@ -7,11 +7,9 @@
 
 #include "emit.h"
 
-static m_bool our_locks_in_effects = 0;
-
 void rem_ref(VM_Object a, void* ptr)
 {
-  if(!--a->ref_count || !our_locks_in_effects) {
+  if(!--a->ref_count) {
     switch(a->type) {
     case e_emit_obj:
       free_Emitter(ptr);

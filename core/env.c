@@ -7,7 +7,6 @@ Env new_Env()
 {
   Env env = calloc(1, sizeof(struct Env_));
   env->global_context = new_Context(NULL, "global_context");
-  ADD_REF(env->global_context);
   env->context = env->global_context;
   env->contexts = new_Vector();
   env->class_stack = new_Vector();
@@ -17,7 +16,6 @@ Env new_Env()
   env->global_nspc->name = "global_nspc";
   env->global_nspc->filename = "global_nspc";
   env->curr = env->global_nspc;
-  ADD_REF(env->global_nspc);
   env->breaks = new_Vector();
   env->conts = new_Vector();
 //  env->user_nspc = NULL;

@@ -105,10 +105,9 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
   type->info = new_NameSpace();
   type->info->filename = "global_nspc";
-  ADD_REF(type->info);
   type->info->name = type->name;
   type->info->parent = where;
-  ADD_REF(type->info->parent);
+//  ADD_REF(type->info->parent);
   if(pre_ctor)
 	type->has_constructor = mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
@@ -120,7 +119,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   }
 
   type->owner = where;
-  ADD_REF(type->owner);
+//  ADD_REF(type->owner);
   type->obj_size = 0;
 
   type->is_complete = 1;
@@ -128,7 +127,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_ctor pre_ctor, f_
   env->curr = type->info;
   vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-  ADD_REF(type);
+//  ADD_REF(type);
   return type;
 }
 

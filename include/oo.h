@@ -15,7 +15,7 @@ struct VM_Object_ {
   m_uint ref_count;
 };
 
-#define INIT_OO(a, b) { a->obj.type = b; a->obj.ref_count = 0; }
+#define INIT_OO(a, b) { a->obj.type = b; a->obj.ref_count = 1; }
 #define REM_REF(a)    { rem_ref(&a->obj, a); }
 #define ADD_REF(a)    { a->obj.ref_count++; }
 void rem_ref(VM_Object a, void* ptr);

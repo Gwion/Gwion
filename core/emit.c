@@ -9,7 +9,7 @@ static m_str emit_filename;
 
 void free_Expression(Expression a); // absyn.h
 
-static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ADD_REF);
+static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
 static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop);
 static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member);
 static m_bool emit_Stmt_List(Emitter emit, Stmt_List list);
@@ -1051,7 +1051,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if)
   return ret;
 }
 
-static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ADD_REF)
+static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ref)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "expression");
@@ -1095,7 +1095,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ADD_REF)
 	}
     if (tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
-    if(ADD_REF && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
+    if(ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
         Instr ref = add_instr(emit, Reg_AddRef_Object3);
       ref->m_val = tmp->emit_var;
     }
@@ -2271,7 +2271,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   } else if (func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
-  ADD_REF(func);
+//  ADD_REF(func);
   emit->env->func = NULL;
 
   // delete the code ?

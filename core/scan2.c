@@ -58,8 +58,8 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       type = new_array_type(env, &t_array, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
-      if(env->class_def)
-        ADD_REF(type);
+//      if(env->class_def)
+//        ADD_REF(type);
       decl->m_type = type;
     }
     list->self->value = new_Value(type, S_name(list->self->xid));
@@ -663,9 +663,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(!env->class_def)
       SET_FLAG(value, ae_value_global);
     value->func_ref = func;
-    ADD_REF(value->func_ref);
+//    ADD_REF(value->func_ref);
     func->value_ref = value;
-    ADD_REF(value);
+//    ADD_REF(value);
     f->func = func;
     SET_FLAG(value, ae_value_checked);
     if(overload)
@@ -725,10 +725,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     SET_FLAG(value, ae_value_global);
   value->func_ref = func;
-  ADD_REF(value->func_ref);
+//  ADD_REF(value->func_ref);
   func->value_ref = value;
   f->func = func;
-  ADD_REF(f->func);
+//  ADD_REF(f->func);
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -858,7 +858,7 @@ f->func->value_ref->m_type = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
 	f->func->is_dtor = 1;
-    ADD_REF(f->func->value_ref);
+//    ADD_REF(f->func->value_ref);
   }
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;

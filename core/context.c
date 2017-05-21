@@ -61,7 +61,7 @@ m_bool load_context(Context context, Env env)
 {
   vector_append(env->contexts, (vtype)env->context);
   env->context = context;
-  ADD_REF(env->context);
+//  ADD_REF(env->context);
   namespace_push_value(context->nspc);
   vector_append(env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;

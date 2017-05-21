@@ -27,6 +27,7 @@ DTOR(array_dtor)
   free(o->d.array->ptr);
 // should not compare to t_array. see new_M_Array(Type t, ...
   if(o->type_ref != &t_array) {
+//REM_REF(o->type_ref);
     if(!--o->type_ref->obj.ref_count) {
       free(o->type_ref);
     }

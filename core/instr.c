@@ -1212,9 +1212,9 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   M_Object base = NULL, next = NULL;
   m_int i = 0;
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
+  ADD_REF(type);
   if(cap < 0)
     goto negative_array_size;
-  ADD_REF(type);
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
     if(!base)

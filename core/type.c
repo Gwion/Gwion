@@ -1288,7 +1288,7 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
-  ADD_REF(t);
+//  ADD_REF(t);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -2243,7 +2243,7 @@ cleanup:
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    ADD_REF(context);
+//    ADD_REF(context);
   } else {
 //    namespace_rollback(env->global_nspc);
     //REM_REF(context);
