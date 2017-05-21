@@ -27,8 +27,9 @@ Vector new_Vector()
 
 void vector_append(Vector v, vtype data)
 {
-  if(!(v->ptr[1] - v->ptr[0] - OFFSET))
+  if(!(v->ptr[1] - v->ptr[0] - OFFSET)) {
     v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
+  }
   v->ptr[v->ptr[0]++ + OFFSET] = (vtype)data;
 }
 
@@ -102,7 +103,7 @@ void vector_clear(Vector v)
 
 void free_Vector(Vector v)
 {
-  /*free(v->ptr);*/
+  free(v->ptr);
   free(v);
   v = NULL;
 } 
