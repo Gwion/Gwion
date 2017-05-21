@@ -108,16 +108,17 @@ INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
-  M_Object old;
+  M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
-  if((old = **(M_Object**)(shred->reg + SZ_INT)))
-    release(old, shred);
-  if(instr->m_val2)
-    release(old, shred);
+  src = *(M_Object*)shred->reg;
+  if((tgt = **(M_Object**)(shred->reg + SZ_INT)))
+    release(tgt, shred);
   if(instr->m_val)
-    **(M_Object**)shred->reg = *(M_Object*)shred->reg;
+    **(M_Object**)shred->reg = src;
   else
-    (**(M_Object**)(shred->reg + SZ_INT) = *(M_Object*)shred->reg);
+    **(M_Object**)(shred->reg + SZ_INT) = src;
+  if(instr->m_val2)
+    release(tgt, shred);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -258,8 +259,6 @@ m_bool import_object(Env env)
   CHECK_BB(add_binary_op(env, op_neq, &t_null,   &t_object, &t_int, neq_Object, 1))
   CHECK_BB(add_binary_op(env, op_eq,  &t_object, &t_null, &t_int,  eq_Object, 1))
   CHECK_BB(add_binary_op(env, op_neq, &t_object, &t_null, &t_int, neq_Object, 1))
-
-  add_global_value(env, "NULL", &t_object, 1, 0);
 
   CHECK_BB(import_class_end(env))
   CHECK_BB(add_global_type(env, &t_vararg))
