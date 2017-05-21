@@ -29,7 +29,8 @@ void vector_append(Vector v, vtype data)
 {
   if(!(v->cap - v->len))
   {
-    v->cap = (v->cap ? v->cap : MAP_CAP) * 2;
+//    v->cap = (v->cap ? v->cap : MAP_CAP) * 2;
+    v->cap *=2;
     v->ptr = realloc(v->ptr, v->cap * sizeof(vtype));
   }
   v->len++;
