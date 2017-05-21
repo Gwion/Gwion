@@ -29,7 +29,6 @@ void vector_append(Vector v, vtype data)
 {
   if(!(v->cap - v->len))
   {
-//    v->cap = (v->cap ? v->cap : MAP_CAP) * 2;
     v->cap *=2;
     v->ptr = realloc(v->ptr, v->cap * sizeof(vtype));
   }
@@ -65,27 +64,13 @@ void vector_set(Vector v, const vtype i, vtype arg)
 
 void vector_remove(Vector v, const vtype index)
 {
-  vtype* tmp;
-  vtype i, j = 0;
-  if(!v->len || index >= v->len)
+  vtype i;
+  if(index >= v->len)
     return;
-  if(v->len == 1 && !index) {
-    v->len--;
-    return;
-  }
-
-  if(v->len-1 < v->cap/2)
-	v->cap /= 2;
-  tmp = malloc(v->cap * sizeof(vtype));
-  for(i = 0; i < v->len; i++) {
-    if(i != index) {
-      tmp[j] = v->ptr[i];
-      j++;
-    }
-  }
-  free(v->ptr);
-  v->ptr = tmp;
-  v->len--;
+  for(i = index + 1; i < v->len; i++)
+    v->ptr[i-1] = v->ptr[i];
+  if(--v->len < v->cap/2)
+    v->ptr = realloc(v->ptr, (v->cap/=2) * sizeof(vtype));
 }
 
 vtype vector_pop(Vector v)
