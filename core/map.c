@@ -2,6 +2,7 @@
 #include "map.h"
 
 #define MAP_CAP 4
+#define OFFSET 2*SZ_INT
 
 struct Vector_ {
   vtype* ptr;
@@ -28,12 +29,8 @@ Vector new_Vector()
 void vector_append(Vector v, vtype data)
 {
   if(!(v->cap - v->len))
-  {
-    v->cap *=2;
-    v->ptr = realloc(v->ptr, v->cap * sizeof(vtype));
-  }
-  v->len++;
-  v->ptr[v->len - 1] = (vtype)data;
+    v->ptr = realloc(v->ptr, (v->cap*=2) * sizeof(vtype));
+  v->ptr[v->len++] = (vtype)data;
 }
 
 Vector vector_copy(Vector v)
@@ -43,8 +40,9 @@ Vector vector_copy(Vector v)
   ret->ptr = calloc(v->cap, sizeof(vtype));
   ret->len   = v->len;
   ret->cap = v->cap;
-  for(i = 0; i < v->len; i++)
-    ret->ptr[i] = v->ptr[i];
+  memcpy(ret->ptr, v->ptr, v->cap * SZ_INT);
+//  for(i = 0; i < v->len; i++)
+//    ret->ptr[i] = v->ptr[i];
   return ret;
 }
 
