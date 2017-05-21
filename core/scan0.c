@@ -6,7 +6,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
 {
   Value v;
   Type type;
-  Type t = new_Type(te_user, S_name(ptr->xid));
+  Type t = new_Type(te_func_ptr, S_name(ptr->xid));
   ADD_REF(t);
   t->owner = env->curr;
   t->array_depth = 0;

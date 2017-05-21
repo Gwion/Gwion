@@ -49,7 +49,7 @@ int isa(Type var, Type parent);
 int isres(Env env, S_Symbol xid, int pos);
 int verify_array(Array_Sub array);
 Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, NameSpace owner_nspc);
-Type find_common_anc(Type lhs, Type rhs );
+static inline Type find_common_anc(Type lhs, Type rhs) { return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL; }
 m_str type_path(ID_List path );
 m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
 m_bool add_global_type(Env env, Type type);

@@ -75,7 +75,7 @@ Type new_Type(te_type xid, m_str name)
 
 void free_Type(Type a)
 {
-  if(!a->is_complete && a->xid == te_user) {
+  if(!a->is_complete && a->xid > te_last) {
     if(a->info)
       REM_REF(a->info);
     free(a);
@@ -84,8 +84,6 @@ void free_Type(Type a)
   if(a->info)
     REM_REF(a->info);
   if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
-    free(a);
-  else if(a->xid == te_user)
     free(a);
 }
 
@@ -265,26 +263,6 @@ Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, Na
   t->owner = owner_nspc;
   /*  SAFE_ADD_REF(t->owner);*/
   return t;
-}
-
-Type find_common_anc(Type lhs, Type rhs)
-{
-  if(lhs->xid != te_user && rhs->xid != te_user) {
-    if(isa(lhs, rhs) > 0) return rhs;
-    if(isa(rhs, lhs) > 0) return lhs;
-    return NULL;
-  }
-  Type t1 = lhs->parent;
-  while(t1) {
-    Type t2 = rhs;
-    while(t2) {
-      if(t2 == t1)
-        return t1;
-      t2 = t2->parent;
-    }
-    t1 = t1->parent;
-  }
-  return NULL;
 }
 
 m_int str2char(const m_str c, m_int linepos)
