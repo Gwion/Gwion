@@ -3,12 +3,10 @@
 #include "map.h"
 
 #define MAP_CAP 4
-#define OFFSET 2*SZ_INT
+#define OFFSET 2
 
 struct Vector_ {
   vtype* ptr;
-  vtype len;
-  vtype cap;
 };
 
 struct Map_ {
@@ -22,94 +20,92 @@ Vector new_Vector()
 {
   Vector v = malloc(sizeof(struct Vector_));
   v->ptr = calloc(MAP_CAP, sizeof(vtype));
-  v->len = 0;
-  v->cap = MAP_CAP;
+  v->ptr[0] = 0;
+  v->ptr[1] = MAP_CAP;
   return v;
 }
 
 void vector_append(Vector v, vtype data)
 {
-  if(!(v->cap - v->len))
-    v->ptr = realloc(v->ptr, (v->cap*=2) * sizeof(vtype));
-  v->ptr[v->len++] = (vtype)data;
+  if(!(v->ptr[1] - v->ptr[0] - OFFSET))
+    v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
+  v->ptr[v->ptr[0]++ + OFFSET] = (vtype)data;
 }
 
 Vector vector_copy(Vector v)
 {
   Vector ret = malloc(sizeof(struct Vector_));
-  ret->ptr = calloc(v->cap, sizeof(vtype));
-  ret->len   = v->len;
-  ret->cap = v->cap;
-  memcpy(ret->ptr, v->ptr, v->cap * SZ_INT);
+  ret->ptr = calloc(v->ptr[1], sizeof(vtype));
+  memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
   return ret;
 }
 
 long int vector_find(Vector v, vtype data)
 {
   vtype i;
-  for(i = 0; i < v->len; i++)
-    if(v->ptr[i] == (vtype)data)
+  for(i = 0; i < v->ptr[0]; i++)
+    if(v->ptr[i + OFFSET] == (vtype)data)
       return i;
   return -1;
 }
 
 void vector_set(Vector v, const vtype i, vtype arg)
 {
-  v->ptr[i] = arg;
+  v->ptr[i + OFFSET] = arg;
 }
 
 void vector_remove(Vector v, const vtype index)
 {
   vtype i;
-  if(index >= v->len)
+  if(index >= v->ptr[0])
     return;
-  for(i = index + 1; i < v->len; i++)
-    v->ptr[i-1] = v->ptr[i];
-  if(--v->len < v->cap/2)
-    v->ptr = realloc(v->ptr, (v->cap/=2) * sizeof(vtype));
+  for(i = index + 1; i < v->ptr[0]; i++)
+    v->ptr[i-1+OFFSET] = v->ptr[i+OFFSET];
+  if(--v->ptr[0] + OFFSET < v->ptr[1]/2)
+    v->ptr = realloc(v->ptr, (v->ptr[1]/=2) * sizeof(vtype));
 }
 
 vtype vector_pop(Vector v)
-{
+{ 
   vtype ret;
-  if(!v->len)
+  if(!v->ptr[0])
     return 0;
-  ret = v->ptr[v->len - 1];
-  vector_remove(v, v->len - 1);
+  ret = v->ptr[v->ptr[0] + OFFSET - 1];
+  vector_remove(v, v->ptr[0] - 1);
   return ret;
 }
 
 vtype vector_front(Vector v)
 {
-  return v->len ? v->ptr[0] : 0;
-}
+  return v->ptr[0] ? v->ptr[0 + OFFSET] : 0;
+} 
 
 vtype vector_at(Vector v, const vtype i)
 {
-  return (i >= v->len) ? 0 :v->ptr[i];
-}
-
+  return (i >= v->ptr[0]) ? 0 :v->ptr[i + OFFSET];
+} 
+ 
 vtype vector_back(Vector v)
 {
-  return v->ptr[v->len - 1];
+  return v->ptr[v->ptr[0] + OFFSET - 1];
 }
 
 vtype vector_size(Vector v)
 {
-  return v->len;
+  return v->ptr[0];
 }
 
 void vector_clear(Vector v)
 {
-  v->len = 0;
+  v->ptr[0]= 0;
 }
 
 void free_Vector(Vector v)
 {
-  free(v->ptr);
+  /*free(v->ptr);*/
   free(v);
   v = NULL;
-}
+} 
 
 Map new_Map()
 {
@@ -119,7 +115,7 @@ Map new_Map()
   map->len = 0;
   map->cap = MAP_CAP;
   return map;
-}
+} 
 
 vtype map_get(Map map, vtype key)
 {
