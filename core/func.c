@@ -38,12 +38,12 @@ else {
         free(a->code);
 //        free(a->code);
         a->value_ref->owner->dtor = NULL;
-//rem_ref(a->value_ref->m_type->obj, a->value_ref->m_type);
+//REM_REF(a->value_ref->m_type);
 free(a->value_ref->m_type->name);
 free(a->value_ref->m_type->obj);
 free_Type(a->value_ref->m_type);
-rem_ref(a->value_ref->obj, a->value_ref);
-//rem_ref(a->value_ref->obj, a->value_ref);
+REM_REF(a->value_ref);
+//REM_REF(a->value_ref);
 free(a->name);
 */
       }

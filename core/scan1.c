@@ -30,7 +30,7 @@ m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl)
     list = list->next;
   }
   decl->m_type = t;
-  add_ref(&t->obj);
+  ADD_REF(t);
   return 1;
 }
 
@@ -316,9 +316,9 @@ static m_bool scan1_Enum(Env env, Stmt_Enum stmt)
       err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, S_name(list->xid));
       return -1;
     }
-    v = new_Value(env->context, t, S_name(list->xid));
-    add_ref(&t->obj);
-    add_ref(&v->obj);
+    v = new_Value(t, S_name(list->xid));
+    ADD_REF(t);
+    ADD_REF(v);
     SET_FLAG(v, ae_value_const);
     SET_FLAG(v, ae_value_enum);
     if(env->class_def) {
@@ -396,7 +396,7 @@ static m_bool scan1_Stmt_Union(Env env, Stmt_Union stmt)
       list = list->next;
     }
     l->self->m_type = t;
-    add_ref(&l->self->m_type->obj);
+    ADD_REF(l->self->m_type);
     l = l->next;
   }
   return 1;

@@ -30,30 +30,30 @@ void free_Context(Context a)
       free(f->value_ref->name);
       free(f->value_ref->m_type->name);
       free(f->value_ref->m_type);
-      rem_ref(&f->value_ref->obj, f->value_ref);
-      rem_ref(&f->obj, f);
+      REM_REF(f->value_ref);
+      REM_REF(f);
       continue;
     } else if(!f->def->is_template) {
 if(f->value_ref->m_type) { // error in scan2
       free(f->value_ref->m_type->name);
-      rem_ref(&f->value_ref->m_type->obj, f->value_ref->m_type);
+      REM_REF(f->value_ref->m_type);
 }
       free(f->value_ref->name);
-      rem_ref(&f->value_ref->obj, f->value_ref);
+      REM_REF(f->value_ref);
     }
   }
   free_Vector(a->new_funcs);
 
   for(i = 0; i < vector_size(a->new_class); i++) {
     Value v = (Value)vector_at(a->new_class, i);
-    rem_ref(&v->m_type->obj, v->m_type);
-    rem_ref(&v->obj, v);
+    REM_REF(v->m_type);
+    REM_REF(v);
   }
   free_Vector(a->new_class);
 
   free_Vector(a->new_values);
   free_Vector(a->new_types);
-  rem_ref(&a->nspc->obj, a->nspc);
+  REM_REF(a->nspc);
   free(a);
 }
 
@@ -61,7 +61,7 @@ m_bool load_context(Context context, Env env)
 {
   vector_append(env->contexts, (vtype)env->context);
   env->context = context;
-  add_ref(&env->context->obj);
+  ADD_REF(env->context);
   namespace_push_value(context->nspc);
   vector_append(env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
@@ -73,7 +73,7 @@ m_bool unload_context(Context context, Env env)
 {
   namespace_pop_value(env->context->nspc);
   env->curr = (NameSpace)vector_pop(env->nspc_stack);
-//  rem_ref(env->context->obj, env->context);
+//  REM_REF(env->context);
   env->context = (Context)vector_pop(env->contexts);
   return 1;
 }

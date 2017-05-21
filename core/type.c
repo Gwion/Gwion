@@ -179,8 +179,8 @@ Env type_engine_init(VM* vm, Vector plug_dirs)
   /*  env->user_nspc = new_NameSpace();*/
   /*  env->user_nspc->name = "[user]";*/
   /*  env->user_nspc->parent = env->global_nspc;*/
-  /*  add_ref(env->global_nspc->obj);*/
-  /*  add_ref(env->user_nspc->obj);*/
+  /*  ADD_REF(env->global_nspc->obj);*/
+  /*  ADD_REF(env->user_nspc->obj);*/
   /*  env->curr = env->user_nspc;*/
   // plugins
   //  void* handler;
@@ -223,8 +223,8 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
       err_msg(TYPE_, list->self->pos,
               "in class '%s': '%s' has already been defined in parent class '%s'...",
               env->class_def->name, S_name(list->self->xid), value->owner_class->name);
-//      add_ref(env->class_def->obj);
-//      add_ref(env->class_def->obj);
+//      ADD_REF(env->class_def->obj);
+//      ADD_REF(env->class_def->obj);
       return NULL;
     }
     var_decl = list->self;
@@ -1280,7 +1280,7 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
-  add_ref(&t->obj);
+  ADD_REF(t);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -2089,7 +2089,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic) {
-    vararg = new_Value(env->context, &t_vararg, "vararg");
+    vararg = new_Value(&t_vararg, "vararg");
     SET_FLAG(vararg, ae_value_checked);
     namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
@@ -2099,7 +2099,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   }
 
   if(f->is_variadic)
-    rem_ref(&vararg->obj, vararg);
+    REM_REF(vararg);
   if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
   namespace_pop_value(env->curr);
@@ -2231,20 +2231,20 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
   ret = 1;
 
 cleanup:
-//    add_ref(context->obj);
+//    ADD_REF(context->obj);
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    add_ref(&context->obj);
+    ADD_REF(context);
   } else {
 //    namespace_rollback(env->global_nspc);
-    //rem_ref(context->obj, context);
+    //REM_REF(context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
     free_Ast(ast);
-    //rem_ref(context->nspc->obj, context->nspc);
-    rem_ref(&context->obj, context); // breaks function pointer for now
+    //REM_REF(context->nspc);
+    REM_REF(context); // breaks function pointer for now
     free(filename);
   }
   return ret;

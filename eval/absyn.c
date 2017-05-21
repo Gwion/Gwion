@@ -34,7 +34,7 @@ static void free_Var_Decl(Var_Decl a)
               free(a->value->m_type->obj);
               free(a->value->m_type);
             }*/
-      rem_ref(&a->value->obj, a->value);
+      REM_REF(a->value);
     }
   }
   if(a->array)
@@ -680,8 +680,8 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
   if(a->key != ae_key_static && a->value && !GET_FLAG(a->value, ae_value_member)) {
     if(!a->func)
       free_Type_Decl(a->type);
-/*    rem_ref(a->value->m_type->obj, a->value->m_type); */
-//    rem_ref(a->value->obj, a->value);
+/*    REM_REF(a->value->m_type); */
+//    REM_REF(a->value);
   }
 }
 
@@ -1044,7 +1044,7 @@ static void free_Stmt_Enum(Stmt_Enum a)
 if(!v->owner_class) {
     free(v);
 }
-//else    rem_ref(v->obj, v);
+//else    REM_REF(v);
   }
   free_Vector(a->values);
 }
@@ -1220,7 +1220,7 @@ static void free_Section(Section* section)
       free_ID_List(section->d.func_def->types);
       free_Type_Decl(section->d.func_def->type_decl);
       if(section->d.func_def->func) {
-	    rem_ref(&section->d.func_def->func->value_ref->obj, section->d.func_def->func->value_ref);
+	    REM_REF(section->d.func_def->func->value_ref);
         free(section->d.func_def->func);
       }
       free(section->d.func_def);

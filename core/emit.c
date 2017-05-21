@@ -9,7 +9,7 @@ static m_str emit_filename;
 
 void free_Expression(Expression a); // absyn.h
 
-static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
+static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ADD_REF);
 static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop);
 static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member);
 static m_bool emit_Stmt_List(Emitter emit, Stmt_List list);
@@ -61,7 +61,7 @@ void free_Emitter(Emitter a)
   vtype i;
   for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
-    rem_ref(&f->obj, f);
+    REM_REF(f);
   }
   free_Vector(a->spork);
   free_Vector(a->stack);
@@ -785,7 +785,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
 
   code = emit_to_code(emit);
   exp->vm_code = code;
-  //exp->vm_code->add_ref();
+  //exp->vm_code->ADD_REF();
   emit->code = (Code*)vector_pop(emit->stack);
 
   Expression e = exp->args;
@@ -1051,7 +1051,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if)
   return ret;
 }
 
-static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
+static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ADD_REF)
 {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "expression");
@@ -1095,7 +1095,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref)
 	}
     if (tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
-    if(add_ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
+    if(ADD_REF && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
         Instr ref = add_instr(emit, Reg_AddRef_Object3);
       ref->m_val = tmp->emit_var;
     }
@@ -1740,8 +1740,8 @@ static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
   namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_append(emit->funcs, (vtype)ptr);
 if(ptr->key) {
-//rem_ref(ptr->func->obj, ptr->func);
-//add_ref(ptr->func->obj);
+//REM_REF(ptr->func);
+//ADD_REF(ptr->func->obj);
   scope_rem(ptr->value->owner_class->info->func, ptr->xid);
 }
   return 1;
@@ -2271,11 +2271,11 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   } else if (func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
-  add_ref(&func->obj);
+  ADD_REF(func);
   emit->env->func = NULL;
 
   // delete the code ?
-  /*  rem_ref(emit->code->obj, emit->code);*/
+  /*  REM_REF(emit->code);*/
   //  free_Code(emit->code);
   emit->code = (Code*)vector_pop(emit->stack);
   return 1;
@@ -2347,7 +2347,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     sadd_instr(emit, Func_Return);
     free_VM_Code(type->info->pre_ctor);
     type->info->pre_ctor = emit_to_code(emit);
-    /*    type->info->pre_ctor->add_ref();*/
+    /*    type->info->pre_ctor->ADD_REF();*/
   } else
     free(type->info->class_data); // LCOV_EXCL_LINE
   emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
@@ -2405,7 +2405,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     if(!--t->obj.ref_count) {
       free(t);
     } // all this should be
-      // rem_ref(t->obj, t);
+      // REM_REF(t);
   }
   vector_clear(emit->array);
   emit_pop_scope(emit);

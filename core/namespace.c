@@ -72,7 +72,7 @@ void free_NameSpace(NameSpace a)
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     if(isa(value->m_type, &t_class) > 0) {
-      rem_ref(&value->m_type->obj, value->m_type);
+      REM_REF(value->m_type);
     }
     else if(isa(value->m_type, &t_object) > 0) {
       if(value->ptr) {
@@ -102,10 +102,10 @@ void free_NameSpace(NameSpace a)
       if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
         free(value->name);
         free(value->m_type->name);
-        rem_ref(&value->m_type->obj, value->m_type);
+        REM_REF(value->m_type);
       }
     }
-    rem_ref(&value->obj, value);
+    REM_REF(value);
 
   }
   free_Vector(v);
@@ -115,7 +115,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
-    rem_ref(&func->obj, func);
+    REM_REF(func);
   }
   free_Vector(v);
   free_Scope(a->func);
@@ -123,7 +123,7 @@ void free_NameSpace(NameSpace a)
   v = scope_get(a->type);
   for(i =vector_size(v); i > 0; i--) { // changed /07/04/17 for reverse order.
     Type type = (Type)vector_at(v, i-1);
-    rem_ref(&type->obj, type);
+    REM_REF(type);
   }
   free_Vector(v);
   free_Scope(a->type);

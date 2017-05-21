@@ -6,10 +6,8 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
 {
   Value v;
   Type type;
-  Type t = new_Type(env->context);
-  add_ref(&t->obj);
-  t->xid = te_user;
-  t->name = S_name(ptr->xid);
+  Type t = new_Type(te_user, S_name(ptr->xid));
+  ADD_REF(t);
   t->owner = env->curr;
   t->array_depth = 0;
   t->size = SZ_INT;
@@ -19,7 +17,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr)
   namespace_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
   type->actual_type = t;
-  v = new_Value(env->context, type, S_name(ptr->xid));
+  v = new_Value(type, S_name(ptr->xid));
   v->owner = env->curr;
   SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_checked);
@@ -83,18 +81,15 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     goto done;
   }
 
-  the_class = new_Type(env->context);
-//  add_ref(the_class->obj);
-//  the_class->xid = te_user;
-  the_class->xid = get_type_xid();
-  the_class->name = S_name(class_def->name->xid);
+  the_class = new_Type(get_type_xid(), S_name(class_def->name->xid));
+//  ADD_REF(the_class->obj);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_NameSpace();
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
-//  add_ref(the_class->info->obj);
+//  ADD_REF(the_class->info->obj);
   the_class->info->name = the_class->name;
 
   if(env->context->public_class_def == class_def)
@@ -134,13 +129,13 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     Type  type;
     type = type_copy(env, &t_class);
     type->actual_type = the_class;
-    value = new_Value(env->context, type, the_class->name);
+    value = new_Value(type, the_class->name);
     value->owner = env->curr;
 if(value->owner != env->global_nspc)
   vector_remove(env->context->new_class, vector_find(env->context->new_class, (vtype)value));
     SET_FLAG(value, ae_value_const);
     SET_FLAG(value, ae_value_checked);
-//    add_ref(the_class->obj);
+//    ADD_REF(the_class->obj);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
     if(env->curr == env->context->nspc) {

@@ -123,7 +123,7 @@ INSTR(Free_Func)
   free(f->value_ref->name);
   free(f->value_ref->m_type->name);
   free(f->value_ref->m_type);
-  rem_ref(&f->value_ref->obj, f->value_ref);
+  REM_REF(f->value_ref);
   free_VM_Code(f->code);
 }
 
@@ -1214,7 +1214,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
   if(cap < 0)
     goto negative_array_size;
-  type->obj.ref_count++; // should be add_ref
+  type->obj.ref_count++; // should be ADD_REF
   if(capacity >= top) {
     base = new_M_Array(type->array_type->size, cap, -capacity);
     if(!base)

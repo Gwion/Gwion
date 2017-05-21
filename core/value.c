@@ -2,7 +2,7 @@
 #include <complex.h>
 #include "type.h"
 
-Value new_Value(Context context, Type type, m_str name)
+Value new_Value(Type type, m_str name)
 {
   Value a               = (Value)calloc(1, sizeof(struct Value_));
   a->type               = 0;

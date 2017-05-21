@@ -59,10 +59,10 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
       if(env->class_def)
-        add_ref(&type->obj);
+        ADD_REF(type);
       decl->m_type = type;
     }
-    list->self->value = new_Value(env->context, type, S_name(list->self->xid));
+    list->self->value = new_Value(type, S_name(list->self->xid));
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
     if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
@@ -71,7 +71,7 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
-//	add_ref(list->self->value->obj);
+//	ADD_REF(list->self->value->obj);
     // doc
     if(!env->class_def && !env->func)
       context_add_value(env->context, list->self->value, &list->self->value->obj);
@@ -125,7 +125,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
       arg_list->type = t;
     }
 
-    v = new_Value(env->context, arg_list->type, S_name(arg_list->var_decl->xid));
+    v = new_Value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_value_arg);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
@@ -151,7 +151,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     ptr->value->owner_class = env->class_def;
   }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
-  add_ref(&ptr->func->obj);
+  ADD_REF(ptr->func);
   return 1;
 error:
   namespace_pop_value(env->curr);
@@ -654,7 +654,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(overload)
       func->next = overload->func_ref->next;
     func->is_member = (env->class_def && (f->static_decl != ae_key_static));
-    value = new_Value(env->context, &t_function, func_name);
+    value = new_Value(&t_function, func_name);
     SET_FLAG(value, ae_value_const);
     value->owner = env->curr;
     value->owner_class = env->class_def;
@@ -663,9 +663,9 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     if(!env->class_def)
       SET_FLAG(value, ae_value_global);
     value->func_ref = func;
-    add_ref(&value->func_ref->obj);
+    ADD_REF(value->func_ref);
     func->value_ref = value;
-    add_ref(&value->obj);
+    ADD_REF(value);
     f->func = func;
     SET_FLAG(value, ae_value_checked);
     if(overload)
@@ -712,13 +712,11 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     func->code->native_func = (m_uint)func->def->dl_func_ptr;
   }
 
-  type = new_Type(env->context);
-  type->xid = te_function;
-  type->name = strdup(tmp);
+  type = new_Type(te_function, strdup(tmp));
   type->parent = &t_function;
   type->size = SZ_INT;
   type->func = func;
-  value = new_Value(env->context, type, func_name);
+  value = new_Value(type, func_name);
   SET_FLAG(value, ae_value_const);
   value->owner = env->curr;
   value->owner_class = env->class_def;
@@ -727,10 +725,10 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
   if(!env->class_def)
     SET_FLAG(value, ae_value_global);
   value->func_ref = func;
-  add_ref(&value->func_ref->obj);
+  ADD_REF(value->func_ref);
   func->value_ref = value;
   f->func = func;
-  add_ref(&f->func->obj);
+  ADD_REF(f->func);
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -787,7 +785,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
     }
-    v = new_Value(env->context, arg_list->type, S_name(arg_list->var_decl->xid));
+    v = new_Value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_value_arg);
     namespace_add_value(env->curr, arg_list->var_decl->xid, v);
@@ -860,7 +858,7 @@ f->func->value_ref->m_type = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
 	f->func->is_dtor = 1;
-    add_ref(&f->func->value_ref->obj);
+    ADD_REF(f->func->value_ref);
   }
   if(f->type_decl->doc)
     func->doc = f->type_decl->doc;
@@ -872,13 +870,13 @@ error:
     scope_rem(env->curr->func, f->name);
     func->def = NULL;
     f->func = NULL;
-    rem_ref(&func->obj, func);
+    REM_REF(func);
   }
   if(value) {
     free(value->m_type->name);
     free(value->name);
-    rem_ref(&value->m_type->obj, value->m_type);
-    rem_ref(&value->obj, value);
+    REM_REF(value->m_type);
+    REM_REF(value);
   }
   return -1;
 }
