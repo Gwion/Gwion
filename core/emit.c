@@ -469,8 +469,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     } else {
       if (!emit->env->class_def || !decl->is_static) {
         Local* local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
-        if (!local)
-          return -1;
+        CHECK_OB(local)
         value->offset   = local->offset;
         Instr alloc_g   = add_instr(emit, Alloc_Word);
         alloc_g->m_val  = local->offset;
@@ -807,7 +806,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
 #endif
   Instr instr;
   Type t = exp_unary->self->type;
-  if (exp_unary->op != op_spork && emit_Expression(emit, exp_unary->exp, 0) < 0)
+  if(exp_unary->op != op_spork && emit_Expression(emit, exp_unary->exp, 0) < 0)
     return -1;
   switch (exp_unary->op) {
   case op_plusplus:
@@ -945,8 +944,10 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call");
 #endif
-  // templating
   if  (exp_func->types) {
+    Func_Def def = exp_func->m_func->def;
+    ID_List base_t = def->base;
+    Type_List list = exp_func->types;
     if (exp_func->m_func->value_ref->owner_class) {
       vector_append(emit->env->nspc_stack, (vtype)emit->env->curr);
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
@@ -954,31 +955,27 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0;
     }
-    ID_List base_t = exp_func->m_func->def->base;
-    Type_List list = exp_func->types;
     namespace_push_type(emit->env->curr);
     while(base_t) {
       namespace_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
       base_t = base_t->next;
       list = list->next;
     }
-    exp_func->m_func->def->is_template = 1;
-    CHECK_BB(scan1_Func_Def(emit->env, exp_func->m_func->def))
-    CHECK_BB(scan2_Func_Def(emit->env, exp_func->m_func->def))
-    CHECK_BB(check_Func_Def(emit->env, exp_func->m_func->def))
+    def->is_template = 1;
+    CHECK_BB(scan1_Func_Def(emit->env, def))
+    CHECK_BB(scan2_Func_Def(emit->env, def))
+    CHECK_BB(check_Func_Def(emit->env, def))
     namespace_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
       emit->env->curr = (NameSpace)vector_pop(emit->env->nspc_stack);
     }
   }
-  if (exp_func->args && !spork) {
-    if  (emit_Func_Args(emit, exp_func) < 0) {
-      err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments..."); // LCOV_EXCL_LINE
-      return -1;                                                                           // LCOV_EXCL_LINE
-    }
+  if(exp_func->args && !spork && emit_Func_Args(emit, exp_func) < 0) {
+    err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments..."); // LCOV_EXCL_LINE
+    return -1;                                                                           // LCOV_EXCL_LINE
   }
-  if (emit_Expression(emit, exp_func->func, 0) < 0) {
+  if(emit_Expression(emit, exp_func->func, 0) < 0) {
     err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call..."); // LCOV_EXCL_LINE
     return -1;                                                                      // LCOV_EXCL_LINE
   }
@@ -1035,15 +1032,12 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if)
     return -1;
   }                                   // LCOV_EXCL_STOP
   op = add_instr(emit, fop);
-  ret = emit_Expression(emit, exp_if->if_exp, 0);
-  if (!ret)
-    return -1;
+  CHECK_OB((ret = emit_Expression(emit, exp_if->if_exp, 0)))
   op2 = add_instr(emit, Goto);
   op->m_val = vector_size(emit->code->code);
   ret = emit_Expression(emit, exp_if->else_exp, 0);
   namespace_pop_value(emit->env->curr);
-  if (!ret)
-    return 0;
+  CHECK_OB(ret)
   op2->m_val = vector_size(emit->code->code);
   return ret;
 }
@@ -1755,9 +1749,7 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   for (i = 0; i < vector_size(stmt->values); i++) {
     v = (Value)vector_at(stmt->values, i);
     if (!emit->env->class_def) {
-      local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0);
-      if (!local)
-        return -1;
+      CHECK_OB((local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0)))
       v->offset = local->offset;
       v->ptr = (void*)i;
     } else
@@ -1821,8 +1813,6 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
         exp = exp->next;
       }
     }
-    if (ret < 0)
-      return -1;
     break;
   case ae_stmt_code:
     ret = emit_Stmt_Code(emit, &stmt->d.stmt_code, 1);

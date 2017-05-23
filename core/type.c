@@ -578,18 +578,12 @@ __inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos)
 {
   Arg_List e1 = lhs->arg_list;
   Arg_List e2 = rhs->arg_list;
-  //  m_uint count = 1;
 
-  // check arguments against the definition
   while(e1 && e2) {
-    // match types
-    if(e1->type != e2->type) {
-      //          err_msg(TYPE_, pos, "function signatures differ in argument %i's type...", count);
+    if(e1->type != e2->type)
       return -1;
-    }
     e1 = e1->next;
     e2 = e2->next;
-    //      count++;
   }
   if(e1 || e2)
     return -1;
@@ -1617,19 +1611,12 @@ static m_bool check_Until(Env env, Stmt_Until stmt)
 }
 static m_bool check_For(Env env, Stmt_For stmt)
 {
-  if(check_Stmt(env, stmt->c1) < 0)
-    return -1;
-  if(check_Stmt(env, stmt->c2) < 0)
-    return -1;
-  // check for empty for loop conditional (added 1.3.0.0)
-  if(stmt->c2 == NULL || !stmt->c2->d.stmt_exp.val) {
-    // error
-    err_msg(EMIT_, stmt->pos,
-        "empty for loop condition...");
-    err_msg(EMIT_, stmt->pos,
-        "...(note: explicitly use 'true' if it's the intent)");
-    err_msg(EMIT_, stmt->pos,
-        "...(e.g., 'for(; true;){ /*...*/ }')");
+  CHECK_BB(check_Stmt(env, stmt->c1))
+  CHECK_BB(check_Stmt(env, stmt->c2))
+  if(!stmt->c2 || !stmt->c2->d.stmt_exp.val) {
+    err_msg(EMIT_, stmt->pos, "empty for loop condition...");
+    err_msg(EMIT_, stmt->pos, "...(note: explicitly use 'true' if it's the intent)");
+    err_msg(EMIT_, stmt->pos, "...(e.g., 'for(; true;){ /*...*/ }')");
     return -1;
   }
   // ensure that conditional has valid type
@@ -1651,16 +1638,10 @@ static m_bool check_For(Env env, Stmt_For stmt)
       return -1;
   }
 
-  // check the post
-  if(stmt->c3 && !check_Expression(env, stmt->c3))
-    return -1;
-  // for break and continue statement
+  if(stmt->c3)
+    CHECK_OB(check_Expression(env, stmt->c3))
   vector_append(env->breaks, (vtype)stmt->self);
-  // check body
-  if(check_Stmt(env, stmt->body) < 0)
-    return -1;
-
-  // remove the loop from the stack
+  CHECK_BB(check_Stmt(env, stmt->body))
   vector_pop(env->breaks);
   return 1;
 }
@@ -1668,8 +1649,7 @@ static m_bool check_Loop(Env env, Stmt_Loop stmt)
 {
   Type type = check_Expression(env, stmt->cond);
 
-  if(!type)
-    return -1;
+  CHECK_OB(type)
   if(isa(type, &t_float) > 0)
     stmt->cond->cast_to = &t_int;
   else if(isa(type, &t_int) < 0) { // must be int
@@ -1678,8 +1658,7 @@ static m_bool check_Loop(Env env, Stmt_Loop stmt)
     return -1;
   }
   vector_append(env->breaks, (vtype)stmt->self);
-  if(check_Stmt(env, stmt->body) < 0)
-    return -1;
+  CHECK_BB(check_Stmt(env, stmt->body))
   vector_pop(env->breaks);
   return 1;
 }
@@ -1705,11 +1684,9 @@ static m_bool check_If(Env env, Stmt_If stmt)
             "invalid type '%s' in if condition", stmt->cond->type->name);
         return -1;
     }
-  if(check_Stmt(env, stmt->if_body) < 0)
-    return -1;
+  CHECK_BB(check_Stmt(env, stmt->if_body))
   if(stmt->else_body)
-    if(check_Stmt(env, stmt->else_body) < 0)
-      return -1;
+    CHECK_BB(check_Stmt(env, stmt->else_body))
   return 1;
 }
 
@@ -2226,16 +2203,11 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
   m_bool ret = -1;
   Context context = new_Context(ast, filename);
   env_reset(env);
-  if(load_context(context, env) < 0)
-    return -1;
-  if(scan0_Ast(env, ast) < 0)
-    goto cleanup;
-  if(scan1_Ast(env, ast) < 0)
-    goto cleanup;
-  if(scan2_Ast(env, ast) < 0)
-    goto cleanup;
-  if(check_Ast(env, ast) < 0)
-    goto cleanup;
+  CHECK_BB(load_context(context, env))
+  if(scan0_Ast(env, ast) < 0) goto cleanup;
+  if(scan1_Ast(env, ast) < 0) goto cleanup;
+  if(scan2_Ast(env, ast) < 0) goto cleanup;
+  if(check_Ast(env, ast) < 0) goto cleanup;
   ret = 1;
 
 cleanup:

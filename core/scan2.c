@@ -51,10 +51,8 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       CHECK_BB(verify_array(list->self->array))
       Type t2 = type;
 
-      if(list->self->array->exp_list) {
-        if(scan2_Expression(env, list->self->array->exp_list) < 0)
-          return -1;
-      }
+      if(list->self->array->exp_list)
+        CHECK_BB(scan2_Expression(env, list->self->array->exp_list))
       type = new_array_type(env, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
