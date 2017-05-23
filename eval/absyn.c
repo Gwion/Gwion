@@ -645,7 +645,8 @@ void free_Func_Def(Func_Def a)
     if(a->types)
       free_ID_List(a->types);
     if(a->ret_type && a->ret_type->array_type) {
-      free(a->ret_type);
+REM_REF(a->ret_type);
+ //     free(a->ret_type);
     }
     if(a->arg_list)
       free_Arg_List(a->arg_list);
@@ -819,7 +820,7 @@ void free_Arg_List(Arg_List a)
   free_Type_Decl(a->type_decl);
   if(a->var_decl->value) {
     if(a->var_decl->value->m_type->array_type) {
-      free(a->var_decl->value->m_type);
+      REM_REF(a->var_decl->value->m_type);
     }
   }
   free_Var_Decl(a->var_decl);

@@ -1212,7 +1212,6 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   M_Object base = NULL, next = NULL;
   m_int i = 0;
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
-  ADD_REF(type);
   if(cap < 0)
     goto negative_array_size;
   if(capacity >= top) {
@@ -1220,6 +1219,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
     if(!base)
       goto out_of_memory;
     base->type_ref=type; // /13/03/17
+    ADD_REF(type);
     if(is_obj && objs) {
       for(i = 0; i < cap; i++) {
         objs[*index] = (m_uint)i_vector_addr(base->d.array, i);
@@ -1232,6 +1232,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
   if(!base)
     goto out_of_memory;
   base->type_ref=type;
+  ADD_REF(type);
   for(i = 0; i < cap; i++) {
     next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index);
     if(!next)

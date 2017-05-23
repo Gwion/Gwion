@@ -25,13 +25,7 @@ DTOR(array_dtor)
         release(*(M_Object*)(o->d.array->ptr + i), shred);
   }
   free(o->d.array->ptr);
-// should not compare to t_array. see new_M_Array(Type t, ...
-  if(o->type_ref != &t_array) {
-//REM_REF(o->type_ref);
-    if(!--o->type_ref->obj.ref_count) {
-      free(o->type_ref);
-    }
-  } else err_msg(INSTR_, 0, "array type not valid. please fix and implement a better new M_Array");
+  REM_REF(o->type_ref);
 }
 
 M_Object new_M_Array(m_uint size, m_uint length, m_uint depth)

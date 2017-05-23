@@ -75,15 +75,9 @@ Type new_Type(te_type xid, m_str name)
 
 void free_Type(Type a)
 {
-  if(!a->is_complete && a->xid > te_last) {
-    if(a->info)
-      REM_REF(a->info);
-    free(a);
-    return;
-  }
   if(a->info)
     REM_REF(a->info);
-  if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0)
+  if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0 || a->array_type)
     free(a);
 }
 
@@ -259,7 +253,7 @@ Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc)
   t->array_type = base_type;
   t->info = t_array.info;
   /*  SAFE_ADD_REF(t->array_type);*/
-  /*  SAFE_ADD_REF(t->info);*/
+  ADD_REF(t->info);
   t->owner = owner_nspc;
   /*  SAFE_ADD_REF(t->owner);*/
   return t;
