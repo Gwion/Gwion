@@ -106,24 +106,23 @@ void free_Vector(Vector v)
   free(v->ptr);
   free(v);
   v = NULL;
-} 
+}
 
 Map new_Map()
 {
   Map map  = malloc(sizeof(struct Map_));
-  map->key = calloc(MAP_CAP, sizeof(vtype));
   map->ptr = calloc(MAP_CAP, sizeof(vtype));
   map->len = 0;
   map->cap = MAP_CAP;
   return map;
-} 
+}
 
 vtype map_get(Map map, vtype key)
 {
   vtype i;
   for(i = 0; i < map->len; i++)
-    if(map->key[i] == key)
-      return map->ptr[i];
+    if(map->ptr[i*2] == key)
+      return map->ptr[i*2+1];
   return 0;
 }
 
@@ -131,26 +130,24 @@ vtype map_at(Map map, const vtype index)
 {
   if(index > map->len)
     return 0;
-  return map->ptr[index];
+  return map->ptr[index*2+1];
 }
 
 void map_set(Map map, vtype key, vtype ptr)
 {
   vtype i;
   for(i = 0; i < map->len; i++) {
-    if(map->key[i] == key) {
-      map->ptr[i] = ptr;
+    if(map->ptr[i*2] == key) {
+      map->ptr[i*2+1] = ptr;
       return;
     }
   }
-  if ((map->len + 1) > map->cap)
-  {
+  if((map->len*2 + 1) > map->cap) {
     map->cap = map->cap * 2;
     map->ptr = realloc(map->ptr, map->cap * sizeof(vtype));
-    map->key = realloc(map->key, map->cap * sizeof(vtype));
   }
-  map->key[map->len] = key;
-  map->ptr[map->len] = ptr;
+  map->ptr[map->len*2] = key;
+  map->ptr[map->len*2+1] = ptr;
   map->len++;
 }
 
@@ -159,12 +156,10 @@ void map_remove(Map map, vtype key)
   vtype i;
   Map tmp = new_Map();
   for(i = 0; i < map->len; i++)
-    if(map->key[i] != key)
-      map_set(tmp, key, map->ptr[i]);
+    if(map->ptr[i*2] != key)
+      map_set(tmp, key, map->ptr[i*2+1]);
   free(map->ptr);
-  free(map->key);
   map->ptr = tmp->ptr;
-  map->key = tmp->key;
   map->len = tmp->len;
   map->cap = tmp->cap;
   free(tmp);
@@ -174,17 +169,17 @@ void map_commit(Map map, Map commit)
 {
   vtype i;
   for(i = 0; i < commit->len; i++)
-    map_set(map, commit->key[i], commit->ptr[i]);
+    map_set(map, commit->ptr[i*2], commit->ptr[i*2+1]);
 }
 
 vtype map_size(Map map)
 {
+//  return map->ptr[0];
   return map->len;
 }
 
 void free_Map(Map map)
 {
-  free(map->key);
   free(map->ptr);
   free(map);
 }
@@ -285,10 +280,10 @@ Vector scope_get(Scope s)
   for(j = 0; j < vector_size(s->vector); j++) {
     Map map = (Map)vector_at(s->vector, j);
     for(i = 0; i < map->len; i++)
-      vector_append(ret, map->ptr[i]);
+      vector_append(ret, map->ptr[i*2+1]);
   }
   for(i = 0; i < s->commit_map->len; i++)
-    vector_append(ret, (vtype)s->commit_map->ptr[i]);
+    vector_append(ret, (vtype)s->commit_map->ptr[i*2+1]);
   return ret;
 }
 
