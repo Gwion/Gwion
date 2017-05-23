@@ -75,24 +75,12 @@ void free_NameSpace(NameSpace a)
       REM_REF(value->m_type);
     }
     else if(isa(value->m_type, &t_object) > 0) {
-      if(value->ptr) {
+      if(value->ptr || GET_FLAG(value, ae_value_static)) {
         Vector instr = new_Vector();
         VM_Code code = new_VM_Code(instr, 0, 0, "", "");
         VM_Shred s = new_VM_Shred(code);
         s->vm_ref = vm;
         release(((M_Object)value->ptr), s);
-        free_VM_Shred(s);
-        free_Vector(instr);
-      }
-      if(value->m_type->array_type) {
-        free(value->m_type);
-      }
-      if(GET_FLAG(value, ae_value_static)) {
-        Vector instr = new_Vector();
-        VM_Code code = new_VM_Code(instr, 0, 0, "", "");
-        VM_Shred s = new_VM_Shred(code);
-        s->vm_ref = vm;
-        release(*(M_Object*)(a->class_data + value->offset), s);
         free_VM_Shred(s);
         free_Vector(instr);
       }
@@ -137,7 +125,6 @@ void free_NameSpace(NameSpace a)
     free_Vector(a->obj_v_table);
   if(a->pre_ctor)
     free_VM_Code(a->pre_ctor);
-//  if(a->dtor && strcmp(a->dtor->filename, "[in code dtor exec]"))
   if(a->dtor)
     free_VM_Code(a->dtor);
   free_Operator_Map(a->operator);
