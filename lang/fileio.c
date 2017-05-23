@@ -230,7 +230,7 @@ SFUN(file_list)
     RETURN->d.v_uint = 0;
     return;
   }
-  Type t = new_array_type(shred->vm_ref->env, &t_array, 1, &t_string, shred->vm_ref->env->curr);
+  Type t = new_array_type(shred->vm_ref->env, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
   vector_append(shred->gc, (vtype)ret);
   ret->type_ref = t;

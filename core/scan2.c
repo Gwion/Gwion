@@ -51,9 +51,11 @@ m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl)
       CHECK_BB(verify_array(list->self->array))
       Type t2 = type;
 
-      if(list->self->array->exp_list)
-        CHECK_BB(scan2_Expression(env, list->self->array->exp_list))
-      type = new_array_type(env, &t_array, list->self->array->depth, t2, env->curr);
+      if(list->self->array->exp_list) {
+        if(scan2_Expression(env, list->self->array->exp_list) < 0)
+          return -1;
+      }
+      type = new_array_type(env, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
 //      if(env->class_def)
@@ -118,7 +120,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
                 count, S_name(arg_list->var_decl->xid));
         goto error;
       }
-      t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
+      t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
     }
@@ -779,7 +781,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
         namespace_pop_value(env->curr);
         goto error;
       }
-      t = new_array_type(env, &t_array, arg_list->var_decl->array->depth, t2, env->curr);
+      t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
     }

@@ -539,7 +539,7 @@ m_bool scan1_Func_Def(Env env, Func_Def f)
       free_Expression(f->type_decl->array->exp_list);
       return -1;
     }
-    t = new_array_type(env, &t_array, f->type_decl->array->depth, t2, env->curr);
+    t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
     f->type_decl->ref = 1;
     f->ret_type = t;
   }

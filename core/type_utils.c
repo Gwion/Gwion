@@ -248,18 +248,18 @@ Kindof kindof(Type type)
 }
 
 
-Type new_array_type(Env env, Type array_parent, m_uint depth, Type base_type, NameSpace owner_nspc)
+Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc)
 {
   Type t = new_Type(te_array, base_type->name);
-  t->parent = array_parent;
+  t->parent = &t_array;
   /*  SAFE_ADD_REF(t->parent);*/
   /*  t->size = array_parent->size;*/
   t->size = SZ_INT;
   t->array_depth = depth;
   t->array_type = base_type;
-  t->info = array_parent->info;
+  t->info = t_array.info;
   /*  SAFE_ADD_REF(t->array_type);*/
-  ADD_REF(t->info);
+  /*  SAFE_ADD_REF(t->info);*/
   t->owner = owner_nspc;
   /*  SAFE_ADD_REF(t->owner);*/
   return t;

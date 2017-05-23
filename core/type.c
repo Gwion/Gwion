@@ -97,7 +97,7 @@ static void add_plugs(Env env, Vector plug_dirs)
         }
 next:
         free(namelist[n]);
-       }
+      }
       free(namelist);
     }
   }
@@ -124,7 +124,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs)
   if(import_ugen(env)      < 0) goto error;
   if(import_array(env)     < 0) goto error;
 
-//  if(import_io(env) < 0) goto error;
+  //  if(import_io(env) < 0) goto error;
   start_type_xid();
   // event child
   if(import_fileio(env)    < 0) goto error;
@@ -208,7 +208,7 @@ static m_bool check_array_subscripts(Env env, Expression exp_list)
   while(exp) {
     if(isa(exp->type, &t_int) < 0) {
       err_msg(TYPE_, exp->pos,
-              "incompatible array subscript type '%s'...", exp->type->name);
+          "incompatible array subscript type '%s'...", exp->type->name);
       return -1;
     }
     exp = exp->next;
@@ -229,10 +229,10 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     if(env->class_def && !env->class_scope &&
         (value = find_value(env->class_def->parent, list->self->xid))) {
       err_msg(TYPE_, list->self->pos,
-              "in class '%s': '%s' has already been defined in parent class '%s'...",
-              env->class_def->name, S_name(list->self->xid), value->owner_class->name);
-//      ADD_REF(env->class_def->obj);
-//      ADD_REF(env->class_def->obj);
+          "in class '%s': '%s' has already been defined in parent class '%s'...",
+          env->class_def->name, S_name(list->self->xid), value->owner_class->name);
+      //      ADD_REF(env->class_def->obj);
+      //      ADD_REF(env->class_def->obj);
       return NULL;
     }
     var_decl = list->self;
@@ -261,7 +261,7 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
     } else if(decl->is_static) {
       if(!env->class_def || env->class_scope > 0) {
         err_msg(TYPE_, decl->pos,
-                "static variables must be declared at class scope...");
+            "static variables must be declared at class scope...");
         return NULL;
       }
       SET_FLAG(value, ae_value_static);
@@ -292,37 +292,37 @@ static Type check_array_lit(Env env, Primary_Expression *exp)
   // go through the array and type check each
   CHECK_OO(check_Expression(env, e))
 
-  // loop
-  while(e) {
-    // get the type
-    t = e->type;
+    // loop
+    while(e) {
+      // get the type
+      t = e->type;
 
-    // compare
-    if(!type) {
-      // first
-      type = t;
-    } else {
-      // find common ancestor
-      common = find_common_anc(t, type);
-      // update type
-      if(common) type = common;
-      // no common
-      else {
-        // maybe one is int and other is float
-        if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
-          // cast from int to float
-          e->cast_to = type;
-        } else {
-          // incompatible
-          err_msg(TYPE_, e->pos, "array init [...] contains incompatible types...");
-          return NULL;
+      // compare
+      if(!type) {
+        // first
+        type = t;
+      } else {
+        // find common ancestor
+        common = find_common_anc(t, type);
+        // update type
+        if(common) type = common;
+        // no common
+        else {
+          // maybe one is int and other is float
+          if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
+            // cast from int to float
+            e->cast_to = type;
+          } else {
+            // incompatible
+            err_msg(TYPE_, e->pos, "array init [...] contains incompatible types...");
+            return NULL;
+          }
         }
       }
+      e = e->next;
     }
-    e = e->next;
-  }
-  t = new_array_type(env,  &t_array, type->array_depth + 1,
-    type->array_depth ? type->array_type : type,  env->curr);
+  t = new_array_type(env, type->array_depth + 1,
+      type->array_depth ? type->array_type : type,  env->curr);
   exp->d.array->type = t;
   return t;
 }
@@ -333,8 +333,8 @@ static Type check_Vec(Env env, Primary_Expression* exp)
   Vec val = exp->d.vec;
   if(val->numdims > 4) {
     err_msg(TYPE_, exp->pos,
-            "vector dimensions not supported > 4...\n"
-            "    --> format: @(x,y,z,w)");
+        "vector dimensions not supported > 4...\n"
+        "    --> format: @(x,y,z,w)");
     return NULL;
   }
   Expression e = val->args;
@@ -347,8 +347,8 @@ static Type check_Vec(Env env, Primary_Expression* exp)
     if(isa(t, &t_int) > 0) e->cast_to = &t_float;
     else if(isa(t, &t_float) < 0) {
       err_msg(TYPE_, exp->pos,
-              "invalid type '%s' in vector value #%d...\n"
-              "    (must be of type 'int' or 'float')", t->name, count);
+          "invalid type '%s' in vector value #%d...\n"
+          "    (must be of type 'int' or 'float')", t->name, count);
       return NULL;
     }
     count++;
@@ -369,154 +369,154 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
   m_str str;
 
   switch(primary->type) {
-  case ae_primary_var:
-    str = S_name(primary->d.var);      // first look for reserved words
-    if(!strcmp(str, "this")) { // this
-      // in class def
-      if(!env->class_def) {
-        err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition...");
-        return NULL;
-      }
+    case ae_primary_var:
+      str = S_name(primary->d.var);      // first look for reserved words
+      if(!strcmp(str, "this")) { // this
+        // in class def
+        if(!env->class_def) {
+          err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition...");
+          return NULL;
+        }
 
-      // in member func
-      if(env->func && !env->func->is_member) {
-        err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions...");
-        return NULL;
-      }
+        // in member func
+        if(env->func && !env->func->is_member) {
+          err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions...");
+          return NULL;
+        }
 
-      // not assignable
-      primary->self->meta = ae_meta_value;
-      // whatever the class is
-      t = env->class_def;
-    } else if(!strcmp(str, "me")) {
-      primary->self->meta = ae_meta_value;
-      t = &t_shred;
-    } else if(!strcmp(str, "now")) {
-      /*        primary->self->meta = ae_meta_value;*/
-      primary->self->meta = ae_meta_var;
-      t = &t_now;
-    } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-      /*        primary->self->meta = ae_meta_value;*/
-      primary->self->meta = ae_meta_var;
-      t = &t_null;
-    } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-      primary->self->meta = ae_meta_value;
-      t = &t_int;
-    } else {
-      v = namespace_lookup_value(env->curr, primary->d.var, 1);
-      if(!v)
-        v = find_value(env->class_def, primary->d.var);
-      if(v) {
-        if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_value_member) && !GET_FLAG(v, ae_value_static)) {
-            err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->d.var));
-            return NULL;
+        // not assignable
+        primary->self->meta = ae_meta_value;
+        // whatever the class is
+        t = env->class_def;
+      } else if(!strcmp(str, "me")) {
+        primary->self->meta = ae_meta_value;
+        t = &t_shred;
+      } else if(!strcmp(str, "now")) {
+        /*        primary->self->meta = ae_meta_value;*/
+        primary->self->meta = ae_meta_var;
+        t = &t_now;
+      } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
+        /*        primary->self->meta = ae_meta_value;*/
+        primary->self->meta = ae_meta_var;
+        t = &t_null;
+      } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
+        primary->self->meta = ae_meta_value;
+        t = &t_int;
+      } else {
+        v = namespace_lookup_value(env->curr, primary->d.var, 1);
+        if(!v)
+          v = find_value(env->class_def, primary->d.var);
+        if(v) {
+          if(env->class_def && env->func) {
+            if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_value_member) && !GET_FLAG(v, ae_value_static)) {
+              err_msg(TYPE_, primary->pos, "non-static member '%s' used from static function...", S_name(primary->d.var));
+              return NULL;
+            }
           }
         }
+        // check me
+        if(!v || !GET_FLAG(v, ae_value_checked)) {
+          str = S_name(primary->d.var);
+          err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
+              str ? str : "", v);
+          return NULL;
+        }
+        t = v->m_type;
+        primary->value = v;
       }
-      // check me
-      if(!v || !GET_FLAG(v, ae_value_checked)) {
-        str = S_name(primary->d.var);
-        err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-                str ? str : "", v);
+      if(v && GET_FLAG(v, ae_value_enum)) // hack for enum
+        primary->self->meta = ae_meta_value;
+      break;
+    case ae_primary_num:
+      t = &t_int;
+      break;
+    case ae_primary_float:
+      t = &t_float;
+      break;
+    case ae_primary_complex:
+      if(!primary->d.cmp->im) {
+        err_msg(TYPE_, primary->d.cmp->pos, "missing imaginary component of complex value...");
         return NULL;
       }
-      t = v->m_type;
-      primary->value = v;
-    }
-    if(v && GET_FLAG(v, ae_value_enum)) // hack for enum
-      primary->self->meta = ae_meta_value;
-    break;
-  case ae_primary_num:
-    t = &t_int;
-    break;
-  case ae_primary_float:
-    t = &t_float;
-    break;
-  case ae_primary_complex:
-    if(!primary->d.cmp->im) {
-      err_msg(TYPE_, primary->d.cmp->pos, "missing imaginary component of complex value...");
-      return NULL;
-    }
-    if(primary->d.cmp->im->next) {
-      err_msg(TYPE_, primary->d.cmp->pos, "extraneous component of complex value...");
-      return NULL;
-    }
-    CHECK_OO(check_Expression(env, primary->d.cmp->re))
-    /*      CHECK_OO(check_Expression(env, primary->cmp->im))*/
-    if(isa(primary->d.cmp->re->type, &t_float) < 0) {
-      if(isa(primary->d.cmp->re->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->d.cmp->pos,
+      if(primary->d.cmp->im->next) {
+        err_msg(TYPE_, primary->d.cmp->pos, "extraneous component of complex value...");
+        return NULL;
+      }
+      CHECK_OO(check_Expression(env, primary->d.cmp->re))
+        /*      CHECK_OO(check_Expression(env, primary->cmp->im))*/
+        if(isa(primary->d.cmp->re->type, &t_float) < 0) {
+          if(isa(primary->d.cmp->re->type, &t_int) < 0) {
+            err_msg(TYPE_, primary->d.cmp->pos,
                 "invalid type '%s' in real component of complex value...\n"
                 "    (must be of type 'int' or 'float')", primary->d.cmp->re->type->name);
+            return NULL;
+          }
+          primary->d.cmp->re->cast_to = &t_float;
+        }
+      if(isa(primary->d.cmp->im->type, &t_float) < 0) {
+        if(isa(primary->d.cmp->im->type, &t_int) < 0) {
+          err_msg(TYPE_, primary->d.cmp->pos,
+              "invalid type '%s' in imaginary component of complex value...\n"
+              "    (must be of type 'int' or 'float')", primary->d.cmp->im->type->name);
+          return NULL;
+        }
+        primary->d.cmp->im->cast_to = &t_float;
+      }
+      t = &t_complex;
+      break;
+    case ae_primary_polar:
+      if(!primary->d.polar->phase) {
+        err_msg(TYPE_, primary->d.polar->pos, "missing phase component of polar value...");
         return NULL;
       }
-      primary->d.cmp->re->cast_to = &t_float;
-    }
-    if(isa(primary->d.cmp->im->type, &t_float) < 0) {
-      if(isa(primary->d.cmp->im->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->d.cmp->pos,
-                "invalid type '%s' in imaginary component of complex value...\n"
-                "    (must be of type 'int' or 'float')", primary->d.cmp->im->type->name);
+      if(primary->d.polar->phase->next) {
+        err_msg(TYPE_, primary->d.polar->pos, "extraneous component of polar value...");
         return NULL;
       }
-      primary->d.cmp->im->cast_to = &t_float;
-    }
-    t = &t_complex;
-    break;
-  case ae_primary_polar:
-    if(!primary->d.polar->phase) {
-      err_msg(TYPE_, primary->d.polar->pos, "missing phase component of polar value...");
-      return NULL;
-    }
-    if(primary->d.polar->phase->next) {
-      err_msg(TYPE_, primary->d.polar->pos, "extraneous component of polar value...");
-      return NULL;
-    }
-    CHECK_OO(check_Expression(env, primary->d.polar->mod))
-    /*      CHECK_OO(check_Expression(env, primary->polar->phase))*/
-    if(isa(primary->d.polar->mod->type, &t_float) < 0) {
-      if(isa(primary->d.polar->mod->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->d.polar->pos,
+      CHECK_OO(check_Expression(env, primary->d.polar->mod))
+        /*      CHECK_OO(check_Expression(env, primary->polar->phase))*/
+        if(isa(primary->d.polar->mod->type, &t_float) < 0) {
+          if(isa(primary->d.polar->mod->type, &t_int) < 0) {
+            err_msg(TYPE_, primary->d.polar->pos,
                 "invalid type '%s' in modulus component of polar value...\n"
                 "    (must be of type 'int' or 'float')", primary->d.polar->mod->type->name);
+            return NULL;
+          }
+          primary->d.polar->mod->cast_to = &t_float;
+        }
+      if(isa(primary->d.polar->phase->type, &t_float) < 0) {
+        if(isa(primary->d.polar->phase->type, &t_int) < 0) {
+          err_msg(TYPE_, primary->d.polar->pos,
+              "invalid type '%s' in phase component of polar value...\n"
+              "    (must be of type 'int' or 'float')", primary->d.polar->phase->type->name);
+          return NULL;
+        }
+        primary->d.polar->phase->cast_to = &t_float;
+      }
+      t = &t_polar;
+      break;
+    case ae_primary_vec:
+      t = check_Vec(env, primary);
+      break;
+    case ae_primary_nil:
+      t = &t_void;
+      break;
+    case ae_primary_str:
+      t = &t_string;
+      break;
+    case ae_primary_hack:
+      if(primary->d.exp->exp_type == Decl_Expression_type) {
+        err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
         return NULL;
       }
-      primary->d.polar->mod->cast_to = &t_float;
-    }
-    if(isa(primary->d.polar->phase->type, &t_float) < 0) {
-      if(isa(primary->d.polar->phase->type, &t_int) < 0) {
-        err_msg(TYPE_, primary->d.polar->pos,
-                "invalid type '%s' in phase component of polar value...\n"
-                "    (must be of type 'int' or 'float')", primary->d.polar->phase->type->name);
-        return NULL;
-      }
-      primary->d.polar->phase->cast_to = &t_float;
-    }
-    t = &t_polar;
-    break;
-  case ae_primary_vec:
-    t = check_Vec(env, primary);
-    break;
-  case ae_primary_nil:
-    t = &t_void;
-    break;
-  case ae_primary_str:
-    t = &t_string;
-    break;
-  case ae_primary_hack:
-    if(primary->d.exp->exp_type == Decl_Expression_type) {
-      err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
-      return NULL;
-    }
-    CHECK_OO((t = check_Expression(env, primary->d.exp)))
-    break;
-  case ae_primary_array:
-    t = check_array_lit(env, primary);
-    break;
-  case ae_primary_char:
-    t = &t_int;
-    break;
+      CHECK_OO((t = check_Expression(env, primary->d.exp)))
+        break;
+    case ae_primary_array:
+      t = check_array_lit(env, primary);
+      break;
+    case ae_primary_char:
+      t = &t_int;
+      break;
   }
   return primary->self->type = t;
 }
@@ -527,20 +527,20 @@ Type check_Array(Env env, Array* array)
   m_uint depth;
   // verify there are no errors from the parser...
   CHECK_BO(verify_array(array->indices))
-  CHECK_OO((t_base = check_Expression(env, array->base)))
+    CHECK_OO((t_base = check_Expression(env, array->base)))
 
-  if(array->indices->depth > t_base->array_depth) {
-    err_msg(TYPE_,  array->pos,
-            "array subscripts (%i) exceeds defined dimension (%i)",
-            array->indices->depth, t_base->array_depth);
-/*    free(t_base->obj);
-    free(t_base); */
-    return NULL;
-  }
+    if(array->indices->depth > t_base->array_depth) {
+      err_msg(TYPE_,  array->pos,
+          "array subscripts (%i) exceeds defined dimension (%i)",
+          array->indices->depth, t_base->array_depth);
+      /*    free(t_base->obj);
+            free(t_base); */
+      return NULL;
+    }
 
   CHECK_OO(check_Expression(env, array->indices->exp_list))
 
-  Expression e = array->indices->exp_list;
+    Expression e = array->indices->exp_list;
   depth = 0;
 
   while(e) {
@@ -548,9 +548,9 @@ Type check_Array(Env env, Array* array)
     /*    if(isa(e->type, &t_int) < 0 && isa(e->type, &t_string) < 0)*/
     if(isa(e->type, &t_int) < 0) {
       err_msg(TYPE_,  e->pos,
-              /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
-              "array index %i must be of type 'int', not '%s'",
-              depth, e->type->name);
+          /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
+          "array index %i must be of type 'int', not '%s'",
+          depth, e->type->name);
       free(t_base);
       return NULL;
     }
@@ -604,13 +604,13 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
 
   Type t;
 
-/*
+  /*
   // use this to forbid (..) => fuc_pointer
   if(op == op_chuck && isa(binary->rhs->type, &t_func_ptr) > 0) {
-    err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
-    return NULL;
+  err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
+  return NULL;
   }
-*/
+  */
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Type r_nspc, l_nspc = NULL;
     m_uint i;
@@ -618,20 +618,20 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     Value v;
     char name[1024];
     Type ret_type;
-/*
-    if(isa(binary->lhs->type, &t_func_ptr) > 0) {
-      err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-//      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-      return NULL;
+    /*
+       if(isa(binary->lhs->type, &t_func_ptr) > 0) {
+       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
+    //      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
+    return NULL;
     }
-*/
+    */
     if(binary->rhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-//      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
       v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-//      f1 = (v->owner_class && v->is_member) ? v->func_ref :
+      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
       f1 = namespace_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl.list->self->value;
@@ -640,7 +640,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
       return NULL;
     }
-	r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
+    r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == Primary_Expression_type) {
       v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
@@ -649,39 +649,39 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
-/*    } else if(binary->lhs->exp_type == Decl_Expression_type) {
-      v = binary->lhs->d.exp_decl->list->self->value;
-      f2 = v->m_type->func; */
-    } else {
-      err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs).");
-      return NULL;
-    }
-    if((r_nspc && l_nspc) && (r_nspc != l_nspc)) {
-      err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class");
-      return NULL;
-    }
-    if(!r_nspc && l_nspc) {
-      err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer");
-      return NULL;
-    }
-    if(r_nspc && !l_nspc) {
-      err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
-      return NULL;
-    }
-    for(i = 0; i <= v->func_num_overloads; i++) {
-      if(binary->lhs->exp_type == Primary_Expression_type) {
-        m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
-        sprintf(name, "%s@%li@%s", c, i, env->curr->name);
-        f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
-      }
-      if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-        binary->func = f2;
-        ret_type = f1->value_ref->m_type;
-        return ret_type;
-      }
-    }
-    err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
+      /*    } else if(binary->lhs->exp_type == Decl_Expression_type) {
+            v = binary->lhs->d.exp_decl->list->self->value;
+            f2 = v->m_type->func; */
+  } else {
+    err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs).");
     return NULL;
+  }
+  if((r_nspc && l_nspc) && (r_nspc != l_nspc)) {
+    err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class");
+    return NULL;
+  }
+  if(!r_nspc && l_nspc) {
+    err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer");
+    return NULL;
+  }
+  if(r_nspc && !l_nspc) {
+    err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
+    return NULL;
+  }
+  for(i = 0; i <= v->func_num_overloads; i++) {
+    if(binary->lhs->exp_type == Primary_Expression_type) {
+      m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
+      sprintf(name, "%s@%li@%s", c, i, env->curr->name);
+      f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
+    }
+    if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+      binary->func = f2;
+      ret_type = f1->value_ref->m_type;
+      return ret_type;
+    }
+  }
+  err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? S_name(f2->def->name) : "[broken]");
+  return NULL;
   }
   // check for arrays
   if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left && isa(lhs->type->array_type, rhs->type) > 0)
@@ -705,7 +705,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
   for(i = 0; i < rhs->type->array_depth; i++)
     strcat(ra, "[]");
   err_msg(TYPE_, 0, "no match found for operator '%s' on types '%s%s' and '%s%s'",
-          op2str(op), lhs->type->name, la, rhs->type->name, ra);
+      op2str(op), lhs->type->name, la, rhs->type->name, ra);
   return NULL;
 }
 
@@ -718,100 +718,100 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
   Expression cl = binary->lhs, cr = binary->rhs;
 
   CHECK_OO(check_Expression(env, cl))
-  CHECK_OO(check_Expression(env, cr))
+    CHECK_OO(check_Expression(env, cr))
 
-  switch(binary->op) {
-  case op_assign:
-    if(cl->meta != ae_meta_var) {
-      err_msg(TYPE_, cr->pos,
+    switch(binary->op) {
+      case op_assign:
+        if(cl->meta != ae_meta_var) {
+          err_msg(TYPE_, cr->pos,
               "cannot assign '%s' on types '%s' and'%s'...",
               op2str(binary->op), cl->type->name, cr->type->name);
-      err_msg(TYPE_, cr->pos,
+          err_msg(TYPE_, cr->pos,
               "...(reason: --- left-side operand is not mutable)");
-      return NULL;
-    }
-    // mark to emit var instead of value
-    cl->emit_var = 1;
-    break;
-  case op_at_chuck:
-    if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-      if(isa(cl->type->array_type, cr->type->array_type) < 0) {
-        err_msg(TYPE_, binary->pos, "array types do not match.");
-        return NULL;
-      }
-      if(cl->type->array_depth != cr->type->array_depth) {
-        err_msg(TYPE_, binary->pos, "array depths do not match.");
-        return NULL;
-      }
-      /*      cr->emit_var = cl->emit_var = 1;*/
-      cr->emit_var = 1;
-      break;
-    }
-    if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
-      if(isa(cl->type, cr->type) < 0) {
-        err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name);
-		return NULL;
-      }
-      /*      cr->emit_var = cl->emit_var = 1;*/
-      cr->emit_var = 1;
-      break;
-    }
-  case op_chuck:
-    if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
-      cr->emit_var = cl->emit_var = 0;
-      break;
-    }
-    if(isa(cl->type, &t_string) > 0 && isa(cr->type, &t_string) > 0) {
-      cr->emit_var = cl->emit_var = 0;
-      break;
-    }
-    if(isa(cr->type, &t_fileio) > 0) {
-      cr->emit_var = 1;
-      break;
-    }
-  case op_plus_chuck:
-  case op_minus_chuck:
-  case op_times_chuck:
-  case op_divide_chuck:
-  case op_modulo_chuck:
-  case op_rsand:
-  case op_rsor:
-  case op_rsxor:
-  case op_rsl:
-  case op_rsr:
-  case op_rand:
-  case op_ror:
-  case op_req:
-  case op_rneq:
-  case op_rgt:
-  case op_rge:
-  case op_rlt:
-  case op_rle:
-    // make sure mutable
-    if(cr->meta != ae_meta_var) {
-      err_msg(TYPE_, cl->pos,
+          return NULL;
+        }
+        // mark to emit var instead of value
+        cl->emit_var = 1;
+        break;
+      case op_at_chuck:
+        if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
+          if(isa(cl->type->array_type, cr->type->array_type) < 0) {
+            err_msg(TYPE_, binary->pos, "array types do not match.");
+            return NULL;
+          }
+          if(cl->type->array_depth != cr->type->array_depth) {
+            err_msg(TYPE_, binary->pos, "array depths do not match.");
+            return NULL;
+          }
+          /*      cr->emit_var = cl->emit_var = 1;*/
+          cr->emit_var = 1;
+          break;
+        }
+        if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
+          if(isa(cl->type, cr->type) < 0) {
+            err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name);
+            return NULL;
+          }
+          /*      cr->emit_var = cl->emit_var = 1;*/
+          cr->emit_var = 1;
+          break;
+        }
+      case op_chuck:
+        if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
+          cr->emit_var = cl->emit_var = 0;
+          break;
+        }
+        if(isa(cl->type, &t_string) > 0 && isa(cr->type, &t_string) > 0) {
+          cr->emit_var = cl->emit_var = 0;
+          break;
+        }
+        if(isa(cr->type, &t_fileio) > 0) {
+          cr->emit_var = 1;
+          break;
+        }
+      case op_plus_chuck:
+      case op_minus_chuck:
+      case op_times_chuck:
+      case op_divide_chuck:
+      case op_modulo_chuck:
+      case op_rsand:
+      case op_rsor:
+      case op_rsxor:
+      case op_rsl:
+      case op_rsr:
+      case op_rand:
+      case op_ror:
+      case op_req:
+      case op_rneq:
+      case op_rgt:
+      case op_rge:
+      case op_rlt:
+      case op_rle:
+        // make sure mutable
+        if(cr->meta != ae_meta_var) {
+          err_msg(TYPE_, cl->pos,
               "cannot assign '%s' on types '%s' and'%s'...",
               op2str(binary->op), cl->type->name, cr->type->name);
-      err_msg(TYPE_, cl->pos,
+          err_msg(TYPE_, cl->pos,
               "...(reason: --- right-side operand is not mutable)");
-      return NULL;
+          return NULL;
+        }
+        // mark to emit var instead of value
+        cr->emit_var = 1;
+        break;
+      default:
+        break;
     }
-    // mark to emit var instead of value
-    cr->emit_var = 1;
-    break;
-  default:
-    break;
-  }
 
   if(binary->op == op_at_chuck) {
-//    if(isa(binary->lhs->type, &t_void) > 0 && isa(binary->rhs->type, &t_object) > 0)
+    //    if(isa(binary->lhs->type, &t_void) > 0 && isa(binary->rhs->type, &t_object) > 0)
     if(isa(binary->lhs->type, &t_null) > 0 && isa(binary->rhs->type, &t_object) > 0)
       return cl->type;
   }
 
   while(cr) {
     CHECK_OO((ret = check_op(env, binary->op, cl, cr, binary)))
-    cr = cr->next;
+      cr = cr->next;
   }
   return ret;
 }
@@ -845,13 +845,13 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast)
   if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
     return t2;
   if(isa(t, &t_object) < 0)
-	  return isa(t, t2) > 0 ? t2 : NULL;
+    return isa(t, t2) > 0 ? t2 : NULL;
   // check if cast valid
   Type type = t;
   while(type) {
-	if (t2 == type)
-		return t2;
-	type = type->parent;
+    if (t2 == type)
+      return t2;
+    type = type->parent;
   }
   /*  if(!type_engine_check_cast_valid(env, t2, t))*/
   err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...", S_name(cast->type->xid->xid), t->name);
@@ -867,8 +867,8 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
     case op_minusminus:
       if(postfix->exp->meta != ae_meta_var) {
         err_msg(TYPE_, postfix->exp->pos,
-          "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
-          return NULL;
+            "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
+        return NULL;
       }
       postfix->exp->emit_var = 1;
       if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
@@ -879,7 +879,7 @@ static Type check_Postfix_Expression(Env env, Postfix_Expression* postfix)
       return NULL;
   }          // LCOV_EXCL_STOP
   err_msg(TYPE_, postfix->pos,
-           "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
+      "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
   return NULL;
 }
 
@@ -891,14 +891,14 @@ static Type check_Dur(Env env, Exp_Dur* dur)
     return NULL;
   if(isa(base, &t_int) < 0 && isa(base, &t_float) < 0) {
     err_msg(TYPE_, dur->base->pos,
-            "invalid type '%s' in prefix of dur expression...\n"
-            "    (must be of type 'int' or 'float')", base->name);
+        "invalid type '%s' in prefix of dur expression...\n"
+        "    (must be of type 'int' or 'float')", base->name);
     return NULL;
   }
   if(isa(unit, &t_dur) < 0) {
     err_msg(TYPE_, dur->unit->pos,
-             "invalid type '%s' in postfix of dur expression...\n"
-             "    (must be of type 'dur')", unit->name);
+        "invalid type '%s' in postfix of dur expression...\n"
+        "    (must be of type 'dur')", unit->name);
     return NULL;
   }
   return unit;
@@ -966,9 +966,9 @@ Func find_func_match(Func up, Expression args)
 {
   Func func;
   if((func = find_func_match_actual(up, args, 0, 1)) ||
-     (func = find_func_match_actual(up, args, 1, 1)) ||
-     (func = find_func_match_actual(up, args, 0, 0)) ||
-     (func = find_func_match_actual(up, args, 1, 0)));
+      (func = find_func_match_actual(up, args, 1, 1)) ||
+      (func = find_func_match_actual(up, args, 0, 0)) ||
+      (func = find_func_match_actual(up, args, 1, 0)));
   return func;
 }
 
@@ -994,7 +994,7 @@ static Type_List mk_type_list(Env env, Type type)
 /*static */
 static Func_Call* current;
 Func find_template_match(Env env, Value v, Func m_func, Type_List types,
-                         Expression func, Expression args)
+    Expression func, Expression args)
 {
   m_uint i;
   Func_Def base;
@@ -1018,8 +1018,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     base = value->func_ref->def;
     /*if(!base) continue;*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
-                                base->type_decl, S_name(func->d.exp_primary.d.var),
-                                base->arg_list, base->code, func->pos);
+        base->type_decl, S_name(func->d.exp_primary.d.var),
+        base->arg_list, base->code, func->pos);
     if(base->is_variadic)
       def->is_variadic = 1;
     Type_List list = types;
@@ -1036,14 +1036,14 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       base_t->next = tmp;
 
       if(list->next && !base_t->next) {
-//        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
+        //        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
 
-namespace_pop_type(env->curr);
+        namespace_pop_type(env->curr);
         goto next;
       }
       base_t = base_t->next;
       if(!list->next && base_t) {
-//        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
+        //        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
         goto next;
         //return NULL;
       }
@@ -1073,11 +1073,11 @@ namespace_pop_type(env->curr);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
-	goto next;
+    goto next;
 error:
     free_Func_Def(def); // LCOV_EXCL_LINE
 next:
-;
+    ;
   }
   if(v->owner_class) {
     env->class_def = (Type)vector_pop(env->class_stack);
@@ -1100,34 +1100,34 @@ next:
   // primary func_ptr
   if(exp_func->exp_type == Primary_Expression_type &&
       exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
-        if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
-      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
-          return NULL;
-        }
-        ptr = exp_func->d.exp_primary.value;
-      }
-/*
-  else if(exp_func->exp_type == Dot_Member_type) {
-        Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-        if(v && v->owner_class == env->class_def) {
-      	  err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
-          return NULL;
-        }
+    if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
+      err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+      return NULL;
+    }
+    ptr = exp_func->d.exp_primary.value;
+  }
+  /*
+     else if(exp_func->exp_type == Dot_Member_type) {
+     Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+     if(v && v->owner_class == env->class_def) {
+     err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+     return NULL;
+     }
 //        ptr = exp_func->d.exp_primary.value;
-      }
+}
 */
-  if(!f) {
-    err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
-    return NULL;
-  }
-  if(isa(f, &t_function) < 0) {
-    err_msg(TYPE_, exp_func->pos, "function call using a non-function value");
-    return NULL;
-  }
-  up = f->func;
+if(!f) {
+  err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
+  return NULL;
+}
+if(isa(f, &t_function) < 0) {
+  err_msg(TYPE_, exp_func->pos, "function call using a non-function value");
+  return NULL;
+}
+up = f->func;
 
   if(args)
-    CHECK_OO(check_Expression(env, args))
+CHECK_OO(check_Expression(env, args))
   // look for a match
   func = find_func_match(up, args);
   if(!func) {
@@ -1232,15 +1232,15 @@ next:
     fprintf(stderr, "\n");
     return NULL;
   }
-  if(ptr) {
-    Func f = malloc(sizeof(struct Func_));
-    memcpy(f, func, sizeof(struct Func_));
-    f->value_ref = ptr;
-    func = f;
-//up->value_ref = exp_func->d.exp_primary.value;
-  }
-  *m_func = func;
-  return func->def->ret_type;
+if(ptr) {
+  Func f = malloc(sizeof(struct Func_));
+  memcpy(f, func, sizeof(struct Func_));
+  f->value_ref = ptr;
+  func = f;
+  //up->value_ref = exp_func->d.exp_primary.value;
+}
+*m_func = func;
+return func->def->ret_type;
 }
 
 static Type check_Func_Call(Env env, Func_Call* exp_func)
@@ -1252,7 +1252,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
     } else {
       Type t;
       CHECK_OO(check_Expression(env, exp_func->func))
-      t = exp_func->func->d.exp_dot.t_base;
+        t = exp_func->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
       v = find_value(t, exp_func->func->d.exp_dot.xid);
@@ -1265,7 +1265,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
     }
     // primary case
     Func ret = find_template_match(env, v, exp_func->m_func, exp_func->types,
-                                   exp_func->func, exp_func->args);
+        exp_func->func, exp_func->args);
     if(!ret) {
       err_msg(TYPE_, exp_func->pos, "arguments do not match for template call");
       return NULL;
@@ -1275,7 +1275,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func)
   }
   current = exp_func;
   return check_Func_Call1(env, exp_func->func, exp_func->args,
-                          &exp_func->m_func, exp_func->pos);
+      &exp_func->m_func, exp_func->pos);
 }
 
 static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
@@ -1288,7 +1288,7 @@ static m_bool check_Func_Ptr(Env env, Stmt_Ptr ptr)
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
   namespace_add_type(env->curr, ptr->xid, t);
-//  ADD_REF(t);
+  //  ADD_REF(t);
   ptr->m_type = t;
   t->func = ptr->func;
   return 1;
@@ -1301,150 +1301,150 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
 
   if(exp_unary->op != op_new && !exp_unary->code)
     CHECK_OO((t = check_Expression(env, exp_unary->exp)))
-  if(exp_unary->code)
-    CHECK_BO(check_Stmt(env, exp_unary->code))
+      if(exp_unary->code)
+        CHECK_BO(check_Stmt(env, exp_unary->code))
 
-    switch(exp_unary->op) {
-    case op_plusplus:
-    case op_minusminus:
-      if(exp_unary->exp->meta != ae_meta_var) {
-        err_msg(TYPE_, exp_unary->pos,
-                "prefix exp_unary operator '%s' cannot "
-                "be used on non-mutable data-types...", op2str(exp_unary->op));
-        return NULL;
-      }
+          switch(exp_unary->op) {
+            case op_plusplus:
+            case op_minusminus:
+              if(exp_unary->exp->meta != ae_meta_var) {
+                err_msg(TYPE_, exp_unary->pos,
+                    "prefix exp_unary operator '%s' cannot "
+                    "be used on non-mutable data-types...", op2str(exp_unary->op));
+                return NULL;
+              }
 
-      // assign
-      exp_unary->exp->emit_var = 1;
+              // assign
+              exp_unary->exp->emit_var = 1;
 
-      // check type
-      if(!t)
-        return NULL;
-      if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
-        return t;
-      break;
+              // check type
+              if(!t)
+                return NULL;
+              if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
+                return t;
+              break;
 
-    case op_minus:
-      if(!t)
-        return NULL;
-      if(isa(t, &t_int) || isa(t, &t_float) > 0)
-        return t;
-      break;
-    case op_tilda:
-    case op_exclamation:
-      if(!t)
-        return NULL;
-      exp_unary->self->meta= ae_meta_value; // /17/05/17
-      if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, 
-        &t_dur) > 0)
-        return &t_int;
-      break;
+            case op_minus:
+              if(!t)
+                return NULL;
+              if(isa(t, &t_int) || isa(t, &t_float) > 0)
+                return t;
+              break;
+            case op_tilda:
+            case op_exclamation:
+              if(!t)
+                return NULL;
+              exp_unary->self->meta= ae_meta_value; // /17/05/17
+              if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t,
+                    &t_dur) > 0)
+                return &t_int;
+              break;
 
-    case op_spork:
-      if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
-      // spork shred (by code segment)
-      else if(exp_unary->code) {
-        if(env->func) {
-          env->class_scope++;
-          namespace_push_value(env->curr);
-          int ret = check_Stmt(env, exp_unary->code);
-          namespace_pop_value(env->curr);
-          env->class_scope--;
-          if(ret < 0)
-            return NULL;
-          else return &t_shred;
-          break;
-        } else if(check_Stmt(env, exp_unary->code) < 0) {
-          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
-          break;                                                                // LCOV_EXCL_LINE
+            case op_spork:
+              if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
+              // spork shred (by code segment)
+              else if(exp_unary->code) {
+                if(env->func) {
+                  env->class_scope++;
+                  namespace_push_value(env->curr);
+                  int ret = check_Stmt(env, exp_unary->code);
+                  namespace_pop_value(env->curr);
+                  env->class_scope--;
+                  if(ret < 0)
+                    return NULL;
+                  else return &t_shred;
+                  break;
+                } else if(check_Stmt(env, exp_unary->code) < 0) {
+                  err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
+                  break;                                                                // LCOV_EXCL_LINE
 
-        }
-        return &t_shred;
-      }
-      // got a problem
-      else {
-        err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
-        return NULL;
-      }
-      break;
+                }
+                return &t_shred;
+              }
+              // got a problem
+              else {
+                err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
+                return NULL;
+              }
+              break;
 
-    case op_new:
-      t = find_type(env, exp_unary->type->xid);
-      if(!t) {
-        err_msg(TYPE_,  exp_unary->pos,
-                "... in 'new' expression ...");
-        return NULL;
-      }
-      if(exp_unary->array) {
-        CHECK_BO(verify_array(exp_unary->array))
-        CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
-        CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
-        t = new_array_type(env, &t_array, exp_unary->array->depth, t, env->curr);
+            case op_new:
+              t = find_type(env, exp_unary->type->xid);
+              if(!t) {
+                err_msg(TYPE_,  exp_unary->pos,
+                    "... in 'new' expression ...");
+                return NULL;
+              }
+              if(exp_unary->array) {
+                CHECK_BO(verify_array(exp_unary->array))
+                  CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
+                  CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
+                  t = new_array_type(env, exp_unary->array->depth, t, env->curr);
 
-      } else if(isa(t, &t_object) < 0) {
-        err_msg(TYPE_,  exp_unary->pos,
-                "cannot instantiate/(new) primitive type '%s'...", t->name);
-        err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
-        return NULL;
-      }
-      return t;
-    case op_typeof:
-      err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
-      break;
-    case op_sizeof:
-      return &t_int;
-    // avoid compiler warning
-    case op_assign:
-    case op_plus:
-    case op_times:
-    case op_divide:
-    case op_percent:
-    case op_and:
-    case op_or:
-    case op_eq:
-    case op_neq:
-    case op_gt:
-    case op_ge:
-    case op_lt:
-    case op_le:
-    case op_shift_left:
-    case op_shift_right:
-    case op_s_or:
-    case op_s_and:
-    case op_s_xor:
-    case op_chuck:
-    case op_plus_chuck:
-    case op_minus_chuck:
-    case op_times_chuck:
-    case op_divide_chuck:
-    case op_modulo_chuck:
-    case op_rand:
-    case op_ror:
-    case op_req:
-    case op_rneq:
-    case op_rgt:
-    case op_rge:
-    case op_rlt:
-    case op_rle:
-    case op_rsl:
-    case op_rsr:
-    case op_rsand:
-    case op_rsor:
-    case op_rsxor:
-    case op_unchuck:
-    case op_rdec:
-    case op_rinc:
-    case op_runinc:
-    case op_rundec:
-    case op_at_chuck:
-    case op_at_unchuck:
-    case op_trig:
-    case op_untrig:
-      break;
-    }
+              } else if(isa(t, &t_object) < 0) {
+                err_msg(TYPE_,  exp_unary->pos,
+                    "cannot instantiate/(new) primitive type '%s'...", t->name);
+                err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
+                return NULL;
+              }
+              return t;
+            case op_typeof:
+              err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
+              break;
+            case op_sizeof:
+              return &t_int;
+              // avoid compiler warning
+            case op_assign:
+            case op_plus:
+            case op_times:
+            case op_divide:
+            case op_percent:
+            case op_and:
+            case op_or:
+            case op_eq:
+            case op_neq:
+            case op_gt:
+            case op_ge:
+            case op_lt:
+            case op_le:
+            case op_shift_left:
+            case op_shift_right:
+            case op_s_or:
+            case op_s_and:
+            case op_s_xor:
+            case op_chuck:
+            case op_plus_chuck:
+            case op_minus_chuck:
+            case op_times_chuck:
+            case op_divide_chuck:
+            case op_modulo_chuck:
+            case op_rand:
+            case op_ror:
+            case op_req:
+            case op_rneq:
+            case op_rgt:
+            case op_rge:
+            case op_rlt:
+            case op_rle:
+            case op_rsl:
+            case op_rsr:
+            case op_rsand:
+            case op_rsor:
+            case op_rsxor:
+            case op_unchuck:
+            case op_rdec:
+            case op_rinc:
+            case op_runinc:
+            case op_rundec:
+            case op_at_chuck:
+            case op_at_unchuck:
+            case op_trig:
+            case op_untrig:
+              break;
+          }
   err_msg(TYPE_, exp_unary->pos,
-          "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
-          op2str(exp_unary->op), t ? t->name : "unknown");
+      "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
+      op2str(exp_unary->op), t ? t->name : "unknown");
   return NULL;
 }
 static Type check_exp_if(Env env, If_Expression* exp_if)
@@ -1469,7 +1469,7 @@ static Type check_exp_if(Env env, If_Expression* exp_if)
   // make sure the if and else have compatible types
   if(!(ret = find_common_anc(if_exp, else_exp))) {
     err_msg(TYPE_, exp_if->pos,
-            "incompatible types '%s' and '%s' in if expression...", if_exp->name, else_exp->name);
+        "incompatible types '%s' and '%s' in if expression...", if_exp->name, else_exp->name);
     return NULL;
   }
   return ret;
@@ -1486,43 +1486,43 @@ static Type check_Expression(Env env, Expression exp)
   while(curr) {
     curr->type = NULL;
     switch(curr->exp_type) {
-    case Primary_Expression_type:
-      curr->type = check_Primary_Expression(env, &curr->d.exp_primary);
-      break;
-    case Decl_Expression_type:
-      curr->type = check_Decl_Expression(env, &curr->d.exp_decl);
-      break;
-    case Unary_Expression_type:
-      curr->type = check_Unary(env, &curr->d.exp_unary);
-      break;
-    case Binary_Expression_type:
-      curr->type = check_Binary_Expression(env, &curr->d.exp_binary);
-      break;
-    case Postfix_Expression_type:
-      curr->type = check_Postfix_Expression(env, &curr->d.exp_postfix);
-      break;
-    case Dur_Expression_type:
-      curr->type = check_Dur(env, &curr->d.exp_dur);
-      break;
-    case Cast_Expression_type:
-      curr->type = check_Cast_Expression(env, &curr->d.exp_cast);
-      break;
-    case Func_Call_type:
-      curr->type = check_Func_Call(env, &curr->d.exp_func);
-      curr->d.exp_func.ret_type = curr->type;
-      break;
-    case If_Expression_type:
-      curr->type = check_exp_if(env, &curr->d.exp_if);
-      break;
-    case Dot_Member_type:
-      curr->type = check_Dot_Member(env, &curr->d.exp_dot);
-      break;
-    case Array_Expression_type:
-      curr->type = check_Array(env, &curr->d.exp_array);
-      break;
+      case Primary_Expression_type:
+        curr->type = check_Primary_Expression(env, &curr->d.exp_primary);
+        break;
+      case Decl_Expression_type:
+        curr->type = check_Decl_Expression(env, &curr->d.exp_decl);
+        break;
+      case Unary_Expression_type:
+        curr->type = check_Unary(env, &curr->d.exp_unary);
+        break;
+      case Binary_Expression_type:
+        curr->type = check_Binary_Expression(env, &curr->d.exp_binary);
+        break;
+      case Postfix_Expression_type:
+        curr->type = check_Postfix_Expression(env, &curr->d.exp_postfix);
+        break;
+      case Dur_Expression_type:
+        curr->type = check_Dur(env, &curr->d.exp_dur);
+        break;
+      case Cast_Expression_type:
+        curr->type = check_Cast_Expression(env, &curr->d.exp_cast);
+        break;
+      case Func_Call_type:
+        curr->type = check_Func_Call(env, &curr->d.exp_func);
+        curr->d.exp_func.ret_type = curr->type;
+        break;
+      case If_Expression_type:
+        curr->type = check_exp_if(env, &curr->d.exp_if);
+        break;
+      case Dot_Member_type:
+        curr->type = check_Dot_Member(env, &curr->d.exp_dot);
+        break;
+      case Array_Expression_type:
+        curr->type = check_Array(env, &curr->d.exp_array);
+        break;
     }
     CHECK_OO(curr->type)
-    curr = curr->next;
+      curr = curr->next;
   }
   return exp ? exp->type : NULL;
 #ifndef __clang__
@@ -1568,24 +1568,24 @@ static m_bool check_Stmt_Code(Env env, Stmt_Code stmt, m_bool push)
 static m_bool check_While(Env env, Stmt_While stmt)
 {
   CHECK_OB(check_Expression(env, stmt->cond))
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
+    switch(stmt->cond->type->xid) {
+      case te_int:
+      case te_float:
+      case te_dur:
+      case te_time:
+        break;
 
-  default:
-/*    if(isa(stmt->cond->type, &t_io) > 0)
-      break; */
-    err_msg(TYPE_,  stmt->cond->pos,
-      "invalid type '%s' in while condition", stmt->cond->type->name);
-    return -1;
-  }
+      default:
+        /*    if(isa(stmt->cond->type, &t_io) > 0)
+              break; */
+        err_msg(TYPE_,  stmt->cond->pos,
+            "invalid type '%s' in while condition", stmt->cond->type->name);
+        return -1;
+    }
   vector_append(env->breaks, (vtype)stmt->self);
   vector_append(env->conts, (vtype)stmt->self);
   CHECK_BB(check_Stmt(env, stmt->body))
-  vector_pop(env->breaks);
+    vector_pop(env->breaks);
   vector_pop(env->conts);
   return 1;
 }
@@ -1594,25 +1594,25 @@ static m_bool check_Until(Env env, Stmt_Until stmt)
 {
   CHECK_OB(check_Expression(env, stmt->cond))
 
-  // ensure that conditional has valid type
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
+    // ensure that conditional has valid type
+    switch(stmt->cond->type->xid) {
+      case te_int:
+      case te_float:
+      case te_dur:
+      case te_time:
+        break;
 
-  default:
-/*    if(isa(stmt->cond->type, &t_io) > 0)
-      break; */
+      default:
+        /*    if(isa(stmt->cond->type, &t_io) > 0)
+              break; */
 
-    err_msg(TYPE_,  stmt->cond->pos,
+        err_msg(TYPE_,  stmt->cond->pos,
             "invalid type '%s' in until condition", stmt->cond->type->name);
-    return -1;
-  }
+        return -1;
+    }
   vector_append(env->breaks, (vtype)stmt->self);
   CHECK_BB(check_Stmt(env, stmt->body))
-  vector_pop(env->breaks);
+    vector_pop(env->breaks);
   return 1;
 }
 static m_bool check_For(Env env, Stmt_For stmt)
@@ -1625,30 +1625,30 @@ static m_bool check_For(Env env, Stmt_For stmt)
   if(stmt->c2 == NULL || !stmt->c2->d.stmt_exp.val) {
     // error
     err_msg(EMIT_, stmt->pos,
-            "empty for loop condition...");
+        "empty for loop condition...");
     err_msg(EMIT_, stmt->pos,
-            "...(note: explicitly use 'true' if it's the intent)");
+        "...(note: explicitly use 'true' if it's the intent)");
     err_msg(EMIT_, stmt->pos,
-            "...(e.g., 'for(; true;){ /*...*/ }')");
+        "...(e.g., 'for(; true;){ /*...*/ }')");
     return -1;
   }
   // ensure that conditional has valid type
   switch(stmt->c2->d.stmt_exp.val->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
+    case te_int:
+    case te_float:
+    case te_dur:
+    case te_time:
+      break;
 
-  default:
-    // check for IO
-/*    if(isa(stmt->c2->d.stmt_exp->type, &t_io) > 0)
-      break; */
+    default:
+      // check for IO
+      /*    if(isa(stmt->c2->d.stmt_exp->type, &t_io) > 0)
+            break; */
 
-    // error
-    err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
-            "invalid type '%s' in for condition", stmt->c2->d.stmt_exp.val->type->name);
-    return -1;
+      // error
+      err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
+          "invalid type '%s' in for condition", stmt->c2->d.stmt_exp.val->type->name);
+      return -1;
   }
 
   // check the post
@@ -1674,7 +1674,7 @@ static m_bool check_Loop(Env env, Stmt_Loop stmt)
     stmt->cond->cast_to = &t_int;
   else if(isa(type, &t_int) < 0) { // must be int
     err_msg(TYPE_, stmt->pos,
-            "loop * conditional must be of type 'int'...");
+        "loop * conditional must be of type 'int'...");
     return -1;
   }
   vector_append(env->breaks, (vtype)stmt->self);
@@ -1687,24 +1687,24 @@ static m_bool check_Loop(Env env, Stmt_Loop stmt)
 static m_bool check_If(Env env, Stmt_If stmt)
 {
   CHECK_OB(check_Expression(env, stmt->cond))
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
+    switch(stmt->cond->type->xid) {
+      case te_int:
+      case te_float:
+      case te_dur:
+      case te_time:
+        break;
 
-  default:
-    // check for IO
-/*    if(isa(stmt->cond->type, &t_io) > 0)
-      break; */
-    if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
-      break;
-    // error
-    err_msg(TYPE_, stmt->cond->pos,
+      default:
+        // check for IO
+        /*    if(isa(stmt->cond->type, &t_io) > 0)
+              break; */
+        if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
+          break;
+        // error
+        err_msg(TYPE_, stmt->cond->pos,
             "invalid type '%s' in if condition", stmt->cond->type->name);
-    return -1;
-  }
+        return -1;
+    }
   if(check_Stmt(env, stmt->if_body) < 0)
     return -1;
   if(stmt->else_body)
@@ -1728,8 +1728,8 @@ static m_bool check_Return(Env env, Stmt_Return stmt)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0) {
     err_msg(TYPE_, stmt->pos,
-            "invalid return type '%s' -- expecting '%s'",
-            ret_type->name, env->func->def->ret_type->name);
+        "invalid return type '%s' -- expecting '%s'",
+        ret_type->name, env->func->def->ret_type->name);
     return -1;
   }
   return 1;
@@ -1739,7 +1739,7 @@ static m_bool check_Continue(Env env, Stmt_Continue cont)
 {
   if(!vector_size(env->breaks)) {
     err_msg(TYPE_,  cont->pos,
-            "'continue' found outside of for/while/until...");
+        "'continue' found outside of for/while/until...");
     return -1;
   }
   return 1;
@@ -1749,7 +1749,7 @@ static m_bool check_Break(Env env, Stmt_Break cont)
 {
   if(!vector_size(env->breaks)) {
     err_msg(TYPE_,  cont->pos,
-            "'break' found outside of for/while/until...");
+        "'break' found outside of for/while/until...");
     return -1;
   }
   return 1;
@@ -1816,13 +1816,13 @@ static m_bool check_Stmt_Union(Env env, Stmt_Union stmt)
   }
   while(l) {
     CHECK_OB(check_Decl_Expression(env, l->self))
-    if(l->self->m_type->size > stmt->s)
-      stmt->s = l->self->m_type->size;
+      if(l->self->m_type->size > stmt->s)
+        stmt->s = l->self->m_type->size;
     l = l->next;
   }
   return 1;
 }
-    
+
 static m_bool check_Stmt(Env env, Stmt stmt)
 {
 #ifdef DEBUG_TYPE
@@ -1832,81 +1832,81 @@ static m_bool check_Stmt(Env env, Stmt stmt)
   if(!stmt)
     return 1;
   switch(stmt->type) {
-  case ae_stmt_exp:
-    if(stmt->d.stmt_exp.val)
-      ret = (check_Expression(env, stmt->d.stmt_exp.val) ? 1 : -1);
-    break;
-  case ae_stmt_code:
-    env->class_scope++;
-    ret = check_Stmt_Code(env, &stmt->d.stmt_code, 1);
-    env->class_scope--;
-    break;
-  case ae_stmt_return:
-    ret = check_Return(env, &stmt->d.stmt_return);
-    break;
-  case ae_stmt_break:
-    ret = check_Break(env, &stmt->d.stmt_break);
-    break;
-  case ae_stmt_continue:
-    ret = check_Continue(env, &stmt->d.stmt_continue);
-    break;
-  case ae_stmt_if:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_If(env, &stmt->d.stmt_if);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_while:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_While(env, &stmt->d.stmt_while);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_until:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_Until(env, &stmt->d.stmt_until);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_for:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_For(env, &stmt->d.stmt_for);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_loop:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_Loop(env, &stmt->d.stmt_loop);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_switch:
-    env->class_scope++;
-    namespace_push_value(env->curr);
-    ret = check_Switch(env, &stmt->d.stmt_switch);
-    namespace_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_case:
-    ret = check_Case(env, &stmt->d.stmt_case);
-    break;
-  case ae_stmt_enum:
-    ret = check_Enum(env, &stmt->d.stmt_enum);
-    break;
-  case ae_stmt_gotolabel:
-    ret = check_Goto_Label(env, &stmt->d.stmt_gotolabel);
-    break;
-  case ae_stmt_funcptr:
-    ret = check_Func_Ptr(env, &stmt->d.stmt_ptr);
-    break;
-  case ae_stmt_union:
-    ret = check_Stmt_Union(env, &stmt->d.stmt_union);
-    break;
+    case ae_stmt_exp:
+      if(stmt->d.stmt_exp.val)
+        ret = (check_Expression(env, stmt->d.stmt_exp.val) ? 1 : -1);
+      break;
+    case ae_stmt_code:
+      env->class_scope++;
+      ret = check_Stmt_Code(env, &stmt->d.stmt_code, 1);
+      env->class_scope--;
+      break;
+    case ae_stmt_return:
+      ret = check_Return(env, &stmt->d.stmt_return);
+      break;
+    case ae_stmt_break:
+      ret = check_Break(env, &stmt->d.stmt_break);
+      break;
+    case ae_stmt_continue:
+      ret = check_Continue(env, &stmt->d.stmt_continue);
+      break;
+    case ae_stmt_if:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_If(env, &stmt->d.stmt_if);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_while:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_While(env, &stmt->d.stmt_while);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_until:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_Until(env, &stmt->d.stmt_until);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_for:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_For(env, &stmt->d.stmt_for);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_loop:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_Loop(env, &stmt->d.stmt_loop);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_switch:
+      env->class_scope++;
+      namespace_push_value(env->curr);
+      ret = check_Switch(env, &stmt->d.stmt_switch);
+      namespace_pop_value(env->curr);
+      env->class_scope--;
+      break;
+    case ae_stmt_case:
+      ret = check_Case(env, &stmt->d.stmt_case);
+      break;
+    case ae_stmt_enum:
+      ret = check_Enum(env, &stmt->d.stmt_enum);
+      break;
+    case ae_stmt_gotolabel:
+      ret = check_Goto_Label(env, &stmt->d.stmt_gotolabel);
+      break;
+    case ae_stmt_funcptr:
+      ret = check_Func_Ptr(env, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_union:
+      ret = check_Stmt_Union(env, &stmt->d.stmt_union);
+      break;
   }
   return ret;
 }
@@ -1919,7 +1919,7 @@ static m_bool check_Stmt_List(Env env, Stmt_List list)
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(check_Stmt(env, curr->stmt))
-    curr = curr->next;
+      curr = curr->next;
   }
   return 1;
 }
@@ -1942,15 +1942,15 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
 
   if(!the_base->info && !member->t_base->array_depth) { // ?
     err_msg(TYPE_,  member->base->pos,
-            "type '%s' does not have members - invalid use in dot expression of %s",
-            the_base->name, S_name(member->xid));
+        "type '%s' does not have members - invalid use in dot expression of %s",
+        the_base->name, S_name(member->xid));
     return NULL;
   }
- 
+
   str = S_name(member->xid);
   if(!strcmp(str, "this") && base_static) {
     err_msg(TYPE_,  member->pos,
-      "keyword 'this' must be associated with object instance...");
+        "keyword 'this' must be associated with object instance...");
     return NULL;
   }
 
@@ -1963,7 +1963,7 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
     for(i = 0; i < the_base->array_depth; i++)
       strcat(s, "[]");
     err_msg(TYPE_,  member->base->pos,
-            "class '%s' has no member '%s'", s, str);
+        "class '%s' has no member '%s'", s, str);
     if(the_base->array_depth) {
       free(the_base);
     }
@@ -1971,8 +1971,8 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
   }
   if(base_static && GET_FLAG(value, ae_value_member)) {
     err_msg(TYPE_, member->pos,
-            "cannot access member '%s.%s' without object instance...",
-            the_base->name, str);
+        "cannot access member '%s.%s' without object instance...",
+        the_base->name, str);
     return NULL;
   }
   if(GET_FLAG(value, ae_value_enum)) // for enum
@@ -2026,7 +2026,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   if(env->class_def &&  override) {
     if(isa(override->m_type, &t_function) < 0) {
       err_msg(TYPE_, f->pos, "function name '%s' conflicts with previously defined value...",
-        S_name(f->name));
+          S_name(f->name));
       err_msg(TYPE_, f->pos, "from super class '%s'...", override->owner_class->name);
       return -1;
     }
@@ -2036,7 +2036,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
   if(env->class_def) {
     parent = env->class_def->parent;
     while(parent && !parent_match) {
-     if((v = find_value(env->class_def->parent, f->name))) {
+      if((v = find_value(env->class_def->parent, f->name))) {
         parent_func = v->func_ref;
         while(parent_func && !parent_match) {
           if(compat_func(f, parent_func->def, f->pos) < 0) {
@@ -2045,23 +2045,23 @@ m_bool check_Func_Def(Env env, Func_Def f)
           }
           if(parent_func->def->static_decl == ae_key_static) {
             err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override...",
-              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+                env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
             err_msg(TYPE_, f->pos, "...(reason: '%s.%s' is declared as 'static')",
-              v->owner_class->name, S_name(f->name));
+                v->owner_class->name, S_name(f->name));
             return -1;
           }
           if(f->static_decl == ae_key_static) {
             err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override...",
-              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+                env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
             err_msg(TYPE_, f->pos, "...(reason: '%s.%s' is declared as 'static')",
-              env->class_def->name, S_name(f->name));
+                env->class_def->name, S_name(f->name));
             return -1;
           }
           if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
             err_msg(TYPE_, f->pos, "function signatures differ in return type...");
             err_msg(TYPE_, f->pos, "function '%s.%s' matches '%s.%s' but cannot override...",
-              env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
-              return -1;
+                env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name));
+            return -1;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
@@ -2086,7 +2086,7 @@ m_bool check_Func_Def(Env env, Func_Def f)
     v = arg_list->var_decl->value;
     if(namespace_lookup_value(env->curr, arg_list->var_decl->xid, 0)) {
       err_msg(TYPE_, arg_list->pos, "argument %i '%s' is already defined in this scope",
-              count, S_name(arg_list->var_decl->xid));
+          count, S_name(arg_list->var_decl->xid));
       err_msg(TYPE_, arg_list->pos, "in function '%s':", S_name(f->name));
       goto error;
     }
@@ -2133,22 +2133,22 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
       if(!t_parent) {
         m_str path = type_path(class_def->ext->extend_id);
         err_msg(TYPE_, class_def->ext->pos,
-          "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
+            "undefined parent class '%s' in definition of class '%s'", path, S_name(class_def->name->xid));
         free(path);
         return -1;
       }
       if(isprim(t_parent) > 0) {
         err_msg(TYPE_, class_def->ext->pos,
-          "cannot extend primitive type '%s'", t_parent->name);
+            "cannot extend primitive type '%s'", t_parent->name);
         err_msg(TYPE_, class_def->ext->pos,
-          "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
+            "...(note: primitives types are 'int', 'float', 'time', and 'dur')");
         return -1;
       }
       if(!t_parent->is_complete) {
         err_msg(TYPE_, class_def->ext->pos,
-                "cannot extend incomplete type '%s'", t_parent->name);
+            "cannot extend incomplete type '%s'", t_parent->name);
         err_msg(TYPE_, class_def->ext->pos,
-                "...(note: the parent's declaration must preceed child's)");
+            "...(note: the parent's declaration must preceed child's)");
         return -1;
       }
     }
@@ -2171,20 +2171,20 @@ static m_bool check_Class_Def(Env env, Class_Def class_def)
 
   while(body && ret > 0) {
     switch(body->section->type) {
-    case ae_section_stmt:
-      env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
-      ret = check_Stmt_List(env, body->section->d.stmt_list);
-      break;
+      case ae_section_stmt:
+        env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
+        ret = check_Stmt_List(env, body->section->d.stmt_list);
+        break;
 
-    case ae_section_func:
-      env->class_def->is_complete = 1;
-      ret = check_Func_Def(env, body->section->d.func_def);
-      env->class_def->is_complete = 0;
-      break;
+      case ae_section_func:
+        env->class_def->is_complete = 1;
+        ret = check_Func_Def(env, body->section->d.func_def);
+        env->class_def->is_complete = 0;
+        break;
 
-    case ae_section_class:
-      ret = check_Class_Def(env, body->section->d.class_def);
-      break;
+      case ae_section_class:
+        ret = check_Class_Def(env, body->section->d.class_def);
+        break;
     }
     body = body->next;
   }
@@ -2206,15 +2206,15 @@ static m_bool check_Ast(Env env, Ast ast)
   Ast prog = ast;
   while(prog) {
     switch(prog->section->type) {
-    case ae_section_stmt:
-      CHECK_BB(check_Stmt_List(env, prog->section->d.stmt_list))
-      break;
-    case ae_section_func:
-      CHECK_BB(check_Func_Def(env, prog->section->d.func_def))
-      break;
-    case ae_section_class:
-      CHECK_BB(check_Class_Def(env, prog->section->d.class_def))
-      break;
+      case ae_section_stmt:
+        CHECK_BB(check_Stmt_List(env, prog->section->d.stmt_list))
+          break;
+      case ae_section_func:
+        CHECK_BB(check_Func_Def(env, prog->section->d.func_def))
+          break;
+      case ae_section_class:
+        CHECK_BB(check_Class_Def(env, prog->section->d.class_def))
+          break;
     }
     prog = prog->next;
   }
@@ -2239,22 +2239,22 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename)
   ret = 1;
 
 cleanup:
-//    ADD_REF(context->obj);
+  //    ADD_REF(context->obj);
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-//    ADD_REF(context);
+    //    ADD_REF(context);
   } else {
-//    namespace_rollback(env->global_nspc);
+    //    namespace_rollback(env->global_nspc);
     //REM_REF(context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
-  if(ret < 0) {
-    free_Ast(ast);
-    //REM_REF(context->nspc);
-    REM_REF(context); // breaks function pointer for now
-    free(filename);
-  }
+    if(ret < 0) {
+      free_Ast(ast);
+      //REM_REF(context->nspc);
+      REM_REF(context); // breaks function pointer for now
+      free(filename);
+    }
   return ret;
 }
 
