@@ -518,6 +518,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
         if(list->self->array->exp_list) {
           Instr assign = add_instr(emit, Assign_Object);
           assign->m_val = decl->self->emit_var;
+          ADD_REF(type);
         }
       }
       else if(!is_ref) {

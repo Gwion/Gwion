@@ -521,20 +521,18 @@ Type check_Array(Env env, Array* array)
   m_uint depth;
   // verify there are no errors from the parser...
   CHECK_BO(verify_array(array->indices))
-    CHECK_OO((t_base = check_Expression(env, array->base)))
+  CHECK_OO((t_base = check_Expression(env, array->base)))
 
-    if(array->indices->depth > t_base->array_depth) {
-      err_msg(TYPE_,  array->pos,
-          "array subscripts (%i) exceeds defined dimension (%i)",
-          array->indices->depth, t_base->array_depth);
-      /*    free(t_base->obj);
-            free(t_base); */
-      return NULL;
-    }
+  if(array->indices->depth > t_base->array_depth) {
+    err_msg(TYPE_,  array->pos,
+     "array subscripts (%i) exceeds defined dimension (%i)",
+     array->indices->depth, t_base->array_depth);
+    return NULL;
+  }
 
   CHECK_OO(check_Expression(env, array->indices->exp_list))
 
-    Expression e = array->indices->exp_list;
+  Expression e = array->indices->exp_list;
   depth = 0;
 
   while(e) {

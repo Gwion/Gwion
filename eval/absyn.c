@@ -32,7 +32,7 @@ static void free_Var_Decl(Var_Decl a)
       REM_REF(a->value);
     }
     else if(!a->value->owner_class) { // breaks for loop ?
-      if(a->value->m_type->array_type && !a->array->exp_list)
+      if(a->value->m_type->array_type)
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     }
