@@ -1730,11 +1730,8 @@ static m_bool emit_Func_Ptr(Emitter emit, Stmt_Ptr ptr)
 {
   namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_append(emit->funcs, (vtype)ptr);
-if(ptr->key) {
-//REM_REF(ptr->func);
-//ADD_REF(ptr->func->obj);
-  scope_rem(ptr->value->owner_class->info->func, ptr->xid);
-}
+  if(ptr->key)
+    scope_rem(ptr->value->owner_class->info->func, ptr->xid);
   return 1;
 }
 

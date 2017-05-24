@@ -679,7 +679,7 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
       free_Type_Decl(a->type);
    else
     REM_REF(a->func);
-//    REM_REF(a->value->m_type);
+    REM_REF(a->value->m_type);
     REM_REF(a->value);
   }
 }
