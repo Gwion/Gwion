@@ -1350,6 +1350,7 @@ INSTR(Instr_Array_Alloc)
     *(m_uint*) shred->reg = num_obj;
     PUSH_REG(shred,  SZ_INT);
   }
+  REM_REF(info->type);
   return;
 
 out_of_memory:

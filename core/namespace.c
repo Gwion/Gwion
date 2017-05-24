@@ -71,7 +71,9 @@ void free_NameSpace(NameSpace a)
   Vector v = scope_get(a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
-    if(isa(value->m_type, &t_class) > 0) {
+//    if(value->m_type->array_type) REM_REF(value->m_type)
+//    else
+if(isa(value->m_type, &t_class) > 0) {
       REM_REF(value->m_type);
     }
     else if(isa(value->m_type, &t_object) > 0) {

@@ -27,13 +27,13 @@ static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
     if(GET_FLAG(a->value, ae_value_arg)) { // func argument. this migth change
+      if(a->value->m_type->array_type)
+        REM_REF(a->value->m_type);
       REM_REF(a->value);
     }
     else if(!a->value->owner_class) { // breaks for loop ?
-      /*      if(a->value->m_type->array_type) {
-              free(a->value->m_type->obj);
-              free(a->value->m_type);
-            }*/
+      if(a->value->m_type->array_type && !a->array->exp_list)
+        REM_REF(a->value->m_type);
       REM_REF(a->value);
     }
   }
@@ -644,17 +644,13 @@ void free_Func_Def(Func_Def a)
   if(!a->is_template) {
     if(a->types)
       free_ID_List(a->types);
-    if(a->ret_type && a->ret_type->array_type) {
-REM_REF(a->ret_type);
- //     free(a->ret_type);
-    }
+    if(a->ret_type && a->ret_type->array_type)
+      REM_REF(a->ret_type);
     if(a->arg_list)
       free_Arg_List(a->arg_list);
-//	if(a->type_decl)
     free_Type_Decl(a->type_decl);
-    free(a);
-  } else
-      free(a);
+  }
+  free(a);
 }
 
 Stmt new_Func_Ptr_Stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List args, int pos)
@@ -681,7 +677,7 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
   if(a->key != ae_key_static && a->value && !GET_FLAG(a->value, ae_value_member)) {
    if(!a->func)
       free_Type_Decl(a->type);
-else
+   else
     REM_REF(a->func);
 //    REM_REF(a->value->m_type);
     REM_REF(a->value);
@@ -818,11 +814,6 @@ void free_Arg_List(Arg_List a)
   if(a->next)
     free_Arg_List(a->next);
   free_Type_Decl(a->type_decl);
-  if(a->var_decl->value) {
-    if(a->var_decl->value->m_type->array_type) {
-      REM_REF(a->var_decl->value->m_type);
-    }
-  }
   free_Var_Decl(a->var_decl);
   free(a);
 

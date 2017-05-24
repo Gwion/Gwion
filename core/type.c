@@ -245,14 +245,8 @@ Type check_Decl_Expression(Env env, Decl_Expression* decl)
 
     type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
-      if(!check_Expression(env, var_decl->array->exp_list)) {
-        free(type);
-        return NULL;
-      }
-      if(check_array_subscripts(env, var_decl->array->exp_list) < 0) {
-        free(type);
-        return NULL;
-      }
+      CHECK_OO(check_Expression(env, var_decl->array->exp_list))
+      CHECK_BO(check_array_subscripts(env, var_decl->array->exp_list))
     }
     if(GET_FLAG(value, ae_value_member)) {
       value->offset = env->curr->offset;
@@ -545,13 +539,10 @@ Type check_Array(Env env, Array* array)
 
   while(e) {
     depth++;
-    /*    if(isa(e->type, &t_int) < 0 && isa(e->type, &t_string) < 0)*/
     if(isa(e->type, &t_int) < 0) {
       err_msg(TYPE_,  e->pos,
-          /*        "array index %i must be of type 'int' or 'string', not '%s'",*/
           "array index %i must be of type 'int', not '%s'",
           depth, e->type->name);
-      free(t_base);
       return NULL;
     }
     e = e->next;
@@ -561,7 +552,6 @@ Type check_Array(Env env, Array* array)
 
   if(depth != array->indices->depth) {
     err_msg(TYPE_, array->pos, "invalid array acces expression.");
-    free(t_base);
     return NULL;
   }
 

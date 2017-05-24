@@ -100,7 +100,7 @@ static void emit_pop_scope(Emitter emit)
   frame_pop_scope(emit->code->frame, v);
   for (i = 0; i < vector_size(v); i++) {
     Local* l = (Local*)vector_at(v, i);
-    if (l->is_obj) {
+    if(l->is_obj) {
       Instr instr = add_instr(emit, Release_Object2);
       instr->m_val = l->offset;
     }
@@ -135,7 +135,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 #endif
   Instr instr;
 
-  if (v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
+  if(v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
     Expression base = new_Primary_Expression_from_ID("this", pos);
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
@@ -150,11 +150,11 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   }
 
   if(GET_FLAG(v, ae_value_const)) {
-    if (v->func_ref) {
+    if(v->func_ref) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (m_uint)v->func_ref;
       return 1;
-    } else if (isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
+    } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
       instr = add_instr(emit, Reg_Push_Imm2);
       instr->f_val = *(m_float*)v->ptr;
       return 1;
@@ -166,7 +166,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return 1;
   }
 
-  if (emit_var) {
+  if(emit_var) {
     instr = add_instr(emit, Reg_Push_Mem_Addr);
     instr->m_val = v->offset;
     instr->m_val2 = GET_FLAG(v, ae_value_global);
@@ -214,9 +214,9 @@ m_bool emit_Pre_Ctor(Emitter emit, Type type)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "pre ctor");
 #endif
-  if (type->parent)
+  if(type->parent)
     emit_Pre_Ctor(emit, type->parent);
-  if (type->has_constructor) {
+  if(type->has_constructor) {
     Instr instr = add_instr(emit, Pre_Constructor);
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit->code->frame->curr_offset;
@@ -258,7 +258,7 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
     alloc->ptr = info;
     if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, type->array_type);
-  } else if (isa(type, &t_object) > 0 && !is_ref) {
+  } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = add_instr(emit, Instantiate_Object);
     instr->ptr = type;
     emit_Pre_Ctor(emit, type);
@@ -274,7 +274,7 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array)
   m_uint count = 0;
   CHECK_BB(emit_Expression(emit, array->exp_list, 0))
   Expression e = array->exp_list;
-  while (e) {
+  while(e) {
     count++;
     e = e->next;
   }
@@ -304,23 +304,23 @@ static m_bool emit_Array(Emitter emit, Array* array)
   base_type = array->base->type;
   is_var = array->self->emit_var;
   depth = base_type->array_depth - type->array_depth;
-  if (!depth) {
+  if(!depth) {
     err_msg(EMIT_, array->pos, "internal error: array with 0 depth..."); // LCOV_EXCL_LINE
     return -1;                                                           // LCOV_EXCL_LINE
   }
   sub = array->indices;
-  if (!sub) {
+  if(!sub) {
     err_msg(EMIT_, array->pos, "internal error: NULL array sub...");     // LCOV_EXCL_LINE
     return -1;                                                           // LCOV_EXCL_LINE
   }
   exp = sub->exp_list;
-  if (!exp) {
+  if(!exp) {
     err_msg(EMIT_, array->pos, "internal error: NULL array exp...");     // LCOV_EXCL_LINE
     return -1;                                                           // LCOV_EXCL_LINE
   }
   CHECK_BB(emit_Expression(emit, array->base, 0))
   CHECK_BB(emit_Expression(emit, exp, 0))
-  if (depth == 1) {
+  if(depth == 1) {
     instr = add_instr(emit, Instr_Array_Access);
     /*    instr->m_val  = (is_var || type->array_depth);*/
     instr->m_val = is_var;
@@ -339,7 +339,7 @@ static m_bool emit_Vec(Emitter emit, Vec val)
 {
   CHECK_BB(emit_Expression(emit, val->args, 0));
   m_int n = 3 - val->numdims;
-  while (n > 0) {
+  while(n > 0) {
     sadd_instr(emit, Reg_Push_Imm2);
     n--;
   }
@@ -357,20 +357,20 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
 
   switch (primary->type) {
   case ae_primary_var:
-    if (primary->d.var == insert_symbol("this"))
+    if(primary->d.var == insert_symbol("this"))
       sadd_instr(emit, Reg_Push_This);
-    else if (primary->d.var == insert_symbol("me"))
+    else if(primary->d.var == insert_symbol("me"))
       sadd_instr(emit, Reg_Push_Me);
-    else if (primary->d.var == insert_symbol("now"))
+    else if(primary->d.var == insert_symbol("now"))
       sadd_instr(emit, Reg_Push_Now);
-    else if (primary->d.var == insert_symbol("false"))
+    else if(primary->d.var == insert_symbol("false"))
       sadd_instr(emit, Reg_Push_Imm);
-    else if (primary->d.var == insert_symbol("true")) {
+    else if(primary->d.var == insert_symbol("true")) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = 1;
-    } else if (primary->d.var == insert_symbol("maybe"))
+    } else if(primary->d.var == insert_symbol("maybe"))
       sadd_instr(emit, Reg_Push_Maybe);
-    else if (primary->d.var == insert_symbol("null") || primary->d.var == insert_symbol("NULL"))
+    else if(primary->d.var == insert_symbol("null") || primary->d.var == insert_symbol("NULL"))
       sadd_instr(emit, Reg_Push_Imm);
     else
       emit_symbol(emit, primary->d.var, primary->value, primary->self->emit_var, primary->pos);
@@ -420,7 +420,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     CHECK_BB(emit_Expression(emit, e, 0))
     Vector types = new_Vector();
     e = primary->d.exp;
-    while (e) {
+    while(e) {
       vector_append(types, (vtype)e->type);
       e = e->next;
     }
@@ -439,7 +439,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
   Decl_Expression* exp = decl;
   Var_Decl_List list = exp->list;
 
-  while (list) {
+  while(list) {
     Var_Decl var_decl = list->self;
     Value value = var_decl->value;
     Type type = value->m_type;
@@ -447,12 +447,11 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
     m_bool is_ref = decl->type->ref;
     Kindof kind = kindof(type);
 
-    if (is_obj) {
-      if (list->self->array) {
-        if (list->self->array->exp_list) {
+    if(is_obj) {
+      if(list->self->array) {
+        if(list->self->array->exp_list)
           CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
-        }
-      } else if (!is_ref)
+      } else if(!is_ref)
         CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
     }
     if(GET_FLAG(value, ae_value_member)) {
@@ -467,7 +466,7 @@ static m_bool emit_Decl_Expression(Emitter emit, Decl_Expression* decl)
 		case Kindof_Void: break; // LCOV_EXCL_LINE
       }
     } else {
-      if (!emit->env->class_def || !decl->is_static) {
+      if(!emit->env->class_def || !decl->is_static) {
         Local* local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
         CHECK_OB(local)
         value->offset   = local->offset;
@@ -539,7 +538,7 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
 #endif
   Instr instr;
   // function pointer assignement
-  if (binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
+  if(binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Value v;
     CHECK_BB(emit_Expression(emit, binary->lhs, 1))
     CHECK_BB(emit_Expression(emit, binary->rhs, 1))
@@ -569,19 +568,19 @@ static m_bool emit_Binary_Expression(Emitter emit, Binary_Expression* binary)
   CHECK_BB(emit_Expression(emit, binary->lhs, 1))
   CHECK_BB(emit_Expression(emit, binary->rhs, 1))
 
-  if (binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
+  if(binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
     return emit_Func_Call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
 
   // arrays
-  if (binary->op == op_shift_left && (binary->lhs->type->array_depth == binary->rhs->type->array_depth + 1)
+  if(binary->op == op_shift_left && (binary->lhs->type->array_depth == binary->rhs->type->array_depth + 1)
       && isa(binary->lhs->type->array_type, binary->rhs->type) > 0) {
     instr = add_instr(emit, Array_Append);
     instr->m_val = kindof(binary->rhs->type);
     return 1;
   }
 
-  if (binary->lhs->type->array_depth || binary->rhs->type->array_depth) {
-    if (binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
+  if(binary->lhs->type->array_depth || binary->rhs->type->array_depth) {
+    if(binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
       sadd_instr(emit, Assign_Object);
     return 1;
   }
@@ -602,13 +601,13 @@ static m_bool emit_Cast_Expression1(Emitter emit, Type to, Type from)
   debug_msg("emit", "cast %s to %s", from->name, to->name);
 #endif
   f_instr f;
-  if (to->xid == from->xid)
+  if(to->xid == from->xid)
     return 1;
-  if (to->xid == t_int.xid && from->xid == t_float.xid)
+  if(to->xid == t_int.xid && from->xid == t_float.xid)
     f = Cast_f2i;
-  else if (to->xid == t_float.xid && from->xid == t_int.xid)
+  else if(to->xid == t_float.xid && from->xid == t_int.xid)
     f = Cast_i2f;
-  else if (isa(from, to) > 0)
+  else if(isa(from, to) > 0)
     return 1;
   else if(isa(from, &t_null) > 0 && isa(to, &t_object) > 0)
     return 1;
@@ -627,7 +626,7 @@ static m_bool emit_Cast_Expression(Emitter emit, Cast_Expression* cast)
 #endif
   Type to = cast->self->type;
   Type from = cast->exp->type;
-  if (isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0) {
+  if(isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0) {
     Instr push = add_instr(emit, Reg_Push_Imm);
     push->m_val = (m_uint)cast->func;
     return 1;
@@ -649,7 +648,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
   // emit
   switch (postfix->op) {
   case op_plusplus:
-    if (postfix->exp->type->xid == t_int.xid)
+    if(postfix->exp->type->xid == t_int.xid)
       f = post_inc;
     else {
       err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
@@ -660,7 +659,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
     break;
 
   case op_minusminus:
-    if (postfix->exp->type->xid == t_int.xid)
+    if(postfix->exp->type->xid == t_int.xid)
       f = post_dec;
     else {
       err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
@@ -700,10 +699,10 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 #endif
   m_bool is_ptr = 0;
   Instr code, offset, call;
-  if (!func->code) { // calling function pointer in func
+  if(!func->code) { // calling function pointer in func
     Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
-    if (!f) { //template with no list
-      if (!func->def->is_template) {
+    if(!f) { //template with no list
+      if(!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
         return -1;
       }
@@ -732,8 +731,8 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Func_Call);
   call->m_val = func->def->s_type == ae_func_builtin ? kindof(func->def->ret_type) : emit->code->stack_depth;
-  if (func->def->s_type == ae_func_builtin) {
-    if (func->is_member)
+  if(func->def->s_type == ae_func_builtin) {
+    if(func->is_member)
       call->execute = Instr_Func_Call_Member;
     else
       call->execute = Instr_Func_Call_Static;
@@ -743,7 +742,7 @@ static m_bool emit_Dur(Emitter emit, Exp_Dur* dur)
 	call->m_val2  = (m_uint)func->def->arg_list->type;
 	call->ptr     = func->def->arg_list->next->type;
   }
-  if (func->def->is_template) {
+  if(func->def->is_template) {
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;
   }
@@ -762,7 +761,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
   VM_Code code;
 
   CHECK_BB(emit_Func_Args(emit, exp))
-  if (emit_Expression(emit, exp->func, 0) < 0) {
+  if(emit_Expression(emit, exp->func, 0) < 0) {
     err_msg(EMIT_, exp->pos, // LCOV_EXCL_START
             "(emit): internal error in evaluating function call...");
     return -1;
@@ -786,7 +785,7 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp)
 
   Expression e = exp->args;
   m_uint size = 0;
-  while (e) {
+  while(e) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
@@ -810,25 +809,25 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     return -1;
   switch (exp_unary->op) {
   case op_plusplus:
-    if (exp_unary->self->meta != ae_meta_var) {
+    if(exp_unary->self->meta != ae_meta_var) {
       err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable..."); // LCOV_EXCL_LINE
       return -1;                                                                      // LCOV_EXCL_LINE
     }
-    if (isa(exp_unary->exp->type, &t_int) > 0)
+    if(isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_inc);
     break;
   case op_minusminus:
-    if (exp_unary->self->meta != ae_meta_var) {
+    if(exp_unary->self->meta != ae_meta_var) {
       err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable..."); // LCOV_EXCL_LINE
       return -1;                                                                      // LCOV_EXCL_LINE
     }
-    if (isa(exp_unary->exp->type, &t_int) > 0)
+    if(isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_dec);
     break;
   case op_exclamation:
-    if (isa(exp_unary->exp->type, &t_int) > 0 || isa(exp_unary->self->type, &t_object) > 0)
+    if(isa(exp_unary->exp->type, &t_int) > 0 || isa(exp_unary->self->type, &t_object) > 0)
       instr = add_instr(emit, not);
-    else if (isa(exp_unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
+    else if(isa(exp_unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
       instr = add_instr(emit, notf);
     else {
       err_msg(EMIT_, exp_unary->self->pos, // LCOV_EXCL_START
@@ -841,13 +840,13 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
   case op_spork:
     if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) {
       CHECK_BB(emit_spork(emit, &exp_unary->exp->d.exp_func))
-    } else if (exp_unary->code) {
+    } else if(exp_unary->code) {
       Instr op = NULL, push_code = NULL, spork = NULL;
       VM_Code code;
       ID_List list = new_id_list("sporked", exp_unary->pos);
       Func f = new_Func("sporked", new_Func_Def(0, 0, new_Type_Decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
 
-      if (emit->env->class_def)
+      if(emit->env->class_def)
         sadd_instr(emit, Reg_Push_This);
       Instr push = add_instr(emit, Reg_Push_Imm);
       push->m_val = (m_uint)f;
@@ -881,9 +880,9 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary)
     break;
 
   case op_minus:
-    if (isa(exp_unary->self->type, &t_int) > 0)
+    if(isa(exp_unary->self->type, &t_int) > 0)
       instr = add_instr(emit, negate);
-    else if (isa(exp_unary->self->type, &t_float) > 0)
+    else if(isa(exp_unary->self->type, &t_float) > 0)
       instr = add_instr(emit, negatef);
     else {
       err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
@@ -913,23 +912,23 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func args");
 #endif
-  if (emit_Expression(emit, exp_func->args, 1) < 0) {
+  if(emit_Expression(emit, exp_func->args, 1) < 0) {
     err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments..."); // LCOV_EXCL_LINE
     return -1;                                                                                      // LCOV_EXCL_LINE
   }
-  if (exp_func->m_func->def->is_variadic) {
+  if(exp_func->m_func->def->is_variadic) {
     m_uint offset = 0, size = 0;
     Expression e = exp_func->args;
     Arg_List l = exp_func->m_func->def->arg_list;
     Vector kinds = new_Vector();
-    while (e) {
-      if (!l) {
+    while(e) {
+      if(!l) {
         size += e->type->size;
         vector_append(kinds, (vtype)kindof(e->type));
       } else
         offset += e->type->size;
       e = e->next;
-      if (l)
+      if(l)
         l = l->next;
     }
     Instr instr = add_instr(emit, MkVararg);
@@ -948,7 +947,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
     Func_Def def = exp_func->m_func->def;
     ID_List base_t = def->base;
     Type_List list = exp_func->types;
-    if (exp_func->m_func->value_ref->owner_class) {
+    if(exp_func->m_func->value_ref->owner_class) {
       vector_append(emit->env->nspc_stack, (vtype)emit->env->curr);
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
       vector_append(emit->env->class_stack, (vtype)emit->env->class_def);
@@ -992,11 +991,11 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "implicit cast '%s' to '%s'", from->name, to->name);
 #endif
-  if (from->xid == t_int.xid && to->xid == t_float.xid)
+  if(from->xid == t_int.xid && to->xid == t_float.xid)
     sadd_instr(emit, Cast_i2f);
-  else if (from->xid == t_float.xid && to->xid == t_int.xid)
+  else if(from->xid == t_float.xid && to->xid == t_int.xid)
     sadd_instr(emit, Cast_f2i);
-  else if (isa(to, from) < 0 && isa(from, to) < 0) {                                                  // LCOV_EXCL_LINE
+  else if(isa(to, from) < 0 && isa(from, to) < 0) {                                                  // LCOV_EXCL_LINE
     err_msg(EMIT_, 0, "(emit): internal error: cannot cast type '%s' to '%s'", from->name, to->name); // LCOV_EXCL_LINE
     return -1;                                                                                        // LCOV_EXCL_LINE
   }
@@ -1048,7 +1047,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ref)
   debug_msg("emit", "expression");
 #endif
   Expression tmp = exp;
-  while (tmp) {
+  while(tmp) {
     switch (tmp->exp_type) {
     case Decl_Expression_type:
       CHECK_BB(emit_Decl_Expression(emit, &tmp->d.exp_decl))
@@ -1084,7 +1083,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ref)
       CHECK_BB(emit_Dur(emit, &tmp->d.exp_dur))
       break;
 	}
-    if (tmp->cast_to)
+    if(tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
     if(ref && isprim(tmp->type) < 0 && isa(tmp->type, &t_void) < 0) {
         Instr ref = add_instr(emit, Reg_AddRef_Object3);
@@ -1131,7 +1130,7 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt)
     /*          break;*/
     /*      }*/
 
-    if (isa(stmt->cond->type, &t_object) > 0) {
+    if(isa(stmt->cond->type, &t_object) > 0) {
       sadd_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
       break;
@@ -1165,7 +1164,7 @@ static m_bool emit_Stmt_Code(Emitter emit, Stmt_Code stmt, m_bool push)
   debug_msg("emit", "emit stmt code");
 #endif
   Stmt_List list = stmt->stmt_list;
-  while (list) {
+  while(list) {
     CHECK_BB(emit_Stmt(emit, list->stmt, 1))
     list = list->next;
   }
@@ -1262,11 +1261,11 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt)
   goto_ = add_instr(emit, Goto);
   goto_->m_val = index;
   op->m_val = vector_size(emit->code->code);
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
   }
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1326,11 +1325,11 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt)
   }                                 // LCOV_EXCL_STOP
   op = add_instr(emit, f);
   op->m_val = index;
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
   }
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1392,11 +1391,11 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt)
   _goto->m_val = index;
   op->m_val = vector_size(emit->code->code);
 
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
   }
-  while (vector_size(emit ->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit ->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1447,11 +1446,11 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt)
   /*  op->m_val = vector_size(emit->code->code);*/
   op->m_val = index;
 
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
   }
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1477,7 +1476,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   vector_append(emit->code->stack_break, (vtype)NULL);
 
   CHECK_BB(emit_Stmt(emit, stmt->c2, 0))
-  if (stmt->c2) {
+  if(stmt->c2) {
     switch (stmt->c2->d.stmt_exp.val->type->xid) {
     case te_int:
       sadd_instr(emit, Reg_Push_Imm);
@@ -1517,11 +1516,11 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
     CHECK_BB(emit_Expression(emit, stmt->c3, 0))
     Expression e = stmt->c3;
     m_uint num_words = 0;
-    while (e) {
+    while(e) {
       num_words += e->type->size;
       e = e->next;
     }
-    if (num_words) {
+    if(num_words) {
       Instr pop = add_instr(emit, Reg_Pop_Word4);
       pop->m_val = num_words;
     }
@@ -1531,14 +1530,14 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt)
   _goto->m_val = index;
   emit_add_code(emit, _goto);
 
-  if (stmt->c2)
+  if(stmt->c2)
     op->m_val = vector_size(emit->code->code);
 
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = action_index;
   }
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1596,11 +1595,11 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt)
   _goto->m_val = index;
 
   op->m_val = vector_size(emit->code->code);
-  while (vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_cont);
     instr->m_val = index;
   }
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     Instr instr = (Instr)vector_pop(emit->code->stack_break);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -1617,11 +1616,11 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
 #endif
   m_uint i, size;
   Stmt_Goto_Label label;
-  if (!stmt->is_label)
+  if(!stmt->is_label)
     stmt->data.instr = add_instr(emit, Goto);
   else {
-    if (emit->cases && !strcmp(S_name(stmt->name), "default")) {
-      if (emit->default_case_index != -1) {
+    if(emit->cases && !strcmp(S_name(stmt->name), "default")) {
+      if(emit->default_case_index != -1) {
         err_msg(EMIT_, stmt->pos, "default case already defined");
         return -1;
       }
@@ -1630,7 +1629,7 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt)
     }
 
     size = vector_size(stmt->data.v);
-    if (!size) {
+    if(!size) {
       err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name));
       free_Vector(stmt->data.v);
       return -1;
@@ -1652,7 +1651,7 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   Instr instr, _break;
   emit_add_break(emit, NULL);
   CHECK_BB(emit_Expression(emit, stmt->val, 0))
-  if (emit->cases) {
+  if(emit->cases) {
     err_msg(EMIT_, stmt->pos, "swith inside an other switch. this is not allowed for now");
     return -1;
   }
@@ -1666,7 +1665,7 @@ static m_bool emit_Switch(Emitter emit, Stmt_Switch stmt)
   emit_pop_scope(emit);
   instr->m_val = emit->default_case_index > -1 ? emit->default_case_index : vector_size(emit->code->code);
   emit->default_case_index = -1;
-  while (vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
     _break = (Instr)vector_pop(emit->code->stack_break);
     _break->m_val = vector_size(emit->code->code);
   }
@@ -1688,8 +1687,8 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now");
     return -1;
   }
-  if (stmt->val->exp_type == Primary_Expression_type) {
-    if (stmt->val->d.exp_primary.type == ae_primary_num)
+  if(stmt->val->exp_type == Primary_Expression_type) {
+    if(stmt->val->d.exp_primary.type == ae_primary_num)
       value = stmt->val->d.exp_primary.d.num;
     else {
       if(stmt->val->d.exp_primary.d.var == insert_symbol("true"))
@@ -1717,7 +1716,7 @@ static m_bool emit_Case(Emitter emit, Stmt_Case stmt)
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
     return -1;
   }
-  if (map_get(emit->cases, (vtype)value)) {
+  if(map_get(emit->cases, (vtype)value)) {
     err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value);
     return -1;
   }
@@ -1748,7 +1747,7 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt)
   Value v;
   for (i = 0; i < vector_size(stmt->values); i++) {
     v = (Value)vector_at(stmt->values, i);
-    if (!emit->env->class_def) {
+    if(!emit->env->class_def) {
       CHECK_OB((local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0)))
       v->offset = local->offset;
       v->ptr = (void*)i;
@@ -1765,14 +1764,14 @@ static m_bool emit_Stmt_Union(Emitter emit, Stmt_Union stmt)
   Local* local;
   Var_Decl_List var_list;
   is_member = GET_FLAG(l->self->list->self->value, ae_value_member);
-  if (!is_member) {
+  if(!is_member) {
     local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
     stmt->o = local->offset;
   } else
     local = NULL;
-  while (l) {
+  while(l) {
     var_list = l->self->list;
-    while (var_list) {
+    while(var_list) {
       var_list->self->value->offset = stmt->o;
       var_list = var_list->next;
     }
@@ -1788,19 +1787,19 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
 #endif
   Instr instr;
   m_bool ret = 1;
-  if (!stmt)
+  if(!stmt)
     return 1;
   switch (stmt->type) {
   case ae_stmt_exp:
-    if (!stmt->d.stmt_exp.val)
+    if(!stmt->d.stmt_exp.val)
       return 1;
     ret = emit_Expression(emit, stmt->d.stmt_exp.val, 0);
 // check 'stmt->d.stmt_exp->type'for switch
-    if (ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
+    if(ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
       Expression exp = stmt->d.stmt_exp.val;
-      if (exp->exp_type == Primary_Expression_type && exp->d.exp_primary.type == ae_primary_hack)
+      if(exp->exp_type == Primary_Expression_type && exp->d.exp_primary.type == ae_primary_hack)
         exp = exp->d.exp_primary.d.exp;
-      while (exp) {
+      while(exp) {
         // get rid of primary str ?
         /*          if(exp->exp_type == Primary_Expression_type && exp->d.exp_primary->type == ae_primary_str)*/
         instr = add_instr(emit, Reg_Pop_Word4);
@@ -1833,13 +1832,13 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop)
     break;
 
   case ae_stmt_while:
-    if (stmt->d.stmt_while.is_do)
+    if(stmt->d.stmt_while.is_do)
       ret = emit_Do_While(emit, &stmt->d.stmt_while);
     else
       ret = emit_While(emit, &stmt->d.stmt_while);
     break;
   case ae_stmt_until:
-    if (stmt->d.stmt_until.is_do)
+    if(stmt->d.stmt_until.is_do)
       ret = emit_Do_Until(emit, &stmt->d.stmt_until);
     else
       ret = emit_Until(emit, &stmt->d.stmt_until);
@@ -1881,7 +1880,7 @@ static m_bool emit_Stmt_List(Emitter emit, Stmt_List list)
   debug_msg("emit", "Stmt list");
 #endif
   Stmt_List tmp = list;
-  while (tmp) {
+  while(tmp) {
     CHECK_BB(emit_Stmt(emit, tmp->stmt, 1))
     tmp = tmp->next;
   }
@@ -1902,39 +1901,39 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
   m_uint offset = 0;
 
   t_base = base_static ? member->t_base->actual_type : member->t_base;
-  if (t_base->xid == t_complex.xid) {
-    if (member->base->meta == ae_meta_var)
+  if(t_base->xid == t_complex.xid) {
+    if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
-    if (!strcmp(value->name, "re"))
+    if(!strcmp(value->name, "re"))
       instr = add_instr(emit, complex_real);
     else
       instr = add_instr(emit, complex_imag);
     instr->m_val = emit_addr;
     return 1;
-  } else if (t_base->xid == t_polar.xid) {
-    if (member->base->meta == ae_meta_var)
+  } else if(t_base->xid == t_polar.xid) {
+    if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
-    if (!strcmp(value->name, "mod"))
+    if(!strcmp(value->name, "mod"))
       instr = add_instr(emit, complex_real);
     else
       instr = add_instr(emit, complex_imag);
     instr->m_val = emit_addr;
     return 1;
-  } else if (t_base->xid == t_vec3.xid) {
+  } else if(t_base->xid == t_vec3.xid) {
     Instr instr;
-    if (member->base->meta == ae_meta_var)
+    if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
-    if (!strcmp(value->name, "x"))
+    if(!strcmp(value->name, "x"))
       instr = add_instr(emit, vec3_x);
-    else if (!strcmp(value->name, "y"))
+    else if(!strcmp(value->name, "y"))
       instr = add_instr(emit, vec3_y);
-    else if (!strcmp(value->name, "z"))
+    else if(!strcmp(value->name, "z"))
       instr = add_instr(emit, vec3_z);
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec3);
@@ -1945,19 +1944,19 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
     }
     instr->m_val = emit_addr;
     return 1;
-  } else if (t_base->xid == t_vec4.xid) {
+  } else if(t_base->xid == t_vec4.xid) {
     Instr instr;
-    if (member->base->meta == ae_meta_var)
+    if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_Expression(emit, member->base, 0))
     value = find_value(t_base, member->xid);
-    if (!strcmp(value->name, "x"))
+    if(!strcmp(value->name, "x"))
       instr = add_instr(emit, vec4_x);
-    else if (!strcmp(value->name, "y"))
+    else if(!strcmp(value->name, "y"))
       instr = add_instr(emit, vec4_y);
-    else if (!strcmp(value->name, "z"))
+    else if(!strcmp(value->name, "z"))
       instr = add_instr(emit, vec4_z);
-    else if (!strcmp(value->name, "w"))
+    else if(!strcmp(value->name, "w"))
       instr = add_instr(emit, vec4_w);
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec4);
@@ -1972,12 +1971,12 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
   if(t_base->xid == t_vararg.xid) {
     m_uint offset = 0;
     Arg_List l = emit->env->func->def->arg_list;
-    while (l) {
+    while(l) {
       offset += l->type->size;
       l = l->next;
     }
-    if (!strcmp(S_name(member->xid), "start")) {
-      if (emit->env->func->variadic_start) {
+    if(!strcmp(S_name(member->xid), "start")) {
+      if(emit->env->func->variadic_start) {
         err_msg(EMIT_, 0, "vararg.start already used. this is an error");
         free(emit->env->func->variadic_start);
         return -1;
@@ -1987,7 +1986,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       emit->env->func->variadic_index = vector_size(emit->code->code);
       return 1;
     }
-    if (!strcmp(S_name(member->xid), "end")) {
+    if(!strcmp(S_name(member->xid), "end")) {
       if(!emit->env->func->variadic_start) {
         err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error");
         return -1;
@@ -1997,27 +1996,27 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       instr->m_val2 = emit->env->func->variadic_index;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
       return 1;
-    } else if (!strcmp(S_name(member->xid), "i")) {
+    } else if(!strcmp(S_name(member->xid), "i")) {
       Instr instr = add_instr(emit, Vararg_int);
       instr->m_val = offset;
       return 1;
-    } else if (!strcmp(S_name(member->xid), "f") || !strcmp(S_name(member->xid), "t") || !strcmp(S_name(member->xid), "d")) {
+    } else if(!strcmp(S_name(member->xid), "f") || !strcmp(S_name(member->xid), "t") || !strcmp(S_name(member->xid), "d")) {
       Instr instr = add_instr(emit, Vararg_float);
       instr->m_val = offset;
       return 1;
-    } else if (!strcmp(S_name(member->xid), "c") || !strcmp(S_name(member->xid), "p")) {
+    } else if(!strcmp(S_name(member->xid), "c") || !strcmp(S_name(member->xid), "p")) {
       Instr instr = add_instr(emit, Vararg_complex);
       instr->m_val = offset;
       return 1;
-    } else if (!strcmp(S_name(member->xid), "v3")) {
+    } else if(!strcmp(S_name(member->xid), "v3")) {
       Instr instr = add_instr(emit, Vararg_Vec3);
       instr->m_val = offset;
       return 1;
-    } else if (!strcmp(S_name(member->xid), "v4")) {
+    } else if(!strcmp(S_name(member->xid), "v4")) {
       Instr instr = add_instr(emit, Vararg_Vec4);
       instr->m_val = offset;
       return 1;
-    } else if (!strcmp(S_name(member->xid), "o")) {
+    } else if(!strcmp(S_name(member->xid), "o")) {
       Instr instr = add_instr(emit, Vararg_object);
       instr->m_val = offset;
       return 1;
@@ -2039,11 +2038,11 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
      return 1;
      }
      */
-  if (!base_static) { // called from instance
-    if (isa(member->self->type, &t_func_ptr) > 0) { // function pointer
+  if(!base_static) { // called from instance
+    if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
       value = find_value(t_base, member->xid);
       if(GET_FLAG(value, ae_value_member)) { // member
-        if (emit_Expression(emit, member->base, 0) < 0) {
+        if(emit_Expression(emit, member->base, 0) < 0) {
           err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_START
           return -1;
         } // LCOV_EXCL_STOP
@@ -2061,11 +2060,11 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         func_i->m_val2 = (m_uint)kindof(value->m_type);
         func_i->ptr = (m_uint*)emit_addr;
       }
-    } else if (isa(member->self->type, &t_function) > 0) { // function
+    } else if(isa(member->self->type, &t_function) > 0) { // function
       value = find_value(t_base, member->xid);
       func = value->func_ref;
-      if (func->is_member) { // member
-        if (emit_Expression(emit, member->base, 0) < 0) {
+      if(func->is_member) { // member
+        if(emit_Expression(emit, member->base, 0) < 0) {
           err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_LINE
           return -1;                                             // LCOV_EXCL_LINE
         }
@@ -2088,7 +2087,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
         instr->m_val2 = kindof(value->m_type);
         instr->ptr = (m_uint*)emit_addr;
       } else { // static
-        if (value->ptr && GET_FLAG(value, ae_value_import)) { // from C
+        if(value->ptr && GET_FLAG(value, ae_value_import)) { // from C
           func_i = add_instr(emit, Dot_Static_Import_Data);
           func_i->m_val = (m_uint)value->ptr;
           func_i->m_val2 = kindof(value->m_type);
@@ -2104,7 +2103,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       }
     }
   } else { // static
-    if (isa(member->self->type, &t_function) > 0) {
+    if(isa(member->self->type, &t_function) > 0) {
       value = find_value(t_base, member->xid);
       func = value->func_ref;
       push_i = add_instr(emit, Reg_Push_Imm);
@@ -2113,7 +2112,7 @@ static m_bool emit_Dot_Member(Emitter emit, Dot_Member* member)
       func_i->m_val = (m_uint)func;
     } else {
       value = find_value(t_base, member->xid);
-      if (value->ptr && GET_FLAG(value, ae_value_import)) {
+      if(value->ptr && GET_FLAG(value, ae_value_import)) {
         func_i = add_instr(emit, Dot_Static_Import_Data);
         func_i->m_val = (m_uint)value->ptr;
         func_i->m_val2 = kindof(value->m_type);
@@ -2141,7 +2140,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   Type type = value->m_type;
   Local* local = NULL;
 
-  if (func->code) {
+  if(func->code) {
     err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name)); // LCOV_EXCL_LINE
     return -1;                                                                                 // LCOV_EXCL_LINE
   }
@@ -2152,10 +2151,10 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   /*return -1;*/
   /*}*/
 
-  if (func_def->types) // don't check template definition
+  if(func_def->types) // don't check template definition
     return 1;
 
-  if (!emit->env->class_def) {
+  if(!emit->env->class_def) {
     local = frame_alloc_local(emit->code->frame, value->m_type->size, value->name, 1, 0);
     value->offset = local->offset;
     Instr set_mem = add_instr(emit, Mem_Set_Imm);
@@ -2185,7 +2184,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   }
 
   frame_push_scope(emit->code->frame);
-  while (a) {
+  while(a) {
     value = a->var_decl->value;
     type = value->m_type;
     is_obj = !isprim(type);
@@ -2194,15 +2193,15 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
 
     local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
 
-    if (!local) {
+    if(!local) {
       err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name); // LCOV_EXCL_START
       goto error;
     }                                                                                               // LCOV_EXCL_STOP
     value->offset = local->offset;
     a = a->next;
   }
-  if (func_def->is_variadic) {
-    if (!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
+  if(func_def->is_variadic) {
+    if(!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
       err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'..."); // LCOV_EXCL_START
       return -1;
     }                                                                                        // LCOV_EXCL_STOP
@@ -2213,7 +2212,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
     goto error;
 
   // ensure return
-  if (func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
+  if(func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
     emit_func_release(emit); // /04/04/2017
     Kindof k = kindof(func_def->ret_type);
     f_instr f = Reg_Push_Imm;
@@ -2251,11 +2250,11 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def)
   emit->code->stack_return = new_Vector();
   sadd_instr(emit, Func_Return);
   func->code = emit_to_code(emit);
-  if (func->def->spec == ae_func_spec_dtor) {
+  if(func->def->spec == ae_func_spec_dtor) {
     /*    func->code->stack_depth = SZ_INT;*/
     emit->env->class_def->info->dtor = func->code;
     emit->env->class_def->has_destructor = 1;
-  } else if (func->def->spec == ae_func_spec_op)
+  } else if(func->def->spec == ae_func_spec_op)
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
 //  ADD_REF(func);
@@ -2281,17 +2280,17 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   m_bool ret = 1;
   Class_Body body = class_def->body;
 
-  if (type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL) {
+  if(type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL) {
     err_msg(EMIT_, class_def->pos, "(emit): class '%s' already emitted...", type->name); // LCOV_EXCL_LINE
     return -1;                                                                           // LCOV_EXCL_LINE
-  } 
+  }
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
-    if (!type->info->class_data) {
+    if(!type->info->class_data) {
       err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name); // LCOV_EXCL_LINE
       return -1;                                                                                      // LCOV_EXCL_LINE
      }
-  } 
+  }
   memset(type->info->class_data, 0, type->info->class_data_size);
   // set the class
   vector_append(emit->env->class_stack, (vtype)emit->env->class_def);
@@ -2308,12 +2307,12 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
   emit->code->need_this = 1;
   emit->code->filename = strdup(emit_filename);
   emit->code->stack_depth += SZ_INT;
-  if (!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
+  if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
     err_msg(EMIT_, class_def->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_LINE
     return -1;                                                                                 // LCOV_EXCL_LINE
   }
 
-  while (body && ret > 0) { 
+  while(body && ret > 0) {
     switch (body->section->type) {
     case ae_section_stmt:
       ret = emit_Stmt_List(emit, body->section->d.stmt_list);
@@ -2330,7 +2329,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def)
     body = body->next;
   }
 
-  if (ret > 0) {
+  if(ret > 0) {
     sadd_instr(emit, Func_Return);
     free_VM_Code(type->info->pre_ctor);
     type->info->pre_ctor = emit_to_code(emit);
@@ -2362,8 +2361,8 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
   //  emit->code->name = strdup(emit_filename);
   frame_push_scope(emit->code->frame);
   sadd_instr(emit, start_gc);
-  while (prog && ret > 0) {
-    if (!prog->section)
+  while(prog && ret > 0) {
+    if(!prog->section)
       return 1;
     switch (prog->section->type) {
     case ae_section_stmt:
@@ -2387,7 +2386,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename)
     scope_rem(emit->env->curr->func, ptr->xid);
   }
   emit_pop_scope(emit);
-  if (ret < 0) { // should free all stack.
+  if(ret < 0) { // should free all stack.
 //    for(i = 0; i < vector_size(emit->stack); i++)
 //      free_Code((Code*)vector_at(emit->stack, i));
     for(i = 0; i < vector_size(emit->code->code); i++)
