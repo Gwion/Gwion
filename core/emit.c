@@ -944,7 +944,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call");
 #endif
-  if  (exp_func->types) {
+  if(exp_func->types) {
     Func_Def def = exp_func->m_func->def;
     ID_List base_t = def->base;
     Type_List list = exp_func->types;

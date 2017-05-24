@@ -913,37 +913,25 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
         match = specific ? e->type == e1->type : isa(e->type, e1->type);
         if(match <= 0) {
           if(implicit && e->type->xid == t_int.xid && e1->type->xid == t_float.xid)
-            /*            if(implicit && isa(e->type, &t_int) > 0 && isa(e1->type, &t_float) > 0)*/
             e->cast_to = &t_float;
-          /*            else */
-          /*              goto moveon; // type mismatch*/
           else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0)) /// Hack
             goto moveon; // type mismatch
         }
-
         e = e->next;
         e1 = e1->next;
         count++;
       }
       if(e1 == NULL) return func;
-
 moveon:
       func = func->next;
     }
-    // go up
     if(up->up)
       up = up->up->func_ref;
     else up = NULL;
   }
-
-  // not found
   return NULL;
 }
 
-
-
-
-// move to type_utils ?
 Func find_func_match(Func up, Expression args)
 {
   Func func;
@@ -993,12 +981,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
-      /*if(!value) value = v;*/
     } else
       value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
-    /*if(!value) continue;*/
     base = value->func_ref->def;
-    /*if(!base) continue;*/
     Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
         base->type_decl, S_name(func->d.exp_primary.d.var),
         base->arg_list, base->code, func->pos);
@@ -1017,33 +1002,23 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
       base_t->next = tmp;
 
-      if(list->next && !base_t->next) {
-        //        err_msg(TYPE_, def->pos, "'%s' too many argument for template. skipping.", value->name);
-
+      if(list->next && !base_t->next) { // too many arguments
         namespace_pop_type(env->curr);
         goto next;
       }
       base_t = base_t->next;
-      if(!list->next && base_t) {
-        //        err_msg(TYPE_, def->pos, "'%s' not enough argument for template.", value->name);
+      if(!list->next && base_t) { //not enough arguments
         goto next;
-        //return NULL;
       }
       list = list->next;
     }
     m_int ret = scan1_Func_Def(env, def);
     namespace_pop_type(env->curr);
-    if(ret < 0)
-      goto error;
-    if(scan2_Func_Def(env, def) < 0)
-      goto error;
-    if(check_Func_Def(env, def) < 0)
-      goto error;
-    if(!check_Expression(env, func))
-      goto error;
-    if(args)
-      if(!check_Expression(env, args))
-        goto error;
+    if(ret < 0)                               goto error;
+    if(scan2_Func_Def(env, def) < 0)          goto error;
+    if(check_Func_Def(env, def) < 0)          goto error;
+    if(!check_Expression(env, func))          goto error;
+    if(args  && !check_Expression(env, args)) goto error;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
     if(m_func) {
@@ -1057,7 +1032,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     }
     goto next;
 error:
-    free_Func_Def(def); // LCOV_EXCL_LINE
+  free_Func_Def(def); // LCOV_EXCL_LINE
 next:
     ;
   }
