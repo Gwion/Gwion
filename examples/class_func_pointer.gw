@@ -26,7 +26,7 @@ test();
 C c;
 c.func_p();
 
-test @=> c.s_func_p;
+//test @=> c.s_func_p;
 c.test @=> c.func_p;
 c.func_p();
 c.test2 @=> c.func_p;

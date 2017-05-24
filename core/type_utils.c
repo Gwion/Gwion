@@ -77,7 +77,8 @@ void free_Type(Type a)
 {
   if(a->info)
     REM_REF(a->info);
-  if(a->parent == &t_int || isa(a, &t_class) > 0 || isa(a, &t_function) > 0 || a->array_type)
+  if(a->is_user || a->parent == &t_int || isa(a, &t_class) > 0
+      || isa(a, &t_function) > 0 || a->array_type)
     free(a);
 }
 

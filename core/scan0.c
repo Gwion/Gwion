@@ -71,6 +71,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   }
 
   the_class = new_Type(get_type_xid(), S_name(class_def->name->xid));
+  the_class->is_user = 1;
 //  ADD_REF(the_class->obj);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
@@ -120,17 +121,14 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
     type->actual_type = the_class;
     value = new_Value(type, the_class->name);
     value->owner = env->curr;
-if(value->owner != env->global_nspc)
-  vector_remove(env->context->new_class, vector_find(env->context->new_class, (vtype)value));
     SET_FLAG(value, ae_value_const);
     SET_FLAG(value, ae_value_checked);
-//    ADD_REF(the_class->obj);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
-    if(env->curr == env->context->nspc) {
-      context_add_type(env->context, the_class, &the_class->obj);
+//    if(env->curr == env->context->nspc) {
+//      context_add_type(env->context, the_class, &the_class->obj);
       context_add_class(env->context, value, &value->obj);
-    }
+//    }
   }
 done:
   return ret;
