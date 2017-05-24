@@ -67,7 +67,7 @@ void vector_remove(Vector v, const vtype index)
 }
 
 vtype vector_pop(Vector v)
-{ 
+{
   vtype ret;
   if(!v->ptr[0])
     return 0;
@@ -120,9 +120,11 @@ Map new_Map()
 vtype map_get(Map map, vtype key)
 {
   vtype i;
-  for(i = 0; i < map->len; i++)
-    if(map->ptr[i*2] == key)
-      return map->ptr[i*2+1];
+  for(i = map->len+1; --i;) {
+    vtype j = (i-1) *2;
+    if(map->ptr[j] == key)
+      return map->ptr[j+1];
+  }
   return 0;
 }
 
@@ -135,10 +137,11 @@ vtype map_at(Map map, const vtype index)
 
 void map_set(Map map, vtype key, vtype ptr)
 {
-  vtype i;
-  for(i = 0; i < map->len; i++) {
-    if(map->ptr[i*2] == key) {
-      map->ptr[i*2+1] = ptr;
+  vtype i, j;
+  for(i = map->len+1; --i;) {
+    j = (i-1)*2;
+    if(map->ptr[j] == key) {
+      map->ptr[j+1] = ptr;
       return;
     }
   }
@@ -146,8 +149,9 @@ void map_set(Map map, vtype key, vtype ptr)
     map->cap = map->cap * 2;
     map->ptr = realloc(map->ptr, map->cap * sizeof(vtype));
   }
-  map->ptr[map->len*2] = key;
-  map->ptr[map->len*2+1] = ptr;
+  j = map->len *2;
+  map->ptr[j] = key;
+  map->ptr[j+1] = ptr;
   map->len++;
 }
 
@@ -174,7 +178,6 @@ void map_commit(Map map, Map commit)
 
 vtype map_size(Map map)
 {
-//  return map->ptr[0];
   return map->len;
 }
 
@@ -200,7 +203,7 @@ vtype scope_lookup(Scope scope, S_Symbol xid, int climb)
     if(!ret && vector_back(scope->vector) == vector_front(scope->vector))
       ret = map_get(scope->commit_map, (vtype)xid);
   } else if(climb > 0) {
-    for(i = vector_size(scope->vector); i > 0; i--) {
+    for(i = vector_size(scope->vector); --i;) {
       map = (Map)vector_at(scope->vector, i - 1);
       if((ret = map_get(map, (vtype)xid)))
         break;
