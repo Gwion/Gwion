@@ -149,6 +149,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr)
     ptr->value->owner_class = env->class_def;
   }
   namespace_add_func(env->curr, ptr->xid, ptr->func);
+if(!ptr->key)
   ADD_REF(ptr->func);
   return 1;
 error:

@@ -674,11 +674,11 @@ static void free_Stmt_Func_Ptr(Stmt_Ptr a)
 {
 //  if(a->args) // commented 13/04/17 for typedef int[]
 //    free_Arg_List(a->args);
-  if(a->key != ae_key_static && a->value && !GET_FLAG(a->value, ae_value_member)) {
-   if(!a->func)
-      free_Type_Decl(a->type);
-   else
-    REM_REF(a->func);
+  if(a->func)
+	REM_REF(a->func)
+  else
+    free_Type_Decl(a->type);
+  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key) {
     REM_REF(a->value->m_type);
     REM_REF(a->value);
   }
