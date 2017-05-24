@@ -30,17 +30,11 @@ static m_bool scan0_Stmt(Env env, Stmt stmt)
 #ifdef DEBUG_SCAN0
   debug_msg("scan1", "stmt");
 #endif
-  m_bool ret = -1;
   if(!stmt)
     return 1;
-  switch(stmt->type) {
-  case ae_stmt_funcptr:
-    ret = scan0_Func_Ptr(env, &stmt->d.stmt_ptr);
-    break;
-  default:
-    ret = 1;
-  }
-  return ret;
+  if(stmt->type == ae_stmt_funcptr)
+    CHECK_BB(scan0_Func_Ptr(env, &stmt->d.stmt_ptr))
+  return 1;
 }
 static m_bool scan0_Stmt_List(Env env, Stmt_List list)
 {
@@ -60,10 +54,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def)
   Type the_class = NULL;
   m_bool ret = 1;
   Class_Body body = class_def->body;
-  if(class_def->home) {
-    vector_append(env->nspc_stack, (vtype)env->curr);
-    env->curr = class_def->home;
-  }
 
   if(namespace_lookup_type(env->curr, class_def->name->xid, 1)) {
     err_msg(SCAN0_,  class_def->name->pos,
@@ -142,22 +132,17 @@ if(value->owner != env->global_nspc)
       context_add_class(env->context, value, &value->obj);
     }
   }
-  if(class_def->home) {
-    env->curr = (NameSpace)vector_pop(env->nspc_stack);
-  } else
-    class_def->home = env->curr;
 done:
   return ret;
 }
 
 m_bool scan0_Ast(Env env, Ast prog)
 {
-  m_bool ret = 1;
   CHECK_OB(prog)
-  while(prog && ret > 0) {
+  while(prog) {
     switch(prog->section->type) {
     case ae_section_stmt:
-      ret = scan0_Stmt_List(env, prog->section->d.stmt_list);
+      CHECK_BB(scan0_Stmt_List(env, prog->section->d.stmt_list))
       break;
     case ae_section_func:
       break;
@@ -168,14 +153,12 @@ m_bool scan0_Ast(Env env, Ast prog)
                   "more than one 'public' class defined...");
           return -1;
         }
-//        prog->section->d.class_def->home = env->user_nspc ? env->user_nspc : env->global_nspc;
-        prog->section->d.class_def->home = env->global_nspc;
         env->context->public_class_def = prog->section->d.class_def;
       }
-      ret = scan0_Class_Def(env, prog->section->d.class_def);
+      CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))
       break;
     }
     prog = prog->next;
   }
-  return ret;
+  return 1;
 }

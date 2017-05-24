@@ -455,7 +455,6 @@ struct Class_Def_ {
   Class_Ext ext;
   Class_Body body;
   Type type;
-  NameSpace home;
   m_str doc;
   int pos;
 };

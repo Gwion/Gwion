@@ -27,7 +27,7 @@ static void free_Var_Decl(Var_Decl a)
 {
   if(a->value) {
     if(GET_FLAG(a->value, ae_value_arg)) { // func argument. this migth change
-      free_Value(a->value);
+      REM_REF(a->value);
     }
     else if(!a->value->owner_class) { // breaks for loop ?
       /*      if(a->value->m_type->array_type) {
@@ -1243,22 +1243,13 @@ Class_Def new_class_def(ae_Keyword class_decl, ID_List name,
   a->decl = class_decl;
   a->name = name;
   a->ext  = ext;
-  a->home = NULL;
   a->body = body;
   a->pos  = pos;
   a->doc  = NULL;
   a->type = NULL;
   return a;
 }
-/*
-Class_Def new_iface_def(ae_Keyword class_decl, ID_List name,
-                         Class_Ext ext, Class_Body body, int pos)
-{
-  Class_Def a = new_class_def(class_decl, name, ext, body, pos);
-  a->iface = 1;
-  return a;
-}
-*/
+
 Class_Body new_class_body(Section* section, int pos)
 {
   Class_Body a = calloc(1, sizeof(struct Class_Body_));
