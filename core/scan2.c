@@ -847,7 +847,7 @@ m_bool scan2_Func_Def(Env env, Func_Def f)
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
 // should be in free_context, at least.
 free(value->m_type->name);
-free(value->m_type);
+REM_REF(value->m_type);
 f->func->value_ref->m_type = NULL;
   namespace_pop_value(env->curr);
       return -1;

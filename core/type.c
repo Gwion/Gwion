@@ -1904,9 +1904,6 @@ static Type check_Dot_Member(Env env, Dot_Member* member)
       strcat(s, "[]");
     err_msg(TYPE_,  member->base->pos,
         "class '%s' has no member '%s'", s, str);
-    if(the_base->array_depth) {
-      free(the_base);
-    }
     return NULL;
   }
   if(base_static && GET_FLAG(value, ae_value_member)) {

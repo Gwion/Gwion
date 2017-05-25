@@ -122,7 +122,7 @@ INSTR(Free_Func)
   Func f = (Func)instr->m_val;
   free(f->value_ref->name);
   free(f->value_ref->m_type->name);
-  free(f->value_ref->m_type);
+  REM_REF(f->value_ref->m_type);
   REM_REF(f->value_ref);
   free_VM_Code(f->code);
 }
@@ -1248,7 +1248,7 @@ out_of_memory:
 
 negative_array_size:
   fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-  free(type);
+  REM_REF(type);
 error:
   if(base) release(base, shred); // LCOV_EXCL_LINE
   return NULL;
