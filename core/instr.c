@@ -687,6 +687,7 @@ INSTR(Instr_Func_Call)
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
   shred->code = func;
+if(shred->reg != shred->_reg) // added 25/05/17 to prevent empty vararg call with no arg at all crash
   if(stack_depth) {
     POP_REG(shred,  stack_depth);
     if(func->need_this) {
