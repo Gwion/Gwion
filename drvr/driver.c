@@ -34,7 +34,11 @@ void select_driver(DriverInfo* di, const m_str d)
 #ifdef HAVE_ALSA
   else if(!strcmp("alsa", d)) {
     di->func = alsa_driver;
+#ifndef HAVE_TINYALSA
+    di->format = SND_PCM_FORMAT_S8;
+#else
     di->format = SND_PCM_FORMAT_FLOAT64;
+#endif
     di->card = "default";
   }
 #endif
@@ -88,6 +92,9 @@ void select_format(DriverInfo* di, m_str d)
 {
 #ifdef HAVE_ALSA
   if(di->func == alsa_driver) {
+    if(!strcmp("S8", d))
+      di->format = SND_PCM_FORMAT_S8;
+#ifndef HAVE_TINYALSA
     if(!strcmp("S16", d))
       di->format = SND_PCM_FORMAT_S16;
     else if(!strcmp("U16", d))
@@ -104,6 +111,7 @@ void select_format(DriverInfo* di, m_str d)
       di->format = SND_PCM_FORMAT_FLOAT;
     else if(!strcmp("F64", d))
       di->format = SND_PCM_FORMAT_FLOAT64;
+#endif
   }
 #endif
 
