@@ -111,7 +111,7 @@ static MFUN(fft_init)
 {
   FFT* ana = (FFT*)o->ugen->ug;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
-  if(size <= 0 || size%2)Except(shred)
+  if(size <= 0 || size%2)Except(shred, "FftInvalidSizeException.")
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq) {

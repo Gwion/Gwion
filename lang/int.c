@@ -54,8 +54,7 @@ static INSTR(divide)
 #endif
   POP_REG(shred, SZ_INT * 2);
   if  (!*(m_int*)(shred->reg + SZ_INT)) {
-    err_msg(INSTR_, 0, "division by zero.");
-	Except(shred)
+  	Except(shred, "ZeroDivideException")
   }
   *(m_int*)shred->reg /= *(m_int*)(shred->reg + SZ_INT);
   PUSH_REG(shred, SZ_INT);
@@ -68,8 +67,7 @@ static INSTR(modulo)
 #endif
   POP_REG(shred, SZ_INT * 2);
   if  (!*(m_int*)(shred->reg + SZ_INT)) {
-    err_msg(INSTR_, 0, "modulo by zero.");
-	Except(shred)
+    Except(shred, "ZeroDivideException")
   }
   *(m_int*)shred->reg %= *(m_int*)(shred->reg + SZ_INT);
   PUSH_REG(shred,  SZ_INT);

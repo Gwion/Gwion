@@ -155,7 +155,7 @@ MFUN(allpass_init)
 	}
 	m_float looptime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_allpass_create(&ug->osc) == SP_NOT_OK || sp_allpass_init(ug->sp, ug->osc, looptime) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -377,7 +377,7 @@ MFUN(bar_init)
 	gw_offset +=SZ_FLOAT;
 	m_float ib = *(m_float*)(shred->mem + gw_offset);
 	if(sp_bar_create(&ug->osc) == SP_NOT_OK || sp_bar_init(ug->sp, ug->osc, iK, ib) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -1294,7 +1294,7 @@ MFUN(comb_init)
 	}
 	m_float looptime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_comb_create(&ug->osc) == SP_NOT_OK || sp_comb_init(ug->sp, ug->osc, looptime) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -1454,7 +1454,7 @@ MFUN(conv_init)
 	gw_offset +=SZ_INT;
 	m_float iPartLen = *(m_float*)(shred->mem + gw_offset);
 	if(sp_conv_create(&ug->osc) == SP_NOT_OK || sp_conv_init(ug->sp, ug->osc, ft, iPartLen) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -1646,7 +1646,7 @@ MFUN(delay_init)
 	}
 	m_float time = *(m_float*)(shred->mem + gw_offset);
 	if(sp_delay_create(&ug->osc) == SP_NOT_OK || sp_delay_init(ug->sp, ug->osc, time) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -1775,7 +1775,7 @@ MFUN(diskin_init)
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
 	if(sp_diskin_create(&ug->osc) == SP_NOT_OK || sp_diskin_init(ug->sp, ug->osc, filename) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -1962,7 +1962,7 @@ MFUN(drip_init)
 	}
 	m_float dettack = *(m_float*)(shred->mem + gw_offset);
 	if(sp_drip_create(&ug->osc) == SP_NOT_OK || sp_drip_init(ug->sp, ug->osc, dettack) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -2118,7 +2118,7 @@ MFUN(dtrig_init)
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
 	if(sp_dtrig_create(&ug->osc) == SP_NOT_OK || sp_dtrig_init(ug->sp, ug->osc, ft) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -2443,7 +2443,7 @@ MFUN(fof_init)
 	gw_offset +=SZ_INT;
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_fof_create(&ug->osc) == SP_NOT_OK || sp_fof_init(ug->sp, ug->osc, sine, win, iolaps, iphs) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -2692,7 +2692,7 @@ MFUN(fog_init)
 	gw_offset +=SZ_INT;
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_fog_create(&ug->osc) == SP_NOT_OK || sp_fog_init(ug->sp, ug->osc, wav, win, iolaps, iphs) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -2919,7 +2919,7 @@ MFUN(fosc_init)
 	sp_ftbl* tbl = FTBL(tbl_obj);
 	release(tbl_obj, shred);
 	if(sp_fosc_create(&ug->osc) == SP_NOT_OK || sp_fosc_init(ug->sp, ug->osc, tbl) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -3047,7 +3047,7 @@ MFUN(gbuzz_init)
 	gw_offset +=SZ_INT;
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_gbuzz_create(&ug->osc) == SP_NOT_OK || sp_gbuzz_init(ug->sp, ug->osc, ft, iphs) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -3393,7 +3393,7 @@ MFUN(incr_init)
 	}
 	m_float val = *(m_float*)(shred->mem + gw_offset);
 	if(sp_incr_create(&ug->osc) == SP_NOT_OK || sp_incr_init(ug->sp, ug->osc, val) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -3847,7 +3847,7 @@ MFUN(mincer_init)
 	gw_offset +=SZ_INT;
 	m_int winsize = *(m_int*)(shred->mem + gw_offset);
 	if(sp_mincer_create(&ug->osc) == SP_NOT_OK || sp_mincer_init(ug->sp, ug->osc, ft, winsize) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -4115,7 +4115,7 @@ MFUN(nsmp_init)
 	m_str init = STRING(init_obj);
 	release(init_obj, shred);
 	if(sp_nsmp_create(&ug->osc) == SP_NOT_OK || sp_nsmp_init(ug->sp, ug->osc, ft, sr, init) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -4187,7 +4187,7 @@ MFUN(osc_init)
 	gw_offset +=SZ_INT;
 	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	if(sp_osc_create(&ug->osc) == SP_NOT_OK || sp_osc_init(ug->sp, ug->osc, tbl, phase) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -4284,7 +4284,7 @@ MFUN(oscmorph_init)
 	m_float phase = *(m_float*)(shred->mem + gw_offset);
 	if(sp_oscmorph_create(&ug->osc) == SP_NOT_OK || sp_oscmorph_init(ug->sp, ug->osc, tbl, nft, phase) == SP_NOT_OK) {
 		free(tbl); // LCOV_EXCL_LINE
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->tbl = tbl;
 	ug->is_init = 1;
@@ -4592,7 +4592,7 @@ MFUN(paulstretch_init)
 	gw_offset +=SZ_FLOAT;
 	m_float stretch = *(m_float*)(shred->mem + gw_offset);
 	if(sp_paulstretch_create(&ug->osc) == SP_NOT_OK || sp_paulstretch_init(ug->sp, ug->osc, ft, windowsize, stretch) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -4936,7 +4936,7 @@ MFUN(phasor_init)
 	}
 	m_float iphs = *(m_float*)(shred->mem + gw_offset);
 	if(sp_phasor_create(&ug->osc) == SP_NOT_OK || sp_phasor_init(ug->sp, ug->osc, iphs) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5050,7 +5050,7 @@ MFUN(pitchamdf_init)
 	gw_offset +=SZ_FLOAT;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	if(sp_pitchamdf_create(&ug->osc) == SP_NOT_OK || sp_pitchamdf_init(ug->sp, ug->osc, min, max) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5106,7 +5106,7 @@ MFUN(pluck_init)
 	}
 	m_float ifreq = *(m_float*)(shred->mem + gw_offset);
 	if(sp_pluck_create(&ug->osc) == SP_NOT_OK || sp_pluck_init(ug->sp, ug->osc, ifreq) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5189,7 +5189,7 @@ MFUN(port_init)
 	}
 	m_float htime = *(m_float*)(shred->mem + gw_offset);
 	if(sp_port_create(&ug->osc) == SP_NOT_OK || sp_port_init(ug->sp, ug->osc, htime) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5245,7 +5245,7 @@ MFUN(posc3_init)
 	sp_ftbl* tbl = FTBL(tbl_obj);
 	release(tbl_obj, shred);
 	if(sp_posc3_create(&ug->osc) == SP_NOT_OK || sp_posc3_init(ug->sp, ug->osc, tbl) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5387,7 +5387,7 @@ MFUN(prop_init)
 	m_str str = STRING(str_obj);
 	release(str_obj, shred);
 	if(sp_prop_create(&ug->osc) == SP_NOT_OK || sp_prop_init(ug->sp, ug->osc, str) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5530,7 +5530,7 @@ MFUN(ptrack_init)
 	gw_offset +=SZ_INT;
 	m_int ipeaks = *(m_int*)(shred->mem + gw_offset);
 	if(sp_ptrack_create(&ug->osc) == SP_NOT_OK || sp_ptrack_init(ug->sp, ug->osc, ihopsize, ipeaks) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -5860,7 +5860,7 @@ MFUN(reverse_init)
 	}
 	m_float delay = *(m_float*)(shred->mem + gw_offset);
 	if(sp_reverse_create(&ug->osc) == SP_NOT_OK || sp_reverse_init(ug->sp, ug->osc, delay) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6022,7 +6022,7 @@ MFUN(rpt_init)
 	}
 	m_float maxdur = *(m_float*)(shred->mem + gw_offset);
 	if(sp_rpt_create(&ug->osc) == SP_NOT_OK || sp_rpt_init(ug->sp, ug->osc, maxdur) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6228,7 +6228,7 @@ MFUN(sdelay_init)
 	}
 	m_float size = *(m_float*)(shred->mem + gw_offset);
 	if(sp_sdelay_create(&ug->osc) == SP_NOT_OK || sp_sdelay_init(ug->sp, ug->osc, size) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6290,7 +6290,7 @@ MFUN(slice_init)
 	sp_ftbl* buf = FTBL(buf_obj);
 	release(buf_obj, shred);
 	if(sp_slice_create(&ug->osc) == SP_NOT_OK || sp_slice_init(ug->sp, ug->osc, vals, buf) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6361,7 +6361,7 @@ MFUN(smoothdelay_init)
 	gw_offset +=SZ_FLOAT;
 	m_int interp = *(m_int*)(shred->mem + gw_offset);
 	if(sp_smoothdelay_create(&ug->osc) == SP_NOT_OK || sp_smoothdelay_init(ug->sp, ug->osc, maxdel, interp) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6445,7 +6445,7 @@ MFUN(spa_init)
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
 	if(sp_spa_create(&ug->osc) == SP_NOT_OK || sp_spa_init(ug->sp, ug->osc, filename) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6502,7 +6502,7 @@ MFUN(sparec_init)
 	m_str filename = STRING(filename_obj);
 	release(filename_obj, shred);
 	if(sp_sparec_create(&ug->osc) == SP_NOT_OK || sp_sparec_init(ug->sp, ug->osc, filename) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6653,7 +6653,7 @@ MFUN(tabread_init)
 	gw_offset +=SZ_INT;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	if(sp_tabread_create(&ug->osc) == SP_NOT_OK || sp_tabread_init(ug->sp, ug->osc, ft, mode) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -6842,7 +6842,7 @@ MFUN(tblrec_init)
 	sp_ftbl* bar = FTBL(bar_obj);
 	release(bar_obj, shred);
 	if(sp_tblrec_create(&ug->osc) == SP_NOT_OK || sp_tblrec_init(ug->sp, ug->osc, bar) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -7526,7 +7526,7 @@ MFUN(tseg_init)
 	}
 	m_float ibeg = *(m_float*)(shred->mem + gw_offset);
 	if(sp_tseg_create(&ug->osc) == SP_NOT_OK || sp_tseg_init(ug->sp, ug->osc, ibeg) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -7626,7 +7626,7 @@ MFUN(tseq_init)
 	sp_ftbl* ft = FTBL(ft_obj);
 	release(ft_obj, shred);
 	if(sp_tseq_create(&ug->osc) == SP_NOT_OK || sp_tseq_init(ug->sp, ug->osc, ft) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -7695,7 +7695,7 @@ MFUN(vdelay_init)
 	}
 	m_float maxdel = *(m_float*)(shred->mem + gw_offset);
 	if(sp_vdelay_create(&ug->osc) == SP_NOT_OK || sp_vdelay_init(ug->sp, ug->osc, maxdel) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }
@@ -7838,7 +7838,7 @@ MFUN(waveset_init)
 	}
 	m_float ilen = *(m_float*)(shred->mem + gw_offset);
 	if(sp_waveset_create(&ug->osc) == SP_NOT_OK || sp_waveset_init(ug->sp, ug->osc, ilen) == SP_NOT_OK) {
-		Except(shred) // LCOV_EXCL_LINE
+		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
 	}
 	ug->is_init = 1;
 }

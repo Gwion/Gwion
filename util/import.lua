@@ -227,7 +227,7 @@ function print_mod_func(name, mod)
 				end
 			end
 		end
-		print("\t\tExcept(shred) // LCOV_EXCL_LINE\n\t}")
+		print("\t\tExcept(shred, \"UgenCreateException\") // LCOV_EXCL_LINE\n\t}")
 		local tbl = mod.params.mandatory
 		if tbl then
 			for _, v in pairs(tbl) do

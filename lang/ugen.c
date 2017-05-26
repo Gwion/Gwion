@@ -167,11 +167,11 @@ static INSTR(ugen_connect)
 
   if(!lhs->ugen) {
 	release(rhs, shred);
-    Except(shred);
+    Except(shred, "UgenConnectException");
   }
   if(!rhs->ugen) {
 	release(lhs, shred);
-    Except(shred);
+    Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->n_in) {
     if(rhs->ugen->channel) {

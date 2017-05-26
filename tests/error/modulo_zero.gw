@@ -1,2 +1,2 @@
-// [contains] modulo by zero
+// [contains] ZeroDivideException
 [ 1%0, 2, 3, 4, 5 ];

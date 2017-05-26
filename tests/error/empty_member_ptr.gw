@@ -1,4 +1,4 @@
-// [contains] NullPointerException
+// [contains] NullFuncPtrException
 class C
 {
 	typedef void (test)();

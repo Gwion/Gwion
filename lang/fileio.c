@@ -18,7 +18,7 @@ struct Type_ t_cin     = { "@Cin",     SZ_INT, &t_fileio,    te_fileio  };
 static M_Object gw_cin, gw_cout, gw_cerr;
 m_int o_fileio_file;
 
-#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred); }
+#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
 CTOR(fileio_ctor)
 {
   IO_FILE(o)  = NULL;
@@ -104,14 +104,12 @@ INSTR(file_to_int)
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
-      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
-      Except(shred);                                     // LCOV_EXCL_LINE
+      Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
-	err_msg(INSTR_, 0, "trying to read from empty file.");
     release(o, shred);
-	Except(shred);
+	Except(shred, "EmptyFileException");
   }
 }
 
@@ -127,14 +125,12 @@ INSTR(file_to_float)
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
-      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
-      Except(shred);                                     // LCOV_EXCL_LINE
+      Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
   } else {
-    err_msg(INSTR_, 0, "trying to read from empty file. %lu", o->ref);
     release(o, shred);
-    Except(shred);
+    Except(shred, "EmptyFileException");
   }
 }
 /*
@@ -164,8 +160,7 @@ INSTR(file_to_string)
   if(IO_FILE(o)) {
     char c[1025];
     if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
-      err_msg(INSTR_, 0, "problem while reading file."); // LCOV_EXCL_LINE
-      Except(shred);                                     // LCOV_EXCL_LINE
+      Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     STRING(s) = S_name(insert_symbol(c));
     *(M_Object*)(shred->reg - SZ_INT) = s;

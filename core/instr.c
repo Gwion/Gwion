@@ -235,7 +235,7 @@ INSTR(Reg_Push_Code)
     err_msg(INSTR_, 0, "trying to call empty func pointer.");
     if(instr->m_val2) // if any, release owner on error
       release(*(M_Object*)(shred->reg - SZ_INT*2), shred);
-	Except(shred);
+	Except(shred, "NullFuncPtrException");
   }
   *(VM_Code*)(shred->reg - SZ_INT) = f->code;
 }
@@ -835,7 +835,7 @@ INSTR(Dot_Member_Func)
 #endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)shred->reg;
-  if(!obj) Except(shred);
+  if(!obj) Except(shred, "NullPtrException");
   *(Func*)shred->reg = (Func)vector_at(obj->vtable, instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
@@ -962,7 +962,7 @@ INSTR(Pre_Constructor)
 static void instantiate_object(VM * vm, VM_Shred shred, Type type)
 {
   M_Object object = new_M_Object(NULL);
-  if(!object) Except(shred);
+  if(!object) Except(shred, "NullPtrException");
   initialize_object(object, type);
   *(M_Object*)shred->reg =  object;
   PUSH_REG(shred,  SZ_INT);
@@ -1127,8 +1127,7 @@ INSTR(Dot_Member_Data)
 
   POP_REG(shred,  SZ_INT);
   obj  = *(M_Object*)shred->reg;
-  if(!obj)
-    Except(shred);
+  if(!obj) Except(shred, "NullPtrException");
   // take care of emit_addr ? (instr->ptr)
   if(instr->ptr) {
     if(instr->m_val2 == Kindof_Int) {
@@ -1374,7 +1373,7 @@ INSTR(Instr_Array_Access)
   POP_REG(shred,  SZ_INT * 2);
   obj = *(M_Object*)shred->reg;
   if(!obj)
-    Except(shred);
+    Except(shred, "NullPtrException");
   i = *(m_int*)(shred->reg + SZ_INT);
   if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
@@ -1430,7 +1429,7 @@ INSTR(Instr_Array_Access_Multi)
   M_Object obj, *base = (M_Object*)shred->reg;
   obj = *base;
   if(!obj)
-    Except(shred);
+    Except(shred, "NullPtrException");
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)(shred->reg + SZ_INT * (j + 1));
     if(i < 0 || i >= m_vector_size(obj->d.array))

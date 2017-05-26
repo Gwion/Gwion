@@ -1,2 +1,2 @@
-// [contains] division by zero
+// [contains] ZeroDivideException
 [ #(0.0, 0/0) ];
