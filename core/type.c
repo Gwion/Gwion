@@ -418,7 +418,7 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary)
         t = v->m_type;
         primary->value = v;
       }
-      if(v && GET_FLAG(v, ae_value_enum)) // hack for enum
+      if(v && GET_FLAG(v, ae_value_const))
         primary->self->meta = ae_meta_value;
       break;
     case ae_primary_num:
@@ -716,6 +716,14 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
         cl->emit_var = 1;
         break;
       case op_at_chuck:
+        if(cr->meta != ae_meta_var) {
+          err_msg(TYPE_, cr->pos,
+              "cannot assign '%s' on types '%s' and'%s'...",
+              op2str(binary->op), cl->type->name, cr->type->name);
+          err_msg(TYPE_, cr->pos,
+              "...(reason: --- rigth-side operand is not mutable)");
+          return NULL;
+        }
         if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
           if(isa(cl->type->array_type, cr->type->array_type) < 0) {
             err_msg(TYPE_, binary->pos, "array types do not match.");

@@ -111,7 +111,7 @@ static MFUN(fft_init)
 {
   FFT* ana = (FFT*)o->ugen->ug;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
-
+  if(size <= 0 || size%2)Except(shred)
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq) {
@@ -139,7 +139,8 @@ static MFUN(fft_compute)
     return;
   }
   smp = sp_buffer_get(ana->buf);
-  smps2freqs(ana->fft, smp, ana->frq);
+  if(smp)
+   smps2freqs(ana->fft, smp, ana->frq);
   free(smp);
 }
 

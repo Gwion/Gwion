@@ -143,9 +143,8 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   SET_FLAG(v, ae_value_global);
   if(data)
     v->ptr = data;
+  v->owner = env->global_nspc;
   namespace_add_value(env->global_nspc, insert_symbol(name), v);
-
-  v->owner = env->global_nspc; // ?
   // doc
   context_add_value(env->global_context, v, &v->obj);
   return 1;

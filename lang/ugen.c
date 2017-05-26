@@ -165,6 +165,14 @@ static INSTR(ugen_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
+  if(!lhs->ugen) {
+	release(rhs, shred);
+    Except(shred);
+  }
+  if(!rhs->ugen) {
+	release(lhs, shred);
+    Except(shred);
+  }
   if(rhs->ugen->n_in) {
     if(rhs->ugen->channel) {
       for(i = 0; i < rhs->ugen->n_out; i++) {
