@@ -380,6 +380,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
     memcpy(&temp, &primary->d.num, sizeof(temp));
     instr = add_instr(emit, Reg_Push_Imm);
     instr->m_val = temp;
+    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_char:

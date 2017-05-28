@@ -165,12 +165,8 @@ static INSTR(ugen_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
-  if(!lhs || !lhs->ugen) {
+  if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
 	release(rhs, shred);
-    Except(shred, "UgenConnectException");
-  }
-  if(!lhs || !rhs->ugen) {
-	release(lhs, shred);
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->n_in) {
@@ -205,6 +201,10 @@ static INSTR(ugen_disconnect)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
+	release(rhs, shred);
+    Except(shred, "UgenConnectException");
+  }
   if(rhs->ugen->n_in) {
     if(rhs->ugen->channel) {
       for(i = 0; i < rhs->ugen->n_out; i++) {
@@ -232,6 +232,10 @@ static INSTR(trig_connect)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
+	release(rhs, shred);
+    Except(shred, "UgenConnectException");
+  }
   if(rhs->ugen->trig) {
     vector_append(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
     vector_append(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
@@ -250,6 +254,10 @@ static INSTR(trig_disconnect)
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
+	release(rhs, shred);
+    Except(shred, "UgenConnectException");
+  }
   if(rhs->ugen->trig) {
     vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  (vtype)lhs->ugen));
     vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));

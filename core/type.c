@@ -713,7 +713,7 @@ static Type check_Binary_Expression(Env env, Binary_Expression* binary)
           return NULL;
         }
         // mark to emit var instead of value
-        cl->emit_var = 1;
+        cr->emit_var = cl->emit_var = 1;
         break;
       case op_at_chuck:
         if(cr->meta != ae_meta_var) {
@@ -1281,7 +1281,6 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
 
               // assign
               exp_unary->exp->emit_var = 1;
-
               // check type
               if(!t)
                 return NULL;
@@ -1292,6 +1291,7 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary)
             case op_minus:
               if(!t)
                 return NULL;
+              exp_unary->self->meta = ae_meta_value;
               if(isa(t, &t_int) || isa(t, &t_float) > 0)
                 return t;
               break;

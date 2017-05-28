@@ -10,10 +10,10 @@ struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
 static INSTR(assign)
 {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(int) %i'=' %i", **(m_int**)(shred->reg - SZ_INT * 2), *(m_int*)(shred->reg - SZ_INT));
+  debug_msg("instr", "(int) %i'=' %i", **(m_int**)(shred->reg - SZ_INT * 2), **(m_int**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = **(m_int**)(shred->reg + SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
