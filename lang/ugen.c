@@ -165,11 +165,11 @@ static INSTR(ugen_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
-  if(!lhs->ugen) {
+  if(!lhs || !lhs->ugen) {
 	release(rhs, shred);
     Except(shred, "UgenConnectException");
   }
-  if(!rhs->ugen) {
+  if(!lhs || !rhs->ugen) {
 	release(lhs, shred);
     Except(shred, "UgenConnectException");
   }
