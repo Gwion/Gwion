@@ -1,0 +1,6 @@
+function complex testc()  {};
+function Vec3    testv3() {};
+function Vec4    testv4() {};
+testc();
+testv3();
+testv4();

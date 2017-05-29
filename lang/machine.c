@@ -52,39 +52,35 @@ static SFUN(machine_add)
 static SFUN(machine_check)
 {
   char c[104];
-  m_str prefix, filename;
+  Ast ast;
+  FILE* file;
+  m_str prefix, filename, s;
   M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
   M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+
+  RETURN->d.v_uint = 0;
   if(!prefix_obj)
     prefix = ".";
   else {
     prefix = STRING(prefix_obj);
     release(prefix_obj, shred);
   }
-  if(!code_obj) {
-    RETURN->d.v_uint = 0;
+  if(!code_obj)
     return;
-  }
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s", prefix, filename);
-  FILE* file = fopen(c, "w");
+  if(!(file = fopen(c, "w"))) return;
   fprintf(file, "%s\n", STRING(code_obj));
   release(code_obj, shred);
   fclose(file);
   free(filename);
-  Ast ast = parse(c);
-  if(!ast) {
-    RETURN->d.v_uint = 0;
+  if(!(ast = parse(c)))
     return;
-  }
-  m_str s = strdup(c);
-  if(type_engine_check_prog(shred->vm_ref->env, ast, s) < 0) {
-    RETURN->d.v_uint = 0;
+  s = strdup(c);
+  if(type_engine_check_prog(shred->vm_ref->env, ast, s) < 0)
     return;
-  }
   free(s);
-  free_Ast(ast); // it could be in 'type_engine_check_prog'
-//  RETURN->d.v_uint = (m_uint)new_String(shred,c);
+  free_Ast(ast);
   RETURN->d.v_uint = 1;
 }
 
@@ -93,21 +89,21 @@ static SFUN(machine_compile)
 
   char c[104];
   m_str prefix, filename;
+  FILE* file;
   M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
   M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+
+  RETURN->d.v_uint = 0;
   if(!prefix_obj)
     prefix = ".";
   else {
     prefix = STRING(prefix_obj);
     release(prefix_obj, shred);
   }
-  if(!code_obj) {
-    RETURN->d.v_uint = 0;
-    return;
-  }
+  if(!code_obj) return;
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s.gw", prefix, filename);
-  FILE* file = fopen(c, "w");
+  if(!(file = fopen(c, "w"))) return;
   fprintf(file, "%s\n", STRING(code_obj));
   release(code_obj, shred);
   fclose(file);
