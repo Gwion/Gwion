@@ -16,4 +16,3 @@ i.remove(1);
 <<<i.depth()>>>;
 <<<i.cap()>>>;
 print_array(i[1]);
-print_array(i);
