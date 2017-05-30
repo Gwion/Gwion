@@ -3,23 +3,16 @@
 #include "type.h"
 
 Value new_Value(Type type, m_str name) {
-    Value a               = (Value)calloc(1, sizeof(struct Value_));
-    a->type               = 0;
-    a->m_type             = type;
-    a->name               = name;
-    a->ptr                = NULL;
-    a->func_ref           = NULL;
-    a->offset             = 0;
-    a->func_num_overloads = 0;
-    a->owner              = NULL;
-    a->owner_class        = NULL;
-    INIT_OO(a, e_value_obj);
-    return a;
+  Value a               = (Value)calloc(1, sizeof(struct Value_));
+  a->m_type             = type;
+  a->name               = name;
+  INIT_OO(a, e_value_obj);
+  return a;
 }
 void free_Value(Value a) {
-    if(a->ptr) {
-        if(isprim(a->m_type) > 0)
-            free(a->ptr);
-    }
-    free(a);
+  if(a->ptr) {
+    if(isprim(a->m_type) > 0)
+      free(a->ptr);
+  }
+  free(a);
 }

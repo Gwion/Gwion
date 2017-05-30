@@ -3,31 +3,17 @@
 #include "type.h"
 #include "frame.h"
 
-m_bool get_instr(Emitter emit, Operator op, Type rhs, Type lhs);
-
-typedef struct {
-  m_str name;
-  m_str filename;
-  m_uint stack_depth;
-  m_bool need_this;
-  Vector code;
-  Vector stack_cont, stack_break, stack_return;
-  Frame* frame;
-} Code;
-
-Code* new_Code();
-void free_Code(Code* code);
 struct Emitter_ {
   Env       env;
   Vector    stack;
   Vector    spork;
   Vector    funcs;
-  Code*     code;
   Context   context;
   NameSpace nspc;
   Func      func;
   Map       cases;
   m_int	    default_case_index;
+  struct Code_*     code;
   struct VM_Object_ obj;
 };
 
@@ -42,6 +28,4 @@ void emit_push_label(Emitter emit);
 void emit_pop_label(Emitter emit);
 
 m_bool emit_Func_Call1(Emitter emit, Func func, Type type, int pos);
-
-Instr add_instr(Emitter emit, f_instr f);
 #endif

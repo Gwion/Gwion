@@ -80,7 +80,7 @@ release(*(M_Object*)(obj->d.data + value->offset), shred);
 free_Vector(v);
 if (t->has_destructor) {
 if (t->info->dtor->native_func)
-((f_dtor)t->info->dtor->native_func)(obj, shred);
+((f_xtor)t->info->dtor->native_func)(obj, shred);
 else {
 VM_Code code = new_VM_Code(t->info->dtor->instr, SZ_INT, 1, "[dtor]", "[in code dtor exec]");
 VM_Shred sh = new_VM_Shred(code);

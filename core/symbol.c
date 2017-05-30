@@ -33,60 +33,60 @@
 #define SIZE 65347  /* should be prime */
 
 struct S_Symbol_ {
-    c_str name;
-    S_Symbol next;
+  c_str name;
+  S_Symbol next;
 };
 
 static S_Symbol hashtable[SIZE];
 
 static S_Symbol mksymbol(c_constr name, S_Symbol next) {
-    S_Symbol s = calloc(1, sizeof(*s));
-    s->name = calloc(1, strlen(name) + 1);
-    strcpy(s->name, (c_str)name);
-    s->next = next;
-    return s;
+  S_Symbol s = calloc(1, sizeof(*s));
+  s->name = calloc(1, strlen(name) + 1);
+  strcpy(s->name, (c_str)name);
+  s->next = next;
+  return s;
 }
 
 static void free_Symbol(S_Symbol s) {
-    free(s->name);
-    free(s);
+  free(s->name);
+  free(s);
 }
 void free_Symbols() {
-    int i;
-    for(i = 0; i < SIZE; i++) {
-        S_Symbol s = hashtable[i];
-        if(s) {
-            S_Symbol tmp, next = s;
-            while(next) {
-                tmp = next;
-                next = next->next;
-                free_Symbol(tmp);
-            }
-        }
+  int i;
+  for(i = 0; i < SIZE; i++) {
+    S_Symbol s = hashtable[i];
+    if(s) {
+      S_Symbol tmp, next = s;
+      while(next) {
+        tmp = next;
+        next = next->next;
+        free_Symbol(tmp);
+      }
     }
+  }
 }
 
 static unsigned int hash(const char *s0) {
-    unsigned int h = 0;
-    const char *s;
-    for(s = s0; *s; s++)
-        h = h * 65599 + *s;
-    return h;
+  unsigned int h = 0;
+  const char *s;
+  for(s = s0; *s; s++)
+    h = h * 65599 + *s;
+  return h;
 }
 
 S_Symbol insert_symbol(c_constr name) {
-    S_Symbol syms = NULL, sym;
-    int index;
-    index = hash(name) % SIZE;
-    syms = hashtable[index];
-    for(sym = syms; sym; sym = sym->next)
-        if(!strcmp((char*)sym->name, (char*)name))
-            return sym;
-    sym = mksymbol(name, syms);
-    hashtable[index] = sym;
-    return sym;
+  S_Symbol syms = NULL, sym;
+  int index;
+  index = hash(name) % SIZE;
+  syms = hashtable[index];
+  for(sym = syms; sym; sym = sym->next)
+    if(!strcmp((char*)sym->name, (char*)name))
+      return sym;
+  sym = mksymbol(name, syms);
+  hashtable[index] = sym;
+  return sym;
 }
 
 c_str S_name(S_Symbol sym) {
-    return sym->name;
+  return sym->name;
 }

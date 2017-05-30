@@ -3,7 +3,6 @@
 #include "oo.h"
 
 struct Value_ {
-  te_type type;
   Type m_type;
   m_str name;
   m_uint* ptr;
