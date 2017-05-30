@@ -1,104 +1,10 @@
-#include "defs.h"
 #include "err_msg.h"
-//#include "emit.h"
 #include "instr.h"
+#include "operator_private.h"
 
-static Operator operators[] = {
-// arithmetic
-  op_assign, op_plus, op_minus, op_times, op_divide, op_percent,
-// logical
-  op_and, op_or, op_eq, op_neq,
-  op_gt, op_ge, op_lt, op_le,
-// bitwise
-  op_shift_left, op_shift_right,
-  op_s_or, op_s_and, op_s_xor,
-// unary
-  op_plusplus, op_minusminus, op_exclamation, op_tilda,
-  op_new, op_spork, op_typeof, op_sizeof,
-// reverse arithmetic
-  op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
-// reverse logical
-  op_rand, op_ror, op_req, op_rneq,
-  op_rgt, op_rge, op_rlt, op_rle,
-// reverse bitwise
-  op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
-// unchuck and others
-  op_unchuck, op_rinc, op_rdec, op_runinc, op_rundec,
-//at_chuck
-  op_at_chuck, op_at_unchuck,
-// trig
-  op_trig, op_untrig
-};
 
-static m_str op_str[] = {
-// arithmetic
-  "=", "+", "-", "*", "/", "%",
-// logical
-  "&&", "||",	"==", "!=",
-  ">", ">=", "<", "<=",
-// bitwise
-  "<<", ">>",
-  "|", "&", "^",
-// unary
-  "++", "--", "!", "~",
-  "new", "spork", "typeof", "sizeof",
-// reverse arithmetic
-  "=>", "+=>", "-=>", "*=>", "/=>", "%=>",
-// reverse logical
-  "&&=>", "||=>", "==>", "!=>",
-  ">=>", ">==>", "<=<", "<==<",
-// reverse bitwise
-  "<<=>", ">>=>", "&=>", "|=>", "^=>",
-// unchuck an others
-  "=<", "++=>", "--=>", "++=<", "--=<",
-// at_chuck
-  "@=>", "@=<",
-// trig
-  "]=>", "]=<", NULL
-};
-
-static m_str op_name[] = {
-// arithmetic
-  "assign", "plus", "minus", "times", "divide", "modulo",
-// logical
-  "and", "or", "eq", "neq",
-  "gt", "ge", "lt", "le",
-// bitwise
-  "shiftleft", "shiftright",
-  "s_or", "s_and", "s_xor",
-// unary
-  "plusplus", "minusminus", "exclamation", "tilda",
-  "new", "spork", "typeof", "sizeof",
-// reverse arithmetic
-  "chuck", "pluschuck", "minuschuck", "timeschuck", "dividechuck", "modulochuck",
-// reverse logical
-  "rand", "ror", "req", "rneq",
-  "rgt", "rge", "rlt", "rle",
-// reverse bitwise
-  "rsl", "rsr", "rsand", "rsor", "rsxor",
-// unchuck and others
-  "unchuck", "rinc", "rdec", "runinc", "runcdec",
-// at
-  "at_chuck", "at_unchuck",
-// trig
-  "trig", "untrig", NULL
-  // more to come
-};
-
-typedef Type (*f_type)(Env env, Expression exp);
-typedef struct {
-  Type lhs, rhs, ret;
-  f_instr instr;
-  Func func;
-//  m_str doc;
-} M_Operator;
-
-static M_Operator* last = NULL;
-//Operatorname2op(m_str name)
-m_int name2op(m_str name)
-{
+m_int name2op(m_str name) {
   m_uint i = 0;
-//	for(i = 0; i < (sizeof(operators) / sizeof(Operator)) - 1; i++)
   while(op_name[i] && op_str[i]) {
     if(!strcmp(op_name[i], name)) {
       return operators[i];
@@ -111,7 +17,7 @@ m_int name2op(m_str name)
   return -1;
 }
 
-m_str op2str(Operator op)
+const m_str op2str(Operator op)
 {
   if(op >= (sizeof(operators) / sizeof(Operator)))
     return NULL;
@@ -149,10 +55,6 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs)
     if((lhs && mo->lhs && mo->lhs->xid == lhs->xid) &&
         (rhs && mo->rhs && mo->rhs->xid == rhs->xid))
       return mo;
-    /*    if((rhs && mo->rhs && mo->rhs->xid == rhs->xid) && !mo->lhs && !lhs)*/
-    /*      return mo;*/
-    /*    if((lhs && mo->lhs && mo->lhs->xid == lhs->xid) && !mo->rhs && !rhs)*/
-    /*      return mo;*/
   }
   return NULL;
 }
@@ -168,7 +70,6 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   Vector v;
   M_Operator* mo;
 
-  last  = NULL;
   if(global && nspc->parent)
     /*		nspc = nspc->parent;*/
     nspc = env->global_nspc;
@@ -191,9 +92,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->ret       = ret;
   mo->instr     = f;
   mo->func      = NULL;
-//  mo->doc       = NULL;
   vector_append(v, (vtype)mo);
-  last = mo;
   return 1;
 }
 
@@ -243,23 +142,6 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs)
   return NULL;
 }
 
-/*
-// use for C operator
-m_bool operator_set_type_func(f_type  f)
-{
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", 0, "set type func");
-#endif
-  if(!last) {
-    err_msg(TYPE_, 0, "no last operator. aborting");
-    return -1;
-  }
-  last->type_func = f;
-  return 1;
-}
-*/
-
-// use for in code operator
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs)
 {
 #ifdef DEBUG_OPERATOR
@@ -307,25 +189,3 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs)
   }
   return -1;
 }
-
-/*
-// commented before doc move
-// also , outputs rst (should be markdown.)
-void operator_doc(Vector v, FILE* file)
-{
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", "making doc");
-#endif
-
-  m_uint i;
-
-  fprintf(file, "@itemize @bullet\n");
-  for(i = 0; i < vector_size(v); i++) {
-    M_Operator* mo = (M_Operator*)vector_at(v, i);
-    fprintf(file, "@item (%s) '%s' %s '%s'\n", mo->ret->name, mo->lhs->name, op2str(i), mo->rhs->name);
-    if(mo->doc)
-      fprintf(file, "'%s'\n", mo->doc);
-  }
-  fprintf(file, "@end itemize\n");
-}
-*/
