@@ -6,10 +6,10 @@ typedef struct containing_driver_info {
   m_uint bufsize;
   m_uint bufnum;
   m_str card;
-  m_bool raw;
   m_uint backend;
   m_uint format;
   struct driver_wrapper* (*func)();
+  m_bool raw;
 } DriverInfo;
 
 

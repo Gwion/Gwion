@@ -40,10 +40,9 @@ struct VM_Shred_ {
   char* base;
   m_uint pc, next_pc, xid;
   m_str name;
-  m_bool is_running, is_done;
   VM* vm_ref;
+  m_bool is_running, is_done;
   VM_Shred prev, next;
-  m_float wake_time;
   Vector args;
   M_Object me;
   m_str filename;
@@ -54,6 +53,7 @@ struct VM_Shred_ {
 #ifdef DEBUG_STACK
   m_int mem_index, reg_index;
 #endif
+  m_float wake_time;
 };
 
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);

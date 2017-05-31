@@ -25,12 +25,12 @@ struct Type_ {
   Class_Def def;
   m_str      doc;
   m_uint    obj_size;
+//	UGenInfo ugen_info;
+  struct VM_Object_ obj;
   m_bool has_constructor;
   m_bool has_destructor;
   m_bool    is_complete;
   m_bool    is_user;
-//	UGenInfo ugen_info;
-  struct VM_Object_ obj;
 };
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str str);

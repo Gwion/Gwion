@@ -7,9 +7,9 @@ typedef struct {
   m_uint length;
   m_uint depth;
   Type type;
+  m_uint stack_offset;
   m_bool is_obj;
   m_bool is_ref;
-  m_uint stack_offset;
 } VM_Array_Info;
 
 m_uint   m_vector_size(M_Vector v);

@@ -28,14 +28,15 @@ typedef m_bool(*f_init)(Env env);
 typedef struct {
   m_str name;
   m_str type;
-  m_bool is_const;
   void * static_addr;
   m_str doc;
+  m_bool is_const;
 } DL_Value;
 
 typedef struct {
   m_str name;
   m_str type;
+  Vector args;
   union {
     f_xtor ctor;
     f_xtor dtor;
@@ -43,7 +44,6 @@ typedef struct {
     f_sfun sfun;
     m_uint addr;
   } d;
-  Vector args;
 } DL_Func;
 
 

@@ -4,9 +4,9 @@
 typedef struct {
   m_str name;
   m_uint size;
+  m_uint offset;
   m_bool is_ref;
   m_bool is_obj;
-  m_uint offset;
 } Local;
 
 typedef struct {
