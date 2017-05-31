@@ -54,7 +54,6 @@ NameSpace new_NameSpace() {
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
   a->obj_v_table     = new_vector();
-//  a->operator        = new_Operator_Map();
   a->operator        = NULL;
   INIT_OO(a, e_namespace_obj);
   return a;

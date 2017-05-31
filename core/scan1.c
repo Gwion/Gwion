@@ -295,8 +295,6 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
       return -1;
     }
     v = new_value(t, S_name(list->xid));
-//    ADD_REF(t);
-//    ADD_REF(v);
     SET_FLAG(v, ae_value_const);
     SET_FLAG(v, ae_value_enum);
     if(env->class_def) {
@@ -372,7 +370,6 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
       list = list->next;
     }
     l->self->m_type = t;
-//    ADD_REF(l->self->m_type);
     l = l->next;
   }
   return 1;

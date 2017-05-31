@@ -83,8 +83,6 @@ void* server_thread(void* data) {
         if(shred->xid == atoi(buf +2) -1)
           vector_append(rem, (vtype)shred);
       }
-//    } else if(strncmp(buf, "+", 1) == 0) {
-//      compile(data, (m_str)buf + 2);
     } else if(strncmp(buf, "+", 1) == 0) {
       vector_append(add, (vtype)strdup(buf + 2));
     } else if(strncmp(buf, "loop", 4) == 0) {

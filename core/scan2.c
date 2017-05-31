@@ -69,9 +69,7 @@ m_bool scan2_decl_expression(Env env, Decl_Expression* decl) {
       SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
     namespace_add_value(env->curr, list->self->xid, list->self->value);
-//	ADD_REF(list->self->value->obj);
-    // doc
-    if(!env->class_def && !env->func)
+    if(!env->class_def && !env->func) // doc ?
       context_add_value(env->context, list->self->value, &list->self->value->obj);
     if(list->doc)
       list->self->value->doc = list->doc;

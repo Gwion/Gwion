@@ -112,19 +112,10 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   out->is_running = 0;
 
   if(!out->prev && !out->next && out != s->list) {
-//    release(out->me, out);
     if(!out->wait && !out->child && erase)
       free_VM_Shred(out);
     return -1;
   }
-  /*
-    if(!out->prev)
-      s->list = out->next;
-    else
-      out->prev->next = out->next;
-  */
-//  VM_Shred tmp = out->prev ? out->prev->next : s->list;
-//  tmp = out->next;
   out->prev ? (out->prev->next = out->next) : (s->list = out->next);
   if(out->next)
     out->next->prev = out->prev;

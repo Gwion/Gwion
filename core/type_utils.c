@@ -132,7 +132,6 @@ m_bool add_global_type(Env env, Type type) {
   SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
   namespace_add_value(env->curr, insert_symbol(type->name), v);
-  // doc
 //  context_add_type(env->global_context, type, &type->obj);
   type->owner = env->curr;
   if(do_type_xid) {
@@ -187,16 +186,12 @@ Kindof kindof(Type type) {
 Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc) {
   Type t = new_type(te_array, base_type->name);
   t->parent = &t_array;
-  /*  SAFE_ADD_REF(t->parent);*/
-  /*  t->size = array_parent->size;*/
   t->size = SZ_INT;
   t->array_depth = depth;
   t->array_type = base_type;
   t->info = t_array.info;
-  /*  SAFE_ADD_REF(t->array_type);*/
   ADD_REF(t->info);
   t->owner = owner_nspc;
-  /*  SAFE_ADD_REF(t->owner);*/
   return t;
 }
 

@@ -85,37 +85,25 @@ next:
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
-  /* add primitive types */
   if(add_global_type(env, &t_void) < 0) goto error;
-
   if(import_int(env)       < 0) goto error;
   if(import_float(env)     < 0) goto error;
   if(import_complex(env)   < 0) goto error;
   if(import_vec3(env)      < 0) goto error;
   if(import_vec4(env)      < 0) goto error;
-
-  // base object types
   if(import_object(env)    < 0) goto error;
   if(import_string(env)    < 0) goto error;
   if(import_shred(env)     < 0) goto error;
   if(import_event(env)     < 0) goto error;
   if(import_ugen(env)      < 0) goto error;
   if(import_array(env)     < 0) goto error;
-
   //  if(import_io(env) < 0) goto error;
   start_type_xid();
-  // event child
   if(import_fileio(env)    < 0) goto error;
-
-  // libs
   if(import_lib(env)       < 0) goto error;
   if(import_machine(env)   < 0) goto error;
-
-  // SOUNDPIPE
   if(import_soundpipe(env) < 0) goto error;
-
   if(import_analys(env)    < 0) goto error;
-  // additionnal UGen modules
   if(import_modules(env)   < 0) goto error;
 
   vm->dac       = new_M_UGen();
@@ -207,8 +195,6 @@ Type check_decl_expression(Env env, Decl_Expression* decl) {
       err_msg(TYPE_, list->self->pos,
               "in class '%s': '%s' has already been defined in parent class '%s'...",
               env->class_def->name, S_name(list->self->xid), value->owner_class->name);
-      //      ADD_REF(env->class_def->obj);
-      //      ADD_REF(env->class_def->obj);
       return NULL;
     }
     var_decl = list->self;
@@ -247,42 +233,28 @@ Type check_decl_expression(Env env, Decl_Expression* decl) {
 }
 
 static Type check_array_lit(Env env, Primary_Expression *exp) {
+  Expression e;
   Type t = NULL, type = NULL, common = NULL;
-  if(verify_array(exp->d.array) < 0)
-    return NULL;
-  Expression e = exp->d.array->exp_list;
 
-  // can't be []
-  if(!e) {
+
+  CHECK_B0(verify_array(exp->d.array))
+  if(!(e = exp->d.array->exp_list)) {
     err_msg(TYPE_, exp->pos, "must provide values/expressions for array [...]");
     return NULL;
   }
-
-  // go through the array and type check each
   CHECK_OO(check_expression(env, e))
-
-  // loop
   while(e) {
-    // get the type
     t = e->type;
-
-    // compare
-    if(!type) {
-      // first
+    if(!type)
       type = t;
-    } else {
-      // find common ancestor
+    else {
       common = find_common_anc(t, type);
-      // update type
-      if(common) type = common;
-      // no common
+      if(common)
+        type = common;
       else {
-        // maybe one is int and other is float
         if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
-          // cast from int to float
           e->cast_to = type;
         } else {
-          // incompatible
           err_msg(TYPE_, e->pos, "array init [...] contains incompatible types...");
           return NULL;
         }
@@ -306,9 +278,7 @@ static Type check_vec(Env env, Primary_Expression* exp) {
     return NULL;
   }
   Expression e = val->args;
-  // count
   int count = 1;
-  // loop over arguments
   while(e) {
     if(!(t = check_expression(env, e)))
       return NULL;
@@ -337,23 +307,17 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
 
   switch(primary->type) {
   case ae_primary_var:
-    str = S_name(primary->d.var);      // first look for reserved words
-    if(!strcmp(str, "this")) { // this
-      // in class def
+    str = S_name(primary->d.var);
+    if(!strcmp(str, "this")) {
       if(!env->class_def) {
         err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition...");
         return NULL;
       }
-
-      // in member func
       if(env->func && !env->func->is_member) {
         err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions...");
         return NULL;
       }
-
-      // not assignable
       primary->self->meta = ae_meta_value;
-      // whatever the class is
       t = env->class_def;
     } else if(!strcmp(str, "me")) {
       primary->self->meta = ae_meta_value;
@@ -379,7 +343,6 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
           }
         }
       }
-      // check me
       if(!v || !GET_FLAG(v, ae_value_checked)) {
         str = S_name(primary->d.var);
         err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
@@ -408,7 +371,6 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
       return NULL;
     }
     CHECK_OO(check_expression(env, primary->d.cmp->re))
-    /*      CHECK_OO(check_expression(env, primary->cmp->im))*/
     if(isa(primary->d.cmp->re->type, &t_float) < 0) {
       if(isa(primary->d.cmp->re->type, &t_int) < 0) {
         err_msg(TYPE_, primary->d.cmp->pos,
@@ -439,7 +401,6 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
       return NULL;
     }
     CHECK_OO(check_expression(env, primary->d.polar->mod))
-    /*      CHECK_OO(check_expression(env, primary->polar->phase))*/
     if(isa(primary->d.polar->mod->type, &t_float) < 0) {
       if(isa(primary->d.polar->mod->type, &t_int) < 0) {
         err_msg(TYPE_, primary->d.polar->pos,
@@ -489,7 +450,7 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
 Type check_array(Env env, Array* array) {
   Type t_base, t;
   m_uint depth;
-  // verify there are no errors from the parser...
+
   CHECK_BO(verify_array(array->indices))
   CHECK_OO((t_base = check_expression(env, array->base)))
 
@@ -554,13 +515,6 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
 
   Type t;
 
-  /*
-  // use this to forbid (..) => fuc_pointer
-  if(op == op_chuck && isa(binary->rhs->type, &t_func_ptr) > 0) {
-  err_msg(TYPE_, binary->pos, "use '@=>' to assign to function pointer.");
-  return NULL;
-  }
-  */
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Type r_nspc, l_nspc = NULL;
     m_uint i;
@@ -679,7 +633,6 @@ static Type check_binary_expression(Env env, Binary_Expression* binary) {
               "...(reason: --- left-side operand is not mutable)");
       return NULL;
     }
-    // mark to emit var instead of value
     cr->emit_var = cl->emit_var = 1;
     break;
   case op_at_chuck:
@@ -744,7 +697,6 @@ static Type check_binary_expression(Env env, Binary_Expression* binary) {
   case op_rge:
   case op_rlt:
   case op_rle:
-    // make sure mutable
     if(cr->meta != ae_meta_var) {
       err_msg(TYPE_, cl->pos,
               "cannot assign '%s' on types '%s' and'%s'...",
@@ -753,7 +705,6 @@ static Type check_binary_expression(Env env, Binary_Expression* binary) {
               "...(reason: --- right-side operand is not mutable)");
       return NULL;
     }
-    // mark to emit var instead of value
     cr->emit_var = 1;
     break;
   default:
@@ -761,7 +712,6 @@ static Type check_binary_expression(Env env, Binary_Expression* binary) {
   }
 
   if(binary->op == op_at_chuck) {
-    //    if(isa(binary->lhs->type, &t_void) > 0 && isa(binary->rhs->type, &t_object) > 0)
     if(isa(binary->lhs->type, &t_null) > 0 && isa(binary->rhs->type, &t_object) > 0)
       return cl->type;
   }
@@ -809,7 +759,6 @@ static Type check_cast_expression(Env env, Cast_Expression* cast) {
       return t2;
     type = type->parent;
   }
-  /*  if(!type_engine_check_cast_valid(env, t2, t))*/
   err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...", S_name(cast->type->xid->xid), t->name);
   return NULL;
 }
@@ -1328,16 +1277,13 @@ static Type check_exp_if(Env env, If_Expression* exp_if) {
   Type if_exp   = check_expression(env, exp_if->if_exp);
   Type else_exp = check_expression(env, exp_if->else_exp);
   Type ret;
-  // make sure everything good
   if(!cond || !if_exp || !else_exp)
     return NULL;
 
-  // check the type
   if(isa(cond, &t_int) < 0 && isa(cond, &t_float) < 0) {
     err_msg(TYPE_, exp_if->pos, "Invalid type '%s' in if expression condition.", cond->name);
     return NULL;
   }
-  // make sure the if and else have compatible types
   if(!(ret = find_common_anc(if_exp, else_exp))) {
     err_msg(TYPE_, exp_if->pos,
             "incompatible types '%s' and '%s' in if expression...", if_exp->name, else_exp->name);
@@ -1406,8 +1352,7 @@ static m_bool check_enum(Env env, Stmt_Enum stmt) {
   NameSpace nspc = env->class_def ? env->class_def->info : env->curr;
   while(list) {
     v = namespace_lookup_value(nspc, list->xid, 0);
-    if(env->class_def) {
-      // enum in classes are static
+    if(env->class_def) { // enum in classes are static
       SET_FLAG(v, ae_value_static);
       v->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += t_int.size;
@@ -1492,7 +1437,6 @@ static m_bool check_for(Env env, Stmt_For stmt) {
     err_msg(EMIT_, stmt->pos, "...(e.g., 'for(; true;){ /*...*/ }')");
     return -1;
   }
-  // ensure that conditional has valid type
   switch(stmt->c2->d.stmt_exp.val->type->xid) {
   case te_int:
   case te_float:
@@ -1779,7 +1723,6 @@ static Type check_dot_member(Env env, Dot_Member* member) {
   base_static = member->t_base->xid == t_class.xid;
   the_base = base_static ? member->t_base->actual_type : member->t_base;
 
-//  if(!the_base->info && !member->t_base->array_depth) { // ?
   if(!the_base->info) {
     err_msg(TYPE_,  member->base->pos,
             "type '%s' does not have members - invalid use in dot expression of %s",
@@ -1993,7 +1936,6 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     t_parent = &t_object;
   the_class = class_def->type;
   the_class->parent = t_parent;
-  /*  the_class->ugen_info = t_parent->ugen_info;*/
   the_class->info->offset = t_parent->obj_size;
   free_vector(the_class->info->obj_v_table);
   the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
@@ -2066,19 +2008,15 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   ret = 1;
 
 cleanup:
-  //    ADD_REF(context->obj);
   if(ret > 0) {
     namespace_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
-    //    ADD_REF(context);
   } else {
     //    namespace_rollback(env->global_nspc);
-    //REM_REF(context);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
     free_ast(ast);
-    //REM_REF(context->nspc);
     REM_REF(context); // breaks function pointer for now
     free(filename);
   }
