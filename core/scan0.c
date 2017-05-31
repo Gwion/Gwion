@@ -1,6 +1,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "context.h"
+#include "type.h"
 
 static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
   Value v;

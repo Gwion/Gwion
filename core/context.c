@@ -2,6 +2,7 @@
 #include <string.h>
 #include "defs.h"
 #include "context.h"
+#include "type.h"
 #include "func.h"
 
 Context new_context(Ast prog, m_str filename) {

@@ -1,6 +1,7 @@
 #ifndef __ENV
 #define __ENV
 #include "defs.h"
+#include "absyn.h"
 #include "vm.h"
 #include "oo.h"
 struct Env_ {
@@ -18,6 +19,7 @@ struct Env_ {
   Type      class_def;
   Func      func;
   Map known_ctx;
+  Func_Call* current; // template helper
   struct VM_Object_ obj;
 };
 

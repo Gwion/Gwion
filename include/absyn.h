@@ -1,8 +1,7 @@
 #ifndef __ABSYN
 #define __ABSYN
-
-#include "type.h"
-
+#include <vm.h>
+#include <stdio.h>
 #include "map.h" //only for MyArg;
 
 typedef struct Expression_ * Expression;

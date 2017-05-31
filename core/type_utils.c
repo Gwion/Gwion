@@ -3,6 +3,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "context.h"
+#include "type.h"
 
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;

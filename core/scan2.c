@@ -1,6 +1,7 @@
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
+#include "type.h"
 #include "context.h"
 #include "func.h"
 

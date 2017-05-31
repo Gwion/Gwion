@@ -33,7 +33,6 @@ struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
-static Func_Call* current;
 
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -1103,8 +1102,8 @@ next:
       if(f) {
         *m_func = f;
         Type ret_type  = f->def->ret_type;
-        current->types = tl[0];
-        current->base = value->func_ref->def->types;
+        env->current->types = tl[0];
+        env->current->base = value->func_ref->def->types;
         return ret_type;
       }
       err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\nplease provide template types. eg: '<type1, type2, ...>'"); // LCOV_EXCL_LINE
@@ -1195,7 +1194,7 @@ static Type check_func_call(Env env, Func_Call* exp_func) {
     exp_func->m_func = ret;
     return ret->def->ret_type;
   }
-  current = exp_func;
+  env->current = exp_func;
   return check_func_call1(env, exp_func->func, exp_func->args,
                           &exp_func->m_func, exp_func->pos);
 }

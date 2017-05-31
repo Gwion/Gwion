@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "absyn.h"
 #include "func.h"
+#include "type.h"
 
 void free_expression(Expression exp);
 void free_arg_list(Arg_List a);

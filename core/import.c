@@ -2,6 +2,7 @@
 #include "err_msg.h"
 #include "env.h"
 #include "func.h"
+#include "type.h"
 #include "import.h"
 
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
