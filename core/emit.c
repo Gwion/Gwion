@@ -816,27 +816,6 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
   if(exp_unary->op != op_spork && emit_expression(emit, exp_unary->exp, 0) < 0)
     return -1;
   switch(exp_unary->op) {
-  case op_plusplus:
-    if(isa(exp_unary->exp->type, &t_int) > 0)
-      instr = add_instr(emit, pre_inc);
-    break;
-  case op_minusminus:
-    if(isa(exp_unary->exp->type, &t_int) > 0)
-      instr = add_instr(emit, pre_dec);
-    break;
-  case op_exclamation:
-    if(isa(exp_unary->exp->type, &t_int) > 0 || isa(exp_unary->self->type, &t_object) > 0)
-      instr = add_instr(emit, not);
-    else if(isa(exp_unary->exp->type, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
-      instr = add_instr(emit, notf);
-    else {
-      err_msg(EMIT_, exp_unary->self->pos, // LCOV_EXCL_START
-              "(emit): internal error: unhandled type '%s' for ! operator",
-              exp_unary->self->type->name);
-      return -1;
-    }                                      // LCOV_EXCL_STOP
-    break;
-
   case op_spork:
     if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) {
       CHECK_BB(emit_spork(emit, &exp_unary->exp->d.exp_func))
@@ -879,27 +858,13 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
     }
     break;
 
-  case op_minus:
-    if(isa(exp_unary->self->type, &t_int) > 0)
-      instr = add_instr(emit, negate);
-    else if(isa(exp_unary->self->type, &t_float) > 0)
-      instr = add_instr(emit, negatef);
-    else {
-      err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
-              "(emit): internal error: unhandled type '%s' for exp_unary '-' operator", exp_unary->exp->type->name);
-      return -1;
-    }                                // LCOV_EXCL_STOP
-    break;
-
   case op_new:
     if(isa(exp_unary->self->type, &t_object) > 0)
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
   default:
-    err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));
-    return -1;
-  }                                // LCOV_EXCL_STOP
+    return get_instr(emit, exp_unary->op, NULL, exp_unary->exp->type);
+  }
   return 1;
 }
 

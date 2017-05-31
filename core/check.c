@@ -1170,29 +1170,14 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
         return NULL;
       }
       exp_unary->exp->emit_var = 1;
-      if(!t)
-        return NULL;
-      if(isa(t, &t_int) > 0)
-        return t;
       break;
 
     case op_minus:
-      if(!t)
-        return NULL;
-      exp_unary->self->meta = ae_meta_value;
-      if(isa(t, &t_int) || isa(t, &t_float) > 0)
-        return t;
-      break;
     case op_tilda:
     case op_exclamation:
-      if(!t)
-        return NULL;
-      exp_unary->self->meta= ae_meta_value; // /17/05/17
-      if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t,
-          &t_dur) > 0)
-        return &t_int;
-      break;
+      exp_unary->self->meta = ae_meta_value;
 
+      break;
     case op_spork:
       if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type)
         return &t_shred;
@@ -1237,10 +1222,11 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
       return t;
     default: break;
   }
-  err_msg(TYPE_, exp_unary->pos,
-          "no suitable resolution for prefix operator '%s' on type '%s...",
-          op2str(exp_unary->op), t ? t->name : "unknown");
-  return NULL;
+  if(!(t = get_return_type(env, exp_unary->op, NULL, exp_unary->exp->type)))
+    err_msg(TYPE_, exp_unary->pos,
+      "no suitable resolution for prefix operator '%s' on type '%s...",
+      op2str(exp_unary->op), t ? t->name : "unknown");
+  return t;
 }
 
 static Type check_exp_if(Env env, If_Expression* exp_if) {
