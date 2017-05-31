@@ -763,27 +763,13 @@ static Type check_cast_expression(Env env, Cast_Expression* cast) {
 }
 
 static Type check_postfix_expression(Env env, Postfix_Expression* postfix) {
-  Type t = check_expression(env, postfix->exp);
+  Type ret, t = check_expression(env, postfix->exp);
   if(!t) return NULL;
-  switch(postfix->op) {
-  case op_plusplus:
-  case op_minusminus:
-    if(postfix->exp->meta != ae_meta_var) {
-      err_msg(TYPE_, postfix->exp->pos,
-              "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
-      return NULL;
-    }
-    postfix->exp->emit_var = 1;
-    if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
-      return t;
-    break;
-  default: // LCOV_EXCL_START
-    err_msg(TYPE_, postfix->pos, "internal compiler error: unrecognized postfix '%i'", postfix->op);
-    return NULL;
-  }          // LCOV_EXCL_STOP
-  err_msg(TYPE_, postfix->pos,
-          "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
-  return NULL;
+  postfix->exp->emit_var = 1;
+  if(!(ret = get_return_type(env, postfix->op, t, NULL)))
+    err_msg(TYPE_, postfix->pos,
+     "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
+  return ret;
 }
 
 static Type check_dur(Env env, Exp_Dur* dur) {
