@@ -609,10 +609,10 @@ static m_bool import_ass(Env env) {
 static struct Type_ t_fc = { "FC", SZ_INT, &t_object };
 static m_int o_fc_vector;
 static void fc_ctor(M_Object o, VM_Shred shred) {
-  *(Vector*)(o->d.data + o_fc_vector) = new_Vector();
+  *(Vector*)(o->d.data + o_fc_vector) = new_vector();
 }
 static void fc_dtor(M_Object o, VM_Shred shred) {
-  free_Vector(*(Vector*)(o->d.data + o_fc_vector));
+  free_vector(*(Vector*)(o->d.data + o_fc_vector));
 }
 
 static MFUN(fc_compute) {

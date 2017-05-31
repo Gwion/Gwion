@@ -105,7 +105,7 @@ UGen new_UGen() {
   UGen u    = (UGen) calloc(1, sizeof(struct UGen_));
   u->ugen   = NULL;
   u->channel = NULL;
-  u->to = new_Vector();
+  u->to = new_vector();
   u->ug = NULL;
   u->trig = NULL;
   u->tick = base_tick;
@@ -134,7 +134,7 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
       u->channel[i] =  chan;
     }
   } else
-    u->ugen = new_Vector();
+    u->ugen = new_vector();
   if(trig) {
     u->trig = new_M_UGen();
     assign_ugen(u->trig->ugen, 1, 1, 0, NULL);
@@ -283,7 +283,7 @@ static DTOR(ugen_dtor) {
       if(index > -1)
         vector_remove(u->to, index);
     }
-    free_Vector(ug->ugen);
+    free_vector(ug->ugen);
   } else {
     for(i = 0; i < ug->n_chan; i++)
       release(ug->channel[i], shred);
@@ -291,7 +291,7 @@ static DTOR(ugen_dtor) {
   }
   if(ug->trig)
     release(ug->trig, shred);
-  free_Vector(ug->to);
+  free_vector(ug->to);
   free(ug);
 }
 

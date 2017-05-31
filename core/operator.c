@@ -27,7 +27,7 @@ Map new_Operator_Map() {
   m_uint i;
   Map map = new_Map();
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
-    map_set(map, (vtype)operators[i], (vtype)new_Vector());
+    map_set(map, (vtype)operators[i], (vtype)new_vector());
   return map;
 }
 
@@ -39,7 +39,7 @@ void free_Operator_Map(Map map) {
     v = (Vector)map_get(map, (vtype)operators[i]);
     for(j = 0; j < vector_size(v); j++)
       free((M_Operator*)vector_at(v, j));
-    free_Vector(v);
+    free_vector(v);
   }
   free_Map(map);
 }

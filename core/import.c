@@ -7,13 +7,13 @@
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
 
-void free_Expression(Expression exp);
+void free_expression(Expression exp);
 
-m_bool scan1_Decl_Expression(Env env, Decl_Expression* decl);
+m_bool scan1_decl_expression(Env env, Decl_Expression* decl);
 m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl);
 Type   check_Decl_Expression(Env env, Decl_Expression* decl);
 
-m_bool scan1_Func_Def(Env env, Func_Def f);
+m_bool scan1_func_def(Env env, Func_Def f);
 m_bool scan2_Func_Def(Env env, Func_Def f);
 m_bool check_Func_Def(Env env, Func_Def f);
 
@@ -43,7 +43,7 @@ ID_List str2list(m_str path, m_uint* array_depth) {
         curr[i] = c;
       else {
         err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path);
-        free_ID_List(list);
+        free_id_list(list);
         return NULL;
       }
     }
@@ -60,7 +60,7 @@ ID_List str2list(m_str path, m_uint* array_depth) {
         memset(curr, 0, sizeof(curr));
       } else {
         err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path);
-        free_ID_List(list);
+        free_id_list(list);
         return NULL;
       }
     }
@@ -112,7 +112,7 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_xtor pre_ctor, f_
     type->has_destructor  = mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->obj_size;
-    free_Vector(type->info->obj_v_table);
+    free_vector(type->info->obj_v_table);
     type->info->obj_v_table = vector_copy(type->parent->info->obj_v_table);
   }
 
@@ -155,20 +155,20 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     return -1;
   }
 
-  type_decl = new_Type_Decl(path, is_ref, 0);
+  type_decl = new_type_decl(path, is_ref, 0);
   if(array_depth) {
     type_decl->array = new_array_sub(NULL, 0);
     type_decl->array->depth = array_depth;
   }
-  var_decl = new_Var_Decl(name, NULL, 0);
+  var_decl = new_var_decl(name, NULL, 0);
   if(array_depth) {
     var_decl->array = new_array_sub(NULL, 0);
     var_decl->array->depth = array_depth;
   }
-  var_decl_list = new_Var_Decl_List(var_decl, NULL, 0);
-  exp_decl = new_Decl_Expression(type_decl, var_decl_list, is_static, 0);
+  var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+  exp_decl = new_decl_expression(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
-  if(scan1_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
+  if(scan1_decl_expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(scan2_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
@@ -182,7 +182,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   SET_FLAG(var_decl->value, ae_value_import);
   ret = var_decl->value->offset;
 error:
-  free_Expression(exp_decl);
+  free_expression(exp_decl);
   return ret;
 }
 m_int import_mvar(Env env, const m_str type, const m_str name,
@@ -214,17 +214,17 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
     if(!type_path) {
       err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
       if(arg_list)
-        free_Arg_List(arg_list);
+        free_arg_list(arg_list);
       return NULL;
     }
-    type_decl = new_Type_Decl(type_path, 0, 0);
+    type_decl = new_type_decl(type_path, 0, 0);
     type_path2 = str2list(arg->name, &array_depth2);
-    free_ID_List(type_path2);
+    free_id_list(type_path2);
     if(array_depth && array_depth2) {
       err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module");
-      free_Type_Decl(type_decl);
+      free_type_decl(type_decl);
       if(arg_list)
-        free_Arg_List(arg_list);
+        free_arg_list(arg_list);
       return NULL;
     }
     if(array_depth2)
@@ -234,8 +234,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
       for(j = 1; j < array_depth; j++)
         array_sub = prepend_array_sub(array_sub, NULL, 0);
     }
-    var_decl = new_Var_Decl(arg->name, array_sub, 0);
-    arg_list = new_Arg_List(type_decl, var_decl, arg_list, 0);
+    var_decl = new_var_decl(arg->name, array_sub, 0);
+    arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
     arg_list->doc = arg->doc;
     free(arg);
   }
@@ -253,7 +253,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   m_uint i, array_depth = 0;
 
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
-      !(type_decl = new_Type_Decl(type_path, 0, 0))) {
+      !(type_decl = new_type_decl(type_path, 0, 0))) {
     err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name);
     return NULL;
   }
@@ -268,7 +268,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
 
-  func_def = new_Func_Def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
+  func_def = new_func_def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_DL_Func(dl_fun);
@@ -288,7 +288,7 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
     REM_REF(env->class_def);
     return NULL;
   }
-  CHECK_FN(scan1_Func_Def(env, func_def))
+  CHECK_FN(scan1_func_def(env, func_def))
   CHECK_FN(scan2_Func_Def(env, func_def))
   CHECK_FN(check_Func_Def(env, func_def))
   return func_def->func;

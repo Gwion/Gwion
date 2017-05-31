@@ -540,7 +540,7 @@ INSTR(Spork) {
   VM_Shred sh = new_VM_Shred(code);
   sh->parent = shred;
   if(!shred->child)
-    shred->child = new_Vector();
+    shred->child = new_vector();
   vector_append(shred->child, (vtype)sh);
   sh->_mem = sh->base;
   sh->base = shred->base;
@@ -1378,7 +1378,7 @@ array_out_of_bound:
 /* try to garbage collect strings in switch */
 INSTR(start_gc) {
   if(!shred->gc) //  dynamic assign
-    shred->gc = new_Vector();
+    shred->gc = new_vector();
   vector_append(shred->gc, (vtype)NULL); // enable scoping
 }
 
@@ -1388,7 +1388,7 @@ INSTR(stop_gc) {
     release(o, shred);
 // vector_pop(shred->gc); // scoping
 // if(!vector_size(shred->gc)) // dynamic assign with scoping
-//  free_Vector(shred->gc);
+//  free_vector(shred->gc);
 }
 /*
 INSTR(add_gc) {

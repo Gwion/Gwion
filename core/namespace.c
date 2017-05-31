@@ -6,8 +6,8 @@
 
 static VM* vm;
 void release(M_Object o, VM_Shred shred);
-void free_Arg_List(Arg_List list);
-void free_Type_Decl(Type_Decl* type_decl);
+void free_arg_list(Arg_List list);
+void free_type_decl(Type_Decl* type_decl);
 void set_nspc_vm(VM* _vm) {
   vm = _vm;
 }
@@ -53,7 +53,7 @@ NameSpace new_NameSpace() {
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
-  a->obj_v_table     = new_Vector();
+  a->obj_v_table     = new_vector();
   a->operator        = new_Operator_Map();
   INIT_OO(a, e_namespace_obj);
   return a;
@@ -68,13 +68,13 @@ void free_NameSpace(NameSpace a) {
       REM_REF(value->m_type)
       else if(isa(value->m_type, &t_object) > 0) {
         if(value->ptr || GET_FLAG(value, ae_value_static)) {
-          Vector instr = new_Vector();
+          Vector instr = new_vector();
           VM_Code code = new_VM_Code(instr, 0, 0, "", "");
           VM_Shred s = new_VM_Shred(code);
           s->vm_ref = vm;
           release(((M_Object)value->ptr), s);
           free_VM_Shred(s);
-          free_Vector(instr);
+          free_vector(instr);
         }
       } else if(isa(value->m_type, &t_func_ptr) > 0) {
 //  just catch func pointer
@@ -88,7 +88,7 @@ void free_NameSpace(NameSpace a) {
     REM_REF(value);
 
   }
-  free_Vector(v);
+  free_vector(v);
   free_Scope(a->value);
 
 
@@ -97,7 +97,7 @@ void free_NameSpace(NameSpace a) {
     Func func = (Func)vector_at(v, i);
     REM_REF(func);
   }
-  free_Vector(v);
+  free_vector(v);
   free_Scope(a->func);
 
   v = scope_get(a->type);
@@ -105,7 +105,7 @@ void free_NameSpace(NameSpace a) {
     Type type = (Type)vector_at(v, i-1);
     REM_REF(type);
   }
-  free_Vector(v);
+  free_vector(v);
   free_Scope(a->type);
 
   for(i = 0; i < map_size(a->label); i++)
@@ -114,7 +114,7 @@ void free_NameSpace(NameSpace a) {
   if(a->class_data)
     free(a->class_data);
   if(a->obj_v_table)
-    free_Vector(a->obj_v_table);
+    free_vector(a->obj_v_table);
   if(a->pre_ctor)
     free_VM_Code(a->pre_ctor);
   if(a->dtor)

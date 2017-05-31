@@ -329,7 +329,7 @@ Ast parse(m_str filename)
 //  minimal_lex_init_extra(&arg, arg.scanner);
   map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
   map_set(scan_map, (vtype)minimal_get_extra(arg.scanner), (vtype)&arg);
-  arg.line = 1; arg.pos  = 0; arg.doc = new_Vector();
+  arg.line = 1; arg.pos  = 0; arg.doc = new_vector();
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
@@ -345,8 +345,8 @@ Ast parse(m_str filename)
   minimal_set_in(file, arg.scanner);
   if(minimal_parse(&arg))
   {
-    free_Ast(ast);
-    free_Vector(arg.doc);
+    free_ast(ast);
+    free_vector(arg.doc);
     minimal_lex_destroy(arg.scanner);
     return NULL;
   }
@@ -365,7 +365,7 @@ Ast parse(m_str filename)
     vector_remove(arg.doc, 0);
     free(doc);
   }
-  free_Vector(arg.doc);
+  free_vector(arg.doc);
   fclose(file);
   minimal_lex_destroy(arg.scanner);
   return ast;

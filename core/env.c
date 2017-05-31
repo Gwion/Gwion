@@ -7,16 +7,16 @@ Env new_Env() {
   Env env = calloc(1, sizeof(struct Env_));
   env->global_context = new_Context(NULL, "global_context");
   env->context = env->global_context;
-  env->contexts = new_Vector();
-  env->class_stack = new_Vector();
-  env->nspc_stack = new_Vector();
+  env->contexts = new_vector();
+  env->class_stack = new_vector();
+  env->nspc_stack = new_vector();
   env->class_scope = 0;
   env->global_nspc = new_NameSpace();
   env->global_nspc->name = "global_nspc";
   env->global_nspc->filename = "global_nspc";
   env->curr = env->global_nspc;
-  env->breaks = new_Vector();
-  env->conts = new_Vector();
+  env->breaks = new_vector();
+  env->conts = new_vector();
 //  env->user_nspc = NULL;
   env->known_ctx = new_Map();
   env_reset(env);
@@ -25,15 +25,15 @@ Env new_Env() {
 }
 
 void env_reset(Env env) {
-  free_Vector(env->nspc_stack);
-  env->nspc_stack = new_Vector();
+  free_vector(env->nspc_stack);
+  env->nspc_stack = new_vector();
   vector_append(env->nspc_stack, (vtype)env->global_nspc);
 
 //  if(env->user_nspc)
 //    vector_append(env->nspc_stack, (vtype)env->user_nspc);
 
-  free_Vector(env->class_stack);
-  env->class_stack = new_Vector();
+  free_vector(env->class_stack);
+  env->class_stack = new_vector();
   vector_append(env->class_stack, (vtype)NULL);
 
 //  if(env->user_nspc)
@@ -52,16 +52,16 @@ void free_Env(Env a) {
     Context ctx = (Context)map_at(a->known_ctx, i);
     REM_REF(ctx);
   }
-  free_Vector(a->contexts);
+  free_vector(a->contexts);
   free_Map(a->known_ctx);
 
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
     NameSpace  nspc = (NameSpace)vector_pop(a->nspc_stack);
     REM_REF(nspc);
   }
-  free_Vector(a->nspc_stack);
-  free_Vector(a->class_stack);
-  free_Vector(a->breaks);
-  free_Vector(a->conts);
+  free_vector(a->nspc_stack);
+  free_vector(a->class_stack);
+  free_vector(a->breaks);
+  free_vector(a->conts);
   free(a);
 }

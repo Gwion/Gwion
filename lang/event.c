@@ -8,11 +8,11 @@ struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 m_int o_event_shred;
 
 static void event_ctor(M_Object o, VM_Shred shred) {
-  EV_SHREDS(o) = new_Vector();
+  EV_SHREDS(o) = new_vector();
 }
 
 static void event_dtor(M_Object o, VM_Shred shred) {
-  free_Vector(EV_SHREDS(o));
+  free_vector(EV_SHREDS(o));
 }
 
 static INSTR(Event_Wait) {

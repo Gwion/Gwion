@@ -77,7 +77,7 @@ static SFUN(machine_check) {
   if(type_engine_check_prog(shred->vm_ref->env, ast, s) < 0)
     return;
   free(s);
-  free_Ast(ast);
+  free_ast(ast);
   RETURN->d.v_uint = 1;
 }
 

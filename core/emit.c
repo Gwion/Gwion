@@ -8,7 +8,7 @@
 
 static m_str emit_filename;
 
-void free_Expression(Expression a); // absyn.h
+void free_expression(Expression a); // absyn.h
 
 static m_bool emit_Expression(Emitter emit, Expression exp, m_bool add_ref);
 static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop);
@@ -37,9 +37,9 @@ Emitter new_Emitter(Env env) {
   Emitter emit = calloc(1, sizeof(struct Emitter_));
   emit->env = NULL;
   emit->code = NULL;
-  emit->stack = new_Vector();
-  emit->spork = new_Vector();
-  emit->funcs = new_Vector();
+  emit->stack = new_vector();
+  emit->spork = new_vector();
+  emit->funcs = new_vector();
   emit->context = NULL;
   emit->nspc = NULL;
   emit->func = NULL;
@@ -55,9 +55,9 @@ void free_Emitter(Emitter a) {
     Func f = (Func)vector_at(a->spork, i);
     REM_REF(f);
   }
-  free_Vector(a->spork);
-  free_Vector(a->stack);
-  free_Vector(a->funcs);
+  free_vector(a->spork);
+  free_vector(a->stack);
+  free_vector(a->funcs);
   free(a);
 }
 
@@ -65,19 +65,19 @@ static Code* new_Code() {
   Code* code = calloc(1, sizeof(Code));
   code->stack_depth = 0;
   code->need_this = 0;
-  code->code = new_Vector();
-  code->stack_break = new_Vector();
-  code->stack_cont = new_Vector();
-  code->stack_return = new_Vector();
+  code->code = new_vector();
+  code->stack_break = new_vector();
+  code->stack_cont = new_vector();
+  code->stack_return = new_vector();
   code->frame = new_Frame();
   return code;
 }
 
 static void free_Code(Code* code) {
-  free_Vector(code->code);
-  free_Vector(code->stack_break);
-  free_Vector(code->stack_cont);
-  free_Vector(code->stack_return);
+  free_vector(code->code);
+  free_vector(code->stack_break);
+  free_vector(code->stack_cont);
+  free_vector(code->stack_return);
   free_Frame(code->frame);
   free(code->name);
   free(code->filename);
@@ -86,7 +86,7 @@ static void free_Code(Code* code) {
 
 static void emit_pop_scope(Emitter emit) {
   m_uint i;
-  Vector v = new_Vector();
+  Vector v = new_vector();
   frame_pop_scope(emit->code->frame, v);
   for(i = 0; i < vector_size(v); i++) {
     Local* l = (Local*)vector_at(v, i);
@@ -96,7 +96,7 @@ static void emit_pop_scope(Emitter emit) {
     }
     free(l);
   }
-  free_Vector(v);
+  free_vector(v);
 }
 
 static inline void emit_add_code(Emitter emit, Instr instr) {
@@ -122,7 +122,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 
   if(v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
-    Expression base = new_Primary_Expression_from_ID("this", pos);
+    Expression base = new_primary_expression_from_ID("this", pos);
     Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
@@ -130,7 +130,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     dot->emit_var = emit_var;
     if((ret = emit_Dot_Member(emit, &dot->d.exp_dot)) < 0)
       err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed..."); // LCOV_EXCL_LINE
-    free_Expression(dot);
+    free_expression(dot);
     return ret;
   }
 
@@ -397,7 +397,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
   case ae_primary_hack:
     e = primary->d.exp;
     CHECK_BB(emit_Expression(emit, e, 0))
-    Vector types = new_Vector();
+    Vector types = new_vector();
     e = primary->d.exp;
     while(e) {
       vector_append(types, (vtype)e->type);
@@ -835,7 +835,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary) {
       Instr op = NULL, push_code = NULL, spork = NULL;
       VM_Code code;
       ID_List list = new_id_list("sporked", exp_unary->pos);
-      Func f = new_Func("sporked", new_Func_Def(0, 0, new_Type_Decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
+      Func f = new_Func("sporked", new_func_def(0, 0, new_type_decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
 
       if(emit->env->class_def)
         sadd_instr(emit, Reg_Push_This);
@@ -910,7 +910,7 @@ static m_bool emit_Func_Args(Emitter emit, Func_Call* exp_func) {
     m_uint offset = 0, size = 0;
     Expression e = exp_func->args;
     Arg_List l = exp_func->m_func->def->arg_list;
-    Vector kinds = new_Vector();
+    Vector kinds = new_vector();
     while(e) {
       if(!l) {
         size += e->type->size;
@@ -950,7 +950,7 @@ static m_bool emit_Func_Call(Emitter emit, Func_Call* exp_func, m_bool spork) {
       list = list->next;
     }
     def->is_template = 1;
-    CHECK_BB(scan1_Func_Def(emit->env, def))
+    CHECK_BB(scan1_func_def(emit->env, def))
     CHECK_BB(scan2_Func_Def(emit->env, def))
     CHECK_BB(check_Func_Def(emit->env, def))
     namespace_pop_type(emit->env->curr);
@@ -1595,14 +1595,14 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt) {
     size = vector_size(stmt->data.v);
     if(!size) {
       err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name));
-      free_Vector(stmt->data.v);
+      free_vector(stmt->data.v);
       return -1;
     }
     for(i = size + 1; --i;) {
       label = (Stmt_Goto_Label)vector_at(stmt->data.v, i - 1);
       label->data.instr->m_val = vector_size(emit->code->code);
     }
-    free_Vector(stmt->data.v);
+    free_vector(stmt->data.v);
   }
   return 1;
 }
@@ -2198,8 +2198,8 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def) {
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
     instr->m_val = vector_size(emit->code->code);
   }
-  free_Vector(emit->code->stack_return);
-  emit->code->stack_return = new_Vector();
+  free_vector(emit->code->stack_return);
+  emit->code->stack_return = new_vector();
   sadd_instr(emit, Func_Return);
   func->code = emit_to_code(emit);
   if(func->def->spec == ae_func_spec_dtor) {
@@ -2298,8 +2298,8 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename) {
   emit->context = emit->env->context;
   emit->nspc = emit->context->nspc;
   emit->func = NULL;
-  free_Vector(emit->stack);
-  emit->stack = new_Vector();
+  free_vector(emit->stack);
+  emit->stack = new_vector();
   //  emit->code->name = strdup(emit_filename);
   frame_push_scope(emit->code->frame);
   sadd_instr(emit, start_gc);
@@ -2335,7 +2335,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename) {
       free((Instr)vector_at(emit->code->code, i));
     free(filename);
     free_Code(emit->code);
-    free_Ast(ast);
+    free_ast(ast);
   }
   return ret;
 }

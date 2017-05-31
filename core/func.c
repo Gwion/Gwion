@@ -20,6 +20,6 @@ void free_Func(Func a) {
     }
   }
   if(a->def && !a->is_template)
-    free_Func_Def(a->def);
+    free_func_def(a->def);
   free(a);
 }

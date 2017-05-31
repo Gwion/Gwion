@@ -67,7 +67,7 @@ void release(M_Object obj, VM_Shred shred) {
         if(isprim(value->m_type) < 0)
           release(*(M_Object*)(obj->d.data + value->offset), shred);
       }
-      free_Vector(v);
+      free_vector(v);
       if(t->has_destructor) {
         if(t->info->dtor->native_func)
           ((f_xtor)t->info->dtor->native_func)(obj, shred);
@@ -176,7 +176,7 @@ INSTR(MkVararg) {
   arg->o = 0;
   arg->i = 0;
   if(kinds)
-    free_Vector(kinds);
+    free_vector(kinds);
   *(struct Vararg**)shred->reg = arg;
   PUSH_REG(shred,  SZ_INT);
 }

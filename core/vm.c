@@ -24,14 +24,14 @@ void free_VM_Code(VM_Code a) {
   m_uint i;
   if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
     free((void*)vector_back(a->instr));
-    free_Vector(a->instr);
+    free_vector(a->instr);
   } else if(a->instr) {
     for(i = 0; i < vector_size(a->instr); i++) {
       Instr instr = (Instr)vector_at(a->instr, i);
       if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
         free(instr->ptr);
       else if(instr->execute == Gack)
-        free_Vector((Vector)instr->ptr);
+        free_vector((Vector)instr->ptr);
       else if(instr->execute == Branch_Switch)
         free_Map((Map)instr->ptr);
       else if(instr->execute == Spork && instr->m_val2)
@@ -40,7 +40,7 @@ void free_VM_Code(VM_Code a) {
         free((m_int*)instr->m_val);
       free((Instr)vector_at(a->instr, i));
     }
-    free_Vector(a->instr);
+    free_vector(a->instr);
   }
   free(a->name);
   free(a->filename);
@@ -57,7 +57,7 @@ VM_Shred new_VM_Shred(VM_Code c) {
   shred->is_running = 1;
   shred->xid        = -1;
   shred->name       = strdup(c->name);
-  shred->gc1        = new_Vector();
+  shred->gc1        = new_vector();
   return shred;
 }
 
@@ -72,7 +72,7 @@ void free_VM_Shred(VM_Shred shred) {
     free_VM_Code(shred->code);
   free(shred->name);
   free(shred->filename);
-  free_Vector(shred->gc1);
+  free_vector(shred->gc1);
   free(shred);
 }
 
@@ -102,8 +102,8 @@ static void free_BBQ(BBQ a) {
 
 VM* new_VM(m_bool loop) {
   VM* vm         = (VM*)calloc(1, sizeof(VM));
-  vm->shred      = new_Vector();
-  vm->ugen       = new_Vector();
+  vm->shred      = new_vector();
+  vm->ugen       = new_vector();
   vm->shreduler  = new_Shreduler(vm);
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   return vm;
@@ -115,8 +115,8 @@ void free_VM(VM* vm) {
   if(vm->emit)
     REM_REF(vm->emit);
   stop_plug();
-  free_Vector(vm->shred);
-  free_Vector(vm->ugen);
+  free_vector(vm->shred);
+  free_vector(vm->ugen);
   if(vm->bbq)
     free_BBQ(vm->bbq);
   free_Shreduler(vm->shreduler);

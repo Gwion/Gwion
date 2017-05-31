@@ -15,7 +15,7 @@
 #include "bbq.h"
 
 m_bool scan0_Ast(Env, Ast);
-m_bool scan1_Ast(Env, Ast);
+m_bool scan1_ast(Env, Ast);
 m_bool scan2_Ast(Env, Ast);
 
 m_bool check_Func_Def(Env env, Func_Def f);
@@ -48,12 +48,12 @@ void stop_plug() {
     return;
   for(i = 0; i < vector_size(plugs); i++)
     dlclose((void*)vector_at(plugs, i));
-  free_Vector(plugs);
+  free_vector(plugs);
 }
 
 static void add_plugs(Env env, Vector plug_dirs) {
   m_uint i;
-  plugs = new_Vector();
+  plugs = new_vector();
 
   for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
@@ -929,7 +929,7 @@ Func find_func_match(Func up, Expression args) {
 static Type_List mk_type_list(Env env, Type type) {
   m_uint i;
   NameSpace nspc = type->info;
-  Vector v = new_Vector();
+  Vector v = new_vector();
   vector_append(v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     vector_append(v, (vtype)S_name(insert_symbol((nspc->name))));
@@ -940,7 +940,7 @@ static Type_List mk_type_list(Env env, Type type) {
   for(i = vector_size(v); i > 0; i--)
     id = prepend_id_list((m_str)vector_at(v, i - 1), id, 0);
   list = new_type_list(id, NULL, 0);
-  free_Vector(v);
+  free_vector(v);
   return list;
 }
 
@@ -966,7 +966,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     } else
       value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
     base = value->func_ref->def;
-    Func_Def def = new_Func_Def(base->func_decl, base->static_decl,
+    Func_Def def = new_func_def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
     if(base->is_variadic)
@@ -994,7 +994,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
       }
       list = list->next;
     }
-    m_int ret = scan1_Func_Def(env, def);
+    m_int ret = scan1_func_def(env, def);
     namespace_pop_type(env->curr);
     if(ret < 0)                               goto error;
     if(scan2_Func_Def(env, def) < 0)          goto error;
@@ -1014,7 +1014,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types,
     }
     goto next;
 error:
-    free_Func_Def(def); // LCOV_EXCL_LINE
+    free_func_def(def); // LCOV_EXCL_LINE
 next:
     ;
   }
@@ -1195,7 +1195,7 @@ static Type check_Func_Call(Env env, Func_Call* exp_func) {
       v = find_value(t, exp_func->func->d.exp_dot.xid);
       if(!v->func_ref->def->types) {
         err_msg(TYPE_, exp_func->pos, "template call of non-template function.");
-        free_Type_List(exp_func->types);
+        free_type_list(exp_func->types);
         exp_func->types = NULL;
         return NULL;
       }
@@ -1656,7 +1656,7 @@ static m_bool check_Goto_Label(Env env, Stmt_Goto_Label stmt) {
     m_uint i;
     for(i = 0; i < map_size(m); i++) {
       ref = (Stmt_Goto_Label)map_at(m, i);
-      free_Vector(ref->data.v);
+      free_vector(ref->data.v);
     }
     return -1;
   }
@@ -2008,7 +2008,7 @@ static m_bool check_Class_Def(Env env, Class_Def class_def) {
   the_class->parent = t_parent;
   /*  the_class->ugen_info = t_parent->ugen_info;*/
   the_class->info->offset = t_parent->obj_size;
-  free_Vector(the_class->info->obj_v_table);
+  free_vector(the_class->info->obj_v_table);
   the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
   vector_append(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
@@ -2073,7 +2073,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   env_reset(env);
   CHECK_BB(load_context(context, env))
   if(scan0_Ast(env, ast) < 0) goto cleanup;
-  if(scan1_Ast(env, ast) < 0) goto cleanup;
+  if(scan1_ast(env, ast) < 0) goto cleanup;
   if(scan2_Ast(env, ast) < 0) goto cleanup;
   if(check_Ast(env, ast) < 0) goto cleanup;
   ret = 1;
@@ -2090,7 +2090,7 @@ cleanup:
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
-    free_Ast(ast);
+    free_ast(ast);
     //REM_REF(context->nspc);
     REM_REF(context); // breaks function pointer for now
     free(filename);

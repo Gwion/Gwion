@@ -64,8 +64,8 @@ static m_bool Recv(int i, char* buf) {
 
 void* server_thread(void* data) {
   VM* vm = (VM*)data;
-  add = new_Vector();
-  rem = new_Vector();
+  add = new_vector();
+  rem = new_vector();
   while(vm->is_running) {
     char buf[256];
     if(Recv(0, buf) < 0)
@@ -143,8 +143,8 @@ void server_destroy(pthread_t t) {
   pthread_join(t, NULL);
 #endif
   shutdown(sock, SHUT_RDWR);
-  free_Vector(add);
-  free_Vector(rem);
+  free_vector(add);
+  free_vector(rem);
 }
 
 void udp_do(VM* vm) {

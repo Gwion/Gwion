@@ -36,7 +36,7 @@ m_bool compile(VM* vm, const m_str filename) {
   m_str _name, name, d = strdup(filename);
   _name = strsep(&d, ":");
   if(d)
-    args = new_Vector();
+    args = new_vector();
   while(d)
     vector_append(args, (vtype)S_name(insert_symbol(strsep(&d, ":"))));
   free(d);
@@ -68,7 +68,7 @@ m_bool compile(VM* vm, const m_str filename) {
   vm->emit->code->name = strdup(name);
   vm->emit->code->filename = strdup(name);
   code = emit_to_code(vm->emit);
-  free_Ast(ast);
+  free_ast(ast);
   shred = new_VM_Shred(code);
   shred->args = args;
   shred->me = new_Shred(vm, shred);
@@ -138,11 +138,11 @@ static void usage() {
 int main(int argc, char** argv) {
   Driver* d = NULL;
   int i, index;
-  Vector add  = new_Vector();
-  Vector rem  = new_Vector();
+  Vector add  = new_vector();
+  Vector rem  = new_vector();
   Vector ref  = add;
 
-  Vector plug_dirs = new_Vector();
+  Vector plug_dirs = new_vector();
 
   int port = 8888;
   char* hostname = "localhost";
@@ -267,8 +267,8 @@ int main(int argc, char** argv) {
         strcat(name, file);
         Send(name, 1);
       }
-      free_Vector(add);
-      free_Vector(rem);
+      free_vector(add);
+      free_vector(rem);
       exit(0);
     }
   }
@@ -303,9 +303,9 @@ int main(int argc, char** argv) {
   if(udp)
     server_destroy(udp_thread);
 clean:
-  free_Vector(plug_dirs);
-  free_Vector(add);
-  free_Vector(rem);
+  free_vector(plug_dirs);
+  free_vector(add);
+  free_vector(rem);
   if(d)
     free_Driver(d, vm);
   if(scan_map)

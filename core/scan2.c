@@ -133,7 +133,7 @@ static m_bool scan2_Func_Ptr(Env env, Stmt_Ptr ptr) {
   SET_FLAG(ptr->value, ae_value_checked);
   namespace_add_value(env->curr, ptr->xid, ptr->value);
 
-  Func_Def def = new_Func_Def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
+  Func_Def def = new_func_def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_Func(S_name(ptr->xid), def);
   ptr->value->func_ref = ptr->func;
@@ -472,11 +472,11 @@ static m_bool scan2_Goto_Label(Env env, Stmt_Goto_Label stmt) {
     if(map_get(m, (vtype)stmt->name)) {
       err_msg(SCAN2_, stmt->pos, "label '%s' already defined", S_name(stmt->name));
       Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
-      free_Vector(l->data.v);
+      free_vector(l->data.v);
       return -1;
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
-    stmt->data.v = new_Vector();
+    stmt->data.v = new_vector();
   }
   return 1;
 }

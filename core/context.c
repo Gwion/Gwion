@@ -11,10 +11,10 @@ Context new_Context(Ast prog, m_str filename) {
   context->tree = prog;
   context->filename = filename;
   context->nspc->name = filename;
-  context->new_funcs = new_Vector();
-  context->new_values = new_Vector();
-  context->new_types = new_Vector();
-  context->new_class = new_Vector();
+  context->new_funcs = new_vector();
+  context->new_values = new_vector();
+  context->new_types = new_vector();
+  context->new_class = new_vector();
   context->public_class_def = NULL;
   INIT_OO(context, e_context_obj);
   return context;
@@ -40,17 +40,17 @@ void free_Context(Context a) {
       REM_REF(f->value_ref);
     }
   }
-  free_Vector(a->new_funcs);
+  free_vector(a->new_funcs);
 
   for(i = 0; i < vector_size(a->new_class); i++) {
     Value v = (Value)vector_at(a->new_class, i);
     REM_REF(v->m_type);
     REM_REF(v);
   }
-  free_Vector(a->new_class);
+  free_vector(a->new_class);
 
-  free_Vector(a->new_values);
-  free_Vector(a->new_types);
+  free_vector(a->new_values);
+  free_vector(a->new_types);
   REM_REF(a->nspc);
   free(a);
 }

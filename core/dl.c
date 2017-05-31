@@ -26,12 +26,12 @@ DL_Func* new_DL_Func(const m_str t, const m_str n, m_uint addr) {
   a->name = n;
   a->type = t;
   a->d.addr = addr;
-  a->args = new_Vector();
+  a->args = new_vector();
   return a;
 }
 
 void free_DL_Func(DL_Func* a) {
-  free_Vector(a->args);
+  free_vector(a->args);
   free(a);
 }
 
