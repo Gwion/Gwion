@@ -17,8 +17,16 @@ struct Value_ {
 };
 
 // TODO reorder enum
-enum { ae_value_none, ae_value_import, ae_value_global, ae_value_static,
-       ae_value_checked, ae_value_member, ae_value_const, ae_value_enum, ae_value_arg
-     };
+enum {
+  ae_value_none,
+  ae_value_import    = 1 << 1,
+  ae_value_global    = 1 << 2,
+  ae_value_static    = 1 << 3,
+  ae_value_checked   = 1 << 4,
+  ae_value_member    = 1 << 5,
+  ae_value_const     = 1 << 6,
+  ae_value_enum      = 1 << 7,
+  ae_value_arg       = 1 << 8
+};
+
 Value new_value(Type type, m_str name);
-void free_value(Value a);

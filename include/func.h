@@ -20,4 +20,3 @@ struct Func_ {
 };
 
 Func new_func(m_str name, Func_Def def);
-void free_func(Func func);

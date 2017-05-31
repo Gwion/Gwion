@@ -765,7 +765,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     f->stack_depth += arg_list->type->size;
 
     if(arg_list->var_decl->value)
-      free_value(arg_list->var_decl->value);
+      REM_REF(arg_list->var_decl->value);
     arg_list->var_decl->value = v;
     count++;
     arg_list = arg_list->next;

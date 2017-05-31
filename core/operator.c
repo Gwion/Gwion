@@ -2,7 +2,6 @@
 #include "instr.h"
 #include "operator_private.h"
 
-
 m_int name2op(m_str name) {
   m_uint i = 0;
   while(op_name[i] && op_str[i]) {
@@ -23,7 +22,7 @@ const m_str op2str(Operator op) {
   return op_str[op];
 }
 
-Map new_Operator_Map() {
+static Map new_Operator_Map() {
   m_uint i;
   Map map = new_Map();
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
@@ -68,6 +67,10 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   if(global && nspc->parent)
     /*		nspc = nspc->parent;*/
     nspc = env->global_nspc;
+
+if(!nspc->operator)
+nspc->operator = new_Operator_Map();
+
   v = (Vector)map_get(nspc->operator, (vtype)op);
 
   if(!v) {
@@ -99,6 +102,8 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
   Type t, l = lhs, r = lhs;
   NameSpace nspc = env->curr;
   while(nspc) {
+    if(!nspc->operator)
+		goto next;
     Vector v = (Vector)map_get(nspc->operator, (vtype)op);
     M_Operator* mo;
     if((mo = operator_find(v, lhs, rhs)))
@@ -115,6 +120,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
       }
       l = l->parent;
     }
+next:
     nspc = nspc->parent;
   }
   nspc = env->curr;

@@ -10,8 +10,8 @@
 #define CHECK_BO(f) if(f < 0) return NULL;
 #define CHECK_OO(f) if(!f)    return NULL;
 
-#define SET_FLAG(a, b) a->flag |= 1 << b
-#define GET_FLAG(a, b) ((a->flag & 1 << b) == 1 << b)
+#define SET_FLAG(a, b) a->flag |= b
+#define GET_FLAG(a, b) ((a->flag & b) == b)
 
 #define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c;
 #include "generated.h"

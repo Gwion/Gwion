@@ -53,39 +53,6 @@ int isprim(Type type) {
   return 1;
 }
 
-Type new_type(te_type xid, m_str name) {
-  Type type         = calloc(1, sizeof(struct Type_));
-  type->xid         = xid;
-  type->name        = name;
-  INIT_OO(type, e_type_obj);
-  return type;
-}
-
-void free_type(Type a) {
-  if(a->info)
-    REM_REF(a->info);
-  if(a->is_user || a->parent == &t_int || isa(a, &t_class) > 0
-      || isa(a, &t_function) > 0 || a->array_type)
-    free(a);
-}
-
-Type type_copy(Env env, Type type) {
-  Type a         = calloc(1, sizeof(struct Type_));
-  a->xid         = type->xid;
-  a->name        = type->name;
-  a->parent      = type->parent;
-  a->info        = type->info;
-  a->owner       = type->owner;
-  a->func        = type->func;
-  a->size        = type->size;
-  a->actual_type = type->actual_type;
-  a->array_depth = type->array_depth;
-  a->is_complete = type->is_complete;
-  a->def         = type->def;
-  INIT_OO(a, e_type_obj);
-  return a;
-}
-
 Type find_type(Env env, ID_List path) {
   S_Symbol xid = NULL;
   NameSpace nspc;
