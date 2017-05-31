@@ -20,11 +20,6 @@ void NullException(VM_Shred shred, const m_str c) {
 
 M_Object new_M_Object(VM_Shred shred) {
   M_Object a = calloc(1, sizeof(struct M_Object_));
-  a->vtable = NULL;
-  a->type_ref = NULL;
-  a->size = 0;
-  a->d.data = NULL;
-  a->ugen = NULL;
   a->ref = 1;
   if(shred)
     vector_append(shred->gc, (vtype)a);
@@ -82,7 +77,7 @@ void release(M_Object obj, VM_Shred shred) {
           sh->me = new_Shred(shred->vm_ref, sh);
           memcpy(sh->mem, shred->mem, SIZEOF_MEM);
           vector_pop(code->instr);
-          Instr eoc = new_Instr();
+          Instr eoc = malloc(sizeof(Instr));
           eoc->execute = EOC;
           vector_append(code->instr, (vtype)eoc);
           vm_add_shred(shred->vm_ref, sh);
@@ -161,28 +156,50 @@ INSTR(Vararg_start) {
   *(m_uint*)(shred->reg - SZ_INT) = 0;
 }
 
+INSTR(MkVararg) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "Make Vararg %i %p", instr->m_val, (void*)instr->m_val2);
+#endif
+  POP_REG(shred,  instr->m_val);
+  m_uint i;
+  Vector kinds = (Vector)instr->m_val2;
+  struct Vararg* arg =calloc(1, sizeof(struct Vararg));
+  if(instr->m_val) {
+    arg->d = malloc(instr->m_val);
+    memcpy(arg->d, shred->reg, instr->m_val);
+  }  else arg->d = NULL;
+  arg->s = kinds ? vector_size(kinds) : 0;
+  arg->k = arg->s ? calloc(arg->s, sizeof(Kindof)) : NULL;
+  for(i = 0; i < arg->s; i++) {
+    arg->k[i] = (Kindof)vector_at(kinds, i);
+  }
+  arg->o = 0;
+  arg->i = 0;
+  if(kinds)
+    free_Vector(kinds);
+  *(struct Vararg**)shred->reg = arg;
+  PUSH_REG(shred,  SZ_INT);
+}
+
 INSTR(Vararg_end) {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
   switch(arg->k[arg->i]) {
-  case Kindof_Int:
-    arg->o += SZ_INT;
-    break;
-  case Kindof_Float:
-    arg->o += SZ_FLOAT;
-    break;
-  case Kindof_Complex:
-    arg->o += SZ_COMPLEX;
-    break;
-  case Kindof_Vec3:
-    arg->o += SZ_VEC3;
-    break;
-  case Kindof_Vec4:
-    arg->o += SZ_VEC4;
-    break;
-  // can you reach this ?
-  case Kindof_Void:
-    //  case Kindof_Ptr:
-    break;
+    case Kindof_Int:
+      arg->o += SZ_INT;
+      break;
+    case Kindof_Float:
+      arg->o += SZ_FLOAT;
+      break;
+    case Kindof_Complex:
+      arg->o += SZ_COMPLEX;
+      break;
+    case Kindof_Vec3:
+      arg->o += SZ_VEC3;
+      break;
+    case Kindof_Vec4:
+      arg->o += SZ_VEC4;
+      break;
+    case Kindof_Void: break;
   }
   PUSH_REG(shred, SZ_INT);
   arg->i++;

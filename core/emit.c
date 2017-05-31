@@ -18,20 +18,17 @@ static m_bool emit_Stmt_List(Emitter emit, Stmt_List list);
 static m_bool emit_Stmt_Code(Emitter emit, Stmt_Code stmt, m_bool push);
 
 static m_bool emit_Func_Def(Emitter emit, Func_Def func_def);
-/* static */ Instr new_Instr() {
-  return (Instr)calloc(1, sizeof(struct Instr_));
-}
 
 // not static because used in operator.c
 Instr add_instr(Emitter emit, f_instr f) {
-  Instr instr = new_Instr();
+  Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;
   vector_append(emit->code->code, (vtype)instr);
   return instr;
 }
 
 static void sadd_instr(Emitter emit, f_instr f) {
-  Instr instr = new_Instr();
+  Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;
   vector_append(emit->code->code, (vtype)instr);
 }
@@ -1503,10 +1500,8 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt) {
       pop->m_val = num_words;
     }
   }
-  Instr _goto = new_Instr();
-  _goto->execute = Goto;
+  Instr _goto = add_instr(emit, Goto);
   _goto->m_val = index;
-  emit_add_code(emit, _goto);
 
   if(stmt->c2)
     op->m_val = vector_size(emit->code->code);
@@ -1535,7 +1530,6 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt) {
   Type type;
 
   frame_push_scope(emit->code->frame);
-  /* coverity[leaked_storage] */
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
   counter = calloc(1, sizeof(m_int));
   init = add_instr(emit, Init_Loop_Counter);
@@ -1547,20 +1541,14 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt) {
   deref->m_val = (m_uint)counter;
   type = stmt->cond->cast_to ? stmt->cond->cast_to : stmt->cond->type;
 
-  switch(type->xid) {
-  case te_int:
-    sadd_instr(emit, Reg_Push_Imm);
-    op = new_Instr();
-    op->execute = Branch_Eq_Int;
-    break;
-
-  default:
+  if(isa(type, &t_int) < 0) {
     err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in while conditional", type->name);
     return -1;
   }                                 // LCOV_EXCL_STOP
 
-  emit_add_code(emit, op);
+  sadd_instr(emit, Reg_Push_Imm);
+  op = add_instr(emit, Branch_Eq_Int);
   dec = add_instr(emit, Dec_int_Addr);
   dec->m_val = (m_uint)counter;
 

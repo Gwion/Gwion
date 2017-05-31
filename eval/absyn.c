@@ -1176,7 +1176,7 @@ static void free_Section(Section* section)
     free_Stmt(section->d.func_def->code);
     if(section->d.func_def->types) {
       if(section->d.func_def->func && section->d.func_def->func->value_ref->owner_class) {
-        scope_rem(section->d.func_def->func->value_ref->owner_class->info->value, 
+        scope_rem(section->d.func_def->func->value_ref->owner_class->info->value,
         insert_symbol(section->d.func_def->func->value_ref->name));
         section->d.func_def->func->value_ref->func_ref = NULL;
         free(section->d.func_def->func);

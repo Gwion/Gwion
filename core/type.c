@@ -62,7 +62,7 @@ static void add_plugs(Env env, Vector plug_dirs) {
     n = scandir(dirname, &namelist, so_filter, alphasort);
     if(n > 0) {
       while(n--) {
-        char c[256];
+        char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
         void* handler = dlopen(c, RTLD_LAZY);
         {
@@ -373,12 +373,10 @@ static Type check_Primary_Expression(Env env, Primary_Expression* primary) {
       primary->self->meta = ae_meta_value;
       t = &t_shred;
     } else if(!strcmp(str, "now")) {
-      /*        primary->self->meta = ae_meta_value;*/
       primary->self->meta = ae_meta_var;
       t = &t_now;
     } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-      /*        primary->self->meta = ae_meta_value;*/
-      primary->self->meta = ae_meta_var;
+      primary->self->meta = ae_meta_value;
       t = &t_null;
     } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
       primary->self->meta = ae_meta_value;
@@ -1241,146 +1239,99 @@ static Type check_Unary(Env env, Unary_Expression* exp_unary) {
     if(exp_unary->code)
       CHECK_BO(check_Stmt(env, exp_unary->code))
 
-      switch(exp_unary->op) {
-      case op_plusplus:
-      case op_minusminus:
-        if(exp_unary->exp->meta != ae_meta_var) {
-          err_msg(TYPE_, exp_unary->pos,
-                  "prefix exp_unary operator '%s' cannot "
-                  "be used on non-mutable data-types...", op2str(exp_unary->op));
-          return NULL;
-        }
-
-        // assign
-        exp_unary->exp->emit_var = 1;
-        // check type
-        if(!t)
-          return NULL;
-        if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
-          return t;
-        break;
-
-      case op_minus:
-        if(!t)
-          return NULL;
-        exp_unary->self->meta = ae_meta_value;
-        if(isa(t, &t_int) || isa(t, &t_float) > 0)
-          return t;
-        break;
-      case op_tilda:
-      case op_exclamation:
-        if(!t)
-          return NULL;
-        exp_unary->self->meta= ae_meta_value; // /17/05/17
-        if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t,
-            &t_dur) > 0)
-          return &t_int;
-        break;
-
-      case op_spork:
-        if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
-        // spork shred (by code segment)
-        else if(exp_unary->code) {
-          if(env->func) {
-            env->class_scope++;
-            namespace_push_value(env->curr);
-            int ret = check_Stmt(env, exp_unary->code);
-            namespace_pop_value(env->curr);
-            env->class_scope--;
-            if(ret < 0)
-              return NULL;
-            else return &t_shred;
-            break;
-          } else if(check_Stmt(env, exp_unary->code) < 0) {
-            err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
-            break;                                                                // LCOV_EXCL_LINE
-
-          }
-          return &t_shred;
-        }
-        // got a problem
-        else {
-          err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
-          return NULL;
-        }
-        break;
-
-      case op_new:
-        t = find_type(env, exp_unary->type->xid);
-        if(!t) {
-          err_msg(TYPE_,  exp_unary->pos,
-                  "... in 'new' expression ...");
-          return NULL;
-        }
-        if(exp_unary->array) {
-          CHECK_BO(verify_array(exp_unary->array))
-          CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
-          CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
-          t = new_array_type(env, exp_unary->array->depth, t, env->curr);
-
-        } else if(isa(t, &t_object) < 0) {
-          err_msg(TYPE_,  exp_unary->pos,
-                  "cannot instantiate/(new) primitive type '%s'...", t->name);
-          err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
-          return NULL;
-        }
-        return t;
-      case op_typeof:
-        err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
-        break;
-      case op_sizeof:
-        return &t_int;
-      // avoid compiler warning
-      case op_assign:
-      case op_plus:
-      case op_times:
-      case op_divide:
-      case op_percent:
-      case op_and:
-      case op_or:
-      case op_eq:
-      case op_neq:
-      case op_gt:
-      case op_ge:
-      case op_lt:
-      case op_le:
-      case op_shift_left:
-      case op_shift_right:
-      case op_s_or:
-      case op_s_and:
-      case op_s_xor:
-      case op_chuck:
-      case op_plus_chuck:
-      case op_minus_chuck:
-      case op_times_chuck:
-      case op_divide_chuck:
-      case op_modulo_chuck:
-      case op_rand:
-      case op_ror:
-      case op_req:
-      case op_rneq:
-      case op_rgt:
-      case op_rge:
-      case op_rlt:
-      case op_rle:
-      case op_rsl:
-      case op_rsr:
-      case op_rsand:
-      case op_rsor:
-      case op_rsxor:
-      case op_unchuck:
-      case op_rdec:
-      case op_rinc:
-      case op_runinc:
-      case op_rundec:
-      case op_at_chuck:
-      case op_at_unchuck:
-      case op_trig:
-      case op_untrig:
-        break;
+  switch(exp_unary->op) {
+    case op_plusplus:
+    case op_minusminus:
+      if(exp_unary->exp->meta != ae_meta_var) {
+        err_msg(TYPE_, exp_unary->pos,
+                "prefix exp_unary operator '%s' cannot "
+                "be used on non-mutable data-types...", op2str(exp_unary->op));
+        return NULL;
       }
+
+      // assign
+      exp_unary->exp->emit_var = 1;
+      // check type
+      if(!t)
+        return NULL;
+      if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
+        return t;
+      break;
+
+    case op_minus:
+      if(!t)
+        return NULL;
+      exp_unary->self->meta = ae_meta_value;
+      if(isa(t, &t_int) || isa(t, &t_float) > 0)
+        return t;
+      break;
+    case op_tilda:
+    case op_exclamation:
+      if(!t)
+        return NULL;
+      exp_unary->self->meta= ae_meta_value; // /17/05/17
+      if(isa(t, &t_int) > 0 || isa(t, &t_object) > 0 || isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t,
+          &t_dur) > 0)
+        return &t_int;
+      break;
+
+    case op_spork:
+      if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
+      // spork shred (by code segment)
+      else if(exp_unary->code) {
+        if(env->func) {
+          env->class_scope++;
+          namespace_push_value(env->curr);
+          int ret = check_Stmt(env, exp_unary->code);
+          namespace_pop_value(env->curr);
+          env->class_scope--;
+          if(ret < 0)
+            return NULL;
+          else return &t_shred;
+          break;
+        } else if(check_Stmt(env, exp_unary->code) < 0) {
+          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
+          break;                                                                // LCOV_EXCL_LINE
+
+        }
+        return &t_shred;
+      }
+      // got a problem
+      else {
+        err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
+        return NULL;
+      }
+      break;
+
+    case op_new:
+      t = find_type(env, exp_unary->type->xid);
+      if(!t) {
+        err_msg(TYPE_,  exp_unary->pos,
+                "... in 'new' expression ...");
+        return NULL;
+      }
+      if(exp_unary->array) {
+        CHECK_BO(verify_array(exp_unary->array))
+        CHECK_OO(check_Expression(env, exp_unary->array->exp_list))
+        CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
+        t = new_array_type(env, exp_unary->array->depth, t, env->curr);
+
+      } else if(isa(t, &t_object) < 0) {
+        err_msg(TYPE_,  exp_unary->pos,
+                "cannot instantiate/(new) primitive type '%s'...", t->name);
+        err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
+        return NULL;
+      }
+      return t;
+    case op_typeof:
+      err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
+      break;
+    case op_sizeof:
+      return &t_int;
+    default: break;
+  }
   err_msg(TYPE_, exp_unary->pos,
-          "no suitable resolution for prefix exp_unary operator '%s' on type '%s...",
+          "no suitable resolution for prefix operator '%s' on type '%s...",
           op2str(exp_unary->op), t ? t->name : "unknown");
   return NULL;
 }
@@ -1841,7 +1792,8 @@ static Type check_Dot_Member(Env env, Dot_Member* member) {
   base_static = member->t_base->xid == t_class.xid;
   the_base = base_static ? member->t_base->actual_type : member->t_base;
 
-  if(!the_base->info && !member->t_base->array_depth) { // ?
+//  if(!the_base->info && !member->t_base->array_depth) { // ?
+  if(!the_base->info) {
     err_msg(TYPE_,  member->base->pos,
             "type '%s' does not have members - invalid use in dot expression of %s",
             the_base->name, S_name(member->xid));
@@ -1855,12 +1807,11 @@ static Type check_Dot_Member(Env env, Dot_Member* member) {
     return NULL;
   }
 
-  value = find_value(the_base, member->xid);
-  if(!value) {
-    m_uint i;
-    char s[1025];
-    memset(s, 0, 1025);
-    strncpy(s, the_base->name, 1024);
+  if(!(value = find_value(the_base, member->xid))) {
+    m_uint i, len = strlen(the_base->name + the_base->array_depth*2 +1);
+    char s[len];
+    memset(s, 0, len);
+    strcpy(s, the_base->name);
     for(i = 0; i < the_base->array_depth; i++)
       strcat(s, "[]");
     err_msg(TYPE_,  member->base->pos,

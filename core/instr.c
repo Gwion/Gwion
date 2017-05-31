@@ -527,38 +527,6 @@ INSTR(Gack) {
   }
 }
 
-/* function */
-struct Vararg {
-  Kindof* k; // k(ind)
-  char* d;   // d(ata)
-  m_uint o, i, s;  // o(ffset)
-};
-
-INSTR(MkVararg) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Make Vararg %i %p", instr->m_val, (void*)instr->m_val2);
-#endif
-  POP_REG(shred,  instr->m_val);
-  m_uint i;
-  Vector kinds = (Vector)instr->m_val2;
-  struct Vararg* arg =calloc(1, sizeof(struct Vararg));
-  if(instr->m_val) {
-    arg->d = malloc(instr->m_val);
-    memcpy(arg->d, shred->reg, instr->m_val);
-  }  else arg->d = NULL;
-  arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? calloc(arg->s, sizeof(Kindof)) : NULL;
-  for(i = 0; i < arg->s; i++) {
-    arg->k[i] = (Kindof)vector_at(kinds, i);
-  }
-  arg->o = 0;
-  arg->i = 0;
-  if(kinds)
-    free_Vector(kinds);
-  *(struct Vararg**)shred->reg = arg;
-  PUSH_REG(shred,  SZ_INT);
-}
-
 INSTR(Spork) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Spork");

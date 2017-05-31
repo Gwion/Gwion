@@ -15,7 +15,6 @@ struct Instr_ {
   void* ptr;
 };
 
-Instr new_Instr();
 Instr add_instr(Emitter emit, f_instr f);
 
 void EOC(VM * vm, VM_Shred shred, Instr instr);
