@@ -237,7 +237,7 @@ static Type check_array_lit(Env env, Primary_Expression *exp) {
   Type t = NULL, type = NULL, common = NULL;
 
 
-  CHECK_B0(verify_array(exp->d.array))
+  CHECK_BO(verify_array(exp->d.array))
   if(!(e = exp->d.array->exp_list)) {
     err_msg(TYPE_, exp->pos, "must provide values/expressions for array [...]");
     return NULL;
@@ -1293,11 +1293,6 @@ static Type check_exp_if(Env env, If_Expression* exp_if) {
 }
 
 static Type check_expression(Env env, Expression exp) {
-
-#ifndef __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
   Expression curr = exp;
   while(curr) {
     curr->type = NULL;
@@ -1341,9 +1336,6 @@ static Type check_expression(Env env, Expression exp) {
     curr = curr->next;
   }
   return exp ? exp->type : NULL;
-#ifndef __clang__
-#pragma GCC diagnostic pop
-#endif
 }
 
 static m_bool check_enum(Env env, Stmt_Enum stmt) {
@@ -1405,8 +1397,6 @@ static m_bool check_while(Env env, Stmt_While stmt) {
 
 static m_bool check_until(Env env, Stmt_Until stmt) {
   CHECK_OB(check_expression(env, stmt->cond))
-
-  // ensure that conditional has valid type
   switch(stmt->cond->type->xid) {
   case te_int:
   case te_float:
@@ -2022,4 +2012,3 @@ cleanup:
   }
   return ret;
 }
-
