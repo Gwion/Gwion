@@ -183,8 +183,6 @@ static int adjust(void* data);
 "!"                    					    { adjust(yyscanner); return EXCLAMATION; }
 "*"                    					    { adjust(yyscanner); return TIMES; }
 "new"                    					  { adjust(yyscanner); return NEW; }
-"typeof"                    				{ adjust(yyscanner); return TYPEOF; }
-"sizeof"                    				{ adjust(yyscanner); return SIZEOF; }
 "spork"                    				  { adjust(yyscanner); return SPORK; }
 "union"                    				  { adjust(yyscanner); return UNION; }
 

@@ -59,7 +59,7 @@ typedef enum {
   op_s_or, op_s_and, op_s_xor,
   // unary op
   op_plusplus, op_minusminus, op_exclamation, op_tilda,
-  op_new, op_spork, op_typeof, op_sizeof,
+  op_new, op_spork,
 // reverse arithmetic
   op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
 // reverse logical

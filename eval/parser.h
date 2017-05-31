@@ -96,58 +96,56 @@ extern int minimal_debug;
     MINUSMINUS = 306,
     NEW = 307,
     SPORK = 308,
-    SIZEOF = 309,
-    TYPEOF = 310,
-    CLASS = 311,
-    STATIC = 312,
-    PUBLIC = 313,
-    EXTENDS = 314,
-    DOT = 315,
-    COLONCOLON = 316,
-    AND = 317,
-    EQ = 318,
-    GE = 319,
-    GT = 320,
-    LE = 321,
-    LT = 322,
-    MINUS = 323,
-    PLUS = 324,
-    NEQ = 325,
-    SHIFT_LEFT = 326,
-    SHIFT_RIGHT = 327,
-    S_AND = 328,
-    S_OR = 329,
-    S_XOR = 330,
-    OR = 331,
-    AST_DTOR = 332,
-    OPERATOR = 333,
-    FUNC_PTR = 334,
-    RSL = 335,
-    RSR = 336,
-    RSAND = 337,
-    RSOR = 338,
-    RSXOR = 339,
-    RAND = 340,
-    ROR = 341,
-    REQ = 342,
-    RNEQ = 343,
-    RGT = 344,
-    RGE = 345,
-    RLT = 346,
-    RLE = 347,
-    TEMPLATE = 348,
-    NOELSE = 349,
-    LTB = 350,
-    GTB = 351,
-    VARARG = 352,
-    UNION = 353,
-    ATPAREN = 354,
-    NUM = 355,
-    FLOAT = 356,
-    ID = 357,
-    STRING_LIT = 358,
-    CHAR_LIT = 359,
-    DOC = 360
+    CLASS = 309,
+    STATIC = 310,
+    PUBLIC = 311,
+    EXTENDS = 312,
+    DOT = 313,
+    COLONCOLON = 314,
+    AND = 315,
+    EQ = 316,
+    GE = 317,
+    GT = 318,
+    LE = 319,
+    LT = 320,
+    MINUS = 321,
+    PLUS = 322,
+    NEQ = 323,
+    SHIFT_LEFT = 324,
+    SHIFT_RIGHT = 325,
+    S_AND = 326,
+    S_OR = 327,
+    S_XOR = 328,
+    OR = 329,
+    AST_DTOR = 330,
+    OPERATOR = 331,
+    FUNC_PTR = 332,
+    RSL = 333,
+    RSR = 334,
+    RSAND = 335,
+    RSOR = 336,
+    RSXOR = 337,
+    RAND = 338,
+    ROR = 339,
+    REQ = 340,
+    RNEQ = 341,
+    RGT = 342,
+    RGE = 343,
+    RLT = 344,
+    RLE = 345,
+    TEMPLATE = 346,
+    NOELSE = 347,
+    LTB = 348,
+    GTB = 349,
+    VARARG = 350,
+    UNION = 351,
+    ATPAREN = 352,
+    NUM = 353,
+    FLOAT = 354,
+    ID = 355,
+    STRING_LIT = 356,
+    CHAR_LIT = 357,
+    DOC = 358
   };
 #endif
 /* Tokens.  */
@@ -202,58 +200,56 @@ extern int minimal_debug;
 #define MINUSMINUS 306
 #define NEW 307
 #define SPORK 308
-#define SIZEOF 309
-#define TYPEOF 310
-#define CLASS 311
-#define STATIC 312
-#define PUBLIC 313
-#define EXTENDS 314
-#define DOT 315
-#define COLONCOLON 316
-#define AND 317
-#define EQ 318
-#define GE 319
-#define GT 320
-#define LE 321
-#define LT 322
-#define MINUS 323
-#define PLUS 324
-#define NEQ 325
-#define SHIFT_LEFT 326
-#define SHIFT_RIGHT 327
-#define S_AND 328
-#define S_OR 329
-#define S_XOR 330
-#define OR 331
-#define AST_DTOR 332
-#define OPERATOR 333
-#define FUNC_PTR 334
-#define RSL 335
-#define RSR 336
-#define RSAND 337
-#define RSOR 338
-#define RSXOR 339
-#define RAND 340
-#define ROR 341
-#define REQ 342
-#define RNEQ 343
-#define RGT 344
-#define RGE 345
-#define RLT 346
-#define RLE 347
-#define TEMPLATE 348
-#define NOELSE 349
-#define LTB 350
-#define GTB 351
-#define VARARG 352
-#define UNION 353
-#define ATPAREN 354
-#define NUM 355
-#define FLOAT 356
-#define ID 357
-#define STRING_LIT 358
-#define CHAR_LIT 359
-#define DOC 360
+#define CLASS 309
+#define STATIC 310
+#define PUBLIC 311
+#define EXTENDS 312
+#define DOT 313
+#define COLONCOLON 314
+#define AND 315
+#define EQ 316
+#define GE 317
+#define GT 318
+#define LE 319
+#define LT 320
+#define MINUS 321
+#define PLUS 322
+#define NEQ 323
+#define SHIFT_LEFT 324
+#define SHIFT_RIGHT 325
+#define S_AND 326
+#define S_OR 327
+#define S_XOR 328
+#define OR 329
+#define AST_DTOR 330
+#define OPERATOR 331
+#define FUNC_PTR 332
+#define RSL 333
+#define RSR 334
+#define RSAND 335
+#define RSOR 336
+#define RSXOR 337
+#define RAND 338
+#define ROR 339
+#define REQ 340
+#define RNEQ 341
+#define RGT 342
+#define RGE 343
+#define RLT 344
+#define RLE 345
+#define TEMPLATE 346
+#define NOELSE 347
+#define LTB 348
+#define GTB 349
+#define VARARG 350
+#define UNION 351
+#define ATPAREN 352
+#define NUM 353
+#define FLOAT 354
+#define ID 355
+#define STRING_LIT 356
+#define CHAR_LIT 357
+#define DOC 358
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -288,7 +284,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 292 "eval/parser.h" /* yacc.c:1909  */
+#line 288 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

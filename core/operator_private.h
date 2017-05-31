@@ -11,7 +11,7 @@ static Operator operators[] = {
   op_s_or, op_s_and, op_s_xor,
 // unary
   op_plusplus, op_minusminus, op_exclamation, op_tilda,
-  op_new, op_spork, op_typeof, op_sizeof,
+  op_new, op_spork,
 // reverse arithmetic
   op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
 // reverse logical
@@ -38,7 +38,7 @@ static const m_str op_str[] = {
   "|", "&", "^",
 // unary
   "++", "--", "!", "~",
-  "new", "spork", "typeof", "sizeof",
+  "new", "spork",
 // reverse arithmetic
   "=>", "+=>", "-=>", "*=>", "/=>", "%=>",
 // reverse logical
@@ -65,7 +65,7 @@ static const m_str op_name[] = {
   "s_or", "s_and", "s_xor",
 // unary
   "plusplus", "minusminus", "exclamation", "tilda",
-  "new", "spork", "typeof", "sizeof",
+  "new", "spork",
 // reverse arithmetic
   "chuck", "pluschuck", "minuschuck", "timeschuck", "dividechuck", "modulochuck",
 // reverse logical

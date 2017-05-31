@@ -117,7 +117,7 @@ void free_NameSpace(NameSpace a) {
     free_VM_Code(a->pre_ctor);
   if(a->dtor)
     free_VM_Code(a->dtor);
-if(a->operator)
-  free_Operator_Map(a->operator);
+  if(a->operator)
+    free_Operator_Map(a->operator);
   free(a);
 }

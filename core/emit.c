@@ -817,18 +817,10 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
     return -1;
   switch(exp_unary->op) {
   case op_plusplus:
-    if(exp_unary->self->meta != ae_meta_var) {
-      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable..."); // LCOV_EXCL_LINE
-      return -1;                                                                      // LCOV_EXCL_LINE
-    }
     if(isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_inc);
     break;
   case op_minusminus:
-    if(exp_unary->self->meta != ae_meta_var) {
-      err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '--' not mutable..."); // LCOV_EXCL_LINE
-      return -1;                                                                      // LCOV_EXCL_LINE
-    }
     if(isa(exp_unary->exp->type, &t_int) > 0)
       instr = add_instr(emit, pre_dec);
     break;
@@ -903,10 +895,6 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
     if(isa(exp_unary->self->type, &t_object) > 0)
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
-  case op_sizeof:
-    instr = add_instr(emit, Reg_Push_Imm);
-    instr->m_val = exp_unary->self->type->size;
-    break;
   default:
     err_msg(EMIT_, exp_unary->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' for exp_unary '%s' operator", op2str(exp_unary->op));

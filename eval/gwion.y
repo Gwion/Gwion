@@ -85,7 +85,7 @@ static m_str get_arg_doc(void* data)
   IF ELSE WHILE DO UNTIL LOOP FOR GOTO SWITCH CASE ENUM
   RETURN BREAK CONTINUE
   PLUSPLUS MINUSMINUS
-  NEW SPORK SIZEOF TYPEOF
+  NEW SPORK
   CLASS STATIC PUBLIC EXTENDS DOT COLONCOLON
   AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
   AST_DTOR OPERATOR FUNC_PTR
@@ -552,10 +552,6 @@ unary_expression
       { $$ = new_exp_from_unary( op_minusminus, $2, get_pos(scanner)); }
   | unary_operator unary_expression
       { $$ = new_exp_from_unary( $1, $2, get_pos(scanner)); }
-  | TYPEOF unary_expression
-      { $$ = new_exp_from_unary( op_typeof, $2, get_pos(scanner)); }
-  | SIZEOF unary_expression
-      { $$ = new_exp_from_unary( op_sizeof, $2, get_pos(scanner)); }
   | NEW type_decl
       { $$ = new_exp_from_unary2(op_new, $2, NULL, get_pos(scanner)); }
   | NEW type_decl array_exp

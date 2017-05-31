@@ -1157,8 +1157,8 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
 
   if(exp_unary->op != op_new && !exp_unary->code)
     CHECK_OO((t = check_expression(env, exp_unary->exp)))
-    if(exp_unary->code)
-      CHECK_BO(check_stmt(env, exp_unary->code))
+  if(exp_unary->code)
+    CHECK_BO(check_stmt(env, exp_unary->code))
 
   switch(exp_unary->op) {
     case op_plusplus:
@@ -1235,11 +1235,6 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
         return NULL;
       }
       return t;
-    case op_typeof:
-      err_msg(TYPE_, exp_unary->pos, "(typeof not supported yet)");
-      break;
-    case op_sizeof:
-      return &t_int;
     default: break;
   }
   err_msg(TYPE_, exp_unary->pos,
