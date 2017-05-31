@@ -67,8 +67,8 @@ typedef enum {
   op_rgt, op_rge, op_rlt, op_rle,
 // reverse bitwise
   op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
-// unchuck and others
-  op_unchuck, op_rinc, op_rdec, op_runinc, op_rundec,
+// unchuck
+  op_unchuck,
 // at
   op_at_chuck, op_at_unchuck,
 // trig

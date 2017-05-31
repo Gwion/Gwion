@@ -91,7 +91,6 @@ static m_str get_arg_doc(void* data)
   AST_DTOR OPERATOR FUNC_PTR
 	RSL RSR RSAND RSOR RSXOR
 	RAND ROR REQ RNEQ RGT RGE RLT RLE
-	RINC RDEC RUNINC RUNDEC
   TEMPLATE
   NOELSE
   LTB GTB
@@ -376,10 +375,6 @@ op
   | RGE         { $$ = op_rge; }
   | RLT         { $$ = op_rlt; }
   | RLE         { $$ = op_rle; }
-  | RINC         { $$ = op_rinc; }
-  | RDEC         { $$ = op_rdec; }
-  | RUNINC         { $$ = op_runinc; }
-  | RUNDEC         { $$ = op_rundec; }
   | ASSIGN      { $$ = op_assign; }
   ;
 

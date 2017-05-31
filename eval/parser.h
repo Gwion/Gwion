@@ -135,23 +135,19 @@ extern int minimal_debug;
     RGE = 345,
     RLT = 346,
     RLE = 347,
-    RINC = 348,
-    RDEC = 349,
-    RUNINC = 350,
-    RUNDEC = 351,
-    TEMPLATE = 352,
-    NOELSE = 353,
-    LTB = 354,
-    GTB = 355,
-    VARARG = 356,
-    UNION = 357,
-    ATPAREN = 358,
-    NUM = 359,
-    FLOAT = 360,
-    ID = 361,
-    STRING_LIT = 362,
-    CHAR_LIT = 363,
-    DOC = 364
+    TEMPLATE = 348,
+    NOELSE = 349,
+    LTB = 350,
+    GTB = 351,
+    VARARG = 352,
+    UNION = 353,
+    ATPAREN = 354,
+    NUM = 355,
+    FLOAT = 356,
+    ID = 357,
+    STRING_LIT = 358,
+    CHAR_LIT = 359,
+    DOC = 360
   };
 #endif
 /* Tokens.  */
@@ -245,23 +241,19 @@ extern int minimal_debug;
 #define RGE 345
 #define RLT 346
 #define RLE 347
-#define RINC 348
-#define RDEC 349
-#define RUNINC 350
-#define RUNDEC 351
-#define TEMPLATE 352
-#define NOELSE 353
-#define LTB 354
-#define GTB 355
-#define VARARG 356
-#define UNION 357
-#define ATPAREN 358
-#define NUM 359
-#define FLOAT 360
-#define ID 361
-#define STRING_LIT 362
-#define CHAR_LIT 363
-#define DOC 364
+#define TEMPLATE 348
+#define NOELSE 349
+#define LTB 350
+#define GTB 351
+#define VARARG 352
+#define UNION 353
+#define ATPAREN 354
+#define NUM 355
+#define FLOAT 356
+#define ID 357
+#define STRING_LIT 358
+#define CHAR_LIT 359
+#define DOC 360
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -296,7 +288,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 300 "eval/parser.h" /* yacc.c:1909  */
+#line 292 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
