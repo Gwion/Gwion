@@ -170,9 +170,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   /*  env->curr = env->user_nspc;*/
   // plugins
   //  void* handler;
-
-  add_plugs(vm, plug_dirs);
+  vm->env = env;
   namespace_commit(env->global_nspc);
+  add_plugs(vm, plug_dirs);
   return env;
 
 error:          // LCOV_EXCL_START
