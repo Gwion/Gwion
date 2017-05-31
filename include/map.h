@@ -37,7 +37,7 @@ extern void  free_Map(Map map);
 
 extern Scope  new_Scope();
 extern Vector scope_get(Scope a);
-extern vtype  scope_lookup(Scope scope, S_Symbol xid, int climb);
+extern vtype  scope_lookup(Scope scope, S_Symbol xid, m_bool climb);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
 extern void   scope_rem(Scope scope, S_Symbol xid);
 extern void   scope_commit(Scope scope);

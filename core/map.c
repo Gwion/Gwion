@@ -168,7 +168,7 @@ struct Scope_ {
   Vector vector;
 };
 
-vtype scope_lookup(Scope scope, S_Symbol xid, int climb) {
+vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
   unsigned int i;
   vtype ret = 0;
   Map map;

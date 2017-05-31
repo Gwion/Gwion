@@ -24,9 +24,9 @@ struct NameSpace_ {
 extern NameSpace new_NameSpace();
 extern void free_NameSpace(NameSpace a);
 
-extern Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb);
-extern Type  namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb);
-extern Func  namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb);
+extern Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, m_bool climb);
+extern Type  namespace_lookup_type(NameSpace namespace, S_Symbol xid, m_bool climb);
+extern Func  namespace_lookup_func(NameSpace namespace, S_Symbol xid, m_bool climb);
 
 extern void  namespace_commit(NameSpace namespace);
 extern void  namespace_rollback(NameSpace namespace);

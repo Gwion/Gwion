@@ -10,21 +10,21 @@ void set_nspc_vm(VM* _vm) {
   vm = _vm;
 }
 
-Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, int climb) {
+Value namespace_lookup_value(NameSpace namespace, S_Symbol xid, m_bool climb) {
   Value v = (Value)scope_lookup(namespace->value, xid, climb);
   if(climb > 0 && !v && namespace->parent)
     v = namespace_lookup_value(namespace->parent, xid, climb);
   return v;
 }
 
-Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, int climb) {
+Type namespace_lookup_type(NameSpace namespace, S_Symbol xid, m_bool climb) {
   Type t = (Type)scope_lookup(namespace->type, xid, climb);
   if(climb > 0 && !t && namespace->parent)
     t = (Type)namespace_lookup_type(namespace->parent, xid, climb);
   return t;
 }
 
-Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, int climb) {
+Func namespace_lookup_func(NameSpace namespace, S_Symbol xid, m_bool climb) {
   Func t = (Func)scope_lookup(namespace->func, xid, climb);
   if(climb > 0 && !t && namespace->parent)
     t = (Func)namespace_lookup_func(namespace->parent, xid, climb);
@@ -99,7 +99,7 @@ void free_NameSpace(NameSpace a) {
   free_Scope(a->func);
 
   v = scope_get(a->type);
-  for(i =vector_size(v); i > 0; i--) { // changed /07/04/17 for reverse order.
+  for(i =vector_size(v); i > 0; i--) {
     Type type = (Type)vector_at(v, i-1);
     REM_REF(type);
   }
