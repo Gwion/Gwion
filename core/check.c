@@ -158,8 +158,8 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   // plugins
   //  void* handler;
   vm->env = env;
-  namespace_commit(env->global_nspc);
   add_plugs(vm, plug_dirs);
+  namespace_commit(env->curr);
   return env;
 
 error:          // LCOV_EXCL_START
@@ -751,7 +751,6 @@ static Type check_cast_expression(Env env, Cast_Expression* cast) {
     return t2;
   if(isa(t, &t_object) < 0)
     return isa(t, t2) > 0 ? t2 : NULL;
-  // check if cast valid
   Type type = t;
   while(type) {
     if(t2 == type)
@@ -764,7 +763,13 @@ static Type check_cast_expression(Env env, Cast_Expression* cast) {
 
 static Type check_postfix_expression(Env env, Postfix_Expression* postfix) {
   Type ret, t = check_expression(env, postfix->exp);
+
   if(!t) return NULL;
+  if(postfix->exp->meta != ae_meta_var) {
+     err_msg(TYPE_, postfix->exp->pos,
+     "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op));
+      return NULL;
+  }
   postfix->exp->emit_var = 1;
   if(!(ret = get_return_type(env, postfix->op, t, NULL)))
     err_msg(TYPE_, postfix->pos,
@@ -1118,7 +1123,6 @@ static Type check_func_call(Env env, Func_Call* exp_func) {
         return NULL;
       }
     }
-    // primary case
     Func ret = find_template_match(env, v, exp_func->m_func, exp_func->types,
                                    exp_func->func, exp_func->args);
     if(!ret) {
@@ -1165,13 +1169,10 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
                 "be used on non-mutable data-types...", op2str(exp_unary->op));
         return NULL;
       }
-
-      // assign
       exp_unary->exp->emit_var = 1;
-      // check type
       if(!t)
         return NULL;
-      if(isa(t, &t_int) > 0 || isa(t, &t_float) > 0)
+      if(isa(t, &t_int) > 0)
         return t;
       break;
 
@@ -1193,8 +1194,8 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
       break;
 
     case op_spork:
-      if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) return &t_shred;
-      // spork shred (by code segment)
+      if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type)
+        return &t_shred;
       else if(exp_unary->code) {
         if(env->func) {
           env->class_scope++;
@@ -1209,22 +1210,17 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
         } else if(check_stmt(env, exp_unary->code) < 0) {
           err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
           break;                                                                // LCOV_EXCL_LINE
-
         }
         return &t_shred;
-      }
-      // got a problem
-      else {
+      } else {
         err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
         return NULL;
       }
       break;
 
     case op_new:
-      t = find_type(env, exp_unary->type->xid);
-      if(!t) {
-        err_msg(TYPE_,  exp_unary->pos,
-                "... in 'new' expression ...");
+      if(!(t = find_type(env, exp_unary->type->xid))) {
+        err_msg(TYPE_,  exp_unary->pos,  "... in 'new' expression ...");
         return NULL;
       }
       if(exp_unary->array) {
@@ -1232,16 +1228,15 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
         CHECK_OO(check_expression(env, exp_unary->array->exp_list))
         CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
         t = new_array_type(env, exp_unary->array->depth, t, env->curr);
-
       } else if(isa(t, &t_object) < 0) {
-        err_msg(TYPE_,  exp_unary->pos,
+        err_msg(TYPE_, exp_unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...", t->name);
-        err_msg(TYPE_,  exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
+        err_msg(TYPE_, exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
         return NULL;
       }
       return t;
     case op_typeof:
-      err_msg(TYPE_,  exp_unary->pos, "(typeof not supported yet)");
+      err_msg(TYPE_, exp_unary->pos, "(typeof not supported yet)");
       break;
     case op_sizeof:
       return &t_int;
@@ -1257,7 +1252,6 @@ static Type check_exp_if(Env env, If_Expression* exp_if) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "debug exp if");
 #endif
-  // check the components
   Type cond     = check_expression(env, exp_if->cond);
   Type if_exp   = check_expression(env, exp_if->if_exp);
   Type else_exp = check_expression(env, exp_if->else_exp);
@@ -1491,7 +1485,7 @@ static m_bool check_return(Env env, Stmt_Return stmt) {
 static m_bool check_continue(Env env, Stmt_Continue cont) {
   if(!vector_size(env->breaks)) {
     err_msg(TYPE_,  cont->pos,
-            "'continue' found outside of for/while/until...");
+      "'continue' found outside of for/while/until...");
     return -1;
   }
   return 1;
@@ -1500,7 +1494,7 @@ static m_bool check_continue(Env env, Stmt_Continue cont) {
 static m_bool check_break(Env env, Stmt_Break cont) {
   if(!vector_size(env->breaks)) {
     err_msg(TYPE_,  cont->pos,
-            "'break' found outside of for/while/until...");
+      "'break' found outside of for/while/until...");
     return -1;
   }
   return 1;
@@ -1544,7 +1538,6 @@ static m_bool check_goto_label(Env env, Stmt_Goto_Label stmt) {
   ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
   if(!ref) {
     err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
-    printf("%lu\n", map_size(m));
     m_uint i;
     for(i = 0; i < map_size(m); i++) {
       ref = (Stmt_Goto_Label)map_at(m, i);
@@ -1892,7 +1885,6 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     }
   }
 
-
   if(!t_parent)
     t_parent = &t_object;
   the_class = class_def->type;
@@ -1978,7 +1970,7 @@ cleanup:
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
     free_ast(ast);
-    REM_REF(context); // breaks function pointer for now
+    REM_REF(context);
     free(filename);
   }
   return ret;

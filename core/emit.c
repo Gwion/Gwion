@@ -688,43 +688,8 @@ static m_bool emit_postfix_expression(Emitter emit, Postfix_Expression* postfix)
 #ifdef DEBUG_EMIT
   debug_msg("emit", "postfix");
 #endif
-  f_instr f;
   CHECK_BB(emit_expression(emit, postfix->exp, 0))
-
-  //  return
-  /*get_instr(emit, postfix->op, postfix->exp->type, NULL);*/
-  // emit
-  switch(postfix->op) {
-  case op_plusplus:
-    if(postfix->exp->type->xid == t_int.xid)
-      f = post_inc;
-    else {
-      err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
-              "(emit): internal error: unhandled type '%s' for post '++' operator",
-              postfix->exp->type->name);
-      return -1;
-    }                              // LCOV_EXCL_STOP
-    break;
-
-  case op_minusminus:
-    if(postfix->exp->type->xid == t_int.xid)
-      f = post_dec;
-    else {
-      err_msg(EMIT_, postfix->pos, // LCOV_EXCL_START
-              "(emit): internal error: unhandled type '%s' for post '--' operator",
-              postfix->exp->type->name);
-      return -1;
-    }                              // LCOV_EXCL_STOP
-    break;
-
-  default:
-    err_msg(EMIT_, postfix->pos,   // LCOV_EXCL_START
-            "(emit): internal error: unhandled postfix operator '%s'",
-            op2str(postfix->op));
-    return -1;
-  }                                // LCOV_EXCL_STOP
-  sadd_instr(emit, f);
-  return 1;
+  return get_instr(emit, postfix->op, postfix->exp->type, NULL);
 }
 
 static m_bool emit_dur(Emitter emit, Exp_Dur* dur) {
@@ -736,6 +701,7 @@ static m_bool emit_dur(Emitter emit, Exp_Dur* dur) {
     sadd_instr(emit, Cast_i2f);
   CHECK_BB(emit_expression(emit, dur->unit, 0))
   sadd_instr(emit, timesf);
+
   return 1;
 }
 

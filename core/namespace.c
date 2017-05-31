@@ -6,8 +6,6 @@
 
 static VM* vm;
 void release(M_Object o, VM_Shred shred);
-void free_arg_list(Arg_List list);
-void free_type_decl(Type_Decl* type_decl);
 void set_nspc_vm(VM* _vm) {
   vm = _vm;
 }
