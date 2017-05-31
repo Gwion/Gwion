@@ -4,11 +4,10 @@
 #include <complex.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "defs.h"
 #include "symbol.h"
-#ifndef __cplusplus
 #include "namespace.h"
 #include "env.h"
-#endif
 #include "value.h"
 #include "dl.h"
 
@@ -43,19 +42,21 @@ Env type_engine_init(VM* vm, Vector plug_dirs);
   UTILS
     ***/
 void start_type_xid();
-Value find_value(Type type, S_Symbol xid );
+Value find_value(Type type, S_Symbol xid);
 Type find_type(Env env, ID_List list);
 int isprim(Type type);
 int isa(Type var, Type parent);
 int isres(Env env, S_Symbol xid, int pos);
 int verify_array(Array_Sub array);
 Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc);
-static inline Type find_common_anc(Type lhs, Type rhs) { return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL; }
-m_str type_path(ID_List path );
+static inline Type find_common_anc(Type lhs, Type rhs) {
+  return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
+}
+m_str type_path(ID_List path);
 m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
 m_bool add_global_type(Env env, Type type);
 Kindof kindof(Type type);
-m_int str2char( const m_str c, m_int linepos );
+m_int str2char(const m_str c, m_int linepos);
 extern struct Type_ t_void;
 extern struct Type_ t_int;
 extern struct Type_ t_float;

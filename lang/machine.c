@@ -15,19 +15,18 @@
 #include <err_msg.h>
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 
-static m_str randstring(VM* vm, int length)
-{
+static m_str randstring(VM* vm, int length) {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
   size_t stringLen = 26 * 2 + 10 + 2;
   char *randomString;
 
   randomString = malloc(sizeof(char) * (length + 1));
 
-  if (!randomString) {
+  if(!randomString) {
     return (char*)0;
   }
 
-  for (int n = 0; n < length; n++) {
+  for(int n = 0; n < length; n++) {
     unsigned int key = sp_rand(vm->bbq->sp) % stringLen;
     randomString[n] = string[key];
   }
@@ -37,11 +36,10 @@ static m_str randstring(VM* vm, int length)
   return randomString;
 }
 
-static SFUN(machine_add)
-{
+static SFUN(machine_add) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(!obj)
-	return;
+    return;
   m_str str = STRING(obj);
   release(obj, shred);
   if(!str)
@@ -49,8 +47,7 @@ static SFUN(machine_add)
   RETURN->d.v_uint = compile(shred->vm_ref, str);
 }
 
-static SFUN(machine_check)
-{
+static SFUN(machine_check) {
   char c[104];
   Ast ast;
   FILE* file;
@@ -84,8 +81,7 @@ static SFUN(machine_check)
   RETURN->d.v_uint = 1;
 }
 
-static SFUN(machine_compile)
-{
+static SFUN(machine_compile) {
 
   char c[104];
   m_str prefix, filename;
@@ -111,8 +107,7 @@ static SFUN(machine_compile)
   compile(shred->vm_ref, c);
 }
 
-static SFUN(machine_shreds)
-{
+static SFUN(machine_shreds) {
   int i;
   VM* vm = shred->vm_ref;
   VM_Shred sh;
@@ -125,27 +120,26 @@ static SFUN(machine_shreds)
   RETURN->d.v_object = obj;
 }
 
-m_bool import_machine(Env env)
-{
+m_bool import_machine(Env env) {
   DL_Func* fun;
 
   CHECK_BB(add_global_type(env, &t_machine))
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   env->class_def->doc = "access the virtual machine, including docs";
 
-  fun = new_DL_Func("void",  "add",     (m_uint)machine_add);
+  fun = new_DL_Func("void",  "add", (m_uint)machine_add);
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))
 
   fun = new_DL_Func("int[]", "shreds", (m_uint)machine_shreds);
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("int",  "check",     (m_uint)machine_check);
+  fun = new_DL_Func("int",  "check", (m_uint)machine_check);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "code");
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("void",  "compile",     (m_uint)machine_compile);
+  fun = new_DL_Func("void",  "compile", (m_uint)machine_compile);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))

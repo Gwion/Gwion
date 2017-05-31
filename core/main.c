@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
     }
   }
   if(optind < argc) {
-    while (optind < argc) {
+    while(optind < argc) {
       m_str str = argv[optind++];
       if(!strcmp(str, "-")) {
         ref = rem;

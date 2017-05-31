@@ -367,7 +367,7 @@ INSTR(Init_Loop_Counter) {
 #endif
   POP_REG(shred,  SZ_INT);
   m_int* sp = (m_int*)shred->reg;
-  (*(m_int*)instr->m_val) =  (*sp >= 0 ? *sp : -*sp);
+  (*(m_int*)instr->m_val) = (*sp >= 0 ? *sp : -*sp);
 }
 
 INSTR(Reg_Push_Deref) {

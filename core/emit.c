@@ -91,7 +91,7 @@ static void emit_pop_scope(Emitter emit) {
   m_uint i;
   Vector v = new_Vector();
   frame_pop_scope(emit->code->frame, v);
-  for (i = 0; i < vector_size(v); i++) {
+  for(i = 0; i < vector_size(v); i++) {
     Local* l = (Local*)vector_at(v, i);
     if(l->is_obj) {
       Instr instr = add_instr(emit, Release_Object2);
@@ -336,7 +336,7 @@ static m_bool emit_Primary_Expression(Emitter emit, Primary_Expression* primary)
   m_uint temp;
   m_float f;
 
-  switch (primary->type) {
+  switch(primary->type) {
   case ae_primary_var:
     if(primary->d.var == insert_symbol("this"))
       sadd_instr(emit, Reg_Push_This);
@@ -645,7 +645,7 @@ static m_bool emit_Postfix_Expression(Emitter emit, Postfix_Expression* postfix)
   //  return
   /*get_instr(emit, postfix->op, postfix->exp->type, NULL);*/
   // emit
-  switch (postfix->op) {
+  switch(postfix->op) {
   case op_plusplus:
     if(postfix->exp->type->xid == t_int.xid)
       f = post_inc;
@@ -801,7 +801,7 @@ static m_bool emit_Unary(Emitter emit, Unary_Expression* exp_unary) {
   Type t = exp_unary->self->type;
   if(exp_unary->op != op_spork && emit_Expression(emit, exp_unary->exp, 0) < 0)
     return -1;
-  switch (exp_unary->op) {
+  switch(exp_unary->op) {
   case op_plusplus:
     if(exp_unary->self->meta != ae_meta_var) {
       err_msg(EMIT_, exp_unary->self->pos, "(emit): target for '++' not mutable..."); // LCOV_EXCL_LINE
@@ -1001,7 +1001,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if) {
   f_instr fop;
   namespace_push_value(emit->env->curr);
   CHECK_BB(emit_Expression(emit, exp_if->cond, 0))
-  switch (exp_if->cond->type->xid) {
+  switch(exp_if->cond->type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     fop = Branch_Eq_Int;
@@ -1036,7 +1036,7 @@ static m_bool emit_Expression(Emitter emit, Expression exp, m_bool ref) {
 #endif
   Expression tmp = exp;
   while(tmp) {
-    switch (tmp->exp_type) {
+    switch(tmp->exp_type) {
     case Decl_Expression_type:
       CHECK_BB(emit_Decl_Expression(emit, &tmp->d.exp_decl))
       break;
@@ -1094,7 +1094,7 @@ static m_bool emit_If(Emitter emit, Stmt_If stmt) {
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
-  switch (stmt->cond->type->xid) {
+  switch(stmt->cond->type->xid) {
 
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
@@ -1216,7 +1216,7 @@ static m_bool emit_While(Emitter emit, Stmt_While stmt) {
 
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
-  switch (stmt->cond->type->xid) {
+  switch(stmt->cond->type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     f = Branch_Eq_Int;
@@ -1278,7 +1278,7 @@ static m_bool emit_Do_While(Emitter emit, Stmt_While stmt) {
   // emit the cond
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
-  switch (stmt->cond->type->xid) {
+  switch(stmt->cond->type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     f = Branch_Neq_Int;
@@ -1335,7 +1335,7 @@ static m_bool emit_Until(Emitter emit, Stmt_Until stmt) {
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
   // condition
-  switch (stmt->cond->type->xid) {
+  switch(stmt->cond->type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     f = Branch_Neq_Int;
@@ -1393,7 +1393,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt) {
   frame_push_scope(emit->code->frame);
 
   m_uint index = vector_size(emit->code->code);
-  vector_append(emit->code->stack_cont,  (vtype)NULL);
+  vector_append(emit->code->stack_cont, (vtype)NULL);
   vector_append(emit->code->stack_break, (vtype)NULL);
 
   frame_push_scope(emit->code->frame);
@@ -1402,7 +1402,7 @@ static m_bool emit_Do_Until(Emitter emit, Stmt_Until stmt) {
 
   CHECK_BB(emit_Expression(emit, stmt->cond, 0))
 
-  switch (stmt->cond->type->xid) {
+  switch(stmt->cond->type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     f = Branch_Eq_Int;
@@ -1455,7 +1455,7 @@ static m_bool emit_For(Emitter emit, Stmt_For stmt) {
 
   CHECK_BB(emit_Stmt(emit, stmt->c2, 0))
   if(stmt->c2) {
-    switch (stmt->c2->d.stmt_exp.val->type->xid) {
+    switch(stmt->c2->d.stmt_exp.val->type->xid) {
     case te_int:
       sadd_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
@@ -1547,7 +1547,7 @@ static m_bool emit_Loop(Emitter emit, Stmt_Loop stmt) {
   deref->m_val = (m_uint)counter;
   type = stmt->cond->cast_to ? stmt->cond->cast_to : stmt->cond->type;
 
-  switch (type->xid) {
+  switch(type->xid) {
   case te_int:
     sadd_instr(emit, Reg_Push_Imm);
     op = new_Instr();
@@ -1610,7 +1610,7 @@ static m_bool emit_Goto_Label(Emitter emit, Stmt_Goto_Label stmt) {
       free_Vector(stmt->data.v);
       return -1;
     }
-    for (i = size + 1; --i;) {
+    for(i = size + 1; --i;) {
       label = (Stmt_Goto_Label)vector_at(stmt->data.v, i - 1);
       label->data.instr->m_val = vector_size(emit->code->code);
     }
@@ -1714,7 +1714,7 @@ static m_bool emit_Enum(Emitter emit, Stmt_Enum stmt) {
   m_uint i;
   Local* local;
   Value v;
-  for (i = 0; i < vector_size(stmt->values); i++) {
+  for(i = 0; i < vector_size(stmt->values); i++) {
     v = (Value)vector_at(stmt->values, i);
     if(!emit->env->class_def) {
       CHECK_OB((local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0)))
@@ -1756,7 +1756,7 @@ static m_bool emit_Stmt(Emitter emit, Stmt stmt, m_bool pop) {
   m_bool ret = 1;
   if(!stmt)
     return 1;
-  switch (stmt->type) {
+  switch(stmt->type) {
   case ae_stmt_exp:
     if(!stmt->d.stmt_exp.val)
       return 1;
@@ -2206,7 +2206,7 @@ static m_bool emit_Func_Def(Emitter emit, Func_Def func_def) {
   emit_pop_scope(emit);
 
   m_uint i;
-  for (i = 0; i < vector_size(emit->code->stack_return); i++) {
+  for(i = 0; i < vector_size(emit->code->stack_return); i++) {
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
     instr->m_val = vector_size(emit->code->code);
   }
@@ -2268,7 +2268,7 @@ static m_bool emit_Class_Def(Emitter emit, Class_Def class_def) {
   }
 
   while(body && ret > 0) {
-    switch (body->section->type) {
+    switch(body->section->type) {
     case ae_section_stmt:
       ret = emit_Stmt_List(emit, body->section->d.stmt_list);
       break;
@@ -2318,7 +2318,7 @@ m_bool emit_Ast(Emitter emit, Ast ast, m_str filename) {
   while(prog && ret > 0) {
     if(!prog->section)
       return 1;
-    switch (prog->section->type) {
+    switch(prog->section->type) {
     case ae_section_stmt:
       ret = emit_Stmt_List(emit, prog->section->d.stmt_list);
       break;

@@ -471,7 +471,7 @@ static m_bool scan2_Goto_Label(Env env, Stmt_Goto_Label stmt) {
     }
     if(map_get(m, (vtype)stmt->name)) {
       err_msg(SCAN2_, stmt->pos, "label '%s' already defined", S_name(stmt->name));
-      Stmt_Goto_Label l =  (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+      Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
       free_Vector(l->data.v);
       return -1;
     }

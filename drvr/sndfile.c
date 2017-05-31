@@ -14,8 +14,7 @@ static m_uint nchan;
 static m_uint bufsize;
 VM* vm;
 
-static m_bool sndfile_ini(VM* v, DriverInfo* di)
-{
+static m_bool sndfile_ini(VM* v, DriverInfo* di) {
   nchan = di->chan;
   bufsize = di->bufsize;
   sf = calloc(nchan, sizeof(void*));
@@ -36,8 +35,7 @@ static m_bool sndfile_ini(VM* v, DriverInfo* di)
   return 1;
 }
 
-static void sndfile_run()
-{
+static void sndfile_run() {
   m_uint i, chan;
   sp_data* sp = vm->bbq->sp;
   m_float buf[nchan][bufsize];
@@ -54,16 +52,14 @@ static void sndfile_run()
   }
 }
 
-static void sndfile_del()
-{
+static void sndfile_del() {
   m_uint i;
   for(i = 0; i < nchan; i++)
     sf_close(sf[i]);
   free(sf);
 }
 
-Driver* sndfile_driver(VM* vm)
-{
+Driver* sndfile_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = sndfile_ini;
   d->run = sndfile_run;

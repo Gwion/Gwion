@@ -9,21 +9,18 @@
 
 #define LOGTWO log(2)
 #define LOGTEN log(10)
-static double mtof(double f)
-{
+static double mtof(double f) {
   if(f <= -1500) return (0);
   else if(f > 1499) return (mtof(1499));
 // else return (8.17579891564 * exp(.0577622650 * f));
   else return (pow(2, (f - 69) / 12.0) * 440.0);
 }
 
-static double ftom(double f)
-{
+static double ftom(double f) {
   // return (f > 0 ? 17.3123405046 * log(.12231220585 * f) : -1500);
   return (f > 0 ? (log(f / 440.0) / LOGTWO) * 12.0 + 69 : -1500);
 }
-static double powtodb(double f)
-{
+static double powtodb(double f) {
   if(f <= 0) return (0);
   else {
     double val = 100 + 10. / LOGTEN * log(f);
@@ -36,8 +33,7 @@ static double powtodb(double f)
 // name: rmstodb()
 // desc: ...
 //-----------------------------------------------------------------------------
-static double rmstodb(double f)
-{
+static double rmstodb(double f) {
   if(f <= 0) return (0);
   else {
     double val = 100 + 20. / LOGTEN * log(f);
@@ -50,8 +46,7 @@ static double rmstodb(double f)
 // name: dbtopow()
 // desc: ...
 //-----------------------------------------------------------------------------
-static double dbtopow(double f)
-{
+static double dbtopow(double f) {
   if(f <= 0)
     return (0);
   else {
@@ -59,8 +54,7 @@ static double dbtopow(double f)
     return (exp((LOGTEN * 0.1) * (f - 100.)));
   }
 }
-static double dbtorms(double f)
-{
+static double dbtorms(double f) {
   if(f <= 0)
     return (0);
   else {
@@ -70,13 +64,11 @@ static double dbtorms(double f)
 }
 
 // start here
-static SFUN(std_abs)
-{
+static SFUN(std_abs) {
   RETURN->d.v_uint = labs(*(m_int*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_fabs)
-{
+static SFUN(std_fabs) {
 #ifdef USE_DOUBLE
   RETURN->d.v_float = fabs(*(m_float*)(shred->mem + SZ_INT));
 #else
@@ -84,17 +76,15 @@ static SFUN(std_fabs)
 #endif
 }
 
-static SFUN(std_rand)
-{
+static SFUN(std_rand) {
   RETURN->d.v_uint = sp_rand(shred->vm_ref->bbq->sp);
 }
 
-static SFUN(std_rand2)
-{
+static SFUN(std_rand2) {
   m_int min = *(m_int*)(shred->mem + SZ_INT);
   m_int max = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int range = max - min;
-  if (range == 0)
+  if(range == 0)
     RETURN->d.v_uint = min;
   else {
     if(range > 0)
@@ -104,236 +94,199 @@ static SFUN(std_rand2)
   }
 }
 
-static SFUN(std_randf)
-{
+static SFUN(std_randf) {
   RETURN->d.v_float = 2.0 * sp_rand(shred->vm_ref->bbq->sp) / RAND_MAX - 1.0;
 }
 
-static SFUN(std_rand2f)
-{
+static SFUN(std_rand2f) {
   m_float min = *(m_float*)(shred->mem + SZ_INT);
   m_float max = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = min + (max - min) * (sp_rand(shred->vm_ref->bbq->sp) / (m_float)RAND_MAX);
 }
 
-static SFUN(std_srand)
-{
+static SFUN(std_srand) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   srand(ret);
   RETURN->d.v_float = ret;
 }
 
-static SFUN(std_sgn)
-{
+static SFUN(std_sgn) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_uint = ret < 0. ? -1 : ret > 0. ? 1 : 0;
 }
 
-static SFUN(std_sin)
-{
+static SFUN(std_sin) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = sin(ret);
 }
 
-static SFUN(std_cos)
-{
+static SFUN(std_cos) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = cos(ret);
 }
 
-static SFUN(std_tan)
-{
+static SFUN(std_tan) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = tan(ret);
 }
 
-static SFUN(std_asin)
-{
+static SFUN(std_asin) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = asin(ret);
 }
 
-static SFUN(std_acos)
-{
+static SFUN(std_acos) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = acos(ret);
 }
 
-static SFUN(std_atan)
-{
+static SFUN(std_atan) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = atan(ret);
 }
 
-static SFUN(std_sinh)
-{
+static SFUN(std_sinh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = sinh(ret);
 }
 
-static SFUN(std_cosh)
-{
+static SFUN(std_cosh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = cosh(ret);
 }
 
-static SFUN(std_tanh)
-{
+static SFUN(std_tanh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = tanh(ret);
 }
 
-static SFUN(std_asinh)
-{
+static SFUN(std_asinh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = sinh(ret);
 }
 
-static SFUN(std_acosh)
-{
+static SFUN(std_acosh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = cosh(ret);
 }
 
-static SFUN(std_atanh)
-{
+static SFUN(std_atanh) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = atanh(ret);
 }
 
-static SFUN(std_atan2)
-{
+static SFUN(std_atan2) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = atan2(ret1, ret2);
 }
 
-static SFUN(std_hypot)
-{
+static SFUN(std_hypot) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = hypot(ret1, ret2);
 }
 
-static SFUN(std_pow)
-{
+static SFUN(std_pow) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = pow(ret1, ret2);
 }
 
-static SFUN(std_sqrt)
-{
+static SFUN(std_sqrt) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = sqrt(ret);
 }
 
-static SFUN(std_exp)
-{
+static SFUN(std_exp) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = exp(ret);
 }
 
-static SFUN(std_log)
-{
+static SFUN(std_log) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = log(ret);
 }
 
-static SFUN(std_log2)
-{
+static SFUN(std_log2) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = log2(ret);
 }
 
-static SFUN(std_log10)
-{
+static SFUN(std_log10) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = log10(ret);
 }
 
-static SFUN(std_floor)
-{
+static SFUN(std_floor) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = floor(ret);
 }
 
-static SFUN(std_ceil)
-{
+static SFUN(std_ceil) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = floor(ret);
 }
 
-static SFUN(std_round)
-{
+static SFUN(std_round) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = round(ret);
 }
 
-static SFUN(std_trunc)
-{
+static SFUN(std_trunc) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = trunc(ret);
 }
 
-static SFUN(std_fmod)
-{
+static SFUN(std_fmod) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = fmod(ret1, ret2);
 }
 
-static SFUN(std_remainder)
-{
+static SFUN(std_remainder) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = remainder(ret1, ret2);
 }
 
-static SFUN(std_min)
-{
+static SFUN(std_min) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = ret1 < ret2 ? ret1 : ret2;
 }
 
-static SFUN(std_max)
-{
+static SFUN(std_max) {
   m_float ret1 = *(m_float*)(shred->mem + SZ_INT);
   m_float ret2 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   RETURN->d.v_float = ret1 > ret2 ? ret1 : ret2;
 }
 
-static SFUN(std_isinf)
-{
+static SFUN(std_isinf) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_uint = isinf(ret);
 }
 
-static SFUN(std_isnan)
-{
+static SFUN(std_isnan) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_uint = isnan(ret);
 }
 
-static SFUN(std_clamp)
-{
+static SFUN(std_clamp) {
   m_int ret = *(m_int*)(shred->mem + SZ_INT);
   m_int min = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int max = *(m_int*)(shred->mem + SZ_INT * 3);
   RETURN->d.v_uint = ret < min ? min : ret > max ? max : ret;
 }
 
-static SFUN(std_clampf)
-{
+static SFUN(std_clampf) {
   m_float ret = *(m_float*)(shred->mem + SZ_INT);
   m_float min = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   m_float max = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT * 2);
   RETURN->d.v_float = ret < min ? min : ret > max ? max : ret;
 }
 
-static SFUN(std_scale)
-{
+static SFUN(std_scale) {
   m_float ret  = *(m_float*)(shred->mem + SZ_INT);
   m_float min1 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   m_float max1 = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT * 2);
@@ -342,24 +295,21 @@ static SFUN(std_scale)
   RETURN->d.v_float = min2 + (max2 - min2) * ((ret - min1) / (max1 - min1));
 }
 
-static SFUN(std_system)
-{
+static SFUN(std_system) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
   RETURN->d.v_uint = system(str);
   release(obj, shred);
 }
 
-static SFUN(std_getenv)
-{
+static SFUN(std_getenv) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str str = STRING(obj);
   release(obj, shred);
   RETURN->d.v_object = new_String(shred, getenv(str));
 }
 
-static SFUN(std_setenv)
-{
+static SFUN(std_setenv) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str key = STRING(obj);
   release(obj, shred);
@@ -369,97 +319,83 @@ static SFUN(std_setenv)
   RETURN->d.v_uint = setenv(key, value, 1);
 }
 
-static SFUN(std_atoi)
-{
+static SFUN(std_atoi) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str value = STRING(obj);
   release(obj, shred);
   RETURN->d.v_uint = atoi(value);
 }
 
-static SFUN(std_atof)
-{
+static SFUN(std_atof) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   m_str value = STRING(obj);
   release(obj, shred);
   RETURN->d.v_float = atof(value);
 }
 
-static SFUN(std_itoa)
-{
+static SFUN(std_itoa) {
   char c[1024];
   int value = *(m_int*)(shred->mem + SZ_INT);
   sprintf(c, "%i", value);
-  RETURN->d.v_object = new_String(shred ,c);
+  RETURN->d.v_object = new_String(shred,c);
 }
 
-static SFUN(std_ftoa)
-{
+static SFUN(std_ftoa) {
   char c[1024];
   m_float value = *(m_float*)(shred->mem + SZ_INT);
   sprintf(c, "%f", value);
-  RETURN->d.v_object = new_String(shred ,c);
+  RETURN->d.v_object = new_String(shred,c);
 }
 
-static SFUN(std_ftoi)
-{
+static SFUN(std_ftoi) {
   m_float value = *(m_float*)(shred->mem + SZ_INT);
   m_int ret = value;
   RETURN->d.v_uint = ret;
 }
 
-static SFUN(std_mtof)
-{
+static SFUN(std_mtof) {
   RETURN->d.v_float = mtof(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_ftom)
-{
+static SFUN(std_ftom) {
   RETURN->d.v_float = ftom(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_powtodb)
-{
+static SFUN(std_powtodb) {
   RETURN->d.v_float = powtodb(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_rmstodb)
-{
+static SFUN(std_rmstodb) {
   RETURN->d.v_float = rmstodb(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_dbtopow)
-{
+static SFUN(std_dbtopow) {
   RETURN->d.v_float = dbtopow(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_dbtorms)
-{
+static SFUN(std_dbtorms) {
   RETURN->d.v_float = dbtorms(*(m_float*)(shred->mem + SZ_INT));
 }
 
-static SFUN(std_dbtolin)
-{
+static SFUN(std_dbtolin) {
   RETURN->d.v_float = pow(10.0, *(m_float*)(shred->mem + SZ_INT) / 20.0);
 }
 
-static SFUN(std_lintodb)
-{
+static SFUN(std_lintodb) {
   RETURN->d.v_float = 20.0 * log10(*(m_float*)(shred->mem + SZ_INT));
 }
 
 static struct Type_ t_std  = { "Std",  0, NULL, te_std};
 static struct Type_ t_math = { "Math", 0, NULL};
 
-m_bool import_lib(Env env)
-{
+m_bool import_lib(Env env) {
   DL_Func* fun;
 
   CHECK_BB(add_global_type(env, &t_math))
   CHECK_OB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
-  fun = new_DL_Func("int", "abs",    (m_uint)std_abs);
+  fun = new_DL_Func("int", "abs", (m_uint)std_abs);
   dl_func_add_arg(fun, "int", "value");
   CHECK_OB(import_sfun(env, fun))
 
@@ -467,15 +403,15 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "rand",    (m_uint)std_rand);
+  fun = new_DL_Func("int", "rand", (m_uint)std_rand);
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "rand2",   (m_uint)std_rand2);
+  fun = new_DL_Func("int", "rand2", (m_uint)std_rand2);
   dl_func_add_arg(fun, "int", "min");
   dl_func_add_arg(fun, "int", "max");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "randf",  (m_uint)std_randf);
+  fun = new_DL_Func("float", "randf", (m_uint)std_randf);
   CHECK_OB(import_sfun(env, fun))
 
   fun = new_DL_Func("float", "rand2f", (m_uint)std_rand2f);
@@ -483,11 +419,11 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "max");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "srand",  (m_uint)std_srand);
+  fun = new_DL_Func("float", "srand", (m_uint)std_srand);
   dl_func_add_arg(fun, "float", "seed");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "sgn",      (m_uint)std_sgn);
+  fun = new_DL_Func("int", "sgn", (m_uint)std_sgn);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
@@ -496,125 +432,125 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "max");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "sin",      (m_uint)std_sin);
+  fun = new_DL_Func("float", "sin", (m_uint)std_sin);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "cos",      (m_uint)std_cos);
+  fun = new_DL_Func("float", "cos", (m_uint)std_cos);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "tan",      (m_uint)std_tan);
+  fun = new_DL_Func("float", "tan", (m_uint)std_tan);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "asin",      (m_uint)std_asin);
+  fun = new_DL_Func("float", "asin", (m_uint)std_asin);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "acos",      (m_uint)std_acos);
+  fun = new_DL_Func("float", "acos", (m_uint)std_acos);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "atan",      (m_uint)std_atan);
+  fun = new_DL_Func("float", "atan", (m_uint)std_atan);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "atan2",      (m_uint)std_atan2);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "sinh",      (m_uint)std_sinh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "cosh",      (m_uint)std_cosh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "tanh",      (m_uint)std_tanh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "asinh",      (m_uint)std_asinh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "acosh",      (m_uint)std_acosh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "atanh",      (m_uint)std_atanh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "pow",      (m_uint)std_pow);
+  fun = new_DL_Func("float", "atan2", (m_uint)std_atan2);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "sqrt",      (m_uint)std_sqrt);
+  fun = new_DL_Func("float", "sinh", (m_uint)std_sinh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "exp",      (m_uint)std_exp);
+  fun = new_DL_Func("float", "cosh", (m_uint)std_cosh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "log",      (m_uint)std_log);
+  fun = new_DL_Func("float", "tanh", (m_uint)std_tanh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "log2",      (m_uint)std_log2);
+  fun = new_DL_Func("float", "asinh", (m_uint)std_asinh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "log10",      (m_uint)std_log10);
+  fun = new_DL_Func("float", "acosh", (m_uint)std_acosh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "floor",      (m_uint)std_floor);
+  fun = new_DL_Func("float", "atanh", (m_uint)std_atanh);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "ceil",      (m_uint)std_ceil);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "round",      (m_uint)std_round);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "trunc",      (m_uint)std_trunc);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
-
-  fun = new_DL_Func("float", "fmod",      (m_uint)std_fmod);
+  fun = new_DL_Func("float", "pow", (m_uint)std_pow);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "remainder",      (m_uint)std_remainder);
+  fun = new_DL_Func("float", "sqrt", (m_uint)std_sqrt);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "exp", (m_uint)std_exp);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "log", (m_uint)std_log);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "log2", (m_uint)std_log2);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "log10", (m_uint)std_log10);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "floor", (m_uint)std_floor);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "ceil", (m_uint)std_ceil);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "round", (m_uint)std_round);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "trunc", (m_uint)std_trunc);
+  dl_func_add_arg(fun, "float", "value");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "fmod", (m_uint)std_fmod);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "min",      (m_uint)std_min);
+  fun = new_DL_Func("float", "remainder", (m_uint)std_remainder);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "max",      (m_uint)std_max);
+  fun = new_DL_Func("float", "min", (m_uint)std_min);
   dl_func_add_arg(fun, "float", "value");
   dl_func_add_arg(fun, "float", "value2");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "isinf",      (m_uint)std_isinf);
+  fun = new_DL_Func("float", "max", (m_uint)std_max);
+  dl_func_add_arg(fun, "float", "value");
+  dl_func_add_arg(fun, "float", "value2");
+  CHECK_OB(import_sfun(env, fun))
+
+  fun = new_DL_Func("float", "isinf", (m_uint)std_isinf);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "isnan",      (m_uint)std_isnan);
+  fun = new_DL_Func("float", "isnan", (m_uint)std_isnan);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
   CHECK_BB(import_class_end(env))
@@ -623,7 +559,7 @@ m_bool import_lib(Env env)
   CHECK_OB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
-  fun = new_DL_Func("int", "clamp",     (m_uint)std_clamp);
+  fun = new_DL_Func("int", "clamp", (m_uint)std_clamp);
   dl_func_add_arg(fun, "int", "value");
   dl_func_add_arg(fun, "int", "min");
   dl_func_add_arg(fun, "int", "max");
@@ -643,68 +579,68 @@ m_bool import_lib(Env env)
   dl_func_add_arg(fun, "float", "dstmax");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "system",  (m_uint)std_system);
+  fun = new_DL_Func("int", "system", (m_uint)std_system);
   dl_func_add_arg(fun, "string", "cmd");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("string", "getenv",  (m_uint)std_getenv);
+  fun = new_DL_Func("string", "getenv", (m_uint)std_getenv);
   dl_func_add_arg(fun, "string", "key");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "setenv",  (m_uint)std_setenv);
+  fun = new_DL_Func("int", "setenv", (m_uint)std_setenv);
   dl_func_add_arg(fun, "string", "key");
   dl_func_add_arg(fun, "string", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "atoi",  (m_uint)std_atoi);
+  fun = new_DL_Func("int", "atoi", (m_uint)std_atoi);
   dl_func_add_arg(fun, "string", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "atof",  (m_uint)std_atof);
+  fun = new_DL_Func("float", "atof", (m_uint)std_atof);
   dl_func_add_arg(fun, "string", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("string", "itoa",  (m_uint)std_itoa);
+  fun = new_DL_Func("string", "itoa", (m_uint)std_itoa);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("string", "ftoa",  (m_uint)std_ftoa);
+  fun = new_DL_Func("string", "ftoa", (m_uint)std_ftoa);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("int", "ftoi",  (m_uint)std_ftoi);
+  fun = new_DL_Func("int", "ftoi", (m_uint)std_ftoi);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "mtof",  (m_uint)std_mtof);
+  fun = new_DL_Func("float", "mtof", (m_uint)std_mtof);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "ftom",  (m_uint)std_ftom);
+  fun = new_DL_Func("float", "ftom", (m_uint)std_ftom);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "powtodb",  (m_uint)std_powtodb);
+  fun = new_DL_Func("float", "powtodb", (m_uint)std_powtodb);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "rmstodb",  (m_uint)std_rmstodb);
+  fun = new_DL_Func("float", "rmstodb", (m_uint)std_rmstodb);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "dbtopow",  (m_uint)std_dbtopow);
+  fun = new_DL_Func("float", "dbtopow", (m_uint)std_dbtopow);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "dbtorms",  (m_uint)std_dbtorms);
+  fun = new_DL_Func("float", "dbtorms", (m_uint)std_dbtorms);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "dbtolin",  (m_uint)std_dbtolin);
+  fun = new_DL_Func("float", "dbtolin", (m_uint)std_dbtolin);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
 
-  fun = new_DL_Func("float", "lintodb",  (m_uint)std_lintodb);
+  fun = new_DL_Func("float", "lintodb", (m_uint)std_lintodb);
   dl_func_add_arg(fun, "float", "value");
   CHECK_OB(import_sfun(env, fun))
   CHECK_BB(import_class_end(env))

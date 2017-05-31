@@ -25,7 +25,7 @@ void Reg_Push_Now(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Maybe(VM* vm, VM_Shred shred, Instr instr);
 
 /* stacking */
-void Reg_Pop_Word4( VM* vm, VM_Shred shred, Instr instr);
+void Reg_Pop_Word4(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Imm(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Mem_Addr(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Imm2(VM* vm, VM_Shred shred, Instr instr);

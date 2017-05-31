@@ -26,8 +26,7 @@ static void     **_in_buf = NULL, **_out_buf = NULL;
 void* in_bufi;
 void* out_bufi;
 
-static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int stream, int mode)
-{
+static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int stream, int mode) {
   snd_pcm_t* handle = NULL;
   snd_pcm_hw_params_t* params;
   unsigned int num = di->bufnum;
@@ -73,8 +72,7 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
 }
 
 
-static m_bool alsa_ini(VM* vm, DriverInfo* di)
-{
+static m_bool alsa_ini(VM* vm, DriverInfo* di) {
   out = NULL;
   if(sp_alsa_init(di, &out, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
     err_msg(ALSA_, 0, "problem with playback");
@@ -90,8 +88,7 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di)
   return 1;
 }
 
-static void alsa_run(VM* vm, DriverInfo* di)
-{
+static void alsa_run(VM* vm, DriverInfo* di) {
   m_uint i, chan;
   BBQ bbq = vm->bbq;
   sp_data* sp = vm->bbq->sp;
@@ -127,7 +124,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
         sp->pos++;
       }
       if(snd_pcm_writen(out, _out_buf, di->bufsize) < 0)
-       snd_pcm_prepare(out);
+        snd_pcm_prepare(out);
     }
   } else { // interleaved
     in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
@@ -160,8 +157,7 @@ static void alsa_run(VM* vm, DriverInfo* di)
   GWION_CTL
 }
 
-static void alsa_del(VM* vm)
-{
+static void alsa_del(VM* vm) {
   m_uint chan;
   snd_pcm_close(in);
 //  snd_pcm_hw_free(in);
@@ -191,8 +187,7 @@ static void alsa_del(VM* vm)
   }
 }
 
-Driver* alsa_driver(VM* vm)
-{
+Driver* alsa_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = alsa_ini;
   d->run = alsa_run;

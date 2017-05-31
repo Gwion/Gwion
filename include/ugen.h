@@ -1,4 +1,4 @@
-typedef m_bool (*f_tick) (UGen ug);
+typedef m_bool(*f_tick)(UGen ug);
 
 struct UGen_ {
   m_bool done;

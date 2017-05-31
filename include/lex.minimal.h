@@ -201,21 +201,21 @@ struct yy_buffer_state {
 };
 #endif /* !YY_STRUCT_YY_BUFFER_STATE */
 
-void minimal_restart (FILE *input_file, yyscan_t yyscanner );
-void minimal__switch_to_buffer (YY_BUFFER_STATE new_buffer, yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__create_buffer (FILE *file, int size, yyscan_t yyscanner );
-void minimal__delete_buffer (YY_BUFFER_STATE b, yyscan_t yyscanner );
-void minimal__flush_buffer (YY_BUFFER_STATE b, yyscan_t yyscanner );
-void minimal_push_buffer_state (YY_BUFFER_STATE new_buffer, yyscan_t yyscanner );
-void minimal_pop_buffer_state (yyscan_t yyscanner );
+void minimal_restart(FILE *input_file, yyscan_t yyscanner);
+void minimal__switch_to_buffer(YY_BUFFER_STATE new_buffer, yyscan_t yyscanner);
+YY_BUFFER_STATE minimal__create_buffer(FILE *file, int size, yyscan_t yyscanner);
+void minimal__delete_buffer(YY_BUFFER_STATE b, yyscan_t yyscanner);
+void minimal__flush_buffer(YY_BUFFER_STATE b, yyscan_t yyscanner);
+void minimal_push_buffer_state(YY_BUFFER_STATE new_buffer, yyscan_t yyscanner);
+void minimal_pop_buffer_state(yyscan_t yyscanner);
 
-YY_BUFFER_STATE minimal__scan_buffer (char *base, yy_size_t size, yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__scan_string (yyconst char *yy_str, yyscan_t yyscanner );
-YY_BUFFER_STATE minimal__scan_bytes (yyconst char *bytes, yy_size_t len, yyscan_t yyscanner );
+YY_BUFFER_STATE minimal__scan_buffer(char *base, yy_size_t size, yyscan_t yyscanner);
+YY_BUFFER_STATE minimal__scan_string(yyconst char *yy_str, yyscan_t yyscanner);
+YY_BUFFER_STATE minimal__scan_bytes(yyconst char *bytes, yy_size_t len, yyscan_t yyscanner);
 
-void *minimal_alloc (yy_size_t, yyscan_t yyscanner );
-void *minimal_realloc (void *, yy_size_t, yyscan_t yyscanner );
-void minimal_free (void *, yyscan_t yyscanner );
+void *minimal_alloc(yy_size_t, yyscan_t yyscanner);
+void *minimal_realloc(void *, yy_size_t, yyscan_t yyscanner);
+void minimal_free(void *, yyscan_t yyscanner);
 
 /* Begin user sect3 */
 
@@ -243,46 +243,46 @@ void minimal_free (void *, yyscan_t yyscanner );
 #define YY_EXTRA_TYPE void *
 #endif
 
-int minimal_lex_init (yyscan_t* scanner);
+int minimal_lex_init(yyscan_t* scanner);
 
-int minimal_lex_init_extra (YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
+int minimal_lex_init_extra(YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
-int minimal_lex_destroy (yyscan_t yyscanner );
+int minimal_lex_destroy(yyscan_t yyscanner);
 
-int minimal_get_debug (yyscan_t yyscanner );
+int minimal_get_debug(yyscan_t yyscanner);
 
-void minimal_set_debug (int debug_flag, yyscan_t yyscanner );
+void minimal_set_debug(int debug_flag, yyscan_t yyscanner);
 
-YY_EXTRA_TYPE minimal_get_extra (yyscan_t yyscanner );
+YY_EXTRA_TYPE minimal_get_extra(yyscan_t yyscanner);
 
-void minimal_set_extra (YY_EXTRA_TYPE user_defined, yyscan_t yyscanner );
+void minimal_set_extra(YY_EXTRA_TYPE user_defined, yyscan_t yyscanner);
 
-FILE *minimal_get_in (yyscan_t yyscanner );
+FILE *minimal_get_in(yyscan_t yyscanner);
 
-void minimal_set_in  (FILE * _in_str, yyscan_t yyscanner );
+void minimal_set_in(FILE * _in_str, yyscan_t yyscanner);
 
-FILE *minimal_get_out (yyscan_t yyscanner );
+FILE *minimal_get_out(yyscan_t yyscanner);
 
-void minimal_set_out  (FILE * _out_str, yyscan_t yyscanner );
+void minimal_set_out(FILE * _out_str, yyscan_t yyscanner);
 
-yy_size_t minimal_get_leng (yyscan_t yyscanner );
+yy_size_t minimal_get_leng(yyscan_t yyscanner);
 
-char *minimal_get_text (yyscan_t yyscanner );
+char *minimal_get_text(yyscan_t yyscanner);
 
-int minimal_get_lineno (yyscan_t yyscanner );
+int minimal_get_lineno(yyscan_t yyscanner);
 
-void minimal_set_lineno (int _line_number, yyscan_t yyscanner );
+void minimal_set_lineno(int _line_number, yyscan_t yyscanner);
 
-int minimal_get_column  (yyscan_t yyscanner );
+int minimal_get_column(yyscan_t yyscanner);
 
-void minimal_set_column (int _column_no, yyscan_t yyscanner );
+void minimal_set_column(int _column_no, yyscan_t yyscanner);
 
-YYSTYPE * minimal_get_lval (yyscan_t yyscanner );
+YYSTYPE * minimal_get_lval(yyscan_t yyscanner);
 
-void minimal_set_lval (YYSTYPE * yylval_param, yyscan_t yyscanner );
+void minimal_set_lval(YYSTYPE * yylval_param, yyscan_t yyscanner);
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -290,18 +290,18 @@ void minimal_set_lval (YYSTYPE * yylval_param, yyscan_t yyscanner );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int minimal_wrap (yyscan_t yyscanner );
+extern "C" int minimal_wrap(yyscan_t yyscanner);
 #else
-extern int minimal_wrap (yyscan_t yyscanner );
+extern int minimal_wrap(yyscan_t yyscanner);
 #endif
 #endif
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *, yyconst char *, int, yyscan_t yyscanner);
+static void yy_flex_strncpy(char *, yyconst char *, int, yyscan_t yyscanner);
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char *, yyscan_t yyscanner);
+static int yy_flex_strlen(yyconst char *, yyscan_t yyscanner);
 #endif
 
 #ifndef YY_NO_INPUT

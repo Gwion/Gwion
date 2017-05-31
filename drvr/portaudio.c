@@ -16,10 +16,9 @@ static PaStream *stream = NULL;
 static     PaStreamParameters outputParameters;
 static     PaStreamParameters  inputParameters;
 
-static int callback( const void *inputBuffer, void *outputBuffer,
-                     unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
-                     PaStreamCallbackFlags statusFlags, void *userData )
-{
+static int callback(const void *inputBuffer, void *outputBuffer,
+                    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
+                    PaStreamCallbackFlags statusFlags, void *userData) {
   VM* vm = (VM*)userData;
   sp_data* sp = vm->bbq->sp;
   float *in  = (float*)inputBuffer;
@@ -37,29 +36,28 @@ static int callback( const void *inputBuffer, void *outputBuffer,
   return paContinue;
 }
 
-static m_bool ini(VM* vm, DriverInfo* di)
-{
+static m_bool ini(VM* vm, DriverInfo* di) {
   if(Pa_Initialize() != paNoError)
     return -1;
   outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
-  if (outputParameters.device == paNoDevice) {
+  if(outputParameters.device == paNoDevice) {
     fprintf(stderr, "Error: No default output device.\n");
     goto error;
   }
   bufsize = di->bufsize;
   outputParameters.channelCount = 2;
   outputParameters.sampleFormat = di->format;
-  outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+  outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
   outputParameters.hostApiSpecificStreamInfo = NULL;
 
   inputParameters.device = Pa_GetDefaultInputDevice(); /* default output device */
-  if (inputParameters.device == paNoDevice) {
+  if(inputParameters.device == paNoDevice) {
     fprintf(stderr, "Error: No default input device.\n");
     goto error;
   }
   inputParameters.channelCount = 2;
   inputParameters.sampleFormat = paFloat32;
-  inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowOutputLatency;
+  inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowOutputLatency;
   inputParameters.hostApiSpecificStreamInfo = NULL;
 
   if(Pa_OpenStream(
@@ -70,7 +68,7 @@ static m_bool ini(VM* vm, DriverInfo* di)
         di->bufsize,
         paClipOff,
         callback,
-        vm ) != paNoError)
+        vm) != paNoError)
     goto error;
   /*
   if(Pa_OpenDefaultStream(&stream,
@@ -101,21 +99,18 @@ error:
   return -1;
 }
 
-static void del(VM* vm)
-{
+static void del(VM* vm) {
   Pa_StopStream(stream);
   Pa_Terminate();
 }
 
-static void run(VM* vm, DriverInfo* di)
-{
+static void run(VM* vm, DriverInfo* di) {
   Pa_StartStream(stream);
   while(vm->is_running)
     Pa_Sleep(1);
 }
 
-Driver* pa_driver(VM* vm)
-{
+Driver* pa_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = ini;
   d->run = run;

@@ -14,16 +14,20 @@ struct Context_ {
   struct VM_Object_ obj;
 };
 
-Context new_Context( Ast prog, char* filename );
+Context new_Context(Ast prog, char* filename);
 void free_Context(Context context);
 m_bool load_context(Context context, Env env);
 m_bool unload_context(Context context, Env env);
 
-static inline void context_add_type(Context context, Type type, VM_Object obj)
-{  vector_append(context->new_types, (vtype)type); }
-static inline void context_add_value(Context context, Value value, VM_Object obj)
-{  vector_append(context->new_values, (vtype)value); }
-static inline void context_add_func(Context context, Func func, VM_Object obj)
-{  vector_append(context->new_funcs, (vtype)func); }
-static inline void context_add_class(Context context, Value value, VM_Object obj)
-{  vector_append(context->new_class, (vtype)value); }
+static inline void context_add_type(Context context, Type type, VM_Object obj) {
+  vector_append(context->new_types, (vtype)type);
+}
+static inline void context_add_value(Context context, Value value, VM_Object obj) {
+  vector_append(context->new_values, (vtype)value);
+}
+static inline void context_add_func(Context context, Func func, VM_Object obj) {
+  vector_append(context->new_funcs, (vtype)func);
+}
+static inline void context_add_class(Context context, Value value, VM_Object obj) {
+  vector_append(context->new_class, (vtype)value);
+}

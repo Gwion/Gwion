@@ -14,9 +14,9 @@ typedef struct containing_driver_info {
 
 
 typedef struct driver_wrapper {
-  m_bool (*ini)(VM* vm, DriverInfo* info);
-  void   (*run)(VM* vm, DriverInfo* info);
-  void   (*del)(VM* vm);
+  m_bool(*ini)(VM* vm, DriverInfo* info);
+  void (*run)(VM* vm, DriverInfo* info);
+  void (*del)(VM* vm);
 } Driver;
 
 static inline void no_wakeup() {}

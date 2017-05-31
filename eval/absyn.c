@@ -74,18 +74,7 @@ Type_Decl* new_Type_Decl(ID_List xid, int ref, int pos)
   a->doc = NULL;
   return a;
 }
-/*
-Type_Decl* new_Type_Decl_from_dot(Dot_Member* dot, int ref, int pos)
-{
-  Type_Decl* a = calloc(1, sizeof(Type_Decl));
-  a->xid = NULL;
-  a->ref = ref;
-  a->pos = pos;
-  a->array = NULL;
-  a->dot = dot;
-  return a;
-}
-*/
+
 Array_Sub new_array_sub(Expression exp, int pos)
 {
   Array_Sub a = calloc(1, sizeof(struct Array_Sub_));
@@ -292,7 +281,7 @@ Expression new_Exp_Dur(Expression base, Expression unit, int pos)
 }
 
 static void free_Dur_Expression(Exp_Dur* a)
-{ 
+{
   free_Expression(a->base);
   free_Expression(a->unit);
 }
@@ -407,7 +396,7 @@ __inline static void free_complex(Complex* a)
 
 }
 
-Expression new_exp_from_char(c_str chr, int pos)
+Expression new_exp_from_char(m_str chr, int pos)
 {
   Expression a = calloc(1, sizeof(struct Expression_));
   a->exp_type = Primary_Expression_type;
@@ -436,21 +425,6 @@ Expression new_exp_from_array_lit(Array_Sub exp_list, int pos)
   a->cast_to = NULL;
   return a;
 }
-/*
-   Expression new_exp_from_array(Expression base, Array_Sub indices, int pos)
-   {
-   Expression a = calloc(1, sizeof(struct Expression_));
-   a->exp_type = ae_exp_array;
-   a->meta = ae_meta_var;
-   a->array = calloc(1, sizeof(struct Array_Expression_));
-   a->array->base = base;
-   a->array->indices = indices;
-   a->pos = pos;
-   a->array->pos = pos;
-   a->array->self = a;
-   return a;
-   }
-   */
 
 Expression new_exp_from_complex(Complex* exp, int pos)
 {
@@ -585,7 +559,7 @@ Expression new_exp_from_unary3(Operator oper, Stmt code, int pos)
   return a;
 }
 static void free_Unary_Expression(Unary_Expression* a)
-{ 
+{
   if(a->exp) // sporked func
     free_Expression(a->exp);
   if(a->type)
@@ -896,7 +870,7 @@ Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos)
 }
 
 static void free_Stmt_Flow(struct Stmt_Flow_* a)
-{ 
+{
   free_Expression(a->cond);
   free_Stmt(a->body);
 }

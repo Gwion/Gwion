@@ -4,14 +4,12 @@
 #include "vm.h"
 #include "driver.h"
 
-void free_Driver(Driver* d, VM* vm)
-{
+void free_Driver(Driver* d, VM* vm) {
   d->del(vm);
   free(d);
 }
 
-void select_driver(DriverInfo* di, const m_str d)
-{
+void select_driver(DriverInfo* di, const m_str d) {
   if(!strcmp("dummy", d))
     di->func = dummy_driver;
   else if(!strcmp("silent", d))
@@ -66,8 +64,7 @@ void select_driver(DriverInfo* di, const m_str d)
     fprintf(stderr, "invalid driver specified. using default.\n");
 }
 
-void select_backend(DriverInfo* di, const m_str d)
-{
+void select_backend(DriverInfo* di, const m_str d) {
 #ifdef HAVE_SOUNDIO
   if(!strcmp("dummy", d))
     di->backend = SoundIoBackendDummy;
@@ -84,8 +81,7 @@ void select_backend(DriverInfo* di, const m_str d)
 #endif
 }
 
-void select_format(DriverInfo* di, m_str d)
-{
+void select_format(DriverInfo* di, m_str d) {
 #ifdef HAVE_ALSA
   if(di->func == alsa_driver) {
     if(!strcmp("S8", d))

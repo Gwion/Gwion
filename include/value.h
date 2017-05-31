@@ -18,6 +18,7 @@ struct Value_ {
 
 // TODO reorder enum
 enum { ae_value_none, ae_value_import, ae_value_global, ae_value_static,
-  ae_value_checked, ae_value_member, ae_value_const, ae_value_enum, ae_value_arg };
+       ae_value_checked, ae_value_member, ae_value_const, ae_value_enum, ae_value_arg
+     };
 Value new_Value(Type type, m_str name);
 void free_Value(Value a);

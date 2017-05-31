@@ -7,30 +7,26 @@
 #include "import.h"
 
 struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
-MFUN(vec3_set)
-{
+MFUN(vec3_set) {
   VEC3_T* v =  &*(VEC3_T*)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
   v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT * 2);
 }
 
-MFUN(vec3_setAll)
-{
+MFUN(vec3_setAll) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT);
   v->z = *(m_float*)(shred->mem + SZ_INT);
 }
 
-MFUN(vec3_magnitude)
-{
+MFUN(vec3_magnitude) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   RETURN->d.v_float = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
-MFUN(vec3_normalize)
-{
+MFUN(vec3_normalize) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
   if(mag  > 0) {
@@ -40,57 +36,49 @@ MFUN(vec3_normalize)
   }
 }
 
-MFUN(vec3_interp)
-{
+MFUN(vec3_interp) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = (v->y - v->x) * v->z + v->x;
   RETURN->d.v_float = v->x;
 }
 
-MFUN(vec3_float)
-{
+MFUN(vec3_float) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = (v->y - v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT)) + v->x;
   RETURN->d.v_float = v->x;
 }
 
-MFUN(vec3_dur)
-{
+MFUN(vec3_dur) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = (v->y - v->x) * v->z * (*(m_float*)(shred->mem + SZ_INT) / shred->vm_ref->bbq->sp->sr) + v->x;
   RETURN->d.v_float = v->x;
 }
 
-MFUN(vec3_update)
-{
+MFUN(vec3_update) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->y = *(m_float*)(shred->mem + SZ_INT);
 }
 
-MFUN(vec3_update_slew)
-{
+MFUN(vec3_update_slew) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->y = *(m_float*)(shred->mem + SZ_INT);
   v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
 }
 
-MFUN(vec3_update_set)
-{
+MFUN(vec3_update_set) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT);
 
 }
-MFUN(vec3_update_set_slew)
-{
+MFUN(vec3_update_set_slew) {
   VEC3_T* v =  &**(VEC3_T**)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT);
   v->z = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
 }
 
-INSTR(vec3_add)
-{
+INSTR(vec3_add) {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
   POP_REG(shred, SZ_VEC3 * 2);
   r.x = t->x + (t + 1)->x;
@@ -104,8 +92,7 @@ INSTR(vec3_add)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec3_minus)
-{
+INSTR(vec3_minus) {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
   POP_REG(shred, SZ_VEC3 * 2);
   r.x = t->x - (t + 1)->x;
@@ -119,8 +106,7 @@ INSTR(vec3_minus)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec3_xproduct)
-{
+INSTR(vec3_xproduct) {
   VEC3_T r, * t = (VEC3_T*)shred->reg;
   POP_REG(shred, SZ_VEC3 * 2);
   r.x = t->x * (t + 1)->x;
@@ -134,8 +120,7 @@ INSTR(vec3_xproduct)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(float_times_vec3)
-{
+INSTR(float_times_vec3) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_float f = *(m_float*)(shred->reg);
   VEC3_T r = *(VEC3_T*)(shred->reg + SZ_FLOAT);
@@ -149,8 +134,7 @@ INSTR(float_times_vec3)
   *(m_float*)shred->reg = r.z;
   PUSH_REG(shred,  SZ_FLOAT);
 }
-INSTR(vec3_times_float)
-{
+INSTR(vec3_times_float) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   VEC3_T r = *(VEC3_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC3);
@@ -165,8 +149,7 @@ INSTR(vec3_times_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec3_divide_float)
-{
+INSTR(vec3_divide_float) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   VEC3_T r = *(VEC3_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC3);
@@ -181,8 +164,7 @@ INSTR(vec3_divide_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec3_r_assign)
-{
+INSTR(vec3_r_assign) {
   POP_REG(shred, SZ_VEC3 + SZ_INT);
   VEC3_T* r = *(VEC3_T**)(shred->reg + SZ_VEC3);
   r->x = *(m_float*)(shred->reg);
@@ -192,8 +174,7 @@ INSTR(vec3_r_assign)
   PUSH_REG(shred, SZ_VEC3);
 }
 
-INSTR(vec3_x)
-{
+INSTR(vec3_x) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
@@ -207,8 +188,7 @@ INSTR(vec3_x)
   }
 }
 
-INSTR(vec3_y)
-{
+INSTR(vec3_y) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
@@ -222,8 +202,7 @@ INSTR(vec3_y)
   }
 }
 
-INSTR(vec3_z)
-{
+INSTR(vec3_z) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC3_T* v = *(VEC3_T**)(shred->reg);
@@ -237,8 +216,7 @@ INSTR(vec3_z)
   }
 }
 
-INSTR(vec4_x)
-{
+INSTR(vec4_x) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
@@ -252,8 +230,7 @@ INSTR(vec4_x)
   }
 }
 
-INSTR(vec4_y)
-{
+INSTR(vec4_y) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
@@ -267,8 +244,7 @@ INSTR(vec4_y)
   }
 }
 
-INSTR(vec4_z)
-{
+INSTR(vec4_z) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
@@ -282,8 +258,7 @@ INSTR(vec4_z)
   }
 }
 
-INSTR(vec4_w)
-{
+INSTR(vec4_w) {
   if(instr->m_val) {
     POP_REG(shred, SZ_INT);
     VEC4_T* v = *(VEC4_T**)(shred->reg);
@@ -296,8 +271,7 @@ INSTR(vec4_w)
     PUSH_REG(shred,  SZ_FLOAT);
   }
 }
-m_bool import_vec3(Env env)
-{
+m_bool import_vec3(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec3))
   CHECK_OB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
@@ -355,8 +329,7 @@ m_bool import_vec3(Env env)
 
 struct Type_ t_vec4 = { "Vec4", SZ_VEC4, NULL, te_vec4};
 
-MFUN(vec4_set)
-{
+MFUN(vec4_set) {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT);
@@ -364,8 +337,7 @@ MFUN(vec4_set)
   v->w = *(m_float*)(shred->mem + SZ_INT + SZ_FLOAT * 3);
 }
 
-MFUN(vec4_setAll)
-{
+MFUN(vec4_setAll) {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
   v->x = *(m_float*)(shred->mem + SZ_INT);
   v->y = *(m_float*)(shred->mem + SZ_INT);
@@ -373,14 +345,12 @@ MFUN(vec4_setAll)
   v->w = *(m_float*)(shred->mem + SZ_INT);
 }
 
-MFUN(vec4_magnitude)
-{
+MFUN(vec4_magnitude) {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
   RETURN->d.v_float = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
-MFUN(vec4_normalize)
-{
+MFUN(vec4_normalize) {
   VEC4_T* v =  &**(VEC4_T**)(shred->mem);
   m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
   if(mag  > 0) {
@@ -391,8 +361,7 @@ MFUN(vec4_normalize)
   }
 }
 
-INSTR(vec4_add)
-{
+INSTR(vec4_add) {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
   POP_REG(shred, SZ_VEC4 * 2);
   r.x = t->x + (t + 1)->x;
@@ -409,8 +378,7 @@ INSTR(vec4_add)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec4_minus)
-{
+INSTR(vec4_minus) {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
   POP_REG(shred, SZ_VEC4 * 2);
   r.x = t->x - (t + 1)->x;
@@ -427,8 +395,7 @@ INSTR(vec4_minus)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec4_xproduct)
-{
+INSTR(vec4_xproduct) {
   VEC4_T r, * t = (VEC4_T*)shred->reg;
   POP_REG(shred, SZ_VEC4 * 2);
   r.x = t->x * (t + 1)->x;
@@ -445,8 +412,7 @@ INSTR(vec4_xproduct)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(float_times_vec4)
-{
+INSTR(float_times_vec4) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   m_float f = *(m_float*)(shred->reg);
   VEC4_T r = *(VEC4_T*)(shred->reg + SZ_FLOAT);
@@ -463,8 +429,7 @@ INSTR(float_times_vec4)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec4_times_float)
-{
+INSTR(vec4_times_float) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   VEC4_T r = *(VEC4_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC4);
@@ -482,8 +447,7 @@ INSTR(vec4_times_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec4_divide_float)
-{
+INSTR(vec4_divide_float) {
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   VEC4_T r = *(VEC4_T*)(shred->reg);
   m_float f = *(m_float*)(shred->reg + SZ_VEC4);
@@ -501,8 +465,7 @@ INSTR(vec4_divide_float)
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(vec4_r_assign)
-{
+INSTR(vec4_r_assign) {
   POP_REG(shred, SZ_VEC4 + SZ_INT);
   VEC4_T* r = *(VEC4_T**)(shred->reg + SZ_VEC4);
   r->x = *(m_float*)(shred->reg);
@@ -513,8 +476,7 @@ INSTR(vec4_r_assign)
   PUSH_REG(shred, SZ_VEC4);
 }
 
-m_bool import_vec4(Env env)
-{
+m_bool import_vec4(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_vec4))
   CHECK_OB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))

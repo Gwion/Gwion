@@ -41,10 +41,6 @@ static int so_filter(const struct dirent* dir) {
 m_bool import_soundpipe(Env env);
 
 static Vector plugs = NULL;
-/*void start_plug()*/
-/*{*/
-/*plugs = new_Vector();*/
-/*}*/
 
 void stop_plug() {
   m_uint i;
@@ -64,8 +60,8 @@ static void add_plugs(Env env, Vector plug_dirs) {
     struct dirent **namelist;
     int n;
     n = scandir(dirname, &namelist, so_filter, alphasort);
-    if (n > 0) {
-      while (n--) {
+    if(n > 0) {
+      while(n--) {
         char c[256];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
         void* handler = dlopen(c, RTLD_LAZY);
@@ -76,7 +72,7 @@ static void add_plugs(Env env, Vector plug_dirs) {
             goto next;
           }
         }
-        m_bool (*import)(Env) = (m_bool (*)(Env)) (intptr_t)dlsym(handler, "import");
+        m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
         if(import) {
           if(import(env) > 0)
             vector_append(plugs, (vtype)handler);
@@ -825,7 +821,7 @@ static Type check_Cast_Expression(Env env, Cast_Expression* cast) {
   // check if cast valid
   Type type = t;
   while(type) {
-    if (t2 == type)
+    if(t2 == type)
       return t2;
     type = type->parent;
   }

@@ -9,8 +9,7 @@
 
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 
-m_bool base_tick(UGen u)
-{
+m_bool base_tick(UGen u) {
   UGen ugen;
   m_uint i, size = vector_size(u->ugen);
   if(!size) {
@@ -40,8 +39,7 @@ m_bool base_tick(UGen u)
   return 1;
 }
 
-m_bool dac_tick(UGen u)
-{
+m_bool dac_tick(UGen u) {
   m_uint  i;
   sp_data* sp = (sp_data*)u->ug;
   for(i = u->n_out + 1; --i;)
@@ -49,27 +47,24 @@ m_bool dac_tick(UGen u)
   return 1;
 }
 
-m_bool adc_tick(UGen u)
-{
+m_bool adc_tick(UGen u) {
   m_uint  i;
   m_float last = 0;
   BBQ sp = (BBQ)u->ug;
   for(i = 0; i < u->n_out; i++) {
     M_Object obj = u->channel[i];
-	obj->ugen->last = sp->in[i];
+    obj->ugen->last = sp->in[i];
     last += (obj->ugen->out = sp->in[i]);
   }
   u->last = last;
   return 1;
 }
-__inline void ref_compute(UGen u)
-{
+__inline void ref_compute(UGen u) {
   u->tick(u);
   u->done = 1;
 }
 
-void ugen_compute(UGen u)
-{
+void ugen_compute(UGen u) {
   m_uint  i;
   UGen ugen;
   if(!u || u->done)
@@ -87,9 +82,9 @@ void ugen_compute(UGen u)
     }
   }
   if(u->ref) {
-    for(i = u->ref->n_chan + 1; --i;){
-	  ugen = u->ref->channel[i -1]->ugen;
-	  ugen->tick(ugen);
+    for(i = u->ref->n_chan + 1; --i;) {
+      ugen = u->ref->channel[i -1]->ugen;
+      ugen->tick(ugen);
     }
     ref_compute(u->ref);
     return;
@@ -106,9 +101,8 @@ void ugen_compute(UGen u)
     u->last = u->out;
 }
 
-UGen new_UGen()
-{
-  UGen u    =  (UGen) calloc(1, sizeof(struct UGen_));
+UGen new_UGen() {
+  UGen u    = (UGen) calloc(1, sizeof(struct UGen_));
   u->ugen   = NULL;
   u->channel = NULL;
   u->to = new_Vector();
@@ -120,16 +114,14 @@ UGen new_UGen()
   return u;
 }
 
-M_Object new_M_UGen()
-{
+M_Object new_M_UGen() {
   M_Object o = new_M_Object(NULL);
   initialize_object(o, &t_ugen);
   o->ugen = new_UGen();
   return o;
 }
 
-m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug)
-{
+m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
   u->n_chan = n_in > n_out ? n_in : n_out;
   if(u->n_chan > 1) {
     u->channel = calloc(u->n_chan, sizeof(M_Object));
@@ -155,8 +147,7 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug)
   return 1;
 }
 
-static INSTR(ugen_connect)
-{
+static INSTR(ugen_connect) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
@@ -166,7 +157,7 @@ static INSTR(ugen_connect)
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
 
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
-	release(rhs, shred);
+    release(rhs, shred);
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->n_in) {
@@ -192,8 +183,7 @@ static INSTR(ugen_connect)
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(ugen_disconnect)
-{
+static INSTR(ugen_disconnect) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
@@ -202,7 +192,7 @@ static INSTR(ugen_disconnect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
-	release(rhs, shred);
+    release(rhs, shred);
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->n_in) {
@@ -210,7 +200,7 @@ static INSTR(ugen_disconnect)
       for(i = 0; i < rhs->ugen->n_out; i++) {
         M_Object obj = rhs->ugen->channel[i];
         UGen ugen = obj->ugen;
-        vector_remove(ugen->ugen, vector_find(ugen->ugen,  (vtype)lhs->ugen));
+        vector_remove(ugen->ugen, vector_find(ugen->ugen, (vtype)lhs->ugen));
         vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
       }
     } else {
@@ -224,8 +214,7 @@ static INSTR(ugen_disconnect)
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(trig_connect)
-{
+static INSTR(trig_connect) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
@@ -233,7 +222,7 @@ static INSTR(trig_connect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
-	release(rhs, shred);
+    release(rhs, shred);
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->trig) {
@@ -246,8 +235,7 @@ static INSTR(trig_connect)
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(trig_disconnect)
-{
+static INSTR(trig_disconnect) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "trig discconnect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
 #endif
@@ -255,11 +243,11 @@ static INSTR(trig_disconnect)
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
-	release(rhs, shred);
+    release(rhs, shred);
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->trig) {
-    vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen,  (vtype)lhs->ugen));
+    vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen));
     vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
   }
   release(lhs, shred);
@@ -307,24 +295,21 @@ static DTOR(ugen_dtor) {
   free(ug);
 }
 
-static MFUN(ugen_channel)
-{
+static MFUN(ugen_channel) {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
   if(!o->ugen->channel)
     RETURN->d.v_object = !i ? o : NULL;
   else if(i < 0 || i >= o->ugen->n_out)
     RETURN->d.v_object = NULL;
   else
-	RETURN->d.v_object = o->ugen->channel[i];
+    RETURN->d.v_object = o->ugen->channel[i];
 }
 
-static MFUN(ugen_get_op)
-{
+static MFUN(ugen_get_op) {
   RETURN->d.v_uint = o->ugen->op;
 }
 
-static MFUN(ugen_set_op)
-{
+static MFUN(ugen_set_op) {
   m_int i = *(m_int*)(shred->mem + SZ_INT);
   if(i < 1 || i > 4)
     err_msg(INSTR_, 0, "invalid op %i", i);
@@ -333,13 +318,11 @@ static MFUN(ugen_set_op)
   RETURN->d.v_uint = o->ugen->op;
 }
 
-static MFUN(ugen_get_last)
-{
+static MFUN(ugen_get_last) {
   RETURN->d.v_float = o->ugen->last;
 }
 
-m_bool import_ugen(Env env)
-{
+m_bool import_ugen(Env env) {
   DL_Func* fun;
 
   CHECK_BB(add_global_type(env, &t_ugen))

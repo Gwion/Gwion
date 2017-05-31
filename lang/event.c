@@ -7,18 +7,15 @@ struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 
 m_int o_event_shred;
 
-static void event_ctor(M_Object o, VM_Shred shred)
-{
+static void event_ctor(M_Object o, VM_Shred shred) {
   EV_SHREDS(o) = new_Vector();
 }
 
-static void event_dtor(M_Object o, VM_Shred shred)
-{
+static void event_dtor(M_Object o, VM_Shred shred) {
   free_Vector(EV_SHREDS(o));
 }
 
-static INSTR(Event_Wait)
-{
+static INSTR(Event_Wait) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
 #endif
@@ -35,8 +32,7 @@ static INSTR(Event_Wait)
   release(event, shred);
 }
 
-static MFUN(event_signal)
-{
+static MFUN(event_signal) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event signal");
 #endif
@@ -49,8 +45,7 @@ static MFUN(event_signal)
   vector_remove(v, 0);
 }
 
-void broadcast(M_Object o)
-{
+void broadcast(M_Object o) {
   m_uint i;
   VM_Shred sh;
   for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
@@ -61,16 +56,14 @@ void broadcast(M_Object o)
   vector_clear(EV_SHREDS(o));
 }
 
-static MFUN(event_broadcast)
-{
+static MFUN(event_broadcast) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event signal");
 #endif
   broadcast(o);
 }
 
-m_bool import_event(Env env)
-{
+m_bool import_event(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_event))
   CHECK_OB(import_class_begin(env, &t_event, env->global_nspc, event_ctor, event_dtor))

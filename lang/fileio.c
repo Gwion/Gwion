@@ -19,24 +19,20 @@ static M_Object gw_cin, gw_cout, gw_cerr;
 m_int o_fileio_file;
 
 #define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
-CTOR(fileio_ctor)
-{
+CTOR(fileio_ctor) {
   IO_FILE(o)  = NULL;
 }
 
-DTOR(fileio_dtor)
-{
+DTOR(fileio_dtor) {
   if(IO_FILE(o))
     fclose(IO_FILE(o));
 }
 
-DTOR(static_fileio_dtor)
-{
+DTOR(static_fileio_dtor) {
   IO_FILE(o) = NULL;
 }
 
-INSTR(int_to_file)
-{
+INSTR(int_to_file) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int to file");
 #endif
@@ -48,8 +44,7 @@ INSTR(int_to_file)
   *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
-INSTR(float_to_file)
-{
+INSTR(float_to_file) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "float to file");
 #endif
@@ -63,8 +58,7 @@ INSTR(float_to_file)
   *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
-INSTR(string_to_file)
-{
+INSTR(string_to_file) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "string to file");
 #endif
@@ -78,8 +72,7 @@ INSTR(string_to_file)
   *(M_Object*)(shred->reg -SZ_INT)= o;
 }
 
-INSTR(object_to_file)
-{
+INSTR(object_to_file) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "string to file");
 #endif
@@ -93,8 +86,7 @@ INSTR(object_to_file)
   *(M_Object*)(shred->reg -SZ_INT)= o;
 }
 
-INSTR(file_to_int)
-{
+INSTR(file_to_int) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => int");
 #endif
@@ -109,12 +101,11 @@ INSTR(file_to_int)
     *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
   } else {
     release(o, shred);
-	Except(shred, "EmptyFileException");
+    Except(shred, "EmptyFileException");
   }
 }
 
-INSTR(file_to_float)
-{
+INSTR(file_to_float) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => float");
 #endif
@@ -149,8 +140,7 @@ m_bool inputAvailable(FILE* f)
   return (FD_ISSET(0, &fds));
 }
 */
-INSTR(file_to_string)
-{
+INSTR(file_to_string) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "file => string");
 #endif
@@ -169,13 +159,11 @@ INSTR(file_to_string)
   release(s, shred);
 }
 
-MFUN(file_nl)
-{
+MFUN(file_nl) {
   RETURN->d.v_uint = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
 }
 
-MFUN(file_open)
-{
+MFUN(file_open) {
   M_Object lhs = *(M_Object*)(shred->mem + SZ_INT * 2);
   M_Object rhs = *(M_Object*)(shred->mem + SZ_INT);
   m_str filename = STRING(rhs);
@@ -190,8 +178,7 @@ MFUN(file_open)
   RETURN->d.v_uint = IO_FILE(o) ? 1 : 0;
 }
 
-MFUN(file_close)
-{
+MFUN(file_close) {
   if(IO_FILE(o)) {
     fclose(IO_FILE(o));
     IO_FILE(o) = NULL;
@@ -199,17 +186,15 @@ MFUN(file_close)
   RETURN->d.v_uint = !IO_FILE(o) ? 1 : 0;
 }
 
-SFUN(file_remove)
-{
+SFUN(file_remove) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(!obj)
-	return;
+    return;
   release(obj, shred);
   RETURN->d.v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
 }
 
-SFUN(file_list)
-{
+SFUN(file_list) {
   m_uint i;
   struct dirent **namelist;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
@@ -239,8 +224,7 @@ SFUN(file_list)
   RETURN->d.v_uint = (m_uint)ret;
 }
 
-m_bool import_fileio(Env env)
-{
+m_bool import_fileio(Env env) {
   DL_Func* fun;
 
   // hack

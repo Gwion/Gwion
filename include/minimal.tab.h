@@ -168,6 +168,6 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int minimalparse (MyArg* arg);
+int minimalparse(MyArg* arg);
 
 #endif /* !YY_MINIMAL_MINIMAL_TAB_H_INCLUDED  */

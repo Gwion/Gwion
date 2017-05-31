@@ -5,8 +5,7 @@
 
 static sp_audio spa;
 
-static m_bool spa_ini(VM* vm, DriverInfo* di)
-{
+static m_bool spa_ini(VM* vm, DriverInfo* di) {
   return 1;
 }
 
@@ -26,13 +25,11 @@ static void spa_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void spa_del(VM* vm)
-{
+static void spa_del(VM* vm) {
   spa_close(&spa);
 }
 
-Driver* spa_driver(VM* vm)
-{
+Driver* spa_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = spa_ini;
   d->run = spa_run;

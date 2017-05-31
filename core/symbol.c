@@ -1,21 +1,3 @@
-/*----------------------------------------------------------------------------
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-  U.S.A.
------------------------------------------------------------------------------*/
-
 //-----------------------------------------------------------------------------
 // file: symbol.c
 // desc: symbols in the syntax, adapted from Tiger compiler by Appel Appel
@@ -28,21 +10,22 @@
 //-----------------------------------------------------------------------------
 #include <stdlib.h>
 #include <string.h>
+#include "defs.h"
 #include "symbol.h"
 
 #define SIZE 65347  /* should be prime */
 
 struct S_Symbol_ {
-  c_str name;
+  m_str name;
   S_Symbol next;
 };
 
 static S_Symbol hashtable[SIZE];
 
-static S_Symbol mksymbol(c_constr name, S_Symbol next) {
+static S_Symbol mksymbol(const m_str name, S_Symbol next) {
   S_Symbol s = calloc(1, sizeof(*s));
   s->name = calloc(1, strlen(name) + 1);
-  strcpy(s->name, (c_str)name);
+  strcpy(s->name, (m_str)name);
   s->next = next;
   return s;
 }
@@ -74,19 +57,19 @@ static unsigned int hash(const char *s0) {
   return h;
 }
 
-S_Symbol insert_symbol(c_constr name) {
+S_Symbol insert_symbol(const m_str name) {
   S_Symbol syms = NULL, sym;
   int index;
   index = hash(name) % SIZE;
   syms = hashtable[index];
   for(sym = syms; sym; sym = sym->next)
-    if(!strcmp((char*)sym->name, (char*)name))
+    if(!strcmp(sym->name, (m_str)name))
       return sym;
   sym = mksymbol(name, syms);
   hashtable[index] = sym;
   return sym;
 }
 
-c_str S_name(S_Symbol sym) {
+m_str S_name(S_Symbol sym) {
   return sym->name;
 }

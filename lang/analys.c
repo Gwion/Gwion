@@ -24,8 +24,7 @@ typedef struct {
 
 
 
-static m_int sp_buffer_create(sp_buffer** p, m_uint size)
-{
+static m_int sp_buffer_create(sp_buffer** p, m_uint size) {
   *p = malloc(sizeof(sp_buffer));
   (*p)->size = size;
   (*p)->pos = 0;
@@ -33,23 +32,20 @@ static m_int sp_buffer_create(sp_buffer** p, m_uint size)
   return SP_OK;
 }
 
-static m_int sp_buffer_destroy(sp_buffer* buffer)
-{
+static m_int sp_buffer_destroy(sp_buffer* buffer) {
   free(buffer->data);
   free(buffer);
   return SP_OK;
 }
 
-static m_int sp_buffer_add(sp_buffer* buffer, m_float f)
-{
+static m_int sp_buffer_add(sp_buffer* buffer, m_float f) {
   buffer->data[ buffer->pos ] = f;
   buffer->pos++;
   buffer->pos %= buffer->size;
   return SP_OK;
 }
 
-static m_float* sp_buffer_get(sp_buffer* buffer)
-{
+static m_float* sp_buffer_get(sp_buffer* buffer) {
   m_uint i;
   m_float* ret = calloc(buffer->size, sizeof(m_float));
   for(i = 0; i < buffer->size; i++)
@@ -66,8 +62,7 @@ typedef struct {
 } FFT;
 
 
-static m_bool fft_tick(UGen u)
-{
+static m_bool fft_tick(UGen u) {
   FFT* ana = (FFT*)u->ug;
   base_tick(u);                         // compute inputs
   if(!ana->buf)
@@ -77,8 +72,8 @@ static m_bool fft_tick(UGen u)
     base_tick(u->trig->ugen);
     if(u->trig->ugen->out) {  // if trigged, compute fft
       m_float* smp = sp_buffer_get(ana->buf);
-    /*    if(ana->win)*/                  // do windowing
-    /*      ana->win(smp, ana->buf->size);*/
+      /*    if(ana->win)*/                  // do windowing
+      /*      ana->win(smp, ana->buf->size);*/
       smps2freqs(ana->fft, smp, ana->frq);
       free(smp);
     }
@@ -86,15 +81,13 @@ static m_bool fft_tick(UGen u)
   return 1;
 }
 
-static void fft_ctor(M_Object o, VM_Shred shred)
-{
+static void fft_ctor(M_Object o, VM_Shred shred) {
   FFT* ana = o->ugen->ug = calloc(1, sizeof(FFT));
   assign_ugen(o->ugen, 1, 1, 1, ana);
   o->ugen->tick = fft_tick;
 }
 
-static DTOR(fft_dtor)
-{
+static DTOR(fft_dtor) {
   FFT* ana = (FFT*)o->ugen->ug;
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
@@ -107,13 +100,12 @@ static DTOR(fft_dtor)
   free(ana);
 }
 
-static MFUN(fft_init)
-{
+static MFUN(fft_init) {
   FFT* ana = (FFT*)o->ugen->ug;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
   if(size <= 0 || size%2)Except(shred, "FftInvalidSizeException.")
-  if(ana->buf)
-    sp_buffer_destroy(ana->buf);
+    if(ana->buf)
+      sp_buffer_destroy(ana->buf);
   if(ana->frq) {
     deleteFFTFREQS(ana->frq);
     free(ana->frq);
@@ -128,24 +120,22 @@ static MFUN(fft_init)
   RETURN->d.v_uint = size;
 }
 
-static MFUN(fft_compute)
-{
+static MFUN(fft_compute) {
   m_float* smp;
   FFT* ana = (FFT*)o->ugen->ug;
   if(!ana)
-	return;
+    return;
   if(!ana->buf) {
     RETURN->d.v_uint = 0;
     return;
   }
   smp = sp_buffer_get(ana->buf);
   if(smp)
-   smps2freqs(ana->fft, smp, ana->frq);
+    smps2freqs(ana->fft, smp, ana->frq);
   free(smp);
 }
 
-static m_bool import_fft(Env env)
-{
+static m_bool import_fft(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_fft))
   CHECK_OB(import_class_begin(env, &t_fft, env->global_nspc, fft_ctor, fft_dtor))
@@ -198,8 +188,7 @@ m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 }
 */
 /* from chuck ;-) */
-m_float compute_centroid(_FFT* fft)
-{
+m_float compute_centroid(_FFT* fft) {
   m_float m0 = 0.0;
   m_float m1 = 0.0;
   m_float centroid = 0.0;
@@ -216,8 +205,7 @@ m_float compute_centroid(_FFT* fft)
   return centroid / fft->size;
 }
 
-m_float compute_spread(_FFT* fft)
-{
+m_float compute_spread(_FFT* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -226,8 +214,7 @@ m_float compute_spread(_FFT* fft)
   return ret / fft->size;
 }
 
-m_float compute_skewness(_FFT* fft)
-{
+m_float compute_skewness(_FFT* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -236,8 +223,7 @@ m_float compute_skewness(_FFT* fft)
   return ret / fft->size;
 }
 
-m_float compute_kurtosis(_FFT* fft)
-{
+m_float compute_kurtosis(_FFT* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -247,8 +233,7 @@ m_float compute_kurtosis(_FFT* fft)
 }
 
 
-m_float compute_rms(_FFT* fft)
-{
+m_float compute_rms(_FFT* fft) {
   m_float rms = 0.0;
   m_uint  i;
   /* get sum of squares */
@@ -259,8 +244,7 @@ m_float compute_rms(_FFT* fft)
   return rms;
 }
 
-m_float compute_rolloff(_FFT* fft)
-{
+m_float compute_rolloff(_FFT* fft) {
   m_float sum = 0.0, target;
   unsigned int i;
   /* sanity check */
@@ -280,8 +264,7 @@ m_float compute_rolloff(_FFT* fft)
   return i / (m_float)fft->size;
 }
 
-m_float compute_freq(_FFT* fft)
-{
+m_float compute_freq(_FFT* fft) {
   unsigned int i;
   m_float max = -0;
   m_float where = 0;
@@ -296,8 +279,7 @@ m_float compute_freq(_FFT* fft)
   return where / fft->size * fft->sr;
 }
 
-m_float compute_asc(_FFT* fft)
-{
+m_float compute_asc(_FFT* fft) {
   unsigned int i;
   m_float ret = 0.0;
   m_float sum = 0.0;
@@ -308,8 +290,7 @@ m_float compute_asc(_FFT* fft)
   return ret / sum;
 }
 
-m_float compute_ass(_FFT* fft)
-{
+m_float compute_ass(_FFT* fft) {
   unsigned int i;
   m_float ret = 0.0;
   m_float sum = 0.0;
@@ -439,13 +420,11 @@ m_int o_ana__fft;
 m_int o_ana_fft;
 m_int o_ana_fn;
 
-static m_float ana_dummy(FFT* fft)
-{
+static m_float ana_dummy(FFT* fft) {
   return 0.0;
 }
-static MFUN(ana_compute)
-{
-  M_Object   fft = *(M_Object*) (o->d.data + o_ana_fft);
+static MFUN(ana_compute) {
+  M_Object   fft = *(M_Object*)(o->d.data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
   if(!fft)
@@ -453,15 +432,13 @@ static MFUN(ana_compute)
   RETURN->d.v_float = f(_fft);
 }
 
-static MFUN(ana_get_fft)
-{
-  RETURN->d.v_uint = (m_uint)*(M_Object*) (o->d.data + o_ana_fft);
+static MFUN(ana_get_fft) {
+  RETURN->d.v_uint = (m_uint)*(M_Object*)(o->d.data + o_ana_fft);
 }
 
-static MFUN(ana_set_fft)
-{
+static MFUN(ana_set_fft) {
   FFT* ana;
-  M_Object fft = *(M_Object*) (o->d.data + o_ana_fft);
+  M_Object fft = *(M_Object*)(o->d.data + o_ana_fft);
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   if(fft)
     release(fft, shred);
@@ -480,25 +457,22 @@ static MFUN(ana_set_fft)
   }
   _fft->size = ana->fft->fftsize;
   _fft->fval = ana->frq->s;
-  *(M_Object*) (o->d.data + o_ana_fft) = fft;
+  *(M_Object*)(o->d.data + o_ana_fft) = fft;
   RETURN->d.v_uint = (m_uint) * (M_Object*)(shred->mem + SZ_INT);
 }
 
-static void ana_ctor(M_Object o, VM_Shred shred)
-{
+static void ana_ctor(M_Object o, VM_Shred shred) {
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft) = malloc(sizeof(_FFT));
   _fft->sr = shred->vm_ref->bbq->sp->sr;
   _fft->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
 }
 
-static void ana_dtor(M_Object o, VM_Shred shred)
-{
+static void ana_dtor(M_Object o, VM_Shred shred) {
   free(*(_FFT**)(o->d.data + o_ana__fft));
 }
 
-static m_bool import_ana(Env env)
-{
+static m_bool import_ana(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_ana))
   CHECK_OB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
@@ -520,12 +494,10 @@ static m_bool import_ana(Env env)
 }
 
 static struct Type_ t_centroid = { "Centroid", SZ_INT, &t_ana };
-static void centroid_ctor(M_Object o, VM_Shred shred)
-{
+static void centroid_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_centroid;
 }
-static m_bool import_centroid(Env env)
-{
+static m_bool import_centroid(Env env) {
   CHECK_BB(add_global_type(env, &t_centroid))
   CHECK_OB(import_class_begin(env, &t_centroid, env->global_nspc, centroid_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -533,12 +505,10 @@ static m_bool import_centroid(Env env)
 }
 
 static struct Type_ t_spread = { "Spread", SZ_INT, &t_ana };
-static void spread_ctor(M_Object o, VM_Shred shred)
-{
+static void spread_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_spread;
 }
-static m_bool import_spread(Env env)
-{
+static m_bool import_spread(Env env) {
   CHECK_BB(add_global_type(env, &t_spread))
   CHECK_OB(import_class_begin(env, &t_spread, env->global_nspc, spread_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -546,12 +516,10 @@ static m_bool import_spread(Env env)
 }
 
 static struct Type_ t_skewness = { "Skewness", SZ_INT, &t_ana };
-static void skewness_ctor(M_Object o, VM_Shred shred)
-{
+static void skewness_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_skewness;
 }
-static m_bool import_skewness(Env env)
-{
+static m_bool import_skewness(Env env) {
   CHECK_BB(add_global_type(env, &t_skewness))
   CHECK_OB(import_class_begin(env, &t_skewness, env->global_nspc, skewness_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -559,12 +527,10 @@ static m_bool import_skewness(Env env)
 }
 
 static struct Type_ t_kurtosis = { "Kurtosis", SZ_INT, &t_ana };
-static void kurtosis_ctor(M_Object o, VM_Shred shred)
-{
+static void kurtosis_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_kurtosis;
 }
-static m_bool import_kurtosis(Env env)
-{
+static m_bool import_kurtosis(Env env) {
   CHECK_BB(add_global_type(env, &t_kurtosis))
   CHECK_OB(import_class_begin(env, &t_kurtosis, env->global_nspc, kurtosis_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -572,12 +538,10 @@ static m_bool import_kurtosis(Env env)
 }
 
 static struct Type_ t_rms = { "RMS", SZ_INT, &t_ana };
-static void rms_ctor(M_Object o, VM_Shred shred)
-{
+static void rms_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rms;
 }
-static m_bool import_rms(Env env)
-{
+static m_bool import_rms(Env env) {
   CHECK_BB(add_global_type(env, &t_rms))
   CHECK_OB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -585,22 +549,18 @@ static m_bool import_rms(Env env)
 }
 
 static struct Type_ t_rolloff = { "Rolloff", SZ_INT, &t_ana };
-static void rolloff_ctor(M_Object o, VM_Shred shred)
-{
+static void rolloff_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rolloff;
 }
-static MFUN(rolloff_get_percent)
-{
+static MFUN(rolloff_get_percent) {
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   RETURN->d.v_float = _fft->percent;
 }
-static MFUN(rolloff_set_percent)
-{
+static MFUN(rolloff_set_percent) {
   _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
   RETURN->d.v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
 }
-static m_bool import_rolloff(Env env)
-{
+static m_bool import_rolloff(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_rolloff))
   CHECK_OB(import_class_begin(env, &t_rolloff, env->global_nspc, rolloff_ctor, NULL))
@@ -614,12 +574,10 @@ static m_bool import_rolloff(Env env)
 }
 
 static struct Type_ t_freq = { "Freq", SZ_INT, &t_ana };
-static void freq_ctor(M_Object o, VM_Shred shred)
-{
+static void freq_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_freq;
 }
-static m_bool import_freq(Env env)
-{
+static m_bool import_freq(Env env) {
   CHECK_BB(add_global_type(env, &t_freq))
   CHECK_OB(import_class_begin(env, &t_freq, env->global_nspc, freq_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -627,12 +585,10 @@ static m_bool import_freq(Env env)
 }
 
 static struct Type_ t_asc = { "ASC", SZ_INT, &t_ana };
-static void asc_ctor(M_Object o, VM_Shred shred)
-{
+static void asc_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_asc;
 }
-static m_bool import_asc(Env env)
-{
+static m_bool import_asc(Env env) {
   CHECK_BB(add_global_type(env, &t_asc))
   CHECK_OB(import_class_begin(env, &t_asc, env->global_nspc, asc_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -640,12 +596,10 @@ static m_bool import_asc(Env env)
 }
 
 static struct Type_ t_ass = { "ASS", SZ_INT, &t_ana };
-static void ass_ctor(M_Object o, VM_Shred shred)
-{
+static void ass_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_ass;
 }
-static m_bool import_ass(Env env)
-{
+static m_bool import_ass(Env env) {
   CHECK_BB(add_global_type(env, &t_ass))
   CHECK_OB(import_class_begin(env, &t_ass, env->global_nspc, ass_ctor, NULL))
   CHECK_BB(import_class_end(env))
@@ -654,17 +608,14 @@ static m_bool import_ass(Env env)
 
 static struct Type_ t_fc = { "FC", SZ_INT, &t_object };
 static m_int o_fc_vector;
-static void fc_ctor(M_Object o, VM_Shred shred)
-{
+static void fc_ctor(M_Object o, VM_Shred shred) {
   *(Vector*)(o->d.data + o_fc_vector) = new_Vector();
 }
-static void fc_dtor(M_Object o, VM_Shred shred)
-{
+static void fc_dtor(M_Object o, VM_Shred shred) {
   free_Vector(*(Vector*)(o->d.data + o_fc_vector));
 }
 
-static MFUN(fc_compute)
-{
+static MFUN(fc_compute) {
   m_uint i;
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
@@ -685,8 +636,7 @@ static MFUN(fc_compute)
   RETURN->d.v_uint = (m_uint)ret;
 }
 
-static MFUN(fc_add)
-{
+static MFUN(fc_add) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
@@ -696,8 +646,7 @@ static MFUN(fc_add)
   RETURN->d.v_uint = (m_uint)obj;
 }
 
-static MFUN(fc_rem)
-{
+static MFUN(fc_rem) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
@@ -707,8 +656,7 @@ static MFUN(fc_rem)
   RETURN->d.v_uint = (m_uint)obj;
 }
 
-INSTR(fc_connect)
-{
+INSTR(fc_connect) {
   POP_REG(shred, SZ_INT * 2);
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
@@ -724,8 +672,7 @@ INSTR(fc_connect)
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(fc_disconnect)
-{
+INSTR(fc_disconnect) {
   POP_REG(shred, SZ_INT * 2);
   M_Object o   = *(M_Object*)(shred->reg);
   M_Object obj = *(M_Object*)(shred->reg + SZ_INT); // WARN inconsistency
@@ -741,8 +688,7 @@ INSTR(fc_disconnect)
   PUSH_REG(shred, SZ_INT);
 }
 
-static m_bool import_fc(Env env)
-{
+static m_bool import_fc(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_fc))
   CHECK_OB(import_class_begin(env, &t_fc, env->global_nspc, fc_ctor, fc_dtor))
@@ -760,8 +706,7 @@ static m_bool import_fc(Env env)
   return 1;
 }
 
-m_bool import_analys(Env env)
-{
+m_bool import_analys(Env env) {
   CHECK_BB(import_fft(env))
   CHECK_BB(import_ana(env))
   CHECK_BB(import_centroid(env))

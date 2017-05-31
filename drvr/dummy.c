@@ -6,8 +6,7 @@
 #include "driver.h"
 
 //void no_wakeup(){}
-static void dummy_run(VM* vm, DriverInfo* di)
-{
+static void dummy_run(VM* vm, DriverInfo* di) {
   sp_data* sp = vm->bbq->sp;
   while(vm->is_running) {
     vm_run(vm);
@@ -16,26 +15,23 @@ static void dummy_run(VM* vm, DriverInfo* di)
   }
 }
 
-static void silent_run(VM* vm, DriverInfo* di)
-{
+static void silent_run(VM* vm, DriverInfo* di) {
   sp_data* sp = vm->bbq->sp;
   m_uint timer = (vm->bbq->sp->sr / 100000);
   while(vm->is_running) {
     vm_run(vm);
     vm->bbq->sp->pos++;
     usleep(timer);
-	GWION_CTL
+    GWION_CTL
   }
 }
 
-static m_bool dummy_ini(VM* vm, DriverInfo* di)
-{
+static m_bool dummy_ini(VM* vm, DriverInfo* di) {
   return 1;
 }
 static void dummy_del(VM* vm) {}
 
-Driver* silent_driver(VM* vm)
-{
+Driver* silent_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = dummy_ini;
   d->run = silent_run;
@@ -44,8 +40,7 @@ Driver* silent_driver(VM* vm)
   return d;
 }
 
-Driver* dummy_driver(VM* vm)
-{
+Driver* dummy_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = dummy_ini;
   d->run = dummy_run;

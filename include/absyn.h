@@ -63,7 +63,7 @@ typedef struct {
   Expression self;
 } Array;
 
-Expression new_Array(Expression base, Array_Sub indices, int pos );
+Expression new_Array(Expression base, Array_Sub indices, int pos);
 
 struct Var_Decl_ {
   S_Symbol xid;
@@ -105,7 +105,7 @@ typedef struct {
 } Decl_Expression;
 Expression new_Decl_Expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
 Expression new_Binary_Expression(Expression lhs, Operator op, Expression rhs, int pos);
-Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos );
+Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos);
 
 typedef struct {
   Operator op;
@@ -128,7 +128,7 @@ typedef struct {
   int pos;
   Expression self;
 } Complex;
-Complex* new_complex( Expression re, int pos );
+Complex* new_complex(Expression re, int pos);
 Expression new_exp_from_complex(Complex* exp, int pos);
 
 typedef struct {
@@ -138,7 +138,7 @@ typedef struct {
   Expression self;
 } Polar;
 Expression new_exp_from_polar(Polar* exp, int pos);
-Expression new_exp_from_char( c_str chr, int pos );
+Expression new_exp_from_char(m_str chr, int pos);
 
 typedef struct Vec_* Vec;
 struct Vec_ {
@@ -147,8 +147,8 @@ struct Vec_ {
   m_uint pos;
   Expression self;
 };
-Vec new_Vec( Expression e, int pos );
-Expression new_exp_from_vec( Vec a, int pos );
+Vec new_Vec(Expression e, int pos);
+Expression new_exp_from_vec(Vec a, int pos);
 typedef enum { ae_primary_var, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
                ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,
@@ -191,13 +191,13 @@ Expression new_Primary_Expression_from_int(long i, int pos);
 Expression new_Primary_Expression_from_float(m_float num, int pos);
 Expression new_Primary_Expression_from_ID(m_str s, int pos);
 Expression new_Primary_Expression_from_string(m_str s, int pos);
-Expression new_exp_from_array_lit(Array_Sub exp_list, int pos );
+Expression new_exp_from_array_lit(Array_Sub exp_list, int pos);
 Polar* new_polar(Expression mod, int pos);
 Expression new_Postfix_Expression(Expression exp, Operator op, int pos);
 Expression prepend_Expression(Expression exp, Expression next, int pos);
 Expression new_Hack_Expression(Expression exp, int pos);
 Expression new_Func_Call(Expression base, Expression args, int pos);
-Expression new_Primary_Expression_from_nil( int pos );
+Expression new_Primary_Expression_from_nil(int pos);
 Expression new_Cast_Expression(Type_Decl* type, Expression exp, int pos);
 Expression new_If_Expression(Expression cond, Expression if_exp, Expression else_exp, int pos);
 Expression new_Exp_Dur(Expression base, Expression unit, int pos);
@@ -341,7 +341,7 @@ struct Stmt_Ptr_ {
   int        pos;
   Expression self;
 };
-struct Stmt_Union_{
+struct Stmt_Union_ {
   Decl_List l;
   Vector v;
   m_uint s;
@@ -350,7 +350,7 @@ struct Stmt_Union_{
   Stmt self;
 };
 
-struct Stmt_{
+struct Stmt_ {
   ae_Stmt_Type type;
   union {
     struct Stmt_Exp_        stmt_exp;
@@ -374,7 +374,7 @@ struct Stmt_{
 };
 
 Stmt new_stmt_from_expression(Expression exp, int pos);
-Stmt new_stmt_from_code( Stmt_List stmt_list, int pos );
+Stmt new_stmt_from_code(Stmt_List stmt_list, int pos);
 Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_from_return(Expression exp, int pos);
 Stmt new_stmt_from_break(int pos);
@@ -399,9 +399,9 @@ typedef struct {
   int pos;
   Expression self;
 } Unary_Expression;
-Expression new_exp_from_unary(Operator oper, Expression exp, int pos );
-Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos );
-Expression new_exp_from_unary3(Operator oper, Stmt code, int pos );
+Expression new_exp_from_unary(Operator oper, Expression exp, int pos);
+Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
+Expression new_exp_from_unary3(Operator oper, Stmt code, int pos);
 
 struct Arg_List_ {
   Type_Decl* type_decl;
@@ -499,7 +499,7 @@ typedef struct {
   int pos;
 } Section;
 Section* new_section_Stmt_List(Stmt_List list, int pos);
-Section* new_section_Func_Def( Func_Def func_def, int pos );
+Section* new_section_Func_Def(Func_Def func_def, int pos);
 
 
 struct Class_Ext_  {
@@ -524,11 +524,11 @@ struct Type_List_  {
 };
 Type_List new_type_list(ID_List list, Type_List next, int pos);
 void free_Type_List(Type_List a);
-Class_Def new_class_def( ae_Keyword class_decl, ID_List name,
-                         Class_Ext ext, Class_Body body, int pos );
-Class_Body new_class_body( Section* section, int pos );
-Class_Body prepend_class_body(Section* section, Class_Body body, int pos );
-Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos );
+Class_Def new_class_def(ae_Keyword class_decl, ID_List name,
+                        Class_Ext ext, Class_Body body, int pos);
+Class_Body new_class_body(Section* section, int pos);
+Class_Body prepend_class_body(Section* section, Class_Body body, int pos);
+Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos);
 ID_List new_id_list(const m_str xid, int pos);
 ID_List prepend_id_list(const m_str xid, ID_List list, int pos);
 void free_ID_List(ID_List a);

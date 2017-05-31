@@ -17,7 +17,7 @@ struct Emitter_ {
   struct VM_Object_ obj;
 };
 
-Emitter new_Emitter (Env env);
+Emitter new_Emitter(Env env);
 void free_Emitter(Emitter emit);
 VM_Code emit_to_code(Emitter emit);
 m_bool emit_Ast(Emitter emit, Ast ast, m_str filename);

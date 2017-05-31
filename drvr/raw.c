@@ -4,8 +4,7 @@
 #include "driver.h"
 
 static sp_audio spa;
-static m_bool raw_ini(VM* vm, DriverInfo* di)
-{
+static m_bool raw_ini(VM* vm, DriverInfo* di) {
   char tmp[104];
   sprintf(tmp, "%s.raw", di->card);
   if(spa_open(vm->bbq->sp, &spa, tmp, SPA_WRITE) == SP_NOT_OK) {
@@ -15,23 +14,20 @@ static m_bool raw_ini(VM* vm, DriverInfo* di)
   return 1;
 }
 
-static void raw_run(VM* vm, DriverInfo* di)
-{
+static void raw_run(VM* vm, DriverInfo* di) {
   while(vm->is_running) {
     vm_run(vm);
     spa_write_buf(vm->bbq->sp, &spa, vm->bbq->sp->out, vm->bbq->sp->nchan);
     vm->bbq->sp->pos++;
-	GWION_CTL
+    GWION_CTL
   }
 }
 
-static void raw_del(VM* vm)
-{
+static void raw_del(VM* vm) {
   spa_close(&spa);
 }
 
-Driver* raw_driver(VM* vm)
-{
+Driver* raw_driver(VM* vm) {
   Driver* d = malloc(sizeof(Driver));
   d->ini = raw_ini;
   d->run = raw_run;

@@ -11,8 +11,7 @@ m_int o_complex_real, o_complex_imag;
 m_int o_polar_mod,    o_polar_phase;
 
 // arithmetic
-static INSTR(assign)
-{
+static INSTR(assign) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '='");
 #endif
@@ -21,8 +20,7 @@ static INSTR(assign)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(plus)
-{
+static INSTR(plus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '+'");
 #endif
@@ -31,8 +29,7 @@ static INSTR(plus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(minus)
-{
+static INSTR(minus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '-'");
 #endif
@@ -41,8 +38,7 @@ static INSTR(minus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(times)
-{
+INSTR(times) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '*'");
 #endif
@@ -51,8 +47,7 @@ INSTR(times)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(divide)
-{
+static INSTR(divide) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '/'");
 #endif
@@ -62,8 +57,7 @@ static INSTR(divide)
 }
 
 // reverse arithmetic
-static INSTR(r_assign)
-{
+static INSTR(r_assign) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '=>' %p %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -72,8 +66,7 @@ static INSTR(r_assign)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(r_plus)
-{
+static INSTR(r_plus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '+=>' %p %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -82,8 +75,7 @@ static INSTR(r_plus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(r_minus)
-{
+static INSTR(r_minus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '-=>' %p %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -92,8 +84,7 @@ static INSTR(r_minus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(r_times)
-{
+static INSTR(r_times) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '*=>' %p %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -102,8 +93,7 @@ static INSTR(r_times)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(r_divide)
-{
+static INSTR(r_divide) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '/=>' %p %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -112,8 +102,7 @@ static INSTR(r_divide)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(complex_real)
-{
+INSTR(complex_real) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'real' %i",  instr->m_val);
 #endif
@@ -127,8 +116,7 @@ INSTR(complex_real)
   }
 }
 
-INSTR(complex_imag)
-{
+INSTR(complex_imag) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) 'imag'");
 #endif
@@ -144,8 +132,7 @@ INSTR(complex_imag)
   }
 }
 
-INSTR(polar_plus)
-{
+INSTR(polar_plus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(m_complex*)(shred->reg - SZ_INT));
 #endif
@@ -158,8 +145,7 @@ INSTR(polar_plus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_minus)
-{
+INSTR(polar_minus) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(m_complex*)(shred->reg - SZ_INT));
 #endif
@@ -172,8 +158,7 @@ INSTR(polar_minus)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_times)
-{
+INSTR(polar_times) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(m_complex*)(shred->reg - SZ_INT));
 #endif
@@ -186,8 +171,7 @@ INSTR(polar_times)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_divide)
-{
+INSTR(polar_divide) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), *(m_complex*)(shred->reg - SZ_INT));
 #endif
@@ -200,8 +184,7 @@ INSTR(polar_divide)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_plus_r)
-{
+INSTR(polar_plus_r) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+=>' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -215,8 +198,7 @@ INSTR(polar_plus_r)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_minus_r)
-{
+INSTR(polar_minus_r) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '+=>' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -231,8 +213,7 @@ INSTR(polar_minus_r)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_times_r)
-{
+INSTR(polar_times_r) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '*=>' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -246,8 +227,7 @@ INSTR(polar_times_r)
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-INSTR(polar_divide_r)
-{
+INSTR(polar_divide_r) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(polar) %p '/=>' %p", *(m_complex*)(shred->reg - SZ_COMPLEX - SZ_INT), **(m_complex**)(shred->reg - SZ_INT));
 #endif
@@ -262,8 +242,7 @@ INSTR(polar_divide_r)
 }
 
 
-m_bool import_complex(Env env)
-{
+m_bool import_complex(Env env) {
   CHECK_BB(add_global_type(env, &t_complex))
   CHECK_OB(import_class_begin(env, &t_complex, env->global_nspc, NULL, NULL))
   o_complex_real = import_mvar(env, "float", "re",   0, 0, "real part");

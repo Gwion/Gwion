@@ -10,16 +10,14 @@
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_int o_shred_me;
 
-M_Object new_Shred(VM* vm, VM_Shred shred)
-{
+M_Object new_Shred(VM* vm, VM_Shred shred) {
   M_Object obj = new_M_Object(NULL);
   initialize_object(obj, &t_shred);
   ME(obj) = shred;
   return obj;
 }
 
-static MFUN(vm_shred_exit)
-{
+static MFUN(vm_shred_exit) {
   m_uint i;
   VM_Shred  s = ME(o);
   s->is_running = 0;
@@ -28,26 +26,22 @@ static MFUN(vm_shred_exit)
     release((M_Object)vector_at(shred->gc1, i), shred);
 }
 
-static MFUN(vm_shred_id)
-{
+static MFUN(vm_shred_id) {
   VM_Shred  s = ME(o);
   RETURN->d.v_uint = s ? s->xid : -1;
 }
 
-static MFUN(vm_shred_is_running)
-{
+static MFUN(vm_shred_is_running) {
   VM_Shred  s = ME(o);
   RETURN->d.v_uint = s ? s->is_running : 0;
 }
 
-static MFUN(vm_shred_is_done)
-{
+static MFUN(vm_shred_is_done) {
   VM_Shred  s = ME(o);
   RETURN->d.v_uint = s ? s->is_done : 0;
 }
 
-static MFUN(shred_yield)
-{
+static MFUN(shred_yield) {
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
@@ -55,8 +49,7 @@ static MFUN(shred_yield)
   RETURN->d.v_uint = 1;
 }
 
-static SFUN(vm_shred_from_id)
-{
+static SFUN(vm_shred_from_id) {
   VM_Shred s = (VM_Shred)vector_at(shred->vm_ref->shred, *(m_uint*)(shred->mem + SZ_INT) - 1);
   if(!s)
     RETURN->d.v_uint = 0;
@@ -67,32 +60,28 @@ static SFUN(vm_shred_from_id)
   }
 }
 
-static MFUN(shred_args)
-{
+static MFUN(shred_args) {
   VM_Shred  s = ME(o);
   RETURN->d.v_uint = s->args ? vector_size(s->args) : 0;
 }
 
-static MFUN(shred_arg)
-{
+static MFUN(shred_arg) {
   m_str str;
   VM_Shred  s = ME(o);
   if(!s->args) {
     RETURN->d.v_uint = 0;
-	return;
+    return;
   }
   str = (m_str)vector_at(s->args, *(m_uint*)(shred->mem + SZ_INT));
   RETURN->d.v_uint = str ? (m_uint)new_String(shred,str) : 0;
 }
 
-static MFUN(shred_path)
-{
+static MFUN(shred_path) {
   VM_Shred  s = ME(o);
   RETURN->d.v_uint = (m_uint)new_String(shred,s->code->filename);
 }
 
-static MFUN(shred_dir)
-{
+static MFUN(shred_dir) {
   VM_Shred  s = ME(o);
   char c[strlen(s->code->filename) + 1];
   memset(c, 0, strlen(s->code->filename) + 1);
@@ -100,13 +89,11 @@ static MFUN(shred_dir)
   RETURN->d.v_uint = (m_uint)new_String(shred,dirname(c));
 }
 
-static DTOR(shred_dtor)
-{
+static DTOR(shred_dtor) {
   release(o, shred);
 }
 
-m_bool import_shred(Env env)
-{
+m_bool import_shred(Env env) {
   DL_Func* fun;
   DL_Value* arg;
   Func f;
