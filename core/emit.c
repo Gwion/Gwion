@@ -1907,7 +1907,7 @@ static m_bool emit_dot_member(Emitter emit, Dot_Member* member) {
       }
       emit->env->func->variadic_start = add_instr(emit, Vararg_start);
       emit->env->func->variadic_start->m_val = offset;
-      emit->env->func->variadic_index = vector_size(emit->code->code);
+      emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
       return 1;
     }
     if(!strcmp(S_name(member->xid), "end")) {
@@ -1917,7 +1917,7 @@ static m_bool emit_dot_member(Emitter emit, Dot_Member* member) {
       }
       Instr instr = add_instr(emit, Vararg_end);
       instr->m_val = offset;
-      instr->m_val2 = emit->env->func->variadic_index;
+      instr->m_val2 = emit->env->func->variadic_start->m_val2;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
       return 1;
     } else if(!strcmp(S_name(member->xid), "i")) {
