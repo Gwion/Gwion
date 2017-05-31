@@ -244,18 +244,18 @@ m_bool import_fileio(Env env) {
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  fun = new_DL_Func("int", "nl", (m_uint)file_nl);
+  fun = new_dl_func("int", "nl", (m_uint)file_nl);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "open", (m_uint)file_open);
+  fun = new_dl_func("int", "open", (m_uint)file_open);
   dl_func_add_arg(fun, "string", "filename");
   dl_func_add_arg(fun, "string", "mode");
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "close", (m_uint)file_close);
+  fun = new_dl_func("int", "close", (m_uint)file_close);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "remove", (m_uint)file_remove);
+  fun = new_dl_func("int", "remove", (m_uint)file_remove);
   dl_func_add_arg(fun, "string", "filename");
   CHECK_OB(import_sfun(env, fun))
-  fun = new_DL_Func("string[]", "list", (m_uint)file_list);
+  fun = new_dl_func("string[]", "list", (m_uint)file_list);
   dl_func_add_arg(fun, "string", "filename");
   CHECK_OB(import_sfun(env, fun))
 

@@ -247,13 +247,13 @@ m_bool import_array(Env env) {
   DL_Func* fun;
   CHECK_BB(add_global_type(env, &t_array))
   CHECK_OB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
-  fun = new_DL_Func("int", "size", (m_uint)vm_vector_size);
+  fun = new_dl_func("int", "size", (m_uint)vm_vector_size);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "depth", (m_uint)vm_vector_depth);
+  fun = new_dl_func("int", "depth", (m_uint)vm_vector_depth);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "cap", (m_uint)vm_vector_cap);
+  fun = new_dl_func("int", "cap", (m_uint)vm_vector_cap);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "remove", (m_uint)vm_vector_remove);
+  fun = new_dl_func("int", "remove", (m_uint)vm_vector_remove);
   dl_func_add_arg(fun, "int", "index");
   CHECK_OB(import_mfun(env, fun))
   env->class_def->doc = "vector structure";

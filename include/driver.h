@@ -20,7 +20,7 @@ typedef struct driver_wrapper {
 } Driver;
 
 static inline void no_wakeup() {}
-void free_Driver(Driver* driver, VM* vm);
+void free_driver(Driver* driver, VM* vm);
 void select_driver(DriverInfo* di, const m_str d);
 void select_backend(DriverInfo* di, const m_str d);
 void select_format(DriverInfo* di, const m_str d);

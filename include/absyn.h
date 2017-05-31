@@ -484,8 +484,8 @@ struct Func_Def_ {
 Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
 m_bool scan1_func_def(Env env, Func_Def f);
-m_bool scan2_Func_Def(Env env, Func_Def f);
-m_bool check_Func_Def(Env env, Func_Def f);
+m_bool scan2_func_def(Env env, Func_Def f);
+m_bool check_func_def(Env env, Func_Def f);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {

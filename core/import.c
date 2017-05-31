@@ -10,12 +10,12 @@
 void free_expression(Expression exp);
 
 m_bool scan1_decl_expression(Env env, Decl_Expression* decl);
-m_bool scan2_Decl_Expression(Env env, Decl_Expression* decl);
-Type   check_Decl_Expression(Env env, Decl_Expression* decl);
+m_bool scan2_decl_expression(Env env, Decl_Expression* decl);
+Type   check_decl_expression(Env env, Decl_Expression* decl);
 
 m_bool scan1_func_def(Env env, Func_Def f);
-m_bool scan2_Func_Def(Env env, Func_Def f);
-m_bool check_Func_Def(Env env, Func_Def f);
+m_bool scan2_func_def(Env env, Func_Def f);
+m_bool check_func_def(Env env, Func_Def f);
 
 
 // should be in type_utils
@@ -170,11 +170,11 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   var_decl->addr = (void *)addr;
   if(scan1_decl_expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
-  if(scan2_Decl_Expression(env, &exp_decl->d.exp_decl) < 0)
+  if(scan2_decl_expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(is_const)
     SET_FLAG(var_decl->value, ae_value_const);
-  if(!check_Decl_Expression(env, &exp_decl->d.exp_decl))
+  if(!check_decl_expression(env, &exp_decl->d.exp_decl))
     goto error;
 
   if(doc)
@@ -271,7 +271,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   func_def = new_func_def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
   func_def->s_type = ae_func_builtin;
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
-  free_DL_Func(dl_fun);
+  free_dl_func(dl_fun);
   return func_def;
 }
 
@@ -283,14 +283,14 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   CHECK_EO(env->class_def)
   func_def = make_dll_as_fun(mfun, is_static);
   if(!func_def) {
-    free_DL_Func(mfun);
+    free_dl_func(mfun);
     scope_rem(env->global_nspc->type, insert_symbol(env->class_def->name));
     REM_REF(env->class_def);
     return NULL;
   }
   CHECK_FN(scan1_func_def(env, func_def))
-  CHECK_FN(scan2_Func_Def(env, func_def))
-  CHECK_FN(check_Func_Def(env, func_def))
+  CHECK_FN(scan2_func_def(env, func_def))
+  CHECK_FN(check_func_def(env, func_def))
   return func_def->func;
 }
 

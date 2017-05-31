@@ -5,7 +5,7 @@
 static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
   Value v;
   Type type;
-  Type t = new_Type(te_func_ptr, S_name(ptr->xid));
+  Type t = new_type(te_func_ptr, S_name(ptr->xid));
   t->owner = env->curr;
   t->array_depth = 0;
   t->size = SZ_INT;
@@ -15,7 +15,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
   namespace_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
   type->actual_type = t;
-  v = new_Value(type, S_name(ptr->xid));
+  v = new_value(type, S_name(ptr->xid));
   v->owner = env->curr;
   SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_checked);
@@ -34,6 +34,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
     CHECK_BB(scan0_Func_Ptr(env, &stmt->d.stmt_ptr))
     return 1;
 }
+
 static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
 #ifdef DEBUG_SCAN0
   debug_msg("scan1", "stmt list");
@@ -66,7 +67,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     goto done;
   }
 
-  the_class = new_Type(get_type_xid(), S_name(class_def->name->xid));
+  the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
   the_class->is_user = 1;
 //  ADD_REF(the_class->obj);
   the_class->owner = env->curr;
@@ -115,7 +116,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     Type  type;
     type = type_copy(env, &t_class);
     type->actual_type = the_class;
-    value = new_Value(type, the_class->name);
+    value = new_value(type, the_class->name);
     value->owner = env->curr;
     SET_FLAG(value, ae_value_const);
     SET_FLAG(value, ae_value_checked);

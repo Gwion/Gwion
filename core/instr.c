@@ -3,12 +3,19 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "instr.h"
-
+#include "code_private.h" // for add_instr
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
 
 #define overflow_(c)       (c >  (c + (0x1 << SIZEOF_MEM)) - ((0x1 << SIZEOF_MEM) / MEM_STEP))
+
+Instr add_instr(Emitter emit, f_instr f) {
+  Instr instr = calloc(1, sizeof(struct Instr_));
+  instr->execute = f;
+  vector_append(emit->code->code, (vtype)instr);
+  return instr;
+}
 
 INSTR(EOC) {
 #ifdef DEBUG_INSTR
@@ -17,7 +24,7 @@ INSTR(EOC) {
   shred->is_running = 0;
   shred->is_done = 1;
 }
-/* stacking */
+
 INSTR(Reg_Pop_Word4) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] pop %i", instr->m_val);
@@ -86,24 +93,13 @@ INSTR(Mem_Push_Imm) {
   PUSH_MEM(shred,  SZ_INT);
 }
 
-/*
-// test on 13/01/17
-// removed on 09/04/17
-INSTR(Mem_Push_Ret)
-{
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] push ret to mem[%u] %p", instr->m_val, (void*) * (M_Object*)(shred->reg - SZ_INT));
-#endif
-  *(M_Object*)(shred->mem + instr->m_val) = *(M_Object*)(shred->reg - SZ_INT);
-}
-*/
 INSTR(Mem_Set_Imm) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[mem] set imm [%i] %p", instr->m_val, instr->ptr);
 #endif
   *(m_uint**)(shred->mem + instr->m_val) = (m_uint*)instr->ptr;
 }
-// template erase
+
 INSTR(Free_Func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "free template func '%p'", (void*)instr->m_val);
@@ -116,7 +112,6 @@ INSTR(Free_Func) {
   free_VM_Code(f->code);
 }
 
-// func pointer
 INSTR(assign_func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign func");
@@ -262,7 +257,6 @@ INSTR(Reg_Push_Maybe) {
   PUSH_REG(shred, SZ_INT);
 }
 
-/* alloc */
 INSTR(Alloc_Word) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", (void*) * (m_uint*)(shred->mem + instr->m_val), instr->m_val);
@@ -392,7 +386,6 @@ INSTR(Goto) {
   shred->next_pc = instr->m_val;
 }
 
-/* casting */
 INSTR(Cast_i2f) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "cast i2f");
@@ -411,7 +404,6 @@ INSTR(Cast_f2i) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-/* debugging */
 INSTR(Gack) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "gack");
@@ -574,16 +566,13 @@ INSTR(Spork) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-// LCOV_EXCL_START
-void handle_overflow(VM_Shred shred) {
+void handle_overflow(VM_Shred shred) { // LCOV_EXCL_START
   fprintf(stderr,
           "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
           shred->xid, shred->name, shred->pc);
-  // do something!
   shred->is_running = 0;
   shred->is_done = 1;
-}
-// LCOV_EXCL_STOP
+} // LCOV_EXCL_STOP
 
 INSTR(Instr_Func_Call) {
 #ifdef DEBUG_INSTR
@@ -744,7 +733,6 @@ INSTR(member_function) {
 #endif
   return;
 }
-
 
 INSTR(Dot_Member_Func) {
 #ifdef DEBUG_INSTR
@@ -1103,8 +1091,7 @@ INSTR(Instr_Pre_Ctor_Array_Post) {
   free(array);
 }
 
-static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top,
-                               Type type, m_bool is_obj, m_uint* objs, m_int* index) {
+static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top, Type type, m_bool is_obj, m_uint* objs, m_int* index) {
   M_Object base = NULL, next = NULL;
   m_int i = 0;
   m_int cap = *(m_int*)(shred->reg + capacity * SZ_INT);
@@ -1374,8 +1361,6 @@ array_out_of_bound:
   shred->is_done = 1;
 }
 
-
-/* try to garbage collect strings in switch */
 INSTR(start_gc) {
   if(!shred->gc) //  dynamic assign
     shred->gc = new_vector();
@@ -1390,8 +1375,3 @@ INSTR(stop_gc) {
 // if(!vector_size(shred->gc)) // dynamic assign with scoping
 //  free_vector(shred->gc);
 }
-/*
-INSTR(add_gc) {
-  vector_append(shred->gc, *(vtype*)(shred->reg - SZ_INT));
-}
-*/

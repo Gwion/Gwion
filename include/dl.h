@@ -47,7 +47,7 @@ typedef struct {
 } DL_Func;
 
 
-DL_Func* new_DL_Func(const m_str t, const m_str n, m_uint addr);
-void free_DL_Func(DL_Func* a);
+DL_Func* new_dl_func(const m_str t, const m_str n, m_uint addr);
+void free_dl_func(DL_Func* a);
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #endif

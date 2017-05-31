@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <dlfcn.h>
 #include <time.h>
 #include "vm.h"
 #include "err_msg.h"
@@ -6,7 +7,6 @@
 #include "ugen.h"
 #include "driver.h"
 
-void stop_plug(); // TODO better be in env.
 void udp_do(VM* vm);
 VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename) {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
@@ -105,16 +105,20 @@ VM* new_VM(m_bool loop) {
   vm->shred      = new_vector();
   vm->ugen       = new_vector();
   vm->shreduler  = new_Shreduler(vm);
+  vm->plug       = new_vector();
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   return vm;
 }
 
 void free_VM(VM* vm) {
+  m_uint i;
   if(vm->env)
     REM_REF(vm->env);
   if(vm->emit)
     REM_REF(vm->emit);
-  stop_plug();
+  for(i = 0; i < vector_size(vm->plug); i++)
+    dlclose((void*)vector_at(vm->plug, i));
+  free_vector(vm->plug);
   free_vector(vm->shred);
   free_vector(vm->ugen);
   if(vm->bbq)

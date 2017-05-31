@@ -11,25 +11,25 @@ void rem_ref(VM_Object a, void* ptr) {
   if(!--a->ref_count) {
     switch(a->type) {
     case e_emit_obj:
-      free_Emitter(ptr);
+      free_emitter(ptr);
       break;
     case e_namespace_obj:
       free_NameSpace(ptr);
       break;
     case e_env_obj:
-      free_Env(ptr);
+      free_env(ptr);
       break;
     case e_type_obj:
-      free_Type(ptr);
+      free_type(ptr);
       break;
     case e_value_obj:
-      free_Value(ptr);
+      free_value(ptr);
       break;
     case e_context_obj:
-      free_Context(ptr);
+      free_context(ptr);
       break;
     case e_func_obj:
-      free_Func(ptr);
+      free_func(ptr);
       break;
     }
   }

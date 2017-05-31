@@ -162,7 +162,7 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
     if((mo = operator_find(v, lhs, rhs))) {
       if(mo->func) {
         add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
-        if(emit_Func_Call1(emit, mo->func, mo->func->def->ret_type, 0) < 0)
+        if(emit_func_call1(emit, mo->func, mo->func->def->ret_type, 0) < 0)
           return -1;
         return 1;
       } else {

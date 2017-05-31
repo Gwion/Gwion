@@ -14,8 +14,8 @@ struct Context_ {
   struct VM_Object_ obj;
 };
 
-Context new_Context(Ast prog, char* filename);
-void free_Context(Context context);
+Context new_context(Ast prog, char* filename);
+void free_context(Context context);
 m_bool load_context(Context context, Env env);
 m_bool unload_context(Context context, Env env);
 

@@ -4,7 +4,7 @@
 #include "vm.h"
 #include "driver.h"
 
-void free_Driver(Driver* d, VM* vm) {
+void free_driver(Driver* d, VM* vm) {
   d->del(vm);
   free(d);
 }

@@ -127,19 +127,19 @@ m_bool import_machine(Env env) {
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   env->class_def->doc = "access the virtual machine, including docs";
 
-  fun = new_DL_Func("void",  "add", (m_uint)machine_add);
+  fun = new_dl_func("void",  "add", (m_uint)machine_add);
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("int[]", "shreds", (m_uint)machine_shreds);
+  fun = new_dl_func("int[]", "shreds", (m_uint)machine_shreds);
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("int",  "check", (m_uint)machine_check);
+  fun = new_dl_func("int",  "check", (m_uint)machine_check);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "code");
   CHECK_OB(import_sfun(env,  fun))
 
-  fun = new_DL_Func("void",  "compile", (m_uint)machine_compile);
+  fun = new_dl_func("void",  "compile", (m_uint)machine_compile);
   dl_func_add_arg(fun,       "string",  "prefix");
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))

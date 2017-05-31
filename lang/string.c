@@ -809,103 +809,103 @@ m_bool import_string(Env env) {
   o_string_data = import_mvar(env, "int", "@data",   1, 0, "place to hold the string");
   CHECK_BB(o_string_data)
 
-  DL_Func* fun = new_DL_Func("int", "size", (m_uint)string_len);
+  DL_Func* fun = new_dl_func("int", "size", (m_uint)string_len);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "upper", (m_uint)string_upper);
+  fun = new_dl_func("string", "upper", (m_uint)string_upper);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "lower", (m_uint)string_lower);
+  fun = new_dl_func("string", "lower", (m_uint)string_lower);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "ltrim", (m_uint)string_ltrim);
+  fun = new_dl_func("string", "ltrim", (m_uint)string_ltrim);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "rtrim", (m_uint)string_rtrim);
+  fun = new_dl_func("string", "rtrim", (m_uint)string_rtrim);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "trim", (m_uint)string_trim);
+  fun = new_dl_func("string", "trim", (m_uint)string_trim);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "charAt", (m_uint)string_charAt);
+  fun = new_dl_func("int", "charAt", (m_uint)string_charAt);
   dl_func_add_arg(fun, "int", "pos");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "charAt", (m_uint)string_setCharAt);
+  fun = new_dl_func("int", "charAt", (m_uint)string_setCharAt);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "int", "char");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "substring", (m_uint)string_substring);
+  fun = new_dl_func("string", "substring", (m_uint)string_substring);
   dl_func_add_arg(fun, "int", "start");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "substring", (m_uint)string_substringN);
+  fun = new_dl_func("string", "substring", (m_uint)string_substringN);
   dl_func_add_arg(fun, "int", "start");
   dl_func_add_arg(fun, "int", "end");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "insert", (m_uint)string_insert);
+  fun = new_dl_func("string", "insert", (m_uint)string_insert);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "string", "string");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "replace", (m_uint)string_replace);
+  fun = new_dl_func("string", "replace", (m_uint)string_replace);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "string", "string");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("string", "replace", (m_uint)string_replaceN);
+  fun = new_dl_func("string", "replace", (m_uint)string_replaceN);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "int", "n");
   dl_func_add_arg(fun, "string", "string");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "find", (m_uint)string_find);
+  fun = new_dl_func("int", "find", (m_uint)string_find);
   dl_func_add_arg(fun, "int", "char");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "find", (m_uint)string_findStart);
+  fun = new_dl_func("int", "find", (m_uint)string_findStart);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "int", "char");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "find", (m_uint)string_findStr);
+  fun = new_dl_func("int", "find", (m_uint)string_findStr);
   dl_func_add_arg(fun, "string", "str");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "find", (m_uint)string_findStrStart);
+  fun = new_dl_func("int", "find", (m_uint)string_findStrStart);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "string", "str");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "rfind", (m_uint)string_rfind);
+  fun = new_dl_func("int", "rfind", (m_uint)string_rfind);
   dl_func_add_arg(fun, "int", "char");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "rfind", (m_uint)string_rfindStart);
+  fun = new_dl_func("int", "rfind", (m_uint)string_rfindStart);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "int", "char");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "rfind", (m_uint)string_rfindStr);
+  fun = new_dl_func("int", "rfind", (m_uint)string_rfindStr);
   dl_func_add_arg(fun, "string", "str");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "rfind", (m_uint)string_rfindStrStart);
+  fun = new_dl_func("int", "rfind", (m_uint)string_rfindStrStart);
   dl_func_add_arg(fun, "int", "pos");
   dl_func_add_arg(fun, "string", "str");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("void",   "erase", (m_uint)string_erase);
+  fun = new_dl_func("void",   "erase", (m_uint)string_erase);
   dl_func_add_arg(fun, "int", "start");
   dl_func_add_arg(fun, "int", "length");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "toInt", (m_uint)string_toInt);
+  fun = new_dl_func("int", "toInt", (m_uint)string_toInt);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("float", "toFloat", (m_uint)string_toFloat);
+  fun = new_dl_func("float", "toFloat", (m_uint)string_toFloat);
   CHECK_OB(import_mfun(env, fun))
 
   CHECK_BB(add_binary_op(env, op_chuck, &t_string,  &t_string, &t_string, String_Assign, 1))

@@ -70,9 +70,9 @@ m_bool import_event(Env env) {
   env->class_def->doc = "Process event, with precise timing";
   o_event_shred = import_mvar(env, "int", "@shreds", 0, 0, "the place for blocked shreds");
   CHECK_BB(o_event_shred);
-  fun = new_DL_Func("int", "signal", (m_uint)event_signal);
+  fun = new_dl_func("int", "signal", (m_uint)event_signal);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_DL_Func("int", "broadcast", (m_uint)event_broadcast);
+  fun = new_dl_func("int", "broadcast", (m_uint)event_broadcast);
   CHECK_OB(import_mfun(env, fun))
   CHECK_BB(add_binary_op(env, op_chuck,        &t_event, &t_now, &t_int, Event_Wait, 1))
   CHECK_BB(import_class_end(env))

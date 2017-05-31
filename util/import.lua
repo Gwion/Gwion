@@ -361,7 +361,7 @@ for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
-		print("\tfun = new_DL_Func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
+		print("\tfun = new_dl_func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1; -- why this 'i' ?
 		print("\t\targ = dl_func_add_arg(fun, \"int\", \"size\");")
 		print("\t\targ->doc = \"size of the ftbl\";")
@@ -392,17 +392,8 @@ for n in ipairs(a) do
 				nmandatory = nmandatory + 1
 			end
 		end
--- helper.
---		if nmandatory == 1 then
---			for _, v in pairs(tbl) do
---				print("\tfun = new_DL_Func(\"void\", \""..v.name.."\", (m_uint)"..mod_name.."_init);")
---				declare_gw_param(v)
---			end
---			print("\tCHECK_OB((f = import_mfun(env, fun)))")
---			make_doc("\tf", object)
---		end
 		if nmandatory > 0 then
-				print("\tfun = new_DL_Func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
+				print("\tfun = new_dl_func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
 			local tbl = object.params.mandatory
 			if tbl then
 				for _, v in pairs(tbl) do
@@ -416,28 +407,28 @@ for n in ipairs(a) do
 			if tbl then
 				for _, v in pairs(tbl) do
 				if string.match(v.type, "int") then
-					print("\tfun = new_DL_Func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tfun = new_dl_func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tfun = new_DL_Func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tfun = new_dl_func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tfun = new_DL_Func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tfun = new_dl_func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tfun = new_DL_Func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tfun = new_dl_func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tfun = new_DL_Func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tfun = new_dl_func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
 				make_doc("\tf", v)
 				if string.match(v.type, "int") then
-					print("\tfun = new_DL_Func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tfun = new_dl_func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tfun = new_DL_Func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tfun = new_dl_func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tfun = new_DL_Func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tfun = new_dl_func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tfun = new_DL_Func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tfun = new_dl_func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tfun = new_DL_Func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tfun = new_dl_func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				end
 				declare_gw_param(v)
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")

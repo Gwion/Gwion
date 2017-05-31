@@ -25,6 +25,7 @@ typedef struct {
   Emitter emit;
   Env env;
   void (*wakeup)();
+  Vector plug;
   m_bool is_running;
 } VM;
 

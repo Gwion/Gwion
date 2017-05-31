@@ -21,8 +21,8 @@ struct Env_ {
   struct VM_Object_ obj;
 };
 
-Env new_Env();
+Env new_env();
 void env_reset(Env env);
-void free_Env();
+void free_env();
 
 #endif

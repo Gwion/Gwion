@@ -15,11 +15,8 @@
 #include "instr.h"
 #include "code_private.h"
 
-static m_bool udp = 1;
-static VM* vm = NULL;
 volatile m_bool signaled = 0;
-
-static int do_quit = 0;
+static VM* vm;
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -60,7 +57,7 @@ m_bool compile(VM* vm, const m_str filename) {
 #ifdef DEBUG_COMPILE
   debug_msg("lexer", "type check  of '%s' ok", name);
 #endif
-  CHECK_BB(emit_Ast(vm->emit, ast, name))
+  CHECK_BB(emit_ast(vm->emit, ast, name))
 #ifdef DEBUG_COMPILE
   debug_msg("lexer", "emit   of '%s' ok", name);
 #endif
@@ -144,6 +141,8 @@ int main(int argc, char** argv) {
 
   Vector plug_dirs = new_vector();
 
+  int do_quit = 0;
+  m_bool udp = 1;
   int port = 8888;
   char* hostname = "localhost";
   int loop = 0;
@@ -285,7 +284,7 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(vm->env = type_engine_init(vm, plug_dirs)))
     goto clean;
-  if(!(vm->emit = new_Emitter(vm->env)))
+  if(!(vm->emit = new_emitter(vm->env)))
     goto clean;
   srand(time(NULL));
 
@@ -307,7 +306,7 @@ clean:
   free_vector(add);
   free_vector(rem);
   if(d)
-    free_Driver(d, vm);
+    free_driver(d, vm);
   if(scan_map)
     free_Map(scan_map);
 

@@ -19,6 +19,5 @@ struct Func_ {
   struct VM_Object_ obj;
 };
 
-Func new_Func(m_str name, Func_Def def);
-void free_Func(Func func);
-Func find_func_match(Func up, Expression args);
+Func new_func(m_str name, Func_Def def);
+void free_func(Func func);

@@ -329,18 +329,18 @@ m_bool import_ugen(Env env) {
   CHECK_OB(import_class_begin(env, &t_ugen, env->global_nspc, ugen_ctor, ugen_dtor))
   env->class_def->doc = "base sound class";
 
-  fun = new_DL_Func("UGen", "chan", (m_uint)ugen_channel);
+  fun = new_dl_func("UGen", "chan", (m_uint)ugen_channel);
   dl_func_add_arg(fun, "int", "arg0");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "op", (m_uint)ugen_get_op);
+  fun = new_dl_func("int", "op", (m_uint)ugen_get_op);
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("int", "op", (m_uint)ugen_set_op);
+  fun = new_dl_func("int", "op", (m_uint)ugen_set_op);
   dl_func_add_arg(fun, "int", "arg0");
   CHECK_OB(import_mfun(env, fun))
 
-  fun = new_DL_Func("float", "last", (m_uint)ugen_get_last);
+  fun = new_dl_func("float", "last", (m_uint)ugen_get_last);
   CHECK_OB(import_mfun(env, fun))
 
   CHECK_BB(add_binary_op(env, op_chuck,   &t_ugen, &t_ugen, &t_ugen, ugen_connect, 1))

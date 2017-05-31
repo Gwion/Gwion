@@ -2,13 +2,13 @@
 #include "map.h"
 #include "frame.h"
 
-Frame* new_Frame() {
+Frame* new_frame() {
   Frame* frame = calloc(1, sizeof(Frame));
   frame->stack = new_vector();
   return frame;
 }
 
-void free_Frame(Frame* a) {
+void free_frame(Frame* a) {
   vtype i;
   for(i = 0; i < vector_size(a->stack); i++)
     free((Local*)vector_at(a->stack, i));

@@ -4,7 +4,7 @@
 #include "context.h"
 #include "func.h"
 
-Context new_Context(Ast prog, m_str filename) {
+Context new_context(Ast prog, m_str filename) {
   Context context = malloc(sizeof(struct Context_));
   context->nspc = new_NameSpace();
   context->nspc->filename = filename;
@@ -20,7 +20,7 @@ Context new_Context(Ast prog, m_str filename) {
   return context;
 }
 
-void free_Context(Context a) {
+void free_context(Context a) {
   vtype i;
   for(i = 0; i < vector_size(a->new_funcs); i++) {
     Func f = (Func)vector_at(a->new_funcs, i);

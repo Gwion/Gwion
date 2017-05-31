@@ -16,8 +16,8 @@ typedef struct {
   Vector stack;
 } Frame;
 
-Frame* new_Frame();
-void   free_Frame(Frame* frame);
+Frame* new_frame();
+void   free_frame(Frame* frame);
 
 Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m_bool is_obj);
 void   frame_push_scope(Frame* frame);

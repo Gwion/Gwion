@@ -52,7 +52,7 @@ int isprim(Type type) {
   return 1;
 }
 
-Type new_Type(te_type xid, m_str name) {
+Type new_type(te_type xid, m_str name) {
   Type type         = calloc(1, sizeof(struct Type_));
   type->xid         = xid;
   type->name        = name;
@@ -60,7 +60,7 @@ Type new_Type(te_type xid, m_str name) {
   return type;
 }
 
-void free_Type(Type a) {
+void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
   if(a->is_user || a->parent == &t_int || isa(a, &t_class) > 0
@@ -117,7 +117,7 @@ Type find_type(Env env, ID_List path) {
 }
 
 m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
-  Value v = new_Value(type, name);
+  Value v = new_value(type, name);
   if(!v)
     return -1;
   SET_FLAG(v, ae_value_checked);
@@ -159,7 +159,7 @@ m_bool add_global_type(Env env, Type type) {
   v_type->actual_type = type;
   INIT_OO(type, e_type_obj);
   namespace_add_type(env->curr, insert_symbol(type->name), type);
-  Value v = new_Value(v_type, type->name);
+  Value v = new_value(v_type, type->name);
   SET_FLAG(v, ae_value_checked);
   SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
@@ -217,7 +217,7 @@ Kindof kindof(Type type) {
 
 
 Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc) {
-  Type t = new_Type(te_array, base_type->name);
+  Type t = new_type(te_array, base_type->name);
   t->parent = &t_array;
   /*  SAFE_ADD_REF(t->parent);*/
   /*  t->size = array_parent->size;*/

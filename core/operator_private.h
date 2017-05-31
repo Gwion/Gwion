@@ -27,7 +27,7 @@ static Operator operators[] = {
   op_trig, op_untrig
 };
 
-static m_str op_str[] = {
+static const m_str op_str[] = {
 // arithmetic
   "=", "+", "-", "*", "/", "%",
 // logical
@@ -54,7 +54,7 @@ static m_str op_str[] = {
   "]=>", "]=<", NULL
 };
 
-static m_str op_name[] = {
+static const m_str op_name[] = {
 // arithmetic
   "assign", "plus", "minus", "times", "divide", "modulo",
 // logical

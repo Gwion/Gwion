@@ -3,9 +3,9 @@
 #include "context.h"
 #include "namespace.h"
 
-Env new_Env() {
+Env new_env() {
   Env env = calloc(1, sizeof(struct Env_));
-  env->global_context = new_Context(NULL, "global_context");
+  env->global_context = new_context(NULL, "global_context");
   env->context = env->global_context;
   env->contexts = new_vector();
   env->class_stack = new_vector();
@@ -45,7 +45,7 @@ void env_reset(Env env) {
   env->class_scope = 0;
 }
 
-void free_Env(Env a) {
+void free_env(Env a) {
   m_uint i;
   free(a->global_context->tree);
   for(i = 0; i < map_size(a->known_ctx); i++) {
