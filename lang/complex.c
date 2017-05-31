@@ -3,7 +3,6 @@
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
-#include "import.h"
 
 struct Type_ t_complex = { "complex", SZ_COMPLEX, NULL, te_complex};
 struct Type_ t_polar   = { "polar",   SZ_COMPLEX, NULL, te_polar};

@@ -5,7 +5,12 @@
 #include "func.h"
 #include "lang.h"
 #include "shreduler.h"
+#include "import.h"
 #include "bbq.h"
+
+#define MEM_STEP 16
+#define SIZEOF_MEM 0x1 << MEM_STEP
+#define SIZEOF_REG 0x1 << 14
 
 struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
@@ -118,7 +123,7 @@ void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr);
 void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr);
 void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr);
 void Instr_Array_Access_Multi(VM* vm, VM_Shred shred, Instr instr);
-
+extern INSTR(Array_Append);
 //void member_function(VM* vm, VM_Shred shred, Instr instr);
 void assign_func(VM* vm, VM_Shred shred, Instr instr);
 INSTR(MkVararg);

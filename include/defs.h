@@ -1,10 +1,6 @@
 #ifndef __DEF
 #define __DEF
 
-#define MEM_STEP 16
-#define SIZEOF_MEM 0x1 << MEM_STEP
-#define SIZEOF_REG 0x1 << 14
-
 #define CHECK_BB(f) if(f < 0) return -1;
 #define CHECK_OB(f) if(!f)    return -1;
 #define CHECK_BO(f) if(f < 0) return NULL;
@@ -13,7 +9,6 @@
 #define SET_FLAG(a, b) a->flag |= b
 #define GET_FLAG(a, b) ((a->flag & b) == b)
 
-#define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c;
 #include "generated.h"
 
 typedef struct Ast_       * Ast;
@@ -80,70 +75,4 @@ typedef enum {
   op_trig, op_untrig
 } Operator;
 
-#define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
-#define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
-#define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)
-#define CTOR(a) void a(M_Object o, VM_Shred shred)
-#define DTOR(a) void a(M_Object o, VM_Shred shred)
-#define TICK(a) m_bool a(UGen u)
-#define IMPORT m_bool import(Env env)
-// should be in lang.h, maybe
-// string
-#define STRING(o) *((m_str*)((M_Object)o)->d.data + o_string_data)
-// shred
-#define ME(o) *((VM_Shred*)((M_Object)o)->d.data + o_shred_me)
-// event
-#define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
-// fileio
-#define IO_FILE(o)	*(FILE**)(((M_Object)o)->d.data + o_fileio_file)
-
-/*
-#define SZ_INT sizeof(m_uint)
-#define SZ_FLOAT sizeof(SPFLOAT)
-#define SZ_COMPLEX (sizeof(SPFLOAT) * 2)
-#define SZ_VEC3 (sizeof(SPFLOAT) * 3)
-#define SZ_VEC4 (sizeof(SPFLOAT) * 4)
-*/
-#define NEXT_INT     (s)  *(m_int*)    (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
-#define NEXT_UINT    (s)  *(m_uint*)   (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
-#define NEXT_FLOAT   (s)  *(m_float*)  (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_FLOAT  )
-#define NEXT_OBJECT  (s)  *(M_Object*) (s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_INT    )
-#define NEXT_COMPLEX (s)  *(m_complex*)(s->mem + SZ_INT + RETURN->offset); RETURN->offset += SZ_COMPLEX)
-
-
-#ifndef GW_PLUG_DIR
-#define GW_PLUG_DIR "/usr/lib/Gwion/plug"
-#endif
-
-#ifdef DEBUG_STACK
-#define PUSH_MEM(a, b) \
-{\
-  a->mem_index += b; \
-  a->mem += b;\
-}
-#define POP_MEM(a, b) \
-{\
-  a->mem_index -= b; \
-  a->mem -= b;\
-}
-#define PUSH_REG(a, b) \
-{\
-  a->reg_index += b; \
-  a->reg += b;\
-}
-#define POP_REG(a, b) \
-{\
-  a->reg_index -= b; \
-  a->reg -= b;\
-}
-#else
-#define PUSH_MEM(a, b) \
-  a->mem += b;
-#define POP_MEM(a, b) \
-  a->mem -= b;
-#define PUSH_REG(a, b) \
-  a->reg += b;
-#define POP_REG(a, b) \
-  a->reg -= b;
-#endif
 #endif

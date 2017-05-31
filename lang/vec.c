@@ -4,7 +4,6 @@
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
-#include "import.h"
 
 struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
 MFUN(vec3_set) {

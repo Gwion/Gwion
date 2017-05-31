@@ -4,7 +4,6 @@
 #include "err_msg.h"
 #include "instr.h"
 #include "lang.h"
-#include "import.h"
 
 struct M_Vector_ {
   char*  ptr;   // data

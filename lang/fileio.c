@@ -6,7 +6,6 @@
 #include "err_msg.h"
 #include "instr.h"
 #include "lang.h"
-#include "import.h"
 #include <unistd.h>
 
 struct Type_ t_io      = { "IO",       SZ_INT, &t_event, te_io };

@@ -1,6 +1,5 @@
 #include "defs.h"
 #include "err_msg.h"
-#include "import.h"
 #include "instr.h"
 #include "lang.h"
 #include "type.h"

@@ -3,15 +3,7 @@
 #include "vm.h"
 #include "type.h"
 #include "err_msg.h"
-#include "import.h"
 #include "instr.h"
-
-/*
-// needed for polar
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
-*/
 
 struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
 m_int o_string_data;

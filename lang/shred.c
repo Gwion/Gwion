@@ -5,7 +5,6 @@
 #include "err_msg.h"
 #include "instr.h"
 #include "lang.h"
-#include "import.h"
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_int o_shred_me;

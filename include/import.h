@@ -1,6 +1,44 @@
 #include "env.h"
 #include "dl.h"
 
+#ifdef DEBUG_STACK
+#define PUSH_MEM(a, b) \
+{\
+  a->mem_index += b; \
+  a->mem += b;\
+}
+#define POP_MEM(a, b) \
+{\
+  a->mem_index -= b; \
+  a->mem -= b;\
+}
+#define PUSH_REG(a, b) \
+{\
+  a->reg_index += b; \
+  a->reg += b;\
+}
+#define POP_REG(a, b) \
+{\
+  a->reg_index -= b; \
+  a->reg -= b;\
+}
+#else
+#define PUSH_MEM(a, b) a->mem += b;
+#define POP_MEM(a, b)  a->mem -= b;
+#define PUSH_REG(a, b) a->reg += b;
+#define POP_REG(a, b)  a->reg -= b;
+#endif
+
+#define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
+#define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
+#define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)
+#define CTOR(a) void a(M_Object o, VM_Shred shred)
+#define DTOR(a) void a(M_Object o, VM_Shred shred)
+#define TICK(a) m_bool a(UGen u)
+#define IMPORT m_bool import(Env env)
+
+#define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c
+
 typedef m_bool(*Import_fun)(Env env, DL_Func* f);
 
 Func import_mfun(Env env, DL_Func * fun);

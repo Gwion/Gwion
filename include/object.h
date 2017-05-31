@@ -18,4 +18,10 @@ M_Object new_String(VM_Shred shred, m_str str);
 
 void release(M_Object obj, VM_Shred shred);
 void NullException(VM_Shred shred, const m_str c);
+
+#define STRING(o) *((m_str*)((M_Object)o)->d.data + o_string_data)
+#define ME(o) *((VM_Shred*)((M_Object)o)->d.data + o_shred_me)
+#define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
+#define IO_FILE(o)  *(FILE**)(((M_Object)o)->d.data + o_fileio_file)
+
 #define Except(s, c) { NullException(s, c);return; }

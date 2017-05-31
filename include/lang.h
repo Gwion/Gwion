@@ -26,7 +26,6 @@ extern m_int o_fileio_file;
 extern m_uint o_object_doc;
 
 extern void array_ctor(M_Object o,  VM_Shred shred);
-extern INSTR(Array_Append);
 extern m_int o_string_data;
 extern m_int o_event_shred;
 extern m_int o_shred_me;
