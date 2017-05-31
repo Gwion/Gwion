@@ -307,12 +307,12 @@ struct Stmt_If_ {
 };
 struct Stmt_Goto_Label_ {
   S_Symbol name;
-  m_bool is_label;
   union {
     Vector v;
     Instr instr;
   } data;
   int pos;
+  m_bool is_label;
   Stmt self;
 };
 struct Stmt_Switch_ {
@@ -395,8 +395,8 @@ typedef struct {
   Array_Sub array;
   Stmt code;
   m_uint code_depth;
-  int pos;
   Expression self;
+  int pos;
 } Unary_Expression;
 Expression new_exp_from_unary(Operator oper, Expression exp, int pos);
 Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
@@ -417,9 +417,9 @@ Stmt new_func_ptr_stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List arg
 struct Expression_ {
   Expression_type exp_type;
   ae_Exp_Meta meta;
-  int emit_var;
   Type type;
   Type cast_to;
+  Expression next;
   union {
     Postfix_Expression   exp_postfix;
     Primary_Expression   exp_primary;
@@ -434,7 +434,7 @@ struct Expression_ {
     Exp_Dur              exp_dur;
   } d;
   int pos;
-  Expression next;
+  m_bool emit_var;
 };
 
 struct Stmt_List_ {
@@ -467,17 +467,17 @@ struct Func_Def_ {
   Arg_List arg_list;
   Stmt code;
   Func func;
-  int pos;
   m_uint stack_depth;
   ae_Keyword func_decl;
   ae_Keyword static_decl;
-  m_bool has_code;
   void* dl_func_ptr;
   ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
+  int pos;
   m_bool is_template;
   m_bool is_variadic;
+  m_bool has_code;
 };
 
 Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
@@ -537,8 +537,8 @@ Section* new_section_class_def(Class_Def class_def, int pos);
 struct Ast_ {
   Section* section;
   Ast next;
-  int pos;
   m_str doc;
+  int pos;
 };
 
 Ast new_ast(Section* section, Ast next, int pos);

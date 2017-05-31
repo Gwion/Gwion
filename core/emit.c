@@ -1080,15 +1080,6 @@ static m_bool emit_if(Emitter emit, Stmt_If stmt) {
     break;
 
   default:
-    // check for IO
-    /*      if(isa(stmt->cond->type, &t_io))*/
-    /*      {*/
-    /*          // push 0*/
-    /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
-    /*          op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
-    /*          break;*/
-    /*      }*/
-
     if(isa(stmt->cond->type, &t_object) > 0) {
       sadd_instr(emit, Reg_Push_Imm);
       f = Branch_Eq_Int;
@@ -1259,15 +1250,6 @@ static m_bool emit_do_while(Emitter emit, Stmt_While stmt) {
     f = Branch_Neq_Float;
     break;
   default:
-    // check for IO
-    /*        if(isa(stmt->cond->type, &t_io))*/
-    /*        {*/
-    /*            // push 0*/
-    /*            emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
-    /*            op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
-    /*            break;*/
-    /*        }*/
-
     err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in do/while conditional",
             stmt->cond->type->name);
@@ -1317,15 +1299,6 @@ static m_bool emit_until(Emitter emit, Stmt_Until stmt) {
     break;
 
   default:
-    // check for IO
-    /*      if(isa(stmt->cond->type, &t_io))*/
-    /*      {*/
-    // push 0
-    /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
-    /*          op = new Chuck_Instr_Branch_Neq_int_IO_good(0);*/
-    /*          break;*/
-    /*      }*/
-
     err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
             "(emit): internal error: unhandled type '%s' in until conditional",
             stmt->cond->type->name);
@@ -1436,21 +1409,11 @@ static m_bool emit_for(Emitter emit, Stmt_For stmt) {
       break;
 
     default:
-      // check for IO
-      /*        if(isa(stmt->c2->d.stmt_exp->type, &t_io))*/
-      /*        {*/
-      // push 0
-      /*          emit->append(new Chuck_Instr_Reg_Push_Imm(0));*/
-      /*          op = new Chuck_Instr_Branch_Eq_int_IO_good(0);*/
-      /*          break;*/
-      /*        }*/
-
       err_msg(EMIT_, stmt->c2->d.stmt_exp.pos, // LCOV_EXCL_START
               "(emit): internal error: unhandled type '%s' in for conditional",
               stmt->c2->d.stmt_exp.val->type->name);
       return -1;
     }                                          // LCOV_EXCL_STOP
-    // append the op
     op = add_instr(emit, f);
   }
 

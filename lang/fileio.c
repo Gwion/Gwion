@@ -8,11 +8,10 @@
 #include "lang.h"
 #include <unistd.h>
 
-struct Type_ t_io      = { "IO",       SZ_INT, &t_event, te_io };
-struct Type_ t_fileio  = { "FileIO",   SZ_INT, &t_io,    te_fileio };
-struct Type_ t_cout    = { "@Cout",    SZ_INT, &t_fileio,    te_fileio };
-struct Type_ t_cerr    = { "@Cerr",    SZ_INT, &t_fileio,    te_fileio };
-struct Type_ t_cin     = { "@Cin",     SZ_INT, &t_fileio,    te_fileio  };
+struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
+struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
+struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio, te_fileio };
+struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio, te_fileio };
 
 static M_Object gw_cin, gw_cout, gw_cerr;
 m_int o_fileio_file;
@@ -225,14 +224,6 @@ SFUN(file_list) {
 
 m_bool import_fileio(Env env) {
   DL_Func* fun;
-
-  // hack
-  CHECK_BB(add_global_type(env, &t_io))
-  CHECK_OB(import_class_begin(env, &t_io, env->global_nspc, NULL, NULL))
-  env->class_def->doc = "io operations";
-  CHECK_BB(import_class_end(env))
-  // !hack
-
 
   CHECK_BB(add_global_type(env, &t_fileio))
   CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))

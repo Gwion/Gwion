@@ -37,7 +37,7 @@ typedef struct UGen_      * UGen;
 typedef enum {
   te_int, te_float, te_dur, te_time, te_now, te_string, te_void, te_function, te_func_ptr,
   te_object, te_class, /* te_user,*/ te_null,
-  te_io, te_fileio, te_polar, te_complex, te_vec3, te_vec4, te_array, te_shred, te_machine, te_event,
+  te_fileio, te_polar, te_complex, te_vec3, te_vec4, te_array, te_shred, te_machine, te_event,
   te_std,
   te_template,
   te_ugen,

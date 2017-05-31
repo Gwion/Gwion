@@ -97,7 +97,6 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   if(import_event(env)     < 0) goto error;
   if(import_ugen(env)      < 0) goto error;
   if(import_array(env)     < 0) goto error;
-  //  if(import_io(env) < 0) goto error;
   start_type_xid();
   if(import_fileio(env)    < 0) goto error;
   if(import_lib(env)       < 0) goto error;
@@ -1381,8 +1380,6 @@ static m_bool check_while(Env env, Stmt_While stmt) {
     break;
 
   default:
-    /*    if(isa(stmt->cond->type, &t_io) > 0)
-          break; */
     err_msg(TYPE_,  stmt->cond->pos,
             "invalid type '%s' in while condition", stmt->cond->type->name);
     return -1;
@@ -1405,9 +1402,6 @@ static m_bool check_until(Env env, Stmt_Until stmt) {
     break;
 
   default:
-    /*    if(isa(stmt->cond->type, &t_io) > 0)
-          break; */
-
     err_msg(TYPE_,  stmt->cond->pos,
             "invalid type '%s' in until condition", stmt->cond->type->name);
     return -1;
@@ -1435,11 +1429,6 @@ static m_bool check_for(Env env, Stmt_For stmt) {
     break;
 
   default:
-    // check for IO
-    /*    if(isa(stmt->c2->d.stmt_exp->type, &t_io) > 0)
-          break; */
-
-    // error
     err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
             "invalid type '%s' in for condition", stmt->c2->d.stmt_exp.val->type->name);
     return -1;
@@ -1480,12 +1469,8 @@ static m_bool check_if(Env env, Stmt_If stmt) {
     break;
 
   default:
-    // check for IO
-    /*    if(isa(stmt->cond->type, &t_io) > 0)
-          break; */
     if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
       break;
-    // error
     err_msg(TYPE_, stmt->cond->pos,
             "invalid type '%s' in if condition", stmt->cond->type->name);
     return -1;
