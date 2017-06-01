@@ -50,7 +50,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
       while(n--)  {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        void* handler = dlopen(c, RTLD_LAZY);
+        void* handler = dlopen(c, RTLD_LAZY | RTLD_GLOBAL);
         {
           if(!handler) {
             m_str err = dlerror();
@@ -1152,6 +1152,21 @@ static m_bool check_func_ptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
+static Type check_spork2(Env env, Stmt stmt){
+  if(env->func) {
+    env->class_scope++;
+    namespace_push_value(env->curr);
+    int ret = check_stmt(env, stmt);
+    namespace_pop_value(env->curr);
+    env->class_scope--;
+    CHECK_BO(ret)
+    return &t_shred;
+  } else if(check_stmt(env, stmt) < 0) {
+    err_msg(TYPE_, stmt->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
+    return NULL;                                                          // LCOV_EXCL_LINE
+  }
+  return &t_shred;
+}
 static Type check_unary(Env env, Unary_Expression* exp_unary) {
   Type t = NULL;
 
@@ -1182,21 +1197,7 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
       if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type)
         return &t_shred;
       else if(exp_unary->code) {
-        if(env->func) {
-          env->class_scope++;
-          namespace_push_value(env->curr);
-          int ret = check_stmt(env, exp_unary->code);
-          namespace_pop_value(env->curr);
-          env->class_scope--;
-          if(ret < 0)
-            return NULL;
-          else return &t_shred;
-          break;
-        } else if(check_stmt(env, exp_unary->code) < 0) {
-          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
-          break;                                                                // LCOV_EXCL_LINE
-        }
-        return &t_shred;
+        return check_spork2(env, exp_unary->code);
       } else {
         err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
         return NULL;

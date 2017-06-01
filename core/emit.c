@@ -807,6 +807,43 @@ static m_bool emit_spork(Emitter emit, Func_Call* exp) {
   return 1;
 }
 
+static m_bool emit_spork2(Emitter emit, Stmt stmt) {
+  Instr instr, op, push, push_code, spork;
+  VM_Code code;
+  ID_List list = new_id_list("sporked", stmt->pos);
+  Func_Def def = new_func_def(0, 0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos);
+  Func f = new_func("sporked", def);
+
+  if(emit->env->class_def)
+    sadd_instr(emit, Reg_Push_This);
+  push = add_instr(emit, Reg_Push_Imm);
+  push->m_val = (m_uint)f;
+
+  vector_append(emit->stack, (vtype)emit->code);
+  emit->code = new_code();
+  f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
+  emit->code->name = strdup("spork~code");
+  emit->code->filename = strdup(emit->filename);
+  op = add_instr(emit, Mem_Push_Imm);
+  vector_append(emit->spork, (vtype)f);
+  frame_push_scope(emit->code->frame);
+
+  sadd_instr(emit, start_gc);
+  CHECK_BB(emit_stmt(emit, stmt, 0))
+  sadd_instr(emit, stop_gc);
+  emit_pop_scope(emit);
+  instr = add_instr(emit, EOC);
+  op->m_val = emit->code->stack_depth;
+  code = emit_to_code(emit);
+  emit->code = (Code*)vector_pop(emit->stack);
+  push_code = add_instr(emit, Reg_Push_Imm);
+  push_code->m_val = (m_uint)code;
+  spork = add_instr(emit, Spork);
+  spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
+  spork->m_val2 = (m_uint)code;
+  return 1;
+}
+
 static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "exp_unary");
@@ -817,47 +854,11 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
     return -1;
   switch(exp_unary->op) {
   case op_spork:
-    if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type) {
+    if(exp_unary->exp && exp_unary->exp->exp_type == Func_Call_type)
       CHECK_BB(emit_spork(emit, &exp_unary->exp->d.exp_func))
-    } else if(exp_unary->code) {
-      Instr op = NULL, push_code = NULL, spork = NULL;
-      VM_Code code;
-      ID_List list = new_id_list("sporked", exp_unary->pos);
-      Func f = new_func("sporked", new_func_def(0, 0, new_type_decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
-
-      if(emit->env->class_def)
-        sadd_instr(emit, Reg_Push_This);
-      Instr push = add_instr(emit, Reg_Push_Imm);
-      push->m_val = (m_uint)f;
-
-      vector_append(emit->stack, (vtype)emit->code);
-      emit->code = new_code();
-      f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
-      emit->code->name = strdup("spork~code");
-      emit->code->filename = strdup(emit->filename);
-      op = add_instr(emit, Mem_Push_Imm);
-      vector_append(emit->spork, (vtype)f);
-      frame_push_scope(emit->code->frame);
-
-      sadd_instr(emit, start_gc);
-      CHECK_BB(emit_stmt(emit, exp_unary->code, 0))
-      sadd_instr(emit, stop_gc);
-      emit_pop_scope(emit);
-      instr = add_instr(emit, EOC);
-      op->m_val = emit->code->stack_depth;
-      code = emit_to_code(emit);
-      emit->code = (Code*)vector_pop(emit->stack);
-      push_code = add_instr(emit, Reg_Push_Imm);
-      push_code->m_val = (m_uint)code;
-      spork = add_instr(emit, Spork);
-      spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
-      spork->m_val2 = (m_uint)code;
-    } else {
-      err_msg(EMIT_, exp_unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE
-      return -1;                                                                               // LCOV_EXCL_LINE
-    }
+    else if(exp_unary->code)
+      CHECK_BB(emit_spork2(emit, exp_unary->code))
     break;
-
   case op_new:
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
