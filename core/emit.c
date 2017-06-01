@@ -187,28 +187,18 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return 1;
   } else {
     Kindof kind = kindof(v->m_type);
-    instr = add_instr(emit, NULL); // dangerous
+    f_instr f;
+    switch(kind) {
+      case Kindof_Int:     f = Reg_Push_Mem;         break;
+      case Kindof_Float:   f = Reg_Push_Mem2;        break;
+      case Kindof_Complex: f = Reg_Push_Mem_Complex; break;
+      case Kindof_Vec3:    f = Reg_Push_Mem_Vec3;    break;
+      case Kindof_Vec4:    f = Reg_Push_Mem_Vec4;    break;
+      case Kindof_Void:                              break; // unreachable
+    }
+    instr = add_instr(emit, f);
     instr->m_val = v->offset;
     instr->m_val2 = GET_FLAG(v, ae_value_global);
-    switch(kind) {
-    case Kindof_Int:
-      instr->execute = Reg_Push_Mem;
-      break;
-    case Kindof_Float:
-      instr->execute = Reg_Push_Mem2;
-      break;
-    case Kindof_Complex:
-      instr->execute = Reg_Push_Mem_Complex;
-      break;
-    case Kindof_Vec3:
-      instr->execute = Reg_Push_Mem_Vec3;
-      break;
-    case Kindof_Vec4:
-      instr->execute = Reg_Push_Mem_Vec4;
-      break;
-    case Kindof_Void:
-      break; // unreachable
-    }
   }
   return 1;
 
