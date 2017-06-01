@@ -557,7 +557,9 @@ m_bool import_float(Env env) {
   CHECK_BB(add_binary_op(env, op_le, 			 	    &t_float, &t_float, &t_int, le,          0))
 // unary
   CHECK_BB(add_binary_op(env, op_minus,         NULL,   &t_float, &t_float, negatef,     0))
-  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_int,   &t_float, notf,        0))
+  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_float,   &t_int,  notf,        0))
+  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_time,    &t_int,  notf,        0))
+  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_dur,    &t_int,  notf,        0))
 // reverse arithmetic
   CHECK_BB(add_binary_op(env, op_chuck,         &t_float, &t_float, &t_float, r_assign,  0))
   CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_float, &t_float, &t_float, r_plus,    0))

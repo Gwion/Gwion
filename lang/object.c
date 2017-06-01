@@ -259,7 +259,7 @@ m_bool import_object(Env env) {
   CHECK_BB(add_binary_op(env, op_neq, &t_null,   &t_object, &t_int, neq_Object, 1))
   CHECK_BB(add_binary_op(env, op_eq,  &t_object, &t_null, &t_int,  eq_Object, 1))
   CHECK_BB(add_binary_op(env, op_neq, &t_object, &t_null, &t_int, neq_Object, 1))
-
+  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_object, &t_int, not,        1))
   CHECK_BB(import_class_end(env))
   CHECK_BB(add_global_type(env, &t_vararg))
   CHECK_BB(add_global_type(env, &t_varobj))

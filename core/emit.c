@@ -859,7 +859,6 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
     break;
 
   case op_new:
-    if(isa(exp_unary->self->type, &t_object) > 0)
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
   default:
