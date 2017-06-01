@@ -425,10 +425,10 @@ static m_bool emit_decl_expression(Emitter emit, Decl_Expression* decl) {
         case Kindof_Float:    f = Alloc_Word_Float;   break;
         case Kindof_Complex:  f = Alloc_Word_Complex; break;
         case Kindof_Vec3:     f = Alloc_Word_Vec3;    break;
-        case Kindof_Vec4:     f  = Alloc_Word_Vec4;   break;
+        case Kindof_Vec4:     f = Alloc_Word_Vec4;    break;
         case Kindof_Void:                             break;
         }
-        alloc_g   = add_instr(emit, Alloc_Word);
+        alloc_g   = add_instr(emit, f);
         alloc_g->m_val  = local->offset;
         alloc_g->m_val2 = GET_FLAG(value, ae_value_global);
       } else { // static
