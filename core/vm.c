@@ -53,6 +53,7 @@ VM_Shred new_VM_Shred(VM_Code c) {
   shred->_reg       = calloc(SIZEOF_REG, sizeof(char));
   shred->reg        = shred->_reg;
   shred->mem        = shred->base;
+  shred->_mem       = shred->base;
   shred->code       = c;
   shred->is_running = 1;
   shred->xid        = -1;
@@ -163,7 +164,7 @@ void vm_run(VM* vm) {
         instr->execute(vm, shred, instr);
 #ifdef DEBUG_STACK
       debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
-                shred->mem - shred->base, shred->reg - shred->_reg);
+                shred->mem - shred->_mem, shred->reg - shred->_reg);
 #endif
 #ifdef DEBUG_VM
       debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc, shred->next_pc, vector_size(shred->code->instr));

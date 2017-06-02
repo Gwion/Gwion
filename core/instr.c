@@ -548,13 +548,10 @@ INSTR(Spork) {
   if(func->is_member) {
     POP_REG(shred,  SZ_INT);
     this_ptr = *(m_uint*)shred->reg;
-    // add to shred so it's ref counted, and released when shred done (1.3.1.2)
     /*    sh->add_parent_ref((Chuck_Object *)this_ptr);*/
   }
   POP_REG(shred,  instr->m_val);
   memcpy(sh->reg, shred->reg, instr->m_val);
-  /*  if(instr->ptr)*/
-  /*    memcpy(sh->reg, shred->reg, sizeof(shred->reg));*/
   if(instr->ptr)
     memcpy(sh->mem, shred->mem, (m_uint)instr->ptr);
   PUSH_REG(sh, instr->m_val);
@@ -595,6 +592,7 @@ INSTR(Instr_Func_Call) {
   prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)(shred->mem - SZ_INT);
   push = prev_stack + local_depth;
   next = shred->pc + 1;
+
   PUSH_MEM(shred, push);
   *(m_uint*)(shred->mem)  = push;
   PUSH_MEM(shred,  SZ_INT);
