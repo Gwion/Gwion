@@ -194,9 +194,8 @@ static m_bool import_gain(Env env)
 static struct Type_ t_impulse      = { "Impulse", SZ_INT, &t_ugen };
 static m_bool impulse_tick(UGen u)
 {
-//  u->out = *(m_float*)u->ug;
+  u->out = *(m_float*)u->ug;
   *(m_float*)u->ug = 0;
-//	u->done = 1;
   return 1;
 }
 
