@@ -332,12 +332,14 @@ static m_bool emit_primary_expression(Emitter emit, Primary_Expression* primary)
   case ae_primary_char:
     instr = add_instr(emit, Reg_Push_Imm);
     instr->m_val = str2char(primary->d.chr, primary->pos);
+    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_float:
     memcpy(&f, &primary->d.fnum, sizeof(f));
     instr = add_instr(emit, Reg_Push_Imm2);
     instr->f_val = f;
+    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_complex:
