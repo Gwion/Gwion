@@ -48,11 +48,11 @@ m_uint m_vector_size(M_Vector v) {
   return v->len;
 }
 
-m_uint m_vector_depth(M_Vector v) {
+static inline m_uint m_vector_depth(M_Vector v) {
   return v->depth;
 }
 
-m_uint m_vector_cap(M_Vector v) {
+static inline m_uint m_vector_cap(M_Vector v) {
   return v->cap;
 }
 
