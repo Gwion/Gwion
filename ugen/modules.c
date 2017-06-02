@@ -306,7 +306,7 @@ static void step_ctor(M_Object o, VM_Shred shred)
 {
   assign_ugen(o->ugen, 0, 1, 0, malloc(sizeof(m_float)));
   o->ugen->tick = step_tick;
-  *(m_float*)o->ugen->ug = 1;
+  *(m_float*)o->ugen->ug = 0;
 }
 
 static void step_dtor(M_Object o, VM_Shred shred)
