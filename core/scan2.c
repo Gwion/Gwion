@@ -397,7 +397,7 @@ static m_bool scan2_if(Env env, Stmt_If stmt) {
   CHECK_BB(scan2_stmt(env, stmt->if_body))
   if(stmt->else_body)
     CHECK_BB(scan2_stmt(env, stmt->else_body))
-    return 1;
+  return 1;
 }
 
 static m_bool scan2_until(Env env, Stmt_Until stmt) {

@@ -47,7 +47,7 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   m_uint i;
   for(i = 0; i < vector_size(v); i++) {
     M_Operator* mo = (M_Operator*)vector_at(v, i);
-    if((lhs && mo->lhs && mo->lhs->xid == lhs->xid || (!lhs && ! mo->lhs)) &&
+    if(((lhs && mo->lhs && mo->lhs->xid == lhs->xid) || (!lhs && ! mo->lhs)) &&
         ((mo->rhs && mo->rhs->xid == rhs->xid) || (!rhs && !mo->rhs)))
       return mo;
   }

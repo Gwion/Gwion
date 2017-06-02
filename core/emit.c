@@ -188,7 +188,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   } else {
     Kindof kind = kindof(v->m_type);
     Instr instr;
-    f_instr f;
+    f_instr f = NULL;
     switch(kind) {
     case Kindof_Int:     f = Reg_Push_Mem;         break;
     case Kindof_Float:   f = Reg_Push_Mem2;        break;
@@ -251,20 +251,8 @@ static m_bool emit_array(Emitter emit, Array* array) {
   base_type = array->base->type;
   is_var = array->self->emit_var;
   depth = base_type->array_depth - type->array_depth;
-  if(!depth) {
-    err_msg(EMIT_, array->pos, "internal error: array with 0 depth..."); // LCOV_EXCL_LINE
-    return -1;                                                           // LCOV_EXCL_LINE
-  }
   sub = array->indices;
-  if(!sub) {
-    err_msg(EMIT_, array->pos, "internal error: NULL array sub...");     // LCOV_EXCL_LINE
-    return -1;                                                           // LCOV_EXCL_LINE
-  }
   exp = sub->exp_list;
-  if(!exp) {
-    err_msg(EMIT_, array->pos, "internal error: NULL array exp...");     // LCOV_EXCL_LINE
-    return -1;                                                           // LCOV_EXCL_LINE
-  }
   CHECK_BB(emit_expression(emit, array->base, 0))
   CHECK_BB(emit_expression(emit, exp, 0))
   if(depth == 1) {
@@ -386,6 +374,8 @@ static m_bool emit_decl_expression(Emitter emit, Decl_Expression* decl) {
 #endif
   Decl_Expression* exp = decl;
   Var_Decl_List list = exp->list;
+  f_instr f = NULL;
+  Instr alloc;
 
   while(list) {
     Var_Decl var_decl = list->self;
@@ -395,16 +385,9 @@ static m_bool emit_decl_expression(Emitter emit, Decl_Expression* decl) {
     m_bool is_ref = decl->type->ref;
     Kindof kind = kindof(type);
 
-    if(is_obj) {
-      if(list->self->array) {
-        if(list->self->array->exp_list)
-          CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
-        } else if(!is_ref)
-        CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
-      }
+    if(is_obj && ((list->self->array && list->self->array->exp_list) || !is_ref))
+      CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
     if(GET_FLAG(value, ae_value_member)) {
-      f_instr f;
-      Instr alloc_m;
       switch(kind)  {
         case Kindof_Int:     f = Alloc_Member_Word;         break;
         case Kindof_Float:   f = Alloc_Member_Word_Float;   break;
@@ -413,28 +396,26 @@ static m_bool emit_decl_expression(Emitter emit, Decl_Expression* decl) {
         case Kindof_Vec4:    f = Alloc_Member_Word_Vec4;    break;
         case Kindof_Void:                                   break;
       }
-      alloc_m = add_instr(emit, f);
-      alloc_m->m_val = value->offset;
+      alloc = add_instr(emit, f);
+      alloc->m_val = value->offset;
     } else {
       if(!emit->env->class_def || !decl->is_static) {
-        f_instr f;
-        Instr alloc_g;
         Local* local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
         CHECK_OB(local)
         value->offset   = local->offset;
         switch(kind)  {
-        case Kindof_Int:      f = Alloc_Word;         break;
-        case Kindof_Float:    f = Alloc_Word_Float;   break;
-        case Kindof_Complex:  f = Alloc_Word_Complex; break;
-        case Kindof_Vec3:     f = Alloc_Word_Vec3;    break;
-        case Kindof_Vec4:     f = Alloc_Word_Vec4;    break;
-        case Kindof_Void:                             break;
+          case Kindof_Int:      f = Alloc_Word;         break;
+          case Kindof_Float:    f = Alloc_Word_Float;   break;
+          case Kindof_Complex:  f = Alloc_Word_Complex; break;
+          case Kindof_Vec3:     f = Alloc_Word_Vec3;    break;
+          case Kindof_Vec4:     f = Alloc_Word_Vec4;    break;
+          case Kindof_Void:                             break;
         }
-        alloc_g   = add_instr(emit, f);
-        alloc_g->m_val  = local->offset;
-        alloc_g->m_val2 = GET_FLAG(value, ae_value_global);
+        alloc   = add_instr(emit, f);
+        alloc->m_val  = value->offset;
+        alloc->m_val2 = GET_FLAG(value, ae_value_global);
       } else { // static
-        if(is_obj) {
+        if(is_obj && !is_ref) {
           Code* code = emit->code;
           emit->code = (Code*)vector_back(emit->stack);
           CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
@@ -571,24 +552,23 @@ static m_bool emit_binary_expression(Emitter emit, Binary_Expression* binary) {
     CHECK_BB(emit_expression(emit, binary->rhs, 1))
     instr = add_instr(emit, assign_func);
     switch(binary->rhs->exp_type) {
-    case Dot_Member_type:
-      v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-      instr->m_val2 = v->offset;
-      instr->m_val = 1;
-      break;
-    case Primary_Expression_type:
-      if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_value_member)) {
-        v = binary->rhs->d.exp_primary.value;
-        instr->m_val = 1;
+      case Dot_Member_type:
+        v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
         instr->m_val2 = v->offset;
-      }
-      break;
-    case Decl_Expression_type:
-      v = binary->rhs->d.exp_decl.list->self->value;
-      instr->m_val2 = v->offset;
-      break;
-    default: // LCOV_EXCL_LINE // won't reach anyway.
-      break; // LCOV_EXCL_LINE
+        instr->m_val = 1;
+        break;
+      case Primary_Expression_type:
+        if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_value_member)) {
+          v = binary->rhs->d.exp_primary.value;
+          instr->m_val2 = v->offset;
+          instr->m_val = 1;
+        }
+        break;
+      case Decl_Expression_type:
+        v = binary->rhs->d.exp_decl.list->self->value;
+        instr->m_val2 = v->offset;
+        break;
+      default: return -1;
     }
     return 1;
   }
@@ -787,8 +767,7 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "exp_unary");
 #endif
-  Instr instr;
-  Type t = exp_unary->self->type;
+
   if(exp_unary->op != op_spork && emit_expression(emit, exp_unary->exp, 0) < 0)
     return -1;
   switch(exp_unary->op) {
@@ -819,7 +798,7 @@ static m_bool emit_unary(Emitter emit, Unary_Expression* exp_unary) {
       CHECK_BB(emit_stmt(emit, exp_unary->code, 0))
       sadd_instr(emit, stop_gc);
       emit_pop_scope(emit);
-      instr = add_instr(emit, EOC);
+      sadd_instr(emit, EOC);
       op->m_val = emit->code->stack_depth;
       code = emit_to_code(emit);
       emit->code = (Code*)vector_pop(emit->stack);
