@@ -44,8 +44,13 @@ INSTR(Reg_Push_Imm2) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
 #endif
-  *(m_float*)(shred->reg) = instr->f_val;
-  PUSH_REG(shred,  SZ_FLOAT);
+  if(instr->m_val) {
+    *(m_float**)(shred->reg) = &instr->f_val;
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    *(m_float*)(shred->reg) = instr->f_val;
+    PUSH_REG(shred,  SZ_FLOAT);
+  }
 }
 
 INSTR(Reg_Push_ImmC) {
@@ -566,13 +571,15 @@ INSTR(Spork) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-void handle_overflow(VM_Shred shred) { // LCOV_EXCL_START
+// LCOV_EXCL_START
+void handle_overflow(VM_Shred shred) {
   fprintf(stderr,
           "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
           shred->xid, shred->name, shred->pc);
   shred->is_running = 0;
   shred->is_done = 1;
-} // LCOV_EXCL_STOP
+}
+ // LCOV_EXCL_STOP
 
 INSTR(Instr_Func_Call) {
 #ifdef DEBUG_INSTR
