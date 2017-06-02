@@ -35,16 +35,7 @@ static m_str get_doc(void* data)
   vector_remove(arg->doc, 0);
   return ret;
 }
-/*
-static m_str get_arg_doc(void* data)
-{
-  m_str ret;
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  ret = (m_str)vector_back(arg->doc);
-  vector_pop(arg->doc);
-  return ret;
-}
-*/
+
 %}
 
 %union {
