@@ -67,26 +67,31 @@ __inline void ref_compute(UGen u) {
 void ugen_compute(UGen u) {
   m_uint  i;
   UGen ugen;
-  if(!u || u->done)
+  if(!u || u->done == 1)
     return;
+  if(u->done == 2) {
+    u->out = u->last;
+    return;
+  }
   u->last = u->out;
-  u->done = 1;
+  u->done = 2;
   if(u->channel)
-    for(i = u->n_out; --i;)
+    for(i = u->n_out + 1; --i;)
       ugen_compute(u->channel[i-1]->ugen);
   else {
     for(i = vector_size(u->ugen) + 1; --i;) {
       ugen = (UGen)vector_at(u->ugen, i - 1);
-      if(!ugen->done)
-        ugen_compute(ugen);
+      ugen_compute(ugen);
     }
   }
   if(u->ref) {
     for(i = u->ref->n_chan + 1; --i;) {
       ugen = u->ref->channel[i -1]->ugen;
       ugen->tick(ugen);
+      ugen->done = 1;
     }
     ref_compute(u->ref);
+    u->done = 1;
     return;
   }
   u->tick(u);
@@ -99,6 +104,7 @@ void ugen_compute(UGen u) {
     u->last = sum / u->n_out;
   } else
     u->last = u->out;
+  u->done = 1;
 }
 
 UGen new_UGen() {
