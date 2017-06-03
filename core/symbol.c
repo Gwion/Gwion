@@ -23,9 +23,8 @@ struct S_Symbol_ {
 static S_Symbol hashtable[SIZE];
 
 static S_Symbol mksymbol(const m_str name, S_Symbol next) {
-  S_Symbol s = calloc(1, sizeof(*s));
-  s->name = calloc(1, strlen(name) + 1);
-  strcpy(s->name, (m_str)name);
+  S_Symbol s = malloc(sizeof(*s));
+  s->name = strdup(name);
   s->next = next;
   return s;
 }
