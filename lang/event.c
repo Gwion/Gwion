@@ -20,11 +20,12 @@ static INSTR(Event_Wait) {
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
 #endif
   M_Object event;
+  Vector v;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)shred->reg;
+  v = EV_SHREDS(event);
   shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
-  Vector v = EV_SHREDS(event);
   vector_append(v, (vtype)shred);
   shred->next_pc++;
   *(m_int*)shred->reg = 1;
@@ -32,28 +33,29 @@ static INSTR(Event_Wait) {
   release(event, shred);
 }
 
+static void _signal(VM_Shred sh) {
+  Shreduler s = sh->vm_ref->shreduler;
+  sh->wait = NULL;
+  shredule(s, sh, get_now(s) + .5);
+}
+
 static MFUN(event_signal) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event signal");
 #endif
-  VM_Shred sh;
   Vector v = EV_SHREDS(o);
   RETURN->d.v_uint = vector_size(v);
-  sh = (VM_Shred)vector_front(v);
-  sh->wait = NULL;
-  shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);
+  _signal((VM_Shred)vector_front(v));
   vector_remove(v, 0);
 }
 
+
 void broadcast(M_Object o) {
   m_uint i;
-  VM_Shred sh;
-  for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
-    sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
-    sh->wait = NULL;
-    shredule(sh->vm_ref->shreduler, sh, get_now(sh->vm_ref->shreduler) + .5);
-  }
-  vector_clear(EV_SHREDS(o));
+  Vector v = EV_SHREDS(o);
+  for(i = 0; i < vector_size(v); i++)
+    _signal((VM_Shred)vector_at(v, i));
+  vector_clear(v);
 }
 
 static MFUN(event_broadcast) {
