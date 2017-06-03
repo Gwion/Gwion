@@ -11,6 +11,7 @@ static m_bool do_type_xid = 0;
 m_uint get_type_xid() {
   return type_xid++;
 }
+
 int verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1) {
@@ -35,22 +36,17 @@ int isa(Type var, Type parent) {
 }
 
 int isres(Env env, S_Symbol xid, int pos) {
-  if(!strcmp(S_name(xid), "this"))
-    goto error;
-  if(!strcmp(S_name(xid), "now"))
+  m_str str = S_name(xid);
+  if(!strcmp(str, "this") || !strcmp(str, "now"))
     goto error;
   return -1;
 error:
-  err_msg(UTIL_, 0, "%s is reserved.", S_name(xid));
+  err_msg(UTIL_, 0, "%s is reserved.", str);
   return 1;
 }
 
 int isprim(Type type) {
-  if(type->array_depth)
-    return -1;
-  if(isa(type, &t_object) > 0)
-    return -1;
-  return 1;
+  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
 }
 
 Type find_type(Env env, ID_List path) {
@@ -96,8 +92,7 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
     v->ptr = data;
   v->owner = env->global_nspc;
   namespace_add_value(env->global_nspc, insert_symbol(name), v);
-  // doc
-  context_add_value(env->global_context, v, &v->obj);
+  context_add_value(env->global_context, v, &v->obj); // was for doc.
   return 1;
 }
 
@@ -125,7 +120,6 @@ m_bool add_global_type(Env env, Type type) {
     CHECK_BB(name_valid(type->name));
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
-  INIT_OO(type, e_type_obj);
   namespace_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_value(v_type, type->name);
   SET_FLAG(v, ae_value_checked);
@@ -198,27 +192,16 @@ Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc)
 m_int str2char(const m_str c, m_int linepos) {
   if(c[0] == '\\') {
     switch(c[1]) {
-    case '0':
-      return '\0';
-    case '\'':
-      return '\'';
-    case '\\':
-      return '\\';
-    case 'a':
-      return '\a';
-    case 'b':
-      return '\b';
-    case 'f':
-      return '\f';
-    case 'n':
-      return '\n';
-    case 'r':
-      return '\r';
-    case 't':
-      return '\t';
-    case 'v':
-      return 'v';
-
+      case '0':  return '\0';
+      case '\'': return '\'';
+    case '\\':   return '\\';
+    case 'a':    return '\a';
+    case 'b':    return '\b';
+    case 'f':    return '\f';
+    case 'n':    return '\n';
+    case 'r':    return '\r';
+    case 't':    return '\t';
+    case 'v':    return 'v';
     default:
       err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
       return -1;
