@@ -35,7 +35,7 @@ extern void  map_commit(Map map, Map commit);
 extern vtype map_size(Map map);
 extern void  free_Map(Map map);
 
-extern Scope  new_Scope();
+extern Scope  new_scope();
 extern Vector scope_get(Scope a);
 extern vtype  scope_lookup(Scope scope, S_Symbol xid, m_bool climb);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
@@ -44,5 +44,5 @@ extern void   scope_commit(Scope scope);
 //extern void   scope_rollback(Scope scope, void (*_free)(vtype arg));
 extern void   scope_push(Scope scope);
 extern void   scope_pop(Scope scope);
-extern void   free_Scope(Scope a);
+extern void   free_scope(Scope a);
 #endif

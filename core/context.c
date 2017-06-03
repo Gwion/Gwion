@@ -7,11 +7,9 @@
 
 Context new_context(Ast prog, m_str filename) {
   Context context = malloc(sizeof(struct Context_));
-  context->nspc = new_NameSpace();
-  context->nspc->filename = filename;
+  context->nspc = new_nspc(filename, filename);
   context->tree = prog;
   context->filename = filename;
-  context->nspc->name = filename;
   context->new_funcs = new_vector();
   context->new_values = new_vector();
   context->new_types = new_vector();
@@ -60,7 +58,7 @@ m_bool load_context(Context context, Env env) {
   vector_append(env->contexts, (vtype)env->context);
   env->context = context;
   ADD_REF(env->context);
-  namespace_push_value(context->nspc);
+  nspc_push_value(context->nspc);
   vector_append(env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
   env->curr = context->nspc;
@@ -68,8 +66,8 @@ m_bool load_context(Context context, Env env) {
 }
 
 m_bool unload_context(Context context, Env env) {
-  namespace_pop_value(env->context->nspc);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+  nspc_pop_value(env->context->nspc);
+  env->curr = (Nspc)vector_pop(env->nspc_stack);
   REM_REF(env->context);
   env->context = (Context)vector_pop(env->contexts);
   return 1;

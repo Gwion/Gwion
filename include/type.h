@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "defs.h"
 #include "symbol.h"
-#include "namespace.h"
+#include "nspc.h"
 #include "env.h"
 #include "value.h"
 #include "dl.h"
@@ -16,8 +16,8 @@ struct Type_ {
   m_uint    size;
   Type      parent;
   te_type   xid;
-  NameSpace info;
-  NameSpace owner;
+  Nspc info;
+  Nspc owner;
   Func      func;
   Type      actual_type;
   m_uint    array_depth;
@@ -47,7 +47,7 @@ int isprim(Type type);
 int isa(Type var, Type parent);
 int isres(Env env, S_Symbol xid, int pos);
 int verify_array(Array_Sub array);
-Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc);
+Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc);
 static inline Type find_common_anc(Type lhs, Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
 }

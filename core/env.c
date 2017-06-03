@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "env.h"
 #include "context.h"
-#include "namespace.h"
+#include "nspc.h"
 
 Env new_env() {
   Env env = calloc(1, sizeof(struct Env_));
@@ -11,9 +11,7 @@ Env new_env() {
   env->class_stack = new_vector();
   env->nspc_stack = new_vector();
   env->class_scope = 0;
-  env->global_nspc = new_NameSpace();
-  env->global_nspc->name = "global_nspc";
-  env->global_nspc->filename = "global_nspc";
+  env->global_nspc = new_nspc("global_nspc", "global_nspc");
   env->curr = env->global_nspc;
   env->breaks = new_vector();
   env->conts = new_vector();
@@ -56,7 +54,7 @@ void free_env(Env a) {
   free_Map(a->known_ctx);
 
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
-    NameSpace  nspc = (NameSpace)vector_pop(a->nspc_stack);
+    Nspc  nspc = (Nspc)vector_pop(a->nspc_stack);
     REM_REF(nspc);
   }
   free_vector(a->nspc_stack);

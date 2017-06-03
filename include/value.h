@@ -9,7 +9,7 @@ struct Value_ {
   Func func_ref;
   m_uint offset;
   m_uint func_num_overloads;
-  NameSpace owner;
+  Nspc owner;
   Type owner_class;
   m_str doc;
   m_uint flag;

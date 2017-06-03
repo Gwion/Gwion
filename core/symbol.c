@@ -30,21 +30,18 @@ static S_Symbol mksymbol(const m_str name, S_Symbol next) {
 }
 
 static void free_Symbol(S_Symbol s) {
+  if(s->next)
+    free_Symbol(s->next);
   free(s->name);
   free(s);
 }
+
 void free_Symbols() {
   int i;
   for(i = 0; i < SIZE; i++) {
     S_Symbol s = hashtable[i];
-    if(s) {
-      S_Symbol tmp, next = s;
-      while(next) {
-        tmp = next;
-        next = next->next;
-        free_Symbol(tmp);
-      }
-    }
+    if(s)
+      free_Symbol(s);
   }
 }
 
@@ -57,16 +54,13 @@ static unsigned int hash(const char *s0) {
 }
 
 S_Symbol insert_symbol(const m_str name) {
-  S_Symbol syms = NULL, sym;
-  int index;
-  index = hash(name) % SIZE;
-  syms = hashtable[index];
+  int index = hash(name) % SIZE;
+  S_Symbol sym, syms = hashtable[index];
+
   for(sym = syms; sym; sym = sym->next)
     if(!strcmp(sym->name, (m_str)name))
       return sym;
-  sym = mksymbol(name, syms);
-  hashtable[index] = sym;
-  return sym;
+  return hashtable[index] = mksymbol(name, syms);
 }
 
 m_str S_name(S_Symbol sym) {

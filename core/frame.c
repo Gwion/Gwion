@@ -36,10 +36,8 @@ void frame_pop_scope(Frame* frame, Vector v) {
   m_uint i;
   while((i = vector_size(frame->stack) && vector_back(frame->stack))) {
     Local* local = (Local*)vector_pop(frame->stack);
-    if(local) {
-      frame->curr_offset -= local->size;
-      vector_append(v, (vtype)local);
-    }
+    frame->curr_offset -= local->size;
+    vector_append(v, (vtype)local);
   }
   vector_pop(frame->stack);
 }

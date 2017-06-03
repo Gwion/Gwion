@@ -11,7 +11,6 @@ static m_bool do_type_xid = 0;
 m_uint get_type_xid() {
   return type_xid++;
 }
-
 int verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1) {
@@ -36,24 +35,29 @@ int isa(Type var, Type parent) {
 }
 
 int isres(Env env, S_Symbol xid, int pos) {
-  m_str str = S_name(xid);
-  if(!strcmp(str, "this") || !strcmp(str, "now"))
+  if(!strcmp(S_name(xid), "this"))
+    goto error;
+  if(!strcmp(S_name(xid), "now"))
     goto error;
   return -1;
 error:
-  err_msg(UTIL_, 0, "%s is reserved.", str);
+  err_msg(UTIL_, 0, "%s is reserved.", S_name(xid));
   return 1;
 }
 
 int isprim(Type type) {
-  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
+  if(type->array_depth)
+    return -1;
+  if(isa(type, &t_object) > 0)
+    return -1;
+  return 1;
 }
 
 Type find_type(Env env, ID_List path) {
   S_Symbol xid = NULL;
-  NameSpace nspc;
+  Nspc nspc;
   Type t = NULL;
-  Type type = namespace_lookup_type(env->curr, path->xid, 1);
+  Type type = nspc_lookup_type(env->curr, path->xid, 1);
   if(!type)
     return NULL;
   nspc = type->info;
@@ -61,14 +65,14 @@ Type find_type(Env env, ID_List path) {
 
   while(path) {
     xid = path->xid;
-    t = namespace_lookup_type(nspc, xid, 1);
+    t = nspc_lookup_type(nspc, xid, 1);
     while(!t && type && type->parent) {
-      t = namespace_lookup_type(type->parent->info, xid, -1);
+      t = nspc_lookup_type(type->parent->info, xid, -1);
       type = type->parent;
     }
     if(!t) {
       err_msg(UTIL_, path->pos,
-              "...(cannot find class '%s' in namespace '%s')",
+              "...(cannot find class '%s' in nspc '%s')",
               S_name(xid), nspc->name);
       return NULL;
     }
@@ -91,8 +95,9 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   if(data)
     v->ptr = data;
   v->owner = env->global_nspc;
-  namespace_add_value(env->global_nspc, insert_symbol(name), v);
-  context_add_value(env->global_context, v, &v->obj); // was for doc.
+  nspc_add_value(env->global_nspc, insert_symbol(name), v);
+  // doc
+  context_add_value(env->global_context, v, &v->obj);
   return 1;
 }
 
@@ -120,12 +125,13 @@ m_bool add_global_type(Env env, Type type) {
     CHECK_BB(name_valid(type->name));
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
-  namespace_add_type(env->curr, insert_symbol(type->name), type);
+  INIT_OO(type, e_type_obj);
+  nspc_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_value(v_type, type->name);
   SET_FLAG(v, ae_value_checked);
   SET_FLAG(v, ae_value_const);
   SET_FLAG(v, ae_value_global);
-  namespace_add_value(env->curr, insert_symbol(type->name), v);
+  nspc_add_value(env->curr, insert_symbol(type->name), v);
 //  context_add_type(env->global_context, type, &type->obj);
   type->owner = env->curr;
   if(do_type_xid) {
@@ -139,7 +145,7 @@ Value find_value(Type type, S_Symbol xid) {
   Value value = NULL;
   if(!type || !type->info)
     return NULL;
-  if((value = namespace_lookup_value(type->info, xid, -1)))
+  if((value = nspc_lookup_value(type->info, xid, -1)))
     return value;
   if(type->parent)
     return find_value(type->parent, xid);
@@ -177,7 +183,7 @@ Kindof kindof(Type type) {
 }
 
 
-Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc) {
+Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
   Type t = new_type(te_array, base_type->name);
   t->parent = &t_array;
   t->size = SZ_INT;
@@ -192,16 +198,27 @@ Type new_array_type(Env env, m_uint depth, Type base_type, NameSpace owner_nspc)
 m_int str2char(const m_str c, m_int linepos) {
   if(c[0] == '\\') {
     switch(c[1]) {
-      case '0':  return '\0';
-      case '\'': return '\'';
-    case '\\':   return '\\';
-    case 'a':    return '\a';
-    case 'b':    return '\b';
-    case 'f':    return '\f';
-    case 'n':    return '\n';
-    case 'r':    return '\r';
-    case 't':    return '\t';
-    case 'v':    return 'v';
+    case '0':
+      return '\0';
+    case '\'':
+      return '\'';
+    case '\\':
+      return '\\';
+    case 'a':
+      return '\a';
+    case 'b':
+      return '\b';
+    case 'f':
+      return '\f';
+    case 'n':
+      return '\n';
+    case 'r':
+      return '\r';
+    case 't':
+      return '\t';
+    case 'v':
+      return 'v';
+
     default:
       err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
       return -1;

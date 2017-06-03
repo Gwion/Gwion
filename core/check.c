@@ -64,7 +64,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
             vector_append(vm->plug, (vtype)handler);
           else {
             env->class_def = (Type)vector_pop(env->class_stack);
-            env->curr = (NameSpace)vector_pop(env->nspc_stack);
+            env->curr = (Nspc)vector_pop(env->nspc_stack);
             dlclose(handler);
             goto next;
           }
@@ -141,15 +141,15 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   add_global_value(env, "hour",       &t_dur,  1, day);
   add_global_value(env, "t_zero",     &t_time, 1, t_zero);
   /* commit */
-  namespace_commit(env->global_nspc);
+  nspc_commit(env->global_nspc);
 
   // doc
-  namespace_commit(env->context->nspc);
+  nspc_commit(env->context->nspc);
   map_set(env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   env->global_context->tree->doc = "this is the main context, where basic type and global variables are declared";
-  // user namespace
-  /*  env->user_nspc = new_NameSpace();*/
+  // user nspc
+  /*  env->user_nspc = new_nspc();*/
   /*  env->user_nspc->name = "[user]";*/
   /*  env->user_nspc->parent = env->global_nspc;*/
   /*  ADD_REF(env->global_nspc->obj);*/
@@ -159,7 +159,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   //  void* handler;
   vm->env = env;
   add_plugs(vm, plug_dirs);
-  namespace_commit(env->curr);
+  nspc_commit(env->curr);
   return env;
 
 error:          // LCOV_EXCL_START
@@ -225,7 +225,7 @@ Type check_decl_expression(Env env, Decl_Expression* decl) {
     }
     SET_FLAG(list->self->value, ae_value_checked);
     if(!env->class_def || env->class_scope)
-      namespace_add_value(env->curr, list->self->xid, list->self->value);
+      nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
   return decl->m_type;
@@ -331,7 +331,7 @@ static Type check_primary_expression(Env env, Primary_Expression* primary) {
       primary->self->meta = ae_meta_value;
       t = &t_int;
     } else {
-      v = namespace_lookup_value(env->curr, primary->d.var, 1);
+      v = nspc_lookup_value(env->curr, primary->d.var, 1);
       if(!v)
         v = find_value(env->class_def, primary->d.var);
       if(v) {
@@ -524,18 +524,18 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     /*
        if(isa(binary->lhs->type, &t_func_ptr) > 0) {
        err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-    //      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
+    //      v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
     return NULL;
     }
     */
     if(binary->rhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-      f1 = v->func_ref ? v->func_ref :namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
+      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+      f1 = v->func_ref ? v->func_ref :nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Dot_Member_type) {
       v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
       //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
-      f1 = namespace_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
+      f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == Decl_Expression_type) {
       v = binary->rhs->d.exp_decl.list->self->value;
       f1 = v->m_type->func;
@@ -545,8 +545,8 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
     }
     r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-      f2 = namespace_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+      v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
+      f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
     } else if(binary->lhs->exp_type == Dot_Member_type) {
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
@@ -575,7 +575,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Binar
       if(binary->lhs->exp_type == Primary_Expression_type) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
-        f2 = namespace_lookup_func(env->curr, insert_symbol(name), 1);
+        f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
       }
       if(f1 && f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
@@ -738,8 +738,8 @@ static Type check_cast_expression(Env env, Cast_Expression* cast) {
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
-    Value v = namespace_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
-    Func  f = namespace_lookup_func(env->curr, insert_symbol(v->name),  1);
+    Value v = nspc_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
+    Func  f = nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos)) {
       cast->func = f;
       return t2;
@@ -853,7 +853,7 @@ static Func find_func_match(Func up, Expression args) {
 
 static Type_List mk_type_list(Env env, Type type) {
   m_uint i;
-  NameSpace nspc = type->info;
+  Nspc nspc = type->info;
   Vector v = new_vector();
   vector_append(v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
@@ -886,7 +886,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
     } else
-      value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
+      value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
     base = value->func_ref->def;
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
@@ -896,18 +896,18 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
     Type_List list = types;
     ID_List base_t = base->types;
     def->is_template = 1;
-    namespace_push_type(env->curr);
+    nspc_push_type(env->curr);
     while(base_t) {
       if(!list)
         break;
       ID_List tmp = base_t->next;;
       if(!list->list)
         break;
-      namespace_add_type(env->curr, base_t->xid, find_type(env, list->list));
+      nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
       base_t->next = tmp;
 
       if(list->next && !base_t->next) { // too many arguments
-        namespace_pop_type(env->curr);
+        nspc_pop_type(env->curr);
         goto next;
       }
       base_t = base_t->next;
@@ -917,7 +917,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
       list = list->next;
     }
     m_int ret = scan1_func_def(env, def);
-    namespace_pop_type(env->curr);
+    nspc_pop_type(env->curr);
     if(ret < 0)                               goto error;
     if(scan2_func_def(env, def) < 0)          goto error;
     if(check_func_def(env, def) < 0)          goto error;
@@ -928,7 +928,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Express
     if(m_func) {
       if(v->owner_class) {
         env->class_def = (Type)vector_pop(env->class_stack);
-        env->curr = (NameSpace)vector_pop(env->nspc_stack);
+        env->curr = (Nspc)vector_pop(env->nspc_stack);
       }
       m_func->is_template = 1;
       m_func->def->base = value->func_ref->def->types;
@@ -942,7 +942,7 @@ next:
   }
   if(v->owner_class) {
     env->class_def = (Type)vector_pop(env->class_stack);
-    env->curr = (NameSpace)vector_pop(env->nspc_stack);
+    env->curr = (Nspc)vector_pop(env->nspc_stack);
   }
   return NULL;
 }
@@ -995,7 +995,7 @@ next:
     Value value;
     if(!f->func) {
       if(exp_func->exp_type == Primary_Expression_type)
-        value = namespace_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+        value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
       else if(exp_func->exp_type == Dot_Member_type)
         value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
       else {
@@ -1108,7 +1108,7 @@ static Type check_func_call(Env env, Func_Call* exp_func) {
   if(exp_func->types) {
     Value v;
     if(exp_func->func->exp_type == Primary_Expression_type) {
-      v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
+      v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
     } else {
       Type t;
       CHECK_OO(check_expression(env, exp_func->func))
@@ -1141,11 +1141,11 @@ static m_bool check_func_ptr(Env env, Stmt_Ptr ptr) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func pointer '%s'", S_name(ptr->xid));
 #endif
-  Type t     = namespace_lookup_type(env->curr, ptr->xid, 1);
+  Type t     = nspc_lookup_type(env->curr, ptr->xid, 1);
   t->size    = SZ_INT;
   t->name    = S_name(ptr->xid);
   t->parent  = &t_func_ptr;
-  namespace_add_type(env->curr, ptr->xid, t);
+  nspc_add_type(env->curr, ptr->xid, t);
   //  ADD_REF(t);
   ptr->m_type = t;
   t->func = ptr->func;
@@ -1184,9 +1184,9 @@ static Type check_unary(Env env, Unary_Expression* exp_unary) {
       else if(exp_unary->code) {
         if(env->func) {
           env->class_scope++;
-          namespace_push_value(env->curr);
+          nspc_push_value(env->curr);
           int ret = check_stmt(env, exp_unary->code);
-          namespace_pop_value(env->curr);
+          nspc_pop_value(env->curr);
           env->class_scope--;
           if(ret < 0)
             return NULL;
@@ -1301,9 +1301,9 @@ static Type check_expression(Env env, Expression exp) {
 static m_bool check_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   Value v;
-  NameSpace nspc = env->class_def ? env->class_def->info : env->curr;
+  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   while(list) {
-    v = namespace_lookup_value(nspc, list->xid, 0);
+    v = nspc_lookup_value(nspc, list->xid, 0);
     if(env->class_def) { // enum in classes are static
       SET_FLAG(v, ae_value_static);
       v->offset = env->class_def->info->class_data_size;
@@ -1320,12 +1320,12 @@ static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
 
   env->class_scope++;
   if(push)
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
 
   ret = check_stmt_list(env, stmt->stmt_list);
 
   if(push)
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
   env->class_scope--;
 
   return ret;
@@ -1572,44 +1572,44 @@ static m_bool check_stmt(Env env, Stmt stmt) {
     break;
   case ae_stmt_if:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_if(env, &stmt->d.stmt_if);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_while(env, &stmt->d.stmt_while);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_until(env, &stmt->d.stmt_until);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_for(env, &stmt->d.stmt_for);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_loop(env, &stmt->d.stmt_loop);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = check_switch(env, &stmt->d.stmt_switch);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
@@ -1723,11 +1723,11 @@ m_bool check_func_def(Env env, Func_Def f) {
       for(i = 0; i <= value->func_num_overloads; i++) {
         char name[1024];
         sprintf(name, "%s@%li@%s", S_name(f->name), i, env->curr->name);
-        Func f1 = namespace_lookup_func(env->curr, insert_symbol(name), -1);
+        Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
         for(j = 1; j <= value->func_num_overloads; j++) {
           if(i != j) {
             sprintf(name, "%s@%li@%s", S_name(f->name), j, env->curr->name);
-            Func f2 = namespace_lookup_func(env->curr, insert_symbol(name), -1);
+            Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
             if(compat_func(f1->def, f2->def, f2->def->pos) > 0) {
               err_msg(TYPE_, f2->def->pos, "global function '%s' already defined for those arguments", S_name(f->name));
               return -1;
@@ -1793,18 +1793,18 @@ m_bool check_func_def(Env env, Func_Def f) {
     vector_append(env->curr->obj_v_table, (vtype)func);
   }
   env->func = func;
-  namespace_push_value(env->curr);
+  nspc_push_value(env->curr);
   arg_list = f->arg_list;
   while(arg_list) {
     v = arg_list->var_decl->value;
-    if(namespace_lookup_value(env->curr, arg_list->var_decl->xid, 0)) {
+    if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0)) {
       err_msg(TYPE_, arg_list->pos, "argument %i '%s' is already defined in this scope",
               count, S_name(arg_list->var_decl->xid));
       err_msg(TYPE_, arg_list->pos, "in function '%s':", S_name(f->name));
       goto error;
     }
     SET_FLAG(v, ae_value_checked);
-    namespace_add_value(env->curr, arg_list->var_decl->xid, v);
+    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     count++;
     arg_list = arg_list->next;
   }
@@ -1812,7 +1812,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   if(f->is_variadic) {
     vararg = new_value(&t_vararg, "vararg");
     SET_FLAG(vararg, ae_value_checked);
-    namespace_add_value(env->curr, insert_symbol("vararg"), vararg);
+    nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
     err_msg(TYPE_, f->type_decl->pos, "...in function '%s'", S_name(f->name));
@@ -1823,12 +1823,12 @@ m_bool check_func_def(Env env, Func_Def f) {
     REM_REF(vararg);
   if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
   env->func = NULL;
   return 1;
 
 error:
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
   env->func = NULL;
   return -1;
 }
@@ -1899,7 +1899,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     body = body->next;
   }
   env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+  env->curr = (Nspc)vector_pop(env->nspc_stack);
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
@@ -1943,10 +1943,10 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
 
 cleanup:
   if(ret > 0) {
-    namespace_commit(env->global_nspc);
+    nspc_commit(env->global_nspc);
     map_set(env->known_ctx, (vtype)insert_symbol(context->filename), (vtype)context);
   } else {
-    //    namespace_rollback(env->global_nspc);
+    //    nspc_rollback(env->global_nspc);
   }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {

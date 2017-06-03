@@ -34,7 +34,7 @@ typedef struct {
   int pos;
   Expression self;
 } Dot_Member;
-struct NameSpace;
+struct Nspc;
 
 struct Array_Sub_ {
   m_uint depth;

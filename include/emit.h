@@ -9,7 +9,7 @@ struct Emitter_ {
   Vector    spork;
   Vector    funcs;
   Context   context;
-  NameSpace nspc;
+  Nspc nspc;
   Func      func;
   Map       cases;
   m_int	    default_case_index;

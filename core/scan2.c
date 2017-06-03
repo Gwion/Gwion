@@ -43,7 +43,7 @@ m_bool scan2_decl_expression(Env env, Decl_Expression* decl) {
       err_msg(SCAN2_, list->self->pos, "... in variable declaration", S_name(list->self->xid));
       return -1;
     }
-    if(namespace_lookup_value(env->curr, list->self->xid, 0)) {
+    if(nspc_lookup_value(env->curr, list->self->xid, 0)) {
       err_msg(SCAN2_, list->self->pos, "variable %s has already been defined in the same scope...", S_name(list->self->xid));
       return -1;
     }
@@ -68,7 +68,7 @@ m_bool scan2_decl_expression(Env env, Decl_Expression* decl) {
     if(!env->class_def && !env->func)
       SET_FLAG(list->self->value, ae_value_global);
     list->self->value->ptr = list->self->addr;
-    namespace_add_value(env->curr, list->self->xid, list->self->value);
+    nspc_add_value(env->curr, list->self->xid, list->self->value);
     if(!env->class_def && !env->func) // doc ?
       context_add_value(env->context, list->self->value, &list->self->value->obj);
     if(list->doc)
@@ -86,7 +86,7 @@ static m_bool scan2_func_ptr(Env env, Stmt_Ptr ptr) {
   Arg_List arg_list = ptr->args;
   Value v;
 
-  namespace_push_value(env->curr);
+  nspc_push_value(env->curr);
   while(arg_list) {
     if(arg_list->type->size == 0) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
@@ -122,15 +122,15 @@ static m_bool scan2_func_ptr(Env env, Stmt_Ptr ptr) {
     v = new_value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_value_arg);
-    namespace_add_value(env->curr, arg_list->var_decl->xid, v);
+    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     arg_list->var_decl->value = v;
     count++;
     arg_list = arg_list->next;
   }
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
 
   SET_FLAG(ptr->value, ae_value_checked);
-  namespace_add_value(env->curr, ptr->xid, ptr->value);
+  nspc_add_value(env->curr, ptr->xid, ptr->value);
 
   Func_Def def = new_func_def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
@@ -144,12 +144,12 @@ static m_bool scan2_func_ptr(Env env, Stmt_Ptr ptr) {
     }
     ptr->value->owner_class = env->class_def;
   }
-  namespace_add_func(env->curr, ptr->xid, ptr->func);
+  nspc_add_func(env->curr, ptr->xid, ptr->func);
   if(!ptr->key)
     ADD_REF(ptr->func);
   return 1;
 error:
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
   return -1;
 }
 
@@ -231,7 +231,7 @@ static m_bool scan2_func_call(Env env, Func_Call* exp_func) {
 #endif
   if(exp_func->types) {
     if(exp_func->func->exp_type == Primary_Expression_type) {
-      Value v = namespace_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
+      Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
       if(!v) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
         return -1;
@@ -262,7 +262,7 @@ static m_bool scan2_func_call(Env env, Func_Call* exp_func) {
         for(i = 0; i < v->func_num_overloads + 1; i++) {
           char name[256];
           sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-          value = namespace_lookup_value(env->curr, insert_symbol(name), 1);
+          value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
           if(!value)continue;
           Type_List tlc = exp_func->types;
           ID_List tld = value->func_ref->def->types;
@@ -372,10 +372,10 @@ static m_bool scan2_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
 #endif
   env->class_scope++;
   if(push)
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
   m_bool t = scan2_stmt_list(env, stmt->stmt_list);
   if(push)
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
   env->class_scope--;
   return t;
 }
@@ -482,7 +482,7 @@ static m_bool scan2_goto_label(Env env, Stmt_Goto_Label stmt) {
 }
 
 static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
-  Value v = namespace_lookup_value(env->curr, stmt->xid, 1);
+  Value v = nspc_lookup_value(env->curr, stmt->xid, 1);
   if(v) {
     err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
     return -1;
@@ -523,49 +523,49 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
 
   case ae_stmt_if:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_if(env, &stmt->d.stmt_if);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
   case ae_stmt_while:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_while(env, &stmt->d.stmt_while);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
   case ae_stmt_until:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_until(env, &stmt->d.stmt_until);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
   case ae_stmt_for:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_for(env, &stmt->d.stmt_for);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
   case ae_stmt_loop:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_loop(env, &stmt->d.stmt_loop);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
   case ae_stmt_switch:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan2_switch(env, &stmt->d.stmt_switch);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
 
@@ -620,7 +620,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   if(f->types) {
     func = new_func(func_name, f);
-    overload = namespace_lookup_value(env->curr,  f->name, 0);
+    overload = nspc_lookup_value(env->curr,  f->name, 0);
     if(overload)
       func->next = overload->func_ref->next;
     func->is_member = (env->class_def && (f->static_decl != ae_key_static));
@@ -641,16 +641,16 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     if(overload)
       overload->func_num_overloads++;
     else
-      namespace_add_value(env->curr, insert_symbol(orig_name), value);
+      nspc_add_value(env->curr, insert_symbol(orig_name), value);
     char name[256];
     sprintf(name, "%s<template>@%li@%s", S_name(f->name),
             overload ? overload->func_num_overloads : 0, env->curr->name);
-    namespace_add_value(env->curr, insert_symbol(name), value);
+    nspc_add_value(env->curr, insert_symbol(name), value);
     return 1;
   }
 
   // overload
-  overload = namespace_lookup_value(env->curr,  f->name, 0);
+  overload = nspc_lookup_value(env->curr,  f->name, 0);
   if(overload) {
     if(isa(overload->m_type, &t_function) < 0) {
       err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
@@ -715,17 +715,17 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   count = 1;
   f->stack_depth = func->is_member ? SZ_INT : 0;
 
-  namespace_push_value(env->curr);
+  nspc_push_value(env->curr);
 
   while(arg_list) {
     if(!arg_list->type->size) {
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      namespace_pop_value(env->curr);
+      nspc_pop_value(env->curr);
       goto error;
     }
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
-      namespace_pop_value(env->curr);
+      nspc_pop_value(env->curr);
       goto error;
     }
     if((isprim(arg_list->type) > 0)
@@ -735,7 +735,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
               arg_list->type->name);
       err_msg(SCAN2_, arg_list->type_decl->pos,
               "...(primitive types: 'int', 'float', 'time', 'dur')");
-      namespace_pop_value(env->curr);
+      nspc_pop_value(env->curr);
       goto error;
     }
 
@@ -748,7 +748,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
         err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name));
         err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
                 count, S_name(arg_list->var_decl->xid));
-        namespace_pop_value(env->curr);
+        nspc_pop_value(env->curr);
         goto error;
       }
       t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
@@ -758,7 +758,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     v = new_value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_value_arg);
-    namespace_add_value(env->curr, arg_list->var_decl->xid, v);
+    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
 
@@ -769,7 +769,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     arg_list = arg_list->next;
   }
 
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
 
   if(f->is_variadic)
     f->stack_depth += SZ_INT;
@@ -792,11 +792,11 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(!env->class_def)
     context_add_func(env->context, func, &func->obj);
 
-  namespace_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
+  nspc_add_func(env->curr, insert_symbol(func->name), func); // template. is it necessary ?
   if(!overload)
-    namespace_add_value(env->curr, insert_symbol(orig_name), value);
+    nspc_add_value(env->curr, insert_symbol(orig_name), value);
   else {
-    namespace_add_value(env->curr, insert_symbol(func->name), value);
+    nspc_add_value(env->curr, insert_symbol(func->name), value);
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
       if(!f->is_template)
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
@@ -812,7 +812,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   }
 
   env->func = func;
-  namespace_push_value(env->curr);
+  nspc_push_value(env->curr);
 
   if(f->code && scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
@@ -820,10 +820,10 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     free(value->m_type->name);
     REM_REF(value->m_type);
     f->func->value_ref->m_type = NULL;
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     return -1;
   }
-  namespace_pop_value(env->curr);
+  nspc_pop_value(env->curr);
   env->func = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
@@ -878,7 +878,7 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
   }
 
   env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+  env->curr = (Nspc)vector_pop(env->nspc_stack);
 
   if(class_def->doc)
     the_class->doc = class_def->doc;

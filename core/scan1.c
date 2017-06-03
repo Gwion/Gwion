@@ -188,10 +188,10 @@ static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   int ret;
   env->class_scope++;
   if(push)
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
   ret = scan1_stmt_list(env, stmt->stmt_list);
   if(push)
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
   env->class_scope--;
   return ret;
 }
@@ -270,16 +270,16 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "enum");
 #endif
-  NameSpace nspc = env->class_def ? env->class_def->info : env->curr;
+  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   Type t = NULL;
   ID_List list = stmt->list;
   m_uint count = list ? 1 : 0;
   if(stmt->xid) {
-    if(namespace_lookup_type(nspc, stmt->xid, 1)) {
+    if(nspc_lookup_type(nspc, stmt->xid, 1)) {
       err_msg(SCAN1_, stmt->pos, "type '%s' already declared", S_name(stmt->xid));
       return -1;
     }
-    if(namespace_lookup_value(env->curr, stmt->xid, 1)) {
+    if(nspc_lookup_value(env->curr, stmt->xid, 1)) {
       err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
       return -1;
     }
@@ -287,10 +287,10 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
   t = type_copy(env, &t_int);
   t->name = stmt->xid ? S_name(stmt->xid) : "int";
   t->parent = &t_int;
-  namespace_add_type(nspc, stmt->xid, t);
+  nspc_add_type(nspc, stmt->xid, t);
   while(list) {
     Value v;
-    if(namespace_lookup_value(nspc, list->xid, 0)) {
+    if(nspc_lookup_value(nspc, list->xid, 0)) {
       err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, S_name(list->xid));
       return -1;
     }
@@ -302,7 +302,7 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
       SET_FLAG(v, ae_value_static);
     }
     SET_FLAG(v, ae_value_checked);
-    namespace_add_value(nspc, list->xid, v);
+    nspc_add_value(nspc, list->xid, v);
     vector_append(stmt->values, (vtype)v);
     list = list->next;
     count++;
@@ -401,44 +401,44 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
     break;
   case ae_stmt_if:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_if(env, &stmt->d.stmt_if);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_while(env, &stmt->d.stmt_while);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_for(env, &stmt->d.stmt_for);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_until(env, &stmt->d.stmt_until);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_loop(env, &stmt->d.stmt_loop);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
-    namespace_push_value(env->curr);
+    nspc_push_value(env->curr);
     ret = scan1_switch(env, &stmt->d.stmt_switch);
-    namespace_pop_value(env->curr);
+    nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
@@ -571,7 +571,7 @@ static m_bool scan1_class_def(Env env, Class_Def class_def) {
     body = body->next;
   }
   env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+  env->curr = (Nspc)vector_pop(env->nspc_stack);
   return ret;
 }
 

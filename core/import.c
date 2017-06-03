@@ -97,16 +97,13 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   return 1;
 }
 
-Type import_class_begin(Env env, Type type, NameSpace where, f_xtor pre_ctor, f_xtor dtor) {
+Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info) {
     err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
     return NULL;
   }
-  type->info = new_NameSpace();
-  type->info->filename = "global_nspc";
-  type->info->name = type->name;
+  type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
-//  ADD_REF(type->info->parent);
   if(pre_ctor)
     type->has_constructor = mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
@@ -118,7 +115,6 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_xtor pre_ctor, f_
   }
 
   type->owner = where;
-//  ADD_REF(type->owner);
   type->obj_size = 0;
 
   type->is_complete = 1;
@@ -126,7 +122,6 @@ Type import_class_begin(Env env, Type type, NameSpace where, f_xtor pre_ctor, f_
   env->curr = type->info;
   vector_append(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-//  ADD_REF(type);
   return type;
 }
 
@@ -137,7 +132,7 @@ m_bool import_class_end(Env env) {
   }
   env->class_def->obj_size = env->class_def->info->offset;
   env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (NameSpace)vector_pop(env->nspc_stack);
+  env->curr = (Nspc)vector_pop(env->nspc_stack);
   return 1;
 }
 
@@ -207,6 +202,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   m_uint array_depth2 = 0;
   m_int i = 0, j;
 
+  if(dl_fun->args)
   for(i = vector_size(dl_fun->args) - 1; i >= 0; i--) {
     array_depth = array_depth2 = 0;
     array_sub = NULL;

@@ -5,9 +5,9 @@
 #include "vm.h"
 #include "oo.h"
 struct Env_ {
-  NameSpace curr;
-  NameSpace global_nspc;
-//  NameSpace user_nspc;
+  Nspc curr;
+  Nspc global_nspc;
+//  Nspc user_nspc;
   m_uint    class_scope;
   Context   global_context;
   Context   context;

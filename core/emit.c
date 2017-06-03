@@ -509,9 +509,9 @@ static m_bool emit_func_call(Emitter emit, Func_Call* exp_func, m_bool spork) {
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0;
     }
-    namespace_push_type(emit->env->curr);
+    nspc_push_type(emit->env->curr);
     while(base_t) {
-      namespace_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
+      nspc_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
       base_t = base_t->next;
       list = list->next;
     }
@@ -519,10 +519,10 @@ static m_bool emit_func_call(Emitter emit, Func_Call* exp_func, m_bool spork) {
     CHECK_BB(scan1_func_def(emit->env, def))
     CHECK_BB(scan2_func_def(emit->env, def))
     CHECK_BB(check_func_def(emit->env, def))
-    namespace_pop_type(emit->env->curr);
+    nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
-      emit->env->curr = (NameSpace)vector_pop(emit->env->nspc_stack);
+      emit->env->curr = (Nspc)vector_pop(emit->env->nspc_stack);
     }
   }
   if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0) {
@@ -668,7 +668,7 @@ static m_bool emit_dur(Emitter emit, Exp_Dur* dur) {
   m_bool is_ptr = 0;
   Instr code, offset, call;
   if(!func->code) { // calling function pointer in func
-    Func f = namespace_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
+    Func f = nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
     if(!f) { //template with no list
       if(!func->def->is_template) {
         err_msg(EMIT_, func->def->pos, "function not emitted yet");
@@ -844,7 +844,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if) {
   m_bool ret;
   Instr op = NULL, op2 = NULL;
   f_instr fop;
-  namespace_push_value(emit->env->curr);
+  nspc_push_value(emit->env->curr);
   CHECK_BB(emit_expression(emit, exp_if->cond, 0))
   switch(exp_if->cond->type->xid) {
   case te_int:
@@ -869,7 +869,7 @@ static m_bool emit_exp_if(Emitter emit, If_Expression* exp_if) {
   op2 = add_instr(emit, Goto);
   op->m_val = vector_size(emit->code->code);
   ret = emit_expression(emit, exp_if->else_exp, 0);
-  namespace_pop_value(emit->env->curr);
+  nspc_pop_value(emit->env->curr);
   CHECK_OB(ret)
   op2->m_val = vector_size(emit->code->code);
   return ret;
@@ -1495,7 +1495,7 @@ static m_bool emit_case(Emitter emit, Stmt_Case stmt) {
 }
 
 static m_bool emit_func_ptr(Emitter emit, Stmt_Ptr ptr) {
-  namespace_add_func(emit->env->curr, ptr->xid, ptr->func);
+  nspc_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_append(emit->funcs, (vtype)ptr);
   if(ptr->key)
     scope_rem(ptr->value->owner_class->info->func, ptr->xid);
@@ -1787,7 +1787,7 @@ static m_bool emit_dot_member(Emitter emit, Dot_Member* member) {
   }
   /*
      else if(!base_static && t_base->xid == t_string.xid || t_base->xid == t_array.xid)
-     { // these types have namespace but no vars...
+     { // these types have nspc but no vars...
      value = find_value(t_base, member->xid);
      func = value->func_ref;
      CHECK_BB(emit_expression(emit, member->base, 0))

@@ -17,7 +17,7 @@ typedef struct Class_Def_ * Class_Def;
 typedef struct Array_Sub_ * Array_Sub;
 
 typedef struct VM_Object_ * VM_Object;
-typedef struct NameSpace_ * NameSpace;
+typedef struct Nspc_ * Nspc;
 typedef struct Scope_     * Scope;
 typedef struct Type_      * Type;
 typedef struct Value_     * Value;

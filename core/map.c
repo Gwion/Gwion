@@ -229,7 +229,7 @@ void scope_pop(Scope scope) {
   vector_pop(scope->vector);
 }
 
-Scope new_Scope() {
+Scope new_scope() {
   Scope a = malloc(sizeof(struct Scope_));
   a->commit_map = new_Map();
   a->vector = new_vector();
@@ -237,7 +237,7 @@ Scope new_Scope() {
   return a;
 }
 
-void free_Scope(Scope a) {
+void free_scope(Scope a) {
   free_Map((Map)vector_front(a->vector));
   free_vector(a->vector);
   free_Map(a->commit_map);

@@ -13,7 +13,11 @@ lcov --no-external --capture --directory eval --directory core --directory lang 
 lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE}" "*/eval/parser.c" "*/eval/lexer.c"
 mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
-[ -z "$TRAVIS_BUILD_DIR" ] || exit
+
+[ -z "$TRAVIS_BUILD_DIR" ] || {
+  coveralss-lcov lcov/lcov.info
+  exit
+}
 
 genhtml -q -s -t "Gwion: coverage" -o "$OUTFILE" --precision 2
 
