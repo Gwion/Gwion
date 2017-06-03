@@ -2,6 +2,8 @@
 #include "instr.h"
 #include "operator_private.h"
 
+#define SZ_OP (sizeof(operators) / sizeof(Operator))
+
 m_int name2op(m_str name) {
   m_uint i = 0;
   while(op_name[i] && op_str[i]) {
@@ -17,7 +19,7 @@ m_int name2op(m_str name) {
 }
 
 const m_str op2str(Operator op) {
-  if(op >= (sizeof(operators) / sizeof(Operator)))
+  if(op >= SZ_OP)
     return NULL;
   return op_str[op];
 }
@@ -25,7 +27,7 @@ const m_str op2str(Operator op) {
 static Map new_Operator_Map() {
   m_uint i;
   Map map = new_Map();
-  for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
+  for(i = 0; i < SZ_OP; i++)
     map_set(map, (vtype)operators[i], (vtype)new_vector());
   return map;
 }
@@ -33,7 +35,7 @@ static Map new_Operator_Map() {
 void free_Operator_Map(Map map) {
   m_uint i;
   Vector v;
-  for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++) {
+  for(i = 0; i < SZ_OP; i++) {
     m_uint j;
     v = (Vector)map_get(map, (vtype)operators[i]);
     for(j = 0; j < vector_size(v); j++)
@@ -65,15 +67,12 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   M_Operator* mo;
 
   if(global && nspc->parent)
-    /*		nspc = nspc->parent;*/
     nspc = env->global_nspc;
 
-if(!nspc->operator)
-nspc->operator = new_Operator_Map();
+  if(!nspc->operator)
+    nspc->operator = new_Operator_Map();
 
-  v = (Vector)map_get(nspc->operator, (vtype)op);
-
-  if(!v) {
+  if(!(v = (Vector)map_get(nspc->operator, (vtype)op))) {
     err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
     return -1;
@@ -168,12 +167,9 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
     if((mo = operator_find(v, lhs, rhs))) {
       if(mo->func) {
         add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
-        if(emit_func_call1(emit, mo->func, mo->func->def->ret_type, 0) < 0)
-          return -1;
-        return 1;
-      } else {
+        CHECK_BB(emit_func_call1(emit, mo->func, mo->func->def->ret_type, 0))
+      } else
         add_instr(emit, mo->instr);
-      }
       return 1;
     }
     if(l && l->parent)
