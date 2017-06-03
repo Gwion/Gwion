@@ -18,7 +18,8 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
   type->actual_type = t;
   v = new_value(type, S_name(ptr->xid));
   v->owner = env->curr;
-  SET_FLAG(v, ae_value_const | ae_value_checked);
+  SET_FLAG(v, ae_value_const);
+  SET_FLAG(v, ae_value_checked);
   namespace_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
   return 1;
@@ -56,23 +57,27 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     err_msg(SCAN0_,  class_def->name->pos,
             "class/type '%s' is already defined in namespace '%s'",
             S_name(class_def->name->xid), env->curr->name);
-    return -1;
+    ret = -1;
+    goto done;
   }
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
     err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
             S_name(class_def->name->xid));
-    return -1;
+    ret = -1;
+    goto done;
   }
 
   the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
   the_class->is_user = 1;
+//  ADD_REF(the_class->obj);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_NameSpace();
   the_class->info->filename = env->context->filename;
   the_class->parent = &t_object;
+//  ADD_REF(the_class->info->obj);
   the_class->info->name = the_class->name;
 
   if(env->context->public_class_def == class_def)
@@ -114,11 +119,16 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     type->actual_type = the_class;
     value = new_value(type, the_class->name);
     value->owner = env->curr;
-    SET_FLAG(value, ae_value_const | ae_value_checked);
+    SET_FLAG(value, ae_value_const);
+    SET_FLAG(value, ae_value_checked);
     namespace_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
+//    if(env->curr == env->context->nspc) {
+//      context_add_type(env->context, the_class, &the_class->obj);
     context_add_class(env->context, value, &value->obj);
+//    }
   }
+done:
   return ret;
 }
 
