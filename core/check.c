@@ -820,7 +820,7 @@ static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_
             return func;
           goto moveon;
         }
-        match = specific ? e->type == e1->type : isa(e->type, e1->type) && e->type->array_depth == e1->type->array_depth;
+        match = specific ? e->type == e1->type : isa(e->type, e1->type) > 0 && e->type->array_depth == e1->type->array_depth;
         if(match <= 0) {
           if(implicit && e->type->xid == t_int.xid && e1->type->xid == t_float.xid)
             e->cast_to = &t_float;
