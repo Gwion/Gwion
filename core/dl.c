@@ -13,10 +13,10 @@ void dl_return_push(const DL_Return retval, VM_Shred shred, int kind) {
     *(m_complex*)shred->reg = retval.d.v_complex;
     PUSH_REG(shred, SZ_COMPLEX);
   } else if(kind == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = retval.d.v_vec3;
+    *(m_vec3*)shred->reg = retval.d.v_vec3;
     PUSH_REG(shred, SZ_VEC3);
   } else if(kind == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = retval.d.v_vec4;
+    *(m_vec4*)shred->reg = retval.d.v_vec4;
     PUSH_REG(shred, SZ_VEC4);
   }
   return;

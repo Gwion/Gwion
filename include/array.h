@@ -32,11 +32,11 @@ complex float*  c_vector_addr(M_Vector v, m_uint i);
 void      c_vector_set(M_Vector v, m_uint i, complex float data);
 #endif
 
-VEC3_T   v3_vector_at(M_Vector v, m_uint i);
-VEC3_T*  v3_vector_addr(M_Vector v, m_uint i);
-void     v3_vector_set(M_Vector v, m_uint i, VEC3_T  data);
+m_vec3   v3_vector_at(M_Vector v, m_uint i);
+m_vec3*  v3_vector_addr(M_Vector v, m_uint i);
+void     v3_vector_set(M_Vector v, m_uint i, m_vec3  data);
 
-VEC4_T   v4_vector_at(M_Vector v, m_uint i);
-VEC4_T*  v4_vector_addr(M_Vector v, m_uint i);
-void     v4_vector_set(M_Vector v, m_uint i, VEC4_T  data);
+m_vec4   v4_vector_at(M_Vector v, m_uint i);
+m_vec4*  v4_vector_addr(M_Vector v, m_uint i);
+void     v4_vector_set(M_Vector v, m_uint i, m_vec4  data);
 #endif

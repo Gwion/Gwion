@@ -92,7 +92,7 @@ static INSTR(Vec3_String_Assign) {
   debug_msg("instr", "Vec3 '=>' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  VEC3_T lhs = *(VEC3_T*)shred->reg;
+  m_vec3 lhs = *(m_vec3*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC3);
   char str[1024];
   sprintf(str, "#(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
@@ -107,7 +107,7 @@ static INSTR(Vec4_String_Assign) {
   debug_msg("instr", "Vec4 '=>' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  VEC4_T lhs = *(VEC4_T*)shred->reg;
+  m_vec4 lhs = *(m_vec4*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC4);
   char str[1024];
   sprintf(str, "#(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
@@ -210,7 +210,7 @@ static INSTR(Vec3_String) {
   debug_msg("instr", "Vec3 '+' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  VEC3_T  lhs = *(VEC3_T*)shred->reg;
+  m_vec3  lhs = *(m_vec3*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC3);
   char str[1024];
   sprintf(str, "@(%f, %f, %f)%s", lhs.x, lhs.y, lhs.z, STRING(rhs));
@@ -224,7 +224,7 @@ static INSTR(Vec4_String) {
   debug_msg("instr", "Vec4 '+' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  VEC4_T  lhs = *(VEC4_T*)shred->reg;
+  m_vec4  lhs = *(m_vec4*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC4);
   char str[1024];
   sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, STRING(rhs));
@@ -353,7 +353,7 @@ static INSTR(Vec3_String_Plus) {
   debug_msg("instr", "Vec3 '+=>' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  VEC3_T lhs = *(VEC3_T*)shred->reg;
+  m_vec3 lhs = *(m_vec3*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC3);
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13 + 2;
   m_uint tmp = fabs(lhs.x);
@@ -378,7 +378,7 @@ static INSTR(Vec4_String_Plus) {
   debug_msg("instr", "Vec4 '+=>' string");
 #endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  VEC4_T lhs = *(VEC4_T*)shred->reg;
+  m_vec4 lhs = *(m_vec4*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC4);
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13 + 4;
   m_uint tmp = fabs(lhs.x);

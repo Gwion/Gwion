@@ -237,13 +237,13 @@ INSTR(Vararg_object) {
 
 INSTR(Vararg_Vec3) {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(VEC3_T*)shred->reg = *(VEC3_T*)(arg->d + arg->o);
+  *(m_vec3*)shred->reg = *(m_vec3*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_VEC3);
 }
 
 INSTR(Vararg_Vec4) {
   struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(VEC4_T*)shred->reg = *(VEC4_T*)(arg->d + arg->o);
+  *(m_vec4*)shred->reg = *(m_vec4*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_VEC4);
 }
 

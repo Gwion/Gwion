@@ -11,8 +11,8 @@ typedef struct DL_Return {
     m_uint    v_uint;
     m_float   v_float;
     m_complex v_complex;
-    VEC3_T 	  v_vec3;
-    VEC4_T 	  v_vec4;
+    m_vec3 	  v_vec3;
+    m_vec4 	  v_vec4;
     M_Object  v_object;
   } d;
   m_uint offset;

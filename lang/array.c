@@ -68,12 +68,12 @@ m_complex c_vector_at(M_Vector v, m_uint i) {
   return *(m_complex*)(v->ptr + i * v->size);
 }
 
-VEC3_T v3_vector_at(M_Vector v, m_uint i) {
-  return *(VEC3_T*)(v->ptr + i * v->size);
+m_vec3 v3_vector_at(M_Vector v, m_uint i) {
+  return *(m_vec3*)(v->ptr + i * v->size);
 }
 
-VEC4_T v4_vector_at(M_Vector v, m_uint i) {
-  return *(VEC4_T*)(v->ptr + i * v->size);
+m_vec4 v4_vector_at(M_Vector v, m_uint i) {
+  return *(m_vec4*)(v->ptr + i * v->size);
 }
 
 #define CHECK_VEC_SIZE(v)   if(++v->len >= v->cap) { \
@@ -96,14 +96,14 @@ void c_vector_append(M_Vector v, m_complex c) {
   *(m_complex*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v3_vector_append(M_Vector v, VEC3_T c) {
+void v3_vector_append(M_Vector v, m_vec3 c) {
   CHECK_VEC_SIZE(v)
-  *(VEC3_T*)(v->ptr + (v->len - 1)*v->size) = c;
+  *(m_vec3*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v4_vector_append(M_Vector v, VEC4_T c) {
+void v4_vector_append(M_Vector v, m_vec4 c) {
   CHECK_VEC_SIZE(v)
-  *(VEC4_T*)(v->ptr + (v->len - 1)*v->size) = c;
+  *(m_vec4*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
 void i_vector_set(M_Vector v, m_uint i, m_uint data) {
@@ -118,12 +118,12 @@ void c_vector_set(M_Vector v, m_uint i, m_complex data) {
   *(m_complex*)(v->ptr + i * v->size) = data;
 }
 
-void v3_vector_set(M_Vector v, m_uint i, VEC3_T data) {
-  *(VEC3_T*)(v->ptr + i * v->size) = data;
+void v3_vector_set(M_Vector v, m_uint i, m_vec3 data) {
+  *(m_vec3*)(v->ptr + i * v->size) = data;
 }
 
-void v4_vector_set(M_Vector v, m_uint i, VEC4_T data) {
-  *(VEC4_T*)(v->ptr + i * v->size) = data;
+void v4_vector_set(M_Vector v, m_uint i, m_vec4 data) {
+  *(m_vec4*)(v->ptr + i * v->size) = data;
 }
 
 void m_vector_remove(M_Vector v, m_uint index) {
@@ -193,12 +193,12 @@ m_complex*  c_vector_addr(M_Vector v, m_uint i) {
   return &*(m_complex*)(v->ptr + i * v->size);
 }
 
-VEC3_T*  v3_vector_addr(M_Vector v, m_uint i) {
-  return &*(VEC3_T*)(v->ptr + i * v->size);
+m_vec3*  v3_vector_addr(M_Vector v, m_uint i) {
+  return &*(m_vec3*)(v->ptr + i * v->size);
 }
 
-VEC4_T*  v4_vector_addr(M_Vector v, m_uint i) {
-  return &*(VEC4_T*)(v->ptr + i * v->size);
+m_vec4*  v4_vector_addr(M_Vector v, m_uint i) {
+  return &*(m_vec4*)(v->ptr + i * v->size);
 }
 
 MFUN(vm_vector_size) {
@@ -231,11 +231,11 @@ INSTR(Array_Append) {
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)(shred->reg);
-    v3_vector_append(o->d.array, *(VEC3_T*)(shred->reg + SZ_INT));
+    v3_vector_append(o->d.array, *(m_vec3*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
     POP_REG(shred, SZ_VEC4);
     o = *(M_Object*)(shred->reg);
-    v4_vector_append(o->d.array, *(VEC4_T*)(shred->reg + SZ_INT));
+    v4_vector_append(o->d.array, *(m_vec4*)(shred->reg + SZ_INT));
   }
   release(o, shred);
   *(M_Object*)(shred->reg) = o;

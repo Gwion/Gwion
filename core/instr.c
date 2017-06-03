@@ -176,9 +176,9 @@ INSTR(Reg_Push_Mem_Vec3) {
   debug_msg("instr", "[reg] 'vec3' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   if(instr->m_val2)
-    *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->base + instr->m_val);
+    *(m_vec3*)shred->reg = *(m_vec3*)(shred->base + instr->m_val);
   else
-    *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->mem  + instr->m_val);
+    *(m_vec3*)shred->reg = *(m_vec3*)(shred->mem  + instr->m_val);
   PUSH_REG(shred, SZ_VEC3);
 }
 
@@ -187,9 +187,9 @@ INSTR(Reg_Push_Mem_Vec4) {
   debug_msg("instr", "[reg] 'vec4' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   if(instr->m_val2) // global
-    *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->base + instr->m_val);
+    *(m_vec4*)shred->reg = *(m_vec4*)(shred->base + instr->m_val);
   else
-    *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->mem  + instr->m_val);
+    *(m_vec4*)shred->reg = *(m_vec4*)(shred->mem  + instr->m_val);
   PUSH_REG(shred, SZ_VEC4);
 }
 
@@ -289,7 +289,7 @@ INSTR(Alloc_Word_Vec3) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  *(VEC3_T**)shred->reg = &*(VEC3_T*)(shred->mem + instr->m_val);
+  *(m_vec3**)shred->reg = &*(m_vec3*)(shred->mem + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -297,7 +297,7 @@ INSTR(Alloc_Word_Vec4) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec4 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  *(VEC4_T**)shred->reg = &*(VEC4_T*)(shred->mem + instr->m_val);
+  *(m_vec4**)shred->reg = &*(m_vec4*)(shred->mem + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -669,9 +669,9 @@ INSTR(Instr_Op_Call_Binary) {
     else if(kl == Kindof_Complex)
       *(m_complex*)(shred->mem) = *(m_complex*)shred->reg;
     else if(kl == Kindof_Vec3)
-      *(VEC3_T*)(shred->mem) = *(VEC3_T*)shred->reg;
+      *(m_vec3*)(shred->mem) = *(m_vec3*)shred->reg;
     else if(kl == Kindof_Vec4)
-      *(VEC4_T*)(shred->mem) = *(VEC4_T*)shred->reg;
+      *(m_vec4*)(shred->mem) = *(m_vec4*)shred->reg;
     if(kr == Kindof_Int)
       *(m_uint*)(shred->mem + l->size) = **(m_uint**)(shred->reg + l->size);
     else if(kr == Kindof_Float)
@@ -679,9 +679,9 @@ INSTR(Instr_Op_Call_Binary) {
     else if(kr == Kindof_Complex)
       *(m_complex*)(shred->mem + l->size) = **(m_complex**)(shred->reg + l->size);
     else if(kr == Kindof_Vec3)
-      *(VEC3_T*)(shred->mem + l->size) = **(VEC3_T**)(shred->reg + l->size);
+      *(m_vec3*)(shred->mem + l->size) = **(m_vec3**)(shred->reg + l->size);
     else if(kr == Kindof_Vec4)
-      *(VEC4_T*)(shred->mem + l->size) = **(VEC4_T**)(shred->reg + l->size);
+      *(m_vec4*)(shred->mem + l->size) = **(m_vec4**)(shred->reg + l->size);
     if(func->need_this) {
       POP_MEM(shred, SZ_INT);
     }
@@ -702,7 +702,7 @@ INSTR(Reg_Dup_Last_Vec3) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-  *(VEC3_T*)shred->reg = *(VEC3_T*)(shred->reg  - SZ_INT);
+  *(m_vec3*)shred->reg = *(m_vec3*)(shred->reg  - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -710,7 +710,7 @@ INSTR(Reg_Dup_Last_Vec4) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-  *(VEC4_T*)shred->reg = *(VEC4_T*)(shred->reg  - SZ_INT);
+  *(m_vec4*)shred->reg = *(m_vec4*)(shred->reg  - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -916,7 +916,7 @@ INSTR(Alloc_Member_Word_Vec3) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC3);
-  *(VEC3_T**)shred->reg = &*(VEC3_T*)(obj->d.data + instr->m_val);
+  *(m_vec3**)shred->reg = &*(m_vec3*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -926,7 +926,7 @@ INSTR(Alloc_Member_Word_Vec4) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC4);
-  *(VEC4_T**)shred->reg = &*(VEC4_T*)(obj->d.data + instr->m_val);
+  *(m_vec4**)shred->reg = &*(m_vec4*)(obj->d.data + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -947,9 +947,9 @@ INSTR(Dot_Static_Data) {
     } else if(instr->m_val2 == Kindof_Complex) {
       *(m_complex**)shred->reg = &*(m_complex*)(t->info->class_data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Vec3) {
-      *(VEC3_T**)shred->reg = &*(VEC3_T*)(t->info->class_data + instr->m_val);
+      *(m_vec3**)shred->reg = &*(m_vec3*)(t->info->class_data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Vec4) {
-      *(VEC4_T**)shred->reg = &*(VEC4_T*)(t->info->class_data + instr->m_val);
+      *(m_vec4**)shred->reg = &*(m_vec4*)(t->info->class_data + instr->m_val);
     }
     PUSH_REG(shred,  SZ_INT);
   }
@@ -964,10 +964,10 @@ INSTR(Dot_Static_Data) {
     *(m_complex*)shred->reg = *(m_complex*)(t->info->class_data + instr->m_val);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = *(VEC3_T*)(t->info->class_data + instr->m_val);
+    *(m_vec3*)shred->reg = *(m_vec3*)(t->info->class_data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = *(VEC4_T*)(t->info->class_data + instr->m_val);
+    *(m_vec4*)shred->reg = *(m_vec4*)(t->info->class_data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC4);
   }
 }
@@ -985,9 +985,9 @@ INSTR(Dot_Static_Import_Data) {
     } else if(instr->m_val2 == Kindof_Complex) {
       *(m_complex**)shred->reg = &*(m_complex*)instr->m_val;
     } else if(instr->m_val2 == Kindof_Vec3) {
-      *(VEC3_T**)shred->reg = &*(VEC3_T*)instr->m_val;
+      *(m_vec3**)shred->reg = &*(m_vec3*)instr->m_val;
     } else if(instr->m_val2 == Kindof_Vec4) {
-      *(VEC4_T**)shred->reg = &*(VEC4_T*)instr->m_val;
+      *(m_vec4**)shred->reg = &*(m_vec4*)instr->m_val;
     }
     PUSH_REG(shred,  SZ_INT);
   }
@@ -1002,10 +1002,10 @@ INSTR(Dot_Static_Import_Data) {
     *(m_complex*)shred->reg = *(m_complex*)instr->m_val;
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = *(VEC3_T*)instr->m_val;
+    *(m_vec3*)shred->reg = *(m_vec3*)instr->m_val;
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = *(VEC4_T*)instr->m_val;
+    *(m_vec4*)shred->reg = *(m_vec4*)instr->m_val;
     PUSH_REG(shred,  SZ_VEC4);
   }
 }
@@ -1028,9 +1028,9 @@ INSTR(Dot_Member_Data) {
     } else if(instr->m_val2 == Kindof_Complex) {
       *(m_complex**)shred->reg = &*(m_complex*)(obj->d.data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Vec3) {
-      *(VEC3_T**)shred->reg = &*(VEC3_T*)(obj->d.data + instr->m_val);
+      *(m_vec3**)shred->reg = &*(m_vec3*)(obj->d.data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Vec4) {
-      *(VEC4_T**)shred->reg = &*(VEC4_T*)(obj->d.data + instr->m_val);
+      *(m_vec4**)shred->reg = &*(m_vec4*)(obj->d.data + instr->m_val);
     }
     PUSH_REG(shred,  SZ_INT);
   }
@@ -1045,10 +1045,10 @@ INSTR(Dot_Member_Data) {
     *(m_complex*)shred->reg = *(m_complex*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = *(VEC3_T*)(obj->d.data + instr->m_val);
+    *(m_vec3*)shred->reg = *(m_vec3*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = *(VEC4_T*)(obj->d.data + instr->m_val);
+    *(m_vec4*)shred->reg = *(m_vec4*)(obj->d.data + instr->m_val);
     PUSH_REG(shred,  SZ_VEC4);
   }
 }
@@ -1178,10 +1178,10 @@ INSTR(Instr_Array_Init) { // for litteral array
       c_vector_set(obj->d.array, i, *(m_complex*)(shred->reg + SZ_COMPLEX * i));
       break;
     case Kindof_Vec3:
-      v3_vector_set(obj->d.array, i, *(VEC3_T*)(shred->reg + SZ_VEC3 * i));
+      v3_vector_set(obj->d.array, i, *(m_vec3*)(shred->reg + SZ_VEC3 * i));
       break;
     case Kindof_Vec4:
-      v4_vector_set(obj->d.array, i, *(VEC4_T*)(shred->reg + SZ_VEC4 * i));
+      v4_vector_set(obj->d.array, i, *(m_vec4*)(shred->reg + SZ_VEC4 * i));
       break;
     }
   }
@@ -1268,9 +1268,9 @@ INSTR(Instr_Array_Access) {
     else if(instr->m_val2 == Kindof_Complex)
       *(m_complex**)shred->reg = c_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec3)
-      *(VEC3_T**)shred->reg = v3_vector_addr(obj->d.array, i);
+      *(m_vec3**)shred->reg = v3_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec4)
-      *(VEC4_T**)shred->reg = v4_vector_addr(obj->d.array, i);
+      *(m_vec4**)shred->reg = v4_vector_addr(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   }
   // take care of kind (instr->m_val2)
@@ -1284,10 +1284,10 @@ INSTR(Instr_Array_Access) {
     *(m_complex*)shred->reg = c_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = v3_vector_at(obj->d.array, i);
+    *(m_vec3*)shred->reg = v3_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = v4_vector_at(obj->d.array, i);
+    *(m_vec4*)shred->reg = v4_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC4);
   }
   return;
@@ -1330,9 +1330,9 @@ INSTR(Instr_Array_Access_Multi) {
     if(instr->m_val2 == Kindof_Complex)
       *(m_complex**)shred->reg = c_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec3)
-      *(VEC3_T**)shred->reg = v3_vector_addr(obj->d.array, i);
+      *(m_vec3**)shred->reg = v3_vector_addr(obj->d.array, i);
     else if(instr->m_val2 == Kindof_Vec4)
-      *(VEC4_T**)shred->reg = v4_vector_addr(obj->d.array, i);
+      *(m_vec4**)shred->reg = v4_vector_addr(obj->d.array, i);
     PUSH_REG(shred,  SZ_INT);
   }
   // take care of kind (instr->m_val2)
@@ -1346,10 +1346,10 @@ INSTR(Instr_Array_Access_Multi) {
     *(m_complex*)shred->reg = c_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_COMPLEX);
   } else if(instr->m_val2 == Kindof_Vec3) {
-    *(VEC3_T*)shred->reg = v3_vector_at(obj->d.array, i);
+    *(m_vec3*)shred->reg = v3_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC3);
   } else if(instr->m_val2 == Kindof_Vec4) {
-    *(VEC4_T*)shred->reg = v4_vector_at(obj->d.array, i);
+    *(m_vec4*)shred->reg = v4_vector_at(obj->d.array, i);
     PUSH_REG(shred,  SZ_VEC4);
   }
   return;
