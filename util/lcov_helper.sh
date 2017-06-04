@@ -15,7 +15,7 @@ mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
-  coveralss-lcov lcov/lcov.info
+  coveralls-lcov lcov/lcov.info
   exit
 }
 
