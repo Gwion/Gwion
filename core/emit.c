@@ -331,11 +331,11 @@ static m_bool emit_primary_expression(Emitter emit, Primary_Expression* primary)
     break;
 
   case ae_primary_complex:
-    CHECK_BB(emit_expression(emit, primary->d.cmp->re, 0));
+    CHECK_BB(emit_expression(emit, primary->d.cmp->re, primary->self->emit_var));
     break;
 
   case ae_primary_polar:
-    CHECK_BB(emit_expression(emit, primary->d.polar->mod, 0));
+    CHECK_BB(emit_expression(emit, primary->d.polar->mod, primary->self->emit_var));
     break;
   case ae_primary_vec:
     CHECK_BB(emit_vec(emit, primary->d.vec));
