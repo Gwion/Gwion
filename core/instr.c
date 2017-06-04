@@ -44,7 +44,7 @@ INSTR(Reg_Push_Imm2) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
 #endif
-  if(instr->m_val) {
+  if(instr->m_val2) {
     *(m_float**)(shred->reg) = &instr->f_val;
     PUSH_REG(shred,  SZ_INT);
   } else {
