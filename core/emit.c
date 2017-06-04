@@ -6,9 +6,9 @@
 #include "emit.h"
 #include "code_private.h"
 
-void free_expression(Expression a); // absyn.h
+void free_expression(Exp a); // absyn.h
 
-static m_bool emit_expression(Emitter emit, Expression exp, m_bool add_ref);
+static m_bool emit_expression(Emitter emit, Exp exp, m_bool add_ref);
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop);
 static m_bool emit_dot_member(Emitter emit, Exp_Dot* member);
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list);
@@ -151,8 +151,8 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 
   if(v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
-    Expression base = new_expr_prim_ID("this", pos);
-    Expression dot = new_expr_dot(base, S_name(symbol), pos);
+    Exp base = new_exp_prim_ID("this", pos);
+    Exp dot = new_exp_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
     dot->d.exp_dot.t_base = v->owner_class;
@@ -221,7 +221,7 @@ static m_bool emit_array_lit(Emitter emit, Array_Sub array) {
 #endif
   m_uint count = 0;
   CHECK_BB(emit_expression(emit, array->exp_list, 0))
-  Expression e = array->exp_list;
+  Exp e = array->exp_list;
   while(e) {
     count++;
     e = e->next;
@@ -244,7 +244,7 @@ static m_bool emit_array(Emitter emit, Exp_Array* array) {
   Instr instr;
   m_uint depth = 0;
   Array_Sub sub = NULL;
-  Expression exp = NULL;
+  Exp exp = NULL;
   m_uint is_var = 0;
 
   type = array->self->type;
@@ -284,7 +284,7 @@ static m_bool emit_primary_expression(Emitter emit, Exp_Primary* primary) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "primary");
 #endif
-  Expression e;
+  Exp e;
   Instr instr;
   m_uint temp;
   m_float f;
@@ -474,7 +474,7 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
   if(exp_func->m_func->def->is_variadic) {
     m_uint offset = 0, size = 0;
     Instr instr;
-    Expression e = exp_func->args;
+    Exp e = exp_func->args;
     Arg_List l = exp_func->m_func->def->arg_list;
     Vector kinds = new_vector();
     while(e) {
@@ -552,19 +552,19 @@ static m_bool emit_binary_expression(Emitter emit, Exp_Binary* binary) {
     CHECK_BB(emit_expression(emit, binary->rhs, 1))
     instr = add_instr(emit, assign_func);
     switch(binary->rhs->exp_type) {
-      case ae_expr_dot:
+      case ae_exp_dot:
         v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
         instr->m_val2 = v->offset;
         instr->m_val = 1;
         break;
-      case ae_expr_primary:
+      case ae_exp_primary:
         if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_value_member)) {
           v = binary->rhs->d.exp_primary.value;
           instr->m_val2 = v->offset;
           instr->m_val = 1;
         }
         break;
-      case ae_expr_decl:
+      case ae_exp_decl:
         v = binary->rhs->d.exp_decl.list->self->value;
         instr->m_val2 = v->offset;
         break;
@@ -748,7 +748,7 @@ static m_bool emit_spork(Emitter emit, Exp_Func* exp) {
   //exp->vm_code->ADD_REF();
   emit->code = (Code*)vector_pop(emit->stack);
 
-  Expression e = exp->args;
+  Exp e = exp->args;
   m_uint size = 0;
   while(e) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
@@ -772,7 +772,7 @@ static m_bool emit_unary(Emitter emit, Exp_Unary* exp_unary) {
     return -1;
   switch(exp_unary->op) {
   case op_spork:
-    if(exp_unary->exp && exp_unary->exp->exp_type == ae_expr_call) {
+    if(exp_unary->exp && exp_unary->exp->exp_type == ae_exp_call) {
       CHECK_BB(emit_spork(emit, &exp_unary->exp->d.exp_func))
     } else if(exp_unary->code) {
       Instr op = NULL, push_code = NULL, spork = NULL;
@@ -875,44 +875,44 @@ static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
   return ret;
 }
 
-static m_bool emit_expression(Emitter emit, Expression exp, m_bool ref) {
+static m_bool emit_expression(Emitter emit, Exp exp, m_bool ref) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "expression");
 #endif
-  Expression tmp = exp;
+  Exp tmp = exp;
   while(tmp) {
     switch(tmp->exp_type) {
-    case ae_expr_decl:
+    case ae_exp_decl:
       CHECK_BB(emit_decl_expression(emit, &tmp->d.exp_decl))
       break;
-    case ae_expr_primary:
+    case ae_exp_primary:
       CHECK_BB(emit_primary_expression(emit, &tmp->d.exp_primary))
       break;
-    case ae_expr_unary:
+    case ae_exp_unary:
       CHECK_BB(emit_unary(emit, &tmp->d.exp_unary))
       break;
-    case ae_expr_binary:
+    case ae_exp_binary:
       CHECK_BB(emit_binary_expression(emit, &tmp->d.exp_binary))
       break;
-    case ae_expr_postfix:
+    case ae_exp_postfix:
       CHECK_BB(emit_postfix_expression(emit, &tmp->d.exp_postfix))
       break;
-    case ae_expr_cast:
+    case ae_exp_cast:
       CHECK_BB(emit_cast_expression(emit, &tmp->d.exp_cast))
       break;
-    case ae_expr_dot:
+    case ae_exp_dot:
       CHECK_BB(emit_dot_member(emit, &tmp->d.exp_dot))
       break;
-    case ae_expr_call:
+    case ae_exp_call:
       CHECK_BB(emit_func_call(emit, &tmp->d.exp_func, 0))
       break;
-    case ae_expr_array:
+    case ae_exp_array:
       CHECK_BB(emit_array(emit, &tmp->d.exp_array))
       break;
-    case ae_expr_if:
+    case ae_exp_if:
       CHECK_BB(emit_exp_if(emit, &tmp->d.exp_if))
       break;
-    case ae_expr_dur:
+    case ae_exp_dur:
       CHECK_BB(emit_dur(emit, &tmp->d.exp_dur))
       break;
     }
@@ -1296,7 +1296,7 @@ static m_bool emit_for(Emitter emit, Stmt_For stmt) {
   m_uint action_index = vector_size(emit->code->code);
   if(stmt->c3) {
     CHECK_BB(emit_expression(emit, stmt->c3, 0))
-    Expression e = stmt->c3;
+    Exp e = stmt->c3;
     m_uint num_words = 0;
     while(e) {
       num_words += e->type->size;
@@ -1456,7 +1456,7 @@ static m_bool emit_case(Emitter emit, Stmt_Case stmt) {
     err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now");
     return -1;
   }
-  if(stmt->val->exp_type == ae_expr_primary) {
+  if(stmt->val->exp_type == ae_exp_primary) {
     if(stmt->val->d.exp_primary.type == ae_primary_num)
       value = stmt->val->d.exp_primary.d.num;
     else {
@@ -1477,7 +1477,7 @@ static m_bool emit_case(Emitter emit, Stmt_Case stmt) {
         value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
       }
     }
-  } else if(stmt->val->exp_type == ae_expr_dot) {
+  } else if(stmt->val->exp_type == ae_exp_dot) {
     t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ? stmt->val->d.exp_dot.t_base->actual_type : stmt->val->d.exp_dot.t_base;
     v = find_value(t, stmt->val->d.exp_dot.xid);
     value = GET_FLAG(v, ae_value_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
@@ -1558,19 +1558,19 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
     ret = emit_expression(emit, stmt->d.stmt_exp.val, 0);
 // check 'stmt->d.stmt_exp->type'for switch
     if(ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
-      Expression exp = stmt->d.stmt_exp.val;
-      if(exp->exp_type == ae_expr_primary && exp->d.exp_primary.type == ae_primary_hack)
+      Exp exp = stmt->d.stmt_exp.val;
+      if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_hack)
         exp = exp->d.exp_primary.d.exp;
       while(exp) {
         // get rid of primary str ?
-        /*          if(exp->exp_type == ae_expr_primary && exp->d.exp_primary->type == ae_primary_str)*/
+        /*          if(exp->exp_type == ae_exp_primary && exp->d.exp_primary->type == ae_primary_str)*/
         instr = add_instr(emit, Reg_Pop_Word4);
-        /*        if (isa(exp->type, &t_complex) > 0 && exp->exp_type != ae_expr_decl)
+        /*        if (isa(exp->type, &t_complex) > 0 && exp->exp_type != ae_exp_decl)
                   exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl;
-                if (isa(exp->type, &t_polar) > 0 && exp->exp_type != ae_expr_decl)
+                if (isa(exp->type, &t_polar) > 0 && exp->exp_type != ae_exp_decl)
                   exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl; */
-        //        instr->m_val = exp->exp_type == ae_expr_decl ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
-        instr->m_val = (exp->exp_type == ae_expr_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
+        //        instr->m_val = exp->exp_type == ae_exp_decl ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
+        instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
         exp = exp->next;
       }
     }

@@ -19,14 +19,14 @@ m_bool scan1_ast(Env, Ast);
 m_bool scan2_ast(Env, Ast);
 
 m_bool check_func_def(Env env, Func_Def f);
-static Type check_expression(Env env, Expression exp);
+static Type check_expression(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static Type check_dot_member(Env env, Exp_Dot* member);
 static m_bool check_stmt_list(Env env, Stmt_List list);
-/* static */ Type check_func_call1(Env env, Expression exp_func, Expression args, Func *m_func, int pos);
+/* static */ Type check_func_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos);
 static Type check_func_call(Env env, Exp_Func* exp_func);
 static m_bool check_class_def(Env env, Class_Def class_def);
-static Func find_func_match(Func up, Expression args);
+static Func find_func_match(Func up, Exp args);
 
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
@@ -167,8 +167,8 @@ error:          // LCOV_EXCL_START
   return NULL;
 }              // LCOV_EXCL_STOP
 
-static m_bool check_array_subscripts(Env env, Expression exp_list) {
-  Expression exp = exp_list;
+static m_bool check_array_subscripts(Env env, Exp exp_list) {
+  Exp exp = exp_list;
   while(exp) {
     if(isa(exp->type, &t_int) < 0) {
       err_msg(TYPE_, exp->pos,
@@ -232,7 +232,7 @@ Type check_decl_expression(Env env, Exp_Decl* decl) {
 }
 
 static Type check_array_lit(Env env, Exp_Primary *exp) {
-  Expression e;
+  Exp e;
   Type t = NULL, type = NULL, common = NULL;
 
 
@@ -276,7 +276,7 @@ static Type check_vec(Env env, Exp_Primary* exp) {
             "    --> format: @(x,y,z,w)");
     return NULL;
   }
-  Expression e = val->args;
+  Exp e = val->args;
   int count = 1;
   while(e) {
     if(!(t = check_expression(env, e)))
@@ -430,7 +430,7 @@ static Type check_primary_expression(Env env, Exp_Primary* primary) {
     t = &t_string;
     break;
   case ae_primary_hack:
-    if(primary->d.exp->exp_type == ae_expr_decl) {
+    if(primary->d.exp->exp_type == ae_exp_decl) {
       err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
       return NULL;
     }
@@ -462,7 +462,7 @@ Type check_array(Env env, Exp_Array* array) {
 
   CHECK_OO(check_expression(env, array->indices->exp_list))
 
-  Expression e = array->indices->exp_list;
+  Exp e = array->indices->exp_list;
   depth = 0;
 
   while(e) {
@@ -507,7 +507,7 @@ __inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos) {
   return 1;
 }
 
-static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Exp_Binary* binary) {
+static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
 #endif
@@ -528,15 +528,15 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Exp_B
     return NULL;
     }
     */
-    if(binary->rhs->exp_type == ae_expr_primary) {
+    if(binary->rhs->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
       //      f1 = (v->owner_class && v->is_member) ? v->func_ref :nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref :nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-    } else if(binary->rhs->exp_type == ae_expr_dot) {
+    } else if(binary->rhs->exp_type == ae_exp_dot) {
       v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
       //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
       f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
-    } else if(binary->rhs->exp_type == ae_expr_decl) {
+    } else if(binary->rhs->exp_type == ae_exp_decl) {
       v = binary->rhs->d.exp_decl.list->self->value;
       f1 = v->m_type->func;
     } else {
@@ -544,15 +544,15 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Exp_B
       return NULL;
     }
     r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
-    if(binary->lhs->exp_type == ae_expr_primary) {
+    if(binary->lhs->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
       l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
-    } else if(binary->lhs->exp_type == ae_expr_dot) {
+    } else if(binary->lhs->exp_type == ae_exp_dot) {
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
-      /*    } else if(binary->lhs->exp_type == ae_expr_decl) {
+      /*    } else if(binary->lhs->exp_type == ae_exp_decl) {
             v = binary->lhs->d.exp_decl->list->self->value;
             f2 = v->m_type->func; */
     } else {
@@ -572,7 +572,7 @@ static Type check_op(Env env, Operator op, Expression lhs, Expression rhs, Exp_B
       return NULL;
     }
     for(i = 0; i <= v->func_num_overloads; i++) {
-      if(binary->lhs->exp_type == ae_expr_primary) {
+      if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
@@ -617,7 +617,7 @@ static Type check_binary_expression(Env env, Exp_Binary* binary) {
   debug_msg("check", "binary expression '%p' '%p'", binary->lhs, binary->rhs);
 #endif
   Type ret = NULL;
-  Expression cl = binary->lhs, cr = binary->rhs;
+  Exp cl = binary->lhs, cr = binary->rhs;
 
   CHECK_OO(check_expression(env, cl))
   CHECK_OO(check_expression(env, cr))
@@ -807,8 +807,8 @@ static Type check_dur(Env env, Exp_Dur* dur) {
   return unit;
 }
 
-static Func find_func_match_actual(Func up, Expression args, m_bool implicit, m_bool specific) {
-  Expression e;
+static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
+  Exp e;
   Arg_List e1;
   m_uint count;
   Func func;
@@ -852,7 +852,7 @@ moveon:
   return NULL;
 }
 
-static Func find_func_match(Func up, Expression args) {
+static Func find_func_match(Func up, Exp args) {
   Func func;
   if((func = find_func_match_actual(up, args, 0, 1)) ||
       (func = find_func_match_actual(up, args, 1, 1)) ||
@@ -879,7 +879,7 @@ static Type_List mk_type_list(Env env, Type type) {
   return list;
 }
 
-Func find_template_match(Env env, Value v, Func m_func, Type_List types, Expression func, Expression args) {
+Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
   m_uint i;
   Func_Def base;
   Value value;
@@ -957,7 +957,7 @@ next:
   return NULL;
 }
 
-/* static */ Type check_func_call1(Env env, Expression exp_func, Expression args, Func *m_func, int pos) {
+/* static */ Type check_func_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func call");
 #endif
@@ -969,7 +969,7 @@ next:
   exp_func->type = check_expression(env, exp_func);
   f = exp_func->type;
   // primary func_ptr
-  if(exp_func->exp_type == ae_expr_primary &&
+  if(exp_func->exp_type == ae_exp_primary &&
       exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
     if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
       err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
@@ -978,7 +978,7 @@ next:
     ptr = exp_func->d.exp_primary.value;
   }
   /*
-     else if(exp_func->exp_type == ae_expr_dot) {
+     else if(exp_func->exp_type == ae_exp_dot) {
      Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
      if(v && v->owner_class == env->class_def) {
      err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
@@ -1004,9 +1004,9 @@ next:
   if(!func) {
     Value value;
     if(!f->func) {
-      if(exp_func->exp_type == ae_expr_primary)
+      if(exp_func->exp_type == ae_exp_primary)
         value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
-      else if(exp_func->exp_type == ae_expr_dot)
+      else if(exp_func->exp_type == ae_exp_dot)
         value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
       else {
         err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
@@ -1026,7 +1026,7 @@ next:
       Type_List tl[type_number];
       while(list) { // iterate through types
         Arg_List arg = value->func_ref->def->arg_list;
-        Expression template_arg = args;
+        Exp template_arg = args;
         while(arg && template_arg) {
           m_str path = type_path(arg->type_decl->xid);
           if(!strcmp(S_name(list->xid), path)) {
@@ -1087,7 +1087,7 @@ next:
     }
     fprintf(stderr, "and not");
     fprintf(stderr, "\n\t");
-    Expression e = args;
+    Exp e = args;
     while(e) {
 #ifdef COLOR
       fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
@@ -1117,7 +1117,7 @@ next:
 static Type check_func_call(Env env, Exp_Func* exp_func) {
   if(exp_func->types) {
     Value v;
-    if(exp_func->func->exp_type == ae_expr_primary) {
+    if(exp_func->func->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
     } else {
       Type t;
@@ -1189,7 +1189,7 @@ static Type check_unary(Env env, Exp_Unary* exp_unary) {
 
       break;
     case op_spork:
-      if(exp_unary->exp && exp_unary->exp->exp_type == ae_expr_call)
+      if(exp_unary->exp && exp_unary->exp->exp_type == ae_exp_call)
         return &t_shred;
       else if(exp_unary->code) {
         if(env->func) {
@@ -1262,43 +1262,43 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
   return ret;
 }
 
-static Type check_expression(Env env, Expression exp) {
-  Expression curr = exp;
+static Type check_expression(Env env, Exp exp) {
+  Exp curr = exp;
   while(curr) {
     curr->type = NULL;
     switch(curr->exp_type) {
-    case ae_expr_primary:
+    case ae_exp_primary:
       curr->type = check_primary_expression(env, &curr->d.exp_primary);
       break;
-    case ae_expr_decl:
+    case ae_exp_decl:
       curr->type = check_decl_expression(env, &curr->d.exp_decl);
       break;
-    case ae_expr_unary:
+    case ae_exp_unary:
       curr->type = check_unary(env, &curr->d.exp_unary);
       break;
-    case ae_expr_binary:
+    case ae_exp_binary:
       curr->type = check_binary_expression(env, &curr->d.exp_binary);
       break;
-    case ae_expr_postfix:
+    case ae_exp_postfix:
       curr->type = check_postfix_expression(env, &curr->d.exp_postfix);
       break;
-    case ae_expr_dur:
+    case ae_exp_dur:
       curr->type = check_dur(env, &curr->d.exp_dur);
       break;
-    case ae_expr_cast:
+    case ae_exp_cast:
       curr->type = check_cast_expression(env, &curr->d.exp_cast);
       break;
-    case ae_expr_call:
+    case ae_exp_call:
       curr->type = check_func_call(env, &curr->d.exp_func);
       curr->d.exp_func.ret_type = curr->type;
       break;
-    case ae_expr_if:
+    case ae_exp_if:
       curr->type = check_exp_if(env, &curr->d.exp_if);
       break;
-    case ae_expr_dot:
+    case ae_exp_dot:
       curr->type = check_dot_member(env, &curr->d.exp_dot);
       break;
-    case ae_expr_array:
+    case ae_exp_array:
       curr->type = check_array(env, &curr->d.exp_array);
       break;
     }

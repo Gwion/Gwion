@@ -82,7 +82,7 @@ static const m_str op_name[] = {
   // more to come
 };
 
-typedef Type (*f_type)(Env env, Expression exp);
+typedef Type (*f_type)(Env env, Exp exp);
 
 typedef struct {
   Type lhs, rhs, ret;

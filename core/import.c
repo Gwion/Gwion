@@ -8,7 +8,7 @@
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
 
-void free_expression(Expression exp);
+void free_expression(Exp exp);
 
 m_bool scan1_decl_expression(Env env, Exp_Decl* decl);
 m_bool scan2_decl_expression(Env env, Exp_Decl* decl);
@@ -144,7 +144,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   Type_Decl* type_decl;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
-  Expression exp_decl;
+  Exp exp_decl;
   CHECK_EB(env->class_def)
   if(!(path = str2list(type, &array_depth))) {
     err_msg(TYPE_, 0, "... during %svar import '%s.%s'...", is_static ? "s" : "m", env->class_def->name, name);
@@ -162,7 +162,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     var_decl->array->depth = array_depth;
   }
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  exp_decl = new_expr_decl(type_decl, var_decl_list, is_static, 0);
+  exp_decl = new_exp_decl(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
   if(scan1_decl_expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;
