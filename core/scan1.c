@@ -295,13 +295,11 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
       return -1;
     }
     v = new_value(t, S_name(list->xid));
-    SET_FLAG(v, ae_value_const);
-    SET_FLAG(v, ae_value_enum);
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_value_static);
     }
-    SET_FLAG(v, ae_value_checked);
+    SET_FLAG(v, ae_value_const | ae_value_enum | ae_value_checked);
     nspc_add_value(nspc, list->xid, v);
     vector_append(stmt->values, (vtype)v);
     list = list->next;

@@ -88,10 +88,9 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   Value v = new_value(type, name);
   if(!v)
     return -1;
-  SET_FLAG(v, ae_value_checked);
   if(is_const)
     SET_FLAG(v, ae_value_const);
-  SET_FLAG(v, ae_value_global);
+  SET_FLAG(v, ae_value_checked | ae_value_global);
   if(data)
     v->ptr = data;
   v->owner = env->global_nspc;
@@ -128,9 +127,7 @@ m_bool add_global_type(Env env, Type type) {
   INIT_OO(type, e_type_obj);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_value(v_type, type->name);
-  SET_FLAG(v, ae_value_checked);
-  SET_FLAG(v, ae_value_const);
-  SET_FLAG(v, ae_value_global);
+  SET_FLAG(v, ae_value_checked | ae_value_const | ae_value_global);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
 //  context_add_type(env->global_context, type, &type->obj);
   type->owner = env->curr;

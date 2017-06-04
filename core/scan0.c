@@ -18,8 +18,7 @@ static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
   type->actual_type = t;
   v = new_value(type, name);
   v->owner = env->curr;
-  SET_FLAG(v, ae_value_const);
-  SET_FLAG(v, ae_value_checked);
+  SET_FLAG(v, ae_value_const | ae_value_checked);
   nspc_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
   return 1;
@@ -115,8 +114,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     type->actual_type = the_class;
     value = new_value(type, the_class->name);
     value->owner = env->curr;
-    SET_FLAG(value, ae_value_const);
-    SET_FLAG(value, ae_value_checked);
+    SET_FLAG(value, ae_value_const | ae_value_checked);
     nspc_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
 //    if(env->curr == env->context->nspc) {
