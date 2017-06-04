@@ -17,7 +17,7 @@ struct Nspc_ {
   VM_Code   dtor;
   char*		class_data;
   m_uint    class_data_size;
-  Map      	operator;
+  Map      	op_map;
   struct VM_Object_ obj;
 };
 

@@ -52,7 +52,7 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
   a->obj_v_table     = new_vector();
-  a->operator        = NULL;
+  a->op_map          = NULL;
   INIT_OO(a, e_nspc_obj);
   return a;
 }
@@ -62,6 +62,7 @@ void free_nspc(Nspc a) {
   Vector v = scope_get(a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
+if(value->m_type)
     if(isa(value->m_type, &t_class) > 0)
       REM_REF(value->m_type)
       else if(isa(value->m_type, &t_object) > 0) {
@@ -117,7 +118,7 @@ void free_nspc(Nspc a) {
     free_VM_Code(a->pre_ctor);
   if(a->dtor)
     free_VM_Code(a->dtor);
-  if(a->operator)
-    free_Operator_Map(a->operator);
+  if(a->op_map)
+    free_Operator_Map(a->op_map);
   free(a);
 }

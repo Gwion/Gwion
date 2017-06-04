@@ -65,10 +65,10 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   if(global)
     nspc = env->global_nspc;
 
-  if(!nspc->operator)
-    nspc->operator = new_Operator_Map();
+  if(!nspc->op_map)
+    nspc->op_map = new_Operator_Map();
 
-  if(!(v = (Vector)map_get(nspc->operator, (vtype)op))) {
+  if(!(v = (Vector)map_get(nspc->op_map, (vtype)op))) {
     err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
     return -1;
@@ -97,9 +97,9 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
   Type t, l = lhs, r = lhs;
   Nspc nspc = env->curr;
   while(nspc) {
-    if(!nspc->operator)
+    if(!nspc->op_map)
 		goto next;
-    Vector v = (Vector)map_get(nspc->operator, (vtype)op);
+    Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
     M_Operator* mo;
     if((mo = operator_find(v, lhs, rhs)))
       return mo->ret;
@@ -143,7 +143,7 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
 #endif
   Nspc nspc = env->curr;
   M_Operator* mo;
-  Vector v = (Vector)map_get(nspc->operator, (vtype)name2op(S_name(f->def->name)));
+  Vector v = (Vector)map_get(nspc->op_map, (vtype)name2op(S_name(f->def->name)));
   mo = operator_find(v, lhs, rhs);
   mo->func = f;
   return 1;
@@ -159,7 +159,7 @@ m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
   Nspc nspc = emit->env->curr;
   while(nspc) {
     M_Operator* mo;
-    v = (Vector)map_get(nspc->operator, (vtype)op);
+    v = (Vector)map_get(nspc->op_map, (vtype)op);
     if((mo = operator_find(v, lhs, rhs))) {
       if(mo->func) {
         add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
