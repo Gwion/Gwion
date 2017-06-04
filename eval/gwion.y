@@ -250,8 +250,8 @@ arg_list
   ;
 
 code_segment
-  : LBRACE RBRACE { $$ = new_stmt_from_code( NULL, get_pos(scanner)); }
-  | LBRACE stmt_list RBRACE { $$ = new_stmt_from_code( $2, get_pos(scanner)); }
+  : LBRACE RBRACE { $$ = new_stmt_code( NULL, get_pos(scanner)); }
+  | LBRACE stmt_list RBRACE { $$ = new_stmt_code( $2, get_pos(scanner)); }
   ;
 
 stmt
@@ -270,62 +270,62 @@ stmt
   ;
 
 enum_stmt
-  : ENUM LBRACE id_list RBRACE SEMICOLON    { $$ = new_stmt_from_enum($3, NULL, get_pos(scanner)); }
-  | ENUM LBRACE id_list RBRACE ID SEMICOLON { $$ = new_stmt_from_enum($3, $5, get_pos(scanner)); }
+  : ENUM LBRACE id_list RBRACE SEMICOLON    { $$ = new_stmt_enum($3, NULL, get_pos(scanner)); }
+  | ENUM LBRACE id_list RBRACE ID SEMICOLON { $$ = new_stmt_enum($3, $5, get_pos(scanner)); }
   ;
 
 label_stmt
-  : ID COLON {  $$ = new_stmt_from_gotolabel($1, 1, get_pos(scanner)); }
+  : ID COLON {  $$ = new_stmt_gotolabel($1, 1, get_pos(scanner)); }
   ;
 
 goto_stmt
-  : GOTO ID SEMICOLON {  $$ = new_stmt_from_gotolabel($2, 0, get_pos(scanner)); }
+  : GOTO ID SEMICOLON {  $$ = new_stmt_gotolabel($2, 0, get_pos(scanner)); }
   ;
 
 case_stmt
-  : CASE primary_exp COLON { $$ = new_stmt_from_case($2, get_pos(scanner)); }
-  | CASE postfix_exp COLON { $$ = new_stmt_from_case($2, get_pos(scanner)); }
+  : CASE primary_exp COLON { $$ = new_stmt_case($2, get_pos(scanner)); }
+  | CASE postfix_exp COLON { $$ = new_stmt_case($2, get_pos(scanner)); }
   ;
 
 switch_stmt
-  : SWITCH LPAREN exp RPAREN code_segment { $$ = new_stmt_from_switch($3, $5, get_pos(scanner));}
+  : SWITCH LPAREN exp RPAREN code_segment { $$ = new_stmt_switch($3, $5, get_pos(scanner));}
   ;
 
 loop_stmt
   : WHILE LPAREN exp RPAREN stmt
-    { $$ = new_stmt_from_while( $3, $5, 0, get_pos(scanner)); }
+    { $$ = new_stmt_while( $3, $5, 0, get_pos(scanner)); }
   | DO stmt WHILE LPAREN exp RPAREN SEMICOLON
-    { $$ = new_stmt_from_while( $5, $2, 1, get_pos(scanner)); }
+    { $$ = new_stmt_while( $5, $2, 1, get_pos(scanner)); }
   | FOR LPAREN exp_stmt exp_stmt RPAREN stmt
-      { $$ = new_stmt_from_for( $3, $4, NULL, $6, get_pos(scanner)); }
+      { $$ = new_stmt_for( $3, $4, NULL, $6, get_pos(scanner)); }
   | FOR LPAREN exp_stmt exp_stmt exp RPAREN stmt
-      { $$ = new_stmt_from_for( $3, $4, $5, $7, get_pos(scanner)); }
+      { $$ = new_stmt_for( $3, $4, $5, $7, get_pos(scanner)); }
   | UNTIL LPAREN exp RPAREN stmt
-      { $$ = new_stmt_from_until( $3, $5, 0, get_pos(scanner)); }
+      { $$ = new_stmt_until( $3, $5, 0, get_pos(scanner)); }
   | DO stmt UNTIL LPAREN exp RPAREN SEMICOLON
-      { $$ = new_stmt_from_until( $5, $2, 1, get_pos(scanner)); }
+      { $$ = new_stmt_until( $5, $2, 1, get_pos(scanner)); }
   | LOOP LPAREN exp RPAREN stmt
-      { $$ = new_stmt_from_loop( $3, $5, get_pos(scanner)); }
+      { $$ = new_stmt_loop( $3, $5, get_pos(scanner)); }
   ;
 
 selection_stmt
   : IF LPAREN exp RPAREN stmt %prec NOELSE
-      { $$ = new_stmt_from_if( $3, $5, NULL, get_pos(scanner)); }
+      { $$ = new_stmt_if( $3, $5, NULL, get_pos(scanner)); }
   | IF LPAREN exp RPAREN stmt ELSE stmt
-      { $$ = new_stmt_from_if( $3, $5, $7, get_pos(scanner)); }
+      { $$ = new_stmt_if( $3, $5, $7, get_pos(scanner)); }
   ;
 
 jump_stmt
-  : RETURN SEMICOLON     { $$ = new_stmt_from_return( NULL, get_pos(scanner)); }
-  | RETURN exp SEMICOLON { $$ = new_stmt_from_return( $2, get_pos(scanner)); }
-  | BREAK SEMICOLON      { $$ = new_stmt_from_break(get_pos(scanner)); }
-  | CONTINUE SEMICOLON   { $$ = new_stmt_from_continue(get_pos(scanner)); }
+  : RETURN SEMICOLON     { $$ = new_stmt_return( NULL, get_pos(scanner)); }
+  | RETURN exp SEMICOLON { $$ = new_stmt_return( $2, get_pos(scanner)); }
+  | BREAK SEMICOLON      { $$ = new_stmt_break(get_pos(scanner)); }
+  | CONTINUE SEMICOLON   { $$ = new_stmt_continue(get_pos(scanner)); }
   ;
 
 exp_stmt
-  : exp SEMICOLON { $$ = new_stmt_from_expression($1,   get_pos(scanner)); }
-  | SEMICOLON     { $$ = new_stmt_from_expression(NULL, get_pos(scanner)); }
-  | DOC           { $$ = new_stmt_from_expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
+  : exp SEMICOLON { $$ = new_stmt_expression($1,   get_pos(scanner)); }
+  | SEMICOLON     { $$ = new_stmt_expression(NULL, get_pos(scanner)); }
+  | DOC           { $$ = new_stmt_expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
   ;
 
 exp
@@ -423,7 +423,7 @@ decl_list
   ;
 
 union_stmt
-  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_stmt_from_union($3, get_pos(scanner)); }
+  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner)); }
   ;
 
 var_decl_list
@@ -545,17 +545,17 @@ cast_exp
 unary_expression
   : dur_exp { $$ = $1; }
   | PLUSPLUS unary_expression
-      { $$ = new_exp_from_unary( op_plusplus, $2, get_pos(scanner)); }
+      { $$ = new_expr_unary( op_plusplus, $2, get_pos(scanner)); }
   | MINUSMINUS unary_expression
-      { $$ = new_exp_from_unary( op_minusminus, $2, get_pos(scanner)); }
+      { $$ = new_expr_unary( op_minusminus, $2, get_pos(scanner)); }
   | unary_operator unary_expression
-      { $$ = new_exp_from_unary( $1, $2, get_pos(scanner)); }
+      { $$ = new_expr_unary( $1, $2, get_pos(scanner)); }
   | NEW type_decl
-      { $$ = new_exp_from_unary2(op_new, $2, NULL, get_pos(scanner)); }
+      { $$ = new_expr_unary2(op_new, $2, NULL, get_pos(scanner)); }
   | NEW type_decl array_exp
-      { $$ = new_exp_from_unary2(op_new, $2, $3, get_pos(scanner)); }
+      { $$ = new_expr_unary2(op_new, $2, $3, get_pos(scanner)); }
   | SPORK TILDA code_segment
-        { $$ = new_exp_from_unary3( op_spork, $3, get_pos(scanner)); }
+        { $$ = new_expr_unary3( op_spork, $3, get_pos(scanner)); }
   ;
 
 unary_operator
@@ -568,7 +568,7 @@ unary_operator
 
 dur_exp
   : postfix_exp
-  | dur_exp COLONCOLON postfix_exp { $$ = new_exp_dur( $1, $3, get_pos(scanner)); }
+  | dur_exp COLONCOLON postfix_exp { $$ = new_expr_dur( $1, $3, get_pos(scanner)); }
   ;
 
 type_list
@@ -591,9 +591,9 @@ postfix_exp
   | postfix_exp array_exp
     { $$ = new_array( $1, $2, get_pos(scanner)); }
   | postfix_exp call_template call_paren
-    { $$ = new_func_call( $1, $3, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
+    { $$ = new_expr_call( $1, $3, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
   | postfix_exp DOT ID
-    { $$ = new_exp_from_member_dot( $1, $3, get_pos(scanner)); }
+    { $$ = new_expr_dot( $1, $3, get_pos(scanner)); }
   | postfix_exp PLUSPLUS
     { $$ = new_postfix_expression( $1, op_plusplus, get_pos(scanner)); }
   | postfix_exp MINUSMINUS
@@ -601,18 +601,18 @@ postfix_exp
   ;
 
 primary_exp
-  : ID                { $$ = new_primary_expression_from_ID(     $1, get_pos(scanner)); }
-  | NUM               { $$ = new_primary_expression_from_int(    $1, get_pos(scanner)); }
-  | FLOAT             { $$ = new_primary_expression_from_float(  $1, get_pos(scanner)); }
-  | STRING_LIT        { $$ = new_primary_expression_from_string( $1, get_pos(scanner)); }
-  | CHAR_LIT          { $$ = new_exp_from_char(                  $1, get_pos(scanner)); }
-  | array_exp         { $$ = new_exp_from_array_lit(             $1, get_pos(scanner)); }
-  | array_empty       { $$ = new_exp_from_array_lit(           $1, get_pos(scanner)); }
-  | complex_exp       { $$ = new_exp_from_complex(               $1, get_pos(scanner)); }
-  | polar_exp         { $$ = new_exp_from_polar(                 $1, get_pos(scanner)); }
-  | vec_exp           { $$ = new_exp_from_vec(                   $1, get_pos(scanner)); }
+  : ID                { $$ = new_expr_prim_ID(     $1, get_pos(scanner)); }
+  | NUM               { $$ = new_expr_prim_int(    $1, get_pos(scanner)); }
+  | FLOAT             { $$ = new_expr_prim_float(  $1, get_pos(scanner)); }
+  | STRING_LIT        { $$ = new_expr_prim_string( $1, get_pos(scanner)); }
+  | CHAR_LIT          { $$ = new_expr_prim_char(                  $1, get_pos(scanner)); }
+  | array_exp         { $$ = new_expr_array_lit(             $1, get_pos(scanner)); }
+  | array_empty       { $$ = new_expr_array_lit(           $1, get_pos(scanner)); }
+  | complex_exp       { $$ = new_expr_complex(               $1, get_pos(scanner)); }
+  | polar_exp         { $$ = new_expr_polar(                 $1, get_pos(scanner)); }
+  | vec_exp           { $$ = new_expr_prim_vec(                   $1, get_pos(scanner)); }
   | L_HACK exp R_HACK { $$ = new_hack_expression(                $2, get_pos(scanner)); }
   | LPAREN exp RPAREN { $$ = $2; }
-  | LPAREN RPAREN     { $$ = new_primary_expression_from_nil(       get_pos(scanner)); }
+  | LPAREN RPAREN     { $$ = new_expr_prim_nil(       get_pos(scanner)); }
   ;
 %%

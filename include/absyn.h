@@ -128,7 +128,7 @@ typedef struct {
   Expression self;
 } Complex;
 Complex* new_complex(Expression re, int pos);
-Expression new_exp_from_complex(Complex* exp, int pos);
+Expression new_expr_complex(Complex* exp, int pos);
 
 typedef struct {
   Expression mod;
@@ -136,8 +136,7 @@ typedef struct {
   int pos;
   Expression self;
 } Polar;
-Expression new_exp_from_polar(Polar* exp, int pos);
-Expression new_exp_from_char(m_str chr, int pos);
+Expression new_expr_polar(Polar* exp, int pos);
 
 typedef struct Vec_* Vec;
 struct Vec_ {
@@ -147,7 +146,6 @@ struct Vec_ {
   Expression self;
 };
 Vec new_vec(Expression e, int pos);
-Expression new_exp_from_vec(Vec a, int pos);
 typedef enum { ae_primary_var, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
                ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,
@@ -186,21 +184,23 @@ typedef struct {
 } Func_Call;
 
 
-Expression new_primary_expression_from_int(long i, int pos);
-Expression new_primary_expression_from_float(m_float num, int pos);
-Expression new_primary_expression_from_ID(m_str s, int pos);
-Expression new_primary_expression_from_string(m_str s, int pos);
-Expression new_exp_from_array_lit(Array_Sub exp_list, int pos);
+Expression new_expr_prim_int(long i, int pos);
+Expression new_expr_prim_float(m_float num, int pos);
+Expression new_expr_prim_ID(m_str s, int pos);
+Expression new_expr_prim_string(m_str s, int pos);
+Expression new_expr_array_lit(Array_Sub exp_list, int pos);
+Expression new_expr_prim_char(m_str chr, int pos);
+Expression new_expr_prim_vec(Vec a, int pos);
+Expression new_expr_prim_nil(int pos);
 Polar* new_polar(Expression mod, int pos);
 Expression new_postfix_expression(Expression exp, Operator op, int pos);
 Expression prepend_expression(Expression exp, Expression next, int pos);
 Expression new_hack_expression(Expression exp, int pos);
-Expression new_func_call(Expression base, Expression args, int pos);
-Expression new_primary_expression_from_nil(int pos);
+Expression new_expr_call(Expression base, Expression args, int pos);
 Expression new_cast_expression(Type_Decl* type, Expression exp, int pos);
 Expression new_if_expression(Expression cond, Expression if_exp, Expression else_exp, int pos);
-Expression new_exp_dur(Expression base, Expression unit, int pos);
-Expression new_exp_from_member_dot(Expression base, m_str xid, int pos);
+Expression new_expr_dur(Expression base, Expression unit, int pos);
+Expression new_expr_dot(Expression base, m_str xid, int pos);
 typedef struct {
   Expression lhs, rhs;
   Operator op;
@@ -372,21 +372,21 @@ struct Stmt_ {
   int pos;
 };
 
-Stmt new_stmt_from_expression(Expression exp, int pos);
-Stmt new_stmt_from_code(Stmt_List stmt_list, int pos);
-Stmt new_stmt_from_while(Expression cond, Stmt body, m_bool is_do, int pos);
-Stmt new_stmt_from_return(Expression exp, int pos);
-Stmt new_stmt_from_break(int pos);
-Stmt new_stmt_from_continue(int pos);
-Stmt new_stmt_from_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
-Stmt new_stmt_from_until(Expression cond, Stmt body, m_bool is_do, int pos);
-Stmt new_stmt_from_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
-Stmt new_stmt_from_loop(Expression cond, Stmt body, int pos);
-Stmt new_stmt_from_gotolabel(m_str xid, m_bool is_label, int pos);
-Stmt new_stmt_from_case(Expression exp, int pos);
-Stmt new_stmt_from_enum(ID_List list, m_str type, int pos);
-Stmt new_stmt_from_switch(Expression val, Stmt stmt, int pos);
-Stmt new_stmt_from_union(Decl_List l, int pos);
+Stmt new_stmt_expression(Expression exp, int pos);
+Stmt new_stmt_code(Stmt_List stmt_list, int pos);
+Stmt new_stmt_while(Expression cond, Stmt body, m_bool is_do, int pos);
+Stmt new_stmt_return(Expression exp, int pos);
+Stmt new_stmt_break(int pos);
+Stmt new_stmt_continue(int pos);
+Stmt new_stmt_if(Expression cond, Stmt if_body, Stmt else_body, int pos);
+Stmt new_stmt_until(Expression cond, Stmt body, m_bool is_do, int pos);
+Stmt new_stmt_for(Stmt c1, Stmt c2, Expression c3, Stmt body, int pos);
+Stmt new_stmt_loop(Expression cond, Stmt body, int pos);
+Stmt new_stmt_gotolabel(m_str xid, m_bool is_label, int pos);
+Stmt new_stmt_case(Expression exp, int pos);
+Stmt new_stmt_enum(ID_List list, m_str type, int pos);
+Stmt new_stmt_switch(Expression val, Stmt stmt, int pos);
+Stmt new_stmt_union(Decl_List l, int pos);
 
 typedef struct {
   Operator op;
@@ -398,9 +398,9 @@ typedef struct {
   Expression self;
   int pos;
 } Unary_Expression;
-Expression new_exp_from_unary(Operator oper, Expression exp, int pos);
-Expression new_exp_from_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
-Expression new_exp_from_unary3(Operator oper, Stmt code, int pos);
+Expression new_expr_unary(Operator oper, Expression exp, int pos);
+Expression new_expr_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
+Expression new_expr_unary3(Operator oper, Stmt code, int pos);
 
 struct Arg_List_ {
   Type_Decl* type_decl;

@@ -151,8 +151,8 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
 
   if(v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
     m_bool ret;
-    Expression base = new_primary_expression_from_ID("this", pos);
-    Expression dot = new_exp_from_member_dot(base, S_name(symbol), pos);
+    Expression base = new_expr_prim_ID("this", pos);
+    Expression dot = new_expr_dot(base, S_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
     dot->d.exp_dot.t_base = v->owner_class;
