@@ -678,6 +678,16 @@ static Type check_binary_expression(Env env, Binary_Expression* binary) {
       cr->emit_var = 1;
       break;
     }
+    if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0) {
+      err_msg(TYPE_, cl->pos,
+              "cannot assign '%s' on types '%s' and'%s'...",
+              op2str(binary->op), cl->type->name, cr->type->name);
+      err_msg(TYPE_, cl->pos,
+              "...(reason: --- right-side operand is not mutable)");
+      return NULL;
+    }
+    cr->emit_var = 1;
+    break;
   case op_plus_chuck:
   case op_minus_chuck:
   case op_times_chuck:
