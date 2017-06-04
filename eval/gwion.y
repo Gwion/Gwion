@@ -91,7 +91,7 @@ static m_str get_doc(void* data)
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT DOC
 
-%type<ival> op
+%type<ival> op shift_op
 %type<ival> unary_operator
 %type<ival> class_decl
 %type<ival> static_decl
@@ -102,6 +102,7 @@ static m_str get_doc(void* data)
 %type<exp> primary_exp
 %type<exp> decl_exp
 %type<exp> binary_exp
+%type<exp> call_paren
 %type <array_sub> array_exp
 %type <array_sub> array_empty
 %type <exp> conditional_expression
@@ -137,7 +138,7 @@ static m_str get_doc(void* data)
 %type<stmt> enum_stmt
 %type<stmt> func_ptr
 %type<stmt> union_stmt
-%type<arg_list> arg_list
+%type<arg_list> arg_list func_args
 %type<decl_list> decl_list
 %type<func_def> func_def
 %type<section> section
@@ -146,9 +147,9 @@ static m_str get_doc(void* data)
 %type<class_body> class_body
 %type<class_body> class_body2
 %type<id_list> id_list
-%type<id_list> id_dot
+%type<id_list> id_dot func_template
 %type<type_list> type_list
-%type<type_list> template
+%type<type_list> template call_template
 %type<section> class_section
 %type<ast> ast
 
@@ -157,7 +158,7 @@ static m_str get_doc(void* data)
 %nonassoc NOELSE
 %nonassoc ELSE
 
-
+%precedence NEG
 %left DOT
 
 %destructor { printf("!!!!\n"); free_type_decl($$); } <type_decl>
@@ -387,21 +388,23 @@ decl_exp
   | STATIC type_decl var_decl_list { $$= new_decl_expression($2, $3, 1, get_pos(scanner)); }
   ;
 
+func_args
+  : LPAREN RPAREN          { $$ = NULL; }
+  | LPAREN arg_list RPAREN { $$ = $2; }
+  ;
+
+func_template
+  :                          { $$ = NULL; }
+  | TEMPLATE LTB id_list GTB { $$ = $3;   }
+  ;
+
 func_def
-  : function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
-    { $$ = new_func_def($1, $2, $3, $4, NULL, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
-  | function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
-    { $$ = new_func_def($1, $2, $3, $4, $6, $8, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); }
+  : func_template function_decl static_decl type_decl2 ID func_args code_segment
+    { $$ = new_func_def($2, $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
+  | OPERATOR type_decl ID func_args code_segment
+    { $$ = new_func_def(ae_key_func, ae_key_static, $2, $3, $4, $5, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_key_func, ae_key_instance, new_type_decl(new_id_list("void", get_pos(scanner)), 0, get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->spec = ae_func_spec_dtor; $$->type_decl->doc = get_doc(scanner);}
-  | OPERATOR type_decl ID LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_key_func, ae_key_static, $2, $3, NULL, $6, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
-  | OPERATOR type_decl ID LPAREN arg_list RPAREN code_segment
-    { $$ = new_func_def(ae_key_func, ae_key_static, $2, $3, $5, $7, get_pos(scanner)); $$->spec = ae_func_spec_op; $$->type_decl->doc = get_doc(scanner); }
-  | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN RPAREN  code_segment
-    { $$ = new_func_def($5, $6, $7, $8, NULL, $11, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
-  | TEMPLATE LTB id_list GTB function_decl static_decl type_decl2 ID LPAREN arg_list RPAREN  code_segment
-    { $$ = new_func_def($5, $6, $7, $8, $10, $12, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $3; }
   ;
 
 type_decl
@@ -443,7 +446,8 @@ polar_exp
   : PERCENTPAREN exp RPAREN
     { $$ = new_polar($2, get_pos(scanner)); }
   ;
-vec_exp // ge: added 1.3.5.3
+
+vec_exp
 	: ATPAREN exp RPAREN { $$ = new_vec($2, get_pos(scanner)); }
 
 conditional_expression
@@ -502,12 +506,15 @@ relational_expression
     { $$ = new_binary_expression( $1, op_ge, $3, get_pos(scanner)); }
   ;
 
+shift_op
+  : SHIFT_LEFT  { $$ = op_shift_left;  }
+  | SHIFT_RIGHT { $$ = op_shift_right; }
+  ;
+
 shift_expression
   : additive_expression               { $$ = $1; }
-  | shift_expression SHIFT_LEFT additive_expression
-    { $$ = new_binary_expression( $1, op_shift_left, $3, get_pos(scanner)); }
-  | shift_expression SHIFT_RIGHT additive_expression
-    { $$ = new_binary_expression( $1, op_shift_right, $3, get_pos(scanner)); }
+  | shift_expression shift_op  additive_expression
+    { $$ = new_binary_expression( $1, $2, $3, get_pos(scanner)); }
   ;
 
 additive_expression
@@ -553,7 +560,7 @@ unary_expression
 
 unary_operator
   : PLUS                              { $$ = op_plus; }
-  | MINUS                             { $$ = op_minus; }
+  | MINUS                   %prec NEG { $$ = op_minus; }
   | EXCLAMATION                       { $$ = op_exclamation; }
   | TIMES                             { $$ = op_times; }
   | SPORK TILDA                       { $$ = op_spork; }
@@ -569,24 +576,28 @@ type_list
   | ID COMMA type_list{ $$ = new_type_list(new_id_list($1, get_pos(scanner)), $3, get_pos(scanner)); }
   ;
 
+call_paren
+  : LPAREN RPAREN     { $$ = NULL; }
+  | LPAREN exp RPAREN { $$ = $2; }
+  ;
+
+call_template
+  :          { $$ = NULL; }
+  | template { $$ = $1;}
+  ;
+
 postfix_exp
   : primary_exp
   | postfix_exp array_exp
     { $$ = new_array( $1, $2, get_pos(scanner)); }
-  | postfix_exp LPAREN RPAREN
-    { $$ = new_func_call( $1, NULL, get_pos(scanner)); }
-  | postfix_exp LPAREN exp RPAREN
-    { $$ = new_func_call( $1, $3, get_pos(scanner)); }
+  | postfix_exp call_template call_paren
+    { $$ = new_func_call( $1, $3, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
   | postfix_exp DOT ID
     { $$ = new_exp_from_member_dot( $1, $3, get_pos(scanner)); }
   | postfix_exp PLUSPLUS
     { $$ = new_postfix_expression( $1, op_plusplus, get_pos(scanner)); }
   | postfix_exp MINUSMINUS
     { $$ = new_postfix_expression( $1, op_minusminus, get_pos(scanner)); }
-  | postfix_exp template LPAREN RPAREN
-    { $$ = new_func_call( $1, NULL, get_pos(scanner)); $$->d.exp_func.types = $2; }
-  | postfix_exp template LPAREN exp RPAREN
-    { $$ = new_func_call( $1, $4, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
   ;
 
 primary_exp

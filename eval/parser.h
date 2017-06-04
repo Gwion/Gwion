@@ -145,7 +145,8 @@ extern int minimal_debug;
     ID = 355,
     STRING_LIT = 356,
     CHAR_LIT = 357,
-    DOC = 358
+    DOC = 358,
+    NEG = 359
   };
 #endif
 /* Tokens.  */
@@ -250,6 +251,7 @@ extern int minimal_debug;
 #define STRING_LIT 356
 #define CHAR_LIT 357
 #define DOC 358
+#define NEG 359
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -284,7 +286,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 288 "eval/parser.h" /* yacc.c:1909  */
+#line 290 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
