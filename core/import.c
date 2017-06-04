@@ -10,9 +10,9 @@
 
 void free_expression(Expression exp);
 
-m_bool scan1_decl_expression(Env env, Decl_Expression* decl);
-m_bool scan2_decl_expression(Env env, Decl_Expression* decl);
-Type   check_decl_expression(Env env, Decl_Expression* decl);
+m_bool scan1_decl_expression(Env env, Exp_Decl* decl);
+m_bool scan2_decl_expression(Env env, Exp_Decl* decl);
+Type   check_decl_expression(Env env, Exp_Decl* decl);
 
 m_bool scan1_func_def(Env env, Func_Def f);
 m_bool scan2_func_def(Env env, Func_Def f);
@@ -162,7 +162,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     var_decl->array->depth = array_depth;
   }
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  exp_decl = new_decl_expression(type_decl, var_decl_list, is_static, 0);
+  exp_decl = new_expr_decl(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
   if(scan1_decl_expression(env, &exp_decl->d.exp_decl) < 0)
     goto error;

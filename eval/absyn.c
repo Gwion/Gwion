@@ -112,7 +112,7 @@ Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos) {
 
 Expression new_array(Expression base, Array_Sub indices, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Array_Expression_type;
+  a->exp_type = ae_expr_array;
   a->meta = ae_meta_var;
   a->d.exp_array.base = base;
   a->d.exp_array.indices = indices;
@@ -124,7 +124,7 @@ Expression new_array(Expression base, Array_Sub indices, int pos) {
   return a;
 }
 
-static void free_array_expression(Array* a) {
+static void free_array_expression(Exp_Array* a) {
   free_array_sub(a->indices);
   free_expression(a->base);
 }
@@ -167,9 +167,9 @@ void free_type_decl(Type_Decl* a) {
   free(a);
 }
 
-Expression new_decl_expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos) {
+Expression new_expr_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Decl_Expression_type;
+  a->exp_type = ae_expr_decl;
   a->d.exp_decl.type = type;
   a->d.exp_decl.num_decl = 0;
   a->d.exp_decl.list = list;
@@ -182,14 +182,14 @@ Expression new_decl_expression(Type_Decl* type, Var_Decl_List list, m_bool is_st
   return a;
 }
 
-static void free_decl_expression(Decl_Expression* a) {
+static void free_decl_expression(Exp_Decl* a) {
   free_type_decl(a->type);
   free_var_decl_list(a->list);
 }
 
-Expression new_binary_expression(Expression lhs, Operator op, Expression rhs, int pos) {
+Expression new_expr_binary(Expression lhs, Operator op, Expression rhs, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Binary_Expression_type;
+  a->exp_type = ae_expr_binary;
   a->meta = ae_meta_value;
   a->d.exp_binary.lhs = lhs;
   a->d.exp_binary.op = op;
@@ -202,14 +202,14 @@ Expression new_binary_expression(Expression lhs, Operator op, Expression rhs, in
   return a;
 }
 
-static void free_binary_expression(Binary_Expression* binary) {
+static void free_binary_expression(Exp_Binary* binary) {
   free_expression(binary->lhs);
   free_expression(binary->rhs);
 }
 
-Expression new_cast_expression(Type_Decl* type, Expression exp, int pos) {
+Expression new_expr_cast(Type_Decl* type, Expression exp, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Cast_Expression_type;
+  a->exp_type = ae_expr_cast;
   a->meta = ae_meta_value;
   a->d.exp_cast.type = type;
   a->pos = pos;
@@ -221,14 +221,14 @@ Expression new_cast_expression(Type_Decl* type, Expression exp, int pos) {
   return a;
 }
 
-__inline static void free_cast_expression(Cast_Expression* a) {
+__inline static void free_cast_expression(Exp_Cast* a) {
   free_type_decl(a->type);
   free_expression(a->exp);
 }
 
-Expression new_postfix_expression(Expression exp, Operator op, int pos) {
+Expression new_expr_postfix(Expression exp, Operator op, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Postfix_Expression_type;
+  a->exp_type = ae_expr_postfix;
   a->meta = ae_meta_var;
   a->d.exp_postfix.exp = exp;
   a->d.exp_postfix.op = op;
@@ -240,13 +240,13 @@ Expression new_postfix_expression(Expression exp, Operator op, int pos) {
   return a;
 }
 
-static void free_postfix_expression(Postfix_Expression* postfix) {
+static void free_postfix_expression(Exp_Postfix* postfix) {
   free_expression(postfix->exp);
 }
 
 Expression new_expr_dur(Expression base, Expression unit, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Dur_Expression_type;
+  a->exp_type = ae_expr_dur;
   a->meta = ae_meta_value;
   a->d.exp_dur.base = base;
   a->d.exp_dur.unit = unit;
@@ -265,7 +265,7 @@ static void free_dur_expression(Exp_Dur* a) {
 
 Expression new_expr_prim_int(long i, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->emit_var = 0;
   a->d.exp_primary.type = ae_primary_num;
@@ -280,7 +280,7 @@ Expression new_expr_prim_int(long i, int pos) {
 
 Expression new_expr_prim_float(m_float num, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->emit_var = 0; // ???
   a->d.exp_primary.type = ae_primary_float;
@@ -295,7 +295,7 @@ Expression new_expr_prim_float(m_float num, int pos) {
 
 Expression new_expr_prim_string(m_str s, int pos) {
   Expression a = calloc(1,  sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->emit_var = 0; // ???
   a->d.exp_primary.type = ae_primary_str;
@@ -310,7 +310,7 @@ Expression new_expr_prim_string(m_str s, int pos) {
 
 Expression new_expr_prim_nil(int pos) {
   Expression  a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_nil;
   a->d.exp_primary.pos = pos;
@@ -323,10 +323,10 @@ Expression new_expr_prim_nil(int pos) {
 
 Expression new_expr_prim_ID(m_str s, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_var;
   a->emit_var = 0;
-  a->d.exp_primary.type = ae_primary_var;
+  a->d.exp_primary.type = ae_primary_id;
   a->d.exp_primary.d.var = insert_symbol(s);
   a->pos = pos;
   a->d.exp_primary.pos = pos;
@@ -336,9 +336,9 @@ Expression new_expr_prim_ID(m_str s, int pos) {
   return a;
 }
 
-Expression new_hack_expression(Expression exp, int pos) {
+Expression new_expr_prim_hack(Expression exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_hack;
   a->d.exp_primary.d.exp = exp;
@@ -367,7 +367,7 @@ __inline static void free_complex(Complex* a) {
 
 Expression new_expr_prim_char(m_str chr, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_char;
   a->d.exp_primary.d.chr = chr;
@@ -379,9 +379,9 @@ Expression new_expr_prim_char(m_str chr, int pos) {
   return a;
 }
 
-Expression new_expr_array_lit(Array_Sub exp_list, int pos) {
+Expression new_expr_prim_array(Array_Sub exp_list, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_array;
   a->d.exp_primary.d.array = exp_list;
@@ -393,9 +393,9 @@ Expression new_expr_array_lit(Array_Sub exp_list, int pos) {
   return a;
 }
 
-Expression new_expr_complex(Complex* exp, int pos) {
+Expression new_expr_prim_complex(Complex* exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_complex;
   a->d.exp_primary.d.cmp = exp;
@@ -408,9 +408,9 @@ Expression new_expr_complex(Complex* exp, int pos) {
   return a;
 }
 
-Expression new_expr_polar(Polar* exp, int pos) {
+Expression new_expr_prim_polar(Polar* exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_polar;
   a->d.exp_primary.d.polar = exp;
@@ -455,7 +455,7 @@ __inline static void free_vec(Vec a) {
 
 Expression new_expr_prim_vec(Vec exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Primary_Expression_type;
+  a->exp_type = ae_expr_primary;
   a->meta = ae_meta_value;
   a->d.exp_primary.type = ae_primary_vec;
   a->d.exp_primary.d.vec = exp;
@@ -468,7 +468,7 @@ Expression new_expr_prim_vec(Vec exp, int pos) {
 
 Expression new_expr_unary(Operator oper, Expression exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Unary_Expression_type;
+  a->exp_type = ae_expr_unary;
   a->meta = exp->meta;
   a->d.exp_unary.op = oper;
   a->d.exp_unary.exp = exp;
@@ -483,7 +483,7 @@ Expression new_expr_unary(Operator oper, Expression exp, int pos) {
 
 Expression new_expr_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Unary_Expression_type;
+  a->exp_type = ae_expr_unary;
   a->meta = ae_meta_value;
   a->d.exp_unary.exp = NULL;
   a->d.exp_unary.op = oper;
@@ -500,7 +500,7 @@ Expression new_expr_unary2(Operator oper, Type_Decl* type, Array_Sub array, int 
 
 Expression new_expr_unary3(Operator oper, Stmt code, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Unary_Expression_type;
+  a->exp_type = ae_expr_unary;
   a->meta = ae_meta_value;
   a->d.exp_unary.exp = NULL;
   a->d.exp_unary.op = oper;
@@ -516,7 +516,7 @@ Expression new_expr_unary3(Operator oper, Stmt code, int pos) {
   return a;
 }
 
-static void free_unary_expression(Unary_Expression* a) {
+static void free_unary_expression(Exp_Unary* a) {
   if(a->exp) // sporked func
     free_expression(a->exp);
   if(a->type)
@@ -525,9 +525,9 @@ static void free_unary_expression(Unary_Expression* a) {
     free_stmt(a->code);
 }
 
-Expression new_if_expression(Expression cond, Expression if_exp, Expression else_exp, int pos) {
+Expression new_expr_if(Expression cond, Expression if_exp, Expression else_exp, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = If_Expression_type;
+  a->exp_type = ae_expr_if;
   a->meta = ((if_exp->meta == ae_meta_var &&
               else_exp->meta == ae_meta_var) ? ae_meta_var : ae_meta_value);
   a->d.exp_if.cond = cond;
@@ -541,7 +541,7 @@ Expression new_if_expression(Expression cond, Expression if_exp, Expression else
   return a;
 }
 
-static void free_if_expression(If_Expression* a) {
+static void free_if_expression(Exp_If* a) {
   free_expression(a->cond);
   free_expression(a->if_exp);
   free_expression(a->else_exp);
@@ -610,7 +610,7 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
 
 Expression new_expr_call(Expression base, Expression args, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Func_Call_type;
+  a->exp_type = ae_expr_call;
   a->meta = ae_meta_value;
   a->d.exp_func.func = base;
   a->d.exp_func.args = args;
@@ -624,7 +624,7 @@ Expression new_expr_call(Expression base, Expression args, int pos) {
   return a;
 }
 
-static void free_func_call(Func_Call* a) {
+static void free_func_call(Exp_Func* a) {
   if(a->types)
     free_type_list(a->types);
 //  if(a->base)
@@ -636,7 +636,7 @@ static void free_func_call(Func_Call* a) {
 
 Expression new_expr_dot(Expression base, m_str xid, int pos) {
   Expression a = calloc(1, sizeof(struct Expression_));
-  a->exp_type = Dot_Member_type;
+  a->exp_type = ae_expr_dot;
   a->meta = ae_meta_var;
   a->d.exp_dot.base = base;
   a->d.exp_dot.xid = insert_symbol(xid);
@@ -648,7 +648,7 @@ Expression new_expr_dot(Expression base, m_str xid, int pos) {
   return a;
 }
 
-static void free_dot_member_expression(Dot_Member* dot) {
+static void free_dot_member_expression(Exp_Dot* dot) {
   if(dot->base)
     free_expression(dot->base);
 }
@@ -658,7 +658,7 @@ Expression prepend_expression(Expression exp, Expression next, int pos) {
   return exp;
 }
 
-static void free_primary_expression(Primary_Expression* a) {
+static void free_primary_expression(Exp_Primary* a) {
   if(a->type == ae_primary_hack)
     free_expression(a->d.exp);
   else if(a->type == ae_primary_array)
@@ -675,37 +675,37 @@ void free_expression(Expression exp) {
   Expression tmp, curr = exp;
   while(curr) {
     switch(curr->exp_type) {
-    case Decl_Expression_type:
+    case ae_expr_decl:
       free_decl_expression(&curr->d.exp_decl);
       break;
-    case Binary_Expression_type:
+    case ae_expr_binary:
       free_binary_expression(&curr->d.exp_binary);
       break;
-    case Unary_Expression_type:
+    case ae_expr_unary:
       free_unary_expression(&curr->d.exp_unary);
       break;
-    case Primary_Expression_type:
+    case ae_expr_primary:
       free_primary_expression(&curr->d.exp_primary);
       break;
-    case Cast_Expression_type:
+    case ae_expr_cast:
       free_cast_expression(&curr->d.exp_cast);
       break;
-    case Postfix_Expression_type:
+    case ae_expr_postfix:
       free_postfix_expression(&curr->d.exp_postfix);
       break;
-    case Func_Call_type:
+    case ae_expr_call:
       free_func_call(&curr->d.exp_func);
       break;
-    case Array_Expression_type:
+    case ae_expr_array:
       free_array_expression(&curr->d.exp_array);
       break;
-    case If_Expression_type:
+    case ae_expr_if:
       free_if_expression(&curr->d.exp_if);
       break;
-    case Dot_Member_type:
+    case ae_expr_dot:
       free_dot_member_expression(&curr->d.exp_dot);
       break;
-    case Dur_Expression_type:
+    case ae_expr_dur:
       free_dur_expression(&curr->d.exp_dur);
       break;
     }
@@ -948,7 +948,7 @@ Stmt new_stmt_union(Decl_List l, int pos) {
   return a;
 }
 
-Decl_List new_decl_list(Decl_Expression* d, Decl_List l) {
+Decl_List new_decl_list(Exp_Decl* d, Decl_List l) {
   Decl_List a = calloc(1, sizeof(struct Decl_List_));
   a->self = d;
   a->next = l;

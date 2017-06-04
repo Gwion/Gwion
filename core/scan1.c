@@ -8,7 +8,7 @@ static m_bool scan1_expression(Env env, Expression exp);
 static m_bool scan1_stmt_list(Env env, Stmt_List list);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
-m_bool scan1_decl_expression(Env env, Decl_Expression* decl) {
+m_bool scan1_decl_expression(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "decl ref:%i", decl->type->ref);
 #endif
@@ -34,7 +34,7 @@ m_bool scan1_decl_expression(Env env, Decl_Expression* decl) {
   return 1;
 }
 
-static m_bool scan1_binary_expression(Env env, Binary_Expression* binary) {
+static m_bool scan1_binary_expression(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1",  "binary");
 #endif
@@ -43,13 +43,13 @@ static m_bool scan1_binary_expression(Env env, Binary_Expression* binary) {
   return 1;
 }
 
-static m_bool scan1_primary_expression(Env env, Primary_Expression* primary) {
+static m_bool scan1_primary_expression(Env env, Exp_Primary* primary) {
   if(primary->type == ae_primary_hack)
     CHECK_BB(scan1_expression(env, primary->d.exp))
     return 1;
 }
 
-static m_bool scan1_array(Env env, Array* array) {
+static m_bool scan1_array(Env env, Exp_Array* array) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "array");
 #endif
@@ -59,7 +59,7 @@ static m_bool scan1_array(Env env, Array* array) {
   return 1;
 }
 
-static m_bool scan1_cast_expression(Env env, Cast_Expression* cast) {
+static m_bool scan1_cast_expression(Env env, Exp_Cast* cast) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "cast");
 #endif
@@ -67,7 +67,7 @@ static m_bool scan1_cast_expression(Env env, Cast_Expression* cast) {
   return 1;
 }
 
-static m_bool scan1_postfix_expression(Env env, Postfix_Expression* postfix) {
+static m_bool scan1_postfix_expression(Env env, Exp_Postfix* postfix) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "postfix");
 #endif
@@ -107,7 +107,7 @@ static m_bool scan1_func_call1(Env env, Expression exp_func, Expression args, Fu
   return 1;
 }
 
-static m_bool scan1_func_call(Env env, Func_Call* exp_func) {
+static m_bool scan1_func_call(Env env, Exp_Func* exp_func) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call");
 #endif
@@ -116,7 +116,7 @@ static m_bool scan1_func_call(Env env, Func_Call* exp_func) {
   return scan1_func_call1(env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos);
 }
 
-static m_bool scan1_dot_member(Env env, Dot_Member* member) {
+static m_bool scan1_dot_member(Env env, Exp_Dot* member) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "dot member");
 #endif
@@ -124,7 +124,7 @@ static m_bool scan1_dot_member(Env env, Dot_Member* member) {
   return 1;
 }
 
-static m_bool scan1_exp_if(Env env, If_Expression* exp_if) {
+static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "exp if");
 #endif
@@ -141,38 +141,38 @@ static m_bool scan1_expression(Env env, Expression exp) {
   Expression curr = exp;
   while(curr) {
     switch(curr->exp_type) {
-    case Primary_Expression_type:
+    case ae_expr_primary:
       CHECK_BB(scan1_primary_expression(env, &curr->d.exp_primary))
       break;
-    case Decl_Expression_type:
+    case ae_expr_decl:
       CHECK_BB(scan1_decl_expression(env, &curr->d.exp_decl))
       break;
-    case Unary_Expression_type:
+    case ae_expr_unary:
       if(exp->d.exp_unary.code)
         CHECK_BB(scan1_stmt(env, exp->d.exp_unary.code))
         break;
-    case Binary_Expression_type:
+    case ae_expr_binary:
       CHECK_BB(scan1_binary_expression(env, &curr->d.exp_binary))
       break;
-    case Postfix_Expression_type:
+    case ae_expr_postfix:
       CHECK_BB(scan1_postfix_expression(env, &curr->d.exp_postfix))
       break;
-    case Cast_Expression_type:
+    case ae_expr_cast:
       CHECK_BB(scan1_cast_expression(env, &curr->d.exp_cast))
       break;
-    case Func_Call_type:
+    case ae_expr_call:
       CHECK_BB(scan1_func_call(env, &curr->d.exp_func))
       break;
-    case Array_Expression_type:
+    case ae_expr_array:
       CHECK_BB(scan1_array(env, &curr->d.exp_array))
       break;
-    case Dot_Member_type:
+    case ae_expr_dot:
       CHECK_BB(scan1_dot_member(env, &curr->d.exp_dot))
       break;
-    case Dur_Expression_type:
+    case ae_expr_dur:
       CHECK_BB(scan1_dur(env, &curr->d.exp_dur))
       break;
-    case If_Expression_type:
+    case ae_expr_if:
       CHECK_BB(scan1_exp_if(env, &curr->d.exp_if))
       break;
     }

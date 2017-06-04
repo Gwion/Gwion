@@ -2360,7 +2360,7 @@ yyreduce:
 
   case 78:
 #line 338 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression((yyvsp[-2].exp), (yyvsp[-1].ival), (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary((yyvsp[-2].exp), (yyvsp[-1].ival), (yyvsp[0].exp), get_pos(scanner)); }
 #line 2365 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2558,13 +2558,13 @@ yyreduce:
 
   case 112:
 #line 387 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_decl_expression((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); }
+    { (yyval.exp)= new_expr_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); }
 #line 2563 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 113:
 #line 388 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_decl_expression((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); }
+    { (yyval.exp)= new_expr_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); }
 #line 2569 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2714,7 +2714,7 @@ yyreduce:
 
   case 139:
 #line 456 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_if_expression( (yyvsp[-4].exp), (yyvsp[-2].exp), (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_if( (yyvsp[-4].exp), (yyvsp[-2].exp), (yyvsp[0].exp), get_pos(scanner)); }
 #line 2719 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2726,7 +2726,7 @@ yyreduce:
 
   case 141:
 #line 462 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_or, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_or, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2731 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2738,7 +2738,7 @@ yyreduce:
 
   case 143:
 #line 468 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_and, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_and, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2743 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2750,7 +2750,7 @@ yyreduce:
 
   case 145:
 #line 474 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_s_or, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_s_or, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2755 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2762,7 +2762,7 @@ yyreduce:
 
   case 147:
 #line 480 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_s_xor, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_s_xor, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2767 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2774,7 +2774,7 @@ yyreduce:
 
   case 149:
 #line 486 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_s_and, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_s_and, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2779 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2786,13 +2786,13 @@ yyreduce:
 
   case 151:
 #line 492 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_eq, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_eq, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2791 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 152:
 #line 494 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_neq, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_neq, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2797 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2804,25 +2804,25 @@ yyreduce:
 
   case 154:
 #line 500 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_lt, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_lt, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2809 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 155:
 #line 502 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_gt, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_gt, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2815 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 156:
 #line 504 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_le, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_le, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2821 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 157:
 #line 506 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_ge, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_ge, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2827 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2846,7 +2846,7 @@ yyreduce:
 
   case 161:
 #line 517 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), (yyvsp[-1].ival), (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), (yyvsp[-1].ival), (yyvsp[0].exp), get_pos(scanner)); }
 #line 2851 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2858,13 +2858,13 @@ yyreduce:
 
   case 163:
 #line 523 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_plus, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_plus, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2863 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 164:
 #line 525 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_minus, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_minus, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2869 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2876,25 +2876,25 @@ yyreduce:
 
   case 166:
 #line 531 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_times, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_times, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2881 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 167:
 #line 533 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_divide, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_divide, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2887 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 168:
 #line 535 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_binary_expression( (yyvsp[-2].exp), op_percent, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_binary( (yyvsp[-2].exp), op_percent, (yyvsp[0].exp), get_pos(scanner)); }
 #line 2893 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 170:
 #line 541 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_cast_expression( (yyvsp[0].type_decl), (yyvsp[-2].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_cast( (yyvsp[0].type_decl), (yyvsp[-2].exp), get_pos(scanner)); }
 #line 2899 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -3032,13 +3032,13 @@ yyreduce:
 
   case 195:
 #line 598 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_postfix_expression( (yyvsp[-1].exp), op_plusplus, get_pos(scanner)); }
+    { (yyval.exp) = new_expr_postfix( (yyvsp[-1].exp), op_plusplus, get_pos(scanner)); }
 #line 3037 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 196:
 #line 600 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_postfix_expression( (yyvsp[-1].exp), op_minusminus, get_pos(scanner)); }
+    { (yyval.exp) = new_expr_postfix( (yyvsp[-1].exp), op_minusminus, get_pos(scanner)); }
 #line 3043 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -3074,25 +3074,25 @@ yyreduce:
 
   case 202:
 #line 609 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_expr_array_lit(             (yyvsp[0].array_sub), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_prim_array(             (yyvsp[0].array_sub), get_pos(scanner)); }
 #line 3079 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 203:
 #line 610 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_expr_array_lit(           (yyvsp[0].array_sub), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_prim_array(           (yyvsp[0].array_sub), get_pos(scanner)); }
 #line 3085 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 204:
 #line 611 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_expr_complex(               (yyvsp[0].c_val), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_prim_complex(               (yyvsp[0].c_val), get_pos(scanner)); }
 #line 3091 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 205:
 #line 612 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_expr_polar(                 (yyvsp[0].polar), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_prim_polar(                 (yyvsp[0].polar), get_pos(scanner)); }
 #line 3097 "eval/parser.c" /* yacc.c:1646  */
     break;
 
@@ -3104,7 +3104,7 @@ yyreduce:
 
   case 207:
 #line 614 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_hack_expression(                (yyvsp[-1].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_expr_prim_hack(                (yyvsp[-1].exp), get_pos(scanner)); }
 #line 3109 "eval/parser.c" /* yacc.c:1646  */
     break;
 

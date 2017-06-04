@@ -92,11 +92,11 @@ void Alloc_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
 
 /* function */
 void Spork(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Func_Call(VM * vm, VM_Shred shred, Instr instr);
+void Instr_Exp_Func(VM * vm, VM_Shred shred, Instr instr);
 void Dot_Static_Func(VM * vm, VM_Shred shred, Instr instr);
-void Dot_Member_Func(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Func_Call_Static(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Func_Call_Member(VM * vm, VM_Shred shred, Instr instr);
+void Exp_Dot_Func(VM * vm, VM_Shred shred, Instr instr);
+void Instr_Exp_Func_Static(VM * vm, VM_Shred shred, Instr instr);
+void Instr_Exp_Func_Member(VM * vm, VM_Shred shred, Instr instr);
 void Func_Return(VM * vm, VM_Shred shred, Instr instr);
 
 /* object */
@@ -112,7 +112,7 @@ void Alloc_Member_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
 //void Alloc_Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
 void Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
 void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr);
-void Dot_Member_Data(VM * vm, VM_Shred shred, Instr instr);
+void Exp_Dot_Data(VM * vm, VM_Shred shred, Instr instr);
 void Release_Object2(VM* vm, VM_Shred shred, Instr instr);
 
 /* array */

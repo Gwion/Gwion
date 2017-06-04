@@ -575,7 +575,7 @@ void handle_overflow(VM_Shred shred) {
 }
  // LCOV_EXCL_STOP
 
-INSTR(Instr_Func_Call) {
+INSTR(Instr_Exp_Func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func call");
 #endif
@@ -736,7 +736,7 @@ INSTR(member_function) {
   return;
 }
 
-INSTR(Dot_Member_Func) {
+INSTR(Exp_Dot_Func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dot member func");
 #endif
@@ -747,7 +747,7 @@ INSTR(Dot_Member_Func) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-INSTR(Instr_Func_Call_Static) {
+INSTR(Instr_Exp_Func_Static) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func call static");
 #endif
@@ -776,7 +776,7 @@ INSTR(Instr_Func_Call_Static) {
   POP_MEM(shred, local_depth ? local_depth : SZ_INT);
 }
 
-INSTR(Instr_Func_Call_Member) {
+INSTR(Instr_Exp_Func_Member) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func call member");
 #endif
@@ -840,9 +840,9 @@ static void call_pre_constructor(VM * vm, VM_Shred shred, VM_Code pre_ctor, m_ui
   *(m_uint*)shred->reg = stack_offset;
   PUSH_REG(shred,  SZ_INT);
   if(pre_ctor->native_func_type != NATIVE_UNKNOWN)
-    Instr_Func_Call_Member(vm, shred, NULL);
+    Instr_Exp_Func_Member(vm, shred, NULL);
   else
-    Instr_Func_Call(vm, shred, NULL);
+    Instr_Exp_Func(vm, shred, NULL);
 }
 
 INSTR(Reg_Push_This) {
@@ -1010,7 +1010,7 @@ INSTR(Dot_Static_Import_Data) {
   }
 }
 
-INSTR(Dot_Member_Data) {
+INSTR(Exp_Dot_Data) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, instr->m_val2, instr->ptr);
 #endif

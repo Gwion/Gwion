@@ -10,7 +10,7 @@ static m_bool scan2_expression(Env env, Expression exp);
 static m_bool scan2_stmt_list(Env env, Stmt_List list);
 static m_bool scan2_stmt(Env env, Stmt stmt);
 
-m_bool scan2_decl_expression(Env env, Decl_Expression* decl) {
+m_bool scan2_decl_expression(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Declaration");
 #endif
@@ -153,7 +153,7 @@ error:
   return -1;
 }
 
-static m_bool scan2_primary_expression(Env env, Primary_Expression* primary) {
+static m_bool scan2_primary_expression(Env env, Exp_Primary* primary) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Primary");
 #endif
@@ -162,7 +162,7 @@ static m_bool scan2_primary_expression(Env env, Primary_Expression* primary) {
     return 1;
 }
 
-static m_bool scan2_array(Env env, Array* array) {
+static m_bool scan2_array(Env env, Exp_Array* array) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Array");
 #endif
@@ -172,7 +172,7 @@ static m_bool scan2_array(Env env, Array* array) {
   return 1;
 }
 
-static m_bool scan2_binary_expression(Env env, Binary_Expression* binary) {
+static m_bool scan2_binary_expression(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Binary");
 #endif
@@ -181,7 +181,7 @@ static m_bool scan2_binary_expression(Env env, Binary_Expression* binary) {
   return 1;
 }
 
-static m_bool scan2_cast_expression(Env env, Cast_Expression* cast) {
+static m_bool scan2_cast_expression(Env env, Exp_Cast* cast) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Cast");
 #endif
@@ -189,7 +189,7 @@ static m_bool scan2_cast_expression(Env env, Cast_Expression* cast) {
   return 1;
 }
 
-static m_bool scan2_postfix_expression(Env env, Postfix_Expression* postfix) {
+static m_bool scan2_postfix_expression(Env env, Exp_Postfix* postfix) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Postfix");
 #endif
@@ -225,12 +225,12 @@ static m_bool scan2_func_call1(Env env, Expression func, Expression args, Func m
   return 1;
 }
 
-static m_bool scan2_func_call(Env env, Func_Call* exp_func) {
+static m_bool scan2_func_call(Env env, Exp_Func* exp_func) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Func Call");
 #endif
   if(exp_func->types) {
-    if(exp_func->func->exp_type == Primary_Expression_type) {
+    if(exp_func->func->exp_type == ae_expr_primary) {
       Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
       if(!v) {
         err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
@@ -281,7 +281,7 @@ static m_bool scan2_func_call(Env env, Func_Call* exp_func) {
       if(match < 0)
         err_msg(SCAN2_, exp_func->pos, "template type number mismatch.");
       return match;
-    } else if(exp_func->func->exp_type == Dot_Member_type) {
+    } else if(exp_func->func->exp_type == ae_expr_dot) {
       // see type.c
       return 1;
       /*    } else {
@@ -292,7 +292,7 @@ static m_bool scan2_func_call(Env env, Func_Call* exp_func) {
   return scan2_func_call1(env, exp_func->func, exp_func->args, exp_func->m_func);
 }
 
-static m_bool scan2_dot_member(Env env, Dot_Member* member) {
+static m_bool scan2_dot_member(Env env, Exp_Dot* member) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Dot Member");
 #endif
@@ -300,7 +300,7 @@ static m_bool scan2_dot_member(Env env, Dot_Member* member) {
   return 1;
 }
 
-static m_bool scan2_exp_if(Env env, If_Expression* exp_if) {
+static m_bool scan2_exp_if(Env env, Exp_If* exp_if) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "If Expression");
 #endif
@@ -318,13 +318,13 @@ static m_bool scan2_expression(Env env, Expression exp) {
   m_bool ret = 1;
   while(curr && ret > 0) {
     switch(exp->exp_type) {
-    case Primary_Expression_type:
+    case ae_expr_primary:
       ret = scan2_primary_expression(env, &exp->d.exp_primary);
       break;
-    case Decl_Expression_type:
+    case ae_expr_decl:
       ret = scan2_decl_expression(env, &exp->d.exp_decl);
       break;
-    case Unary_Expression_type:
+    case ae_expr_unary:
       if(exp->d.exp_unary.code) {
         if(env->func)
           ret = scan2_stmt(env, exp->d.exp_unary.code);
@@ -336,28 +336,28 @@ static m_bool scan2_expression(Env env, Expression exp) {
       } else
         ret = 1;
       break;
-    case Binary_Expression_type:
+    case ae_expr_binary:
       ret = scan2_binary_expression(env, &exp->d.exp_binary);
       break;
-    case Postfix_Expression_type:
+    case ae_expr_postfix:
       ret = scan2_postfix_expression(env, &exp->d.exp_postfix);
       break;
-    case Cast_Expression_type:
+    case ae_expr_cast:
       ret = scan2_cast_expression(env, &exp->d.exp_cast);
       break;
-    case Func_Call_type:
+    case ae_expr_call:
       ret = scan2_func_call(env, &exp->d.exp_func);
       break;
-    case Array_Expression_type:
+    case ae_expr_array:
       ret = scan2_array(env, &exp->d.exp_array);
       break;
-    case Dot_Member_type:
+    case ae_expr_dot:
       ret = scan2_dot_member(env, &exp->d.exp_dot);
       break;
-    case If_Expression_type:
+    case ae_expr_if:
       ret = scan2_exp_if(env, &exp->d.exp_if);
       break;
-    case Dur_Expression_type:
+    case ae_expr_dur:
       ret = scan2_dur(env, &exp->d.exp_dur);
       break;
     }

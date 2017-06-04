@@ -9,6 +9,7 @@ typedef struct Var_Decl_* Var_Decl;
 typedef struct Var_Decl_List_* Var_Decl_List;
 typedef struct Arg_List_ * Arg_List;
 
+typedef struct Stmt_            * Stmt;
 extern Map scan_map;
 
 typedef enum {
@@ -33,8 +34,7 @@ typedef struct {
   S_Symbol xid;
   int pos;
   Expression self;
-} Dot_Member;
-struct Nspc;
+} Exp_Dot;
 
 struct Array_Sub_ {
   m_uint depth;
@@ -60,7 +60,7 @@ typedef struct {
   Array_Sub indices;
   int pos;
   Expression self;
-} Array;
+} Exp_Array;
 
 Expression new_array(Expression base, Array_Sub indices, int pos);
 
@@ -85,7 +85,7 @@ Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, int pos);
 typedef struct {
   ID_List xid;
   Array_Sub array;
-  Dot_Member* dot;
+  Exp_Dot* dot;
   int ref;
   int pos;
   m_str doc;
@@ -93,33 +93,24 @@ typedef struct {
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);
 void free_type_decl(Type_Decl* a);
 
-typedef struct {
-  Type_Decl* type;
-  Type m_type;
-  Var_Decl_List list;
-  int pos;
-  int num_decl;
-  int is_static;
-  Expression self;
-} Decl_Expression;
-Expression new_decl_expression(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
-Expression new_binary_expression(Expression lhs, Operator op, Expression rhs, int pos);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos);
 
-typedef struct {
-  Operator op;
+struct ID_List_    {
+  S_Symbol xid;
+  ID_List next;
   int pos;
-  Expression exp;
-  Expression self;
-} Postfix_Expression;
+};
+ID_List new_id_list(const m_str xid, int pos);
+ID_List prepend_id_list(const m_str xid, ID_List list, int pos);
+void free_id_list(ID_List a);
 
-typedef struct {
-  Type_Decl* type;
-  Expression exp;
+struct Type_List_  {
+  ID_List list;
+  Type_List next;
   int pos;
-  Expression self;
-  Func func;
-} Cast_Expression;
+};
+Type_List new_type_list(ID_List list, Type_List next, int pos);
+void free_type_list(Type_List a);
 
 typedef struct {
   Expression re;
@@ -128,7 +119,6 @@ typedef struct {
   Expression self;
 } Complex;
 Complex* new_complex(Expression re, int pos);
-Expression new_expr_complex(Complex* exp, int pos);
 
 typedef struct {
   Expression mod;
@@ -136,7 +126,7 @@ typedef struct {
   int pos;
   Expression self;
 } Polar;
-Expression new_expr_polar(Polar* exp, int pos);
+Polar* new_polar(Expression mod, int pos);
 
 typedef struct Vec_* Vec;
 struct Vec_ {
@@ -146,11 +136,37 @@ struct Vec_ {
   Expression self;
 };
 Vec new_vec(Expression e, int pos);
-typedef enum { ae_primary_var, ae_primary_num, ae_primary_float,
+
+struct Arg_List_ {
+  Type_Decl* type_decl;
+  Var_Decl var_decl;
+  Type type;
+  Arg_List  next;
+  m_str doc;
+  int pos;
+};
+Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, int pos);
+void free_arg_list(Arg_List a);
+
+typedef enum { ae_expr_decl, ae_expr_binary, ae_expr_unary, ae_expr_primary,
+               ae_expr_cast, ae_expr_postfix, ae_expr_call, ae_expr_array,
+               ae_expr_if, ae_expr_dot, ae_expr_dur
+             } Expression_type;
+typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
+typedef enum { ae_primary_id, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
                ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,
                ae_primary_char, ae_primary_nil
              } ae_Exp_Primary_Type;
+typedef struct {
+  Type_Decl* type;
+  Type m_type;
+  Var_Decl_List list;
+  int pos;
+  int num_decl;
+  int is_static;
+  Expression self;
+} Exp_Decl;
 typedef struct {
   ae_Exp_Primary_Type type;
   Value value;
@@ -168,8 +184,7 @@ typedef struct {
   } d;
   int pos;
   Expression self;
-} Primary_Expression;
-
+} Exp_Primary;
 typedef struct {
   Expression func;
   Expression args;
@@ -181,63 +196,104 @@ typedef struct {
   Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
-} Func_Call;
-
-
-Expression new_expr_prim_int(long i, int pos);
-Expression new_expr_prim_float(m_float num, int pos);
-Expression new_expr_prim_ID(m_str s, int pos);
-Expression new_expr_prim_string(m_str s, int pos);
-Expression new_expr_array_lit(Array_Sub exp_list, int pos);
-Expression new_expr_prim_char(m_str chr, int pos);
-Expression new_expr_prim_vec(Vec a, int pos);
-Expression new_expr_prim_nil(int pos);
-Polar* new_polar(Expression mod, int pos);
-Expression new_postfix_expression(Expression exp, Operator op, int pos);
-Expression prepend_expression(Expression exp, Expression next, int pos);
-Expression new_hack_expression(Expression exp, int pos);
-Expression new_expr_call(Expression base, Expression args, int pos);
-Expression new_cast_expression(Type_Decl* type, Expression exp, int pos);
-Expression new_if_expression(Expression cond, Expression if_exp, Expression else_exp, int pos);
-Expression new_expr_dur(Expression base, Expression unit, int pos);
-Expression new_expr_dot(Expression base, m_str xid, int pos);
+} Exp_Func;
+typedef struct {
+  Type_Decl* type;
+  Expression exp;
+  int pos;
+  Expression self;
+  Func func;
+} Exp_Cast;
 typedef struct {
   Expression lhs, rhs;
   Operator op;
   Func func;
   int pos;
   Expression self;
-} Binary_Expression;
-
+} Exp_Binary;
+typedef struct {
+  Operator op;
+  int pos;
+  Expression exp;
+  Expression self;
+} Exp_Postfix;
 typedef struct {
   Expression cond;
   Expression if_exp;
   Expression else_exp;
   int pos;
   Expression self;
-} If_Expression;
-
+} Exp_If;
 typedef struct {
   Expression base;
   Expression unit;
   int pos;
   Expression self;
 } Exp_Dur;
+typedef struct {
+  Operator op;
+  Expression exp;
+  Type_Decl* type;
+  Array_Sub array;
+  Stmt code;
+  m_uint code_depth;
+  Expression self;
+  int pos;
+} Exp_Unary;
 
-typedef enum { Decl_Expression_type, Binary_Expression_type, Unary_Expression_type, Primary_Expression_type,
-               Cast_Expression_type, Postfix_Expression_type, Func_Call_type, Array_Expression_type,
-               If_Expression_type, Dot_Member_type, Dur_Expression_type
-             } Expression_type;
+struct Expression_ {
+  Expression_type exp_type;
+  ae_Exp_Meta meta;
+  Type type;
+  Type cast_to;
+  Expression next;
+  union {
+    Exp_Postfix   exp_postfix;
+    Exp_Primary   exp_primary;
+    Exp_Decl      exp_decl;
+    Exp_Unary     exp_unary;
+    Exp_Binary    exp_binary;
+    Exp_Cast      exp_cast;
+    Exp_Func      exp_func;
+    Exp_If        exp_if;
+    Exp_Dot       exp_dot;
+    Exp_Array     exp_array;
+    Exp_Dur       exp_dur;
+  } d;
+  int pos;
+  m_bool emit_var;
+};
 
-typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
+Expression new_expr_prim_ID(m_str s, int pos);
+Expression new_expr_prim_int(long i, int pos);
+Expression new_expr_prim_float(m_float num, int pos);
+Expression new_expr_prim_string(m_str s, int pos);
+Expression new_expr_prim_array(Array_Sub exp_list, int pos);
+Expression new_expr_prim_hack(Expression exp, int pos);
+Expression new_expr_prim_complex(Complex* exp, int pos);
+Expression new_expr_prim_polar(Polar* exp, int pos);
+Expression new_expr_prim_vec(Vec a, int pos);
+Expression new_expr_prim_char(m_str chr, int pos);
+Expression new_expr_prim_nil(int pos);
+Expression new_expr_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
+Expression new_expr_binary(Expression lhs, Operator op, Expression rhs, int pos);
+Expression new_expr_postfix(Expression exp, Operator op, int pos);
+Expression new_expr_call(Expression base, Expression args, int pos);
+Expression new_expr_cast(Type_Decl* type, Expression exp, int pos);
+Expression new_expr_if(Expression cond, Expression if_exp, Expression else_exp, int pos);
+Expression new_expr_dur(Expression base, Expression unit, int pos);
+Expression new_expr_dot(Expression base, m_str xid, int pos);
+Expression new_expr_unary(Operator oper, Expression exp, int pos);
+Expression new_expr_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
+Expression new_expr_unary3(Operator oper, Stmt code, int pos);
+Expression prepend_expression(Expression exp, Expression next, int pos);
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {
-  Decl_Expression* self;
+  Exp_Decl* self;
   Decl_List next;
 };
-
-Decl_List new_decl_list(Decl_Expression* d, Decl_List l);
+Decl_List new_decl_list(Exp_Decl* d, Decl_List l);
 
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
@@ -245,7 +301,6 @@ typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_l
                ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
              } ae_Stmt_Type;
 
-typedef struct Stmt_            * Stmt;
 typedef struct Stmt_List_       * Stmt_List;
 typedef struct Stmt_Code_       * Stmt_Code;
 typedef struct Stmt_Exp_        * Stmt_Return;
@@ -387,56 +442,7 @@ Stmt new_stmt_case(Expression exp, int pos);
 Stmt new_stmt_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_switch(Expression val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
-
-typedef struct {
-  Operator op;
-  Expression exp;
-  Type_Decl* type;
-  Array_Sub array;
-  Stmt code;
-  m_uint code_depth;
-  Expression self;
-  int pos;
-} Unary_Expression;
-Expression new_expr_unary(Operator oper, Expression exp, int pos);
-Expression new_expr_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
-Expression new_expr_unary3(Operator oper, Stmt code, int pos);
-
-struct Arg_List_ {
-  Type_Decl* type_decl;
-  Var_Decl var_decl;
-  Type type;
-  Arg_List  next;
-  m_str doc;
-  int pos;
-};
-Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, int pos);
-void free_arg_list(Arg_List a);
 Stmt new_func_ptr_stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List args, int pos);
-
-struct Expression_ {
-  Expression_type exp_type;
-  ae_Exp_Meta meta;
-  Type type;
-  Type cast_to;
-  Expression next;
-  union {
-    Postfix_Expression   exp_postfix;
-    Primary_Expression   exp_primary;
-    Decl_Expression      exp_decl;
-    Unary_Expression     exp_unary;
-    Binary_Expression    exp_binary;
-    Cast_Expression      exp_cast;
-    Func_Call            exp_func;
-    If_Expression        exp_if;
-    Dot_Member           exp_dot;
-    Array                exp_array;
-    Exp_Dur              exp_dur;
-  } d;
-  int pos;
-  m_bool emit_var;
-};
-
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
@@ -444,19 +450,8 @@ struct Stmt_List_ {
 };
 Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, int pos);
 
-
 typedef struct Class_Ext_ * Class_Ext;
 typedef struct Class_Body_ * Class_Body;
-
-struct Class_Def_ {
-  ae_Keyword decl;
-  ID_List name;
-  Class_Ext ext;
-  Class_Body body;
-  Type type;
-  m_str doc;
-  int pos;
-};
 
 typedef enum { ae_func_builtin, ae_func_user} ae_func_type;
 struct Func_Def_ {
@@ -511,28 +506,21 @@ struct Class_Body_ {
   Class_Body next;
   int pos;
 };
-struct ID_List_    {
-  S_Symbol xid;
-  ID_List next;
+struct Class_Def_ {
+  ae_Keyword decl;
+  ID_List name;
+  Class_Ext ext;
+  Class_Body body;
+  Type type;
+  m_str doc;
   int pos;
 };
-struct Type_List_  {
-  ID_List list;
-  Type_List next;
-  int pos;
-};
-Type_List new_type_list(ID_List list, Type_List next, int pos);
-void free_type_list(Type_List a);
 Class_Def new_class_def(ae_Keyword class_decl, ID_List name,
                         Class_Ext ext, Class_Body body, int pos);
 Class_Body new_class_body(Section* section, int pos);
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos);
 Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos);
-ID_List new_id_list(const m_str xid, int pos);
-ID_List prepend_id_list(const m_str xid, ID_List list, int pos);
-void free_id_list(ID_List a);
 Section* new_section_class_def(Class_Def class_def, int pos);
-
 
 struct Ast_ {
   Section* section;
@@ -540,9 +528,10 @@ struct Ast_ {
   m_str doc;
   int pos;
 };
-
 Ast new_ast(Section* section, Ast next, int pos);
 Ast parse(m_str);
 void free_ast();
 
 #endif
+Type_List new_type_list(ID_List list, Type_List next, int pos);
+void free_type_list(Type_List a);

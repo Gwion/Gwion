@@ -19,7 +19,7 @@ struct Env_ {
   Type      class_def;
   Func      func;
   Map known_ctx;
-  Func_Call* current; // template helper
+  Exp_Func* current; // template helper
   struct VM_Object_ obj;
 };
 
