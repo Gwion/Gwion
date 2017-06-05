@@ -29,7 +29,7 @@ run "$n" "help (long)" "--help" "file"
 n=$((n+1))
 run "$n" "host invalid (short)" "-h non_existant_host" "file"
 n=$((n+1))
-run "$n" "config (long)" "--config" "file"
+run "$n" "host invlaid (long)" "--host non_existant_host " "file"
 
 # help
 n=$((n+1))
@@ -39,9 +39,9 @@ run "$n" "help (long)" "--help" "file"
 
 # host
 n=$((n+1))
-run "$n" "config (short)" "-C" "file"
+run "$n" "config (short)" "-v" "file"
 n=$((n+1))
-run "$n" "config (long)" "--config" "file"
+run "$n" "config (long)" "--version" "file"
 
 # port
 n=$((n+1))

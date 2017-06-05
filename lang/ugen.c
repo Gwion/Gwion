@@ -21,18 +21,10 @@ m_bool base_tick(UGen u) {
   for(i = 1; i < size; i++) {
     ugen = (UGen)vector_at(u->ugen, i);
     switch(u->op) {
-    case 1:
-      u->out += ugen->out;
-      break;
-    case 2:
-      u->out -= ugen->out;
-      break;
-    case 3:
-      u->out *= ugen->out;
-      break;
-    case 4:
-      u->out /= ugen->out;
-      break;
+      case 1: u->out += ugen->out; break;
+      case 2: u->out -= ugen->out; break;
+      case 3: u->out *= ugen->out; break;
+      case 4: u->out /= ugen->out; break;
     }
   }
   u->in = u->out;
@@ -76,7 +68,7 @@ void ugen_compute(UGen u) {
   u->last = u->out;
   u->done = 2;
   if(u->channel)
-    for(i = u->n_out + 1; --i;)
+    for(i = u->n_chan + 1; --i;)
       ugen_compute(u->channel[i-1]->ugen);
   else {
     for(i = vector_size(u->ugen) + 1; --i;) {
@@ -97,7 +89,7 @@ void ugen_compute(UGen u) {
   u->tick(u);
   if(u->channel) {
     m_float sum = 0;
-    for(i = u->n_out + 1; --i;) {
+    for(i = u->n_chan + 1; --i;) {
       M_Object obj = u->channel[i-1];
       sum += obj->ugen->out;
     }

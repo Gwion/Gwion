@@ -97,7 +97,7 @@ static const struct option long_option[] = {
   { "loop",     1, NULL, 'l' },
   { "format",   1, NULL, 'l' },
   { "help",     0, NULL, '?' },
-  { "config",   0, NULL, 'C' },
+  { "version",  0, NULL, 'v' },
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -107,7 +107,7 @@ static void usage() {
   printf("\toption can be any of:\n");
   printf("GLOBAL options:  <argument>  : description\n");
   printf("\t--help,   -?\t             : this help\n");
-  printf("\t--config, -C\t             : this help\n");
+  printf("\t--version -v\t             : this help\n");
   printf("VM     options:\n");
   printf("\t--add,    -+\t <file>      : add file\n");
   printf("\t--rem,    --\t <shred id>  : remove shred\n");
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 
   vector_add(plug_dirs, (vtype)GWION_ADD_DIR);
 
-  while((i = getopt_long(argc, argv, "?Cqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
+  while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
     case '?':
       usage();

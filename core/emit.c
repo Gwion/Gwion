@@ -1360,6 +1360,7 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
     }
     if(!stmt->data.v) {
       err_msg(EMIT_, stmt->pos, "illegal case");
+      emit->cases = NULL; // check me (mem leak?)
       return -1;
     }
     size = vector_size(stmt->data.v);
