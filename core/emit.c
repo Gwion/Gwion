@@ -830,10 +830,6 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
     sadd_instr(emit, Cast_i2f);
   else if(from->xid == t_float.xid && to->xid == t_int.xid)
     sadd_instr(emit, Cast_f2i);
-  else if(isa(to, from) < 0 && isa(from, to) < 0) {                                                  // LCOV_EXCL_LINE
-    err_msg(EMIT_, 0, "(emit): internal error: cannot cast type '%s' to '%s'", from->name, to->name); // LCOV_EXCL_LINE
-    return -1;                                                                                        // LCOV_EXCL_LINE
-  }
   return 1;
 }
 
@@ -843,7 +839,7 @@ static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
 #endif
   m_bool ret;
   Instr op = NULL, op2 = NULL;
-  f_instr fop;
+  f_instr fop = NULL;
   nspc_push_value(emit->env->curr);
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   switch(exp_if->cond->type->xid) {
@@ -858,12 +854,8 @@ static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
     fop = Branch_Eq_Float;
     break;
 
-  default:
-    err_msg(EMIT_, exp_if->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in if condition",
-            exp_if->cond->type->name);
-    return -1;
-  }                                   // LCOV_EXCL_STOP
+  default: break;
+  }
   op = add_instr(emit, fop);
   CHECK_OB((ret = emit_exp(emit, exp_if->if_exp, 0)))
   op2 = add_instr(emit, Goto);
@@ -1042,7 +1034,8 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   m_bool ret = 1;
   m_uint index = vector_size(emit->code->code);
   Instr op, goto_;
-  f_instr f;
+  f_instr f = NULL;
+
   frame_push_scope(emit->code->frame);
   vector_add(emit->code->stack_cont, (vtype)NULL);
   vector_add(emit->code->stack_break, (vtype)NULL);
@@ -1062,12 +1055,8 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
     f = Branch_Eq_Float;
     break;
 
-  default:
-    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in while conditional",
-            stmt->cond->type->name);
-    return -1;
-  }                                 // LCOV_EXCL_STOP
+  default: break;
+  }
   op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1)) // was '0' , then 'stmt->body->type == ae_stmt_code ? 0 : 1'
@@ -1097,10 +1086,9 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
   m_bool ret = 1;
   Instr op;
   m_uint index = vector_size(emit->code->code);
-  f_instr f;
-  // push stack
-  frame_push_scope(emit->code->frame);
+  f_instr f = NULL;
 
+  frame_push_scope(emit->code->frame);
   vector_add(emit->code->stack_cont, (vtype)NULL);
   vector_add(emit->code->stack_break, (vtype)NULL);
 
@@ -1108,7 +1096,6 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
 
-  // emit the cond
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
 
   switch(stmt->cond->type->xid) {
@@ -1122,12 +1109,8 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
     sadd_instr(emit, Reg_Push_Imm2);
     f = Branch_Neq_Float;
     break;
-  default:
-    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in do/while conditional",
-            stmt->cond->type->name);
-    return -1;
-  }                                 // LCOV_EXCL_STOP
+  default: break;
+  }
   op = add_instr(emit, f);
   op->m_val = index;
   while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
@@ -1149,7 +1132,7 @@ static m_bool emit_stmt_until(Emitter emit, Stmt_Until stmt) {
   debug_msg("emit", "until");
 #endif
   Instr op;
-  f_instr f;
+  f_instr f = NULL;
   frame_push_scope(emit->code->frame);
 
   m_uint index = vector_size(emit->code->code);
@@ -1170,13 +1153,8 @@ static m_bool emit_stmt_until(Emitter emit, Stmt_Until stmt) {
     sadd_instr(emit, Reg_Push_Imm2);
     f = Branch_Neq_Float;
     break;
-
-  default:
-    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in until conditional",
-            stmt->cond->type->name);
-    return -1;
-  }                                 // LCOV_EXCL_STOP
+  default: break;
+  }
   op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
@@ -1205,7 +1183,7 @@ static m_bool emit_stmt_do_until(Emitter emit, Stmt_Until stmt) {
   debug_msg("emit", "do until");
 #endif
   Instr op;
-  f_instr f;
+  f_instr f = NULL;
   frame_push_scope(emit->code->frame);
 
   m_uint index = vector_size(emit->code->code);
@@ -1229,13 +1207,8 @@ static m_bool emit_stmt_do_until(Emitter emit, Stmt_Until stmt) {
     sadd_instr(emit, Reg_Push_Imm2);
     f = Branch_Eq_Float;
     break;
-
-  default:
-    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in do/until conditional",
-            stmt->cond->type->name);
-    return -1;
-  }                                 // LCOV_EXCL_STOP
+  default: break;
+  }
   op = add_instr(emit, f);
   op->m_val = index;
 
@@ -1257,8 +1230,8 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "for");
 #endif
-  f_instr f;
-  Instr op = NULL;
+  Instr  op = NULL;
+  f_instr f = NULL;
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
@@ -1280,13 +1253,8 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
       sadd_instr(emit, Reg_Push_Imm2);
       f = Branch_Eq_Float;
       break;
-
-    default:
-      err_msg(EMIT_, stmt->c2->d.stmt_exp.pos, // LCOV_EXCL_START
-              "(emit): internal error: unhandled type '%s' in for conditional",
-              stmt->c2->d.stmt_exp.val->type->name);
-      return -1;
-    }                                          // LCOV_EXCL_STOP
+    default: break;
+    }
     op = add_instr(emit, f);
   }
 
@@ -1334,7 +1302,6 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
   Instr init, op = NULL, deref, dec = NULL, _goto = NULL;
   m_int* counter;
   m_uint index;
-  Type type;
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
@@ -1346,13 +1313,6 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
   vector_add(emit->code->stack_break, (vtype)NULL);
   deref = add_instr(emit, Reg_Push_Deref);
   deref->m_val = (m_uint)counter;
-  type = stmt->cond->cast_to ? stmt->cond->cast_to : stmt->cond->type;
-
-  if(isa(type, &t_int) < 0) {
-    err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "(emit): internal error: unhandled type '%s' in while conditional", type->name);
-    return -1;
-  }                                 // LCOV_EXCL_STOP
 
   sadd_instr(emit, Reg_Push_Imm);
   op = add_instr(emit, Branch_Eq_Int);
@@ -2032,10 +1992,6 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
 
-  if(type->info->pre_ctor != NULL && type->info->pre_ctor->instr != NULL) {
-    err_msg(EMIT_, class_def->pos, "(emit): class '%s' already emitted...", type->name); // LCOV_EXCL_LINE
-    return -1;                                                                           // LCOV_EXCL_LINE
-  }
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
     if(!type->info->class_data) {
@@ -2057,7 +2013,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   emit->code->filename = strdup(emit->filename);
   emit->code->stack_depth += SZ_INT;
   if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
-    err_msg(EMIT_, class_def->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_LINE
+    err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'..."); // LCOV_EXCL_LINE
     return -1;                                                                                 // LCOV_EXCL_LINE
   }
 
