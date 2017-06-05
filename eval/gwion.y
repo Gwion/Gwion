@@ -24,7 +24,7 @@ static int get_pos(void* data)
 static char* append_doc(void* data, m_str str)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  vector_append(arg->doc, (vtype)str);
+  vector_add(arg->doc, (vtype)str);
   return str;
 }
 
@@ -33,19 +33,19 @@ static m_str get_doc(void* data)
   m_str ret;
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
   ret = (m_str)vector_front(arg->doc);
-  vector_remove(arg->doc, 0);
+  vector_rem(arg->doc, 0);
   return ret;
 }
 
 %}
 
 %union {
-	char* sval;
-	int ival;
-	m_float fval;
+  char* sval;
+  int ival;
+  m_float fval;
   Complex* c_val;
   Polar* polar;
-	Vec vec;
+  Vec vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
@@ -62,7 +62,6 @@ static m_str get_doc(void* data)
   Type_List type_list; // call template
   Class_Body class_body;
   Class_Ext class_ext;
-//  Class_Ext iface_ext;
   Class_Def class_def;
   Ast ast;
 };
@@ -181,10 +180,7 @@ class_def
       { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
   ;
 
-class_ext
-  : EXTENDS id_dot                    { $$ = new_class_ext( $2, NULL, get_pos(scanner)); }
-  | { $$ = NULL; }
-  ;
+class_ext : EXTENDS id_dot { $$ = new_class_ext( $2, NULL, get_pos(scanner)); } | { $$ = NULL; } ;
 
 class_decl
   : PUBLIC  { $$ = ae_key_public; }
@@ -542,7 +538,6 @@ cast_exp
       { $$ = new_exp_cast( $3, $1, get_pos(scanner)); }
   ;
 
-
 unary_expression
   : dur_exp { $$ = $1; }
   | PLUSPLUS unary_expression
@@ -577,15 +572,8 @@ type_list
   | ID COMMA type_list{ $$ = new_type_list(new_id_list($1, get_pos(scanner)), $3, get_pos(scanner)); }
   ;
 
-call_paren
-  : LPAREN RPAREN     { $$ = NULL; }
-  | LPAREN exp RPAREN { $$ = $2; }
-  ;
-
-call_template
-  :          { $$ = NULL; }
-  | template { $$ = $1;}
-  ;
+call_template : { $$ = NULL; } | template { $$ = $1;} ;
+call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
 postfix_exp
   : primary_exp

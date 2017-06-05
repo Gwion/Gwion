@@ -3068,7 +3068,7 @@ Ast parse(m_str filename)
 	m_str doc = (m_str)vector_front(arg.doc);
     ast->doc = realloc(ast->doc, strlen(ast->doc) +  strlen(doc) + 1);
     strcat(ast->doc, doc);
-    vector_remove(arg.doc, 0);
+    vector_rem(arg.doc, 0);
     free(doc);
   }
   free_vector(arg.doc);

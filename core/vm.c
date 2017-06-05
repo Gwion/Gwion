@@ -33,7 +33,7 @@ void free_VM_Code(VM_Code a) {
       else if(instr->execute == Gack)
         free_vector((Vector)instr->ptr);
       else if(instr->execute == Branch_Switch)
-        free_Map((Map)instr->ptr);
+        free_map((Map)instr->ptr);
       else if(instr->execute == Spork && instr->m_val2)
         free_VM_Code((VM_Code)instr->m_val2);
       else if(instr->execute == Init_Loop_Counter)
@@ -131,7 +131,7 @@ void free_VM(VM* vm) {
 void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
-    vector_append(vm->shred, (vtype)shred);
+    vector_add(vm->shred, (vtype)shred);
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
 }

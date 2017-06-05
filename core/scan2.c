@@ -466,7 +466,7 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   if(stmt->is_label) {
     m = (Map)map_get(env->curr->label, (vtype)key);
     if(!m) {
-      m = new_Map();
+      m = new_map();
       map_set(env->curr->label, (vtype)key, (vtype)m);
     }
     if(map_get(m, (vtype)stmt->name)) {
@@ -855,9 +855,9 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
   Type the_class = class_def->type;
 
-  vector_append(env->nspc_stack, (vtype)env->curr);
+  vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
+  vector_add(env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 

@@ -6,4 +6,4 @@ Type get_return_type(Env env, Operator op, Type rhs, Type lhs);
 m_bool get_instr(Emitter emit, Operator op, Type rhs, Type lhs);
 m_int name2op(m_str);
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs);
-void free_Operator_Map();
+void free_Operator_map();

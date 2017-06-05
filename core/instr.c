@@ -13,7 +13,7 @@
 Instr add_instr(Emitter emit, f_instr f) {
   Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;
-  vector_append(emit->code->code, (vtype)instr);
+  vector_add(emit->code->code, (vtype)instr);
   return instr;
 }
 
@@ -535,7 +535,7 @@ INSTR(Spork) {
   sh->parent = shred;
   if(!shred->child)
     shred->child = new_vector();
-  vector_append(shred->child, (vtype)sh);
+  vector_add(shred->child, (vtype)sh);
   sh->_mem = sh->base;
   sh->base = shred->base;
   sh->me = new_Shred(vm, sh);
@@ -877,7 +877,7 @@ INSTR(Instantiate_Object) {
   debug_msg("instr", "instantiate object %p", instr->ptr);
 #endif
   instantiate_object(vm, shred, instr->ptr);
-  vector_append(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
+  vector_add(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
 }
 
 INSTR(Alloc_Member_Word) {
@@ -1165,7 +1165,7 @@ INSTR(Instr_Array_Init) { // for litteral array
   }
   obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
-  vector_append(shred->gc, (vtype) obj);
+  vector_add(shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++) {
     switch(instr->m_val2) {
     case Kindof_Int:
@@ -1366,7 +1366,7 @@ array_out_of_bound:
 INSTR(start_gc) {
   if(!shred->gc) //  dynamic assign
     shred->gc = new_vector();
-  vector_append(shred->gc, (vtype)NULL); // enable scoping
+  vector_add(shred->gc, (vtype)NULL); // enable scoping
 }
 
 INSTR(stop_gc) {

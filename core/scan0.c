@@ -3,7 +3,7 @@
 #include "context.h"
 #include "type.h"
 
-static m_bool scan0_Func_Ptr(Env env, Stmt_Ptr ptr) {
+static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = S_name(ptr->xid);
   Type type;
@@ -31,7 +31,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
   if(!stmt)
     return 1;
   if(stmt->type == ae_stmt_funcptr)
-    CHECK_BB(scan0_Func_Ptr(env, &stmt->d.stmt_ptr))
+    CHECK_BB(scan0_Stmt_Typedef(env, &stmt->d.stmt_ptr))
     return 1;
 }
 
@@ -85,9 +85,9 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   the_class->info->pre_ctor = new_VM_Code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
   the_class->is_complete = 0;
-  vector_append(env->nspc_stack, (vtype)env->curr);
+  vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
+  vector_add(env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 

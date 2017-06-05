@@ -171,16 +171,16 @@ static INSTR(ugen_connect) {
       for(i = 0; i < rhs->ugen->n_out; i++) {
         M_Object obj = rhs->ugen->channel[i];
         if(lhs->ugen->n_out > 1) {
-          vector_append(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
-          vector_append(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+          vector_add(obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
+          vector_add(lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
         } else {
-          vector_append(obj->ugen->ugen, (vtype)lhs->ugen);
-          vector_append(lhs->ugen->to, (vtype)obj->ugen);
+          vector_add(obj->ugen->ugen, (vtype)lhs->ugen);
+          vector_add(lhs->ugen->to, (vtype)obj->ugen);
         }
       }
     } else {
-      vector_append(rhs->ugen->ugen, (vtype)lhs->ugen);
-      vector_append(lhs->ugen->to, (vtype)rhs->ugen);
+      vector_add(rhs->ugen->ugen, (vtype)lhs->ugen);
+      vector_add(lhs->ugen->to, (vtype)rhs->ugen);
     }
   }
   release(lhs, shred);
@@ -206,12 +206,12 @@ static INSTR(ugen_disconnect) {
       for(i = 0; i < rhs->ugen->n_out; i++) {
         M_Object obj = rhs->ugen->channel[i];
         UGen ugen = obj->ugen;
-        vector_remove(ugen->ugen, vector_find(ugen->ugen, (vtype)lhs->ugen));
-        vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
+        vector_rem(ugen->ugen, vector_find(ugen->ugen, (vtype)lhs->ugen));
+        vector_rem(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)ugen));
       }
     } else {
-      vector_remove(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
-      vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
+      vector_rem(rhs->ugen->ugen, vector_find(rhs->ugen->ugen, (vtype)lhs->ugen));
+      vector_rem(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen));
     }
   }
   release(lhs, shred);
@@ -232,8 +232,8 @@ static INSTR(trig_connect) {
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->trig) {
-    vector_append(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
-    vector_append(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
+    vector_add(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen);
+    vector_add(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen);
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -253,8 +253,8 @@ static INSTR(trig_disconnect) {
     Except(shred, "UgenConnectException");
   }
   if(rhs->ugen->trig) {
-    vector_remove(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen));
-    vector_remove(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
+    vector_rem(rhs->ugen->trig->ugen->ugen, vector_find(rhs->ugen->trig->ugen->ugen, (vtype)lhs->ugen));
+    vector_rem(lhs->ugen->to, vector_find(lhs->ugen->to, (vtype)rhs->ugen->trig->ugen));
   }
   release(lhs, shred);
   release(rhs, shred);
@@ -264,7 +264,7 @@ static INSTR(trig_disconnect) {
 
 static CTOR(ugen_ctor) {
   o->ugen = new_UGen();
-  vector_append(shred->vm_ref->ugen, (vtype)o->ugen);
+  vector_add(shred->vm_ref->ugen, (vtype)o->ugen);
 }
 
 static DTOR(ugen_dtor) {
@@ -272,13 +272,13 @@ static DTOR(ugen_dtor) {
   m_uint i;
   m_int j = vector_find(shred->vm_ref->ugen, (vtype)ug);
   if(j > -1)
-    vector_remove(shred->vm_ref->ugen, j);
+    vector_rem(shred->vm_ref->ugen, j);
   for(i = 0; i < vector_size(ug->to); i++) {
     UGen u = (UGen)vector_at(ug->to, i);
     if(u->ugen) {
       m_int index = vector_find(u->ugen, (vtype)ug);
       if(index > -1)
-        vector_remove(u->ugen, index);
+        vector_rem(u->ugen, index);
     }
   }
 
@@ -287,7 +287,7 @@ static DTOR(ugen_dtor) {
       UGen u = (UGen)vector_at(ug->ugen, i);
       m_int index = vector_find(u->to, (vtype)ug);
       if(index > -1)
-        vector_remove(u->to, index);
+        vector_rem(u->to, index);
     }
     free_vector(ug->ugen);
   } else {

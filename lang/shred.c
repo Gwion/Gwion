@@ -55,7 +55,7 @@ static SFUN(vm_shred_from_id) {
   else {
     RETURN->d.v_uint = (m_uint)s->me;
     s->me->ref++;
-    vector_append(shred->gc, (vtype) s->me);
+    vector_add(shred->gc, (vtype) s->me);
   }
 }
 

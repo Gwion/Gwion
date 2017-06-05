@@ -210,7 +210,7 @@ SFUN(file_list) {
   }
   Type t = new_array_type(shred->vm_ref->env, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
-  vector_append(shred->gc, (vtype)ret);
+  vector_add(shred->gc, (vtype)ret);
   ret->type_ref = t;
   t->obj.ref_count = 1;
   for(i = 0; i < n; i++) {

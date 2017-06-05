@@ -44,7 +44,7 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->value           = new_scope();
   a->type            = new_scope();
   a->func            = new_scope();
-  a->label           = new_Map();
+  a->label           = new_map();
   a->class_data_size = 0;
   a->offset          = 0;
   a->class_data      = NULL;
@@ -108,8 +108,8 @@ void free_nspc(Nspc a) {
   free_scope(a->type);
 
   for(i = 0; i < map_size(a->label); i++)
-    free_Map((Map)map_at(a->label, i));
-  free_Map(a->label);
+    free_map((Map)map_at(a->label, i));
+  free_map(a->label);
   if(a->class_data)
     free(a->class_data);
   if(a->obj_v_table)
@@ -119,6 +119,6 @@ void free_nspc(Nspc a) {
   if(a->dtor)
     free_VM_Code(a->dtor);
   if(a->op_map)
-    free_Operator_Map(a->op_map);
+    free_Operator_map(a->op_map);
   free(a);
 }

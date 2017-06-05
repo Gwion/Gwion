@@ -25,7 +25,7 @@ static INSTR(Event_Wait) {
   shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
-  vector_append(v, (vtype)shred);
+  vector_add(v, (vtype)shred);
   shred->next_pc++;
   *(m_int*)shred->reg = 1;
   PUSH_REG(shred, SZ_INT);
@@ -42,7 +42,7 @@ static MFUN(event_signal) {
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;
   shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);
-  vector_remove(v, 0);
+  vector_rem(v, 0);
 }
 
 void broadcast(M_Object o) {

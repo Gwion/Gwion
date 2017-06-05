@@ -60,7 +60,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
         m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
         if(import) {
           if(import(env) > 0)
-            vector_append(vm->plug, (vtype)handler);
+            vector_add(vm->plug, (vtype)handler);
           else {
             env->class_def = (Type)vector_pop(env->class_stack);
             env->curr = (Nspc)vector_pop(env->nspc_stack);
@@ -113,9 +113,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   assign_ugen(vm->blackhole->ugen, 1, 1, 0, vm->bbq->sp);
   vm->dac->ugen->tick = dac_tick;
   vm->adc->ugen->tick = adc_tick;
-  vector_append(vm->ugen, (vtype)vm->blackhole->ugen);
-  vector_append(vm->ugen, (vtype)vm->dac->ugen);
-  vector_append(vm->ugen, (vtype)vm->adc->ugen);
+  vector_add(vm->ugen, (vtype)vm->blackhole->ugen);
+  vector_add(vm->ugen, (vtype)vm->dac->ugen);
+  vector_add(vm->ugen, (vtype)vm->adc->ugen);
 
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sp->sr);
@@ -864,9 +864,9 @@ static Type_List mk_type_list(Env env, Type type) {
   m_uint i;
   Nspc nspc = type->info;
   Vector v = new_vector();
-  vector_append(v, (vtype)type->name);
+  vector_add(v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_append(v, (vtype)S_name(insert_symbol((nspc->name))));
+    vector_add(v, (vtype)S_name(insert_symbol((nspc->name))));
     nspc = nspc->parent;
   }
   ID_List id = NULL;
@@ -883,9 +883,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   Func_Def base;
   Value value;
   if(v->owner_class) {
-    vector_append(env->nspc_stack, (vtype)env->curr);
+    vector_add(env->nspc_stack, (vtype)env->curr);
     env->curr = v->owner_class->info;
-    vector_append(env->class_stack, (vtype)env->class_def);
+    vector_add(env->class_stack, (vtype)env->class_def);
     env->class_def = v->owner_class;
     env->class_scope = 0; // should keep former value somewhere
   }
@@ -1405,8 +1405,8 @@ static m_bool check_stmt_while(Env env, Stmt_While stmt) {
             "invalid type '%s' in while condition", stmt->cond->type->name);
     return -1;
   }
-  vector_append(env->breaks, (vtype)stmt->self);
-  vector_append(env->conts, (vtype)stmt->self);
+  vector_add(env->breaks, (vtype)stmt->self);
+  vector_add(env->conts, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(env->breaks);
   vector_pop(env->conts);
@@ -1427,7 +1427,7 @@ static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
             "invalid type '%s' in until condition", stmt->cond->type->name);
     return -1;
   }
-  vector_append(env->breaks, (vtype)stmt->self);
+  vector_add(env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(env->breaks);
   return 1;
@@ -1457,7 +1457,7 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
 
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
-    vector_append(env->breaks, (vtype)stmt->self);
+    vector_add(env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(env->breaks);
   return 1;
@@ -1474,7 +1474,7 @@ static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
             "loop * conditional must be of type 'int'...");
     return -1;
   }
-  vector_append(env->breaks, (vtype)stmt->self);
+  vector_add(env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(env->breaks);
   return 1;
@@ -1547,7 +1547,7 @@ static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
     err_msg(TYPE_, a->pos, "invalid type '%s' in switch expression. should be 'int'", t ? t->name : "unknown");
     return -1;
   }
-  vector_append(env->breaks, (vtype)a->self);
+  vector_add(env->breaks, (vtype)a->self);
   if(check_stmt(env, a->stmt) < 0) {
     err_msg(TYPE_, a->val->pos, "\t... in switch statement");
     return -1;
@@ -1586,7 +1586,7 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
     }
     return -1;
   }
-  vector_append(ref->data.v, (vtype)stmt);
+  vector_add(ref->data.v, (vtype)stmt);
   return 1;
 }
 
@@ -1799,7 +1799,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   }
   if(func->is_member && !parent_match) {
     func->vt_index = vector_size(env->curr->obj_v_table);
-    vector_append(env->curr->obj_v_table, (vtype)func);
+    vector_add(env->curr->obj_v_table, (vtype)func);
   }
   env->func = func;
   nspc_push_value(env->curr);
@@ -1882,9 +1882,9 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   the_class->info->offset = t_parent->obj_size;
   free_vector(the_class->info->obj_v_table);
   the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
-  vector_append(env->nspc_stack, (vtype)env->curr);
+  vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
+  vector_add(env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 

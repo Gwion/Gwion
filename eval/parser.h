@@ -260,12 +260,12 @@ union YYSTYPE
 {
 #line 42 "eval/gwion.y" /* yacc.c:1909  */
 
-	char* sval;
-	int ival;
-	m_float fval;
+  char* sval;
+  int ival;
+  m_float fval;
   Complex* c_val;
   Polar* polar;
-	Vec vec;
+  Vec vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
@@ -282,11 +282,10 @@ union YYSTYPE
   Type_List type_list; // call template
   Class_Body class_body;
   Class_Ext class_ext;
-//  Class_Ext iface_ext;
   Class_Def class_def;
   Ast ast;
 
-#line 290 "eval/parser.h" /* yacc.c:1909  */
+#line 289 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -118,9 +118,9 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   type->obj_size = 0;
 
   type->is_complete = 1;
-  vector_append(env->nspc_stack, (vtype)env->curr);
+  vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
+  vector_add(env->class_stack, (vtype)env->class_def);
   env->class_def = type;
   return type;
 }

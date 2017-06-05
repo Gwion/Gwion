@@ -51,6 +51,6 @@ DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
   DL_Value* v = new_DL_Value(t, n, 0, NULL);
   if(!a->args)
     a->args = new_vector();
-  vector_append(a->args, (vtype)v);
+  vector_add(a->args, (vtype)v);
   return v;
 }

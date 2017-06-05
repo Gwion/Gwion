@@ -20,15 +20,15 @@ const m_str op2str(Operator op) {
   return op_str[op];
 }
 
-static Map new_Operator_Map() {
+static Map new_Operator_map() {
   m_uint i;
-  Map map = new_Map();
+  Map map = new_map();
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
     map_set(map, (vtype)operators[i], (vtype)new_vector());
   return map;
 }
 
-void free_Operator_Map(Map map) {
+void free_Operator_map(Map map) {
   m_uint i;
   Vector v;
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++) {
@@ -38,7 +38,7 @@ void free_Operator_Map(Map map) {
       free((M_Operator*)vector_at(v, j));
     free_vector(v);
   }
-  free_Map(map);
+  free_map(map);
 }
 
 static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
@@ -66,7 +66,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
     nspc = env->global_nspc;
 
   if(!nspc->op_map)
-    nspc->op_map = new_Operator_Map();
+    nspc->op_map = new_Operator_map();
 
   if(!(v = (Vector)map_get(nspc->op_map, (vtype)op))) {
     err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
@@ -85,7 +85,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->ret       = ret;
   mo->instr     = f;
   mo->func      = NULL;
-  vector_append(v, (vtype)mo);
+  vector_add(v, (vtype)mo);
   return 1;
 }
 

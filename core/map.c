@@ -24,7 +24,7 @@ Vector new_vector() {
   return v;
 }
 
-void vector_append(Vector v, vtype data) {
+void vector_add(Vector v, vtype data) {
   if(!(v->ptr[1] - v->ptr[0] - OFFSET)) {
     v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
   }
@@ -50,7 +50,7 @@ void vector_set(Vector v, const vtype i, vtype arg) {
   v->ptr[i + OFFSET] = arg;
 }
 
-void vector_remove(Vector v, const vtype index) {
+void vector_rem(Vector v, const vtype index) {
   vtype i;
   if(index >= v->ptr[0])
     return;
@@ -65,7 +65,7 @@ vtype vector_pop(Vector v) {
   if(!v->ptr[0])
     return 0;
   ret = v->ptr[v->ptr[0] + OFFSET - 1];
-  vector_remove(v, v->ptr[0] - 1);
+  vector_rem(v, v->ptr[0] - 1);
   return ret;
 }
 
@@ -95,7 +95,7 @@ void free_vector(Vector v) {
   v = NULL;
 }
 
-Map new_Map() {
+Map new_map() {
   Map map  = malloc(sizeof(struct Map_));
   map->ptr = calloc(MAP_CAP, sizeof(vtype));
   map->len = 0;
@@ -136,7 +136,7 @@ void map_set(Map map, vtype key, vtype ptr) {
 
 void map_remove(Map map, vtype key) {
   vtype i;
-  Map tmp = new_Map();
+  Map tmp = new_map();
   for(i = 0; i < map->len; i++)
     if(map->ptr[i*2] != key)
       map_set(tmp, key, map->ptr[i*2+1]);
@@ -158,7 +158,7 @@ vtype map_size(Map map) {
   return map->len;
 }
 
-void free_Map(Map map) {
+void free_map(Map map) {
   free(map->ptr);
   free(map);
 }
@@ -216,31 +216,31 @@ void scope_rem(Scope scope, S_Symbol xid) {
 void scope_commit(Scope scope) {
   Map map = (Map)vector_front(scope->vector);
   map_commit(map, scope->commit_map);
-  free_Map(scope->commit_map);
-  scope->commit_map = new_Map();
+  free_map(scope->commit_map);
+  scope->commit_map = new_map();
 }
 
 void scope_push(Scope scope) {
-  vector_append(scope->vector, (vtype)new_Map());
+  vector_add(scope->vector, (vtype)new_map());
 }
 
 void scope_pop(Scope scope) {
-  free_Map((Map)vector_back(scope->vector));
+  free_map((Map)vector_back(scope->vector));
   vector_pop(scope->vector);
 }
 
 Scope new_scope() {
   Scope a = malloc(sizeof(struct Scope_));
-  a->commit_map = new_Map();
+  a->commit_map = new_map();
   a->vector = new_vector();
   scope_push(a);
   return a;
 }
 
 void free_scope(Scope a) {
-  free_Map((Map)vector_front(a->vector));
+  free_map((Map)vector_front(a->vector));
   free_vector(a->vector);
-  free_Map(a->commit_map);
+  free_map(a->commit_map);
   free(a);
 }
 
@@ -250,10 +250,10 @@ Vector scope_get(Scope s) {
   for(j = 0; j < vector_size(s->vector); j++) {
     Map map = (Map)vector_at(s->vector, j);
     for(i = 0; i < map->len; i++)
-      vector_append(ret, map->ptr[i*2+1]);
+      vector_add(ret, map->ptr[i*2+1]);
   }
   for(i = 0; i < s->commit_map->len; i++)
-    vector_append(ret, (vtype)s->commit_map->ptr[i*2+1]);
+    vector_add(ret, (vtype)s->commit_map->ptr[i*2+1]);
   return ret;
 }
 

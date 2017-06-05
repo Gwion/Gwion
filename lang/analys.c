@@ -620,7 +620,7 @@ static MFUN(fc_compute) {
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(SZ_FLOAT, vector_size(v), 1);
-  vector_append(shred->gc, (vtype)ret);
+  vector_add(shred->gc, (vtype)ret);
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add
@@ -640,7 +640,7 @@ static MFUN(fc_add) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
-    vector_append(v, (vtype)obj);
+    vector_add(v, (vtype)obj);
     release(obj, shred);
   }
   RETURN->d.v_uint = (m_uint)obj;
@@ -650,7 +650,7 @@ static MFUN(fc_rem) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
   if(obj) {
-    vector_remove(v, vector_find(v, (vtype)obj));
+    vector_rem(v, vector_find(v, (vtype)obj));
     release(obj, shred);
   }
   RETURN->d.v_uint = (m_uint)obj;
@@ -663,7 +663,7 @@ INSTR(fc_connect) {
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
-      vector_append(v, (vtype)o);
+      vector_add(v, (vtype)o);
       release(obj, shred);
     }
     release(o, shred);
@@ -679,7 +679,7 @@ INSTR(fc_disconnect) {
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
-      vector_remove(v, vector_find(v, (vtype)o));
+      vector_rem(v, vector_find(v, (vtype)o));
       release(obj, shred);
     }
     release(o, shred);

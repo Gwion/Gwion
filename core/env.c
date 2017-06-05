@@ -16,7 +16,7 @@ Env new_env() {
   env->breaks = new_vector();
   env->conts = new_vector();
 //  env->user_nspc = NULL;
-  env->known_ctx = new_Map();
+  env->known_ctx = new_map();
   env_reset(env);
   INIT_OO(env, e_env_obj);
   return env;
@@ -25,14 +25,14 @@ Env new_env() {
 void env_reset(Env env) {
   free_vector(env->nspc_stack);
   env->nspc_stack = new_vector();
-  vector_append(env->nspc_stack, (vtype)env->global_nspc);
+  vector_add(env->nspc_stack, (vtype)env->global_nspc);
 
 //  if(env->user_nspc)
-//    vector_append(env->nspc_stack, (vtype)env->user_nspc);
+//    vector_add(env->nspc_stack, (vtype)env->user_nspc);
 
   free_vector(env->class_stack);
   env->class_stack = new_vector();
-  vector_append(env->class_stack, (vtype)NULL);
+  vector_add(env->class_stack, (vtype)NULL);
 
 //  if(env->user_nspc)
 //    env->curr = env->user_nspc;
@@ -51,7 +51,7 @@ void free_env(Env a) {
     REM_REF(ctx);
   }
   free_vector(a->contexts);
-  free_Map(a->known_ctx);
+  free_map(a->known_ctx);
 
   for(i = 0; i < vector_size(a->nspc_stack); i++) {
     Nspc  nspc = (Nspc)vector_pop(a->nspc_stack);

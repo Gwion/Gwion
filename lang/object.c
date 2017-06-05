@@ -21,7 +21,7 @@ M_Object new_M_Object(VM_Shred shred) {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->ref = 1;
   if(shred)
-    vector_append(shred->gc, (vtype)a);
+    vector_add(shred->gc, (vtype)a);
   return a;
 }
 
@@ -78,7 +78,7 @@ void release(M_Object obj, VM_Shred shred) {
           vector_pop(code->instr);
           Instr eoc = malloc(sizeof(Instr));
           eoc->execute = EOC;
-          vector_append(code->instr, (vtype)eoc);
+          vector_add(code->instr, (vtype)eoc);
           vm_add_shred(shred->vm_ref, sh);
         }
       }

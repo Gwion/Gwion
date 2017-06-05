@@ -301,7 +301,7 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
     }
     SET_FLAG(v, ae_value_const | ae_value_enum | ae_value_checked);
     nspc_add_value(nspc, list->xid, v);
-    vector_append(stmt->values, (vtype)v);
+    vector_add(stmt->values, (vtype)v);
     list = list->next;
     count++;
   }
@@ -547,9 +547,9 @@ static m_bool scan1_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
   Type the_class = class_def->type;
-  vector_append(env->nspc_stack, (vtype)env->curr);
+  vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_append(env->class_stack, (vtype)env->class_def);
+  vector_add(env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 

@@ -35,7 +35,7 @@ m_bool compile(VM* vm, const m_str filename) {
   if(d)
     args = new_vector();
   while(d)
-    vector_append(args, (vtype)S_name(insert_symbol(strsep(&d, ":"))));
+    vector_add(args, (vtype)S_name(insert_symbol(strsep(&d, ":"))));
   free(d);
   name = realpath(_name, NULL);
   free(_name);
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
   di.card = "default:CARD=CODEC";
   di.raw = 0;
 
-  vector_append(plug_dirs, (vtype)GWION_ADD_DIR);
+  vector_add(plug_dirs, (vtype)GWION_ADD_DIR);
 
   while((i = getopt_long(argc, argv, "?Cqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
       udp = 0;
       break;
     case 'P':
-      vector_append(plug_dirs, (vtype)optarg);
+      vector_add(plug_dirs, (vtype)optarg);
       break;
     default:
       return 1;
@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
         ref = add;
         str = argv[optind++];
       }
-      vector_append(ref, (vtype)str);
+      vector_add(ref, (vtype)str);
     }
   }
   pthread_t udp_thread = 0;
@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  scan_map = new_Map();
+  scan_map = new_map();
   if(!loop)
     loop = -1;
   if(!(vm = new_VM(loop)))
@@ -308,7 +308,7 @@ clean:
   if(d)
     free_driver(d, vm);
   if(scan_map)
-    free_Map(scan_map);
+    free_map(scan_map);
 
   set_nspc_vm(vm);
 #ifndef __linux__

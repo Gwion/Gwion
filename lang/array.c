@@ -81,27 +81,27 @@ m_vec4 v4_vector_at(M_Vector v, m_uint i) {
     v->ptr = realloc(v->ptr, v->cap * v->size);   \
   }                                               \
 
-void i_vector_append(M_Vector v, m_uint i) {
+void i_vector_add(M_Vector v, m_uint i) {
   CHECK_VEC_SIZE(v)
   *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
 }
 
-void f_vector_append(M_Vector v, m_float f) {
+void f_vector_add(M_Vector v, m_float f) {
   CHECK_VEC_SIZE(v)
   *(m_float*)(v->ptr + (v->len - 1)*v->size) = f;
 }
 
-void c_vector_append(M_Vector v, m_complex c) {
+void c_vector_add(M_Vector v, m_complex c) {
   CHECK_VEC_SIZE(v)
   *(m_complex*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v3_vector_append(M_Vector v, m_vec3 c) {
+void v3_vector_add(M_Vector v, m_vec3 c) {
   CHECK_VEC_SIZE(v)
   *(m_vec3*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
-void v4_vector_append(M_Vector v, m_vec4 c) {
+void v4_vector_add(M_Vector v, m_vec4 c) {
   CHECK_VEC_SIZE(v)
   *(m_vec4*)(v->ptr + (v->len - 1)*v->size) = c;
 }
@@ -126,7 +126,7 @@ void v4_vector_set(M_Vector v, m_uint i, m_vec4 data) {
   *(m_vec4*)(v->ptr + i * v->size) = data;
 }
 
-void m_vector_remove(M_Vector v, m_uint index) {
+void m_vector_rem(M_Vector v, m_uint index) {
   char c[--v->len*v->size];
   if(index)
     memcpy(c, v->ptr, index*v->size);
@@ -155,12 +155,12 @@ void m_vector_insert(M_Vector v, m_uint index, char* data)
 }
 */
 
-MFUN(vm_vector_remove) {
+MFUN(vm_vector_rem) {
   m_int index = *(m_int*)(shred + SZ_INT);
   M_Vector v = o->d.array;
   if(index < 0 || index >= v->len)
     return;
-  m_vector_remove(v, index);
+  m_vector_rem(v, index);
 }
 /*
 MFUN(vm_vector_insert_i) {
@@ -169,7 +169,7 @@ MFUN(vm_vector_insert_i) {
   M_Vector v = o->d.array;
   if(index < 0 || index >= v->len)
 	return;
-  m_vector_remove(v, index);
+  m_vector_rem(v, index);
 }
 
 MFUN(vm_vector_insert_f) {
@@ -178,7 +178,7 @@ MFUN(vm_vector_insert_f) {
   M_Vector v = o->d.array;
   if(index < 0 || index >= v->len)
 	return;
-  m_vector_remove(v, index);
+  m_vector_rem(v, index);
 }
 */
 m_uint*  i_vector_addr(M_Vector v, m_uint i) {
@@ -219,23 +219,23 @@ INSTR(Array_Append) {
   if(instr->m_val == Kindof_Int) {
     POP_REG(shred, SZ_INT);
     o = *(M_Object*)(shred->reg);
-    i_vector_append(o->d.array, *(m_uint*)(shred->reg + SZ_INT));
+    i_vector_add(o->d.array, *(m_uint*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Float) {
     POP_REG(shred, SZ_FLOAT);
     o = *(M_Object*)(shred->reg);
-    f_vector_append(o->d.array, *(m_float*)(shred->reg + SZ_INT));
+    f_vector_add(o->d.array, *(m_float*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Complex) {
     POP_REG(shred, SZ_COMPLEX);
     o = *(M_Object*)(shred->reg);
-    c_vector_append(o->d.array, *(m_complex*)(shred->reg + SZ_INT));
+    c_vector_add(o->d.array, *(m_complex*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)(shred->reg);
-    v3_vector_append(o->d.array, *(m_vec3*)(shred->reg + SZ_INT));
+    v3_vector_add(o->d.array, *(m_vec3*)(shred->reg + SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
     POP_REG(shred, SZ_VEC4);
     o = *(M_Object*)(shred->reg);
-    v4_vector_append(o->d.array, *(m_vec4*)(shred->reg + SZ_INT));
+    v4_vector_add(o->d.array, *(m_vec4*)(shred->reg + SZ_INT));
   }
   release(o, shred);
   *(M_Object*)(shred->reg) = o;
@@ -252,7 +252,7 @@ m_bool import_array(Env env) {
   CHECK_OB(import_mfun(env, fun))
   fun = new_dl_func("int", "cap", (m_uint)vm_vector_cap);
   CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("int", "remove", (m_uint)vm_vector_remove);
+  fun = new_dl_func("int", "remove", (m_uint)vm_vector_rem);
   dl_func_add_arg(fun, "int", "index");
   CHECK_OB(import_mfun(env, fun))
   env->class_def->doc = "vector structure";
