@@ -64,7 +64,7 @@ m_bool compile(VM* vm, const m_str filename) {
   add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   vm->emit->code->filename = strdup(name);
-  code = emit_to_code(vm->emit);
+  code = emit_code(vm->emit);
   free_ast(ast);
   shred = new_VM_Shred(code);
   shred->args = args;

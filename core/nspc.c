@@ -62,7 +62,7 @@ void free_nspc(Nspc a) {
   Vector v = scope_get(a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
-if(value->m_type)
+
     if(isa(value->m_type, &t_class) > 0)
       REM_REF(value->m_type)
       else if(isa(value->m_type, &t_object) > 0) {

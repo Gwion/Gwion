@@ -19,15 +19,14 @@ m_bool scan1_ast(Env, Ast);
 m_bool scan2_ast(Env, Ast);
 
 m_bool check_func_def(Env env, Func_Def f);
-static Type check_expression(Env env, Exp exp);
+static Type check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
-static Type check_dot_member(Env env, Exp_Dot* member);
+static Type check_exp_dot(Env env, Exp_Dot* member);
 static m_bool check_stmt_list(Env env, Stmt_List list);
-/* static */ Type check_func_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos);
-static Type check_func_call(Env env, Exp_Func* exp_func);
+/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos);
+static Type check_exp_call(Env env, Exp_Func* exp_func);
 static m_bool check_class_def(Env env, Class_Def class_def);
 static Func find_func_match(Func up, Exp args);
-
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
@@ -167,7 +166,7 @@ error:          // LCOV_EXCL_START
   return NULL;
 }              // LCOV_EXCL_STOP
 
-static m_bool check_array_subscripts(Env env, Exp exp_list) {
+static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   Exp exp = exp_list;
   while(exp) {
     if(isa(exp->type, &t_int) < 0) {
@@ -180,7 +179,7 @@ static m_bool check_array_subscripts(Env env, Exp exp_list) {
   return 1;
 }
 
-Type check_decl_expression(Env env, Exp_Decl* decl) {
+Type check_exp_decl(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "decl");
 #endif
@@ -206,8 +205,8 @@ Type check_decl_expression(Env env, Exp_Decl* decl) {
 
     type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
-      CHECK_OO(check_expression(env, var_decl->array->exp_list))
-      CHECK_BO(check_array_subscripts(env, var_decl->array->exp_list))
+      CHECK_OO(check_exp(env, var_decl->array->exp_list))
+      CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
     }
     if(GET_FLAG(value, ae_value_member)) {
       value->offset = env->curr->offset;
@@ -231,7 +230,7 @@ Type check_decl_expression(Env env, Exp_Decl* decl) {
   return decl->m_type;
 }
 
-static Type check_array_lit(Env env, Exp_Primary *exp) {
+static Type check_exp_prim_array(Env env, Exp_Primary *exp) {
   Exp e;
   Type t = NULL, type = NULL, common = NULL;
 
@@ -241,7 +240,7 @@ static Type check_array_lit(Env env, Exp_Primary *exp) {
     err_msg(TYPE_, exp->pos, "must provide values/expressions for array [...]");
     return NULL;
   }
-  CHECK_OO(check_expression(env, e))
+  CHECK_OO(check_exp(env, e))
   while(e) {
     t = e->type;
     if(!type)
@@ -279,7 +278,7 @@ static Type check_vec(Env env, Exp_Primary* exp) {
   Exp e = val->args;
   int count = 1;
   while(e) {
-    if(!(t = check_expression(env, e)))
+    if(!(t = check_exp(env, e)))
       return NULL;
     if(isa(t, &t_int) > 0) e->cast_to = &t_float;
     else if(isa(t, &t_float) < 0) {
@@ -296,7 +295,7 @@ static Type check_vec(Env env, Exp_Primary* exp) {
   return &t_vec4;
 }
 
-static Type check_primary_expression(Env env, Exp_Primary* primary) {
+static Type check_exp_primary(Env env, Exp_Primary* primary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "primary");
 #endif
@@ -369,7 +368,7 @@ static Type check_primary_expression(Env env, Exp_Primary* primary) {
       err_msg(TYPE_, primary->d.cmp->pos, "extraneous component of complex value...");
       return NULL;
     }
-    CHECK_OO(check_expression(env, primary->d.cmp->re))
+    CHECK_OO(check_exp(env, primary->d.cmp->re))
     if(isa(primary->d.cmp->re->type, &t_float) < 0) {
       if(isa(primary->d.cmp->re->type, &t_int) < 0) {
         err_msg(TYPE_, primary->d.cmp->pos,
@@ -399,7 +398,7 @@ static Type check_primary_expression(Env env, Exp_Primary* primary) {
       err_msg(TYPE_, primary->d.polar->pos, "extraneous component of polar value...");
       return NULL;
     }
-    CHECK_OO(check_expression(env, primary->d.polar->mod))
+    CHECK_OO(check_exp(env, primary->d.polar->mod))
     if(isa(primary->d.polar->mod->type, &t_float) < 0) {
       if(isa(primary->d.polar->mod->type, &t_int) < 0) {
         err_msg(TYPE_, primary->d.polar->pos,
@@ -434,10 +433,10 @@ static Type check_primary_expression(Env env, Exp_Primary* primary) {
       err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n");
       return NULL;
     }
-    CHECK_OO((t = check_expression(env, primary->d.exp)))
+    CHECK_OO((t = check_exp(env, primary->d.exp)))
     break;
   case ae_primary_array:
-    t = check_array_lit(env, primary);
+    t = check_exp_prim_array(env, primary);
     break;
   case ae_primary_char:
     t = &t_int;
@@ -446,12 +445,12 @@ static Type check_primary_expression(Env env, Exp_Primary* primary) {
   return primary->self->type = t;
 }
 
-Type check_array(Env env, Exp_Array* array) {
+Type check_exp_array(Env env, Exp_Array* array) {
   Type t_base, t;
   m_uint depth;
 
   CHECK_BO(verify_array(array->indices))
-  CHECK_OO((t_base = check_expression(env, array->base)))
+  CHECK_OO((t_base = check_exp(env, array->base)))
 
   if(array->indices->depth > t_base->array_depth) {
     err_msg(TYPE_,  array->pos,
@@ -460,7 +459,7 @@ Type check_array(Env env, Exp_Array* array) {
     return NULL;
   }
 
-  CHECK_OO(check_expression(env, array->indices->exp_list))
+  CHECK_OO(check_exp(env, array->indices->exp_list))
 
   Exp e = array->indices->exp_list;
   depth = 0;
@@ -592,7 +591,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if((lhs->type->array_depth || rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
     return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
-    return check_func_call1(env, rhs, lhs, &binary->func, binary->pos);
+    return check_exp_call1(env, rhs, lhs, &binary->func, binary->pos);
   if(isa(binary->lhs->type, &t_varobj) > 0 && binary->op == op_at_chuck)
     return rhs->type;
   if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
@@ -612,15 +611,15 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   return NULL;
 }
 
-static Type check_binary_expression(Env env, Exp_Binary* binary) {
+static Type check_exp_binary(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "binary expression '%p' '%p'", binary->lhs, binary->rhs);
 #endif
   Type ret = NULL;
   Exp cl = binary->lhs, cr = binary->rhs;
 
-  CHECK_OO(check_expression(env, cl))
-  CHECK_OO(check_expression(env, cr))
+  CHECK_OO(check_exp(env, cl))
+  CHECK_OO(check_exp(env, cr))
 
   switch(binary->op) {
   case op_assign:
@@ -732,11 +731,11 @@ static Type check_binary_expression(Env env, Exp_Binary* binary) {
   return ret;
 }
 
-static Type check_cast_expression(Env env, Exp_Cast* cast) {
+static Type check_exp_cast(Env env, Exp_Cast* cast) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "cast expression");
 #endif// check the exp
-  Type t = check_expression(env, cast->exp);
+  Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
 
   Type t2 = find_type(env, cast->type->xid);
@@ -771,8 +770,8 @@ static Type check_cast_expression(Env env, Exp_Cast* cast) {
   return NULL;
 }
 
-static Type check_postfix_expression(Env env, Exp_Postfix* postfix) {
-  Type ret, t = check_expression(env, postfix->exp);
+static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
+  Type ret, t = check_exp(env, postfix->exp);
 
   if(!t) return NULL;
   if(postfix->exp->meta != ae_meta_var) {
@@ -787,9 +786,9 @@ static Type check_postfix_expression(Env env, Exp_Postfix* postfix) {
   return ret;
 }
 
-static Type check_dur(Env env, Exp_Dur* dur) {
-  Type base = check_expression(env, dur->base);
-  Type unit = check_expression(env, dur->unit);
+static Type check_exp_dur(Env env, Exp_Dur* dur) {
+  Type base = check_exp(env, dur->base);
+  Type unit = check_exp(env, dur->unit);
   if(!base || !unit)
     return NULL;
   if(isa(base, &t_int) < 0 && isa(base, &t_float) < 0) {
@@ -931,8 +930,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     if(ret < 0)                               goto error;
     if(scan2_func_def(env, def) < 0)          goto error;
     if(check_func_def(env, def) < 0)          goto error;
-    if(!check_expression(env, func))          goto error;
-    if(args  && !check_expression(env, args)) goto error;
+    if(!check_exp(env, func))          goto error;
+    if(args  && !check_exp(env, args)) goto error;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
     if(m_func) {
@@ -957,7 +956,7 @@ next:
   return NULL;
 }
 
-/* static */ Type check_func_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
+/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func call");
 #endif
@@ -966,7 +965,7 @@ next:
   Type f;
   Value ptr = NULL; // 20/03/17
 
-  exp_func->type = check_expression(env, exp_func);
+  exp_func->type = check_exp(env, exp_func);
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == ae_exp_primary &&
@@ -998,7 +997,7 @@ next:
   up = f->func;
 
   if(args)
-    CHECK_OO(check_expression(env, args))
+    CHECK_OO(check_exp(env, args))
     // look for a match
     func = find_func_match(up, args);
   if(!func) {
@@ -1114,14 +1113,14 @@ next:
   return func->def->ret_type;
 }
 
-static Type check_func_call(Env env, Exp_Func* exp_func) {
+static Type check_exp_call(Env env, Exp_Func* exp_func) {
   if(exp_func->types) {
     Value v;
     if(exp_func->func->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
     } else {
       Type t;
-      CHECK_OO(check_expression(env, exp_func->func))
+      CHECK_OO(check_exp(env, exp_func->func))
       t = exp_func->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
@@ -1143,30 +1142,15 @@ static Type check_func_call(Env env, Exp_Func* exp_func) {
     return ret->def->ret_type;
   }
   env->current = exp_func;
-  return check_func_call1(env, exp_func->func, exp_func->args,
+  return check_exp_call1(env, exp_func->func, exp_func->args,
                           &exp_func->m_func, exp_func->pos);
 }
 
-static m_bool check_func_ptr(Env env, Stmt_Ptr ptr) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func pointer '%s'", S_name(ptr->xid));
-#endif
-  Type t     = nspc_lookup_type(env->curr, ptr->xid, 1);
-  t->size    = SZ_INT;
-  t->name    = S_name(ptr->xid);
-  t->parent  = &t_func_ptr;
-  nspc_add_type(env->curr, ptr->xid, t);
-  //  ADD_REF(t);
-  ptr->m_type = t;
-  t->func = ptr->func;
-  return 1;
-}
-
-static Type check_unary(Env env, Exp_Unary* exp_unary) {
+static Type check_exp_unary(Env env, Exp_Unary* exp_unary) {
   Type t = NULL;
 
   if(exp_unary->op != op_new && !exp_unary->code)
-    CHECK_OO((t = check_expression(env, exp_unary->exp)))
+    CHECK_OO((t = check_exp(env, exp_unary->exp)))
   if(exp_unary->code)
     CHECK_BO(check_stmt(env, exp_unary->code))
 
@@ -1220,8 +1204,8 @@ static Type check_unary(Env env, Exp_Unary* exp_unary) {
       }
       if(exp_unary->array) {
         CHECK_BO(verify_array(exp_unary->array))
-        CHECK_OO(check_expression(env, exp_unary->array->exp_list))
-        CHECK_BO(check_array_subscripts(env, exp_unary->array->exp_list))
+        CHECK_OO(check_exp(env, exp_unary->array->exp_list))
+        CHECK_BO(check_exp_array_subscripts(env, exp_unary->array->exp_list))
         t = new_array_type(env, exp_unary->array->depth, t, env->curr);
       } else if(isa(t, &t_object) < 0) {
         err_msg(TYPE_, exp_unary->pos,
@@ -1243,9 +1227,9 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "debug exp if");
 #endif
-  Type cond     = check_expression(env, exp_if->cond);
-  Type if_exp   = check_expression(env, exp_if->if_exp);
-  Type else_exp = check_expression(env, exp_if->else_exp);
+  Type cond     = check_exp(env, exp_if->cond);
+  Type if_exp   = check_exp(env, exp_if->if_exp);
+  Type else_exp = check_exp(env, exp_if->else_exp);
   Type ret;
   if(!cond || !if_exp || !else_exp)
     return NULL;
@@ -1262,398 +1246,7 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
   return ret;
 }
 
-static Type check_expression(Env env, Exp exp) {
-  Exp curr = exp;
-  while(curr) {
-    curr->type = NULL;
-    switch(curr->exp_type) {
-    case ae_exp_primary:
-      curr->type = check_primary_expression(env, &curr->d.exp_primary);
-      break;
-    case ae_exp_decl:
-      curr->type = check_decl_expression(env, &curr->d.exp_decl);
-      break;
-    case ae_exp_unary:
-      curr->type = check_unary(env, &curr->d.exp_unary);
-      break;
-    case ae_exp_binary:
-      curr->type = check_binary_expression(env, &curr->d.exp_binary);
-      break;
-    case ae_exp_postfix:
-      curr->type = check_postfix_expression(env, &curr->d.exp_postfix);
-      break;
-    case ae_exp_dur:
-      curr->type = check_dur(env, &curr->d.exp_dur);
-      break;
-    case ae_exp_cast:
-      curr->type = check_cast_expression(env, &curr->d.exp_cast);
-      break;
-    case ae_exp_call:
-      curr->type = check_func_call(env, &curr->d.exp_func);
-      curr->d.exp_func.ret_type = curr->type;
-      break;
-    case ae_exp_if:
-      curr->type = check_exp_if(env, &curr->d.exp_if);
-      break;
-    case ae_exp_dot:
-      curr->type = check_dot_member(env, &curr->d.exp_dot);
-      break;
-    case ae_exp_array:
-      curr->type = check_array(env, &curr->d.exp_array);
-      break;
-    }
-    CHECK_OO(curr->type)
-    curr = curr->next;
-  }
-  return exp ? exp->type : NULL;
-}
-
-static m_bool check_enum(Env env, Stmt_Enum stmt) {
-  ID_List list = stmt->list;
-  Value v;
-  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
-  while(list) {
-    v = nspc_lookup_value(nspc, list->xid, 0);
-    if(env->class_def) { // enum in classes are static
-      SET_FLAG(v, ae_value_static);
-      v->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += t_int.size;
-    }
-    list = list->next;
-  }
-  return 1;
-
-}
-
-static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
-  m_bool ret;
-
-  env->class_scope++;
-  if(push)
-    nspc_push_value(env->curr);
-
-  ret = check_stmt_list(env, stmt->stmt_list);
-
-  if(push)
-    nspc_pop_value(env->curr);
-  env->class_scope--;
-
-  return ret;
-}
-
-static m_bool check_while(Env env, Stmt_While stmt) {
-  CHECK_OB(check_expression(env, stmt->cond))
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
-
-  default:
-    err_msg(TYPE_,  stmt->cond->pos,
-            "invalid type '%s' in while condition", stmt->cond->type->name);
-    return -1;
-  }
-  vector_append(env->breaks, (vtype)stmt->self);
-  vector_append(env->conts, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-  vector_pop(env->breaks);
-  vector_pop(env->conts);
-  return 1;
-}
-
-static m_bool check_until(Env env, Stmt_Until stmt) {
-  CHECK_OB(check_expression(env, stmt->cond))
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
-
-  default:
-    err_msg(TYPE_,  stmt->cond->pos,
-            "invalid type '%s' in until condition", stmt->cond->type->name);
-    return -1;
-  }
-  vector_append(env->breaks, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-  vector_pop(env->breaks);
-  return 1;
-}
-
-static m_bool check_for(Env env, Stmt_For stmt) {
-  CHECK_BB(check_stmt(env, stmt->c1))
-  CHECK_BB(check_stmt(env, stmt->c2))
-  if(!stmt->c2 || !stmt->c2->d.stmt_exp.val) {
-    err_msg(EMIT_, stmt->pos, "empty for loop condition...");
-    err_msg(EMIT_, stmt->pos, "...(note: explicitly use 'true' if it's the intent)");
-    err_msg(EMIT_, stmt->pos, "...(e.g., 'for(; true;){ /*...*/ }')");
-    return -1;
-  }
-  switch(stmt->c2->d.stmt_exp.val->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
-
-  default:
-    err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
-            "invalid type '%s' in for condition", stmt->c2->d.stmt_exp.val->type->name);
-    return -1;
-  }
-
-  if(stmt->c3)
-    CHECK_OB(check_expression(env, stmt->c3))
-    vector_append(env->breaks, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-  vector_pop(env->breaks);
-  return 1;
-}
-
-static m_bool check_loop(Env env, Stmt_Loop stmt) {
-  Type type = check_expression(env, stmt->cond);
-
-  CHECK_OB(type)
-  if(isa(type, &t_float) > 0)
-    stmt->cond->cast_to = &t_int;
-  else if(isa(type, &t_int) < 0) { // must be int
-    err_msg(TYPE_, stmt->pos,
-            "loop * conditional must be of type 'int'...");
-    return -1;
-  }
-  vector_append(env->breaks, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-  vector_pop(env->breaks);
-  return 1;
-}
-
-static m_bool check_if(Env env, Stmt_If stmt) {
-  CHECK_OB(check_expression(env, stmt->cond))
-  switch(stmt->cond->type->xid) {
-  case te_int:
-  case te_float:
-  case te_dur:
-  case te_time:
-    break;
-
-  default:
-    if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
-      break;
-    err_msg(TYPE_, stmt->cond->pos,
-            "invalid type '%s' in if condition", stmt->cond->type->name);
-    return -1;
-  }
-  CHECK_BB(check_stmt(env, stmt->if_body))
-  if(stmt->else_body)
-    CHECK_BB(check_stmt(env, stmt->else_body))
-    return 1;
-}
-
-static m_bool check_return(Env env, Stmt_Return stmt) {
-  Type ret_type = NULL;
-  if(!env->func) {
-    err_msg(TYPE_, stmt->pos, "'return' statement found outside function definition");
-    return -1;
-  }
-  if(stmt->val) {
-    CHECK_OB((ret_type = check_expression(env, stmt->val)))
-  } else
-    ret_type = &t_void;
-  if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)
-    return 1;
-  if(isa(ret_type, env->func->def->ret_type) < 0) {
-    err_msg(TYPE_, stmt->pos,
-            "invalid return type '%s' -- expecting '%s'",
-            ret_type->name, env->func->def->ret_type->name);
-    return -1;
-  }
-  return 1;
-}
-
-static m_bool check_continue(Env env, Stmt_Continue cont) {
-  if(!vector_size(env->breaks)) {
-    err_msg(TYPE_,  cont->pos,
-      "'continue' found outside of for/while/until...");
-    return -1;
-  }
-  return 1;
-}
-
-static m_bool check_break(Env env, Stmt_Break cont) {
-  if(!vector_size(env->breaks)) {
-    err_msg(TYPE_,  cont->pos,
-      "'break' found outside of for/while/until...");
-    return -1;
-  }
-  return 1;
-}
-
-static m_bool check_switch(Env env, Stmt_Switch a) {
-  Type t = check_expression(env, a->val);
-  if(!t || t->xid !=  t_int.xid) {
-    err_msg(TYPE_, a->pos, "invalid type '%s' in switch expression. should be 'int'", t ? t->name : "unknown");
-    return -1;
-  }
-  vector_append(env->breaks, (vtype)a->self);
-  if(check_stmt(env, a->stmt) < 0) {
-    err_msg(TYPE_, a->val->pos, "\t... in switch statement");
-    return -1;
-  }
-  vector_pop(env->breaks);
-  return 1;
-}
-
-static m_bool check_case(Env env, Stmt_Case stmt) {
-  Type t = check_expression(env, stmt->val);
-  if(!t || t->xid !=  t_int.xid) {
-    err_msg(TYPE_, stmt->pos, "invalid type '%s' case expression. should be 'int'", t ? t->name : "unknown");
-    return -1;
-  }
-  return 1;
-}
-
-static m_bool check_goto_label(Env env, Stmt_Goto_Label stmt) {
-  Map m;
-  m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
-  Stmt_Goto_Label ref;
-  if(stmt->is_label)
-    return 1;
-  m = (Map)map_get(env->curr->label, (vtype)key);
-  if(!m) {
-    err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
-    return -1;
-  }
-  ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
-  if(!ref) {
-    err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
-    m_uint i;
-    for(i = 0; i < map_size(m); i++) {
-      ref = (Stmt_Goto_Label)map_at(m, i);
-      free_vector(ref->data.v);
-    }
-    return -1;
-  }
-  vector_append(ref->data.v, (vtype)stmt);
-  return 1;
-}
-
-static m_bool check_stmt_union(Env env, Stmt_Union stmt) {
-  Decl_List l = stmt->l;
-  if(env->class_def)  {
-    stmt->o = env->class_def->obj_size;
-  }
-  while(l) {
-    CHECK_OB(check_decl_expression(env, l->self))
-    if(l->self->m_type->size > stmt->s)
-      stmt->s = l->self->m_type->size;
-    l = l->next;
-  }
-  return 1;
-}
-
-static m_bool check_stmt(Env env, Stmt stmt) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "stmt");
-#endif
-  m_bool ret = 1;
-  if(!stmt)
-    return 1;
-  switch(stmt->type) {
-  case ae_stmt_exp:
-    if(stmt->d.stmt_exp.val)
-      ret = (check_expression(env, stmt->d.stmt_exp.val) ? 1 : -1);
-    break;
-  case ae_stmt_code:
-    env->class_scope++;
-    ret = check_stmt_code(env, &stmt->d.stmt_code, 1);
-    env->class_scope--;
-    break;
-  case ae_stmt_return:
-    ret = check_return(env, &stmt->d.stmt_return);
-    break;
-  case ae_stmt_break:
-    ret = check_break(env, &stmt->d.stmt_break);
-    break;
-  case ae_stmt_continue:
-    ret = check_continue(env, &stmt->d.stmt_continue);
-    break;
-  case ae_stmt_if:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_if(env, &stmt->d.stmt_if);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_while:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_while(env, &stmt->d.stmt_while);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_until:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_until(env, &stmt->d.stmt_until);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_for:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_for(env, &stmt->d.stmt_for);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_loop:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_loop(env, &stmt->d.stmt_loop);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_switch:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_switch(env, &stmt->d.stmt_switch);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
-    break;
-  case ae_stmt_case:
-    ret = check_case(env, &stmt->d.stmt_case);
-    break;
-  case ae_stmt_enum:
-    ret = check_enum(env, &stmt->d.stmt_enum);
-    break;
-  case ae_stmt_gotolabel:
-    ret = check_goto_label(env, &stmt->d.stmt_gotolabel);
-    break;
-  case ae_stmt_funcptr:
-    ret = check_func_ptr(env, &stmt->d.stmt_ptr);
-    break;
-  case ae_stmt_union:
-    ret = check_stmt_union(env, &stmt->d.stmt_union);
-    break;
-  }
-  return ret;
-}
-
-static m_bool check_stmt_list(Env env, Stmt_List list) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "statement list");
-#endif
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(check_stmt(env, curr->stmt))
-    curr = curr->next;
-  }
-  return 1;
-}
-
-static Type check_dot_member(Env env, Exp_Dot* member) {
+static Type check_exp_dot(Env env, Exp_Dot* member) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "dot member");
 #endif
@@ -1662,7 +1255,7 @@ static Type check_dot_member(Env env, Exp_Dot* member) {
   m_bool base_static;
   m_str str;
 
-  member->t_base = check_expression(env, member->base);
+  member->t_base = check_exp(env, member->base);
   if(!member->t_base)
     return NULL;
   base_static = member->t_base->xid == t_class.xid;
@@ -1702,6 +1295,412 @@ static Type check_dot_member(Env env, Exp_Dot* member) {
   if(GET_FLAG(value, ae_value_enum)) // for enum
     member->self->meta = ae_meta_value;
   return value->m_type;
+}
+
+static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "func pointer '%s'", S_name(ptr->xid));
+#endif
+  Type t     = nspc_lookup_type(env->curr, ptr->xid, 1);
+  t->size    = SZ_INT;
+  t->name    = S_name(ptr->xid);
+  t->parent  = &t_func_ptr;
+  nspc_add_type(env->curr, ptr->xid, t);
+  //  ADD_REF(t);
+  ptr->m_type = t;
+  t->func = ptr->func;
+  return 1;
+}
+
+static Type check_exp(Env env, Exp exp) {
+  Exp curr = exp;
+  while(curr) {
+    curr->type = NULL;
+    switch(curr->exp_type) {
+    case ae_exp_primary:
+      curr->type = check_exp_primary(env, &curr->d.exp_primary);
+      break;
+    case ae_exp_decl:
+      curr->type = check_exp_decl(env, &curr->d.exp_decl);
+      break;
+    case ae_exp_unary:
+      curr->type = check_exp_unary(env, &curr->d.exp_unary);
+      break;
+    case ae_exp_binary:
+      curr->type = check_exp_binary(env, &curr->d.exp_binary);
+      break;
+    case ae_exp_postfix:
+      curr->type = check_exp_postfix(env, &curr->d.exp_postfix);
+      break;
+    case ae_exp_dur:
+      curr->type = check_exp_dur(env, &curr->d.exp_dur);
+      break;
+    case ae_exp_cast:
+      curr->type = check_exp_cast(env, &curr->d.exp_cast);
+      break;
+    case ae_exp_call:
+      curr->type = check_exp_call(env, &curr->d.exp_func);
+      curr->d.exp_func.ret_type = curr->type;
+      break;
+    case ae_exp_if:
+      curr->type = check_exp_if(env, &curr->d.exp_if);
+      break;
+    case ae_exp_dot:
+      curr->type = check_exp_dot(env, &curr->d.exp_dot);
+      break;
+    case ae_exp_array:
+      curr->type = check_exp_array(env, &curr->d.exp_array);
+      break;
+    }
+    CHECK_OO(curr->type)
+    curr = curr->next;
+  }
+  return exp ? exp->type : NULL;
+}
+
+static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
+  ID_List list = stmt->list;
+  Value v;
+  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
+  while(list) {
+    v = nspc_lookup_value(nspc, list->xid, 0);
+    if(env->class_def) { // enum in classes are static
+      SET_FLAG(v, ae_value_static);
+      v->offset = env->class_def->info->class_data_size;
+      env->class_def->info->class_data_size += t_int.size;
+    }
+    list = list->next;
+  }
+  return 1;
+
+}
+
+static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
+  m_bool ret;
+
+  env->class_scope++;
+  if(push)
+    nspc_push_value(env->curr);
+
+  ret = check_stmt_list(env, stmt->stmt_list);
+
+  if(push)
+    nspc_pop_value(env->curr);
+  env->class_scope--;
+
+  return ret;
+}
+
+static m_bool check_stmt_while(Env env, Stmt_While stmt) {
+  CHECK_OB(check_exp(env, stmt->cond))
+  switch(stmt->cond->type->xid) {
+  case te_int:
+  case te_float:
+  case te_dur:
+  case te_time:
+    break;
+
+  default:
+    err_msg(TYPE_,  stmt->cond->pos,
+            "invalid type '%s' in while condition", stmt->cond->type->name);
+    return -1;
+  }
+  vector_append(env->breaks, (vtype)stmt->self);
+  vector_append(env->conts, (vtype)stmt->self);
+  CHECK_BB(check_stmt(env, stmt->body))
+  vector_pop(env->breaks);
+  vector_pop(env->conts);
+  return 1;
+}
+
+static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
+  CHECK_OB(check_exp(env, stmt->cond))
+  switch(stmt->cond->type->xid) {
+  case te_int:
+  case te_float:
+  case te_dur:
+  case te_time:
+    break;
+
+  default:
+    err_msg(TYPE_,  stmt->cond->pos,
+            "invalid type '%s' in until condition", stmt->cond->type->name);
+    return -1;
+  }
+  vector_append(env->breaks, (vtype)stmt->self);
+  CHECK_BB(check_stmt(env, stmt->body))
+  vector_pop(env->breaks);
+  return 1;
+}
+
+static m_bool check_stmt_for(Env env, Stmt_For stmt) {
+  CHECK_BB(check_stmt(env, stmt->c1))
+  CHECK_BB(check_stmt(env, stmt->c2))
+  if(!stmt->c2 || !stmt->c2->d.stmt_exp.val) {
+    err_msg(EMIT_, stmt->pos, "empty for loop condition...");
+    err_msg(EMIT_, stmt->pos, "...(note: explicitly use 'true' if it's the intent)");
+    err_msg(EMIT_, stmt->pos, "...(e.g., 'for(; true;){ /*...*/ }')");
+    return -1;
+  }
+  switch(stmt->c2->d.stmt_exp.val->type->xid) {
+  case te_int:
+  case te_float:
+  case te_dur:
+  case te_time:
+    break;
+
+  default:
+    err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
+            "invalid type '%s' in for condition", stmt->c2->d.stmt_exp.val->type->name);
+    return -1;
+  }
+
+  if(stmt->c3)
+    CHECK_OB(check_exp(env, stmt->c3))
+    vector_append(env->breaks, (vtype)stmt->self);
+  CHECK_BB(check_stmt(env, stmt->body))
+  vector_pop(env->breaks);
+  return 1;
+}
+
+static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
+  Type type = check_exp(env, stmt->cond);
+
+  CHECK_OB(type)
+  if(isa(type, &t_float) > 0)
+    stmt->cond->cast_to = &t_int;
+  else if(isa(type, &t_int) < 0) { // must be int
+    err_msg(TYPE_, stmt->pos,
+            "loop * conditional must be of type 'int'...");
+    return -1;
+  }
+  vector_append(env->breaks, (vtype)stmt->self);
+  CHECK_BB(check_stmt(env, stmt->body))
+  vector_pop(env->breaks);
+  return 1;
+}
+
+static m_bool check_stmt_if(Env env, Stmt_If stmt) {
+  CHECK_OB(check_exp(env, stmt->cond))
+  switch(stmt->cond->type->xid) {
+  case te_int:
+  case te_float:
+  case te_dur:
+  case te_time:
+    break;
+
+  default:
+    if(isa(stmt->cond->type, &t_object) > 0) // added 12/09/16
+      break;
+    err_msg(TYPE_, stmt->cond->pos,
+            "invalid type '%s' in if condition", stmt->cond->type->name);
+    return -1;
+  }
+  CHECK_BB(check_stmt(env, stmt->if_body))
+  if(stmt->else_body)
+    CHECK_BB(check_stmt(env, stmt->else_body))
+    return 1;
+}
+
+static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
+  Type ret_type = NULL;
+  if(!env->func) {
+    err_msg(TYPE_, stmt->pos, "'return' statement found outside function definition");
+    return -1;
+  }
+  if(stmt->val) {
+    CHECK_OB((ret_type = check_exp(env, stmt->val)))
+  } else
+    ret_type = &t_void;
+  if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)
+    return 1;
+  if(isa(ret_type, env->func->def->ret_type) < 0) {
+    err_msg(TYPE_, stmt->pos,
+            "invalid return type '%s' -- expecting '%s'",
+            ret_type->name, env->func->def->ret_type->name);
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool check_stmt_continue(Env env, Stmt_Continue cont) {
+  if(!vector_size(env->breaks)) {
+    err_msg(TYPE_,  cont->pos,
+      "'continue' found outside of for/while/until...");
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool check_stmt_break(Env env, Stmt_Break cont) {
+  if(!vector_size(env->breaks)) {
+    err_msg(TYPE_,  cont->pos,
+      "'break' found outside of for/while/until...");
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
+  Type t = check_exp(env, a->val);
+  if(!t || t->xid !=  t_int.xid) {
+    err_msg(TYPE_, a->pos, "invalid type '%s' in switch expression. should be 'int'", t ? t->name : "unknown");
+    return -1;
+  }
+  vector_append(env->breaks, (vtype)a->self);
+  if(check_stmt(env, a->stmt) < 0) {
+    err_msg(TYPE_, a->val->pos, "\t... in switch statement");
+    return -1;
+  }
+  vector_pop(env->breaks);
+  return 1;
+}
+
+static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
+  Type t = check_exp(env, stmt->val);
+  if(!t || t->xid !=  t_int.xid) {
+    err_msg(TYPE_, stmt->pos, "invalid type '%s' case expression. should be 'int'", t ? t->name : "unknown");
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
+  Map m;
+  m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
+  Stmt_Goto_Label ref;
+  if(stmt->is_label)
+    return 1;
+  m = (Map)map_get(env->curr->label, (vtype)key);
+  if(!m) {
+    err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
+    return -1;
+  }
+  ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+  if(!ref) {
+    err_msg(TYPE_, stmt->pos, "label '%s' used but not defined", S_name(stmt->name));
+    m_uint i;
+    for(i = 0; i < map_size(m); i++) {
+      ref = (Stmt_Goto_Label)map_at(m, i);
+      free_vector(ref->data.v);
+    }
+    return -1;
+  }
+  vector_append(ref->data.v, (vtype)stmt);
+  return 1;
+}
+
+static m_bool check_stmt_union(Env env, Stmt_Union stmt) {
+  Decl_List l = stmt->l;
+  if(env->class_def)  {
+    stmt->o = env->class_def->obj_size;
+  }
+  while(l) {
+    CHECK_OB(check_exp_decl(env, l->self))
+    if(l->self->m_type->size > stmt->s)
+      stmt->s = l->self->m_type->size;
+    l = l->next;
+  }
+  return 1;
+}
+
+static m_bool check_stmt(Env env, Stmt stmt) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "stmt");
+#endif
+  m_bool ret = 1;
+  if(!stmt)
+    return 1;
+  switch(stmt->type) {
+  case ae_stmt_exp:
+    if(stmt->d.stmt_exp.val)
+      ret = (check_exp(env, stmt->d.stmt_exp.val) ? 1 : -1);
+    break;
+  case ae_stmt_code:
+    env->class_scope++;
+    ret = check_stmt_code(env, &stmt->d.stmt_code, 1);
+    env->class_scope--;
+    break;
+  case ae_stmt_return:
+    ret = check_stmt_return(env, &stmt->d.stmt_return);
+    break;
+  case ae_stmt_break:
+    ret = check_stmt_break(env, &stmt->d.stmt_break);
+    break;
+  case ae_stmt_continue:
+    ret = check_stmt_continue(env, &stmt->d.stmt_continue);
+    break;
+  case ae_stmt_if:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_if(env, &stmt->d.stmt_if);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_while:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_while(env, &stmt->d.stmt_while);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_until:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_until(env, &stmt->d.stmt_until);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_for:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_for(env, &stmt->d.stmt_for);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_loop:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_loop(env, &stmt->d.stmt_loop);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_switch:
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    ret = check_stmt_switch(env, &stmt->d.stmt_switch);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    break;
+  case ae_stmt_case:
+    ret = check_stmt_case(env, &stmt->d.stmt_case);
+    break;
+  case ae_stmt_enum:
+    ret = check_stmt_enum(env, &stmt->d.stmt_enum);
+    break;
+  case ae_stmt_gotolabel:
+    ret = check_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
+    break;
+  case ae_stmt_funcptr:
+    ret = check_stmt_typedef(env, &stmt->d.stmt_ptr);
+    break;
+  case ae_stmt_union:
+    ret = check_stmt_union(env, &stmt->d.stmt_union);
+    break;
+  }
+  return ret;
+}
+
+static m_bool check_stmt_list(Env env, Stmt_List list) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "statement list");
+#endif
+  Stmt_List curr = list;
+  while(curr) {
+    CHECK_BB(check_stmt(env, curr->stmt))
+    curr = curr->next;
+  }
+  return 1;
 }
 
 m_bool check_func_def(Env env, Func_Def f) {

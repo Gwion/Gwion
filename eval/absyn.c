@@ -182,7 +182,7 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
   return a;
 }
 
-static void free_decl_expression(Exp_Decl* a) {
+static void free_exp_decl(Exp_Decl* a) {
   free_type_decl(a->type);
   free_var_decl_list(a->list);
 }
@@ -202,7 +202,7 @@ Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, int pos) {
   return a;
 }
 
-static void free_binary_expression(Exp_Binary* binary) {
+static void free_exp_binary(Exp_Binary* binary) {
   free_expression(binary->lhs);
   free_expression(binary->rhs);
 }
@@ -221,7 +221,7 @@ Exp new_exp_cast(Type_Decl* type, Exp exp, int pos) {
   return a;
 }
 
-__inline static void free_cast_expression(Exp_Cast* a) {
+__inline static void free_exp_cast(Exp_Cast* a) {
   free_type_decl(a->type);
   free_expression(a->exp);
 }
@@ -240,7 +240,7 @@ Exp new_exp_postfix(Exp exp, Operator op, int pos) {
   return a;
 }
 
-static void free_postfix_expression(Exp_Postfix* postfix) {
+static void free_exp_postfix(Exp_Postfix* postfix) {
   free_expression(postfix->exp);
 }
 
@@ -624,7 +624,7 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
   return a;
 }
 
-static void free_func_call(Exp_Func* a) {
+static void free_exp_call(Exp_Func* a) {
   if(a->types)
     free_type_list(a->types);
 //  if(a->base)
@@ -658,7 +658,7 @@ Exp prepend_expression(Exp exp, Exp next, int pos) {
   return exp;
 }
 
-static void free_primary_expression(Exp_Primary* a) {
+static void free_exp_primary(Exp_Primary* a) {
   if(a->type == ae_primary_hack)
     free_expression(a->d.exp);
   else if(a->type == ae_primary_array)
@@ -676,25 +676,25 @@ void free_expression(Exp exp) {
   while(curr) {
     switch(curr->exp_type) {
     case ae_exp_decl:
-      free_decl_expression(&curr->d.exp_decl);
+      free_exp_decl(&curr->d.exp_decl);
       break;
     case ae_exp_binary:
-      free_binary_expression(&curr->d.exp_binary);
+      free_exp_binary(&curr->d.exp_binary);
       break;
     case ae_exp_unary:
       free_unary_expression(&curr->d.exp_unary);
       break;
     case ae_exp_primary:
-      free_primary_expression(&curr->d.exp_primary);
+      free_exp_primary(&curr->d.exp_primary);
       break;
     case ae_exp_cast:
-      free_cast_expression(&curr->d.exp_cast);
+      free_exp_cast(&curr->d.exp_cast);
       break;
     case ae_exp_postfix:
-      free_postfix_expression(&curr->d.exp_postfix);
+      free_exp_postfix(&curr->d.exp_postfix);
       break;
     case ae_exp_call:
-      free_func_call(&curr->d.exp_func);
+      free_exp_call(&curr->d.exp_func);
       break;
     case ae_exp_array:
       free_array_expression(&curr->d.exp_array);
@@ -959,7 +959,7 @@ static void free_decl_list(Decl_List a) {
   if(a->next)
     free_decl_list(a->next);
   if(a->self)
-    free_decl_expression(a->self);
+    free_exp_decl(a->self);
   free(a);
 }
 

@@ -4,11 +4,11 @@
 #include "func.h"
 
 extern void free_expression(Exp exp);
-static m_bool scan1_expression(Env env, Exp exp);
+static m_bool scan1_exp(Env env, Exp exp);
 static m_bool scan1_stmt_list(Env env, Stmt_List list);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
-m_bool scan1_decl_expression(Env env, Exp_Decl* decl) {
+m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "decl ref:%i", decl->type->ref);
 #endif
@@ -25,7 +25,7 @@ m_bool scan1_decl_expression(Env env, Exp_Decl* decl) {
     if(var_decl->array) {
       CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
-        CHECK_BB(scan1_expression(env, var_decl->array->exp_list))
+        CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
       }
     list = list->next;
   }
@@ -34,44 +34,44 @@ m_bool scan1_decl_expression(Env env, Exp_Decl* decl) {
   return 1;
 }
 
-static m_bool scan1_binary_expression(Env env, Exp_Binary* binary) {
+static m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1",  "binary");
 #endif
-  CHECK_BB(scan1_expression(env, binary->lhs))
-  CHECK_BB(scan1_expression(env, binary->rhs))
+  CHECK_BB(scan1_exp(env, binary->lhs))
+  CHECK_BB(scan1_exp(env, binary->rhs))
   return 1;
 }
 
-static m_bool scan1_primary_expression(Env env, Exp_Primary* primary) {
+static m_bool scan1_exp_primary(Env env, Exp_Primary* primary) {
   if(primary->type == ae_primary_hack)
-    CHECK_BB(scan1_expression(env, primary->d.exp))
+    CHECK_BB(scan1_exp(env, primary->d.exp))
     return 1;
 }
 
-static m_bool scan1_array(Env env, Exp_Array* array) {
+static m_bool scan1_exp_array(Env env, Exp_Array* array) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "array");
 #endif
   CHECK_BB(verify_array(array->indices))
-  CHECK_BB(scan1_expression(env, array->base))
-  CHECK_BB(scan1_expression(env, array->indices->exp_list))
+  CHECK_BB(scan1_exp(env, array->base))
+  CHECK_BB(scan1_exp(env, array->indices->exp_list))
   return 1;
 }
 
-static m_bool scan1_cast_expression(Env env, Exp_Cast* cast) {
+static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "cast");
 #endif
-  CHECK_BB(scan1_expression(env, cast->exp))
+  CHECK_BB(scan1_exp(env, cast->exp))
   return 1;
 }
 
-static m_bool scan1_postfix_expression(Env env, Exp_Postfix* postfix) {
+static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "postfix");
 #endif
-  CHECK_BB(scan1_expression(env, postfix->exp))
+  CHECK_BB(scan1_exp(env, postfix->exp))
   switch(postfix->op) {
   case op_plusplus:
   case op_minusminus:
@@ -89,38 +89,38 @@ static m_bool scan1_postfix_expression(Env env, Exp_Postfix* postfix) {
   return 1;
 }
 
-static m_bool scan1_dur(Env env, Exp_Dur* dur) {
+static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1",  "dur");
 #endif
-  CHECK_BB(scan1_expression(env, dur->base))
-  CHECK_BB(scan1_expression(env, dur->unit))
+  CHECK_BB(scan1_exp(env, dur->base))
+  CHECK_BB(scan1_exp(env, dur->unit))
   return 1;
 }
 
-static m_bool scan1_func_call1(Env env, Exp exp_func, Exp args, Func func, int pos) {
+static m_bool scan1_exp_call1(Env env, Exp exp_func, Exp args, Func func, int pos) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call1");
 #endif
-  CHECK_BB(scan1_expression(env, exp_func))
-  CHECK_BB(args && scan1_expression(env, args))
+  CHECK_BB(scan1_exp(env, exp_func))
+  CHECK_BB(args && scan1_exp(env, args))
   return 1;
 }
 
-static m_bool scan1_func_call(Env env, Exp_Func* exp_func) {
+static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func call");
 #endif
   if(exp_func->types)
     return 1;
-  return scan1_func_call1(env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos);
+  return scan1_exp_call1(env, exp_func->func, exp_func->args, exp_func->m_func, exp_func->pos);
 }
 
-static m_bool scan1_dot_member(Env env, Exp_Dot* member) {
+static m_bool scan1_exp_dot(Env env, Exp_Dot* member) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "dot member");
 #endif
-  CHECK_BB(scan1_expression(env, member->base));
+  CHECK_BB(scan1_exp(env, member->base));
   return 1;
 }
 
@@ -128,13 +128,13 @@ static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "exp if");
 #endif
-  CHECK_BB(scan1_expression(env, exp_if->cond))
-  CHECK_BB(scan1_expression(env, exp_if->if_exp))
-  CHECK_BB(scan1_expression(env, exp_if->else_exp))
+  CHECK_BB(scan1_exp(env, exp_if->cond))
+  CHECK_BB(scan1_exp(env, exp_if->if_exp))
+  CHECK_BB(scan1_exp(env, exp_if->else_exp))
   return 1;
 }
 
-static m_bool scan1_expression(Env env, Exp exp) {
+static m_bool scan1_exp(Env env, Exp exp) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "exp %p", exp);
 #endif
@@ -142,35 +142,35 @@ static m_bool scan1_expression(Env env, Exp exp) {
   while(curr) {
     switch(curr->exp_type) {
     case ae_exp_primary:
-      CHECK_BB(scan1_primary_expression(env, &curr->d.exp_primary))
+      CHECK_BB(scan1_exp_primary(env, &curr->d.exp_primary))
       break;
     case ae_exp_decl:
-      CHECK_BB(scan1_decl_expression(env, &curr->d.exp_decl))
+      CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
       break;
     case ae_exp_unary:
       if(exp->d.exp_unary.code)
         CHECK_BB(scan1_stmt(env, exp->d.exp_unary.code))
         break;
     case ae_exp_binary:
-      CHECK_BB(scan1_binary_expression(env, &curr->d.exp_binary))
+      CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
       break;
     case ae_exp_postfix:
-      CHECK_BB(scan1_postfix_expression(env, &curr->d.exp_postfix))
+      CHECK_BB(scan1_exp_postfix(env, &curr->d.exp_postfix))
       break;
     case ae_exp_cast:
-      CHECK_BB(scan1_cast_expression(env, &curr->d.exp_cast))
+      CHECK_BB(scan1_exp_cast(env, &curr->d.exp_cast))
       break;
     case ae_exp_call:
-      CHECK_BB(scan1_func_call(env, &curr->d.exp_func))
+      CHECK_BB(scan1_exp_call(env, &curr->d.exp_func))
       break;
     case ae_exp_array:
-      CHECK_BB(scan1_array(env, &curr->d.exp_array))
+      CHECK_BB(scan1_exp_array(env, &curr->d.exp_array))
       break;
     case ae_exp_dot:
-      CHECK_BB(scan1_dot_member(env, &curr->d.exp_dot))
+      CHECK_BB(scan1_exp_dot(env, &curr->d.exp_dot))
       break;
     case ae_exp_dur:
-      CHECK_BB(scan1_dur(env, &curr->d.exp_dur))
+      CHECK_BB(scan1_exp_dur(env, &curr->d.exp_dur))
       break;
     case ae_exp_if:
       CHECK_BB(scan1_exp_if(env, &curr->d.exp_if))
@@ -196,77 +196,77 @@ static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return ret;
 }
 
-static m_bool scan1_return(Env env, Stmt_Return stmt) {
+static m_bool scan1_stmt_return(Env env, Stmt_Return stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "return");
 #endif
-  return stmt->val ? scan1_expression(env, stmt->val) : 1;
+  return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
-static m_bool scan1_while(Env env, Stmt_While stmt) {
+static m_bool scan1_stmt_while(Env env, Stmt_While stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "while");
 #endif
-  CHECK_BB(scan1_expression(env, stmt->cond))
+  CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
-static m_bool scan1_until(Env env, Stmt_Until stmt) {
+static m_bool scan1_stmt_until(Env env, Stmt_Until stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "until");
 #endif
-  CHECK_BB(scan1_expression(env, stmt->cond))
+  CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
-static m_bool scan1_for(Env env, Stmt_For stmt) {
+static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "for");
 #endif
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
-  CHECK_BB(scan1_expression(env, stmt->c3))
+  CHECK_BB(scan1_exp(env, stmt->c3))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
-static m_bool scan1_loop(Env env, Stmt_Loop stmt) {
+static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "loop");
 #endif
-  CHECK_BB(scan1_expression(env, stmt->cond))
+  CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
-static m_bool scan1_switch(Env env, Stmt_Switch stmt) {
+static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "switch");
 #endif
-  return scan1_expression(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
 }
 
-static m_bool scan1_case(Env env, Stmt_Case stmt) {
+static m_bool scan1_stmt_case(Env env, Stmt_Case stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "case");
 #endif
-  return scan1_expression(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
 }
 
-static m_bool scan1_if(Env env, Stmt_If stmt) {
+static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "if");
 #endif
-  CHECK_BB(scan1_expression(env, stmt->cond))
+  CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->if_body))
   if(stmt->else_body)
     CHECK_BB(scan1_stmt(env, stmt->else_body))
     return 1;
 }
 
-static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
+static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "enum");
 #endif
@@ -308,7 +308,7 @@ static m_bool scan1_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan1_func_ptr(Env env, Stmt_Ptr ptr) {
+static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
 #ifdef DEBUG_SCAN1
   debug_msg("scan1", "func ptr");
 #endif
@@ -387,7 +387,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
 
   switch(stmt->type) {
   case ae_stmt_exp:
-    ret = scan1_expression(env, stmt->d.stmt_exp.val);
+    ret = scan1_exp(env, stmt->d.stmt_exp.val);
     break;
   case ae_stmt_code:
     env->class_scope++;
@@ -395,55 +395,55 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
     env->class_scope--;
     break;
   case ae_stmt_return:
-    ret = scan1_return(env, &stmt->d.stmt_return);
+    ret = scan1_stmt_return(env, &stmt->d.stmt_return);
     break;
   case ae_stmt_if:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_if(env, &stmt->d.stmt_if);
+    ret = scan1_stmt_if(env, &stmt->d.stmt_if);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_while:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_while(env, &stmt->d.stmt_while);
+    ret = scan1_stmt_while(env, &stmt->d.stmt_while);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_for:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_for(env, &stmt->d.stmt_for);
+    ret = scan1_stmt_for(env, &stmt->d.stmt_for);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_until:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_until(env, &stmt->d.stmt_until);
+    ret = scan1_stmt_until(env, &stmt->d.stmt_until);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_loop:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_loop(env, &stmt->d.stmt_loop);
+    ret = scan1_stmt_loop(env, &stmt->d.stmt_loop);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_switch:
     env->class_scope++;
     nspc_push_value(env->curr);
-    ret = scan1_switch(env, &stmt->d.stmt_switch);
+    ret = scan1_stmt_switch(env, &stmt->d.stmt_switch);
     nspc_pop_value(env->curr);
     env->class_scope--;
     break;
   case ae_stmt_case:
-    ret = scan1_case(env, &stmt->d.stmt_case);
+    ret = scan1_stmt_case(env, &stmt->d.stmt_case);
     break;
   case ae_stmt_enum:
-    ret = scan1_enum(env, &stmt->d.stmt_enum);
+    ret = scan1_stmt_enum(env, &stmt->d.stmt_enum);
     break;
   case ae_stmt_continue:
   case ae_stmt_break:
@@ -451,7 +451,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
     ret = 1;
     break;
   case ae_stmt_funcptr:
-    ret = scan1_func_ptr(env, &stmt->d.stmt_ptr);
+    ret = scan1_stmt_typedef(env, &stmt->d.stmt_ptr);
     break;
   case ae_stmt_union:
     ret = scan1_stmt_union(env, &stmt->d.stmt_union);
