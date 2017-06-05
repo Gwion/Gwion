@@ -304,9 +304,9 @@ static SFUN(std_system) {
 
 static SFUN(std_getenv) {
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
-  m_str str = STRING(obj);
+  m_str str = getenv(STRING(obj));
   release(obj, shred);
-  RETURN->d.v_object = new_String(shred, getenv(str));
+  RETURN->d.v_object = str ? new_String(shred, str) : 0;
 }
 
 static SFUN(std_setenv) {
