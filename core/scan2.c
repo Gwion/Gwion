@@ -676,7 +676,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   func->is_member = (env->class_def && (f->static_decl != ae_key_static));
 
   if(f->s_type == ae_func_builtin) { // actual builtin func import
-    func->code = new_VM_Code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
+    func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
     func->code->need_this = func->is_member;
     func->code->native_func = (m_uint)func->def->dl_func_ptr;
   }

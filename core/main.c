@@ -66,9 +66,9 @@ m_bool compile(VM* vm, const m_str filename) {
   vm->emit->code->filename = strdup(name);
   code = emit_code(vm->emit);
   free_ast(ast);
-  shred = new_VM_Shred(code);
+  shred = new_vm_shred(code);
   shred->args = args;
-  shred->me = new_Shred(vm, shred);
+  shred->me = new_shred(vm, shred);
   vm_add_shred(vm, shred);
 clean:
   free(name);
@@ -278,9 +278,9 @@ int main(int argc, char** argv) {
   scan_map = new_map();
   if(!loop)
     loop = -1;
-  if(!(vm = new_VM(loop)))
+  if(!(vm = new_vm(loop)))
     goto clean;
-  if(!(vm->bbq = new_BBQ(vm, &di, &d)))
+  if(!(vm->bbq = new_bbq(vm, &di, &d)))
     goto clean;
   if(!(vm->env = type_engine_init(vm, plug_dirs)))
     goto clean;
@@ -315,7 +315,7 @@ clean:
   sleep(1);
 #endif
   if(vm && !signaled)
-    free_VM(vm);
+    free_vm(vm);
   free_Symbols();
   return 0;
 }

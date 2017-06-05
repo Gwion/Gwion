@@ -20,7 +20,7 @@ const m_str op2str(Operator op) {
   return op_str[op];
 }
 
-static Map new_Operator_map() {
+static Map new_op_map() {
   m_uint i;
   Map map = new_map();
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
@@ -28,7 +28,7 @@ static Map new_Operator_map() {
   return map;
 }
 
-void free_Operator_map(Map map) {
+void free_op_map(Map map) {
   m_uint i;
   Vector v;
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++) {
@@ -66,7 +66,7 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
     nspc = env->global_nspc;
 
   if(!nspc->op_map)
-    nspc->op_map = new_Operator_map();
+    nspc->op_map = new_op_map();
 
   if(!(v = (Vector)map_get(nspc->op_map, (vtype)op))) {
     err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",

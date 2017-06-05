@@ -71,11 +71,11 @@ void free_nspc(Nspc a) {
         else if(isa(value->m_type, &t_object) > 0) {
           if(value->ptr || GET_FLAG(value, ae_value_static)) {
             Vector instr = new_vector();
-            VM_Code code = new_VM_Code(instr, 0, 0, "", "");
-            VM_Shred s = new_VM_Shred(code);
+            VM_Code code = new_vm_code(instr, 0, 0, "", "");
+            VM_Shred s = new_vm_shred(code);
             s->vm_ref = vm;
             release(((M_Object)value->ptr), s);
-            free_VM_Shred(s);
+            free_vm_shred(s);
             free_vector(instr);
           }
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
@@ -119,10 +119,10 @@ void free_nspc(Nspc a) {
   if(a->obj_v_table)
     free_vector(a->obj_v_table);
   if(a->pre_ctor)
-    free_VM_Code(a->pre_ctor);
+    free_vm_code(a->pre_ctor);
   if(a->dtor)
-    free_VM_Code(a->dtor);
+    free_vm_code(a->dtor);
   if(a->op_map)
-    free_Operator_map(a->op_map);
+    free_op_map(a->op_map);
   free(a);
 }

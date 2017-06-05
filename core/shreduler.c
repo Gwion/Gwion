@@ -20,7 +20,7 @@ struct  Shreduler_ {
   m_bool loop;
 };
 
-Shreduler new_Shreduler(VM* vm) {
+Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->til_next = 0;
   s->list = NULL;
@@ -29,7 +29,7 @@ Shreduler new_Shreduler(VM* vm) {
   return s;
 }
 
-void free_Shreduler(Shreduler s) {
+void free_shreduler(Shreduler s) {
   free(s);
 }
 
@@ -113,7 +113,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 
   if(!out->prev && !out->next && out != s->list) {
     if(!out->wait && !out->child && erase)
-      free_VM_Shred(out);
+      free_vm_shred(out);
     return -1;
   }
   out->prev ? (out->prev->next = out->next) : (s->list = out->next);

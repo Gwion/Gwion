@@ -35,7 +35,7 @@ static void free_func(Func a) {
   if(a->code) {
     if(a->def && !a->def->is_template) {
       if(a->def->spec != ae_func_spec_dtor) {
-        free_VM_Code(a->code);
+        free_vm_code(a->code);
       }
     }
   }

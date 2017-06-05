@@ -1,6 +1,6 @@
 #include "vm.h"
-Shreduler new_Shreduler(VM* vm);
-void free_Shreduler(Shreduler s);
+Shreduler new_shreduler(VM* vm);
+void free_shreduler(Shreduler s);
 m_float get_now(Shreduler s) ;
 VM_Shred shreduler_get(Shreduler s);
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time);

@@ -82,7 +82,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   the_class->func = NULL;
   the_class->def = class_def;
 
-  the_class->info->pre_ctor = new_VM_Code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
+  the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
   the_class->is_complete = 0;
   vector_add(env->nspc_stack, (vtype)env->curr);

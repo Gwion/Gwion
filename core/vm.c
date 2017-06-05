@@ -8,7 +8,7 @@
 #include "driver.h"
 
 void udp_do(VM* vm);
-VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename) {
+VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename) {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
   code->instr            = instr ?  vector_copy(instr) : NULL;
   code->stack_depth      = stack_depth;
@@ -20,7 +20,7 @@ VM_Code new_VM_Code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
   return code;
 }
 
-void free_VM_Code(VM_Code a) {
+void free_vm_code(VM_Code a) {
   m_uint i;
   if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
     free((void*)vector_back(a->instr));
@@ -35,7 +35,7 @@ void free_VM_Code(VM_Code a) {
       else if(instr->execute == Branch_Switch)
         free_map((Map)instr->ptr);
       else if(instr->execute == Spork && instr->m_val2)
-        free_VM_Code((VM_Code)instr->m_val2);
+        free_vm_code((VM_Code)instr->m_val2);
       else if(instr->execute == Init_Loop_Counter)
         free((m_int*)instr->m_val);
       free((Instr)vector_at(a->instr, i));
@@ -47,7 +47,7 @@ void free_VM_Code(VM_Code a) {
   free(a);
 }
 
-VM_Shred new_VM_Shred(VM_Code c) {
+VM_Shred new_vm_shred(VM_Code c) {
   VM_Shred shred    = calloc(1, sizeof(struct VM_Shred_));
   shred->base       = calloc(SIZEOF_MEM, sizeof(char));
   shred->_reg       = calloc(SIZEOF_REG, sizeof(char));
@@ -62,7 +62,7 @@ VM_Shred new_VM_Shred(VM_Code c) {
   return shred;
 }
 
-void free_VM_Shred(VM_Shred shred) {
+void free_vm_shred(VM_Shred shred) {
   release(shred->me, shred);
   if(strstr(shred->name, "spork~"))
     free(shred->_mem);
@@ -70,14 +70,14 @@ void free_VM_Shred(VM_Shred shred) {
     free(shred->base);
   free(shred->_reg);
   if(!strstr(shred->name, "spork~"))
-    free_VM_Code(shred->code);
+    free_vm_code(shred->code);
   free(shred->name);
   free(shred->filename);
   free_vector(shred->gc1);
   free(shred);
 }
 
-BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver) {
+BBQ new_bbq(VM* vm, DriverInfo* di, Driver** driver) {
   BBQ a;
   Driver* d;
 
@@ -95,23 +95,23 @@ BBQ new_BBQ(VM* vm, DriverInfo* di, Driver** driver) {
   return a;
 }
 
-static void free_BBQ(BBQ a) {
+static void free_bbq(BBQ a) {
   sp_destroy(&a->sp);
   free(a->in);
   free(a);
 }
 
-VM* new_VM(m_bool loop) {
+VM* new_vm(m_bool loop) {
   VM* vm         = (VM*)calloc(1, sizeof(VM));
   vm->shred      = new_vector();
   vm->ugen       = new_vector();
-  vm->shreduler  = new_Shreduler(vm);
+  vm->shreduler  = new_shreduler(vm);
   vm->plug       = new_vector();
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   return vm;
 }
 
-void free_VM(VM* vm) {
+void free_vm(VM* vm) {
   m_uint i;
   if(vm->env)
     REM_REF(vm->env);
@@ -123,8 +123,8 @@ void free_VM(VM* vm) {
   free_vector(vm->shred);
   free_vector(vm->ugen);
   if(vm->bbq)
-    free_BBQ(vm->bbq);
-  free_Shreduler(vm->shreduler);
+    free_bbq(vm->bbq);
+  free_shreduler(vm->shreduler);
   free(vm);
 }
 

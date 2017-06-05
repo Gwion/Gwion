@@ -91,7 +91,7 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
     filename = "[internal dtor definition]";
     code = &type->info->dtor;
   }
-  *code = new_VM_Code(NULL, SZ_INT, 1, name, filename);
+  *code = new_vm_code(NULL, SZ_INT, 1, name, filename);
   (*code)->native_func = (m_uint)d;
   (*code)->native_func_type = e;
   return 1;

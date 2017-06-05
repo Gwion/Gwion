@@ -210,7 +210,7 @@ VM_Code emit_code(Emitter emit) {
   debug_msg("emit", "emit to code");
 #endif
   Code* c = emit->code;
-  VM_Code code = new_VM_Code(c->code, c->stack_depth, c->need_this, c->name, c->filename);
+  VM_Code code = new_vm_code(c->code, c->stack_depth, c->need_this, c->name, c->filename);
   free_code(c);
   return code;
 }
@@ -2039,7 +2039,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
 
   if(ret > 0) {
     sadd_instr(emit, Func_Return);
-    free_VM_Code(type->info->pre_ctor);
+    free_vm_code(type->info->pre_ctor);
     type->info->pre_ctor = emit_code(emit);
     /*    type->info->pre_ctor->ADD_REF();*/
   } else

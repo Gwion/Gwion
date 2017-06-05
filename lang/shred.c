@@ -9,7 +9,7 @@
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_int o_shred_me;
 
-M_Object new_Shred(VM* vm, VM_Shred shred) {
+M_Object new_shred(VM* vm, VM_Shred shred) {
   M_Object obj = new_M_Object(NULL);
   initialize_object(obj, &t_shred);
   ME(obj) = shred;

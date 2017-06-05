@@ -114,7 +114,7 @@ INSTR(Free_Func) {
   free(f->value_ref->m_type->name);
   REM_REF(f->value_ref->m_type);
   REM_REF(f->value_ref);
-  free_VM_Code(f->code);
+  free_vm_code(f->code);
 }
 
 INSTR(assign_func) {
@@ -531,14 +531,14 @@ INSTR(Spork) {
 
   POP_REG(shred,  SZ_INT);
   code = *(VM_Code*)shred->reg;
-  VM_Shred sh = new_VM_Shred(code);
+  VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
   if(!shred->child)
     shred->child = new_vector();
   vector_add(shred->child, (vtype)sh);
   sh->_mem = sh->base;
   sh->base = shred->base;
-  sh->me = new_Shred(vm, sh);
+  sh->me = new_shred(vm, sh);
   vm_add_shred(vm, sh);
   POP_REG(shred,  SZ_INT);
   func = *(Func*)shred->reg;
