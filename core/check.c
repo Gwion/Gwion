@@ -912,31 +912,26 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     def->is_template = 1;
     nspc_push_type(env->curr);
     while(base_t) {
-      if(!list)
-        break;
       ID_List tmp = base_t->next;;
-      if(!list->list)
+      if(!list || !list->list)
         break;
       nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
       base_t->next = tmp;
-
-      if(list->next && !base_t->next) { // too many arguments
+      if((list->next && !base_t->next) || // too many
+        (!list->next && base_t->next)) { // not enough
         nspc_pop_type(env->curr);
         goto next;
       }
-      base_t = base_t->next;
-      if(!list->next && base_t) { //not enough arguments
-        goto next;
-      }
       list = list->next;
+      base_t = base_t->next;
     }
     m_int ret = scan1_func_def(env, def);
     nspc_pop_type(env->curr);
-    if(ret < 0)                               goto error;
-    if(scan2_func_def(env, def) < 0)          goto error;
-    if(check_func_def(env, def) < 0)          goto error;
-    if(!check_exp(env, func))          goto error;
-    if(args  && !check_exp(env, args)) goto error;
+    if(ret < 0)                               continue;
+    if(scan2_func_def(env, def) < 0)          continue;
+    if(check_func_def(env, def) < 0)          continue;
+    if(!check_exp(env, func))          continue;
+    if(args  && !check_exp(env, args)) continue;
     def->func->next = NULL;
     m_func = find_func_match(def->func, args);
     if(m_func) {
@@ -948,9 +943,6 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
       m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
-    goto next;
-error:
-    free_func_def(def); // LCOV_EXCL_LINE
 next:
     ;
   }

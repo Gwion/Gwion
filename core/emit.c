@@ -1358,7 +1358,10 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
       emit->default_case_index = vector_size(emit->code->code);
       return 1;
     }
-
+    if(!stmt->data.v) {
+      err_msg(EMIT_, stmt->pos, "illegal case");
+      return -1;
+    }
     size = vector_size(stmt->data.v);
     if(!size) {
       err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name));
