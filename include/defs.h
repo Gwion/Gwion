@@ -11,11 +11,6 @@
 
 #include "generated.h"
 
-typedef struct Ast_       * Ast;
-typedef struct Func_Def_  * Func_Def;
-typedef struct Class_Def_ * Class_Def;
-typedef struct Array_Sub_ * Array_Sub;
-
 typedef struct VM_Object_ * VM_Object;
 typedef struct Nspc_ * Nspc;
 typedef struct Scope_     * Scope;

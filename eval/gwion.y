@@ -8,6 +8,7 @@
 %{
 #define YYERROR_VERBOSE
 #include "absyn.h"
+#include "arg.h"
 #define scanner arg->scanner
 
 

@@ -1,12 +1,14 @@
 #ifndef __ABSYN
 #define __ABSYN
 #include <vm.h>
-#include <stdio.h>
-#include "map.h" //only for MyArg;
 
 typedef struct Exp_ * Exp;
 typedef struct Var_Decl_* Var_Decl;
 typedef struct Var_Decl_List_* Var_Decl_List;
+typedef struct Ast_       * Ast;
+typedef struct Func_Def_  * Func_Def;
+typedef struct Class_Def_ * Class_Def;
+typedef struct Array_Sub_ * Array_Sub;
 typedef struct Arg_List_ * Arg_List;
 
 typedef struct Stmt_            * Stmt;
@@ -16,17 +18,6 @@ typedef enum {
   ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_private,
   ae_key_static, ae_key_instance, ae_key_variadic
 } ae_Keyword;
-
-typedef struct {
-  void* scanner;
-  Vector doc;
-  char doc_str[4096];
-  Ast ast;
-  unsigned int line;
-  unsigned int pos;
-  FILE* file;
-  m_str filename;
-} MyArg;
 
 typedef struct {
   Exp base;

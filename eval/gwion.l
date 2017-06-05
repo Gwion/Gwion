@@ -3,6 +3,7 @@ IS          (u|U|l|L)*
 %{
 
 #include "absyn.h"
+#include "arg.h"
 #include "parser.h"
 
 static char* strip_lit( char* str )

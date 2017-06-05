@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "absyn.h"
 #include "map.h"
 #include "oo.h"
 
