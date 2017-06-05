@@ -3,6 +3,8 @@
 #include "map.h"
 #include "emit.h"
 #include "func.h"
+#include "vm.h"
+#include "context.h"
 
 static VM* vm;
 void release(M_Object o, VM_Shred shred);
@@ -63,29 +65,31 @@ void free_nspc(Nspc a) {
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
 
-    if(isa(value->m_type, &t_class) > 0)
-      REM_REF(value->m_type)
-      else if(isa(value->m_type, &t_object) > 0) {
-        if(value->ptr || GET_FLAG(value, ae_value_static)) {
-          Vector instr = new_vector();
-          VM_Code code = new_VM_Code(instr, 0, 0, "", "");
-          VM_Shred s = new_VM_Shred(code);
-          s->vm_ref = vm;
-          release(((M_Object)value->ptr), s);
-          free_VM_Shred(s);
-          free_vector(instr);
+    if(value->m_type) {
+      if(isa(value->m_type, &t_class) > 0)
+        REM_REF(value->m_type)
+        else if(isa(value->m_type, &t_object) > 0) {
+          if(value->ptr || GET_FLAG(value, ae_value_static)) {
+            Vector instr = new_vector();
+            VM_Code code = new_VM_Code(instr, 0, 0, "", "");
+            VM_Shred s = new_VM_Shred(code);
+            s->vm_ref = vm;
+            release(((M_Object)value->ptr), s);
+            free_VM_Shred(s);
+            free_vector(instr);
+          }
+        } else if(isa(value->m_type, &t_func_ptr) > 0) {
+  //  just catch func pointer
+        } else if(isa(value->m_type, &t_function) > 0) {
+          if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
+            /*if(value->m_type != &t_function && a != vm->env->global_context->nspc) {*/
+            free(value->name);
+            free(value->m_type->name);
+            REM_REF(value->m_type);
+          }
         }
-      } else if(isa(value->m_type, &t_func_ptr) > 0) {
-//  just catch func pointer
-      } else if(isa(value->m_type, &t_function) > 0) {
-        if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
-          free(value->name);
-          free(value->m_type->name);
-          REM_REF(value->m_type);
-        }
-      }
+    }
     REM_REF(value);
-
   }
   free_vector(v);
   free_scope(a->value);

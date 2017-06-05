@@ -570,6 +570,11 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer");
       return NULL;
     }
+    if(isa(f1->def->ret_type, f2->def->ret_type) < 0) {
+      err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+        f1->def->ret_type->name, f2->def->ret_type->name);
+      return NULL;
+    }
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
