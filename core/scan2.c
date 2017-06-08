@@ -780,7 +780,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     free(str);
     if(env->class_def)f->func->is_member = 1; // 04/05/17
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
-                           f->arg_list->next->var_decl->value->m_type, f->ret_type, NULL, 1))
+                           f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     if(!env->class_def)
       context_add_func(env->context, func, &func->obj);
     return 1;

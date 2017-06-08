@@ -603,7 +603,7 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
     else
       free_type_decl(a->type);
   if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key) {
-    REM_REF(a->value->m_type);
+//    REM_REF(a->value->m_type);
     REM_REF(a->value);
   }
 }
