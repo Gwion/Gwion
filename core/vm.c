@@ -19,7 +19,7 @@ VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str na
   code->native_func_type = NATIVE_UNKNOWN;
   return code;
 }
-
+/// free instr should be a function
 void free_vm_code(VM_Code a) {
   m_uint i;
   if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
@@ -30,8 +30,13 @@ void free_vm_code(VM_Code a) {
       Instr instr = (Instr)vector_at(a->instr, i);
       if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
         free(instr->ptr);
-      else if(instr->execute == Gack)
-        free_vector((Vector)instr->ptr);
+      else if(instr->execute == Gack) {
+        m_uint i;
+        Vector v = (Vector)instr->ptr;
+//        for(i = 0; i < vector_size(v); i++)
+//          REM_REF(((Type)vector_at(v, i)));
+        free_vector(v);
+      }
       else if(instr->execute == Branch_Switch)
         free_map((Map)instr->ptr);
       else if(instr->execute == Spork && instr->m_val2)

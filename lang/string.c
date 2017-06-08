@@ -255,6 +255,13 @@ static INSTR(String_Plus) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(!rhs) { // TODO release
+	rhs = lhs;
+    *(M_Object*)shred->reg = rhs;
+    release(lhs, shred);
+    PUSH_REG(shred, SZ_INT);
+	return;
+  }
   m_uint l_len = strlen(STRING(lhs));
   m_uint r_len = strlen(STRING(rhs));
   char c[l_len + r_len + 1];
@@ -262,7 +269,6 @@ static INSTR(String_Plus) {
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
-  release(lhs, shred);
   release(rhs, shred);
 }
 

@@ -111,6 +111,9 @@ INSTR(file_to_float) {
   /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  if(!o) {
+    Except(shred, "EmptyFileException");
+  }
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {

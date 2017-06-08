@@ -41,10 +41,12 @@ Emitter new_emitter(Env env) {
 
 void free_emitter(Emitter a) {
   vtype i;
+/*
   for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
     REM_REF(f);
   }
+*/
   free_vector(a->spork);
   free_vector(a->stack);
   free_vector(a->funcs);
@@ -190,19 +192,18 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     Instr instr;
     f_instr f = NULL;
     switch(kind) {
-    case Kindof_Int:     f = Reg_Push_Mem;         break;
-    case Kindof_Float:   f = Reg_Push_Mem2;        break;
-    case Kindof_Complex: f = Reg_Push_Mem_Complex; break;
-    case Kindof_Vec3:    f = Reg_Push_Mem_Vec3;    break;
-    case Kindof_Vec4:    f = Reg_Push_Mem_Vec4;    break;
-    case Kindof_Void: break; // unreachable
+      case Kindof_Int:     f = Reg_Push_Mem;         break;
+      case Kindof_Float:   f = Reg_Push_Mem2;        break;
+      case Kindof_Complex: f = Reg_Push_Mem_Complex; break;
+      case Kindof_Vec3:    f = Reg_Push_Mem_Vec3;    break;
+      case Kindof_Vec4:    f = Reg_Push_Mem_Vec4;    break;
+      case Kindof_Void: break; // unreachable
     }
-    instr = add_instr(emit, f);
-    instr->m_val = v->offset;
+    instr         = add_instr(emit, f);
+    instr->m_val  = v->offset;
     instr->m_val2 = GET_FLAG(v, ae_value_global);
   }
   return 1;
-
 }
 
 VM_Code emit_code(Emitter emit) {
@@ -359,6 +360,7 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* primary) {
     e = primary->d.exp;
     while(e) {
       vector_add(types, (vtype)e->type);
+      ADD_REF(e->type);
       e = e->next;
     }
     instr = add_instr(emit, Gack);
