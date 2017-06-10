@@ -679,7 +679,7 @@ uninstall:
 	rm \${PREFIX}/\${PRG}
 
 test:
-	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage | consummer"
+	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
 
 parser:
 	\${YACC} -o eval/parser.c -dv eval/gwion.y -x

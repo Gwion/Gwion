@@ -56,15 +56,13 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     err_msg(SCAN0_,  class_def->name->pos,
             "class/type '%s' is already defined in namespace '%s'",
             S_name(class_def->name->xid), env->curr->name);
-    ret = -1;
-    goto done;
+	return -1;
   }
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
     err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
             S_name(class_def->name->xid));
-    ret = -1;
-    goto done;
+	return -1;
   }
 
   the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
@@ -117,12 +115,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     SET_FLAG(value, ae_value_const | ae_value_checked);
     nspc_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
-//    if(env->curr == env->context->nspc) {
-//      context_add_type(env->context, the_class, &the_class->obj);
-    context_add_class(env->context, value, &value->obj);
-//    }
   }
-done:
   return ret;
 }
 

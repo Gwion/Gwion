@@ -13,7 +13,6 @@ Context new_context(Ast prog, m_str filename) {
   context->new_funcs = new_vector();
   context->new_values = new_vector();
   context->new_types = new_vector();
-  context->new_class = new_vector();
   context->public_class_def = NULL;
   INIT_OO(context, e_context_obj);
   return context;
@@ -40,14 +39,6 @@ void free_context(Context a) {
     }
   }
   free_vector(a->new_funcs);
-/*
-  for(i = 0; i < vector_size(a->new_class); i++) {
-    Value v = (Value)vector_at(a->new_class, i);
-    REM_REF(v->m_type);
-    REM_REF(v);
-  }
-  free_vector(a->new_class);
-*/
   free_vector(a->new_values);
   free_vector(a->new_types);
   REM_REF(a->nspc);

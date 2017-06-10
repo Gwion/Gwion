@@ -11,7 +11,7 @@ struct Context_ {
   Vector    new_funcs;
   Vector    new_values;
   Vector    new_types;
-  Vector    new_class;
+//  Vector    new_class;
   struct VM_Object_ obj;
 };
 
@@ -28,7 +28,4 @@ static inline void context_add_value(Context context, Value value, VM_Object obj
 }
 static inline void context_add_func(Context context, Func func, VM_Object obj) {
   vector_add(context->new_funcs, (vtype)func);
-}
-static inline void context_add_class(Context context, Value value, VM_Object obj) {
-  vector_add(context->new_class, (vtype)value);
 }
