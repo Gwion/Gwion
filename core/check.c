@@ -887,6 +887,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   m_uint i;
   Func_Def base;
   Value value;
+
+  CHECK_OO(v)
   if(v->owner_class) {
     vector_add(env->nspc_stack, (vtype)env->curr);
     env->curr = v->owner_class->info;

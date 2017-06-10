@@ -22,6 +22,9 @@ static INSTR(Event_Wait) {
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)shred->reg;
+  if(!event) {
+    Except(shred, "NullEventWait");
+  }
   shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
@@ -39,6 +42,9 @@ static MFUN(event_signal) {
   VM_Shred sh;
   Vector v = EV_SHREDS(o);
   RETURN->d.v_uint = vector_size(v);
+  if(!RETURN->d.v_uint) {
+    Except(shred, "NullEventSignal");
+  }
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;
   shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);

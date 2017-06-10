@@ -343,6 +343,10 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
 
 static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
+  if(!l) {
+	err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
+	return -1;
+  }
   while(l) {
     if(!l->self) {
       err_msg(SCAN1_, stmt->pos, "invalid union declaration.");

@@ -956,6 +956,8 @@ Decl_List new_decl_list(Exp_Decl* d, Decl_List l) {
 }
 
 static void free_decl_list(Decl_List a) {
+  if(!a)
+    return;
   if(a->next)
     free_decl_list(a->next);
   if(a->self)

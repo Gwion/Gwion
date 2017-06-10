@@ -40,14 +40,14 @@ void free_context(Context a) {
     }
   }
   free_vector(a->new_funcs);
-
+/*
   for(i = 0; i < vector_size(a->new_class); i++) {
     Value v = (Value)vector_at(a->new_class, i);
     REM_REF(v->m_type);
     REM_REF(v);
   }
   free_vector(a->new_class);
-
+*/
   free_vector(a->new_values);
   free_vector(a->new_types);
   REM_REF(a->nspc);
