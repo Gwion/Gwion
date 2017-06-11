@@ -948,7 +948,7 @@ Stmt new_stmt_union(Decl_List l, int pos) {
   return a;
 }
 
-Decl_List new_decl_list(Exp_Decl* d, Decl_List l) {
+Decl_List new_decl_list(Exp d, Decl_List l) {
   Decl_List a = calloc(1, sizeof(struct Decl_List_));
   a->self = d;
   a->next = l;
@@ -961,7 +961,7 @@ static void free_decl_list(Decl_List a) {
   if(a->next)
     free_decl_list(a->next);
   if(a->self)
-    free_exp_decl(a->self);
+    free_expression(a->self);
   free(a);
 }
 

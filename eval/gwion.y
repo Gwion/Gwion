@@ -413,10 +413,8 @@ type_decl
 
 
 decl_list
-  : decl_exp SEMICOLON { $$ = new_decl_list(&$1->d.exp_decl, NULL); }
-  | decl_exp SEMICOLON decl_list { $$ = new_decl_list(&$1->d.exp_decl, $3); }
-  | ID SEMICOLON { $$ = NULL; }
-  | ID SEMICOLON decl_list { $$ = new_decl_list(NULL, $3); }
+  : exp SEMICOLON { $$ = new_decl_list($1, NULL); }
+  | exp SEMICOLON decl_list { $$ = new_decl_list($1, $3); }
   ;
 
 union_stmt

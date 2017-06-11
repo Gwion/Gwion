@@ -343,25 +343,23 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
 
 static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-  if(!l) {
-	err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
-	return -1;
-  }
+
   while(l) {
-    if(!l->self) {
-      err_msg(SCAN1_, stmt->pos, "invalid union declaration.");
-      return -1;
-    }
-    Var_Decl_List list = l->self->list;
+    Var_Decl_List list = l->self->d.exp_decl.list;
     Var_Decl var_decl = NULL;
-    Type t = find_type(env, l->self->type->xid);
+
+    if(l->self->exp_type != ae_exp_decl) {
+      err_msg(SCAN1_, stmt->pos, "invalid expression type '%i' in union declaration.");
+	  return -1;
+	}
+    Type t = find_type(env, l->self->d.exp_decl.type->xid);
     if(!t) {
-      err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->type->xid->xid));
+      err_msg(SCAN1_, l->self->pos, "unknown type '%s' in union declaration ", S_name(l->self->d.exp_decl.type->xid->xid));
       return -1;
     }
     while(list) {
       var_decl = list->self;
-      l->self->num_decl++;
+      l->self->d.exp_decl.num_decl++;
       if(var_decl->array) {
         CHECK_BB(verify_array(var_decl->array))
         if(var_decl->array->exp_list) {
@@ -371,7 +369,7 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
       }
       list = list->next;
     }
-    l->self->m_type = t;
+    l->self->d.exp_decl.m_type = t;
     l = l->next;
   }
   return 1;

@@ -40,8 +40,8 @@ Emitter new_emitter(Env env) {
 }
 
 void free_emitter(Emitter a) {
-  vtype i;
 /*
+  vtype i;
   for(i = 0; i < vector_size(a->spork); i++) {
     Func f = (Func)vector_at(a->spork, i);
     REM_REF(f);
@@ -1488,18 +1488,16 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 }
 
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
-  m_bool is_member;
   Decl_List l = stmt->l;
-  Local* local;
-  Var_Decl_List var_list;
-  is_member = GET_FLAG(l->self->list->self->value, ae_value_member);
+  m_bool is_member = GET_FLAG(l->self->d.exp_decl.list->self->value, ae_value_member);
+
   if(!is_member) {
-    local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
+    Local* local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
     stmt->o = local->offset;
-  } else
-    local = NULL;
+  }
+
   while(l) {
-    var_list = l->self->list;
+    Var_Decl_List var_list = l->self->d.exp_decl.list;
     while(var_list) {
       var_list->self->value->offset = stmt->o;
       var_list = var_list->next;

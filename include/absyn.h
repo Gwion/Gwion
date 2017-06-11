@@ -281,10 +281,10 @@ Exp prepend_expression(Exp exp, Exp next, int pos);
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {
-  Exp_Decl* self;
+  Exp self;
   Decl_List next;
 };
-Decl_List new_decl_list(Exp_Decl* d, Decl_List l);
+Decl_List new_decl_list(Exp d, Decl_List l);
 
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,

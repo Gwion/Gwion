@@ -31,10 +31,10 @@ void free_vm_code(VM_Code a) {
       if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
         free(instr->ptr);
       else if(instr->execute == Gack) {
-        m_uint i;
+//        m_uint j;
         Vector v = (Vector)instr->ptr;
-//        for(i = 0; i < vector_size(v); i++)
-//          REM_REF(((Type)vector_at(v, i)));
+//        for(j = 0; j < vector_size(v); j++)
+//          REM_REF(((Type)vector_at(v, j)));
         free_vector(v);
       }
       else if(instr->execute == Branch_Switch)

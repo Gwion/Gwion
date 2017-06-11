@@ -1597,9 +1597,9 @@ static m_bool check_stmt_union(Env env, Stmt_Union stmt) {
     stmt->o = env->class_def->obj_size;
   }
   while(l) {
-    CHECK_OB(check_exp_decl(env, l->self))
-    if(l->self->m_type->size > stmt->s)
-      stmt->s = l->self->m_type->size;
+    CHECK_OB(check_exp(env, l->self))
+    if(l->self->type->size > stmt->s)
+      stmt->s = l->self->type->size;
     l = l->next;
   }
   return 1;

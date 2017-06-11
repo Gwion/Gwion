@@ -57,7 +57,8 @@ Type find_type(Env env, ID_List path) {
   S_Symbol xid = NULL;
   Nspc nspc;
   Type t = NULL;
-  Type type = nspc_lookup_type(env->curr, path->xid, 1);
+
+Type type = nspc_lookup_type(env->curr, path->xid, 1);
   if(!type)
     return NULL;
   nspc = type->info;
