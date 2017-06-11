@@ -94,43 +94,20 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
   debug_msg(" op", "get return type for operator '%s', for type '%s' and '%s'",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
 #endif
-  Type t, l = lhs, r = lhs;
   Nspc nspc = env->curr;
+
   while(nspc) {
-    if(!nspc->op_map)
-		goto next;
-    Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
-    M_Operator* mo;
-    if((mo = operator_find(v, lhs, rhs)))
-      return mo->ret;
-    l = l ? l->parent : NULL;
-    while(l) {
-      if((t = get_return_type(env, op, l, rhs)))
-        return t;
-      r = rhs;
-      while(r) {
-        if((t = get_return_type(env, op, l, r)))
-          return t;
-        r = r->parent;
-      }
-      l = l->parent;
-    }
-next:
-    nspc = nspc->parent;
-  }
-  nspc = env->curr;
-  while(nspc) {
-    r = rhs ? rhs->parent : NULL;
-    while(r) {
-      if((t = get_return_type(env, op, lhs, r)))
-        return t;
-      l = lhs;
-      while(l) {
-        if((t = get_return_type(env, op, l, r)))
-          return t;
-        l = l->parent;
-      }
-      r = r->parent;
+    if(nspc->op_map) {
+      Type l =lhs;
+      do{
+        Type r =rhs;
+        do{
+          M_Operator* mo;
+          Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
+          if((mo = operator_find(v, l, r)))
+            return mo->ret;
+        } while(r && (r = r->parent));
+      } while(l && (l = l->parent));
     }
     nspc = nspc->parent;
   }
@@ -171,8 +148,8 @@ Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
             instr = add_instr(emit, mo->instr);
           return instr;
         }
-      } while((r = r->parent));
-    } while((l = l->parent));
+      } while(r && (r = r->parent));
+    } while(l && (l = l->parent));
     nspc = nspc->parent;
   }
   return NULL;
