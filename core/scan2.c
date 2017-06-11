@@ -56,8 +56,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
         type = new_array_type(env, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
         decl->type->ref = 1;
-      if(env->class_def && !decl->type->ref)
-        ADD_REF(type);
       decl->m_type = type;
     }
     list->self->value = new_value(type, S_name(list->self->xid));

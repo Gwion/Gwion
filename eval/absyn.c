@@ -602,10 +602,8 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
     REM_REF(a->func)
     else
       free_type_decl(a->type);
-  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key) {
-//    REM_REF(a->value->m_type);
+  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key)
     REM_REF(a->value);
-  }
 }
 
 Exp new_exp_call(Exp base, Exp args, int pos) {
