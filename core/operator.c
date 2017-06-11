@@ -149,32 +149,31 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
   return 1;
 }
 
-m_bool get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
+Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
 #ifdef DEBUG_OPERATOR
   debug_msg(" op", "get instr for operator '%s', for type '%s' and '%s'",
             op2str(op), lhs->name, rhs->name);
 #endif
-  Type l = lhs, r = rhs;
-  Vector v;
   Nspc nspc = emit->env->curr;
   while(nspc) {
-    M_Operator* mo;
-    v = (Vector)map_get(nspc->op_map, (vtype)op);
-    if((mo = operator_find(v, lhs, rhs))) {
-      if(mo->func) {
-        add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
-        CHECK_BB(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
-        return 1;
-      } else {
-        add_instr(emit, mo->instr);
-      }
-      return 1;
-    }
-    if(l && l->parent && get_instr(emit, op, l->parent, rhs) > 0)
-      return 1;
-    if(r && r->parent && get_instr(emit, op, lhs, r->parent) > 0)
-      return 1;
+    Type l = lhs;
+    do {
+      Type r = rhs;
+      do{
+        M_Operator* mo;
+        Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
+        if((mo = operator_find(v, l, r))) {
+          Instr instr;
+          if(mo->func) {
+            instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
+            CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
+          } else
+            instr = add_instr(emit, mo->instr);
+          return instr;
+        }
+      } while((r = r->parent));
+    } while((l = l->parent));
     nspc = nspc->parent;
   }
-  return -1;
+  return NULL;
 }

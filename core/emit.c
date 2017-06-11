@@ -600,7 +600,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     instr->m_val2 = 1;
     return 1;
   }
-  CHECK_BB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
+  CHECK_OB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
   return 1;
 }
 
@@ -647,7 +647,7 @@ static m_bool emit_exp_postfix(Emitter emit, Exp_Postfix* postfix) {
   debug_msg("emit", "postfix");
 #endif
   CHECK_BB(emit_exp(emit, postfix->exp, 0))
-  return get_instr(emit, postfix->op, postfix->exp->type, NULL);
+  return get_instr(emit, postfix->op, postfix->exp->type, NULL) ? 1 : -1;
 }
 
 static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
@@ -823,7 +823,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
       CHECK_BB(emit_instantiate_object(emit, exp_unary->self->type, exp_unary->array, exp_unary->type->ref))
       break;
   default:
-    return get_instr(emit, exp_unary->op, NULL, exp_unary->exp->type);
+    return get_instr(emit, exp_unary->op, NULL, exp_unary->exp->type) ? 1 : -1;
   }
   return 1;
 }
