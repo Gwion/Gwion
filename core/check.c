@@ -86,6 +86,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
   if(add_global_type(env, &t_void) < 0) goto error;
+  if(add_global_type(env, &t_null) < 0) goto error;
   if(import_int(env)       < 0) goto error;
   if(import_float(env)     < 0) goto error;
   if(import_complex(env)   < 0) goto error;
