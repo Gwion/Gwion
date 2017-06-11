@@ -79,6 +79,8 @@ extern struct Type_ t_array;
 extern struct Type_ t_fileio;
 extern struct Type_ t_vararg, t_varobj;
 
+extern struct Type_ t_gack;
+
 m_bool name_valid(m_str a); // /07/04/17
 m_uint get_type_xid(); // 19/05/17 // should be included in new type.
 #endif

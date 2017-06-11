@@ -32,6 +32,7 @@ struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
+struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,             te_gack };
 
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -434,6 +435,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       return NULL;
     }
     CHECK_OO((t = check_exp(env, primary->d.exp)))
+	return &t_gack;
     break;
   case ae_primary_array:
     t = check_exp_prim_array(env, primary);

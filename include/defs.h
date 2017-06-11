@@ -37,6 +37,7 @@ typedef enum {
   te_template,
   te_ugen,
   te_vararg,
+te_gack,
   te_last
 } te_type;
 typedef enum { ae_func_spec_none, ae_func_spec_dtor, ae_func_spec_op } ae_func_spec;
