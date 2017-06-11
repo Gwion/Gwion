@@ -596,14 +596,17 @@ Stmt new_func_ptr_stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List args
 }
 
 static void free_stmt_func_ptr(Stmt_Ptr a) {
-//  if(a->args) // commented 13/04/17 for typedef int[]
-//    free_arg_list(a->args);
   if(a->func)
     REM_REF(a->func)
-    else
-      free_type_decl(a->type);
-  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key)
-    REM_REF(a->value);
+  else {
+    if(a->args) // commented 13/04/17 for typedef int[]
+      free_arg_list(a->args);
+    free_type_decl(a->type);
+  }
+  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key) {
+    REM_REF(a->value->m_type);
+    REM_REF(a->value)
+  }
 }
 
 Exp new_exp_call(Exp base, Exp args, int pos) {
