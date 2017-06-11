@@ -761,7 +761,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   push_code->m_val = (m_uint)code;
   spork = add_instr(emit, Spork);
   spork->m_val = size;
-  spork->m_val2 = (m_uint)code;
+  spork->m_val2 = (m_uint)exp->m_func;
+  exp->m_func->code = code;
+  ADD_REF(exp->m_func)
   return 1;
 }
 
@@ -808,7 +810,9 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
       push_code->m_val = (m_uint)code;
       spork = add_instr(emit, Spork);
       spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
-      spork->m_val2 = (m_uint)code;
+      spork->m_val2 = (m_uint)f;
+//      spork->f_val = 1.0; // mark for delete
+      f->code = code;
     } else {
       err_msg(EMIT_, exp_unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE
       return -1;                                                                               // LCOV_EXCL_LINE

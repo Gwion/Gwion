@@ -39,9 +39,9 @@ void free_vm_code(VM_Code a) {
       }
       else if(instr->execute == Branch_Switch)
         free_map((Map)instr->ptr);
-      else if(instr->execute == Spork && instr->m_val2)
-        free_vm_code((VM_Code)instr->m_val2);
-      else if(instr->execute == Init_Loop_Counter)
+      else if(instr->execute == Spork && instr->m_val2) {
+          REM_REF(((Func)instr->m_val2))
+      } else if(instr->execute == Init_Loop_Counter)
         free((m_int*)instr->m_val);
       free((Instr)vector_at(a->instr, i));
     }
