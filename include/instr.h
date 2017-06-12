@@ -15,7 +15,6 @@
 struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
   m_uint m_val, m_val2;
-  m_float f_val;
   char ptr[SZ_INT];
 };
 

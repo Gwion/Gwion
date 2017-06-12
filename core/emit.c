@@ -171,7 +171,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
       instr->m_val = (m_uint)v->func_ref;
     } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
       instr = add_instr(emit, Reg_Push_Imm2);
-      instr->f_val = *(m_float*)v->ptr;
+      *(m_float*)instr->ptr = *(m_float*)v->ptr;
     } else {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
@@ -319,7 +319,7 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* primary) {
   case ae_primary_float:
     memcpy(&f, &primary->d.fnum, sizeof(f));
     instr = add_instr(emit, Reg_Push_Imm2);
-    instr->f_val = f;
+    *(m_float*)instr->ptr = f;
     break;
 
   case ae_primary_complex:
@@ -802,7 +802,6 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
       spork = add_instr(emit, Spork);
       *(m_uint*)spork->ptr = emit->env->func ? emit->env->func->def->stack_depth : 0; // don't push func info on the stack
       spork->m_val2 = (m_uint)f;
-//      spork->f_val = 1.0; // mark for delete
       f->code = code;
     } else {
       err_msg(EMIT_, exp_unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE

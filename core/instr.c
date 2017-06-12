@@ -42,15 +42,15 @@ INSTR(Reg_Push_Imm) {
 
 INSTR(Reg_Push_Imm2) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+  debug_msg("instr", "[reg] push imm2 %f", *(m_float*)instr->ptr);
 #endif
-    *(m_float*)(shred->reg) = instr->f_val;
+    *(m_float*)(shred->reg) = *(m_float*)instr->ptr;
     PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(Reg_Push_ImmC) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+  debug_msg("instr", "[reg] push immC");
 #endif
   *(m_complex*)(shred->reg) = 0;
   PUSH_REG(shred,  SZ_COMPLEX);
@@ -58,7 +58,7 @@ INSTR(Reg_Push_ImmC) {
 
 INSTR(Reg_Push_ImmV3) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+  debug_msg("instr", "[reg] push immV3");
 #endif
   *(m_float*)(shred->reg)              = 0;
   *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
@@ -68,7 +68,7 @@ INSTR(Reg_Push_ImmV3) {
 
 INSTR(Reg_Push_ImmV4) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
+  debug_msg("instr", "[reg] push immV4");
 #endif
   *(m_float*)(shred->reg)              = 0;
   *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
