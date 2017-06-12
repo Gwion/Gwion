@@ -649,7 +649,7 @@ INSTR(Instr_Op_Call_Binary) {
   shred->next_pc = 0;
   shred->code = func;
 //  POP_REG(shred,  stack_depth);
-  POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1
+  POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1, it is of size int
   if(func->need_this) {
     *(m_uint*)(shred->mem) = *(m_uint*)(shred->reg + stack_depth - SZ_INT);
     PUSH_MEM(shred,  SZ_INT);

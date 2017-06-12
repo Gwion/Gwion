@@ -864,7 +864,8 @@ static Func find_func_match(Func up, Exp args) {
   if((func = find_func_match_actual(up, args, 0, 1)) ||
       (func = find_func_match_actual(up, args, 1, 1)) ||
       (func = find_func_match_actual(up, args, 0, 0)) ||
-      (func = find_func_match_actual(up, args, 1, 0)));
+      (func = find_func_match_actual(up, args, 1, 0)))
+    return NULL;
   return func;
 }
 
