@@ -664,12 +664,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   m_uint len = strlen(func_name) + strlen("0") + strlen(env->curr->name) + 3;
 
   if(overload && !f->is_template) {
-/*
-    if(overload->func_ref->def->types) {
-      err_msg(SCAN2_, f->pos, "can't overload emplate with non-template function");
-      return -1;
-    }
-*/
     len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
     snprintf(tmp, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
