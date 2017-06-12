@@ -14,7 +14,6 @@
 #include "object.h"
 #include "err_msg.h"
 
-
 typedef struct {
   unsigned int size;
   unsigned int pos;
@@ -55,40 +54,44 @@ static m_float* sp_buffer_get(sp_buffer* buffer) {
 
 static struct Type_ t_fft = { "FFT", SZ_INT, &t_ugen};
 typedef struct {
+  sp_data* sp;
   sp_buffer*  buf;
   /*  m_float*  (*win)(m_float* buf, m_uint size);*/
   FFTFREQS*    frq;
   FFTwrapper* fft;
-} FFT;
+  m_uint last;
+} Fft;
 
 
 static m_bool fft_tick(UGen u) {
-  FFT* ana = (FFT*)u->ug;
+  Fft* ana = (Fft*)u->ug;
   base_tick(u);                         // compute inputs
   if(!ana->buf)
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
   if(u->trig) {
     base_tick(u->trig->ugen);
-    if(u->trig->ugen->out) {  // if trigged, compute fft
+    if(ana->last == ana->sp->pos || u->trig->ugen->out) {  // if trigged, compute fft
       m_float* smp = sp_buffer_get(ana->buf);
       /*    if(ana->win)*/                  // do windowing
       /*      ana->win(smp, ana->buf->size);*/
       smps2freqs(ana->fft, smp, ana->frq);
       free(smp);
+      ana->last = ana->sp->pos;
     }
   }
   return 1;
 }
 
-static void fft_ctor(M_Object o, VM_Shred shred) {
-  FFT* ana = o->ugen->ug = calloc(1, sizeof(FFT));
-  assign_ugen(o->ugen, 1, 1, 1, ana);
+static CTOR(fft_ctor) {
+  Fft* fft = o->ugen->ug = calloc(1, sizeof(Fft));
+  assign_ugen(o->ugen, 1, 1, 1, fft);
   o->ugen->tick = fft_tick;
+  fft->sp = shred->vm_ref->bbq->sp;
 }
 
 static DTOR(fft_dtor) {
-  FFT* ana = (FFT*)o->ugen->ug;
+  Fft* ana = (Fft*)o->ugen->ug;
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq) {
@@ -101,7 +104,7 @@ static DTOR(fft_dtor) {
 }
 
 static MFUN(fft_init) {
-  FFT* ana = (FFT*)o->ugen->ug;
+  Fft* ana = (Fft*)o->ugen->ug;
   m_int size = *(m_int*)(shred->mem + SZ_INT);
   if(size <= 0 || size%2)Except(shred, "FftInvalidSizeException.")
     if(ana->buf)
@@ -122,10 +125,8 @@ static MFUN(fft_init) {
 
 static MFUN(fft_compute) {
   m_float* smp;
-  FFT* ana = (FFT*)o->ugen->ug;
-  if(!ana)
-    return;
-  if(!ana->buf) {
+  Fft* ana = (Fft*)o->ugen->ug;
+  if(!ana || ana->sp->pos == ana->last || !ana->buf ) {
     RETURN->d.v_uint = 0;
     return;
   }
@@ -133,6 +134,7 @@ static MFUN(fft_compute) {
   if(smp)
     smps2freqs(ana->fft, smp, ana->frq);
   free(smp);
+  ana->last = ana->sp->pos;
 }
 
 static m_bool import_fft(Env env) {
@@ -170,6 +172,8 @@ typedef struct Ana {
   m_float  percent;     // rollof
   /*  m_float* norm, *prev; // flux*/
   /*  m_float* cval[2];*/ // corr
+  sp_data* sp;
+  m_uint last;
 } Ana;
 
 typedef double (*f_analys)(Ana* fft);
@@ -420,16 +424,17 @@ m_int o_ana__fft;
 m_int o_ana_fft;
 m_int o_ana_fn;
 
-static m_float ana_dummy(FFT* fft) {
+static m_float ana_dummy(Fft* fft) {
   return 0.0;
 }
 static MFUN(ana_compute) {
   M_Object   fft = *(M_Object*)(o->d.data + o_ana_fft);
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
+  Ana* ana = *(Ana**)(o->d.data + o_ana__fft);
   f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
-  if(!fft)
+  if(!fft || ana->last == ana->sp->pos)
     return;
-  RETURN->d.v_float = f(_fft);
+  RETURN->d.v_float = f(ana);
+  ana->last = ana->sp->pos;
 }
 
 static MFUN(ana_get_fft) {
@@ -437,7 +442,7 @@ static MFUN(ana_get_fft) {
 }
 
 static MFUN(ana_set_fft) {
-  FFT* ana;
+  Fft* ana;
   M_Object fft = *(M_Object*)(o->d.data + o_ana_fft);
   Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
   if(fft)
@@ -449,7 +454,7 @@ static MFUN(ana_set_fft) {
     RETURN->d.v_uint = 0;
     return;
   }
-  ana = (FFT*)fft->ugen->ug;
+  ana = (Fft*)fft->ugen->ug;
   if(!ana || !ana->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
     release(fft, shred);
@@ -462,10 +467,12 @@ static MFUN(ana_set_fft) {
 }
 
 static void ana_ctor(M_Object o, VM_Shred shred) {
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft) = malloc(sizeof(Ana));
-  _fft->sr = shred->vm_ref->bbq->sp->sr;
-  _fft->percent = 50; // rolloff;
+  Ana* ana = *(Ana**)(o->d.data + o_ana__fft) = malloc(sizeof(Ana));
+  ana->sr = shred->vm_ref->bbq->sp->sr;
+  ana->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
+  ana->sp = shred->vm_ref->bbq->sp;
+  ana->last = 0;
 }
 
 static void ana_dtor(M_Object o, VM_Shred shred) {
@@ -626,7 +633,7 @@ static MFUN(fc_compute) {
 //    if(!obj) continue; // prevented in fc.add
     Ana* _fft   = *(Ana**)(obj->d.data + o_ana__fft);
 //    if(!_fft) continue; // seems prevented somehow. (this is unclear)
-    FFT* fft   = *(FFT**)(obj->d.data + o_ana_fft);
+    Fft* fft   = *(Fft**)(obj->d.data + o_ana_fft);
     if(!fft)
       continue;
     f_analys fn  = *(f_analys*)(obj->d.data + o_ana_fn);
