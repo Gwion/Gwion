@@ -91,6 +91,9 @@ INSTR(file_to_int) {
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  if(!o) {
+    Except(shred, "EmptyFileException");
+  }
   release(o, shred);
   if(IO_FILE(o)) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
