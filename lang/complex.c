@@ -14,8 +14,8 @@ static INSTR(assign) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(complex) '='");
 #endif
-  POP_REG(shred, SZ_INT*2);
-  *(m_complex*)(shred->reg) = (**(m_complex**)shred->reg = *(m_complex**)(shred->reg + SZ_INT) ? **(m_complex**)(shred->reg + SZ_INT) : (m_complex) 0);
+  POP_REG(shred, SZ_INT+SZ_COMPLEX);
+  *(m_complex*)(shred->reg) = (**(m_complex**)shred->reg = *(m_complex*)(shred->reg + SZ_INT));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 

@@ -8,7 +8,7 @@
 #define M_PI		3.14159265358979323846
 #endif
 
-#define overflow_(c)       (c->mem >  (c->_mem + (SIZEOF_MEM) - (MEM_STEP)))
+#define overflow_(c) (c->mem >  (c->_mem + (SIZEOF_MEM) - (MEM_STEP)))
 
 Instr add_instr(Emitter emit, f_instr f) {
   Instr instr = calloc(1, sizeof(struct Instr_));
@@ -34,9 +34,9 @@ INSTR(Reg_Pop_Word4) {
 
 INSTR(Reg_Push_Imm) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm %p %i", (void*)instr->m_val, instr->m_val2);
+  debug_msg("instr", "[reg] push imm %p", (void*)instr->m_val);
 #endif
-  *(m_uint*)(shred->reg) = instr->m_val2 ? (m_uint) &instr->m_val : instr->m_val;
+  *(m_uint*)(shred->reg) = instr->m_val;
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -44,13 +44,8 @@ INSTR(Reg_Push_Imm2) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push imm2 %f", instr->f_val);
 #endif
-  if(instr->m_val2) {
-    *(m_float**)(shred->reg) = &instr->f_val;
-    PUSH_REG(shred,  SZ_INT);
-  } else {
     *(m_float*)(shred->reg) = instr->f_val;
     PUSH_REG(shred,  SZ_FLOAT);
-  }
 }
 
 INSTR(Reg_Push_ImmC) {
@@ -142,10 +137,7 @@ INSTR(Reg_Push_Mem) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] reg push '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2) // global
-    *(m_uint*)shred->reg = *(m_uint*)(shred->base + instr->m_val);
-  else
-    *(m_uint*)shred->reg = *(m_uint*)(shred->mem  + instr->m_val);
+  *(m_uint*)shred->reg = *(m_uint*)(instr->m_val2 ? (shred->base + instr->m_val) : (shred->mem + instr->m_val));
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -153,10 +145,7 @@ INSTR(Reg_Push_Mem2) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] reg push float '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2) // global
-    *(m_float*)shred->reg = *(m_float*)(shred->base + instr->m_val);
-  else
-    *(m_float*)shred->reg = *(m_float*)(shred->mem  + instr->m_val);
+  *(m_float*)shred->reg = *(m_float*)(instr->m_val2 ? (shred->base + instr->m_val) : (shred->mem + instr->m_val));
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
@@ -164,10 +153,7 @@ INSTR(Reg_Push_Mem_Complex) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'complex' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2)
-    *(m_complex*)shred->reg = *(m_complex*)(shred->base + instr->m_val);
-  else
-    *(m_complex*)shred->reg = *(m_complex*)(shred->mem  + instr->m_val);
+  *(m_complex*)shred->reg = *(m_complex*)(instr->m_val2 ? (shred->base + instr->m_val) : (shred->mem + instr->m_val));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
@@ -175,10 +161,7 @@ INSTR(Reg_Push_Mem_Vec3) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'vec3' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2)
-    *(m_vec3*)shred->reg = *(m_vec3*)(shred->base + instr->m_val);
-  else
-    *(m_vec3*)shred->reg = *(m_vec3*)(shred->mem  + instr->m_val);
+  *(m_vec3*)shred->reg = *(m_vec3*)(instr->m_val2 ? (shred->base + instr->m_val) : (shred->mem + instr->m_val));
   PUSH_REG(shred, SZ_VEC3);
 }
 
@@ -186,10 +169,7 @@ INSTR(Reg_Push_Mem_Vec4) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] 'vec4' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  if(instr->m_val2) // global
-    *(m_vec4*)shred->reg = *(m_vec4*)(shred->base + instr->m_val);
-  else
-    *(m_vec4*)shred->reg = *(m_vec4*)(shred->mem  + instr->m_val);
+  *(m_vec4*)shred->reg = *(m_vec4*)(instr->m_val2 ? (shred->base + instr->m_val) : (shred->mem + instr->m_val));
   PUSH_REG(shred, SZ_VEC4);
 }
 
@@ -205,11 +185,7 @@ INSTR(Reg_Push_Code) {
   debug_msg("instr", "[reg] push code [%i] (%i)", instr->m_val, instr->m_val2);
 #endif
   Func f;
-  if(instr->m_val2)
-    f =  *(Func*)(shred->reg - SZ_INT);
-  else
-    f =  *(Func*)(shred->mem + instr->m_val);
-  if(!f) {
+  if(!(f =  *(Func*)(instr->m_val2 ? (shred->reg - SZ_INT) : (shred->mem + instr->m_val)))) {
     err_msg(INSTR_, 0, "trying to call empty func pointer.");
     if(instr->m_val2) // if any, release owner on error
       release(*(M_Object*)(shred->reg - SZ_INT*2), shred);
@@ -820,7 +796,6 @@ INSTR(Instr_Exp_Func_Member) {
 INSTR(Func_Return) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func return %p", (shred->mem));
-//  debug_msg("instr", "func return %s", (*(VM_Code*)(shred->mem - SZ_INT * 3))->name);
 #endif
   POP_MEM(shred,  SZ_INT * 2);
   shred->next_pc = *(m_uint*)shred->mem;
@@ -831,7 +806,6 @@ INSTR(Func_Return) {
   shred->code = func;
 }
 
-/* object */
 static void call_pre_constructor(VM * vm, VM_Shred shred, VM_Code pre_ctor, m_uint stack_offset) {
   *(m_uint*)shred->reg = *(m_uint*)(shred->reg - SZ_INT); // ref dup last
   PUSH_REG(shred,  SZ_INT);
@@ -1185,9 +1159,7 @@ INSTR(Instr_Array_Init) { // for litteral array
       break;
     }
   }
-//  info->type->obj.ref_count = 1; // shoule be add ref // done in new_type now
   *(M_Object*)shred->reg = obj;
-//  *(M_Object*)(shred->mem + instr->m_val) = obj;
   PUSH_REG(shred,  SZ_INT);
 }
 

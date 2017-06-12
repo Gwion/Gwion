@@ -169,15 +169,12 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     if(v->func_ref) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (m_uint)v->func_ref;
-      return 1;
     } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
       instr = add_instr(emit, Reg_Push_Imm2);
       instr->f_val = *(m_float*)v->ptr;
-      return 1;
     } else {
       instr = add_instr(emit, Reg_Push_Imm);
-      instr->m_val = (m_uint)v->ptr;
-      instr->m_val2 = emit_var;
+      instr->m_val = (emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
     }
     return 1;
   }
@@ -186,7 +183,6 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     instr = add_instr(emit, Reg_Push_Mem_Addr);
     instr->m_val = v->offset;
     instr->m_val2 = GET_FLAG(v, ae_value_global);
-    return 1;
   } else {
     Kindof kind = kindof(v->m_type);
     Instr instr;
@@ -315,28 +311,25 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* primary) {
     memcpy(&temp, &primary->d.num, sizeof(temp));
     instr = add_instr(emit, Reg_Push_Imm);
     instr->m_val = temp;
-    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_char:
     instr = add_instr(emit, Reg_Push_Imm);
     instr->m_val = str2char(primary->d.chr, primary->pos);
-    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_float:
     memcpy(&f, &primary->d.fnum, sizeof(f));
     instr = add_instr(emit, Reg_Push_Imm2);
     instr->f_val = f;
-    instr->m_val2 = primary->self->emit_var;
     break;
 
   case ae_primary_complex:
-    CHECK_BB(emit_exp(emit, primary->d.cmp->re, primary->self->emit_var));
+    CHECK_BB(emit_exp(emit, primary->d.cmp->re, 0));
     break;
 
   case ae_primary_polar:
-    CHECK_BB(emit_exp(emit, primary->d.polar->mod, primary->self->emit_var));
+    CHECK_BB(emit_exp(emit, primary->d.polar->mod, 0));
     break;
   case ae_primary_vec:
     CHECK_BB(emit_exp_prim_vec(emit, primary->d.vec));
