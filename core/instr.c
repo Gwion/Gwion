@@ -48,33 +48,9 @@ INSTR(Reg_Push_Imm2) {
     PUSH_REG(shred,  SZ_FLOAT);
 }
 
-INSTR(Reg_Push_ImmC) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push immC");
-#endif
-  *(m_complex*)(shred->reg) = 0;
-  PUSH_REG(shred,  SZ_COMPLEX);
-}
-
-INSTR(Reg_Push_ImmV3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push immV3");
-#endif
-  *(m_float*)(shred->reg)              = 0;
-  *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
-  *(m_float*)(shred->reg + SZ_COMPLEX) = 0;
-  PUSH_REG(shred,  SZ_VEC3);
-}
-
-INSTR(Reg_Push_ImmV4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push immV4");
-#endif
-  *(m_float*)(shred->reg)              = 0;
-  *(m_float*)(shred->reg + SZ_FLOAT)   = 0;
-  *(m_float*)(shred->reg + SZ_COMPLEX) = 0;
-  *(m_float*)(shred->reg + SZ_VEC3)    = 0;
-  PUSH_REG(shred,  SZ_VEC4);
+INSTR(Reg_Push_ImmX) {
+  memset(shred->reg, 0, instr->m_val);
+  PUSH_REG(shred,  instr->m_val);
 }
 
 INSTR(Reg_Push_Mem_Addr) {

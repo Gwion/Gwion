@@ -1512,20 +1512,12 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
     if(!stmt->d.stmt_exp.val)
       return 1;
     ret = emit_exp(emit, stmt->d.stmt_exp.val, 0);
-// check 'stmt->d.stmt_exp->type'for switch
     if(ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
       Exp exp = stmt->d.stmt_exp.val;
       if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_hack)
         exp = exp->d.exp_primary.d.exp;
       while(exp) {
-        // get rid of primary str ?
-        /*          if(exp->exp_type == ae_exp_primary && exp->d.exp_primary->type == ae_primary_str)*/
         instr = add_instr(emit, Reg_Pop_Word4);
-        /*        if (isa(exp->type, &t_complex) > 0 && exp->exp_type != ae_exp_decl)
-                  exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl;
-                if (isa(exp->type, &t_polar) > 0 && exp->exp_type != ae_exp_decl)
-                  exp->type->size = SZ_COMPLEX * exp->d.exp_decl->num_decl; */
-        //        instr->m_val = exp->exp_type == ae_exp_decl ? exp->d.exp_decl->num_decl * exp->type->size : exp->type->size;
         instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
         exp = exp->next;
       }
@@ -1540,26 +1532,19 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
   case ae_stmt_return:
     ret = emit_stmt_return(emit, &stmt->d.stmt_return);
     break;
-
   case ae_stmt_break:
     ret = emit_stmt_break(emit, &stmt->d.stmt_break);
     break;
-
   case ae_stmt_continue:
     ret = emit_stmt_continue(emit, &stmt->d.stmt_continue);
     break;
-
   case ae_stmt_while:
-    if(stmt->d.stmt_while.is_do)
-      ret = emit_stmt_do_while(emit, &stmt->d.stmt_while);
-    else
-      ret = emit_stmt_while(emit, &stmt->d.stmt_while);
+      ret = stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
+            emit_stmt_while(emit, &stmt->d.stmt_while);
     break;
   case ae_stmt_until:
-    if(stmt->d.stmt_until.is_do)
-      ret = emit_stmt_do_until(emit, &stmt->d.stmt_until);
-    else
-      ret = emit_stmt_until(emit, &stmt->d.stmt_until);
+      ret = stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
+            emit_stmt_until(emit, &stmt->d.stmt_until);
     break;
   case ae_stmt_for:
     ret = emit_stmt_for(emit, &stmt->d.stmt_for);
@@ -1700,7 +1685,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       emit->env->func->variadic_start = add_instr(emit, Vararg_start);
       emit->env->func->variadic_start->m_val = offset;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
-      return 1;
     }
     if(!strcmp(S_name(member->xid), "end")) {
       if(!emit->env->func->variadic_start) {
@@ -1711,49 +1695,27 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       instr->m_val = offset;
       instr->m_val2 = emit->env->func->variadic_start->m_val2;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
-      return 1;
     } else if(!strcmp(S_name(member->xid), "i")) {
       Instr instr = add_instr(emit, Vararg_int);
       instr->m_val = offset;
-      return 1;
     } else if(!strcmp(S_name(member->xid), "f") || !strcmp(S_name(member->xid), "t") || !strcmp(S_name(member->xid), "d")) {
       Instr instr = add_instr(emit, Vararg_float);
       instr->m_val = offset;
-      return 1;
     } else if(!strcmp(S_name(member->xid), "c") || !strcmp(S_name(member->xid), "p")) {
       Instr instr = add_instr(emit, Vararg_complex);
       instr->m_val = offset;
-      return 1;
     } else if(!strcmp(S_name(member->xid), "v3")) {
       Instr instr = add_instr(emit, Vararg_Vec3);
       instr->m_val = offset;
-      return 1;
     } else if(!strcmp(S_name(member->xid), "v4")) {
       Instr instr = add_instr(emit, Vararg_Vec4);
       instr->m_val = offset;
-      return 1;
     } else if(!strcmp(S_name(member->xid), "o")) {
       Instr instr = add_instr(emit, Vararg_object);
       instr->m_val = offset;
-      return 1;
     }
-
-    /*    exit(76);*/
-    /*  return -1;*/
+    return 1;
   }
-  /*
-     else if(!base_static && t_base->xid == t_string.xid || t_base->xid == t_array.xid)
-     { // these types have nspc but no vars...
-     value = find_value(t_base, member->xid);
-     func = value->func_ref;
-     CHECK_BB(emit_exp(emit, member->base, 0))
-     push_i = add_instr(emit, Reg_Dup_Last);
-     func_i = add_instr(emit, member_function);
-     func_i->m_val = func->vt_index;
-     func_i->ptr   = t_base;
-     return 1;
-     }
-     */
   if(!base_static) { // called from instance
     if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
       value = find_value(t_base, member->xid);
@@ -1860,12 +1822,6 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     return -1;                                                                                 // LCOV_EXCL_LINE
   }
 
-  /*if (emit->env->func) {*/
-  /*err_msg(EMIT_, func_def->pos,*/
-  /*"internal error: nested function definition...", func_def->pos);*/
-  /*return -1;*/
-  /*}*/
-
   if(func_def->types) // don't check template definition
     return 1;
 
@@ -1928,29 +1884,17 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 
   // ensure return
   if(func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
-    emit_func_release(emit); // /04/04/2017
     Kindof k = kindof(func_def->ret_type);
-    f_instr f = Reg_Push_Imm;
+    Instr instr = add_instr(emit, Reg_Push_ImmX);
+    emit_func_release(emit); // /04/04/2017
     switch(k) {
-    case Kindof_Int:
-      f = Reg_Push_Imm;
-      break;
-    case Kindof_Float:
-      f = Reg_Push_Imm2;
-      break;
-    case Kindof_Complex:
-      f = Reg_Push_ImmC;
-      break;
-    case Kindof_Vec3:
-      f = Reg_Push_ImmV3;
-      break;
-    case Kindof_Vec4:
-      f = Reg_Push_ImmV4;
-      break;
-    case Kindof_Void: // won't reach
-      goto error;
+      case Kindof_Int:     instr->m_val = SZ_INT;     break;
+      case Kindof_Float:   instr->m_val = SZ_FLOAT;   break;
+      case Kindof_Complex: instr->m_val = SZ_COMPLEX; break;
+      case Kindof_Vec3:    instr->m_val = SZ_VEC3;    break;
+      case Kindof_Vec4:    instr->m_val = SZ_VEC4;    break;
+      case Kindof_Void: goto error; // won't reach
     }
-    sadd_instr(emit, f);
     vector_add(emit->code->stack_return, (vtype)add_instr(emit, Goto));
   }
   emit_pop_scope(emit);
@@ -2018,11 +1962,9 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
     case ae_section_stmt:
       ret = emit_stmt_list(emit, body->section->d.stmt_list);
       break;
-
     case ae_section_func:
       ret = emit_func_def(emit, body->section->d.func_def);
       break;
-
     case ae_section_class:
       ret = emit_class_def(emit, body->section->d.class_def);
       break;
@@ -2058,7 +2000,6 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   emit->func = NULL;
   free_vector(emit->stack);
   emit->stack = new_vector();
-  //  emit->code->name = strdup(emit_filename);
   frame_push_scope(emit->code->frame);
   sadd_instr(emit, start_gc);
   while(prog && ret > 0) {
