@@ -29,16 +29,16 @@ void free_vm_code(VM_Code a) {
     for(i = 0; i < vector_size(a->instr); i++) {
       Instr instr = (Instr)vector_at(a->instr, i);
       if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
-        free(instr->ptr);
+        free(*(VM_Array_Info**)instr->ptr);
       else if(instr->execute == Gack) {
         m_uint j;
-        Vector v = (Vector)instr->ptr;
+        Vector v = *(Vector*)instr->ptr;
         for(j = 0; j < vector_size(v); j++)
 		  REM_REF(((Type)vector_at(v, j)));
         free_vector(v);
       }
       else if(instr->execute == Branch_Switch)
-        free_map((Map)instr->ptr);
+        free_map(*(Map*)instr->ptr);
       else if(instr->execute == Spork && instr->m_val2) {
           REM_REF(((Func)instr->m_val2))
       } else if(instr->execute == Init_Loop_Counter)

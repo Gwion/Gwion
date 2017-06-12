@@ -16,8 +16,7 @@ struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);
   m_uint m_val, m_val2;
   m_float f_val;
-  m_complex c_val;
-  void* ptr;
+  char ptr[SZ_INT];
 };
 
 Instr add_instr(Emitter emit, f_instr f);

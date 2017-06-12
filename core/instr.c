@@ -95,9 +95,9 @@ INSTR(Mem_Push_Imm) {
 
 INSTR(Mem_Set_Imm) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] set imm [%i] %p", instr->m_val, instr->ptr);
+  debug_msg("instr", "[mem] set imm [%i] %p", instr->m_val, *(m_uint*)instr->ptr);
 #endif
-  *(m_uint**)(shred->mem + instr->m_val) = (m_uint*)instr->ptr;
+  *(m_uint**)(shred->mem + instr->m_val) = *(m_uint**)instr->ptr;
 }
 
 INSTR(Free_Func) {
@@ -175,9 +175,9 @@ INSTR(Reg_Push_Mem_Vec4) {
 
 INSTR(Reg_Push_Ptr) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push ptr (%p)", (void*)instr->ptr);
+  debug_msg("instr", "[reg] push ptr (%p)", *(m_uint*)instr->ptr);
 #endif
-  *(m_uint*)(shred->reg - SZ_INT) = (m_uint)instr->ptr;
+  *(m_uint*)(shred->reg - SZ_INT) = *(m_uint*)instr->ptr;
 }
 
 INSTR(Reg_Push_Code) {
@@ -282,7 +282,7 @@ INSTR(Branch_Switch) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "branch switch %i %i", *(m_int*)(shred->reg - SZ_INT), instr->m_val);
 #endif
-  Map map = instr->ptr;
+  Map map = *(Map*)instr->ptr;
   POP_REG(shred,  SZ_INT);
   shred->next_pc = (m_int)map_get(map, (vtype) * (m_int*)shred->reg);
   if(!shred->next_pc)
@@ -387,7 +387,7 @@ INSTR(Gack) {
   debug_msg("instr", "gack");
 #endif
   Type type;
-  Vector v = instr->ptr;
+  Vector v = *(Vector*)instr->ptr;
   m_uint i, j, size = vector_size(v);
   m_uint len, longest = 0;
   for(i = 0; i < size; i++) {
@@ -525,15 +525,15 @@ INSTR(Spork) {
   }
   POP_REG(shred,  instr->m_val);
   memcpy(sh->reg, shred->reg, instr->m_val);
-  if(instr->ptr)
-    memcpy(sh->mem, shred->mem, (m_uint)instr->ptr);
+  if(*(m_uint*)instr->ptr)
+    memcpy(sh->mem, shred->mem, *(m_uint*)instr->ptr);
   PUSH_REG(sh, instr->m_val);
 
   if(func->is_member) {
     *(m_uint*)sh->reg = this_ptr;
     PUSH_REG(sh, SZ_INT);
   }
-  if(instr->ptr && code->need_this) // sporked function
+  if(*(m_uint*)instr->ptr && code->need_this) // sporked function
     *(m_uint*)sh->mem = this_ptr;
   *(Func*)sh->reg = func;
   PUSH_REG(sh, SZ_INT);
@@ -603,7 +603,7 @@ INSTR(Instr_Op_Call_Binary) {
 #endif
   VM_Code func;
   Type l = (Type)instr->m_val2;
-  Type r = (Type)instr->ptr;
+  Type r = *(Type*)instr->ptr;
   m_uint local_depth, stack_depth, prev_stack = 0, push, next;
 
   POP_REG(shred,  SZ_INT * 2);
@@ -692,7 +692,7 @@ INSTR(Reg_Dup_Last_Vec4) {
 
 INSTR(member_function) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "member function %p [%i] %p", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr,
+  debug_msg("instr", "member function %p [%i] %p", *(m_uint*)instr->ptr, instr->m_val, vector_at(*(Vector*)instr->ptr,
             instr->m_val));
 #endif
   POP_REG(shred,  SZ_INT);
@@ -704,10 +704,10 @@ INSTR(member_function) {
   	return;
   }
   */
-  *(VM_Code*)shred->reg = ((Func)vector_at((Vector)instr->ptr, instr->m_val))->code;
+  *(VM_Code*)shred->reg = ((Func)vector_at(*(Vector*)instr->ptr, instr->m_val))->code;
   PUSH_REG(shred,  SZ_INT);
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "member function %i [%i]", instr->ptr, instr->m_val, vector_at((Vector)instr->ptr, instr->m_val));
+  debug_msg("instr", "member function %i [%i]", *(m_uint*)instr->ptr, instr->m_val, vector_at(*(Vector*)instr->ptr, instr->m_val));
 #endif
   return;
 }
@@ -848,9 +848,9 @@ static void instantiate_object(VM * vm, VM_Shred shred, Type type) {
 
 INSTR(Instantiate_Object) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "instantiate object %p", instr->ptr);
+  debug_msg("instr", "instantiate object %p", *(m_uint*)instr->ptr);
 #endif
-  instantiate_object(vm, shred, instr->ptr);
+  instantiate_object(vm, shred, *(Type*)instr->ptr);
   vector_add(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
 }
 
@@ -906,14 +906,14 @@ INSTR(Alloc_Member_Word_Vec4) {
 
 INSTR(Dot_Static_Data) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Dot STATIC DATA: [%i] (%i) (emit:%i)", instr->m_val, instr->m_val2, instr->ptr);
+  debug_msg("instr", "Dot STATIC DATA: [%i] (%i) (emit:%i)", instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
 #endif
   Type t;
 
   POP_REG(shred,  SZ_INT);
   t = *(Type*)shred->reg;
   // take care of emit_addr ? (instr->ptr)
-  if(instr->ptr) {
+  if(*(m_uint*)instr->ptr) {
     if(instr->m_val2 == Kindof_Int) {
       *(m_uint**)shred->reg = &*(m_uint*)(t->info->class_data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Float) {
@@ -948,10 +948,10 @@ INSTR(Dot_Static_Data) {
 
 INSTR(Dot_Static_Import_Data) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "Dot STATIC Import DATA: %p", instr->ptr);
+  debug_msg("instr", "Dot STATIC Import DATA: %p", *(m_uint*)instr->ptr);
 #endif
   // take care of emit_addr ? (instr->ptr)
-  if(instr->ptr) {
+  if(*(m_uint*)instr->ptr) {
     if(instr->m_val2 == Kindof_Int) {
       *(m_uint**)shred->reg = &*(m_uint*)instr->m_val;
     } else if(instr->m_val2 == Kindof_Float) {
@@ -986,7 +986,7 @@ INSTR(Dot_Static_Import_Data) {
 
 INSTR(Exp_Dot_Data) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, instr->m_val2, instr->ptr);
+  debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)(shred->reg - SZ_INT), instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
 #endif
   M_Object obj;
 
@@ -994,7 +994,7 @@ INSTR(Exp_Dot_Data) {
   obj  = *(M_Object*)shred->reg;
   if(!obj) Except(shred, "NullPtrException");
   // take care of emit_addr ? (instr->ptr)
-  if(instr->ptr) {
+  if(*(m_uint*)instr->ptr) {
     if(instr->m_val2 == Kindof_Int) {
       *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
     } else if(instr->m_val2 == Kindof_Float) {
@@ -1042,7 +1042,7 @@ INSTR(Instr_Pre_Ctor_Array_Top) {
   if(*(m_uint*)(shred->reg - SZ_INT * 2) >= *(m_uint*)(shred->reg - SZ_INT))
     shred->next_pc = instr->m_val;
   else
-    instantiate_object(vm, shred, (Type)instr->ptr);
+    instantiate_object(vm, shred, *(Type*)instr->ptr);
 }
 
 INSTR(Instr_Pre_Ctor_Array_Bottom) {
@@ -1118,7 +1118,7 @@ INSTR(Instr_Array_Init) { // for litteral array
   debug_msg("instr", "array init");
 #endif
   m_uint i;
-  VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object obj;
   switch(instr->m_val2) {
   case Kindof_Int:
@@ -1167,7 +1167,7 @@ INSTR(Instr_Array_Alloc) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "array alloc");
 #endif
-  VM_Array_Info* info = (VM_Array_Info*)instr->ptr;
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
@@ -1294,7 +1294,7 @@ INSTR(Instr_Array_Access_Multi) {
   if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
   // take care of emit_addr (instr->ptr)
-  if(instr->ptr) {
+  if(*(m_uint*)instr->ptr) {
     if(instr->m_val2 == Kindof_Int)
       *(m_uint**)shred->reg = i_vector_addr(obj->d.array, i);
     if(instr->m_val2 == Kindof_Float)

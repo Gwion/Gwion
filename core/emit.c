@@ -112,7 +112,7 @@ static m_bool emit_pre_constructor_array(Emitter emit, Type type) {
   Instr top, bottom;
   m_uint start_index = vector_size(emit->code->code);
   top = add_instr(emit, Instr_Pre_Ctor_Array_Top);
-  top->ptr = type;
+  *(Type*)top->ptr = type;
   emit_pre_ctor(emit, type);
   bottom = add_instr(emit, Instr_Pre_Ctor_Array_Bottom);
   top->m_val = vector_size(emit->code->code);
@@ -134,12 +134,12 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
     info->stack_offset = emit->code->frame->curr_offset;
     info->is_ref = is_ref;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);
-    alloc->ptr = info;
+    *(VM_Array_Info**)alloc->ptr = info;
     if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, type->array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = add_instr(emit, Instantiate_Object);
-    instr->ptr = type;
+    *(Type*)instr->ptr = type;
     emit_pre_ctor(emit, type);
   }
   return 1;
@@ -228,7 +228,7 @@ static m_bool emit_exp_prim_array(Emitter emit, Array_Sub array) {
   VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
   info->type = type;
   info->length = count;
-  instr->ptr = info;
+  *(VM_Array_Info**)instr->ptr = info;
   instr->m_val2 = kindof(type->array_type);
   return 1;
 }
@@ -254,15 +254,13 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   CHECK_BB(emit_exp(emit, exp, 0))
   if(depth == 1) {
     instr = add_instr(emit, Instr_Array_Access);
-    /*    instr->m_val  = (is_var || type->array_depth);*/
     instr->m_val = is_var;
     instr->m_val2 = kindof(type);
   } else {
     instr = add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
-//    instr->m_val2 = kindof(array->base->type); // was 04/03/17
     instr->m_val2 = kindof(array->base->type->array_type);
-    instr->ptr = (m_uint*)(m_uint)(is_var || type->array_depth);
+    *(m_uint*)instr->ptr = is_var || type->array_depth;
   }
   return 1;
 }
@@ -357,7 +355,7 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* primary) {
       e = e->next;
     }
     instr = add_instr(emit, Gack);
-    instr->ptr = types;
+    *(Vector*)instr->ptr = types;
     break;
   }
   return 1;
@@ -420,7 +418,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
           Instr dot_static = add_instr(emit, Dot_Static_Data);
           dot_static->m_val = value->offset;
           dot_static->m_val2 = kindof(emit->env->class_def);
-          dot_static->ptr = (m_uint*)1;
+          *(m_uint*)dot_static->ptr = 1;
           sadd_instr(emit, Assign_Object);
           emit->code = code;
           // add ref
@@ -437,7 +435,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
           Instr dot_static = add_instr(emit, Dot_Static_Data);
           dot_static->m_val = value->offset;
           dot_static->m_val2 = kindof(emit->env->class_def);
-          dot_static->ptr = (m_uint*)1;
+          *(m_uint*)dot_static->ptr = 1;
         }
       }
     }
@@ -675,7 +673,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
       }                                        // LCOV_EXCL_STOP
       func->code = func->def->func->code;
       code = add_instr(emit, Reg_Push_Ptr);
-      code->ptr = func->code;
+      *(VM_Code*)code->ptr = func->code;
     } else {
       code = add_instr(emit, Reg_Push_Code);
       code->m_val = func->value_ref->offset;
@@ -684,7 +682,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     }
   } else {
     code = add_instr(emit, Reg_Push_Ptr);
-    code->ptr = func->code;
+    *(VM_Code*)code->ptr = func->code;
   }
 
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
@@ -702,7 +700,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   } else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
     call->execute = Instr_Op_Call_Binary;
     call->m_val2  = (m_uint)func->def->arg_list->type;
-    call->ptr     = func->def->arg_list->next->type;
+    *(Type*)call->ptr     = func->def->arg_list->next->type;
   }
   if(func->def->is_template) {
     Instr clear = add_instr(emit, Free_Func);
@@ -802,7 +800,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
       push_code = add_instr(emit, Reg_Push_Imm);
       push_code->m_val = (m_uint)code;
       spork = add_instr(emit, Spork);
-      spork->ptr = (m_uint*)(emit->env->func ? emit->env->func->def->stack_depth : 0); // don't push func info on the stack
+      *(m_uint*)spork->ptr = emit->env->func ? emit->env->func->def->stack_depth : 0; // don't push func info on the stack
       spork->m_val2 = (m_uint)f;
 //      spork->f_val = 1.0; // mark for delete
       f->code = code;
@@ -1391,7 +1389,7 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
   emit->default_case_index = -1;
   sadd_instr(emit, start_gc);
   instr = add_instr(emit, Branch_Switch);
-  instr->ptr = emit->cases = new_map();
+  *(Map*)instr->ptr = emit->cases = new_map();
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
@@ -1470,14 +1468,13 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   debug_msg("emit", "enum");
 #endif
   m_uint i;
-  Local* local;
-  Value v;
   for(i = 0; i < vector_size(stmt->values); i++) {
-    v = (Value)vector_at(stmt->values, i);
+    Value v = (Value)vector_at(stmt->values, i);
+    Local* local;
     if(!emit->env->class_def) {
       CHECK_OB((local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0)))
       v->offset = local->offset;
-      v->ptr = (void*)i;
+      v->ptr = (m_uint*)i;
     } else
       emit->env->class_def->info->class_data[v->offset] = i;
   }
@@ -1486,9 +1483,8 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-  m_bool is_member = GET_FLAG(l->self->d.exp_decl.list->self->value, ae_value_member);
 
-  if(!is_member) {
+  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_value_member)) {
     Local* local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
     stmt->o = local->offset;
   }
@@ -1659,7 +1655,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec3);
       Instr f = add_instr(emit, member_function);
-      f->ptr = t_base->info->obj_v_table;
+      *(Vector*)f->ptr = t_base->info->obj_v_table;
       f->m_val = value->func_ref->vt_index;
       return 1;
     }
@@ -1682,7 +1678,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec4);
       Instr f = add_instr(emit, member_function);
-      f->ptr = t_base->info->obj_v_table;
+      *(Vector*)f->ptr = t_base->info->obj_v_table;
       f->m_val = value->func_ref->vt_index;
       return 1;
     }
@@ -1771,7 +1767,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         func_i = add_instr(emit, Exp_Dot_Data);
         func_i->m_val = value->offset;
         func_i->m_val2 = Kindof_Int;
-        func_i->ptr = (m_uint*)emit_addr;
+        *(m_uint*)func_i->ptr = emit_addr;
         return 1;
       } else {
         push_i = add_instr(emit, Reg_Push_Imm);
@@ -1779,7 +1775,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         push_i->m_val = (m_uint)t_base;
         func_i->m_val = (m_uint)offset;
         func_i->m_val2 = (m_uint)kindof(value->m_type);
-        func_i->ptr = (m_uint*)emit_addr;
+        *(m_uint*)func_i->ptr = emit_addr;
       }
     } else if(isa(member->self->type, &t_function) > 0) { // function
       value = find_value(t_base, member->xid);
@@ -1806,20 +1802,20 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         instr = add_instr(emit, Exp_Dot_Data);
         instr->m_val = offset;
         instr->m_val2 = kindof(value->m_type);
-        instr->ptr = (m_uint*)emit_addr;
+        *(m_uint*)instr->ptr = emit_addr;
       } else { // static
         if(value->ptr && GET_FLAG(value, ae_value_import)) { // from C
           func_i = add_instr(emit, Dot_Static_Import_Data);
           func_i->m_val = (m_uint)value->ptr;
           func_i->m_val2 = kindof(value->m_type);
-          func_i->ptr = (m_uint*)emit_addr;
+          *(m_uint*)func_i->ptr = emit_addr;
         } else { // from code
           push_i = add_instr(emit, Reg_Push_Imm);
           func_i = add_instr(emit, Dot_Static_Data);
           push_i->m_val = (m_uint)t_base;
           func_i->m_val = (m_uint)offset;
           func_i->m_val2 = (m_uint)kindof(value->m_type);
-          func_i->ptr = (m_uint*)emit_addr;
+          *(m_uint*)func_i->ptr = emit_addr;
         }
       }
     }
@@ -1837,14 +1833,14 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         func_i = add_instr(emit, Dot_Static_Import_Data);
         func_i->m_val = (m_uint)value->ptr;
         func_i->m_val2 = kindof(value->m_type);
-        func_i->ptr = (m_uint*)emit_addr;
+        *(m_uint*)func_i->ptr = emit_addr;
       } else {
         push_i = add_instr(emit, Reg_Push_Imm);
         func_i = add_instr(emit, Dot_Static_Data);
         push_i->m_val = (m_uint)t_base;
         func_i->m_val = (m_uint)value->offset;
         func_i->m_val2 = (m_uint)kindof(value->m_type);
-        func_i->ptr = (m_uint*)emit_addr;
+        *(m_uint*)func_i->ptr = emit_addr;
       }
     }
   }
@@ -1879,7 +1875,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     value->offset = local->offset;
     Instr set_mem = add_instr(emit, Mem_Set_Imm);
     set_mem->m_val = value->offset;
-    set_mem->ptr = func;
+    *(Func*)set_mem->ptr = func;
   }
 
   emit->env->func = func;
