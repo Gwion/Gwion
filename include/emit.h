@@ -6,7 +6,6 @@
 struct Emitter_ {
   Env       env;
   Vector    stack;
-  Vector    spork;
   Vector    funcs;
   Context   context;
   Nspc nspc;
