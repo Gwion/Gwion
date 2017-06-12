@@ -164,15 +164,15 @@ static m_bool import_fft(Env env) {
   return 1;
 }
 
-typedef struct _FFT {
+typedef struct Ana {
   m_uint size, sr;
   m_float* fval;
   m_float  percent;     // rollof
   /*  m_float* norm, *prev; // flux*/
   /*  m_float* cval[2];*/ // corr
-} _FFT;
+} Ana;
 
-typedef double (*f_analys)(_FFT* fft);
+typedef double (*f_analys)(Ana* fft);
 /*
 m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 {
@@ -188,7 +188,7 @@ m_float array_max(m_float* f, unsigned int size, unsigned int* index)
 }
 */
 /* from chuck ;-) */
-m_float compute_centroid(_FFT* fft) {
+m_float compute_centroid(Ana* fft) {
   m_float m0 = 0.0;
   m_float m1 = 0.0;
   m_float centroid = 0.0;
@@ -205,7 +205,7 @@ m_float compute_centroid(_FFT* fft) {
   return centroid / fft->size;
 }
 
-m_float compute_spread(_FFT* fft) {
+m_float compute_spread(Ana* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -214,7 +214,7 @@ m_float compute_spread(_FFT* fft) {
   return ret / fft->size;
 }
 
-m_float compute_skewness(_FFT* fft) {
+m_float compute_skewness(Ana* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -223,7 +223,7 @@ m_float compute_skewness(_FFT* fft) {
   return ret / fft->size;
 }
 
-m_float compute_kurtosis(_FFT* fft) {
+m_float compute_kurtosis(Ana* fft) {
   unsigned int i;
   m_float ret = 0;
   m_float mu = compute_centroid(fft);
@@ -233,7 +233,7 @@ m_float compute_kurtosis(_FFT* fft) {
 }
 
 
-m_float compute_rms(_FFT* fft) {
+m_float compute_rms(Ana* fft) {
   m_float rms = 0.0;
   m_uint  i;
   /* get sum of squares */
@@ -244,7 +244,7 @@ m_float compute_rms(_FFT* fft) {
   return rms;
 }
 
-m_float compute_rolloff(_FFT* fft) {
+m_float compute_rolloff(Ana* fft) {
   m_float sum = 0.0, target;
   unsigned int i;
   /* sanity check */
@@ -264,7 +264,7 @@ m_float compute_rolloff(_FFT* fft) {
   return i / (m_float)fft->size;
 }
 
-m_float compute_freq(_FFT* fft) {
+m_float compute_freq(Ana* fft) {
   unsigned int i;
   m_float max = -0;
   m_float where = 0;
@@ -279,7 +279,7 @@ m_float compute_freq(_FFT* fft) {
   return where / fft->size * fft->sr;
 }
 
-m_float compute_asc(_FFT* fft) {
+m_float compute_asc(Ana* fft) {
   unsigned int i;
   m_float ret = 0.0;
   m_float sum = 0.0;
@@ -290,7 +290,7 @@ m_float compute_asc(_FFT* fft) {
   return ret / sum;
 }
 
-m_float compute_ass(_FFT* fft) {
+m_float compute_ass(Ana* fft) {
   unsigned int i;
   m_float ret = 0.0;
   m_float sum = 0.0;
@@ -307,7 +307,7 @@ m_float compute_ass(_FFT* fft) {
 }
 
 /*
-m_float compute_normrms(_FFT* fft)
+m_float compute_normrms(Ana* fft)
 {
   unsigned int i;
   m_float energy = 0.0;
@@ -337,7 +337,7 @@ m_float compute_normrms(_FFT* fft)
 }
 */
 /*
-m_float compute_flux(_FFT* fft)
+m_float compute_flux(Ana* fft)
 {
   unsigned int i;
   m_float result = 0.0;
@@ -364,7 +364,7 @@ m_float compute_flux(_FFT* fft)
 }
 */
 /*
-m_float compute_corr(_FFT* a,_FFT* b)
+m_float compute_corr(Ana* a,Ana* b)
 {
   unsigned int i;
   fftw_complex *spec, *a_spec, *b_spec;
@@ -401,7 +401,7 @@ m_float compute_corr(_FFT* a,_FFT* b)
 /*
 #define __SGN(x)  (x >= 0.0f ? 1.0f : -1.0f)
 
-m_float compute_zerox(_FFT* fft, m_float* buffer)
+m_float compute_zerox(Ana* fft, m_float* buffer)
 {
   unsigned int i, xings = 0;
   m_float v = 0, p = 0;
@@ -425,7 +425,7 @@ static m_float ana_dummy(FFT* fft) {
 }
 static MFUN(ana_compute) {
   M_Object   fft = *(M_Object*)(o->d.data + o_ana_fft);
-  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
+  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
   f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
   if(!fft)
     return;
@@ -439,7 +439,7 @@ static MFUN(ana_get_fft) {
 static MFUN(ana_set_fft) {
   FFT* ana;
   M_Object fft = *(M_Object*)(o->d.data + o_ana_fft);
-  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
+  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
   if(fft)
     release(fft, shred);
   fft = *(M_Object*)(shred->mem + SZ_INT);
@@ -462,14 +462,14 @@ static MFUN(ana_set_fft) {
 }
 
 static void ana_ctor(M_Object o, VM_Shred shred) {
-  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft) = malloc(sizeof(_FFT));
+  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft) = malloc(sizeof(Ana));
   _fft->sr = shred->vm_ref->bbq->sp->sr;
   _fft->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
 }
 
 static void ana_dtor(M_Object o, VM_Shred shred) {
-  free(*(_FFT**)(o->d.data + o_ana__fft));
+  free(*(Ana**)(o->d.data + o_ana__fft));
 }
 
 static m_bool import_ana(Env env) {
@@ -553,11 +553,11 @@ static void rolloff_ctor(M_Object o, VM_Shred shred) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rolloff;
 }
 static MFUN(rolloff_get_percent) {
-  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
+  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
   RETURN->d.v_float = _fft->percent;
 }
 static MFUN(rolloff_set_percent) {
-  _FFT* _fft = *(_FFT**)(o->d.data + o_ana__fft);
+  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
   RETURN->d.v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
@@ -624,7 +624,7 @@ static MFUN(fc_compute) {
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add
-    _FFT* _fft   = *(_FFT**)(obj->d.data + o_ana__fft);
+    Ana* _fft   = *(Ana**)(obj->d.data + o_ana__fft);
 //    if(!_fft) continue; // seems prevented somehow. (this is unclear)
     FFT* fft   = *(FFT**)(obj->d.data + o_ana_fft);
     if(!fft)
