@@ -639,7 +639,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
               "...(reason: --- left-side operand is not mutable)");
       return NULL;
     }
-    cr->emit_var = cl->emit_var = 1;
+    cl->emit_var = 1;
     break;
   case op_at_chuck:
     if(cr->meta != ae_meta_var) {
@@ -659,7 +659,6 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
         err_msg(TYPE_, binary->pos, "array depths do not match.");
         return NULL;
       }
-      /*      cr->emit_var = cl->emit_var = 1;*/
       cr->emit_var = 1;
       break;
     }
@@ -668,7 +667,6 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
         err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name);
         return NULL;
       }
-      /*      cr->emit_var = cl->emit_var = 1;*/
       cr->emit_var = 1;
       break;
     }
