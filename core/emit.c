@@ -333,11 +333,10 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* primary) {
   case ae_primary_array:
     CHECK_BB(emit_exp_prim_array(emit, primary->d.array))
     break;
-  case ae_primary_nil: // was Reg_Push_Imm
+  case ae_primary_nil:
     break;
   case ae_primary_hack:
-    e = primary->d.exp;
-    CHECK_BB(emit_exp(emit, e, 0))
+    CHECK_BB(emit_exp(emit, primary->d.exp, 0))
     Vector types = new_vector();
     e = primary->d.exp;
     while(e) {
@@ -706,7 +705,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "spork");
 #endif
-  Instr op = NULL, push_code = NULL, spork = NULL;
+  Instr op, push_code, spork;
   VM_Code code;
 
   CHECK_BB(emit_func_args(emit, exp))
@@ -749,11 +748,46 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   return 1;
 }
 
+static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
+  Instr op, push_code, spork;
+  VM_Code code;
+  ID_List list = new_id_list("sporked", stmt->pos);
+  Func f = new_func("sporked", new_func_def(0, 0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos));
+
+  if(emit->env->class_def)
+    sadd_instr(emit, Reg_Push_This);
+  Instr push = add_instr(emit, Reg_Push_Imm);
+  push->m_val = (m_uint)f;
+
+  vector_add(emit->stack, (vtype)emit->code);
+  emit->code = new_code();
+  f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
+  emit->code->name = strdup("spork~code");
+  emit->code->filename = strdup(emit->filename);
+  op = add_instr(emit, Mem_Push_Imm);
+  frame_push_scope(emit->code->frame);
+
+  sadd_instr(emit, start_gc);
+  CHECK_BB(emit_stmt(emit, stmt, 0))
+  sadd_instr(emit, stop_gc);
+  emit_pop_scope(emit);
+  sadd_instr(emit, EOC);
+  op->m_val = emit->code->stack_depth;
+  code = emit_code(emit);
+  emit->code = (Code*)vector_pop(emit->stack);
+  push_code = add_instr(emit, Reg_Push_Imm);
+  push_code->m_val = (m_uint)code;
+  spork = add_instr(emit, Spork);
+  *(m_uint*)spork->ptr = emit->env->func ? emit->env->func->def->stack_depth : 0; // don't push func info on the stack
+  spork->m_val2 = (m_uint)f;
+  f->code = code;
+  return 1;
+}
+
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "exp_unary");
 #endif
-
   if(exp_unary->op != op_spork && emit_exp(emit, exp_unary->exp, 0) < 0)
     return -1;
   switch(exp_unary->op) {
@@ -761,38 +795,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* exp_unary) {
     if(exp_unary->exp && exp_unary->exp->exp_type == ae_exp_call) {
       CHECK_BB(emit_exp_spork(emit, &exp_unary->exp->d.exp_func))
     } else if(exp_unary->code) {
-      Instr op = NULL, push_code = NULL, spork = NULL;
-      VM_Code code;
-      ID_List list = new_id_list("sporked", exp_unary->pos);
-      Func f = new_func("sporked", new_func_def(0, 0, new_type_decl(list, 0, exp_unary->pos), "sporked", NULL, exp_unary->code, exp_unary->pos));
-
-      if(emit->env->class_def)
-        sadd_instr(emit, Reg_Push_This);
-      Instr push = add_instr(emit, Reg_Push_Imm);
-      push->m_val = (m_uint)f;
-
-      vector_add(emit->stack, (vtype)emit->code);
-      emit->code = new_code();
-      f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
-      emit->code->name = strdup("spork~code");
-      emit->code->filename = strdup(emit->filename);
-      op = add_instr(emit, Mem_Push_Imm);
-      frame_push_scope(emit->code->frame);
-
-      sadd_instr(emit, start_gc);
-      CHECK_BB(emit_stmt(emit, exp_unary->code, 0))
-      sadd_instr(emit, stop_gc);
-      emit_pop_scope(emit);
-      sadd_instr(emit, EOC);
-      op->m_val = emit->code->stack_depth;
-      code = emit_code(emit);
-      emit->code = (Code*)vector_pop(emit->stack);
-      push_code = add_instr(emit, Reg_Push_Imm);
-      push_code->m_val = (m_uint)code;
-      spork = add_instr(emit, Spork);
-      *(m_uint*)spork->ptr = emit->env->func ? emit->env->func->def->stack_depth : 0; // don't push func info on the stack
-      spork->m_val2 = (m_uint)f;
-      f->code = code;
+		CHECK_BB(emit_exp_spork1(emit, exp_unary->code))
     } else {
       err_msg(EMIT_, exp_unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE
       return -1;                                                                               // LCOV_EXCL_LINE
@@ -860,39 +863,17 @@ static m_bool emit_exp(Emitter emit, Exp exp, m_bool ref) {
   Exp tmp = exp;
   while(tmp) {
     switch(tmp->exp_type) {
-    case ae_exp_decl:
-      CHECK_BB(emit_exp_decl(emit, &tmp->d.exp_decl))
-      break;
-    case ae_exp_primary:
-      CHECK_BB(emit_exp_primary(emit, &tmp->d.exp_primary))
-      break;
-    case ae_exp_unary:
-      CHECK_BB(emit_exp_unary(emit, &tmp->d.exp_unary))
-      break;
-    case ae_exp_binary:
-      CHECK_BB(emit_exp_binary(emit, &tmp->d.exp_binary))
-      break;
-    case ae_exp_postfix:
-      CHECK_BB(emit_exp_postfix(emit, &tmp->d.exp_postfix))
-      break;
-    case ae_exp_cast:
-      CHECK_BB(exp_exp_cast(emit, &tmp->d.exp_cast))
-      break;
-    case ae_exp_dot:
-      CHECK_BB(emit_exp_dot(emit, &tmp->d.exp_dot))
-      break;
-    case ae_exp_call:
-      CHECK_BB(emit_exp_call(emit, &tmp->d.exp_func, 0))
-      break;
-    case ae_exp_array:
-      CHECK_BB(emit_exp_array(emit, &tmp->d.exp_array))
-      break;
-    case ae_exp_if:
-      CHECK_BB(emit_exp_if(emit, &tmp->d.exp_if))
-      break;
-    case ae_exp_dur:
-      CHECK_BB(emit_exp_dur(emit, &tmp->d.exp_dur))
-      break;
+    case ae_exp_decl:    CHECK_BB(emit_exp_decl(emit, &tmp->d.exp_decl))       break;
+    case ae_exp_primary: CHECK_BB(emit_exp_primary(emit, &tmp->d.exp_primary)) break;
+    case ae_exp_unary:   CHECK_BB(emit_exp_unary(emit, &tmp->d.exp_unary))     break;
+    case ae_exp_binary:  CHECK_BB(emit_exp_binary(emit, &tmp->d.exp_binary))   break;
+    case ae_exp_postfix: CHECK_BB(emit_exp_postfix(emit, &tmp->d.exp_postfix)) break;
+    case ae_exp_cast:    CHECK_BB(exp_exp_cast(emit, &tmp->d.exp_cast))        break;
+    case ae_exp_dot:     CHECK_BB(emit_exp_dot(emit, &tmp->d.exp_dot))         break;
+    case ae_exp_call:    CHECK_BB(emit_exp_call(emit, &tmp->d.exp_func, 0))    break;
+    case ae_exp_array:   CHECK_BB(emit_exp_array(emit, &tmp->d.exp_array))     break;
+    case ae_exp_if:      CHECK_BB(emit_exp_if(emit, &tmp->d.exp_if))           break;
+    case ae_exp_dur:     CHECK_BB(emit_exp_dur(emit, &tmp->d.exp_dur))         break;
     }
     if(tmp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
