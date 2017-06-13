@@ -666,11 +666,26 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   return 1;
 }
 
+
+
+static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint arg_size, m_uint stack_depth) {
+  Instr push_code, spork;
+
+  push_code = add_instr(emit, Reg_Push_Imm);
+  push_code->m_val = (m_uint)code;
+  spork = add_instr(emit, Spork);
+  spork->m_val = arg_size;
+  spork->m_val2 = (m_uint)f;
+  *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
+  f->code = code;
+  return 1;
+}
+  
 static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "spork");
 #endif
-  Instr op, push_code, spork;
+  Instr op;
   VM_Code code;
 
   CHECK_BB(emit_func_args(emit, exp))
@@ -687,7 +702,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code->filename = strdup(emit->filename);
   op = add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->ret_type, exp->pos))
-    sadd_instr(emit, stop_gc);
+  sadd_instr(emit, stop_gc);
   sadd_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
 
@@ -702,19 +717,13 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
-
-  push_code = add_instr(emit, Reg_Push_Imm);
-  push_code->m_val = (m_uint)code;
-  spork = add_instr(emit, Spork);
-  spork->m_val = size;
-  spork->m_val2 = (m_uint)exp->m_func;
-  exp->m_func->code = code;
+  CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
   ADD_REF(exp->m_func)
-    return 1;
+  return 1;
 }
 
 static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
-  Instr op, push_code, spork;
+  Instr op;
   VM_Code code;
   ID_List list = new_id_list("sporked", stmt->pos);
   Func f = new_func("sporked", new_func_def(0, 0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos));
@@ -740,12 +749,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   op->m_val = emit->code->stack_depth;
   code = emit_code(emit);
   emit->code = (Code*)vector_pop(emit->stack);
-  push_code = add_instr(emit, Reg_Push_Imm);
-  push_code->m_val = (m_uint)code;
-  spork = add_instr(emit, Spork);
-  *(m_uint*)spork->ptr = emit->env->func ? emit->env->func->def->stack_depth : 0; // don't push func info on the stack
-  spork->m_val2 = (m_uint)f;
-  f->code = code;
+  CHECK_BB(emit_exp_spork_finish(emit, code, f, 0, emit->env->func ? emit->env->func->def->stack_depth : 0))
   return 1;
 }
 

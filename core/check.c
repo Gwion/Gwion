@@ -1182,9 +1182,7 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           int ret = check_stmt(env, unary->code);
           nspc_pop_value(env->curr);
           env->class_scope--;
-          if(ret < 0)
-            return NULL;
-          else return &t_shred;
+          return (ret > 0) ? &t_shred : NULL;
           break;
         } else if(check_stmt(env, unary->code) < 0) {
           err_msg(TYPE_, unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
