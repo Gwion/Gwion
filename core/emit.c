@@ -430,8 +430,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
       }
     }
     if(is_obj) {
-      if(list->self->array) {
-        if(list->self->array->exp_list) {
+      if(list->self->array && list->self->array->exp_list) {
           Instr assign = add_instr(emit, Assign_Object);
           assign->m_val = decl->self->emit_var;
           ADD_REF(type);

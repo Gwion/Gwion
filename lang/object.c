@@ -97,14 +97,12 @@ INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
-  M_Object* obj, done;
+  M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
-  obj = *(M_Object**)(shred->reg + SZ_INT);
-  done = *obj;
-  *obj = *(M_Object*)shred->reg;
-  // add ref ?
-  if(done)
-	release(done,shred);
+  src = *(M_Object*)shred->reg;
+  if((tgt = **(M_Object**)(shred->reg + SZ_INT)))
+    release(tgt, shred);
+  **(M_Object**)(shred->reg + (instr->m_val ? 0: SZ_INT)) = src;
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -133,7 +131,7 @@ static INSTR(neq_Object) {
 struct Vararg {
   Kindof* k;      // k(ind)
   char* d;	// d(ata)
-  m_uint o, i, s; // o(ffset), i(ndex), s(ize)
+  m_uint o, i, s; // o(ffset), i(ndex)
 };
 
 INSTR(Vararg_start) {
