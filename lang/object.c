@@ -106,20 +106,6 @@ INSTR(Assign_Object) {
   if(done)
 	release(done,shred);
   PUSH_REG(shred, SZ_INT);
-/*
-  M_Object tgt, src;
-  POP_REG(shred, SZ_INT * 2);
-  src = *(M_Object*)shred->reg;
-  if((tgt = **(M_Object**)(shred->reg + SZ_INT)))
-    release(tgt, shred);
-  if(instr->m_val)
-    **(M_Object**)shred->reg = src;
-  else
-    **(M_Object**)(shred->reg + SZ_INT) = src;
-  if(instr->m_val2)
-    release(tgt, shred);
-  PUSH_REG(shred, SZ_INT);
-*/
 }
 
 static INSTR(eq_Object) {
@@ -147,7 +133,7 @@ static INSTR(neq_Object) {
 struct Vararg {
   Kindof* k;      // k(ind)
   char* d;	// d(ata)
-  m_uint o, i, s; // o(ffset), i(ndex)
+  m_uint o, i, s; // o(ffset), i(ndex), s(ize)
 };
 
 INSTR(Vararg_start) {
