@@ -210,7 +210,7 @@ INSTR(Time_Advance) {
 // arithmetic
 static INSTR(if_assign) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_INT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
+//  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_INT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));

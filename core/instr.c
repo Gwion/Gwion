@@ -216,7 +216,10 @@ INSTR(Alloc_Word) {
   debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", (void*) * (m_uint*)(shred->mem + instr->m_val), instr->m_val);
 #endif
   *(m_uint*)(shred->mem + instr->m_val) = 0; // since template
-  *(m_uint**)shred->reg = &*(m_uint*)(shred->mem + instr->m_val);
+  if(*(m_uint*)instr->ptr)
+    *(m_uint**)shred->reg = &*(m_uint*)(shred->mem + instr->m_val);
+  else
+    *(m_uint*)shred->reg = *(m_uint*)(shred->mem + instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -225,32 +228,52 @@ INSTR(Alloc_Word_Float) {
   debug_msg("instr", "instr alloc word float %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
   *(m_float*)(shred->mem + instr->m_val) = 0; // since template
-  *(m_float**)shred->reg = &*(m_float*)(shred->mem + instr->m_val);
-  PUSH_REG(shred, SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_float**)shred->reg = &*(m_float*)(shred->mem + instr->m_val);
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_float*)shred->reg = *(m_float*)(shred->mem + instr->m_val);
+    PUSH_REG(shred, SZ_FLOAT);
+  }
 }
 
 INSTR(Alloc_Word_Complex) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word complex %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  *(m_complex**)shred->reg = &*(m_complex*)(shred->mem + instr->m_val);
-  PUSH_REG(shred, SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_complex**)shred->reg = &*(m_complex*)(shred->mem + instr->m_val);
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_complex*)shred->reg = *(m_complex*)(shred->mem + instr->m_val);
+    PUSH_REG(shred, SZ_COMPLEX);
+  }
 }
 
 INSTR(Alloc_Word_Vec3) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  *(m_vec3**)shred->reg = &*(m_vec3*)(shred->mem + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_vec3**)shred->reg = &*(m_vec3*)(shred->mem + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    *(m_vec3*)shred->reg = *(m_vec3*)(shred->mem + instr->m_val);
+    PUSH_REG(shred,  SZ_VEC3);
+  }
 }
 
 INSTR(Alloc_Word_Vec4) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "instr alloc word vec4 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
 #endif
-  *(m_vec4**)shred->reg = &*(m_vec4*)(shred->mem + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_vec4**)shred->reg = &*(m_vec4*)(shred->mem + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    *(m_vec4*)shred->reg = *(m_vec4*)(shred->mem + instr->m_val);
+    PUSH_REG(shred,  SZ_VEC4);
+  }
 }
 
 /* branching */
@@ -816,9 +839,12 @@ INSTR(Alloc_Member_Word) {
   debug_msg("instr", "alloc member word: %p[%i]", *(m_uint*)(shred->mem), instr->m_val);
 #endif
   M_Object obj = *(M_Object*)(shred->mem);
-  *(m_uint*)(obj->d.data + instr->m_val) = 0;
-  *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+    *(m_uint*)(obj->d.data + instr->m_val) = 0;
+  if(*(m_uint*)instr->ptr)
+    *(m_uint**)shred->reg = &*(m_uint*)(obj->d.data + instr->m_val);
+  else
+    *(m_uint*)shred->reg = *(m_uint*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Alloc_Member_Word_Float) {
@@ -827,8 +853,13 @@ INSTR(Alloc_Member_Word_Float) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   *(m_float*)(obj->d.data + instr->m_val) = 0.0;
-  *(m_float**)shred->reg = &*(m_float*)(obj->d.data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_float**)shred->reg = &*(m_float*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    *(m_float*)shred->reg = *(m_float*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
+  }
 }
 
 INSTR(Alloc_Member_Word_Complex) {
@@ -837,8 +868,13 @@ INSTR(Alloc_Member_Word_Complex) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   *(m_complex*)(obj->d.data + instr->m_val) = 0.0;
-  *(m_complex**)shred->reg = &*(m_complex*)(obj->d.data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_complex**)shred->reg = &*(m_complex*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_complex*)shred->reg = *(m_complex*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred, SZ_COMPLEX);
+  }
 }
 
 INSTR(Alloc_Member_Word_Vec3) {
@@ -847,8 +883,13 @@ INSTR(Alloc_Member_Word_Vec3) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC3);
-  *(m_vec3**)shred->reg = &*(m_vec3*)(obj->d.data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_vec3**)shred->reg = &*(m_vec3*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred,  SZ_INT);
+  } else {
+    *(m_vec3*)shred->reg = *(m_vec3*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred,  SZ_VEC3);
+  }
 }
 
 INSTR(Alloc_Member_Word_Vec4) {
@@ -857,8 +898,13 @@ INSTR(Alloc_Member_Word_Vec4) {
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC4);
-  *(m_vec4**)shred->reg = &*(m_vec4*)(obj->d.data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
+  if(*(m_uint*)instr->ptr) {
+    *(m_vec4**)shred->reg = &*(m_vec4*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_vec4*)shred->reg = *(m_vec4*)(obj->d.data + instr->m_val);
+    PUSH_REG(shred, SZ_VEC4);
+  }
 }
 
 INSTR(Dot_Static_Data) {

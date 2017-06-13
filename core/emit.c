@@ -364,6 +364,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
           }
           alloc = add_instr(emit, f);
           alloc->m_val = value->offset;
+          *(m_uint*)alloc->ptr = isprim(type) > 0  ? decl->self->emit_var : 1;
         } else {
           if(!emit->env->class_def || !decl->is_static) {
             Local* local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
@@ -380,6 +381,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
             alloc   = add_instr(emit, f);
             alloc->m_val  = value->offset;
             alloc->m_val2 = GET_FLAG(value, ae_value_global);
+            *(m_uint*)alloc->ptr = isprim(type) > 0  ? decl->self->emit_var : 1;
           } else { // static
             Code* code = emit->code;
             if(is_obj && !is_ref) {
@@ -1453,7 +1455,8 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
           exp = exp->d.exp_primary.d.exp;
         while(exp) {
           instr = add_instr(emit, Reg_Pop_Word4);
-          instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
+//          instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
+          instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * exp->type->size : exp->type->size);
           exp = exp->next;
         }
       }
