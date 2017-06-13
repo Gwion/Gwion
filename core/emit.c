@@ -465,9 +465,9 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     }
     def->is_template = 1;
     CHECK_BB(scan1_func_def(emit->env, def))
-      CHECK_BB(scan2_func_def(emit->env, def))
-      CHECK_BB(check_func_def(emit->env, def))
-      nspc_pop_type(emit->env->curr);
+    CHECK_BB(scan2_func_def(emit->env, def))
+    CHECK_BB(check_func_def(emit->env, def))
+    nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
       emit->env->curr = (Nspc)vector_pop(emit->env->nspc_stack);
@@ -680,7 +680,7 @@ static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint a
   f->code = code;
   return 1;
 }
-  
+
 static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "spork");

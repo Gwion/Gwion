@@ -21,7 +21,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
     decl->type->ref = 1;
   if(!type->size) {
     err_msg(SCAN2_, decl->pos,
-            "cannot declare variables of size '0' (i.e. 'void')...");
+      "cannot declare variables of size '0' (i.e. 'void')...");
     return -1;
   }
   if(!decl->type->ref) {
