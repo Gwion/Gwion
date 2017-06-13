@@ -172,7 +172,7 @@ INSTR(Reg_Push_Code) {
 
 INSTR(Reg_Dup_Last) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] dup last %p", (void*) * (m_uint*)(shred->reg  - SZ_INT));
+  debug_msg("instr", "[reg] dup last %p", *(m_uint*)(shred->reg  - SZ_INT));
 #endif
   *(m_uint*)shred->reg = *(m_uint*)(shred->reg  - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
@@ -180,7 +180,7 @@ INSTR(Reg_Dup_Last) {
 
 INSTR(Reg_AddRef_Object3) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : (void*) * (M_Object*)(shred->reg - SZ_INT));
+  debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : *(M_Object*)(shred->reg - SZ_INT));
 #endif
   M_Object obj = instr->m_val ? **(M_Object**)(shred->reg - SZ_INT) : *(M_Object*)(shred->reg - SZ_INT);
   if(obj)
@@ -270,9 +270,7 @@ INSTR(Branch_Eq_Int) {
   debug_msg("instr", "branch eq int %i %i %i", instr->m_val,  *(m_int**)(shred->reg - SZ_INT * 2),  *(m_int**)(shred->reg - SZ_INT));
 #endif
   POP_REG(shred,  SZ_INT * 2);
-  m_int l = *(m_uint*)shred->reg;
-  m_int r = *(m_uint*)(shred->reg + SZ_INT);
-  if(l == r)
+  if(*(m_uint*)shred->reg == *(m_uint*)(shred->reg + SZ_INT))
     shred->next_pc = instr->m_val;
 }
 
@@ -281,9 +279,7 @@ INSTR(Branch_Neq_Int) {
   debug_msg("instr", "branch !=");
 #endif
   POP_REG(shred,  SZ_INT * 2);
-  m_int l = *(m_uint*)shred->reg;
-  m_int r = *(m_uint*)(shred->reg + SZ_INT);
-  if(l != r)
+  if(*(m_uint*)shred->reg != *(m_uint*)(shred->reg + SZ_INT))
     shred->next_pc = instr->m_val;
 }
 
@@ -292,9 +288,7 @@ INSTR(Branch_Eq_Float) {
   debug_msg("instr", "branch eq int %i %f %f", instr->m_val,  *(m_float*)(shred->reg - SZ_FLOAT * 2),  *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
-  m_float l = *(m_float*)shred->reg;
-  m_float r = *(m_float*)(shred->reg + SZ_FLOAT);
-  if(l == r)
+  if(*(m_float*)shred->reg == *(m_float*)(shred->reg + SZ_FLOAT))
     shred->next_pc = instr->m_val;
 }
 
@@ -303,9 +297,7 @@ INSTR(Branch_Neq_Float) {
   debug_msg("instr", "branch != float %f %f", *(m_float*)(shred->reg - SZ_FLOAT * 2), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred,  SZ_FLOAT * 2);
-  m_float l = *(m_float*)shred->reg;
-  m_float r = *(m_float*)(shred->reg + SZ_FLOAT);
-  if(l != r)
+  if(*(m_float*)shred->reg != *(m_float*)(shred->reg + SZ_FLOAT))
     shred->next_pc = instr->m_val;
 }
 
@@ -654,15 +646,15 @@ INSTR(Reg_Dup_Last_Vec3) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "dup last vec3");
 #endif
-  *(m_vec3*)shred->reg = *(m_vec3*)(shred->reg  - SZ_INT);
+  *(m_vec3*)shred->reg = *(m_vec3*)(shred->reg - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_Dup_Last_Vec4) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "dup last vec3");
+  debug_msg("instr", "dup last vec4");
 #endif
-  *(m_vec4*)shred->reg = *(m_vec4*)(shred->reg  - SZ_INT);
+  *(m_vec4*)shred->reg = *(m_vec4*)(shred->reg - SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
@@ -672,19 +664,8 @@ INSTR(member_function) {
             instr->m_val));
 #endif
   POP_REG(shred,  SZ_INT);
-  /*
-  M_Object obj = *(M_Object*)shred->reg;
-  if(!obj)
-  {
-  	Except(shred);
-  	return;
-  }
-  */
   *(VM_Code*)shred->reg = ((Func)vector_at(*(Vector*)instr->ptr, instr->m_val))->code;
   PUSH_REG(shred,  SZ_INT);
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "member function %i [%i]", *(m_uint*)instr->ptr, instr->m_val, vector_at(*(Vector*)instr->ptr, instr->m_val));
-#endif
   return;
 }
 
@@ -716,7 +697,7 @@ INSTR(Instr_Exp_Func_Static) {
   stack_depth = func->stack_depth;
   PUSH_MEM(shred,  local_depth);
   if(stack_depth) {
-    POP_REG(shred,   stack_depth);
+    POP_REG(shred, stack_depth);
     memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
   }
   if(overflow_(shred)) {
