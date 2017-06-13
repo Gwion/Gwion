@@ -1146,80 +1146,80 @@ static Type check_exp_call(Env env, Exp_Func* exp_func) {
                           &exp_func->m_func, exp_func->pos);
 }
 
-static Type check_exp_unary(Env env, Exp_Unary* exp_unary) {
+static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
 
-  if(exp_unary->op != op_new && !exp_unary->code)
-    CHECK_OO((t = check_exp(env, exp_unary->exp)))
-  if(exp_unary->code)
-    CHECK_BO(check_stmt(env, exp_unary->code))
+  if(unary->op != op_new && !unary->code)
+    CHECK_OO((t = check_exp(env, unary->exp)))
+  if(unary->code)
+    CHECK_BO(check_stmt(env, unary->code))
 
-  switch(exp_unary->op) {
+  switch(unary->op) {
     case op_plusplus:
     case op_minusminus:
-      if(exp_unary->exp->meta != ae_meta_var) {
-        err_msg(TYPE_, exp_unary->pos,
-                "prefix exp_unary operator '%s' cannot "
-                "be used on non-mutable data-types...", op2str(exp_unary->op));
+      if(unary->exp->meta != ae_meta_var) {
+        err_msg(TYPE_, unary->pos,
+                "prefix unary operator '%s' cannot "
+                "be used on non-mutable data-types...", op2str(unary->op));
         return NULL;
       }
-      exp_unary->exp->emit_var = 1;
+      unary->exp->emit_var = 1;
       break;
 
     case op_minus:
     case op_tilda:
     case op_exclamation:
-      exp_unary->self->meta = ae_meta_value;
+      unary->self->meta = ae_meta_value;
 
       break;
     case op_spork:
-      if(exp_unary->exp && exp_unary->exp->exp_type == ae_exp_call)
+      if(unary->exp && unary->exp->exp_type == ae_exp_call)
         return &t_shred;
-      else if(exp_unary->code) {
+      else if(unary->code) {
         if(env->func) {
           env->class_scope++;
           nspc_push_value(env->curr);
-          int ret = check_stmt(env, exp_unary->code);
+          int ret = check_stmt(env, unary->code);
           nspc_pop_value(env->curr);
           env->class_scope--;
           if(ret < 0)
             return NULL;
           else return &t_shred;
           break;
-        } else if(check_stmt(env, exp_unary->code) < 0) {
-          err_msg(TYPE_, exp_unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
+        } else if(check_stmt(env, unary->code) < 0) {
+          err_msg(TYPE_, unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
           break;                                                                // LCOV_EXCL_LINE
         }
         return &t_shred;
       } else {
-        err_msg(TYPE_,  exp_unary->pos, "only function calls can be sporked...");
+        err_msg(TYPE_,  unary->pos, "only function calls can be sporked...");
         return NULL;
       }
       break;
 
     case op_new:
-      if(!(t = find_type(env, exp_unary->type->xid))) {
-        err_msg(TYPE_,  exp_unary->pos,  "... in 'new' expression ...");
+      if(!(t = find_type(env, unary->type->xid))) {
+        err_msg(TYPE_,  unary->pos,  "... in 'new' expression ...");
         return NULL;
       }
-      if(exp_unary->array) {
-        CHECK_BO(verify_array(exp_unary->array))
-        CHECK_OO(check_exp(env, exp_unary->array->exp_list))
-        CHECK_BO(check_exp_array_subscripts(env, exp_unary->array->exp_list))
-        t = new_array_type(env, exp_unary->array->depth, t, env->curr);
+      if(unary->array) {
+        CHECK_BO(verify_array(unary->array))
+        CHECK_OO(check_exp(env, unary->array->exp_list))
+        CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
+        t = new_array_type(env, unary->array->depth, t, env->curr);
       } else if(isa(t, &t_object) < 0) {
-        err_msg(TYPE_, exp_unary->pos,
+        err_msg(TYPE_, unary->pos,
                 "cannot instantiate/(new) primitive type '%s'...", t->name);
-        err_msg(TYPE_, exp_unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
+        err_msg(TYPE_, unary->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
         return NULL;
       }
       return t;
     default: break;
   }
-  if(!(t = get_return_type(env, exp_unary->op, NULL, exp_unary->exp->type)))
-    err_msg(TYPE_, exp_unary->pos,
+  if(!(t = get_return_type(env, unary->op, NULL, unary->exp->type)))
+    err_msg(TYPE_, unary->pos,
       "no suitable resolution for prefix operator '%s' on type '%s...",
-      op2str(exp_unary->op), t ? t->name : "unknown");
+      op2str(unary->op), t ? t->name : "unknown");
   return t;
 }
 

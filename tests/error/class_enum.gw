@@ -1,4 +1,4 @@
-// [contains] prefix exp_unary operator '--' cannot be used on non-mutable data-types
+// [contains] prefix unary operator '--' cannot be used on non-mutable data-types
 class C
 {
 	enum { a, b };

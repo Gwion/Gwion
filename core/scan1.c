@@ -43,9 +43,9 @@ static m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
   return 1;
 }
 
-static m_bool scan1_exp_primary(Env env, Exp_Primary* primary) {
-  if(primary->type == ae_primary_hack)
-    CHECK_BB(scan1_exp(env, primary->d.exp))
+static m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
+  if(prim->type == ae_primary_hack)
+    CHECK_BB(scan1_exp(env, prim->d.exp))
     return 1;
 }
 

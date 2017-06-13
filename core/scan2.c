@@ -151,13 +151,13 @@ error:
   return -1;
 }
 
-static m_bool scan2_exp_primary(Env env, Exp_Primary* primary) {
+static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Primary");
 #endif
-  if(primary->type == ae_primary_hack)
-    CHECK_BB(scan2_exp(env, primary->d.exp))
-    return 1;
+  if(prim->type == ae_primary_hack)
+    CHECK_BB(scan2_exp(env, prim->d.exp))
+  return 1;
 }
 
 static m_bool scan2_exp_array(Env env, Exp_Array* array) {
