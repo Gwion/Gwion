@@ -23,27 +23,6 @@ static void sadd_instr(Emitter emit, f_instr f) {
   vector_add(emit->code->code, (vtype)instr);
 }
 
-Emitter new_emitter(Env env) {
-  Emitter emit = calloc(1, sizeof(struct Emitter_));
-  emit->env = NULL;
-  emit->code = NULL;
-  emit->stack = new_vector();
-  emit->funcs = new_vector();
-  emit->context = NULL;
-  emit->nspc = NULL;
-  emit->func = NULL;
-  emit->cases = NULL;
-  emit->env = env;
-  INIT_OO(emit, e_emit_obj);
-  return emit;
-}
-
-void free_emitter(Emitter a) {
-  free_vector(a->stack);
-  free_vector(a->funcs);
-  free(a);
-}
-
 static Code* new_code() {
   Code* code = calloc(1, sizeof(Code));
   code->stack_depth = 0;
@@ -364,12 +343,13 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
     Var_Decl var_decl = list->self;
     Value value = var_decl->value;
     Type type = value->m_type;
+Array_Sub array = list->self->array;
     m_bool is_obj = isa(type, &t_object) > 0 || list->self->array;
     m_bool is_ref = decl->type->ref;
     Kindof kind = kindof(type);
 
-    if(is_obj && ((list->self->array && list->self->array->exp_list) || !is_ref))
-      CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
+    if(is_obj && ((array && array->exp_list) || !is_ref))
+      CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
     if(GET_FLAG(value, ae_value_member)) {
       switch(kind)  {
         case Kindof_Int:     f = Alloc_Member_Word;         break;
@@ -383,7 +363,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
       alloc->m_val = value->offset;
     } else {
       if(!emit->env->class_def || !decl->is_static) {
-        Local* local = frame_alloc_local(emit->code->frame, decl->m_type->size, value->name, is_ref, is_obj);
+        Local* local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
         CHECK_OB(local)
         value->offset   = local->offset;
         switch(kind)  {
@@ -398,43 +378,26 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
         alloc->m_val  = value->offset;
         alloc->m_val2 = GET_FLAG(value, ae_value_global);
       } else { // static
+        Code* code = emit->code;
         if(is_obj && !is_ref) {
-          Code* code = emit->code;
           emit->code = (Code*)vector_back(emit->stack);
-          CHECK_BB(emit_instantiate_object(emit, type, list->self->array, is_ref))
-          // init the object in main code
-          Instr push = add_instr(emit, Reg_Push_Imm);
-          push->m_val = (m_uint)emit->env->class_def;
-          Instr dot_static = add_instr(emit, Dot_Static_Data);
-          dot_static->m_val = value->offset;
-          dot_static->m_val2 = kindof(emit->env->class_def);
-          *(m_uint*)dot_static->ptr = 1;
-          sadd_instr(emit, Assign_Object);
-          emit->code = code;
-          // add ref
-          Instr push_obj = add_instr(emit, Dot_Static_Data);
-          push_obj->m_val = value->offset;
-          sadd_instr(emit, Reg_AddRef_Object3);
-          Instr pop2 = add_instr(emit, Reg_Pop_Word4);
-          pop2->m_val = SZ_INT;
-          return 1;
-        } else {
-          // emit the type
-          Instr push = add_instr(emit, Reg_Push_Imm);
-          push->m_val = (m_uint)emit->env->class_def;
-          Instr dot_static = add_instr(emit, Dot_Static_Data);
-          dot_static->m_val = value->offset;
-          dot_static->m_val2 = kindof(emit->env->class_def);
-          *(m_uint*)dot_static->ptr = 1;
+          CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
         }
+        Instr push = add_instr(emit, Reg_Push_Imm);
+        push->m_val = (m_uint)emit->env->class_def;
+        Instr dot_static = add_instr(emit, Dot_Static_Data);
+        dot_static->m_val = value->offset;
+        dot_static->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
+        *(m_uint*)dot_static->ptr = 1;
+        if(is_obj && !is_ref)
+          emit->code = code;
       }
     }
     if(is_obj) {
-      if(list->self->array && list->self->array->exp_list) {
+      if(array && array->exp_list) {
           Instr assign = add_instr(emit, Assign_Object);
           assign->m_val = decl->self->emit_var;
           ADD_REF(type);
-        }
       } else if(!is_ref) {
         Instr assign  = add_instr(emit, Assign_Object);
         assign->m_val = decl->self->emit_var;
@@ -463,11 +426,11 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
       if(!l) {
         size += e->type->size;
         vector_add(kinds, (vtype)kindof(e->type));
-      } else
-        offset += e->type->size;
-      e = e->next;
-      if(l)
+      } else {
         l = l->next;
+        offset += e->type->size;
+      }
+      e = e->next;
     }
     instr = add_instr(emit, MkVararg);
     instr->m_val = size;
@@ -921,12 +884,9 @@ static m_bool emit_stmt_if(Emitter emit, Stmt_If stmt) {
     return -1;
   }                                 // LCOV_EXCL_STOP
   op = add_instr(emit, f);
-  {
-    frame_push_scope(emit->code->frame);
-    CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
-    // pop stack
-    emit_pop_scope(emit);
-  }
+  frame_push_scope(emit->code->frame);
+  CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
+  emit_pop_scope(emit);
   op2 = add_instr(emit, Goto);
   op->m_val = vector_size(emit->code->code);
 
@@ -1402,8 +1362,6 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
           err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
           return -1;
         }
-//        value = stmt->val->d.exp_primary.value->is_const == 2 ? (m_uint)stmt->val->d.exp_primary.value->ptr : // for enum
-//              *(m_uint*)stmt->val->d.exp_primary.value->ptr;                                                   // for primary variable
         value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
       }
     }
@@ -1854,17 +1812,9 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 
   // ensure return
   if(func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
-    Kindof k = kindof(func_def->ret_type);
     Instr instr = add_instr(emit, Reg_Push_ImmX);
+    instr->m_val = func_def->ret_type->size;
     emit_func_release(emit); // /04/04/2017
-    switch(k) {
-      case Kindof_Int:     instr->m_val = SZ_INT;     break;
-      case Kindof_Float:   instr->m_val = SZ_FLOAT;   break;
-      case Kindof_Complex: instr->m_val = SZ_COMPLEX; break;
-      case Kindof_Vec3:    instr->m_val = SZ_VEC3;    break;
-      case Kindof_Vec4:    instr->m_val = SZ_VEC4;    break;
-      case Kindof_Void: goto error; // won't reach
-    }
     vector_add(emit->code->stack_return, (vtype)add_instr(emit, Goto));
   }
   emit_pop_scope(emit);

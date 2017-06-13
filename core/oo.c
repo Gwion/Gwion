@@ -77,6 +77,22 @@ Type type_copy(Env env, Type type) {
   return a;
 }
 
+Emitter new_emitter(Env env) {
+  Emitter emit = calloc(1, sizeof(struct Emitter_));
+  emit->stack = new_vector();
+  emit->funcs = new_vector();
+  emit->env = env;
+  INIT_OO(emit, e_emit_obj);
+  return emit;
+}
+
+void free_emitter(Emitter a) {
+  free_vector(a->stack);
+  free_vector(a->funcs);
+  free(a);
+}
+
+
 void rem_ref(VM_Object a, void* ptr) {
   if(!--a->ref_count) {
     switch(a->type) {
