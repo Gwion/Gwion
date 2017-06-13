@@ -1448,7 +1448,7 @@ static m_bool emit_stmt_typedef(Emitter emit, Stmt_Ptr ptr) {
   nspc_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_add(emit->funcs, (vtype)ptr);
   if(ptr->key)
-    scope_rem(ptr->value->owner_class->info->func, ptr->xid);
+    ADD_REF(ptr->func)
   return 1;
 }
 
