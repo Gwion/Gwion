@@ -97,6 +97,16 @@ INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
+  M_Object* obj, done;
+  POP_REG(shred, SZ_INT * 2);
+  obj = *(M_Object**)(shred->reg + SZ_INT);
+  done = *obj;
+  *obj = *(M_Object*)shred->reg;
+  // add ref ?
+  if(done)
+	release(done,shred);
+  PUSH_REG(shred, SZ_INT);
+/*
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
   src = *(M_Object*)shred->reg;
@@ -109,6 +119,7 @@ INSTR(Assign_Object) {
   if(instr->m_val2)
     release(tgt, shred);
   PUSH_REG(shred, SZ_INT);
+*/
 }
 
 static INSTR(eq_Object) {
