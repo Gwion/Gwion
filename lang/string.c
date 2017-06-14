@@ -14,14 +14,13 @@ static INSTR(String_Assign) {
 #endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  if(rhs->d.data) { // assigning with chuck a empty ref
+  M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(rhs && rhs->d.data) { // assigning with chuck a empty ref
     release(lhs, shred);
     release(rhs, shred);
     STRING(rhs) = lhs ? STRING(lhs) : NULL;
   } else
     **(M_Object**)(shred->reg + SZ_INT) = lhs;
-  *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
 }
 

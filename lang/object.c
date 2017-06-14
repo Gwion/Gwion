@@ -102,7 +102,8 @@ INSTR(Assign_Object) {
   src = *(M_Object*)shred->reg;
   if((tgt = **(M_Object**)(shred->reg + SZ_INT)))
     release(tgt, shred);
-  **(M_Object**)(shred->reg + (instr->m_val ? 0: SZ_INT)) = src;
+  **(M_Object**)(shred->reg + (instr->m_val ? 0 : SZ_INT)) = src;
+  **(M_Object**)(shred->reg + SZ_INT) = src;
   PUSH_REG(shred, SZ_INT);
 }
 

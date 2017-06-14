@@ -675,10 +675,6 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
       cr->emit_var = cl->emit_var = 0;
       break;
     }
-    if(isa(cl->type, &t_string) > 0 && isa(cr->type, &t_string) > 0) {
-      cr->emit_var = cl->emit_var = 0;
-      break;
-    }
     if(isa(cr->type, &t_fileio) > 0) {
       cr->emit_var = 1;
       break;
