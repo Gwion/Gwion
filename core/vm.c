@@ -74,6 +74,7 @@ void free_vm_shred(VM_Shred shred) {
   else
     free(shred->base);
   free(shred->_reg);
+printf("%s\n", shred->name);
   if(!strstr(shred->name, "spork~"))
     free_vm_code(shred->code);
   free(shred->name);
