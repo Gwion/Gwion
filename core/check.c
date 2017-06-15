@@ -1702,9 +1702,10 @@ m_bool check_func_def(Env env, Func_Def f) {
     override = find_value(env->class_def->parent, f->name);
   else if(value->func_num_overloads) {
     m_uint i, j;
+    m_uint digit = floor(log10(abs(value->func_num_overloads))) + 3; // add two '@'
     if(!f->types)
       for(i = 0; i <= value->func_num_overloads; i++) {
-        char name[1024];
+        char name[strlen(S_name(f->name)) + strlen(env->curr->name) + digit];
         sprintf(name, "%s@%li@%s", S_name(f->name), i, env->curr->name);
         Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
         for(j = 1; j <= value->func_num_overloads; j++) {
