@@ -69,8 +69,8 @@ static const m_str op_name[] = {
 // reverse arithmetic
   "chuck", "pluschuck", "minuschuck", "timeschuck", "dividechuck", "modulochuck",
 // reverse logical
-  "rand", "ror", "req", "rneq",
-  "rgt", "rge", "rlt", "rle",
+  "chuck_and", "chuck_or", "chuck_eq", "chuck_neq",
+  "chuck_gt", "chuck_ge", "chuck_lt", "chuck_le",
 // reverse bitwise
   "rsl", "rsr", "rsand", "rsor", "rsxor",
 // unchuck

@@ -642,7 +642,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     snprintf(tmp, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
     snprintf(tmp, len + 1, "%s@0@%s", func_name, env->curr->name);
-
   func_name = strdup(tmp);
   func = new_func(func_name, f);
   func->is_member = (env->class_def && (f->static_decl != ae_key_static));

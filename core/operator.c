@@ -4,11 +4,9 @@
 
 m_int name2op(m_str name) {
   m_uint i = 0;
-  while(op_name[i] && op_str[i]) {
-    if(!strcmp(op_name[i], name))
+  while(op_name[i]) {
+    if(!strcmp(name, op_name[i]))
       return operators[i];
-    if(!op_name[i + 1])
-      return -1;
     i++;
   }
   return -1;

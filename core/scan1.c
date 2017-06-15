@@ -458,6 +458,11 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     return -1;
   }
 
+  if(f->spec != ae_func_spec_op && name2op(S_name(f->name)) > 0) {
+    err_msg(SCAN1_, f->pos, "'%s' is a reserved operator name", S_name(f->name));
+    return -1;
+  }
+
   if(f->types)
     return 1;
   Arg_List arg_list = NULL;

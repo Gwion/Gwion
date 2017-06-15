@@ -71,7 +71,7 @@ void free_nspc(Nspc a) {
        else if(isa(value->m_type, &t_object) > 0) {
           if(value->ptr || GET_FLAG(value, ae_value_static)) {
             Vector instr = new_vector();
-            VM_Code code = new_vm_code(instr, 0, 0, "", "");
+            VM_Code code = new_vm_code(instr, 0, 0, "in nspc dtor", "");
             VM_Shred s = new_vm_shred(code);
             s->vm_ref = vm;
             release(((M_Object)value->ptr), s);
