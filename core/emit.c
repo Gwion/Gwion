@@ -950,6 +950,25 @@ static m_bool emit_stmt_break(Emitter emit, Stmt_Break cont) {
   return 1;
 }
 
+static void emit_push_stack(Emitter emit) { // should be m_bool as vector_add should return m_bool
+  vector_add(emit->code->stack_cont, (vtype)NULL);
+  vector_add(emit->code->stack_break, (vtype)NULL);
+}
+
+static void emit_pop_stack(Emitter emit, m_uint index) { // should be m_bool as vector_add should return m_bool
+  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
+    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
+    instr->m_val = index;
+  }
+  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
+    Instr instr = (Instr)vector_pop(emit->code->stack_break);
+    instr->m_val = vector_size(emit->code->code);
+  }
+  emit_pop_scope(emit);
+  vector_pop(emit->code->stack_cont);
+  vector_pop(emit->code->stack_break);
+}
+
 static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func while");
@@ -960,9 +979,7 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   f_instr f = NULL;
 
   frame_push_scope(emit->code->frame);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
-
+  emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
 
     switch(stmt->cond->type->xid) {
@@ -988,17 +1005,7 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   goto_ = add_instr(emit, Goto);
   goto_->m_val = index;
   op->m_val = vector_size(emit->code->code);
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
-  }
-  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, index);
   return ret;
 }
 
@@ -1012,12 +1019,10 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
   f_instr f = NULL;
 
   frame_push_scope(emit->code->frame);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
-
+  emit_push_stack(emit);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-    emit_pop_scope(emit);
+  emit_pop_scope(emit);
 
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
 
@@ -1036,17 +1041,7 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
     }
   op = add_instr(emit, f);
   op->m_val = index;
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
-  }
-  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, index);
   return ret;
 }
 
@@ -1059,8 +1054,7 @@ static m_bool emit_stmt_until(Emitter emit, Stmt_Until stmt) {
   frame_push_scope(emit->code->frame);
 
   m_uint index = vector_size(emit->code->code);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
+  emit_push_stack(emit);
 
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
 
@@ -1086,18 +1080,7 @@ static m_bool emit_stmt_until(Emitter emit, Stmt_Until stmt) {
   Instr _goto = add_instr(emit, Goto);
   _goto->m_val = index;
   op->m_val = vector_size(emit->code->code);
-
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
-  }
-  while(vector_size(emit ->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, index);
   return 1;
 }
 
@@ -1110,9 +1093,7 @@ static m_bool emit_stmt_do_until(Emitter emit, Stmt_Until stmt) {
   frame_push_scope(emit->code->frame);
 
   m_uint index = vector_size(emit->code->code);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
-
+  emit_push_stack(emit);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
     emit_pop_scope(emit);
@@ -1134,18 +1115,7 @@ static m_bool emit_stmt_do_until(Emitter emit, Stmt_Until stmt) {
     }
   op = add_instr(emit, f);
   op->m_val = index;
-
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
-  }
-  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, index);
   return 1;
 }
 
@@ -1159,10 +1129,8 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
 
-    m_uint index = vector_size(emit->code->code);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
-
+  m_uint index = vector_size(emit->code->code);
+  emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c2, 0))
     if(stmt->c2) {
       switch(stmt->c2->d.stmt_exp.val->type->xid) {
@@ -1203,18 +1171,7 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
 
   if(stmt->c2)
     op->m_val = vector_size(emit->code->code);
-
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = action_index;
-  }
-  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, action_index);
   return 1;
 }
 
@@ -1232,8 +1189,7 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
   init = add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
   index = vector_size(emit->code->code);
-  vector_add(emit->code->stack_cont, (vtype)NULL);
-  vector_add(emit->code->stack_break, (vtype)NULL);
+  emit_push_stack(emit);
   deref = add_instr(emit, Reg_Push_Deref);
   deref->m_val = (m_uint)counter;
 
@@ -1248,19 +1204,8 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
 
   _goto = add_instr(emit, Goto);
   _goto->m_val = index;
-
   op->m_val = vector_size(emit->code->code);
-  while(vector_size(emit->code->stack_cont) && vector_back(emit->code->stack_cont)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_cont);
-    instr->m_val = index;
-  }
-  while(vector_size(emit->code->stack_break) && vector_back(emit->code->stack_break)) {
-    Instr instr = (Instr)vector_pop(emit->code->stack_break);
-    instr->m_val = vector_size(emit->code->code);
-  }
-  emit_pop_scope(emit);
-  vector_pop(emit->code->stack_cont);
-  vector_pop(emit->code->stack_break);
+  emit_pop_stack(emit, index);
   return 1;
 }
 
@@ -1443,7 +1388,6 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
           exp = exp->d.exp_primary.d.exp;
         while(exp) {
           instr = add_instr(emit, Reg_Pop_Word4);
-//          instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * SZ_INT : exp->type->size);
           instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * exp->type->size : exp->type->size);
           exp = exp->next;
         }
