@@ -125,6 +125,9 @@ static INSTR(Object_String_Assign) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(!rhs) {
+	Except(shred, "NullStringException");
+  }
   char str[12];
   str[11] = '\0';
   sprintf(str, "0x%08lu", (uintptr_t)lhs);
@@ -553,6 +556,10 @@ static MFUN(string_substring) {
   m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
+  if(!len || (len-index+1) <= 0) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
   char c[len - index + 1];
   memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
@@ -567,6 +574,10 @@ static MFUN(string_substringN) {
   m_int end = *(m_int*)(shred->mem + SZ_INT*2);
   while(str[len] != '\0')
     len++;
+  if(end > len) {
+    RETURN->d.v_object = NULL;
+	return;
+  }
   len -= end;
   char c[len - index + 1];
   for(i = index; i < len; i++)
@@ -607,6 +618,10 @@ static MFUN(string_replace) {
   while(str[len] != '\0')
     len++;
   len_insert =  strlen(insert);
+if(index < 0 || !len || (index + len_insert + 1) <= 0) {
+  RETURN->d.v_object = NULL;
+  return;
+}
   char c[index + len_insert + 1];
   for(i = 0; i < index; i++)
     c[i] = str[i];
@@ -659,6 +674,10 @@ static MFUN(string_findStart) {
   char pos = *(m_int*)(shred->mem + SZ_INT);
   char arg = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int i = pos, ret = -1;
+  if(!strlen(str)) {
+	RETURN->d.v_object = NULL;
+    return;
+  }
   while(str[i] != '\0') {
     if(str[i] == arg) {
       ret = i;
@@ -670,6 +689,10 @@ static MFUN(string_findStart) {
 }
 
 static MFUN(string_findStr) {
+  if(!strlen(STRING(o))) {
+	RETURN->d.v_object = NULL;
+	return;
+  }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
@@ -690,6 +713,10 @@ static MFUN(string_findStr) {
 }
 
 static MFUN(string_findStrStart) {
+  if(!strlen(STRING(o))) {
+	RETURN->d.v_object = NULL;
+	return;
+  }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
@@ -725,6 +752,10 @@ static MFUN(string_rfind) {
 }
 
 static MFUN(string_rfindStart) {
+  if(!strlen(STRING(o))) {
+	RETURN->d.v_object = NULL;
+	return;
+  }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   char pos = *(m_int*)(shred->mem + SZ_INT);
@@ -741,6 +772,10 @@ static MFUN(string_rfindStart) {
 }
 
 static MFUN(string_rfindStr) {
+  if(!strlen(STRING(o))) {
+	RETURN->d.v_object = NULL;
+	return;
+  }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
@@ -761,6 +796,10 @@ static MFUN(string_rfindStr) {
 }
 
 static MFUN(string_rfindStrStart) {
+  if(!strlen(STRING(o))) {
+	RETURN->d.v_object = NULL;
+	return;
+  }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
@@ -788,8 +827,11 @@ static MFUN(string_erase) {
   m_int rem = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int len = strlen(str);
   m_uint size = len -rem + 1;
+  if((len-rem+1) <= 0) {
+	RETURN->d.v_object = NULL;
+    return;
+  }
   char c[size];
-//  memset(c, 0, len - rem);
   c[size -1] = '\0';
   for(i = 0; i < start; i++)
     c[i] = str[i];
