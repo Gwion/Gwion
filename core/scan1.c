@@ -529,7 +529,7 @@ static m_bool scan1_class_def(Env env, Class_Def class_def) {
   env->class_def = the_class;
   env->class_scope = 0;
 
-  while(body) {
+  while(body && ret > 0) {
     switch(body->section->type) {
     case ae_section_stmt:
       ret = scan1_stmt_list(env, body->section->d.stmt_list);
@@ -541,7 +541,6 @@ static m_bool scan1_class_def(Env env, Class_Def class_def) {
       ret = scan1_class_def(env, body->section->d.class_def);
       break;
     }
-    CHECK_BB(ret)
     body = body->next;
   }
   env->class_def = (Type)vector_pop(env->class_stack);
