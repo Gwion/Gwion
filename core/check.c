@@ -612,8 +612,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   m_uint llen  = lhs->type->array_depth*2;
   m_uint rlen  = rhs->type->array_depth*2;
   char la[llen + 1], ra[rlen + 1];
-  la[llen] = '\0';
-  ra[llen] = '\0';
+  la[0] = '\0';
+  ra[0] = '\0';
   for(i = 0; i < lhs->type->array_depth; i++)
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
