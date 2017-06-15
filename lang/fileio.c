@@ -178,6 +178,8 @@ MFUN(file_nl) {
 MFUN(file_open) {
   M_Object lhs = *(M_Object*)(shred->mem + SZ_INT * 2);
   M_Object rhs = *(M_Object*)(shred->mem + SZ_INT);
+  if(!lhs || !rhs)
+    Except(shred, "invalid arguments to FileIO.open()");
   m_str filename = STRING(rhs);
   m_str mode = STRING(lhs);
   release(rhs, shred);

@@ -113,7 +113,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 
   if(!out->prev && !out->next && out != s->list) {
 //    if(!out->wait && !out->child && erase)
-    if(!out->wait && !out->child && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
+    if(erase && !out->wait && !out->child && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
       free_vm_shred(out);
     return -1;
   }

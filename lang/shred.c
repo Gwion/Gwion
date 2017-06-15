@@ -45,7 +45,6 @@ static MFUN(shred_yield) {
   Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
   shredule(sh, s, get_now(sh) + .5);
-  RETURN->d.v_uint = 1;
 }
 
 static SFUN(vm_shred_from_id) {
@@ -126,7 +125,7 @@ m_bool import_shred(Env env) {
   CHECK_OB((f = import_sfun(env, fun)))
   f->doc = "get a shred from id";
 
-  fun = new_dl_func("int", "yield", (m_uint)shred_yield);
+  fun = new_dl_func("void", "yield", (m_uint)shred_yield);
   CHECK_OB((f = import_mfun(env, fun)))
   f->doc = "let other shreds a chance to compute";
 

@@ -750,7 +750,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 
   if(isa(t2, &t_func_ptr) > 0) {
     Value v = nspc_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
-    Func  f = nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
+    Func  f = isa(v->m_type, &t_func_ptr) > 0 ? v->m_type->func : nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
     if(compat_func(t2->func->def, f->def, f->def->pos)) {
       cast->func = f;
       return t2;
@@ -926,9 +926,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     }
     m_int ret = scan1_func_def(env, def);
     nspc_pop_type(env->curr);
-    if(ret < 0)                               continue;
-    if(scan2_func_def(env, def) < 0)          continue;
-    if(check_func_def(env, def) < 0)          continue;
+    if(ret < 0)                        continue;
+    if(scan2_func_def(env, def) < 0)   continue;
+    if(check_func_def(env, def) < 0)   continue;
     if(!check_exp(env, func))          continue;
     if(args  && !check_exp(env, args)) continue;
     def->func->next = NULL;
@@ -1908,16 +1908,14 @@ static m_bool check_ast(Env env, Ast ast) {
 }
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
-  m_bool ret = -1;
+  m_bool ret;
   Context context = new_context(ast, filename);
   env_reset(env);
   CHECK_BB(load_context(context, env))
-  if(scan0_Ast(env, ast) < 0) goto cleanup;
-  if(scan1_ast(env, ast) < 0) goto cleanup;
-  if(scan2_ast(env, ast) < 0) goto cleanup;
-  if(check_ast(env, ast) < 0) goto cleanup;
-  ret = 1;
-
+  if((ret = scan0_Ast(env, ast)) < 0) goto cleanup;
+  if((ret = scan1_ast(env, ast)) < 0) goto cleanup;
+  if((ret = scan2_ast(env, ast)) < 0) goto cleanup;
+  if((ret = check_ast(env, ast)) < 0) goto cleanup;
 cleanup:
   if(ret > 0) {
     nspc_commit(env->global_nspc);

@@ -213,7 +213,9 @@ static INSTR(if_assign) {
 //  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_INT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)(shred->reg) = 
+(**(m_int**)shred->reg = 
+*(m_float*)(shred->reg + SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 

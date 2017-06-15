@@ -849,7 +849,7 @@ INSTR(Alloc_Member_Word) {
 
 INSTR(Alloc_Member_Word_Float) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member float: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
+  debug_msg("instr", "alloc member float: %p[%i]", *(m_uint*)shred->mem, instr->m_val);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   *(m_float*)(obj->d.data + instr->m_val) = 0.0;
@@ -858,7 +858,7 @@ INSTR(Alloc_Member_Word_Float) {
     PUSH_REG(shred,  SZ_INT);
   } else {
     *(m_float*)shred->reg = *(m_float*)(obj->d.data + instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred,  SZ_FLOAT);
   }
 }
 

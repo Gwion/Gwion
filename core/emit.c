@@ -752,7 +752,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
     return -1;
   switch(unary->op) {
     case op_spork:
-      CHECK_BB(unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func))
+      CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func)))
       break;
     case op_new:
       CHECK_BB(emit_instantiate_object(emit, unary->self->type, unary->array, unary->type->ref))
@@ -760,6 +760,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
     default:
       return get_instr(emit, unary->op, NULL, unary->exp->type) ? 1 : -1;
   }
+printf("here\n");
   return 1;
 }
 

@@ -31,6 +31,8 @@ static INSTR(Int_String_Assign) {
   POP_REG(shred, SZ_INT*2);
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(!rhs)
+	Except(shred, "NullStringException.");
   char str[1024];
   memset(str, 0, 1024);
   sprintf(str, "%li", lhs);
@@ -239,6 +241,10 @@ static INSTR(Object_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  if(!rhs)
+    Except(shred,"NullStringException");
+  if(!lhs)
+    Except(shred,"NullStringException");
   char str[11 + strlen(STRING(rhs))];
   sprintf(str, "0x%08lu%s", (uintptr_t)lhs, STRING(rhs));
   *(M_Object*)shred->reg = new_String(shred,str);
@@ -278,6 +284,8 @@ static INSTR(Int_String_Plus) {
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(!rhs)
+	Except(shred, "NullStringException.");
   m_uint len = strlen(STRING(rhs)) + 1;
   m_uint tmp = labs(lhs);
   while(tmp /= 10)
