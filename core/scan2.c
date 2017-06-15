@@ -589,7 +589,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
-  m_uint digit = overload ? (floor(log10(abs(overload->func_num_overloads + 1))) + 3) : 3;
+  m_uint digit = overload ? (floor(log10(overload->func_num_overloads + 1)) + 3) : 3;
   char name[strlen(func_name) + strlen(env->curr->name) + digit + 10];
 
   if(f->types) {

@@ -521,7 +521,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     m_uint i;
     Func f1, f2 = NULL;
     Value v;
-    char name[1024];
     Type ret_type;
     /*
        if(isa(binary->lhs->type, &t_func_ptr) > 0) {
@@ -578,9 +577,12 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
         f1->def->ret_type->name, f2->def->ret_type->name);
       return NULL;
     }
+
+    m_uint digit = v->func_num_overloads ? (floor(log10(v->func_num_overloads)) + 3) : 3;
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
+        char name[strlen(c) + strlen(env->curr->name) + digit];
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
       }
@@ -607,9 +609,11 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if((t = get_return_type(env, op, lhs->type, rhs->type)))
     return t;
   m_uint i;
-  char la[256], ra[256];
-  memset(la, 0, 256);
-  memset(ra, 0, 256);
+  m_uint llen  = lhs->type->array_depth*2;
+  m_uint rlen  = rhs->type->array_depth*2;
+  char la[llen + 1], ra[rlen + 1];
+  la[llen] = '\0';
+  ra[llen] = '\0';
   for(i = 0; i < lhs->type->array_depth; i++)
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
@@ -890,6 +894,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   m_uint i;
   Func_Def base;
   Value value;
+  m_uint digit = floor(log10(v->func_num_overloads + 1)) + 13;
 
   CHECK_OO(v)
   if(v->owner_class) {
@@ -900,7 +905,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     env->class_scope = 0; // should keep former value somewhere
   }
   for(i = 0; i < v->func_num_overloads + 1; i++) {
-    char name[256];
+    char name[strlen(v->name) + strlen(env->curr->name) + digit + 20];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
@@ -1702,7 +1707,7 @@ m_bool check_func_def(Env env, Func_Def f) {
     override = find_value(env->class_def->parent, f->name);
   else if(value->func_num_overloads) {
     m_uint i, j;
-    m_uint digit = floor(log10(abs(value->func_num_overloads))) + 3; // add two '@'
+    m_uint digit = floor(log10(value->func_num_overloads)) + 3; // add two '@'
     if(!f->types)
       for(i = 0; i <= value->func_num_overloads; i++) {
         char name[strlen(S_name(f->name)) + strlen(env->curr->name) + digit];
