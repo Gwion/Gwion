@@ -552,21 +552,14 @@ static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "cast %s to %s", from->name, to->name);
 #endif
-  f_instr f;
-  if(to->xid == from->xid)
+  f_instr f = NULL;
+  if(to->xid == from->xid || isa(from, to) > 0 ||
+    (isa(from, &t_null) > 0 && isa(to, &t_object) > 0))
     return 1;
-  if(to->xid == t_int.xid && from->xid == t_float.xid)
+  else if(to->xid == t_int.xid && from->xid == t_float.xid)
     f = Cast_f2i;
   else if(to->xid == t_float.xid && from->xid == t_int.xid)
     f = Cast_i2f;
-  else if(isa(from, to) > 0)
-    return 1;
-  else if(isa(from, &t_null) > 0 && isa(to, &t_object) > 0)
-    return 1;
-  else {
-    err_msg(EMIT_, 0, "cannot cast '%s' to '%s'", from->name, to->name); // LCOV_EXCL_LINE
-    return -1;                                                           // LCOV_EXCL_LINE
-  }
   sadd_instr(emit, f);
   return 1;
 }
