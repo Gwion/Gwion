@@ -453,7 +453,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
       vector_add(emit->env->class_stack, (vtype)emit->env->class_def);
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
-      emit->env->class_scope = 0;
+      emit->env->class_scope = 0; // check utility
     }
     nspc_push_type(emit->env->curr);
     while(base_t) {

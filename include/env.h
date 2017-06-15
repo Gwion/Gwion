@@ -27,4 +27,9 @@ Env new_env();
 void env_reset(Env env);
 void free_env();
 
+#define SCOPE(a) env->class_scope++;a;env->class_scope--;
+#define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
+nspc_pop_value(env->curr);env->class_scope--;
+
+
 #endif

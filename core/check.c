@@ -1611,9 +1611,7 @@ static m_bool check_stmt(Env env, Stmt stmt) {
       ret = (check_exp(env, stmt->d.stmt_exp.val) ? 1 : -1);
     break;
   case ae_stmt_code:
-    env->class_scope++;
-    ret = check_stmt_code(env, &stmt->d.stmt_code, 1);
-    env->class_scope--;
+    SCOPE(ret = check_stmt_code(env, &stmt->d.stmt_code, 1))
     break;
   case ae_stmt_return:
     ret = check_stmt_return(env, &stmt->d.stmt_return);
@@ -1625,46 +1623,22 @@ static m_bool check_stmt(Env env, Stmt stmt) {
     ret = check_stmt_continue(env, &stmt->d.stmt_continue);
     break;
   case ae_stmt_if:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_if(env, &stmt->d.stmt_if);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_if(env, &stmt->d.stmt_if))
     break;
   case ae_stmt_while:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_while(env, &stmt->d.stmt_while);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_while(env, &stmt->d.stmt_while))
     break;
   case ae_stmt_until:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_until(env, &stmt->d.stmt_until);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_until(env, &stmt->d.stmt_until))
     break;
   case ae_stmt_for:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_for(env, &stmt->d.stmt_for);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_for(env, &stmt->d.stmt_for))
     break;
   case ae_stmt_loop:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_loop(env, &stmt->d.stmt_loop);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_loop(env, &stmt->d.stmt_loop))
     break;
   case ae_stmt_switch:
-    env->class_scope++;
-    nspc_push_value(env->curr);
-    ret = check_stmt_switch(env, &stmt->d.stmt_switch);
-    nspc_pop_value(env->curr);
-    env->class_scope--;
+    NSPC(ret = check_stmt_switch(env, &stmt->d.stmt_switch))
     break;
   case ae_stmt_case:
     ret = check_stmt_case(env, &stmt->d.stmt_case);
