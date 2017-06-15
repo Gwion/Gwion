@@ -363,8 +363,6 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
             case Kindof_Void:                                   break;
           }
           alloc = add_instr(emit, f);
-          alloc->m_val = value->offset;
-          *(m_uint*)alloc->ptr = (is_ref || isprim(type) > 0)  ? decl->self->emit_var : 1;
         } else {
           if(!emit->env->class_def || !decl->is_static) {
             Local* local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
@@ -379,9 +377,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
               case Kindof_Void:                             break;
             }
             alloc   = add_instr(emit, f);
-            alloc->m_val  = value->offset;
             alloc->m_val2 = GET_FLAG(value, ae_value_global);
-            *(m_uint*)alloc->ptr = (is_ref || isprim(type) > 0)  ? decl->self->emit_var : 1;
           } else { // static
             Code* code = emit->code;
             if(is_obj && !is_ref) {
@@ -390,14 +386,14 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
             }
             Instr push = add_instr(emit, Reg_Push_Imm);
             push->m_val = (m_uint)emit->env->class_def;
-            Instr dot_static = add_instr(emit, Dot_Static_Data);
-            dot_static->m_val = value->offset;
-            dot_static->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-            *(m_uint*)dot_static->ptr = 1;
+            alloc = add_instr(emit, Dot_Static_Data);
+            alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
             if(is_obj && !is_ref)
               emit->code = code;
           }
         }
+   alloc->m_val = value->offset;
+   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
     if(is_obj) {
       if(array && array->exp_list) {
         Instr assign = add_instr(emit, Assign_Object);
