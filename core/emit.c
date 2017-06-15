@@ -1857,9 +1857,6 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret = 1;
   emit->filename = filename;
   emit->code = new_code();
-  emit->context = emit->env->context;
-  emit->nspc = emit->context->nspc;
-  emit->func = NULL;
   free_vector(emit->stack);
   emit->stack = new_vector();
   frame_push_scope(emit->code->frame);

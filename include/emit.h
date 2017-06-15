@@ -7,9 +7,6 @@ struct Emitter_ {
   Env       env;
   Vector    stack;
   Vector    funcs;
-  Context   context;
-  Nspc nspc;
-  Func      func;
   Map       cases;
   m_int	    default_case_index;
   m_str filename;
