@@ -258,7 +258,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       m_bool match = -1;
       {
         for(i = 0; i < v->func_num_overloads + 1; i++) {
-          char name[256];
+          char name[strlen(v->name) + strlen(env->curr->name) + 13];
           sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
           value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
           if(!value)continue;
@@ -583,16 +583,17 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   Type     type     = NULL;
   Value    value    = NULL;
   Func     func     = NULL;
-  Value    overload = NULL;
+  Value    overload = nspc_lookup_value(env->curr,  f->name, 0);
   Arg_List arg_list = NULL;
   Value    v;
   m_str func_name = S_name(f->name);
   m_str orig_name = func_name;
   m_uint count = 0;
+  m_uint digit = overload ? (floor(log10(abs(overload->func_num_overloads + 1))) + 3) : 3;
+  char name[strlen(func_name) + strlen(env->curr->name) + digit + 10];
 
   if(f->types) {
     func = new_func(func_name, f);
-    overload = nspc_lookup_value(env->curr,  f->name, 0);
     if(overload)
       func->next = overload->func_ref->next;
     func->is_member = (env->class_def && (f->static_decl != ae_key_static));
@@ -613,15 +614,12 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       overload->func_num_overloads++;
     else
       nspc_add_value(env->curr, insert_symbol(orig_name), value);
-    char name[256];
     sprintf(name, "%s<template>@%li@%s", S_name(f->name),
             overload ? overload->func_num_overloads : 0, env->curr->name);
     nspc_add_value(env->curr, insert_symbol(name), value);
     return 1;
   }
 
-  // overload
-  overload = nspc_lookup_value(env->curr,  f->name, 0);
   if(overload) {
     if(isa(overload->m_type, &t_function) < 0) {
       err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
@@ -633,16 +631,11 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       }
     }
   }
-  char tmp[256];
-  memset(tmp, 0, 256);
-  m_uint len = strlen(func_name) + strlen("0") + strlen(env->curr->name) + 3;
-
   if(overload && !f->is_template) {
-    len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
-    snprintf(tmp, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
+    sprintf(name, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
-    snprintf(tmp, len + 1, "%s@0@%s", func_name, env->curr->name);
-  func_name = strdup(tmp);
+    sprintf(name, "%s@0@%s", func_name, env->curr->name);
+  func_name = strdup(name);
   func = new_func(func_name, f);
   func->is_member = (env->class_def && (f->static_decl != ae_key_static));
 
@@ -652,7 +645,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->code->native_func = (m_uint)func->def->dl_func_ptr;
   }
 
-  type = new_type(te_function, strdup(tmp));
+  type = new_type(te_function, strdup(name));
   type->parent = &t_function;
   type->size = SZ_INT;
   type->func = func;
