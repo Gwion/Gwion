@@ -749,11 +749,17 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
-    Value v = nspc_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
-    Func  f = isa(v->m_type, &t_func_ptr) > 0 ? v->m_type->func : nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
-    if(compat_func(t2->func->def, f->def, f->def->pos)) {
-      cast->func = f;
-      return t2;
+    if(isa(t, &t_function) < 0) {
+	  err_msg(TYPE_, cast->pos, "can't cast '%s' to '%s'", t->name, t2->name);
+      return NULL;
+
+    } else {
+      Value v = nspc_lookup_value(env->curr, cast->exp->d.exp_primary.d.var,  1);
+      Func  f = isa(v->m_type, &t_func_ptr) > 0 ? v->m_type->func : nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
+      if(compat_func(t2->func->def, f->def, f->def->pos)) {
+        cast->func = f;
+        return t2;
+      }
     }
   }
   if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
