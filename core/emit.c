@@ -519,7 +519,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
   CHECK_BB(emit_exp(emit, binary->lhs, 1))
-    CHECK_BB(emit_exp(emit, binary->rhs, 1))
+  CHECK_BB(emit_exp(emit, binary->rhs, 1))
 
     if(binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
       return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
@@ -545,7 +545,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
   CHECK_OB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
-    return 1;
+  return 1;
 }
 
 static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
@@ -759,16 +759,8 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
     return -1;
   switch(unary->op) {
     case op_spork:
-      if(unary->exp && unary->exp->exp_type == ae_exp_call) {
-        CHECK_BB(emit_exp_spork(emit, &unary->exp->d.exp_func))
-      } else if(unary->code) {
-        CHECK_BB(emit_exp_spork1(emit, unary->code))
-      } else {
-        err_msg(EMIT_, unary->pos, "(emit): internal error: sporking non-function call..."); // LCOV_EXCL_LINE
-        return -1;                                                                               // LCOV_EXCL_LINE
-      }
+      CHECK_BB(unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func))
       break;
-
     case op_new:
       CHECK_BB(emit_instantiate_object(emit, unary->self->type, unary->array, unary->type->ref))
         break;
