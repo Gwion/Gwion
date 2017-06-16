@@ -228,6 +228,9 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
   debug_msg("scan2", "Func Call");
 #endif
   if(exp_func->types) {
+    m_uint i, digit;
+    m_bool match = -1;
+
     if(exp_func->func->exp_type == ae_exp_primary) {
       Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
       if(!v) {
@@ -253,39 +256,36 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
         list = list->next;
       }
       // check num types matches.
-      Value value;
-      m_uint i;
-      m_bool match = -1;
-      {
-        m_uint digit = num_digit(v->func_num_overloads);
-        for(i = 0; i < v->func_num_overloads + 1; i++) {
-          char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
-          sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-          value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
-          if(!value)continue;
-          Type_List tlc = exp_func->types;
-          ID_List tld = value->func_ref->def->types;
-          while(tld) {
-            if(!tlc)
-              break;
-            tld = tld->next;
-            if(!tld && tlc->next)
-              break;
-            tlc = tlc->next;
-          }
-          if(!tlc && !tld)
-            match = 1;
+      digit = num_digit(v->func_num_overloads);
+      for(i = 0; i < v->func_num_overloads + 1; i++) {
+        Value value;
+        Type_List tlc = exp_func->types;
+        ID_List tld;
+        char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
+
+        sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+        value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+        if(!value)continue;
+        tld = value->func_ref->def->types;
+        while(tld) {
+          if(!tlc)
+            break;
+          tld = tld->next;
+          if(!tld && tlc->next)
+            break;
+          tlc = tlc->next;
         }
+        if(!tlc && !tld)
+          match = 1;
       }
       if(match < 0)
         err_msg(SCAN2_, exp_func->pos, "template type number mismatch.");
       return match;
     } else if(exp_func->func->exp_type == ae_exp_dot) {
-      // see type.c
-      return 1;
-      /*    } else {
-            err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
-            return -1; */
+      return 1;      // see type.c
+    } else {
+      err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
+      return -1;
     }
   }
   return scan2_exp_call1(env, exp_func->func, exp_func->args, exp_func->m_func);
