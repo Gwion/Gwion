@@ -87,8 +87,6 @@ begins_with_short_option()
 : "${_arg_add:=$ADD_DIR}"
 : "${DEBUG_COMPILE:=off}"
 : "${_arg_debug_compile:=$DEBUG_COMPILE}"
-: "${DEBUG_OPERATOR:=off}"
-: "${_arg_debug_operator:=$DEBUG_OPERATOR}"
 : "${DEBUG_TYPE:=off}"
 : "${_arg_debug_type:=$DEBUG_TYPE}"
 : "${DEBUG_SCAN0:=off}"
@@ -111,7 +109,7 @@ begins_with_short_option()
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-operator] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-type] [--(no-)debug-scan0] [--(no-)debug-scan1] [--(no-)debug-scan2] [--(no-)debug-emit] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -146,7 +144,6 @@ print_help ()
 	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
 	printf "\t%s\n" "--debug-compile,--no-debug-compile: debug compile (off by default)"
-	printf "\t%s\n" "--debug-operator,--no-debug-operator: debug operator (off by default)"
 	printf "\t%s\n" "--debug-type,--no-debug-type: debug type (off by default)"
 	printf "\t%s\n" "--debug-scan0,--no-debug-scan0: debug scan0 (off by default)"
 	printf "\t%s\n" "--debug-scan1,--no-debug-scan1: debug scan1 (off by default)"
@@ -437,10 +434,6 @@ do
 			_arg_debug_compile="on"
 			test "${1:0:5}" = "--no-" && _arg_debug_compile="off"
 			;;
-		--no-debug-operator|--debug-operator)
-			_arg_debug_operator="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_operator="off"
-			;;
 		--no-debug-type|--debug-type)
 			_arg_debug_type="on"
 			test "${1:0:5}" = "--no-" && _arg_debug_type="off"
@@ -556,7 +549,7 @@ do
 done
 
 printf "\n# handle debug\n"
-for iter in compile:off operator:off type:off scan0:off scan1:off scan2:off emit:off vm:off instr:off shreduler:off stack:off
+for iter in compile:off type:off scan0:off scan1:off scan2:off emit:off vm:off instr:off shreduler:off stack:off
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
@@ -627,7 +620,7 @@ do
 done
 
 printf "\n# add debug flags\n"
-for iter in compile operator type scan0 scan1 scan2 emit vm instr shreduler stack
+for iter in compile type scan0 scan1 scan2 emit vm instr shreduler stack
 do
 	printf "ifeq (\${DEBUG_%s}, on)\nCFLAGS += -DDEBUG_%s\nelse " "$(to_upper $iter)" "$(to_upper $iter)"
 	printf "ifeq (\${DEBUG_%s},  1)\nCFLAGS += -DDEBUG_%s\nendif\n" "$(to_upper "$key")" "$(to_upper "$key")"

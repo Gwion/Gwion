@@ -35,7 +35,6 @@ LIB: soundio:::off::-lsoundio
 DIR: add:::add
 
 DBG: compile   :::off
-DBG: operator  :::off
 DBG: type      :::off
 DBG: scan0     :::off
 DBG: scan1     :::off
