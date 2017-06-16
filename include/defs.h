@@ -36,7 +36,7 @@ typedef enum {
   te_std,
   te_template,
   te_ugen,
-  te_vararg,
+  te_vararg, te_vararg_loop,
 te_gack,
   te_last
 } te_type;

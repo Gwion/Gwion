@@ -1559,6 +1559,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       instr->m_val = offset;
       instr->m_val2 = emit->env->func->variadic_start->m_val2;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
+      *(m_uint*)emit->env->func->variadic_start->ptr = 1;
     } else if(!strcmp(S_name(member->xid), "i")) {
       Instr instr = add_instr(emit, Vararg_int);
       instr->m_val = offset;
@@ -1755,6 +1756,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   emit_pop_scope(emit);
 
+  if(func_def->is_variadic && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr)) {
+    err_msg(EMIT_, func_def->pos, "invalid variadic use");
+    return -1;
+  }
   m_uint i;
   for(i = 0; i < vector_size(emit->code->stack_return); i++) {
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
