@@ -1700,7 +1700,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   emit->env->func = func;
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
-  char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1) + strlen(func->name) + 6];
+  char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
   sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : " ", func->name);
   emit->code->name = strdup(c);
   emit->code->need_this = func->is_member;

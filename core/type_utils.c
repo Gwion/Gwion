@@ -156,8 +156,9 @@ Value find_value(Type type, S_Symbol xid) {
   return NULL;
 }
 
-m_str type_path(ID_List path) {
+m_str type_path(ID_List list) {
   m_uint len = 0;
+  ID_List path = list;
   while(path) {
     len += strlen(S_name(path->xid));
     if(path->next)
@@ -165,7 +166,8 @@ m_str type_path(ID_List path) {
     path = path->next;
   }
   char str[++len];
-  str[0] = '\0';
+  memset(str, 0, len);
+  path = list;
   while(path) {
     strcat(str, S_name(path->xid));
     if(path->next)
