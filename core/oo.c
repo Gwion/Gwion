@@ -34,7 +34,7 @@ Func new_func(m_str name, Func_Def def) {
 static void free_func(Func a) {
   if(a->code) {
     if(a->def && !GET_FLAG(a->def, ae_key_template)) {
-      if(a->def->spec != ae_key_dtor) {
+      if(!GET_FLAG(a->def, ae_key_dtor)) {
         free_vm_code(a->code);
       }
     }

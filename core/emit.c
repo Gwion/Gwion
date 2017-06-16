@@ -1729,10 +1729,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   vector_clear(emit->code->stack_return);
   sadd_instr(emit, Func_Return);
   func->code = emit_code(emit);
-  if(func->def->spec == ae_key_dtor) {
+  if(GET_FLAG(func->def, ae_key_dtor)) {
     emit->env->class_def->info->dtor = func->code;
     emit->env->class_def->has_destructor = 1;
-  } else if(func->def->spec == ae_key_op)
+  } else if(GET_FLAG(func->def, ae_key_op))
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
   //  ADD_REF(func);

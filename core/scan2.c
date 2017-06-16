@@ -740,7 +740,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   if(GET_FLAG(f, ae_key_variadic))
     f->stack_depth += SZ_INT;
-  else if(f->spec == ae_key_op) {
+  else if(GET_FLAG(f, ae_key_op)) {
     m_bool ret;
     m_str str = strdup(S_name(f->name));
     str = strsep(&str, "@");
@@ -793,7 +793,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_pop_value(env->curr);
   env->func = NULL;
 
-  if(f->spec == ae_key_dtor) {
+  if(GET_FLAG(f, ae_key_dtor)) {
     f->func->is_dtor = 1;
 //    ADD_REF(f->func->value_ref);
   }

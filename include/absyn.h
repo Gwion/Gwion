@@ -465,7 +465,6 @@ struct Func_Def_ {
   ae_Keyword func_decl;
   ae_Keyword static_decl;
   void* dl_func_ptr;
-  ae_Keyword spec;// try to implement dtor in parser
   ae_Keyword flag;
   ID_List types;
   ID_List base; // 13/03/17

@@ -559,7 +559,6 @@ Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
   a->func = NULL;
   a->stack_depth = 0;
   a->pos = pos;
-  a->spec = 0;
   if(a->func_decl == ae_key_variadic) {
     a->func_decl = ae_key_func;
     SET_FLAG(a, ae_key_variadic);
