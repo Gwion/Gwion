@@ -624,7 +624,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     return 1;
   }
 
-  // overload
   if(overload) {
     if(isa(overload->m_type, &t_function) < 0) {
       err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
