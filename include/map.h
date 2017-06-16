@@ -12,6 +12,7 @@ typedef struct Map_    * Map;
 extern Vector new_vector();
 //extern Vector new_vector_fixed(const vtype len);
 extern Vector vector_copy(Vector v);
+extern void vector_copy2(Vector v, Vector ret);
 extern void vector_set(Vector vector, const vtype i, vtype data);
 extern long int vector_find(Vector vector, vtype data);
 extern void vector_add(Vector vector, vtype data);

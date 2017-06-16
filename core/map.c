@@ -25,9 +25,8 @@ Vector new_vector() {
 }
 
 void vector_add(Vector v, vtype data) {
-  if(!(v->ptr[1] - v->ptr[0] - OFFSET)) {
+  if(!(v->ptr[1] - v->ptr[0] - OFFSET))
     v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
-  }
   v->ptr[v->ptr[0]++ + OFFSET] = (vtype)data;
 }
 
@@ -36,6 +35,11 @@ Vector vector_copy(Vector v) {
   ret->ptr = calloc(v->ptr[1], sizeof(vtype));
   memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
   return ret;
+}
+
+void vector_copy2(Vector v, Vector ret) {
+  ret->ptr = realloc(ret->ptr, v->ptr[1] * sizeof(vtype));
+  memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
 }
 
 long int vector_find(Vector v, vtype data) {
@@ -86,6 +90,7 @@ vtype vector_size(Vector v) {
 }
 
 void vector_clear(Vector v) {
+  v->ptr = realloc(v->ptr, (v->ptr[1] = MAP_CAP) * sizeof(vtype));
   v->ptr[0]= 0;
 }
 
