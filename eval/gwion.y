@@ -538,10 +538,6 @@ cast_exp
 
 unary_expression
   : dur_exp { $$ = $1; }
-  | PLUSPLUS unary_expression
-      { $$ = new_exp_unary( op_plusplus, $2, get_pos(scanner)); }
-  | MINUSMINUS unary_expression
-      { $$ = new_exp_unary( op_minusminus, $2, get_pos(scanner)); }
   | unary_operator unary_expression
       { $$ = new_exp_unary( $1, $2, get_pos(scanner)); }
   | NEW type_decl
@@ -553,11 +549,13 @@ unary_expression
   ;
 
 unary_operator
-  : PLUS                              { $$ = op_plus; }
-  | MINUS                   %prec NEG { $$ = op_minus; }
-  | EXCLAMATION                       { $$ = op_exclamation; }
-  | TIMES                             { $$ = op_times; }
-  | SPORK TILDA                       { $$ = op_spork; }
+  : PLUS                  { $$ = op_plus; }
+  | MINUS       %prec NEG { $$ = op_minus; }
+  | TIMES                 { $$ = op_times; }
+  | PLUSPLUS              { $$ = op_plusplus; }
+  | MINUSMINUS            { $$ = op_minusminus; }
+  | EXCLAMATION           { $$ = op_exclamation; }
+  | SPORK TILDA           { $$ = op_spork; }
   ;
 
 dur_exp
