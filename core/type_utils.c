@@ -8,6 +8,12 @@
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
 
+m_uint num_digit(m_uint i) {
+  if(i)
+    return (m_uint)floor(log10(abs((double) i)) + 1);
+  return 1;
+}
+
 m_uint get_type_xid() {
   return type_xid++;
 }
@@ -150,11 +156,20 @@ Value find_value(Type type, S_Symbol xid) {
   return NULL;
 }
 
-m_str type_path(ID_List path) {
-  char str[256];
-  memset(str, 0, sizeof(str));
+m_str type_path(ID_List list) {
+  m_uint len = 0;
+  ID_List path = list;
   while(path) {
-    strncat(str, S_name(path->xid), 256 - strlen(str));
+    len += strlen(S_name(path->xid));
+    if(path->next)
+      len++;
+    path = path->next;
+  }
+  char str[++len];
+  memset(str, 0, len);
+  path = list;
+  while(path) {
+    strcat(str, S_name(path->xid));
     if(path->next)
       strcat(str, ".");
     path = path->next;
