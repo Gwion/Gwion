@@ -1772,8 +1772,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
     instr->m_val = vector_size(emit->code->code);
   }
-  free_vector(emit->code->stack_return);
-  emit->code->stack_return = new_vector();
+  vector_clear(emit->code->stack_return);
   sadd_instr(emit, Func_Return);
   func->code = emit_code(emit);
   if(func->def->spec == ae_func_spec_dtor) {
@@ -1863,8 +1862,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret = 1;
   emit->filename = filename;
   emit->code = new_code();
-  free_vector(emit->stack);
-  emit->stack = new_vector();
+  vector_clear(emit->stack);
   frame_push_scope(emit->code->frame);
   sadd_instr(emit, start_gc);
   while(prog && ret > 0) {

@@ -1866,8 +1866,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   the_class = class_def->type;
   the_class->parent = t_parent;
   the_class->info->offset = t_parent->obj_size;
-  free_vector(the_class->info->obj_v_table);
-  the_class->info->obj_v_table = vector_copy(t_parent->info->obj_v_table);
+  vector_copy2(t_parent->info->obj_v_table, the_class->info->obj_v_table);
   vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
   vector_add(env->class_stack, (vtype)env->class_def);

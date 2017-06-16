@@ -23,15 +23,13 @@ Env new_env() {
 }
 
 void env_reset(Env env) {
-  free_vector(env->nspc_stack);
-  env->nspc_stack = new_vector();
+  vector_clear(env->nspc_stack);
   vector_add(env->nspc_stack, (vtype)env->global_nspc);
 
 //  if(env->user_nspc)
 //    vector_add(env->nspc_stack, (vtype)env->user_nspc);
 
-  free_vector(env->class_stack);
-  env->class_stack = new_vector();
+  vector_clear(env->class_stack);
   vector_add(env->class_stack, (vtype)NULL);
 
 //  if(env->user_nspc)
