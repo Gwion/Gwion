@@ -6,15 +6,10 @@
 #include "emit.h"
 #include "code_private.h"
 
-void free_expression(Exp a); // absyn.h
-
 static m_bool emit_exp(Emitter emit, Exp exp, m_bool add_ref);
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop);
-static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member);
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list);
-m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos);
-static m_bool emit_stmt_code(Emitter emit, Stmt_Code stmt, m_bool push);
-
+static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member);
 static m_bool emit_func_def(Emitter emit, Func_Def func_def);
 
 static void sadd_instr(Emitter emit, f_instr f) {

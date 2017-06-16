@@ -18,15 +18,9 @@ m_bool scan0_Ast(Env, Ast);
 m_bool scan1_ast(Env, Ast);
 m_bool scan2_ast(Env, Ast);
 
-m_bool check_func_def(Env env, Func_Def f);
-static Type check_exp(Env env, Exp exp);
+static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
-static Type check_exp_dot(Env env, Exp_Dot* member);
 static m_bool check_stmt_list(Env env, Stmt_List list);
-/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos);
-static Type check_exp_call(Env env, Exp_Func* exp_func);
-static m_bool check_class_def(Env env, Class_Def class_def);
-static Func find_func_match(Func up, Exp args);
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
@@ -509,6 +503,315 @@ __inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos) {
   return 1;
 }
 
+static Type_List mk_type_list(Env env, Type type) {
+  m_uint i;
+  Nspc nspc = type->info;
+  Vector v = new_vector();
+  vector_add(v, (vtype)type->name);
+  while(nspc && nspc != env->curr && nspc != env->global_nspc) {
+    vector_add(v, (vtype)S_name(insert_symbol((nspc->name))));
+    nspc = nspc->parent;
+  }
+  ID_List id = NULL;
+  Type_List list = NULL;
+  for(i = vector_size(v); i > 0; i--)
+    id = prepend_id_list((m_str)vector_at(v, i - 1), id, 0);
+  list = new_type_list(id, NULL, 0);
+  free_vector(v);
+  return list;
+}
+
+static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
+  Exp e;
+  Arg_List e1;
+  m_uint count;
+  Func func;
+  int match = -1;
+  // see if args is nil
+  if(args && isa(args->type, &t_void) > 0)
+    args = NULL;
+
+  while(up) {
+    func = up;
+    while(func) {
+      e = args;
+      e1 = func->def->arg_list;
+      count = 1;
+
+      while(e) {
+        if(e1 == NULL) {
+          if(func->def->is_variadic)
+            return func;
+          goto moveon;
+        }
+        match = specific ? e->type == e1->type : isa(e->type, e1->type) > 0 && e->type->array_depth == e1->type->array_depth;
+        if(match <= 0) {
+          if(implicit && e->type->xid == t_int.xid && e1->type->xid == t_float.xid)
+            e->cast_to = &t_float;
+          else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0)) /// Hack
+            goto moveon; // type mismatch
+        }
+        e = e->next;
+        e1 = e1->next;
+        count++;
+      }
+      if(e1 == NULL) return func;
+moveon:
+      func = func->next;
+    }
+    if(up->up)
+      up = up->up->func_ref;
+    else up = NULL;
+  }
+  return NULL;
+}
+
+static Func find_func_match(Func up, Exp args) {
+  Func func;
+  if((func = find_func_match_actual(up, args, 0, 1)) ||
+      (func = find_func_match_actual(up, args, 1, 1)) ||
+      (func = find_func_match_actual(up, args, 0, 0)) ||
+      (func = find_func_match_actual(up, args, 1, 0)));
+  return func;
+}
+
+Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
+  m_uint i, digit, len;
+  Func_Def base;
+  Value value;
+
+  CHECK_OO(v)
+  digit = num_digit(v->func_num_overloads + 1);
+  len = strlen(v->name) + strlen(env->curr->name);
+  if(v->owner_class) {
+    vector_add(env->nspc_stack, (vtype)env->curr);
+    env->curr = v->owner_class->info;
+    vector_add(env->class_stack, (vtype)env->class_def);
+    env->class_def = v->owner_class;
+    env->class_scope = 0; // should keep former value somewhere
+  }
+  for(i = 0; i < v->func_num_overloads + 1; i++) {
+    char name[len + digit + 13];
+    sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+    if(v->owner_class)
+      value = find_value(v->owner_class, insert_symbol(name));
+    else
+      value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+    if(!value) {
+      err_msg(TYPE_, func->pos, "unknown argument in template  call.");
+      return NULL;
+    }
+    base = value->func_ref->def;
+    Func_Def def = new_func_def(base->func_decl, base->static_decl,
+                                base->type_decl, S_name(func->d.exp_primary.d.var),
+                                base->arg_list, base->code, func->pos);
+    if(base->is_variadic)
+      def->is_variadic = 1;
+    Type_List list = types;
+    ID_List base_t = base->types;
+    def->is_template = 1;
+    nspc_push_type(env->curr);
+    while(base_t) {
+      ID_List tmp = base_t->next;;
+      if(!list || !list->list)
+        break;
+      nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
+      base_t->next = tmp;
+      if((list->next && !base_t->next) || // too many
+        (!list->next && base_t->next)) { // not enough
+        nspc_pop_type(env->curr);
+        goto next;
+      }
+      list = list->next;
+      base_t = base_t->next;
+    }
+    m_int ret = scan1_func_def(env, def);
+    nspc_pop_type(env->curr);
+    if(ret < 0)                        continue;
+    if(scan2_func_def(env, def) < 0)   continue;
+    if(check_func_def(env, def) < 0)   continue;
+    if(!check_exp(env, func))          continue;
+    if(args  && !check_exp(env, args)) continue;
+    def->func->next = NULL;
+    m_func = find_func_match(def->func, args);
+    if(m_func) {
+      if(v->owner_class) {
+        env->class_def = (Type)vector_pop(env->class_stack);
+        env->curr = (Nspc)vector_pop(env->nspc_stack);
+      }
+      m_func->is_template = 1;
+      m_func->def->base = value->func_ref->def->types;
+      return m_func;
+    }
+next:
+    ;
+  }
+  if(v->owner_class) {
+    env->class_def = (Type)vector_pop(env->class_stack);
+    env->curr = (Nspc)vector_pop(env->nspc_stack);
+  }
+  return NULL;
+}
+
+
+/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "func call");
+#endif
+  Func func = NULL;
+  Func up = NULL;
+  Type f;
+  Value ptr = NULL; // 20/03/17
+
+  exp_func->type = check_exp(env, exp_func);
+  f = exp_func->type;
+  // primary func_ptr
+  if(exp_func->exp_type == ae_exp_primary &&
+      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
+    if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
+      err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+      return NULL;
+    }
+    ptr = exp_func->d.exp_primary.value;
+  }
+  /*
+     else if(exp_func->exp_type == ae_exp_dot) {
+     Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+     if(v && v->owner_class == env->class_def) {
+     err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
+     return NULL;
+     }
+  //        ptr = exp_func->d.exp_primary.value;
+  }
+  */
+  if(!f) {
+    err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
+    return NULL;
+  }
+  if(isa(f, &t_function) < 0) {
+    err_msg(TYPE_, exp_func->pos, "function call using a non-function value");
+    return NULL;
+  }
+  up = f->func;
+
+  if(args)
+    CHECK_OO(check_exp(env, args))
+    // look for a match
+    func = find_func_match(up, args);
+  if(!func) {
+    Value value;
+    if(!f->func) {
+      if(exp_func->exp_type == ae_exp_primary)
+        value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+      else if(exp_func->exp_type == ae_exp_dot)
+        value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+      else {
+        err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
+        return NULL;
+      }
+
+      // template guess
+      ID_List list = value->func_ref->def->types;
+      m_uint type_number = 0;
+      m_uint args_number = 0;
+
+      while(list) {
+        type_number++;
+        list = list->next;
+      }
+      list = value->func_ref->def->types;
+      Type_List tl[type_number];
+      while(list) { // iterate through types
+        Arg_List arg = value->func_ref->def->arg_list;
+        Exp template_arg = args;
+        while(arg && template_arg) {
+          m_str path = type_path(arg->type_decl->xid);
+          if(!strcmp(S_name(list->xid), path)) {
+            tl[args_number] = mk_type_list(env, template_arg->type);
+            if(args_number)
+              tl[args_number - 1]->next = tl[args_number];
+            args_number++;
+            free(path);
+            break;
+          }
+          free(path);
+          arg = arg->next;
+          template_arg = template_arg->next;
+        }
+        list = list->next;
+      }
+      if(args_number < type_number) {
+        err_msg(TYPE_, exp_func->pos, "not able to guess types for template call.");
+        return NULL;
+      }
+      Func f = find_template_match(env, value, func, tl[0], exp_func, args);
+      if(f) {
+        *m_func = f;
+        Type ret_type  = f->def->ret_type;
+        env->current->types = tl[0];
+        env->current->base = value->func_ref->def->types;
+        return ret_type;
+      }
+      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\nplease provide template types. eg: '<type1, type2, ...>'"); // LCOV_EXCL_LINE
+      return NULL; //LCOV_EXCL_LINE
+    }
+    m_uint i;
+    err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");
+    up = f->func;
+    while(up) {
+      Arg_List e = up->def->arg_list;
+      fprintf(stderr, "\t");
+      if(!e)
+        fprintf(stderr, "\033[32mvoid\033[0m");
+      while(e) {
+        m_str path = type_path(e->type_decl->xid);
+#ifdef COLOR
+        fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, S_name(e->var_decl->xid));
+#else
+        fprintf(stderr, " %s %s", e->type->name, S_name(e->var_decl->xid));
+#endif
+        for(i = 0; i < e->type->array_depth; i++)
+          fprintf(stderr, "[]");
+        e = e->next;
+        if(e)
+          fprintf(stderr, ",");
+        free(path);
+      }
+      up = up->next;
+      fprintf(stderr, ". (%s)\n", f->name);
+      if(up)
+        fprintf(stderr, "or :");
+    }
+    fprintf(stderr, "and not");
+    fprintf(stderr, "\n\t");
+    Exp e = args;
+    while(e) {
+#ifdef COLOR
+      fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
+#else
+      fprintf(stderr, " %s", e->type->name);
+#endif
+      for(i = 0; i < e->type->array_depth; i++)
+        fprintf(stderr, "[]");
+      e = e->next;
+      if(e)
+        fprintf(stderr, ",");
+    }
+    fprintf(stderr, "\n");
+    return NULL;
+  }
+  if(ptr) {
+    Func f = malloc(sizeof(struct Func_));
+    memcpy(f, func, sizeof(struct Func_));
+    f->value_ref = ptr;
+    func = f;
+    //up->value_ref = exp_func->d.exp_primary.value;
+  }
+  *m_func = func;
+  return func->def->ret_type;
+}
+
+
 static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
@@ -677,11 +980,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
       cr->emit_var = cl->emit_var = 0;
       break;
     }
-    if(isa(cr->type, &t_fileio) > 0) {
-      cr->emit_var = 1;
-      break;
-    }
-    if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0) {
+    if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
       err_msg(TYPE_, cl->pos,
               "cannot assign '%s' on types '%s' and'%s'...",
               op2str(binary->op), cl->type->name, cr->type->name);
@@ -814,313 +1113,6 @@ static Type check_exp_dur(Env env, Exp_Dur* dur) {
     return NULL;
   }
   return unit;
-}
-
-static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
-  Exp e;
-  Arg_List e1;
-  m_uint count;
-  Func func;
-  int match = -1;
-  // see if args is nil
-  if(args && isa(args->type, &t_void) > 0)
-    args = NULL;
-
-  while(up) {
-    func = up;
-    while(func) {
-      e = args;
-      e1 = func->def->arg_list;
-      count = 1;
-
-      while(e) {
-        if(e1 == NULL) {
-          if(func->def->is_variadic)
-            return func;
-          goto moveon;
-        }
-        match = specific ? e->type == e1->type : isa(e->type, e1->type) > 0 && e->type->array_depth == e1->type->array_depth;
-        if(match <= 0) {
-          if(implicit && e->type->xid == t_int.xid && e1->type->xid == t_float.xid)
-            e->cast_to = &t_float;
-          else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0)) /// Hack
-            goto moveon; // type mismatch
-        }
-        e = e->next;
-        e1 = e1->next;
-        count++;
-      }
-      if(e1 == NULL) return func;
-moveon:
-      func = func->next;
-    }
-    if(up->up)
-      up = up->up->func_ref;
-    else up = NULL;
-  }
-  return NULL;
-}
-
-static Func find_func_match(Func up, Exp args) {
-  Func func;
-  if((func = find_func_match_actual(up, args, 0, 1)) ||
-      (func = find_func_match_actual(up, args, 1, 1)) ||
-      (func = find_func_match_actual(up, args, 0, 0)) ||
-      (func = find_func_match_actual(up, args, 1, 0)));
-  return func;
-}
-
-static Type_List mk_type_list(Env env, Type type) {
-  m_uint i;
-  Nspc nspc = type->info;
-  Vector v = new_vector();
-  vector_add(v, (vtype)type->name);
-  while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_add(v, (vtype)S_name(insert_symbol((nspc->name))));
-    nspc = nspc->parent;
-  }
-  ID_List id = NULL;
-  Type_List list = NULL;
-  for(i = vector_size(v); i > 0; i--)
-    id = prepend_id_list((m_str)vector_at(v, i - 1), id, 0);
-  list = new_type_list(id, NULL, 0);
-  free_vector(v);
-  return list;
-}
-
-Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
-  m_uint i, digit, len;
-  Func_Def base;
-  Value value;
-
-  CHECK_OO(v)
-  digit = num_digit(v->func_num_overloads + 1);
-  len = strlen(v->name) + strlen(env->curr->name);
-  if(v->owner_class) {
-    vector_add(env->nspc_stack, (vtype)env->curr);
-    env->curr = v->owner_class->info;
-    vector_add(env->class_stack, (vtype)env->class_def);
-    env->class_def = v->owner_class;
-    env->class_scope = 0; // should keep former value somewhere
-  }
-  for(i = 0; i < v->func_num_overloads + 1; i++) {
-    char name[len + digit + 13];
-    sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    if(v->owner_class)
-      value = find_value(v->owner_class, insert_symbol(name));
-    else
-      value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
-    if(!value) {
-      err_msg(TYPE_, func->pos, "unknown argument in template  call.");
-      return NULL;
-    }
-    base = value->func_ref->def;
-    Func_Def def = new_func_def(base->func_decl, base->static_decl,
-                                base->type_decl, S_name(func->d.exp_primary.d.var),
-                                base->arg_list, base->code, func->pos);
-    if(base->is_variadic)
-      def->is_variadic = 1;
-    Type_List list = types;
-    ID_List base_t = base->types;
-    def->is_template = 1;
-    nspc_push_type(env->curr);
-    while(base_t) {
-      ID_List tmp = base_t->next;;
-      if(!list || !list->list)
-        break;
-      nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      base_t->next = tmp;
-      if((list->next && !base_t->next) || // too many
-        (!list->next && base_t->next)) { // not enough
-        nspc_pop_type(env->curr);
-        goto next;
-      }
-      list = list->next;
-      base_t = base_t->next;
-    }
-    m_int ret = scan1_func_def(env, def);
-    nspc_pop_type(env->curr);
-    if(ret < 0)                        continue;
-    if(scan2_func_def(env, def) < 0)   continue;
-    if(check_func_def(env, def) < 0)   continue;
-    if(!check_exp(env, func))          continue;
-    if(args  && !check_exp(env, args)) continue;
-    def->func->next = NULL;
-    m_func = find_func_match(def->func, args);
-    if(m_func) {
-      if(v->owner_class) {
-        env->class_def = (Type)vector_pop(env->class_stack);
-        env->curr = (Nspc)vector_pop(env->nspc_stack);
-      }
-      m_func->is_template = 1;
-      m_func->def->base = value->func_ref->def->types;
-      return m_func;
-    }
-next:
-    ;
-  }
-  if(v->owner_class) {
-    env->class_def = (Type)vector_pop(env->class_stack);
-    env->curr = (Nspc)vector_pop(env->nspc_stack);
-  }
-  return NULL;
-}
-
-/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func call");
-#endif
-  Func func = NULL;
-  Func up = NULL;
-  Type f;
-  Value ptr = NULL; // 20/03/17
-
-  exp_func->type = check_exp(env, exp_func);
-  f = exp_func->type;
-  // primary func_ptr
-  if(exp_func->exp_type == ae_exp_primary &&
-      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
-    if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def) {
-      err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
-      return NULL;
-    }
-    ptr = exp_func->d.exp_primary.value;
-  }
-  /*
-     else if(exp_func->exp_type == ae_exp_dot) {
-     Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-     if(v && v->owner_class == env->class_def) {
-     err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor.");
-     return NULL;
-     }
-  //        ptr = exp_func->d.exp_primary.value;
-  }
-  */
-  if(!f) {
-    err_msg(TYPE_, exp_func->pos, "function call using a non-existing function");
-    return NULL;
-  }
-  if(isa(f, &t_function) < 0) {
-    err_msg(TYPE_, exp_func->pos, "function call using a non-function value");
-    return NULL;
-  }
-  up = f->func;
-
-  if(args)
-    CHECK_OO(check_exp(env, args))
-    // look for a match
-    func = find_func_match(up, args);
-  if(!func) {
-    Value value;
-    if(!f->func) {
-      if(exp_func->exp_type == ae_exp_primary)
-        value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
-      else if(exp_func->exp_type == ae_exp_dot)
-        value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-      else {
-        err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
-        return NULL;
-      }
-
-      // template guess
-      ID_List list = value->func_ref->def->types;
-      m_uint type_number = 0;
-      m_uint args_number = 0;
-
-      while(list) {
-        type_number++;
-        list = list->next;
-      }
-      list = value->func_ref->def->types;
-      Type_List tl[type_number];
-      while(list) { // iterate through types
-        Arg_List arg = value->func_ref->def->arg_list;
-        Exp template_arg = args;
-        while(arg && template_arg) {
-          m_str path = type_path(arg->type_decl->xid);
-          if(!strcmp(S_name(list->xid), path)) {
-            tl[args_number] = mk_type_list(env, template_arg->type);
-            if(args_number)
-              tl[args_number - 1]->next = tl[args_number];
-            args_number++;
-            free(path);
-            break;
-          }
-          free(path);
-          arg = arg->next;
-          template_arg = template_arg->next;
-        }
-        list = list->next;
-      }
-      if(args_number < type_number) {
-        err_msg(TYPE_, exp_func->pos, "not able to guess types for template call.");
-        return NULL;
-      }
-      Func f = find_template_match(env, value, func, tl[0], exp_func, args);
-      if(f) {
-        *m_func = f;
-        Type ret_type  = f->def->ret_type;
-        env->current->types = tl[0];
-        env->current->base = value->func_ref->def->types;
-        return ret_type;
-      }
-      err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\nplease provide template types. eg: '<type1, type2, ...>'"); // LCOV_EXCL_LINE
-      return NULL; //LCOV_EXCL_LINE
-    }
-    m_uint i;
-    err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");
-    up = f->func;
-    while(up) {
-      Arg_List e = up->def->arg_list;
-      fprintf(stderr, "\t");
-      if(!e)
-        fprintf(stderr, "\033[32mvoid\033[0m");
-      while(e) {
-        m_str path = type_path(e->type_decl->xid);
-#ifdef COLOR
-        fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, S_name(e->var_decl->xid));
-#else
-        fprintf(stderr, " %s %s", e->type->name, S_name(e->var_decl->xid));
-#endif
-        for(i = 0; i < e->type->array_depth; i++)
-          fprintf(stderr, "[]");
-        e = e->next;
-        if(e)
-          fprintf(stderr, ",");
-        free(path);
-      }
-      up = up->next;
-      fprintf(stderr, ". (%s)\n", f->name);
-      if(up)
-        fprintf(stderr, "or :");
-    }
-    fprintf(stderr, "and not");
-    fprintf(stderr, "\n\t");
-    Exp e = args;
-    while(e) {
-#ifdef COLOR
-      fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
-#else
-      fprintf(stderr, " %s", e->type->name);
-#endif
-      for(i = 0; i < e->type->array_depth; i++)
-        fprintf(stderr, "[]");
-      e = e->next;
-      if(e)
-        fprintf(stderr, ",");
-    }
-    fprintf(stderr, "\n");
-    return NULL;
-  }
-  if(ptr) {
-    Func f = malloc(sizeof(struct Func_));
-    memcpy(f, func, sizeof(struct Func_));
-    f->value_ref = ptr;
-    func = f;
-    //up->value_ref = exp_func->d.exp_primary.value;
-  }
-  *m_func = func;
-  return func->def->ret_type;
 }
 
 static Type check_exp_call(Env env, Exp_Func* exp_func) {
