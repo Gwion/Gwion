@@ -26,6 +26,14 @@ static Map new_op_map() {
   return map;
 }
 
+static void free_op(M_Operator* a) {
+  if(a->lhs)
+	REM_REF(a->lhs)
+  if(a->rhs)
+	REM_REF(a->rhs)
+  REM_REF(a->ret)
+  free(a);
+}
 void free_op_map(Map map) {
   m_uint i;
   Vector v;
@@ -33,7 +41,7 @@ void free_op_map(Map map) {
     m_uint j;
     v = (Vector)map_get(map, (vtype)operators[i]);
     for(j = 0; j < vector_size(v); j++)
-      free((M_Operator*)vector_at(v, j));
+      free_op((M_Operator*)vector_at(v, j));
     free_vector(v);
   }
   free_map(map);
@@ -79,6 +87,13 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   mo->instr     = f;
   mo->func      = NULL;
   vector_add(v, (vtype)mo);
+  if(lhs)
+	ADD_REF(lhs)
+  if(rhs) {
+printf("rhs->>name: %s\n", rhs->name);
+	ADD_REF(rhs)
+}
+  ADD_REF(ret)
   return 1;
 }
 
