@@ -15,8 +15,14 @@ typedef struct Stmt_            * Stmt;
 extern Map scan_map;
 
 typedef enum {
-  ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_private,
-  ae_key_static, ae_key_instance, ae_key_variadic, ae_key_dtor, ae_key_op
+  ae_key_func      = 1 << 1,
+  ae_key_public    = 1 << 2,
+  ae_key_private   = 1 << 3,
+  ae_key_static    = 1 << 4,
+  ae_key_instance  = 1 << 5,
+  ae_key_variadic  = 1 << 6,
+  ae_key_dtor      = 1 << 7,
+  ae_key_op        = 1 << 8
 } ae_Keyword;
 
 typedef struct {
