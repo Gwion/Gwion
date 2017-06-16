@@ -599,7 +599,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func = new_func(func_name, f);
     if(overload)
       func->next = overload->func_ref->next;
-    func->is_member = (env->class_def && (f->static_decl != ae_key_static));
+    func->is_member = (env->class_def && !GET_FLAG(f, ae_key_static));
     value = new_value(&t_function, func_name);
     value->owner = env->curr;
     value->owner_class = env->class_def;
@@ -641,7 +641,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     snprintf(name, len + 1, "%s@0@%s", func_name, env->curr->name);
   func_name = strdup(name);
   func = new_func(func_name, f);
-  func->is_member = (env->class_def && (f->static_decl != ae_key_static));
+  func->is_member = (env->class_def && !GET_FLAG(f, ae_key_static));
 
   if(f->s_type == ae_func_builtin) { // actual builtin func import
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");

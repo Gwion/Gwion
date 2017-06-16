@@ -463,7 +463,6 @@ struct Func_Def_ {
   Func func;
   m_uint stack_depth;
   ae_Keyword func_decl;
-  ae_Keyword static_decl;
   void* dl_func_ptr;
   ae_Keyword flag;
   ID_List types;

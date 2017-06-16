@@ -550,7 +550,7 @@ static void free_if_expression(Exp_If* a) {
 Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos) {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
   a->func_decl = func_decl;
-  a->static_decl = static_decl;
+  SET_FLAG(a, static_decl);
   a->type_decl = type_decl;
   a->name = insert_symbol(name);
   a->arg_list = arg_list;
