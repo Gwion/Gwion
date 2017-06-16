@@ -415,10 +415,8 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func args");
 #endif
-  if(emit_exp(emit, exp_func->args, 1) < 0) {
-    err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments..."); // LCOV_EXCL_LINE
-    return -1;                                                                                      // LCOV_EXCL_LINE
-  }
+  if(emit_exp(emit, exp_func->args, 1) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...")) // LCOV_EXCL_LINE
   if(exp_func->m_func->def->is_variadic) {
     m_uint offset = 0, size = 0;
     Instr instr;
@@ -473,14 +471,10 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       emit->env->curr = (Nspc)vector_pop(emit->env->nspc_stack);
     }
   }
-  if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0) {
-    err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments..."); // LCOV_EXCL_LINE
-    return -1;                                                                           // LCOV_EXCL_LINE
-  }
-  if(emit_exp(emit, exp_func->func, 0) < 0) {
-    err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call..."); // LCOV_EXCL_LINE
-    return -1;                                                                      // LCOV_EXCL_LINE
-  }
+  if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
+  if(emit_exp(emit, exp_func->func, 0) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
   if(exp_func->m_func->def->is_variadic && !exp_func->args) { // handle empty call to variadic functions
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
@@ -611,14 +605,10 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   if(!func->code) { // calling function pointer in func
     Func f = nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
     if(!f) { //template with no list
-      if(!func->def->is_template) {
-        err_msg(EMIT_, func->def->pos, "function not emitted yet");
-        return -1;
-      }
-      if(emit_func_def(emit, func->def) < 0) {
-        err_msg(EMIT_, 0, "can't emit func."); // LCOV_EXCL_START
-        return -1;
-      }                                        // LCOV_EXCL_STOP
+      if(!func->def->is_template)
+        CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
+      if(emit_func_def(emit, func->def) < 0)
+        CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
       func->code = func->def->func->code;
       code = add_instr(emit, Reg_Push_Ptr);
       *(VM_Code*)code->ptr = func->code;
@@ -682,11 +672,8 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   VM_Code code;
 
   CHECK_BB(emit_func_args(emit, exp))
-    if(emit_exp(emit, exp->func, 0) < 0) {
-      err_msg(EMIT_, exp->pos, // LCOV_EXCL_START
-          "(emit): internal error in evaluating function call...");
-      return -1;
-    }                          // LCOV_EXCL_STOP
+  if(emit_exp(emit, exp->func, 0) < 0)
+    CHECK_BB(err_msg(EMIT_, exp->pos, "(emit): internal error in evaluating function call...")) // LCOV_EXCL_LINE
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
   sadd_instr(emit, start_gc);
@@ -873,7 +860,7 @@ static m_bool emit_stmt_if(Emitter emit, Stmt_If stmt) {
           break;
         }
         err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "internal error: unhandled type '%s' in if condition", stmt->cond->type->name);
+            "interal error: unhandled type '%s' in if condition", stmt->cond->type->name);
         return -1;
     }                                 // LCOV_EXCL_STOP
   op = add_instr(emit, f);
@@ -1215,23 +1202,19 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
     stmt->data.instr = add_instr(emit, Goto);
   else {
     if(emit->cases && !strcmp(S_name(stmt->name), "default")) {
-      if(emit->default_case_index != -1) {
-        err_msg(EMIT_, stmt->pos, "default case already defined");
-        return -1;
-      }
+      if(emit->default_case_index != -1)
+        CHECK_BB(err_msg(EMIT_, stmt->pos, "default case already defined"))
       emit->default_case_index = vector_size(emit->code->code);
       return 1;
     }
     if(!stmt->data.v) {
-      err_msg(EMIT_, stmt->pos, "illegal case");
       emit->cases = NULL; // check me (mem leak?)
-      return -1;
+      CHECK_BB(err_msg(EMIT_, stmt->pos, "illegal case"))
     }
     size = vector_size(stmt->data.v);
     if(!size) {
-      err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name));
       free_vector(stmt->data.v);
-      return -1;
+      CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name)))
     }
     for(i = size + 1; --i;) {
       label = (Stmt_Goto_Label)vector_at(stmt->data.v, i - 1);
@@ -1249,10 +1232,8 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
   Instr instr, _break;
   vector_add(emit->code->stack_break, (vtype)NULL);
   CHECK_BB(emit_exp(emit, stmt->val, 0))
-    if(emit->cases) {
-      err_msg(EMIT_, stmt->pos, "swith inside an other switch. this is not allowed for now");
-      return -1;
-    }
+  if(emit->cases)
+    CHECK_BB(err_msg(EMIT_, stmt->pos, "swith inside an other switch. this is not allowed for now"))
   emit->default_case_index = -1;
   sadd_instr(emit, start_gc);
   instr = add_instr(emit, Branch_Switch);
@@ -1280,10 +1261,8 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
   m_uint value;
   Value v;
   Type t;
-  if(!emit->cases) {
-    err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now");
-    return -1;
-  }
+  if(!emit->cases)
+    CHECK_BB(err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now"))
   if(stmt->val->exp_type == ae_exp_primary) {
     if(stmt->val->d.exp_primary.type == ae_primary_num)
       value = stmt->val->d.exp_primary.d.num;
@@ -1294,12 +1273,10 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
         value = 0;
       else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
         err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
-        return -1;
+        return - 1;
       } else  {
-        if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_value_const)) {
-          err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now");
-          return -1;
-        }
+        if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_value_const))
+          CHECK_BB(err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now"))
         value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
       }
     }
@@ -1311,11 +1288,8 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
     return -1;
   }
-  if(map_get(emit->cases, (vtype)value)) {
-    err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value);
-    return -1;
-  }
-
+  if(map_get(emit->cases, (vtype)value))
+    CHECK_BB(err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value))
   map_set(emit->cases, (vtype)value, (vtype)vector_size(emit->code->code));
   return 1;
 }
@@ -1544,19 +1518,16 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     }
     if(!strcmp(S_name(member->xid), "start")) {
       if(emit->env->func->variadic_start) {
-        err_msg(EMIT_, 0, "vararg.start already used. this is an error");
         free(emit->env->func->variadic_start);
-        return -1;
+        CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
       }
       emit->env->func->variadic_start = add_instr(emit, Vararg_start);
       emit->env->func->variadic_start->m_val = offset;
       emit->env->func->variadic_start->m_val2 = vector_size(emit->code->code);
     }
     if(!strcmp(S_name(member->xid), "end")) {
-      if(!emit->env->func->variadic_start) {
-        err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error");
-        return -1;
-      }
+      if(!emit->env->func->variadic_start)
+        CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
       Instr instr = add_instr(emit, Vararg_end);
       instr->m_val = offset;
       instr->m_val2 = emit->env->func->variadic_start->m_val2;
@@ -1587,10 +1558,8 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
       value = find_value(t_base, member->xid);
       if(GET_FLAG(value, ae_value_member)) { // member
-        if(emit_exp(emit, member->base, 0) < 0) {
-          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_START
-          return -1;
-        } // LCOV_EXCL_STOP
+        if(emit_exp(emit, member->base, 0) < 0)
+          CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
         sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Exp_Dot_Data);
         func_i->m_val = value->offset;
@@ -1609,10 +1578,8 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       value = find_value(t_base, member->xid);
       func = value->func_ref;
       if(func->is_member) { // member
-        if(emit_exp(emit, member->base, 0) < 0) {
-          err_msg(EMIT_, member->pos, "... in member function"); // LCOV_EXCL_LINE
-          return -1;                                             // LCOV_EXCL_LINE
-        }
+        if(emit_exp(emit, member->base, 0) < 0)
+          CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
         sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Exp_Dot_Func);
         func_i->m_val = func->vt_index;
@@ -1684,10 +1651,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   Type type = value->m_type;
   Local* local = NULL;
 
-  if(func->code) {
-    err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name)); // LCOV_EXCL_LINE
-    return -1;                                                                                 // LCOV_EXCL_LINE
-  }
+  if(func->code)
+    CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name))) // LCOV_EXCL_LINE
 
   if(func_def->types) // don't check template definition
     return 1;
@@ -1715,10 +1680,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 
   if(func->is_member) {
     emit->code->stack_depth += SZ_INT;
-    if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0)) {
-      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'..."); // LCOV_EXCL_START
-      goto error;
-    }                                                                                    // LCOV_EXCL_STOP
+    if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0))
+      CHECK_BB(err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
   }
 
   frame_push_scope(emit->code->frame);
@@ -1739,10 +1702,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     a = a->next;
   }
   if(func_def->is_variadic) {
-    if(!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj)) {
-      err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'..."); // LCOV_EXCL_START
-      return -1;
-    }                                                                                        // LCOV_EXCL_STOP
+    if(!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj))
+      CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
     emit->code->stack_depth += SZ_INT;
   }
 
@@ -1758,10 +1719,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   emit_pop_scope(emit);
 
-  if(func_def->is_variadic && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr)) {
-    err_msg(EMIT_, func_def->pos, "invalid variadic use");
-    return -1;
-  }
+  if(func_def->is_variadic && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr))
+    CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
   m_uint i;
   for(i = 0; i < vector_size(emit->code->stack_return); i++) {
     Instr instr = (Instr)vector_at(emit->code->stack_return, i);
@@ -1796,10 +1755,8 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
 
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
-    if(!type->info->class_data) {
-      err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name); // LCOV_EXCL_LINE
-      return -1;                                                                                      // LCOV_EXCL_LINE
-    }
+    if(!type->info->class_data)
+      CHECK_BB(err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name)) // LCOV_EXCL_LINE
   }
   memset(type->info->class_data, 0, type->info->class_data_size);
   // set the class
@@ -1814,10 +1771,8 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   emit->code->need_this = 1;
   emit->code->filename = strdup(emit->filename);
   emit->code->stack_depth += SZ_INT;
-  if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1)) {
-    err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'..."); // LCOV_EXCL_LINE
-    return -1;                                                                                 // LCOV_EXCL_LINE
-  }
+  if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 1))
+    CHECK_BB(err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
 
   while(body && ret > 0) {
     switch(body->section->type) {
