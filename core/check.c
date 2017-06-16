@@ -607,9 +607,11 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if((t = get_return_type(env, op, lhs->type, rhs->type)))
     return t;
   m_uint i;
-  char la[256], ra[256];
-  memset(la, 0, 256);
-  memset(ra, 0, 256);
+  m_uint llen = 1 + lhs->type->array_depth*2;
+  m_uint rlen = 1 + rhs->type->array_depth*2;
+  char la[llen], ra[rlen];
+  memset(la, 0, rlen);
+  memset(ra, 0, llen);
   for(i = 0; i < lhs->type->array_depth; i++)
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
@@ -1702,9 +1704,9 @@ m_bool check_func_def(Env env, Func_Def f) {
     override = find_value(env->class_def->parent, f->name);
   else if(value->func_num_overloads) {
     m_uint i, j;
-    if(!f->types)
+    if(!f->types) {
+      char name[strlen(S_name(f->name)) + strlen(env->curr->name) + num_digit(value->func_num_overloads) + 3];
       for(i = 0; i <= value->func_num_overloads; i++) {
-        char name[1024];
         sprintf(name, "%s@%li@%s", S_name(f->name), i, env->curr->name);
         Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
         for(j = 1; j <= value->func_num_overloads; j++) {
@@ -1718,6 +1720,7 @@ m_bool check_func_def(Env env, Func_Def f) {
           }
         }
       }
+    }
   }
   if(env->class_def &&  override) {
     if(isa(override->m_type, &t_function) < 0) {
