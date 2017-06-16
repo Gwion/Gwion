@@ -257,8 +257,9 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       m_uint i;
       m_bool match = -1;
       {
+        m_uint digit = num_digit(v->func_num_overloads);
         for(i = 0; i < v->func_num_overloads + 1; i++) {
-          char name[256];
+          char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
           sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
           value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
           if(!value)continue;

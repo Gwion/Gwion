@@ -56,6 +56,8 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* 
 m_bool add_global_type(Env env, Type type);
 Kindof kindof(Type type);
 m_int str2char(const m_str c, m_int linepos);
+m_uint num_digit(m_uint i);
+
 extern struct Type_ t_void;
 extern struct Type_ t_int;
 extern struct Type_ t_float;

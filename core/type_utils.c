@@ -8,6 +8,12 @@
 static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
 
+m_uint num_digit(m_uint i) {
+  if(i)
+    return (m_uint)floor(log10(abs((double) i)) + 1);
+  return 1;
+}
+
 m_uint get_type_xid() {
   return type_xid++;
 }
