@@ -145,7 +145,7 @@ static INSTR(String_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  char str[1024];
+  char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)): 0)];
   sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL , rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
@@ -614,6 +614,10 @@ static MFUN(string_replace) {
   strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
+  if(!arg) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
   while(str[len] != '\0')
@@ -723,6 +727,10 @@ static MFUN(string_findStrStart) {
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  if(!obj) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
   m_str arg = STRING(obj);
   m_int len  = strlen(str);
   m_int i = start;
