@@ -521,7 +521,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     m_uint i;
     Func f1, f2 = NULL;
     Value v;
-    char name[1024];
     Type ret_type;
     /*
        if(isa(binary->lhs->type, &t_func_ptr) > 0) {
@@ -581,6 +580,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
+        char name[strlen(c) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
       }
