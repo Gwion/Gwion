@@ -889,11 +889,13 @@ static Type_List mk_type_list(Env env, Type type) {
 }
 
 Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
-  m_uint i;
+  m_uint i, digit, len;
   Func_Def base;
   Value value;
 
   CHECK_OO(v)
+  digit = num_digit(v->func_num_overloads + 1);
+  len = strlen(v->name) + strlen(env->curr->name);
   if(v->owner_class) {
     vector_add(env->nspc_stack, (vtype)env->curr);
     env->curr = v->owner_class->info;
@@ -902,7 +904,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     env->class_scope = 0; // should keep former value somewhere
   }
   for(i = 0; i < v->func_num_overloads + 1; i++) {
-    char name[256];
+    char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     if(v->owner_class) {
       value = find_value(v->owner_class, insert_symbol(name));
