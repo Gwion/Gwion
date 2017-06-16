@@ -146,7 +146,7 @@ static INSTR(String_String) {
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
-  sprintf(str, "%s%s", STRING(lhs), STRING(rhs));
+  sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL , rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
@@ -425,12 +425,13 @@ static INSTR(Object_String_Plus) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  m_uint len = strlen(STRING(rhs)) + 11;
+  m_uint len = (rhs ? strlen(STRING(rhs)) : 0 ) + 11;
   char c[len+1];
   c[len] = '\0';
 //  sprintf(c, "%s%p", STRING(rhs), (void*)lhs);
-  sprintf(c, "%s0x%08lu", STRING(rhs), (uintptr_t)lhs);
-  STRING(rhs) = S_name(insert_symbol(c));
+  sprintf(c, "%s0x%08lu", rhs ? STRING(rhs) : "" , (uintptr_t)lhs);
+  if(rhs)
+    STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
@@ -556,7 +557,7 @@ static MFUN(string_substring) {
   m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
-  if(!len || (len-index+1) <= 0) {
+  if(!len || index > len || (len-index+1) <= 0) {
     RETURN->d.v_object = NULL;
     return;
   }
