@@ -417,7 +417,7 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
 #endif
   if(emit_exp(emit, exp_func->args, 1) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...")) // LCOV_EXCL_LINE
-  if(exp_func->m_func->def->is_variadic) {
+  if(GET_FLAG(exp_func->m_func->def, ae_key_variadic)) {
     m_uint offset = 0, size = 0;
     Instr instr;
     Exp e = exp_func->args;
@@ -461,7 +461,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       base_t = base_t->next;
       list = list->next;
     }
-    def->is_template = 1;
+    SET_FLAG(def, ae_key_template);
     CHECK_BB(scan1_func_def(emit->env, def))
       CHECK_BB(scan2_func_def(emit->env, def))
       CHECK_BB(check_func_def(emit->env, def))
@@ -475,7 +475,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
   if(emit_exp(emit, exp_func->func, 0) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
-  if(exp_func->m_func->def->is_variadic && !exp_func->args) { // handle empty call to variadic functions
+  if(GET_FLAG(exp_func->m_func->def, ae_key_variadic) && !exp_func->args) { // handle empty call to variadic functions
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
   }
@@ -605,7 +605,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   if(!func->code) { // calling function pointer in func
     Func f = nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
     if(!f) { //template with no list
-      if(!func->def->is_template)
+      if(!GET_FLAG(func->def, ae_key_template))
         CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
       if(emit_func_def(emit, func->def) < 0)
         CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
@@ -640,7 +640,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     call->m_val2  = (m_uint)func->def->arg_list->type;
     *(Type*)call->ptr     = func->def->arg_list->next->type;
   }
-  if(func->def->is_template) {
+  if(GET_FLAG(func->def, ae_key_template)) {
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;
   }
@@ -1701,7 +1701,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     value->offset = local->offset;
     a = a->next;
   }
-  if(func_def->is_variadic) {
+  if(GET_FLAG(func_def, ae_key_variadic)) {
     if(!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj))
       CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
     emit->code->stack_depth += SZ_INT;
@@ -1719,7 +1719,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   emit_pop_scope(emit);
 
-  if(func_def->is_variadic && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr))
+  if(GET_FLAG(func_def, ae_key_variadic) && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr))
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
   m_uint i;
   for(i = 0; i < vector_size(emit->code->stack_return); i++) {

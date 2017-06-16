@@ -634,7 +634,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       }
     }
   }
-  if(overload && !f->is_template) {
+  if(overload && !GET_FLAG(f, ae_key_template)) {
     len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
     snprintf(name, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
@@ -738,7 +738,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   nspc_pop_value(env->curr);
 
-  if(f->is_variadic)
+  if(GET_FLAG(f, ae_key_variadic))
     f->stack_depth += SZ_INT;
   else if(f->spec == ae_key_op) {
     m_bool ret;
@@ -765,7 +765,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   else {
     nspc_add_value(env->curr, insert_symbol(func->name), value);
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
-      if(!f->is_template)
+      if(!GET_FLAG(f, ae_key_template))
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
           err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'",
                   f->ret_type->name, overload->func_ref->def->ret_type->name);

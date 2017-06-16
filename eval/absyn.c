@@ -562,13 +562,13 @@ Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
   a->spec = 0;
   if(a->func_decl == ae_key_variadic) {
     a->func_decl = ae_key_func;
-    a->is_variadic = 1;
+    SET_FLAG(a, ae_key_variadic);
   }
   return a;
 }
 
 void free_func_def(Func_Def a) {
-  if(!a->is_template) {
+  if(!GET_FLAG(a, ae_key_template)) {
     if(a->types)
       free_id_list(a->types);
     if(a->ret_type && a->ret_type->array_type)

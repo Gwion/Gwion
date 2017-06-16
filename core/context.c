@@ -29,7 +29,7 @@ void free_context(Context a) {
       REM_REF(f->value_ref);
       REM_REF(f);
       continue;
-    } else if(!f->def->is_template) {
+    } else if(!GET_FLAG(f->def, ae_key_template)) {
       if(f->value_ref->m_type) {
         free(f->value_ref->m_type->name);
         REM_REF(f->value_ref->m_type);

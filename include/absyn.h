@@ -21,8 +21,9 @@ typedef enum {
   ae_key_static    = 1 << 4,
   ae_key_instance  = 1 << 5,
   ae_key_variadic  = 1 << 6,
-  ae_key_dtor      = 1 << 7,
-  ae_key_op        = 1 << 8
+  ae_key_template  = 1 << 7,
+  ae_key_dtor      = 1 << 8,
+  ae_key_op        = 1 << 9
 } ae_Keyword;
 
 typedef struct {
@@ -465,11 +466,10 @@ struct Func_Def_ {
   ae_Keyword static_decl;
   void* dl_func_ptr;
   ae_Keyword spec;// try to implement dtor in parser
+  ae_Keyword flag;
   ID_List types;
   ID_List base; // 13/03/17
   int pos;
-  m_bool is_template;
-  m_bool is_variadic;
 };
 
 Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);

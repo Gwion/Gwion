@@ -500,7 +500,7 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
 
       while(e) {
         if(e1 == NULL) {
-          if(func->def->is_variadic)
+          if(GET_FLAG(func->def, ae_key_variadic))
             return func;
           goto moveon;
         }
@@ -563,11 +563,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
-    if(base->is_variadic)
-      def->is_variadic = 1;
+    if(GET_FLAG(base, ae_key_variadic))
+      SET_FLAG(def, ae_key_variadic);
     Type_List list = types;
     ID_List base_t = base->types;
-    def->is_template = 1;
+    SET_FLAG(def, ae_key_template);
     nspc_push_type(env->curr);
     while(base_t) {
       ID_List tmp = base_t->next;;
@@ -1652,7 +1652,7 @@ m_bool check_func_def(Env env, Func_Def f) {
     arg_list = arg_list->next;
   }
 
-  if(f->is_variadic) {
+  if(GET_FLAG(f, ae_key_variadic)) {
     vararg = new_value(&t_vararg, "vararg");
     SET_FLAG(vararg, ae_value_checked);
     nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
