@@ -6,7 +6,7 @@ static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK
                                      "INSTR", " UDP ", "ALSA", " VM  ", " OP  "
                                    };
 
-void err_msg(a_header header, long int pos, const char* fmt, ...) {
+char err_msg(a_header header, long int pos, const char* fmt, ...) {
   char msg[256];
   va_list arg;
   va_start(arg, fmt);
@@ -24,6 +24,7 @@ void err_msg(a_header header, long int pos, const char* fmt, ...) {
   vsnprintf(msg, 256, fmt, arg);
   fprintf(stderr, "\t%s\n", msg);
   va_end(arg);
+  return -1;
 }
 
 

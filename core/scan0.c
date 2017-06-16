@@ -53,16 +53,14 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
-    err_msg(SCAN0_,  class_def->name->pos,
+    CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
             "class/type '%s' is already defined in namespace '%s'",
-            S_name(class_def->name->xid), env->curr->name);
-	return -1;
+            S_name(class_def->name->xid), env->curr->name))
   }
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
-    err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-            S_name(class_def->name->xid));
-	return -1;
+    CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
+            S_name(class_def->name->xid)))
   }
 
   the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
@@ -131,9 +129,8 @@ m_bool scan0_Ast(Env env, Ast prog) {
     case ae_section_class:
       if(prog->section->d.class_def->decl == ae_key_public) {
         if(env->context->public_class_def != NULL) {
-          err_msg(SCAN0_, prog->section->d.class_def->pos,
-                  "more than one 'public' class defined...");
-          return -1;
+          CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
+                  "more than one 'public' class defined..."))
         }
         env->context->public_class_def = prog->section->d.class_def;
       }
