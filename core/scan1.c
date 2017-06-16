@@ -3,7 +3,6 @@
 #include "type.h"
 #include "func.h"
 
-extern void free_expression(Exp exp);
 static m_bool scan1_exp(Env env, Exp exp);
 static m_bool scan1_stmt_list(Env env, Stmt_List list);
 static m_bool scan1_stmt(Env env, Stmt stmt);

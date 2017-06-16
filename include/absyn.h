@@ -278,6 +278,7 @@ Exp new_exp_unary(Operator oper, Exp exp, int pos);
 Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, int pos);
 Exp prepend_expression(Exp exp, Exp next, int pos);
+void free_expression(Exp exp);
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {

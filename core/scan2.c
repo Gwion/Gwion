@@ -5,7 +5,6 @@
 #include "context.h"
 #include "func.h"
 
-m_bool scan2_func_def(Env env, Func_Def f);
 static m_bool scan2_exp(Env env, Exp exp);
 static m_bool scan2_stmt(Env env, Stmt stmt);
 static m_bool scan2_stmt_list(Env env, Stmt_List list);
