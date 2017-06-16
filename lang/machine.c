@@ -48,7 +48,6 @@ static SFUN(machine_add) {
 }
 
 static SFUN(machine_check) {
-  char c[104];
   Ast ast;
   FILE* file;
   m_str prefix, filename, s;
@@ -64,6 +63,8 @@ static SFUN(machine_check) {
   }
   if(!code_obj)
     return;
+  char c[strlen(prefix) + 17];
+  filename = randstring(shred->vm_ref, 12);
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s", prefix, filename);
   if(!(file = fopen(c, "w"))) return;
@@ -83,7 +84,6 @@ static SFUN(machine_check) {
 
 static SFUN(machine_compile) {
 
-  char c[104];
   m_str prefix, filename;
   FILE* file;
   M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
@@ -97,6 +97,7 @@ static SFUN(machine_compile) {
     release(prefix_obj, shred);
   }
   if(!code_obj) return;
+  char c[strlen(prefix) + 17];
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s.gw", prefix, filename);
   if(!(file = fopen(c, "w"))) return;
