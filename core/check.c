@@ -521,7 +521,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     m_uint i;
     Func f1, f2 = NULL;
     Value v;
-    char name[1024];
     Type ret_type;
     /*
        if(isa(binary->lhs->type, &t_func_ptr) > 0) {
@@ -581,6 +580,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     for(i = 0; i <= v->func_num_overloads; i++) {
       if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? S_name(f2->def->name) : NULL;
+        char name[strlen(c) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
       }
@@ -607,9 +607,11 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if((t = get_return_type(env, op, lhs->type, rhs->type)))
     return t;
   m_uint i;
-  char la[256], ra[256];
-  memset(la, 0, 256);
-  memset(ra, 0, 256);
+  m_uint llen = 1 + lhs->type->array_depth*2;
+  m_uint rlen = 1 + rhs->type->array_depth*2;
+  char la[llen], ra[rlen];
+  memset(la, 0, rlen);
+  memset(ra, 0, llen);
   for(i = 0; i < lhs->type->array_depth; i++)
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
@@ -887,11 +889,13 @@ static Type_List mk_type_list(Env env, Type type) {
 }
 
 Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
-  m_uint i;
+  m_uint i, digit, len;
   Func_Def base;
   Value value;
 
   CHECK_OO(v)
+  digit = num_digit(v->func_num_overloads + 1);
+  len = strlen(v->name) + strlen(env->curr->name);
   if(v->owner_class) {
     vector_add(env->nspc_stack, (vtype)env->curr);
     env->curr = v->owner_class->info;
@@ -900,11 +904,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     env->class_scope = 0; // should keep former value somewhere
   }
   for(i = 0; i < v->func_num_overloads + 1; i++) {
-    char name[256];
+    char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    if(v->owner_class) {
+    if(v->owner_class)
       value = find_value(v->owner_class, insert_symbol(name));
-    } else
+    else
       value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
     base = value->func_ref->def;
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
@@ -1702,9 +1706,9 @@ m_bool check_func_def(Env env, Func_Def f) {
     override = find_value(env->class_def->parent, f->name);
   else if(value->func_num_overloads) {
     m_uint i, j;
-    if(!f->types)
+    if(!f->types) {
+      char name[strlen(S_name(f->name)) + strlen(env->curr->name) + num_digit(value->func_num_overloads) + 3];
       for(i = 0; i <= value->func_num_overloads; i++) {
-        char name[1024];
         sprintf(name, "%s@%li@%s", S_name(f->name), i, env->curr->name);
         Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
         for(j = 1; j <= value->func_num_overloads; j++) {
@@ -1718,6 +1722,7 @@ m_bool check_func_def(Env env, Func_Def f) {
           }
         }
       }
+    }
   }
   if(env->class_def &&  override) {
     if(isa(override->m_type, &t_function) < 0) {
