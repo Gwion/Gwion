@@ -16,7 +16,7 @@ extern Map scan_map;
 
 typedef enum {
   ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_private,
-  ae_key_static, ae_key_instance, ae_key_variadic
+  ae_key_static, ae_key_instance, ae_key_variadic, ae_key_dtor, ae_key_op
 } ae_Keyword;
 
 typedef struct {
@@ -458,7 +458,7 @@ struct Func_Def_ {
   ae_Keyword func_decl;
   ae_Keyword static_decl;
   void* dl_func_ptr;
-  ae_func_spec spec;// try to implement dtor in parser
+  ae_Keyword spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
   int pos;

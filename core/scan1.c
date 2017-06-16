@@ -442,10 +442,10 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   debug_msg("scan1", "func def");
 #endif
 
-  if(f->spec == ae_func_spec_dtor && !env->class_def)
+  if(f->spec == ae_key_dtor && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
 
-  if(f->spec != ae_func_spec_op && name2op(S_name(f->name)) > 0)
+  if(f->spec != ae_key_op && name2op(S_name(f->name)) > 0)
     CHECK_BB(err_msg(SCAN1_, f->pos, "'%s' is a reserved operator name", S_name(f->name)))
 
   if(f->types)
@@ -488,7 +488,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     count++;
     arg_list = arg_list->next;
   }
-  if(f->spec == ae_func_spec_op) {
+  if(f->spec == ae_key_op) {
     if(count > 3 || count == 1)
       CHECK_BB(err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n"))
     if(name2op(S_name(f->name)) < 0)

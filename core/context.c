@@ -22,7 +22,7 @@ void free_context(Context a) {
   vtype i;
   for(i = 0; i < vector_size(a->new_funcs); i++) {
     Func f = (Func)vector_at(a->new_funcs, i);
-    if(f->def->spec == ae_func_spec_op) {
+    if(f->def->spec == ae_key_op) {
       free(f->value_ref->name);
       free(f->value_ref->m_type->name);
       free(f->value_ref->m_type);
