@@ -51,11 +51,6 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
 }
 
 m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global) {
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op  ", "import operator '%s' for type '%s' and '%s', in  '%s'",
-            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL, env->curr->name);
-#endif
-
   Nspc nspc = env->curr;
   Vector v;
   M_Operator* mo;
@@ -88,10 +83,6 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
 }
 
 Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", "get return type for operator '%s', for type '%s' and '%s'",
-            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
-#endif
   Nspc nspc = env->curr;
 
   while(nspc) {
@@ -113,9 +104,6 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
 }
 
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", 0, "set func'");
-#endif
   Nspc nspc = env->curr;
   M_Operator* mo;
   Vector v = (Vector)map_get(nspc->op_map, (vtype)name2op(S_name(f->def->name)));
@@ -125,11 +113,8 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
 }
 
 Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
-#ifdef DEBUG_OPERATOR
-  debug_msg(" op", "get instr for operator '%s', for type '%s' and '%s'",
-            op2str(op), lhs->name, rhs->name);
-#endif
   Nspc nspc = emit->env->curr;
+
   while(nspc) {
     Type l = lhs;
     do {
