@@ -151,17 +151,10 @@ Value find_value(Type type, S_Symbol xid) {
 }
 
 m_str type_path(ID_List path) {
-  m_uint len = 0;
+  char str[256];
+  memset(str, 0, sizeof(str));
   while(path) {
-    len += strlen(S_name(path->xid));
-    if(path->next)
-      len++;
-    path = path->next;
-  }
-  char str[++len];
-  str[0] = '\0';
-  while(path) {
-    strcat(str, S_name(path->xid));
+    strncat(str, S_name(path->xid), 256 - strlen(str));
     if(path->next)
       strcat(str, ".");
     path = path->next;
