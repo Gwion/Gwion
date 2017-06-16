@@ -1140,6 +1140,7 @@ static Type check_exp_call(Env env, Exp_Func* exp_func) {
         free_type_list(exp_func->types);
         exp_func->types = NULL;
         return NULL;
+      }
     } else {
       err_msg(TYPE_, exp_func->pos, "invalid template call.");
       return NULL;
