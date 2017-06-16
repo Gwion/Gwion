@@ -906,9 +906,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    if(v->owner_class) {
+    if(v->owner_class)
       value = find_value(v->owner_class, insert_symbol(name));
-    } else
+    else
       value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
     base = value->func_ref->def;
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
