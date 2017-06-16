@@ -5,10 +5,11 @@
 #include "type.h"
 #include "vm.h"
 
-struct Type_ t_null   = { "@null",     SZ_INT, NULL,      te_null};
-struct Type_ t_object = { "Object",    SZ_INT, NULL,      te_object };
-struct Type_ t_vararg = { "@Vararg",   SZ_INT, &t_object, te_vararg};
-struct Type_ t_varobj = { "VarObject", SZ_INT, &t_object, te_vararg};
+struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};
+struct Type_ t_object  = { "Object",    SZ_INT, NULL,      te_object };
+struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
+struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_object, te_vararg};
+struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
 
 void NullException(VM_Shred shred, const m_str c) {
   err_msg(INSTR_, 0, "%s: shred[id=%lu:%s], PC=[%lu]\n",
@@ -259,9 +260,10 @@ m_bool import_object(Env env) {
   CHECK_BB(import_class_end(env))
   CHECK_BB(add_global_type(env, &t_vararg))
   CHECK_BB(add_global_type(env, &t_varobj))
+  CHECK_BB(add_global_type(env, &t_varloop))
   CHECK_OB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
-  import_mvar(env, "int", "start", 1, 0, "start vararg loop");
-  import_mvar(env, "int", "end", 1, 0, "end vararg loop");
+  import_mvar(env, "@VarLoop", "start", 1, 0, "start vararg loop");
+  import_mvar(env, "@VarLoop", "end", 1, 0, "end vararg loop");
   import_mvar(env, "int", "i", 1, 0, "vararg int");
   import_mvar(env, "float", "f", 1, 0, "vararg float");
   import_mvar(env, "time", "t", 1, 0, "vararg time");

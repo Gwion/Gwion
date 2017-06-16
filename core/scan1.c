@@ -380,9 +380,8 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
   debug_msg("scan1", "stmt");
 #endif
   m_bool ret = -1;
-  if(!stmt)
+  if(!stmt || (m_uint)stmt < 100)
     return 1;
-
   // DIRTY!!! happens when '1, new Object', for instance
   if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
     return 1;
