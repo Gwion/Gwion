@@ -910,6 +910,10 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
       value = find_value(v->owner_class, insert_symbol(name));
     else
       value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+    if(!value) {
+      err_msg(TYPE_, func->pos, "unknown argument in template  call.");
+      return NULL;
+    }
     base = value->func_ref->def;
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
@@ -1124,7 +1128,7 @@ static Type check_exp_call(Env env, Exp_Func* exp_func) {
     Value v;
     if(exp_func->func->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
-    } else {
+    } else if(exp_func->func->exp_type == ae_exp_dot) {
       Type t;
       CHECK_OO(check_exp(env, exp_func->func))
       t = exp_func->func->d.exp_dot.t_base;
@@ -1136,7 +1140,9 @@ static Type check_exp_call(Env env, Exp_Func* exp_func) {
         free_type_list(exp_func->types);
         exp_func->types = NULL;
         return NULL;
-      }
+    } else {
+      err_msg(TYPE_, exp_func->pos, "invalid template call.");
+      return NULL;
     }
     Func ret = find_template_match(env, v, exp_func->m_func, exp_func->types,
                                    exp_func->func, exp_func->args);
