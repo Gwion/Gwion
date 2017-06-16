@@ -89,10 +89,8 @@ m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr
   vector_add(v, (vtype)mo);
   if(lhs)
 	ADD_REF(lhs)
-  if(rhs) {
-printf("rhs->>name: %s\n", rhs->name);
+  if(rhs)
 	ADD_REF(rhs)
-}
   ADD_REF(ret)
   return 1;
 }
