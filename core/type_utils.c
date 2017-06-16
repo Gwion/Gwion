@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 700
+#include <math.h>
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
