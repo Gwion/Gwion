@@ -23,13 +23,13 @@ m_bool check_func_def(Env env, Func_Def f);
 ID_List str2list(m_str path, m_uint* array_depth) {
   m_uint len = 0;
   m_int  i, j;
-  char curr[256];
   ID_List list = NULL;
   char last = '\0';
   m_uint depth = 0;
-  memset(curr, 0, 256);
   while(path[len] != '\0')
     len++;
+  char curr[len + 1];
+  memset(curr, 0, len + 1);
 
   while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
     depth++;
