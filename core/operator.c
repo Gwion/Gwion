@@ -142,8 +142,12 @@ Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
           if(mo->func) {
             instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
             CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
-          } else
+          } else if(mo->instr) {
             instr = add_instr(emit, mo->instr);
+          } else {
+            err_msg(EMIT_, 0, "Trying to call non emitted operator.");
+            instr = NULL;
+          }
           return instr;
         }
       } while(r && (r = r->parent));

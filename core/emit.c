@@ -552,7 +552,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
   CHECK_OB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
-    return 1;
+  return 1;
 }
 
 static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
