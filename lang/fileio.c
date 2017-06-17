@@ -292,8 +292,8 @@ m_bool import_fileio(Env env) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-  add_global_value(env, "cin",  &t_fileio, 1, gw_cin);
-  add_global_value(env, "cout", &t_fileio, 1, gw_cout);
-  add_global_value(env, "cerr", &t_fileio, 1, gw_cerr);
+  env_add_value(env, "cin",  &t_fileio, 1, gw_cin);
+  env_add_value(env, "cout", &t_fileio, 1, gw_cout);
+  env_add_value(env, "cerr", &t_fileio, 1, gw_cerr);
   return 1;
 }

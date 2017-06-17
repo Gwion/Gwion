@@ -78,9 +78,9 @@ next:
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
-  if(add_global_type(env, &t_void) < 0) goto error;
-  if(add_global_type(env, &t_null) < 0) goto error;
-  if(add_global_type(env, &t_now) < 0) goto error;
+  if(env_add_type(env, &t_void) < 0) goto error;
+  if(env_add_type(env, &t_null) < 0) goto error;
+  if(env_add_type(env, &t_now) < 0) goto error;
   if(import_int(env)       < 0) goto error;
   if(import_float(env)     < 0) goto error;
   if(import_complex(env)   < 0) goto error;
@@ -92,7 +92,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   if(import_event(env)     < 0) goto error;
   if(import_ugen(env)      < 0) goto error;
   if(import_array(env)     < 0) goto error;
-  start_type_xid();
+  env->do_type_xid = 1;
   if(import_fileio(env)    < 0) goto error;
   if(import_lib(env)       < 0) goto error;
   if(import_machine(env)   < 0) goto error;
@@ -123,18 +123,18 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
   ALLOC_PTR(t_zero, m_float, 0.0);
 
-  add_global_value(env, "adc",        &t_ugen, 1, vm->adc);
-  add_global_value(env, "dac",        &t_ugen, 1, vm->dac);
-  add_global_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
-  add_global_value(env, "d_zero",     &t_dur,  1, d_zero);
-  add_global_value(env, "samplerate", &t_dur,  1, sr);
-  add_global_value(env, "samp",       &t_dur,  1, samp);
-  add_global_value(env, "ms",         &t_dur,  1, ms);
-  add_global_value(env, "second",     &t_dur,  1, second);
-  add_global_value(env, "minute",     &t_dur,  1, minute);
-  add_global_value(env, "day",        &t_dur,  1, hour);
-  add_global_value(env, "hour",       &t_dur,  1, day);
-  add_global_value(env, "t_zero",     &t_time, 1, t_zero);
+  env_add_value(env, "adc",        &t_ugen, 1, vm->adc);
+  env_add_value(env, "dac",        &t_ugen, 1, vm->dac);
+  env_add_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
+  env_add_value(env, "d_zero",     &t_dur,  1, d_zero);
+  env_add_value(env, "samplerate", &t_dur,  1, sr);
+  env_add_value(env, "samp",       &t_dur,  1, samp);
+  env_add_value(env, "ms",         &t_dur,  1, ms);
+  env_add_value(env, "second",     &t_dur,  1, second);
+  env_add_value(env, "minute",     &t_dur,  1, minute);
+  env_add_value(env, "day",        &t_dur,  1, hour);
+  env_add_value(env, "hour",       &t_dur,  1, day);
+  env_add_value(env, "t_zero",     &t_time, 1, t_zero);
   /* commit */
   nspc_commit(env->global_nspc);
 

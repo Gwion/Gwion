@@ -10,7 +10,6 @@ MFUN(test_mfun){}
 IMPORT
 {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_invalid_var_name))
   CHECK_BB(import_class_begin(env, &t_invalid_var_name, env->global_nspc, NULL, NULL))
 
   import_mvar(env, "int[]", "int_array", 0,0,"invalid name"); // import array var

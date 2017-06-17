@@ -254,8 +254,8 @@ m_bool import_object(Env env) {
   CHECK_BB(import_op(env, op_neq, "Object", "@null", "int", neq_Object, 1))
   CHECK_BB(import_op(env, op_exclamation,   NULL,   "Object", "int", noti,        1))
   CHECK_BB(import_class_end(env))
-  CHECK_BB(add_global_type(env, &t_varobj))
-  CHECK_BB(add_global_type(env, &t_varloop))
+  CHECK_BB(env_add_type(env, &t_varobj))
+  CHECK_BB(env_add_type(env, &t_varloop))
   CHECK_OB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
   import_mvar(env, "@VarLoop", "start", 1, 0, "start vararg loop");
   import_mvar(env, "@VarLoop", "end", 1, 0, "end vararg loop");

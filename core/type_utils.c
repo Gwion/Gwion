@@ -6,16 +6,10 @@
 #include "context.h"
 #include "type.h"
 
-static m_uint type_xid = te_last;
-static m_bool do_type_xid = 0;
-
 m_uint num_digit(m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
-m_uint get_type_xid() {
-  return type_xid++;
-}
 int verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1) {
@@ -90,7 +84,7 @@ Type type = nspc_lookup_type(env->curr, path->xid, 1);
   return type;
 }
 
-m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
+m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
   Value v = new_value(type, name);
   if(!v)
     return -1;
@@ -106,10 +100,6 @@ m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const, void* d
   return 1;
 }
 
-void start_type_xid() {
-  do_type_xid = 1;
-}
-
 m_bool name_valid(m_str a) {
   m_uint i, len = strlen(a);
   for(i = 0; i < len; i++) {
@@ -121,26 +111,6 @@ m_bool name_valid(m_str a) {
       err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", a, a);
       return -1;
     }
-  }
-  return 1;
-}
-
-m_bool add_global_type(Env env, Type type) {
-  if(type->name[0] != '@')
-    CHECK_BB(name_valid(type->name));
-  Type v_type = type_copy(env, &t_class);
-  v_type->actual_type = type;
-  INIT_OO(type, e_type_obj);
-  SET_FLAG(type, ae_flag_builtin);
-  nspc_add_type(env->curr, insert_symbol(type->name), type);
-  Value v = new_value(v_type, type->name);
-  SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global);
-  nspc_add_value(env->curr, insert_symbol(type->name), v);
-//  context_add_type(env->global_context, type, &type->obj);
-  type->owner = env->curr;
-  if(do_type_xid) {
-    type_xid++;
-    type->xid = type_xid;
   }
   return 1;
 }

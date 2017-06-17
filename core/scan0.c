@@ -63,7 +63,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
             S_name(class_def->name->xid)))
   }
 
-  the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
+  the_class = new_type(env->type_xid++, S_name(class_def->name->xid));
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;

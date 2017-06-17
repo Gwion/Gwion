@@ -407,7 +407,7 @@ static INSTR(rsxor) {
 
 // import function
 m_bool import_int(Env env) {
-  CHECK_BB(add_global_type(env, &t_int))
+  CHECK_BB(env_add_type(env, &t_int))
 // arithmetic
   CHECK_BB(import_op(env, op_assign,        "int", "int", "int", assign,     1))
   CHECK_BB(import_op(env, op_plus,          "int", "int", "int", plus,       1))

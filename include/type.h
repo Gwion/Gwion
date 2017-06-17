@@ -49,8 +49,8 @@ static inline Type find_common_anc(Type lhs, Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
 }
 m_str type_path(ID_List path);
-m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
-m_bool add_global_type(Env env, Type type);
+m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
+m_bool env_add_type(Env env, Type type);
 Kindof kindof(Type type);
 m_int str2char(const m_str c, m_int linepos);
 extern struct Type_ t_void;

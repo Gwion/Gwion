@@ -523,9 +523,9 @@ static INSTR(fi_r_divide) {
 }
 
 m_bool import_float(Env env) {
-  CHECK_BB(add_global_type(env, &t_float))
-  CHECK_BB(add_global_type(env, &t_time))
-  CHECK_BB(add_global_type(env, &t_dur))
+  CHECK_BB(env_add_type(env, &t_float))
+  CHECK_BB(env_add_type(env, &t_time))
+  CHECK_BB(env_add_type(env, &t_dur))
 // arithmetic
   CHECK_BB(import_op(env, op_assign,        "float", "float", "float", assign,    0))
   CHECK_BB(import_op(env, op_plus,          "float", "float", "float", plus,      0))

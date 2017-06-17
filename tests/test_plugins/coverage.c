@@ -16,7 +16,6 @@ SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; RETURN->d.v_vec4 = v; }
 IMPORT
 {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_coverage))
   CHECK_BB(import_class_begin(env, &t_coverage, env->global_nspc, NULL, NULL))
   fun = new_dl_func("int", "i", (m_uint)coverage_int);
   CHECK_OB(import_sfun(env, fun))

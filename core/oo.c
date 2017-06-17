@@ -4,7 +4,6 @@
 #include "context.h"
 #include "func.h"
 #include "oo.h"
-
 #include "emit.h"
 
 Value new_value(Type type, m_str name) {

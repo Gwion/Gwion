@@ -102,7 +102,7 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
     err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
     return NULL;
   }
-  CHECK_BO(add_global_type(env, type))
+  CHECK_BO(env_add_type(env, type))
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
   if(pre_ctor)
