@@ -35,7 +35,7 @@ static INSTR(Int_String_Assign) {
   memset(str, 0, 1024);
   sprintf(str, "%li", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
-  *(M_Object*)shred->reg = (M_Object)rhs;
+  *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -48,6 +48,8 @@ static INSTR(Float_String_Assign) {
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_FLOAT);
   char str[1024];
+  if(!rhs)
+    Except(shred, "NullStringException.");
   sprintf(str, "%f", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -63,6 +65,8 @@ static INSTR(Complex_String_Assign) {
   m_complex lhs = *(m_complex*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
   char str[1024];
+  if(!rhs)
+    Except(shred, "NullStringException.");
   sprintf(str, "#(%f, %f)", creal(lhs), cimag(lhs));
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -78,6 +82,8 @@ static INSTR(Polar_String_Assign) {
   m_complex lhs = *(m_complex*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
   char str[1024];
+  if(!rhs)
+    Except(shred, "NullStringException.");
   sprintf(str, "#(%f, %f)",  creal(lhs),
       cimag(lhs) / M_PI);
   STRING(rhs) = S_name(insert_symbol(str));
@@ -94,6 +100,8 @@ static INSTR(Vec3_String_Assign) {
   m_vec3 lhs = *(m_vec3*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC3);
   char str[1024];
+  if(!rhs)
+    Except(shred, "NullStringException.");
   sprintf(str, "#(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -109,6 +117,8 @@ static INSTR(Vec4_String_Assign) {
   m_vec4 lhs = *(m_vec4*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC4);
   char str[1024];
+  if(!rhs)
+    Except(shred, "NullStringException.");
   sprintf(str, "#(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = (M_Object)rhs;
@@ -159,7 +169,7 @@ static INSTR(Int_String) {
   m_int lhs = *(m_int*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
   char str[1024];
-  sprintf(str, "%li%s", lhs, STRING(rhs));
+  sprintf(str, "%li%s", lhs, rhs ? STRING(rhs): NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -173,7 +183,7 @@ static INSTR(Float_String) {
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_FLOAT);
   char str[1024];
-  sprintf(str, "%f%s", lhs, STRING(rhs));
+  sprintf(str, "%f%s", lhs, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -187,7 +197,7 @@ static INSTR(Complex_String) {
   m_complex  lhs = *(m_complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
   char str[1024];
-  sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), STRING(rhs));
+  sprintf(str, "#(%f, %f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -201,7 +211,7 @@ static INSTR(Polar_String) {
   m_complex  lhs = *(m_complex*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_COMPLEX);
   char str[1024];
-  sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, STRING(rhs));
+  sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -215,7 +225,7 @@ static INSTR(Vec3_String) {
   m_vec3  lhs = *(m_vec3*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC3);
   char str[1024];
-  sprintf(str, "@(%f, %f, %f)%s", lhs.x, lhs.y, lhs.z, STRING(rhs));
+  sprintf(str, "@(%f, %f, %f)%s", lhs.x, lhs.y, lhs.z, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -229,7 +239,7 @@ static INSTR(Vec4_String) {
   m_vec4  lhs = *(m_vec4*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_VEC4);
   char str[1024];
-  sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, STRING(rhs));
+  sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
@@ -242,12 +252,8 @@ static INSTR(Object_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  if(!rhs)
-    Except(shred,"NullStringException");
-  if(!lhs)
-    Except(shred,"NullStringException");
   char str[11 + strlen(STRING(rhs))];
-  sprintf(str, "0x%08lu%s", (uintptr_t)lhs, STRING(rhs));
+  sprintf(str, "0x%08lu%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
@@ -271,7 +277,7 @@ static INSTR(String_Plus) {
   m_uint l_len = strlen(STRING(lhs));
   m_uint r_len = strlen(STRING(rhs));
   char c[l_len + r_len + 1];
-  sprintf(c, "%s%s", STRING(rhs), STRING(lhs));
+  sprintf(c, "%s%s", STRING(rhs), lhs ? STRING(lhs) : NULL);
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
@@ -306,8 +312,10 @@ static INSTR(Float_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_FLOAT);
-  m_uint len = strlen(STRING(rhs)) + 1 + 7;
+  m_uint len = (rhs ? strlen(STRING(rhs)) : 0) + 1 + 7;
   m_uint tmp = fabs(lhs);
+  if(!rhs)
+    Except(shred,"NullStringException");
   while(tmp /= 10)
     len++;
   char c[len];
@@ -325,6 +333,8 @@ static INSTR(Complex_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
+  if(rhs)
+    Except(shred,"NullStringException")
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   m_uint tmp = fabs(creal(lhs));
   while(tmp /= 10)
@@ -347,6 +357,8 @@ static INSTR(Polar_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_COMPLEX);
+  if(rhs)
+    Except(shred,"NullStringException")
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   m_uint tmp = fabs(creal(lhs));
   while(tmp /= 10)
@@ -369,6 +381,8 @@ static INSTR(Vec3_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3 lhs = *(m_vec3*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC3);
+  if(rhs)
+    Except(shred,"NullStringException")
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13 + 2;
   m_uint tmp = fabs(lhs.x);
   while(tmp /= 10)
@@ -394,6 +408,8 @@ static INSTR(Vec4_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4 lhs = *(m_vec4*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_VEC4);
+  if(rhs)
+    Except(shred,"NullStringException")
   m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13 + 4;
   m_uint tmp = fabs(lhs.x);
   while(tmp /= 10)
@@ -423,6 +439,8 @@ static INSTR(Object_String_Plus) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
+  if(rhs)
+    Except(shred,"NullStringException")
   m_uint len = (rhs ? strlen(STRING(rhs)) : 0 ) + 11;
   char c[len+1];
   c[len] = '\0';
@@ -440,11 +458,7 @@ INSTR(Reg_Push_Str) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "push string %s", (m_str)instr->m_val);
 #endif
-  // modified 13/01/17 'get rid of litteral strings'
   *(M_Object*)shred->reg = new_String(shred,(m_str)instr->m_val);
-  //M_Object*)(shred->mem + instr->m_val2) = *(M_Object*)shred->reg;
-  //  if(shred->gc) // garbage collect strings in switch
-  //    vector_add(shred->gc, (vtype)*(M_Object*)shred->reg);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -591,6 +605,10 @@ static MFUN(string_insert) {
   m_int i, len = 0, len_insert = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 2);
   char insert[strlen(STRING(arg)) + 1];
+  if(!arg) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
   strcpy(insert, STRING(arg));
   while(str[len] != '\0')
     len++;
@@ -641,6 +659,10 @@ static MFUN(string_replaceN) {
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 3);
   m_int _len = *(m_int*)(shred->mem + SZ_INT * 2);
+  if(!arg) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
   while(str[len] != '\0')
@@ -700,6 +722,10 @@ static MFUN(string_findStr) {
   strcpy(str, STRING(o));
   m_int ret = -1;
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj) {
+    RETURN->d.v_uint = 0;
+    return;
+  }
   m_str arg = STRING(obj);
   m_int len  = strlen(str);
   m_int i = 0;
@@ -812,6 +838,10 @@ static MFUN(string_rfindStrStart) {
   m_int ret = -1;
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   M_Object obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  if(!obj) {
+    RETURN->d.v_uint = 0;
+    return;
+  }
   m_str arg = STRING(obj);
 
   m_int i = start;
