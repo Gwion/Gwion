@@ -410,7 +410,7 @@ m_float compute_zerox(Ana* fft, m_float* buffer)
 }
 */
 static struct Type_ t_ana = { "ANA", SZ_INT, &t_object};
-m_int o_ana__fft;
+m_int o_ana_ana;
 m_int o_ana_fft;
 m_int o_ana_fn;
 
@@ -419,7 +419,7 @@ static m_float ana_dummy(Fft* fft) {
 }
 static MFUN(ana_compute) {
   M_Object   fft = *(M_Object*)(o->d.data + o_ana_fft);
-  Ana* ana = *(Ana**)(o->d.data + o_ana__fft);
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
   f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
   if(!fft || ana->last == ana->sp->pos)
     return;
@@ -432,32 +432,31 @@ static MFUN(ana_get_fft) {
 }
 
 static MFUN(ana_set_fft) {
-  Fft* ana;
-  M_Object fft = *(M_Object*)(o->d.data + o_ana_fft);
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  if(fft)
-    release(fft, shred);
-  fft = *(M_Object*)(shred->mem + SZ_INT);
-  if(!fft) {
-    _fft->size = 0;
-    _fft->fval = NULL;
+  Fft* fft;
+  M_Object obj = *(M_Object*)(o->d.data + o_ana_fft);
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  if(obj)
+    release(obj, shred);
+  obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj) {
+    ana->size = 0;
+    ana->fval = NULL;
     RETURN->d.v_uint = 0;
     return;
-  }
-  ana = (Fft*)fft->ugen->ug;
-  if(!ana || !ana->buf) {
+  } 
+  fft = (Fft*)obj->ugen->ug;
+  if(!fft || !fft->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
-    release(fft, shred);
+    release(obj, shred);
     return;
-  }
-  _fft->size = ana->fft->fftsize;
-  _fft->fval = ana->frq->s;
-  *(M_Object*)(o->d.data + o_ana_fft) = fft;
-  RETURN->d.v_uint = (m_uint) * (M_Object*)(shred->mem + SZ_INT);
+  } 
+  ana->size = fft->fft->fftsize;
+  ana->fval = fft->frq->s;
+  RETURN->d.v_object = *(M_Object*)(o->d.data + o_ana_fft) = obj;
 }
 
 static CTOR(ana_ctor) {
-  Ana* ana = *(Ana**)(o->d.data + o_ana__fft) = malloc(sizeof(Ana));
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana) = malloc(sizeof(Ana));
   ana->sr = shred->vm_ref->bbq->sp->sr;
   ana->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
@@ -466,14 +465,14 @@ static CTOR(ana_ctor) {
 }
 
 static DTOR(ana_dtor) {
-  free(*(Ana**)(o->d.data + o_ana__fft));
+  free(*(Ana**)(o->d.data + o_ana_ana));
 }
 
 static m_bool import_ana(Env env) {
   DL_Func* fun;
   CHECK_OB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
-  o_ana_fft = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
-  CHECK_BB(o_ana__fft)
+  o_ana_ana = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
+  CHECK_BB(o_ana_ana)
   o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1, "fft reference");
   CHECK_BB(o_ana_fft)
   o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0, "internal compute fonction");
@@ -544,12 +543,12 @@ static CTOR(rolloff_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rolloff;
 }
 static MFUN(rolloff_get_percent) {
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  RETURN->d.v_float = _fft->percent;
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  RETURN->d.v_float = ana->percent;
 }
 static MFUN(rolloff_set_percent) {
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  RETURN->d.v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  RETURN->d.v_float = (ana->percent = *(m_float*)(shred->mem + SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
   DL_Func* fun;
@@ -611,13 +610,13 @@ static MFUN(fc_compute) {
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add
-    Ana* _fft   = *(Ana**)(obj->d.data + o_ana__fft);
+    Ana* ana   = *(Ana**)(obj->d.data + o_ana_ana);
 //    if(!_fft) continue; // seems prevented somehow. (this is unclear)
     Fft* fft   = *(Fft**)(obj->d.data + o_ana_fft);
     if(!fft)
       continue;
     f_analys fn  = *(f_analys*)(obj->d.data + o_ana_fn);
-    m_float f = fn(_fft);
+    m_float f = fn(ana);
     f_vector_set(ret->d.array, i, f);
   }
   RETURN->d.v_uint = (m_uint)ret;
