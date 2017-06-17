@@ -69,7 +69,6 @@ static MFUN(event_broadcast) {
 
 m_bool import_event(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_event))
   CHECK_OB(import_class_begin(env, &t_event, env->global_nspc, event_ctor, event_dtor))
   env->class_def->doc = "Process event, with precise timing";
   o_event_shred = import_mvar(env, "int", "@shreds", 0, 0, "the place for blocked shreds");

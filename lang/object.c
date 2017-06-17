@@ -242,7 +242,6 @@ INSTR(Vararg_Vec4) {
 }
 
 m_bool import_object(Env env) {
-  CHECK_BB(add_global_type(env, &t_object))
   CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
   env->class_def->doc = "the base class";
   CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
@@ -255,7 +254,6 @@ m_bool import_object(Env env) {
   CHECK_BB(import_op(env, op_neq, "Object", "@null", "int", neq_Object, 1))
   CHECK_BB(import_op(env, op_exclamation,   NULL,   "Object", "int", noti,        1))
   CHECK_BB(import_class_end(env))
-  CHECK_BB(add_global_type(env, &t_vararg))
   CHECK_BB(add_global_type(env, &t_varobj))
   CHECK_BB(add_global_type(env, &t_varloop))
   CHECK_OB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))

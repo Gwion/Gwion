@@ -856,7 +856,6 @@ static MFUN(string_toFloat) {
 }
 
 m_bool import_string(Env env) {
-  CHECK_BB(add_global_type(env, &t_string));
   CHECK_OB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
     env->class_def->doc = "chain of characters";
 

@@ -123,7 +123,6 @@ static SFUN(machine_shreds) {
 m_bool import_machine(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_machine))
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   env->class_def->doc = "access the virtual machine, including docs";
 

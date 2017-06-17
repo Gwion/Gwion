@@ -574,8 +574,8 @@ void free_func_def(Func_Def a) {
 }
 
 Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, int pos) {
-  Stmt a                  = calloc(1, sizeof(struct Stmt_));
-  a->type                 = ae_stmt_funcptr;
+  Stmt a              = calloc(1, sizeof(struct Stmt_));
+  a->type             = ae_stmt_funcptr;
   a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.type  = decl;
   a->d.stmt_ptr.xid   = insert_symbol(xid);

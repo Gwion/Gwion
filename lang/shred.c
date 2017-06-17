@@ -94,7 +94,6 @@ m_bool import_shred(Env env) {
   DL_Func* fun;
   DL_Value* arg;
 
-  CHECK_BB(add_global_type(env, &t_shred))
   CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");

@@ -238,7 +238,6 @@ SFUN(file_list) {
 m_bool import_fileio(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_fileio))
   CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
   env->class_def->doc = "read/write files";
 
@@ -273,15 +272,12 @@ m_bool import_fileio(Env env) {
   CHECK_BB(import_op(env, op_chuck, "FileIO", "float",  "float",  file_to_float, 1))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cout))
   CHECK_OB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cerr))
   CHECK_OB(import_class_begin(env, &t_cerr, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cin))
   CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 

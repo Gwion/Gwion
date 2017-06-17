@@ -322,7 +322,6 @@ static MFUN(ugen_get_last) {
 m_bool import_ugen(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_ugen))
   CHECK_OB(import_class_begin(env, &t_ugen, env->global_nspc, ugen_ctor, ugen_dtor))
   env->class_def->doc = "base sound class";
 

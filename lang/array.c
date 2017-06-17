@@ -241,7 +241,6 @@ INSTR(Array_Append) {
 
 m_bool import_array(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_array))
   CHECK_OB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
   fun = new_dl_func("int", "size", (m_uint)vm_vector_size);
   CHECK_OB(import_mfun(env, fun))

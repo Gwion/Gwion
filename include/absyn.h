@@ -393,8 +393,8 @@ struct Stmt_Enum_ {
   Stmt self;
 };
 struct Stmt_Ptr_ {
-  Type_Decl*    type;
-  Type    m_type;
+  Type_Decl* type;
+  Type       m_type;
   S_Symbol   xid;
   ae_flag    flag;
   Arg_List   args;
