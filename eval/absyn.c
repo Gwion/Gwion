@@ -547,10 +547,9 @@ static void free_if_expression(Exp_If* a) {
   free_expression(a->else_exp);
 }
 
-Func_Def new_func_def(ae_flag func_decl, ae_flag static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, 
-int pos) {
+Func_Def new_func_def(ae_flag flag, ae_flag static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos) {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
-  a->func_decl = func_decl;
+  a->flag = flag;
   a->static_decl = static_decl;
   a->type_decl = type_decl;
   a->name = insert_symbol(name);
@@ -559,10 +558,6 @@ int pos) {
   a->func = NULL;
   a->stack_depth = 0;
   a->pos = pos;
-  if(a->func_decl == ae_flag_variadic) {
-    a->func_decl = ae_flag_func;
-    SET_FLAG(a, ae_flag_variadic);
-  }
   return a;
 }
 

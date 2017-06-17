@@ -560,11 +560,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
     base = value->func_ref->def;
-    Func_Def def = new_func_def(base->func_decl, base->static_decl,
+    Func_Def def = new_func_def(base->flag, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
-    if(GET_FLAG(base, ae_flag_variadic))
-      SET_FLAG(def, ae_flag_variadic);
     Type_List list = types;
     ID_List base_t = base->types;
     SET_FLAG(def, ae_flag_template);
