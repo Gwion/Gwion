@@ -169,13 +169,13 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   if(scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(is_const)
-    SET_FLAG(var_decl->value, ae_value_const);
+    SET_FLAG(var_decl->value, ae_flag_const);
   if(!check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
 
   if(doc)
     var_decl->value->doc = doc;
-  SET_FLAG(var_decl->value, ae_value_import);
+  SET_FLAG(var_decl->value, ae_flag_builtin);
   ret = var_decl->value->offset;
 error:
   free_expression(exp_decl);
@@ -266,7 +266,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   arg_list = make_dll_arg_list(dl_fun);
 
   func_def = new_func_def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
-  func_def->s_type = ae_func_builtin;
+  SET_FLAG(func_def, ae_flag_builtin);
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_dl_func(dl_fun);
   return func_def;

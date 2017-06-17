@@ -18,7 +18,7 @@ static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   type->actual_type = t;
   v = new_value(type, name);
   v->owner = env->curr;
-  SET_FLAG(v, ae_value_const | ae_value_checked);
+  SET_FLAG(v, ae_flag_const | ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
   return 1;
@@ -110,7 +110,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     type->actual_type = the_class;
     value = new_value(type, the_class->name);
     value->owner = env->curr;
-    SET_FLAG(value, ae_value_const | ae_value_checked);
+    SET_FLAG(value, ae_flag_const | ae_flag_checked);
     nspc_add_value(env->curr, insert_symbol(value->name), value);
     class_def->type = the_class;
   }
@@ -127,7 +127,7 @@ m_bool scan0_Ast(Env env, Ast prog) {
     case ae_section_func:
       break;
     case ae_section_class:
-      if(prog->section->d.class_def->decl == ae_key_public) {
+      if(prog->section->d.class_def->decl == ae_flag_public) {
         if(env->context->public_class_def != NULL) {
           CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
                   "more than one 'public' class defined..."))

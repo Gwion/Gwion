@@ -199,18 +199,18 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
       CHECK_OO(check_exp(env, var_decl->array->exp_list))
       CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
     }
-    if(GET_FLAG(value, ae_value_member)) {
+    if(GET_FLAG(value, ae_flag_member)) {
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
       env->curr->offset += type->size;
     } else if(decl->is_static) {
       if(!env->class_def || env->class_scope > 0)
         CHECK_BO(err_msg(TYPE_, decl->pos, "static variables must be declared at class scope..."))
-      SET_FLAG(value, ae_value_static);
+      SET_FLAG(value, ae_flag_static);
       value->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += type->size;
     }
-    SET_FLAG(list->self->value, ae_value_checked);
+    SET_FLAG(list->self->value, ae_flag_checked);
     if(!env->class_def || env->class_scope)
       nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
@@ -289,7 +289,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
     if(!strcmp(str, "this")) {
       if(!env->class_def)
         CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
-      if(env->func && !env->func->is_member)
+      if(env->func && !GET_FLAG(env->func, ae_flag_member))
         CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
       primary->self->meta = ae_meta_value;
       t = env->class_def;
@@ -311,13 +311,13 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
         v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_value_member) && !GET_FLAG(v, ae_value_static)) {
+          if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
             CHECK_BO(err_msg(TYPE_, primary->pos,
               "non-static member '%s' used from static function...", S_name(primary->d.var)))
           }
         }
       }
-      if(!v || !GET_FLAG(v, ae_value_checked)) {
+      if(!v || !GET_FLAG(v, ae_flag_checked)) {
         str = S_name(primary->d.var);
         CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
                 str ? str : "", v))
@@ -325,7 +325,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = v->m_type;
       primary->value = v;
     }
-    if(v && GET_FLAG(v, ae_value_const))
+    if(v && GET_FLAG(v, ae_flag_const))
       primary->self->meta = ae_meta_value;
     break;
   case ae_primary_num:
@@ -597,7 +597,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
         env->class_def = (Type)vector_pop(env->class_stack);
         env->curr = (Nspc)vector_pop(env->nspc_stack);
       }
-      m_func->is_template = 1;
+      SET_FLAG(m_func, ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
@@ -625,7 +625,7 @@ next:
   f = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == ae_exp_primary &&
-      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_value_const)) {
+      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const)) {
     if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def)
       CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
     ptr = exp_func->d.exp_primary.value;
@@ -795,15 +795,15 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
       return NULL;
     }
-    r_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
+    r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
       f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-      l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
+      l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
     } else if(binary->lhs->exp_type == ae_exp_dot) {
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
-      l_nspc = (v->owner_class && GET_FLAG(v, ae_value_member)) ? v->owner_class : NULL; // get owner
+      l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
       /*    } else if(binary->lhs->exp_type == ae_exp_decl) {
             v = binary->lhs->d.exp_decl->list->self->value;
             f2 = v->m_type->func; */
@@ -1183,10 +1183,10 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
       strcat(s, "[]");
     CHECK_BO(err_msg(TYPE_,  member->base->pos, "class '%s' has no member '%s'", s, str))
   }
-  if(base_static && GET_FLAG(value, ae_value_member))
+  if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos, "cannot access member '%s.%s' without object instance...",
       the_base->name, str))
-  if(GET_FLAG(value, ae_value_enum)) // for enum
+  if(GET_FLAG(value, ae_flag_enum)) // for enum
     member->self->meta = ae_meta_value;
   return value->m_type;
 }
@@ -1259,7 +1259,7 @@ static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   while(list) {
     v = nspc_lookup_value(nspc, list->xid, 0);
     if(env->class_def) { // enum in classes are static
-      SET_FLAG(v, ae_value_static);
+      SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += t_int.size;
     }
@@ -1632,7 +1632,7 @@ m_bool check_func_def(Env env, Func_Def f) {
       parent = parent->parent;
     }
   }
-  if(func->is_member && !parent_match) {
+  if(GET_FLAG(func, ae_flag_member) && !parent_match) {
     func->vt_index = vector_size(env->curr->obj_v_table);
     vector_add(env->curr->obj_v_table, (vtype)func);
   }
@@ -1646,7 +1646,7 @@ m_bool check_func_def(Env env, Func_Def f) {
         count, S_name(arg_list->var_decl->xid), S_name(f->name));
       goto error;
     }
-    SET_FLAG(v, ae_value_checked);
+    SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     count++;
     arg_list = arg_list->next;
@@ -1654,7 +1654,7 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   if(f->is_variadic) {
     vararg = new_value(&t_vararg, "vararg");
-    SET_FLAG(vararg, ae_value_checked);
+    SET_FLAG(vararg, ae_flag_checked);
     nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
@@ -1664,7 +1664,7 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   /*if(f->is_variadic)*/
   /*REM_REF(vararg);*/
-  if(f->s_type == ae_func_builtin)
+  if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
   nspc_pop_value(env->curr);
   env->func = NULL;

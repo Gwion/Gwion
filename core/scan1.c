@@ -290,9 +290,9 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
     v = new_value(t, S_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
-      SET_FLAG(v, ae_value_static);
+      SET_FLAG(v, ae_flag_static);
     }
-    SET_FLAG(v, ae_value_const | ae_value_enum | ae_value_checked);
+    SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(nspc, list->xid, v);
     vector_add(stmt->values, (vtype)v);
     list = list->next;

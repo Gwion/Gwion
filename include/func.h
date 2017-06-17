@@ -12,10 +12,8 @@ struct Func_ {
   m_str doc;
   m_uint vt_index;
   Instr variadic_start;
+  ae_flag flag;
   struct VM_Object_ obj;
-  m_bool is_template;
-  m_bool is_dtor;
-  m_bool is_member;
 };
 
 Func new_func(m_str name, Func_Def def);

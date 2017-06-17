@@ -25,7 +25,7 @@ __inline static void free_array_sub(Array_Sub a) {
 
 static void free_var_decl(Var_Decl a) {
   if(a->value) {
-    if(GET_FLAG(a->value, ae_value_arg)) { // func argument. this migth change
+    if(GET_FLAG(a->value, ae_flag_arg)) { // func argument. this migth change
       if(a->value->m_type->array_type)
         REM_REF(a->value->m_type);
       REM_REF(a->value);
@@ -554,7 +554,6 @@ Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
   a->type_decl = type_decl;
   a->name = insert_symbol(name);
   a->arg_list = arg_list;
-  a->s_type = ae_func_user;
   a->code = code;
   a->func = NULL;
   a->stack_depth = 0;
@@ -603,7 +602,7 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
       free_arg_list(a->args);
     free_type_decl(a->type);
   }
-  if(a->value && !GET_FLAG(a->value, ae_value_member) && !a->key) {
+  if(a->value && !GET_FLAG(a->value, ae_flag_member) && !a->key) {
     REM_REF(a->value->m_type);
     REM_REF(a->value)
   }

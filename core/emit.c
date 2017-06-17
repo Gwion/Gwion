@@ -112,11 +112,11 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
 
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos) {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), GET_FLAG(v, ae_value_const) + GET_FLAG(v, ae_value_enum), GET_FLAG(v, ae_value_static), v->owner_class);
+  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), GET_FLAG(v, ae_flag_const) + GET_FLAG(v, ae_flag_enum), GET_FLAG(v, ae_flag_static), v->owner_class);
 #endif
   Instr instr;
 
-  if(v->owner_class && (GET_FLAG(v, ae_value_member) || GET_FLAG(v, ae_value_static))) {
+  if(v->owner_class && (GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))) {
     m_bool ret;
     Exp base = new_exp_prim_ID("this", pos);
     Exp dot = new_exp_dot(base, S_name(symbol), pos);
@@ -130,7 +130,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     return ret;
   }
 
-  if(GET_FLAG(v, ae_value_const)) {
+  if(GET_FLAG(v, ae_flag_const)) {
     if(v->func_ref) {
       instr = add_instr(emit, Reg_Push_Imm);
       instr->m_val = (m_uint)v->func_ref;
@@ -147,7 +147,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
   if(emit_var) {
     instr = add_instr(emit, Reg_Push_Mem_Addr);
     instr->m_val = v->offset;
-    instr->m_val2 = GET_FLAG(v, ae_value_global);
+    instr->m_val2 = GET_FLAG(v, ae_flag_global);
   } else {
     Kindof kind = kindof(v->m_type);
     Instr instr;
@@ -162,7 +162,7 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     }
     instr         = add_instr(emit, f);
     instr->m_val  = v->offset;
-    instr->m_val2 = GET_FLAG(v, ae_value_global);
+    instr->m_val2 = GET_FLAG(v, ae_flag_global);
   }
   return 1;
 }
@@ -348,7 +348,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 
     if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
       CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-    if(GET_FLAG(value, ae_value_member)) {
+    if(GET_FLAG(value, ae_flag_member)) {
       switch(kind)  {
         case Kindof_Int:     f = Alloc_Member_Word;         break;
         case Kindof_Float:   f = Alloc_Member_Word_Float;   break;
@@ -372,7 +372,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
           case Kindof_Void:                             break;
         }
         alloc   = add_instr(emit, f);
-        alloc->m_val2 = GET_FLAG(value, ae_value_global);
+        alloc->m_val2 = GET_FLAG(value, ae_flag_global);
       } else { // static
         Code* code = emit->code;
         if(is_obj && !is_ref) {
@@ -500,7 +500,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
         instr->m_val = 1;
         break;
       case ae_exp_primary:
-        if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_value_member)) {
+        if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_flag_member)) {
           v = binary->rhs->d.exp_primary.value;
           instr->m_val2 = v->offset;
           instr->m_val = 1;
@@ -629,9 +629,9 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Exp_Func);
-  call->m_val = func->def->s_type == ae_func_builtin ? kindof(func->def->ret_type) : emit->code->stack_depth;
-  if(func->def->s_type == ae_func_builtin) {
-    if(func->is_member)
+  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
+  if(GET_FLAG(func->def, ae_flag_builtin)) {
+    if(GET_FLAG(func, ae_flag_member))
       call->execute = Instr_Exp_Func_Member;
     else
       call->execute = Instr_Exp_Func_Static;
@@ -677,7 +677,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
   sadd_instr(emit, start_gc);
-  emit->code->need_this = exp->m_func->is_member;
+  emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
   emit->code->name = strdup("spork~exp");
   emit->code->filename = strdup(emit->filename);
   op = add_instr(emit, Mem_Push_Imm);
@@ -715,7 +715,10 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
-  f->is_member = emit->code->need_this = emit->env->class_def ? 1 : 0;
+  if(emit->env->class_def) {
+    SET_FLAG(f, ae_flag_member);
+    emit->code->need_this = 1;
+  }
   emit->code->name = strdup("spork~code");
   emit->code->filename = strdup(emit->filename);
   op = add_instr(emit, Mem_Push_Imm);
@@ -1275,7 +1278,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
         err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
         return - 1;
       } else  {
-        if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_value_const))
+        if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_flag_const))
           CHECK_BB(err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now"))
         value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
       }
@@ -1283,7 +1286,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
   } else if(stmt->val->exp_type == ae_exp_dot) {
     t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ? stmt->val->d.exp_dot.t_base->actual_type : stmt->val->d.exp_dot.t_base;
     v = find_value(t, stmt->val->d.exp_dot.xid);
-    value = GET_FLAG(v, ae_value_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
+    value = GET_FLAG(v, ae_flag_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
     err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
     return -1;
@@ -1323,7 +1326,7 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
-  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_value_member)) {
+  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
     Local* local = frame_alloc_local(emit->code->frame, stmt->s, "union", 1, 0);
     stmt->o = local->offset;
   }
@@ -1557,7 +1560,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   if(!base_static) { // called from instance
     if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
       value = find_value(t_base, member->xid);
-      if(GET_FLAG(value, ae_value_member)) { // member
+      if(GET_FLAG(value, ae_flag_member)) { // member
         if(emit_exp(emit, member->base, 0) < 0)
           CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
         sadd_instr(emit, Reg_Dup_Last);
@@ -1577,7 +1580,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     } else if(isa(member->self->type, &t_function) > 0) { // function
       value = find_value(t_base, member->xid);
       func = value->func_ref;
-      if(func->is_member) { // member
+      if(GET_FLAG(func, ae_flag_member)) { // member
         if(emit_exp(emit, member->base, 0) < 0)
           CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
         sadd_instr(emit, Reg_Dup_Last);
@@ -1592,14 +1595,14 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     } else { // variable
       value = find_value(t_base, member->xid);
       offset = value->offset;
-      if(GET_FLAG(value, ae_value_member)) { // member
+      if(GET_FLAG(value, ae_flag_member)) { // member
         CHECK_BB(emit_exp(emit, member->base, 0))
           instr = add_instr(emit, Exp_Dot_Data);
         instr->m_val = offset;
         instr->m_val2 = kindof(value->m_type);
         *(m_uint*)instr->ptr = emit_addr;
       } else { // static
-        if(value->ptr && GET_FLAG(value, ae_value_import)) { // from C
+        if(value->ptr && GET_FLAG(value, ae_flag_builtin)) { // from C
           func_i = add_instr(emit, Dot_Static_Import_Data);
           func_i->m_val = (m_uint)value->ptr;
           func_i->m_val2 = kindof(value->m_type);
@@ -1624,7 +1627,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       func_i->m_val = (m_uint)func;
     } else {
       value = find_value(t_base, member->xid);
-      if(value->ptr && GET_FLAG(value, ae_value_import)) {
+      if(value->ptr && GET_FLAG(value, ae_flag_builtin)) {
         func_i = add_instr(emit, Dot_Static_Import_Data);
         func_i->m_val = (m_uint)value->ptr;
         func_i->m_val2 = kindof(value->m_type);
@@ -1671,14 +1674,14 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
   sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : "", func->name);
   emit->code->name = strdup(c);
-  emit->code->need_this = func->is_member;
+  emit->code->need_this = GET_FLAG(func, ae_flag_member);
   emit->code->filename = strdup(emit->filename);
 
   Arg_List a = func_def->arg_list;
   m_bool is_obj = 0;
   m_bool is_ref = 0;
 
-  if(func->is_member) {
+  if(GET_FLAG(func, ae_flag_member)) {
     emit->code->stack_depth += SZ_INT;
     if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0))
       CHECK_BB(err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE

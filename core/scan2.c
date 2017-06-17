@@ -61,9 +61,9 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
     if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
-      SET_FLAG(list->self->value, ae_value_member);
+      SET_FLAG(list->self->value, ae_flag_member);
     if(!env->class_def && !env->func)
-      SET_FLAG(list->self->value, ae_value_global);
+      SET_FLAG(list->self->value, ae_flag_global);
     list->self->value->ptr = list->self->addr;
     nspc_add_value(env->curr, list->self->xid, list->self->value);
     if(!env->class_def && !env->func) // doc ?
@@ -118,7 +118,7 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
 
     v = new_value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
-    SET_FLAG(v, ae_value_arg);
+    SET_FLAG(v, ae_flag_arg);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     arg_list->var_decl->value = v;
     count++;
@@ -126,7 +126,7 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   }
   nspc_pop_value(env->curr);
 
-  SET_FLAG(ptr->value, ae_value_checked);
+  SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
   Func_Def def = new_func_def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
@@ -136,8 +136,8 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   ptr->func->value_ref = ptr->value;
   if(env->class_def) {
     if(!ptr->key) {
-      SET_FLAG(ptr->value, ae_value_member);
-      ptr->func->is_member   = !ptr->key;
+      SET_FLAG(ptr->value, ae_flag_member);
+      SET_FLAG(ptr->func, ae_flag_member);
     }
     ptr->value->owner_class = env->class_def;
   }
@@ -599,20 +599,21 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func = new_func(func_name, f);
     if(overload)
       func->next = overload->func_ref->next;
-    func->is_member = (env->class_def && (f->static_decl != ae_key_static));
+    if(env->class_def && f->static_decl != ae_key_static)
+      SET_FLAG(func, ae_flag_member);
     value = new_value(&t_function, func_name);
     value->owner = env->curr;
     value->owner_class = env->class_def;
-    if(func->is_member)
-      SET_FLAG(value, ae_value_member);
+    if(GET_FLAG(func, ae_flag_member))
+      SET_FLAG(value, ae_flag_member);
     if(!env->class_def)
-      SET_FLAG(value, ae_value_global);
+      SET_FLAG(value, ae_flag_global);
     value->func_ref = func;
 //    ADD_REF(value->func_ref);
     func->value_ref = value;
 //    ADD_REF(value);
     f->func = func;
-    SET_FLAG(value, ae_value_const | ae_value_checked);
+    SET_FLAG(value, ae_flag_const | ae_flag_checked);
     if(overload)
       overload->func_num_overloads++;
     else
@@ -641,11 +642,11 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     snprintf(name, len + 1, "%s@0@%s", func_name, env->curr->name);
   func_name = strdup(name);
   func = new_func(func_name, f);
-  func->is_member = (env->class_def && (f->static_decl != ae_key_static));
-
-  if(f->s_type == ae_func_builtin) { // actual builtin func import
+  if(env->class_def && f->static_decl != ae_key_static)
+	SET_FLAG(func, ae_flag_member);
+  if(GET_FLAG(f, ae_flag_builtin)) { // actual builtin func import
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
-    func->code->need_this = func->is_member;
+    func->code->need_this = GET_FLAG(func, ae_flag_member);
     func->code->native_func = (m_uint)func->def->dl_func_ptr;
   }
 
@@ -654,13 +655,13 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   type->size = SZ_INT;
   type->func = func;
   value = new_value(type, func_name);
-  SET_FLAG(value, ae_value_const);
+  SET_FLAG(value, ae_flag_const);
   value->owner = env->curr;
   value->owner_class = env->class_def;
-  if(func->is_member)
-    SET_FLAG(value, ae_value_member);
+  if(GET_FLAG(func, ae_flag_member))
+    SET_FLAG(value, ae_flag_member);
   if(!env->class_def)
-    SET_FLAG(value, ae_value_global);
+    SET_FLAG(value, ae_flag_global);
   value->func_ref = func;
 //  ADD_REF(value->func_ref);
   func->value_ref = value;
@@ -680,7 +681,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   arg_list = f->arg_list;
   count = 1;
-  f->stack_depth = func->is_member ? SZ_INT : 0;
+  f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
   nspc_push_value(env->curr);
 
@@ -724,7 +725,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     }
     v = new_value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
-    SET_FLAG(v, ae_value_arg);
+    SET_FLAG(v, ae_flag_arg);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
@@ -746,7 +747,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     str = strsep(&str, "@");
     ret = name2op(str);
     free(str);
-    if(env->class_def)f->func->is_member = 1; // 04/05/17
+    if(env->class_def)SET_FLAG(f->func, ae_flag_member); // 04/05/17
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     if(!env->class_def)
@@ -754,7 +755,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     return 1;
   }
 
-  SET_FLAG(value, ae_value_checked);
+  SET_FLAG(value, ae_flag_checked);
   // while making doc
   if(!env->class_def)
     context_add_func(env->context, func, &func->obj);
@@ -794,7 +795,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   env->func = NULL;
 
   if(f->spec == ae_func_spec_dtor) {
-    f->func->is_dtor = 1;
+    SET_FLAG(f->func, ae_flag_dtor);
 //    ADD_REF(f->func->value_ref);
   }
   if(f->type_decl->doc)

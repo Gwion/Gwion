@@ -183,8 +183,8 @@ class_def
 class_ext : EXTENDS id_dot { $$ = new_class_ext( $2, NULL, get_pos(scanner)); } | { $$ = NULL; } ;
 
 class_decl
-  : PUBLIC  { $$ = ae_key_public; }
-  |         { $$ = ae_key_private; }
+  : PUBLIC  { $$ = ae_flag_public; }
+  |         { $$ = ae_flag_private; }
   ;
 
 class_body

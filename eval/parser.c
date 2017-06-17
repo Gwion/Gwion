@@ -2018,13 +2018,13 @@ yyreduce:
 
   case 10:
 #line 186 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = ae_key_public; }
+    { (yyval.ival) = ae_flag_public; }
 #line 2023 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 187 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = ae_key_private; }
+    { (yyval.ival) = ae_flag_private; }
 #line 2029 "eval/parser.c" /* yacc.c:1646  */
     break;
 

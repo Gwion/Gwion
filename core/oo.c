@@ -39,7 +39,7 @@ static void free_func(Func a) {
       }
     }
   }
-  if(a->def && !a->is_template)
+  if(a->def && !GET_FLAG(a, ae_flag_template))
     free_func_def(a->def);
   free(a);
 }

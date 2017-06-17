@@ -15,7 +15,29 @@ typedef struct Stmt_            * Stmt;
 extern Map scan_map;
 
 typedef enum {
-  ae_key_this, ae_key_me, ae_key_func, ae_key_public, ae_key_private,
+  ae_flag_builtin = 1 << 1,
+  ae_flag_checked   = 1 << 2,
+  ae_flag_member  = 1 << 3,
+  ae_flag_static  = 1 << 4,
+  ae_flag_instance  = 1 << 5,
+  ae_flag_template  = 1 << 6,
+  ae_flag_variadic  = 1 << 7,
+  ae_flag_ctor  = 1 << 8,
+  ae_flag_dtor  = 1 << 9,
+  ae_flag_op  = 1 << 10,
+  ae_flag_public  = 1 << 11,
+  ae_flag_private  = 1 << 12,
+  ae_flag_global  = 1 << 13,
+  ae_flag_const  = 1 << 14,
+  ae_flag_enum  = 1 << 15,
+  ae_flag_arg  = 1 << 16
+//  ae_flag_obj  = 1 << 17,
+//  ae_flag_ref  = 1 << 18,
+} ae_flag;
+
+typedef enum {
+  ae_key_func, 
+//ae_key_public, ae_key_private,
   ae_key_static, ae_key_instance, ae_key_variadic
 } ae_Keyword;
 
@@ -445,11 +467,10 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, int pos);
 typedef struct Class_Ext_ * Class_Ext;
 typedef struct Class_Body_ * Class_Body;
 
-typedef enum { ae_func_builtin, ae_func_user} ae_func_type;
 struct Func_Def_ {
   Type_Decl* type_decl;
   Type ret_type;
-  ae_func_type s_type;
+  ae_flag flag;
   S_Symbol name;
   Arg_List arg_list;
   Stmt code;
