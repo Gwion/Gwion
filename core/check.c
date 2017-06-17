@@ -1814,8 +1814,8 @@ m_bool check_func_def(Env env, Func_Def f) {
     goto error;
   }
 
-  /*if(f->is_variadic)*/
-  /*REM_REF(vararg);*/
+  if(f->is_variadic)
+    REM_REF(vararg);
   if(f->s_type == ae_func_builtin)
     func->code->stack_depth = f->stack_depth;
   nspc_pop_value(env->curr);

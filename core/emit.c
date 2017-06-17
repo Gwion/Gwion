@@ -351,56 +351,49 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
     m_bool is_ref = decl->type->ref;
     Kindof kind = kindof(type);
 
-    if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
+    if(is_obj && ((array && array->exp_list) || !is_ref))
       CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-    if(GET_FLAG(value, ae_value_member)) {
-      switch(kind)  {
-        case Kindof_Int:     f = Alloc_Member_Word;         break;
-        case Kindof_Float:   f = Alloc_Member_Word_Float;   break;
-        case Kindof_Complex: f = Alloc_Member_Word_Complex; break;
-        case Kindof_Vec3:    f = Alloc_Member_Word_Vec3;    break;
-        case Kindof_Vec4:    f = Alloc_Member_Word_Vec4;    break;
-        case Kindof_Void:                                   break;
-      }
-      alloc = add_instr(emit, f);
-    } else {
-      if(!emit->env->class_def || !decl->is_static) {
-        Local* local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
-        CHECK_OB(local)
-          value->offset   = local->offset;
-        switch(kind)  {
-          case Kindof_Int:      f = Alloc_Word;         break;
-          case Kindof_Float:    f = Alloc_Word_Float;   break;
-          case Kindof_Complex:  f = Alloc_Word_Complex; break;
-          case Kindof_Vec3:     f = Alloc_Word_Vec3;    break;
-          case Kindof_Vec4:     f = Alloc_Word_Vec4;    break;
-          case Kindof_Void:                             break;
+        if(GET_FLAG(value, ae_value_member)) {
+          switch(kind)  {
+            case Kindof_Int:     f = Alloc_Member_Word;         break;
+            case Kindof_Float:   f = Alloc_Member_Word_Float;   break;
+            case Kindof_Complex: f = Alloc_Member_Word_Complex; break;
+            case Kindof_Vec3:    f = Alloc_Member_Word_Vec3;    break;
+            case Kindof_Vec4:    f = Alloc_Member_Word_Vec4;    break;
+            case Kindof_Void:                                   break;
+          }
+          alloc = add_instr(emit, f);
+        } else {
+          if(!emit->env->class_def || !decl->is_static) {
+            Local* local = frame_alloc_local(emit->code->frame, type->size, value->name, is_ref, is_obj);
+            CHECK_OB(local)
+              value->offset   = local->offset;
+            switch(kind)  {
+              case Kindof_Int:      f = Alloc_Word;         break;
+              case Kindof_Float:    f = Alloc_Word_Float;   break;
+              case Kindof_Complex:  f = Alloc_Word_Complex; break;
+              case Kindof_Vec3:     f = Alloc_Word_Vec3;    break;
+              case Kindof_Vec4:     f = Alloc_Word_Vec4;    break;
+              case Kindof_Void:                             break;
+            }
+            alloc   = add_instr(emit, f);
+            alloc->m_val2 = GET_FLAG(value, ae_value_global);
+          } else { // static
+            Code* code = emit->code;
+            if(is_obj && !is_ref) {
+              emit->code = (Code*)vector_back(emit->stack);
+              CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
+            }
+            Instr push = add_instr(emit, Reg_Push_Imm);
+            push->m_val = (m_uint)emit->env->class_def;
+            alloc = add_instr(emit, Dot_Static_Data);
+            alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
+            if(is_obj && !is_ref)
+              emit->code = code;
+          }
         }
-        alloc   = add_instr(emit, f);
-        alloc->m_val2 = GET_FLAG(value, ae_value_global);
-      } else { // static
-        Code* code = emit->code;
-        if(is_obj && !is_ref) {
-          emit->code = (Code*)vector_back(emit->stack);
-          CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-        Instr push = add_instr(emit, Reg_Push_Imm);
-        push->m_val = (m_uint)emit->env->class_def;
-        alloc = add_instr(emit, Dot_Static_Data);
-        alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-        *(m_uint*)alloc->ptr = 1;
-        Instr assign  = add_instr(emit, Assign_Object);
-        assign->m_val = 0;
-        add_instr(emit, Reg_AddRef_Object3);
-        emit->code = code;
-        }
-        Instr push = add_instr(emit, Reg_Push_Imm);
-        push->m_val = (m_uint)emit->env->class_def;
-        alloc = add_instr(emit, Dot_Static_Data);
-        alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-      }
-    }
-    alloc->m_val = value->offset;
-    *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
+   alloc->m_val = value->offset;
+   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
     if(is_obj) {
       if(array && array->exp_list) {
         Instr assign = add_instr(emit, Assign_Object);
@@ -470,9 +463,9 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     }
     def->is_template = 1;
     CHECK_BB(scan1_func_def(emit->env, def))
-      CHECK_BB(scan2_func_def(emit->env, def))
-      CHECK_BB(check_func_def(emit->env, def))
-      nspc_pop_type(emit->env->curr);
+    CHECK_BB(scan2_func_def(emit->env, def))
+    CHECK_BB(check_func_def(emit->env, def))
+    nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
       emit->env->curr = (Nspc)vector_pop(emit->env->nspc_stack);
@@ -526,7 +519,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
   CHECK_BB(emit_exp(emit, binary->lhs, 1))
-    CHECK_BB(emit_exp(emit, binary->rhs, 1))
+  CHECK_BB(emit_exp(emit, binary->rhs, 1))
 
     if(binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
       return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
@@ -552,7 +545,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
   CHECK_OB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
-    return 1;
+  return 1;
 }
 
 static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
@@ -561,7 +554,7 @@ static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
 #endif
   f_instr f = NULL;
   if(to->xid == from->xid || isa(from, to) > 0 ||
-      (isa(from, &t_null) > 0 && isa(to, &t_object) > 0))
+    (isa(from, &t_null) > 0 && isa(to, &t_object) > 0))
     return 1;
   else if(to->xid == t_int.xid && from->xid == t_float.xid)
     f = Cast_f2i;
@@ -700,7 +693,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code->filename = strdup(emit->filename);
   op = add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->ret_type, exp->pos))
-    sadd_instr(emit, stop_gc);
+  sadd_instr(emit, stop_gc);
   sadd_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
 
@@ -716,8 +709,8 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     e = e->next;
   }
   CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
-    ADD_REF(exp->m_func)
-    return 1;
+  ADD_REF(exp->m_func)
+  return 1;
 }
 
 static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
@@ -748,7 +741,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   code = emit_code(emit);
   emit->code = (Code*)vector_pop(emit->stack);
   CHECK_BB(emit_exp_spork_finish(emit, code, f, 0, emit->env->func ? emit->env->func->def->stack_depth : 0))
-    return 1;
+  return 1;
 }
 
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
@@ -760,14 +753,14 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
   switch(unary->op) {
     case op_spork:
       CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func)))
-        break;
+      break;
     case op_new:
       CHECK_BB(emit_instantiate_object(emit, unary->self->type, unary->array, unary->type->ref))
         break;
     default:
       return get_instr(emit, unary->op, NULL, unary->exp->type) ? 1 : -1;
   }
-  printf("here\n");
+printf("here\n");
   return 1;
 }
 
@@ -1023,7 +1016,7 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
   emit_push_stack(emit);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-    emit_pop_scope(emit);
+  emit_pop_scope(emit);
 
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
 
@@ -1130,7 +1123,7 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
 
-    m_uint index = vector_size(emit->code->code);
+  m_uint index = vector_size(emit->code->code);
   emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c2, 0))
     if(stmt->c2) {
