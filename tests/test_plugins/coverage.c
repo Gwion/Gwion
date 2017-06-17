@@ -30,27 +30,27 @@ IMPORT
 
   m_uint* i = malloc(sizeof(m_uint));
   *i = 5;
-  import_svar(env, "int", "s_i", 1, 0, i, "");
+  import_svar(env, "int", "s_i", 1, 0, i);
   m_float* f = malloc(sizeof(m_float));
   *f = 2.1;
-  import_svar(env, "float", "s_f", 1, 0, (void*)f, "");
+  import_svar(env, "float", "s_f", 1, 0, (void*)f);
 
   m_complex* c = malloc(sizeof(m_complex));
   *c = 2.1;
-  import_svar(env, "complex", "s_c", 1, 0, (void*)c, "");
+  import_svar(env, "complex", "s_c", 1, 0, (void*)c);
 
   m_vec3* v = malloc(sizeof(m_vec3));
   v->x = 2.1;
   v->y = 2.2;
   v->z = 2.3;
-  import_svar(env, "Vec3", "s_v", 1, 0, (void*)v, "");
+  import_svar(env, "Vec3", "s_v", 1, 0, (void*)v);
 
   m_vec4* w = malloc(sizeof(m_vec4));
   w->x = 2.1;
   w->y = 2.2;
   w->z = 2.3;
   w->w = 2.4;
-  import_svar(env, "Vec4", "s_w", 1, 0, (void*)w, "");
+  import_svar(env, "Vec4", "s_w", 1, 0, (void*)w);
 
   CHECK_BB(import_class_end(env))
   return 1;

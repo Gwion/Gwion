@@ -47,7 +47,7 @@ struct Instr_ {
 
 Instr add_instr(Emitter emit, f_instr f);
 
-void EOC(VM * vm, VM_Shred shred, Instr instr);
+INSTR(EOC);
 
 void Reg_Push_Me(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Now(VM* vm, VM_Shred shred, Instr instr);
@@ -77,14 +77,14 @@ void Branch_Eq_Int(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr);
 void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr);
-void Init_Loop_Counter(VM * vm, VM_Shred shred, Instr instr);
-void Reg_Push_Deref(VM * vm, VM_Shred shred, Instr instr);
-void Dec_int_Addr(VM * vm, VM_Shred shred, Instr instr);
-void Goto(VM * vm, VM_Shred shred, Instr instr);
+INSTR(Init_Loop_Counter);
+INSTR(Reg_Push_Deref);
+INSTR(Dec_int_Addr);
+INSTR(Goto);
 
 /* casting */
-void Cast_i2f(VM * vm, VM_Shred shred, Instr instr);
-void Cast_f2i(VM * vm, VM_Shred shred, Instr instr);
+INSTR(Cast_i2f);
+INSTR(Cast_f2i);
 
 /* debugging */
 void Gack(VM* vm, VM_Shred shred, Instr instr);
@@ -92,55 +92,47 @@ void Gack(VM* vm, VM_Shred shred, Instr instr);
 void Reg_Push_Str(VM* vm, VM_Shred shred, Instr instr);
 void Time_Advance(VM* vm, VM_Shred shred, Instr instr);
 
-void negate(VM * vm, VM_Shred shred, Instr instr);
-void noti(VM * vm, VM_Shred shred, Instr instr);
-INSTR(pre_inc);
-INSTR(pre_dec);
-INSTR(post_inc);
-INSTR(post_dec);
-void timesf(VM * vm, VM_Shred shred, Instr instr);
-void notf(VM * vm, VM_Shred shred, Instr instr);
-void negatef(VM * vm, VM_Shred shred, Instr instr);
+INSTR(int_not);
+INSTR(float_times);
 
-void complex_real(VM * vm, VM_Shred shred, Instr instr);
-void complex_imag(VM * vm, VM_Shred shred, Instr instr);
+INSTR(complex_real);
+INSTR(complex_imag);
 
-/* alloc (instr.c)*/
-void Alloc_Word(VM* vm, VM_Shred shred, Instr instr);
-void Alloc_Word_Float(VM* vm, VM_Shred shred, Instr instr);
-void Alloc_Word_Complex(VM* vm, VM_Shred shred, Instr instr);
-void Alloc_Word_Vec3(VM* vm, VM_Shred shred, Instr instr);
-void Alloc_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Alloc_Word);
+INSTR(Alloc_Word_Float);
+INSTR(Alloc_Word_Complex);
+INSTR(Alloc_Word_Vec3);
+INSTR(Alloc_Word_Vec4);
 
 /* function */
-void Spork(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Exp_Func(VM * vm, VM_Shred shred, Instr instr);
-void Dot_Static_Func(VM * vm, VM_Shred shred, Instr instr);
-void Exp_Dot_Func(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Exp_Func_Static(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Exp_Func_Member(VM * vm, VM_Shred shred, Instr instr);
-void Func_Return(VM * vm, VM_Shred shred, Instr instr);
+INSTR(Spork);
+INSTR(Instr_Exp_Func);
+INSTR(Dot_Static_Func);
+INSTR(Exp_Dot_Func);
+INSTR(Instr_Exp_Func_Static);
+INSTR(Instr_Exp_Func_Member);
+INSTR(Func_Return);
 
 /* object */
-void Reg_Push_This(VM * vm, VM_Shred shred, Instr instr);
-void Pre_Constructor(VM * vm, VM_Shred shred, Instr instr);
-void Instantiate_Object(VM * vm, VM_Shred shred, Instr instr);
-void Assign_Object(VM * vm, VM_Shred shred, Instr instr);
-void Alloc_Member_Word(VM * vm, VM_Shred shred, Instr instr);
-void Alloc_Member_Word_Float(VM * vm, VM_Shred shred, Instr instr);
-void Alloc_Member_Word_Complex(VM * vm, VM_Shred shred, Instr instr);
+INSTR(Reg_Push_This);
+INSTR(Pre_Constructor);
+INSTR(Instantiate_Object);
+INSTR(Assign_Object);
+INSTR(Alloc_Member_Word);
+INSTR(Alloc_Member_Word_Float);
+INSTR(Alloc_Member_Word_Complex);
 void Alloc_Member_Word_Vec3(VM* vm, VM_Shred shred, Instr instr);
 void Alloc_Member_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
-//void Alloc_Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
-void Dot_Static_Data(VM * vm, VM_Shred shred, Instr instr);
-void Dot_Static_Import_Data(VM * vm, VM_Shred shred, Instr instr);
-void Exp_Dot_Data(VM * vm, VM_Shred shred, Instr instr);
+//INSTR(Alloc_Dot_Static_Data);
+INSTR(Dot_Static_Data);
+INSTR(Dot_Static_Import_Data);
+INSTR(Exp_Dot_Data);
 void Release_Object2(VM* vm, VM_Shred shred, Instr instr);
 
 /* array */
-void Instr_Pre_Ctor_Array_Top(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Pre_Ctor_Array_Bottom(VM * vm, VM_Shred shred, Instr instr);
-void Instr_Pre_Ctor_Array_Post(VM * vm, VM_Shred shred, Instr instr);
+INSTR(Instr_Pre_Ctor_Array_Top);
+INSTR(Instr_Pre_Ctor_Array_Bottom);
+INSTR(Instr_Pre_Ctor_Array_Post);
 void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr);
 void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr);
 void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr);

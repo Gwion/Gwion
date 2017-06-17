@@ -592,7 +592,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     if(isa(dur->base->type, &t_int) > 0)
       sadd_instr(emit, Cast_i2f);
   CHECK_BB(emit_exp(emit, dur->unit, 0))
-    sadd_instr(emit, timesf);
+    sadd_instr(emit, float_times);
 
   return 1;
 }
