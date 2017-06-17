@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "absyn.h"
+#include "oo.h"
 #include "func.h"
 #include "type.h"
 

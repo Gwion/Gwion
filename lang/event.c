@@ -1,7 +1,5 @@
-#include "err_msg.h"
 #include "import.h"
 #include "shreduler.h"
-#include "lang.h"
 
 struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 

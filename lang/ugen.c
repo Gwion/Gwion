@@ -5,7 +5,6 @@
 #include "import.h"
 #include "lang.h"
 #include "ugen.h"
-#include "bbq.h"
 
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 

@@ -12,7 +12,6 @@
 #include "lang.h"
 #include "ugen.h"
 #include "string.h"
-#include "bbq.h"
 
 m_bool scan0_Ast(Env, Ast);
 m_bool scan1_ast(Env, Ast);

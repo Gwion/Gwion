@@ -3,6 +3,7 @@
 #include "instr.h"
 #include "vm.h"
 #include "context.h"
+#include "func.h"
 #include "emit.h"
 #include "code_private.h"
 

@@ -1,10 +1,9 @@
 #include <libgen.h>
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
 #include "err_msg.h"
-#include "instr.h"
-#include "lang.h"
+//#include "func.h"
+#include "import.h"
+#include "shreduler.h"
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_int o_shred_me;
@@ -94,57 +93,45 @@ static DTOR(shred_dtor) {
 m_bool import_shred(Env env) {
   DL_Func* fun;
   DL_Value* arg;
-  Func f;
 
   CHECK_BB(add_global_type(env, &t_shred))
   CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
-  env->class_def->doc = "Shred is the type for processes, allowing to handle concurrency";
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");
   CHECK_BB(o_shred_me)
 
   fun = new_dl_func("void", "exit", (m_uint)vm_shred_exit);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "make the shred exit";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("int", "running", (m_uint)vm_shred_is_running);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return 1 if shred is done, 0 otherwise";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("int", "done", (m_uint)vm_shred_is_done);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return 1 if shred is done, 0 otherwise";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("int", "id", (m_uint)vm_shred_id);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return shred id";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("Shred", "fromId", (m_uint)vm_shred_from_id);
   arg = dl_func_add_arg(fun, "int", "arg1");
   arg->doc = "id of the shred";
-  CHECK_OB((f = import_sfun(env, fun)))
-  f->doc = "get a shred from id";
+  CHECK_OB((import_sfun(env, fun)))
 
   fun = new_dl_func("void", "yield", (m_uint)shred_yield);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "let other shreds a chance to compute";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("int", "args", (m_uint)shred_args);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return shred arguments number";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("string", "arg", (m_uint)shred_arg);
   dl_func_add_arg(fun, "int", "n");
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return shred nth argument";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("string", "path", (m_uint)shred_path);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return shred basename";
+  CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("string", "dir", (m_uint)shred_dir);
-  CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "return shred dirname";
+  CHECK_OB((import_mfun(env, fun)))
 
   CHECK_BB(import_class_end(env))
   return 1;

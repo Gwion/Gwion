@@ -1,4 +1,6 @@
 #include "err_msg.h"
+#include "type.h"
+#include "func.h"
 #include "instr.h"
 #include "operator_private.h"
 

@@ -1,6 +1,6 @@
-#include "vm.h"
+//#include "vm.h"
 #include "absyn.h"
-#include "oo.h"
+//#include "oo.h"
 
 struct Func_ {
   m_str name;

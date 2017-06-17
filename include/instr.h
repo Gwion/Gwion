@@ -1,13 +1,40 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "dl.h"
-#include "func.h"
-#include "lang.h"
-#include "shreduler.h"
-#include "import.h"
 #include "bbq.h"
+#include "lang.h"
 
+#ifdef DEBUG_STACK
+#define PUSH_MEM(a, b) \
+{\
+  a->mem_index += b; \
+  a->mem += b;\
+}
+#define POP_MEM(a, b) \
+{\
+  a->mem_index -= b; \
+  a->mem -= b;\
+}
+#define PUSH_REG(a, b) \
+{\
+  a->reg_index += b; \
+  a->reg += b;\
+}
+#define POP_REG(a, b) \
+{\
+  a->reg_index -= b; \
+  a->reg -= b;\
+}
+
+#else
+#define PUSH_MEM(a, b) a->mem += b;
+#define POP_MEM(a, b)  a->mem -= b;
+#define PUSH_REG(a, b) a->reg += b;
+#define POP_REG(a, b)  a->reg -= b;
+#endif
+
+
+#define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
 #define MEM_STEP 16
 #define SIZEOF_MEM 0x1 << MEM_STEP
 #define SIZEOF_REG 0x1 << 14
@@ -64,7 +91,6 @@ void Gack(VM* vm, VM_Shred shred, Instr instr);
 
 void Reg_Push_Str(VM* vm, VM_Shred shred, Instr instr);
 void Time_Advance(VM* vm, VM_Shred shred, Instr instr);
-void Event_Wait(VM* vm, VM_Shred shred, Instr instr);
 
 void negate(VM * vm, VM_Shred shred, Instr instr);
 void not(VM * vm, VM_Shred shred, Instr instr);

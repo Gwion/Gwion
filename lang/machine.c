@@ -11,7 +11,6 @@
 #include "compile.h"
 #include "lang.h"
 
-#include "bbq.h"  // for sp_rand also
 #include <err_msg.h>
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 

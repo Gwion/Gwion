@@ -1,35 +1,7 @@
 #include "env.h"
 #include "dl.h"
+#include "instr.h"
 
-#ifdef DEBUG_STACK
-#define PUSH_MEM(a, b) \
-{\
-  a->mem_index += b; \
-  a->mem += b;\
-}
-#define POP_MEM(a, b) \
-{\
-  a->mem_index -= b; \
-  a->mem -= b;\
-}
-#define PUSH_REG(a, b) \
-{\
-  a->reg_index += b; \
-  a->reg += b;\
-}
-#define POP_REG(a, b) \
-{\
-  a->reg_index -= b; \
-  a->reg -= b;\
-}
-#else
-#define PUSH_MEM(a, b) a->mem += b;
-#define POP_MEM(a, b)  a->mem -= b;
-#define PUSH_REG(a, b) a->reg += b;
-#define POP_REG(a, b)  a->reg -= b;
-#endif
-
-#define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
 #define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
 #define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)
 #define CTOR(a) void a(M_Object o, VM_Shred shred)

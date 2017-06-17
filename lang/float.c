@@ -1,9 +1,7 @@
 #include <math.h>
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
-#include "err_msg.h"
-#include "instr.h"
+#include "shreduler.h" // for event wait
+#include "import.h"
 
 struct Type_ t_float     = { "float", SZ_FLOAT,  NULL,    te_float };
 struct Type_ t_dur       = { "dur",   SZ_FLOAT,  NULL,    te_dur };

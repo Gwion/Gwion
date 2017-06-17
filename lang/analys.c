@@ -1,18 +1,9 @@
 #include <stdlib.h>
 #include <math.h>
-
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
-/*#include "dl.h"*/
-/*#include "err_msg.h"*/
-#include "import.h"
-/*#include "lang.h"*/
-#include "bbq.h"
-#include "ugen.h"
-#include "array.h"
-#include "object.h"
 #include "err_msg.h"
+#include "import.h"
+#include "ugen.h"
 
 typedef struct {
   unsigned int size;
