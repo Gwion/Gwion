@@ -81,12 +81,12 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   VM_Code* code;
   m_str name, filename;
   if(e == NATIVE_CTOR) {
-    type->has_constructor = 1;
+    SET_FLAG(type, ae_flag_ctor);
     name = "ctor";
     filename = "[internal ctor definition]";
     code = &type->info->pre_ctor;
   } else {
-    type->has_destructor = 1;
+    SET_FLAG(type, ae_flag_dtor);
     name = type->name;
     filename = "[internal dtor definition]";
     code = &type->info->dtor;
@@ -105,9 +105,9 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
   if(pre_ctor)
-    type->has_constructor = mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
+    mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
-    type->has_destructor  = mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
+    mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->obj_size;
     free_vector(type->info->obj_v_table);
@@ -117,7 +117,7 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   type->owner = where;
   type->obj_size = 0;
 
-  type->is_complete = 1;
+  SET_FLAG(type, ae_flag_checked);
   vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
   vector_add(env->class_stack, (vtype)env->class_def);

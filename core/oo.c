@@ -55,7 +55,7 @@ Type new_type(te_type xid, m_str name) {
 static void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
-  if(a->is_user || a->parent == &t_int || isa(a, &t_class) > 0
+  if(!GET_FLAG(a, ae_flag_builtin) || a->parent == &t_int || isa(a, &t_class) > 0
       || isa(a, &t_function) > 0 || a->array_type)
     free(a);
 }
@@ -71,7 +71,8 @@ Type type_copy(Env env, Type type) {
   a->size        = type->size;
   a->actual_type = type->actual_type;
   a->array_depth = type->array_depth;
-  a->is_complete = type->is_complete;
+  if(GET_FLAG(type, ae_flag_checked))
+    SET_FLAG(a, ae_flag_checked);
   a->def         = type->def;
   INIT_OO(a, e_type_obj);
   return a;

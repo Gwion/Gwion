@@ -10,9 +10,7 @@ static m_uint type_xid = te_last;
 static m_bool do_type_xid = 0;
 
 m_uint num_digit(m_uint i) {
-  if(i)
-    return (m_uint)floor(log10(abs((double) i)) + 1);
-  return 1;
+  return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
 m_uint get_type_xid() {
@@ -133,6 +131,7 @@ m_bool add_global_type(Env env, Type type) {
   Type v_type = type_copy(env, &t_class);
   v_type->actual_type = type;
   INIT_OO(type, e_type_obj);
+  SET_FLAG(type, ae_flag_builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_value(v_type, type->name);
   SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global);

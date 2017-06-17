@@ -62,7 +62,7 @@ m_bool emit_pre_ctor(Emitter emit, Type type) {
 #endif
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
-  if(type->has_constructor) {
+  if(GET_FLAG(type, ae_flag_ctor)) {
     Instr instr = add_instr(emit, Pre_Constructor);
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit->code->frame->curr_offset;
@@ -1735,7 +1735,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   func->code = emit_code(emit);
   if(GET_FLAG(func->def, ae_flag_dtor)) {
     emit->env->class_def->info->dtor = func->code;
-    emit->env->class_def->has_destructor = 1;
+    SET_FLAG(emit->env->class_def, ae_flag_dtor);
   } else if(GET_FLAG(func->def, ae_flag_op))
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference

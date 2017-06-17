@@ -26,11 +26,8 @@ struct Type_ {
   m_str      doc;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
+  m_uint flag;
   struct VM_Object_ obj;
-  m_bool has_constructor;
-  m_bool has_destructor;
-  m_bool    is_complete;
-  m_bool    is_user;
 };
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str str);
