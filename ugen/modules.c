@@ -6,8 +6,6 @@
 #include "import.h"
 #include "ugen.h"
 #include "func.h"
-#include "bbq.h"
-#include "object.h"
 
 extern struct Type_ t_osc;
 static struct Type_ t_sinosc      = { "SinOsc",      SZ_INT, &t_ugen };
