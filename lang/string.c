@@ -145,7 +145,7 @@ static INSTR(String_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)): 0)];
+  char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)): 0) + 1];
   sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL , rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
