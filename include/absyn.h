@@ -22,8 +22,9 @@ typedef enum {
   ae_key_instance  = 1 << 5,
   ae_key_variadic  = 1 << 6,
   ae_key_template  = 1 << 7,
-  ae_key_dtor      = 1 << 8,
-  ae_key_op        = 1 << 9
+  ae_key_ctor      = 1 << 8,
+  ae_key_dtor      = 1 << 9,
+  ae_key_op        = 1 << 10
 } ae_Keyword;
 
 typedef struct {

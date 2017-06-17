@@ -64,7 +64,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   }
 
   the_class = new_type(get_type_xid(), S_name(class_def->name->xid));
-  the_class->is_user = 1;
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
@@ -80,7 +79,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
 
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
-  the_class->is_complete = 0;
   vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
   vector_add(env->class_stack, (vtype)env->class_def);

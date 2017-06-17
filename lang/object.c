@@ -68,7 +68,7 @@ void release(M_Object obj, VM_Shred shred) {
           release(*(M_Object*)(obj->d.data + value->offset), shred);
       }
       free_vector(v);
-      if(t->has_destructor) {
+      if(GET_FLAG(t, ae_key_dtor)) {
         if(t->info->dtor->native_func)
           ((f_xtor)t->info->dtor->native_func)(obj, shred);
         else {

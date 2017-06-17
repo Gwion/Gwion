@@ -1695,7 +1695,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
       if(isprim(t_parent) > 0)
         CHECK_BB(err_msg(TYPE_, class_def->ext->pos, "cannot extend primitive type '%s'"
                 "...(note: primitives types are 'int', 'float', 'time', and 'dur')", t_parent->name))
-      if(!t_parent->is_complete)
+      if(!GET_FLAG(t_parent, ae_value_checked))
         CHECK_BB(err_msg(TYPE_, class_def->ext->pos, "cannot extend incomplete type '%s'"
                 "...(note: the parent's declaration must preceed child's)", t_parent->name))
     }
@@ -1716,14 +1716,15 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   while(body && ret > 0) {
     switch(body->section->type) {
     case ae_section_stmt:
-      env->class_def->has_constructor |= (body->section->d.stmt_list->stmt != NULL);
+      if(body->section->d.stmt_list->stmt)
+		SET_FLAG(env->class_def, ae_key_ctor);
       ret = check_stmt_list(env, body->section->d.stmt_list);
       break;
 
     case ae_section_func:
-      env->class_def->is_complete = 1;
+      SET_FLAG(env->class_def, ae_value_checked);
       ret = check_func_def(env, body->section->d.func_def);
-      env->class_def->is_complete = 0;
+      env->class_def->flag &= ~ae_value_checked;
       break;
 
     case ae_section_class:
@@ -1737,7 +1738,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
-    the_class->is_complete = 1;
+    SET_FLAG(the_class, ae_value_checked);
   }
   return ret;
 }
