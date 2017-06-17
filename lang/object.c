@@ -253,7 +253,7 @@ m_bool import_object(Env env) {
   CHECK_BB(import_op(env, op_neq, "@null",   "Object", "int", neq_Object, 1))
   CHECK_BB(import_op(env, op_eq,  "Object", "@null", "int",  eq_Object, 1))
   CHECK_BB(import_op(env, op_neq, "Object", "@null", "int", neq_Object, 1))
-  CHECK_BB(import_op(env, op_exclamation,   NULL,   "Object", "int", not,        1))
+  CHECK_BB(import_op(env, op_exclamation,   NULL,   "Object", "int", noti,        1))
   CHECK_BB(import_class_end(env))
   CHECK_BB(add_global_type(env, &t_vararg))
   CHECK_BB(add_global_type(env, &t_varobj))

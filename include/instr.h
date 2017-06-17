@@ -93,7 +93,7 @@ void Reg_Push_Str(VM* vm, VM_Shred shred, Instr instr);
 void Time_Advance(VM* vm, VM_Shred shred, Instr instr);
 
 void negate(VM * vm, VM_Shred shred, Instr instr);
-void not(VM * vm, VM_Shred shred, Instr instr);
+void noti(VM * vm, VM_Shred shred, Instr instr);
 INSTR(pre_inc);
 INSTR(pre_dec);
 INSTR(post_inc);

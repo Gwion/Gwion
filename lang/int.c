@@ -1,8 +1,5 @@
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
-#include "err_msg.h"
-#include "instr.h"
+#include "import.h"
 
 struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
 
@@ -197,7 +194,7 @@ INSTR(negate) {
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(not) {
+INSTR(noti) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'!' %i", *(m_int*)(shred->reg - SZ_INT));
 #endif
@@ -435,7 +432,7 @@ m_bool import_int(Env env) {
   CHECK_BB(import_op(env, op_s_xor, 			  "int", "int", "int", xor,        1))
 // unary
   CHECK_BB(import_op(env, op_minus,         NULL,   "int", "int", negate,     1))
-  CHECK_BB(import_op(env, op_exclamation,   NULL,   "int", "int", not,        1))
+  CHECK_BB(import_op(env, op_exclamation,   NULL,   "int", "int", noti,        1))
   CHECK_BB(import_op(env, op_plusplus,      "int", NULL,   "int", post_inc,   1))
   CHECK_BB(import_op(env, op_plusplus,      NULL,   "int", "int", pre_inc,    1))
   CHECK_BB(import_op(env, op_minusminus,    "int", NULL,   "int", post_dec,   1))
