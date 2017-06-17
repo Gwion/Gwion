@@ -628,15 +628,6 @@ next:
       CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
     ptr = exp_func->d.exp_primary.value;
   }
-  /*
-     else if(exp_func->exp_type == ae_exp_dot) {
-     Value v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-     if(v && v->owner_class == env->class_def) {
-     CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
-     }
-  //        ptr = exp_func->d.exp_primary.value;
-  }
-  */
   if(!f)
     CHECK_BO(err_msg(TYPE_, exp_func->pos, "function call using a non-existing function"))
   if(isa(f, &t_function) < 0)
@@ -1000,7 +991,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
   Type ret, t = check_exp(env, postfix->exp);
 
-  if(!t) return NULL;
+  CHECK_BO(t)
   if(postfix->exp->meta != ae_meta_var)
      CHECK_BO(err_msg(TYPE_, postfix->exp->pos,
        "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op)))
@@ -1029,37 +1020,33 @@ static Type check_exp_dur(Env env, Exp_Dur* dur) {
   return unit;
 }
 
-static Type check_exp_call(Env env, Exp_Func* exp_func) {
-  if(exp_func->types) {
+static Type check_exp_call(Env env, Exp_Func* call) {
+  if(call->types) {
+    Func ret;
     Value v;
-    if(exp_func->func->exp_type == ae_exp_primary) {
-      v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
-    } else if(exp_func->func->exp_type == ae_exp_dot) {
+    if(call->func->exp_type == ae_exp_primary) {
+      v = nspc_lookup_value(env->curr, call->func->d.exp_primary.d.var, 1);
+    } else if(call->func->exp_type == ae_exp_dot) {
       Type t;
-      CHECK_OO(check_exp(env, exp_func->func))
-      t = exp_func->func->d.exp_dot.t_base;
+      CHECK_OO(check_exp(env, call->func))
+      t = call->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
         t = t->actual_type;
-      v = find_value(t, exp_func->func->d.exp_dot.xid);
-      if(!v->func_ref->def->types) {
-        free_type_list(exp_func->types);
-        exp_func->types = NULL;
-        CHECK_BO(err_msg(TYPE_, exp_func->pos, "template call of non-template function."))
-      }
+      v = find_value(t, call->func->d.exp_dot.xid);
+      if(!v->func_ref->def->types)
+        CHECK_BO(err_msg(TYPE_, call->pos, "template call of non-template function."))
     } else {
-      err_msg(TYPE_, exp_func->pos, "invalid template call.");
+      err_msg(TYPE_, call->pos, "invalid template call.");
       return NULL;
     }
-    Func ret = find_template_match(env, v, exp_func->m_func, exp_func->types,
-                                   exp_func->func, exp_func->args);
-    if(!ret)
-      CHECK_BO(err_msg(TYPE_, exp_func->pos, "arguments do not match for template call"))
-    exp_func->m_func = ret;
+    if(!(ret = find_template_match(env, v,
+      call->m_func, call->types, call->func, call->args)))
+      CHECK_BO(err_msg(TYPE_, call->pos, "arguments do not match for template call"))
+    call->m_func = ret;
     return ret->def->ret_type;
   }
-  env->current = exp_func;
-  return check_exp_call1(env, exp_func->func, exp_func->args,
-                          &exp_func->m_func, exp_func->pos);
+  env->current = call;
+  return check_exp_call1(env, call->func, call->args, &call->m_func, call->pos);
 }
 
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
