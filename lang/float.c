@@ -1,6 +1,5 @@
 #include <math.h>
 #include "defs.h"
-#include "shreduler.h" // for event wait
 #include "import.h"
 
 struct Type_ t_float     = { "float", SZ_FLOAT,  NULL,    te_float };
@@ -193,27 +192,13 @@ static INSTR(r_divide) {
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-INSTR(Time_Advance) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
-#endif
-  POP_REG(shred, SZ_FLOAT * 2);
-  shred->wake_time += *(m_float*)shred->reg;
-  shred->is_running = 0;
-  shredule(vm->shreduler, shred, shred->wake_time);
-  *(m_float*)shred->reg = shred->wake_time;
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
 // arithmetic
 static INSTR(if_assign) {
 #ifdef DEBUG_INSTR
-//  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_INT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
+  debug_msg("instr", "(float) '=' %i %f", **(m_int**)(shred->reg - SZ_INT - SZ_FLOAT), *(m_float*)(shred->reg - SZ_FLOAT));
 #endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = 
-(**(m_int**)shred->reg = 
-*(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 

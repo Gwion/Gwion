@@ -13,6 +13,18 @@ static void event_dtor(M_Object o, VM_Shred shred) {
   free_vector(EV_SHREDS(o));
 }
 
+INSTR(Time_Advance) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
+#endif
+  POP_REG(shred, SZ_FLOAT * 2);
+  shred->wake_time += *(m_float*)shred->reg;
+  shred->is_running = 0;
+  shredule(vm->shreduler, shred, shred->wake_time);
+  *(m_float*)shred->reg = shred->wake_time;
+  PUSH_REG(shred, SZ_FLOAT);
+}
+
 static INSTR(Event_Wait) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "event wait: blocking shred %i", shred->xid);
