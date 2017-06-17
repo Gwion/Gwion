@@ -991,7 +991,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
   Type ret, t = check_exp(env, postfix->exp);
 
-  CHECK_BO(t)
+  CHECK_OO(t)
   if(postfix->exp->meta != ae_meta_var)
      CHECK_BO(err_msg(TYPE_, postfix->exp->pos,
        "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op)))

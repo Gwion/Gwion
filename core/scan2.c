@@ -18,34 +18,24 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
 
   if(isa(type, &t_shred) > 0)
     decl->type->ref = 1;
-  if(!type->size) {
-    err_msg(SCAN2_, decl->pos,
-      "cannot declare variables of size '0' (i.e. 'void')...");
-    return -1;
-  }
+  if(!type->size)
+    CHECK_BB(err_msg(SCAN2_, decl->pos,
+      "cannot declare variables of size '0' (i.e. 'void')..."))
   if(!decl->type->ref) {
-    if(env->class_def && (type == env->class_def) && !env->class_scope) {
-      err_msg(SCAN2_, decl->pos,
-              "...(note: object of type '%s' declared inside itself)", type->name);
-      return -1;
-    }
-  } else if((isprim(type) > 0)) {
-    err_msg(SCAN2_, decl->pos,
-            "cannot declare references (@) of primitive type '%s'...", type->name);
-    err_msg(SCAN2_, decl->pos,
-            "...(primitive types: 'int', 'float', 'time', 'dur')");
-    return -1;
-  }
-
+    if(env->class_def && (type == env->class_def) && !env->class_scope)
+      CHECK_BB(err_msg(SCAN2_, decl->pos,
+              "...(note: object of type '%s' declared inside itself)", type->name))
+  } else if((isprim(type) > 0))
+    CHECK_BB(err_msg(SCAN2_, decl->pos,
+            "cannot declare references (@) of primitive type '%s'...\n"
+            "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
   while(list) {
-    if(isres(env, list->self->xid, list->self->pos) > 0) {
-      err_msg(SCAN2_, list->self->pos, "... in variable declaration", S_name(list->self->xid));
-      return -1;
-    }
-    if(nspc_lookup_value(env->curr, list->self->xid, 0)) {
-      err_msg(SCAN2_, list->self->pos, "variable %s has already been defined in the same scope...", S_name(list->self->xid));
-      return -1;
-    }
+    if(isres(env, list->self->xid, list->self->pos) > 0)
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+		"... in variable declaration", S_name(list->self->xid)))
+    if(nspc_lookup_value(env->curr, list->self->xid, 0))
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+        "variable %s has already been defined in the same scope...", S_name(list->self->xid)))
     if(list->self->array != NULL) {
       CHECK_BB(verify_array(list->self->array))
       Type t2 = type;
@@ -233,26 +223,18 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
 
     if(exp_func->func->exp_type == ae_exp_primary) {
       Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
-      if(!v) {
-        err_msg(SCAN2_, exp_func->pos, "template call of non-existant function.");
-        return -1;
-      }
-      if(!v->func_ref) {
-        err_msg(SCAN2_, exp_func->pos, "template call of non-function value.");
-        return -1;
-      }
+      if(!v)
+        CHECK_BB(err_msg(SCAN2_, exp_func->pos, "template call of non-existant function."))
+      if(!v->func_ref)
+        CHECK_BB(err_msg(SCAN2_, exp_func->pos, "template call of non-function value."))
       Func_Def base = v->func_ref->def;
-      if(!base->types) {
-        err_msg(SCAN2_, exp_func->pos, "template call of non-template function.");
-        return -1;
-      }
+      if(!base->types)
+        CHECK_BB(err_msg(SCAN2_, exp_func->pos, "template call of non-template function."))
       Type_List list = exp_func->types;
       while(list) {
         Type t = find_type(env, list->list);
-        if(!t) {
-          err_msg(SCAN1_, exp_func->pos, "type '%s' unknown in template call", S_name(list->list->xid));
-          return -1;
-        }
+        if(!t)
+          CHECK_BB(err_msg(SCAN1_, exp_func->pos, "type '%s' unknown in template call", S_name(list->list->xid)))
         list = list->next;
       }
       // check num types matches.
@@ -469,10 +451,9 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
       map_set(env->curr->label, (vtype)key, (vtype)m);
     }
     if(map_get(m, (vtype)stmt->name)) {
-      err_msg(SCAN2_, stmt->pos, "label '%s' already defined", S_name(stmt->name));
       Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
       free_vector(l->data.v);
-      return -1;
+      CHECK_BB(err_msg(SCAN2_, stmt->pos, "label '%s' already defined", S_name(stmt->name)))
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     stmt->data.v = new_vector();
@@ -482,10 +463,8 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 
 static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
   Value v = nspc_lookup_value(env->curr, stmt->xid, 1);
-  if(v) {
-    err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid));
-    return -1;
-  }
+  if(v)
+    CHECK_BB(err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid)))
   return 1;
 }
 
@@ -630,10 +609,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
       goto error;
     } else {
-      if(!overload->func_ref) {
-        err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name); // LCOV_EXCL_LINE
-        return -1;                                                                         // LCOV_EXCL_LINE
-      }
+      if(!overload->func_ref)
+        CHECK_BB(err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name)) // LCOV_EXCL_LINE
     }
   }
   if(overload && !GET_FLAG(f, ae_flag_template)) {
@@ -674,9 +651,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     overload->func_ref->next = func;
   }
   if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
-    err_msg(SCAN2_,  f->type_decl->pos,
-            "FUNC cannot declare references (@) of primitive type '%s'...\n", f->ret_type->name);
-    err_msg(SCAN2_, f->type_decl->pos, "...(primitive types: 'int', 'float', 'time', 'dur')");
+    err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
+      "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
     goto error;
   }
 
@@ -688,22 +664,19 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   while(arg_list) {
     if(!arg_list->type->size) {
-      err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       nspc_pop_value(env->curr);
+      err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       goto error;
     }
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
-      err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
       nspc_pop_value(env->curr);
+      err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
       goto error;
     }
     if((isprim(arg_list->type) > 0)
         && arg_list->type_decl->ref) {
-      err_msg(SCAN2_, arg_list->type_decl->pos,
-              "cannot declare references (@) of primitive type '%s'...",
-              arg_list->type->name);
-      err_msg(SCAN2_, arg_list->type_decl->pos,
-              "...(primitive types: 'int', 'float', 'time', 'dur')");
+      err_msg(SCAN2_, arg_list->type_decl->pos, "cannot declare references (@) of primitive type '%s'...\n"
+        "\t...(primitive types: 'int', 'float', 'time', 'dur')", arg_list->type->name);
       nspc_pop_value(env->curr);
       goto error;
     }
@@ -714,9 +687,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       Type t = arg_list->type;
       Type t2 = t;
       if(arg_list->var_decl->array->exp_list) {
-        err_msg(SCAN2_, arg_list->pos, "in function '%s':", S_name(f->name));
-        err_msg(SCAN2_, arg_list->pos, "argument %i '%s' must be defined with empty []'s",
-                count, S_name(arg_list->var_decl->xid));
+        err_msg(SCAN2_, arg_list->pos, "in function '%s':\n\targument %i '%s' must be defined with empty []'s",
+                S_name(f->name), count, S_name(arg_list->var_decl->xid));
         nspc_pop_value(env->curr);
         goto error;
       }
@@ -784,12 +756,12 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_push_value(env->curr);
 
   if(f->code && scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
-    err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
 // should be in free_context, at least.
     free(value->m_type->name);
     REM_REF(value->m_type);
     f->d.func->value_ref->m_type = NULL;
     nspc_pop_value(env->curr);
+    err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
     return -1;
   }
   nspc_pop_value(env->curr);
