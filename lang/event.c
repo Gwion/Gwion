@@ -80,7 +80,7 @@ m_bool import_event(Env env) {
   CHECK_OB(import_mfun(env, fun))
   fun = new_dl_func("int", "broadcast", (m_uint)event_broadcast);
   CHECK_OB(import_mfun(env, fun))
-  CHECK_BB(add_binary_op(env, op_chuck,        &t_event, &t_now, &t_int, Event_Wait, 1))
+  CHECK_BB(import_op(env, op_chuck, "Event", "@now", "int", Event_Wait, 1))
   CHECK_BB(import_class_end(env))
   return 1;
 }

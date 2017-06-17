@@ -298,3 +298,20 @@ Func import_mfun(Env env, DL_Func * fun) {
 Func import_sfun(Env env, DL_Func * fun) {
   return import_fun(env, fun, 1);
 }
+
+Type get_type(Env env, m_str str) {
+    m_uint  depth;
+    ID_List list = str2list(str, &depth);
+    Type    t = list ? find_type(env, list) : NULL;
+    if(list)
+      free_id_list(list);
+    return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
+}
+
+m_bool import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global) {
+    Type lhs = l ? get_type(env, l) : NULL;
+    Type rhs = r ? get_type(env, r) : NULL;
+    Type ret = get_type(env, t);
+    return add_binary_op(env, op, lhs, rhs, ret, f, global);
+}
+

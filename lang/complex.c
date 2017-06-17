@@ -258,29 +258,29 @@ m_bool import_complex(Env env) {
   CHECK_BB(o_polar_phase)
   CHECK_BB(import_class_end(env))
 // arithmetic
-  CHECK_BB(add_binary_op(env, op_assign,        &t_complex, &t_complex, &t_complex, assign,     0))
-  CHECK_BB(add_binary_op(env, op_plus,          &t_complex, &t_complex, &t_complex, plus,       0))
-  CHECK_BB(add_binary_op(env, op_minus,         &t_complex, &t_complex, &t_complex, minus,      0))
-  CHECK_BB(add_binary_op(env, op_times,         &t_complex, &t_complex, &t_complex, times,      0))
-  CHECK_BB(add_binary_op(env, op_divide,        &t_complex, &t_complex, &t_complex, divide,     0))
-  /*	CHECK_BB(add_binary_op(env, op_percent,       &t_complex, &t_complex, &t_complex, modulo,     0)) */
+  CHECK_BB(import_op(env, op_assign,        "complex", "complex", "complex", assign,     0))
+  CHECK_BB(import_op(env, op_plus,          "complex", "complex", "complex", plus,       0))
+  CHECK_BB(import_op(env, op_minus,         "complex", "complex", "complex", minus,      0))
+  CHECK_BB(import_op(env, op_times,         "complex", "complex", "complex", times,      0))
+  CHECK_BB(import_op(env, op_divide,        "complex", "complex", "complex", divide,     0))
+  /*	CHECK_BB(import_op(env, op_percent,       "complex", "complex", "complex", modulo,     0)) */
 // reverse arithmetic
-  CHECK_BB(add_binary_op(env, op_chuck,         &t_complex, &t_complex, &t_complex, r_assign,   0))
-  CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_complex, &t_complex, &t_complex, r_plus,     0))
-  CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_complex, &t_complex, &t_complex, r_minus,    0))
-  CHECK_BB(add_binary_op(env, op_times_chuck,   &t_complex, &t_complex, &t_complex, r_times,    0))
-  CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_complex, &t_complex, &t_complex, r_divide,   0))
-  /*	CHECK_BB(add_binary_op(env, op_modulo_chuck,  &t_complex, &t_complex, &t_complex, r_modulo,   0)) */
-  CHECK_BB(add_binary_op(env, op_assign,        &t_polar, &t_polar, &t_polar, assign,           0))
-  CHECK_BB(add_binary_op(env, op_chuck,         &t_polar, &t_polar, &t_polar, r_assign,         0))
-  CHECK_BB(add_binary_op(env, op_plus,          &t_polar, &t_polar, &t_polar, polar_plus,       0))
-  CHECK_BB(add_binary_op(env, op_minus,         &t_polar, &t_polar, &t_polar, polar_minus,      0))
-  CHECK_BB(add_binary_op(env, op_times,         &t_polar, &t_polar, &t_polar, polar_times,      0))
-  CHECK_BB(add_binary_op(env, op_divide,        &t_polar, &t_polar, &t_polar, polar_divide,     0))
-  CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_polar, &t_polar, &t_polar, polar_plus_r,     0))
-  CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_polar, &t_polar, &t_polar, polar_minus_r,    0))
-  CHECK_BB(add_binary_op(env, op_times_chuck,   &t_polar, &t_polar, &t_polar, polar_times_r,    0))
-  CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_polar, &t_polar, &t_polar, polar_divide_r,   0))
+  CHECK_BB(import_op(env, op_chuck,         "complex", "complex", "complex", r_assign,   0))
+  CHECK_BB(import_op(env, op_plus_chuck,    "complex", "complex", "complex", r_plus,     0))
+  CHECK_BB(import_op(env, op_minus_chuck,   "complex", "complex", "complex", r_minus,    0))
+  CHECK_BB(import_op(env, op_times_chuck,   "complex", "complex", "complex", r_times,    0))
+  CHECK_BB(import_op(env, op_divide_chuck,  "complex", "complex", "complex", r_divide,   0))
+  /*	CHECK_BB(import_op(env, op_modulo_chuck,  "complex", "complex", "complex", r_modulo,   0)) */
+  CHECK_BB(import_op(env, op_assign,        "polar", "polar", "polar", assign,           0))
+  CHECK_BB(import_op(env, op_chuck,         "polar", "polar", "polar", r_assign,         0))
+  CHECK_BB(import_op(env, op_plus,          "polar", "polar", "polar", polar_plus,       0))
+  CHECK_BB(import_op(env, op_minus,         "polar", "polar", "polar", polar_minus,      0))
+  CHECK_BB(import_op(env, op_times,         "polar", "polar", "polar", polar_times,      0))
+  CHECK_BB(import_op(env, op_divide,        "polar", "polar", "polar", polar_divide,     0))
+  CHECK_BB(import_op(env, op_plus_chuck,    "polar", "polar", "polar", polar_plus_r,     0))
+  CHECK_BB(import_op(env, op_minus_chuck,   "polar", "polar", "polar", polar_minus_r,    0))
+  CHECK_BB(import_op(env, op_times_chuck,   "polar", "polar", "polar", polar_times_r,    0))
+  CHECK_BB(import_op(env, op_divide_chuck,  "polar", "polar", "polar", polar_divide_r,   0))
   t_complex.doc   = "complex numbers";
   t_polar.doc     = "polar   numbers";
   t_complex.size = sizeof(m_float) *2;

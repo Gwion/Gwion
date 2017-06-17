@@ -266,14 +266,14 @@ m_bool import_fileio(Env env) {
   CHECK_OB(import_sfun(env, fun))
 
   // import operators
-  CHECK_BB(add_binary_op(env, op_chuck, &t_int,    &t_fileio, &t_fileio, int_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_float,  &t_fileio, &t_fileio, float_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_string, &t_fileio, &t_fileio, string_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_object, &t_fileio, &t_fileio, object_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_null,   &t_fileio, &t_fileio, object_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_string, &t_string, file_to_string, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_int,    &t_int,    file_to_int, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_float,  &t_float,  file_to_float, 1))
+  CHECK_BB(import_op(env, op_chuck, "int",    "FileIO", "FileIO", int_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "float",  "FileIO", "FileIO", float_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "string", "FileIO", "FileIO", string_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "Object", "FileIO", "FileIO", object_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "@null",  "FileIO", "FileIO", object_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "string", "string", file_to_string, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "int",    "int",    file_to_int, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "float",  "float",  file_to_float, 1))
   CHECK_BB(import_class_end(env))
 
   CHECK_BB(add_global_type(env, &t_cout))

@@ -51,3 +51,5 @@ m_int import_mvar(Env env, const m_str type, const m_str name,
                   const m_bool is_const, const m_bool is_ref, const m_str doc);
 m_bool import_class_end(Env env);
 Type import_class_begin(Env env, Type type, Nspc where, const f_xtor pre_ctor, const f_xtor dtor);
+Type get_type(Env env, m_str str);
+m_bool import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global);
