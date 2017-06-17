@@ -417,7 +417,7 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
 #endif
   if(emit_exp(emit, exp_func->args, 1) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...")) // LCOV_EXCL_LINE
-  if(exp_func->m_func->def->is_variadic) {
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic)) {
     m_uint offset = 0, size = 0;
     Instr instr;
     Exp e = exp_func->args;
@@ -461,7 +461,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       base_t = base_t->next;
       list = list->next;
     }
-    def->is_template = 1;
+    SET_FLAG(def, ae_flag_template);
     CHECK_BB(scan1_func_def(emit->env, def))
       CHECK_BB(scan2_func_def(emit->env, def))
       CHECK_BB(check_func_def(emit->env, def))
@@ -475,7 +475,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
   if(emit_exp(emit, exp_func->func, 0) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
-  if(exp_func->m_func->def->is_variadic && !exp_func->args) { // handle empty call to variadic functions
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
   }
@@ -605,7 +605,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   if(!func->code) { // calling function pointer in func
     Func f = nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
     if(!f) { //template with no list
-      if(!func->def->is_template)
+      if(!GET_FLAG(func->def, ae_flag_template))
         CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
       if(emit_func_def(emit, func->def) < 0)
         CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
@@ -640,7 +640,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     call->m_val2  = (m_uint)func->def->arg_list->type;
     *(Type*)call->ptr     = func->def->arg_list->next->type;
   }
-  if(func->def->is_template) {
+  if(GET_FLAG(func->def, ae_flag_template)) {
     Instr clear = add_instr(emit, Free_Func);
     clear->m_val = (m_uint)func;
   }
@@ -1300,7 +1300,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
 static m_bool emit_stmt_typedef(Emitter emit, Stmt_Ptr ptr) {
   nspc_add_func(emit->env->curr, ptr->xid, ptr->func);
   vector_add(emit->funcs, (vtype)ptr);
-  if(ptr->key)
+  if(GET_FLAG(ptr, ae_flag_static))
     ADD_REF(ptr->func)
       return 1;
 }
@@ -1704,7 +1704,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     value->offset = local->offset;
     a = a->next;
   }
-  if(func_def->is_variadic) {
+  if(GET_FLAG(func_def, ae_flag_variadic)) {
     if(!frame_alloc_local(emit->code->frame, type->size, "vararg", is_ref, is_obj))
       CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
     emit->code->stack_depth += SZ_INT;
@@ -1722,7 +1722,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   emit_pop_scope(emit);
 
-  if(func_def->is_variadic && (!emit->env->func->variadic_start || !*(m_uint*)emit->env->func->variadic_start->ptr))
+  if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic_start ||
+    !*(m_uint*)emit->env->func->variadic_start->ptr))
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
   m_uint i;
   for(i = 0; i < vector_size(emit->code->stack_return); i++) {
@@ -1732,10 +1733,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   vector_clear(emit->code->stack_return);
   sadd_instr(emit, Func_Return);
   func->code = emit_code(emit);
-  if(func->def->spec == ae_func_spec_dtor) {
+  if(GET_FLAG(func->def, ae_flag_dtor)) {
     emit->env->class_def->info->dtor = func->code;
     emit->env->class_def->has_destructor = 1;
-  } else if(func->def->spec == ae_func_spec_op)
+  } else if(GET_FLAG(func->def, ae_flag_op))
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   // add reference
   //  ADD_REF(func);

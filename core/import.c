@@ -241,8 +241,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
 
 Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   Func_Def func_def = NULL;
-  ae_Keyword func_decl = ae_key_func;
-  ae_Keyword static_decl = is_static ? ae_key_static : ae_key_instance;
+  ae_flag func_decl = ae_flag_func;
+  ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;
   ID_List type_path = NULL;
   Type_Decl* type_decl = NULL;
   m_str name = NULL;

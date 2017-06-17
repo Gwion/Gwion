@@ -33,8 +33,8 @@ Func new_func(m_str name, Func_Def def) {
 
 static void free_func(Func a) {
   if(a->code) {
-    if(a->def && !a->def->is_template) {
-      if(a->def->spec != ae_func_spec_dtor) {
+    if(a->def && !GET_FLAG(a->def, ae_flag_template)) {
+      if(!GET_FLAG(a->def, ae_flag_dtor)) {
         free_vm_code(a->code);
       }
     }

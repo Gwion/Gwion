@@ -19,27 +19,22 @@ typedef enum {
   ae_flag_checked   = 1 << 2,
   ae_flag_member  = 1 << 3,
   ae_flag_static  = 1 << 4,
-  ae_flag_instance  = 1 << 5,
-  ae_flag_template  = 1 << 6,
-  ae_flag_variadic  = 1 << 7,
-  ae_flag_ctor  = 1 << 8,
-  ae_flag_dtor  = 1 << 9,
-  ae_flag_op  = 1 << 10,
-  ae_flag_public  = 1 << 11,
-  ae_flag_private  = 1 << 12,
-  ae_flag_global  = 1 << 13,
-  ae_flag_const  = 1 << 14,
-  ae_flag_enum  = 1 << 15,
-  ae_flag_arg  = 1 << 16
+  ae_flag_func  = 1 << 6,
+  ae_flag_instance  = 1 << 7,
+  ae_flag_template  = 1 << 8,
+  ae_flag_variadic  = 1 << 9,
+  ae_flag_ctor  = 1 << 10,
+  ae_flag_dtor  = 1 << 11,
+  ae_flag_op  = 1 << 12,
+  ae_flag_public  = 1 << 13,
+  ae_flag_private  = 1 << 14,
+  ae_flag_global  = 1 << 15,
+  ae_flag_const  = 1 << 16,
+  ae_flag_enum  = 1 << 17,
+  ae_flag_arg  = 1 << 18
 //  ae_flag_obj  = 1 << 17,
 //  ae_flag_ref  = 1 << 18,
 } ae_flag;
-
-typedef enum {
-  ae_key_func, 
-//ae_key_public, ae_key_private,
-  ae_key_static, ae_key_instance, ae_key_variadic
-} ae_Keyword;
 
 typedef struct {
   Exp base;
@@ -401,7 +396,7 @@ struct Stmt_Ptr_ {
   Type_Decl*    type;
   Type    m_type;
   S_Symbol   xid;
-  ae_Keyword key;
+  ae_flag    flag;
   Arg_List   args;
   Type       ret_type;
   Func       func;
@@ -456,7 +451,7 @@ Stmt new_stmt_case(Exp exp, int pos);
 Stmt new_stmt_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
-Stmt new_func_ptr_stmt(ae_Keyword key, m_str type, Type_Decl* decl, Arg_List args, int pos);
+Stmt new_func_ptr_stmt(ae_flag key, m_str type, Type_Decl* decl, Arg_List args, int pos);
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
@@ -476,18 +471,16 @@ struct Func_Def_ {
   Stmt code;
   Func func;
   m_uint stack_depth;
-  ae_Keyword func_decl;
-  ae_Keyword static_decl;
+  ae_flag func_decl;
+  ae_flag static_decl;
   void* dl_func_ptr;
-  ae_func_spec spec;// try to implement dtor in parser
   ID_List types;
   ID_List base; // 13/03/17
   int pos;
-  m_bool is_template;
-  m_bool is_variadic;
 };
 
-Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
+Func_Def new_func_def(ae_flag func_decl, ae_flag static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt 
+code, int pos);
 void free_func_def(Func_Def def);
 m_bool scan1_func_def(Env env, Func_Def f);
 m_bool scan2_func_def(Env env, Func_Def f);
@@ -519,7 +512,7 @@ struct Class_Body_ {
   int pos;
 };
 struct Class_Def_ {
-  ae_Keyword decl;
+  ae_flag decl;
   ID_List name;
   Class_Ext ext;
   Class_Body body;
@@ -527,7 +520,7 @@ struct Class_Def_ {
   m_str doc;
   int pos;
 };
-Class_Def new_class_def(ae_Keyword class_decl, ID_List name,
+Class_Def new_class_def(ae_flag class_decl, ID_List name,
                         Class_Ext ext, Class_Body body, int pos);
 Class_Body new_class_body(Section* section, int pos);
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos);

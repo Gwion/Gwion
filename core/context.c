@@ -22,14 +22,14 @@ void free_context(Context a) {
   vtype i;
   for(i = 0; i < vector_size(a->new_funcs); i++) {
     Func f = (Func)vector_at(a->new_funcs, i);
-    if(f->def->spec == ae_func_spec_op) {
+    if(GET_FLAG(f->def, ae_flag_op)) {
       free(f->value_ref->name);
       free(f->value_ref->m_type->name);
       free(f->value_ref->m_type);
       REM_REF(f->value_ref);
       REM_REF(f);
       continue;
-    } else if(!f->def->is_template) {
+    } else if(!GET_FLAG(f->def, ae_flag_template)) {
       if(f->value_ref->m_type) {
         free(f->value_ref->m_type->name);
         REM_REF(f->value_ref->m_type);

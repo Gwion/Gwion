@@ -314,7 +314,7 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
     CHECK_BB(err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  S_name(ptr->xid)))
   }
 
-  if(!env->class_def && ptr->key == ae_key_static) {
+  if(!env->class_def && GET_FLAG(ptr, ae_flag_static)) {
     CHECK_BB(err_msg(SCAN1_, ptr->pos, "can't declare func pointer static outside of a class"))
   }
 
@@ -442,10 +442,10 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   debug_msg("scan1", "func def");
 #endif
 
-  if(f->spec == ae_func_spec_dtor && !env->class_def)
+  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
 
-  if(f->spec != ae_func_spec_op && name2op(S_name(f->name)) > 0)
+  if(!GET_FLAG(f, ae_flag_op) && name2op(S_name(f->name)) > 0)
     CHECK_BB(err_msg(SCAN1_, f->pos, "'%s' is a reserved operator name", S_name(f->name)))
 
   if(f->types)
@@ -488,7 +488,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     count++;
     arg_list = arg_list->next;
   }
-  if(f->spec == ae_func_spec_op) {
+  if(GET_FLAG(f, ae_flag_op)) {
     if(count > 3 || count == 1)
       CHECK_BB(err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n"))
     if(name2op(S_name(f->name)) < 0)

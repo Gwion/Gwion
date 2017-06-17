@@ -311,7 +311,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
         v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_key_static && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
+          if(env->func->def->static_decl == ae_flag_static && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
             CHECK_BO(err_msg(TYPE_, primary->pos,
               "non-static member '%s' used from static function...", S_name(primary->d.var)))
           }
@@ -500,7 +500,7 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
 
       while(e) {
         if(e1 == NULL) {
-          if(func->def->is_variadic)
+          if(GET_FLAG(func->def, ae_flag_variadic))
             return func;
           goto moveon;
         }
@@ -563,11 +563,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     Func_Def def = new_func_def(base->func_decl, base->static_decl,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
-    if(base->is_variadic)
-      def->is_variadic = 1;
+    if(GET_FLAG(base, ae_flag_variadic))
+      SET_FLAG(def, ae_flag_variadic);
     Type_List list = types;
     ID_List base_t = base->types;
-    def->is_template = 1;
+    SET_FLAG(def, ae_flag_template);
     nspc_push_type(env->curr);
     while(base_t) {
       ID_List tmp = base_t->next;;
@@ -1603,13 +1603,13 @@ m_bool check_func_def(Env env, Func_Def f) {
             parent_func = parent_func->next;
             continue;
           }
-          if(parent_func->def->static_decl == ae_key_static) {
+          if(parent_func->def->static_decl == ae_flag_static) {
             CHECK_BB(err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override..."
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name),
                     v->owner_class->name, S_name(f->name)))
           }
-          if(f->static_decl == ae_key_static) {
+          if(f->static_decl == ae_flag_static) {
             CHECK_BB(err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override..."
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name),
@@ -1652,7 +1652,7 @@ m_bool check_func_def(Env env, Func_Def f) {
     arg_list = arg_list->next;
   }
 
-  if(f->is_variadic) {
+  if(GET_FLAG(f, ae_flag_variadic)) {
     vararg = new_value(&t_vararg, "vararg");
     SET_FLAG(vararg, ae_flag_checked);
     nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
@@ -1662,8 +1662,6 @@ m_bool check_func_def(Env env, Func_Def f) {
     goto error;
   }
 
-  /*if(f->is_variadic)*/
-  /*REM_REF(vararg);*/
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
   nspc_pop_value(env->curr);

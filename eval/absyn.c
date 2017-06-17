@@ -547,7 +547,8 @@ static void free_if_expression(Exp_If* a) {
   free_expression(a->else_exp);
 }
 
-Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos) {
+Func_Def new_func_def(ae_flag func_decl, ae_flag static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, 
+int pos) {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
   a->func_decl = func_decl;
   a->static_decl = static_decl;
@@ -558,16 +559,15 @@ Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* t
   a->func = NULL;
   a->stack_depth = 0;
   a->pos = pos;
-  a->spec = ae_func_spec_none;
-  if(a->func_decl == ae_key_variadic) {
-    a->func_decl = ae_key_func;
-    a->is_variadic = 1;
+  if(a->func_decl == ae_flag_variadic) {
+    a->func_decl = ae_flag_func;
+    SET_FLAG(a, ae_flag_variadic);
   }
   return a;
 }
 
 void free_func_def(Func_Def a) {
-  if(!a->is_template) {
+  if(!GET_FLAG(a, ae_flag_template)) {
     if(a->types)
       free_id_list(a->types);
     if(a->ret_type && a->ret_type->array_type)
@@ -579,10 +579,10 @@ void free_func_def(Func_Def a) {
   free(a);
 }
 
-Stmt new_func_ptr_stmt(ae_Keyword key, m_str xid, Type_Decl* decl, Arg_List args, int pos) {
+Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, int pos) {
   Stmt a                  = calloc(1, sizeof(struct Stmt_));
   a->type                 = ae_stmt_funcptr;
-  a->d.stmt_ptr.key   = key;
+  a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.type  = decl;
   a->d.stmt_ptr.xid   = insert_symbol(xid);
   a->d.stmt_ptr.args  = args;
@@ -602,7 +602,7 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
       free_arg_list(a->args);
     free_type_decl(a->type);
   }
-  if(a->value && !GET_FLAG(a->value, ae_flag_member) && !a->key) {
+  if(a->value && !GET_FLAG(a->value, ae_flag_member) && !GET_FLAG(a, ae_flag_static)) {
     REM_REF(a->value->m_type);
     REM_REF(a->value)
   }
@@ -1111,7 +1111,7 @@ static void free_section(Section* section) {
   free(section);
 }
 
-Class_Def new_class_def(ae_Keyword class_decl, ID_List name, Class_Ext ext, Class_Body body, int pos) {
+Class_Def new_class_def(ae_flag class_decl, ID_List name, Class_Ext ext, Class_Body body, int pos) {
   Class_Def a = calloc(1, sizeof(struct Class_Def_));
   a->decl = class_decl;
   a->name = name;

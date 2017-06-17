@@ -129,20 +129,21 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  Func_Def def = new_func_def(ae_key_func, !env->class_def ? ae_key_func : !ptr->key ? ae_key_instance : ae_key_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
+  Func_Def def = new_func_def(ae_flag_func, !env->class_def ? ae_flag_func :
+    !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(S_name(ptr->xid), def);
   ptr->value->func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
   if(env->class_def) {
-    if(!ptr->key) {
+    if(!GET_FLAG(ptr, ae_flag_static)) {
       SET_FLAG(ptr->value, ae_flag_member);
       SET_FLAG(ptr->func, ae_flag_member);
     }
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(env->curr, ptr->xid, ptr->func);
-  if(!ptr->key)
+  if(!GET_FLAG(ptr, ae_flag_static))
     ADD_REF(ptr->func);
   return 1;
 error:
@@ -599,7 +600,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func = new_func(func_name, f);
     if(overload)
       func->next = overload->func_ref->next;
-    if(env->class_def && f->static_decl != ae_key_static)
+    if(env->class_def && f->static_decl != ae_flag_static)
       SET_FLAG(func, ae_flag_member);
     value = new_value(&t_function, func_name);
     value->owner = env->curr;
@@ -635,14 +636,14 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       }
     }
   }
-  if(overload && !f->is_template) {
+  if(overload && !GET_FLAG(f, ae_flag_template)) {
     len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
     snprintf(name, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
   } else
     snprintf(name, len + 1, "%s@0@%s", func_name, env->curr->name);
   func_name = strdup(name);
   func = new_func(func_name, f);
-  if(env->class_def && f->static_decl != ae_key_static)
+  if(env->class_def && f->static_decl != ae_flag_static)
 	SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) { // actual builtin func import
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
@@ -739,9 +740,9 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   nspc_pop_value(env->curr);
 
-  if(f->is_variadic)
+  if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
-  else if(f->spec == ae_func_spec_op) {
+  else if(GET_FLAG(f, ae_flag_op)) {
     m_bool ret;
     m_str str = strdup(S_name(f->name));
     str = strsep(&str, "@");
@@ -766,7 +767,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   else {
     nspc_add_value(env->curr, insert_symbol(func->name), value);
     if(overload->func_ref->def->ret_type) // template func don't check ret_type case
-      if(!f->is_template)
+      if(!GET_FLAG(f, ae_flag_template))
         if(f->ret_type->xid != overload->func_ref->def->ret_type->xid) {
           err_msg(SCAN2_,  f->pos, "function signatures differ in return type... '%s' and '%s'",
                   f->ret_type->name, overload->func_ref->def->ret_type->name);
@@ -794,7 +795,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_pop_value(env->curr);
   env->func = NULL;
 
-  if(f->spec == ae_func_spec_dtor) {
+  if(GET_FLAG(f, ae_flag_dtor)) {
     SET_FLAG(f->func, ae_flag_dtor);
 //    ADD_REF(f->func->value_ref);
   }
