@@ -46,7 +46,6 @@ Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, int pos) {
   a->self = decl;
   a->next = list;
   a->pos = pos;
-  a->doc = NULL;
   return a;
 }
 
@@ -67,7 +66,6 @@ Type_Decl* new_type_decl(ID_List xid, int ref, int pos) {
   a->pos = pos;
   a->array = NULL;
   a->dot = NULL;
-  a->doc = NULL;
   return a;
 }
 
@@ -163,8 +161,6 @@ void free_type_decl(Type_Decl* a) {
     free(a->array);
   }
   free_id_list(a->xid);
-  if(a->doc)
-    free(a->doc);
   free(a);
 }
 
@@ -714,7 +710,6 @@ Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list
   a->type_decl = type_decl;
   a->var_decl = var_decl;
   a->next = arg_list;
-  a->doc = NULL;
   a->pos = pos;
   return a;
 }
@@ -1112,7 +1107,6 @@ Class_Def new_class_def(ae_flag class_decl, ID_List name, Class_Ext ext, Class_B
   a->ext  = ext;
   a->body = body;
   a->pos  = pos;
-  a->doc  = NULL;
   a->type = NULL;
   return a;
 }
@@ -1174,7 +1168,6 @@ Ast new_ast(Section* section, Ast next, int pos) {
   ast->section = section;
   ast->next = next;
   ast->pos = pos;
-  ast->doc = NULL;
   return ast;
 }
 
@@ -1186,8 +1179,6 @@ void free_ast(Ast prog) {
   while(ast) {
     tmp = ast;
     ast = ast->next;
-    if(tmp->doc)
-      free(tmp->doc);
     free_section(tmp->section);
     free(tmp);
   }

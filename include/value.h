@@ -11,7 +11,6 @@ struct Value_ {
   m_uint func_num_overloads;
   Nspc owner;
   Type owner_class;
-  m_str doc;
   ae_flag flag;
   struct VM_Object_ obj;
 };

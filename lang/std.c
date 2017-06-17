@@ -391,7 +391,6 @@ m_bool import_lib(Env env) {
   DL_Func* fun;
 
   CHECK_OB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
-  env->class_def->doc = "Standard library";
 
   fun = new_dl_func("int", "abs", (m_uint)std_abs);
   dl_func_add_arg(fun, "int", "value");
@@ -554,7 +553,6 @@ m_bool import_lib(Env env) {
   CHECK_BB(import_class_end(env))
 
   CHECK_OB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
-  env->class_def->doc = "Standard library";
 
   fun = new_dl_func("int", "clamp", (m_uint)std_clamp);
   dl_func_add_arg(fun, "int", "value");

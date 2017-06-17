@@ -887,9 +887,8 @@ static MFUN(string_toFloat) {
 
 m_bool import_string(Env env) {
   CHECK_OB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
-    env->class_def->doc = "chain of characters";
 
-  o_string_data = import_mvar(env, "int", "@data",   1, 0, "place to hold the string");
+  o_string_data = import_mvar(env, "int", "@data",   1, 0);
   CHECK_BB(o_string_data)
 
     DL_Func* fun = new_dl_func("int", "size", (m_uint)string_len);

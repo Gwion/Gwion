@@ -74,19 +74,8 @@ static int adjust(void* data);
 %option nounput
 
 %x comment
-%x cdoc
 %x COMMENT
-%x CDOC
 %% 
-
-"//!"                               { BEGIN(cdoc); }
-<cdoc>\n                            { newline(yyscanner); BEGIN(INITIAL); }
-<cdoc>.*  		                      { adjust(yyscanner); yylval->sval = strdup(yytext); return DOC;}
-
-"/*!"                               { BEGIN(CDOC); }
-<CDOC>"!*/"                         { adjust(yyscanner); BEGIN(INITIAL); }
-<CDOC>\n                            { newline(yyscanner);  /*strcat(yylval->sval, "\n\n"); LCOV_EXCL_LINE */}
-<CDOC>.*             		        { adjust(yyscanner); yylval->sval =  strdup(yytext); return DOC; }
 
 "//"                                { BEGIN(comment); }
 <comment>.                          { adjust(yyscanner); continue;}
@@ -271,7 +260,7 @@ Ast parse(m_str filename)
   minimal_lex_init(&arg.scanner);
   minimal_set_extra(&arg, arg.scanner);
   map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
-  arg.line = 1; arg.pos  = 0; arg.doc = new_vector();
+  arg.line = 1; arg.pos  = 0;
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
@@ -287,25 +276,10 @@ Ast parse(m_str filename)
   if(minimal_parse(&arg))
   {
     free_ast(ast);
-    free_vector(arg.doc);
     minimal_lex_destroy(arg.scanner);
     return NULL;
   }
   ast = arg.ast;
-  if(vector_front(arg.doc))
-  {
-    ast->doc = malloc(sizeof(char));
-    memset(ast->doc, 0, 1);
-  }
-  while(vector_front(arg.doc))
-  {
-	m_str doc = (m_str)vector_front(arg.doc);
-    ast->doc = realloc(ast->doc, strlen(ast->doc) +  strlen(doc) + 1);
-    strcat(ast->doc, doc);
-    vector_rem(arg.doc, 0);
-    free(doc);
-  }
-  free_vector(arg.doc);
   fclose(file);
   minimal_lex_destroy(arg.scanner);
   return ast;

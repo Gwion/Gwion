@@ -145,8 +145,7 @@ extern int minimal_debug;
     ID = 355,
     STRING_LIT = 356,
     CHAR_LIT = 357,
-    DOC = 358,
-    NEG = 359
+    NEG = 358
   };
 #endif
 /* Tokens.  */
@@ -250,15 +249,14 @@ extern int minimal_debug;
 #define ID 355
 #define STRING_LIT 356
 #define CHAR_LIT 357
-#define DOC 358
-#define NEG 359
+#define NEG 358
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 42 "eval/gwion.y" /* yacc.c:1909  */
+#line 26 "eval/gwion.y" /* yacc.c:1909  */
 
   char* sval;
   int ival;
@@ -285,7 +283,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 289 "eval/parser.h" /* yacc.c:1909  */
+#line 287 "eval/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

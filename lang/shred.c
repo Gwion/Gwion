@@ -96,7 +96,7 @@ m_bool import_shred(Env env) {
 
   CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
 
-  o_shred_me = import_mvar(env, "int", "@me",   0, 0, "shred placeholder");
+  o_shred_me = import_mvar(env, "int", "@me",   0, 0);
   CHECK_BB(o_shred_me)
 
   fun = new_dl_func("void", "exit", (m_uint)vm_shred_exit);
@@ -113,7 +113,6 @@ m_bool import_shred(Env env) {
 
   fun = new_dl_func("Shred", "fromId", (m_uint)vm_shred_from_id);
   arg = dl_func_add_arg(fun, "int", "arg1");
-  arg->doc = "id of the shred";
   CHECK_OB((import_sfun(env, fun)))
 
   fun = new_dl_func("void", "yield", (m_uint)shred_yield);

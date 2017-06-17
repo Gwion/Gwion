@@ -45,23 +45,23 @@ end
 
 function declare_gw_param(param)
 	if string.match(param.type, "int") then
-		print("\t\targ = dl_func_add_arg(fun, \"int\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"int\", \""..param.name.."\");")
 	elseif string.match(param.type, "SPFLOAT") then
-		print("\t\targ = dl_func_add_arg(fun, \"float\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"float\", \""..param.name.."\");")
 	elseif string.match(param.type, "char*") then
-		print("\t\targ = dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
-		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*%*") then
-		print("\t\targ = dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*") then
-		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*") then
-		print("\t\targ = dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
 else print("unknown "..param.type)
 os.exit(1);
 	end
-	make_doc("\t\targ", param)
+  -- make_doc("\t\targ", param)
 end
 
 function print_gen_func(name, func)
@@ -178,7 +178,7 @@ function print_mod_func(name, mod)
 	print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = o->ugen->ug;")
 	if(nmandatory > 0) then
 		print("\tif(ug->is_init) {\n")
-		local arg = mod.params.mandatory
+		local  arg = mod.params.mandatory
 		if arg then
 			for _, v in pairs(arg) do	
 				if string.match(v.type, "sp_ftbl%s%*%*") then
@@ -352,28 +352,26 @@ for n in ipairs(a) do
 	end
 end
 print("")
-print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
+print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tFunc f;\n")
 print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
-print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0, \"internal data for ftbl\");")
+print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0);")
 for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
 		print("\tfun = new_dl_func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1; -- why this 'i' ?
-		print("\t\targ = dl_func_add_arg(fun, \"int\", \"size\");")
-		print("\t\targ->doc = \"size of the ftbl\";")
-		if(object.params ~= nil) then
+    print("\tdl_func_add_arg(fun, \"int\", \"size\");")
+    if(object.params ~= nil) then
 			while object.params[i]  do
 				declare_gw_param(object.params[i])
 				i = i+1
 			end
 		end
 		print("\tCHECK_OB((f = import_mfun(env, fun)))")
-		make_doc("\tf", object)
+		-- make_doc("\tf", object)
 	end
 end
-print("env->class_def->doc = \"soudpipe float array type\";")
 --			make_doc("f", mod_name)
 print("\tCHECK_BB(import_class_end(env))\n")
 
@@ -398,7 +396,7 @@ for n in ipairs(a) do
 				end
 			end	
 			print("\tCHECK_OB((f = import_mfun(env, fun)))")
-			make_doc("\tf", object)
+			-- make_doc("\tf", object)
 		end
 			local tbl = object.params.optional
 			if tbl then
@@ -415,7 +413,7 @@ for n in ipairs(a) do
 					print("\tfun = new_dl_func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
-				make_doc("\tf", v)
+				-- make_doc("\tf", v)
 				if string.match(v.type, "int") then
 					print("\tfun = new_dl_func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
@@ -429,10 +427,10 @@ for n in ipairs(a) do
 				end
 				declare_gw_param(v)
 				print("\tCHECK_OB((f = import_mfun(env, fun)))")
-				make_doc("\tf", v)
+				-- make_doc("\tf", v)
 				end
 			end	
-		make_doc("\tenv->class_def", object)
+		-- make_doc("\tenv->class_def", object)
 		print("\tCHECK_BB(import_class_end(env))\n")
 	end
 end

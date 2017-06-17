@@ -251,7 +251,6 @@ m_bool import_array(Env env) {
   fun = new_dl_func("int", "remove", (m_uint)vm_vector_rem);
   dl_func_add_arg(fun, "int", "index");
   CHECK_OB(import_mfun(env, fun))
-  env->class_def->doc = "vector structure";
   CHECK_BB(import_class_end(env))
   return 1;
 }

@@ -471,11 +471,11 @@ static DTOR(ana_dtor) {
 static m_bool import_ana(Env env) {
   DL_Func* fun;
   CHECK_OB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
-  o_ana_ana = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
+  o_ana_ana = import_mvar(env, "int", "@_fft", 0, 0);
   CHECK_BB(o_ana_ana)
-  o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1, "fft reference");
+  o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1);
   CHECK_BB(o_ana_fft)
-  o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0, "internal compute fonction");
+  o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0);
   CHECK_BB(o_ana_fn)
   fun = new_dl_func("float", "compute", (m_uint)ana_compute);
   CHECK_OB(import_mfun(env, fun))
@@ -677,7 +677,7 @@ INSTR(fc_disconnect) {
 static m_bool import_fc(Env env) {
   DL_Func* fun;
   CHECK_OB(import_class_begin(env, &t_fc, env->global_nspc, fc_ctor, fc_dtor))
-  o_fc_vector = import_mvar(env, "int", "@vector", 0, 0, "internal ANA clients");
+  o_fc_vector = import_mvar(env, "int", "@vector", 0, 0);
   CHECK_BB(o_fc_vector)
   fun = new_dl_func("float[]", "compute", (m_uint)fc_compute);
   CHECK_OB(import_mfun(env, fun))

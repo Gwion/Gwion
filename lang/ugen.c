@@ -323,7 +323,6 @@ m_bool import_ugen(Env env) {
   DL_Func* fun;
 
   CHECK_OB(import_class_begin(env, &t_ugen, env->global_nspc, ugen_ctor, ugen_dtor))
-  env->class_def->doc = "base sound class";
 
   fun = new_dl_func("UGen", "chan", (m_uint)ugen_channel);
   dl_func_add_arg(fun, "int", "arg0");

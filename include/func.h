@@ -9,7 +9,6 @@ struct Func_ {
   Value value_ref;
   Value up;
   Func next;
-  m_str doc;
   m_uint vt_index;
   Instr variadic_start;
   ae_flag flag;

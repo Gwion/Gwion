@@ -239,10 +239,9 @@ m_bool import_fileio(Env env) {
   DL_Func* fun;
 
   CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
-  env->class_def->doc = "read/write files";
 
   // import vars
-  o_fileio_file = import_mvar(env, "int", "@file",  0, 0, "place for the file");
+  o_fileio_file = import_mvar(env, "int", "@file",  0, 0);
   CHECK_BB(o_fileio_file)
 
   // import funcs

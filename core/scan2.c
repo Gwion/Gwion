@@ -58,8 +58,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
     nspc_add_value(env->curr, list->self->xid, list->self->value);
     if(!env->class_def && !env->func) // doc ?
       context_add_value(env->context, list->self->value, &list->self->value->obj);
-    if(list->doc)
-      list->self->value->doc = list->doc;
     list = list->next;
   }
   return 1;
@@ -605,13 +603,10 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   }
 
   if(overload) {
-    if(isa(overload->m_type, &t_function) < 0) {
-      err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name));
-      goto error;
-    } else {
-      if(!overload->func_ref)
-        CHECK_BB(err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name)) // LCOV_EXCL_LINE
-    }
+    if(isa(overload->m_type, &t_function) < 0)
+      CHECK_BB(err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", S_name(f->name)))
+    else if(!overload->func_ref)
+      CHECK_BB(err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name)) // LCOV_EXCL_LINE
   }
   if(overload && !GET_FLAG(f, ae_flag_template)) {
     len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
@@ -653,7 +648,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
     err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
       "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
-    goto error;
+    return -1;
   }
 
   arg_list = f->arg_list;
@@ -666,19 +661,19 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     if(!arg_list->type->size) {
       nspc_pop_value(env->curr);
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      goto error;
+      return -1;
     }
     if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
       nspc_pop_value(env->curr);
       err_msg(SCAN2_,  arg_list->pos, "in function '%s'", S_name(f->name));
-      goto error;
+      return -1;
     }
     if((isprim(arg_list->type) > 0)
         && arg_list->type_decl->ref) {
       err_msg(SCAN2_, arg_list->type_decl->pos, "cannot declare references (@) of primitive type '%s'...\n"
         "\t...(primitive types: 'int', 'float', 'time', 'dur')", arg_list->type->name);
       nspc_pop_value(env->curr);
-      goto error;
+      return -1;
     }
 
     if(arg_list->var_decl->array) {
@@ -690,7 +685,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
         err_msg(SCAN2_, arg_list->pos, "in function '%s':\n\targument %i '%s' must be defined with empty []'s",
                 S_name(f->name), count, S_name(arg_list->var_decl->xid));
         nspc_pop_value(env->curr);
-        goto error;
+        return -1;
       }
       t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
       arg_list->type_decl->ref = 1;
@@ -756,10 +751,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_push_value(env->curr);
 
   if(f->code && scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
-// should be in free_context, at least.
-    free(value->m_type->name);
-    REM_REF(value->m_type);
-    f->d.func->value_ref->m_type = NULL;
     nspc_pop_value(env->curr);
     err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
     return -1;
@@ -767,29 +758,9 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_pop_value(env->curr);
   env->func = NULL;
 
-  if(GET_FLAG(f, ae_flag_dtor)) {
+  if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->d.func, ae_flag_dtor);
-//    ADD_REF(f->func->value_ref);
-  }
-  if(f->type_decl->doc)
-    func->doc = f->type_decl->doc;
-
   return 1;
-error:
-  if(func) {
-    env->func = NULL;
-    scope_rem(env->curr->func, f->name);
-    func->def = NULL;
-    f->d.func = NULL;
-    REM_REF(func);
-  }
-  if(value) {
-    free(value->m_type->name);
-    free(value->name);
-    REM_REF(value->m_type);
-    REM_REF(value);
-  }
-  return -1;
 }
 
 static m_bool scan2_class_def(Env env, Class_Def class_def) {
@@ -820,9 +791,6 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
 
   env->class_def = (Type)vector_pop(env->class_stack);
   env->curr = (Nspc)vector_pop(env->nspc_stack);
-
-  if(class_def->doc)
-    the_class->doc = class_def->doc;
 
   return ret;
 }

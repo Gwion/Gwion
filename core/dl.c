@@ -43,7 +43,6 @@ static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* add
   a->type = t;
   a->is_const  = c;
   a->static_addr = addr;
-  a->doc = NULL;
   return a;
 }
 

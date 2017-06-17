@@ -243,7 +243,6 @@ INSTR(Vararg_Vec4) {
 
 m_bool import_object(Env env) {
   CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
-  env->class_def->doc = "the base class";
   CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_eq,  "Object", "Object", "int",  eq_Object, 1))
@@ -257,17 +256,17 @@ m_bool import_object(Env env) {
   CHECK_BB(env_add_type(env, &t_varobj))
   CHECK_BB(env_add_type(env, &t_varloop))
   CHECK_OB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
-  import_mvar(env, "@VarLoop", "start", 1, 0, "start vararg loop");
-  import_mvar(env, "@VarLoop", "end", 1, 0, "end vararg loop");
-  import_mvar(env, "int", "i", 1, 0, "vararg int");
-  import_mvar(env, "float", "f", 1, 0, "vararg float");
-  import_mvar(env, "time", "t", 1, 0, "vararg time");
-  import_mvar(env, "dur", "d", 1, 0, "vararg dur");
-  import_mvar(env, "complex", "c", 1, 0, "vararg complex");
-  import_mvar(env, "polar", "p", 1, 0, "vararg polar");
-  import_mvar(env, "Vec3", "v3", 1, 0, "vararg Vec3");
-  import_mvar(env, "Vec4", "v4", 1, 0, "vararg Vec4");
-  import_mvar(env, "VarObject", "o", 1, 0, "vararg object");
+  import_mvar(env, "@VarLoop",  "start", 1, 0);
+  import_mvar(env, "@VarLoop",  "end",   1, 0);
+  import_mvar(env, "int",       "i",     1, 0);
+  import_mvar(env, "float",     "f",     1, 0);
+  import_mvar(env, "time",      "t",     1, 0);
+  import_mvar(env, "dur",       "d",     1, 0);
+  import_mvar(env, "complex",   "c",     1, 0);
+  import_mvar(env, "polar",     "p",     1, 0);
+  import_mvar(env, "Vec3",      "v3",    1, 0);
+  import_mvar(env, "Vec4",      "v4",    1, 0);
+  import_mvar(env, "VarObject", "o",     1, 0);
   CHECK_BB(import_class_end(env))
   return 1;
 }

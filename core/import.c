@@ -138,7 +138,7 @@ m_bool import_class_end(Env env) {
 }
 
 static m_int import_var(Env env, const m_str type, const m_str name,
-                        const m_bool is_static, const m_bool is_const, const m_bool is_ref, m_uint* addr, const m_str doc) {
+                        const m_bool is_static, const m_bool is_const, const m_bool is_ref, m_uint* addr) {
   m_int ret = -1;
   m_uint array_depth;
   ID_List path;
@@ -174,8 +174,6 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   if(!check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
 
-  if(doc)
-    var_decl->value->doc = doc;
   SET_FLAG(var_decl->value, ae_flag_builtin);
   ret = var_decl->value->offset;
 error:
@@ -183,12 +181,12 @@ error:
   return ret;
 }
 m_int import_mvar(Env env, const m_str type, const m_str name,
-                  const m_bool is_const, const m_bool is_ref, const m_str doc) {
-  return import_var(env, type, name, 0, is_const, is_ref, NULL, doc);
+                  const m_bool is_const, const m_bool is_ref) {
+  return import_var(env, type, name, 0, is_const, is_ref, NULL);
 }
 m_int import_svar(Env env, const m_str type, const m_str name,
-                  const m_bool is_const, const m_bool is_ref, m_uint* addr, const m_str doc) {
-  return import_var(env, type, name, 1, is_const, is_ref, addr, doc);
+                  const m_bool is_const, const m_bool is_ref, m_uint* addr) {
+  return import_var(env, type, name, 1, is_const, is_ref, addr);
 }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
@@ -234,7 +232,6 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
     }
     var_decl = new_var_decl(arg->name, array_sub, 0);
     arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
-    arg_list->doc = arg->doc;
     free(arg);
   }
   return arg_list;

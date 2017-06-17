@@ -23,7 +23,6 @@ struct Type_ {
   m_uint    array_depth;
   Type      array_type;
   Class_Def def;
-  m_str      doc;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
   m_uint flag;

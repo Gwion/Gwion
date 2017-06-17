@@ -446,9 +446,7 @@ void yyfree ( void * , yyscan_t yyscanner );
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
 #define comment 1
-#define cdoc 2
-#define COMMENT 3
-#define CDOC 4
+#define COMMENT 2
 
 #endif
 
@@ -716,9 +714,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 216 "eval/gwion.l"
+#line 205 "eval/gwion.l"
 
 
-#line 722 "eval/lexer.h"
+#line 720 "eval/lexer.h"
 #undef minimal_IN_HEADER
 #endif /* minimal_HEADER_H */

@@ -85,7 +85,6 @@ struct Var_Decl_List_ {
   Var_Decl self;
   Var_Decl_List next;
   int pos;
-  char* doc;
 };
 
 Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, int pos);
@@ -96,7 +95,6 @@ typedef struct {
   Exp_Dot* dot;
   int ref;
   int pos;
-  m_str doc;
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);
 void free_type_decl(Type_Decl* a);
@@ -150,7 +148,6 @@ struct Arg_List_ {
   Var_Decl var_decl;
   Type type;
   Arg_List  next;
-  m_str doc;
   int pos;
 };
 Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, int pos);
@@ -516,7 +513,6 @@ struct Class_Def_ {
   Class_Ext ext;
   Class_Body body;
   Type type;
-  m_str doc;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
@@ -529,7 +525,6 @@ Section* new_section_class_def(Class_Def class_def, int pos);
 struct Ast_ {
   Section* section;
   Ast next;
-  m_str doc;
   int pos;
 };
 Ast new_ast(Section* section, Ast next, int pos);

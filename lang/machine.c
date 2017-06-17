@@ -124,8 +124,6 @@ m_bool import_machine(Env env) {
   DL_Func* fun;
 
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
-  env->class_def->doc = "access the virtual machine, including docs";
-
   fun = new_dl_func("void",  "add", (m_uint)machine_add);
   dl_func_add_arg(fun,       "string",  "filename");
   CHECK_OB(import_sfun(env,  fun))

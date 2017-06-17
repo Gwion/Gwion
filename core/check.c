@@ -138,11 +138,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   /* commit */
   nspc_commit(env->global_nspc);
 
-  // doc
   nspc_commit(env->context->nspc);
   map_set(env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
-  env->global_context->tree->doc = "this is the main context, where basic type and global variables are declared";
   // user nspc
   /*  env->user_nspc = new_nspc();*/
   /*  env->user_nspc->name = "[user]";*/

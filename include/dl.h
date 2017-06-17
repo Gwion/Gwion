@@ -29,7 +29,6 @@ typedef struct {
   m_str name;
   m_str type;
   void * static_addr;
-  m_str doc;
   m_bool is_const;
 } DL_Value;
 

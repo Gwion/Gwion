@@ -270,9 +270,9 @@ INSTR(vec4_w) {
 m_bool import_vec3(Env env) {
   DL_Func* fun;
   CHECK_OB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
-  import_mvar(env, "float", "x",   0, 0, "real part");
-  import_mvar(env, "float", "y",   0, 0, "real part");
-  import_mvar(env, "float", "z",   0, 0, "real part");
+  import_mvar(env, "float", "x",   0, 0);
+  import_mvar(env, "float", "y",   0, 0);
+  import_mvar(env, "float", "z",   0, 0);
   fun = new_dl_func("void", "set", (m_uint)vec3_set);
   dl_func_add_arg(fun, "float", "x");
   dl_func_add_arg(fun, "float", "y");
@@ -474,10 +474,10 @@ INSTR(vec4_r_assign) {
 m_bool import_vec4(Env env) {
   DL_Func* fun;
   CHECK_OB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
-  import_mvar(env, "float", "x",   0, 0, "real part");
-  import_mvar(env, "float", "y",   0, 0, "real part");
-  import_mvar(env, "float", "z",   0, 0, "real part");
-  import_mvar(env, "float", "w",   0, 0, "real part");
+  import_mvar(env, "float", "x",   0, 0);
+  import_mvar(env, "float", "y",   0, 0);
+  import_mvar(env, "float", "z",   0, 0);
+  import_mvar(env, "float", "w",   0, 0);
   fun = new_dl_func("void", "set", (m_uint)vec4_set);
   dl_func_add_arg(fun, "float", "x");
   dl_func_add_arg(fun, "float", "y");

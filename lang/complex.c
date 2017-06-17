@@ -241,16 +241,16 @@ INSTR(polar_divide_r) {
 
 m_bool import_complex(Env env) {
   CHECK_OB(import_class_begin(env, &t_complex, env->global_nspc, NULL, NULL))
-  o_complex_real = import_mvar(env, "float", "re",   0, 0, "real part");
+  o_complex_real = import_mvar(env, "float", "re",   0, 0);
   CHECK_BB(o_complex_real)
-  o_complex_imag = import_mvar(env, "float", "im",   0, 0, "imaginary part");
+  o_complex_imag = import_mvar(env, "float", "im",   0, 0);
   CHECK_BB(o_complex_imag)
   CHECK_BB(import_class_end(env))
 
   CHECK_OB(import_class_begin(env, &t_polar, env->global_nspc, NULL, NULL))
-  o_polar_mod = import_mvar(env, "float", "mod",   0, 0, "real part");
+  o_polar_mod = import_mvar(env, "float", "mod",   0, 0);
   CHECK_BB(o_polar_mod)
-  o_polar_phase = import_mvar(env, "float", "phase",   0, 0, "imaginary part");
+  o_polar_phase = import_mvar(env, "float", "phase",   0, 0);
   CHECK_BB(o_polar_phase)
   CHECK_BB(import_class_end(env))
 // arithmetic
@@ -277,8 +277,6 @@ m_bool import_complex(Env env) {
   CHECK_BB(import_op(env, op_minus_chuck,   "polar", "polar", "polar", polar_minus_r,    0))
   CHECK_BB(import_op(env, op_times_chuck,   "polar", "polar", "polar", polar_times_r,    0))
   CHECK_BB(import_op(env, op_divide_chuck,  "polar", "polar", "polar", polar_divide_r,   0))
-  t_complex.doc   = "complex numbers";
-  t_polar.doc     = "polar   numbers";
   t_complex.size = sizeof(m_float) *2;
   t_polar.size = sizeof(m_float) *2;
   return 1;

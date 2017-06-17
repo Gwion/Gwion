@@ -112,32 +112,23 @@ static m_bool import_sinosc(Env env)
   DL_Func* fun;
   DL_Value* arg;
   CHECK_OB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
-  env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
   fun = new_dl_func("void", "init", (m_uint)sinosc_size);
   dl_func_add_arg(fun, "int", "size");
   CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "alloc other sizes for sinosc. (default: 2048)";
   fun = new_dl_func("void", "init", (m_uint)sinosc_size_phase);
   dl_func_add_arg(fun, "int", "size");
   dl_func_add_arg(fun, "float", "phase");
   CHECK_OB((f = import_mfun(env, fun)))
-  /*  f->doc = "alloc other sizes for sinosc. also set phase (default: 2048)";*/
   fun = new_dl_func("float", "freq", (m_uint)sinosc_get_freq);
   CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "Frequency (in Hz)";
   fun = new_dl_func("float", "freq", (m_uint)sinosc_set_freq);
   arg = dl_func_add_arg(fun, "float", "freq");
-  arg->doc = "Frequency (in Hz)";
   CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "Frequency (in Hz)";
   fun = new_dl_func("float", "amp", (m_uint)sinosc_get_amp);
   CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "Amplitude (typically a value between 0 and 1).";
   fun = new_dl_func("float", "amp", (m_uint)sinosc_set_amp);
   arg = dl_func_add_arg(fun, "float", "amp");
-  arg->doc = "Amplitude (typically a value between 0 and 1).";
   CHECK_OB((f = import_mfun(env, fun)))
-  f->doc = "Amplitude (typically a value between 0 and 1).";
   CHECK_BB(import_class_end(env))
   return 1;
 }

@@ -21,22 +21,6 @@ static int get_pos(void* data)
   return arg->line;
 }
 
-static char* append_doc(void* data, m_str str)
-{
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  vector_add(arg->doc, (vtype)str);
-  return str;
-}
-
-static m_str get_doc(void* data)
-{
-  m_str ret;
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  ret = (m_str)vector_front(arg->doc);
-  vector_rem(arg->doc, 0);
-  return ret;
-}
-
 %}
 
 %union {
@@ -89,7 +73,7 @@ static m_str get_doc(void* data)
 
 %token<ival> NUM
 %token<fval> FLOAT
-%token<sval> ID STRING_LIT CHAR_LIT DOC
+%token<sval> ID STRING_LIT CHAR_LIT
 
 %type<ival> op shift_op
 %type<ival> unary_operator
@@ -177,7 +161,7 @@ section
 
 class_def
   : class_decl CLASS id_list class_ext LBRACE class_body RBRACE
-      { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); $$->doc = get_doc(scanner);}
+      { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); }
   ;
 
 class_ext : EXTENDS id_dot { $$ = new_class_ext( $2, NULL, get_pos(scanner)); } | { $$ = NULL; } ;
@@ -242,8 +226,8 @@ type_decl2
   ;
 
 arg_list
-  : type_decl var_decl { $$ = new_arg_list($1, $2, NULL, get_pos(scanner)); /* $$->doc = get_arg_doc(scanner); */ }
-  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4, get_pos(scanner)); /* $$->doc = get_arg_doc(scanner); */ }
+  : type_decl var_decl { $$ = new_arg_list($1, $2, NULL, get_pos(scanner)); }
+  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4, get_pos(scanner)); }
   ;
 
 code_segment
@@ -322,7 +306,6 @@ jump_stmt
 exp_stmt
   : exp SEMICOLON { $$ = new_stmt_expression($1,   get_pos(scanner)); }
   | SEMICOLON     { $$ = new_stmt_expression(NULL, get_pos(scanner)); }
-  | DOC           { $$ = new_stmt_expression(NULL, get_pos(scanner)); append_doc(scanner, $1); }
   ;
 
 exp
@@ -397,13 +380,12 @@ func_template
 
 func_def
   : func_template function_decl static_decl type_decl2 ID func_args code_segment
-    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
+    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->types = $1; }
   | OPERATOR type_decl ID func_args code_segment
-    { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner));
-      $$->type_decl->doc = get_doc(scanner); }
+    { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner)); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
-      get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
+      get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); }
   ;
 
 type_decl
@@ -424,8 +406,8 @@ union_stmt
   ;
 
 var_decl_list
-  : var_decl  { $$ = new_var_decl_list($1, NULL, get_pos(scanner)); $$->doc = get_doc(scanner); }
-  | var_decl  COMMA var_decl_list { $$ = new_var_decl_list($1, $3, get_pos(scanner)); $$->doc = get_doc(scanner); }
+  : var_decl  { $$ = new_var_decl_list($1, NULL, get_pos(scanner)); }
+  | var_decl  COMMA var_decl_list { $$ = new_var_decl_list($1, $3, get_pos(scanner)); }
   ;
 
 var_decl
