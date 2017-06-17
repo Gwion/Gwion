@@ -554,7 +554,6 @@ Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, m_str name, Arg_List a
   a->name = insert_symbol(name);
   a->arg_list = arg_list;
   a->code = code;
-  a->func = NULL;
   a->stack_depth = 0;
   a->pos = pos;
   return a;
@@ -1079,11 +1078,11 @@ static void free_section(Section* section) {
       break;
     free_stmt(section->d.func_def->code);
     if(section->d.func_def->types) {
-      if(section->d.func_def->func && section->d.func_def->func->value_ref->owner_class) {
-        scope_rem(section->d.func_def->func->value_ref->owner_class->info->value,
-                  insert_symbol(section->d.func_def->func->value_ref->name));
-        section->d.func_def->func->value_ref->func_ref = NULL;
-        free(section->d.func_def->func);
+      if(section->d.func_def->d.func && section->d.func_def->d.func->value_ref->owner_class) {
+        scope_rem(section->d.func_def->d.func->value_ref->owner_class->info->value,
+                  insert_symbol(section->d.func_def->d.func->value_ref->name));
+        section->d.func_def->d.func->value_ref->func_ref = NULL;
+        free(section->d.func_def->d.func);
         free_func_def(section->d.func_def);
         break;
       }
@@ -1091,13 +1090,13 @@ static void free_section(Section* section) {
         free_arg_list(section->d.func_def->arg_list);
       free_id_list(section->d.func_def->types);
       free_type_decl(section->d.func_def->type_decl);
-      if(section->d.func_def->func) {
-        REM_REF(section->d.func_def->func->value_ref);
-        free(section->d.func_def->func);
+      if(section->d.func_def->d.func) {
+        REM_REF(section->d.func_def->d.func->value_ref);
+        free(section->d.func_def->d.func);
       }
       free(section->d.func_def);
     } else {
-      if(!section->d.func_def->func)
+      if(!section->d.func_def->d.func)
         free_func_def(section->d.func_def);
     }
     break;

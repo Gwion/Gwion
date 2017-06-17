@@ -613,7 +613,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 //    ADD_REF(value->func_ref);
     func->value_ref = value;
 //    ADD_REF(value);
-    f->func = func;
+    f->d.func = func;
     SET_FLAG(value, ae_flag_const | ae_flag_checked);
     if(overload)
       overload->func_num_overloads++;
@@ -648,7 +648,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(GET_FLAG(f, ae_flag_builtin)) { // actual builtin func import
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
     func->code->need_this = GET_FLAG(func, ae_flag_member);
-    func->code->native_func = (m_uint)func->def->dl_func_ptr;
+    func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   }
 
   type = new_type(te_function, strdup(name));
@@ -666,7 +666,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   value->func_ref = func;
 //  ADD_REF(value->func_ref);
   func->value_ref = value;
-  f->func = func;
+  f->d.func = func;
 //  ADD_REF(f->func);
 
   if(overload) {
@@ -748,7 +748,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     str = strsep(&str, "@");
     ret = name2op(str);
     free(str);
-    if(env->class_def)SET_FLAG(f->func, ae_flag_member); // 04/05/17
+    if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
     CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     if(!env->class_def)
@@ -788,7 +788,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 // should be in free_context, at least.
     free(value->m_type->name);
     REM_REF(value->m_type);
-    f->func->value_ref->m_type = NULL;
+    f->d.func->value_ref->m_type = NULL;
     nspc_pop_value(env->curr);
     return -1;
   }
@@ -796,7 +796,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   env->func = NULL;
 
   if(GET_FLAG(f, ae_flag_dtor)) {
-    SET_FLAG(f->func, ae_flag_dtor);
+    SET_FLAG(f->d.func, ae_flag_dtor);
 //    ADD_REF(f->func->value_ref);
   }
   if(f->type_decl->doc)
@@ -808,7 +808,7 @@ error:
     env->func = NULL;
     scope_rem(env->curr->func, f->name);
     func->def = NULL;
-    f->func = NULL;
+    f->d.func = NULL;
     REM_REF(func);
   }
   if(value) {

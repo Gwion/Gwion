@@ -469,9 +469,11 @@ struct Func_Def_ {
   S_Symbol name;
   Arg_List arg_list;
   Stmt code;
-  Func func;
   m_uint stack_depth;
-  void* dl_func_ptr;
+  union {
+    Func func;
+    void* dl_func_ptr;
+  } d;
   ID_List types;
   ID_List base; // 13/03/17
   int pos;

@@ -267,12 +267,12 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
 
   func_def = new_func_def(func_decl | static_decl, type_decl, name, arg_list, NULL, 0);
   SET_FLAG(func_def, ae_flag_builtin);
-  func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
+  func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_dl_func(dl_fun);
   return func_def;
 }
 
-#define CHECK_FN(a) if(a < 0) { if(func_def->func) REM_REF(func_def->func); return NULL;}
+#define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
@@ -288,7 +288,7 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   CHECK_FN(scan1_func_def(env, func_def))
   CHECK_FN(scan2_func_def(env, func_def))
   CHECK_FN(check_func_def(env, func_def))
-  return func_def->func;
+  return func_def->d.func;
 }
 
 // those should be defines

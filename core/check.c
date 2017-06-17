@@ -588,8 +588,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     if(check_func_def(env, def) < 0)   continue;
     if(!check_exp(env, func))          continue;
     if(args  && !check_exp(env, args)) continue;
-    def->func->next = NULL;
-    m_func = find_func_match(def->func, args);
+    def->d.func->next = NULL;
+    m_func = find_func_match(def->d.func, args);
     if(m_func) {
       if(v->owner_class) {
         env->class_def = (Type)vector_pop(env->class_stack);
@@ -1561,7 +1561,7 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   if(f->types) // templating, check at call time
     return 1;
-  func = f->func;
+  func = f->d.func;
   value = func->value_ref;
 
   if(env->class_def)

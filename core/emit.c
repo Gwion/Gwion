@@ -609,7 +609,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
         CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
       if(emit_func_def(emit, func->def) < 0)
         CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
-      func->code = func->def->func->code;
+      func->code = func->def->d.func->code;
       code = add_instr(emit, Reg_Push_Ptr);
       *(VM_Code*)code->ptr = func->code;
     } else {
@@ -1649,7 +1649,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func def");
 #endif
-  Func func = func_def->func;
+  Func func = func_def->d.func;
   Value value = func->value_ref;
   Type type = value->m_type;
   Local* local = NULL;
