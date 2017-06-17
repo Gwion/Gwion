@@ -749,7 +749,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     ret = name2op(str);
     free(str);
     if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
-    CHECK_BB(add_binary_op(env, ret, f->arg_list->var_decl->value->m_type,
+    CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     if(!env->class_def)
       context_add_func(env->context, func, &func->obj);

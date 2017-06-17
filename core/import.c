@@ -313,6 +313,6 @@ m_bool import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_b
     Type lhs = l ? get_type(env, l) : NULL;
     Type rhs = r ? get_type(env, r) : NULL;
     Type ret = get_type(env, t);
-    return add_binary_op(env, op, lhs, rhs, ret, f, global);
+    return env_add_op(env, op, lhs, rhs, ret, f, global);
 }
 
