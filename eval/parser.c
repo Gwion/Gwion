@@ -2588,20 +2588,20 @@ yyreduce:
 
   case 118:
 #line 400 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def((yyvsp[-5].ival), (yyvsp[-4].ival), (yyvsp[-3].type_decl), (yyvsp[-2].sval), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(scanner)); (yyval.func_def)->type_decl->doc = get_doc(scanner); (yyval.func_def)->types = (yyvsp[-6].id_list); }
+    { (yyval.func_def) = new_func_def((yyvsp[-5].ival) | (yyvsp[-4].ival), (yyvsp[-3].type_decl), (yyvsp[-2].sval), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(scanner)); (yyval.func_def)->type_decl->doc = get_doc(scanner); (yyval.func_def)->types = (yyvsp[-6].id_list); }
 #line 2593 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 119:
 #line 402 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_func, ae_flag_static, (yyvsp[-3].type_decl), (yyvsp[-2].sval), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(scanner));
+    { (yyval.func_def) = new_func_def(ae_flag_func | ae_flag_static, (yyvsp[-3].type_decl), (yyvsp[-2].sval), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(scanner));
     SET_FLAG((yyval.func_def), ae_flag_op); (yyval.func_def)->type_decl->doc = get_doc(scanner); }
 #line 2600 "eval/parser.c" /* yacc.c:1646  */
     break;
 
   case 120:
 #line 405 "eval/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_func, ae_flag_instance, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
+    { (yyval.func_def) = new_func_def(ae_flag_func | ae_flag_instance, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
 get_pos(scanner)), "dtor", NULL, (yyvsp[0].stmt), get_pos(scanner)); SET_FLAG((yyval.func_def), ae_flag_dtor); (yyval.func_def)->type_decl->doc = 
 get_doc(scanner);}
 #line 2608 "eval/parser.c" /* yacc.c:1646  */

@@ -706,7 +706,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   Instr op;
   VM_Code code;
   ID_List list = new_id_list("sporked", stmt->pos);
-  Func f = new_func("sporked", new_func_def(0, 0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos));
+  Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos));
 
   if(emit->env->class_def)
     sadd_instr(emit, Reg_Push_This);

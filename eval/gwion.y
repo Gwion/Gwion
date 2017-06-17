@@ -397,12 +397,12 @@ func_template
 
 func_def
   : func_template function_decl static_decl type_decl2 ID func_args code_segment
-    { $$ = new_func_def($2, $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
+    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
   | OPERATOR type_decl ID func_args code_segment
-    { $$ = new_func_def(ae_flag_func, ae_flag_static, $2, $3, $4, $5, get_pos(scanner));
+    { $$ = new_func_def(ae_flag_func | ae_flag_static, $2, $3, $4, $5, get_pos(scanner));
     SET_FLAG($$, ae_flag_op); $$->type_decl->doc = get_doc(scanner); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_flag_func, ae_flag_instance, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
+    { $$ = new_func_def(ae_flag_func | ae_flag_instance, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
 get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); SET_FLAG($$, ae_flag_dtor); $$->type_decl->doc = 
 get_doc(scanner);}
   ;

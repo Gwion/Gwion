@@ -311,7 +311,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
         v = find_value(env->class_def, primary->d.var);
       if(v) {
         if(env->class_def && env->func) {
-          if(env->func->def->static_decl == ae_flag_static && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
+          if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
             CHECK_BO(err_msg(TYPE_, primary->pos,
               "non-static member '%s' used from static function...", S_name(primary->d.var)))
           }
@@ -560,7 +560,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
     base = value->func_ref->def;
-    Func_Def def = new_func_def(base->flag, base->static_decl,
+    Func_Def def = new_func_def(base->flag,
                                 base->type_decl, S_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
     Type_List list = types;
@@ -1601,13 +1601,13 @@ m_bool check_func_def(Env env, Func_Def f) {
             parent_func = parent_func->next;
             continue;
           }
-          if(parent_func->def->static_decl == ae_flag_static) {
+          if(GET_FLAG(parent_func->def, ae_flag_static)) {
             CHECK_BB(err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override..."
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name),
                     v->owner_class->name, S_name(f->name)))
           }
-          if(f->static_decl == ae_flag_static) {
+          if(GET_FLAG(f, ae_flag_static)) {
             CHECK_BB(err_msg(TYPE_, f->pos, "function '%s.%s' resembles '%s.%s' but cannot override..."
                     "...(reason: '%s.%s' is declared as 'static')",
                     env->class_def->name, S_name(f->name), v->owner_class->name, S_name(f->name),

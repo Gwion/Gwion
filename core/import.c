@@ -265,7 +265,7 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
 
-  func_def = new_func_def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
+  func_def = new_func_def(func_decl | static_decl, type_decl, name, arg_list, NULL, 0);
   SET_FLAG(func_def, ae_flag_builtin);
   func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_dl_func(dl_fun);

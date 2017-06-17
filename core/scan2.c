@@ -129,8 +129,8 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  Func_Def def = new_func_def(ae_flag_func, !env->class_def ? ae_flag_func :
-    !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static, ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
+  Func_Def def = new_func_def(ae_flag_func | (!env->class_def ? ae_flag_func :
+    !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static), ptr->type, S_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(S_name(ptr->xid), def);
   ptr->value->func_ref = ptr->func;
@@ -600,7 +600,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func = new_func(func_name, f);
     if(overload)
       func->next = overload->func_ref->next;
-    if(env->class_def && f->static_decl != ae_flag_static)
+    if(env->class_def && !GET_FLAG(f, ae_flag_static))
       SET_FLAG(func, ae_flag_member);
     value = new_value(&t_function, func_name);
     value->owner = env->curr;
@@ -643,7 +643,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     snprintf(name, len + 1, "%s@0@%s", func_name, env->curr->name);
   func_name = strdup(name);
   func = new_func(func_name, f);
-  if(env->class_def && f->static_decl != ae_flag_static)
+  if(env->class_def && !GET_FLAG(f, ae_flag_static))
 	SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) { // actual builtin func import
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
