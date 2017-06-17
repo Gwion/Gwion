@@ -463,7 +463,6 @@ struct Func_Def_ {
   int pos;
   m_bool is_template;
   m_bool is_variadic;
-  m_bool has_code;
 };
 
 Func_Def new_func_def(ae_Keyword func_decl, ae_Keyword static_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
