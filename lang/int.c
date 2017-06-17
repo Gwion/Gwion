@@ -1,8 +1,5 @@
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
-#include "err_msg.h"
-#include "instr.h"
+#include "import.h"
 
 struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
 
@@ -197,7 +194,7 @@ INSTR(negate) {
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(not) {
+INSTR(noti) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "(int) %i'!' %i", *(m_int*)(shred->reg - SZ_INT));
 #endif
@@ -410,59 +407,57 @@ static INSTR(rsxor) {
 
 // import function
 m_bool import_int(Env env) {
-  CHECK_BB(add_global_type(env, &t_int))
+  CHECK_BB(env_add_type(env, &t_int))
 // arithmetic
-  CHECK_BB(add_binary_op(env, op_assign,        &t_int, &t_int, &t_int, assign,     1))
-//  operator_set_doc("2 => int i; so as i = 2;");
-  CHECK_BB(add_binary_op(env, op_plus,          &t_int, &t_int, &t_int, plus,       1))
-  CHECK_BB(add_binary_op(env, op_minus,         &t_int, &t_int, &t_int, minus,      1))
-  CHECK_BB(add_binary_op(env, op_times,         &t_int, &t_int, &t_int, times,      1))
-  CHECK_BB(add_binary_op(env, op_divide,        &t_int, &t_int, &t_int, divide,     1))
-  CHECK_BB(add_binary_op(env, op_percent,       &t_int, &t_int, &t_int, modulo,     1))
+  CHECK_BB(import_op(env, op_assign,        "int", "int", "int", assign,     1))
+  CHECK_BB(import_op(env, op_plus,          "int", "int", "int", plus,       1))
+  CHECK_BB(import_op(env, op_minus,         "int", "int", "int", minus,      1))
+  CHECK_BB(import_op(env, op_times,         "int", "int", "int", times,      1))
+  CHECK_BB(import_op(env, op_divide,        "int", "int", "int", divide,     1))
+  CHECK_BB(import_op(env, op_percent,       "int", "int", "int", modulo,     1))
 // logical
-  CHECK_BB(add_binary_op(env, op_and,           &t_int, &t_int, &t_int, and,        1))
-  CHECK_BB(add_binary_op(env, op_or,            &t_int, &t_int, &t_int, or,         1))
-  CHECK_BB(add_binary_op(env, op_eq, 			 		  &t_int, &t_int, &t_int, eq,         1))
-  CHECK_BB(add_binary_op(env, op_neq, 			 	  &t_int, &t_int, &t_int, neq,        1))
-  CHECK_BB(add_binary_op(env, op_gt, 			 	    &t_int, &t_int, &t_int, gt,         1))
-  CHECK_BB(add_binary_op(env, op_ge, 			 	    &t_int, &t_int, &t_int, ge,         1))
-  CHECK_BB(add_binary_op(env, op_lt, 			 	    &t_int, &t_int, &t_int, lt,         1))
-  CHECK_BB(add_binary_op(env, op_le, 			 	    &t_int, &t_int, &t_int, le,         1))
+  CHECK_BB(import_op(env, op_and,           "int", "int", "int", and,        1))
+  CHECK_BB(import_op(env, op_or,            "int", "int", "int", or,         1))
+  CHECK_BB(import_op(env, op_eq, 			 		  "int", "int", "int", eq,         1))
+  CHECK_BB(import_op(env, op_neq, 			 	  "int", "int", "int", neq,        1))
+  CHECK_BB(import_op(env, op_gt, 			 	    "int", "int", "int", gt,         1))
+  CHECK_BB(import_op(env, op_ge, 			 	    "int", "int", "int", ge,         1))
+  CHECK_BB(import_op(env, op_lt, 			 	    "int", "int", "int", lt,         1))
+  CHECK_BB(import_op(env, op_le, 			 	    "int", "int", "int", le,         1))
 // bitwise
-  CHECK_BB(add_binary_op(env, op_shift_right,   &t_int, &t_int, &t_int, sr,         1))
-  CHECK_BB(add_binary_op(env, op_shift_left,    &t_int, &t_int, &t_int, sl,         1))
-  CHECK_BB(add_binary_op(env, op_s_and,         &t_int, &t_int, &t_int, sand,       1))
-  CHECK_BB(add_binary_op(env, op_s_or,          &t_int, &t_int, &t_int, sor,        1))
-  CHECK_BB(add_binary_op(env, op_s_xor, 			  &t_int, &t_int, &t_int, xor,        1))
+  CHECK_BB(import_op(env, op_shift_right,   "int", "int", "int", sr,         1))
+  CHECK_BB(import_op(env, op_shift_left,    "int", "int", "int", sl,         1))
+  CHECK_BB(import_op(env, op_s_and,         "int", "int", "int", sand,       1))
+  CHECK_BB(import_op(env, op_s_or,          "int", "int", "int", sor,        1))
+  CHECK_BB(import_op(env, op_s_xor, 			  "int", "int", "int", xor,        1))
 // unary
-  CHECK_BB(add_binary_op(env, op_minus,         NULL,   &t_int, &t_int, negate,     1))
-  CHECK_BB(add_binary_op(env, op_exclamation,   NULL,   &t_int, &t_int, not,        1))
-  CHECK_BB(add_binary_op(env, op_plusplus,      &t_int, NULL,   &t_int, post_inc,   1))
-  CHECK_BB(add_binary_op(env, op_plusplus,      NULL,   &t_int, &t_int, pre_inc,    1))
-  CHECK_BB(add_binary_op(env, op_minusminus,    &t_int, NULL,   &t_int, post_dec,   1))
-  CHECK_BB(add_binary_op(env, op_minusminus,    NULL,   &t_int, &t_int, pre_dec,    1))
+  CHECK_BB(import_op(env, op_minus,         NULL,   "int", "int", negate,     1))
+  CHECK_BB(import_op(env, op_exclamation,   NULL,   "int", "int", noti,        1))
+  CHECK_BB(import_op(env, op_plusplus,      "int", NULL,   "int", post_inc,   1))
+  CHECK_BB(import_op(env, op_plusplus,      NULL,   "int", "int", pre_inc,    1))
+  CHECK_BB(import_op(env, op_minusminus,    "int", NULL,   "int", post_dec,   1))
+  CHECK_BB(import_op(env, op_minusminus,    NULL,   "int", "int", pre_dec,    1))
 // reverse arithmetic
-  CHECK_BB(add_binary_op(env, op_chuck,         &t_int, &t_int, &t_int, r_assign,   1))
-  CHECK_BB(add_binary_op(env, op_plus_chuck,    &t_int, &t_int, &t_int, r_plus,     1))
-  CHECK_BB(add_binary_op(env, op_minus_chuck,   &t_int, &t_int, &t_int, r_minus,    1))
-  CHECK_BB(add_binary_op(env, op_times_chuck,   &t_int, &t_int, &t_int, r_times,    1))
-  CHECK_BB(add_binary_op(env, op_divide_chuck,  &t_int, &t_int, &t_int, r_divide,   1))
-  CHECK_BB(add_binary_op(env, op_modulo_chuck,  &t_int, &t_int, &t_int, r_modulo,   1))
+  CHECK_BB(import_op(env, op_chuck,         "int", "int", "int", r_assign,   1))
+  CHECK_BB(import_op(env, op_plus_chuck,    "int", "int", "int", r_plus,     1))
+  CHECK_BB(import_op(env, op_minus_chuck,   "int", "int", "int", r_minus,    1))
+  CHECK_BB(import_op(env, op_times_chuck,   "int", "int", "int", r_times,    1))
+  CHECK_BB(import_op(env, op_divide_chuck,  "int", "int", "int", r_divide,   1))
+  CHECK_BB(import_op(env, op_modulo_chuck,  "int", "int", "int", r_modulo,   1))
 // reverse logical
-  CHECK_BB(add_binary_op(env, op_rand,          &t_int, &t_int, &t_int, r_and,      1))
-  CHECK_BB(add_binary_op(env, op_ror,           &t_int, &t_int, &t_int,  ror,       1))
-  CHECK_BB(add_binary_op(env, op_req, 			 	  &t_int, &t_int, &t_int, req,        1))
-  CHECK_BB(add_binary_op(env, op_rneq, 			 	  &t_int, &t_int, &t_int, rneq,       1))
-  CHECK_BB(add_binary_op(env, op_rgt, 			 	  &t_int, &t_int, &t_int, rgt,        1))
-  CHECK_BB(add_binary_op(env, op_rge, 			 	  &t_int, &t_int, &t_int, rge,        1))
-  CHECK_BB(add_binary_op(env, op_rlt, 			 	  &t_int, &t_int, &t_int, rlt,        1))
-  CHECK_BB(add_binary_op(env, op_rle, 			 	  &t_int, &t_int, &t_int, rle,        1))
+  CHECK_BB(import_op(env, op_rand,          "int", "int", "int", r_and,      1))
+  CHECK_BB(import_op(env, op_ror,           "int", "int", "int",  ror,       1))
+  CHECK_BB(import_op(env, op_req, 			 	  "int", "int", "int", req,        1))
+  CHECK_BB(import_op(env, op_rneq, 			 	  "int", "int", "int", rneq,       1))
+  CHECK_BB(import_op(env, op_rgt, 			 	  "int", "int", "int", rgt,        1))
+  CHECK_BB(import_op(env, op_rge, 			 	  "int", "int", "int", rge,        1))
+  CHECK_BB(import_op(env, op_rlt, 			 	  "int", "int", "int", rlt,        1))
+  CHECK_BB(import_op(env, op_rle, 			 	  "int", "int", "int", rle,        1))
 // reverse bitwise
-  CHECK_BB(add_binary_op(env, op_rsl,           &t_int, &t_int, &t_int, rsl,        1))
-  CHECK_BB(add_binary_op(env, op_rsr,           &t_int, &t_int, &t_int, rsr,        1))
-  CHECK_BB(add_binary_op(env, op_rsand,         &t_int, &t_int, &t_int, rsand,      1))
-  CHECK_BB(add_binary_op(env, op_rsor,          &t_int, &t_int, &t_int, rsor,       1))
-  CHECK_BB(add_binary_op(env, op_rsxor, 			  &t_int, &t_int, &t_int, rsxor,      1))
-  t_int.doc       = "integral number";
+  CHECK_BB(import_op(env, op_rsl,           "int", "int", "int", rsl,        1))
+  CHECK_BB(import_op(env, op_rsr,           "int", "int", "int", rsr,        1))
+  CHECK_BB(import_op(env, op_rsand,         "int", "int", "int", rsand,      1))
+  CHECK_BB(import_op(env, op_rsor,          "int", "int", "int", rsor,       1))
+  CHECK_BB(import_op(env, op_rsxor, 			  "int", "int", "int", rsxor,      1))
   return 1;
 }

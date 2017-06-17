@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "err_msg.h"
 #include "shreduler.h"
 #ifdef USE_DOUBLE

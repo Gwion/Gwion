@@ -2,7 +2,6 @@
 #define __OO
 
 #include "defs.h"
-#include "array.h"
 
 typedef enum {
   e_emit_obj, e_nspc_obj, e_env_obj, e_context_obj,

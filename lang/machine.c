@@ -11,7 +11,6 @@
 #include "compile.h"
 #include "lang.h"
 
-#include "bbq.h"  // for sp_rand also
 #include <err_msg.h>
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 
@@ -124,7 +123,6 @@ static SFUN(machine_shreds) {
 m_bool import_machine(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_machine))
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   env->class_def->doc = "access the virtual machine, including docs";
 

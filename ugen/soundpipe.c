@@ -4,7 +4,6 @@
 #include "err_msg.h"
 #include "import.h"
 #include "ugen.h"
-#include "bbq.h"
 #include "array.h"
 #include "func.h"
 #include "lang.h"
@@ -8237,7 +8236,6 @@ m_bool import_soundpipe(Env env)
 	DL_Value* arg;
 	Func f;
 
-	CHECK_BB(add_global_type(env, &t_ftbl))
 	CHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
 	o_ftbl_data = import_mvar(env, "int", "@ftbl", 1, 0, "internal data for ftbl");
 	fun = new_dl_func("void", "gen_composite", (m_uint)ftbl_gen_composite);
@@ -8317,7 +8315,6 @@ m_bool import_soundpipe(Env env)
 env->class_def->doc = "soudpipe float array type";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_adsr))
 	CHECK_OB(import_class_begin(env, &t_adsr, env->global_nspc, adsr_ctor, adsr_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)adsr_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8354,7 +8351,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "ADSR generatorThis is an ADSR generator whose curves are created using a one-pole low pass filter.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_allpass))
 	CHECK_OB(import_class_begin(env, &t_allpass, env->global_nspc, allpass_ctor, allpass_dtor))
 	fun = new_dl_func("void", "init", (m_uint)allpass_init);
 		arg = dl_func_add_arg(fun, "float", "looptime");
@@ -8372,7 +8368,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Allpass filter    Often used for the creation of reverb modules.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_atone))
 	CHECK_OB(import_class_begin(env, &t_atone, env->global_nspc, atone_ctor, atone_dtor))
 	fun = new_dl_func("float", "hp", (m_uint)atone_get_hp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8385,7 +8380,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "First-order recursive highpass filter	This is the complement to the tone module.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_autowah))
 	CHECK_OB(import_class_begin(env, &t_autowah, env->global_nspc, autowah_ctor, autowah_dtor))
 	fun = new_dl_func("float", "level", (m_uint)autowah_get_level);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8414,12 +8408,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Automatic wah pedal	An automatic wah effect, ported from Guitarix via Faust. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_bal))
 	CHECK_OB(import_class_begin(env, &t_bal, env->global_nspc, bal_ctor, bal_dtor))
 	env->class_def->doc = "Balance the gain of one signal based on another signal    This is often used to restore gain lost in the output of a filter.In the source code, the value \"ihp\" is set to a static 10hz. This is the default value in Csound, and should not often need to be changed.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_bar))
 	CHECK_OB(import_class_begin(env, &t_bar, env->global_nspc, bar_ctor, bar_dtor))
 	fun = new_dl_func("void", "init", (m_uint)bar_init);
 		arg = dl_func_add_arg(fun, "float", "iK");
@@ -8487,7 +8479,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Physical model approximating the sound of a struck metal bar";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_biquad))
 	CHECK_OB(import_class_begin(env, &t_biquad, env->global_nspc, biquad_ctor, biquad_dtor))
 	fun = new_dl_func("float", "b0", (m_uint)biquad_get_b0);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8540,7 +8531,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A sweepable biquadratic general purpose filter    ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_biscale))
 	CHECK_OB(import_class_begin(env, &t_biscale, env->global_nspc, biscale_ctor, biscale_dtor))
 	fun = new_dl_func("float", "min", (m_uint)biscale_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8561,7 +8551,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bipolar Scale    This module scales from bipolar [-1, 1] to another range defined by min and max.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_bitcrush))
 	CHECK_OB(import_class_begin(env, &t_bitcrush, env->global_nspc, bitcrush_ctor, bitcrush_dtor))
 	fun = new_dl_func("float", "bitdepth", (m_uint)bitcrush_get_bitdepth);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8582,7 +8571,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Digital signal degradation    Bitcrusher will digitally degrade a signal by altering the bitdepth and sampling-rate. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_blsaw))
 	CHECK_OB(import_class_begin(env, &t_blsaw, env->global_nspc, blsaw_ctor, blsaw_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)blsaw_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8603,7 +8591,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bandlimited sawtooth oscillatorThis is a bandlimited sawtooth oscillator ported from the \"sawtooth\" function from the Faustprogramming language.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_blsquare))
 	CHECK_OB(import_class_begin(env, &t_blsquare, env->global_nspc, blsquare_ctor, blsquare_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)blsquare_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8632,7 +8619,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bandlimited square oscillatorThis is a bandlimited square oscillator ported from the \"squaretooth\" function from the Faustprogramming language.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_bltriangle))
 	CHECK_OB(import_class_begin(env, &t_bltriangle, env->global_nspc, bltriangle_ctor, bltriangle_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)bltriangle_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8653,12 +8639,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bandlimited triangle oscillatorThis is a bandlimited triangle oscillator ported from the \"triangletooth\" function from the Faustprogramming language.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_brown))
 	CHECK_OB(import_class_begin(env, &t_brown, env->global_nspc, brown_ctor, brown_dtor))
 	env->class_def->doc = "Brownian noise generator.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_butbp))
 	CHECK_OB(import_class_begin(env, &t_butbp, env->global_nspc, butbp_ctor, butbp_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)butbp_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8679,7 +8663,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bandpass Butterworth filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_butbr))
 	CHECK_OB(import_class_begin(env, &t_butbr, env->global_nspc, butbr_ctor, butbr_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)butbr_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8700,7 +8683,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Band-reject Butterworth filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_buthp))
 	CHECK_OB(import_class_begin(env, &t_buthp, env->global_nspc, buthp_ctor, buthp_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)buthp_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8713,7 +8695,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Highpass Butterworth filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_butlp))
 	CHECK_OB(import_class_begin(env, &t_butlp, env->global_nspc, butlp_ctor, butlp_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)butlp_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8726,7 +8707,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Lowpass Butterworth filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_clip))
 	CHECK_OB(import_class_begin(env, &t_clip, env->global_nspc, clip_ctor, clip_dtor))
 	fun = new_dl_func("float", "lim", (m_uint)clip_get_lim);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8739,7 +8719,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Applies clip-limiting to a signal";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_clock))
 	CHECK_OB(import_class_begin(env, &t_clock, env->global_nspc, clock_ctor, clock_dtor))
 	fun = new_dl_func("float", "bpm", (m_uint)clock_get_bpm);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8760,7 +8739,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Resettable clock with subdivisions";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_comb))
 	CHECK_OB(import_class_begin(env, &t_comb, env->global_nspc, comb_ctor, comb_dtor))
 	fun = new_dl_func("void", "init", (m_uint)comb_init);
 		arg = dl_func_add_arg(fun, "float", "looptime");
@@ -8778,7 +8756,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Comb filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_compressor))
 	CHECK_OB(import_class_begin(env, &t_compressor, env->global_nspc, compressor_ctor, compressor_dtor))
 	fun = new_dl_func("float", "ratio", (m_uint)compressor_get_ratio);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8815,7 +8792,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Compressor";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_conv))
 	CHECK_OB(import_class_begin(env, &t_conv, env->global_nspc, conv_ctor, conv_dtor))
 	fun = new_dl_func("void", "init", (m_uint)conv_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -8827,7 +8803,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Partioned convolution. This module will perform partitioned convolution on an input signal usingan ftable as an impulse response.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_count))
 	CHECK_OB(import_class_begin(env, &t_count, env->global_nspc, count_ctor, count_dtor))
 	fun = new_dl_func("float", "count", (m_uint)count_get_count);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8848,7 +8823,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger-based fixed counter    The signal output will count from 0 to [N-1], and thenrepeat itself. Count will start when it has been triggered, otherwise it will be -1.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_crossfade))
 	CHECK_OB(import_class_begin(env, &t_crossfade, env->global_nspc, crossfade_ctor, crossfade_dtor))
 	fun = new_dl_func("float", "pos", (m_uint)crossfade_get_pos);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8861,12 +8835,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Crossfade two signals. This module will perform a linear crossfade between two input signals.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_dcblock))
 	CHECK_OB(import_class_begin(env, &t_dcblock, env->global_nspc, dcblock_ctor, dcblock_dtor))
 	env->class_def->doc = "A simple DC block filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_delay))
 	CHECK_OB(import_class_begin(env, &t_delay, env->global_nspc, delay_ctor, delay_dtor))
 	fun = new_dl_func("void", "init", (m_uint)delay_init);
 		arg = dl_func_add_arg(fun, "float", "time");
@@ -8884,7 +8856,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Adds a delay to an incoming signal with optional feedback.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_diode))
 	CHECK_OB(import_class_begin(env, &t_diode, env->global_nspc, diode_ctor, diode_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)diode_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8905,7 +8876,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Diode-ladder virtual analogue low-pass filterThis is a diode-ladder filter, designed by Will Pirkle. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_diskin))
 	CHECK_OB(import_class_begin(env, &t_diskin, env->global_nspc, diskin_ctor, diskin_dtor))
 	fun = new_dl_func("void", "init", (m_uint)diskin_init);
 		arg = dl_func_add_arg(fun, "string", "filename");
@@ -8915,7 +8885,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Read from an audio file    Expects a 1-channel file matching the project samplerate. Diskin should be able to read any file format that libsndfile supports.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_dist))
 	CHECK_OB(import_class_begin(env, &t_dist, env->global_nspc, dist_ctor, dist_dtor))
 	fun = new_dl_func("float", "pregain", (m_uint)dist_get_pregain);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8952,7 +8921,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Distortion using a modified hyperbolic tangent function";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_dmetro))
 	CHECK_OB(import_class_begin(env, &t_dmetro, env->global_nspc, dmetro_ctor, dmetro_dtor))
 	fun = new_dl_func("float", "time", (m_uint)dmetro_get_time);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -8965,7 +8933,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Delta Metro    Produce a set of triggers spaced apart by time.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_drip))
 	CHECK_OB(import_class_begin(env, &t_drip, env->global_nspc, drip_ctor, drip_dtor))
 	fun = new_dl_func("void", "init", (m_uint)drip_init);
 		arg = dl_func_add_arg(fun, "float", "dettack");
@@ -9031,7 +8998,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Water drop physical model    Physical model of the sound of dripping water. When triggered, it will produce a droplet of water.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_dtrig))
 	CHECK_OB(import_class_begin(env, &t_dtrig, env->global_nspc, dtrig_ctor, dtrig_dtor))
 	fun = new_dl_func("void", "init", (m_uint)dtrig_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -9065,7 +9031,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " Delta trigger    This is able to create spaced out triggers. It is set off by a single trigger.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_dust))
 	CHECK_OB(import_class_begin(env, &t_dust, env->global_nspc, dust_ctor, dust_dtor))
 	fun = new_dl_func("float", "amp", (m_uint)dust_get_amp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9094,7 +9059,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A series of random impulses";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_eqfil))
 	CHECK_OB(import_class_begin(env, &t_eqfil, env->global_nspc, eqfil_ctor, eqfil_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)eqfil_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9123,7 +9087,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "2nd order tunable equalization filter    This provides a peak/notch filter for building parametric/graphic equalizers. With gain above 1, there will be a peak at the center frequency with a width dependent on bw. If gain is less than 1, a notch is formed around the center frequency (freq).    ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_expon))
 	CHECK_OB(import_class_begin(env, &t_expon, env->global_nspc, expon_ctor, expon_dtor))
 	fun = new_dl_func("float", "a", (m_uint)expon_get_a);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9152,7 +9115,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Produce a line segment with exponential slopeThis will generate a line from value A to value B in given amount of time. When it reaches it's target, it will stay at that value. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_fof))
 	CHECK_OB(import_class_begin(env, &t_fof, env->global_nspc, fof_ctor, fof_dtor))
 	fun = new_dl_func("void", "init", (m_uint)fof_init);
 		arg = dl_func_add_arg(fun, "ftbl", "sine");
@@ -9232,7 +9194,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Produces sinusoid bursts for granular and formant synthesis";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_fofilt))
 	CHECK_OB(import_class_begin(env, &t_fofilt, env->global_nspc, fofilt_ctor, fofilt_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)fofilt_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9261,7 +9222,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Formant filter    When fed with a pulse train, it will generate a series of overlapping grains. Overlapping will occur when 1/freq < dec, but there is no upper limit on the number of overlaps. (cited from www.csounds.com/manual/html/fofilter.html)";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_fog))
 	CHECK_OB(import_class_begin(env, &t_fog, env->global_nspc, fog_ctor, fog_dtor))
 	fun = new_dl_func("void", "init", (m_uint)fog_init);
 		arg = dl_func_add_arg(fun, "ftbl", "wav");
@@ -9349,7 +9309,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Sucession of grains from data in a stored function table";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_fold))
 	CHECK_OB(import_class_begin(env, &t_fold, env->global_nspc, fold_ctor, fold_dtor))
 	fun = new_dl_func("float", "incr", (m_uint)fold_get_incr);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9362,7 +9321,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Adds artificial foldover to an audio signal    Primarily created for use with Decimator.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_fosc))
 	CHECK_OB(import_class_begin(env, &t_fosc, env->global_nspc, fosc_ctor, fosc_dtor))
 	fun = new_dl_func("void", "init", (m_uint)fosc_init);
 		arg = dl_func_add_arg(fun, "ftbl", "tbl");
@@ -9412,7 +9370,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "FM oscilator pair with linear interpolation";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_gbuzz))
 	CHECK_OB(import_class_begin(env, &t_gbuzz, env->global_nspc, gbuzz_ctor, gbuzz_dtor))
 	fun = new_dl_func("void", "init", (m_uint)gbuzz_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -9464,17 +9421,14 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Series of partials from the harmonic series    GBuzz comes from the \"buzz\" family of Csound opcodes, and is capable of producing a rich spectrum of harmonic content, useful for subtractive synthesis implementation.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_hilbert))
 	CHECK_OB(import_class_begin(env, &t_hilbert, env->global_nspc, hilbert_ctor, hilbert_dtor))
 	env->class_def->doc = "Hilbert transform";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_in))
 	CHECK_OB(import_class_begin(env, &t_in, env->global_nspc, in_ctor, in_dtor))
 	env->class_def->doc = "Reads from standard input.    Expects type of SPFLOAT, which by default is a float. If the input data is larger than the number of samples, you will get a complaint about a broken pipe (but it will still work). If there is no input data from STDIN, it will hang.The expected use case of sp_in is to utilize pipes from the commandline, like so:cat /dev/urandom | ./my_programAssuming my_program is using sp_in, this will write /dev/urandom (essentially white noise) to an audio file.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_incr))
 	CHECK_OB(import_class_begin(env, &t_incr, env->global_nspc, incr_ctor, incr_dtor))
 	fun = new_dl_func("void", "init", (m_uint)incr_init);
 		arg = dl_func_add_arg(fun, "float", "val");
@@ -9508,12 +9462,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger-based IncrementorWhen triggered, this module will increment and decrement a value bounded between a minand max. Initially, this was designed for the specific use case of interfacing with thegriffin knob. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_jcrev))
 	CHECK_OB(import_class_begin(env, &t_jcrev, env->global_nspc, jcrev_ctor, jcrev_dtor))
 	env->class_def->doc = "John Chowning reverberator    This is was built using the JC reverb implentation found in FAUST. According to the source code, the specifications forthis implementation were found on an old SAIL DART backup tape.  This class is derived from the CLM JCRev function, which is based on the use of  networks of simple allpass and comb delay filters.  This class implements three series  allpass units, followed by four parallel comb filters, and two decorrelation delay lines in  parallel at the output.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_jitter))
 	CHECK_OB(import_class_begin(env, &t_jitter, env->global_nspc, jitter_ctor, jitter_dtor))
 	fun = new_dl_func("float", "amp", (m_uint)jitter_get_amp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9542,7 +9494,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A signal with random fluctuations     This is useful for emulating jitter found in analogue equipment. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_line))
 	CHECK_OB(import_class_begin(env, &t_line, env->global_nspc, line_ctor, line_dtor))
 	fun = new_dl_func("float", "a", (m_uint)line_get_a);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9571,7 +9522,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Produce a line segment with linear slopeThis will generate a line from value A to value B in given amount of time. When it reaches it's target, it will stay at that value. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_lpf18))
 	CHECK_OB(import_class_begin(env, &t_lpf18, env->global_nspc, lpf18_ctor, lpf18_dtor))
 	fun = new_dl_func("float", "cutoff", (m_uint)lpf18_get_cutoff);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9600,7 +9550,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "3-pole (18 db/oct slope) Low-Pass filter with resonance and tanh distortion";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_maygate))
 	CHECK_OB(import_class_begin(env, &t_maygate, env->global_nspc, maygate_ctor, maygate_dtor))
 	fun = new_dl_func("float", "prob", (m_uint)maygate_get_prob);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9621,7 +9570,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A randomly open or closed \"maybe gate\"    It takes in a trigger, and then it will randomly decide to turn the gate on or not. One particular application for maygate is to arbitrarily turn on/off sends to effects. One specific example of this could be a randomized reverb throw on a snare.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_metro))
 	CHECK_OB(import_class_begin(env, &t_metro, env->global_nspc, metro_ctor, metro_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)metro_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9634,7 +9582,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Metronome    Metro produces a series of 1-sample ticks at a regular rate. Typically, this is used alongside trigger-driven modules.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_mincer))
 	CHECK_OB(import_class_begin(env, &t_mincer, env->global_nspc, mincer_ctor, mincer_dtor))
 	fun = new_dl_func("void", "init", (m_uint)mincer_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -9670,7 +9617,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Phase-locked vocoder.    Mincer is a phase-locked vocoder. It has the ability to play back an audio file loaded into an ftable like a sampler would. Unlike a typical sampler, mincer allowstime and pitch to be controlled separately. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_mode))
 	CHECK_OB(import_class_begin(env, &t_mode, env->global_nspc, mode_ctor, mode_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)mode_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9691,7 +9637,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Resonance filter used for modal synthesis    Plucked and bell sounds can be created by passing an impulse through a combination of modal filters. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_moogladder))
 	CHECK_OB(import_class_begin(env, &t_moogladder, env->global_nspc, moogladder_ctor, moogladder_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)moogladder_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9712,7 +9657,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Low pass resonant filter based on the Moogladder filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_noise))
 	CHECK_OB(import_class_begin(env, &t_noise, env->global_nspc, noise_ctor, noise_dtor))
 	fun = new_dl_func("float", "amp", (m_uint)noise_get_amp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9725,7 +9669,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "White noise generator";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_nsmp))
 	CHECK_OB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
 	fun = new_dl_func("void", "init", (m_uint)nsmp_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -9747,7 +9690,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Nanosamp: a tiny sampler built for Soundpipe    A nanosamp file is comprised of a mono audio file and an ini file. Nanosamp is geared towards percussive and found sound sample players, and is intended to be combined with soundpipe modules.The ini file contains mappings that correspond to the audio file. Such an entry would look like this:[keyword]pos = 2.3size = 3</pre>In this instance, an entry called \"keyword\" has been made, starting at 2.3 seconds in theaudio file, with a length of 3 seconds. An example file oneart.ini has been created in theexamples folder.The SoundPipe implementation of nanosamp will automatically index the entriesin the order they appear in the INI file and must be selected this way by changing the indexparameter. Soundpipe will only select the new entry when the trigger input is a non-zero value.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_osc))
 	CHECK_OB(import_class_begin(env, &t_osc, env->global_nspc, osc_ctor, osc_dtor))
 	fun = new_dl_func("void", "init", (m_uint)osc_init);
 		arg = dl_func_add_arg(fun, "ftbl", "tbl");
@@ -9775,7 +9717,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " Table-lookup oscilator with linear interpolation";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_oscmorph))
 	CHECK_OB(import_class_begin(env, &t_oscmorph, env->global_nspc, oscmorph_ctor, oscmorph_dtor))
 	fun = new_dl_func("void", "init", (m_uint)oscmorph_init);
 		arg = dl_func_add_arg(fun, "ftbl[]", "tbl");
@@ -9813,7 +9754,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Wavetable morphing oscillatorThis is an oscillator with linear interpolation that is capable of morphing between an arbitrary number of wavetables. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pan2))
 	CHECK_OB(import_class_begin(env, &t_pan2, env->global_nspc, pan2_ctor, pan2_dtor))
 	fun = new_dl_func("int", "type", (m_uint)pan2_get_type);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9834,7 +9774,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Panner";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_panst))
 	CHECK_OB(import_class_begin(env, &t_panst, env->global_nspc, panst_ctor, panst_dtor))
 	fun = new_dl_func("int", "type", (m_uint)panst_get_type);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9855,7 +9794,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Stereo Panner";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pareq))
 	CHECK_OB(import_class_begin(env, &t_pareq, env->global_nspc, pareq_ctor, pareq_dtor))
 	fun = new_dl_func("float", "fc", (m_uint)pareq_get_fc);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9892,7 +9830,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Parametric EqualizerThis is an implementation of Zoelzer's parametric equalizer filter.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_paulstretch))
 	CHECK_OB(import_class_begin(env, &t_paulstretch, env->global_nspc, paulstretch_ctor, paulstretch_dtor))
 	fun = new_dl_func("void", "init", (m_uint)paulstretch_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -9906,7 +9843,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "An extreme time-stretching algorithm by Paul Nasca OctavianThis is an implementation of the popular paulstretch algorithm used for timestretching an audio signal to create ambient textures. Ideally, this algorithm is best used for stretching signals by very very long amounts. This version of paulstretch will take an ftable and loop through it, makeit an ideal means for creating sustained pads. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pdhalf))
 	CHECK_OB(import_class_begin(env, &t_pdhalf, env->global_nspc, pdhalf_ctor, pdhalf_dtor))
 	fun = new_dl_func("float", "amount", (m_uint)pdhalf_get_amount);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9919,7 +9855,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Casio-style phase distortion with \"pivot point\" on the X axisThis module is designed to emulate the classic phase distortion synthesis technique.From the mid 90's. The technique reads the first and second halves of the ftblat different rates in order to warp the waveform. For example, pdhalf can smoothly transition a sinewave into something approximating a sawtooth wave.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_peaklim))
 	CHECK_OB(import_class_begin(env, &t_peaklim, env->global_nspc, peaklim_ctor, peaklim_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)peaklim_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -9948,7 +9883,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Peak limiter This is a simple peak limiting algorithm, based off code from the StanfordMusic-424 class.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_phaser))
 	CHECK_OB(import_class_begin(env, &t_phaser, env->global_nspc, phaser_ctor, phaser_dtor))
 	fun = new_dl_func("float", "MaxNotch1Freq", (m_uint)phaser_get_MaxNotch1Freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10033,7 +9967,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A stereo phaser	This is a stereo phaser, generated from Faust code taken from the Guitarix project.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_phasor))
 	CHECK_OB(import_class_begin(env, &t_phasor, env->global_nspc, phasor_ctor, phasor_dtor))
 	fun = new_dl_func("void", "init", (m_uint)phasor_init);
 		arg = dl_func_add_arg(fun, "float", "iphs");
@@ -10051,7 +9984,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Normalized sawtooth wave from 0 to 1    Phasors are often used when building table-lookup oscillators.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pinknoise))
 	CHECK_OB(import_class_begin(env, &t_pinknoise, env->global_nspc, pinknoise_ctor, pinknoise_dtor))
 	fun = new_dl_func("float", "amp", (m_uint)pinknoise_get_amp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10064,7 +9996,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Pink pinknoise generator";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pitchamdf))
 	CHECK_OB(import_class_begin(env, &t_pitchamdf, env->global_nspc, pitchamdf_ctor, pitchamdf_dtor))
 	fun = new_dl_func("void", "init", (m_uint)pitchamdf_init);
 		arg = dl_func_add_arg(fun, "float", "min");
@@ -10076,7 +10007,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Pitch detection using AMDF method.Pitchamdf tracks the pitch of signal using the AMDF (Average Magnitude Difference Function) method of Pitch following. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pluck))
 	CHECK_OB(import_class_begin(env, &t_pluck, env->global_nspc, pluck_ctor, pluck_dtor))
 	fun = new_dl_func("void", "init", (m_uint)pluck_init);
 		arg = dl_func_add_arg(fun, "float", "ifreq");
@@ -10102,7 +10032,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Karplus-Strong plucked string instrument.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_port))
 	CHECK_OB(import_class_begin(env, &t_port, env->global_nspc, port_ctor, port_dtor))
 	fun = new_dl_func("void", "init", (m_uint)port_init);
 		arg = dl_func_add_arg(fun, "float", "htime");
@@ -10112,7 +10041,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " Portamento-style control signal smoothing    Useful for smoothing out low-resolution signals and applying glissando to filters.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_posc3))
 	CHECK_OB(import_class_begin(env, &t_posc3, env->global_nspc, posc3_ctor, posc3_dtor))
 	fun = new_dl_func("void", "init", (m_uint)posc3_init);
 		arg = dl_func_add_arg(fun, "ftbl", "tbl");
@@ -10138,7 +10066,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " High-precision table-lookup posc3ilator with cubic interpolation";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_progress))
 	CHECK_OB(import_class_begin(env, &t_progress, env->global_nspc, progress_ctor, progress_dtor))
 	fun = new_dl_func("int", "nbars", (m_uint)progress_get_nbars);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10159,7 +10086,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A simple progress bar for the commandline    Mostly ideal for offline renderings and programs with finite length. Escape characters are used to show/hide the cursor. Interruption before finishing may cause the cursor to disappear.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_prop))
 	CHECK_OB(import_class_begin(env, &t_prop, env->global_nspc, prop_ctor, prop_dtor))
 	fun = new_dl_func("void", "init", (m_uint)prop_init);
 		arg = dl_func_add_arg(fun, "string", "str");
@@ -10177,7 +10103,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Simple rhythmic notation gate generator    Creates a gate using a simple rhythmic notation system called prop. When it reaches the end of the prop string, it will loop back to the beginning.Prop has a few basic rules:1. A '+' denotes a on. A '-' denotes an off (rest). They each have an equal duration of a quarter note.2. On and off values can be strung together to create equally spaced gates: +-+--3. When notes are enclosed in parantheses '()' following a positive integer N, their duration is reduced N times: ++2(+-)4. When notes are enclosed in brackets '[]' following a positive integer N, their duration is scaled by a factor of N: ++2[++]5. Parenthesis and brackets can be nested: +- 2[3(+2(++)+)]2(++)";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_pshift))
 	CHECK_OB(import_class_begin(env, &t_pshift, env->global_nspc, pshift_ctor, pshift_dtor))
 	fun = new_dl_func("float", "shift", (m_uint)pshift_get_shift);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10206,7 +10131,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Time-domain pitch shifter.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_ptrack))
 	CHECK_OB(import_class_begin(env, &t_ptrack, env->global_nspc, ptrack_ctor, ptrack_dtor))
 	fun = new_dl_func("void", "init", (m_uint)ptrack_init);
 		arg = dl_func_add_arg(fun, "int", "ihopsize");
@@ -10218,7 +10142,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Track pitch of a signal.Ptrack is a pitch tracker, based on an algorithm originally created byMiller Puckette.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_randh))
 	CHECK_OB(import_class_begin(env, &t_randh, env->global_nspc, randh_ctor, randh_dtor))
 	fun = new_dl_func("float", "min", (m_uint)randh_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10247,7 +10170,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Random number generator with hold time.Randh is loosely based off of the Csound opcode randomh. The design is equivalentto scaled noise sent through a classic sample and hold module.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_randi))
 	CHECK_OB(import_class_begin(env, &t_randi, env->global_nspc, randi_ctor, randi_dtor))
 	fun = new_dl_func("float", "min", (m_uint)randi_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10284,7 +10206,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Line segments between random values within a range";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_random))
 	CHECK_OB(import_class_begin(env, &t_random, env->global_nspc, random_ctor, random_dtor))
 	fun = new_dl_func("float", "min", (m_uint)random_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10305,7 +10226,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Random values within a range";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_reson))
 	CHECK_OB(import_class_begin(env, &t_reson, env->global_nspc, reson_ctor, reson_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)reson_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10326,7 +10246,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A second-order resonant filter. NOTE: The output for reson appears to be very hot, so take caution when using this module.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_reverse))
 	CHECK_OB(import_class_begin(env, &t_reverse, env->global_nspc, reverse_ctor, reverse_dtor))
 	fun = new_dl_func("void", "init", (m_uint)reverse_init);
 		arg = dl_func_add_arg(fun, "float", "delay");
@@ -10336,7 +10255,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Signal reverser	Reverse will store a signal inside a buffer and play it back reversed.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_revsc))
 	CHECK_OB(import_class_begin(env, &t_revsc, env->global_nspc, revsc_ctor, revsc_dtor))
 	fun = new_dl_func("float", "feedback", (m_uint)revsc_get_feedback);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10357,7 +10275,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " 8 FDN stereo reverb";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_rms))
 	CHECK_OB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, rms_dtor))
 	fun = new_dl_func("float", "ihp", (m_uint)rms_get_ihp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10370,7 +10287,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "RMS-averaged signal amplitude    Perform \"root-mean-square\" on a signal to get overall amplitude of a signal. The output signal looks similar to that of a classic VU meter.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_rpt))
 	CHECK_OB(import_class_begin(env, &t_rpt, env->global_nspc, rpt_ctor, rpt_dtor))
 	fun = new_dl_func("void", "init", (m_uint)rpt_init);
 		arg = dl_func_add_arg(fun, "float", "maxdur");
@@ -10380,12 +10296,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger based beat-repeat stuttering effect    When the input is a non-zero value, rpt will load up the buffer and loop a certain number of times. Speed and repeat amounts can be set with the sp_rpt_set function.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_samphold))
 	CHECK_OB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
 	env->class_def->doc = "Classic sample and hold";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_saturator))
 	CHECK_OB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
 	fun = new_dl_func("float", "drive", (m_uint)saturator_get_drive);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10406,7 +10320,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Soft clip saturating distortion, based on examples from Abel/Berners' Music 424 course at Stanford.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_scale))
 	CHECK_OB(import_class_begin(env, &t_scale, env->global_nspc, scale_ctor, scale_dtor))
 	fun = new_dl_func("float", "min", (m_uint)scale_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10427,7 +10340,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Bipolar Scale    This module scales from unipolar [0, 1] to another range defined by min and max.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_sdelay))
 	CHECK_OB(import_class_begin(env, &t_sdelay, env->global_nspc, sdelay_ctor, sdelay_dtor))
 	fun = new_dl_func("void", "init", (m_uint)sdelay_init);
 		arg = dl_func_add_arg(fun, "float", "size");
@@ -10437,7 +10349,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Delays a signal by a number of samples.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_slice))
 	CHECK_OB(import_class_begin(env, &t_slice, env->global_nspc, slice_ctor, slice_dtor))
 	fun = new_dl_func("void", "init", (m_uint)slice_init);
 		arg = dl_func_add_arg(fun, "ftbl", "vals");
@@ -10457,7 +10368,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Yet another slice-based sample player.This module takes in an audio buffer and a table with slice points. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_smoothdelay))
 	CHECK_OB(import_class_begin(env, &t_smoothdelay, env->global_nspc, smoothdelay_ctor, smoothdelay_dtor))
 	fun = new_dl_func("void", "init", (m_uint)smoothdelay_init);
 		arg = dl_func_add_arg(fun, "float", "maxdel");
@@ -10485,7 +10395,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Smooth variable delay line without varispeed pitch.Smooth delay is based off the sdelay module in Faust. The smooth delay algorithm involves a double delay line. Any time the delay time changes, the delay time of buffer not heard changes, then is crossfaded to that buffer.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_spa))
 	CHECK_OB(import_class_begin(env, &t_spa, env->global_nspc, spa_ctor, spa_dtor))
 	fun = new_dl_func("void", "init", (m_uint)spa_init);
 		arg = dl_func_add_arg(fun, "string", "filename");
@@ -10495,7 +10404,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Stream a Soundpipe Audio FileSimilar to sp_diskin, sp_spa will stream a file in the internal soundpipeaudio format. Such a format is useful for instances where you need to readaudio files, but can't use libsndfile. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_sparec))
 	CHECK_OB(import_class_begin(env, &t_sparec, env->global_nspc, sparec_ctor, sparec_dtor))
 	fun = new_dl_func("void", "init", (m_uint)sparec_init);
 		arg = dl_func_add_arg(fun, "string", "filename");
@@ -10505,7 +10413,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Writes signal to spa file.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_streson))
 	CHECK_OB(import_class_begin(env, &t_streson, env->global_nspc, streson_ctor, streson_dtor))
 	fun = new_dl_func("float", "freq", (m_uint)streson_get_freq);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10526,12 +10433,10 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "String resonator filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_switch))
 	CHECK_OB(import_class_begin(env, &t_switch, env->global_nspc, switch_ctor, switch_dtor))
 	env->class_def->doc = "Switch between two signals    By default, the incoming first signal is selected. When triggered, the output signal will switch to the other signal.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tabread))
 	CHECK_OB(import_class_begin(env, &t_tabread, env->global_nspc, tabread_ctor, tabread_dtor))
 	fun = new_dl_func("void", "init", (m_uint)tabread_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -10567,7 +10472,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Table         Read through an sp_ftbl with linear interpolation.    ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tadsr))
 	CHECK_OB(import_class_begin(env, &t_tadsr, env->global_nspc, tadsr_ctor, tadsr_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)tadsr_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10604,7 +10508,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Triggerable classic ADSR envelope";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tblrec))
 	CHECK_OB(import_class_begin(env, &t_tblrec, env->global_nspc, tblrec_ctor, tblrec_dtor))
 	fun = new_dl_func("void", "init", (m_uint)tblrec_init);
 		arg = dl_func_add_arg(fun, "ftbl", "bar");
@@ -10614,7 +10517,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Record a signal to an ftable.This module will write audio-rate signals to a preallocated soundpipe ftable. Every time record is enabled, it will got back to index 0 overwrite anyprevious information that was on it. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tbvcf))
 	CHECK_OB(import_class_begin(env, &t_tbvcf, env->global_nspc, tbvcf_ctor, tbvcf_dtor))
 	fun = new_dl_func("float", "fco", (m_uint)tbvcf_get_fco);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10651,7 +10553,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Emulation of the Roland TB-303 filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tdiv))
 	CHECK_OB(import_class_begin(env, &t_tdiv, env->global_nspc, tdiv_ctor, tdiv_dtor))
 	fun = new_dl_func("float", "num", (m_uint)tdiv_get_num);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10672,7 +10573,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger divider.This module will take in a trigger signal, and output a trigger signalevery N times.For instance, when N = 3:in: * * * * * * * * *out *     *     *   ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tenv))
 	CHECK_OB(import_class_begin(env, &t_tenv, env->global_nspc, tenv_ctor, tenv_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)tenv_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10701,7 +10601,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger based linear AHD envelope generator";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tenv2))
 	CHECK_OB(import_class_begin(env, &t_tenv2, env->global_nspc, tenv2_ctor, tenv2_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)tenv2_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10722,7 +10621,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Linear 2-stage Attack/Release envelope generator    This envelope takes 2 triggers. When triggered once,the envelope will rise to 1 according to the attack time. When triggered again, it will decay to 0 according tothe decay time.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tenvx))
 	CHECK_OB(import_class_begin(env, &t_tenvx, env->global_nspc, tenvx_ctor, tenvx_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)tenvx_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10751,7 +10649,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger based exponential AHD envelope generator.    This envelope generator emulates the exponential behavior of analogue envelope generators by passing a gate signal (whose duration is specified viathe hold parameter) through a one-pole filter, whose filter coefficeints arecalculated in terms of tau.      ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tgate))
 	CHECK_OB(import_class_begin(env, &t_tgate, env->global_nspc, tgate_ctor, tgate_dtor))
 	fun = new_dl_func("float", "time", (m_uint)tgate_get_time);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10764,7 +10661,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "A triggerable gate.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_thresh))
 	CHECK_OB(import_class_begin(env, &t_thresh, env->global_nspc, thresh_ctor, thresh_dtor))
 	fun = new_dl_func("float", "thresh", (m_uint)thresh_get_thresh);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10785,17 +10681,14 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Trigger generator for signals that cross a given threshold. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_timer))
 	CHECK_OB(import_class_begin(env, &t_timer, env->global_nspc, timer_ctor, timer_dtor))
 	env->class_def->doc = "Tap-tempo like timerWhen triggered, timer will begin an internal stopwatch until it is triggered again.The output of the timer will be the time elapsed in seconds.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tin))
 	CHECK_OB(import_class_begin(env, &t_tin, env->global_nspc, tin_ctor, tin_dtor))
 	env->class_def->doc = "Similar to in, tin reads SPFLOATs (by default, this is a 4 byte binary float) from standard input every time it is triggered. behaves like a sample and hold, retaining the previous value (initial set to 0) until triggered. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tone))
 	CHECK_OB(import_class_begin(env, &t_tone, env->global_nspc, tone_ctor, tone_dtor))
 	fun = new_dl_func("float", "hp", (m_uint)tone_get_hp);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10808,7 +10701,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "First-order recursive lowpass filter";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_trand))
 	CHECK_OB(import_class_begin(env, &t_trand, env->global_nspc, trand_ctor, trand_dtor))
 	fun = new_dl_func("float", "min", (m_uint)trand_get_min);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10829,7 +10721,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Triggered random number generator.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tseg))
 	CHECK_OB(import_class_begin(env, &t_tseg, env->global_nspc, tseg_ctor, tseg_dtor))
 	fun = new_dl_func("void", "init", (m_uint)tseg_init);
 		arg = dl_func_add_arg(fun, "float", "ibeg");
@@ -10863,7 +10754,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "This module creates a series of line segments. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_tseq))
 	CHECK_OB(import_class_begin(env, &t_tseq, env->global_nspc, tseq_ctor, tseq_dtor))
 	fun = new_dl_func("void", "init", (m_uint)tseq_init);
 		arg = dl_func_add_arg(fun, "ftbl", "ft");
@@ -10881,7 +10771,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Function table looper    TSeq runs through values in an ftable. It will change values when the trigger input is a non-zero value, and wrap around when it reaches the end.";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_vdelay))
 	CHECK_OB(import_class_begin(env, &t_vdelay, env->global_nspc, vdelay_ctor, vdelay_dtor))
 	fun = new_dl_func("void", "init", (m_uint)vdelay_init);
 		arg = dl_func_add_arg(fun, "float", "maxdel");
@@ -10899,7 +10788,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Delay line with cubic interpolation";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_vocoder))
 	CHECK_OB(import_class_begin(env, &t_vocoder, env->global_nspc, vocoder_ctor, vocoder_dtor))
 	fun = new_dl_func("float", "atk", (m_uint)vocoder_get_atk);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10928,7 +10816,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "16-band channel vocoder";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_waveset))
 	CHECK_OB(import_class_begin(env, &t_waveset, env->global_nspc, waveset_ctor, waveset_dtor))
 	fun = new_dl_func("void", "init", (m_uint)waveset_init);
 		arg = dl_func_add_arg(fun, "float", "ilen");
@@ -10946,7 +10833,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = "Simple Time-stretching from repeating wavecylesThis module looks for zero-crossings and repeats them by a integer factor.While a crude means for time stretching, it is a very aesthetically pleasing effect to use on sounds and often produces at \"wet\" sound.The waveset algorithm was originally created by Trevor Wishart for the ComposerDesktop Project (CDP), and was then ported to Csound. ";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_wpkorg35))
 	CHECK_OB(import_class_begin(env, &t_wpkorg35, env->global_nspc, wpkorg35_ctor, wpkorg35_dtor))
 	fun = new_dl_func("float", "cutoff", (m_uint)wpkorg35_get_cutoff);
 	CHECK_OB((f = import_mfun(env, fun)))
@@ -10975,7 +10861,6 @@ env->class_def->doc = "soudpipe float array type";
 	env->class_def->doc = " Analogue model of the Korg 35 Lowpass FilterOriginal port done by Will Pirkle:http://www.willpirkle.com/Downloads/AN-5Korg35_V3.pdf";
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(add_global_type(env, &t_zitarev))
 	CHECK_OB(import_class_begin(env, &t_zitarev, env->global_nspc, zitarev_ctor, zitarev_dtor))
 	fun = new_dl_func("float", "in_delay", (m_uint)zitarev_get_in_delay);
 	CHECK_OB((f = import_mfun(env, fun)))

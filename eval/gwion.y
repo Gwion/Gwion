@@ -183,8 +183,8 @@ class_def
 class_ext : EXTENDS id_dot { $$ = new_class_ext( $2, NULL, get_pos(scanner)); } | { $$ = NULL; } ;
 
 class_decl
-  : PUBLIC  { $$ = ae_key_public; }
-  |         { $$ = ae_key_private; }
+  : PUBLIC  { $$ = ae_flag_public; }
+  |         { $$ = ae_flag_private; }
   ;
 
 class_body
@@ -219,20 +219,20 @@ stmt_list
   ;
 
 static_decl
-  : STATIC                            { $$ = ae_key_static;   }
-  |                                   { $$ = ae_key_instance; }
+  : STATIC                            { $$ = ae_flag_static;   }
+  |                                   { $$ = ae_flag_instance; }
   ;
 
 function_decl
-  : FUNCTION { $$ = ae_key_func; }
-  | VARARG   { $$ = ae_key_variadic; }
+  : FUNCTION { $$ = ae_flag_func; }
+  | VARARG   { $$ = ae_flag_variadic; }
   ;
 
 func_ptr
   : FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN RPAREN { $$ = new_func_ptr_stmt(0, $4, $2, NULL, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN RPAREN { $$ = new_func_ptr_stmt(ae_key_static, $5, $3, NULL, get_pos(scanner)); }
+  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN RPAREN { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, NULL, get_pos(scanner)); }
   | FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_func_ptr_stmt(0, $4, $2, $7, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_func_ptr_stmt(ae_key_static, $5, $3, $8, get_pos(scanner)); }
+  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $8, get_pos(scanner)); }
   ;
 
 type_decl2
@@ -397,15 +397,13 @@ func_template
 
 func_def
   : func_template function_decl static_decl type_decl2 ID func_args code_segment
-    { $$ = new_func_def($2, $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
+    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner); $$->types = $1; }
   | OPERATOR type_decl ID func_args code_segment
-    { $$ = new_func_def(ae_key_func, ae_key_static, $2, $3, $4, $5, get_pos(scanner));
-     SET_FLAG($$, ae_key_op);  $$->type_decl->doc = get_doc(scanner); }
+    { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner));
+      $$->type_decl->doc = get_doc(scanner); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_key_func, ae_key_instance, 
-		new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
-		get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner));
-		SET_FLAG($$, ae_key_dtor); $$->type_decl->doc = get_doc(scanner);}
+    { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
+      get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); $$->type_decl->doc = get_doc(scanner);}
   ;
 
 type_decl

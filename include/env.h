@@ -20,7 +20,9 @@ struct Env_ {
   Func      func;
   Map known_ctx;
   Exp_Func* current; // template helper
+  m_uint type_xid;
   struct VM_Object_ obj;
+  m_bool do_type_xid;
 };
 
 Env new_env();

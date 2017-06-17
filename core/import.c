@@ -2,8 +2,8 @@
 #include "err_msg.h"
 #include "env.h"
 #include "func.h"
-#include "type.h"
 #include "import.h"
+//#include "type.h"
 
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
@@ -81,12 +81,12 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   VM_Code* code;
   m_str name, filename;
   if(e == NATIVE_CTOR) {
-    SET_FLAG(type, ae_key_ctor);
+    SET_FLAG(type, ae_flag_ctor);
     name = "ctor";
     filename = "[internal ctor definition]";
     code = &type->info->pre_ctor;
   } else {
-    SET_FLAG(type, ae_key_dtor);
+    SET_FLAG(type, ae_flag_dtor);
     name = type->name;
     filename = "[internal dtor definition]";
     code = &type->info->dtor;
@@ -102,6 +102,7 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
     err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
     return NULL;
   }
+  CHECK_BO(env_add_type(env, type))
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
   if(pre_ctor)
@@ -117,7 +118,7 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   type->owner = where;
   type->obj_size = 0;
 
-  SET_FLAG(type, ae_value_checked | ae_func_builtin);
+  SET_FLAG(type, ae_flag_checked);
   vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
   vector_add(env->class_stack, (vtype)env->class_def);
@@ -169,13 +170,13 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   if(scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(is_const)
-    SET_FLAG(var_decl->value, ae_value_const);
+    SET_FLAG(var_decl->value, ae_flag_const);
   if(!check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
 
   if(doc)
     var_decl->value->doc = doc;
-  SET_FLAG(var_decl->value, ae_value_import);
+  SET_FLAG(var_decl->value, ae_flag_builtin);
   ret = var_decl->value->offset;
 error:
   free_expression(exp_decl);
@@ -241,8 +242,8 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
 
 Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   Func_Def func_def = NULL;
-  ae_Keyword func_decl = ae_key_func;
-  ae_Keyword static_decl = is_static ? ae_key_static : ae_key_instance;
+  ae_flag func_decl = ae_flag_func;
+  ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;
   ID_List type_path = NULL;
   Type_Decl* type_decl = NULL;
   m_str name = NULL;
@@ -265,14 +266,14 @@ Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
 
-  func_def = new_func_def(func_decl, static_decl, type_decl, name, arg_list, NULL, 0);
-  func_def->s_type = ae_func_builtin;
-  func_def->dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
+  func_def = new_func_def(func_decl | static_decl, type_decl, name, arg_list, NULL, 0);
+  SET_FLAG(func_def, ae_flag_builtin);
+  func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->d.mfun;
   free_dl_func(dl_fun);
   return func_def;
 }
 
-#define CHECK_FN(a) if(a < 0) { if(func_def->func) REM_REF(func_def->func); return NULL;}
+#define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
 static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
   CHECK_OO(mfun) // probably deserve an err msg
@@ -288,7 +289,7 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   CHECK_FN(scan1_func_def(env, func_def))
   CHECK_FN(scan2_func_def(env, func_def))
   CHECK_FN(check_func_def(env, func_def))
-  return func_def->func;
+  return func_def->d.func;
 }
 
 // those should be defines
@@ -298,3 +299,20 @@ Func import_mfun(Env env, DL_Func * fun) {
 Func import_sfun(Env env, DL_Func * fun) {
   return import_fun(env, fun, 1);
 }
+
+Type get_type(Env env, m_str str) {
+    m_uint  depth;
+    ID_List list = str2list(str, &depth);
+    Type    t = list ? find_type(env, list) : NULL;
+    if(list)
+      free_id_list(list);
+    return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
+}
+
+m_bool import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global) {
+    Type lhs = l ? get_type(env, l) : NULL;
+    Type rhs = r ? get_type(env, r) : NULL;
+    Type ret = get_type(env, t);
+    return env_add_op(env, op, lhs, rhs, ret, f, global);
+}
+

@@ -290,9 +290,9 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
     v = new_value(t, S_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
-      SET_FLAG(v, ae_value_static);
+      SET_FLAG(v, ae_flag_static);
     }
-    SET_FLAG(v, ae_value_const | ae_value_enum | ae_value_checked);
+    SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(nspc, list->xid, v);
     vector_add(stmt->values, (vtype)v);
     list = list->next;
@@ -314,7 +314,7 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
     CHECK_BB(err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  S_name(ptr->xid)))
   }
 
-  if(!env->class_def && ptr->key == ae_key_static) {
+  if(!env->class_def && GET_FLAG(ptr, ae_flag_static)) {
     CHECK_BB(err_msg(SCAN1_, ptr->pos, "can't declare func pointer static outside of a class"))
   }
 
@@ -442,10 +442,10 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   debug_msg("scan1", "func def");
 #endif
 
-  if(GET_FLAG(f, ae_key_dtor) && !env->class_def)
+  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
 
-  if(!GET_FLAG(f, ae_key_op) && name2op(S_name(f->name)) > 0)
+  if(!GET_FLAG(f, ae_flag_op) && name2op(S_name(f->name)) > 0)
     CHECK_BB(err_msg(SCAN1_, f->pos, "'%s' is a reserved operator name", S_name(f->name)))
 
   if(f->types)
@@ -488,7 +488,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     count++;
     arg_list = arg_list->next;
   }
-  if(GET_FLAG(f, ae_key_op)) {
+  if(GET_FLAG(f, ae_flag_op)) {
     if(count > 3 || count == 1)
       CHECK_BB(err_msg(SCAN1_, f->pos, "operators can only have one or two arguments\n"))
     if(name2op(S_name(f->name)) < 0)

@@ -1,7 +1,5 @@
-#include "err_msg.h"
 #include "import.h"
 #include "shreduler.h"
-#include "lang.h"
 
 struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
 
@@ -13,6 +11,18 @@ static void event_ctor(M_Object o, VM_Shred shred) {
 
 static void event_dtor(M_Object o, VM_Shred shred) {
   free_vector(EV_SHREDS(o));
+}
+
+INSTR(Time_Advance) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
+#endif
+  POP_REG(shred, SZ_FLOAT * 2);
+  shred->wake_time += *(m_float*)shred->reg;
+  shred->is_running = 0;
+  shredule(vm->shreduler, shred, shred->wake_time);
+  *(m_float*)shred->reg = shred->wake_time;
+  PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(Event_Wait) {
@@ -71,7 +81,6 @@ static MFUN(event_broadcast) {
 
 m_bool import_event(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_event))
   CHECK_OB(import_class_begin(env, &t_event, env->global_nspc, event_ctor, event_dtor))
   env->class_def->doc = "Process event, with precise timing";
   o_event_shred = import_mvar(env, "int", "@shreds", 0, 0, "the place for blocked shreds");
@@ -80,7 +89,7 @@ m_bool import_event(Env env) {
   CHECK_OB(import_mfun(env, fun))
   fun = new_dl_func("int", "broadcast", (m_uint)event_broadcast);
   CHECK_OB(import_mfun(env, fun))
-  CHECK_BB(add_binary_op(env, op_chuck,        &t_event, &t_now, &t_int, Event_Wait, 1))
+  CHECK_BB(import_op(env, op_chuck, "Event", "@now", "int", Event_Wait, 1))
   CHECK_BB(import_class_end(env))
   return 1;
 }

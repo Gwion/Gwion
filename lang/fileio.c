@@ -1,12 +1,9 @@
 #include <sys/types.h>
 #include <dirent.h>
-#include "defs.h"
-#include "vm.h"
-#include "type.h"
-#include "err_msg.h"
-#include "instr.h"
-#include "lang.h"
 #include <unistd.h>
+#include "defs.h"
+#include "err_msg.h"
+#include "import.h"
 
 struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
 struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
@@ -241,7 +238,6 @@ SFUN(file_list) {
 m_bool import_fileio(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_fileio))
   CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
   env->class_def->doc = "read/write files";
 
@@ -266,25 +262,22 @@ m_bool import_fileio(Env env) {
   CHECK_OB(import_sfun(env, fun))
 
   // import operators
-  CHECK_BB(add_binary_op(env, op_chuck, &t_int,    &t_fileio, &t_fileio, int_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_float,  &t_fileio, &t_fileio, float_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_string, &t_fileio, &t_fileio, string_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_object, &t_fileio, &t_fileio, object_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_null,   &t_fileio, &t_fileio, object_to_file, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_string, &t_string, file_to_string, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_int,    &t_int,    file_to_int, 1))
-  CHECK_BB(add_binary_op(env, op_chuck, &t_fileio, &t_float,  &t_float,  file_to_float, 1))
+  CHECK_BB(import_op(env, op_chuck, "int",    "FileIO", "FileIO", int_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "float",  "FileIO", "FileIO", float_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "string", "FileIO", "FileIO", string_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "Object", "FileIO", "FileIO", object_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "@null",  "FileIO", "FileIO", object_to_file, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "string", "string", file_to_string, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "int",    "int",    file_to_int, 1))
+  CHECK_BB(import_op(env, op_chuck, "FileIO", "float",  "float",  file_to_float, 1))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cout))
   CHECK_OB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cerr))
   CHECK_OB(import_class_begin(env, &t_cerr, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_cin))
   CHECK_OB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
@@ -299,8 +292,8 @@ m_bool import_fileio(Env env) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-  add_global_value(env, "cin",  &t_fileio, 1, gw_cin);
-  add_global_value(env, "cout", &t_fileio, 1, gw_cout);
-  add_global_value(env, "cerr", &t_fileio, 1, gw_cerr);
+  env_add_value(env, "cin",  &t_fileio, 1, gw_cin);
+  env_add_value(env, "cout", &t_fileio, 1, gw_cout);
+  env_add_value(env, "cerr", &t_fileio, 1, gw_cerr);
   return 1;
 }

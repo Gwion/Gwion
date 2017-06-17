@@ -26,7 +26,7 @@ struct Type_ {
   m_str      doc;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
-  ae_Keyword flag;
+  m_uint flag;
   struct VM_Object_ obj;
 };
 
@@ -49,12 +49,10 @@ static inline Type find_common_anc(Type lhs, Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
 }
 m_str type_path(ID_List path);
-m_bool add_global_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
-m_bool add_global_type(Env env, Type type);
+m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
+m_bool env_add_type(Env env, Type type);
 Kindof kindof(Type type);
 m_int str2char(const m_str c, m_int linepos);
-m_uint num_digit(m_uint i);
-
 extern struct Type_ t_void;
 extern struct Type_ t_int;
 extern struct Type_ t_float;

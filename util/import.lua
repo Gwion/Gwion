@@ -322,7 +322,6 @@ print('#include "vm.h"\
 #include "err_msg.h"\
 #include "import.h"\
 #include "ugen.h"\
-#include "bbq.h"\
 #include "array.h"\
 #include "func.h"\
 #include "lang.h"')
@@ -354,7 +353,6 @@ for n in ipairs(a) do
 end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tDL_Value* arg;\n\tFunc f;\n")
-print("\tCHECK_BB(add_global_type(env, &t_ftbl))")
 print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
 print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0, \"internal data for ftbl\");")
 for n in ipairs(a) do
@@ -383,7 +381,6 @@ for n in ipairs(a) do
 	local mod_name = a[n]
 	local object = sptbl[mod_name]
 	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
-		print("\tCHECK_BB(add_global_type(env, &t_"..mod_name.."))")
 		print("\tCHECK_OB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
 		local nmandatory = 0
 		local tbl = object.params.mandatory

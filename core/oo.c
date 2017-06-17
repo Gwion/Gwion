@@ -4,7 +4,6 @@
 #include "context.h"
 #include "func.h"
 #include "oo.h"
-
 #include "emit.h"
 
 Value new_value(Type type, m_str name) {
@@ -33,13 +32,13 @@ Func new_func(m_str name, Func_Def def) {
 
 static void free_func(Func a) {
   if(a->code) {
-    if(a->def && !GET_FLAG(a->def, ae_key_template)) {
-      if(!GET_FLAG(a->def, ae_key_dtor)) {
+    if(a->def && !GET_FLAG(a->def, ae_flag_template)) {
+      if(!GET_FLAG(a->def, ae_flag_dtor)) {
         free_vm_code(a->code);
       }
     }
   }
-  if(a->def && !a->is_template)
+  if(a->def && !GET_FLAG(a, ae_flag_template))
     free_func_def(a->def);
   free(a);
 }
@@ -55,7 +54,7 @@ Type new_type(te_type xid, m_str name) {
 static void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
-  if(!GET_FLAG(a, ae_func_builtin) || a->parent == &t_int || isa(a, &t_class) > 0
+  if(!GET_FLAG(a, ae_flag_builtin) || a->parent == &t_int || isa(a, &t_class) > 0
       || isa(a, &t_function) > 0 || a->array_type)
     free(a);
 }
@@ -71,7 +70,8 @@ Type type_copy(Env env, Type type) {
   a->size        = type->size;
   a->actual_type = type->actual_type;
   a->array_depth = type->array_depth;
-  a->flag        = type->flag;
+  if(GET_FLAG(type, ae_flag_checked))
+    SET_FLAG(a, ae_flag_checked);
   a->def         = type->def;
   INIT_OO(a, e_type_obj);
   return a;

@@ -1,4 +1,6 @@
 #include "err_msg.h"
+#include "type.h"
+#include "func.h"
 #include "instr.h"
 #include "operator_private.h"
 
@@ -58,7 +60,7 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   return NULL;
 }
 
-m_bool add_binary_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global) {
+m_bool env_add_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global) {
   Nspc nspc = env->curr;
   Vector v;
   M_Operator* mo;

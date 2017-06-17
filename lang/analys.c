@@ -1,18 +1,9 @@
 #include <stdlib.h>
 #include <math.h>
-
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
-/*#include "dl.h"*/
-/*#include "err_msg.h"*/
-#include "import.h"
-/*#include "lang.h"*/
-#include "bbq.h"
-#include "ugen.h"
-#include "array.h"
-#include "object.h"
 #include "err_msg.h"
+#include "import.h"
+#include "ugen.h"
 
 typedef struct {
   unsigned int size;
@@ -139,7 +130,6 @@ static MFUN(fft_compute) {
 
 static m_bool import_fft(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_fft))
   CHECK_OB(import_class_begin(env, &t_fft, env->global_nspc, fft_ctor, fft_dtor))
   fun = new_dl_func("int", "init", (m_uint)fft_init);
   dl_func_add_arg(fun, "int", "size");
@@ -420,7 +410,7 @@ m_float compute_zerox(Ana* fft, m_float* buffer)
 }
 */
 static struct Type_ t_ana = { "ANA", SZ_INT, &t_object};
-m_int o_ana__fft;
+m_int o_ana_ana;
 m_int o_ana_fft;
 m_int o_ana_fn;
 
@@ -429,7 +419,7 @@ static m_float ana_dummy(Fft* fft) {
 }
 static MFUN(ana_compute) {
   M_Object   fft = *(M_Object*)(o->d.data + o_ana_fft);
-  Ana* ana = *(Ana**)(o->d.data + o_ana__fft);
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
   f_analys f = *(f_analys*)(o->d.data + o_ana_fn);
   if(!fft || ana->last == ana->sp->pos)
     return;
@@ -442,32 +432,31 @@ static MFUN(ana_get_fft) {
 }
 
 static MFUN(ana_set_fft) {
-  Fft* ana;
-  M_Object fft = *(M_Object*)(o->d.data + o_ana_fft);
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  if(fft)
-    release(fft, shred);
-  fft = *(M_Object*)(shred->mem + SZ_INT);
-  if(!fft) {
-    _fft->size = 0;
-    _fft->fval = NULL;
+  Fft* fft;
+  M_Object obj = *(M_Object*)(o->d.data + o_ana_fft);
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  if(obj)
+    release(obj, shred);
+  obj = *(M_Object*)(shred->mem + SZ_INT);
+  if(!obj) {
+    ana->size = 0;
+    ana->fval = NULL;
     RETURN->d.v_uint = 0;
     return;
-  }
-  ana = (Fft*)fft->ugen->ug;
-  if(!ana || !ana->buf) {
+  } 
+  fft = (Fft*)obj->ugen->ug;
+  if(!fft || !fft->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
-    release(fft, shred);
+    release(obj, shred);
     return;
-  }
-  _fft->size = ana->fft->fftsize;
-  _fft->fval = ana->frq->s;
-  *(M_Object*)(o->d.data + o_ana_fft) = fft;
-  RETURN->d.v_uint = (m_uint) * (M_Object*)(shred->mem + SZ_INT);
+  } 
+  ana->size = fft->fft->fftsize;
+  ana->fval = fft->frq->s;
+  RETURN->d.v_object = *(M_Object*)(o->d.data + o_ana_fft) = obj;
 }
 
 static CTOR(ana_ctor) {
-  Ana* ana = *(Ana**)(o->d.data + o_ana__fft) = malloc(sizeof(Ana));
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana) = malloc(sizeof(Ana));
   ana->sr = shred->vm_ref->bbq->sp->sr;
   ana->percent = 50; // rolloff;
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)ana_dummy;
@@ -476,15 +465,14 @@ static CTOR(ana_ctor) {
 }
 
 static DTOR(ana_dtor) {
-  free(*(Ana**)(o->d.data + o_ana__fft));
+  free(*(Ana**)(o->d.data + o_ana_ana));
 }
 
 static m_bool import_ana(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_ana))
   CHECK_OB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
-  o_ana_fft = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
-  CHECK_BB(o_ana__fft)
+  o_ana_ana = import_mvar(env, "int", "@_fft", 0, 0, "internal _fft");
+  CHECK_BB(o_ana_ana)
   o_ana_fft = import_mvar(env, "FFT", "@fft",  0, 1, "fft reference");
   CHECK_BB(o_ana_fft)
   o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0, "internal compute fonction");
@@ -505,7 +493,6 @@ static CTOR(centroid_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_centroid;
 }
 static m_bool import_centroid(Env env) {
-  CHECK_BB(add_global_type(env, &t_centroid))
   CHECK_OB(import_class_begin(env, &t_centroid, env->global_nspc, centroid_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -516,7 +503,6 @@ static CTOR(spread_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_spread;
 }
 static m_bool import_spread(Env env) {
-  CHECK_BB(add_global_type(env, &t_spread))
   CHECK_OB(import_class_begin(env, &t_spread, env->global_nspc, spread_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -527,7 +513,6 @@ static CTOR(skewness_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_skewness;
 }
 static m_bool import_skewness(Env env) {
-  CHECK_BB(add_global_type(env, &t_skewness))
   CHECK_OB(import_class_begin(env, &t_skewness, env->global_nspc, skewness_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -538,7 +523,6 @@ static CTOR(kurtosis_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_kurtosis;
 }
 static m_bool import_kurtosis(Env env) {
-  CHECK_BB(add_global_type(env, &t_kurtosis))
   CHECK_OB(import_class_begin(env, &t_kurtosis, env->global_nspc, kurtosis_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -549,7 +533,6 @@ static CTOR(rms_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rms;
 }
 static m_bool import_rms(Env env) {
-  CHECK_BB(add_global_type(env, &t_rms))
   CHECK_OB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -560,16 +543,15 @@ static CTOR(rolloff_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_rolloff;
 }
 static MFUN(rolloff_get_percent) {
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  RETURN->d.v_float = _fft->percent;
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  RETURN->d.v_float = ana->percent;
 }
 static MFUN(rolloff_set_percent) {
-  Ana* _fft = *(Ana**)(o->d.data + o_ana__fft);
-  RETURN->d.v_float = (_fft->percent = *(m_float*)(shred->mem + SZ_INT));
+  Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
+  RETURN->d.v_float = (ana->percent = *(m_float*)(shred->mem + SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_rolloff))
   CHECK_OB(import_class_begin(env, &t_rolloff, env->global_nspc, rolloff_ctor, NULL))
   fun = new_dl_func("float", "percent", (m_uint)rolloff_get_percent);
   CHECK_OB(import_mfun(env, fun))
@@ -585,7 +567,6 @@ static CTOR(freq_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_freq;
 }
 static m_bool import_freq(Env env) {
-  CHECK_BB(add_global_type(env, &t_freq))
   CHECK_OB(import_class_begin(env, &t_freq, env->global_nspc, freq_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -596,7 +577,6 @@ static CTOR(asc_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_asc;
 }
 static m_bool import_asc(Env env) {
-  CHECK_BB(add_global_type(env, &t_asc))
   CHECK_OB(import_class_begin(env, &t_asc, env->global_nspc, asc_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -607,7 +587,6 @@ static CTOR(ass_ctor) {
   *(f_analys*)(o->d.data + o_ana_fn) = (f_analys)compute_ass;
 }
 static m_bool import_ass(Env env) {
-  CHECK_BB(add_global_type(env, &t_ass))
   CHECK_OB(import_class_begin(env, &t_ass, env->global_nspc, ass_ctor, NULL))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -631,13 +610,13 @@ static MFUN(fc_compute) {
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add
-    Ana* _fft   = *(Ana**)(obj->d.data + o_ana__fft);
+    Ana* ana   = *(Ana**)(obj->d.data + o_ana_ana);
 //    if(!_fft) continue; // seems prevented somehow. (this is unclear)
     Fft* fft   = *(Fft**)(obj->d.data + o_ana_fft);
     if(!fft)
       continue;
     f_analys fn  = *(f_analys*)(obj->d.data + o_ana_fn);
-    m_float f = fn(_fft);
+    m_float f = fn(ana);
     f_vector_set(ret->d.array, i, f);
   }
   RETURN->d.v_uint = (m_uint)ret;
@@ -697,7 +676,6 @@ INSTR(fc_disconnect) {
 
 static m_bool import_fc(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_fc))
   CHECK_OB(import_class_begin(env, &t_fc, env->global_nspc, fc_ctor, fc_dtor))
   o_fc_vector = import_mvar(env, "int", "@vector", 0, 0, "internal ANA clients");
   CHECK_BB(o_fc_vector)
@@ -726,7 +704,7 @@ m_bool import_analys(Env env) {
   CHECK_BB(import_asc(env))
   CHECK_BB(import_ass(env))
   CHECK_BB(import_fc(env))
-  CHECK_BB(add_binary_op(env, op_chuck,   &t_ana, &t_fc, &t_fc, fc_connect,    1))
-  CHECK_BB(add_binary_op(env, op_unchuck, &t_ana, &t_fc, &t_fc, fc_disconnect, 1))
+  CHECK_BB(import_op(env, op_chuck,   "ANA", "FC", "FC", fc_connect,    1))
+  CHECK_BB(import_op(env, op_unchuck, "ANA", "FC", "FC", fc_disconnect, 1))
   return 1;
 }

@@ -6,8 +6,6 @@
 #include "import.h"
 #include "ugen.h"
 #include "func.h"
-#include "bbq.h"
-#include "object.h"
 
 extern struct Type_ t_osc;
 static struct Type_ t_sinosc      = { "SinOsc",      SZ_INT, &t_ugen };
@@ -113,7 +111,6 @@ static m_bool import_sinosc(Env env)
   Func     f;
   DL_Func* fun;
   DL_Value* arg;
-  CHECK_BB(add_global_type(env, &t_sinosc))
   CHECK_OB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
   env->class_def->doc = "a simple sinusoid derived from 'Osc'.";
   fun = new_dl_func("void", "init", (m_uint)sinosc_size);
@@ -179,7 +176,6 @@ static void gain_set_gain(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static m_bool import_gain(Env env)
 {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_gain))
   CHECK_OB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, gain_dtor))
   fun = new_dl_func("float", "gain", (m_uint)gain_get_gain);
   CHECK_OB(import_mfun(env, fun))
@@ -225,7 +221,6 @@ static void impulse_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static m_bool import_impulse(Env env)
 {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_impulse))
   CHECK_OB(import_class_begin(env, &t_impulse, env->global_nspc, impulse_ctor, impulse_dtor))
   fun = new_dl_func("float", "next", (m_uint)impulse_get_next);
   CHECK_OB(import_mfun(env, fun))
@@ -258,7 +253,6 @@ static void fullrect_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_fullrect(Env env)
 {
-  CHECK_BB(add_global_type(env, &t_fullrect))
   CHECK_OB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -289,7 +283,6 @@ static void halfrect_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_halfrect(Env env)
 {
-  CHECK_BB(add_global_type(env, &t_halfrect))
   CHECK_OB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, halfrect_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
@@ -328,7 +321,6 @@ static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred)
 static m_bool import_step(Env env)
 {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_step))
   CHECK_OB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, step_dtor))
   fun = new_dl_func("float", "next", (m_uint)step_get_next);
   CHECK_OB(import_mfun(env, fun))
@@ -365,7 +357,6 @@ static void zerox_dtor(M_Object o, VM_Shred shred)
 
 static m_bool import_zerox(Env env)
 {
-  CHECK_BB(add_global_type(env, &t_zerox))
   CHECK_OB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
   CHECK_BB(import_class_end(env))
   return 1;

@@ -5,7 +5,6 @@
 #include "import.h"
 #include "lang.h"
 #include "ugen.h"
-#include "bbq.h"
 
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 
@@ -323,7 +322,6 @@ static MFUN(ugen_get_last) {
 m_bool import_ugen(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_ugen))
   CHECK_OB(import_class_begin(env, &t_ugen, env->global_nspc, ugen_ctor, ugen_dtor))
   env->class_def->doc = "base sound class";
 
@@ -341,10 +339,10 @@ m_bool import_ugen(Env env) {
   fun = new_dl_func("float", "last", (m_uint)ugen_get_last);
   CHECK_OB(import_mfun(env, fun))
 
-  CHECK_BB(add_binary_op(env, op_chuck,   &t_ugen, &t_ugen, &t_ugen, ugen_connect, 1))
-  CHECK_BB(add_binary_op(env, op_unchuck, &t_ugen, &t_ugen, &t_ugen, ugen_disconnect, 1))
-  CHECK_BB(add_binary_op(env, op_trig,    &t_ugen, &t_ugen, &t_ugen, trig_connect, 1))
-  CHECK_BB(add_binary_op(env, op_untrig,  &t_ugen, &t_ugen, &t_ugen, trig_disconnect, 1))
+  CHECK_BB(import_op(env, op_chuck,   "UGen", "UGen", "UGen", ugen_connect, 1))
+  CHECK_BB(import_op(env, op_unchuck, "UGen", "UGen", "UGen", ugen_disconnect, 1))
+  CHECK_BB(import_op(env, op_trig,    "UGen", "UGen", "UGen", trig_connect, 1))
+  CHECK_BB(import_op(env, op_untrig,  "UGen", "UGen", "UGen", trig_disconnect, 1))
 
   CHECK_BB(import_class_end(env))
   return 1;

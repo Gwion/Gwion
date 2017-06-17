@@ -1,9 +1,6 @@
 #include "defs.h"
-#include "vm.h"
-#include "type.h"
 #include "err_msg.h"
-#include "instr.h"
-#include "lang.h"
+#include "import.h"
 
 struct M_Vector_ {
   char*  ptr;   // data
@@ -244,7 +241,6 @@ INSTR(Array_Append) {
 
 m_bool import_array(Env env) {
   DL_Func* fun;
-  CHECK_BB(add_global_type(env, &t_array))
   CHECK_OB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
   fun = new_dl_func("int", "size", (m_uint)vm_vector_size);
   CHECK_OB(import_mfun(env, fun))

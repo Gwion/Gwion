@@ -3,6 +3,8 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "instr.h"
+#include "func.h"
+#include "shreduler.h"
 #include "code_private.h" // for add_instr
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
@@ -509,10 +511,9 @@ INSTR(Spork) {
   vm_add_shred(vm, sh);
   POP_REG(shred,  SZ_INT);
   func = *(Func*)shred->reg;
-  if(func->is_member) {
+  if(GET_FLAG(func, ae_flag_member)) {
     POP_REG(shred,  SZ_INT);
     this_ptr = *(m_uint*)shred->reg;
-    /*    sh->add_parent_ref((Chuck_Object *)this_ptr);*/
   }
   POP_REG(shred,  instr->m_val);
   memcpy(sh->reg, shred->reg, instr->m_val);
@@ -520,7 +521,7 @@ INSTR(Spork) {
     memcpy(sh->mem, shred->mem, *(m_uint*)instr->ptr);
   PUSH_REG(sh, instr->m_val);
 
-  if(func->is_member) {
+  if(GET_FLAG(func, ae_flag_member)) {
     *(m_uint*)sh->reg = this_ptr;
     PUSH_REG(sh, SZ_INT);
   }

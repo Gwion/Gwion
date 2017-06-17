@@ -3,9 +3,12 @@
 #include <time.h>
 #include "vm.h"
 #include "err_msg.h"
+#include "oo.h"
+#include "func.h"
 #include "instr.h"
 #include "ugen.h"
 #include "driver.h"
+#include "shreduler.h"
 
 void udp_do(VM* vm);
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename) {

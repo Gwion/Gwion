@@ -5,7 +5,6 @@
 #include "dl.h"
 #include "import.h"
 #include "lang.h"
-#include "bbq.h"
 
 #define LOGTWO log(2)
 #define LOGTEN log(10)
@@ -391,7 +390,6 @@ static struct Type_ t_math = { "Math", 0, NULL};
 m_bool import_lib(Env env) {
   DL_Func* fun;
 
-  CHECK_BB(add_global_type(env, &t_math))
   CHECK_OB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
@@ -555,7 +553,6 @@ m_bool import_lib(Env env) {
   CHECK_OB(import_sfun(env, fun))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(add_global_type(env, &t_std))
   CHECK_OB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
   env->class_def->doc = "Standard library";
 
