@@ -650,8 +650,6 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   return 1;
 }
 
-
-
 static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint arg_size, m_uint stack_depth) {
   Instr push_code, spork;
 
@@ -1482,9 +1480,9 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       instr = add_instr(emit, vec3_z);
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec3);
-      Instr f = add_instr(emit, member_function);
-      *(Vector*)f->ptr = t_base->info->obj_v_table;
-      f->m_val = value->func_ref->vt_index;
+      instr = add_instr(emit, member_function);
+      *(Vector*)instr->ptr = t_base->info->obj_v_table;
+      instr->m_val = value->func_ref->vt_index;
       return 1;
     }
     instr->m_val = emit_addr;
@@ -1505,9 +1503,9 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       instr = add_instr(emit, vec4_w);
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec4);
-      Instr f = add_instr(emit, member_function);
-      *(Vector*)f->ptr = t_base->info->obj_v_table;
-      f->m_val = value->func_ref->vt_index;
+      instr = add_instr(emit, member_function);
+      *(Vector*)instr->ptr = t_base->info->obj_v_table;
+      instr->m_val = value->func_ref->vt_index;
       return 1;
     }
     instr->m_val = emit_addr;
@@ -1654,6 +1652,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   Value value = func->value_ref;
   Type type = value->m_type;
   Local* local = NULL;
+  Arg_List a = func_def->arg_list;
+  char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
+  m_bool is_obj = 0;
+  m_bool is_ref = 0;
 
   if(func->code)
     CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name))) // LCOV_EXCL_LINE
@@ -1672,15 +1674,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   emit->env->func = func;
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
-  char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
   sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : "", func->name);
   emit->code->name = strdup(c);
   emit->code->need_this = GET_FLAG(func, ae_flag_member);
   emit->code->filename = strdup(emit->filename);
-
-  Arg_List a = func_def->arg_list;
-  m_bool is_obj = 0;
-  m_bool is_ref = 0;
 
   if(GET_FLAG(func, ae_flag_member)) {
     emit->code->stack_depth += SZ_INT;
@@ -1757,6 +1754,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Type type = class_def->type;
   m_bool ret = 1;
   Class_Body body = class_def->body;
+  char c[strlen(type->name) + 7];
 
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
@@ -1764,12 +1762,10 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
       CHECK_BB(err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name)) // LCOV_EXCL_LINE
   }
   memset(type->info->class_data, 0, type->info->class_data_size);
-  // set the class
   vector_add(emit->env->class_stack, (vtype)emit->env->class_def);
   emit->env->class_def = type;
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
-  char c[strlen(type->name) + 7];
   sprintf(c, "class %s", type->name);
   emit->code->name = strdup(c);
 
@@ -1798,12 +1794,9 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
     sadd_instr(emit, Func_Return);
     free_vm_code(type->info->pre_ctor);
     type->info->pre_ctor = emit_code(emit);
-    /*    type->info->pre_ctor->ADD_REF();*/
   } else
     free(type->info->class_data); // LCOV_EXCL_LINE
   emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
-  // delete the code
-  //    SAFE_DELETE(emit->code);
   emit->code = (Code*)vector_pop(emit->stack);
   return ret;
 }

@@ -49,34 +49,34 @@ Instr add_instr(Emitter emit, f_instr f);
 
 INSTR(EOC);
 
-void Reg_Push_Me(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Now(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Maybe(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Reg_Push_Me);
+INSTR(Reg_Push_Now);
+INSTR(Reg_Push_Maybe);
 
-/* stacking */
-void Reg_Pop_Word4(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Imm(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem_Addr(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Imm2(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_ImmX(VM* vm, VM_Shred shred, Instr instr);
-void Mem_Push_Imm(VM* vm, VM_Shred shred, Instr instr);
-void Mem_Set_Imm(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem2(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem_Complex(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem_Vec3(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Mem_Vec4(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Ptr(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Push_Code(VM* vm, VM_Shred shred, Instr instr);
-void Reg_Dup_Last(VM* vm, VM_Shred shred, Instr instr);
-void Reg_AddRef_Object3(VM* vm, VM_Shred shred, Instr instr);
+/* staking */
+INSTR(Reg_Pop_Word4);
+INSTR(Reg_Push_Imm);
+INSTR(Reg_Push_Mem_Addr);
+INSTR(Reg_Push_Imm2);
+INSTR(Reg_Push_ImmX);
+INSTR(Mem_Push_Imm);
+INSTR(Mem_Set_Imm);
+INSTR(Reg_Push_Mem);
+INSTR(Reg_Push_Mem2);
+INSTR(Reg_Push_Mem_Complex);
+INSTR(Reg_Push_Mem_Vec3);
+INSTR(Reg_Push_Mem_Vec4);
+INSTR(Reg_Push_Ptr);
+INSTR(Reg_Push_Code);
+INSTR(Reg_Dup_Last);
+INSTR(Reg_AddRef_Object3);
 
-/* branching */
-void Branch_Switch(VM* vm, VM_Shred shred, Instr instr);
-void Branch_Eq_Int(VM* vm, VM_Shred shred, Instr instr);
-void Branch_Neq_Int(VM* vm, VM_Shred shred, Instr instr);
-void Branch_Eq_Float(VM* vm, VM_Shred shred, Instr instr);
-void Branch_Neq_Float(VM* vm, VM_Shred shred, Instr instr);
+/* braching */
+INSTR(Branch_Switch);
+INSTR(Branch_Eq_Int);
+INSTR(Branch_Neq_Int);
+INSTR(Branch_Eq_Float);
+INSTR(Branch_Neq_Float);
 INSTR(Init_Loop_Counter);
 INSTR(Reg_Push_Deref);
 INSTR(Dec_int_Addr);
@@ -121,25 +121,23 @@ INSTR(Assign_Object);
 INSTR(Alloc_Member_Word);
 INSTR(Alloc_Member_Word_Float);
 INSTR(Alloc_Member_Word_Complex);
-void Alloc_Member_Word_Vec3(VM* vm, VM_Shred shred, Instr instr);
-void Alloc_Member_Word_Vec4(VM* vm, VM_Shred shred, Instr instr);
-//INSTR(Alloc_Dot_Static_Data);
+INSTR(Alloc_Member_Word_Vec3);
+INSTR(Alloc_Member_Word_Vec4);
 INSTR(Dot_Static_Data);
 INSTR(Dot_Static_Import_Data);
 INSTR(Exp_Dot_Data);
-void Release_Object2(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Release_Object2);
 
 /* array */
 INSTR(Instr_Pre_Ctor_Array_Top);
 INSTR(Instr_Pre_Ctor_Array_Bottom);
 INSTR(Instr_Pre_Ctor_Array_Post);
-void Instr_Array_Init(VM* vm, VM_Shred shred, Instr instr);
-void Instr_Array_Alloc(VM* vm, VM_Shred shred, Instr instr);
-void Instr_Array_Access(VM* vm, VM_Shred shred, Instr instr);
-void Instr_Array_Access_Multi(VM* vm, VM_Shred shred, Instr instr);
-extern INSTR(Array_Append);
-//void member_function(VM* vm, VM_Shred shred, Instr instr);
-void assign_func(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Instr_Array_Init);
+INSTR(Instr_Array_Alloc);
+INSTR(Instr_Array_Access);
+INSTR(Instr_Array_Access_Multi);
+INSTR(Array_Append);
+INSTR(assign_func);
 INSTR(MkVararg);
 INSTR(Vararg_start);
 INSTR(Vararg_end);
