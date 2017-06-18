@@ -71,6 +71,8 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   Arg_List arg_list = ptr->args;
   Value v;
 
+  if(nspc_lookup_func(env->curr, ptr->xid, -1))
+    CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", S_name(ptr->xid)))
   nspc_push_value(env->curr);
   while(arg_list) {
     if(arg_list->type->size == 0) {

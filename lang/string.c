@@ -604,6 +604,8 @@ static MFUN(string_replace) {
     RETURN->d.v_object = NULL;
     return;
   }
+  if(index > len)
+    index = len - 1;
   char c[index + len_insert + 1];
   for(i = 0; i < index; i++)
     c[i] = str[i];
@@ -627,21 +629,18 @@ static MFUN(string_replaceN) {
   char insert[strlen(STRING(arg)) + 1];
   memset(insert, 0, len + 1);
   strcpy(insert, STRING(arg));
-  len = strlen(STRING(arg));
+  len = strlen(str);
+  str[len] = '\0';
+  if(index > len)
+	    index = len - 1;
   char c[len + _len];
-  for(i = 0; i < index; i++) {
-printf("(1) %li\n", i);
+  for(i = 0; i < index; i++)
     c[i] = str[i];
-}
-  for(i = 0; i < _len; i++){
-printf("(2) %li\n", i+ index);
+  for(i = 0; i < _len; i++)
     c[i + index] = insert[i];
-}
-  for(i = index + _len; i < len; i++){
-printf("(3) %li\n", i);
+  for(i = index + _len; i < len; i++)
     c[i] = str[i];
-}
-  c[len + len] = '\0';
+  c[len + _len-1] = '\0';
 printf("(3) %s\n", c);
   release(arg, shred);
   RETURN->d.v_object = new_String(shred,c);;
