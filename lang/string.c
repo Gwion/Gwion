@@ -253,7 +253,7 @@ static INSTR(Object_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
-  char str[11 + strlen(STRING(rhs))];
+  char str[11 + (rhs ? strlen(STRING(rhs)) : 0)];
   sprintf(str, "0x%08lu%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
   *(M_Object*)shred->reg = new_String(shred,str);
   PUSH_REG(shred, SZ_INT);
@@ -829,7 +829,7 @@ static MFUN(string_erase) {
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   m_int rem = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int len = strlen(str);
-  m_uint size = len - rem + 1;
+  m_int size = len - rem + 1;
   if(start >= len || size <= 0) {
     RETURN->d.v_object = NULL;
     return;
