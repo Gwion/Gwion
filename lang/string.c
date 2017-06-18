@@ -31,7 +31,7 @@ static INSTR(Int_String_Assign) {
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
   if(!rhs)
     Except(shred, "NullStringException.");
-  char str[num_digit(abs(lhs)) + strlen(STRING(rhs)) + 2];
+  char str[num_digit(labs(lhs)) + strlen(STRING(rhs)) + 2];
   sprintf(str, "%li", lhs);
   STRING(rhs) = S_name(insert_symbol(str));
   *(M_Object*)shred->reg = rhs;
@@ -594,10 +594,13 @@ static MFUN(string_replace) {
   }
   char insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
-  while(str[len] != '\0')
-    len++;
+  len = strlen(str);
   len_insert =  strlen(insert);
-  if(index < 0 || !len || (index + len_insert + 1) <= 0) {
+  if(index < 0 || len < 0 || (index + len_insert + 1) <= 0) {
+    RETURN->d.v_object = NULL;
+    return;
+  }
+  if(index + len + len_insert + 1 > 100000) {
     RETURN->d.v_object = NULL;
     return;
   }
@@ -617,23 +620,29 @@ static MFUN(string_replaceN) {
   m_int i, len = 0, index = *(m_int*)(shred->mem + SZ_INT);
   M_Object arg = *(M_Object*)(shred->mem + SZ_INT * 3);
   m_int _len = *(m_int*)(shred->mem + SZ_INT * 2);
-  if(!arg) {
+  if(!arg || index > strlen(STRING(o)) || _len > strlen(STRING(arg))) {
     RETURN->d.v_object = NULL;
     return;
   }
   char insert[strlen(STRING(arg)) + 1];
+  memset(insert, 0, len + 1);
   strcpy(insert, STRING(arg));
-  while(str[len] != '\0')
-    len++;
-  len = len > index + _len ? len : index + _len;
-  char c[len + 1];
-  for(i = 0; i < index; i++)
+  len = strlen(STRING(arg));
+  char c[len + _len];
+  for(i = 0; i < index; i++) {
+printf("(1) %li\n", i);
     c[i] = str[i];
-  for(i = 0; i < _len; i++)
+}
+  for(i = 0; i < _len; i++){
+printf("(2) %li\n", i+ index);
     c[i + index] = insert[i];
-  for(i = index + _len; i < len; i++)
+}
+  for(i = index + _len; i < len; i++){
+printf("(3) %li\n", i);
     c[i] = str[i];
-  c[len] = '\0';
+}
+  c[len + len] = '\0';
+printf("(3) %s\n", c);
   release(arg, shred);
   RETURN->d.v_object = new_String(shred,c);;
 }
@@ -821,8 +830,8 @@ static MFUN(string_erase) {
   m_int start = *(m_int*)(shred->mem + SZ_INT);
   m_int rem = *(m_int*)(shred->mem + SZ_INT * 2);
   m_int len = strlen(str);
-  m_uint size = len -rem + 1;
-  if((len-rem+1) <= 0) {
+  m_uint size = len - rem + 1;
+  if(start >= len || size <= 0) {
     RETURN->d.v_object = NULL;
     return;
   }
