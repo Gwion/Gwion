@@ -206,6 +206,7 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(value, ae_flag_static);
       value->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += type->size;
+//      decl->self->meta = ae_meta_value; // ? /18/06/17
     }
     SET_FLAG(list->self->value, ae_flag_checked);
     if(!env->class_def || env->class_scope)
@@ -932,8 +933,13 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
   }
 
   if(binary->op == op_at_chuck) {
-    if(isa(binary->lhs->type, &t_null) > 0 && isa(binary->rhs->type, &t_object) > 0)
+    if(isa(binary->lhs->type, &t_null) > 0 && isa(binary->rhs->type, &t_object) > 0) {
+      if(cr->exp_type == ae_exp_decl && !cr->d.exp_decl.type->ref) {
+        CHECK_BO(err_msg(TYPE_, cr->pos, "can't 'NULL' assign declaration."))
+		return NULL;
+      }
       return cl->type;
+    }
   }
 
   while(cr) {
@@ -1531,7 +1537,7 @@ static m_bool check_stmt_list(Env env, Stmt_List list) {
 
 m_bool check_func_def(Env env, Func_Def f) {
 #ifdef DEBUG_TYPE
-  debug_msg("check", "func def '%s'", f->func->name);
+  debug_msg("check", "func def '%s'", S_name(f->name));
 #endif
   Value value = NULL;
   Func func = NULL;
