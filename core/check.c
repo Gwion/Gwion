@@ -994,6 +994,7 @@ static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
      CHECK_BO(err_msg(TYPE_, postfix->exp->pos,
        "postfix operator '%s' cannot be used on non-mutable data-type...", op2str(postfix->op)))
   postfix->exp->emit_var = 1;
+  postfix->self->meta = ae_meta_value;
   if(!(ret = get_return_type(env, postfix->op, t, NULL)))
     err_msg(TYPE_, postfix->pos,
      "no suitable resolutation for postfix operator '%s' on type '%s'...",  op2str(postfix->op), t->name);
