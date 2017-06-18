@@ -1,4 +1,4 @@
-INC      = ../../include
+INC      = ../../include ${SOUNDPIPE_INC}
 CC       ?= gcc
 
 SRC = ${NAME}.c
