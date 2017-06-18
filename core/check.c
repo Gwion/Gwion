@@ -803,7 +803,9 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer"))
     if(r_nspc && !l_nspc)
       CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer"))
-    if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
+    if(!f1 || !f2)
+      CHECK_BO(err_msg(TYPE_, binary->pos, "function not found."))
+   if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
       CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
         f1->def->ret_type->name, f2->def->ret_type->name))
     for(i = 0; i <= v->func_num_overloads; i++) {

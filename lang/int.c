@@ -177,15 +177,16 @@ static INSTR(int_r_times) {
 
 static INSTR(int_r_divide) {
   POP_REG(shred, SZ_INT * 2);
-  if(!*(m_int*)(shred->reg)) {
+  if(!*(m_int*)(shred->reg))
     Except(shred, "ZeroDivideException")
-  }
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) /= (*(m_int*)shred->reg));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_modulo) {
   POP_REG(shred, SZ_INT * 2);
+  if(!*(m_int*)(shred->reg))
+    Except(shred, "ZeroDivideException")
   *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) %= (*(m_int*)shred->reg));
   PUSH_REG(shred,  SZ_INT);
 }
