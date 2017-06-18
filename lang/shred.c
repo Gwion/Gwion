@@ -92,7 +92,6 @@ static DTOR(shred_dtor) {
 
 m_bool import_shred(Env env) {
   DL_Func* fun;
-  DL_Value* arg;
 
   CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
 
@@ -112,7 +111,7 @@ m_bool import_shred(Env env) {
   CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("Shred", "fromId", (m_uint)vm_shred_from_id);
-  arg = dl_func_add_arg(fun, "int", "arg1");
+    dl_func_add_arg(fun, "int", "arg1");
   CHECK_OB((import_sfun(env, fun)))
 
   fun = new_dl_func("void", "yield", (m_uint)shred_yield);
@@ -122,7 +121,7 @@ m_bool import_shred(Env env) {
   CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("string", "arg", (m_uint)shred_arg);
-  dl_func_add_arg(fun, "int", "n");
+    dl_func_add_arg(fun, "int", "n");
   CHECK_OB((import_mfun(env, fun)))
 
   fun = new_dl_func("string", "path", (m_uint)shred_path);
