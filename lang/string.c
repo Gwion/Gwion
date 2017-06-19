@@ -641,7 +641,6 @@ static MFUN(string_replaceN) {
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
   c[len + _len-1] = '\0';
-printf("(3) %s\n", c);
   release(arg, shred);
   RETURN->d.v_object = new_String(shred,c);;
 }

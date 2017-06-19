@@ -283,9 +283,12 @@ static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
     REM_REF(env->class_def);
     return NULL;
   }
-  CHECK_FN(scan1_func_def(env, func_def))
-  CHECK_FN(scan2_func_def(env, func_def))
-  CHECK_FN(check_func_def(env, func_def))
+  if(scan1_func_def(env, func_def) < 0 ||
+        scan2_func_def(env, func_def) < 0 ||
+       !check_func_def(env, func_def)) {
+    free_func_def(func_def);
+    return NULL;
+  }
   return func_def->d.func;
 }
 

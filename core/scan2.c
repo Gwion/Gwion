@@ -605,17 +605,16 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       overload->func_num_overloads++;
     else
       nspc_add_value(env->curr, insert_symbol(orig_name), value);
-    sprintf(name, "%s<template>@%li@%s", S_name(f->name),
+    snprintf(name, len, "%s<template>@%li@%s", S_name(f->name),
             overload ? overload->func_num_overloads : 0, env->curr->name);
     nspc_add_value(env->curr, insert_symbol(name), value);
     return 1;
   }
 
-  if(overload && !GET_FLAG(f, ae_flag_template)) {
-    len = strlen(func_name) + ((overload->func_num_overloads + 1) % 10) + strlen(env->curr->name) + 3;
-    snprintf(name, len + 1, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
-  } else
-    snprintf(name, len + 1, "%s@0@%s", func_name, env->curr->name);
+  if(overload && !GET_FLAG(f, ae_flag_template))
+    snprintf(name, len, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
+  else
+    snprintf(name, len, "%s@0@%s", func_name, env->curr->name);
   func_name = strdup(name);
   func = new_func(func_name, f);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
