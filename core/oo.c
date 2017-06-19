@@ -27,10 +27,17 @@ Func new_func(m_str name, Func_Def def) {
   func->name = name;
   func->def = def;
   INIT_OO(func, e_func_obj);
+printf("new func '%s' %s\n", name, S_name(def->name));
   return func;
 }
 
 static void free_func(Func a) {
+  if(GET_FLAG(a->def, ae_flag_template)) {
+    printf("show me: %p %i\n", a->value_ref, a->obj.ref_count);
+    
+    ;  /*exit(3);*/
+
+  }
   if(a->code) {
     if(a->def && !GET_FLAG(a->def, ae_flag_template)) {
       if(!GET_FLAG(a->def, ae_flag_dtor)) {

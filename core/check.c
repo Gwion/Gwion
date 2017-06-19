@@ -1583,7 +1583,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   m_bool parent_match = 0;
   m_str func_name;
   m_uint count = 1;
-
+m_bool ret = 1;
   if(f->types) // templating, check at call time
     return 1;
   func = f->d.func;
@@ -1675,11 +1675,11 @@ m_bool check_func_def(Env env, Func_Def f) {
   while(arg_list) {
     v = arg_list->var_decl->value;
     if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0)) {
-      err_msg(TYPE_, arg_list->pos,
+      ret = err_msg(TYPE_, arg_list->pos,
           "argument %i '%s' is already defined in this scope\n"
           "\tin function '%s':",
           count, S_name(arg_list->var_decl->xid), S_name(f->name));
-      goto error;
+      break;
     }
     SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
@@ -1692,21 +1692,19 @@ m_bool check_func_def(Env env, Func_Def f) {
     SET_FLAG(vararg, ae_flag_checked);
     nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
   }
-  if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0) {
-    err_msg(TYPE_, f->type_decl->pos, "...in function '%s'", S_name(f->name));
-    goto error;
-  }
+  if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
+    ret = err_msg(TYPE_, f->type_decl->pos,
+        "...in function '%s'", S_name(f->name));
 
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
+  if(vararg) {
+    REM_REF(vararg);
+    scope_rem(env->curr->value, insert_symbol("vararg"));
+  }
   nspc_pop_value(env->curr);
   env->func = NULL;
-  return 1;
-
-error:
-  nspc_pop_value(env->curr);
-  env->func = NULL;
-  return -1;
+  return ret;
 }
 
 static m_bool check_class_def(Env env, Class_Def class_def) {

@@ -463,9 +463,12 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       list = list->next;
     }
     SET_FLAG(def, ae_flag_template);
-    CHECK_BB(scan1_func_def(emit->env, def))
+    /*Nspc curr = emit->env->curr;*/
+/*emit->env->curr = exp_func->m_func->value_ref->owner;*/
+CHECK_BB(scan1_func_def(emit->env, def))
       CHECK_BB(scan2_func_def(emit->env, def))
       CHECK_BB(check_func_def(emit->env, def))
+      /*emit->env->curr = curr;*/
       nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
       emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
