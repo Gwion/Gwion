@@ -23,7 +23,6 @@ void dl_return_push(const DL_Return retval, VM_Shred shred, int kind);
 typedef void (*f_xtor)(M_Object o, VM_Shred sh);
 typedef void (*f_mfun)(M_Object o, DL_Return * RETURN, VM_Shred sh);
 typedef void (*f_sfun)(DL_Return * RETURN, VM_Shred sh);
-typedef m_bool(*f_init)(Env env);
 
 typedef struct {
   m_str name;

@@ -66,7 +66,10 @@ static SFUN(machine_check) {
   filename = randstring(shred->vm_ref, 12);
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s", prefix, filename);
-  if(!(file = fopen(c, "w"))) return;
+  if(!(file = fopen(c, "w"))) {
+    free(filename);
+    return;
+  }
   fprintf(file, "%s\n", STRING(code_obj));
   release(code_obj, shred);
   fclose(file);
@@ -99,7 +102,10 @@ static SFUN(machine_compile) {
   char c[strlen(prefix) + 17];
   filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s.gw", prefix, filename);
-  if(!(file = fopen(c, "w"))) return;
+  if(!(file = fopen(c, "w"))) {
+    free(filename);
+    return;
+  }
   fprintf(file, "%s\n", STRING(code_obj));
   release(code_obj, shred);
   fclose(file);

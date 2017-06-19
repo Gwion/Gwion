@@ -632,6 +632,8 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   call = add_instr(emit, Instr_Exp_Func);
   call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
   if(GET_FLAG(func->def, ae_flag_builtin)) {
+    if(!func->code->native_func)
+      CHECK_BB(err_msg(EMIT_, func->def->pos, "missing native func. are you trying to spork?"))
     if(GET_FLAG(func, ae_flag_member))
       call->execute = Instr_Exp_Func_Member;
     else

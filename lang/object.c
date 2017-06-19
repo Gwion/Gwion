@@ -44,7 +44,8 @@ m_bool initialize_object(M_Object object, Type type) {
   return 1;
 
 out_of_memory: // LCOV_EXCL_START
-  err_msg(TYPE_, 0, "OutOfMemory: while instantiating object '%s'\n", type->name);
+  err_msg(TYPE_, 0,
+      "OutOfMemory: while instantiating object '%s'\n", type->name);
   return -1;
 }             // LCOV_EXCL_STOP
 
@@ -69,12 +70,13 @@ void release(M_Object obj, VM_Shred shred) {
         if(t->info->dtor->native_func)
           ((f_xtor)t->info->dtor->native_func)(obj, shred);
         else {
-          VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]", "[in code dtor exec]");
+          VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
+              "[dtor]", "[in code dtor exec]");
           VM_Shred sh = new_vm_shred(code);
           sh->me = new_shred(shred->vm_ref, sh);
           memcpy(sh->mem, shred->mem, SIZEOF_MEM);
           vector_pop(code->instr);
-          Instr eoc = malloc(sizeof(Instr));
+          Instr eoc = malloc(sizeof(struct Instr_));
           eoc->execute = EOC;
           vector_add(code->instr, (vtype)eoc);
           vm_add_shred(shred->vm_ref, sh);
@@ -93,7 +95,8 @@ static DTOR(object_dtor) {
 
 INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "assign object %lu %p %p", instr->m_val, *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
+  debug_msg("instr", "assign object %lu %p %p", instr->m_val,
+      *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
 #endif
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
