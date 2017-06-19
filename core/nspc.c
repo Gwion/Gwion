@@ -73,8 +73,10 @@ void free_nspc(Nspc a) {
             Vector instr = new_vector();
             VM_Code code = new_vm_code(instr, 0, 0, "in nspc dtor", "");
             VM_Shred s = new_vm_shred(code);
+            M_Object obj = value->ptr ? (M_Object)value->ptr :
+			    *(M_Object*)(a->class_data + value->offset);
             s->vm_ref = vm;
-            release(((M_Object)value->ptr), s);
+            release(obj, s);
             free_vm_shred(s);
             free_vector(instr);
           }

@@ -379,20 +379,25 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
         if(is_obj && !is_ref) {
           emit->code = (Code*)vector_back(emit->stack);
           CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-        Instr push = add_instr(emit, Reg_Push_Imm);
-        push->m_val = (m_uint)emit->env->class_def;
-        alloc = add_instr(emit, Dot_Static_Data);
-        alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-        *(m_uint*)alloc->ptr = 1;
-        Instr assign  = add_instr(emit, Assign_Object);
-        assign->m_val = 0;
-        add_instr(emit, Reg_AddRef_Object3);
-        emit->code = code;
+            Instr push = add_instr(emit, Reg_Push_Imm);
+          push->m_val = (m_uint)emit->env->class_def;
+          alloc = add_instr(emit, Dot_Static_Data);
+          alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
+          *(m_uint*)alloc->ptr = 1;
+          alloc->m_val = value->offset;
+          Instr assign  = add_instr(emit, Assign_Object);
+          assign->m_val = 0;
+            /*add_instr(emit, Reg_AddRef_Object3);*/
+            emit->code = code;
         }
         Instr push = add_instr(emit, Reg_Push_Imm);
         push->m_val = (m_uint)emit->env->class_def;
         alloc = add_instr(emit, Dot_Static_Data);
         alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
+        *(m_uint*)alloc->ptr = 1;
+        alloc->m_val = value->offset;
+        list = list->next;
+        continue;
       }
     }
     alloc->m_val = value->offset;
@@ -532,7 +537,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
 
-  if(binary->lhs->type->array_depth || binary->rhs->type->array_depth) {
+  if(binary->lhs->type->array_depth && binary->rhs->type->array_depth) {
     if(binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
       sadd_instr(emit, Assign_Object);
     return 1;

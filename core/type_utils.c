@@ -90,7 +90,7 @@ m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data
     return -1;
   if(is_const)
     SET_FLAG(v, ae_flag_const);
-  SET_FLAG(v, ae_flag_checked | ae_flag_global);
+  SET_FLAG(v, ae_flag_checked | ae_flag_global | ae_flag_builtin);
   if(data)
     v->ptr = data;
   v->owner = env->global_nspc;

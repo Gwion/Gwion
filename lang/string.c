@@ -282,6 +282,7 @@ static INSTR(String_Plus) {
   STRING(rhs) = S_name(insert_symbol(c));
   *(M_Object*)shred->reg = rhs;
   PUSH_REG(shred, SZ_INT);
+  release(lhs, shred);
   release(rhs, shred);
 }
 
@@ -398,8 +399,11 @@ static INSTR(Object_String_Plus) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)shred->reg;
   M_Object rhs = **(M_Object**)(shred->reg + SZ_INT);
-  if(!rhs)
+  if(!rhs) {
+    if(lhs)
+      release(rhs, shred);
     Except(shred,"NullStringException")
+  }
   m_uint len = strlen(STRING(rhs)) + 11;
   char c[len+1];
   c[len] = '\0';

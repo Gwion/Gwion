@@ -56,8 +56,8 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(list->self->value, ae_flag_global);
     list->self->value->ptr = list->self->addr;
     nspc_add_value(env->curr, list->self->xid, list->self->value);
-    if(!env->class_def && !env->func) // doc ?
-      context_add_value(env->context, list->self->value, &list->self->value->obj);
+    /*if(!env->class_def && !env->func) // doc ?*/
+    /*context_add_value(env->context, list->self->value, &list->self->value->obj);*/
     list = list->next;
   }
   return 1;

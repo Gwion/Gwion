@@ -268,6 +268,7 @@ int main(int argc, char** argv) {
       }
       free_vector(add);
       free_vector(rem);
+      free_vector(plug_dirs);
       exit(0);
     }
   }
