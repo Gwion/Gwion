@@ -237,7 +237,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   return arg_list;
 }
 
-Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
+static Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   Func_Def func_def = NULL;
   ae_flag func_decl = ae_flag_func;
   ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;

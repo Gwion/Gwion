@@ -599,7 +599,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
       return m_func;
     }
 next:
-    ;
+    if(!def->d.func)
+      free_func_def(def);
   }
   if(v->owner_class) {
     env->class_def = (Type)vector_pop(env->class_stack);
