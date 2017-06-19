@@ -165,7 +165,7 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
   exp_decl = new_exp_decl(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) ||
+  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(is_const)
