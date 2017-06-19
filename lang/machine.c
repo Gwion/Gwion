@@ -64,7 +64,6 @@ static SFUN(machine_check) {
     return;
   char c[strlen(prefix) + 17];
   filename = randstring(shred->vm_ref, 12);
-  filename = randstring(shred->vm_ref, 12);
   sprintf(c, "%s/%s", prefix, filename);
   if(!(file = fopen(c, "w"))) {
     free(filename);
