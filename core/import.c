@@ -165,9 +165,8 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
   exp_decl = new_exp_decl(type_decl, var_decl_list, is_static, 0);
   var_decl->addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0)
-    goto error;
-  if(scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
+  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) ||
+     scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(is_const)
     SET_FLAG(var_decl->value, ae_flag_const);
@@ -237,7 +236,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   return arg_list;
 }
 
-Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
+static Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
   Func_Def func_def = NULL;
   ae_flag func_decl = ae_flag_func;
   ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;

@@ -632,7 +632,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   call = add_instr(emit, Instr_Exp_Func);
   call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
   if(GET_FLAG(func->def, ae_flag_builtin)) {
-    if(!func->code->native_func)
+    if(!func->code || !func->code->native_func)
       CHECK_BB(err_msg(EMIT_, func->def->pos, "missing native func. are you trying to spork?"))
     if(GET_FLAG(func, ae_flag_member))
       call->execute = Instr_Exp_Func_Member;
@@ -698,9 +698,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
+  ADD_REF(exp->m_func)
   CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
-    ADD_REF(exp->m_func)
-    return 1;
+  return 1;
 }
 
 static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
