@@ -12,7 +12,7 @@ Context new_context(Ast prog, m_str filename) {
   context->filename = filename;
   context->new_funcs = new_vector();
   context->new_values = new_vector();
-  context->new_types = new_vector();
+//  context->new_types = new_vector();
   context->public_class_def = NULL;
   INIT_OO(context, e_context_obj);
   return context;
@@ -49,7 +49,7 @@ void free_context(Context a) {
 
   }
   free_vector(a->new_values);
-  free_vector(a->new_types);
+//  free_vector(a->new_types);
   REM_REF(a->nspc);
   free(a);
 }

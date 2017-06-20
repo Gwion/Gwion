@@ -19,7 +19,16 @@ Vector new_vector() {
   v->ptr[1] = MAP_CAP;
   return v;
 }
+/*
+void vector_init(struct Vector_ v) {
+  v.ptr = calloc(MAP_CAP, sizeof(vtype));
+  v.ptr[1] = MAP_CAP;
+}
 
+void vector_release(struct Vector_ v){
+  free(v.ptr);
+}
+*/
 void vector_add(Vector v, vtype data) {
   if(!(v->ptr[1] - v->ptr[0] - OFFSET))
     v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
