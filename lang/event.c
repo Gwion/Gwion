@@ -14,9 +14,6 @@ static void event_dtor(M_Object o, VM_Shred shred) {
 }
 
 INSTR(Time_Advance) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "time advance %f %f", *(m_float*)(shred->reg - SZ_FLOAT*2), *(m_float*)(shred->reg - SZ_FLOAT));
-#endif
   POP_REG(shred, SZ_FLOAT * 2);
   shred->wake_time += *(m_float*)shred->reg;
   shred->is_running = 0;
@@ -26,9 +23,6 @@ INSTR(Time_Advance) {
 }
 
 static INSTR(Event_Wait) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "event wait: blocking shred %i", shred->xid);
-#endif
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)shred->reg;
@@ -46,9 +40,6 @@ static INSTR(Event_Wait) {
 }
 
 static MFUN(event_signal) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "event signal");
-#endif
   VM_Shred sh;
   Vector v = EV_SHREDS(o);
   RETURN->d.v_uint = vector_size(v);
@@ -73,9 +64,6 @@ void broadcast(M_Object o) {
 }
 
 static MFUN(event_broadcast) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "event signal");
-#endif
   broadcast(o);
 }
 

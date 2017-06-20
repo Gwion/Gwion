@@ -50,9 +50,11 @@ struct VM_Shred_ {
   M_Object wait;
   Vector gc;
   Vector gc1;
+/*
 #ifdef DEBUG_STACK
   m_int mem_index, reg_index;
 #endif
+*/
   m_float wake_time;
 };
 

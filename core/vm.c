@@ -11,7 +11,8 @@
 #include "shreduler.h"
 
 void udp_do(VM* vm);
-VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename) {
+VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
+    m_str name, m_str filename) {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
   code->instr            = instr ?  vector_copy(instr) : NULL;
   code->stack_depth      = stack_depth;
@@ -29,24 +30,24 @@ void free_vm_code(VM_Code a) {
     free((void*)vector_back(a->instr));
     free_vector(a->instr);
   } else if(a->instr) {
-    for(i = 0; i < vector_size(a->instr); i++) {
-      Instr instr = (Instr)vector_at(a->instr, i);
-      if(instr->execute == Instr_Array_Init || instr->execute == Instr_Array_Alloc)
+    for(i = vector_size(a->instr) + 1; --i;) {
+      Instr instr = (Instr)vector_at(a->instr, i - 1);
+      if(instr->execute == Instr_Array_Init ||
+          instr->execute == Instr_Array_Alloc)
         free(*(VM_Array_Info**)instr->ptr);
       else if(instr->execute == Gack) {
         m_uint j;
         Vector v = *(Vector*)instr->ptr;
-        for(j = 0; j < vector_size(v); j++)
-		  REM_REF(((Type)vector_at(v, j)));
+        for(j = vector_size(v) + 1; --j;)
+          REM_REF(((Type)vector_at(v, j - 1)));
         free_vector(v);
-      }
-      else if(instr->execute == Branch_Switch)
+      } else if(instr->execute == Branch_Switch)
         free_map(*(Map*)instr->ptr);
-      else if(instr->execute == Spork && instr->m_val2) {
-          REM_REF(((Func)instr->m_val2))
+      else if(instr->execute == Spork) {
+        REM_REF(((Func)instr->m_val2))
       } else if(instr->execute == Init_Loop_Counter)
         free((m_int*)instr->m_val);
-      free((Instr)vector_at(a->instr, i));
+      free(instr);
     }
     free_vector(a->instr);
   }
@@ -77,7 +78,8 @@ void free_vm_shred(VM_Shred shred) {
   else
     free(shred->base);
   free(shred->_reg);
-  if(!strcmp(shred->code->filename, shred->code->name) || (!shred->filename && !strstr(shred->code->name, "spork")))
+  if(!strcmp(shred->code->filename, shred->code->name) ||
+      (!shred->filename && !strstr(shred->code->name, "spork")))
       /*|| (!shred->filename && !strcmp(shred->code->name, "in nspc dtor")))*/
     free_vm_code(shred->code);
   free(shred->name);
@@ -151,8 +153,9 @@ void vm_run(VM* vm) {
   Instr    instr;
   while((shred = shreduler_get(vm->shreduler))) {
 #ifdef DEBUG_VM
-    debug_msg("vm", "shred [%i]: stack: {%i:%i}. pc: (%i,%i / %i)", shred->xid, *shred->reg,
-              *shred->mem, shred->pc, shred->next_pc, vector_size(shred->code->instr));
+    debug_msg("vm", "shred [%i]: stack: {%i:%i}. pc: (%i,%i / %i)",
+        shred->xid, *shred->reg, *shred->mem, shred->pc,
+        shred->next_pc, vector_size(shred->code->instr));
 #endif
     while(shred->is_running) {
       shred->pc = shred->next_pc;
@@ -176,7 +179,8 @@ void vm_run(VM* vm) {
                 shred->mem - shred->_mem, shred->reg - shred->_reg);
 #endif
 #ifdef DEBUG_VM
-      debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc, shred->next_pc, vector_size(shred->code->instr));
+      debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc,
+          shred->next_pc, vector_size(shred->code->instr));
 #endif
       if(shred->is_done) {
         if(shreduler_remove(vm->shreduler, shred, 1) < 0) {
