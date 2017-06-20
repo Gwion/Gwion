@@ -59,7 +59,7 @@ void release(M_Object obj, VM_Shred shred) {
       debug_msg("instr", "dtor loop %p %s", obj, t->name);
 #endif
       m_uint i;
-      Vector v = scope_get(t->info->value);
+      Vector v = scope_get(&t->info->value);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
         if(isprim(value->m_type) < 0)

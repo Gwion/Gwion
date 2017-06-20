@@ -1846,7 +1846,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   // handle func pointer
   for(i = 0; i < vector_size(emit->funcs); i++) {
     Stmt_Ptr ptr = (Stmt_Ptr)vector_at(emit->funcs, i);
-    scope_rem(emit->env->curr->func, ptr->xid);
+    scope_rem(&emit->env->curr->func, ptr->xid);
   }
   emit_pop_scope(emit);
   if(ret < 0) { // should free all stack.

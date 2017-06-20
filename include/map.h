@@ -26,6 +26,7 @@ extern void vector_clear(Vector vector);
 extern void free_vector(Vector vector);
 
 extern Map   new_map();
+extern void  map_init();
 extern vtype map_get(Map map, vtype key);
 extern vtype map_at(Map map, const vtype index);
 //extern vtype map_key(Map map, const vtype index);
@@ -35,6 +36,7 @@ extern void  map_commit(Map map, Map commit);
 //extern void  map_rollback(Map map, void (*_free)(vtype));
 extern vtype map_size(Map map);
 extern void  free_map(Map map);
+extern void  map_release(Map map);
 
 extern Scope  new_scope();
 extern Vector scope_get(Scope a);

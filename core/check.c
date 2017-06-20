@@ -1463,7 +1463,7 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   Stmt_Goto_Label ref;
   if(stmt->is_label)
     return 1;
-  m = (Map)map_get(env->curr->label, (vtype)key);
+  m = (Map)map_get(&env->curr->label, (vtype)key);
   if(!m)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
           "label '%s' used but not defined", S_name(stmt->name)))
@@ -1701,7 +1701,7 @@ m_bool ret = 1;
     func->code->stack_depth = f->stack_depth;
   if(vararg) {
     REM_REF(vararg);
-    scope_rem(env->curr->value, insert_symbol("vararg"));
+    scope_rem(&env->curr->value, insert_symbol("vararg"));
   }
   nspc_pop_value(env->curr);
   env->func = NULL;
