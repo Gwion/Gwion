@@ -15,7 +15,7 @@
 Instr add_instr(Emitter emit, f_instr f) {
   Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;
-  vector_add(emit->code->code, (vtype)instr);
+  vector_add(&emit->code->code, (vtype)instr);
   return instr;
 }
 
