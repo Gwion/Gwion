@@ -5,11 +5,11 @@
 
 struct Emitter_ {
   Env       env;
-  Vector    stack;
-  Vector    funcs;
-  Map       cases;
   m_int	    default_case_index;
   m_str filename;
+  Map       cases; // passed to instr: is a pointer
+  struct Vector_    stack;
+  struct Vector_    funcs;
   struct Code_*     code;
   struct VM_Object_ obj;
 };

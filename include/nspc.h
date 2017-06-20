@@ -2,22 +2,23 @@
 #include "vm.h"
 #include "operator.h"
 #include "oo.h"
-#include "../core/map_private.h"
+#include "map_private.h"
+
 struct Nspc_ {
   m_str     name;
   m_str     filename;
-  Map       label; // 09/09/16
   m_uint    offset;
-  Vector    obj_v_table;
   Nspc parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
   char*		class_data;
   m_uint    class_data_size;
-  Map      	op_map;
-  struct Scope_ value;
-  struct Scope_ type;
-  struct Scope_ func;
+  struct Vector_    obj_v_table;
+  struct Map_      	op_map;
+  struct Map_       label;
+  struct Scope_     value;
+  struct Scope_     type;
+  struct Scope_     func;
   struct VM_Object_ obj;
 };
 

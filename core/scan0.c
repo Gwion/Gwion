@@ -79,9 +79,9 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
 
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
-  vector_add(env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_add(env->class_stack, (vtype)env->class_def);
+  vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 
@@ -98,8 +98,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     body = body->next;
   }
 
-  env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (Nspc)vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
 
   if(ret) {
     Value value;
@@ -110,7 +110,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     value->owner = env->curr;
     SET_FLAG(value, ae_flag_const | ae_flag_checked);
     nspc_add_value(env->curr, insert_symbol(value->name), value);
-    vector_add(env->context->new_values, (vtype)value);
+    vector_add(&env->context->new_values, (vtype)value);
     class_def->type = the_class;
   }
   return ret;

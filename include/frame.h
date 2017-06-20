@@ -1,6 +1,8 @@
 #ifndef FRAME_H
 #define FRAME_H
 #include "defs.h"
+#include "oo.h"
+#include "map_private.h"
 typedef struct {
   m_str name;
   m_uint size;
@@ -12,7 +14,7 @@ typedef struct {
 typedef struct {
   m_str name;
   m_uint curr_offset;
-  Vector stack;
+  struct Vector_ stack;
 } Frame;
 
 Frame* new_frame();

@@ -115,6 +115,11 @@ Map new_map() {
   return map;
 }
 
+void map_init(Map a) {
+  a->ptr = calloc(MAP_CAP, sizeof(vtype));
+  a->ptr[1] = MAP_CAP;
+}
+
 vtype map_get(Map map, vtype key) {
   vtype i;
   for(i = 0; i < map->ptr[0]; i++)
@@ -172,6 +177,10 @@ vtype map_size(Map map) {
 void free_map(Map map) {
   free(map->ptr);
   free(map);
+}
+
+void map_release(Map map) {
+  free(map->ptr);
 }
 
 struct Scope_ {
@@ -237,25 +246,10 @@ void scope_pop(Scope scope) {
   vector_pop(&scope->vector);
 }
 
-Scope new_scope() {
-  Scope a = malloc(sizeof(struct Scope_));
-  vector_init((Vector)&a->commit_map);
-  vector_init(&a->vector);
-  scope_push(a);
-  return a;
-}
-
 void scope_init(Scope a) {
   vector_init((Vector)&a->commit_map);
   vector_init(&a->vector);
   scope_push(a);
-}
-
-void free_scope(Scope a) {
-  free_map((Map)vector_front(&a->vector));
-  vector_release(&a->vector);
-  vector_release((Vector)&a->commit_map);
-  free(a);
 }
 
 void scope_release(Scope a) {

@@ -43,15 +43,14 @@ Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   a->filename        = filename;
-  a->label           = new_map();
   a->class_data_size = 0;
   a->offset          = 0;
   a->class_data      = NULL;
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
-//  a->obj_v_table     = new_vector();
-  a->op_map          = NULL;
+  vector_init(&a->obj_v_table);
+  map_init(&a->label);
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);
@@ -113,18 +112,18 @@ void free_nspc(Nspc a) {
   free_vector(v);
   scope_release(&a->type);
 
-  for(i = 0; i < map_size(a->label); i++)
-    free_map((Map)map_at(a->label, i));
-  free_map(a->label);
+  for(i = 0; i < map_size(&a->label); i++)
+    free_map((Map)map_at(&a->label, i));
+  map_release(&a->label);
   if(a->class_data)
     free(a->class_data);
-  if(a->obj_v_table)
-    free_vector(a->obj_v_table);
+  if(a->obj_v_table.ptr)
+    vector_release(&a->obj_v_table);
   if(a->pre_ctor)
     free_vm_code(a->pre_ctor);
   if(a->dtor)
     free_vm_code(a->dtor);
-  if(a->op_map)
-    free_op_map(a->op_map);
+  if(a->op_map.ptr)
+    free_op_map(&a->op_map);
   free(a);
 }

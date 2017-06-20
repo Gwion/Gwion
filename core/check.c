@@ -56,8 +56,8 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
           if(import(env) > 0)
             vector_add(vm->plug, (vtype)handler);
           else {
-            env->class_def = (Type)vector_pop(env->class_stack);
-            env->curr = (Nspc)vector_pop(env->nspc_stack);
+            env->class_def = (Type)vector_pop(&env->class_stack);
+            env->curr = (Nspc)vector_pop(&env->nspc_stack);
             dlclose(handler);
             goto next;
           }
@@ -139,7 +139,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   nspc_commit(env->global_nspc);
 
   nspc_commit(env->context->nspc);
-  map_set(env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
+  map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
   /*  env->user_nspc = new_nspc();*/
@@ -543,9 +543,9 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     digit = num_digit(v->func_num_overloads + 1);
   len = strlen(v->name) + strlen(env->curr->name);
   if(v->owner_class) {
-    vector_add(env->nspc_stack, (vtype)env->curr);
+    vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = v->owner_class->info;
-    vector_add(env->class_stack, (vtype)env->class_def);
+    vector_add(&env->class_stack, (vtype)env->class_def);
     env->class_def = v->owner_class;
     env->class_scope = 0; // should keep former value somewhere
   }
@@ -591,8 +591,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     m_func = find_func_match(def->d.func, args);
     if(m_func) {
       if(v->owner_class) {
-        env->class_def = (Type)vector_pop(env->class_stack);
-        env->curr = (Nspc)vector_pop(env->nspc_stack);
+        env->class_def = (Type)vector_pop(&env->class_stack);
+        env->curr = (Nspc)vector_pop(&env->nspc_stack);
       }
       SET_FLAG(m_func, ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
@@ -603,8 +603,8 @@ next:
       free_func_def(def);
   }
   if(v->owner_class) {
-    env->class_def = (Type)vector_pop(env->class_stack);
-    env->curr = (Nspc)vector_pop(env->nspc_stack);
+    env->class_def = (Type)vector_pop(&env->class_stack);
+    env->curr = (Nspc)vector_pop(&env->nspc_stack);
   }
   return NULL;
 }
@@ -1309,11 +1309,11 @@ static m_bool check_stmt_while(Env env, Stmt_While stmt) {
         CHECK_BB(err_msg(TYPE_,  stmt->cond->pos,
               "invalid type '%s' in while condition", stmt->cond->type->name))
     }
-  vector_add(env->breaks, (vtype)stmt->self);
-  vector_add(env->conts, (vtype)stmt->self);
+  vector_add(&env->breaks, (vtype)stmt->self);
+  vector_add(&env->conts, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
-    vector_pop(env->breaks);
-  vector_pop(env->conts);
+  vector_pop(&env->breaks);
+  vector_pop(&env->conts);
   return 1;
 }
 
@@ -1330,9 +1330,9 @@ static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
         CHECK_BB(err_msg(TYPE_,  stmt->cond->pos,
               "invalid type '%s' in until condition", stmt->cond->type->name))
     }
-  vector_add(env->breaks, (vtype)stmt->self);
+  vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
-    vector_pop(env->breaks);
+  vector_pop(&env->breaks);
   return 1;
 }
 
@@ -1359,9 +1359,9 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
 
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
-      vector_add(env->breaks, (vtype)stmt->self);
+  vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
-    vector_pop(env->breaks);
+  vector_pop(&env->breaks);
   return 1;
 }
 
@@ -1375,9 +1375,9 @@ static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
       CHECK_BB(err_msg(TYPE_, stmt->pos,
             "loop * conditional must be of type 'int'..."))
     }
-  vector_add(env->breaks, (vtype)stmt->self);
+  vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
-    vector_pop(env->breaks);
+    vector_pop(&env->breaks);
   return 1;
 }
 
@@ -1421,14 +1421,14 @@ static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
 }
 
 static m_bool check_stmt_continue(Env env, Stmt_Continue cont) {
-  if(!vector_size(env->breaks))
+  if(!vector_size(&env->breaks))
     CHECK_BB(err_msg(TYPE_,  cont->pos,
           "'continue' found outside of for/while/until..."))
       return 1;
 }
 
 static m_bool check_stmt_break(Env env, Stmt_Break cont) {
-  if(!vector_size(env->breaks))
+  if(!vector_size(&env->breaks))
     CHECK_BB(err_msg(TYPE_,  cont->pos,
           "'break' found outside of for/while/until..."))
       return 1;
@@ -1440,10 +1440,10 @@ static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
     CHECK_BB(err_msg(TYPE_, a->pos,
           "invalid type '%s' in switch expression. should be 'int'",
           t ? t->name : "unknown"))
-      vector_add(env->breaks, (vtype)a->self);
+      vector_add(&env->breaks, (vtype)a->self);
   if(check_stmt(env, a->stmt) < 0)
     CHECK_BB(err_msg(TYPE_, a->val->pos, "\t... in switch statement"))
-      vector_pop(env->breaks);
+      vector_pop(&env->breaks);
   return 1;
 }
 
@@ -1463,7 +1463,7 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   Stmt_Goto_Label ref;
   if(stmt->is_label)
     return 1;
-  m = (Map)map_get(env->curr->label, (vtype)key);
+  m = (Map)map_get(&env->curr->label, (vtype)key);
   if(!m)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
           "label '%s' used but not defined", S_name(stmt->name)))
@@ -1656,7 +1656,7 @@ m_bool ret = 1;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
-          vector_set(env->curr->obj_v_table, func->vt_index, (vtype)func);
+          vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
           free(func->name);
           func_name = strdup(parent_func->name);
           func->name = func_name;
@@ -1667,8 +1667,8 @@ m_bool ret = 1;
     }
   }
   if(GET_FLAG(func, ae_flag_member) && !parent_match) {
-    func->vt_index = vector_size(env->curr->obj_v_table);
-    vector_add(env->curr->obj_v_table, (vtype)func);
+    func->vt_index = vector_size(&env->curr->obj_v_table);
+    vector_add(&env->curr->obj_v_table, (vtype)func);
   }
   env->func = func;
   nspc_push_value(env->curr);
@@ -1741,10 +1741,10 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   the_class = class_def->type;
   the_class->parent = t_parent;
   the_class->info->offset = t_parent->obj_size;
-  vector_copy2(t_parent->info->obj_v_table, the_class->info->obj_v_table);
-  vector_add(env->nspc_stack, (vtype)env->curr);
+  vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_add(env->class_stack, (vtype)env->class_def);
+  vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 
@@ -1768,8 +1768,8 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     }
     body = body->next;
   }
-  env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (Nspc)vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;
@@ -1812,7 +1812,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
 cleanup:
   if(ret > 0) {
     nspc_commit(env->global_nspc);
-    map_set(env->known_ctx,
+    map_set(&env->known_ctx,
         (vtype)insert_symbol(context->filename), (vtype)context);
   } else {
     //    nspc_rollback(env->global_nspc);

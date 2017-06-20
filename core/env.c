@@ -7,31 +7,31 @@ Env new_env() {
   Env env = calloc(1, sizeof(struct Env_));
   env->global_context = new_context(NULL, "global_context");
   env->context = env->global_context;
-  env->contexts = new_vector();
-  env->class_stack = new_vector();
-  env->nspc_stack = new_vector();
   env->class_scope = 0;
   env->global_nspc = new_nspc("global_nspc", "global_nspc");
   env->curr = env->global_nspc;
-  env->breaks = new_vector();
-  env->conts = new_vector();
 //  env->user_nspc = NULL;
-  env->known_ctx = new_map();
-  env_reset(env);
-  env->type_xid = te_last;
+  vector_init(&env->breaks);
+  vector_init(&env->conts);
+  vector_init(&env->contexts);
+  vector_init(&env->class_stack);
+  vector_init(&env->nspc_stack);
+  map_init(&env->known_ctx);
+  env->type_xid = te_last; // ????????
   INIT_OO(env, e_env_obj);
+  env_reset(env);
   return env;
 }
 
 void env_reset(Env env) {
-  vector_clear(env->nspc_stack);
-  vector_add(env->nspc_stack, (vtype)env->global_nspc);
+  vector_clear(&env->nspc_stack);
+  vector_add(&env->nspc_stack, (vtype)env->global_nspc);
 
 //  if(env->user_nspc)
 //    vector_add(env->nspc_stack, (vtype)env->user_nspc);
 
-  vector_clear(env->class_stack);
-  vector_add(env->class_stack, (vtype)NULL);
+  vector_clear(&env->class_stack);
+  vector_add(&env->class_stack, (vtype)NULL);
 
 //  if(env->user_nspc)
 //    env->curr = env->user_nspc;
@@ -45,21 +45,21 @@ void env_reset(Env env) {
 void free_env(Env a) {
   m_uint i;
   free(a->global_context->tree);
-  for(i = 0; i < map_size(a->known_ctx); i++) {
-    Context ctx = (Context)map_at(a->known_ctx, i);
+  for(i = 0; i < map_size(&a->known_ctx); i++) {
+    Context ctx = (Context)map_at(&a->known_ctx, i);
     REM_REF(ctx);
   }
-  free_vector(a->contexts);
-  free_map(a->known_ctx);
+  vector_release(&a->contexts);
+  map_release(&a->known_ctx);
 
-  for(i = 0; i < vector_size(a->nspc_stack); i++) {
-    Nspc  nspc = (Nspc)vector_pop(a->nspc_stack);
+  for(i = 0; i < vector_size(&a->nspc_stack); i++) {
+    Nspc  nspc = (Nspc)vector_pop(&a->nspc_stack);
     REM_REF(nspc);
   }
-  free_vector(a->nspc_stack);
-  free_vector(a->class_stack);
-  free_vector(a->breaks);
-  free_vector(a->conts);
+  vector_release(&a->nspc_stack);
+  vector_release(&a->class_stack);
+  vector_release(&a->breaks);
+  vector_release(&a->conts);
   free(a);
 }
 

@@ -20,12 +20,11 @@ const m_str op2str(Operator op) {
   return op_str[op];
 }
 
-static Map new_op_map() {
+static void op_map_init(Map a) {
   m_uint i;
-  Map map = new_map();
+  map_init(a);
   for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
-    map_set(map, (vtype)operators[i], (vtype)new_vector());
-  return map;
+    map_set(a, (vtype)operators[i], (vtype)new_vector());
 }
 
 static void free_op(M_Operator* a) {
@@ -46,7 +45,7 @@ void free_op_map(Map map) {
       free_op((M_Operator*)vector_at(v, j));
     free_vector(v);
   }
-  free_map(map);
+  map_release(map);
 }
 
 static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
@@ -68,10 +67,10 @@ m_bool env_add_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f,
   if(global)
     nspc = env->global_nspc;
 
-  if(!nspc->op_map)
-    nspc->op_map = new_op_map();
+  if(!nspc->op_map.ptr)
+    op_map_init(&nspc->op_map);
 
-  if(!(v = (Vector)map_get(nspc->op_map, (vtype)op))) {
+  if(!(v = (Vector)map_get(&nspc->op_map, (vtype)op))) {
     err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
             op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
     return -1;
@@ -101,13 +100,13 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
   Nspc nspc = env->curr;
 
   while(nspc) {
-    if(nspc->op_map) {
+    if(nspc->op_map.ptr) {
       Type l =lhs;
       do{
         Type r =rhs;
         do{
           M_Operator* mo;
-          Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
+          Vector v = (Vector)map_get(&nspc->op_map, (vtype)op);
           if((mo = operator_find(v, l, r)))
             return mo->ret;
         } while(r && (r = r->parent));
@@ -121,7 +120,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
   Nspc nspc = env->curr;
   M_Operator* mo;
-  Vector v = (Vector)map_get(nspc->op_map, (vtype)name2op(S_name(f->def->name)));
+  Vector v = (Vector)map_get(&nspc->op_map, (vtype)name2op(S_name(f->def->name)));
   mo = operator_find(v, lhs, rhs);
   mo->func = f;
   return 1;
@@ -136,7 +135,7 @@ Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
       Type r = rhs;
       do{
         M_Operator* mo;
-        Vector v = (Vector)map_get(nspc->op_map, (vtype)op);
+        Vector v = (Vector)map_get(&nspc->op_map, (vtype)op);
         if((mo = operator_find(v, l, r))) {
           Instr instr;
           if(mo->func) {
