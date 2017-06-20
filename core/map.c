@@ -10,7 +10,6 @@ struct Vector_ {
 };
 
 struct Map_ {
-  vtype* key;
   vtype* ptr;
   vtype len;
   vtype cap;
