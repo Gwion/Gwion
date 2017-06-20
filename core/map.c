@@ -245,11 +245,23 @@ Scope new_scope() {
   return a;
 }
 
+void scope_init(Scope a) {
+  vector_init((Vector)&a->commit_map);
+  vector_init(&a->vector);
+  scope_push(a);
+}
+
 void free_scope(Scope a) {
   free_map((Map)vector_front(&a->vector));
   vector_release(&a->vector);
   vector_release((Vector)&a->commit_map);
   free(a);
+}
+
+void scope_release(Scope a) {
+  free_map((Map)vector_front(&a->vector));
+  vector_release(&a->vector);
+  vector_release((Vector)&a->commit_map);
 }
 
 Vector scope_get(Scope s) {

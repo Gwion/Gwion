@@ -2,13 +2,10 @@
 #include "vm.h"
 #include "operator.h"
 #include "oo.h"
-
+#include "../core/map_private.h"
 struct Nspc_ {
   m_str     name;
   m_str     filename;
-  Scope     value;
-  Scope     type;
-  Scope     func;
   Map       label; // 09/09/16
   m_uint    offset;
   Vector    obj_v_table;
@@ -18,6 +15,9 @@ struct Nspc_ {
   char*		class_data;
   m_uint    class_data_size;
   Map      	op_map;
+  struct Scope_ value;
+  struct Scope_ type;
+  struct Scope_ func;
   struct VM_Object_ obj;
 };
 
@@ -32,31 +32,31 @@ extern void  nspc_commit(Nspc nspc);
 extern void  nspc_rollback(Nspc nspc);
 
 static inline void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
-  scope_add(nspc->value, xid, (vtype)value);
+  scope_add(&nspc->value, xid, (vtype)value);
 }
 static inline void  nspc_push_value(Nspc nspc) {
-  scope_push(nspc->value);
+  scope_push(&nspc->value);
 }
 static inline void  nspc_pop_value(Nspc nspc) {
-  scope_pop(nspc->value);
+  scope_pop(&nspc->value);
 }
 
 static inline void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
-  scope_add(nspc->func, xid, (vtype)value);
+  scope_add(&nspc->func, xid, (vtype)value);
 }
 static inline void nspc_push_func(Nspc nspc) {
-  scope_push(nspc->func);
+  scope_push(&nspc->func);
 }
 static inline void nspc_pop_func(Nspc nspc) {
-  scope_pop(nspc->func);
+  scope_pop(&nspc->func);
 }
 
 static inline void  nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {
-  scope_add(nspc->type, xid, (vtype)value);
+  scope_add(&nspc->type, xid, (vtype)value);
 }
 static inline void  nspc_push_type(Nspc nspc) {
-  scope_push(nspc->type);
+  scope_push(&nspc->type);
 }
 static inline void nspc_pop_type(Nspc nspc) {
-  scope_pop(nspc->type);
+  scope_pop(&nspc->type);
 }

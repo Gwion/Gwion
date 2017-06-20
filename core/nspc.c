@@ -13,39 +13,36 @@ void set_nspc_vm(VM* _vm) {
 }
 
 Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Value v = (Value)scope_lookup(nspc->value, xid, climb);
+  Value v = (Value)scope_lookup(&nspc->value, xid, climb);
   if(climb > 0 && !v && nspc->parent)
     v = nspc_lookup_value(nspc->parent, xid, climb);
   return v;
 }
 
 Type nspc_lookup_type(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Type t = (Type)scope_lookup(nspc->type, xid, climb);
+  Type t = (Type)scope_lookup(&nspc->type, xid, climb);
   if(climb > 0 && !t && nspc->parent)
     t = (Type)nspc_lookup_type(nspc->parent, xid, climb);
   return t;
 }
 
 Func nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Func t = (Func)scope_lookup(nspc->func, xid, climb);
+  Func t = (Func)scope_lookup(&nspc->func, xid, climb);
   if(climb > 0 && !t && nspc->parent)
     t = (Func)nspc_lookup_func(nspc->parent, xid, climb);
   return t;
 }
 
 void nspc_commit(Nspc nspc) {
-  scope_commit(nspc->value);
-  scope_commit(nspc->func);
-  scope_commit(nspc->type);
+  scope_commit(&nspc->value);
+  scope_commit(&nspc->func);
+  scope_commit(&nspc->type);
 }
 
 Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   a->filename        = filename;
-  a->value           = new_scope();
-  a->type            = new_scope();
-  a->func            = new_scope();
   a->label           = new_map();
   a->class_data_size = 0;
   a->offset          = 0;
@@ -53,15 +50,18 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
-  a->obj_v_table     = new_vector();
+//  a->obj_v_table     = new_vector();
   a->op_map          = NULL;
+  scope_init(&a->value);
+  scope_init(&a->type);
+  scope_init(&a->func);
   INIT_OO(a, e_nspc_obj);
   return a;
 }
 
 void free_nspc(Nspc a) {
   m_uint i;
-  Vector v = scope_get(a->value);
+  Vector v = scope_get(&a->value);
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
 
@@ -94,24 +94,24 @@ void free_nspc(Nspc a) {
     REM_REF(value);
   }
   free_vector(v);
-  free_scope(a->value);
+  scope_release(&a->value);
 
 
-  v = scope_get(a->func);
+  v = scope_get(&a->func);
   for(i = 0; i < vector_size(v); i++) {
     Func func = (Func)vector_at(v, i);
     REM_REF(func);
   }
   free_vector(v);
-  free_scope(a->func);
+  scope_release(&a->func);
 
-  v = scope_get(a->type);
+  v = scope_get(&a->type);
   for(i =vector_size(v); i > 0; i--) {
     Type type = (Type)vector_at(v, i-1);
     REM_REF(type);
   }
   free_vector(v);
-  free_scope(a->type);
+  scope_release(&a->type);
 
   for(i = 0; i < map_size(a->label); i++)
     free_map((Map)map_at(a->label, i));

@@ -1701,7 +1701,7 @@ m_bool ret = 1;
     func->code->stack_depth = f->stack_depth;
   if(vararg) {
     REM_REF(vararg);
-    scope_rem(env->curr->value, insert_symbol("vararg"));
+    scope_rem(&env->curr->value, insert_symbol("vararg"));
   }
   nspc_pop_value(env->curr);
   env->func = NULL;
