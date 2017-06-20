@@ -5,6 +5,7 @@
 #include <complex.h>
 #include "defs.h"
 #include "vm.h"
+#include "map_private.h"
 
 typedef struct DL_Return {
   union {
@@ -34,7 +35,7 @@ typedef struct {
 typedef struct {
   m_str name;
   m_str type;
-  Vector args;
+  struct Vector_ args;
   union {
     f_xtor ctor;
     f_xtor dtor;

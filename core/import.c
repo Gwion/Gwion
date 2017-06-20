@@ -199,11 +199,11 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   m_uint array_depth2 = 0;
   m_int i = 0, j;
 
-  if(dl_fun->args)
-  for(i = vector_size(dl_fun->args) - 1; i >= 0; i--) {
+  if(dl_fun->args.ptr)
+  for(i = vector_size(&dl_fun->args) - 1; i >= 0; i--) {
     array_depth = array_depth2 = 0;
     array_sub = NULL;
-    arg = (DL_Value*)vector_at(dl_fun->args, i);
+    arg = (DL_Value*)vector_at(&dl_fun->args, i);
     type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
       err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
