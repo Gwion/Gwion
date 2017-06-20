@@ -14,8 +14,8 @@ struct Nspc_ {
   VM_Code   dtor;
   char*		class_data;
   m_uint    class_data_size;
-  Map      	op_map;
-  struct Map_       label; // 09/09/16
+  struct Map_      	op_map;
+  struct Map_       label;
   struct Scope_     value;
   struct Scope_     type;
   struct Scope_     func;

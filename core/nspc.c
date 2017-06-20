@@ -50,7 +50,6 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
   a->obj_v_table     = new_vector();
-  a->op_map          = NULL;
   map_init(&a->label);
   scope_init(&a->value);
   scope_init(&a->type);
@@ -124,7 +123,7 @@ void free_nspc(Nspc a) {
     free_vm_code(a->pre_ctor);
   if(a->dtor)
     free_vm_code(a->dtor);
-  if(a->op_map)
-    free_op_map(a->op_map);
+  if(a->op_map.ptr)
+    free_op_map(&a->op_map);
   free(a);
 }
