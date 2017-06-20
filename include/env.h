@@ -14,7 +14,6 @@ struct Env_ {
   Context   context;
   Type      class_def;
   Func      func;
-  Map known_ctx;
   Exp_Func* current; // template helper
   m_uint type_xid;
   struct Vector_    contexts;
@@ -22,6 +21,7 @@ struct Env_ {
   struct Vector_    class_stack;
   struct Vector_    breaks;
   struct Vector_    conts;
+  struct Map_       known_ctx;
   struct VM_Object_ obj;
   m_bool do_type_xid;
 };

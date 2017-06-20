@@ -139,7 +139,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   nspc_commit(env->global_nspc);
 
   nspc_commit(env->context->nspc);
-  map_set(env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
+  map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
   /*  env->user_nspc = new_nspc();*/
@@ -1812,7 +1812,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
 cleanup:
   if(ret > 0) {
     nspc_commit(env->global_nspc);
-    map_set(env->known_ctx,
+    map_set(&env->known_ctx,
         (vtype)insert_symbol(context->filename), (vtype)context);
   } else {
     //    nspc_rollback(env->global_nspc);
