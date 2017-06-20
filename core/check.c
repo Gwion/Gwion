@@ -828,7 +828,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   // check for arrays
   if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left && isa(lhs->type->array_type, rhs->type) > 0)
     return lhs->type;
-  if((lhs->type->array_depth || rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
+  if((lhs->type->array_depth && rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
     return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
     return check_exp_call1(env, rhs, lhs, &binary->func, binary->pos);
