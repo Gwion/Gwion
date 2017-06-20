@@ -243,7 +243,7 @@ static Type check_exp_prim_array(Env env, Exp_Primary *exp) {
           e = e->next;
         }
   t = new_array_type(env, type->array_depth + 1,
-      type->array_depth ? type->array_type : type,  env->curr);
+      type->array_depth ? type->d.array_type : type,  env->curr);
   exp->d.array->type = t;
   return t;
 }
@@ -438,7 +438,7 @@ Type check_exp_array(Env env, Exp_Array* array) {
     CHECK_BO(err_msg(TYPE_, array->pos, "invalid array acces expression."))
 
       if(depth == t_base->array_depth)
-        t = array->base->type->array_type;
+        t = array->base->type->d.array_type;
       else {
         t = type_copy(env, array->base->type);
         t->array_depth -= depth;
@@ -826,7 +826,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   return NULL;
   }
   // check for arrays
-  if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left && isa(lhs->type->array_type, rhs->type) > 0)
+  if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left &&
+        isa(lhs->type->d.array_type, rhs->type) > 0)
     return lhs->type;
   if((lhs->type->array_depth && rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
     return rhs->type;
@@ -880,7 +881,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
                 op2str(binary->op), cl->type->name, cr->type->name))
         }
         if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-          if(isa(cl->type->array_type, cr->type->array_type) < 0)
+          if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
             CHECK_BO(err_msg(TYPE_, binary->pos, "array types do not match."))
               if(cl->type->array_depth != cr->type->array_depth)
                 CHECK_BO(err_msg(TYPE_, binary->pos, "array depths do not match."))
@@ -1048,7 +1049,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
       CHECK_OO(check_exp(env, call->func))
         t = call->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
-        t = t->actual_type;
+        t = t->d.actual_type;
       v = find_value(t, call->func->d.exp_dot.xid);
       if(!v->func_ref->def->types)
         CHECK_BO(err_msg(TYPE_, call->pos,
@@ -1170,7 +1171,7 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   if(!member->t_base)
     return NULL;
   base_static = member->t_base->xid == t_class.xid;
-  the_base = base_static ? member->t_base->actual_type : member->t_base;
+  the_base = base_static ? member->t_base->d.actual_type : member->t_base;
 
   if(!the_base->info)
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
