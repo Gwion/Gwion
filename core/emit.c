@@ -905,7 +905,7 @@ static m_bool emit_stmt_code(Emitter emit, Stmt_Code stmt, m_bool push) {
 
 static void emit_func_release(Emitter emit) {
   m_uint i;
-  Vector v = emit->code->frame->stack;
+  Vector v = &emit->code->frame->stack;
   for(i = vector_size(v) - 1; i; i--) {
     Local* l = (Local*)vector_at(v, i);
     if(!l)

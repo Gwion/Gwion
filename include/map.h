@@ -41,6 +41,7 @@ extern void  free_map(Map map);
 extern void  map_release(Map map);
 
 extern Scope  new_scope();
+extern void   scope_init(Scope v);
 extern Vector scope_get(Scope a);
 extern vtype  scope_lookup(Scope scope, S_Symbol xid, m_bool climb);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
@@ -50,4 +51,5 @@ extern void   scope_commit(Scope scope);
 extern void   scope_push(Scope scope);
 extern void   scope_pop(Scope scope);
 extern void   free_scope(Scope a);
+extern void   scope_release(Scope a);
 #endif
