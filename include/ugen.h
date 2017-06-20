@@ -5,7 +5,7 @@ struct UGen_ {
   m_float in, out, last;
   m_int op;
 //  union {
-  Vector ugen, to; // store connected UGens
+  struct Vector_ ugen, to; // store connected UGens
   M_Object* channel;
 //  };
   M_Object trig;
