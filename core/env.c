@@ -67,7 +67,7 @@ m_bool env_add_type(Env env, Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
   Type v_type = type_copy(env, &t_class);
-  v_type->actual_type = type;
+  v_type->d.actual_type = type;
   INIT_OO(type, e_type_obj);
   SET_FLAG(type, ae_flag_builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);

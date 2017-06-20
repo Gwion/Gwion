@@ -27,11 +27,11 @@ __inline static void free_array_sub(Array_Sub a) {
 static void free_var_decl(Var_Decl a) {
   if(a->value) {
     if(GET_FLAG(a->value, ae_flag_arg)) { // func argument. this migth change
-      if(a->value->m_type->array_type)
+      if(a->value->m_type->d.array_type)
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     } else if(!a->value->owner_class) { // breaks for loop ?
-      if(a->value->m_type->array_type)
+      if(a->value->m_type->d.array_type)
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     }
@@ -560,7 +560,7 @@ void free_func_def(Func_Def a) {
   if(!GET_FLAG(a, ae_flag_template)) {
     if(a->types)
       free_id_list(a->types);
-    if(a->ret_type && a->ret_type->array_type)
+    if(a->ret_type && a->ret_type->d.array_type)
       REM_REF(a->ret_type);
     if(a->arg_list)
       free_arg_list(a->arg_list);

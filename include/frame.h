@@ -12,7 +12,6 @@ typedef struct {
 typedef struct {
   m_str name;
   m_uint curr_offset;
-  m_uint num_access;
   Vector stack;
 } Frame;
 

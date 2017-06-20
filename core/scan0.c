@@ -15,7 +15,7 @@ static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   t->info = new_nspc(name, env->context->filename);
   nspc_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
-  type->actual_type = t;
+  type->d.actual_type = t;
   v = new_value(type, name);
   v->owner = env->curr;
   SET_FLAG(v, ae_flag_const | ae_flag_checked);
@@ -105,7 +105,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     Value value;
     Type  type;
     type = type_copy(env, &t_class);
-    type->actual_type = the_class;
+    type->d.actual_type = the_class;
     value = new_value(type, the_class->name);
     value->owner = env->curr;
     SET_FLAG(value, ae_flag_const | ae_flag_checked);

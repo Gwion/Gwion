@@ -96,13 +96,13 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
       VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
     info->type = type;
-    info->is_obj = isa(type->array_type, &t_object) > 0 ? 1 : 0;
+    info->is_obj = isa(type->d.array_type, &t_object) > 0 ? 1 : 0;
     info->stack_offset = emit->code->frame->curr_offset;
     info->is_ref = is_ref;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
     if(!is_ref && info->is_obj)
-      emit_pre_constructor_array(emit, type->array_type);
+      emit_pre_constructor_array(emit, type->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
@@ -195,7 +195,7 @@ static m_bool emit_exp_prim_array(Emitter emit, Array_Sub array) {
   info->type = type;
   info->length = count;
   *(VM_Array_Info**)instr->ptr = info;
-  instr->m_val2 = kindof(type->array_type);
+  instr->m_val2 = kindof(type->d.array_type);
   return 1;
 }
 
@@ -225,7 +225,7 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
     } else {
       instr = add_instr(emit, Instr_Array_Access_Multi);
       instr->m_val = depth;
-      instr->m_val2 = kindof(array->base->type->array_type);
+      instr->m_val2 = kindof(array->base->type->d.array_type);
       *(m_uint*)instr->ptr = is_var || type->array_depth;
     }
   return 1;
@@ -531,7 +531,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 
   // arrays
   if(binary->op == op_shift_left && (binary->lhs->type->array_depth == binary->rhs->type->array_depth + 1)
-      && isa(binary->lhs->type->array_type, binary->rhs->type) > 0) {
+      && isa(binary->lhs->type->d.array_type, binary->rhs->type) > 0) {
     instr = add_instr(emit, Array_Append);
     instr->m_val = kindof(binary->rhs->type);
     return 1;
@@ -1293,7 +1293,8 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
       }
     }
   } else if(stmt->val->exp_type == ae_exp_dot) {
-    t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ? stmt->val->d.exp_dot.t_base->actual_type : stmt->val->d.exp_dot.t_base;
+    t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
+            stmt->val->d.exp_dot.t_base->d.actual_type : stmt->val->d.exp_dot.t_base;
     v = find_value(t, stmt->val->d.exp_dot.xid);
     value = GET_FLAG(v, ae_flag_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
   } else {
@@ -1453,7 +1454,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   Value value = NULL;
   m_uint offset = 0;
 
-  t_base = base_static ? member->t_base->actual_type : member->t_base;
+  t_base = base_static ? member->t_base->d.actual_type : member->t_base;
   if(t_base->xid == t_complex.xid) {
     if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;

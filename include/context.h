@@ -6,12 +6,11 @@
 struct Context_ {
   m_str     filename;
   Ast       tree;
-  Nspc nspc;
+  Nspc      nspc;
   Class_Def public_class_def;
   Vector    new_funcs;
   Vector    new_values;
   Vector    new_types;
-//  Vector    new_class;
   struct VM_Object_ obj;
 };
 

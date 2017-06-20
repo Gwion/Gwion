@@ -55,7 +55,7 @@ static void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
   if(!GET_FLAG(a, ae_flag_builtin) || a->parent == &t_int || isa(a, &t_class) > 0
-      || isa(a, &t_function) > 0 || a->array_type)
+      || isa(a, &t_function) > 0 || a->d.array_type)
     free(a);
 }
 
@@ -68,7 +68,7 @@ Type type_copy(Env env, Type type) {
   a->owner       = type->owner;
   a->func        = type->func;
   a->size        = type->size;
-  a->actual_type = type->actual_type;
+  a->d.actual_type = type->d.actual_type;
   a->array_depth = type->array_depth;
   if(GET_FLAG(type, ae_flag_checked))
     SET_FLAG(a, ae_flag_checked);

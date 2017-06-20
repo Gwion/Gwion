@@ -171,7 +171,7 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
   t->parent = &t_array;
   t->size = SZ_INT;
   t->array_depth = depth;
-  t->array_type = base_type;
+  t->d.array_type = base_type;
   t->info = t_array.info;
   ADD_REF(t->info);
   t->owner = owner_nspc;

@@ -477,7 +477,7 @@ INSTR(Gack) {
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)(shred->reg),*/
     /*      *(m_uint*)(shred->reg) ? (*(Func*)(shred->reg))->code : 0);*/
     else if(type->xid == t_class.xid)
-      fprintf(stdout, "\033[1m%s\033[0m %p", type->actual_type->name, (void*) * (Func*)(shred->reg));
+      fprintf(stdout, "\033[1m%s\033[0m %p", type->d.actual_type->name, (void*) * (Func*)(shred->reg));
     else
       fprintf(stdout, "%p", (void*) * (M_Object*)(shred->reg));
 #ifdef COLOR
@@ -1078,7 +1078,7 @@ static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top, 
   if(cap < 0)
     goto negative_array_size;
   if(capacity >= top) {
-    base = new_M_Array(type->array_type->size, cap, -capacity);
+    base = new_M_Array(type->d.array_type->size, cap, -capacity);
     if(!base)
       goto out_of_memory;
     base->type_ref=type; // /13/03/17
@@ -1141,7 +1141,7 @@ INSTR(Instr_Array_Init) { // for litteral array
     POP_REG(shred,  SZ_VEC4 * info->length);
     break;
   }
-  obj = new_M_Array(info->type->array_type->size, info->length, info->depth);
+  obj = new_M_Array(info->type->d.array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
   vector_add(shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++) {

@@ -23,7 +23,7 @@ struct Type_ {
   union {
     Type      actual_type;
     Type      array_type;
-  };
+  } d;
   Class_Def def;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
