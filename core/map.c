@@ -11,14 +11,11 @@ struct Vector_ {
 
 struct Map_ {
   vtype* ptr;
-  vtype len;
-  vtype cap;
 };
 
 Vector new_vector() {
   Vector v = malloc(sizeof(struct Vector_));
   v->ptr = calloc(MAP_CAP, sizeof(vtype));
-  v->ptr[0] = 0;
   v->ptr[1] = MAP_CAP;
   return v;
 }
@@ -102,64 +99,62 @@ void free_vector(Vector v) {
 Map new_map() {
   Map map  = malloc(sizeof(struct Map_));
   map->ptr = calloc(MAP_CAP, sizeof(vtype));
-  map->len = 0;
-  map->cap = MAP_CAP;
+  map->ptr[1] = MAP_CAP;
   return map;
 }
 
 vtype map_get(Map map, vtype key) {
   vtype i;
-  for(i = 0; i < map->len; i++)
-    if(map->ptr[i*2] == key)
-      return map->ptr[i*2+1];
+  for(i = 0; i < map->ptr[0]; i++)
+    if(map->ptr[OFFSET + i*2] == key)
+      return map->ptr[OFFSET + i*2+1];
   return 0;
 }
 
 vtype map_at(Map map, const vtype index) {
-  if(index > map->len)
+  if(index > map->ptr[0])
     return 0;
-  return map->ptr[index*2+1];
+  return map->ptr[OFFSET + index*2+1];
 }
 
 void map_set(Map map, vtype key, vtype ptr) {
   vtype i;
-  for(i = 0; i < map->len; i++) {
-    if(map->ptr[i*2] == key) {
-      map->ptr[i*2+1] = ptr;
+  for(i = 0; i < map->ptr[0]; i++) {
+    if(map->ptr[OFFSET + i*2] == key) {
+      map->ptr[OFFSET + i*2+1] = ptr;
       return;
     }
   }
-  if((map->len*2 + 1) > map->cap) {
-    map->cap = map->cap * 2;
-    map->ptr = realloc(map->ptr, map->cap * sizeof(vtype));
+  if((OFFSET + map->ptr[0]*2 + 1) > map->ptr[1]) {
+      map->ptr[1] *= 2;
+    map->ptr = realloc(map->ptr, map->ptr[1] * sizeof(vtype));
   }
-  map->ptr[map->len*2] = key;
-  map->ptr[map->len*2+1] = ptr;
-  map->len++;
+  map->ptr[OFFSET + map->ptr[0]*2] = key;
+  map->ptr[OFFSET + map->ptr[0]*2+1] = ptr;
+  map->ptr[0]++;
 }
 
 void map_remove(Map map, vtype key) {
   vtype i;
   Map tmp = new_map();
-  for(i = 0; i < map->len; i++)
-    if(map->ptr[i*2] != key)
-      map_set(tmp, key, map->ptr[i*2+1]);
+  for(i = 0; i < map->ptr[0]; i++)
+    if(map->ptr[OFFSET + i*2] != key)
+      map_set(tmp, key, map->ptr[OFFSET + i*2+1]);
   free(map->ptr);
   map->ptr = tmp->ptr;
-  map->len = tmp->len;
-  map->cap = tmp->cap;
+  map->ptr[0] = tmp->ptr[0];
+  map->ptr[1] = tmp->ptr[1];
   free(tmp);
 }
 
 void map_commit(Map map, Map commit) {
   vtype i;
-  for(i = 0; i < commit->len; i++)
-    map_set(map, commit->ptr[i*2], commit->ptr[i*2+1]);
+  for(i = 0; i < commit->ptr[0]; i++)
+    map_set(map, commit->ptr[OFFSET + i*2], commit->ptr[OFFSET + i*2+1]);
 }
 
 vtype map_size(Map map) {
-//  return map->ptr[0];
-  return map->len;
+  return map->ptr[0];
 }
 
 void free_map(Map map) {
@@ -253,11 +248,11 @@ Vector scope_get(Scope s) {
   Vector ret = new_vector();
   for(j = 0; j < vector_size(s->vector); j++) {
     Map map = (Map)vector_at(s->vector, j);
-    for(i = 0; i < map->len; i++)
-      vector_add(ret, map->ptr[i*2+1]);
+    for(i = 0; i < map->ptr[0]; i++)
+      vector_add(ret, map->ptr[OFFSET + i*2+1]);
   }
-  for(i = 0; i < s->commit_map->len; i++)
-    vector_add(ret, (vtype)s->commit_map->ptr[i*2+1]);
+  for(i = 0; i < s->commit_map->ptr[0]; i++)
+    vector_add(ret, (vtype)s->commit_map->ptr[OFFSET + i*2+1]);
   return ret;
 }
 
