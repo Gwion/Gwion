@@ -111,8 +111,7 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
     mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->obj_size;
-    free_vector(type->info->obj_v_table);
-    type->info->obj_v_table = vector_copy(type->parent->info->obj_v_table);
+    vector_copy2(&type->info->obj_v_table, &type->parent->info->obj_v_table);
   }
 
   type->owner = where;

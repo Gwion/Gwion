@@ -1492,7 +1492,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec3);
       instr = add_instr(emit, member_function);
-      *(Vector*)instr->ptr = t_base->info->obj_v_table;
+      *(Vector*)instr->ptr = &t_base->info->obj_v_table;
       instr->m_val = value->func_ref->vt_index;
       return 1;
     }
@@ -1515,7 +1515,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     else {
       sadd_instr(emit, Reg_Dup_Last_Vec4);
       instr = add_instr(emit, member_function);
-      *(Vector*)instr->ptr = t_base->info->obj_v_table;
+      *(Vector*)instr->ptr = &t_base->info->obj_v_table;
       instr->m_val = value->func_ref->vt_index;
       return 1;
     }

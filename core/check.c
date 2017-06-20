@@ -1656,7 +1656,7 @@ m_bool ret = 1;
           }
           parent_match = 1;
           func->vt_index = parent_func->vt_index;
-          vector_set(env->curr->obj_v_table, func->vt_index, (vtype)func);
+          vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
           free(func->name);
           func_name = strdup(parent_func->name);
           func->name = func_name;
@@ -1667,8 +1667,8 @@ m_bool ret = 1;
     }
   }
   if(GET_FLAG(func, ae_flag_member) && !parent_match) {
-    func->vt_index = vector_size(env->curr->obj_v_table);
-    vector_add(env->curr->obj_v_table, (vtype)func);
+    func->vt_index = vector_size(&env->curr->obj_v_table);
+    vector_add(&env->curr->obj_v_table, (vtype)func);
   }
   env->func = func;
   nspc_push_value(env->curr);
@@ -1741,7 +1741,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   the_class = class_def->type;
   the_class->parent = t_parent;
   the_class->info->offset = t_parent->obj_size;
-  vector_copy2(t_parent->info->obj_v_table, the_class->info->obj_v_table);
+  vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
   vector_add(env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
   vector_add(env->class_stack, (vtype)env->class_def);

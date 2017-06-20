@@ -8,12 +8,12 @@ struct Nspc_ {
   m_str     name;
   m_str     filename;
   m_uint    offset;
-  Vector    obj_v_table;
   Nspc parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
   char*		class_data;
   m_uint    class_data_size;
+  struct Vector_    obj_v_table;
   struct Map_      	op_map;
   struct Map_       label;
   struct Scope_     value;

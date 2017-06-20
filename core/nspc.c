@@ -49,7 +49,7 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->parent          = NULL;
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
-  a->obj_v_table     = new_vector();
+  vector_init(&a->obj_v_table);
   map_init(&a->label);
   scope_init(&a->value);
   scope_init(&a->type);
@@ -117,8 +117,8 @@ void free_nspc(Nspc a) {
   map_release(&a->label);
   if(a->class_data)
     free(a->class_data);
-  if(a->obj_v_table)
-    free_vector(a->obj_v_table);
+  if(a->obj_v_table.ptr)
+    vector_release(&a->obj_v_table);
   if(a->pre_ctor)
     free_vm_code(a->pre_ctor);
   if(a->dtor)
