@@ -1219,20 +1219,20 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
       emit->default_case_index = vector_size(&emit->code->code);
       return 1;
     }
-    if(!stmt->data.v) {
+    if(!stmt->data.v.ptr) {
       emit->cases = NULL; // check me (mem leak?)
       CHECK_BB(err_msg(EMIT_, stmt->pos, "illegal case"))
     }
-    size = vector_size(stmt->data.v);
+    size = vector_size(&stmt->data.v);
     if(!size) {
-      free_vector(stmt->data.v);
+      free_vector(&stmt->data.v);
       CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name)))
     }
     for(i = size + 1; --i;) {
-      label = (Stmt_Goto_Label)vector_at(stmt->data.v, i - 1);
+      label = (Stmt_Goto_Label)vector_at(&stmt->data.v, i - 1);
       label->data.instr->m_val = vector_size(&emit->code->code);
     }
-    free_vector(stmt->data.v);
+    vector_release(&stmt->data.v);
   }
   return 1;
 }

@@ -1474,11 +1474,11 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
     m_uint i;
     for(i = 0; i < map_size(m); i++) {
       ref = (Stmt_Goto_Label)map_at(m, i);
-      free_vector(ref->data.v);
+      free_vector(&ref->data.v);
     }
     return -1;
   }
-  vector_add(ref->data.v, (vtype)stmt);
+  vector_add(&ref->data.v, (vtype)stmt);
   return 1;
 }
 
