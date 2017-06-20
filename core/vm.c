@@ -67,7 +67,7 @@ VM_Shred new_vm_shred(VM_Code c) {
   shred->is_running = 1;
   shred->xid        = -1;
   shred->name       = strdup(c->name);
-  shred->gc1        = new_vector();
+  vector_init(&shred->gc1);
   return shred;
 }
 
@@ -83,7 +83,7 @@ void free_vm_shred(VM_Shred shred) {
     free_vm_code(shred->code);
   free(shred->name);
   free(shred->filename);
-  free_vector(shred->gc1);
+  vector_release(&shred->gc1);
   free(shred);
 }
 

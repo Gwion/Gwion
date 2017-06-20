@@ -832,7 +832,7 @@ INSTR(Instantiate_Object) {
   debug_msg("instr", "instantiate object %p", *(m_uint*)instr->ptr);
 #endif
   instantiate_object(vm, shred, *(Type*)instr->ptr);
-  vector_add(shred->gc1, *(vtype*)(shred->reg - SZ_INT));
+  vector_add(&shred->gc1, *(vtype*)(shred->reg - SZ_INT));
 }
 
 INSTR(Alloc_Member_Word) {
@@ -1143,7 +1143,7 @@ INSTR(Instr_Array_Init) { // for litteral array
   }
   obj = new_M_Array(info->type->d.array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
-  vector_add(shred->gc, (vtype) obj);
+  vector_add(&shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++) {
     switch(instr->m_val2) {
     case Kindof_Int:
@@ -1340,14 +1340,14 @@ array_out_of_bound:
 }
 
 INSTR(start_gc) {
-  if(!shred->gc) //  dynamic assign
-    shred->gc = new_vector();
-  vector_add(shred->gc, (vtype)NULL); // enable scoping
+  if(!shred->gc.ptr) //  dynamic assign
+    vector_init(&shred->gc);
+  vector_add(&shred->gc, (vtype)NULL); // enable scoping
 }
 
 INSTR(stop_gc) {
   M_Object o;
-  while((o = (M_Object)vector_pop(shred->gc)))
+  while((o = (M_Object)vector_pop(&shred->gc)))
     release(o, shred);
 // vector_pop(shred->gc); // scoping
 // if(!vector_size(shred->gc)) // dynamic assign with scoping

@@ -19,7 +19,7 @@ M_Object new_M_Object(VM_Shred shred) {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->ref = 1;
   if(shred)
-    vector_add(shred->gc, (vtype)a);
+    vector_add(&shred->gc, (vtype)a);
   return a;
 }
 

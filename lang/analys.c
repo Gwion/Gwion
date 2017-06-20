@@ -605,7 +605,7 @@ static MFUN(fc_compute) {
   M_Object ret;
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
   ret = new_M_Array(SZ_FLOAT, vector_size(v), 1);
-  vector_add(shred->gc, (vtype)ret);
+  vector_add(&shred->gc, (vtype)ret);
   for(i = 0; i < vector_size(v); i++) {
     M_Object obj = (M_Object)vector_at(v, i);
 //    if(!obj) continue; // prevented in fc.add

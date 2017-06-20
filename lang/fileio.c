@@ -223,7 +223,7 @@ SFUN(file_list) {
   }
   Type t = new_array_type(shred->vm_ref->env, 1, &t_string, shred->vm_ref->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
-  vector_add(shred->gc, (vtype)ret);
+  vector_add(&shred->gc, (vtype)ret);
   ret->type_ref = t;
   for(i = 0; i < n; i++) {
     M_Object string = new_String(NULL, namelist[i]->d_name);

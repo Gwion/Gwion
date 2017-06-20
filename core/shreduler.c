@@ -101,13 +101,13 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
     index = vector_find(s->vm->shred, (vtype)out);
     vector_rem(s->vm->shred, index);
 // GC
-    if(out->gc) {
-      for(i = 0; i < vector_size(out->gc); i++) {
-        M_Object o = (M_Object)vector_at(out->gc, i);
+    if(out->gc.ptr) {
+      for(i = 0; i < vector_size(&out->gc); i++) {
+        M_Object o = (M_Object)vector_at(&out->gc, i);
         if(o)
           release(o, out);
       }
-      free_vector(out->gc);
+      vector_release(&out->gc);
     }
   }
   out->is_running = 0;

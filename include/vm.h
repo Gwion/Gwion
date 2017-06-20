@@ -3,6 +3,7 @@
 
 #include "defs.h"
 #include "map.h"
+#include "map_private.h"
 
 typedef struct VM_Code_* VM_Code;
 typedef enum { NATIVE_UNKNOWN, NATIVE_CTOR, NATIVE_DTOR, NATIVE_MFUN, NATIVE_SFUN } e_native_func;
@@ -48,13 +49,7 @@ struct VM_Shred_ {
   m_str filename;
   Vector child;
   M_Object wait;
-  Vector gc;
-  Vector gc1;
-/*
-#ifdef DEBUG_STACK
-  m_int mem_index, reg_index;
-#endif
-*/
+  struct Vector_ gc, gc1;
   m_float wake_time;
 };
 
