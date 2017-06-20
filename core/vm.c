@@ -80,7 +80,6 @@ void free_vm_shred(VM_Shred shred) {
   free(shred->_reg);
   if(!strcmp(shred->code->filename, shred->code->name) ||
       (!shred->filename && !strstr(shred->code->name, "spork")))
-      /*|| (!shred->filename && !strcmp(shred->code->name, "in nspc dtor")))*/
     free_vm_code(shred->code);
   free(shred->name);
   free(shred->filename);
