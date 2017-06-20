@@ -118,9 +118,9 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   type->obj_size = 0;
 
   SET_FLAG(type, ae_flag_checked);
-  vector_add(env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
-  vector_add(env->class_stack, (vtype)env->class_def);
+  vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
   return type;
 }
@@ -131,8 +131,8 @@ m_bool import_class_end(Env env) {
     return -1;
   }
   env->class_def->obj_size = env->class_def->info->offset;
-  env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (Nspc)vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
 }
 

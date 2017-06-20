@@ -770,9 +770,9 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
   Type the_class = class_def->type;
 
-  vector_add(env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = the_class->info;
-  vector_add(env->class_stack, (vtype)env->class_def);
+  vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = the_class;
   env->class_scope = 0;
 
@@ -791,8 +791,8 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
     body = body->next;
   }
 
-  env->class_def = (Type)vector_pop(env->class_stack);
-  env->curr = (Nspc)vector_pop(env->nspc_stack);
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
 
   return ret;
 }

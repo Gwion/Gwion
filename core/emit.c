@@ -455,9 +455,9 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     ID_List base_t = def->base;
     Type_List list = exp_func->types;
     if(exp_func->m_func->value_ref->owner_class) {
-      vector_add(emit->env->nspc_stack, (vtype)emit->env->curr);
+      vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
-      vector_add(emit->env->class_stack, (vtype)emit->env->class_def);
+      vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
       emit->env->class_scope = 0; // check utility
     }
@@ -476,8 +476,8 @@ CHECK_BB(scan1_func_def(emit->env, def))
       /*emit->env->curr = curr;*/
       nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class) {
-      emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
-      emit->env->curr = (Nspc)vector_pop(emit->env->nspc_stack);
+      emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
+      emit->env->curr = (Nspc)vector_pop(&emit->env->nspc_stack);
     }
   }
   if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
@@ -1773,7 +1773,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
       CHECK_BB(err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name)) // LCOV_EXCL_LINE
   }
   memset(type->info->class_data, 0, type->info->class_data_size);
-  vector_add(emit->env->class_stack, (vtype)emit->env->class_def);
+  vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
   emit->env->class_def = type;
   vector_add(emit->stack, (vtype)emit->code);
   emit->code = new_code();
@@ -1807,7 +1807,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
     type->info->pre_ctor = emit_code(emit);
   } else
     free(type->info->class_data); // LCOV_EXCL_LINE
-  emit->env->class_def = (Type)vector_pop(emit->env->class_stack);
+  emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
   emit->code = (Code*)vector_pop(emit->stack);
   return ret;
 }

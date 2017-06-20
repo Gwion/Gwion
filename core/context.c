@@ -55,11 +55,11 @@ void free_context(Context a) {
 }
 
 m_bool load_context(Context context, Env env) {
-  vector_add(env->contexts, (vtype)env->context);
+  vector_add(&env->contexts, (vtype)env->context);
   env->context = context;
   ADD_REF(env->context);
   nspc_push_value(context->nspc);
-  vector_add(env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
   env->curr = context->nspc;
   return 1;
@@ -67,8 +67,8 @@ m_bool load_context(Context context, Env env) {
 
 m_bool unload_context(Context context, Env env) {
   nspc_pop_value(env->context->nspc);
-  env->curr = (Nspc)vector_pop(env->nspc_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
   REM_REF(env->context);
-  env->context = (Context)vector_pop(env->contexts);
+  env->context = (Context)vector_pop(&env->contexts);
   return 1;
 }
