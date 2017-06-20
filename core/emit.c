@@ -1225,7 +1225,7 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
     }
     size = vector_size(&stmt->data.v);
     if(!size) {
-      free_vector(&stmt->data.v);
+      vector_release(&stmt->data.v);
       CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name)))
     }
     for(i = size + 1; --i;) {
@@ -1321,8 +1321,8 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   debug_msg("emit", "enum");
 #endif
   m_uint i;
-  for(i = 0; i < vector_size(stmt->values); i++) {
-    Value v = (Value)vector_at(stmt->values, i);
+  for(i = 0; i < vector_size(&stmt->values); i++) {
+    Value v = (Value)vector_at(&stmt->values, i);
     Local* local;
     if(!emit->env->class_def) {
       CHECK_OB((local = frame_alloc_local(emit->code->frame, sizeof(m_uint), v->name, 0, 0)))

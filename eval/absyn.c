@@ -905,7 +905,7 @@ Stmt new_stmt_enum(ID_List list, m_str xid, int pos) {
   a->type = ae_stmt_enum;
   a->d.stmt_enum.xid = xid ? insert_symbol(xid) : NULL;
   a->d.stmt_enum.list = list;
-  a->d.stmt_enum.values = new_vector();
+  vector_init(&a->d.stmt_enum.values);
   a->pos = pos;
   a->d.stmt_enum.pos = pos;
   a->d.stmt_enum.self = a;
@@ -916,21 +916,19 @@ static void free_stmt_enum(Stmt_Enum a) {
   vtype i;
   if(a->list)
     free_id_list(a->list);
-  for(i = 0; i < vector_size(a->values); i++) {
-    Value v = (Value)vector_at(a->values, i);
-    if(!v->owner_class) {
+  for(i = 0; i < vector_size(&a->values); i++) {
+    Value v = (Value)vector_at(&a->values, i);
+    if(!v->owner_class)
       free(v);
-    }
-//else    REM_REF(v);
   }
-  free_vector(a->values);
+  vector_release(&a->values);
 }
 
 Stmt new_stmt_union(Decl_List l, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_union;
   a->d.stmt_union.l = l;
-  a->d.stmt_union.v = new_vector();
+  vector_init(&a->d.stmt_union.v);
   a->pos = pos;
   a->d.stmt_union.pos = pos;
   a->d.stmt_union.self = a;
@@ -956,7 +954,7 @@ static void free_decl_list(Decl_List a) {
 
 __inline static void free_stmt_union(Stmt_Union a) {
   free_decl_list(a->l);
-  free_vector(a->v);
+  vector_release(&a->v);
 }
 
 static void free_stmt(Stmt stmt) {

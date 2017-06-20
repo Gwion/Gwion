@@ -386,7 +386,7 @@ struct Stmt_Switch_ {
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
-  Vector values;
+  struct Vector_ values;
   int pos;
   Stmt self;
 };
@@ -404,7 +404,7 @@ struct Stmt_Ptr_ {
 };
 struct Stmt_Union_ {
   Decl_List l;
-  Vector v;
+  struct Vector_ v;
   m_uint s;
   m_uint o;
   int pos;

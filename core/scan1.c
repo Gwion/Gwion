@@ -298,7 +298,7 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
     }
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(nspc, list->xid, v);
-    vector_add(stmt->values, (vtype)v);
+    vector_add(&stmt->values, (vtype)v);
     list = list->next;
     count++;
   }
