@@ -16,12 +16,13 @@ struct Type_ t_array  = { "@Array", SZ_INT, &t_object, te_array };
 m_int o_array_vector;
 
 DTOR(array_dtor) {
-  if(o->type_ref->array_type) // maybe unnecessary. preferably check array depth
+  if(o->type_ref->array_type) {// maybe unnecessary. preferably check array depth
     if(o->d.array->depth > 1 || isa(o->type_ref->array_type, &t_object) > 0) {
       m_uint i;
-      for(i = 0; i < o->d.array->len; i += SZ_INT)
+      for(i = 0; i < o->d.array->len * SZ_INT; i += SZ_INT)
         release(*(M_Object*)(o->d.array->ptr + i), shred);
     }
+  }
   free(o->d.array->ptr);
   REM_REF(o->type_ref);
 }
