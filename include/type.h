@@ -18,10 +18,12 @@ struct Type_ {
   te_type   xid;
   Nspc info;
   Nspc owner;
-  Func      func;
-  Type      actual_type;
   m_uint    array_depth;
-  Type      array_type;
+  Func      func;
+  union {
+    Type      actual_type;
+    Type      array_type;
+  };
   Class_Def def;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
