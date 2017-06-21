@@ -135,11 +135,11 @@ static void usage() {
 int main(int argc, char** argv) {
   Driver* d = NULL;
   int i, index;
-  Vector add  = new_vector();
-  Vector rem  = new_vector();
-  Vector ref  = add;
+  struct Vector_ add;
+  struct Vector_ rem;
+  struct Vector_ plug_dirs;
+  Vector ref;
 
-  Vector plug_dirs = new_vector();
 
   int do_quit = 0;
   m_bool udp = 1;
@@ -157,7 +157,11 @@ int main(int argc, char** argv) {
   di.card = "default:CARD=CODEC";
   di.raw = 0;
 
-  vector_add(plug_dirs, (vtype)GWION_ADD_DIR);
+  vector_init(&add);
+  vector_init(&rem);
+  vector_init(&plug_dirs);
+  ref = &add;
+  vector_add(&plug_dirs, (vtype)GWION_ADD_DIR);
 
   while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
@@ -220,7 +224,7 @@ int main(int argc, char** argv) {
       udp = 0;
       break;
     case 'P':
-      vector_add(plug_dirs, (vtype)optarg);
+      vector_add(&plug_dirs, (vtype)optarg);
       break;
     default:
       return 1;
@@ -230,10 +234,10 @@ int main(int argc, char** argv) {
     while(optind < argc) {
       m_str str = argv[optind++];
       if(!strcmp(str, "-")) {
-        ref = rem;
+        ref = &rem;
         str = argv[optind++];
       } else if(!strcmp(str, "+")) {
-        ref = add;
+        ref = &add;
         str = argv[optind++];
       }
       vector_add(ref, (vtype)str);
@@ -248,8 +252,8 @@ int main(int argc, char** argv) {
         Send("loop 1", 1);
       else if(loop < 0)
         Send("loop 0", 1);
-      for(i = 0; i < vector_size(rem); i++) {
-        m_str file = (m_str)vector_at(rem, i);
+      for(i = 0; i < vector_size(&rem); i++) {
+        m_str file = (m_str)vector_at(&rem, i);
         m_uint size = strlen(file) + 3;
         char name[size];
         memset(name, 0, size);
@@ -257,8 +261,8 @@ int main(int argc, char** argv) {
         strcat(name, file);
         Send(name, 1);
       }
-      for(i = 0; i < vector_size(add); i++) {
-        m_str file = (m_str)vector_at(add, i);
+      for(i = 0; i < vector_size(&add); i++) {
+        m_str file = (m_str)vector_at(&add, i);
         m_uint size = strlen(file) + 3;
         char name[size];
         memset(name, 0, size);
@@ -266,9 +270,9 @@ int main(int argc, char** argv) {
         strcat(name, file);
         Send(name, 1);
       }
-      free_vector(add);
-      free_vector(rem);
-      free_vector(plug_dirs);
+      vector_release(&add);
+      vector_release(&rem);
+      vector_release(&plug_dirs);
       exit(0);
     }
   }
@@ -283,14 +287,14 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(vm->bbq = new_bbq(vm, &di, &d)))
     goto clean;
-  if(!(vm->env = type_engine_init(vm, plug_dirs)))
+  if(!(vm->env = type_engine_init(vm, &plug_dirs)))
     goto clean;
   if(!(vm->emit = new_emitter(vm->env)))
     goto clean;
   srand(time(NULL));
 
-  for(i = 0; i < vector_size(add); i++)
-    compile(vm, (m_str)vector_at(add, i));
+  for(i = 0; i < vector_size(&add); i++)
+    compile(vm, (m_str)vector_at(&add, i));
 
   vm->is_running = 1;
   if(udp) {
@@ -303,9 +307,9 @@ int main(int argc, char** argv) {
   if(udp)
     server_destroy(udp_thread);
 clean:
-  free_vector(plug_dirs);
-  free_vector(add);
-  free_vector(rem);
+  vector_release(&plug_dirs);
+  vector_release(&add);
+  vector_release(&rem);
   if(d)
     free_driver(d, vm);
   if(scan_map)
