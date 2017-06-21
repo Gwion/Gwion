@@ -113,9 +113,9 @@ static void free_bbq(BBQ a) {
 
 VM* new_vm(m_bool loop) {
   VM* vm         = (VM*)calloc(1, sizeof(VM));
-  vm->shred      = new_vector();
-  vm->ugen       = new_vector();
   vm->shreduler  = new_shreduler(vm);
+  vector_init(&vm->shred);
+  vector_init(&vm->ugen);
   vector_init(&vm->plug);
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   return vm;
@@ -130,8 +130,8 @@ void free_vm(VM* vm) {
   for(i = 0; i < vector_size(&vm->plug); i++)
     dlclose((void*)vector_at(&vm->plug, i));
   vector_release(&vm->plug);
-  free_vector(vm->shred);
-  free_vector(vm->ugen);
+  vector_release(&vm->shred);
+  vector_release(&vm->ugen);
   if(vm->bbq)
     free_bbq(vm->bbq);
   free_shreduler(vm->shreduler);
@@ -141,7 +141,7 @@ void free_vm(VM* vm) {
 void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
-    vector_add(vm->shred, (vtype)shred);
+    vector_add(&vm->shred, (vtype)shred);
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
 }
@@ -194,8 +194,8 @@ next:
     return;
   }
   udp_do(vm);
-  for(i = 0; i < vector_size(vm->ugen); i++) {
-    UGen u = (UGen)vector_at(vm->ugen, i);
+  for(i = 0; i < vector_size(&vm->ugen); i++) {
+    UGen u = (UGen)vector_at(&vm->ugen, i);
     u->done = 0;
     if(u->channel) {
       m_uint j;

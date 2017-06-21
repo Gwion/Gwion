@@ -49,7 +49,7 @@ VM_Shred shreduler_get(Shreduler s) {
   VM_Shred shred = s->list;
   if(!shred) {
     s->til_next = -1;
-    if(!vector_size(s->vm->shred) && ! s->loop) {
+    if(!vector_size(&s->vm->shred) && ! s->loop) {
       s->vm->is_running = 0;
       s->vm->wakeup();
     }
@@ -84,7 +84,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
       index = vector_find(&out->parent->child, (vtype)out);
       vector_rem(&out->parent->child, index);
       if(!vector_size(&out->parent->child)) {
-        free_vector(&out->parent->child);
+        vector_release(&out->parent->child);
         out->parent->child.ptr = NULL;
       }
     }
@@ -98,8 +98,8 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
         shreduler_remove(s, child, 1);
       }
     }
-    index = vector_find(s->vm->shred, (vtype)out);
-    vector_rem(s->vm->shred, index);
+    index = vector_find(&s->vm->shred, (vtype)out);
+    vector_rem(&s->vm->shred, index);
 // GC
     if(out->gc.ptr) {
       for(i = 0; i < vector_size(&out->gc); i++) {

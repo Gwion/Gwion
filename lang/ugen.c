@@ -255,15 +255,15 @@ static INSTR(trig_disconnect) {
 
 static CTOR(ugen_ctor) {
   o->ugen = new_UGen();
-  vector_add(shred->vm_ref->ugen, (vtype)o->ugen);
+  vector_add(&shred->vm_ref->ugen, (vtype)o->ugen);
 }
 
 static DTOR(ugen_dtor) {
   UGen ug = o->ugen;
   m_uint i;
-  m_int j = vector_find(shred->vm_ref->ugen, (vtype)ug);
+  m_int j = vector_find(&shred->vm_ref->ugen, (vtype)ug);
   if(j > -1)
-    vector_rem(shred->vm_ref->ugen, j);
+    vector_rem(&shred->vm_ref->ugen, j);
   for(i = 0; i < vector_size(&ug->to); i++) {
     UGen u = (UGen)vector_at(&ug->to, i);
     if(u->ugen.ptr) {

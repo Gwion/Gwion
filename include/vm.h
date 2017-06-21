@@ -19,13 +19,14 @@ struct VM_Code_ {
 typedef struct BBQ_* BBQ;
 typedef struct Shreduler_* Shreduler;
 typedef struct {
-  Vector shred, ugen;
   BBQ bbq;
   Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;
   Env env;
   void (*wakeup)();
+  struct Vector_ shred;
+  struct Vector_ ugen;
   struct Vector_ plug;
   m_bool is_running;
 } VM;

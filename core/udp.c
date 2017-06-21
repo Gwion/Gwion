@@ -78,8 +78,8 @@ void* server_thread(void* data) {
       m_uint i;
       VM_Shred shred = NULL;
 
-      for(i = 0; i < vector_size(vm->shred); i++) {
-        shred = (VM_Shred)vector_at(vm->shred, i);
+      for(i = 0; i < vector_size(&vm->shred); i++) {
+        shred = (VM_Shred)vector_at(&vm->shred, i);
         if(shred->xid == atoi(buf +2) -1)
           vector_add(rem, (vtype)shred);
       }

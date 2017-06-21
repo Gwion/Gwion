@@ -109,9 +109,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   assign_ugen(vm->blackhole->ugen, 1, 1, 0, vm->bbq->sp);
   vm->dac->ugen->tick = dac_tick;
   vm->adc->ugen->tick = adc_tick;
-  vector_add(vm->ugen, (vtype)vm->blackhole->ugen);
-  vector_add(vm->ugen, (vtype)vm->dac->ugen);
-  vector_add(vm->ugen, (vtype)vm->adc->ugen);
+  vector_add(&vm->ugen, (vtype)vm->blackhole->ugen);
+  vector_add(&vm->ugen, (vtype)vm->dac->ugen);
+  vector_add(&vm->ugen, (vtype)vm->adc->ugen);
 
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sp->sr);
