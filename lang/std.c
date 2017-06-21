@@ -388,256 +388,256 @@ static struct Type_ t_std  = { "Std",  0, NULL, te_std};
 static struct Type_ t_math = { "Math", 0, NULL};
 
 m_bool import_lib(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
 
   CHECK_OB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
 
-  fun = new_dl_func("int", "abs", (m_uint)std_abs);
-  dl_func_add_arg(fun, "int", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "abs", (m_uint)std_abs);
+  dl_func_add_arg(&fun, "int", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "fabs", (m_uint)std_fabs);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "fabs", (m_uint)std_fabs);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "rand", (m_uint)std_rand);
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "rand", (m_uint)std_rand);
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "rand2", (m_uint)std_rand2);
-  dl_func_add_arg(fun, "int", "min");
-  dl_func_add_arg(fun, "int", "max");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "rand2", (m_uint)std_rand2);
+  dl_func_add_arg(&fun, "int", "min");
+  dl_func_add_arg(&fun, "int", "max");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "randf", (m_uint)std_randf);
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "randf", (m_uint)std_randf);
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "rand2f", (m_uint)std_rand2f);
-  dl_func_add_arg(fun, "float", "min");
-  dl_func_add_arg(fun, "float", "max");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "rand2f", (m_uint)std_rand2f);
+  dl_func_add_arg(&fun, "float", "min");
+  dl_func_add_arg(&fun, "float", "max");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "srand", (m_uint)std_srand);
-  dl_func_add_arg(fun, "float", "seed");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "srand", (m_uint)std_srand);
+  dl_func_add_arg(&fun, "float", "seed");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "sgn", (m_uint)std_sgn);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "sgn", (m_uint)std_sgn);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "hypot", (m_uint)std_hypot);
-  dl_func_add_arg(fun, "float", "min");
-  dl_func_add_arg(fun, "float", "max");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "hypot", (m_uint)std_hypot);
+  dl_func_add_arg(&fun, "float", "min");
+  dl_func_add_arg(&fun, "float", "max");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "sin", (m_uint)std_sin);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "sin", (m_uint)std_sin);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "cos", (m_uint)std_cos);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "cos", (m_uint)std_cos);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "tan", (m_uint)std_tan);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "tan", (m_uint)std_tan);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "asin", (m_uint)std_asin);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "asin", (m_uint)std_asin);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "acos", (m_uint)std_acos);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "acos", (m_uint)std_acos);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "atan", (m_uint)std_atan);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "atan", (m_uint)std_atan);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "atan2", (m_uint)std_atan2);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "atan2", (m_uint)std_atan2);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "sinh", (m_uint)std_sinh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "sinh", (m_uint)std_sinh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "cosh", (m_uint)std_cosh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "cosh", (m_uint)std_cosh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "tanh", (m_uint)std_tanh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "tanh", (m_uint)std_tanh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "asinh", (m_uint)std_asinh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "asinh", (m_uint)std_asinh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "acosh", (m_uint)std_acosh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "acosh", (m_uint)std_acosh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "atanh", (m_uint)std_atanh);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "atanh", (m_uint)std_atanh);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "pow", (m_uint)std_pow);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "pow", (m_uint)std_pow);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "sqrt", (m_uint)std_sqrt);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "sqrt", (m_uint)std_sqrt);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "exp", (m_uint)std_exp);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "exp", (m_uint)std_exp);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "log", (m_uint)std_log);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "log", (m_uint)std_log);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "log2", (m_uint)std_log2);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "log2", (m_uint)std_log2);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "log10", (m_uint)std_log10);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "log10", (m_uint)std_log10);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "floor", (m_uint)std_floor);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "floor", (m_uint)std_floor);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "ceil", (m_uint)std_ceil);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "ceil", (m_uint)std_ceil);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "round", (m_uint)std_round);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "round", (m_uint)std_round);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "trunc", (m_uint)std_trunc);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "trunc", (m_uint)std_trunc);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "fmod", (m_uint)std_fmod);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "fmod", (m_uint)std_fmod);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "remainder", (m_uint)std_remainder);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "remainder", (m_uint)std_remainder);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "min", (m_uint)std_min);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "min", (m_uint)std_min);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "max", (m_uint)std_max);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "value2");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "max", (m_uint)std_max);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "isinf", (m_uint)std_isinf);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "isinf", (m_uint)std_isinf);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "isnan", (m_uint)std_isnan);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "isnan", (m_uint)std_isnan);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
   CHECK_BB(import_class_end(env))
 
   CHECK_OB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
 
-  fun = new_dl_func("int", "clamp", (m_uint)std_clamp);
-  dl_func_add_arg(fun, "int", "value");
-  dl_func_add_arg(fun, "int", "min");
-  dl_func_add_arg(fun, "int", "max");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "clamp", (m_uint)std_clamp);
+  dl_func_add_arg(&fun, "int", "value");
+  dl_func_add_arg(&fun, "int", "min");
+  dl_func_add_arg(&fun, "int", "max");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "clampf", (m_uint)std_clampf);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "min");
-  dl_func_add_arg(fun, "float", "max");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "clampf", (m_uint)std_clampf);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "min");
+  dl_func_add_arg(&fun, "float", "max");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "scale", (m_uint)std_scale);
-  dl_func_add_arg(fun, "float", "value");
-  dl_func_add_arg(fun, "float", "srcmin");
-  dl_func_add_arg(fun, "float", "srcmax");
-  dl_func_add_arg(fun, "float", "dstmin");
-  dl_func_add_arg(fun, "float", "dstmax");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "scale", (m_uint)std_scale);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "srcmin");
+  dl_func_add_arg(&fun, "float", "srcmax");
+  dl_func_add_arg(&fun, "float", "dstmin");
+  dl_func_add_arg(&fun, "float", "dstmax");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "system", (m_uint)std_system);
-  dl_func_add_arg(fun, "string", "cmd");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "system", (m_uint)std_system);
+  dl_func_add_arg(&fun, "string", "cmd");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("string", "getenv", (m_uint)std_getenv);
-  dl_func_add_arg(fun, "string", "key");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "string", "getenv", (m_uint)std_getenv);
+  dl_func_add_arg(&fun, "string", "key");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "setenv", (m_uint)std_setenv);
-  dl_func_add_arg(fun, "string", "key");
-  dl_func_add_arg(fun, "string", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "setenv", (m_uint)std_setenv);
+  dl_func_add_arg(&fun, "string", "key");
+  dl_func_add_arg(&fun, "string", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "atoi", (m_uint)std_atoi);
-  dl_func_add_arg(fun, "string", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "atoi", (m_uint)std_atoi);
+  dl_func_add_arg(&fun, "string", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "atof", (m_uint)std_atof);
-  dl_func_add_arg(fun, "string", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "atof", (m_uint)std_atof);
+  dl_func_add_arg(&fun, "string", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("string", "itoa", (m_uint)std_itoa);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "string", "itoa", (m_uint)std_itoa);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("string", "ftoa", (m_uint)std_ftoa);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "string", "ftoa", (m_uint)std_ftoa);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int", "ftoi", (m_uint)std_ftoi);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "ftoi", (m_uint)std_ftoi);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "mtof", (m_uint)std_mtof);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "mtof", (m_uint)std_mtof);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "ftom", (m_uint)std_ftom);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "ftom", (m_uint)std_ftom);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "powtodb", (m_uint)std_powtodb);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "powtodb", (m_uint)std_powtodb);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "rmstodb", (m_uint)std_rmstodb);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "rmstodb", (m_uint)std_rmstodb);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "dbtopow", (m_uint)std_dbtopow);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "dbtopow", (m_uint)std_dbtopow);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "dbtorms", (m_uint)std_dbtorms);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "dbtorms", (m_uint)std_dbtorms);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "dbtolin", (m_uint)std_dbtolin);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "dbtolin", (m_uint)std_dbtolin);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("float", "lintodb", (m_uint)std_lintodb);
-  dl_func_add_arg(fun, "float", "value");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "float", "lintodb", (m_uint)std_lintodb);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_OB(import_sfun(env, &fun))
   CHECK_BB(import_class_end(env))
 
   return 1;

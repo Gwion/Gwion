@@ -22,19 +22,16 @@ void dl_return_push(const DL_Return retval, VM_Shred shred, int kind) {
   return;
 }
 
-DL_Func* new_dl_func(const m_str t, const m_str n, m_uint addr) {
-  DL_Func* a = malloc(sizeof(DL_Func));
+void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
   a->args.ptr = NULL;
-  return a;
 }
 
 void free_dl_func(DL_Func* a) {
   if(a->args.ptr)
     vector_release(&a->args);
-  free(a);
 }
 
 static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr) {

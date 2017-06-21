@@ -126,25 +126,25 @@ static SFUN(machine_shreds) {
 }
 
 m_bool import_machine(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
 
   CHECK_OB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
-  fun = new_dl_func("void",  "add", (m_uint)machine_add);
-  dl_func_add_arg(fun,       "string",  "filename");
-  CHECK_OB(import_sfun(env,  fun))
+  dl_func_init(&fun, "void",  "add", (m_uint)machine_add);
+  dl_func_add_arg(&fun,       "string",  "filename");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int[]", "shreds", (m_uint)machine_shreds);
-  CHECK_OB(import_sfun(env,  fun))
+  dl_func_init(&fun, "int[]", "shreds", (m_uint)machine_shreds);
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("int",  "check", (m_uint)machine_check);
-  dl_func_add_arg(fun,       "string",  "prefix");
-  dl_func_add_arg(fun,       "string",  "code");
-  CHECK_OB(import_sfun(env,  fun))
+  dl_func_init(&fun, "int",  "check", (m_uint)machine_check);
+  dl_func_add_arg(&fun,      "string",  "prefix");
+  dl_func_add_arg(&fun,      "string",  "code");
+  CHECK_OB(import_sfun(env, &fun))
 
-  fun = new_dl_func("void",  "compile", (m_uint)machine_compile);
-  dl_func_add_arg(fun,       "string",  "prefix");
-  dl_func_add_arg(fun,       "string",  "filename");
-  CHECK_OB(import_sfun(env,  fun))
+  dl_func_init(&fun, "void", "compile", (m_uint)machine_compile);
+  dl_func_add_arg(&fun,      "string",  "prefix");
+  dl_func_add_arg(&fun,      "string",  "filename");
+  CHECK_OB(import_sfun(env, &fun))
 
   CHECK_BB(import_class_end(env))
   return 1;

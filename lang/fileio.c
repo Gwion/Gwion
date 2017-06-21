@@ -235,7 +235,7 @@ SFUN(file_list) {
 }
 
 m_bool import_fileio(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
 
   CHECK_OB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
 
@@ -244,20 +244,20 @@ m_bool import_fileio(Env env) {
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  fun = new_dl_func("int", "nl", (m_uint)file_nl);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("int", "open", (m_uint)file_open);
-  dl_func_add_arg(fun, "string", "filename");
-  dl_func_add_arg(fun, "string", "mode");
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("int", "close", (m_uint)file_close);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("int", "remove", (m_uint)file_remove);
-  dl_func_add_arg(fun, "string", "filename");
-  CHECK_OB(import_sfun(env, fun))
-  fun = new_dl_func("string[]", "list", (m_uint)file_list);
-  dl_func_add_arg(fun, "string", "filename");
-  CHECK_OB(import_sfun(env, fun))
+  dl_func_init(&fun, "int", "nl", (m_uint)file_nl);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "int", "open", (m_uint)file_open);
+  dl_func_add_arg(&fun, "string", "filename");
+  dl_func_add_arg(&fun, "string", "mode");
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "int", "close", (m_uint)file_close);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "int", "remove", (m_uint)file_remove);
+  dl_func_add_arg(&fun, "string", "filename");
+  CHECK_OB(import_sfun(env, &fun))
+  dl_func_init(&fun, "string[]", "list", (m_uint)file_list);
+  dl_func_add_arg(&fun, "string", "filename");
+  CHECK_OB(import_sfun(env, &fun))
 
   // import operators
   CHECK_BB(import_op(env, op_chuck, "int",    "FileIO", "FileIO", int_to_file, 1))

@@ -129,28 +129,28 @@ static MFUN(fft_compute) {
 }
 
 static m_bool import_fft(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
   CHECK_OB(import_class_begin(env, &t_fft, env->global_nspc, fft_ctor, fft_dtor))
-  fun = new_dl_func("int", "init", (m_uint)fft_init);
-  dl_func_add_arg(fun, "int", "size");
-  CHECK_OB(import_mfun(env, fun))
-  /*  fun = new_dl_func("int", "init", (m_uint)fft_init2);*/
-  /*    dl_func_add_arg(fun, "int", "size");*/
-  /*    dl_func_add_arg(fun, "float[]", "window");*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
-  /*  fun = new_dl_func("int", "init", (m_uint)fft_init3);*/
-  /*    dl_func_add_arg(fun, "int", "size");*/
-  /*    dl_func_add_arg(fun, "string", "window");*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
-  /*  fun = new_dl_func("int", "window", (m_uint)fft_win);*/
-  /*    dl_func_add_arg(fun, "float[]", "window");*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
-  /*  fun = new_dl_func("int", "window", (m_uint)fft_win_name);*/
-  /*    dl_func_add_arg(fun, "string", "name");*/
-  /*  CHECK_OB(import_mfun(env, fun))*/
-  /*  fun = new_dl_func("complex[]", "compute", (m_uint)fft_compute);*/
-  fun = new_dl_func("void", "compute", (m_uint)fft_compute);
-  CHECK_OB(import_mfun(env, fun))
+  dl_func_init(&fun, "int", "init", (m_uint)fft_init);
+  dl_func_add_arg(&fun, "int", "size");
+  CHECK_OB(import_mfun(env, &fun))
+  /*  dl_func_init(&fun, "int", "init", (m_uint)fft_init2);*/
+  /*    dl_func_add_arg(&fun, "int", "size");*/
+  /*    dl_func_add_arg(&fun, "float[]", "window");*/
+  /*  CHECK_OB(import_mfun(env, &fun))*/
+  /*  dl_func_init(&fun, "int", "init", (m_uint)fft_init3);*/
+  /*    dl_func_add_arg(&fun, "int", "size");*/
+  /*    dl_func_add_arg(&fun, "string", "window");*/
+  /*  CHECK_OB(import_mfun(env, &fun))*/
+  /*  dl_func_init(&fun, "int", "window", (m_uint)fft_win);*/
+  /*    dl_func_add_arg(&fun, "float[]", "window");*/
+  /*  CHECK_OB(import_mfun(env, &fun))*/
+  /*  dl_func_init(&fun, "int", "window", (m_uint)fft_win_name);*/
+  /*    dl_func_add_arg(&fun, "string", "name");*/
+  /*  CHECK_OB(import_mfun(env, &fun))*/
+  /*  dl_func_init(&fun, "complex[]", "compute", (m_uint)fft_compute);*/
+  dl_func_init(&fun, "void", "compute", (m_uint)fft_compute);
+  CHECK_OB(import_mfun(env, &fun))
 
   CHECK_BB(import_class_end(env))
   return 1;
@@ -468,7 +468,7 @@ static DTOR(ana_dtor) {
 }
 
 static m_bool import_ana(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
   CHECK_OB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
   o_ana_ana = import_mvar(env, "int", "@_fft", 0, 0);
   CHECK_BB(o_ana_ana)
@@ -476,13 +476,13 @@ static m_bool import_ana(Env env) {
   CHECK_BB(o_ana_fft)
   o_ana_fn = import_mvar(env,  "int", "@fn",   0, 0);
   CHECK_BB(o_ana_fn)
-  fun = new_dl_func("float", "compute", (m_uint)ana_compute);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("FFT", "fft", (m_uint)ana_get_fft);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("FFT", "fft", (m_uint)ana_set_fft);
-  dl_func_add_arg(fun, "FFT", "arg");
-  CHECK_OB(import_mfun(env, fun))
+  dl_func_init(&fun, "float", "compute", (m_uint)ana_compute);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "FFT", "fft", (m_uint)ana_get_fft);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "FFT", "fft", (m_uint)ana_set_fft);
+  dl_func_add_arg(&fun, "FFT", "arg");
+  CHECK_OB(import_mfun(env, &fun))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -550,13 +550,13 @@ static MFUN(rolloff_set_percent) {
   RETURN->d.v_float = (ana->percent = *(m_float*)(shred->mem + SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
   CHECK_OB(import_class_begin(env, &t_rolloff, env->global_nspc, rolloff_ctor, NULL))
-  fun = new_dl_func("float", "percent", (m_uint)rolloff_get_percent);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("float", "percent", (m_uint)rolloff_set_percent);
-  dl_func_add_arg(fun, "float", "arg");
-  CHECK_OB(import_mfun(env, fun))
+  dl_func_init(&fun, "float", "percent", (m_uint)rolloff_get_percent);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "float", "percent", (m_uint)rolloff_set_percent);
+  dl_func_add_arg(&fun, "float", "arg");
+  CHECK_OB(import_mfun(env, &fun))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -674,18 +674,18 @@ INSTR(fc_disconnect) {
 }
 
 static m_bool import_fc(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
   CHECK_OB(import_class_begin(env, &t_fc, env->global_nspc, fc_ctor, fc_dtor))
   o_fc_vector = import_mvar(env, "int", "@vector", 0, 0);
   CHECK_BB(o_fc_vector)
-  fun = new_dl_func("float[]", "compute", (m_uint)fc_compute);
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("ANA", "add", (m_uint)fc_add);
-  dl_func_add_arg(fun, "ANA", "arg");
-  CHECK_OB(import_mfun(env, fun))
-  fun = new_dl_func("ANA", "rem", (m_uint)fc_rem);
-  dl_func_add_arg(fun, "ANA", "arg");
-  CHECK_OB(import_mfun(env, fun))
+  dl_func_init(&fun, "float[]", "compute", (m_uint)fc_compute);
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "ANA", "add", (m_uint)fc_add);
+  dl_func_add_arg(&fun, "ANA", "arg");
+  CHECK_OB(import_mfun(env, &fun))
+  dl_func_init(&fun, "ANA", "rem", (m_uint)fc_rem);
+  dl_func_add_arg(&fun, "ANA", "arg");
+  CHECK_OB(import_mfun(env, &fun))
   CHECK_BB(import_class_end(env))
   return 1;
 }

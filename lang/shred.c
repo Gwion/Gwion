@@ -91,44 +91,44 @@ static DTOR(shred_dtor) {
 }
 
 m_bool import_shred(Env env) {
-  DL_Func* fun;
+  DL_Func fun;
 
   CHECK_OB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
 
   o_shred_me = import_mvar(env, "int", "@me",   0, 0);
   CHECK_BB(o_shred_me)
 
-  fun = new_dl_func("void", "exit", (m_uint)vm_shred_exit);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "void", "exit", (m_uint)vm_shred_exit);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("int", "running", (m_uint)vm_shred_is_running);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "int", "running", (m_uint)vm_shred_is_running);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("int", "done", (m_uint)vm_shred_is_done);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "int", "done", (m_uint)vm_shred_is_done);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("int", "id", (m_uint)vm_shred_id);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "int", "id", (m_uint)vm_shred_id);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("Shred", "fromId", (m_uint)vm_shred_from_id);
-    dl_func_add_arg(fun, "int", "arg1");
-  CHECK_OB((import_sfun(env, fun)))
+  dl_func_init(&fun, "Shred", "fromId", (m_uint)vm_shred_from_id);
+    dl_func_add_arg(&fun, "int", "arg1");
+  CHECK_OB((import_sfun(env, &fun)))
 
-  fun = new_dl_func("void", "yield", (m_uint)shred_yield);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "void", "yield", (m_uint)shred_yield);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("int", "args", (m_uint)shred_args);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "int", "args", (m_uint)shred_args);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("string", "arg", (m_uint)shred_arg);
-    dl_func_add_arg(fun, "int", "n");
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "string", "arg", (m_uint)shred_arg);
+    dl_func_add_arg(&fun, "int", "n");
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("string", "path", (m_uint)shred_path);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "string", "path", (m_uint)shred_path);
+  CHECK_OB((import_mfun(env, &fun)))
 
-  fun = new_dl_func("string", "dir", (m_uint)shred_dir);
-  CHECK_OB((import_mfun(env, fun)))
+  dl_func_init(&fun, "string", "dir", (m_uint)shred_dir);
+  CHECK_OB((import_mfun(env, &fun)))
 
   CHECK_BB(import_class_end(env))
   return 1;

@@ -45,19 +45,19 @@ end
 
 function declare_gw_param(param)
 	if string.match(param.type, "int") then
-		print("\t\t dl_func_add_arg(fun, \"int\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"int\", \""..param.name.."\");")
 	elseif string.match(param.type, "SPFLOAT") then
-		print("\t\t dl_func_add_arg(fun, \"float\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"float\", \""..param.name.."\");")
 	elseif string.match(param.type, "char*") then
-		print("\t\t dl_func_add_arg(fun, \"string\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"string\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
-		print("\t\t dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*%*") then
-		print("\t\t dl_func_add_arg(fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*") then
-		print("\t\t dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"ftbl\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*") then
-		print("\t\t dl_func_add_arg(fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t dl_func_add_arg(&fun, \"ftbl\", \""..param.name.."\");")
 else print("unknown "..param.type)
 os.exit(1);
 	end
@@ -352,23 +352,23 @@ for n in ipairs(a) do
 	end
 end
 print("")
-print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func* fun;\n\tFunc f;\n")
+print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func fun;\n\tFunc f;\n")
 print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
 print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0);")
 for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
-		print("\tfun = new_dl_func(\"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
+		print("\tdl_func_init(&fun, \"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1; -- why this 'i' ?
-    print("\tdl_func_add_arg(fun, \"int\", \"size\");")
+    print("\tdl_func_add_arg(&fun, \"int\", \"size\");")
     if(object.params ~= nil) then
 			while object.params[i]  do
 				declare_gw_param(object.params[i])
 				i = i+1
 			end
 		end
-		print("\tCHECK_OB((f = import_mfun(env, fun)))")
+		print("\tCHECK_OB((f = import_mfun(env, &fun)))")
 		-- make_doc("\tf", object)
 	end
 end
@@ -388,45 +388,45 @@ for n in ipairs(a) do
 			end
 		end
 		if nmandatory > 0 then
-				print("\tfun = new_dl_func(\"void\", \"init\", (m_uint)"..mod_name.."_init);")
+				print("\tdl_func_init(&fun, \"void\", \"init\", (m_uint)"..mod_name.."_init);")
 			local tbl = object.params.mandatory
 			if tbl then
 				for _, v in pairs(tbl) do
 				declare_gw_param(v)
 				end
 			end	
-			print("\tCHECK_OB((f = import_mfun(env, fun)))")
+			print("\tCHECK_OB((f = import_mfun(env, &fun)))")
 			-- make_doc("\tf", object)
 		end
 			local tbl = object.params.optional
 			if tbl then
 				for _, v in pairs(tbl) do
 				if string.match(v.type, "int") then
-					print("\tfun = new_dl_func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tdl_func_init(&fun, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tfun = new_dl_func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tdl_func_init(&fun, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tfun = new_dl_func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tdl_func_init(&fun, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tfun = new_dl_func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tdl_func_init(&fun, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tfun = new_dl_func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
-				print("\tCHECK_OB((f = import_mfun(env, fun)))")
+				print("\tCHECK_OB((f = import_mfun(env, &fun)))")
 				-- make_doc("\tf", v)
 				if string.match(v.type, "int") then
-					print("\tfun = new_dl_func(\"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tdl_func_init(&fun, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tfun = new_dl_func(\"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tdl_func_init(&fun, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tfun = new_dl_func(\"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tdl_func_init(&fun, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tfun = new_dl_func(\"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tdl_func_init(&fun, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tfun = new_dl_func(\"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				end
 				declare_gw_param(v)
-				print("\tCHECK_OB((f = import_mfun(env, fun)))")
+				print("\tCHECK_OB((f = import_mfun(env, &fun)))")
 				-- make_doc("\tf", v)
 				end
 			end	
