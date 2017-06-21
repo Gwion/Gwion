@@ -216,7 +216,7 @@ vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
 
 void scope_add(Scope scope, S_Symbol xid, vtype value) {
   if(vector_front(&scope->vector) != vector_back(&scope->vector))
-	  map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
+	map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
   else
   	map_set(&scope->commit_map, (vtype)xid, (vtype)value);
 }
