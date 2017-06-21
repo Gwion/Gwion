@@ -613,10 +613,9 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     return 1;
   }
 
-  if(overload)
-    snprintf(name, len, "%s@%li@%s", func_name, ++overload->func_num_overloads, env->curr->name);
-  else
-    snprintf(name, len, "%s@0@%s", func_name, env->curr->name);
+  snprintf(name, len, "%s@%li@%s", func_name,
+      overload ? ++overload->func_num_overloads : 0, env->curr->name);
+
   func_name = strdup(name);
   func = new_func(func_name, f);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
