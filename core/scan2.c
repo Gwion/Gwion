@@ -662,6 +662,12 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   nspc_push_value(env->curr);
 
   while(arg_list) {
+    if(arg_list->var_decl->value) {
+      if(arg_list->var_decl->value->m_type->array_depth)
+        REM_REF(arg_list->var_decl->value->m_type->d.array_type)
+      REM_REF(arg_list->var_decl->value->m_type)
+      arg_list->var_decl->value->m_type = arg_list->type;
+    }
     if(!arg_list->type->size) {
       nspc_pop_value(env->curr);
       err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
@@ -695,15 +701,13 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       arg_list->type_decl->ref = 1;
       arg_list->type = t;
     }
-    v = new_value(arg_list->type, S_name(arg_list->var_decl->xid));
+    v = arg_list->var_decl->value ? arg_list->var_decl->value : new_value(arg_list->type, S_name(arg_list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     v->offset = f->stack_depth;
     f->stack_depth += arg_list->type->size;
 
-    if(arg_list->var_decl->value)
-      REM_REF(arg_list->var_decl->value);
     arg_list->var_decl->value = v;
     count++;
     arg_list = arg_list->next;
@@ -719,11 +723,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   else if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
   else if(GET_FLAG(f, ae_flag_op)) {
-    m_bool ret;
-    m_str str = strdup(S_name(f->name));
-    str = strsep(&str, "@");
-    ret = name2op(str);
-    free(str);
+    m_bool ret = name2op(strtok(S_name(f->name), "@"));
     if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
     CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
@@ -758,7 +758,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     ret = err_msg(SCAN2_, f->pos, "...in function '%s'", S_name(f->name));
   nspc_pop_value(env->curr);
   env->func = NULL;
-
   return ret;
 }
 
