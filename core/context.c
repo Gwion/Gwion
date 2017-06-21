@@ -12,7 +12,6 @@ Context new_context(Ast prog, m_str filename) {
   context->filename = filename;
   vector_init(&context->new_funcs);
   vector_init(&context->new_values);
-//  context->new_types = new_vector();
   context->public_class_def = NULL;
   INIT_OO(context, e_context_obj);
   return context;
@@ -28,7 +27,7 @@ void free_context(Context a) {
       REM_REF(f);
       continue;
     } else if(!GET_FLAG(f->def, ae_flag_template)) {
-      if(f->value_ref->m_type) {
+      if(f->value_ref->m_type)
         REM_REF(f->value_ref->m_type);
       REM_REF(f->value_ref);
     }

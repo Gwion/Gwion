@@ -1801,9 +1801,10 @@ static m_bool check_ast(Env env, Ast ast) {
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   m_bool ret;
   Context context = new_context(ast, filename);
+    nspc_commit(context->nspc);
   env_reset(env);
   CHECK_BB(load_context(context, env))
-    if((ret = scan0_Ast(env, ast)) < 0) goto cleanup;
+  if((ret = scan0_Ast(env, ast)) < 0) goto cleanup;
   if((ret = scan1_ast(env, ast)) < 0) goto cleanup;
   if((ret = scan2_ast(env, ast)) < 0) goto cleanup;
   if((ret = check_ast(env, ast)) < 0) goto cleanup;
