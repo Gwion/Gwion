@@ -23,18 +23,13 @@ void free_context(Context a) {
   for(i = 0; i < vector_size(&a->new_funcs); i++) {
     Func f = (Func)vector_at(&a->new_funcs, i);
     if(GET_FLAG(f->def, ae_flag_op)) {
-      free(f->value_ref->name);
-      free(f->value_ref->m_type->name);
-      free(f->value_ref->m_type);
+      REM_REF(f->value_ref->m_type);
       REM_REF(f->value_ref);
       REM_REF(f);
       continue;
     } else if(!GET_FLAG(f->def, ae_flag_template)) {
       if(f->value_ref->m_type) {
-        free(f->value_ref->m_type->name);
         REM_REF(f->value_ref->m_type);
-      }
-      free(f->value_ref->name);
       REM_REF(f->value_ref);
     }
   }
@@ -42,11 +37,10 @@ void free_context(Context a) {
 
   for(i = vector_size(&a->new_values) + 1; --i;) { // only stores new class_def
     Value v = (Value)vector_at(&a->new_values, i - 1);
-      free(v->m_type);
-      free(v);
+    REM_REF(v->m_type);
+    REM_REF(v);
   }
   vector_release(&a->new_values);
-//  free_vector(a->new_types);
   REM_REF(a->nspc);
   free(a);
 }

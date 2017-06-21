@@ -617,7 +617,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   snprintf(name, len, "%s@%li@%s", func_name,
       overload ? ++overload->func_num_overloads : 0, env->curr->name);
 
-  func_name = strdup(name);
+  func_name = S_name(insert_symbol(name));
   func = new_func(func_name, f);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
 	SET_FLAG(func, ae_flag_member);
@@ -627,7 +627,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   }
 
-  type = new_type(te_function, strdup(name));
+  type = new_type(te_function, func_name);
   type->parent = &t_function;
   type->size = SZ_INT;
   type->d.func = func;

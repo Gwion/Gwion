@@ -81,12 +81,8 @@ void free_nspc(Nspc a) {
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
   //  just catch func pointer
         } else if(isa(value->m_type, &t_function) > 0) {
-          if(value->m_type != &t_function && strcmp(a->name, "global_context")) {
-            /*if(value->m_type != &t_function && a != vm->env->global_context->nspc) {*/
-            free(value->name);
-            free(value->m_type->name);
+          if(value->m_type != &t_function && !GET_FLAG(value, ae_flag_builtin))
             REM_REF(value->m_type);
-          }
         }
     }
     REM_REF(value);
