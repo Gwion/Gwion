@@ -71,7 +71,7 @@ m_bool env_add_type(Env env, Type type) {
   SET_FLAG(type, ae_flag_builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
   Value v = new_value(v_type, type->name);
-  SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global);
+  SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
   if(env->do_type_xid) {

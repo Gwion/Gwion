@@ -95,8 +95,6 @@ m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data
     v->ptr = data;
   v->owner = env->global_nspc;
   nspc_add_value(env->global_nspc, insert_symbol(name), v);
-  // doc
-//  context_add_value(env->global_context, v, &v->obj);
   return 1;
 }
 
