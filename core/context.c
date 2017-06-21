@@ -40,13 +40,10 @@ void free_context(Context a) {
   }
   vector_release(&a->new_funcs);
 
-  for(i = vector_size(&a->new_values) + 1; --i;) {
+  for(i = vector_size(&a->new_values) + 1; --i;) { // only stores new class_def
     Value v = (Value)vector_at(&a->new_values, i - 1);
-    if(isa(v->m_type, &t_class) > 0 && !GET_FLAG(v, ae_flag_builtin)) {
       free(v->m_type);
       free(v);
-    }
-
   }
   vector_release(&a->new_values);
 //  free_vector(a->new_types);
