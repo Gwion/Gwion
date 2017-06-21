@@ -35,14 +35,8 @@ typedef struct {
 typedef struct {
   m_str name;
   m_str type;
+  m_uint addr;
   struct Vector_ args;
-  union {
-    f_xtor ctor;
-    f_xtor dtor;
-    f_mfun mfun;
-    f_sfun sfun;
-    m_uint addr;
-  } d;
 } DL_Func;
 
 

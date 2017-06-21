@@ -26,7 +26,7 @@ DL_Func* new_dl_func(const m_str t, const m_str n, m_uint addr) {
   DL_Func* a = malloc(sizeof(DL_Func));
   a->name = n;
   a->type = t;
-  a->d.addr = addr;
+  a->addr = addr;
   a->args.ptr = NULL;
   return a;
 }
