@@ -38,7 +38,6 @@ m_bool initialize_object(M_Object object, Type type) {
     object->d.data = calloc(object->size, sizeof(unsigned char));
     if(!object->d.data)
       goto out_of_memory;
-    memset(object->d.data, 0, object->size);
   } else
     object->d.data = NULL;
   return 1;

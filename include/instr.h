@@ -90,7 +90,6 @@ INSTR(Cast_f2i);
 INSTR(Gack);
 
 INSTR(Reg_Push_Str);
-(VM* vm, VM_Shred shred, Instr instr);
 INSTR(Time_Advance);
 
 INSTR(int_not);
