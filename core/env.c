@@ -4,12 +4,10 @@
 #include "type.h"
 
 Env new_env() {
-  Env env = calloc(1, sizeof(struct Env_));
+  Env env = malloc(sizeof(struct Env_));
   env->global_context = new_context(NULL, "global_context");
   env->context = env->global_context;
-  env->class_scope = 0;
   env->global_nspc = new_nspc("global_nspc", "global_nspc");
-  env->curr = env->global_nspc;
 //  env->user_nspc = NULL;
   vector_init(&env->breaks);
   vector_init(&env->conts);
@@ -18,6 +16,7 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   map_init(&env->known_ctx);
   env->type_xid = te_last; // ????????
+  env->do_type_xid = 0;
   INIT_OO(env, e_env_obj);
   env_reset(env);
   return env;

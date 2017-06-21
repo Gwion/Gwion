@@ -5,6 +5,7 @@
 #include "func.h"
 #include "vm.h"
 #include "context.h"
+#include "oo.h"
 
 static VM* vm;
 void release(M_Object o, VM_Shred shred);
@@ -69,15 +70,13 @@ void free_nspc(Nspc a) {
        REM_REF(value->m_type)
        else if(isa(value->m_type, &t_object) > 0) {
           if(value->ptr || GET_FLAG(value, ae_flag_static)) {
-            Vector instr = new_vector();
-            VM_Code code = new_vm_code(instr, 0, 0, "in nspc dtor", "");
+            VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
             VM_Shred s = new_vm_shred(code);
             M_Object obj = value->ptr ? (M_Object)value->ptr :
 			    *(M_Object*)(a->class_data + value->offset);
             s->vm_ref = vm;
             release(obj, s);
             free_vm_shred(s);
-            free_vector(instr);
           }
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
   //  just catch func pointer
