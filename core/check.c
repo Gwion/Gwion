@@ -54,7 +54,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
         m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
         if(import) {
           if(import(env) > 0)
-            vector_add(vm->plug, (vtype)handler);
+            vector_add(&vm->plug, (vtype)handler);
           else {
             env->class_def = (Type)vector_pop(&env->class_stack);
             env->curr = (Nspc)vector_pop(&env->nspc_stack);

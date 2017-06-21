@@ -26,7 +26,7 @@ typedef struct {
   Emitter emit;
   Env env;
   void (*wakeup)();
-  Vector plug;
+  struct Vector_ plug;
   m_bool is_running;
 } VM;
 
@@ -44,11 +44,11 @@ struct VM_Shred_ {
   VM* vm_ref;
   m_bool is_running, is_done;
   VM_Shred prev, next;
-  Vector args;
+  Vector args; // passed pointer from compile
   M_Object me;
   m_str filename;
-  Vector child;
   M_Object wait;
+  struct Vector_ child;
   struct Vector_ gc, gc1;
   m_float wake_time;
 };

@@ -116,7 +116,7 @@ VM* new_vm(m_bool loop) {
   vm->shred      = new_vector();
   vm->ugen       = new_vector();
   vm->shreduler  = new_shreduler(vm);
-  vm->plug       = new_vector();
+  vector_init(&vm->plug);
   shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
   return vm;
 }
@@ -127,9 +127,9 @@ void free_vm(VM* vm) {
     REM_REF(vm->env);
   if(vm->emit)
     REM_REF(vm->emit);
-  for(i = 0; i < vector_size(vm->plug); i++)
-    dlclose((void*)vector_at(vm->plug, i));
-  free_vector(vm->plug);
+  for(i = 0; i < vector_size(&vm->plug); i++)
+    dlclose((void*)vector_at(&vm->plug, i));
+  vector_release(&vm->plug);
   free_vector(vm->shred);
   free_vector(vm->ugen);
   if(vm->bbq)

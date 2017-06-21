@@ -502,9 +502,9 @@ INSTR(Spork) {
   code = *(VM_Code*)shred->reg;
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
-  if(!shred->child)
-    shred->child = new_vector();
-  vector_add(shred->child, (vtype)sh);
+  if(!shred->child.ptr)
+    vector_init(&shred->child);
+  vector_add(&shred->child, (vtype)sh);
   sh->_mem = sh->base;
   sh->base = shred->base;
   sh->me = new_shred(vm, sh);

@@ -77,20 +77,20 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 #endif
   if(!out)
     return -1;
-  m_uint i, size = out->child ? vector_size(out->child) : 0;
+  m_uint i, size = out->child.ptr ? vector_size(&out->child) : 0;
   if(erase) {
     vtype index;
     if(out->parent) {
-      index = vector_find(out->parent->child, (vtype)out);
-      vector_rem(out->parent->child, index);
-      if(!vector_size(out->parent->child)) {
-        free_vector(out->parent->child);
-        out->parent->child = NULL;
+      index = vector_find(&out->parent->child, (vtype)out);
+      vector_rem(&out->parent->child, index);
+      if(!vector_size(&out->parent->child)) {
+        free_vector(&out->parent->child);
+        out->parent->child.ptr = NULL;
       }
     }
-    if(out->child) {
+    if(out->child.ptr) {
       for(i = 0; i < size; i++) {
-        VM_Shred child = (VM_Shred)vector_front(out->child);
+        VM_Shred child = (VM_Shred)vector_front(&out->child);
         child->prev = NULL;
         child->next = NULL;
         if(child == s->list) // 09/03/17
@@ -114,7 +114,7 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 
   if(!out->prev && !out->next && out != s->list) {
 //    if(!out->wait && !out->child && erase)
-    if(erase && !out->wait && !out->child && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
+    if(erase && !out->wait && !out->child.ptr && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
       free_vm_shred(out);
     return -1;
   }
