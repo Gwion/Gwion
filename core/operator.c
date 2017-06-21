@@ -20,13 +20,6 @@ const m_str op2str(Operator op) {
   return op_str[op];
 }
 
-static void op_map_init(Map a) {
-  m_uint i;
-  map_init(a);
-  for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++)
-    map_set(a, (vtype)operators[i], (vtype)new_vector());
-}
-
 static void free_op(M_Operator* a) {
   if(a->lhs)
 	REM_REF(a->lhs)
@@ -38,9 +31,9 @@ static void free_op(M_Operator* a) {
 void free_op_map(Map map) {
   m_uint i;
   Vector v;
-  for(i = 0; i < (sizeof(operators) / sizeof(Operator)); i++) {
+  for(i = 0; i < map_size(map); i++) {
     m_uint j;
-    v = (Vector)map_get(map, (vtype)operators[i]);
+    v = (Vector)map_at(map, (vtype)i);
     for(j = 0; j < vector_size(v); j++)
       free_op((M_Operator*)vector_at(v, j));
     free_vector(v);
@@ -68,12 +61,14 @@ m_bool env_add_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f,
     nspc = env->global_nspc;
 
   if(!nspc->op_map.ptr)
-    op_map_init(&nspc->op_map);
+    map_init(&nspc->op_map);
 
   if(!(v = (Vector)map_get(&nspc->op_map, (vtype)op))) {
-    err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
-            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL);
-    return -1;
+    if(!op2str(op))
+      CHECK_BB(err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
+            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL))
+    v = new_vector();
+    map_set(&nspc->op_map, (vtype)op, (vtype)v);
   }
   if((mo = operator_find(v, lhs, rhs))) {
     err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
