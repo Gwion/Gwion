@@ -9,7 +9,7 @@ static struct Type_ t_invalid_var_type = { ".invalid_var_type", SZ_INT, &t_objec
 MFUN(test_mfun){}
 IMPORT
 {
-  DL_Func* fun;
+  DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_invalid_var_type, env->global_nspc, NULL, NULL))
   import_mvar(env, ".int", "test", 0, 0);
   CHECK_BB(import_class_end(env))
