@@ -445,6 +445,8 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   Map m;
   m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
   if(stmt->is_label) {
+    if(!env->curr->label.ptr)
+      map_init(&env->curr->label);
     m = (Map)map_get(&env->curr->label, (vtype)key);
     if(!m) {
       m = new_map();

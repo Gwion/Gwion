@@ -1464,12 +1464,10 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   Stmt_Goto_Label ref;
   if(stmt->is_label)
     return 1;
-  m = (Map)map_get(&env->curr->label, (vtype)key);
-  if(!m)
+  if(!(m = env->curr->label.ptr ? (Map)map_get(&env->curr->label, (vtype)key) : NULL))
     CHECK_BB(err_msg(TYPE_, stmt->pos,
           "label '%s' used but not defined", S_name(stmt->name)))
-      ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
-  if(!ref) {
+  if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
     err_msg(TYPE_, stmt->pos,
         "label '%s' used but not defined", S_name(stmt->name));
     m_uint i;

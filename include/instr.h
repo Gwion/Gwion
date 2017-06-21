@@ -87,10 +87,11 @@ INSTR(Cast_i2f);
 INSTR(Cast_f2i);
 
 /* debugging */
-void Gack(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Gack);
 
-void Reg_Push_Str(VM* vm, VM_Shred shred, Instr instr);
-void Time_Advance(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Reg_Push_Str);
+(VM* vm, VM_Shred shred, Instr instr);
+INSTR(Time_Advance);
 
 INSTR(int_not);
 INSTR(float_times);
