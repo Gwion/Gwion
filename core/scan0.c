@@ -74,7 +74,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     the_class->info->parent = env->context->nspc;
   else
     the_class->info->parent = env->curr;
-  the_class->func = NULL;
+  the_class->d.func = NULL;
   the_class->def = class_def;
 
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");

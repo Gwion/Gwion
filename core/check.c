@@ -464,18 +464,19 @@ __inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos) {
 static Type_List mk_type_list(Env env, Type type) {
   m_uint i;
   Nspc nspc = type->info;
-  Vector v = new_vector();
-  vector_add(v, (vtype)type->name);
+  struct Vector_ v;
+  vector_init(&v);
+  vector_add(&v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_add(v, (vtype)S_name(insert_symbol((nspc->name))));
+    vector_add(&v, (vtype)S_name(insert_symbol((nspc->name))));
     nspc = nspc->parent;
   }
   ID_List id = NULL;
   Type_List list = NULL;
-  for(i = vector_size(v); i > 0; i--)
-    id = prepend_id_list((m_str)vector_at(v, i - 1), id, 0);
+  for(i = vector_size(&v); i > 0; i--)
+    id = prepend_id_list((m_str)vector_at(&v, i - 1), id, 0);
   list = new_type_list(id, NULL, 0);
-  free_vector(v);
+  vector_release(&v);
   return list;
 }
 
@@ -632,7 +633,7 @@ next:
     CHECK_BO(err_msg(TYPE_, exp_func->pos, "function call using a non-existing function"))
       if(isa(f, &t_function) < 0)
         CHECK_BO(err_msg(TYPE_, exp_func->pos, "function call using a non-function value"))
-          up = f->func;
+          up = f->d.func;
 
   if(args)
     CHECK_OO(check_exp(env, args))
@@ -640,7 +641,7 @@ next:
       func = find_func_match(up, args);
   if(!func) {
     Value value;
-    if(!f->func) {
+    if(!f->d.func) {
       if(exp_func->exp_type == ae_exp_primary)
         value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
       else if(exp_func->exp_type == ae_exp_dot)
@@ -694,7 +695,7 @@ next:
     }
     m_uint i;
     err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");
-    up = f->func;
+    up = f->d.func;
     while(up) {
       Arg_List e = up->def->arg_list;
       fprintf(stderr, "\t");
@@ -779,7 +780,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == ae_exp_decl) {
       v = binary->rhs->d.exp_decl.list->self->value;
-      f1 = v->m_type->func;
+      f1 = v->m_type->d.func;
     } else {
       err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
       return NULL;
@@ -795,7 +796,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
       /*    } else if(binary->lhs->exp_type == ae_exp_decl) {
             v = binary->lhs->d.exp_decl->list->self->value;
-            f2 = v->m_type->func; */
+            f2 = v->m_type->d.func; */
   } else
     CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs)."))
       if((r_nspc && l_nspc) && (r_nspc != l_nspc))
@@ -978,9 +979,9 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
       Value v = nspc_lookup_value(env->curr,
           cast->exp->d.exp_primary.d.var,  1);
       Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
-        v->m_type->func :
+        v->m_type->d.func :
         nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
-      if(compat_func(t2->func->def, f->def, f->def->pos)) {
+      if(compat_func(t2->d.func->def, f->def, f->def->pos)) {
         cast->func = f;
         return t2;
       }
@@ -1213,7 +1214,7 @@ static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
   nspc_add_type(env->curr, ptr->xid, t);
   //  ADD_REF(t);
   ptr->m_type = t;
-  t->func = ptr->func;
+  t->d.func = ptr->func;
   return 1;
 }
 

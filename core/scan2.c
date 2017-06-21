@@ -628,7 +628,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   type = new_type(te_function, strdup(name));
   type->parent = &t_function;
   type->size = SZ_INT;
-  type->func = func;
+  type->d.func = func;
   value = new_value(type, func_name);
   SET_FLAG(value, ae_flag_const);
   value->owner = env->curr;

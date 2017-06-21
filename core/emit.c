@@ -44,17 +44,18 @@ static void free_code(Code* code) {
 
 static void emit_pop_scope(Emitter emit) {
   m_uint i;
-  Vector v = new_vector();
-  frame_pop_scope(emit->code->frame, v);
-  for(i = 0; i < vector_size(v); i++) {
-    Local* l = (Local*)vector_at(v, i);
+  struct Vector_ v;
+  vector_init(&v);
+  frame_pop_scope(emit->code->frame, &v);
+  for(i = 0; i < vector_size(&v); i++) {
+    Local* l = (Local*)vector_at(&v, i);
     if(l->is_obj) {
       Instr instr = add_instr(emit, Release_Object2);
       instr->m_val = l->offset;
     }
     free(l);
   }
-  free_vector(v);
+  vector_release(&v);
 }
 
 m_bool emit_pre_ctor(Emitter emit, Type type) {

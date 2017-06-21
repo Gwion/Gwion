@@ -19,8 +19,8 @@ struct Type_ {
   Nspc info;
   Nspc owner;
   m_uint    array_depth;
-  Func      func;
   union {
+  Func      func;
     Type      actual_type;
     Type      array_type;
   } d;
