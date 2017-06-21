@@ -16,8 +16,8 @@ static int sock;
 static struct sockaddr_in saddr;
 static struct sockaddr_in caddr;
 
-static Vector add;
-static Vector rem;
+static struct Vector_ add;
+static struct Vector_ rem;
 static m_int state;
 
 void Send(const char* c, unsigned int i) {
@@ -64,8 +64,8 @@ static m_bool Recv(int i, char* buf) {
 
 void* server_thread(void* data) {
   VM* vm = (VM*)data;
-  add = new_vector();
-  rem = new_vector();
+  vector_init(&add);
+  vector_init(&rem);
   while(vm->is_running) {
     char buf[256];
     if(Recv(0, buf) < 0)
@@ -81,10 +81,10 @@ void* server_thread(void* data) {
       for(i = 0; i < vector_size(&vm->shred); i++) {
         shred = (VM_Shred)vector_at(&vm->shred, i);
         if(shred->xid == atoi(buf +2) -1)
-          vector_add(rem, (vtype)shred);
+          vector_add(&rem, (vtype)shred);
       }
     } else if(strncmp(buf, "+", 1) == 0) {
-      vector_add(add, (vtype)strdup(buf + 2));
+      vector_add(&add, (vtype)strdup(buf + 2));
     } else if(strncmp(buf, "loop", 4) == 0) {
       m_int i = atoi(buf+5);
       if(i <= 0)
@@ -141,8 +141,8 @@ void server_destroy(pthread_t t) {
   pthread_join(t, NULL);
 #endif
   shutdown(sock, SHUT_RDWR);
-  free_vector(add);
-  free_vector(rem);
+  vector_release(&add);
+  vector_release(&rem);
 }
 
 void udp_do(VM* vm) {
@@ -154,14 +154,14 @@ void udp_do(VM* vm) {
   } else if(state == 1) {
     shreduler_set_loop(vm->shreduler, 1);
   }
-  for(i = 0; i < vector_size(add); i++) {
-    m_str filename = (m_str)vector_at(add, i);
+  for(i = 0; i < vector_size(&add); i++) {
+    m_str filename = (m_str)vector_at(&add, i);
     compile(vm, filename);
     free(filename);
   }
-  for(i = 0; i < vector_size(rem); i++)
-    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(rem, i), 1);
-  vector_clear(add);
-  vector_clear(rem);
+  for(i = 0; i < vector_size(&rem); i++)
+    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(&rem, i), 1);
+  vector_clear(&add);
+  vector_clear(&rem);
   state = 0;
 }
