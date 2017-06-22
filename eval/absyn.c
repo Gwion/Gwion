@@ -31,9 +31,18 @@ static void free_var_decl(Var_Decl a) {
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     } else if(!a->value->owner_class) { // breaks for loop ?
-      if(a->value->m_type->array_depth)
-        REM_REF(a->value->m_type);
+if(!GET_FLAG(a->value, ae_flag_global)) {
+//      REM_REF(a->value->m_type);
       REM_REF(a->value);
+}else      if(!GET_FLAG(a->value, 
+ae_flag_builtin) && a->value->m_type->array_depth) {
+//  REM_REF(a->value->m_type)
+//printf("absyn value->name %s\n", a->value->name);
+//exit(2);
+}
+//;
+//        REM_REF(a->value->m_type->d.array_type);
+
     }
   }
   if(a->array)
@@ -592,10 +601,12 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
       free_arg_list(a->args);
     free_type_decl(a->type);
   }
+/*
   if(a->value && !GET_FLAG(a->value, ae_flag_member) && !GET_FLAG(a, ae_flag_static)) {
     REM_REF(a->value->m_type);
     REM_REF(a->value)
   }
+*/
 }
 
 Exp new_exp_call(Exp base, Exp args, int pos) {
@@ -918,8 +929,8 @@ static void free_stmt_enum(Stmt_Enum a) {
     free_id_list(a->list);
   for(i = 0; i < vector_size(&a->values); i++) {
     Value v = (Value)vector_at(&a->values, i);
-    if(!v->owner_class)
-      free(v);
+//    if(!v->owner_class)
+//      free(v);
   }
   vector_release(&a->values);
 }
@@ -1071,28 +1082,13 @@ static void free_section(Section* section) {
     if(!section->d.func_def)
       break;
     free_stmt(section->d.func_def->code);
-    if(section->d.func_def->types) {
-      if(section->d.func_def->d.func && section->d.func_def->d.func->value_ref->owner_class) {
-        scope_rem(&section->d.func_def->d.func->value_ref->owner_class->info->value,
-                  insert_symbol(section->d.func_def->d.func->value_ref->name));
-        section->d.func_def->d.func->value_ref->func_ref = NULL;
-        free(section->d.func_def->d.func);
-        free_func_def(section->d.func_def);
-        break;
-      }
-      if(section->d.func_def->arg_list)
-        free_arg_list(section->d.func_def->arg_list);
-      free_id_list(section->d.func_def->types);
-      free_type_decl(section->d.func_def->type_decl);
-      if(section->d.func_def->d.func) {
-        REM_REF(section->d.func_def->d.func->value_ref);
-        free(section->d.func_def->d.func);
-      }
-      free(section->d.func_def);
-    } else {
-      if(!section->d.func_def->d.func)
-        free_func_def(section->d.func_def);
-    }
+//if(section->d.func_def->types) {
+//REM_REF(section->d.func_def->d.func->value_ref)
+//REM_REF(section->d.func_def->d.func)
+
+//}    else 
+if(!section->d.func_def->d.func)
+      free_func_def(section->d.func_def);
     break;
   }
   free(section);

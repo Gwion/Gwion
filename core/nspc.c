@@ -66,8 +66,10 @@ void free_nspc(Nspc a) {
     Value value = (Value)vector_at(v, i);
 
     if(value->m_type) {
-      if(isa(value->m_type, &t_class) > 0)
+      if(isa(value->m_type, &t_class) > 0) {
+printf("value->name %s\n", value->name);
        REM_REF(value->m_type)
+}
        else if(isa(value->m_type, &t_object) > 0) {
           if(value->ptr || GET_FLAG(value, ae_flag_static)) {
             VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
@@ -77,12 +79,21 @@ void free_nspc(Nspc a) {
             s->vm_ref = vm;
             release(obj, s);
             free_vm_shred(s);
-          }
+          } 
+if(value->m_type->array_depth)
+  REM_REF(value->m_type);
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
   //  just catch func pointer
         } else if(isa(value->m_type, &t_function) > 0) {
-          if(value->m_type != &t_function && !GET_FLAG(value, ae_flag_builtin))
-            REM_REF(value->m_type);
+//printf("Func value->name %s\n", value->name);
+          if(value->m_type != &t_function && GET_FLAG(value, ae_flag_builtin))
+            REM_REF(value->m_type)
+else if(GET_FLAG(value, ae_flag_template))
+REM_REF(value->func_ref)
+//exit(3);
+else
+            REM_REF(value->m_type)
+//continue;
         }
     }
     REM_REF(value);
@@ -92,8 +103,10 @@ void free_nspc(Nspc a) {
 
 
   v = scope_get(&a->func);
-  for(i = 0; i < vector_size(v); i++) {
-    Func func = (Func)vector_at(v, i);
+//  for(i = 0; i < vector_size(v); i++) {
+  for(i = vector_size(v) +1; --i;) {
+    Func func = (Func)vector_at(v, i - 1);
+//printf("Func func->name %s\n", func->name);
     REM_REF(func);
   }
   free_vector(v);

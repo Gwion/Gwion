@@ -97,7 +97,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     }
     body = body->next;
   }
-
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
 

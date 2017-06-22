@@ -52,7 +52,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
     list->self->value->owner_class = env->func ? NULL : env->class_def;
     if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
       SET_FLAG(list->self->value, ae_flag_member);
-    if(!env->class_def && !env->func)
+    if(!env->class_def && !env->func && !env->class_scope)
       SET_FLAG(list->self->value, ae_flag_global);
     list->self->value->ptr = list->self->addr;
     nspc_add_value(env->curr, list->self->xid, list->self->value);
@@ -599,15 +599,17 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     if(!env->class_def)
       SET_FLAG(value, ae_flag_global);
     value->func_ref = func;
-//    ADD_REF(value->func_ref);
     func->value_ref = value;
-//    ADD_REF(value);
     f->d.func = func;
-    SET_FLAG(value, ae_flag_const | ae_flag_checked);
-    if(overload)
+    ADD_REF(func);
+    SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
+    if(overload) {
       overload->func_num_overloads++;
-    else
+//    ADD_REF(overload);
+}    else {
+    ADD_REF(value);
       nspc_add_value(env->curr, insert_symbol(orig_name), value);
+}
     snprintf(name, len, "%s<template>@%li@%s", S_name(f->name),
             overload ? overload->func_num_overloads : 0, env->curr->name);
     nspc_add_value(env->curr, insert_symbol(name), value);
@@ -622,6 +624,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
 	SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) { // actual builtin func import
+	SET_FLAG(func, ae_flag_builtin);
     func->code = new_vm_code(NULL, func->def->stack_depth, 1, S_name(f->name), "builtin func code");
     func->code->need_this = GET_FLAG(func, ae_flag_member);
     func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
@@ -637,6 +640,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   value->owner_class = env->class_def;
   if(GET_FLAG(func, ae_flag_member))
     SET_FLAG(value, ae_flag_member);
+  if(GET_FLAG(f, ae_flag_builtin))
+	SET_FLAG(value, ae_flag_builtin);
   if(!env->class_def)
     SET_FLAG(value, ae_flag_global);
   value->func_ref = func;
@@ -715,8 +720,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   nspc_pop_value(env->curr);
 
-  if(!env->class_def)
-    context_add_func(env->context, func, &func->obj);
+//  if(!env->class_def)
+//    context_add_func(env->context, func, &func->obj);
 
   if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->d.func, ae_flag_dtor);
@@ -725,6 +730,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   else if(GET_FLAG(f, ae_flag_op)) {
     m_bool ret = name2op(strtok(S_name(f->name), "@"));
     if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
+//  nspc_add_func(env->curr, insert_symbol(func->name), value); // template. is it necessary ?
     CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     return 1;

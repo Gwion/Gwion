@@ -670,7 +670,8 @@ static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint a
   spork->m_val = arg_size;
   spork->m_val2 = (m_uint)f;
   *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
-  f->code = code;
+  if(f)
+    f->code = code;
   return 1;
 }
 

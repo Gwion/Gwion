@@ -83,9 +83,11 @@ INSTR(Free_Func) {
   debug_msg("instr", "free template func '%p'", (void*)instr->m_val);
 #endif
   Func f = (Func)instr->m_val;
+/*
   REM_REF(f->value_ref->m_type);
   REM_REF(f->value_ref);
-  free_vm_code(f->code);
+*/
+//  free_vm_code(f->code);
 }
 
 INSTR(assign_func) {

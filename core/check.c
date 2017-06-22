@@ -631,15 +631,17 @@ next:
         ptr = exp_func->d.exp_primary.value;
   }
   if(!f)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos, "function call using a non-existing function"))
-      if(isa(f, &t_function) < 0)
-        CHECK_BO(err_msg(TYPE_, exp_func->pos, "function call using a non-function value"))
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+      "function call using a non-existing function"))
+  if(isa(f, &t_function) < 0)
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+      "function call using a non-function value"))
           up = f->d.func;
 
   if(args)
     CHECK_OO(check_exp(env, args))
-      // look for a match
-      func = find_func_match(up, args);
+  // look for a match
+  func = find_func_match(up, args);
   if(!func) {
     Value value;
     if(!f->d.func) {
@@ -1700,7 +1702,7 @@ m_bool ret = 1;
     func->code->stack_depth = f->stack_depth;
   if(vararg) {
     REM_REF(vararg);
-    scope_rem(&env->curr->value, insert_symbol("vararg"));
+//    scope_rem(&env->curr->value, insert_symbol("vararg"));
   }
   nspc_pop_value(env->curr);
   env->func = NULL;

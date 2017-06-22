@@ -79,8 +79,16 @@ void free_vm_shred(VM_Shred shred) {
     free(shred->base);
   free(shred->_reg);
   if(!strcmp(shred->code->filename, shred->code->name) ||
-      (!shred->filename && !strstr(shred->code->name, "spork")))
+     !strstr(shred->code->name, "spork~"))
     free_vm_code(shred->code);
+/*
+else {
+
+printf("skip %s\n", shred->name);
+if(!strcmp(shred->name, "spork~exp"))
+    free_vm_code(shred->code);
+}
+*/
   free(shred->name);
   free(shred->filename);
   vector_release(&shred->gc1);
