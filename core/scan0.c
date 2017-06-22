@@ -109,7 +109,6 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     value->owner = env->curr;
     SET_FLAG(value, ae_flag_const | ae_flag_checked);
     nspc_add_value(env->curr, class_def->name->xid, value);
-    vector_add(&env->context->new_values, (vtype)value);
     class_def->type = the_class;
   }
   return ret;

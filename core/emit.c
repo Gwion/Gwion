@@ -652,10 +652,6 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     call->m_val2  = (m_uint)func->def->arg_list->type;
     *(Type*)call->ptr     = func->def->arg_list->next->type;
   }
-  if(GET_FLAG(func->def, ae_flag_template)) {
-    Instr clear = add_instr(emit, Free_Func);
-    clear->m_val = (m_uint)func;
-  }
   if(is_ptr)
     free(func);
   return 1;
@@ -670,8 +666,6 @@ static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint a
   spork->m_val = arg_size;
   spork->m_val2 = (m_uint)f;
   *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
-  if(f)
-    f->code = code;
   return 1;
 }
 
@@ -707,8 +701,6 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
-//  ADD_REF(exp->m_func)
-//  CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
   CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0))
   return 1;
 }
@@ -741,10 +733,10 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   emit_pop_scope(emit);
   sadd_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
-  code = emit_code(emit);
+  f->code = code = emit_code(emit);
   emit->code = (Code*)vector_pop(&emit->stack);
   CHECK_BB(emit_exp_spork_finish(emit, code, f, 0, emit->env->func ? emit->env->func->def->stack_depth : 0))
-    return 1;
+  return 1;
 }
 
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {

@@ -78,18 +78,6 @@ INSTR(Mem_Set_Imm) {
   *(m_uint**)(shred->mem + instr->m_val) = *(m_uint**)instr->ptr;
 }
 
-INSTR(Free_Func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "free template func '%p'", (void*)instr->m_val);
-#endif
-  Func f = (Func)instr->m_val;
-/*
-  REM_REF(f->value_ref->m_type);
-  REM_REF(f->value_ref);
-*/
-//  free_vm_code(f->code);
-}
-
 INSTR(assign_func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign func");
@@ -531,8 +519,8 @@ INSTR(Spork) {
   PUSH_REG(sh, SZ_INT);
   *(M_Object*)shred->reg = sh->me;
   PUSH_REG(shred,  SZ_INT);
-if(instr->m_val2)
-  ADD_REF(code)
+  if(instr->m_val2)
+    ADD_REF(code)
 }
 
 // LCOV_EXCL_START

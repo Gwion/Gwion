@@ -147,7 +147,6 @@ INSTR(Vararg_complex);
 INSTR(Vararg_object);
 INSTR(Vararg_Vec3);
 INSTR(Vararg_Vec4);
-INSTR(Free_Func); // for template
 
 INSTR(member_function);
 INSTR(vec3_x);
