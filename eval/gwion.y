@@ -145,7 +145,7 @@ static int get_pos(void* data)
 %precedence NEG
 %left DOT
 
-%destructor { printf("!!!!\n"); free_type_decl($$); } <type_decl>
+%destructor { free_type_decl($$); } <type_decl>
 %%
 
 ast

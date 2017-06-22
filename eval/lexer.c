@@ -1773,7 +1773,7 @@ YY_RULE_SETUP
 case 111:
 YY_RULE_SETUP
 #line 203 "eval/gwion.l"
-{ printf("error: stray in program\n"); return 1; }
+{ fprintf(stderr, "error: stray in program\n"); return 1; }
 	YY_BREAK
 case 112:
 YY_RULE_SETUP

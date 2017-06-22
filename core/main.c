@@ -103,33 +103,33 @@ static const struct option long_option[] = {
 };
 
 static void usage() {
-  printf("usage: Gwion <options>\n");
-  printf("\toption can be any of:\n");
-  printf("GLOBAL options:  <argument>  : description\n");
-  printf("\t--help,   -?\t             : this help\n");
-  printf("\t--version -v\t             : this help\n");
-  printf("VM     options:\n");
-  printf("\t--add,    -+\t <file>      : add file\n");
-  printf("\t--rem,    --\t <shred id>  : remove shred\n");
-  printf("\t--plugdir,-P\t <directory> : add a plugin directory\n");
-  printf("\t--quit    -q\t             : quit the vm\n");
-  printf("UDP    options:\n");
-  printf("\t--host    -h\t  <string>   : set host\n");
-  printf("\t--port    -p\t  <number>   : set port\n");
-  printf("\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n");
-  printf("\t--alone   -a\t             : standalone mode. (no udp)\n");
-  printf("DRIVER options:\n");
-  printf("\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n");
-  printf("\t--sr      -s\t  <number>   : set samplerate\n");
-  printf("\t--bufnum  -n\t  <number>   : set number of buffers\n");
-  printf("\t--bufsize -b\t  <number>   : set size   of buffers\n");
-  printf("\t--chan    -g\t  <number>   : (global) channel number\n");
-  printf("\t--in      -i\t  <number>   : number of  input channel\n");
-  printf("\t--out     -o\t  <number>   : number of output channel\n");
-  printf("\t--card    -c\t  <string>   : card identifier or output file (depending on driver)\n");
-  printf("\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
-  printf("\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n");
-  printf("\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
+  fprintf(stderr, "usage: Gwion <options>\n");
+  fprintf(stderr, "\toption can be any of:\n");
+  fprintf(stderr, "GLOBAL options:  <argument>  : description\n");
+  fprintf(stderr, "\t--help,   -?\t             : this help\n");
+  fprintf(stderr, "\t--version -v\t             : this help\n");
+  fprintf(stderr, "VM     options:\n");
+  fprintf(stderr, "\t--add,    -+\t <file>      : add file\n");
+  fprintf(stderr, "\t--rem,    --\t <shred id>  : remove shred\n");
+  fprintf(stderr, "\t--plugdir,-P\t <directory> : add a plugin directory\n");
+  fprintf(stderr, "\t--quit    -q\t             : quit the vm\n");
+  fprintf(stderr, "UDP    options:\n");
+  fprintf(stderr, "\t--host    -h\t  <string>   : set host\n");
+  fprintf(stderr, "\t--port    -p\t  <number>   : set port\n");
+  fprintf(stderr, "\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n");
+  fprintf(stderr, "\t--alone   -a\t             : standalone mode. (no udp)\n");
+  fprintf(stderr, "DRIVER options:\n");
+  fprintf(stderr, "\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n");
+  fprintf(stderr, "\t--sr      -s\t  <number>   : set samplerate\n");
+  fprintf(stderr, "\t--bufnum  -n\t  <number>   : set number of buffers\n");
+  fprintf(stderr, "\t--bufsize -b\t  <number>   : set size   of buffers\n");
+  fprintf(stderr, "\t--chan    -g\t  <number>   : (global) channel number\n");
+  fprintf(stderr, "\t--in      -i\t  <number>   : number of  input channel\n");
+  fprintf(stderr, "\t--out     -o\t  <number>   : number of output channel\n");
+  fprintf(stderr, "\t--card    -c\t  <string>   : card identifier or output file (depending on driver)\n");
+  fprintf(stderr, "\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
+  fprintf(stderr, "\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n");
+  fprintf(stderr, "\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
 }
 
 int main(int argc, char** argv) {
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
       usage();
       exit(0);
     case 'C':
-      printf("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
+      fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
       do_quit     = 1;
       break;
     case 'q':

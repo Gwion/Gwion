@@ -1666,13 +1666,13 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, MyArg* arg)
     {
           case 119: /* type_decl2  */
 #line 148 "eval/gwion.y" /* yacc.c:1257  */
-      { printf("!!!!\n"); free_type_decl(((*yyvaluep).type_decl)); }
+      { free_type_decl(((*yyvaluep).type_decl)); }
 #line 1671 "eval/parser.c" /* yacc.c:1257  */
         break;
 
     case 142: /* type_decl  */
 #line 148 "eval/gwion.y" /* yacc.c:1257  */
-      { printf("!!!!\n"); free_type_decl(((*yyvaluep).type_decl)); }
+      { free_type_decl(((*yyvaluep).type_decl)); }
 #line 1677 "eval/parser.c" /* yacc.c:1257  */
         break;
 

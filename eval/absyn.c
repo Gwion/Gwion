@@ -36,13 +36,7 @@ if(!GET_FLAG(a->value, ae_flag_global)) {
       REM_REF(a->value);
 }else      if(!GET_FLAG(a->value, 
 ae_flag_builtin) && a->value->m_type->array_depth) {
-//  REM_REF(a->value->m_type)
-//printf("absyn value->name %s\n", a->value->name);
-//exit(2);
 }
-//;
-//        REM_REF(a->value->m_type->d.array_type);
-
     }
   }
   if(a->array)
@@ -924,14 +918,7 @@ Stmt new_stmt_enum(ID_List list, m_str xid, int pos) {
 }
 
 static void free_stmt_enum(Stmt_Enum a) {
-  vtype i;
-  if(a->list)
-    free_id_list(a->list);
-  for(i = 0; i < vector_size(&a->values); i++) {
-    Value v = (Value)vector_at(&a->values, i);
-//    if(!v->owner_class)
-//      free(v);
-  }
+  free_id_list(a->list);
   vector_release(&a->values);
 }
 

@@ -767,7 +767,6 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
     default:
       return get_instr(emit, unary->op, NULL, unary->exp->type) ? 1 : -1;
   }
-  printf("here\n");
   return 1;
 }
 

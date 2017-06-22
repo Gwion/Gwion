@@ -70,7 +70,7 @@ m_bool jack_ini(VM* vm, DriverInfo* di) {
   char chan_name[50];
   for(chan = 0; chan < di->out; chan++) {
     sprintf(chan_name, "output_%ld", chan);
-    printf("registering %s\n", chan_name);
+    fprintf(stderr, "registering %s\n", chan_name);
     oport[chan] = jack_port_register(client, chan_name,
                                      JACK_DEFAULT_AUDIO_TYPE,
                                      JackPortIsOutput, chan);
@@ -110,7 +110,6 @@ void jack_run(VM* vm, DriverInfo* di) {
     return;
   }
   for(chan = 0; chan < di->out; chan++) {
-    printf("%s\n", ports[chan]);
     if(jack_connect(client, jack_port_name(oport[chan]), ports[chan]))
       fprintf(stderr, "cannot connect output ports\n");
   }

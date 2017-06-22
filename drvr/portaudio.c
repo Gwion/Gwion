@@ -87,11 +87,6 @@ static m_bool ini(VM* vm, DriverInfo* di) {
 
 //Pa_SetStreamFinishedCallback( stream, NULL);
 //Pa_SetStreamFinishedCallback( stream, &StreamFinished );
-
-//	di->out =2;
-//	di->in =2;
-//	vm->bbq->in = malloc(sizeof(m_float) * 2);
-  printf("end of port audio\n");
   return 1;
 
 error:

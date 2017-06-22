@@ -200,7 +200,7 @@ static int adjust(void* data);
 \"(\\.|[^\\"])*\"       						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return STRING_LIT; }
 '(\\.|[^\\'])'          						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return CHAR_LIT;   }
 
-. { printf("error: stray in program\n"); return 1; }
+. { fprintf(stderr, "error: stray in program\n"); return 1; }
 
 %% // LCOV_EXCL_LINE
 // LCOV_EXCL_LINE
