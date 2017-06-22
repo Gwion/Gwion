@@ -458,9 +458,10 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     if(exp_func->m_func->value_ref->owner_class) {
       vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
       emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
+//      emit->env->curr = exp_func->m_func->value_ref->owner;
       vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
       emit->env->class_def = exp_func->m_func->value_ref->owner_class;
-      emit->env->class_scope = 0; // check utility
+//      emit->env->class_scope = 0; // check utility
     }
     nspc_push_type(emit->env->curr);
     while(base_t) {
@@ -469,18 +470,11 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
       list = list->next;
     }
     SET_FLAG(def, ae_flag_template);
-    /*Nspc curr = emit->env->curr;*/
-/*emit->env->curr = exp_func->m_func->value_ref->owner;*/
-CHECK_BB(scan1_func_def(emit->env, def))
-      CHECK_BB(scan2_func_def(emit->env, def))
-      CHECK_BB(check_func_def(emit->env, def))
-      /*emit->env->curr = curr;*/
-      nspc_pop_type(emit->env->curr);
-    if(exp_func->m_func->value_ref->owner_class) {
-      emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
-      emit->env->curr = (Nspc)vector_pop(&emit->env->nspc_stack);
-    }
-  }
+
+    CHECK_BB(scan1_func_def(emit->env, def))
+    CHECK_BB(scan2_func_def(emit->env, def))
+    CHECK_BB(check_func_def(emit->env, def))
+
   if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
   if(emit_exp(emit, exp_func->func, 0) < 0)
@@ -489,6 +483,21 @@ CHECK_BB(scan1_func_def(emit->env, def))
     sadd_instr(emit, MkVararg);
     sadd_instr(emit, Reg_Push_Imm);
   }
+    nspc_pop_type(emit->env->curr);
+    if(exp_func->m_func->value_ref->owner_class) {
+      emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
+      emit->env->curr = (Nspc)vector_pop(&emit->env->nspc_stack);
+    }
+  } else {
+  if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
+  if(emit_exp(emit, exp_func->func, 0) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
+    sadd_instr(emit, MkVararg);
+    sadd_instr(emit, Reg_Push_Imm);
+  }
+}
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
@@ -612,8 +621,11 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
 #endif
   m_bool is_ptr = 0;
   Instr code, offset, call;
-  if(!func->code) { // calling function pointer in func
-    Func f = nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
+  if(!func->code) { // function pointer or template
+    Func f = isa(func->value_ref->m_type, &t_func_ptr) > 0 ?
+      nspc_lookup_func(func->value_ref->owner, insert_symbol(func->name), 1) :
+      nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
+
     if(!f) { //template with no list
       if(!GET_FLAG(func->def, ae_flag_template))
         CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
@@ -1303,8 +1315,6 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
 }
 
 static m_bool emit_stmt_typedef(Emitter emit, Stmt_Ptr ptr) {
-  nspc_add_func(emit->env->curr, ptr->xid, ptr->func);
-  vector_add(&emit->funcs, (vtype)ptr);
   if(GET_FLAG(ptr, ae_flag_static))
     ADD_REF(ptr->func)
       return 1;
@@ -1838,11 +1848,6 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   sadd_instr(emit, stop_gc);
   if(emit->cases)
     free_map(emit->cases);
-  // handle func pointer
-  for(i = 0; i < vector_size(&emit->funcs); i++) {
-    Stmt_Ptr ptr = (Stmt_Ptr)vector_at(&emit->funcs, i);
-    scope_rem(&emit->env->curr->func, ptr->xid);
-  }
   emit_pop_scope(emit);
   if(ret < 0) { // should free all stack.
     //    for(i = 0; i < vector_size(&emit->stack); i++)

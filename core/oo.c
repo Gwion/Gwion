@@ -79,7 +79,6 @@ Type type_copy(Env env, Type type) {
 Emitter new_emitter(Env env) {
   Emitter emit = calloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
-  vector_init(&emit->funcs);
   emit->env = env;
   INIT_OO(emit, e_emit_obj);
   return emit;
@@ -87,7 +86,6 @@ Emitter new_emitter(Env env) {
 
 void free_emitter(Emitter a) {
   vector_release(&a->stack);
-  vector_release(&a->funcs);
   free(a);
 }
 
