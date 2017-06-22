@@ -435,7 +435,7 @@ static MFUN(ana_set_fft) {
   Fft* fft;
   M_Object obj = *(M_Object*)(o->d.data + o_ana_fft);
   Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
-//  if(obj) release(obj, shred);
+  if(obj) release(obj, shred);
   obj = *(M_Object*)(shred->mem + SZ_INT);
   if(!obj) {
     ana->size = 0;
@@ -446,7 +446,7 @@ static MFUN(ana_set_fft) {
   fft = (Fft*)obj->ugen->ug;
   if(!fft || !fft->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
-//    release(obj, shred);
+    release(obj, shred);
     return;
   }
   ana->size = fft->fft->fftsize;

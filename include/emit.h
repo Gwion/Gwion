@@ -9,7 +9,6 @@ struct Emitter_ {
   m_str filename;
   Map       cases; // passed to instr: is a pointer
   struct Vector_    stack;
-  struct Vector_    funcs;
   struct Code_*     code;
   struct VM_Object_ obj;
 };
