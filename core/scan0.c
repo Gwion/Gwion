@@ -70,7 +70,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   the_class->info = new_nspc(the_class->name, env->context->filename);
   the_class->parent = &t_object;
 
-  if(env->context->public_class_def == class_def)
+ if(env->context->public_class_def == class_def)
     the_class->info->parent = env->context->nspc;
   else
     the_class->info->parent = env->curr;
@@ -127,7 +127,7 @@ m_bool scan0_Ast(Env env, Ast prog) {
       break;
     case ae_section_class:
       if(prog->section->d.class_def->decl == ae_flag_public) {
-        if(env->context->public_class_def != NULL) {
+        if(env->context->public_class_def) {
           CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
                   "more than one 'public' class defined..."))
         }

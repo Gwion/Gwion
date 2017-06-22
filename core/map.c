@@ -242,8 +242,7 @@ void scope_push(Scope scope) {
 }
 
 void scope_pop(Scope scope) {
-  free_map((Map)vector_back(&scope->vector));
-  vector_pop(&scope->vector);
+  free_map((Map)vector_pop(&scope->vector));
 }
 
 void scope_init(Scope a) {

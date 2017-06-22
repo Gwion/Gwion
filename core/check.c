@@ -138,7 +138,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   /* commit */
   nspc_commit(env->global_nspc);
 
-  nspc_commit(env->context->nspc);
+//  nspc_commit(env->context->nspc);
   map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
@@ -152,6 +152,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   //  void* handler;
   vm->env = env;
   add_plugs(vm, plug_dirs);
+printf("env->urr->name %s %s\n", env->curr->name, env->context->nspc->name);
   nspc_commit(env->curr);
   return env;
 
