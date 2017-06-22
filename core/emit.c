@@ -699,7 +699,6 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
 
   code = emit_code(emit);
   exp->vm_code = code;
-  //exp->vm_code->ADD_REF();
   emit->code = (Code*)vector_pop(&emit->stack);
 
   Exp e = exp->args;
@@ -708,8 +707,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
-  ADD_REF(exp->m_func)
-  CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
+//  ADD_REF(exp->m_func)
+//  CHECK_BB(emit_exp_spork_finish(emit, code, exp->m_func, size, 0))
+  CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0))
   return 1;
 }
 

@@ -34,7 +34,7 @@ static void free_func(Func a) {
   if(a->code) {
     if(a->def && !GET_FLAG(a, ae_flag_template)) {
       if(!GET_FLAG(a->def, ae_flag_dtor)) {
-        free_vm_code(a->code);
+        REM_REF(a->code);
       }
     }
   }
@@ -115,6 +115,9 @@ void rem_ref(VM_Object a, void* ptr) {
       break;
     case e_func_obj:
       free_func(ptr);
+      break;
+    case e_code_obj:
+      free_vm_code(ptr);
       break;
     }
   }

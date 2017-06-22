@@ -531,6 +531,8 @@ INSTR(Spork) {
   PUSH_REG(sh, SZ_INT);
   *(M_Object*)shred->reg = sh->me;
   PUSH_REG(shred,  SZ_INT);
+if(instr->m_val2)
+  ADD_REF(code)
 }
 
 // LCOV_EXCL_START

@@ -21,6 +21,7 @@ VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
   code->filename         = strdup(filename);
   code->native_func      = 0;
   code->native_func_type = NATIVE_UNKNOWN;
+  INIT_OO(code, e_code_obj)
   return code;
 }
 /// free instr should be a function
@@ -44,7 +45,8 @@ void free_vm_code(VM_Code a) {
       } else if(instr->execute == Branch_Switch)
         free_map(*(Map*)instr->ptr);
       else if(instr->execute == Spork) {
-        REM_REF(((Func)instr->m_val2))
+        if(instr->m_val2)
+          REM_REF(((Func)instr->m_val2))
       } else if(instr->execute == Init_Loop_Counter)
         free((m_int*)instr->m_val);
       free(instr);
@@ -78,17 +80,7 @@ void free_vm_shred(VM_Shred shred) {
   else
     free(shred->base);
   free(shred->_reg);
-  if(!strcmp(shred->code->filename, shred->code->name) ||
-     !strstr(shred->code->name, "spork~"))
-    free_vm_code(shred->code);
-/*
-else {
-
-printf("skip %s\n", shred->name);
-if(!strcmp(shred->name, "spork~exp"))
-    free_vm_code(shred->code);
-}
-*/
+  REM_REF(shred->code)
   free(shred->name);
   free(shred->filename);
   vector_release(&shred->gc1);

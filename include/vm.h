@@ -2,6 +2,7 @@
 #define __VM
 
 #include "defs.h"
+#include "oo.h"
 #include "map.h"
 #include "map_private.h"
 
@@ -14,6 +15,7 @@ struct VM_Code_ {
   m_uint native_func;
   e_native_func native_func_type;
   m_bool need_this;
+  struct VM_Object_ obj;
 };
 
 typedef struct BBQ_* BBQ;
