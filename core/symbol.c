@@ -63,6 +63,6 @@ S_Symbol insert_symbol(const m_str name) {
   return hashtable[index] = mksymbol(name, syms);
 }
 
-m_str S_name(S_Symbol sym) {
+m_str s_name(S_Symbol sym) {
   return sym->name;
 }

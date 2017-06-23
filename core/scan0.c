@@ -5,7 +5,7 @@
 
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
-  m_str name = S_name(ptr->xid);
+  m_str name = s_name(ptr->xid);
   Type type;
   Type t = new_type(te_func_ptr, name);
   t->owner = env->curr;
@@ -55,15 +55,15 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
             "class/type '%s' is already defined in namespace '%s'",
-            S_name(class_def->name->xid), env->curr->name))
+            s_name(class_def->name->xid), env->curr->name))
   }
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-            S_name(class_def->name->xid)))
+            s_name(class_def->name->xid)))
   }
 
-  the_class = new_type(env->type_xid++, S_name(class_def->name->xid));
+  the_class = new_type(env->type_xid++, s_name(class_def->name->xid));
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;

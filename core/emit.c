@@ -114,14 +114,14 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
 
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos) {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "symbol %s (const:%i) %i %p", S_name(symbol), GET_FLAG(v, ae_flag_const) + GET_FLAG(v, ae_flag_enum), GET_FLAG(v, ae_flag_static), v->owner_class);
+  debug_msg("emit", "symbol %s (const:%i) %i %p", s_name(symbol), GET_FLAG(v, ae_flag_const) + GET_FLAG(v, ae_flag_enum), GET_FLAG(v, ae_flag_static), v->owner_class);
 #endif
   Instr instr;
 
   if(v->owner_class && (GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))) {
     m_bool ret;
     Exp base = new_exp_prim_ID("this", pos);
-    Exp dot = new_exp_dot(base, S_name(symbol), pos);
+    Exp dot = new_exp_dot(base, s_name(symbol), pos);
     base->type = v->owner_class;
     dot->type = v->m_type;
     dot->d.exp_dot.t_base = v->owner_class;
@@ -659,7 +659,7 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
       call->execute = Instr_Exp_Func_Member;
     else
       call->execute = Instr_Exp_Func_Static;
-  } else if(!strcmp(S_name(func->def->name), "chuck")) { // should also handle other ops
+  } else if(!strcmp(s_name(func->def->name), "chuck")) { // should also handle other ops
     call->execute = Instr_Op_Call_Binary;
     call->m_val2  = (m_uint)func->def->arg_list->type;
     *(Type*)call->ptr     = func->def->arg_list->next->type;
@@ -1211,14 +1211,14 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
 
 static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
 #ifdef DEBUG_EMIT
-  debug_msg("emit", "%s '%s'", stmt->is_label ? "label" : "goto", S_name(stmt->name));
+  debug_msg("emit", "%s '%s'", stmt->is_label ? "label" : "goto", s_name(stmt->name));
 #endif
   m_uint i, size;
   Stmt_Goto_Label label;
   if(!stmt->is_label)
     stmt->data.instr = add_instr(emit, Goto);
   else {
-    if(emit->cases && !strcmp(S_name(stmt->name), "default")) {
+    if(emit->cases && !strcmp(s_name(stmt->name), "default")) {
       if(emit->default_case_index != -1)
         CHECK_BB(err_msg(EMIT_, stmt->pos, "default case already defined"))
       emit->default_case_index = vector_size(&emit->code->code);
@@ -1231,7 +1231,7 @@ static m_bool emit_stmt_gotolabel(Emitter emit, Stmt_Goto_Label stmt) {
     size = vector_size(&stmt->data.v);
     if(!size) {
       vector_release(&stmt->data.v);
-      CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", S_name(stmt->name)))
+      CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", s_name(stmt->name)))
     }
     for(i = size + 1; --i;) {
       label = (Stmt_Goto_Label)vector_at(&stmt->data.v, i - 1);
@@ -1533,7 +1533,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       offset += l->type->size;
       l = l->next;
     }
-    if(!strcmp(S_name(member->xid), "start")) {
+    if(!strcmp(s_name(member->xid), "start")) {
       if(emit->env->func->variadic_start) {
         free(emit->env->func->variadic_start);
         CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
@@ -1542,7 +1542,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       emit->env->func->variadic_start->m_val = offset;
       emit->env->func->variadic_start->m_val2 = vector_size(&emit->code->code);
     }
-    if(!strcmp(S_name(member->xid), "end")) {
+    if(!strcmp(s_name(member->xid), "end")) {
       if(!emit->env->func->variadic_start)
         CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
       Instr instr = add_instr(emit, Vararg_end);
@@ -1550,22 +1550,22 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       instr->m_val2 = emit->env->func->variadic_start->m_val2;
       emit->env->func->variadic_start->m_val2 = vector_size(&emit->code->code);
       *(m_uint*)emit->env->func->variadic_start->ptr = 1;
-    } else if(!strcmp(S_name(member->xid), "i")) {
+    } else if(!strcmp(s_name(member->xid), "i")) {
       Instr instr = add_instr(emit, Vararg_int);
       instr->m_val = offset;
-    } else if(!strcmp(S_name(member->xid), "f") || !strcmp(S_name(member->xid), "t") || !strcmp(S_name(member->xid), "d")) {
+    } else if(!strcmp(s_name(member->xid), "f") || !strcmp(s_name(member->xid), "t") || !strcmp(s_name(member->xid), "d")) {
       Instr instr = add_instr(emit, Vararg_float);
       instr->m_val = offset;
-    } else if(!strcmp(S_name(member->xid), "c") || !strcmp(S_name(member->xid), "p")) {
+    } else if(!strcmp(s_name(member->xid), "c") || !strcmp(s_name(member->xid), "p")) {
       Instr instr = add_instr(emit, Vararg_complex);
       instr->m_val = offset;
-    } else if(!strcmp(S_name(member->xid), "v3")) {
+    } else if(!strcmp(s_name(member->xid), "v3")) {
       Instr instr = add_instr(emit, Vararg_Vec3);
       instr->m_val = offset;
-    } else if(!strcmp(S_name(member->xid), "v4")) {
+    } else if(!strcmp(s_name(member->xid), "v4")) {
       Instr instr = add_instr(emit, Vararg_Vec4);
       instr->m_val = offset;
-    } else if(!strcmp(S_name(member->xid), "o")) {
+    } else if(!strcmp(s_name(member->xid), "o")) {
       Instr instr = add_instr(emit, Vararg_object);
       instr->m_val = offset;
     }
@@ -1673,7 +1673,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   m_bool is_ref = 0;
 
   if(func->code)
-    CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", S_name(func_def->name))) // LCOV_EXCL_LINE
+    CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", s_name(func_def->name))) // LCOV_EXCL_LINE
 
   if(func_def->types) // don't check template definition
     return 1;

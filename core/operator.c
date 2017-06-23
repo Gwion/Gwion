@@ -122,7 +122,7 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
   Nspc nspc = env->curr;
   M_Operator* mo;
-  Vector v = (Vector)map_get(&nspc->op_map, (vtype)name2op(S_name(f->def->name)));
+  Vector v = (Vector)map_get(&nspc->op_map, (vtype)name2op(s_name(f->def->name)));
   mo = operator_find(v, lhs, rhs);
   mo->func = f;
   return 1;

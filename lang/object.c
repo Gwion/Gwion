@@ -26,7 +26,7 @@ M_Object new_M_Object(VM_Shred shred) {
 M_Object new_String(VM_Shred shred, m_str str) {
   M_Object o = new_M_Object(shred);
   initialize_object(o, &t_string);
-  STRING(o) = S_name(insert_symbol(str));
+  STRING(o) = s_name(insert_symbol(str));
   return o;
 }
 

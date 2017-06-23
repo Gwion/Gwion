@@ -34,13 +34,13 @@ int isa(Type var, Type parent) {
 }
 
 int isres(Env env, S_Symbol xid, int pos) {
-  if(!strcmp(S_name(xid), "this"))
+  if(!strcmp(s_name(xid), "this"))
     goto error;
-  if(!strcmp(S_name(xid), "now"))
+  if(!strcmp(s_name(xid), "now"))
     goto error;
   return -1;
 error:
-  err_msg(UTIL_, 0, "%s is reserved.", S_name(xid));
+  err_msg(UTIL_, 0, "%s is reserved.", s_name(xid));
   return 1;
 }
 
@@ -73,7 +73,7 @@ Type type = nspc_lookup_type(env->curr, path->xid, 1);
     if(!t) {
       err_msg(UTIL_, path->pos,
               "...(cannot find class '%s' in nspc '%s')",
-              S_name(xid), nspc->name);
+              s_name(xid), nspc->name);
       return NULL;
     }
     type = t;
@@ -128,7 +128,7 @@ m_str type_path(ID_List list) {
   m_uint len = 0;
   ID_List path = list;
   while(path) {
-    len += strlen(S_name(path->xid));
+    len += strlen(s_name(path->xid));
     if(path->next)
       len++;
     path = path->next;
@@ -137,7 +137,7 @@ m_str type_path(ID_List list) {
   memset(str, 0, len);
   path = list;
   while(path) {
-    strcat(str, S_name(path->xid));
+    strcat(str, s_name(path->xid));
     if(path->next)
       strcat(str, ".");
     path = path->next;

@@ -12,6 +12,6 @@
 typedef struct S_Symbol_ * S_Symbol;
 
 S_Symbol insert_symbol(const m_str);
-m_str S_name(S_Symbol);
+m_str s_name(S_Symbol);
 void free_Symbols();
 #endif

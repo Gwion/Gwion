@@ -161,7 +161,7 @@ INSTR(file_to_string) {
     if(fscanf(IO_FILE(o), "%1024s", c) < 0) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
-    STRING(s) = S_name(insert_symbol(c));
+    STRING(s) = s_name(insert_symbol(c));
     *(M_Object*)REG(- SZ_INT) = s;
   }
   release(o, shred);

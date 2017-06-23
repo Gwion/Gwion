@@ -832,7 +832,7 @@ static char* strip_lit( char* str )
 static char* alloc_str( char* str )
 {
  S_Symbol sym = insert_symbol(str);
- return S_name(sym);
+ return s_name(sym);
 }
 
 static long htol( char* str )

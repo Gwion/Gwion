@@ -16,7 +16,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Type t = find_type(env, decl->type->xid);
   if(!t)
     CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
-          S_name(decl->type->xid->xid)))
+          s_name(decl->type->xid->xid)))
       while(list) {
         var_decl = list->self;
         decl->num_decl++;
@@ -276,22 +276,22 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   m_uint count = list ? 1 : 0;
   if(stmt->xid) {
     if(nspc_lookup_type(nspc, stmt->xid, 1)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", S_name(stmt->xid)))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", s_name(stmt->xid)))
     }
     if(nspc_lookup_value(env->curr, stmt->xid, 1)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", S_name(stmt->xid)))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", s_name(stmt->xid)))
     }
   }
   t = type_copy(env, &t_int);
-  t->name = stmt->xid ? S_name(stmt->xid) : "int";
+  t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
   nspc_add_type(nspc, stmt->xid, t);
   while(list) {
     Value v;
     if(nspc_lookup_value(nspc, list->xid, 0)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, S_name(list->xid)))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, s_name(list->xid)))
     }
-    v = new_value(t, S_name(list->xid));
+    v = new_value(t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
@@ -315,7 +315,7 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
   ptr->ret_type = find_type(env, ptr->type->xid);
 
   if(!ptr->ret_type) {
-    CHECK_BB(err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  S_name(ptr->xid)))
+    CHECK_BB(err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
   }
 
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static)) {
@@ -326,7 +326,7 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
     arg_list->type = find_type(env, arg_list->type_decl->xid);
     if(!arg_list->type) {
       m_str path = type_path(arg_list->type_decl->xid);
-      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count, S_name(ptr->xid));
+      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count, s_name(ptr->xid));
       free(path);
       return -1;
     }
@@ -351,7 +351,7 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     if(!t) {
       CHECK_BB(err_msg(SCAN1_, l->self->pos,
             "unknown type '%s' in union declaration ",
-            S_name(l->self->d.exp_decl.type->xid->xid)))
+            s_name(l->self->d.exp_decl.type->xid->xid)))
     }
     while(list) {
       var_decl = list->self;
@@ -451,9 +451,9 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
 
-      if(!GET_FLAG(f, ae_flag_op) && name2op(S_name(f->name)) > 0)
+      if(!GET_FLAG(f, ae_flag_op) && name2op(s_name(f->name)) > 0)
         CHECK_BB(err_msg(SCAN1_, f->pos,
-              "'%s' is a reserved operator name", S_name(f->name)))
+              "'%s' is a reserved operator name", s_name(f->name)))
 
           if(f->types)
             return 1;
@@ -464,7 +464,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
 
   if(!f->ret_type) {
     CHECK_BB(err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
-          S_name(f->type_decl->xid->xid), S_name(f->name)))
+          s_name(f->type_decl->xid->xid), s_name(f->name)))
   }
 
   if(f->type_decl->array) {
@@ -473,7 +473,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
       Type t = NULL;
     Type t2 = f->ret_type;
     if(f->type_decl->array->exp_list) {
-      err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", S_name(f->name));
+      err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", s_name(f->name));
       err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s");
       free_expression(f->type_decl->array->exp_list);
       return -1;
@@ -490,7 +490,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
       m_str path = type_path(arg_list->type_decl->xid);
       err_msg(SCAN1_, arg_list->pos,
           "'%s' unknown type in argument %i of func %s",
-          path, count, S_name(f->name));
+          path, count, s_name(f->name));
       free(path);
       return -1;
     }
@@ -501,12 +501,12 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     if(count > 3 || count == 1)
       CHECK_BB(err_msg(SCAN1_, f->pos,
             "operators can only have one or two arguments\n"))
-        if(name2op(S_name(f->name)) < 0)
+        if(name2op(s_name(f->name)) < 0)
           CHECK_BB(err_msg(SCAN1_, f->pos,
-                "%s is not a valid operator name\n", S_name(f->name)))
+                "%s is not a valid operator name\n", s_name(f->name)))
   }
   if(f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "...in function '%s'\n", S_name(f->name)))
+    CHECK_BB(err_msg(SCAN1_, f->pos, "...in function '%s'\n", s_name(f->name)))
       return 1;
 }
 
