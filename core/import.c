@@ -235,7 +235,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   return arg_list;
 }
 
-static Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
+static Func_Def make_dll_as_fun(DL_Func * dl_fun, const m_bool is_static) {
   Func_Def func_def = NULL;
   ae_flag func_decl = ae_flag_func;
   ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;
@@ -269,7 +269,7 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
 }
 
 #define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
-static m_int import_fun(Env env, DL_Func * mfun, m_bool is_static) {
+static m_int import_fun(Env env, DL_Func * mfun, const m_bool is_static) {
   Func_Def func_def;
   CHECK_OB(mfun) // probably deserve an err msg
   CHECK_BB(name_valid(mfun->name));
@@ -298,7 +298,7 @@ m_int import_sfun(Env env, DL_Func * fun) {
   return import_fun(env, fun, 1);
 }
 
-Type get_type(Env env, m_str str) {
+Type get_type(Env env, const m_str str) {
     m_uint  depth;
     ID_List list = str2list(str, &depth);
     Type    t = list ? find_type(env, list) : NULL;
@@ -307,7 +307,8 @@ Type get_type(Env env, m_str str) {
     return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
 }
 
-m_int import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global) {
+m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str t,
+	const f_instr f, const m_bool global) {
     Type lhs = l ? get_type(env, l) : NULL;
     Type rhs = r ? get_type(env, r) : NULL;
     Type ret = get_type(env, t);
