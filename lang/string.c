@@ -638,6 +638,7 @@ static MFUN(string_replaceN) {
   if(index > len)
 	    index = len - 1;
   char c[len + _len];
+  memset(c, 0, len + _len);
   for(i = 0; i < index; i++)
     c[i] = str[i];
   for(i = 0; i < _len; i++)
