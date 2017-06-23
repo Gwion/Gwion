@@ -127,8 +127,8 @@ void free_vm(VM* vm) {
     REM_REF(vm->env);
   if(vm->emit)
     REM_REF(vm->emit);
-  for(i = 0; i < vector_size(&vm->plug); i++)
-    dlclose((void*)vector_at(&vm->plug, i));
+  for(i = vector_size(&vm->plug) + 1; --i;)
+    dlclose((void*)vector_at(&vm->plug, i - 1));
   vector_release(&vm->plug);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
@@ -194,8 +194,8 @@ next:
     return;
   }
   udp_do(vm);
-  for(i = 0; i < vector_size(&vm->ugen); i++) {
-    UGen u = (UGen)vector_at(&vm->ugen, i);
+  for(i = vector_size(&vm->ugen) + 1; --i;) {
+    UGen u = (UGen)vector_at(&vm->ugen, i -1);
     u->done = 0;
     if(u->channel) {
       m_uint j;

@@ -10,8 +10,8 @@ Frame* new_frame() {
 
 void free_frame(Frame* a) {
   vtype i;
-  for(i = 0; i < vector_size(&a->stack); i++)
-    free((Local*)vector_at(&a->stack, i));
+  for(i = vector_size(&a->stack) + 1; --i;)
+    free((Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
   free(a);
 }

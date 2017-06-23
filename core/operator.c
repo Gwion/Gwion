@@ -38,11 +38,11 @@ static void free_op(M_Operator* a) {
 void free_op_map(Map map) {
   m_uint i;
   Vector v;
-  for(i = 0; i < map_size(map); i++) {
+  for(i = map_size(map) + 1; --i;) {
     m_uint j;
-    v = (Vector)map_at(map, (vtype)i);
-    for(j = 0; j < vector_size(v); j++)
-      free_op((M_Operator*)vector_at(v, j));
+    v = (Vector)map_at(map, (vtype)i - 1);
+    for(j = vector_size(v) + 1; --j;)
+      free_op((M_Operator*)vector_at(v, j - 1));
     free_vector(v);
   }
   map_release(map);
@@ -50,8 +50,8 @@ void free_op_map(Map map) {
 
 static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   m_uint i;
-  for(i = 0; i < vector_size(v); i++) {
-    M_Operator* mo = (M_Operator*)vector_at(v, i);
+  for(i = vector_size(v) + 1; --i;) {
+    M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(((lhs && mo->lhs && mo->lhs->xid == lhs->xid) || (!lhs && !mo->lhs)) &&
        ((rhs && mo->rhs && mo->rhs->xid == rhs->xid) || (!rhs && !mo->rhs)))
       return mo;
