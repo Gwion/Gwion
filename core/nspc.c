@@ -61,8 +61,8 @@ Nspc new_nspc(m_str name, m_str filename) {
 void free_nspc(Nspc a) {
   m_uint i;
   Vector v = scope_get(&a->value);
-  for(i = 0; i < vector_size(v); i++) {
-    Value value = (Value)vector_at(v, i);
+  for(i = vector_size(v) + 1; --i;) {
+    Value value = (Value)vector_at(v, i - 1);
 
     if(value->m_type) {
       if(isa(value->m_type, &t_class) > 0)
@@ -117,13 +117,6 @@ else
     free(a->class_data);
   if(a->obj_v_table.ptr)
     vector_release(&a->obj_v_table);
-/*
-  if(a->label.ptr) {
-    for(i = 0; i < map_size(&a->label); i++)
-      free_map((Map)map_at(&a->label, i));
-    map_release(&a->label);
-  }
-*/
   if(a->pre_ctor)
     free_vm_code(a->pre_ctor);
   if(a->dtor)
