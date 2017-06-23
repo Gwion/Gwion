@@ -51,7 +51,6 @@ Nspc new_nspc(m_str name, m_str filename) {
   a->pre_ctor        = NULL;
   a->dtor            = NULL;
   vector_init(&a->obj_v_table);
-  a->label.ptr = NULL;
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);
@@ -77,7 +76,7 @@ void free_nspc(Nspc a) {
             s->vm_ref = vm;
             release(obj, s);
             free_vm_shred(s);
-          } 
+          }
 if(value->m_type->array_depth)
   REM_REF(value->m_type);
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
@@ -118,11 +117,13 @@ else
     free(a->class_data);
   if(a->obj_v_table.ptr)
     vector_release(&a->obj_v_table);
+/*
   if(a->label.ptr) {
     for(i = 0; i < map_size(&a->label); i++)
       free_map((Map)map_at(&a->label, i));
     map_release(&a->label);
   }
+*/
   if(a->pre_ctor)
     free_vm_code(a->pre_ctor);
   if(a->dtor)

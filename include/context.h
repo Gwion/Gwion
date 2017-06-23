@@ -9,6 +9,7 @@ struct Context_ {
   Ast       tree;
   Nspc      nspc;
   Class_Def public_class_def;
+  struct Map_ label;
   struct VM_Object_ obj;
 };
 

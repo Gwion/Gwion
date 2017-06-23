@@ -11,6 +11,7 @@ Context new_context(Ast prog, m_str filename) {
   context->tree = prog;
   context->filename = filename;
   context->public_class_def = NULL;
+  context->label.ptr = NULL;
   INIT_OO(context, e_context_obj);
   return context;
 }

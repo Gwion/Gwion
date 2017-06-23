@@ -15,7 +15,6 @@ struct Nspc_ {
   m_uint    class_data_size;
   struct Vector_    obj_v_table;
   struct Map_      	op_map;
-  struct Map_       label;
   struct Scope_     value;
   struct Scope_     type;
   struct Scope_     func;
