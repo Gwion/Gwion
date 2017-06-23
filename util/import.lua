@@ -354,7 +354,7 @@ end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func fun;\n")
 print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
-print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0);")
+print("\to_ftbl_data = import_var(env, \"int\", \"@ftbl\", 0, NULL);")
 for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]

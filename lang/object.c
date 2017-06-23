@@ -260,17 +260,17 @@ m_bool import_object(Env env) {
   CHECK_BB(env_add_type(env, &t_varobj))
   CHECK_BB(env_add_type(env, &t_varloop))
   CHECK_BB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
-  import_mvar(env, "@VarLoop",  "start", 1, 0);
-  import_mvar(env, "@VarLoop",  "end",   1, 0);
-  import_mvar(env, "int",       "i",     1, 0);
-  import_mvar(env, "float",     "f",     1, 0);
-  import_mvar(env, "time",      "t",     1, 0);
-  import_mvar(env, "dur",       "d",     1, 0);
-  import_mvar(env, "complex",   "c",     1, 0);
-  import_mvar(env, "polar",     "p",     1, 0);
-  import_mvar(env, "Vec3",      "v3",    1, 0);
-  import_mvar(env, "Vec4",      "v4",    1, 0);
-  import_mvar(env, "VarObject", "o",     1, 0);
+  import_var(env, "@VarLoop",  "start", ae_flag_const, NULL);
+  import_var(env, "@VarLoop",  "end",   ae_flag_const, NULL);
+  import_var(env, "int",       "i",     ae_flag_const, NULL);
+  import_var(env, "float",     "f",     ae_flag_const, NULL);
+  import_var(env, "time",      "t",     ae_flag_const, NULL);
+  import_var(env, "dur",       "d",     ae_flag_const, NULL);
+  import_var(env, "complex",   "c",     ae_flag_const, NULL);
+  import_var(env, "polar",     "p",     ae_flag_const, NULL);
+  import_var(env, "Vec3",      "v3",    ae_flag_const, NULL);
+  import_var(env, "Vec4",      "v4",    ae_flag_const, NULL);
+  import_var(env, "VarObject", "o",     ae_flag_const, NULL);
   CHECK_BB(import_class_end(env))
   return 1;
 }

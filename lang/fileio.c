@@ -240,7 +240,7 @@ m_bool import_fileio(Env env) {
   CHECK_BB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
 
   // import vars
-  o_fileio_file = import_mvar(env, "int", "@file",  0, 0);
+  o_fileio_file = import_var(env, "int", "@file",  0, NULL);
   CHECK_BB(o_fileio_file)
 
   // import funcs

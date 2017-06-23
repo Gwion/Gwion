@@ -135,8 +135,7 @@ m_int import_class_end(Env env) {
   return 1;
 }
 
-static m_int import_var(Env env, const m_str type, const m_str name,
-                        const m_bool is_static, const m_bool is_const, const m_bool is_ref, m_uint* addr) {
+m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
   m_int ret = -1;
   m_uint array_depth;
   ID_List path;
@@ -144,13 +143,12 @@ static m_int import_var(Env env, const m_str type, const m_str name,
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
   Exp exp_decl;
-  CHECK_EB(env->class_def)
-  if(!(path = str2list(type, &array_depth))) {
-    err_msg(TYPE_, 0, "... during %svar import '%s.%s'...", is_static ? "s" : "m", env->class_def->name, name);
-    return -1;
-  }
 
-  type_decl = new_type_decl(path, is_ref, 0);
+  CHECK_EB(env->class_def)
+  if(!(path = str2list(type, &array_depth)))
+    CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...", env->class_def->name, name))
+
+  type_decl = new_type_decl(path, ((flag & ae_flag_ref) == ae_flag_ref), 0);
   if(array_depth) {
     type_decl->array = new_array_sub(NULL, 0);
     type_decl->array->depth = array_depth;
@@ -161,29 +159,18 @@ static m_int import_var(Env env, const m_str type, const m_str name,
     var_decl->array->depth = array_depth;
   }
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  exp_decl = new_exp_decl(type_decl, var_decl_list, is_static, 0);
+  exp_decl = new_exp_decl(type_decl, var_decl_list, ((flag & ae_flag_ref) == ae_flag_static), 0);
   var_decl->addr = (void *)addr;
   if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
-  if(is_const)
-    SET_FLAG(var_decl->value, ae_flag_const);
   if(!check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
-
-  SET_FLAG(var_decl->value, ae_flag_builtin);
+  var_decl->value->flag = flag | ae_flag_builtin;
   ret = var_decl->value->offset;
 error:
   free_expression(exp_decl);
   return ret;
-}
-m_int import_mvar(Env env, const m_str type, const m_str name,
-                  const m_bool is_const, const m_bool is_ref) {
-  return import_var(env, type, name, 0, is_const, is_ref, NULL);
-}
-m_int import_svar(Env env, const m_str type, const m_str name,
-                  const m_bool is_const, const m_bool is_ref, m_uint* addr) {
-  return import_var(env, type, name, 1, is_const, is_ref, addr);
 }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun) {

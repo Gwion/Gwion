@@ -860,7 +860,7 @@ m_bool import_string(Env env) {
 
   CHECK_BB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
 
-  o_string_data = import_mvar(env, "int", "@data",   1, 0);
+  o_string_data = import_var(env, "int", "@data",   ae_flag_const, NULL);
   CHECK_BB(o_string_data)
 
    dl_func_init(&fun, "int", "size", (m_uint)string_len);

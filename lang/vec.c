@@ -272,9 +272,9 @@ m_bool import_vec3(Env env) {
   DL_Func fun;
 
   CHECK_BB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
-  import_mvar(env, "float", "x",   0, 0);
-  import_mvar(env, "float", "y",   0, 0);
-  import_mvar(env, "float", "z",   0, 0);
+  import_var(env, "float", "x",   0, NULL);
+  import_var(env, "float", "y",   0, NULL);
+  import_var(env, "float", "z",   0, NULL);
   dl_func_init(&fun, "void", "set", (m_uint)vec3_set);
     dl_func_add_arg(&fun, "float", "x");
     dl_func_add_arg(&fun, "float", "y");
@@ -473,10 +473,10 @@ static INSTR(vec4_r_assign) {
 m_bool import_vec4(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
-  import_mvar(env, "float", "x",   0, 0);
-  import_mvar(env, "float", "y",   0, 0);
-  import_mvar(env, "float", "z",   0, 0);
-  import_mvar(env, "float", "w",   0, 0);
+  import_var(env, "float", "x",   0, NULL);
+  import_var(env, "float", "y",   0, NULL);
+  import_var(env, "float", "z",   0, NULL);
+  import_var(env, "float", "w",   0, NULL);
   dl_func_init(&fun, "void", "set", (m_uint)vec4_set);
     dl_func_add_arg(&fun, "float", "x");
     dl_func_add_arg(&fun, "float", "y");
@@ -496,7 +496,7 @@ m_bool import_vec4(Env env) {
   CHECK_BB(import_op(env, op_times,  "Vec4",   "float", "Vec4",  vec4_times_float, 1))
   CHECK_BB(import_op(env, op_divide, "Vec4",   "float", "Vec4",  vec4_divide_float, 1))
   CHECK_BB(import_op(env, op_times,  "float",  "Vec4",  "Vec4",  float_times_vec4, 1))
-  CHECK_BB(import_op(env, op_chuck,   "Vec4",   "Vec4",  "Vec4",  vec4_r_assign, 1))
+  CHECK_BB(import_op(env, op_chuck,  "Vec4",   "Vec4",  "Vec4",  vec4_r_assign, 1))
   CHECK_BB(import_class_end(env))
   return 1;
 }

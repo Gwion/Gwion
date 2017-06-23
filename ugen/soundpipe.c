@@ -8235,7 +8235,7 @@ m_bool import_soundpipe(Env env)
 	DL_Func fun;
 
 	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
-	o_ftbl_data = import_mvar(env, "int", "@ftbl", 1, 0);
+	o_ftbl_data = import_var(env, "int", "@ftbl", 0, NULL);
 	dl_func_init(&fun, "void", "gen_composite", (m_uint)ftbl_gen_composite);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
