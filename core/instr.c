@@ -855,7 +855,7 @@ INSTR(Alloc_Member_Word_Float) {
 
 INSTR(Alloc_Member_Word_Complex) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member complex: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
+  debug_msg("instr", "alloc member complex: %p[%i] = '%p'", *(m_uint*)(shred->mem - SZ_INT), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   *(m_complex*)(obj->d.data + instr->m_val) = 0.0;
@@ -870,7 +870,7 @@ INSTR(Alloc_Member_Word_Complex) {
 
 INSTR(Alloc_Member_Word_Vec3) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member vec3: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
+  debug_msg("instr", "alloc member vec3: %p[%i] = '%p'", *(m_uint*)(shred->mem - SZ_INT), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC3);
@@ -885,7 +885,7 @@ INSTR(Alloc_Member_Word_Vec3) {
 
 INSTR(Alloc_Member_Word_Vec4) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member vec4: %p[%i] = '%p'", *(m_uint*)(shred->mem - 1), instr->m_val, *(m_uint*)shred->mem);
+  debug_msg("instr", "alloc member vec4: %p[%i] = '%p'", *(m_uint*)(shred->mem - SZ_INT), instr->m_val, *(m_uint*)shred->mem);
 #endif
   M_Object obj = *(M_Object*)shred->mem;
   memset((obj->d.data + instr->m_val), 0, SZ_VEC4);
