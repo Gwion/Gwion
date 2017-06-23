@@ -216,27 +216,27 @@ INSTR(Array_Append) {
   M_Object o = NULL;
   if(instr->m_val == Kindof_Int) {
     POP_REG(shred, SZ_INT);
-    o = *(M_Object*)(shred->reg);
-    i_vector_add(o->d.array, *(m_uint*)(shred->reg + SZ_INT));
+    o = *(M_Object*)REG(0);
+    i_vector_add(o->d.array, *(m_uint*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Float) {
     POP_REG(shred, SZ_FLOAT);
-    o = *(M_Object*)(shred->reg);
-    f_vector_add(o->d.array, *(m_float*)(shred->reg + SZ_INT));
+    o = *(M_Object*)REG(0);
+    f_vector_add(o->d.array, *(m_float*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Complex) {
     POP_REG(shred, SZ_COMPLEX);
-    o = *(M_Object*)(shred->reg);
-    c_vector_add(o->d.array, *(m_complex*)(shred->reg + SZ_INT));
+    o = *(M_Object*)REG(0);
+    c_vector_add(o->d.array, *(m_complex*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
-    o = *(M_Object*)(shred->reg);
-    v3_vector_add(o->d.array, *(m_vec3*)(shred->reg + SZ_INT));
+    o = *(M_Object*)REG(0);
+    v3_vector_add(o->d.array, *(m_vec3*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
     POP_REG(shred, SZ_VEC4);
-    o = *(M_Object*)(shred->reg);
-    v4_vector_add(o->d.array, *(m_vec4*)(shred->reg + SZ_INT));
+    o = *(M_Object*)REG(0);
+    v4_vector_add(o->d.array, *(m_vec4*)REG(SZ_INT));
   }
   release(o, shred);
-  *(M_Object*)(shred->reg) = o;
+  *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT);
 }
 

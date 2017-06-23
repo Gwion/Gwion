@@ -10,71 +10,71 @@ m_int o_polar_mod,    o_polar_phase;
 
 static INSTR(complex_assign) {
   POP_REG(shred, SZ_INT+SZ_COMPLEX);
-  *(m_complex*)(shred->reg) = (**(m_complex**)shred->reg = *(m_complex*)(shred->reg + SZ_INT));
+  *(m_complex*)REG(0) = (**(m_complex**)REG(0) = *(m_complex*)REG(SZ_INT));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_plus) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)shred->reg += *(m_complex*)(shred->reg + SZ_COMPLEX);
+  *(m_complex*)REG(0) += *(m_complex*)REG(SZ_COMPLEX);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_minus) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)shred->reg -= *(m_complex*)(shred->reg + SZ_INT);
+  *(m_complex*)REG(0) -= *(m_complex*)REG(SZ_INT);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_times) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)shred->reg *= *(m_complex*)(shred->reg + SZ_INT);
+  *(m_complex*)REG(0) *= *(m_complex*)REG(SZ_INT);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_divide) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)shred->reg /= *(m_complex*)(shred->reg + SZ_INT);
+  *(m_complex*)REG(0) /= *(m_complex*)REG(SZ_INT);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_r_assign) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  **(m_complex**)(shred->reg + SZ_COMPLEX) = *(m_complex*)shred->reg;
+  **(m_complex**)REG(SZ_COMPLEX) = *(m_complex*)REG(0);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_r_plus) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)(shred->reg) = (**(m_complex**)(shred->reg + SZ_COMPLEX) += (*(m_complex*)shred->reg));
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) += (*(m_complex*)REG(0)));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_r_minus) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)(shred->reg) = (**(m_complex**)(shred->reg + SZ_COMPLEX) -= (*(m_complex*)shred->reg));
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) -= (*(m_complex*)REG(0)));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_r_times) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)(shred->reg) = (**(m_complex**)(shred->reg + SZ_COMPLEX) *= (*(m_complex*)shred->reg));
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) *= (*(m_complex*)REG(0)));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(complex_r_divide) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)(shred->reg) = (**(m_complex**)(shred->reg + SZ_COMPLEX) /= (*(m_complex*)shred->reg));
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) /= (*(m_complex*)REG(0)));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(complex_real) {
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-//    *(m_float**)(shred->reg) = &**(m_float**)shred->reg; // coverity
+//    *(m_float**)REG(0) = &**(m_float**)REG(0); // coverity
     PUSH_REG(shred, SZ_INT);
   } else {
-    *(m_float*)(shred->reg) = **(m_float**)shred->reg;  // coverity
+    *(m_float*)REG(0) = **(m_float**)REG(0);  // coverity
     PUSH_REG(shred, SZ_FLOAT);
   }
 }
@@ -82,98 +82,98 @@ INSTR(complex_real) {
 INSTR(complex_imag) {
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    m_float* f = &**(m_float**)(shred->reg);
-    *(m_float**)(shred->reg) = &*(f + 1);
+    m_float* f = &**(m_float**)REG(0);
+    *(m_float**)REG(0) = &*(f + 1);
     PUSH_REG(shred, SZ_INT);
   } else {
-    m_float* f = &**(m_float**)(shred->reg);
-    *(m_float*)(shred->reg) = *(f + 1);
+    m_float* f = &**(m_float**)REG(0);
+    *(m_float*)REG(0) = *(f + 1);
     PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
 static INSTR(polar_plus) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = *(m_complex*)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = *(m_complex*)REG(SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
-  *(m_complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_minus) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = *(m_complex*)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = *(m_complex*)REG(SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
-  *(m_complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_times) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = *(m_complex*)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = *(m_complex*)REG(SZ_COMPLEX);
   m_float mag   = creal(a) * creal(b);
   m_float phase = cimag(a) + cimag(b);
-  *(m_complex*)shred->reg = mag  + phase * I;
+  *(m_complex*)REG(0) = mag  + phase * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_divide) {
   POP_REG(shred, SZ_COMPLEX * 2);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = *(m_complex*)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = *(m_complex*)REG(SZ_COMPLEX);
   m_float mag   = creal(a) / creal(b);
   m_float phase = cimag(a) - cimag(b);
-  *(m_complex*)shred->reg = mag  + phase * I;
+  *(m_complex*)REG(0) = mag  + phase * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_plus_r) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = **(m_complex**)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = **(m_complex**)REG(SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
   m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
-  **(m_complex**)(shred->reg + SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
-  *(m_complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
+  **(m_complex**)REG(SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_minus_r) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = **(m_complex**)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = **(m_complex**)REG(SZ_COMPLEX);
   m_float re, im;
   re = creal(a) * cos(cimag(a)) - creal(b) * cos(cimag(b));
   im = creal(a) * sin(cimag(a)) - sin(cimag(b));
-  **(m_complex**)(shred->reg + SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
-  *(m_complex*)shred->reg = hypot(re, im) + atan2(im, re) * I;
+  **(m_complex**)REG(SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_times_r) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = **(m_complex**)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = **(m_complex**)REG(SZ_COMPLEX);
   m_float mag   = creal(a) * creal(b);
   m_float phase = cimag(a) + cimag(b);
-  **(m_complex**)(shred->reg + SZ_COMPLEX) = mag  + phase * I;
-  *(m_complex*)shred->reg = mag  + phase * I;
+  **(m_complex**)REG(SZ_COMPLEX) = mag  + phase * I;
+  *(m_complex*)REG(0) = mag  + phase * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 static INSTR(polar_divide_r) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  m_complex a = *(m_complex*)(shred->reg);
-  m_complex b = **(m_complex**)(shred->reg + SZ_COMPLEX);
+  m_complex a = *(m_complex*)REG(0);
+  m_complex b = **(m_complex**)REG(SZ_COMPLEX);
   m_float mag   = creal(a) / creal(b);
   m_float phase = cimag(a) - cimag(b);
-  **(m_complex**)(shred->reg + SZ_COMPLEX) = mag  + phase * I;
-  *(m_complex*)shred->reg = mag  + phase * I;
+  **(m_complex**)REG(SZ_COMPLEX) = mag  + phase * I;
+  *(m_complex*)REG(0) = mag  + phase * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
 

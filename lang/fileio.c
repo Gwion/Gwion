@@ -32,11 +32,11 @@ INSTR(int_to_file) {
   debug_msg("instr", "int to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)shred->reg;
+  M_Object o = **(M_Object**)REG(0);
   release(o, shred);
   CHECK_FIO(o)
-  fprintf(IO_FILE(o), "%li", *(m_int*)(shred->reg - SZ_INT));
-  *(M_Object*)(shred->reg - SZ_INT) = o;
+  fprintf(IO_FILE(o), "%li", *(m_int*)REG(- SZ_INT));
+  *(M_Object*)REG(- SZ_INT) = o;
 }
 
 INSTR(float_to_file) {
@@ -44,13 +44,13 @@ INSTR(float_to_file) {
   debug_msg("instr", "float to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)shred->reg;
-  o = **(M_Object**)shred->reg;
+  M_Object o = **(M_Object**)REG(0);
+  o = **(M_Object**)REG(0);
   release(o, shred);
   CHECK_FIO(o)
-  fprintf(IO_FILE(o), "%f", *(m_float*)(shred->reg - SZ_FLOAT));
+  fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
   PUSH_REG(shred, SZ_FLOAT);
-  *(M_Object*)(shred->reg - SZ_INT) = o;
+  *(M_Object*)REG(- SZ_INT) = o;
 }
 
 INSTR(string_to_file) {
@@ -58,13 +58,13 @@ INSTR(string_to_file) {
   debug_msg("instr", "string to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)shred->reg;
-  M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
+  M_Object o = **(M_Object**)REG(0);
+  M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(o, shred);
   release(lhs, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
-  *(M_Object*)(shred->reg -SZ_INT)= o;
+  *(M_Object*)REG(- SZ_INT)= o;
 }
 
 INSTR(object_to_file) {
@@ -72,13 +72,13 @@ INSTR(object_to_file) {
   debug_msg("instr", "string to file");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)shred->reg;
-  M_Object lhs = *(M_Object*)(shred->reg - SZ_INT);
+  M_Object o = **(M_Object**)REG(0);
+  M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(o, shred);
   release(lhs, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%p", (void*)lhs);
-  *(M_Object*)(shred->reg -SZ_INT)= o;
+  *(M_Object*)REG(- SZ_INT)= o;
 }
 
 INSTR(file_to_int) {
@@ -87,7 +87,7 @@ INSTR(file_to_int) {
 #endif
   POP_REG(shred, SZ_INT)
   int ret;
-  M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  M_Object o = *(M_Object*)REG(- SZ_INT);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -96,7 +96,7 @@ INSTR(file_to_int) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
-    *(m_uint*)(shred->reg - SZ_INT)= (**(m_uint**)(shred->reg) = ret);
+    *(m_uint*)REG(- SZ_INT)= (**(m_uint**)REG(0) = ret);
   } else {
     release(o, shred);
     Except(shred, "EmptyFileException");
@@ -110,7 +110,7 @@ INSTR(file_to_float) {
   POP_REG(shred, SZ_INT)
   /*  m_float ret;*/
   float ret;
-  M_Object o = *(M_Object*)(shred->reg - SZ_INT);
+  M_Object o = *(M_Object*)REG(- SZ_INT);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -119,7 +119,7 @@ INSTR(file_to_float) {
     if(fscanf(IO_FILE(o), "%f", &ret) < 0) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
-    *(m_float*)(shred->reg - SZ_FLOAT) = (**(m_float**)(shred->reg) = ret);
+    *(m_float*)REG(- SZ_FLOAT) = (**(m_float**)REG(0) = ret);
   } else {
     release(o, shred);
     Except(shred, "EmptyFileException");
@@ -146,8 +146,8 @@ INSTR(file_to_string) {
   debug_msg("instr", "file => string");
 #endif
   POP_REG(shred, SZ_INT)
-  M_Object o    = *(M_Object*)(shred->reg - SZ_INT);
-  M_Object s    = **(M_Object**)(shred->reg);
+  M_Object o    = *(M_Object*)REG(- SZ_INT);
+  M_Object s    = **(M_Object**)REG(0);
   if(!o) {
     release(s, shred);
 	Except(shred, "EmptyFileException");
@@ -162,7 +162,7 @@ INSTR(file_to_string) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     STRING(s) = S_name(insert_symbol(c));
-    *(M_Object*)(shred->reg - SZ_INT) = s;
+    *(M_Object*)REG(- SZ_INT) = s;
   }
   release(o, shred);
   release(s, shred);
@@ -173,8 +173,8 @@ MFUN(file_nl) {
 }
 
 MFUN(file_open) {
-  M_Object lhs = *(M_Object*)(shred->mem + SZ_INT * 2);
-  M_Object rhs = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object lhs = *(M_Object*)MEM(SZ_INT * 2);
+  M_Object rhs = *(M_Object*)MEM(SZ_INT);
   if(!lhs || !rhs)
     Except(shred, "invalid arguments to FileIO.open()");
   m_str filename = STRING(rhs);
@@ -198,17 +198,17 @@ MFUN(file_close) {
 }
 
 SFUN(file_remove) {
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
   release(obj, shred);
-  RETURN->d.v_uint = remove(STRING(*(M_Object*)(shred->mem + SZ_INT)));
+  RETURN->d.v_uint = remove(STRING(*(M_Object*)MEM(SZ_INT)));
 }
 
 SFUN(file_list) {
   m_uint i;
   struct dirent **namelist;
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object obj = *(M_Object*)MEM(SZ_INT);
   m_str str;
   if(!obj)
     return;

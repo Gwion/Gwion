@@ -15,17 +15,17 @@ static void event_dtor(M_Object o, VM_Shred shred) {
 
 INSTR(Time_Advance) {
   POP_REG(shred, SZ_FLOAT * 2);
-  shred->wake_time += *(m_float*)shred->reg;
+  shred->wake_time += *(m_float*)REG(0);
   shred->is_running = 0;
   shredule(vm->shreduler, shred, shred->wake_time);
-  *(m_float*)shred->reg = shred->wake_time;
+  *(m_float*)REG(0) = shred->wake_time;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(Event_Wait) {
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  event = *(M_Object*)shred->reg;
+  event = *(M_Object*)REG(0);
   if(!event) {
     Except(shred, "NullEventWait");
   }
@@ -34,7 +34,7 @@ static INSTR(Event_Wait) {
   Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   shred->next_pc++;
-  *(m_int*)shred->reg = 1;
+  *(m_int*)REG(0) = 1;
   PUSH_REG(shred, SZ_INT);
   release(event, shred);
 }

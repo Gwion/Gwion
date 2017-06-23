@@ -9,338 +9,338 @@ struct Type_ t_now       = { "@now",  SZ_FLOAT,  &t_time, te_now };
 
 static INSTR(float_assign) {
   POP_REG(shred, SZ_INT+SZ_FLOAT);
-  *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
+  *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_plus) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)shred->reg += *(m_float*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) += *(m_float*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_minus) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)shred->reg -= *(m_float*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) -= *(m_float*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(float_times) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)shred->reg *= *(m_float*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) *= *(m_float*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_divide) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)shred->reg /= *(m_float*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) /= *(m_float*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_and) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg && *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) && *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_or) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg || *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) || *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_eq) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg == *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) == *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_neq)  {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg != *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) != *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_gt) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg > *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) > *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_ge) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg >= *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) >= *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
  static INSTR(float_lt) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg < * (m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) < * (m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_le) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg <= *(m_float*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) <= *(m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(float_negate) {
   POP_REG(shred, SZ_FLOAT)
-  *(m_float*)shred->reg = -*(m_float*)shred->reg;
+  *(m_float*)REG(0) = -*(m_float*)REG(0);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(float_not) {
   POP_REG(shred, SZ_FLOAT)
-  *(m_int*)shred->reg = !*(m_float*)shred->reg;
+  *(m_int*)REG(0) = !*(m_float*)REG(0);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_r_assign) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  **(m_float**)(shred->reg + SZ_FLOAT) = *(m_float*)shred->reg;
+  **(m_float**)REG(SZ_FLOAT) = *(m_float*)REG(0);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_r_plus) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) += (*(m_float*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_r_minus) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) -= (*(m_float*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) -= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_r_times) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) *= (*(m_float*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) *= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_r_divide) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_FLOAT) /= (*(m_float*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) /= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_assign) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (**(m_int**)REG(0) = *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_plus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)shred->reg = *(m_int*)shred->reg + *(m_float*)(shred->reg + SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0) + *(m_float*)REG(SZ_INT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_minus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)shred->reg = *(m_int*)shred->reg + -*(m_float*)(shred->reg + SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0) + -*(m_float*)REG(SZ_INT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(int_float_timesf) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)shred->reg = *(m_int*)shred->reg * *(m_float*)(shred->reg + SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0) * *(m_float*)REG(SZ_INT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_divide) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)shred->reg = *(m_int*)shred->reg / *(m_float*)(shred->reg + SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0) / *(m_float*)REG(SZ_INT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_and) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg && *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) && *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_or) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg || *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) || *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_eq) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg == *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) == *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_neq) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg != *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) != *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_gt) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg > *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) > *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_ge) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg >= *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) >= *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_lt) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg < * (m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) < * (m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_le) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg <= *(m_float*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) <= *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_float_r_assign) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)shred->reg = (**(m_float**)(shred->reg + SZ_INT) = *(m_int*)shred->reg);
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) = *(m_int*)REG(0));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_r_plus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_INT) += (*(m_int*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) += (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_r_minus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_INT) -= (*(m_int*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) -= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_r_times) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_INT) *= (*(m_int*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) *= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(int_float_r_divide) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)(shred->reg) = (**(m_float**)(shred->reg + SZ_INT) /= (*(m_float*)shred->reg));
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) /= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_int_assign) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_float*)(shred->reg) = (**(m_float**)shred->reg = *(m_int*)(shred->reg + SZ_INT));
+  *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_int_plus) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)shred->reg += *(m_int*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) += *(m_int*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_int_minus) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)shred->reg -= *(m_int*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) -= *(m_int*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(float_int_timesf) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)shred->reg *= *(m_int*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) *= *(m_int*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_int_divide) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)shred->reg /= *(m_int*)(shred->reg + SZ_FLOAT);
+  *(m_float*)REG(0) /= *(m_int*)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 static INSTR(float_int_and) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg && *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) && *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_or) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg || *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) || *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_eq) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg == *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) == *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_neq) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg != *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) != *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_gt) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg > *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) > *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_ge) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg >= *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) >= *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_lt) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg < * (m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) < * (m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_le) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)shred->reg = (*(m_float*)shred->reg <= *(m_int*)(shred->reg + SZ_FLOAT));
+  *(m_int*)REG(0) = (*(m_float*)REG(0) <= *(m_int*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_r_assign) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
-  **(m_int**)(shred->reg + SZ_FLOAT) = *(m_float*)shred->reg;
-  *(m_int*)shred->reg = **(m_int**)(shred->reg + SZ_FLOAT);
+  **(m_int**)REG(SZ_FLOAT) = *(m_float*)REG(0);
+  *(m_int*)REG(0) = **(m_int**)REG(SZ_FLOAT);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_r_plus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_FLOAT) += (*(m_float*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_r_minus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_FLOAT) += (*(m_float*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_r_times) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_FLOAT) *= (*(m_float*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) *= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_int_r_divide) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_FLOAT) /= (*(m_float*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) /= (*(m_float*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 

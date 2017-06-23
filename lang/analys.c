@@ -96,7 +96,7 @@ static DTOR(fft_dtor) {
 
 static MFUN(fft_init) {
   Fft* ana = (Fft*)o->ugen->ug;
-  m_int size = *(m_int*)(shred->mem + SZ_INT);
+  m_int size = *(m_int*)MEM(SZ_INT);
   if(size <= 0 || size%2)Except(shred, "FftInvalidSizeException.")
     if(ana->buf)
       sp_buffer_destroy(ana->buf);
@@ -436,7 +436,7 @@ static MFUN(ana_set_fft) {
   M_Object obj = *(M_Object*)(o->d.data + o_ana_fft);
   Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
   if(obj) release(obj, shred);
-  obj = *(M_Object*)(shred->mem + SZ_INT);
+  obj = *(M_Object*)MEM(SZ_INT);
   if(!obj) {
     ana->size = 0;
     ana->fval = NULL;
@@ -547,7 +547,7 @@ static MFUN(rolloff_get_percent) {
 }
 static MFUN(rolloff_set_percent) {
   Ana* ana = *(Ana**)(o->d.data + o_ana_ana);
-  RETURN->d.v_float = (ana->percent = *(m_float*)(shred->mem + SZ_INT));
+  RETURN->d.v_float = (ana->percent = *(m_float*)MEM(SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
   DL_Func fun;
@@ -623,7 +623,7 @@ static MFUN(fc_compute) {
 
 static MFUN(fc_add) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(obj) {
     vector_add(v, (vtype)obj);
     release(obj, shred);
@@ -633,7 +633,7 @@ static MFUN(fc_add) {
 
 static MFUN(fc_rem) {
   Vector v = *(Vector*)(o->d.data + o_fc_vector);
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(obj) {
     vector_rem(v, vector_find(v, (vtype)obj));
     release(obj, shred);
@@ -643,8 +643,8 @@ static MFUN(fc_rem) {
 
 INSTR(fc_connect) {
   POP_REG(shred, SZ_INT * 2);
-  M_Object o   = *(M_Object*)(shred->reg);
-  M_Object obj = **(M_Object**)(shred->reg + SZ_INT);
+  M_Object o   = *(M_Object*)REG(0);
+  M_Object obj = **(M_Object**)REG(SZ_INT);
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
@@ -653,14 +653,14 @@ INSTR(fc_connect) {
     }
     release(o, shred);
   }
-  *(M_Object*)shred->reg = obj;
+  *(M_Object*)REG(0) = obj;
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(fc_disconnect) {
   POP_REG(shred, SZ_INT * 2);
-  M_Object o   = *(M_Object*)(shred->reg);
-  M_Object obj = *(M_Object*)(shred->reg + SZ_INT); // WARN inconsistency
+  M_Object o   = *(M_Object*)REG(0);
+  M_Object obj = *(M_Object*)REG(SZ_INT); // WARN inconsistency
   if(o) {
     if(obj) {
       Vector v = *(Vector*)(obj->d.data + o_fc_vector);
@@ -669,7 +669,7 @@ INSTR(fc_disconnect) {
     }
     release(o, shred);
   }
-  *(M_Object*)shred->reg = obj;
+  *(M_Object*)REG(0) = obj;
   PUSH_REG(shred, SZ_INT);
 }
 

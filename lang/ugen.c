@@ -146,12 +146,12 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
 
 static INSTR(ugen_connect) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
+  debug_msg("instr", "ugen connect %p %p", *(m_uint*)REG(- SZ_INT * 2), *(m_uint*)REG(- SZ_INT));
 #endif
   m_uint i;
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
 
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
     release(rhs, shred);
@@ -176,18 +176,18 @@ static INSTR(ugen_connect) {
   }
   release(lhs, shred);
   release(rhs, shred);
-  *(M_Object*)shred->reg = rhs;
+  *(M_Object*)REG(0) = rhs;
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(ugen_disconnect) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "ugen connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
+  debug_msg("instr", "ugen connect %p %p", *(m_uint*)REG(- SZ_INT * 2), *(m_uint*)REG(- SZ_INT));
 #endif
   m_uint i;
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
     release(rhs, shred);
     Except(shred, "UgenConnectException");
@@ -207,17 +207,17 @@ static INSTR(ugen_disconnect) {
   }
   release(lhs, shred);
   release(rhs, shred);
-  *(M_Object*)shred->reg = rhs;
+  *(M_Object*)REG(0) = rhs;
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(trig_connect) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "trig connect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
+  debug_msg("instr", "trig connect %p %p", *(m_uint*)REG(- SZ_INT * 2), *(m_uint*)REG(- SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
     release(rhs, shred);
     Except(shred, "UgenConnectException");
@@ -228,17 +228,17 @@ static INSTR(trig_connect) {
   }
   release(lhs, shred);
   release(rhs, shred);
-  *(M_Object*)shred->reg = rhs;
+  *(M_Object*)REG(0) = rhs;
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(trig_disconnect) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "trig discconnect %p %p", *(m_uint*)(shred->reg - SZ_INT * 2), *(m_uint*)(shred->reg - SZ_INT));
+  debug_msg("instr", "trig discconnect %p %p", *(m_uint*)REG(- SZ_INT * 2), *(m_uint*)REG(- SZ_INT));
 #endif
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)shred->reg;
-  M_Object rhs = *(M_Object*)(shred->reg + SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
   if(!lhs || !lhs->ugen || !rhs || !rhs->ugen) {
     release(rhs, shred);
     Except(shred, "UgenConnectException");
@@ -249,7 +249,7 @@ static INSTR(trig_disconnect) {
   }
   release(lhs, shred);
   release(rhs, shred);
-  *(M_Object*)shred->reg = rhs;
+  *(M_Object*)REG(0) = rhs;
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -293,7 +293,7 @@ static DTOR(ugen_dtor) {
 }
 
 static MFUN(ugen_channel) {
-  m_int i = *(m_int*)(shred->mem + SZ_INT);
+  m_int i = *(m_int*)MEM(SZ_INT);
   if(!o->ugen->channel)
     RETURN->d.v_object = !i ? o : NULL;
   else if(i < 0 || i >= o->ugen->n_out)
@@ -307,7 +307,7 @@ static MFUN(ugen_get_op) {
 }
 
 static MFUN(ugen_set_op) {
-  m_int i = *(m_int*)(shred->mem + SZ_INT);
+  m_int i = *(m_int*)MEM(SZ_INT);
   if(i < 1 || i > 4)
     err_msg(INSTR_, 0, "invalid op %i", i);
   else

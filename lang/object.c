@@ -95,17 +95,17 @@ static DTOR(object_dtor) {
 INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val,
-      *(m_uint*)(shred->reg - SZ_INT * 2), **(m_uint**)(shred->reg - SZ_INT));
+      *(m_uint*)REG(- SZ_INT * 2), **(m_uint**)REG(- SZ_INT));
 #endif
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
-  src = *(M_Object*)shred->reg;
-  if((tgt = **(M_Object**)(shred->reg + SZ_INT)))
+  src = *(M_Object*)REG(0);
+  if((tgt = **(M_Object**)REG(SZ_INT)))
     release(tgt, shred);
   if(instr->m_val2)
     release(tgt,shred);
-  **(M_Object**)(shred->reg + (instr->m_val ? 0 : SZ_INT)) = src;
-  **(M_Object**)(shred->reg + SZ_INT) = src;
+  **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
+  **(M_Object**)REG(SZ_INT) = src;
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -114,9 +114,9 @@ static INSTR(eq_Object) {
   debug_msg("instr", "eq Object");
 #endif
   POP_REG(shred, SZ_INT * 2);
-  m_uint* lhs = *(m_uint**)shred->reg;
-  m_uint* rhs = *(m_uint**)(shred->reg + SZ_INT);
-  *(m_uint*)shred->reg = (lhs == rhs);
+  m_uint* lhs = *(m_uint**)REG(0);
+  m_uint* rhs = *(m_uint**)REG(SZ_INT);
+  *(m_uint*)REG(0) = (lhs == rhs);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -125,9 +125,9 @@ static INSTR(neq_Object) {
   debug_msg("instr", "neq Object");
 #endif
   POP_REG(shred, SZ_INT * 2);
-  m_uint* lhs = *(m_uint**)shred->reg;
-  m_uint* rhs = *(m_uint**)(shred->reg + SZ_INT);
-  *(m_uint*)shred->reg = (lhs != rhs);
+  m_uint* lhs = *(m_uint**)REG(0);
+  m_uint* rhs = *(m_uint**)REG(SZ_INT);
+  *(m_uint*)REG(0) = (lhs != rhs);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -141,7 +141,7 @@ INSTR(Vararg_start) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "vararg start %i", instr->m_val);
 #endif
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
   if(!arg->s) {
@@ -150,7 +150,7 @@ INSTR(Vararg_start) {
     return;
   }
   PUSH_REG(shred, SZ_INT);
-  *(m_uint*)(shred->reg - SZ_INT) = 0;
+  *(m_uint*)REG(- SZ_INT) = 0;
 }
 
 INSTR(MkVararg) {
@@ -174,12 +174,12 @@ INSTR(MkVararg) {
   arg->i = 0;
   if(kinds)
     free_vector(kinds);
-  *(struct Vararg**)shred->reg = arg;
+  *(struct Vararg**)REG(0) = arg;
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Vararg_end) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   switch(arg->k[arg->i]) {
     case Kindof_Int:
       arg->o += SZ_INT;
@@ -205,43 +205,43 @@ INSTR(Vararg_end) {
     free(arg->k);
     free(arg);
   } else {
-    *(m_uint*)(shred->reg - SZ_INT) = 0;
+    *(m_uint*)REG(- SZ_INT) = 0;
     shred->next_pc = instr->m_val2;
   }
 }
 
 INSTR(Vararg_int) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_uint*)shred->reg = *(m_uint*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(m_uint*)REG(0) = *(m_uint*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_INT);
 }
 INSTR(Vararg_float) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_float*)shred->reg = *(m_float*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(m_float*)REG(0) = *(m_float*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(Vararg_complex) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_complex*)shred->reg = *(m_complex*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(m_complex*)REG(0) = *(m_complex*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(Vararg_object) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(M_Object*)shred->reg = *(M_Object*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(M_Object*)REG(0) = *(M_Object*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(Vararg_Vec3) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_vec3*)shred->reg = *(m_vec3*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(m_vec3*)REG(0) = *(m_vec3*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_VEC3);
 }
 
 INSTR(Vararg_Vec4) {
-  struct Vararg* arg = *(struct Vararg**)(shred->mem + instr->m_val);
-  *(m_vec4*)shred->reg = *(m_vec4*)(arg->d + arg->o);
+  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  *(m_vec4*)REG(0) = *(m_vec4*)(arg->d + arg->o);
   PUSH_REG(shred, SZ_VEC4);
 }
 

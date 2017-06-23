@@ -5,267 +5,267 @@ struct Type_ t_int       = { "int",        SZ_INT,   NULL, te_int};
 
 static INSTR(int_assign) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)shred->reg = *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (**(m_int**)REG(0) = *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_plus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg += *(m_int*)(shred->reg + SZ_INT);
+  *(m_int*)REG(0) += *(m_int*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_minus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg -= *(m_int*)(shred->reg + SZ_INT);
+  *(m_int*)REG(0) -= *(m_int*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_times) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg *= *(m_int*)(shred->reg + SZ_INT);
+  *(m_int*)REG(0) *= *(m_int*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_divide) {
   POP_REG(shred, SZ_INT * 2);
-  if(!*(m_int*)(shred->reg + SZ_INT)) {
+  if(!*(m_int*)REG(SZ_INT)) {
     Except(shred, "ZeroDivideException")
   }
-  *(m_int*)shred->reg /= *(m_int*)(shred->reg + SZ_INT);
+  *(m_int*)REG(0) /= *(m_int*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_modulo) {
   POP_REG(shred, SZ_INT * 2);
-  if(!*(m_int*)(shred->reg + SZ_INT)) {
+  if(!*(m_int*)REG(SZ_INT)) {
     Except(shred, "ZeroDivideException")
   }
-  *(m_int*)shred->reg %= *(m_int*)(shred->reg + SZ_INT);
+  *(m_int*)REG(0) %= *(m_int*)REG(SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_and) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg && *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) && *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_or) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg || *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) || *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_eq) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg == *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) == *(m_int*)REG(SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_neq) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg != *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) != *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_gt) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg > *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) > *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_ge) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg >= *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) >= *(m_int*)REG(SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_lt) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg < * (m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) < * (m_int*)REG(SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_le) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int**)shred->reg <= *(m_int**)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int**)REG(0) <= *(m_int**)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_sl) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg << * (m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) << * (m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_sr) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg >> *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) >> *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_sand) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg & *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) & *(m_int*)REG(SZ_INT));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_sor) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg | *(m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) | *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_xor) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)shred->reg = (*(m_int*)shred->reg ^ * (m_int*)(shred->reg + SZ_INT));
+  *(m_int*)REG(0) = (*(m_int*)REG(0) ^ * (m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_negate) {
   POP_REG(shred, SZ_INT);
-  *(m_int*)shred->reg *= -1;
+  *(m_int*)REG(0) *= -1;
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(int_not) {
   POP_REG(shred, SZ_INT);
-  *(m_int*)shred->reg = !*(m_int*)shred->reg;
+  *(m_int*)REG(0) = !*(m_int*)REG(0);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_pre_inc) {
-  *(m_int*)(shred->reg - SZ_INT) = (++**(m_int**)(shred->reg - SZ_INT));
+  *(m_int*)REG(- SZ_INT) = (++**(m_int**)REG(- SZ_INT));
 }
 
 static INSTR(int_pre_dec) {
-  *(m_int*)(shred->reg - SZ_INT) = (--**(m_int**)(shred->reg - SZ_INT));
+  *(m_int*)REG(- SZ_INT) = (--**(m_int**)REG(- SZ_INT));
 }
 
 static INSTR(int_post_inc) {
-  *(m_int*)(shred->reg - SZ_INT) = (**(m_int**)(shred->reg - SZ_INT))++;
+  *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))++;
 }
 
 static INSTR(int_post_dec) {
-  *(m_int*)(shred->reg - SZ_INT) = (**(m_int**)(shred->reg - SZ_INT))--;
+  *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))--;
 }
 
 static INSTR(int_r_assign) {
   POP_REG(shred, SZ_INT * 2);
-  **(m_int**)(shred->reg + SZ_INT) = *(m_int*)shred->reg;
+  **(m_int**)REG(SZ_INT) = *(m_int*)REG(0);
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_plus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) += (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) += (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_minus) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) -= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) -= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_times) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) *= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) *= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_divide) {
   POP_REG(shred, SZ_INT * 2);
-  if(!*(m_int*)(shred->reg))
+  if(!*(m_int*)REG(0))
     Except(shred, "ZeroDivideException")
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) /= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) /= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_r_modulo) {
   POP_REG(shred, SZ_INT * 2);
-  if(!*(m_int*)(shred->reg))
+  if(!*(m_int*)REG(0))
     Except(shred, "ZeroDivideException")
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) %= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) %= (*(m_int*)REG(0)));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_r_and) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) && (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) && (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_ror) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) || (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) || (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_req) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) == (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) == (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rneq) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) != (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) != (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rgt) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) > (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) > (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rge) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) >= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) >= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rlt) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) < (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) < (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rle) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) <= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) <= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rsl) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) <<= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) <<= (*(m_int*)REG(0)));
   PUSH_REG(shred,  SZ_INT);
 }
 
 static INSTR(int_rsr) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) >>= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) >>= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rsand) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) &= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) &= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rsor) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) |= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) |= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(int_rsxor) {
   POP_REG(shred, SZ_INT * 2);
-  *(m_int*)(shred->reg) = (**(m_int**)(shred->reg + SZ_INT) ^= (*(m_int*)shred->reg));
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) ^= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 

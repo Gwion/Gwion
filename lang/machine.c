@@ -36,7 +36,7 @@ static m_str randstring(VM* vm, int length) {
 }
 
 static SFUN(machine_add) {
-  M_Object obj = *(M_Object*)(shred->mem + SZ_INT);
+  M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
   m_str str = STRING(obj);
@@ -50,8 +50,8 @@ static SFUN(machine_check) {
   Ast ast;
   FILE* file;
   m_str prefix, filename, s;
-  M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
-  M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
+  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
 
   RETURN->d.v_uint = 0;
   if(!prefix_obj)
@@ -87,8 +87,8 @@ static SFUN(machine_compile) {
 
   m_str prefix, filename;
   FILE* file;
-  M_Object prefix_obj = *(M_Object*)(shred->mem + SZ_INT);
-  M_Object code_obj = *(M_Object*)(shred->mem + SZ_INT * 2);
+  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
+  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
 
   RETURN->d.v_uint = 0;
   if(!prefix_obj)
