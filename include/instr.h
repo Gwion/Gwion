@@ -33,7 +33,8 @@
 #define POP_REG(a, b)  a->reg -= b;
 #endif
 
-
+#define MEM(a) (shred->mem + (a))
+#define REG(a) (shred->reg + (a))
 #define INSTR(a) void a(VM* vm, VM_Shred shred, Instr instr)
 #define MEM_STEP 16
 #define SIZEOF_MEM 0x1 << MEM_STEP
