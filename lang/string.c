@@ -857,109 +857,109 @@ static MFUN(string_toFloat) {
 m_bool import_string(Env env) {
   DL_Func fun;
 
-  CHECK_OB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
+  CHECK_BB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
 
   o_string_data = import_mvar(env, "int", "@data",   1, 0);
   CHECK_BB(o_string_data)
 
    dl_func_init(&fun, "int", "size", (m_uint)string_len);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "upper", (m_uint)string_upper);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "lower", (m_uint)string_lower);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "ltrim", (m_uint)string_ltrim);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "rtrim", (m_uint)string_rtrim);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "trim", (m_uint)string_trim);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "charAt", (m_uint)string_charAt);
   dl_func_add_arg(&fun, "int", "pos");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "charAt", (m_uint)string_setCharAt);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "substring", (m_uint)string_substring);
   dl_func_add_arg(&fun, "int", "start");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "substring", (m_uint)string_substringN);
   dl_func_add_arg(&fun, "int", "start");
   dl_func_add_arg(&fun, "int", "end");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "insert", (m_uint)string_insert);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "string");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "replace", (m_uint)string_replace);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "string");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "string", "replace", (m_uint)string_replaceN);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "n");
   dl_func_add_arg(&fun, "string", "string");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "find", (m_uint)string_find);
   dl_func_add_arg(&fun, "int", "char");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "find", (m_uint)string_findStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "find", (m_uint)string_findStr);
   dl_func_add_arg(&fun, "string", "str");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "find", (m_uint)string_findStrStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "str");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "rfind", (m_uint)string_rfind);
   dl_func_add_arg(&fun, "int", "char");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStr);
   dl_func_add_arg(&fun, "string", "str");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStrStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "str");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "void",   "erase", (m_uint)string_erase);
   dl_func_add_arg(&fun, "int", "start");
   dl_func_add_arg(&fun, "int", "length");
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "int", "toInt", (m_uint)string_toInt);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     dl_func_init(&fun, "float", "toFloat", (m_uint)string_toFloat);
-  CHECK_OB(import_mfun(env, &fun))
+  CHECK_BB(import_mfun(env, &fun))
 
     CHECK_BB(import_op(env, op_chuck, "string",  "string", "string", String_Assign, 1))
     CHECK_BB(import_op(env, op_chuck, "int",     "string", "string", Int_String_Assign, 1))

@@ -8233,112 +8233,111 @@ struct Type_ t_zitarev = {"Zitarev", SZ_INT, &t_ugen};
 m_bool import_soundpipe(Env env)
 {
 	DL_Func fun;
-	Func f;
 
 	CHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
 	o_ftbl_data = import_mvar(env, "int", "@ftbl", 1, 0);
 	dl_func_init(&fun, "void", "gen_composite", (m_uint)ftbl_gen_composite);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_file", (m_uint)ftbl_gen_file);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "filename");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_gauss", (m_uint)ftbl_gen_gauss);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "float", "scale");
 		 dl_func_add_arg(&fun, "int", "seed");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_line", (m_uint)ftbl_gen_line);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_padsynth", (m_uint)ftbl_gen_padsynth);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "ftbl", "amps");
 		 dl_func_add_arg(&fun, "float", "f");
 		 dl_func_add_arg(&fun, "float", "bw");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_rand", (m_uint)ftbl_gen_rand);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_scrambler", (m_uint)ftbl_gen_scrambler);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "ftbl", "dest");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_sine", (m_uint)ftbl_gen_sine);
 	dl_func_add_arg(&fun, "int", "size");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_sinesum", (m_uint)ftbl_gen_sinesum);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "void", "gen_xline", (m_uint)ftbl_gen_xline);
 	dl_func_add_arg(&fun, "int", "size");
 		 dl_func_add_arg(&fun, "string", "argstring");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_adsr, env->global_nspc, adsr_ctor, adsr_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)adsr_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)adsr_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)adsr_get_dec);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)adsr_set_dec);
 		 dl_func_add_arg(&fun, "float", "dec");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "sus", (m_uint)adsr_get_sus);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "sus", (m_uint)adsr_set_sus);
 		 dl_func_add_arg(&fun, "float", "sus");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)adsr_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)adsr_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_allpass, env->global_nspc, allpass_ctor, allpass_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)allpass_init);
 		 dl_func_add_arg(&fun, "float", "looptime");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "revtime", (m_uint)allpass_get_revtime);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "revtime", (m_uint)allpass_set_revtime);
 		 dl_func_add_arg(&fun, "float", "revtime");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_atone, env->global_nspc, atone_ctor, atone_dtor))
 	dl_func_init(&fun, "float", "hp", (m_uint)atone_get_hp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hp", (m_uint)atone_set_hp);
 		 dl_func_add_arg(&fun, "float", "hp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_autowah, env->global_nspc, autowah_ctor, autowah_dtor))
 	dl_func_init(&fun, "float", "level", (m_uint)autowah_get_level);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "level", (m_uint)autowah_set_level);
 		 dl_func_add_arg(&fun, "float", "level");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wah", (m_uint)autowah_get_wah);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wah", (m_uint)autowah_set_wah);
 		 dl_func_add_arg(&fun, "float", "wah");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mix", (m_uint)autowah_get_mix);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mix", (m_uint)autowah_set_mix);
 		 dl_func_add_arg(&fun, "float", "mix");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_bal, env->global_nspc, bal_ctor, bal_dtor))
@@ -8348,145 +8347,145 @@ m_bool import_soundpipe(Env env)
 	dl_func_init(&fun, "void", "init", (m_uint)bar_init);
 		 dl_func_add_arg(&fun, "float", "iK");
 		 dl_func_add_arg(&fun, "float", "ib");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bcL", (m_uint)bar_get_bcL);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bcL", (m_uint)bar_set_bcL);
 		 dl_func_add_arg(&fun, "float", "bcL");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bcR", (m_uint)bar_get_bcR);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bcR", (m_uint)bar_set_bcR);
 		 dl_func_add_arg(&fun, "float", "bcR");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "T30", (m_uint)bar_get_T30);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "T30", (m_uint)bar_set_T30);
 		 dl_func_add_arg(&fun, "float", "T30");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "scan", (m_uint)bar_get_scan);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "scan", (m_uint)bar_set_scan);
 		 dl_func_add_arg(&fun, "float", "scan");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pos", (m_uint)bar_get_pos);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pos", (m_uint)bar_set_pos);
 		 dl_func_add_arg(&fun, "float", "pos");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "vel", (m_uint)bar_get_vel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "vel", (m_uint)bar_set_vel);
 		 dl_func_add_arg(&fun, "float", "vel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wid", (m_uint)bar_get_wid);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wid", (m_uint)bar_set_wid);
 		 dl_func_add_arg(&fun, "float", "wid");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_biquad, env->global_nspc, biquad_ctor, biquad_dtor))
 	dl_func_init(&fun, "float", "b0", (m_uint)biquad_get_b0);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b0", (m_uint)biquad_set_b0);
 		 dl_func_add_arg(&fun, "float", "b0");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b1", (m_uint)biquad_get_b1);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b1", (m_uint)biquad_set_b1);
 		 dl_func_add_arg(&fun, "float", "b1");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b2", (m_uint)biquad_get_b2);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b2", (m_uint)biquad_set_b2);
 		 dl_func_add_arg(&fun, "float", "b2");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a0", (m_uint)biquad_get_a0);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a0", (m_uint)biquad_set_a0);
 		 dl_func_add_arg(&fun, "float", "a0");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a1", (m_uint)biquad_get_a1);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a1", (m_uint)biquad_set_a1);
 		 dl_func_add_arg(&fun, "float", "a1");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a2", (m_uint)biquad_get_a2);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a2", (m_uint)biquad_set_a2);
 		 dl_func_add_arg(&fun, "float", "a2");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_biscale, env->global_nspc, biscale_ctor, biscale_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)biscale_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)biscale_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)biscale_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)biscale_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_bitcrush, env->global_nspc, bitcrush_ctor, bitcrush_dtor))
 	dl_func_init(&fun, "float", "bitdepth", (m_uint)bitcrush_get_bitdepth);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bitdepth", (m_uint)bitcrush_set_bitdepth);
 		 dl_func_add_arg(&fun, "float", "bitdepth");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "srate", (m_uint)bitcrush_get_srate);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "srate", (m_uint)bitcrush_set_srate);
 		 dl_func_add_arg(&fun, "float", "srate");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_blsaw, env->global_nspc, blsaw_ctor, blsaw_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsaw_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsaw_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)blsaw_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)blsaw_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_blsquare, env->global_nspc, blsquare_ctor, blsquare_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsquare_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsquare_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)blsquare_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)blsquare_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "width", (m_uint)blsquare_get_width);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "width", (m_uint)blsquare_set_width);
 		 dl_func_add_arg(&fun, "float", "width");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_bltriangle, env->global_nspc, bltriangle_ctor, bltriangle_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)bltriangle_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)bltriangle_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)bltriangle_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)bltriangle_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_brown, env->global_nspc, brown_ctor, brown_dtor))
@@ -8494,127 +8493,127 @@ m_bool import_soundpipe(Env env)
 
 	CHECK_OB(import_class_begin(env, &t_butbp, env->global_nspc, butbp_ctor, butbp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbp_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbp_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)butbp_get_bw);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)butbp_set_bw);
 		 dl_func_add_arg(&fun, "float", "bw");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_butbr, env->global_nspc, butbr_ctor, butbr_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbr_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbr_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)butbr_get_bw);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)butbr_set_bw);
 		 dl_func_add_arg(&fun, "float", "bw");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_buthp, env->global_nspc, buthp_ctor, buthp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)buthp_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)buthp_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_butlp, env->global_nspc, butlp_ctor, butlp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butlp_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)butlp_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_clip, env->global_nspc, clip_ctor, clip_dtor))
 	dl_func_init(&fun, "float", "lim", (m_uint)clip_get_lim);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lim", (m_uint)clip_set_lim);
 		 dl_func_add_arg(&fun, "float", "lim");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_clock, env->global_nspc, clock_ctor, clock_dtor))
 	dl_func_init(&fun, "float", "bpm", (m_uint)clock_get_bpm);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bpm", (m_uint)clock_set_bpm);
 		 dl_func_add_arg(&fun, "float", "bpm");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "subdiv", (m_uint)clock_get_subdiv);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "subdiv", (m_uint)clock_set_subdiv);
 		 dl_func_add_arg(&fun, "float", "subdiv");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_comb, env->global_nspc, comb_ctor, comb_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)comb_init);
 		 dl_func_add_arg(&fun, "float", "looptime");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "revtime", (m_uint)comb_get_revtime);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "revtime", (m_uint)comb_set_revtime);
 		 dl_func_add_arg(&fun, "float", "revtime");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_compressor, env->global_nspc, compressor_ctor, compressor_dtor))
 	dl_func_init(&fun, "float", "ratio", (m_uint)compressor_get_ratio);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ratio", (m_uint)compressor_set_ratio);
 		 dl_func_add_arg(&fun, "float", "ratio");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "thresh", (m_uint)compressor_get_thresh);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "thresh", (m_uint)compressor_set_thresh);
 		 dl_func_add_arg(&fun, "float", "thresh");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)compressor_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)compressor_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)compressor_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)compressor_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_conv, env->global_nspc, conv_ctor, conv_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)conv_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "iPartLen");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_count, env->global_nspc, count_ctor, count_dtor))
 	dl_func_init(&fun, "float", "count", (m_uint)count_get_count);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "count", (m_uint)count_set_count);
 		 dl_func_add_arg(&fun, "float", "count");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)count_get_mode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)count_set_mode);
 		 dl_func_add_arg(&fun, "float", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_crossfade, env->global_nspc, crossfade_ctor, crossfade_dtor))
 	dl_func_init(&fun, "float", "pos", (m_uint)crossfade_get_pos);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pos", (m_uint)crossfade_set_pos);
 		 dl_func_add_arg(&fun, "float", "pos");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_dcblock, env->global_nspc, dcblock_ctor, dcblock_dtor))
@@ -8623,178 +8622,178 @@ m_bool import_soundpipe(Env env)
 	CHECK_OB(import_class_begin(env, &t_delay, env->global_nspc, delay_ctor, delay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)delay_init);
 		 dl_func_add_arg(&fun, "float", "time");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback", (m_uint)delay_get_feedback);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback", (m_uint)delay_set_feedback);
 		 dl_func_add_arg(&fun, "float", "feedback");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_diode, env->global_nspc, diode_ctor, diode_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)diode_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)diode_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)diode_get_res);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)diode_set_res);
 		 dl_func_add_arg(&fun, "float", "res");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_diskin, env->global_nspc, diskin_ctor, diskin_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)diskin_init);
 		 dl_func_add_arg(&fun, "string", "filename");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_dist, env->global_nspc, dist_ctor, dist_dtor))
 	dl_func_init(&fun, "float", "pregain", (m_uint)dist_get_pregain);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pregain", (m_uint)dist_set_pregain);
 		 dl_func_add_arg(&fun, "float", "pregain");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "postgain", (m_uint)dist_get_postgain);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "postgain", (m_uint)dist_set_postgain);
 		 dl_func_add_arg(&fun, "float", "postgain");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shape1", (m_uint)dist_get_shape1);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shape1", (m_uint)dist_set_shape1);
 		 dl_func_add_arg(&fun, "float", "shape1");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shape2", (m_uint)dist_get_shape2);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shape2", (m_uint)dist_set_shape2);
 		 dl_func_add_arg(&fun, "float", "shape2");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_dmetro, env->global_nspc, dmetro_ctor, dmetro_dtor))
 	dl_func_init(&fun, "float", "time", (m_uint)dmetro_get_time);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "time", (m_uint)dmetro_set_time);
 		 dl_func_add_arg(&fun, "float", "time");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_drip, env->global_nspc, drip_ctor, drip_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)drip_init);
 		 dl_func_add_arg(&fun, "float", "dettack");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "num_tubes", (m_uint)drip_get_num_tubes);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "num_tubes", (m_uint)drip_set_num_tubes);
 		 dl_func_add_arg(&fun, "float", "num_tubes");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)drip_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)drip_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "damp", (m_uint)drip_get_damp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "damp", (m_uint)drip_set_damp);
 		 dl_func_add_arg(&fun, "float", "damp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shake_max", (m_uint)drip_get_shake_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shake_max", (m_uint)drip_set_shake_max);
 		 dl_func_add_arg(&fun, "float", "shake_max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)drip_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)drip_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq1", (m_uint)drip_get_freq1);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq1", (m_uint)drip_set_freq1);
 		 dl_func_add_arg(&fun, "float", "freq1");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq2", (m_uint)drip_get_freq2);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq2", (m_uint)drip_set_freq2);
 		 dl_func_add_arg(&fun, "float", "freq2");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_dtrig, env->global_nspc, dtrig_ctor, dtrig_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)dtrig_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "loop", (m_uint)dtrig_get_loop);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "loop", (m_uint)dtrig_set_loop);
 		 dl_func_add_arg(&fun, "int", "loop");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "delay", (m_uint)dtrig_get_delay);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "delay", (m_uint)dtrig_set_delay);
 		 dl_func_add_arg(&fun, "float", "delay");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "scale", (m_uint)dtrig_get_scale);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "scale", (m_uint)dtrig_set_scale);
 		 dl_func_add_arg(&fun, "float", "scale");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_dust, env->global_nspc, dust_ctor, dust_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)dust_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)dust_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "density", (m_uint)dust_get_density);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "density", (m_uint)dust_set_density);
 		 dl_func_add_arg(&fun, "float", "density");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "bipolar", (m_uint)dust_get_bipolar);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "bipolar", (m_uint)dust_set_bipolar);
 		 dl_func_add_arg(&fun, "int", "bipolar");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_eqfil, env->global_nspc, eqfil_ctor, eqfil_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)eqfil_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)eqfil_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)eqfil_get_bw);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)eqfil_set_bw);
 		 dl_func_add_arg(&fun, "float", "bw");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "gain", (m_uint)eqfil_get_gain);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "gain", (m_uint)eqfil_set_gain);
 		 dl_func_add_arg(&fun, "float", "gain");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_expon, env->global_nspc, expon_ctor, expon_dtor))
 	dl_func_init(&fun, "float", "a", (m_uint)expon_get_a);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a", (m_uint)expon_set_a);
 		 dl_func_add_arg(&fun, "float", "a");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)expon_get_dur);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)expon_set_dur);
 		 dl_func_add_arg(&fun, "float", "dur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b", (m_uint)expon_get_b);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b", (m_uint)expon_set_b);
 		 dl_func_add_arg(&fun, "float", "b");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_fof, env->global_nspc, fof_ctor, fof_dtor))
@@ -8803,65 +8802,65 @@ m_bool import_soundpipe(Env env)
 		 dl_func_add_arg(&fun, "ftbl", "win");
 		 dl_func_add_arg(&fun, "int", "iolaps");
 		 dl_func_add_arg(&fun, "float", "iphs");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fof_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fof_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fund", (m_uint)fof_get_fund);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fund", (m_uint)fof_set_fund);
 		 dl_func_add_arg(&fun, "float", "fund");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "form", (m_uint)fof_get_form);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "form", (m_uint)fof_set_form);
 		 dl_func_add_arg(&fun, "float", "form");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "oct", (m_uint)fof_get_oct);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "oct", (m_uint)fof_set_oct);
 		 dl_func_add_arg(&fun, "float", "oct");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "band", (m_uint)fof_get_band);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "band", (m_uint)fof_set_band);
 		 dl_func_add_arg(&fun, "float", "band");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ris", (m_uint)fof_get_ris);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ris", (m_uint)fof_set_ris);
 		 dl_func_add_arg(&fun, "float", "ris");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fof_get_dec);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fof_set_dec);
 		 dl_func_add_arg(&fun, "float", "dec");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)fof_get_dur);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)fof_set_dur);
 		 dl_func_add_arg(&fun, "float", "dur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_fofilt, env->global_nspc, fofilt_ctor, fofilt_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)fofilt_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)fofilt_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)fofilt_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)fofilt_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fofilt_get_dec);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fofilt_set_dec);
 		 dl_func_add_arg(&fun, "float", "dec");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_fog, env->global_nspc, fog_ctor, fog_dtor))
@@ -8870,123 +8869,123 @@ m_bool import_soundpipe(Env env)
 		 dl_func_add_arg(&fun, "ftbl", "win");
 		 dl_func_add_arg(&fun, "int", "iolaps");
 		 dl_func_add_arg(&fun, "float", "iphs");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fog_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fog_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dens", (m_uint)fog_get_dens);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dens", (m_uint)fog_set_dens);
 		 dl_func_add_arg(&fun, "float", "dens");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "trans", (m_uint)fog_get_trans);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "trans", (m_uint)fog_set_trans);
 		 dl_func_add_arg(&fun, "float", "trans");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "spd", (m_uint)fog_get_spd);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "spd", (m_uint)fog_set_spd);
 		 dl_func_add_arg(&fun, "float", "spd");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "oct", (m_uint)fog_get_oct);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "oct", (m_uint)fog_set_oct);
 		 dl_func_add_arg(&fun, "float", "oct");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "band", (m_uint)fog_get_band);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "band", (m_uint)fog_set_band);
 		 dl_func_add_arg(&fun, "float", "band");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ris", (m_uint)fog_get_ris);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ris", (m_uint)fog_set_ris);
 		 dl_func_add_arg(&fun, "float", "ris");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fog_get_dec);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)fog_set_dec);
 		 dl_func_add_arg(&fun, "float", "dec");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)fog_get_dur);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)fog_set_dur);
 		 dl_func_add_arg(&fun, "float", "dur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_fold, env->global_nspc, fold_ctor, fold_dtor))
 	dl_func_init(&fun, "float", "incr", (m_uint)fold_get_incr);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "incr", (m_uint)fold_set_incr);
 		 dl_func_add_arg(&fun, "float", "incr");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_fosc, env->global_nspc, fosc_ctor, fosc_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)fosc_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)fosc_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)fosc_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fosc_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)fosc_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "car", (m_uint)fosc_get_car);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "car", (m_uint)fosc_set_car);
 		 dl_func_add_arg(&fun, "float", "car");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mod", (m_uint)fosc_get_mod);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mod", (m_uint)fosc_set_mod);
 		 dl_func_add_arg(&fun, "float", "mod");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "indx", (m_uint)fosc_get_indx);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "indx", (m_uint)fosc_set_indx);
 		 dl_func_add_arg(&fun, "float", "indx");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_gbuzz, env->global_nspc, gbuzz_ctor, gbuzz_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)gbuzz_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "iphs");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)gbuzz_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)gbuzz_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)gbuzz_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)gbuzz_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "nharm", (m_uint)gbuzz_get_nharm);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "nharm", (m_uint)gbuzz_set_nharm);
 		 dl_func_add_arg(&fun, "float", "nharm");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lharm", (m_uint)gbuzz_get_lharm);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lharm", (m_uint)gbuzz_set_lharm);
 		 dl_func_add_arg(&fun, "float", "lharm");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mul", (m_uint)gbuzz_get_mul);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mul", (m_uint)gbuzz_set_mul);
 		 dl_func_add_arg(&fun, "float", "mul");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_hilbert, env->global_nspc, hilbert_ctor, hilbert_dtor))
@@ -8998,22 +8997,22 @@ m_bool import_soundpipe(Env env)
 	CHECK_OB(import_class_begin(env, &t_incr, env->global_nspc, incr_ctor, incr_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)incr_init);
 		 dl_func_add_arg(&fun, "float", "val");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "step", (m_uint)incr_get_step);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "step", (m_uint)incr_set_step);
 		 dl_func_add_arg(&fun, "float", "step");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)incr_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)incr_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)incr_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)incr_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_jcrev, env->global_nspc, jcrev_ctor, jcrev_dtor))
@@ -9021,133 +9020,133 @@ m_bool import_soundpipe(Env env)
 
 	CHECK_OB(import_class_begin(env, &t_jitter, env->global_nspc, jitter_ctor, jitter_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)jitter_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)jitter_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cpsMin", (m_uint)jitter_get_cpsMin);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cpsMin", (m_uint)jitter_set_cpsMin);
 		 dl_func_add_arg(&fun, "float", "cpsMin");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cpsMax", (m_uint)jitter_get_cpsMax);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cpsMax", (m_uint)jitter_set_cpsMax);
 		 dl_func_add_arg(&fun, "float", "cpsMax");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_line, env->global_nspc, line_ctor, line_dtor))
 	dl_func_init(&fun, "float", "a", (m_uint)line_get_a);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "a", (m_uint)line_set_a);
 		 dl_func_add_arg(&fun, "float", "a");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)line_get_dur);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)line_set_dur);
 		 dl_func_add_arg(&fun, "float", "dur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b", (m_uint)line_get_b);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "b", (m_uint)line_set_b);
 		 dl_func_add_arg(&fun, "float", "b");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_lpf18, env->global_nspc, lpf18_ctor, lpf18_dtor))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)lpf18_get_cutoff);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)lpf18_set_cutoff);
 		 dl_func_add_arg(&fun, "float", "cutoff");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)lpf18_get_res);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)lpf18_set_res);
 		 dl_func_add_arg(&fun, "float", "res");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dist", (m_uint)lpf18_get_dist);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dist", (m_uint)lpf18_set_dist);
 		 dl_func_add_arg(&fun, "float", "dist");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_maygate, env->global_nspc, maygate_ctor, maygate_dtor))
 	dl_func_init(&fun, "float", "prob", (m_uint)maygate_get_prob);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "prob", (m_uint)maygate_set_prob);
 		 dl_func_add_arg(&fun, "float", "prob");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "mode", (m_uint)maygate_get_mode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "mode", (m_uint)maygate_set_mode);
 		 dl_func_add_arg(&fun, "int", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_metro, env->global_nspc, metro_ctor, metro_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)metro_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)metro_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_mincer, env->global_nspc, mincer_ctor, mincer_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)mincer_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "int", "winsize");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "time", (m_uint)mincer_get_time);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "time", (m_uint)mincer_set_time);
 		 dl_func_add_arg(&fun, "float", "time");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)mincer_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)mincer_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pitch", (m_uint)mincer_get_pitch);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pitch", (m_uint)mincer_set_pitch);
 		 dl_func_add_arg(&fun, "float", "pitch");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_mode, env->global_nspc, mode_ctor, mode_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)mode_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)mode_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "q", (m_uint)mode_get_q);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "q", (m_uint)mode_set_q);
 		 dl_func_add_arg(&fun, "float", "q");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_moogladder, env->global_nspc, moogladder_ctor, moogladder_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)moogladder_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)moogladder_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)moogladder_get_res);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)moogladder_set_res);
 		 dl_func_add_arg(&fun, "float", "res");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_noise, env->global_nspc, noise_ctor, noise_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)noise_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)noise_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
@@ -9155,29 +9154,29 @@ m_bool import_soundpipe(Env env)
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "int", "sr");
 		 dl_func_add_arg(&fun, "string", "init");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "index", (m_uint)nsmp_get_index);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "index", (m_uint)nsmp_set_index);
 		 dl_func_add_arg(&fun, "int", "index");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_osc, env->global_nspc, osc_ctor, osc_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)osc_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
 		 dl_func_add_arg(&fun, "float", "phase");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)osc_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)osc_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)osc_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)osc_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_oscmorph, env->global_nspc, oscmorph_ctor, oscmorph_dtor))
@@ -9185,71 +9184,71 @@ m_bool import_soundpipe(Env env)
 		 dl_func_add_arg(&fun, "ftbl[]", "tbl");
 		 dl_func_add_arg(&fun, "int", "nft");
 		 dl_func_add_arg(&fun, "float", "phase");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)oscmorph_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)oscmorph_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)oscmorph_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)oscmorph_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wtpos", (m_uint)oscmorph_get_wtpos);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wtpos", (m_uint)oscmorph_set_wtpos);
 		 dl_func_add_arg(&fun, "float", "wtpos");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pan2, env->global_nspc, pan2_ctor, pan2_dtor))
 	dl_func_init(&fun, "int", "type", (m_uint)pan2_get_type);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "type", (m_uint)pan2_set_type);
 		 dl_func_add_arg(&fun, "int", "type");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pan", (m_uint)pan2_get_pan);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pan", (m_uint)pan2_set_pan);
 		 dl_func_add_arg(&fun, "float", "pan");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_panst, env->global_nspc, panst_ctor, panst_dtor))
 	dl_func_init(&fun, "int", "type", (m_uint)panst_get_type);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "type", (m_uint)panst_set_type);
 		 dl_func_add_arg(&fun, "int", "type");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pan", (m_uint)panst_get_pan);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "pan", (m_uint)panst_set_pan);
 		 dl_func_add_arg(&fun, "float", "pan");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pareq, env->global_nspc, pareq_ctor, pareq_dtor))
 	dl_func_init(&fun, "float", "fc", (m_uint)pareq_get_fc);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fc", (m_uint)pareq_set_fc);
 		 dl_func_add_arg(&fun, "float", "fc");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "v", (m_uint)pareq_get_v);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "v", (m_uint)pareq_set_v);
 		 dl_func_add_arg(&fun, "float", "v");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "q", (m_uint)pareq_get_q);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "q", (m_uint)pareq_set_q);
 		 dl_func_add_arg(&fun, "float", "q");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)pareq_get_mode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)pareq_set_mode);
 		 dl_func_add_arg(&fun, "float", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_paulstretch, env->global_nspc, paulstretch_ctor, paulstretch_dtor))
@@ -9257,299 +9256,299 @@ m_bool import_soundpipe(Env env)
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "windowsize");
 		 dl_func_add_arg(&fun, "float", "stretch");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pdhalf, env->global_nspc, pdhalf_ctor, pdhalf_dtor))
 	dl_func_init(&fun, "float", "amount", (m_uint)pdhalf_get_amount);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amount", (m_uint)pdhalf_set_amount);
 		 dl_func_add_arg(&fun, "float", "amount");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_peaklim, env->global_nspc, peaklim_ctor, peaklim_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)peaklim_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)peaklim_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)peaklim_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)peaklim_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "thresh", (m_uint)peaklim_get_thresh);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "thresh", (m_uint)peaklim_set_thresh);
 		 dl_func_add_arg(&fun, "float", "thresh");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_phaser, env->global_nspc, phaser_ctor, phaser_dtor))
 	dl_func_init(&fun, "float", "MaxNotch1Freq", (m_uint)phaser_get_MaxNotch1Freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "MaxNotch1Freq", (m_uint)phaser_set_MaxNotch1Freq);
 		 dl_func_add_arg(&fun, "float", "MaxNotch1Freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "MinNotch1Freq", (m_uint)phaser_get_MinNotch1Freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "MinNotch1Freq", (m_uint)phaser_set_MinNotch1Freq);
 		 dl_func_add_arg(&fun, "float", "MinNotch1Freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "Notch_width", (m_uint)phaser_get_Notch_width);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "Notch_width", (m_uint)phaser_set_Notch_width);
 		 dl_func_add_arg(&fun, "float", "Notch_width");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "NotchFreq", (m_uint)phaser_get_NotchFreq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "NotchFreq", (m_uint)phaser_set_NotchFreq);
 		 dl_func_add_arg(&fun, "float", "NotchFreq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "VibratoMode", (m_uint)phaser_get_VibratoMode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "VibratoMode", (m_uint)phaser_set_VibratoMode);
 		 dl_func_add_arg(&fun, "float", "VibratoMode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "depth", (m_uint)phaser_get_depth);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "depth", (m_uint)phaser_set_depth);
 		 dl_func_add_arg(&fun, "float", "depth");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback_gain", (m_uint)phaser_get_feedback_gain);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback_gain", (m_uint)phaser_set_feedback_gain);
 		 dl_func_add_arg(&fun, "float", "feedback_gain");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "invert", (m_uint)phaser_get_invert);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "invert", (m_uint)phaser_set_invert);
 		 dl_func_add_arg(&fun, "float", "invert");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "level", (m_uint)phaser_get_level);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "level", (m_uint)phaser_set_level);
 		 dl_func_add_arg(&fun, "float", "level");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lfobpm", (m_uint)phaser_get_lfobpm);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lfobpm", (m_uint)phaser_set_lfobpm);
 		 dl_func_add_arg(&fun, "float", "lfobpm");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_phasor, env->global_nspc, phasor_ctor, phasor_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)phasor_init);
 		 dl_func_add_arg(&fun, "float", "iphs");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)phasor_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)phasor_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pinknoise, env->global_nspc, pinknoise_ctor, pinknoise_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)pinknoise_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)pinknoise_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pitchamdf, env->global_nspc, pitchamdf_ctor, pitchamdf_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)pitchamdf_init);
 		 dl_func_add_arg(&fun, "float", "min");
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pluck, env->global_nspc, pluck_ctor, pluck_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)pluck_init);
 		 dl_func_add_arg(&fun, "float", "ifreq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)pluck_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)pluck_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)pluck_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)pluck_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_port, env->global_nspc, port_ctor, port_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)port_init);
 		 dl_func_add_arg(&fun, "float", "htime");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_posc3, env->global_nspc, posc3_ctor, posc3_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)posc3_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)posc3_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)posc3_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)posc3_get_amp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "amp", (m_uint)posc3_set_amp);
 		 dl_func_add_arg(&fun, "float", "amp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_progress, env->global_nspc, progress_ctor, progress_dtor))
 	dl_func_init(&fun, "int", "nbars", (m_uint)progress_get_nbars);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "nbars", (m_uint)progress_set_nbars);
 		 dl_func_add_arg(&fun, "int", "nbars");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "skip", (m_uint)progress_get_skip);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "skip", (m_uint)progress_set_skip);
 		 dl_func_add_arg(&fun, "int", "skip");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_prop, env->global_nspc, prop_ctor, prop_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)prop_init);
 		 dl_func_add_arg(&fun, "string", "str");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bpm", (m_uint)prop_get_bpm);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bpm", (m_uint)prop_set_bpm);
 		 dl_func_add_arg(&fun, "float", "bpm");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_pshift, env->global_nspc, pshift_ctor, pshift_dtor))
 	dl_func_init(&fun, "float", "shift", (m_uint)pshift_get_shift);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "shift", (m_uint)pshift_set_shift);
 		 dl_func_add_arg(&fun, "float", "shift");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "window", (m_uint)pshift_get_window);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "window", (m_uint)pshift_set_window);
 		 dl_func_add_arg(&fun, "float", "window");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "xfade", (m_uint)pshift_get_xfade);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "xfade", (m_uint)pshift_set_xfade);
 		 dl_func_add_arg(&fun, "float", "xfade");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_ptrack, env->global_nspc, ptrack_ctor, ptrack_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)ptrack_init);
 		 dl_func_add_arg(&fun, "int", "ihopsize");
 		 dl_func_add_arg(&fun, "int", "ipeaks");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_randh, env->global_nspc, randh_ctor, randh_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)randh_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)randh_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)randh_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)randh_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)randh_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)randh_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_randi, env->global_nspc, randi_ctor, randi_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)randi_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)randi_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)randi_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)randi_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cps", (m_uint)randi_get_cps);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cps", (m_uint)randi_set_cps);
 		 dl_func_add_arg(&fun, "float", "cps");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)randi_get_mode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mode", (m_uint)randi_set_mode);
 		 dl_func_add_arg(&fun, "float", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_random, env->global_nspc, random_ctor, random_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)random_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)random_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)random_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)random_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_reson, env->global_nspc, reson_ctor, reson_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)reson_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)reson_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)reson_get_bw);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bw", (m_uint)reson_set_bw);
 		 dl_func_add_arg(&fun, "float", "bw");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_reverse, env->global_nspc, reverse_ctor, reverse_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)reverse_init);
 		 dl_func_add_arg(&fun, "float", "delay");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_revsc, env->global_nspc, revsc_ctor, revsc_dtor))
 	dl_func_init(&fun, "float", "feedback", (m_uint)revsc_get_feedback);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback", (m_uint)revsc_set_feedback);
 		 dl_func_add_arg(&fun, "float", "feedback");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lpfreq", (m_uint)revsc_get_lpfreq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lpfreq", (m_uint)revsc_set_lpfreq);
 		 dl_func_add_arg(&fun, "float", "lpfreq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, rms_dtor))
 	dl_func_init(&fun, "float", "ihp", (m_uint)rms_get_ihp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "ihp", (m_uint)rms_set_ihp);
 		 dl_func_add_arg(&fun, "float", "ihp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_rpt, env->global_nspc, rpt_ctor, rpt_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)rpt_init);
 		 dl_func_add_arg(&fun, "float", "maxdur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
@@ -9557,88 +9556,88 @@ m_bool import_soundpipe(Env env)
 
 	CHECK_OB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
 	dl_func_init(&fun, "float", "drive", (m_uint)saturator_get_drive);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "drive", (m_uint)saturator_set_drive);
 		 dl_func_add_arg(&fun, "float", "drive");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dcoffset", (m_uint)saturator_get_dcoffset);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dcoffset", (m_uint)saturator_set_dcoffset);
 		 dl_func_add_arg(&fun, "float", "dcoffset");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_scale, env->global_nspc, scale_ctor, scale_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)scale_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)scale_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)scale_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)scale_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_sdelay, env->global_nspc, sdelay_ctor, sdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)sdelay_init);
 		 dl_func_add_arg(&fun, "float", "size");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_slice, env->global_nspc, slice_ctor, slice_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)slice_init);
 		 dl_func_add_arg(&fun, "ftbl", "vals");
 		 dl_func_add_arg(&fun, "ftbl", "buf");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "id", (m_uint)slice_get_id);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "id", (m_uint)slice_set_id);
 		 dl_func_add_arg(&fun, "float", "id");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_smoothdelay, env->global_nspc, smoothdelay_ctor, smoothdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)smoothdelay_init);
 		 dl_func_add_arg(&fun, "float", "maxdel");
 		 dl_func_add_arg(&fun, "int", "interp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback", (m_uint)smoothdelay_get_feedback);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "feedback", (m_uint)smoothdelay_set_feedback);
 		 dl_func_add_arg(&fun, "float", "feedback");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "del", (m_uint)smoothdelay_get_del);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "del", (m_uint)smoothdelay_set_del);
 		 dl_func_add_arg(&fun, "float", "del");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_spa, env->global_nspc, spa_ctor, spa_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)spa_init);
 		 dl_func_add_arg(&fun, "string", "filename");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_sparec, env->global_nspc, sparec_ctor, sparec_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)sparec_init);
 		 dl_func_add_arg(&fun, "string", "filename");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_streson, env->global_nspc, streson_ctor, streson_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)streson_get_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "freq", (m_uint)streson_set_freq);
 		 dl_func_add_arg(&fun, "float", "freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fdbgain", (m_uint)streson_get_fdbgain);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fdbgain", (m_uint)streson_set_fdbgain);
 		 dl_func_add_arg(&fun, "float", "fdbgain");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_switch, env->global_nspc, switch_ctor, switch_dtor))
@@ -9648,157 +9647,157 @@ m_bool import_soundpipe(Env env)
 	dl_func_init(&fun, "void", "init", (m_uint)tabread_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "index", (m_uint)tabread_get_index);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "index", (m_uint)tabread_set_index);
 		 dl_func_add_arg(&fun, "float", "index");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "offset", (m_uint)tabread_get_offset);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "offset", (m_uint)tabread_set_offset);
 		 dl_func_add_arg(&fun, "float", "offset");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wrap", (m_uint)tabread_get_wrap);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "wrap", (m_uint)tabread_set_wrap);
 		 dl_func_add_arg(&fun, "float", "wrap");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tadsr, env->global_nspc, tadsr_ctor, tadsr_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tadsr_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)tadsr_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)tadsr_get_dec);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dec", (m_uint)tadsr_set_dec);
 		 dl_func_add_arg(&fun, "float", "dec");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "sus", (m_uint)tadsr_get_sus);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "sus", (m_uint)tadsr_set_sus);
 		 dl_func_add_arg(&fun, "float", "sus");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tadsr_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tadsr_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tblrec, env->global_nspc, tblrec_ctor, tblrec_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tblrec_init);
 		 dl_func_add_arg(&fun, "ftbl", "bar");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tbvcf, env->global_nspc, tbvcf_ctor, tbvcf_dtor))
 	dl_func_init(&fun, "float", "fco", (m_uint)tbvcf_get_fco);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "fco", (m_uint)tbvcf_set_fco);
 		 dl_func_add_arg(&fun, "float", "fco");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)tbvcf_get_res);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)tbvcf_set_res);
 		 dl_func_add_arg(&fun, "float", "res");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dist", (m_uint)tbvcf_get_dist);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dist", (m_uint)tbvcf_set_dist);
 		 dl_func_add_arg(&fun, "float", "dist");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "asym", (m_uint)tbvcf_get_asym);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "asym", (m_uint)tbvcf_set_asym);
 		 dl_func_add_arg(&fun, "float", "asym");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tdiv, env->global_nspc, tdiv_ctor, tdiv_dtor))
 	dl_func_init(&fun, "float", "num", (m_uint)tdiv_get_num);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "num", (m_uint)tdiv_set_num);
 		 dl_func_add_arg(&fun, "float", "num");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "offset", (m_uint)tdiv_get_offset);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "offset", (m_uint)tdiv_set_offset);
 		 dl_func_add_arg(&fun, "float", "offset");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tenv, env->global_nspc, tenv_ctor, tenv_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hold", (m_uint)tenv_get_hold);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hold", (m_uint)tenv_set_hold);
 		 dl_func_add_arg(&fun, "float", "hold");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenv_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenv_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tenv2, env->global_nspc, tenv2_ctor, tenv2_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv2_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv2_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenv2_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenv2_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tenvx, env->global_nspc, tenvx_ctor, tenvx_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenvx_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenvx_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hold", (m_uint)tenvx_get_hold);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hold", (m_uint)tenvx_set_hold);
 		 dl_func_add_arg(&fun, "float", "hold");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenvx_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)tenvx_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tgate, env->global_nspc, tgate_ctor, tgate_dtor))
 	dl_func_init(&fun, "float", "time", (m_uint)tgate_get_time);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "time", (m_uint)tgate_set_time);
 		 dl_func_add_arg(&fun, "float", "time");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_thresh, env->global_nspc, thresh_ctor, thresh_dtor))
 	dl_func_init(&fun, "float", "thresh", (m_uint)thresh_get_thresh);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "thresh", (m_uint)thresh_set_thresh);
 		 dl_func_add_arg(&fun, "float", "thresh");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "mode", (m_uint)thresh_get_mode);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "mode", (m_uint)thresh_set_mode);
 		 dl_func_add_arg(&fun, "int", "mode");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_timer, env->global_nspc, timer_ctor, timer_dtor))
@@ -9809,171 +9808,171 @@ m_bool import_soundpipe(Env env)
 
 	CHECK_OB(import_class_begin(env, &t_tone, env->global_nspc, tone_ctor, tone_dtor))
 	dl_func_init(&fun, "float", "hp", (m_uint)tone_get_hp);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hp", (m_uint)tone_set_hp);
 		 dl_func_add_arg(&fun, "float", "hp");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_trand, env->global_nspc, trand_ctor, trand_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)trand_get_min);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "min", (m_uint)trand_set_min);
 		 dl_func_add_arg(&fun, "float", "min");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)trand_get_max);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "max", (m_uint)trand_set_max);
 		 dl_func_add_arg(&fun, "float", "max");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tseg, env->global_nspc, tseg_ctor, tseg_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tseg_init);
 		 dl_func_add_arg(&fun, "float", "ibeg");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "end", (m_uint)tseg_get_end);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "end", (m_uint)tseg_set_end);
 		 dl_func_add_arg(&fun, "float", "end");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)tseg_get_dur);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "dur", (m_uint)tseg_set_dur);
 		 dl_func_add_arg(&fun, "float", "dur");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "type", (m_uint)tseg_get_type);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "type", (m_uint)tseg_set_type);
 		 dl_func_add_arg(&fun, "float", "type");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_tseq, env->global_nspc, tseq_ctor, tseq_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tseq_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "shuf", (m_uint)tseq_get_shuf);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "int", "shuf", (m_uint)tseq_set_shuf);
 		 dl_func_add_arg(&fun, "int", "shuf");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_vdelay, env->global_nspc, vdelay_ctor, vdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)vdelay_init);
 		 dl_func_add_arg(&fun, "float", "maxdel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "del", (m_uint)vdelay_get_del);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "del", (m_uint)vdelay_set_del);
 		 dl_func_add_arg(&fun, "float", "del");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_vocoder, env->global_nspc, vocoder_ctor, vocoder_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)vocoder_get_atk);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "atk", (m_uint)vocoder_set_atk);
 		 dl_func_add_arg(&fun, "float", "atk");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)vocoder_get_rel);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rel", (m_uint)vocoder_set_rel);
 		 dl_func_add_arg(&fun, "float", "rel");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bwratio", (m_uint)vocoder_get_bwratio);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "bwratio", (m_uint)vocoder_set_bwratio);
 		 dl_func_add_arg(&fun, "float", "bwratio");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_waveset, env->global_nspc, waveset_ctor, waveset_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)waveset_init);
 		 dl_func_add_arg(&fun, "float", "ilen");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rep", (m_uint)waveset_get_rep);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rep", (m_uint)waveset_set_rep);
 		 dl_func_add_arg(&fun, "float", "rep");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_wpkorg35, env->global_nspc, wpkorg35_ctor, wpkorg35_dtor))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)wpkorg35_get_cutoff);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)wpkorg35_set_cutoff);
 		 dl_func_add_arg(&fun, "float", "cutoff");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)wpkorg35_get_res);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "res", (m_uint)wpkorg35_set_res);
 		 dl_func_add_arg(&fun, "float", "res");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "saturation", (m_uint)wpkorg35_get_saturation);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "saturation", (m_uint)wpkorg35_set_saturation);
 		 dl_func_add_arg(&fun, "float", "saturation");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	CHECK_OB(import_class_begin(env, &t_zitarev, env->global_nspc, zitarev_ctor, zitarev_dtor))
 	dl_func_init(&fun, "float", "in_delay", (m_uint)zitarev_get_in_delay);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "in_delay", (m_uint)zitarev_set_in_delay);
 		 dl_func_add_arg(&fun, "float", "in_delay");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lf_x", (m_uint)zitarev_get_lf_x);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "lf_x", (m_uint)zitarev_set_lf_x);
 		 dl_func_add_arg(&fun, "float", "lf_x");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rt60_low", (m_uint)zitarev_get_rt60_low);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rt60_low", (m_uint)zitarev_set_rt60_low);
 		 dl_func_add_arg(&fun, "float", "rt60_low");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rt60_mid", (m_uint)zitarev_get_rt60_mid);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "rt60_mid", (m_uint)zitarev_set_rt60_mid);
 		 dl_func_add_arg(&fun, "float", "rt60_mid");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hf_damping", (m_uint)zitarev_get_hf_damping);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "hf_damping", (m_uint)zitarev_set_hf_damping);
 		 dl_func_add_arg(&fun, "float", "hf_damping");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq1_freq", (m_uint)zitarev_get_eq1_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq1_freq", (m_uint)zitarev_set_eq1_freq);
 		 dl_func_add_arg(&fun, "float", "eq1_freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq1_level", (m_uint)zitarev_get_eq1_level);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq1_level", (m_uint)zitarev_set_eq1_level);
 		 dl_func_add_arg(&fun, "float", "eq1_level");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq2_freq", (m_uint)zitarev_get_eq2_freq);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq2_freq", (m_uint)zitarev_set_eq2_freq);
 		 dl_func_add_arg(&fun, "float", "eq2_freq");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq2_level", (m_uint)zitarev_get_eq2_level);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "eq2_level", (m_uint)zitarev_set_eq2_level);
 		 dl_func_add_arg(&fun, "float", "eq2_level");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mix", (m_uint)zitarev_get_mix);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "mix", (m_uint)zitarev_set_mix);
 		 dl_func_add_arg(&fun, "float", "mix");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "level", (m_uint)zitarev_get_level);
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	dl_func_init(&fun, "float", "level", (m_uint)zitarev_set_level);
 		 dl_func_add_arg(&fun, "float", "level");
-	CHECK_OB((f = import_mfun(env, &fun)))
+	CHECK_OB(import_mfun(env, &fun))
 	CHECK_BB(import_class_end(env))
 
 	return 1;

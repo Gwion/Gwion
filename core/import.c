@@ -97,12 +97,12 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   return 1;
 }
 
-Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor dtor) {
+m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info) {
     err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
-    return NULL;
+    return -1;
   }
-  CHECK_BO(env_add_type(env, type))
+  CHECK_BB(env_add_type(env, type))
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
   if(pre_ctor)
@@ -122,10 +122,10 @@ Type import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor 
   env->curr = type->info;
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-  return type;
+  return type->xid;
 }
 
-m_bool import_class_end(Env env) {
+m_int import_class_end(Env env) {
   if(!env->class_def) {
     err_msg(TYPE_, 0, "import: too many class_end called...");
     return -1;
@@ -269,32 +269,32 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, m_bool is_static) {
 }
 
 #define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
-static Func import_fun(Env env, DL_Func * mfun, m_bool is_static) {
+static m_int import_fun(Env env, DL_Func * mfun, m_bool is_static) {
   Func_Def func_def;
-  CHECK_OO(mfun) // probably deserve an err msg
-  CHECK_BO(name_valid(mfun->name));
-  CHECK_EO(env->class_def)
+  CHECK_OB(mfun) // probably deserve an err msg
+  CHECK_BB(name_valid(mfun->name));
+  CHECK_EB(env->class_def)
   func_def = make_dll_as_fun(mfun, is_static);
   if(!func_def) {
     free_dl_func(mfun);
     scope_rem(&env->global_nspc->type, insert_symbol(env->class_def->name));
     REM_REF(env->class_def);
-    return NULL;
+    return -1;
   }
   if(scan1_func_def(env, func_def) < 0 ||
         scan2_func_def(env, func_def) < 0 ||
        !check_func_def(env, func_def)) {
     free_func_def(func_def);
-    return NULL;
+    return -1;
   }
-  return func_def->d.func;
+  return 1;
 }
 
 // those should be defines
-Func import_mfun(Env env, DL_Func * fun) {
+m_int import_mfun(Env env, DL_Func * fun) {
   return import_fun(env, fun, 0);
 }
-Func import_sfun(Env env, DL_Func * fun) {
+m_int import_sfun(Env env, DL_Func * fun) {
   return import_fun(env, fun, 1);
 }
 
@@ -307,7 +307,7 @@ Type get_type(Env env, m_str str) {
     return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
 }
 
-m_bool import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global) {
+m_int import_op(Env env, Operator op, m_str l, m_str r, m_str t, f_instr f, m_bool global) {
     Type lhs = l ? get_type(env, l) : NULL;
     Type rhs = r ? get_type(env, r) : NULL;
     Type ret = get_type(env, t);

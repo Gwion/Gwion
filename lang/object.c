@@ -246,7 +246,7 @@ INSTR(Vararg_Vec4) {
 }
 
 m_bool import_object(Env env) {
-  CHECK_OB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
+  CHECK_BB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
   CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_eq,  "Object", "Object", "int",  eq_Object, 1))
@@ -259,7 +259,7 @@ m_bool import_object(Env env) {
   CHECK_BB(import_class_end(env))
   CHECK_BB(env_add_type(env, &t_varobj))
   CHECK_BB(env_add_type(env, &t_varloop))
-  CHECK_OB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
   import_mvar(env, "@VarLoop",  "start", 1, 0);
   import_mvar(env, "@VarLoop",  "end",   1, 0);
   import_mvar(env, "int",       "i",     1, 0);

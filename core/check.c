@@ -152,7 +152,6 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   //  void* handler;
   vm->env = env;
   add_plugs(vm, plug_dirs);
-printf("env->urr->name %s %s\n", env->curr->name, env->context->nspc->name);
   nspc_commit(env->curr);
   return env;
 
