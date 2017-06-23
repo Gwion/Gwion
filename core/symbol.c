@@ -38,8 +38,8 @@ static void free_Symbol(S_Symbol s) {
 
 void free_Symbols() {
   int i;
-  for(i = 0; i < SIZE; i++) {
-    S_Symbol s = hashtable[i];
+  for(i = SIZE + 1; --i;) {
+    S_Symbol s = hashtable[i - 1];
     if(s)
       free_Symbol(s);
   }
