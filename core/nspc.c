@@ -107,7 +107,7 @@ else
 
   v = scope_get(&a->type);
   for(i =vector_size(v); i > 0; i--) {
-    Type type = (Type)vector_at(v, i-1);
+    Type type = (Type)vector_at(v, i - 1);
     REM_REF(type);
   }
   free_vector(v);

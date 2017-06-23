@@ -44,15 +44,15 @@ void env_reset(Env env) {
 void free_env(Env a) {
   m_uint i;
   free(a->global_context->tree);
-  for(i = 0; i < map_size(&a->known_ctx); i++) {
-    Context ctx = (Context)map_at(&a->known_ctx, i);
+  for(i = map_size(&a->known_ctx) + 1; --i;) {
+    Context ctx = (Context)map_at(&a->known_ctx, i - 1);
     REM_REF(ctx);
   }
   vector_release(&a->contexts);
   map_release(&a->known_ctx);
 
-  for(i = 0; i < vector_size(&a->nspc_stack); i++) {
-    Nspc  nspc = (Nspc)vector_pop(&a->nspc_stack);
+  for(i = vector_size(&a->nspc_stack) + 1; --i;) {
+    Nspc  nspc = (Nspc)vector_at(&a->nspc_stack, i - 1);
     REM_REF(nspc);
   }
   vector_release(&a->nspc_stack);
