@@ -34,9 +34,8 @@ int isa(Type var, Type parent) {
 }
 
 int isres(Env env, S_Symbol xid, int pos) {
-  if(!strcmp(s_name(xid), "this"))
-    goto error;
-  if(!strcmp(s_name(xid), "now"))
+  m_str s = s_name(xid);
+  if(!strcmp(s, "this") || !strcmp(s, "now") || name2op(s))
     goto error;
   return -1;
 error:
