@@ -40,18 +40,18 @@ typedef struct {
   Exp base;
   Type t_base;
   S_Symbol xid;
-  int pos;
   Exp self;
+  int pos;
 } Exp_Dot;
 
 struct Array_Sub_ {
   m_uint depth;
   Exp exp_list;
-  int pos;
   Exp self;
   Type type;
   int err_num;
   int err_pos;
+  int pos;
 };
 Array_Sub new_array_sub(Exp exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Exp exp, int pos);
@@ -59,15 +59,15 @@ Array_Sub prepend_array_sub(Array_Sub array, Exp exp, int pos);
 typedef struct {
   Exp base;
   Array_Sub indices;
-  int pos;
   Exp self;
+  int pos;
 } Array_Exp;
 
 typedef struct {
   Exp base;
   Array_Sub indices;
-  int pos;
   Exp self;
+  int pos;
 } Exp_Array;
 
 Exp new_array(Exp base, Array_Sub indices, int pos);
@@ -121,16 +121,16 @@ void free_type_list(Type_List a);
 typedef struct {
   Exp re;
   Exp im;
-  int pos;
   Exp self;
+  int pos;
 } Complex;
 Complex* new_complex(Exp re, int pos);
 
 typedef struct {
   Exp mod;
   Exp phase;
-  int pos;
   Exp self;
+  int pos;
 } Polar;
 Polar* new_polar(Exp mod, int pos);
 
@@ -138,8 +138,8 @@ typedef struct Vec_* Vec;
 struct Vec_ {
   Exp args;
   m_uint numdims;
-  m_uint pos;
   Exp self;
+  int pos;
 };
 Vec new_vec(Exp e, int pos);
 
@@ -167,10 +167,10 @@ typedef struct {
   Type_Decl* type;
   Type m_type;
   Var_Decl_List list;
+  Exp self;
   int pos;
   int num_decl;
   int is_static;
-  Exp self;
 } Exp_Decl;
 typedef struct {
   ae_Exp_Primary_Type type;
@@ -187,8 +187,8 @@ typedef struct {
     Polar* polar;
     Vec vec;
   } d;
-  int pos;
   Exp self;
+  int pos;
 } Exp_Primary;
 typedef struct {
   Exp func;
@@ -196,44 +196,44 @@ typedef struct {
   Type ret_type;
   Func m_func;
   VM_Code vm_code;
-  int pos;
   Exp self;
   Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
+  int pos;
 } Exp_Func;
 typedef struct {
   Type_Decl* type;
   Exp exp;
-  int pos;
   Exp self;
   Func func;
+  int pos;
 } Exp_Cast;
 typedef struct {
   Exp lhs, rhs;
   Operator op;
   Func func;
-  int pos;
   Exp self;
+  int pos;
 } Exp_Binary;
 typedef struct {
   Operator op;
-  int pos;
   Exp exp;
   Exp self;
+  int pos;
 } Exp_Postfix;
 typedef struct {
   Exp cond;
   Exp if_exp;
   Exp else_exp;
-  int pos;
   Exp self;
+  int pos;
 } Exp_If;
 typedef struct {
   Exp base;
   Exp unit;
-  int pos;
   Exp self;
+  int pos;
 } Exp_Dur;
 typedef struct {
   Operator op;
@@ -325,46 +325,46 @@ typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
 
 struct Stmt_Basic_ {
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Exp_ {
   Exp val;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Flow_ {
   int is_do;
   Exp cond;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Code_ {
   Stmt_List stmt_list;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_For_ {
   Stmt c1;
   Stmt c2;
   Exp c3;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Loop_ {
   Exp cond;
   Stmt body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_If_ {
   Exp cond;
   Stmt if_body;
   Stmt else_body;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Goto_Label_ {
   S_Symbol name;
@@ -372,22 +372,22 @@ struct Stmt_Goto_Label_ {
     struct Vector_ v;
     Instr instr;
   } data;
-  int pos;
   m_bool is_label;
   Stmt self;
+  int pos;
 };
 struct Stmt_Switch_ {
   Exp val;
   Stmt stmt;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
   struct Vector_ values;
-  int pos;
   Stmt self;
+  int pos;
 };
 struct Stmt_Ptr_ {
   Type_Decl* type;
@@ -398,16 +398,16 @@ struct Stmt_Ptr_ {
   Type       ret_type;
   Func       func;
   Value      value;
-  int        pos;
   Exp self;
+  int        pos;
 };
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
   m_uint s;
   m_uint o;
-  int pos;
   Stmt self;
+  int pos;
 };
 
 struct Stmt_ {
