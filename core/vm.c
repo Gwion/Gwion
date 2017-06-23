@@ -195,12 +195,12 @@ next:
   }
   udp_do(vm);
   for(i = vector_size(&vm->ugen) + 1; --i;) {
-    UGen u = (UGen)vector_at(&vm->ugen, i -1);
+    UGen u = (UGen)vector_at(&vm->ugen, i - 1);
     u->done = 0;
     if(u->channel) {
       m_uint j;
       for(j = u->n_chan; --j;)
-        u->channel[j-1]->ugen->done = 0;
+        u->channel[j - 1]->ugen->done = 0;
     }
   }
   ugen_compute(vm->blackhole->ugen);
