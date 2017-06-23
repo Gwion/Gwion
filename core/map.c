@@ -153,15 +153,15 @@ void map_set(Map map, vtype key, vtype ptr) {
 
 void map_remove(Map map, vtype key) {
   vtype i;
-  Map tmp = new_map();
+  struct Map_ tmp;
+  map_init(&tmp);
   for(i = 0; i < map->ptr[0]; i++)
     if(map->ptr[OFFSET + i*2] != key)
-      map_set(tmp, key, map->ptr[OFFSET + i*2+1]);
+      map_set(&tmp, key, map->ptr[OFFSET + i*2+1]);
   free(map->ptr);
-  map->ptr = tmp->ptr;
-  map->ptr[0] = tmp->ptr[0];
-  map->ptr[1] = tmp->ptr[1];
-  free(tmp);
+  map->ptr = tmp.ptr;
+  map->ptr[0] = tmp.ptr[0];
+  map->ptr[1] = tmp.ptr[1];
 }
 
 void map_commit(Map map, Map commit) {
