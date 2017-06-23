@@ -73,9 +73,9 @@ m_bool import_event(Env env) {
   o_event_shred = import_mvar(env, "int", "@shreds", 0, 0);
   CHECK_BB(o_event_shred);
   dl_func_init(&fun, "int", "signal", (m_uint)event_signal);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "int", "broadcast", (m_uint)event_broadcast);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   CHECK_BB(import_op(env, op_chuck, "Event", "@now", "int", Event_Wait, 1))
   CHECK_BB(import_class_end(env))
   return 1;

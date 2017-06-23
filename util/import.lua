@@ -353,7 +353,7 @@ for n in ipairs(a) do
 end
 print("")
 print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func fun;\n")
-print("\tCHECK_OB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
+print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
 print("\to_ftbl_data = import_mvar(env, \"int\", \"@ftbl\", 1, 0);")
 for n in ipairs(a) do
 	local gen_name = a[n]
@@ -368,7 +368,7 @@ for n in ipairs(a) do
 				i = i+1
 			end
 		end
-		print("\tCHECK_OB(import_mfun(env, &fun))")
+		print("\tCHECK_BB(import_fun(env, &fun, 0))")
 		-- make_doc("\tf", object)
 	end
 end
@@ -379,7 +379,7 @@ for n in ipairs(a) do
 	local mod_name = a[n]
 	local object = sptbl[mod_name]
 	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
-		print("\tCHECK_OB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
+		print("\tCHECK_BB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
 		local nmandatory = 0
 		local tbl = object.params.mandatory
 		if tbl then
@@ -395,7 +395,7 @@ for n in ipairs(a) do
 				declare_gw_param(v)
 				end
 			end	
-			print("\tCHECK_OB(import_mfun(env, &fun))")
+			print("\tCHECK_BB(import_fun(env, &fun, 0))")
 			-- make_doc("\tf", object)
 		end
 			local tbl = object.params.optional
@@ -412,7 +412,7 @@ for n in ipairs(a) do
 				elseif string.match(v.type, "sp_ftbl%s%*") then
 					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
-				print("\tCHECK_OB(import_mfun(env, &fun))")
+				print("\tCHECK_BB(import_fun(env, &fun, 0))")
 				-- make_doc("\tf", v)
 				if string.match(v.type, "int") then
 					print("\tdl_func_init(&fun, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
@@ -426,7 +426,7 @@ for n in ipairs(a) do
 					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				end
 				declare_gw_param(v)
-				print("\tCHECK_OB(import_mfun(env, &fun))")
+				print("\tCHECK_BB(import_fun(env, &fun, 0))")
 				-- make_doc("\tf", v)
 				end
 			end	

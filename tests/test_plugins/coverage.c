@@ -18,15 +18,15 @@ IMPORT
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_coverage, env->global_nspc, NULL, NULL))
   dl_func_init(&fun, "int", "i", (m_uint)coverage_int);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
   dl_func_init(&fun, "float", "f", (m_uint)coverage_float);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
   dl_func_init(&fun, "complex", "c", (m_uint)coverage_complex);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
   dl_func_init(&fun, "Vec3", "v", (m_uint)coverage_vec3);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
   dl_func_init(&fun, "Vec4", "w", (m_uint)coverage_vec4);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   m_uint* i = malloc(sizeof(m_uint));
   *i = 5;

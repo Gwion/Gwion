@@ -326,17 +326,17 @@ m_bool import_ugen(Env env) {
 
   dl_func_init(&fun, "UGen", "chan", (m_uint)ugen_channel);
   dl_func_add_arg(&fun, "int", "arg0");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "int", "op", (m_uint)ugen_get_op);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "int", "op", (m_uint)ugen_set_op);
   dl_func_add_arg(&fun, "int", "arg0");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "float", "last", (m_uint)ugen_get_last);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   CHECK_BB(import_op(env, op_chuck,   "UGen", "UGen", "UGen", ugen_connect, 1))
   CHECK_BB(import_op(env, op_unchuck, "UGen", "UGen", "UGen", ugen_disconnect, 1))

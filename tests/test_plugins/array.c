@@ -14,9 +14,9 @@ IMPORT
 
   import_mvar(env, "int[]", "int_array", 0,0); // import array var
   dl_func_init(&fun, "float[][]", "f", (m_uint)test_mfun);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float[][]", "g", (m_uint)test_mfun);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   CHECK_BB(import_class_end(env))
   return 1;

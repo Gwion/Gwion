@@ -131,20 +131,20 @@ m_bool import_machine(Env env) {
   CHECK_BB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
   dl_func_init(&fun, "void",  "add", (m_uint)machine_add);
   dl_func_add_arg(&fun,       "string",  "filename");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "int[]", "shreds", (m_uint)machine_shreds);
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "int",  "check", (m_uint)machine_check);
   dl_func_add_arg(&fun,      "string",  "prefix");
   dl_func_add_arg(&fun,      "string",  "code");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "void", "compile", (m_uint)machine_compile);
   dl_func_add_arg(&fun,      "string",  "prefix");
   dl_func_add_arg(&fun,      "string",  "filename");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   CHECK_BB(import_class_end(env))
   return 1;

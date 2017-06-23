@@ -13,8 +13,7 @@
 
 typedef m_bool(*Import_fun)(Env env, DL_Func* f);
 
-m_int import_mfun(Env env, DL_Func * fun);
-m_int import_sfun(Env env, DL_Func * fun);
+m_int import_fun(Env env, DL_Func * fun, ae_flag flag);
 
 m_int import_svar(Env env, const m_str type, const m_str name,
                   const m_bool is_const, const m_bool is_ref, m_uint* addr);

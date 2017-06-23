@@ -16,18 +16,18 @@ IMPORT
     dl_func_add_arg(&fun, "int", "j[]");
     dl_func_add_arg(&fun, "int[]", "k[]");
     dl_func_add_arg(&fun, "int", "l");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "int[]", "func", (m_uint)test_mfun);
     dl_func_add_arg(&fun, "int", "j[][]");
     dl_func_add_arg(&fun, "int[]", "+k[][][]");
     dl_func_add_arg(&fun, "int", "l");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "int[]", "func", (m_uint)test_mfun);
     dl_func_add_arg(&fun, "+int", "j[][]");
     dl_func_add_arg(&fun, "int[]", "+k[][][]");
-  CHECK_BB(import_sfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   CHECK_BB(import_class_end(env))
   return 1;

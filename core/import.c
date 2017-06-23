@@ -3,7 +3,6 @@
 #include "env.h"
 #include "func.h"
 #include "import.h"
-//#include "type.h"
 
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
@@ -235,16 +234,15 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   return arg_list;
 }
 
-static Func_Def make_dll_as_fun(DL_Func * dl_fun, const m_bool is_static) {
+static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   Func_Def func_def = NULL;
-  ae_flag func_decl = ae_flag_func;
-  ae_flag static_decl = is_static ? ae_flag_static : ae_flag_instance;
   ID_List type_path = NULL;
   Type_Decl* type_decl = NULL;
   m_str name = NULL;
   Arg_List arg_list = NULL;
   m_uint i, array_depth = 0;
 
+  flag |= ae_flag_func | ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0))) {
     err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name);
@@ -261,20 +259,19 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, const m_bool is_static) {
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
 
-  func_def = new_func_def(func_decl | static_decl, type_decl, name, arg_list, NULL, 0);
-  SET_FLAG(func_def, ae_flag_builtin);
+  func_def = new_func_def(flag, type_decl, name, arg_list, NULL, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   free_dl_func(dl_fun);
   return func_def;
 }
 
 #define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
-static m_int import_fun(Env env, DL_Func * mfun, const m_bool is_static) {
+m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   Func_Def func_def;
   CHECK_OB(mfun) // probably deserve an err msg
   CHECK_BB(name_valid(mfun->name));
   CHECK_EB(env->class_def)
-  func_def = make_dll_as_fun(mfun, is_static);
+  func_def = make_dll_as_fun(mfun, flag);
   if(!func_def) {
     free_dl_func(mfun);
     return -1;
@@ -286,14 +283,6 @@ static m_int import_fun(Env env, DL_Func * mfun, const m_bool is_static) {
     return -1;
   }
   return 1;
-}
-
-// those should be defines
-m_int import_mfun(Env env, DL_Func * fun) {
-  return import_fun(env, fun, 0);
-}
-m_int import_sfun(Env env, DL_Func * fun) {
-  return import_fun(env, fun, 1);
 }
 
 Type get_type(Env env, const m_str str) {

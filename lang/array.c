@@ -244,14 +244,14 @@ m_bool import_array(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
   dl_func_init(&fun, "int", "size", (m_uint)vm_vector_size);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "int", "depth", (m_uint)vm_vector_depth);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "int", "cap", (m_uint)vm_vector_cap);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "int", "remove", (m_uint)vm_vector_rem);
   dl_func_add_arg(&fun, "int", "index");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   CHECK_BB(import_class_end(env))
   return 1;
 }

@@ -279,36 +279,36 @@ m_bool import_vec3(Env env) {
     dl_func_add_arg(&fun, "float", "x");
     dl_func_add_arg(&fun, "float", "y");
     dl_func_add_arg(&fun, "float", "z");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "setAll", (m_uint)vec3_setAll);
   dl_func_add_arg(&fun, "float", "x");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "magnitude", (m_uint)vec3_magnitude);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "normalize", (m_uint)vec3_normalize);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "interp", (m_uint)vec3_interp);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "interp", (m_uint)vec3_float);
     dl_func_add_arg(&fun, "float", "delta");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "interp", (m_uint)vec3_dur);
     dl_func_add_arg(&fun, "dur", "delta");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "update", (m_uint)vec3_update);
     dl_func_add_arg(&fun, "float", "goal");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "update", (m_uint)vec3_update_slew);
     dl_func_add_arg(&fun, "float", "goal");
     dl_func_add_arg(&fun, "float", "slew");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "supdate", (m_uint)vec3_update_set);
     dl_func_add_arg(&fun, "float", "goalAndValue");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "supdate", (m_uint)vec3_update_set_slew);
     dl_func_add_arg(&fun, "float", "goalAndValue");
     dl_func_add_arg(&fun, "float", "slew");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
 
   CHECK_BB(import_op(env, op_plus,   "Vec3",   "Vec3", "Vec3",  vec3_add, 1))
   CHECK_BB(import_op(env, op_minus,  "Vec3",   "Vec3", "Vec3",  vec3_minus, 1))
@@ -482,14 +482,14 @@ m_bool import_vec4(Env env) {
     dl_func_add_arg(&fun, "float", "y");
     dl_func_add_arg(&fun, "float", "z");
     dl_func_add_arg(&fun, "float", "w");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "setAll", (m_uint)vec4_setAll);
     dl_func_add_arg(&fun, "float", "x");
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "magnitude", (m_uint)vec4_magnitude);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "void", "normalize", (m_uint)vec4_normalize);
-  CHECK_BB(import_mfun(env, &fun))
+  CHECK_BB(import_fun(env, &fun, 0))
   CHECK_BB(import_op(env, op_plus,   "Vec4",   "Vec4",  "Vec4",  vec4_add, 1))
   CHECK_BB(import_op(env, op_minus,  "Vec4",   "Vec4",  "Vec4",  vec4_minus, 1))
   CHECK_BB(import_op(env, op_times,  "Vec4",   "Vec4",  "Vec4",  vec4_xproduct, 1))
