@@ -222,8 +222,7 @@ void scope_add(Scope scope, S_Symbol xid, vtype value) {
 }
 
 void scope_commit(Scope scope) {
-  Map map = (Map)vector_front(&scope->vector);
-  map_commit(map, &scope->commit_map);
+  map_commit((Map)vector_front(&scope->vector), &scope->commit_map);
   map_clear(&scope->commit_map);
 }
 
