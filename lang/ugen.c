@@ -20,13 +20,12 @@ m_bool base_tick(UGen u) {
   for(i = 1; i < size; i++) {
     ugen = (UGen)vector_at(&u->ugen, i);
     switch(u->op) {
-      case 1: u->out += ugen->out; break;
-      case 2: u->out -= ugen->out; break;
-      case 3: u->out *= ugen->out; break;
-      case 4: u->out /= ugen->out; break;
+      case 1: u->in = (u->out += ugen->out); return 1;
+      case 2: u->in = (u->out -= ugen->out); return 1;
+      case 3: u->in = (u->out *= ugen->out); return 1;
+      case 4: u->in = (u->out /= ugen->out); return 1;
     }
   }
-  u->in = u->out;
   return 1;
 }
 
@@ -42,71 +41,43 @@ m_bool adc_tick(UGen u) {
   m_uint  i;
   m_float last = 0;
   BBQ sp = (BBQ)u->ug;
-  for(i = 0; i < u->n_out; i++) {
-    M_Object obj = u->channel[i];
-    obj->ugen->last = sp->in[i];
-    last += (obj->ugen->out = sp->in[i]);
+  for(i = u->n_out +1; --i;) {
+	m_uint j = i -1;
+    M_Object obj = u->channel[j];
+    obj->ugen->last = sp->in[j];
+    last += (obj->ugen->out = sp->in[j]);
   }
   u->last = last;
   return 1;
-}
-__inline void ref_compute(UGen u) {
-  u->tick(u);
-  u->done = 1;
 }
 
 void ugen_compute(UGen u) {
   m_uint  i;
   UGen ugen;
-  if(!u || u->done == 1)
+  if(u->done)
     return;
-  if(u->done == 2) {
-    u->out = u->last;
-    return;
-  }
-  u->last = u->out;
-  u->done = 2;
+  u->done = 1;
   if(u->channel)
     for(i = u->n_chan + 1; --i;)
       ugen_compute(u->channel[i-1]->ugen);
-  else {
-    for(i = vector_size(&u->ugen) + 1; --i;) {
-      ugen = (UGen)vector_at(&u->ugen, i - 1);
-      ugen_compute(ugen);
-    }
-  }
+  else for(i = vector_size(&u->ugen) + 1; --i;)
+      ugen_compute((UGen)vector_at(&u->ugen, i - 1));
   if(u->ref) {
     for(i = u->ref->n_chan + 1; --i;) {
       ugen = u->ref->channel[i -1]->ugen;
       ugen->tick(ugen);
-      ugen->done = 1;
     }
-    ref_compute(u->ref);
-    u->done = 1;
+    u->tick(u);
     return;
   }
   u->tick(u);
-  if(u->channel) {
-    m_float sum = 0;
-    for(i = u->n_chan + 1; --i;) {
-      M_Object obj = u->channel[i-1];
-      sum += obj->ugen->out;
-    }
-    u->last = sum / u->n_out;
-  } else
-    u->last = u->out;
-  u->done = 1;
+  u->last = u->out;
 }
 
 UGen new_UGen() {
   UGen u    = (UGen) calloc(1, sizeof(struct UGen_));
-  u->ugen.ptr   = NULL;
-  u->channel = NULL;
   vector_init(&u->to);
-  u->ug = NULL;
-  u->trig = NULL;
   u->tick = base_tick;
-  u->done = 0;
   u->op = 1;
   return u;
 }
@@ -123,12 +94,13 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
   if(u->n_chan > 1) {
     u->channel = calloc(u->n_chan, sizeof(M_Object));
     m_uint i;
-    for(i = 0; i < u->n_chan; i++) {
+    for(i = u->n_chan + 1; --i;) {
+      m_uint j = i -1;
       M_Object chan = new_M_UGen();
-      assign_ugen(chan->ugen, n_in > i, n_out > i, 0, NULL);
+      assign_ugen(chan->ugen, n_in > j, n_out > j, 0, NULL);
       chan->ugen->tick = base_tick;
       chan->ugen->ref = u;
-      u->channel[i] =  chan;
+      u->channel[j] =  chan;
     }
   } else
     vector_init(&u->ugen);
@@ -159,11 +131,12 @@ static INSTR(ugen_connect) {
   }
   if(rhs->ugen->n_in) {
     if(rhs->ugen->channel) {
-      for(i = 0; i < rhs->ugen->n_out; i++) {
-        M_Object obj = rhs->ugen->channel[i];
+      for(i = rhs->ugen->n_out + 1; --i;) {
+        m_uint j = i - 1;
+        M_Object obj = rhs->ugen->channel[j];
         if(lhs->ugen->n_out > 1) {
-          vector_add(&obj->ugen->ugen, (vtype)lhs->ugen->channel[i % lhs->ugen->n_out]->ugen);
-          vector_add(&lhs->ugen->channel[i%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+          vector_add(&obj->ugen->ugen, (vtype)lhs->ugen->channel[j % lhs->ugen->n_out]->ugen);
+          vector_add(&lhs->ugen->channel[j%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
         } else {
           vector_add(&obj->ugen->ugen, (vtype)lhs->ugen);
           vector_add(&lhs->ugen->to, (vtype)obj->ugen);
@@ -194,8 +167,8 @@ static INSTR(ugen_disconnect) {
   }
   if(rhs->ugen->n_in) {
     if(rhs->ugen->channel) {
-      for(i = 0; i < rhs->ugen->n_out; i++) {
-        M_Object obj = rhs->ugen->channel[i];
+      for(i = rhs->ugen->n_out + 1; --i;) {
+        M_Object obj = rhs->ugen->channel[i - 1];
         UGen ugen = obj->ugen;
         vector_rem(&ugen->ugen, vector_find(&ugen->ugen, (vtype)lhs->ugen));
         vector_rem(&lhs->ugen->to, vector_find(&lhs->ugen->to, (vtype)ugen));
@@ -264,8 +237,8 @@ static DTOR(ugen_dtor) {
   m_int j = vector_find(&shred->vm_ref->ugen, (vtype)ug);
   if(j > -1)
     vector_rem(&shred->vm_ref->ugen, j);
-  for(i = 0; i < vector_size(&ug->to); i++) {
-    UGen u = (UGen)vector_at(&ug->to, i);
+  for(i = vector_size(&ug->to) + 1; --i;) {
+    UGen u = (UGen)vector_at(&ug->to, i - 1);
     if(u->ugen.ptr) {
       m_int index = vector_find(&u->ugen, (vtype)ug);
       if(index > -1)
@@ -274,16 +247,16 @@ static DTOR(ugen_dtor) {
   }
 
   if(ug->ugen.ptr) {
-    for(i = 0; i < vector_size(&ug->ugen); i++) {
-      UGen u = (UGen)vector_at(&ug->ugen, i);
+    for(i = vector_size(&ug->ugen) + 1; --i;) {
+      UGen u = (UGen)vector_at(&ug->ugen, i - 1);
       m_int index = vector_find(&u->to, (vtype)ug);
       if(index > -1)
         vector_rem(&u->to, index);
     }
     vector_release(&ug->ugen);
   } else {
-    for(i = 0; i < ug->n_chan; i++)
-      release(ug->channel[i], shred);
+    for(i = ug->n_chan + 1; --i;)
+      release(ug->channel[i - 1], shred);
     free(ug->channel);
   }
   if(ug->trig)
