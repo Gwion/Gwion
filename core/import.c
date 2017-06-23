@@ -277,8 +277,6 @@ static m_int import_fun(Env env, DL_Func * mfun, const m_bool is_static) {
   func_def = make_dll_as_fun(mfun, is_static);
   if(!func_def) {
     free_dl_func(mfun);
-    scope_rem(&env->global_nspc->type, insert_symbol(env->class_def->name));
-    REM_REF(env->class_def);
     return -1;
   }
   if(scan1_func_def(env, func_def) < 0 ||

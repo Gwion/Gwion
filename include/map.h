@@ -45,7 +45,6 @@ extern void   scope_init(Scope v);
 extern Vector scope_get(Scope a);
 extern vtype  scope_lookup(Scope scope, S_Symbol xid, m_bool climb);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
-extern void   scope_rem(Scope scope, S_Symbol xid);
 extern void   scope_commit(Scope scope);
 //extern void   scope_rollback(Scope scope, void (*_free)(vtype arg));
 extern void   scope_push(Scope scope);

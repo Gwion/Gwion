@@ -221,16 +221,6 @@ void scope_add(Scope scope, S_Symbol xid, vtype value) {
   	map_set(&scope->commit_map, (vtype)xid, (vtype)value);
 }
 
-void scope_rem(Scope scope, S_Symbol xid) {
-//  Map map;
-// to know how to reach those
-//  if(vector_front(&scope->vector) != vector_back(&scope->vector))
-//    map = (Map)vector_back(&scope->vector);
-//  else
-//  map = scope->commit_map;
-  map_remove(&scope->commit_map, (vtype)xid);
-}
-
 void scope_commit(Scope scope) {
   Map map = (Map)vector_front(&scope->vector);
   map_commit(map, &scope->commit_map);

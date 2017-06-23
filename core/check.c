@@ -1699,10 +1699,8 @@ m_bool ret = 1;
 
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
-  if(vararg) {
+  if(vararg)
     REM_REF(vararg);
-//    scope_rem(&env->curr->value, insert_symbol("vararg"));
-  }
   nspc_pop_value(env->curr);
   env->func = NULL;
   return ret;
