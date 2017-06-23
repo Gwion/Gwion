@@ -12,15 +12,12 @@ m_uint num_digit(m_uint i) {
 
 int verify_array(Array_Sub array) {
   if(array->err_num) {
-    if(array->err_num == 1) {
-      err_msg(UTIL_, array->pos,
-              "invalid format for array init [...][...]...");
-      return -1;
-    } else if(array->err_num == 2) {
-      err_msg(UTIL_, array->pos,
-              "partially empty array init [...][]...");
-      return -1;
-    }
+    if(array->err_num == 1)
+      CHECK_BB(err_msg(UTIL_, array->pos,
+              "invalid format for array init [...][...]..."))
+    else if(array->err_num == 2)
+      CHECK_BB(err_msg(UTIL_, array->pos,
+              "partially empty array init [...][]..."))
   }
   return 1;
 }
@@ -35,7 +32,7 @@ int isa(Type var, Type parent) {
 
 int isres(Env env, S_Symbol xid, int pos) {
   m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "now") || name2op(s))
+  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s))
     goto error;
   return -1;
 error:
@@ -85,13 +82,9 @@ Type type = nspc_lookup_type(env->curr, path->xid, 1);
 
 m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
   Value v = new_value(type, name);
-  if(!v)
-    return -1;
-  if(is_const)
-    SET_FLAG(v, ae_flag_const);
-  SET_FLAG(v, ae_flag_checked | ae_flag_global | ae_flag_builtin);
-  if(data)
-    v->ptr = data;
+  ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
+  v->flag = flag;
+  v->ptr = data;
   v->owner = env->global_nspc;
   nspc_add_value(env->global_nspc, insert_symbol(name), v);
   return 1;
@@ -104,10 +97,8 @@ m_bool name_valid(m_str a) {
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
         || (c == '_') || (c >= '0' && c <= '9'))
       continue;
-    else {
-      err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", a, a);
-      return -1;
-    }
+    else
+      CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", a, a))
   }
   return 1;
 }
@@ -178,32 +169,20 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
 m_int str2char(const m_str c, m_int linepos) {
   if(c[0] == '\\') {
     switch(c[1]) {
-    case '0':
-      return '\0';
-    case '\'':
-      return '\'';
-    case '\\':
-      return '\\';
-    case 'a':
-      return '\a';
-    case 'b':
-      return '\b';
-    case 'f':
-      return '\f';
-    case 'n':
-      return '\n';
-    case 'r':
-      return '\r';
-    case 't':
-      return '\t';
-    case 'v':
-      return 'v';
-
+    case '0':  return '\0';
+    case '\'': return '\'';
+    case '\\': return '\\';
+    case 'a':  return '\a';
+    case 'b':  return '\b';
+    case 'f':  return '\f';
+    case 'n':  return '\n';
+    case 'r':  return '\r';
+    case 't':  return '\t';
+    case 'v':  return 'v';
     default:
       err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
       return -1;
     }
-  } else {
+  } else
     return c[0];
-  }
 }
