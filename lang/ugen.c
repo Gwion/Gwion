@@ -75,7 +75,7 @@ void ugen_compute(UGen u) {
 }
 
 UGen new_UGen() {
-  UGen u    = (UGen) calloc(1, sizeof(struct UGen_));
+  UGen u = (UGen) calloc(1, sizeof(struct UGen_));
   vector_init(&u->to);
   u->tick = base_tick;
   u->op = 1;
@@ -92,7 +92,7 @@ M_Object new_M_UGen() {
 m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
   u->n_chan = n_in > n_out ? n_in : n_out;
   if(u->n_chan > 1) {
-    u->channel = calloc(u->n_chan, sizeof(M_Object));
+    u->channel = malloc(u->n_chan * sizeof(M_Object));
     m_uint i;
     for(i = u->n_chan + 1; --i;) {
       m_uint j = i -1;
