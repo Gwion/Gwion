@@ -622,8 +622,9 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   m_bool is_ptr = 0;
   Instr code, offset, call;
   if(!func->code) { // function pointer or template
-    Func f = isa(func->value_ref->m_type, &t_func_ptr) > 0 ?
-      nspc_lookup_func(func->value_ref->owner, insert_symbol(func->name), 1) :
+    Func f = isa(func->value_ref->m_type, &t_func_ptr) > 0 ||
+             isa(func->value_ref->m_type, &t_class) > 0 ?
+      nspc_lookup_func(func->value_ref->owner, func->def->name, 1) :
       nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
 
     if(!f) { //template with no list

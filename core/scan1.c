@@ -203,22 +203,13 @@ static m_bool scan1_stmt_return(Env env, Stmt_Return stmt) {
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
-static m_bool scan1_stmt_while(Env env, Stmt_While stmt) {
+static m_bool scan1_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
 #ifdef DEBUG_SCAN1
-  debug_msg("scan1", "while");
+  debug_msg("scan1", "flow");
 #endif
   CHECK_BB(scan1_exp(env, stmt->cond))
-    CHECK_BB(scan1_stmt(env, stmt->body))
-    return 1;
-}
-
-static m_bool scan1_stmt_until(Env env, Stmt_Until stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "until");
-#endif
-  CHECK_BB(scan1_exp(env, stmt->cond))
-    CHECK_BB(scan1_stmt(env, stmt->body))
-    return 1;
+  CHECK_BB(scan1_stmt(env, stmt->body))
+  return 1;
 }
 
 static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
@@ -399,13 +390,13 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
       NSPC(ret = scan1_stmt_if(env, &stmt->d.stmt_if))
         break;
     case ae_stmt_while:
-      NSPC(ret = scan1_stmt_while(env, &stmt->d.stmt_while))
+      NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_while))
         break;
     case ae_stmt_for:
       NSPC(ret = scan1_stmt_for(env, &stmt->d.stmt_for))
         break;
     case ae_stmt_until:
-      NSPC(ret = scan1_stmt_until(env, &stmt->d.stmt_until))
+      NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_until))
         break;
     case ae_stmt_loop:
       NSPC(ret = scan1_stmt_loop(env, &stmt->d.stmt_loop))

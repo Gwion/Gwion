@@ -61,59 +61,85 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   return 1;
 }
 
+static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
+  m_uint ret = 1;
+  m_uint count = 1;
+  nspc_push_value(env->curr);
+  while(list) {
+    Value v;
+    if(list->var_decl->value) {
+      if(list->var_decl->value->m_type->array_depth)
+        REM_REF(list->var_decl->value->m_type->d.array_type)
+      REM_REF(list->var_decl->value->m_type)
+      list->var_decl->value->m_type = list->type;
+    }
+    if(!list->type->size) {
+      ret = err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
+      goto error;
+    }
+    if(isres(env, list->var_decl->xid, list->pos) > 0) {
+      ret = -1;
+      goto error;
+    }
+    if((isprim(list->type) > 0) && list->type_decl->ref) {
+      ret = err_msg(SCAN2_, list->type_decl->pos,
+              "cannot declare references (@) of primitive type '%s'...\n"
+              "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name);
+      goto error;
+    }
+    if(list->var_decl->array) {
+      CHECK_BB(verify_array(list->var_decl->array))
+      Type t = list->type;
+      Type t2 = t;
+      if(list->var_decl->array->exp_list) {
+        ret = err_msg(SCAN2_, list->pos,
+                "\targument #%i '%s' must be defined with empty []'s",
+                count, s_name(list->var_decl->xid));
+        goto error;
+      }
+      t = new_array_type(env, list->var_decl->array->depth, t2, env->curr);
+      list->type_decl->ref = 1;
+      list->type = t;
+    }
+
+    v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
+    v->owner = env->curr;
+    SET_FLAG(v, ae_flag_arg);
+    if(f) {
+      v->offset = f->stack_depth;
+      f->stack_depth += list->type->size;
+    }
+    nspc_add_value(env->curr, list->var_decl->xid, v);
+    list->var_decl->value = v;
+    count++;
+    list = list->next;
+  }
+error:
+  nspc_pop_value(env->curr);
+  return ret;
+}
+
+static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
+  v->owner = env->curr;
+  v->owner_class = env->class_def;
+  if(GET_FLAG(f, ae_flag_member))
+    SET_FLAG(v, ae_flag_member);
+  if(!env->class_def)
+    SET_FLAG(v, ae_flag_global);
+  v->func_ref = f;
+  f->value_ref = v;
+  d->d.func = f;
+  return v;
+}
+
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Func Ptr");
 #endif
-  m_uint count = 1;
-  Arg_List arg_list = ptr->args;
-  Value v;
-
   if(nspc_lookup_func(env->curr, ptr->xid, -1))
     CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", s_name(ptr->xid)))
-  nspc_push_value(env->curr);
-  while(arg_list) {
-    if(arg_list->type->size == 0) {
-      err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      goto error;
-    }
-    if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
-      err_msg(SCAN2_, arg_list->pos, "in function '%s'", s_name(ptr->xid));
-      goto error;
-    }
-    if((isprim(arg_list->type) > 0) && arg_list->type_decl->ref) {
-      err_msg(SCAN2_, arg_list->type_decl->pos,
-              "cannot declare references (@) of primitive type '%s'...",
-              arg_list->type->name);
-      err_msg(SCAN2_, arg_list->type_decl->pos,
-              "...(primitive types: 'int', 'float', 'time', 'dur')");
-      goto error;
-    }
-    if(arg_list->var_decl->array) {
-      CHECK_BB(verify_array(arg_list->var_decl->array))
-      Type t = arg_list->type;
-      Type t2 = t;
-      if(arg_list->var_decl->array->exp_list) {
-        err_msg(SCAN2_, arg_list->pos, "in function '%s':", s_name(ptr->xid));
-        err_msg(SCAN2_, arg_list->pos, "argument #%i '%s' must be defined with empty []'s",
-                count, s_name(arg_list->var_decl->xid));
-        goto error;
-      }
-      t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
-      arg_list->type_decl->ref = 1;
-      arg_list->type = t;
-    }
-
-    v = new_value(arg_list->type, s_name(arg_list->var_decl->xid));
-    v->owner = env->curr;
-    SET_FLAG(v, ae_flag_arg);
-    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
-    arg_list->var_decl->value = v;
-    count++;
-    arg_list = arg_list->next;
-  }
-  nspc_pop_value(env->curr);
-
+  if(scan2_arg_def(env, NULL, ptr->args) < 0)
+    CHECK_BB(err_msg(SCAN2_, ptr->pos, "in typedef '%s'", s_name(ptr->xid)))
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
@@ -134,9 +160,6 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   if(!GET_FLAG(ptr, ae_flag_static))
     ADD_REF(ptr->func);
   return 1;
-error:
-  nspc_pop_value(env->curr);
-  return -1;
 }
 
 static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
@@ -359,15 +382,6 @@ static m_bool scan2_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return t;
 }
 
-static m_bool scan2_stmt_while(Env env, Stmt_While stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "While");
-#endif
-  CHECK_BB(scan2_exp(env, stmt->cond))
-  CHECK_BB(scan2_stmt(env, stmt->body))
-  return 1;
-}
-
 static m_bool scan2_stmt_if(Env env, Stmt_If stmt) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "If");
@@ -379,7 +393,7 @@ static m_bool scan2_stmt_if(Env env, Stmt_If stmt) {
   return 1;
 }
 
-static m_bool scan2_stmt_until(Env env, Stmt_Until stmt) {
+static m_bool scan2_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
 #ifdef DEBUG_SCAN2
   debug_msg("scan2", "Until");
 #endif
@@ -502,11 +516,11 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
     break;
 
   case ae_stmt_while:
-    NSPC(ret = scan2_stmt_while(env, &stmt->d.stmt_while))
+    NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_while))
     break;
 
   case ae_stmt_until:
-    NSPC(ret = scan2_stmt_until(env, &stmt->d.stmt_until))
+    NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_until))
     break;
 
   case ae_stmt_for:
@@ -563,13 +577,11 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   Type     type     = NULL;
   Value    value    = NULL;
   Func     func     = NULL;
-  Arg_List arg_list = NULL;
-  Value    v;
+
   Value overload = nspc_lookup_value(env->curr,  f->name, 0);
   m_str func_name = s_name(f->name);
   m_str orig_name = func_name;
   m_uint ret = 1;
-  m_uint count = 0;
   m_uint len = strlen(func_name) + num_digit(overload ? overload->func_num_overloads + 1 : 0) +
 	 strlen(env->curr->name) + 3 + (f->types ? 10 : 0);
 
@@ -590,15 +602,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     if(env->class_def && !GET_FLAG(f, ae_flag_static))
       SET_FLAG(func, ae_flag_member);
     value = new_value(&t_function, func_name);
-    value->owner = env->curr;
-    value->owner_class = env->class_def;
-    if(GET_FLAG(func, ae_flag_member))
-      SET_FLAG(value, ae_flag_member);
-    if(!env->class_def)
-      SET_FLAG(value, ae_flag_global);
-    value->func_ref = func;
-    func->value_ref = value;
-    f->d.func = func;
+    scan2_func_assign(env, f, func, value);
     ADD_REF(func);
     SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
     if(overload) {
@@ -633,20 +637,10 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   type->size = SZ_INT;
   type->d.func = func;
   value = new_value(type, func_name);
+  scan2_func_assign(env, f, func, value);
   SET_FLAG(value, ae_flag_const);
-  value->owner = env->curr;
-  value->owner_class = env->class_def;
-  if(GET_FLAG(func, ae_flag_member))
-    SET_FLAG(value, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin))
 	SET_FLAG(value, ae_flag_builtin);
-  if(!env->class_def)
-    SET_FLAG(value, ae_flag_global);
-  value->func_ref = func;
-//  ADD_REF(value->func_ref);
-  func->value_ref = value;
-  f->d.func = func;
-//  ADD_REF(f->func);
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -658,66 +652,10 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     return -1;
   }
 
-  arg_list = f->arg_list;
-  count = 1;
   f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
-  nspc_push_value(env->curr);
-
-  while(arg_list) {
-    if(arg_list->var_decl->value) {
-      if(arg_list->var_decl->value->m_type->array_depth)
-        REM_REF(arg_list->var_decl->value->m_type->d.array_type)
-      REM_REF(arg_list->var_decl->value->m_type)
-      arg_list->var_decl->value->m_type = arg_list->type;
-    }
-    if(!arg_list->type->size) {
-      nspc_pop_value(env->curr);
-      err_msg(SCAN2_, arg_list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      return -1;
-    }
-    if(isres(env, arg_list->var_decl->xid, arg_list->pos) > 0) {
-      nspc_pop_value(env->curr);
-      err_msg(SCAN2_,  arg_list->pos, "in function '%s'", s_name(f->name));
-      return -1;
-    }
-    if((isprim(arg_list->type) > 0)
-        && arg_list->type_decl->ref) {
-      err_msg(SCAN2_, arg_list->type_decl->pos, "cannot declare references (@) of primitive type '%s'...\n"
-        "\t...(primitive types: 'int', 'float', 'time', 'dur')", arg_list->type->name);
-      nspc_pop_value(env->curr);
-      return -1;
-    }
-
-    if(arg_list->var_decl->array) {
-      Type t = arg_list->type;
-      Type t2 = t;
-
-      CHECK_BB(verify_array(arg_list->var_decl->array))
-      if(arg_list->var_decl->array->exp_list) {
-        err_msg(SCAN2_, arg_list->pos, "in function '%s':\n\targument %i '%s' must be defined with empty []'s",
-                s_name(f->name), count, s_name(arg_list->var_decl->xid));
-        nspc_pop_value(env->curr);
-        return -1;
-      }
-      t = new_array_type(env, arg_list->var_decl->array->depth, t2, env->curr);
-      arg_list->type_decl->ref = 1;
-      arg_list->type = t;
-    }
-    v = arg_list->var_decl->value ? arg_list->var_decl->value : new_value(arg_list->type, s_name(arg_list->var_decl->xid));
-    v->owner = env->curr;
-    SET_FLAG(v, ae_flag_arg);
-    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
-    v->offset = f->stack_depth;
-    f->stack_depth += arg_list->type->size;
-
-    arg_list->var_decl->value = v;
-    count++;
-    arg_list = arg_list->next;
-  }
-
-  nspc_pop_value(env->curr);
-
+  if(scan2_arg_def(env, f, f->arg_list) < 0)
+    CHECK_BB(err_msg(SCAN2_, f->pos, "\t... in function '%s'\n", s_name(f->name)))
   if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->d.func, ae_flag_dtor);
   else if(GET_FLAG(f, ae_flag_variadic))
@@ -725,7 +663,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   else if(GET_FLAG(f, ae_flag_op)) {
     m_bool ret = name2op(strtok(s_name(f->name), "@"));
     if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
-//  nspc_add_func(env->curr, insert_symbol(func->name), value); // template. is it necessary ?
     CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
                            f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
     return 1;

@@ -458,8 +458,7 @@ INSTR(Gack) {
       fprintf(stdout, "(void)");
     else if(type->xid == t_function.xid)
       /*      fprintf(stdout, "%p %s", type, type->name, type->func ? type->func->name : "");*/
-      fprintf(stdout, "%s %p %p", type->name, (void*) * (Func*)REG(0),
-              (void*)(*(Func*)REG(0))->code);
+      fprintf(stdout, "%s %p", type->name, (void*) * (Func*)REG(0));
     else if(isa(type, &t_func_ptr) > 0)
       fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)REG(0));
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)REG(0),*/
@@ -1212,6 +1211,40 @@ error:
 }
 
 
+static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool emit_var) {
+  // take care of emit_addr (instr->m_val)
+  if(emit_var) {
+    if(kind == Kindof_Int)
+      *(m_uint**)REG(0) = i_vector_addr(a, i);
+    else if(kind == Kindof_Float)
+      *(m_float**)REG(0) = f_vector_addr(a, i);
+    else if(kind == Kindof_Complex)
+      *(m_complex**)REG(0) = c_vector_addr(a, i);
+    else if(kind == Kindof_Vec3)
+      *(m_vec3**)REG(0) = v3_vector_addr(a, i);
+    else if(kind == Kindof_Vec4)
+      *(m_vec4**)REG(0) = v4_vector_addr(a, i);
+    PUSH_REG(shred,  SZ_INT);
+  }
+  // take care of kind (instr->m_val2)
+  else if(kind == Kindof_Int) {
+    *(m_uint*)REG(0) = i_vector_at(a, i);
+    PUSH_REG(shred,  SZ_INT);
+  } else if(kind == Kindof_Float) {
+    *(m_float*)REG(0) = f_vector_at(a, i);
+    PUSH_REG(shred,  SZ_FLOAT);
+  } else if(kind == Kindof_Complex) {
+    *(m_complex*)REG(0) = c_vector_at(a, i);
+    PUSH_REG(shred,  SZ_COMPLEX);
+  } else if(kind == Kindof_Vec3) {
+    *(m_vec3*)REG(0) = v3_vector_at(a, i);
+    PUSH_REG(shred,  SZ_VEC3);
+  } else if(kind == Kindof_Vec4) {
+    *(m_vec4*)REG(0) = v4_vector_at(a, i);
+    PUSH_REG(shred,  SZ_VEC4);
+  }
+}
+
 INSTR(Instr_Array_Access) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "array access '%p'  (emit: %i) [%i] ", *(m_uint*)REG(-SZ_INT * 2), instr->m_val, instr->m_val2);
@@ -1225,37 +1258,7 @@ INSTR(Instr_Array_Access) {
   i = *(m_int*)REG(SZ_INT);
   if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
-  // take care of emit_addr (instr->m_val)
-  if(instr->m_val) {
-    if(instr->m_val2 == Kindof_Int)
-      *(m_uint**)REG(0) = i_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Float)
-      *(m_float**)REG(0) = f_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Complex)
-      *(m_complex**)REG(0) = c_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Vec3)
-      *(m_vec3**)REG(0) = v3_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Vec4)
-      *(m_vec4**)REG(0) = v4_vector_addr(obj->d.array, i);
-    PUSH_REG(shred,  SZ_INT);
-  }
-  // take care of kind (instr->m_val2)
-  else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)REG(0) = i_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_INT);
-  } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)REG(0) = f_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)REG(0) = c_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(instr->m_val2 == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = v3_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(instr->m_val2 == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = v4_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
+  array_push(shred, obj->d.array, i, instr->m_val2, instr->m_val);
   return;
 
 array_out_of_bound:
@@ -1287,38 +1290,7 @@ INSTR(Instr_Array_Access_Multi) {
   i = *(m_int*)REG(SZ_INT * (j + 1));
   if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
-  // take care of emit_addr (instr->ptr)
-  if(*(m_uint*)instr->ptr) {
-    if(instr->m_val2 == Kindof_Int)
-      *(m_uint**)REG(0) = i_vector_addr(obj->d.array, i);
-    if(instr->m_val2 == Kindof_Float)
-      *(m_float**)REG(0) = f_vector_addr(obj->d.array, i);
-    if(instr->m_val2 == Kindof_Complex)
-      *(m_complex**)REG(0) = c_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Vec3)
-      *(m_vec3**)REG(0) = v3_vector_addr(obj->d.array, i);
-    else if(instr->m_val2 == Kindof_Vec4)
-      *(m_vec4**)REG(0) = v4_vector_addr(obj->d.array, i);
-    PUSH_REG(shred,  SZ_INT);
-  }
-  // take care of kind (instr->m_val2)
-  else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)REG(0) = i_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_INT);
-  } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)REG(0) = f_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)REG(0) = c_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(instr->m_val2 == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = v3_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(instr->m_val2 == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = v4_vector_at(obj->d.array, i);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
-  return;
+  array_push(shred, obj->d.array, i, *(m_uint*)instr->ptr, instr->m_val2);
 
 array_out_of_bound:
   fprintf(stderr,

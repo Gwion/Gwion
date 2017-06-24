@@ -269,7 +269,7 @@ static MFUN(ugen_channel) {
   m_int i = *(m_int*)MEM(SZ_INT);
   if(!o->ugen->channel)
     RETURN->d.v_object = !i ? o : NULL;
-  else if(i < 0 || i >= o->ugen->n_out)
+  else if(i < 0 || i >= o->ugen->n_chan)
     RETURN->d.v_object = NULL;
   else
     RETURN->d.v_object = o->ugen->channel[i];

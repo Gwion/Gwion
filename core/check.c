@@ -706,9 +706,9 @@ next:
       while(e) {
         m_str path = type_path(e->type_decl->xid);
 #ifdef COLOR
-        fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, s_name(e->var_decl->xid));
+        fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
 #else
-        fprintf(stderr, " %s %s", e->type->name, s_name(e->var_decl->xid));
+        fprintf(stderr, " %s %s", path, s_name(e->var_decl->xid));
 #endif
         for(i = 0; i < e->type->array_depth; i++)
           fprintf(stderr, "[]");
@@ -840,6 +840,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     return rhs->type;
   if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
     return rhs->type;
+  if(isa(binary->rhs->type, &t_now) > 0 &&  isa(binary->lhs->type, &t_now) > 0 && binary->op == op_chuck)
+	CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign 'now' to 'now'"))
   if((t = get_return_type(env, op, lhs->type, rhs->type)))
     return t;
   m_uint i;

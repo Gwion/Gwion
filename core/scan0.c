@@ -25,9 +25,6 @@ static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan0_Stmt(Env env, Stmt stmt) {
-#ifdef DEBUG_SCAN0
-  debug_msg("scan1", "stmt");
-#endif
   if(!stmt)
     return 1;
   if(stmt->type == ae_stmt_funcptr)
@@ -36,9 +33,6 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
 }
 
 static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
-#ifdef DEBUG_SCAN0
-  debug_msg("scan1", "stmt list");
-#endif
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(scan0_Stmt(env, curr->stmt))
