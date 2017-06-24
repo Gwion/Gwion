@@ -1301,19 +1301,19 @@ static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return ret;
 }
 
+static m_bool check_flow(Env env, Exp exp, m_str s) {
+  switch(exp->type->xid) {
+    case te_int: case te_float: case te_dur: case te_time:
+     break;
+    default:
+      CHECK_BB(err_msg(TYPE_,  exp->pos,
+           "invalid type '%s' in %s condition", exp->type->name, s))
+  }
+  return 1;
+}
 static m_bool check_stmt_while(Env env, Stmt_While stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-    switch(stmt->cond->type->xid) {
-      case te_int:
-      case te_float:
-      case te_dur:
-      case te_time:
-        break;
-
-      default:
-        CHECK_BB(err_msg(TYPE_,  stmt->cond->pos,
-              "invalid type '%s' in while condition", stmt->cond->type->name))
-    }
+  CHECK_BB(check_flow(env, stmt->cond, "while"))
   vector_add(&env->breaks, (vtype)stmt->self);
   vector_add(&env->conts, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
@@ -1324,87 +1324,54 @@ static m_bool check_stmt_while(Env env, Stmt_While stmt) {
 
 static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-    switch(stmt->cond->type->xid) {
-      case te_int:
-      case te_float:
-      case te_dur:
-      case te_time:
-        break;
-
-      default:
-        CHECK_BB(err_msg(TYPE_,  stmt->cond->pos,
-              "invalid type '%s' in until condition", stmt->cond->type->name))
-    }
+  CHECK_BB(check_flow(env, stmt->cond, "until"))
   vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
+  vector_pop(&env->breaks);
+  return 1;
+}
+
+static m_bool check_breaks(Env env, Stmt a, Stmt b) {
+  vector_add(&env->breaks, (vtype)a);
+  CHECK_BB(check_stmt(env, b))
   vector_pop(&env->breaks);
   return 1;
 }
 
 static m_bool check_stmt_for(Env env, Stmt_For stmt) {
   CHECK_BB(check_stmt(env, stmt->c1))
-    CHECK_BB(check_stmt(env, stmt->c2))
-    if(!stmt->c2 || !stmt->c2->d.stmt_exp.val) {
-      CHECK_BB(err_msg(EMIT_, stmt->pos, "empty for loop condition...",
-            "...(note: explicitly use 'true' if it's the intent)",
-            "...(e.g., 'for(; true;){ /*...*/ }')"))
-    }
-  switch(stmt->c2->d.stmt_exp.val->type->xid) {
-    case te_int:
-    case te_float:
-    case te_dur:
-    case te_time:
-      break;
-
-    default:
-      CHECK_BB(err_msg(EMIT_,  stmt->c2->d.stmt_exp.pos,
-            "invalid type '%s' in for condition",
-            stmt->c2->d.stmt_exp.val->type->name))
+  CHECK_BB(check_stmt(env, stmt->c2))
+  if(!stmt->c2 || !stmt->c2->d.stmt_exp.val) {
+    CHECK_BB(err_msg(EMIT_, stmt->pos, "empty for loop condition...",
+         "...(note: explicitly use 'true' if it's the intent)",
+         "...(e.g., 'for(; true;){ /*...*/ }')"))
   }
-
+  CHECK_BB(check_flow(env, stmt->c2->d.stmt_exp.val, "for"))
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
-  vector_add(&env->breaks, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-  vector_pop(&env->breaks);
-  return 1;
+  return check_breaks(env, stmt->self, stmt->body);
 }
 
 static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
   Type type = check_exp(env, stmt->cond);
 
   CHECK_OB(type)
-    if(isa(type, &t_float) > 0)
-      stmt->cond->cast_to = &t_int;
-    else if(isa(type, &t_int) < 0) {
-      CHECK_BB(err_msg(TYPE_, stmt->pos,
-            "loop * conditional must be of type 'int'..."))
-    }
-  vector_add(&env->breaks, (vtype)stmt->self);
-  CHECK_BB(check_stmt(env, stmt->body))
-    vector_pop(&env->breaks);
-  return 1;
+  if(isa(type, &t_float) > 0)
+    stmt->cond->cast_to = &t_int;
+  else if(isa(type, &t_int) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->pos,
+         "loop * conditional must be of type 'int'..."))
+  return check_breaks(env, stmt->self, stmt->body);
 }
 
 static m_bool check_stmt_if(Env env, Stmt_If stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-    switch(stmt->cond->type->xid) {
-      case te_int:
-      case te_float:
-      case te_dur:
-      case te_time:
-        break;
-
-      default:
-        if(isa(stmt->cond->type, &t_object) > 0)
-          break;
-        CHECK_BB(err_msg(TYPE_, stmt->cond->pos,
-              "invalid type '%s' in if condition", stmt->cond->type->name))
-    }
+  if(isa(stmt->cond->type, &t_object) > 0)
+    CHECK_BB(check_flow(env, stmt->cond, "if"))
   CHECK_BB(check_stmt(env, stmt->if_body))
-    if(stmt->else_body)
-      CHECK_BB(check_stmt(env, stmt->else_body))
-        return 1;
+  if(stmt->else_body)
+    CHECK_BB(check_stmt(env, stmt->else_body))
+  return 1;
 }
 
 static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
@@ -1445,11 +1412,7 @@ static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
     CHECK_BB(err_msg(TYPE_, a->pos,
           "invalid type '%s' in switch expression. should be 'int'",
           t ? t->name : "unknown"))
-      vector_add(&env->breaks, (vtype)a->self);
-  if(check_stmt(env, a->stmt) < 0)
-    CHECK_BB(err_msg(TYPE_, a->val->pos, "\t... in switch statement"))
-      vector_pop(&env->breaks);
-  return 1;
+  return check_breaks(env, a->self, a->stmt);
 }
 
 static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
