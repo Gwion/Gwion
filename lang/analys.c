@@ -470,11 +470,11 @@ static DTOR(ana_dtor) {
 static m_bool import_ana(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_ana, env->global_nspc, ana_ctor, ana_dtor))
-  o_ana_ana = import_var(env, "int", "@_fft", 0, NULL);
+  o_ana_ana = import_var(env, "int", "@_fft", ae_flag_member, NULL);
   CHECK_BB(o_ana_ana)
   o_ana_fft = import_var(env, "FFT", "@fft",  ae_flag_ref, NULL);
   CHECK_BB(o_ana_fft)
-  o_ana_fn = import_var(env,  "int", "@fn",   0, NULL);
+  o_ana_fn = import_var(env,  "int", "@fn", ae_flag_member, NULL);
   CHECK_BB(o_ana_fn)
   dl_func_init(&fun, "float", "compute", (m_uint)ana_compute);
   CHECK_BB(import_fun(env, &fun, 0))
@@ -676,7 +676,7 @@ INSTR(fc_disconnect) {
 static m_bool import_fc(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_fc, env->global_nspc, fc_ctor, fc_dtor))
-  o_fc_vector = import_var(env, "int", "@vector", 0, NULL);
+  o_fc_vector = import_var(env, "int", "@vector", ae_flag_member, NULL);
   CHECK_BB(o_fc_vector)
   dl_func_init(&fun, "float[]", "compute", (m_uint)fc_compute);
   CHECK_BB(import_fun(env, &fun, 0))

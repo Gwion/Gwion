@@ -1181,7 +1181,7 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
           "type '%s' does not have members - invalid use in dot expression of %s",
           the_base->name, s_name(member->xid)))
 
-      str = s_name(member->xid);
+  str = s_name(member->xid);
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
           "keyword 'this' must be associated with object instance..."))

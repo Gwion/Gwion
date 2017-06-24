@@ -70,7 +70,7 @@ static MFUN(event_broadcast) {
 m_bool import_event(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_event, env->global_nspc, event_ctor, event_dtor))
-  o_event_shred = import_var(env, "int", "@shreds", 0, NULL);
+  o_event_shred = import_var(env, "int", "@shreds", ae_flag_member, NULL);
   CHECK_BB(o_event_shred);
   dl_func_init(&fun, "int", "signal", (m_uint)event_signal);
   CHECK_BB(import_fun(env, &fun, 0))

@@ -95,7 +95,7 @@ m_bool import_shred(Env env) {
 
   CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
 
-  o_shred_me = import_var(env, "int", "@me",   0, NULL);
+  o_shred_me = import_var(env, "int", "@me", ae_flag_member, NULL);
   CHECK_BB(o_shred_me)
 
   dl_func_init(&fun, "void", "exit", (m_uint)vm_shred_exit);
