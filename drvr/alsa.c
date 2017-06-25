@@ -96,6 +96,10 @@ static void alsa_run(VM* vm, DriverInfo* di) {
   snd_pcm_get_params(out, &di->bufsize, &di->bufnum);
   di->bufsize /= di->bufnum;
 
+  snd_pcm_hwsync(out);
+  snd_pcm_hwsync(in);
+  snd_pcm_start(out);
+  snd_pcm_start(in);
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
     in_buf  = calloc(sp->nchan, sizeof(SPFLOAT*));
     out_buf = calloc(sp->nchan, sizeof(SPFLOAT*));
@@ -109,10 +113,6 @@ static void alsa_run(VM* vm, DriverInfo* di) {
       _in_buf[chan]  = in_buf[chan];
     }
 
-    snd_pcm_hwsync(out);
-    snd_pcm_hwsync(in);
-    snd_pcm_start(out);
-    snd_pcm_start(in);
     while(vm->is_running) {
       snd_pcm_readn(in, _in_buf, di->bufsize);
       for(i = 0; i < di->bufsize; i++) {
@@ -129,10 +129,6 @@ static void alsa_run(VM* vm, DriverInfo* di) {
   } else { // interleaved
     in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
     out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
-    snd_pcm_hwsync(out);
-    snd_pcm_hwsync(in);
-    snd_pcm_start(out);
-    snd_pcm_start(in);
     while(vm->is_running) {
       int j = 0;
       int k = 0;

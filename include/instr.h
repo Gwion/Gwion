@@ -4,34 +4,10 @@
 #include "bbq.h"
 #include "lang.h"
 
-#ifdef DEBUG_STACK
-#define PUSH_MEM(a, b) \
-{\
-  a->mem_index += b; \
-  a->mem += b;\
-}
-#define POP_MEM(a, b) \
-{\
-  a->mem_index -= b; \
-  a->mem -= b;\
-}
-#define PUSH_REG(a, b) \
-{\
-  a->reg_index += b; \
-  a->reg += b;\
-}
-#define POP_REG(a, b) \
-{\
-  a->reg_index -= b; \
-  a->reg -= b;\
-}
-
-#else
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;
 #define POP_REG(a, b)  a->reg -= b;
-#endif
 
 #define MEM(a) (shred->mem + (a))
 #define REG(a) (shred->reg + (a))

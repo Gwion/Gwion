@@ -885,12 +885,16 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
                 "...(reason: --- rigth-side operand is not mutable)",
                 op2str(binary->op), cl->type->name, cr->type->name))
         }
+
+        if(cr->exp_type == ae_exp_decl)
+          cr->d.exp_decl.type->ref = 1;
+
         if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
           if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
             CHECK_BO(err_msg(TYPE_, binary->pos, "array types do not match."))
-              if(cl->type->array_depth != cr->type->array_depth)
-                CHECK_BO(err_msg(TYPE_, binary->pos, "array depths do not match."))
-                  cr->emit_var = 1;
+          if(cl->type->array_depth != cr->type->array_depth)
+            CHECK_BO(err_msg(TYPE_, binary->pos, "array depths do not match."))
+          cr->emit_var = 1;
           break;
         }
         if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {

@@ -1290,7 +1290,8 @@ INSTR(Instr_Array_Access_Multi) {
   i = *(m_int*)REG(SZ_INT * (j + 1));
   if(i < 0 || i >= m_vector_size(obj->d.array))
     goto array_out_of_bound;
-  array_push(shred, obj->d.array, i, *(m_uint*)instr->ptr, instr->m_val2);
+  array_push(shred, obj->d.array, i, instr->m_val2, *(m_uint*)instr->ptr);
+  return;
 
 array_out_of_bound:
   fprintf(stderr,

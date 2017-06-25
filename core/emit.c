@@ -782,32 +782,30 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
   return 1;
 }
 
+static Instr emit_flow(Emitter emit, Type type, f_instr f1, f_instr f2) {
+  switch(type->xid) {
+    case te_int:
+      sadd_instr(emit, Reg_Push_Imm);
+      return add_instr(emit, f1);
+    case te_float: case te_dur: case te_time:
+      sadd_instr(emit, Reg_Push_Imm2);
+      return add_instr(emit, f2);
+    default: break;
+  }
+  return NULL;
+}
+
 static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "expression if");
 #endif
   m_bool ret;
   Instr op = NULL, op2 = NULL;
-  f_instr fop = NULL;
   nspc_push_value(emit->env->curr);
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
-    switch(exp_if->cond->type->xid) {
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        fop = Branch_Eq_Int;
-        break;
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        fop = Branch_Eq_Float;
-        break;
-
-      default: break;
-    }
-  op = add_instr(emit, fop);
-  CHECK_OB((ret = emit_exp(emit, exp_if->if_exp, 0)))
-    op2 = add_instr(emit, Goto);
+  CHECK_OB((op = emit_flow(emit, exp_if->cond->type, Branch_Eq_Int, Branch_Eq_Float)))
+  CHECK_BB((ret = emit_exp(emit, exp_if->if_exp, 0)))
+  op2 = add_instr(emit, Goto);
   op->m_val = vector_size(&emit->code->code);
   ret = emit_exp(emit, exp_if->else_exp, 0);
   nspc_pop_value(emit->env->curr);
@@ -854,34 +852,11 @@ static m_bool emit_stmt_if(Emitter emit, Stmt_If stmt) {
   debug_msg("emit", "emit if");
 #endif
   Instr op = NULL, op2 = NULL;
-  f_instr f;
+
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-
-    switch(stmt->cond->type->xid) {
-
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        f = Branch_Eq_Int;
-        break;
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        f = Branch_Eq_Float;
-        break;
-
-      default:
-        if(isa(stmt->cond->type, &t_object) > 0) {
-          sadd_instr(emit, Reg_Push_Imm);
-          f = Branch_Eq_Int;
-          break;
-        }
-        err_msg(EMIT_, stmt->cond->pos, // LCOV_EXCL_START
-            "interal error: unhandled type '%s' in if condition", stmt->cond->type->name);
-        return -1;
-    }                                 // LCOV_EXCL_STOP
-  op = add_instr(emit, f);
+  CHECK_OB((op = emit_flow(emit, isa(stmt->cond->type, &t_object) > 0 ? &t_int : stmt->cond->type,
+      Branch_Eq_Int, Branch_Eq_Float)))
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
     emit_pop_scope(emit);
@@ -977,31 +952,15 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   m_bool ret = 1;
   m_uint index = vector_size(&emit->code->code);
   Instr op, goto_;
-  f_instr f = NULL;
 
   frame_push_scope(emit->code->frame);
   emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
+  CHECK_OB((op = emit_flow(emit, stmt->cond->type, Branch_Eq_Int, Branch_Eq_Float)))
 
-    switch(stmt->cond->type->xid) {
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        f = Branch_Eq_Int;
-        break;
-
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        f = Branch_Eq_Float;
-        break;
-
-      default: break;
-    }
-  op = add_instr(emit, f);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1)) // was '0' , then 'stmt->body->type == ae_stmt_code ? 0 : 1'
-    emit_pop_scope(emit);
+  emit_pop_scope(emit);
 
   goto_ = add_instr(emit, Goto);
   goto_->m_val = index;
@@ -1017,30 +976,15 @@ static m_bool emit_stmt_do_while(Emitter emit, Stmt_While stmt) {
   m_bool ret = 1;
   Instr op;
   m_uint index = vector_size(&emit->code->code);
-  f_instr f = NULL;
 
   frame_push_scope(emit->code->frame);
   emit_push_stack(emit);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-    emit_pop_scope(emit);
-
+  emit_pop_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-
-    switch(stmt->cond->type->xid) {
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        f = Branch_Neq_Int;
-        break;
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        f = Branch_Neq_Float;
-        break;
-      default: break;
-    }
-  op = add_instr(emit, f);
+  CHECK_OB((op = emit_flow(emit, stmt->cond->type,
+      Branch_Neq_Int, Branch_Neq_Float)))
   op->m_val = index;
   emit_pop_stack(emit, index);
   return ret;
@@ -1051,29 +995,14 @@ static m_bool emit_stmt_until(Emitter emit, Stmt_Until stmt) {
   debug_msg("emit", "until");
 #endif
   Instr op;
-  f_instr f = NULL;
+  m_uint index;
+
   frame_push_scope(emit->code->frame);
-
-  m_uint index = vector_size(&emit->code->code);
+  index = vector_size(&emit->code->code);
   emit_push_stack(emit);
-
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-
-    // condition
-    switch(stmt->cond->type->xid) {
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        f = Branch_Neq_Int;
-        break;
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        f = Branch_Neq_Float;
-        break;
-      default: break;
-    }
-  op = add_instr(emit, f);
+  CHECK_OB((op = emit_flow(emit, stmt->cond->type,
+      Branch_Neq_Int, Branch_Neq_Float)))
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
     emit_pop_scope(emit);
@@ -1090,31 +1019,17 @@ static m_bool emit_stmt_do_until(Emitter emit, Stmt_Until stmt) {
   debug_msg("emit", "do until");
 #endif
   Instr op;
-  f_instr f = NULL;
-  frame_push_scope(emit->code->frame);
+  m_uint index;
 
-  m_uint index = vector_size(&emit->code->code);
+  frame_push_scope(emit->code->frame);
+  index = vector_size(&emit->code->code);
   emit_push_stack(emit);
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-    emit_pop_scope(emit);
-
+  emit_pop_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-
-    switch(stmt->cond->type->xid) {
-      case te_int:
-        sadd_instr(emit, Reg_Push_Imm);
-        f = Branch_Eq_Int;
-        break;
-      case te_float:
-      case te_dur:
-      case te_time:
-        sadd_instr(emit, Reg_Push_Imm2);
-        f = Branch_Eq_Float;
-        break;
-      default: break;
-    }
-  op = add_instr(emit, f);
+  CHECK_OB((op = emit_flow(emit, stmt->cond->type,
+      Branch_Eq_Int, Branch_Eq_Float)))
   op->m_val = index;
   emit_pop_stack(emit, index);
   return 1;
@@ -1125,34 +1040,18 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   debug_msg("emit", "for");
 #endif
   Instr  op = NULL;
-  f_instr f = NULL;
+  m_uint index;
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
-
-    m_uint index = vector_size(&emit->code->code);
+  index = vector_size(&emit->code->code);
   emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c2, 0))
-    if(stmt->c2) {
-      switch(stmt->c2->d.stmt_exp.val->type->xid) {
-        case te_int:
-          sadd_instr(emit, Reg_Push_Imm);
-          f = Branch_Eq_Int;
-          break;
-        case te_float:
-        case te_dur:
-        case te_time:
-          sadd_instr(emit, Reg_Push_Imm2);
-          f = Branch_Eq_Float;
-          break;
-        default: break;
-      }
-      op = add_instr(emit, f);
-    }
-
+  CHECK_OB((op = emit_flow(emit, stmt->c2->d.stmt_exp.val->type,
+      Branch_Eq_Int, Branch_Eq_Float)))
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-    emit_pop_scope(emit);
+  emit_pop_scope(emit);
   m_uint action_index = vector_size(&emit->code->code);
   if(stmt->c3) {
     CHECK_BB(emit_exp(emit, stmt->c3, 0))
@@ -1260,7 +1159,7 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
-    emit_pop_scope(emit);
+  emit_pop_scope(emit);
   instr->m_val = emit->default_case_index > -1 ? emit->default_case_index : vector_size(&emit->code->code);
   emit->default_case_index = -1;
   while(vector_size(&emit->code->stack_break) && vector_back(&emit->code->stack_break)) {
