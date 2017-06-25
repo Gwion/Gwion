@@ -1705,12 +1705,8 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   the_class->parent = t_parent;
   the_class->info->offset = t_parent->obj_size;
   vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = the_class->info;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = the_class;
-  env->class_scope = 0;
 
+  CHECK_BB(env_push_class(env, the_class))
   while(body && ret > 0) {
     switch(body->section->type) {
       case ae_section_stmt:
@@ -1731,8 +1727,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     }
     body = body->next;
   }
-  env->class_def = (Type)vector_pop(&env->class_stack);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  CHECK_BB(env_pop_class(env))
 
   if(ret > 0) {
     the_class->obj_size = the_class->info->offset;

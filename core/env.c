@@ -81,3 +81,17 @@ m_bool env_add_type(Env env, Type type) {
   return 1;
 }
 
+m_bool env_push_class(Env env, Type type) {
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = type->info;
+  vector_add(&env->class_stack, (vtype)env->class_def);
+  env->class_def = type;
+  env->class_scope = 0;
+  return 1;
+}
+
+m_bool env_pop_class(Env env) {
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  return 1;
+}

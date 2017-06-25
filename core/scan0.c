@@ -73,12 +73,8 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
 
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = the_class->info;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = the_class;
-  env->class_scope = 0;
 
+  CHECK_BB(env_push_class(env, the_class))
   while(body && ret > 0) {
     switch(body->section->type) {
     case ae_section_stmt:
@@ -91,8 +87,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     }
     body = body->next;
   }
-  env->class_def = (Type)vector_pop(&env->class_stack);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  CHECK_BB(env_pop_class(env))
 
   if(ret) {
     Value value;
