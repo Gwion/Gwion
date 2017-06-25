@@ -1,4 +1,5 @@
 // [contains] template type number mismatch
+// [skip]
 template <{i}>
 function void test(){}
 function void test(int i){}

@@ -380,7 +380,7 @@ func_template
 
 func_def
   : func_template function_decl static_decl type_decl2 ID func_args code_segment
-    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->types = $1; }
+    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->types = $1; if($1) SET_FLAG($$, ae_flag_template);}
   | OPERATOR type_decl ID func_args code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner)); }
   | AST_DTOR LPAREN RPAREN code_segment

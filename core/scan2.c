@@ -592,7 +592,11 @@ m_bool scan2_func_def(Env env, Func_Def f) {
       CHECK_BB(err_msg(SCAN2_, f->pos, "function name '%s' is already used by another value", s_name(f->name)))
       else if(!overload->func_ref)
         CHECK_BB(err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name)) // LCOV_EXCL_LINE
-      }
+      if((!GET_FLAG(overload, ae_flag_template) && f->types) ||
+          (GET_FLAG(overload, ae_flag_template) && !f->types && !GET_FLAG(f, ae_flag_template)))
+
+      CHECK_BB(err_msg(SCAN2_, f->pos, "must override template function with template %p %p", f->types, f->d.func))
+  }
   memset(name, 0, len);
 
   if(f->types) {
