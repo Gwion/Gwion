@@ -80,13 +80,13 @@ void* server_thread(void* data) {
 
       for(i = 0; i < vector_size(&vm->shred); i++) {
         shred = (VM_Shred)vector_at(&vm->shred, i);
-        if(shred->xid == atoi(buf +2) -1)
+        if(shred->xid == atoi(buf + 2) - 1)
           vector_add(&rem, (vtype)shred);
       }
     } else if(strncmp(buf, "+", 1) == 0) {
       vector_add(&add, (vtype)strdup(buf + 2));
     } else if(strncmp(buf, "loop", 4) == 0) {
-      m_int i = atoi(buf+5);
+      m_int i = atoi(buf + 5);
       if(i <= 0)
         state = -1;
       else

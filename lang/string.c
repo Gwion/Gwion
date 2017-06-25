@@ -26,7 +26,7 @@ static INSTR(Int_String_Assign) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "int '=>' string");
 #endif
-  POP_REG(shred, SZ_INT*2);
+  POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs)
@@ -84,7 +84,7 @@ static INSTR(Polar_String_Assign) {
   if(!rhs)
     Except(shred, "NullStringException.");
   sprintf(str, "#(%f, %f)",  creal(lhs),
-      cimag(lhs) / M_PI);
+          cimag(lhs) / M_PI);
   STRING(rhs) = s_name(insert_symbol(str));
   *(M_Object*)REG(0) = (M_Object)rhs;
   PUSH_REG(shred, SZ_INT);
@@ -152,8 +152,8 @@ static INSTR(String_String) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
-  char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)): 0) + 1];
-  sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL , rhs ? STRING(rhs) : NULL);
+  char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)) : 0) + 1];
+  sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL, rhs ? STRING(rhs) : NULL);
   *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
@@ -168,8 +168,8 @@ static INSTR(Int_String) {
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[num_digit(lhs) + (rhs ? strlen(STRING(rhs)) : 0) + 1];
-  sprintf(str, "%li%s", lhs, rhs ? STRING(rhs): NULL);
-  *(M_Object*)REG(0) = new_String(shred,str);
+  sprintf(str, "%li%s", lhs, rhs ? STRING(rhs) : NULL);
+  *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -181,9 +181,9 @@ static INSTR(Float_String) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_FLOAT);
-  char str[num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)): 0) + 1];
+  char str[num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)) : 0) + 1];
   sprintf(str, "%.4f%s", lhs, rhs ? STRING(rhs) : NULL);
-  *(M_Object*)REG(0) = new_String(shred,str);
+  *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -197,7 +197,7 @@ static INSTR(Complex_String) {
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  12];
   sprintf(str, "#(%.4f, %.4f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : NULL);
-  *(M_Object*)REG(0) = new_String(shred,str);
+  *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -211,7 +211,7 @@ static INSTR(Polar_String) {
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  12];
   sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : NULL);
-  *(M_Object*)REG(0) = new_String(shred,str);
+  *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(rhs, shred);
 }
@@ -224,7 +224,7 @@ static INSTR(Vec3_String) {
   m_vec3  lhs = *(m_vec3*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC3);
   char str[(rhs ? strlen(STRING(rhs)) : 0) + 23 + num_digit((m_uint)lhs.x) +
-    num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) ];
+                                      num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) ];
   sprintf(str, "@(%.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, rhs ? STRING(rhs) : NULL);
   *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
@@ -239,7 +239,7 @@ static INSTR(Vec4_String) {
   m_vec4  lhs = *(m_vec4*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC4);
   char str[(rhs ? strlen(STRING(rhs)) : 0) + 28 + num_digit((m_uint)lhs.x) +
-    num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w)];
+                                      num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w)];
   sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : NULL);
   *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
@@ -255,7 +255,7 @@ static INSTR(Object_String) {
   M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[11 + (rhs ? strlen(STRING(rhs)) : 0)];
   sprintf(str, "0x%08lu%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
-  *(M_Object*)REG(0) = new_String(shred,str);
+  *(M_Object*)REG(0) = new_String(shred, str);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -313,7 +313,7 @@ static INSTR(Float_String_Plus) {
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
   m_uint len = (rhs ? strlen(STRING(rhs)) : 0) + 1 + 7;
   if(!rhs)
-    Except(shred,"NullStringException");
+    Except(shred, "NullStringException");
   char c[len + num_digit(lhs) + 6];
   sprintf(c, "%s%.4f", STRING(rhs), lhs);
   STRING(rhs) = s_name(insert_symbol(c));
@@ -330,8 +330,8 @@ static INSTR(Complex_String_Plus) {
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   if(!rhs)
-    Except(shred,"NullStringException")
-  m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
+    Except(shred, "NullStringException")
+    m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   char c[len + num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 18];
   sprintf(c, "%s#(%.4f, %.4f)", STRING(rhs), creal(lhs), cimag(lhs));
   STRING(rhs) = s_name(insert_symbol(c));
@@ -348,8 +348,8 @@ static INSTR(Polar_String_Plus) {
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   if(!rhs)
-    Except(shred,"NullStringException")
-  m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
+    Except(shred, "NullStringException")
+    m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   char c[len + num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 18];
   sprintf(c, "%s%%(%.4f, %.4f)", STRING(rhs), creal(lhs), cimag(lhs) / M_PI);
   STRING(rhs) = s_name(insert_symbol(c));
@@ -366,8 +366,8 @@ static INSTR(Vec3_String_Plus) {
   m_vec3 lhs = *(m_vec3*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC3);
   if(!rhs)
-    Except(shred,"NullStringException")
-  char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + strlen(STRING(rhs)) + 20];
+    Except(shred, "NullStringException")
+    char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + strlen(STRING(rhs)) + 20];
   sprintf(c, "%s#(%.4f, %.4f, %.4f)", STRING(rhs), lhs.x, lhs.y, lhs.z);
   STRING(rhs) = s_name(insert_symbol(c));
   *(M_Object*)REG(0) = rhs;
@@ -383,8 +383,8 @@ static INSTR(Vec4_String_Plus) {
   m_vec4 lhs = *(m_vec4*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC4);
   if(!rhs)
-    Except(shred,"NullStringException")
-  char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + num_digit(lhs.z) + strlen(STRING(rhs)) + 28];
+    Except(shred, "NullStringException")
+    char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + num_digit(lhs.z) + strlen(STRING(rhs)) + 28];
   sprintf(c, "%s#(%.4f, %.4f, %.4f, %.4f)", STRING(rhs), lhs.x, lhs.y, lhs.z, lhs.w);
   STRING(rhs) = s_name(insert_symbol(c));
   *(M_Object*)REG(0) = rhs;
@@ -402,10 +402,10 @@ static INSTR(Object_String_Plus) {
   if(!rhs) {
     if(lhs)
       release(rhs, shred);
-    Except(shred,"NullStringException")
+    Except(shred, "NullStringException")
   }
   m_uint len = strlen(STRING(rhs)) + 11;
-  char c[len+1];
+  char c[len + 1];
   c[len] = '\0';
   sprintf(c, "%s0x%08lu", STRING(rhs), (uintptr_t)lhs);
   STRING(rhs) = s_name(insert_symbol(c));
@@ -419,7 +419,7 @@ INSTR(Reg_Push_Str) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "push string %s", (m_str)instr->m_val);
 #endif
-  *(M_Object*)REG(0) = new_String(shred,(m_str)instr->m_val);
+  *(M_Object*)REG(0) = new_String(shred, (m_str)instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -458,17 +458,17 @@ static MFUN(string_ltrim) {
     i++;
   char c[strlen(str) - i + 1];
   strcpy(c, STRING(o) + i);
-  RETURN->d.v_object = new_String(shred,c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 static MFUN(string_rtrim) {
   m_str str = STRING(o);
-  m_uint len = strlen(str) -1;
+  m_uint len = strlen(str) - 1;
   while(str[len] == ' ')
     len--;
   char c[len + 2];
-  strncpy(c, str, len+1);
-  c[len+1] = '\0';
+  strncpy(c, str, len + 1);
+  c[len + 1] = '\0';
   RETURN->d.v_object = new_String(shred, c);
 }
 
@@ -530,7 +530,7 @@ static MFUN(string_substring) {
   m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
-  if(!len || index > len || (len-index+1) <= 0) {
+  if(!len || index > len || (len - index + 1) <= 0) {
     RETURN->d.v_object = NULL;
     return;
   }
@@ -538,14 +538,14 @@ static MFUN(string_substring) {
   memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  RETURN->d.v_object = new_String(shred,c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 static MFUN(string_substringN) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, (STRING(o)));
   m_int i, len = 0, index = *(m_int*)MEM(SZ_INT);
-  m_int end = *(m_int*)MEM(SZ_INT*2);
+  m_int end = *(m_int*)MEM(SZ_INT * 2);
   while(str[len] != '\0')
     len++;
   if(end > len) {
@@ -557,7 +557,7 @@ static MFUN(string_substringN) {
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  RETURN->d.v_object = new_String(shred,c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 static MFUN(string_insert) {
@@ -584,7 +584,7 @@ static MFUN(string_insert) {
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred,c);;
+  RETURN->d.v_object = new_String(shred, c);;
 }
 
 static MFUN(string_replace) {
@@ -617,7 +617,7 @@ static MFUN(string_replace) {
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred,c);;
+  RETURN->d.v_object = new_String(shred, c);;
 }
 
 static MFUN(string_replaceN) {
@@ -636,7 +636,7 @@ static MFUN(string_replaceN) {
   len = strlen(str);
   str[len] = '\0';
   if(index > len)
-	    index = len - 1;
+    index = len - 1;
   char c[len + _len];
   memset(c, 0, len + _len);
   for(i = 0; i < index; i++)
@@ -645,9 +645,9 @@ static MFUN(string_replaceN) {
     c[i + index] = insert[i];
   for(i = index + _len; i < len; i++)
     c[i] = str[i];
-  c[len + _len-1] = '\0';
+  c[len + _len - 1] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred,c);;
+  RETURN->d.v_object = new_String(shred, c);;
 }
 
 static MFUN(string_find) {
@@ -701,7 +701,7 @@ static MFUN(string_findStr) {
   m_int i = 0;
   m_int arg_len = strlen(arg);
   while(i < len) {
-    if(!strncmp(str +i, arg, arg_len)) {
+    if(!strncmp(str + i, arg, arg_len)) {
       ret = i;
       break;
     }
@@ -839,7 +839,7 @@ static MFUN(string_erase) {
     return;
   }
   char c[size];
-  c[size -1] = '\0';
+  c[size - 1] = '\0';
   for(i = 0; i < start; i++)
     c[i] = str[i];
   for(i = start + rem; i < len; i++)
@@ -863,134 +863,134 @@ m_bool import_string(Env env) {
   o_string_data = import_var(env, "int", "@data",   ae_flag_const, NULL);
   CHECK_BB(o_string_data)
 
-   dl_func_init(&fun, "int", "size", (m_uint)string_len);
+  dl_func_init(&fun, "int", "size", (m_uint)string_len);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "upper", (m_uint)string_upper);
+  dl_func_init(&fun, "string", "upper", (m_uint)string_upper);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "lower", (m_uint)string_lower);
+  dl_func_init(&fun, "string", "lower", (m_uint)string_lower);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "ltrim", (m_uint)string_ltrim);
+  dl_func_init(&fun, "string", "ltrim", (m_uint)string_ltrim);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "rtrim", (m_uint)string_rtrim);
+  dl_func_init(&fun, "string", "rtrim", (m_uint)string_rtrim);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "trim", (m_uint)string_trim);
+  dl_func_init(&fun, "string", "trim", (m_uint)string_trim);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "charAt", (m_uint)string_charAt);
+  dl_func_init(&fun, "int", "charAt", (m_uint)string_charAt);
   dl_func_add_arg(&fun, "int", "pos");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "charAt", (m_uint)string_setCharAt);
+  dl_func_init(&fun, "int", "charAt", (m_uint)string_setCharAt);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "substring", (m_uint)string_substring);
+  dl_func_init(&fun, "string", "substring", (m_uint)string_substring);
   dl_func_add_arg(&fun, "int", "start");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "substring", (m_uint)string_substringN);
+  dl_func_init(&fun, "string", "substring", (m_uint)string_substringN);
   dl_func_add_arg(&fun, "int", "start");
   dl_func_add_arg(&fun, "int", "end");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "insert", (m_uint)string_insert);
+  dl_func_init(&fun, "string", "insert", (m_uint)string_insert);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "string");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "replace", (m_uint)string_replace);
+  dl_func_init(&fun, "string", "replace", (m_uint)string_replace);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "string");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "string", "replace", (m_uint)string_replaceN);
+  dl_func_init(&fun, "string", "replace", (m_uint)string_replaceN);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "n");
   dl_func_add_arg(&fun, "string", "string");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "find", (m_uint)string_find);
+  dl_func_init(&fun, "int", "find", (m_uint)string_find);
   dl_func_add_arg(&fun, "int", "char");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "find", (m_uint)string_findStart);
+  dl_func_init(&fun, "int", "find", (m_uint)string_findStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "find", (m_uint)string_findStr);
+  dl_func_init(&fun, "int", "find", (m_uint)string_findStr);
   dl_func_add_arg(&fun, "string", "str");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "find", (m_uint)string_findStrStart);
+  dl_func_init(&fun, "int", "find", (m_uint)string_findStrStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "str");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "rfind", (m_uint)string_rfind);
+  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfind);
   dl_func_add_arg(&fun, "int", "char");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStart);
+  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "int", "char");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStr);
+  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStr);
   dl_func_add_arg(&fun, "string", "str");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStrStart);
+  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStrStart);
   dl_func_add_arg(&fun, "int", "pos");
   dl_func_add_arg(&fun, "string", "str");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "void",   "erase", (m_uint)string_erase);
+  dl_func_init(&fun, "void",   "erase", (m_uint)string_erase);
   dl_func_add_arg(&fun, "int", "start");
   dl_func_add_arg(&fun, "int", "length");
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "int", "toInt", (m_uint)string_toInt);
+  dl_func_init(&fun, "int", "toInt", (m_uint)string_toInt);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    dl_func_init(&fun, "float", "toFloat", (m_uint)string_toFloat);
+  dl_func_init(&fun, "float", "toFloat", (m_uint)string_toFloat);
   CHECK_BB(import_fun(env, &fun, 0))
 
-    CHECK_BB(import_op(env, op_chuck, "string",  "string", "string", String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "int",     "string", "string", Int_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "float",   "string", "string", Float_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "complex", "string", "string", Complex_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "polar",   "string", "string", Polar_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "Vec3",    "string", "string", Vec3_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "Vec4",    "string", "string", Vec4_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "Object",  "string", "string", Object_String_Assign, 1))
-    CHECK_BB(import_op(env, op_chuck, "@null",    "string", "string", Object_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "string",  "string", "string", String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "int",     "string", "string", Int_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "float",   "string", "string", Float_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "complex", "string", "string", Complex_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "polar",   "string", "string", Polar_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "Vec3",    "string", "string", Vec3_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "Vec4",    "string", "string", Vec4_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "Object",  "string", "string", Object_String_Assign, 1))
+  CHECK_BB(import_op(env, op_chuck, "@null",    "string", "string", Object_String_Assign, 1))
 
-    CHECK_BB(import_op(env, op_plus, "string",  "string", "string", String_String, 1))
-    CHECK_BB(import_op(env, op_plus, "int",     "string", "string", Int_String, 1))
-    CHECK_BB(import_op(env, op_plus, "float",   "string", "string", Float_String, 1))
-    CHECK_BB(import_op(env, op_plus, "complex", "string", "string", Complex_String, 1))
-    CHECK_BB(import_op(env, op_plus, "polar",   "string", "string", Polar_String, 1))
-    CHECK_BB(import_op(env, op_plus, "Vec3",    "string", "string", Vec3_String, 1))
-    CHECK_BB(import_op(env, op_plus, "Vec4",    "string", "string", Vec4_String, 1))
-    CHECK_BB(import_op(env, op_plus, "Object",  "string", "string", Object_String, 1))
-    CHECK_BB(import_op(env, op_plus, "@null",  "string", "string", Object_String, 1))
+  CHECK_BB(import_op(env, op_plus, "string",  "string", "string", String_String, 1))
+  CHECK_BB(import_op(env, op_plus, "int",     "string", "string", Int_String, 1))
+  CHECK_BB(import_op(env, op_plus, "float",   "string", "string", Float_String, 1))
+  CHECK_BB(import_op(env, op_plus, "complex", "string", "string", Complex_String, 1))
+  CHECK_BB(import_op(env, op_plus, "polar",   "string", "string", Polar_String, 1))
+  CHECK_BB(import_op(env, op_plus, "Vec3",    "string", "string", Vec3_String, 1))
+  CHECK_BB(import_op(env, op_plus, "Vec4",    "string", "string", Vec4_String, 1))
+  CHECK_BB(import_op(env, op_plus, "Object",  "string", "string", Object_String, 1))
+  CHECK_BB(import_op(env, op_plus, "@null",  "string", "string", Object_String, 1))
 
-    CHECK_BB(import_op(env, op_plus_chuck, "string",  "string", "string", String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "int",     "string", "string", Int_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "float",   "string", "string", Float_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "complex", "string", "string", Complex_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "polar",   "string", "string", Polar_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "Vec3",    "string", "string", Vec3_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "Vec4",    "string", "string", Vec4_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "Object",  "string", "string", Object_String_Plus, 1))
-    CHECK_BB(import_op(env, op_plus_chuck, "@null",    "string", "string", Object_String_Plus, 1))
-    CHECK_BB(import_class_end(env))
-    return 1;
+  CHECK_BB(import_op(env, op_plus_chuck, "string",  "string", "string", String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "int",     "string", "string", Int_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "float",   "string", "string", Float_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "complex", "string", "string", Complex_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "polar",   "string", "string", Polar_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "Vec3",    "string", "string", Vec3_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "Vec4",    "string", "string", Vec4_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "Object",  "string", "string", Object_String_Plus, 1))
+  CHECK_BB(import_op(env, op_plus_chuck, "@null",    "string", "string", Object_String_Plus, 1))
+  CHECK_BB(import_class_end(env))
+  return 1;
 }

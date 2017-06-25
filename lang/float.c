@@ -8,7 +8,7 @@ struct Type_ t_time      = { "time",  SZ_FLOAT,  NULL,    te_time };
 struct Type_ t_now       = { "@now",  SZ_FLOAT,  &t_time, te_now };
 
 static INSTR(float_assign) {
-  POP_REG(shred, SZ_INT+SZ_FLOAT);
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_FLOAT);
 }
@@ -73,7 +73,7 @@ static INSTR(float_ge) {
   PUSH_REG(shred, SZ_INT);
 }
 
- static INSTR(float_lt) {
+static INSTR(float_lt) {
   POP_REG(shred, SZ_FLOAT * 2);
   *(m_int*)REG(0) = (*(m_float*)REG(0) < * (m_float*)REG(SZ_FLOAT));
   PUSH_REG(shred, SZ_INT);
@@ -361,9 +361,9 @@ m_bool import_float(Env env) {
   CHECK_BB(import_op(env, op_ge, 			 	    "float", "float", "int", float_ge,          0))
   CHECK_BB(import_op(env, op_lt, 			 	    "float", "float", "int", float_lt,          0))
   CHECK_BB(import_op(env, op_le, 			 	    "float", "float", "int", float_le,          0))
-  CHECK_BB(import_op(env, op_minus,         NULL,   "float", "float",float_negate,     0))
-  CHECK_BB(import_op(env, op_exclamation,   NULL,   "float",   "int",float_not,        0))
-  CHECK_BB(import_op(env, op_exclamation,   NULL,   "time",    "int",float_not,        0))
+  CHECK_BB(import_op(env, op_minus,         NULL,   "float", "float", float_negate,     0))
+  CHECK_BB(import_op(env, op_exclamation,   NULL,   "float",   "int", float_not,        0))
+  CHECK_BB(import_op(env, op_exclamation,   NULL,   "time",    "int", float_not,        0))
   CHECK_BB(import_op(env, op_exclamation,   NULL,   "dur",    "int", float_not,        0))
   CHECK_BB(import_op(env, op_chuck,         "float", "float", "float", float_r_assign,  0))
   CHECK_BB(import_op(env, op_plus_chuck,    "float", "float", "float", float_r_plus,    0))

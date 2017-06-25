@@ -48,13 +48,13 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
 
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
-            "class/type '%s' is already defined in namespace '%s'",
-            s_name(class_def->name->xid), env->curr->name))
+                     "class/type '%s' is already defined in namespace '%s'",
+                     s_name(class_def->name->xid), env->curr->name))
   }
 
   if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-            s_name(class_def->name->xid)))
+                     s_name(class_def->name->xid)))
   }
 
   the_class = new_type(env->type_xid++, s_name(class_def->name->xid));
@@ -64,7 +64,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   the_class->info = new_nspc(the_class->name, env->context->filename);
   the_class->parent = &t_object;
 
- if(env->context->public_class_def == class_def)
+  if(env->context->public_class_def == class_def)
     the_class->info->parent = env->context->nspc;
   else
     the_class->info->parent = env->curr;
@@ -77,13 +77,13 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   CHECK_BB(env_push_class(env, the_class))
   while(body && ret > 0) {
     switch(body->section->type) {
-    case ae_section_stmt:
-      ret = scan0_Stmt_List(env, body->section->d.stmt_list);
-    case ae_section_func:
-      break;
-    case ae_section_class:
-      ret = scan0_Class_Def(env, body->section->d.class_def);
-      break;
+      case ae_section_stmt:
+        ret = scan0_Stmt_List(env, body->section->d.stmt_list);
+      case ae_section_func:
+        break;
+      case ae_section_class:
+        ret = scan0_Class_Def(env, body->section->d.class_def);
+        break;
     }
     body = body->next;
   }
@@ -107,21 +107,21 @@ m_bool scan0_Ast(Env env, Ast prog) {
   CHECK_OB(prog)
   while(prog) {
     switch(prog->section->type) {
-    case ae_section_stmt:
-      CHECK_BB(scan0_Stmt_List(env, prog->section->d.stmt_list))
-      break;
-    case ae_section_func:
-      break;
-    case ae_section_class:
-      if(prog->section->d.class_def->decl == ae_flag_public) {
-        if(env->context->public_class_def) {
-          CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
-                  "more than one 'public' class defined..."))
+      case ae_section_stmt:
+        CHECK_BB(scan0_Stmt_List(env, prog->section->d.stmt_list))
+        break;
+      case ae_section_func:
+        break;
+      case ae_section_class:
+        if(prog->section->d.class_def->decl == ae_flag_public) {
+          if(env->context->public_class_def) {
+            CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
+                             "more than one 'public' class defined..."))
+          }
+          env->context->public_class_def = prog->section->d.class_def;
         }
-        env->context->public_class_def = prog->section->d.class_def;
-      }
-      CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))
-      break;
+        CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))
+        break;
     }
     prog = prog->next;
   }

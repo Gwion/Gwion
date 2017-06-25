@@ -165,69 +165,69 @@ int main(int argc, char** argv) {
 
   while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
-    case '?':
-      usage();
-      exit(0);
-    case 'C':
-      fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
-      do_quit     = 1;
-      break;
-    case 'q':
-      do_quit     = 1;
-      break;
-    case 'c':
-      di.card     = optarg;
-      break;
-    case 'h':
-      hostname    = optarg;
-      break;
-    case 'p':
-      port        = atoi(optarg);
-      break;
-    case 'n':
-      di.bufnum    = atoi(optarg);
-      break;
-    case 'b':
-      di.bufsize    = atoi(optarg);
-      break;
-    case 'g':
-      di.chan       = atoi(optarg);
-      di.in       = atoi(optarg);
-      di.out       = atoi(optarg);
-      break;
-    case 'i':
-      di.in       = atoi(optarg);
-      break;
-    case 'o':
-      di.out      = atoi(optarg);
-      break;
-    case 's':
-      di.sr      = atoi(optarg);
-      break;
-    case 'l':
-      loop        = atoi(optarg);
-      if(loop == 0) loop = -1;
-      break;
-    case 'd':
-      select_driver(&di, optarg);
-      break;
-    case 'f':
-      select_format(&di, optarg);
-      break;
-    case 'e':
-      select_backend(&di, optarg);
-      break;
-    case 'r':
-      di.raw = 1;
-      break;
-    case 'a':
-      udp = 0;
-      break;
-    case 'P':
-      vector_add(&plug_dirs, (vtype)optarg);
-      break;
-    default:
-      return 1;
+      case '?':
+        usage();
+        exit(0);
+      case 'C':
+        fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
+        do_quit     = 1;
+        break;
+      case 'q':
+        do_quit     = 1;
+        break;
+      case 'c':
+        di.card     = optarg;
+        break;
+      case 'h':
+        hostname    = optarg;
+        break;
+      case 'p':
+        port        = atoi(optarg);
+        break;
+      case 'n':
+        di.bufnum    = atoi(optarg);
+        break;
+      case 'b':
+        di.bufsize    = atoi(optarg);
+        break;
+      case 'g':
+        di.chan       = atoi(optarg);
+        di.in       = atoi(optarg);
+        di.out       = atoi(optarg);
+        break;
+      case 'i':
+        di.in       = atoi(optarg);
+        break;
+      case 'o':
+        di.out      = atoi(optarg);
+        break;
+      case 's':
+        di.sr      = atoi(optarg);
+        break;
+      case 'l':
+        loop        = atoi(optarg);
+        if(loop == 0) loop = -1;
+        break;
+      case 'd':
+        select_driver(&di, optarg);
+        break;
+      case 'f':
+        select_format(&di, optarg);
+        break;
+      case 'e':
+        select_backend(&di, optarg);
+        break;
+      case 'r':
+        di.raw = 1;
+        break;
+      case 'a':
+        udp = 0;
+        break;
+      case 'P':
+        vector_add(&plug_dirs, (vtype)optarg);
+        break;
+      default:
+        return 1;
     }
   }
   if(optind < argc) {

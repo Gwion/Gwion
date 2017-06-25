@@ -44,7 +44,7 @@ m_bool initialize_object(M_Object object, Type type) {
 
 out_of_memory: // LCOV_EXCL_START
   err_msg(TYPE_, 0,
-      "OutOfMemory: while instantiating object '%s'\n", type->name);
+          "OutOfMemory: while instantiating object '%s'\n", type->name);
   return -1;
 }             // LCOV_EXCL_STOP
 
@@ -70,7 +70,7 @@ void release(M_Object obj, VM_Shred shred) {
           ((f_xtor)t->info->dtor->native_func)(obj, shred);
         else {
           VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
-              "[dtor]", "[in code dtor exec]");
+                                     "[dtor]", "[in code dtor exec]");
           VM_Shred sh = new_vm_shred(code);
           sh->me = new_shred(shred->vm_ref, sh);
           memcpy(sh->mem, shred->mem, SIZEOF_MEM);
@@ -95,7 +95,7 @@ static DTOR(object_dtor) {
 INSTR(Assign_Object) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign object %lu %p %p", instr->m_val,
-      *(m_uint*)REG(- SZ_INT * 2), **(m_uint**)REG(- SZ_INT));
+            *(m_uint*)REG(- SZ_INT * 2), **(m_uint**)REG(- SZ_INT));
 #endif
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
@@ -103,7 +103,7 @@ INSTR(Assign_Object) {
   if((tgt = **(M_Object**)REG(SZ_INT)))
     release(tgt, shred);
   if(instr->m_val2)
-    release(tgt,shred);
+    release(tgt, shred);
   **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
   **(M_Object**)REG(SZ_INT) = src;
   PUSH_REG(shred, SZ_INT);
@@ -160,7 +160,7 @@ INSTR(MkVararg) {
   POP_REG(shred,  instr->m_val);
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;
-  struct Vararg* arg =calloc(1, sizeof(struct Vararg));
+  struct Vararg* arg = calloc(1, sizeof(struct Vararg));
   if(instr->m_val) {
     arg->d = malloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
@@ -196,7 +196,8 @@ INSTR(Vararg_end) {
     case Kindof_Vec4:
       arg->o += SZ_VEC4;
       break;
-    case Kindof_Void: break;
+    case Kindof_Void:
+      break;
   }
   PUSH_REG(shred, SZ_INT);
   arg->i++;

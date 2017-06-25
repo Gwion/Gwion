@@ -64,7 +64,7 @@ INSTR(string_to_file) {
   release(lhs, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
-  *(M_Object*)REG(- SZ_INT)= o;
+  *(M_Object*)REG(- SZ_INT) = o;
 }
 
 INSTR(object_to_file) {
@@ -78,7 +78,7 @@ INSTR(object_to_file) {
   release(lhs, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%p", (void*)lhs);
-  *(M_Object*)REG(- SZ_INT)= o;
+  *(M_Object*)REG(- SZ_INT) = o;
 }
 
 INSTR(file_to_int) {
@@ -96,7 +96,7 @@ INSTR(file_to_int) {
     if(fscanf(IO_FILE(o), "%i", &ret) < 0) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
-    *(m_uint*)REG(- SZ_INT)= (**(m_uint**)REG(0) = ret);
+    *(m_uint*)REG(- SZ_INT) = (**(m_uint**)REG(0) = ret);
   } else {
     release(o, shred);
     Except(shred, "EmptyFileException");
@@ -150,11 +150,11 @@ INSTR(file_to_string) {
   M_Object s    = **(M_Object**)REG(0);
   if(!o) {
     release(s, shred);
-	Except(shred, "EmptyFileException");
+    Except(shred, "EmptyFileException");
   }
   if(!s) {
     release(o, shred);
-	Except(shred, "EmptyStringException");
+    Except(shred, "EmptyStringException");
   }
   if(IO_FILE(o)) {
     char c[1025];

@@ -9,7 +9,7 @@ m_int o_complex_real, o_complex_imag;
 m_int o_polar_mod,    o_polar_phase;
 
 static INSTR(complex_assign) {
-  POP_REG(shred, SZ_INT+SZ_COMPLEX);
+  POP_REG(shred, SZ_INT + SZ_COMPLEX);
   *(m_complex*)REG(0) = (**(m_complex**)REG(0) = *(m_complex*)REG(SZ_INT));
   PUSH_REG(shred, SZ_COMPLEX);
 }

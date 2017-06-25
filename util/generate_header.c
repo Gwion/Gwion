@@ -21,8 +21,7 @@ static const char* other = "double";
 #define SZ sizeof(float)
 #endif
 
-int main(int argc , char** argv)
-{
+int main(int argc, char** argv) {
   FILE* file;
   debug_msg("config", "creating Gwion header.");
   if(SZ != sizeof(SPFLOAT)) {
@@ -30,7 +29,7 @@ int main(int argc , char** argv)
     return 1;
   }
   if(argc >= 2)
-	filename = argv[1];
+    filename = argv[1];
   file = fopen(filename, "w");
   if(!file) {
     err_msg(INSTR_, 0, "can't open '%s' for writing.", filename);

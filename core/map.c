@@ -25,13 +25,13 @@ void vector_init(struct Vector_* v) {
   v->ptr[1] = MAP_CAP;
 }
 
-void vector_release(Vector v){
+void vector_release(Vector v) {
   free(v->ptr);
 }
 
 void vector_add(Vector v, vtype data) {
   if(!(v->ptr[1] - v->ptr[0] - OFFSET))
-    v->ptr = realloc(v->ptr, (v->ptr[1]*=2) * sizeof(vtype));
+    v->ptr = realloc(v->ptr, (v->ptr[1] *= 2) * sizeof(vtype));
   v->ptr[v->ptr[0]++ + OFFSET] = (vtype)data;
 }
 
@@ -64,9 +64,9 @@ void vector_rem(Vector v, const vtype index) {
   if(index >= v->ptr[0])
     return;
   for(i = index + 1; i < v->ptr[0]; i++)
-    v->ptr[i-1+OFFSET] = v->ptr[i+OFFSET];
-  if(--v->ptr[0] + OFFSET < v->ptr[1]/2)
-    v->ptr = realloc(v->ptr, (v->ptr[1]/=2) * sizeof(vtype));
+    v->ptr[i - 1 + OFFSET] = v->ptr[i + OFFSET];
+  if(--v->ptr[0] + OFFSET < v->ptr[1] / 2)
+    v->ptr = realloc(v->ptr, (v->ptr[1] /= 2) * sizeof(vtype));
 }
 
 vtype vector_pop(Vector v) {
@@ -83,7 +83,7 @@ vtype vector_front(Vector v) {
 }
 
 vtype vector_at(Vector v, const vtype i) {
-  return (i >= v->ptr[0]) ? 0 :v->ptr[i + OFFSET];
+  return (i >= v->ptr[0]) ? 0 : v->ptr[i + OFFSET];
 }
 
 vtype vector_back(Vector v) {
@@ -96,11 +96,15 @@ vtype vector_size(Vector v) {
 
 static inline void _clear(Vector v) {
   v->ptr = realloc(v->ptr, (v->ptr[1] = MAP_CAP) * sizeof(vtype));
-  v->ptr[0]= 0;
+  v->ptr[0] = 0;
 }
 
-void vector_clear (Vector a) { _clear(a); }
-void map_clear    (Map    a) { _clear((Vector)a); }
+void vector_clear(Vector a) {
+  _clear(a);
+}
+void map_clear(Map    a) {
+  _clear((Vector)a);
+}
 
 void free_vector(Vector v) {
   free(v->ptr);
@@ -123,31 +127,31 @@ void map_init(Map a) {
 vtype map_get(Map map, vtype key) {
   vtype i;
   for(i = 0; i < map->ptr[0]; i++)
-    if(map->ptr[OFFSET + i*2] == key)
-      return map->ptr[OFFSET + i*2+1];
+    if(map->ptr[OFFSET + i * 2] == key)
+      return map->ptr[OFFSET + i * 2 + 1];
   return 0;
 }
 
 vtype map_at(Map map, const vtype index) {
   if(index > map->ptr[0])
     return 0;
-  return map->ptr[OFFSET + index*2+1];
+  return map->ptr[OFFSET + index * 2 + 1];
 }
 
 void map_set(Map map, vtype key, vtype ptr) {
   vtype i;
   for(i = 0; i < map->ptr[0]; i++) {
-    if(map->ptr[OFFSET + i*2] == key) {
-      map->ptr[OFFSET + i*2+1] = ptr;
+    if(map->ptr[OFFSET + i * 2] == key) {
+      map->ptr[OFFSET + i * 2 + 1] = ptr;
       return;
     }
   }
-  if((OFFSET + map->ptr[0]*2 + 1) > map->ptr[1]) {
-      map->ptr[1] *= 2;
+  if((OFFSET + map->ptr[0] * 2 + 1) > map->ptr[1]) {
+    map->ptr[1] *= 2;
     map->ptr = realloc(map->ptr, map->ptr[1] * sizeof(vtype));
   }
-  map->ptr[OFFSET + map->ptr[0]*2] = key;
-  map->ptr[OFFSET + map->ptr[0]*2+1] = ptr;
+  map->ptr[OFFSET + map->ptr[0] * 2] = key;
+  map->ptr[OFFSET + map->ptr[0] * 2 + 1] = ptr;
   map->ptr[0]++;
 }
 
@@ -156,8 +160,8 @@ void map_remove(Map map, vtype key) {
   struct Map_ tmp;
   map_init(&tmp);
   for(i = 0; i < map->ptr[0]; i++)
-    if(map->ptr[OFFSET + i*2] != key)
-      map_set(&tmp, key, map->ptr[OFFSET + i*2+1]);
+    if(map->ptr[OFFSET + i * 2] != key)
+      map_set(&tmp, key, map->ptr[OFFSET + i * 2 + 1]);
   free(map->ptr);
   map->ptr = tmp.ptr;
   map->ptr[0] = tmp.ptr[0];
@@ -167,7 +171,7 @@ void map_remove(Map map, vtype key) {
 void map_commit(Map map, Map commit) {
   vtype i;
   for(i = 0; i < commit->ptr[0]; i++)
-    map_set(map, commit->ptr[OFFSET + i*2], commit->ptr[OFFSET + i*2+1]);
+    map_set(map, commit->ptr[OFFSET + i * 2], commit->ptr[OFFSET + i * 2 + 1]);
 }
 
 vtype map_size(Map map) {
@@ -216,9 +220,9 @@ vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
 
 void scope_add(Scope scope, S_Symbol xid, vtype value) {
   if(vector_front(&scope->vector) != vector_back(&scope->vector))
-	map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
+    map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
   else
-  	map_set(&scope->commit_map, (vtype)xid, (vtype)value);
+    map_set(&scope->commit_map, (vtype)xid, (vtype)value);
 }
 
 void scope_commit(Scope scope) {
@@ -252,10 +256,10 @@ Vector scope_get(Scope s) {
   for(j = 0; j < vector_size(&s->vector); j++) {
     Map map = (Map)vector_at(&s->vector, j);
     for(i = 0; i < map->ptr[0]; i++)
-      vector_add(ret, map->ptr[OFFSET + i*2+1]);
+      vector_add(ret, map->ptr[OFFSET + i * 2 + 1]);
   }
   for(i = 0; i < s->commit_map.ptr[0]; i++)
-    vector_add(ret, (vtype)s->commit_map.ptr[OFFSET + i*2+1]);
+    vector_add(ret, (vtype)s->commit_map.ptr[OFFSET + i * 2 + 1]);
   return ret;
 }
 

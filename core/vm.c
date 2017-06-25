@@ -12,7 +12,7 @@
 
 void udp_do(VM* vm);
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
-    m_str name, m_str filename) {
+                    m_str name, m_str filename) {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
   code->instr            = instr ?  vector_copy(instr) : NULL;
   code->stack_depth      = stack_depth;
@@ -47,7 +47,7 @@ void free_vm_code(VM_Code a) {
       else if(instr->execute == Spork) {
         if(instr->m_val2)
           REM_REF(((Func)instr->m_val2))
-      } else if(instr->execute == Init_Loop_Counter)
+        } else if(instr->execute == Init_Loop_Counter)
         free((m_int*)instr->m_val);
       free(instr);
     }
@@ -153,8 +153,8 @@ void vm_run(VM* vm) {
   while((shred = shreduler_get(vm->shreduler))) {
 #ifdef DEBUG_VM
     debug_msg("vm", "shred [%i]: stack: {%i:%i}. pc: (%i,%i / %i)",
-        shred->xid, *shred->reg, *shred->mem, shred->pc,
-        shred->next_pc, vector_size(shred->code->instr));
+              shred->xid, *shred->reg, *shred->mem, shred->pc,
+              shred->next_pc, vector_size(shred->code->instr));
 #endif
     while(shred->is_running) {
       shred->pc = shred->next_pc;
@@ -179,7 +179,7 @@ void vm_run(VM* vm) {
 #endif
 #ifdef DEBUG_VM
       debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc,
-          shred->next_pc, vector_size(shred->code->instr));
+                shred->next_pc, vector_size(shred->code->instr));
 #endif
       if(shred->is_done) {
         if(shreduler_remove(vm->shreduler, shred, 1) < 0) {

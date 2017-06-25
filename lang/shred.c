@@ -70,12 +70,12 @@ static MFUN(shred_arg) {
     return;
   }
   str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
-  RETURN->d.v_uint = str ? (m_uint)new_String(shred,str) : 0;
+  RETURN->d.v_uint = str ? (m_uint)new_String(shred, str) : 0;
 }
 
 static MFUN(shred_path) {
   VM_Shred  s = ME(o);
-  RETURN->d.v_uint = (m_uint)new_String(shred,s->code->filename);
+  RETURN->d.v_uint = (m_uint)new_String(shred, s->code->filename);
 }
 
 static MFUN(shred_dir) {
@@ -83,7 +83,7 @@ static MFUN(shred_dir) {
   char c[strlen(s->code->filename) + 1];
   memset(c, 0, strlen(s->code->filename) + 1);
   strncpy(c, s->code->filename, strlen(s->code->filename));
-  RETURN->d.v_uint = (m_uint)new_String(shred,dirname(c));
+  RETURN->d.v_uint = (m_uint)new_String(shred, dirname(c));
 }
 
 static DTOR(shred_dtor) {
@@ -111,7 +111,7 @@ m_bool import_shred(Env env) {
   CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "Shred", "fromId", (m_uint)vm_shred_from_id);
-    dl_func_add_arg(&fun, "int", "arg1");
+  dl_func_add_arg(&fun, "int", "arg1");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
   dl_func_init(&fun, "void", "yield", (m_uint)shred_yield);
@@ -121,7 +121,7 @@ m_bool import_shred(Env env) {
   CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "string", "arg", (m_uint)shred_arg);
-    dl_func_add_arg(&fun, "int", "n");
+  dl_func_add_arg(&fun, "int", "n");
   CHECK_BB(import_fun(env, &fun, 0))
 
   dl_func_init(&fun, "string", "path", (m_uint)shred_path);

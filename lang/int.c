@@ -179,7 +179,7 @@ static INSTR(int_r_divide) {
   POP_REG(shred, SZ_INT * 2);
   if(!*(m_int*)REG(0))
     Except(shred, "ZeroDivideException")
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) /= (*(m_int*)REG(0)));
+    *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) /= (*(m_int*)REG(0)));
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -187,7 +187,7 @@ static INSTR(int_r_modulo) {
   POP_REG(shred, SZ_INT * 2);
   if(!*(m_int*)REG(0))
     Except(shred, "ZeroDivideException")
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) %= (*(m_int*)REG(0)));
+    *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) %= (*(m_int*)REG(0)));
   PUSH_REG(shred,  SZ_INT);
 }
 

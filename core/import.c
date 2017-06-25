@@ -148,7 +148,7 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   if(!(path = str2list(type, &array_depth)))
     CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...", env->class_def->name, name))
 
-  type_decl = new_type_decl(path, ((flag & ae_flag_ref) == ae_flag_ref), 0);
+    type_decl = new_type_decl(path, ((flag & ae_flag_ref) == ae_flag_ref), 0);
   if(array_depth) {
     type_decl->array = new_array_sub(NULL, 0);
     type_decl->array->depth = array_depth;
@@ -162,7 +162,7 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   exp_decl = new_exp_decl(type_decl, var_decl_list, ((flag & ae_flag_ref) == ae_flag_static), 0);
   var_decl->addr = (void *)addr;
   if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
-     scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
+      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
     goto error;
   if(!check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
@@ -186,38 +186,38 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   m_int i = 0, j;
 
   if(dl_fun->args.ptr)
-  for(i = vector_size(&dl_fun->args) - 1; i >= 0; i--) {
-    array_depth = array_depth2 = 0;
-    array_sub = NULL;
-    arg = (DL_Value*)vector_at(&dl_fun->args, i);
-    type_path = str2list(arg->type, &array_depth);
-    if(!type_path) {
-      err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
-      if(arg_list)
-        free_arg_list(arg_list);
-      return NULL;
+    for(i = vector_size(&dl_fun->args) - 1; i >= 0; i--) {
+      array_depth = array_depth2 = 0;
+      array_sub = NULL;
+      arg = (DL_Value*)vector_at(&dl_fun->args, i);
+      type_path = str2list(arg->type, &array_depth);
+      if(!type_path) {
+        err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
+        if(arg_list)
+          free_arg_list(arg_list);
+        return NULL;
+      }
+      type_decl = new_type_decl(type_path, 0, 0);
+      type_path2 = str2list(arg->name, &array_depth2);
+      free_id_list(type_path2);
+      if(array_depth && array_depth2) {
+        err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module");
+        free_type_decl(type_decl);
+        if(arg_list)
+          free_arg_list(arg_list);
+        return NULL;
+      }
+      if(array_depth2)
+        array_depth = array_depth2;
+      if(array_depth) {
+        array_sub = new_array_sub(NULL, 0);
+        for(j = 1; j < array_depth; j++)
+          array_sub = prepend_array_sub(array_sub, NULL, 0);
+      }
+      var_decl = new_var_decl(arg->name, array_sub, 0);
+      arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
+      free(arg);
     }
-    type_decl = new_type_decl(type_path, 0, 0);
-    type_path2 = str2list(arg->name, &array_depth2);
-    free_id_list(type_path2);
-    if(array_depth && array_depth2) {
-      err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module");
-      free_type_decl(type_decl);
-      if(arg_list)
-        free_arg_list(arg_list);
-      return NULL;
-    }
-    if(array_depth2)
-      array_depth = array_depth2;
-    if(array_depth) {
-      array_sub = new_array_sub(NULL, 0);
-      for(j = 1; j < array_depth; j++)
-        array_sub = prepend_array_sub(array_sub, NULL, 0);
-    }
-    var_decl = new_var_decl(arg->name, array_sub, 0);
-    arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
-    free(arg);
-  }
   return arg_list;
 }
 
@@ -264,8 +264,8 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
     return -1;
   }
   if(scan1_func_def(env, func_def) < 0 ||
-        scan2_func_def(env, func_def) < 0 ||
-       !check_func_def(env, func_def)) {
+      scan2_func_def(env, func_def) < 0 ||
+      !check_func_def(env, func_def)) {
     free_func_def(func_def);
     return -1;
   }
@@ -273,19 +273,19 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
 }
 
 Type get_type(Env env, const m_str str) {
-    m_uint  depth;
-    ID_List list = str2list(str, &depth);
-    Type    t = list ? find_type(env, list) : NULL;
-    if(list)
-      free_id_list(list);
-    return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
+  m_uint  depth;
+  ID_List list = str2list(str, &depth);
+  Type    t = list ? find_type(env, list) : NULL;
+  if(list)
+    free_id_list(list);
+  return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
 }
 
 m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str t,
-	const f_instr f, const m_bool global) {
-    Type lhs = l ? get_type(env, l) : NULL;
-    Type rhs = r ? get_type(env, r) : NULL;
-    Type ret = get_type(env, t);
-    return env_add_op(env, op, lhs, rhs, ret, f, global);
+                const f_instr f, const m_bool global) {
+  Type lhs = l ? get_type(env, l) : NULL;
+  Type rhs = r ? get_type(env, r) : NULL;
+  Type ret = get_type(env, t);
+  return env_add_op(env, op, lhs, rhs, ret, f, global);
 }
 

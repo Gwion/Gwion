@@ -97,7 +97,7 @@ static DTOR(fft_dtor) {
 static MFUN(fft_init) {
   Fft* ana = (Fft*)o->ugen->ug;
   m_int size = *(m_int*)MEM(SZ_INT);
-  if(size <= 0 || size%2)Except(shred, "FftInvalidSizeException.")
+  if(size <= 0 || size % 2)Except(shred, "FftInvalidSizeException.")
     if(ana->buf)
       sp_buffer_destroy(ana->buf);
   if(ana->frq) {
@@ -117,7 +117,7 @@ static MFUN(fft_init) {
 static MFUN(fft_compute) {
   m_float* smp;
   Fft* ana = (Fft*)o->ugen->ug;
-  if(!ana || ana->sp->pos == ana->last || !ana->buf ) {
+  if(!ana || ana->sp->pos == ana->last || !ana->buf) {
     RETURN->d.v_uint = 0;
     return;
   }
@@ -428,7 +428,7 @@ static MFUN(ana_compute) {
 }
 
 static MFUN(ana_get_fft) {
-  RETURN->d.v_uint = (m_uint)*(M_Object*)(o->d.data + o_ana_fft);
+  RETURN->d.v_uint = (m_uint) * (M_Object*)(o->d.data + o_ana_fft);
 }
 
 static MFUN(ana_set_fft) {

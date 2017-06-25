@@ -66,30 +66,30 @@ void free_nspc(Nspc a) {
 
     if(value->m_type) {
       if(isa(value->m_type, &t_class) > 0)
-       REM_REF(value->m_type)
-       else if(isa(value->m_type, &t_object) > 0) {
+        REM_REF(value->m_type)
+        else if(isa(value->m_type, &t_object) > 0) {
           if(value->ptr || GET_FLAG(value, ae_flag_static) && a->class_data) {
             VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
             VM_Shred s = new_vm_shred(code);
             M_Object obj = value->ptr ? (M_Object)value->ptr :
-			    *(M_Object*)(a->class_data + value->offset);
+                           *(M_Object*)(a->class_data + value->offset);
             s->vm_ref = vm;
             release(obj, s);
             free_vm_shred(s);
           }
-if(value->m_type->array_depth)
-  REM_REF(value->m_type);
+          if(value->m_type->array_depth)
+            REM_REF(value->m_type);
         } else if(isa(value->m_type, &t_func_ptr) > 0) {
-  //  just catch func pointer
+          //  just catch func pointer
         } else if(isa(value->m_type, &t_function) > 0) {
           if(value->m_type != &t_function && GET_FLAG(value, ae_flag_builtin))
             REM_REF(value->m_type)
-else if(GET_FLAG(value, ae_flag_template))
-REM_REF(value->func_ref)
-else
-            REM_REF(value->m_type)
+            else if(GET_FLAG(value, ae_flag_template))
+              REM_REF(value->func_ref)
+              else
+                REM_REF(value->m_type)
 //continue;
-        }
+              }
     }
     REM_REF(value);
   }
@@ -98,7 +98,7 @@ else
 
 
   v = scope_get(&a->func);
-  for(i = vector_size(v) +1; --i;) {
+  for(i = vector_size(v) + 1; --i;) {
     Func func = (Func)vector_at(v, i - 1);
     REM_REF(func);
   }
@@ -106,8 +106,8 @@ else
   scope_release(&a->func);
 
   v = scope_get(&a->type);
-  for(i =vector_size(v); i > 0; i--) {
-    Type type = (Type)vector_at(v, i-1);
+  for(i = vector_size(v); i > 0; i--) {
+    Type type = (Type)vector_at(v, i - 1);
     REM_REF(type);
   }
   free_vector(v);

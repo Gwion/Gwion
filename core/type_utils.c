@@ -14,11 +14,11 @@ int verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1)
       CHECK_BB(err_msg(UTIL_, array->pos,
-              "invalid format for array init [...][...]..."))
-    else if(array->err_num == 2)
-      CHECK_BB(err_msg(UTIL_, array->pos,
-              "partially empty array init [...][]..."))
-  }
+                       "invalid format for array init [...][...]..."))
+      else if(array->err_num == 2)
+        CHECK_BB(err_msg(UTIL_, array->pos,
+                         "partially empty array init [...][]..."))
+      }
   return 1;
 }
 
@@ -53,7 +53,7 @@ Type find_type(Env env, ID_List path) {
   Nspc nspc;
   Type t = NULL;
 
-Type type = nspc_lookup_type(env->curr, path->xid, 1);
+  Type type = nspc_lookup_type(env->curr, path->xid, 1);
   if(!type)
     return NULL;
   nspc = type->info;
@@ -99,7 +99,7 @@ m_bool name_valid(m_str a) {
       continue;
     else
       CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", a, a))
-  }
+    }
   return 1;
 }
 
@@ -169,19 +169,29 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
 m_int str2char(const m_str c, m_int linepos) {
   if(c[0] == '\\') {
     switch(c[1]) {
-    case '0':  return '\0';
-    case '\'': return '\'';
-    case '\\': return '\\';
-    case 'a':  return '\a';
-    case 'b':  return '\b';
-    case 'f':  return '\f';
-    case 'n':  return '\n';
-    case 'r':  return '\r';
-    case 't':  return '\t';
-    case 'v':  return 'v';
-    default:
-      err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
-      return -1;
+      case '0':
+        return '\0';
+      case '\'':
+        return '\'';
+      case '\\':
+        return '\\';
+      case 'a':
+        return '\a';
+      case 'b':
+        return '\b';
+      case 'f':
+        return '\f';
+      case 'n':
+        return '\n';
+      case 'r':
+        return '\r';
+      case 't':
+        return '\t';
+      case 'v':
+        return 'v';
+      default:
+        err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
+        return -1;
     }
   } else
     return c[0];

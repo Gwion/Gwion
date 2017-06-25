@@ -20,10 +20,18 @@ m_bool base_tick(UGen u) {
   for(i = 1; i < size; i++) {
     ugen = (UGen)vector_at(&u->ugen, i);
     switch(u->op) {
-      case 1: u->in = (u->out += ugen->out); return 1;
-      case 2: u->in = (u->out -= ugen->out); return 1;
-      case 3: u->in = (u->out *= ugen->out); return 1;
-      case 4: u->in = (u->out /= ugen->out); return 1;
+      case 1:
+        u->in = (u->out += ugen->out);
+        return 1;
+      case 2:
+        u->in = (u->out -= ugen->out);
+        return 1;
+      case 3:
+        u->in = (u->out *= ugen->out);
+        return 1;
+      case 4:
+        u->in = (u->out /= ugen->out);
+        return 1;
     }
   }
   return 1;
@@ -41,8 +49,8 @@ m_bool adc_tick(UGen u) {
   m_uint  i;
   m_float last = 0;
   BBQ sp = (BBQ)u->ug;
-  for(i = u->n_out +1; --i;) {
-	m_uint j = i -1;
+  for(i = u->n_out + 1; --i;) {
+    m_uint j = i - 1;
     M_Object obj = u->channel[j];
     obj->ugen->last = sp->in[j];
     last += (obj->ugen->out = sp->in[j]);
@@ -59,12 +67,12 @@ void ugen_compute(UGen u) {
   u->done = 1;
   if(u->channel)
     for(i = u->n_chan + 1; --i;)
-      ugen_compute(u->channel[i-1]->ugen);
+      ugen_compute(u->channel[i - 1]->ugen);
   else for(i = vector_size(&u->ugen) + 1; --i;)
       ugen_compute((UGen)vector_at(&u->ugen, i - 1));
   if(u->ref) {
     for(i = u->ref->n_chan + 1; --i;) {
-      ugen = u->ref->channel[i -1]->ugen;
+      ugen = u->ref->channel[i - 1]->ugen;
       ugen->tick(ugen);
     }
     u->tick(u);
@@ -95,7 +103,7 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
     u->channel = malloc(u->n_chan * sizeof(M_Object));
     m_uint i;
     for(i = u->n_chan + 1; --i;) {
-      m_uint j = i -1;
+      m_uint j = i - 1;
       M_Object chan = new_M_UGen();
       assign_ugen(chan->ugen, n_in > j, n_out > j, 0, NULL);
       chan->ugen->tick = base_tick;
@@ -136,7 +144,7 @@ static INSTR(ugen_connect) {
         M_Object obj = rhs->ugen->channel[j];
         if(lhs->ugen->n_out > 1) {
           vector_add(&obj->ugen->ugen, (vtype)lhs->ugen->channel[j % lhs->ugen->n_out]->ugen);
-          vector_add(&lhs->ugen->channel[j%lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
+          vector_add(&lhs->ugen->channel[j % lhs->ugen->n_out]->ugen->to, (vtype)obj->ugen);
         } else {
           vector_add(&obj->ugen->ugen, (vtype)lhs->ugen);
           vector_add(&lhs->ugen->to, (vtype)obj->ugen);

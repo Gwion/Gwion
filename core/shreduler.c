@@ -141,7 +141,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
     err_msg(VM_, 0,  "(wake time is past) - %f : %f for shred %i", wake_time, get_now(s), shred->xid); // LCOV_EXCL_LINE
   }
   if(shred->xid == -1)
-    shred->xid =s->n_shred++;
+    shred->xid = s->n_shred++;
 
   shred->wake_time = wake_time;
   if(!s->list)

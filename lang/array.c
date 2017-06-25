@@ -125,14 +125,14 @@ void v4_vector_set(M_Vector v, m_uint i, m_vec4 data) {
 }
 
 void m_vector_rem(M_Vector v, m_uint index) {
-  char c[--v->len*v->size];
+  char c[--v->len * v->size];
   if(index)
-    memcpy(c, v->ptr, index*v->size);
+    memcpy(c, v->ptr, index * v->size);
   ++index;
-  memcpy(c + (index-1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
-  if(v->len > 2 && v->len < v->cap/2) {
+  memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
+  if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
-    v->ptr = realloc(v->ptr, v->cap*v->size);
+    v->ptr = realloc(v->ptr, v->cap * v->size);
   }
   memcpy(v->ptr, c, v->cap * v->size);
 }

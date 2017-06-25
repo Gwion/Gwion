@@ -336,14 +336,14 @@ static SFUN(std_itoa) {
   char c[1024];
   int value = *(m_int*)MEM(SZ_INT);
   sprintf(c, "%i", value);
-  RETURN->d.v_object = new_String(shred,c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 static SFUN(std_ftoa) {
   char c[1024];
   m_float value = *(m_float*)MEM(SZ_INT);
   sprintf(c, "%f", value);
-  RETURN->d.v_object = new_String(shred,c);
+  RETURN->d.v_object = new_String(shred, c);
 }
 
 static SFUN(std_ftoi) {

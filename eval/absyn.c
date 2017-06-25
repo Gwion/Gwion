@@ -31,12 +31,12 @@ static void free_var_decl(Var_Decl a) {
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     } else if(!a->value->owner_class) { // breaks for loop ?
-if(!GET_FLAG(a->value, ae_flag_global)) {
+      if(!GET_FLAG(a->value, ae_flag_global)) {
 //      REM_REF(a->value->m_type);
-      REM_REF(a->value);
-}else      if(!GET_FLAG(a->value, 
-ae_flag_builtin) && a->value->m_type->array_depth) {
-}
+        REM_REF(a->value);
+      } else      if(!GET_FLAG(a->value,
+                               ae_flag_builtin) && a->value->m_type->array_depth) {
+      }
     }
   }
   if(a->array)
@@ -590,17 +590,17 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
 static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
-  else {
-    if(a->args) // commented 13/04/17 for typedef int[]
-      free_arg_list(a->args);
-    free_type_decl(a->type);
-  }
-/*
-  if(a->value && !GET_FLAG(a->value, ae_flag_member) && !GET_FLAG(a, ae_flag_static)) {
-    REM_REF(a->value->m_type);
-    REM_REF(a->value)
-  }
-*/
+    else {
+      if(a->args) // commented 13/04/17 for typedef int[]
+        free_arg_list(a->args);
+      free_type_decl(a->type);
+    }
+  /*
+    if(a->value && !GET_FLAG(a->value, ae_flag_member) && !GET_FLAG(a, ae_flag_static)) {
+      REM_REF(a->value->m_type);
+      REM_REF(a->value)
+    }
+  */
 }
 
 Exp new_exp_call(Exp base, Exp args, int pos) {
@@ -670,39 +670,39 @@ void free_expression(Exp exp) {
   Exp tmp, curr = exp;
   while(curr) {
     switch(curr->exp_type) {
-    case ae_exp_decl:
-      free_exp_decl(&curr->d.exp_decl);
-      break;
-    case ae_exp_binary:
-      free_exp_binary(&curr->d.exp_binary);
-      break;
-    case ae_exp_unary:
-      free_unary_expression(&curr->d.exp_unary);
-      break;
-    case ae_exp_primary:
-      free_exp_primary(&curr->d.exp_primary);
-      break;
-    case ae_exp_cast:
-      free_exp_cast(&curr->d.exp_cast);
-      break;
-    case ae_exp_postfix:
-      free_exp_postfix(&curr->d.exp_postfix);
-      break;
-    case ae_exp_call:
-      free_exp_call(&curr->d.exp_func);
-      break;
-    case ae_exp_array:
-      free_array_expression(&curr->d.exp_array);
-      break;
-    case ae_exp_if:
-      free_if_expression(&curr->d.exp_if);
-      break;
-    case ae_exp_dot:
-      free_dot_member_expression(&curr->d.exp_dot);
-      break;
-    case ae_exp_dur:
-      free_dur_expression(&curr->d.exp_dur);
-      break;
+      case ae_exp_decl:
+        free_exp_decl(&curr->d.exp_decl);
+        break;
+      case ae_exp_binary:
+        free_exp_binary(&curr->d.exp_binary);
+        break;
+      case ae_exp_unary:
+        free_unary_expression(&curr->d.exp_unary);
+        break;
+      case ae_exp_primary:
+        free_exp_primary(&curr->d.exp_primary);
+        break;
+      case ae_exp_cast:
+        free_exp_cast(&curr->d.exp_cast);
+        break;
+      case ae_exp_postfix:
+        free_exp_postfix(&curr->d.exp_postfix);
+        break;
+      case ae_exp_call:
+        free_exp_call(&curr->d.exp_func);
+        break;
+      case ae_exp_array:
+        free_array_expression(&curr->d.exp_array);
+        break;
+      case ae_exp_if:
+        free_if_expression(&curr->d.exp_if);
+        break;
+      case ae_exp_dot:
+        free_dot_member_expression(&curr->d.exp_dot);
+        break;
+      case ae_exp_dur:
+        free_dur_expression(&curr->d.exp_dur);
+        break;
     }
     tmp = curr;
     curr = curr->next;
@@ -957,50 +957,50 @@ __inline static void free_stmt_union(Stmt_Union a) {
 
 static void free_stmt(Stmt stmt) {
   switch(stmt->type) {
-  case ae_stmt_exp:
-    free_stmt_exp(&stmt->d.stmt_exp);
-    break;
-  case ae_stmt_while:
-    free_stmt_flow(&stmt->d.stmt_while);
-    break;
-  case ae_stmt_until:
-    free_stmt_flow(&stmt->d.stmt_until);
-    break;
-  case ae_stmt_for:
-    free_stmt_for(&stmt->d.stmt_for);
-    break;
-  case ae_stmt_loop:
-    free_stmt_loop(&stmt->d.stmt_loop);
-    break;
-  case ae_stmt_if:
-    free_stmt_if(&stmt->d.stmt_if);
-    break;
-  case ae_stmt_code:
-    free_stmt_code(&stmt->d.stmt_code);
-    break;
-  case ae_stmt_switch:
-    free_stmt_switch(&stmt->d.stmt_switch);
-    break;
-  case ae_stmt_break:
-  case ae_stmt_continue:
-    break;
-  case ae_stmt_return:
-    free_stmt_exp(&stmt->d.stmt_return);
-    break;
-  case ae_stmt_case:
-    free_stmt_exp(&stmt->d.stmt_case);
-    break;
-  case ae_stmt_gotolabel:
-    break;
-  case ae_stmt_enum:
-    free_stmt_enum(&stmt->d.stmt_enum);
-    break;
-  case ae_stmt_funcptr:
-    free_stmt_func_ptr(&stmt->d.stmt_ptr);
-    break;
-  case ae_stmt_union:
-    free_stmt_union(&stmt->d.stmt_union);
-    break;
+    case ae_stmt_exp:
+      free_stmt_exp(&stmt->d.stmt_exp);
+      break;
+    case ae_stmt_while:
+      free_stmt_flow(&stmt->d.stmt_while);
+      break;
+    case ae_stmt_until:
+      free_stmt_flow(&stmt->d.stmt_until);
+      break;
+    case ae_stmt_for:
+      free_stmt_for(&stmt->d.stmt_for);
+      break;
+    case ae_stmt_loop:
+      free_stmt_loop(&stmt->d.stmt_loop);
+      break;
+    case ae_stmt_if:
+      free_stmt_if(&stmt->d.stmt_if);
+      break;
+    case ae_stmt_code:
+      free_stmt_code(&stmt->d.stmt_code);
+      break;
+    case ae_stmt_switch:
+      free_stmt_switch(&stmt->d.stmt_switch);
+      break;
+    case ae_stmt_break:
+    case ae_stmt_continue:
+      break;
+    case ae_stmt_return:
+      free_stmt_exp(&stmt->d.stmt_return);
+      break;
+    case ae_stmt_case:
+      free_stmt_exp(&stmt->d.stmt_case);
+      break;
+    case ae_stmt_gotolabel:
+      break;
+    case ae_stmt_enum:
+      free_stmt_enum(&stmt->d.stmt_enum);
+      break;
+    case ae_stmt_funcptr:
+      free_stmt_func_ptr(&stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_union:
+      free_stmt_union(&stmt->d.stmt_union);
+      break;
   }
   free(stmt);
 }
@@ -1059,24 +1059,24 @@ static void free_class_def(Class_Def a) {
 
 static void free_section(Section* section) {
   switch(section->type) {
-  case ae_section_class:
-    free_class_def(section->d.class_def);
-    break;
-  case ae_section_stmt:
-    free_stmt_list(section->d.stmt_list);
-    break;
-  case ae_section_func:
-    if(!section->d.func_def)
+    case ae_section_class:
+      free_class_def(section->d.class_def);
       break;
-    free_stmt(section->d.func_def->code);
+    case ae_section_stmt:
+      free_stmt_list(section->d.stmt_list);
+      break;
+    case ae_section_func:
+      if(!section->d.func_def)
+        break;
+      free_stmt(section->d.func_def->code);
 //if(section->d.func_def->types) {
 //REM_REF(section->d.func_def->d.func->value_ref)
 //REM_REF(section->d.func_def->d.func)
 
-//}    else 
-if(!section->d.func_def->d.func)
-      free_func_def(section->d.func_def);
-    break;
+//}    else
+      if(!section->d.func_def->d.func)
+        free_func_def(section->d.func_def);
+      break;
   }
   free(section);
 }

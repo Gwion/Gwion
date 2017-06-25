@@ -16,17 +16,17 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Type t = find_type(env, decl->type->xid);
   if(!t)
     CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
-          s_name(decl->type->xid->xid)))
-      while(list) {
-        var_decl = list->self;
-        decl->num_decl++;
-        if(var_decl->array) {
-          CHECK_BB(verify_array(var_decl->array))
-            if(var_decl->array->exp_list)
-              CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
+                     s_name(decl->type->xid->xid)))
+    while(list) {
+      var_decl = list->self;
+      decl->num_decl++;
+      if(var_decl->array) {
+        CHECK_BB(verify_array(var_decl->array))
+        if(var_decl->array->exp_list)
+          CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
         }
-        list = list->next;
-      }
+      list = list->next;
+    }
   decl->m_type = t;
   //  ADD_REF(t);
   return 1;
@@ -37,14 +37,14 @@ static m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
   debug_msg("scan1",  "binary");
 #endif
   CHECK_BB(scan1_exp(env, binary->lhs))
-    CHECK_BB(scan1_exp(env, binary->rhs))
-    return 1;
+  CHECK_BB(scan1_exp(env, binary->rhs))
+  return 1;
 }
 
 static m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
   if(prim->type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
-      return 1;
+    return 1;
 }
 
 static m_bool scan1_exp_array(Env env, Exp_Array* array) {
@@ -52,9 +52,9 @@ static m_bool scan1_exp_array(Env env, Exp_Array* array) {
   debug_msg("scan1", "array");
 #endif
   CHECK_BB(verify_array(array->indices))
-    CHECK_BB(scan1_exp(env, array->base))
-    CHECK_BB(scan1_exp(env, array->indices->exp_list))
-    return 1;
+  CHECK_BB(scan1_exp(env, array->base))
+  CHECK_BB(scan1_exp(env, array->indices->exp_list))
+  return 1;
 }
 
 static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
@@ -62,7 +62,7 @@ static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
   debug_msg("scan1", "cast");
 #endif
   CHECK_BB(scan1_exp(env, cast->exp))
-    return 1;
+  return 1;
 }
 
 static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
@@ -70,21 +70,21 @@ static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
   debug_msg("scan1", "postfix");
 #endif
   CHECK_BB(scan1_exp(env, postfix->exp))
-    switch(postfix->op) {
-      case op_plusplus:
-      case op_minusminus:
-        if(postfix->exp->meta != ae_meta_var) {
-          CHECK_BB(err_msg(SCAN1_, postfix->exp->pos,
-                "postfix operator '%s' cannot be used"
-                " on non-mutable data-type...", op2str(postfix->op)))
-        }
-        return 1;
-        break;
-      default: // LCOV_EXCL_START
-        CHECK_BB(err_msg(SCAN1_, postfix->pos,
-              "internal compiler error (pre-scan): unrecognized postfix '%i'",
-              op2str(postfix->op)))
-    }        // LCOV_EXCL_STOP
+  switch(postfix->op) {
+    case op_plusplus:
+    case op_minusminus:
+      if(postfix->exp->meta != ae_meta_var) {
+        CHECK_BB(err_msg(SCAN1_, postfix->exp->pos,
+                         "postfix operator '%s' cannot be used"
+                         " on non-mutable data-type...", op2str(postfix->op)))
+      }
+      return 1;
+      break;
+    default: // LCOV_EXCL_START
+      CHECK_BB(err_msg(SCAN1_, postfix->pos,
+                       "internal compiler error (pre-scan): unrecognized postfix '%i'",
+                       op2str(postfix->op)))
+  }        // LCOV_EXCL_STOP
   return 1;
 }
 
@@ -93,8 +93,8 @@ static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
   debug_msg("scan1",  "dur");
 #endif
   CHECK_BB(scan1_exp(env, dur->base))
-    CHECK_BB(scan1_exp(env, dur->unit))
-    return 1;
+  CHECK_BB(scan1_exp(env, dur->unit))
+  return 1;
 }
 
 static m_bool scan1_exp_call1(Env env, Exp exp_func, Exp args, Func func, int pos) {
@@ -102,8 +102,8 @@ static m_bool scan1_exp_call1(Env env, Exp exp_func, Exp args, Func func, int po
   debug_msg("scan1", "func call1");
 #endif
   CHECK_BB(scan1_exp(env, exp_func))
-    CHECK_BB(args && scan1_exp(env, args))
-    return 1;
+  CHECK_BB(args && scan1_exp(env, args))
+  return 1;
 }
 
 static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
@@ -113,7 +113,7 @@ static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
   if(exp_func->types)
     return 1;
   return scan1_exp_call1(env, exp_func->func,
-      exp_func->args, exp_func->m_func, exp_func->pos);
+                         exp_func->args, exp_func->m_func, exp_func->pos);
 }
 
 static m_bool scan1_exp_dot(Env env, Exp_Dot* member) {
@@ -143,38 +143,38 @@ static m_bool scan1_exp(Env env, Exp exp) {
     switch(curr->exp_type) {
       case ae_exp_primary:
         CHECK_BB(scan1_exp_primary(env, &curr->d.exp_primary))
-          break;
+        break;
       case ae_exp_decl:
         CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
-          break;
+        break;
       case ae_exp_unary:
         if(exp->d.exp_unary.code)
           CHECK_BB(scan1_stmt(env, exp->d.exp_unary.code))
-            break;
+          break;
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
-          break;
+        break;
       case ae_exp_postfix:
         CHECK_BB(scan1_exp_postfix(env, &curr->d.exp_postfix))
-          break;
+        break;
       case ae_exp_cast:
         CHECK_BB(scan1_exp_cast(env, &curr->d.exp_cast))
-          break;
+        break;
       case ae_exp_call:
         CHECK_BB(scan1_exp_call(env, &curr->d.exp_func))
-          break;
+        break;
       case ae_exp_array:
         CHECK_BB(scan1_exp_array(env, &curr->d.exp_array))
-          break;
+        break;
       case ae_exp_dot:
         CHECK_BB(scan1_exp_dot(env, &curr->d.exp_dot))
-          break;
+        break;
       case ae_exp_dur:
         CHECK_BB(scan1_exp_dur(env, &curr->d.exp_dur))
-          break;
+        break;
       case ae_exp_if:
         CHECK_BB(scan1_exp_if(env, &curr->d.exp_if))
-          break;
+        break;
     }
     curr = curr->next;
   }
@@ -217,10 +217,10 @@ static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
   debug_msg("scan1", "for");
 #endif
   CHECK_BB(scan1_stmt(env, stmt->c1))
-    CHECK_BB(scan1_stmt(env, stmt->c2))
-    CHECK_BB(scan1_exp(env, stmt->c3))
-    CHECK_BB(scan1_stmt(env, stmt->body))
-    return 1;
+  CHECK_BB(scan1_stmt(env, stmt->c2))
+  CHECK_BB(scan1_exp(env, stmt->c3))
+  CHECK_BB(scan1_stmt(env, stmt->body))
+  return 1;
 }
 
 static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
@@ -228,8 +228,8 @@ static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
   debug_msg("scan1", "loop");
 #endif
   CHECK_BB(scan1_exp(env, stmt->cond))
-    CHECK_BB(scan1_stmt(env, stmt->body))
-    return 1;
+  CHECK_BB(scan1_stmt(env, stmt->body))
+  return 1;
 }
 
 static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
@@ -251,10 +251,10 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
   debug_msg("scan1", "if");
 #endif
   CHECK_BB(scan1_exp(env, stmt->cond))
-    CHECK_BB(scan1_stmt(env, stmt->if_body))
-    if(stmt->else_body)
-      CHECK_BB(scan1_stmt(env, stmt->else_body))
-        return 1;
+  CHECK_BB(scan1_stmt(env, stmt->if_body))
+  if(stmt->else_body)
+    CHECK_BB(scan1_stmt(env, stmt->else_body))
+    return 1;
 }
 
 static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
@@ -336,23 +336,23 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
 
     if(l->self->exp_type != ae_exp_decl) {
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
-            "invalid expression type '%i' in union declaration."))
+                       "invalid expression type '%i' in union declaration."))
     }
     Type t = find_type(env, l->self->d.exp_decl.type->xid);
     if(!t) {
       CHECK_BB(err_msg(SCAN1_, l->self->pos,
-            "unknown type '%s' in union declaration ",
-            s_name(l->self->d.exp_decl.type->xid->xid)))
+                       "unknown type '%s' in union declaration ",
+                       s_name(l->self->d.exp_decl.type->xid->xid)))
     }
     while(list) {
       var_decl = list->self;
       l->self->d.exp_decl.num_decl++;
       if(var_decl->array) {
         CHECK_BB(verify_array(var_decl->array))
-          if(var_decl->array->exp_list) {
-            CHECK_BB(err_msg(SCAN1_, l->self->pos,
-                  "array declaration must be empty in union."))
-          }
+        if(var_decl->array->exp_list) {
+          CHECK_BB(err_msg(SCAN1_, l->self->pos,
+                           "array declaration must be empty in union."))
+        }
       }
       list = list->next;
     }
@@ -371,7 +371,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
 //  if(!stmt)
 //    return 1;
 
- if((m_uint)stmt < 100) return 1;
+  if((m_uint)stmt < 1000) return 1;
   // DIRTY!!! happens when '1, new Object', for instance
 //  if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
 //    return 1;
@@ -382,28 +382,28 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
       break;
     case ae_stmt_code:
       SCOPE(ret = scan1_stmt_code(env, &stmt->d.stmt_code, 1))
-        break;
+      break;
     case ae_stmt_return:
       ret = scan1_stmt_return(env, &stmt->d.stmt_return);
       break;
     case ae_stmt_if:
       NSPC(ret = scan1_stmt_if(env, &stmt->d.stmt_if))
-        break;
+      break;
     case ae_stmt_while:
       NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_while))
-        break;
+      break;
     case ae_stmt_for:
       NSPC(ret = scan1_stmt_for(env, &stmt->d.stmt_for))
-        break;
+      break;
     case ae_stmt_until:
       NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_until))
-        break;
+      break;
     case ae_stmt_loop:
       NSPC(ret = scan1_stmt_loop(env, &stmt->d.stmt_loop))
-        break;
+      break;
     case ae_stmt_switch:
       NSPC(ret = scan1_stmt_switch(env, &stmt->d.stmt_switch))
-        break;
+      break;
     case ae_stmt_case:
       ret = scan1_stmt_case(env, &stmt->d.stmt_case);
       break;
@@ -432,7 +432,7 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list) {
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(scan1_stmt(env, curr->stmt))
-      curr = curr->next;
+    curr = curr->next;
   }
   return 1;
 }
@@ -445,12 +445,12 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
 
-      if(!GET_FLAG(f, ae_flag_op) && name2op(s_name(f->name)) > 0)
-        CHECK_BB(err_msg(SCAN1_, f->pos,
-              "'%s' is a reserved operator name", s_name(f->name)))
+    if(!GET_FLAG(f, ae_flag_op) && name2op(s_name(f->name)) > 0)
+      CHECK_BB(err_msg(SCAN1_, f->pos,
+                       "'%s' is a reserved operator name", s_name(f->name)))
 
-          if(f->types)
-            return 1;
+      if(f->types)
+        return 1;
   Arg_List arg_list = NULL;
   m_uint count = 0;
 
@@ -458,13 +458,13 @@ m_bool scan1_func_def(Env env, Func_Def f) {
 
   if(!f->ret_type) {
     CHECK_BB(err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
-          s_name(f->type_decl->xid->xid), s_name(f->name)))
+                     s_name(f->type_decl->xid->xid), s_name(f->name)))
   }
 
   if(f->type_decl->array) {
     CHECK_BB(verify_array(f->type_decl->array))
 
-      Type t = NULL;
+    Type t = NULL;
     Type t2 = f->ret_type;
     if(f->type_decl->array->exp_list) {
       err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", s_name(f->name));
@@ -483,8 +483,8 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
       m_str path = type_path(arg_list->type_decl->xid);
       err_msg(SCAN1_, arg_list->pos,
-          "'%s' unknown type in argument %i of func %s",
-          path, count, s_name(f->name));
+              "'%s' unknown type in argument %i of func %s",
+              path, count, s_name(f->name));
       free(path);
       return -1;
     }
@@ -494,14 +494,14 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   if(GET_FLAG(f, ae_flag_op)) {
     if(count > 3 || count == 1)
       CHECK_BB(err_msg(SCAN1_, f->pos,
-            "operators can only have one or two arguments\n"))
-        if(name2op(s_name(f->name)) < 0)
-          CHECK_BB(err_msg(SCAN1_, f->pos,
-                "%s is not a valid operator name\n", s_name(f->name)))
-  }
+                       "operators can only have one or two arguments\n"))
+      if(name2op(s_name(f->name)) < 0)
+        CHECK_BB(err_msg(SCAN1_, f->pos,
+                         "%s is not a valid operator name\n", s_name(f->name)))
+      }
   if(f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
     CHECK_BB(err_msg(SCAN1_, f->pos, "...in function '%s'\n", s_name(f->name)))
-      return 1;
+    return 1;
 }
 
 static m_bool scan1_class_def(Env env, Class_Def class_def) {
@@ -540,13 +540,13 @@ m_bool scan1_ast(Env env, Ast ast) {
     switch(prog->section->type) {
       case ae_section_stmt:
         CHECK_BB(scan1_stmt_list(env, prog->section->d.stmt_list))
-          break;
+        break;
       case ae_section_func:
         CHECK_BB(scan1_func_def(env, prog->section->d.func_def))
-          break;
+        break;
       case ae_section_class:
         CHECK_BB(scan1_class_def(env, prog->section->d.class_def))
-          break;
+        break;
     }
     prog = prog->next;
   }
