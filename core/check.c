@@ -392,8 +392,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
     case ae_primary_hack:
       if(primary->d.exp->exp_type == ae_exp_decl)
         CHECK_BO(err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n"))
-      CHECK_OO((check_exp(env, primary->d.exp)))
-      {
+        CHECK_OO((check_exp(env, primary->d.exp))) {
         Exp e = primary->d.exp;
         while(e) {
           if(e->type->xid == t_function.xid &&

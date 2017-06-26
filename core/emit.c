@@ -1623,11 +1623,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   if(func->code)
     CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", s_name(func_def->name))) // LCOV_EXCL_LINE
 
-  if(func_def->types) // don't check template definition
-  {
-    func_def->flag &= ~ae_flag_template;
-    return 1;
-  }
+    if(func_def->types) { // don't check template definition
+      func_def->flag &= ~ae_flag_template;
+      return 1;
+    }
 
   if(!emit->env->class_def) {
     local = frame_alloc_local(emit->code->frame, value->m_type->size, value->name, 1, 0);
