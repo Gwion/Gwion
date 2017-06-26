@@ -392,9 +392,18 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
     case ae_primary_hack:
       if(primary->d.exp->exp_type == ae_exp_decl)
         CHECK_BO(err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n"))
-        CHECK_OO((t = check_exp(env, primary->d.exp)))
-        return &t_gack;
-      break;
+      CHECK_OO((check_exp(env, primary->d.exp)))
+      {
+        Exp e = primary->d.exp;
+        while(e) {
+          if(e->type->xid == t_function.xid &&
+              !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
+              GET_FLAG(e->type->d.func, ae_flag_member))
+            CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
+            e = e->next;
+        }
+      }
+      return &t_gack;
     case ae_primary_array:
       t = check_exp_prim_array(env, primary);
       break;
@@ -1552,7 +1561,6 @@ m_bool check_func_def(Env env, Func_Def f) {
   Type parent = NULL;
   Value override = NULL;
   Value  v = NULL;
-  Value vararg = NULL;
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
   m_bool parent_match = 0;
@@ -1662,9 +1670,11 @@ m_bool check_func_def(Env env, Func_Def f) {
   }
 
   if(GET_FLAG(f, ae_flag_variadic)) {
-    vararg = new_value(&t_vararg, "vararg");
-    SET_FLAG(vararg, ae_flag_checked);
-    nspc_add_value(env->curr, insert_symbol("vararg"), vararg);
+    func->variadic = malloc(sizeof(struct Variadic_Info));
+    func->variadic->instr = NULL;
+    func->variadic->value = new_value(&t_vararg, "vararg");
+    SET_FLAG(func->variadic->value, ae_flag_checked);
+    nspc_add_value(env->curr, insert_symbol("vararg"), func->variadic->value);
   }
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
     ret = err_msg(TYPE_, f->type_decl->pos,
@@ -1672,8 +1682,6 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
-  if(vararg)
-    REM_REF(vararg);
   nspc_pop_value(env->curr);
   env->func = NULL;
   return ret;

@@ -373,13 +373,14 @@ INSTR(Gack) {
   m_uint len, longest = 0;
   for(i = 0; i < size; i++) {
     type = (Type)vector_at(v, i);
+    if(type->xid == t_function.xid && GET_FLAG(type->d.func, ae_flag_member))
+      POP_REG(shred, SZ_INT);
     POP_REG(shred,  type->size);
     len = strlen(type->name);
     if(len > longest)
       longest = len;
   }
-
-  for(i = size; i > 0; i--) {
+  for(i = size + 1; --i;) {
 #ifdef DEBUG
 #ifdef COLOR
     fprintf(stdout, "\033[1m[\033[34mDEBUG\033[0m] [\033[1m\033[30m%li\033[0m] ", shred->xid);
@@ -388,7 +389,6 @@ INSTR(Gack) {
 #endif
 #endif
     type = (Type)vector_at(v, size - i);
-    /*    offset -= type->size;*/
 #ifdef COLOR
     fprintf(stdout, "\033[1m");
 #endif
@@ -412,7 +412,6 @@ INSTR(Gack) {
     int j;
     for(j = 0; j < longest - (name ? strlen(name) : 0); j++)
       fprintf(stdout, " ");
-    /*exit(2);*/
     if(type->xid == t_int.xid)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%li\033[1m", *(m_uint*)REG(0));
@@ -456,9 +455,11 @@ INSTR(Gack) {
 #endif
     else if(type->xid == t_void.xid)
       fprintf(stdout, "(void)");
-    else if(type->xid == t_function.xid)
-      /*      fprintf(stdout, "%p %s", type, type->name, type->func ? type->func->name : "");*/
+    else if(type->xid == t_function.xid) {
+if(type->xid == t_function.xid && GET_FLAG(type->d.func, ae_flag_member))
+//PUSH_REG(shred, SZ_INT);
       fprintf(stdout, "%s %p", type->name, (void*) * (Func*)REG(0));
+}
     else if(isa(type, &t_func_ptr) > 0)
       fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)REG(0));
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)REG(0),*/

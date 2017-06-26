@@ -1482,22 +1482,22 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       l = l->next;
     }
     if(!strcmp(s_name(member->xid), "start")) {
-      if(emit->env->func->variadic_start) {
-        free(emit->env->func->variadic_start);
+      if(emit->env->func->variadic->instr) {
+        free(emit->env->func->variadic->instr);
         CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
       }
-      emit->env->func->variadic_start = add_instr(emit, Vararg_start);
-      emit->env->func->variadic_start->m_val = offset;
-      emit->env->func->variadic_start->m_val2 = vector_size(&emit->code->code);
+      emit->env->func->variadic->instr = add_instr(emit, Vararg_start);
+      emit->env->func->variadic->instr->m_val = offset;
+      emit->env->func->variadic->instr->m_val2 = vector_size(&emit->code->code);
     }
     if(!strcmp(s_name(member->xid), "end")) {
-      if(!emit->env->func->variadic_start)
+      if(!emit->env->func->variadic->instr)
         CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
         Instr instr = add_instr(emit, Vararg_end);
       instr->m_val = offset;
-      instr->m_val2 = emit->env->func->variadic_start->m_val2;
-      emit->env->func->variadic_start->m_val2 = vector_size(&emit->code->code);
-      *(m_uint*)emit->env->func->variadic_start->ptr = 1;
+      instr->m_val2 = emit->env->func->variadic->instr->m_val2;
+      emit->env->func->variadic->instr->m_val2 = vector_size(&emit->code->code);
+      *(m_uint*)emit->env->func->variadic->instr->ptr = 1;
     } else if(!strcmp(s_name(member->xid), "i")) {
       Instr instr = add_instr(emit, Vararg_int);
       instr->m_val = offset;
@@ -1623,8 +1623,11 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   if(func->code)
     CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", s_name(func_def->name))) // LCOV_EXCL_LINE
 
-    if(func_def->types) // don't check template definition
-      return 1;
+  if(func_def->types) // don't check template definition
+  {
+    func_def->flag &= ~ae_flag_template;
+    return 1;
+  }
 
   if(!emit->env->class_def) {
     local = frame_alloc_local(emit->code->frame, value->m_type->size, value->name, 1, 0);
@@ -1683,8 +1686,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   emit_pop_scope(emit);
 
-  if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic_start ||
-      !*(m_uint*)emit->env->func->variadic_start->ptr))
+  if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic->instr ||
+      !*(m_uint*)emit->env->func->variadic->instr->ptr))
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
     m_uint i;
   for(i = 0; i < vector_size(&emit->code->stack_return); i++) {
@@ -1699,8 +1702,6 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     SET_FLAG(emit->env->class_def, ae_flag_dtor);
   } else if(GET_FLAG(func->def, ae_flag_op))
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
-  // add reference
-  //  ADD_REF(func);
   emit->env->func = NULL;
   emit->code = (Code*)vector_pop(&emit->stack);
   return 1;

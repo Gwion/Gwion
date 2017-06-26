@@ -8,7 +8,6 @@ func_p();
 func_p();
 () => func_p;
 <<<func_p>>>;
-<<<test1, test2>>>;
 <<<func_p()>>>;
 test2 @=> func_p;
 func_p();

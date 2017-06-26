@@ -32,6 +32,10 @@ Func new_func(m_str name, Func_Def def) {
 
 static void free_func(Func a) {
   if(a->code) {
+    if(a->def && GET_FLAG(a->def, ae_flag_variadic)) {
+      REM_REF(a->variadic->value)
+      free(a->variadic);
+    }
     if(a->def && !GET_FLAG(a, ae_flag_template)) {
       if(!GET_FLAG(a->def, ae_flag_dtor)) {
         REM_REF(a->code);

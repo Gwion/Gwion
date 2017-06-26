@@ -605,12 +605,12 @@ static MFUN(string_replace) {
     RETURN->d.v_object = NULL;
     return;
   }
-/*
-  if(index + len + len_insert + 1 > 100000) {
-    RETURN->d.v_object = NULL;
-    return;
-  }
-*/
+  /*
+    if(index + len + len_insert + 1 > 100000) {
+      RETURN->d.v_object = NULL;
+      return;
+    }
+  */
   char c[index + len_insert + 1];
   for(i = 0; i < index; i++)
     c[i] = str[i];
