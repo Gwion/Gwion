@@ -254,7 +254,7 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
   CHECK_BB(scan1_stmt(env, stmt->if_body))
   if(stmt->else_body)
     CHECK_BB(scan1_stmt(env, stmt->else_body))
-    return 1;
+  return 1;
 }
 
 static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
@@ -371,7 +371,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
 //  if(!stmt)
 //    return 1;
 
-  if((m_uint)stmt < 1000) return 1;
+  if((m_uint)stmt < 10000) return 1;
   // DIRTY!!! happens when '1, new Object', for instance
 //  if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
 //    return 1;

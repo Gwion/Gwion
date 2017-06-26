@@ -600,16 +600,17 @@ static MFUN(string_replace) {
   strcpy(insert, STRING(arg));
   len = strlen(str);
   len_insert =  strlen(insert);
-  if(index < 0 || len < 0 || (index + len_insert + 1) <= 0) {
+  if(index >= len  || index < 0 || len < 0 || (index + len_insert + 1) <= 0) {
+    release(arg, shred);
     RETURN->d.v_object = NULL;
     return;
   }
+/*
   if(index + len + len_insert + 1 > 100000) {
     RETURN->d.v_object = NULL;
     return;
   }
-  if(index > len)
-    index = len - 1;
+*/
   char c[index + len_insert + 1];
   for(i = 0; i < index; i++)
     c[i] = str[i];
