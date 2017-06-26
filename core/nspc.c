@@ -68,7 +68,7 @@ void free_nspc(Nspc a) {
       if(isa(value->m_type, &t_class) > 0)
         REM_REF(value->m_type)
         else if(isa(value->m_type, &t_object) > 0) {
-          if(value->ptr || GET_FLAG(value, ae_flag_static) && a->class_data) {
+          if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
             VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
             VM_Shred s = new_vm_shred(code);
             M_Object obj = value->ptr ? (M_Object)value->ptr :

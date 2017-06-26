@@ -742,12 +742,16 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   exp->vm_code = code;
   emit->code = (Code*)vector_pop(&emit->stack);
 
+  if(exp->m_func->value_ref->owner_class) // just a workaround: leads to a leak
+    ADD_REF(exp->m_func->code)
+
   Exp e = exp->args;
   m_uint size = 0;
   while(e) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
+//  CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, emit->code->frame->curr_offset))
   CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0))
   return 1;
 }

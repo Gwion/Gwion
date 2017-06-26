@@ -311,7 +311,7 @@ static INSTR(Float_String_Plus) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
-  m_uint len = (rhs ? strlen(STRING(rhs)) : 0) + 1 + 7;
+  m_uint len = (rhs ? STRING(rhs) ? strlen(STRING(rhs)) : 0 : 0) + 1 + 7;
   if(!rhs)
     Except(shred, "NullStringException");
   char c[len + num_digit(lhs) + 6];
@@ -593,7 +593,7 @@ static MFUN(string_replace) {
   m_int i, len = 0, len_insert = 0, index = *(m_int*)MEM(SZ_INT);
   M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
   if(!arg) {
-    RETURN->d.v_object = NULL;
+    RETURN->d.v_object = o;
     return;
   }
   char insert[strlen(STRING(arg)) + 1];
@@ -605,12 +605,6 @@ static MFUN(string_replace) {
     RETURN->d.v_object = NULL;
     return;
   }
-  /*
-    if(index + len + len_insert + 1 > 100000) {
-      RETURN->d.v_object = NULL;
-      return;
-    }
-  */
   char c[index + len_insert + 1];
   for(i = 0; i < index; i++)
     c[i] = str[i];
