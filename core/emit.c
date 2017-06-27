@@ -480,6 +480,18 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
   return 1;
 }
 
+static m_bool emit_exp_call_helper(Emitter emit, Exp_Func* exp_func, m_bool spork) {
+  if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
+  if(emit_exp(emit, exp_func->func, 0) < 0)
+    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
+    sadd_instr(emit, MkVararg);
+    sadd_instr(emit, Reg_Push_Imm);
+  }
+  return 1;
+}
+
 static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call");
@@ -488,14 +500,8 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     Func_Def def = exp_func->m_func->def;
     ID_List base_t = def->base;
     Type_List list = exp_func->types;
-    if(exp_func->m_func->value_ref->owner_class) {
-      vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
-      emit->env->curr = exp_func->m_func->value_ref->owner_class->info;
-//      emit->env->curr = exp_func->m_func->value_ref->owner;
-      vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
-      emit->env->class_def = exp_func->m_func->value_ref->owner_class;
-//      emit->env->class_scope = 0; // check utility
-    }
+    if(exp_func->m_func->value_ref->owner_class)
+      env_push_class(emit->env, exp_func->m_func->value_ref->owner_class);
     nspc_push_type(emit->env->curr);
     while(base_t) {
       nspc_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
@@ -508,29 +514,12 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     CHECK_BB(scan2_func_def(emit->env, def))
     CHECK_BB(check_func_def(emit->env, def))
 
-    if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
-      CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
-      if(emit_exp(emit, exp_func->func, 0) < 0)
-        CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
-        if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
-          sadd_instr(emit, MkVararg);
-          sadd_instr(emit, Reg_Push_Imm);
-        }
+    CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
     nspc_pop_type(emit->env->curr);
-    if(exp_func->m_func->value_ref->owner_class) {
-      emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
-      emit->env->curr = (Nspc)vector_pop(&emit->env->nspc_stack);
-    }
-  } else {
-    if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
-      CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
-      if(emit_exp(emit, exp_func->func, 0) < 0)
-        CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
-        if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
-          sadd_instr(emit, MkVararg);
-          sadd_instr(emit, Reg_Push_Imm);
-        }
-  }
+    if(exp_func->m_func->value_ref->owner_class)
+      env_pop_class(emit->env);
+  } else
+    CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
@@ -747,8 +736,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
     e = e->next;
   }
-//  CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, emit->code->frame->curr_offset))
-  CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0))
+  CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0)) // last arg migth have to be 'emit->code->frame->curr_offset'
   return 1;
 }
 
@@ -1429,6 +1417,7 @@ static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_boo
 
 static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
   Instr instr;
+
   if(exp->meta == ae_meta_var)
     exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
