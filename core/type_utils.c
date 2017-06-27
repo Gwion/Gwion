@@ -23,29 +23,20 @@ int verify_array(Array_Sub array) {
 }
 
 int isa(Type var, Type parent) {
-  if(var->xid == parent->xid)
-    return 1;
-  if(var->parent)
-    return isa(var->parent, parent);
-  return -1;
+  return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
 }
 
 int isres(Env env, S_Symbol xid, int pos) {
   m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s))
-    goto error;
+  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
+    err_msg(UTIL_, 0, "%s is reserved.", s_name(xid));
+    return 1;
+  }
   return -1;
-error:
-  err_msg(UTIL_, 0, "%s is reserved.", s_name(xid));
-  return 1;
 }
 
 int isprim(Type type) {
-  if(type->array_depth)
-    return -1;
-  if(isa(type, &t_object) > 0)
-    return -1;
-  return 1;
+  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
 }
 
 Type find_type(Env env, ID_List path) {
