@@ -97,7 +97,7 @@ static INSTR(polar_plus) {
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
   m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
-  m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
+  m_float im = creal(a) * sin(cimag(a)) + creal(b) * sin(cimag(b));
   *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
@@ -106,8 +106,8 @@ static INSTR(polar_minus) {
   POP_REG(shred, SZ_COMPLEX * 2);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
-  m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
-  m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
+  m_float re = creal(a) * cos(cimag(a)) - creal(b) * cos(cimag(b));
+  m_float im = creal(a) * sin(cimag(a)) - creal(b) * sin(cimag(b));
   *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
   PUSH_REG(shred, SZ_COMPLEX);
 }
