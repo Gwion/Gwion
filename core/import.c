@@ -35,23 +35,23 @@ ID_List str2list(m_str path, m_uint* array_depth) {
     len -= 2;
   }
 
-  for(i = len - 1; i >= 0; i--) {
-    char c = path[i];
+  for(i = len; --i;) {
+    char c = path[i - 1];
     if(c != '.') {
       if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-          || (c == '_') || (c >= '0' && c <= '9') || (i == 0 && c == '@'))
-        curr[i] = c;
+          || (c == '_') || (c >= '0' && c <= '9') || (i == 1 && c == '@'))
+        curr[i - 1] = c;
       else {
         err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path);
         free_id_list(list);
         return NULL;
       }
     }
-    if(c == '.' || i == 0) {
-      if((i != 0 && last != '.' && last != '\0') ||
-          (i == 0 && c != '.')) {
+    if(c == '.' || i == 1) {
+      if((i != 1 && last != '.' && last != '\0') ||
+          (i == 1 && c != '.')) {
         m_int size = strlen(curr);
-        for(j = 0; j < size / 2; j++) {
+        for(j = (size / 2) + 1; --j;) {
           char s = curr[j];
           curr[j] = curr[size - j - 1];
           curr[size - j - 1] = s;
@@ -66,13 +66,11 @@ ID_List str2list(m_str path, m_uint* array_depth) {
     }
     last = c;
   }
-  path = strndup(path, len);
+  strncpy(curr, path, len);
   if(!list)
     return NULL;
-  list->xid = insert_symbol(path);
-  if(array_depth)
-    *array_depth = depth;
-  free(path);
+  list->xid = insert_symbol(curr);
+  *array_depth = depth;
   return list;
 }
 
