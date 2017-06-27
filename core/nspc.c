@@ -67,29 +67,33 @@ void free_nspc(Nspc a) {
     if(value->m_type) {
       if(isa(value->m_type, &t_class) > 0)
         REM_REF(value->m_type)
-        else if(isa(value->m_type, &t_object) > 0) {
-          if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
-            VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
-            VM_Shred s = new_vm_shred(code);
-            M_Object obj = value->ptr ? (M_Object)value->ptr :
-                           *(M_Object*)(a->class_data + value->offset);
-            s->vm_ref = vm;
-            release(obj, s);
-            free_vm_shred(s);
-          }
-          if(value->m_type->array_depth)
-            REM_REF(value->m_type);
-        } else if(isa(value->m_type, &t_func_ptr) > 0) {
-          //  just catch func pointer
-        } else if(isa(value->m_type, &t_function) > 0) {
-          if(value->m_type != &t_function && GET_FLAG(value, ae_flag_builtin))
-            REM_REF(value->m_type)
-            else if(GET_FLAG(value, ae_flag_template))
-              REM_REF(value->func_ref)
-              else
-                REM_REF(value->m_type)
-//continue;
-              }
+      else if(isa(value->m_type, &t_object) > 0) {
+        if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
+          VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
+          VM_Shred s = new_vm_shred(code);
+          M_Object obj = value->ptr ? (M_Object)value->ptr :
+              *(M_Object*)(a->class_data + value->offset);
+          s->vm_ref = vm;
+          release(obj, s);
+          free_vm_shred(s);
+        }
+        if(value->m_type->array_depth)
+          REM_REF(value->m_type);
+      } else if(isa(value->m_type, &t_func_ptr) > 0) {
+        Func f = value->func_ref;
+        while(f) {
+          Func tmp = f->next;
+          free(f);
+          f = tmp;
+        }
+      } else if(isa(value->m_type, &t_function) > 0) {
+        if(value->m_type != &t_function && GET_FLAG(value, ae_flag_builtin))
+          REM_REF(value->m_type)
+        else if(GET_FLAG(value, ae_flag_template))
+          REM_REF(value->func_ref)
+        else
+          REM_REF(value->m_type)
+        }
     }
     REM_REF(value);
   }
@@ -118,9 +122,9 @@ void free_nspc(Nspc a) {
   if(a->obj_v_table.ptr)
     vector_release(&a->obj_v_table);
   if(a->pre_ctor)
-    free_vm_code(a->pre_ctor);
+    REM_REF(a->pre_ctor);
   if(a->dtor)
-    free_vm_code(a->dtor);
+    REM_REF(a->dtor);
   if(a->op_map.ptr)
     free_op_map(&a->op_map);
   free(a);

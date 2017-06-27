@@ -51,10 +51,9 @@ static m_bool Recv(int i, char* buf) {
     FD_CLR(sock, &read_flags);
 #endif
     ssize_t len;
-    if((len = recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
+    if((len = recvfrom(sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
       err_msg(UDP, 0, "recvfrom() failed"); // LCOV_EXCL_LINE
-//    buf[255] = '\0';
-//    return strndup(buf, strlen(buf));
+    buf[len] = '\0';
     return 1;
 #ifndef __linux__
   }

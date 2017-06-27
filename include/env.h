@@ -29,7 +29,8 @@ struct Env_ {
 Env new_env();
 void env_reset(Env env);
 void free_env();
-
+m_bool env_push_class(Env env, Type type);
+m_bool env_pop_class(Env env);
 #define SCOPE(a) env->class_scope++;a;env->class_scope--;
 #define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
 nspc_pop_value(env->curr);env->class_scope--;

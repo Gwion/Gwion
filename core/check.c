@@ -591,11 +591,11 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     }
     m_int ret = scan1_func_def(env, def);
     nspc_pop_type(env->curr);
-    if(ret < 0)                        continue;
-    if(scan2_func_def(env, def) < 0)   continue;
-    if(check_func_def(env, def) < 0)   continue;
-    if(!check_exp(env, func))          continue;
-    if(args  && !check_exp(env, args)) continue;
+    if(ret < 0 || scan2_func_def(env, def) < 0 ||
+                  check_func_def(env, def) < 0 ||
+                 !check_exp(env, func)         ||
+       (args  && !check_exp(env, args)))
+      goto next;
     def->d.func->next = NULL;
     m_func = find_func_match(def->d.func, args);
     if(m_func) {
@@ -752,8 +752,9 @@ next:
     Func f = malloc(sizeof(struct Func_));
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
-    func = f;
-    //up->value_ref = exp_func->d.exp_primary.value;
+    if(ptr->func_ref)
+      f->next = ptr->func_ref;
+    func = ptr->func_ref = f;
   }
   *m_func = func;
   return func->def->ret_type;

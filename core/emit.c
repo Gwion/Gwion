@@ -653,7 +653,6 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call1. '%s' offset: %i", func->name, emit->code->frame->curr_offset);
 #endif
-  m_bool is_ptr = 0;
   Instr code, offset, call;
   if(!func->code) { // function pointer or template
     Func f = isa(func->value_ref->m_type, &t_func_ptr) > 0 ||
@@ -673,7 +672,6 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
       code = add_instr(emit, Reg_Push_Code);
       code->m_val = func->value_ref->offset;
       code->m_val2 = func->value_ref->owner_class ? 1 : 0;
-      is_ptr = !func->value_ref->owner_class;
     }
   } else {
     code = add_instr(emit, Reg_Push_Ptr);
@@ -699,8 +697,6 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
     call->m_val2  = (m_uint)func->def->arg_list->type;
     *(Type*)call->ptr     = func->def->arg_list->next->type;
   }
-  if(is_ptr)
-    free(func);
   return 1;
 }
 
@@ -1121,8 +1117,8 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   Instr _goto = add_instr(emit, Goto);
   _goto->m_val = index;
 
-  if(stmt->c2)
-    op->m_val = vector_size(&emit->code->code);
+//  if(stmt->c2) // coverity told me to do so
+  op->m_val = vector_size(&emit->code->code);
   emit_pop_stack(emit, action_index);
   return 1;
 }

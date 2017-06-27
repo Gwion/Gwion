@@ -42,9 +42,8 @@ ID_List str2list(m_str path, m_uint* array_depth) {
           || (c == '_') || (c >= '0' && c <= '9') || (i == 1 && c == '@'))
         curr[i - 1] = c;
       else {
-        err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path);
         free_id_list(list);
-        return NULL;
+        CHECK_BO(err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path))
       }
     }
     if(c == '.' || i == 1) {
@@ -59,16 +58,14 @@ ID_List str2list(m_str path, m_uint* array_depth) {
         list = prepend_id_list(curr, list, 0);
         memset(curr, 0, sizeof(curr));
       } else {
-        err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path);
         free_id_list(list);
-        return NULL;
+        CHECK_BO(err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path))
       }
     }
     last = c;
   }
   strncpy(curr, path, len);
-  if(!list)
-    return NULL;
+  CHECK_OO(list)
   list->xid = insert_symbol(curr);
   *array_depth = depth;
   return list;
@@ -123,10 +120,8 @@ m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor
 }
 
 m_int import_class_end(Env env) {
-  if(!env->class_def) {
-    err_msg(TYPE_, 0, "import: too many class_end called...");
-    return -1;
-  }
+  if(!env->class_def)
+    CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   env->class_def->obj_size = env->class_def->info->offset;
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
@@ -157,12 +152,11 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
     var_decl->array->depth = array_depth;
   }
   var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  exp_decl = new_exp_decl(type_decl, var_decl_list, ((flag & ae_flag_ref) == ae_flag_static), 0);
+  exp_decl = new_exp_decl(type_decl, var_decl_list, ((flag & ae_flag_static) == ae_flag_static), 0);
   var_decl->addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
-      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0)
-    goto error;
-  if(!check_exp_decl(env, &exp_decl->d.exp_decl))
+  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0  ||
+      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
+    !check_exp_decl(env, &exp_decl->d.exp_decl))
     goto error;
   var_decl->value->flag = flag | ae_flag_builtin;
   ret = var_decl->value->offset;
@@ -190,20 +184,18 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
       arg = (DL_Value*)vector_at(&dl_fun->args, i);
       type_path = str2list(arg->type, &array_depth);
       if(!type_path) {
-        err_msg(TYPE_,  0, "...at argument '%i'...", i + 1);
         if(arg_list)
           free_arg_list(arg_list);
-        return NULL;
+        CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
       }
       type_decl = new_type_decl(type_path, 0, 0);
       type_path2 = str2list(arg->name, &array_depth2);
       free_id_list(type_path2);
       if(array_depth && array_depth2) {
-        err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module");
         free_type_decl(type_decl);
         if(arg_list)
           free_arg_list(arg_list);
-        return NULL;
+        CHECK_BO(err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module"))
       }
       if(array_depth2)
         array_depth = array_depth2;
@@ -229,10 +221,8 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
 
   flag |= ae_flag_func | ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(type_path, 0, 0))) {
-    err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name);
-    return NULL;
-  }
+      !(type_decl = new_type_decl(type_path, 0, 0)))
+    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name))
 
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
