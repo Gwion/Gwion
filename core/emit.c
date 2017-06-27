@@ -341,6 +341,16 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
+static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool emit_var) {
+  Instr alloc, push = add_instr(emit, Reg_Push_Imm);
+  push->m_val = (m_uint)v->owner_class;
+  alloc = add_instr(emit, Dot_Static_Data);
+  alloc->m_val2 = kind;
+  *(m_uint*)alloc->ptr = emit_var;
+  alloc->m_val = v->offset;
+  return 1;
+}
+
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "decl");
@@ -409,27 +419,17 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
           alloc   = add_instr(emit, f);
           alloc->m_val2 = GET_FLAG(value, ae_flag_global);
         } else { // static
+          Kindof kind = kindof(type);
           Code* code = emit->code;
           if(is_obj && !is_ref) {
             emit->code = (Code*)vector_back(&emit->stack);
             CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-            Instr push = add_instr(emit, Reg_Push_Imm);
-            push->m_val = (m_uint)emit->env->class_def;
-            alloc = add_instr(emit, Dot_Static_Data);
-            alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-            *(m_uint*)alloc->ptr = 1;
-            alloc->m_val = value->offset;
+            CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
             Instr assign  = add_instr(emit, Assign_Object);
             assign->m_val = 0;
-            /*add_instr(emit, Reg_AddRef_Object3);*/
             emit->code = code;
           }
-          Instr push = add_instr(emit, Reg_Push_Imm);
-          push->m_val = (m_uint)emit->env->class_def;
-          alloc = add_instr(emit, Dot_Static_Data);
-          alloc->m_val2 = kindof(type); // was (erroneously I think) kindof(emit->env->class_def);
-          *(m_uint*)alloc->ptr = 1;
-          alloc->m_val = value->offset;
+          CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
           list = list->next;
           continue;
         }
@@ -1394,6 +1394,33 @@ static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
   return 1;
 }
 
+static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bool emit_addr) {
+  Instr func_i, push_i;
+
+  if(v->ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
+    func_i = add_instr(emit, Dot_Static_Import_Data);
+    func_i->m_val = (m_uint)v->ptr;
+    func_i->m_val2 = kindof(v->m_type);
+    *(m_uint*)func_i->ptr = emit_addr;
+  } else { // from code
+    push_i = add_instr(emit, Reg_Push_Imm);
+    func_i = add_instr(emit, Dot_Static_Data);
+    push_i->m_val = (m_uint)type;
+    func_i->m_val = (m_uint)v->offset;
+    func_i->m_val2 = (m_uint)kindof(v->m_type);
+    *(m_uint*)func_i->ptr = emit_addr;
+  }
+  return 1;
+}
+
+static m_bool emit_dot_static_func(Emitter emit, Type type, Func func) {
+  Instr push_i = add_instr(emit, Reg_Push_Imm);
+  Instr func_i = add_instr(emit, Dot_Static_Func);
+  push_i->m_val = (m_uint)type;
+  func_i->m_val = (m_uint)func;
+  return 1;
+}
+
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "dot member");
@@ -1407,11 +1434,11 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   m_uint offset = 0;
 
   t_base = base_static ? member->t_base->d.actual_type : member->t_base;
+  value = find_value(t_base, member->xid);
   if(t_base->xid == t_complex.xid) {
     if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_exp(emit, member->base, 0))
-    value = find_value(t_base, member->xid);
     if(!strcmp(value->name, "re"))
       instr = add_instr(emit, complex_real);
     else
@@ -1422,7 +1449,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_exp(emit, member->base, 0))
-    value = find_value(t_base, member->xid);
     if(!strcmp(value->name, "mod"))
       instr = add_instr(emit, complex_real);
     else
@@ -1434,7 +1460,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_exp(emit, member->base, 0))
-    value = find_value(t_base, member->xid);
     if(!strcmp(value->name, "x"))
       instr = add_instr(emit, vec3_x);
     else if(!strcmp(value->name, "y"))
@@ -1455,7 +1480,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     if(member->base->meta == ae_meta_var)
       member->base->emit_var = 1;
     CHECK_BB(emit_exp(emit, member->base, 0))
-    value = find_value(t_base, member->xid);
     if(!strcmp(value->name, "x"))
       instr = add_instr(emit, vec4_x);
     else if(!strcmp(value->name, "y"))
@@ -1521,7 +1545,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   }
   if(!base_static) { // called from instance
     if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
-      value = find_value(t_base, member->xid);
       if(GET_FLAG(value, ae_flag_member)) { // member
         if(emit_exp(emit, member->base, 0) < 0)
           CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
@@ -1531,21 +1554,14 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         func_i->m_val2 = Kindof_Int;
         *(m_uint*)func_i->ptr = emit_addr;
         return 1;
-      } else {
-        push_i = add_instr(emit, Reg_Push_Imm);
-        func_i = add_instr(emit, Dot_Static_Data);
-        push_i->m_val = (m_uint)t_base;
-        func_i->m_val = (m_uint)offset;
-        func_i->m_val2 = (m_uint)kindof(value->m_type);
-        *(m_uint*)func_i->ptr = emit_addr;
-      }
+      } else
+        CHECK_BB(emit_dot_static_data(emit, value, kindof(value->m_type), emit_addr))
     } else if(isa(member->self->type, &t_function) > 0) { // function
-      value = find_value(t_base, member->xid);
       func = value->func_ref;
       if(GET_FLAG(func, ae_flag_member)) { // member
         if(emit_exp(emit, member->base, 0) < 0)
           CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
-          sadd_instr(emit, Reg_Dup_Last);
+        sadd_instr(emit, Reg_Dup_Last);
         func_i = add_instr(emit, Exp_Dot_Func);
         func_i->m_val = func->vt_index;
       } else { // static
@@ -1555,7 +1571,6 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         func_i->m_val = (m_uint)func;
       }
     } else { // variable
-      value = find_value(t_base, member->xid);
       offset = value->offset;
       if(GET_FLAG(value, ae_flag_member)) { // member
         CHECK_BB(emit_exp(emit, member->base, 0))
@@ -1563,46 +1578,14 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
         instr->m_val = offset;
         instr->m_val2 = kindof(value->m_type);
         *(m_uint*)instr->ptr = emit_addr;
-      } else { // static
-        if(value->ptr && GET_FLAG(value, ae_flag_builtin)) { // from C
-          func_i = add_instr(emit, Dot_Static_Import_Data);
-          func_i->m_val = (m_uint)value->ptr;
-          func_i->m_val2 = kindof(value->m_type);
-          *(m_uint*)func_i->ptr = emit_addr;
-        } else { // from code
-          push_i = add_instr(emit, Reg_Push_Imm);
-          func_i = add_instr(emit, Dot_Static_Data);
-          push_i->m_val = (m_uint)t_base;
-          func_i->m_val = (m_uint)offset;
-          func_i->m_val2 = (m_uint)kindof(value->m_type);
-          *(m_uint*)func_i->ptr = emit_addr;
-        }
-      }
+      } else // static
+        CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
     }
   } else { // static
-    if(isa(member->self->type, &t_function) > 0) {
-      value = find_value(t_base, member->xid);
-      func = value->func_ref;
-      push_i = add_instr(emit, Reg_Push_Imm);
-      func_i = add_instr(emit, Dot_Static_Func);
-      push_i->m_val = (m_uint)t_base;
-      func_i->m_val = (m_uint)func;
-    } else {
-      value = find_value(t_base, member->xid);
-      if(value->ptr && GET_FLAG(value, ae_flag_builtin)) {
-        func_i = add_instr(emit, Dot_Static_Import_Data);
-        func_i->m_val = (m_uint)value->ptr;
-        func_i->m_val2 = kindof(value->m_type);
-        *(m_uint*)func_i->ptr = emit_addr;
-      } else {
-        push_i = add_instr(emit, Reg_Push_Imm);
-        func_i = add_instr(emit, Dot_Static_Data);
-        push_i->m_val = (m_uint)t_base;
-        func_i->m_val = (m_uint)value->offset;
-        func_i->m_val2 = (m_uint)kindof(value->m_type);
-        *(m_uint*)func_i->ptr = emit_addr;
-      }
-    }
+    if(isa(member->self->type, &t_function) > 0)
+      CHECK_BB(emit_dot_static_func(emit, t_base, value->func_ref))
+    else
+      CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
   }
   return 1;
 }
@@ -1623,10 +1606,10 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   if(func->code)
     CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", s_name(func_def->name))) // LCOV_EXCL_LINE
 
-    if(func_def->types) { // don't check template definition
-      func_def->flag &= ~ae_flag_template;
-      return 1;
-    }
+  if(func_def->types) { // don't check template definition
+    func_def->flag &= ~ae_flag_template;
+    return 1;
+  }
 
   if(!emit->env->class_def) {
     local = frame_alloc_local(emit->code->frame, value->m_type->size, value->name, 1, 0);
@@ -1648,7 +1631,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     emit->code->stack_depth += SZ_INT;
     if(!frame_alloc_local(emit->code->frame, SZ_INT, "this", 1, 0))
       CHECK_BB(err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
-    }
+  }
 
   frame_push_scope(emit->code->frame);
   while(a) {
