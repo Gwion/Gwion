@@ -26,18 +26,12 @@ __inline static void free_array_sub(Array_Sub a) {
 
 static void free_var_decl(Var_Decl a) {
   if(a->value) {
-    if(GET_FLAG(a->value, ae_flag_arg)) { // func argument. this migth change
+    if(GET_FLAG(a->value, ae_flag_arg)) {
       if(a->value->m_type->array_depth)
         REM_REF(a->value->m_type);
       REM_REF(a->value);
-    } else if(!a->value->owner_class) { // breaks for loop ?
-      if(!GET_FLAG(a->value, ae_flag_global)) {
-//      REM_REF(a->value->m_type);
+    } else if(!a->value->owner_class && !GET_FLAG(a->value, ae_flag_global))
         REM_REF(a->value);
-      } else      if(!GET_FLAG(a->value,
-                               ae_flag_builtin) && a->value->m_type->array_depth) {
-      }
-    }
   }
   if(a->array)
     free_array_sub(a->array);
@@ -263,90 +257,54 @@ static void free_dur_expression(Exp_Dur* a) {
   free_expression(a->unit);
 }
 
-Exp new_exp_prim_int(long i, int pos) {
+static Exp new_exp_prim(int pos) {
   Exp a = calloc(1, sizeof(struct Exp_));
   a->exp_type = ae_exp_primary;
   a->meta = ae_meta_value;
-  a->emit_var = 0;
-  a->d.exp_primary.type = ae_primary_num;
-  a->d.exp_primary.d.num = i;
-  a->pos = pos;
   a->d.exp_primary.pos = pos;
   a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
+  a->pos = pos;
+  return a;
+}
+Exp new_exp_prim_int(long i, int pos) {
+  Exp a = new_exp_prim(pos);
+  a->d.exp_primary.type = ae_primary_num;
+  a->d.exp_primary.d.num = i;
   return a;
 }
 
 Exp new_exp_prim_float(m_float num, int pos) {
-  Exp a = calloc(1,  sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
-  a->emit_var = 0; // ???
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_float;
   a->d.exp_primary.d.fnum = num;
-  a->pos = pos;
-  a->d.exp_primary.pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_string(m_str s, int pos) {
-  Exp a = calloc(1,  sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
-  a->emit_var = 0; // ???
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_str;
   a->d.exp_primary.d.str = s;
-  a->pos = pos;
-  a->d.exp_primary.pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_nil(int pos) {
-  Exp  a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_nil;
-  a->d.exp_primary.pos = pos;
-  a->pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_ID(m_str s, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
+  Exp a = new_exp_prim(pos);
   a->meta = ae_meta_var;
-  a->emit_var = 0;
   a->d.exp_primary.type = ae_primary_id;
   a->d.exp_primary.d.var = insert_symbol(s);
-  a->pos = pos;
-  a->d.exp_primary.pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_hack(Exp exp, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_hack;
   a->d.exp_primary.d.exp = exp;
-  a->d.exp_primary.pos = pos;
-  a->pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -366,60 +324,32 @@ __inline static void free_complex(Complex* a) {
 }
 
 Exp new_exp_prim_char(m_str chr, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_char;
   a->d.exp_primary.d.chr = chr;
-  a->pos = pos;
-  a->d.exp_primary.pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_array(Array_Sub exp_list, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_array;
   a->d.exp_primary.d.array = exp_list;
-  a->pos = pos;
-  a->d.exp_primary.pos = pos;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_complex(Complex* exp, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
-  a->d.exp_primary.type = ae_primary_complex;
+  Exp a = new_exp_prim(pos);
+  a->d.exp_primary.type  = ae_primary_complex;
   a->d.exp_primary.d.cmp = exp;
-  a->d.exp_primary.pos = pos;
-  a->pos = pos;
   a->d.exp_primary.d.cmp->self = a;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_prim_polar(Polar* exp, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_polar;
   a->d.exp_primary.d.polar = exp;
-  a->d.exp_primary.pos = pos;
-  a->pos = pos;
   a->d.exp_primary.d.polar->self = a;
-  a->d.exp_primary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -454,70 +384,51 @@ __inline static void free_vec(Vec a) {
 }
 
 Exp new_exp_prim_vec(Vec exp, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_primary;
-  a->meta = ae_meta_value;
+  Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_vec;
   a->d.exp_primary.d.vec = exp;
-  a->d.exp_primary.pos = pos;
-  a->pos = pos;
   a->d.exp_primary.d.vec->self = a;
   a->d.exp_primary.self = a;
   return a;
 }
 
-Exp new_exp_unary(Operator oper, Exp exp, int pos) {
+static Exp new_exp_unary_base(int pos)  {
   Exp a = calloc(1, sizeof(struct Exp_));
+  a->meta = ae_meta_value;
   a->exp_type = ae_exp_unary;
+  a->d.exp_unary.pos = pos;
+  a->d.exp_unary.self = a;
+  a->pos = pos;
+  return a;
+}
+
+Exp new_exp_unary(Operator oper, Exp exp, int pos) {
+  Exp a = new_exp_unary_base(pos);
   a->meta = exp->meta;
   a->d.exp_unary.op = oper;
   a->d.exp_unary.exp = exp;
-  a->d.exp_unary.code = NULL;
-  a->pos = pos;
-  a->d.exp_unary.pos = pos;
-  a->d.exp_unary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_unary;
-  a->meta = ae_meta_value;
-  a->d.exp_unary.exp = NULL;
+  Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   a->d.exp_unary.type = type;
   a->d.exp_unary.array = array;
-  a->d.exp_unary.code = NULL;
-  a->pos = pos;
-  a->d.exp_unary.pos = pos;
-  a->d.exp_unary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 Exp new_exp_unary3(Operator oper, Stmt code, int pos) {
-  Exp a = calloc(1, sizeof(struct Exp_));
-  a->exp_type = ae_exp_unary;
-  a->meta = ae_meta_value;
-  a->d.exp_unary.exp = NULL;
+  Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   ID_List id = new_id_list("void", pos);
   a->d.exp_unary.type = new_type_decl(id, 0, pos);
-  a->d.exp_unary.array = NULL;
   a->d.exp_unary.code = code;
-  a->pos = pos;
-  a->d.exp_unary.pos = pos;
-  a->d.exp_unary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
 static void free_unary_expression(Exp_Unary* a) {
-  if(a->exp) // sporked func
+  if(a->exp)
     free_expression(a->exp);
   if(a->type)
     free_type_decl(a->type);
@@ -590,17 +501,10 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
 static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
-    else {
-      if(a->args) // commented 13/04/17 for typedef int[]
+  else if(a->args) {
         free_arg_list(a->args);
       free_type_decl(a->type);
-    }
-  /*
-    if(a->value && !GET_FLAG(a->value, ae_flag_member) && !GET_FLAG(a, ae_flag_static)) {
-      REM_REF(a->value->m_type);
-      REM_REF(a->value)
-    }
-  */
+  }
 }
 
 Exp new_exp_call(Exp base, Exp args, int pos) {
@@ -622,8 +526,6 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
 static void free_exp_call(Exp_Func* a) {
   if(a->types)
     free_type_list(a->types);
-//  if(a->base)
-//    free_type_list(a->base);
   free_expression(a->func);
   if(a->args)
     free_expression(a->args);
@@ -1066,14 +968,7 @@ static void free_section(Section* section) {
       free_stmt_list(section->d.stmt_list);
       break;
     case ae_section_func:
-      if(!section->d.func_def)
-        break;
       free_stmt(section->d.func_def->code);
-//if(section->d.func_def->types) {
-//REM_REF(section->d.func_def->d.func->value_ref)
-//REM_REF(section->d.func_def->d.func)
-
-//}    else
       if(!section->d.func_def->d.func)
         free_func_def(section->d.func_def);
       break;

@@ -112,10 +112,7 @@ m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor
   type->obj_size = 0;
 
   SET_FLAG(type, ae_flag_checked);
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = type->info;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = type;
+  CHECK_BB(env_push_class(env, type))
   return type->xid;
 }
 
@@ -123,8 +120,7 @@ m_int import_class_end(Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   env->class_def->obj_size = env->class_def->info->offset;
-  env->class_def = (Type)vector_pop(&env->class_stack);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  CHECK_BB(env_pop_class(env))
   return 1;
 }
 

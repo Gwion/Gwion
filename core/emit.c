@@ -1517,7 +1517,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     if(!strcmp(s_name(member->xid), "end")) {
       if(!emit->env->func->variadic->instr)
         CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
-        Instr instr = add_instr(emit, Vararg_end);
+      Instr instr = add_instr(emit, Vararg_end);
       instr->m_val = offset;
       instr->m_val2 = emit->env->func->variadic->instr->m_val2;
       emit->env->func->variadic->instr->m_val2 = vector_size(&emit->code->code);
