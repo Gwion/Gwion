@@ -1413,6 +1413,51 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bo
   return 1;
 }
 
+static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
+  Instr instr;
+
+  if(exp->meta == ae_meta_var)
+    exp->emit_var = 1;
+  CHECK_BB(emit_exp(emit, exp, 0))
+  if(!strcmp(v->name, c))
+    instr = add_instr(emit, complex_real);
+  else
+    instr = add_instr(emit, complex_imag);
+  instr->m_val = emit_addr;
+  return 1;
+}
+
+static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
+  Instr instr;
+  if(exp->meta == ae_meta_var)
+    exp->emit_var = 1;
+  CHECK_BB(emit_exp(emit, exp, 0))
+  if(v->func_ref) {
+    sadd_instr(emit, Reg_Dup_Last_Vec4);
+    instr = add_instr(emit, member_function);
+    *(Vector*)instr->ptr = &v->owner_class->info->obj_v_table;
+    instr->m_val = v->func_ref->vt_index;
+    return 1;
+  }
+  instr = add_instr(emit, vec_member);
+  switch(v->name[0]) {
+    case 'x':
+      instr->m_val2 = 0;
+      break;
+    case 'y':
+      instr->m_val2 = 1;
+      break;
+    case 'z':
+      instr->m_val2 = 2;
+      break;
+    case 'w':
+      instr->m_val2 = 3;
+      break;
+  }
+  instr->m_val = emit_addr;
+  return 1;
+}
+
 static m_bool emit_dot_static_func(Emitter emit, Type type, Func func) {
   Instr push_i = add_instr(emit, Reg_Push_Imm);
   Instr func_i = add_instr(emit, Dot_Static_Func);
@@ -1435,69 +1480,11 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 
   t_base = base_static ? member->t_base->d.actual_type : member->t_base;
   value = find_value(t_base, member->xid);
-  if(t_base->xid == t_complex.xid) {
-    if(member->base->meta == ae_meta_var)
-      member->base->emit_var = 1;
-    CHECK_BB(emit_exp(emit, member->base, 0))
-    if(!strcmp(value->name, "re"))
-      instr = add_instr(emit, complex_real);
-    else
-      instr = add_instr(emit, complex_imag);
-    instr->m_val = emit_addr;
-    return 1;
-  } else if(t_base->xid == t_polar.xid) {
-    if(member->base->meta == ae_meta_var)
-      member->base->emit_var = 1;
-    CHECK_BB(emit_exp(emit, member->base, 0))
-    if(!strcmp(value->name, "mod"))
-      instr = add_instr(emit, complex_real);
-    else
-      instr = add_instr(emit, complex_imag);
-    instr->m_val = emit_addr;
-    return 1;
-  } else if(t_base->xid == t_vec3.xid) {
-    Instr instr;
-    if(member->base->meta == ae_meta_var)
-      member->base->emit_var = 1;
-    CHECK_BB(emit_exp(emit, member->base, 0))
-    if(!strcmp(value->name, "x"))
-      instr = add_instr(emit, vec3_x);
-    else if(!strcmp(value->name, "y"))
-      instr = add_instr(emit, vec3_y);
-    else if(!strcmp(value->name, "z"))
-      instr = add_instr(emit, vec3_z);
-    else {
-      sadd_instr(emit, Reg_Dup_Last_Vec3);
-      instr = add_instr(emit, member_function);
-      *(Vector*)instr->ptr = &t_base->info->obj_v_table;
-      instr->m_val = value->func_ref->vt_index;
-      return 1;
-    }
-    instr->m_val = emit_addr;
-    return 1;
-  } else if(t_base->xid == t_vec4.xid) {
-    Instr instr;
-    if(member->base->meta == ae_meta_var)
-      member->base->emit_var = 1;
-    CHECK_BB(emit_exp(emit, member->base, 0))
-    if(!strcmp(value->name, "x"))
-      instr = add_instr(emit, vec4_x);
-    else if(!strcmp(value->name, "y"))
-      instr = add_instr(emit, vec4_y);
-    else if(!strcmp(value->name, "z"))
-      instr = add_instr(emit, vec4_z);
-    else if(!strcmp(value->name, "w"))
-      instr = add_instr(emit, vec4_w);
-    else {
-      sadd_instr(emit, Reg_Dup_Last_Vec4);
-      instr = add_instr(emit, member_function);
-      *(Vector*)instr->ptr = &t_base->info->obj_v_table;
-      instr->m_val = value->func_ref->vt_index;
-      return 1;
-    }
-    instr->m_val = emit_addr;
-    return 1;
-  }
+  if(t_base->xid == t_complex.xid || t_base->xid == t_polar.xid)
+    return emit_complex_member(emit, member->base, value,
+        t_base->xid == t_complex.xid ? "re" : "mod", emit_addr);
+  else if(t_base->xid == t_vec3.xid || t_base->xid == t_vec4.xid)
+    return emit_vec_member(emit, member->base, value, emit_addr);
   if(t_base->xid == t_vararg.xid) {
     m_uint offset = 0;
     Arg_List l = emit->env->func->def->arg_list;

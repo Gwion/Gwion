@@ -1602,8 +1602,8 @@ m_bool check_func_def(Env env, Func_Def f) {
                      "function name '%s' conflicts with previously defined value...\n"
                      "\tfrom super class '%s'...",
                      s_name(f->name), override->owner_class->name))
-    if(override)
-      func->up = override;
+  if(override)
+    func->up = override;
   if(env->class_def) {
     parent = env->class_def->parent;
     while(parent && !parent_match) {
@@ -1614,22 +1614,16 @@ m_bool check_func_def(Env env, Func_Def f) {
             parent_func = parent_func->next;
             continue;
           }
-          if(GET_FLAG(parent_func->def, ae_flag_static)) {
+          if(GET_FLAG(parent_func->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
             CHECK_BB(err_msg(TYPE_, f->pos,
                              "function '%s.%s' resembles '%s.%s' but cannot override...\n"
                              "\t...(reason: '%s.%s' is declared as 'static')",
                              env->class_def->name, s_name(f->name),
                              v->owner_class->name, s_name(f->name),
-                             v->owner_class->name, s_name(f->name)))
+                             GET_FLAG(f, ae_flag_static) ? env->class_def->name :
+                                 v->owner_class->name, s_name(f->name)))
           }
-          if(GET_FLAG(f, ae_flag_static)) {
-            CHECK_BB(err_msg(TYPE_, f->pos,
-                             "function '%s.%s' resembles '%s.%s' but cannot override...\n"
-                             "\t...(reason: '%s.%s' is declared as 'static')",
-                             env->class_def->name, s_name(f->name),
-                             v->owner_class->name, s_name(f->name),
-                             env->class_def->name, s_name(f->name)))
-          }
+
           if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
             CHECK_BB(err_msg(TYPE_, f->pos,
                              "function signatures differ in return type...\n"

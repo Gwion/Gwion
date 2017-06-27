@@ -4,15 +4,15 @@
 
 struct Type_ t_vec3 = { "Vec3", SZ_VEC3, NULL, te_vec3};
 
-static void vec_member(VM_Shred shred, char* vec, int i, m_bool emit_var) {
-  if(emit_var) {
+INSTR(vec_member) {
+  if(instr->m_val) {
     POP_REG(shred, SZ_INT);
-    *(m_float**)REG(0) = &*(m_float*)(vec + i * SZ_FLOAT);
-    PUSH_REG(shred,  SZ_INT);
+    *(m_float**)REG(0) = &*(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    PUSH_REG(shred, SZ_INT);
   } else {
     POP_REG(shred, SZ_INT);
-    *(m_float*)REG(0) = *(m_float*)(vec + i * SZ_FLOAT);
-    PUSH_REG(shred,  SZ_FLOAT);
+    *(m_float*)REG(0) = *(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
@@ -160,34 +160,6 @@ static INSTR(vec3_r_assign) {
   r.z = *(m_float*)REG(SZ_COMPLEX);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred, SZ_VEC3);
-}
-
-INSTR(vec3_x) {
-  vec_member(shred, REG(0), 0, instr->m_val);
-}
-
-INSTR(vec3_y) {
-  vec_member(shred, REG(0), 1, instr->m_val);
-}
-
-INSTR(vec3_z) {
-  vec_member(shred, REG(0), 2, instr->m_val);
-}
-
-INSTR(vec4_x) {
-  vec_member(shred, REG(0), 0, instr->m_val);
-}
-
-INSTR(vec4_y) {
-  vec_member(shred, REG(0), 1, instr->m_val);
-}
-
-INSTR(vec4_z) {
-  vec_member(shred, REG(0), 2, instr->m_val);
-}
-
-INSTR(vec4_w) {
-  vec_member(shred, REG(0), 3, instr->m_val);
 }
 
 m_bool import_vec3(Env env) {
