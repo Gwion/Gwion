@@ -49,9 +49,9 @@ void vector_copy2(Vector v, Vector ret) {
 
 long int vector_find(Vector v, vtype data) {
   vtype i;
-  for(i = 0; i < v->ptr[0]; i++)
-    if(v->ptr[i + OFFSET] == (vtype)data)
-      return i;
+  for(i = v->ptr[0] + 1; --i;)
+    if(v->ptr[i + OFFSET - 1] == (vtype)data)
+      return i - 1;
   return -1;
 }
 
@@ -126,9 +126,9 @@ void map_init(Map a) {
 
 vtype map_get(Map map, vtype key) {
   vtype i;
-  for(i = 0; i < map->ptr[0]; i++)
-    if(map->ptr[OFFSET + i * 2] == key)
-      return map->ptr[OFFSET + i * 2 + 1];
+  for(i = map->ptr[0] + 1; --i;)
+    if(map->ptr[OFFSET + (i - 1) * 2] == key)
+      return map->ptr[OFFSET + (i - 1) * 2 + 1];
   return 0;
 }
 
@@ -202,7 +202,7 @@ vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
     if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
       ret = map_get(&scope->commit_map, (vtype)xid);
   } else if(climb > 0) {
-    for(i = vector_size(&scope->vector); i > 0; i--) {
+    for(i = vector_size(&scope->vector) + 1; --i;) {
       map = (Map)vector_at(&scope->vector, i - 1);
       if((ret = map_get(map, (vtype)xid)))
         break;
