@@ -47,7 +47,6 @@ typedef struct {
 struct Array_Sub_ {
   m_uint depth;
   Exp exp_list;
-  Exp self;
   Type type;
   int err_num;
   int err_pos;
@@ -59,7 +58,6 @@ Array_Sub prepend_array_sub(Array_Sub array, Exp exp, int pos);
 typedef struct {
   Exp base;
   Array_Sub indices;
-  Exp self;
   int pos;
 } Array_Exp;
 
@@ -121,7 +119,6 @@ void free_type_list(Type_List a);
 typedef struct {
   Exp re;
   Exp im;
-  Exp self;
   int pos;
 } Complex;
 Complex* new_complex(Exp re, int pos);
@@ -129,7 +126,6 @@ Complex* new_complex(Exp re, int pos);
 typedef struct {
   Exp mod;
   Exp phase;
-  Exp self;
   int pos;
 } Polar;
 Polar* new_polar(Exp mod, int pos);
@@ -138,7 +134,6 @@ typedef struct Vec_* Vec;
 struct Vec_ {
   Exp args;
   m_uint numdims;
-  Exp self;
   int pos;
 };
 Vec new_vec(Exp e, int pos);
@@ -325,12 +320,10 @@ typedef struct Stmt_Ptr_        * Stmt_Ptr;
 typedef struct Stmt_Union_      * Stmt_Union;
 
 struct Stmt_Basic_ {
-  Stmt self;
   int pos;
 };
 struct Stmt_Exp_ {
   Exp val;
-  Stmt self;
   int pos;
 };
 struct Stmt_Flow_ {
@@ -342,7 +335,6 @@ struct Stmt_Flow_ {
 };
 struct Stmt_Code_ {
   Stmt_List stmt_list;
-  Stmt self;
   int pos;
 };
 struct Stmt_For_ {
@@ -363,7 +355,6 @@ struct Stmt_If_ {
   Exp cond;
   Stmt if_body;
   Stmt else_body;
-  Stmt self;
   int pos;
 };
 struct Stmt_Goto_Label_ {
@@ -373,7 +364,6 @@ struct Stmt_Goto_Label_ {
     Instr instr;
   } data;
   m_bool is_label;
-  Stmt self;
   int pos;
 };
 struct Stmt_Switch_ {
@@ -386,7 +376,6 @@ struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
   struct Vector_ values;
-  Stmt self;
   int pos;
 };
 struct Stmt_Ptr_ {
@@ -398,7 +387,6 @@ struct Stmt_Ptr_ {
   Type       ret_type;
   Func       func;
   Value      value;
-  Exp self;
   int        pos;
 };
 struct Stmt_Union_ {
@@ -406,7 +394,6 @@ struct Stmt_Union_ {
   struct Vector_ v;
   m_uint s;
   m_uint o;
-  Stmt self;
   int pos;
 };
 

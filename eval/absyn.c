@@ -341,7 +341,6 @@ Exp new_exp_prim_complex(Complex* exp, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.type  = ae_primary_complex;
   a->d.exp_primary.d.cmp = exp;
-  a->d.exp_primary.d.cmp->self = a;
   return a;
 }
 
@@ -349,7 +348,6 @@ Exp new_exp_prim_polar(Polar* exp, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_polar;
   a->d.exp_primary.d.polar = exp;
-  a->d.exp_primary.d.polar->self = a;
   return a;
 }
 
@@ -387,7 +385,6 @@ Exp new_exp_prim_vec(Vec exp, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_vec;
   a->d.exp_primary.d.vec = exp;
-  a->d.exp_primary.d.vec->self = a;
   a->d.exp_primary.self = a;
   return a;
 }
@@ -636,7 +633,6 @@ Stmt new_stmt_expression(Exp exp, int pos) {
   a->d.stmt_exp.val = exp;
   a->pos = pos;
   a->d.stmt_exp.pos = pos;
-  a->d.stmt_exp.self = a;
   return a;
 }
 
@@ -646,7 +642,6 @@ Stmt new_stmt_code(Stmt_List stmt_list, int pos) {
   a->d.stmt_code.stmt_list = stmt_list;
   a->pos = pos;
   a->d.stmt_code.pos = pos;
-  a->d.stmt_code.self = a;
   return a;
 }
 
@@ -660,7 +655,6 @@ Stmt new_stmt_return(Exp exp, int pos) {
   a->d.stmt_return.val = exp;
   a->pos = pos;
   a->d.stmt_return.pos = pos;
-  a->d.stmt_return.self = a;
   return a;
 }
 
@@ -673,7 +667,6 @@ Stmt new_stmt_break(int pos) {
   a->type = ae_stmt_break;
   a->pos = pos;
   a->d.stmt_break.pos = pos;
-  a->d.stmt_break.self = a;
   return a;
 }
 
@@ -682,7 +675,6 @@ Stmt new_stmt_continue(int pos) {
   a->type = ae_stmt_continue;
   a->pos = pos;
   a->d.stmt_continue.pos = pos;
-  a->d.stmt_continue.self = a;
   return a;
 }
 
@@ -742,7 +734,6 @@ Stmt new_stmt_gotolabel(m_str xid, m_bool is_label, int pos) {
   a->d.stmt_gotolabel.is_label = is_label;
   a->pos = pos;
   a->d.stmt_gotolabel.pos = pos;
-  a->d.stmt_gotolabel.self = a;
   return a;
 }
 
@@ -770,7 +761,6 @@ Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, int pos) {
   a->d.stmt_if.else_body = else_body;
   a->pos = pos;
   a->d.stmt_if.pos = pos;
-  a->d.stmt_if.self = a;
   return a;
 }
 
@@ -803,7 +793,6 @@ Stmt new_stmt_case(Exp val, int pos) {
   a->d.stmt_case.val = val;
   a->pos = pos;
   a->d.stmt_case.pos = pos;
-  a->d.stmt_case.self = a;
   return a;
 }
 
@@ -815,7 +804,6 @@ Stmt new_stmt_enum(ID_List list, m_str xid, int pos) {
   vector_init(&a->d.stmt_enum.values);
   a->pos = pos;
   a->d.stmt_enum.pos = pos;
-  a->d.stmt_enum.self = a;
   return a;
 }
 
@@ -831,7 +819,6 @@ Stmt new_stmt_union(Decl_List l, int pos) {
   vector_init(&a->d.stmt_union.v);
   a->pos = pos;
   a->d.stmt_union.pos = pos;
-  a->d.stmt_union.self = a;
   return a;
 }
 
