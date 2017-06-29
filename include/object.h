@@ -1,5 +1,4 @@
 struct M_Object_ {
-  Vector vtable; // pointer reference to type->info->obj_v_table
   Type type_ref;
   m_uint size, ref;
   union {

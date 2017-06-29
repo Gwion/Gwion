@@ -31,7 +31,6 @@ M_Object new_String(VM_Shred shred, m_str str) {
 }
 
 m_bool initialize_object(M_Object object, Type type) {
-  object->vtable = &type->info->obj_v_table;
   object->type_ref = type;
   object->size = type->obj_size;
   if(object->size) {

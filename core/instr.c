@@ -689,7 +689,7 @@ INSTR(Exp_Dot_Func) {
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   if(!obj) Except(shred, "NullPtrException");
-  *(Func*)REG(0) = (Func)vector_at(obj->vtable, instr->m_val);
+  *(Func*)REG(0) = (Func)vector_at(&obj->type_ref->info->obj_v_table, instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
