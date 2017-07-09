@@ -373,7 +373,7 @@ INSTR(Gack) {
   m_uint len, longest = 0;
   for(i = 0; i < size; i++) {
     type = (Type)vector_at(v, i);
-    if(type->xid == t_function.xid && GET_FLAG(type->d.func, ae_flag_member))
+    if(type->xid == te_function && GET_FLAG(type->d.func, ae_flag_member))
       POP_REG(shred, SZ_INT);
     POP_REG(shred,  type->size);
     len = strlen(type->name);
@@ -412,19 +412,20 @@ INSTR(Gack) {
     int j;
     for(j = 0; j < longest - (name ? strlen(name) : 0); j++)
       fprintf(stdout, " ");
-    if(type->xid == t_int.xid)
+    if(type->xid == te_int)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%li\033[1m", *(m_uint*)REG(0));
 #else
       fprintf(stdout, "%li", *(m_uint*)REG(0));
 #endif
-    else if(type->xid == t_float.xid || type->xid == t_dur.xid || isa(type, &t_time) > 0)
+    else if(type->xid == te_float || type->xid == te_dur ||
+            type->xid == te_time  || type->xid == te_now)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%.6f\033[0m", *(m_float*)REG(0));
 #else
       fprintf(stdout, "%.6f", *(m_float*)REG(0));
 #endif
-    else if(type->xid == t_complex.xid) {
+    else if(type->xid == te_complex) {
 #ifdef COLOR
       fprintf(stdout, "\033[33m#(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[0m\033[33m)\033[0m",
 #else
@@ -432,7 +433,7 @@ INSTR(Gack) {
 #endif
               creal(*(m_complex*)REG(0)),
               cimag(*(m_complex*)REG(0)));
-    } else if(type->xid == t_polar.xid) {
+    } else if(type->xid == te_polar) {
 #ifdef COLOR
       fprintf(stdout, "\033[33m%%(\033[0m\033[1m%.4f\033[0m\033[33m, \033[0m\033[1m%.4f\033[36m*\033[34mpi\033[0m\033[33m)\033[0m",
 #else
@@ -440,30 +441,30 @@ INSTR(Gack) {
 #endif
               creal(*(m_complex*)REG(0)),
               cimag(*(m_complex*)REG(0)) / M_PI);
-    } else if(type->xid == t_vec3.xid) {
+    } else if(type->xid == te_vec3) {
       fprintf(stdout, "%%(%f %f %f)", *(m_float*)REG(0), *(m_float*)REG(SZ_FLOAT),
               *(m_float*)REG(SZ_FLOAT * 2));
 
-    } else if(type->xid == t_vec4.xid) {
+    } else if(type->xid == te_vec4) {
       fprintf(stdout, "%%(%f, %f, %f, %f)", *(m_float*)REG(0), *(m_float*)REG(SZ_FLOAT),
               *(m_float*)REG(SZ_FLOAT * 2), *(m_float*)REG(SZ_FLOAT * 3));
-    } else if(type->xid == t_string.xid)
+    } else if(type->xid == te_string)
 #ifdef COLOR
       fprintf(stdout, "\033[1m%s\033[0m", *(M_Object*)REG(0) ? STRING(*(M_Object*)REG(0)) : "(null string)");
 #else
       fprintf(stdout, "%s", *(M_Object*)REG(0) ? STRING(*(M_Object*)REG(0)) : "(null string)");
 #endif
-    else if(type->xid == t_void.xid)
+    else if(type->xid == te_void)
       fprintf(stdout, "(void)");
-    else if(type->xid == t_function.xid) {
-      if(type->xid == t_function.xid && GET_FLAG(type->d.func, ae_flag_member))
+    else if(type->xid == te_function) {
+      if(type->xid == te_function && GET_FLAG(type->d.func, ae_flag_member))
 //PUSH_REG(shred, SZ_INT);
         fprintf(stdout, "%s %p", type->name, (void*) * (Func*)REG(0));
     } else if(isa(type, &t_func_ptr) > 0)
       fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)REG(0));
     /*      fprintf(stdout, "%s %p %p", type->name, *(Func*)REG(0),*/
     /*      *(m_uint*)REG(0) ? (*(Func*)REG(0))->code : 0);*/
-    else if(type->xid == t_class.xid)
+    else if(type->xid == te_class)
       fprintf(stdout, "\033[1m%s\033[0m %p", type->d.actual_type->name, (void*) * (Func*)REG(0));
     else
       fprintf(stdout, "%p", (void*) * (M_Object*)REG(0));
@@ -689,7 +690,7 @@ INSTR(Exp_Dot_Func) {
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   if(!obj) Except(shred, "NullPtrException");
-  *(Func*)REG(0) = (Func)vector_at(&obj->type_ref->info->obj_v_table, instr->m_val);
+  *(Func*)REG(0) = (Func)vector_at(obj->vtable, instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 

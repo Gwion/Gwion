@@ -594,9 +594,9 @@ static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
   if(to->xid == from->xid || isa(from, to) > 0 ||
       (isa(from, &t_null) > 0 && isa(to, &t_object) > 0))
     return 1;
-  else if(to->xid == t_int.xid && from->xid == t_float.xid)
+  else if(to->xid == te_int && from->xid == te_float)
     f = Cast_f2i;
-  else if(to->xid == t_float.xid && from->xid == t_int.xid)
+  else if(to->xid == te_float && from->xid == te_int)
     f = Cast_i2f;
   sadd_instr(emit, f);
   return 1;
@@ -797,9 +797,9 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "implicit cast '%s' to '%s'", from->name, to->name);
 #endif
-  if(from->xid == t_int.xid && to->xid == t_float.xid)
+  if(from->xid == te_int && to->xid == te_float)
     sadd_instr(emit, Cast_i2f);
-  else if(from->xid == t_float.xid && to->xid == t_int.xid)
+  else if(from->xid == te_float && to->xid == te_int)
     sadd_instr(emit, Cast_f2i);
   return 1;
 }
@@ -1462,19 +1462,19 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   Instr instr, func_i, push_i;
   Type t_base;
   m_uint emit_addr = member->self->emit_var;
-  m_bool base_static = member->t_base->xid == t_class.xid;
+  m_bool base_static = member->t_base->xid == te_class;
   Func func = NULL;
   Value value = NULL;
   m_uint offset = 0;
 
   t_base = base_static ? member->t_base->d.actual_type : member->t_base;
   value = find_value(t_base, member->xid);
-  if(t_base->xid == t_complex.xid || t_base->xid == t_polar.xid)
+  if(t_base->xid == te_complex || t_base->xid == te_polar)
     return emit_complex_member(emit, member->base, value,
-        t_base->xid == t_complex.xid ? "re" : "mod", emit_addr);
-  else if(t_base->xid == t_vec3.xid || t_base->xid == t_vec4.xid)
+        t_base->xid == te_complex ? "re" : "mod", emit_addr);
+  else if(t_base->xid == te_vec3 || t_base->xid == te_vec4)
     return emit_vec_member(emit, member->base, value, emit_addr);
-  if(t_base->xid == t_vararg.xid) {
+  if(t_base->xid == te_vararg) {
     m_uint offset = 0;
     Arg_List l = emit->env->func->def->arg_list;
     while(l) {
@@ -1636,7 +1636,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     goto error;
 
   // ensure return
-  if(func_def->ret_type && func_def->ret_type->xid != t_void.xid) {
+  if(func_def->ret_type && func_def->ret_type->xid != te_void) {
     Instr instr = add_instr(emit, Reg_Push_ImmX);
     instr->m_val = func_def->ret_type->size;
     emit_func_release(emit); // /04/04/2017

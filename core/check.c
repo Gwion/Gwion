@@ -395,7 +395,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
         CHECK_OO((check_exp(env, primary->d.exp))) {
         Exp e = primary->d.exp;
         while(e) {
-          if(e->type->xid == t_function.xid &&
+          if(e->type->xid == te_function &&
               !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
               GET_FLAG(e->type->d.func, ae_flag_member))
             CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
@@ -513,7 +513,7 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
         }
         match = specific ? e->type == e1->type : isa(e->type, e1->type) > 0 && e->type->array_depth == e1->type->array_depth;
         if(match <= 0) {
-          if(implicit && e->type->xid == t_int.xid && e1->type->xid == t_float.xid)
+          if(implicit && e->type->xid == te_int && e1->type->xid == te_float)
             e->cast_to = &t_float;
           else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0)) /// Hack
             goto moveon; // type mismatch
@@ -1190,7 +1190,7 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   member->t_base = check_exp(env, member->base);
   if(!member->t_base)
     return NULL;
-  base_static = member->t_base->xid == t_class.xid;
+  base_static = member->t_base->xid == te_class;
   the_base = base_static ? member->t_base->d.actual_type : member->t_base;
 
   if(!the_base->info)
@@ -1401,7 +1401,7 @@ static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
       CHECK_OB((ret_type = check_exp(env, stmt->val)))
     } else
       ret_type = &t_void;
-  if(ret_type->xid == t_null.xid && isprim(env->func->def->ret_type) < 0)
+  if(ret_type->xid == te_null && isprim(env->func->def->ret_type) < 0)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
@@ -1426,7 +1426,7 @@ static m_bool check_stmt_break(Env env, Stmt_Break cont) {
 
 static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
   Type t = check_exp(env, a->val);
-  if(!t || t->xid !=  t_int.xid)
+  if(!t || t->xid !=  te_int)
     CHECK_BB(err_msg(TYPE_, a->pos,
                      "invalid type '%s' in switch expression. should be 'int'",
                      t ? t->name : "unknown"))
@@ -1435,7 +1435,7 @@ static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
 
 static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
   Type t = check_exp(env, stmt->val);
-  if(!t || t->xid !=  t_int.xid)
+  if(!t || t->xid !=  te_int)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
                      "invalid type '%s' case expression. should be 'int'",
                      t ? t->name : "unknown"))
