@@ -1292,7 +1292,7 @@ static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
     if(env->class_def) { // enum in classes are static
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += t_int.size;
+      env->class_def->info->class_data_size += SZ_INT;
     }
     list = list->next;
   }
