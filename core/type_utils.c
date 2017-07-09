@@ -146,8 +146,7 @@ Kindof kindof(Type type) {
 
 
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
-  Type t = new_type(te_array, base_type->name);
-  t->parent = &t_array;
+  Type t = new_type(te_array, base_type->name, &t_array);
   t->size = SZ_INT;
   t->array_depth = depth;
   t->d.array_type = base_type;

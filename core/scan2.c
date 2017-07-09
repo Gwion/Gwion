@@ -636,8 +636,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   }
 
-  type = new_type(te_function, func_name);
-  type->parent = &t_function;
+  type = new_type(te_function, func_name, &t_function);
   type->size = SZ_INT;
   type->d.func = func;
   value = new_value(type, func_name);

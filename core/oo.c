@@ -47,10 +47,11 @@ static void free_func(Func a) {
   free(a);
 }
 
-Type new_type(te_type xid, m_str name) {
-  Type type         = calloc(1, sizeof(struct Type_));
-  type->xid         = xid;
-  type->name        = name;
+Type new_type(te_type xid, m_str name, Type parent) {
+  Type type    = calloc(1, sizeof(struct Type_));
+  type->xid    = xid;
+  type->name   = name;
+  type->parent = parent;
   INIT_OO(type, e_type_obj);
   return type;
 }

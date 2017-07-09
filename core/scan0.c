@@ -7,11 +7,10 @@ static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
   Type type;
-  Type t = new_type(te_func_ptr, name);
+  Type t = new_type(te_func_ptr, name, &t_func_ptr);
   t->owner = env->curr;
   t->array_depth = 0;
   t->size = SZ_INT;
-  t->parent = &t_func_ptr;
   t->info = new_nspc(name, env->context->filename);
   nspc_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
@@ -57,12 +56,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
                      s_name(class_def->name->xid)))
   }
 
-  the_class = new_type(env->type_xid++, s_name(class_def->name->xid));
+  the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name, env->context->filename);
-  the_class->parent = &t_object;
 
   if(env->context->public_class_def == class_def)
     the_class->info->parent = env->context->nspc;
