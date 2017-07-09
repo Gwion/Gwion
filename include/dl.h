@@ -16,7 +16,6 @@ typedef struct DL_Return {
     m_vec4 	  v_vec4;
     M_Object  v_object;
   } d;
-  m_uint offset;
 } DL_Return;
 
 void dl_return_push(const DL_Return retval, VM_Shred shred, int kind);
