@@ -13,17 +13,16 @@
 #include "array.h"
 
 struct  Shreduler_ {
-  m_int til_next;
+//  m_int til_next;
   VM* vm;
   VM_Shred list;
-  VM_Shred curr;
+//  VM_Shred curr;
   m_uint n_shred;
   m_bool loop;
 };
 
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
-  s->til_next = 0;
   s->list = NULL;
   s->vm = vm;
   s->n_shred = 0;
@@ -48,7 +47,6 @@ VM_Shred shreduler_get(Shreduler s) {
 #endif
   VM_Shred shred = s->list;
   if(!shred) {
-    s->til_next = -1;
     if(!vector_size(&s->vm->shred) && ! s->loop) {
       s->vm->is_running = 0;
       s->vm->wakeup();
@@ -56,15 +54,11 @@ VM_Shred shreduler_get(Shreduler s) {
     return NULL;
   }
   if(shred->wake_time <= (get_now(s) + .5)) {
-    m_float til_next;
     s->list = shred->next;
     shred->next = NULL;
     shred->prev = NULL;
-    if(s->list) {
+    if(s->list)
       s->list->prev = NULL;
-      til_next = s->list->wake_time - get_now(s);
-      s->til_next = til_next < 0 ? 0 : til_next;
-    }
     shred->is_running = 1;
     return shred;
   }
@@ -127,8 +121,8 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
 #ifdef DEBUG_SHREDULER
   debug_msg("clock", "shredule shred[%i] at %f", shred->xid, wake_time);
 #endif
-  m_float diff;
   VM_Shred curr, prev;
+
   if(shred->prev || shred->next) {
     err_msg(VM_, 0, "internal sanity check failed in shredule()"); // LCOV_EXCL_LINE
     err_msg(VM_, 0, "shred '%i' shreduled while shreduled)", shred->xid);          // LCOV_EXCL_LINE
@@ -166,7 +160,5 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
       prev->next = shred;
     }
   }
-  diff = s->list->wake_time - get_now(s);
-  s->til_next = diff < 0 ? 0 : diff;
   return 1;
 }
