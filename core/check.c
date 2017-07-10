@@ -31,9 +31,8 @@ static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
-static void add_plugs(VM* vm, Vector plug_dirs) {
+static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
   m_uint i;
-  Env env = vm->env;
   for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
     struct dirent **namelist;
@@ -46,7 +45,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
         void* handler = dlopen(c, RTLD_LAZY);
         {
           if(!handler) {
-            m_str err = dlerror();
+            const char* err = dlerror();
             err_msg(TYPE_, 0, "error in %s.", err);
             goto next;
           }
@@ -62,7 +61,7 @@ static void add_plugs(VM* vm, Vector plug_dirs) {
             goto next;
           }
         } else {
-          m_str err = dlerror();
+          const char* err = dlerror();
           err_msg(TYPE_, 0, "%s: no import function.", err);
           dlclose(handler);
           goto next;
@@ -150,8 +149,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   /*  env->curr = env->user_nspc;*/
   // plugins
   //  void* handler;
-  vm->env = env;
-  add_plugs(vm, plug_dirs);
+  add_plugs(vm, env, plug_dirs);
   nspc_commit(env->curr);
   return env;
 

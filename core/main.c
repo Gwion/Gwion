@@ -53,7 +53,7 @@ m_bool compile(VM* vm, const m_str filename) {
 #ifdef DEBUG_COMPILE
   debug_msg("lexer", "Ast of '%s' ok", name);
 #endif
-  CHECK_BB(type_engine_check_prog(vm->env, ast, name))
+  CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
 #ifdef DEBUG_COMPILE
   debug_msg("lexer", "type check  of '%s' ok", name);
 #endif
@@ -133,6 +133,7 @@ static void usage() {
 }
 
 int main(int argc, char** argv) {
+  Env env;
   Driver* d = NULL;
   int i, index;
   struct Vector_ add;
@@ -287,9 +288,9 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(vm->bbq = new_bbq(vm, &di, &d)))
     goto clean;
-  if(!(vm->env = type_engine_init(vm, &plug_dirs)))
+  if(!(env = type_engine_init(vm, &plug_dirs)))
     goto clean;
-  if(!(vm->emit = new_emitter(vm->env)))
+  if(!(vm->emit = new_emitter(env)))
     goto clean;
   srand(time(NULL));
 

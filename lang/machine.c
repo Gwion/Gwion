@@ -76,7 +76,7 @@ static SFUN(machine_check) {
   if(!(ast = parse(c)))
     return;
   s = strdup(c);
-  if(type_engine_check_prog(shred->vm_ref->env, ast, s) < 0)
+  if(type_engine_check_prog(shred->vm_ref->emit->env, ast, s) < 0)
     return;
   free(s);
   free_ast(ast);
