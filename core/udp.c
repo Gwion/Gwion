@@ -136,8 +136,10 @@ int server_init(char* hostname, int port) {
 
 void server_destroy(pthread_t t) {
 #ifdef __linux__
+#ifndef ANDROID
   pthread_cancel(t);
   pthread_join(t, NULL);
+#endif
 #endif
   shutdown(sock, SHUT_RDWR);
   vector_release(&add);
