@@ -11,15 +11,7 @@
 #include "oo.h"
 #include "object.h"
 #include "array.h"
-
-struct  Shreduler_ {
-//  m_int til_next;
-  VM* vm;
-  VM_Shred list;
-//  VM_Shred curr;
-  m_uint n_shred;
-  m_bool loop;
-};
+#include "shreduler_private.h"
 
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
@@ -122,7 +114,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
   debug_msg("clock", "shredule shred[%i] at %f", shred->xid, wake_time);
 #endif
   VM_Shred curr, prev;
-
+/*
   if(shred->prev || shred->next) {
     err_msg(VM_, 0, "internal sanity check failed in shredule()"); // LCOV_EXCL_LINE
     err_msg(VM_, 0, "shred '%i' shreduled while shreduled)", shred->xid);          // LCOV_EXCL_LINE
@@ -132,8 +124,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
     err_msg(VM_, 0,  "internal sanity check failed in shredule()"); // LCOV_EXCL_LINE
     err_msg(VM_, 0,  "(wake time is past) - %f : %f for shred %i", wake_time, get_now(s), shred->xid); // LCOV_EXCL_LINE
   }
-  if(shred->xid == -1)
-    shred->xid = s->n_shred++;
+*/
 
   shred->wake_time = wake_time;
   if(!s->list)

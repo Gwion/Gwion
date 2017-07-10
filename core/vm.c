@@ -9,6 +9,7 @@
 #include "ugen.h"
 #include "driver.h"
 #include "shreduler.h"
+#include "shreduler_private.h"
 
 void udp_do(VM* vm);
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
@@ -142,6 +143,8 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
   if(shred->xid == -1) {
     vector_add(&vm->shred, (vtype)shred);
+  if(shred->xid == -1)
+    shred->xid = vm->shreduler->n_shred++;
   }
   shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
 }
