@@ -45,7 +45,6 @@ struct VM_Shred_ {
   m_uint pc, next_pc, xid;
   m_str name;
   VM* vm_ref;
-  m_bool is_running, is_done;
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
   M_Object me;
@@ -54,6 +53,7 @@ struct VM_Shred_ {
   struct Vector_ child;
   struct Vector_ gc, gc1;
   m_float wake_time;
+  m_bool is_running;
 };
 
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
@@ -61,7 +61,7 @@ void free_vm_code(VM_Code a);
 
 Shreduler new_shreduler(VM* vm);
 VM_Shred shreduler_get(Shreduler s);
-m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
+void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
 
 VM_Shred new_vm_shred(VM_Code code);
 void free_vm_shred(VM_Shred shred);

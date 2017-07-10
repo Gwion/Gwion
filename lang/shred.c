@@ -19,9 +19,10 @@ static MFUN(vm_shred_exit) {
   m_uint i;
   VM_Shred  s = ME(o);
   s->is_running = 0;
-  s->is_done = 1;
   for(i = 0; i < vector_size(&shred->gc1); i++)
     release((M_Object)vector_at(&shred->gc1, i), shred);
+  release(o, shred);
+  s->me = NULL;
 }
 
 static MFUN(vm_shred_id) {
@@ -35,8 +36,7 @@ static MFUN(vm_shred_is_running) {
 }
 
 static MFUN(vm_shred_is_done) {
-  VM_Shred  s = ME(o);
-  RETURN->d.v_uint = s ? s->is_done : 0;
+  RETURN->d.v_uint = ME(o) ? 0 : 1;
 }
 
 static MFUN(shred_yield) {

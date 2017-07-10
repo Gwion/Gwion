@@ -24,4 +24,4 @@ void NullException(VM_Shred shred, const m_str c);
 #define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
 #define IO_FILE(o)  *(FILE**)(((M_Object)o)->d.data + o_fileio_file)
 
-#define Except(s, c) { NullException(s, c);return; }
+#define Except(s, c) { NullException(s, c); return; }

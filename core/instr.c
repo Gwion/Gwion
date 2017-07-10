@@ -24,7 +24,8 @@ INSTR(EOC) {
   debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
 #endif
   shred->is_running = 0;
-  shred->is_done = 1;
+  release(shred->me, shred);
+  shred->me = NULL;
 }
 
 INSTR(Reg_Pop_Word4) {
@@ -529,7 +530,6 @@ void handle_overflow(VM_Shred shred) {
           "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
           shred->xid, shred->name, shred->pc);
   shred->is_running = 0;
-  shred->is_done = 1;
 }
 // LCOV_EXCL_STOP
 
@@ -1208,7 +1208,7 @@ out_of_memory:
 error:
   fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
   shred->is_running = 0;
-  shred->is_done = 1;
+  shred->me = NULL;
 }
 
 
@@ -1268,7 +1268,7 @@ array_out_of_bound:
           shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
   shred->is_running = 0;
-  shred->is_done = 1;
+  shred->me = NULL;
 }
 
 INSTR(Instr_Array_Access_Multi) {
@@ -1300,7 +1300,7 @@ array_out_of_bound:
           shred->xid, shred->name, shred->pc, i);
   release(*base, shred);
   shred->is_running = 0;
-  shred->is_done = 1;
+  shred->me = NULL;
 }
 
 INSTR(start_gc) {

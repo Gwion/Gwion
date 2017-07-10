@@ -11,8 +11,8 @@ struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
 void NullException(VM_Shred shred, const m_str c) {
   err_msg(INSTR_, 0, "%s: shred[id=%lu:%s], PC=[%lu]\n",
           c, shred->xid, shred->name, shred->pc);
-  shred->is_running = 0;
-  shred->is_done = 1;
+  release(shred->me, shred);
+  shred->me = NULL;
 }
 
 M_Object new_M_Object(VM_Shred shred) {

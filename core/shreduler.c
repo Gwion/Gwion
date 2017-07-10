@@ -71,12 +71,10 @@ VM_Shred shreduler_get(Shreduler s) {
   return NULL;
 }
 
-m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
+void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 #ifdef DEBUG_SHREDULER
   debug_msg("clock", "%s %i", erase ? "erase" : "wait", out ? out->xid : -1);
 #endif
-  if(!out)
-    return -1;
   m_uint i, size = out->child.ptr ? vector_size(&out->child) : 0;
   if(erase) {
     vtype index;
@@ -116,13 +114,13 @@ m_bool shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 //    if(!out->wait && !out->child && erase)
     if(erase && !out->wait && !out->child.ptr && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
       free_vm_shred(out);
-    return -1;
+    return;
   }
   out->prev ? (out->prev->next = out->next) : (s->list = out->next);
   if(out->next)
     out->next->prev = out->prev;
   out->next = out->prev = NULL;
-  return 1;
+  return;
 }
 
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {

@@ -157,8 +157,7 @@ void vm_run(VM* vm) {
               shred->next_pc, vector_size(shred->code->instr));
 #endif
     while(shred->is_running) {
-      shred->pc = shred->next_pc;
-      shred->next_pc++;
+      shred->pc = shred->next_pc++;
       instr = (Instr)vector_at(shred->code->instr, shred->pc);
 #ifdef DEBUG_VM
       if(!instr) {
@@ -181,14 +180,11 @@ void vm_run(VM* vm) {
       debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc,
                 shred->next_pc, vector_size(shred->code->instr));
 #endif
-      if(shred->is_done) {
-        if(shreduler_remove(vm->shreduler, shred, 1) < 0) {
-          goto next;
-        }
+      if(!shred->me) {
+       shreduler_remove(vm->shreduler, shred, 1);
+       break;
       }
     }
-next:
-    ;
   }
   if(!vm->is_running) {
     return;
@@ -199,7 +195,7 @@ next:
     u->done = 0;
     if(u->channel) {
       m_uint j;
-      for(j = u->n_chan; --j;)
+      for(j = u->n_chan; --j;) // miss + 1
         u->channel[j - 1]->ugen->done = 0;
     }
   }
