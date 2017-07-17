@@ -90,6 +90,7 @@ Emitter new_emitter(Env env) {
 }
 
 void free_emitter(Emitter a) {
+  REM_REF(a->env);
   vector_release(&a->stack);
   free(a);
 }
