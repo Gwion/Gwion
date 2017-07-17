@@ -25,7 +25,6 @@ typedef struct {
   Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;
-  Env env;
   void (*wakeup)();
   struct Vector_ shred;
   struct Vector_ ugen;
