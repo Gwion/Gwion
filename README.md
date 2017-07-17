@@ -11,6 +11,8 @@ gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
+*high-level* features: variadic functions, templates, func pointers.
+a plugin systems makes it easily extendable
 
 #### simple example code (hello_world.gw):
 
@@ -34,14 +36,6 @@ learn more about options:
 ```
 ./gwion --help
 ```
-
-there are a few *new* features: (compared to [chuck](http://chuck.stanford.edu/))
-	
-*  variadic funcs
-*  templates (func only for now)
-*  function pointers
-*  enums
-*  unions
 
 #### requires
 
