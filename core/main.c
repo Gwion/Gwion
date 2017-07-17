@@ -320,8 +320,11 @@ clean:
 #ifndef __linux__
   sleep(1);
 #endif
-  if(vm && !signaled)
+  if(vm && !signaled) {
+    if(!vm->emit && env)
+      free(env);
     free_vm(vm);
+  }
   free_Symbols();
   return 0;
 }
