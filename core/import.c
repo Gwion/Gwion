@@ -158,36 +158,50 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   m_int ret = -1;
   m_uint array_depth;
   ID_List path;
-  Type_Decl* type_decl;
-  Var_Decl var_decl;
-  Var_Decl_List var_decl_list;
-  Exp exp_decl;
 
   CHECK_EB(env->class_def)
   if(!(path = str2list(type, &array_depth)))
     CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...", env->class_def->name, name))
 
-    type_decl = new_type_decl(path, ((flag & ae_flag_ref) == ae_flag_ref), 0);
+  Type_Decl t;
+  memset(&t, 0, sizeof(Type_Decl));
+  t.xid = path;
+  t.ref = ((flag & ae_flag_ref) == ae_flag_ref);
   if(array_depth) {
-    type_decl->array = new_array_sub(NULL, 0);
-    type_decl->array->depth = array_depth;
+    t.array = new_array_sub(NULL, 0);
+    t.array->depth = array_depth;
   }
-  var_decl = new_var_decl(name, NULL, 0);
+  struct Var_Decl_ var;
+  memset(&var, 0, sizeof(struct Var_Decl_));
+  var.xid = insert_symbol(name);
   if(array_depth) {
-    var_decl->array = new_array_sub(NULL, 0);
-    var_decl->array->depth = array_depth;
+    var.array = new_array_sub(NULL, 0);
+    var.array->depth = array_depth;
   }
-  var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  exp_decl = new_exp_decl(type_decl, var_decl_list, ((flag & ae_flag_static) == ae_flag_static), 0);
-  var_decl->addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp_decl->d.exp_decl) < 0  ||
-      scan2_exp_decl(env, &exp_decl->d.exp_decl) < 0 ||
-    !check_exp_decl(env, &exp_decl->d.exp_decl))
+  struct Var_Decl_List_ list;
+  memset(&list, 0, sizeof(struct Var_Decl_List_));
+  list.self = &var;
+  struct Exp_ exp;
+  exp.exp_type = ae_exp_decl;
+  exp.exp_type = ae_exp_decl;
+  exp.d.exp_decl.type = &t;
+  exp.d.exp_decl.num_decl = 0;
+  exp.d.exp_decl.list = &list;
+  exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
+  exp.pos  = 0;
+  exp.d.exp_decl.pos  = 0;
+  exp.d.exp_decl.self = &exp;
+  exp.next = NULL;
+  exp.cast_to = NULL;
+  var.addr = (void *)addr;
+  if(scan1_exp_decl(env, &exp.d.exp_decl) < 0  ||
+      scan2_exp_decl(env, &exp.d.exp_decl) < 0 ||
+    !check_exp_decl(env, &exp.d.exp_decl))
     goto error;
-  var_decl->value->flag = flag | ae_flag_builtin;
-  ret = var_decl->value->offset;
+  var.value->flag = flag | ae_flag_builtin;
+  ret = var.value->offset;
 error:
-  free_expression(exp_decl);
+  free(path);
   return ret;
 }
 
