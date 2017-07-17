@@ -182,17 +182,12 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   memset(&list, 0, sizeof(struct Var_Decl_List_));
   list.self = &var;
   struct Exp_ exp;
-  exp.exp_type = ae_exp_decl;
+  memset(&exp, 0, sizeof(struct Exp_));
   exp.exp_type = ae_exp_decl;
   exp.d.exp_decl.type = &t;
-  exp.d.exp_decl.num_decl = 0;
   exp.d.exp_decl.list = &list;
   exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
-  exp.pos  = 0;
-  exp.d.exp_decl.pos  = 0;
   exp.d.exp_decl.self = &exp;
-  exp.next = NULL;
-  exp.cast_to = NULL;
   var.addr = (void *)addr;
   if(scan1_exp_decl(env, &exp.d.exp_decl) < 0  ||
       scan2_exp_decl(env, &exp.d.exp_decl) < 0 ||

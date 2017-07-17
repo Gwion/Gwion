@@ -133,7 +133,7 @@ static void usage() {
 }
 
 int main(int argc, char** argv) {
-  Env env;
+  Env env = NULL;
   Driver* d = NULL;
   int i, index;
   struct Vector_ add;
