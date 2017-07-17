@@ -26,12 +26,12 @@ void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
-  a->args.ptr = NULL;
+  a->n_arg = 0;
 }
 
 void free_dl_func(DL_Func* a) {
-  if(a->args.ptr)
-    vector_release(&a->args);
+//  if(a->args.ptr)
+//    vector_release(&a->args);
 }
 
 static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr) {
@@ -45,8 +45,6 @@ static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* add
 
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
   DL_Value* v = new_DL_Value(t, n, 0, NULL);
-  if(!a->args.ptr)
-    vector_init(&a->args);
-  vector_add(&a->args, (vtype)v);
+  a->args[a->n_arg++] = v;
   return v;
 }

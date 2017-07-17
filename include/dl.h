@@ -28,14 +28,15 @@ typedef struct {
   m_str name;
   m_str type;
   void * static_addr;
-  m_bool is_const;
 } DL_Value;
 
 typedef struct {
   m_str name;
   m_str type;
   m_uint addr;
-  struct Vector_ args;
+//  struct Vector_ args;
+  m_uint n_arg;
+  DL_Value* args[6];
 } DL_Func;
 
 
