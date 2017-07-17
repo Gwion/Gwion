@@ -13,6 +13,20 @@ static m_bool emit_stmt_list(Emitter emit, Stmt_List list);
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member);
 static m_bool emit_func_def(Emitter emit, Func_Def func_def);
 
+Emitter new_emitter(Env env) {
+  Emitter emit = calloc(1, sizeof(struct Emitter_));
+  vector_init(&emit->stack);
+  emit->env = env;
+  return emit;
+}
+
+void free_emitter(Emitter a) {
+  free_env(a->env);
+  vector_release(&a->stack);
+  free(a);
+}
+
+
 static void sadd_instr(Emitter emit, f_instr f) {
   Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;

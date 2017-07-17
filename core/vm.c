@@ -125,7 +125,7 @@ VM* new_vm(m_bool loop) {
 void free_vm(VM* vm) {
   m_uint i;
   if(vm->emit)
-    REM_REF(vm->emit);
+    free_emitter(vm->emit);
   for(i = vector_size(&vm->plug) + 1; --i;)
     dlclose((void*)vector_at(&vm->plug, i - 1));
   vector_release(&vm->plug);

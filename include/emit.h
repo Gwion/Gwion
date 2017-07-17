@@ -10,7 +10,6 @@ struct Emitter_ {
   Map       cases; // passed to instr: is a pointer
   struct Vector_    stack;
   struct Code_*     code;
-  struct VM_Object_ obj;
 };
 
 Emitter new_emitter(Env env);

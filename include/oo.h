@@ -4,7 +4,7 @@
 #include "defs.h"
 
 typedef enum {
-  e_emit_obj, e_nspc_obj,  e_context_obj,
+  e_nspc_obj,  e_context_obj,
   e_type_obj, e_value_obj, e_func_obj, e_code_obj
 } e_obj;
 
