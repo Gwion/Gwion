@@ -106,8 +106,8 @@ static int get_pos(void* data)
 
 /* In a future release of Bison, this section will be replaced
    by #include "parser.h".  */
-#ifndef YY_MINIMAL_EVAL_PARSER_H_INCLUDED
-# define YY_MINIMAL_EVAL_PARSER_H_INCLUDED
+#ifndef YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
+# define YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -371,7 +371,7 @@ typedef union YYSTYPE YYSTYPE;
 
 int minimal_parse (MyArg* arg);
 
-#endif /* !YY_MINIMAL_EVAL_PARSER_H_INCLUDED  */
+#endif /* !YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 

@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_MINIMAL_EVAL_PARSER_H_INCLUDED
-# define YY_MINIMAL_EVAL_PARSER_H_INCLUDED
+#ifndef YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
+# define YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -283,7 +283,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 287 "eval/parser.h" /* yacc.c:1909  */
+#line 287 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -295,4 +295,4 @@ typedef union YYSTYPE YYSTYPE;
 
 int minimal_parse (MyArg* arg);
 
-#endif /* !YY_MINIMAL_EVAL_PARSER_H_INCLUDED  */
+#endif /* !YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED  */
