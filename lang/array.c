@@ -13,17 +13,17 @@ struct M_Vector_ {
 
 struct Type_ t_array  = { "@Array", SZ_INT, &t_object, te_array };
 
-m_int o_array_vector;
+m_int o_object_array;
 
 DTOR(array_dtor) {
   if(o->type_ref->d.array_type) {// maybe unnecessary. preferably check array depth
-    if(o->d.array->depth > 1 || isa(o->type_ref->d.array_type, &t_object) > 0) {
+    if(ARRAY(o)->depth > 1 || isa(o->type_ref->d.array_type, &t_object) > 0) {
       m_uint i;
-      for(i = 0; i < o->d.array->len * SZ_INT; i += SZ_INT)
-        release(*(M_Object*)(o->d.array->ptr + i), shred);
+      for(i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
+        release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
     }
   }
-  free(o->d.array->ptr);
+  free(ARRAY(o)->ptr);
   REM_REF(o->type_ref);
 }
 
@@ -33,12 +33,12 @@ M_Object new_M_Array(m_uint size, m_uint length, m_uint depth) {
   initialize_object(a, &t_array);
   while(cap < length)
     cap *= 2;
-  a->d.array 	    = malloc(sizeof(struct M_Vector_));
-  a->d.array->ptr   = calloc(cap, size);
-  a->d.array->cap   = cap;
-  a->d.array->size  = size;
-  a->d.array->len   = length;
-  a->d.array->depth = depth;
+  ARRAY(a)  	  = malloc(sizeof(struct M_Vector_));
+  ARRAY(a)->ptr   = calloc(cap, size);
+  ARRAY(a)->cap   = cap;
+  ARRAY(a)->size  = size;
+  ARRAY(a)->len   = length;
+  ARRAY(a)->depth = depth;
   return a;
 }
 
@@ -155,7 +155,7 @@ void m_vector_insert(M_Vector v, m_uint index, char* data)
 
 MFUN(vm_vector_rem) {
   m_int index = *(m_int*)(shred + SZ_INT);
-  M_Vector v = o->d.array;
+  M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
     return;
   m_vector_rem(v, index);
@@ -200,15 +200,15 @@ m_vec4*  v4_vector_addr(M_Vector v, m_uint i) {
 }
 
 MFUN(vm_vector_size) {
-  RETURN->d.v_uint = o ? m_vector_size(o->d.array) : - 1;
+  RETURN->d.v_uint = o ? m_vector_size(ARRAY(o)) : - 1;
 }
 
 MFUN(vm_vector_depth) {
-  RETURN->d.v_uint = o ? m_vector_depth(o->d.array) : - 1;
+  RETURN->d.v_uint = o ? m_vector_depth(ARRAY(o)) : - 1;
 }
 
 MFUN(vm_vector_cap) {
-  RETURN->d.v_uint = o ? m_vector_cap(o->d.array) : - 1;
+  RETURN->d.v_uint = o ? m_vector_cap(ARRAY(o)) : - 1;
 }
 
 INSTR(Array_Append) {
@@ -217,23 +217,23 @@ INSTR(Array_Append) {
   if(instr->m_val == Kindof_Int) {
     POP_REG(shred, SZ_INT);
     o = *(M_Object*)REG(0);
-    i_vector_add(o->d.array, *(m_uint*)REG(SZ_INT));
+    i_vector_add(ARRAY(o), *(m_uint*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Float) {
     POP_REG(shred, SZ_FLOAT);
     o = *(M_Object*)REG(0);
-    f_vector_add(o->d.array, *(m_float*)REG(SZ_INT));
+    f_vector_add(ARRAY(o), *(m_float*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Complex) {
     POP_REG(shred, SZ_COMPLEX);
     o = *(M_Object*)REG(0);
-    c_vector_add(o->d.array, *(m_complex*)REG(SZ_INT));
+    c_vector_add(ARRAY(o), *(m_complex*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Vec3) {
     POP_REG(shred, SZ_VEC3);
     o = *(M_Object*)REG(0);
-    v3_vector_add(o->d.array, *(m_vec3*)REG(SZ_INT));
+    v3_vector_add(ARRAY(o), *(m_vec3*)REG(SZ_INT));
   } else if(instr->m_val == Kindof_Vec4) {
     POP_REG(shred, SZ_VEC4);
     o = *(M_Object*)REG(0);
-    v4_vector_add(o->d.array, *(m_vec4*)REG(SZ_INT));
+    v4_vector_add(ARRAY(o), *(m_vec4*)REG(SZ_INT));
   }
   release(o, shred);
   *(M_Object*)REG(0) = o;
@@ -243,15 +243,23 @@ INSTR(Array_Append) {
 m_bool import_array(Env env) {
   DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
+
+  o_object_array = import_var(env, "int", "@array", ae_flag_member, NULL);
+  CHECK_BB(o_object_array)
+
   dl_func_init(&fun, "int", "size", (m_uint)vm_vector_size);
   CHECK_BB(import_fun(env, &fun, 0))
+
   dl_func_init(&fun, "int", "depth", (m_uint)vm_vector_depth);
   CHECK_BB(import_fun(env, &fun, 0))
+
   dl_func_init(&fun, "int", "cap", (m_uint)vm_vector_cap);
   CHECK_BB(import_fun(env, &fun, 0))
+
   dl_func_init(&fun, "int", "remove", (m_uint)vm_vector_rem);
   dl_func_add_arg(&fun, "int", "index");
   CHECK_BB(import_fun(env, &fun, 0))
+
   CHECK_BB(import_class_end(env))
   return 1;
 }

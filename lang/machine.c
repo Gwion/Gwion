@@ -119,7 +119,7 @@ static SFUN(machine_shreds) {
   M_Object obj = new_M_Array(SZ_INT, vector_size(&vm->shred), 1);
   for(i = 0; i < vector_size(&vm->shred); i++) {
     sh = (VM_Shred)vector_at(&vm->shred, i);
-    i_vector_set(obj->d.array, i, sh->xid);
+    i_vector_set(ARRAY(obj), i, sh->xid);
   }
   vector_add(&shred->gc, (vtype)obj);
   RETURN->d.v_object = obj;

@@ -34,11 +34,11 @@ m_bool initialize_object(M_Object object, Type type) {
   object->vtable = &type->info->obj_v_table;
   object->type_ref = type;
   if(type->obj_size) {
-    object->d.data = calloc(type->obj_size, sizeof(unsigned char));
-    if(!object->d.data)
+    object->data = calloc(type->obj_size, sizeof(unsigned char));
+    if(!object->data)
       goto out_of_memory;
   } else
-    object->d.data = NULL;
+    object->data = NULL;
   return 1;
 
 out_of_memory: // LCOV_EXCL_START
@@ -61,7 +61,7 @@ void release(M_Object obj, VM_Shred shred) {
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
         if(isprim(value->m_type) < 0)
-          release(*(M_Object*)(obj->d.data + value->offset), shred);
+          release(*(M_Object*)(obj->data + value->offset), shred);
       }
       free_vector(v);
       if(GET_FLAG(t, ae_flag_dtor)) {
@@ -87,7 +87,7 @@ void release(M_Object obj, VM_Shred shred) {
 
 static CTOR(object_ctor) {}
 static DTOR(object_dtor) {
-  free(o->d.data);
+  free(o->data);
   free(o);
 }
 

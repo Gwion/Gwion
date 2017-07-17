@@ -26,7 +26,7 @@ static INSTR(String_Assign) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
-  if(rhs && rhs->d.data) { // assigning with chuck a empty ref
+  if(rhs && rhs->data) { // assigning with chuck a empty ref
     release(lhs, shred);
     release(rhs, shred);
     STRING(rhs) = lhs ? STRING(lhs) : NULL;

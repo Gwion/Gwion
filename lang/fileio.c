@@ -227,7 +227,7 @@ SFUN(file_list) {
   ret->type_ref = t;
   for(i = 0; i < n; i++) {
     M_Object string = new_String(NULL, namelist[i]->d_name);
-    i_vector_set(ret->d.array, i, (m_uint)string);
+    i_vector_set(ARRAY(ret), i, (m_uint)string);
     free(namelist[i]);
   }
   free(namelist);

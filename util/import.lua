@@ -22,9 +22,9 @@ function declare_c_param(param, offset)
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
 		print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);")
 		print("\tm_uint "..param.name.."_iter;")
-		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size("..param.name.."_ptr->d.array) * SZ_INT);")
-		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size("..param.name.."_ptr->d.array); "..param.name.."_iter++)")
-		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at("..param.name.."_ptr->d.array, "..param.name.."_iter));")
+		print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size(ARRAY("..param.name.."_ptr)) * SZ_INT);")
+		print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size(ARRAY("..param.name.."_ptr)); "..param.name.."_iter++)")
+		print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at(ARRAY("..param.name.."_ptr), "..param.name.."_iter));")
 		print("\trelease("..param.name.."_ptr, shred);")
 	elseif string.match(param.type, "&sp_ftbl%s*") then
 		print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);")
@@ -327,7 +327,7 @@ print('#include "vm.h"\
 #include "lang.h"')
 
 print("m_uint o_ftbl_data;")
-print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->d.data + o_ftbl_data)")
+print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
 print("\nDTOR(ftbl_dtor)\n{")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
