@@ -166,18 +166,17 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   Type_Decl* type_decl = NULL;
   Var_Decl var_decl    = NULL;
   ID_List type_path    = NULL;
-  ID_List type_path2    = NULL;
+  ID_List type_path2   = NULL;
   Array_Sub array_sub  = NULL;
   DL_Value* arg        = NULL;
   m_uint array_depth = 0;
   m_uint array_depth2 = 0;
   m_int i = 0, j;
 
-    for(i = 0; i < dl_fun->n_arg; i++) {
+    for(i = 0; i < dl_fun->narg; i++) {
       array_depth = array_depth2 = 0;
       array_sub = NULL;
-//      arg = (DL_Value*)vector_at(&dl_fun->args, i);
-      arg = dl_fun->args[i];
+      arg = &dl_fun->args[i];
       type_path = str2list(arg->type, &array_depth);
       if(!type_path) {
         if(arg_list)
@@ -202,7 +201,6 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
       }
       var_decl = new_var_decl(arg->name, array_sub, 0);
       arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
-      free(arg);
     }
   return arg_list;
 }

@@ -1,5 +1,4 @@
 #include "dl.h"
-#include "type.h"
 #include "import.h"
 
 void dl_return_push(const DL_Return retval, VM_Shred shred, int kind) {
@@ -19,25 +18,16 @@ void dl_return_push(const DL_Return retval, VM_Shred shred, int kind) {
     *(m_vec4*)REG(0) = retval.d.v_vec4;
     PUSH_REG(shred, SZ_VEC4);
   }
-  return;
 }
 
 void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
-  a->n_arg = 0;
+  a->narg = 0;
 }
 
-static DL_Value* new_DL_Value(const m_str t, const m_str  n) {
-  DL_Value* a = malloc(sizeof(DL_Value));
-  a->name = n;
-  a->type = t;
-  return a;
-}
-
-DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
-  DL_Value* v = new_DL_Value(t, n);
-  a->args[a->n_arg++] = v;
-  return v;
+void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
+  a->args[a->narg].type = t;
+  a->args[a->narg++].name = n;
 }

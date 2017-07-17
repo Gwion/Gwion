@@ -30,15 +30,14 @@ typedef struct {
 } DL_Value;
 
 typedef struct {
-  m_str name;
-  m_str type;
-  m_uint addr;
-  m_uint n_arg;
-  DL_Value* args[6];
+  m_str    name;
+  m_str    type;
+  m_uint   addr;
+  m_uint   narg;
+  DL_Value args[6];
 } DL_Func;
 
 
 void dl_func_init(DL_Func* fun, const m_str t, const m_str n, const m_uint addr);
-void free_dl_func(DL_Func* a);
-DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
+void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #endif
