@@ -1,12 +1,11 @@
 struct M_Object_ {
   Vector vtable; // pointer reference to type->info->obj_v_table
   Type type_ref;
-  m_uint size, ref;
+  m_uint ref;
   union {
     M_Vector array;
     unsigned char* data;
   } d;
-//  UGen ugen;
 };
 
 m_bool import_object(Env env);

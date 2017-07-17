@@ -33,9 +33,8 @@ M_Object new_String(VM_Shred shred, m_str str) {
 m_bool initialize_object(M_Object object, Type type) {
   object->vtable = &type->info->obj_v_table;
   object->type_ref = type;
-  object->size = type->obj_size;
-  if(object->size) {
-    object->d.data = calloc(object->size, sizeof(unsigned char));
+  if(type->obj_size) {
+    object->d.data = calloc(type->obj_size, sizeof(unsigned char));
     if(!object->d.data)
       goto out_of_memory;
   } else
