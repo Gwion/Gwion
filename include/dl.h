@@ -38,7 +38,7 @@ typedef struct {
 } DL_Func;
 
 
-void dl_func_init(DL_Func* fun, const m_str t, const m_str n, m_uint addr);
+void dl_func_init(DL_Func* fun, const m_str t, const m_str n, const m_uint addr);
 void free_dl_func(DL_Func* a);
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #endif

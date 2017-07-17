@@ -29,7 +29,7 @@ void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->n_arg = 0;
 }
 
-static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr) {
+static DL_Value* new_DL_Value(const m_str t, const m_str  n) {
   DL_Value* a = malloc(sizeof(DL_Value));
   a->name = n;
   a->type = t;
@@ -37,7 +37,7 @@ static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* add
 }
 
 DL_Value* dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
-  DL_Value* v = new_DL_Value(t, n, 0, NULL);
+  DL_Value* v = new_DL_Value(t, n);
   a->args[a->n_arg++] = v;
   return v;
 }
