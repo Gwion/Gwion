@@ -30,13 +30,13 @@ static void sinosc_ctor(M_Object o, VM_Shred shred) {
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
   sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
-  assign_ugen(o->ugen, 0, 1, 0, ug);
-  o->ugen->tick = sinosc_tick;
+  assign_ugen(UGEN(o), 0, 1, 0, ug);
+  UGEN(o)->tick = sinosc_tick;
   ug->is_init = 1;
 }
 
 DTOR(sinosc_dtor) {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   sp_osc_destroy(&ug->osc);
   sp_ftbl_destroy(&ug->tbl);
   free(ug);
@@ -49,7 +49,7 @@ static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred) {
             size < 0 ? "negative" : "zero");
     return;
   }
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   sp_ftbl_destroy(&ug->tbl);
   sp_osc_destroy(&ug->osc);
   sp_osc_create(&ug->osc);
@@ -66,7 +66,7 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred) {
             size < 0 ? "negative" : "zero");
     return;
   }
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   sp_ftbl_destroy(&ug->tbl);
   sp_osc_destroy(&ug->osc);
   sp_osc_create(&ug->osc);
@@ -76,23 +76,23 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred) {
 }
 
 MFUN(sinosc_get_freq) {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   RETURN->d.v_float = ug->osc->freq;
 }
 
 MFUN(sinosc_set_freq) {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float freq = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = (ug->osc->freq = freq);
 }
 
 MFUN(sinosc_get_amp) {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   RETURN->d.v_float = ug->osc->amp;
 }
 
 MFUN(sinosc_set_amp) {
-  SP_osc* ug = (SP_osc*)o->ugen->ug;
+  SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float amp = *(m_float*)(shred->mem + SZ_INT);
   RETURN->d.v_float = (ug->osc->amp = amp);
 }
@@ -131,21 +131,21 @@ static m_bool gain_tick(UGen u) {
 }
 
 static void gain_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 1, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = gain_tick;
-  *(m_float*)o->ugen->ug = 1;
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = gain_tick;
+  *(m_float*)UGEN(o)->ug = 1;
 }
 
 static void gain_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
 static void gain_get_gain(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
 }
 
 static void gain_set_gain(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_FLOAT);
+  RETURN->d.v_float = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_FLOAT);
 }
 
 static m_bool import_gain(Env env) {
@@ -169,22 +169,21 @@ static m_bool impulse_tick(UGen u) {
 }
 
 static void impulse_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 0, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = impulse_tick;
-  *(m_float*)o->ugen->ug = 0;
+  assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = impulse_tick;
+  *(m_float*)UGEN(o)->ug = 0;
 }
 
 static void impulse_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
-
 static void impulse_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
 }
 
 static void impulse_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = (*(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT));
+  RETURN->d.v_float = (*(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT));
 }
 
 static m_bool import_impulse(Env env) {
@@ -207,13 +206,13 @@ static m_bool fullrect_tick(UGen u) {
 }
 
 static void fullrect_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 1, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = fullrect_tick;
-  *(m_float*)o->ugen->ug = 1;
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = fullrect_tick;
+  *(m_float*)UGEN(o)->ug = 1;
 }
 
 static void fullrect_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
 static m_bool import_fullrect(Env env) {
@@ -233,13 +232,13 @@ static m_bool halfrect_tick(UGen u) {
 }
 
 static void halfrect_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 1, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = halfrect_tick;
-  *(m_float*)o->ugen->ug = 1;
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = halfrect_tick;
+  *(m_float*)UGEN(o)->ug = 1;
 }
 
 static void halfrect_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
 static m_bool import_halfrect(Env env) {
@@ -255,22 +254,22 @@ static m_bool step_tick(UGen u) {
 }
 
 static void step_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 0, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = step_tick;
-  *(m_float*)o->ugen->ug = 0;
+  assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = step_tick;
+  *(m_float*)UGEN(o)->ug = 0;
 }
 
 static void step_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
 
 static void step_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)o->ugen->ug;
+  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
 }
 
 static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)o->ugen->ug = *(m_float*)(shred->mem + SZ_INT);
+  RETURN->d.v_float = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
 static m_bool import_step(Env env) {
@@ -297,13 +296,13 @@ static m_bool zerox_tick(UGen u) {
 }
 
 static void zerox_ctor(M_Object o, VM_Shred shred) {
-  assign_ugen(o->ugen, 1, 1, 0, malloc(sizeof(m_float)));
-  o->ugen->tick = zerox_tick;
-  *(m_float*)o->ugen->ug = 1;
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  UGEN(o)->tick = zerox_tick;
+  *(m_float*)UGEN(o)->ug = 1;
 }
 
 static void zerox_dtor(M_Object o, VM_Shred shred) {
-  free(o->ugen->ug);
+  free(UGEN(o)->ug);
 }
 
 static m_bool import_zerox(Env env) {

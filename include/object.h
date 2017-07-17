@@ -6,7 +6,7 @@ struct M_Object_ {
     M_Vector array;
     unsigned char* data;
   } d;
-  UGen ugen;
+//  UGen ugen;
 };
 
 m_bool import_object(Env env);
@@ -19,9 +19,12 @@ M_Object new_String(VM_Shred shred, m_str str);
 void release(M_Object obj, VM_Shred shred);
 void NullException(VM_Shred shred, const m_str c);
 
+m_int o_object_ugen;
+
+
 #define STRING(o) *((m_str*)((M_Object)o)->d.data + o_string_data)
 #define ME(o) *((VM_Shred*)((M_Object)o)->d.data + o_shred_me)
 #define EV_SHREDS(o) *((Vector*)((M_Object)o)->d.data + o_event_shred)
 #define IO_FILE(o)  *(FILE**)(((M_Object)o)->d.data + o_fileio_file)
-
+#define UGEN(o) (*(UGen*)(((M_Object)o)->d.data + o_object_ugen))
 #define Except(s, c) { NullException(s, c); return; }

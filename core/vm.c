@@ -199,10 +199,10 @@ void vm_run(VM* vm) {
     if(u->channel) {
       m_uint j;
       for(j = u->n_chan; --j;) // miss + 1
-        u->channel[j - 1]->ugen->done = 0;
+        UGEN(u->channel[j - 1])->done = 0;
     }
   }
-  ugen_compute(vm->blackhole->ugen);
-  ugen_compute(vm->dac->ugen);
+  ugen_compute(UGEN(vm->blackhole));
+  ugen_compute(UGEN(vm->dac));
 }
 

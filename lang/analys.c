@@ -61,8 +61,8 @@ static m_bool fft_tick(UGen u) {
     return 1;
   sp_buffer_add(ana->buf, u->in);      // add them to buffer
   if(u->trig) {
-    base_tick(u->trig->ugen);
-    if(ana->last == ana->sp->pos || u->trig->ugen->out) {  // if trigged, compute fft
+    base_tick(UGEN(u->trig));
+    if(ana->last == ana->sp->pos || UGEN(u->trig)->out) {  // if trigged, compute fft
       m_float* smp = sp_buffer_get(ana->buf);
       /*    if(ana->win)*/                  // do windowing
       /*      ana->win(smp, ana->buf->size);*/
@@ -75,14 +75,14 @@ static m_bool fft_tick(UGen u) {
 }
 
 static CTOR(fft_ctor) {
-  Fft* fft = o->ugen->ug = calloc(1, sizeof(Fft));
-  assign_ugen(o->ugen, 1, 1, 1, fft);
-  o->ugen->tick = fft_tick;
+  Fft* fft = UGEN(o)->ug = calloc(1, sizeof(Fft));
+  assign_ugen(UGEN(o), 1, 1, 1, fft);
+  UGEN(o)->tick = fft_tick;
   fft->sp = shred->vm_ref->bbq->sp;
 }
 
 static DTOR(fft_dtor) {
-  Fft* ana = (Fft*)o->ugen->ug;
+  Fft* ana = (Fft*)UGEN(o)->ug;
   if(ana->buf)
     sp_buffer_destroy(ana->buf);
   if(ana->frq) {
@@ -95,7 +95,7 @@ static DTOR(fft_dtor) {
 }
 
 static MFUN(fft_init) {
-  Fft* ana = (Fft*)o->ugen->ug;
+  Fft* ana = (Fft*)UGEN(o)->ug;
   m_int size = *(m_int*)MEM(SZ_INT);
   if(size <= 0 || size % 2)Except(shred, "FftInvalidSizeException.")
     if(ana->buf)
@@ -116,7 +116,7 @@ static MFUN(fft_init) {
 
 static MFUN(fft_compute) {
   m_float* smp;
-  Fft* ana = (Fft*)o->ugen->ug;
+  Fft* ana = (Fft*)UGEN(o)->ug;
   if(!ana || ana->sp->pos == ana->last || !ana->buf) {
     RETURN->d.v_uint = 0;
     return;
@@ -443,7 +443,7 @@ static MFUN(ana_set_fft) {
     RETURN->d.v_uint = 0;
     return;
   }
-  fft = (Fft*)obj->ugen->ug;
+  fft = (Fft*)UGEN(obj)->ug;
   if(!fft || !fft->buf) {
     err_msg(INSTR_, 0, "FFT probably not initialised.");
     release(obj, shred);
