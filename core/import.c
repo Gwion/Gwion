@@ -232,7 +232,6 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
 
   func_def = new_func_def(flag, type_decl, name, arg_list, NULL, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
-  free_dl_func(dl_fun);
   return func_def;
 }
 
@@ -242,11 +241,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   CHECK_OB(mfun) // probably deserve an err msg
   CHECK_BB(name_valid(mfun->name));
   CHECK_EB(env->class_def)
-  func_def = make_dll_as_fun(mfun, flag);
-  if(!func_def) {
-    free_dl_func(mfun);
-    return -1;
-  }
+  CHECK_OB((func_def = make_dll_as_fun(mfun, flag)))
   if(scan1_func_def(env, func_def) < 0 ||
       scan2_func_def(env, func_def) < 0 ||
       !check_func_def(env, func_def)) {

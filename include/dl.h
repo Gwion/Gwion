@@ -27,14 +27,12 @@ typedef void (*f_sfun)(DL_Return * RETURN, VM_Shred sh);
 typedef struct {
   m_str name;
   m_str type;
-  void * static_addr;
 } DL_Value;
 
 typedef struct {
   m_str name;
   m_str type;
   m_uint addr;
-//  struct Vector_ args;
   m_uint n_arg;
   DL_Value* args[6];
 } DL_Func;

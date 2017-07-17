@@ -29,17 +29,10 @@ void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->n_arg = 0;
 }
 
-void free_dl_func(DL_Func* a) {
-//  if(a->args.ptr)
-//    vector_release(&a->args);
-}
-
 static DL_Value* new_DL_Value(const m_str t, const m_str  n, m_bool c, void* addr) {
   DL_Value* a = malloc(sizeof(DL_Value));
   a->name = n;
   a->type = t;
-  a->is_const  = c;
-  a->static_addr = addr;
   return a;
 }
 
