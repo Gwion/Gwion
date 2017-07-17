@@ -17,7 +17,6 @@ Env new_env() {
   map_init(&env->known_ctx);
   env->type_xid = te_last; // ????????
   env->do_type_xid = 0;
-  INIT_OO(env, e_env_obj);
   env_reset(env);
   return env;
 }

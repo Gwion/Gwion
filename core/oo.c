@@ -90,7 +90,7 @@ Emitter new_emitter(Env env) {
 }
 
 void free_emitter(Emitter a) {
-  REM_REF(a->env);
+  free_env(a->env);
   vector_release(&a->stack);
   free(a);
 }
@@ -104,9 +104,6 @@ void rem_ref(VM_Object a, void* ptr) {
         break;
       case e_nspc_obj:
         free_nspc(ptr);
-        break;
-      case e_env_obj:
-        free_env(ptr);
         break;
       case e_type_obj:
         free_type(ptr);
@@ -125,5 +122,4 @@ void rem_ref(VM_Object a, void* ptr) {
         break;
     }
   }
-  return;
 }

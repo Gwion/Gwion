@@ -22,7 +22,6 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Map_       known_ctx;
-  struct VM_Object_ obj;
   m_bool do_type_xid;
 };
 
