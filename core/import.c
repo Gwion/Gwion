@@ -3,6 +3,7 @@
 #include "env.h"
 #include "func.h"
 #include "import.h"
+#include "dl.h"
 
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
@@ -17,9 +18,38 @@ m_bool scan1_func_def(Env env, Func_Def f);
 m_bool scan2_func_def(Env env, Func_Def f);
 m_bool check_func_def(Env env, Func_Def f);
 
+void dl_return_push(const DL_Return retval, VM_Shred shred, int kind) {
+  if(kind == Kindof_Int) {
+    *(m_uint*)REG(0) = retval.d.v_uint;
+    PUSH_REG(shred, SZ_INT);
+  } else if(kind == Kindof_Float) {
+    *(m_float*)REG(0) = retval.d.v_float;
+    PUSH_REG(shred, SZ_FLOAT);
+  } else if(kind == Kindof_Complex) {
+    *(m_complex*)REG(0) = retval.d.v_complex;
+    PUSH_REG(shred, SZ_COMPLEX);
+  } else if(kind == Kindof_Vec3) {
+    *(m_vec3*)REG(0) = retval.d.v_vec3;
+    PUSH_REG(shred, SZ_VEC3);
+  } else if(kind == Kindof_Vec4) {
+    *(m_vec4*)REG(0) = retval.d.v_vec4;
+    PUSH_REG(shred, SZ_VEC4);
+  }
+}
 
-// should be in type_utils
-ID_List str2list(m_str path, m_uint* array_depth) {
+void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
+  a->name = n;
+  a->type = t;
+  a->addr = addr;
+  a->narg = 0;
+}
+
+void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
+  a->args[a->narg].type = t;
+  a->args[a->narg++].name = n;
+}
+
+static ID_List str2list(m_str path, m_uint* array_depth) {
   m_uint len = 0;
   m_int  i, j;
   ID_List list = NULL;
@@ -249,7 +279,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   return 1;
 }
 
-Type get_type(Env env, const m_str str) {
+static Type get_type(Env env, const m_str str) {
   m_uint  depth;
   ID_List list = str2list(str, &depth);
   Type    t = list ? find_type(env, list) : NULL;
@@ -265,4 +295,3 @@ m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str 
   Type ret = get_type(env, t);
   return env_add_op(env, op, lhs, rhs, ret, f, global);
 }
-
