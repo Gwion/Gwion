@@ -169,7 +169,7 @@ INSTR(file_to_string) {
 }
 
 MFUN(file_nl) {
-  RETURN->d.v_uint = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
+  *(m_uint*)RETURN = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
 }
 
 MFUN(file_open) {
@@ -186,7 +186,7 @@ MFUN(file_open) {
     IO_FILE(o) = NULL;
   }
   IO_FILE(o) = fopen(filename, mode);
-  RETURN->d.v_uint = IO_FILE(o) ? 1 : 0;
+  *(m_uint*)RETURN = IO_FILE(o) ? 1 : 0;
 }
 
 MFUN(file_close) {
@@ -194,7 +194,7 @@ MFUN(file_close) {
     fclose(IO_FILE(o));
     IO_FILE(o) = NULL;
   }
-  RETURN->d.v_uint = !IO_FILE(o) ? 1 : 0;
+  *(m_uint*)RETURN = !IO_FILE(o) ? 1 : 0;
 }
 
 SFUN(file_remove) {
@@ -202,7 +202,7 @@ SFUN(file_remove) {
   if(!obj)
     return;
   release(obj, shred);
-  RETURN->d.v_uint = remove(STRING(*(M_Object*)MEM(SZ_INT)));
+  *(m_uint*)RETURN = remove(STRING(*(M_Object*)MEM(SZ_INT)));
 }
 
 SFUN(file_list) {
@@ -218,7 +218,7 @@ SFUN(file_list) {
     return;
   m_int n = scandir(str, &namelist, NULL, alphasort);
   if(n < 0) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   Type t = new_array_type(shred->vm_ref->emit->env, 1, &t_string, shred->vm_ref->emit->env->curr);
@@ -231,7 +231,7 @@ SFUN(file_list) {
     free(namelist[i]);
   }
   free(namelist);
-  RETURN->d.v_uint = (m_uint)ret;
+  *(m_uint*)RETURN = (m_uint)ret;
 }
 
 m_bool import_fileio(Env env) {

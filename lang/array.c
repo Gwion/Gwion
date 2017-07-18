@@ -200,15 +200,15 @@ m_vec4*  v4_vector_addr(M_Vector v, m_uint i) {
 }
 
 MFUN(vm_vector_size) {
-  RETURN->d.v_uint = o ? m_vector_size(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = o ? m_vector_size(ARRAY(o)) : - 1;
 }
 
 MFUN(vm_vector_depth) {
-  RETURN->d.v_uint = o ? m_vector_depth(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = o ? m_vector_depth(ARRAY(o)) : - 1;
 }
 
 MFUN(vm_vector_cap) {
-  RETURN->d.v_uint = o ? m_vector_cap(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = o ? m_vector_cap(ARRAY(o)) : - 1;
 }
 
 INSTR(Array_Append) {

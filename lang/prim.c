@@ -999,7 +999,7 @@ static MFUN(vec3_setAll) {
 
 static MFUN(vec3_magnitude) {
   m_vec3* v =  &**(m_vec3**)MEM(0);
-  RETURN->d.v_float = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+  *(m_float*)RETURN = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
 static MFUN(vec3_normalize) {
@@ -1012,19 +1012,19 @@ static MFUN(vec3_normalize) {
 static MFUN(vec3_interp) {
   m_vec3* v =  &**(m_vec3**)MEM(0);
   v->x = (v->y - v->x) * v->z + v->x;
-  RETURN->d.v_float = v->x;
+  *(m_float*)RETURN = v->x;
 }
 
 static MFUN(vec3_float) {
   m_vec3* v =  &**(m_vec3**)MEM(0);
   v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT)) + v->x;
-  RETURN->d.v_float = v->x;
+  *(m_float*)RETURN = v->x;
 }
 
 static MFUN(vec3_dur) {
   m_vec3* v =  &**(m_vec3**)MEM(0);
   v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT) / shred->vm_ref->bbq->sp->sr) + v->x;
-  RETURN->d.v_float = v->x;
+  *(m_float*)RETURN = v->x;
 }
 
 static MFUN(vec3_update) {
@@ -1190,7 +1190,7 @@ static MFUN(vec4_setAll) {
 
 static MFUN(vec4_magnitude) {
   m_vec4* v =  &**(m_vec4**)MEM(0);
-  RETURN->d.v_float = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+  *(m_float*)RETURN = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
 static MFUN(vec4_normalize) {

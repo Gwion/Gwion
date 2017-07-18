@@ -2,8 +2,8 @@
 #include "dl.h"
 #include "instr.h"
 
-#define MFUN(a) void a(M_Object o,  DL_Return * RETURN, VM_Shred shred)
-#define SFUN(a) void a(DL_Return * RETURN, VM_Shred shred)
+#define MFUN(a) void a(M_Object o, char* RETURN, VM_Shred shred)
+#define SFUN(a) void a(char* RETURN, VM_Shred shred)
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)

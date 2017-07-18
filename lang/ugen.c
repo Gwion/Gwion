@@ -277,15 +277,15 @@ static DTOR(ugen_dtor) {
 static MFUN(ugen_channel) {
   m_int i = *(m_int*)MEM(SZ_INT);
   if(!UGEN(o)->channel)
-    RETURN->d.v_object = !i ? o : NULL;
+    *(M_Object*)RETURN = !i ? o : NULL;
   else if(i < 0 || i >= UGEN(o)->n_chan)
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
   else
-    RETURN->d.v_object = UGEN(o)->channel[i];
+    *(M_Object*)RETURN = UGEN(o)->channel[i];
 }
 
 static MFUN(ugen_get_op) {
-  RETURN->d.v_uint = UGEN(o)->op;
+  *(m_uint*)RETURN = UGEN(o)->op;
 }
 
 static MFUN(ugen_set_op) {
@@ -294,11 +294,11 @@ static MFUN(ugen_set_op) {
     err_msg(INSTR_, 0, "invalid op %i", i);
   else
     UGEN(o)->op = i;
-  RETURN->d.v_uint = UGEN(o)->op;
+  *(m_uint*)RETURN = UGEN(o)->op;
 }
 
 static MFUN(ugen_get_last) {
-  RETURN->d.v_float = UGEN(o)->last;
+  *(m_float*)RETURN = UGEN(o)->last;
 }
 
 m_bool import_ugen(Env env) {

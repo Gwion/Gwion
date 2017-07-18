@@ -40,8 +40,8 @@ static INSTR(Event_Wait) {
 static MFUN(event_signal) {
   VM_Shred sh;
   Vector v = EV_SHREDS(o);
-  RETURN->d.v_uint = vector_size(v);
-  if(!RETURN->d.v_uint)
+  *(m_uint*)RETURN = vector_size(v);
+  if(!*(m_uint*)RETURN)
     Except(shred, "NullEventSignal");
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;

@@ -700,7 +700,7 @@ INSTR(Instr_Exp_Func_Static) {
   f_sfun f;
   m_uint local_depth, stack_depth;
   VM_Code func;
-  DL_Return retval;
+  char retval[SZ_VEC4];
 
   POP_REG(shred,  SZ_INT * 2);
   func        = *(VM_Code*)REG(0);
@@ -716,7 +716,7 @@ INSTR(Instr_Exp_Func_Static) {
     handle_overflow(shred);
     return;
   }
-  f(&retval, shred);
+  f(retval, shred);
   dl_return_push(retval, shred, instr->m_val);
   POP_MEM(shred, local_depth ? local_depth : SZ_INT);
 }
@@ -726,7 +726,7 @@ INSTR(Instr_Exp_Func_Member) {
   debug_msg("instr", "func call member");
 #endif
 
-  DL_Return retval;
+  char retval[SZ_VEC4];
   VM_Code func;
   m_uint local_depth, stack_depth;
 
@@ -756,7 +756,7 @@ INSTR(Instr_Exp_Func_Member) {
     f(*(M_Object*)MEM(0), shred);
   } else {
     f_mfun f = (f_mfun)func->native_func;
-    f((*(M_Object*)MEM(0)), &retval, shred);
+    f((*(M_Object*)MEM(0)), retval, shred);
     dl_return_push(retval, shred, instr->m_val);
   }
   POP_MEM(shred,  local_depth);

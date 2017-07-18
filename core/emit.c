@@ -687,7 +687,8 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   offset = add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit->code->frame->curr_offset;
   call = add_instr(emit, Instr_Exp_Func);
-  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
+//  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
+  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? func->def->ret_type->size : emit->code->stack_depth;
   if(GET_FLAG(func->def, ae_flag_builtin)) {
     if(!func->code || !func->code->native_func)
       CHECK_BB(err_msg(EMIT_, func->def->pos, "missing native func. are you trying to spork?"))

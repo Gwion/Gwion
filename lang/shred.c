@@ -26,15 +26,15 @@ static MFUN(vm_shred_exit) {
 
 static MFUN(vm_shred_id) {
   VM_Shred  s = ME(o);
-  RETURN->d.v_uint = s ? s->xid : -1;
+  *(m_uint*)RETURN = s ? s->xid : -1;
 }
 
 static MFUN(vm_shred_is_running) {
-  RETURN->d.v_uint = ME(o) ? 1 : 0;
+  *(m_uint*)RETURN = ME(o) ? 1 : 0;
 }
 
 static MFUN(vm_shred_is_done) {
-  RETURN->d.v_uint = ME(o) ? 0 : 1;
+  *(m_uint*)RETURN = ME(o) ? 0 : 1;
 }
 
 static MFUN(shred_yield) {
@@ -47,9 +47,9 @@ static MFUN(shred_yield) {
 static SFUN(vm_shred_from_id) {
   VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, *(m_uint*)MEM(SZ_INT) - 1);
   if(!s)
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
   else {
-    RETURN->d.v_uint = (m_uint)s->me;
+    *(m_uint*)RETURN = (m_uint)s->me;
     s->me->ref++;
     vector_add(&shred->gc, (vtype) s->me);
   }
@@ -57,23 +57,23 @@ static SFUN(vm_shred_from_id) {
 
 static MFUN(shred_args) {
   VM_Shred  s = ME(o);
-  RETURN->d.v_uint = s->args ? vector_size(s->args) : 0;
+  *(m_uint*)RETURN = s->args ? vector_size(s->args) : 0;
 }
 
 static MFUN(shred_arg) {
   m_str str;
   VM_Shred  s = ME(o);
   if(!s->args) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
-  RETURN->d.v_uint = str ? (m_uint)new_String(shred, str) : 0;
+  *(m_uint*)RETURN = str ? (m_uint)new_String(shred, str) : 0;
 }
 
 static MFUN(shred_path) {
   VM_Shred  s = ME(o);
-  RETURN->d.v_uint = (m_uint)new_String(shred, s->code->filename);
+  *(m_uint*)RETURN = (m_uint)new_String(shred, s->code->filename);
 }
 
 static MFUN(shred_dir) {
@@ -81,7 +81,7 @@ static MFUN(shred_dir) {
   char c[strlen(s->code->filename) + 1];
   memset(c, 0, strlen(s->code->filename) + 1);
   strncpy(c, s->code->filename, strlen(s->code->filename));
-  RETURN->d.v_uint = (m_uint)new_String(shred, dirname(c));
+  *(m_uint*)RETURN = (m_uint)new_String(shred, dirname(c));
 }
 
 static DTOR(shred_dtor) {

@@ -24,7 +24,7 @@ TICK(sinosc_tick) {
   return 1;
 }
 
-static void sinosc_ctor(M_Object o, VM_Shred shred) {
+static CTOR(sinosc_ctor) {
   SP_osc* ug = malloc(sizeof(SP_osc));
   sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
@@ -42,7 +42,7 @@ DTOR(sinosc_dtor) {
   free(ug);
 }
 
-static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred) {
+static MFUN(sinosc_size) {
   int size = *(m_int*)(shred->mem + SZ_INT);
   if(size <= 0) {
     err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
@@ -58,7 +58,7 @@ static void sinosc_size(M_Object o, DL_Return * RETURN, VM_Shred shred) {
   sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
 }
 
-static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred) {
+static MFUN(sinosc_size_phase) {
   int size    = *(m_int*)(shred->mem + SZ_INT);
   float phase = *(m_int*)(shred->mem + SZ_INT * 2);
   if(size <= 0) {
@@ -77,24 +77,24 @@ static void sinosc_size_phase(M_Object o, DL_Return * RETURN, VM_Shred shred) {
 
 MFUN(sinosc_get_freq) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  RETURN->d.v_float = ug->osc->freq;
+  *(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(sinosc_set_freq) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float freq = *(m_float*)(shred->mem + SZ_INT);
-  RETURN->d.v_float = (ug->osc->freq = freq);
+  *(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(sinosc_get_amp) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  RETURN->d.v_float = ug->osc->amp;
+  *(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(sinosc_set_amp) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float amp = *(m_float*)(shred->mem + SZ_INT);
-  RETURN->d.v_float = (ug->osc->amp = amp);
+  *(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 static m_bool import_sinosc(Env env) {
@@ -122,6 +122,9 @@ static m_bool import_sinosc(Env env) {
   return 1;
 }
 
+static DTOR(basic_dtor) {
+  free(UGEN(o)->ug);
+}
 
 static struct Type_ t_gain      = { "Gain", SZ_INT, &t_ugen };
 static m_bool gain_tick(UGen u) {
@@ -130,27 +133,24 @@ static m_bool gain_tick(UGen u) {
   return 1;
 }
 
-static void gain_ctor(M_Object o, VM_Shred shred) {
+static CTOR(gain_ctor) {
   assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = gain_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static void gain_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
+
+static MFUN(gain_get_gain) {
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug;
 }
 
-static void gain_get_gain(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
-}
-
-static void gain_set_gain(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_FLOAT);
+static MFUN(gain_set_gain) {
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_FLOAT);
 }
 
 static m_bool import_gain(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, gain_dtor))
+  CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, basic_dtor))
   dl_func_init(&fun, "float", "gain", (m_uint)gain_get_gain);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "gain", (m_uint)gain_set_gain);
@@ -168,27 +168,23 @@ static m_bool impulse_tick(UGen u) {
   return 1;
 }
 
-static void impulse_ctor(M_Object o, VM_Shred shred) {
+static CTOR(impulse_ctor) {
   assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = impulse_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
 
-static void impulse_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
+static MFUN(impulse_get_next) {
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug;
 }
 
-static void impulse_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
-}
-
-static void impulse_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = (*(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT));
+static MFUN(impulse_set_next) {
+  *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT));
 }
 
 static m_bool import_impulse(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_impulse, env->global_nspc, impulse_ctor, impulse_dtor))
+  CHECK_BB(import_class_begin(env, &t_impulse, env->global_nspc, impulse_ctor, basic_dtor))
   dl_func_init(&fun, "float", "next", (m_uint)impulse_get_next);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "next", (m_uint)impulse_set_next);
@@ -205,18 +201,14 @@ static m_bool fullrect_tick(UGen u) {
   return 1;
 }
 
-static void fullrect_ctor(M_Object o, VM_Shred shred) {
+static CTOR(fullrect_ctor) {
   assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = fullrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static void fullrect_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
-}
-
 static m_bool import_fullrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, fullrect_dtor))
+  CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -231,18 +223,14 @@ static m_bool halfrect_tick(UGen u) {
   return 1;
 }
 
-static void halfrect_ctor(M_Object o, VM_Shred shred) {
+static CTOR(halfrect_ctor) {
   assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = halfrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static void halfrect_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
-}
-
 static m_bool import_halfrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, halfrect_dtor))
+  CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -253,28 +241,23 @@ static m_bool step_tick(UGen u) {
   return 1;
 }
 
-static void step_ctor(M_Object o, VM_Shred shred) {
+static CTOR(step_ctor) {
   assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = step_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
 
-static void step_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
+static MFUN(step_get_next) {
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug;
 }
 
-
-static void step_get_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)UGEN(o)->ug;
-}
-
-static void step_set_next(M_Object o, DL_Return * RETURN, VM_Shred shred) {
-  RETURN->d.v_float = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
+static MFUN(step_set_next) {
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
 static m_bool import_step(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, step_dtor))
+  CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, basic_dtor))
   dl_func_init(&fun, "float", "next", (m_uint)step_get_next);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "next", (m_uint)step_set_next);
@@ -295,18 +278,14 @@ static m_bool zerox_tick(UGen u) {
   return 1;
 }
 
-static void zerox_ctor(M_Object o, VM_Shred shred) {
+static CTOR(zerox_ctor) {
   assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
   UGEN(o)->tick = zerox_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static void zerox_dtor(M_Object o, VM_Shred shred) {
-  free(UGEN(o)->ug);
-}
-
 static m_bool import_zerox(Env env) {
-  CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, zerox_dtor))
+  CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }

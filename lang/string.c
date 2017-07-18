@@ -387,7 +387,7 @@ static CTOR(string_ctor) {
 }
 
 static MFUN(string_len) {
-  RETURN->d.v_uint = strlen(STRING(o));
+  *(m_uint*)RETURN = strlen(STRING(o));
 }
 
 static MFUN(string_upper) {
@@ -397,7 +397,7 @@ static MFUN(string_upper) {
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_lower) {
@@ -407,7 +407,7 @@ static MFUN(string_lower) {
   for(i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_ltrim) {
@@ -417,7 +417,7 @@ static MFUN(string_ltrim) {
     i++;
   char c[strlen(str) - i + 1];
   strcpy(c, STRING(o) + i);
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_rtrim) {
@@ -428,7 +428,7 @@ static MFUN(string_rtrim) {
   char c[len + 2];
   strncpy(c, str, len + 1);
   c[len + 1] = '\0';
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_trim) {
@@ -447,14 +447,14 @@ static MFUN(string_trim) {
     else break;
   }
   if(len - start - end <= 0) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   char c[len - start - end + 1];
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_charAt) {
@@ -463,9 +463,9 @@ static MFUN(string_charAt) {
   while(str[len] != '\0')
     len++;
   if(i < 0 || i >= len)
-    RETURN->d.v_uint = -1;
+    *(m_uint*)RETURN = -1;
   else
-    RETURN->d.v_uint = str[i];
+    *(m_uint*)RETURN = str[i];
 }
 
 static MFUN(string_setCharAt) {
@@ -475,11 +475,11 @@ static MFUN(string_setCharAt) {
   while(str[len] != '\0')
     len++;
   if(i < 0 || i >= len)
-    RETURN->d.v_uint = -1;
+    *(m_uint*)RETURN = -1;
   else {
     str[i] = c;
     STRING(o) = s_name(insert_symbol(str));
-    RETURN->d.v_uint = c;
+    *(m_uint*)RETURN = c;
   }
 }
 
@@ -490,14 +490,14 @@ static MFUN(string_substring) {
   while(str[len] != '\0')
     len++;
   if(!len || index > len || (len - index + 1) <= 0) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char c[len - index + 1];
   memset(c, 0, len - index + 1);
   for(i = index; i < len; i++)
     c[i - index] = str[i];
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_substringN) {
@@ -508,7 +508,7 @@ static MFUN(string_substringN) {
   while(str[len] != '\0')
     len++;
   if(end > len) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   len -= end;
@@ -516,7 +516,7 @@ static MFUN(string_substringN) {
   for(i = index; i < len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  RETURN->d.v_object = new_String(shred, c);
+  *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_insert) {
@@ -526,7 +526,7 @@ static MFUN(string_insert) {
   M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
 
   if(!arg) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char insert[strlen(STRING(arg)) + 1];
@@ -543,7 +543,7 @@ static MFUN(string_insert) {
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred, c);;
+  *(M_Object*)RETURN = new_String(shred, c);;
 }
 
 static MFUN(string_replace) {
@@ -552,7 +552,7 @@ static MFUN(string_replace) {
   m_int i, len = 0, len_insert = 0, index = *(m_int*)MEM(SZ_INT);
   M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
   if(!arg) {
-    RETURN->d.v_object = o;
+    *(M_Object*)RETURN = o;
     return;
   }
   char insert[strlen(STRING(arg)) + 1];
@@ -561,7 +561,7 @@ static MFUN(string_replace) {
   len_insert =  strlen(insert);
   if(index >= len  || index < 0 || len < 0 || (index + len_insert + 1) <= 0) {
     release(arg, shred);
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char c[index + len_insert + 1];
@@ -571,7 +571,7 @@ static MFUN(string_replace) {
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred, c);;
+  *(M_Object*)RETURN = new_String(shred, c);;
 }
 
 static MFUN(string_replaceN) {
@@ -581,7 +581,7 @@ static MFUN(string_replaceN) {
   M_Object arg = *(M_Object*)MEM(SZ_INT * 3);
   m_int _len = *(m_int*)MEM(SZ_INT * 2);
   if(!arg || index > strlen(STRING(o)) || _len > strlen(STRING(arg))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char insert[strlen(STRING(arg)) + 1];
@@ -601,7 +601,7 @@ static MFUN(string_replaceN) {
     c[i] = str[i];
   c[len + _len - 1] = '\0';
   release(arg, shred);
-  RETURN->d.v_object = new_String(shred, c);;
+  *(M_Object*)RETURN = new_String(shred, c);;
 }
 
 static MFUN(string_find) {
@@ -615,7 +615,7 @@ static MFUN(string_find) {
     }
     i++;
   }
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_findStart) {
@@ -624,7 +624,7 @@ static MFUN(string_findStart) {
   char arg = *(m_int*)MEM(SZ_INT * 2);
   m_int i = pos, ret = -1;
   if(!strlen(str)) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   while(str[i] != '\0') {
@@ -634,12 +634,12 @@ static MFUN(string_findStart) {
     }
     i++;
   }
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_findStr) {
   if(!strlen(STRING(o))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char str[strlen(STRING(o)) + 1];
@@ -647,7 +647,7 @@ static MFUN(string_findStr) {
   m_int ret = -1;
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   m_str arg = STRING(obj);
@@ -662,12 +662,12 @@ static MFUN(string_findStr) {
     i++;
   }
   release(obj, shred);
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_findStrStart) {
   if(!strlen(STRING(o))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char str[strlen(STRING(o)) + 1];
@@ -676,7 +676,7 @@ static MFUN(string_findStrStart) {
   m_int start = *(m_int*)MEM(SZ_INT);
   M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
   if(!obj) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   m_str arg = STRING(obj);
@@ -691,7 +691,7 @@ static MFUN(string_findStrStart) {
     i++;
   }
   release(obj, shred);
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfind) {
@@ -705,12 +705,12 @@ static MFUN(string_rfind) {
     }
     i--;
   }
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfindStart) {
   if(!strlen(STRING(o))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char str[strlen(STRING(o)) + 1];
@@ -725,12 +725,12 @@ static MFUN(string_rfindStart) {
     }
     i--;
   }
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfindStr) {
   if(!strlen(STRING(o))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char str[strlen(STRING(o)) + 1];
@@ -749,12 +749,12 @@ static MFUN(string_rfindStr) {
     i--;
   }
   release(obj, shred);
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfindStrStart) {
   if(!strlen(STRING(o))) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char str[strlen(STRING(o)) + 1];
@@ -763,7 +763,7 @@ static MFUN(string_rfindStrStart) {
   m_int start = *(m_int*)MEM(SZ_INT);
   M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
   if(!obj) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   m_str arg = STRING(obj);
@@ -778,7 +778,7 @@ static MFUN(string_rfindStrStart) {
     i--;
   }
   release(obj, shred);
-  RETURN->d.v_uint = ret;
+  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_erase) {
@@ -789,7 +789,7 @@ static MFUN(string_erase) {
   m_int len = strlen(str);
   m_int size = len - rem + 1;
   if(start >= len || size <= 0) {
-    RETURN->d.v_object = NULL;
+    *(M_Object*)RETURN = NULL;
     return;
   }
   char c[size];
@@ -802,11 +802,11 @@ static MFUN(string_erase) {
 }
 
 static MFUN(string_toInt) {
-  RETURN->d.v_uint = atoi(STRING(o));
+  *(m_uint*)RETURN = atoi(STRING(o));
 }
 
 static MFUN(string_toFloat) {
-  RETURN->d.v_float = atof(STRING(o));
+  *(m_float*)RETURN = atof(STRING(o));
 }
 
 m_bool import_string(Env env) {

@@ -258,15 +258,15 @@ function print_mod_func(name, mod)
 			print("MFUN("..name.."_get_"..v.name..")\n{")
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
 			if string.match(v.type, "int") then
-				print("\tRETURN->d.v_uint = ug->osc->"..v.name..";")
+				print("\t*(m_uint*)RETURN = ug->osc->"..v.name..";")
 			elseif string.match(v.type, "SPFLOAT$") then
-				print("\tRETURN->d.v_float = ug->osc->"..v.name..";")
+				print("\t*(m_float*)RETURN = ug->osc->"..v.name..";")
 			elseif string.gmatch(v.type, "SPFLOAT*") then
-				print("\tRETURN->d.v_float = *ug->osc->"..v.name..";")
+				print("\t*(m_float*)RETURN = *ug->osc->"..v.name..";")
 			elseif string.gmatch(v.type, "char*") then
-				print("\tRETURN->d.v_uint = ug->osc->"..v.name.."_obj;")
+				print("\t*(m_uint*)RETURN = ug->osc->"..v.name.."_obj;")
 			elseif string.gmatch(v.type, "sp_ftbl*") then
-				print("\tRETURN->d.v_uint = ug->osc->"..v.name.."_obj;")
+				print("\t*(m_uint*)RETURN = ug->osc->"..v.name.."_obj;")
 			else 
 				print("unknown type "..v.type)
 				os.exit(1);
@@ -277,15 +277,15 @@ function print_mod_func(name, mod)
 			print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
 			declare_c_param(v, true)
 			if string.match(v.type, "int") then
-				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.." = "..v.name..");")
+				print("\t*(m_uint*)RETURN = (ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.match(v.type, "SPFLOAT$") then
-				print("\tRETURN->d.v_float = (ug->osc->"..v.name.." = "..v.name..");")
+				print("\t*(m_float*)RETURN = (ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.gmatch(v.type, "SPFLOAT*") then
-				print("\tRETURN->d.v_float = (*ug->osc->"..v.name.." = "..v.name..");")
+				print("\t*(m_float*)RETURN = (*ug->osc->"..v.name.." = "..v.name..");")
 			elseif string.gmatch(v.type, "char*") then
-				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+				print("\t*(m_uint*)RETURN = (ug->osc->"..v.name.."_obj = "..v.name..");")
 			elseif string.gmatch(v.type, "sp_ftbl*") then
-				print("\tRETURN->d.v_uint = (ug->osc->"..v.name.."_obj = "..v.name..");")
+				print("\t*(m_uint*)RETURN = (ug->osc->"..v.name.."_obj = "..v.name..");")
 			end
 			print("}\n")
 		end

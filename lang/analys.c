@@ -111,14 +111,14 @@ static MFUN(fft_init) {
   newFFTFREQS(ana->frq, size);
   FFTwrapper_create(&ana->fft, size);
   ana->frq->size = size;
-  RETURN->d.v_uint = size;
+  *(m_uint*)RETURN = size;
 }
 
 static MFUN(fft_compute) {
   m_float* smp;
   Fft* ana = (Fft*)UGEN(o)->ug;
   if(!ana || ana->sp->pos == ana->last || !ana->buf) {
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   smp = sp_buffer_get(ana->buf);
@@ -423,12 +423,12 @@ static MFUN(ana_compute) {
   f_analys f = *(f_analys*)(o->data + o_ana_fn);
   if(!fft || ana->last == ana->sp->pos)
     return;
-  RETURN->d.v_float = f(ana);
+  *(m_float*)RETURN = f(ana);
   ana->last = ana->sp->pos;
 }
 
 static MFUN(ana_get_fft) {
-  RETURN->d.v_uint = (m_uint) * (M_Object*)(o->data + o_ana_fft);
+  *(m_uint*)RETURN = (m_uint) * (M_Object*)(o->data + o_ana_fft);
 }
 
 static MFUN(ana_set_fft) {
@@ -440,7 +440,7 @@ static MFUN(ana_set_fft) {
   if(!obj) {
     ana->size = 0;
     ana->fval = NULL;
-    RETURN->d.v_uint = 0;
+    *(m_uint*)RETURN = 0;
     return;
   }
   fft = (Fft*)UGEN(obj)->ug;
@@ -451,7 +451,7 @@ static MFUN(ana_set_fft) {
   }
   ana->size = fft->fft->fftsize;
   ana->fval = fft->frq->s;
-  RETURN->d.v_object = *(M_Object*)(o->data + o_ana_fft) = obj;
+  *(M_Object*)RETURN = *(M_Object*)(o->data + o_ana_fft) = obj;
 }
 
 static CTOR(ana_ctor) {
@@ -543,11 +543,11 @@ static CTOR(rolloff_ctor) {
 }
 static MFUN(rolloff_get_percent) {
   Ana* ana = *(Ana**)(o->data + o_ana_ana);
-  RETURN->d.v_float = ana->percent;
+  *(m_float*)RETURN = ana->percent;
 }
 static MFUN(rolloff_set_percent) {
   Ana* ana = *(Ana**)(o->data + o_ana_ana);
-  RETURN->d.v_float = (ana->percent = *(m_float*)MEM(SZ_INT));
+  *(m_float*)RETURN = (ana->percent = *(m_float*)MEM(SZ_INT));
 }
 static m_bool import_rolloff(Env env) {
   DL_Func fun;
@@ -618,7 +618,7 @@ static MFUN(fc_compute) {
     m_float f = fn(ana);
     f_vector_set(ARRAY(ret), i, f);
   }
-  RETURN->d.v_uint = (m_uint)ret;
+  *(m_uint*)RETURN = (m_uint)ret;
 }
 
 static MFUN(fc_add) {
@@ -628,7 +628,7 @@ static MFUN(fc_add) {
     vector_add(v, (vtype)obj);
     release(obj, shred);
   }
-  RETURN->d.v_uint = (m_uint)obj;
+  *(m_uint*)RETURN = (m_uint)obj;
 }
 
 static MFUN(fc_rem) {
@@ -638,7 +638,7 @@ static MFUN(fc_rem) {
     vector_rem(v, vector_find(v, (vtype)obj));
     release(obj, shred);
   }
-  RETURN->d.v_uint = (m_uint)obj;
+  *(m_uint*)RETURN = (m_uint)obj;
 }
 
 INSTR(fc_connect) {
