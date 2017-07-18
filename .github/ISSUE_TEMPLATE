@@ -6,10 +6,11 @@ Replace this text with a short description
 2. text with 
 3. the steps
 4. to recreate
+5. skip this step for feture request
      
 ### Current behavior
 Explain what it's doing and why it's wrong
+or what it should be doing
      
 ### Expected behavior
-Explain what it should be doing after it's fixed.
-     
+Explain what it should be doing after it's fixed/implemented
