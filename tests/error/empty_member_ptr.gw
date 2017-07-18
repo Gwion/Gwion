@@ -1,4 +1,3 @@
-// [skip]
 // [contains] NullFuncPtrException
 class C
 {

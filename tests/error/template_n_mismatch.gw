@@ -1,7 +1,7 @@
 // [contains] template type number mismatch
-// [skip]
 template <{i}>
 function void test(){}
+template <{i}>
 function void test(int i){}
 
 test<{int, float, int}>();

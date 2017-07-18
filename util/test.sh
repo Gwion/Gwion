@@ -151,8 +151,8 @@ do_skip() {
   skip=$(echo "$skip" | cut -d ']' -f2 )
   n=$(printf "% 4i" "$2")
   if [ "$async" -eq 0 ]
-  then  echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip"
-  else echo "ok  $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
+  then  echo "ok $(printf "% 4i" "$n") $3 # Skip $skip"
+  else echo "ok $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
   fi
   return 0
 }
@@ -184,9 +184,9 @@ test_gw(){
   valgrind --log-file="$vlog" --suppressions=util/gwion.supp ./gwion $UDP -d $DRIVER "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
-  do_skip "$1" "$n" "" "$rlog" && return 0
+  do_skip "$1" "$n" "$file" "$rlog" && return 0
   # enable todo
-  do_todo "$1" "$n" "" "$rlog" && return 0
+  do_todo "$1" "$n" "$file" "$rlog" && return 0
 
   [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" && return 0
   assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" || return 1
@@ -428,7 +428,7 @@ consummer() {
         base=$(echo "$line" | cut -d "#" -f 1)
         directive=$(echo "$line" | cut -d "#" -f 2)
         printf "%sok   %s%s" "${ANSI_GREEN}" "${ANSI_RESET}" "${base:2}"
-        [ "$directive" ] && echo " # $directive"
+        [ "$directive" ] && echo " ${ANSI_RED}# $directive${ANSI_RESET}"
         [ "$line" = "* Todo *" ] && todo=$((todo+1))
         [ "$line" = "* Skip *" ] && skip=$((skip+1))
       else echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${line:2}"
@@ -441,7 +441,7 @@ consummer() {
         base=$(echo "$line" | cut -d "#" -f 1)
         directive=$(echo "$line" | cut -d "#" -f 2)
         printf "%s" "$base"
-        [ "$directive" ] && echo " # $directive"
+        [ "$directive" ] && echo " ${ANSI_RED}# $directive${ANSI_RESET}"
       else echo "$line"
       fi
       exit 1

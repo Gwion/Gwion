@@ -595,7 +595,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
         if((!GET_FLAG(overload, ae_flag_template) && f->types) ||
             (GET_FLAG(overload, ae_flag_template) && !f->types && !GET_FLAG(f, ae_flag_template)))
 
-          CHECK_BB(err_msg(SCAN2_, f->pos, "must override template function with template %p %p", f->types, f->d.func))
+          CHECK_BB(err_msg(SCAN2_, f->pos, "must override template function with template"))
         }
   memset(name, 0, len);
 

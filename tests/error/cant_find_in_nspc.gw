@@ -1,5 +1,4 @@
 // [contains] cannot find class
-// [skip] FIXME: invalid read
 class C {
   class D { int i; };
 }
