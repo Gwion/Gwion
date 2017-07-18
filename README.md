@@ -11,7 +11,7 @@ gwion is a object-oriented programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
-*high-level* features: variadic functions, templates, func pointers.
+*high-level* features: variadic functions, templates, func pointers.  
 a plugin systems makes it easily extendable
 
 #### simple example code (hello_world.gw):
@@ -43,26 +43,28 @@ learn more about options:
 
 #### build
 
-first you need to configure the build system., look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md).
-also, 
+first you need to configure the build system
 
 ```
 ./configure --help
 ```
 should show a list of available options.
 
+now run `./configure` with the options you need
+
 then, just
 ```
 make
 ```
 
-#### issues
+> if you run into troubles, please look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md) and read on.
 
-if anyting goes wrong or seems unclear, please report an [issue](https://github.com/fennecdjay/Gwion/issues/new).  
+#### Reporting bugs
 
-#### contribute 
+:pencil: just file an issue [here]  
+:book: Please see the [contributing](CONTRIBUTING.md) page for more information.
 
-Every helping hand is welcome!!!
-if you wish to do something on [Gwion](https://github.com/fennecdjay/Gwion), please use the [issue tracker](https://github.com/fennecdjay/Gwion/issues),
-either to find a issue you can fix, or add a new one.  
-Pull Requests also highly appreciated.
+#### Contributing
+
+:+1: Every helping hand is welcome!!! :+1:  
+:book: As for bug report, please see the [contributing](CONTRIBUTING.md) page.
