@@ -6,7 +6,7 @@ The following is a set of guidelines for contributing to Gwion. These are mostly
 
 #### Table Of Contents
 
-[Code of Conduct](.github/CODE_OF_CONDUCT.md)
+[Code of Conduct](CODE_OF_CONDUCT.md)
 
 <!-- [What should I know before I get started?](#what-should-i-know-before-i-get-started)
 
