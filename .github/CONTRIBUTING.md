@@ -1,13 +1,12 @@
 # Contributing to Gwion
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+:+1::tada: First off, thanks for taking the time consider making acontribution! :tada::+1:
 
 The following is a set of guidelines for contributing to Gwion. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-
 #### Table Of Contents
 
-[Code of Conduct](#code-of-conduct)
+[Code of Conduct](.github/CODE_OF_CONDUCT.md)
 
 <!-- [What should I know before I get started?](#what-should-i-know-before-i-get-started)
 
