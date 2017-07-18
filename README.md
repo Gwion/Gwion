@@ -62,9 +62,9 @@ make
 #### Reporting bugs
 
 :pencil: just file an issue [here]  
-:book: Please see the [contributing](CONTRIBUTING.md) page for more information.
+:book: Please see the [contributing](.github/CONTRIBUTING.md) page for more information.
 
 #### Contributing
 
 :+1: Every helping hand is welcome!!! :+1:  
-:book: As for bug report, please see the [contributing](CONTRIBUTING.md) page.
+:book: As for bug report, please see the [contributing](.github/CONTRIBUTING.md) page.
