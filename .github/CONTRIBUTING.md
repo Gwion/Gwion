@@ -16,9 +16,12 @@ The following is a set of guidelines for contributing to Gwion. These are mostly
   * [Suggesting Enhancements](#suggesting-enhancements)
   * [Your First Code Contribution](#your-first-code-contribution)
   * [Pull Requests](#pull-requests)
+-->
 
 [Styleguides](#styleguides)
   * [Git Commit Messages](#git-commit-messages)
+
+<!--
   * [JavaScript Styleguide](#javascript-styleguide)
   * [CoffeeScript Styleguide](#coffeescript-styleguide)
   * [Specs Styleguide](#specs-styleguide)
@@ -28,7 +31,7 @@ The following is a set of guidelines for contributing to Gwion. These are mostly
 [Additional Notes](#additional-notes)
   * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
 
-  -->
+-->
 
 ## How Can I Contribute?
 
@@ -45,3 +48,24 @@ Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for
 > **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
 
 
+## Styleguides
+
+### Git Commit Messages
+
+* Use the present tense ("Add feature" not "Added feature")
+* Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+* Limit the first line to 72 characters or less
+* Reference issues and pull requests liberally after the first line
+* When only changing documentation, include `[ci skip]` in the commit description
+* Consider starting the commit message with an applicable emoji:
+    * :art: `:art:` when improving the format/structure of the code
+    * :racehorse: `:racehorse:` when improving performance
+    * :non-potable_water: `:non-potable_water:` when plugging memory leaks
+    * :memo: `:memo:` when writing docs
+    * :penguin: `:penguin:` when fixing something OS specific
+    * :bug: `:bug:` when fixing a bug
+    * :fire: `:fire:` when removing code or files
+    * :green_heart: `:green_heart:` when fixing the CI build
+    * :white_check_mark: `:white_check_mark:` when adding tests
+    * :lock: `:lock:` when dealing with security
+    * :shirt: `:shirt:` when enforcing style
