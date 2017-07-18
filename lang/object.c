@@ -1,5 +1,7 @@
 #include "defs.h"
 #include "err_msg.h"
+#include "vm.h"
+#include "instr.h"
 #include "import.h"
 
 struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};

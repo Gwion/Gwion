@@ -1,3 +1,6 @@
+#include "vm.h"
+#include "type.h"
+#include "instr.h"
 #include "import.h"
 #include "shreduler.h"
 

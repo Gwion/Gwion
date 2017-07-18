@@ -2,7 +2,7 @@
 #include <string.h>
 #include <sndfile.h>
 #include "type.h"
-#include "dl.h"
+#include "instr.h"
 #include "import.h"
 #include "lang.h"
 #include <dirent.h>

@@ -1,7 +1,8 @@
 #include <libgen.h>
-#include "defs.h"
+#include "absyn.h"
 #include "err_msg.h"
 //#include "func.h"
+#include "instr.h"
 #include "import.h"
 #include "shreduler.h"
 

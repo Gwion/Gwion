@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <math.h>
-#include "defs.h"
+#include "absyn.h"
 #include "err_msg.h"
+#include "instr.h"
 #include "import.h"
 #include "ugen.h"
 

@@ -1,7 +1,7 @@
 #include "vm.h"
 #include "type.h"
-#include "dl.h"
 #include "err_msg.h"
+#include "instr.h"
 #include "import.h"
 #include "lang.h"
 #include "ugen.h"

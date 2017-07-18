@@ -2,8 +2,8 @@
 #include "err_msg.h"
 #include "env.h"
 #include "func.h"
+#include "instr.h"
 #include "import.h"
-#include "dl.h"
 
 #define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
 #define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
@@ -198,35 +198,35 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   m_uint array_depth2 = 0;
   m_int i = 0, j;
 
-    for(i = 0; i < dl_fun->narg; i++) {
-      array_depth = array_depth2 = 0;
-      array_sub = NULL;
-      arg = &dl_fun->args[i];
-      type_path = str2list(arg->type, &array_depth);
-      if(!type_path) {
-        if(arg_list)
-          free_arg_list(arg_list);
-        CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
-      }
-      type_decl = new_type_decl(type_path, 0, 0);
-      type_path2 = str2list(arg->name, &array_depth2);
-      free_id_list(type_path2);
-      if(array_depth && array_depth2) {
-        free_type_decl(type_decl);
-        if(arg_list)
-          free_arg_list(arg_list);
-        CHECK_BO(err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module"))
-      }
-      if(array_depth2)
-        array_depth = array_depth2;
-      if(array_depth) {
-        array_sub = new_array_sub(NULL, 0);
-        for(j = 1; j < array_depth; j++)
-          array_sub = prepend_array_sub(array_sub, NULL, 0);
-      }
-      var_decl = new_var_decl(arg->name, array_sub, 0);
-      arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
+  for(i = 0; i < dl_fun->narg; i++) {
+    array_depth = array_depth2 = 0;
+    array_sub = NULL;
+    arg = &dl_fun->args[i];
+    type_path = str2list(arg->type, &array_depth);
+    if(!type_path) {
+      if(arg_list)
+        free_arg_list(arg_list);
+      CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
     }
+    type_decl = new_type_decl(type_path, 0, 0);
+    type_path2 = str2list(arg->name, &array_depth2);
+    free_id_list(type_path2);
+    if(array_depth && array_depth2) {
+      free_type_decl(type_decl);
+      if(arg_list)
+        free_arg_list(arg_list);
+      CHECK_BO(err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module"))
+    }
+    if(array_depth2)
+      array_depth = array_depth2;
+    if(array_depth) {
+      array_sub = new_array_sub(NULL, 0);
+      for(j = 1; j < array_depth; j++)
+        array_sub = prepend_array_sub(array_sub, NULL, 0);
+    }
+    var_decl = new_var_decl(arg->name, array_sub, 0);
+    arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
+  }
   return arg_list;
 }
 
@@ -264,6 +264,8 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   CHECK_OB(mfun) // probably deserve an err msg
   CHECK_BB(name_valid(mfun->name));
   CHECK_EB(env->class_def)
+  if(mfun->narg >= DLARG_MAX)
+    return -1;
   CHECK_OB((func_def = make_dll_as_fun(mfun, flag)))
   if(scan1_func_def(env, func_def) < 0 ||
       scan2_func_def(env, func_def) < 0 ||

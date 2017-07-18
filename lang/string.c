@@ -1,6 +1,7 @@
 #include <math.h>
-#include "defs.h"
+#include "absyn.h"
 #include "err_msg.h"
+#include "instr.h"
 #include "import.h"
 
 struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };

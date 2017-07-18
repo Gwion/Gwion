@@ -1,4 +1,7 @@
 #include "math.h"
+#include "defs.h"
+#include "vm.h"
+#include "instr.h"
 #include "import.h"
 
 struct Type_ t_int   = { "int",   SZ_INT,   NULL,    te_int};

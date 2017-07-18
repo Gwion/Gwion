@@ -11,6 +11,7 @@
 #include "import.h"
 #include "lang.h"
 #include "ugen.h"
+#include "bbq.h"
 #include "string.h"
 
 m_bool scan0_Ast(Env, Ast);

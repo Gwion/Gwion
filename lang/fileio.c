@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include "defs.h"
 #include "err_msg.h"
+#include "vm.h"
+#include "instr.h"
 #include "import.h"
 
 struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };

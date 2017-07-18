@@ -9,7 +9,6 @@
 #include "nspc.h"
 #include "env.h"
 #include "value.h"
-#include "dl.h"
 
 struct Type_ {
   m_str     name;

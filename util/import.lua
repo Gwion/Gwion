@@ -318,8 +318,8 @@ table.sort(a)
 
 print('#include "vm.h"\
 #include "type.h"\
-#include "dl.h"\
 #include "err_msg.h"\
+#include "instr.h"\
 #include "import.h"\
 #include "ugen.h"\
 #include "array.h"\

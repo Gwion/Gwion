@@ -1,5 +1,6 @@
-#include "defs.h"
+#include "absyn.h"
 #include "err_msg.h"
+#include "instr.h"
 #include "import.h"
 
 struct M_Vector_ {

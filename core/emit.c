@@ -1,7 +1,8 @@
 #include <string.h> /* memcpy */
 #include "err_msg.h"
-#include "instr.h"
+#include "defs.h"
 #include "vm.h"
+#include "instr.h"
 #include "context.h"
 #include "func.h"
 #include "emit.h"
