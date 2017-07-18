@@ -1,16 +1,13 @@
-#include "defs.h"
 #include "type.h"
-#include "err_msg.h"
-#include "lang.h"
 #include "import.h"
 
 static struct Type_ t_coverage = { "Coverage", SZ_INT, &t_object };
 
-SFUN(coverage_int)     { RETURN->d.v_uint    = 0; }
-SFUN(coverage_float)   { RETURN->d.v_float   = 0; }
-SFUN(coverage_complex) { RETURN->d.v_complex = 0; }
-SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   RETURN->d.v_vec3 = v; }
-SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; RETURN->d.v_vec4 = v; }
+SFUN(coverage_int)     { *(m_uint*)RETURN    = 0; }
+SFUN(coverage_float)   { *(m_float*)RETURN   = 0; }
+SFUN(coverage_complex) { *(m_complex*)RETURN = 0; }
+SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   *(m_vec3*)RETURN = v; }
+SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
 
 IMPORT
