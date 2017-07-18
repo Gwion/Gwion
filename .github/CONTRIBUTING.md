@@ -4,7 +4,7 @@
 
 The following is a set of guidelines for contributing to Gwion. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-#### Table Of Contents
+#### Table Of Contents / important links 
 
 [Code of Conduct](CODE_OF_CONDUCT.md)
 
@@ -22,9 +22,11 @@ The following is a set of guidelines for contributing to Gwion. These are mostly
   * [Git Commit Messages](#git-commit-messages)
 
 <!--
-  * [JavaScript Styleguide](#javascript-styleguide)
-  * [CoffeeScript Styleguide](#coffeescript-styleguide)
-  * [Specs Styleguide](#specs-styleguide)
+  * [C Styleguide](#javascript-styleguide)
+  * [Yacc Styleguide](#yacc-styleguide)
+  * [Bison Styleguide](#bison-styleguide)
+  * [lua Styleguide](#lua-styleguide)
+  * [Shell Styleguide](#shell-styleguide)
   * [Documentation Styleguide](#documentation-styleguide)
 
 
@@ -45,7 +47,8 @@ When you are creating a bug report, please [include as many details as possible]
 
 Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for helps us resolve issues faster. -->
 
-> **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
+> **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and 
+include a [reference](https://help.github.com/articles/autolinked-references-and-urls/#issues-and-pull-requests) to the original issue in the body of your new one.
 
 
 ## Styleguides
@@ -54,6 +57,7 @@ Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for
 
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+* Dot not add dot at the end
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * When only changing documentation, include `[ci skip]` in the commit description
@@ -62,10 +66,9 @@ Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for
     * :racehorse: `:racehorse:` when improving performance
     * :non-potable_water: `:non-potable_water:` when plugging memory leaks
     * :memo: `:memo:` when writing docs
-    * :penguin: `:penguin:` when fixing something OS specific
+    * :penguin: `:penguin:` when fixing OS specific stuff
     * :bug: `:bug:` when fixing a bug
-    * :fire: `:fire:` when removing code or files
     * :green_heart: `:green_heart:` when fixing the CI build
-    * :white_check_mark: `:white_check_mark:` when adding tests
+    * :white_check_mark: `:white_check_mark:` when working on tests
     * :lock: `:lock:` when dealing with security
-    * :shirt: `:shirt:` when enforcing style
+    * :shirt: `:shirt:` when enforcing [style](#styleguides)
