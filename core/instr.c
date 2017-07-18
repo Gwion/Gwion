@@ -23,7 +23,6 @@ INSTR(EOC) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
 #endif
-  shred->is_running = 0;
   release(shred->me, shred);
   shred->me = NULL;
 }
@@ -529,7 +528,6 @@ void handle_overflow(VM_Shred shred) {
   fprintf(stderr,
           "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
           shred->xid, shred->name, shred->pc);
-  shred->is_running = 0;
 }
 // LCOV_EXCL_STOP
 
@@ -1207,7 +1205,6 @@ out_of_memory:
   goto error;                                                                  // LCOV_EXCL_LINE
 error:
   fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
-  shred->is_running = 0;
   shred->me = NULL;
 }
 
@@ -1267,7 +1264,6 @@ array_out_of_bound:
           "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
           shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
-  shred->is_running = 0;
   shred->me = NULL;
 }
 
@@ -1299,7 +1295,6 @@ array_out_of_bound:
           "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
           shred->xid, shred->name, shred->pc, i);
   release(*base, shred);
-  shred->is_running = 0;
   shred->me = NULL;
 }
 

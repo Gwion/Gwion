@@ -16,7 +16,6 @@ static void event_dtor(M_Object o, VM_Shred shred) {
 INSTR(Time_Advance) {
   POP_REG(shred, SZ_FLOAT * 2);
   *(m_float*)REG(0) = (shred->wake_time += *(m_float*)REG(0));
-  shred->is_running = 0;
   shredule(vm->shreduler, shred, shred->wake_time);
   PUSH_REG(shred, SZ_FLOAT);
 }

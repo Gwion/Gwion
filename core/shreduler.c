@@ -11,11 +11,10 @@
 #include "oo.h"
 #include "object.h"
 #include "array.h"
-#include "shreduler_private.h"
 
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
-  s->list = NULL;
+  s->curr = s->list = NULL;
   s->vm = vm;
   s->n_shred = 0;
   return s;
@@ -51,7 +50,7 @@ VM_Shred shreduler_get(Shreduler s) {
     shred->prev = NULL;
     if(s->list)
       s->list->prev = NULL;
-    shred->is_running = 1;
+    s->curr = shred;
     return shred;
   }
   return NULL;
@@ -94,7 +93,7 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
       vector_release(&out->gc);
     }
   }
-  out->is_running = 0;
+  s->curr = (s->curr == out) ? s->curr : NULL;
 
   if(!out->prev && !out->next && out != s->list) {
 //    if(!out->wait && !out->child && erase)
@@ -151,5 +150,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
       prev->next = shred;
     }
   }
+  if(s->curr == shred)
+    s->curr = NULL;
   return 1;
 }

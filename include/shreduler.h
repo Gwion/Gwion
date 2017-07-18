@@ -1,4 +1,12 @@
 #include "vm.h"
+struct  Shreduler_ {
+  VM* vm;
+  VM_Shred list;
+  VM_Shred curr;
+  m_uint n_shred;
+  m_bool loop;
+};
+
 Shreduler new_shreduler(VM* vm);
 void free_shreduler(Shreduler s);
 m_float get_now(Shreduler s);

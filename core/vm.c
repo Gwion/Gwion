@@ -9,7 +9,6 @@
 #include "ugen.h"
 #include "driver.h"
 #include "shreduler.h"
-#include "shreduler_private.h"
 
 void udp_do(VM* vm);
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
@@ -67,7 +66,6 @@ VM_Shred new_vm_shred(VM_Code c) {
   shred->mem        = shred->base;
   shred->_mem       = shred->base;
   shred->code       = c;
-  shred->is_running = 1;
   shred->xid        = -1;
   shred->name       = strdup(c->name);
   vector_init(&shred->gc1);
@@ -157,7 +155,7 @@ void vm_run(VM* vm) {
               shred->xid, *shred->reg, *shred->mem, shred->pc,
               shred->next_pc, vector_size(shred->code->instr));
 #endif
-    while(shred->is_running) {
+    while(vm->shreduler->curr) {
       shred->pc = shred->next_pc++;
       instr = (Instr)vector_at(shred->code->instr, shred->pc);
 #ifdef DEBUG_VM
@@ -182,6 +180,7 @@ void vm_run(VM* vm) {
                 shred->next_pc, vector_size(shred->code->instr));
 #endif
       if(!shred->me) {
+       vm->shreduler->curr = NULL;
        shreduler_remove(vm->shreduler, shred, 1);
        break;
       }

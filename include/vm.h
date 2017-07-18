@@ -52,7 +52,7 @@ struct VM_Shred_ {
   struct Vector_ child;
   struct Vector_ gc, gc1;
   m_float wake_time;
-  m_bool is_running;
+//  m_bool is_running;
 };
 
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
