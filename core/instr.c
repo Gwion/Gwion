@@ -728,8 +728,6 @@ INSTR(Instr_Exp_Func_Member) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func call member");
 #endif
-
-  char retval[SZ_VEC4];
   VM_Code func;
   m_uint local_depth, stack_depth;
 
@@ -758,6 +756,7 @@ INSTR(Instr_Exp_Func_Member) {
     f_xtor f = (f_xtor)func->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
+    char retval[SZ_VEC4];
     f_mfun f = (f_mfun)func->native_func;
     f((*(M_Object*)MEM(0)), retval, shred);
     dl_return_push(retval, shred, instr->m_val);
