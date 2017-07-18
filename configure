@@ -653,17 +653,25 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
-	\${CC} \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+all: options \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
+	@echo "link \${PRG}"
+	@\${CC} \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+
+options:
+	@echo "CFLAGS  : \${CFLAGS}"
+	@echo "LDFLAGS : \${LDFLAGS}"
 
 clean:
+	@echo "cleaning..."
 	@rm -f */*.o */*.gcda */*.gcno ${PRG}
 
 core/main.o:
-	\${CC} \${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
+	@echo "compile main (with arguments defines)"
+	@\${CC} \${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
 
 .c.o:
-	\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)
+	@echo "compile \$(<:.c=)"
+	@\${CC} \${CFLAGS} -c \$< -o \$(<:.c=.o)
 
 install: directories
 	cp \${PRG} \${PREFIX}

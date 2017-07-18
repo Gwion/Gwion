@@ -289,19 +289,25 @@ LDFLAGS+=-lrt
 endif
 
 # recipes
-all: \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
-	\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+all: options \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
+	@echo "link \\\${PRG}"
+	@\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+
+options:
+	@echo "CFLAGS  : \\\${CFLAGS}"
+	@echo "LDFLAGS : \\\${LDFLAGS}"
 
 clean:
+	@echo "cleaning..."
 	@rm -f */*.o */*.gcda */*.gcno \${PRG}
 
 core/main.o:
-	\\\${CC} \\\${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
-#  -DLDFLAGS="\\\${LDFLAGS}"
-#-DCFLAGS='\"\\\$(shell echo \\\${CFLAGS} | xargs)\\"' 
+	@echo "compile main (with arguments defines)"
+	@\\\${CC} \\\${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
 
 .c.o:
-	\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
+	@echo "compile \\\$(<:.c=)"
+	@\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
 install: directories
 	cp \\\${PRG} \\\${PREFIX}
@@ -325,7 +331,7 @@ EOF
 
 _EOF
   echo "}"
-} 
+}
 
 config_post() {
   printf "config_check\nmake_handle\nmake_add\nmake_recipe\n# ] <-- needed because of Argbash"
