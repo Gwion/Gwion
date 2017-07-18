@@ -12,7 +12,7 @@ gwion is a object-oriented programming language, aimed at making music
 **strongly** inspired by [chuck](http://chuck.stanford.edu/)  
 synthesis is based on [soundpipe](http://paulbatchelor.github.io/proj/soundpipe.html)  
 *high-level* features: variadic functions, templates, func pointers.  
-a plugin systems makes it easily extendable
+:gift: a plugin systems makes it easily extendable
 
 #### simple example code (hello_world.gw):
 
@@ -31,7 +31,7 @@ to run this, do
 ./gwion hello_world.gw
 ```
 
-learn more about options:
+:mag: learn more about options: :mag_right:
 
 ```
 ./gwion --help
@@ -50,7 +50,7 @@ first you need to configure the build system
 ```
 should show a list of available options.
 
-now run `./configure` with the options you need
+:computer: now run `./configure` with the options you need
 
 then, just
 ```
