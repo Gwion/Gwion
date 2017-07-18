@@ -187,9 +187,9 @@ INSTR(Reg_Push_Me) {
 
 INSTR(Reg_Push_Now) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push now %f", get_now(vm->shreduler));
+  debug_msg("instr", "[reg] push now %f", vm->bbq->sp->pos);
 #endif
-  *(m_float*)REG(0) = get_now(vm->shreduler);
+  *(m_float*)REG(0) = vm->bbq->sp->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 

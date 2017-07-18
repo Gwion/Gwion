@@ -142,7 +142,7 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
   if(shred->xid == -1)
     shred->xid = vm->shreduler->n_shred++;
   }
-  shredule(vm->shreduler, shred, get_now(vm->shreduler) + .5);
+  shredule(vm->shreduler, shred, .5);
 }
 
 void vm_run(VM* vm) {

@@ -41,7 +41,7 @@ static MFUN(shred_yield) {
   VM_Shred  s = ME(o);
   Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
-  shredule(sh, s, get_now(sh) + .5);
+  shredule(sh, s, .5);
 }
 
 static SFUN(vm_shred_from_id) {

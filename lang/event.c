@@ -15,8 +15,9 @@ static void event_dtor(M_Object o, VM_Shred shred) {
 
 INSTR(Time_Advance) {
   POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)REG(0) = (shred->wake_time += *(m_float*)REG(0));
-  shredule(vm->shreduler, shred, shred->wake_time);
+  m_float f = *(m_float*)REG(0);
+  *(m_float*)REG(0) = (shred->wake_time += f);
+  shredule(vm->shreduler, shred, f);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
@@ -44,7 +45,7 @@ static MFUN(event_signal) {
     Except(shred, "NullEventSignal");
   sh = (VM_Shred)vector_front(v);
   sh->wait = NULL;
-  shredule(shred->vm_ref->shreduler, sh, get_now(shred->vm_ref->shreduler) + .5);
+  shredule(shred->vm_ref->shreduler, sh, .5);
   vector_rem(v, 0);
 }
 
@@ -54,7 +55,7 @@ void broadcast(M_Object o) {
   for(i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
     sh->wait = NULL;
-    shredule(sh->vm_ref->shreduler, sh, get_now(sh->vm_ref->shreduler) + .5);
+    shredule(sh->vm_ref->shreduler, sh, .5);
   }
   vector_clear(EV_SHREDS(o));
 }
