@@ -1,11 +1,7 @@
-#ifndef DL_H
-#define DL_H
-
 #include <stdlib.h>
 #include <complex.h>
 #include "defs.h"
 #include "vm.h"
-//#include "instr.h"
 
 #define DLARG_MAX 6
 
@@ -31,7 +27,6 @@ typedef struct {
 
 void dl_func_init(DL_Func* fun, const m_str t, const m_str n, const m_uint addr);
 void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
-#endif
 
 #define MFUN(a) void a(M_Object o, char* RETURN, VM_Shred shred)
 #define SFUN(a) void a(char* RETURN, VM_Shred shred)
