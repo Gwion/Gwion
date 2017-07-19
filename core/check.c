@@ -1559,6 +1559,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   Func func = NULL;
   Type parent = NULL;
   Value override = NULL;
+  Value variadic = NULL;
   Value  v = NULL;
   Func  parent_func = NULL;
   Arg_List arg_list = NULL;
@@ -1663,15 +1664,15 @@ m_bool check_func_def(Env env, Func_Def f) {
   }
 
   if(GET_FLAG(f, ae_flag_variadic)) {
-    func->variadic = malloc(sizeof(struct Variadic_Info));
-    func->variadic->instr = NULL;
-    func->variadic->value = new_value(&t_vararg, "vararg");
-    SET_FLAG(func->variadic->value, ae_flag_checked);
-    nspc_add_value(env->curr, insert_symbol("vararg"), func->variadic->value);
+    variadic = new_value(&t_vararg, "vararg");
+    SET_FLAG(variadic, ae_flag_checked);
+    nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
   }
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
     ret = err_msg(TYPE_, f->type_decl->pos,
                   "...in function '%s'", s_name(f->name));
+  if(GET_FLAG(f, ae_flag_variadic))
+    REM_REF(variadic)
 
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;

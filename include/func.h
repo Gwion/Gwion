@@ -1,10 +1,5 @@
 #include "absyn.h"
 
-struct Variadic_Info {
-  Instr instr;
-  Value value;
-};
-
 struct Func_ {
   m_str name;
   Func_Def def;
@@ -14,7 +9,7 @@ struct Func_ {
   Func next;
   m_uint vt_index;
   ae_flag flag;
-  struct Variadic_Info* variadic;
+  Instr variadic;
   struct VM_Object_ obj;
 };
 
