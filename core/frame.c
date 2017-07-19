@@ -16,7 +16,7 @@ void free_frame(Frame* a) {
   free(a);
 }
 
-Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m_bool is_obj) {
+Local* frame_alloc_local(Frame* frame, m_uint size, m_bool is_ref, m_bool is_obj) {
   Local* local = calloc(1, sizeof(Local));
   local->size = size;
   local->offset = frame->curr_offset;
