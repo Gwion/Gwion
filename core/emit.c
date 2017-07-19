@@ -113,7 +113,6 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
     info->depth = type->array_depth;
     info->type = type;
     info->is_obj = isa(type->d.array_type, &t_object) > 0 ? 1 : 0;
-    info->stack_offset = emit->code->frame->curr_offset;
     info->is_ref = is_ref;
     Instr alloc = add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
