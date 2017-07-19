@@ -41,13 +41,13 @@ env:
 
 jobs:
   matrix:
-   script: echo test
+   - script: echo test
 #  include: 
 #    os: osx
 #    compiler: clang
 #    env: USE_DOUBLE=0 SP_BRANCH=dev DEBUG_INSTR=on
-    stage: coverity
-    script: echo lol
+    - stage: coverity
+      script: echo lol
 #    on:
 #      tags: true
 
