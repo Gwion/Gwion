@@ -47,7 +47,7 @@ void vector_copy2(Vector v, Vector ret) {
   memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
 }
 
-long int vector_find(Vector v, vtype data) {
+m_int vector_find(Vector v, vtype data) {
   vtype i;
   for(i = v->ptr[0] + 1; --i;)
     if(v->ptr[i + OFFSET - 1] == (vtype)data)
@@ -193,7 +193,7 @@ struct Scope_ {
 };
 
 vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
-  unsigned int i;
+  m_uint i;
   vtype ret = 0;
   Map map;
   if(climb == 0) {
