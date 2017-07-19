@@ -7,36 +7,13 @@ type_name_array=(${type_name_global//:/ })
 trap "clean; exit" SIGHUP SIGINT SIGTERM
 
 usage() {
-	echo "usage help generate generate_files place place_files"
+	echo "usage help generate"
 }
 
 alias help=usage
 
 clean() {
 	rm -rf coverage
-}
-
-_fancy_output() {
-	printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b%s seconds %s" "$1" "$2"
-}
-
-fancy_output() {
-    local COUNT="0.0";
-    while true
-    do
-		_fancy_output "$COUNT" "|"
-        sleep .5
-        COUNT=$(lua -e "print ($COUNT + 0.5)")
-		_fancy_output "$COUNT" "/"
-        sleep .5
-        COUNT=$(lua -e "print ($COUNT + 0.5)")
-		_fancy_output "$COUNT" "-"
-        sleep .5
-        COUNT=$(lua -e "print ($COUNT + 0.5)")
-		_fancy_output "$COUNT" "\\"
-        sleep .5
-        COUNT=$(lua -e "print ($COUNT + 0.5)")
-    done
 }
 
 defs2name() {
@@ -196,31 +173,7 @@ type_variable() {
     echo "<<<a.$(echo "$1" | cut -d '"' -f4)>>>;" >> "$2"
 }
 
-basic_output() {
-	while true
-	do sleep 5; echo "please wait..."
-	done
-}
-
-
-generate_files() {
-	set -m
-	trap "kill %1; exit" SIGHUP SIGINT SIGTERM
-#	fancy_output&
-	basic_output&
-	(for file in lang/*.c ugen/*.c
-	do
-		echo "generate from $file"
-		generate "$file" "$PWD"&
-	done
-	wait)
-	kill %1
-}
-
 run() {
-#	generate_files "$1"
-#	source util/test.sh; do_test "$PWD"
-#	source util/test.sh; do_test "tests/ugen_coverage"
 	source util/test.sh; do_test "tests/bug"
 }
 
@@ -231,7 +184,6 @@ after_success() {
 	bash util/coverage.sh run
 
     EXCLUDE_TARGET=" tests include"
-    EXCLUDE_TARGET+=" eval/parser.c eval/lexer.c"
     EXCLUDE_TARGET+=" Soundpipe"
     EXCLUDE_TARGET+=" examples"
     EXCLUDE_TARGET+=" drvr"
