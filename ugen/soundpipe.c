@@ -4,7 +4,6 @@
 #include "instr.h"
 #include "import.h"
 #include "ugen.h"
-#include "array.h"
 #include "func.h"
 #include "lang.h"
 m_uint o_ftbl_data;

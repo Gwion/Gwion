@@ -322,7 +322,6 @@ print('#include "vm.h"\
 #include "instr.h"\
 #include "import.h"\
 #include "ugen.h"\
-#include "array.h"\
 #include "func.h"\
 #include "lang.h"')
 
