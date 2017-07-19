@@ -204,7 +204,6 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
         SET_FLAG(value, ae_flag_static);
       value->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += type->size;
-      //      decl->self->meta = ae_meta_value; // ? /18/06/17
     }
     SET_FLAG(list->self->value, ae_flag_checked);
     if(!env->class_def || env->class_scope)
@@ -492,7 +491,7 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
   m_uint count;
   Func func;
   int match = -1;
-  // see if args is nil
+
   if(args && isa(args->type, &t_void) > 0)
     args = NULL;
 
@@ -513,8 +512,8 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
         if(match <= 0) {
           if(implicit && e->type->xid == te_int && e1->type->xid == te_float)
             e->cast_to = &t_float;
-          else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0)) /// Hack
-            goto moveon; // type mismatch
+          else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0))
+            goto moveon;
         }
         e = e->next;
         e1 = e1->next;
@@ -625,7 +624,7 @@ next:
   Func func = NULL;
   Func up = NULL;
   Type f;
-  Value ptr = NULL; // 20/03/17
+  Value ptr = NULL;
 
   exp_func->type = check_exp(env, exp_func);
   f = exp_func->type;
@@ -773,20 +772,12 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     Func f1, f2 = NULL;
     Value v;
     Type ret_type;
-    /*
-       if(isa(binary->lhs->type, &t_func_ptr) > 0) {
-       err_msg(TYPE_, binary->pos, "can't assign function pointer to function pointer for the moment. sorry.");
-    //      v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-    return NULL;
-    }
-    */
+
     if(binary->rhs->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
       f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == ae_exp_dot) {
       v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-      //      f1 = (v->owner_class && v->is_member) ? v->func_ref :
       f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
     } else if(binary->rhs->exp_type == ae_exp_decl) {
       v = binary->rhs->d.exp_decl.list->self->value;
@@ -804,9 +795,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
       v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
       f2 = v->func_ref;
       l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-      /*    } else if(binary->lhs->exp_type == ae_exp_decl) {
-            v = binary->lhs->d.exp_decl->list->self->value;
-            f2 = v->m_type->d.func; */
     } else
       CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs)."))
       if((r_nspc && l_nspc) && (r_nspc != l_nspc))
@@ -827,7 +815,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
                     sprintf(name, "%s@%li@%s", c, i, env->curr->name);
                     f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
                   }
-                  if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) { // was f1 && f2
+                  if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
                     binary->func = f2;
                     ret_type = f1->value_ref->m_type;
                     return ret_type;
@@ -836,7 +824,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]");
     return NULL;
   }
-  // check for arrays
   if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left &&
       isa(lhs->type->d.array_type, rhs->type) > 0)
     return lhs->type;
@@ -975,7 +962,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "cast expression");
-#endif// check the exp
+#endif
   Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
 
@@ -1215,7 +1202,7 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
     CHECK_BO(err_msg(TYPE_, member->pos,
                      "cannot access member '%s.%s' without object instance...",
                      the_base->name, str))
-    if(GET_FLAG(value, ae_flag_enum)) // for enum
+    if(GET_FLAG(value, ae_flag_enum))
       member->self->meta = ae_meta_value;
   return value->m_type;
 }
@@ -1229,7 +1216,6 @@ static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
   t->name    = s_name(ptr->xid);
   t->parent  = &t_func_ptr;
   nspc_add_type(env->curr, ptr->xid, t);
-  //  ADD_REF(t);
   ptr->m_type = t;
   t->d.func = ptr->func;
   return 1;
@@ -1287,7 +1273,7 @@ static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   while(list) {
     v = nspc_lookup_value(nspc, list->xid, 0);
-    if(env->class_def) { // enum in classes are static
+    if(env->class_def) {
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += SZ_INT;
@@ -1567,7 +1553,8 @@ m_bool check_func_def(Env env, Func_Def f) {
   m_str func_name;
   m_uint count = 1;
   m_bool ret = 1;
-  if(f->types) // templating, check at call time
+
+  if(f->types)
     return 1;
   func = f->d.func;
   value = func->value_ref;
