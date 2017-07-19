@@ -1,4 +1,4 @@
-# Contributor Covenant Code of Conduct
+# Gwion Code of Conduct
 
 ## Our Pledge
 
