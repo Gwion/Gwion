@@ -34,6 +34,13 @@ env:
     - USE_DOUBLE=1 SP_BRANCH=dev
     - USE_DOUBLE=0 SP_BRANCH=dev
 
+jobs:
+  stage: coverity
+  script: echo lol
+#  on:
+#    tags: true
+
+
 matrix:
 #  include: 
 #    os: osx

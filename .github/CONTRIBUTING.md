@@ -59,9 +59,9 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
 
 ### Git Commit Messages
 
+* Capitalize first letter
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-* Capitalize first letter
 * Dot not add dot at the end
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
@@ -84,11 +84,5 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
 ## Additional Notes
 
 ### Issue and Pull Request labels
-  * up for grabs    very simple issue, for newcomers
-  * help wanted
-  * feature request
-  * bug
-  * doc
-  * duplicate dark grey
-  * Prio: high      
-  * Prio: low
+Names should be self explanatory
+look [here](https://github.com/fennecdjay/Gwion/labels) for an up to date list.
