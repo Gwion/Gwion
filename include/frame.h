@@ -1,10 +1,6 @@
-#ifndef FRAME_H
-#define FRAME_H
-#include "defs.h"
-#include "oo.h"
 #include "map_private.h"
+
 typedef struct {
-  m_str name;
   m_uint size;
   m_uint offset;
   m_bool is_ref;
@@ -12,7 +8,6 @@ typedef struct {
 } Local;
 
 typedef struct {
-  m_str name;
   m_uint curr_offset;
   struct Vector_ stack;
 } Frame;
@@ -23,4 +18,3 @@ void   free_frame(Frame* frame);
 Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m_bool is_obj);
 void   frame_push_scope(Frame* frame);
 void   frame_pop_scope(Frame* frame, Vector v);
-#endif

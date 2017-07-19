@@ -23,7 +23,6 @@ Local* frame_alloc_local(Frame* frame, m_uint size, m_str name, m_bool is_ref, m
   local->is_ref = is_ref;
   local->is_obj = is_obj;
   frame->curr_offset += local->size;
-  local->name = name;
   vector_add(&frame->stack, (vtype)local);
   return local;
 }
