@@ -33,18 +33,19 @@ env:
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
     - USE_DOUBLE=0 SP_BRANCH=dev
+    fast_finish: true
+    allow_failures:
+    - os: osx
 
 
 
 jobs:
   matrix:
+   script: "test"
 #  include: 
 #    os: osx
 #    compiler: clang
 #    env: USE_DOUBLE=0 SP_BRANCH=dev DEBUG_INSTR=on
-    fast_finish: true
-    allow_failures:
-    - os: osx
     stage: coverity
     script: echo lol
 #    on:
