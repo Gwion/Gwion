@@ -9,8 +9,8 @@ OUTFILE=lcov/lcov.info
 
 [ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
 
-lcov --no-external --capture --directory eval --directory core --directory lang --directory ugen --output-file "$OUTFILE"
-lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE}" "*/eval/parser.c" "*/eval/lexer.c"
+lcov --no-external --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
+#lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE}" "*/core/parser.c" "*/core/lexer.c"
 mv "${OUTFILE}.cleaned" "${OUTFILE}"
 
 
