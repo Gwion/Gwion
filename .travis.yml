@@ -33,8 +33,8 @@ env:
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
     - USE_DOUBLE=0 SP_BRANCH=dev
-    - fast_finish: true
-    - allow_failures:
+    fast_finish: true
+    allow_failures:
       - os: osx
 
 
