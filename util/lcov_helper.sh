@@ -10,9 +10,6 @@ OUTFILE=lcov/lcov.info
 [ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
 
 lcov --no-external --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
-#lcov -o "${OUTFILE}.cleaned" -r "${OUTFILE}" "*/core/parser.c" "*/core/lexer.c"
-mv "${OUTFILE}.cleaned" "${OUTFILE}"
-
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
   coveralls-lcov lcov/lcov.info
