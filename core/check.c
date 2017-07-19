@@ -11,7 +11,6 @@
 #include "import.h"
 #include "lang.h"
 #include "ugen.h"
-#include "bbq.h"
 #include "string.h"
 
 m_bool scan0_Ast(Env, Ast);
@@ -104,9 +103,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   vm->adc       = new_M_UGen();
   vm->blackhole = new_M_UGen();
 
-  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm->bbq->sp);
-  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm->bbq);
-  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm->bbq->sp);
+  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
   UGEN(vm->dac)->tick = dac_tick;
   UGEN(vm->adc)->tick = adc_tick;
   vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
@@ -114,7 +113,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
 
   ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sp->sr);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
   ALLOC_PTR(samp,   m_float, 1.0);
   ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
   ALLOC_PTR(second, m_float, (m_float)*sr);

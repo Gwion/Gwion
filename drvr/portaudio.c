@@ -1,7 +1,6 @@
 #include <portaudio.h>
 #include "err_msg.h"
 #include "vm.h"
-#include "bbq.h"
 #include "oo.h"
 #include "type.h"
 #include "ugen.h"
@@ -19,13 +18,13 @@ static int callback(const void *inputBuffer, void *outputBuffer,
                     unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
                     PaStreamCallbackFlags statusFlags, void *userData) {
   VM* vm = (VM*)userData;
-  sp_data* sp = vm->bbq->sp;
+  sp_data* sp = vm->sp;
   float *in  = (float*)inputBuffer;
   float *out = (float*)outputBuffer;
   m_bool i, j;
   for(i = 0; i < framesPerBuffer; i++) {
-    for(j = 0; j < vm->bbq->n_in; j++)
-      vm->bbq->in[j] = *in++;
+    for(j = 0; j < vm->n_in; j++)
+      vm->in[j] = *in++;
     vm_run(vm);
     for(j = 0; j < sp->nchan; j++)
       *out++ = sp->out[j];

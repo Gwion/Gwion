@@ -81,8 +81,8 @@ end
 		end
 	end
 	print("\tCHECK_SIZE(size);")
-	print("\tsp_ftbl_create(shred->vm_ref->bbq->sp, &ftbl, size);")
-	print("\tsp_"..name.."(shred->vm_ref->bbq->sp, ftbl"..args..");")
+	print("\tsp_ftbl_create(shred->vm_ref->sp, &ftbl, size);")
+	print("\tsp_"..name.."(shred->vm_ref->sp, ftbl"..args..");")
 	print("\tFTBL(o) = ftbl;")
 --	print("error:\n\tsp_ftbl_destroy(&ftbl);")
 	print("}\n")
@@ -159,7 +159,7 @@ function print_mod_func(name, mod)
 	print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 	print("\treturn 1;\n}\n")
 	print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
-	print("\tug->sp = shred->vm_ref->bbq->sp;")
+	print("\tug->sp = shred->vm_ref->sp;")
     if(nmandatory > 0) then
 		print("\tug->is_init = 0;")
 		print("\tug->osc = NULL;")

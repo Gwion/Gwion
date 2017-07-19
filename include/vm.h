@@ -1,6 +1,13 @@
 #ifndef __VM
 #define __VM
 
+#ifdef USE_DOUBLE
+#undef USE_DOUBLE
+#endif
+#ifndef SOUNDPIPE_H
+#include <soundpipe.h>
+#endif
+
 #include "defs.h"
 #include "oo.h"
 #include "map.h"
@@ -18,10 +25,14 @@ struct VM_Code_ {
   struct VM_Object_ obj;
 };
 
-typedef struct BBQ_* BBQ;
+//typedef struct BBQ_* BBQ;
 typedef struct Shreduler_* Shreduler;
 typedef struct {
-  BBQ bbq;
+// BBQ
+  unsigned int n_in;
+  SPFLOAT* in;
+  sp_data* sp; // holds sample rate and out
+// !BBQ
   Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;

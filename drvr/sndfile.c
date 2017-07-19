@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <sndfile.h>
 #include "vm.h"
-#include "bbq.h"
 #include "driver.h"
 
 static SNDFILE** sf;
@@ -37,14 +36,14 @@ static m_bool sndfile_ini(VM* v, DriverInfo* di) {
 
 static void sndfile_run() {
   m_uint i, chan;
-  sp_data* sp = vm->bbq->sp;
+  sp_data* sp = vm->sp;
   m_float buf[nchan][bufsize];
   while(vm->is_running) {
     for(i = 0; i < bufsize; i++) {
       vm_run(vm);
       for(chan = 0; chan < nchan; chan++)
-        buf[chan][i] = vm->bbq->sp->out[chan];
-      vm->bbq->sp->pos++;
+        buf[chan][i] = vm->sp->out[chan];
+      vm->sp->pos++;
     }
     for(chan = 0; chan < nchan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], bufsize);

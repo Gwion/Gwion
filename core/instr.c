@@ -190,9 +190,9 @@ INSTR(Reg_Push_Me) {
 
 INSTR(Reg_Push_Now) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push now %f", vm->bbq->sp->pos);
+  debug_msg("instr", "[reg] push now %f", vm->sp->pos);
 #endif
-  *(m_float*)REG(0) = vm->bbq->sp->pos;
+  *(m_float*)REG(0) = vm->sp->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
@@ -200,7 +200,7 @@ INSTR(Reg_Push_Maybe) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "[reg] push maybe");
 #endif
-  *(m_uint*)REG(0) = (sp_rand(shred->vm_ref->bbq->sp) > (RAND_MAX / 2)) ? 1 : 0;
+  *(m_uint*)REG(0) = (sp_rand(shred->vm_ref->sp) > (RAND_MAX / 2)) ? 1 : 0;
   PUSH_REG(shred, SZ_INT);
 }
 

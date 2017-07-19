@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include "bbq.h"
 #include "lang.h"
 
 #define PUSH_MEM(a, b) a->mem += b;

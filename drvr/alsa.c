@@ -2,7 +2,6 @@
 #include <alsa/mixer.h>
 #include "err_msg.h"
 #include "vm.h"
-#include "bbq.h"
 #include "oo.h"
 #include "type.h"
 #include "ugen.h"
@@ -89,8 +88,7 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di) {
 
 static void alsa_run(VM* vm, DriverInfo* di) {
   m_uint i, chan;
-  BBQ bbq = vm->bbq;
-  sp_data* sp = vm->bbq->sp;
+  sp_data* sp = vm->sp;
 
   snd_pcm_get_params(out, &di->bufsize, &di->bufnum);
   di->bufsize /= di->bufnum;
@@ -116,7 +114,7 @@ static void alsa_run(VM* vm, DriverInfo* di) {
       snd_pcm_readn(in, _in_buf, di->bufsize);
       for(i = 0; i < di->bufsize; i++) {
         for(chan = 0; chan < sp->nchan; chan++)
-          bbq->in[chan] = ((m_float**)(_in_buf))[chan][i];
+          vm->in[chan] = ((m_float**)(_in_buf))[chan][i];
         vm_run(vm);
         for(chan = 0; chan < sp->nchan; chan++)
           out_buf[chan][i] = sp->out[chan];
@@ -135,7 +133,7 @@ static void alsa_run(VM* vm, DriverInfo* di) {
       snd_pcm_readi(in, in_bufi, di->bufsize);
       for(i = 0; i < di->bufsize; i++) {
         for(chan = 0; chan < sp->nchan; chan++) {
-          bbq->in[chan] = ((m_float*)(in_bufi))[j];
+          vm->in[chan] = ((m_float*)(in_bufi))[j];
           j++;
         }
         vm_run(vm);
@@ -163,7 +161,7 @@ static void alsa_del(VM* vm) {
 //snd_dlclose(in);
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
     if(in_buf && out_buf) {
-      for(chan = 0; chan < vm->bbq->sp->nchan; chan++) {
+      for(chan = 0; chan < vm->sp->nchan; chan++) {
         free(in_buf[chan]);
         free(out_buf[chan]);
       }

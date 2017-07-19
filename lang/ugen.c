@@ -40,21 +40,21 @@ m_bool base_tick(UGen u) {
 
 m_bool dac_tick(UGen u) {
   m_uint  i;
-  sp_data* sp = (sp_data*)u->ug;
+  VM* vm = (VM*)u->ug;
   for(i = u->n_out + 1; --i;)
-    sp->out[i - 1] = UGEN(u->channel[i - 1])->out;
+    vm->sp->out[i - 1] = UGEN(u->channel[i - 1])->out;
   return 1;
 }
 
 m_bool adc_tick(UGen u) {
   m_uint  i;
   m_float last = 0;
-  BBQ sp = (BBQ)u->ug;
+  VM* vm = (VM*)u->ug;
   for(i = u->n_out + 1; --i;) {
     m_uint j = i - 1;
     M_Object obj = u->channel[j];
-    UGEN(obj)->last = sp->in[j];
-    last += (UGEN(obj)->out = sp->in[j]);
+    UGEN(obj)->last = vm->in[j];
+    last += (UGEN(obj)->out = vm->in[j]);
   }
   u->last = last;
   return 1;

@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
     loop = -1;
   if(!(vm = new_vm(loop)))
     goto clean;
-  if(!(vm->bbq = new_bbq(vm, &di, &d)))
+  if(init_bbq(vm, &di, &d) < 0)
     goto clean;
   if(!(env = type_engine_init(vm, &plug_dirs)))
     goto clean;

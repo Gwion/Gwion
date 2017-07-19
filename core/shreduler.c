@@ -6,7 +6,6 @@
 #undef USE_DOUBLE
 #endif
 #include "soundpipe.h"
-#include "bbq.h"
 #include "map.h"
 #include "oo.h"
 #include "object.h"
@@ -40,7 +39,7 @@ VM_Shred shreduler_get(Shreduler s) {
     }
     return NULL;
   }
-  if(shred->wake_time <= (s->vm->bbq->sp->pos + .5)) {
+  if(shred->wake_time <= (s->vm->sp->pos + .5)) {
     s->list = shred->next;
     shred->next = NULL;
     shred->prev = NULL;
@@ -110,7 +109,7 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
 #endif
   VM_Shred curr, prev;
 
-  shred->wake_time = (wake_time += s->vm->bbq->sp->pos);
+  shred->wake_time = (wake_time += s->vm->sp->pos);
   if(!s->list)
     s->list = shred;
   else {

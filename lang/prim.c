@@ -1026,7 +1026,7 @@ static MFUN(vec3_float) {
 
 static MFUN(vec3_dur) {
   m_vec3* v =  &**(m_vec3**)MEM(0);
-  v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT) / shred->vm_ref->bbq->sp->sr) + v->x;
+  v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT) / shred->vm_ref->sp->sr) + v->x;
   *(m_float*)RETURN = v->x;
 }
 

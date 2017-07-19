@@ -86,28 +86,20 @@ void free_vm_shred(VM_Shred shred) {
   free(shred);
 }
 
-BBQ new_bbq(VM* vm, DriverInfo* di, Driver** driver) {
-  BBQ a;
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
   Driver* d;
 
   if(!(d = di->func(vm)) || d->ini(vm, di) < 0)
-    return NULL; // LCOV_EXCL_LINE
-  a = malloc(sizeof(struct BBQ_));
-  sp_createn(&a->sp, di->out);
-  free(a->sp->out);
-  a->sp->out   = calloc(di->out, sizeof(SPFLOAT));
-  a->in   = calloc(di->in, sizeof(SPFLOAT));
-  a->n_in = di->in;
-  a->sp->sr = di->sr;
+    return -1; // LCOV_EXCL_LINE
+  sp_createn(&vm->sp, di->out);
+  free(vm->sp->out);
+  vm->sp->out   = calloc(di->out, sizeof(SPFLOAT));
+  vm->in   = calloc(di->in, sizeof(SPFLOAT));
+  vm->n_in = di->in;
+  vm->sp->sr = di->sr;
   *driver = d;
-  sp_srand(a->sp, time(NULL));
-  return a;
-}
-
-static void free_bbq(BBQ a) {
-  sp_destroy(&a->sp);
-  free(a->in);
-  free(a);
+  sp_srand(vm->sp, time(NULL));
+  return 1;
 }
 
 VM* new_vm(m_bool loop) {
@@ -129,8 +121,8 @@ void free_vm(VM* vm) {
   vector_release(&vm->plug);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
-  if(vm->bbq)
-    free_bbq(vm->bbq);
+  sp_destroy(&vm->sp);
+  free(vm->in);
   free_shreduler(vm->shreduler);
   free(vm);
 }

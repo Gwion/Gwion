@@ -79,7 +79,7 @@ static CTOR(fft_ctor) {
   Fft* fft = UGEN(o)->ug = calloc(1, sizeof(Fft));
   assign_ugen(UGEN(o), 1, 1, 1, fft);
   UGEN(o)->tick = fft_tick;
-  fft->sp = shred->vm_ref->bbq->sp;
+  fft->sp = shred->vm_ref->sp;
 }
 
 static DTOR(fft_dtor) {
@@ -457,10 +457,10 @@ static MFUN(ana_set_fft) {
 
 static CTOR(ana_ctor) {
   Ana* ana = *(Ana**)(o->data + o_ana_ana) = malloc(sizeof(Ana));
-  ana->sr = shred->vm_ref->bbq->sp->sr;
+  ana->sr = shred->vm_ref->sp->sr;
   ana->percent = 50; // rolloff;
   *(f_analys*)(o->data + o_ana_fn) = (f_analys)ana_dummy;
-  ana->sp = shred->vm_ref->bbq->sp;
+  ana->sp = shred->vm_ref->sp;
   ana->last = 0;
 }
 

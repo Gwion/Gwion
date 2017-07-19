@@ -27,9 +27,9 @@ TICK(sinosc_tick) {
 static CTOR(sinosc_ctor) {
   SP_osc* ug = malloc(sizeof(SP_osc));
   sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, 2048);
-  sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, 2048);
+  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
+  sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
   assign_ugen(UGEN(o), 0, 1, 0, ug);
   UGEN(o)->tick = sinosc_tick;
   ug->is_init = 1;
@@ -53,9 +53,9 @@ static MFUN(sinosc_size) {
   sp_ftbl_destroy(&ug->tbl);
   sp_osc_destroy(&ug->osc);
   sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, ug->osc, ug->tbl, 0.);
+  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
+  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
+  sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
 }
 
 static MFUN(sinosc_size_phase) {
@@ -70,9 +70,9 @@ static MFUN(sinosc_size_phase) {
   sp_ftbl_destroy(&ug->tbl);
   sp_osc_destroy(&ug->osc);
   sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->bbq->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->bbq->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->bbq->sp, (sp_osc*)ug->osc, ug->tbl, phase);
+  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
+  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
+  sp_osc_init(shred->vm_ref->sp, (sp_osc*)ug->osc, ug->tbl, phase);
 }
 
 MFUN(sinosc_get_freq) {

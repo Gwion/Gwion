@@ -48,7 +48,7 @@ Driver* sio_driver(VM* vm);
 Driver* pa_driver(VM* vm);
 #include <portaudio.h>
 #endif
-BBQ new_bbq(VM* vm, DriverInfo* di, Driver** d);
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver** d);
 void udp_do(VM* vm);
 #define GWION_CTL_SIZE 8192
 #define GWION_CTL if(!(sp->pos%GWION_CTL_SIZE))udp_do(vm);

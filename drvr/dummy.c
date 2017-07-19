@@ -2,25 +2,24 @@
 #include <unistd.h>
 #include "defs.h"
 #include "vm.h"
-#include "bbq.h"
 #include "driver.h"
 
 //void no_wakeup(){}
 static void dummy_run(VM* vm, DriverInfo* di) {
-  sp_data* sp = vm->bbq->sp;
+  sp_data* sp = vm->sp;
   while(vm->is_running) {
     vm_run(vm);
-    vm->bbq->sp->pos++;
+    vm->sp->pos++;
     GWION_CTL
   }
 }
 
 static void silent_run(VM* vm, DriverInfo* di) {
-  sp_data* sp = vm->bbq->sp;
-  m_uint timer = (vm->bbq->sp->sr / 100000);
+  sp_data* sp = vm->sp;
+  m_uint timer = (vm->sp->sr / 100000);
   while(vm->is_running) {
     vm_run(vm);
-    vm->bbq->sp->pos++;
+    vm->sp->pos++;
     usleep(timer);
     GWION_CTL
   }

@@ -7,7 +7,6 @@
 #include "defs.h"
 #include "vm.h"
 #include "driver.h"
-#include "bbq.h"
 
 static struct SoundIo          *soundio    = NULL;
 static struct SoundIoOutStream *outstream  = NULL;
@@ -125,7 +124,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
   struct SoundIoChannelArea *areas;
   int frames_left = frame_count_max;
   VM* vm = (VM*)instream->userdata;
-  sp_data* sp = vm->bbq->sp;
+  sp_data* sp = vm->sp;
   for(;;) {
     int err, frame_count = frames_left;
 
@@ -145,7 +144,7 @@ static void read_callback(struct SoundIoInStream *instream, int frame_count_min,
       char* data[SZ_FLOAT];
       for(int frame = 0; frame < frame_count; frame += 1) {
         for(int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-          read_sample(areas[ch].ptr, &vm->bbq->in[ch]);
+          read_sample(areas[ch].ptr, &vm->in[ch]);
           areas[channel].ptr += areas[channel].step;
         }
       }

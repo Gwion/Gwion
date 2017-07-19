@@ -84,7 +84,7 @@ static SFUN(std_fabs) {
 }
 
 static SFUN(std_rand) {
-  *(m_uint*)RETURN = sp_rand(shred->vm_ref->bbq->sp);
+  *(m_uint*)RETURN = sp_rand(shred->vm_ref->sp);
 }
 
 static SFUN(std_rand2) {
@@ -95,20 +95,20 @@ static SFUN(std_rand2) {
     *(m_uint*)RETURN = min;
   else {
     if(range > 0)
-      *(m_uint*)RETURN = min + (m_int)((1.0 + range) * (sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0)));
+      *(m_uint*)RETURN = min + (m_int)((1.0 + range) * (sp_rand(shred->vm_ref->sp) / (RAND_MAX + 1.0)));
     else
-      *(m_uint*)RETURN = min - (m_int)((-range + 1.0) * (sp_rand(shred->vm_ref->bbq->sp) / (RAND_MAX + 1.0)));
+      *(m_uint*)RETURN = min - (m_int)((-range + 1.0) * (sp_rand(shred->vm_ref->sp) / (RAND_MAX + 1.0)));
   }
 }
 
 static SFUN(std_randf) {
-  *(m_float*)RETURN = 2.0 * sp_rand(shred->vm_ref->bbq->sp) / RAND_MAX - 1.0;
+  *(m_float*)RETURN = 2.0 * sp_rand(shred->vm_ref->sp) / RAND_MAX - 1.0;
 }
 
 static SFUN(std_rand2f) {
   m_float min = *(m_float*)MEM(SZ_INT);
   m_float max = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = min + (max - min) * (sp_rand(shred->vm_ref->bbq->sp) / (m_float)RAND_MAX);
+  *(m_float*)RETURN = min + (max - min) * (sp_rand(shred->vm_ref->sp) / (m_float)RAND_MAX);
 }
 
 static SFUN(std_srand) {
@@ -665,7 +665,7 @@ static m_str randstring(VM* vm, int length) {
   }
 
   for(int n = 0; n < length; n++) {
-    unsigned int key = sp_rand(vm->bbq->sp) % stringLen;
+    unsigned int key = sp_rand(vm->sp) % stringLen;
     randomString[n] = string[key];
   }
 
