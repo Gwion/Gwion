@@ -19,7 +19,7 @@ struct Type_ {
   Nspc owner;
   m_uint    array_depth;
   union {
-  Func      func;
+    Func      func;
     Type      actual_type;
     Type      array_type;
   } d;
