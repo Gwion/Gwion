@@ -558,7 +558,7 @@ do
 done
 
 printf "\n# initialize source lists\n"
-for iter in core lang ugen eval
+for iter in core lang ugen
 do
 	echo "${iter}_src := \$(wildcard ${iter}/*.c)"
 done
@@ -631,7 +631,7 @@ echo "LDFLAGS += \${SOUNDPIPE_LIB}"
 echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
-for iter in core lang ugen eval drvr
+for iter in core lang ugen drvr
 do
 	echo "${iter}_obj := \$(${iter}_src:.c=.o)"
 done
@@ -653,9 +653,9 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: options \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj}
+all: options \${core_obj} \${lang_obj} \${ugen_obj} \${drvr_obj}
 	@echo "link \${PRG}"
-	@\${CC} \${core_obj} \${lang_obj} \${eval_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+	@\${CC} \${core_obj} \${lang_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 options:
 	@echo "CFLAGS  : \${CFLAGS}"

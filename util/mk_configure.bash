@@ -204,7 +204,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 #  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
 
   mk_header "initialize source lists"
-  do_expand "core lang ugen eval"
+  do_expand "core lang ugen"
   printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"drvr_src := drvr/driver.c\"\n"
   echo "}"
 }
@@ -258,7 +258,7 @@ EOF
   echo "echo \"CFLAGS  += \\\${SOUNDPIPE_INC}\""
 
   mk_header "initialize object lists"
-  do_expand "core lang ugen eval drvr"
+  do_expand "core lang ugen drvr"
   printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone\n"
   echo "}"
 }
@@ -289,9 +289,9 @@ LDFLAGS+=-lrt
 endif
 
 # recipes
-all: options \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj}
+all: options \\\${core_obj} \\\${lang_obj} \\\${ugen_obj} \\\${drvr_obj}
 	@echo "link \\\${PRG}"
-	@\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${eval_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+	@\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 options:
 	@echo "CFLAGS  : \\\${CFLAGS}"
