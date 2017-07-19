@@ -32,6 +32,8 @@ typedef struct {
   m_bool is_running;
 } VM;
 
+extern VM* vm;
+
 typedef struct VM_Shred_* VM_Shred;
 struct VM_Shred_ {
   VM_Code code;

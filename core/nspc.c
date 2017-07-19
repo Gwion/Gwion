@@ -7,11 +7,7 @@
 #include "context.h"
 #include "oo.h"
 
-static VM* vm;
 void release(M_Object o, VM_Shred shred);
-void set_nspc_vm(VM* _vm) {
-  vm = _vm;
-}
 
 Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb) {
   Value v = (Value)scope_lookup(&nspc->value, xid, climb);
