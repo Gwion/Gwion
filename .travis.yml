@@ -41,7 +41,7 @@ env:
 
 jobs:
   matrix:
-   script: "test"
+   script: echo test
 #  include: 
 #    os: osx
 #    compiler: clang
