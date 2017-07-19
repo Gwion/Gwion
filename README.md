@@ -58,7 +58,7 @@ then, just
 make
 ```
 
-> if you run into troubles, please look [here](https://github.com/fennecdjay/Gwion/blob/dev/Configure.md) and read on.
+> if you run into troubles, please look [here](https://github.com/fennecdjay/Gwion/blob/dev/docs/Building.md) and read on.
 
 #### Reporting bugs / Contributing
 

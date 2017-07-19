@@ -61,8 +61,8 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
 
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-* Dot not add dot at the end
 * Capitalize first letter
+* Dot not add dot at the end
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * When only changing documentation, include `[ci skip]` in the commit description
@@ -73,12 +73,13 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
     * :book:              `:book:`              when writing docs
     * :penguin:           `:penguin:`           when fixing OS specific stuff
     * :bug:               `:bug:`               when fixing a bug
+    * :fire:              `:fire:`              when removing/adding source files
     * :green_heart:       `:green_heart:`       when fixing the CI build
     * :white_check_mark:  `:white_check_mark:`  when working on tests
     * :lock:              `:lock:`              when dealing with security
     * :shirt:             `:shirt:`             when enforcing [style](#styleguides)
     * :floppy_disk:       `:floppy_disk:`       when updating plugins
-    * :car:               `:car:`               when updateng drivers
+    * :car:               `:car:`               when updating drivers
 
 ## Additional Notes
 
