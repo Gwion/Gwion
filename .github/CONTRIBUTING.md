@@ -34,10 +34,11 @@ you should have soundpipe installed
 
   * [Documentation Styleguide](#documentation-styleguide)
 
-[Additional Notes](#additional-notes)
-  * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
 up-for_grabs and the like
 -->
+
+[Additional Notes](#additional-notes)
+  * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
 
 ## How Can I Contribute?
 
@@ -78,3 +79,16 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
     * :shirt:             `:shirt:`             when enforcing [style](#styleguides)
     * :floppy_disk:       `:floppy_disk:`       when updating plugins
     * :car:               `:car:`               when updateing drivers
+
+## Additional Notes
+
+### Issue and Pull Request labels
+  * up for grabs    very simple issue, for newcomers
+  * help wanted
+  * feature request
+  * bug
+  * doc
+  * duplicate dark grey
+  * Prio: high      
+  * Prio: low
+
