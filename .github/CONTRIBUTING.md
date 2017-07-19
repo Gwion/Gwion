@@ -78,7 +78,7 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
     * :lock:              `:lock:`              when dealing with security
     * :shirt:             `:shirt:`             when enforcing [style](#styleguides)
     * :floppy_disk:       `:floppy_disk:`       when updating plugins
-    * :car:               `:car:`               when updateing drivers
+    * :car:               `:car:`               when updateng drivers
 
 ## Additional Notes
 
