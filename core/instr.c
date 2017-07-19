@@ -1207,6 +1207,7 @@ out_of_memory:
   goto error;                                                                  // LCOV_EXCL_LINE
 error:
   fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
+  release(shred->me, shred);
   shred->me = NULL;
 }
 
@@ -1266,6 +1267,7 @@ array_out_of_bound:
           "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
           shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
+  release(shred->me, shred);
   shred->me = NULL;
 }
 
@@ -1297,6 +1299,7 @@ array_out_of_bound:
           "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
           shred->xid, shred->name, shred->pc, i);
   release(*base, shred);
+  release(shred->me, shred);
   shred->me = NULL;
 }
 
