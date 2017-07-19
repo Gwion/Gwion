@@ -35,16 +35,20 @@ env:
     - USE_DOUBLE=0 SP_BRANCH=dev
 
 jobs:
-  matrix:
-   - script: echo test
+  stage: coverity
+  script: echo lol
+#  on:
+#    tags: true
+
+
+matrix:
 #  include: 
 #    os: osx
 #    compiler: clang
 #    env: USE_DOUBLE=0 SP_BRANCH=dev DEBUG_INSTR=on
-    - stage: coverity
-      script: echo lol
-#    on:
-#      tags: true
+  fast_finish: true
+  allow_failures:
+  - os: osx
 
 compiler:
   - gcc
