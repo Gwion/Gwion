@@ -16,7 +16,7 @@
 #include "code_private.h"
 
 volatile m_bool signaled = 0;
-static VM* vm;
+VM* vm;
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -315,8 +315,6 @@ clean:
     free_driver(d, vm);
   if(scan_map)
     free_map(scan_map);
-
-  set_nspc_vm(vm);
 #ifndef __linux__
   sleep(1);
 #endif
