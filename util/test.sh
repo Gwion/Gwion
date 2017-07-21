@@ -423,16 +423,14 @@ consummer() {
     elif [ "${line:0:2}" = "ok" ]
     then
       win=$((win+1))
-      if [ "$line" = "*#*" ]
-      then
-        base=$(echo "$line" | cut -d "#" -f 1)
-        directive=$(echo "$line" | cut -d "#" -f 2)
-        printf "%sok   %s%s" "${ANSI_GREEN}" "${ANSI_RESET}" "${base:2}"
-        [ "$directive" ] && echo " ${ANSI_RED}# $directive${ANSI_RESET}"
-        [ "$line" = "* Todo *" ] && todo=$((todo+1))
-        [ "$line" = "* Skip *" ] && skip=$((skip+1))
-      else echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${line:2}"
+      base=$(echo "$line" | cut -d "#" -f 1)
+      directive=$(echo "$line" | cut -d "#" -f 2)
+      if [ "$directive" != "$base" ]
+      then echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2} ${ANSI_RED}# ${directive:1:4}${ANSI_RESET}${directive:5}"
+      else echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2}"
       fi
+      [ "$line" = "* Todo *" ] && todo=$((todo+1))
+      [ "$line" = "* Skip *" ] && skip=$((skip+1))
       # bail out
     elif [ "${line:0:9}" = "Bail out!" ]
     then
