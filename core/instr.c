@@ -1246,6 +1246,15 @@ static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool
   }
 }
 
+static void oob(M_Object obj, VM_Shred shred, m_int i) {
+  fprintf(stderr,
+          "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
+          shred->xid, shred->name, shred->pc, i);
+  release(obj, shred);
+  release(shred->me, shred);
+  shred->me = NULL;
+}
+
 INSTR(Instr_Array_Access) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "array access '%p'  (emit: %i) [%i] ", *(m_uint*)REG(-SZ_INT * 2), instr->m_val, instr->m_val2);
@@ -1257,18 +1266,11 @@ INSTR(Instr_Array_Access) {
   if(!obj)
     Except(shred, "NullPtrException");
   i = *(m_int*)REG(SZ_INT);
-  if(i < 0 || i >= m_vector_size(ARRAY(obj)))
-    goto array_out_of_bound;
+  if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
+    oob(obj, shred, i);
+    return;
+  }
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
-  return;
-
-array_out_of_bound:
-  fprintf(stderr,
-          "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
-          shred->xid, shred->name, shred->pc, i);
-  release(obj, shred);
-  release(shred->me, shred);
-  shred->me = NULL;
 }
 
 INSTR(Instr_Array_Access_Multi) {
@@ -1283,24 +1285,19 @@ INSTR(Instr_Array_Access_Multi) {
     Except(shred, "NullPtrException");
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)REG(SZ_INT * (j + 1));
-    if(i < 0 || i >= m_vector_size(ARRAY(obj)))
-      goto array_out_of_bound;
+    if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
+      oob(obj, shred, i);
+      return;
+    }
     obj = (M_Object)i_vector_at(ARRAY(obj), i);
 //    if(!obj) Except(shred); // this probably should not be commented
   }
   i = *(m_int*)REG(SZ_INT * (j + 1));
-  if(i < 0 || i >= m_vector_size(ARRAY(obj)))
-    goto array_out_of_bound;
+  if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
+    oob(obj, shred, i);
+    return;
+  }
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
-  return;
-
-array_out_of_bound:
-  fprintf(stderr,
-          "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
-          shred->xid, shred->name, shred->pc, i);
-  release(*base, shred);
-  release(shred->me, shred);
-  shred->me = NULL;
 }
 
 INSTR(start_gc) {
