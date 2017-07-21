@@ -1,5 +1,4 @@
 #!/bin/bash
-set -m
 
 : "${GWT_OUTDIR:=/tmp}"
 : "${GWT_PREFIX:=gwt_}"
@@ -102,7 +101,6 @@ assert_leak() {
 }
 
 read_test() {
-  #	[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
   while read -r line
   do
     if [ "$line" = "#*" ]
@@ -151,7 +149,7 @@ do_skip() {
   skip=$(echo "$skip" | cut -d ']' -f2 )
   n=$(printf "% 4i" "$2")
   if [ "$async" -eq 0 ]
-  then  echo "ok $(printf "% 4i" "$n") $3 # Skip $skip"
+  then echo "ok $(printf "% 4i" "$n") $3 # Skip $skip"
   else echo "ok $(printf "% 4i" "$n") $3 # Skip $skip" > "$4"
   fi
   return 0
@@ -166,7 +164,7 @@ do_todo() {
   skip=$(echo "$skip" | cut -d ']' -f2 )
   n=$(printf "% 4i" "$2")
   if [ "$async" -eq 0 ]
-  then  echo "ok  $(printf "% 4i" "$n") $3 # Todo $skip"
+  then echo "ok  $(printf "% 4i" "$n") $3 # Todo $skip"
   else echo "ok  $(printf "% 4i" "$n") $3 # Todo $skip" > "$4"
   fi
   return 0
@@ -260,13 +258,10 @@ test_dir() {
   then
     for file in "$1"/*.gw
     do
-      #		[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
       if [ "$async" -ne 0 ]
       then test_gw "$file" "$n"&
       else test_gw "$file" "$n"
       fi
-      #		n=$((n+1))
-      #		l=$((l+1))
       [ "$async" -ne 0 ] && {
       if [ $(( $((n-base)) % async)) -eq 0 ]
       then
@@ -337,10 +332,10 @@ count_test(){
 }
 
 do_test() {
-  local n_test
+  local n_test res1
   n_test=1
   count_test "$@"
-  which bc && local res1=$(date +%s.%N)
+  which bc && res1=$(date +%s.%N)
   for arg in "$@"
   do
     if [ "${arg:0:6}" = "async=" ]
@@ -382,16 +377,17 @@ do_test() {
       n_test=$((n_test + $(count_tests "$arg")))
     fi
   done
-  which bc && {
-  local res2=$(date +%s.%N)
-	  local dt=$(echo "$res2 - $res1" | bc)
-	  local dd=$(echo "$dt/86400" | bc)
-	  local dt2=$(echo "$dt-86400*$dd" | bc)
-	  local dh=$(echo "$dt2/3600" | bc)
-	  local dt3=$(echo "$dt2-3600*$dh" | bc)
-	  local dm=$(echo "$dt3/60" | bc)
-	  local ds=$(echo "$dt3-60*$dm" | bc)
-	  printf "# Total runtime: %d:%02d:%02d:%s\n" $dd $dh $dm $ds
+  which bc > /dev/null && {
+	  local dt dd dt2 dh dt3 dm ds res2
+      res2=$(date +%s.%N)
+	  dt=$(echo "$res2 - $res1" | bc)
+	  dd=$(echo "$dt/86400" | bc)
+	  dt2=$(echo "$dt-86400*$dd" | bc)
+	  dh=$(echo "$dt2/3600" | bc)
+	  dt3=$(echo "$dt2-3600*$dh" | bc)
+	  dm=$(echo "$dt3/60" | bc)
+	  ds=$(echo "$dt3-60*$dm" | bc)
+	  printf "# Total runtime: %d:%02d:%02d:%s\n" "$dd" "$dh" "$dm" "$ds"
   }
 }
 
@@ -406,20 +402,15 @@ consummer() {
     # plan
     if [ "${line:0:4}" = "1..." ]
     then
-      #		echo "$line"
       expected="${line:4}"
-      # diagnostic
     elif [ "${line:0:1}" = "#" ]
     then
       echo -e "${ANSI_BOLD}$line${ANSI_RESET}" >&2
       continue
-      # failure
     elif [ "${line:0:6}" = "not ok" ]
     then
-      #      echo -e "${ANSI_RED}not ok${ANSI_RESET}${line:6}" >&2
       printf "${ANSI_RED}not ok${ANSI_RESET}%s " "${line:6}">&2
       failure=$((failure+1))
-      # success
     elif [ "${line:0:2}" = "ok" ]
     then
       win=$((win+1))
@@ -429,22 +420,20 @@ consummer() {
       then echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2} ${ANSI_RED}# ${directive:1:4}${ANSI_RESET}${directive:5}"
       else echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2}"
       fi
-      [ "$line" = "* Todo *" ] && todo=$((todo+1))
-      [ "$line" = "* Skip *" ] && skip=$((skip+1))
-      # bail out
-    elif [ "${line:0:9}" = "Bail out!" ]
-    then
-      if [ "$line" = "*#*" ]
-      then
-        base=$(echo "$line" | cut -d "#" -f 1)
-        directive=$(echo "$line" | cut -d "#" -f 2)
-        printf "%s" "$base"
-        [ "$directive" ] && echo " ${ANSI_RED}# $directive${ANSI_RESET}"
-      else echo "$line"
-      fi
-      exit 1
+      [ "${directive:1:4}" = "Todo" ] && todo=$((todo+1))
+      [ "${directive:1:4}" = "Skip" ] && skip=$((skip+1))
+#    elif [ "${line:0:9}" = "Bail out!" ]
+#    then
+#      base=$(echo "$line" | cut -d "#" -f 1)
+#      directive=$(echo "$line" | cut -d "#" -f 2)
+#      total=$((win+failure+1))
+#      if [ "$directive" != "$base" ]
+#      then echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total# ${ANSI_BOLD}# $directive${ANSI_RESET}"
+#      else echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total"
+#      fi
+#      break
     fi
-    # ignore others
+    # ignore the rest
   done <&0
   if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
   then echo -e "\n\t${ANSI_GREEN}Everything is OK!${ANSI_RESET}\n"
@@ -459,7 +448,7 @@ consummer() {
 }
 
 clean() {
-  rm -f ${GWT_OUTDIR}/${GWT_PREFIX}{*.log,bailout}
+  rm -f ${GWT_OUTDIR}/{${GWT_PREFIX}{*.log,bailout},In.gw}
 }
 
-[ $# -ne 0 ] && do_test ${@} | consummer
+[ $# -ne 0 ] && do_test "${@}" | consummer
