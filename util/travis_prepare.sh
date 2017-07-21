@@ -1,16 +1,5 @@
 #!/bin/bash
-
-check_variable() {
-	if [ -z "$1" ]
-	then
-		echo "unknown variable $2."
-		exit 1
-	fi
-}
-
-check_variable "$TRAVIS_OS_NAME" TRAVIS_OS_NAME
-check_variable "$SP_BRANCH"      SP_BRANCH
-check_variable "$GWION_ADD_DIR" GWION_PLUG_DIR
+# needed variables: TRAVIS_OS_NAME SP_BRANCH GWION_PLUG_DIR
 
 brew_dependencies() {
 	brew install libsndfile # needed for soundpipe
@@ -25,7 +14,6 @@ build_soundpipe() {
 }
 
 check_soundpipe() {
-#rm -rf Soundpipe # look at me!
 	[ -d Soundpipe ] || {
 		git clone -b "$SP_BRANCH" https://github.com/paulbatchelor/Soundpipe.git
 		pushd Soundpipe
@@ -36,7 +24,6 @@ check_soundpipe() {
 	pushd Soundpipe
 	git fetch
 	[ "$(git rev-parse HEAD)" = "$(git rev-parse '@{u}')" ] || build_soundpipe
-#	[ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ] || build_soundpipe
 	popd
 	return 0
 }

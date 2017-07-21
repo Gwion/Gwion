@@ -23,10 +23,6 @@ env:
     - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
     - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
     - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
-    - GWION_DOC_DIR=$TRAVIS_BUILD_DIR/doc
-    - GWION_API_DIR=$TRAVIS_BUILD_DIR/api
-    - GWION_TOK_DIR=$TRAVIS_BUILD_DIR/tok
-    - GWION_TAG_DIR=$TRAVIS_BUILD_DIR/tag
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - USE_MEMCHECK=1
     - PREFIX=$TRAVIS_BUILD_DIR
@@ -34,18 +30,7 @@ env:
     - USE_DOUBLE=1 SP_BRANCH=dev
     - USE_DOUBLE=0 SP_BRANCH=dev
 
-jobs:
-  stage: coverity
-  script: echo lol
-#  on:
-#    tags: true
-
-
 matrix:
-#  include: 
-#    os: osx
-#    compiler: clang
-#    env: USE_DOUBLE=0 SP_BRANCH=dev DEBUG_INSTR=on
   fast_finish: true
   allow_failures:
   - os: osx
