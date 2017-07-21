@@ -15,11 +15,6 @@
 
 #define SIZE 65347  /* should be prime */
 
-struct S_Symbol_ {
-  m_str name;
-  S_Symbol next;
-};
-
 static S_Symbol hashtable[SIZE];
 
 static S_Symbol mksymbol(const m_str name, S_Symbol next) {
@@ -61,8 +56,4 @@ S_Symbol insert_symbol(const m_str name) {
     if(!strcmp(sym->name, (m_str)name))
       return sym;
   return hashtable[index] = mksymbol(name, syms);
-}
-
-m_str s_name(S_Symbol sym) {
-  return sym->name;
 }
