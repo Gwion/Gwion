@@ -2,7 +2,7 @@
 # needed variables: TRAVIS_OS_NAME SP_BRANCH GWION_PLUG_DIR
 
 brew_dependencies() {
-	brew install libsndfile # needed for soundpipe
+	brew install libsndfile # (still) needed for soundpipe
 	brew install valgrind   # needed for test
 }
 
