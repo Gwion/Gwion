@@ -426,10 +426,8 @@ for n in ipairs(a) do
 				end
 				declare_gw_param(v)
 				print("\tCHECK_BB(import_fun(env, &fun, 0))")
-				-- make_doc("\tf", v)
 				end
 			end	
-		-- make_doc("\tenv->class_def", object)
 		print("\tCHECK_BB(import_class_end(env))\n")
 	end
 end
