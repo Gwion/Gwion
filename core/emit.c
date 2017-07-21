@@ -515,7 +515,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     ID_List base_t = def->base;
     Type_List list = exp_func->types;
     if(exp_func->m_func->value_ref->owner_class)
-      env_push_class(emit->env, exp_func->m_func->value_ref->owner_class);
+      CHECK_BB(env_push_class(emit->env, exp_func->m_func->value_ref->owner_class))
     nspc_push_type(emit->env->curr);
     while(base_t) {
       nspc_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
@@ -531,7 +531,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
     nspc_pop_type(emit->env->curr);
     if(exp_func->m_func->value_ref->owner_class)
-      env_pop_class(emit->env);
+      CHECK_BB(env_pop_class(emit->env))
   } else
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
@@ -1227,7 +1227,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "case");
 #endif
-  m_uint value;
+  m_uint value = 0;
   Value v;
   Type t;
   if(!emit->cases)
@@ -1254,13 +1254,11 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
           stmt->val->d.exp_dot.t_base->d.actual_type : stmt->val->d.exp_dot.t_base;
       v = find_value(t, stmt->val->d.exp_dot.xid);
       value = GET_FLAG(v, ae_flag_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
-    } else {
-      err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type);
-      return -1;
-    }
+    } else
+      CHECK_BB(err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type))
   if(map_get(emit->cases, (vtype)value))
     CHECK_BB(err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value))
-    map_set(emit->cases, (vtype)value, (vtype)vector_size(&emit->code->code));
+  map_set(emit->cases, (vtype)value, (vtype)vector_size(&emit->code->code));
   return 1;
 }
 
