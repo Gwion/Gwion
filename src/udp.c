@@ -10,7 +10,6 @@
 #include "err_msg.h"
 #include "udp.h"
 #include "lang.h"
-#include "shreduler.h"
 
 static int sock;
 static struct sockaddr_in saddr;

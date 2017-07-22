@@ -10,7 +10,6 @@
 #undef USE_DOUBLE
 #endif
 #include <soundpipe.h> // for sp_rand
-#include "shreduler.h"
 #include "compile.h"
 #include <err_msg.h>
 

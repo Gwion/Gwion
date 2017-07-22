@@ -14,7 +14,12 @@
 #include "map_private.h"
 
 typedef struct VM_Code_* VM_Code;
-typedef enum { NATIVE_UNKNOWN, NATIVE_CTOR, NATIVE_DTOR, NATIVE_MFUN, NATIVE_SFUN } e_native_func;
+typedef enum {
+  NATIVE_UNKNOWN,
+  NATIVE_CTOR,
+  NATIVE_DTOR,NATIVE_MFUN,
+  NATIVE_SFUN
+} e_native_func;
 struct VM_Code_ {
   Vector instr;
   m_str name, filename;
@@ -25,7 +30,6 @@ struct VM_Code_ {
   struct VM_Object_ obj;
 };
 
-//typedef struct BBQ_* BBQ;
 typedef struct Shreduler_* Shreduler;
 typedef struct {
 // BBQ
@@ -68,12 +72,22 @@ struct VM_Shred_ {
 //  m_bool is_running;
 };
 
+struct  Shreduler_ {
+  VM* vm;
+  VM_Shred list;
+  VM_Shred curr;
+  m_uint n_shred;
+  m_bool loop;
+};
+
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
 void free_vm_code(VM_Code a);
 
-Shreduler new_shreduler(VM* vm);
 VM_Shred shreduler_get(Shreduler s);
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
+VM_Shred shreduler_get(Shreduler s);
+m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time);
+void shreduler_set_loop(Shreduler s, m_bool loop);
 
 VM_Shred new_vm_shred(VM_Code code);
 void free_vm_shred(VM_Shred shred);

@@ -1,8 +1,15 @@
+#include <math.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <libgen.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "vm.h"
 #include "instr.h"
 #include "import.h"
+#include "lang.h"
+#include "ugen.h"
 
 struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};
 struct Type_ t_object  = { "Object",    SZ_INT, NULL,      te_object };
@@ -532,7 +539,6 @@ m_bool import_array(Env env) {
   CHECK_BB(import_class_end(env))
   return 1;
 }
-#include <math.h>
 
 struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
 m_int o_string_data;
@@ -1479,8 +1485,6 @@ m_bool import_string(Env env) {
   CHECK_BB(import_class_end(env))
   return 1;
 }
-#include <libgen.h>
-#include "shreduler.h"
 
 struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
 m_int o_shred_me;
@@ -1685,9 +1689,6 @@ m_bool import_event(Env env) {
   CHECK_BB(import_class_end(env))
   return 1;
 }
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
 
 struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
 struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
@@ -1980,8 +1981,6 @@ m_bool import_fileio(Env env) {
   return 1;
 }
 
-#include "lang.h"
-#include "ugen.h"
 
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
 m_int o_object_ugen;

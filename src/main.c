@@ -11,7 +11,6 @@
 #include "compile.h"
 #include "udp.h"
 #include "driver.h"
-#include "shreduler.h"
 #include "instr.h"
 #include "code_private.h"
 

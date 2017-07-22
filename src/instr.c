@@ -7,7 +7,6 @@
 #include "instr.h"
 #include "import.h"
 #include "func.h"
-#include "shreduler.h"
 #include "code_private.h" // for add_instr
 #ifndef M_PI
 #define M_PI		3.14159265358979323846

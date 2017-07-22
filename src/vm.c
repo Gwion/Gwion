@@ -8,7 +8,6 @@
 #include "instr.h"
 #include "ugen.h"
 #include "driver.h"
-#include "shreduler.h"
 
 void udp_do(VM* vm);
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
@@ -102,7 +101,7 @@ m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
   return 1;
 }
 
-Shreduler new_shreduler(VM* vm) {
+static Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
   s->vm = vm;
@@ -110,7 +109,7 @@ Shreduler new_shreduler(VM* vm) {
   return s;
 }
 
-void free_shreduler(Shreduler s) {
+static void free_shreduler(Shreduler s) {
   free(s);
 }
 
