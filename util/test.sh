@@ -39,7 +39,7 @@ assert_contain() {
 
 assert_exclude() {
   local contains
-  contains=$(grep "// \[exclude\]" "$1" | cut -d "]" -f2)
+  contains=$(grep "// \[excludes\]" "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null || return 0
@@ -81,7 +81,6 @@ assert_overlap() {
   grep "Source and destination overlap" "$2.valgrind.log" > /dev/null || return 0
   echo "mem overlap" > "$2.log"
   return 1
-
 }
 
 assert_fishy() {

@@ -1,7 +1,0 @@
-Metro m ]=> 
-FFT fft => dac;
-1024 => fft.init;
-m => blackhole;
-//30::
-second => now;
-//minute => now;

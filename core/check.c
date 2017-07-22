@@ -96,7 +96,6 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   if(import_lib(env)       < 0) goto error;
   if(import_machine(env)   < 0) goto error;
   if(import_soundpipe(env) < 0) goto error;
-  if(import_analys(env)    < 0) goto error;
   if(import_modules(env)   < 0) goto error;
 
   vm->dac       = new_M_UGen();
