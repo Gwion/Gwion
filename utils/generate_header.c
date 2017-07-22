@@ -8,8 +8,6 @@
 #endif
 #include <soundpipe.h>
 
-#include "err_msg.h"
-
 static const char* filename = "include/generated.h";
 
 #ifdef USE_DOUBLE
@@ -24,16 +22,16 @@ static const char* other = "double";
 
 int main(int argc, char** argv) {
   FILE* file;
-  debug_msg("config", "creating Gwion header.");
+  fprintf(stderr, "creating Gwion header.\n");
   if(SZ != sizeof(SPFLOAT)) {
-    err_msg(INSTR_, 0, "sizes do not match. please recompile soundpipe to use %s.", other);
+    fprintf(stderr, "sizes do not match. please recompile soundpipe to use %s.\n", other);
     return 1;
   }
   if(argc >= 2)
     filename = argv[1];
   file = fopen(filename, "w");
   if(!file) {
-    err_msg(INSTR_, 0, "can't open '%s' for writing.", filename);
+    fprintf(stderr, "can't open '%s' for writing.\n", filename);
     return 1;
   }
   fprintf(file,
@@ -47,6 +45,6 @@ typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_VEC3    %lu\n", sizeof(SPFLOAT) * 3);
   fprintf(file, "#define SZ_VEC4    %lu\n", sizeof(SPFLOAT) * 4);
   fclose(file);
-  debug_msg("config", "config written to '%s'.", filename);
+  fprintf(stderr, "config written to '%s'.\n", filename);
   return 0;
 }

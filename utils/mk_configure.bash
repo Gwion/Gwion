@@ -158,12 +158,12 @@ printf "to_upper(){\n\techo \"\$1\" | tr '[:lower:]' '[:upper:]'\n}\n\n"
   echo "if [ \"\$USE_COVERAGE\" = \"1\"  ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
   echo "if [ \"\$USE_COVERAGE\" = \"on\" ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
   echo "if [ \"\$_arg_soundpipe_inc\" ]; then _CFLAGS+=\" \$_arg_soundpipe_inc\";fi"
-  #	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
-  echo "cmd=\"\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header\""
+  #	echo "\$_arg_cc -Iinclude \$_CFLAGS utils/generate_header.c -o utils/generate_header || (echo 'invalid compilation options'; exit 1;)"
+  echo "cmd=\"\$_arg_cc -Iinclude \$_CFLAGS utils/generate_header.c -o utils/generate_header\""
   echo "eval \"\$cmd\" || (echo 'invalid compilation options'; exit 1;)"
 
   # generate header
-  echo "./util/generate_header || exit 1"
+  echo "./utils/generate_header || exit 1"
   echo "}"
 }
 
