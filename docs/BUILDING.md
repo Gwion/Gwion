@@ -108,7 +108,16 @@ In the same way, then can be disabled with     `ALSA_D=0` or `ALSA_D=off`
 > to set instrumentation flags at make time, capitalize those and prefix them
 with "USE_", e.g.: `USE_MEMCHECK=1` or `USE_COVERAGE=on`
 
-
+### Running tests
+```bash
+make tests
+```
+to run all tests, or 
+```bash
+bash util/test.sh my_file_or_directory (.. other files/dirs ...)
+```
+to run specific ones.
+look [here](#testing.md) for more.
 ## Install
 *maybe as root*
 ```sh
