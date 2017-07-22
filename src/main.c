@@ -12,7 +12,6 @@
 #include "udp.h"
 #include "driver.h"
 #include "instr.h"
-#include "code_private.h"
 
 volatile m_bool signaled = 0;
 VM* vm;

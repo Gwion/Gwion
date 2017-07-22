@@ -6,7 +6,6 @@
 #include "context.h"
 #include "func.h"
 #include "emit.h"
-#include "code_private.h"
 
 static m_bool emit_exp(Emitter emit, Exp exp, m_bool add_ref);
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop);
