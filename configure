@@ -500,7 +500,7 @@ if [ "$_arg_double" = "1"  ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double";fi
 if [ "$USE_COVERAGE" = "1"  ]; then _CFLAGS+=" -ftest-coverage -fprofile-arcs --coverage";fi
 if [ "$USE_COVERAGE" = "on" ]; then _CFLAGS+=" -ftest-coverage -fprofile-arcs --coverage";fi
 if [ "$_arg_soundpipe_inc" ]; then _CFLAGS+=" $_arg_soundpipe_inc";fi
-cmd="$_arg_cc -Iinclude -DDEBUG $_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header"
+cmd="$_arg_cc -Iinclude -DDEBUG $_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header"
 eval "$cmd" || (echo 'invalid compilation options'; exit 1;)
 ./util/generate_header || exit 1
 }
@@ -558,7 +558,7 @@ do
 done
 
 printf "\n# initialize source lists\n"
-for iter in core lang ugen
+for iter in src ugen
 do
 	echo "${iter}_src := \$(wildcard ${iter}/*.c)"
 done
@@ -631,7 +631,7 @@ echo "LDFLAGS += \${SOUNDPIPE_LIB}"
 echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
-for iter in core lang ugen drvr
+for iter in src ugen drvr
 do
 	echo "${iter}_obj := \$(${iter}_src:.c=.o)"
 done
@@ -653,9 +653,9 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: options \${core_obj} \${lang_obj} \${ugen_obj} \${drvr_obj}
+all: options \${src_obj} \${ugen_obj} \${drvr_obj}
 	@echo "link \${PRG}"
-	@\${CC} \${core_obj} \${lang_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+	@\${CC} \${src_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 options:
 	@echo "CFLAGS  : \${CFLAGS}"
@@ -665,9 +665,9 @@ clean:
 	@echo "cleaning..."
 	@rm -f */*.o */*.gcda */*.gcno ${PRG}
 
-core/main.o:
+src/main.o:
 	@echo "compile main (with arguments defines)"
-	@\${CC} \${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
+	@\${CC} \${CFLAGS} -c src/main.c -o src/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
 
 .c.o:
 	@echo "compile \$(<:.c=)"
@@ -683,14 +683,13 @@ test:
 	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
 
 parser:
-	\${YACC} -o core/parser.c --defines=include/parser.h util/gwion.y
+	\${YACC} -o src/parser.c --defines=include/parser.h util/gwion.y
 
 lexer:
-	\${LEX}  -o core/lexer.c util/gwion.l
+	\${LEX}  -o src/lexer.c util/gwion.l
 
 directories:
-	mkdir -p \${PREFIX}
-	mkdir -p \${GWION_API_DIR} \${GWION_DOC_DIR} \${GWION_TAG_DIR} \${GWION_TOK_DIR} \${GWION_ADD_DIR}
+	mkdir -p \${PREFIX} \${GWION_ADD_DIR}
 EOF
 
 }

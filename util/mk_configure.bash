@@ -158,8 +158,8 @@ printf "to_upper(){\n\techo \"\$1\" | tr '[:lower:]' '[:upper:]'\n}\n\n"
   echo "if [ \"\$USE_COVERAGE\" = \"1\"  ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
   echo "if [ \"\$USE_COVERAGE\" = \"on\" ]; then _CFLAGS+=\" -ftest-coverage -fprofile-arcs --coverage\";fi"
   echo "if [ \"\$_arg_soundpipe_inc\" ]; then _CFLAGS+=\" \$_arg_soundpipe_inc\";fi"
-  #	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
-  echo "cmd=\"\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c core/err_msg.c -o util/generate_header\""
+  #	echo "\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header || (echo 'invalid compilation options'; exit 1;)"
+  echo "cmd=\"\$_arg_cc -Iinclude -DDEBUG \$_CFLAGS util/generate_header.c src/err_msg.c -o util/generate_header\""
   echo "eval \"\$cmd\" || (echo 'invalid compilation options'; exit 1;)"
 
   # generate header
@@ -204,7 +204,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 #  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
 
   mk_header "initialize source lists"
-  do_expand "core lang ugen"
+  do_expand "src ugen"
   printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"drvr_src := drvr/driver.c\"\n"
   echo "}"
 }
@@ -258,7 +258,7 @@ EOF
   echo "echo \"CFLAGS  += \\\${SOUNDPIPE_INC}\""
 
   mk_header "initialize object lists"
-  do_expand "core lang ugen drvr"
+  do_expand "src ugen drvr"
   printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone\n"
   echo "}"
 }
@@ -289,9 +289,9 @@ LDFLAGS+=-lrt
 endif
 
 # recipes
-all: options \\\${core_obj} \\\${lang_obj} \\\${ugen_obj} \\\${drvr_obj}
+all: options \\\${src_obj} \\\${ugen_obj} \\\${drvr_obj}
 	@echo "link \\\${PRG}"
-	@\\\${CC} \\\${core_obj} \\\${lang_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+	@\\\${CC} \\\${src_obj} \\\${ugen_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 options:
 	@echo "CFLAGS  : \\\${CFLAGS}"
@@ -301,9 +301,9 @@ clean:
 	@echo "cleaning..."
 	@rm -f */*.o */*.gcda */*.gcno \${PRG}
 
-core/main.o:
+src/main.o:
 	@echo "compile main (with arguments defines)"
-	@\\\${CC} \\\${CFLAGS} -c core/main.c -o core/main.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
+	@\\\${CC} \\\${CFLAGS} -c src/main.c -o src/main.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
 
 .c.o:
 	@echo "compile \\\$(<:.c=)"
@@ -319,14 +319,13 @@ test:
 	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
 
 parser:
-	\\\${YACC} -o core/parser.c --defines=include/parser.h util/gwion.y
+	\\\${YACC} -o src/parser.c --defines=include/parser.h util/gwion.y
 
 lexer:
-	\\\${LEX}  -o core/lexer.c util/gwion.l
+	\\\${LEX}  -o src/lexer.c util/gwion.l
 
 directories:
-	mkdir -p \\\${PREFIX}
-	mkdir -p \\\${GWION_API_DIR} \\\${GWION_DOC_DIR} \\\${GWION_TAG_DIR} \\\${GWION_TOK_DIR} \\\${GWION_ADD_DIR}
+	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
 EOF
 
 _EOF
