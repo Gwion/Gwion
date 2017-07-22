@@ -680,13 +680,13 @@ uninstall:
 	rm \${PREFIX}/\${PRG}
 
 test:
-	@bash -c "source util/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
+	@bash -c "source utils/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
 
 parser:
-	\${YACC} -o src/parser.c --defines=include/parser.h util/gwion.y
+	\${YACC} -o src/parser.c --defines=include/parser.h utils/gwion.y
 
 lexer:
-	\${LEX}  -o src/lexer.c util/gwion.l
+	\${LEX}  -o src/lexer.c utils/gwion.l
 
 directories:
 	mkdir -p \${PREFIX} \${GWION_ADD_DIR}
