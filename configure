@@ -558,7 +558,7 @@ do
 done
 
 printf "\n# initialize source lists\n"
-for iter in src ugen
+for iter in src
 do
 	echo "${iter}_src := \$(wildcard ${iter}/*.c)"
 done
@@ -631,7 +631,7 @@ echo "LDFLAGS += \${SOUNDPIPE_LIB}"
 echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
-for iter in src ugen drvr
+for iter in src drvr
 do
 	echo "${iter}_obj := \$(${iter}_src:.c=.o)"
 done
@@ -653,9 +653,9 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: options \${src_obj} \${ugen_obj} \${drvr_obj}
+all: options \${src_obj} \${drvr_obj}
 	@echo "link \${PRG}"
-	@\${CC} \${src_obj} \${ugen_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+	@\${CC} \${src_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 options:
 	@echo "CFLAGS  : \${CFLAGS}"
