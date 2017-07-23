@@ -198,10 +198,10 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   m_uint array_depth2 = 0;
   m_int i = 0, j;
 
-  for(i = 0; i < dl_fun->narg; i++) {
+  for(i = dl_fun->narg + 1; --i; ) {
     array_depth = array_depth2 = 0;
     array_sub = NULL;
-    arg = &dl_fun->args[i];
+    arg = &dl_fun->args[i-1];
     type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
       if(arg_list)
