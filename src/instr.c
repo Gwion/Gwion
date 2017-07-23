@@ -188,7 +188,7 @@ INSTR(Reg_Push_Me) {
 
 INSTR(Reg_Push_Now) {
 #ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push now %f", vm->sp->pos);
+  debug_msg("instr", "[reg] push now %f", (m_float)vm->sp->pos);
 #endif
   *(m_float*)REG(0) = vm->sp->pos;
   PUSH_REG(shred, SZ_FLOAT);

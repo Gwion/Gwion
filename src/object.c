@@ -666,8 +666,8 @@ static INSTR(Object_String_Assign) {
   M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs)
     Except(shred, "NullStringException");
-  char str[12];
-  str[11] = '\0';
+
+  char str[16];
   sprintf(str, "0x%08lu", (uintptr_t)lhs);
   push_string(shred, rhs, str);
   release(lhs, shred);
