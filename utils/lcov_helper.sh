@@ -2,12 +2,12 @@
 OUTFILE=lcov/lcov.info
 #make all
 
-#source util/test.sh
+#source utils/test.sh
 [ -d lcov ] || mkdir lcov
 
 #do_test severity=11 ASYNC=0 tests/sh/ examples tests/error tests/tree tests/bug tests/ugen_coverage | consummer
 
-[ -z "$TRAVIS_BUILD_DIR" ] || source util/test.sh; do_test "tests/bug"
+[ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
 
 lcov --no-external --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
 
