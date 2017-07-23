@@ -4,7 +4,7 @@
 %lex-param  { void* scanner }  
 %lex-param { MyArg* arg }
 /* %param { MyArg* arg } */
-%name-prefix "minimal_"
+%name-prefix "gwion_"
 %{
 #define YYERROR_VERBOSE
 #include "absyn.h"
@@ -13,8 +13,8 @@
 
 
 char *strcat(char *dest, const char *src);
-void minimal_error(void* data, const char* s);
-int minimal_lex(void*, void* , void*);
+void gwion_error(void* data, const char* s);
+int gwion_lex(void*, void* , void*);
 static int get_pos(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);

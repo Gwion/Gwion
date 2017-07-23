@@ -1,6 +1,6 @@
-#ifndef minimal_HEADER_H
-#define minimal_HEADER_H 1
-#define minimal_IN_HEADER 1
+#ifndef gwion_HEADER_H
+#define gwion_HEADER_H 1
+#define gwion_IN_HEADER 1
 
 #line 5 "include/lexer.h"
 
@@ -19,225 +19,225 @@
 #endif
 
 #ifdef yy_create_buffer
-#define minimal__create_buffer_ALREADY_DEFINED
+#define gwion__create_buffer_ALREADY_DEFINED
 #else
-#define yy_create_buffer minimal__create_buffer
+#define yy_create_buffer gwion__create_buffer
 #endif
 
 #ifdef yy_delete_buffer
-#define minimal__delete_buffer_ALREADY_DEFINED
+#define gwion__delete_buffer_ALREADY_DEFINED
 #else
-#define yy_delete_buffer minimal__delete_buffer
+#define yy_delete_buffer gwion__delete_buffer
 #endif
 
 #ifdef yy_scan_buffer
-#define minimal__scan_buffer_ALREADY_DEFINED
+#define gwion__scan_buffer_ALREADY_DEFINED
 #else
-#define yy_scan_buffer minimal__scan_buffer
+#define yy_scan_buffer gwion__scan_buffer
 #endif
 
 #ifdef yy_scan_string
-#define minimal__scan_string_ALREADY_DEFINED
+#define gwion__scan_string_ALREADY_DEFINED
 #else
-#define yy_scan_string minimal__scan_string
+#define yy_scan_string gwion__scan_string
 #endif
 
 #ifdef yy_scan_bytes
-#define minimal__scan_bytes_ALREADY_DEFINED
+#define gwion__scan_bytes_ALREADY_DEFINED
 #else
-#define yy_scan_bytes minimal__scan_bytes
+#define yy_scan_bytes gwion__scan_bytes
 #endif
 
 #ifdef yy_init_buffer
-#define minimal__init_buffer_ALREADY_DEFINED
+#define gwion__init_buffer_ALREADY_DEFINED
 #else
-#define yy_init_buffer minimal__init_buffer
+#define yy_init_buffer gwion__init_buffer
 #endif
 
 #ifdef yy_flush_buffer
-#define minimal__flush_buffer_ALREADY_DEFINED
+#define gwion__flush_buffer_ALREADY_DEFINED
 #else
-#define yy_flush_buffer minimal__flush_buffer
+#define yy_flush_buffer gwion__flush_buffer
 #endif
 
 #ifdef yy_load_buffer_state
-#define minimal__load_buffer_state_ALREADY_DEFINED
+#define gwion__load_buffer_state_ALREADY_DEFINED
 #else
-#define yy_load_buffer_state minimal__load_buffer_state
+#define yy_load_buffer_state gwion__load_buffer_state
 #endif
 
 #ifdef yy_switch_to_buffer
-#define minimal__switch_to_buffer_ALREADY_DEFINED
+#define gwion__switch_to_buffer_ALREADY_DEFINED
 #else
-#define yy_switch_to_buffer minimal__switch_to_buffer
+#define yy_switch_to_buffer gwion__switch_to_buffer
 #endif
 
 #ifdef yypush_buffer_state
-#define minimal_push_buffer_state_ALREADY_DEFINED
+#define gwion_push_buffer_state_ALREADY_DEFINED
 #else
-#define yypush_buffer_state minimal_push_buffer_state
+#define yypush_buffer_state gwion_push_buffer_state
 #endif
 
 #ifdef yypop_buffer_state
-#define minimal_pop_buffer_state_ALREADY_DEFINED
+#define gwion_pop_buffer_state_ALREADY_DEFINED
 #else
-#define yypop_buffer_state minimal_pop_buffer_state
+#define yypop_buffer_state gwion_pop_buffer_state
 #endif
 
 #ifdef yyensure_buffer_stack
-#define minimal_ensure_buffer_stack_ALREADY_DEFINED
+#define gwion_ensure_buffer_stack_ALREADY_DEFINED
 #else
-#define yyensure_buffer_stack minimal_ensure_buffer_stack
+#define yyensure_buffer_stack gwion_ensure_buffer_stack
 #endif
 
 #ifdef yylex
-#define minimal_lex_ALREADY_DEFINED
+#define gwion_lex_ALREADY_DEFINED
 #else
-#define yylex minimal_lex
+#define yylex gwion_lex
 #endif
 
 #ifdef yyrestart
-#define minimal_restart_ALREADY_DEFINED
+#define gwion_restart_ALREADY_DEFINED
 #else
-#define yyrestart minimal_restart
+#define yyrestart gwion_restart
 #endif
 
 #ifdef yylex_init
-#define minimal_lex_init_ALREADY_DEFINED
+#define gwion_lex_init_ALREADY_DEFINED
 #else
-#define yylex_init minimal_lex_init
+#define yylex_init gwion_lex_init
 #endif
 
 #ifdef yylex_init_extra
-#define minimal_lex_init_extra_ALREADY_DEFINED
+#define gwion_lex_init_extra_ALREADY_DEFINED
 #else
-#define yylex_init_extra minimal_lex_init_extra
+#define yylex_init_extra gwion_lex_init_extra
 #endif
 
 #ifdef yylex_destroy
-#define minimal_lex_destroy_ALREADY_DEFINED
+#define gwion_lex_destroy_ALREADY_DEFINED
 #else
-#define yylex_destroy minimal_lex_destroy
+#define yylex_destroy gwion_lex_destroy
 #endif
 
 #ifdef yyget_debug
-#define minimal_get_debug_ALREADY_DEFINED
+#define gwion_get_debug_ALREADY_DEFINED
 #else
-#define yyget_debug minimal_get_debug
+#define yyget_debug gwion_get_debug
 #endif
 
 #ifdef yyset_debug
-#define minimal_set_debug_ALREADY_DEFINED
+#define gwion_set_debug_ALREADY_DEFINED
 #else
-#define yyset_debug minimal_set_debug
+#define yyset_debug gwion_set_debug
 #endif
 
 #ifdef yyget_extra
-#define minimal_get_extra_ALREADY_DEFINED
+#define gwion_get_extra_ALREADY_DEFINED
 #else
-#define yyget_extra minimal_get_extra
+#define yyget_extra gwion_get_extra
 #endif
 
 #ifdef yyset_extra
-#define minimal_set_extra_ALREADY_DEFINED
+#define gwion_set_extra_ALREADY_DEFINED
 #else
-#define yyset_extra minimal_set_extra
+#define yyset_extra gwion_set_extra
 #endif
 
 #ifdef yyget_in
-#define minimal_get_in_ALREADY_DEFINED
+#define gwion_get_in_ALREADY_DEFINED
 #else
-#define yyget_in minimal_get_in
+#define yyget_in gwion_get_in
 #endif
 
 #ifdef yyset_in
-#define minimal_set_in_ALREADY_DEFINED
+#define gwion_set_in_ALREADY_DEFINED
 #else
-#define yyset_in minimal_set_in
+#define yyset_in gwion_set_in
 #endif
 
 #ifdef yyget_out
-#define minimal_get_out_ALREADY_DEFINED
+#define gwion_get_out_ALREADY_DEFINED
 #else
-#define yyget_out minimal_get_out
+#define yyget_out gwion_get_out
 #endif
 
 #ifdef yyset_out
-#define minimal_set_out_ALREADY_DEFINED
+#define gwion_set_out_ALREADY_DEFINED
 #else
-#define yyset_out minimal_set_out
+#define yyset_out gwion_set_out
 #endif
 
 #ifdef yyget_leng
-#define minimal_get_leng_ALREADY_DEFINED
+#define gwion_get_leng_ALREADY_DEFINED
 #else
-#define yyget_leng minimal_get_leng
+#define yyget_leng gwion_get_leng
 #endif
 
 #ifdef yyget_text
-#define minimal_get_text_ALREADY_DEFINED
+#define gwion_get_text_ALREADY_DEFINED
 #else
-#define yyget_text minimal_get_text
+#define yyget_text gwion_get_text
 #endif
 
 #ifdef yyget_lineno
-#define minimal_get_lineno_ALREADY_DEFINED
+#define gwion_get_lineno_ALREADY_DEFINED
 #else
-#define yyget_lineno minimal_get_lineno
+#define yyget_lineno gwion_get_lineno
 #endif
 
 #ifdef yyset_lineno
-#define minimal_set_lineno_ALREADY_DEFINED
+#define gwion_set_lineno_ALREADY_DEFINED
 #else
-#define yyset_lineno minimal_set_lineno
+#define yyset_lineno gwion_set_lineno
 #endif
 
 #ifdef yyget_column
-#define minimal_get_column_ALREADY_DEFINED
+#define gwion_get_column_ALREADY_DEFINED
 #else
-#define yyget_column minimal_get_column
+#define yyget_column gwion_get_column
 #endif
 
 #ifdef yyset_column
-#define minimal_set_column_ALREADY_DEFINED
+#define gwion_set_column_ALREADY_DEFINED
 #else
-#define yyset_column minimal_set_column
+#define yyset_column gwion_set_column
 #endif
 
 #ifdef yywrap
-#define minimal_wrap_ALREADY_DEFINED
+#define gwion_wrap_ALREADY_DEFINED
 #else
-#define yywrap minimal_wrap
+#define yywrap gwion_wrap
 #endif
 
 #ifdef yyget_lval
-#define minimal_get_lval_ALREADY_DEFINED
+#define gwion_get_lval_ALREADY_DEFINED
 #else
-#define yyget_lval minimal_get_lval
+#define yyget_lval gwion_get_lval
 #endif
 
 #ifdef yyset_lval
-#define minimal_set_lval_ALREADY_DEFINED
+#define gwion_set_lval_ALREADY_DEFINED
 #else
-#define yyset_lval minimal_set_lval
+#define yyset_lval gwion_set_lval
 #endif
 
 #ifdef yyalloc
-#define minimal_alloc_ALREADY_DEFINED
+#define gwion_alloc_ALREADY_DEFINED
 #else
-#define yyalloc minimal_alloc
+#define yyalloc gwion_alloc
 #endif
 
 #ifdef yyrealloc
-#define minimal_realloc_ALREADY_DEFINED
+#define gwion_realloc_ALREADY_DEFINED
 #else
-#define yyrealloc minimal_realloc
+#define yyrealloc gwion_realloc
 #endif
 
 #ifdef yyfree
-#define minimal_free_ALREADY_DEFINED
+#define gwion_free_ALREADY_DEFINED
 #else
-#define yyfree minimal_free
+#define yyfree gwion_free
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -438,7 +438,7 @@ void yyfree ( void * , yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define minimal_wrap(yyscanner) (/*CONSTCOND*/1)
+#define gwion_wrap(yyscanner) (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
 
 #define yytext_ptr yytext_r
@@ -569,148 +569,148 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#ifndef minimal__create_buffer_ALREADY_DEFINED
+#ifndef gwion__create_buffer_ALREADY_DEFINED
 #undef yy_create_buffer
 #endif
-#ifndef minimal__delete_buffer_ALREADY_DEFINED
+#ifndef gwion__delete_buffer_ALREADY_DEFINED
 #undef yy_delete_buffer
 #endif
-#ifndef minimal__scan_buffer_ALREADY_DEFINED
+#ifndef gwion__scan_buffer_ALREADY_DEFINED
 #undef yy_scan_buffer
 #endif
-#ifndef minimal__scan_string_ALREADY_DEFINED
+#ifndef gwion__scan_string_ALREADY_DEFINED
 #undef yy_scan_string
 #endif
-#ifndef minimal__scan_bytes_ALREADY_DEFINED
+#ifndef gwion__scan_bytes_ALREADY_DEFINED
 #undef yy_scan_bytes
 #endif
-#ifndef minimal__init_buffer_ALREADY_DEFINED
+#ifndef gwion__init_buffer_ALREADY_DEFINED
 #undef yy_init_buffer
 #endif
-#ifndef minimal__flush_buffer_ALREADY_DEFINED
+#ifndef gwion__flush_buffer_ALREADY_DEFINED
 #undef yy_flush_buffer
 #endif
-#ifndef minimal__load_buffer_state_ALREADY_DEFINED
+#ifndef gwion__load_buffer_state_ALREADY_DEFINED
 #undef yy_load_buffer_state
 #endif
-#ifndef minimal__switch_to_buffer_ALREADY_DEFINED
+#ifndef gwion__switch_to_buffer_ALREADY_DEFINED
 #undef yy_switch_to_buffer
 #endif
-#ifndef minimal_push_buffer_state_ALREADY_DEFINED
+#ifndef gwion_push_buffer_state_ALREADY_DEFINED
 #undef yypush_buffer_state
 #endif
-#ifndef minimal_pop_buffer_state_ALREADY_DEFINED
+#ifndef gwion_pop_buffer_state_ALREADY_DEFINED
 #undef yypop_buffer_state
 #endif
-#ifndef minimal_ensure_buffer_stack_ALREADY_DEFINED
+#ifndef gwion_ensure_buffer_stack_ALREADY_DEFINED
 #undef yyensure_buffer_stack
 #endif
-#ifndef minimal_lex_ALREADY_DEFINED
+#ifndef gwion_lex_ALREADY_DEFINED
 #undef yylex
 #endif
-#ifndef minimal_restart_ALREADY_DEFINED
+#ifndef gwion_restart_ALREADY_DEFINED
 #undef yyrestart
 #endif
-#ifndef minimal_lex_init_ALREADY_DEFINED
+#ifndef gwion_lex_init_ALREADY_DEFINED
 #undef yylex_init
 #endif
-#ifndef minimal_lex_init_extra_ALREADY_DEFINED
+#ifndef gwion_lex_init_extra_ALREADY_DEFINED
 #undef yylex_init_extra
 #endif
-#ifndef minimal_lex_destroy_ALREADY_DEFINED
+#ifndef gwion_lex_destroy_ALREADY_DEFINED
 #undef yylex_destroy
 #endif
-#ifndef minimal_get_debug_ALREADY_DEFINED
+#ifndef gwion_get_debug_ALREADY_DEFINED
 #undef yyget_debug
 #endif
-#ifndef minimal_set_debug_ALREADY_DEFINED
+#ifndef gwion_set_debug_ALREADY_DEFINED
 #undef yyset_debug
 #endif
-#ifndef minimal_get_extra_ALREADY_DEFINED
+#ifndef gwion_get_extra_ALREADY_DEFINED
 #undef yyget_extra
 #endif
-#ifndef minimal_set_extra_ALREADY_DEFINED
+#ifndef gwion_set_extra_ALREADY_DEFINED
 #undef yyset_extra
 #endif
-#ifndef minimal_get_in_ALREADY_DEFINED
+#ifndef gwion_get_in_ALREADY_DEFINED
 #undef yyget_in
 #endif
-#ifndef minimal_set_in_ALREADY_DEFINED
+#ifndef gwion_set_in_ALREADY_DEFINED
 #undef yyset_in
 #endif
-#ifndef minimal_get_out_ALREADY_DEFINED
+#ifndef gwion_get_out_ALREADY_DEFINED
 #undef yyget_out
 #endif
-#ifndef minimal_set_out_ALREADY_DEFINED
+#ifndef gwion_set_out_ALREADY_DEFINED
 #undef yyset_out
 #endif
-#ifndef minimal_get_leng_ALREADY_DEFINED
+#ifndef gwion_get_leng_ALREADY_DEFINED
 #undef yyget_leng
 #endif
-#ifndef minimal_get_text_ALREADY_DEFINED
+#ifndef gwion_get_text_ALREADY_DEFINED
 #undef yyget_text
 #endif
-#ifndef minimal_get_lineno_ALREADY_DEFINED
+#ifndef gwion_get_lineno_ALREADY_DEFINED
 #undef yyget_lineno
 #endif
-#ifndef minimal_set_lineno_ALREADY_DEFINED
+#ifndef gwion_set_lineno_ALREADY_DEFINED
 #undef yyset_lineno
 #endif
-#ifndef minimal_get_column_ALREADY_DEFINED
+#ifndef gwion_get_column_ALREADY_DEFINED
 #undef yyget_column
 #endif
-#ifndef minimal_set_column_ALREADY_DEFINED
+#ifndef gwion_set_column_ALREADY_DEFINED
 #undef yyset_column
 #endif
-#ifndef minimal_wrap_ALREADY_DEFINED
+#ifndef gwion_wrap_ALREADY_DEFINED
 #undef yywrap
 #endif
-#ifndef minimal_get_lval_ALREADY_DEFINED
+#ifndef gwion_get_lval_ALREADY_DEFINED
 #undef yyget_lval
 #endif
-#ifndef minimal_set_lval_ALREADY_DEFINED
+#ifndef gwion_set_lval_ALREADY_DEFINED
 #undef yyset_lval
 #endif
-#ifndef minimal_get_lloc_ALREADY_DEFINED
+#ifndef gwion_get_lloc_ALREADY_DEFINED
 #undef yyget_lloc
 #endif
-#ifndef minimal_set_lloc_ALREADY_DEFINED
+#ifndef gwion_set_lloc_ALREADY_DEFINED
 #undef yyset_lloc
 #endif
-#ifndef minimal_alloc_ALREADY_DEFINED
+#ifndef gwion_alloc_ALREADY_DEFINED
 #undef yyalloc
 #endif
-#ifndef minimal_realloc_ALREADY_DEFINED
+#ifndef gwion_realloc_ALREADY_DEFINED
 #undef yyrealloc
 #endif
-#ifndef minimal_free_ALREADY_DEFINED
+#ifndef gwion_free_ALREADY_DEFINED
 #undef yyfree
 #endif
-#ifndef minimal_text_ALREADY_DEFINED
+#ifndef gwion_text_ALREADY_DEFINED
 #undef yytext
 #endif
-#ifndef minimal_leng_ALREADY_DEFINED
+#ifndef gwion_leng_ALREADY_DEFINED
 #undef yyleng
 #endif
-#ifndef minimal_in_ALREADY_DEFINED
+#ifndef gwion_in_ALREADY_DEFINED
 #undef yyin
 #endif
-#ifndef minimal_out_ALREADY_DEFINED
+#ifndef gwion_out_ALREADY_DEFINED
 #undef yyout
 #endif
-#ifndef minimal__flex_debug_ALREADY_DEFINED
+#ifndef gwion__flex_debug_ALREADY_DEFINED
 #undef yy_flex_debug
 #endif
-#ifndef minimal_lineno_ALREADY_DEFINED
+#ifndef gwion_lineno_ALREADY_DEFINED
 #undef yylineno
 #endif
-#ifndef minimal_tables_fload_ALREADY_DEFINED
+#ifndef gwion_tables_fload_ALREADY_DEFINED
 #undef yytables_fload
 #endif
-#ifndef minimal_tables_destroy_ALREADY_DEFINED
+#ifndef gwion_tables_destroy_ALREADY_DEFINED
 #undef yytables_destroy
 #endif
-#ifndef minimal_TABLES_NAME_ALREADY_DEFINED
+#ifndef gwion_TABLES_NAME_ALREADY_DEFINED
 #undef yyTABLES_NAME
 #endif
 
@@ -718,5 +718,5 @@ extern int yylex \
 
 
 #line 720 "include/lexer.h"
-#undef minimal_IN_HEADER
-#endif /* minimal_HEADER_H */
+#undef gwion_IN_HEADER
+#endif /* gwion_HEADER_H */

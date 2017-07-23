@@ -60,11 +60,11 @@
 
 
 /* Substitute the variable and function names.  */
-#define yyparse         minimal_parse
-#define yylex           minimal_lex
-#define yyerror         minimal_error
-#define yydebug         minimal_debug
-#define yynerrs         minimal_nerrs
+#define yyparse         gwion_parse
+#define yylex           gwion_lex
+#define yyerror         gwion_error
+#define yydebug         gwion_debug
+#define yynerrs         gwion_nerrs
 
 
 /* Copy the first part of user declarations.  */
@@ -77,8 +77,8 @@
 
 
 char *strcat(char *dest, const char *src);
-void minimal_error(void* data, const char* s);
-int minimal_lex(void*, void* , void*);
+void gwion_error(void* data, const char* s);
+int gwion_lex(void*, void* , void*);
 static int get_pos(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
@@ -106,14 +106,14 @@ static int get_pos(void* data)
 
 /* In a future release of Bison, this section will be replaced
    by #include "parser.h".  */
-#ifndef YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
-# define YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED
+#ifndef YY_GWION_INCLUDE_PARSER_H_INCLUDED
+# define YY_GWION_INCLUDE_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
 #if YYDEBUG
-extern int minimal_debug;
+extern int gwion_debug;
 #endif
 
 /* Token type.  */
@@ -369,9 +369,9 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int minimal_parse (MyArg* arg);
+int gwion_parse (MyArg* arg);
 
-#endif /* !YY_MINIMAL_INCLUDE_PARSER_H_INCLUDED  */
+#endif /* !YY_GWION_INCLUDE_PARSER_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 

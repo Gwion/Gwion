@@ -58,7 +58,7 @@ static int newline(void*data)
   arg->pos = 1;
   return 1;
 }
-char *minimal_get_text (yyscan_t yyscanner );
+char *gwion_get_text (yyscan_t yyscanner );
  
 static int adjust(void* data);
 %}
@@ -69,7 +69,7 @@ static int adjust(void* data);
 %option bison-bridge
 %option reentrant
 %option header-file="include/lexer.h"
-%option prefix="minimal_"
+%option prefix="gwion_"
 %option noinput
 %option nounput
 
@@ -213,11 +213,11 @@ static int adjust(void* data);
 static int adjust(void* data)
 {
   MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  arg->pos += minimal_get_leng(data);
+  arg->pos += gwion_get_leng(data);
   return 0;
 }
 
-int minimal_error(MyArg* arg, char* s)
+int gwion_error(MyArg* arg, char* s)
 {
   m_uint i;
   m_str line = NULL;
@@ -257,8 +257,8 @@ Ast parse(m_str filename)
   Ast    ast  = NULL;
   FILE*  file = NULL;
   MyArg arg;
-  minimal_lex_init(&arg.scanner);
-  minimal_set_extra(&arg, arg.scanner);
+  gwion_lex_init(&arg.scanner);
+  gwion_set_extra(&arg, arg.scanner);
   map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
   arg.line = 1; arg.pos  = 0;
   char c[1025];
@@ -272,15 +272,15 @@ Ast parse(m_str filename)
   } // LCOV_EXCL_STOP
   arg.file = file;
   arg.filename = filename;
-  minimal_set_in(file, arg.scanner);
+  gwion_set_in(file, arg.scanner);
   if(minimal_parse(&arg))
   {
     free_ast(ast);
-    minimal_lex_destroy(arg.scanner);
+    gwion_lex_destroy(arg.scanner);
     return NULL;
   }
   ast = arg.ast;
   fclose(file);
-  minimal_lex_destroy(arg.scanner);
+  gwion_lex_destroy(arg.scanner);
   return ast;
 }
