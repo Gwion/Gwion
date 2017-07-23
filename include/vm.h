@@ -13,13 +13,14 @@
 #include "map.h"
 #include "map_private.h"
 
-typedef struct VM_Code_* VM_Code;
 typedef enum {
   NATIVE_UNKNOWN,
   NATIVE_CTOR,
   NATIVE_DTOR,NATIVE_MFUN,
   NATIVE_SFUN
 } e_native_func;
+
+typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   Vector instr;
   m_str name, filename;
