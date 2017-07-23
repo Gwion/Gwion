@@ -1,7 +1,7 @@
 #!/bin/bash
 
 test_test_plugin() {
-  pushd tests/test_plugin
+  pushd tests/test_plugins
   NAME=$1 make install
   valgrind ../../gwion
   make uninstall
