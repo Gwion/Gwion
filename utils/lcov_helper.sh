@@ -1,7 +1,7 @@
 #!/bin/bash
 
 test_test_plugin() {
-  [ -z "$TRAVIS_BUILD_DIR" ] && GWION_ADD_DIR="$TRAVIS_BUILD_DIR"
+  [ -z "$TRAVIS_BUILD_DIR" ] && export GWION_ADD_DIR="$TRAVIS_BUILD_DIR"
   pushd tests/test_plugins
   NAME=$1 make install
   valgrind ../../gwion
