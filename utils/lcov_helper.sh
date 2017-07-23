@@ -1,9 +1,9 @@
 #!/bin/bash
 
 test_test_plugin() {
-  pushd test/test_plugin
+  pushd tests/test_plugin
   NAME=$1 make install
-  vagrind ../../gwion
+  valgrind ../../gwion
   make uninstall
   popd
 }
