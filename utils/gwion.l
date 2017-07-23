@@ -273,7 +273,7 @@ Ast parse(m_str filename)
   arg.file = file;
   arg.filename = filename;
   gwion_set_in(file, arg.scanner);
-  if(minimal_parse(&arg))
+  if(gwion_parse(&arg))
   {
     free_ast(ast);
     gwion_lex_destroy(arg.scanner);
