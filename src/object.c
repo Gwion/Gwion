@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "vm.h"
+#include "type.h"
 #include "instr.h"
 #include "import.h"
 #include "lang.h"

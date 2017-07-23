@@ -3,6 +3,7 @@
 #include <time.h>
 #include "vm.h"
 #include "err_msg.h"
+#include "type.h"
 #include "oo.h"
 #include "func.h"
 #include "instr.h"
@@ -403,7 +404,7 @@ void vm_run(VM* vm) {
     u->done = 0;
     if(u->channel) {
       m_uint j;
-      for(j = u->n_chan; --j;) // miss + 1
+      for(j = u->n_chan + 1; --j;) // miss + 1
         UGEN(u->channel[j - 1])->done = 0;
     }
   }

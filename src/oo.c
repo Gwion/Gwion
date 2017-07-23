@@ -4,7 +4,8 @@
 #include "context.h"
 #include "func.h"
 #include "oo.h"
-#include "emit.h"
+#include "type.h"
+//#include "emit.h"
 #include "object.h"
 
 Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb) {

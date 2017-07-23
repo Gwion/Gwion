@@ -2,6 +2,7 @@
 #include "err_msg.h"
 #include "env.h"
 #include "func.h"
+#include "type.h"
 #include "instr.h"
 #include "import.h"
 

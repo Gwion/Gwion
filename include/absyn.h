@@ -1,7 +1,6 @@
 #ifndef __ABSYN
 #define __ABSYN
 #include <vm.h>
-#include <map_private.h>
 
 typedef struct Exp_ * Exp;
 typedef struct Var_Decl_* Var_Decl;

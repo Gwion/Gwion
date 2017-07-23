@@ -20,8 +20,6 @@ struct Instr_ {
   char ptr[SZ_INT];
 };
 
-Instr add_instr(Emitter emit, f_instr f);
-
 INSTR(EOC);
 
 INSTR(Reg_Push_Me);

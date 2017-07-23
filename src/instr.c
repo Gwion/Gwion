@@ -4,6 +4,7 @@
 #include "err_msg.h"
 #include "vm.h"
 #include "absyn.h"
+#include "type.h"
 #include "instr.h"
 #include "import.h"
 #include "func.h"

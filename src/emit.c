@@ -2,9 +2,10 @@
 #include "map.h"
 #include <string.h> /* memcpy */
 #include "err_msg.h"
-#include "defs.h"
-#include "vm.h"
+#include "absyn.h"
+#include "type.h"
 #include "instr.h"
+#include "vm.h"
 #include "context.h"
 #include "func.h"
 #include "emit.h"
