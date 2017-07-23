@@ -24,7 +24,6 @@ typedef struct {
   DL_Value args[DLARG_MAX];
 } DL_Func;
 
-
 void dl_func_init(DL_Func* fun, const m_str t, const m_str n, const m_uint addr);
 void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 
@@ -34,10 +33,7 @@ void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)
 #define IMPORT m_bool import(Env env)
-
 #define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c
-
-typedef m_bool(*Import_fun)(Env env, DL_Func* f);
 
 m_int import_class_begin(Env env, Type type, Nspc where, const f_xtor pre_ctor, const f_xtor dtor);
 m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr);

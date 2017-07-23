@@ -5,3 +5,4 @@ include/generated.h
 utils/generate_header
 utils/coverity_scan.sh
 Makefile
+Docs/WIP_*.md
