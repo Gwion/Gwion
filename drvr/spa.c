@@ -9,7 +9,7 @@ static m_bool spa_ini(VM* vm, DriverInfo* di) {
 }
 
 static void spa_run(VM* vm, DriverInfo* di) {
-  char tmp[104];
+  char tmp[strlen(di->card) + 5];
   sp_data* sp = vm->sp;
   sprintf(tmp, "%s.spa", di->card);
   if(spa_open(vm->sp, &spa, tmp, SPA_WRITE) == SP_NOT_OK) {
