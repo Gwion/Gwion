@@ -10,7 +10,7 @@ OUTFILE=lcov/lcov.info
 [ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
 
 #lcov --no-external --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
-lcov --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
+lcov --capture --directory src --output-file "$OUTFILE"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
   coveralls-lcov lcov/lcov.info
