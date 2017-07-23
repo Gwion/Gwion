@@ -14,8 +14,8 @@ OUTFILE=lcov/lcov.info
 
 [ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
 [ -z "$TRAVIS_BUILD_DIR" ] || {
-  test_test_plugin array
-  test_test_plugin invalid_type3
+  test_test_plugin begin_class
+  test_test_plugin no_import
 }
 lcov --capture --directory src --output-file "$OUTFILE"
 
