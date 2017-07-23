@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include "map.h"
 #include <string.h> /* memcpy */
 #include "err_msg.h"
 #include "defs.h"
@@ -6,6 +8,52 @@
 #include "context.h"
 #include "func.h"
 #include "emit.h"
+
+typedef struct {
+  m_uint size;
+  m_uint offset;
+  m_bool is_ref;
+  m_bool is_obj;
+} Local;
+
+static Frame* new_frame() {
+  Frame* frame = calloc(1, sizeof(Frame));
+  vector_init(&frame->stack);
+  return frame;
+}
+
+static void free_frame(Frame* a) {
+  vtype i;
+  for(i = vector_size(&a->stack) + 1; --i;)
+    free((Local*)vector_at(&a->stack, i - 1));
+  vector_release(&a->stack);
+  free(a);
+}
+
+static Local* frame_alloc_local(Frame* frame, m_uint size, m_bool is_ref, m_bool is_obj) {
+  Local* local = calloc(1, sizeof(Local));
+  local->size = size;
+  local->offset = frame->curr_offset;
+  local->is_ref = is_ref;
+  local->is_obj = is_obj;
+  frame->curr_offset += local->size;
+  vector_add(&frame->stack, (vtype)local);
+  return local;
+}
+
+static void frame_push_scope(Frame* frame) {
+  vector_add(&frame->stack, (vtype)NULL);
+}
+
+static void frame_pop_scope(Frame* frame, Vector v) {
+  m_uint i;
+  while((i = vector_size(&frame->stack) && vector_back(&frame->stack))) {
+    Local* local = (Local*)vector_pop(&frame->stack);
+    frame->curr_offset -= local->size;
+    vector_add(v, (vtype)local);
+  }
+  vector_pop(&frame->stack);
+}
 
 static m_bool emit_exp(Emitter emit, Exp exp, m_bool add_ref);
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop);
@@ -651,7 +699,8 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   return 1;
 }
 
-/* static */ m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
+/* not static as it is called in operator.c*/
+m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func call1. '%s' offset: %i", func->name, emit->code->frame->curr_offset);
 #endif
