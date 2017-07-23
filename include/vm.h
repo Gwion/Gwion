@@ -69,7 +69,6 @@ struct VM_Shred_ {
   struct Vector_ child;
   struct Vector_ gc, gc1;
   m_float wake_time;
-//  m_bool is_running;
 };
 
 struct  Shreduler_ {

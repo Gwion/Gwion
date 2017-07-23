@@ -157,7 +157,6 @@ VM_Shred new_vm_shred(VM_Code c) {
   shred->mem        = shred->base;
   shred->_mem       = shred->base;
   shred->code       = c;
-  shred->xid        = -1;
   shred->name       = strdup(c->name);
   vector_init(&shred->gc1);
   return shred;
@@ -197,7 +196,7 @@ static Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
   s->vm = vm;
-  s->n_shred = 0;
+  s->n_shred = 1;
   return s;
 }
 
@@ -271,7 +270,6 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
     }
   }
   s->curr = (s->curr == out) ? s->curr : NULL;
-
   if(!out->prev && !out->next && out != s->list) {
 //    if(!out->wait && !out->child && erase)
     if(erase && !out->wait && !out->child.ptr && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
@@ -348,9 +346,8 @@ void free_vm(VM* vm) {
 
 void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
-  if(shred->xid == -1) {
+  if(!shred->xid) {
     vector_add(&vm->shred, (vtype)shred);
-  if(shred->xid == -1)
     shred->xid = vm->shreduler->n_shred++;
   }
   shredule(vm->shreduler, shred, .5);

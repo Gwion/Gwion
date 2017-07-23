@@ -1641,9 +1641,10 @@ static INSTR(Event_Wait) {
     Except(shred, "NullEventWait");
   shred->wait = event;
   shreduler_remove(vm->shreduler, shred, 0);
+  vm->shreduler->curr = NULL;
   Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
-  shred->next_pc++;
+//  shred->next_pc++;
   *(m_int*)REG(0) = 1;
   PUSH_REG(shred, SZ_INT);
   release(event, shred);
