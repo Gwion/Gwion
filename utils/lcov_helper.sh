@@ -1,15 +1,11 @@
 #!/bin/bash
+
 OUTFILE=lcov/lcov.info
-#make all
 
-#source utils/test.sh
 [ -d lcov ] || mkdir lcov
-
-#do_test severity=11 ASYNC=0 tests/sh/ examples tests/error tests/tree tests/bug tests/ugen_coverage | consummer
 
 [ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
 
-#lcov --no-external --capture --directory core --directory lang --directory ugen --output-file "$OUTFILE"
 lcov --capture --directory src --output-file "$OUTFILE"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
@@ -17,7 +13,7 @@ lcov --capture --directory src --output-file "$OUTFILE"
   exit
 }
 
-genhtml -q -s -t "Gwion: coverage" -o "$OUTFILE" --precision 2
+genhtml -q -s -t "Gwion: coverage" -o lcov --precision 2 $OUTFILE
 
 cat << EOF > lcov/helper_gcov.js
 var i = 1;
