@@ -1,11 +1,22 @@
 #!/bin/bash
 
+test_test_plugin() {
+  pushd test/test_plugin
+  NAME=$1 make install
+  vagrind ../../gwion
+  make uninstall
+  popd
+}
+
 OUTFILE=lcov/lcov.info
 
 [ -d lcov ] || mkdir lcov
 
 [ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
-
+[ -z "$TRAVIS_BUILD_DIR" ] || {
+  test_test_plugin array
+  test_test_plugin invalid_type3
+}
 lcov --capture --directory src --output-file "$OUTFILE"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
