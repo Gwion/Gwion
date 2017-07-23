@@ -4,7 +4,7 @@ requires [valgrind](http://valgrind.org/)
 there are two kinds of tests:
   * [gwion](#gwion-tests)
   * [bash](#bash-tests)
-
+  
 ## Gwion tests
 those tests are just gwion (.gw) files, handling special comments:
   * `// [skip]`     (*optionally* followed by reason to skip)
@@ -22,3 +22,7 @@ n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
+```
+
+## TODO
+  [ ] `bailout` system for early exit on failure
