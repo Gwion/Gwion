@@ -6,7 +6,7 @@ a =< dac;
 
 // testing 'init'
 {
-	string	filename;
+	"/tmp/gwion_test.spa" => string	filename;
 
 	a.init(filename);a.init(filename);
 }
