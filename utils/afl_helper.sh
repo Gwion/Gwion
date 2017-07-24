@@ -1,4 +1,5 @@
 #!/bin/sh
+
 remove_crash() {
 	rm "crashes/$1.gw" && reorder
 }
