@@ -69,12 +69,12 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
 * Consider starting the commit message with an applicable emoji:
     * :art:               `:art:`               when improving the format/structure of the code
     * :racehorse:         `:racehorse:`         when improving performance
-    * :non-potable_water: `:non-potable_water:` when plugging memory leaks
+    * :bomb:              `:bomb:`              when plugging memory leaks
     * :book:              `:book:`              when writing docs
     * :penguin:           `:penguin:`           when fixing OS specific stuff
     * :bug:               `:bug:`               when fixing a bug
     * :fire:              `:fire:`              when removing/adding source files
-    * :green_heart:       `:green_heart:`       when fixing build system (including CI)
+    * :wrench:            `:wrench:`            when fixing build system (including CI)
     * :white_check_mark:  `:white_check_mark:`  when working on tests
     * :lock:              `:lock:`              when dealing with security
     * :shirt:             `:shirt:`             when enforcing [style](#styleguides)

@@ -7,4 +7,3 @@ utils/coverity_scan.sh
 Makefile
 docs/WIP_*.md
 lcov
-test_dir

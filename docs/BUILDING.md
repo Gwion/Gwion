@@ -38,10 +38,10 @@ Set driver include path using `--xxx_inc=/path/to/driver/include/dir`
 
 there are also two mandatory drivers, which output no sound :astonished:
   * `dummy`  : computes as fast as possible.
-  * `silent` : tries to run for as long as it would if run in realtime.
+  * `silent` : computes as slow as realtime.
 
 #### IMPORTANT
-You should set default driver, otherwise Gwion will use `dummy`.
+set default driver, otherwise Gwion will use `dummy`.
 To do so, use the `--d_func` flag, e.g.: `--d_func=alsa` to use alsa driver by default.
 
 ### Common options
@@ -54,8 +54,8 @@ To do so, use the `--d_func` flag, e.g.: `--d_func=alsa` to use alsa driver by d
 
 
 ### Instrumentation options
-You can compile with debug flags (`-g`) using: `--memcheck`  
-Also you can add coverage instrumentation to the code with `--coverage`
+compile with debug flags (`-g`) using: `--memcheck`  
+add coverage instrumentation to the code with `--coverage`
 
 
 ### Directories
@@ -70,7 +70,7 @@ All directories will be prefixed with `$PREFIX/lib/Gwion/`
 ### Debug flags
 
 This might concerns only people interrested in develloping Gwion.  
-You can get Gwion to output useful (in debugging proccess)
+get Gwion to output useful (in debugging proccess) 
 messages passing it `--debug-xxx`  
 All debug flags are off by default.
 
