@@ -14,9 +14,27 @@
 
 struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};
 struct Type_ t_object  = { "Object",    SZ_INT, NULL,      te_object };
+struct Type_ t_array  = { "@Array", SZ_INT, &t_object, te_array };
+struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
+struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
+struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
+struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
+struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
+struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
+struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio, te_fileio };
+struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio, te_fileio };
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
 struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_object, te_vararg};
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
+
+m_int o_object_array;
+m_int o_string_data;
+m_int o_shred_me;
+m_int o_event_shred;
+m_int o_fileio_file;
+m_int o_object_ugen;
+
+static M_Object gw_cin, gw_cout, gw_cerr;
 
 void NullException(VM_Shred shred, const m_str c) {
   err_msg(INSTR_, 0, "%s: shred[id=%lu:%s], PC=[%lu]\n",
@@ -89,7 +107,6 @@ void release(M_Object obj, VM_Shred shred) {
   }
 }
 
-static CTOR(object_ctor) {}
 static DTOR(object_dtor) {
   free(o->data);
   free(o);
@@ -250,7 +267,7 @@ INSTR(Vararg_Vec4) {
 }
 
 m_bool import_object(Env env) {
-  CHECK_BB(import_class_begin(env, &t_object, env->global_nspc, object_ctor, object_dtor))
+  CHECK_BB(import_class_begin(env, &t_object, env->global_nspc, NULL, object_dtor))
   CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_eq,  "Object", "Object", "int",  eq_Object, 1))
@@ -286,11 +303,6 @@ struct M_Vector_ {
   m_uint depth;
   m_uint cap;
 };
-
-
-struct Type_ t_array  = { "@Array", SZ_INT, &t_object, te_array };
-
-m_int o_object_array;
 
 DTOR(array_dtor) {
   if(o->type_ref->d.array_type) {// maybe unnecessary. preferably check array depth
@@ -540,9 +552,6 @@ m_bool import_array(Env env) {
   CHECK_BB(import_class_end(env))
   return 1;
 }
-
-struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
-m_int o_string_data;
 
 static void push_string(VM_Shred shred, M_Object obj, m_str c) {
   STRING(obj) = s_name(insert_symbol(c));
@@ -1487,9 +1496,6 @@ m_bool import_string(Env env) {
   return 1;
 }
 
-struct Type_ t_shred      = { "Shred",      sizeof(m_uint), &t_object, te_shred};
-m_int o_shred_me;
-
 M_Object new_shred(VM* vm, VM_Shred shred) {
   M_Object obj = new_M_Object(NULL);
   initialize_object(obj, &t_shred);
@@ -1614,10 +1620,6 @@ m_bool import_shred(Env env) {
   return 1;
 }
 
-struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
-
-m_int o_event_shred;
-
 static void event_ctor(M_Object o, VM_Shred shred) {
   EV_SHREDS(o) = new_vector();
 }
@@ -1691,14 +1693,6 @@ m_bool import_event(Env env) {
   CHECK_BB(import_class_end(env))
   return 1;
 }
-
-struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
-struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
-struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio, te_fileio };
-struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio, te_fileio };
-
-static M_Object gw_cin, gw_cout, gw_cerr;
-m_int o_fileio_file;
 
 #define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
 CTOR(fileio_ctor) {
@@ -1982,10 +1976,6 @@ m_bool import_fileio(Env env) {
   env_add_value(env, "cerr", &t_fileio, 1, gw_cerr);
   return 1;
 }
-
-
-struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
-m_int o_object_ugen;
 
 m_bool base_tick(UGen u) {
   UGen ugen;
