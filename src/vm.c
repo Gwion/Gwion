@@ -407,6 +407,8 @@ void vm_run(VM* vm) {
       for(j = u->n_chan + 1; --j;) // miss + 1
         UGEN(u->channel[j - 1])->done = 0;
     }
+    if(u->trig)
+      UGEN(u->trig)->done = 0;
   }
   ugen_compute(UGEN(vm->blackhole));
   ugen_compute(UGEN(vm->dac));

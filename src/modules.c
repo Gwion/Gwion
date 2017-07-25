@@ -179,7 +179,7 @@ static MFUN(impulse_get_next) {
 }
 
 static MFUN(impulse_set_next) {
-  *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT));
+  *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT));
 }
 
 static m_bool import_impulse(Env env) {
