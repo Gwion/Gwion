@@ -2000,19 +2000,20 @@ m_bool base_tick(UGen u) {
     ugen = (UGen)vector_at(&u->ugen, i);
     switch(u->op) {
       case 1:
-        u->in = (u->out += ugen->out);
-        return 1;
+       u->out += ugen->out;
+       break;
       case 2:
-        u->in = (u->out -= ugen->out);
-        return 1;
+        u->out -= ugen->out;
+       break;
       case 3:
-        u->in = (u->out *= ugen->out);
-        return 1;
+        u->out *= ugen->out;
+       break;
       case 4:
-        u->in = (u->out /= ugen->out);
-        return 1;
+        u->out /= ugen->out;
+       break;
     }
   }
+  u->in = u->out;
   return 1;
 }
 
