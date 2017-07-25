@@ -145,7 +145,7 @@ static MFUN(gain_get_gain) {
 }
 
 static MFUN(gain_set_gain) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_FLOAT);
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT);
 }
 
 static m_bool import_gain(Env env) {
