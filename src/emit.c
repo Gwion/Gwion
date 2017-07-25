@@ -1,6 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
 #include "map.h"
-#include <string.h> /* memcpy */
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
@@ -731,6 +731,7 @@ m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
   }
 
   if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
+    if(!GET_FLAG(func, ae_flag_member)) // 25/07/17
     sadd_instr(emit, Mem_Push_Imm);
 
   offset = add_instr(emit, Reg_Push_Imm);
