@@ -45,7 +45,7 @@ static int get_pos(void* data)
   ID_List id_list;
   Type_List type_list; // call template
   Class_Body class_body;
-  Class_Ext class_ext;
+  ID_List class_ext;
   Class_Def class_def;
   Ast ast;
 };
@@ -127,7 +127,7 @@ static int get_pos(void* data)
 %type<func_def> func_def
 %type<section> section
 %type<class_def> class_def
-%type<class_ext> class_ext
+%type<id_list> class_ext
 %type<class_body> class_body
 %type<class_body> class_body2
 %type<id_list> id_list
@@ -164,7 +164,7 @@ class_def
       { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); }
   ;
 
-class_ext : EXTENDS id_dot { $$ = new_class_ext( $2, NULL, get_pos(scanner)); } | { $$ = NULL; } ;
+class_ext : EXTENDS id_dot { $$ = $2; } | { $$ = NULL; };
 
 class_decl
   : PUBLIC  { $$ = ae_flag_public; }

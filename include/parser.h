@@ -279,7 +279,7 @@ union YYSTYPE
   ID_List id_list;
   Type_List type_list; // call template
   Class_Body class_body;
-  Class_Ext class_ext;
+  ID_List class_ext;
   Class_Def class_def;
   Ast ast;
 

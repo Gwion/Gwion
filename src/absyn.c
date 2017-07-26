@@ -928,12 +928,8 @@ Section* new_section_func_def(Func_Def func_def, int pos) {
 }
 
 static void free_class_def(Class_Def a) {
-  if(a->ext) {
-    free_id_list(a->ext->extend_id);
-    if(a->ext->impl_list)
-      free_id_list(a->ext->impl_list);
-    free(a->ext);
-  }
+  if(a->ext)
+    free_id_list(a->ext);
   Class_Body tmp, b = a->body;
   while(b) {
     tmp = b;
@@ -963,7 +959,7 @@ static void free_section(Section* section) {
   free(section);
 }
 
-Class_Def new_class_def(ae_flag class_decl, ID_List name, Class_Ext ext, Class_Body body, int pos) {
+Class_Def new_class_def(ae_flag class_decl, ID_List name, ID_List ext, Class_Body body, int pos) {
   Class_Def a = calloc(1, sizeof(struct Class_Def_));
   a->decl = class_decl;
   a->name = name;
@@ -985,14 +981,6 @@ Class_Body new_class_body(Section* section, int pos) {
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos) {
   Class_Body a = new_class_body(section, pos);
   a->next = body;
-  a->pos = pos;
-  return a;
-}
-
-Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos) {
-  Class_Ext a = calloc(1, sizeof(struct Class_Ext_));
-  a->extend_id = extend_id;
-  a->impl_list = impl_list;
   a->pos = pos;
   return a;
 }

@@ -355,7 +355,7 @@ union YYSTYPE
   ID_List id_list;
   Type_List type_list; // call template
   Class_Body class_body;
-  Class_Ext class_ext;
+  ID_List class_ext;
   Class_Def class_def;
   Ast ast;
 
@@ -1970,19 +1970,19 @@ yyreduce:
 
   case 7:
 #line 164 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.class_def) = new_class_def( (yyvsp[-6].ival), (yyvsp[-4].id_list), (yyvsp[-3].class_ext), (yyvsp[-1].class_body), get_pos(scanner)); }
+    { (yyval.class_def) = new_class_def( (yyvsp[-6].ival), (yyvsp[-4].id_list), (yyvsp[-3].id_list), (yyvsp[-1].class_body), get_pos(scanner)); }
 #line 1975 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 8:
 #line 167 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.class_ext) = new_class_ext( (yyvsp[0].id_list), NULL, get_pos(scanner)); }
+    { (yyval.id_list) = (yyvsp[0].id_list); }
 #line 1981 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 167 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.class_ext) = NULL; }
+    { (yyval.id_list) = NULL; }
 #line 1987 "src/parser.c" /* yacc.c:1646  */
     break;
 

@@ -1674,10 +1674,10 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
   if(class_def->ext) {
-    if(class_def->ext->extend_id) {
-      t_parent = find_type(env, class_def->ext->extend_id);
+    if(class_def->ext) {
+      t_parent = find_type(env, class_def->ext);
       if(!t_parent) {
-        m_str path = type_path(class_def->ext->extend_id);
+        m_str path = type_path(class_def->ext);
         err_msg(TYPE_, class_def->ext->pos,
                 "undefined parent class '%s' in definition of class '%s'",
                 path, s_name(class_def->name->xid));

@@ -442,7 +442,6 @@ struct Stmt_List_ {
 };
 Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, int pos);
 
-typedef struct Class_Ext_ * Class_Ext;
 typedef struct Class_Body_ * Class_Body;
 
 struct Func_Def_ {
@@ -483,11 +482,6 @@ Section* new_section_stmt_list(Stmt_List list, int pos);
 Section* new_section_func_def(Func_Def func_def, int pos);
 
 
-struct Class_Ext_  {
-  ID_List extend_id;
-  ID_List impl_list;
-  int pos;
-};
 struct Class_Body_ {
   Section* section;
   Class_Body next;
@@ -496,16 +490,15 @@ struct Class_Body_ {
 struct Class_Def_ {
   ae_flag decl;
   ID_List name;
-  Class_Ext ext;
+  ID_List ext;
   Class_Body body;
   Type type;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
-                        Class_Ext ext, Class_Body body, int pos);
+                        ID_List ext, Class_Body body, int pos);
 Class_Body new_class_body(Section* section, int pos);
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos);
-Class_Ext new_class_ext(ID_List extend_id, ID_List impl_list, int pos);
 Section* new_section_class_def(Class_Def class_def, int pos);
 
 struct Ast_ {
