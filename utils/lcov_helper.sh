@@ -6,7 +6,7 @@ test_test_plugin() {
   NAME=$1 make install
   valgrind ../../gwion
   ../..//gwion
-  make uninstall
+  NAME=$1 make uninstall
 }
 
 OUTFILE=lcov/lcov.info
