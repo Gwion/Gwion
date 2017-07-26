@@ -1291,8 +1291,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
         else if(stmt->val->d.exp_primary.d.var == insert_symbol("false"))
           value = 0;
         else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
-          err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant.");
-          return - 1;
+          CHECK_BB(err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant."))
         } else  {
           if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_flag_const))
             CHECK_BB(err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now"))
