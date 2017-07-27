@@ -7,7 +7,10 @@
 #include "lang.h"
 #include <dirent.h>
 #ifdef USE_DOUBLE
+#define fabs fabs
 #undef USE_DOUBLE
+#else
+#define fabs fabsf
 #endif
 #include <soundpipe.h> // for sp_rand
 #include "compile.h"
@@ -75,11 +78,7 @@ static SFUN(std_abs) {
 }
 
 static SFUN(std_fabs) {
-#ifdef USE_DOUBLE
   *(m_float*)RETURN = fabs(*(m_float*)MEM(SZ_INT));
-#else
-  *(m_float*)RETURN = fabsf(*(m_float*)MEM(SZ_INT));
-#endif
 }
 
 static SFUN(std_rand) {
