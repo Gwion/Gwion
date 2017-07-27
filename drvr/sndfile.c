@@ -42,8 +42,8 @@ static void sndfile_run() {
     for(i = 0; i < bufsize; i++) {
       vm_run(vm);
       for(chan = 0; chan < nchan; chan++)
-        buf[chan][i] = vm->sp->out[chan];
-      vm->sp->pos++;
+        buf[chan][i] = sp->out[chan];
+      sp->pos++;
     }
     for(chan = 0; chan < nchan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], bufsize);

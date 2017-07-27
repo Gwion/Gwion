@@ -19,8 +19,8 @@ static void spa_run(VM* vm, DriverInfo* di) {
   }
   while(vm->is_running) {
     vm_run(vm);
-    spa_write_buf(vm->sp, &spa, vm->sp->out, vm->sp->nchan);
-    vm->sp->pos++;
+    spa_write_buf(vm->sp, &spa, sp->out, sp->nchan);
+    sp->pos++;
     GWION_CTL
   }
 }
