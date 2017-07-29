@@ -11,15 +11,15 @@ source tests/sh/common.sh
 export GWION_ADD_DIR
 
 test_plugin() {
-	export NAME
-    NAME="$1"
-	make install
+#	export NAME
+#    NAME="$1"
+	NAME="$1" make install
 	../../gwion "$NAME.gw" &> /dev/null
-    make uninstall clean
+    NAME="$1" make uninstall clean
 	N=$(printf "% 4i" "$n")
 	echo "ok $N test $NAME plugin"
     n=$((n+1))
-	unset NAME
+#	unset NAME
 }
 
 # empty plug file
