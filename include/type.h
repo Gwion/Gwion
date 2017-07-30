@@ -48,7 +48,7 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc);
 static inline Type find_common_anc(Type lhs, Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
 }
-m_str type_path(ID_List path);
+void type_path(m_str str, ID_List path);
 m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
 m_bool env_add_type(Env env, Type type);
 Kindof kindof(Type type);

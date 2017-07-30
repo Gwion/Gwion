@@ -672,16 +672,15 @@ next:
         Arg_List arg = value->func_ref->def->arg_list;
         Exp template_arg = args;
         while(arg && template_arg) {
-          m_str path = type_path(arg->type_decl->xid);
+          char path[id_list_len(arg->type_decl->xid)];
+          type_path(path, arg->type_decl->xid);
           if(!strcmp(s_name(list->xid), path)) {
             tl[args_number] = mk_type_list(env, template_arg->type);
             if(args_number)
               tl[args_number - 1]->next = tl[args_number];
             args_number++;
-            free(path);
             break;
           }
-          free(path);
           arg = arg->next;
           template_arg = template_arg->next;
         }
@@ -709,7 +708,8 @@ next:
       if(!e)
         fprintf(stderr, "\033[32mvoid\033[0m");
       while(e) {
-        m_str path = type_path(e->type_decl->xid);
+        char path[id_list_len(e->type_decl->xid)];
+        type_path(path, e->type_decl->xid);
 #ifdef COLOR
         fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
 #else
@@ -720,7 +720,6 @@ next:
         e = e->next;
         if(e)
           fprintf(stderr, ",");
-        free(path);
       }
       up = up->next;
       fprintf(stderr, ". (%s)\n", f->name);
@@ -967,10 +966,9 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 
   Type t2 = find_type(env, cast->type->xid);
   if(!t2) {
-    m_str path = type_path(cast->type->xid);
-    err_msg(TYPE_, cast->pos, "unknown type '%s' in cast expression.", path);
-    free(path);
-    return NULL;
+    char path[id_list_len(cast->type->xid)];
+    type_path(path, cast->type->xid);
+    CHECK_BO(err_msg(TYPE_, cast->pos, "unknown type '%s' in cast expression.", path))
   }
 
   if(isa(t2, &t_func_ptr) > 0) {
@@ -1677,12 +1675,11 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
     if(class_def->ext) {
       t_parent = find_type(env, class_def->ext);
       if(!t_parent) {
-        m_str path = type_path(class_def->ext);
-        err_msg(TYPE_, class_def->ext->pos,
+        char path[id_list_len(class_def->ext)];
+        type_path(path, class_def->ext);
+        CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
                 "undefined parent class '%s' in definition of class '%s'",
-                path, s_name(class_def->name->xid));
-        free(path);
-        return -1;
+                path, s_name(class_def->name->xid)))
       }
       if(isprim(t_parent) > 0)
         CHECK_BB(err_msg(TYPE_, class_def->ext->pos,

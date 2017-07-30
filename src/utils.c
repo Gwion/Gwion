@@ -366,7 +366,7 @@ Value find_value(Type type, S_Symbol xid) {
   return NULL;
 }
 
-m_str type_path(ID_List list) {
+m_uint id_list_len(ID_List list) {
   m_uint len = 0;
   ID_List path = list;
   while(path) {
@@ -375,16 +375,19 @@ m_str type_path(ID_List list) {
       len++;
     path = path->next;
   }
-  char str[++len];
-  memset(str, 0, len);
-  path = list;
+  return len + 1;
+}
+
+void type_path(char* str, ID_List list) {
+  ID_List path = list;
+
+  str[0] = '\0';
   while(path) {
     strcat(str, s_name(path->xid));
     if(path->next)
       strcat(str, ".");
     path = path->next;
   }
-  return strdup(str);
 }
 
 Kindof kindof(Type type) {

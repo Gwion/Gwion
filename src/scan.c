@@ -441,10 +441,10 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
   while(arg_list) {
     arg_list->type = find_type(env, arg_list->type_decl->xid);
     if(!arg_list->type) {
-      m_str path = type_path(arg_list->type_decl->xid);
-      err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,  count, s_name(ptr->xid));
-      free(path);
-      return -1;
+      char path[id_list_len(arg_list->type_decl->xid)];
+      type_path(path, arg_list->type_decl->xid);
+      CHECK_BB(err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,
+          count, s_name(ptr->xid)))
     }
     count++;
     arg_list = arg_list->next;
@@ -606,12 +606,11 @@ m_bool scan1_func_def(Env env, Func_Def f) {
 
   while(arg_list) {
     if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
-      m_str path = type_path(arg_list->type_decl->xid);
-      err_msg(SCAN1_, arg_list->pos,
+      char path[id_list_len(arg_list->type_decl->xid)];
+      type_path(path, arg_list->type_decl->xid);
+      CHECK_BB(err_msg(SCAN1_, arg_list->pos,
               "'%s' unknown type in argument %i of func %s",
-              path, count, s_name(f->name));
-      free(path);
-      return -1;
+              path, count, s_name(f->name)))
     }
     count++;
     arg_list = arg_list->next;
