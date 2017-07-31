@@ -166,10 +166,11 @@ m_bool env_add_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f,
       v = new_vector();
     map_set(&nspc->op_map, (vtype)op, (vtype)v);
   }
-  if((mo = operator_find(v, lhs, rhs)))
-    CHECK_BB(err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
-            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL))
-
+  if((mo = operator_find(v, lhs, rhs))) {
+    if((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
+            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL) < 0))
+return -1;
+  }
   mo = malloc(sizeof(M_Operator));
   mo->lhs       = lhs;
   mo->rhs       = rhs;
