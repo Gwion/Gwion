@@ -46,8 +46,8 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
         {
           if(!handler) {
             const char* err = dlerror();
-            err_msg(TYPE_, 0, "error in %s.", err);
-            goto next;
+            if(err_msg(TYPE_, 0, "error in %s.", err) < 0)
+              goto next;
           }
         }
         m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
@@ -62,9 +62,9 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
           }
         } else {
           const char* err = dlerror();
-          err_msg(TYPE_, 0, "%s: no import function.", err);
           dlclose(handler);
-          goto next;
+          if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
+            goto next;
         }
 next:
         free(namelist[n]);
@@ -647,16 +647,14 @@ next:
     // look for a match
     func = find_func_match(up, args);
   if(!func) {
-    Value value;
+    Value value = NULL;
     if(!f->d.func) {
       if(exp_func->exp_type == ae_exp_primary)
         value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
       else if(exp_func->exp_type == ae_exp_dot)
         value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-      else {
-        err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type);
-        return NULL;
-      }
+      else
+        CHECK_BO(err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type))
       // template guess
       ID_List list = value->func_ref->def->types;
       m_uint type_number = 0;
@@ -767,8 +765,9 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
     Type r_nspc, l_nspc = NULL;
     m_uint i;
-    Func f1, f2 = NULL;
-    Value v;
+    Func f1 = NULL;
+    Func f2 = NULL;
+    Value v = NULL;
     Type ret_type;
 
     if(binary->rhs->exp_type == ae_exp_primary) {
@@ -780,10 +779,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     } else if(binary->rhs->exp_type == ae_exp_decl) {
       v = binary->rhs->d.exp_decl.list->self->value;
       f1 = v->m_type->d.func;
-    } else {
-      err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs).");
-      return NULL;
-    }
+    } else
+      CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
     r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
     if(binary->lhs->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
@@ -847,8 +844,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
     strcat(ra, "[]");
-  err_msg(TYPE_, 0, "no match found for operator '%s' on types '%s%s' and '%s%s'",
-          op2str(op), lhs->type->name, la, rhs->type->name, ra);
+  CHECK_BO(err_msg(TYPE_, 0, "no match found for operator '%s' on types '%s%s' and '%s%s'",
+          op2str(op), lhs->type->name, la, rhs->type->name, ra))
   return NULL;
 }
 
@@ -999,8 +996,8 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
       return t2;
     type = type->parent;
   }
-  err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...",
-          s_name(cast->type->xid->xid), t->name);
+  CHECK_BO(err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...",
+          s_name(cast->type->xid->xid), t->name))
   return NULL;
 }
 
@@ -1042,7 +1039,7 @@ static Type check_exp_dur(Env env, Exp_Dur* dur) {
 static Type check_exp_call(Env env, Exp_Func* call) {
   if(call->types) {
     Func ret;
-    Value v;
+    Value v = NULL;
     if(call->func->exp_type == ae_exp_primary) {
       v = nspc_lookup_value(env->curr, call->func->d.exp_primary.d.var, 1);
     } else if(call->func->exp_type == ae_exp_dot) {
@@ -1055,10 +1052,8 @@ static Type check_exp_call(Env env, Exp_Func* call) {
       if(!v->func_ref->def->types)
         CHECK_BO(err_msg(TYPE_, call->pos,
                          "template call of non-template function."))
-      } else {
-      err_msg(TYPE_, call->pos, "invalid template call.");
-      return NULL;
-    }
+      } else
+      CHECK_BO(err_msg(TYPE_, call->pos, "invalid template call."))
     if(!(ret = find_template_match(env, v,
                                    call->m_func, call->types, call->func, call->args)))
       CHECK_BO(err_msg(TYPE_, call->pos,
@@ -1134,8 +1129,8 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           break;
       }
   if(!(t = get_return_type(env, unary->op, NULL, unary->exp->type)))
-    err_msg(TYPE_, unary->pos,
-            "no suitable resolution for prefix operator '%s'", op2str(unary->op));
+    CHECK_BO(err_msg(TYPE_, unary->pos,
+            "no suitable resolution for prefix operator '%s'", op2str(unary->op)))
   return t;
 }
 
@@ -1434,14 +1429,13 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
     CHECK_BB(err_msg(TYPE_, stmt->pos,
                      "label '%s' used but not defined", s_name(stmt->name)))
     if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
-      err_msg(TYPE_, stmt->pos,
-              "label '%s' used but not defined", s_name(stmt->name));
       m_uint i;
       for(i = 0; i < map_size(m); i++) {
         ref = (Stmt_Goto_Label)map_at(m, i);
         vector_release(&ref->data.v);
       }
-      return -1;
+      CHECK_BB(err_msg(TYPE_, stmt->pos,
+              "label '%s' used but not defined", s_name(stmt->name)))
     }
   vector_add(&ref->data.v, (vtype)stmt);
   return 1;

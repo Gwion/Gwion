@@ -6,8 +6,8 @@
 #include "instr.h"
 #include "import.h"
 
-#define CHECK_EB(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return -1; }
-#define CHECK_EO(a) if(!env->class_def) { err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end"); return NULL; }
+#define CHECK_EB(a) if(!env->class_def) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
+#define CHECK_EO(a) if(!env->class_def) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 
 void free_expression(Exp exp);
 
@@ -109,10 +109,8 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
 }
 
 m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor dtor) {
-  if(type->info) {
-    err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name);
-    return -1;
-  }
+  if(type->info)
+    CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   CHECK_BB(env_add_type(env, type))
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = where;
@@ -259,7 +257,6 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   return func_def;
 }
 
-#define CHECK_FN(a) if(a < 0) { if(func_def->d.func) REM_REF(func_def->d.func); return NULL;}
 m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   Func_Def func_def;
   CHECK_OB(mfun) // probably deserve an err msg
