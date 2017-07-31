@@ -188,9 +188,10 @@ static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, 
     dot->type = v->m_type;
     dot->d.exp_dot.t_base = v->owner_class;
     dot->emit_var = emit_var;
-    if((ret = emit_exp_dot(emit, &dot->d.exp_dot)) < 0)
-      err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed..."); // LCOV_EXCL_LINE
+    ret = emit_exp_dot(emit, &dot->d.exp_dot);
     free_expression(dot);
+    if(ret < 0)
+      CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...")) // LCOV_EXCL_LINE
     return ret;
   }
 

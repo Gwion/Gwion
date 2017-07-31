@@ -816,7 +816,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
                     return ret_type;
                   }
                 }
-    err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]");
+    CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
     return NULL;
   }
   if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left &&

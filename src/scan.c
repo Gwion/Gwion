@@ -592,10 +592,9 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     Type t = NULL;
     Type t2 = f->ret_type;
     if(f->type_decl->array->exp_list) {
-      err_msg(SCAN1_, f->type_decl->array->pos, "in function '%s':", s_name(f->name));
-      err_msg(SCAN1_, f->type_decl->array->pos, "return array type must be defined with empty []'s");
       free_expression(f->type_decl->array->exp_list);
-      return -1;
+      CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
+        "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
     }
     t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
     f->type_decl->ref = 1;
