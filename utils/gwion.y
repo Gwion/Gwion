@@ -75,8 +75,9 @@ static int get_pos(void* data)
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
 
-%type<ival> op shift_op
-%type<ival> unary_operator
+%type<ival> atsym
+%type<ival> op shift_op postfix_op relationnal_op equality_op
+%type<ival> unary_op additive_op multiplicative_op
 %type<ival> class_decl
 %type<ival> static_decl
 %type<ival> function_decl
@@ -131,7 +132,7 @@ static int get_pos(void* data)
 %type<class_body> class_body
 %type<class_body> class_body2
 %type<id_list> id_list
-%type<id_list> id_dot func_template
+%type<id_list> id_dot decl_template
 %type<type_list> type_list
 %type<type_list> template call_template
 %type<section> class_section
@@ -213,10 +214,8 @@ function_decl
   ;
 
 func_ptr
-  : FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN RPAREN { $$ = new_func_ptr_stmt(0, $4, $2, NULL, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN RPAREN { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, NULL, get_pos(scanner)); }
-  | FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_func_ptr_stmt(0, $4, $2, $7, get_pos(scanner)); }
-  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN LPAREN arg_list RPAREN { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $8, get_pos(scanner)); }
+  : FUNC_PTR type_decl2 LPAREN ID RPAREN func_args { $$ = new_func_ptr_stmt(0, $4, $2, $6, get_pos(scanner)); }
+  | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN func_args { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $7, get_pos(scanner)); }
   ;
 
 type_decl2
@@ -373,13 +372,10 @@ func_args
   | LPAREN arg_list RPAREN { $$ = $2; }
   ;
 
-func_template
-  :                          { $$ = NULL; }
-  | TEMPLATE LTB id_list GTB { $$ = $3;   }
-  ;
+decl_template: { $$ = NULL; } | TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def
-  : func_template function_decl static_decl type_decl2 ID func_args code_segment
+  : decl_template function_decl static_decl type_decl2 ID func_args code_segment
     { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scanner)); $$->types = $1; if($1) SET_FLAG($$, ae_flag_template);}
   | OPERATOR type_decl ID func_args code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner)); }
@@ -388,13 +384,12 @@ func_def
       get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); }
   ;
 
-type_decl
-  : ID    { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), 0, get_pos(scanner)); }
-  | ID  ATSYM  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), 1, get_pos(scanner)); }
-  | LT id_dot GT { $$ = new_type_decl($2,  0, get_pos(scanner)); }
-  | LT id_dot GT ATSYM { $$ = new_type_decl($2,  1, get_pos(scanner)); }
-  ;
+atsym: { $$ = 0; } | ATSYM { $$ = 1; };
 
+type_decl
+  : ID  atsym  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), $2, get_pos(scanner)); }
+  | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(scanner)); }
+  ;
 
 decl_list
   : exp SEMICOLON { $$ = new_decl_list($1, NULL); }
@@ -416,18 +411,9 @@ var_decl
   | ID array_empty  { $$ = new_var_decl($1,   $2, get_pos(scanner)); }
   ;
 
-complex_exp
-  : SHARPPAREN exp RPAREN
-    { $$ = new_complex( $2, get_pos(scanner)); }
-  ;
-
-polar_exp
-  : PERCENTPAREN exp RPAREN
-    { $$ = new_polar($2, get_pos(scanner)); }
-  ;
-
-vec_exp
-	: ATPAREN exp RPAREN { $$ = new_vec($2, get_pos(scanner)); }
+complex_exp: SHARPPAREN   exp RPAREN { $$ = new_complex( $2, get_pos(scanner)); };
+polar_exp:   PERCENTPAREN exp RPAREN { $$ = new_polar(   $2, get_pos(scanner)); };
+vec_exp:     ATPAREN      exp RPAREN { $$ = new_vec(     $2, get_pos(scanner)); };
 
 conditional_expression
   : logical_or_expression
@@ -465,24 +451,19 @@ and_expression
       { $$ = new_exp_binary( $1, op_s_and, $3, get_pos(scanner)); }
   ;
 
+equality_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
 equality_expression
   : relational_expression             { $$ = $1; }
-  | equality_expression EQ relational_expression
-    { $$ = new_exp_binary( $1, op_eq, $3, get_pos(scanner)); }
-  | equality_expression NEQ relational_expression
-    { $$ = new_exp_binary( $1, op_neq, $3, get_pos(scanner)); }
+  | equality_expression equality_op relational_expression
+    { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
+
+relationnal_op: LT { $$ = op_lt; } | GT { $$ = op_gt; } | LE { $$ = op_le; } | GE { $$ = op_ge; };
 
 relational_expression
   : shift_expression                  { $$ = $1; }
-  | relational_expression LT shift_expression
-    { $$ = new_exp_binary( $1, op_lt, $3, get_pos(scanner)); }
-  | relational_expression GT shift_expression
-    { $$ = new_exp_binary( $1, op_gt, $3, get_pos(scanner)); }
-  | relational_expression LE shift_expression
-    { $$ = new_exp_binary( $1, op_le, $3, get_pos(scanner)); }
-  | relational_expression GE shift_expression
-    { $$ = new_exp_binary( $1, op_ge, $3, get_pos(scanner)); }
+  | relational_expression relationnal_op shift_expression
+    { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
 shift_op
@@ -496,22 +477,20 @@ shift_expression
     { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
+additive_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
+
 additive_expression
   : multiplicative_expression          { $$ = $1; }
-  | additive_expression PLUS multiplicative_expression
+  | additive_expression additive_op multiplicative_expression
     { $$ = new_exp_binary( $1, op_plus, $3, get_pos(scanner)); }
-  | additive_expression MINUS multiplicative_expression
-    { $$ = new_exp_binary( $1, op_minus, $3, get_pos(scanner)); }
   ;
+
+multiplicative_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
 
 multiplicative_expression
   : cast_exp { $$ = $1; }
-  | multiplicative_expression TIMES cast_exp
-      { $$ = new_exp_binary( $1, op_times, $3, get_pos(scanner)); }
-  | multiplicative_expression DIVIDE cast_exp
-      { $$ = new_exp_binary( $1, op_divide, $3, get_pos(scanner)); }
-  | multiplicative_expression PERCENT cast_exp
-      { $$ = new_exp_binary( $1, op_percent, $3, get_pos(scanner)); }
+  | multiplicative_expression multiplicative_op cast_exp
+      { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
 cast_exp
@@ -520,9 +499,14 @@ cast_exp
       { $$ = new_exp_cast( $3, $1, get_pos(scanner)); }
   ;
 
+unary_op : PLUS { $$ = op_plus; } | MINUS %prec NEG { $$ = op_minus; } | TIMES { $$ = op_times; }
+  | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
+  | EXCLAMATION { $$ = op_exclamation; } | SPORK TILDA { $$ = op_spork; }
+  ;
+
 unary_expression
   : dur_exp { $$ = $1; }
-  | unary_operator unary_expression
+  | unary_op unary_expression
       { $$ = new_exp_unary( $1, $2, get_pos(scanner)); }
   | NEW type_decl
       { $$ = new_exp_unary2(op_new, $2, NULL, get_pos(scanner)); }
@@ -532,15 +516,6 @@ unary_expression
         { $$ = new_exp_unary3( op_spork, $3, get_pos(scanner)); }
   ;
 
-unary_operator
-  : PLUS                  { $$ = op_plus; }
-  | MINUS       %prec NEG { $$ = op_minus; }
-  | TIMES                 { $$ = op_times; }
-  | PLUSPLUS              { $$ = op_plusplus; }
-  | MINUSMINUS            { $$ = op_minusminus; }
-  | EXCLAMATION           { $$ = op_exclamation; }
-  | SPORK TILDA           { $$ = op_spork; }
-  ;
 
 dur_exp
   : postfix_exp
@@ -555,6 +530,10 @@ type_list
 call_template : { $$ = NULL; } | template { $$ = $1;} ;
 call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
+
+
+postfix_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
+
 postfix_exp
   : primary_exp
   | postfix_exp array_exp
@@ -563,25 +542,23 @@ postfix_exp
     { $$ = new_exp_call( $1, $3, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
   | postfix_exp DOT ID
     { $$ = new_exp_dot( $1, $3, get_pos(scanner)); }
-  | postfix_exp PLUSPLUS
-    { $$ = new_exp_postfix( $1, op_plusplus, get_pos(scanner)); }
-  | postfix_exp MINUSMINUS
-    { $$ = new_exp_postfix( $1, op_minusminus, get_pos(scanner)); }
+  | postfix_exp postfix_op
+    { $$ = new_exp_postfix( $1, $2, get_pos(scanner)); }
   ;
 
 primary_exp
-  : ID                { $$ = new_exp_prim_ID(     $1, get_pos(scanner)); }
-  | NUM               { $$ = new_exp_prim_int(    $1, get_pos(scanner)); }
-  | FLOAT             { $$ = new_exp_prim_float(  $1, get_pos(scanner)); }
-  | STRING_LIT        { $$ = new_exp_prim_string( $1, get_pos(scanner)); }
-  | CHAR_LIT          { $$ = new_exp_prim_char(                  $1, get_pos(scanner)); }
-  | array_exp         { $$ = new_exp_prim_array(             $1, get_pos(scanner)); }
-  | array_empty       { $$ = new_exp_prim_array(           $1, get_pos(scanner)); }
-  | complex_exp       { $$ = new_exp_prim_complex(               $1, get_pos(scanner)); }
-  | polar_exp         { $$ = new_exp_prim_polar(                 $1, get_pos(scanner)); }
-  | vec_exp           { $$ = new_exp_prim_vec(                   $1, get_pos(scanner)); }
-  | L_HACK exp R_HACK { $$ = new_exp_prim_hack(                $2, get_pos(scanner)); }
-  | LPAREN exp RPAREN { $$ = $2; }
-  | LPAREN RPAREN     { $$ = new_exp_prim_nil(       get_pos(scanner)); }
+  : ID                { $$ = new_exp_prim_ID(      $1, get_pos(scanner)); }
+  | NUM               { $$ = new_exp_prim_int(     $1, get_pos(scanner)); }
+  | FLOAT             { $$ = new_exp_prim_float(   $1, get_pos(scanner)); }
+  | STRING_LIT        { $$ = new_exp_prim_string(  $1, get_pos(scanner)); }
+  | CHAR_LIT          { $$ = new_exp_prim_char(    $1, get_pos(scanner)); }
+  | array_exp         { $$ = new_exp_prim_array(   $1, get_pos(scanner)); }
+  | array_empty       { $$ = new_exp_prim_array(   $1, get_pos(scanner)); }
+  | complex_exp       { $$ = new_exp_prim_complex( $1, get_pos(scanner)); }
+  | polar_exp         { $$ = new_exp_prim_polar(   $1, get_pos(scanner)); }
+  | vec_exp           { $$ = new_exp_prim_vec(     $1, get_pos(scanner)); }
+  | L_HACK exp R_HACK { $$ = new_exp_prim_hack(    $2, get_pos(scanner)); }
+  | LPAREN exp RPAREN { $$ =                       $2;                    }
+  | LPAREN RPAREN     { $$ = new_exp_prim_nil(         get_pos(scanner)); }
   ;
 %%
