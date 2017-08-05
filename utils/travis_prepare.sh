@@ -10,8 +10,6 @@ build_soundpipe() {
 	[ "$USE_DOUBLE" -eq 0 ] && export SPFLOAT="float"
 	[ -z "$USE_DOUBLE" ] && export SPFLOAT="float"
 	[ "$USE_DOUBLE" -eq 0 ] && unset USE_DOUBLE
-	make h/soundpipe.h 
-	unset USE_DOUBLE
 	make
 }
 
