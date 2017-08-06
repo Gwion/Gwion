@@ -73,7 +73,7 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
     * :book:              `:book:`              when writing docs
     * :penguin:           `:penguin:`           when fixing OS specific stuff
     * :bug:               `:bug:`               when fixing a bug
-    * :fire:              `:fire:`              when removing/adding source files
+    * :fire:              `:fire:`              when adding/(re)moving source files
     * :wrench:            `:wrench:`            when fixing build system (including CI)
     * :white_check_mark:  `:white_check_mark:`  when working on tests
     * :lock:              `:lock:`              when dealing with security
