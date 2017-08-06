@@ -733,7 +733,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
 }
 
 static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
-  m_uint ret = 1;
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
@@ -747,28 +746,28 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     }
 
     if(!list->type->size) {
-      ret = err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
-      goto error;
+      nspc_pop_value(env->curr);
+      CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
     }
     if(isres(env, list->var_decl->xid, list->pos) > 0) {
-      ret = -1;
-      goto error;
+      nspc_pop_value(env->curr);
+      return -1;
     }
     if((isprim(list->type) > 0) && list->type_decl->ref) {
-      ret = err_msg(SCAN2_, list->type_decl->pos,
+      nspc_pop_value(env->curr);
+      CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
                     "cannot declare references (@) of primitive type '%s'...\n"
-                    "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name);
-      goto error;
+                    "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name))
     }
     if(list->var_decl->array) {
       CHECK_BB(verify_array(list->var_decl->array))
       Type t = list->type;
       Type t2 = t;
       if(list->var_decl->array->exp_list) {
-        ret = err_msg(SCAN2_, list->pos,
+        nspc_pop_value(env->curr);
+        CHECK_BB(err_msg(SCAN2_, list->pos,
                       "\targument #%i '%s' must be defined with empty []'s",
-                      count, s_name(list->var_decl->xid));
-        goto error;
+                      count, s_name(list->var_decl->xid)))
       }
       t = new_array_type(env, list->var_decl->array->depth, t2, env->curr);
       list->type_decl->ref = 1;
@@ -787,9 +786,8 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     count++;
     list = list->next;
   }
-error:
   nspc_pop_value(env->curr);
-  return ret;
+  return 1;
 }
 
 static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
