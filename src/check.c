@@ -40,33 +40,28 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
     n = scandir(dirname, &namelist, so_filter, alphasort);
     if(n > 0) {
       while(n--)  {
+        void* handler;
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        void* handler = dlopen(c, RTLD_LAZY);
-        {
-          if(!handler) {
+        if((handler = dlopen(c, RTLD_LAZY))) {
+          m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
+          if(import) {
+            if(import(env) > 0)
+              vector_add(&vm->plug, (vtype)handler);
+            else {
+              env->class_def = (Type)vector_pop(&env->class_stack);
+              env->curr = (Nspc)vector_pop(&env->nspc_stack);
+              dlclose(handler);
+            }
+          } else {
             const char* err = dlerror();
-            if(err_msg(TYPE_, 0, "error in %s.", err) < 0)
-              goto next;
-          }
-        }
-        m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
-        if(import) {
-          if(import(env) > 0)
-            vector_add(&vm->plug, (vtype)handler);
-          else {
-            env->class_def = (Type)vector_pop(&env->class_stack);
-            env->curr = (Nspc)vector_pop(&env->nspc_stack);
+            if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0);
             dlclose(handler);
-            goto next;
           }
         } else {
           const char* err = dlerror();
-          dlclose(handler);
-          if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
-            goto next;
+          if(err_msg(TYPE_, 0, "error in %s.", err) < 0);
         }
-next:
         free(namelist[n]);
       }
       free(namelist);
