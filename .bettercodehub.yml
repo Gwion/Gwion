@@ -1,0 +1,8 @@
+- name: cpp
+  production:
+    include:
+      - .*/src/.*\.c
+  test:
+    include:
+      - .*/examples/.*\.gw
+      - .*/test/*/.*\.gw
