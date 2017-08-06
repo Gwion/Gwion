@@ -5,12 +5,12 @@ languages:
     production:
       include:
         - .*/src/.*\.c
+        - .*/driver/.*\.c
     test:
       include:
         - .*/examples/.*\.gw
         - .*/test/.*/.*\.gw
 
-languages:
   - name: script
     production:
       include:

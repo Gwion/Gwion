@@ -25,62 +25,64 @@ defs2name() {
 }
 
 op2sign() {
-    [ "$1" = "op_assign"       ] && echo "="      && return 0
-    [ "$1" = "op_plus"         ] && echo   "+"    && return 0
-    [ "$1" = "op_minus"        ] && echo "-"      && return 0
-    [ "$1" = "op_times"        ] && echo "*"      && return 0
-    [ "$1" = "op_divide"       ] && echo "/"      && return 0
-    [ "$1" = "op_percent"      ] && echo "%"      && return 0
-    [ "$1" = "op_and"          ] && echo "&&"     && return 0
-    [ "$1" = "op_or"           ] && echo  "||"    && return 0
-    [ "$1" = "op_eq"           ] && echo  "=="    && return 0
-    [ "$1" = "op_neq"          ] && echo "!="     && return 0
-    [ "$1" = "op_gt"           ] && echo ">"      && return 0
-    [ "$1" = "op_ge"           ] && echo ">="     && return 0
-    [ "$1" = "op_lt"           ] && echo "<"      && return 0
-    [ "$1" = "op_le"           ] && echo "<="     && return 0
-    [ "$1" = "op_shift_left"   ] && echo "<<"     && return 0
-    [ "$1" = "op_shift_right"  ] && echo ">>"     && return 0
-    [ "$1" = "op_s_or"         ] && echo "|"      && return 0
-    [ "$1" = "op_s_and"        ] && echo "&"      && return 0
-    [ "$1" = "op_s_xor"        ] && echo "^"      && return 0
-    [ "$1" = "op_plusplus"     ] && echo "++"     && return 0
-    [ "$1" = "op_minusminus"   ] && echo "--"     && return 0
-    [ "$1" = "op_exclamation"  ] && echo "!"      && return 0
-    [ "$1" = "op_tilda"        ] && echo "~"      && return 0
-    [ "$1" = "op_new"          ] && echo "new"    && return 0
-    [ "$1" = "op_spork"        ] && echo "spork"  && return 0
-    [ "$1" = "op_typeof"       ] && echo "typeof" && return 0
-    [ "$1" = "op_sizeof"       ] && echo "sizeof" && return 0
-    [ "$1" = "op_chuck"        ] && echo "=>"     && return 0
-    [ "$1" = "op_plus_chuck"   ] && echo "+=>"    && return 0
-    [ "$1" = "op_minus_chuck"  ] && echo "-=>"    && return 0
-    [ "$1" = "op_times_chuck"  ] && echo "*=>"    && return 0
-    [ "$1" = "op_divide_chuck" ] && echo "/=>"    && return 0
-    [ "$1" = "op_modulo_chuck" ] && echo "%=>"    && return 0
-    [ "$1" = "op_rand"         ] && echo "&&=>"   && return 0
-    [ "$1" = "op_ror"          ] && echo "||=>"   && return 0
-    [ "$1" = "op_req"          ] && echo "==>"    && return 0
-    [ "$1" = "op_rneq"         ] && echo "!=>"    && return 0
-    [ "$1" = "op_rgt"          ] && echo ">=>"    && return 0
-    [ "$1" = "op_rge"          ] && echo ">==>"   && return 0
-    [ "$1" = "op_rlt"          ] && echo "<=>"    && return 0
-    [ "$1" = "op_rle"          ] && echo "<==>"   && return 0
-    [ "$1" = "op_rsl"          ] && echo "<<=>"   && return 0
-    [ "$1" = "op_rsr"          ] && echo ">>=>"   && return 0
-    [ "$1" = "op_rsand"        ] && echo "&=>"    && return 0
-    [ "$1" = "op_rsor"         ] && echo "|=>"    && return 0
-    [ "$1" = "op_rsxor"        ] && echo "^=>"    && return 0
-    [ "$1" = "op_unchuck"      ] && echo "=<"     && return 0
-    [ "$1" = "op_rinc"         ] && echo "++=>"   && return 0
-    [ "$1" = "op_rdec"         ] && echo "--=>"   && return 0
-    [ "$1" = "op_runinc"       ] && echo "++=<"   && return 0
-    [ "$1" = "op_rundec"       ] && echo "--=<"   && return 0
-    [ "$1" = "op_at_chuck"     ] && echo "@=>"    && return 0
-    [ "$1" = "op_at_unchuck"   ] && echo "@=<"    && return 0
-    [ "$1" = "op_trig"         ] && echo "]=>"    && return 0
-    [ "$1" = "op_untrig"       ] && echo "]=<"    && return 0
-    return 1
+  case $1 in
+    "op_assign"       ) echo "="      ;;
+    "op_plus"         ) echo   "+"    ;;
+    "op_minus"        ) echo "-"      ;;
+    "op_times"        ) echo "*"      ;;
+    "op_divide"       ) echo "/"      ;;
+    "op_percent"      ) echo "%"      ;;
+    "op_and"          ) echo "&&"     ;;
+    "op_or"           ) echo  "||"    ;;
+    "op_eq"           ) echo  "=="    ;;
+    "op_neq"          ) echo "!="     ;;
+    "op_gt"           ) echo ">"      ;;
+    "op_ge"           ) echo ">="     ;;
+    "op_lt"           ) echo "<"      ;;
+    "op_le"           ) echo "<="     ;;
+    "op_shift_left"   ) echo "<<"     ;;
+    "op_shift_right"  ) echo ">>"     ;;
+    "op_s_or"         ) echo "|"      ;;
+    "op_s_and"        ) echo "&"      ;;
+    "op_s_xor"        ) echo "^"      ;;
+    "op_plusplus"     ) echo "++"     ;;
+    "op_minusminus"   ) echo "--"     ;;
+    "op_exclamation"  ) echo "!"      ;;
+    "op_tilda"        ) echo "~"      ;;
+    "op_new"          ) echo "new"    ;;
+    "op_spork"        ) echo "spork"  ;;
+    "op_typeof"       ) echo "typeof" ;;
+    "op_sizeof"       ) echo "sizeof" ;;
+    "op_chuck"        ) echo "=>"     ;;
+    "op_plus_chuck"   ) echo "+=>"    ;;
+    "op_minus_chuck"  ) echo "-=>"    ;;
+    "op_times_chuck"  ) echo "*=>"    ;;
+    "op_divide_chuck" ) echo "/=>"    ;;
+    "op_modulo_chuck" ) echo "%=>"    ;;
+    "op_rand"         ) echo "&&=>"   ;;
+    "op_ror"          ) echo "||=>"   ;;
+    "op_req"          ) echo "==>"    ;;
+    "op_rneq"         ) echo "!=>"    ;;
+    "op_rgt"          ) echo ">=>"    ;;
+    "op_rge"          ) echo ">==>"   ;;
+    "op_rlt"          ) echo "<=>"    ;;
+    "op_rle"          ) echo "<==>"   ;;
+    "op_rsl"          ) echo "<<=>"   ;;
+    "op_rsr"          ) echo ">>=>"   ;;
+    "op_rsand"        ) echo "&=>"    ;;
+    "op_rsor"         ) echo "|=>"    ;;
+    "op_rsxor"        ) echo "^=>"    ;;
+    "op_unchuck"      ) echo "=<"     ;;
+    "op_rinc"         ) echo "++=>"   ;;
+    "op_rdec"         ) echo "--=>"   ;;
+    "op_runinc"       ) echo "++=<"   ;;
+    "op_rundec"       ) echo "--=<"   ;;
+    "op_at_chuck"     ) echo "@=>"    ;;
+    "op_at_unchuck"   ) echo "@=<"    ;;
+    "op_trig"         ) echo "]=>"    ;;
+    "op_untrig"       ) echo "]=<"    ;;
+  esac
+  return 0
 }
 
 init_variable() {

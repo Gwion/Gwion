@@ -32,9 +32,10 @@ lcov --capture --directory src --output-file "$OUTFILE"
 
 genhtml -q -s -t "Gwion: coverage" -o lcov --precision 2 $OUTFILE
 
+keyboard_cb() {
 cat << EOF > lcov/helper_gcov.js
 var i = 1;
-var cusid_ele = document.getElementsByClassName('LineNoCov');
+var cusid_ele = document.getElementsByClassName('$1');
 function keyDownTextField(e) {
 var keyCode = e.keyCode;
   if(keyCode==78) {
@@ -52,27 +53,10 @@ var keyCode = e.keyCode;
 }
 document.addEventListener("keydown", keyDownTextField, false);
 EOF
+}
 
-cat << EOF > lcov/helper_func.js
-var i = 1;
-var cusid_ele = document.getElementsByClassName('coverFnLo');
-function keyDownTextField(e) {
-var keyCode = e.keyCode;
-  if(keyCode==78) {
-    var item = cusid_ele[i];
-    cusid_ele[i].scrollIntoView();
-    i++;
-  } else if(keyCode==66){
-    i--;
-    var item = cusid_ele[i];
-    cusid_ele[i].scrollIntoView();
-  }
-  if(i < 1) i = 1;
-  var size = cusid_ele.length - 1;
-  if(i > size) i = size;
-}
-document.addEventListener("keydown", keyDownTextField, false);
-EOF
+keyboard.cb 'LineNoCov'
+keyboard_cb 'coverFnLo'
 
 for file in lcov/*/*.c.gcov.html
 do sed -i 's/<body>/<body><script src="..\/helper_gcov.js"><\/script>/' "$file"
