@@ -562,7 +562,7 @@ for iter in src
 do
 	echo "${iter}_src := \$(wildcard ${iter}/*.c)"
 done
-echo "drvr_src := drvr/driver.c"
+echo "drvr_src := src/drvr/driver.c"
 }
 make_add() {
 
@@ -576,8 +576,8 @@ do
 	then val=1
 	else val=0
 	fi
-  [ -z "$lib" ] && printf "ifeq (\${%s_D}, on)\\nCFLAGS += -DHAVE_%s\\ndrvr_src += drvr/%s.c\\nelse ifeq (\${%s_D}, 1)\\nCFLAGS +=-DHAVE_%s\\ndrvr_src +=drvr/%s.c\\nendif\\n"     "$(to_upper "$key")" "$(to_upper "$key")" "$key" "$(to_upper "$key")" "$(to_upper "$key")" "${key}"
-  [ -z "$lib" ] || printf "ifeq (\${%s_D}, on)\\nLDFLAGS += %s\\nCFLAGS += -DHAVE_%s\\ndrvr_src += drvr/%s.c\\nelse ifeq (\${%s_D}, 1)\\nLDFLAGS += %s\\nCFLAGS +=-DHAVE_%s\\ndrvr_src +=drvr/%s.c\\nendif\\n"     "$(to_upper "$key")" "${lib}" "$(to_upper "$key")" "${key}" "$(to_upper "$key")" "${lib}" "$(to_upper "$key")" "${key}"
+  [ -z "$lib" ] && printf "ifeq (\${%s_D}, on)\\nCFLAGS += -DHAVE_%s\\ndrvr_src += src/drvr/%s.c\\nelse ifeq (\${%s_D}, 1)\\nCFLAGS +=-DHAVE_%s\\ndrvr_src +=src/drvr/%s.c\\nendif\\n"     "$(to_upper "$key")" "$(to_upper "$key")" "$key" "$(to_upper "$key")" "$(to_upper "$key")" "${key}"
+  [ -z "$lib" ] || printf "ifeq (\${%s_D}, on)\\nLDFLAGS += %s\\nCFLAGS += -DHAVE_%s\\ndrvr_src += src/drvr/%s.c\\nelse ifeq (\${%s_D}, 1)\\nLDFLAGS += %s\\nCFLAGS +=-DHAVE_%s\\ndrvr_src +=src/drvr/%s.c\\nendif\\n"     "$(to_upper "$key")" "${lib}" "$(to_upper "$key")" "${key}" "$(to_upper "$key")" "${lib}" "$(to_upper "$key")" "${key}"
     done
 
 printf "\n# add boolean\n"

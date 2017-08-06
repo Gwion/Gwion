@@ -205,7 +205,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 
   mk_header "initialize source lists"
   do_expand "src"
-  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"drvr_src := drvr/driver.c\"\n"
+  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"drvr_src := src/drvr/driver.c\"\n"
   echo "}"
 }
 
@@ -215,9 +215,9 @@ make_add() {
   do_expand2 "$LIB"
   printf "if [ \"\${val}\" = \"on\" ]\n\tthen val=1\n\telse val=0\n\tfi\n"
   cat << EOF
-  [ -z "\$lib" ] && printf "ifeq (\\\${%s_D}, on)\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" \
+  [ -z "\$lib" ] && printf "ifeq (\\\${%s_D}, on)\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += src/drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=src/drvr/%s.c\\\nendif\\\n" \
     "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\$key" "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\${key}"
-  [ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=drvr/%s.c\\\nendif\\\n" \
+  [ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += src/drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=src/drvr/%s.c\\\nendif\\\n" \
     "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}" "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}"
     done
 EOF
