@@ -414,13 +414,59 @@ static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool em
   return 1;
 }
 
+static Instr decl_member(Emitter emit, Kindof kind) {
+  f_instr f = NULL;
+  switch(kind)  {
+    case Kindof_Int:
+      f = Alloc_Member_Word;
+      break;
+    case Kindof_Float:
+      f = Alloc_Member_Word_Float;
+      break;
+    case Kindof_Complex:
+      f = Alloc_Member_Word_Complex;
+      break;
+    case Kindof_Vec3:
+      f = Alloc_Member_Word_Vec3;
+      break;
+    case Kindof_Vec4:
+      f = Alloc_Member_Word_Vec4;
+      break;
+    case Kindof_Void:
+      break;
+  }
+  return add_instr(emit, f);
+}
+
+static Instr decl_global(Emitter emit, Kindof kind) {
+  f_instr f = NULL;
+  switch(kind)  {
+    case Kindof_Int:
+      f = Alloc_Word;
+      break;
+    case Kindof_Float:
+      f = Alloc_Word_Float;
+      break;
+    case Kindof_Complex:
+      f = Alloc_Word_Complex;
+      break;
+    case Kindof_Vec3:
+      f = Alloc_Word_Vec3;
+      break;
+    case Kindof_Vec4:
+      f = Alloc_Word_Vec4;
+      break;
+    case Kindof_Void:
+      break;
+  }
+  return add_instr(emit, f);
+}
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "decl");
 #endif
   Exp_Decl* exp = decl;
   Var_Decl_List list = exp->list;
-  f_instr f = NULL;
   Instr alloc;
 
   while(list) {
@@ -435,51 +481,13 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
     if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
       CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
       if(GET_FLAG(value, ae_flag_member)) {
-        switch(kind)  {
-          case Kindof_Int:
-            f = Alloc_Member_Word;
-            break;
-          case Kindof_Float:
-            f = Alloc_Member_Word_Float;
-            break;
-          case Kindof_Complex:
-            f = Alloc_Member_Word_Complex;
-            break;
-          case Kindof_Vec3:
-            f = Alloc_Member_Word_Vec3;
-            break;
-          case Kindof_Vec4:
-            f = Alloc_Member_Word_Vec4;
-            break;
-          case Kindof_Void:
-            break;
-        }
-        alloc = add_instr(emit, f);
+        alloc = decl_member(emit, kind);
       } else {
         if(!emit->env->class_def || !decl->is_static) {
           Local* local = frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj);
           CHECK_OB(local)
           value->offset   = local->offset;
-          switch(kind)  {
-            case Kindof_Int:
-              f = Alloc_Word;
-              break;
-            case Kindof_Float:
-              f = Alloc_Word_Float;
-              break;
-            case Kindof_Complex:
-              f = Alloc_Word_Complex;
-              break;
-            case Kindof_Vec3:
-              f = Alloc_Word_Vec3;
-              break;
-            case Kindof_Vec4:
-              f = Alloc_Word_Vec4;
-              break;
-            case Kindof_Void:
-              break;
-          }
-          alloc   = add_instr(emit, f);
+          alloc = decl_global(emit, kind);
           alloc->m_val2 = GET_FLAG(value, ae_flag_global);
         } else { // static
           Kindof kind = kindof(type);
