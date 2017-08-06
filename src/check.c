@@ -610,6 +610,55 @@ next:
   return NULL;
 }
 
+static void function_alternative(Type f, Exp args){
+  m_uint i;
+  err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :");
+  Func up = f->d.func;
+  while(up) {
+    Arg_List e = up->def->arg_list;
+    fprintf(stderr, "\t");
+    if(!e)
+#ifdef COLOR
+      fprintf(stderr, "\033[32mvoid\033[0m");
+#else
+      fprintf(stderr, "\033[32mvoid\033[0m");
+#endif
+    while(e) {
+      char path[id_list_len(e->type_decl->xid)];
+      type_path(path, e->type_decl->xid);
+#ifdef COLOR
+      fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
+#else
+      fprintf(stderr, " %s %s", path, s_name(e->var_decl->xid));
+#endif
+      for(i = 0; i < e->type->array_depth; i++)
+        fprintf(stderr, "[]");
+      e = e->next;
+      if(e)
+        fprintf(stderr, ",");
+    }
+    up = up->next;
+    fprintf(stderr, ". (%s)\n", f->name);
+    if(up)
+      fprintf(stderr, "or :");
+  }
+  fprintf(stderr, "and not");
+  fprintf(stderr, "\n\t");
+  Exp e = args;
+  while(e) {
+#ifdef COLOR
+    fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
+#else
+    fprintf(stderr, " %s", e->type->name);
+#endif
+    for(i = 0; i < e->type->array_depth; i++)
+      fprintf(stderr, "[]");
+    e = e->next;
+    if(e)
+      fprintf(stderr, ",");
+  }
+  fprintf(stderr, "\n");
+}
 
 /* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 #ifdef DEBUG_TYPE
@@ -692,49 +741,7 @@ next:
       CHECK_BO(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
                        "\tplease provide template types. eg: '<type1, type2, ...>'")) // LCOV_EXCL_LINE
     }
-    m_uint i;
-    err_msg(TYPE_, exp_func->pos, "argument type(s) do not match for function. should be :");
-    up = f->d.func;
-    while(up) {
-      Arg_List e = up->def->arg_list;
-      fprintf(stderr, "\t");
-      if(!e)
-        fprintf(stderr, "\033[32mvoid\033[0m");
-      while(e) {
-        char path[id_list_len(e->type_decl->xid)];
-        type_path(path, e->type_decl->xid);
-#ifdef COLOR
-        fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
-#else
-        fprintf(stderr, " %s %s", path, s_name(e->var_decl->xid));
-#endif
-        for(i = 0; i < e->type->array_depth; i++)
-          fprintf(stderr, "[]");
-        e = e->next;
-        if(e)
-          fprintf(stderr, ",");
-      }
-      up = up->next;
-      fprintf(stderr, ". (%s)\n", f->name);
-      if(up)
-        fprintf(stderr, "or :");
-    }
-    fprintf(stderr, "and not");
-    fprintf(stderr, "\n\t");
-    Exp e = args;
-    while(e) {
-#ifdef COLOR
-      fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
-#else
-      fprintf(stderr, " %s", e->type->name);
-#endif
-      for(i = 0; i < e->type->array_depth; i++)
-        fprintf(stderr, "[]");
-      e = e->next;
-      if(e)
-        fprintf(stderr, ",");
-    }
-    fprintf(stderr, "\n");
+    function_alternative(f, args);
     return NULL;
   }
   if(ptr) {
