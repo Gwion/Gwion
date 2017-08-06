@@ -225,7 +225,10 @@ Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
       Type r = rhs;
       do {
         M_Operator* mo;
-        Vector v = (Vector)map_get(&nspc->op_map, (vtype)op);
+        Vector v;
+        if(!nspc->op_map.ptr)
+          continue;
+        v = (Vector)map_get(&nspc->op_map, (vtype)op);
         if((mo = operator_find(v, l, r))) {
           Instr instr;
           if(mo->func) {

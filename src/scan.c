@@ -738,12 +738,14 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
   nspc_push_value(env->curr);
   while(list) {
     Value v;
+
     if(list->var_decl->value) {
       if(list->var_decl->value->m_type->array_depth)
         REM_REF(list->var_decl->value->m_type->d.array_type)
-        REM_REF(list->var_decl->value->m_type)
+//        REM_REF(list->var_decl->value->m_type)
         list->var_decl->value->m_type = list->type;
     }
+
     if(!list->type->size) {
       ret = err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')...");
       goto error;
