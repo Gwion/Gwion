@@ -1,8 +1,13 @@
+languages:
+- cpp
+
+component_depth: 2
+
 - name: cpp
   production:
     include:
       - .*/src/.*\.c
   test:
     include:
-      - .*/examples/.*\.gw
-      - .*/test/*/.*\.gw
+      - examples/.*\.gw
+      - test/.*/.*\.gw
