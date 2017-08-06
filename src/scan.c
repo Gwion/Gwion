@@ -100,6 +100,7 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     nspc_add_value(env->curr, class_def->name->xid, value);
     class_def->type = the_class;
   }
+
   return ret;
 }
 
@@ -273,8 +274,6 @@ static m_bool scan1_exp(Env env, Exp exp) {
         CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
         break;
       case ae_exp_unary:
-        if(exp->d.exp_unary.code)
-          CHECK_BB(scan1_stmt(env, exp->d.exp_unary.code))
           break;
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
@@ -492,14 +491,6 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
   debug_msg("scan1", "stmt");
 #endif
   m_bool ret = -1;
-
-//  if(!stmt)
-//    return 1;
-
-  if((m_uint)stmt < 10000) return 1;
-  // DIRTY!!! happens when '1, new Object', for instance
-//  if(stmt->type == 3 && !stmt->d.stmt_for.c1) // bad thing in parser, continue
-//    return 1;
 
   switch(stmt->type) {
     case ae_stmt_exp:
@@ -999,10 +990,12 @@ static m_bool scan2_exp(Env env, Exp exp) {
         break;
       case ae_exp_unary:
         if(exp->d.exp_unary.code) {
-          if(env->func)
+          if(env->func) {
+            ret = scan1_stmt(env, exp->d.exp_unary.code);
             ret = scan2_stmt(env, exp->d.exp_unary.code);
-          else {
+          } else {
             env->func = (Func)1; // check me
+            ret = scan1_stmt(env, exp->d.exp_unary.code);
             ret = scan2_stmt(env, exp->d.exp_unary.code);
             env->func = NULL;
           }
