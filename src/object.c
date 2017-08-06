@@ -313,6 +313,7 @@ DTOR(array_dtor) {
     }
   }
   free(ARRAY(o)->ptr);
+  free(ARRAY(o));
   REM_REF(o->type_ref);
 }
 
