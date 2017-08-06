@@ -7,5 +7,14 @@ languages:
         - .*/src/.*\.c
     test:
       include:
-        - examples/.*\.gw
-        - test/.*/.*\.gw
+        - .*/examples/.*\.gw
+        - .*/test/.*/.*\.gw
+
+languages:
+  - name: script
+    production:
+      include:
+        - .*/utils/.*\.sh
+    test:
+      include:
+      - .*/test/sh/.*\.sh
