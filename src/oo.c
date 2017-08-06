@@ -39,12 +39,6 @@ Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   a->filename        = filename;
-  a->class_data_size = 0;
-  a->offset          = 0;
-  a->class_data      = NULL;
-  a->parent          = NULL;
-  a->pre_ctor        = NULL;
-  a->dtor            = NULL;
   vector_init(&a->obj_v_table);
   scope_init(&a->value);
   scope_init(&a->type);
