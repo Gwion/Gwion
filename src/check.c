@@ -666,11 +666,11 @@ static void function_alternative(Type f, Exp args){
 #endif
   Func func = NULL;
   Func up = NULL;
-  Type f;
+  Type t;
   Value ptr = NULL;
 
   exp_func->type = check_exp(env, exp_func);
-  f = exp_func->type;
+  t = exp_func->type;
   // primary func_ptr
   if(exp_func->exp_type == ae_exp_primary &&
       exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const)) {
@@ -678,13 +678,13 @@ static void function_alternative(Type f, Exp args){
       CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
       ptr = exp_func->d.exp_primary.value;
   }
-  if(!f)
+  if(!t)
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
                      "function call using a non-existing function"))
-    if(isa(f, &t_function) < 0)
+    if(isa(t, &t_function) < 0)
       CHECK_BO(err_msg(TYPE_, exp_func->pos,
                        "function call using a non-function value"))
-      up = f->d.func;
+      up = t->d.func;
 
   if(args)
     CHECK_OO(check_exp(env, args))
@@ -692,7 +692,7 @@ static void function_alternative(Type f, Exp args){
     func = find_func_match(up, args);
   if(!func) {
     Value value = NULL;
-    if(!f->d.func) {
+    if(!t->d.func) {
       if(exp_func->exp_type == ae_exp_primary)
         value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
       else if(exp_func->exp_type == ae_exp_dot)
@@ -730,7 +730,7 @@ static void function_alternative(Type f, Exp args){
       }
       if(args_number < type_number)
         CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
-        Func f = find_template_match(env, value, func, tl[0], exp_func, args);
+      Func f = find_template_match(env, value, func, tl[0], exp_func, args);
       if(f) {
         *m_func = f;
         Type ret_type  = f->def->ret_type;
@@ -741,7 +741,7 @@ static void function_alternative(Type f, Exp args){
       CHECK_BO(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
                        "\tplease provide template types. eg: '<type1, type2, ...>'")) // LCOV_EXCL_LINE
     }
-    function_alternative(f, args);
+    function_alternative(t, args);
     return NULL;
   }
   if(ptr) {
