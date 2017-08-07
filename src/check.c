@@ -271,7 +271,7 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
   Type t;
   m_str str = s_name(primary->d.var);
 
-  if(!strcmp(str, "this")) { 
+  if(!strcmp(str, "this")) {
     if(!env->class_def)
       CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
       if(env->func && !GET_FLAG(env->func, ae_flag_member))
@@ -504,7 +504,7 @@ static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific )
     if(implicit && e->type->xid == te_int && t->xid == te_float)
       e->cast_to = &t_float;
     else if(!(isa(e->type, &t_null) > 0 && isa(t, &t_object) > 0))
-      return -1; 
+      return -1;
   }
   return 1;
 }
@@ -581,7 +581,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
       value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
-      base = value->func_ref->def;
+    base = value->func_ref->def;
     Func_Def def = new_func_def(base->flag,
                                 base->type_decl, s_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
@@ -786,7 +786,63 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
   return func->def->ret_type;
 }
 
+static Type check_op_ptr(Env env, Exp_Binary* binary ) {
+  Type r_nspc, l_nspc = NULL;
+  m_uint i;
+  Func f1 = NULL;
+  Func f2 = NULL;
+  Value v = NULL;
+  Type ret_type;
 
+  if(binary->rhs->exp_type == ae_exp_primary) {
+    v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
+    f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+  } else if(binary->rhs->exp_type == ae_exp_dot) {
+    v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
+    f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
+  } else if(binary->rhs->exp_type == ae_exp_decl) {
+    v = binary->rhs->d.exp_decl.list->self->value;
+    f1 = v->m_type->d.func;
+  } else
+    CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
+  r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+  if(binary->lhs->exp_type == ae_exp_primary) {
+    v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
+    f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+  } else if(binary->lhs->exp_type == ae_exp_dot) {
+    v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
+    f2 = v->func_ref;
+    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+  } else
+    CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs)."))
+    if((r_nspc && l_nspc) && (r_nspc != l_nspc))
+      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class"))
+    if(!r_nspc && l_nspc)
+      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer"))
+    if(r_nspc && !l_nspc)
+      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer"))
+    if(!f1 || !f2)
+      CHECK_BO(err_msg(TYPE_, binary->pos, "function not found."))
+    if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
+      CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+           f1->def->ret_type->name, f2->def->ret_type->name))
+    for(i = 0; i <= v->func_num_overloads; i++) {
+      if(binary->lhs->exp_type == ae_exp_primary) {
+        m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
+        char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
+        sprintf(name, "%s@%li@%s", c, i, env->curr->name);
+        f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
+      }
+      if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+        binary->func = f2;
+        ret_type = f1->value_ref->m_type;
+        return ret_type;
+      }
+    }
+  CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
+  return NULL;
+}
 static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
@@ -794,63 +850,8 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
 
   Type t;
 
-  if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
-    Type r_nspc, l_nspc = NULL;
-    m_uint i;
-    Func f1 = NULL;
-    Func f2 = NULL;
-    Value v = NULL;
-    Type ret_type;
-
-    if(binary->rhs->exp_type == ae_exp_primary) {
-      v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-      f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
-    } else if(binary->rhs->exp_type == ae_exp_dot) {
-      v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-      f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
-    } else if(binary->rhs->exp_type == ae_exp_decl) {
-      v = binary->rhs->d.exp_decl.list->self->value;
-      f1 = v->m_type->d.func;
-    } else
-      CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
-    r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-    if(binary->lhs->exp_type == ae_exp_primary) {
-      v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-      f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
-      l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-    } else if(binary->lhs->exp_type == ae_exp_dot) {
-      v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
-      f2 = v->func_ref;
-      l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-    } else
-      CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs)."))
-      if((r_nspc && l_nspc) && (r_nspc != l_nspc))
-        CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class"))
-        if(!r_nspc && l_nspc)
-          CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer"))
-          if(r_nspc && !l_nspc)
-            CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer"))
-            if(!f1 || !f2)
-              CHECK_BO(err_msg(TYPE_, binary->pos, "function not found."))
-              if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
-                CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
-                                 f1->def->ret_type->name, f2->def->ret_type->name))
-                for(i = 0; i <= v->func_num_overloads; i++) {
-                  if(binary->lhs->exp_type == ae_exp_primary) {
-                    m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
-                    char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
-                    sprintf(name, "%s@%li@%s", c, i, env->curr->name);
-                    f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
-                  }
-                  if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-                    binary->func = f2;
-                    ret_type = f1->value_ref->m_type;
-                    return ret_type;
-                  }
-                }
-    CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
-    return NULL;
-  }
+  if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
+    return check_op_ptr(env, binary);
   if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left &&
       isa(lhs->type->d.array_type, rhs->type) > 0)
     return lhs->type;
@@ -881,6 +882,34 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   return NULL;
 }
 
+static m_bool check_exp_binary_at_chuck(Operator op, Exp cl, Exp cr) {
+  if(cr->meta != ae_meta_var) {
+    CHECK_BB(err_msg(TYPE_, cr->pos,
+                     "cannot assign '%s' on types '%s' and'%s'...",
+                     "...(reason: --- rigth-side operand is not mutable)",
+                     op2str(op), cl->type->name, cr->type->name))
+  }
+
+  if(cr->exp_type == ae_exp_decl)
+    cr->d.exp_decl.type->ref = 1;
+
+  if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
+    if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
+      CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
+      if(cl->type->array_depth != cr->type->array_depth)
+        CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
+        cr->emit_var = 1;
+    return 1;
+  }
+  if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
+    if(isa(cl->type, cr->type) < 0)
+      CHECK_BB(err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name))
+      cr->emit_var = 1;
+    return 1;
+  }
+  return 1;
+}
+
 static Type check_exp_binary(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "binary expression '%p' '%p'", binary->lhs, binary->rhs);
@@ -901,30 +930,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
       cl->emit_var = 1;
       break;
     case op_at_chuck:
-      if(cr->meta != ae_meta_var) {
-        CHECK_BO(err_msg(TYPE_, cr->pos,
-                         "cannot assign '%s' on types '%s' and'%s'...",
-                         "...(reason: --- rigth-side operand is not mutable)",
-                         op2str(binary->op), cl->type->name, cr->type->name))
-      }
-
-      if(cr->exp_type == ae_exp_decl)
-        cr->d.exp_decl.type->ref = 1;
-
-      if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-        if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
-          CHECK_BO(err_msg(TYPE_, binary->pos, "array types do not match."))
-          if(cl->type->array_depth != cr->type->array_depth)
-            CHECK_BO(err_msg(TYPE_, binary->pos, "array depths do not match."))
-            cr->emit_var = 1;
-        break;
-      }
-      if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
-        if(isa(cl->type, cr->type) < 0)
-          CHECK_BO(err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name))
-          cr->emit_var = 1;
-        break;
-      }
+      CHECK_BO(check_exp_binary_at_chuck(binary->op, cl, cr))
     case op_chuck:
       if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
         cr->emit_var = cl->emit_var = 0;
