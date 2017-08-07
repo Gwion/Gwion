@@ -393,7 +393,7 @@ static SFUN(std_lintodb) {
 static struct Type_ t_std  = { "Std",  0, NULL, te_std};
 static struct Type_ t_math = { "Math", 0, NULL};
 
-m_bool import_lib(Env env) {
+static m_bool import_math(Env env) {
   DL_Func fun;
 
   CHECK_BB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
@@ -558,6 +558,11 @@ m_bool import_lib(Env env) {
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
   CHECK_BB(import_class_end(env))
 
+  return 1;
+}
+
+static m_bool import_std(Env env) {
+  DL_Func fun;
   CHECK_BB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
 
   dl_func_init(&fun, "int", "clamp", (m_uint)std_clamp);
@@ -646,6 +651,13 @@ m_bool import_lib(Env env) {
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
   CHECK_BB(import_class_end(env))
 
+  return 1;
+
+}
+
+m_bool import_lib(Env env) {
+  CHECK_BB(import_math(env))
+  CHECK_BB(import_std(env))
   return 1;
 }
 

@@ -47,7 +47,21 @@ Nspc new_nspc(m_str name, m_str filename) {
   return a;
 }
 
-void free_nspc(Nspc a) {
+static void nspc_release_object(Nspc a, Value value) {
+  if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
+    VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
+    VM_Shred s = new_vm_shred(code);
+    M_Object obj = value->ptr ? (M_Object)value->ptr :
+        *(M_Object*)(a->class_data + value->offset);
+    s->vm_ref = vm;
+    release(obj, s);
+    free_vm_shred(s);
+  }
+  if(value->m_type->array_depth)
+    REM_REF(value->m_type);
+}
+
+static void free_nspc_value(Nspc a) {
   m_uint i;
   Vector v = scope_get(&a->value);
   for(i = vector_size(v) + 1; --i;) {
@@ -56,19 +70,9 @@ void free_nspc(Nspc a) {
     if(value->m_type) {
       if(isa(value->m_type, &t_class) > 0)
         REM_REF(value->m_type)
-      else if(isa(value->m_type, &t_object) > 0) {
-        if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
-          VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
-          VM_Shred s = new_vm_shred(code);
-          M_Object obj = value->ptr ? (M_Object)value->ptr :
-              *(M_Object*)(a->class_data + value->offset);
-          s->vm_ref = vm;
-          release(obj, s);
-          free_vm_shred(s);
-        }
-        if(value->m_type->array_depth)
-          REM_REF(value->m_type);
-      } else if(isa(value->m_type, &t_func_ptr) > 0) {
+      else if(isa(value->m_type, &t_object) > 0)
+        nspc_release_object(a, value);
+      else if(isa(value->m_type, &t_func_ptr) > 0) {
         Func f = value->func_ref;
         while(f) {
           Func tmp = f->next;
@@ -88,8 +92,13 @@ void free_nspc(Nspc a) {
   }
   free_vector(v);
   scope_release(&a->value);
+}
 
+void free_nspc(Nspc a) {
+  m_uint i;
+  Vector v;
 
+  free_nspc_value(a);
   v = scope_get(&a->func);
   for(i = vector_size(v) + 1; --i;) {
     Func func = (Func)vector_at(v, i - 1);

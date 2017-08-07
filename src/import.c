@@ -36,11 +36,46 @@ void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
   a->args[a->narg++].name = n;
 }
 
+static m_bool check_illegal(char* curr, char c, m_uint i) {
+  if(c != '.') {
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+        || (c == '_') || (c >= '0' && c <= '9') || (i == 1 && c == '@'))
+      curr[i - 1] = c;
+    else
+      return 0;
+  }
+  return 1;
+}
+
+static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
+  char last = '\0';
+  m_uint i, j;
+  for(i = len; --i;) {
+    char c = path[i - 1];
+    if(c != '.' && check_illegal(curr, c, i) < 0)
+      CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path))
+    if(c == '.' || i == 1) {
+      if((i != 1 && last != '.' && last != '\0') ||
+          (i ==  1 && c != '.')) {
+        m_int size = strlen(curr);
+        for(j = (size / 2) + 1; --j;) {
+          char s = curr[j];
+          curr[j] = curr[size - j - 1];
+          curr[size - j - 1] = s;
+        }
+        *list = prepend_id_list(curr, *list, 0);
+        memset(curr, 0, len + 1);
+      } else
+        CHECK_BB(err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path))
+    }
+    last = c;
+  }
+  return 1;
+}
+
 static ID_List str2list(m_str path, m_uint* array_depth) {
   m_uint len = 0;
-  m_int  i, j;
   ID_List list = NULL;
-  char last = '\0';
   m_uint depth = 0;
   while(path[len] != '\0')
     len++;
@@ -52,35 +87,11 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
     len -= 2;
   }
 
-  for(i = len; --i;) {
-    char c = path[i - 1];
-    if(c != '.') {
-      if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-          || (c == '_') || (c >= '0' && c <= '9') || (i == 1 && c == '@'))
-        curr[i - 1] = c;
-      else {
-        free_id_list(list);
-        CHECK_BO(err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path))
-      }
-    }
-    if(c == '.' || i == 1) {
-      if((i != 1 && last != '.' && last != '\0') ||
-          (i == 1 && c != '.')) {
-        m_int size = strlen(curr);
-        for(j = (size / 2) + 1; --j;) {
-          char s = curr[j];
-          curr[j] = curr[size - j - 1];
-          curr[size - j - 1] = s;
-        }
-        list = prepend_id_list(curr, list, 0);
-        memset(curr, 0, sizeof(curr));
-      } else {
-        free_id_list(list);
-        CHECK_BO(err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path))
-      }
-    }
-    last = c;
+  if(path_valid(&list, path, curr, len) < 0) {
+    free_id_list(list);
+    return NULL;
   }
+
   strncpy(curr, path, len);
   CHECK_OO(list)
   list->xid = insert_symbol(curr);
@@ -141,7 +152,7 @@ m_int import_class_end(Env env) {
 
 m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
   m_int ret = -1;
-  m_uint array_depth;
+  m_uint array_depth = 0;
   ID_List path;
 
   CHECK_EB(env->class_def)
@@ -275,7 +286,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
 }
 
 static Type get_type(Env env, const m_str str) {
-  m_uint  depth;
+  m_uint  depth = 0;
   ID_List list = str2list(str, &depth);
   Type    t = list ? find_type(env, list) : NULL;
   if(list)
