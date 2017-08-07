@@ -683,6 +683,17 @@ static void function_alternative(Type f, Exp args){
   fprintf(stderr, "\n");
 }
 
+static Value get_template_value(Env env, Exp exp_func) {
+  if(exp_func->exp_type == ae_exp_primary)
+    return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+  else if(exp_func->exp_type == ae_exp_dot)
+    return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+  err_msg(TYPE_, exp_func->pos, 
+      "unhandled expression type '%lu\' in template call.",
+      exp_func->exp_type);
+    return NULL;
+}
+
 static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
   m_uint type_number = 0;
   m_uint args_number = 0;
@@ -690,12 +701,8 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   Func func = NULL;
   ID_List list;
 
-  if(exp_func->exp_type == ae_exp_primary)
-    value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
-  else if(exp_func->exp_type == ae_exp_dot)
-    value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  else
-    CHECK_BO(err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type))
+  CHECK_OO((value = get_template_value(env, exp_func)))
+
   list = value->func_ref->def->types;
 
   while(list) {
