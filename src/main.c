@@ -15,6 +15,19 @@
 
 volatile m_bool signaled = 0;
 VM* vm;
+struct Vector_ add;
+struct Vector_ rem;
+struct Vector_ plug_dirs;
+  Vector ref;
+
+
+  int do_quit = 0;
+  m_bool udp = 1;
+  int port = 8888;
+  char* hostname = "localhost";
+  int loop = 0;
+  DriverInfo di = { 2, 2, 2,
+    48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -130,38 +143,67 @@ static void usage() {
   fprintf(stderr, "\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
 }
 
-int main(int argc, char** argv) {
-  Env env = NULL;
-  Driver* d = NULL;
+static void parse_args_additionnal(int argc, char** argv) {
+  if(optind < argc) {
+    while(optind < argc) {
+      m_str str = argv[optind++];
+      if(!strcmp(str, "-")) {
+        ref = &rem;
+        str = argv[optind++];
+      } else if(!strcmp(str, "+")) {
+        ref = &add;
+        str = argv[optind++];
+      }
+      vector_add(ref, (vtype)str);
+    }
+  }
+}
+
+static void parse_args2(int i) {
+    switch(i) {
+    case 'g':
+      di.chan       = atoi(optarg);
+      di.in       = atoi(optarg);
+      di.out       = atoi(optarg);
+      break;
+    case 'i':
+      di.in       = atoi(optarg);
+      break;
+    case 'o':
+      di.out      = atoi(optarg);
+      break;
+    case 's':
+      di.sr      = atoi(optarg);
+      break;
+    case 'l':
+      loop        = atoi(optarg);
+      if(loop == 0) loop = -1;
+      break;
+    case 'd':
+      select_driver(&di, optarg);
+      break;
+    case 'f':
+      select_format(&di, optarg);
+      break;
+    case 'e':
+      select_backend(&di, optarg);
+      break;
+    case 'r':
+      di.raw = 1;
+      break;
+    case 'a':
+      udp = 0;
+      break;
+    case 'P':
+      vector_add(&plug_dirs, (vtype)optarg);
+      break;
+    default:
+      exit(1);
+  }
+}
+
+static void parse_args(int argc, char** argv) {
   int i, index;
-  struct Vector_ add;
-  struct Vector_ rem;
-  struct Vector_ plug_dirs;
-  Vector ref;
-
-
-  int do_quit = 0;
-  m_bool udp = 1;
-  int port = 8888;
-  char* hostname = "localhost";
-  int loop = 0;
-  DriverInfo di;
-  di.func = D_FUNC;
-  di.in  = 2;
-  di.out = 2;
-  di.chan = 2;
-  di.sr = 48000;
-  di.bufsize = 256;
-  di.bufnum = 3;
-  di.card = "default:CARD=CODEC";
-  di.raw = 0;
-
-  vector_init(&add);
-  vector_init(&rem);
-  vector_init(&plug_dirs);
-  ref = &add;
-  vector_add(&plug_dirs, (vtype)GWION_ADD_DIR);
-
   while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
       case '?':
@@ -189,92 +231,62 @@ int main(int argc, char** argv) {
       case 'b':
         di.bufsize    = atoi(optarg);
         break;
-      case 'g':
-        di.chan       = atoi(optarg);
-        di.in       = atoi(optarg);
-        di.out       = atoi(optarg);
-        break;
-      case 'i':
-        di.in       = atoi(optarg);
-        break;
-      case 'o':
-        di.out      = atoi(optarg);
-        break;
-      case 's':
-        di.sr      = atoi(optarg);
-        break;
-      case 'l':
-        loop        = atoi(optarg);
-        if(loop == 0) loop = -1;
-        break;
-      case 'd':
-        select_driver(&di, optarg);
-        break;
-      case 'f':
-        select_format(&di, optarg);
-        break;
-      case 'e':
-        select_backend(&di, optarg);
-        break;
-      case 'r':
-        di.raw = 1;
-        break;
-      case 'a':
-        udp = 0;
-        break;
-      case 'P':
-        vector_add(&plug_dirs, (vtype)optarg);
-        break;
       default:
-        return 1;
+        parse_args2(i);
     }
   }
-  if(optind < argc) {
-    while(optind < argc) {
-      m_str str = argv[optind++];
-      if(!strcmp(str, "-")) {
-        ref = &rem;
-        str = argv[optind++];
-      } else if(!strcmp(str, "+")) {
-        ref = &add;
-        str = argv[optind++];
-      }
-      vector_add(ref, (vtype)str);
+  parse_args_additionnal(argc, argv);
+}
+
+static void do_udp() {
+  m_uint i;
+  if(server_init(hostname, port) == -1) {
+    if(do_quit)
+      Send("quit", 1);
+    if(loop > 0)
+      Send("loop 1", 1);
+    else if(loop < 0)
+      Send("loop 0", 1);
+    for(i = 0; i < vector_size(&rem); i++) {
+      m_str file = (m_str)vector_at(&rem, i);
+      m_uint size = strlen(file) + 3;
+      char name[size];
+      memset(name, 0, size);
+      strcpy(name, "- ");
+      strcat(name, file);
+      Send(name, 1);
     }
+    for(i = 0; i < vector_size(&add); i++) {
+      m_str file = (m_str)vector_at(&add, i);
+      m_uint size = strlen(file) + 3;
+      char name[size];
+      memset(name, 0, size);
+      strcpy(name, "+ ");
+      strcat(name, file);
+      Send(name, 1);
+    }
+    vector_release(&add);
+    vector_release(&rem);
+    vector_release(&plug_dirs);
+    exit(0);
   }
+}
+
+int main(int argc, char** argv) {
+  Env env = NULL;
+  Driver* d = NULL;
+  int i;
   pthread_t udp_thread = 0;
-  if(udp) {
-    if(server_init(hostname, port) == -1) {
-      if(do_quit)
-        Send("quit", 1);
-      if(loop > 0)
-        Send("loop 1", 1);
-      else if(loop < 0)
-        Send("loop 0", 1);
-      for(i = 0; i < vector_size(&rem); i++) {
-        m_str file = (m_str)vector_at(&rem, i);
-        m_uint size = strlen(file) + 3;
-        char name[size];
-        memset(name, 0, size);
-        strcpy(name, "- ");
-        strcat(name, file);
-        Send(name, 1);
-      }
-      for(i = 0; i < vector_size(&add); i++) {
-        m_str file = (m_str)vector_at(&add, i);
-        m_uint size = strlen(file) + 3;
-        char name[size];
-        memset(name, 0, size);
-        strcpy(name, "+ ");
-        strcat(name, file);
-        Send(name, 1);
-      }
-      vector_release(&add);
-      vector_release(&rem);
-      vector_release(&plug_dirs);
-      exit(0);
-    }
-  }
+
+  vector_init(&add);
+  vector_init(&rem);
+  vector_init(&plug_dirs);
+  ref = &add;
+  vector_add(&plug_dirs, (vtype)GWION_ADD_DIR);
+  parse_args(argc, argv);
+
+  if(udp)
+    do_udp();
   if(do_quit)
     goto clean;
   signal(SIGINT, sig);
