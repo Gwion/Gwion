@@ -498,12 +498,22 @@ static Type_List mk_type_list(Env env, Type type) {
   return list;
 }
 
+static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific ) {
+  m_bool match = specific ? e->type == t : isa(e->type, t) > 0 && e->type->array_depth == t->array_depth;
+  if(!match) {
+    if(implicit && e->type->xid == te_int && t->xid == te_float)
+      e->cast_to = &t_float;
+    else if(!(isa(e->type, &t_null) > 0 && isa(t, &t_object) > 0))
+      return -1; 
+  }
+  return 1;
+}
+
 static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
   Exp e;
   Arg_List e1;
   m_uint count;
   Func func;
-  int match = -1;
 
   if(args && isa(args->type, &t_void) > 0)
     args = NULL;
@@ -516,29 +526,23 @@ static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool sp
       count = 1;
 
       while(e) {
-        if(e1 == NULL) {
+        if(!e1) {
           if(GET_FLAG(func->def, ae_flag_variadic))
             return func;
           goto moveon;
         }
-        match = specific ? e->type == e1->type : isa(e->type, e1->type) > 0 && e->type->array_depth == e1->type->array_depth;
-        if(match <= 0) {
-          if(implicit && e->type->xid == te_int && e1->type->xid == te_float)
-            e->cast_to = &t_float;
-          else if(!(isa(e->type, &t_null) > 0 && isa(e1->type, &t_object) > 0))
+        if(func_match_inner(e, e1->type, implicit, specific) < 0)
             goto moveon;
-        }
         e = e->next;
         e1 = e1->next;
         count++;
       }
-      if(e1 == NULL) return func;
+      if(!e1)
+        return func;
 moveon:
       func = func->next;
     }
-    if(up->up)
-      up = up->up->func_ref;
-    else up = NULL;
+    up = up->up ? up->up->func_ref : NULL;
   }
   return NULL;
 }
