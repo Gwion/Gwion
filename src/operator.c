@@ -216,6 +216,18 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
   return 1;
 }
 
+static Instr handle_instr(Emitter emit, M_Operator* mo) {
+  if(mo->func) {
+    Instr instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
+    CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
+    return instr;
+  } else if(mo->instr) {
+    return add_instr(emit, mo->instr);
+  } else {
+    err_msg(EMIT_, 0, "Trying to call non emitted operator.");
+    return NULL;
+  }
+}
 Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
   Nspc nspc = emit->env->curr;
 
@@ -229,19 +241,8 @@ Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
         if(!nspc->op_map.ptr)
           continue;
         v = (Vector)map_get(&nspc->op_map, (vtype)op);
-        if((mo = operator_find(v, l, r))) {
-          Instr instr;
-          if(mo->func) {
-            instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
-            CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
-          } else if(mo->instr) {
-            instr = add_instr(emit, mo->instr);
-          } else {
-            err_msg(EMIT_, 0, "Trying to call non emitted operator.");
-            instr = NULL;
-          }
-          return instr;
-        }
+        if((mo = operator_find(v, l, r)))
+          return  handle_instr(emit, mo);
       } while(r && (r = r->parent));
     } while(l && (l = l->parent));
     nspc = nspc->parent;
