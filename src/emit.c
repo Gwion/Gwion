@@ -513,14 +513,12 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
     alloc->m_val = value->offset;
     *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
     if(is_obj) {
-      if(array && array->exp_list) {
+      if((array && array->exp_list) || !is_ref) {
         Instr assign = add_instr(emit, Assign_Object);
         assign->m_val = decl->self->emit_var;
-        ADD_REF(type);
-      } else if(!is_ref) {
-        Instr assign  = add_instr(emit, Assign_Object);
-        assign->m_val = decl->self->emit_var;
       }
+      if(array && array->exp_list)
+        ADD_REF(type);
     }
     list = list->next;
   }
@@ -1577,17 +1575,34 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
   return 1;
 }
 
+static m_bool emit_member_func(Emitter emit, Exp_Dot* member, Func func) {
+  Instr func_i;
+  if(GET_FLAG(func, ae_flag_member)) { // member
+    if(emit_exp(emit, member->base, 0) < 0)
+      CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
+    sadd_instr(emit, Reg_Dup_Last);
+    func_i = add_instr(emit, Exp_Dot_Func);
+    func_i->m_val = func->vt_index;
+  }
+  return 1;
+}
+
+static m_bool emit_member(Emitter emit, Value v, m_bool emit_addr) {
+  Instr func_i = add_instr(emit, Exp_Dot_Data);
+  func_i->m_val = v->offset;
+  func_i->m_val2 = kindof(v->m_type);
+  *(m_uint*)func_i->ptr = emit_addr;
+  return 1;
+}
+  
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "dot member");
 #endif
-  Instr instr, func_i, push_i;
   Type t_base;
   m_uint emit_addr = member->self->emit_var;
   m_bool base_static = member->t_base->xid == te_class;
-  Func func = NULL;
   Value value = NULL;
-  m_uint offset = 0;
 
   t_base = base_static ? member->t_base->d.actual_type : member->t_base;
   value = find_value(t_base, member->xid);
@@ -1603,44 +1618,28 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
       if(GET_FLAG(value, ae_flag_member)) { // member
         if(emit_exp(emit, member->base, 0) < 0)
           CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
-          sadd_instr(emit, Reg_Dup_Last);
-        func_i = add_instr(emit, Exp_Dot_Data);
-        func_i->m_val = value->offset;
-        func_i->m_val2 = Kindof_Int;
-        *(m_uint*)func_i->ptr = emit_addr;
-        return 1;
+        sadd_instr(emit, Reg_Dup_Last);
+        return emit_member(emit, value, emit_addr);
       } else
         CHECK_BB(emit_dot_static_data(emit, value, kindof(value->m_type), emit_addr))
     } else if(isa(member->self->type, &t_function) > 0) { // function
-      func = value->func_ref;
-      if(GET_FLAG(func, ae_flag_member)) { // member
-        if(emit_exp(emit, member->base, 0) < 0)
-          CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
-        sadd_instr(emit, Reg_Dup_Last);
-        func_i = add_instr(emit, Exp_Dot_Func);
-        func_i->m_val = func->vt_index;
-      } else { // static
-        push_i = add_instr(emit, Reg_Push_Imm);
-        push_i->m_val = (m_uint)t_base;
-        func_i = add_instr(emit, Dot_Static_Func);
-        func_i->m_val = (m_uint)func;
-      }
+      Func func = value->func_ref;
+      if(GET_FLAG(func, ae_flag_member))
+        return emit_member_func(emit, member, func);
+      else
+        return emit_dot_static_func(emit, t_base, func);
     } else { // variable
-      offset = value->offset;
       if(GET_FLAG(value, ae_flag_member)) { // member
         CHECK_BB(emit_exp(emit, member->base, 0))
-        instr = add_instr(emit, Exp_Dot_Data);
-        instr->m_val = offset;
-        instr->m_val2 = kindof(value->m_type);
-        *(m_uint*)instr->ptr = emit_addr;
+        return emit_member(emit, value, emit_addr);
       } else // static
         CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
     }
   } else { // static
     if(isa(member->self->type, &t_function) > 0)
-      CHECK_BB(emit_dot_static_func(emit, t_base, value->func_ref))
+      return emit_dot_static_func(emit, t_base, value->func_ref);
     else
-      CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
+      return emit_dot_static_import_data(emit, value, t_base, emit_addr);
   }
   return 1;
 }
