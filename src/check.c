@@ -882,12 +882,12 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   return NULL;
 }
 
-static m_bool check_exp_binary_at_chuck(Operator op, Exp cl, Exp cr) {
+static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
   if(cr->meta != ae_meta_var) {
     CHECK_BB(err_msg(TYPE_, cr->pos,
                      "cannot assign '%s' on types '%s' and'%s'...",
                      "...(reason: --- rigth-side operand is not mutable)",
-                     op2str(op), cl->type->name, cr->type->name))
+                     "@=>", cl->type->name, cr->type->name))
   }
 
   if(cr->exp_type == ae_exp_decl)
@@ -907,6 +907,21 @@ static m_bool check_exp_binary_at_chuck(Operator op, Exp cl, Exp cr) {
       cr->emit_var = 1;
     return 1;
   }
+  return 1;
+}
+
+static m_bool check_exp_binary_chuck(Exp cl, Exp cr) {
+  if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
+    cr->emit_var = cl->emit_var = 0;
+    return 1;
+  }
+  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
+    CHECK_BB(err_msg(TYPE_, cl->pos,
+                     "cannot assign '%s' on types '%s' and'%s'...",
+                     "...(reason: --- right-side operand is not mutable)",
+                     "=>", cl->type->name, cr->type->name))
+  }
+  cr->emit_var = 1;
   return 1;
 }
 
@@ -930,19 +945,9 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
       cl->emit_var = 1;
       break;
     case op_at_chuck:
-      CHECK_BO(check_exp_binary_at_chuck(binary->op, cl, cr))
+      CHECK_BO(check_exp_binary_at_chuck(cl, cr))
     case op_chuck:
-      if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
-        cr->emit_var = cl->emit_var = 0;
-        break;
-      }
-      if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
-        CHECK_BO(err_msg(TYPE_, cl->pos,
-                         "cannot assign '%s' on types '%s' and'%s'...",
-                         "...(reason: --- right-side operand is not mutable)",
-                         op2str(binary->op), cl->type->name, cr->type->name))
-      }
-      cr->emit_var = 1;
+      CHECK_BO(check_exp_binary_chuck(cl, cr))
       break;
     case op_plus_chuck:
     case op_minus_chuck:
@@ -1103,6 +1108,20 @@ static Type check_exp_call(Env env, Exp_Func* call) {
   return check_exp_call1(env, call->func, call->args, &call->m_func, call->pos);
 }
 
+static Type check_exp_unary_spork(Env env, Stmt code) {
+  if(env->func) {
+    env->class_scope++;
+    nspc_push_value(env->curr);
+    int ret = check_stmt(env, code);
+    nspc_pop_value(env->curr);
+    env->class_scope--;
+    return (ret > 0) ? &t_shred : NULL;
+  } else if(check_stmt(env, code) < 0) {
+    CHECK_BO(err_msg(TYPE_, code->pos, "problem in evaluating sporked code")) // LCOV_EXCL_LIN
+  }
+  return &t_shred;
+}
+
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
 
@@ -1131,19 +1150,7 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           if(unary->exp && unary->exp->exp_type == ae_exp_call)
             return &t_shred;
           else if(unary->code) {
-            if(env->func) {
-              env->class_scope++;
-              nspc_push_value(env->curr);
-              int ret = check_stmt(env, unary->code);
-              nspc_pop_value(env->curr);
-              env->class_scope--;
-              return (ret > 0) ? &t_shred : NULL;
-              break;
-            } else if(check_stmt(env, unary->code) < 0) {
-              err_msg(TYPE_, unary->pos, "problem in evaluating sporked code"); // LCOV_EXCL_LINE
-              break;                                                                // LCOV_EXCL_LINE
-            }
-            return &t_shred;
+            return check_exp_unary_spork(env, unary->code);
           } else
             CHECK_BO(err_msg(TYPE_,  unary->pos,
                              "only function calls can be sporked..."))
@@ -1635,6 +1642,17 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
   return 1;
 }
 
+static m_bool check_func_overload_inner(Env env, Func_Def def, m_str name, m_uint j) {
+  sprintf(name, "%s@%li@%s", s_name(def->name), j, env->curr->name);
+  Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+  if(compat_func(def, f2->def, f2->def->pos) > 0) {
+    CHECK_BB(err_msg(TYPE_, f2->def->pos,
+        "global function '%s' already defined for those arguments",
+        s_name(def->name)))
+  }
+  return 1;
+}
+
 static m_bool check_func_overload(Env env, Func_Def f) {
   m_uint i, j;
   Value v = f->d.func->value_ref;
@@ -1645,15 +1663,8 @@ static m_bool check_func_overload(Env env, Func_Def f) {
       sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
       Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
       for(j = 1; j <= v->func_num_overloads; j++) {
-        if(i != j) {
-          sprintf(name, "%s@%li@%s", s_name(f->name), j, env->curr->name);
-          Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
-          if(compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-            CHECK_BB(err_msg(TYPE_, f2->def->pos,
-                             "global function '%s' already defined for those arguments",
-                             s_name(f->name)))
-          }
-        }
+        if(i != j)
+          CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
       }
     }
   }
