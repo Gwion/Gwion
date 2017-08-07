@@ -69,6 +69,19 @@ m_bool initialize_object(M_Object object, Type type) {
   return 1;
 }
 
+static void handle_dtor(Type t, VM_Shred shred) {
+  VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
+       "[dtor]", "[in code dtor exec]");
+  VM_Shred sh = new_vm_shred(code);
+  sh->me = new_shred(shred->vm_ref, sh);
+  memcpy(sh->mem, shred->mem, SIZEOF_MEM);
+  vector_pop(code->instr);
+  Instr eoc = malloc(sizeof(struct Instr_));
+  eoc->execute = EOC;
+  vector_add(code->instr, (vtype)eoc);
+  vm_add_shred(shred->vm_ref, sh);
+}
+
 void release(M_Object obj, VM_Shred shred) {
   if(!obj)
     return;
@@ -89,18 +102,8 @@ void release(M_Object obj, VM_Shred shred) {
       if(GET_FLAG(t, ae_flag_dtor)) {
         if(t->info->dtor->native_func)
           ((f_xtor)t->info->dtor->native_func)(obj, shred);
-        else {
-          VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
-                                     "[dtor]", "[in code dtor exec]");
-          VM_Shred sh = new_vm_shred(code);
-          sh->me = new_shred(shred->vm_ref, sh);
-          memcpy(sh->mem, shred->mem, SIZEOF_MEM);
-          vector_pop(code->instr);
-          Instr eoc = malloc(sizeof(struct Instr_));
-          eoc->execute = EOC;
-          vector_add(code->instr, (vtype)eoc);
-          vm_add_shred(shred->vm_ref, sh);
-        }
+        else
+          handle_dtor(t, shred);
       }
       t = t->parent;
     }
