@@ -480,31 +480,30 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 
     if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
       CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-      if(GET_FLAG(value, ae_flag_member)) {
-        alloc = decl_member(emit, kind);
-      } else {
-        if(!emit->env->class_def || !decl->is_static) {
-          Local* local = frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj);
-          CHECK_OB(local)
-          value->offset   = local->offset;
-          alloc = decl_global(emit, kind);
-          alloc->m_val2 = GET_FLAG(value, ae_flag_global);
-        } else { // static
-          Kindof kind = kindof(type);
-          Code* code = emit->code;
-          if(is_obj && !is_ref) {
-            emit->code = (Code*)vector_back(&emit->stack);
-            CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-            CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
-            Instr assign  = add_instr(emit, Assign_Object);
-            assign->m_val = 0;
-            emit->code = code;
-          }
+    if(GET_FLAG(value, ae_flag_member)) {
+      alloc = decl_member(emit, kind);
+    } else {
+      if(!emit->env->class_def || !decl->is_static) {
+        Local* local = frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj);
+        CHECK_OB(local)
+        value->offset   = local->offset;
+        alloc = decl_global(emit, kind);
+        alloc->m_val2 = GET_FLAG(value, ae_flag_global);
+      } else { // static
+        if(is_obj && !is_ref) {
+        Code* code = emit->code;
+          emit->code = (Code*)vector_back(&emit->stack);
+          CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
           CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
-          list = list->next;
-          continue;
+          Instr assign  = add_instr(emit, Assign_Object);
+          assign->m_val = 0;
+          emit->code = code;
         }
+        CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
+        list = list->next;
+        continue;
       }
+    }
     alloc->m_val = value->offset;
     *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
     if(is_obj) {

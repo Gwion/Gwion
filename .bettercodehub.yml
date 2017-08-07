@@ -5,7 +5,7 @@ languages:
     production:
       include:
         - .*/src/.*\.c
-        - .*/src/drvr/.c
+        - .*/src/drvr\.c
     test:
       include:
         - .*/examples/.*\.gw
