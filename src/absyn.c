@@ -566,47 +566,45 @@ static void free_exp_primary(Exp_Primary* a) {
 }
 
 void free_expression(Exp exp) {
-  Exp tmp, curr = exp;
-  while(curr) {
-    switch(curr->exp_type) {
-      case ae_exp_decl:
-        free_exp_decl(&curr->d.exp_decl);
-        break;
-      case ae_exp_binary:
-        free_exp_binary(&curr->d.exp_binary);
-        break;
-      case ae_exp_unary:
-        free_unary_expression(&curr->d.exp_unary);
-        break;
-      case ae_exp_primary:
-        free_exp_primary(&curr->d.exp_primary);
-        break;
-      case ae_exp_cast:
-        free_exp_cast(&curr->d.exp_cast);
-        break;
-      case ae_exp_postfix:
-        free_exp_postfix(&curr->d.exp_postfix);
-        break;
-      case ae_exp_call:
-        free_exp_call(&curr->d.exp_func);
-        break;
-      case ae_exp_array:
-        free_array_expression(&curr->d.exp_array);
-        break;
-      case ae_exp_if:
-        free_if_expression(&curr->d.exp_if);
-        break;
-      case ae_exp_dot:
-        free_dot_member_expression(&curr->d.exp_dot);
-        break;
-      case ae_exp_dur:
-        free_dur_expression(&curr->d.exp_dur);
-        break;
-    }
-    tmp = curr;
-    curr = curr->next;
-    free(tmp);
+  if(!exp)
+    return;
+  switch(exp->exp_type) {
+    case ae_exp_decl:
+      free_exp_decl(&exp->d.exp_decl);
+      break;
+    case ae_exp_binary:
+      free_exp_binary(&exp->d.exp_binary);
+      break;
+    case ae_exp_unary:
+      free_unary_expression(&exp->d.exp_unary);
+      break;
+    case ae_exp_primary:
+      free_exp_primary(&exp->d.exp_primary);
+      break;
+    case ae_exp_cast:
+      free_exp_cast(&exp->d.exp_cast);
+      break;
+    case ae_exp_postfix:
+      free_exp_postfix(&exp->d.exp_postfix);
+      break;
+    case ae_exp_call:
+      free_exp_call(&exp->d.exp_func);
+      break;
+    case ae_exp_array:
+      free_array_expression(&exp->d.exp_array);
+      break;
+    case ae_exp_if:
+      free_if_expression(&exp->d.exp_if);
+      break;
+    case ae_exp_dot:
+      free_dot_member_expression(&exp->d.exp_dot);
+      break;
+    case ae_exp_dur:
+      free_dur_expression(&exp->d.exp_dur);
+      break;
   }
+  free_expression(exp->next);
+  free(exp);
 }
 
 Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, int pos) {
