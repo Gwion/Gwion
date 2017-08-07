@@ -31,6 +31,29 @@ static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
+static void handle_plug(Env env, m_str c) {
+  void* handler;
+  if((handler = dlopen(c, RTLD_LAZY))) {
+    m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
+    if(import) {
+      if(import(env) > 0)
+        vector_add(&vm->plug, (vtype)handler);
+      else {
+        env->class_def = (Type)vector_pop(&env->class_stack);
+        env->curr = (Nspc)vector_pop(&env->nspc_stack);
+        dlclose(handler);
+      }
+    } else {
+      const char* err = dlerror();
+      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0);
+      dlclose(handler);
+    }
+  } else {
+    const char* err = dlerror();
+    if(err_msg(TYPE_, 0, "error in %s.", err) < 0);
+  }
+}
+
 static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
   m_uint i;
   for(i = 0; i < vector_size(plug_dirs); i++) {
@@ -39,29 +62,10 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
     int n;
     n = scandir(dirname, &namelist, so_filter, alphasort);
     if(n > 0) {
-      while(n--)  {
-        void* handler;
+      while(n--) {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        if((handler = dlopen(c, RTLD_LAZY))) {
-          m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
-          if(import) {
-            if(import(env) > 0)
-              vector_add(&vm->plug, (vtype)handler);
-            else {
-              env->class_def = (Type)vector_pop(&env->class_stack);
-              env->curr = (Nspc)vector_pop(&env->nspc_stack);
-              dlclose(handler);
-            }
-          } else {
-            const char* err = dlerror();
-            if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0);
-            dlclose(handler);
-          }
-        } else {
-          const char* err = dlerror();
-          if(err_msg(TYPE_, 0, "error in %s.", err) < 0);
-        }
+        handle_plug(env, c);
         free(namelist[n]);
       }
       free(namelist);
@@ -183,7 +187,7 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
     if(!value)
       CHECK_BO(err_msg(TYPE_, list->self->pos, "can't declare in GACK"))
 
-      type  = value->m_type;
+    type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
       CHECK_OO(check_exp(env, var_decl->array->exp_list))
       CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
@@ -207,43 +211,42 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
   return decl->m_type;
 }
 
-static Type check_exp_prim_array(Env env, Exp_Primary *exp) {
+static Type check_exp_prim_array(Env env, Array_Sub array) {
   Exp e;
   Type t = NULL, type = NULL, common = NULL;
 
-
-  CHECK_BO(verify_array(exp->d.array))
-  if(!(e = exp->d.array->exp_list))
-    CHECK_BO(err_msg(TYPE_, exp->pos, "must provide values/expressions for array [...]"))
-    CHECK_OO(check_exp(env, e))
-    while(e) {
-      t = e->type;
-      if(!type)
-        type = t;
+  CHECK_BO(verify_array(array))
+  if(!(e = array->exp_list))
+    CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
+  CHECK_OO(check_exp(env, e))
+  while(e) {
+    t = e->type;
+    if(!type)
+      type = t;
+    else {
+      common = find_common_anc(t, type);
+      if(common)
+        type = common;
       else {
-        common = find_common_anc(t, type);
-        if(common)
-          type = common;
-        else {
-          if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
-            e->cast_to = type;
-          } else
-            CHECK_BO(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types..."))
-          }
-      }
-      e = e->next;
+        if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
+          e->cast_to = type;
+        } else
+          CHECK_BO(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types..."))
+        }
     }
+    e = e->next;
+  }
   t = new_array_type(env, type->array_depth + 1,
                      type->array_depth ? type->d.array_type : type,  env->curr);
-  exp->d.array->type = t;
+  array->type = t;
   return t;
 }
 
-static Type check_vec(Env env, Exp_Primary* exp) {
+static Type check_exp_primary_vec(Env env, Vec vec) {
   Type t = NULL;
-  Vec val = exp->d.vec;
+  Vec val = vec;
   if(val->numdims > 4)
-    CHECK_BO(err_msg(TYPE_, exp->pos,
+    CHECK_BO(err_msg(TYPE_, vec->pos,
                      "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
     Exp e = val->args;
   int count = 1;
@@ -252,7 +255,7 @@ static Type check_vec(Env env, Exp_Primary* exp) {
       return NULL;
     if(isa(t, &t_int) > 0) e->cast_to = &t_float;
     else if(isa(t, &t_float) < 0) {
-      CHECK_BO(err_msg(TYPE_, exp->pos,
+      CHECK_BO(err_msg(TYPE_, vec->pos,
                        "invalid type '%s' in vector value #%d...\n"
                        "    (must be of type 'int' or 'float')", t->name, count))
     }
@@ -264,58 +267,127 @@ static Type check_vec(Env env, Exp_Primary* exp) {
   return &t_vec4;
 }
 
+static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
+  Type t;
+  m_str str = s_name(primary->d.var);
+
+  if(!strcmp(str, "this")) { 
+    if(!env->class_def)
+      CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
+      if(env->func && !GET_FLAG(env->func, ae_flag_member))
+        CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
+        primary->self->meta = ae_meta_value;
+    t = env->class_def;
+  } else if(!strcmp(str, "me")) {
+    primary->self->meta = ae_meta_value;
+    t = &t_shred;
+  } else if(!strcmp(str, "now")) {
+    primary->self->meta = ae_meta_var;
+    t = &t_now;
+  } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
+    primary->self->meta = ae_meta_value;
+    t = &t_null;
+  } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
+    primary->self->meta = ae_meta_value;
+    t = &t_int;
+  } else {
+    Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
+    if(!v)
+      v = find_value(env->class_def, primary->d.var);
+    if(v) {
+      if(env->class_def && env->func) {
+        if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
+          CHECK_BO(err_msg(TYPE_, primary->pos,
+                           "non-static member '%s' used from static function...", str))
+        }
+      }
+    }
+    if(!v || !GET_FLAG(v, ae_flag_checked)) {
+      CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
+                       str ? str : "", v))
+    }
+    t = v->m_type;
+    primary->value = v;
+    if(GET_FLAG(v, ae_flag_const))
+      primary->self->meta = ae_meta_value;
+  }
+  return t;
+}
+
+static Type check_exp_prim_complex(Env env, Complex* cmp) {
+  if(!cmp->im)
+    CHECK_BO(err_msg(TYPE_, cmp->pos, "missing imaginary component of complex value..."))
+    if(cmp->im->next)
+      CHECK_BO(err_msg(TYPE_, cmp->pos, "extraneous component of complex value..."))
+      CHECK_OO(check_exp(env, cmp->re))
+      if(isa(cmp->re->type, &t_float) < 0) {
+        if(isa(cmp->re->type, &t_int) < 0) {
+          CHECK_BO(err_msg(TYPE_, cmp->pos,
+                           "invalid type '%s' in real component of complex value...\n"
+                           "    (must be of type 'int' or 'float')", cmp->re->type->name))
+        }
+        cmp->re->cast_to = &t_float;
+      }
+  if(isa(cmp->im->type, &t_float) < 0) {
+    if(isa(cmp->im->type, &t_int) < 0) {
+      CHECK_BO(err_msg(TYPE_, cmp->pos,
+                       "invalid type '%s' in imaginary component of complex value...\n"
+                       "    (must be of type 'int' or 'float')", cmp->im->type->name))
+    }
+    cmp->im->cast_to = &t_float;
+  }
+  return &t_complex;
+}
+
+static Type check_exp_prim_polar(Env env, Polar* polar) {
+  if(!polar->phase)
+    CHECK_BO(err_msg(TYPE_, polar->pos, "missing phase component of polar value..."))
+    if(polar->phase->next)
+      CHECK_BO(err_msg(TYPE_, polar->pos, "extraneous component of polar value..."))
+      CHECK_OO(check_exp(env, polar->mod))
+      if(isa(polar->mod->type, &t_float) < 0) {
+        if(isa(polar->mod->type, &t_int) < 0) {
+          CHECK_BO(err_msg(TYPE_, polar->pos,
+                           "invalid type '%s' in modulus component of polar value...\n"
+                           "    (must be of type 'int' or 'float')", polar->mod->type->name))
+        }
+        polar->mod->cast_to = &t_float;
+      }
+  if(isa(polar->phase->type, &t_float) < 0) {
+    if(isa(polar->phase->type, &t_int) < 0) {
+      CHECK_BO(err_msg(TYPE_, polar->pos,
+                       "invalid type '%s' in phase component of polar value...\n"
+                       "    (must be of type 'int' or 'float')", polar->phase->type->name))
+    }
+    polar->phase->cast_to = &t_float;
+  }
+  return  &t_polar;
+}
+
+static Type check_exp_prim_gack(Env env, Exp exp) {
+  if(exp->exp_type == ae_exp_decl)
+    CHECK_BO(err_msg(TYPE_, exp->pos, "cannot use <<< >>> on variable declarations...\n"))
+    CHECK_OO((check_exp(env, exp))) {
+    Exp e = exp;
+    while(e) {
+      if(e->type->xid == te_function &&
+          !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
+          GET_FLAG(e->type->d.func, ae_flag_member))
+        CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
+        e = e->next;
+    }
+  }
+  return &t_gack;
+}
+
 static Type check_exp_primary(Env env, Exp_Primary* primary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "primary");
 #endif
-  Type  t   = NULL;
-  Value v   = NULL;
-  m_str str;
-
+  Type t = NULL;
   switch(primary->type) {
     case ae_primary_id:
-      str = s_name(primary->d.var);
-      if(!strcmp(str, "this")) {
-        if(!env->class_def)
-          CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
-          if(env->func && !GET_FLAG(env->func, ae_flag_member))
-            CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
-            primary->self->meta = ae_meta_value;
-        t = env->class_def;
-      } else if(!strcmp(str, "me")) {
-        primary->self->meta = ae_meta_value;
-        t = &t_shred;
-      } else if(!strcmp(str, "now")) {
-        primary->self->meta = ae_meta_var;
-        t = &t_now;
-      } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-        primary->self->meta = ae_meta_value;
-        t = &t_null;
-      } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-        primary->self->meta = ae_meta_value;
-        t = &t_int;
-      } else {
-        v = nspc_lookup_value(env->curr, primary->d.var, 1);
-        if(!v)
-          v = find_value(env->class_def, primary->d.var);
-        if(v) {
-          if(env->class_def && env->func) {
-            if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
-              CHECK_BO(err_msg(TYPE_, primary->pos,
-                               "non-static member '%s' used from static function...", s_name(primary->d.var)))
-            }
-          }
-        }
-        if(!v || !GET_FLAG(v, ae_flag_checked)) {
-          str = s_name(primary->d.var);
-          CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-                           str ? str : "", v))
-        }
-        t = v->m_type;
-        primary->value = v;
-      }
-      if(v && GET_FLAG(v, ae_flag_const))
-        primary->self->meta = ae_meta_value;
+      t = check_exp_prim_id(env, primary);
       break;
     case ae_primary_num:
       t = &t_int;
@@ -324,55 +396,13 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = &t_float;
       break;
     case ae_primary_complex:
-      if(!primary->d.cmp->im)
-        CHECK_BO(err_msg(TYPE_, primary->d.cmp->pos, "missing imaginary component of complex value..."))
-        if(primary->d.cmp->im->next)
-          CHECK_BO(err_msg(TYPE_, primary->d.cmp->pos, "extraneous component of complex value..."))
-          CHECK_OO(check_exp(env, primary->d.cmp->re))
-          if(isa(primary->d.cmp->re->type, &t_float) < 0) {
-            if(isa(primary->d.cmp->re->type, &t_int) < 0) {
-              CHECK_BO(err_msg(TYPE_, primary->d.cmp->pos,
-                               "invalid type '%s' in real component of complex value...\n"
-                               "    (must be of type 'int' or 'float')", primary->d.cmp->re->type->name))
-            }
-            primary->d.cmp->re->cast_to = &t_float;
-          }
-      if(isa(primary->d.cmp->im->type, &t_float) < 0) {
-        if(isa(primary->d.cmp->im->type, &t_int) < 0) {
-          CHECK_BO(err_msg(TYPE_, primary->d.cmp->pos,
-                           "invalid type '%s' in imaginary component of complex value...\n"
-                           "    (must be of type 'int' or 'float')", primary->d.cmp->im->type->name))
-        }
-        primary->d.cmp->im->cast_to = &t_float;
-      }
-      t = &t_complex;
+      t = check_exp_prim_complex(env, primary->d.cmp);
       break;
     case ae_primary_polar:
-      if(!primary->d.polar->phase)
-        CHECK_BO(err_msg(TYPE_, primary->d.polar->pos, "missing phase component of polar value..."))
-        if(primary->d.polar->phase->next)
-          CHECK_BO(err_msg(TYPE_, primary->d.polar->pos, "extraneous component of polar value..."))
-          CHECK_OO(check_exp(env, primary->d.polar->mod))
-          if(isa(primary->d.polar->mod->type, &t_float) < 0) {
-            if(isa(primary->d.polar->mod->type, &t_int) < 0) {
-              CHECK_BO(err_msg(TYPE_, primary->d.polar->pos,
-                               "invalid type '%s' in modulus component of polar value...\n"
-                               "    (must be of type 'int' or 'float')", primary->d.polar->mod->type->name))
-            }
-            primary->d.polar->mod->cast_to = &t_float;
-          }
-      if(isa(primary->d.polar->phase->type, &t_float) < 0) {
-        if(isa(primary->d.polar->phase->type, &t_int) < 0) {
-          CHECK_BO(err_msg(TYPE_, primary->d.polar->pos,
-                           "invalid type '%s' in phase component of polar value...\n"
-                           "    (must be of type 'int' or 'float')", primary->d.polar->phase->type->name))
-        }
-        primary->d.polar->phase->cast_to = &t_float;
-      }
-      t = &t_polar;
+      t = check_exp_prim_polar(env, primary->d.polar);
       break;
     case ae_primary_vec:
-      t = check_vec(env, primary);
+      t = check_exp_primary_vec(env, primary->d.vec);
       break;
     case ae_primary_nil:
       t = &t_void;
@@ -381,21 +411,10 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = &t_string;
       break;
     case ae_primary_hack:
-      if(primary->d.exp->exp_type == ae_exp_decl)
-        CHECK_BO(err_msg(TYPE_, primary->pos, "cannot use <<< >>> on variable declarations...\n"))
-        CHECK_OO((check_exp(env, primary->d.exp))) {
-        Exp e = primary->d.exp;
-        while(e) {
-          if(e->type->xid == te_function &&
-              !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
-              GET_FLAG(e->type->d.func, ae_flag_member))
-            CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
-            e = e->next;
-        }
-      }
-      return &t_gack;
+      t = check_exp_prim_gack(env, primary->d.exp);
+      break;
     case ae_primary_array:
-      t = check_exp_prim_array(env, primary);
+      t = check_exp_prim_array(env, primary->d.array);
       break;
     case ae_primary_char:
       t = &t_int;
@@ -660,7 +679,62 @@ static void function_alternative(Type f, Exp args){
   fprintf(stderr, "\n");
 }
 
-/* static */ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
+static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
+  m_uint type_number = 0;
+  m_uint args_number = 0;
+  Value value = NULL;
+  Func func = NULL;
+  ID_List list;
+
+  if(exp_func->exp_type == ae_exp_primary)
+    value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+  else if(exp_func->exp_type == ae_exp_dot)
+    value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+  else
+    CHECK_BO(err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type))
+  list = value->func_ref->def->types;
+
+  while(list) {
+    type_number++;
+    list = list->next;
+  }
+
+  list = value->func_ref->def->types;
+  Type_List tl[type_number];
+  while(list) { // iterate through types
+    Arg_List arg = value->func_ref->def->arg_list;
+    Exp template_arg = args;
+    while(arg && template_arg) {
+      char path[id_list_len(arg->type_decl->xid)];
+      type_path(path, arg->type_decl->xid);
+      if(!strcmp(s_name(list->xid), path)) {
+        tl[args_number] = mk_type_list(env, template_arg->type);
+        if(args_number)
+          tl[args_number - 1]->next = tl[args_number];
+        args_number++;
+        break;
+      }
+      arg = arg->next;
+      template_arg = template_arg->next;
+    }
+    list = list->next;
+  }
+  if(args_number < type_number)
+    CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
+  Func f = find_template_match(env, value, func, tl[0], exp_func, args);
+  if(f) {
+    *m_func = f;
+    Type ret_type  = f->def->ret_type;
+    env->current->types = tl[0];
+    env->current->base = value->func_ref->def->types;
+    return ret_type;
+  }
+  if(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
+                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0);
+  return NULL;
+}
+
+Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func call");
 #endif
@@ -691,56 +765,8 @@ static void function_alternative(Type f, Exp args){
     // look for a match
     func = find_func_match(up, args);
   if(!func) {
-    Value value = NULL;
-    if(!t->d.func) {
-      if(exp_func->exp_type == ae_exp_primary)
-        value = nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
-      else if(exp_func->exp_type == ae_exp_dot)
-        value = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-      else
-        CHECK_BO(err_msg(TYPE_, exp_func->pos, "unhandled expression type '%lu\' in template call.", exp_func->exp_type))
-      // template guess
-      ID_List list = value->func_ref->def->types;
-      m_uint type_number = 0;
-      m_uint args_number = 0;
-
-      while(list) {
-        type_number++;
-        list = list->next;
-      }
-      list = value->func_ref->def->types;
-      Type_List tl[type_number];
-      while(list) { // iterate through types
-        Arg_List arg = value->func_ref->def->arg_list;
-        Exp template_arg = args;
-        while(arg && template_arg) {
-          char path[id_list_len(arg->type_decl->xid)];
-          type_path(path, arg->type_decl->xid);
-          if(!strcmp(s_name(list->xid), path)) {
-            tl[args_number] = mk_type_list(env, template_arg->type);
-            if(args_number)
-              tl[args_number - 1]->next = tl[args_number];
-            args_number++;
-            break;
-          }
-          arg = arg->next;
-          template_arg = template_arg->next;
-        }
-        list = list->next;
-      }
-      if(args_number < type_number)
-        CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
-      Func f = find_template_match(env, value, func, tl[0], exp_func, args);
-      if(f) {
-        *m_func = f;
-        Type ret_type  = f->def->ret_type;
-        env->current->types = tl[0];
-        env->current->base = value->func_ref->def->types;
-        return ret_type;
-      }
-      CHECK_BO(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
-                       "\tplease provide template types. eg: '<type1, type2, ...>'")) // LCOV_EXCL_LINE
-    }
+    if(!t->d.func)
+      return check_exp_call_template(env, exp_func, args, m_func);
     function_alternative(t, args);
     return NULL;
   }
@@ -1530,21 +1556,108 @@ static m_bool check_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
+static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
+  Value v;
+  Func func = f->d.func;
+  if((v = find_value(env->class_def->parent, f->name))) {
+    Func parent_func = v->func_ref;
+    while(parent_func && !*parent_match) {
+      if(compat_func(f, parent_func->def, f->pos) < 0) {
+        parent_func = parent_func->next;
+        continue;
+      }
+      if(GET_FLAG(parent_func->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
+        CHECK_BB(err_msg(TYPE_, f->pos,
+                         "function '%s.%s' resembles '%s.%s' but cannot override...\n"
+                         "\t...(reason: '%s.%s' is declared as 'static')",
+                         env->class_def->name, s_name(f->name),
+                         v->owner_class->name, s_name(f->name),
+                         GET_FLAG(f, ae_flag_static) ? env->class_def->name :
+                             v->owner_class->name, s_name(f->name)))
+      }
+
+      if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
+        CHECK_BB(err_msg(TYPE_, f->pos,
+                         "function signatures differ in return type...\n"
+                         "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
+                         env->class_def->name, s_name(f->name),
+                         v->owner_class->name, s_name(f->name)))
+      }
+      *parent_match = 1;
+      func->vt_index = parent_func->vt_index;
+      vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
+      func->value_ref->name = func->name = parent_func->name;
+    }
+  }
+  return 1;
+}
+
+static m_bool check_parent_match(Env env, Func_Def f) {
+  m_bool parent_match = 0;
+  Type parent = env->class_def->parent;
+  Func func = f->d.func;
+  while(parent && !parent_match) {
+    Value v;
+    if((v = find_value(env->class_def->parent, f->name)))
+      CHECK_BB(parent_match_actual(env, f, &parent_match))
+    parent = parent->parent;
+  }
+  if(GET_FLAG(func, ae_flag_member) && !parent_match) {
+    func->vt_index = vector_size(&env->curr->obj_v_table);
+    vector_add(&env->curr->obj_v_table, (vtype)func);
+  }
+  return 1;
+}
+
+static m_bool check_func_args(Env env, Arg_List arg_list) {
+  m_uint count = 1;
+  while(arg_list) {
+    Value v = arg_list->var_decl->value;
+    if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0))
+      CHECK_BB(err_msg(TYPE_, arg_list->pos,
+                    "argument %i '%s' is already defined in this scope\n",
+                    count, s_name(arg_list->var_decl->xid)))
+    SET_FLAG(v, ae_flag_checked);
+    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
+    count++;
+    arg_list = arg_list->next;
+  }
+  return 1;
+}
+
+static m_bool check_func_overload(Env env, Func_Def f) {
+  m_uint i, j;
+  Value v = f->d.func->value_ref;
+  if(!f->types) {
+    char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
+                                      num_digit(v->func_num_overloads) + 3];
+    for(i = 0; i <= v->func_num_overloads; i++) {
+      sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
+      Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+      for(j = 1; j <= v->func_num_overloads; j++) {
+        if(i != j) {
+          sprintf(name, "%s@%li@%s", s_name(f->name), j, env->curr->name);
+          Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+          if(compat_func(f1->def, f2->def, f2->def->pos) > 0) {
+            CHECK_BB(err_msg(TYPE_, f2->def->pos,
+                             "global function '%s' already defined for those arguments",
+                             s_name(f->name)))
+          }
+        }
+      }
+    }
+  }
+  return 1;
+}
+
 m_bool check_func_def(Env env, Func_Def f) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func def '%s'", s_name(f->name));
 #endif
   Value value = NULL;
   Func func = NULL;
-  Type parent = NULL;
   Value override = NULL;
   Value variadic = NULL;
-  Value  v = NULL;
-  Func  parent_func = NULL;
-  Arg_List arg_list = NULL;
-  m_bool parent_match = 0;
-  m_str func_name;
-  m_uint count = 1;
   m_bool ret = 1;
 
   if(f->types)
@@ -1554,28 +1667,8 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
-  else if(value->func_num_overloads) {
-    m_uint i, j;
-    if(!f->types) {
-      char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
-                                        num_digit(value->func_num_overloads) + 3];
-      for(i = 0; i <= value->func_num_overloads; i++) {
-        sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
-        Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
-        for(j = 1; j <= value->func_num_overloads; j++) {
-          if(i != j) {
-            sprintf(name, "%s@%li@%s", s_name(f->name), j, env->curr->name);
-            Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
-            if(compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-              CHECK_BB(err_msg(TYPE_, f2->def->pos,
-                               "global function '%s' already defined for those arguments",
-                               s_name(f->name)))
-            }
-          }
-        }
-      }
-    }
-  }
+  else if(value->func_num_overloads && !f->types)
+    CHECK_BB(check_func_overload(env, f))
   if(env->class_def &&  override && isa(override->m_type, &t_function) < 0)
     CHECK_BB(err_msg(TYPE_, f->pos,
                      "function name '%s' conflicts with previously defined value...\n"
@@ -1583,65 +1676,13 @@ m_bool check_func_def(Env env, Func_Def f) {
                      s_name(f->name), override->owner_class->name))
   if(override)
     func->up = override;
-  if(env->class_def) {
-    parent = env->class_def->parent;
-    while(parent && !parent_match) {
-      if((v = find_value(env->class_def->parent, f->name))) {
-        parent_func = v->func_ref;
-        while(parent_func && !parent_match) {
-          if(compat_func(f, parent_func->def, f->pos) < 0) {
-            parent_func = parent_func->next;
-            continue;
-          }
-          if(GET_FLAG(parent_func->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
-            CHECK_BB(err_msg(TYPE_, f->pos,
-                             "function '%s.%s' resembles '%s.%s' but cannot override...\n"
-                             "\t...(reason: '%s.%s' is declared as 'static')",
-                             env->class_def->name, s_name(f->name),
-                             v->owner_class->name, s_name(f->name),
-                             GET_FLAG(f, ae_flag_static) ? env->class_def->name :
-                                 v->owner_class->name, s_name(f->name)))
-          }
+  if(env->class_def)
+    CHECK_BB(check_parent_match(env, f))
 
-          if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
-            CHECK_BB(err_msg(TYPE_, f->pos,
-                             "function signatures differ in return type...\n"
-                             "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-                             env->class_def->name, s_name(f->name),
-                             v->owner_class->name, s_name(f->name)))
-          }
-          parent_match = 1;
-          func->vt_index = parent_func->vt_index;
-          vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
-          func_name = parent_func->name;
-          func->name = func_name;
-          value->name = func_name;
-        }
-      }
-      parent = parent->parent;
-    }
-  }
-  if(GET_FLAG(func, ae_flag_member) && !parent_match) {
-    func->vt_index = vector_size(&env->curr->obj_v_table);
-    vector_add(&env->curr->obj_v_table, (vtype)func);
-  }
   env->func = func;
   nspc_push_value(env->curr);
-  arg_list = f->arg_list;
-  while(arg_list) {
-    v = arg_list->var_decl->value;
-    if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0)) {
-      ret = err_msg(TYPE_, arg_list->pos,
-                    "argument %i '%s' is already defined in this scope\n"
-                    "\tin function '%s':",
-                    count, s_name(arg_list->var_decl->xid), s_name(f->name));
-      break;
-    }
-    SET_FLAG(v, ae_flag_checked);
-    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
-    count++;
-    arg_list = arg_list->next;
-  }
+
+  ret = check_func_args(env, f->arg_list);
 
   if(GET_FLAG(f, ae_flag_variadic)) {
     variadic = new_value(&t_vararg, "vararg");

@@ -6,6 +6,10 @@ languages:
       include:
         - .*/src/.*\.c
         - .*/src/drvr\.c
+      exclude:
+        - .*/src/parser\.c
+        - .*/src/lexer\.c
+        - .*/src/soundpipe\.c
     test:
       include:
         - .*/examples/.*\.gw
