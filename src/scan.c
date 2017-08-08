@@ -47,6 +47,12 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
 
+  if(class_def->home )
+  {
+    vector_add(&env->nspc_stack, (vtype)env->curr);
+    env->curr = class_def->home;
+  }
+
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
                      "class/type '%s' is already defined in namespace '%s'",
@@ -101,6 +107,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     class_def->type = the_class;
   }
 
+  if(class_def->home)
+    env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  else
+    class_def->home = env->curr;
+
   return ret;
 }
 
@@ -119,6 +130,7 @@ m_bool scan0_Ast(Env env, Ast prog) {
             CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
                              "more than one 'public' class defined..."))
           }
+          prog->section->d.class_def->home = env->global_nspc; // migth be user
           env->context->public_class_def = prog->section->d.class_def;
         }
         CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))

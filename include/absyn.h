@@ -493,6 +493,7 @@ struct Class_Def_ {
   ID_List ext;
   Class_Body body;
   Type type;
+  Nspc home;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
