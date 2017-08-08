@@ -281,8 +281,8 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   Type type, base_type;
   Instr instr;
   m_uint depth = 0;
-  Array_Sub sub = NULL;
-  Exp exp = NULL;
+  Array_Sub sub;
+  Exp exp;
   m_uint is_var = 0;
 
   type = array->self->type;
@@ -1192,7 +1192,7 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "loop");
 #endif
-  Instr init, op = NULL, deref, dec = NULL, _goto = NULL;
+  Instr init, op, deref, dec, _goto;
   m_int* counter;
   m_uint index;
 
