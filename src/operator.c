@@ -186,6 +186,17 @@ return -1;
       return 1;
 }
 
+Type get_return_type_inner(Map map, Operator op, Type l, Type rhs) {
+  Type r = rhs;
+  do {
+    M_Operator* mo;
+    Vector v = (Vector)map_get(map, (vtype)op);
+    if((mo = operator_find(v, l, r)))
+      return mo->ret;
+  } while(r && (r = r->parent));
+  return NULL;
+}
+
 Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
   Nspc nspc = env->curr;
 
@@ -193,13 +204,9 @@ Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
     if(nspc->op_map.ptr) {
       Type l = lhs;
       do {
-        Type r = rhs;
-        do {
-          M_Operator* mo;
-          Vector v = (Vector)map_get(&nspc->op_map, (vtype)op);
-          if((mo = operator_find(v, l, r)))
-            return mo->ret;
-        } while(r && (r = r->parent));
+        Type ret = get_return_type_inner(&nspc->op_map, op, l, rhs);
+        if(ret)
+          return ret;
       } while(l && (l = l->parent));
     }
     nspc = nspc->parent;
