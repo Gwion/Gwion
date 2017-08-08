@@ -211,35 +211,42 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
   return decl->m_type;
 }
 
+static m_bool check_exp_prim_array_inner(Type t, Type type, Exp e) {
+  Type common = find_common_anc(t, type);
+  if(common)
+    type = common;
+  else {
+    if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
+      e->cast_to = type;
+      return 1;
+    } else
+      CHECK_BB(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types..."))
+  }
+  return 1;
+}
+
+static Type check_exp_prim_array_match(Env env, Exp e) {
+  Type t, type = NULL;
+  while(e) {
+    t = e->type;
+    if(!type)
+      type = t;
+    else 
+      CHECK_BO(check_exp_prim_array_inner(t, type, e))
+    e = e->next;
+  }
+  return new_array_type(env, type->array_depth + 1,
+                     type->array_depth ? type->d.array_type : type,  env->curr);
+}
+
 static Type check_exp_prim_array(Env env, Array_Sub array) {
   Exp e;
-  Type t = NULL, type = NULL, common = NULL;
 
   CHECK_BO(verify_array(array))
   if(!(e = array->exp_list))
     CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
-  while(e) {
-    t = e->type;
-    if(!type)
-      type = t;
-    else {
-      common = find_common_anc(t, type);
-      if(common)
-        type = common;
-      else {
-        if(isa(t, &t_int) > 0 && isa(type, &t_float) > 0) {
-          e->cast_to = type;
-        } else
-          CHECK_BO(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types..."))
-        }
-    }
-    e = e->next;
-  }
-  t = new_array_type(env, type->array_depth + 1,
-                     type->array_depth ? type->d.array_type : type,  env->curr);
-  array->type = t;
-  return t;
+  return (array->type = check_exp_prim_array_match(env, e));
 }
 
 static Type check_exp_primary_vec(Env env, Vec vec) {
@@ -267,6 +274,27 @@ static Type check_exp_primary_vec(Env env, Vec vec) {
   return &t_vec4;
 }
 
+static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
+  m_str str = s_name(primary->d.var);
+  Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
+  if(!v)
+    v = find_value(env->class_def, primary->d.var);
+  if(v) {
+    if(env->class_def && env->func) {
+      if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
+        CHECK_BO(err_msg(TYPE_, primary->pos,
+                         "non-static member '%s' used from static function...", str))
+    }
+  }
+  if(!v || !GET_FLAG(v, ae_flag_checked))
+    CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
+                     str ? str : "", v))
+  primary->value = v;
+  if(GET_FLAG(v, ae_flag_const))
+    primary->self->meta = ae_meta_value;
+  return v->m_type;
+}
+
 static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
   Type t;
   m_str str = s_name(primary->d.var);
@@ -290,27 +318,8 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
   } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
     primary->self->meta = ae_meta_value;
     t = &t_int;
-  } else {
-    Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
-    if(!v)
-      v = find_value(env->class_def, primary->d.var);
-    if(v) {
-      if(env->class_def && env->func) {
-        if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static)) {
-          CHECK_BO(err_msg(TYPE_, primary->pos,
-                           "non-static member '%s' used from static function...", str))
-        }
-      }
-    }
-    if(!v || !GET_FLAG(v, ae_flag_checked)) {
-      CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-                       str ? str : "", v))
-    }
-    t = v->m_type;
-    primary->value = v;
-    if(GET_FLAG(v, ae_flag_const))
-      primary->self->meta = ae_meta_value;
-  }
+  } else
+    t = check_exp_prim_id_non_res(env, primary);
   return t;
 }
 
@@ -509,39 +518,38 @@ static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific )
   return 1;
 }
 
-static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
-  Exp e;
-  Arg_List e1;
-  m_uint count;
-  Func func;
+static Func find_func_match_actual_inner(Func func, Exp args, m_bool implicit, m_bool specific) {
+  while(func) {
+    Exp e = args;
+    Arg_List e1 = func->def->arg_list;
 
+    while(e) {
+      if(!e1) {
+        if(GET_FLAG(func->def, ae_flag_variadic))
+          return func;
+        goto moveon;
+      }
+      if(func_match_inner(e, e1->type, implicit, specific) < 0)
+          goto moveon;
+      e = e->next;
+      e1 = e1->next;
+    }
+    if(!e1)
+      return func;
+moveon:
+    func = func->next;
+  }
+  return NULL;
+}
+
+static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
   if(args && isa(args->type, &t_void) > 0)
     args = NULL;
 
   while(up) {
-    func = up;
-    while(func) {
-      e = args;
-      e1 = func->def->arg_list;
-      count = 1;
-
-      while(e) {
-        if(!e1) {
-          if(GET_FLAG(func->def, ae_flag_variadic))
-            return func;
-          goto moveon;
-        }
-        if(func_match_inner(e, e1->type, implicit, specific) < 0)
-            goto moveon;
-        e = e->next;
-        e1 = e1->next;
-        count++;
-      }
-      if(!e1)
-        return func;
-moveon:
-      func = func->next;
-    }
+    Func func;
+    if((func = find_func_match_actual_inner(up, args, implicit, specific)))
+      return func;
     up = up->up ? up->up->func_ref : NULL;
   }
   return NULL;
@@ -557,6 +565,26 @@ static Func find_func_match(Func up, Exp args) {
   return NULL;
 }
 
+static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
+  m_int ret = scan1_func_def(env, def);
+  nspc_pop_type(env->curr);
+  if(ret < 0 || scan2_func_def(env, def) < 0 ||
+                check_func_def(env, def) < 0 ||
+               !check_exp(env, func)         ||
+     (args  && !check_exp(env, args)))
+    return -1;
+  return 1;
+}
+
+static m_bool template_set_env(Env env, Value v) {
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = v->owner_class->info;
+  vector_add(&env->class_stack, (vtype)env->class_def);
+  env->class_def = v->owner_class;
+  env->class_scope = 0; // should keep former value somewhere
+  return 1;
+}
+
 Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
   m_uint i, digit, len;
   Func_Def base;
@@ -565,13 +593,8 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   CHECK_OO(v)
   digit = num_digit(v->func_num_overloads + 1);
   len = strlen(v->name) + strlen(env->curr->name);
-  if(v->owner_class) {
-    vector_add(&env->nspc_stack, (vtype)env->curr);
-    env->curr = v->owner_class->info;
-    vector_add(&env->class_stack, (vtype)env->class_def);
-    env->class_def = v->owner_class;
-    env->class_scope = 0; // should keep former value somewhere
-  }
+  if(v->owner_class)
+    CHECK_BO(template_set_env(env, v))
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
@@ -603,12 +626,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
       list = list->next;
       base_t = base_t->next;
     }
-    m_int ret = scan1_func_def(env, def);
-    nspc_pop_type(env->curr);
-    if(ret < 0 || scan2_func_def(env, def) < 0 ||
-                  check_func_def(env, def) < 0 ||
-                 !check_exp(env, func)         ||
-       (args  && !check_exp(env, args)))
+    if(find_template_match_inner(env, func, def, args) < 0)
       goto next;
     def->d.func->next = NULL;
     m_func = find_func_match(def->d.func, args);
@@ -893,6 +911,12 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
   if(cr->exp_type == ae_exp_decl)
     cr->d.exp_decl.type->ref = 1;
 
+  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
+    CHECK_BB(err_msg(TYPE_, cl->pos,
+                     "cannot assign '%s' on types '%s' and'%s'...\n"
+                     "...(reason: --- right-side operand is not mutable)",
+                     "=>", cl->type->name, cr->type->name))
+  }
   if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
     if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
       CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
@@ -911,15 +935,15 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
 }
 
 static m_bool check_exp_binary_chuck(Exp cl, Exp cr) {
+  if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
+    cr->emit_var = cl->emit_var = 0;
+    return 1;
+  }
   if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
     CHECK_BB(err_msg(TYPE_, cl->pos,
                      "cannot assign '%s' on types '%s' and'%s'...\n"
                      "...(reason: --- right-side operand is not mutable)",
                      "=>", cl->type->name, cr->type->name))
-  }
-  if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
-    cr->emit_var = cl->emit_var = 0;
-    return 1;
   }
   cr->emit_var = 1;
   return 1;
