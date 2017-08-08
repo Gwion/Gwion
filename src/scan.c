@@ -47,8 +47,13 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
 
-  if(class_def->home )
-  {
+  if(class_def->decl == ae_flag_public) {
+    if(env->context->public_class_def) {
+      CHECK_BB(err_msg(SCAN0_, class_def->pos,
+                       "more than one 'public' class defined..."))
+    }
+    class_def->home = env->global_nspc; // migth be user
+    env->context->public_class_def = class_def;
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
@@ -125,14 +130,6 @@ m_bool scan0_Ast(Env env, Ast prog) {
       case ae_section_func:
         break;
       case ae_section_class:
-        if(prog->section->d.class_def->decl == ae_flag_public) {
-          if(env->context->public_class_def) {
-            CHECK_BB(err_msg(SCAN0_, prog->section->d.class_def->pos,
-                             "more than one 'public' class defined..."))
-          }
-          prog->section->d.class_def->home = env->global_nspc; // migth be user
-          env->context->public_class_def = prog->section->d.class_def;
-        }
         CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))
         break;
     }

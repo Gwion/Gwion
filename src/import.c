@@ -47,8 +47,8 @@ static m_bool check_illegal(char* curr, char c, m_uint i) {
   return 1;
 }
 
-static void path_valid_inner(m_str curr, m_uint j) {
-  m_int size = strlen(curr);
+static void path_valid_inner(m_str curr) {
+  m_int j, size = strlen(curr);
   for(j = (size / 2) + 1; --j;) {
     char s = curr[j];
     curr[j] = curr[size - j - 1];
@@ -58,7 +58,7 @@ static void path_valid_inner(m_str curr, m_uint j) {
 
 static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
   char last = '\0';
-  m_uint i, j;
+  m_uint i;
   for(i = len; --i;) {
     char c = path[i - 1];
     if(c != '.' && check_illegal(curr, c, i) < 0)
@@ -66,7 +66,7 @@ static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
     if(c == '.' || i == 1) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
-        path_valid_inner(curr, j);
+        path_valid_inner(curr);
         *list = prepend_id_list(curr, *list, 0);
         memset(curr, 0, len + 1);
       } else
