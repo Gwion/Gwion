@@ -61,6 +61,14 @@ static void nspc_release_object(Nspc a, Value value) {
     REM_REF(value->m_type);
 }
 
+static void free_nspc_value_func(Func f) {
+  while(f) {
+    Func tmp = f->next;
+    free(f);
+    f = tmp;
+  }
+}
+
 static void free_nspc_value(Nspc a) {
   m_uint i;
   Vector v = scope_get(&a->value);
@@ -73,16 +81,9 @@ static void free_nspc_value(Nspc a) {
       else if(isa(value->m_type, &t_object) > 0)
         nspc_release_object(a, value);
       else if(isa(value->m_type, &t_func_ptr) > 0) {
-        Func f = value->func_ref;
-        while(f) {
-          Func tmp = f->next;
-          free(f);
-          f = tmp;
-        }
+        free_nspc_value_func(value->func_ref);
       } else if(isa(value->m_type, &t_function) > 0) {
-        if(value->m_type != &t_function && GET_FLAG(value, ae_flag_builtin))
-          REM_REF(value->m_type)
-        else if(GET_FLAG(value, ae_flag_template))
+        if(GET_FLAG(value, ae_flag_template))
           REM_REF(value->func_ref)
         else
           REM_REF(value->m_type)
