@@ -221,12 +221,11 @@ static Instr handle_instr(Emitter emit, M_Operator* mo) {
     Instr instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
     CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
     return instr;
-  } else if(mo->instr) {
-    return add_instr(emit, mo->instr);
-  } else {
-    err_msg(EMIT_, 0, "Trying to call non emitted operator.");
-    return NULL;
   }
+  if(mo->instr)
+    return add_instr(emit, mo->instr);
+  CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
+  return NULL;
 }
 Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
   Nspc nspc = emit->env->curr;

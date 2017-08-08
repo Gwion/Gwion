@@ -50,7 +50,7 @@ static void handle_plug(Env env, m_str c) {
     }
   } else {
     const char* err = dlerror();
-    if(err_msg(TYPE_, 0, "error in %s.", err) < 0);
+    if(err_msg(TYPE_, 0, "error in %s.", err) < 0){}
   }
 }
 
@@ -635,7 +635,7 @@ next:
 
 static void function_alternative(Type f, Exp args){
   m_uint i;
-  err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :");
+  if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
   while(up) {
     Arg_List e = up->def->arg_list;
@@ -741,7 +741,7 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
     return ret_type;
   }
   if(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
-                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0);
+                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
   return NULL;
 }
 
@@ -890,13 +890,6 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
 }
 
 static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
-  if(cr->meta != ae_meta_var) {
-    CHECK_BB(err_msg(TYPE_, cr->pos,
-                     "cannot assign '%s' on types '%s' and'%s'...",
-                     "...(reason: --- rigth-side operand is not mutable)",
-                     "@=>", cl->type->name, cr->type->name))
-  }
-
   if(cr->exp_type == ae_exp_decl)
     cr->d.exp_decl.type->ref = 1;
 
@@ -918,15 +911,15 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
 }
 
 static m_bool check_exp_binary_chuck(Exp cl, Exp cr) {
+  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
+    CHECK_BB(err_msg(TYPE_, cl->pos,
+                     "cannot assign '%s' on types '%s' and'%s'...\n"
+                     "...(reason: --- right-side operand is not mutable)",
+                     "=>", cl->type->name, cr->type->name))
+  }
   if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
     cr->emit_var = cl->emit_var = 0;
     return 1;
-  }
-  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
-    CHECK_BB(err_msg(TYPE_, cl->pos,
-                     "cannot assign '%s' on types '%s' and'%s'...",
-                     "...(reason: --- right-side operand is not mutable)",
-                     "=>", cl->type->name, cr->type->name))
   }
   cr->emit_var = 1;
   return 1;
@@ -952,7 +945,9 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
       cl->emit_var = 1;
       break;
     case op_at_chuck:
+      CHECK_BO(check_exp_binary_chuck(cl, cr))
       CHECK_BO(check_exp_binary_at_chuck(cl, cr))
+      break;
     case op_chuck:
       CHECK_BO(check_exp_binary_chuck(cl, cr))
       break;
