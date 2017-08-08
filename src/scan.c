@@ -451,6 +451,14 @@ static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
+static m_bool scan1_stmt_union_array(Array_Sub array) {
+  CHECK_BB(verify_array(array))
+  if(array->exp_list)
+    CHECK_BB(err_msg(SCAN1_, array->pos,
+      "array declaration must be empty in union."))
+  return 1;
+}
+
 static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
@@ -471,13 +479,8 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     while(list) {
       var_decl = list->self;
       l->self->d.exp_decl.num_decl++;
-      if(var_decl->array) {
-        CHECK_BB(verify_array(var_decl->array))
-        if(var_decl->array->exp_list) {
-          CHECK_BB(err_msg(SCAN1_, l->self->pos,
-                           "array declaration must be empty in union."))
-        }
-      }
+      if(var_decl->array)
+        CHECK_BB(scan1_stmt_union_array(var_decl->array))
       list = list->next;
     }
     l->self->d.exp_decl.m_type = t;
