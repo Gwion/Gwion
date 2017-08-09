@@ -1060,33 +1060,43 @@ INSTR(Instr_Pre_Ctor_Array_Post) {
   free(array);
 }
 
-static M_Object do_alloc_array(VM_Shred shred, m_int capacity, const m_int top, Type type, m_bool is_obj, m_uint* objs, m_int* index) {
+struct ArrayAllocInfo {
+  m_int capacity;
+  const m_int top;
+  Type type;
+  m_bool is_obj;
+  m_uint* objs;
+  m_int* index;
+};
+
+static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
   M_Object base = NULL, next = NULL;
   m_int i = 0;
-  m_int cap = *(m_int*)REG(capacity * SZ_INT);
+  m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
   if(cap < 0)
     goto negative_array_size;
-  if(capacity >= top) {
-    base = new_M_Array(type->d.array_type->size, cap, -capacity);
+  if(info->capacity >= info->top) {
+    base = new_M_Array(info->type->d.array_type->size, cap, -info->capacity);
     if(!base)
       goto out_of_memory;
-    base->type_ref = type; // /13/03/17
-    ADD_REF(type);
-    if(is_obj && objs) {
+    base->type_ref = info->type; // /13/03/17
+    ADD_REF(info->type);
+    if(info->is_obj && info->objs) {
       for(i = 0; i < cap; i++) {
-        objs[*index] = (m_uint)i_vector_addr(ARRAY(base), i);
-        (*index)++;
+        info->objs[*info->index] = (m_uint)i_vector_addr(ARRAY(base), i);
+        (*info->index)++;
       }
     }
     return base;
   }
-  base = new_M_Array(SZ_INT, cap, -capacity);
+  base = new_M_Array(SZ_INT, cap, -info->capacity);
   if(!base)
     goto out_of_memory;
-  base->type_ref = type;
-  ADD_REF(type);
+  base->type_ref = info->type;
+  ADD_REF(info->type);
   for(i = 0; i < cap; i++) {
-    next = do_alloc_array(shred, capacity + 1, top, type, is_obj, objs, index);
+    struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type, info->is_obj, info->objs, info->index };
+    next = do_alloc_array(shred, &aai);
     if(!next)
       goto error;
     // set that, with ref count
@@ -1100,7 +1110,7 @@ out_of_memory:
 
 negative_array_size:
   fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-  REM_REF(type);
+  REM_REF(info->type);
 error:
   if(base) release(base, shred); // LCOV_EXCL_LINE
   return NULL;
@@ -1166,7 +1176,7 @@ INSTR(Instr_Array_Alloc) {
   m_int index = 0;
   m_float num = 1.0;
   m_uint* obj_array = NULL;
-
+  struct ArrayAllocInfo aai = { -info->depth, -1, info->type,  info->is_obj, obj_array, &index};
   if(info->is_obj && !info->is_ref) {
     m_int curr = -info->depth;
     m_int top = - 1;
@@ -1185,7 +1195,9 @@ INSTR(Instr_Array_Alloc) {
         goto out_of_memory;
     }
   }
-  if(!(ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index)))
+  aai.objs = obj_array;
+  /*if(!(ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index)))*/
+  if(!(ref = do_alloc_array(shred, &aai)))
     goto error;
   POP_REG(shred, SZ_INT * info->depth);
   *(M_Object*)REG(0) = ref;
