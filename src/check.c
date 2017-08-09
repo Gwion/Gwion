@@ -92,7 +92,8 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   if(import_array(env)     < 0) goto error;
   env->do_type_xid = 1;
   if(import_fileio(env)    < 0) goto error;
-  if(import_lib(env)       < 0) goto error;
+  if(import_std(env)       < 0) goto error;
+  if(import_math(env)       < 0) goto error;
   if(import_machine(env)   < 0) goto error;
   if(import_soundpipe(env) < 0) goto error;
   if(import_modules(env)   < 0) goto error;

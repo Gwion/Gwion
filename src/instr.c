@@ -1095,7 +1095,8 @@ static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
   base->type_ref = info->type;
   ADD_REF(info->type);
   for(i = 0; i < cap; i++) {
-    struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type, info->is_obj, info->objs, info->index };
+    struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
+      info->is_obj, info->objs, info->index };
     next = do_alloc_array(shred, &aai);
     if(!next)
       goto error;

@@ -17,8 +17,8 @@ extern m_bool import_object(Env env);
 extern m_bool import_string(Env env);
 extern m_bool import_event(Env env);
 extern m_bool import_fileio(Env env);
-extern m_bool import_lib(Env env);
-extern m_bool import_analys(Env env);
+extern m_bool import_std(Env env);
+extern m_bool import_math(Env env);
 extern m_bool import_soundpipe(Env env);
 
 M_Object new_shred(VM* vm, VM_Shred shred);
