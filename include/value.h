@@ -16,3 +16,4 @@ struct Value_ {
 };
 
 Value new_value(Type type, m_str name);
+void free_value(Value a);
