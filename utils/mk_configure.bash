@@ -205,7 +205,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 
   mk_header "initialize source lists"
   do_expand "src"
-  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"lib_src := \\\$(wildcard src/lib/*.c)\"\necho \"drvr_src := src/drvr/driver.c\"\n"
+  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"lib_src := \\\$(wildcard src/lib/*.c)\"\necho \"util_src := \\\$(wildcard src/util/*.c)\"\necho \"drvr_src := src/drvr/driver.c\"\n"
   echo "}"
 }
 
@@ -258,7 +258,7 @@ EOF
   echo "echo \"CFLAGS  += \\\${SOUNDPIPE_INC}\""
 
   mk_header "initialize object lists"
-  do_expand "src lib drvr"
+  do_expand "src lib util drvr"
   printf "echo \"\${iter}_obj := \\\$(\${iter}_src:.c=.o)\"\ndone\n"
   echo "}"
 }
@@ -289,9 +289,9 @@ LDFLAGS+=-lrt
 endif
 
 # recipes
-all: options \\\${src_obj} \\\${lib_obj} \\\${drvr_obj}
+all: options \\\${src_obj} \\\${lib_obj} \\\${util_obj} \\\${drvr_obj}
 	@echo "link \\\${PRG}"
-	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 options:
 	@echo "CFLAGS  : \\\${CFLAGS}"

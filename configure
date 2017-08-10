@@ -563,6 +563,7 @@ do
 	echo "${iter}_src := \$(wildcard ${iter}/*.c)"
 done
 echo "lib_src := \$(wildcard src/lib/*.c)"
+echo "util_src := \$(wildcard src/util/*.c)"
 echo "drvr_src := src/drvr/driver.c"
 }
 make_add() {
@@ -632,7 +633,7 @@ echo "LDFLAGS += \${SOUNDPIPE_LIB}"
 echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
-for iter in src lib drvr
+for iter in src lib util drvr
 do
 	echo "${iter}_obj := \$(${iter}_src:.c=.o)"
 done
@@ -654,9 +655,9 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: options \${src_obj} \${lib_obj} \${drvr_obj}
+all: options \${src_obj} \${lib_obj} \${util_obj} \${drvr_obj}
 	@echo "link \${PRG}"
-	@\${CC} \${src_obj} \${lib_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+	@\${CC} \${src_obj} \${lib_obj} \${util_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 options:
 	@echo "CFLAGS  : \${CFLAGS}"
