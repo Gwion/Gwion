@@ -299,7 +299,7 @@ options:
 
 clean:
 	@echo "cleaning..."
-	@rm -f */*.o */*.gcda */*.gcno \${PRG}
+	@rm -f */*/*.o */*/*.gcda */*/*.gcno \${PRG}
 
 src/main.o:
 	@echo "compile main (with arguments defines)"
