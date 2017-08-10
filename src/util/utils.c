@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #ifndef __linux__
 #include <sys/select.h>
 #endif

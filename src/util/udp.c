@@ -1,5 +1,6 @@
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
 #ifndef __linux__
 #include <sys/select.h>
 #endif
