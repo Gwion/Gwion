@@ -1,6 +1,8 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "compile.h"
+
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 
 static m_str randstring(VM* vm, int length) {
