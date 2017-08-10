@@ -45,8 +45,8 @@ static void handle_plug(Env env, m_str c) {
       }
     } else {
       const char* err = dlerror();
-      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0);
-      dlclose(handler);
+      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
+        dlclose(handler);
     }
   } else {
     const char* err = dlerror();
