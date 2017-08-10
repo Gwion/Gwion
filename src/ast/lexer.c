@@ -1,6 +1,6 @@
-#line 1 "src/lexer.c"
+#line 1 "src/ast/lexer.c"
 
-#line 3 "src/lexer.c"
+#line 3 "src/ast/lexer.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -878,10 +878,10 @@ static int newline(void*data)
 char *gwion_get_text (yyscan_t yyscanner );
  
 static int adjust(void* data);
-#line 881 "src/lexer.c"
+#line 881 "src/ast/lexer.c"
 #define YY_NO_INPUT 1
 
-#line 884 "src/lexer.c"
+#line 884 "src/ast/lexer.c"
 
 #define INITIAL 0
 #define comment 1
@@ -1158,7 +1158,7 @@ YY_DECL
 #line 78 "utils/gwion.l"
 
 
-#line 1161 "src/lexer.c"
+#line 1161 "src/ast/lexer.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1780,7 +1780,7 @@ YY_RULE_SETUP
 #line 205 "utils/gwion.l"
 ECHO;
 	YY_BREAK
-#line 1783 "src/lexer.c"
+#line 1783 "src/ast/lexer.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(comment):
 case YY_STATE_EOF(COMMENT):
