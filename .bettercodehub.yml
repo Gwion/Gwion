@@ -7,8 +7,8 @@ languages:
         - .*/src/.*\.c
         - .*/src/drvr\.c
       exclude:
-        - .*/src/parser\.c
-        - .*/src/lexer\.c
+        - .*/src/ast/parser\.c
+        - .*/src/ast/lexer\.c
         - .*/src/soundpipe\.c
     test:
       include:
