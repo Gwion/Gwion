@@ -257,6 +257,7 @@ void free_vm(VM* vm) {
   free(vm->in);
   free_shreduler(vm->shreduler);
   free(vm);
+  free_symbols();
 }
 
 void vm_add_shred(VM* vm, VM_Shred shred) {

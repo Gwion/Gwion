@@ -333,6 +333,5 @@ clean:
       free(env);
     free_vm(vm);
   }
-  free_Symbols();
   return 0;
 }
