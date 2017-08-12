@@ -1594,7 +1594,7 @@ static m_bool emit_member(Emitter emit, Value v, m_bool emit_addr) {
   *(m_uint*)func_i->ptr = emit_addr;
   return 1;
 }
-  
+
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "dot member");
@@ -1644,34 +1644,63 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   return 1;
 }
 
+static m_bool emit_func_def_local(Emitter emit, Value value) {
+  Local* local = frame_alloc_local(emit->code->frame, value->m_type->size, 1, 0);
+  Instr set_mem = add_instr(emit, Mem_Set_Imm);
+  set_mem->m_val = value->offset = local->offset;
+  *(Func*)set_mem->ptr = value->func_ref;
+  return 1;
+}
+
+static m_bool emit_def_alloc_local(Code* code, m_str name, m_uint pos) {
+  if(!frame_alloc_local(code->frame, SZ_INT, 1, 0))
+    CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: cannot allocate local '%s'...", name)) // LCOV_EXCL_LINE
+  code->stack_depth += SZ_INT;
+  return 1;
+}
+
+static m_bool emit_func_def_args(Code* code, Arg_List a) {
+  while(a) {
+    Local* local;
+    Value value = a->var_decl->value;
+    Type type = value->m_type;
+    m_bool is_obj = !isprim(type);
+    m_bool is_ref = a->type_decl->ref;
+
+    code->stack_depth += type->size;
+    if(!(local = frame_alloc_local(code->frame, type->size, is_ref, is_obj)))
+      CHECK_BB(err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name))
+    value->offset = local->offset;
+    a = a->next;
+  }
+  return 1;
+}
+
+static m_bool emit_func_def_stack_return(Emitter emit) {
+  Code* code = emit->code;
+  m_uint i;
+  for(i = 0; i < vector_size(&code->stack_return); i++) {
+    Instr instr = (Instr)vector_at(&code->stack_return, i);
+    instr->m_val = vector_size(&code->code);
+  }
+  vector_clear(&code->stack_return);
+  sadd_instr(emit, Func_Return);
+  return 1;
+}
+
 static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "func def");
 #endif
   Func func = func_def->d.func;
   Value value = func->value_ref;
-  Type type = value->m_type;
-  Local* local = NULL;
-  Arg_List a = func_def->arg_list;
   char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
-  m_bool is_obj = 0;
-  m_bool is_ref = 0;
 
-  if(func->code)
-    CHECK_BB(err_msg(EMIT_, func_def->pos, "function '%s' already emitted...", s_name(func_def->name))) // LCOV_EXCL_LINE
-
-  if(func_def->types) { // don't check template definition
-    func_def->flag &= ~ae_flag_template;
+  if(func_def->types)
     return 1;
-  }
 
-  if(!emit->env->class_def) {
-    local = frame_alloc_local(emit->code->frame, value->m_type->size, 1, 0);
-    value->offset = local->offset;
-    Instr set_mem = add_instr(emit, Mem_Set_Imm);
-    set_mem->m_val = value->offset;
-    *(Func*)set_mem->ptr = func;
-  }
+  if(!emit->env->class_def)
+    CHECK_BB(emit_func_def_local(emit, value))
 
   emit->env->func = func;
   vector_add(&emit->stack, (vtype)emit->code);
@@ -1681,34 +1710,13 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   emit->code->need_this = GET_FLAG(func, ae_flag_member);
   emit->code->filename = strdup(emit->filename);
 
-  if(GET_FLAG(func, ae_flag_member)) {
-    emit->code->stack_depth += SZ_INT;
-    if(!frame_alloc_local(emit->code->frame, SZ_INT, 1, 0))
-      CHECK_BB(err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
-  }
+  if(GET_FLAG(func, ae_flag_member))
+     CHECK_BB(emit_def_alloc_local(emit->code, "this", func_def->pos))
+  if(GET_FLAG(func_def, ae_flag_variadic))
+    CHECK_BB(emit_def_alloc_local(emit->code, "vararg", func_def->pos))
 
   frame_push_scope(emit->code->frame);
-  while(a) {
-    value = a->var_decl->value;
-    type = value->m_type;
-    is_obj = !isprim(type);
-    is_ref = a->type_decl->ref;
-    emit->code->stack_depth += type->size;
-
-    local = frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj);
-
-    if(!local) {
-      err_msg(EMIT_, a->pos, "(emit): internal error: cannot allocate local '%s'...", value->name); // LCOV_EXCL_START
-      goto error;
-    }                                                                                               // LCOV_EXCL_STOP
-    value->offset = local->offset;
-    a = a->next;
-  }
-  if(GET_FLAG(func_def, ae_flag_variadic)) {
-    if(!frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj))
-      CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
-      emit->code->stack_depth += SZ_INT;
-  }
+  CHECK_BB(emit_func_def_args(emit->code, func_def->arg_list))
 
   if(emit_stmt(emit, func_def->code, 0) < 0)
     goto error;
@@ -1725,23 +1733,17 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
       !*(m_uint*)emit->env->func->variadic->ptr))
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
-    m_uint i;
-  for(i = 0; i < vector_size(&emit->code->stack_return); i++) {
-    Instr instr = (Instr)vector_at(&emit->code->stack_return, i);
-    instr->m_val = vector_size(&emit->code->code);
-  }
-  vector_clear(&emit->code->stack_return);
-  sadd_instr(emit, Func_Return);
+  CHECK_BB(emit_func_def_stack_return(emit))
   func->code = emit_code(emit);
-  if(GET_FLAG(func->def, ae_flag_dtor)) {
+  if(GET_FLAG(func->def, ae_flag_dtor))
     emit->env->class_def->info->dtor = func->code;
-    SET_FLAG(emit->env->class_def, ae_flag_dtor);
-  } else if(GET_FLAG(func->def, ae_flag_op))
+  else if(GET_FLAG(func->def, ae_flag_op))
     operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   emit->env->func = NULL;
   emit->code = (Code*)vector_pop(&emit->stack);
   return 1;
 error:
+  emit->env->func = NULL;
   free_code(emit->code);
   emit->code = (Code*)vector_pop(&emit->stack);
   return -1;
@@ -1756,12 +1758,9 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Class_Body body = class_def->body;
   char c[strlen(type->name) + 7];
 
-  if(type->info->class_data_size) {
-    type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
-    if(!type->info->class_data)
+  if(type->info->class_data_size)
+    if(!(type->info->class_data = calloc(type->info->class_data_size, sizeof(char))))
       CHECK_BB(err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name)) // LCOV_EXCL_LINE
-    }
-  memset(type->info->class_data, 0, type->info->class_data_size);
   vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
   emit->env->class_def = type;
   vector_add(&emit->stack, (vtype)emit->code);
@@ -1771,24 +1770,22 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
 
   emit->code->need_this = 1;
   emit->code->filename = strdup(emit->filename);
-  emit->code->stack_depth += SZ_INT;
-  if(!frame_alloc_local(emit->code->frame, SZ_INT, 1, 1))
-    CHECK_BB(err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
+  CHECK_BB(emit_def_alloc_local(emit->code, "this", class_def->pos))
 
-    while(body && ret > 0) {
-      switch(body->section->type) {
-        case ae_section_stmt:
-          ret = emit_stmt_list(emit, body->section->d.stmt_list);
-          break;
-        case ae_section_func:
-          ret = emit_func_def(emit, body->section->d.func_def);
-          break;
-        case ae_section_class:
-          ret = emit_class_def(emit, body->section->d.class_def);
-          break;
-      }
-      body = body->next;
+  while(body && ret > 0) {
+    switch(body->section->type) {
+      case ae_section_stmt:
+        ret = emit_stmt_list(emit, body->section->d.stmt_list);
+        break;
+      case ae_section_func:
+        ret = emit_func_def(emit, body->section->d.func_def);
+        break;
+      case ae_section_class:
+        ret = emit_class_def(emit, body->section->d.class_def);
+        break;
     }
+    body = body->next;
+  }
 
   if(ret > 0) {
     sadd_instr(emit, Func_Return);
@@ -1806,8 +1803,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   debug_msg("emit", "Ast %p", emit->env->context);
 #endif
   Ast prog = ast;
-  vtype i;
-  int ret = 1;
+  m_bool ret = 1;
   emit->filename = filename;
   emit->code = new_code();
   vector_clear(&emit->stack);
@@ -1833,11 +1829,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   if(emit->cases)
     free_map(emit->cases);
   emit_pop_scope(emit);
-  if(ret < 0) { // should free all stack.
-    //    for(i = 0; i < vector_size(&emit->stack); i++)
-    //      free_code((Code*)vector_at(&emit->stack, i));
-    for(i = 0; i < vector_size(&emit->code->code); i++)
-      free((Instr)vector_at(&emit->code->code, i));
+  if(ret < 0) {
     free(filename);
     free_code(emit->code);
     free_ast(ast);
