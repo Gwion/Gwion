@@ -5,6 +5,7 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "ugen.h"
 
 #define CHECK_EB(a) if(!env->class_def) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 #define CHECK_EO(a) if(!env->class_def) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
@@ -304,4 +305,78 @@ m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str 
   Type rhs = r ? get_type(env, r) : NULL;
   Type ret = get_type(env, t);
   return env_add_op(env, op, lhs, rhs, ret, f, global);
+}
+m_bool import_libs(Env env) {
+  if(env_add_type(env, &t_void) < 0 ||
+     env_add_type(env, &t_null) < 0 ||
+     env_add_type(env, &t_now) < 0 ||
+     import_int(env)       < 0 ||
+     import_float(env)     < 0 ||
+     import_complex(env)   < 0 ||
+     import_vec3(env)      < 0 ||
+     import_vec4(env)      < 0 ||
+     import_object(env)    < 0 ||
+     import_string(env)    < 0 ||
+     import_shred(env)     < 0 ||
+     import_event(env)     < 0 ||
+     import_ugen(env)      < 0 ||
+     import_array(env)     < 0) {
+      free(env);
+      return -1;
+  }
+  env->do_type_xid = 1;
+  if(import_fileio(env)    < 0 ||
+     import_std(env)       < 0 ||
+     import_math(env)      < 0 ||
+     import_machine(env)   < 0 ||
+     import_soundpipe(env) < 0 ||
+     import_modules(env)   < 0) {
+      free(env);
+      return -1;
+  }
+  return 1;
+}
+
+m_bool import_values(Env env) {
+  ALLOC_PTR(d_zero, m_float, 0.0);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
+  ALLOC_PTR(samp,   m_float, 1.0);
+  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
+  ALLOC_PTR(second, m_float, (m_float)*sr);
+  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
+  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
+  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
+  ALLOC_PTR(t_zero, m_float, 0.0);
+
+  env_add_value(env, "d_zero",     &t_dur,  1, d_zero);
+  env_add_value(env, "samplerate", &t_dur,  1, sr);
+  env_add_value(env, "samp",       &t_dur,  1, samp);
+  env_add_value(env, "ms",         &t_dur,  1, ms);
+  env_add_value(env, "second",     &t_dur,  1, second);
+  env_add_value(env, "minute",     &t_dur,  1, minute);
+  env_add_value(env, "day",        &t_dur,  1, hour);
+  env_add_value(env, "hour",       &t_dur,  1, day);
+  env_add_value(env, "t_zero",     &t_time, 1, t_zero);
+
+  return 1;
+}
+
+m_bool import_global_ugens(VM* vm, Env env) {
+  vm->dac       = new_M_UGen();
+  vm->adc       = new_M_UGen();
+  vm->blackhole = new_M_UGen();
+
+  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
+  UGEN(vm->dac)->tick = dac_tick;
+  UGEN(vm->adc)->tick = adc_tick;
+  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
+  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
+  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
+
+  env_add_value(env, "adc",        &t_ugen, 1, vm->adc);
+  env_add_value(env, "dac",        &t_ugen, 1, vm->dac);
+  env_add_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
+  return 1;
 }

@@ -54,7 +54,7 @@ static void handle_plug(Env env, m_str c) {
   }
 }
 
-static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
+static void add_plugs(Env env, Vector plug_dirs) {
   m_uint i;
   for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
@@ -76,86 +76,21 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
-  if(env_add_type(env, &t_void) < 0) goto error;
-  if(env_add_type(env, &t_null) < 0) goto error;
-  if(env_add_type(env, &t_now) < 0) goto error;
-  if(import_int(env)       < 0) goto error;
-  if(import_float(env)     < 0) goto error;
-  if(import_complex(env)   < 0) goto error;
-  if(import_vec3(env)      < 0) goto error;
-  if(import_vec4(env)      < 0) goto error;
-  if(import_object(env)    < 0) goto error;
-  if(import_string(env)    < 0) goto error;
-  if(import_shred(env)     < 0) goto error;
-  if(import_event(env)     < 0) goto error;
-  if(import_ugen(env)      < 0) goto error;
-  if(import_array(env)     < 0) goto error;
-  env->do_type_xid = 1;
-  if(import_fileio(env)    < 0) goto error;
-  if(import_std(env)       < 0) goto error;
-  if(import_math(env)       < 0) goto error;
-  if(import_machine(env)   < 0) goto error;
-  if(import_soundpipe(env) < 0) goto error;
-  if(import_modules(env)   < 0) goto error;
+  CHECK_BO(import_libs(env))
+  CHECK_BO(import_values(env))
+  CHECK_BO(import_global_ugens(vm, env))
 
-  vm->dac       = new_M_UGen();
-  vm->adc       = new_M_UGen();
-  vm->blackhole = new_M_UGen();
-
-  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
-  UGEN(vm->dac)->tick = dac_tick;
-  UGEN(vm->adc)->tick = adc_tick;
-  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
-
-  ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
-  ALLOC_PTR(samp,   m_float, 1.0);
-  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
-  ALLOC_PTR(second, m_float, (m_float)*sr);
-  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
-  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
-  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
-  ALLOC_PTR(t_zero, m_float, 0.0);
-
-  env_add_value(env, "adc",        &t_ugen, 1, vm->adc);
-  env_add_value(env, "dac",        &t_ugen, 1, vm->dac);
-  env_add_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
-  env_add_value(env, "d_zero",     &t_dur,  1, d_zero);
-  env_add_value(env, "samplerate", &t_dur,  1, sr);
-  env_add_value(env, "samp",       &t_dur,  1, samp);
-  env_add_value(env, "ms",         &t_dur,  1, ms);
-  env_add_value(env, "second",     &t_dur,  1, second);
-  env_add_value(env, "minute",     &t_dur,  1, minute);
-  env_add_value(env, "day",        &t_dur,  1, hour);
-  env_add_value(env, "hour",       &t_dur,  1, day);
-  env_add_value(env, "t_zero",     &t_time, 1, t_zero);
-  /* commit */
   nspc_commit(env->global_nspc);
 
-//  nspc_commit(env->context->nspc);
   map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
-  /*  env->user_nspc = new_nspc();*/
-  /*  env->user_nspc->name = "[user]";*/
+  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
-  /*  ADD_REF(env->global_nspc->obj);*/
-  /*  ADD_REF(env->user_nspc->obj);*/
-  /*  env->curr = env->user_nspc;*/
-  // plugins
-  //  void* handler;
-  add_plugs(vm, env, plug_dirs);
+  add_plugs(env, plug_dirs);
   nspc_commit(env->curr);
   return env;
-
-error:          // LCOV_EXCL_START
-  free(env);
-  return NULL;
-}              // LCOV_EXCL_STOP
+}
 
 static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   Exp exp = exp_list;

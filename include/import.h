@@ -40,3 +40,6 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
 m_int import_fun(Env env, DL_Func * fun, ae_flag flag);
 m_int import_op(Env env, const Operator op, const m_str l, const m_str r, const m_str t, const f_instr f, const m_bool global);
 m_int import_class_end(Env env);
+m_bool import_libs(Env env);
+m_bool import_values(Env env);
+m_bool import_global_ugens(VM* vm, Env env);
