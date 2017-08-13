@@ -1375,82 +1375,66 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   return 1;
 }
 
+static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
+  int ret;
+  if(!exp->val)
+    return 1;
+  ret = emit_exp(emit, exp->val, 0);
+  if(ret > 0 && pop && exp->val->type && exp->val->type->size > 0) {
+    Exp e = exp->val;
+    if(e->exp_type == ae_exp_primary && e->d.exp_primary.type == ae_primary_hack)
+      e = e->d.exp_primary.d.exp;
+    while(e) {
+      Instr instr = add_instr(emit, Reg_Pop_Word4);
+      instr->m_val = (e->exp_type == ae_exp_decl ? 
+        e->d.exp_decl.num_decl * e->type->size : e->type->size);
+      e = e->next;
+    }
+  }
+ return 1; 
+}
+
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "Stmt (pop: %s)", pop ? "yes" : "no");
 #endif
-  Instr instr;
-  m_bool ret = 1;
-  if(!stmt)
-    return 1;
-  switch(stmt->type) {
+  switch(stmt ? stmt->type : -1) {
     case ae_stmt_exp:
-      if(!stmt->d.stmt_exp.val)
-        return 1;
-      ret = emit_exp(emit, stmt->d.stmt_exp.val, 0);
-      if(ret > 0 && pop && stmt->d.stmt_exp.val->type && stmt->d.stmt_exp.val->type->size > 0) {
-        Exp exp = stmt->d.stmt_exp.val;
-        if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_hack)
-          exp = exp->d.exp_primary.d.exp;
-        while(exp) {
-          instr = add_instr(emit, Reg_Pop_Word4);
-          instr->m_val = (exp->exp_type == ae_exp_decl ? exp->d.exp_decl.num_decl * exp->type->size : exp->type->size);
-          exp = exp->next;
-        }
-      }
-      break;
+      return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
     case ae_stmt_code:
-      ret = emit_stmt_code(emit, &stmt->d.stmt_code, 1);
-      break;
+      return emit_stmt_code(emit, &stmt->d.stmt_code, 1);
     case ae_stmt_if:
-      ret = emit_stmt_if(emit, &stmt->d.stmt_if);
-      break;
+      return emit_stmt_if(emit, &stmt->d.stmt_if);
     case ae_stmt_return:
-      ret = emit_stmt_return(emit, &stmt->d.stmt_return);
-      break;
+      return emit_stmt_return(emit, &stmt->d.stmt_return);
     case ae_stmt_break:
-      ret = emit_stmt_break(emit, &stmt->d.stmt_break);
-      break;
+      return emit_stmt_break(emit, &stmt->d.stmt_break);
     case ae_stmt_continue:
-      ret = emit_stmt_continue(emit, &stmt->d.stmt_continue);
-      break;
+      return emit_stmt_continue(emit, &stmt->d.stmt_continue);
     case ae_stmt_while:
-      ret = stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
+      return stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
             emit_stmt_while(emit, &stmt->d.stmt_while);
-      break;
     case ae_stmt_until:
-      ret = stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
+      return stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
             emit_stmt_until(emit, &stmt->d.stmt_until);
-      break;
     case ae_stmt_for:
-      ret = emit_stmt_for(emit, &stmt->d.stmt_for);
-      break;
+      return emit_stmt_for(emit, &stmt->d.stmt_for);
     case ae_stmt_loop:
-      ret = emit_stmt_loop(emit, &stmt->d.stmt_loop);
-      break;
+      return emit_stmt_loop(emit, &stmt->d.stmt_loop);
     case ae_stmt_gotolabel:
-      ret = emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
-      break;
+      return emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
     case ae_stmt_case:
-      ret = emit_stmt_case(emit, &stmt->d.stmt_case);
-      break;
+      return emit_stmt_case(emit, &stmt->d.stmt_case);
     case ae_stmt_enum:
-      ret = emit_stmt_enum(emit, &stmt->d.stmt_enum);
-      break;
+      return emit_stmt_enum(emit, &stmt->d.stmt_enum);
     case ae_stmt_switch:
-      ret = emit_stmt_switch(emit, &stmt->d.stmt_switch);
-      break;
+      return emit_stmt_switch(emit, &stmt->d.stmt_switch);
     case ae_stmt_funcptr:
-      ret = emit_stmt_typedef(emit, &stmt->d.stmt_ptr);
-      break;
+      return emit_stmt_typedef(emit, &stmt->d.stmt_ptr);
     case ae_stmt_union:
-      ret = emit_stmt_union(emit, &stmt->d.stmt_union);
-      break;
+      return emit_stmt_union(emit, &stmt->d.stmt_union);
   }
-#ifdef DEBUG_EMIT
-  debug_msg("emit", "Stmt %i", ret);
-#endif
-  return ret;
+  return 1;
 }
 
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
