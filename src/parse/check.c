@@ -853,12 +853,12 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
                      "...(reason: --- right-side operand is not mutable)",
                      "=>", cl->type->name, cr->type->name))
   }
+  if(cl->type->array_depth != cr->type->array_depth)
+    CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
   if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
     if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
       CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
-      if(cl->type->array_depth != cr->type->array_depth)
-        CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
-        cr->emit_var = 1;
+      cr->emit_var = 1;
     return 1;
   }
   if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {

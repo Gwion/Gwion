@@ -617,28 +617,28 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "binary");
 #endif
-  Instr instr;
+  Exp lhs = binary->lhs;
+  Exp rhs = binary->rhs;
   
-  CHECK_BB(emit_exp(emit, binary->lhs, 1))
-  CHECK_BB(emit_exp(emit, binary->rhs, 1))
+  CHECK_BB(emit_exp(emit, lhs, 1))
+  CHECK_BB(emit_exp(emit, rhs, 1))
   // function pointer assignement
-  if(binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
+  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0) {
     Value v = NULL;
-
-    instr = add_instr(emit, assign_func);
-    switch(binary->rhs->exp_type) {
+    Instr instr = add_instr(emit, assign_func);
+    switch(rhs->exp_type) {
       case ae_exp_dot:
-        v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
+        v = find_value(rhs->d.exp_dot.t_base, rhs->d.exp_dot.xid);
         instr->m_val = 1;
         break;
       case ae_exp_primary:
-        if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_flag_member)) {
-          v = binary->rhs->d.exp_primary.value;
+        if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
+          v = rhs->d.exp_primary.value;
           instr->m_val = 1;
         }
         break;
       case ae_exp_decl:
-        v = binary->rhs->d.exp_decl.list->self->value;
+        v = rhs->d.exp_decl.list->self->value;
         break;
       default:
         return -1;
@@ -647,30 +647,30 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return 1;
   }
 
-  if(binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
+  if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
     return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
 
   // arrays
-  if(binary->op == op_shift_left && (binary->lhs->type->array_depth == binary->rhs->type->array_depth + 1)
-      && isa(binary->lhs->type->d.array_type, binary->rhs->type) > 0) {
-    instr = add_instr(emit, Array_Append);
-    instr->m_val = kindof(binary->rhs->type);
+  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
+      && isa(lhs->type->d.array_type, rhs->type) > 0) {
+    Instr instr = add_instr(emit, Array_Append);
+    instr->m_val = kindof(rhs->type);
     return 1;
   }
 
-  if(binary->lhs->type->array_depth && binary->rhs->type->array_depth) {
-    if(binary->op == op_at_chuck && binary->lhs->type->array_depth == binary->rhs->type->array_depth)
+  if(lhs->type->array_depth && rhs->type->array_depth) {
+    if(binary->op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth)
       sadd_instr(emit, Assign_Object);
     return 1;
   }
 
-  if(binary->op == op_at_chuck && isa(binary->rhs->type, &t_object) > 0 &&
-      (isa(binary->lhs->type, &t_null) > 0 || isa(binary->lhs->type, &t_object) > 0)) {
-    instr = add_instr(emit, Assign_Object);
+  if(binary->op == op_at_chuck && isa(rhs->type, &t_object) > 0 &&
+      (isa(lhs->type, &t_null) > 0 || isa(lhs->type, &t_object) > 0)) {
+    Instr instr = add_instr(emit, Assign_Object);
     instr->m_val2 = 1;
     return 1;
   }
-  CHECK_OB(get_instr(emit, binary->op, binary->lhs->type, binary->rhs->type))
+  CHECK_OB(get_instr(emit, binary->op, lhs->type, rhs->type))
   return 1;
 }
 
