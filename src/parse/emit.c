@@ -75,7 +75,6 @@ void free_emitter(Emitter a) {
   free(a);
 }
 
-
 static void sadd_instr(Emitter emit, f_instr f) {
   Instr instr = calloc(1, sizeof(struct Instr_));
   instr->execute = f;
@@ -174,73 +173,83 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
   return 1;
 }
 
+static m_bool emit_symbol_owned(Emitter emit, S_Symbol symbol, Value v, m_bool emit_var, m_uint pos) {
+  m_bool ret;
+  Exp base = new_exp_prim_ID("this", pos);
+  Exp dot = new_exp_dot(base, s_name(symbol), pos);
+  base->type = v->owner_class;
+  dot->type = v->m_type;
+  dot->d.exp_dot.t_base = v->owner_class;
+  dot->emit_var = emit_var;
+  ret = emit_exp_dot(emit, &dot->d.exp_dot);
+  free_expression(dot);
+  if(ret < 0)
+    CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...")) // LCOV_EXCL_LINE
+  return ret;
+}
+
+static m_bool emit_symbol_const(Emitter emit, Value v, m_bool emit_var) {
+  if(v->func_ref) {
+    Instr instr = add_instr(emit, Reg_Push_Imm);
+    instr->m_val = (m_uint)v->func_ref;
+  } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 ||
+      isa(v->m_type, &t_dur) > 0) {
+    Instr instr = add_instr(emit, Reg_Push_Imm2);
+    *(m_float*)instr->ptr = *(m_float*)v->ptr;
+  } else {
+    Instr instr = add_instr(emit, Reg_Push_Imm);
+    instr->m_val = (emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
+  }
+  return 1;
+}
+
+static m_bool emit_symbol_addr(Emitter emit, Value v) {
+  Instr instr = add_instr(emit, Reg_Push_Mem_Addr);
+  instr->m_val = v->offset;
+  instr->m_val2 = GET_FLAG(v, ae_flag_global);
+  return 1;
+}
+
+static f_instr emit_symbol_actual_instr(Kindof kind) {
+  switch(kind) {
+    case Kindof_Int:
+      return Reg_Push_Mem;
+    case Kindof_Float:
+      return Reg_Push_Mem2;
+    case Kindof_Complex:
+      return Reg_Push_Mem_Complex;
+    case Kindof_Vec3:
+      return Reg_Push_Mem_Vec3;
+    case Kindof_Vec4:
+      return Reg_Push_Mem_Vec4;
+    case Kindof_Void:
+      break; // unreachable
+  }
+  return NULL;
+}
+
+static m_bool emit_symbol_actual(Emitter emit, Value v) {
+  Instr instr;
+  Kindof kind = kindof(v->m_type);
+  f_instr f = emit_symbol_actual_instr(kind);
+
+  instr         = add_instr(emit, f);
+  instr->m_val  = v->offset;
+  instr->m_val2 = GET_FLAG(v, ae_flag_global);
+  return 1;
+}
+
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "symbol %s (const:%i) %i %p", s_name(symbol), GET_FLAG(v, ae_flag_const) + GET_FLAG(v, ae_flag_enum), GET_FLAG(v, ae_flag_static), v->owner_class);
 #endif
-  Instr instr;
-
-  if(v->owner_class && (GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))) {
-    m_bool ret;
-    Exp base = new_exp_prim_ID("this", pos);
-    Exp dot = new_exp_dot(base, s_name(symbol), pos);
-    base->type = v->owner_class;
-    dot->type = v->m_type;
-    dot->d.exp_dot.t_base = v->owner_class;
-    dot->emit_var = emit_var;
-    ret = emit_exp_dot(emit, &dot->d.exp_dot);
-    free_expression(dot);
-    if(ret < 0)
-      CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...")) // LCOV_EXCL_LINE
-    return ret;
-  }
-
-  if(GET_FLAG(v, ae_flag_const)) {
-    if(v->func_ref) {
-      instr = add_instr(emit, Reg_Push_Imm);
-      instr->m_val = (m_uint)v->func_ref;
-    } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 || isa(v->m_type, &t_dur) > 0) {
-      instr = add_instr(emit, Reg_Push_Imm2);
-      *(m_float*)instr->ptr = *(m_float*)v->ptr;
-    } else {
-      instr = add_instr(emit, Reg_Push_Imm);
-      instr->m_val = (emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
-    }
-    return 1;
-  }
-
-  if(emit_var) {
-    instr = add_instr(emit, Reg_Push_Mem_Addr);
-    instr->m_val = v->offset;
-    instr->m_val2 = GET_FLAG(v, ae_flag_global);
-  } else {
-    Kindof kind = kindof(v->m_type);
-    Instr instr;
-    f_instr f = NULL;
-    switch(kind) {
-      case Kindof_Int:
-        f = Reg_Push_Mem;
-        break;
-      case Kindof_Float:
-        f = Reg_Push_Mem2;
-        break;
-      case Kindof_Complex:
-        f = Reg_Push_Mem_Complex;
-        break;
-      case Kindof_Vec3:
-        f = Reg_Push_Mem_Vec3;
-        break;
-      case Kindof_Vec4:
-        f = Reg_Push_Mem_Vec4;
-        break;
-      case Kindof_Void:
-        break; // unreachable
-    }
-    instr         = add_instr(emit, f);
-    instr->m_val  = v->offset;
-    instr->m_val2 = GET_FLAG(v, ae_flag_global);
-  }
-  return 1;
+  if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
+    return emit_symbol_owned(emit, symbol, v, emit_var, pos);
+  if(GET_FLAG(v, ae_flag_const))
+    return emit_symbol_const(emit, v, emit_var);
+  if(emit_var)
+    return emit_symbol_addr(emit, v);
+  return emit_symbol_actual(emit, v);
 }
 
 VM_Code emit_code(Emitter emit) {
