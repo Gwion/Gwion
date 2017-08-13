@@ -547,26 +547,26 @@ static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
 #endif
   if(emit_exp(emit, exp_func->args, 1) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...")) // LCOV_EXCL_LINE
-    if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic)) {
-      m_uint offset = 0, size = 0;
-      Instr instr;
-      Exp e = exp_func->args;
-      Arg_List l = exp_func->m_func->def->arg_list;
-      Vector kinds = new_vector();
-      while(e) {
-        if(!l) {
-          size += e->type->size;
-          vector_add(kinds, (vtype)kindof(e->type));
-        } else {
-          l = l->next;
-          offset += e->type->size;
-        }
-        e = e->next;
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic)) {
+    m_uint offset = 0, size = 0;
+    Instr instr;
+    Exp e = exp_func->args;
+    Arg_List l = exp_func->m_func->def->arg_list;
+    Vector kinds = new_vector();
+    while(e) {
+      if(!l) {
+        size += e->type->size;
+        vector_add(kinds, (vtype)kindof(e->type));
+      } else {
+        l = l->next;
+        offset += e->type->size;
       }
-      instr = add_instr(emit, MkVararg);
-      instr->m_val = size;
-      instr->m_val2 = (m_uint)kinds;
+      e = e->next;
     }
+    instr = add_instr(emit, MkVararg);
+    instr->m_val = size;
+    instr->m_val2 = (m_uint)kinds;
+  }
   return 1;
 }
 
@@ -618,36 +618,34 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   debug_msg("emit", "binary");
 #endif
   Instr instr;
+  
+  CHECK_BB(emit_exp(emit, binary->lhs, 1))
+  CHECK_BB(emit_exp(emit, binary->rhs, 1))
   // function pointer assignement
   if(binary->op == op_at_chuck && isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0) {
-    Value v;
-    CHECK_BB(emit_exp(emit, binary->lhs, 1))
-    CHECK_BB(emit_exp(emit, binary->rhs, 1))
+    Value v = NULL;
+
     instr = add_instr(emit, assign_func);
     switch(binary->rhs->exp_type) {
       case ae_exp_dot:
         v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-        instr->m_val2 = v->offset;
         instr->m_val = 1;
         break;
       case ae_exp_primary:
         if(GET_FLAG(binary->rhs->d.exp_primary.value, ae_flag_member)) {
           v = binary->rhs->d.exp_primary.value;
-          instr->m_val2 = v->offset;
           instr->m_val = 1;
         }
         break;
       case ae_exp_decl:
         v = binary->rhs->d.exp_decl.list->self->value;
-        instr->m_val2 = v->offset;
         break;
       default:
         return -1;
     }
+    instr->m_val2 = v ? v->offset : 0;
     return 1;
   }
-  CHECK_BB(emit_exp(emit, binary->lhs, 1))
-  CHECK_BB(emit_exp(emit, binary->rhs, 1))
 
   if(binary->op == op_chuck && isa(binary->rhs->type, &t_function) > 0)
     return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
