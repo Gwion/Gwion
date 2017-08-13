@@ -1652,10 +1652,36 @@ static m_bool emit_func_def_local(Emitter emit, Value value) {
   return 1;
 }
 
+static m_bool emit_func_def_init_code(Emitter emit, Func func) {
+  m_uint len = emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0; 
+  char c[len + strlen(func->name) + 6];
+  emit->env->func = func;
+  vector_add(&emit->stack, (vtype)emit->code);
+  emit->code = new_code();
+  sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : "", func->name);
+  emit->code->name = strdup(c);
+  emit->code->need_this = GET_FLAG(func, ae_flag_member);
+  emit->code->filename = strdup(emit->filename);
+  return 1;
+}
+
 static m_bool emit_def_alloc_local(Code* code, m_str name, m_uint pos) {
   if(!frame_alloc_local(code->frame, SZ_INT, 1, 0))
     CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: cannot allocate local '%s'...", name)) // LCOV_EXCL_LINE
   code->stack_depth += SZ_INT;
+  return 1;
+}
+
+static m_bool emit_func_def_flag(Emitter emit, Func_Def func_def) {
+  Func func = func_def->d.func;
+  if(GET_FLAG(func, ae_flag_member))
+    CHECK_BB(emit_def_alloc_local(emit->code, "this", func_def->pos))
+  if(GET_FLAG(func_def, ae_flag_variadic))
+    CHECK_BB(emit_def_alloc_local(emit->code, "vararg", func_def->pos))
+  if(GET_FLAG(func_def, ae_flag_dtor))
+    emit->env->class_def->info->dtor = func->code;
+  else if(GET_FLAG(func_def, ae_flag_op))
+    operator_set_func(emit->env, func, func_def->arg_list->type, func_def->arg_list->next->type);
   return 1;
 }
 
@@ -1676,6 +1702,14 @@ static m_bool emit_func_def_args(Code* code, Arg_List a) {
   return 1;
 }
 
+static m_bool emit_func_def_ensure_return(Emitter emit, m_uint size) {
+  Instr instr = add_instr(emit, Reg_Push_ImmX);
+  instr->m_val = size;
+  emit_func_release(emit); // /04/04/2017
+  vector_add(&emit->code->stack_return, (vtype)add_instr(emit, Goto));
+  return 1;
+}
+
 static m_bool emit_func_def_stack_return(Emitter emit) {
   Code* code = emit->code;
   m_uint i;
@@ -1693,41 +1727,20 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   debug_msg("emit", "func def");
 #endif
   Func func = func_def->d.func;
-  Value value = func->value_ref;
-  char c[(emit->env->class_def ? strlen(emit->env->class_def->name) + 1 : 0) + strlen(func->name) + 6];
 
   if(func_def->types)
     return 1;
 
   if(!emit->env->class_def)
-    CHECK_BB(emit_func_def_local(emit, value))
-
-  emit->env->func = func;
-  vector_add(&emit->stack, (vtype)emit->code);
-  emit->code = new_code();
-  sprintf(c, "%s%s%s(...)", emit->env->class_def ? emit->env->class_def->name : "", emit->env->class_def ? "." : "", func->name);
-  emit->code->name = strdup(c);
-  emit->code->need_this = GET_FLAG(func, ae_flag_member);
-  emit->code->filename = strdup(emit->filename);
-
-  if(GET_FLAG(func, ae_flag_member))
-     CHECK_BB(emit_def_alloc_local(emit->code, "this", func_def->pos))
-  if(GET_FLAG(func_def, ae_flag_variadic))
-    CHECK_BB(emit_def_alloc_local(emit->code, "vararg", func_def->pos))
+    CHECK_BB(emit_func_def_local(emit, func->value_ref))
+  CHECK_BB(emit_func_def_init_code(emit, func))  
+  CHECK_BB(emit_func_def_flag(emit, func_def))
 
   frame_push_scope(emit->code->frame);
   CHECK_BB(emit_func_def_args(emit->code, func_def->arg_list))
-
-  if(emit_stmt(emit, func_def->code, 0) < 0)
-    goto error;
-
-  // ensure return
-  if(func_def->ret_type && func_def->ret_type->xid != te_void) {
-    Instr instr = add_instr(emit, Reg_Push_ImmX);
-    instr->m_val = func_def->ret_type->size;
-    emit_func_release(emit); // /04/04/2017
-    vector_add(&emit->code->stack_return, (vtype)add_instr(emit, Goto));
-  }
+  CHECK_BB(emit_stmt(emit, func_def->code, 0))
+  if(func_def->ret_type->xid != te_void)
+    CHECK_BB(emit_func_def_ensure_return(emit, func_def->ret_type->size))
   emit_pop_scope(emit);
 
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
@@ -1735,18 +1748,9 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
   CHECK_BB(emit_func_def_stack_return(emit))
   func->code = emit_code(emit);
-  if(GET_FLAG(func->def, ae_flag_dtor))
-    emit->env->class_def->info->dtor = func->code;
-  else if(GET_FLAG(func->def, ae_flag_op))
-    operator_set_func(emit->env, func, func->def->arg_list->type, func->def->arg_list->next->type);
   emit->env->func = NULL;
   emit->code = (Code*)vector_pop(&emit->stack);
   return 1;
-error:
-  emit->env->func = NULL;
-  free_code(emit->code);
-  emit->code = (Code*)vector_pop(&emit->stack);
-  return -1;
 }
 
 static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
