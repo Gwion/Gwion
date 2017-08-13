@@ -325,90 +325,109 @@ static m_bool emit_exp_prim_vec(Emitter emit, Vec val) {
   return 1;
 }
 
-static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
-#ifdef DEBUG_EMIT
-  debug_msg("emit", "primary");
-#endif
-  Exp e;
-  Instr instr;
-  m_uint temp;
-  m_float f;
+static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
+  if(prim->d.var == insert_symbol("this"))
+    sadd_instr(emit, Reg_Push_This);
+  else if(prim->d.var == insert_symbol("me"))
+    sadd_instr(emit, Reg_Push_Me);
+  else if(prim->d.var == insert_symbol("now"))
+    sadd_instr(emit, Reg_Push_Now);
+  else if(prim->d.var == insert_symbol("false") || 
+      prim->d.var == insert_symbol("null") ||
+      prim->d.var == insert_symbol("NULL"))
+    sadd_instr(emit, Reg_Push_Imm);
+  else if(prim->d.var == insert_symbol("true")) {
+    Instr instr = add_instr(emit, Reg_Push_Imm);
+    instr->m_val = 1;
+  } else if(prim->d.var == insert_symbol("maybe"))
+    sadd_instr(emit, Reg_Push_Maybe);
+  else
+    emit_symbol(emit, prim->d.var, prim->value, prim->self->emit_var, prim->pos);
+  return 1;
+}
 
+static m_bool emit_exp_prim_num(Emitter emit, m_uint i) {
+  Instr instr = add_instr(emit, Reg_Push_Imm);
+  instr->m_val = i;
+  return 1;
+}
+
+static m_bool emit_exp_prim_float(Emitter emit, m_float f) {
+  Instr instr = add_instr(emit, Reg_Push_Imm2);
+  *(m_float*)instr->ptr = f;
+  return 1;
+}
+
+static m_bool emit_exp_prim_char(Emitter emit, Exp_Primary* prim) {
+  Instr instr = add_instr(emit, Reg_Push_Imm);
+  instr->m_val = str2char(prim->d.chr, prim->pos);
+  return 1;
+}
+
+static m_bool emit_exp_prim_str(Emitter emit, m_str str) {
+  Instr instr = add_instr(emit, Reg_Push_Str);
+  instr->m_val = (m_uint)str;
+  return 1;
+}
+
+static m_bool emit_exp_prim_gack(Emitter emit, Exp exp) {
+  Instr instr;
+  Vector types;
+  Exp e;
+  CHECK_BB(emit_exp(emit, exp, 0))
+  types = new_vector();
+  e = exp;
+  while(e) {
+    vector_add(types, (vtype)e->type);
+    ADD_REF(e->type);
+    e = e->next;
+  }
+  instr = add_instr(emit, Gack);
+  *(Vector*)instr->ptr = types;
+  return 1;
+}
+
+static m_bool emit_exp_primary2(Emitter emit, Exp_Primary* prim) {
+  switch(prim->type) {
+    case ae_primary_str:
+      return emit_exp_prim_str(emit, prim->d.str);
+    case ae_primary_array:
+      return emit_exp_prim_array(emit, prim->d.array);
+    case ae_primary_hack:
+      return emit_exp_prim_gack(emit, prim->d.exp);
+    case ae_primary_nil:
+    default:
+      break;
+  }
+  return 1;
+}
+
+static m_bool emit_exp_primary1(Emitter emit, Exp_Primary* prim) {
+  switch(prim->type) {
+    case ae_primary_complex:
+      return emit_exp(emit, prim->d.cmp->re, 0);
+    case ae_primary_polar:
+      return emit_exp(emit, prim->d.polar->mod, 0);
+    case ae_primary_vec:
+      return emit_exp_prim_vec(emit, prim->d.vec);
+    default:
+      return emit_exp_primary2(emit, prim);
+  }
+  return 1;
+}
+
+static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
   switch(prim->type) {
     case ae_primary_id:
-      if(prim->d.var == insert_symbol("this"))
-        sadd_instr(emit, Reg_Push_This);
-      else if(prim->d.var == insert_symbol("me"))
-        sadd_instr(emit, Reg_Push_Me);
-      else if(prim->d.var == insert_symbol("now"))
-        sadd_instr(emit, Reg_Push_Now);
-      else if(prim->d.var == insert_symbol("false"))
-        sadd_instr(emit, Reg_Push_Imm);
-      else if(prim->d.var == insert_symbol("true")) {
-        instr = add_instr(emit, Reg_Push_Imm);
-        instr->m_val = 1;
-      } else if(prim->d.var == insert_symbol("maybe"))
-        sadd_instr(emit, Reg_Push_Maybe);
-      else if(prim->d.var == insert_symbol("null") || prim->d.var == insert_symbol("NULL"))
-        sadd_instr(emit, Reg_Push_Imm);
-      else
-        emit_symbol(emit, prim->d.var, prim->value, prim->self->emit_var, prim->pos);
-      break;
-
+      return emit_exp_prim_id(emit, prim);
     case ae_primary_num:
-      memcpy(&temp, &prim->d.num, sizeof(temp));
-      instr = add_instr(emit, Reg_Push_Imm);
-      instr->m_val = temp;
-      break;
-
-    case ae_primary_char:
-      instr = add_instr(emit, Reg_Push_Imm);
-      instr->m_val = str2char(prim->d.chr, prim->pos);
-      break;
-
+      return emit_exp_prim_num(emit, prim->d.num);
     case ae_primary_float:
-      memcpy(&f, &prim->d.fnum, sizeof(f));
-      instr = add_instr(emit, Reg_Push_Imm2);
-      *(m_float*)instr->ptr = f;
-      break;
-
-    case ae_primary_complex:
-      CHECK_BB(emit_exp(emit, prim->d.cmp->re, 0));
-      break;
-
-    case ae_primary_polar:
-      CHECK_BB(emit_exp(emit, prim->d.polar->mod, 0));
-      break;
-
-    case ae_primary_vec:
-      CHECK_BB(emit_exp_prim_vec(emit, prim->d.vec));
-      break;
-
-    case ae_primary_str:
-      memcpy(&temp, &prim->d.str, sizeof(temp));
-      instr = add_instr(emit, Reg_Push_Str);
-      instr->m_val = temp;
-      break;
-
-    case ae_primary_array:
-      CHECK_BB(emit_exp_prim_array(emit, prim->d.array))
-      break;
-
-    case ae_primary_nil:
-      break;
-
-    case ae_primary_hack:
-      CHECK_BB(emit_exp(emit, prim->d.exp, 0))
-      Vector types = new_vector();
-      e = prim->d.exp;
-      while(e) {
-        vector_add(types, (vtype)e->type);
-        ADD_REF(e->type);
-        e = e->next;
-      }
-      instr = add_instr(emit, Gack);
-      *(Vector*)instr->ptr = types;
-      break;
+      return emit_exp_prim_float(emit, prim->d.fnum);
+    case ae_primary_char:
+      return emit_exp_prim_char(emit, prim);
+    default:
+      return emit_exp_primary1(emit, prim);
   }
   return 1;
 }
@@ -424,51 +443,39 @@ static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool em
 }
 
 static Instr decl_member(Emitter emit, Kindof kind) {
-  f_instr f = NULL;
   switch(kind)  {
     case Kindof_Int:
-      f = Alloc_Member_Word;
-      break;
+      return add_instr(emit, Alloc_Member_Word);
     case Kindof_Float:
-      f = Alloc_Member_Word_Float;
-      break;
+      return add_instr(emit, Alloc_Member_Word_Float);
     case Kindof_Complex:
-      f = Alloc_Member_Word_Complex;
-      break;
+      return add_instr(emit, Alloc_Member_Word_Complex);
     case Kindof_Vec3:
-      f = Alloc_Member_Word_Vec3;
-      break;
+      return add_instr(emit, Alloc_Member_Word_Vec3);
     case Kindof_Vec4:
-      f = Alloc_Member_Word_Vec4;
-      break;
+      return add_instr(emit, Alloc_Member_Word_Vec4);
     case Kindof_Void:
       break;
   }
-  return add_instr(emit, f);
+  return NULL;
 }
 
 static Instr decl_global(Emitter emit, Kindof kind) {
-  f_instr f = NULL;
   switch(kind)  {
     case Kindof_Int:
-      f = Alloc_Word;
-      break;
+      return add_instr(emit,  Alloc_Word);
     case Kindof_Float:
-      f = Alloc_Word_Float;
-      break;
+      return add_instr(emit,  Alloc_Word_Float);
     case Kindof_Complex:
-      f = Alloc_Word_Complex;
-      break;
+      return add_instr(emit,  Alloc_Word_Complex);
     case Kindof_Vec3:
-      f = Alloc_Word_Vec3;
-      break;
+      return add_instr(emit,  Alloc_Word_Vec3);
     case Kindof_Vec4:
-      f = Alloc_Word_Vec4;
-      break;
+      return add_instr(emit,  Alloc_Word_Vec4);
     case Kindof_Void:
       break;
   }
-  return add_instr(emit, f);
+  return NULL;
 }
 
 static m_bool decl_static(Emitter emit, Value v, Array_Sub array,
