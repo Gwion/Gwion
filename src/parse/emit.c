@@ -727,9 +727,9 @@ m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
     if(!f) { //template with no list
       if(!GET_FLAG(func->def, ae_flag_template))
         CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
-        if(emit_func_def(emit, func->def) < 0)
-          CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
-          func->code = func->def->d.func->code;
+      if(emit_func_def(emit, func->def) < 0)
+        CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
+      func->code = func->def->d.func->code;
       code = add_instr(emit, Reg_Push_Ptr);
       *(VM_Code*)code->ptr = func->code;
     } else {
