@@ -332,7 +332,7 @@ static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
     sadd_instr(emit, Reg_Push_Me);
   else if(prim->d.var == insert_symbol("now"))
     sadd_instr(emit, Reg_Push_Now);
-  else if(prim->d.var == insert_symbol("false") || 
+  else if(prim->d.var == insert_symbol("false") ||
       prim->d.var == insert_symbol("null") ||
       prim->d.var == insert_symbol("NULL"))
     sadd_instr(emit, Reg_Push_Imm);
@@ -619,9 +619,22 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 #endif
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
-  
+
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
+  // arrays
+  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
+      && isa(lhs->type->d.array_type, rhs->type) > 0) {
+    Instr instr = add_instr(emit, Array_Append);
+    instr->m_val = kindof(rhs->type);
+    return 1;
+  }
+
+  if(lhs->type->array_depth && rhs->type->array_depth) {
+    if(binary->op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth)
+      sadd_instr(emit, Assign_Object);
+    return 1;
+  }
   // function pointer assignement
   if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0) {
     Value v = NULL;
@@ -649,20 +662,6 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 
   if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
     return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
-
-  // arrays
-  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
-      && isa(lhs->type->d.array_type, rhs->type) > 0) {
-    Instr instr = add_instr(emit, Array_Append);
-    instr->m_val = kindof(rhs->type);
-    return 1;
-  }
-
-  if(lhs->type->array_depth && rhs->type->array_depth) {
-    if(binary->op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth)
-      sadd_instr(emit, Assign_Object);
-    return 1;
-  }
 
   if(binary->op == op_at_chuck && isa(rhs->type, &t_object) > 0 &&
       (isa(lhs->type, &t_null) > 0 || isa(lhs->type, &t_object) > 0)) {
@@ -1391,12 +1390,12 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
       e = e->d.exp_primary.d.exp;
     while(e) {
       Instr instr = add_instr(emit, Reg_Pop_Word4);
-      instr->m_val = (e->exp_type == ae_exp_decl ? 
+      instr->m_val = (e->exp_type == ae_exp_decl ?
         e->d.exp_decl.num_decl * e->type->size : e->type->size);
       e = e->next;
     }
   }
- return 1; 
+ return 1;
 }
 
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
@@ -1454,8 +1453,17 @@ static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
   return 1;
 }
 
+static m_bool is_special(Type t) {
+  m_uint xid = t->xid;
+  if(xid == te_complex || xid == te_polar ||
+     xid == te_vec3    || xid == te_vec4  ||
+     xid == te_vararg)
+    return 1;
+  return -1;
+}
+
 static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bool emit_addr) {
-  Instr func_i, push_i;
+  Instr func_i;
 
   if(v->ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
     func_i = add_instr(emit, Dot_Static_Import_Data);
@@ -1463,7 +1471,7 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bo
     func_i->m_val2 = kindof(v->m_type);
     *(m_uint*)func_i->ptr = emit_addr;
   } else { // from code
-    push_i = add_instr(emit, Reg_Push_Imm);
+    Instr push_i = add_instr(emit, Reg_Push_Imm);
     func_i = add_instr(emit, Dot_Static_Data);
     push_i->m_val = (m_uint)type;
     func_i->m_val = (m_uint)v->offset;
@@ -1471,6 +1479,7 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bo
     *(m_uint*)func_i->ptr = emit_addr;
   }
   return 1;
+
 }
 
 static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
@@ -1516,14 +1525,6 @@ static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) 
       break;
   }
   instr->m_val = emit_addr;
-  return 1;
-}
-
-static m_bool emit_dot_static_func(Emitter emit, Type type, Func func) {
-  Instr push_i = add_instr(emit, Reg_Push_Imm);
-  Instr func_i = add_instr(emit, Dot_Static_Func);
-  push_i->m_val = (m_uint)type;
-  func_i->m_val = (m_uint)func;
   return 1;
 }
 
@@ -1573,9 +1574,30 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
   return 1;
 }
 
+static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
+  Type t = member->t_base;
+  Value v = find_value(t, member->xid);
+  m_bool emit_addr = member->self->emit_var;
+
+  if(t->xid == te_complex || t->xid == te_polar)
+    return emit_complex_member(emit, member->base, v,
+        t->xid == te_complex ? "re" : "mod", emit_addr);
+  else if(t->xid == te_vec3 || t->xid == te_vec4)
+    return emit_vec_member(emit, member->base, v, emit_addr);
+  return emit_vararg(emit, member);
+}
+
+static m_bool emit_dot_static_func(Emitter emit, Type type, Func func) {
+  Instr push_i = add_instr(emit, Reg_Push_Imm);
+  Instr func_i = add_instr(emit, Dot_Static_Func);
+  push_i->m_val = (m_uint)type;
+  func_i->m_val = (m_uint)func;
+  return 1;
+}
+
 static m_bool emit_member_func(Emitter emit, Exp_Dot* member, Func func) {
-  Instr func_i;
   if(GET_FLAG(func, ae_flag_member)) { // member
+    Instr func_i;
     if(emit_exp(emit, member->base, 0) < 0)
       CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
     sadd_instr(emit, Reg_Dup_Last);
@@ -1593,53 +1615,52 @@ static m_bool emit_member(Emitter emit, Value v, m_bool emit_addr) {
   return 1;
 }
 
+static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
+  Type t_base = member->t_base;
+  Value value = find_value(t_base, member->xid);
+  m_bool emit_addr = member->self->emit_var;
+  if(isa(member->self->type, &t_func_ptr) > 0) { // function poin ter
+    if(GET_FLAG(value, ae_flag_member)) { // member
+      if(emit_exp(emit, member->base, 0) < 0)
+        CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
+      sadd_instr(emit, Reg_Dup_Last);
+      return emit_member(emit, value, emit_addr);
+    } else
+      return emit_dot_static_data(emit, value, kindof(value->m_type), emit_addr);
+  } else if(isa(member->self->type, &t_function) > 0) { // function
+    Func func = value->func_ref;
+    if(GET_FLAG(func, ae_flag_member))
+      return emit_member_func(emit, member, func);
+    else
+      return emit_dot_static_func(emit, t_base, func);
+  } else { // variable
+    if(GET_FLAG(value, ae_flag_member)) { // member
+      CHECK_BB(emit_exp(emit, member->base, 0))
+      return emit_member(emit, value, emit_addr);
+    } else // static
+      CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
+  }
+  return 1;
+}
+
+static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
+  Type t_base = member->t_base->d.actual_type;
+  Value value = find_value(t_base, member->xid);
+
+  if(isa(member->self->type, &t_function) > 0)
+    return emit_dot_static_func(emit, t_base, value->func_ref);
+  return emit_dot_static_import_data(emit, value, t_base, member->self->emit_var);
+}
+
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 #ifdef DEBUG_EMIT
   debug_msg("emit", "dot member");
 #endif
-  Type t_base;
-  m_uint emit_addr = member->self->emit_var;
-  m_bool base_static = member->t_base->xid == te_class;
-  Value value = NULL;
-
-  t_base = base_static ? member->t_base->d.actual_type : member->t_base;
-  value = find_value(t_base, member->xid);
-  if(t_base->xid == te_complex || t_base->xid == te_polar)
-    return emit_complex_member(emit, member->base, value,
-        t_base->xid == te_complex ? "re" : "mod", emit_addr);
-  else if(t_base->xid == te_vec3 || t_base->xid == te_vec4)
-    return emit_vec_member(emit, member->base, value, emit_addr);
-  if(t_base->xid == te_vararg)
-    return emit_vararg(emit, member);
-  if(!base_static) { // called from instance
-    if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
-      if(GET_FLAG(value, ae_flag_member)) { // member
-        if(emit_exp(emit, member->base, 0) < 0)
-          CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
-        sadd_instr(emit, Reg_Dup_Last);
-        return emit_member(emit, value, emit_addr);
-      } else
-        CHECK_BB(emit_dot_static_data(emit, value, kindof(value->m_type), emit_addr))
-    } else if(isa(member->self->type, &t_function) > 0) { // function
-      Func func = value->func_ref;
-      if(GET_FLAG(func, ae_flag_member))
-        return emit_member_func(emit, member, func);
-      else
-        return emit_dot_static_func(emit, t_base, func);
-    } else { // variable
-      if(GET_FLAG(value, ae_flag_member)) { // member
-        CHECK_BB(emit_exp(emit, member->base, 0))
-        return emit_member(emit, value, emit_addr);
-      } else // static
-        CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
-    }
-  } else { // static
-    if(isa(member->self->type, &t_function) > 0)
-      return emit_dot_static_func(emit, t_base, value->func_ref);
-    else
-      return emit_dot_static_import_data(emit, value, t_base, emit_addr);
-  }
-  return 1;
+  if(is_special(member->t_base) > 0)
+    return emit_exp_dot_special(emit, member);
+  if(member->t_base->xid != te_class)
+    return emit_exp_dot_instance(emit, member);
+  return emit_exp_dot_static(emit, member);
 }
 
 static m_bool emit_func_def_global(Emitter emit, Value value) {
