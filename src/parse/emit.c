@@ -266,30 +266,20 @@ static m_bool emit_exp_prim_array(Emitter emit, Array_Sub array) {
 }
 
 static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
-  Type type, base_type;
-  Instr instr;
-  m_uint depth = 0;
-  Array_Sub sub;
-  Exp exp;
-  m_uint is_var = 0;
+  m_uint is_var = array->self->emit_var;
+  m_uint depth = array->base->type->array_depth - array->self->type->array_depth;
 
-  type = array->self->type;
-  base_type = array->base->type;
-  is_var = array->self->emit_var;
-  depth = base_type->array_depth - type->array_depth;
-  sub = array->indices;
-  exp = sub->exp_list;
   CHECK_BB(emit_exp(emit, array->base, 0))
-  CHECK_BB(emit_exp(emit, exp, 0))
+  CHECK_BB(emit_exp(emit, array->indices->exp_list, 0))
   if(depth == 1) {
-    instr = add_instr(emit, Instr_Array_Access);
+    Instr instr = add_instr(emit, Instr_Array_Access);
     instr->m_val = is_var;
-    instr->m_val2 = kindof(type);
+    instr->m_val2 = kindof(array->self->type);
   } else {
-    instr = add_instr(emit, Instr_Array_Access_Multi);
+    Instr instr = add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
     instr->m_val2 = kindof(array->base->type->d.array_type);
-    *(m_uint*)instr->ptr = is_var || type->array_depth;
+    *(m_uint*)instr->ptr = is_var || array->self->type->array_depth;
   }
   return 1;
 }
@@ -469,14 +459,25 @@ static m_bool decl_static(Emitter emit, Value v, Array_Sub array,
   return 1;
 }
 
+static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool is_obj) {
+  Instr alloc;
+  Kindof kind = kindof(v->m_type);
+  Local* local = frame_alloc_local(emit->code->frame, v->m_type->size, is_ref, is_obj);
+  CHECK_OO(local)
+  v->offset   = local->offset;
+  alloc = decl_global(emit, kind);
+  alloc->m_val2 = GET_FLAG(v, ae_flag_global);
+  return alloc;
+}
+
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  Instr alloc;
 
   while(list) {
     Var_Decl var_decl = list->self;
     Value value = var_decl->value;
     Type type = value->m_type;
+    Instr alloc;
     Array_Sub array = list->self->array;
     m_bool is_obj = isa(type, &t_object) > 0 || list->self->array;
     m_bool is_ref = decl->type->ref;
@@ -484,22 +485,16 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 
     if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
       CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-    if(GET_FLAG(value, ae_flag_member)) {
+    if(GET_FLAG(value, ae_flag_member))
       alloc = decl_member(emit, kind);
-    } else {
-      if(!emit->env->class_def || !decl->is_static) {
-        Local* local = frame_alloc_local(emit->code->frame, type->size, is_ref, is_obj);
-        CHECK_OB(local)
-        value->offset   = local->offset;
-        alloc = decl_global(emit, kind);
-        alloc->m_val2 = GET_FLAG(value, ae_flag_global);
-      } else { // static
+    else if(!emit->env->class_def || !decl->is_static)
+      alloc = emit_exp_decl_global(emit, value, is_ref, is_obj);
+    else { // static
         if(is_obj && !is_ref)
           CHECK_BB(decl_static(emit, value, array, kind, is_ref))
         CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
         list = list->next;
         continue;
-      }
     }
     alloc->m_val = value->offset;
     *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
@@ -1581,11 +1576,7 @@ static m_bool emit_func_def_flag(Emitter emit, Func func) {
     if(!frame_alloc_local(emit->code->frame, SZ_INT, 1, 0))
       CHECK_BB(err_msg(EMIT_, func->def->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
   }
-  if(GET_FLAG(func->def, ae_flag_variadic)) {
-    if(!frame_alloc_local(emit->code->frame, SZ_INT, 1, 0))
-      CHECK_BB(err_msg(EMIT_, func->def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
-      emit->code->stack_depth += SZ_INT;
-  }
+
   return 1;
 }
 
@@ -1597,7 +1588,6 @@ static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
     m_bool obj = !isprim(type);
     m_bool ref = a->type_decl->ref;
     emit->code->stack_depth += type->size;
-
     if(!(local = frame_alloc_local(emit->code->frame, type->size, ref, obj)))
       CHECK_BB(err_msg(EMIT_, a->pos,
         "(emit): internal error: cannot allocate local '%s'...", value->name))
@@ -1639,6 +1629,20 @@ static m_bool emit_func_def_code(Emitter emit, Func func) {
   return 1;
 }
 
+static m_bool emit_func_def_body(Emitter emit, Func_Def func_def) {
+  frame_push_scope(emit->code->frame);
+  CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
+  if(GET_FLAG(func_def, ae_flag_variadic)) {
+    if(!frame_alloc_local(emit->code->frame, SZ_INT, 1, 0))
+      CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
+      emit->code->stack_depth += SZ_INT;
+  }
+  CHECK_BB(emit_stmt(emit, func_def->code, 0))
+  CHECK_BB(emit_func_def_ensure(emit, func_def->ret_type->size))
+  emit_pop_scope(emit);
+  return 1;
+}
+
 static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   Func func = func_def->d.func;
 
@@ -1650,14 +1654,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
     CHECK_BB(emit_func_def_global(emit, func->value_ref))
   CHECK_BB(emit_func_def_init(emit, func))
   CHECK_BB(emit_func_def_flag(emit, func))
-
-
-  frame_push_scope(emit->code->frame);
-  CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
-  CHECK_BB(emit_stmt(emit, func_def->code, 0))
-  CHECK_BB(emit_func_def_ensure(emit, func_def->ret_type->size))
-  emit_pop_scope(emit);
-
+  CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
       !*(m_uint*)emit->env->func->variadic->ptr))
     CHECK_BB(err_msg(EMIT_, func_def->pos, "invalid variadic use"))
