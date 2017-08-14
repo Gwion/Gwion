@@ -447,18 +447,29 @@ static Instr decl_global(Emitter emit, Kindof kind) {
   return NULL;
 }
 
-static m_bool decl_static(Emitter emit, Value v, Array_Sub array,
-  Kindof kind, m_bool is_ref) {
+static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
+  Value v = var_decl->value;
   Code* code = emit->code;
+  Instr assign;
+
   emit->code = (Code*)vector_back(&emit->stack);
-  CHECK_BB(emit_instantiate_object(emit, v->m_type, array, is_ref))
-  CHECK_BB(emit_dot_static_data(emit, v, kind, 1))
-  Instr assign  = add_instr(emit, Assign_Object);
+  CHECK_BB(emit_instantiate_object(emit, v->m_type, var_decl->array, is_ref))
+  CHECK_BB(emit_dot_static_data(emit, v, kindof(v->m_type), 1))
+  assign  = add_instr(emit, Assign_Object);
   assign->m_val = 0;
   emit->code = code;
   return 1;
 }
 
+static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
+  Value value = var_decl->value;
+  Kindof kind = kindof(value->m_type);
+
+  if(isprim(value->m_type) < 0 && !is_ref)
+    CHECK_BB(decl_static(emit, var_decl, 0))
+  CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
+  return 1;
+}
 static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool is_obj) {
   Instr alloc;
   Kindof kind = kindof(v->m_type);
@@ -470,42 +481,43 @@ static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool i
   return alloc;
 }
 
+static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
+  m_bool is_ref, m_bool emit_var) {
+  Value value = var_decl->value;
+  Type type = value->m_type;
+  Instr alloc;
+  Array_Sub array = var_decl->array;
+  m_bool is_obj = isa(type, &t_object) > 0 || var_decl->array;
+  Kindof kind = kindof(type);
+  if(is_obj && ((array && array->exp_list) || !is_ref))
+    CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
+  if(GET_FLAG(value, ae_flag_member))
+    alloc = decl_member(emit, kind);
+  else
+    alloc = emit_exp_decl_global(emit, value, is_ref, is_obj);
+  alloc->m_val = value->offset;
+  *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
+  if(is_obj) {
+    if((array && array->exp_list) || !is_ref) {
+      Instr assign = add_instr(emit, Assign_Object);
+      assign->m_val = emit_var;
+    }
+    if(array && array->exp_list)
+      ADD_REF(type);
+  }
+  return 1;
+}
+
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
+  m_bool ref = decl->type->ref;
+  m_bool var = decl->self->emit_var;
 
   while(list) {
-    Var_Decl var_decl = list->self;
-    Value value = var_decl->value;
-    Type type = value->m_type;
-    Instr alloc;
-    Array_Sub array = list->self->array;
-    m_bool is_obj = isa(type, &t_object) > 0 || list->self->array;
-    m_bool is_ref = decl->type->ref;
-    Kindof kind = kindof(type);
-
-    if(is_obj && ((array && array->exp_list) || !is_ref) && !decl->is_static)
-      CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-    if(GET_FLAG(value, ae_flag_member))
-      alloc = decl_member(emit, kind);
-    else if(!emit->env->class_def || !decl->is_static)
-      alloc = emit_exp_decl_global(emit, value, is_ref, is_obj);
-    else { // static
-        if(is_obj && !is_ref)
-          CHECK_BB(decl_static(emit, value, array, kind, is_ref))
-        CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
-        list = list->next;
-        continue;
-    }
-    alloc->m_val = value->offset;
-    *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? decl->self->emit_var : 1;
-    if(is_obj) {
-      if((array && array->exp_list) || !is_ref) {
-        Instr assign = add_instr(emit, Assign_Object);
-        assign->m_val = decl->self->emit_var;
-      }
-      if(array && array->exp_list)
-        ADD_REF(type);
-    }
+    if(decl->is_static)
+      CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
+    else
+      CHECK_BB(emit_exp_decl_non_static(emit, list->self,ref, var))
     list = list->next;
   }
   return 1;
