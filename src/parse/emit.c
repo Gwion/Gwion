@@ -470,8 +470,7 @@ static m_bool decl_static(Emitter emit, Value v, Array_Sub array,
 }
 
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
-  Exp_Decl* exp = decl;
-  Var_Decl_List list = exp->list;
+  Var_Decl_List list = decl->list;
   Instr alloc;
 
   while(list) {
@@ -1443,6 +1442,8 @@ static m_bool emit_vararg_other(Emitter emit, m_uint offset, char c) {
     instr = add_instr(emit, Vararg_int);
   else if(c == 'f' || c == 't' || c == 'd')
     instr = add_instr(emit, Vararg_float);
+  else if(c == 'o')
+    instr = add_instr(emit, Vararg_object);
   else
     instr = add_instr(emit, Vararg_complex);
   instr->m_val = offset;
@@ -1457,12 +1458,13 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
     offset += l->type->size;
     l = l->next;
   }
+  printf("offset: %lu str %s\n", offset, str);
   if(!strcmp(str, "start"))
     return emit_vararg_start(emit, offset);
   if(!strcmp(str, "end"))
     return emit_vararg_end(emit, offset);
   if(str[0] == 'v')
-    emit_vararg_vec(emit, offset, str[1]);
+    return emit_vararg_vec(emit, offset, str[1]);
   return emit_vararg_other(emit, offset, str[0]);
 }
 
