@@ -1411,50 +1411,59 @@ static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) 
   return 1;
 }
 
+static m_bool emit_vararg_start(Emitter emit , m_uint offset) {
+  if(emit->env->func->variadic)
+    CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error")) 
+  emit->env->func->variadic = add_instr(emit, Vararg_start);
+  emit->env->func->variadic->m_val = offset;
+  emit->env->func->variadic->m_val2 = vector_size(&emit->code->code);
+  return 1;
+}
+
+static m_bool emit_vararg_end(Emitter emit, m_uint offset) {
+  if(!emit->env->func->variadic)
+    CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
+  Instr instr = add_instr(emit, Vararg_end);
+  instr->m_val = offset;
+  instr->m_val2 = emit->env->func->variadic->m_val2;
+  emit->env->func->variadic->m_val2 = vector_size(&emit->code->code);
+  *(m_uint*)emit->env->func->variadic->ptr = 1;
+  return 1;
+}
+
+static m_bool emit_vararg_vec(Emitter emit, m_uint offset, char c) {
+  Instr instr = add_instr(emit, c =='3' ? Vararg_Vec3 : Vararg_Vec4);
+  instr->m_val = offset;
+  return 1;
+}
+
+static m_bool emit_vararg_other(Emitter emit, m_uint offset, char c) {
+  Instr instr = NULL;
+  if(c == 'i')
+    instr = add_instr(emit, Vararg_int);
+  else if(c == 'f' || c == 't' || c == 'd')
+    instr = add_instr(emit, Vararg_float);
+  else
+    instr = add_instr(emit, Vararg_complex);
+  instr->m_val = offset;
+  return 1;
+}
+
 static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
   m_uint offset = 0;
   Arg_List l = emit->env->func->def->arg_list;
+  m_str str = s_name(member->xid);
   while(l) {
     offset += l->type->size;
     l = l->next;
   }
-  if(!strcmp(s_name(member->xid), "start")) {
-    if(emit->env->func->variadic) {
-      /*free(emit->env->func->variadic);*/
-      CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
-    }
-    emit->env->func->variadic = add_instr(emit, Vararg_start);
-    emit->env->func->variadic->m_val = offset;
-    emit->env->func->variadic->m_val2 = vector_size(&emit->code->code);
-  }
-  if(!strcmp(s_name(member->xid), "end")) {
-    if(!emit->env->func->variadic)
-      CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
-    Instr instr = add_instr(emit, Vararg_end);
-    instr->m_val = offset;
-    instr->m_val2 = emit->env->func->variadic->m_val2;
-    emit->env->func->variadic->m_val2 = vector_size(&emit->code->code);
-    *(m_uint*)emit->env->func->variadic->ptr = 1;
-  } else if(!strcmp(s_name(member->xid), "i")) {
-    Instr instr = add_instr(emit, Vararg_int);
-    instr->m_val = offset;
-  } else if(!strcmp(s_name(member->xid), "f") || !strcmp(s_name(member->xid), "t") || !strcmp(s_name(member->xid), "d")) {
-    Instr instr = add_instr(emit, Vararg_float);
-    instr->m_val = offset;
-  } else if(!strcmp(s_name(member->xid), "c") || !strcmp(s_name(member->xid), "p")) {
-    Instr instr = add_instr(emit, Vararg_complex);
-    instr->m_val = offset;
-  } else if(!strcmp(s_name(member->xid), "v3")) {
-    Instr instr = add_instr(emit, Vararg_Vec3);
-    instr->m_val = offset;
-  } else if(!strcmp(s_name(member->xid), "v4")) {
-    Instr instr = add_instr(emit, Vararg_Vec4);
-    instr->m_val = offset;
-  } else if(!strcmp(s_name(member->xid), "o")) {
-    Instr instr = add_instr(emit, Vararg_object);
-    instr->m_val = offset;
-  }
-  return 1;
+  if(!strcmp(str, "start"))
+    return emit_vararg_start(emit, offset);
+  if(!strcmp(str, "end"))
+    return emit_vararg_end(emit, offset);
+  if(str[0] == 'v')
+    emit_vararg_vec(emit, offset, str[1]);
+  return emit_vararg_other(emit, offset, str[0]);
 }
 
 static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
