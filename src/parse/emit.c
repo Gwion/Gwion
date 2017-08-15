@@ -692,55 +692,80 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
   return 1;
 }
 
-/* not static as it is called in operator.c*/
-m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
-  Instr code, offset, call;
-  if(!func->code) { // function pointer or template
-    Func f = isa(func->value_ref->m_type, &t_func_ptr) > 0 ||
-             isa(func->value_ref->m_type, &t_class) > 0 ?
-             nspc_lookup_func(func->value_ref->owner, func->def->name, 1) :
-             nspc_lookup_func(emit->env->curr, insert_symbol(func->name), -1);
+static Func emit_get_func(Nspc nspc, Func f) {
+  return isa(f->value_ref->m_type, &t_func_ptr) > 0 ||
+         isa(f->value_ref->m_type, &t_class) > 0 ?
+         nspc_lookup_func(f->value_ref->owner, f->def->name, 1) :
+         nspc_lookup_func(nspc, insert_symbol(f->name), -1);
+}
 
-    if(!f) { //template with no list
-      if(!GET_FLAG(func->def, ae_flag_template))
-        CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
-        if(emit_func_def(emit, func->def) < 0)
-          CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
-          func->code = func->def->d.func->code;
-      code = add_instr(emit, Reg_Push_Ptr);
-      *(VM_Code*)code->ptr = func->code;
-    } else {
-      code = add_instr(emit, Reg_Push_Code);
-      code->m_val = func->value_ref->offset;
-      code->m_val2 = func->value_ref->owner_class ? 1 : 0;
-    }
+static m_bool emit_exp_call1_code(Emitter emit, Func func) {
+  if(!emit_get_func(emit->env->curr, func)) { //template with no list
+    Instr code;
+    if(!GET_FLAG(func->def, ae_flag_template))
+      CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
+    if(emit_func_def(emit, func->def) < 0)
+      CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
+    code = add_instr(emit, Reg_Push_Ptr);
+    *(VM_Code*)code->ptr = func->code = func->def->d.func->code;
   } else {
+    Instr code = add_instr(emit, Reg_Push_Code);
+    code->m_val = func->value_ref->offset;
+    code->m_val2 = func->value_ref->owner_class ? 1 : 0;
+  }
+  return 1;
+}
+
+static m_bool emit_exp_call1_offset(Emitter emit, m_bool is_member) {
+  Instr offset;
+
+  if(!emit->code->stack_depth && !emit->code->frame->curr_offset && !is_member)
+    sadd_instr(emit, Mem_Push_Imm);
+  offset = add_instr(emit, Reg_Push_Imm);
+  offset->m_val = emit->code->frame->curr_offset;
+  return 1;
+}
+
+m_bool emit_exp_call1_builtin(Emitter emit, Func func) {
+  Instr call;
+
+  if(!func->code || !func->code->native_func)
+    CHECK_BB(err_msg(EMIT_, func->def->pos,
+          "missing native func. are you trying to spork?"))
+  call = add_instr(emit, GET_FLAG(func, ae_flag_member) ?
+    Instr_Exp_Func_Member : Instr_Exp_Func_Static);
+  call->m_val = func->def->ret_type->size;
+  return 1;
+}
+
+static m_bool emit_exp_call1_op(Emitter emit, Arg_List list) {
+  Instr call    = add_instr(emit, Instr_Op_Call_Binary);
+  call->m_val   = emit->code->stack_depth;
+  call->m_val2  = (m_uint)list->type;
+  *(Type*)call->ptr     = list->next->type;
+  return 1;
+}
+
+static m_bool emit_exp_call1_usr(Emitter emit) {
+  Instr call = add_instr(emit, Instr_Exp_Func);
+  call->m_val = emit->code->stack_depth;
+  return 1;
+}
+
+m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
+  Instr code;
+  if(!func->code) // function pointer or template
+    CHECK_BB(emit_exp_call1_code(emit, func))
+  else {
     code = add_instr(emit, Reg_Push_Ptr);
     *(VM_Code*)code->ptr = func->code;
   }
-
-  if(!emit->code->stack_depth && !emit->code->frame->curr_offset)
-    if(!GET_FLAG(func, ae_flag_member)) // 25/07/17
-    sadd_instr(emit, Mem_Push_Imm);
-
-  offset = add_instr(emit, Reg_Push_Imm);
-  offset->m_val = emit->code->frame->curr_offset;
-  call = add_instr(emit, Instr_Exp_Func);
-//  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? kindof(func->def->ret_type) : emit->code->stack_depth;
-  call->m_val = GET_FLAG(func->def, ae_flag_builtin) ? func->def->ret_type->size : emit->code->stack_depth;
-  if(GET_FLAG(func->def, ae_flag_builtin)) {
-    if(!func->code || !func->code->native_func)
-      CHECK_BB(err_msg(EMIT_, func->def->pos, "missing native func. are you trying to spork?"))
-      if(GET_FLAG(func, ae_flag_member))
-        call->execute = Instr_Exp_Func_Member;
-      else
-        call->execute = Instr_Exp_Func_Static;
-  } else if(!strcmp(s_name(func->def->name), "chuck")) { // should also handle other ops
-    call->execute = Instr_Op_Call_Binary;
-    call->m_val2  = (m_uint)func->def->arg_list->type;
-    *(Type*)call->ptr     = func->def->arg_list->next->type;
-  }
-  return 1;
+  CHECK_BB(emit_exp_call1_offset(emit, GET_FLAG(func, ae_flag_member)))
+  if(GET_FLAG(func->def, ae_flag_builtin))
+    return emit_exp_call1_builtin(emit, func);
+  else if(!strcmp(s_name(func->def->name), "chuck"))
+    return emit_exp_call1_op(emit, func->def->arg_list);
+  return emit_exp_call1_usr(emit);
 }
 
 static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint arg_size, m_uint stack_depth) {
@@ -1425,7 +1450,7 @@ static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) 
 
 static m_bool emit_vararg_start(Emitter emit , m_uint offset) {
   if(emit->env->func->variadic)
-    CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error")) 
+    CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
   emit->env->func->variadic = add_instr(emit, Vararg_start);
   emit->env->func->variadic->m_val = offset;
   emit->env->func->variadic->m_val2 = vector_size(&emit->code->code);
