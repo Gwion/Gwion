@@ -20,12 +20,13 @@ m_bool scan2_ast(Env, Ast);
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
+static m_bool check_class_def(Env env, Class_Def class_def);
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
-struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,             te_gack };
+struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -799,6 +800,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
   return NULL;
 }
+
 static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
@@ -1307,6 +1309,7 @@ static m_bool check_flow(Env env, Exp exp, m_str s) {
   }
   return 1;
 }
+
 static m_bool check_stmt_while(Env env, Stmt_While stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
   CHECK_BB(check_flow(env, stmt->cond, "while"))
@@ -1680,31 +1683,46 @@ m_bool check_func_def(Env env, Func_Def f) {
   return ret;
 }
 
+static m_bool check_class_def_body(Env env, Class_Body body) {
+  while(body) {
+    switch(body->section->type) {
+      case ae_section_stmt:
+        CHECK_BB(check_stmt_list(env, body->section->d.stmt_list))
+        break;
+      case ae_section_func:
+        CHECK_BB(check_func_def(env, body->section->d.func_def))
+        break;
+      case ae_section_class:
+        CHECK_BB(check_class_def(env, body->section->d.class_def))
+        break;
+    }
+    body = body->next;
+  }
+  return 1;
+}
+
 static m_bool check_class_def(Env env, Class_Def class_def) {
   Type the_class = NULL;
   Type t_parent = NULL;
   m_bool ret = 1;
-  Class_Body body = class_def->body;
 
   if(class_def->ext) {
-    if(class_def->ext) {
-      t_parent = find_type(env, class_def->ext);
-      if(!t_parent) {
-        char path[id_list_len(class_def->ext)];
-        type_path(path, class_def->ext);
-        CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                "undefined parent class '%s' in definition of class '%s'",
-                path, s_name(class_def->name->xid)))
-      }
-      if(isprim(t_parent) > 0)
-        CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                         "cannot extend primitive type '%s'", t_parent->name))
-        if(!GET_FLAG(t_parent, ae_flag_checked))
-          CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                           "cannot extend incomplete type '%s'i\n"
-                           "\t...(note: the parent's declaration must preceed child's)",
-                           t_parent->name))
-        }
+    t_parent = find_type(env, class_def->ext);
+    if(!t_parent) {
+      char path[id_list_len(class_def->ext)];
+      type_path(path, class_def->ext);
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "undefined parent class '%s' in definition of class '%s'",
+              path, s_name(class_def->name->xid)))
+    }
+    if(isprim(t_parent) > 0)
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "cannot extend primitive type '%s'", t_parent->name))
+    if(!GET_FLAG(t_parent, ae_flag_checked))
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "cannot extend incomplete type '%s'i\n"
+              "\t...(note: the parent's declaration must preceed child's)",
+              t_parent->name))
   }
 
   if(!t_parent)
@@ -1715,32 +1733,10 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
 
   CHECK_BB(env_push_class(env, the_class))
-  while(body && ret > 0) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        if(body->section->d.stmt_list->stmt)
-          SET_FLAG(env->class_def, ae_flag_ctor);
-        ret = check_stmt_list(env, body->section->d.stmt_list);
-        break;
-
-      case ae_section_func:
-        SET_FLAG(env->class_def, ae_flag_checked);
-        ret = check_func_def(env, body->section->d.func_def);
-        env->class_def->flag &= ~ae_flag_checked;
-        break;
-
-      case ae_section_class:
-        ret = check_class_def(env, body->section->d.class_def);
-        break;
-    }
-    body = body->next;
-  }
+  ret = check_class_def_body(env, class_def->body);
   CHECK_BB(env_pop_class(env))
-
-  if(ret > 0) {
-    the_class->obj_size = the_class->info->offset;
-    SET_FLAG(the_class, ae_flag_checked);
-  }
+  the_class->obj_size = the_class->info->offset;
+  SET_FLAG(the_class, ae_flag_checked);
   return ret;
 }
 
