@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
+#include "err_msg.h"
 #include "vm.h"
 #include "type.h"
 #include "func.h"
