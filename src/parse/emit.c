@@ -561,30 +561,36 @@ static m_bool emit_exp_call_helper(Emitter emit, Exp_Func* exp_func, m_bool spor
   return 1;
 }
 
+static m_bool emit_exp_call_template_types(Env env, ID_List base_t, Type_List list) {
+  while(base_t) {
+    nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
+    base_t = base_t->next;
+    list = list->next;
+  }
+  return 1;
+}
+
+static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool spork) {
+  Func_Def def = exp_func->m_func->def;
+  if(exp_func->m_func->value_ref->owner_class)
+    CHECK_BB(env_push_class(emit->env, exp_func->m_func->value_ref->owner_class))
+  nspc_push_type(emit->env->curr);
+  CHECK_BB(emit_exp_call_template_types(emit->env, def->base, exp_func->types))
+  SET_FLAG(def, ae_flag_template);
+  CHECK_BB(scan1_func_def(emit->env, def))
+  CHECK_BB(scan2_func_def(emit->env, def))
+  CHECK_BB(check_func_def(emit->env, def))
+  CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
+  nspc_pop_type(emit->env->curr);
+  if(exp_func->m_func->value_ref->owner_class)
+    CHECK_BB(env_pop_class(emit->env))
+  return 1;
+}
+
 static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
-  if(exp_func->types) {
-    Func_Def def = exp_func->m_func->def;
-    ID_List base_t = def->base;
-    Type_List list = exp_func->types;
-    if(exp_func->m_func->value_ref->owner_class)
-      CHECK_BB(env_push_class(emit->env, exp_func->m_func->value_ref->owner_class))
-    nspc_push_type(emit->env->curr);
-    while(base_t) {
-      nspc_add_type(emit->env->curr, base_t->xid, find_type(emit->env, list->list));
-      base_t = base_t->next;
-      list = list->next;
-    }
-    SET_FLAG(def, ae_flag_template);
-
-    CHECK_BB(scan1_func_def(emit->env, def))
-    CHECK_BB(scan2_func_def(emit->env, def))
-    CHECK_BB(check_func_def(emit->env, def))
-
-    CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
-    nspc_pop_type(emit->env->curr);
-    if(exp_func->m_func->value_ref->owner_class)
-      CHECK_BB(env_pop_class(emit->env))
-  } else
+  if(exp_func->types)
+    CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
+  else
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
