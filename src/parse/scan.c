@@ -5,6 +5,7 @@
 #include "type.h"
 #include "func.h"
 
+static m_bool scan0_Class_Def(Env env, Class_Def class_def);
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
@@ -42,11 +43,7 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
   return 1;
 }
 
-static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
-  Type the_class = NULL;
-  m_bool ret = 1;
-  Class_Body body = class_def->body;
-
+static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
   if(class_def->decl == ae_flag_public) {
     if(env->context->public_class_def) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
@@ -57,7 +54,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
+  return 1;
+}
 
+static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
+  CHECK_BB(scan0_class_def_public(env, class_def))
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
                      "class/type '%s' is already defined in namespace '%s'",
@@ -68,55 +69,65 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
                      s_name(class_def->name->xid)))
   }
+  return 1;
+}
 
-  the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
+static Type scan0_class_def_init(Env env, Class_Def class_def) {
+  Type the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name, env->context->filename);
-
-  if(env->context->public_class_def == class_def)
-    the_class->info->parent = env->context->nspc;
-  else
-    the_class->info->parent = env->curr;
+  the_class->info->parent = env->context->public_class_def == class_def ?
+    env->context->nspc : env->curr;
   the_class->d.func = NULL;
   the_class->def = class_def;
-
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
+  return the_class;
+}
 
-  CHECK_BB(env_push_class(env, the_class))
-  while(body && ret > 0) {
+static m_bool scan0_class_def_body(Env env, Class_Body body) {
+  while(body) {
     switch(body->section->type) {
       case ae_section_stmt:
-        ret = scan0_Stmt_List(env, body->section->d.stmt_list);
+        CHECK_BB(scan0_Stmt_List(env, body->section->d.stmt_list))
       case ae_section_func:
         break;
       case ae_section_class:
-        ret = scan0_Class_Def(env, body->section->d.class_def);
+        CHECK_BB(scan0_Class_Def(env, body->section->d.class_def))
         break;
     }
     body = body->next;
   }
-  CHECK_BB(env_pop_class(env))
+  return 1;
+}
 
-  if(ret) {
-    Value value;
-    Type  type;
-    type = type_copy(env, &t_class);
-    type->d.actual_type = the_class;
-    value = new_value(type, the_class->name);
-    value->owner = env->curr;
-    SET_FLAG(value, ae_flag_const | ae_flag_checked);
-    nspc_add_value(env->curr, class_def->name->xid, value);
-    class_def->type = the_class;
-  }
-
+static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
+  Value value;
+  Type  type;
+  type = type_copy(env, &t_class);
+  type->d.actual_type = class_def->type;
+  value = new_value(type, class_def->type->name);
+  value->owner = env->curr;
+  SET_FLAG(value, ae_flag_const | ae_flag_checked);
+  nspc_add_value(env->curr, class_def->name->xid, value);
   if(class_def->home)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   else
     class_def->home = env->curr;
+  return 1;
+}
 
+static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
+  m_bool ret;
+
+  CHECK_BB(scan0_class_def_pre(env, class_def))
+  CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
+  CHECK_BB(env_push_class(env, class_def->type))
+  ret = scan0_class_def_body(env, class_def->body);
+  CHECK_BB(env_pop_class(env))
+  CHECK_BB(scan0_class_def_post(env, class_def))
   return ret;
 }
 
@@ -143,9 +154,6 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "decl ref:%i", decl->type->ref);
-#endif
   Var_Decl_List list = decl->list;
   Var_Decl var_decl = NULL;
   Type t = find_type(env, decl->type->xid);
@@ -168,9 +176,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
 }
 
 static m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1",  "binary");
-#endif
   CHECK_BB(scan1_exp(env, binary->lhs))
   CHECK_BB(scan1_exp(env, binary->rhs))
   return 1;
@@ -183,9 +188,6 @@ static m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
 }
 
 static m_bool scan1_exp_array(Env env, Exp_Array* array) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "array");
-#endif
   CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan1_exp(env, array->base))
   CHECK_BB(scan1_exp(env, array->indices->exp_list))
@@ -193,17 +195,11 @@ static m_bool scan1_exp_array(Env env, Exp_Array* array) {
 }
 
 static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "cast");
-#endif
   CHECK_BB(scan1_exp(env, cast->exp))
   return 1;
 }
 
 static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "postfix");
-#endif
   CHECK_BB(scan1_exp(env, postfix->exp))
   switch(postfix->op) {
     case op_plusplus:
@@ -224,27 +220,18 @@ static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
 }
 
 static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1",  "dur");
-#endif
   CHECK_BB(scan1_exp(env, dur->base))
   CHECK_BB(scan1_exp(env, dur->unit))
   return 1;
 }
 
 static m_bool scan1_exp_call1(Env env, Exp exp_func, Exp args, Func func, int pos) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "func call1");
-#endif
   CHECK_BB(scan1_exp(env, exp_func))
   CHECK_BB(args && scan1_exp(env, args))
   return 1;
 }
 
 static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "func call");
-#endif
   if(exp_func->types)
     return 1;
   return scan1_exp_call1(env, exp_func->func,
@@ -252,17 +239,11 @@ static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
 }
 
 static m_bool scan1_exp_dot(Env env, Exp_Dot* member) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "dot member");
-#endif
   CHECK_BB(scan1_exp(env, member->base));
   return 1;
 }
 
 static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "exp if");
-#endif
   CHECK_BB(scan1_exp(env, exp_if->cond))
   CHECK_BB(scan1_exp(env, exp_if->if_exp))
   CHECK_BB(scan1_exp(env, exp_if->else_exp))
@@ -270,9 +251,6 @@ static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
 }
 
 static m_bool scan1_exp(Env env, Exp exp) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "exp %p", exp);
-#endif
   Exp curr = exp;
   while(curr) {
     switch(curr->exp_type) {
@@ -283,6 +261,8 @@ static m_bool scan1_exp(Env env, Exp exp) {
         CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
         break;
       case ae_exp_unary:
+        if(curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code)
+          CHECK_BB(scan1_stmt(env, curr->d.exp_unary.code))
           break;
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
@@ -310,15 +290,14 @@ static m_bool scan1_exp(Env env, Exp exp) {
         break;
     }
     curr = curr->next;
+    if(curr&& curr->exp_type == ae_exp_decl)
+      CHECK_BB(err_msg(SCAN1_, curr->pos, "can't declare after expression"))
   }
   return 1;
 }
 
 static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "code");
-#endif
-  int ret;
+  m_bool ret;
   env->class_scope++;
   if(push)
     nspc_push_value(env->curr);
@@ -330,25 +309,16 @@ static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
 }
 
 static m_bool scan1_stmt_return(Env env, Stmt_Return stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "return");
-#endif
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
 static m_bool scan1_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "flow");
-#endif
   CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
 static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "for");
-#endif
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
   CHECK_BB(scan1_exp(env, stmt->c3))
@@ -357,32 +327,20 @@ static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
 }
 
 static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "loop");
-#endif
   CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->body))
   return 1;
 }
 
 static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "switch");
-#endif
   return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
 }
 
 static m_bool scan1_stmt_case(Env env, Stmt_Case stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "case");
-#endif
   return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
 }
 
 static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "if");
-#endif
   CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->if_body))
   if(stmt->else_body)
@@ -391,9 +349,6 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
 }
 
 static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "enum");
-#endif
   Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   Type t = NULL;
   ID_List list = stmt->list;
@@ -430,9 +385,6 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
 }
 
 static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "func ptr");
-#endif
   Arg_List arg_list;
   int count = 1;
   arg_list = ptr->args;
@@ -499,9 +451,6 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
 }
 
 static m_bool scan1_stmt(Env env, Stmt stmt) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "stmt");
-#endif
   m_bool ret = -1;
 
   switch(stmt->type) {
@@ -554,9 +503,6 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
 }
 
 static m_bool scan1_stmt_list(Env env, Stmt_List list) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "stmt list");
-#endif
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(scan1_stmt(env, curr->stmt))
@@ -565,75 +511,87 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
-m_bool scan1_func_def(Env env, Func_Def f) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "func def");
-#endif
+static m_int scan1_func_def_array(Env env, Func_Def f) {
+  Type t = NULL;
+  Type t2 = f->ret_type;
 
-  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
+  CHECK_BB(verify_array(f->type_decl->array))
+  if(f->type_decl->array->exp_list) {
+    free_expression(f->type_decl->array->exp_list);
+    CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
+      "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
+  }
+  t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
+  f->type_decl->ref = 1;
+  f->ret_type = t;
+  return 1;
+}
 
-    if(!GET_FLAG(f, ae_flag_op) && name2op(s_name(f->name)) > 0)
-      CHECK_BB(err_msg(SCAN1_, f->pos,
-                       "'%s' is a reserved operator name", s_name(f->name)))
-
-      if(f->types)
-        return 1;
-  Arg_List arg_list = NULL;
-  m_uint count = 0;
-
+static m_bool scan1_func_def_type(Env env, Func_Def f) {
   f->ret_type = find_type(env, f->type_decl->xid);
+  if(!f->ret_type)
+    CHECK_BB(err_msg(SCAN1_, f->pos, "unknown return type '%s'",
+                     s_name(f->type_decl->xid->xid)))
+  if(f->type_decl->array)
+    CHECK_BB(scan1_func_def_array(env, f))
+  return 1;
+}
 
-  if(!f->ret_type) {
-    CHECK_BB(err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
-                     s_name(f->type_decl->xid->xid), s_name(f->name)))
-  }
-
-  if(f->type_decl->array) {
-    CHECK_BB(verify_array(f->type_decl->array))
-
-    Type t = NULL;
-    Type t2 = f->ret_type;
-    if(f->type_decl->array->exp_list) {
-      free_expression(f->type_decl->array->exp_list);
-      CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
-        "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
-    }
-    t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
-    f->type_decl->ref = 1;
-    f->ret_type = t;
-  }
-  arg_list = f->arg_list;
-  count = 1;
-
+static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
+  m_int count = 0;
   while(arg_list) {
+    count++;
     if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-              "'%s' unknown type in argument %i of func %s",
-              path, count, s_name(f->name)))
+              "'%s' unknown type in argument %i",
+              path, count))
     }
-    count++;
     arg_list = arg_list->next;
   }
-  if(GET_FLAG(f, ae_flag_op)) {
-    if(count > 3 || count == 1)
+  return count;
+}
+
+static m_bool scan1_func_def_op(Env env, Func_Def f) {
+  m_int count = 0;
+  Arg_List list = f->arg_list;
+  while(list) {
+    count++;
+    list = list->next;
+  }
+  if(count > 2 || !count)
+    CHECK_BB(err_msg(SCAN1_, f->pos,
+          "operators can only have one or two arguments"))
+  if(name2op(s_name(f->name)) < 0)
+    CHECK_BB(err_msg(SCAN1_, f->pos,
+          "%s is not a valid operator name", s_name(f->name)))
+  return 1;
+}
+
+static m_bool scan1_func_def_flag(Env env, Func_Def f) {
+  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
+    CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
+  if(GET_FLAG(f, ae_flag_op))
+    CHECK_BB(scan1_func_def_op(env, f))
+  else if(name2op(s_name(f->name)) > 0)
       CHECK_BB(err_msg(SCAN1_, f->pos,
-                       "operators can only have one or two arguments\n"))
-      if(name2op(s_name(f->name)) < 0)
-        CHECK_BB(err_msg(SCAN1_, f->pos,
-                         "%s is not a valid operator name\n", s_name(f->name)))
-      }
-  if(f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "...in function '%s'\n", s_name(f->name)))
+                "'%s' is a reserved operator name", s_name(f->name)))
+  return 1;
+}
+
+m_bool scan1_func_def(Env env, Func_Def f) {
+  if(f->types)
+    return 1;
+  if( scan1_func_def_flag(env, f) < 0 ||
+      scan1_func_def_type(env, f) < 0 ||
+    (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
+    (f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0))
+    CHECK_BB(err_msg(SCAN1_, f->pos, "\t...in function '%s'", s_name(f->name)))
     return 1;
 }
 
 static m_bool scan1_class_def(Env env, Class_Def class_def) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "class def");
-#endif
   m_bool ret = 1;
   Class_Body body = class_def->body;
   Type the_class = class_def->type;
@@ -658,9 +616,6 @@ static m_bool scan1_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan1_ast(Env env, Ast ast) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "Ast");
-#endif
   Ast prog = ast;
   while(prog) {
     switch(prog->section->type) {
@@ -684,9 +639,6 @@ static m_bool scan2_stmt(Env env, Stmt stmt);
 static m_bool scan2_stmt_list(Env env, Stmt_List list);
 
 m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Declaration");
-#endif
   Var_Decl_List list = decl->list;
   Type type = decl->m_type;
 
@@ -695,43 +647,43 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   if(!type->size)
     CHECK_BB(err_msg(SCAN2_, decl->pos,
                      "cannot declare variables of size '0' (i.e. 'void')..."))
-    if(!decl->type->ref) {
-      if(env->class_def && (type == env->class_def) && !env->class_scope)
-        CHECK_BB(err_msg(SCAN2_, decl->pos,
-                         "...(note: object of type '%s' declared inside itself)", type->name))
-      } else if((isprim(type) > 0))
+  if(!decl->type->ref) {
+    if(env->class_def && (type == env->class_def) && !env->class_scope)
       CHECK_BB(err_msg(SCAN2_, decl->pos,
-                       "cannot declare references (@) of primitive type '%s'...\n"
-                       "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
-      while(list) {
-        if(isres(env, list->self->xid, list->self->pos) > 0)
+                       "...(note: object of type '%s' declared inside itself)", type->name))
+    } else if((isprim(type) > 0))
+    CHECK_BB(err_msg(SCAN2_, decl->pos,
+                     "cannot declare references (@) of primitive type '%s'...\n"
+                     "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
+    while(list) {
+      if(isres(env, list->self->xid, list->self->pos) > 0)
+        CHECK_BB(err_msg(SCAN2_, list->self->pos,
+                         "... in variable declaration", s_name(list->self->xid)))
+        if(nspc_lookup_value(env->curr, list->self->xid, 0))
           CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                           "... in variable declaration", s_name(list->self->xid)))
-          if(nspc_lookup_value(env->curr, list->self->xid, 0))
-            CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                             "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
-            if(list->self->array != NULL) {
-              CHECK_BB(verify_array(list->self->array))
-              Type t2 = type;
+                           "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
+          if(list->self->array) {
+            CHECK_BB(verify_array(list->self->array))
+            Type t2 = type;
 
-              if(list->self->array->exp_list)
-                CHECK_BB(scan2_exp(env, list->self->array->exp_list))
-                type = new_array_type(env, list->self->array->depth, t2, env->curr);
-              if(!list->self->array->exp_list)
-                decl->type->ref = 1;
-              decl->m_type = type;
-            }
-        list->self->value = new_value(type, s_name(list->self->xid));
-        list->self->value->owner = env->curr;
-        list->self->value->owner_class = env->func ? NULL : env->class_def;
-        if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
-          SET_FLAG(list->self->value, ae_flag_member);
-        if(!env->class_def && !env->func && !env->class_scope)
-          SET_FLAG(list->self->value, ae_flag_global);
-        list->self->value->ptr = list->self->addr;
-        nspc_add_value(env->curr, list->self->xid, list->self->value);
-        list = list->next;
-      }
+            if(list->self->array->exp_list)
+              CHECK_BB(scan2_exp(env, list->self->array->exp_list))
+              type = new_array_type(env, list->self->array->depth, t2, env->curr);
+            if(!list->self->array->exp_list)
+              decl->type->ref = 1;
+            decl->m_type = type;
+          }
+      list->self->value = new_value(type, s_name(list->self->xid));
+      list->self->value->owner = env->curr;
+      list->self->value->owner_class = env->func ? NULL : env->class_def;
+      if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+        SET_FLAG(list->self->value, ae_flag_member);
+      if(!env->class_def && !env->func && !env->class_scope)
+        SET_FLAG(list->self->value, ae_flag_global);
+      list->self->value->ptr = list->self->addr;
+      nspc_add_value(env->curr, list->self->xid, list->self->value);
+      list = list->next;
+    }
   return 1;
 }
 
@@ -807,9 +759,6 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
 }
 
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Func Ptr");
-#endif
   if(nspc_lookup_func(env->curr, ptr->xid, -1))
     CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", s_name(ptr->xid)))
     if(scan2_arg_def(env, NULL, ptr->args) < 0)
@@ -837,18 +786,12 @@ static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Primary");
-#endif
   if(prim->type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
     return 1;
 }
 
 static m_bool scan2_exp_array(Env env, Exp_Array* array) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Array");
-#endif
   CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan2_exp(env, array->base))
   CHECK_BB(scan2_exp(env, array->indices->exp_list))
@@ -856,26 +799,17 @@ static m_bool scan2_exp_array(Env env, Exp_Array* array) {
 }
 
 static m_bool scan2_exp_binary(Env env, Exp_Binary* binary) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Binary");
-#endif
   CHECK_BB(scan2_exp(env, binary->lhs))
   CHECK_BB(scan2_exp(env, binary->rhs))
   return 1;
 }
 
 static m_bool scan2_exp_cast(Env env, Exp_Cast* cast) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Cast");
-#endif
   CHECK_BB(scan2_exp(env, cast->exp))
   return 1;
 }
 
 static m_bool scan2_exp_postfix(Env env, Exp_Postfix* postfix) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Postfix");
-#endif
   CHECK_BB(scan2_exp(env, postfix->exp))
   switch(postfix->op) {
     case op_plusplus:
@@ -891,18 +825,12 @@ static m_bool scan2_exp_postfix(Env env, Exp_Postfix* postfix) {
 }
 
 static m_bool scan2_exp_dur(Env env, Exp_Dur* dur) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "PostFix");
-#endif
   CHECK_BB(scan2_exp(env, dur->base))
   CHECK_BB(scan2_exp(env, dur->unit))
   return 1;
 }
 
 static m_bool scan2_exp_call1(Env env, Exp func, Exp args, Func m_func) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Func Call1");
-#endif
   CHECK_BB(scan2_exp(env, func))
   CHECK_BB(scan2_exp(env, args))
   return 1;
@@ -936,9 +864,6 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
 }
 
 static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Func Call");
-#endif
   if(exp_func->types) {
     if(exp_func->func->exp_type == ae_exp_primary) {
       Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
@@ -970,17 +895,11 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
 }
 
 static m_bool scan2_exp_dot(Env env, Exp_Dot* member) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Dot Member");
-#endif
   CHECK_BB(scan2_exp(env, member->base))
   return 1;
 }
 
 static m_bool scan2_exp_if(Env env, Exp_If* exp_if) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "If Exp");
-#endif
   CHECK_BB(scan2_exp(env, exp_if->cond))
   CHECK_BB(scan2_exp(env, exp_if->if_exp))
   CHECK_BB(scan2_exp(env, exp_if->else_exp))
@@ -988,58 +907,53 @@ static m_bool scan2_exp_if(Env env, Exp_If* exp_if) {
 }
 
 static m_bool scan2_exp_spork(Env env, Stmt code) {
-  if(code) {
-    m_bool in_func = env->func ? 1 : 0;
-    if(!in_func)
-      env->func = (Func)1; // check me
-    CHECK_BB(scan1_stmt(env, code))
-    CHECK_BB(scan2_stmt(env, code))
-    if(!in_func)
-      env->func = NULL;
-  }
+  m_bool in_func = env->func ? 1 : 0;
+  if(!in_func)
+    env->func = (Func)1;
+  CHECK_BB(scan2_stmt(env, code))
+  if(!in_func)
+    env->func = NULL;
   return 1;
 }
 
 static m_bool scan2_exp(Env env, Exp exp) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Exp");
-#endif
   Exp curr = exp;
   m_bool ret = 1;
   while(curr && ret > 0) {
-    switch(exp->exp_type) {
+    switch(curr->exp_type) {
       case ae_exp_primary:
-        ret = scan2_exp_primary(env, &exp->d.exp_primary);
+        ret = scan2_exp_primary(env, &curr->d.exp_primary);
         break;
       case ae_exp_decl:
-        ret = scan2_exp_decl(env, &exp->d.exp_decl);
+        ret = scan2_exp_decl(env, &curr->d.exp_decl);
         break;
       case ae_exp_unary:
-        ret = scan2_exp_spork(env, exp->d.exp_unary.code);
+        ret = (curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code) ? 
+          scan2_exp_spork(env, curr->d.exp_unary.code) : 1;
         break;
       case ae_exp_binary:
-        ret = scan2_exp_binary(env, &exp->d.exp_binary);
+        ret = scan2_exp_binary(env, &curr->d.exp_binary);
         break;
       case ae_exp_postfix:
-        ret = scan2_exp_postfix(env, &exp->d.exp_postfix);
+        ret = scan2_exp_postfix(env, &curr->d.exp_postfix);
         break;
       case ae_exp_cast:
-        ret = scan2_exp_cast(env, &exp->d.exp_cast);
+        ret = scan2_exp_cast(env, &curr->d.exp_cast);
         break;
       case ae_exp_call:
-        ret = scan2_exp_call(env, &exp->d.exp_func);
+        ret = scan2_exp_call(env, &curr->d.exp_func);
         break;
       case ae_exp_array:
-        ret = scan2_exp_array(env, &exp->d.exp_array);
+        ret = scan2_exp_array(env, &curr->d.exp_array);
         break;
       case ae_exp_dot:
-        ret = scan2_exp_dot(env, &exp->d.exp_dot);
+        ret = scan2_exp_dot(env, &curr->d.exp_dot);
         break;
       case ae_exp_if:
-        ret = scan2_exp_if(env, &exp->d.exp_if);
+        ret = scan2_exp_if(env, &curr->d.exp_if);
         break;
       case ae_exp_dur:
-        ret = scan2_exp_dur(env, &exp->d.exp_dur);
+        ret = scan2_exp_dur(env, &curr->d.exp_dur);
         break;
     }
     curr = curr->next;
@@ -1048,9 +962,6 @@ static m_bool scan2_exp(Env env, Exp exp) {
 }
 
 static m_bool scan2_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Code");
-#endif
   env->class_scope++;
   if(push)
     nspc_push_value(env->curr);
@@ -1062,9 +973,6 @@ static m_bool scan2_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
 }
 
 static m_bool scan2_stmt_if(Env env, Stmt_If stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "If");
-#endif
   CHECK_BB(scan2_exp(env, stmt->cond))
   CHECK_BB(scan2_stmt(env, stmt->if_body))
   if(stmt->else_body)
@@ -1073,18 +981,12 @@ static m_bool scan2_stmt_if(Env env, Stmt_If stmt) {
 }
 
 static m_bool scan2_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Until");
-#endif
   CHECK_BB(scan2_exp(env, stmt->cond))
   CHECK_BB(scan2_stmt(env, stmt->body))
   return 1;
 }
 
 static m_bool scan2_stmt_for(Env env, Stmt_For stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "For");
-#endif
   CHECK_BB(scan2_stmt(env, stmt->c1))
   CHECK_BB(scan2_stmt(env, stmt->c2))
   CHECK_BB(scan2_exp(env, stmt->c3))
@@ -1093,18 +995,12 @@ static m_bool scan2_stmt_for(Env env, Stmt_For stmt) {
 }
 
 static m_bool scan2_stmt_loop(Env env, Stmt_Loop stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Loop");
-#endif
   CHECK_BB(scan2_exp(env, stmt->cond))
   CHECK_BB(scan2_stmt(env, stmt->body))
   return 1;
 }
 
 static m_bool scan2_stmt_return(Env env, Stmt_Return stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Return");
-#endif
   m_bool ret = -1;
   if(stmt->val)
     ret = scan2_exp(env, stmt->val);
@@ -1114,25 +1010,16 @@ static m_bool scan2_stmt_return(Env env, Stmt_Return stmt) {
 }
 
 static m_bool scan2_stmt_switch(Env env, Stmt_Switch stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Switch");
-#endif
   CHECK_BB(scan2_exp(env, stmt->val))
   return 1;
 }
 
 static m_bool scan2_stmt_case(Env env, Stmt_Case stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Case");
-#endif
   CHECK_BB(scan2_exp(env, stmt->val))
   return 1;
 }
 
 static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan1", "%s '%s'", stmt->is_label ? "label" : "goto", s_name(stmt->name));
-#endif
   Map m;
   m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
   if(stmt->is_label) {
@@ -1157,8 +1044,9 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
   Value v = nspc_lookup_value(env->curr, stmt->xid, 1);
   if(v)
-    CHECK_BB(err_msg(SCAN2_, stmt->pos, "'%s' already declared as variable", s_name(stmt->xid)))
-    return 1;
+    CHECK_BB(err_msg(SCAN2_, stmt->pos,
+          "'%s' already declared as variable", s_name(stmt->xid)))
+  return 1;
 }
 
 static m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
@@ -1171,9 +1059,6 @@ static m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
 }
 
 static m_bool scan2_stmt(Env env, Stmt stmt) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Stmt");
-#endif
   m_bool ret = 1;
   if(!stmt)
     return 1;
@@ -1181,58 +1066,45 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
     case ae_stmt_exp:
       ret = scan2_exp(env, stmt->d.stmt_exp.val);
       break;
-
     case ae_stmt_return:
       ret = scan2_stmt_return(env, &stmt->d.stmt_return);
       break;
-
     case ae_stmt_code:
       SCOPE(ret = scan2_stmt_code(env, &stmt->d.stmt_code, 1))
       break;
-
     case ae_stmt_if:
       NSPC(ret = scan2_stmt_if(env, &stmt->d.stmt_if))
       break;
-
     case ae_stmt_while:
       NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_while))
       break;
-
     case ae_stmt_until:
       NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_until))
       break;
-
     case ae_stmt_for:
       NSPC(ret = scan2_stmt_for(env, &stmt->d.stmt_for))
       break;
-
     case ae_stmt_loop:
       NSPC(ret = scan2_stmt_loop(env, &stmt->d.stmt_loop))
       break;
-
     case ae_stmt_switch:
       NSPC(ret = scan2_stmt_switch(env, &stmt->d.stmt_switch))
       break;
-
     case ae_stmt_case:
       ret = scan2_stmt_case(env, &stmt->d.stmt_case);
       break;
-
     case ae_stmt_gotolabel:
       ret = scan2_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
       break;
-
     case ae_stmt_continue:
     case ae_stmt_break:
       break;
     case ae_stmt_enum:
       ret = scan2_stmt_enum(env, &stmt->d.stmt_enum);
       break;
-
     case ae_stmt_funcptr:
       ret = scan2_stmt_typedef(env, &stmt->d.stmt_ptr);
       break;
-
     case ae_stmt_union:
       ret = scan2_stmt_union(env, &stmt->d.stmt_union);
       break;
@@ -1241,9 +1113,6 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
 }
 
 static m_bool scan2_stmt_list(Env env, Stmt_List list) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Stmt list");
-#endif
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(scan2_stmt(env, curr->stmt))
@@ -1258,10 +1127,11 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
   else if(!overload->func_ref)
     CHECK_BB(err_msg(SCAN2_, f->pos, "internal error: missing function '%s'", overload->name)) // LCOV_EXCL_LINE
   if((!GET_FLAG(overload, ae_flag_template) && f->types) ||
-      (GET_FLAG(overload, ae_flag_template) && !f->types && !GET_FLAG(f, ae_flag_template)))
+      (GET_FLAG(overload, ae_flag_template) && !f->types &&
+       !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->pos, "must override template function with template"))
   return 1;
-} 
+}
 
  static m_bool scan2_func_def_template (Env env, Func_Def f, Value overload) {
   m_str func_name = s_name(f->name);
@@ -1371,7 +1241,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
-    CHECK_BB(scan2_func_def_builtin(func, name))    
+    CHECK_BB(scan2_func_def_builtin(func, name))
   type = new_type(te_function, func_name, &t_function);
   type->size = SZ_INT;
   type->d.func = func;
@@ -1380,6 +1250,10 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   SET_FLAG(value, ae_flag_const);
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(value, ae_flag_builtin);
+  if(GET_FLAG(f, ae_flag_dtor))
+    SET_FLAG(f->d.func, ae_flag_dtor);
+  else if(GET_FLAG(f, ae_flag_variadic))
+    f->stack_depth += SZ_INT;
 
   if(overload) {
     func->next = overload->func_ref->next;
@@ -1395,26 +1269,18 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   if(scan2_arg_def(env, f, f->arg_list) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos, "\t... in function '%s'\n", s_name(f->name)))
-  if(GET_FLAG(f, ae_flag_dtor))
-    SET_FLAG(f->d.func, ae_flag_dtor);
-  else if(GET_FLAG(f, ae_flag_variadic))
-    f->stack_depth += SZ_INT;
-  else if(GET_FLAG(f, ae_flag_op))
+  if(GET_FLAG(f, ae_flag_op))
     return scan2_func_def_op(env, f);
 
   CHECK_BB(scan2_func_def_add(env, value, overload))
-
-  if(f->code)
-    return scan2_func_def_code(env, f);
-  return 1;
+  return f->code ? scan2_func_def_code(env, f) : 1;
 }
 
 static m_bool scan2_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
-  Type the_class = class_def->type;
 
-  CHECK_BB(env_push_class(env, the_class))
+  CHECK_BB(env_push_class(env, class_def->type))
   while(body && ret > 0) {
     switch(body->section->type) {
       case ae_section_stmt:
@@ -1435,9 +1301,6 @@ static m_bool scan2_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan2_ast(Env env, Ast ast) {
-#ifdef DEBUG_SCAN2
-  debug_msg("scan2", "Ast");
-#endif
   Ast prog = ast;
   while(prog) {
     switch(prog->section->type) {

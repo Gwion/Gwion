@@ -20,12 +20,13 @@ m_bool scan2_ast(Env, Ast);
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
+static m_bool check_class_def(Env env, Class_Def class_def);
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
-struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,             te_gack };
+struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -54,7 +55,7 @@ static void handle_plug(Env env, m_str c) {
   }
 }
 
-static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
+static void add_plugs(Env env, Vector plug_dirs) {
   m_uint i;
   for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
@@ -76,86 +77,21 @@ static void add_plugs(VM* vm, Env env, Vector plug_dirs) {
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
-  if(env_add_type(env, &t_void) < 0) goto error;
-  if(env_add_type(env, &t_null) < 0) goto error;
-  if(env_add_type(env, &t_now) < 0) goto error;
-  if(import_int(env)       < 0) goto error;
-  if(import_float(env)     < 0) goto error;
-  if(import_complex(env)   < 0) goto error;
-  if(import_vec3(env)      < 0) goto error;
-  if(import_vec4(env)      < 0) goto error;
-  if(import_object(env)    < 0) goto error;
-  if(import_string(env)    < 0) goto error;
-  if(import_shred(env)     < 0) goto error;
-  if(import_event(env)     < 0) goto error;
-  if(import_ugen(env)      < 0) goto error;
-  if(import_array(env)     < 0) goto error;
-  env->do_type_xid = 1;
-  if(import_fileio(env)    < 0) goto error;
-  if(import_std(env)       < 0) goto error;
-  if(import_math(env)       < 0) goto error;
-  if(import_machine(env)   < 0) goto error;
-  if(import_soundpipe(env) < 0) goto error;
-  if(import_modules(env)   < 0) goto error;
+  CHECK_BO(import_libs(env))
+  CHECK_BO(import_values(env))
+  CHECK_BO(import_global_ugens(vm, env))
 
-  vm->dac       = new_M_UGen();
-  vm->adc       = new_M_UGen();
-  vm->blackhole = new_M_UGen();
-
-  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
-  UGEN(vm->dac)->tick = dac_tick;
-  UGEN(vm->adc)->tick = adc_tick;
-  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
-
-  ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
-  ALLOC_PTR(samp,   m_float, 1.0);
-  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
-  ALLOC_PTR(second, m_float, (m_float)*sr);
-  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
-  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
-  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
-  ALLOC_PTR(t_zero, m_float, 0.0);
-
-  env_add_value(env, "adc",        &t_ugen, 1, vm->adc);
-  env_add_value(env, "dac",        &t_ugen, 1, vm->dac);
-  env_add_value(env, "blackhole",  &t_ugen, 1, vm->blackhole);
-  env_add_value(env, "d_zero",     &t_dur,  1, d_zero);
-  env_add_value(env, "samplerate", &t_dur,  1, sr);
-  env_add_value(env, "samp",       &t_dur,  1, samp);
-  env_add_value(env, "ms",         &t_dur,  1, ms);
-  env_add_value(env, "second",     &t_dur,  1, second);
-  env_add_value(env, "minute",     &t_dur,  1, minute);
-  env_add_value(env, "day",        &t_dur,  1, hour);
-  env_add_value(env, "hour",       &t_dur,  1, day);
-  env_add_value(env, "t_zero",     &t_time, 1, t_zero);
-  /* commit */
   nspc_commit(env->global_nspc);
 
-//  nspc_commit(env->context->nspc);
   map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
   env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
-  /*  env->user_nspc = new_nspc();*/
-  /*  env->user_nspc->name = "[user]";*/
+  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
-  /*  ADD_REF(env->global_nspc->obj);*/
-  /*  ADD_REF(env->user_nspc->obj);*/
-  /*  env->curr = env->user_nspc;*/
-  // plugins
-  //  void* handler;
-  add_plugs(vm, env, plug_dirs);
+  add_plugs(env, plug_dirs);
   nspc_commit(env->curr);
   return env;
-
-error:          // LCOV_EXCL_START
-  free(env);
-  return NULL;
-}              // LCOV_EXCL_STOP
+}
 
 static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   Exp exp = exp_list;
@@ -167,46 +103,65 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   return 1;
 }
 
+static m_bool check_exp_decl_parent(Env env, Var_Decl var) {
+  Value value = find_value(env->class_def->parent, var->xid);
+  if(value)
+    CHECK_BB(err_msg(TYPE_, var->pos,
+           "in class '%s': '%s' has already been defined in parent class '%s'...",
+           env->class_def->name, s_name(var->xid), value->owner_class->name))
+  return 1;
+}
+static m_bool check_exp_decl_array(Env env, Exp array) {
+  CHECK_OB(check_exp(env, array))
+  CHECK_BB(check_exp_array_subscripts(env, array))
+  return 1;
+}
+
+static m_bool check_exp_decl_member(Nspc nspc, Value v) {
+  Type type  = v->m_type;
+
+  v->offset = nspc->offset;
+  v->owner_class->obj_size += type->size;
+  nspc->offset += type->size;
+  return 1;
+}
+
+static m_bool check_exp_decl_static(Env env , Value v, m_uint pos) {
+  Nspc nspc = env->curr;
+
+  if(!env->class_def || env->class_scope > 0)
+    CHECK_BB(err_msg(TYPE_, pos,
+          "static variables must be declared at class scope..."))
+  SET_FLAG(v, ae_flag_static);
+  v->offset = nspc->class_data_size;
+  nspc->class_data_size += v->m_type->size;
+  return 1;
+}
+
+static m_bool check_exp_decl_valid(Env env, Value v, S_Symbol xid) {
+  SET_FLAG(v, ae_flag_checked);
+  if(!env->class_def || env->class_scope)
+    nspc_add_value(env->curr, xid, v);
+  return 1;
+}
+
 Type check_exp_decl(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "decl");
 #endif
-  Value value = NULL;
-  Type type = NULL;
   Var_Decl_List list = decl->list;
-  Var_Decl var_decl;
   while(list) {
-    if(env->class_def && !env->class_scope &&
-        (value = find_value(env->class_def->parent, list->self->xid))) {
-      CHECK_BO(err_msg(TYPE_, list->self->pos,
-                       "in class '%s': '%s' has already been defined in parent class '%s'...",
-                       env->class_def->name, s_name(list->self->xid), value->owner_class->name))
-    }
-    var_decl = list->self;
-    value = list->self->value;
-
-    if(!value)
-      CHECK_BO(err_msg(TYPE_, list->self->pos, "can't declare in GACK"))
-
-    type  = value->m_type;
-    if(var_decl->array && var_decl->array->exp_list) {
-      CHECK_OO(check_exp(env, var_decl->array->exp_list))
-      CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
-    }
-    if(GET_FLAG(value, ae_flag_member)) {
-      value->offset = env->curr->offset;
-      value->owner_class->obj_size += type->size;
-      env->curr->offset += type->size;
-    } else if(decl->is_static) {
-      if(!env->class_def || env->class_scope > 0)
-        CHECK_BO(err_msg(TYPE_, decl->pos, "static variables must be declared at class scope..."))
-        SET_FLAG(value, ae_flag_static);
-      value->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += type->size;
-    }
-    SET_FLAG(list->self->value, ae_flag_checked);
-    if(!env->class_def || env->class_scope)
-      nspc_add_value(env->curr, list->self->xid, list->self->value);
+    Var_Decl var = list->self;
+    Value value = var->value;
+    if(env->class_def && !env->class_scope)
+      CHECK_BO(check_exp_decl_parent(env, var))
+    if(var->array && var->array->exp_list)
+      CHECK_BO(check_exp_decl_array(env, var->array->exp_list))
+    if(GET_FLAG(value, ae_flag_member))
+      CHECK_BO(check_exp_decl_member(env->curr, value))
+    else if(decl->is_static)
+      CHECK_BO(check_exp_decl_static(env, value, var->pos))
+    CHECK_BO(check_exp_decl_valid(env, value, var->xid))
     list = list->next;
   }
   return decl->m_type;
@@ -232,7 +187,7 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
     t = e->type;
     if(!type)
       type = t;
-    else 
+    else
       CHECK_BO(check_exp_prim_array_inner(t, type, e))
     e = e->next;
   }
@@ -250,29 +205,29 @@ static Type check_exp_prim_array(Env env, Array_Sub array) {
   return (array->type = check_exp_prim_array_match(env, e));
 }
 
-static Type check_exp_primary_vec(Env env, Vec vec) {
-  Type t = NULL;
-  Vec val = vec;
-  if(val->numdims > 4)
-    CHECK_BO(err_msg(TYPE_, vec->pos,
-                     "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
-    Exp e = val->args;
+static m_bool check_exp_prim_vec_actual(Env env, Exp e) {
   int count = 1;
+  Type t;
   while(e) {
-    if(!(t = check_exp(env, e)))
-      return NULL;
+    CHECK_OB((t = check_exp(env, e)))
     if(isa(t, &t_int) > 0) e->cast_to = &t_float;
-    else if(isa(t, &t_float) < 0) {
-      CHECK_BO(err_msg(TYPE_, vec->pos,
-                       "invalid type '%s' in vector value #%d...\n"
-                       "    (must be of type 'int' or 'float')", t->name, count))
-    }
+    else if(isa(t, &t_float) < 0)
+      CHECK_BB(err_msg(TYPE_, e->pos,
+            "invalid type '%s' in vector value #%d...\n"
+            "    (must be of type 'int' or 'float')", t->name, count))
     count++;
     e = e->next;
   }
-  if(val->numdims < 4)
-    return &t_vec3;
-  return &t_vec4;
+  return 1;
+}
+
+static Type check_exp_primary_vec(Env env, Vec vec) {
+  Vec val = vec;
+  if(val->numdims > 4)
+    CHECK_BO(err_msg(TYPE_, vec->pos,
+          "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
+  CHECK_BO(check_exp_prim_vec_actual(env, val->args))
+  return val->numdims < 4 ? &t_vec3 : &t_vec4;
 }
 
 static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
@@ -440,12 +395,10 @@ Type check_exp_array(Env env, Exp_Array* array) {
   CHECK_BO(verify_array(array->indices))
   CHECK_OO((t_base = check_exp(env, array->base)))
 
-  if(array->indices->depth > t_base->array_depth) {
+  if(array->indices->depth > t_base->array_depth)
     CHECK_BO(err_msg(TYPE_,  array->pos,
                      "array subscripts (%i) exceeds defined dimension (%i)",
                      array->indices->depth, t_base->array_depth))
-  }
-
   CHECK_OO(check_exp(env, array->indices->exp_list))
 
   Exp e = array->indices->exp_list;
@@ -465,12 +418,12 @@ Type check_exp_array(Env env, Exp_Array* array) {
   if(depth != array->indices->depth)
     CHECK_BO(err_msg(TYPE_, array->pos, "invalid array acces expression."))
 
-    if(depth == t_base->array_depth)
-      t = array->base->type->d.array_type;
-    else {
-      t = type_copy(env, array->base->type);
-      t->array_depth -= depth;
-    }
+  if(depth == t_base->array_depth)
+    t = array->base->type->d.array_type;
+  else {
+    t = type_copy(env, array->base->type);
+    t->array_depth -= depth;
+  }
   return t;
 }
 
@@ -707,7 +660,7 @@ static Value get_template_value(Env env, Exp exp_func) {
     return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
   else if(exp_func->exp_type == ae_exp_dot)
     return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  err_msg(TYPE_, exp_func->pos, 
+  err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
       exp_func->exp_type);
     return NULL;
@@ -869,6 +822,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
   return NULL;
 }
+
 static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
@@ -918,12 +872,12 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
                      "...(reason: --- right-side operand is not mutable)",
                      "=>", cl->type->name, cr->type->name))
   }
+  if(cl->type->array_depth != cr->type->array_depth)
+    CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
   if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
     if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
       CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
-      if(cl->type->array_depth != cr->type->array_depth)
-        CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
-        cr->emit_var = 1;
+      cr->emit_var = 1;
     return 1;
   }
   if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
@@ -1377,6 +1331,7 @@ static m_bool check_flow(Env env, Exp exp, m_str s) {
   }
   return 1;
 }
+
 static m_bool check_stmt_while(Env env, Stmt_While stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
   CHECK_BB(check_flow(env, stmt->cond, "while"))
@@ -1750,31 +1705,46 @@ m_bool check_func_def(Env env, Func_Def f) {
   return ret;
 }
 
+static m_bool check_class_def_body(Env env, Class_Body body) {
+  while(body) {
+    switch(body->section->type) {
+      case ae_section_stmt:
+        CHECK_BB(check_stmt_list(env, body->section->d.stmt_list))
+        break;
+      case ae_section_func:
+        CHECK_BB(check_func_def(env, body->section->d.func_def))
+        break;
+      case ae_section_class:
+        CHECK_BB(check_class_def(env, body->section->d.class_def))
+        break;
+    }
+    body = body->next;
+  }
+  return 1;
+}
+
 static m_bool check_class_def(Env env, Class_Def class_def) {
   Type the_class = NULL;
   Type t_parent = NULL;
   m_bool ret = 1;
-  Class_Body body = class_def->body;
 
   if(class_def->ext) {
-    if(class_def->ext) {
-      t_parent = find_type(env, class_def->ext);
-      if(!t_parent) {
-        char path[id_list_len(class_def->ext)];
-        type_path(path, class_def->ext);
-        CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                "undefined parent class '%s' in definition of class '%s'",
-                path, s_name(class_def->name->xid)))
-      }
-      if(isprim(t_parent) > 0)
-        CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                         "cannot extend primitive type '%s'", t_parent->name))
-        if(!GET_FLAG(t_parent, ae_flag_checked))
-          CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-                           "cannot extend incomplete type '%s'i\n"
-                           "\t...(note: the parent's declaration must preceed child's)",
-                           t_parent->name))
-        }
+    t_parent = find_type(env, class_def->ext);
+    if(!t_parent) {
+      char path[id_list_len(class_def->ext)];
+      type_path(path, class_def->ext);
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "undefined parent class '%s' in definition of class '%s'",
+              path, s_name(class_def->name->xid)))
+    }
+    if(isprim(t_parent) > 0)
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "cannot extend primitive type '%s'", t_parent->name))
+    if(!GET_FLAG(t_parent, ae_flag_checked))
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+              "cannot extend incomplete type '%s'i\n"
+              "\t...(note: the parent's declaration must preceed child's)",
+              t_parent->name))
   }
 
   if(!t_parent)
@@ -1785,32 +1755,10 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
 
   CHECK_BB(env_push_class(env, the_class))
-  while(body && ret > 0) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        if(body->section->d.stmt_list->stmt)
-          SET_FLAG(env->class_def, ae_flag_ctor);
-        ret = check_stmt_list(env, body->section->d.stmt_list);
-        break;
-
-      case ae_section_func:
-        SET_FLAG(env->class_def, ae_flag_checked);
-        ret = check_func_def(env, body->section->d.func_def);
-        env->class_def->flag &= ~ae_flag_checked;
-        break;
-
-      case ae_section_class:
-        ret = check_class_def(env, body->section->d.class_def);
-        break;
-    }
-    body = body->next;
-  }
+  ret = check_class_def_body(env, class_def->body);
   CHECK_BB(env_pop_class(env))
-
-  if(ret > 0) {
-    the_class->obj_size = the_class->info->offset;
-    SET_FLAG(the_class, ae_flag_checked);
-  }
+  the_class->obj_size = the_class->info->offset;
+  SET_FLAG(the_class, ae_flag_checked);
   return ret;
 }
 

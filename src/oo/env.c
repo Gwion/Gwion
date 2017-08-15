@@ -61,6 +61,31 @@ void free_env(Env a) {
   free(a);
 }
 
+m_bool env_push_class(Env env, Type type) {
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = type->info;
+  vector_add(&env->class_stack, (vtype)env->class_def);
+  env->class_def = type;
+  env->class_scope = 0;
+  return 1;
+}
+
+m_bool env_pop_class(Env env) {
+  env->class_def = (Type)vector_pop(&env->class_stack);
+  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  return 1;
+}
+
+m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
+  Value v = new_value(type, name);
+  ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
+  v->flag = flag;
+  v->ptr = data;
+  v->owner = env->global_nspc;
+  nspc_add_value(env->global_nspc, insert_symbol(name), v);
+  return 1;
+}
+
 m_bool env_add_type(Env env, Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
@@ -77,20 +102,5 @@ m_bool env_add_type(Env env, Type type) {
     env->type_xid++;
     type->xid = env->type_xid;
   }
-  return 1;
-}
-
-m_bool env_push_class(Env env, Type type) {
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = type->info;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = type;
-  env->class_scope = 0;
-  return 1;
-}
-
-m_bool env_pop_class(Env env) {
-  env->class_def = (Type)vector_pop(&env->class_stack);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
 }

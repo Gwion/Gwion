@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
+#include "err_msg.h"
 #include "vm.h"
 #include "type.h"
 #include "func.h"
@@ -68,6 +69,13 @@ VM_Shred new_vm_shred(VM_Code c) {
   return shred;
 }
 
+static void vm_shred_free_args(Vector v) {
+  m_uint i;
+  for(i = 0; i < vector_size(v); i++)
+    free((void*)vector_at(v, i));
+  free_vector(v);
+}
+
 void free_vm_shred(VM_Shred shred) {
   release(shred->me, shred);
   if(strstr(shred->name, "spork~"))
@@ -79,6 +87,8 @@ void free_vm_shred(VM_Shred shred) {
   free(shred->name);
   free(shred->filename);
   vector_release(&shred->gc1);
+  if(shred->args)
+    vm_shred_free_args(shred->args);
   free(shred);
 }
 
@@ -248,6 +258,7 @@ void free_vm(VM* vm) {
   free(vm->in);
   free_shreduler(vm->shreduler);
   free(vm);
+  free_symbols();
 }
 
 void vm_add_shred(VM* vm, VM_Shred shred) {

@@ -14,6 +14,7 @@ languages:
       include:
         - .*/examples/.*\.gw
         - .*/test/.*/.*\.gw
+        - .*/test/plugins/.*\.c
 
   - name: script
     production:

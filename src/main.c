@@ -46,7 +46,7 @@ m_bool compile(VM* vm, const m_str filename) {
   if(d)
     args = new_vector();
   while(d)
-    vector_add(args, (vtype)s_name(insert_symbol(strsep(&d, ":"))));
+    vector_add(args, (vtype)strdup(strsep(&d, ":")));
   free(d);
   name = realpath(_name, NULL);
   free(_name);
@@ -333,6 +333,5 @@ clean:
       free(env);
     free_vm(vm);
   }
-  free_Symbols();
   return 0;
 }

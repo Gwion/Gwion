@@ -18,19 +18,19 @@ static S_Symbol mksymbol(const m_str name, S_Symbol next) {
   return s;
 }
 
-static void free_Symbol(S_Symbol s) {
+static void free_symbol(S_Symbol s) {
   if(s->next)
-    free_Symbol(s->next);
+    free_symbol(s->next);
   free(s->name);
   free(s);
 }
 
-void free_Symbols() {
+void free_symbols() {
   int i;
   for(i = SIZE + 1; --i;) {
     S_Symbol s = hashtable[i - 1];
     if(s)
-      free_Symbol(s);
+      free_symbol(s);
   }
 }
 

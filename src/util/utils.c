@@ -81,16 +81,6 @@ Type find_type(Env env, ID_List path) {
   return type;
 }
 
-m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
-  Value v = new_value(type, name);
-  ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
-  v->flag = flag;
-  v->ptr = data;
-  v->owner = env->global_nspc;
-  nspc_add_value(env->global_nspc, insert_symbol(name), v);
-  return 1;
-}
-
 m_bool name_valid(m_str a) {
   m_uint i, len = strlen(a);
   for(i = 0; i < len; i++) {
