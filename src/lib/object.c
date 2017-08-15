@@ -95,7 +95,7 @@ void release(M_Object obj, VM_Shred shred) {
       Vector v = scope_get(&t->info->value);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
-        if(isprim(value->m_type) < 0)
+        if(!GET_FLAG(value, ae_flag_static) && isprim(value->m_type) < 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
       free_vector(v);
@@ -125,8 +125,8 @@ INSTR(Assign_Object) {
   src = *(M_Object*)REG(0);
   if((tgt = **(M_Object**)REG(SZ_INT)))
     release(tgt, shred);
-  if(instr->m_val2)
-    release(tgt, shred);
+  /*if(instr->m_val2)*/
+  release(tgt, shred);
   **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
   **(M_Object**)REG(SZ_INT) = src;
   PUSH_REG(shred, SZ_INT);

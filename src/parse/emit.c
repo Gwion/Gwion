@@ -450,13 +450,11 @@ static Instr decl_global(Emitter emit, Kindof kind) {
 static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
   Value v = var_decl->value;
   Code* code = emit->code;
-  Instr assign;
 
   emit->code = (Code*)vector_back(&emit->stack);
   CHECK_BB(emit_instantiate_object(emit, v->m_type, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, kindof(v->m_type), 1))
-  assign  = add_instr(emit, Assign_Object);
-  assign->m_val = 0;
+  sadd_instr(emit, Assign_Object);
   emit->code = code;
   return 1;
 }
@@ -595,59 +593,45 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
+static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
+  Value v = NULL;
+  Instr instr = add_instr(emit, assign_func);
+
+  if(rhs->exp_type == ae_exp_dot) {
+    v = find_value(rhs->d.exp_dot.t_base, rhs->d.exp_dot.xid);
+    instr->m_val = 1;
+  } else if(rhs->exp_type == ae_exp_primary) {
+    if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
+      v = rhs->d.exp_primary.value;
+      instr->m_val = 1;
+    }
+  } else if(rhs->exp_type == ae_exp_decl)
+      v = rhs->d.exp_decl.list->self->value;
+  else return -1;
+  instr->m_val2 = v ? v->offset : 0;
+  return 1;
+}
+
+static m_bool emit_array_append(Emitter emit, Type type) {
+  Instr instr = add_instr(emit, Array_Append);
+  instr->m_val = kindof(type);
+  return 1;
+}
+
 static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
 
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
-  // arrays
+
   if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
-      && isa(lhs->type->d.array_type, rhs->type) > 0) {
-    Instr instr = add_instr(emit, Array_Append);
-    instr->m_val = kindof(rhs->type);
-    return 1;
-  }
-
-  if(lhs->type->array_depth && rhs->type->array_depth) {
-    if(binary->op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth)
-      sadd_instr(emit, Assign_Object);
-    return 1;
-  }
-  // function pointer assignement
-  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0) {
-    Value v = NULL;
-    Instr instr = add_instr(emit, assign_func);
-    switch(rhs->exp_type) {
-      case ae_exp_dot:
-        v = find_value(rhs->d.exp_dot.t_base, rhs->d.exp_dot.xid);
-        instr->m_val = 1;
-        break;
-      case ae_exp_primary:
-        if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
-          v = rhs->d.exp_primary.value;
-          instr->m_val = 1;
-        }
-        break;
-      case ae_exp_decl:
-        v = rhs->d.exp_decl.list->self->value;
-        break;
-      default:
-        return -1;
-    }
-    instr->m_val2 = v ? v->offset : 0;
-    return 1;
-  }
-
+      && isa(lhs->type->d.array_type, rhs->type) > 0)
+    return emit_array_append(emit, rhs->type);
+  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0)
+    return emit_exp_binary_ptr(emit, rhs);
   if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
     return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
-
-  if(binary->op == op_at_chuck && isa(rhs->type, &t_object) > 0 &&
-      (isa(lhs->type, &t_null) > 0 || isa(lhs->type, &t_object) > 0)) {
-    Instr instr = add_instr(emit, Assign_Object);
-    instr->m_val2 = 1;
-    return 1;
-  }
   CHECK_OB(get_instr(emit, binary->op, lhs->type, rhs->type))
   return 1;
 }
