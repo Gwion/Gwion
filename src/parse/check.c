@@ -103,41 +103,65 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   return 1;
 }
 
+static m_bool check_exp_decl_parent(Env env, Var_Decl var) {
+  Value value = find_value(env->class_def->parent, var->xid);
+  if(value)
+    CHECK_BB(err_msg(TYPE_, var->pos,
+           "in class '%s': '%s' has already been defined in parent class '%s'...",
+           env->class_def->name, s_name(var->xid), value->owner_class->name))
+  return 1;
+}
+static m_bool check_exp_decl_array(Env env, Exp array) {
+  CHECK_OB(check_exp(env, array))
+  CHECK_BB(check_exp_array_subscripts(env, array))
+  return 1;
+}
+
+static m_bool check_exp_decl_member(Nspc nspc, Value v) {
+  Type type  = v->m_type;
+
+  v->offset = nspc->offset;
+  v->owner_class->obj_size += type->size;
+  nspc->offset += type->size;
+  return 1;
+}
+
+static m_bool check_exp_decl_static(Env env , Value v, m_uint pos) {
+  Nspc nspc = env->curr;
+
+  if(!env->class_def || env->class_scope > 0)
+    CHECK_BB(err_msg(TYPE_, pos,
+          "static variables must be declared at class scope..."))
+  SET_FLAG(v, ae_flag_static);
+  v->offset = nspc->class_data_size;
+  nspc->class_data_size += v->m_type->size;
+  return 1;
+}
+
+static m_bool check_exp_decl_valid(Env env, Value v, S_Symbol xid) {
+  SET_FLAG(v, ae_flag_checked);
+  if(!env->class_def || env->class_scope)
+    nspc_add_value(env->curr, xid, v);
+  return 1;
+}
+
 Type check_exp_decl(Env env, Exp_Decl* decl) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "decl");
 #endif
-  Value value = NULL;
   Var_Decl_List list = decl->list;
   while(list) {
-    Var_Decl var_decl = list->self;
-    if(env->class_def && !env->class_scope &&
-        (value = find_value(env->class_def->parent, list->self->xid))) {
-      CHECK_BO(err_msg(TYPE_, list->self->pos,
-                       "in class '%s': '%s' has already been defined in parent class '%s'...",
-                       env->class_def->name, s_name(list->self->xid), value->owner_class->name))
-    }
-    value = list->self->value;
-
-    if(var_decl->array && var_decl->array->exp_list) {
-      CHECK_OO(check_exp(env, var_decl->array->exp_list))
-      CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
-    }
-    if(GET_FLAG(value, ae_flag_member)) {
-      Type type  = value->m_type;
-      value->offset = env->curr->offset;
-      value->owner_class->obj_size += type->size;
-      env->curr->offset += type->size;
-    } else if(decl->is_static) {
-      if(!env->class_def || env->class_scope > 0)
-        CHECK_BO(err_msg(TYPE_, decl->pos, "static variables must be declared at class scope..."))
-        SET_FLAG(value, ae_flag_static);
-      value->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += value->m_type->size;
-    }
-    SET_FLAG(value, ae_flag_checked);
-    if(!env->class_def || env->class_scope)
-      nspc_add_value(env->curr, list->self->xid, value);
+    Var_Decl var = list->self;
+    Value value = var->value;
+    if(env->class_def && !env->class_scope)
+      CHECK_BO(check_exp_decl_parent(env, var))
+    if(var->array && var->array->exp_list)
+      CHECK_BO(check_exp_decl_array(env, var->array->exp_list))
+    if(GET_FLAG(value, ae_flag_member))
+      CHECK_BO(check_exp_decl_member(env->curr, value))
+    else if(decl->is_static)
+      CHECK_BO(check_exp_decl_static(env, value, var->pos))
+    CHECK_BO(check_exp_decl_valid(env, value, var->xid))
     list = list->next;
   }
   return decl->m_type;
@@ -163,7 +187,7 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
     t = e->type;
     if(!type)
       type = t;
-    else 
+    else
       CHECK_BO(check_exp_prim_array_inner(t, type, e))
     e = e->next;
   }
@@ -181,29 +205,29 @@ static Type check_exp_prim_array(Env env, Array_Sub array) {
   return (array->type = check_exp_prim_array_match(env, e));
 }
 
-static Type check_exp_primary_vec(Env env, Vec vec) {
-  Type t = NULL;
-  Vec val = vec;
-  if(val->numdims > 4)
-    CHECK_BO(err_msg(TYPE_, vec->pos,
-                     "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
-    Exp e = val->args;
+static m_bool check_exp_prim_vec_actual(Env env, Exp e) {
   int count = 1;
+  Type t;
   while(e) {
-    if(!(t = check_exp(env, e)))
-      return NULL;
+    CHECK_OB((t = check_exp(env, e)))
     if(isa(t, &t_int) > 0) e->cast_to = &t_float;
-    else if(isa(t, &t_float) < 0) {
-      CHECK_BO(err_msg(TYPE_, vec->pos,
-                       "invalid type '%s' in vector value #%d...\n"
-                       "    (must be of type 'int' or 'float')", t->name, count))
-    }
+    else if(isa(t, &t_float) < 0)
+      CHECK_BB(err_msg(TYPE_, e->pos,
+            "invalid type '%s' in vector value #%d...\n"
+            "    (must be of type 'int' or 'float')", t->name, count))
     count++;
     e = e->next;
   }
-  if(val->numdims < 4)
-    return &t_vec3;
-  return &t_vec4;
+  return 1;
+}
+
+static Type check_exp_primary_vec(Env env, Vec vec) {
+  Vec val = vec;
+  if(val->numdims > 4)
+    CHECK_BO(err_msg(TYPE_, vec->pos,
+          "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
+  CHECK_BO(check_exp_prim_vec_actual(env, val->args))
+  return val->numdims < 4 ? &t_vec3 : &t_vec4;
 }
 
 static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
@@ -371,12 +395,10 @@ Type check_exp_array(Env env, Exp_Array* array) {
   CHECK_BO(verify_array(array->indices))
   CHECK_OO((t_base = check_exp(env, array->base)))
 
-  if(array->indices->depth > t_base->array_depth) {
+  if(array->indices->depth > t_base->array_depth)
     CHECK_BO(err_msg(TYPE_,  array->pos,
                      "array subscripts (%i) exceeds defined dimension (%i)",
                      array->indices->depth, t_base->array_depth))
-  }
-
   CHECK_OO(check_exp(env, array->indices->exp_list))
 
   Exp e = array->indices->exp_list;
@@ -396,12 +418,12 @@ Type check_exp_array(Env env, Exp_Array* array) {
   if(depth != array->indices->depth)
     CHECK_BO(err_msg(TYPE_, array->pos, "invalid array acces expression."))
 
-    if(depth == t_base->array_depth)
-      t = array->base->type->d.array_type;
-    else {
-      t = type_copy(env, array->base->type);
-      t->array_depth -= depth;
-    }
+  if(depth == t_base->array_depth)
+    t = array->base->type->d.array_type;
+  else {
+    t = type_copy(env, array->base->type);
+    t->array_depth -= depth;
+  }
   return t;
 }
 
@@ -638,7 +660,7 @@ static Value get_template_value(Env env, Exp exp_func) {
     return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
   else if(exp_func->exp_type == ae_exp_dot)
     return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  err_msg(TYPE_, exp_func->pos, 
+  err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
       exp_func->exp_type);
     return NULL;
