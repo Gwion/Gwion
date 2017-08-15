@@ -576,68 +576,86 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
-m_bool scan1_func_def(Env env, Func_Def f) {
-#ifdef DEBUG_SCAN1
-  debug_msg("scan1", "func def");
-#endif
+static m_int scan1_func_def_array(Env env, Func_Def f) {
+  Type t = NULL;
+  Type t2 = f->ret_type;
 
-  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
+  CHECK_BB(verify_array(f->type_decl->array))
+  if(f->type_decl->array->exp_list) {
+    free_expression(f->type_decl->array->exp_list);
+    CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
+      "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
+  }
+  t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
+  f->type_decl->ref = 1;
+  f->ret_type = t;
+  return 1;
+}
 
-    if(!GET_FLAG(f, ae_flag_op) && name2op(s_name(f->name)) > 0)
-      CHECK_BB(err_msg(SCAN1_, f->pos,
-                       "'%s' is a reserved operator name", s_name(f->name)))
-
-      if(f->types)
-        return 1;
-  Arg_List arg_list = NULL;
-  m_uint count = 0;
-
+static m_bool scan1_func_def_type(Env env, Func_Def f) {
   f->ret_type = find_type(env, f->type_decl->xid);
+  if(!f->ret_type)
+    CHECK_BB(err_msg(SCAN1_, f->pos, "unknown return type '%s'",
+                     s_name(f->type_decl->xid->xid)))
+  if(f->type_decl->array)
+    CHECK_BB(scan1_func_def_array(env, f))
+  return 1;
+}
 
-  if(!f->ret_type) {
-    CHECK_BB(err_msg(SCAN1_, f->pos, "scan1: unknown return type '%s' of func '%s'",
-                     s_name(f->type_decl->xid->xid), s_name(f->name)))
-  }
-
-  if(f->type_decl->array) {
-    CHECK_BB(verify_array(f->type_decl->array))
-
-    Type t = NULL;
-    Type t2 = f->ret_type;
-    if(f->type_decl->array->exp_list) {
-      free_expression(f->type_decl->array->exp_list);
-      CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
-        "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
-    }
-    t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
-    f->type_decl->ref = 1;
-    f->ret_type = t;
-  }
-  arg_list = f->arg_list;
-  count = 1;
-
+static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
+  m_int count = 0;
   while(arg_list) {
+    count++;
     if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-              "'%s' unknown type in argument %i of func %s",
-              path, count, s_name(f->name)))
+              "'%s' unknown type in argument %i",
+              path, count))
     }
-    count++;
     arg_list = arg_list->next;
   }
-  if(GET_FLAG(f, ae_flag_op)) {
-    if(count > 3 || count == 1)
+  return count;
+}
+
+static m_bool scan1_func_def_op(Env env, Func_Def f) {
+  m_int count = 0;
+  Arg_List list = f->arg_list;
+  while(list) {
+    count++;
+    list = list->next;
+  }
+  if(count > 2 || !count)
+    CHECK_BB(err_msg(SCAN1_, f->pos,
+          "operators can only have one or two arguments"))
+  if(name2op(s_name(f->name)) < 0)
+    CHECK_BB(err_msg(SCAN1_, f->pos,
+          "%s is not a valid operator name", s_name(f->name)))
+  return 1;
+}
+
+static m_bool scan1_func_def_flag(Env env, Func_Def f) {
+  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
+    CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
+  if(GET_FLAG(f, ae_flag_op))
+    CHECK_BB(scan1_func_def_op(env, f))
+  else if(name2op(s_name(f->name)) > 0)
       CHECK_BB(err_msg(SCAN1_, f->pos,
-                       "operators can only have one or two arguments\n"))
-      if(name2op(s_name(f->name)) < 0)
-        CHECK_BB(err_msg(SCAN1_, f->pos,
-                         "%s is not a valid operator name\n", s_name(f->name)))
-      }
-  if(f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "...in function '%s'\n", s_name(f->name)))
+                "'%s' is a reserved operator name", s_name(f->name)))
+  return 1;
+}
+
+m_bool scan1_func_def(Env env, Func_Def f) {
+#ifdef DEBUG_SCAN1
+  debug_msg("scan1", "func def");
+#endif
+  if(f->types)
+    return 1;
+  if( scan1_func_def_flag(env, f) < 0 ||
+      scan1_func_def_type(env, f) < 0 ||
+    (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
+    (f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0))
+    CHECK_BB(err_msg(SCAN1_, f->pos, "\t...in function '%s'", s_name(f->name)))
     return 1;
 }
 
@@ -706,43 +724,43 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   if(!type->size)
     CHECK_BB(err_msg(SCAN2_, decl->pos,
                      "cannot declare variables of size '0' (i.e. 'void')..."))
-    if(!decl->type->ref) {
-      if(env->class_def && (type == env->class_def) && !env->class_scope)
-        CHECK_BB(err_msg(SCAN2_, decl->pos,
-                         "...(note: object of type '%s' declared inside itself)", type->name))
-      } else if((isprim(type) > 0))
+  if(!decl->type->ref) {
+    if(env->class_def && (type == env->class_def) && !env->class_scope)
       CHECK_BB(err_msg(SCAN2_, decl->pos,
-                       "cannot declare references (@) of primitive type '%s'...\n"
-                       "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
-      while(list) {
-        if(isres(env, list->self->xid, list->self->pos) > 0)
-          CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                           "... in variable declaration", s_name(list->self->xid)))
-          if(nspc_lookup_value(env->curr, list->self->xid, 0))
-            CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                             "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
-            if(list->self->array != NULL) {
-              CHECK_BB(verify_array(list->self->array))
-              Type t2 = type;
+                       "...(note: object of type '%s' declared inside itself)", type->name))
+  } else if((isprim(type) > 0))
+  CHECK_BB(err_msg(SCAN2_, decl->pos,
+                   "cannot declare references (@) of primitive type '%s'...\n"
+                   "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
+  while(list) {
+    if(isres(env, list->self->xid, list->self->pos) > 0)
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+                       "... in variable declaration", s_name(list->self->xid)))
+    if(nspc_lookup_value(env->curr, list->self->xid, 0))
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+                       "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
+    if(!list->self->array) {
+      CHECK_BB(verify_array(list->self->array))
+      Type t2 = type;
 
-              if(list->self->array->exp_list)
-                CHECK_BB(scan2_exp(env, list->self->array->exp_list))
-                type = new_array_type(env, list->self->array->depth, t2, env->curr);
-              if(!list->self->array->exp_list)
-                decl->type->ref = 1;
-              decl->m_type = type;
-            }
-        list->self->value = new_value(type, s_name(list->self->xid));
-        list->self->value->owner = env->curr;
-        list->self->value->owner_class = env->func ? NULL : env->class_def;
-        if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
-          SET_FLAG(list->self->value, ae_flag_member);
-        if(!env->class_def && !env->func && !env->class_scope)
-          SET_FLAG(list->self->value, ae_flag_global);
-        list->self->value->ptr = list->self->addr;
-        nspc_add_value(env->curr, list->self->xid, list->self->value);
-        list = list->next;
-      }
+      if(list->self->array->exp_list)
+        CHECK_BB(scan2_exp(env, list->self->array->exp_list))
+        type = new_array_type(env, list->self->array->depth, t2, env->curr);
+      if(!list->self->array->exp_list)
+        decl->type->ref = 1;
+      decl->m_type = type;
+    }
+    list->self->value = new_value(type, s_name(list->self->xid));
+    list->self->value->owner = env->curr;
+    list->self->value->owner_class = env->func ? NULL : env->class_def;
+    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+      SET_FLAG(list->self->value, ae_flag_member);
+    if(!env->class_def && !env->func && !env->class_scope)
+      SET_FLAG(list->self->value, ae_flag_global);
+    list->self->value->ptr = list->self->addr;
+    nspc_add_value(env->curr, list->self->xid, list->self->value);
+    list = list->next;
+  }
   return 1;
 }
 
