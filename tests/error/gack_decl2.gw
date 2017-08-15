@@ -1,2 +1,2 @@
-// [contains] can't declare in GACK
+// [contains] can't declare after expression
  <<< 0, int i >>>;

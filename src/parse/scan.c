@@ -261,6 +261,8 @@ static m_bool scan1_exp(Env env, Exp exp) {
         CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
         break;
       case ae_exp_unary:
+        if(curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code)
+          CHECK_BB(scan1_stmt(env, curr->d.exp_unary.code))
           break;
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
@@ -288,6 +290,8 @@ static m_bool scan1_exp(Env env, Exp exp) {
         break;
     }
     curr = curr->next;
+    if(curr&& curr->exp_type == ae_exp_decl)
+      CHECK_BB(err_msg(SCAN1_, curr->pos, "can't declare after expression"))
   }
   return 1;
 }
@@ -658,7 +662,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
         if(nspc_lookup_value(env->curr, list->self->xid, 0))
           CHECK_BB(err_msg(SCAN2_, list->self->pos,
                            "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
-          if(list->self->array != NULL) {
+          if(list->self->array) {
             CHECK_BB(verify_array(list->self->array))
             Type t2 = type;
 
@@ -905,8 +909,7 @@ static m_bool scan2_exp_if(Env env, Exp_If* exp_if) {
 static m_bool scan2_exp_spork(Env env, Stmt code) {
   m_bool in_func = env->func ? 1 : 0;
   if(!in_func)
-    env->func = (Func)1; // check me
-  CHECK_BB(scan1_stmt(env, code))
+    env->func = (Func)1;
   CHECK_BB(scan2_stmt(env, code))
   if(!in_func)
     env->func = NULL;
@@ -917,40 +920,40 @@ static m_bool scan2_exp(Env env, Exp exp) {
   Exp curr = exp;
   m_bool ret = 1;
   while(curr && ret > 0) {
-    switch(exp->exp_type) {
+    switch(curr->exp_type) {
       case ae_exp_primary:
-        ret = scan2_exp_primary(env, &exp->d.exp_primary);
+        ret = scan2_exp_primary(env, &curr->d.exp_primary);
         break;
       case ae_exp_decl:
-        ret = scan2_exp_decl(env, &exp->d.exp_decl);
+        ret = scan2_exp_decl(env, &curr->d.exp_decl);
         break;
       case ae_exp_unary:
-        ret = exp->d.exp_unary.code ? 
-          scan2_exp_spork(env, exp->d.exp_unary.code) : 1;
+        ret = (curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code) ? 
+          scan2_exp_spork(env, curr->d.exp_unary.code) : 1;
         break;
       case ae_exp_binary:
-        ret = scan2_exp_binary(env, &exp->d.exp_binary);
+        ret = scan2_exp_binary(env, &curr->d.exp_binary);
         break;
       case ae_exp_postfix:
-        ret = scan2_exp_postfix(env, &exp->d.exp_postfix);
+        ret = scan2_exp_postfix(env, &curr->d.exp_postfix);
         break;
       case ae_exp_cast:
-        ret = scan2_exp_cast(env, &exp->d.exp_cast);
+        ret = scan2_exp_cast(env, &curr->d.exp_cast);
         break;
       case ae_exp_call:
-        ret = scan2_exp_call(env, &exp->d.exp_func);
+        ret = scan2_exp_call(env, &curr->d.exp_func);
         break;
       case ae_exp_array:
-        ret = scan2_exp_array(env, &exp->d.exp_array);
+        ret = scan2_exp_array(env, &curr->d.exp_array);
         break;
       case ae_exp_dot:
-        ret = scan2_exp_dot(env, &exp->d.exp_dot);
+        ret = scan2_exp_dot(env, &curr->d.exp_dot);
         break;
       case ae_exp_if:
-        ret = scan2_exp_if(env, &exp->d.exp_if);
+        ret = scan2_exp_if(env, &curr->d.exp_if);
         break;
       case ae_exp_dur:
-        ret = scan2_exp_dur(env, &exp->d.exp_dur);
+        ret = scan2_exp_dur(env, &curr->d.exp_dur);
         break;
     }
     curr = curr->next;

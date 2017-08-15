@@ -107,28 +107,23 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
   debug_msg("check", "decl");
 #endif
   Value value = NULL;
-  Type type = NULL;
   Var_Decl_List list = decl->list;
-  Var_Decl var_decl;
   while(list) {
+    Var_Decl var_decl = list->self;
     if(env->class_def && !env->class_scope &&
         (value = find_value(env->class_def->parent, list->self->xid))) {
       CHECK_BO(err_msg(TYPE_, list->self->pos,
                        "in class '%s': '%s' has already been defined in parent class '%s'...",
                        env->class_def->name, s_name(list->self->xid), value->owner_class->name))
     }
-    var_decl = list->self;
     value = list->self->value;
 
-    if(!value)
-      CHECK_BO(err_msg(TYPE_, list->self->pos, "can't declare in GACK"))
-
-    type  = value->m_type;
     if(var_decl->array && var_decl->array->exp_list) {
       CHECK_OO(check_exp(env, var_decl->array->exp_list))
       CHECK_BO(check_exp_array_subscripts(env, var_decl->array->exp_list))
     }
     if(GET_FLAG(value, ae_flag_member)) {
+      Type type  = value->m_type;
       value->offset = env->curr->offset;
       value->owner_class->obj_size += type->size;
       env->curr->offset += type->size;
@@ -137,11 +132,11 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BO(err_msg(TYPE_, decl->pos, "static variables must be declared at class scope..."))
         SET_FLAG(value, ae_flag_static);
       value->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += type->size;
+      env->class_def->info->class_data_size += value->m_type->size;
     }
-    SET_FLAG(list->self->value, ae_flag_checked);
+    SET_FLAG(value, ae_flag_checked);
     if(!env->class_def || env->class_scope)
-      nspc_add_value(env->curr, list->self->xid, list->self->value);
+      nspc_add_value(env->curr, list->self->xid, value);
     list = list->next;
   }
   return decl->m_type;
