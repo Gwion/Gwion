@@ -5,6 +5,7 @@
 #include "type.h"
 #include "func.h"
 
+static m_bool scan0_Class_Def(Env env, Class_Def class_def);
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
@@ -42,11 +43,7 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
   return 1;
 }
 
-static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
-  Type the_class = NULL;
-  m_bool ret = 1;
-  Class_Body body = class_def->body;
-
+static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
   if(class_def->decl == ae_flag_public) {
     if(env->context->public_class_def) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
@@ -57,7 +54,11 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
+  return 1;
+}
 
+static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
+  CHECK_BB(scan0_class_def_public(env, class_def))
   if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
                      "class/type '%s' is already defined in namespace '%s'",
@@ -68,55 +69,65 @@ static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
                      s_name(class_def->name->xid)))
   }
+  return 1;
+}
 
-  the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
+static Type scan0_class_def_init(Env env, Class_Def class_def) {
+  Type the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name, env->context->filename);
-
-  if(env->context->public_class_def == class_def)
-    the_class->info->parent = env->context->nspc;
-  else
-    the_class->info->parent = env->curr;
+  the_class->info->parent = env->context->public_class_def == class_def ?
+    env->context->nspc : env->curr;
   the_class->d.func = NULL;
   the_class->def = class_def;
-
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
+  return the_class;
+}
 
-  CHECK_BB(env_push_class(env, the_class))
-  while(body && ret > 0) {
+static m_bool scan0_class_def_body(Env env, Class_Body body) {
+  while(body) {
     switch(body->section->type) {
       case ae_section_stmt:
-        ret = scan0_Stmt_List(env, body->section->d.stmt_list);
+        CHECK_BB(scan0_Stmt_List(env, body->section->d.stmt_list))
       case ae_section_func:
         break;
       case ae_section_class:
-        ret = scan0_Class_Def(env, body->section->d.class_def);
+        CHECK_BB(scan0_Class_Def(env, body->section->d.class_def))
         break;
     }
     body = body->next;
   }
-  CHECK_BB(env_pop_class(env))
+  return 1;
+}
 
-  if(ret) {
-    Value value;
-    Type  type;
-    type = type_copy(env, &t_class);
-    type->d.actual_type = the_class;
-    value = new_value(type, the_class->name);
-    value->owner = env->curr;
-    SET_FLAG(value, ae_flag_const | ae_flag_checked);
-    nspc_add_value(env->curr, class_def->name->xid, value);
-    class_def->type = the_class;
-  }
-
+static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
+  Value value;
+  Type  type;
+  type = type_copy(env, &t_class);
+  type->d.actual_type = class_def->type;
+  value = new_value(type, class_def->type->name);
+  value->owner = env->curr;
+  SET_FLAG(value, ae_flag_const | ae_flag_checked);
+  nspc_add_value(env->curr, class_def->name->xid, value);
   if(class_def->home)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   else
     class_def->home = env->curr;
+  return 1;
+}
 
+static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
+  m_bool ret;
+
+  CHECK_BB(scan0_class_def_pre(env, class_def))
+  CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
+  CHECK_BB(env_push_class(env, class_def->type))
+  ret = scan0_class_def_body(env, class_def->body);
+  CHECK_BB(env_pop_class(env))
+  CHECK_BB(scan0_class_def_post(env, class_def))
   return ret;
 }
 
@@ -1261,7 +1272,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
       (GET_FLAG(overload, ae_flag_template) && !f->types && !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->pos, "must override template function with template"))
   return 1;
-} 
+}
 
  static m_bool scan2_func_def_template (Env env, Func_Def f, Value overload) {
   m_str func_name = s_name(f->name);
@@ -1371,7 +1382,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
-    CHECK_BB(scan2_func_def_builtin(func, name))    
+    CHECK_BB(scan2_func_def_builtin(func, name))
   type = new_type(te_function, func_name, &t_function);
   type->size = SZ_INT;
   type->d.func = func;
