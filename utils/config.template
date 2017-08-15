@@ -36,9 +36,6 @@ DIR: add:::add
 
 DBG: compile   :::off
 DBG: type      :::off
-DBG: scan0     :::off
-DBG: scan1     :::off
-DBG: scan2     :::off
 DBG: vm        :::off
 DBG: instr     :::off
 DBG: shreduler :::off
