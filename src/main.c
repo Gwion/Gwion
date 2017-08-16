@@ -54,24 +54,12 @@ m_bool compile(VM* vm, const m_str filename) {
     err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
     return -1;
   }
-#ifdef DEBUG_COMPILE
-  debug_msg("parser", "get full path ok %s", name);
-#endif
   if(!(ast = parse(name))) {
     ret = -1;
     goto clean;
   }
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "Ast of '%s' ok", name);
-#endif
   CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "type check  of '%s' ok", name);
-#endif
   CHECK_BB(emit_ast(vm->emit, ast, name))
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "emit   of '%s' ok", name);
-#endif
   add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   vm->emit->code->filename = strdup(name);
