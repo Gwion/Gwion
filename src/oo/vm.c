@@ -148,47 +148,55 @@ VM_Shred shreduler_get(Shreduler s) {
   return NULL;
 }
 
-void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
-#ifdef DEBUG_SHREDULER
-  debug_msg("clock", "%s %i", erase ? "erase" : "wait", out ? out->xid : -1);
-#endif
-  m_uint i, size = out->child.ptr ? vector_size(&out->child) : 0;
-  if(erase) {
-    vtype index;
-    if(out->parent) {
-      index = vector_find(&out->parent->child, (vtype)out);
-      vector_rem(&out->parent->child, index);
-      if(!vector_size(&out->parent->child)) {
-        vector_release(&out->parent->child);
-        out->parent->child.ptr = NULL;
-      }
-    }
-    if(out->child.ptr) {
-      for(i = 0; i < size; i++) {
-        VM_Shred child = (VM_Shred)vector_front(&out->child);
-        child->prev = NULL;
-        child->next = NULL;
-        if(child == s->list) // 09/03/17
-          s->list = NULL;
-        shreduler_remove(s, child, 1);
-      }
-    }
-    index = vector_find(&s->vm->shred, (vtype)out);
-    vector_rem(&s->vm->shred, index);
-// GC
-    if(out->gc.ptr) {
-      for(i = 0; i < vector_size(&out->gc); i++) {
-        M_Object o = (M_Object)vector_at(&out->gc, i);
-        if(o)
-          release(o, out);
-      }
-      vector_release(&out->gc);
-    }
+static void shreduler_parent(VM_Shred out, Vector v) {
+  m_uint index = vector_find(v, (vtype)out);
+  vector_rem(v, index);
+  if(!vector_size(v)) {
+    vector_release(v);
+    out->parent->child.ptr = NULL;
   }
+}
+
+static void shreduler_child(Shreduler s, Vector v) {
+  m_uint i, size = vector_size(v);
+  for(i = 0; i < size; i++) {
+    VM_Shred child = (VM_Shred)vector_front(v);
+    child->prev = NULL;
+    child->next = NULL;
+    if(child == s->list) // 09/03/17
+      s->list = NULL;
+    shreduler_remove(s, child, 1);
+  }
+}
+
+static void shreduler_gc(VM_Shred out) {
+  m_uint i;
+  for(i = 0; i < vector_size(&out->gc); i++) {
+    M_Object o = (M_Object)vector_at(&out->gc, i);
+    if(o)
+      release(o, out);
+  }
+  vector_release(&out->gc);
+}
+
+static void shreduler_erase(Shreduler s, VM_Shred out) {
+  vtype index;
+  if(out->parent)
+    shreduler_parent(out, &out->parent->child);
+  if(out->child.ptr)
+    shreduler_child(s, &out->child);
+  index = vector_find(&s->vm->shred, (vtype)out);
+  vector_rem(&s->vm->shred, index);
+  if( out->gc.ptr)
+    shreduler_gc(out);
+}
+
+void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
+  if(erase)
+    shreduler_erase(s, out);
   s->curr = (s->curr == out) ? s->curr : NULL;
   if(!out->prev && !out->next && out != s->list) {
-//    if(!out->wait && !out->child && erase)
-    if(erase && !out->wait && !out->child.ptr && !strstr(out->code->name, "class ")) // if fails in ctor. creates leak
+    if(erase && !out->wait && !out->child.ptr)
       free_vm_shred(out);
     return;
   }
