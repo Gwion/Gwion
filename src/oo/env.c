@@ -5,8 +5,6 @@
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
-  env->global_context = new_context(NULL, "global_context");
-  env->context = env->global_context;
   env->global_nspc = new_nspc("global_nspc", "global_nspc");
 //  env->user_nspc = NULL;
   vector_init(&env->breaks);
@@ -42,7 +40,6 @@ void env_reset(Env env) {
 
 void free_env(Env a) {
   m_uint i;
-  free(a->global_context->tree);
   for(i = 0; i < map_size(&a->known_ctx); i++) {
     Context ctx = (Context)map_at(&a->known_ctx, i);
     REM_REF(ctx);

@@ -10,7 +10,6 @@ struct Env_ {
   Nspc global_nspc;
 //  Nspc user_nspc;
   m_uint    class_scope;
-  Context   global_context;
   Context   context;
   Type      class_def;
   Func      func;

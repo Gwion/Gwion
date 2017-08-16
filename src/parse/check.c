@@ -80,11 +80,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   CHECK_BO(import_libs(env))
   CHECK_BO(import_values(env))
   CHECK_BO(import_global_ugens(vm, env))
-
   nspc_commit(env->global_nspc);
-
-  map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
-  env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
