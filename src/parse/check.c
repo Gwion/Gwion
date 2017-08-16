@@ -13,10 +13,6 @@
 #include "ugen.h"
 #include "string.h"
 
-m_bool scan0_Ast(Env, Ast);
-m_bool scan1_ast(Env, Ast);
-m_bool scan2_ast(Env, Ast);
-
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
@@ -516,11 +512,9 @@ static Func find_func_match(Func up, Exp args) {
 }
 
 static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
-  m_int ret = scan1_func_def(env, def);
+  m_bool ret = traverse_def(env, def);
   nspc_pop_type(env->curr);
-  if(ret < 0 || scan2_func_def(env, def) < 0 ||
-                check_func_def(env, def) < 0 ||
-               !check_exp(env, func)         ||
+  if(ret < 0 || !check_exp(env, func) ||
      (args  && !check_exp(env, args)))
     return -1;
   return 1;
@@ -1758,7 +1752,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   return ret;
 }
 
-static m_bool check_ast(Env env, Ast ast) {
+m_bool check_ast(Env env, Ast ast) {
 #ifdef DEBUG_TYPE
   debug_msg("type", "context");
 #endif
@@ -1786,11 +1780,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   nspc_commit(context->nspc);
   env_reset(env);
   CHECK_BB(load_context(context, env))
-  if((ret = scan0_Ast(env, ast)) < 0) goto cleanup;
-  if((ret = scan1_ast(env, ast)) < 0) goto cleanup;
-  if((ret = scan2_ast(env, ast)) < 0) goto cleanup;
-  if((ret = check_ast(env, ast)) < 0) goto cleanup;
-cleanup:
+  ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->global_nspc);
     map_set(&env->known_ctx,

@@ -12,14 +12,6 @@
 
 void free_expression(Exp exp);
 
-m_bool scan1_exp_decl(Env env, Exp_Decl* decl);
-m_bool scan2_exp_decl(Env env, Exp_Decl* decl);
-Type   check_exp_decl(Env env, Exp_Decl* decl);
-
-m_bool scan1_func_def(Env env, Func_Def f);
-m_bool scan2_func_def(Env env, Func_Def f);
-m_bool check_func_def(Env env, Func_Def f);
-
 void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
   memcpy(REG(0), retval, size);
   PUSH_REG(shred, size);
@@ -189,11 +181,8 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
   exp.d.exp_decl.self = &exp;
   var.addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp.d.exp_decl) < 0  ||
-      scan2_exp_decl(env, &exp.d.exp_decl) < 0 ||
-      !check_exp_decl(env, &exp.d.exp_decl)) {
+  if(traverse_decl(env, &exp.d.exp_decl) < 0)
     var.value->offset = -1;;
-  }
   free(path);
   var.value->flag = flag | ae_flag_builtin;
   return var.value->offset;
@@ -279,9 +268,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   if(mfun->narg >= DLARG_MAX)
     return -1;
   CHECK_OB((func_def = make_dll_as_fun(mfun, flag)))
-  if(scan1_func_def(env, func_def) < 0 ||
-      scan2_func_def(env, func_def) < 0 ||
-      !check_func_def(env, func_def)) {
+  if(traverse_def(env, func_def) < 0) {
     free_func_def(func_def);
     return -1;
   }
