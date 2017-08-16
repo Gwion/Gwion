@@ -21,13 +21,13 @@ struct Vector_ plug_dirs;
   Vector ref;
 
 
-  int do_quit = 0;
-  m_bool udp = 1;
-  int port = 8888;
-  char* hostname = "localhost";
-  int loop = 0;
-  DriverInfo di = { 2, 2, 2,
-    48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
+int do_quit = 0;
+m_bool udp = 1;
+int port = 8888;
+char* hostname = "localhost";
+int loop = 0;
+DriverInfo di = { 2, 2, 2,
+  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -54,24 +54,12 @@ m_bool compile(VM* vm, const m_str filename) {
     err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
     return -1;
   }
-#ifdef DEBUG_COMPILE
-  debug_msg("parser", "get full path ok %s", name);
-#endif
   if(!(ast = parse(name))) {
     ret = -1;
     goto clean;
   }
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "Ast of '%s' ok", name);
-#endif
   CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "type check  of '%s' ok", name);
-#endif
   CHECK_BB(emit_ast(vm->emit, ast, name))
-#ifdef DEBUG_COMPILE
-  debug_msg("lexer", "emit   of '%s' ok", name);
-#endif
   add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   vm->emit->code->filename = strdup(name);
@@ -236,40 +224,6 @@ static void parse_args(int argc, char** argv) {
     }
   }
   parse_args_additionnal(argc, argv);
-}
-
-static void do_udp() {
-  m_uint i;
-  if(server_init(hostname, port) == -1) {
-    if(do_quit)
-      Send("quit", 1);
-    if(loop > 0)
-      Send("loop 1", 1);
-    else if(loop < 0)
-      Send("loop 0", 1);
-    for(i = 0; i < vector_size(&rem); i++) {
-      m_str file = (m_str)vector_at(&rem, i);
-      m_uint size = strlen(file) + 3;
-      char name[size];
-      memset(name, 0, size);
-      strcpy(name, "- ");
-      strcat(name, file);
-      Send(name, 1);
-    }
-    for(i = 0; i < vector_size(&add); i++) {
-      m_str file = (m_str)vector_at(&add, i);
-      m_uint size = strlen(file) + 3;
-      char name[size];
-      memset(name, 0, size);
-      strcpy(name, "+ ");
-      strcat(name, file);
-      Send(name, 1);
-    }
-    vector_release(&add);
-    vector_release(&rem);
-    vector_release(&plug_dirs);
-    exit(0);
-  }
 }
 
 int main(int argc, char** argv) {
