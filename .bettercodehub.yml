@@ -5,16 +5,18 @@ languages:
     production:
       include:
         - .*/src/.*\.c
-        - .*/src/drvr\.c
       exclude:
         - .*/src/ast/parser\.c
         - .*/src/ast/lexer\.c
         - .*/src/lib/soundpipe\.c
     test:
       include:
-        - .*/tests/plugins/.*\.c
+        - .*/tests/test_plugins/.*\.c
 
   - name: java
+    production:
+      include:
+       - fake_entry
     test:
       include:
         - .*/examples/.*\.gw
