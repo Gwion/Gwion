@@ -4,14 +4,14 @@ languages:
   - name: cpp
     production:
       include:
-        - .*/src/.*\.c
+        - /src/.*\.c
       exclude:
-        - .*/src/ast/parser\.c
-        - .*/src/ast/lexer\.c
-        - .*/src/lib/soundpipe\.c
+        - /src/ast/parser\.c
+        - /src/ast/lexer\.c
+        - /src/lib/soundpipe\.c
     test:
       include:
-        - .*/tests/test_plugins/.*\.c
+        - /tests/test_plugins/.*\.c
 
   - name: java
     production:
@@ -19,11 +19,11 @@ languages:
        - fake_entry
     test:
       include:
-        - .*/examples/.*\.gw
-        - .*/tests/.*/.*\.gw
+        - /examples/.*\.gw
+        - /tests/.*/.*\.gw
 
   - name: script
     test:
       include:
-      - .*/utils/.*\.sh
-      - .*/tests/sh/.*\.sh
+      - /utils/.*\.sh
+      - /tests/sh/.*\.sh
