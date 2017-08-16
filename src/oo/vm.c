@@ -308,10 +308,9 @@ static void vm_ugen_init(VM* vm) {
 
 void vm_run(VM* vm) {
   VM_Shred shred;
-  Instr    instr;
   while((shred = shreduler_get(vm->shreduler)))
     vm_run_shred(vm, shred);
-  if(!vm->is_running) 
+  if(!vm->is_running)
     return;
   udp_do(vm);
   vm_ugen_init(vm);
