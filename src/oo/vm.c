@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <dlfcn.h>
 #include "err_msg.h"
 #include "vm.h"
@@ -125,9 +126,6 @@ void shreduler_set_loop(Shreduler s, m_bool loop) {
 }
 
 VM_Shred shreduler_get(Shreduler s) {
-#ifdef DEBUG_SHREDULER
-  debug_msg("clock", "get");
-#endif
   VM_Shred shred = s->list;
   if(!shred) {
     if(!vector_size(&s->vm->shred) && !s->loop) {
@@ -194,7 +192,8 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   if(erase)
     shreduler_erase(s, out);
-  s->curr = (s->curr == out) ? s->curr : NULL;
+  s->curr = (s->curr == out) ? NULL : s->curr;
+  /*s->curr = (s->curr == out) ? s->curr : NULL;*/
   if(!out->prev && !out->next && out != s->list) {
     if(erase && !out->wait && !out->child.ptr)
       free_vm_shred(out);
@@ -208,9 +207,6 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
 }
 
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
-#ifdef DEBUG_SHREDULER
-  debug_msg("clock", "shredule shred[%i] at %f", shred->xid, wake_time);
-#endif
   VM_Shred curr, prev;
 
   shred->wake_time = (wake_time += s->vm->sp->pos);
@@ -278,51 +274,23 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
   shredule(vm->shreduler, shred, .5);
 }
 
-void vm_run(VM* vm) {
-  m_uint   i;
-  VM_Shred shred;
-  Instr    instr;
-  while((shred = shreduler_get(vm->shreduler))) {
-#ifdef DEBUG_VM
-    debug_msg("vm", "shred [%i]: stack: {%i:%i}. pc: (%i,%i / %i)",
-              shred->xid, *shred->reg, *shred->mem, shred->pc,
-              shred->next_pc, vector_size(shred->code->instr));
-#endif
-    while(vm->shreduler->curr) {
-      shred->pc = shred->next_pc++;
-      instr = (Instr)vector_at(shred->code->instr, shred->pc);
-#ifdef DEBUG_VM
-      if(!instr) {
-        err_msg(VM_, 0, "internal error: no instruction");
-        debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid,
-                  shred->pc, shred->next_pc, vector_size(shred->code->instr));
-        break;
-      } else if(!instr->execute) {
-        err_msg(VM_, 0, "internal error: instruction has no execute function");
-        shred->is_done = 1;
-        continue;
-      } else
-#endif
-        instr->execute(vm, shred, instr);
+static void vm_run_shred(VM* vm, VM_Shred shred) {
+  Instr instr;
+  while(vm->shreduler->curr) {
+    shred->pc = shred->next_pc++;
+    instr = (Instr)vector_at(shred->code->instr, shred->pc);
+    instr->execute(vm, shred, instr);
 #ifdef DEBUG_STACK
-      debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
-                shred->mem - shred->_mem, shred->reg - shred->_reg);
+    debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
+              shred->mem - shred->_mem, shred->reg - shred->_reg);
 #endif
-#ifdef DEBUG_VM
-      debug_msg("vm", "shred [%i]: pc: (%i,%i / %i)", shred->xid, shred->pc,
-                shred->next_pc, vector_size(shred->code->instr));
-#endif
-      if(!shred->me) {
-       vm->shreduler->curr = NULL;
-       shreduler_remove(vm->shreduler, shred, 1);
-       break;
-      }
-    }
+    if(!shred->me)
+     shreduler_remove(vm->shreduler, shred, 1);
   }
-  if(!vm->is_running) {
-    return;
-  }
-  udp_do(vm);
+}
+
+static void vm_ugen_init(VM* vm) {
+  m_uint i;
   for(i = vector_size(&vm->ugen) + 1; --i;) {
     UGen u = (UGen)vector_at(&vm->ugen, i - 1);
     u->done = 0;
@@ -336,5 +304,16 @@ void vm_run(VM* vm) {
   }
   ugen_compute(UGEN(vm->blackhole));
   ugen_compute(UGEN(vm->dac));
+}
+
+void vm_run(VM* vm) {
+  VM_Shred shred;
+  Instr    instr;
+  while((shred = shreduler_get(vm->shreduler)))
+    vm_run_shred(vm, shred);
+  if(!vm->is_running) 
+    return;
+  udp_do(vm);
+  vm_ugen_init(vm);
 }
 
