@@ -15,15 +15,13 @@ languages:
         - .*/tests/plugins/.*\.c
 
   - name: java
-    production:
     test:
       include:
         - .*/examples/.*\.gw
         - .*/tests/.*/.*\.gw
 
   - name: script
-	production:
     test:
       include:
       - .*/utils/.*\.sh
-      - .*/test/sh/.*\.sh
+      - .*/tests/sh/.*\.sh
