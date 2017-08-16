@@ -13,7 +13,7 @@ languages:
       include:
         - /tests/test_plugins/.*\.c
 
-  - name: java
+  - name: go
     production:
       include:
        - fake_entry
