@@ -20,7 +20,7 @@ m_uint num_digit(m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
-int verify_array(Array_Sub array) {
+m_bool verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1)
       CHECK_BB(err_msg(UTIL_, array->pos,
@@ -32,20 +32,11 @@ int verify_array(Array_Sub array) {
   return 1;
 }
 
-int isa(Type var, Type parent) {
+m_bool isa(Type var, Type parent) {
   return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
 }
 
-int isres(Env env, S_Symbol xid, int pos) {
-  m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
-    err_msg(UTIL_, 0, "%s is reserved.", s_name(xid));
-    return 1;
-  }
-  return -1;
-}
-
-int isprim(Type type) {
+m_bool isprim(Type type) {
   return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
 }
 

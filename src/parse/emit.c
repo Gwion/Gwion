@@ -1,14 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
-#include "vm.h"
 #include "context.h"
 #include "func.h"
-#include "emit.h"
+#include "traverse.h"
 
 typedef struct {
   m_uint size;

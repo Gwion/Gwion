@@ -1,7 +1,9 @@
 #include <stdlib.h>
+#include <string.h>
 #include "env.h"
 #include "context.h"
 #include "type.h"
+#include "err_msg.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
@@ -100,4 +102,13 @@ m_bool env_add_type(Env env, Type type) {
     type->xid = env->type_xid;
   }
   return 1;
+}
+
+m_bool isres(Env env, S_Symbol xid, int pos) {
+  m_str s = s_name(xid);
+  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
+    err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    return 1;
+  }
+  return -1;
 }

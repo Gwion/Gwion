@@ -6,6 +6,7 @@
 #include "instr.h"
 #include "import.h"
 #include "ugen.h"
+#include "traverse.h"
 
 #define CHECK_EB(a) if(!env->class_def) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 #define CHECK_EO(a) if(!env->class_def) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }

@@ -1,17 +1,14 @@
 #include <stdio.h>
+#include <string.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <inttypes.h>
 #include "err_msg.h"
 #include "type.h"
-#include "absyn.h"
-#include "env.h"
 #include "context.h"
 #include "func.h"
 #include "import.h"
-#include "lang.h"
-#include "ugen.h"
-#include "string.h"
+#include "traverse.h"
 
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
