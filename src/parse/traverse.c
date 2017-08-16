@@ -1,5 +1,18 @@
 #include "absyn.h"
 
+m_bool scan0_Ast(Env env, Ast ast);
+m_bool scan1_ast(Env env, Ast ast);
+m_bool scan2_ast(Env env, Ast ast);
+m_bool check_ast(Env env, Ast ast);
+
+m_bool scan1_exp_decl(Env env, Exp_Decl* decl);
+m_bool scan2_exp_decl(Env env, Exp_Decl* decl);
+m_bool check_exp_decl(Env env, Exp_Decl* decl);
+
+m_bool scan1_func_def(Env env, Func_Def def);
+m_bool scan2_func_def(Env env, Func_Def def);
+m_bool check_func_def(Env env, Func_Def def);
+
 m_bool traverse_ast(Env env, Ast ast) {
   if(scan0_Ast(env, ast) < 0 ||
      scan1_ast(env, ast) < 0 ||
