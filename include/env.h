@@ -3,7 +3,6 @@
 #include "defs.h"
 #include "absyn.h"
 #include "vm.h"
-#include "oo.h"
 #include "map_private.h"
 struct Env_ {
   Nspc curr;
@@ -20,7 +19,7 @@ struct Env_ {
   struct Vector_    class_stack;
   struct Vector_    breaks;
   struct Vector_    conts;
-  struct Map_       known_ctx;
+  struct Vector_    known_ctx;
   m_bool do_type_xid;
 };
 
@@ -29,7 +28,6 @@ void env_reset(Env env);
 void free_env();
 m_bool env_push_class(Env env, Type type);
 m_bool env_pop_class(Env env);
-m_bool isres(Env env, S_Symbol xid, int pos);
 #define SCOPE(a) env->class_scope++;a;env->class_scope--;
 #define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
 nspc_pop_value(env->curr);env->class_scope--;

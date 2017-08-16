@@ -1780,8 +1780,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->global_nspc);
-    map_set(&env->known_ctx,
-            (vtype)insert_symbol(context->filename), (vtype)context);
+    vector_add(&env->known_ctx, (vtype)context);
   } else {
     //    nspc_rollback(env->global_nspc);
   }
