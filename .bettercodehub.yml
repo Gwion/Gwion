@@ -9,17 +9,19 @@ languages:
       exclude:
         - .*/src/ast/parser\.c
         - .*/src/ast/lexer\.c
-        - .*/src/soundpipe\.c
+        - .*/src/lib/soundpipe\.c
+    test:
+      include:
+        - .*/tests/plugins/.*\.c
+
+  - name: java
     test:
       include:
         - .*/examples/.*\.gw
-        - .*/test/.*/.*\.gw
-        - .*/test/plugins/.*\.c
+        - .*/tests/.*/.*\.gw
 
   - name: script
-    production:
-      include:
-        - .*/utils/.*\.sh
     test:
       include:
+      - .*/utils/.*\.sh
       - .*/test/sh/.*\.sh
