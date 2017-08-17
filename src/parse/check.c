@@ -669,13 +669,9 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 
   exp_func->type = check_exp(env, exp_func);
   t = exp_func->type;
-  // primary func_ptr
-  if(exp_func->exp_type == ae_exp_primary &&
-      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const)) {
-    if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def)
-      CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
+  if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
+    !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
       ptr = exp_func->d.exp_primary.value;
-  }
   if(!t)
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
                      "function call using a non-existing function"))
