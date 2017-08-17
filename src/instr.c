@@ -21,6 +21,11 @@ Instr add_instr(Emitter emit, f_instr f) {
   return instr;
 }
 
+static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
+  memcpy(REG(0), retval, size);
+  PUSH_REG(shred, size);
+}
+
 INSTR(EOC) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
