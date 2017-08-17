@@ -94,7 +94,6 @@ INSTR(assign_func) {
     Func f = (Func) * (m_uint*)REG(SZ_INT);
     M_Object obj = *(M_Object*)REG(SZ_INT * 2);
     *(Func*)(obj->data + instr->m_val2) = f;
-
     *(m_uint*)REG(0) = *(m_uint*)REG(SZ_INT);
     *(Func**)REG(SZ_INT * 4) = &f;
   }
