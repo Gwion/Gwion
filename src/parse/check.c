@@ -546,7 +546,7 @@ next:
   return NULL;
 }
 
-static void function_alternative(Type f, Exp args){
+static void* function_alternative(Type f, Exp args){
   m_uint i;
   if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
@@ -557,7 +557,7 @@ static void function_alternative(Type f, Exp args){
 #ifdef COLOR
       fprintf(stderr, "\033[32mvoid\033[0m");
 #else
-      fprintf(stderr, "\033[32mvoid\033[0m");
+      fprintf(stderr, "void");
 #endif
     while(e) {
       char path[id_list_len(e->type_decl->xid)];
@@ -594,6 +594,7 @@ static void function_alternative(Type f, Exp args){
       fprintf(stderr, ",");
   }
   fprintf(stderr, "\n");
+  return NULL;
 }
 
 static Value get_template_value(Env env, Exp exp_func) {
@@ -663,33 +664,23 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
   debug_msg("check", "func call");
 #endif
   Func func = NULL;
-  Func up = NULL;
-  Type t;
   Value ptr = NULL;
 
-  exp_func->type = check_exp(env, exp_func);
-  t = exp_func->type;
+  if(!(exp_func->type = check_exp(env, exp_func)))
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+          "function call using a non-existing function"))
+  if(isa(exp_func->type, &t_function) < 0)
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+          "function call using a non-function value"))
   if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
     !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
       ptr = exp_func->d.exp_primary.value;
-  if(!t)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos,
-                     "function call using a non-existing function"))
-    if(isa(t, &t_function) < 0)
-      CHECK_BO(err_msg(TYPE_, exp_func->pos,
-                       "function call using a non-function value"))
-      up = t->d.func;
-
   if(args)
     CHECK_OO(check_exp(env, args))
-    // look for a match
-    func = find_func_match(up, args);
-  if(!func) {
-    if(!t->d.func)
-      return check_exp_call_template(env, exp_func, args, m_func);
-    function_alternative(t, args);
-    return NULL;
-  }
+  if(!exp_func->type->d.func)
+    return check_exp_call_template(env, exp_func, args, m_func);
+  if(!(func = find_func_match(exp_func->type->d.func, args)))
+    return function_alternative(exp_func->type, args);
   if(ptr) {
     Func f = malloc(sizeof(struct Func_));
     memcpy(f, func, sizeof(struct Func_));
