@@ -1156,13 +1156,12 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     SET_FLAG(func, ae_flag_member);
   value = new_value(&t_function, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
-  ADD_REF(func);
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
-  if(overload) {
+  if(overload)
     overload->func_num_overloads++;
-//    ADD_REF(overload);
-  }    else {
+  else {
     ADD_REF(value);
+    ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
   }
   snprintf(name, len, "%s<template>@%li@%s", func_name,
