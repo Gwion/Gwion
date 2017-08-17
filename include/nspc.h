@@ -31,32 +31,14 @@ extern Func  nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb);
 extern void  nspc_commit(Nspc nspc);
 extern void  nspc_rollback(Nspc nspc);
 
-static inline void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
-  scope_add(&nspc->value, xid, (vtype)value);
-}
-static inline void  nspc_push_value(Nspc nspc) {
-  scope_push(&nspc->value);
-}
-static inline void  nspc_pop_value(Nspc nspc) {
-  scope_pop(&nspc->value);
-}
+void nspc_add_value(Nspc nspc, S_Symbol xid, Value value);
+void nspc_push_value(Nspc nspc);
+void nspc_pop_value(Nspc nspc);
 
-static inline void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
-  scope_add(&nspc->func, xid, (vtype)value);
-}
-static inline void nspc_push_func(Nspc nspc) {
-  scope_push(&nspc->func);
-}
-static inline void nspc_pop_func(Nspc nspc) {
-  scope_pop(&nspc->func);
-}
+void nspc_add_func(Nspc nspc, S_Symbol xid, Func value);
+void nspc_push_func(Nspc nspc);
+void nspc_pop_func(Nspc nspc);
 
-static inline void  nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {
-  scope_add(&nspc->type, xid, (vtype)value);
-}
-static inline void  nspc_push_type(Nspc nspc) {
-  scope_push(&nspc->type);
-}
-static inline void nspc_pop_type(Nspc nspc) {
-  scope_pop(&nspc->type);
-}
+void nspc_add_type(Nspc nspc, S_Symbol xid, Type value);
+void nspc_push_type(Nspc nspc);
+void nspc_pop_type(Nspc nspc);
