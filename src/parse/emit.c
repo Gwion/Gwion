@@ -121,7 +121,8 @@ static void emit_pop_scope(Emitter emit) {
 static m_bool emit_pre_ctor(Emitter emit, Type type) {
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
-  if(GET_FLAG(type, ae_flag_ctor)) {
+  if(type->info->pre_ctor) {
+//  if(GET_FLAG(type, ae_flag_ctor)) {
     Instr instr = add_instr(emit, Pre_Constructor);
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit->code->frame->curr_offset;
