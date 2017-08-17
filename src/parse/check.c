@@ -1116,40 +1116,37 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   Value value;
   Type  the_base;
   m_bool base_static;
-  m_str str;
+  m_str str = s_name(member->xid);
 
-  member->t_base = check_exp(env, member->base);
-  if(!member->t_base)
-    return NULL;
+  CHECK_OO((member->t_base = check_exp(env, member->base)))
   base_static = member->t_base->xid == te_class;
   the_base = base_static ? member->t_base->d.actual_type : member->t_base;
 
   if(!the_base->info)
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
-                     "type '%s' does not have members - invalid use in dot expression of %s",
-                     the_base->name, s_name(member->xid)))
+          "type '%s' does not have members - invalid use in dot expression of %s",
+          the_base->name, str))
 
-    str = s_name(member->xid);
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
-                     "keyword 'this' must be associated with object instance..."))
+          	"keyword 'this' must be associated with object instance..."))
 
-    if(!(value = find_value(the_base, member->xid))) {
-      m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
-      char s[len];
-      memset(s, 0, len);
-      strcpy(s, the_base->name);
-      for(i = 0; i < the_base->array_depth; i++)
-        strcat(s, "[]");
-      CHECK_BO(err_msg(TYPE_,  member->base->pos,
-                       "class '%s' has no member '%s'", s, str))
-    }
+  if(!(value = find_value(the_base, member->xid))) {
+    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
+    char s[len];
+    memset(s, 0, len);
+    strcpy(s, the_base->name);
+    for(i = 0; i < the_base->array_depth; i++)
+      strcat(s, "[]");
+    CHECK_BO(err_msg(TYPE_,  member->base->pos,
+          "class '%s' has no member '%s'", s, str))
+  }
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
-                     "cannot access member '%s.%s' without object instance...",
-                     the_base->name, str))
-    if(GET_FLAG(value, ae_flag_enum))
-      member->self->meta = ae_meta_value;
+          "cannot access member '%s.%s' without object instance...",
+          the_base->name, str))
+  if(GET_FLAG(value, ae_flag_enum))
+    member->self->meta = ae_meta_value;
   return value->m_type;
 }
 
