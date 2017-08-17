@@ -1518,7 +1518,7 @@ static m_bool emit_member_func(Emitter emit, Exp_Dot* member, Func func) {
 static m_bool emit_member(Emitter emit, Value v, m_bool emit_addr) {
   Instr func_i = add_instr(emit, Exp_Dot_Data);
   func_i->m_val = v->offset;
-  func_i->m_val2 = kindof(v->m_type);
+  func_i->m_val2 = v->m_type->size;
   *(m_uint*)func_i->ptr = emit_addr;
   return 1;
 }
