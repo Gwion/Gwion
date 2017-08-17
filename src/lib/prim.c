@@ -967,10 +967,10 @@ m_bool import_complex(Env env) {
 INSTR(vec_member) {
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    *(m_float**)REG(0) = &*(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    *(m_float**)REG(0) = &*(m_float*)(*(m_float**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_INT);
   } else {
-    *(m_float*)REG(0) = *(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    *(m_float*)REG(0) = *(m_float*)(*(m_float**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_FLOAT);
   }
 }

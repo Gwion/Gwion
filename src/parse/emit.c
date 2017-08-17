@@ -1383,8 +1383,7 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bo
 static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
   Instr instr;
 
-  if(exp->meta == ae_meta_var)
-    exp->emit_var = 1;
+  exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
   if(!strcmp(v->name, c))
     instr = add_instr(emit, complex_real);
@@ -1397,8 +1396,7 @@ static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_boo
 static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
   Instr instr;
 
-  if(exp->meta == ae_meta_var)
-    exp->emit_var = 1;
+  exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
   if(v->func_ref) {
     sadd_instr(emit, Reg_Dup_Last_Vec4);
