@@ -3,14 +3,12 @@
 #include "defs.h"
 #include "absyn.h"
 #include "vm.h"
-#include "oo.h"
 #include "map_private.h"
 struct Env_ {
   Nspc curr;
   Nspc global_nspc;
 //  Nspc user_nspc;
   m_uint    class_scope;
-  Context   global_context;
   Context   context;
   Type      class_def;
   Func      func;
@@ -21,7 +19,7 @@ struct Env_ {
   struct Vector_    class_stack;
   struct Vector_    breaks;
   struct Vector_    conts;
-  struct Map_       known_ctx;
+  struct Vector_    known_ctx;
   m_bool do_type_xid;
 };
 

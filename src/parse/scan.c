@@ -5,6 +5,15 @@
 #include "type.h"
 #include "func.h"
 
+static m_bool isres(S_Symbol xid, m_uint pos) {
+  m_str s = s_name(xid);
+  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
+    err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    return 1;
+  }
+  return -1;
+}
+
 static m_bool scan0_Class_Def(Env env, Class_Def class_def);
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
@@ -65,7 +74,7 @@ static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
                      s_name(class_def->name->xid), env->curr->name))
   }
 
-  if(isres(env, class_def->name->xid, class_def->name->pos) > 0) {
+  if(isres(class_def->name->xid, class_def->name->pos) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
                      s_name(class_def->name->xid)))
   }
@@ -656,7 +665,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
                      "cannot declare references (@) of primitive type '%s'...\n"
                      "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
     while(list) {
-      if(isres(env, list->self->xid, list->self->pos) > 0)
+      if(isres(list->self->xid, list->self->pos) > 0)
         CHECK_BB(err_msg(SCAN2_, list->self->pos,
                          "... in variable declaration", s_name(list->self->xid)))
         if(nspc_lookup_value(env->curr, list->self->xid, 0))
@@ -704,7 +713,7 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
       nspc_pop_value(env->curr);
       CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
     }
-    if(isres(env, list->var_decl->xid, list->pos) > 0) {
+    if(isres(list->var_decl->xid, list->pos) > 0) {
       nspc_pop_value(env->curr);
       return -1;
     }
@@ -1147,13 +1156,12 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     SET_FLAG(func, ae_flag_member);
   value = new_value(&t_function, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
-  ADD_REF(func);
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
-  if(overload) {
+  if(overload)
     overload->func_num_overloads++;
-//    ADD_REF(overload);
-  }    else {
+  else {
     ADD_REF(value);
+    ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
   }
   snprintf(name, len, "%s<template>@%li@%s", func_name,

@@ -21,6 +21,11 @@ Instr add_instr(Emitter emit, f_instr f) {
   return instr;
 }
 
+static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
+  memcpy(REG(0), retval, size);
+  PUSH_REG(shred, size);
+}
+
 INSTR(EOC) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
@@ -94,7 +99,6 @@ INSTR(assign_func) {
     Func f = (Func) * (m_uint*)REG(SZ_INT);
     M_Object obj = *(M_Object*)REG(SZ_INT * 2);
     *(Func*)(obj->data + instr->m_val2) = f;
-
     *(m_uint*)REG(0) = *(m_uint*)REG(SZ_INT);
     *(Func**)REG(SZ_INT * 4) = &f;
   }
@@ -982,42 +986,14 @@ INSTR(Exp_Dot_Data) {
   debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)REG(-SZ_INT), instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
 #endif
   M_Object obj;
-
+  m_bool ptr = *(m_uint*)instr->ptr;
+  char* c;
   POP_REG(shred,  SZ_INT);
   obj  = *(M_Object*)REG(0);
   if(!obj) Except(shred, "NullPtrException");
-  // take care of emit_addr ? (instr->ptr)
-  if(*(m_uint*)instr->ptr) {
-    if(instr->m_val2 == Kindof_Int) {
-      *(m_uint**)REG(0) = &*(m_uint*)(obj->data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Float) {
-      *(m_float**)REG(0) = &*(m_float*)(obj->data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Complex) {
-      *(m_complex**)REG(0) = &*(m_complex*)(obj->data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Vec3) {
-      *(m_vec3**)REG(0) = &*(m_vec3*)(obj->data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Vec4) {
-      *(m_vec4**)REG(0) = &*(m_vec4*)(obj->data + instr->m_val);
-    }
-    PUSH_REG(shred,  SZ_INT);
-  }
-  /* take care of Kind (instr->m_val2)*/
-  else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)REG(0) = *(m_uint*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)REG(0) = *(m_float*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)REG(0) = *(m_complex*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(instr->m_val2 == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = *(m_vec3*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(instr->m_val2 == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = *(m_vec4*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
+  c = (char*)(obj->data + instr->m_val);
+  memcpy(REG(0), ptr ? (char*)&c : c, ptr ? SZ_INT : instr->m_val2);
+  PUSH_REG(shred, ptr ? SZ_INT : instr->m_val2);
 }
 
 INSTR(Release_Object2) {

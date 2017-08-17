@@ -1,12 +1,12 @@
 #include <stdlib.h>
+#include <string.h>
 #include "env.h"
 #include "context.h"
 #include "type.h"
+#include "err_msg.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
-  env->global_context = new_context(NULL, "global_context");
-  env->context = env->global_context;
   env->global_nspc = new_nspc("global_nspc", "global_nspc");
 //  env->user_nspc = NULL;
   vector_init(&env->breaks);
@@ -14,7 +14,7 @@ Env new_env() {
   vector_init(&env->contexts);
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
-  map_init(&env->known_ctx);
+  vector_init(&env->known_ctx);
   env->type_xid = te_last; // ????????
   env->do_type_xid = 0;
   env_reset(env);
@@ -42,13 +42,12 @@ void env_reset(Env env) {
 
 void free_env(Env a) {
   m_uint i;
-  free(a->global_context->tree);
-  for(i = 0; i < map_size(&a->known_ctx); i++) {
-    Context ctx = (Context)map_at(&a->known_ctx, i);
+  for(i = 0; i < vector_size(&a->known_ctx); i++) {
+    Context ctx = (Context)vector_at(&a->known_ctx, i);
     REM_REF(ctx);
   }
   vector_release(&a->contexts);
-  map_release(&a->known_ctx);
+  vector_release(&a->known_ctx);
 
   for(i = 0; i < vector_size(&a->nspc_stack); i++) {
     Nspc  nspc = (Nspc)vector_pop(&a->nspc_stack);

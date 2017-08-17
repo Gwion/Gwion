@@ -185,7 +185,7 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_child(s, &out->child);
   index = vector_find(&s->vm->shred, (vtype)out);
   vector_rem(&s->vm->shred, index);
-  if( out->gc.ptr)
+  if(out->gc.ptr)
     shreduler_gc(out);
 }
 
@@ -193,7 +193,6 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   if(erase)
     shreduler_erase(s, out);
   s->curr = (s->curr == out) ? NULL : s->curr;
-  /*s->curr = (s->curr == out) ? s->curr : NULL;*/
   if(!out->prev && !out->next && out != s->list) {
     if(erase && !out->wait && !out->child.ptr)
       free_vm_shred(out);
@@ -308,10 +307,9 @@ static void vm_ugen_init(VM* vm) {
 
 void vm_run(VM* vm) {
   VM_Shred shred;
-  Instr    instr;
   while((shred = shreduler_get(vm->shreduler)))
     vm_run_shred(vm, shred);
-  if(!vm->is_running) 
+  if(!vm->is_running)
     return;
   udp_do(vm);
   vm_ugen_init(vm);

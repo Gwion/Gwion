@@ -5,8 +5,6 @@
 
 #define DLARG_MAX 6
 
-void dl_return_push(const char* retval, VM_Shred shred, m_uint size);
-
 typedef void (*f_xtor)(M_Object o, VM_Shred sh);
 typedef void (*f_mfun)(M_Object o, char* RETURN, VM_Shred sh);
 typedef void (*f_sfun)(char* RETURN, VM_Shred sh);

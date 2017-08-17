@@ -963,14 +963,14 @@ m_bool import_complex(Env env) {
   CHECK_BB(import_op(env, op_divide_chuck,  "polar", "polar", "polar", polar_divide_r,   0))
   return 1;
 }
+
 INSTR(vec_member) {
+  POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    POP_REG(shred, SZ_INT);
-    *(m_float**)REG(0) = &*(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    *(m_float**)REG(0) = &*(m_float*)(*(m_float**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_INT);
   } else {
-    POP_REG(shred, SZ_INT);
-    *(m_float*)REG(0) = *(m_float*)(shred->reg + instr->m_val2 * SZ_FLOAT);
+    *(m_float*)REG(0) = *(m_float*)(*(m_float**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_FLOAT);
   }
 }
@@ -1266,12 +1266,11 @@ static INSTR(vec4_divide_float) {
 
 static INSTR(vec4_r_assign) {
   POP_REG(shred, SZ_VEC4 + SZ_INT);
-  m_vec4 r = **(m_vec4**)REG(SZ_VEC4);
-  r.x = *(m_float*)REG(0);
-  r.y = *(m_float*)REG(SZ_FLOAT);
-  r.z = *(m_float*)REG(SZ_FLOAT * 2);
-  r.w = *(m_float*)REG(SZ_FLOAT * 3);
-  *(m_vec4*)REG(0) = r;
+  m_vec4* r = *(m_vec4**)REG(SZ_VEC4);
+  r->x = *(m_float*)REG(0);
+  r->y = *(m_float*)REG(SZ_FLOAT);
+  r->z = *(m_float*)REG(SZ_FLOAT * 2);
+  r->w = *(m_float*)REG(SZ_FLOAT * 3);
   PUSH_REG(shred, SZ_VEC4);
 }
 

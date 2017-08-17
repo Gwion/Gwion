@@ -14,13 +14,13 @@ static char* strip_lit( char* str )
 
 static char* alloc_str( char* str )
 {
- S_Symbol sym = insert_symbol(str);
- return s_name(sym);
+  S_Symbol sym = insert_symbol(str);
+  return s_name(sym);
 }
 
 static long htol( char* str )
 {
-char * c = str;
+  char * c = str;
   unsigned long n = 0;
 
   c += 2;
@@ -31,20 +31,20 @@ char * c = str;
     {
       case '1': case '2': case '3': case '4': case '5':
       case '6': case '7': case '8': case '9': case '0':
-      n += *c - '0';
-      break;
+        n += *c - '0';
+        break;
 
       case 'a': case 'b': case 'c': case 'd': case 'e': case 
-      'f':
-      n += *c - 'a' + 10;
-      break;
+                                                        'f':
+                                                          n += *c - 'a' + 10;
+                                                        break;
 
       case 'A': case 'B': case 
-      'C': case 'D': case 'E': 
+                          'C': case 'D': case 'E': 
       case 'F':
-      n += *c - 'A' 
-      + 10;
-      break;
+                            n += *c - 'A' 
+                              + 10;
+                            break;
     }    
     c++;
   }
@@ -57,9 +57,9 @@ static int newline(void*data)
   arg->line++;
   arg->pos = 1;
   return 1;
-}
+} 
 char *gwion_get_text (yyscan_t yyscanner );
- 
+
 static int adjust(void* data);
 %}
 
@@ -87,7 +87,7 @@ static int adjust(void* data);
 <COMMENT>.                          { adjust(yyscanner); continue;}
 <COMMENT>\n                         { newline(yyscanner); continue;}
 <COMMENT>"*/"                       { BEGIN(INITIAL); }
- 
+
 
 "\n"                                { newline(yyscanner); continue; }
 [ \r\t]                             { adjust(yyscanner); continue; }
@@ -103,30 +103,31 @@ static int adjust(void* data);
 "/=>"                               { adjust(yyscanner); return DIVIDECHUCK;}
 "%=>"                               { adjust(yyscanner); return MODULOCHUCK;}
 "@=>"                               { adjust(yyscanner); return ATCHUCK;}
-"<<=>"                               { adjust(yyscanner); return RSL;}
-">>=>"                               { adjust(yyscanner); return RSR;}
+"<<=>"                              { adjust(yyscanner); return RSL;}
+">>=>"                              { adjust(yyscanner); return RSR;}
 "&=>"                               { adjust(yyscanner); return RSAND;}
 "|=>"                               { adjust(yyscanner); return RSOR;}
 "^=>"                               { adjust(yyscanner); return RSXOR;}
-"&&=>"                               { adjust(yyscanner); return RAND;}
-"||=>"                               { adjust(yyscanner); return ROR;}
+"&&=>"                              { adjust(yyscanner); return RAND;}
+"||=>"                              { adjust(yyscanner); return ROR;}
 "==>"                               { adjust(yyscanner); return REQ;}
 "!=>"                               { adjust(yyscanner); return RNEQ;}
-"<=>"                 					      { adjust(yyscanner); return RLT; }
-">=>"                     					  { adjust(yyscanner); return RGT; }
-"<==>"                    					  { adjust(yyscanner); return RLE; }
-">==>"                    					  { adjust(yyscanner); return RGE; }
+"<=>"                 					    { adjust(yyscanner); return RLT; }
+">=>"                     					{ adjust(yyscanner); return RGT; }
+"<==>"                    					{ adjust(yyscanner); return RLE; }
+">==>"                    					{ adjust(yyscanner); return RGE; }
 "++"                                { adjust(yyscanner); return PLUSPLUS;}
 "--"                                { adjust(yyscanner); return MINUSMINUS;}
-"function"                              { adjust(yyscanner); return FUNCTION;}
+"fun"                               { adjust(yyscanner); return FUNCTION;}
+"function"                          { adjust(yyscanner); return FUNCTION;}
 "variadic"                    			{ adjust(yyscanner); return VARARG; }
-"typedef"                              { adjust(yyscanner); return FUNC_PTR;}
+"typedef"                           { adjust(yyscanner); return FUNC_PTR;}
 "<<<"                               { adjust(yyscanner); return L_HACK;}
 ">>>"                               { adjust(yyscanner); return R_HACK;}
-"#("                               { adjust(yyscanner); return SHARPPAREN;}
-"%("                               { adjust(yyscanner); return PERCENTPAREN;}
-"@("                               { adjust(yyscanner); return ATPAREN;}
-"template"                               { adjust(yyscanner); return TEMPLATE;}
+"#("                                { adjust(yyscanner); return SHARPPAREN;}
+"%("                                { adjust(yyscanner); return PERCENTPAREN;}
+"@("                                { adjust(yyscanner); return ATPAREN;}
+"template"                          { adjust(yyscanner); return TEMPLATE;}
 
 "+"                    					    { adjust(yyscanner); return PLUS; }
 "-"                    					    { adjust(yyscanner); return MINUS; }
@@ -164,13 +165,13 @@ static int adjust(void* data);
 "?"                     					  { adjust(yyscanner); return QUESTION; }
 ":"                     					  { adjust(yyscanner); return COLON; }
 "::"                     					  { adjust(yyscanner); return COLONCOLON; }
-"]=>"                     					  { adjust(yyscanner); return TRIG; }
-"]=<"                     					  { adjust(yyscanner); return UNTRIG; }
+"]=>"                     					{ adjust(yyscanner); return TRIG; }
+"]=<"                     					{ adjust(yyscanner); return UNTRIG; }
 
 
 "class"                 					  { adjust(yyscanner); return CLASS;}
 "dtor"                 					    { adjust(yyscanner); return AST_DTOR;}
-"operator"                 					    { adjust(yyscanner); return OPERATOR;}
+"operator"                 					{ adjust(yyscanner); return OPERATOR;}
 "extends"               					  { adjust(yyscanner); return EXTENDS;}
 "public"                					  { adjust(yyscanner); return PUBLIC;}
 "static "               					  { adjust(yyscanner); return STATIC;}
@@ -192,13 +193,13 @@ static int adjust(void* data);
 "enum"                 					    { adjust(yyscanner); return ENUM;}
 
 
-0[xX][0-9a-fA-F]+{IS}?  					  { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }
-0[cC][0-7]+{IS}?        					  { adjust(yyscanner); yylval->ival = atoi(yytext);                 return NUM;        }
-[0-9]+{IS}?                         { adjust(yyscanner); yylval->ival = atoi(yytext);                 return NUM;        }
-([0-9]+"."[0-9]*)|([0-9]*"."[0-9]+) { adjust(yyscanner); yylval->fval = atof(yytext);                 return FLOAT;      }
-[A-Za-z_][A-Za-z0-9_]*  					  { adjust(yyscanner); yylval->sval = alloc_str(yytext);           return ID;         }
-\"(\\.|[^\\"])*\"       						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return STRING_LIT; }
-'(\\.|[^\\'])'          						{ adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return CHAR_LIT;   }
+0[xX][0-9a-fA-F]+{IS}?  					   { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }
+0[cC][0-7]+{IS}?        					   { adjust(yyscanner); yylval->ival = atoi(yytext);                 return NUM;        }
+[0-9]+{IS}?                          { adjust(yyscanner); yylval->ival = atoi(yytext);                 return NUM;        }
+([0-9]+"."[0-9]*)|([0-9]*"."[0-9]+)  { adjust(yyscanner); yylval->fval = atof(yytext);                 return FLOAT;      }
+[A-Za-z_][A-Za-z0-9_]*  					   { adjust(yyscanner); yylval->sval = alloc_str(yytext);            return ID;         }
+\"(\\.|[^\\"])*\"       						 { adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return STRING_LIT; }
+'(\\.|[^\\'])'          						 { adjust(yyscanner); yylval->sval = alloc_str(strip_lit(yytext)); return CHAR_LIT;   }
 
 . { fprintf(stderr, "error: stray in program\n"); return 1; }
 
@@ -241,8 +242,8 @@ int gwion_error(MyArg* arg, char* s)
   }
   free(line);
   if(arg->pos)
-  for(i = 0; i < arg->pos  -1; i++)
-    fprintf(stderr, " ");
+    for(i = 0; i < arg->pos  -1; i++)
+      fprintf(stderr, " ");
   fprintf(stderr, "^\n");
   fclose(arg->file);
   return 0;

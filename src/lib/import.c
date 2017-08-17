@@ -6,19 +6,12 @@
 #include "instr.h"
 #include "import.h"
 #include "ugen.h"
+#include "traverse.h"
 
 #define CHECK_EB(a) if(!env->class_def) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 #define CHECK_EO(a) if(!env->class_def) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 
 void free_expression(Exp exp);
-
-m_bool scan1_exp_decl(Env env, Exp_Decl* decl);
-m_bool scan2_exp_decl(Env env, Exp_Decl* decl);
-Type   check_exp_decl(Env env, Exp_Decl* decl);
-
-m_bool scan1_func_def(Env env, Func_Def f);
-m_bool scan2_func_def(Env env, Func_Def f);
-m_bool check_func_def(Env env, Func_Def f);
 
 void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
   memcpy(REG(0), retval, size);
@@ -156,7 +149,6 @@ m_int import_class_end(Env env) {
 }
 
 m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
-  m_int ret = -1;
   m_uint array_depth = 0;
   ID_List path;
 
@@ -190,15 +182,11 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
   exp.d.exp_decl.self = &exp;
   var.addr = (void *)addr;
-  if(scan1_exp_decl(env, &exp.d.exp_decl) < 0  ||
-      scan2_exp_decl(env, &exp.d.exp_decl) < 0 ||
-    !check_exp_decl(env, &exp.d.exp_decl))
-    goto error;
-  var.value->flag = flag | ae_flag_builtin;
-  ret = var.value->offset;
-error:
+  if(traverse_decl(env, &exp.d.exp_decl) < 0)
+    var.value->offset = -1;;
   free(path);
-  return ret;
+  var.value->flag = flag | ae_flag_builtin;
+  return var.value->offset;
 }
 
 static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
@@ -281,9 +269,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   if(mfun->narg >= DLARG_MAX)
     return -1;
   CHECK_OB((func_def = make_dll_as_fun(mfun, flag)))
-  if(scan1_func_def(env, func_def) < 0 ||
-      scan2_func_def(env, func_def) < 0 ||
-      !check_func_def(env, func_def)) {
+  if(traverse_def(env, func_def) < 0) {
     free_func_def(func_def);
     return -1;
   }

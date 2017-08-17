@@ -1,21 +1,14 @@
 #include <stdio.h>
+#include <string.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <inttypes.h>
 #include "err_msg.h"
 #include "type.h"
-#include "absyn.h"
-#include "env.h"
 #include "context.h"
 #include "func.h"
 #include "import.h"
-#include "lang.h"
-#include "ugen.h"
-#include "string.h"
-
-m_bool scan0_Ast(Env, Ast);
-m_bool scan1_ast(Env, Ast);
-m_bool scan2_ast(Env, Ast);
+#include "traverse.h"
 
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
@@ -28,63 +21,13 @@ struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
-static int so_filter(const struct dirent* dir) {
-  return strstr(dir->d_name, ".so") ? 1 : 0;
-}
-
-static void handle_plug(Env env, m_str c) {
-  void* handler;
-  if((handler = dlopen(c, RTLD_LAZY))) {
-    m_bool(*import)(Env) = (m_bool(*)(Env))(intptr_t)dlsym(handler, "import");
-    if(import) {
-      if(import(env) > 0)
-        vector_add(&vm->plug, (vtype)handler);
-      else {
-        env->class_def = (Type)vector_pop(&env->class_stack);
-        env->curr = (Nspc)vector_pop(&env->nspc_stack);
-        dlclose(handler);
-      }
-    } else {
-      const char* err = dlerror();
-      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
-        dlclose(handler);
-    }
-  } else {
-    const char* err = dlerror();
-    if(err_msg(TYPE_, 0, "error in %s.", err) < 0){}
-  }
-}
-
-static void add_plugs(Env env, Vector plug_dirs) {
-  m_uint i;
-  for(i = 0; i < vector_size(plug_dirs); i++) {
-    m_str dirname = (m_str)vector_at(plug_dirs, i);
-    struct dirent **namelist;
-    int n;
-    n = scandir(dirname, &namelist, so_filter, alphasort);
-    if(n > 0) {
-      while(n--) {
-        char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
-        sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(env, c);
-        free(namelist[n]);
-      }
-      free(namelist);
-    }
-  }
-}
-
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
 
   CHECK_BO(import_libs(env))
   CHECK_BO(import_values(env))
   CHECK_BO(import_global_ugens(vm, env))
-
   nspc_commit(env->global_nspc);
-
-  map_set(&env->known_ctx, (vtype)insert_symbol(env->global_context->filename), (vtype)env->global_context);
-  env->global_context->tree = calloc(1, sizeof(struct Ast_));
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
@@ -520,11 +463,9 @@ static Func find_func_match(Func up, Exp args) {
 }
 
 static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
-  m_int ret = scan1_func_def(env, def);
+  m_bool ret = traverse_def(env, def);
   nspc_pop_type(env->curr);
-  if(ret < 0 || scan2_func_def(env, def) < 0 ||
-                check_func_def(env, def) < 0 ||
-               !check_exp(env, func)         ||
+  if(ret < 0 || !check_exp(env, func) ||
      (args  && !check_exp(env, args)))
     return -1;
   return 1;
@@ -605,7 +546,7 @@ next:
   return NULL;
 }
 
-static void function_alternative(Type f, Exp args){
+static void* function_alternative(Type f, Exp args){
   m_uint i;
   if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
@@ -616,7 +557,7 @@ static void function_alternative(Type f, Exp args){
 #ifdef COLOR
       fprintf(stderr, "\033[32mvoid\033[0m");
 #else
-      fprintf(stderr, "\033[32mvoid\033[0m");
+      fprintf(stderr, "void");
 #endif
     while(e) {
       char path[id_list_len(e->type_decl->xid)];
@@ -653,6 +594,7 @@ static void function_alternative(Type f, Exp args){
       fprintf(stderr, ",");
   }
   fprintf(stderr, "\n");
+  return NULL;
 }
 
 static Value get_template_value(Env env, Exp exp_func) {
@@ -722,37 +664,23 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
   debug_msg("check", "func call");
 #endif
   Func func = NULL;
-  Func up = NULL;
-  Type t;
   Value ptr = NULL;
 
-  exp_func->type = check_exp(env, exp_func);
-  t = exp_func->type;
-  // primary func_ptr
-  if(exp_func->exp_type == ae_exp_primary &&
-      exp_func->d.exp_primary.value && !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const)) {
-    if(env->class_def && exp_func->d.exp_primary.value->owner_class == env->class_def)
-      CHECK_BO(err_msg(TYPE_, exp_func->pos, "can't call pointers in constructor."))
-      ptr = exp_func->d.exp_primary.value;
-  }
-  if(!t)
+  if(!(exp_func->type = check_exp(env, exp_func)))
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
-                     "function call using a non-existing function"))
-    if(isa(t, &t_function) < 0)
-      CHECK_BO(err_msg(TYPE_, exp_func->pos,
-                       "function call using a non-function value"))
-      up = t->d.func;
-
+          "function call using a non-existing function"))
+  if(isa(exp_func->type, &t_function) < 0)
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+          "function call using a non-function value"))
+  if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
+    !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
+      ptr = exp_func->d.exp_primary.value;
   if(args)
     CHECK_OO(check_exp(env, args))
-    // look for a match
-    func = find_func_match(up, args);
-  if(!func) {
-    if(!t->d.func)
-      return check_exp_call_template(env, exp_func, args, m_func);
-    function_alternative(t, args);
-    return NULL;
-  }
+  if(!exp_func->type->d.func)
+    return check_exp_call_template(env, exp_func, args, m_func);
+  if(!(func = find_func_match(exp_func->type->d.func, args)))
+    return function_alternative(exp_func->type, args);
   if(ptr) {
     Func f = malloc(sizeof(struct Func_));
     memcpy(f, func, sizeof(struct Func_));
@@ -1188,40 +1116,37 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   Value value;
   Type  the_base;
   m_bool base_static;
-  m_str str;
+  m_str str = s_name(member->xid);
 
-  member->t_base = check_exp(env, member->base);
-  if(!member->t_base)
-    return NULL;
+  CHECK_OO((member->t_base = check_exp(env, member->base)))
   base_static = member->t_base->xid == te_class;
   the_base = base_static ? member->t_base->d.actual_type : member->t_base;
 
   if(!the_base->info)
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
-                     "type '%s' does not have members - invalid use in dot expression of %s",
-                     the_base->name, s_name(member->xid)))
+          "type '%s' does not have members - invalid use in dot expression of %s",
+          the_base->name, str))
 
-    str = s_name(member->xid);
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
-                     "keyword 'this' must be associated with object instance..."))
+          	"keyword 'this' must be associated with object instance..."))
 
-    if(!(value = find_value(the_base, member->xid))) {
-      m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
-      char s[len];
-      memset(s, 0, len);
-      strcpy(s, the_base->name);
-      for(i = 0; i < the_base->array_depth; i++)
-        strcat(s, "[]");
-      CHECK_BO(err_msg(TYPE_,  member->base->pos,
-                       "class '%s' has no member '%s'", s, str))
-    }
+  if(!(value = find_value(the_base, member->xid))) {
+    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
+    char s[len];
+    memset(s, 0, len);
+    strcpy(s, the_base->name);
+    for(i = 0; i < the_base->array_depth; i++)
+      strcat(s, "[]");
+    CHECK_BO(err_msg(TYPE_,  member->base->pos,
+          "class '%s' has no member '%s'", s, str))
+  }
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
-                     "cannot access member '%s.%s' without object instance...",
-                     the_base->name, str))
-    if(GET_FLAG(value, ae_flag_enum))
-      member->self->meta = ae_meta_value;
+          "cannot access member '%s.%s' without object instance...",
+          the_base->name, str))
+  if(GET_FLAG(value, ae_flag_enum))
+    member->self->meta = ae_meta_value;
   return value->m_type;
 }
 
@@ -1762,7 +1687,7 @@ static m_bool check_class_def(Env env, Class_Def class_def) {
   return ret;
 }
 
-static m_bool check_ast(Env env, Ast ast) {
+m_bool check_ast(Env env, Ast ast) {
 #ifdef DEBUG_TYPE
   debug_msg("type", "context");
 #endif
@@ -1790,15 +1715,10 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   nspc_commit(context->nspc);
   env_reset(env);
   CHECK_BB(load_context(context, env))
-  if((ret = scan0_Ast(env, ast)) < 0) goto cleanup;
-  if((ret = scan1_ast(env, ast)) < 0) goto cleanup;
-  if((ret = scan2_ast(env, ast)) < 0) goto cleanup;
-  if((ret = check_ast(env, ast)) < 0) goto cleanup;
-cleanup:
+  ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->global_nspc);
-    map_set(&env->known_ctx,
-            (vtype)insert_symbol(context->filename), (vtype)context);
+    vector_add(&env->known_ctx, (vtype)context);
   } else {
     //    nspc_rollback(env->global_nspc);
   }

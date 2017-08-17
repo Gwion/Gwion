@@ -186,7 +186,7 @@ return -1;
       return 1;
 }
 
-Type get_return_type_inner(Map map, Operator op, Type l, Type rhs) {
+static Type get_return_type_inner(Map map, Operator op, Type l, Type rhs) {
   Type r = rhs;
   do {
     M_Operator* mo;

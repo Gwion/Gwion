@@ -85,23 +85,17 @@ begins_with_short_option()
 : "${_arg_soundio_lib:=$SOUNDIO_LIB}"
 : "${ADD_DIR:="add"}"
 : "${_arg_add:=$ADD_DIR}"
-: "${DEBUG_COMPILE:=off}"
-: "${_arg_debug_compile:=$DEBUG_COMPILE}"
 : "${DEBUG_TYPE:=off}"
 : "${_arg_debug_type:=$DEBUG_TYPE}"
-: "${DEBUG_VM:=off}"
-: "${_arg_debug_vm:=$DEBUG_VM}"
 : "${DEBUG_INSTR:=off}"
 : "${_arg_debug_instr:=$DEBUG_INSTR}"
-: "${DEBUG_SHREDULER:=off}"
-: "${_arg_debug_shreduler:=$DEBUG_SHREDULER}"
 : "${DEBUG_STACK:=off}"
 : "${_arg_debug_stack:=$DEBUG_STACK}"
 
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-compile] [--(no-)debug-type] [--(no-)debug-vm] [--(no-)debug-instr] [--(no-)debug-shreduler] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-type] [--(no-)debug-instr] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -135,11 +129,8 @@ print_help ()
 	printf "\t%s\n" "--soundio-inc: Directories where to look for include files for soundio (empty by default)"
 	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
-	printf "\t%s\n" "--debug-compile,--no-debug-compile: debug compile (off by default)"
 	printf "\t%s\n" "--debug-type,--no-debug-type: debug type (off by default)"
-	printf "\t%s\n" "--debug-vm,--no-debug-vm: debug vm (off by default)"
 	printf "\t%s\n" "--debug-instr,--no-debug-instr: debug instr (off by default)"
-	printf "\t%s\n" "--debug-shreduler,--no-debug-shreduler: debug shreduler (off by default)"
 	printf "\t%s\n" "--debug-stack,--no-debug-stack: debug stack (off by default)"
 	printf "\t%s\n" "-h,--help: Prints help"
 }
@@ -418,25 +409,13 @@ do
 			fi
 			_arg_add="$_val"
 			;;
-		--no-debug-compile|--debug-compile)
-			_arg_debug_compile="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_compile="off"
-			;;
 		--no-debug-type|--debug-type)
 			_arg_debug_type="on"
 			test "${1:0:5}" = "--no-" && _arg_debug_type="off"
 			;;
-		--no-debug-vm|--debug-vm)
-			_arg_debug_vm="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_vm="off"
-			;;
 		--no-debug-instr|--debug-instr)
 			_arg_debug_instr="on"
 			test "${1:0:5}" = "--no-" && _arg_debug_instr="off"
-			;;
-		--no-debug-shreduler|--debug-shreduler)
-			_arg_debug_shreduler="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_shreduler="off"
 			;;
 		--no-debug-stack|--debug-stack)
 			_arg_debug_stack="on"
@@ -521,7 +500,7 @@ do
 done
 
 printf "\n# handle debug\n"
-for iter in compile:off type:off vm:off instr:off shreduler:off stack:off
+for iter in type:off instr:off stack:off
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
@@ -598,7 +577,7 @@ do
 done
 
 printf "\n# add debug flags\n"
-for iter in compile type vm instr shreduler stack
+for iter in type instr stack
 do
 	printf "ifeq (\${DEBUG_%s}, on)\nCFLAGS += -DDEBUG_%s\nelse " "$(to_upper $iter)" "$(to_upper $iter)"
 	printf "ifeq (\${DEBUG_%s},  1)\nCFLAGS += -DDEBUG_%s\nendif\n" "$(to_upper "$key")" "$(to_upper "$key")"
@@ -658,7 +637,7 @@ uninstall:
 	rm \${PREFIX}/\${PRG}
 
 test:
-	@bash -c "source utils/test.sh; do_test examples tests/error tests/tree tests/sh tests/ugen_coverage test/bug | consummer"
+	@bash utils/test.sh severity=11 examples severity=10 tests/error tests/tree tests/sh tests/ugen_coverage test/bug
 
 parser:
 	\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y

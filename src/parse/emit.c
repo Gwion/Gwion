@@ -1,14 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
-#include "vm.h"
 #include "context.h"
 #include "func.h"
-#include "emit.h"
+#include "traverse.h"
 
 typedef struct {
   m_uint size;
@@ -123,7 +121,8 @@ static void emit_pop_scope(Emitter emit) {
 static m_bool emit_pre_ctor(Emitter emit, Type type) {
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
-  if(GET_FLAG(type, ae_flag_ctor)) {
+  if(type->info->pre_ctor) {
+//  if(GET_FLAG(type, ae_flag_ctor)) {
     Instr instr = add_instr(emit, Pre_Constructor);
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit->code->frame->curr_offset;
@@ -575,9 +574,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_push_type(emit->env->curr);
   CHECK_BB(emit_exp_call_template_types(emit->env, def->base, exp_func->types))
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(scan1_func_def(emit->env, def))
-  CHECK_BB(scan2_func_def(emit->env, def))
-  CHECK_BB(check_func_def(emit->env, def))
+  CHECK_BB(traverse_def(emit->env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)
@@ -787,10 +784,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   exp->vm_code = code;
   emit->code = (Code*)vector_pop(&emit->stack);
 
-  if(exp->m_func->value_ref->owner_class) // just a workaround: leads to a leak
-    ADD_REF(exp->m_func->code)
-
-    Exp e = exp->args;
+  Exp e = exp->args;
   m_uint size = 0;
   while(e) {
     size += e->cast_to ? e->cast_to->size : e->type->size;
@@ -1389,8 +1383,7 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bo
 static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
   Instr instr;
 
-  if(exp->meta == ae_meta_var)
-    exp->emit_var = 1;
+  exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
   if(!strcmp(v->name, c))
     instr = add_instr(emit, complex_real);
@@ -1403,8 +1396,7 @@ static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_boo
 static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
   Instr instr;
 
-  if(exp->meta == ae_meta_var)
-    exp->emit_var = 1;
+  exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
   if(v->func_ref) {
     sadd_instr(emit, Reg_Dup_Last_Vec4);
@@ -1526,7 +1518,7 @@ static m_bool emit_member_func(Emitter emit, Exp_Dot* member, Func func) {
 static m_bool emit_member(Emitter emit, Value v, m_bool emit_addr) {
   Instr func_i = add_instr(emit, Exp_Dot_Data);
   func_i->m_val = v->offset;
-  func_i->m_val2 = kindof(v->m_type);
+  func_i->m_val2 = v->m_type->size;
   *(m_uint*)func_i->ptr = emit_addr;
   return 1;
 }

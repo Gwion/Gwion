@@ -40,10 +40,9 @@ Env type_engine_init(VM* vm, Vector plug_dirs);
 void start_type_xid();
 Value find_value(Type type, S_Symbol xid);
 Type find_type(Env env, ID_List list);
-int isprim(Type type);
-int isa(Type var, Type parent);
-int isres(Env env, S_Symbol xid, int pos);
-int verify_array(Array_Sub array);
+m_bool isprim(Type type);
+m_bool isa(Type var, Type parent);
+m_bool verify_array(Array_Sub array);
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc);
 static inline Type find_common_anc(Type lhs, Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
