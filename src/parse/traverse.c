@@ -113,14 +113,12 @@ Class_Def template_class(Env env, Class_Def def, Type_List call) {
 }
 
 m_bool template_push_types(Env env, ID_List base, Type_List call) {
-  m_uint count = 1;
   nspc_push_type(env->curr);
   while(base) {
     Type t = find_type(env, call->list);
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
     base = base->next;
-    count++;
   }
   return 1;
 }
