@@ -133,7 +133,7 @@ static int get_pos(void* data)
 %type<class_body> class_body2
 %type<id_list> id_list
 %type<id_list> id_dot decl_template
-%type<type_list> type_list
+%type<type_list> type_list type_template
 %type<type_list> template call_template
 %type<section> class_section
 %type<ast> ast
@@ -161,8 +161,8 @@ section
   ;
 
 class_def
-  : class_decl CLASS id_list class_ext LBRACE class_body RBRACE
-      { $$ = new_class_def( $1, $3, $4, $6, get_pos(scanner)); }
+  : decl_template class_decl CLASS id_list class_ext LBRACE class_body RBRACE
+      { $$ = new_class_def( $2, $4, $5, $7, get_pos(scanner)); $$->types = $1; }
   ;
 
 class_ext : EXTENDS id_dot { $$ = $2; } | { $$ = NULL; };
@@ -363,7 +363,10 @@ array_empty
 
 decl_exp
   : conditional_expression
-  | type_decl var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
+  | type_decl  var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
+  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, 
+get_pos(scanner)); 
+$$->d.exp_decl.types = $2; }
   | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, 1, get_pos(scanner)); }
   ;
 
@@ -373,6 +376,7 @@ func_args
   ;
 
 decl_template: { $$ = NULL; } | TEMPLATE LTB id_list GTB { $$ = $3; };
+type_template: { $$ = NULL; } | TEMPLATE LTB type_list GTB { $$ = $3; };
 
 func_def
   : decl_template function_decl static_decl type_decl2 ID func_args code_segment
@@ -390,6 +394,7 @@ type_decl
   : ID  atsym  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), $2, get_pos(scanner)); }
   | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(scanner)); }
   ;
+
 
 decl_list
   : exp SEMICOLON { $$ = new_decl_list($1, NULL); }
