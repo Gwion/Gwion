@@ -13,7 +13,7 @@
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
-static m_bool check_class_def(Env env, Class_Def class_def);
+m_bool check_class_def(Env env, Class_Def class_def);
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
@@ -43,6 +43,12 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
       exp = exp->next;
   }
+  return 1;
+}
+
+static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
+  CHECK_BO(template_push_types(env, decl->base->types, decl->types))
+  CHECK_BO(check_class_def(env, decl->m_type->def))
   return 1;
 }
 
@@ -93,6 +99,8 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
   debug_msg("check", "decl");
 #endif
   Var_Decl_List list = decl->list;
+  if(GET_FLAG(decl->m_type , ae_flag_template))
+    CHECK_BO(check_exp_decl_template(env, decl))
   while(list) {
     Var_Decl var = list->self;
     Value value = var->value;
@@ -107,6 +115,8 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
     CHECK_BO(check_exp_decl_valid(env, value, var->xid))
     list = list->next;
   }
+  if(GET_FLAG(decl->m_type , ae_flag_template))
+    nspc_pop_type(env->curr);
   return decl->m_type;
 }
 
@@ -1648,11 +1658,13 @@ static m_bool check_class_def_body(Env env, Class_Body body) {
   return 1;
 }
 
-static m_bool check_class_def(Env env, Class_Def class_def) {
+m_bool check_class_def(Env env, Class_Def class_def) {
   Type the_class = NULL;
   Type t_parent = NULL;
   m_bool ret = 1;
 
+  if(class_def->types)
+    return 1;
   if(class_def->ext) {
     t_parent = find_type(env, class_def->ext);
     if(!t_parent) {

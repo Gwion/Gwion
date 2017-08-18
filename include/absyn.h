@@ -161,6 +161,8 @@ typedef struct {
   Type_Decl* type;
   Type m_type;
   Var_Decl_List list;
+  Type_List types;
+  Class_Def base;
   Exp self;
   int pos;
   int num_decl;
@@ -494,6 +496,7 @@ struct Class_Def_ {
   Class_Body body;
   Type type;
   Nspc home;
+  ID_List types;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,

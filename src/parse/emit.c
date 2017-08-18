@@ -504,12 +504,22 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   }
   return 1;
 }
+static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
+
+static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
+  CHECK_BB(template_push_types(emit->env, decl->base->types, decl->types))
+  CHECK_BB(traverse_class_def(emit->env, decl->m_type->def))
+  CHECK_BB(emit_class_def(emit, decl->m_type->def))
+  return 1;
+}
 
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   m_bool ref = decl->type->ref;
   m_bool var = decl->self->emit_var;
 
+  if(GET_FLAG(decl->m_type, ae_flag_template))
+    CHECK_BB(emit_exp_decl_template(emit, decl))
   while(list) {
     if(decl->is_static)
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
@@ -517,6 +527,8 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, list->self,ref, var))
     list = list->next;
   }
+if(GET_FLAG(decl->m_type, ae_flag_template))
+  nspc_pop_type(emit->env->curr);
   return 1;
 }
 
@@ -1527,7 +1539,7 @@ static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
   Type t_base = member->t_base;
   Value value = find_value(t_base, member->xid);
   m_bool emit_addr = member->self->emit_var;
-  if(isa(member->self->type, &t_func_ptr) > 0) { // function poin ter
+  if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
     if(GET_FLAG(value, ae_flag_member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
         CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
@@ -1690,6 +1702,8 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Class_Body body = class_def->body;
   char c[strlen(type->name) + 7];
 
+  if(class_def->types)
+    return 1;
   if(type->info->class_data_size) {
     type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
     if(!type->info->class_data)

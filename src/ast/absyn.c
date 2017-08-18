@@ -177,6 +177,8 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
 }
 
 static void free_exp_decl(Exp_Decl* a) {
+  if(a->types)
+    free_type_list(a->types);
   free_type_decl(a->type);
   free_var_decl_list(a->list);
 }
@@ -925,9 +927,11 @@ Section* new_section_func_def(Func_Def func_def, int pos) {
   return a;
 }
 
-static void free_class_def(Class_Def a) {
+void free_class_def(Class_Def a) {
   if(a->ext)
     free_id_list(a->ext);
+  if(a->types)
+    free_id_list(a->types);
   Class_Body tmp, b = a->body;
   while(b) {
     tmp = b;
