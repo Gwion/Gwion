@@ -14,7 +14,7 @@ static m_bool isres(S_Symbol xid, m_uint pos) {
   return -1;
 }
 
-static m_bool scan0_Class_Def(Env env, Class_Def class_def);
+m_bool scan0_Class_Def(Env env, Class_Def class_def);
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
@@ -93,6 +93,8 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, insert_symbol(the_class->name), the_class);
+  if(class_def->types)
+    SET_FLAG(the_class, ae_flag_template);
   return the_class;
 }
 
@@ -128,7 +130,7 @@ static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   return 1;
 }
 
-static m_bool scan0_Class_Def(Env env, Class_Def class_def) {
+m_bool scan0_Class_Def(Env env, Class_Def class_def) {
   m_bool ret;
 
   CHECK_BB(scan0_class_def_pre(env, class_def))
@@ -157,10 +159,29 @@ m_bool scan0_Ast(Env env, Ast prog) {
   }
   return 1;
 }
-
+#include "traverse.h"
 static m_bool scan1_exp(Env env, Exp exp);
 static m_bool scan1_stmt_list(Env env, Stmt_List list);
+m_bool scan1_class_def(Env env, Class_Def class_def);
 static m_bool scan1_stmt(Env env, Stmt stmt);
+
+static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
+  if(GET_FLAG(t, ae_flag_template)) {
+    if(!decl->types)
+      CHECK_BB(err_msg(SCAN1_, decl->pos, "you must provide template types"))
+    decl->base = t->def;
+    Class_Def a = template_class(env, t->def, decl->types);
+    CHECK_BB(template_push_types(env, t->def->types, decl->types))
+    CHECK_BB(scan0_Class_Def(env, a))
+    SET_FLAG(a->type, ae_flag_template);
+    CHECK_BB(scan1_class_def(env, a))
+    decl->m_type = a->type;
+  } else if(decl->types)
+      CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' is not template", t->name))
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    decl->num_decl = 0;
+  return 1;
+}
 
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
@@ -168,19 +189,23 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Type t = find_type(env, decl->type->xid);
   if(!t)
     CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
-                     s_name(decl->type->xid->xid)))
-    while(list) {
-      var_decl = list->self;
-      decl->num_decl++;
-      if(var_decl->array) {
-        CHECK_BB(verify_array(var_decl->array))
-        if(var_decl->array->exp_list)
-          CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-        }
-      list = list->next;
-    }
-  decl->m_type = t;
-  //  ADD_REF(t);
+          s_name(decl->type->xid->xid)))
+  CHECK_BB(scan1_exp_decl_template(env, t, decl))
+
+  while(list) {
+    var_decl = list->self;
+    decl->num_decl++;
+    if(var_decl->array) {
+      CHECK_BB(verify_array(var_decl->array))
+      if(var_decl->array->exp_list)
+        CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
+      }
+    list = list->next;
+  }
+  if(decl->types)
+    nspc_pop_type(env->curr);
+  else
+    decl->m_type = t;
   return 1;
 }
 
@@ -600,12 +625,13 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     return 1;
 }
 
-static m_bool scan1_class_def(Env env, Class_Def class_def) {
+m_bool scan1_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
-  Type the_class = class_def->type;
 
-  CHECK_BB(env_push_class(env, the_class))
+  if(class_def->types)
+    return 1;
+  CHECK_BB(env_push_class(env, class_def->type))
   while(body && ret > 0) {
     switch(body->section->type) {
       case ae_section_stmt:
@@ -646,6 +672,19 @@ m_bool scan1_ast(Env env, Ast ast) {
 static m_bool scan2_exp(Env env, Exp exp);
 static m_bool scan2_stmt(Env env, Stmt stmt);
 static m_bool scan2_stmt_list(Env env, Stmt_List list);
+m_bool scan2_class_def(Env env, Class_Def class_def);
+
+static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
+  Type type = decl->m_type;
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+  	template_push_types(env, env->class_def->def->types, decl->types);
+  if(GET_FLAG(type, ae_flag_template)) {
+  	template_push_types(env, decl->base->types, decl->types);
+    CHECK_BB(scan1_class_def(env, type->def))
+    CHECK_BB(scan2_class_def(env, type->def))
+  }
+  return 1;
+}
 
 m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
@@ -655,44 +694,49 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
     decl->type->ref = 1;
   if(!type->size)
     CHECK_BB(err_msg(SCAN2_, decl->pos,
-                     "cannot declare variables of size '0' (i.e. 'void')..."))
+          "cannot declare variables of size '0' (i.e. 'void')..."))
   if(!decl->type->ref) {
     if(env->class_def && (type == env->class_def) && !env->class_scope)
       CHECK_BB(err_msg(SCAN2_, decl->pos,
-                       "...(note: object of type '%s' declared inside itself)", type->name))
-    } else if((isprim(type) > 0))
+            "...(note: object of type '%s' declared inside itself)", type->name))
+  } else if((isprim(type) > 0))
     CHECK_BB(err_msg(SCAN2_, decl->pos,
-                     "cannot declare references (@) of primitive type '%s'...\n"
-                     "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
-    while(list) {
-      if(isres(list->self->xid, list->self->pos) > 0)
+          "cannot declare references (@) of primitive type '%s'...\n"
+          "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
+  CHECK_BB(scan2_exp_decl_template(env, decl))
+  while(list) {
+    if(isres(list->self->xid, list->self->pos) > 0)
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+            "\t... in variable declaration", s_name(list->self->xid)))
+    if(nspc_lookup_value(env->curr, list->self->xid, 0)) {
+      if(!(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
         CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                         "... in variable declaration", s_name(list->self->xid)))
-        if(nspc_lookup_value(env->curr, list->self->xid, 0))
-          CHECK_BB(err_msg(SCAN2_, list->self->pos,
-                           "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
-          if(list->self->array) {
-            CHECK_BB(verify_array(list->self->array))
-            Type t2 = type;
-
-            if(list->self->array->exp_list)
-              CHECK_BB(scan2_exp(env, list->self->array->exp_list))
-              type = new_array_type(env, list->self->array->depth, t2, env->curr);
-            if(!list->self->array->exp_list)
-              decl->type->ref = 1;
-            decl->m_type = type;
-          }
-      list->self->value = new_value(type, s_name(list->self->xid));
-      list->self->value->owner = env->curr;
-      list->self->value->owner_class = env->func ? NULL : env->class_def;
-      if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
-        SET_FLAG(list->self->value, ae_flag_member);
-      if(!env->class_def && !env->func && !env->class_scope)
-        SET_FLAG(list->self->value, ae_flag_global);
-      list->self->value->ptr = list->self->addr;
-      nspc_add_value(env->curr, list->self->xid, list->self->value);
-      list = list->next;
+              "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
     }
+    if(list->self->array) {
+      CHECK_BB(verify_array(list->self->array))
+      Type t2 = type;
+
+      if(list->self->array->exp_list)
+        CHECK_BB(scan2_exp(env, list->self->array->exp_list))
+      type = new_array_type(env, list->self->array->depth, t2, env->curr);
+      if(!list->self->array->exp_list)
+        decl->type->ref = 1;
+      decl->m_type = type;
+    }
+    list->self->value = new_value(type, s_name(list->self->xid));
+    list->self->value->owner = env->curr;
+    list->self->value->owner_class = env->func ? NULL : env->class_def;
+    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+      SET_FLAG(list->self->value, ae_flag_member);
+    if(!env->class_def && !env->func && !env->class_scope)
+      SET_FLAG(list->self->value, ae_flag_global);
+    list->self->value->ptr = list->self->addr;
+    nspc_add_value(env->curr, list->self->xid, list->self->value);
+    list = list->next;
+  }
+  if(GET_FLAG(type, ae_flag_template)  || (env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
+    nspc_pop_type(env->curr);
   return 1;
 }
 
@@ -1284,10 +1328,12 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   return f->code ? scan2_func_def_code(env, f) : 1;
 }
 
-static m_bool scan2_class_def(Env env, Class_Def class_def) {
+m_bool scan2_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
 
+  if(class_def->types)
+    return 1;
   CHECK_BB(env_push_class(env, class_def->type))
   while(body && ret > 0) {
     switch(body->section->type) {
