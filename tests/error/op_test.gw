@@ -1,0 +1,9 @@
+// [contains] no match found for operator
+class C
+{
+
+}
+
+C c[1];
+C d[2][4];
+c => d;

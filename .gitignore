@@ -1,7 +1,9 @@
 *.o
+*.gc*
 gwion
 include/generated.h
-util/generate_header
-util/coverity_scan.sh
-ugen/soundpipe.c
+utils/generate_header
+utils/coverity_scan.sh
 Makefile
+docs/WIP_*.md
+lcov

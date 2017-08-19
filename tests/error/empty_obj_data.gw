@@ -1,0 +1,8 @@
+// [contains] NullPtrException
+class C
+{
+	int i;
+}
+
+C @c;
+c.i;

@@ -1,2 +1,2 @@
-// [contains] 
- function void my_func(int i[1]){}
+// [contains] must be defined with empty
+ function int[1] my_func(int i[]){}

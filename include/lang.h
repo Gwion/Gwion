@@ -4,7 +4,6 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
-//#include "ugen.h"
 
 extern m_bool import_int(Env env);
 extern m_bool import_array(Env env);
@@ -18,17 +17,13 @@ extern m_bool import_object(Env env);
 extern m_bool import_string(Env env);
 extern m_bool import_event(Env env);
 extern m_bool import_fileio(Env env);
-extern m_bool import_lib(Env env);
-extern m_bool import_analys(Env env);
+extern m_bool import_std(Env env);
+extern m_bool import_math(Env env);
+extern m_bool import_soundpipe(Env env);
 
-
-//extern m_bool free_oscin();
-M_Object new_Shred(VM* vm, VM_Shred shred);
-extern m_int o_fileio_file;
-extern m_uint o_object_doc;
+M_Object new_shred(VM* vm, VM_Shred shred);
 
 extern void array_ctor(M_Object o,  VM_Shred shred);
-extern INSTR(Array_Append);
 extern m_int o_string_data;
 extern m_int o_event_shred;
 extern m_int o_shred_me;

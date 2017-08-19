@@ -1,2 +1,2 @@
 // [contains] in function
- #function void test(int now){}
+function void test(int now){}

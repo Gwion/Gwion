@@ -1,4 +1,4 @@
 // [contains] must be of type 'int'
- int i[4];
+int i[4];
 Object o;
 i[o];

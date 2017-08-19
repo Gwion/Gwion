@@ -1,28 +1,36 @@
 #ifndef __ENV
 #define __ENV
 #include "defs.h"
+#include "absyn.h"
 #include "vm.h"
-
+#include "map_private.h"
 struct Env_ {
-  NameSpace curr;
-  NameSpace global_nspc;
-//  NameSpace user_nspc;
+  Nspc curr;
+  Nspc global_nspc;
+//  Nspc user_nspc;
   m_uint    class_scope;
-  Context   global_context;
   Context   context;
-  Vector    contexts;
-  Vector    nspc_stack;
-  Vector    class_stack;
-  Vector    breaks;
-  Vector    conts;
   Type      class_def;
   Func      func;
-  VM_Object obj;
-  Map known_ctx;
+  Exp_Func* current; // template helper
+  m_uint type_xid;
+  struct Vector_    contexts;
+  struct Vector_    nspc_stack;
+  struct Vector_    class_stack;
+  struct Vector_    breaks;
+  struct Vector_    conts;
+  struct Vector_    known_ctx;
+  m_bool do_type_xid;
 };
 
-Env new_Env();
+Env new_env();
 void env_reset(Env env);
-void free_Env();
+void free_env();
+m_bool env_push_class(Env env, Type type);
+m_bool env_pop_class(Env env);
+#define SCOPE(a) env->class_scope++;a;env->class_scope--;
+#define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
+nspc_pop_value(env->curr);env->class_scope--;
+
 
 #endif

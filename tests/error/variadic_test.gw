@@ -1,0 +1,7 @@
+// [contains] vararg.start not used before vararg.end. this is an error
+variadic void test(int i) {
+	vararg.end;
+//	vararg.start;
+}
+
+test(1, 2.3, NULL);

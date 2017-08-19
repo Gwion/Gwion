@@ -1,0 +1,5 @@
+// [contains] but cannot overload
+class C {
+	function void test(){}
+	function int  test(int i){}
+}

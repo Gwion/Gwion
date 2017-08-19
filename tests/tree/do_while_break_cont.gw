@@ -1,0 +1,6 @@
+do {
+	if(maybe)
+		continue;
+	else
+		break;
+} while(true);

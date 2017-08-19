@@ -1,0 +1,30 @@
+component_depth: 3
+
+languages:
+  - name: cpp
+    production:
+      include:
+        - /src/.*\.c
+      exclude:
+        - /src/ast/parser\.c
+        - /src/ast/lexer\.c
+        - /src/lib/soundpipe\.c
+    test:
+      include:
+        - /tests/test_plugins/.*\.c
+
+  - name: go
+    production:
+      include:
+       - fake_entry
+    test:
+      include:
+        - /examples/.*\.gw
+        - /examples/.*/.*\.gw
+        - /tests/.*/.*\.gw
+
+  - name: script
+    test:
+      include:
+      - /utils/.*\.sh
+      - /tests/sh/.*\.sh

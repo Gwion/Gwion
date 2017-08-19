@@ -15,7 +15,6 @@ s.rfind(1, "su");
 s.erase(1, 2);
 
 
-<<<" su".ltrim>>>;
 <<<" su".ltrim()>>>;
 <<<" su ".rtrim()>>>;
 <<<" su ".trim()>>>;

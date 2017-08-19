@@ -1,0 +1,7 @@
+// [contains] invalid cast to
+class C{}
+class D{}
+
+C c;
+D d;
+c $ D;

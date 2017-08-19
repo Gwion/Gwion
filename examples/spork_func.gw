@@ -1,9 +1,8 @@
-function void test() { <<<"here">>>; samp => now; <<<"and now">>>; } 
-
-test();
-
-spork ~test();
+class C
+{
+	function void test() { <<<"here">>>; samp => now; <<<"and now">>>; } 
+}
+C c;
+spork ~c.test();
 me.yield();
-2::samp => now;
-
-<<<"end of spork func test.">>>;
+4::samp => now;

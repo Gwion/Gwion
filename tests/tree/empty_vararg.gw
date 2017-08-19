@@ -1,0 +1,3 @@
+variadic int test(){ <<<"test">>>; return 1;}
+<<< test() >>>;
+<<<() => test>>>;

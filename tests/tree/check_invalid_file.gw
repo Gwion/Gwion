@@ -1,0 +1,1 @@
+Machine.check("/usr/", "int i");

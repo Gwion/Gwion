@@ -1,0 +1,2 @@
+(2.0 ? "yeah" : "not yeah") => string s;
+<<<s>>>;

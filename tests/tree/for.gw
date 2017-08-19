@@ -1,2 +1,10 @@
-for(int i; i < 3; i++)
-  <<<i>>>;
+for(int i; i < 4; i++)
+{
+	if(i == 2)
+		continue;
+	<<<i>>>;
+}
+for(int i; i < 3;)
+	<<<i++>>>;
+float f;
+for(1 => f; f; 1 -=>f);

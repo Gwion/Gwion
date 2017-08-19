@@ -1,0 +1,18 @@
+function void print_array(int a[]){
+	for(int i; i < a.size(); i++)
+		a[i] => cerr;
+}
+
+int i[3][3];
+1 => i[2][0];
+
+<<<i.size()>>>;
+<<<i.depth()>>>;
+<<<i.cap()>>>;
+print_array(i[2]);
+i.remove(1);
+<<<i[1][0]>>>;
+<<<i.size()>>>;
+<<<i.depth()>>>;
+<<<i.cap()>>>;
+print_array(i[1]);

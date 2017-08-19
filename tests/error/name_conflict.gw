@@ -1,0 +1,3 @@
+// [contains] conflicts with previously defined value
+class C { int test; }
+class D extends C { function int test() {} }

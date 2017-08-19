@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #34
+# [test] #38
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -29,7 +29,19 @@ run "$n" "help (long)" "--help" "file"
 n=$((n+1))
 run "$n" "host invalid (short)" "-h non_existant_host" "file"
 n=$((n+1))
-run "$n" "host invalid (long)" "--host non_existant_host" "file"
+run "$n" "host invlaid (long)" "--host non_existant_host " "file"
+
+# help
+n=$((n+1))
+run "$n" "help (short)" "-?" "file"
+n=$((n+1))
+run "$n" "help (long)" "--help" "file"
+
+# host
+n=$((n+1))
+run "$n" "config (short)" "-v" "file"
+n=$((n+1))
+run "$n" "config (long)" "--version" "file"
 
 # port
 n=$((n+1))
@@ -112,4 +124,8 @@ run "$n" "backend (long)" "--backend test_backend" "file"
 # wrong file
 n=$((n+1))
 run "$n" "wrong file" "non_existant_file" "file"
+
+# plug_dir
+n=$((n+1))
+run "$n" "plugin directory" "-P non_existant_dir" "file"
 

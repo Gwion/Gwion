@@ -1,0 +1,4 @@
+// [contains] conditional must be of type
+complex c;
+repeat(c)
+	<<<"error">>>;

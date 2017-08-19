@@ -1,0 +1,5 @@
+// [contains] function name 'test' conflicts with previously defined value
+class C
+	{ int test; }
+class D extends C
+	{ function void test(){} }

@@ -1,0 +1,9 @@
+// [contains] prefix unary operator '--' cannot be used on non-mutable data-types
+class C
+{
+	enum { a, b };
+}
+
+C.a;
+<<<C.a>>>;
+<<<--C.a>>>;

@@ -1,0 +1,4 @@
+// [contains] argument type(s) do not match for function
+function void test(){}
+function void test(int i[], int j[]){}
+test(1,2);

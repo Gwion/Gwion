@@ -1,0 +1,7 @@
+// [contains] no match found for function 'test'
+function void test(int i){}
+function void test(float f){}
+
+typedef void (Test)();
+Test t;
+test @=> t; 

@@ -1,0 +1,6 @@
+class C
+{
+	function void test(){ <<<this>>>; }
+}
+C c;
+c.test();

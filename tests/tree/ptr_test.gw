@@ -1,0 +1,3 @@
+typedef void (Test)();
+function Test t0(){}
+t0 @=> Test test;

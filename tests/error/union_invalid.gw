@@ -1,4 +1,4 @@
-// [contains] invalid union declaration.
+// [contains] in union declaration.
  union
 {
   one; two;

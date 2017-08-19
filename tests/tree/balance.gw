@@ -1,0 +1,103 @@
+function float test() {}
+function float test(int i) {}
+function float test(float f) {}
+function float test(complex c) {}
+function float test(Vec3 v) {}
+function float test(Vec4 w) {}
+
+function complex ctest(){}
+function Vec3    vtest(){}
+function Vec4    wtest(){}
+ctest();
+vtest();
+wtest();
+test();
+() => test;
+
+test(1);
+1 => test;
+
+test(1.2);
+1.2 => test;
+
+test(#(2.3, 4.5));
+#(2.3, 4.5) => test;
+
+test(@(1.2, 2.3, 3.4));
+@(1.2, 2.3, 3.4) => test;
+
+test(@(1.2, 2.3, 3.4, 4.5));
+@(1.2, 2.3, 3.4, 4.5) => test;
+
+class C
+{
+  function float test() {}
+  function float test(int i) {}
+  function float test(float f) {}
+  function float test(complex c) {}
+  function float test(Vec3 v) {}
+  function float test(Vec4 w) {}
+
+  function static float s_test() {}
+  function static float s_test(int i) {}
+  function static float s_test(float f) {}
+  function static float s_test(complex c) {}
+  function static float s_test(Vec3 v) {}
+  function static float s_test(Vec4 w) {}
+}
+
+C c;
+c.test();
+() => c.test;
+
+c.test(1);
+1 => c.test;
+
+c.test(1.2);
+1.2 => c.test;
+
+c.test(#(2.3, 4.5));
+#(2.3, 4.5) => c.test;
+
+c.test(@(1.2, 2.3, 3.4));
+@(1.2, 2.3, 3.4) => c.test;
+
+c.test(@(1.2, 2.3, 3.4, 4.5));
+@(1.2, 2.3, 3.4, 4.5) => c.test;
+
+c.s_test();
+() => c.s_test;
+
+c.s_test(1);
+1 => c.s_test;
+
+c.s_test(1.2);
+1.2 => c.s_test;
+
+c.s_test(#(2.3, 4.5));
+#(2.3, 4.5) => c.s_test;
+
+c.s_test(@(1.2, 2.3, 3.4));
+@(1.2, 2.3, 3.4) => c.s_test;
+
+c.s_test(@(1.2, 2.3, 3.4, 4.5));
+@(1.2, 2.3, 3.4, 4.5) => c.s_test;
+
+C.s_test();
+() => C.s_test;
+
+C.s_test(1);
+1 => C.s_test;
+
+C.s_test(1.2);
+1.2 => C.s_test;
+
+C.s_test(#(2.3, 4.5));
+#(2.3, 4.5) => C.s_test;
+
+C.s_test(@(1.2, 2.3, 3.4));
+@(1.2, 2.3, 3.4) => C.s_test;
+
+C.s_test(@(1.2, 2.3, 3.4, 4.5));
+@(1.2, 2.3, 3.4, 4.5) => C.s_test;
+

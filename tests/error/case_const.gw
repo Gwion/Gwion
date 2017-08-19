@@ -1,0 +1,15 @@
+// [contains] 'maybe' is not constant
+// also coverage for 'case'
+enum {a , b, c };
+
+class C
+{
+	enum {a , b, c };
+}
+
+switch(maybe) {
+	case a:
+	case true:
+case C.c:
+case maybe:
+}

@@ -1,0 +1,8 @@
+// [contains] NullFuncPtrException
+class C
+{
+	typedef void (test)();
+	test t;
+}
+C c;
+c.t();

@@ -1,0 +1,5 @@
+// [contains] swith inside an other switch
+switch(maybe) {
+	switch(maybe) {
+ 	}
+}

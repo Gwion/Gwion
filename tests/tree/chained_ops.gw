@@ -1,0 +1,20 @@
+{
+  int a, b;
+  b = a - b;
+}
+{
+  float a, b;
+  b = a - b;
+}
+{
+  complex a, b;
+  b = a - b;
+}
+{
+  Vec3 a, b;
+  b = a - b;
+}
+{
+  Vec4 a, b;
+  b = a - b;
+}

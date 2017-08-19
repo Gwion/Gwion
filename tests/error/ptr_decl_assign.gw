@@ -1,0 +1,4 @@
+// [contains] unhandled function pointer assignement
+typedef void (Test)();
+Test t1 @=> Test t2;
+t2();
