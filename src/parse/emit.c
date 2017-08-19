@@ -585,7 +585,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_push_type(emit->env->curr);
   CHECK_BB(emit_exp_call_template_types(emit->env, def->base, exp_func->types))
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(traverse_def(emit->env, def))
+  CHECK_BB(traverse_func_def(emit->env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)

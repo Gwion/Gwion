@@ -9,6 +9,7 @@
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
+#include "plug.h"
 
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
@@ -473,7 +474,7 @@ static Func find_func_match(Func up, Exp args) {
 }
 
 static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
-  m_bool ret = traverse_def(env, def);
+  m_bool ret = traverse_func_def(env, def);
   nspc_pop_type(env->curr);
   if(ret < 0 || !check_exp(env, func) ||
      (args  && !check_exp(env, args)))

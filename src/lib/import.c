@@ -269,7 +269,7 @@ m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   if(mfun->narg >= DLARG_MAX)
     return -1;
   CHECK_OB((func_def = make_dll_as_fun(mfun, flag)))
-  if(traverse_def(env, func_def) < 0) {
+  if(traverse_func_def(env, func_def) < 0) {
     free_func_def(func_def);
     return -1;
   }
