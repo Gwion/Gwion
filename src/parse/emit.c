@@ -1311,7 +1311,7 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
       e = e->next;
     }
   }
- return 1;
+ return ret;
 }
 
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {

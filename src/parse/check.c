@@ -47,8 +47,8 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
 }
 
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
-  CHECK_BO(template_push_types(env, decl->base->types, decl->types))
-  CHECK_BO(check_class_def(env, decl->m_type->def))
+  CHECK_BB(template_push_types(env, decl->base->types, decl->types))
+  CHECK_BB(check_class_def(env, decl->m_type->def))
   return 1;
 }
 
