@@ -5,19 +5,19 @@
 
 static struct Type_ t_math = { "Math", 0, NULL};
 
-static SFUN(std_abs) {
+static SFUN(math_abs) {
   *(m_uint*)RETURN = labs(*(m_int*)MEM(SZ_INT));
 }
 
-static SFUN(std_fabs) {
+static SFUN(math_fabs) {
   *(m_float*)RETURN = fabs(*(m_float*)MEM(SZ_INT));
 }
 
-static SFUN(std_rand) {
+static SFUN(math_rand) {
   *(m_uint*)RETURN = sp_rand(shred->vm_ref->sp);
 }
 
-static SFUN(std_rand2) {
+static SFUN(math_rand2) {
   m_int min = *(m_int*)MEM(SZ_INT);
   m_int max = *(m_int*)MEM(SZ_INT * 2);
   m_int range = max - min;
@@ -31,180 +31,180 @@ static SFUN(std_rand2) {
   }
 }
 
-static SFUN(std_randf) {
+static SFUN(math_randf) {
   *(m_float*)RETURN = 2.0 * sp_rand(shred->vm_ref->sp) / RAND_MAX - 1.0;
 }
 
-static SFUN(std_rand2f) {
+static SFUN(math_rand2f) {
   m_float min = *(m_float*)MEM(SZ_INT);
   m_float max = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = min + (max - min) * (sp_rand(shred->vm_ref->sp) / (m_float)RAND_MAX);
 }
 
-static SFUN(std_srand) {
+static SFUN(math_srand) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   srand(ret);
   *(m_float*)RETURN = ret;
 }
 
-static SFUN(std_sgn) {
+static SFUN(math_sgn) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = ret < 0. ? -1 : ret > 0. ? 1 : 0;
 }
 
-static SFUN(std_sin) {
+static SFUN(math_sin) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sin(ret);
 }
 
-static SFUN(std_cos) {
+static SFUN(math_cos) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cos(ret);
 }
 
-static SFUN(std_tan) {
+static SFUN(math_tan) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = tan(ret);
 }
 
-static SFUN(std_asin) {
+static SFUN(math_asin) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = asin(ret);
 }
 
-static SFUN(std_acos) {
+static SFUN(math_acos) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = acos(ret);
 }
 
-static SFUN(std_atan) {
+static SFUN(math_atan) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = atan(ret);
 }
 
-static SFUN(std_sinh) {
+static SFUN(math_sinh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sinh(ret);
 }
 
-static SFUN(std_cosh) {
+static SFUN(math_cosh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cosh(ret);
 }
 
-static SFUN(std_tanh) {
+static SFUN(math_tanh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = tanh(ret);
 }
 
-static SFUN(std_asinh) {
+static SFUN(math_asinh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sinh(ret);
 }
 
-static SFUN(std_acosh) {
+static SFUN(math_acosh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cosh(ret);
 }
 
-static SFUN(std_atanh) {
+static SFUN(math_atanh) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = atanh(ret);
 }
 
-static SFUN(std_atan2) {
+static SFUN(math_atan2) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = atan2(ret1, ret2);
 }
 
-static SFUN(std_hypot) {
+static SFUN(math_hypot) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = hypot(ret1, ret2);
 }
 
-static SFUN(std_pow) {
+static SFUN(math_pow) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = pow(ret1, ret2);
 }
 
-static SFUN(std_sqrt) {
+static SFUN(math_sqrt) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sqrt(ret);
 }
 
-static SFUN(std_exp) {
+static SFUN(math_exp) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = exp(ret);
 }
 
-static SFUN(std_log) {
+static SFUN(math_log) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log(ret);
 }
 
-static SFUN(std_log2) {
+static SFUN(math_log2) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log2(ret);
 }
 
-static SFUN(std_log10) {
+static SFUN(math_log10) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log10(ret);
 }
 
-static SFUN(std_floor) {
+static SFUN(math_floor) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = floor(ret);
 }
 
-static SFUN(std_ceil) {
+static SFUN(math_ceil) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = floor(ret);
 }
 
-static SFUN(std_round) {
+static SFUN(math_round) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = round(ret);
 }
 
-static SFUN(std_trunc) {
+static SFUN(math_trunc) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = trunc(ret);
 }
 
-static SFUN(std_fmod) {
+static SFUN(math_fmod) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = fmod(ret1, ret2);
 }
 
-static SFUN(std_remainder) {
+static SFUN(math_remainder) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = remainder(ret1, ret2);
 }
 
-static SFUN(std_min) {
+static SFUN(math_min) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = ret1 < ret2 ? ret1 : ret2;
 }
 
-static SFUN(std_max) {
+static SFUN(math_max) {
   m_float ret1 = *(m_float*)MEM(SZ_INT);
   m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = ret1 > ret2 ? ret1 : ret2;
 }
 
-static SFUN(std_isinf) {
+static SFUN(math_isinf) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = isinf(ret);
 }
 
-static SFUN(std_isnan) {
+static SFUN(math_isnan) {
   m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = isnan(ret);
 }
@@ -214,162 +214,162 @@ m_bool import_math(Env env) {
 
   CHECK_BB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
 
-  dl_func_init(&fun, "int", "abs", (m_uint)std_abs);
+  dl_func_init(&fun, "int", "abs", (m_uint)math_abs);
   dl_func_add_arg(&fun, "int", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "fabs", (m_uint)std_fabs);
+  dl_func_init(&fun, "float", "fabs", (m_uint)math_fabs);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "int", "rand", (m_uint)std_rand);
+  dl_func_init(&fun, "int", "rand", (m_uint)math_rand);
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "int", "rand2", (m_uint)std_rand2);
+  dl_func_init(&fun, "int", "rand2", (m_uint)math_rand2);
   dl_func_add_arg(&fun, "int", "min");
   dl_func_add_arg(&fun, "int", "max");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "randf", (m_uint)std_randf);
+  dl_func_init(&fun, "float", "randf", (m_uint)math_randf);
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "rand2f", (m_uint)std_rand2f);
+  dl_func_init(&fun, "float", "rand2f", (m_uint)math_rand2f);
   dl_func_add_arg(&fun, "float", "min");
   dl_func_add_arg(&fun, "float", "max");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "srand", (m_uint)std_srand);
+  dl_func_init(&fun, "float", "srand", (m_uint)math_srand);
   dl_func_add_arg(&fun, "float", "seed");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "int", "sgn", (m_uint)std_sgn);
+  dl_func_init(&fun, "int", "sgn", (m_uint)math_sgn);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "hypot", (m_uint)std_hypot);
+  dl_func_init(&fun, "float", "hypot", (m_uint)math_hypot);
   dl_func_add_arg(&fun, "float", "min");
   dl_func_add_arg(&fun, "float", "max");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "sin", (m_uint)std_sin);
+  dl_func_init(&fun, "float", "sin", (m_uint)math_sin);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "cos", (m_uint)std_cos);
+  dl_func_init(&fun, "float", "cos", (m_uint)math_cos);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "tan", (m_uint)std_tan);
+  dl_func_init(&fun, "float", "tan", (m_uint)math_tan);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "asin", (m_uint)std_asin);
+  dl_func_init(&fun, "float", "asin", (m_uint)math_asin);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "acos", (m_uint)std_acos);
+  dl_func_init(&fun, "float", "acos", (m_uint)math_acos);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "atan", (m_uint)std_atan);
+  dl_func_init(&fun, "float", "atan", (m_uint)math_atan);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "atan2", (m_uint)std_atan2);
-  dl_func_add_arg(&fun, "float", "value");
-  dl_func_add_arg(&fun, "float", "value2");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "sinh", (m_uint)std_sinh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "cosh", (m_uint)std_cosh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "tanh", (m_uint)std_tanh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "asinh", (m_uint)std_asinh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "acosh", (m_uint)std_acosh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "atanh", (m_uint)std_atanh);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "pow", (m_uint)std_pow);
+  dl_func_init(&fun, "float", "atan2", (m_uint)math_atan2);
   dl_func_add_arg(&fun, "float", "value");
   dl_func_add_arg(&fun, "float", "value2");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "sqrt", (m_uint)std_sqrt);
+  dl_func_init(&fun, "float", "sinh", (m_uint)math_sinh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "exp", (m_uint)std_exp);
+  dl_func_init(&fun, "float", "cosh", (m_uint)math_cosh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "log", (m_uint)std_log);
+  dl_func_init(&fun, "float", "tanh", (m_uint)math_tanh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "log2", (m_uint)std_log2);
+  dl_func_init(&fun, "float", "asinh", (m_uint)math_asinh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "log10", (m_uint)std_log10);
+  dl_func_init(&fun, "float", "acosh", (m_uint)math_acosh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "floor", (m_uint)std_floor);
+  dl_func_init(&fun, "float", "atanh", (m_uint)math_atanh);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "ceil", (m_uint)std_ceil);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "round", (m_uint)std_round);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "trunc", (m_uint)std_trunc);
-  dl_func_add_arg(&fun, "float", "value");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  dl_func_init(&fun, "float", "fmod", (m_uint)std_fmod);
+  dl_func_init(&fun, "float", "pow", (m_uint)math_pow);
   dl_func_add_arg(&fun, "float", "value");
   dl_func_add_arg(&fun, "float", "value2");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "remainder", (m_uint)std_remainder);
+  dl_func_init(&fun, "float", "sqrt", (m_uint)math_sqrt);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "exp", (m_uint)math_exp);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "log", (m_uint)math_log);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "log2", (m_uint)math_log2);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "log10", (m_uint)math_log10);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "floor", (m_uint)math_floor);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "ceil", (m_uint)math_ceil);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "round", (m_uint)math_round);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "trunc", (m_uint)math_trunc);
+  dl_func_add_arg(&fun, "float", "value");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "fmod", (m_uint)math_fmod);
   dl_func_add_arg(&fun, "float", "value");
   dl_func_add_arg(&fun, "float", "value2");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "min", (m_uint)std_min);
+  dl_func_init(&fun, "float", "remainder", (m_uint)math_remainder);
   dl_func_add_arg(&fun, "float", "value");
   dl_func_add_arg(&fun, "float", "value2");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "max", (m_uint)std_max);
+  dl_func_init(&fun, "float", "min", (m_uint)math_min);
   dl_func_add_arg(&fun, "float", "value");
   dl_func_add_arg(&fun, "float", "value2");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "isinf", (m_uint)std_isinf);
+  dl_func_init(&fun, "float", "max", (m_uint)math_max);
+  dl_func_add_arg(&fun, "float", "value");
+  dl_func_add_arg(&fun, "float", "value2");
+  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+
+  dl_func_init(&fun, "float", "isinf", (m_uint)math_isinf);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
 
-  dl_func_init(&fun, "float", "isnan", (m_uint)std_isnan);
+  dl_func_init(&fun, "float", "isnan", (m_uint)math_isnan);
   dl_func_add_arg(&fun, "float", "value");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
   CHECK_BB(import_class_end(env))
