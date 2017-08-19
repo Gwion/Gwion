@@ -8,21 +8,15 @@ struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 static m_str randstring(VM* vm, int length) {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
   size_t stringLen = 26 * 2 + 10 + 2;
-  char *randomString;
+  char *randomString = malloc(sizeof(char) * (length + 1));
 
-  randomString = malloc(sizeof(char) * (length + 1));
-
-  if(!randomString) {
+  if(!randomString)
     return (char*)0;
-  }
-
   for(int n = 0; n < length; n++) {
     unsigned int key = sp_rand(vm->sp) % stringLen;
     randomString[n] = string[key];
   }
-
   randomString[length] = '\0';
-
   return randomString;
 }
 
@@ -75,7 +69,6 @@ static SFUN(machine_check) {
 }
 
 static SFUN(machine_compile) {
-
   m_str prefix, filename;
   FILE* file;
   M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
