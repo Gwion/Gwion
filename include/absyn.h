@@ -496,7 +496,8 @@ struct Class_Def_ {
   Class_Body body;
   Type type;
   Nspc home;
-  ID_List types;
+  ID_List types, tref;
+  Type_List base;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,

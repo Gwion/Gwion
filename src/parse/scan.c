@@ -176,6 +176,8 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     SET_FLAG(a->type, ae_flag_template);
     CHECK_BB(scan1_class_def(env, a))
     decl->m_type = a->type;
+    a->tref = t->def->types;
+    a->base = decl->types;
   } else if(decl->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' is not template", t->name))
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))

@@ -510,6 +510,7 @@ static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
   CHECK_BB(template_push_types(emit->env, decl->base->types, decl->types))
   CHECK_BB(traverse_class_def(emit->env, decl->m_type->def))
   CHECK_BB(emit_class_def(emit, decl->m_type->def))
+  nspc_pop_type(emit->env->curr);
   return 1;
 }
 
@@ -527,8 +528,6 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, list->self,ref, var))
     list = list->next;
   }
-if(GET_FLAG(decl->m_type, ae_flag_template))
-  nspc_pop_type(emit->env->curr);
   return 1;
 }
 
@@ -692,10 +691,22 @@ static Func emit_get_func(Nspc nspc, Func f) {
          nspc_lookup_func(nspc, insert_symbol(f->name), -1);
 }
 
+static m_bool emit_exp_call_code_template(Env env, Class_Def class_def) {
+  CHECK_BB(template_push_types(env, class_def->tref, class_def->base))
+  CHECK_BB(traverse_class_def(env, class_def))
+  nspc_pop_type(env->curr);
+  return 1;
+}
+
 static m_bool emit_exp_call1_code(Emitter emit, Func func) {
   if(!emit_get_func(emit->env->curr, func)) { //template with no list
     Instr code;
-    if(!GET_FLAG(func->def, ae_flag_template))
+
+    if(func->value_ref->owner_class && 
+        GET_FLAG(func->value_ref->owner_class, ae_flag_template))
+      CHECK_BB(emit_exp_call_code_template(emit->env,
+            func->value_ref->owner_class->def))
+    else if(!GET_FLAG(func->def, ae_flag_template))
       CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
     if(emit_func_def(emit, func->def) < 0)
       CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE

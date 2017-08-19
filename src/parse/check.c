@@ -669,6 +669,20 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   return NULL;
 }
 
+static m_bool check_exp_call1_template(Env env, Func func) {
+  Value value;
+  if(!func)
+    return 1;
+  value = func->value_ref;
+  if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
+  {
+    Class_Def def = value->owner_class->def;
+    CHECK_BB(template_push_types(env, def->tref, def->base))
+    CHECK_BB(traverse_class_def(env, def))
+  }
+  return 1;
+}
+
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func call");
@@ -685,6 +699,7 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
   if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
     !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
       ptr = exp_func->d.exp_primary.value;
+  CHECK_BO(check_exp_call1_template(env, exp_func->type->d.func))
   if(args)
     CHECK_OO(check_exp(env, args))
   if(!exp_func->type->d.func)
@@ -700,6 +715,9 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
     func = ptr->func_ref = f;
   }
   *m_func = func;
+
+  if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template))
+    nspc_pop_type(env->curr);
   return func->def->ret_type;
 }
 
@@ -1619,9 +1637,7 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   env->func = func;
   nspc_push_value(env->curr);
-
   ret = check_func_args(env, f->arg_list);
-
   if(GET_FLAG(f, ae_flag_variadic)) {
     variadic = new_value(&t_vararg, "vararg");
     SET_FLAG(variadic, ae_flag_checked);
@@ -1632,7 +1648,6 @@ m_bool check_func_def(Env env, Func_Def f) {
                   "...in function '%s'", s_name(f->name));
   if(GET_FLAG(f, ae_flag_variadic))
     REM_REF(variadic)
-
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
   nspc_pop_value(env->curr);
