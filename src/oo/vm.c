@@ -301,8 +301,9 @@ static void vm_ugen_init(VM* vm) {
     if(u->trig)
       UGEN(u->trig)->done = 0;
   }
-  ugen_compute(UGEN(vm->blackhole));
+  ugen_compute(UGEN(vm->adc));
   ugen_compute(UGEN(vm->dac));
+  ugen_compute(UGEN(vm->blackhole));
 }
 
 void vm_run(VM* vm) {

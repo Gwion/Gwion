@@ -75,7 +75,7 @@ void ugen_compute(UGen u) {
       ugen = UGEN(u->ref->channel[i - 1]);
       ugen->tick(ugen);
     }
-    u->tick(u);
+    u->ref->tick(u->ref);
     return;
   }
   u->tick(u);
@@ -106,7 +106,6 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
       m_uint j = i - 1;
       M_Object chan = new_M_UGen();
       assign_ugen(UGEN(chan), n_in > j, n_out > j, 0, NULL);
-      UGEN(chan)->tick = base_tick;
       UGEN(chan)->ref = u;
       u->channel[j] =  chan;
     }
@@ -115,7 +114,6 @@ m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
   if(trig) {
     u->trig = new_M_UGen();
     assign_ugen(UGEN(u->trig), 1, 1, 0, NULL);
-    UGEN(u->trig)->tick = base_tick;
   }
   u->in = u->out = 0;
   u->n_in   = n_in;
