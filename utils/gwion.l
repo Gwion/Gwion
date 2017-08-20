@@ -55,6 +55,7 @@ static int newline(void*data)
 char *gwion_get_text(yyscan_t yyscanner );
 
 static int adjust(void* data);
+static int comment_depth;
 %}
 
 
@@ -71,16 +72,16 @@ static int adjust(void* data);
 %x COMMENT
 %% 
 
-"//"                                { BEGIN(comment); }
-<comment>.                          { adjust(yyscanner); continue;}
-<comment>"\n"                       { newline(yyscanner); BEGIN(INITIAL); }
+"//"              { BEGIN(comment); }
+<comment>.         { adjust(yyscanner); continue;}
+<comment>"\n"      { newline(yyscanner); BEGIN(INITIAL); }
 
 
 
-"/*"                                { BEGIN(COMMENT); }
+<INITIAL,COMMENT>"/*"               { BEGIN(COMMENT); comment_depth++;}
 <COMMENT>.                          { adjust(yyscanner); continue;}
 <COMMENT>\n                         { newline(yyscanner); continue;}
-<COMMENT>"*/"                       { BEGIN(INITIAL); }
+<COMMENT,INITIAL>"*/"               { comment_depth--; if(!comment_depth)BEGIN(INITIAL); }
 
 
 "\n"                                { newline(yyscanner); continue; }
