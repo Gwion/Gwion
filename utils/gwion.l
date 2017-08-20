@@ -33,18 +33,12 @@ static long htol( char* str )
       case '6': case '7': case '8': case '9': case '0':
         n += *c - '0';
         break;
-
-      case 'a': case 'b': case 'c': case 'd': case 'e': case 
-                                                        'f':
-                                                          n += *c - 'a' + 10;
-                                                        break;
-
-      case 'A': case 'B': case 
-                          'C': case 'D': case 'E': 
-      case 'F':
-                            n += *c - 'A' 
-                              + 10;
-                            break;
+      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        n += *c - 'a' + 10;
+        break;
+      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+        n += *c - 'A' + 10;
+        break;
     }    
     c++;
   }
@@ -58,7 +52,7 @@ static int newline(void*data)
   arg->pos = 1;
   return 1;
 } 
-char *gwion_get_text (yyscan_t yyscanner );
+char *gwion_get_text(yyscan_t yyscanner );
 
 static int adjust(void* data);
 %}
@@ -231,19 +225,16 @@ int gwion_error(MyArg* arg, char* s)
   err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);
 
   fseek(arg->file, 0, SEEK_SET);
-  while (getline(&line, &len, arg->file) != -1)
-  {
-    if(n == arg->line)
-    {
+  while (getline(&line, &len, arg->file) != -1) {
+    if(n == arg->line) {
       fprintf(stderr, "%s\n", line);
       break;
     }
     n++;
   }
   free(line);
-  if(arg->pos)
-    for(i = 0; i < arg->pos  -1; i++)
-      fprintf(stderr, " ");
+  for(i = 0; i < arg->pos  -1; i++)
+    fprintf(stderr, " ");
   fprintf(stderr, "^\n");
   fclose(arg->file);
   return 0;
@@ -266,16 +257,14 @@ Ast parse(m_str filename)
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
 
-  if(!(file = fopen(c, "r")))
-  { // LCOV_EXCL_START
+  if(!(file = fopen(c, "r"))) { // LCOV_EXCL_START
     err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
     return NULL;
   } // LCOV_EXCL_STOP
   arg.file = file;
   arg.filename = filename;
   gwion_set_in(file, arg.scanner);
-  if(gwion_parse(&arg))
-  {
+  if(gwion_parse(&arg)) {
     free_ast(ast);
     gwion_lex_destroy(arg.scanner);
     return NULL;

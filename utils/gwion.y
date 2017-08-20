@@ -133,7 +133,7 @@ static int get_pos(void* data)
 %type<class_body> class_body2
 %type<id_list> id_list
 %type<id_list> id_dot decl_template
-%type<type_list> type_list type_template
+%type<type_list> type_list
 %type<type_list> template call_template
 %type<section> class_section
 %type<ast> ast
@@ -376,7 +376,6 @@ func_args
   ;
 
 decl_template: { $$ = NULL; } | TEMPLATE LTB id_list GTB { $$ = $3; };
-type_template: { $$ = NULL; } | TEMPLATE LTB type_list GTB { $$ = $3; };
 
 func_def
   : decl_template function_decl static_decl type_decl2 ID func_args code_segment
