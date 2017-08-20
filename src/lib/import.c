@@ -72,11 +72,9 @@ static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
 }
 
 static ID_List str2list(m_str path, m_uint* array_depth) {
-  m_uint len = 0;
+  m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;
-  while(path[len] != '\0')
-    len++;
   char curr[len + 1];
   memset(curr, 0, len + 1);
 
@@ -84,33 +82,24 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
     depth++;
     len -= 2;
   }
-
   if(path_valid(&list, path, curr, len) < 0) {
-    free_id_list(list);
+    if(list)
+      free_id_list(list);
     return NULL;
   }
-
-  strncpy(curr, path, len);
   CHECK_OO(list)
+  strncpy(curr, path, len);
   list->xid = insert_symbol(curr);
   *array_depth = depth;
   return list;
 }
 
 static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
-  VM_Code* code;
-  m_str name, filename;
-  if(e == NATIVE_CTOR) {
-    SET_FLAG(type, ae_flag_ctor);
-    name = "ctor";
-    filename = "[internal ctor definition]";
-    code = &type->info->pre_ctor;
-  } else {
-    SET_FLAG(type, ae_flag_dtor);
-    name = type->name;
-    filename = "[internal dtor definition]";
-    code = &type->info->dtor;
-  }
+  VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
+  m_str name = type->name;
+  m_str filename = e == NATIVE_CTOR ? "[ctor]" : "[dtor]";
+
+  SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
   *code = new_vm_code(NULL, SZ_INT, 1, name, filename);
   (*code)->native_func = (m_uint)d;
   (*code)->native_func_type = e;
@@ -131,7 +120,6 @@ m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor
     type->info->offset = type->parent->obj_size;
     vector_copy2(&type->info->obj_v_table, &type->parent->info->obj_v_table);
   }
-
   type->owner = where;
   type->obj_size = 0;
 
@@ -189,44 +177,45 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   return var.value->offset;
 }
 
+static Array_Sub make_dll_arg_list_array(Array_Sub array_sub, 
+  m_uint* array_depth, m_uint array_depth2) {
+  m_uint i;
+  if(array_depth2)
+    *array_depth = array_depth2;
+  if(*array_depth) {
+    array_sub = new_array_sub(NULL, 0);
+    for(i = 1; i < *array_depth; i++)
+      array_sub = prepend_array_sub(array_sub, NULL, 0);
+  }
+  return array_sub;
+}
+
 static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   Arg_List arg_list    = NULL;
-  Type_Decl* type_decl = NULL;
-  Var_Decl var_decl    = NULL;
-  ID_List type_path    = NULL;
-  ID_List type_path2   = NULL;
-  Array_Sub array_sub  = NULL;
-  DL_Value* arg        = NULL;
-  m_uint array_depth = 0;
-  m_uint array_depth2 = 0;
-  m_int i = 0, j;
+  m_int i = 0;
 
   for(i = dl_fun->narg + 1; --i; ) {
-    array_depth = array_depth2 = 0;
-    array_sub = NULL;
-    arg = &dl_fun->args[i-1];
-    type_path = str2list(arg->type, &array_depth);
+    m_uint array_depth = 0, array_depth2 = 0;
+    Array_Sub array_sub = NULL;
+    Type_Decl* type_decl = NULL;
+    Var_Decl var_decl    = NULL;
+    DL_Value* arg = &dl_fun->args[i-1];
+    ID_List type_path2, type_path = str2list(arg->type, &array_depth);
     if(!type_path) {
       if(arg_list)
         free_arg_list(arg_list);
       CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
     }
     type_decl = new_type_decl(type_path, 0, 0);
-    type_path2 = str2list(arg->name, &array_depth2);
-    free_id_list(type_path2);
+    if((type_path2 = str2list(arg->name, &array_depth2)))
+      free_id_list(type_path2);
     if(array_depth && array_depth2) {
       free_type_decl(type_decl);
       if(arg_list)
         free_arg_list(arg_list);
-      CHECK_BO(err_msg(TYPE_,  0, "array subscript specified incorrectly for built-in module"))
+      CHECK_BO(err_msg(TYPE_, 0, "array subscript specified incorrectly for built-in module"))
     }
-    if(array_depth2)
-      array_depth = array_depth2;
-    if(array_depth) {
-      array_sub = new_array_sub(NULL, 0);
-      for(j = 1; j < array_depth; j++)
-        array_sub = prepend_array_sub(array_sub, NULL, 0);
-    }
+    array_sub = make_dll_arg_list_array(array_sub, &array_depth, array_depth2);
     var_decl = new_var_decl(arg->name, array_sub, 0);
     arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
   }
@@ -245,17 +234,14 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name))
-
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL, 0);
     type_decl = add_type_decl_array(type_decl, array_sub, 0);
   }
-
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
-
   func_def = new_func_def(flag, type_decl, name, arg_list, NULL, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
@@ -292,6 +278,7 @@ m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str 
   Type ret = get_type(env, t);
   return env_add_op(env, op, lhs, rhs, ret, f, global);
 }
+
 m_bool import_libs(Env env) {
   if(env_add_type(env, &t_void) < 0 ||
      env_add_type(env, &t_null) < 0 ||
