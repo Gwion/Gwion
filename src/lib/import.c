@@ -289,6 +289,7 @@ m_bool import_libs(Env env) {
      import_vec3(env)      < 0 ||
      import_vec4(env)      < 0 ||
      import_object(env)    < 0 ||
+     import_vararg(env)    < 0 ||
      import_string(env)    < 0 ||
      import_shred(env)     < 0 ||
      import_event(env)     < 0 ||
