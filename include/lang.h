@@ -14,6 +14,7 @@ extern m_bool import_vec4(Env env);
 extern m_bool import_shred(Env env);
 extern m_bool import_machine(Env env);
 extern m_bool import_object(Env env);
+extern m_bool import_vararg(Env env);
 extern m_bool import_string(Env env);
 extern m_bool import_event(Env env);
 extern m_bool import_fileio(Env env);
