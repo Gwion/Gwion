@@ -702,7 +702,7 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
   if(!emit_get_func(emit->env->curr, func)) { //template with no list
     Instr code;
 
-    if(func->value_ref->owner_class && 
+    if(func->value_ref->owner_class &&
         GET_FLAG(func->value_ref->owner_class, ae_flag_template))
       CHECK_BB(emit_exp_call_code_template(emit->env,
             func->value_ref->owner_class->def))
