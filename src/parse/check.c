@@ -843,6 +843,8 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
       cr->emit_var = 1;
     return 1;
   }
+  if(isa(cr->type, &t_func_ptr) < 0 && isa(cl->type, &t_object) < 0 && isa(cr->type, &t_object) < 0)
+      CHECK_BB(err_msg(TYPE_, cl->pos, "'@=>' not allowed for primitives", cl->type->name, cr->type->name))
   return 1;
 }
 
