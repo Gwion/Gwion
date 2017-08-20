@@ -559,7 +559,7 @@ next:
 
 static void* function_alternative(Type f, Exp args){
   m_uint i;
-  if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
+  if(err_msg(TYPE_, 0, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
   while(up) {
     Arg_List e = up->def->arg_list;
