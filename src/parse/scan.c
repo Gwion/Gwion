@@ -14,7 +14,7 @@ static m_bool isres(S_Symbol xid, m_uint pos) {
   return -1;
 }
 
-m_bool scan0_Class_Def(Env env, Class_Def class_def);
+m_bool scan0_class_def(Env env, Class_Def class_def);
 static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
@@ -106,7 +106,7 @@ static m_bool scan0_class_def_body(Env env, Class_Body body) {
       case ae_section_func:
         break;
       case ae_section_class:
-        CHECK_BB(scan0_Class_Def(env, body->section->d.class_def))
+        CHECK_BB(scan0_class_def(env, body->section->d.class_def))
         break;
     }
     body = body->next;
@@ -130,7 +130,7 @@ static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   return 1;
 }
 
-m_bool scan0_Class_Def(Env env, Class_Def class_def) {
+m_bool scan0_class_def(Env env, Class_Def class_def) {
   m_bool ret;
 
   CHECK_BB(scan0_class_def_pre(env, class_def))
@@ -152,7 +152,7 @@ m_bool scan0_Ast(Env env, Ast prog) {
       case ae_section_func:
         break;
       case ae_section_class:
-        CHECK_BB(scan0_Class_Def(env, prog->section->d.class_def))
+        CHECK_BB(scan0_class_def(env, prog->section->d.class_def))
         break;
     }
     prog = prog->next;
@@ -172,7 +172,7 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     decl->base = t->def;
     Class_Def a = template_class(env, t->def, decl->types);
     CHECK_BB(template_push_types(env, t->def->types, decl->types))
-    CHECK_BB(scan0_Class_Def(env, a))
+    CHECK_BB(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     CHECK_BB(scan1_class_def(env, a))
     decl->m_type = a->type;
@@ -261,17 +261,13 @@ static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
   return 1;
 }
 
-static m_bool scan1_exp_call1(Env env, Exp exp_func, Exp args, Func func, int pos) {
-  CHECK_BB(scan1_exp(env, exp_func))
-  CHECK_BB(args && scan1_exp(env, args))
-  return 1;
-}
-
 static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
+  Exp args = exp_func->args;
   if(exp_func->types)
     return 1;
-  return scan1_exp_call1(env, exp_func->func,
-                         exp_func->args, exp_func->m_func, exp_func->pos);
+  CHECK_BB(scan1_exp(env, exp_func->func))
+  CHECK_BB(args && scan1_exp(env, args))
+  return 1;
 }
 
 static m_bool scan1_exp_dot(Env env, Exp_Dot* member) {
@@ -679,9 +675,9 @@ m_bool scan2_class_def(Env env, Class_Def class_def);
 static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-  	template_push_types(env, env->class_def->def->types, decl->types);
+    template_push_types(env, env->class_def->def->types, decl->types);
   if(GET_FLAG(type, ae_flag_template)) {
-  	template_push_types(env, decl->base->types, decl->types);
+    template_push_types(env, decl->base->types, decl->types);
     CHECK_BB(scan1_class_def(env, type->def))
     CHECK_BB(scan2_class_def(env, type->def))
   }
@@ -885,7 +881,7 @@ static m_bool scan2_exp_dur(Env env, Exp_Dur* dur) {
   return 1;
 }
 
-static m_bool scan2_exp_call1(Env env, Exp func, Exp args, Func m_func) {
+static m_bool scan2_exp_call1(Env env, Exp func, Exp args) {
   CHECK_BB(scan2_exp(env, func))
   CHECK_BB(scan2_exp(env, args))
   return 1;
@@ -946,7 +942,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       return -1;
     }
   }
-  return scan2_exp_call1(env, exp_func->func, exp_func->args, exp_func->m_func);
+  return scan2_exp_call1(env, exp_func->func, exp_func->args);
 }
 
 static m_bool scan2_exp_dot(Env env, Exp_Dot* member) {
@@ -983,7 +979,7 @@ static m_bool scan2_exp(Env env, Exp exp) {
         ret = scan2_exp_decl(env, &curr->d.exp_decl);
         break;
       case ae_exp_unary:
-        ret = (curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code) ? 
+        ret = (curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code) ?
           scan2_exp_spork(env, curr->d.exp_unary.code) : 1;
         break;
       case ae_exp_binary:
