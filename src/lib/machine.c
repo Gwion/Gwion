@@ -3,21 +3,58 @@
 #include "import.h"
 #include "compile.h"
 
+#define RAND_LEN 12
+
 struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
 
-static m_str randstring(VM* vm, int length) {
+static void randstring(VM* vm, m_uint length, m_str str) {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
   size_t stringLen = 26 * 2 + 10 + 2;
-  char *randomString = malloc(sizeof(char) * (length + 1));
-
-  if(!randomString)
-    return (char*)0;
-  for(int n = 0; n < length; n++) {
+  m_uint n;
+  for(n = 0; n < length; n++) {
     unsigned int key = sp_rand(vm->sp) % stringLen;
-    randomString[n] = string[key];
+    str[n] = string[key];
   }
-  randomString[length] = '\0';
-  return randomString;
+  str[length] = '\0';
+}
+
+static const m_str get_prefix(VM_Shred shred) {
+  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
+  if(!prefix_obj)
+    return ".";
+  release(prefix_obj, shred);
+  return STRING(prefix_obj);
+}
+
+static void get_filename(VM_Shred shred, m_str c, m_str prefix) {
+  char filename[RAND_LEN + 1];
+
+  randstring(shred->vm_ref, 12, filename);
+  sprintf(c, "%s/%s", prefix, filename);
+}
+
+static m_bool check_code(VM_Shred shred, m_str c) {
+  m_str s;
+  Ast ast;
+  
+  CHECK_OB((ast = parse(c)))
+  s = strdup(c);
+  CHECK_BB(type_engine_check_prog(shred->vm_ref->emit->env, ast, s))
+  free(s);
+  free_ast(ast);
+  return 1;
+}
+
+static m_bool code_to_file(VM_Shred shred, m_str filename) {
+  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
+  FILE* file;
+
+  CHECK_OB(code_obj)
+  CHECK_OB((file = fopen(filename, "w")))
+  fprintf(file, "%s\n", STRING(code_obj));
+  release(code_obj, shred);
+  fclose(file);
+  return 1;
 }
 
 static SFUN(machine_add) {
@@ -32,67 +69,24 @@ static SFUN(machine_add) {
 }
 
 static SFUN(machine_check) {
-  Ast ast;
-  FILE* file;
-  m_str prefix, filename, s;
-  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
-  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
+  const m_str prefix = get_prefix(shred);
+  char c[strlen(prefix) + 17];
 
   *(m_uint*)RETURN = 0;
-  if(!prefix_obj)
-    prefix = ".";
-  else {
-    prefix = STRING(prefix_obj);
-    release(prefix_obj, shred);
-  }
-  if(!code_obj)
+  get_filename(shred, c, prefix);
+  if(code_to_file(shred, c) < 0)
     return;
-  char c[strlen(prefix) + 17];
-  filename = randstring(shred->vm_ref, 12);
-  sprintf(c, "%s/%s", prefix, filename);
-  if(!(file = fopen(c, "w"))) {
-    free(filename);
-    return;
-  }
-  fprintf(file, "%s\n", STRING(code_obj));
-  release(code_obj, shred);
-  fclose(file);
-  free(filename);
-  if(!(ast = parse(c)))
-    return;
-  s = strdup(c);
-  if(type_engine_check_prog(shred->vm_ref->emit->env, ast, s) < 0)
-    return;
-  free(s);
-  free_ast(ast);
-  *(m_uint*)RETURN = 1;
+  *(m_uint*)RETURN = check_code(shred, c) > 0 ? 1 : 0;
 }
 
 static SFUN(machine_compile) {
-  m_str prefix, filename;
-  FILE* file;
-  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
-  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
+  const m_str prefix = get_prefix(shred);
+  char c[strlen(prefix) + 17];
 
   *(m_uint*)RETURN = 0;
-  if(!prefix_obj)
-    prefix = ".";
-  else {
-    prefix = STRING(prefix_obj);
-    release(prefix_obj, shred);
-  }
-  if(!code_obj) return;
-  char c[strlen(prefix) + 17];
-  filename = randstring(shred->vm_ref, 12);
-  sprintf(c, "%s/%s.gw", prefix, filename);
-  if(!(file = fopen(c, "w"))) {
-    free(filename);
+  get_filename(shred, c, prefix);
+  if(code_to_file(shred, c) < 0)
     return;
-  }
-  fprintf(file, "%s\n", STRING(code_obj));
-  release(code_obj, shred);
-  fclose(file);
-  free(filename);
   compile(shred->vm_ref, c);
 }
 
