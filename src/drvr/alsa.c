@@ -69,6 +69,14 @@ static int sp_alsa_init(DriverInfo* di, snd_pcm_t** h, const char* device, int s
   return 1;
 }
 
+static void alsa_run_init(VM* vm, DriverInfo* di) {
+  snd_pcm_get_params(out, &di->bufsize, &di->bufnum);
+  di->bufsize /= di->bufnum;
+  snd_pcm_hwsync(out);
+  snd_pcm_hwsync(in);
+  snd_pcm_start(out);
+  snd_pcm_start(in);
+}
 
 static m_bool alsa_ini(VM* vm, DriverInfo* di) {
   out = NULL;
@@ -86,93 +94,95 @@ static m_bool alsa_ini(VM* vm, DriverInfo* di) {
   return 1;
 }
 
-static void alsa_run(VM* vm, DriverInfo* di) {
+static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
+  m_uint i;
+
+  in_buf  = calloc(sp->nchan, sizeof(SPFLOAT*));
+  out_buf = calloc(sp->nchan, sizeof(SPFLOAT*));
+  _out_buf   = calloc(sp->nchan, sizeof(void*));
+  _in_buf    = calloc(sp->nchan, sizeof(void*));
+
+  for(i = 0; i < sp->nchan; i++) {
+    out_buf[i]  = calloc(di->bufsize, sizeof(SPFLOAT));
+    _out_buf[i] = out_buf[i];
+    in_buf[i]   = calloc(di->bufsize, sizeof(SPFLOAT));
+    _in_buf[i]  = in_buf[i];
+  }
+}
+
+static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
   m_uint i, chan;
-  sp_data* sp = vm->sp;
-
-  snd_pcm_get_params(out, &di->bufsize, &di->bufnum);
-  di->bufsize /= di->bufnum;
-
-  snd_pcm_hwsync(out);
-  snd_pcm_hwsync(in);
-  snd_pcm_start(out);
-  snd_pcm_start(in);
-  if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
-    in_buf  = calloc(sp->nchan, sizeof(SPFLOAT*));
-    out_buf = calloc(sp->nchan, sizeof(SPFLOAT*));
-    _out_buf   = calloc(sp->nchan, sizeof(void*));
-    _in_buf    = calloc(sp->nchan, sizeof(void*));
-
-    for(chan = 0; chan < sp->nchan; chan++) {
-      out_buf[chan]  = calloc(di->bufsize, sizeof(SPFLOAT));
-      _out_buf[chan] = out_buf[chan];
-      in_buf[chan]   = calloc(di->bufsize, sizeof(SPFLOAT));
-      _in_buf[chan]  = in_buf[chan];
+  while(vm->is_running) {
+    snd_pcm_readn(in, _in_buf, di->bufsize);
+    for(i = 0; i < di->bufsize; i++) {
+      for(chan = 0; chan < sp->nchan; chan++)
+        vm->in[chan] = ((m_float**)(_in_buf))[chan][i];
+      vm_run(vm);
+      for(chan = 0; chan < sp->nchan; chan++)
+        out_buf[chan][i] = sp->out[chan];
+      sp->pos++;
     }
+    if(snd_pcm_writen(out, _out_buf, di->bufsize) < 0)
+      snd_pcm_prepare(out);
+  }
 
-    while(vm->is_running) {
-      snd_pcm_readn(in, _in_buf, di->bufsize);
-      for(i = 0; i < di->bufsize; i++) {
-        for(chan = 0; chan < sp->nchan; chan++)
-          vm->in[chan] = ((m_float**)(_in_buf))[chan][i];
-        vm_run(vm);
-        for(chan = 0; chan < sp->nchan; chan++)
-          out_buf[chan][i] = sp->out[chan];
-        sp->pos++;
-      }
-      if(snd_pcm_writen(out, _out_buf, di->bufsize) < 0)
-        snd_pcm_prepare(out);
-    }
-  } else { // interleaved
-    in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
-    out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
-    while(vm->is_running) {
-      int j = 0;
-      int k = 0;
-      sp->nchan = 2;
-      snd_pcm_readi(in, in_bufi, di->bufsize);
-      for(i = 0; i < di->bufsize; i++) {
-        for(chan = 0; chan < sp->nchan; chan++) {
-          vm->in[chan] = ((m_float*)(in_bufi))[j];
-          j++;
-        }
-        vm_run(vm);
-        for(chan = 0; chan < sp->nchan; chan++) {
-          ((m_float*)out_bufi)[k] = sp->out[chan];
-          k++;
-        }
-        sp->pos++;
-      }
+}
+
+static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {
+  while(vm->is_running) {
+    m_uint i, chan;
+    m_int j = 0, k = 0;
+    snd_pcm_readi(in, in_bufi, di->bufsize);
+    for(i = 0; i < di->bufsize; i++) {
+      for(chan = 0; chan < sp->nchan; chan++)
+        vm->in[chan] = ((m_float*)(in_bufi))[j++];
+      vm_run(vm);
+      for(chan = 0; chan < sp->nchan; chan++)
+        ((m_float*)out_bufi)[k++] = sp->out[chan];
       if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
         snd_pcm_prepare(out);
+      sp->pos++;
     }
+  }
+}
+
+static void alsa_run(VM* vm, DriverInfo* di) {
+  sp_data* sp = vm->sp;
+  alsa_run_init(vm, di);
+  if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
+    alsa_run_init_non_interleaved(sp, di);
+    alsa_run_non_interleaved(sp, di);
+  } else {
+    in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
+    out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
+    alsa_run_interleaved(sp, di);
   }
   GWION_CTL
 }
 
-static void alsa_del(VM* vm) {
+static void alsa_del_non_interleaved() {
   m_uint chan;
-  snd_pcm_close(in);
-//  snd_pcm_hw_free(in);
-  snd_pcm_close(out);
-//  snd_pcm_hw_free(out);
-  snd_config_update_free_global();
-//snd_dlclose(out);
-//snd_dlclose(in);
-  if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
-    if(in_buf && out_buf) {
-      for(chan = 0; chan < vm->sp->nchan; chan++) {
-        free(in_buf[chan]);
-        free(out_buf[chan]);
-      }
-      free(in_buf);
-      free(out_buf);
+  if(in_buf && out_buf) {
+    for(chan = 0; chan < vm->sp->nchan; chan++) {
+      free(in_buf[chan]);
+      free(out_buf[chan]);
     }
-    if(_in_buf)
-      free(_in_buf);
-    if(_out_buf)
-      free(_out_buf);
-  } else { /* interleaved */
+    free(in_buf);
+    free(out_buf);
+  }
+  if(_in_buf)
+    free(_in_buf);
+  if(_out_buf)
+    free(_out_buf);
+}
+
+static void alsa_del(VM* vm) {
+  snd_pcm_close(in);
+  snd_pcm_close(out);
+  snd_config_update_free_global();
+  if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
+    alsa_del_non_interleaved();
+  else {
     if(in_bufi)
       free(in_bufi);
     if(out_bufi)

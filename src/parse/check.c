@@ -9,6 +9,7 @@
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
+#include "plug.h"
 
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
@@ -473,7 +474,7 @@ static Func find_func_match(Func up, Exp args) {
 }
 
 static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
-  m_bool ret = traverse_def(env, def);
+  m_bool ret = traverse_func_def(env, def);
   nspc_pop_type(env->curr);
   if(ret < 0 || !check_exp(env, func) ||
      (args  && !check_exp(env, args)))
@@ -558,7 +559,7 @@ next:
 
 static void* function_alternative(Type f, Exp args){
   m_uint i;
-  if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
+  if(err_msg(TYPE_, 0, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
   while(up) {
     Arg_List e = up->def->arg_list;
@@ -842,6 +843,8 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
       cr->emit_var = 1;
     return 1;
   }
+  if(isa(cr->type, &t_func_ptr) < 0 && isa(cl->type, &t_object) < 0 && isa(cr->type, &t_object) < 0)
+      CHECK_BB(err_msg(TYPE_, cl->pos, "'@=>' not allowed for primitives", cl->type->name, cr->type->name))
   return 1;
 }
 
