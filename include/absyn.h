@@ -461,7 +461,7 @@ struct Func_Def_ {
     void* dl_func_ptr;
   } d;
   ID_List types;
-  ID_List base; // 13/03/17
+  ID_List base;
   int pos;
 };
 
