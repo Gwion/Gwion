@@ -1495,7 +1495,6 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
     offset += l->type->size;
     l = l->next;
   }
-  printf("offset: %lu str %s\n", offset, str);
   if(!strcmp(str, "start"))
     return emit_vararg_start(emit, offset);
   if(!strcmp(str, "end"))
