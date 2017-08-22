@@ -137,6 +137,7 @@ m_int import_class_end(Env env) {
 }
 
 m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
+  m_int ret;
   m_uint array_depth = 0;
   ID_List path;
 
@@ -170,11 +171,11 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
   exp.d.exp_decl.self = &exp;
   var.addr = (void *)addr;
-  if(traverse_decl(env, &exp.d.exp_decl) < 0)
-    var.value->offset = -1;;
-  free(path);
-  var.value->flag = flag | ae_flag_builtin;
-  return var.value->offset;
+  ret = traverse_decl(env, &exp.d.exp_decl);
+  free_id_list(path);
+  if(var.value)
+    var.value->flag = flag | ae_flag_builtin;
+  return ret > 0 ? var.value->offset : -1;
 }
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub, 
