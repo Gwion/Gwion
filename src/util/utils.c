@@ -45,6 +45,18 @@ Type find_type(Env env, ID_List path) {
   Nspc nspc;
   Type t = NULL;
 
+  if(path->ref) {
+    path = path->ref;
+    Value v = nspc_lookup_value(env->curr, path->xid, -1);
+    Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
+    path = path->next;
+    while(path) {
+        CHECK_OO((v = find_value(t, path->xid)))
+        t = v->m_type;
+        path = path->next;
+      }
+    return v->m_type;
+  }
   Type type = nspc_lookup_type(env->curr, path->xid, 1);
   if(!type)
     return NULL;

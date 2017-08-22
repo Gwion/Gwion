@@ -140,12 +140,13 @@ extern int gwion_debug;
     VARARG = 350,
     UNION = 351,
     ATPAREN = 352,
-    NUM = 353,
-    FLOAT = 354,
-    ID = 355,
-    STRING_LIT = 356,
-    CHAR_LIT = 357,
-    NEG = 358
+    TYPEOF = 353,
+    NUM = 354,
+    FLOAT = 355,
+    ID = 356,
+    STRING_LIT = 357,
+    CHAR_LIT = 358,
+    NEG = 359
   };
 #endif
 /* Tokens.  */
@@ -244,12 +245,13 @@ extern int gwion_debug;
 #define VARARG 350
 #define UNION 351
 #define ATPAREN 352
-#define NUM 353
-#define FLOAT 354
-#define ID 355
-#define STRING_LIT 356
-#define CHAR_LIT 357
-#define NEG 358
+#define TYPEOF 353
+#define NUM 354
+#define FLOAT 355
+#define ID 356
+#define STRING_LIT 357
+#define CHAR_LIT 358
+#define NEG 359
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -283,7 +285,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 287 "include/parser.h" /* yacc.c:1909  */
+#line 289 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

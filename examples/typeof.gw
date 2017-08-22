@@ -1,0 +1,14 @@
+class C { static int i; float f;}
+
+int i;
+typeof(i) a;
+<<<a>>>;
+
+ 
+typeof(C.i) b;
+<<<b>>>;
+
+C c;
+typeof(c.f) d;
+<<<d>>>;
+

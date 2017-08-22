@@ -185,6 +185,7 @@ static int comment_depth;
 "switch"                            { adjust(yyscanner); return SWITCH;}
 "case"                              { adjust(yyscanner); return CASE;}
 "enum"                              { adjust(yyscanner); return ENUM;}
+"typeof"                            { adjust(yyscanner); return TYPEOF;}
 
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }

@@ -185,23 +185,64 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   return 1;
 }
 
+static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
+  Type t = find_type(env, decl->type->xid);
+  if(!t)
+    CHECK_BO(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
+          s_name(decl->type->xid->xid)))
+  if(!t->size)
+    CHECK_BO(err_msg(SCAN2_, decl->pos,
+          "cannot declare variables of size '0' (i.e. 'void')..."))
+  if(!decl->type->ref) {
+    if(env->class_def && (t == env->class_def) && !env->class_scope)
+      CHECK_BO(err_msg(SCAN2_, decl->pos,
+            "...(note: object of type '%s' declared inside itself)", t->name))
+  } else if((isprim(t) > 0))
+    CHECK_BO(err_msg(SCAN2_, decl->pos,
+          "cannot declare references (@) of primitive type '%s'...\n"
+          "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
+  return t;
+}
+
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   Var_Decl var_decl = NULL;
-  Type t = find_type(env, decl->type->xid);
-  if(!t)
-    CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
-          s_name(decl->type->xid->xid)))
+  Type t = scan1_exp_decl_type(env, decl);
+
+  CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(env, t, decl))
 
   while(list) {
+    Value value;
     var_decl = list->self;
+    if(isres(list->self->xid, list->self->pos) > 0)
+      CHECK_BB(err_msg(SCAN2_, list->self->pos,
+            "\t... in variable declaration", s_name(list->self->xid)))
+    if((value = nspc_lookup_value(env->curr, list->self->xid, 0)) &&
+      !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
+        CHECK_BB(err_msg(SCAN2_, list->self->pos,
+              "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
     decl->num_decl++;
     if(var_decl->array) {
+      Type t2 = t;
       CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-      }
+      t = new_array_type(env, list->self->array->depth, t2, env->curr);
+      if(!list->self->array->exp_list)
+        decl->type->ref = 1;
+    }
+    list->self->value = new_value(t, s_name(list->self->xid));
+    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+      SET_FLAG(list->self->value, ae_flag_member);
+    if(!env->class_def && !env->func && !env->class_scope)
+      SET_FLAG(list->self->value, ae_flag_global);
+    if(env->func == (Func)1)
+      ADD_REF(list->self->value)
+    list->self->value->ptr = list->self->addr;
+    list->self->value->owner = env->curr;
+    list->self->value->owner_class = env->func ? NULL : env->class_def;
+    nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
   if(decl->types)
@@ -237,21 +278,10 @@ static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
 
 static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
   CHECK_BB(scan1_exp(env, postfix->exp))
-  switch(postfix->op) {
-    case op_plusplus:
-    case op_minusminus:
-      if(postfix->exp->meta != ae_meta_var) {
-        CHECK_BB(err_msg(SCAN1_, postfix->exp->pos,
-                         "postfix operator '%s' cannot be used"
-                         " on non-mutable data-type...", op2str(postfix->op)))
-      }
-      return 1;
-      break;
-    default: // LCOV_EXCL_START
-      CHECK_BB(err_msg(SCAN1_, postfix->pos,
-                       "internal compiler error (pre-scan): unrecognized postfix '%i'",
-                       op2str(postfix->op)))
-  }        // LCOV_EXCL_STOP
+  if(postfix->exp->meta != ae_meta_var)
+    CHECK_BB(err_msg(SCAN1_, postfix->exp->pos,
+          "postfix operator '%s' cannot be used"
+          " on non-mutable data-type...", op2str(postfix->op)))
   return 1;
 }
 
@@ -282,6 +312,14 @@ static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
   return 1;
 }
 
+static m_bool scan1_exp_spork(Env env, Stmt code) {
+  Func f = env->func;
+  env->func = f ? f: (Func)2;
+  CHECK_BB(scan1_stmt(env, code))
+  env->func = f;
+  return 1;
+}
+
 static m_bool scan1_exp(Env env, Exp exp) {
   Exp curr = exp;
   while(curr) {
@@ -294,8 +332,8 @@ static m_bool scan1_exp(Env env, Exp exp) {
         break;
       case ae_exp_unary:
         if(curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code)
-          CHECK_BB(scan1_stmt(env, curr->d.exp_unary.code))
-          break;
+          CHECK_BB(scan1_exp_spork(env, curr->d.exp_unary.code))
+        break;
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
         break;
@@ -463,20 +501,13 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
                        "invalid expression type '%i' in union declaration."))
     }
-    Type t = find_type(env, l->self->d.exp_decl.type->xid);
-    if(!t) {
-      CHECK_BB(err_msg(SCAN1_, l->self->pos,
-                       "unknown type '%s' in union declaration ",
-                       s_name(l->self->d.exp_decl.type->xid->xid)))
-    }
     while(list) {
       var_decl = list->self;
-      l->self->d.exp_decl.num_decl++;
       if(var_decl->array)
         CHECK_BB(scan1_stmt_union_array(var_decl->array))
       list = list->next;
     }
-    l->self->d.exp_decl.m_type = t;
+    CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
     l = l->next;
   }
   return 1;
@@ -615,12 +646,14 @@ static m_bool scan1_func_def_flag(Env env, Func_Def f) {
 m_bool scan1_func_def(Env env, Func_Def f) {
   if(f->types)
     return 1;
+  env->func = (Func)1;
   if( scan1_func_def_flag(env, f) < 0 ||
       scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
     (f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0))
     CHECK_BB(err_msg(SCAN1_, f->pos, "\t...in function '%s'", s_name(f->name)))
-    return 1;
+  env->func = NULL;
+  return 1;
 }
 
 m_bool scan1_class_def(Env env, Class_Def class_def) {
@@ -690,47 +723,10 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
 
   if(isa(type, &t_shred) > 0)
     decl->type->ref = 1;
-  if(!type->size)
-    CHECK_BB(err_msg(SCAN2_, decl->pos,
-          "cannot declare variables of size '0' (i.e. 'void')..."))
-  if(!decl->type->ref) {
-    if(env->class_def && (type == env->class_def) && !env->class_scope)
-      CHECK_BB(err_msg(SCAN2_, decl->pos,
-            "...(note: object of type '%s' declared inside itself)", type->name))
-  } else if((isprim(type) > 0))
-    CHECK_BB(err_msg(SCAN2_, decl->pos,
-          "cannot declare references (@) of primitive type '%s'...\n"
-          "\t...(primitive types: 'int', 'float', 'time', 'dur')", type->name))
   CHECK_BB(scan2_exp_decl_template(env, decl))
   while(list) {
-    if(isres(list->self->xid, list->self->pos) > 0)
-      CHECK_BB(err_msg(SCAN2_, list->self->pos,
-            "\t... in variable declaration", s_name(list->self->xid)))
-    if(nspc_lookup_value(env->curr, list->self->xid, 0)) {
-      if(!(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
-        CHECK_BB(err_msg(SCAN2_, list->self->pos,
-              "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
-    }
-    if(list->self->array) {
-      CHECK_BB(verify_array(list->self->array))
-      Type t2 = type;
-
-      if(list->self->array->exp_list)
+    if(list->self->array && list->self->array->exp_list)
         CHECK_BB(scan2_exp(env, list->self->array->exp_list))
-      type = new_array_type(env, list->self->array->depth, t2, env->curr);
-      if(!list->self->array->exp_list)
-        decl->type->ref = 1;
-      decl->m_type = type;
-    }
-    list->self->value = new_value(type, s_name(list->self->xid));
-    list->self->value->owner = env->curr;
-    list->self->value->owner_class = env->func ? NULL : env->class_def;
-    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
-      SET_FLAG(list->self->value, ae_flag_member);
-    if(!env->class_def && !env->func && !env->class_scope)
-      SET_FLAG(list->self->value, ae_flag_global);
-    list->self->value->ptr = list->self->addr;
-    nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
   if(GET_FLAG(type, ae_flag_template)  || (env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
@@ -747,7 +743,6 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     if(list->var_decl->value) {
       if(list->var_decl->value->m_type->array_depth)
         REM_REF(list->var_decl->value->m_type->d.array_type)
-//        REM_REF(list->var_decl->value->m_type)
         list->var_decl->value->m_type = list->type;
     }
 
@@ -862,16 +857,6 @@ static m_bool scan2_exp_cast(Env env, Exp_Cast* cast) {
 
 static m_bool scan2_exp_postfix(Env env, Exp_Postfix* postfix) {
   CHECK_BB(scan2_exp(env, postfix->exp))
-  switch(postfix->op) {
-    case op_plusplus:
-    case op_minusminus:
-      return 1;
-      break;
-    default: // LCOV_EXCL_START
-      err_msg(SCAN2_, postfix->pos,
-              "internal compiler error (pre-scan): unrecognized postfix '%i'", postfix->op);
-      return -1;
-  }        // LCOV_EXCL_STOP
   return 1;
 }
 
@@ -958,12 +943,10 @@ static m_bool scan2_exp_if(Env env, Exp_If* exp_if) {
 }
 
 static m_bool scan2_exp_spork(Env env, Stmt code) {
-  m_bool in_func = env->func ? 1 : 0;
-  if(!in_func)
-    env->func = (Func)1;
+  Func f = env->func;
+  env->func = f ? f : (Func)1;
   CHECK_BB(scan2_stmt(env, code))
-  if(!in_func)
-    env->func = NULL;
+  env->func = f;
   return 1;
 }
 
@@ -1052,12 +1035,7 @@ static m_bool scan2_stmt_loop(Env env, Stmt_Loop stmt) {
 }
 
 static m_bool scan2_stmt_return(Env env, Stmt_Return stmt) {
-  m_bool ret = -1;
-  if(stmt->val)
-    ret = scan2_exp(env, stmt->val);
-  else
-    ret = 1;
-  return ret;
+    return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
 static m_bool scan2_stmt_switch(Env env, Stmt_Switch stmt) {
@@ -1070,21 +1048,29 @@ static m_bool scan2_stmt_case(Env env, Stmt_Case stmt) {
   return 1;
 }
 
-static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
+static Map scan2_label_map(Env env, Stmt_Goto_Label stmt) {
   Map m;
-  m_uint* key = env->class_def && !env->func ? (m_uint*)env->class_def : (m_uint*)env->func;
+  m_uint* key = env->class_def && !env->func ?
+    (m_uint*)env->class_def : (m_uint*)env->func;
+  if(!env->context->label.ptr)
+    map_init(&env->context->label);
+  m = (Map)map_get(&env->context->label, (vtype)key);
+   if(!m) {
+    m = new_map();
+    map_set(&env->context->label, (vtype)key, (vtype)m);
+  }
+  return m;
+}
+
+static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   if(stmt->is_label) {
-    if(!env->context->label.ptr)
-      map_init(&env->context->label);
-    m = (Map)map_get(&env->context->label, (vtype)key);
-    if(!m) {
-      m = new_map();
-      map_set(&env->context->label, (vtype)key, (vtype)m);
-    }
+    Map m = scan2_label_map(env, stmt);
+    CHECK_OB(m)
     if(map_get(m, (vtype)stmt->name)) {
       Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
-      CHECK_BB(err_msg(SCAN2_, stmt->pos, "label '%s' already defined", s_name(stmt->name)))
+      CHECK_BB(err_msg(SCAN2_, stmt->pos,
+            "label '%s' already defined", s_name(stmt->name)))
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);
@@ -1326,30 +1312,31 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   return f->code ? scan2_func_def_code(env, f) : 1;
 }
 
-m_bool scan2_class_def(Env env, Class_Def class_def) {
-  m_bool ret = 1;
-  Class_Body body = class_def->body;
-
-  if(class_def->types)
-    return 1;
-  CHECK_BB(env_push_class(env, class_def->type))
-  while(body && ret > 0) {
+static m_bool scan2_class_def_body(Env env, Class_Body body) {
+  while(body) {
     switch(body->section->type) {
       case ae_section_stmt:
-        ret = scan2_stmt_list(env, body->section->d.stmt_list);
+        CHECK_BB(scan2_stmt_list(env, body->section->d.stmt_list))
         break;
       case ae_section_class:
-        ret = scan2_class_def(env, body->section->d.class_def);
+        CHECK_BB(scan2_class_def(env, body->section->d.class_def))
         break;
       case ae_section_func:
-        ret = scan2_func_def(env, body->section->d.func_def);
+        CHECK_BB(scan2_func_def(env, body->section->d.func_def))
         break;
     }
     body = body->next;
   }
-  CHECK_BB(env_pop_class(env))
+  return 1;
+}
 
-  return ret;
+m_bool scan2_class_def(Env env, Class_Def class_def) {
+  if(class_def->types)
+    return 1;
+  CHECK_BB(env_push_class(env, class_def->type))
+  CHECK_BB(scan2_class_def_body(env, class_def->body))
+  CHECK_BB(env_pop_class(env))
+  return 1;
 }
 
 m_bool scan2_ast(Env env, Ast ast) {
