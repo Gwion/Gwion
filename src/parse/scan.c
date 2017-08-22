@@ -234,7 +234,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(list->self->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
       SET_FLAG(list->self->value, ae_flag_global);
-    if(env->func)
+    if(env->func == (Func)1)
       ADD_REF(list->self->value)
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
@@ -331,9 +331,10 @@ static m_bool scan1_exp(Env env, Exp exp) {
         break;
       case ae_exp_unary:
         if(curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code) {
-          /*env->func = (Func)1;*/
+          Func f = env->func;
+          env->func = f ? f: (Func)2;
           CHECK_BB(scan1_stmt(env, curr->d.exp_unary.code))
-            /*env->func = NULL;*/
+          env->func = f;
         }
         break;
       case ae_exp_binary:
@@ -731,8 +732,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(scan2_exp(env, list->self->array->exp_list))
 
     list->self->value->ptr = list->self->addr;
-    // next line also in scan1_exp_decl
-    list->self->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;
   }
   if(GET_FLAG(type, ae_flag_template)  || (env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
@@ -749,7 +748,6 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     if(list->var_decl->value) {
       if(list->var_decl->value->m_type->array_depth)
         REM_REF(list->var_decl->value->m_type->d.array_type)
-//        REM_REF(list->var_decl->value->m_type)
         list->var_decl->value->m_type = list->type;
     }
 
