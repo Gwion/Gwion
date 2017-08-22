@@ -122,7 +122,7 @@ static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   value = new_value(type, class_def->type->name);
   value->owner = env->curr;
   SET_FLAG(value, ae_flag_const | ae_flag_checked);
-  nspc_add_value(env->curr, class_def->name->xid, value);
+  nspc_add_value(env->curr, insert_symbol(class_def->type->name), value);
   if(class_def->home)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   else
@@ -211,7 +211,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
 
   CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(env, t, decl))
-
+  if(decl->m_type)
+    t = decl->m_type;
   while(list) {
     Value value;
     var_decl = list->self;
@@ -247,7 +248,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   }
   if(decl->types)
     nspc_pop_type(env->curr);
-  else
+  if(!decl->m_type)
     decl->m_type = t;
   return 1;
 }
