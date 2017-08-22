@@ -69,7 +69,7 @@ static int get_pos(void* data)
   TEMPLATE
   NOELSE
   LTB GTB
-  VARARG UNION ATPAREN
+  VARARG UNION ATPAREN TYPEOF
 
 %token<ival> NUM
 %token<fval> FLOAT
@@ -364,9 +364,7 @@ array_empty
 decl_exp
   : conditional_expression
   | type_decl  var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
-  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, 
-get_pos(scanner)); 
-$$->d.exp_decl.types = $2; }
+  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, get_pos(scanner)); $$->d.exp_decl.types = $2; }
   | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, 1, get_pos(scanner)); }
   ;
 
@@ -392,6 +390,7 @@ atsym: { $$ = 0; } | ATSYM { $$ = 1; };
 type_decl
   : ID  atsym  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), $2, get_pos(scanner)); }
   | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(scanner)); }
+  | TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($3, $5, get_pos(scanner)); }
   ;
 
 

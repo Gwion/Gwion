@@ -61,11 +61,17 @@ Type_Decl* new_type_decl(ID_List xid, int ref, int pos) {
   a->xid = xid;
   a->ref = ref;
   a->pos = pos;
-  a->array = NULL;
-  a->dot = NULL;
   return a;
 }
 
+Type_Decl* new_type_decl2(ID_List xid, int ref, int pos) {
+  Type_Decl* a = calloc(1, sizeof(Type_Decl));
+  a->xid = new_id_list("", pos);
+  a->xid->ref = xid; 
+  a->ref = ref;
+  a->pos = pos;
+  return a;
+}
 Array_Sub new_array_sub(Exp exp, int pos) {
   Array_Sub a = calloc(1, sizeof(struct Array_Sub_));
   a->exp_list = exp;
@@ -115,8 +121,6 @@ Exp new_array(Exp base, Array_Sub indices, int pos) {
   a->pos = pos;
   a->d.exp_array.pos = pos;
   a->d.exp_array.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -128,13 +132,11 @@ static void free_array_expression(Exp_Array* a) {
 ID_List new_id_list(const m_str xid, int pos) {
   ID_List a = calloc(1,  sizeof(struct ID_List_));
   a->xid = insert_symbol(xid);
-  a->next = NULL;
   a->pos = pos;
   return a;
 }
 
 ID_List prepend_id_list(const m_str xid, ID_List list, int pos) {
-
   ID_List a = new_id_list(xid, pos);
   a->next = list;
   a->pos = pos;
@@ -146,11 +148,11 @@ void free_id_list(ID_List a) {
   debug_msg("emit", "free_ID_LIST");
 #endif
   ID_List tmp, curr = a;
-  while(curr) {
-    tmp = curr;
-    curr = curr->next;
-    free(tmp);
-  }
+  if(curr->ref)
+    free_id_list(curr->ref);
+  if(curr->next)
+    free_id_list(curr->next);
+  free(curr);
 }
 
 void free_type_decl(Type_Decl* a) {
@@ -171,8 +173,6 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos)
   a->pos  = pos;
   a->d.exp_decl.pos  = pos;
   a->d.exp_decl.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -193,8 +193,6 @@ Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, int pos) {
   a->pos = pos;
   a->d.exp_binary.pos = pos;
   a->d.exp_binary.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -212,8 +210,6 @@ Exp new_exp_cast(Type_Decl* type, Exp exp, int pos) {
   a->d.exp_cast.pos = pos;
   a->d.exp_cast.exp = exp;
   a->d.exp_cast.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -231,8 +227,6 @@ Exp new_exp_postfix(Exp exp, Operator op, int pos) {
   a->pos = pos;
   a->d.exp_postfix.pos = pos;
   a->d.exp_postfix.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -249,8 +243,6 @@ Exp new_exp_dur(Exp base, Exp unit, int pos) {
   a->pos = pos;
   a->d.exp_dur.pos = pos;
   a->d.exp_dur.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -446,8 +438,6 @@ Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos) {
   a->pos = pos;
   a->d.exp_if.pos = pos;
   a->d.exp_if.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -489,8 +479,6 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
   a->d.stmt_ptr.type  = decl;
   a->d.stmt_ptr.xid   = insert_symbol(xid);
   a->d.stmt_ptr.args  = args;
-  a->d.stmt_ptr.func  = NULL;
-  a->d.stmt_ptr.value = NULL;
   a->d.stmt_ptr.pos   = pos;
   a->pos             = pos;
   return a;
@@ -512,13 +500,10 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
   a->meta = ae_meta_value;
   a->d.exp_func.func = base;
   a->d.exp_func.args = args;
-  a->d.exp_func.types = NULL;
   a->pos = pos;
   a->d.exp_func.m_func = NULL;
   a->d.exp_func.pos = pos;
   a->d.exp_func.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -539,8 +524,6 @@ Exp new_exp_dot(Exp base, m_str xid, int pos) {
   a->pos = pos;
   a->d.exp_dot.pos = pos;
   a->d.exp_dot.self = a;
-  a->next = NULL;
-  a->cast_to = NULL;
   return a;
 }
 
@@ -968,7 +951,6 @@ Class_Def new_class_def(ae_flag class_decl, ID_List name, ID_List ext, Class_Bod
   a->ext  = ext;
   a->body = body;
   a->pos  = pos;
-  a->type = NULL;
   return a;
 }
 
@@ -976,7 +958,6 @@ Class_Body new_class_body(Section* section, int pos) {
   Class_Body a = calloc(1, sizeof(struct Class_Body_));
   a->section = section;
   a->pos = pos;
-  a->next = NULL;
   return a;
 }
 

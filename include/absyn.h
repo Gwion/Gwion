@@ -94,6 +94,7 @@ typedef struct {
   int pos;
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);
+Type_Decl* new_type_decl2(ID_List name, int ref, int pos);
 void free_type_decl(Type_Decl* a);
 
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos);
@@ -101,6 +102,7 @@ Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos);
 struct ID_List_    {
   S_Symbol xid;
   ID_List next;
+  ID_List ref;
   int pos;
 };
 ID_List new_id_list(const m_str xid, int pos);
