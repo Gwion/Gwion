@@ -684,22 +684,27 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   return 1;
 }
 
-Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
+static m_bool check_exp_call1_check(Env env, Exp exp_func, Value* ptr) {
+  if(!(exp_func->type = check_exp(env, exp_func)))
+    CHECK_BB(err_msg(TYPE_, exp_func->pos,
+          "function call using a non-existing function"))
+  if(isa(exp_func->type, &t_function) < 0)
+    CHECK_BB(err_msg(TYPE_, exp_func->pos,
+          "function call using a non-function value"))
+  if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
+    !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
+      *ptr = exp_func->d.exp_primary.value;
+  return 1;
+}
+
+Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func call");
 #endif
   Func func = NULL;
   Value ptr = NULL;
 
-  if(!(exp_func->type = check_exp(env, exp_func)))
-    CHECK_BO(err_msg(TYPE_, exp_func->pos,
-          "function call using a non-existing function"))
-  if(isa(exp_func->type, &t_function) < 0)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos,
-          "function call using a non-function value"))
-  if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
-    !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
-      ptr = exp_func->d.exp_primary.value;
+  CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   CHECK_BO(check_exp_call1_template(env, exp_func->type->d.func))
   if(args)
     CHECK_OO(check_exp(env, args))
@@ -716,7 +721,6 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func, int pos) {
     func = ptr->func_ref = f;
   }
   *m_func = func;
-
   if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template))
     nspc_pop_type(env->curr);
   return func->def->ret_type;
@@ -795,7 +799,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
   if((lhs->type->array_depth && rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
     return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
-    return check_exp_call1(env, rhs, lhs, &binary->func, binary->pos);
+    return check_exp_call1(env, rhs, lhs, &binary->func);
   if(isa(binary->lhs->type, &t_varobj) > 0 && binary->op == op_at_chuck)
     return rhs->type;
   if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
@@ -1045,7 +1049,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
     return ret->def->ret_type;
   }
   env->current = call;
-  return check_exp_call1(env, call->func, call->args, &call->m_func, call->pos);
+  return check_exp_call1(env, call->func, call->args, &call->m_func);
 }
 
 static Type check_exp_unary_spork(Env env, Stmt code) {
