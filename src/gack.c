@@ -51,29 +51,29 @@ static void print_int(m_int i) {
 }
 
 static void print_float(m_float f) {
-      fprintf(stdout, "%s%.4f%s", BOLD, f, CLEAR);
+  fprintf(stdout, "%s%.4f%s", BOLD, f, CLEAR);
 }
 
 static void print_complex(m_complex c) {
-  printf("#(");
+  fprintf(stdout, "#(");
   print_float(creal(c));
   print_float(cimag(c));
-  printf(")");
+  fprintf(stdout, ")");
 }
 
 static void print_polar(m_complex c) {
-  printf("%%(");
+  fprintf(stdout, "%%(");
   print_float(creal(c));
   print_float(cimag(c));
-  printf("*pi)");
+  fprintf(stdout, "*pi)");
 }
 
 static void print_vec(char* f, m_uint size) {
   m_uint i;
-  printf("@(");
+  fprintf(stdout, "@(");
   for(i = 0; i < size; i++)
     print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
-  printf(")");
+  fprintf(stdout, ")");
 }
 
 static void print_string(M_Object obj) {
