@@ -76,8 +76,41 @@ static void print_vec(char* f, m_uint size) {
   fprintf(stdout, ")");
 }
 
+static void print_string1(m_str str) {
+  fprintf(stdout, "%s%s%s", BOLD, str , CLEAR);
+}
+
 static void print_string(M_Object obj) {
-  fprintf(stdout, "%s%s%s", BOLD, obj ? STRING(obj) : "(null string)", CLEAR);
+  print_string1(obj ? STRING(obj) : "(null string)");
+}
+
+static void print_object(Type type, M_Object obj) {
+  if(isa(type, &t_string) > 0)
+    print_string(obj);
+  else
+    fprintf(stdout, "%s%p%s", BOLD, (void*)obj, CLEAR);
+}
+
+static void print_func(Type type, char* stack) {
+    if(isa(type, &t_func_ptr) > 0)
+      fprintf(stdout, "%p", (void*) * (Func*)stack);
+    else
+      fprintf(stdout, "%s%s%s", BOLD, type->name, CLEAR);
+}
+
+static void print_prim(Type type, char* stack) {
+    if(isa(type, &t_int) > 0)
+      print_int(*(m_int*)stack);
+    else if(type->xid == te_complex)
+      print_complex(*(m_complex*)stack);
+    else if(type->xid == te_polar)
+      print_polar(*(m_complex*)stack);
+    else if(type->xid == te_vec3)
+      print_vec(stack, 3);
+    else if(type->xid == te_vec4)
+      print_vec(stack, 4);
+    else
+     print_float(*(m_float*)stack);
 }
 
 INSTR(Gack) {
@@ -86,37 +119,18 @@ INSTR(Gack) {
   m_uint i, size = vector_size(v);
   m_uint longest = get_longest(shred, v);
   for(i = size + 1; --i;) {
-#ifdef DEBUG
-    fprintf(stdout, "%s%s[DEBUG]%s [%s%lu%s] ", BOLD, BLUE, CLEAR,
-        BOLD, shred->xid, CLEAR);
-#endif
     type = (Type)vector_at(v, size - i);
     print_type(type, longest);
-    if(isa(type, &t_int) > 0)
-      print_int(*(m_int*)REG(0));
-    else if(type->xid == te_float || type->xid == te_dur ||
-            type->xid == te_time  || type->xid == te_now)
-      print_float(*(m_float*)REG(0));
-    else if(type->xid == te_complex)
-      print_complex(*(m_complex*)REG(0));
-    else if(type->xid == te_polar)
-      print_polar(*(m_complex*)REG(0));
-    else if(type->xid == te_vec3)
-      print_vec(REG(0), 3);
-    else if(type->xid == te_vec4)
-      print_vec(REG(0), 4);
-    else if(isa(type, &t_string) > 0)
-      print_string(*(M_Object*)REG(0));
-    else if(type->xid == te_void)
-      fprintf(stdout, "(%svoid%s)", BOLD, CLEAR);
-    else if(type->xid == te_function)
-        fprintf(stdout, "%s%s%s", BOLD, type->name, CLEAR);
-    else if(isa(type, &t_func_ptr) > 0)
-      fprintf(stdout, "%p %s  %p", (void*)type, type->name, (void*) * (Func*)REG(0));
+    if(isa(type, &t_object) > 0)
+      print_object(type, *(M_Object*)REG(0));
+    else if(isa(type, &t_function) > 0)
+      print_func(type, REG(0));
     else if(type->xid == te_class)
-      fprintf(stdout, "%s%s%s", BOLD, type->d.actual_type->name, CLEAR);
+      print_string1(type->d.actual_type->name);
+    else if(type->xid == te_void)
+      print_string1("void");
     else
-      fprintf(stdout, "%p", (void*) * (M_Object*)REG(0));
+      print_prim(type, REG(0));
     fprintf(stdout, "%s\n", CLEAR);
     PUSH_REG(shred,  type->size);
   }
