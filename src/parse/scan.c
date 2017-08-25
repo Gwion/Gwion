@@ -735,47 +735,48 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   return 1;
 }
 
+static m_bool scan2_arg_def_check(Arg_List list) {
+  if(list->var_decl->value) {
+    if(list->var_decl->value->m_type->array_depth)
+      REM_REF(list->var_decl->value->m_type->d.array_type)
+      list->var_decl->value->m_type = list->type;
+  }
+  if(!list->type->size)
+    /*nspc_pop_value(env->curr);*/
+    CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
+  if(isres(list->var_decl->xid, list->pos) > 0)
+    /*nspc_pop_value(env->curr);*/
+    return -1;
+  if((isprim(list->type) > 0) && list->type_decl->ref)
+    /*nspc_pop_value(env->curr);*/
+    CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
+                  "cannot declare references (@) of primitive type '%s'...\n"
+                  "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name))
+  return 1;
+}
+
+static m_bool scan2_arg_def_array(Env env, Arg_List list) {
+  CHECK_BB(verify_array(list->var_decl->array))
+  if(list->var_decl->array->exp_list)
+    CHECK_BB(err_msg(SCAN2_, list->pos,
+                  "\t'%s': function arguments must be defined with empty []'s",
+                  s_name(list->var_decl->xid)))
+  list->type  = new_array_type(env, list->var_decl->array->depth, 
+      list->type, env->curr);
+  list->type_decl->ref = 1;
+  return 1;
+}
+
 static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
     Value v;
-
-    if(list->var_decl->value) {
-      if(list->var_decl->value->m_type->array_depth)
-        REM_REF(list->var_decl->value->m_type->d.array_type)
-        list->var_decl->value->m_type = list->type;
-    }
-
-    if(!list->type->size) {
-      nspc_pop_value(env->curr);
-      CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
-    }
-    if(isres(list->var_decl->xid, list->pos) > 0) {
+    if(scan2_arg_def_check(list) < 0 || 
+        (list->var_decl->array && scan2_arg_def_array(env, list) < 0)) {
       nspc_pop_value(env->curr);
       return -1;
     }
-    if((isprim(list->type) > 0) && list->type_decl->ref) {
-      nspc_pop_value(env->curr);
-      CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
-                    "cannot declare references (@) of primitive type '%s'...\n"
-                    "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name))
-    }
-    if(list->var_decl->array) {
-      CHECK_BB(verify_array(list->var_decl->array))
-      Type t = list->type;
-      Type t2 = t;
-      if(list->var_decl->array->exp_list) {
-        nspc_pop_value(env->curr);
-        CHECK_BB(err_msg(SCAN2_, list->pos,
-                      "\targument #%i '%s' must be defined with empty []'s",
-                      count, s_name(list->var_decl->xid)))
-      }
-      t = new_array_type(env, list->var_decl->array->depth, t2, env->curr);
-      list->type_decl->ref = 1;
-      list->type = t;
-    }
-
     v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
