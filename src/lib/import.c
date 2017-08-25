@@ -1,3 +1,4 @@
+#include <math.h>
 #include <string.h>
 #include "err_msg.h"
 #include "env.h"
@@ -177,7 +178,7 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   return var.value->offset;
 }
 
-static Array_Sub make_dll_arg_list_array(Array_Sub array_sub, 
+static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   m_uint* array_depth, m_uint array_depth2) {
   m_uint i;
   if(array_depth2)
@@ -321,16 +322,18 @@ m_bool import_values(Env env) {
   ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
   ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
   ALLOC_PTR(t_zero, m_float, 0.0);
+  ALLOC_PTR(pi, m_float, M_PI);
 
-  env_add_value(env, "d_zero",     &t_dur,  1, d_zero);
-  env_add_value(env, "samplerate", &t_dur,  1, sr);
-  env_add_value(env, "samp",       &t_dur,  1, samp);
-  env_add_value(env, "ms",         &t_dur,  1, ms);
-  env_add_value(env, "second",     &t_dur,  1, second);
-  env_add_value(env, "minute",     &t_dur,  1, minute);
-  env_add_value(env, "day",        &t_dur,  1, hour);
-  env_add_value(env, "hour",       &t_dur,  1, day);
-  env_add_value(env, "t_zero",     &t_time, 1, t_zero);
+  env_add_value(env, "d_zero",     &t_dur,   1, d_zero);
+  env_add_value(env, "samplerate", &t_dur,   1, sr);
+  env_add_value(env, "samp",       &t_dur,   1, samp);
+  env_add_value(env, "ms",         &t_dur,   1, ms);
+  env_add_value(env, "second",     &t_dur,   1, second);
+  env_add_value(env, "minute",     &t_dur,   1, minute);
+  env_add_value(env, "day",        &t_dur,   1, hour);
+  env_add_value(env, "hour",       &t_dur,   1, day);
+  env_add_value(env, "t_zero",     &t_time,  1, t_zero);
+  env_add_value(env, "pi",         &t_float, 1, pi);
 
   return 1;
 }
