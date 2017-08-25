@@ -59,7 +59,8 @@ static void free_var_decl_list(Var_Decl_List a) {
 Type_Decl* new_type_decl(ID_List xid, int ref, int pos) {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = xid;
-  a->ref = ref;
+  if(ref)
+    SET_FLAG(a, ae_flag_ref);
   a->pos = pos;
   return a;
 }
@@ -68,7 +69,8 @@ Type_Decl* new_type_decl2(ID_List xid, int ref, int pos) {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = new_id_list("", pos);
   a->xid->ref = xid;
-  a->ref = ref;
+  if(ref)
+    SET_FLAG(a, ae_flag_ref);
   a->pos = pos;
   return a;
 }

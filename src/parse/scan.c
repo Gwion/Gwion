@@ -193,7 +193,7 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
   if(!t->size)
     CHECK_BO(err_msg(SCAN2_, decl->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
-  if(!decl->type->ref) {
+  if(!GET_FLAG(decl->type, ae_flag_ref)) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
       CHECK_BO(err_msg(SCAN2_, decl->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
@@ -231,7 +231,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
       t = new_array_type(env, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
-        decl->type->ref = 1;
+        SET_FLAG(decl->type, ae_flag_ref);
     }
     list->self->value = new_value(t, s_name(list->self->xid));
     if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
@@ -586,7 +586,7 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
       "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
   }
   t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
-  f->type_decl->ref = 1;
+  SET_FLAG(f->type_decl, ae_flag_ref);
   f->ret_type = t;
   return 1;
 }
@@ -723,7 +723,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
 
   if(isa(type, &t_shred) > 0)
-    decl->type->ref = 1;
+    SET_FLAG(decl->type, ae_flag_ref);
   CHECK_BB(scan2_exp_decl_template(env, decl))
   while(list) {
     if(list->self->array && list->self->array->exp_list)
@@ -747,7 +747,7 @@ static m_bool scan2_arg_def_check(Arg_List list) {
   if(isres(list->var_decl->xid, list->pos) > 0)
     /*nspc_pop_value(env->curr);*/
     return -1;
-  if((isprim(list->type) > 0) && list->type_decl->ref)
+  if((isprim(list->type) > 0) && GET_FLAG(list->type_decl, ae_flag_ref))
     /*nspc_pop_value(env->curr);*/
     CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
                   "cannot declare references (@) of primitive type '%s'...\n"
@@ -763,7 +763,7 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
                   s_name(list->var_decl->xid)))
   list->type  = new_array_type(env, list->var_decl->array->depth, 
       list->type, env->curr);
-  list->type_decl->ref = 1;
+  SET_FLAG(list->type, ae_flag_ref);
   return 1;
 }
 
@@ -1297,7 +1297,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-  if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
+  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref)) {
     err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
             "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
     return -1;

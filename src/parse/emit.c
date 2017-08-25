@@ -516,7 +516,7 @@ static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
 
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  m_bool ref = decl->type->ref;
+  m_bool ref = GET_FLAG(decl->type, ae_flag_ref);
   m_bool var = decl->self->emit_var;
 
   if(GET_FLAG(decl->m_type, ae_flag_template))
@@ -859,7 +859,8 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
       CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func)))
       break;
     case op_new:
-      CHECK_BB(emit_instantiate_object(emit, unary->self->type, unary->array, unary->type->ref))
+      CHECK_BB(emit_instantiate_object(emit, unary->self->type, 
+            unary->array, GET_FLAG(unary->type, ae_flag_ref)))
       break;
     default:
       return get_instr(emit, unary->op, NULL, unary->exp->type) ? 1 : -1;
@@ -1627,7 +1628,7 @@ static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
     Type type = value->m_type;
     Local* local;
     m_bool obj = !isprim(type);
-    m_bool ref = a->type_decl->ref;
+    m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref);
     emit->code->stack_depth += type->size;
     if(!(local = frame_alloc_local(emit->code->frame, type->size, ref, obj)))
       CHECK_BB(err_msg(EMIT_, a->pos,

@@ -148,7 +148,7 @@ m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_ui
   Type_Decl t;
   memset(&t, 0, sizeof(Type_Decl));
   t.xid = path;
-  t.ref = ((flag & ae_flag_ref) == ae_flag_ref);
+  t.flag = flag;
   if(array_depth) {
     t.array = new_array_sub(NULL, 0);
     t.array->depth = array_depth;

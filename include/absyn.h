@@ -90,7 +90,7 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Exp_Dot* dot;
-  int ref;
+  m_uint flag;
   int pos;
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);

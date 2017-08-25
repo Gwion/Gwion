@@ -803,7 +803,7 @@ static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary)
 
 static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
   if(cr->exp_type == ae_exp_decl)
-    cr->d.exp_decl.type->ref = 1;
+    SET_FLAG(cr->d.exp_decl.type, ae_flag_ref);
 
   if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
     CHECK_BB(err_msg(TYPE_, cl->pos,
@@ -904,7 +904,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
   if(binary->op == op_at_chuck) {
     if(isa(binary->lhs->type, &t_null) > 0 &&
         isa(binary->rhs->type, &t_object) > 0) {
-      if(cr->exp_type == ae_exp_decl && !cr->d.exp_decl.type->ref) {
+      if(cr->exp_type == ae_exp_decl && !GET_FLAG(cr->d.exp_decl.type, ae_flag_ref)) {
         CHECK_BO(err_msg(TYPE_, cr->pos, "can't 'NULL' assign declaration."))
         return NULL;
       }
