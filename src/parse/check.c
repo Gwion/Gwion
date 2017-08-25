@@ -504,43 +504,23 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    if(v->owner_class)
-      value = find_value(v->owner_class, insert_symbol(name));
-    else
-      value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+    value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
+            nspc_lookup_value(env->curr, insert_symbol(name), 1);
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
     base = value->func_ref->def;
     Func_Def def = new_func_def(base->flag,
                                 base->type_decl, s_name(func->d.exp_primary.d.var),
                                 base->arg_list, base->code, func->pos);
-    Type_List list = types;
-    ID_List base_t = base->types;
     SET_FLAG(def, ae_flag_template);
-    nspc_push_type(env->curr);
-    while(base_t) {
-      ID_List tmp = base_t->next;;
-      if(!list || !list->list)
-        break;
-      nspc_add_type(env->curr, base_t->xid, find_type(env, list->list));
-      base_t->next = tmp;
-      if((list->next && !base_t->next) || // too many
-          (!list->next && base_t->next)) { // not enough
-        nspc_pop_type(env->curr);
-        goto next;
-      }
-      list = list->next;
-      base_t = base_t->next;
-    }
+    CHECK_BO(template_push_types(env, base->types, types))
     if(find_template_match_inner(env, func, def, args) < 0)
       goto next;
     def->d.func->next = NULL;
     m_func = find_func_match(def->d.func, args);
     if(m_func) {
-      if(v->owner_class) {
-        env->class_def = (Type)vector_pop(&env->class_stack);
-        env->curr = (Nspc)vector_pop(&env->nspc_stack);
-      }
+      if(v->owner_class)
+        env_pop_class(env);
       SET_FLAG(m_func, ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
@@ -550,10 +530,8 @@ next:
       def->d.func->def = NULL;
     free_func_def(def);
   }
-  if(v->owner_class) {
-    env->class_def = (Type)vector_pop(&env->class_stack);
-    env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  }
+  if(v->owner_class)
+    env_pop_class(env);
   return NULL;
 }
 
