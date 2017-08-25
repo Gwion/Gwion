@@ -40,49 +40,46 @@ m_bool isprim(Type type) {
   return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
 }
 
-Type find_type(Env env, ID_List path) {
-  S_Symbol xid = NULL;
-  Nspc nspc;
-  Type t = NULL;
-
-  if(path->ref) {
-    path = path->ref;
-    Value v = nspc_lookup_value(env->curr, path->xid, -1);
-    Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
+Type find_typeof(Env env, ID_List path) {
+  path = path->ref;
+  Value v = nspc_lookup_value(env->curr, path->xid, -1);
+  Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
+  path = path->next;
+  while(path) {
+    CHECK_OO((v = find_value(t, path->xid)))
+    t = v->m_type;
     path = path->next;
-    while(path) {
-        CHECK_OO((v = find_value(t, path->xid)))
-        t = v->m_type;
-        path = path->next;
-      }
-    return v->m_type;
   }
-  Type type = nspc_lookup_type(env->curr, path->xid, 1);
-  if(!type)
-    return NULL;
+  return v->m_type;
+}
+
+Type find_type(Env env, ID_List path) {
+  Nspc nspc;
+  Type type;
+
+  if(path->ref)
+    return find_typeof(env, path);
+  CHECK_OO((type = nspc_lookup_type(env->curr, path->xid, 1)))
   nspc = type->info;
   path = path->next;
 
   while(path) {
-    xid = path->xid;
-    t = nspc_lookup_type(nspc, xid, 1);
+    S_Symbol xid = path->xid;
+    Type t = nspc_lookup_type(nspc, xid, 1);
     while(!t && type && type->parent) {
       t = nspc_lookup_type(type->parent->info, xid, -1);
       type = type->parent;
     }
-    if(!t) {
-      err_msg(UTIL_, path->pos,
-              "...(cannot find class '%s' in nspc '%s')",
-              s_name(xid), nspc->name);
-      return NULL;
-    }
+    if(!t)
+      CHECK_BO(err_msg(UTIL_, path->pos,
+            "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name))
     type = t;
     if(type)
       nspc = type->info;
     path = path->next;
   }
   return type;
-}
+ }
 
 m_bool name_valid(m_str a) {
   m_uint i, len = strlen(a);
