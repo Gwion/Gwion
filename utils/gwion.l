@@ -55,7 +55,13 @@ static int newline(void*data)
 char *gwion_get_text(yyscan_t yyscanner );
 
 static int adjust(void* data);
-static int comment_depth;
+
+static int comment_depth(void* data, m_uint i) {
+  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
+  arg->comment_depth += i;
+  return arg->comment_depth;
+}
+
 %}
 
 
@@ -78,10 +84,10 @@ static int comment_depth;
 
 
 
-<INITIAL,COMMENT>"/*"               { BEGIN(COMMENT); comment_depth++;}
+<INITIAL,COMMENT>"/*"               { BEGIN(COMMENT); comment_depth(yyscanner, +1);}
 <COMMENT>.                          { adjust(yyscanner); continue;}
 <COMMENT>\n                         { newline(yyscanner); continue;}
-<COMMENT,INITIAL>"*/"               { comment_depth--; if(!comment_depth)BEGIN(INITIAL); }
+<COMMENT,INITIAL>"*/"               { if(!comment_depth(yyscanner, -1))BEGIN(INITIAL); }
 
 
 "\n"                                { newline(yyscanner); continue; }
@@ -254,6 +260,7 @@ Ast parse(m_str filename)
   gwion_set_extra(&arg, arg.scanner);
   map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
   arg.line = 1; arg.pos  = 0;
+  arg.comment_depth = 0;
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
