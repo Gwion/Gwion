@@ -8,9 +8,6 @@
 #include "instr.h"
 #include "import.h"
 #include "func.h"
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
 
 #define overflow_(c) (c->mem >  (c->_mem + (SIZEOF_MEM) - (MEM_STEP)))
 

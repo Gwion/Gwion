@@ -2,10 +2,6 @@
 #include "instr.h"
 #include "func.h"
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
-
 #ifdef COLOR
 #define BOLD  "\033[1m"
 #define CLEAR "\033[0m"
