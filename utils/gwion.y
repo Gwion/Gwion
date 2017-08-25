@@ -366,6 +366,7 @@ decl_exp
   | type_decl  var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
   | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, get_pos(scanner)); $$->d.exp_decl.types = $2; }
   | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, 1, get_pos(scanner)); }
+  | STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($5, $6, 1, get_pos(scanner)); $$->d.exp_decl.types = $3; }
   ;
 
 func_args

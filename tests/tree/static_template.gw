@@ -1,0 +1,8 @@
+template <{A}>
+class C { A a; }
+
+class D { static <{int}>C c; }
+
+D d;
+<<<d>>>;
+<<<D.c.a>>>;
