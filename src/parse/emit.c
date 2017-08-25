@@ -232,7 +232,7 @@ static m_bool emit_symbol_actual(Emitter emit, Value v) {
 static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos) {
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
     return emit_symbol_owned(emit, symbol, v, emit_var, pos);
-  if(GET_FLAG(v, ae_flag_const))
+  if(GET_FLAG(v, ae_flag_const) && !GET_FLAG(v, ae_flag_uconst))
     return emit_symbol_const(emit, v, emit_var);
   if(emit_var)
     return emit_symbol_addr(emit, v);
