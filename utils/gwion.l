@@ -192,6 +192,7 @@ static int comment_depth(void* data, m_uint i) {
 "case"                              { adjust(yyscanner); return CASE;}
 "enum"                              { adjust(yyscanner); return ENUM;}
 "typeof"                            { adjust(yyscanner); return TYPEOF;}
+"const"                             { adjust(yyscanner); return CONST;}
 
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }

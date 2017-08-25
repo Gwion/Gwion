@@ -69,7 +69,7 @@ static int get_pos(void* data)
   TEMPLATE
   NOELSE
   LTB GTB
-  VARARG UNION ATPAREN TYPEOF
+  VARARG UNION ATPAREN TYPEOF CONST
 
 %token<ival> NUM
 %token<fval> FLOAT
@@ -389,9 +389,12 @@ func_def
 atsym: { $$ = 0; } | ATSYM { $$ = 1; };
 
 type_decl
-  : ID  atsym  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), $2, get_pos(scanner)); }
+  : ID atsym  { $$ = new_type_decl(new_id_list($1, get_pos(scanner)), $2, get_pos(scanner)); }
+  | CONST ID atsym  { $$ = new_type_decl(new_id_list($2, get_pos(scanner)), $3, get_pos(scanner)); SET_FLAG($$, ae_flag_const); }
   | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(scanner)); }
+  | CONST LT id_dot GT atsym { $$ = new_type_decl($3, $5, get_pos(scanner)); SET_FLAG($$, ae_flag_const); }
   | TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($3, $5, get_pos(scanner)); }
+  | CONST TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($4, $6, get_pos(scanner)); SET_FLAG($$, ae_flag_const); }
   ;
 
 
