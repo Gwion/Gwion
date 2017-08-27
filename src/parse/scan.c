@@ -672,10 +672,9 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan1_ast(Env env, Ast ast) {
-  Ast prog = ast;
-  while(prog) {
+  while(ast) {
     CHECK_BB(scan1_section(env, ast->section))
-    prog = prog->next;
+    ast = ast->next;
   }
   return 1;
 }

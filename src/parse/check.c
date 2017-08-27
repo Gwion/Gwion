@@ -1640,19 +1640,20 @@ m_bool check_func_def(Env env, Func_Def f) {
   return ret;
 }
 
+static m_bool check_section(Env env, Section* section) {
+  ae_Section_Type t = section->type;
+  if(t == ae_section_stmt)
+    CHECK_BB(check_stmt_list(env, section->d.stmt_list))
+  else if(t == ae_section_func)
+    CHECK_BB(check_func_def(env, section->d.func_def))
+  else if(t == ae_section_class)
+    CHECK_BB(check_class_def(env, section->d.class_def))
+  return 1;
+}
+
 static m_bool check_class_def_body(Env env, Class_Body body) {
   while(body) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(check_stmt_list(env, body->section->d.stmt_list))
-        break;
-      case ae_section_func:
-        CHECK_BB(check_func_def(env, body->section->d.func_def))
-        break;
-      case ae_section_class:
-        CHECK_BB(check_class_def(env, body->section->d.class_def))
-        break;
-    }
+    CHECK_BB(check_section(env, body->section))
     body = body->next;
   }
   return 1;
@@ -1700,23 +1701,9 @@ m_bool check_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool check_ast(Env env, Ast ast) {
-#ifdef DEBUG_TYPE
-  debug_msg("type", "context");
-#endif
-  Ast prog = ast;
-  while(prog) {
-    switch(prog->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(check_stmt_list(env, prog->section->d.stmt_list))
-        break;
-      case ae_section_func:
-        CHECK_BB(check_func_def(env, prog->section->d.func_def))
-        break;
-      case ae_section_class:
-        CHECK_BB(check_class_def(env, prog->section->d.class_def))
-        break;
-    }
-    prog = prog->next;
+  while(ast) {
+    CHECK_BB(check_section(env, ast->section))
+    ast = ast->next;
   }
   return 1;
 }

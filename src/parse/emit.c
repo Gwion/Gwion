@@ -1707,6 +1707,16 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   return 1;
 }
 
+static m_bool emit_section(Emitter emit, Section* section) {
+  ae_Section_Type t = section->type;
+  if(t == ae_section_stmt)
+    CHECK_BB(emit_stmt_list(emit, section->d.stmt_list))
+  else if(t == ae_section_func)
+    CHECK_BB(emit_func_def(emit, section->d.func_def))
+  else if(t == ae_section_class)
+    CHECK_BB(emit_class_def(emit, section->d.class_def))
+  return 1;
+}
 static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Type type = class_def->type;
   m_bool ret = 1;
@@ -1735,17 +1745,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
     CHECK_BB(err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
 
     while(body && ret > 0) {
-      switch(body->section->type) {
-        case ae_section_stmt:
-          ret = emit_stmt_list(emit, body->section->d.stmt_list);
-          break;
-        case ae_section_func:
-          ret = emit_func_def(emit, body->section->d.func_def);
-          break;
-        case ae_section_class:
-          ret = emit_class_def(emit, body->section->d.class_def);
-          break;
-      }
+      ret = emit_section(emit, body->section);
       body = body->next;
     }
 
@@ -1770,19 +1770,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   frame_push_scope(emit->code->frame);
   sadd_instr(emit, start_gc);
   while(prog && ret > 0) {
-    if(!prog->section)
-      return 1;
-    switch(prog->section->type) {
-      case ae_section_stmt:
-        ret = emit_stmt_list(emit, prog->section->d.stmt_list);
-        break;
-      case ae_section_func:
-        ret = emit_func_def(emit, prog->section->d.func_def);
-        break;
-      case ae_section_class:
-        ret = emit_class_def(emit, prog->section->d.class_def);
-        break;
-    }
+    ret = emit_section(emit, prog->section);
     prog = prog->next;
   }
   sadd_instr(emit, stop_gc);
@@ -1797,6 +1785,6 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     free(filename);
     free_code(emit->code);
     free_ast(ast);
-  }
+  } 
   return ret;
 }
