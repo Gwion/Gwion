@@ -56,6 +56,10 @@ static inline m_uint m_vector_cap(M_Vector v) {
   return v->cap;
 }
 
+char* m_vector_at(M_Vector v, m_uint i) {
+  return (v->ptr + i * v->size);
+}
+
 m_uint  i_vector_at(M_Vector v, m_uint i) {
   return *(m_uint*)(v->ptr + i * v->size);
 }
@@ -106,6 +110,10 @@ void v4_vector_add(M_Vector v, m_vec4 c) {
   *(m_vec4*)(v->ptr + (v->len - 1)*v->size) = c;
 }
 
+void m_vector_set(M_Vector v, m_uint i, char* data) {
+  memcpy(v->ptr + i * v->size, data,  v->size);
+}
+
 void i_vector_set(M_Vector v, m_uint i, m_uint data) {
   *(m_uint*)(v->ptr + i * v->size) = data;
 }
@@ -145,6 +153,10 @@ MFUN(vm_vector_rem) {
   if(index < 0 || index >= v->len)
     return;
   m_vector_rem(v, index);
+}
+
+char* m_vector_addr(M_Vector v, m_uint i) {
+  return &*(char*)(v->ptr + i * v->size);
 }
 
 m_uint*  i_vector_addr(M_Vector v, m_uint i) {

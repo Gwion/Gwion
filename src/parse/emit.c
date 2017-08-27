@@ -272,7 +272,7 @@ static m_bool emit_exp_prim_array(Emitter emit, Array_Sub array) {
   info->type = type;
   info->length = count;
   *(VM_Array_Info**)instr->ptr = info;
-  instr->m_val2 = kindof(type->d.array_type);
+  instr->m_val2 = type->d.array_type->size;
   return 1;
 }
 

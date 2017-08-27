@@ -86,13 +86,11 @@ INSTR(assign_func) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "assign func");
 #endif
-
   if(!instr->m_val) {
     POP_REG(shred,  SZ_INT * 2);
     **(m_uint**)REG(SZ_INT) = *(m_uint*)REG(0);
   } else {
     POP_REG(shred,  SZ_INT * 4);
-
     Func f = (Func) * (m_uint*)REG(SZ_INT);
     M_Object obj = *(M_Object*)REG(SZ_INT * 2);
     *(Func*)(obj->data + instr->m_val2) = f;
@@ -422,20 +420,18 @@ void handle_overflow(VM_Shred shred) {
 static void shred_func_prepare(VM_Shred shred, Instr instr) {
   POP_REG(shred,  SZ_INT * 2);
   VM_Code code = *(VM_Code*)REG(0);
-  m_uint stack_depth = code->stack_depth;
   m_uint local_depth = *(m_uint*)REG(SZ_INT);
   m_uint prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
   m_uint push = prev_stack + local_depth;
-  m_uint next = shred->pc + 1;
 
   PUSH_MEM(shred, push);
   *(m_uint*)MEM(0)  = push;
   PUSH_MEM(shred,  SZ_INT);
   *(m_uint*)MEM(0)  = (m_uint)shred->code;
   PUSH_MEM(shred,  SZ_INT);
-  *(m_uint*)MEM(0)  = (m_uint)next;
+  *(m_uint*)MEM(0)  = shred->pc + 1;
   PUSH_MEM(shred,  SZ_INT);
-  *(m_uint*)MEM(0)  = (m_uint)stack_depth;
+  *(m_uint*)MEM(0)  = (m_uint)code->stack_depth;
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
   shred->code = code;
@@ -467,7 +463,7 @@ INSTR(Instr_Exp_Func) {
   if(stack_depth) {
     POP_REG(shred,  stack_depth);
     shred_func_need_this(shred);
-    memcpy(shred->mem, shred->reg, stack_depth 
+    memcpy(shred->mem, shred->reg, stack_depth
         - (code->need_this ? SZ_INT : 0));
   }
   shred_func_finish(shred);
@@ -610,10 +606,12 @@ INSTR(Func_Return) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "func return %p", MEM(0));
 #endif
+  VM_Code func;
+
   POP_MEM(shred,  SZ_INT * 2);
   shred->next_pc = *(m_uint*)MEM(0);
   POP_MEM(shred,  SZ_INT);
-  VM_Code func = *(VM_Code*)MEM(0);
+  func = *(VM_Code*)MEM(0);
   POP_MEM(shred,  SZ_INT);
   POP_MEM(shred, *(m_uint*)MEM(0));
   shred->code = func;
@@ -939,47 +937,29 @@ INSTR(Instr_Array_Init) { // for litteral array
   m_uint i;
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object obj;
-  switch(instr->m_val2) {
-    case Kindof_Int:
-      POP_REG(shred,  SZ_INT * info->length);
-      break;
-    case Kindof_Float:
-      POP_REG(shred,  SZ_FLOAT * info->length);
-      break;
-    case Kindof_Complex:
-      POP_REG(shred,  SZ_COMPLEX * info->length);
-      break;
-    case Kindof_Vec3:
-      POP_REG(shred,  SZ_VEC3 * info->length);
-      break;
-    case Kindof_Vec4:
-      POP_REG(shred,  SZ_VEC4 * info->length);
-      break;
-  }
+  POP_REG(shred, instr->m_val2 * info->length);
   obj = new_M_Array(info->type->d.array_type->size, info->length, info->depth);
   obj->type_ref = info->type;
   vector_add(&shred->gc, (vtype) obj);
-  for(i = 0; i < info->length; i++) {
-    switch(instr->m_val2) {
-      case Kindof_Int:
-        i_vector_set(ARRAY(obj), i, *(m_uint*)REG(SZ_INT * i));
-        break;
-      case Kindof_Float:
-        f_vector_set(ARRAY(obj), i, *(m_float*)REG(SZ_FLOAT * i));
-        break;
-      case Kindof_Complex:
-        c_vector_set(ARRAY(obj), i, *(m_complex*)REG(SZ_COMPLEX * i));
-        break;
-      case Kindof_Vec3:
-        v3_vector_set(ARRAY(obj), i, *(m_vec3*)REG(SZ_VEC3 * i));
-        break;
-      case Kindof_Vec4:
-        v4_vector_set(ARRAY(obj), i, *(m_vec4*)REG(SZ_VEC4 * i));
-        break;
-    }
-  }
+  for(i = 0; i < info->length; i++)
+    m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
   PUSH_REG(shred,  SZ_INT);
+}
+
+static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) {
+  m_int curr = -info->depth;
+  m_int top = - 1;
+  m_int tmp;
+  *num_obj = 1;
+  while(curr <= top) {
+    tmp = *(m_int*)REG(SZ_INT * curr);
+    *num_obj *= tmp;
+    curr++;
+  }
+  if(*num_obj > 0)
+    return (m_uint*)calloc(*num_obj, sizeof(m_uint));
+  return (m_uint*)1;
 }
 
 INSTR(Instr_Array_Alloc) {
@@ -990,36 +970,17 @@ INSTR(Instr_Array_Alloc) {
   M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
-  m_float num = 1.0;
-  m_uint* obj_array = NULL;
-  struct ArrayAllocInfo aai = { -info->depth, -1, info->type,  info->is_obj, obj_array, &index};
-  if(info->is_obj && !info->is_ref) {
-    m_int curr = -info->depth;
-    m_int top = - 1;
-    m_int tmp;
-    num_obj = 1;
-    num = 1.0;
-    while(curr <= top) {
-      tmp = *(m_int*)REG(SZ_INT * curr);
-      num_obj *= tmp;
-      num *= (m_float)tmp;
-      curr++;
-    }
-    if(num_obj > 0) {
-      obj_array = (m_uint*)calloc(num_obj, sizeof(m_uint));
-      if(!obj_array)
-        goto out_of_memory;
-    }
-  }
-  aai.objs = obj_array;
-  /*if(!(ref = do_alloc_array(shred, -info->depth, -1, info->type, info->is_obj, obj_array, &index)))*/
+  struct ArrayAllocInfo aai = { -info->depth, -1, info->type,  info->is_obj, NULL, &index};
+  if(info->is_obj && !info->is_ref &&
+      !(aai.objs = init_array(shred, info, &num_obj)))
+      goto out_of_memory;
   if(!(ref = do_alloc_array(shred, &aai)))
     goto error;
   POP_REG(shred, SZ_INT * info->depth);
   *(M_Object*)REG(0) = ref;
   PUSH_REG(shred,  SZ_INT);
   if(info->is_obj && !info->is_ref) {
-    *(m_uint**)REG(0) = obj_array;
+    *(m_uint**)REG(0) = aai.objs;
     PUSH_REG(shred,  SZ_INT);
     *(m_uint*) REG(0) = 0;
     PUSH_REG(shred,  SZ_INT);
@@ -1037,7 +998,6 @@ error:
   release(shred->me, shred);
   shred->me = NULL;
 }
-
 
 static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool emit_var) {
   // take care of emit_addr (instr->m_val)
@@ -1082,6 +1042,9 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
   shred->me = NULL;
 }
 
+#define OOB(shred, obj, i)  if(i < 0 || i >=  m_vector_size(ARRAY(obj))) { \
+  oob(obj, shred, i); return; }
+
 INSTR(Instr_Array_Access) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "array access '%p'  (emit: %i) [%i] ", *(m_uint*)REG(-SZ_INT * 2), instr->m_val, instr->m_val2);
@@ -1089,14 +1052,10 @@ INSTR(Instr_Array_Access) {
   m_int i = 0;
   M_Object obj;
   POP_REG(shred,  SZ_INT * 2);
-  obj = *(M_Object*)REG(0);
-  if(!obj)
+  if(!(obj = *(M_Object*)REG(0)))
     Except(shred, "NullPtrException");
   i = *(m_int*)REG(SZ_INT);
-  if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
-    oob(obj, shred, i);
-    return;
-  }
+  OOB(shred, obj, i)
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }
 
@@ -1107,23 +1066,16 @@ INSTR(Instr_Array_Access_Multi) {
   m_int i, j;
   POP_REG(shred,  SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)REG(0);
-  obj = *base;
-  if(!obj)
+  if(!(obj = *base))
     Except(shred, "NullPtrException");
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)REG(SZ_INT * (j + 1));
-    if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
-      oob(obj, shred, i);
-      return;
-    }
-    obj = (M_Object)i_vector_at(ARRAY(obj), i);
-//    if(!obj) Except(shred); // this probably should not be commented
+    OOB(shred, obj, *(m_int*)REG(SZ_INT * (j + 1)))
+    if(!(obj = (M_Object)i_vector_at(ARRAY(obj), i)))
+      Except(shred, "NullPtrException");
   }
   i = *(m_int*)REG(SZ_INT * (j + 1));
-  if(i < 0 || i >= m_vector_size(ARRAY(obj))) {
-    oob(obj, shred, i);
-    return;
-  }
+  OOB(shred, obj ,*(m_int*)REG(SZ_INT * (j + 1)))
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }
 
@@ -1137,7 +1089,4 @@ INSTR(stop_gc) {
   M_Object o;
   while((o = (M_Object)vector_pop(&shred->gc)))
     release(o, shred);
-// vector_pop(shred->gc); // scoping
-// if(!vector_size(shred->gc)) // dynamic assign with scoping
-//  free_vector(shred->gc);
 }

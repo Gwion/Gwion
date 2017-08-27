@@ -7,6 +7,7 @@ typedef struct {
 } VM_Array_Info;
 
 m_uint     m_vector_size(M_Vector v);
+void       m_vector_set(M_Vector v, m_uint i, char* data);
 
 m_uint     i_vector_at(M_Vector v, m_uint i);
 m_uint*    i_vector_addr(M_Vector v, m_uint i);
