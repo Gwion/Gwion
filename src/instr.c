@@ -419,20 +419,14 @@ void handle_overflow(VM_Shred shred) {
 }
 // LCOV_EXCL_STOP
 
-INSTR(Instr_Exp_Func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func call");
-#endif
-  VM_Code func;
-  m_uint local_depth, stack_depth, prev_stack = 0, push, next;
-
+static void shred_func_prepare(VM_Shred shred, Instr instr) {
   POP_REG(shred,  SZ_INT * 2);
-  func = *(VM_Code*)REG(0);
-  stack_depth = func->stack_depth;
-  local_depth = *(m_uint*)REG(SZ_INT);
-  prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
-  push = prev_stack + local_depth;
-  next = shred->pc + 1;
+  VM_Code code = *(VM_Code*)REG(0);
+  m_uint stack_depth = code->stack_depth;
+  m_uint local_depth = *(m_uint*)REG(SZ_INT);
+  m_uint prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
+  m_uint push = prev_stack + local_depth;
+  m_uint next = shred->pc + 1;
 
   PUSH_MEM(shred, push);
   *(m_uint*)MEM(0)  = push;
@@ -444,24 +438,39 @@ INSTR(Instr_Exp_Func) {
   *(m_uint*)MEM(0)  = (m_uint)stack_depth;
   PUSH_MEM(shred,  SZ_INT);
   shred->next_pc = 0;
-  shred->code = func;
-  if(shred->reg != shred->_reg) // added 25/05/17 to prevent empty vararg call with no arg at all crash
-    if(stack_depth) {
-      POP_REG(shred,  stack_depth);
-      if(func->need_this) {
-        *(m_uint*)MEM(0) = *(m_uint*)REG(stack_depth - SZ_INT);
-        PUSH_MEM(shred,  SZ_INT);
-        stack_depth -= SZ_INT;
-      }
-      if(stack_depth) {
-        memcpy(shred->mem, shred->reg, stack_depth);
-      }
-      if(func->need_this) {
-        POP_MEM(shred,  SZ_INT);
-      }
-    }
+  shred->code = code;
+}
+
+static void shred_func_need_this(VM_Shred shred) {
+  if(shred->code->need_this) {
+    *(m_uint*)MEM(0) = *(m_uint*)REG(shred->code->stack_depth - SZ_INT);
+    PUSH_MEM(shred,  SZ_INT);
+  }
+}
+
+static void shred_func_finish(VM_Shred shred) {
+  if(shred->code->need_this)
+    POP_MEM(shred, SZ_INT);
   if(overflow_(shred))
     handle_overflow(shred);
+}
+
+INSTR(Instr_Exp_Func) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "func call");
+#endif
+  VM_Code code;
+  m_uint stack_depth;
+  shred_func_prepare(shred, instr);
+  code = shred->code;
+  stack_depth = code->stack_depth;
+  if(stack_depth) {
+    POP_REG(shred,  stack_depth);
+    shred_func_need_this(shred);
+    memcpy(shred->mem, shred->reg, stack_depth 
+        - (code->need_this ? SZ_INT : 0));
+  }
+  shred_func_finish(shred);
   return;
 }
 
@@ -469,70 +478,18 @@ INSTR(Instr_Op_Call_Binary) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "binary call");
 #endif
-  VM_Code func;
   Type l = (Type)instr->m_val2;
   Type r = *(Type*)instr->ptr;
-  m_uint local_depth, stack_depth, prev_stack = 0, push, next;
-
-  POP_REG(shred,  SZ_INT * 2);
-  func = *(VM_Code*)REG(0);
-  stack_depth = func->stack_depth;
-  local_depth = *(m_uint*)REG(SZ_INT);
-  prev_stack = instr->m_val;
-  push = prev_stack + local_depth;
-  next = shred->pc + 1;
-  PUSH_MEM(shred, push);
-  *(m_uint*)MEM(0)  = push;
-  PUSH_MEM(shred,  SZ_INT);
-  *(m_uint*)MEM(0)  = (m_uint)shred->code;
-  PUSH_MEM(shred,  SZ_INT);
-  *(m_uint*)MEM(0)  = (m_uint)next;
-  PUSH_MEM(shred,  SZ_INT);
-  *(m_uint*)MEM(0)  = (m_uint)stack_depth;
-  PUSH_MEM(shred,  SZ_INT);
-  shred->next_pc = 0;
-  shred->code = func;
-//  POP_REG(shred,  stack_depth);
+  shred_func_prepare(shred, instr);
   POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1
-  if(func->need_this) {
-    *(m_uint*)MEM(0) = *(m_uint*)REG(stack_depth - SZ_INT);
-    PUSH_MEM(shred,  SZ_INT);
-    stack_depth -= SZ_INT;
-  }
+  shred_func_need_this(shred);
   if(isa(l, &t_object) > 0)
     release(*(M_Object*)REG(0), shred);
   if(isa(r, &t_object) > 0)
     release(**(M_Object**)REG(l->size), shred);
-  if(stack_depth) {
-    Kindof kl = kindof(l);
-    Kindof kr = kindof(r);
-    if(kl == Kindof_Int)
-      *(m_uint*)MEM(0) = *(m_uint*)REG(0);
-    else if(kl == Kindof_Float)
-      *(m_float*)MEM(0) = *(m_float*)REG(0);
-    else if(kl == Kindof_Complex)
-      *(m_complex*)MEM(0) = *(m_complex*)REG(0);
-    else if(kl == Kindof_Vec3)
-      *(m_vec3*)MEM(0) = *(m_vec3*)REG(0);
-    else if(kl == Kindof_Vec4)
-      *(m_vec4*)MEM(0) = *(m_vec4*)REG(0);
-    if(kr == Kindof_Int)
-      *(m_uint*)MEM(l->size) = **(m_uint**)REG(l->size);
-    else if(kr == Kindof_Float)
-      *(m_float*)MEM(l->size) = **(m_float**)REG(l->size);
-    else if(kr == Kindof_Complex)
-      *(m_complex*)MEM(l->size) = **(m_complex**)REG(l->size);
-    else if(kr == Kindof_Vec3)
-      *(m_vec3*)MEM(l->size) = **(m_vec3**)REG(l->size);
-    else if(kr == Kindof_Vec4)
-      *(m_vec4*)MEM(l->size) = **(m_vec4**)REG(l->size);
-    if(func->need_this) {
-      POP_MEM(shred, SZ_INT);
-    }
-  }
-  if(overflow_(shred))
-    handle_overflow(shred);
-  return;
+  memcpy(MEM(0), REG(0), l->size);
+  memcpy(MEM(l->size), *(m_uint**)REG(l->size), SZ_INT);
+  shred_func_finish(shred);
 }
 
 INSTR(Dot_Static_Func) {
@@ -606,7 +563,7 @@ INSTR(Instr_Exp_Func_Static) {
   }
   f(retval, shred);
   dl_return_push(retval, shred, instr->m_val);
-  POP_MEM(shred, local_depth ? local_depth : SZ_INT);
+  POP_MEM(shred, local_depth);
 }
 
 INSTR(Instr_Exp_Func_Member) {
