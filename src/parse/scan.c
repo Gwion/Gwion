@@ -746,13 +746,10 @@ static m_bool scan2_arg_def_check(Arg_List list) {
       list->var_decl->value->m_type = list->type;
   }
   if(!list->type->size)
-    /*nspc_pop_value(env->curr);*/
     CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
   if(isres(list->var_decl->xid, list->pos) > 0)
-    /*nspc_pop_value(env->curr);*/
     return -1;
   if((isprim(list->type) > 0) && GET_FLAG(list->type_decl, ae_flag_ref))
-    /*nspc_pop_value(env->curr);*/
     CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
                   "cannot declare references (@) of primitive type '%s'...\n"
                   "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name))
@@ -784,6 +781,8 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
+    if(GET_FLAG(list->type_decl, ae_flag_const))
+      SET_FLAG(v, ae_flag_const | ae_flag_uconst);
     if(f) {
       v->offset = f->stack_depth;
       f->stack_depth += list->type->size;
