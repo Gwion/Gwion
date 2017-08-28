@@ -416,7 +416,7 @@ static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool em
   Instr alloc, push = add_instr(emit, Reg_Push_Imm);
   push->m_val = (m_uint)v->owner_class;
   alloc = add_instr(emit, Dot_Static_Data);
-  alloc->m_val2 = kind;
+  alloc->m_val2 = emit_var ? SZ_INT : v->m_type->size;
   *(m_uint*)alloc->ptr = emit_var;
   alloc->m_val = v->offset;
   return 1;
@@ -1401,24 +1401,23 @@ static m_bool is_special(Type t) {
   return -1;
 }
 
-static m_bool emit_dot_static_import_data(Emitter emit, Value v, Type type, m_bool emit_addr) {
+static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_addr) {
   Instr func_i;
 
   if(v->ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
     func_i = add_instr(emit, Dot_Static_Import_Data);
     func_i->m_val = (m_uint)v->ptr;
-    func_i->m_val2 = kindof(v->m_type);
+    func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
     *(m_uint*)func_i->ptr = emit_addr;
   } else { // from code
     Instr push_i = add_instr(emit, Reg_Push_Imm);
     func_i = add_instr(emit, Dot_Static_Data);
-    push_i->m_val = (m_uint)type;
+    push_i->m_val = (m_uint)v->owner_class;
     func_i->m_val = (m_uint)v->offset;
-    func_i->m_val2 = (m_uint)kindof(v->m_type);
+    func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
     *(m_uint*)func_i->ptr = emit_addr;
   }
   return 1;
-
 }
 
 static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
@@ -1586,7 +1585,7 @@ static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
       CHECK_BB(emit_exp(emit, member->base, 0))
       return emit_member(emit, value, emit_addr);
     } else // static
-      CHECK_BB(emit_dot_static_import_data(emit, value, t_base, emit_addr))
+      CHECK_BB(emit_dot_static_import_data(emit, value, emit_addr))
   }
   return 1;
 }
@@ -1597,7 +1596,7 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
 
   if(isa(member->self->type, &t_function) > 0)
     return emit_dot_static_func(emit, t_base, value->func_ref);
-  return emit_dot_static_import_data(emit, value, t_base, member->self->emit_var);
+  return emit_dot_static_import_data(emit, value, member->self->emit_var);
 }
 
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {

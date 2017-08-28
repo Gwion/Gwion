@@ -742,80 +742,27 @@ INSTR(Dot_Static_Data) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Dot STATIC DATA: [%i] (%i) (emit:%i)", instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
 #endif
-  Type t;
+  Type t = *(Type*)REG(-SZ_INT);
 
   POP_REG(shred,  SZ_INT);
-  t = *(Type*)REG(0);
   // take care of emit_addr ? (instr->ptr)
-  if(*(m_uint*)instr->ptr) {
-    if(instr->m_val2 == Kindof_Int) {
-      *(m_uint**)REG(0) = &*(m_uint*)(t->info->class_data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Float) {
-      *(m_float**)REG(0) = &*(m_float*)(t->info->class_data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Complex) {
-      *(m_complex**)REG(0) = &*(m_complex*)(t->info->class_data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Vec3) {
-      *(m_vec3**)REG(0) = &*(m_vec3*)(t->info->class_data + instr->m_val);
-    } else if(instr->m_val2 == Kindof_Vec4) {
-      *(m_vec4**)REG(0) = &*(m_vec4*)(t->info->class_data + instr->m_val);
-    }
-    PUSH_REG(shred,  SZ_INT);
-  }
-  /* take care of Kind (instr->m_val2)*/
-  else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)REG(0) = *(m_uint*)(t->info->class_data + instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)REG(0) = *(m_float*)(t->info->class_data + instr->m_val);
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)REG(0) = *(m_complex*)(t->info->class_data + instr->m_val);
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(instr->m_val2 == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = *(m_vec3*)(t->info->class_data + instr->m_val);
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(instr->m_val2 == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = *(m_vec4*)(t->info->class_data + instr->m_val);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
+  if(*(m_uint*)instr->ptr)
+    *(char**)REG(0) = &*(char*)(t->info->class_data + instr->m_val);
+  else 
+    memcpy(REG(0), t->info->class_data + instr->m_val, instr->m_val2);
+  PUSH_REG(shred,  instr->m_val2);
+
 }
 
 INSTR(Dot_Static_Import_Data) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Dot STATIC Import DATA: %p", *(m_uint*)instr->ptr);
 #endif
-  // take care of emit_addr ? (instr->ptr)
-  if(*(m_uint*)instr->ptr) {
-    if(instr->m_val2 == Kindof_Int) {
-      *(m_uint**)REG(0) = &*(m_uint*)instr->m_val;
-    } else if(instr->m_val2 == Kindof_Float) {
-      *(m_float**)REG(0) = &*(m_float*)instr->m_val;
-    } else if(instr->m_val2 == Kindof_Complex) {
-      *(m_complex**)REG(0) = &*(m_complex*)instr->m_val;
-    } else if(instr->m_val2 == Kindof_Vec3) {
-      *(m_vec3**)REG(0) = &*(m_vec3*)instr->m_val;
-    } else if(instr->m_val2 == Kindof_Vec4) {
-      *(m_vec4**)REG(0) = &*(m_vec4*)instr->m_val;
-    }
-    PUSH_REG(shred,  SZ_INT);
-  }
-  /* take care of Kind (instr->m_val2)*/
-  else if(instr->m_val2 == Kindof_Int) {
-    *(m_uint*)REG(0) = *(m_uint*)instr->m_val;
-    PUSH_REG(shred,  SZ_INT);
-  } else if(instr->m_val2 == Kindof_Float) {
-    *(m_float*)REG(0) = *(m_float*)instr->m_val;
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(instr->m_val2 == Kindof_Complex) {
-    *(m_complex*)REG(0) = *(m_complex*)instr->m_val;
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(instr->m_val2 == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = *(m_vec3*)instr->m_val;
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(instr->m_val2 == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = *(m_vec4*)instr->m_val;
-    PUSH_REG(shred,  SZ_VEC4);
-  }
+  if(*(m_uint*)instr->ptr)
+    *(char**)REG(0) = &*(char*)(instr->m_val);
+  else
+    memcpy(REG(0), (char*)instr->m_val, instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
 }
 
 INSTR(Exp_Dot_Data) {
