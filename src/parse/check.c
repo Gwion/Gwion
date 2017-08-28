@@ -535,47 +535,12 @@ next:
   return NULL;
 }
 
-static void* function_alternative(Type f, Exp args){
-  m_uint i;
-  if(err_msg(TYPE_, 0, "argument type(s) do not match for function. should be :") < 0){}
-  Func up = f->d.func;
-  while(up) {
-    Arg_List e = up->def->arg_list;
-    fprintf(stderr, "\t");
-    if(!e)
-#ifdef COLOR
-      fprintf(stderr, "\033[32mvoid\033[0m");
-#else
-      fprintf(stderr, "void");
-#endif
-    while(e) {
-      char path[id_list_len(e->type_decl->xid)];
-      type_path(path, e->type_decl->xid);
-#ifdef COLOR
-      fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
-#else
-      fprintf(stderr, " %s %s", path, s_name(e->var_decl->xid));
-#endif
-      for(i = 0; i < e->type->array_depth; i++)
-        fprintf(stderr, "[]");
-      e = e->next;
-      if(e)
-        fprintf(stderr, ",");
-    }
-    up = up->next;
-    fprintf(stderr, ". (%s)\n", f->name);
-    if(up)
-      fprintf(stderr, "or :");
-  }
+static void print_current_args(Exp e) {
   fprintf(stderr, "and not");
   fprintf(stderr, "\n\t");
-  Exp e = args;
   while(e) {
-#ifdef COLOR
+    m_uint i;
     fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
-#else
-    fprintf(stderr, " %s", e->type->name);
-#endif
     for(i = 0; i < e->type->array_depth; i++)
       fprintf(stderr, "[]");
     e = e->next;
@@ -583,6 +548,35 @@ static void* function_alternative(Type f, Exp args){
       fprintf(stderr, ",");
   }
   fprintf(stderr, "\n");
+}
+
+static void print_arg(Arg_List e) {
+  while(e) {
+    m_uint i;
+    char path[id_list_len(e->type_decl->xid)];
+    type_path(path, e->type_decl->xid);
+    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
+    for(i = 0; i < e->type->array_depth; i++)
+      fprintf(stderr, "[]");
+    e = e->next;
+    if(e)
+      fprintf(stderr, ",");
+  }
+}
+
+static void* function_alternative(Type f, Exp args){
+  if(err_msg(TYPE_, 0, "argument type(s) do not match for function. should be :") < 0){}
+  Func up = f->d.func;
+  while(up) {
+    Arg_List e = up->def->arg_list;
+    fprintf(stderr, "\t");
+    if(!e)
+      fprintf(stderr, "\033[32mvoid\033[0m");
+    print_arg(e);
+    up = up->next;
+    fprintf(stderr, ". (%s)\n%s", f->name, up ? "or :" : "");
+  }
+  print_current_args(args);
   return NULL;
 }
 
