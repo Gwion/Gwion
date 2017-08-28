@@ -157,33 +157,23 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
   return t;
 }
 
+static const char escape1[] = "0'abfnrtv";
+static const char escape2[] = "\0\'\a\b\f\n\r\t\v";
+
+m_int get_escape(const char c, int linepos) {
+  m_uint i = 0;
+  while(escape1[i] != '\0') {
+    if(c == escape1[i])
+      return escape2[i];
+    i++;
+  } 
+  CHECK_BB(err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c))
+  return -1;
+}
+
 m_int str2char(const m_str c, m_int linepos) {
-  if(c[0] == '\\') {
-    switch(c[1]) {
-      case '0':
-        return '\0';
-      case '\'':
-        return '\'';
-      case '\\':
-        return '\\';
-      case 'a':
-        return '\a';
-      case 'b':
-        return '\b';
-      case 'f':
-        return '\f';
-      case 'n':
-        return '\n';
-      case 'r':
-        return '\r';
-      case 't':
-        return '\t';
-      case 'v':
-        return 'v';
-      default:
-        err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
-        return -1;
-    }
-  } else
+  if(c[0] == '\\')
+    return get_escape(c[1], linepos);
+  else
     return c[0];
 }
