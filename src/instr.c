@@ -364,6 +364,19 @@ INSTR(Cast_f2i) {
   PUSH_REG(shred,  SZ_INT);
 }
 
+static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
+  VM_Shred sh = new_vm_shred(code);
+  sh->parent = shred;
+  if(!shred->child.ptr)
+    vector_init(&shred->child);
+  vector_add(&shred->child, (vtype)sh);
+  sh->_mem = sh->base;
+  sh->base = shred->base;
+  sh->me = new_shred(vm, sh);
+  vm_add_shred(vm, sh);
+  return sh;
+}
+
 INSTR(Spork) {
 #ifdef DEBUG_INSTR
   debug_msg("instr", "Spork");
@@ -374,15 +387,7 @@ INSTR(Spork) {
 
   POP_REG(shred,  SZ_INT);
   code = *(VM_Code*)REG(0);
-  VM_Shred sh = new_vm_shred(code);
-  sh->parent = shred;
-  if(!shred->child.ptr)
-    vector_init(&shred->child);
-  vector_add(&shred->child, (vtype)sh);
-  sh->_mem = sh->base;
-  sh->base = shred->base;
-  sh->me = new_shred(vm, sh);
-  vm_add_shred(vm, sh);
+  VM_Shred sh = init_spork_shred(shred, code);
   POP_REG(shred,  SZ_INT);
   func = *(Func*)REG(0);
   if(GET_FLAG(func, ae_flag_member)) {
@@ -407,7 +412,7 @@ INSTR(Spork) {
   PUSH_REG(shred,  SZ_INT);
   if(instr->m_val2)
     ADD_REF(code)
-  }
+}
 
 // LCOV_EXCL_START
 void handle_overflow(VM_Shred shred) {
@@ -829,52 +834,64 @@ struct ArrayAllocInfo {
   m_int* index;
 };
 
-static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
-  M_Object base = NULL, next = NULL;
-  m_int i = 0;
-  m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
-  if(cap < 0)
-    goto negative_array_size;
-  if(info->capacity >= info->top) {
-    base = new_M_Array(info->type->d.array_type->size, cap, -info->capacity);
-    if(!base)
-      goto out_of_memory;
-    base->type_ref = info->type; // /13/03/17
-    ADD_REF(info->type);
-    if(info->is_obj && info->objs) {
-      for(i = 0; i < cap; i++) {
-        info->objs[*info->index] = (m_uint)i_vector_addr(ARRAY(base), i);
-        (*info->index)++;
-      }
-    }
-    return base;
+static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
+  M_Object base;
+  if(cap < 0) {
+    fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
+    REM_REF(info->type);
+    return NULL;   
   }
-  base = new_M_Array(SZ_INT, cap, -info->capacity);
-  if(!base)
-    goto out_of_memory;
-  base->type_ref = info->type;
+  base = new_M_Array(info->capacity >= info->top ? 
+      info->type->d.array_type->size : SZ_INT, cap, -info->capacity);
+  if(!base) {
+    fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
+    return NULL;
+  }
+  base->type_ref = info->type; // /13/03/17
   ADD_REF(info->type);
+  return base;
+}
+
+static M_Object do_alloc_array_init(struct ArrayAllocInfo* info, m_int cap, 
+    M_Object base) {
+  if(info->is_obj && info->objs) {
+    m_int i;
+    for(i = 0; i < cap; i++) {
+      info->objs[*info->index] = (m_uint)m_vector_addr(ARRAY(base), i);
+      (*info->index)++;
+    }
+  }
+  return base;
+}
+
+static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info);
+static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
+    m_int cap, M_Object base) {
+  m_int i;
   for(i = 0; i < cap; i++) {
     struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
       info->is_obj, info->objs, info->index };
-    next = do_alloc_array(shred, &aai);
-    if(!next)
-      goto error;
-    // set that, with ref count
+    M_Object next = do_alloc_array(shred, &aai);
+    if(!next) {
+      release(base, shred);
+      return NULL;
+    }
     i_vector_set(ARRAY(base), i, (m_uint)next);
   }
   return base;
+}
 
-out_of_memory:
-  fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
-  goto error;                                                                 // LCOV_EXCL_LINE
+static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
+  M_Object base;
+  m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
 
-negative_array_size:
-  fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-  REM_REF(info->type);
-error:
-  if(base) release(base, shred); // LCOV_EXCL_LINE
-  return NULL;
+  if(!(base = do_alloc_array_object(info, cap)))
+    return NULL;
+  if(info->capacity >= info->top)
+    return do_alloc_array_init(info, cap, base);
+  else
+    return do_alloc_array_loop(shred, info, cap, base);
+  return base;
 }
 
 INSTR(Instr_Array_Init) { // for litteral array
