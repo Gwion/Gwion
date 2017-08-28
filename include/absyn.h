@@ -32,7 +32,8 @@ typedef enum {
   ae_flag_const  = 1 << 16,
   ae_flag_enum  = 1 << 17,
   ae_flag_arg  = 1 << 18,
-  ae_flag_ref  = 1 << 19
+  ae_flag_ref  = 1 << 19,
+  ae_flag_uconst  = 1 << 20
 } ae_flag;
 
 typedef struct {
@@ -90,7 +91,7 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Exp_Dot* dot;
-  int ref;
+  m_uint flag;
   int pos;
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);

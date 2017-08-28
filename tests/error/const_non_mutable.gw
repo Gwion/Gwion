@@ -1,0 +1,4 @@
+// [contains] right-side operand is not mutable
+10 => const int i;
+12 => i;
+<<<i>>>;

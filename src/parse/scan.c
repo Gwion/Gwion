@@ -193,7 +193,7 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
   if(!t->size)
     CHECK_BO(err_msg(SCAN2_, decl->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
-  if(!decl->type->ref) {
+  if(!GET_FLAG(decl->type, ae_flag_ref)) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
       CHECK_BO(err_msg(SCAN2_, decl->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
@@ -231,9 +231,13 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
       t = new_array_type(env, list->self->array->depth, t2, env->curr);
       if(!list->self->array->exp_list)
-        decl->type->ref = 1;
+        SET_FLAG(decl->type, ae_flag_ref);
     }
     list->self->value = new_value(t, s_name(list->self->xid));
+    if(GET_FLAG(decl->type, ae_flag_const)) {
+      SET_FLAG(list->self->value, ae_flag_const);
+      SET_FLAG(list->self->value, ae_flag_uconst);
+    }
     if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
       SET_FLAG(list->self->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
@@ -455,31 +459,33 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
-  Arg_List arg_list;
-  int count = 1;
-  arg_list = ptr->args;
-  ptr->ret_type = find_type(env, ptr->type->xid);
-
-  if(!ptr->ret_type) {
-    CHECK_BB(err_msg(SCAN1_, ptr->pos, "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
-  }
-
-  if(!env->class_def && GET_FLAG(ptr, ae_flag_static)) {
-    CHECK_BB(err_msg(SCAN1_, ptr->pos, "can't declare func pointer static outside of a class"))
-  }
-
+static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
+  m_int count = 0;
   while(arg_list) {
-    arg_list->type = find_type(env, arg_list->type_decl->xid);
-    if(!arg_list->type) {
+    count++;
+    if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
-      CHECK_BB(err_msg(SCAN1_, arg_list->pos, "'%s' unknown type in argument %i of func %s", path,
-          count, s_name(ptr->xid)))
+      CHECK_BB(err_msg(SCAN1_, arg_list->pos,
+              "'%s' unknown type in argument %i",
+              path, count))
     }
-    count++;
     arg_list = arg_list->next;
   }
+  return count;
+}
+
+static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
+  ptr->ret_type = find_type(env, ptr->type->xid);
+  if(!ptr->ret_type)
+    CHECK_BB(err_msg(SCAN1_, ptr->pos, 
+          "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
+  if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
+    CHECK_BB(err_msg(SCAN1_, ptr->pos,
+          "can't declare func pointer static outside of a class"))
+  if(scan1_func_def_args(env, ptr->args) < 0)
+    CHECK_BB(err_msg(SCAN1_, ptr->pos,
+          "\t... in typedef '%s'...", s_name(ptr->xid)))
   return 1;
 }
 
@@ -496,14 +502,12 @@ static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
 
   while(l) {
     Var_Decl_List list = l->self->d.exp_decl.list;
-    Var_Decl var_decl = NULL;
 
-    if(l->self->exp_type != ae_exp_decl) {
+    if(l->self->exp_type != ae_exp_decl)
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
-                       "invalid expression type '%i' in union declaration."))
-    }
+            "invalid expression type '%i' in union declaration."))
     while(list) {
-      var_decl = list->self;
+      Var_Decl var_decl = list->self;
       if(var_decl->array)
         CHECK_BB(scan1_stmt_union_array(var_decl->array))
       list = list->next;
@@ -586,7 +590,7 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
       "in function '%s':\n\treturn array type must be defined with empty []'s", s_name(f->name)))
   }
   t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
-  f->type_decl->ref = 1;
+  SET_FLAG(f->type_decl, ae_flag_ref);
   f->ret_type = t;
   return 1;
 }
@@ -599,22 +603,6 @@ static m_bool scan1_func_def_type(Env env, Func_Def f) {
   if(f->type_decl->array)
     CHECK_BB(scan1_func_def_array(env, f))
   return 1;
-}
-
-static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
-  m_int count = 0;
-  while(arg_list) {
-    count++;
-    if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
-      char path[id_list_len(arg_list->type_decl->xid)];
-      type_path(path, arg_list->type_decl->xid);
-      CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-              "'%s' unknown type in argument %i",
-              path, count))
-    }
-    arg_list = arg_list->next;
-  }
-  return count;
 }
 
 static m_bool scan1_func_def_op(Env env, Func_Def f) {
@@ -657,6 +645,17 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   return 1;
 }
 
+static m_bool scan1_section(Env env, Section* section) {
+  ae_Section_Type t = section->type;
+  if(t == ae_section_stmt)
+    CHECK_BB(scan1_stmt_list(env, section->d.stmt_list))
+  else if(t == ae_section_func)
+    CHECK_BB(scan1_func_def(env, section->d.func_def))
+  else if(t == ae_section_class)
+    CHECK_BB(scan1_class_def(env, section->d.class_def))
+  return 1;
+}
+
 m_bool scan1_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
@@ -665,17 +664,7 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
     return 1;
   CHECK_BB(env_push_class(env, class_def->type))
   while(body && ret > 0) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        ret = scan1_stmt_list(env, body->section->d.stmt_list);
-        break;
-      case ae_section_func:
-        ret = scan1_func_def(env, body->section->d.func_def);
-        break;
-      case ae_section_class:
-        ret = scan1_class_def(env, body->section->d.class_def);
-        break;
-    }
+    ret = scan1_section(env, body->section);
     body = body->next;
   }
   CHECK_BB(env_pop_class(env))
@@ -683,20 +672,9 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan1_ast(Env env, Ast ast) {
-  Ast prog = ast;
-  while(prog) {
-    switch(prog->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(scan1_stmt_list(env, prog->section->d.stmt_list))
-        break;
-      case ae_section_func:
-        CHECK_BB(scan1_func_def(env, prog->section->d.func_def))
-        break;
-      case ae_section_class:
-        CHECK_BB(scan1_class_def(env, prog->section->d.class_def))
-        break;
-    }
-    prog = prog->next;
+  while(ast) {
+    CHECK_BB(scan1_section(env, ast->section))
+    ast = ast->next;
   }
   return 1;
 }
@@ -723,7 +701,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
 
   if(isa(type, &t_shred) > 0)
-    decl->type->ref = 1;
+    SET_FLAG(decl->type, ae_flag_ref);
   CHECK_BB(scan2_exp_decl_template(env, decl))
   while(list) {
     if(list->self->array && list->self->array->exp_list)
@@ -742,13 +720,10 @@ static m_bool scan2_arg_def_check(Arg_List list) {
       list->var_decl->value->m_type = list->type;
   }
   if(!list->type->size)
-    /*nspc_pop_value(env->curr);*/
     CHECK_BB(err_msg(SCAN2_, list->pos, "cannot declare variables of size '0' (i.e. 'void')..."))
   if(isres(list->var_decl->xid, list->pos) > 0)
-    /*nspc_pop_value(env->curr);*/
     return -1;
-  if((isprim(list->type) > 0) && list->type_decl->ref)
-    /*nspc_pop_value(env->curr);*/
+  if((isprim(list->type) > 0) && GET_FLAG(list->type_decl, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
                   "cannot declare references (@) of primitive type '%s'...\n"
                   "\t...(primitive types: 'int', 'float', 'time', 'dur')", list->type->name))
@@ -763,7 +738,7 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
                   s_name(list->var_decl->xid)))
   list->type  = new_array_type(env, list->var_decl->array->depth, 
       list->type, env->curr);
-  list->type_decl->ref = 1;
+  SET_FLAG(list->type, ae_flag_ref);
   return 1;
 }
 
@@ -780,6 +755,8 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
     v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
+    if(GET_FLAG(list->type_decl, ae_flag_const))
+      SET_FLAG(v, ae_flag_const | ae_flag_uconst);
     if(f) {
       v->offset = f->stack_depth;
       f->stack_depth += list->type->size;
@@ -795,15 +772,12 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
 
 static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
   v->owner = env->curr;
-  v->owner_class = env->class_def;
   if(GET_FLAG(f, ae_flag_member))
     SET_FLAG(v, ae_flag_member);
-  if(!env->class_def)
+  if(!(v->owner_class = env->class_def))
     SET_FLAG(v, ae_flag_global);
-  v->func_ref = f;
-  f->value_ref = v;
-  d->d.func = f;
-  return v;
+  d->d.func = v->func_ref = f;
+  return f->value_ref = v;
 }
 
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
@@ -1253,6 +1227,16 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
   return 1;
 }
 
+static void scan2_func_def_flag(Env env, Func_Def f) {
+  SET_FLAG(f->d.func->value_ref, ae_flag_const);
+  if(GET_FLAG(f, ae_flag_builtin))
+    SET_FLAG(f->d.func->value_ref, ae_flag_builtin);
+  if(GET_FLAG(f, ae_flag_dtor))
+    SET_FLAG(f->d.func, ae_flag_dtor);
+  else if(GET_FLAG(f, ae_flag_variadic))
+    f->stack_depth += SZ_INT;
+}
+
 m_bool scan2_func_def(Env env, Func_Def f) {
   Type     type     = NULL;
   Value    value    = NULL;
@@ -1285,19 +1269,12 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   type->d.func = func;
   value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
-  SET_FLAG(value, ae_flag_const);
-  if(GET_FLAG(f, ae_flag_builtin))
-    SET_FLAG(value, ae_flag_builtin);
-  if(GET_FLAG(f, ae_flag_dtor))
-    SET_FLAG(f->d.func, ae_flag_dtor);
-  else if(GET_FLAG(f, ae_flag_variadic))
-    f->stack_depth += SZ_INT;
-
+  scan2_func_def_flag(env, f);
   if(overload) {
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-  if(isprim(f->ret_type) > 0 && f->type_decl->ref) {
+  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref)) {
     err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
             "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
     return -1;
@@ -1314,19 +1291,20 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   return f->code ? scan2_func_def_code(env, f) : 1;
 }
 
+static m_bool scan2_section(Env env, Section* section) {
+  ae_Section_Type t = section->type;
+  if(t == ae_section_stmt)
+    CHECK_BB(scan2_stmt_list(env, section->d.stmt_list))
+  else if(t == ae_section_func)
+    CHECK_BB(scan2_func_def(env, section->d.func_def))
+  else if(t == ae_section_class)
+    CHECK_BB(scan2_class_def(env, section->d.class_def))
+  return 1;
+}
+
 static m_bool scan2_class_def_body(Env env, Class_Body body) {
   while(body) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(scan2_stmt_list(env, body->section->d.stmt_list))
-        break;
-      case ae_section_class:
-        CHECK_BB(scan2_class_def(env, body->section->d.class_def))
-        break;
-      case ae_section_func:
-        CHECK_BB(scan2_func_def(env, body->section->d.func_def))
-        break;
-    }
+    CHECK_BB(scan2_section(env, body->section))
     body = body->next;
   }
   return 1;
@@ -1342,20 +1320,9 @@ m_bool scan2_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan2_ast(Env env, Ast ast) {
-  Ast prog = ast;
-  while(prog) {
-    switch(prog->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(scan2_stmt_list(env, prog->section->d.stmt_list))
-        break;
-      case ae_section_func:
-        CHECK_BB(scan2_func_def(env, prog->section->d.func_def))
-        break;
-      case ae_section_class:
-        CHECK_BB(scan2_class_def(env, prog->section->d.class_def))
-        break;
-    }
-    prog = prog->next;
+  while(ast) {
+    CHECK_BB(scan2_section(env, ast->section))
+    ast = ast->next;
   }
   return 1;
 }

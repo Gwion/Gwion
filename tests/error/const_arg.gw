@@ -1,0 +1,6 @@
+// [contains] right-side operand is not mutable
+fun void test(const int i) {
+  10 => i;
+}
+
+test(2);
