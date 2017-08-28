@@ -285,11 +285,14 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   if(depth == 1) {
     Instr instr = add_instr(emit, Instr_Array_Access);
     instr->m_val = is_var;
-    instr->m_val2 = kindof(array->self->type);
+    /*instr->m_val2 = kindof(array->self->type);*/
+    instr->m_val2 = is_var ? SZ_INT : array->self->type->size;
   } else {
     Instr instr = add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
-    instr->m_val2 = kindof(array->base->type->d.array_type);
+    /*instr->m_val2 = kindof(array->base->type->d.array_type);*/
+    instr->m_val2 = (is_var || array->self->type->array_depth) ? 
+      SZ_INT : array->base->type->d.array_type->size;
     *(m_uint*)instr->ptr = is_var || array->self->type->array_depth;
   }
   return 1;

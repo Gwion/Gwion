@@ -947,37 +947,11 @@ error:
 }
 
 static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool emit_var) {
-  // take care of emit_addr (instr->m_val)
-  if(emit_var) {
-    if(kind == Kindof_Int)
-      *(m_uint**)REG(0) = i_vector_addr(a, i);
-    else if(kind == Kindof_Float)
-      *(m_float**)REG(0) = f_vector_addr(a, i);
-    else if(kind == Kindof_Complex)
-      *(m_complex**)REG(0) = c_vector_addr(a, i);
-    else if(kind == Kindof_Vec3)
-      *(m_vec3**)REG(0) = v3_vector_addr(a, i);
-    else if(kind == Kindof_Vec4)
-      *(m_vec4**)REG(0) = v4_vector_addr(a, i);
-    PUSH_REG(shred,  SZ_INT);
-  }
-  // take care of kind (instr->m_val2)
-  else if(kind == Kindof_Int) {
-    *(m_uint*)REG(0) = i_vector_at(a, i);
-    PUSH_REG(shred,  SZ_INT);
-  } else if(kind == Kindof_Float) {
-    *(m_float*)REG(0) = f_vector_at(a, i);
-    PUSH_REG(shred,  SZ_FLOAT);
-  } else if(kind == Kindof_Complex) {
-    *(m_complex*)REG(0) = c_vector_at(a, i);
-    PUSH_REG(shred,  SZ_COMPLEX);
-  } else if(kind == Kindof_Vec3) {
-    *(m_vec3*)REG(0) = v3_vector_at(a, i);
-    PUSH_REG(shred,  SZ_VEC3);
-  } else if(kind == Kindof_Vec4) {
-    *(m_vec4*)REG(0) = v4_vector_at(a, i);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
+  if(emit_var)
+      *(char**)REG(0) = m_vector_addr(a, i);
+  else
+    m_vector_get(a, i, REG(0));
+  PUSH_REG(shred,  kind);
 }
 
 static void oob(M_Object obj, VM_Shred shred, m_int i) {

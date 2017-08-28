@@ -8,6 +8,8 @@ typedef struct {
 
 m_uint     m_vector_size(M_Vector v);
 void       m_vector_set(M_Vector v, m_uint i, char* data);
+void       m_vector_get(M_Vector v, m_uint i, char* data);
+char*      m_vector_addr(M_Vector v, m_uint i);
 
 m_uint     i_vector_at(M_Vector v, m_uint i);
 m_uint*    i_vector_addr(M_Vector v, m_uint i);

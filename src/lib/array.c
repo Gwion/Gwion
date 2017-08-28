@@ -56,8 +56,8 @@ static inline m_uint m_vector_cap(M_Vector v) {
   return v->cap;
 }
 
-char* m_vector_at(M_Vector v, m_uint i) {
-  return (v->ptr + i * v->size);
+void m_vector_get(M_Vector v, m_uint i, char* c) {
+  memcpy(c, v->ptr + i * v->size, v->size);
 }
 
 m_uint  i_vector_at(M_Vector v, m_uint i) {
