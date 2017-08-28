@@ -281,34 +281,28 @@ m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str 
 }
 
 m_bool import_libs(Env env) {
-  if(env_add_type(env, &t_void) < 0 ||
-     env_add_type(env, &t_null) < 0 ||
-     env_add_type(env, &t_now) < 0 ||
-     import_int(env)       < 0 ||
-     import_float(env)     < 0 ||
-     import_complex(env)   < 0 ||
-     import_vec3(env)      < 0 ||
-     import_vec4(env)      < 0 ||
-     import_object(env)    < 0 ||
-     import_vararg(env)    < 0 ||
-     import_string(env)    < 0 ||
-     import_shred(env)     < 0 ||
-     import_event(env)     < 0 ||
-     import_ugen(env)      < 0 ||
-     import_array(env)     < 0) {
-      free(env);
-      return -1;
-  }
-  env->do_type_xid = 1;
-  if(import_fileio(env)    < 0 ||
-     import_std(env)       < 0 ||
-     import_math(env)      < 0 ||
-     import_machine(env)   < 0 ||
-     import_soundpipe(env) < 0 ||
-     import_modules(env)   < 0) {
-      free(env);
-      return -1;
-  }
+  CHECK_BB(env_add_type(env, &t_void))
+  CHECK_BB(env_add_type(env, &t_null))
+  CHECK_BB(env_add_type(env, &t_now))
+  CHECK_BB(import_int(env))
+  CHECK_BB(import_float(env))
+  CHECK_BB(import_complex(env))
+  CHECK_BB(import_vec3(env))
+  CHECK_BB(import_vec4(env))
+  CHECK_BB(import_object(env))
+  CHECK_BB(import_vararg(env))
+  CHECK_BB(import_string(env))
+  CHECK_BB(import_shred(env))
+  CHECK_BB(import_event(env))
+  CHECK_BB(import_ugen(env))
+  CHECK_BB(import_array(env))
+  env->type_xid = te_last;
+  CHECK_BB(import_fileio(env))
+  CHECK_BB(import_std(env))
+  CHECK_BB(import_math(env))
+  CHECK_BB(import_machine(env))
+  CHECK_BB(import_soundpipe(env))
+  CHECK_BB(import_modules(env))
   return 1;
 }
 
