@@ -1585,24 +1585,12 @@ static m_bool check_func_overload(Env env, Func_Def f) {
   return 1;
 }
 
-m_bool check_func_def(Env env, Func_Def f) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func def '%s'", s_name(f->name));
-#endif
-  Value value = NULL;
-  Func func = NULL;
+static m_bool check_func_def_override(Env env, Func_Def f) {
   Value override = NULL;
-  Value variadic = NULL;
-  m_bool ret = 1;
-
-  if(f->types)
-    return 1;
-  func = f->d.func;
-  value = func->value_ref;
-
+  Func func = f->d.func;
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
-  else if(value->func_num_overloads && !f->types)
+  else if(func->value_ref->func_num_overloads && !f->types)
     CHECK_BB(check_func_overload(env, f))
   if(env->class_def &&  override && isa(override->m_type, &t_function) < 0)
     CHECK_BB(err_msg(TYPE_, f->pos,
@@ -1611,17 +1599,34 @@ m_bool check_func_def(Env env, Func_Def f) {
                      s_name(f->name), override->owner_class->name))
   if(override)
     func->up = override;
+  return 1;
+}
+
+static Value set_variadic(Env env) {
+  Value variadic = new_value(&t_vararg, "vararg");
+  SET_FLAG(variadic, ae_flag_checked);
+  nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
+  return variadic;
+}
+
+m_bool check_func_def(Env env, Func_Def f) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "func def '%s'", s_name(f->name));
+#endif
+  Func func = f->d.func;
+  Value variadic = NULL;
+  m_bool ret = 1;
+
+  if(f->types)
+    return 1;
+  CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
-
   env->func = func;
   nspc_push_value(env->curr);
   ret = check_func_args(env, f->arg_list);
-  if(GET_FLAG(f, ae_flag_variadic)) {
-    variadic = new_value(&t_vararg, "vararg");
-    SET_FLAG(variadic, ae_flag_checked);
-    nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
-  }
+  if(GET_FLAG(f, ae_flag_variadic))
+    variadic = set_variadic(env);
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
     ret = err_msg(TYPE_, f->type_decl->pos,
                   "...in function '%s'", s_name(f->name));
