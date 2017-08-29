@@ -1233,6 +1233,8 @@ static void scan2_func_def_flag(Env env, Func_Def f) {
     SET_FLAG(f->d.func->value_ref, ae_flag_builtin);
   if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->d.func, ae_flag_dtor);
+  if(GET_FLAG(f, ae_flag_dtor))
+    SET_FLAG(f->d.func->value_ref->owner_class, ae_flag_dtor);
   else if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
 }

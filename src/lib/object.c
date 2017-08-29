@@ -44,6 +44,7 @@ static void handle_dtor(Type t, VM_Shred shred) {
        "[dtor]", "[in code dtor exec]");
   VM_Shred sh = new_vm_shred(code);
   sh->me = new_shred(shred->vm_ref, sh);
+  vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
   Instr eoc = malloc(sizeof(struct Instr_));
