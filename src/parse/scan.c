@@ -478,7 +478,7 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
 static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
   ptr->ret_type = find_type(env, ptr->type->xid);
   if(!ptr->ret_type)
-    CHECK_BB(err_msg(SCAN1_, ptr->pos, 
+    CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
@@ -736,7 +736,7 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
     CHECK_BB(err_msg(SCAN2_, list->pos,
                   "\t'%s': function arguments must be defined with empty []'s",
                   s_name(list->var_decl->xid)))
-  list->type  = new_array_type(env, list->var_decl->array->depth, 
+  list->type  = new_array_type(env, list->var_decl->array->depth,
       list->type, env->curr);
   SET_FLAG(list->type, ae_flag_ref);
   return 1;
@@ -747,7 +747,7 @@ static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
   nspc_push_value(env->curr);
   while(list) {
     Value v;
-    if(scan2_arg_def_check(list) < 0 || 
+    if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && scan2_arg_def_array(env, list) < 0)) {
       nspc_pop_value(env->curr);
       return -1;

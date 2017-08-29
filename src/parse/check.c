@@ -24,10 +24,12 @@ struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
-
-  CHECK_BO(import_libs(env))
-  CHECK_BO(import_values(env))
-  CHECK_BO(import_global_ugens(vm, env))
+  if(import_libs(env)   < 0 ||
+     import_values(env) < 0 ||
+     import_global_ugens(vm, env) < 0) {
+    free_env(env);
+    return NULL;
+  }
   nspc_commit(env->global_nspc);
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
@@ -585,9 +587,9 @@ static Value get_template_value(Env env, Exp exp_func) {
     return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
   else if(exp_func->exp_type == ae_exp_dot)
     return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  err_msg(TYPE_, exp_func->pos,
+  CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
-      exp_func->exp_type);
+      exp_func->exp_type))
     return NULL;
 }
 
