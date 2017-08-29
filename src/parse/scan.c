@@ -8,8 +8,8 @@
 static m_bool isres(S_Symbol xid, m_uint pos) {
   m_str s = s_name(xid);
   if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
-    err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
-    return 1;
+    int ret = err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    return -ret;
   }
   return -1;
 }
@@ -899,7 +899,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
     } else if(exp_func->func->exp_type == ae_exp_dot) {
       return 1;      // see type.c
     } else {
-      err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
+      CHECK_BB(err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type))
       return -1;
     }
   }
@@ -1217,11 +1217,10 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
           err_msg(SCAN2_,  func->def->pos, "function signatures differ in return type... '%s' and '%s'",
                   func->def->ret_type->name, overload->func_ref->def->ret_type->name);
           if(env->class_def)
-            err_msg(SCAN2_, func->def->pos,
+            CHECK_BB(err_msg(SCAN2_, func->def->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, name,
-                    value->owner_class->name, name);
-          return -1;
+                    value->owner_class->name, name))
         }
   }
   return 1;
@@ -1276,11 +1275,9 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref)) {
-    err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
-            "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
-    return -1;
-  }
+  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref))
+    CHECK_BB(err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
+            "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name))
 
   f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
