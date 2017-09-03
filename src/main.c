@@ -99,35 +99,34 @@ static const struct option long_option[] = {
   { NULL,       0, NULL, 0   }
 };
 
-static void usage() {
-  fprintf(stderr, "usage: Gwion <options>\n");
-  fprintf(stderr, "\toption can be any of:\n");
-  fprintf(stderr, "GLOBAL options:  <argument>  : description\n");
-  fprintf(stderr, "\t--help,   -?\t             : this help\n");
-  fprintf(stderr, "\t--version -v\t             : this help\n");
-  fprintf(stderr, "VM     options:\n");
-  fprintf(stderr, "\t--add,    -+\t <file>      : add file\n");
-  fprintf(stderr, "\t--rem,    --\t <shred id>  : remove shred\n");
-  fprintf(stderr, "\t--plugdir,-P\t <directory> : add a plugin directory\n");
-  fprintf(stderr, "\t--quit    -q\t             : quit the vm\n");
-  fprintf(stderr, "UDP    options:\n");
-  fprintf(stderr, "\t--host    -h\t  <string>   : set host\n");
-  fprintf(stderr, "\t--port    -p\t  <number>   : set port\n");
-  fprintf(stderr, "\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n");
-  fprintf(stderr, "\t--alone   -a\t             : standalone mode. (no udp)\n");
-  fprintf(stderr, "DRIVER options:\n");
-  fprintf(stderr, "\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n");
-  fprintf(stderr, "\t--sr      -s\t  <number>   : set samplerate\n");
-  fprintf(stderr, "\t--bufnum  -n\t  <number>   : set number of buffers\n");
-  fprintf(stderr, "\t--bufsize -b\t  <number>   : set size   of buffers\n");
-  fprintf(stderr, "\t--chan    -g\t  <number>   : (global) channel number\n");
-  fprintf(stderr, "\t--in      -i\t  <number>   : number of  input channel\n");
-  fprintf(stderr, "\t--out     -o\t  <number>   : number of output channel\n");
-  fprintf(stderr, "\t--card    -c\t  <string>   : card identifier or output file (depending on driver)\n");
-  fprintf(stderr, "\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n");
-  fprintf(stderr, "\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n");
-  fprintf(stderr, "\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n");
-}
+static const char _usage[] =
+"usage: Gwion <options>\n"
+"\toption can be any of:\n"
+"GLOBAL options:  <argument>  : description\n"
+"\t--help,   -?\t             : this help\n"
+"\t--version -v\t             : this help\n"
+"VM     options:\n"
+"\t--add,    -+\t <file>      : add file\n"
+"\t--rem,    --\t <shred id>  : remove shred\n"
+"\t--plugdir,-P\t <directory> : add a plugin directory\n"
+"\t--quit    -q\t             : quit the vm\n"
+"UDP    options:\n"
+"\t--host    -h\t  <string>   : set host\n"
+"\t--port    -p\t  <number>   : set port\n"
+"\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n"
+"\t--alone   -a\t             : standalone mode. (no udp)\n"
+"DRIVER options:\n"
+"\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n"
+"\t--sr      -s\t  <number>   : set samplerate\n"
+"\t--bufnum  -n\t  <number>   : set number of buffers\n"
+"\t--bufsize -b\t  <number>   : set size   of buffers\n"
+"\t--chan    -g\t  <number>   : (global) channel number\n"
+"\t--in      -i\t  <number>   : number of  input channel\n"
+"\t--out     -o\t  <number>   : number of output channel\n"
+"\t--card    -c\t  <string>   : card identifier or output file (depending on driver)\n"
+"\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n"
+"\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
+"\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
 static void parse_args_additionnal(int argc, char** argv) {
   if(optind < argc) {
@@ -193,7 +192,7 @@ static void parse_args(int argc, char** argv) {
   while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
     switch(i) {
       case '?':
-        usage();
+        fprintf(stderr, usage);
         exit(0);
       case 'C':
         fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
