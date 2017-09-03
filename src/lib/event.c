@@ -66,16 +66,15 @@ static MFUN(event_broadcast) {
   broadcast(o);
 }
 
-m_bool import_event(Env env) {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_event, event_ctor, event_dtor))
-  o_event_shred = import_var(env, "int", "@shreds", ae_flag_member, NULL);
+m_bool import_event(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_event, event_ctor, event_dtor))
+  o_event_shred = importer_add_var(importer,  "int", "@shreds", ae_flag_member, NULL);
   CHECK_BB(o_event_shred);
-  dl_func_init(&fun, "int", "signal", (m_uint)event_signal);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "int", "broadcast", (m_uint)event_broadcast);
-  CHECK_BB(import_fun(env, &fun, 0))
-  CHECK_BB(import_op(env, op_chuck, "Event", "@now", "int", Event_Wait, 1))
-  CHECK_BB(import_class_end(env))
+  importer_func_begin(importer, "int", "signal", (m_uint)event_signal);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "int", "broadcast", (m_uint)event_broadcast);
+  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "Event", "@now", "int", Event_Wait, 1))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

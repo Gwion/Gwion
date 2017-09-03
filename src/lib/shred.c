@@ -86,46 +86,44 @@ static DTOR(shred_dtor) {
   release(o, shred);
 }
 
-m_bool import_shred(Env env) {
-  DL_Func fun;
+m_bool import_shred(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_shred, NULL, shred_dtor))
 
-  CHECK_BB(import_class_begin(env, &t_shred, NULL, shred_dtor))
-
-  o_shred_me = import_var(env, "int", "@me", ae_flag_member, NULL);
+  o_shred_me = importer_add_var(importer,  "int", "@me", ae_flag_member, NULL);
   CHECK_BB(o_shred_me)
 
-  dl_func_init(&fun, "void", "exit", (m_uint)vm_shred_exit);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "void", "exit", (m_uint)vm_shred_exit);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "running", (m_uint)vm_shred_is_running);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "running", (m_uint)vm_shred_is_running);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "done", (m_uint)vm_shred_is_done);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "done", (m_uint)vm_shred_is_done);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "id", (m_uint)vm_shred_id);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "id", (m_uint)vm_shred_id);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "Shred", "fromId", (m_uint)vm_shred_from_id);
-  dl_func_add_arg(&fun, "int", "arg1");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  importer_func_begin(importer, "Shred", "fromId", (m_uint)vm_shred_from_id);
+  importer_add_arg(importer, "int", "arg1");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  dl_func_init(&fun, "void", "yield", (m_uint)shred_yield);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "void", "yield", (m_uint)shred_yield);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "args", (m_uint)shred_args);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "args", (m_uint)shred_args);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "arg", (m_uint)shred_arg);
-  dl_func_add_arg(&fun, "int", "n");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "arg", (m_uint)shred_arg);
+  importer_add_arg(importer, "int", "n");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "path", (m_uint)shred_path);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "path", (m_uint)shred_path);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "dir", (m_uint)shred_dir);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "dir", (m_uint)shred_dir);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

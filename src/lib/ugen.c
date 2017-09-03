@@ -298,33 +298,31 @@ static MFUN(ugen_get_last) {
   *(m_float*)RETURN = UGEN(o)->last;
 }
 
-m_bool import_ugen(Env env) {
-  DL_Func fun;
+m_bool import_ugen(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_ugen, ugen_ctor, ugen_dtor))
 
-  CHECK_BB(import_class_begin(env, &t_ugen, ugen_ctor, ugen_dtor))
-
-  o_object_ugen = import_var(env, "int", "@ugen", ae_flag_member, NULL);
+  o_object_ugen = importer_add_var(importer,  "int", "@ugen", ae_flag_member, NULL);
   CHECK_BB(o_object_ugen)
 
-  dl_func_init(&fun, "UGen", "chan", (m_uint)ugen_channel);
-  dl_func_add_arg(&fun, "int", "arg0");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "UGen", "chan", (m_uint)ugen_channel);
+  importer_add_arg(importer, "int", "arg0");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "op", (m_uint)ugen_get_op);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "op", (m_uint)ugen_get_op);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "op", (m_uint)ugen_set_op);
-  dl_func_add_arg(&fun, "int", "arg0");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "op", (m_uint)ugen_set_op);
+  importer_add_arg(importer, "int", "arg0");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "float", "last", (m_uint)ugen_get_last);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "float", "last", (m_uint)ugen_get_last);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  CHECK_BB(import_op(env, op_chuck,   "UGen", "UGen", "UGen", ugen_connect, 1))
-  CHECK_BB(import_op(env, op_unchuck, "UGen", "UGen", "UGen", ugen_disconnect, 1))
-  CHECK_BB(import_op(env, op_trig,    "UGen", "UGen", "UGen", trig_connect, 1))
-  CHECK_BB(import_op(env, op_untrig,  "UGen", "UGen", "UGen", trig_disconnect, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck,   "UGen", "UGen", "UGen", ugen_connect, 1))
+  CHECK_BB(importer_add_op(importer,  op_unchuck, "UGen", "UGen", "UGen", ugen_disconnect, 1))
+  CHECK_BB(importer_add_op(importer,  op_trig,    "UGen", "UGen", "UGen", trig_connect, 1))
+  CHECK_BB(importer_add_op(importer,  op_untrig,  "UGen", "UGen", "UGen", trig_disconnect, 1))
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

@@ -125,17 +125,17 @@ static INSTR(neq_Object) {
   PUSH_REG(shred, SZ_INT);
 }
 
-m_bool import_object(Env env) {
-  CHECK_BB(import_class_begin(env, &t_object, NULL, object_dtor))
-  CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
-  CHECK_BB(import_op(env, op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
-  CHECK_BB(import_op(env, op_eq,  "Object", "Object", "int",  eq_Object, 1))
-  CHECK_BB(import_op(env, op_neq, "Object", "Object", "int", neq_Object, 1))
-  CHECK_BB(import_op(env, op_eq,  "@null",   "Object", "int",  eq_Object, 1))
-  CHECK_BB(import_op(env, op_neq, "@null",   "Object", "int", neq_Object, 1))
-  CHECK_BB(import_op(env, op_eq,  "Object", "@null", "int",  eq_Object, 1))
-  CHECK_BB(import_op(env, op_neq, "Object", "@null", "int", neq_Object, 1))
-  CHECK_BB(import_op(env, op_exclamation,   NULL,   "Object", "int", int_not,        1))
-  CHECK_BB(import_class_end(env))
+m_bool import_object(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_object, NULL, object_dtor))
+  CHECK_BB(importer_add_op(importer,  op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_eq,  "Object", "Object", "int",  eq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_neq, "Object", "Object", "int", neq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_eq,  "@null",   "Object", "int",  eq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_neq, "@null",   "Object", "int", neq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_eq,  "Object", "@null", "int",  eq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_neq, "Object", "@null", "int", neq_Object, 1))
+  CHECK_BB(importer_add_op(importer,  op_exclamation,   NULL,   "Object", "int", int_not,        1))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

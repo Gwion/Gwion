@@ -15,8 +15,6 @@ struct UGen_ {
   m_bool done;
 };
 
-m_bool import_ugen(Env env);
-m_bool import_modules(Env env); // additionnal UGen modules
 m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug);
 void ugen_compute(UGen u);
 

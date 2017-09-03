@@ -810,142 +810,140 @@ static MFUN(string_toFloat) {
   *(m_float*)RETURN = atof(STRING(o));
 }
 
-m_bool import_string(Env env) {
-  DL_Func fun;
+m_bool import_string(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_string, string_ctor, NULL))
 
-  CHECK_BB(import_class_begin(env, &t_string, string_ctor, NULL))
-
-  o_string_data = import_var(env, "int", "@data",   ae_flag_const, NULL);
+  o_string_data = importer_add_var(importer,  "int", "@data",   ae_flag_const, NULL);
   CHECK_BB(o_string_data)
 
-  dl_func_init(&fun, "int", "size", (m_uint)string_len);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "size", (m_uint)string_len);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "upper", (m_uint)string_upper);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "upper", (m_uint)string_upper);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "lower", (m_uint)string_lower);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "lower", (m_uint)string_lower);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "ltrim", (m_uint)string_ltrim);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "ltrim", (m_uint)string_ltrim);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "rtrim", (m_uint)string_rtrim);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "rtrim", (m_uint)string_rtrim);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "trim", (m_uint)string_trim);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "trim", (m_uint)string_trim);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "charAt", (m_uint)string_charAt);
-  dl_func_add_arg(&fun, "int", "pos");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "charAt", (m_uint)string_charAt);
+  importer_add_arg(importer, "int", "pos");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "charAt", (m_uint)string_setCharAt);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "int", "char");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "charAt", (m_uint)string_setCharAt);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "int", "char");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "substring", (m_uint)string_substring);
-  dl_func_add_arg(&fun, "int", "start");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "substring", (m_uint)string_substring);
+  importer_add_arg(importer, "int", "start");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "substring", (m_uint)string_substringN);
-  dl_func_add_arg(&fun, "int", "start");
-  dl_func_add_arg(&fun, "int", "end");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "substring", (m_uint)string_substringN);
+  importer_add_arg(importer, "int", "start");
+  importer_add_arg(importer, "int", "end");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "insert", (m_uint)string_insert);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "string", "string");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "insert", (m_uint)string_insert);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "string", "string");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "replace", (m_uint)string_replace);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "string", "string");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "replace", (m_uint)string_replace);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "string", "string");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "string", "replace", (m_uint)string_replaceN);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "int", "n");
-  dl_func_add_arg(&fun, "string", "string");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "string", "replace", (m_uint)string_replaceN);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "int", "n");
+  importer_add_arg(importer, "string", "string");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "find", (m_uint)string_find);
-  dl_func_add_arg(&fun, "int", "char");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "find", (m_uint)string_find);
+  importer_add_arg(importer, "int", "char");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "find", (m_uint)string_findStart);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "int", "char");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "find", (m_uint)string_findStart);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "int", "char");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "find", (m_uint)string_findStr);
-  dl_func_add_arg(&fun, "string", "str");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "find", (m_uint)string_findStr);
+  importer_add_arg(importer, "string", "str");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "find", (m_uint)string_findStrStart);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "string", "str");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "find", (m_uint)string_findStrStart);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "string", "str");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfind);
-  dl_func_add_arg(&fun, "int", "char");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "rfind", (m_uint)string_rfind);
+  importer_add_arg(importer, "int", "char");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStart);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "int", "char");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "rfind", (m_uint)string_rfindStart);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "int", "char");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStr);
-  dl_func_add_arg(&fun, "string", "str");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "rfind", (m_uint)string_rfindStr);
+  importer_add_arg(importer, "string", "str");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "rfind", (m_uint)string_rfindStrStart);
-  dl_func_add_arg(&fun, "int", "pos");
-  dl_func_add_arg(&fun, "string", "str");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "rfind", (m_uint)string_rfindStrStart);
+  importer_add_arg(importer, "int", "pos");
+  importer_add_arg(importer, "string", "str");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "void",   "erase", (m_uint)string_erase);
-  dl_func_add_arg(&fun, "int", "start");
-  dl_func_add_arg(&fun, "int", "length");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "void",   "erase", (m_uint)string_erase);
+  importer_add_arg(importer, "int", "start");
+  importer_add_arg(importer, "int", "length");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "toInt", (m_uint)string_toInt);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "toInt", (m_uint)string_toInt);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "float", "toFloat", (m_uint)string_toFloat);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "float", "toFloat", (m_uint)string_toFloat);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  CHECK_BB(import_op(env, op_chuck, "string",  "string", "string", String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "int",     "string", "string", Int_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "float",   "string", "string", Float_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "complex", "string", "string", Complex_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "polar",   "string", "string", Polar_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "Vec3",    "string", "string", Vec3_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "Vec4",    "string", "string", Vec4_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "Object",  "string", "string", Object_String_Assign, 1))
-  CHECK_BB(import_op(env, op_chuck, "@null",    "string", "string", Object_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "string",  "string", "string", String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "int",     "string", "string", Int_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "float",   "string", "string", Float_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "complex", "string", "string", Complex_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "polar",   "string", "string", Polar_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "Vec3",    "string", "string", Vec3_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "Vec4",    "string", "string", Vec4_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "Object",  "string", "string", Object_String_Assign, 1))
+  CHECK_BB(importer_add_op(importer,  op_chuck, "@null",    "string", "string", Object_String_Assign, 1))
 
-  CHECK_BB(import_op(env, op_plus, "string",  "string", "string", String_String, 1))
-  CHECK_BB(import_op(env, op_plus, "int",     "string", "string", Int_String, 1))
-  CHECK_BB(import_op(env, op_plus, "float",   "string", "string", Float_String, 1))
-  CHECK_BB(import_op(env, op_plus, "complex", "string", "string", Complex_String, 1))
-  CHECK_BB(import_op(env, op_plus, "polar",   "string", "string", Polar_String, 1))
-  CHECK_BB(import_op(env, op_plus, "Vec3",    "string", "string", Vec3_String, 1))
-  CHECK_BB(import_op(env, op_plus, "Vec4",    "string", "string", Vec4_String, 1))
-  CHECK_BB(import_op(env, op_plus, "Object",  "string", "string", Object_String, 1))
-  CHECK_BB(import_op(env, op_plus, "@null",  "string", "string", Object_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "string",  "string", "string", String_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "int",     "string", "string", Int_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "float",   "string", "string", Float_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "complex", "string", "string", Complex_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "polar",   "string", "string", Polar_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "Vec3",    "string", "string", Vec3_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "Vec4",    "string", "string", Vec4_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "Object",  "string", "string", Object_String, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus, "@null",  "string", "string", Object_String, 1))
 
-  CHECK_BB(import_op(env, op_plus_chuck, "string",  "string", "string", String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "int",     "string", "string", Int_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "float",   "string", "string", Float_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "complex", "string", "string", Complex_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "polar",   "string", "string", Polar_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "Vec3",    "string", "string", Vec3_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "Vec4",    "string", "string", Vec4_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "Object",  "string", "string", Object_String_Plus, 1))
-  CHECK_BB(import_op(env, op_plus_chuck, "@null",    "string", "string", Object_String_Plus, 1))
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "string",  "string", "string", String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "int",     "string", "string", Int_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "float",   "string", "string", Float_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "complex", "string", "string", Complex_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "polar",   "string", "string", Polar_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "Vec3",    "string", "string", Vec3_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "Vec4",    "string", "string", Vec4_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "Object",  "string", "string", Object_String_Plus, 1))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck, "@null",    "string", "string", Object_String_Plus, 1))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

@@ -122,21 +122,21 @@ INSTR(Vararg_Vec4) {
   PUSH_REG(shred, SZ_VEC4);
 }
 
-m_bool import_vararg(Env env) {
-  CHECK_BB(env_add_type(env, &t_varobj))
-  CHECK_BB(env_add_type(env, &t_varloop))
-  CHECK_BB(import_class_begin(env, &t_vararg, NULL, NULL))
-  import_var(env, "@VarLoop",  "start", ae_flag_const, NULL);
-  import_var(env, "@VarLoop",  "end",   ae_flag_const, NULL);
-  import_var(env, "int",       "i",     ae_flag_const, NULL);
-  import_var(env, "float",     "f",     ae_flag_const, NULL);
-  import_var(env, "time",      "t",     ae_flag_const, NULL);
-  import_var(env, "dur",       "d",     ae_flag_const, NULL);
-  import_var(env, "complex",   "c",     ae_flag_const, NULL);
-  import_var(env, "polar",     "p",     ae_flag_const, NULL);
-  import_var(env, "Vec3",      "v3",    ae_flag_const, NULL);
-  import_var(env, "Vec4",      "v4",    ae_flag_const, NULL);
-  import_var(env, "VarObject", "o",     ae_flag_const, NULL);
-  CHECK_BB(import_class_end(env))
+m_bool import_vararg(Importer importer) {
+  CHECK_BB(importer_add_type(importer,  &t_varobj))
+  CHECK_BB(importer_add_type(importer,  &t_varloop))
+  CHECK_BB(importer_class_begin(importer,  &t_vararg, NULL, NULL))
+  importer_add_var(importer,  "@VarLoop",  "start", ae_flag_const, NULL);
+  importer_add_var(importer,  "@VarLoop",  "end",   ae_flag_const, NULL);
+  importer_add_var(importer,  "int",       "i",     ae_flag_const, NULL);
+  importer_add_var(importer,  "float",     "f",     ae_flag_const, NULL);
+  importer_add_var(importer,  "time",      "t",     ae_flag_const, NULL);
+  importer_add_var(importer,  "dur",       "d",     ae_flag_const, NULL);
+  importer_add_var(importer,  "complex",   "c",     ae_flag_const, NULL);
+  importer_add_var(importer,  "polar",     "p",     ae_flag_const, NULL);
+  importer_add_var(importer,  "Vec3",      "v3",    ae_flag_const, NULL);
+  importer_add_var(importer,  "Vec4",      "v4",    ae_flag_const, NULL);
+  importer_add_var(importer,  "VarObject", "o",     ae_flag_const, NULL);
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
