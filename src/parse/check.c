@@ -493,7 +493,11 @@ static m_bool template_set_env(Env env, Value v) {
   return 1;
 }
 
-Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
+//Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
+Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) {
+  Exp func = exp_func->func;
+  Exp args = exp_func->args;
+  Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   Func_Def base;
   Value value;
@@ -631,7 +635,12 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   }
   if(args_number < type_number)
     CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
-  Func f = find_template_match(env, value, func, tl[0], exp_func, args);
+Exp_Func tmp_func;
+tmp_func.func = exp_func;
+tmp_func.args = args;
+tmp_func.m_func = func;
+//  Func f = find_template_match(env, value, func, tl[0], exp_func, args);
+  Func f = find_template_match(env, value, &tmp_func, tl[0]);
   if(f) {
     *m_func = f;
     Type ret_type  = f->def->ret_type;
@@ -1017,8 +1026,9 @@ static Type check_exp_call(Env env, Exp_Func* call) {
                          "template call of non-template function."))
       } else
       CHECK_BO(err_msg(TYPE_, call->pos, "invalid template call."))
-    if(!(ret = find_template_match(env, v,
-                                   call->m_func, call->types, call->func, call->args)))
+//    if(!(ret = find_template_match(env, v,
+//                                   call->m_func, call->types, call->func, call->args)))
+    if(!(ret = find_template_match(env, v, call, call->types)))
       CHECK_BO(err_msg(TYPE_, call->pos,
                        "arguments do not match for template call"))
       call->m_func = ret;

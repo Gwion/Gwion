@@ -49,7 +49,7 @@ static void free_code_instr(Vector v) {
     else if(instr->execute == Init_Loop_Counter)
       free((m_int*)instr->m_val);
     free(instr);
-  } 
+  }
   free_vector(v);
 }
 
@@ -264,7 +264,8 @@ void free_vm(VM* vm) {
   vector_release(&vm->plug);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
-  sp_destroy(&vm->sp);
+  if(vm->sp)
+    sp_destroy(&vm->sp);
   free(vm->in);
   free_shreduler(vm->shreduler);
   free(vm);

@@ -1423,12 +1423,11 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
   return 1;
 }
 
-static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_str c, m_bool emit_addr) {
+static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
   Instr instr;
-
   exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
-  if(!strcmp(v->name, c))
+  if(!strcmp((isa(exp->type, &t_complex) > 0  ? "re" : "phase") , v->name))
     instr = add_instr(emit, complex_real);
   else
     instr = add_instr(emit, complex_imag);
@@ -1530,8 +1529,7 @@ static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
   m_bool emit_addr = member->self->emit_var;
 
   if(t->xid == te_complex || t->xid == te_polar)
-    return emit_complex_member(emit, member->base, v,
-        t->xid == te_complex ? "re" : "mod", emit_addr);
+    return emit_complex_member(emit, member->base, v, emit_addr);
   else if(t->xid == te_vec3 || t->xid == te_vec4)
     return emit_vec_member(emit, member->base, v, emit_addr);
   return emit_vararg(emit, member);
