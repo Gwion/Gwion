@@ -189,12 +189,10 @@ static void alsa_del(VM* vm) {
   }
 }
 
-Driver* alsa_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void alsa_driver(Driver* d, VM* vm) {
   d->ini = alsa_ini;
   d->run = alsa_run;
   d->del = alsa_del;
   vm->wakeup = no_wakeup;
-  return d;
 }
 

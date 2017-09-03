@@ -33,7 +33,6 @@ struct Importer_{
   void* addr;
 };
 
-
 static void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
   a->name = n;
   a->type = t;

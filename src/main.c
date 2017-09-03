@@ -18,16 +18,14 @@ VM* vm;
 struct Vector_ add;
 struct Vector_ rem;
 struct Vector_ plug_dirs;
-  Vector ref;
-
-
-  int do_quit = 0;
-  m_bool udp = 1;
-  int port = 8888;
-  char* hostname = "localhost";
-  int loop = 0;
-  DriverInfo di = { 2, 2, 2,
-    48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
+Vector ref;
+int do_quit = 0;
+m_bool udp = 1;
+int port = 8888;
+char* hostname = "localhost";
+int loop = 0;
+DriverInfo di = { 2, 2, 2,
+  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -262,10 +260,11 @@ static void do_udp() {
 
 int main(int argc, char** argv) {
   Env env = NULL;
-  Driver* d = NULL;
+  Driver d;
   int i;
   pthread_t udp_thread = 0;
 
+  d.del = NULL;
   vector_init(&add);
   vector_init(&rem);
   vector_init(&plug_dirs);
@@ -302,15 +301,14 @@ int main(int argc, char** argv) {
     pthread_detach(udp_thread);
 #endif
   }
-  d->run(vm, &di);
+  d.run(vm, &di);
   if(udp)
     server_destroy(udp_thread);
 clean:
   vector_release(&plug_dirs);
   vector_release(&add);
   vector_release(&rem);
-  if(d)
-    free_driver(d, vm);
+  d.del(vm);
   if(scan_map)
     free_map(scan_map);
 #ifndef __linux__

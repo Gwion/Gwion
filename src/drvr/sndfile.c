@@ -58,12 +58,10 @@ static void sndfile_del() {
   free(sf);
 }
 
-Driver* sndfile_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void sndfile_driver(Driver* d, VM* vm) {
   d->ini = sndfile_ini;
   d->run = sndfile_run;
   d->del = sndfile_del;
   vm->wakeup = no_wakeup;
-  return d;
 }
 
