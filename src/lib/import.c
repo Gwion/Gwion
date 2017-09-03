@@ -35,6 +35,7 @@ typedef struct {
 struct Importer_{
   Env env;
   DL_Func func;
+  DL_Oper oper;
   void* addr;
 };
 
@@ -328,10 +329,16 @@ static m_int import_op(Env env, DL_Oper* op,
   return env_add_op(env, op->op, lhs, rhs, ret, f, global);
 }
 
-m_int importer_add_op(Importer importer, Operator op, const m_str l, const m_str r, const m_str t,
-    const f_instr f, const m_bool global) {
-  DL_Oper oper = { op, t, l, r };
-  return import_op(importer->env, &oper, f, global);
+m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const m_str t) {
+  importer->oper.ret = t;
+  importer->oper.rhs = r;
+  importer->oper.lhs = l;
+  return 1;
+}
+
+m_int importer_add_op(Importer importer, Operator op, const f_instr f, const m_bool global) {
+  importer->oper.op = op;
+  return import_op(importer->env, &importer->oper, f, global);
 }
 
 m_bool importer_add_value(Importer importer, m_str name, Type type, m_bool is_const, void* value) {

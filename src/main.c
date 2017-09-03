@@ -99,7 +99,7 @@ static const struct option long_option[] = {
   { NULL,       0, NULL, 0   }
 };
 
-static const char _usage[] =
+static const char usage[] =
 "usage: Gwion <options>\n"
 "\toption can be any of:\n"
 "GLOBAL options:  <argument>  : description\n"

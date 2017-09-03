@@ -74,7 +74,8 @@ m_bool import_event(Importer importer) {
   CHECK_BB(importer_add_fun(importer, 0))
   importer_func_begin(importer, "int", "broadcast", (m_uint)event_broadcast);
   CHECK_BB(importer_add_fun(importer, 0))
-  CHECK_BB(importer_add_op(importer,  op_chuck, "Event", "@now", "int", Event_Wait, 1))
+  CHECK_BB(importer_oper_begin(importer, "Event", "@now", "int"))
+  CHECK_BB(importer_add_op(importer,  op_chuck, Event_Wait, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }

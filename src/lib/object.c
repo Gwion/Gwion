@@ -126,16 +126,22 @@ static INSTR(neq_Object) {
 }
 
 m_bool import_object(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_object, NULL, object_dtor))
-  CHECK_BB(importer_add_op(importer,  op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_eq,  "Object", "Object", "int",  eq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_neq, "Object", "Object", "int", neq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_eq,  "@null",   "Object", "int",  eq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_neq, "@null",   "Object", "int", neq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_eq,  "Object", "@null", "int",  eq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_neq, "Object", "@null", "int", neq_Object, 1))
-  CHECK_BB(importer_add_op(importer,  op_exclamation,   NULL,   "Object", "int", int_not,        1))
+  CHECK_BB(importer_class_begin(importer, &t_object, NULL, object_dtor))
+  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "Object"))
+  CHECK_BB(importer_add_op(importer, op_at_chuck, Assign_Object, 1))
+  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "Object"))
+  CHECK_BB(importer_add_op(importer, op_at_chuck, Assign_Object, 1))
+  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "int"))
+  CHECK_BB(importer_add_op(importer, op_eq,  eq_Object, 1))
+  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "int"))
+  CHECK_BB(importer_add_op(importer, op_eq,  eq_Object, 1))
+  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_begin(importer, "Object", "@null", "int"))
+  CHECK_BB(importer_add_op(importer, op_eq, eq_Object, 1))
+  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_begin(importer, NULL, "Object", "int"))
+  CHECK_BB(importer_add_op(importer, op_exclamation, int_not, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
