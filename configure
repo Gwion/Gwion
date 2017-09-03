@@ -519,6 +519,7 @@ echo "ast_src := \$(wildcard src/ast/*.c)"
 echo "parse_src := \$(wildcard src/parse/*.c)"
 echo "ugen_src := \$(wildcard src/ugen/*.c)"
 echo "util_src := \$(wildcard src/util/*.c)"
+echo "emit_src := \$(wildcard src/emit/*.c)"
 echo "drvr_src := src/drvr/driver.c"
 }
 make_add() {
@@ -588,7 +589,7 @@ echo "LDFLAGS += \${SOUNDPIPE_LIB}"
 echo "CFLAGS  += \${SOUNDPIPE_INC}"
 
 printf "\n# initialize object lists\n"
-for iter in src lib ast parse oo ugen util drvr
+for iter in src lib ast parse emit oo ugen util drvr
 do
 	echo "${iter}_obj := \$(${iter}_src:.c=.o)"
 done
@@ -610,9 +611,9 @@ ifeq (\$(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: options \${src_obj} \${lib_obj} \${ast_obj} \${parse_obj} \${oo_obj} \${util_obj} \${ugen_obj} \${drvr_obj}
+all: options \${src_obj} \${lib_obj} \${ast_obj} \${parse_obj} \${emit_obj} \${oo_obj} \${util_obj} \${ugen_obj} \${drvr_obj}
 	@echo "link \${PRG}"
-	@\${CC} \${src_obj} \${lib_obj} \${ast_obj} \${parse_obj} \${oo_obj} \${ugen_obj} \${util_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
+	@\${CC} \${src_obj} \${lib_obj} \${ast_obj} \${parse_obj} \${emit_obj} \${oo_obj} \${ugen_obj} \${util_obj} \${drvr_obj} \${LDFLAGS} -o \${PRG}
 
 options:
 	@echo "CFLAGS  : \${CFLAGS}"
