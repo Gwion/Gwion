@@ -333,37 +333,33 @@ m_bool importer_add_value(Importer importer, m_str name, Type type, m_bool is_co
   return env_add_value(importer->env, name, type, is_const, value);
 }
 
-m_bool import_libs(Env env) {
-  struct Importer_ importer;
-  importer.env = env;
-  CHECK_BB(importer_add_type(&importer, &t_void))
-  CHECK_BB(importer_add_type(&importer, &t_null))
-  CHECK_BB(importer_add_type(&importer, &t_now))
-  CHECK_BB(import_int(&importer))
-  CHECK_BB(import_float(&importer))
-  CHECK_BB(import_complex(&importer))
-  CHECK_BB(import_vec3(&importer))
-  CHECK_BB(import_vec4(&importer))
-  CHECK_BB(import_object(&importer))
-  CHECK_BB(import_vararg(&importer))
-  CHECK_BB(import_string(&importer))
-  CHECK_BB(import_shred(&importer))
-  CHECK_BB(import_event(&importer))
-  CHECK_BB(import_ugen(&importer))
-  CHECK_BB(import_array(&importer))
-  importer.env->type_xid = te_last;
-  CHECK_BB(import_fileio(&importer))
-  CHECK_BB(import_std(&importer))
-  CHECK_BB(import_math(&importer))
-  CHECK_BB(import_machine(&importer))
-  CHECK_BB(import_soundpipe(&importer))
-  CHECK_BB(import_modules(&importer))
+static m_bool  import_libs(Importer importer) {
+  CHECK_BB(importer_add_type(importer, &t_void))
+  CHECK_BB(importer_add_type(importer, &t_null))
+  CHECK_BB(importer_add_type(importer, &t_now))
+  CHECK_BB(import_int(importer))
+  CHECK_BB(import_float(importer))
+  CHECK_BB(import_complex(importer))
+  CHECK_BB(import_vec3(importer))
+  CHECK_BB(import_vec4(importer))
+  CHECK_BB(import_object(importer))
+  CHECK_BB(import_vararg(importer))
+  CHECK_BB(import_string(importer))
+  CHECK_BB(import_shred(importer))
+  CHECK_BB(import_event(importer))
+  CHECK_BB(import_ugen(importer))
+  CHECK_BB(import_array(importer))
+  importer->env->type_xid = te_last;
+  CHECK_BB(import_fileio(importer))
+  CHECK_BB(import_std(importer))
+  CHECK_BB(import_math(importer))
+  CHECK_BB(import_machine(importer))
+  CHECK_BB(import_soundpipe(importer))
+  CHECK_BB(import_modules(importer))
   return 1;
 }
 
-m_bool import_values(Env env) {
-  struct Importer_ importer;
-  importer.env = env;
+static m_bool import_values(Importer importer) {
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
   ALLOC_PTR(samp,   m_float, 1.0);
@@ -375,23 +371,21 @@ m_bool import_values(Env env) {
   ALLOC_PTR(t_zero, m_float, 0.0);
   ALLOC_PTR(pi, m_float, M_PI);
 
-  importer_add_value(&importer, "d_zero",     &t_dur,   1, d_zero);
-  importer_add_value(&importer, "samplerate", &t_dur,   1, sr);
-  importer_add_value(&importer, "samp",       &t_dur,   1, samp);
-  importer_add_value(&importer, "ms",         &t_dur,   1, ms);
-  importer_add_value(&importer, "second",     &t_dur,   1, second);
-  importer_add_value(&importer, "minute",     &t_dur,   1, minute);
-  importer_add_value(&importer, "day",        &t_dur,   1, hour);
-  importer_add_value(&importer, "hour",       &t_dur,   1, day);
-  importer_add_value(&importer, "t_zero",     &t_time,  1, t_zero);
-  importer_add_value(&importer, "pi",         &t_float, 1, pi);
+  importer_add_value(importer, "d_zero",     &t_dur,   1, d_zero);
+  importer_add_value(importer, "samplerate", &t_dur,   1, sr);
+  importer_add_value(importer, "samp",       &t_dur,   1, samp);
+  importer_add_value(importer, "ms",         &t_dur,   1, ms);
+  importer_add_value(importer, "second",     &t_dur,   1, second);
+  importer_add_value(importer, "minute",     &t_dur,   1, minute);
+  importer_add_value(importer, "day",        &t_dur,   1, hour);
+  importer_add_value(importer, "hour",       &t_dur,   1, day);
+  importer_add_value(importer, "t_zero",     &t_time,  1, t_zero);
+  importer_add_value(importer, "pi",         &t_float, 1, pi);
 
   return 1;
-}
+} 
 
-m_bool import_global_ugens(VM*  vm, Env env) {
-  struct Importer_ importer;
-  importer.env = env;
+static m_bool import_global_ugens(VM*  vm, Importer importer) {
   vm->dac       = new_M_UGen();
   vm->adc       = new_M_UGen();
   vm->blackhole = new_M_UGen();
@@ -405,11 +399,11 @@ m_bool import_global_ugens(VM*  vm, Env env) {
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
 
-  importer_add_value(&importer, "adc",        &t_ugen, 1, vm->adc);
-  importer_add_value(&importer, "dac",        &t_ugen, 1, vm->dac);
-  importer_add_value(&importer, "blackhole",  &t_ugen, 1, vm->blackhole);
+  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
+  importer_add_value(importer, "dac",        &t_ugen, 1, vm->dac);
+  importer_add_value(importer, "blackhole",  &t_ugen, 1, vm->blackhole);
   return 1;
-}
+} 
 
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -440,21 +434,41 @@ static void handle_plug(Env env, m_str c) {
   }
 }
 
-void add_plugs(Env env, Vector plug_dirs) {
+static void add_plugs(Importer importer, Vector plug_dirs) {
   m_uint i;
-  for(i = 0; i < vector_size(plug_dirs); i++) {
+   for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
     struct dirent **namelist;
     int n;
     n = scandir(dirname, &namelist, so_filter, alphasort);
-    if(n > 0) {
-      while(n--) {
+     if(n > 0) {
+       while(n--) {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(env, c);
+        handle_plug(importer->env, c);
         free(namelist[n]);
       }
       free(namelist);
     }
   }
 }
+
+Env type_engine_init(VM* vm, Vector plug_dirs) {
+  Env env = new_env();
+  struct Importer_ importer;
+  importer.env = env;
+  if(import_libs(&importer)   < 0 ||
+     import_values(&importer) < 0 ||
+     import_global_ugens(vm, &importer) < 0) {
+    free_env(env);
+    return NULL;
+  }
+  nspc_commit(env->global_nspc);
+  // user nspc
+  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
+  /*  env->user_nspc->parent = env->global_nspc;*/
+  add_plugs(&importer, plug_dirs);
+  nspc_commit(env->curr);
+  return env;
+}
+

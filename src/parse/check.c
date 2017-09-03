@@ -22,23 +22,6 @@ struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
-Env type_engine_init(VM* vm, Vector plug_dirs) {
-  Env env = new_env();
-  if(import_libs(env)   < 0 ||
-     import_values(env) < 0 ||
-     import_global_ugens(vm, env) < 0) {
-    free_env(env);
-    return NULL;
-  }
-  nspc_commit(env->global_nspc);
-  // user nspc
-  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
-  /*  env->user_nspc->parent = env->global_nspc;*/
-  add_plugs(env, plug_dirs);
-  nspc_commit(env->curr);
-  return env;
-}
-
 static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   Exp exp = exp_list;
   while(exp) {
