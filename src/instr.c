@@ -11,13 +11,6 @@
 
 #define overflow_(c) (c->mem >  (c->_mem + (SIZEOF_MEM) - (MEM_STEP)))
 
-Instr add_instr(Emitter emit, f_instr f) {
-  Instr instr = calloc(1, sizeof(struct Instr_));
-  instr->execute = f;
-  vector_add(&emit->code->code, (vtype)instr);
-  return instr;
-}
-
 static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
   memcpy(REG(0), retval, size);
   PUSH_REG(shred, size);

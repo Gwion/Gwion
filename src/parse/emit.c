@@ -73,6 +73,13 @@ void free_emitter(Emitter a) {
   free(a);
 }
 
+Instr add_instr(Emitter emit, f_instr f) {
+  Instr instr = calloc(1, sizeof(struct Instr_));
+  instr->execute = f;
+  vector_add(&emit->code->code, (vtype)instr);
+  return instr;
+}
+
 static Code* new_code() {
   Code* code = calloc(1, sizeof(Code));
   code->stack_depth = 0;
