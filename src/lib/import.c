@@ -27,6 +27,11 @@ typedef struct {
   DL_Value args[DLARG_MAX];
 } DL_Func;
 
+typedef struct {
+  Operator op;
+  m_str ret, lhs, rhs;
+} DL_Oper;
+
 struct Importer_{
   Env env;
   DL_Func func;
@@ -315,17 +320,18 @@ static Type get_type(Env env, const m_str str) {
   return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
 }
 
-static m_int import_op(Env env, Operator op, const m_str l, const m_str r, const m_str t,
+static m_int import_op(Env env, DL_Oper* op,
                 const f_instr f, const m_bool global) {
-  Type lhs = l ? get_type(env, l) : NULL;
-  Type rhs = r ? get_type(env, r) : NULL;
-  Type ret = get_type(env, t);
-  return env_add_op(env, op, lhs, rhs, ret, f, global);
+  Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
+  Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
+  Type ret = get_type(env, op->ret);
+  return env_add_op(env, op->op, lhs, rhs, ret, f, global);
 }
 
 m_int importer_add_op(Importer importer, Operator op, const m_str l, const m_str r, const m_str t,
     const f_instr f, const m_bool global) {
-  return import_op(importer->env, op, l, r, t, f, global);
+  DL_Oper oper = { op, t, l, r };
+  return import_op(importer->env, &oper, f, global);
 }
 
 m_bool importer_add_value(Importer importer, m_str name, Type type, m_bool is_const, void* value) {
