@@ -179,14 +179,14 @@ static INSTR(polar_divide_r) {
 }
 
 m_bool import_complex(Env env) {
-  CHECK_BB(import_class_begin(env, &t_complex, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_complex, NULL, NULL))
   o_complex_real = import_var(env, "float", "re",   ae_flag_member, NULL);
   CHECK_BB(o_complex_real)
   o_complex_imag = import_var(env, "float", "im",   ae_flag_member, NULL);
   CHECK_BB(o_complex_imag)
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(import_class_begin(env, &t_polar, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_polar, NULL, NULL))
   o_polar_mod = import_var(env, "float", "mod",   ae_flag_member, NULL);
   CHECK_BB(o_polar_mod)
   o_polar_phase = import_var(env, "float", "phase",   ae_flag_member, NULL);

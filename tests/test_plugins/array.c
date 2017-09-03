@@ -10,7 +10,7 @@ MFUN(test_mfun){}
 IMPORT
 {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_invalid_var_name, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_invalid_var_name, NULL, NULL))
 
   import_var(env, "int[]", "int_array", 0, NULL); // import array var
   dl_func_init(&fun, "float[][]", "f", (m_uint)test_mfun);

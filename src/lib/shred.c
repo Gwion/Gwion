@@ -89,7 +89,7 @@ static DTOR(shred_dtor) {
 m_bool import_shred(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_shred, env->global_nspc, NULL, shred_dtor))
+  CHECK_BB(import_class_begin(env, &t_shred, NULL, shred_dtor))
 
   o_shred_me = import_var(env, "int", "@me", ae_flag_member, NULL);
   CHECK_BB(o_shred_me)

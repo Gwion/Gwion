@@ -8233,7 +8233,7 @@ m_bool import_soundpipe(Env env)
 {
 	DL_Func fun;
 
-	CHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))
+	CHECK_BB(import_class_begin(env, &t_ftbl, NULL, ftbl_dtor))
 	o_ftbl_data = import_var(env, "int", "@ftbl", 0, NULL);
 	dl_func_init(&fun, "void", "gen_composite", (m_uint)ftbl_gen_composite);
 	dl_func_add_arg(&fun, "int", "size");
@@ -8279,7 +8279,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_adsr, env->global_nspc, adsr_ctor, adsr_dtor))
+	CHECK_BB(import_class_begin(env, &t_adsr, adsr_ctor, adsr_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)adsr_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)adsr_set_atk);
@@ -8302,7 +8302,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_allpass, env->global_nspc, allpass_ctor, allpass_dtor))
+	CHECK_BB(import_class_begin(env, &t_allpass, allpass_ctor, allpass_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)allpass_init);
 		 dl_func_add_arg(&fun, "float", "looptime");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8313,7 +8313,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_atone, env->global_nspc, atone_ctor, atone_dtor))
+	CHECK_BB(import_class_begin(env, &t_atone, atone_ctor, atone_dtor))
 	dl_func_init(&fun, "float", "hp", (m_uint)atone_get_hp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "hp", (m_uint)atone_set_hp);
@@ -8321,7 +8321,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_autowah, env->global_nspc, autowah_ctor, autowah_dtor))
+	CHECK_BB(import_class_begin(env, &t_autowah, autowah_ctor, autowah_dtor))
 	dl_func_init(&fun, "float", "level", (m_uint)autowah_get_level);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "level", (m_uint)autowah_set_level);
@@ -8339,10 +8339,10 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_bal, env->global_nspc, bal_ctor, bal_dtor))
+	CHECK_BB(import_class_begin(env, &t_bal, bal_ctor, bal_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_bar, env->global_nspc, bar_ctor, bar_dtor))
+	CHECK_BB(import_class_begin(env, &t_bar, bar_ctor, bar_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)bar_init);
 		 dl_func_add_arg(&fun, "float", "iK");
 		 dl_func_add_arg(&fun, "float", "ib");
@@ -8384,7 +8384,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_biquad, env->global_nspc, biquad_ctor, biquad_dtor))
+	CHECK_BB(import_class_begin(env, &t_biquad, biquad_ctor, biquad_dtor))
 	dl_func_init(&fun, "float", "b0", (m_uint)biquad_get_b0);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "b0", (m_uint)biquad_set_b0);
@@ -8417,7 +8417,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_biscale, env->global_nspc, biscale_ctor, biscale_dtor))
+	CHECK_BB(import_class_begin(env, &t_biscale, biscale_ctor, biscale_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)biscale_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)biscale_set_min);
@@ -8430,7 +8430,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_bitcrush, env->global_nspc, bitcrush_ctor, bitcrush_dtor))
+	CHECK_BB(import_class_begin(env, &t_bitcrush, bitcrush_ctor, bitcrush_dtor))
 	dl_func_init(&fun, "float", "bitdepth", (m_uint)bitcrush_get_bitdepth);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "bitdepth", (m_uint)bitcrush_set_bitdepth);
@@ -8443,7 +8443,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_blsaw, env->global_nspc, blsaw_ctor, blsaw_dtor))
+	CHECK_BB(import_class_begin(env, &t_blsaw, blsaw_ctor, blsaw_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsaw_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsaw_set_freq);
@@ -8456,7 +8456,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_blsquare, env->global_nspc, blsquare_ctor, blsquare_dtor))
+	CHECK_BB(import_class_begin(env, &t_blsquare, blsquare_ctor, blsquare_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsquare_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)blsquare_set_freq);
@@ -8474,7 +8474,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_bltriangle, env->global_nspc, bltriangle_ctor, bltriangle_dtor))
+	CHECK_BB(import_class_begin(env, &t_bltriangle, bltriangle_ctor, bltriangle_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)bltriangle_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)bltriangle_set_freq);
@@ -8487,10 +8487,10 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_brown, env->global_nspc, brown_ctor, brown_dtor))
+	CHECK_BB(import_class_begin(env, &t_brown, brown_ctor, brown_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_butbp, env->global_nspc, butbp_ctor, butbp_dtor))
+	CHECK_BB(import_class_begin(env, &t_butbp, butbp_ctor, butbp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbp_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbp_set_freq);
@@ -8503,7 +8503,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_butbr, env->global_nspc, butbr_ctor, butbr_dtor))
+	CHECK_BB(import_class_begin(env, &t_butbr, butbr_ctor, butbr_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbr_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)butbr_set_freq);
@@ -8516,7 +8516,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_buthp, env->global_nspc, buthp_ctor, buthp_dtor))
+	CHECK_BB(import_class_begin(env, &t_buthp, buthp_ctor, buthp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)buthp_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)buthp_set_freq);
@@ -8524,7 +8524,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_butlp, env->global_nspc, butlp_ctor, butlp_dtor))
+	CHECK_BB(import_class_begin(env, &t_butlp, butlp_ctor, butlp_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)butlp_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)butlp_set_freq);
@@ -8532,7 +8532,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_clip, env->global_nspc, clip_ctor, clip_dtor))
+	CHECK_BB(import_class_begin(env, &t_clip, clip_ctor, clip_dtor))
 	dl_func_init(&fun, "float", "lim", (m_uint)clip_get_lim);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "lim", (m_uint)clip_set_lim);
@@ -8540,7 +8540,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_clock, env->global_nspc, clock_ctor, clock_dtor))
+	CHECK_BB(import_class_begin(env, &t_clock, clock_ctor, clock_dtor))
 	dl_func_init(&fun, "float", "bpm", (m_uint)clock_get_bpm);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "bpm", (m_uint)clock_set_bpm);
@@ -8553,7 +8553,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_comb, env->global_nspc, comb_ctor, comb_dtor))
+	CHECK_BB(import_class_begin(env, &t_comb, comb_ctor, comb_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)comb_init);
 		 dl_func_add_arg(&fun, "float", "looptime");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8564,7 +8564,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_compressor, env->global_nspc, compressor_ctor, compressor_dtor))
+	CHECK_BB(import_class_begin(env, &t_compressor, compressor_ctor, compressor_dtor))
 	dl_func_init(&fun, "float", "ratio", (m_uint)compressor_get_ratio);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "ratio", (m_uint)compressor_set_ratio);
@@ -8587,14 +8587,14 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_conv, env->global_nspc, conv_ctor, conv_dtor))
+	CHECK_BB(import_class_begin(env, &t_conv, conv_ctor, conv_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)conv_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "iPartLen");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_count, env->global_nspc, count_ctor, count_dtor))
+	CHECK_BB(import_class_begin(env, &t_count, count_ctor, count_dtor))
 	dl_func_init(&fun, "float", "count", (m_uint)count_get_count);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "count", (m_uint)count_set_count);
@@ -8607,7 +8607,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_crossfade, env->global_nspc, crossfade_ctor, crossfade_dtor))
+	CHECK_BB(import_class_begin(env, &t_crossfade, crossfade_ctor, crossfade_dtor))
 	dl_func_init(&fun, "float", "pos", (m_uint)crossfade_get_pos);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "pos", (m_uint)crossfade_set_pos);
@@ -8615,10 +8615,10 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_dcblock, env->global_nspc, dcblock_ctor, dcblock_dtor))
+	CHECK_BB(import_class_begin(env, &t_dcblock, dcblock_ctor, dcblock_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_delay, env->global_nspc, delay_ctor, delay_dtor))
+	CHECK_BB(import_class_begin(env, &t_delay, delay_ctor, delay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)delay_init);
 		 dl_func_add_arg(&fun, "float", "time");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8629,7 +8629,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_diode, env->global_nspc, diode_ctor, diode_dtor))
+	CHECK_BB(import_class_begin(env, &t_diode, diode_ctor, diode_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)diode_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)diode_set_freq);
@@ -8642,13 +8642,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_diskin, env->global_nspc, diskin_ctor, diskin_dtor))
+	CHECK_BB(import_class_begin(env, &t_diskin, diskin_ctor, diskin_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)diskin_init);
 		 dl_func_add_arg(&fun, "string", "filename");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_dist, env->global_nspc, dist_ctor, dist_dtor))
+	CHECK_BB(import_class_begin(env, &t_dist, dist_ctor, dist_dtor))
 	dl_func_init(&fun, "float", "pregain", (m_uint)dist_get_pregain);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "pregain", (m_uint)dist_set_pregain);
@@ -8671,7 +8671,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_dmetro, env->global_nspc, dmetro_ctor, dmetro_dtor))
+	CHECK_BB(import_class_begin(env, &t_dmetro, dmetro_ctor, dmetro_dtor))
 	dl_func_init(&fun, "float", "time", (m_uint)dmetro_get_time);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "time", (m_uint)dmetro_set_time);
@@ -8679,7 +8679,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_drip, env->global_nspc, drip_ctor, drip_dtor))
+	CHECK_BB(import_class_begin(env, &t_drip, drip_ctor, drip_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)drip_init);
 		 dl_func_add_arg(&fun, "float", "dettack");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8720,7 +8720,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_dtrig, env->global_nspc, dtrig_ctor, dtrig_dtor))
+	CHECK_BB(import_class_begin(env, &t_dtrig, dtrig_ctor, dtrig_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)dtrig_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8741,7 +8741,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_dust, env->global_nspc, dust_ctor, dust_dtor))
+	CHECK_BB(import_class_begin(env, &t_dust, dust_ctor, dust_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)dust_get_amp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "amp", (m_uint)dust_set_amp);
@@ -8759,7 +8759,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_eqfil, env->global_nspc, eqfil_ctor, eqfil_dtor))
+	CHECK_BB(import_class_begin(env, &t_eqfil, eqfil_ctor, eqfil_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)eqfil_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)eqfil_set_freq);
@@ -8777,7 +8777,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_expon, env->global_nspc, expon_ctor, expon_dtor))
+	CHECK_BB(import_class_begin(env, &t_expon, expon_ctor, expon_dtor))
 	dl_func_init(&fun, "float", "a", (m_uint)expon_get_a);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "a", (m_uint)expon_set_a);
@@ -8795,7 +8795,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_fof, env->global_nspc, fof_ctor, fof_dtor))
+	CHECK_BB(import_class_begin(env, &t_fof, fof_ctor, fof_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)fof_init);
 		 dl_func_add_arg(&fun, "ftbl", "sine");
 		 dl_func_add_arg(&fun, "ftbl", "win");
@@ -8844,7 +8844,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_fofilt, env->global_nspc, fofilt_ctor, fofilt_dtor))
+	CHECK_BB(import_class_begin(env, &t_fofilt, fofilt_ctor, fofilt_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)fofilt_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)fofilt_set_freq);
@@ -8862,7 +8862,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_fog, env->global_nspc, fog_ctor, fog_dtor))
+	CHECK_BB(import_class_begin(env, &t_fog, fog_ctor, fog_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)fog_init);
 		 dl_func_add_arg(&fun, "ftbl", "wav");
 		 dl_func_add_arg(&fun, "ftbl", "win");
@@ -8916,7 +8916,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_fold, env->global_nspc, fold_ctor, fold_dtor))
+	CHECK_BB(import_class_begin(env, &t_fold, fold_ctor, fold_dtor))
 	dl_func_init(&fun, "float", "incr", (m_uint)fold_get_incr);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "incr", (m_uint)fold_set_incr);
@@ -8924,7 +8924,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_fosc, env->global_nspc, fosc_ctor, fosc_dtor))
+	CHECK_BB(import_class_begin(env, &t_fosc, fosc_ctor, fosc_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)fosc_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -8955,7 +8955,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_gbuzz, env->global_nspc, gbuzz_ctor, gbuzz_dtor))
+	CHECK_BB(import_class_begin(env, &t_gbuzz, gbuzz_ctor, gbuzz_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)gbuzz_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "iphs");
@@ -8987,13 +8987,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_hilbert, env->global_nspc, hilbert_ctor, hilbert_dtor))
+	CHECK_BB(import_class_begin(env, &t_hilbert, hilbert_ctor, hilbert_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_in, env->global_nspc, in_ctor, in_dtor))
+	CHECK_BB(import_class_begin(env, &t_in, in_ctor, in_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_incr, env->global_nspc, incr_ctor, incr_dtor))
+	CHECK_BB(import_class_begin(env, &t_incr, incr_ctor, incr_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)incr_init);
 		 dl_func_add_arg(&fun, "float", "val");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9014,10 +9014,10 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_jcrev, env->global_nspc, jcrev_ctor, jcrev_dtor))
+	CHECK_BB(import_class_begin(env, &t_jcrev, jcrev_ctor, jcrev_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_jitter, env->global_nspc, jitter_ctor, jitter_dtor))
+	CHECK_BB(import_class_begin(env, &t_jitter, jitter_ctor, jitter_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)jitter_get_amp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "amp", (m_uint)jitter_set_amp);
@@ -9035,7 +9035,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_line, env->global_nspc, line_ctor, line_dtor))
+	CHECK_BB(import_class_begin(env, &t_line, line_ctor, line_dtor))
 	dl_func_init(&fun, "float", "a", (m_uint)line_get_a);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "a", (m_uint)line_set_a);
@@ -9053,7 +9053,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_lpf18, env->global_nspc, lpf18_ctor, lpf18_dtor))
+	CHECK_BB(import_class_begin(env, &t_lpf18, lpf18_ctor, lpf18_dtor))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)lpf18_get_cutoff);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)lpf18_set_cutoff);
@@ -9071,7 +9071,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_maygate, env->global_nspc, maygate_ctor, maygate_dtor))
+	CHECK_BB(import_class_begin(env, &t_maygate, maygate_ctor, maygate_dtor))
 	dl_func_init(&fun, "float", "prob", (m_uint)maygate_get_prob);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "prob", (m_uint)maygate_set_prob);
@@ -9084,7 +9084,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_metro, env->global_nspc, metro_ctor, metro_dtor))
+	CHECK_BB(import_class_begin(env, &t_metro, metro_ctor, metro_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)metro_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)metro_set_freq);
@@ -9092,7 +9092,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_mincer, env->global_nspc, mincer_ctor, mincer_dtor))
+	CHECK_BB(import_class_begin(env, &t_mincer, mincer_ctor, mincer_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)mincer_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "int", "winsize");
@@ -9114,7 +9114,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_mode, env->global_nspc, mode_ctor, mode_dtor))
+	CHECK_BB(import_class_begin(env, &t_mode, mode_ctor, mode_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)mode_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)mode_set_freq);
@@ -9127,7 +9127,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_moogladder, env->global_nspc, moogladder_ctor, moogladder_dtor))
+	CHECK_BB(import_class_begin(env, &t_moogladder, moogladder_ctor, moogladder_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)moogladder_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)moogladder_set_freq);
@@ -9140,7 +9140,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_noise, env->global_nspc, noise_ctor, noise_dtor))
+	CHECK_BB(import_class_begin(env, &t_noise, noise_ctor, noise_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)noise_get_amp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "amp", (m_uint)noise_set_amp);
@@ -9148,7 +9148,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_nsmp, env->global_nspc, nsmp_ctor, nsmp_dtor))
+	CHECK_BB(import_class_begin(env, &t_nsmp, nsmp_ctor, nsmp_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)nsmp_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "int", "sr");
@@ -9161,7 +9161,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_osc, env->global_nspc, osc_ctor, osc_dtor))
+	CHECK_BB(import_class_begin(env, &t_osc, osc_ctor, osc_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)osc_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
 		 dl_func_add_arg(&fun, "float", "phase");
@@ -9178,7 +9178,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_oscmorph, env->global_nspc, oscmorph_ctor, oscmorph_dtor))
+	CHECK_BB(import_class_begin(env, &t_oscmorph, oscmorph_ctor, oscmorph_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)oscmorph_init);
 		 dl_func_add_arg(&fun, "ftbl[]", "tbl");
 		 dl_func_add_arg(&fun, "int", "nft");
@@ -9201,7 +9201,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pan2, env->global_nspc, pan2_ctor, pan2_dtor))
+	CHECK_BB(import_class_begin(env, &t_pan2, pan2_ctor, pan2_dtor))
 	dl_func_init(&fun, "int", "type", (m_uint)pan2_get_type);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "int", "type", (m_uint)pan2_set_type);
@@ -9214,7 +9214,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_panst, env->global_nspc, panst_ctor, panst_dtor))
+	CHECK_BB(import_class_begin(env, &t_panst, panst_ctor, panst_dtor))
 	dl_func_init(&fun, "int", "type", (m_uint)panst_get_type);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "int", "type", (m_uint)panst_set_type);
@@ -9227,7 +9227,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pareq, env->global_nspc, pareq_ctor, pareq_dtor))
+	CHECK_BB(import_class_begin(env, &t_pareq, pareq_ctor, pareq_dtor))
 	dl_func_init(&fun, "float", "fc", (m_uint)pareq_get_fc);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "fc", (m_uint)pareq_set_fc);
@@ -9250,7 +9250,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_paulstretch, env->global_nspc, paulstretch_ctor, paulstretch_dtor))
+	CHECK_BB(import_class_begin(env, &t_paulstretch, paulstretch_ctor, paulstretch_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)paulstretch_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "windowsize");
@@ -9258,7 +9258,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pdhalf, env->global_nspc, pdhalf_ctor, pdhalf_dtor))
+	CHECK_BB(import_class_begin(env, &t_pdhalf, pdhalf_ctor, pdhalf_dtor))
 	dl_func_init(&fun, "float", "amount", (m_uint)pdhalf_get_amount);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "amount", (m_uint)pdhalf_set_amount);
@@ -9266,7 +9266,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_peaklim, env->global_nspc, peaklim_ctor, peaklim_dtor))
+	CHECK_BB(import_class_begin(env, &t_peaklim, peaklim_ctor, peaklim_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)peaklim_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)peaklim_set_atk);
@@ -9284,7 +9284,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_phaser, env->global_nspc, phaser_ctor, phaser_dtor))
+	CHECK_BB(import_class_begin(env, &t_phaser, phaser_ctor, phaser_dtor))
 	dl_func_init(&fun, "float", "MaxNotch1Freq", (m_uint)phaser_get_MaxNotch1Freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "MaxNotch1Freq", (m_uint)phaser_set_MaxNotch1Freq);
@@ -9337,7 +9337,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_phasor, env->global_nspc, phasor_ctor, phasor_dtor))
+	CHECK_BB(import_class_begin(env, &t_phasor, phasor_ctor, phasor_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)phasor_init);
 		 dl_func_add_arg(&fun, "float", "iphs");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9348,7 +9348,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pinknoise, env->global_nspc, pinknoise_ctor, pinknoise_dtor))
+	CHECK_BB(import_class_begin(env, &t_pinknoise, pinknoise_ctor, pinknoise_dtor))
 	dl_func_init(&fun, "float", "amp", (m_uint)pinknoise_get_amp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "amp", (m_uint)pinknoise_set_amp);
@@ -9356,14 +9356,14 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pitchamdf, env->global_nspc, pitchamdf_ctor, pitchamdf_dtor))
+	CHECK_BB(import_class_begin(env, &t_pitchamdf, pitchamdf_ctor, pitchamdf_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)pitchamdf_init);
 		 dl_func_add_arg(&fun, "float", "min");
 		 dl_func_add_arg(&fun, "float", "max");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pluck, env->global_nspc, pluck_ctor, pluck_dtor))
+	CHECK_BB(import_class_begin(env, &t_pluck, pluck_ctor, pluck_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)pluck_init);
 		 dl_func_add_arg(&fun, "float", "ifreq");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9379,13 +9379,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_port, env->global_nspc, port_ctor, port_dtor))
+	CHECK_BB(import_class_begin(env, &t_port, port_ctor, port_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)port_init);
 		 dl_func_add_arg(&fun, "float", "htime");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_posc3, env->global_nspc, posc3_ctor, posc3_dtor))
+	CHECK_BB(import_class_begin(env, &t_posc3, posc3_ctor, posc3_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)posc3_init);
 		 dl_func_add_arg(&fun, "ftbl", "tbl");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9401,7 +9401,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_progress, env->global_nspc, progress_ctor, progress_dtor))
+	CHECK_BB(import_class_begin(env, &t_progress, progress_ctor, progress_dtor))
 	dl_func_init(&fun, "int", "nbars", (m_uint)progress_get_nbars);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "int", "nbars", (m_uint)progress_set_nbars);
@@ -9414,7 +9414,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_prop, env->global_nspc, prop_ctor, prop_dtor))
+	CHECK_BB(import_class_begin(env, &t_prop, prop_ctor, prop_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)prop_init);
 		 dl_func_add_arg(&fun, "string", "str");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9425,7 +9425,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_pshift, env->global_nspc, pshift_ctor, pshift_dtor))
+	CHECK_BB(import_class_begin(env, &t_pshift, pshift_ctor, pshift_dtor))
 	dl_func_init(&fun, "float", "shift", (m_uint)pshift_get_shift);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "shift", (m_uint)pshift_set_shift);
@@ -9443,14 +9443,14 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_ptrack, env->global_nspc, ptrack_ctor, ptrack_dtor))
+	CHECK_BB(import_class_begin(env, &t_ptrack, ptrack_ctor, ptrack_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)ptrack_init);
 		 dl_func_add_arg(&fun, "int", "ihopsize");
 		 dl_func_add_arg(&fun, "int", "ipeaks");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_randh, env->global_nspc, randh_ctor, randh_dtor))
+	CHECK_BB(import_class_begin(env, &t_randh, randh_ctor, randh_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)randh_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)randh_set_min);
@@ -9468,7 +9468,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_randi, env->global_nspc, randi_ctor, randi_dtor))
+	CHECK_BB(import_class_begin(env, &t_randi, randi_ctor, randi_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)randi_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)randi_set_min);
@@ -9491,7 +9491,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_random, env->global_nspc, random_ctor, random_dtor))
+	CHECK_BB(import_class_begin(env, &t_random, random_ctor, random_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)random_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)random_set_min);
@@ -9504,7 +9504,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_reson, env->global_nspc, reson_ctor, reson_dtor))
+	CHECK_BB(import_class_begin(env, &t_reson, reson_ctor, reson_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)reson_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)reson_set_freq);
@@ -9517,13 +9517,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_reverse, env->global_nspc, reverse_ctor, reverse_dtor))
+	CHECK_BB(import_class_begin(env, &t_reverse, reverse_ctor, reverse_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)reverse_init);
 		 dl_func_add_arg(&fun, "float", "delay");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_revsc, env->global_nspc, revsc_ctor, revsc_dtor))
+	CHECK_BB(import_class_begin(env, &t_revsc, revsc_ctor, revsc_dtor))
 	dl_func_init(&fun, "float", "feedback", (m_uint)revsc_get_feedback);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "feedback", (m_uint)revsc_set_feedback);
@@ -9536,7 +9536,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_rms, env->global_nspc, rms_ctor, rms_dtor))
+	CHECK_BB(import_class_begin(env, &t_rms, rms_ctor, rms_dtor))
 	dl_func_init(&fun, "float", "ihp", (m_uint)rms_get_ihp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "ihp", (m_uint)rms_set_ihp);
@@ -9544,16 +9544,16 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_rpt, env->global_nspc, rpt_ctor, rpt_dtor))
+	CHECK_BB(import_class_begin(env, &t_rpt, rpt_ctor, rpt_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)rpt_init);
 		 dl_func_add_arg(&fun, "float", "maxdur");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_samphold, env->global_nspc, samphold_ctor, samphold_dtor))
+	CHECK_BB(import_class_begin(env, &t_samphold, samphold_ctor, samphold_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_saturator, env->global_nspc, saturator_ctor, saturator_dtor))
+	CHECK_BB(import_class_begin(env, &t_saturator, saturator_ctor, saturator_dtor))
 	dl_func_init(&fun, "float", "drive", (m_uint)saturator_get_drive);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "drive", (m_uint)saturator_set_drive);
@@ -9566,7 +9566,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_scale, env->global_nspc, scale_ctor, scale_dtor))
+	CHECK_BB(import_class_begin(env, &t_scale, scale_ctor, scale_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)scale_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)scale_set_min);
@@ -9579,13 +9579,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_sdelay, env->global_nspc, sdelay_ctor, sdelay_dtor))
+	CHECK_BB(import_class_begin(env, &t_sdelay, sdelay_ctor, sdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)sdelay_init);
 		 dl_func_add_arg(&fun, "float", "size");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_slice, env->global_nspc, slice_ctor, slice_dtor))
+	CHECK_BB(import_class_begin(env, &t_slice, slice_ctor, slice_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)slice_init);
 		 dl_func_add_arg(&fun, "ftbl", "vals");
 		 dl_func_add_arg(&fun, "ftbl", "buf");
@@ -9597,7 +9597,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_smoothdelay, env->global_nspc, smoothdelay_ctor, smoothdelay_dtor))
+	CHECK_BB(import_class_begin(env, &t_smoothdelay, smoothdelay_ctor, smoothdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)smoothdelay_init);
 		 dl_func_add_arg(&fun, "float", "maxdel");
 		 dl_func_add_arg(&fun, "int", "interp");
@@ -9614,19 +9614,19 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_spa, env->global_nspc, spa_ctor, spa_dtor))
+	CHECK_BB(import_class_begin(env, &t_spa, spa_ctor, spa_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)spa_init);
 		 dl_func_add_arg(&fun, "string", "filename");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_sparec, env->global_nspc, sparec_ctor, sparec_dtor))
+	CHECK_BB(import_class_begin(env, &t_sparec, sparec_ctor, sparec_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)sparec_init);
 		 dl_func_add_arg(&fun, "string", "filename");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_streson, env->global_nspc, streson_ctor, streson_dtor))
+	CHECK_BB(import_class_begin(env, &t_streson, streson_ctor, streson_dtor))
 	dl_func_init(&fun, "float", "freq", (m_uint)streson_get_freq);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "freq", (m_uint)streson_set_freq);
@@ -9639,10 +9639,10 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_switch, env->global_nspc, switch_ctor, switch_dtor))
+	CHECK_BB(import_class_begin(env, &t_switch, switch_ctor, switch_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tabread, env->global_nspc, tabread_ctor, tabread_dtor))
+	CHECK_BB(import_class_begin(env, &t_tabread, tabread_ctor, tabread_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tabread_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 		 dl_func_add_arg(&fun, "float", "mode");
@@ -9664,7 +9664,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tadsr, env->global_nspc, tadsr_ctor, tadsr_dtor))
+	CHECK_BB(import_class_begin(env, &t_tadsr, tadsr_ctor, tadsr_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tadsr_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)tadsr_set_atk);
@@ -9687,13 +9687,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tblrec, env->global_nspc, tblrec_ctor, tblrec_dtor))
+	CHECK_BB(import_class_begin(env, &t_tblrec, tblrec_ctor, tblrec_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tblrec_init);
 		 dl_func_add_arg(&fun, "ftbl", "bar");
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tbvcf, env->global_nspc, tbvcf_ctor, tbvcf_dtor))
+	CHECK_BB(import_class_begin(env, &t_tbvcf, tbvcf_ctor, tbvcf_dtor))
 	dl_func_init(&fun, "float", "fco", (m_uint)tbvcf_get_fco);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "fco", (m_uint)tbvcf_set_fco);
@@ -9716,7 +9716,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tdiv, env->global_nspc, tdiv_ctor, tdiv_dtor))
+	CHECK_BB(import_class_begin(env, &t_tdiv, tdiv_ctor, tdiv_dtor))
 	dl_func_init(&fun, "float", "num", (m_uint)tdiv_get_num);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "num", (m_uint)tdiv_set_num);
@@ -9729,7 +9729,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tenv, env->global_nspc, tenv_ctor, tenv_dtor))
+	CHECK_BB(import_class_begin(env, &t_tenv, tenv_ctor, tenv_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv_set_atk);
@@ -9747,7 +9747,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tenv2, env->global_nspc, tenv2_ctor, tenv2_dtor))
+	CHECK_BB(import_class_begin(env, &t_tenv2, tenv2_ctor, tenv2_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv2_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenv2_set_atk);
@@ -9760,7 +9760,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tenvx, env->global_nspc, tenvx_ctor, tenvx_dtor))
+	CHECK_BB(import_class_begin(env, &t_tenvx, tenvx_ctor, tenvx_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenvx_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)tenvx_set_atk);
@@ -9778,7 +9778,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tgate, env->global_nspc, tgate_ctor, tgate_dtor))
+	CHECK_BB(import_class_begin(env, &t_tgate, tgate_ctor, tgate_dtor))
 	dl_func_init(&fun, "float", "time", (m_uint)tgate_get_time);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "time", (m_uint)tgate_set_time);
@@ -9786,7 +9786,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_thresh, env->global_nspc, thresh_ctor, thresh_dtor))
+	CHECK_BB(import_class_begin(env, &t_thresh, thresh_ctor, thresh_dtor))
 	dl_func_init(&fun, "float", "thresh", (m_uint)thresh_get_thresh);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "thresh", (m_uint)thresh_set_thresh);
@@ -9799,13 +9799,13 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_timer, env->global_nspc, timer_ctor, timer_dtor))
+	CHECK_BB(import_class_begin(env, &t_timer, timer_ctor, timer_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tin, env->global_nspc, tin_ctor, tin_dtor))
+	CHECK_BB(import_class_begin(env, &t_tin, tin_ctor, tin_dtor))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tone, env->global_nspc, tone_ctor, tone_dtor))
+	CHECK_BB(import_class_begin(env, &t_tone, tone_ctor, tone_dtor))
 	dl_func_init(&fun, "float", "hp", (m_uint)tone_get_hp);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "hp", (m_uint)tone_set_hp);
@@ -9813,7 +9813,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_trand, env->global_nspc, trand_ctor, trand_dtor))
+	CHECK_BB(import_class_begin(env, &t_trand, trand_ctor, trand_dtor))
 	dl_func_init(&fun, "float", "min", (m_uint)trand_get_min);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "min", (m_uint)trand_set_min);
@@ -9826,7 +9826,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tseg, env->global_nspc, tseg_ctor, tseg_dtor))
+	CHECK_BB(import_class_begin(env, &t_tseg, tseg_ctor, tseg_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tseg_init);
 		 dl_func_add_arg(&fun, "float", "ibeg");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9847,7 +9847,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_tseq, env->global_nspc, tseq_ctor, tseq_dtor))
+	CHECK_BB(import_class_begin(env, &t_tseq, tseq_ctor, tseq_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)tseq_init);
 		 dl_func_add_arg(&fun, "ftbl", "ft");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9858,7 +9858,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_vdelay, env->global_nspc, vdelay_ctor, vdelay_dtor))
+	CHECK_BB(import_class_begin(env, &t_vdelay, vdelay_ctor, vdelay_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)vdelay_init);
 		 dl_func_add_arg(&fun, "float", "maxdel");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9869,7 +9869,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_vocoder, env->global_nspc, vocoder_ctor, vocoder_dtor))
+	CHECK_BB(import_class_begin(env, &t_vocoder, vocoder_ctor, vocoder_dtor))
 	dl_func_init(&fun, "float", "atk", (m_uint)vocoder_get_atk);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "atk", (m_uint)vocoder_set_atk);
@@ -9887,7 +9887,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_waveset, env->global_nspc, waveset_ctor, waveset_dtor))
+	CHECK_BB(import_class_begin(env, &t_waveset, waveset_ctor, waveset_dtor))
 	dl_func_init(&fun, "void", "init", (m_uint)waveset_init);
 		 dl_func_add_arg(&fun, "float", "ilen");
 	CHECK_BB(import_fun(env, &fun, 0))
@@ -9898,7 +9898,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_wpkorg35, env->global_nspc, wpkorg35_ctor, wpkorg35_dtor))
+	CHECK_BB(import_class_begin(env, &t_wpkorg35, wpkorg35_ctor, wpkorg35_dtor))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)wpkorg35_get_cutoff);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "cutoff", (m_uint)wpkorg35_set_cutoff);
@@ -9916,7 +9916,7 @@ m_bool import_soundpipe(Env env)
 	CHECK_BB(import_fun(env, &fun, 0))
 	CHECK_BB(import_class_end(env))
 
-	CHECK_BB(import_class_begin(env, &t_zitarev, env->global_nspc, zitarev_ctor, zitarev_dtor))
+	CHECK_BB(import_class_begin(env, &t_zitarev, zitarev_ctor, zitarev_dtor))
 	dl_func_init(&fun, "float", "in_delay", (m_uint)zitarev_get_in_delay);
 	CHECK_BB(import_fun(env, &fun, 0))
 	dl_func_init(&fun, "float", "in_delay", (m_uint)zitarev_set_in_delay);

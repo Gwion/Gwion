@@ -107,12 +107,12 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   return 1;
 }
 
-m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor dtor) {
+m_int import_class_begin(Env env, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   CHECK_BB(env_add_type(env, type))
   type->info = new_nspc(type->name, "global_nspc");
-  type->info->parent = where;
+  type->info->parent = env->curr;
   if(pre_ctor)
     mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
@@ -121,8 +121,7 @@ m_int import_class_begin(Env env, Type type, Nspc where, f_xtor pre_ctor, f_xtor
     type->info->offset = type->parent->obj_size;
     vector_copy2(&type->info->obj_v_table, &type->parent->info->obj_v_table);
   }
-  type->owner = where;
-  type->obj_size = 0;
+  type->owner = env->curr;
 
   SET_FLAG(type, ae_flag_checked);
   CHECK_BB(env_push_class(env, type))

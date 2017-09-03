@@ -813,7 +813,7 @@ static MFUN(string_toFloat) {
 m_bool import_string(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_string, env->global_nspc, string_ctor, NULL))
+  CHECK_BB(import_class_begin(env, &t_string, string_ctor, NULL))
 
   o_string_data = import_var(env, "int", "@data",   ae_flag_const, NULL);
   CHECK_BB(o_string_data)

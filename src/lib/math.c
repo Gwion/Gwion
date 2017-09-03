@@ -212,7 +212,7 @@ static SFUN(math_isnan) {
 m_bool import_math(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_math, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_math, NULL, NULL))
 
   dl_func_init(&fun, "int", "abs", (m_uint)math_abs);
   dl_func_add_arg(&fun, "int", "value");

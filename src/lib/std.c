@@ -186,7 +186,7 @@ static SFUN(std_lintodb) {
 
 m_bool import_std(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_std, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_std, NULL, NULL))
 
   dl_func_init(&fun, "int", "clamp", (m_uint)std_clamp);
   dl_func_add_arg(&fun, "int", "value");

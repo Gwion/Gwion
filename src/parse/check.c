@@ -758,11 +758,13 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   return NULL;
 }
 
-static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
+static Type check_op(Env env, Operator op, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
-  debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
+  debug_msg("check", "'%s' %s '%s'", binary->lhs->type->name, op2str(op), 
+      binary->rhs->type->name);
 #endif
-
+  Exp lhs = binary->lhs;
+  Exp rhs = binary->rhs;
   Type t;
 
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
@@ -909,7 +911,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
   }
 
   while(cr) {
-    CHECK_OO((ret = check_op(env, binary->op, cl, cr, binary)))
+    CHECK_OO((ret = check_op(env, binary->op, binary)))
     cr = cr->next;
   }
   return ret;

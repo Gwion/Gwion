@@ -168,7 +168,7 @@ static INSTR(vec3_r_assign) {
 m_bool import_vec3(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_vec3, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_vec3, NULL, NULL))
     import_var(env, "float", "x", ae_flag_member, NULL);
   import_var(env, "float", "y", ae_flag_member, NULL);
   import_var(env, "float", "z", ae_flag_member, NULL);
@@ -318,7 +318,7 @@ static INSTR(vec4_r_assign) {
 
 m_bool import_vec4(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_vec4, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_vec4, NULL, NULL))
     import_var(env, "float", "x", ae_flag_member, NULL);
   import_var(env, "float", "y", ae_flag_member, NULL);
   import_var(env, "float", "z", ae_flag_member, NULL);

@@ -301,7 +301,7 @@ static MFUN(ugen_get_last) {
 m_bool import_ugen(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_ugen, env->global_nspc, ugen_ctor, ugen_dtor))
+  CHECK_BB(import_class_begin(env, &t_ugen, ugen_ctor, ugen_dtor))
 
   o_object_ugen = import_var(env, "int", "@ugen", ae_flag_member, NULL);
   CHECK_BB(o_object_ugen)

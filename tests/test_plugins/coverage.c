@@ -13,7 +13,7 @@ SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 IMPORT
 {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_coverage, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_coverage, NULL, NULL))
   dl_func_init(&fun, "int", "i", (m_uint)coverage_int);
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
   dl_func_init(&fun, "float", "f", (m_uint)coverage_float);

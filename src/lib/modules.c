@@ -100,7 +100,7 @@ MFUN(sinosc_set_amp) {
 static m_bool import_sinosc(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
+  CHECK_BB(import_class_begin(env, &t_sinosc, sinosc_ctor, sinosc_dtor))
   dl_func_init(&fun, "void", "init", (m_uint)sinosc_size);
   dl_func_add_arg(&fun, "int", "size");
   CHECK_BB(import_fun(env, &fun, 0))
@@ -150,7 +150,7 @@ static MFUN(gain_set_gain) {
 
 static m_bool import_gain(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_gain, gain_ctor, basic_dtor))
   dl_func_init(&fun, "float", "gain", (m_uint)gain_get_gain);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "gain", (m_uint)gain_set_gain);
@@ -184,7 +184,7 @@ static MFUN(impulse_set_next) {
 
 static m_bool import_impulse(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_impulse, env->global_nspc, impulse_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_impulse, impulse_ctor, basic_dtor))
   dl_func_init(&fun, "float", "next", (m_uint)impulse_get_next);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "next", (m_uint)impulse_set_next);
@@ -208,7 +208,7 @@ static CTOR(fullrect_ctor) {
 }
 
 static m_bool import_fullrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_fullrect, fullrect_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -230,7 +230,7 @@ static CTOR(halfrect_ctor) {
 }
 
 static m_bool import_halfrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_halfrect, halfrect_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }
@@ -257,7 +257,7 @@ static MFUN(step_set_next) {
 
 static m_bool import_step(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_step, step_ctor, basic_dtor))
   dl_func_init(&fun, "float", "next", (m_uint)step_get_next);
   CHECK_BB(import_fun(env, &fun, 0))
   dl_func_init(&fun, "float", "next", (m_uint)step_set_next);
@@ -285,7 +285,7 @@ static CTOR(zerox_ctor) {
 }
 
 static m_bool import_zerox(Env env) {
-  CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, basic_dtor))
+  CHECK_BB(import_class_begin(env, &t_zerox, zerox_ctor, basic_dtor))
   CHECK_BB(import_class_end(env))
   return 1;
 }

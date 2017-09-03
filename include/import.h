@@ -33,7 +33,7 @@ void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n);
 #define IMPORT m_bool import(Env env)
 #define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c
 
-m_int import_class_begin(Env env, Type type, Nspc where, const f_xtor pre_ctor, const f_xtor dtor);
+m_int import_class_begin(Env env, Type type, const f_xtor pre_ctor, const f_xtor dtor);
 m_int import_var(Env env, const m_str type, const m_str name, ae_flag flag, m_uint* addr);
 m_int import_fun(Env env, DL_Func * fun, ae_flag flag);
 m_int import_op(Env env, const Operator op, const m_str l, const m_str r, const m_str t, const f_instr f, const m_bool global);

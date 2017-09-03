@@ -125,7 +125,7 @@ INSTR(Vararg_Vec4) {
 m_bool import_vararg(Env env) {
   CHECK_BB(env_add_type(env, &t_varobj))
   CHECK_BB(env_add_type(env, &t_varloop))
-  CHECK_BB(import_class_begin(env, &t_vararg, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_vararg, NULL, NULL))
   import_var(env, "@VarLoop",  "start", ae_flag_const, NULL);
   import_var(env, "@VarLoop",  "end",   ae_flag_const, NULL);
   import_var(env, "int",       "i",     ae_flag_const, NULL);

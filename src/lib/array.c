@@ -222,7 +222,7 @@ INSTR(Array_Append) {
 
 m_bool import_array(Env env) {
   DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_array, env->global_nspc, NULL, array_dtor))
+  CHECK_BB(import_class_begin(env, &t_array, NULL, array_dtor))
 
   o_object_array = import_var(env, "int", "@array", ae_flag_member, NULL);
   CHECK_BB(o_object_array)

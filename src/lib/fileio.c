@@ -239,7 +239,7 @@ SFUN(file_list) {
 m_bool import_fileio(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
+  CHECK_BB(import_class_begin(env, &t_fileio, fileio_ctor, fileio_dtor))
 
   // import vars
   o_fileio_file = import_var(env, "int", "@file", ae_flag_member, NULL);
@@ -272,13 +272,13 @@ m_bool import_fileio(Env env) {
   CHECK_BB(import_op(env, op_chuck, "FileIO", "float",  "float",  file_to_float, 1))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_begin(env, &t_cout, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(import_class_begin(env, &t_cerr, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_begin(env, &t_cerr, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
-  CHECK_BB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
+  CHECK_BB(import_class_begin(env, &t_cin, NULL, static_fileio_dtor))
   CHECK_BB(import_class_end(env))
 
   gw_cin = new_M_Object(NULL);

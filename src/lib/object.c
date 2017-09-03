@@ -126,7 +126,7 @@ static INSTR(neq_Object) {
 }
 
 m_bool import_object(Env env) {
-  CHECK_BB(import_class_begin(env, &t_object, env->global_nspc, NULL, object_dtor))
+  CHECK_BB(import_class_begin(env, &t_object, NULL, object_dtor))
   CHECK_BB(import_op(env, op_at_chuck, "@null", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_at_chuck, "Object", "Object", "Object", Assign_Object, 1))
   CHECK_BB(import_op(env, op_eq,  "Object", "Object", "int",  eq_Object, 1))

@@ -106,7 +106,7 @@ static SFUN(machine_shreds) {
 m_bool import_machine(Env env) {
   DL_Func fun;
 
-  CHECK_BB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
+  CHECK_BB(import_class_begin(env, &t_machine, NULL, NULL))
   dl_func_init(&fun, "void",  "add", (m_uint)machine_add);
   dl_func_add_arg(&fun,       "string",  "filename");
   CHECK_BB(import_fun(env, &fun, ae_flag_static))
