@@ -1798,8 +1798,10 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     prog = prog->next;
   }
   CHECK_OB(emitter_add_instr(emit, stop_gc))
-  if(emit->cases)
+  if(emit->cases) {
     free_map(emit->cases);
+    emit->cases = NULL;
+  }
   emit_pop_scope(emit);
   if(ret < 0) { // should free all stack.
     //    for(i = 0; i < vector_size(&emit->stack); i++)
