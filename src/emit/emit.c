@@ -653,7 +653,6 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
-printf("%s %s %s\n", lhs->type->name, op2str(binary->op), rhs->type->name);
 
   if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
       && isa(lhs->type->d.array_type, rhs->type) > 0)
