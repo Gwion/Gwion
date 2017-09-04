@@ -408,11 +408,11 @@ static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
 }
 
 static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
-  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val);
 }
 
 static m_bool scan1_stmt_case(Env env, Stmt_Case stmt) {
-  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val);
 }
 
 static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
