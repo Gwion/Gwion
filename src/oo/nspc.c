@@ -26,21 +26,22 @@ void nspc_pop_value(Nspc nspc) {
 
 Func nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb) {
   Func t = (Func)scope_lookup(&nspc->func, xid, climb);
-  if(climb > 0 && !t && nspc->parent)
-    t = (Func)nspc_lookup_func(nspc->parent, xid, climb);
+//  if(climb > 0 && !t && nspc->parent)
+//    t = (Func)nspc_lookup_func(nspc->parent, xid, climb);
   return t;
 }
 
 void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
   scope_add(&nspc->func, xid, (vtype)value);
 }
+/*
 void nspc_push_func(Nspc nspc) {
   scope_push(&nspc->func);
 }
 void nspc_pop_func(Nspc nspc) {
   scope_pop(&nspc->func);
 }
-
+*/
 Type nspc_lookup_type(Nspc nspc, S_Symbol xid, m_bool climb) {
   Type t = (Type)scope_lookup(&nspc->type, xid, climb);
   if(climb > 0 && !t && nspc->parent)
