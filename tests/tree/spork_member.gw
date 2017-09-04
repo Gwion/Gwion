@@ -1,6 +1,11 @@
 class C
 {
-	function void test(int i){<<<i>>>; spork ~{<<<"test2">>>;};}
+  function void test(int i){
+    <<<i>>>;
+    spork ~{
+      <<<"test2">>>;
+    };
+  }
 //	spork ~test(2);
 //	spork ~ { <<<"test", this>>>; };
 }

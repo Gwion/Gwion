@@ -8,8 +8,8 @@ class C
 }
 
 switch(maybe) {
-	case a:
-	case true:
-case C.c:
-case maybe:
+  case a:
+  case true:
+  case C.c:
+  case maybe:
 }

@@ -5,4 +5,5 @@
     Test test0;
 	<<<test1 @=> test0>>>;
 }
+
 C c;

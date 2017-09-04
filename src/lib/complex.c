@@ -71,10 +71,9 @@ static INSTR(complex_r_divide) {
 
 INSTR(complex_real) {
   POP_REG(shred, SZ_INT);
-  if(instr->m_val) {
-//    *(m_float**)REG(0) = &**(m_float**)REG(0); // coverity
-    PUSH_REG(shred, SZ_INT);
-  } else {
+  if(instr->m_val)
+    PUSH_REG(shred, SZ_INT)
+  else {
     *(m_float*)REG(0) = **(m_float**)REG(0);  // coverity
     PUSH_REG(shred, SZ_FLOAT);
   }

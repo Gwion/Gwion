@@ -489,7 +489,7 @@ additive_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
 additive_expression
   : multiplicative_expression          { $$ = $1; }
   | additive_expression additive_op multiplicative_expression
-    { $$ = new_exp_binary( $1, op_plus, $3, get_pos(scanner)); }
+    { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
 multiplicative_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };

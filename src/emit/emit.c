@@ -626,7 +626,6 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
 static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
   Value v = NULL;
   Instr instr = emitter_add_instr(emit, assign_func);
-
   if(rhs->exp_type == ae_exp_dot) {
     v = find_value(rhs->d.exp_dot.t_base, rhs->d.exp_dot.xid);
     instr->m_val = 1;
@@ -654,6 +653,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
+printf("%s %s %s\n", lhs->type->name, op2str(binary->op), rhs->type->name);
 
   if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
       && isa(lhs->type->d.array_type, rhs->type) > 0)
