@@ -1804,13 +1804,18 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   }
   emit_pop_scope(emit);
   if(ret < 0) { // should free all stack.
-    //    for(i = 0; i < vector_size(&emit->stack); i++)
-    //      free_code((Code*)vector_at(&emit->stack, i));
+    m_uint j;
+	for(i = 0; i < vector_size(&emit->stack); i++) {
+      Code* code = (Code*)vector_at(&emit->stack, i);
+      for(j = 0; j < vector_size(&code->code); j++)
+        free((Instr)vector_at(&code->code, j));
+       free_code(code);
+    }
     for(i = 0; i < emit_code_size(emit); i++)
       free((Instr)vector_at(&emit->code->code, i));
-    free(filename);
     free_code(emit->code);
+    free(filename);
     free_ast(ast);
-  } 
+  }
   return ret;
 }
