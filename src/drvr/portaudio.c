@@ -103,11 +103,9 @@ static void run(VM* vm, DriverInfo* di) {
     Pa_Sleep(1);
 }
 
-Driver* pa_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void pa_driver(Driver* d, VM* vm) {
   d->ini = ini;
   d->run = run;
   d->del = del;
   vm->wakeup = no_wakeup;
-  return d;
 }

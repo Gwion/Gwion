@@ -1,6 +1,9 @@
 class C
 {
-	function void test(){ <<<this>>>; }
+  function void test() {
+    <<<this>>>;
+  }
 }
+
 C c;
 c.test();

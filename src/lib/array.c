@@ -220,26 +220,25 @@ INSTR(Array_Append) {
   PUSH_REG(shred, SZ_INT);
 }
 
-m_bool import_array(Env env) {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_array, NULL, array_dtor))
+m_bool import_array(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_array, NULL, array_dtor))
 
-  o_object_array = import_var(env, "int", "@array", ae_flag_member, NULL);
+  o_object_array = importer_add_var(importer,  "int", "@array", ae_flag_member, NULL);
   CHECK_BB(o_object_array)
 
-  dl_func_init(&fun, "int", "size", (m_uint)vm_vector_size);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "size", (m_uint)vm_vector_size);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "depth", (m_uint)vm_vector_depth);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "depth", (m_uint)vm_vector_depth);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "cap", (m_uint)vm_vector_cap);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "cap", (m_uint)vm_vector_cap);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  dl_func_init(&fun, "int", "remove", (m_uint)vm_vector_rem);
-  dl_func_add_arg(&fun, "int", "index");
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_func_begin(importer, "int", "remove", (m_uint)vm_vector_rem);
+  importer_add_arg(importer, "int", "index");
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

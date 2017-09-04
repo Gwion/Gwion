@@ -9,15 +9,14 @@ static struct Type_ t_invalid_var_name = { "invalid_var_name", SZ_INT, &t_object
 MFUN(test_mfun){}
 IMPORT
 {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_invalid_var_name, NULL, NULL))
+  CHECK_BB(importer_class_begin(importer, &t_invalid_var_name, NULL, NULL))
 
-  import_var(env, "int[]", "int_array", 0, NULL); // import array var
-  dl_func_init(&fun, "float[][]", "f", (m_uint)test_mfun);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float[][]", "g", (m_uint)test_mfun);
-  CHECK_BB(import_fun(env, &fun, 0))
+  importer_add_var(importer, "int[]", "int_array", 0, NULL); // import array var
+  importer_func_begin(importer, "float[][]", "f", (m_uint)test_mfun);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float[][]", "g", (m_uint)test_mfun);
+  CHECK_BB(importer_add_fun(importer, 0))
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

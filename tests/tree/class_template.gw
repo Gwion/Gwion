@@ -1,9 +1,16 @@
 template<{A, B}>
-class C { A a; B b; 
-fun A test() { <<<"lol">>>; }
-template<{C}>
-fun void test2(C c) { <<<c>>>; }
+class C {
+  A a;
+  B b; 
+  fun A test() {
+    <<<"lol">>>;
+  }
+  template<{C}>
+  fun void test2(C c) {
+    <<<c>>>;
+  }
 }
+
 //<<<C>>>;
 <{int, int}>C c;
 <{float, int}>C d;

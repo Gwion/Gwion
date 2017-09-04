@@ -324,11 +324,9 @@ void sio_run() {
   soundio_destroy(soundio);
 }
 
-Driver* sio_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void sio_driver(Driver* d, VM* vm) {
   d->ini = sio_ini;
   d->run = sio_run;
   d->del = sio_del;
   vm->wakeup = sio_wakeup;
-  return d;
 }

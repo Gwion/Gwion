@@ -9,11 +9,10 @@ static struct Type_ t_invalid_var_type = { "invalid_var_type", SZ_INT, &t_object
 MFUN(test_mfun){}
 IMPORT
 {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_invalid_var_type, NULL, NULL))
-  dl_func_init(&fun, ".int", "i", (m_uint)test_mfun);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  CHECK_BB(importer_class_begin(importer, &t_invalid_var_type, NULL, NULL))
+  importer_func_begin(importer, ".int", "i", (m_uint)test_mfun);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

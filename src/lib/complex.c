@@ -71,10 +71,9 @@ static INSTR(complex_r_divide) {
 
 INSTR(complex_real) {
   POP_REG(shred, SZ_INT);
-  if(instr->m_val) {
-//    *(m_float**)REG(0) = &**(m_float**)REG(0); // coverity
-    PUSH_REG(shred, SZ_INT);
-  } else {
+  if(instr->m_val)
+    PUSH_REG(shred, SZ_INT)
+  else {
     *(m_float*)REG(0) = **(m_float**)REG(0);  // coverity
     PUSH_REG(shred, SZ_FLOAT);
   }
@@ -178,39 +177,41 @@ static INSTR(polar_divide_r) {
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-m_bool import_complex(Env env) {
-  CHECK_BB(import_class_begin(env, &t_complex, NULL, NULL))
-  o_complex_real = import_var(env, "float", "re",   ae_flag_member, NULL);
+m_bool import_complex(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_complex, NULL, NULL))
+  o_complex_real = importer_add_var(importer,  "float", "re",   ae_flag_member, NULL);
   CHECK_BB(o_complex_real)
-  o_complex_imag = import_var(env, "float", "im",   ae_flag_member, NULL);
+  o_complex_imag = importer_add_var(importer,  "float", "im",   ae_flag_member, NULL);
   CHECK_BB(o_complex_imag)
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(import_class_begin(env, &t_polar, NULL, NULL))
-  o_polar_mod = import_var(env, "float", "mod",   ae_flag_member, NULL);
+  CHECK_BB(importer_class_begin(importer,  &t_polar, NULL, NULL))
+  o_polar_mod = importer_add_var(importer,  "float", "mod",   ae_flag_member, NULL);
   CHECK_BB(o_polar_mod)
-  o_polar_phase = import_var(env, "float", "phase",   ae_flag_member, NULL);
+  o_polar_phase = importer_add_var(importer,  "float", "phase",   ae_flag_member, NULL);
   CHECK_BB(o_polar_phase)
-  CHECK_BB(import_class_end(env))
-  CHECK_BB(import_op(env, op_assign,        "complex", "complex", "complex", complex_assign,     0))
-  CHECK_BB(import_op(env, op_plus,          "complex", "complex", "complex", complex_plus,       0))
-  CHECK_BB(import_op(env, op_minus,         "complex", "complex", "complex", complex_minus,      0))
-  CHECK_BB(import_op(env, op_times,         "complex", "complex", "complex", complex_times,      0))
-  CHECK_BB(import_op(env, op_divide,        "complex", "complex", "complex", complex_divide,     0))
-  CHECK_BB(import_op(env, op_chuck,         "complex", "complex", "complex", complex_r_assign,   0))
-  CHECK_BB(import_op(env, op_plus_chuck,    "complex", "complex", "complex", complex_r_plus,     0))
-  CHECK_BB(import_op(env, op_minus_chuck,   "complex", "complex", "complex", complex_r_minus,    0))
-  CHECK_BB(import_op(env, op_times_chuck,   "complex", "complex", "complex", complex_r_times,    0))
-  CHECK_BB(import_op(env, op_divide_chuck,  "complex", "complex", "complex", complex_r_divide,   0))
-  CHECK_BB(import_op(env, op_assign,        "polar", "polar", "polar", complex_assign,           0))
-  CHECK_BB(import_op(env, op_chuck,         "polar", "polar", "polar", complex_r_assign,         0))
-  CHECK_BB(import_op(env, op_plus,          "polar", "polar", "polar", polar_plus,       0))
-  CHECK_BB(import_op(env, op_minus,         "polar", "polar", "polar", polar_minus,      0))
-  CHECK_BB(import_op(env, op_times,         "polar", "polar", "polar", polar_times,      0))
-  CHECK_BB(import_op(env, op_divide,        "polar", "polar", "polar", polar_divide,     0))
-  CHECK_BB(import_op(env, op_plus_chuck,    "polar", "polar", "polar", polar_plus_r,     0))
-  CHECK_BB(import_op(env, op_minus_chuck,   "polar", "polar", "polar", polar_minus_r,    0))
-  CHECK_BB(import_op(env, op_times_chuck,   "polar", "polar", "polar", polar_times_r,    0))
-  CHECK_BB(import_op(env, op_divide_chuck,  "polar", "polar", "polar", polar_divide_r,   0))
+  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(importer_oper_begin(importer, "complex", "complex", "complex"))
+  CHECK_BB(importer_add_op(importer,  op_assign,        complex_assign,     0))
+  CHECK_BB(importer_add_op(importer,  op_plus,          complex_plus,       0))
+  CHECK_BB(importer_add_op(importer,  op_minus,         complex_minus,      0))
+  CHECK_BB(importer_add_op(importer,  op_times,         complex_times,      0))
+  CHECK_BB(importer_add_op(importer,  op_divide,        complex_divide,     0))
+  CHECK_BB(importer_add_op(importer,  op_chuck,         complex_r_assign,   0))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck,    complex_r_plus,     0))
+  CHECK_BB(importer_add_op(importer,  op_minus_chuck,   complex_r_minus,    0))
+  CHECK_BB(importer_add_op(importer,  op_times_chuck,   complex_r_times,    0))
+  CHECK_BB(importer_add_op(importer,  op_divide_chuck,  complex_r_divide,   0))
+  CHECK_BB(importer_oper_begin(importer, "polar", "polar", "polar"))
+  CHECK_BB(importer_add_op(importer,  op_assign,        complex_assign,           0))
+  CHECK_BB(importer_add_op(importer,  op_chuck,         complex_r_assign,         0))
+  CHECK_BB(importer_add_op(importer,  op_plus,          polar_plus,       0))
+  CHECK_BB(importer_add_op(importer,  op_minus,         polar_minus,      0))
+  CHECK_BB(importer_add_op(importer,  op_times,         polar_times,      0))
+  CHECK_BB(importer_add_op(importer,  op_divide,        polar_divide,     0))
+  CHECK_BB(importer_add_op(importer,  op_plus_chuck,    polar_plus_r,     0))
+  CHECK_BB(importer_add_op(importer,  op_minus_chuck,   polar_minus_r,    0))
+  CHECK_BB(importer_add_op(importer,  op_times_chuck,   polar_times_r,    0))
+  CHECK_BB(importer_add_op(importer,  op_divide_chuck,  polar_divide_r,   0))
   return 1;
 }

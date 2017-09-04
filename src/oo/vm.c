@@ -100,10 +100,9 @@ void free_vm_shred(VM_Shred shred) {
   free(shred);
 }
 
-m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
-  Driver* d;
-
-  if(!(d = di->func(vm)) || d->ini(vm, di) < 0)
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
+  di->func(d, vm);
+  if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
   sp_createn(&vm->sp, di->out);
   free(vm->sp->out);
@@ -111,7 +110,6 @@ m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
   vm->in   = calloc(di->in, sizeof(SPFLOAT));
   vm->n_in = di->in;
   vm->sp->sr = di->sr;
-  *driver = d;
   sp_srand(vm->sp, time(NULL));
   return 1;
 }

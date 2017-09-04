@@ -137,11 +137,9 @@ void jack_del() {
   free(oport);
 }
 
-Driver* jack_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void jack_driver(VM* vm) {
   d->ini = jack_ini;
   d->run = jack_run;
   d->del = jack_del;
   vm->wakeup = jack_wakeup;
-  return d;
 }

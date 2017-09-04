@@ -225,12 +225,12 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
 
 static Instr handle_instr(Emitter emit, M_Operator* mo) {
   if(mo->func) {
-    Instr instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
+    Instr instr = emitter_add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
     CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
     return instr;
   }
   if(mo->instr)
-    return add_instr(emit, mo->instr);
+    return emitter_add_instr(emit, mo->instr);
   CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return NULL;
 }

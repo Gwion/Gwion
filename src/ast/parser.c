@@ -2895,7 +2895,7 @@ yyreduce:
 
   case 168:
 #line 492 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = new_exp_binary( (yyvsp[-2].exp), op_plus, (yyvsp[0].exp), get_pos(scanner)); }
+    { (yyval.exp) = new_exp_binary( (yyvsp[-2].exp), (yyvsp[-1].ival), (yyvsp[0].exp), get_pos(scanner)); }
 #line 2900 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 

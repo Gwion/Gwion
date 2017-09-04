@@ -5,8 +5,8 @@
 #include "driver.h"
 
 void free_driver(Driver* d, VM* vm) {
-  d->del(vm);
-  free(d);
+  if(d->del)
+    d->del(vm);
 }
 
 void select_driver(DriverInfo* di, const m_str d) {
