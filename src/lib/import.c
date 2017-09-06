@@ -8,9 +8,8 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
-#include "ugen.h"
 #include "traverse.h"
-
+#include "lang_private.h"
 #define CHECK_EB(a) if(!env->class_def) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 #define CHECK_EO(a) if(!env->class_def) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 
@@ -213,6 +212,10 @@ static m_int import_var(Env env, const m_str type, const m_str name, ae_flag fla
   var.addr = (void *)addr;
   if(traverse_decl(env, &exp.d.exp_decl) < 0)
     var.value->offset = -1;;
+  if(array_depth) {
+    free_array_sub(t.array);
+    free_array_sub(var.array);
+  }
   free(path);
   var.value->flag = flag | ae_flag_builtin;
   return var.value->offset;
@@ -341,7 +344,7 @@ m_int importer_add_op(Importer importer, Operator op, const f_instr f, const m_b
   return import_op(importer->env, &importer->oper, f, global);
 }
 
-m_bool importer_add_value(Importer importer, m_str name, Type type, m_bool is_const, void* value) {
+m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {
   return env_add_value(importer->env, name, type, is_const, value);
 }
 
@@ -371,52 +374,6 @@ static m_bool  import_libs(Importer importer) {
   return 1;
 }
 
-static m_bool import_values(Importer importer) {
-  ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
-  ALLOC_PTR(samp,   m_float, 1.0);
-  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
-  ALLOC_PTR(second, m_float, (m_float)*sr);
-  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
-  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
-  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
-  ALLOC_PTR(t_zero, m_float, 0.0);
-  ALLOC_PTR(pi, m_float, M_PI);
-
-  importer_add_value(importer, "d_zero",     &t_dur,   1, d_zero);
-  importer_add_value(importer, "samplerate", &t_dur,   1, sr);
-  importer_add_value(importer, "samp",       &t_dur,   1, samp);
-  importer_add_value(importer, "ms",         &t_dur,   1, ms);
-  importer_add_value(importer, "second",     &t_dur,   1, second);
-  importer_add_value(importer, "minute",     &t_dur,   1, minute);
-  importer_add_value(importer, "day",        &t_dur,   1, hour);
-  importer_add_value(importer, "hour",       &t_dur,   1, day);
-  importer_add_value(importer, "t_zero",     &t_time,  1, t_zero);
-  importer_add_value(importer, "pi",         &t_float, 1, pi);
-
-  return 1;
-} 
-
-static m_bool import_global_ugens(VM*  vm, Importer importer) {
-  vm->dac       = new_M_UGen();
-  vm->adc       = new_M_UGen();
-  vm->blackhole = new_M_UGen();
-
-  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
-  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
-  UGEN(vm->dac)->tick = dac_tick;
-  UGEN(vm->adc)->tick = adc_tick;
-  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
-  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
-
-  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
-  importer_add_value(importer, "dac",        &t_ugen, 1, vm->dac);
-  importer_add_value(importer, "blackhole",  &t_ugen, 1, vm->blackhole);
-  return 1;
-} 
-
 static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
@@ -431,8 +388,7 @@ static void handle_plug(Env env, m_str c) {
       if(import(&importer) > 0)
         vector_add(&vm->plug, (vtype)handler);
       else {
-        env->class_def = (Type)vector_pop(&env->class_stack);
-        env->curr = (Nspc)vector_pop(&env->nspc_stack);
+        env_pop_class(env);
         dlclose(handler);
       }
     } else {
@@ -451,10 +407,9 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
    for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
     struct dirent **namelist;
-    int n;
-    n = scandir(dirname, &namelist, so_filter, alphasort);
-     if(n > 0) {
-       while(n--) {
+    int n = scandir(dirname, &namelist, so_filter, alphasort);
+    if(n > 0) {
+      while(n--) {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
         handle_plug(importer->env, c);
@@ -469,9 +424,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
   struct Importer_ importer;
   importer.env = env;
-  if(import_libs(&importer)   < 0 ||
-     import_values(&importer) < 0 ||
-     import_global_ugens(vm, &importer) < 0) {
+  if(import_libs(&importer) < 0) {
     free_env(env);
     return NULL;
   }

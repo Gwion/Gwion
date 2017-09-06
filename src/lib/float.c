@@ -1,3 +1,4 @@
+#include "math.h"
 #include "type.h"
 #include "instr.h"
 #include "import.h"
@@ -344,6 +345,32 @@ static INSTR(float_int_r_divide) {
   PUSH_REG(shred, SZ_INT);
 }
 
+static m_bool import_values(Importer importer) {
+  ALLOC_PTR(d_zero, m_float, 0.0);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
+  ALLOC_PTR(samp,   m_float, 1.0);
+  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
+  ALLOC_PTR(second, m_float, (m_float)*sr);
+  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
+  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
+  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
+  ALLOC_PTR(t_zero, m_float, 0.0);
+  ALLOC_PTR(pi, m_float, M_PI);
+
+  importer_add_value(importer, "d_zero",     &t_dur,   1, d_zero);
+  importer_add_value(importer, "samplerate", &t_dur,   1, sr);
+  importer_add_value(importer, "samp",       &t_dur,   1, samp);
+  importer_add_value(importer, "ms",         &t_dur,   1, ms);
+  importer_add_value(importer, "second",     &t_dur,   1, second);
+  importer_add_value(importer, "minute",     &t_dur,   1, minute);
+  importer_add_value(importer, "day",        &t_dur,   1, hour);
+  importer_add_value(importer, "hour",       &t_dur,   1, day);
+  importer_add_value(importer, "t_zero",     &t_time,  1, t_zero);
+  importer_add_value(importer, "pi",         &t_float, 1, pi);
+
+  return 1;
+}
+
 m_bool import_float(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_float))
   CHECK_BB(importer_add_type(importer,  &t_time))
@@ -443,5 +470,7 @@ m_bool import_float(Importer importer) {
 
   CHECK_BB(importer_oper_begin(importer, "time", "time", "int"))
   CHECK_BB(importer_add_op(importer, op_gt,           float_gt,           0))
+
+  CHECK_BB(import_values(importer))
   return 1;
 }

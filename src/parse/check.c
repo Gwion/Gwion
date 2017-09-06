@@ -1707,16 +1707,13 @@ m_bool check_ast(Env env, Ast ast) {
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   m_bool ret;
   Context context = new_context(ast, filename);
-  nspc_commit(context->nspc);
   env_reset(env);
   CHECK_BB(load_context(context, env))
   ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->global_nspc);
     vector_add(&env->known_ctx, (vtype)context);
-  } else {
-    //    nspc_rollback(env->global_nspc);
-  }
+  } // else { nspc_rollback(env->global_nspc); }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
     free_ast(ast);
