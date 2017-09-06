@@ -24,7 +24,6 @@ VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
   return code;
 }
 
-
 static void free_code_instr_gack(Instr instr) {
   m_uint j;
   Vector v = *(Vector*)instr->ptr;

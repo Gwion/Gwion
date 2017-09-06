@@ -705,7 +705,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
     f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
   } else if(binary->rhs->exp_type == ae_exp_dot) {
     v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-    f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
+    f1 = find_func(binary->rhs->d.exp_dot.t_base, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_decl) {
     v = binary->rhs->d.exp_decl.list->self->value;
     f1 = v->m_type->d.func;
@@ -1217,9 +1217,8 @@ static Type check_exp(Env env, Exp exp) {
 static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   Value v;
-  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   while(list) {
-    v = nspc_lookup_value(nspc, list->xid, 0);
+    v = nspc_lookup_value(env->curr, list->xid, 0);
     if(env->class_def) {
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
@@ -1711,7 +1710,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   CHECK_BB(load_context(context, env))
   ret = traverse_ast(env, ast);
   if(ret > 0) {
-    nspc_commit(env->global_nspc);
+    nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)context);
   } // else { nspc_rollback(env->global_nspc); }
   CHECK_BB(unload_context(context, env)) // no real need to check that

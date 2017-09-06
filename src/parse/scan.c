@@ -424,34 +424,32 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
 }
 
 static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
-  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   Type t = NULL;
   ID_List list = stmt->list;
   m_uint count = list ? 1 : 0;
   if(stmt->xid) {
-    if(nspc_lookup_type(nspc, stmt->xid, 1)) {
+    if(nspc_lookup_type(env->curr, stmt->xid, 0)) {
       CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", s_name(stmt->xid)))
     }
-    if(nspc_lookup_value(env->curr, stmt->xid, 1)) {
+    if(nspc_lookup_value(env->curr, stmt->xid, 0)) {
       CHECK_BB(err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", s_name(stmt->xid)))
     }
   }
   t = type_copy(env, &t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
-  nspc_add_type(nspc, stmt->xid, t);
+  nspc_add_type(env->curr, stmt->xid, t);
   while(list) {
     Value v;
-    if(nspc_lookup_value(nspc, list->xid, 0)) {
+    if(nspc_lookup_value(env->curr, list->xid, 0))
       CHECK_BB(err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, s_name(list->xid)))
-    }
     v = new_value(t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
     }
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
-    nspc_add_value(nspc, list->xid, v);
+    nspc_add_value(env->curr, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
     list = list->next;
     count++;
@@ -467,8 +465,7 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-              "'%s' unknown type in argument %i",
-              path, count))
+            "'%s' unknown type in argument %i", path, count))
     }
     arg_list = arg_list->next;
   }
