@@ -1,9 +1,7 @@
 #include <stdlib.h>
-#include <string.h>
 #include "env.h"
 #include "context.h"
 #include "type.h"
-#include "err_msg.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));

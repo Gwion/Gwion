@@ -28,3 +28,4 @@ m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const
 m_int importer_add_op(Importer importer, const Operator op, const f_instr f, const m_bool global);
 m_int importer_class_end(Importer importer);
 m_int importer_add_type(Importer importer, Type type);
+m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* data);

@@ -74,8 +74,7 @@ Type find_type(Env env, ID_List path) {
       CHECK_BO(err_msg(UTIL_, path->pos,
             "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name))
     type = t;
-    if(type)
-      nspc = type->info;
+    nspc = type->info;
     path = path->next;
   }
   return type;
@@ -94,13 +93,22 @@ m_bool name_valid(m_str a) {
 }
 
 Value find_value(Type type, S_Symbol xid) {
-  Value value = NULL;
+  Value value;
   if(!type || !type->info)
     return NULL;
   if((value = nspc_lookup_value(type->info, xid, -1)))
     return value;
   if(type->parent)
     return find_value(type->parent, xid);
+  return NULL;
+}
+
+Func find_func(Type type, S_Symbol xid) {
+  Func func;
+  if((func = nspc_lookup_func(type->info, xid, -1)))
+    return func;
+  if(type->parent)
+    return find_func(type->parent, xid);
   return NULL;
 }
 
@@ -166,7 +174,7 @@ m_int get_escape(const char c, int linepos) {
     if(c == escape1[i])
       return escape2[i];
     i++;
-  } 
+  }
   CHECK_BB(err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c))
   return -1;
 }

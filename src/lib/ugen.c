@@ -298,6 +298,26 @@ static MFUN(ugen_get_last) {
   *(m_float*)RETURN = UGEN(o)->last;
 }
 
+static m_bool import_global_ugens(Importer importer) {
+  vm->dac       = new_M_UGen();
+  vm->adc       = new_M_UGen();
+  vm->blackhole = new_M_UGen();
+
+  assign_ugen(UGEN(vm->dac), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->adc), 2, 2, 0, vm);
+  assign_ugen(UGEN(vm->blackhole), 1, 1, 0, vm);
+  UGEN(vm->dac)->tick = dac_tick;
+  UGEN(vm->adc)->tick = adc_tick;
+  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
+  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
+  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
+
+  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
+  importer_add_value(importer, "dac",        &t_ugen, 1, vm->dac);
+  importer_add_value(importer, "blackhole",  &t_ugen, 1, vm->blackhole);
+  return 1;
+}
+
 m_bool import_ugen(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_ugen, ugen_ctor, ugen_dtor))
 
@@ -325,5 +345,7 @@ m_bool import_ugen(Importer importer) {
   CHECK_BB(importer_add_op(importer, op_untrig,  trig_disconnect, 1))
 
   CHECK_BB(importer_class_end(importer))
+
+  CHECK_BB(import_global_ugens(importer))
   return 1;
 }

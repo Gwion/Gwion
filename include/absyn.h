@@ -54,6 +54,7 @@ struct Array_Sub_ {
 };
 Array_Sub new_array_sub(Exp exp, int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Exp exp, int pos);
+void free_array_sub(Array_Sub array);
 
 typedef struct {
   Exp base;
