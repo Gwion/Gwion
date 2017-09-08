@@ -17,156 +17,148 @@ static struct SoundIoDevice    *in_device  = NULL;
 static enum SoundIoBackend backend = SoundIoBackendNone;
 static m_str  device_id = NULL;
 static m_bool raw = false;
+static void (*write_sample)(char *ptr, m_float sample);
+static void (*read_sample)(char *ptr, m_float *sample);
+
+typedef struct SoundIoChannelArea* Areas;
+typedef struct SoundIoOutStream * Out;
+typedef struct SoundIoInStream * In;
 
 void sio_wakeup() {
   soundio_wakeup(soundio);
 }
-static void write_sample_s16ne(char *ptr, double sample) {
+
+static void write_sample_s16ne(char *ptr, m_float sample) {
   int16_t *buf = (int16_t *)ptr;
-  double range = (double)INT16_MAX - (double)INT16_MIN;
-  double val = sample * range / 2.0;
+  m_float range = (m_float)INT16_MAX - (m_float)INT16_MIN;
+  m_float val = sample * range / 2.0;
   *buf = val;
 }
 
-static void write_sample_s32ne(char *ptr, double sample) {
+static void write_sample_s32ne(char *ptr, m_float sample) {
   int32_t *buf = (int32_t *)ptr;
-  double range = (double)INT32_MAX - (double)INT32_MIN;
-  double val = sample * range / 2.0;
+  m_float range = (m_float)INT32_MAX - (m_float)INT32_MIN;
+  m_float val = sample * range / 2.0;
   *buf = val;
 }
 
-static void write_sample_float32ne(char *ptr, double sample) {
+static void write_sample_float32ne(char *ptr, m_float sample) {
   float *buf = (float*)ptr;
   *buf = sample;
 }
 
-static void write_sample_float64ne(char *ptr, double sample) {
-  double *buf = (double *)ptr;
+static void write_sample_float64ne(char *ptr, m_float sample) {
+  m_float *buf = (m_float *)ptr;
   *buf = sample;
 }
 
-static void read_sample_s16ne(char *ptr, double *sample) {
+static void read_sample_s16ne(char *ptr, m_float *sample) {
   int16_t *buf = (int16_t *)ptr;
-  double range = (double)INT16_MAX - (double)INT16_MIN;
-  double val = *buf * range / 2.0;
+  m_float range = (m_float)INT16_MAX - (m_float)INT16_MIN;
+  m_float val = *buf * range / 2.0;
   *sample = val;
 }
 
-static void read_sample_s32ne(char *ptr, double *sample) {
+static void read_sample_s32ne(char *ptr, m_float *sample) {
   int32_t *buf = (int32_t *)ptr;
-  double range = (double)INT32_MAX - (double)INT32_MIN;
-  double val = *buf * range / 2.0;
+  m_float range = (m_float)INT32_MAX - (m_float)INT32_MIN;
+  m_float val = *buf * range / 2.0;
   *sample = val;
 }
 
-static void read_sample_float32ne(char *ptr, double *sample) {
+static void read_sample_float32ne(char *ptr, m_float *sample) {
   *sample = *(float *)ptr;
 }
 
-static void read_sample_float64ne(char *ptr, double *sample) {
-  *sample = *(double *)ptr;
+static void read_sample_float64ne(char *ptr, m_float *sample) {
+  *sample = *(m_float *)ptr;
 }
 
-static void (*write_sample)(char *ptr, double sample);
-static void (*read_sample)(char *ptr, double *sample);
-
-static void underflow_callback(struct SoundIoOutStream *outstream) {
+static void underflow_callback(Out outstream) {
   static int count = 0;
   fprintf(stderr, "underflow %d\n", count++);
 }
 
-static void overflow_callback(struct SoundIoInStream *stream) {
+static void overflow_callback(In stream) {
   static int count = 0;
   fprintf(stderr, "overflow %d\n", count++);
 }
 
-static void write_callback(struct SoundIoOutStream *outstream, int
-                           frame_count_min, int frame_count_max) {
-  struct SoundIoChannelArea *areas;
-  int    left = frame_count_max;
-  const struct SoundIoChannelLayout *layout = &outstream->layout;
-  VM* vm = (VM*)outstream->userdata;
-  double* data = sp->out;
-  for(;;) {
-    int err, count = left;
-    if((err = soundio_outstream_begin_write(outstream, &areas, &count))) {
-      fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-      vm->is_running = 0;
-      return;
-    }
+static m_bool check_cb_error1(void* data, Areas* areas, int* count, m_bool in) {
+  int err = in ? 
+    soundio_instream_begin_read((In)data, areas, count) :
+    soundio_outstream_begin_write((Out)data, areas, count);
+  if(err) { 
+    fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
+    vm->is_running = 0;
+    return -1;
+  }
+  return 1;
+}
 
+static m_bool check_cb_error2(void* data, int (*f)(void*)) {
+  int err = f(data);
+  if(err) { 
+    fprintf(stderr, "%s\n", soundio_strerror(err));
+    vm->is_running = 0;
+    return -1;
+  }
+  return 1;
+}
+
+static void write_callback(Out stream, int min, int left) {
+  Areas areas;
+  VM* vm = (VM*)stream->userdata;
+  sp_data* sp = vm->sp;
+  while(left > 0) {
+    int count = left;
+    if(check_cb_error1(stream, &areas, &count, 0) < 0)
+      return;
     if(!count)
       break;
-
-    for(int frame = 0; frame < count; frame++) {
+    if(!areas)
+      fprintf(stderr, "Dropped %d frames due to internal underflow\n", count);
+    else for(int  frame = 0; frame < count; frame++) {
       vm_run(vm);
-      for(int channel = 0; channel < layout->channel_count; channel++) {
-        write_sample(areas[channel].ptr, data[channel]);
+      for(int  channel = 0; channel < stream->layout.channel_count; channel++) {
+        write_sample(areas[channel].ptr, sp->out[channel]);
         areas[channel].ptr += areas[channel].step;
       }
       sp->pos++;
     }
-    if((err = soundio_outstream_end_write(outstream))) {
-      if(err == SoundIoErrorUnderflow)
-        return;
-      fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
-      vm->is_running = 0;
-    }
-
+    check_cb_error2(stream, (int (*)(void*))soundio_outstream_end_write);
     left -= count;
-    if(left <= 0)
-      break;
   }
-  soundio_outstream_pause(outstream, 0);
+  soundio_outstream_pause(stream, 0);
 }
 
-static void read_callback(struct SoundIoInStream *instream, int frame_count_min, int frame_count_max) {
-  struct SoundIoChannelArea *areas;
-  int frames_left = frame_count_max;
-  VM* vm = (VM*)instream->userdata;
+static void read_callback(In stream, int min, int left) {
+  Areas areas;
+  VM* vm = (VM*)stream->userdata;
   sp_data* sp = vm->sp;
-  for(;;) {
-    int err, frame_count = frames_left;
-
-    if((err = soundio_instream_begin_read(instream, &areas, &frame_count))) {
-      vm->is_running = 0;
-      fprintf(stderr, "begin read error: %s", soundio_strerror(err));
+  while(left > 0) {
+    int count = left;
+    if(check_cb_error1(stream, &areas, &count, 1) < 0)
       return;
-    }
-
-    if(!frame_count)
+    if(!count)
       break;
-
-    if(!areas) {
-//            memset(data, 0, frame_count * instream->bytes_per_frame);
-      fprintf(stderr, "Dropped %d frames due to internal overflow\n", frame_count);
-    } else {
-      char* data[SZ_FLOAT];
-      for(int frame = 0; frame < frame_count; frame += 1) {
-        for(int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-          read_sample(areas[ch].ptr, &vm->in[ch]);
-          areas[channel].ptr += areas[channel].step;
-        }
+    if(!areas)
+      fprintf(stderr, "Dropped %d frames due to internal overflow\n", count);
+    else for(int frame = 0; frame < count; frame += 1) {
+      for(int ch = 0; ch < stream->layout.channel_count; ch += 1) {
+        read_sample(areas[ch].ptr, &vm->in[ch]);
+        areas[ch].ptr += areas[ch].step;
       }
     }
-
-    if((err = soundio_instream_end_read(instream))) {
-      fprintf(stderr, "end read error: %s", soundio_strerror(err));
-      vm->is_running = 0;
-      return;
-    }
-    frames_left -= frame_count;
-    if(frames_left <= 0)
-      break;
+    check_cb_error2(stream, (int(*)(void*))soundio_instream_end_read);
+    left -= count;
   }
   GWION_CTL
 }
 
-
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
-  soundio = soundio_create();
   device_id = di->card;
-  if(!soundio) {
+  if(!(soundio = soundio_create())) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
@@ -195,8 +187,6 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   } else {
     selected_device_index = soundio_default_output_device_index(soundio);
   }
-
-
   if(selected_device_index < 0) {
     fprintf(stderr, "Output device not found\n");
     return -1;
@@ -227,12 +217,12 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-
   outstream->write_callback = write_callback;
   outstream->underflow_callback = underflow_callback;
   outstream->name = "Gwion output";
   outstream->software_latency = 0;
   outstream->sample_rate = di->sr;
+  outstream->userdata = vm;
 
 
   instream = soundio_instream_create(in_device);
@@ -245,6 +235,7 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   instream->name = "Gwion input";
   instream->software_latency = 0;
   instream->sample_rate = di->sr;
+  instream->userdata = vm;
 
   if(soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
     outstream->format = SoundIoFormatFloat64NE;
@@ -296,12 +287,10 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
     fprintf(stderr, "unable to set input channel layout: %s\n", soundio_strerror(instream->layout_error));
     return -1;
   }
-  outstream->userdata = vm;
-  instream->userdata = vm;
   return 1;
 }
 
-void sio_run() {
+static void sio_run() {
   int err;
   if((err = soundio_instream_start(instream))) {
     fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
@@ -315,8 +304,7 @@ void sio_run() {
     soundio_wait_events(soundio);
 }
 
-
-/* static */ void sio_del(VM* vm) {
+static void sio_del(VM* vm) {
   soundio_outstream_destroy(outstream);
   soundio_instream_destroy(instream);
   soundio_device_unref(in_device);
