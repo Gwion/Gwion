@@ -172,6 +172,15 @@ static void do_connect(UGen lhs, UGen rhs) {
     connect(lhs, rhs);
 }
 
+static void do_disconnect(UGen lhs, UGen rhs) {
+  m_uint i;
+  if(rhs->channel) {
+    for(i = rhs->n_out + 1; --i;)
+      disconnect(lhs, UGEN(rhs->channel[i - 1]));
+  } else
+    disconnect(lhs, rhs);
+} 
+
 static INSTR(ugen_connect) {
   M_Object lhs, rhs;
 
@@ -183,17 +192,11 @@ static INSTR(ugen_connect) {
 }
 
 static INSTR(ugen_disconnect) {
-  m_uint i;
   M_Object lhs, rhs;
   if(connect_init(shred, &lhs, &rhs) < 0)
     return;
-  if(UGEN(rhs)->n_in) {
-    if(UGEN(rhs)->channel) {
-      for(i = UGEN(rhs)->n_out + 1; --i;)
-        disconnect(UGEN(lhs), UGEN(UGEN(rhs)->channel[i - 1]));
-    } else
-      disconnect(UGEN(lhs), UGEN(rhs));
-  }
+  if(UGEN(rhs)->n_in)
+    do_disconnect(UGEN(lhs), UGEN(rhs));
   release_connect(shred);
 } 
 
