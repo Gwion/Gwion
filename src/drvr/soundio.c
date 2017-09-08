@@ -156,6 +156,58 @@ static void read_callback(In stream, int min, int left) {
   GWION_CTL
 }
 
+static m_bool init_soundio() {
+  int err;
+  if(!(soundio = soundio_create())) {
+    fprintf(stderr, "out of memory\n");
+    return -1;
+  }
+  err = (backend == SoundIoBackendNone) ?
+            soundio_connect(soundio) : soundio_connect_backend(soundio, backend);
+  if(err) {
+    fprintf(stderr, "Unable to connect to backend: %s\n", soundio_strerror(err));
+    return -1;
+  }
+  soundio_flush_events(soundio);
+  return 1;
+}
+
+static int get_index() {
+  int selected_device_index = -1;
+  if(device_id) { 
+    int device_count = soundio_output_device_count(soundio);
+    for(int i = 0; i < device_count; i += 1) {
+      struct SoundIoDevice *device = soundio_get_output_device(soundio, i);
+      bool select_this_one = strcmp(device->id, device_id) == 0 && device->is_raw == raw;
+      soundio_device_unref(device);
+      if(select_this_one) {
+        selected_device_index = i;
+        break;
+      }
+    }
+  } else
+    selected_device_index = soundio_default_output_device_index(soundio);
+  if(selected_device_index < 0) {
+    fprintf(stderr, "Output device not found\n");
+    return -1;
+  }
+  return selected_device_index;
+}
+
+static m_bool get_device(int selected_device_index) {
+  out_device = soundio_get_output_device(soundio, selected_device_index);
+  if(!out_device) {
+    fprintf(stderr, "out of memory\n");
+    return -1;
+  }
+  in_device = soundio_get_input_device(soundio, selected_device_index);
+  if(!in_device) {
+    fprintf(stderr, "out of memory\n");
+    return -1;
+  }
+  return 1;
+}
+
 static m_bool probe() {
   if(out_device->probe_error) {
     fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
@@ -166,6 +218,76 @@ static m_bool probe() {
     return -1;
   }
   return 1;
+}
+
+static m_bool out_create(DriverInfo* di) {
+  outstream = soundio_outstream_create(out_device);
+  if(!outstream) {
+    fprintf(stderr, "out of memory\n");
+    return -1;
+  }
+  outstream->write_callback = write_callback;
+  outstream->underflow_callback = underflow_callback;
+  outstream->name = "Gwion output";
+  outstream->software_latency = 0;
+  outstream->sample_rate = di->sr;
+  outstream->userdata = vm;
+  return 1;
+}
+
+static m_bool in_create(DriverInfo* di) {
+  instream = soundio_instream_create(in_device);
+  if(!instream) {
+    fprintf(stderr, "out of memory\n");
+    return -1;
+  }
+  instream->read_callback = read_callback;
+  instream->overflow_callback = overflow_callback;
+  instream->name = "Gwion input";
+  instream->software_latency = 0;
+  instream->sample_rate = di->sr;
+  instream->userdata = vm;
+  return 1;
+}
+
+static m_bool out_format() {
+  if(soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
+    outstream->format = SoundIoFormatFloat64NE;
+    write_sample = write_sample_float64ne;
+  } else if(soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
+    outstream->format = SoundIoFormatFloat32NE;
+    write_sample = write_sample_float32ne;
+  } else if(soundio_device_supports_format(out_device, SoundIoFormatS32NE)) {
+    outstream->format = SoundIoFormatS32NE;
+    write_sample = write_sample_s32ne;
+  } else if(soundio_device_supports_format(out_device, SoundIoFormatS16NE)) {
+    outstream->format = SoundIoFormatS16NE;
+    write_sample = write_sample_s16ne;
+  } else {
+    fprintf(stderr, "No suitable device format available.\n");
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool in_format() {
+  if(soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
+    instream->format = SoundIoFormatFloat64NE;
+    read_sample = read_sample_float64ne;
+  } else if(soundio_device_supports_format(in_device, SoundIoFormatFloat32NE)) {
+    instream->format = SoundIoFormatFloat32NE;
+    read_sample = read_sample_float32ne;
+  } else if(soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
+    instream->format = SoundIoFormatS32NE;
+    read_sample = read_sample_s32ne;
+  } else if(soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
+    instream->format = SoundIoFormatS16NE;
+    read_sample = read_sample_s16ne;
+  } else {
+    fprintf(stderr, "No suitable device format available.\n");
+    return -1;
+  }
+  return 1; 
 }
 
 static m_bool open_stream() {
@@ -197,110 +319,15 @@ static m_bool check_layout() {
 
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
   device_id = di->card;
-  if(!(soundio = soundio_create())) {
-    fprintf(stderr, "out of memory\n");
-    return -1;
-  }
-
-  int err = (backend == SoundIoBackendNone) ?
-            soundio_connect(soundio) : soundio_connect_backend(soundio, backend);
-
-  if(err) {
-    fprintf(stderr, "Unable to connect to backend: %s\n", soundio_strerror(err));
-    return -1;
-  }
-  soundio_flush_events(soundio);
-
-  int selected_device_index = -1;
-  if(device_id) {
-    int device_count = soundio_output_device_count(soundio);
-    for(int i = 0; i < device_count; i += 1) {
-      struct SoundIoDevice *device = soundio_get_output_device(soundio, i);
-      bool select_this_one = strcmp(device->id, device_id) == 0 && device->is_raw == raw;
-      soundio_device_unref(device);
-      if(select_this_one) {
-        selected_device_index = i;
-        break;
-      }
-    }
-  } else {
-    selected_device_index = soundio_default_output_device_index(soundio);
-  }
-  if(selected_device_index < 0) {
-    fprintf(stderr, "Output device not found\n");
-    return -1;
-  }
-
-  out_device = soundio_get_output_device(soundio, selected_device_index);
-  if(!out_device) {
-    fprintf(stderr, "out of memory\n");
-    return -1;
-  }
-  in_device = soundio_get_input_device(soundio, selected_device_index);
-  if(!in_device) {
-    fprintf(stderr, "out of memory\n");
-    return -1;
-  }
+  CHECK_BB(init_soundio())
+  int selected_device_index = get_index();
+  CHECK_BB(selected_device_index)
+  CHECK_BB(get_device(selected_device_index))
   CHECK_BB(probe())
-  outstream = soundio_outstream_create(out_device);
-  if(!outstream) {
-    fprintf(stderr, "out of memory\n");
-    return -1;
-  }
-  outstream->write_callback = write_callback;
-  outstream->underflow_callback = underflow_callback;
-  outstream->name = "Gwion output";
-  outstream->software_latency = 0;
-  outstream->sample_rate = di->sr;
-  outstream->userdata = vm;
-
-
-  instream = soundio_instream_create(in_device);
-  if(!instream) {
-    fprintf(stderr, "out of memory\n");
-    return -1;
-  }
-  instream->read_callback = read_callback;
-  instream->overflow_callback = overflow_callback;
-  instream->name = "Gwion input";
-  instream->software_latency = 0;
-  instream->sample_rate = di->sr;
-  instream->userdata = vm;
-
-  if(soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
-    outstream->format = SoundIoFormatFloat64NE;
-    write_sample = write_sample_float64ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
-    outstream->format = SoundIoFormatFloat32NE;
-    write_sample = write_sample_float32ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatS32NE)) {
-    outstream->format = SoundIoFormatS32NE;
-    write_sample = write_sample_s32ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatS16NE)) {
-    outstream->format = SoundIoFormatS16NE;
-    write_sample = write_sample_s16ne;
-  } else {
-    fprintf(stderr, "No suitable device format available.\n");
-    return -1;
-  }
-
-  if(soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
-    instream->format = SoundIoFormatFloat64NE;
-    read_sample = read_sample_float64ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatFloat32NE)) {
-    instream->format = SoundIoFormatFloat32NE;
-    read_sample = read_sample_float32ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
-    instream->format = SoundIoFormatS32NE;
-    read_sample = read_sample_s32ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
-    instream->format = SoundIoFormatS16NE;
-    read_sample = read_sample_s16ne;
-  } else {
-    fprintf(stderr, "No suitable device format available.\n");
-    return -1;
-  }
-
+  CHECK_BB(out_create(di))
+  CHECK_BB(in_create(di))
+  CHECK_BB(out_format())
+  CHECK_BB(in_format())
   CHECK_BB(open_stream())
   CHECK_BB(check_layout())
   return 1;
