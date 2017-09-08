@@ -68,25 +68,7 @@ static m_bool ini(VM* vm, DriverInfo* di) {
         callback,
         vm) != paNoError)
     goto error;
-  /*
-  if(Pa_OpenDefaultStream(&stream,
-                                  2,2,
-                                  paFloat32,
-                                  SAMPLE_RATE,
-                                  paFramesPerBufferUnspecified,
-  //                                256,
-                                  callback,
-                                  vm ) != paNoError)
-  exit(3);
-  */
-//		return -1;
-  //return -1;
-
-
-//Pa_SetStreamFinishedCallback( stream, NULL);
-//Pa_SetStreamFinishedCallback( stream, &StreamFinished );
   return 1;
-
 error:
   Pa_Terminate();
   return -1;
