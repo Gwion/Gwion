@@ -131,7 +131,6 @@ static m_uint emit_code_offset(Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
-
 static m_int emit_alloc_local(Emitter emit, m_uint size, m_bool is_ref, m_bool is_obj) {
   Local* l = frame_alloc_local(emit->code->frame, size, is_ref, is_obj);
   return l ? l->offset : -1;
@@ -1741,62 +1740,108 @@ static m_bool emit_section(Emitter emit, Section* section) {
     CHECK_BB(emit_class_def(emit, section->d.class_def))
   return 1;
 }
-static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
-  Type type = class_def->type;
-  m_bool ret = 1;
-  Class_Body body = class_def->body;
-  char c[strlen(type->name) + 7];
 
-  if(class_def->types)
-    return 1;
-  if(type->info->class_data_size) {
-    type->info->class_data = calloc(type->info->class_data_size, sizeof(char));
-    if(!type->info->class_data)
-      CHECK_BB(err_msg(EMIT_, class_def->pos, "OutOfMemory: while allocating static data '%s'\n", type->name)) // LCOV_EXCL_LINE
-    }
-  memset(type->info->class_data, 0, type->info->class_data_size);
+static m_bool init_class_data(Nspc nspc) {
+  if(nspc->class_data_size) {
+    nspc->class_data = calloc(nspc->class_data_size, sizeof(char));
+    if(!nspc->class_data)
+      CHECK_BB(err_msg(EMIT_, 0, "OutOfMemory: while allocating static data '%s'\n", nspc->name))
+  }
+  memset(nspc->class_data, 0, nspc->class_data_size);
+  return 1;
+}
+
+static Code* emit_class_code(Emitter emit, m_str name) {
+  char c[strlen(name) + 7];
+  Code* code = new_code();
+  CHECK_OO(code);
+  sprintf(c, "class %s", name);
+  code->name = strdup(c);
+  code->need_this = 1;
+  code->filename = strdup(emit->filename);
+  code->stack_depth += SZ_INT;
+  return code;
+
+}
+
+static m_bool emit_class_def_body(Emitter emit, Class_Body body) {
+  if(emit_alloc_local(emit, SZ_INT, 1, 1) < 0)
+    CHECK_BB(err_msg(EMIT_, body->pos,
+          "internal error: cannot allocate local 'this'..."))
+  while(body) {
+    CHECK_BB(emit_section(emit, body->section))
+    body = body->next;
+  }
+  return 1;
+}
+
+static m_bool emit_class_finish(Emitter emit, Nspc nspc, m_bool ret) {
+  if(ret > 0) {
+    CHECK_OB(emitter_add_instr(emit, Func_Return))
+    free_vm_code(nspc->pre_ctor);
+    nspc->pre_ctor = emit_code(emit);
+  } else if(nspc->class_data_size)
+    free(nspc->class_data);
+  return 1;
+}
+
+static m_bool emit_class_push(Emitter emit, Type type) {
   vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
   emit->env->class_def = type;
   vector_add(&emit->stack, (vtype)emit->code);
-  emit->code = new_code();
-  sprintf(c, "class %s", type->name);
-  emit->code->name = strdup(c);
+  return 1;
+}
 
-  emit->code->need_this = 1;
-  emit->code->filename = strdup(emit->filename);
-  emit->code->stack_depth += SZ_INT;
-  if(emit_alloc_local(emit, SZ_INT, 1, 1) < 0)
-    CHECK_BB(err_msg(EMIT_, class_def->pos, "internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
-
-    while(body && ret > 0) {
-      ret = emit_section(emit, body->section);
-      body = body->next;
-    }
-
-  if(ret > 0) {
-    CHECK_OB(emitter_add_instr(emit, Func_Return))
-    free_vm_code(type->info->pre_ctor);
-    type->info->pre_ctor = emit_code(emit);
-  } else
-    free(type->info->class_data); // LCOV_EXCL_LINE
+static m_bool emit_class_pop(Emitter emit) {
   emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
   emit->code = (Code*)vector_pop(&emit->stack);
+  return 1;
+}
+
+static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
+  Type type = class_def->type;
+  m_bool ret = 1;
+  
+  if(class_def->types)
+    return 1;
+  CHECK_BB(init_class_data(type->info))
+  CHECK_BB(emit_class_push(emit, type))
+  CHECK_OB((emit->code = emit_class_code(emit, type->name))) 
+  ret = emit_class_def_body(emit, class_def->body);
+  CHECK_BB(emit_class_finish(emit, type->info, ret))
+  CHECK_BB(emit_class_pop(emit))
   return ret;
 }
 
+static void emit_free_stack(Emitter emit) {
+  m_uint i, j;
+  for(i = 0;  i < vector_size(&emit->stack); i++) {
+    Code* code = (Code*)vector_at(&emit->stack, i);
+    for(j = 0; j < vector_size(&code->code); j++)
+      free((Instr)vector_at(&code->code, j));
+     free_code(code);
+  }
+  for(i = 0; i < emit_code_size(emit); i++)
+    free((Instr)vector_at(&emit->code->code, i));
+  free_code(emit->code);
+}
+
+static m_bool emit_ast_inner(Emitter emit, Ast ast) {
+  while(ast) {
+    CHECK_BB(emit_section(emit, ast->section))
+    ast = ast->next;
+   }
+  return 1;
+} 
+
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
-  Ast prog = ast;
-  vtype i;
-  int ret = 1;
+  int ret;
   emit->filename = filename;
   emit->code = new_code();
   vector_clear(&emit->stack);
   emit_push_scope(emit);
   CHECK_OB(emitter_add_instr(emit, start_gc))
-  while(prog && ret > 0) {
-    ret = emit_section(emit, prog->section);
-    prog = prog->next;
-  }
+  ret = emit_ast_inner(emit, ast);
   CHECK_OB(emitter_add_instr(emit, stop_gc))
   if(emit->cases) {
     free_map(emit->cases);
@@ -1804,16 +1849,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   }
   emit_pop_scope(emit);
   if(ret < 0) { // should free all stack.
-    m_uint j;
-	for(i = 0; i < vector_size(&emit->stack); i++) {
-      Code* code = (Code*)vector_at(&emit->stack, i);
-      for(j = 0; j < vector_size(&code->code); j++)
-        free((Instr)vector_at(&code->code, j));
-       free_code(code);
-    }
-    for(i = 0; i < emit_code_size(emit); i++)
-      free((Instr)vector_at(&emit->code->code, i));
-    free_code(emit->code);
+    emit_free_stack(emit);
     free(filename);
     free_ast(ast);
   }
