@@ -169,21 +169,23 @@ static Type check_exp_primary_vec(Env env, Vec vec) {
   return val->numdims < 4 ? &t_vec3 : &t_vec4;
 }
 
-static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
+static Value check_non_res_value(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
   Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
   if(!v)
     v = find_value(env->class_def, primary->d.var);
-  if(v) {
-    if(env->class_def && env->func) {
-      if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
+  if(v && env->class_def && env->func && GET_FLAG(env->func->def, ae_flag_static) &&
+    GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
         CHECK_BO(err_msg(TYPE_, primary->pos,
                          "non-static member '%s' used from static function...", str))
-    }
-  }
+  return v;
+}
+
+static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
+  Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, ae_flag_checked))
     CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-                     str ? str : "", v))
+          v ? v->name : ""))
   primary->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;

@@ -40,7 +40,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
     return 1;
   if(stmt->type == ae_stmt_funcptr)
     CHECK_BB(scan0_Stmt_Typedef(env, &stmt->d.stmt_ptr))
-    return 1;
+  return 1;
 }
 
 static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
