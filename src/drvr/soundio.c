@@ -156,6 +156,45 @@ static void read_callback(In stream, int min, int left) {
   GWION_CTL
 }
 
+static m_bool probe() {
+  if(out_device->probe_error) {
+    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+    return -1;
+  }
+  if(in_device->probe_error) {
+    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool open_stream() {
+  int err;
+  if((err = soundio_outstream_open(outstream))) {
+    fprintf(stderr, "unable to open output device: %s", soundio_strerror(err));
+    return -1;
+  }
+  if((err = soundio_instream_open(instream))) {
+    fprintf(stderr, "unable to open input device: %s", soundio_strerror(err));
+    return -1;
+  }
+  return 1;
+}
+
+static m_bool check_layout() {
+  if(outstream->layout_error) { 
+    fprintf(stderr, "unable to set output channel layout: %s\n",
+        soundio_strerror(outstream->layout_error));
+    return -1;
+  }
+  if(instream->layout_error) {  
+    fprintf(stderr, "unable to set input channel layout: %s\n", 
+        soundio_strerror(instream->layout_error));
+    return -1;
+  }
+  return 1;
+}
+
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
   device_id = di->card;
   if(!(soundio = soundio_create())) {
@@ -202,16 +241,7 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-
-  if(out_device->probe_error) {
-    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
-    return -1;
-  }
-  if(in_device->probe_error) {
-    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
-    return -1;
-  }
-
+  CHECK_BB(probe())
   outstream = soundio_outstream_create(out_device);
   if(!outstream) {
     fprintf(stderr, "out of memory\n");
@@ -271,22 +301,8 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
     return -1;
   }
 
-  if((err = soundio_outstream_open(outstream))) {
-    fprintf(stderr, "unable to open output device: %s", soundio_strerror(err));
-    return -1;
-  }
-  if((err = soundio_instream_open(instream))) {
-    fprintf(stderr, "unable to open input device: %s", soundio_strerror(err));
-    return -1;
-  }
-  if(outstream->layout_error) {
-    fprintf(stderr, "unable to set output channel layout: %s\n", soundio_strerror(outstream->layout_error));
-    return -1;
-  }
-  if(instream->layout_error) {
-    fprintf(stderr, "unable to set input channel layout: %s\n", soundio_strerror(instream->layout_error));
-    return -1;
-  }
+  CHECK_BB(open_stream())
+  CHECK_BB(check_layout())
   return 1;
 }
 
