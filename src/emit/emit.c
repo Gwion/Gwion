@@ -1428,15 +1428,18 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
   return 1;
 }
 
-static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
+static m_bool emit_complex_member(Emitter emit, Exp_Dot* member) {
   Instr instr;
-  exp->emit_var = 1;
-  CHECK_BB(emit_exp(emit, exp, 0))
-  if(!strcmp((isa(exp->type, &t_complex) > 0  ? "re" : "phase") , v->name))
+  Exp base = member->base;
+
+  base->emit_var = 1;
+  CHECK_BB(emit_exp(emit, base, 0))
+  if(!strcmp((isa(base->type, &t_complex) > 0  ? "re" : "phase") , 
+        s_name(member->xid)))
     instr = emitter_add_instr(emit, complex_real);
   else
     instr = emitter_add_instr(emit, complex_imag);
-  instr->m_val = emit_addr;
+  instr->m_val = member->self->emit_var;
   return 1;
 }
 
@@ -1449,16 +1452,18 @@ static m_bool emit_vec_func(Emitter emit, Value v) {
   return 1;
 }
 
-static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
+static m_bool emit_vec_member(Emitter emit, Exp_Dot* member) {
   Instr instr;
+  Value v;
 
-  exp->emit_var = 1;
-  CHECK_BB(emit_exp(emit, exp, 0))
+  member->base->emit_var = 1;
+  CHECK_BB(emit_exp(emit, member->base, 0))
+  v = find_value(member->base->type, member->xid);
   if(v->func_ref)
     return emit_vec_func(emit, v);
   instr = emitter_add_instr(emit, vec_member);
   instr->m_val2 = v->offset;
-  instr->m_val = emit_addr;
+  instr->m_val = member->self->emit_var;
   return 1;
 }
 
@@ -1521,13 +1526,11 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
 
 static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
   Type t = member->t_base;
-  Value v = find_value(t, member->xid);
-  m_bool emit_addr = member->self->emit_var;
 
   if(t->xid == te_complex || t->xid == te_polar)
-    return emit_complex_member(emit, member->base, v, emit_addr);
+    return emit_complex_member(emit, member);
   else if(t->xid == te_vec3 || t->xid == te_vec4)
-    return emit_vec_member(emit, member->base, v, emit_addr);
+    return emit_vec_member(emit, member);
   return emit_vararg(emit, member);
 }
 
