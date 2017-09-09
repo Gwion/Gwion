@@ -29,12 +29,12 @@ static void free_frame(Frame* a) {
   free(a);
 }
 
-static Local* frame_alloc_local(Frame* frame, m_uint size, m_bool is_ref, m_bool is_obj) {
+static Local* frame_alloc_local(Frame* frame, m_uint size, m_uint flag) {
   Local* local = calloc(1, sizeof(Local));
   local->size = size;
   local->offset = frame->curr_offset;
-  local->is_ref = is_ref;
-  local->is_obj = is_obj;
+  local->is_ref = (flag & 1 << 1) == 1 << 1;
+  local->is_obj = (flag & 1 << 2) == 1 << 2;
   frame->curr_offset += local->size;
   vector_add(&frame->stack, (vtype)local);
   return local;
@@ -131,8 +131,8 @@ static m_uint emit_code_offset(Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
-static m_int emit_alloc_local(Emitter emit, m_uint size, m_bool is_ref, m_bool is_obj) {
-  Local* l = frame_alloc_local(emit->code->frame, size, is_ref, is_obj);
+static m_int emit_alloc_local(Emitter emit, m_uint size, m_uint flag) {
+  Local* l = frame_alloc_local(emit->code->frame, size, flag);
   return l ? l->offset : -1;
 }
 
@@ -161,7 +161,8 @@ static m_bool emit_pre_constructor_array(Emitter emit, Type type) {
   return 1;
 }
 
-static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, m_bool is_ref) {
+static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
+    m_bool is_ref) {
   if(type->array_depth) {
     CHECK_BB(emit_exp(emit, array->exp_list, 0))
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
@@ -210,7 +211,8 @@ static m_bool emit_symbol_owned(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
-static m_bool emit_symbol_const(Emitter emit, Value v, m_bool emit_var) {
+static m_bool emit_symbol_const(Emitter emit, Exp_Primary* prim) {
+  Value v = prim->value;
   if(v->func_ref) {
     Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
     instr->m_val = (m_uint)v->func_ref;
@@ -220,7 +222,7 @@ static m_bool emit_symbol_const(Emitter emit, Value v, m_bool emit_var) {
     *(m_float*)instr->ptr = *(m_float*)v->ptr;
   } else {
     Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-    instr->m_val = (emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
+    instr->m_val = (prim->self->emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
   }
   return 1;
 }
@@ -232,18 +234,14 @@ static m_bool emit_symbol_addr(Emitter emit, Value v) {
   return 1;
 }
 
-static f_instr s_instr[] = { NULL, Reg_Push_Mem, Reg_Push_Mem2, Reg_Push_Mem_Complex,
-               Reg_Push_Mem_Vec3, Reg_Push_Mem_Vec4};
-static f_instr emit_symbol_actual_instr(Kindof kind) {
-  return s_instr[kind];
-}
+static f_instr s_instr[] = { NULL, Reg_Push_Mem, Reg_Push_Mem2,
+  Reg_Push_Mem_Complex, Reg_Push_Mem_Vec3, Reg_Push_Mem_Vec4};
 
 static m_bool emit_symbol_actual(Emitter emit, Value v) {
   Instr instr;
   Kindof kind = kindof(v->m_type);
-  f_instr f = emit_symbol_actual_instr(kind);
 
-  instr         = emitter_add_instr(emit, f);
+  instr         = emitter_add_instr(emit, s_instr[kind]);
   instr->m_val  = v->offset;
   instr->m_val2 = GET_FLAG(v, ae_flag_global);
   return 1;
@@ -254,7 +252,7 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
     return emit_symbol_owned(emit, prim);
   if(GET_FLAG(v, ae_flag_const) && !GET_FLAG(v, ae_flag_uconst))
-    return emit_symbol_const(emit, v, prim->self->emit_var);
+    return emit_symbol_const(emit, prim);
   if(prim->self->emit_var)
     return emit_symbol_addr(emit, v);
   return emit_symbol_actual(emit, v);
@@ -464,7 +462,8 @@ static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_re
 static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool is_obj) {
   Instr alloc;
   Kindof kind = kindof(v->m_type);
-  m_int offset= emit_alloc_local(emit, v->m_type->size, is_ref, is_obj);
+  m_uint flag = (is_ref ? 1 << 1 : 0) | (is_obj ? 1 << 2 : 0);
+  m_int offset= emit_alloc_local(emit, v->m_type->size, flag);
   CHECK_BO(offset)
   v->offset   = offset;
   alloc = emitter_add_instr(emit, decl_global_instr[kind]);
@@ -1275,7 +1274,7 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   for(i = 0; i < vector_size(&stmt->values); i++) {
     Value v = (Value)vector_at(&stmt->values, i);
     if(!emit->env->class_def) {
-      m_int offset = emit_alloc_local(emit, sizeof(m_uint), 0, 0);
+      m_int offset = emit_alloc_local(emit, sizeof(m_uint), 0);
       CHECK_BB(offset)
       v->offset = offset;
       v->ptr = (m_uint*)i;
@@ -1289,7 +1288,7 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
   if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
-    m_int offset = emit_alloc_local(emit, stmt->s, 1, 0);
+    m_int offset = emit_alloc_local(emit, stmt->s, 1 << 1);
     CHECK_BB(offset)
     stmt->o = offset;
   }
@@ -1581,7 +1580,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_func_def_global(Emitter emit, Value value) {
-  m_int offset = emit_alloc_local(emit, value->m_type->size, 1, 0);
+  m_int offset = emit_alloc_local(emit, value->m_type->size, 1 << 1);
   Instr set_mem = emitter_add_instr(emit, Mem_Set_Imm);
   CHECK_BB(offset)
   set_mem->m_val = value->offset = offset;
@@ -1605,7 +1604,7 @@ static m_bool emit_func_def_init(Emitter emit, Func func) {
 static m_bool emit_func_def_flag(Emitter emit, Func func) {
   if(GET_FLAG(func, ae_flag_member)) {
     emit->code->stack_depth += SZ_INT;
-    if(emit_alloc_local(emit, SZ_INT, 1, 0) < 0)
+    if(emit_alloc_local(emit, SZ_INT, 1 << 1) < 0)
       CHECK_BB(err_msg(EMIT_, func->def->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
   }
 
@@ -1617,10 +1616,10 @@ static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
     Value value = a->var_decl->value;
     Type type = value->m_type;
     m_int offset;
-    m_bool obj = !isprim(type);
-    m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref);
+    m_bool obj = !isprim(type) ? 1 << 1 : 0;
+    m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref) ? 1 << 2 : 0;
     emit->code->stack_depth += type->size;
-    if((offset = emit_alloc_local(emit, type->size, ref, obj)) < 0)
+    if((offset = emit_alloc_local(emit, type->size, ref | obj)) < 0)
       CHECK_BB(err_msg(EMIT_, a->pos,
         "(emit): internal error: cannot allocate local '%s'...", value->name))
     value->offset = offset;
@@ -1665,7 +1664,7 @@ static m_bool emit_func_def_body(Emitter emit, Func_Def func_def) {
   emit_push_scope(emit);
   CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
   if(GET_FLAG(func_def, ae_flag_variadic)) {
-    if(emit_alloc_local(emit, SZ_INT, 1, 0) < 0)
+    if(emit_alloc_local(emit, SZ_INT, 1 << 1) < 0)
       CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
       emit->code->stack_depth += SZ_INT;
   }
@@ -1732,7 +1731,7 @@ static Code* emit_class_code(Emitter emit, m_str name) {
 }
 
 static m_bool emit_class_def_body(Emitter emit, Class_Body body) {
-  if(emit_alloc_local(emit, SZ_INT, 1, 1) < 0)
+  if(emit_alloc_local(emit, SZ_INT, 1 << 1 | 1 << 2) < 0)
     CHECK_BB(err_msg(EMIT_, body->pos,
           "internal error: cannot allocate local 'this'..."))
   while(body) {
