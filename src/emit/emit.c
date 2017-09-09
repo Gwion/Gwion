@@ -524,38 +524,49 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   return 1;
 }
 
+static m_uint vararg_size(Exp_Func* exp_func, Vector kinds) {
+  Exp e = exp_func->args;
+  Arg_List l = exp_func->m_func->def->arg_list;
+  m_uint size = 0;
+  while(e) { 
+    if(!l) { 
+      size += e->type->size;
+      vector_add(kinds, (vtype)kindof(e->type));
+    } else 
+      l = l->next;
+    e = e->next;
+  }
+  return size;
+}
+
+static m_bool emit_func_arg_vararg(Emitter emit, Exp_Func* exp_func) {
+  Instr instr;
+  Vector kinds = new_vector();
+
+  instr = emitter_add_instr(emit, MkVararg);
+  instr->m_val = vararg_size(exp_func, kinds);
+  instr->m_val2 = (m_uint)kinds;
+  return 1;
+}
+
 static m_bool emit_func_args(Emitter emit, Exp_Func* exp_func) {
   if(emit_exp(emit, exp_func->args, 1) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->pos, "(emit): internal error in emitting function call arguments...")) // LCOV_EXCL_LINE
-  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic)) {
-    m_uint offset = 0, size = 0;
-    Instr instr;
-    Exp e = exp_func->args;
-    Arg_List l = exp_func->m_func->def->arg_list;
-    Vector kinds = new_vector();
-    while(e) {
-      if(!l) {
-        size += e->type->size;
-        vector_add(kinds, (vtype)kindof(e->type));
-      } else {
-        l = l->next;
-        offset += e->type->size;
-      }
-      e = e->next;
-    }
-    instr = emitter_add_instr(emit, MkVararg);
-    instr->m_val = size;
-    instr->m_val2 = (m_uint)kinds;
-  }
+    CHECK_BB(err_msg(EMIT_, exp_func->pos,
+          "(emit): internal error in emitting function call arguments..."))
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic))
+    CHECK_BB(emit_func_arg_vararg(emit, exp_func))
   return 1;
 }
 
 static m_bool emit_exp_call_helper(Emitter emit, Exp_Func* exp_func, m_bool spork) {
   if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function arguments...")) // LCOV_EXCL_LINE
+    CHECK_BB(err_msg(EMIT_, exp_func->pos,
+          "internal error in evaluating function arguments..."))
   if(emit_exp(emit, exp_func->func, 0) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->pos, "internal error in evaluating function call...")) // LCOV_EXCL_LINE
-  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) { // handle empty call to variadic functions
+    CHECK_BB(err_msg(EMIT_, exp_func->pos,
+          "internal error in evaluating function call..."))
+  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
+    // handle empty call to variadic functions
     CHECK_OB(emitter_add_instr(emit, MkVararg))
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm))
   }
