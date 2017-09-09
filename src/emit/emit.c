@@ -1440,33 +1440,24 @@ static m_bool emit_complex_member(Emitter emit, Exp exp, Value v, m_bool emit_ad
   return 1;
 }
 
+static m_bool emit_vec_func(Emitter emit, Value v) {
+  Instr instr;
+  CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last_Vec4))
+  instr = emitter_add_instr(emit, member_function);
+  *(Vector*)instr->ptr = &v->owner_class->info->obj_v_table;
+  instr->m_val = v->func_ref->vt_index;
+  return 1;
+}
+
 static m_bool emit_vec_member(Emitter emit, Exp exp, Value v, m_bool emit_addr) {
   Instr instr;
 
   exp->emit_var = 1;
   CHECK_BB(emit_exp(emit, exp, 0))
-  if(v->func_ref) {
-    CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last_Vec4))
-    instr = emitter_add_instr(emit, member_function);
-    *(Vector*)instr->ptr = &v->owner_class->info->obj_v_table;
-    instr->m_val = v->func_ref->vt_index;
-    return 1;
-  }
+  if(v->func_ref)
+    return emit_vec_func(emit, v);
   instr = emitter_add_instr(emit, vec_member);
-  switch(v->name[0]) {
-    case 'x':
-      instr->m_val2 = 0;
-      break;
-    case 'y':
-      instr->m_val2 = 1;
-      break;
-    case 'z':
-      instr->m_val2 = 2;
-      break;
-    case 'w':
-      instr->m_val2 = 3;
-      break;
-  }
+  instr->m_val2 = v->offset;
   instr->m_val = emit_addr;
   return 1;
 }
