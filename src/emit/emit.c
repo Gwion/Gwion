@@ -433,41 +433,12 @@ static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool em
   return 1;
 }
 
-static Instr decl_member(Emitter emit, Kindof kind) {
-  switch(kind)  {
-    case Kindof_Int:
-      return emitter_add_instr(emit, Alloc_Member_Word);
-    case Kindof_Float:
-      return emitter_add_instr(emit, Alloc_Member_Word_Float);
-    case Kindof_Complex:
-      return emitter_add_instr(emit, Alloc_Member_Word_Complex);
-    case Kindof_Vec3:
-      return emitter_add_instr(emit, Alloc_Member_Word_Vec3);
-    case Kindof_Vec4:
-      return emitter_add_instr(emit, Alloc_Member_Word_Vec4);
-    case Kindof_Void:
-      break;
-  }
-  return NULL;
-}
+static f_instr decl_member_instr[] = { NULL, Alloc_Member_Word,
+  Alloc_Word_Float, Alloc_Member_Word_Complex,
+  Alloc_Member_Word_Vec3, Alloc_Word_Vec4 };
 
-static Instr decl_global(Emitter emit, Kindof kind) {
-  switch(kind)  {
-    case Kindof_Int:
-      return emitter_add_instr(emit,  Alloc_Word);
-    case Kindof_Float:
-      return emitter_add_instr(emit,  Alloc_Word_Float);
-    case Kindof_Complex:
-      return emitter_add_instr(emit,  Alloc_Word_Complex);
-    case Kindof_Vec3:
-      return emitter_add_instr(emit,  Alloc_Word_Vec3);
-    case Kindof_Vec4:
-      return emitter_add_instr(emit,  Alloc_Word_Vec4);
-    case Kindof_Void:
-      break;
-  }
-  return NULL;
-}
+static f_instr decl_global_instr[] = { NULL, Alloc_Word, Alloc_Word_Float,
+  Alloc_Word_Complex, Alloc_Word_Vec3, Alloc_Word_Vec4 };
 
 static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
   Value v = var_decl->value;
@@ -496,7 +467,7 @@ static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool i
   m_int offset= emit_alloc_local(emit, v->m_type->size, is_ref, is_obj);
   CHECK_BO(offset)
   v->offset   = offset;
-  alloc = decl_global(emit, kind);
+  alloc = emitter_add_instr(emit, decl_global_instr[kind]);
   alloc->m_val2 = GET_FLAG(v, ae_flag_global);
   return alloc;
 }
@@ -512,7 +483,7 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   if(is_obj && ((array && array->exp_list) || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   if(GET_FLAG(value, ae_flag_member))
-    alloc = decl_member(emit, kind);
+    alloc = emitter_add_instr(emit, decl_member_instr[kind]);
   else
     alloc = emit_exp_decl_global(emit, value, is_ref, is_obj);
   alloc->m_val = value->offset;
