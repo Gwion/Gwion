@@ -181,26 +181,40 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, 
   return 1;
 }
 
-static m_bool emit_symbol_owned(Emitter emit, S_Symbol symbol, Value v, m_bool emit_var, m_uint pos) {
-  m_bool ret;
-  Exp base = new_exp_prim_ID("this", pos);
-  Exp dot = new_exp_dot(base, s_name(symbol), pos);
-  base->type = v->owner_class;
-  dot->type = v->m_type;
-  dot->d.exp_dot.t_base = v->owner_class;
-  dot->emit_var = emit_var;
-  ret = emit_exp_dot(emit, &dot->d.exp_dot);
-  free_expression(dot);
-  if(ret < 0)
-    CHECK_BB(err_msg(EMIT_, pos, "(emit): internal error: symbol transformation failed...")) // LCOV_EXCL_LINE
-  return ret;
+static void prepare_this_exp(Exp base, Exp dot) {
+  memset(base, 0, sizeof(struct Exp_));
+  memset(dot, 0, sizeof(struct Exp_));
+  base->meta = ae_meta_var;
+  base->exp_type = ae_exp_primary;
+  base->d.exp_primary.type = ae_primary_id;
+  base->d.exp_primary.d.var = insert_symbol("this");
+  base->d.exp_primary.self = base; 
+  dot->exp_type = ae_exp_dot;
+  dot->meta = ae_meta_var;
+  dot->d.exp_dot.base = base;
+  dot->d.exp_dot.self = dot;
+} 
+
+static m_bool emit_symbol_owned(Emitter emit, Exp_Primary* prim) {
+  Value v = prim->value;
+  struct Exp_ base, dot;
+  prepare_this_exp(&base, &dot);
+  base.type = v->owner_class;
+  dot.type = v->m_type;
+  dot.d.exp_dot.t_base = v->owner_class;
+  dot.d.exp_dot.xid = prim->d.var;
+  dot.emit_var = prim->self->emit_var;
+  if(emit_exp_dot(emit, &dot.d.exp_dot) < 0)
+    CHECK_BB(err_msg(EMIT_, prim->pos,
+          "(emit): internal error: symbol transformation failed..."))
+  return 1;
 }
 
 static m_bool emit_symbol_const(Emitter emit, Value v, m_bool emit_var) {
   if(v->func_ref) {
     Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
     instr->m_val = (m_uint)v->func_ref;
-  } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_dur) > 0 ||
+  } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_time) > 0 ||
       isa(v->m_type, &t_dur) > 0) {
     Instr instr = emitter_add_instr(emit, Reg_Push_Imm2);
     *(m_float*)instr->ptr = *(m_float*)v->ptr;
@@ -218,22 +232,10 @@ static m_bool emit_symbol_addr(Emitter emit, Value v) {
   return 1;
 }
 
+static f_instr s_instr[] = { NULL, Reg_Push_Mem, Reg_Push_Mem2, Reg_Push_Mem_Complex,
+               Reg_Push_Mem_Vec3, Reg_Push_Mem_Vec4};
 static f_instr emit_symbol_actual_instr(Kindof kind) {
-  switch(kind) {
-    case Kindof_Int:
-      return Reg_Push_Mem;
-    case Kindof_Float:
-      return Reg_Push_Mem2;
-    case Kindof_Complex:
-      return Reg_Push_Mem_Complex;
-    case Kindof_Vec3:
-      return Reg_Push_Mem_Vec3;
-    case Kindof_Vec4:
-      return Reg_Push_Mem_Vec4;
-    case Kindof_Void:
-      break; // unreachable
-  }
-  return NULL;
+  return s_instr[kind];
 }
 
 static m_bool emit_symbol_actual(Emitter emit, Value v) {
@@ -247,19 +249,21 @@ static m_bool emit_symbol_actual(Emitter emit, Value v) {
   return 1;
 }
 
-static m_bool emit_symbol(Emitter emit, S_Symbol symbol, Value v, int emit_var, int pos) {
+static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
+  Value v = prim->value;
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
-    return emit_symbol_owned(emit, symbol, v, emit_var, pos);
+    return emit_symbol_owned(emit, prim);
   if(GET_FLAG(v, ae_flag_const) && !GET_FLAG(v, ae_flag_uconst))
-    return emit_symbol_const(emit, v, emit_var);
-  if(emit_var)
+    return emit_symbol_const(emit, v, prim->self->emit_var);
+  if(prim->self->emit_var)
     return emit_symbol_addr(emit, v);
   return emit_symbol_actual(emit, v);
 }
 
 VM_Code emit_code(Emitter emit) {
   Code* c = emit->code;
-  VM_Code code = new_vm_code(&c->code, c->stack_depth, c->need_this, c->name, c->filename);
+  VM_Code code = new_vm_code(&c->code, c->stack_depth,
+      c->need_this, c->name, c->filename);
   free_code(c);
   return code;
 }
@@ -291,12 +295,10 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   if(depth == 1) {
     Instr instr = emitter_add_instr(emit, Instr_Array_Access);
     instr->m_val = is_var;
-    /*instr->m_val2 = kindof(array->self->type);*/
     instr->m_val2 = is_var ? SZ_INT : array->self->type->size;
   } else {
     Instr instr = emitter_add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
-    /*instr->m_val2 = kindof(array->base->type->d.array_type);*/
     instr->m_val2 = (is_var || array->self->type->array_depth) ? 
       SZ_INT : array->base->type->d.array_type->size;
     *(m_uint*)instr->ptr = is_var || array->self->type->array_depth;
@@ -331,7 +333,7 @@ static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
   } else if(prim->d.var == insert_symbol("maybe"))
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Maybe))
   else
-    emit_symbol(emit, prim->d.var, prim->value, prim->self->emit_var, prim->pos);
+    emit_symbol(emit, prim);
   return 1;
 }
 
