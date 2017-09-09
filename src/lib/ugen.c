@@ -59,9 +59,18 @@ m_bool adc_tick(UGen u) {
   return 1;
 }
 
+static void ref_compute(UGen u) {
+  m_uint i;
+  for(i = u->n_chan + 1; --i;) {
+    UGen ugen = UGEN(u->channel[i - 1]);
+    ugen->tick(ugen);
+  }
+  u->tick(u);
+  return;
+}
+
 void ugen_compute(UGen u) {
   m_uint  i;
-  UGen ugen;
   if(u->done)
     return;
   u->done = 1;
@@ -71,11 +80,7 @@ void ugen_compute(UGen u) {
   else for(i = vector_size(&u->ugen) + 1; --i;)
       ugen_compute((UGen)vector_at(&u->ugen, i - 1));
   if(u->ref) {
-    for(i = u->ref->n_chan + 1; --i;) {
-      ugen = UGEN(u->ref->channel[i - 1]);
-      ugen->tick(ugen);
-    }
-    u->ref->tick(u->ref);
+    ref_compute(u->ref);
     return;
   }
   u->tick(u);

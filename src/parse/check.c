@@ -192,32 +192,56 @@ static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
   return v->m_type;
 }
 
-static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
-  Type t;
+static Type check_exp_prim_this(Env env, Exp_Primary* primary) {
+  if(!env->class_def)
+    CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
+  if(env->func && !GET_FLAG(env->func, ae_flag_member))
+    CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
+  primary->self->meta = ae_meta_value;
+  return env->class_def;
+}
+
+static Type check_exp_prim_me(Exp_Primary* primary) {
+  primary->self->meta = ae_meta_value;
+  return &t_shred;
+}
+
+static Type check_exp_prim_now(Exp_Primary* primary) {
+  primary->self->meta = ae_meta_var;
+  return &t_now;
+}
+
+static Type check_exp_prim_id2(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
 
-  if(!strcmp(str, "this")) {
-    if(!env->class_def)
-      CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
-      if(env->func && !GET_FLAG(env->func, ae_flag_member))
-        CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
-        primary->self->meta = ae_meta_value;
-    t = env->class_def;
-  } else if(!strcmp(str, "me")) {
+  if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
     primary->self->meta = ae_meta_value;
-    t = &t_shred;
-  } else if(!strcmp(str, "now")) {
-    primary->self->meta = ae_meta_var;
-    t = &t_now;
-  } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-    primary->self->meta = ae_meta_value;
-    t = &t_null;
-  } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-    primary->self->meta = ae_meta_value;
-    t = &t_int;
+    return &t_int;
   } else
-    t = check_exp_prim_id_non_res(env, primary);
-  return t;
+    return check_exp_prim_id_non_res(env, primary);
+}
+
+static Type check_exp_prim_id1(Env env, Exp_Primary* primary) {
+  m_str str = s_name(primary->d.var);
+
+  if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
+    primary->self->meta = ae_meta_value;
+    return &t_null;
+  } else
+    return check_exp_prim_id2(env, primary);
+}
+
+static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
+  m_str str = s_name(primary->d.var);
+
+  if(!strcmp(str, "this"))
+    return check_exp_prim_this(env, primary);
+  else if(!strcmp(str, "me"))
+    return check_exp_prim_me(primary);
+  else if(!strcmp(str, "now"))
+    return check_exp_prim_now(primary);
+  else 
+    return check_exp_prim_id1(env, primary);
 }
 
 static Type check_exp_prim_complex(Env env, Complex* cmp) {
@@ -270,17 +294,23 @@ static Type check_exp_prim_polar(Env env, Polar* polar) {
   return  &t_polar;
 }
 
+static m_bool gack_verify(Exp e) {
+  if(e->type->xid == te_function &&
+      !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
+      GET_FLAG(e->type->d.func, ae_flag_member))
+    CHECK_BB(err_msg(TYPE_, e->pos,
+          "can't GACK user defined member function (for now)"))
+  return 1;
+}
+
 static Type check_exp_prim_gack(Env env, Exp exp) {
   if(exp->exp_type == ae_exp_decl)
     CHECK_BO(err_msg(TYPE_, exp->pos, "cannot use <<< >>> on variable declarations...\n"))
-    CHECK_OO((check_exp(env, exp))) {
+  CHECK_OO((check_exp(env, exp))) {
     Exp e = exp;
     while(e) {
-      if(e->type->xid == te_function &&
-          !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
-          GET_FLAG(e->type->d.func, ae_flag_member))
-        CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
-        e = e->next;
+      CHECK_BO(gack_verify(e))
+      e = e->next;
     }
   }
   return &t_gack;
@@ -917,7 +947,6 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 #endif
   Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
-
   Type t2 = find_type(env, cast->type->xid);
   if(!t2) {
     char path[id_list_len(cast->type->xid)];
@@ -941,9 +970,8 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
         }
       }
   }
-  if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
-    return t2;
-  if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
+  if((isa(t, &t_float) > 0 && isa(t2, &t_int)    > 0) ||
+     (isa(t, &t_null)  > 0 && isa(t2, &t_object) > 0))
     return t2;
   if(isa(t, &t_object) < 0)
     return isa(t, t2) > 0 ? t2 : NULL;
