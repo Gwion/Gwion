@@ -421,7 +421,7 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
-static m_bool emit_dot_static_data(Emitter emit, Value v, Kindof kind, m_bool emit_var) {
+static m_bool emit_dot_static_data(Emitter emit, Value v, m_bool emit_var) {
   Instr alloc, push = emitter_add_instr(emit, Reg_Push_Imm);
   push->m_val = (m_uint)v->owner_class;
   alloc = emitter_add_instr(emit, Dot_Static_Data);
@@ -444,7 +444,7 @@ static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
 
   emit->code = (Code*)vector_back(&emit->stack);
   CHECK_BB(emit_instantiate_object(emit, v->m_type, var_decl->array, is_ref))
-  CHECK_BB(emit_dot_static_data(emit, v, kindof(v->m_type), 1))
+  CHECK_BB(emit_dot_static_data(emit, v, 1))
   CHECK_OB(emitter_add_instr(emit, Assign_Object))
   emit->code = code;
   return 1;
@@ -452,11 +452,10 @@ static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
 
 static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
   Value value = var_decl->value;
-  Kindof kind = kindof(value->m_type);
 
   if(isprim(value->m_type) < 0 && !is_ref)
     CHECK_BB(decl_static(emit, var_decl, 0))
-  CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
+  CHECK_BB(emit_dot_static_data(emit, value, 1))
   return 1;
 }
 
@@ -1546,7 +1545,7 @@ static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
       CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
       return emit_member(emit, value, emit_addr);
     } else
-      return emit_dot_static_data(emit, value, kindof(value->m_type), emit_addr);
+      return emit_dot_static_data(emit, value, emit_addr);
   } else if(isa(member->self->type, &t_function) > 0) { // function
     Func func = value->func_ref;
     if(GET_FLAG(func, ae_flag_member))
@@ -1615,12 +1614,11 @@ static m_bool emit_func_def_flag(Emitter emit, Func func) {
 static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
   while(a) {
     Value value = a->var_decl->value;
-    Type type = value->m_type;
-    m_int offset;
-    m_bool obj = !isprim(type) ? 1 << 1 : 0;
+    m_int offset, size = value->m_type->size;
+    m_bool obj = !isprim(value->m_type) ? 1 << 1 : 0;
     m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref) ? 1 << 2 : 0;
-    emit->code->stack_depth += type->size;
-    if((offset = emit_alloc_local(emit, type->size, ref | obj)) < 0)
+    emit->code->stack_depth += size;
+    if((offset = emit_alloc_local(emit, size, ref | obj)) < 0)
       CHECK_BB(err_msg(EMIT_, a->pos,
         "(emit): internal error: cannot allocate local '%s'...", value->name))
     value->offset = offset;
