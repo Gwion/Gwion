@@ -459,10 +459,10 @@ static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_re
   CHECK_BB(emit_dot_static_data(emit, value, kind, 1))
   return 1;
 }
-static Instr emit_exp_decl_global(Emitter emit, Value v, m_bool is_ref, m_bool is_obj) {
+
+static Instr emit_exp_decl_global(Emitter emit, Value v, m_uint flag) {
   Instr alloc;
   Kindof kind = kindof(v->m_type);
-  m_uint flag = (is_ref ? 1 << 1 : 0) | (is_obj ? 1 << 2 : 0);
   m_int offset= emit_alloc_local(emit, v->m_type->size, flag);
   CHECK_BO(offset)
   v->offset   = offset;
@@ -484,7 +484,8 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   if(GET_FLAG(value, ae_flag_member))
     alloc = emitter_add_instr(emit, decl_member_instr[kind]);
   else
-    alloc = emit_exp_decl_global(emit, value, is_ref, is_obj);
+    alloc = emit_exp_decl_global(emit, value, (is_ref ? 1 << 1 : 0) |
+        (is_obj ? 1 << 2 : 0));
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
@@ -518,7 +519,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
     if(decl->is_static)
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
     else
-      CHECK_BB(emit_exp_decl_non_static(emit, list->self,ref, var))
+      CHECK_BB(emit_exp_decl_non_static(emit, list->self, ref, var))
     list = list->next;
   }
   return 1;
