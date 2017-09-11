@@ -612,21 +612,34 @@ static Value get_template_value(Env env, Exp exp_func) {
     return NULL;
 }
 
-static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
+static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
-  m_uint args_number = 0;
-  Value value = NULL;
-  Func func = NULL;
-  ID_List list;
-
-  CHECK_OO((value = get_template_value(env, exp_func)))
-
-  list = value->func_ref->def->types;
-
   while(list) {
     type_number++;
     list = list->next;
   }
+  return type_number;
+}
+
+static Func get_template_func(Env env, Exp_Func* func, Value v) {
+  Func f = find_template_match(env, v, func, func->types);
+  if(f) {
+    env->current->types = func->types;
+    env->current->base = v->func_ref->def->types;
+    return f;
+  }
+  if(err_msg(TYPE_, func->pos, "function is template. automatic type guess not fully implemented yet.\n"
+                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
+  return NULL;
+}
+
+static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
+  m_uint type_number, args_number = 0;
+  Value value;
+  ID_List list;
+
+  CHECK_OO((value = get_template_value(env, exp_func)))
+  type_number = get_type_number(value->func_ref->def->types);
 
   list = value->func_ref->def->types;
   Type_List tl[type_number];
@@ -649,23 +662,11 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
     list = list->next;
   }
   if(args_number < type_number)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
-Exp_Func tmp_func;
-tmp_func.func = exp_func;
-tmp_func.args = args;
-tmp_func.m_func = func;
-//  Func f = find_template_match(env, value, func, tl[0], exp_func, args);
-  Func f = find_template_match(env, value, &tmp_func, tl[0]);
-  if(f) {
-    *m_func = f;
-    Type ret_type  = f->def->ret_type;
-    env->current->types = tl[0];
-    env->current->base = value->func_ref->def->types;
-    return ret_type;
-  }
-  if(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
-                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
-  return NULL;
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+          "not able to guess types for template call."))
+  Exp_Func tmp_func = { exp_func, args, tl[0]};
+  *m_func = get_template_func(env, &tmp_func, value);
+  return *m_func ? (*m_func)->def->ret_type : NULL;
 }
 
 static m_bool check_exp_call1_template(Env env, Func func) {

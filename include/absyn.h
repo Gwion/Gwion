@@ -193,11 +193,11 @@ typedef struct {
 typedef struct {
   Exp func;
   Exp args;
-  Type ret_type;
+  Type_List types;
   Func m_func;
+  Type ret_type;
   VM_Code vm_code;
   Exp self;
-  Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
   int pos;
