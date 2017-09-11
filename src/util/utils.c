@@ -165,7 +165,9 @@ Kindof kindof(Type type) {
     return Kindof_Float;
   else if(isa(type, &t_vec3) > 0)
     return Kindof_Vec3;
-  return Kindof_Vec4;
+  else if(isa(type, &t_vec4) > 0)
+    return Kindof_Vec4;
+  return Kindof_Int;
 }
 
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <dlfcn.h>
+#include <ctype.h>
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
