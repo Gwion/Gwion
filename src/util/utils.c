@@ -136,22 +136,36 @@ void type_path(char* str, ID_List list) {
   }
 }
 
+static m_bool is_int(Type t) {
+  if(t->array_depth || isa(t, &t_int) > 0 || isa(t, &t_object) > 0)
+    return 1;
+  return -1;
+}
+
+static m_bool is_float(Type t) {
+  if(isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
+    return 1;
+  return -1;
+}
+
+static m_bool is_complex(Type t) {
+  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0)
+    return 1;
+  return -1;
+}
+
 Kindof kindof(Type type) {
-  if(type->array_depth)
+  if(is_int(type) > 0)
     return Kindof_Int;
   if(isa(type, &t_void) > 0)
     return Kindof_Void;
-  else if(isa(type, &t_complex) > 0 || isa(type, &t_polar) > 0)
+  else if(is_complex(type) > 0)
     return Kindof_Complex;
-  if(isa(type, &t_int) > 0 || isa(type, &t_object) > 0)
-    return Kindof_Int;
-  else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0)
+  else if(is_float(type) > 0)
     return Kindof_Float;
   else if(isa(type, &t_vec3) > 0)
     return Kindof_Vec3;
-  else if(isa(type, &t_vec4) > 0)
-    return Kindof_Vec4;
-  return Kindof_Int;
+  return Kindof_Vec4;
 }
 
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
