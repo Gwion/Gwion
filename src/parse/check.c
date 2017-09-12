@@ -1677,6 +1677,27 @@ static m_bool check_section(Env env, Section* section) {
   return 1;
 }
 
+static m_bool check_class_parent(Env env, Class_Def class_def) {
+  Type t_parent = find_type(env, class_def->ext);
+  if(!t_parent) {
+    char path[id_list_len(class_def->ext)];
+    type_path(path, class_def->ext);
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "undefined parent class '%s' in definition of class '%s'",
+            path, s_name(class_def->name->xid)))
+  }
+  if(isprim(t_parent) > 0)
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend primitive type '%s'", t_parent->name))
+  if(!GET_FLAG(t_parent, ae_flag_checked))
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend incomplete type '%s'i\n"
+            "\t...(note: the parent's declaration must preceed child's)",
+            t_parent->name))
+  class_def->type->parent = t_parent;
+  return 1;
+}
+
 static m_bool check_class_def_body(Env env, Class_Body body) {
   while(body) {
     CHECK_BB(check_section(env, body->section))
@@ -1686,37 +1707,17 @@ static m_bool check_class_def_body(Env env, Class_Body body) {
 }
 
 m_bool check_class_def(Env env, Class_Def class_def) {
-  Type the_class = NULL;
-  Type t_parent = NULL;
-  m_bool ret = 1;
+  Type the_class = class_def->type;
+  m_bool ret;
 
   if(class_def->types)
     return 1;
-  if(class_def->ext) {
-    t_parent = find_type(env, class_def->ext);
-    if(!t_parent) {
-      char path[id_list_len(class_def->ext)];
-      type_path(path, class_def->ext);
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "undefined parent class '%s' in definition of class '%s'",
-              path, s_name(class_def->name->xid)))
-    }
-    if(isprim(t_parent) > 0)
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "cannot extend primitive type '%s'", t_parent->name))
-    if(!GET_FLAG(t_parent, ae_flag_checked))
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "cannot extend incomplete type '%s'i\n"
-              "\t...(note: the parent's declaration must preceed child's)",
-              t_parent->name))
-  }
-
-  if(!t_parent)
-    t_parent = &t_object;
-  the_class = class_def->type;
-  the_class->parent = t_parent;
-  the_class->info->offset = t_parent->obj_size;
-  vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
+  if(class_def->ext)
+    CHECK_BB(check_class_parent(env, class_def))
+  else
+    the_class->parent = &t_object;
+  the_class->info->offset = the_class->parent->obj_size;
+  vector_copy2(&the_class->parent->info->obj_v_table, &the_class->info->obj_v_table);
 
   CHECK_BB(env_push_class(env, the_class))
   ret = check_class_def_body(env, class_def->body);
