@@ -82,7 +82,7 @@ Array_Sub new_array_sub(Exp exp, int pos) {
   return a;
 }
 
-Array_Sub prepend_array_sub(Array_Sub a, Exp exp, int pos) {
+Array_Sub prepend_array_sub(Array_Sub a, Exp exp) {
   if(a->err_num)
     goto error;
   if(exp && exp->next) {
@@ -92,7 +92,7 @@ Array_Sub prepend_array_sub(Array_Sub a, Exp exp, int pos) {
   }
   if((exp && !a->exp_list) || (!exp && a->exp_list)) {
     a->err_num = 2;
-    a->err_pos = pos;
+    a->err_pos = a->pos;
     goto error;
   }
   if(exp) {

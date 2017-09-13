@@ -232,7 +232,7 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   if(*array_depth) {
     array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < *array_depth; i++)
-      array_sub = prepend_array_sub(array_sub, NULL, 0);
+      array_sub = prepend_array_sub(array_sub, NULL);
   }
   return array_sub;
 }
@@ -284,7 +284,7 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++)
-      array_sub = prepend_array_sub(array_sub, NULL, 0);
+      array_sub = prepend_array_sub(array_sub, NULL);
     type_decl = add_type_decl_array(type_decl, array_sub, 0);
   }
   name = dl_fun->name;

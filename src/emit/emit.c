@@ -1239,27 +1239,27 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
   return 1;
 }
 
-static m_int primary_case(Exp_Primary* prim, m_int* value) {
+static m_bool primary_case(Exp_Primary* prim, m_int* value) {
   if(prim->type == ae_primary_num)
     *value = prim->d.num;
+  else if(prim->d.var == insert_symbol("true"))
+    *value = 1;
+  else if(prim->d.var == insert_symbol("false"))
+    *value = 0;
+  else if(prim->d.var == insert_symbol("maybe"))
+    CHECK_BB(err_msg(EMIT_, prim->pos, "'maybe' is not constant."))
   else {
-    if(prim->d.var == insert_symbol("true"))
-      *value = 1;
-    else if(prim->d.var == insert_symbol("false"))
-      *value = 0;
-    else if(prim->d.var == insert_symbol("maybe"))
-      CHECK_BB(err_msg(EMIT_, prim->pos, "'maybe' is not constant."))
-    else if(!GET_FLAG(prim->value, ae_flag_const))
-        CHECK_BB(err_msg(EMIT_, prim->pos, 
-              "value is not const. this is not allowed for now"))
-      *value = (m_uint)prim->value->ptr; // assume enum.
+    if(!GET_FLAG(prim->value, ae_flag_const))
+      CHECK_BB(err_msg(EMIT_, prim->pos, 
+            "value is not const. this is not allowed for now"))
+    *value = (m_uint)prim->value->ptr; // assume enum.
   }
   return 1;
 }
 
 static m_int get_case_value(Stmt_Case stmt, m_int* value) {
   if(stmt->val->exp_type == ae_exp_primary)
-    primary_case(&stmt->val->d.exp_primary, value);
+    CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
   else if(stmt->val->exp_type == ae_exp_dot) {
     Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
         stmt->val->d.exp_dot.t_base->d.actual_type :
