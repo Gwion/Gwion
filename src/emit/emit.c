@@ -1239,35 +1239,45 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
   return 1;
 }
 
+static m_int primary_case(Exp_Primary* prim, m_int* value) {
+  if(prim->type == ae_primary_num)
+    *value = prim->d.num;
+  else {
+    if(prim->d.var == insert_symbol("true"))
+      *value = 1;
+    else if(prim->d.var == insert_symbol("false"))
+      *value = 0;
+    else if(prim->d.var == insert_symbol("maybe"))
+      CHECK_BB(err_msg(EMIT_, prim->pos, "'maybe' is not constant."))
+    else if(!GET_FLAG(prim->value, ae_flag_const))
+        CHECK_BB(err_msg(EMIT_, prim->pos, 
+              "value is not const. this is not allowed for now"))
+      *value = (m_uint)prim->value->ptr; // assume enum.
+  }
+  return 1;
+}
+
+static m_int get_case_value(Stmt_Case stmt, m_int* value) {
+  if(stmt->val->exp_type == ae_exp_primary)
+    primary_case(&stmt->val->d.exp_primary, value);
+  else if(stmt->val->exp_type == ae_exp_dot) {
+    Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
+        stmt->val->d.exp_dot.t_base->d.actual_type :
+        stmt->val->d.exp_dot.t_base;
+    Value v = find_value(t, stmt->val->d.exp_dot.xid);
+    *value = GET_FLAG(v, ae_flag_enum) ?
+      t->info->class_data[v->offset] : *(m_uint*)v->ptr;
+  } else
+    CHECK_BB(err_msg(EMIT_, stmt->pos,
+          "unhandled expression type '%i'", stmt->val->exp_type))
+  return 1;
+}
+
 static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
-  m_uint value = 0;
-  Value v;
-  Type t;
+  m_int value = 0;
   if(!emit->cases)
     CHECK_BB(err_msg(EMIT_, stmt->pos, "case found outside switch statement. this is not allowed for now"))
-    if(stmt->val->exp_type == ae_exp_primary) {
-      if(stmt->val->d.exp_primary.type == ae_primary_num)
-        value = stmt->val->d.exp_primary.d.num;
-      else {
-        if(stmt->val->d.exp_primary.d.var == insert_symbol("true"))
-          value = 1;
-        else if(stmt->val->d.exp_primary.d.var == insert_symbol("false"))
-          value = 0;
-        else if(stmt->val->d.exp_primary.d.var == insert_symbol("maybe")) {
-          CHECK_BB(err_msg(EMIT_, stmt->val->d.exp_primary.pos, "'maybe' is not constant."))
-        } else  {
-          if(!GET_FLAG(stmt->val->d.exp_primary.value, ae_flag_const))
-            CHECK_BB(err_msg(EMIT_, stmt->pos, "value is not const. this is not allowed for now"))
-            value = (m_uint)stmt->val->d.exp_primary.value->ptr; // assume enum.
-        }
-      }
-    } else if(stmt->val->exp_type == ae_exp_dot) {
-      t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
-          stmt->val->d.exp_dot.t_base->d.actual_type : stmt->val->d.exp_dot.t_base;
-      v = find_value(t, stmt->val->d.exp_dot.xid);
-      value = GET_FLAG(v, ae_flag_enum) ? t->info->class_data[v->offset] : *(m_uint*)v->ptr;
-    } else
-      CHECK_BB(err_msg(EMIT_, stmt->pos, "unhandled expression type '%i'", stmt->val->exp_type))
+  CHECK_BB(get_case_value(stmt, &value))
   if(map_get(emit->cases, (vtype)value))
     CHECK_BB(err_msg(EMIT_, stmt->pos, "duplicated cases value %i", value))
   map_set(emit->cases, (vtype)value, (vtype)emit_code_size(emit));

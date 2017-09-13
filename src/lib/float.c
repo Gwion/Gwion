@@ -374,7 +374,7 @@ static m_bool import_values(Importer importer) {
 m_bool import_float(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_float))
   CHECK_BB(importer_add_type(importer,  &t_time))
-  CHECK_BB(importer_add_type(importer,  &t_dur)) 
+  CHECK_BB(importer_add_type(importer,  &t_dur))
   CHECK_BB(importer_oper_begin(importer, "float", "float", "float"))
   CHECK_BB(importer_add_op(importer, op_assign,        float_assign,      0))
   CHECK_BB(importer_add_op(importer, op_plus,          float_plus,        0))
