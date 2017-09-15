@@ -187,14 +187,12 @@ static m_int import_var(Env env, const m_str type, const m_str name, ae_flag fla
   memset(&t, 0, sizeof(Type_Decl));
   t.xid = path;
   t.flag = flag;
-  if(array_depth) {
-    t.array = new_array_sub(NULL, 0);
-    t.array->depth = array_depth;
-  }
   struct Var_Decl_ var;
   memset(&var, 0, sizeof(struct Var_Decl_));
   var.xid = insert_symbol(name);
   if(array_depth) {
+    t.array = new_array_sub(NULL, 0);
+    t.array->depth = array_depth;
     var.array = new_array_sub(NULL, 0);
     var.array->depth = array_depth;
   }
