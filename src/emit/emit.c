@@ -476,9 +476,10 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   Type type = value->m_type;
   Instr alloc;
   Array_Sub array = var_decl->array;
+  m_bool is_array = array && array->exp_list; 
   m_bool is_obj = isa(type, &t_object) > 0 || var_decl->array;
   Kindof kind = kindof(type);
-  if(is_obj && ((array && array->exp_list) || !is_ref))
+  if(is_obj && ( is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   if(GET_FLAG(value, ae_flag_member))
     alloc = emitter_add_instr(emit, decl_member_instr[kind]);
@@ -488,11 +489,11 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
-    if((array && array->exp_list) || !is_ref) {
+    if((is_array) || !is_ref) {
       Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
     }
-    if(array && array->exp_list)
+    if(is_array)
       ADD_REF(type);
   }
   return 1;
