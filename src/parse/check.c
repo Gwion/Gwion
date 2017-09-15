@@ -22,21 +22,6 @@ struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
-Env type_engine_init(VM* vm, Vector plug_dirs) {
-  Env env = new_env();
-
-  CHECK_BO(import_libs(env))
-  CHECK_BO(import_values(env))
-  CHECK_BO(import_global_ugens(vm, env))
-  nspc_commit(env->global_nspc);
-  // user nspc
-  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
-  /*  env->user_nspc->parent = env->global_nspc;*/
-  add_plugs(env, plug_dirs);
-  nspc_commit(env->curr);
-  return env;
-}
-
 static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
   Exp exp = exp_list;
   while(exp) {
@@ -184,53 +169,79 @@ static Type check_exp_primary_vec(Env env, Vec vec) {
   return val->numdims < 4 ? &t_vec3 : &t_vec4;
 }
 
-static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
+static Value check_non_res_value(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
-  Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
+  Value v = nspc_lookup_value1(env->curr, primary->d.var);
   if(!v)
     v = find_value(env->class_def, primary->d.var);
-  if(v) {
-    if(env->class_def && env->func) {
-      if(GET_FLAG(env->func->def, ae_flag_static) && GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
+  if(v && env->class_def && env->func && GET_FLAG(env->func->def, ae_flag_static) &&
+    GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
         CHECK_BO(err_msg(TYPE_, primary->pos,
                          "non-static member '%s' used from static function...", str))
-    }
-  }
+  return v;
+}
+
+static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
+  Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, ae_flag_checked))
     CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-                     str ? str : "", v))
+          v ? v->name : ""))
   primary->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;
   return v->m_type;
 }
 
-static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
-  Type t;
+static Type check_exp_prim_this(Env env, Exp_Primary* primary) {
+  if(!env->class_def)
+    CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
+  if(env->func && !GET_FLAG(env->func, ae_flag_member))
+    CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
+  primary->self->meta = ae_meta_value;
+  return env->class_def;
+}
+
+static Type check_exp_prim_me(Exp_Primary* primary) {
+  primary->self->meta = ae_meta_value;
+  return &t_shred;
+}
+
+static Type check_exp_prim_now(Exp_Primary* primary) {
+  primary->self->meta = ae_meta_var;
+  return &t_now;
+}
+
+static Type check_exp_prim_id2(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
 
-  if(!strcmp(str, "this")) {
-    if(!env->class_def)
-      CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' can be used only inside class definition..."))
-      if(env->func && !GET_FLAG(env->func, ae_flag_member))
-        CHECK_BO(err_msg(TYPE_, primary->pos, "keyword 'this' cannot be used inside static functions..."))
-        primary->self->meta = ae_meta_value;
-    t = env->class_def;
-  } else if(!strcmp(str, "me")) {
+  if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
     primary->self->meta = ae_meta_value;
-    t = &t_shred;
-  } else if(!strcmp(str, "now")) {
-    primary->self->meta = ae_meta_var;
-    t = &t_now;
-  } else if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-    primary->self->meta = ae_meta_value;
-    t = &t_null;
-  } else if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-    primary->self->meta = ae_meta_value;
-    t = &t_int;
+    return &t_int;
   } else
-    t = check_exp_prim_id_non_res(env, primary);
-  return t;
+    return check_exp_prim_id_non_res(env, primary);
+}
+
+static Type check_exp_prim_id1(Env env, Exp_Primary* primary) {
+  m_str str = s_name(primary->d.var);
+
+  if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
+    primary->self->meta = ae_meta_value;
+    return &t_null;
+  } else
+    return check_exp_prim_id2(env, primary);
+}
+
+static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
+  m_str str = s_name(primary->d.var);
+
+  if(!strcmp(str, "this"))
+    return check_exp_prim_this(env, primary);
+  else if(!strcmp(str, "me"))
+    return check_exp_prim_me(primary);
+  else if(!strcmp(str, "now"))
+    return check_exp_prim_now(primary);
+  else
+    return check_exp_prim_id1(env, primary);
 }
 
 static Type check_exp_prim_complex(Env env, Complex* cmp) {
@@ -283,17 +294,23 @@ static Type check_exp_prim_polar(Env env, Polar* polar) {
   return  &t_polar;
 }
 
+static m_bool gack_verify(Exp e) {
+  if(e->type->xid == te_function &&
+      !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
+      GET_FLAG(e->type->d.func, ae_flag_member))
+    CHECK_BB(err_msg(TYPE_, e->pos,
+          "can't GACK user defined member function (for now)"))
+  return 1;
+}
+
 static Type check_exp_prim_gack(Env env, Exp exp) {
   if(exp->exp_type == ae_exp_decl)
     CHECK_BO(err_msg(TYPE_, exp->pos, "cannot use <<< >>> on variable declarations...\n"))
-    CHECK_OO((check_exp(env, exp))) {
+  CHECK_OO((check_exp(env, exp))) {
     Exp e = exp;
     while(e) {
-      if(e->type->xid == te_function &&
-          !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
-          GET_FLAG(e->type->d.func, ae_flag_member))
-        CHECK_BO(err_msg(TYPE_, e->pos, "can't GACK user defined member function (for now)"))
-        e = e->next;
+      CHECK_BO(gack_verify(e))
+      e = e->next;
     }
   }
   return &t_gack;
@@ -491,7 +508,10 @@ static m_bool template_set_env(Env env, Value v) {
   return 1;
 }
 
-Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
+Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) {
+  Exp func = exp_func->func;
+  Exp args = exp_func->args;
+  Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   Func_Def base;
   Value value;
@@ -505,7 +525,7 @@ Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp fun
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
-            nspc_lookup_value(env->curr, insert_symbol(name), 1);
+            nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
     base = value->func_ref->def;
@@ -582,30 +602,43 @@ static void* function_alternative(Type f, Exp args){
 
 static Value get_template_value(Env env, Exp exp_func) {
   if(exp_func->exp_type == ae_exp_primary)
-    return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+    return nspc_lookup_value1(env->curr, exp_func->d.exp_primary.d.var);
   else if(exp_func->exp_type == ae_exp_dot)
     return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  err_msg(TYPE_, exp_func->pos,
+  CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
-      exp_func->exp_type);
+      exp_func->exp_type))
     return NULL;
 }
 
-static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
+static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
-  m_uint args_number = 0;
-  Value value = NULL;
-  Func func = NULL;
-  ID_List list;
-
-  CHECK_OO((value = get_template_value(env, exp_func)))
-
-  list = value->func_ref->def->types;
-
   while(list) {
     type_number++;
     list = list->next;
   }
+  return type_number;
+}
+
+static Func get_template_func(Env env, Exp_Func* func, Value v) {
+  Func f = find_template_match(env, v, func, func->types);
+  if(f) {
+    env->current->types = func->types;
+    env->current->base = v->func_ref->def->types;
+    return f;
+  }
+  if(err_msg(TYPE_, func->pos, "function is template. automatic type guess not fully implemented yet.\n"
+                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
+  return NULL;
+}
+
+static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_func) {
+  m_uint type_number, args_number = 0;
+  Value value;
+  ID_List list;
+
+  CHECK_OO((value = get_template_value(env, exp_func)))
+  type_number = get_type_number(value->func_ref->def->types);
 
   list = value->func_ref->def->types;
   Type_List tl[type_number];
@@ -628,18 +661,11 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
     list = list->next;
   }
   if(args_number < type_number)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos, "not able to guess types for template call."))
-  Func f = find_template_match(env, value, func, tl[0], exp_func, args);
-  if(f) {
-    *m_func = f;
-    Type ret_type  = f->def->ret_type;
-    env->current->types = tl[0];
-    env->current->base = value->func_ref->def->types;
-    return ret_type;
-  }
-  if(err_msg(TYPE_, exp_func->pos, "function is template. automatic type guess not fully implemented yet.\n"
-                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
-  return NULL;
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+          "not able to guess types for template call."))
+  Exp_Func tmp_func = { exp_func, args, tl[0]};
+  *m_func = get_template_func(env, &tmp_func, value);
+  return *m_func ? (*m_func)->def->ret_type : NULL;
 }
 
 static m_bool check_exp_call1_template(Env env, Func func) {
@@ -707,11 +733,12 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   Type ret_type;
 
   if(binary->rhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-    f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+    v = nspc_lookup_value1(env->curr, binary->rhs->d.exp_primary.d.var);
+    f1 = v->func_ref ? v->func_ref :
+      nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_dot) {
     v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-    f1 = nspc_lookup_func(binary->rhs->d.exp_dot.t_base->info, insert_symbol(v->m_type->name), -1);
+    f1 = find_func(binary->rhs->d.exp_dot.t_base, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_decl) {
     v = binary->rhs->d.exp_decl.list->self->value;
     f1 = v->m_type->d.func;
@@ -719,8 +746,8 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
     CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
   r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   if(binary->lhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-    f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+    v = nspc_lookup_value1(env->curr, binary->lhs->d.exp_primary.d.var);
+    f2 = nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   } else if(binary->lhs->exp_type == ae_exp_dot) {
     v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
@@ -744,7 +771,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
-        f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
+        f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
       }
       if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
@@ -756,11 +783,14 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   return NULL;
 }
 
-static Type check_op(Env env, Operator op, Exp lhs, Exp rhs, Exp_Binary* binary) {
+static Type check_op(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
-  debug_msg("check", "'%s' %s '%s'", lhs->type->name, op2str(op), rhs->type->name);
+  debug_msg("check", "'%s' %s '%s'", binary->lhs->type->name, op2str(op),
+      binary->rhs->type->name);
 #endif
-
+  Operator op = binary->op;
+  Exp lhs = binary->lhs;
+  Exp rhs = binary->rhs;
   Type t;
 
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
@@ -907,7 +937,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
   }
 
   while(cr) {
-    CHECK_OO((ret = check_op(env, binary->op, cl, cr, binary)))
+    CHECK_OO((ret = check_op(env, binary)))
     cr = cr->next;
   }
   return ret;
@@ -919,7 +949,6 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 #endif
   Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
-
   Type t2 = find_type(env, cast->type->xid);
   if(!t2) {
     char path[id_list_len(cast->type->xid)];
@@ -932,20 +961,18 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
       CHECK_BO(err_msg(TYPE_, cast->pos, "can't cast '%s' to '%s'",
                        t->name, t2->name))
       else {
-        Value v = nspc_lookup_value(env->curr,
-                                    cast->exp->d.exp_primary.d.var,  1);
+        Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
         Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
                   v->m_type->d.func :
-                  nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
+                  nspc_lookup_func1(env->curr, insert_symbol(v->name));
         if(compat_func(t2->d.func->def, f->def, f->def->pos)) {
           cast->func = f;
           return t2;
         }
       }
   }
-  if(isa(t, &t_float) > 0 && isa(t2, &t_int) > 0)
-    return t2;
-  if(isa(t, &t_null) > 0 && isa(t2, &t_object) > 0)
+  if((isa(t, &t_float) > 0 && isa(t2, &t_int)    > 0) ||
+     (isa(t, &t_null)  > 0 && isa(t2, &t_object) > 0))
     return t2;
   if(isa(t, &t_object) < 0)
     return isa(t, t2) > 0 ? t2 : NULL;
@@ -1000,7 +1027,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
     Func ret;
     Value v = NULL;
     if(call->func->exp_type == ae_exp_primary) {
-      v = nspc_lookup_value(env->curr, call->func->d.exp_primary.d.var, 1);
+      v = nspc_lookup_value1(env->curr, call->func->d.exp_primary.d.var);
     } else if(call->func->exp_type == ae_exp_dot) {
       Type t;
       CHECK_OO(check_exp(env, call->func))
@@ -1013,8 +1040,9 @@ static Type check_exp_call(Env env, Exp_Func* call) {
                          "template call of non-template function."))
       } else
       CHECK_BO(err_msg(TYPE_, call->pos, "invalid template call."))
-    if(!(ret = find_template_match(env, v,
-                                   call->m_func, call->types, call->func, call->args)))
+//    if(!(ret = find_template_match(env, v,
+//                                   call->m_func, call->types, call->func, call->args)))
+    if(!(ret = find_template_match(env, v, call, call->types)))
       CHECK_BO(err_msg(TYPE_, call->pos,
                        "arguments do not match for template call"))
       call->m_func = ret;
@@ -1161,7 +1189,7 @@ static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func pointer '%s'", s_name(ptr->xid));
 #endif
-  Type t     = nspc_lookup_type(env->curr, ptr->xid, 1);
+  Type t     = nspc_lookup_type1(env->curr, ptr->xid);
   t->size    = SZ_INT;
   t->name    = s_name(ptr->xid);
   t->parent  = &t_func_ptr;
@@ -1220,9 +1248,8 @@ static Type check_exp(Env env, Exp exp) {
 static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   Value v;
-  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
   while(list) {
-    v = nspc_lookup_value(nspc, list->xid, 0);
+    v = nspc_lookup_value0(env->curr, list->xid);
     if(env->class_def) {
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
@@ -1250,7 +1277,7 @@ static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return ret;
 }
 
-static m_bool check_flow(Env env, Exp exp, m_str s) {
+static m_bool check_flow(Env env, Exp exp) {
   switch(exp->type->xid) {
     case te_int:
     case te_float:
@@ -1259,14 +1286,15 @@ static m_bool check_flow(Env env, Exp exp, m_str s) {
       break;
     default:
       CHECK_BB(err_msg(TYPE_,  exp->pos,
-                       "invalid type '%s' in %s condition", exp->type->name, s))
+                       "invalid type '%s'", exp->type->name))
   }
   return 1;
 }
 
 static m_bool check_stmt_while(Env env, Stmt_While stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-  CHECK_BB(check_flow(env, stmt->cond, "while"))
+  if(check_flow(env, stmt->cond) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'while' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   vector_add(&env->conts, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
@@ -1277,7 +1305,8 @@ static m_bool check_stmt_while(Env env, Stmt_While stmt) {
 
 static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-  CHECK_BB(check_flow(env, stmt->cond, "until"))
+  if(check_flow(env, stmt->cond) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'until' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(&env->breaks);
@@ -1299,7 +1328,8 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
                      "...(note: explicitly use 'true' if it's the intent)",
                      "...(e.g., 'for(; true;){ /*...*/ }')"))
   }
-  CHECK_BB(check_flow(env, stmt->c2->d.stmt_exp.val, "for"))
+  if(check_flow(env, stmt->c2->d.stmt_exp.val) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->c2->pos, "\t... in 'for' condition."))
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
     return check_breaks(env, stmt->self, stmt->body);
@@ -1320,29 +1350,30 @@ static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
 static m_bool check_stmt_if(Env env, Stmt_If stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
   if(isa(stmt->cond->type, &t_object) > 0)
-    CHECK_BB(check_flow(env, stmt->cond, "if"))
-    CHECK_BB(check_stmt(env, stmt->if_body))
-    if(stmt->else_body)
-      CHECK_BB(check_stmt(env, stmt->else_body))
-      return 1;
+    if(check_flow(env, stmt->cond) < 0)
+      CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'if' condition."))
+  CHECK_BB(check_stmt(env, stmt->if_body))
+  if(stmt->else_body)
+    CHECK_BB(check_stmt(env, stmt->else_body))
+  return 1;
 }
 
 static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
   Type ret_type = NULL;
   if(!env->func)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
-                     "'return' statement found outside function definition"))
-    if(stmt->val) {
+          "'return' statement found outside function definition"))
+    if(stmt->val)
       CHECK_OB((ret_type = check_exp(env, stmt->val)))
-    } else
+    else
       ret_type = &t_void;
   if(ret_type->xid == te_null && isprim(env->func->def->ret_type) < 0)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
-                     "invalid return type '%s' -- expecting '%s'",
-                     ret_type->name, env->func->def->ret_type->name))
-    return 1;
+          "invalid return type '%s' -- expecting '%s'",
+          ret_type->name, env->func->def->ret_type->name))
+  return 1;
 }
 
 static m_bool check_stmt_continue(Env env, Stmt_Continue cont) {
@@ -1487,6 +1518,27 @@ static m_bool check_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
+static m_bool check_signature_match(Func_Def f, Func parent) {
+  m_str c_name  = f->d.func->value_ref->owner_class->name;
+  m_str p_name = parent->value_ref->owner_class->name;
+  m_str f_name = s_name(f->name);
+  if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
+    CHECK_BB(err_msg(TYPE_, f->pos,
+          "function '%s.%s' resembles '%s.%s' but cannot override...\n"
+          "\t...(reason: '%s.%s' is declared as 'static')",
+          c_name, f_name, p_name, c_name,
+          GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name))
+  }
+
+  if(isa(f->ret_type, parent->def->ret_type) <  0) {
+    CHECK_BB(err_msg(TYPE_, f->pos,
+          "function signatures differ in return type...\n"
+          "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
+          c_name, f_name, p_name, f_name))
+  }
+  return 1;
+}
+
 static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
   Value v;
   Func func = f->d.func;
@@ -1497,23 +1549,7 @@ static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
         parent_func = parent_func->next;
         continue;
       }
-      if(GET_FLAG(parent_func->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
-        CHECK_BB(err_msg(TYPE_, f->pos,
-                         "function '%s.%s' resembles '%s.%s' but cannot override...\n"
-                         "\t...(reason: '%s.%s' is declared as 'static')",
-                         env->class_def->name, s_name(f->name),
-                         v->owner_class->name, s_name(f->name),
-                         GET_FLAG(f, ae_flag_static) ? env->class_def->name :
-                             v->owner_class->name, s_name(f->name)))
-      }
-
-      if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
-        CHECK_BB(err_msg(TYPE_, f->pos,
-                         "function signatures differ in return type...\n"
-                         "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-                         env->class_def->name, s_name(f->name),
-                         v->owner_class->name, s_name(f->name)))
-      }
+      CHECK_BB(check_signature_match(f, parent_func))
       *parent_match = 1;
       func->vt_index = parent_func->vt_index;
       vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
@@ -1544,7 +1580,7 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
   m_uint count = 1;
   while(arg_list) {
     Value v = arg_list->var_decl->value;
-    if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0))
+    if(nspc_lookup_value0(env->curr, arg_list->var_decl->xid))
       CHECK_BB(err_msg(TYPE_, arg_list->pos,
                     "argument %i '%s' is already defined in this scope\n",
                     count, s_name(arg_list->var_decl->xid)))
@@ -1558,7 +1594,7 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
 
 static m_bool check_func_overload_inner(Env env, Func_Def def, m_str name, m_uint j) {
   sprintf(name, "%s@%li@%s", s_name(def->name), j, env->curr->name);
-  Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+  Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
   if(compat_func(def, f2->def, f2->def->pos) > 0) {
     CHECK_BB(err_msg(TYPE_, f2->def->pos,
         "global function '%s' already defined for those arguments",
@@ -1575,7 +1611,7 @@ static m_bool check_func_overload(Env env, Func_Def f) {
                                       num_digit(v->func_num_overloads) + 3];
     for(i = 0; i <= v->func_num_overloads; i++) {
       sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
-      Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+      Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
       for(j = 1; j <= v->func_num_overloads; j++) {
         if(i != j)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
@@ -1585,24 +1621,12 @@ static m_bool check_func_overload(Env env, Func_Def f) {
   return 1;
 }
 
-m_bool check_func_def(Env env, Func_Def f) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func def '%s'", s_name(f->name));
-#endif
-  Value value = NULL;
-  Func func = NULL;
+static m_bool check_func_def_override(Env env, Func_Def f) {
   Value override = NULL;
-  Value variadic = NULL;
-  m_bool ret = 1;
-
-  if(f->types)
-    return 1;
-  func = f->d.func;
-  value = func->value_ref;
-
+  Func func = f->d.func;
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
-  else if(value->func_num_overloads && !f->types)
+  else if(func->value_ref->func_num_overloads && !f->types)
     CHECK_BB(check_func_overload(env, f))
   if(env->class_def &&  override && isa(override->m_type, &t_function) < 0)
     CHECK_BB(err_msg(TYPE_, f->pos,
@@ -1611,17 +1635,34 @@ m_bool check_func_def(Env env, Func_Def f) {
                      s_name(f->name), override->owner_class->name))
   if(override)
     func->up = override;
+  return 1;
+}
+
+static Value set_variadic(Env env) {
+  Value variadic = new_value(&t_vararg, "vararg");
+  SET_FLAG(variadic, ae_flag_checked);
+  nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
+  return variadic;
+}
+
+m_bool check_func_def(Env env, Func_Def f) {
+#ifdef DEBUG_TYPE
+  debug_msg("check", "func def '%s'", s_name(f->name));
+#endif
+  Func func = f->d.func;
+  Value variadic = NULL;
+  m_bool ret = 1;
+
+  if(f->types)
+    return 1;
+  CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
-
   env->func = func;
   nspc_push_value(env->curr);
   ret = check_func_args(env, f->arg_list);
-  if(GET_FLAG(f, ae_flag_variadic)) {
-    variadic = new_value(&t_vararg, "vararg");
-    SET_FLAG(variadic, ae_flag_checked);
-    nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
-  }
+  if(GET_FLAG(f, ae_flag_variadic))
+    variadic = set_variadic(env);
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
     ret = err_msg(TYPE_, f->type_decl->pos,
                   "...in function '%s'", s_name(f->name));
@@ -1645,6 +1686,27 @@ static m_bool check_section(Env env, Section* section) {
   return 1;
 }
 
+static m_bool check_class_parent(Env env, Class_Def class_def) {
+  Type t_parent = find_type(env, class_def->ext);
+  if(!t_parent) {
+    char path[id_list_len(class_def->ext)];
+    type_path(path, class_def->ext);
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "undefined parent class '%s' in definition of class '%s'",
+            path, s_name(class_def->name->xid)))
+  }
+  if(isprim(t_parent) > 0)
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend primitive type '%s'", t_parent->name))
+  if(!GET_FLAG(t_parent, ae_flag_checked))
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend incomplete type '%s'i\n"
+            "\t...(note: the parent's declaration must preceed child's)",
+            t_parent->name))
+  class_def->type->parent = t_parent;
+  return 1;
+}
+
 static m_bool check_class_def_body(Env env, Class_Body body) {
   while(body) {
     CHECK_BB(check_section(env, body->section))
@@ -1654,37 +1716,17 @@ static m_bool check_class_def_body(Env env, Class_Body body) {
 }
 
 m_bool check_class_def(Env env, Class_Def class_def) {
-  Type the_class = NULL;
-  Type t_parent = NULL;
-  m_bool ret = 1;
+  Type the_class = class_def->type;
+  m_bool ret;
 
   if(class_def->types)
     return 1;
-  if(class_def->ext) {
-    t_parent = find_type(env, class_def->ext);
-    if(!t_parent) {
-      char path[id_list_len(class_def->ext)];
-      type_path(path, class_def->ext);
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "undefined parent class '%s' in definition of class '%s'",
-              path, s_name(class_def->name->xid)))
-    }
-    if(isprim(t_parent) > 0)
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "cannot extend primitive type '%s'", t_parent->name))
-    if(!GET_FLAG(t_parent, ae_flag_checked))
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-              "cannot extend incomplete type '%s'i\n"
-              "\t...(note: the parent's declaration must preceed child's)",
-              t_parent->name))
-  }
-
-  if(!t_parent)
-    t_parent = &t_object;
-  the_class = class_def->type;
-  the_class->parent = t_parent;
-  the_class->info->offset = t_parent->obj_size;
-  vector_copy2(&t_parent->info->obj_v_table, &the_class->info->obj_v_table);
+  if(class_def->ext)
+    CHECK_BB(check_class_parent(env, class_def))
+  else
+    the_class->parent = &t_object;
+  the_class->info->offset = the_class->parent->obj_size;
+  vector_copy2(&the_class->parent->info->obj_v_table, &the_class->info->obj_v_table);
 
   CHECK_BB(env_push_class(env, the_class))
   ret = check_class_def_body(env, class_def->body);
@@ -1705,16 +1747,13 @@ m_bool check_ast(Env env, Ast ast) {
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   m_bool ret;
   Context context = new_context(ast, filename);
-  nspc_commit(context->nspc);
   env_reset(env);
   CHECK_BB(load_context(context, env))
   ret = traverse_ast(env, ast);
   if(ret > 0) {
-    nspc_commit(env->global_nspc);
+    nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)context);
-  } else {
-    //    nspc_rollback(env->global_nspc);
-  }
+  } // else { nspc_rollback(env->global_nspc); }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
     free_ast(ast);

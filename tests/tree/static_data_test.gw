@@ -1,8 +1,9 @@
 class C {
-	static int i;
-static typedef void (Test)(){};
-static Test test;
+  static int i;
+  static typedef void (Test)(){};
+  static Test test;
 }
+
 C c;
 c.i;
 C.i;

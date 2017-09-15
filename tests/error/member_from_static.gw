@@ -1,6 +1,7 @@
 // [contains] 
- class C
-{
-	int i;
-	function static void test() { <<<i>>>; }
+class C {
+  int i;
+  function static void test() {
+    <<<i>>>;
+  }
 }

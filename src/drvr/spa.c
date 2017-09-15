@@ -18,7 +18,7 @@ static void spa_run(VM* vm, DriverInfo* di) {
     return;
   }
   while(vm->is_running) {
-    vm_run(vm);
+    di->run(vm);
     spa_write_buf(vm->sp, &spa, sp->out, sp->nchan);
     sp->pos++;
     GWION_CTL
@@ -29,11 +29,9 @@ static void spa_del(VM* vm) {
   spa_close(&spa);
 }
 
-Driver* spa_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void spa_driver(Driver* d, VM* vm) {
   d->ini = spa_ini;
   d->run = spa_run;
   d->del = spa_del;
   vm->wakeup = no_wakeup;
-  return d;
 }

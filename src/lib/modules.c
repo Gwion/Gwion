@@ -16,12 +16,26 @@ typedef struct {
   m_bool is_init;
   sp_ftbl*  tbl;
   m_float   phase;
-} SP_osc; // copied from generated osc.c
+} SP_osc; // copied from ge nerated osc.c
 
 TICK(sinosc_tick) {
   SP_osc* ug = (SP_osc*)u->ug;
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
   return 1;
+}
+
+static void refresh_sine(SP_osc* ug, m_int size, m_float phase) {
+  if(size <= 0) {
+    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
+            size < 0 ? "negative" : "zero");
+    return;
+  }
+  sp_ftbl_destroy(&ug->tbl);
+  sp_osc_destroy(&ug->osc);
+  sp_osc_create(&ug->osc);
+  sp_ftbl_create(vm->sp, &ug->tbl, size);
+  sp_gen_sine(vm->sp, ug->tbl);
+  sp_osc_init(vm->sp, (sp_osc*)ug->osc, ug->tbl, phase);
 }
 
 static CTOR(sinosc_ctor) {
@@ -44,35 +58,15 @@ DTOR(sinosc_dtor) {
 
 static MFUN(sinosc_size) {
   int size = *(m_int*)(shred->mem + SZ_INT);
-  if(size <= 0) {
-    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-            size < 0 ? "negative" : "zero");
-    return;
-  }
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  sp_ftbl_destroy(&ug->tbl);
-  sp_osc_destroy(&ug->osc);
-  sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
+  refresh_sine(ug, size, 0);
 }
 
 static MFUN(sinosc_size_phase) {
   int size    = *(m_int*)(shred->mem + SZ_INT);
   float phase = *(m_int*)(shred->mem + SZ_INT * 2);
-  if(size <= 0) {
-    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-            size < 0 ? "negative" : "zero");
-    return;
-  }
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  sp_ftbl_destroy(&ug->tbl);
-  sp_osc_destroy(&ug->osc);
-  sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->sp, (sp_osc*)ug->osc, ug->tbl, phase);
+  refresh_sine(ug, size, phase);
 }
 
 MFUN(sinosc_get_freq) {
@@ -97,28 +91,26 @@ MFUN(sinosc_set_amp) {
   *(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
-static m_bool import_sinosc(Env env) {
-  DL_Func fun;
-
-  CHECK_BB(import_class_begin(env, &t_sinosc, env->global_nspc, sinosc_ctor, sinosc_dtor))
-  dl_func_init(&fun, "void", "init", (m_uint)sinosc_size);
-  dl_func_add_arg(&fun, "int", "size");
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "void", "init", (m_uint)sinosc_size_phase);
-  dl_func_add_arg(&fun, "int", "size");
-  dl_func_add_arg(&fun, "float", "phase");
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "freq", (m_uint)sinosc_get_freq);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "freq", (m_uint)sinosc_set_freq);
-  dl_func_add_arg(&fun, "float", "freq");
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "amp", (m_uint)sinosc_get_amp);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "amp", (m_uint)sinosc_set_amp);
-  dl_func_add_arg(&fun, "float", "amp");
-  CHECK_BB(import_fun(env, &fun, 0))
-  CHECK_BB(import_class_end(env))
+static m_bool import_sinosc(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_sinosc, sinosc_ctor, sinosc_dtor))
+  importer_func_begin(importer, "void", "init", (m_uint)sinosc_size);
+  importer_add_arg(importer, "int", "size");
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "void", "init", (m_uint)sinosc_size_phase);
+  importer_add_arg(importer, "int", "size");
+  importer_add_arg(importer, "float", "phase");
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "freq", (m_uint)sinosc_get_freq);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "freq", (m_uint)sinosc_set_freq);
+  importer_add_arg(importer, "float", "freq");
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "amp", (m_uint)sinosc_get_amp);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "amp", (m_uint)sinosc_set_amp);
+  importer_add_arg(importer, "float", "amp");
+  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -148,15 +140,14 @@ static MFUN(gain_set_gain) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT);
 }
 
-static m_bool import_gain(Env env) {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_gain, env->global_nspc, gain_ctor, basic_dtor))
-  dl_func_init(&fun, "float", "gain", (m_uint)gain_get_gain);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "gain", (m_uint)gain_set_gain);
-  dl_func_add_arg(&fun, "float", "arg0");
-  CHECK_BB(import_fun(env, &fun, 0))
-  CHECK_BB(import_class_end(env))
+static m_bool import_gain(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_gain, gain_ctor, basic_dtor))
+  importer_func_begin(importer, "float", "gain", (m_uint)gain_get_gain);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "gain", (m_uint)gain_set_gain);
+  importer_add_arg(importer, "float", "arg0");
+  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -182,15 +173,14 @@ static MFUN(impulse_set_next) {
   *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT));
 }
 
-static m_bool import_impulse(Env env) {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_impulse, env->global_nspc, impulse_ctor, basic_dtor))
-  dl_func_init(&fun, "float", "next", (m_uint)impulse_get_next);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "next", (m_uint)impulse_set_next);
-  dl_func_add_arg(&fun, "float", "arg0");
-  CHECK_BB(import_fun(env, &fun, 0))
-  CHECK_BB(import_class_end(env))
+static m_bool import_impulse(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_impulse, impulse_ctor, basic_dtor))
+  importer_func_begin(importer, "float", "next", (m_uint)impulse_get_next);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "next", (m_uint)impulse_set_next);
+  importer_add_arg(importer, "float", "arg0");
+  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -207,9 +197,9 @@ static CTOR(fullrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_fullrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_fullrect, env->global_nspc, fullrect_ctor, basic_dtor))
-  CHECK_BB(import_class_end(env))
+static m_bool import_fullrect(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_fullrect, fullrect_ctor, basic_dtor))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -229,9 +219,9 @@ static CTOR(halfrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_halfrect(Env env) {
-  CHECK_BB(import_class_begin(env, &t_halfrect, env->global_nspc, halfrect_ctor, basic_dtor))
-  CHECK_BB(import_class_end(env))
+static m_bool import_halfrect(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_halfrect, halfrect_ctor, basic_dtor))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -255,15 +245,14 @@ static MFUN(step_set_next) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
-static m_bool import_step(Env env) {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_step, env->global_nspc, step_ctor, basic_dtor))
-  dl_func_init(&fun, "float", "next", (m_uint)step_get_next);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "float", "next", (m_uint)step_set_next);
-  dl_func_add_arg(&fun, "float", "arg0");
-  CHECK_BB(import_fun(env, &fun, 0))
-  CHECK_BB(import_class_end(env))
+static m_bool import_step(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_step, step_ctor, basic_dtor))
+  importer_func_begin(importer, "float", "next", (m_uint)step_get_next);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "float", "next", (m_uint)step_set_next);
+  importer_add_arg(importer, "float", "arg0");
+  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
@@ -284,19 +273,19 @@ static CTOR(zerox_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_zerox(Env env) {
-  CHECK_BB(import_class_begin(env, &t_zerox, env->global_nspc, zerox_ctor, basic_dtor))
-  CHECK_BB(import_class_end(env))
+static m_bool import_zerox(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_zerox, zerox_ctor, basic_dtor))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }
 
-m_bool import_modules(Env env) {
-  CHECK_BB(import_sinosc(env))
-  CHECK_BB(import_gain(env))
-  CHECK_BB(import_impulse(env))
-  CHECK_BB(import_fullrect(env))
-  CHECK_BB(import_halfrect(env))
-  CHECK_BB(import_step(env))
-  CHECK_BB(import_zerox(env))
+m_bool import_modules(Importer importer) {
+  CHECK_BB(import_sinosc(importer))
+  CHECK_BB(import_gain(importer))
+  CHECK_BB(import_impulse(importer))
+  CHECK_BB(import_fullrect(importer))
+  CHECK_BB(import_halfrect(importer))
+  CHECK_BB(import_step(importer))
+  CHECK_BB(import_zerox(importer))
   return 1;
 }

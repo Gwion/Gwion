@@ -30,5 +30,5 @@ void free_emitter(Emitter emit);
 VM_Code emit_code(Emitter emit);
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename);
 m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos);
-Instr add_instr(Emitter emit, f_instr f);
+Instr emitter_add_instr(Emitter emit, f_instr f);
 #endif

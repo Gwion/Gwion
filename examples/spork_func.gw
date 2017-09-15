@@ -1,7 +1,12 @@
 class C
 {
-	function void test() { <<<"here">>>; samp => now; <<<"and now">>>; } 
+  function void test() {
+    <<<"here">>>;
+    samp => now;
+    <<<"and now">>>;
+  }
 }
+
 C c;
 spork ~c.test();
 me.yield();

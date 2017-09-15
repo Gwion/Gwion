@@ -25,7 +25,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
   for(i = 0; i < framesPerBuffer; i++) {
     for(j = 0; j < vm->n_in; j++)
       vm->in[j] = *in++;
-    vm_run(vm);
+    di->run(vm);
     for(j = 0; j < sp->nchan; j++)
       *out++ = sp->out[j];
     sp->pos++;
@@ -68,25 +68,7 @@ static m_bool ini(VM* vm, DriverInfo* di) {
         callback,
         vm) != paNoError)
     goto error;
-  /*
-  if(Pa_OpenDefaultStream(&stream,
-                                  2,2,
-                                  paFloat32,
-                                  SAMPLE_RATE,
-                                  paFramesPerBufferUnspecified,
-  //                                256,
-                                  callback,
-                                  vm ) != paNoError)
-  exit(3);
-  */
-//		return -1;
-  //return -1;
-
-
-//Pa_SetStreamFinishedCallback( stream, NULL);
-//Pa_SetStreamFinishedCallback( stream, &StreamFinished );
   return 1;
-
 error:
   Pa_Terminate();
   return -1;
@@ -103,11 +85,9 @@ static void run(VM* vm, DriverInfo* di) {
     Pa_Sleep(1);
 }
 
-Driver* pa_driver(VM* vm) {
-  Driver* d = malloc(sizeof(Driver));
+void pa_driver(Driver* d, VM* vm) {
   d->ini = ini;
   d->run = run;
   d->del = del;
   vm->wakeup = no_wakeup;
-  return d;
 }

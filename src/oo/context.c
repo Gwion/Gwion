@@ -1,6 +1,4 @@
 #include <stdlib.h>
-#include "absyn.h"
-#include "map.h"
 #include "env.h"
 #include "context.h"
 #include "nspc.h"

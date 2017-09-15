@@ -39,6 +39,7 @@ Env type_engine_init(VM* vm, Vector plug_dirs);
     ***/
 void start_type_xid();
 Value find_value(Type type, S_Symbol xid);
+Func find_func(Type type, S_Symbol xid);
 Type find_type(Env env, ID_List list);
 m_bool isprim(Type type);
 m_bool isa(Type var, Type parent);

@@ -11,13 +11,6 @@
 
 #define overflow_(c) (c->mem >  (c->_mem + (SIZEOF_MEM) - (MEM_STEP)))
 
-Instr add_instr(Emitter emit, f_instr f) {
-  Instr instr = calloc(1, sizeof(struct Instr_));
-  instr->execute = f;
-  vector_add(&emit->code->code, (vtype)instr);
-  return instr;
-}
-
 static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
   memcpy(REG(0), retval, size);
   PUSH_REG(shred, size);
@@ -567,18 +560,8 @@ INSTR(Instr_Exp_Func_Static) {
   POP_MEM(shred, local_depth);
 }
 
-INSTR(Instr_Exp_Func_Member) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func call member");
-#endif
-  VM_Code func;
-  m_uint local_depth, stack_depth;
-
-  POP_REG(shred,  SZ_INT * 2);
-  func = *(VM_Code*)REG(0);
-  local_depth =   *(m_uint*)REG(SZ_INT);
-  stack_depth = func->stack_depth;
-  PUSH_MEM(shred,  local_depth);
+static void copy_member_args(VM_Shred shred, VM_Code func) { 
+  m_uint stack_depth = func->stack_depth;
   if(stack_depth) {
     POP_REG(shred,  stack_depth);
     if(func->need_this) {
@@ -590,7 +573,20 @@ INSTR(Instr_Exp_Func_Member) {
   }
   if(func->need_this)
     POP_MEM(shred,  SZ_INT);
+}
 
+INSTR(Instr_Exp_Func_Member) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "func call member");
+#endif
+  VM_Code func;
+  m_uint local_depth;
+
+  POP_REG(shred,  SZ_INT * 2);
+  func = *(VM_Code*)REG(0);
+  local_depth =   *(m_uint*)REG(SZ_INT);
+  PUSH_MEM(shred,  local_depth);
+  copy_member_args(shred, func);
   if(overflow_(shred)) {
     handle_overflow(shred);
     return;

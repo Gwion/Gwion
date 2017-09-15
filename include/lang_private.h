@@ -1,0 +1,19 @@
+m_bool import_int(Importer importer);
+m_bool import_float(Importer importer);
+m_bool import_complex(Importer importer);
+m_bool import_vec3(Importer importer);
+m_bool import_vec4(Importer importer);
+m_bool import_object(Importer importer);
+m_bool import_vararg(Importer importer);
+m_bool import_string(Importer importer);
+m_bool import_shred(Importer importer);
+m_bool import_event(Importer importer);
+m_bool import_ugen(Importer importer);
+m_bool import_array(Importer importer);
+
+m_bool import_fileio(Importer importer);
+m_bool import_std(Importer importer);
+m_bool import_math(Importer importer);
+m_bool import_machine(Importer importer);
+m_bool import_soundpipe(Importer importer);
+m_bool import_modules(Importer importer);

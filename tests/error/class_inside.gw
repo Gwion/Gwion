@@ -1,2 +1,4 @@
 // [contains] declared inside itself
- class c { c var; }
+class c {
+  c var;
+}

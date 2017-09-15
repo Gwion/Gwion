@@ -3,33 +3,6 @@
 #include "func.h"
 #include "instr.h"
 
-static Operator operators[] = {
-// arithmetic
-  op_assign, op_plus, op_minus, op_times, op_divide, op_percent,
-// logical
-  op_and, op_or, op_eq, op_neq,
-  op_gt, op_ge, op_lt, op_le,
-// bitwise
-  op_shift_left, op_shift_right,
-  op_s_or, op_s_and, op_s_xor,
-// unary
-  op_plusplus, op_minusminus, op_exclamation, op_tilda,
-  op_new, op_spork,
-// reverse arithmetic
-  op_chuck, op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
-// reverse logical
-  op_rand, op_ror, op_req, op_rneq,
-  op_rgt, op_rge, op_rlt, op_rle,
-// reverse bitwise
-  op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
-// unchuck
-  op_unchuck,
-//at_chuck
-  op_at_chuck, op_at_unchuck,
-// trig
-  op_trig, op_untrig
-};
-
 static const m_str op_str[] = {
 // arithmetic
   "=", "+", "-", "*", "/", "%",
@@ -97,14 +70,14 @@ m_int name2op(m_str name) {
   m_uint i = 0;
   while(op_name[i]) {
     if(!strcmp(name, op_name[i]))
-      return operators[i];
+      return i;
     i++;
   }
   return -1;
 }
 
 const m_str op2str(Operator op) {
-  if(op >= (sizeof(operators) / sizeof(Operator)))
+  if(op >= (sizeof(op_name) / sizeof(char*)))
     return NULL;
   return op_str[op];
 }
@@ -137,12 +110,17 @@ void free_op_map(Map map) {
   map_release(map);
 }
 
+static m_bool op_match(Type t, Type mo) {
+  if((t && mo && mo->xid == t->xid) || (!t && !mo))
+    return 1;
+  return 0;
+}
+
 static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   m_uint i;
   for(i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
-    if(((lhs && mo->lhs && mo->lhs->xid == lhs->xid) || (!lhs && !mo->lhs)) &&
-        ((rhs && mo->rhs && mo->rhs->xid == rhs->xid) || (!rhs && !mo->rhs)))
+    if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))
       return mo;
   }
   return NULL;
@@ -225,12 +203,12 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
 
 static Instr handle_instr(Emitter emit, M_Operator* mo) {
   if(mo->func) {
-    Instr instr = add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
+    Instr instr = emitter_add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
     CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
     return instr;
   }
   if(mo->instr)
-    return add_instr(emit, mo->instr);
+    return emitter_add_instr(emit, mo->instr);
   CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return NULL;
 }

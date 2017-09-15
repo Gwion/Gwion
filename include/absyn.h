@@ -53,7 +53,8 @@ struct Array_Sub_ {
   int pos;
 };
 Array_Sub new_array_sub(Exp exp, int pos);
-Array_Sub prepend_array_sub(Array_Sub array, Exp exp, int pos);
+Array_Sub prepend_array_sub(Array_Sub array, Exp exp);
+void free_array_sub(Array_Sub array);
 
 typedef struct {
   Exp base;
@@ -192,11 +193,11 @@ typedef struct {
 typedef struct {
   Exp func;
   Exp args;
-  Type ret_type;
+  Type_List types;
   Func m_func;
+  Type ret_type;
   VM_Code vm_code;
   Exp self;
-  Type_List types;
   ID_List base;// hack for template
   Func    base_func;// hack for template //hack
   int pos;

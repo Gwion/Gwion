@@ -351,14 +351,14 @@ op
 
 array_exp
   : LBRACK exp RBRACK           { $$ = new_array_sub( $2, get_pos(scanner) ); }
-  | LBRACK exp RBRACK array_exp { $$ = prepend_array_sub( $4, $2, get_pos(scanner)); }
-  | LBRACK exp RBRACK LBRACK RBRACK { $$ = prepend_array_sub( new_array_sub( NULL, get_pos(scanner)), $2, get_pos(scanner)); }
+  | LBRACK exp RBRACK array_exp { $$ = prepend_array_sub( $4, $2); }
+  | LBRACK exp RBRACK LBRACK RBRACK { $$ = prepend_array_sub( new_array_sub( NULL, get_pos(scanner)), $2); }
   ;
 
 array_empty
-  : LBRACK RBRACK             { $$ = new_array_sub( NULL, get_pos(scanner)); }
-  | array_empty LBRACK RBRACK { $$ = prepend_array_sub( $1, NULL, get_pos(scanner)); }
-  | array_empty array_exp     { $$ = prepend_array_sub( $1, $2->exp_list, get_pos(scanner)); }
+  : LBRACK RBRACK             { $$ = new_array_sub(NULL, get_pos(scanner)); }
+  | array_empty LBRACK RBRACK { $$ = prepend_array_sub($1, NULL); }
+  | array_empty array_exp     { $$ = prepend_array_sub($1, $2->exp_list); }
   ;
 
 decl_exp
@@ -489,7 +489,7 @@ additive_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
 additive_expression
   : multiplicative_expression          { $$ = $1; }
   | additive_expression additive_op multiplicative_expression
-    { $$ = new_exp_binary( $1, op_plus, $3, get_pos(scanner)); }
+    { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
 multiplicative_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };

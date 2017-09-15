@@ -1,9 +1,7 @@
 #include <stdlib.h>
-#include <string.h>
 #include "env.h"
 #include "context.h"
 #include "type.h"
-#include "err_msg.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
@@ -15,8 +13,7 @@ Env new_env() {
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
-  env->type_xid = te_last; // ????????
-  env->do_type_xid = 0;
+  env->type_xid = 0;
   env_reset(env);
   return env;
 }
@@ -97,9 +94,7 @@ m_bool env_add_type(Env env, Type type) {
   SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
-  if(env->do_type_xid) {
-    env->type_xid++;
-    type->xid = env->type_xid;
-  }
+  if(env->type_xid)
+    type->xid = ++env->type_xid;
   return 1;
 }

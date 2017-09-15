@@ -1,9 +1,3 @@
-function make_doc(prefix, o)
-	local tmp = string.gsub(o.description, "\"", "\\\"")
-	local doc = string.gsub(tmp, "\n", "")
-	print(prefix.."->doc = \""..doc.."\";")
-end
-
 function declare_c_param(param, offset)
 	local type;
 	local increment = "SZ_INT"
@@ -45,19 +39,19 @@ end
 
 function declare_gw_param(param)
 	if string.match(param.type, "int") then
-		print("\t\t dl_func_add_arg(&fun, \"int\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"int\", \""..param.name.."\");")
 	elseif string.match(param.type, "SPFLOAT") then
-		print("\t\t dl_func_add_arg(&fun, \"float\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"float\", \""..param.name.."\");")
 	elseif string.match(param.type, "char*") then
-		print("\t\t dl_func_add_arg(&fun, \"string\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"string\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*%*") then
-		print("\t\t dl_func_add_arg(&fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*%*") then
-		print("\t\t dl_func_add_arg(&fun, \"ftbl[]\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"ftbl[]\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%s%*") then
-		print("\t\t dl_func_add_arg(&fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"ftbl\", \""..param.name.."\");")
 	elseif string.match(param.type, "sp_ftbl%*") then
-		print("\t\t dl_func_add_arg(&fun, \"ftbl\", \""..param.name.."\");")
+		print("\t\t importer_add_arg(importer, \"ftbl\", \""..param.name.."\");")
 else print("unknown "..param.type)
 os.exit(1);
 	end
@@ -351,34 +345,32 @@ for n in ipairs(a) do
 	end
 end
 print("")
-print("m_bool import_soundpipe(Env env)\n{\n\tDL_Func fun;\n")
-print("\tCHECK_BB(import_class_begin(env, &t_ftbl, env->global_nspc, NULL, ftbl_dtor))")
-print("\to_ftbl_data = import_var(env, \"int\", \"@ftbl\", 0, NULL);")
+print("m_bool import_soundpipe(Importer* importer)\n{\n")
+print("\tCHECK_BB(importer_class_begin(importer, &t_ftbl, NULL, ftbl_dtor))")
+print("\to_ftbl_data = importer_add_var(importer, \"int\", \"@ftbl\", 0, NULL);")
 for n in ipairs(a) do
 	local gen_name = a[n]
 	local object = sptbl[gen_name]
 	if string.match(object.modtype, "gen") then
-		print("\tdl_func_init(&fun, \"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
+		print("\timporter_func_init(importer, \"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
 		local i = 1; -- why this 'i' ?
-    print("\tdl_func_add_arg(&fun, \"int\", \"size\");")
+    print("\timporter_add_arg(importer, \"int\", \"size\");")
     if(object.params ~= nil) then
 			while object.params[i]  do
 				declare_gw_param(object.params[i])
 				i = i+1
 			end
 		end
-		print("\tCHECK_BB(import_fun(env, &fun, 0))")
-		-- make_doc("\tf", object)
+		print("\tCHECK_BB(importer_add_fun(importer, 0))")
 	end
 end
---			make_doc("f", mod_name)
-print("\tCHECK_BB(import_class_end(env))\n")
+print("\tCHECK_BB(importer_class_end(importer))\n")
 
 for n in ipairs(a) do
 	local mod_name = a[n]
 	local object = sptbl[mod_name]
 	if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
-		print("\tCHECK_BB(import_class_begin(env, &t_"..mod_name..", env->global_nspc, "..mod_name.."_ctor, "..mod_name.."_dtor))")
+		print("\tCHECK_BB(importer_class_begin(importer, &t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
 		local nmandatory = 0
 		local tbl = object.params.mandatory
 		if tbl then
@@ -387,48 +379,46 @@ for n in ipairs(a) do
 			end
 		end
 		if nmandatory > 0 then
-				print("\tdl_func_init(&fun, \"void\", \"init\", (m_uint)"..mod_name.."_init);")
+				print("\timporter_func_init(importer, \"void\", \"init\", (m_uint)"..mod_name.."_init);")
 			local tbl = object.params.mandatory
 			if tbl then
 				for _, v in pairs(tbl) do
 				declare_gw_param(v)
 				end
 			end	
-			print("\tCHECK_BB(import_fun(env, &fun, 0))")
-			-- make_doc("\tf", object)
+			print("\tCHECK_BB(importer_add_fun(importer, 0))")
 		end
 			local tbl = object.params.optional
 			if tbl then
 				for _, v in pairs(tbl) do
 				if string.match(v.type, "int") then
-					print("\tdl_func_init(&fun, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\timporter_func_init(importer, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tdl_func_init(&fun, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\timporter_func_init(importer, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tdl_func_init(&fun, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\timporter_func_init(importer, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tdl_func_init(&fun, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\timporter_func_init(importer, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+					print("\timporter_func_init(importer, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
 				end
-				print("\tCHECK_BB(import_fun(env, &fun, 0))")
-				-- make_doc("\tf", v)
+				print("\tCHECK_BB(importer_add_fun(importer, 0))")
 				if string.match(v.type, "int") then
-					print("\tdl_func_init(&fun, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\timporter_func_init(importer, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "SPFLOAT") then
-					print("\tdl_func_init(&fun, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\timporter_func_init(importer, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "char") then
-					print("\tdl_func_init(&fun, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\timporter_func_init(importer, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*%*") then
-					print("\tdl_func_init(&fun, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\timporter_func_init(importer, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				elseif string.match(v.type, "sp_ftbl%s%*") then
-					print("\tdl_func_init(&fun, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+					print("\timporter_func_init(importer, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
 				end
 				declare_gw_param(v)
-				print("\tCHECK_BB(import_fun(env, &fun, 0))")
+				print("\tCHECK_BB(importer_add_fun(importer, 0))")
 				end
 			end	
-		print("\tCHECK_BB(import_class_end(env))\n")
+		print("\tCHECK_BB(importer_class_end(importer))\n")
 	end
 end
 print("\treturn 1;\n}")
