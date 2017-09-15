@@ -25,7 +25,7 @@ int port = 8888;
 char* hostname = "localhost";
 int loop = 0;
 DriverInfo di = { 2, 2, 2,
-  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, 0};
+  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
 
 static void sig(int unused) {
   vm->is_running = 0;

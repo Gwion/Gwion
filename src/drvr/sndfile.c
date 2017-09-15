@@ -34,13 +34,13 @@ static m_bool sndfile_ini(VM* v, DriverInfo* di) {
   return 1;
 }
 
-static void sndfile_run() {
+static void sndfile_run(VM* vm, DriverInfo* di) {
   m_uint i, chan;
   sp_data* sp = vm->sp;
   m_float buf[nchan][bufsize];
   while(vm->is_running) {
     for(i = 0; i < bufsize; i++) {
-      vm_run(vm);
+      di->run(vm);
       for(chan = 0; chan < nchan; chan++)
         buf[chan][i] = sp->out[chan];
       sp->pos++;

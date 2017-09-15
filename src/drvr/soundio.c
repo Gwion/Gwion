@@ -108,8 +108,8 @@ static m_bool check_cb_error2(void* data, int (*f)(void*)) {
 
 static void write_callback(Out stream, int min, int left) {
   Areas areas;
-  VM* vm = (VM*)stream->userdata;
   sp_data* sp = vm->sp;
+  DriverInfo* di = (DriverInfo*)stream->userdata;
   while(left > 0) {
     int count = left;
     if(check_cb_error1(stream, &areas, &count, 0) < 0)
@@ -119,7 +119,7 @@ static void write_callback(Out stream, int min, int left) {
     if(!areas)
       fprintf(stderr, "Dropped %d frames due to internal underflow\n", count);
     else for(int  frame = 0; frame < count; frame++) {
-      vm_run(vm);
+      di->run(vm);
       for(int  channel = 0; channel < stream->layout.channel_count; channel++) {
         write_sample(areas[channel].ptr, sp->out[channel]);
         areas[channel].ptr += areas[channel].step;
@@ -134,7 +134,6 @@ static void write_callback(Out stream, int min, int left) {
 
 static void read_callback(In stream, int min, int left) {
   Areas areas;
-  VM* vm = (VM*)stream->userdata;
   sp_data* sp = vm->sp;
   while(left > 0) {
     int count = left;
@@ -231,7 +230,7 @@ static m_bool out_create(DriverInfo* di) {
   outstream->name = "Gwion output";
   outstream->software_latency = 0;
   outstream->sample_rate = di->sr;
-  outstream->userdata = vm;
+  outstream->userdata = di;
   return 1;
 }
 
