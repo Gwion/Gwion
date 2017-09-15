@@ -1514,6 +1514,27 @@ static m_bool check_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
+static m_bool check_signature_match(Func_Def f, Func parent) { 
+  m_str c_name  = f->d.func->value_ref->owner_class->name;
+  m_str p_name = parent->value_ref->owner_class->name;
+  m_str f_name = s_name(f->name);
+  if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
+    CHECK_BB(err_msg(TYPE_, f->pos,
+          "function '%s.%s' resembles '%s.%s' but cannot override...\n"
+          "\t...(reason: '%s.%s' is declared as 'static')",
+          c_name, f_name, p_name, c_name,
+          GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name))
+  }
+
+  if(isa(f->ret_type, parent->def->ret_type) <  0) {
+    CHECK_BB(err_msg(TYPE_, f->pos,
+          "function signatures differ in return type...\n"
+          "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
+          c_name, f_name, p_name, f_name))
+  }
+  return 1;
+}
+
 static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
   Value v;
   Func func = f->d.func;
@@ -1524,23 +1545,7 @@ static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
         parent_func = parent_func->next;
         continue;
       }
-      if(GET_FLAG(parent_func->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
-        CHECK_BB(err_msg(TYPE_, f->pos,
-                         "function '%s.%s' resembles '%s.%s' but cannot override...\n"
-                         "\t...(reason: '%s.%s' is declared as 'static')",
-                         env->class_def->name, s_name(f->name),
-                         v->owner_class->name, s_name(f->name),
-                         GET_FLAG(f, ae_flag_static) ? env->class_def->name :
-                             v->owner_class->name, s_name(f->name)))
-      }
-
-      if(isa(f->ret_type, parent_func->def->ret_type) < 0) {
-        CHECK_BB(err_msg(TYPE_, f->pos,
-                         "function signatures differ in return type...\n"
-                         "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-                         env->class_def->name, s_name(f->name),
-                         v->owner_class->name, s_name(f->name)))
-      }
+      CHECK_BB(check_signature_match(f, parent_func))
       *parent_match = 1;
       func->vt_index = parent_func->vt_index;
       vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
