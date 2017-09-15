@@ -240,7 +240,7 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
     return check_exp_prim_me(primary);
   else if(!strcmp(str, "now"))
     return check_exp_prim_now(primary);
-  else 
+  else
     return check_exp_prim_id1(env, primary);
 }
 
@@ -782,11 +782,12 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   return NULL;
 }
 
-static Type check_op(Env env, Operator op, Exp_Binary* binary) {
+static Type check_op(Env env, Exp_Binary* binary) {
 #ifdef DEBUG_TYPE
-  debug_msg("check", "'%s' %s '%s'", binary->lhs->type->name, op2str(op), 
+  debug_msg("check", "'%s' %s '%s'", binary->lhs->type->name, op2str(op),
       binary->rhs->type->name);
 #endif
+  Operator op = binary->op;
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
   Type t;
@@ -935,7 +936,7 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
   }
 
   while(cr) {
-    CHECK_OO((ret = check_op(env, binary->op, binary)))
+    CHECK_OO((ret = check_op(env, binary)))
     cr = cr->next;
   }
   return ret;
@@ -1517,7 +1518,7 @@ static m_bool check_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
-static m_bool check_signature_match(Func_Def f, Func parent) { 
+static m_bool check_signature_match(Func_Def f, Func parent) {
   m_str c_name  = f->d.func->value_ref->owner_class->name;
   m_str p_name = parent->value_ref->owner_class->name;
   m_str f_name = s_name(f->name);
