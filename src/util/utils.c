@@ -24,11 +24,11 @@ m_bool verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1)
       CHECK_BB(err_msg(UTIL_, array->pos,
-                       "invalid format for array init [...][...]..."))
-      else if(array->err_num == 2)
-        CHECK_BB(err_msg(UTIL_, array->pos,
-                         "partially empty array init [...][]..."))
-      }
+            "invalid format for array init [...][...]..."))
+    else if(array->err_num == 2)
+      CHECK_BB(err_msg(UTIL_, array->pos,
+            "partially empty array init [...][]..."))
+  }
   return 1;
 }
 
@@ -40,7 +40,7 @@ m_bool isprim(Type type) {
   return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
 }
 
-Type find_typeof(Env env, ID_List path) {
+static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value(env->curr, path->xid, -1);
   Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
@@ -114,12 +114,11 @@ Func find_func(Type type, S_Symbol xid) {
 
 m_uint id_list_len(ID_List list) {
   m_uint len = 0;
-  ID_List path = list;
-  while(path) {
-    len += strlen(s_name(path->xid));
-    if(path->next)
+  while(list) {
+    len += strlen(s_name(list->xid));
+    if(list->next)
       len++;
-    path = path->next;
+    list = list->next;
   }
   return len + 1;
 }
@@ -136,16 +135,32 @@ void type_path(char* str, ID_List list) {
   }
 }
 
+static m_bool is_int(Type t) {
+  if(t->array_depth || isa(t, &t_int) > 0 || isa(t, &t_object) > 0)
+    return 1;
+  return -1;
+}
+
+static m_bool is_float(Type t) {
+  if(isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
+    return 1;
+  return -1;
+}
+
+static m_bool is_complex(Type t) {
+  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0)
+    return 1;
+  return -1;
+}
+
 Kindof kindof(Type type) {
-  if(type->array_depth)
+  if(is_int(type) > 0)
     return Kindof_Int;
   if(isa(type, &t_void) > 0)
     return Kindof_Void;
-  else if(isa(type, &t_complex) > 0 || isa(type, &t_polar) > 0)
+  else if(is_complex(type) > 0)
     return Kindof_Complex;
-  if(isa(type, &t_int) > 0 || isa(type, &t_object) > 0)
-    return Kindof_Int;
-  else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0)
+  else if(is_float(type) > 0)
     return Kindof_Float;
   else if(isa(type, &t_vec3) > 0)
     return Kindof_Vec3;

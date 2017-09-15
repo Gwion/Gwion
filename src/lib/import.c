@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <dlfcn.h>
+#include <ctype.h>
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
@@ -59,13 +60,10 @@ void importer_add_arg(Importer importer, const m_str t, const m_str  n) {
 }
 
 static m_bool check_illegal(char* curr, char c, m_uint i) {
-  if(c != '.') {
-    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-        || (c == '_') || (c >= '0' && c <= '9') || (i == 1 && c == '@'))
-      curr[i - 1] = c;
-    else
-      return 0;
-  }
+  if(isalnum(c) || c == '_' || (i == 1 && c== '@'))
+    curr[i - 1] = c;
+  else
+    return -1;
   return 1;
 }
 
@@ -86,6 +84,7 @@ static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
     if(c != '.' && check_illegal(curr, c, i) < 0)
       CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path))
     if(c == '.' || i == 1) {
+
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
         path_valid_inner(curr);
@@ -111,7 +110,7 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
     len -= 2;
   }
   if(path_valid(&list, path, curr, len) < 0) {
-    if(list)
+	if(list)
       free_id_list(list);
     return NULL;
   }
@@ -188,14 +187,12 @@ static m_int import_var(Env env, const m_str type, const m_str name, ae_flag fla
   memset(&t, 0, sizeof(Type_Decl));
   t.xid = path;
   t.flag = flag;
-  if(array_depth) {
-    t.array = new_array_sub(NULL, 0);
-    t.array->depth = array_depth;
-  }
   struct Var_Decl_ var;
   memset(&var, 0, sizeof(struct Var_Decl_));
   var.xid = insert_symbol(name);
   if(array_depth) {
+    t.array = new_array_sub(NULL, 0);
+    t.array->depth = array_depth;
     var.array = new_array_sub(NULL, 0);
     var.array->depth = array_depth;
   }
@@ -233,7 +230,7 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   if(*array_depth) {
     array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < *array_depth; i++)
-      array_sub = prepend_array_sub(array_sub, NULL, 0);
+      array_sub = prepend_array_sub(array_sub, NULL);
   }
   return array_sub;
 }
@@ -285,7 +282,7 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++)
-      array_sub = prepend_array_sub(array_sub, NULL, 0);
+      array_sub = prepend_array_sub(array_sub, NULL);
     type_decl = add_type_decl_array(type_decl, array_sub, 0);
   }
   name = dl_fun->name;

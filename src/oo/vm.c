@@ -191,15 +191,21 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_gc(out);
 }
 
+static m_bool shreduler_free_shred(Shreduler s, VM_Shred out, m_bool erase) {
+  if(!out->prev && !out->next && out != s->list) {
+    if(erase && !out->wait && !out->child.ptr)
+      free_vm_shred(out);
+    return - 1;
+  }
+  return 1;
+}
+
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   if(erase)
     shreduler_erase(s, out);
   s->curr = (s->curr == out) ? NULL : s->curr;
-  if(!out->prev && !out->next && out != s->list) {
-    if(erase && !out->wait && !out->child.ptr)
-      free_vm_shred(out);
+  if(shreduler_free_shred(s, out, erase) < 0)
     return;
-  }
   out->prev ? (out->prev->next = out->next) : (s->list = out->next);
   if(out->next)
     out->next->prev = out->prev;

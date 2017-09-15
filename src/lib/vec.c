@@ -9,10 +9,10 @@ struct Type_ t_vec4  = { "Vec4",  SZ_VEC4,  NULL,    te_vec4};
 INSTR(vec_member) {
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    *(m_float**)REG(0) = &*(m_float*)(*(m_float**)shred->reg + instr->m_val2);
+    *(m_float**)REG(0) = &*(m_float*)(*(char**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_INT);
   } else {
-    *(m_float*)REG(0) = *(m_float*)(*(m_float**)shred->reg + instr->m_val2);
+    *(m_float*)REG(0) = *(m_float*)(*(char**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_FLOAT);
   }
 }

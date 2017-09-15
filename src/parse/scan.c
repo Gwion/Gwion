@@ -739,7 +739,8 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
   return 1;
 }
 
-static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
+static m_bool scan2_arg_def(Env env, Func_Def f) {
+  Arg_List list = f->arg_list;
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
@@ -778,9 +779,11 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
 }
 
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
+  struct Func_Def_ d;
+  d.arg_list = ptr->args;
   if(nspc_lookup_func(env->curr, ptr->xid, -1))
     CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", s_name(ptr->xid)))
-    if(scan2_arg_def(env, NULL, ptr->args) < 0)
+    if(scan2_arg_def(env, &d) < 0)
       CHECK_BB(err_msg(SCAN2_, ptr->pos, "in typedef '%s'", s_name(ptr->xid)))
       SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
@@ -1278,7 +1281,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
-  if(scan2_arg_def(env, f, f->arg_list) < 0)
+  if(scan2_arg_def(env, f) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos, "\t... in function '%s'\n", s_name(f->name)))
   if(GET_FLAG(f, ae_flag_op))
     return scan2_func_def_op(env, f);
