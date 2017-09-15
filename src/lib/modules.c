@@ -16,12 +16,26 @@ typedef struct {
   m_bool is_init;
   sp_ftbl*  tbl;
   m_float   phase;
-} SP_osc; // copied from generated osc.c
+} SP_osc; // copied from ge nerated osc.c
 
 TICK(sinosc_tick) {
   SP_osc* ug = (SP_osc*)u->ug;
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
   return 1;
+}
+
+static void refresh_sine(SP_osc* ug, m_int size, m_float phase) {
+  if(size <= 0) {
+    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
+            size < 0 ? "negative" : "zero");
+    return;
+  }
+  sp_ftbl_destroy(&ug->tbl);
+  sp_osc_destroy(&ug->osc);
+  sp_osc_create(&ug->osc);
+  sp_ftbl_create(vm->sp, &ug->tbl, size);
+  sp_gen_sine(vm->sp, ug->tbl);
+  sp_osc_init(vm->sp, (sp_osc*)ug->osc, ug->tbl, phase);
 }
 
 static CTOR(sinosc_ctor) {
@@ -44,35 +58,15 @@ DTOR(sinosc_dtor) {
 
 static MFUN(sinosc_size) {
   int size = *(m_int*)(shred->mem + SZ_INT);
-  if(size <= 0) {
-    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-            size < 0 ? "negative" : "zero");
-    return;
-  }
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  sp_ftbl_destroy(&ug->tbl);
-  sp_osc_destroy(&ug->osc);
-  sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
+  refresh_sine(ug, size, 0);
 }
 
 static MFUN(sinosc_size_phase) {
   int size    = *(m_int*)(shred->mem + SZ_INT);
   float phase = *(m_int*)(shred->mem + SZ_INT * 2);
-  if(size <= 0) {
-    err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
-            size < 0 ? "negative" : "zero");
-    return;
-  }
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  sp_ftbl_destroy(&ug->tbl);
-  sp_osc_destroy(&ug->osc);
-  sp_osc_create(&ug->osc);
-  sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, size);
-  sp_gen_sine(shred->vm_ref->sp, ug->tbl);
-  sp_osc_init(shred->vm_ref->sp, (sp_osc*)ug->osc, ug->tbl, phase);
+  refresh_sine(ug, size, phase);
 }
 
 MFUN(sinosc_get_freq) {
