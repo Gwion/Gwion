@@ -25,7 +25,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
   for(i = 0; i < framesPerBuffer; i++) {
     for(j = 0; j < vm->n_in; j++)
       vm->in[j] = *in++;
-    vm_run(vm);
+    di->run(vm);
     for(j = 0; j < sp->nchan; j++)
       *out++ = sp->out[j];
     sp->pos++;

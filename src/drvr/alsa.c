@@ -116,7 +116,7 @@ static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
     for(i = 0; i < di->bufsize; i++) {
       for(chan = 0; chan < sp->nchan; chan++)
         vm->in[chan] = ((m_float**)(_in_buf))[chan][i];
-      vm_run(vm);
+      di->run(vm);
       for(chan = 0; chan < sp->nchan; chan++)
         out_buf[chan][i] = sp->out[chan];
       sp->pos++;
@@ -135,7 +135,7 @@ static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {
     for(i = 0; i < di->bufsize; i++) {
       for(chan = 0; chan < sp->nchan; chan++)
         vm->in[chan] = ((m_float*)(in_bufi))[j++];
-      vm_run(vm);
+      di->run(vm);
       for(chan = 0; chan < sp->nchan; chan++)
         ((m_float*)out_bufi)[k++] = sp->out[chan];
       if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
