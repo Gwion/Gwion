@@ -68,7 +68,7 @@ static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
 
 static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
   CHECK_BB(scan0_class_def_public(env, class_def))
-  if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
+  if(nspc_lookup_type1(env->curr, class_def->name->xid)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
                      "class/type '%s' is already defined in namespace '%s'",
                      s_name(class_def->name->xid), env->curr->name))
@@ -219,7 +219,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     if(isres(list->self->xid, list->self->pos) > 0)
       CHECK_BB(err_msg(SCAN2_, list->self->pos,
             "\t... in variable declaration", s_name(list->self->xid)))
-    if((value = nspc_lookup_value(env->curr, list->self->xid, 0)) &&
+    if((value = nspc_lookup_value0(env->curr, list->self->xid)) &&
       !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
         CHECK_BB(err_msg(SCAN2_, list->self->pos,
               "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
@@ -428,11 +428,12 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   m_uint count = list ? 1 : 0;
   if(stmt->xid) {
-    if(nspc_lookup_type(env->curr, stmt->xid, 0)) {
+    if(nspc_lookup_type0(env->curr, stmt->xid)) {
       CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", s_name(stmt->xid)))
     }
-    if(nspc_lookup_value(env->curr, stmt->xid, 0)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", s_name(stmt->xid)))
+    if(nspc_lookup_value0(env->curr, stmt->xid)) {
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "'%s' already declared as variable", s_name(stmt->xid)))
     }
   }
   t = type_copy(env, &t_int);
@@ -441,8 +442,10 @@ static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   nspc_add_type(env->curr, stmt->xid, t);
   while(list) {
     Value v;
-    if(nspc_lookup_value(env->curr, list->xid, 0))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, s_name(list->xid)))
+    if(nspc_lookup_value0(env->curr, list->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "in enum argument %i '%s' already declared as variable",
+            count, s_name(list->xid)))
     v = new_value(t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
@@ -781,7 +784,7 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
   struct Func_Def_ d;
   d.arg_list = ptr->args;
-  if(nspc_lookup_func(env->curr, ptr->xid, -1))
+  if(nspc_lookup_func2(env->curr, ptr->xid))
     CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", s_name(ptr->xid)))
     if(scan2_arg_def(env, &d) < 0)
       CHECK_BB(err_msg(SCAN2_, ptr->pos, "in typedef '%s'", s_name(ptr->xid)))
@@ -858,7 +861,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
 
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+    value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
     while(tld) {
@@ -878,7 +881,8 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
 static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
   if(exp_func->types) {
     if(exp_func->func->exp_type == ae_exp_primary) {
-      Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
+      Value v = nspc_lookup_value1(env->curr,
+          exp_func->func->d.exp_primary.d.var);
       if(!v)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos, "template call of non-existant function."))
       if(!v->func_ref)
@@ -1055,7 +1059,7 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 }
 
 static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
-  Value v = nspc_lookup_value(env->curr, stmt->xid, 1);
+  Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
     CHECK_BB(err_msg(SCAN2_, stmt->pos,
           "'%s' already declared as variable", s_name(stmt->xid)))
@@ -1243,7 +1247,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   Value    value    = NULL;
   Func     func     = NULL;
 
-  Value overload = nspc_lookup_value(env->curr,  f->name, 0);
+  Value overload = nspc_lookup_value0(env->curr,  f->name);
   m_str func_name = s_name(f->name);
   m_uint len = strlen(func_name) + num_digit(overload ? overload->func_num_overloads + 1 : 0) +
                strlen(env->curr->name) + 3;

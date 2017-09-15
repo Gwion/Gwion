@@ -42,7 +42,7 @@ m_bool isprim(Type type) {
 
 static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
-  Value v = nspc_lookup_value(env->curr, path->xid, -1);
+  Value v = nspc_lookup_value2(env->curr, path->xid);
   Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
   path = path->next;
   while(path) {
@@ -59,15 +59,15 @@ Type find_type(Env env, ID_List path) {
 
   if(path->ref)
     return find_typeof(env, path);
-  CHECK_OO((type = nspc_lookup_type(env->curr, path->xid, 1)))
+  CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
   nspc = type->info;
   path = path->next;
 
   while(path) {
     S_Symbol xid = path->xid;
-    Type t = nspc_lookup_type(nspc, xid, 1);
+    Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
-      t = nspc_lookup_type(type->parent->info, xid, -1);
+      t = nspc_lookup_type2(type->parent->info, xid);
       type = type->parent;
     }
     if(!t)
@@ -96,7 +96,7 @@ Value find_value(Type type, S_Symbol xid) {
   Value value;
   if(!type || !type->info)
     return NULL;
-  if((value = nspc_lookup_value(type->info, xid, -1)))
+  if((value = nspc_lookup_value2(type->info, xid)))
     return value;
   if(type->parent)
     return find_value(type->parent, xid);
@@ -105,7 +105,7 @@ Value find_value(Type type, S_Symbol xid) {
 
 Func find_func(Type type, S_Symbol xid) {
   Func func;
-  if((func = nspc_lookup_func(type->info, xid, -1)))
+  if((func = nspc_lookup_func2(type->info, xid)))
     return func;
   if(type->parent)
     return find_func(type->parent, xid);

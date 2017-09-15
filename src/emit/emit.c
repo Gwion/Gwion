@@ -691,8 +691,8 @@ static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
 static Func emit_get_func(Nspc nspc, Func f) {
   return isa(f->value_ref->m_type, &t_func_ptr) > 0 ||
          isa(f->value_ref->m_type, &t_class) > 0 ?
-         nspc_lookup_func(f->value_ref->owner, f->def->name, 1) :
-         nspc_lookup_func(nspc, insert_symbol(f->name), -1);
+         nspc_lookup_func1(f->value_ref->owner, f->def->name) :
+         nspc_lookup_func2(nspc, insert_symbol(f->name));
 }
 
 static m_bool emit_exp_call_code_template(Env env, Class_Def class_def) {
