@@ -508,7 +508,6 @@ static m_bool template_set_env(Env env, Value v) {
   return 1;
 }
 
-//Func find_template_match(Env env, Value v, Func m_func, Type_List types, Exp func, Exp args) {
 Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) {
   Exp func = exp_func->func;
   Exp args = exp_func->args;
@@ -1277,7 +1276,7 @@ static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return ret;
 }
 
-static m_bool check_flow(Env env, Exp exp, m_str s) {
+static m_bool check_flow(Env env, Exp exp) {
   switch(exp->type->xid) {
     case te_int:
     case te_float:
@@ -1286,14 +1285,15 @@ static m_bool check_flow(Env env, Exp exp, m_str s) {
       break;
     default:
       CHECK_BB(err_msg(TYPE_,  exp->pos,
-                       "invalid type '%s' in %s condition", exp->type->name, s))
+                       "invalid type '%s'", exp->type->name))
   }
   return 1;
 }
 
 static m_bool check_stmt_while(Env env, Stmt_While stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-  CHECK_BB(check_flow(env, stmt->cond, "while"))
+  if(check_flow(env, stmt->cond) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'while' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   vector_add(&env->conts, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
@@ -1304,7 +1304,8 @@ static m_bool check_stmt_while(Env env, Stmt_While stmt) {
 
 static m_bool check_stmt_until(Env env, Stmt_Until stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
-  CHECK_BB(check_flow(env, stmt->cond, "until"))
+  if(check_flow(env, stmt->cond) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'until' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
   vector_pop(&env->breaks);
@@ -1326,7 +1327,8 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
                      "...(note: explicitly use 'true' if it's the intent)",
                      "...(e.g., 'for(; true;){ /*...*/ }')"))
   }
-  CHECK_BB(check_flow(env, stmt->c2->d.stmt_exp.val, "for"))
+  if(check_flow(env, stmt->c2->d.stmt_exp.val) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->c2->pos, "\t... in 'for' condition."))
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
     return check_breaks(env, stmt->self, stmt->body);
@@ -1347,29 +1349,30 @@ static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
 static m_bool check_stmt_if(Env env, Stmt_If stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
   if(isa(stmt->cond->type, &t_object) > 0)
-    CHECK_BB(check_flow(env, stmt->cond, "if"))
-    CHECK_BB(check_stmt(env, stmt->if_body))
-    if(stmt->else_body)
-      CHECK_BB(check_stmt(env, stmt->else_body))
-      return 1;
+    if(check_flow(env, stmt->cond) < 0)
+      CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'if' condition."))
+  CHECK_BB(check_stmt(env, stmt->if_body))
+  if(stmt->else_body)
+    CHECK_BB(check_stmt(env, stmt->else_body))
+  return 1;
 }
 
 static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
   Type ret_type = NULL;
   if(!env->func)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
-                     "'return' statement found outside function definition"))
-    if(stmt->val) {
+          "'return' statement found outside function definition"))
+    if(stmt->val)
       CHECK_OB((ret_type = check_exp(env, stmt->val)))
-    } else
+    else
       ret_type = &t_void;
   if(ret_type->xid == te_null && isprim(env->func->def->ret_type) < 0)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
-                     "invalid return type '%s' -- expecting '%s'",
-                     ret_type->name, env->func->def->ret_type->name))
-    return 1;
+          "invalid return type '%s' -- expecting '%s'",
+          ret_type->name, env->func->def->ret_type->name))
+  return 1;
 }
 
 static m_bool check_stmt_continue(Env env, Stmt_Continue cont) {
