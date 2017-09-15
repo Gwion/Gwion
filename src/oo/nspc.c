@@ -7,18 +7,18 @@
 #include "object.h"
 
 Value nspc_lookup_value0(Nspc nspc, S_Symbol xid) {
-  return (Value)scope_lookup(&nspc->value, xid, 0);
+  return (Value)scope_lookup0(&nspc->value, xid);
 }
 
 Value nspc_lookup_value1(Nspc nspc, S_Symbol xid) {
-  Value v = (Value)scope_lookup(&nspc->value, xid, 1);
+  Value v = (Value)scope_lookup1(&nspc->value, xid);
   if(!v && nspc->parent)
     v = nspc_lookup_value1(nspc->parent, xid);
   return v;
 }
 
 Value nspc_lookup_value2(Nspc nspc, S_Symbol xid) {
-  return (Value)scope_lookup(&nspc->value, xid, -1);
+  return (Value)scope_lookup2(&nspc->value, xid);
 }
 
 void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
@@ -33,18 +33,18 @@ void nspc_pop_value(Nspc nspc) {
 }
 
 Func nspc_lookup_func0(Nspc nspc, S_Symbol xid) {
-  return (Func)scope_lookup(&nspc->func, xid, 0);
+  return (Func)scope_lookup1(&nspc->func, xid);
 }
 
 Func nspc_lookup_func1(Nspc nspc, S_Symbol xid) {
-  Func t = (Func)scope_lookup(&nspc->func, xid, 1);
+  Func t = (Func)scope_lookup1(&nspc->func, xid);
   if(!t && nspc->parent)
     t = (Func)nspc_lookup_func1(nspc->parent, xid);
   return t;
 }
 
 Func nspc_lookup_func2(Nspc nspc, S_Symbol xid) {
-  return (Func)scope_lookup(&nspc->func, xid, -1);
+  return (Func)scope_lookup2(&nspc->func, xid);
 }
 
 void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
@@ -52,18 +52,18 @@ void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
 }
 
 Type nspc_lookup_type0(Nspc nspc, S_Symbol xid) {
-  return (Type)scope_lookup(&nspc->type, xid, 0);
+  return (Type)scope_lookup0(&nspc->type, xid);
 }
 
-Type nspc_lookup_type1(Nspc nspc, S_Symbol xid) {
-  Type t = (Type)scope_lookup(&nspc->type, xid, 1);
+Type nspc_lookup_type1(Nspc  nspc, S_Symbol xid) {
+  Type t = (Type)scope_lookup1(&nspc->type, xid);
   if(!t && nspc->parent)
     t = (Type)nspc_lookup_type1(nspc->parent, xid);
   return t;
 }
 
 Type nspc_lookup_type2(Nspc nspc, S_Symbol xid) {
-  return (Type)scope_lookup(&nspc->type, xid, -1);
+  return (Type)scope_lookup2(&nspc->type, xid);
 }
 
 void nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {
