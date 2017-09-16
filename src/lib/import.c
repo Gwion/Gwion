@@ -76,22 +76,29 @@ static void path_valid_inner(m_str curr) {
   }
 }
 
-static m_bool path_valid(ID_List* list, char* path, char* curr, m_uint len) {
+struct Path {
+  m_str path, curr;
+  m_uint len;
+};
+
+static m_bool path_valid(ID_List* list, struct Path* p) {
   char last = '\0';
   m_uint i;
-  for(i = len; --i;) {
-    char c = path[i - 1];
-    if(c != '.' && check_illegal(curr, c, i) < 0)
-      CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in path '%s'...", c, path))
+  for(i = p->len; --i;) {
+    char c = p->path[i - 1];
+    if(c != '.' && check_illegal(p->curr, c, i) < 0)
+      CHECK_BB(err_msg(UTIL_,  0,
+            "illegal character '%c' in path '%s'...", c, p->path))
     if(c == '.' || i == 1) {
 
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
-        path_valid_inner(curr);
-        *list = prepend_id_list(curr, *list, 0);
-        memset(curr, 0, len + 1);
+        path_valid_inner(p->curr);
+        *list = prepend_id_list(p->curr, *list, 0);
+        memset(p->curr, 0, p->len + 1);
       } else
-        CHECK_BB(err_msg(UTIL_,  0, "path '%s' must not begin or end with '.'", path))
+        CHECK_BB(err_msg(UTIL_,  0,
+              "path '%s' must not begin or end with '.'", p->path))
     }
     last = c;
   }
@@ -103,14 +110,16 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
   ID_List list = NULL;
   m_uint depth = 0;
   char curr[len + 1];
+  struct Path p = { path, curr, len };
   memset(curr, 0, len + 1);
 
-  while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
+
+  while(p.len > 2 && path[p.len - 1] == ']' && path[p.len - 2] == '[') {
     depth++;
-    len -= 2;
+    p.len -= 2;
   }
-  if(path_valid(&list, path, curr, len) < 0) {
-	if(list)
+  if(path_valid(&list, &p) < 0) {
+    if(list)
       free_id_list(list);
     return NULL;
   }
