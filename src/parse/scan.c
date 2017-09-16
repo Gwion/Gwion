@@ -423,19 +423,23 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
     return 1;
 }
 
-static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
-  Type t = NULL;
-  ID_List list = stmt->list;
-  m_uint count = list ? 1 : 0;
+static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   if(stmt->xid) {
-    if(nspc_lookup_type0(env->curr, stmt->xid)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", s_name(stmt->xid)))
-    }
-    if(nspc_lookup_value0(env->curr, stmt->xid)) {
+    if(nspc_lookup_type0(env->curr, stmt->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "type '%s' already declared", s_name(stmt->xid)))
+    if(nspc_lookup_value0(env->curr, stmt->xid))
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
             "'%s' already declared as variable", s_name(stmt->xid)))
-    }
   }
+  return 1;
+} 
+
+static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
+  Type t;
+  ID_List list = stmt->list;
+  m_uint count = 1;
+  CHECK_BB(check_enum_xid(env, stmt))
   t = type_copy(env, &t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
