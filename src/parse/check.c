@@ -1144,6 +1144,44 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
       return ret;
 }
 
+static m_bool member_static(Exp_Dot* member) {
+  return member->t_base->xid == te_class;
+}
+
+static Type get_base_type(Exp_Dot* member, m_bool base_static) {
+  return base_static ? member->t_base->d.actual_type : member->t_base;
+}
+
+static m_bool check_nspc(Exp_Dot* member, Type t) {
+  if(!t->info)
+    CHECK_BB(err_msg(TYPE_,  member->base->pos,
+          "type '%s' does not have members - invalid use in dot expression of %s",
+          t->name, s_name(member->xid)))
+  return 1;
+}
+
+static m_bool check_enum(Exp exp, Value v) {
+  if(GET_FLAG(v, ae_flag_enum))
+    exp->meta = ae_meta_value;
+  return 1;
+}
+
+static Value get_dot_value(Exp_Dot* member, Type the_base) {
+  Value value = find_value(the_base, member->xid);
+  
+  if(!value) {
+    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
+    char s[len];
+    memset(s, 0, len);
+    strcpy(s, the_base->name);
+    for(i = 0; i < the_base->array_depth; i++)
+      strcat(s, "[]");
+    CHECK_BO(err_msg(TYPE_,  member->base->pos,
+          "class '%s' has no member '%s'", s, s_name(member->xid)))
+  }
+  return value;
+}
+
 static Type check_exp_dot(Env env, Exp_Dot* member) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "dot member");
@@ -1154,34 +1192,18 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   m_str str = s_name(member->xid);
 
   CHECK_OO((member->t_base = check_exp(env, member->base)))
-  base_static = member->t_base->xid == te_class;
-  the_base = base_static ? member->t_base->d.actual_type : member->t_base;
-
-  if(!the_base->info)
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
-          "type '%s' does not have members - invalid use in dot expression of %s",
-          the_base->name, str))
-
+  base_static = member_static(member);
+  the_base = get_base_type(member, base_static);
+  CHECK_BO(check_nspc(member, the_base))
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
           	"keyword 'this' must be associated with object instance..."))
-
-  if(!(value = find_value(the_base, member->xid))) {
-    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
-    char s[len];
-    memset(s, 0, len);
-    strcpy(s, the_base->name);
-    for(i = 0; i < the_base->array_depth; i++)
-      strcat(s, "[]");
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
-          "class '%s' has no member '%s'", s, str))
-  }
+  CHECK_OO((value = get_dot_value(member, the_base)))
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
           "cannot access member '%s.%s' without object instance...",
           the_base->name, str))
-  if(GET_FLAG(value, ae_flag_enum))
-    member->self->meta = ae_meta_value;
+  CHECK_BO(check_enum(member->self, value))
   return value->m_type;
 }
 
