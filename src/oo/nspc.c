@@ -6,11 +6,19 @@
 #include "func.h"
 #include "object.h"
 
-Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Value v = (Value)scope_lookup(&nspc->value, xid, climb);
-  if(climb > 0 && !v && nspc->parent)
-    v = nspc_lookup_value(nspc->parent, xid, climb);
+Value nspc_lookup_value0(Nspc nspc, S_Symbol xid) {
+  return (Value)scope_lookup0(&nspc->value, xid);
+}
+
+Value nspc_lookup_value1(Nspc nspc, S_Symbol xid) {
+  Value v = (Value)scope_lookup1(&nspc->value, xid);
+  if(!v && nspc->parent)
+    v = nspc_lookup_value1(nspc->parent, xid);
   return v;
+}
+
+Value nspc_lookup_value2(Nspc nspc, S_Symbol xid) {
+  return (Value)scope_lookup2(&nspc->value, xid);
 }
 
 void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
@@ -24,29 +32,38 @@ void nspc_pop_value(Nspc nspc) {
   scope_pop(&nspc->value);
 }
 
-Func nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Func t = (Func)scope_lookup(&nspc->func, xid, climb);
-//  if(climb > 0 && !t && nspc->parent)
-//    t = (Func)nspc_lookup_func(nspc->parent, xid, climb);
+Func nspc_lookup_func0(Nspc nspc, S_Symbol xid) {
+  return (Func)scope_lookup1(&nspc->func, xid);
+}
+
+Func nspc_lookup_func1(Nspc nspc, S_Symbol xid) {
+  Func t = (Func)scope_lookup1(&nspc->func, xid);
+  if(!t && nspc->parent)
+    t = (Func)nspc_lookup_func1(nspc->parent, xid);
   return t;
+}
+
+Func nspc_lookup_func2(Nspc nspc, S_Symbol xid) {
+  return (Func)scope_lookup2(&nspc->func, xid);
 }
 
 void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
   scope_add(&nspc->func, xid, (vtype)value);
 }
-/*
-void nspc_push_func(Nspc nspc) {
-  scope_push(&nspc->func);
+
+Type nspc_lookup_type0(Nspc nspc, S_Symbol xid) {
+  return (Type)scope_lookup0(&nspc->type, xid);
 }
-void nspc_pop_func(Nspc nspc) {
-  scope_pop(&nspc->func);
-}
-*/
-Type nspc_lookup_type(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Type t = (Type)scope_lookup(&nspc->type, xid, climb);
-  if(climb > 0 && !t && nspc->parent)
-    t = (Type)nspc_lookup_type(nspc->parent, xid, climb);
+
+Type nspc_lookup_type1(Nspc  nspc, S_Symbol xid) {
+  Type t = (Type)scope_lookup1(&nspc->type, xid);
+  if(!t && nspc->parent)
+    t = (Type)nspc_lookup_type1(nspc->parent, xid);
   return t;
+}
+
+Type nspc_lookup_type2(Nspc nspc, S_Symbol xid) {
+  return (Type)scope_lookup2(&nspc->type, xid);
 }
 
 void nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {

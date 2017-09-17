@@ -171,7 +171,7 @@ static Type check_exp_primary_vec(Env env, Vec vec) {
 
 static Value check_non_res_value(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
-  Value v = nspc_lookup_value(env->curr, primary->d.var, 1);
+  Value v = nspc_lookup_value1(env->curr, primary->d.var);
   if(!v)
     v = find_value(env->class_def, primary->d.var);
   if(v && env->class_def && env->func && GET_FLAG(env->func->def, ae_flag_static) &&
@@ -525,7 +525,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) 
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
-            nspc_lookup_value(env->curr, insert_symbol(name), 1);
+            nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)
       CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
     base = value->func_ref->def;
@@ -602,7 +602,7 @@ static void* function_alternative(Type f, Exp args){
 
 static Value get_template_value(Env env, Exp exp_func) {
   if(exp_func->exp_type == ae_exp_primary)
-    return nspc_lookup_value(env->curr, exp_func->d.exp_primary.d.var, 1);
+    return nspc_lookup_value1(env->curr, exp_func->d.exp_primary.d.var);
   else if(exp_func->exp_type == ae_exp_dot)
     return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
   CHECK_BO(err_msg(TYPE_, exp_func->pos,
@@ -733,8 +733,9 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   Type ret_type;
 
   if(binary->rhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value(env->curr, binary->rhs->d.exp_primary.d.var, 1);
-    f1 = v->func_ref ? v->func_ref : nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), -1);
+    v = nspc_lookup_value1(env->curr, binary->rhs->d.exp_primary.d.var);
+    f1 = v->func_ref ? v->func_ref :
+      nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_dot) {
     v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
     f1 = find_func(binary->rhs->d.exp_dot.t_base, insert_symbol(v->m_type->name));
@@ -745,8 +746,8 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
     CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
   r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   if(binary->lhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value(env->curr, binary->lhs->d.exp_primary.d.var, 1);
-    f2 = nspc_lookup_func(env->curr, insert_symbol(v->m_type->name), 1);
+    v = nspc_lookup_value1(env->curr, binary->lhs->d.exp_primary.d.var);
+    f2 = nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   } else if(binary->lhs->exp_type == ae_exp_dot) {
     v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
@@ -770,7 +771,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
         sprintf(name, "%s@%li@%s", c, i, env->curr->name);
-        f2 = nspc_lookup_func(env->curr, insert_symbol(name), 1);
+        f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
       }
       if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
         binary->func = f2;
@@ -960,11 +961,10 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
       CHECK_BO(err_msg(TYPE_, cast->pos, "can't cast '%s' to '%s'",
                        t->name, t2->name))
       else {
-        Value v = nspc_lookup_value(env->curr,
-                                    cast->exp->d.exp_primary.d.var,  1);
+        Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
         Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
                   v->m_type->d.func :
-                  nspc_lookup_func(env->curr, insert_symbol(v->name),  1);
+                  nspc_lookup_func1(env->curr, insert_symbol(v->name));
         if(compat_func(t2->d.func->def, f->def, f->def->pos)) {
           cast->func = f;
           return t2;
@@ -1027,7 +1027,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
     Func ret;
     Value v = NULL;
     if(call->func->exp_type == ae_exp_primary) {
-      v = nspc_lookup_value(env->curr, call->func->d.exp_primary.d.var, 1);
+      v = nspc_lookup_value1(env->curr, call->func->d.exp_primary.d.var);
     } else if(call->func->exp_type == ae_exp_dot) {
       Type t;
       CHECK_OO(check_exp(env, call->func))
@@ -1144,6 +1144,44 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
       return ret;
 }
 
+static m_bool member_static(Exp_Dot* member) {
+  return member->t_base->xid == te_class;
+}
+
+static Type get_base_type(Exp_Dot* member, m_bool base_static) {
+  return base_static ? member->t_base->d.actual_type : member->t_base;
+}
+
+static m_bool check_nspc(Exp_Dot* member, Type t) {
+  if(!t->info)
+    CHECK_BB(err_msg(TYPE_,  member->base->pos,
+          "type '%s' does not have members - invalid use in dot expression of %s",
+          t->name, s_name(member->xid)))
+  return 1;
+}
+
+static m_bool check_enum(Exp exp, Value v) {
+  if(GET_FLAG(v, ae_flag_enum))
+    exp->meta = ae_meta_value;
+  return 1;
+}
+
+static Value get_dot_value(Exp_Dot* member, Type the_base) {
+  Value value = find_value(the_base, member->xid);
+  
+  if(!value) {
+    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
+    char s[len];
+    memset(s, 0, len);
+    strcpy(s, the_base->name);
+    for(i = 0; i < the_base->array_depth; i++)
+      strcat(s, "[]");
+    CHECK_BO(err_msg(TYPE_,  member->base->pos,
+          "class '%s' has no member '%s'", s, s_name(member->xid)))
+  }
+  return value;
+}
+
 static Type check_exp_dot(Env env, Exp_Dot* member) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "dot member");
@@ -1154,34 +1192,18 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   m_str str = s_name(member->xid);
 
   CHECK_OO((member->t_base = check_exp(env, member->base)))
-  base_static = member->t_base->xid == te_class;
-  the_base = base_static ? member->t_base->d.actual_type : member->t_base;
-
-  if(!the_base->info)
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
-          "type '%s' does not have members - invalid use in dot expression of %s",
-          the_base->name, str))
-
+  base_static = member_static(member);
+  the_base = get_base_type(member, base_static);
+  CHECK_BO(check_nspc(member, the_base))
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
           	"keyword 'this' must be associated with object instance..."))
-
-  if(!(value = find_value(the_base, member->xid))) {
-    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
-    char s[len];
-    memset(s, 0, len);
-    strcpy(s, the_base->name);
-    for(i = 0; i < the_base->array_depth; i++)
-      strcat(s, "[]");
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
-          "class '%s' has no member '%s'", s, str))
-  }
+  CHECK_OO((value = get_dot_value(member, the_base)))
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
           "cannot access member '%s.%s' without object instance...",
           the_base->name, str))
-  if(GET_FLAG(value, ae_flag_enum))
-    member->self->meta = ae_meta_value;
+  CHECK_BO(check_enum(member->self, value))
   return value->m_type;
 }
 
@@ -1189,7 +1211,7 @@ static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
 #ifdef DEBUG_TYPE
   debug_msg("check", "func pointer '%s'", s_name(ptr->xid));
 #endif
-  Type t     = nspc_lookup_type(env->curr, ptr->xid, 1);
+  Type t     = nspc_lookup_type1(env->curr, ptr->xid);
   t->size    = SZ_INT;
   t->name    = s_name(ptr->xid);
   t->parent  = &t_func_ptr;
@@ -1249,7 +1271,7 @@ static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   Value v;
   while(list) {
-    v = nspc_lookup_value(env->curr, list->xid, 0);
+    v = nspc_lookup_value0(env->curr, list->xid);
     if(env->class_def) {
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
@@ -1580,7 +1602,7 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
   m_uint count = 1;
   while(arg_list) {
     Value v = arg_list->var_decl->value;
-    if(nspc_lookup_value(env->curr, arg_list->var_decl->xid, 0))
+    if(nspc_lookup_value0(env->curr, arg_list->var_decl->xid))
       CHECK_BB(err_msg(TYPE_, arg_list->pos,
                     "argument %i '%s' is already defined in this scope\n",
                     count, s_name(arg_list->var_decl->xid)))
@@ -1594,7 +1616,7 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
 
 static m_bool check_func_overload_inner(Env env, Func_Def def, m_str name, m_uint j) {
   sprintf(name, "%s@%li@%s", s_name(def->name), j, env->curr->name);
-  Func f2 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+  Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
   if(compat_func(def, f2->def, f2->def->pos) > 0) {
     CHECK_BB(err_msg(TYPE_, f2->def->pos,
         "global function '%s' already defined for those arguments",
@@ -1611,7 +1633,7 @@ static m_bool check_func_overload(Env env, Func_Def f) {
                                       num_digit(v->func_num_overloads) + 3];
     for(i = 0; i <= v->func_num_overloads; i++) {
       sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
-      Func f1 = nspc_lookup_func(env->curr, insert_symbol(name), -1);
+      Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
       for(j = 1; j <= v->func_num_overloads; j++) {
         if(i != j)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
