@@ -792,6 +792,7 @@ static Type check_op(Env env, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
   Type t;
+  struct Op_Import opi = { op, lhs->type, rhs->type, NULL, NULL, NULL, 0 };
 
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
     return check_op_ptr(env, binary);
@@ -808,8 +809,9 @@ static Type check_op(Env env, Exp_Binary* binary) {
     return rhs->type;
   if(isa(binary->rhs->type, &t_now) > 0 &&  isa(binary->lhs->type, &t_now) > 0 && binary->op == op_chuck)
     CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign 'now' to 'now'"))
-    if((t = get_return_type(env, op, lhs->type, rhs->type)))
-      return t;
+//  if((t = get_return_type(env, op, lhs->type, rhs->type)))
+  if((t = get_return_type(env, &opi)))
+    return t;
   m_uint i;
   m_uint llen = 1 + lhs->type->array_depth * 2;
   m_uint rlen = 1 + rhs->type->array_depth * 2;
@@ -989,7 +991,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 
 static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
   Type ret, t = check_exp(env, postfix->exp);
-
+  struct Op_Import opi = { postfix->op, t, NULL, NULL, NULL, NULL, 0 };
   CHECK_OO(t)
   if(postfix->exp->meta != ae_meta_var)
     CHECK_BO(err_msg(TYPE_, postfix->exp->pos,
@@ -997,7 +999,7 @@ static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
                      op2str(postfix->op)))
     postfix->exp->emit_var = 1;
   postfix->self->meta = ae_meta_value;
-  if(!(ret = get_return_type(env, postfix->op, t, NULL)))
+  if(!(ret = get_return_type(env, &opi)))
     err_msg(TYPE_, postfix->pos,
             "no suitable resolutation for postfix operator '%s' on type '%s'...",
             op2str(postfix->op), t->name);
@@ -1068,7 +1070,7 @@ static Type check_exp_unary_spork(Env env, Stmt code) {
 
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
-
+  struct Op_Import opi = { unary->op, NULL, NULL, NULL, NULL, NULL, 0 };
   if(unary->op != op_new && !unary->code)
     CHECK_OO((t = check_exp(env, unary->exp)))
     if(unary->code)
@@ -1117,7 +1119,8 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
         default:
           break;
       }
-  if(!(t = get_return_type(env, unary->op, NULL, unary->exp->type)))
+  opi.rhs = unary->exp->type;
+  if(!(t = get_return_type(env, &opi)))
     CHECK_BO(err_msg(TYPE_, unary->pos,
             "no suitable resolution for prefix operator '%s'", op2str(unary->op)))
   return t;

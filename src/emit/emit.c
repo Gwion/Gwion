@@ -633,7 +633,7 @@ static m_bool emit_array_append(Emitter emit, Type type) {
 static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
-  struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL, 0 };
+  struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL, NULL, 0 };
 
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))

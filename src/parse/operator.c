@@ -166,25 +166,26 @@ m_bool env_add_op(Env env, struct Op_Import* opi) {
       return 1;
 }
 
-static Type get_return_type_inner(Map map, Operator op, Type l, Type rhs) {
-  Type r = rhs;
+static Type get_return_type_inner(Map map, struct Op_Import* opi) {
+  Type r = opi->rhs;
   do {
     M_Operator* mo;
-    Vector v = (Vector)map_get(map, (vtype)op);
-    if((mo = operator_find(v, l, r)))
+    Vector v = (Vector)map_get(map, (vtype)opi->op);
+    if((mo = operator_find(v, opi->lhs, r)))
       return mo->ret;
   } while(r && (r = r->parent));
   return NULL;
 }
 
-Type get_return_type(Env env, Operator op, Type lhs, Type rhs) {
+Type get_return_type(Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
 
   while(nspc) {
     if(nspc->op_map.ptr) {
-      Type l = lhs;
+      Type l = opi->lhs;
       do {
-        Type ret = get_return_type_inner(&nspc->op_map, op, l, rhs);
+        struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL, NULL, NULL, 0 };
+        Type ret = get_return_type_inner(&nspc->op_map, &opi2);
         if(ret)
           return ret;
       } while(l && (l = l->parent));
