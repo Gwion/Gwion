@@ -214,19 +214,19 @@ static Instr handle_instr(Emitter emit, M_Operator* mo) {
   CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return NULL;
 }
-Instr get_instr(Emitter emit, Operator op, Type lhs, Type rhs) {
+Instr get_instr(Emitter emit, struct Op_Import* opi) {
   Nspc nspc = emit->env->curr;
 
   while(nspc) {
-    Type l = lhs;
+    Type l = opi->lhs;
     do {
-      Type r = rhs;
+      Type r = opi->rhs;
       do {
         M_Operator* mo;
         Vector v;
         if(!nspc->op_map.ptr)
           continue;
-        v = (Vector)map_get(&nspc->op_map, (vtype)op);
+        v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
         if((mo = operator_find(v, l, r)))
           return  handle_instr(emit, mo);
       } while(r && (r = r->parent));
