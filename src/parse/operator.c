@@ -126,41 +126,43 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   return NULL;
 }
 
-m_bool env_add_op(Env env, Operator op, Type lhs, Type rhs, Type ret, f_instr f, m_bool global) {
+m_bool env_add_op(Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
   Vector v;
   M_Operator* mo;
 
-  if(global)
+  if(opi->global)
     nspc = env->global_nspc;
 
   if(!nspc->op_map.ptr)
     map_init(&nspc->op_map);
 
-  if(!(v = (Vector)map_get(&nspc->op_map, (vtype)op))) {
-    if(!op2str(op))
+  if(!(v = (Vector)map_get(&nspc->op_map, (vtype)opi->op))) {
+    if(!op2str(opi->op))
       CHECK_BB(err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
-                       op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL))
+            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
+            opi->rhs ? opi->rhs->name : NULL))
       v = new_vector();
-    map_set(&nspc->op_map, (vtype)op, (vtype)v);
+    map_set(&nspc->op_map, (vtype)opi->op, (vtype)v);
   }
-  if((mo = operator_find(v, lhs, rhs))) {
+  if((mo = operator_find(v, opi->lhs, opi->rhs))) {
     if((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
-            op2str(op), lhs ? lhs->name : NULL, rhs ? rhs->name : NULL) < 0))
-return -1;
+            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
+            opi->rhs ? opi->rhs->name : NULL) < 0))
+       return -1;
   }
   mo = malloc(sizeof(M_Operator));
-  mo->lhs       = lhs;
-  mo->rhs       = rhs;
-  mo->ret       = ret;
-  mo->instr     = f;
+  mo->lhs       = opi->lhs;
+  mo->rhs       = opi->rhs;
+  mo->ret       = opi->ret;
+  mo->instr     = opi->f;
   mo->func      = NULL;
   vector_add(v, (vtype)mo);
-  if(lhs)
-    ADD_REF(lhs)
-    if(rhs)
-      ADD_REF(rhs)
-      ADD_REF(ret)
+  if(opi->lhs)
+    ADD_REF(opi->lhs)
+    if(opi->rhs)
+      ADD_REF(opi->rhs)
+      ADD_REF(opi->ret)
       return 1;
 }
 

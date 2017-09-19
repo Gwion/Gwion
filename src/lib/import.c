@@ -124,7 +124,7 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
     return NULL;
   }
   CHECK_OO(list)
-  strncpy(curr, path, len);
+  strncpy(curr, path, p.len);
   list->xid = insert_symbol(curr);
   *array_depth = depth;
   return list;
@@ -335,7 +335,9 @@ static m_int import_op(Env env, DL_Oper* op,
   Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   Type ret = get_type(env, op->ret);
-  return env_add_op(env, op->op, lhs, rhs, ret, f, global);
+  struct Op_Import opi = { op->op, lhs, rhs, ret, f, global};
+//  return env_add_op(env, op->op, lhs, rhs, ret, f, global);
+  return env_add_op(env, &opi);
 }
 
 m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const m_str t) {
