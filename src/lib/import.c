@@ -67,6 +67,18 @@ static m_bool check_illegal(char* curr, char c, m_uint i) {
   return 1;
 }
 
+static m_bool name_valid(m_str a) {
+  m_uint i, len = strlen(a);
+  for(i = 0; i < len; i++) {
+    char c = a[i];
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+        || (c == '_') || (c >= '0' && c <= '9'))
+      continue;
+    CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", c, a))
+  }
+  return 1;
+}
+
 static void path_valid_inner(m_str curr) {
   m_int j, size = strlen(curr);
   for(j = (size / 2) + 1; --j;) {
@@ -143,6 +155,8 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
 }
 
 m_int importer_add_type(Importer importer, Type type) {
+  if(type->name[0] != '@')
+    CHECK_BB(name_valid(type->name));
   CHECK_BB(env_add_type(importer->env, type))
   return type->xid;
 }

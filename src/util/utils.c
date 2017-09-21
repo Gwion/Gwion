@@ -72,18 +72,6 @@ Type find_type(Env env, ID_List path) {
   return type;
  }
 
-m_bool name_valid(m_str a) {
-  m_uint i, len = strlen(a);
-  for(i = 0; i < len; i++) {
-    char c = a[i];
-    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-        || (c == '_') || (c >= '0' && c <= '9'))
-      continue;
-    CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", c, a))
-  }
-  return 1;
-}
-
 Value find_value(Type type, S_Symbol xid) {
   Value value;
   if(!type || !type->info)
