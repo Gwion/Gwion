@@ -140,7 +140,6 @@ static m_bool emit_pre_ctor(Emitter emit, Type type) {
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
   if(type->info->pre_ctor) {
-//  if(GET_FLAG(type, ae_flag_ctor)) {
     Instr instr = emitter_add_instr(emit, Pre_Constructor);
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit_code_offset(emit);
