@@ -45,9 +45,7 @@ m_bool isprim(Type type);
 m_bool isa(Type var, Type parent);
 m_bool verify_array(Array_Sub array);
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc);
-static inline Type find_common_anc(Type lhs, Type rhs) {
-  return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
-}
+Type find_common_anc(Type lhs, Type rhs);
 m_uint id_list_len(ID_List list);
 void type_path(m_str str, ID_List path);
 m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
@@ -79,7 +77,6 @@ extern struct Type_ t_vararg, t_varobj;
 
 extern struct Type_ t_gack;
 
-m_bool name_valid(m_str a); // /07/04/17
 m_uint get_type_xid(); // 19/05/17 // should be included in new type.
 m_uint num_digit(m_uint i);
 #endif

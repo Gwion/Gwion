@@ -518,7 +518,6 @@ struct Ast_ {
 Ast new_ast(Section* section, Ast next, int pos);
 Ast parse(m_str);
 void free_ast();
-
-#endif
 Type_List new_type_list(ID_List list, Type_List next, int pos);
 void free_type_list(Type_List a);
+#endif
