@@ -32,14 +32,6 @@ m_bool verify_array(Array_Sub array) {
   return 1;
 }
 
-m_bool isa(Type var, Type parent) {
-  return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
-}
-
-m_bool isprim(Type type) {
-  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
-}
-
 static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);
@@ -133,40 +125,6 @@ void type_path(char* str, ID_List list) {
       strcat(str, ".");
     path = path->next;
   }
-}
-
-static m_bool is_int(Type t) {
-  if(t->array_depth || isa(t, &t_int) > 0 || isa(t, &t_object) > 0)
-    return 1;
-  return -1;
-}
-
-static m_bool is_float(Type t) {
-  if(isa(t, &t_float) > 0 || isa(t, &t_time) > 0 || isa(t, &t_dur) > 0)
-    return 1;
-  return -1;
-}
-
-static m_bool is_complex(Type t) {
-  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0)
-    return 1;
-  return -1;
-}
-
-Kindof kindof(Type type) {
-  if(is_int(type) > 0)
-    return Kindof_Int;
-  if(isa(type, &t_void) > 0)
-    return Kindof_Void;
-  else if(is_complex(type) > 0)
-    return Kindof_Complex;
-  else if(is_float(type) > 0)
-    return Kindof_Float;
-  else if(isa(type, &t_vec3) > 0)
-    return Kindof_Vec3;
-  else if(isa(type, &t_vec4) > 0)
-    return Kindof_Vec4;
-  return Kindof_Int;
 }
 
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
