@@ -26,7 +26,7 @@ LIB: alsa:::on::-lasound
 LIB: jack:::off::-ljack
 LIB: portaudio:::off::-lportaudio
 LIB: soundio:::off::-lsoundio
-LIB: pulse:::on::-lpulse-simple
+LIB: pulse:::off::-lpulse-simple
 
 
 DIR: add:::add
