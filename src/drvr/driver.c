@@ -60,6 +60,13 @@ void select_driver(DriverInfo* di, const m_str d) {
     di->card = "default";
   }
 #endif
+#ifdef HAVE_PULSE
+  else if(!strcmp("pulse", d)) {
+    di->func = pulse_driver;
+//    di->format = paFloat32;
+//    di->card = "default";
+  }
+#endif
   else
     fprintf(stderr, "invalid driver specified. using default.\n");
 }
