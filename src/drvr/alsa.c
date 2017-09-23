@@ -176,8 +176,10 @@ static void alsa_del_non_interleaved() {
 }
 
 static void alsa_del(VM* vm) {
-  snd_pcm_close(in);
-  snd_pcm_close(out);
+  if(in)
+    snd_pcm_close(in);
+  if(out)
+    snd_pcm_close(out);
   snd_config_update_free_global();
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
     alsa_del_non_interleaved();
