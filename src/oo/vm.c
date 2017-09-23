@@ -24,34 +24,40 @@ VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
   return code;
 }
 
-void free_vm_code(VM_Code a) {
+static void free_code_instr_gack(Instr instr) {
+  m_uint j;
+  Vector v = *(Vector*)instr->ptr;
+  for(j = vector_size(v) + 1; --j;)
+    REM_REF(((Type)vector_at(v, j - 1)));
+  free_vector(v);
+}
+
+static void free_code_instr(Vector v) {
   m_uint i;
+  for(i = vector_size(v) + 1; --i;) {
+    Instr instr = (Instr)vector_at(v, i - 1);
+    if(instr->execute == Instr_Array_Init ||
+        instr->execute == Instr_Array_Alloc)
+      free(*(VM_Array_Info**)instr->ptr);
+    else if(instr->execute == Gack)
+      free_code_instr_gack(instr);
+    else if(instr->execute == Branch_Switch)
+      free_map(*(Map*)instr->ptr);
+    else if(instr->execute == Spork && instr->m_val2)
+        REM_REF(((Func)instr->m_val2))
+    else if(instr->execute == Init_Loop_Counter)
+      free((m_int*)instr->m_val);
+    free(instr);
+  }
+  free_vector(v);
+}
+
+void free_vm_code(VM_Code a) {
   if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
     free((void*)vector_back(a->instr));
     free_vector(a->instr);
-  } else if(a->instr) {
-    for(i = vector_size(a->instr) + 1; --i;) {
-      Instr instr = (Instr)vector_at(a->instr, i - 1);
-      if(instr->execute == Instr_Array_Init ||
-          instr->execute == Instr_Array_Alloc)
-        free(*(VM_Array_Info**)instr->ptr);
-      else if(instr->execute == Gack) {
-        m_uint j;
-        Vector v = *(Vector*)instr->ptr;
-        for(j = vector_size(v) + 1; --j;)
-          REM_REF(((Type)vector_at(v, j - 1)));
-        free_vector(v);
-      } else if(instr->execute == Branch_Switch)
-        free_map(*(Map*)instr->ptr);
-      else if(instr->execute == Spork) {
-        if(instr->m_val2)
-          REM_REF(((Func)instr->m_val2))
-        } else if(instr->execute == Init_Loop_Counter)
-        free((m_int*)instr->m_val);
-      free(instr);
-    }
-    free_vector(a->instr);
-  }
+  } else if(a->instr)
+    free_code_instr(a->instr);
   free(a->name);
   free(a->filename);
   free(a);
@@ -93,10 +99,9 @@ void free_vm_shred(VM_Shred shred) {
   free(shred);
 }
 
-m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
-  Driver* d;
-
-  if(!(d = di->func(vm)) || d->ini(vm, di) < 0)
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
+  di->func(d, vm);
+  if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
   sp_createn(&vm->sp, di->out);
   free(vm->sp->out);
@@ -104,7 +109,6 @@ m_bool init_bbq(VM* vm, DriverInfo* di, Driver** driver) {
   vm->in   = calloc(di->in, sizeof(SPFLOAT));
   vm->n_in = di->in;
   vm->sp->sr = di->sr;
-  *driver = d;
   sp_srand(vm->sp, time(NULL));
   return 1;
 }
@@ -159,8 +163,6 @@ static void shreduler_child(Shreduler s, Vector v) {
   m_uint i, size = vector_size(v);
   for(i = 0; i < size; i++) {
     VM_Shred child = (VM_Shred)vector_front(v);
-    child->prev = NULL;
-    child->next = NULL;
     if(child == s->list) // 09/03/17
       s->list = NULL;
     shreduler_remove(s, child, 1);
@@ -189,15 +191,21 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_gc(out);
 }
 
+static m_bool shreduler_free_shred(Shreduler s, VM_Shred out, m_bool erase) {
+  if(!out->prev && !out->next && out != s->list) {
+    if(erase && !out->wait && !out->child.ptr)
+      free_vm_shred(out);
+    return - 1;
+  }
+  return 1;
+}
+
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   if(erase)
     shreduler_erase(s, out);
   s->curr = (s->curr == out) ? NULL : s->curr;
-  if(!out->prev && !out->next && out != s->list) {
-    if(erase && !out->wait && !out->child.ptr)
-      free_vm_shred(out);
+  if(shreduler_free_shred(s, out, erase) < 0)
     return;
-  }
   out->prev ? (out->prev->next = out->next) : (s->list = out->next);
   if(out->next)
     out->next->prev = out->prev;
@@ -257,7 +265,8 @@ void free_vm(VM* vm) {
   vector_release(&vm->plug);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
-  sp_destroy(&vm->sp);
+  if(vm->sp)
+    sp_destroy(&vm->sp);
   free(vm->in);
   free_shreduler(vm->shreduler);
   free(vm);

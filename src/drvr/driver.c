@@ -5,8 +5,8 @@
 #include "driver.h"
 
 void free_driver(Driver* d, VM* vm) {
-  d->del(vm);
-  free(d);
+  if(d->del)
+    d->del(vm);
 }
 
 void select_driver(DriverInfo* di, const m_str d) {
@@ -58,6 +58,13 @@ void select_driver(DriverInfo* di, const m_str d) {
     di->func = pa_driver;
     di->format = paFloat32;
     di->card = "default";
+  }
+#endif
+#ifdef HAVE_PULSE
+  else if(!strcmp("pulse", d)) {
+    di->func = pulse_driver;
+//    di->format = paFloat32;
+//    di->card = "default";
   }
 #endif
   else

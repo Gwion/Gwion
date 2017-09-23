@@ -1,0 +1,7 @@
+// [contains] you must provide template types
+template<{A}>
+class C {
+  A a;
+}
+
+C c;

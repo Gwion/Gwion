@@ -1,8 +1,8 @@
 class C
 {
-
   dtor(){<<<1>>>;}
 }
+
 C c;
 C d;
 //me.yield();

@@ -192,29 +192,43 @@ struct Scope_ {
   struct Vector_ vector;
 };
 
-vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
+vtype scope_lookup0(Scope scope, S_Symbol xid) {
+  Map map = (Map)vector_back(&scope->vector);
+  vtype ret = map_get(map, (vtype)xid);
+  if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup1(Scope scope, S_Symbol xid) {
   m_uint i;
+  vtype ret;
+  for(i = vector_size(&scope->vector) + 1; --i;) {
+    Map map = (Map)vector_at(&scope->vector, i - 1);
+    if((ret = map_get(map, (vtype)xid)))
+      break;
+   }
+  if(!ret)
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup2(Scope scope, S_Symbol xid) {
+  Map map = (Map)vector_front(&scope->vector);
+  vtype ret = map_get(map, (vtype)xid);
+  if(!ret)
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
   vtype ret = 0;
-  Map map;
-  if(climb == 0) {
-    map = (Map)vector_back(&scope->vector);
-    ret = map_get(map, (vtype)xid);
-    if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
-      ret = map_get(&scope->commit_map, (vtype)xid);
-  } else if(climb > 0) {
-    for(i = vector_size(&scope->vector) + 1; --i;) {
-      map = (Map)vector_at(&scope->vector, i - 1);
-      if((ret = map_get(map, (vtype)xid)))
-        break;
-    }
-    if(!ret)
-      ret = map_get(&scope->commit_map, (vtype)xid);
-  } else {
-    map = (Map)vector_front(&scope->vector);
-    ret = map_get(map, (vtype)xid);
-    if(!ret)
-      ret = map_get(&scope->commit_map, (vtype)xid);
-  }
+  if(climb == 0)
+    ret = scope_lookup0(scope, xid); 
+  else if(climb > 0)
+    ret = scope_lookup1(scope, xid); 
+  else
+    ret = scope_lookup2(scope, xid);
   return ret;
 }
 

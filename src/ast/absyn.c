@@ -19,7 +19,7 @@ Var_Decl new_var_decl(m_str name, Array_Sub array, int pos) {
   return a;
 }
 
-__inline static void free_array_sub(Array_Sub a) {
+void free_array_sub(Array_Sub a) {
   free_expression(a->exp_list);
   free(a);
 }
@@ -82,7 +82,7 @@ Array_Sub new_array_sub(Exp exp, int pos) {
   return a;
 }
 
-Array_Sub prepend_array_sub(Array_Sub a, Exp exp, int pos) {
+Array_Sub prepend_array_sub(Array_Sub a, Exp exp) {
   if(a->err_num)
     goto error;
   if(exp && exp->next) {
@@ -92,7 +92,7 @@ Array_Sub prepend_array_sub(Array_Sub a, Exp exp, int pos) {
   }
   if((exp && !a->exp_list) || (!exp && a->exp_list)) {
     a->err_num = 2;
-    a->err_pos = pos;
+    a->err_pos = a->pos;
     goto error;
   }
   if(exp) {
