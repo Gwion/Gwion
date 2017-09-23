@@ -83,7 +83,7 @@ begins_with_short_option()
 : "${_arg_soundio_inc:=$SOUNDIO_INC}"
 : "${SOUNDIO_LIB:="-lsoundio"}"
 : "${_arg_soundio_lib:=$SOUNDIO_LIB}"
-: "${PULSE_D:=on}"
+: "${PULSE_D:=off}"
 : "${_arg_pulse:=$PULSE_D}"
 : "${PULSE_INC:=}"
 : "${_arg_pulse_inc:=$PULSE_INC}"
@@ -134,7 +134,7 @@ print_help ()
 	printf "\t%s\n" "--soundio,--no-soundio: enable soundio (off by default)"
 	printf "\t%s\n" "--soundio-inc: Directories where to look for include files for soundio (empty by default)"
 	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
-	printf "\t%s\n" "--pulse,--no-pulse: enable pulse (on by default)"
+	printf "\t%s\n" "--pulse,--no-pulse: enable pulse (off by default)"
 	printf "\t%s\n" "--pulse-inc: Directories where to look for include files for pulse (empty by default)"
 	printf "\t%s\n" "--pulse-lib: pulse library (default: '-lpulse-simple')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
@@ -558,7 +558,7 @@ echo "drvr_src := src/drvr/driver.c"
 make_add() {
 
 printf "\n# add libraries\n"
-for iter in dummy:on:: spa:on:: sndfile:on:'/usr/include','/usr/local/include':-lsndfile alsa:on::-lasound jack:off::-ljack portaudio:off::-lportaudio soundio:off::-lsoundio pulse:on::-lpulse-simple
+for iter in dummy:on:: spa:on:: sndfile:on:'/usr/include','/usr/local/include':-lsndfile alsa:on::-lasound jack:off::-ljack portaudio:off::-lportaudio soundio:off::-lsoundio pulse:off::-lpulse-simple
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
