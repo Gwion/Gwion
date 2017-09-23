@@ -83,6 +83,12 @@ begins_with_short_option()
 : "${_arg_soundio_inc:=$SOUNDIO_INC}"
 : "${SOUNDIO_LIB:="-lsoundio"}"
 : "${_arg_soundio_lib:=$SOUNDIO_LIB}"
+: "${PULSE_D:=off}"
+: "${_arg_pulse:=$PULSE_D}"
+: "${PULSE_INC:=}"
+: "${_arg_pulse_inc:=$PULSE_INC}"
+: "${PULSE_LIB:="-lpulse-simple"}"
+: "${_arg_pulse_lib:=$PULSE_LIB}"
 : "${ADD_DIR:="add"}"
 : "${_arg_add:=$ADD_DIR}"
 : "${DEBUG_TYPE:=off}"
@@ -95,7 +101,7 @@ begins_with_short_option()
 print_help ()
 {
 	echo "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--add <arg>] [--(no-)debug-type] [--(no-)debug-instr] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [--(no-)debug-type] [--(no-)debug-instr] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -128,6 +134,9 @@ print_help ()
 	printf "\t%s\n" "--soundio,--no-soundio: enable soundio (off by default)"
 	printf "\t%s\n" "--soundio-inc: Directories where to look for include files for soundio (empty by default)"
 	printf "\t%s\n" "--soundio-lib: soundio library (default: '-lsoundio')"
+	printf "\t%s\n" "--pulse,--no-pulse: enable pulse (off by default)"
+	printf "\t%s\n" "--pulse-inc: Directories where to look for include files for pulse (empty by default)"
+	printf "\t%s\n" "--pulse-lib: pulse library (default: '-lpulse-simple')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
 	printf "\t%s\n" "--debug-type,--no-debug-type: debug type (off by default)"
 	printf "\t%s\n" "--debug-instr,--no-debug-instr: debug instr (off by default)"
@@ -399,6 +408,30 @@ do
 			fi
 			_arg_soundio_lib="$_val"
 			;;
+		--no-pulse|--pulse)
+			_arg_pulse="on"
+			test "${1:0:5}" = "--no-" && _arg_pulse="off"
+			;;
+		--pulse-inc|--pulse-inc=*)
+			_val="${_key##--pulse-inc=}"
+			if test "$_val" = "$_key"
+			then
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_val="$2"
+				shift
+			fi
+			_arg_pulse_inc+=("$_val")
+			;;
+		--pulse-lib|--pulse-lib=*)
+			_val="${_key##--pulse-lib=}"
+			if test "$_val" = "$_key"
+			then
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_val="$2"
+				shift
+			fi
+			_arg_pulse_lib="$_val"
+			;;
 		--add|--add=*)
 			_val="${_key##--add=}"
 			if test "$_val" = "$_key"
@@ -442,7 +475,7 @@ to_upper(){
 
 config_check() {
 
-VALID_DRIVER=" dummy spa sndfile alsa jack portaudio soundio"
+VALID_DRIVER=" dummy spa sndfile alsa jack portaudio soundio pulse"
 grep "$_arg_d_func" <<<  "$VALID_DRIVER" > /dev/null || { echo "invalid default driver";exit 1; }
 
 if [ "$_arg_double" = "on" ]; then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double";fi
@@ -494,7 +527,7 @@ do
 	echo "GWION_$(to_upper "$key")_DIR ?= \${PREFIX}/lib/Gwion/${val}"
 done
 printf "\n# handle libraries\n"
-for iter in dummy spa sndfile alsa jack portaudio soundio
+for iter in dummy spa sndfile alsa jack portaudio soundio pulse
 do
 	echo "$(to_upper $iter)_D ?= $(eval echo \$_arg_$iter)"
 done
@@ -525,7 +558,7 @@ echo "drvr_src := src/drvr/driver.c"
 make_add() {
 
 printf "\n# add libraries\n"
-for iter in dummy:on:: spa:on:: sndfile:on:'/usr/include','/usr/local/include':-lsndfile alsa:on::-lasound jack:off::-ljack portaudio:off::-lportaudio soundio:off::-lsoundio
+for iter in dummy:on:: spa:on:: sndfile:on:'/usr/include','/usr/local/include':-lsndfile alsa:on::-lasound jack:off::-ljack portaudio:off::-lportaudio soundio:off::-lsoundio pulse:off::-lpulse-simple
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)

@@ -49,6 +49,9 @@ void sio_driver(Driver* d, VM* vm);
 void pa_driver(Driver* d, VM* vm);
 #include <portaudio.h>
 #endif
+#ifdef HAVE_PULSE
+void pulse_driver(Driver* d, VM* vm);
+#endif
 m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d);
 void udp_do(VM* vm);
 #define GWION_CTL_SIZE 8192
