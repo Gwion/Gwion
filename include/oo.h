@@ -1,8 +1,6 @@
 #ifndef __OO
 #define __OO
 
-#include "defs.h"
-
 typedef enum {
   e_nspc_obj,  e_context_obj,
   e_type_obj, e_value_obj, e_func_obj, e_code_obj

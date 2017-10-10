@@ -12,43 +12,42 @@ SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
 IMPORT
 {
-  DL_Func fun;
-  CHECK_BB(import_class_begin(env, &t_coverage, env->global_nspc, NULL, NULL))
-  dl_func_init(&fun, "int", "i", (m_uint)coverage_int);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-  dl_func_init(&fun, "float", "f", (m_uint)coverage_float);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-  dl_func_init(&fun, "complex", "c", (m_uint)coverage_complex);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-  dl_func_init(&fun, "Vec3", "v", (m_uint)coverage_vec3);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-  dl_func_init(&fun, "Vec4", "w", (m_uint)coverage_vec4);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  CHECK_BB(importer_class_begin(importer, &t_coverage, NULL, NULL))
+  importer_func_begin(importer, "int", "i", (m_uint)coverage_int);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  importer_func_begin(importer, "float", "f", (m_uint)coverage_float);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  importer_func_begin(importer, "complex", "c", (m_uint)coverage_complex);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  importer_func_begin(importer, "Vec3", "v", (m_uint)coverage_vec3);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  importer_func_begin(importer, "Vec4", "w", (m_uint)coverage_vec4);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
   m_uint* i = malloc(sizeof(m_uint));
   *i = 5;
-  import_var(env, "int", "s_i", ae_flag_static | ae_flag_const, i);
+  importer_add_var(importer, "int", "s_i", ae_flag_static | ae_flag_const, i);
   m_float* f = malloc(sizeof(m_float));
   *f = 2.1;
-  import_var(env, "float", "s_f", ae_flag_static | ae_flag_const, (void*)f);
+  importer_add_var(importer, "float", "s_f", ae_flag_static | ae_flag_const, (void*)f);
 
   m_complex* c = malloc(sizeof(m_complex));
   *c = 2.1;
-  import_var(env, "complex", "s_c", ae_flag_static | ae_flag_const, (void*)c);
+  importer_add_var(importer, "complex", "s_c", ae_flag_static | ae_flag_const, (void*)c);
 
   m_vec3* v = malloc(sizeof(m_vec3));
   v->x = 2.1;
   v->y = 2.2;
   v->z = 2.3;
-  import_var(env, "Vec3", "s_v", ae_flag_static | ae_flag_const, (void*)v);
+  importer_add_var(importer, "Vec3", "s_v", ae_flag_static | ae_flag_const, (void*)v);
 
   m_vec4* w = malloc(sizeof(m_vec4));
   w->x = 2.1;
   w->y = 2.2;
   w->z = 2.3;
   w->w = 2.4;
-  import_var(env, "Vec4", "s_w", ae_flag_static | ae_flag_const, (void*)w);
+  importer_add_var(importer, "Vec4", "s_w", ae_flag_static | ae_flag_const, (void*)w);
 
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

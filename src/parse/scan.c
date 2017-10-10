@@ -8,8 +8,8 @@
 static m_bool isres(S_Symbol xid, m_uint pos) {
   m_str s = s_name(xid);
   if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
-    err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
-    return 1;
+    int ret = err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    return -ret;
   }
   return -1;
 }
@@ -40,7 +40,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
     return 1;
   if(stmt->type == ae_stmt_funcptr)
     CHECK_BB(scan0_Stmt_Typedef(env, &stmt->d.stmt_ptr))
-    return 1;
+  return 1;
 }
 
 static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
@@ -68,7 +68,7 @@ static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
 
 static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
   CHECK_BB(scan0_class_def_public(env, class_def))
-  if(nspc_lookup_type(env->curr, class_def->name->xid, 1)) {
+  if(nspc_lookup_type1(env->curr, class_def->name->xid)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
                      "class/type '%s' is already defined in namespace '%s'",
                      s_name(class_def->name->xid), env->curr->name))
@@ -219,7 +219,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     if(isres(list->self->xid, list->self->pos) > 0)
       CHECK_BB(err_msg(SCAN2_, list->self->pos,
             "\t... in variable declaration", s_name(list->self->xid)))
-    if((value = nspc_lookup_value(env->curr, list->self->xid, 0)) &&
+    if((value = nspc_lookup_value0(env->curr, list->self->xid)) &&
       !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
         CHECK_BB(err_msg(SCAN2_, list->self->pos,
               "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
@@ -408,11 +408,11 @@ static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
 }
 
 static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
-  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val);
 }
 
 static m_bool scan1_stmt_case(Env env, Stmt_Case stmt) {
-  return scan1_exp(env, stmt->val) < 0 ? -1 : 1;
+  return scan1_exp(env, stmt->val);
 }
 
 static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
@@ -423,35 +423,40 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
     return 1;
 }
 
-static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
-  Nspc nspc = env->class_def ? env->class_def->info : env->curr;
-  Type t = NULL;
-  ID_List list = stmt->list;
-  m_uint count = list ? 1 : 0;
+static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   if(stmt->xid) {
-    if(nspc_lookup_type(nspc, stmt->xid, 1)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "type '%s' already declared", s_name(stmt->xid)))
-    }
-    if(nspc_lookup_value(env->curr, stmt->xid, 1)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "'%s' already declared as variable", s_name(stmt->xid)))
-    }
+    if(nspc_lookup_type0(env->curr, stmt->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "type '%s' already declared", s_name(stmt->xid)))
+    if(nspc_lookup_value0(env->curr, stmt->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "'%s' already declared as variable", s_name(stmt->xid)))
   }
+  return 1;
+} 
+
+static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
+  Type t;
+  ID_List list = stmt->list;
+  m_uint count = 1;
+  CHECK_BB(check_enum_xid(env, stmt))
   t = type_copy(env, &t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
-  nspc_add_type(nspc, stmt->xid, t);
+  nspc_add_type(env->curr, stmt->xid, t);
   while(list) {
     Value v;
-    if(nspc_lookup_value(nspc, list->xid, 0)) {
-      CHECK_BB(err_msg(SCAN1_, stmt->pos, "in enum argument %i '%s' already declared as variable", count, s_name(list->xid)))
-    }
+    if(nspc_lookup_value0(env->curr, list->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "in enum argument %i '%s' already declared as variable",
+            count, s_name(list->xid)))
     v = new_value(t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
     }
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
-    nspc_add_value(nspc, list->xid, v);
+    nspc_add_value(env->curr, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
     list = list->next;
     count++;
@@ -467,8 +472,7 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-              "'%s' unknown type in argument %i",
-              path, count))
+            "'%s' unknown type in argument %i", path, count))
     }
     arg_list = arg_list->next;
   }
@@ -478,7 +482,7 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
 static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
   ptr->ret_type = find_type(env, ptr->type->xid);
   if(!ptr->ret_type)
-    CHECK_BB(err_msg(SCAN1_, ptr->pos, 
+    CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
@@ -736,18 +740,19 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
     CHECK_BB(err_msg(SCAN2_, list->pos,
                   "\t'%s': function arguments must be defined with empty []'s",
                   s_name(list->var_decl->xid)))
-  list->type  = new_array_type(env, list->var_decl->array->depth, 
+  list->type  = new_array_type(env, list->var_decl->array->depth,
       list->type, env->curr);
   SET_FLAG(list->type, ae_flag_ref);
   return 1;
 }
 
-static m_bool scan2_arg_def(Env env, Func_Def f, Arg_List list) {
+static m_bool scan2_arg_def(Env env, Func_Def f) {
+  Arg_List list = f->arg_list;
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
     Value v;
-    if(scan2_arg_def_check(list) < 0 || 
+    if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && scan2_arg_def_array(env, list) < 0)) {
       nspc_pop_value(env->curr);
       return -1;
@@ -781,9 +786,11 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
 }
 
 static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
-  if(nspc_lookup_func(env->curr, ptr->xid, -1))
+  struct Func_Def_ d;
+  d.arg_list = ptr->args;
+  if(nspc_lookup_func2(env->curr, ptr->xid))
     CHECK_BB(err_msg(SCAN2_, ptr->pos, "function type '%s' already defined.", s_name(ptr->xid)))
-    if(scan2_arg_def(env, NULL, ptr->args) < 0)
+    if(scan2_arg_def(env, &d) < 0)
       CHECK_BB(err_msg(SCAN2_, ptr->pos, "in typedef '%s'", s_name(ptr->xid)))
       SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
@@ -858,7 +865,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
 
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
-    value = nspc_lookup_value(env->curr, insert_symbol(name), 1);
+    value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
     while(tld) {
@@ -878,7 +885,8 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
 static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
   if(exp_func->types) {
     if(exp_func->func->exp_type == ae_exp_primary) {
-      Value v = nspc_lookup_value(env->curr, exp_func->func->d.exp_primary.d.var, 1);
+      Value v = nspc_lookup_value1(env->curr,
+          exp_func->func->d.exp_primary.d.var);
       if(!v)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos, "template call of non-existant function."))
       if(!v->func_ref)
@@ -899,7 +907,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
     } else if(exp_func->func->exp_type == ae_exp_dot) {
       return 1;      // see type.c
     } else {
-      err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type);
+      CHECK_BB(err_msg(SCAN2_, exp_func->pos, "unhandled expression type '%i' in template func call.", exp_func->func->exp_type))
       return -1;
     }
   }
@@ -1055,7 +1063,7 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 }
 
 static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
-  Value v = nspc_lookup_value(env->curr, stmt->xid, 1);
+  Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
     CHECK_BB(err_msg(SCAN2_, stmt->pos,
           "'%s' already declared as variable", s_name(stmt->xid)))
@@ -1184,9 +1192,13 @@ static m_bool scan2_func_def_builtin(Func func, m_str name) {
 
 static m_bool scan2_func_def_op(Env env, Func_Def f) {
   m_bool ret = name2op(strtok(s_name(f->name), "@"));
+  struct Op_Import opi = { ret, f->arg_list->var_decl->value->m_type,
+      f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, 
+f->ret_type, NULL, NULL, 1};
   if(env->class_def)SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
-    CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
-        f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
+//    CHECK_BB(env_add_op(env, ret, f->arg_list->var_decl->value->m_type,
+//        f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL, f->ret_type, NULL, 1))
+    CHECK_BB(env_add_op(env, &opi))
   return 1;
 }
 
@@ -1195,7 +1207,7 @@ static m_bool scan2_func_def_code(Env env, Func_Def f) {
   env->func = f->d.func;
   nspc_push_value(env->curr);
   if(scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    ret = err_msg(SCAN2_, f->pos, "...in function '%s'", s_name(f->name));
+    ret = err_msg(SCAN2_, f->pos, "qsdq ...in function '%s'", s_name(f->name));
   nspc_pop_value(env->curr);
   env->func = NULL;
   return ret;
@@ -1217,11 +1229,10 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
           err_msg(SCAN2_,  func->def->pos, "function signatures differ in return type... '%s' and '%s'",
                   func->def->ret_type->name, overload->func_ref->def->ret_type->name);
           if(env->class_def)
-            err_msg(SCAN2_, func->def->pos,
+            CHECK_BB(err_msg(SCAN2_, func->def->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, name,
-                    value->owner_class->name, name);
-          return -1;
+                    value->owner_class->name, name))
         }
   }
   return 1;
@@ -1233,6 +1244,8 @@ static void scan2_func_def_flag(Env env, Func_Def f) {
     SET_FLAG(f->d.func->value_ref, ae_flag_builtin);
   if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->d.func, ae_flag_dtor);
+  if(GET_FLAG(f, ae_flag_dtor))
+    SET_FLAG(f->d.func->value_ref->owner_class, ae_flag_dtor);
   else if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
 }
@@ -1242,7 +1255,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   Value    value    = NULL;
   Func     func     = NULL;
 
-  Value overload = nspc_lookup_value(env->curr,  f->name, 0);
+  Value overload = nspc_lookup_value0(env->curr,  f->name);
   m_str func_name = s_name(f->name);
   m_uint len = strlen(func_name) + num_digit(overload ? overload->func_num_overloads + 1 : 0) +
                strlen(env->curr->name) + 3;
@@ -1274,15 +1287,13 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref)) {
-    err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
-            "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name);
-    return -1;
-  }
+  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref))
+    CHECK_BB(err_msg(SCAN2_,  f->type_decl->pos, "FUNC cannot declare references (@) of primitive type '%s'...\n"
+            "...(primitive types: 'int', 'float', 'time', 'dur')", f->ret_type->name))
 
   f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
-  if(scan2_arg_def(env, f, f->arg_list) < 0)
+  if(scan2_arg_def(env, f) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos, "\t... in function '%s'\n", s_name(f->name)))
   if(GET_FLAG(f, ae_flag_op))
     return scan2_func_def_op(env, f);

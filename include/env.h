@@ -20,7 +20,6 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
-  m_bool do_type_xid;
 };
 
 Env new_env();

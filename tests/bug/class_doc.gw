@@ -6,5 +6,7 @@ class C
 	//! a function
 	function void test() {}
 	//! operator
-	operator void chuck(C c, C d){<<<c, d>>>;}
+	operator void chuck(C c, C d){
+      <<<c, d>>>;
+    }
 }

@@ -24,25 +24,17 @@ m_bool verify_array(Array_Sub array) {
   if(array->err_num) {
     if(array->err_num == 1)
       CHECK_BB(err_msg(UTIL_, array->pos,
-                       "invalid format for array init [...][...]..."))
-      else if(array->err_num == 2)
-        CHECK_BB(err_msg(UTIL_, array->pos,
-                         "partially empty array init [...][]..."))
-      }
+            "invalid format for array init [...][...]..."))
+    else if(array->err_num == 2)
+      CHECK_BB(err_msg(UTIL_, array->pos,
+            "partially empty array init [...][]..."))
+  }
   return 1;
 }
 
-m_bool isa(Type var, Type parent) {
-  return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
-}
-
-m_bool isprim(Type type) {
-  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
-}
-
-Type find_typeof(Env env, ID_List path) {
+static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
-  Value v = nspc_lookup_value(env->curr, path->xid, -1);
+  Value v = nspc_lookup_value2(env->curr, path->xid);
   Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
   path = path->next;
   while(path) {
@@ -59,59 +51,54 @@ Type find_type(Env env, ID_List path) {
 
   if(path->ref)
     return find_typeof(env, path);
-  CHECK_OO((type = nspc_lookup_type(env->curr, path->xid, 1)))
+  CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
   nspc = type->info;
   path = path->next;
 
   while(path) {
     S_Symbol xid = path->xid;
-    Type t = nspc_lookup_type(nspc, xid, 1);
+    Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
-      t = nspc_lookup_type(type->parent->info, xid, -1);
+      t = nspc_lookup_type2(type->parent->info, xid);
       type = type->parent;
     }
     if(!t)
       CHECK_BO(err_msg(UTIL_, path->pos,
             "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name))
     type = t;
-    if(type)
-      nspc = type->info;
+    nspc = type->info;
     path = path->next;
   }
   return type;
  }
 
-m_bool name_valid(m_str a) {
-  m_uint i, len = strlen(a);
-  for(i = 0; i < len; i++) {
-    char c = a[i];
-    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-        || (c == '_') || (c >= '0' && c <= '9'))
-      continue;
-    CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", c, a))
-  }
-  return 1;
-}
-
 Value find_value(Type type, S_Symbol xid) {
-  Value value = NULL;
+  Value value;
   if(!type || !type->info)
     return NULL;
-  if((value = nspc_lookup_value(type->info, xid, -1)))
+  if((value = nspc_lookup_value2(type->info, xid)))
     return value;
   if(type->parent)
     return find_value(type->parent, xid);
   return NULL;
 }
 
+Func find_func(Type type, S_Symbol xid) {
+  Func func;
+  if((func = nspc_lookup_func2(type->info, xid)))
+    return func;
+  if(type->parent)
+    return find_func(type->parent, xid);
+  return NULL;
+}
+
 m_uint id_list_len(ID_List list) {
   m_uint len = 0;
-  ID_List path = list;
-  while(path) {
-    len += strlen(s_name(path->xid));
-    if(path->next)
+  while(list) {
+    len += strlen(s_name(list->xid));
+    if(list->next)
       len++;
-    path = path->next;
+    list = list->next;
   }
   return len + 1;
 }
@@ -128,24 +115,6 @@ void type_path(char* str, ID_List list) {
   }
 }
 
-Kindof kindof(Type type) {
-  if(type->array_depth)
-    return Kindof_Int;
-  if(isa(type, &t_void) > 0)
-    return Kindof_Void;
-  else if(isa(type, &t_complex) > 0 || isa(type, &t_polar) > 0)
-    return Kindof_Complex;
-  if(isa(type, &t_int) > 0 || isa(type, &t_object) > 0)
-    return Kindof_Int;
-  else if(isa(type, &t_float) > 0 || isa(type, &t_time) > 0 || isa(type, &t_dur) > 0)
-    return Kindof_Float;
-  else if(isa(type, &t_vec3) > 0)
-    return Kindof_Vec3;
-  else if(isa(type, &t_vec4) > 0)
-    return Kindof_Vec4;
-  return Kindof_Int;
-}
-
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
   Type t = new_type(te_array, base_type->name, &t_array);
   t->size = SZ_INT;
@@ -157,33 +126,23 @@ Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
   return t;
 }
 
+static const char escape1[] = "0'abfnrtv";
+static const char escape2[] = "\0\'\a\b\f\n\r\t\v";
+
+m_int get_escape(const char c, int linepos) {
+  m_uint i = 0;
+  while(escape1[i] != '\0') {
+    if(c == escape1[i])
+      return escape2[i];
+    i++;
+  }
+  CHECK_BB(err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c))
+  return -1;
+}
+
 m_int str2char(const m_str c, m_int linepos) {
-  if(c[0] == '\\') {
-    switch(c[1]) {
-      case '0':
-        return '\0';
-      case '\'':
-        return '\'';
-      case '\\':
-        return '\\';
-      case 'a':
-        return '\a';
-      case 'b':
-        return '\b';
-      case 'f':
-        return '\f';
-      case 'n':
-        return '\n';
-      case 'r':
-        return '\r';
-      case 't':
-        return '\t';
-      case 'v':
-        return 'v';
-      default:
-        err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c[1]);
-        return -1;
-    }
-  } else
+  if(c[0] == '\\')
+    return get_escape(c[1], linepos);
+  else
     return c[0];
 }

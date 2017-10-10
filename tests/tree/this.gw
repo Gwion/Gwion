@@ -1,6 +1,8 @@
 class C
 {
-	function C test() { return this; }
+  function C test() {
+    return this;
+  }
 }
 
 C c;

@@ -1,4 +1,4 @@
-spork ~{ 2::second => now; };
+spork ~{ 2::second => now; <<<"child", me.id()>>>; };
 <<<"start">>>;
 second => now;
-<<<"end">>>;
+<<<me.id(), "end">>>;

@@ -36,10 +36,10 @@ static void get_filename(VM_Shred shred, m_str c, m_str prefix) {
 static m_bool check_code(VM_Shred shred, m_str c) {
   m_str s;
   Ast ast;
-  
+
   CHECK_OB((ast = parse(c)))
   s = strdup(c);
-  CHECK_BB(type_engine_check_prog(shred->vm_ref->emit->env, ast, s))
+  CHECK_BB(type_engine_check_prog(shred->vm_ref->emit->env,  ast, s))
   free(s);
   free_ast(ast);
   return 1;
@@ -103,27 +103,25 @@ static SFUN(machine_shreds) {
   *(M_Object*)RETURN = obj;
 }
 
-m_bool import_machine(Env env) {
-  DL_Func fun;
+m_bool import_machine(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_machine, NULL, NULL))
+  importer_func_begin(importer, "void",  "add", (m_uint)machine_add);
+  importer_add_arg(importer,       "string",  "filename");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  CHECK_BB(import_class_begin(env, &t_machine, env->global_nspc, NULL, NULL))
-  dl_func_init(&fun, "void",  "add", (m_uint)machine_add);
-  dl_func_add_arg(&fun,       "string",  "filename");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  importer_func_begin(importer, "int[]", "shreds", (m_uint)machine_shreds);
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  dl_func_init(&fun, "int[]", "shreds", (m_uint)machine_shreds);
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  importer_func_begin(importer, "int",  "check", (m_uint)machine_check);
+  importer_add_arg(importer,      "string",  "prefix");
+  importer_add_arg(importer,      "string",  "code");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  dl_func_init(&fun, "int",  "check", (m_uint)machine_check);
-  dl_func_add_arg(&fun,      "string",  "prefix");
-  dl_func_add_arg(&fun,      "string",  "code");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  importer_func_begin(importer, "void", "compile", (m_uint)machine_compile);
+  importer_add_arg(importer,      "string",  "prefix");
+  importer_add_arg(importer,      "string",  "filename");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
-  dl_func_init(&fun, "void", "compile", (m_uint)machine_compile);
-  dl_func_add_arg(&fun,      "string",  "prefix");
-  dl_func_add_arg(&fun,      "string",  "filename");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_end(importer))
   return 1;
 }

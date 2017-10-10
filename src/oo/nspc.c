@@ -1,16 +1,113 @@
 #include <stdlib.h>
+#include <string.h>
 #include "absyn.h"
 #include "symbol.h"
 #include "map.h"
 #include "type.h"
 #include "func.h"
 #include "object.h"
+#include "map_private.h"
 
-Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Value v = (Value)scope_lookup(&nspc->value, xid, climb);
-  if(climb > 0 && !v && nspc->parent)
-    v = nspc_lookup_value(nspc->parent, xid, climb);
+#define OFFSET 2
+
+vtype scope_lookup0(Scope scope, S_Symbol xid) {
+  Map map = (Map)vector_back(&scope->vector);
+  vtype ret = map_get(map, (vtype)xid);
+  if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup1(Scope scope, S_Symbol xid) {
+  m_uint i;
+  vtype ret;
+  for(i = vector_size(&scope->vector) + 1; --i;) {
+    Map map = (Map)vector_at(&scope->vector, i - 1);
+    if((ret = map_get(map, (vtype)xid)))
+      break;
+   }
+  if(!ret)
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup2(Scope scope, S_Symbol xid) {
+  Map map = (Map)vector_front(&scope->vector);
+  vtype ret = map_get(map, (vtype)xid);
+  if(!ret)
+    ret = map_get(&scope->commit_map, (vtype)xid);
+  return ret;
+}
+
+vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
+  vtype ret = 0;
+  if(climb == 0)
+    ret = scope_lookup0(scope, xid);
+  else if(climb > 0)
+    ret = scope_lookup1(scope, xid);
+  else
+    ret = scope_lookup2(scope, xid);
+  return ret;
+}
+
+void scope_add(Scope scope, S_Symbol xid, vtype value) {
+  if(vector_front(&scope->vector) != vector_back(&scope->vector))
+    map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
+  else
+    map_set(&scope->commit_map, (vtype)xid, (vtype)value);
+}
+
+void scope_commit(Scope scope) {
+  map_commit((Map)vector_front(&scope->vector), &scope->commit_map);
+  map_clear(&scope->commit_map);
+}
+
+void scope_push(Scope scope) {
+  vector_add(&scope->vector, (vtype)new_map());
+}
+
+void scope_pop(Scope scope) {
+  free_map((Map)vector_pop(&scope->vector));
+}
+
+void scope_init(Scope a) {
+  vector_init((Vector)&a->commit_map);
+  vector_init(&a->vector);
+  scope_push(a);
+}
+
+void scope_release(Scope a) {
+  free_map((Map)vector_front(&a->vector));
+  vector_release(&a->vector);
+  vector_release((Vector)&a->commit_map);
+}
+
+Vector scope_get(Scope s) {
+  vtype i, j;
+  Vector ret = new_vector();
+  for(j = 0; j < vector_size(&s->vector); j++) {
+    Map map = (Map)vector_at(&s->vector, j);
+    for(i = 0; i < map->ptr[0]; i++)
+      vector_add(ret, map->ptr[OFFSET + i * 2 + 1]);
+  }
+  for(i = 0; i < s->commit_map.ptr[0]; i++)
+    vector_add(ret, (vtype)s->commit_map.ptr[OFFSET + i * 2 + 1]);
+  return ret;
+}
+
+Value nspc_lookup_value0(Nspc nspc, S_Symbol xid) {
+  return (Value)scope_lookup0(&nspc->value, xid);
+}
+
+Value nspc_lookup_value1(Nspc nspc, S_Symbol xid) {
+  Value v = (Value)scope_lookup1(&nspc->value, xid);
+  if(!v && nspc->parent)
+    v = nspc_lookup_value1(nspc->parent, xid);
   return v;
+}
+
+Value nspc_lookup_value2(Nspc nspc, S_Symbol xid) {
+  return (Value)scope_lookup2(&nspc->value, xid);
 }
 
 void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
@@ -24,28 +121,38 @@ void nspc_pop_value(Nspc nspc) {
   scope_pop(&nspc->value);
 }
 
-Func nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Func t = (Func)scope_lookup(&nspc->func, xid, climb);
-  if(climb > 0 && !t && nspc->parent)
-    t = (Func)nspc_lookup_func(nspc->parent, xid, climb);
+Func nspc_lookup_func0(Nspc nspc, S_Symbol xid) {
+  return (Func)scope_lookup0(&nspc->func, xid);
+}
+
+Func nspc_lookup_func1(Nspc nspc, S_Symbol xid) {
+  Func t = (Func)scope_lookup1(&nspc->func, xid);
+  if(!t && nspc->parent)
+    t = (Func)nspc_lookup_func1(nspc->parent, xid);
   return t;
+}
+
+Func nspc_lookup_func2(Nspc nspc, S_Symbol xid) {
+  return (Func)scope_lookup2(&nspc->func, xid);
 }
 
 void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
   scope_add(&nspc->func, xid, (vtype)value);
 }
-void nspc_push_func(Nspc nspc) {
-  scope_push(&nspc->func);
-}
-void nspc_pop_func(Nspc nspc) {
-  scope_pop(&nspc->func);
+
+Type nspc_lookup_type0(Nspc nspc, S_Symbol xid) {
+  return (Type)scope_lookup0(&nspc->type, xid);
 }
 
-Type nspc_lookup_type(Nspc nspc, S_Symbol xid, m_bool climb) {
-  Type t = (Type)scope_lookup(&nspc->type, xid, climb);
-  if(climb > 0 && !t && nspc->parent)
-    t = (Type)nspc_lookup_type(nspc->parent, xid, climb);
+Type nspc_lookup_type1(Nspc  nspc, S_Symbol xid) {
+  Type t = (Type)scope_lookup1(&nspc->type, xid);
+  if(!t && nspc->parent)
+    t = (Type)nspc_lookup_type1(nspc->parent, xid);
   return t;
+}
+
+Type nspc_lookup_type2(Nspc nspc, S_Symbol xid) {
+  return (Type)scope_lookup2(&nspc->type, xid);
 }
 
 void nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {
@@ -62,6 +169,10 @@ void nspc_commit(Nspc nspc) {
   scope_commit(&nspc->value);
   scope_commit(&nspc->func);
   scope_commit(&nspc->type);
+}
+
+Vector nspc_get_value(Nspc nspc) {
+  return scope_get(&nspc->value);
 }
 
 Nspc new_nspc(m_str name, m_str filename) {

@@ -1,4 +1,7 @@
-class C { static int i; float f;}
+class C {
+  static int i;
+  float f;
+}
 
 int i;
 typeof(i) a;

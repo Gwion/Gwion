@@ -10,15 +10,12 @@ Func new_func(m_str name, Func_Def def) {
 }
 
 void free_func(Func a) {
-  if(a->code) {
-    if(a->def && !GET_FLAG(a, ae_flag_template)) {
-      if(!GET_FLAG(a->def, ae_flag_dtor)) {
+  if(a->def && !GET_FLAG(a, ae_flag_template)) {
+    if(a->code && !GET_FLAG(a->def, ae_flag_dtor))
         REM_REF(a->code);
-      }
-    }
-  }
-  if(a->def && !GET_FLAG(a, ae_flag_template))
     free_func_def(a->def);
+  }
+
   free(a);
 }
 

@@ -8,7 +8,8 @@ typedef struct containing_driver_info {
   m_str card;
   m_uint backend;
   m_uint format;
-  struct driver_wrapper* (*func)();
+  void (*func)();
+  void (*run)(VM*);
   m_bool raw;
 } DriverInfo;
 
@@ -25,30 +26,33 @@ void select_driver(DriverInfo* di, const m_str d);
 void select_backend(DriverInfo* di, const m_str d);
 void select_format(DriverInfo* di, const m_str d);
 
-Driver* dummy_driver(VM* vm);
+void dummy_driver(Driver* d, VM* vm);
 #ifdef HAVE_SPA
-Driver* spa_driver(VM* vm);
+void spa_driver(Driver* d, VM* vm);
 #endif
 #ifdef HAVE_SNDFILE
-Driver* sndfile_driver(VM* vm);
+void sndfile_driver(Driver* d, VM* vm);
 #endif
-Driver* silent_driver(VM* vm);
+void silent_driver(Driver* d, VM* vm);
 #ifdef HAVE_ALSA
-Driver* alsa_driver(VM* vm);
+void alsa_driver(Driver* d, VM* vm);
 #include <alsa/asoundlib.h>
 #endif
 #ifdef HAVE_JACK
-Driver* jack_driver(VM* vm);
+void jack_driver(Driver* d, VM* vm);
 #endif
 #ifdef HAVE_SOUNDIO
 #include <soundio/soundio.h>
-Driver* sio_driver(VM* vm);
+void sio_driver(Driver* d, VM* vm);
 #endif
 #ifdef HAVE_PORTAUDIO
-Driver* pa_driver(VM* vm);
+void pa_driver(Driver* d, VM* vm);
 #include <portaudio.h>
 #endif
-m_bool init_bbq(VM* vm, DriverInfo* di, Driver** d);
+#ifdef HAVE_PULSE
+void pulse_driver(Driver* d, VM* vm);
+#endif
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d);
 void udp_do(VM* vm);
 #define GWION_CTL_SIZE 8192
 #define GWION_CTL if(!(sp->pos%GWION_CTL_SIZE))udp_do(vm);

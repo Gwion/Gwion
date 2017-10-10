@@ -342,8 +342,10 @@ do_test() {
       async=$(echo "$arg" | cut -d '=' -f 2);
       [ "$async" -eq 1 ] && async=0
     elif [ "${arg:0:9}" = "severity=" ]
-    then severity=$(echo "$arg" | cut -d '=' -f 2);
-    elif [ "${arg:0:9}" = "suppressions=" ]
+	then if [ $(uname) == "Linux" ] # only use severity on linux
+	    then severity=$(echo "$arg" | cut -d '=' -f 2);
+    	fi
+	elif [ "${arg:0:9}" = "suppressions=" ]
     then suppressions=$(echo "$arg" | cut -d '=' -f 2);
       #		elif [ "${arg:0:9}" = "bailout=" ]
       #		then bailout=$(echo "$arg" | cut -d '=' -f 2);

@@ -24,9 +24,17 @@ struct Nspc_ {
 extern Nspc new_nspc(m_str name, m_str filename);
 extern void free_nspc(Nspc a);
 
-extern Value nspc_lookup_value(Nspc nspc, S_Symbol xid, m_bool climb);
-extern Type  nspc_lookup_type(Nspc nspc, S_Symbol xid, m_bool climb);
-extern Func  nspc_lookup_func(Nspc nspc, S_Symbol xid, m_bool climb);
+extern Value nspc_lookup_value0(Nspc nspc, S_Symbol xid);
+extern Value nspc_lookup_value1(Nspc nspc, S_Symbol xid);
+extern Value nspc_lookup_value2(Nspc nspc, S_Symbol xid);
+extern Type  nspc_lookup_type0(Nspc nspc, S_Symbol xid);
+extern Type  nspc_lookup_type1(Nspc nspc, S_Symbol xid);
+extern Type  nspc_lookup_type2(Nspc nspc, S_Symbol xid);
+extern Func  nspc_lookup_func0(Nspc nspc, S_Symbol xid);
+extern Func  nspc_lookup_func1(Nspc nspc, S_Symbol xid);
+extern Func  nspc_lookup_func2(Nspc nspc, S_Symbol xid);
+
+extern Vector nspc_get_value(Nspc nspc);
 
 extern void  nspc_commit(Nspc nspc);
 extern void  nspc_rollback(Nspc nspc);

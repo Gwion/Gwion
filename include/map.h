@@ -39,11 +39,14 @@ extern void  map_commit(Map map, Map commit);
 extern vtype map_size(Map map);
 extern void  free_map(Map map);
 extern void  map_release(Map map);
+extern void  map_clear(Map map);
 
 extern Scope  new_scope();
 extern void   scope_init(Scope v);
 extern Vector scope_get(Scope a);
-extern vtype  scope_lookup(Scope scope, S_Symbol xid, m_bool climb);
+extern vtype  scope_lookup0(Scope scope, S_Symbol xid);
+extern vtype  scope_lookup1(Scope scope, S_Symbol xid);
+extern vtype  scope_lookup2(Scope scope, S_Symbol xid);
 extern void   scope_add(Scope scope, S_Symbol xid, vtype value);
 extern void   scope_commit(Scope scope);
 //extern void   scope_rollback(Scope scope, void (*_free)(vtype arg));

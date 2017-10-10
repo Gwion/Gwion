@@ -223,7 +223,7 @@ SFUN(file_list) {
     *(m_uint*)RETURN = 0;
     return;
   }
-  Type t = new_array_type(shred->vm_ref->emit->env, 1, &t_string, shred->vm_ref->emit->env->curr);
+  Type t = new_array_type(shred->vm_ref->emit->env,  1, &t_string, shred->vm_ref->emit->env->curr);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
   ret->type_ref = t;
@@ -236,50 +236,56 @@ SFUN(file_list) {
   *(m_uint*)RETURN = (m_uint)ret;
 }
 
-m_bool import_fileio(Env env) {
-  DL_Func fun;
-
-  CHECK_BB(import_class_begin(env, &t_fileio, env->global_nspc, fileio_ctor, fileio_dtor))
+m_bool import_fileio(Importer importer) {
+  CHECK_BB(importer_class_begin(importer,  &t_fileio, fileio_ctor, fileio_dtor))
 
   // import vars
-  o_fileio_file = import_var(env, "int", "@file", ae_flag_member, NULL);
+  o_fileio_file = importer_add_var(importer,  "int", "@file", ae_flag_member, NULL);
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  dl_func_init(&fun, "int", "nl", (m_uint)file_nl);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "int", "open", (m_uint)file_open);
-  dl_func_add_arg(&fun, "string", "filename");
-  dl_func_add_arg(&fun, "string", "mode");
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "int", "close", (m_uint)file_close);
-  CHECK_BB(import_fun(env, &fun, 0))
-  dl_func_init(&fun, "int", "remove", (m_uint)file_remove);
-  dl_func_add_arg(&fun, "string", "filename");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
-  dl_func_init(&fun, "string[]", "list", (m_uint)file_list);
-  dl_func_add_arg(&fun, "string", "filename");
-  CHECK_BB(import_fun(env, &fun, ae_flag_static))
+  importer_func_begin(importer, "int", "nl", (m_uint)file_nl);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "int", "open", (m_uint)file_open);
+  importer_add_arg(importer, "string", "filename");
+  importer_add_arg(importer, "string", "mode");
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "int", "close", (m_uint)file_close);
+  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_begin(importer, "int", "remove", (m_uint)file_remove);
+  importer_add_arg(importer, "string", "filename");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  importer_func_begin(importer, "string[]", "list", (m_uint)file_list);
+  importer_add_arg(importer, "string", "filename");
+  CHECK_BB(importer_add_fun(importer, ae_flag_static))
 
   // import operators
-  CHECK_BB(import_op(env, op_chuck, "int",    "FileIO", "FileIO", int_to_file, 1))
-  CHECK_BB(import_op(env, op_chuck, "float",  "FileIO", "FileIO", float_to_file, 1))
-  CHECK_BB(import_op(env, op_chuck, "string", "FileIO", "FileIO", string_to_file, 1))
-  CHECK_BB(import_op(env, op_chuck, "Object", "FileIO", "FileIO", object_to_file, 1))
-  CHECK_BB(import_op(env, op_chuck, "@null",  "FileIO", "FileIO", object_to_file, 1))
-  CHECK_BB(import_op(env, op_chuck, "FileIO", "string", "string", file_to_string, 1))
-  CHECK_BB(import_op(env, op_chuck, "FileIO", "int",    "int",    file_to_int, 1))
-  CHECK_BB(import_op(env, op_chuck, "FileIO", "float",  "float",  file_to_float, 1))
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_oper_begin(importer, "int",    "FileIO", "FileIO"))
+  CHECK_BB(importer_add_op(importer, op_chuck, int_to_file, 1))
+  CHECK_BB(importer_oper_begin(importer, "float",  "FileIO", "FileIO"))
+  CHECK_BB(importer_add_op(importer, op_chuck, float_to_file, 1))
+  CHECK_BB(importer_oper_begin(importer,"string", "FileIO", "FileIO"))
+  CHECK_BB(importer_add_op(importer, op_chuck, string_to_file, 1))
+  CHECK_BB(importer_oper_begin(importer,"Object", "FileIO", "FileIO"))
+  CHECK_BB(importer_add_op(importer, op_chuck, object_to_file, 1))
+  CHECK_BB(importer_oper_begin(importer,"@null",  "FileIO", "FileIO"))
+  CHECK_BB(importer_add_op(importer, op_chuck, object_to_file, 1))
+  CHECK_BB(importer_oper_begin(importer, "FileIO", "string", "string"))
+  CHECK_BB(importer_add_op(importer, op_chuck, file_to_string, 1))
+  CHECK_BB(importer_oper_begin(importer, "FileIO", "int",    "int"))
+  CHECK_BB(importer_add_op(importer, op_chuck, file_to_int, 1))
+  CHECK_BB(importer_oper_begin(importer, "FileIO", "float",  "float"))
+  CHECK_BB(importer_add_op(importer, op_chuck, file_to_float, 1))
+  CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(import_class_begin(env, &t_cout, env->global_nspc, NULL, static_fileio_dtor))
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_begin(importer,  &t_cout, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(import_class_begin(env, &t_cerr, env->global_nspc, NULL, static_fileio_dtor))
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_begin(importer,  &t_cerr, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(import_class_begin(env, &t_cin, env->global_nspc, NULL, static_fileio_dtor))
-  CHECK_BB(import_class_end(env))
+  CHECK_BB(importer_class_begin(importer,  &t_cin, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_end(importer))
 
   gw_cin = new_M_Object(NULL);
   initialize_object(gw_cin, &t_cin);
@@ -292,8 +298,8 @@ m_bool import_fileio(Env env) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-  env_add_value(env, "cin",  &t_fileio, 1, gw_cin);
-  env_add_value(env, "cout", &t_fileio, 1, gw_cout);
-  env_add_value(env, "cerr", &t_fileio, 1, gw_cerr);
+  importer_add_value(importer,  "cin",  &t_fileio, 1, gw_cin);
+  importer_add_value(importer,  "cout", &t_fileio, 1, gw_cout);
+  importer_add_value(importer,  "cerr", &t_fileio, 1, gw_cerr);
   return 1;
 }
