@@ -39,6 +39,7 @@ extern void  map_commit(Map map, Map commit);
 extern vtype map_size(Map map);
 extern void  free_map(Map map);
 extern void  map_release(Map map);
+extern void  map_clear(Map map);
 
 extern Scope  new_scope();
 extern void   scope_init(Scope v);

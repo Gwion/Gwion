@@ -1,22 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "map.h"
+#include "map_private.h"
 
 #define MAP_CAP 4
 #define OFFSET 2
-
-struct Vector_ {
-  vtype* ptr;
-};
-
-struct Map_ {
-  vtype* ptr;
-};
-
-struct Scope_ {
-  struct Map_    commit_map;
-  struct Vector_ vector;
-};
 
 vtype scope_lookup0(Scope scope, S_Symbol xid) {
   Map map = (Map)vector_back(&scope->vector);
@@ -50,9 +38,9 @@ vtype scope_lookup2(Scope scope, S_Symbol xid) {
 vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
   vtype ret = 0;
   if(climb == 0)
-    ret = scope_lookup0(scope, xid); 
+    ret = scope_lookup0(scope, xid);
   else if(climb > 0)
-    ret = scope_lookup1(scope, xid); 
+    ret = scope_lookup1(scope, xid);
   else
     ret = scope_lookup2(scope, xid);
   return ret;

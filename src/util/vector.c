@@ -1,13 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "map.h"
+#include "map_private.h"
 
 #define MAP_CAP 4
 #define OFFSET 2
-
-struct Vector_ {
-  vtype* ptr;
-};
 
 Vector new_vector() {
   Vector v = malloc(sizeof(struct Vector_));

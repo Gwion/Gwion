@@ -1,13 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "map.h"
+#include "map_private.h"
 
 #define MAP_CAP 4
 #define OFFSET 2
-
-struct Map_ {
-  vtype* ptr;
-};
 
 void map_clear(Map v) {
   v->ptr = realloc(v->ptr, (v->ptr[1] = MAP_CAP) * sizeof(vtype));
