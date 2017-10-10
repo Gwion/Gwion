@@ -63,7 +63,7 @@ void release(M_Object obj, VM_Shred shred) {
       debug_msg("instr", "dtor loop %p %s", obj, t->name);
 #endif
       m_uint i;
-      Vector v = scope_get(&t->info->value);
+      Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
         if(!GET_FLAG(value, ae_flag_static) && isprim(value->m_type) < 0)

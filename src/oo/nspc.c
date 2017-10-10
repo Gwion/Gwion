@@ -82,6 +82,10 @@ void nspc_commit(Nspc nspc) {
   scope_commit(&nspc->type);
 }
 
+Vector nspc_get_value(Nspc nspc) {
+  return scope_get(&nspc->value);
+}
+
 Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;

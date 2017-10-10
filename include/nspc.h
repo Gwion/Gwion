@@ -34,6 +34,8 @@ extern Func  nspc_lookup_func0(Nspc nspc, S_Symbol xid);
 extern Func  nspc_lookup_func1(Nspc nspc, S_Symbol xid);
 extern Func  nspc_lookup_func2(Nspc nspc, S_Symbol xid);
 
+extern Vector nspc_get_value(Nspc nspc);
+
 extern void  nspc_commit(Nspc nspc);
 extern void  nspc_rollback(Nspc nspc);
 
