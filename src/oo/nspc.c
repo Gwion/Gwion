@@ -33,7 +33,7 @@ void nspc_pop_value(Nspc nspc) {
 }
 
 Func nspc_lookup_func0(Nspc nspc, S_Symbol xid) {
-  return (Func)scope_lookup1(&nspc->func, xid);
+  return (Func)scope_lookup0(&nspc->func, xid);
 }
 
 Func nspc_lookup_func1(Nspc nspc, S_Symbol xid) {
