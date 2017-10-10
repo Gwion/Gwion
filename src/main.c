@@ -95,6 +95,7 @@ static const struct option long_option[] = {
   { "format",   1, NULL, 'l' },
   { "help",     0, NULL, '?' },
   { "version",  0, NULL, 'v' },
+  { "config",   0, NULL, 'C' },
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -189,7 +190,7 @@ static void parse_args2(int i) {
 
 static void parse_args(int argc, char** argv) {
   int i, index;
-  while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P: ", long_option, &index)) != -1) {
+  while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C ", long_option, &index)) != -1) {
     switch(i) {
       case '?':
         fprintf(stderr, usage);
