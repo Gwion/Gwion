@@ -5,7 +5,6 @@
 #include <inttypes.h>
 #include "err_msg.h"
 #include "type.h"
-#include "context.h"
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
@@ -1434,13 +1433,13 @@ static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
 }
 
 static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
-  Map m;
+  Map m, label = env_label(env);
   m_uint* key = env->class_def && !env->func ?
                 (m_uint*)env->class_def : (m_uint*)env->func;
   Stmt_Goto_Label ref;
   if(stmt->is_label)
     return 1;
-  if(!(m = env->context->label.ptr ? (Map)map_get(&env->context->label, (vtype)key) : NULL))
+  if(!(m = label->ptr ? (Map)map_get(label, (vtype)key) : NULL))
     CHECK_BB(err_msg(TYPE_, stmt->pos,
                      "label '%s' used but not defined", s_name(stmt->name)))
     if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
@@ -1767,23 +1766,4 @@ m_bool check_ast(Env env, Ast ast) {
     ast = ast->next;
   }
   return 1;
-}
-
-m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
-  m_bool ret;
-  Context context = new_context(ast, filename);
-  env_reset(env);
-  CHECK_BB(load_context(context, env))
-  ret = traverse_ast(env, ast);
-  if(ret > 0) {
-    nspc_commit(env->curr);
-    vector_add(&env->known_ctx, (vtype)context);
-  } // else { nspc_rollback(env->global_nspc); }
-  CHECK_BB(unload_context(context, env)) // no real need to check that
-  if(ret < 0) {
-    free_ast(ast);
-    REM_REF(context);
-    free(filename);
-  }
-  return ret;
 }

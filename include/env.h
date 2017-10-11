@@ -31,5 +31,8 @@ m_bool env_pop_class(Env env);
 #define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
 nspc_pop_value(env->curr);env->class_scope--;
 
-
+Map env_label(Env env);
+Nspc env_nspc(Env env);
+Class_Def env_class_def(Env env, Class_Def def);
+m_str env_filename(Env env);
 #endif

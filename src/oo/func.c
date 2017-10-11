@@ -15,7 +15,6 @@ void free_func(Func a) {
         REM_REF(a->code);
     free_func_def(a->def);
   }
-
   free(a);
 }
 

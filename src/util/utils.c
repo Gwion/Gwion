@@ -12,7 +12,6 @@
 #include <string.h>
 #include "err_msg.h"
 #include "absyn.h"
-#include "context.h"
 #include "type.h"
 #include "compile.h"
 
