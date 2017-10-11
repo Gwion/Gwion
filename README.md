@@ -1,11 +1,13 @@
 # Gwion
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com) 
+![](https://img.shields.io/badge/language-C-yellowgreen.svg)
+[![release](http://github-release-version.herokuapp.com/github/fennecdjay/Gwion/release.svg)](https://github.com/fennecdjay/Gwion/releases/latest)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)  
+
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7669efe4c1c84b888cea5885201c79ae)](https://www.codacy.com/app/fennecdjay/Gwion?utm_source=github.com&utm_medium=referral&utm_content=fennecdjay/Gwion&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=master)](https://travis-ci.org/fennecdjay/Gwion)
 [![Coveralls branch](https://img.shields.io/coveralls/fennecdjay/Gwion/master.svg)](https://coveralls.io/github/fennecdjay/Gwion?branch=master)
-![](http://b.repl.ca/v1/version-pre--pre--alpha-red.svg)
-[![release](http://github-release-version.herokuapp.com/github/fennecdjay/Gwion/release.svg)](https://github.com/fennecdjay/Gwion/releases/latest)
-![](https://img.shields.io/badge/language-C-yellowgreen.svg)  
+[![BCH compliance](https://bettercodehub.com/edge/badge/fennecdjay/Gwion?branch=master)](https://bettercodehub.com/)
 
 gwion is a object-oriented programming language, aimed at making music
 
