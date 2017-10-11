@@ -64,7 +64,6 @@ m_bool compile(VM* vm, const m_str filename) {
   free_ast(ast);
   shred = new_vm_shred(code);
   shred->args = args;
-  shred->me = new_shred(vm, shred);
   vm_add_shred(vm, shred);
   free(name);
   return -1;

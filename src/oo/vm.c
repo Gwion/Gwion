@@ -275,6 +275,8 @@ void free_vm(VM* vm) {
 
 void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
+  if(!shred->me)
+    shred->me = new_shred(vm, shred);
   if(!shred->xid) {
     vector_add(&vm->shred, (vtype)shred);
     shred->xid = vm->shreduler->n_shred++;
