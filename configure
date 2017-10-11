@@ -100,7 +100,7 @@ begins_with_short_option()
 
 print_help ()
 {
-	echo "The general script's help msg"
+	printf "%s\n" "The general script's help msg"
 	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [--(no-)debug-type] [--(no-)debug-instr] [--(no-)debug-stack] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
@@ -144,326 +144,285 @@ print_help ()
 	printf "\t%s\n" "-h,--help: Prints help"
 }
 
-while test $# -gt 0
-do
-	_key="$1"
-	case "$_key" in
-		--prg|--prg=*)
-			_val="${_key##--prg=}"
-			if test "$_val" = "$_key"
-			then
+parse_commandline ()
+{
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			--prg)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_prg="$2"
 				shift
-			fi
-			_arg_prg="$_val"
-			;;
-		--cc|--cc=*)
-			_val="${_key##--cc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--prg=*)
+				_arg_prg="${_key##--prg=}"
+				;;
+			--cc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_cc="$2"
 				shift
-			fi
-			_arg_cc="$_val"
-			;;
-		--yacc|--yacc=*)
-			_val="${_key##--yacc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--cc=*)
+				_arg_cc="${_key##--cc=}"
+				;;
+			--yacc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_yacc="$2"
 				shift
-			fi
-			_arg_yacc="$_val"
-			;;
-		--lex|--lex=*)
-			_val="${_key##--lex=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--yacc=*)
+				_arg_yacc="${_key##--yacc=}"
+				;;
+			--lex)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_lex="$2"
 				shift
-			fi
-			_arg_lex="$_val"
-			;;
-		--prefix|--prefix=*)
-			_val="${_key##--prefix=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--lex=*)
+				_arg_lex="${_key##--lex=}"
+				;;
+			--prefix)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_prefix="$2"
 				shift
-			fi
-			_arg_prefix="$_val"
-			;;
-		--soundpipe_lib|--soundpipe_lib=*)
-			_val="${_key##--soundpipe_lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--prefix=*)
+				_arg_prefix="${_key##--prefix=}"
+				;;
+			--soundpipe_lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_soundpipe_lib="$2"
 				shift
-			fi
-			_arg_soundpipe_lib="$_val"
-			;;
-		--soundpipe_inc|--soundpipe_inc=*)
-			_val="${_key##--soundpipe_inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--soundpipe_lib=*)
+				_arg_soundpipe_lib="${_key##--soundpipe_lib=}"
+				;;
+			--soundpipe_inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_soundpipe_inc="$2"
 				shift
-			fi
-			_arg_soundpipe_inc="$_val"
-			;;
-		--no-double|--double)
-			_arg_double="on"
-			test "${1:0:5}" = "--no-" && _arg_double="off"
-			;;
-		--no-coverage|--coverage)
-			_arg_coverage="on"
-			test "${1:0:5}" = "--no-" && _arg_coverage="off"
-			;;
-		--no-memcheck|--memcheck)
-			_arg_memcheck="on"
-			test "${1:0:5}" = "--no-" && _arg_memcheck="off"
-			;;
-		--d_func|--d_func=*)
-			_val="${_key##--d_func=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--soundpipe_inc=*)
+				_arg_soundpipe_inc="${_key##--soundpipe_inc=}"
+				;;
+			--no-double|--double)
+				_arg_double="on"
+				test "${1:0:5}" = "--no-" && _arg_double="off"
+				;;
+			--no-coverage|--coverage)
+				_arg_coverage="on"
+				test "${1:0:5}" = "--no-" && _arg_coverage="off"
+				;;
+			--no-memcheck|--memcheck)
+				_arg_memcheck="on"
+				test "${1:0:5}" = "--no-" && _arg_memcheck="off"
+				;;
+			--d_func)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_d_func="$2"
 				shift
-			fi
-			_arg_d_func="$_val"
-			;;
-		--no-dummy|--dummy)
-			_arg_dummy="on"
-			test "${1:0:5}" = "--no-" && _arg_dummy="off"
-			;;
-		--dummy-inc|--dummy-inc=*)
-			_val="${_key##--dummy-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--d_func=*)
+				_arg_d_func="${_key##--d_func=}"
+				;;
+			--no-dummy|--dummy)
+				_arg_dummy="on"
+				test "${1:0:5}" = "--no-" && _arg_dummy="off"
+				;;
+			--dummy-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_dummy_inc+=("$2")
 				shift
-			fi
-			_arg_dummy_inc+=("$_val")
-			;;
-		--dummy-lib|--dummy-lib=*)
-			_val="${_key##--dummy-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--dummy-inc=*)
+				_arg_dummy_inc+=("${_key##--dummy-inc=}")
+				;;
+			--dummy-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_dummy_lib="$2"
 				shift
-			fi
-			_arg_dummy_lib="$_val"
-			;;
-		--no-spa|--spa)
-			_arg_spa="on"
-			test "${1:0:5}" = "--no-" && _arg_spa="off"
-			;;
-		--spa-inc|--spa-inc=*)
-			_val="${_key##--spa-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--dummy-lib=*)
+				_arg_dummy_lib="${_key##--dummy-lib=}"
+				;;
+			--no-spa|--spa)
+				_arg_spa="on"
+				test "${1:0:5}" = "--no-" && _arg_spa="off"
+				;;
+			--spa-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_spa_inc+=("$2")
 				shift
-			fi
-			_arg_spa_inc+=("$_val")
-			;;
-		--spa-lib|--spa-lib=*)
-			_val="${_key##--spa-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--spa-inc=*)
+				_arg_spa_inc+=("${_key##--spa-inc=}")
+				;;
+			--spa-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_spa_lib="$2"
 				shift
-			fi
-			_arg_spa_lib="$_val"
-			;;
-		--no-sndfile|--sndfile)
-			_arg_sndfile="on"
-			test "${1:0:5}" = "--no-" && _arg_sndfile="off"
-			;;
-		--sndfile-inc|--sndfile-inc=*)
-			_val="${_key##--sndfile-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--spa-lib=*)
+				_arg_spa_lib="${_key##--spa-lib=}"
+				;;
+			--no-sndfile|--sndfile)
+				_arg_sndfile="on"
+				test "${1:0:5}" = "--no-" && _arg_sndfile="off"
+				;;
+			--sndfile-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_sndfile_inc+=("$2")
 				shift
-			fi
-			_arg_sndfile_inc+=("$_val")
-			;;
-		--sndfile-lib|--sndfile-lib=*)
-			_val="${_key##--sndfile-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--sndfile-inc=*)
+				_arg_sndfile_inc+=("${_key##--sndfile-inc=}")
+				;;
+			--sndfile-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_sndfile_lib="$2"
 				shift
-			fi
-			_arg_sndfile_lib="$_val"
-			;;
-		--no-alsa|--alsa)
-			_arg_alsa="on"
-			test "${1:0:5}" = "--no-" && _arg_alsa="off"
-			;;
-		--alsa-inc|--alsa-inc=*)
-			_val="${_key##--alsa-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--sndfile-lib=*)
+				_arg_sndfile_lib="${_key##--sndfile-lib=}"
+				;;
+			--no-alsa|--alsa)
+				_arg_alsa="on"
+				test "${1:0:5}" = "--no-" && _arg_alsa="off"
+				;;
+			--alsa-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_alsa_inc+=("$2")
 				shift
-			fi
-			_arg_alsa_inc+=("$_val")
-			;;
-		--alsa-lib|--alsa-lib=*)
-			_val="${_key##--alsa-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--alsa-inc=*)
+				_arg_alsa_inc+=("${_key##--alsa-inc=}")
+				;;
+			--alsa-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_alsa_lib="$2"
 				shift
-			fi
-			_arg_alsa_lib="$_val"
-			;;
-		--no-jack|--jack)
-			_arg_jack="on"
-			test "${1:0:5}" = "--no-" && _arg_jack="off"
-			;;
-		--jack-inc|--jack-inc=*)
-			_val="${_key##--jack-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--alsa-lib=*)
+				_arg_alsa_lib="${_key##--alsa-lib=}"
+				;;
+			--no-jack|--jack)
+				_arg_jack="on"
+				test "${1:0:5}" = "--no-" && _arg_jack="off"
+				;;
+			--jack-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_jack_inc+=("$2")
 				shift
-			fi
-			_arg_jack_inc+=("$_val")
-			;;
-		--jack-lib|--jack-lib=*)
-			_val="${_key##--jack-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--jack-inc=*)
+				_arg_jack_inc+=("${_key##--jack-inc=}")
+				;;
+			--jack-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_jack_lib="$2"
 				shift
-			fi
-			_arg_jack_lib="$_val"
-			;;
-		--no-portaudio|--portaudio)
-			_arg_portaudio="on"
-			test "${1:0:5}" = "--no-" && _arg_portaudio="off"
-			;;
-		--portaudio-inc|--portaudio-inc=*)
-			_val="${_key##--portaudio-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--jack-lib=*)
+				_arg_jack_lib="${_key##--jack-lib=}"
+				;;
+			--no-portaudio|--portaudio)
+				_arg_portaudio="on"
+				test "${1:0:5}" = "--no-" && _arg_portaudio="off"
+				;;
+			--portaudio-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_portaudio_inc+=("$2")
 				shift
-			fi
-			_arg_portaudio_inc+=("$_val")
-			;;
-		--portaudio-lib|--portaudio-lib=*)
-			_val="${_key##--portaudio-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--portaudio-inc=*)
+				_arg_portaudio_inc+=("${_key##--portaudio-inc=}")
+				;;
+			--portaudio-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_portaudio_lib="$2"
 				shift
-			fi
-			_arg_portaudio_lib="$_val"
-			;;
-		--no-soundio|--soundio)
-			_arg_soundio="on"
-			test "${1:0:5}" = "--no-" && _arg_soundio="off"
-			;;
-		--soundio-inc|--soundio-inc=*)
-			_val="${_key##--soundio-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--portaudio-lib=*)
+				_arg_portaudio_lib="${_key##--portaudio-lib=}"
+				;;
+			--no-soundio|--soundio)
+				_arg_soundio="on"
+				test "${1:0:5}" = "--no-" && _arg_soundio="off"
+				;;
+			--soundio-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_soundio_inc+=("$2")
 				shift
-			fi
-			_arg_soundio_inc+=("$_val")
-			;;
-		--soundio-lib|--soundio-lib=*)
-			_val="${_key##--soundio-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--soundio-inc=*)
+				_arg_soundio_inc+=("${_key##--soundio-inc=}")
+				;;
+			--soundio-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_soundio_lib="$2"
 				shift
-			fi
-			_arg_soundio_lib="$_val"
-			;;
-		--no-pulse|--pulse)
-			_arg_pulse="on"
-			test "${1:0:5}" = "--no-" && _arg_pulse="off"
-			;;
-		--pulse-inc|--pulse-inc=*)
-			_val="${_key##--pulse-inc=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--soundio-lib=*)
+				_arg_soundio_lib="${_key##--soundio-lib=}"
+				;;
+			--no-pulse|--pulse)
+				_arg_pulse="on"
+				test "${1:0:5}" = "--no-" && _arg_pulse="off"
+				;;
+			--pulse-inc)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_pulse_inc+=("$2")
 				shift
-			fi
-			_arg_pulse_inc+=("$_val")
-			;;
-		--pulse-lib|--pulse-lib=*)
-			_val="${_key##--pulse-lib=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--pulse-inc=*)
+				_arg_pulse_inc+=("${_key##--pulse-inc=}")
+				;;
+			--pulse-lib)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_pulse_lib="$2"
 				shift
-			fi
-			_arg_pulse_lib="$_val"
-			;;
-		--add|--add=*)
-			_val="${_key##--add=}"
-			if test "$_val" = "$_key"
-			then
+				;;
+			--pulse-lib=*)
+				_arg_pulse_lib="${_key##--pulse-lib=}"
+				;;
+			--add)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
-				_val="$2"
+				_arg_add="$2"
 				shift
-			fi
-			_arg_add="$_val"
-			;;
-		--no-debug-type|--debug-type)
-			_arg_debug_type="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_type="off"
-			;;
-		--no-debug-instr|--debug-instr)
-			_arg_debug_instr="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_instr="off"
-			;;
-		--no-debug-stack|--debug-stack)
-			_arg_debug_stack="on"
-			test "${1:0:5}" = "--no-" && _arg_debug_stack="off"
-			;;
-		-h*|--help)
-			print_help
-			exit 0
-			;;
-		*)
-			_PRINT_HELP=yes die "FATAL ERROR: Got an unexpected argument '$1'" 1
-			;;
-	esac
-	shift
-done
+				;;
+			--add=*)
+				_arg_add="${_key##--add=}"
+				;;
+			--no-debug-type|--debug-type)
+				_arg_debug_type="on"
+				test "${1:0:5}" = "--no-" && _arg_debug_type="off"
+				;;
+			--no-debug-instr|--debug-instr)
+				_arg_debug_instr="on"
+				test "${1:0:5}" = "--no-" && _arg_debug_instr="off"
+				;;
+			--no-debug-stack|--debug-stack)
+				_arg_debug_stack="on"
+				test "${1:0:5}" = "--no-" && _arg_debug_stack="off"
+				;;
+			-h|--help)
+				print_help
+				exit 0
+				;;
+			-h*)
+				print_help
+				exit 0
+				;;
+			*)
+				_PRINT_HELP=yes die "FATAL ERROR: Got an unexpected argument '$1'" 1
+				;;
+		esac
+		shift
+	done
+}
+
+parse_commandline "$@"
 
 
 set -e
@@ -552,7 +511,6 @@ echo "ast_src := \$(wildcard src/ast/*.c)"
 echo "parse_src := \$(wildcard src/parse/*.c)"
 echo "ugen_src := \$(wildcard src/ugen/*.c)"
 echo "util_src := \$(wildcard src/util/*.c)"
-echo "emit_src := \$(wildcard src/emit/*.c)"
 echo "drvr_src := src/drvr/driver.c"
 }
 make_add() {
