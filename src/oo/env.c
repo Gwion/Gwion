@@ -134,3 +134,15 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   }
   return ret;
 }
+
+extern m_bool add_op(Nspc nspc, struct Op_Import* opi);
+
+m_bool env_add_op(Env env, struct Op_Import* opi) {
+  Nspc nspc = opi->global ? env->global_nspc : env->curr;
+
+  if(!nspc->op_map.ptr)
+    map_init(&nspc->op_map);
+  CHECK_BB(add_op(nspc, opi))
+  return 1;
+}
+
