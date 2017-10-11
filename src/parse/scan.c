@@ -820,7 +820,6 @@ static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
 }
 
 static m_bool scan2_exp_array(Env env, Exp_Array* array) {
-  CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan2_exp(env, array->base))
   CHECK_BB(scan2_exp(env, array->indices->exp_list))
   return 1;

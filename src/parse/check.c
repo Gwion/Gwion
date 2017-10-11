@@ -362,7 +362,6 @@ Type check_exp_array(Env env, Exp_Array* array) {
   Type t_base, t;
   m_uint depth;
 
-  CHECK_BO(verify_array(array->indices))
   CHECK_OO((t_base = check_exp(env, array->base)))
 
   if(array->indices->depth > t_base->array_depth)

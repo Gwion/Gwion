@@ -39,6 +39,18 @@ m_bool initialize_object(M_Object object, Type type) {
   return 1;
 }
 
+void instantiate_object(VM * vm, VM_Shred shred, Type type) {
+  M_Object object = new_M_Object(NULL);
+  if(!object) Except(shred, "NullPtrException");
+  initialize_object(object, type);
+  *(M_Object*)REG(0) =  object;
+  PUSH_REG(shred,  SZ_INT);
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "instantiate object (internal)%p %s", object, type->name);
+#endif
+  return;
+}
+
 static void handle_dtor(Type t, VM_Shred shred) {
   VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
        "[dtor]", "[in code dtor exec]");
