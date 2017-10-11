@@ -511,6 +511,7 @@ echo "ast_src := \$(wildcard src/ast/*.c)"
 echo "parse_src := \$(wildcard src/parse/*.c)"
 echo "ugen_src := \$(wildcard src/ugen/*.c)"
 echo "util_src := \$(wildcard src/util/*.c)"
+echo "emit_src := \$(wildcard src/emit/*.c)"
 echo "drvr_src := src/drvr/driver.c"
 }
 make_add() {
