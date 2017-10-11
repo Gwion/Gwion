@@ -56,12 +56,9 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
 }
 
 m_bool env_add_op(Env env, struct Op_Import* opi) {
-  Nspc nspc = env->curr;
+  Nspc nspc = opi->global ? env->global->nspc : env->curr;
   Vector v;
   M_Operator* mo;
-
-  if(opi->global)
-    nspc = env->global_nspc;
 
   if(!nspc->op_map.ptr)
     map_init(&nspc->op_map);
@@ -89,10 +86,10 @@ m_bool env_add_op(Env env, struct Op_Import* opi) {
   vector_add(v, (vtype)mo);
   if(opi->lhs)
     ADD_REF(opi->lhs)
-    if(opi->rhs)
-      ADD_REF(opi->rhs)
-      ADD_REF(opi->ret)
-      return 1;
+  if(opi->rhs)
+    ADD_REF(opi->rhs)
+  ADD_REF(opi->ret)
+  return 1;
 }
 
 static Type get_return_type_inner(Map map, struct Op_Import* opi) {
@@ -144,6 +141,7 @@ static Instr handle_instr(Emitter emit, M_Operator* mo) {
   CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return NULL;
 }
+
 Instr get_instr(Emitter emit, struct Op_Import* opi) {
   Nspc nspc = emit->env->curr;
 
