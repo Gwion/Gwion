@@ -205,7 +205,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
 
   mk_header "initialize source lists"
   do_expand "src"
-  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"lib_src := \\\$(wildcard src/lib/*.c)\"\necho \"oo_src := \\\$(wildcard src/oo/*.c)\"\necho \"ast_src := \\\$(wildcard src/ast/*.c)\"\necho \"parse_src := \\\$(wildcard src/parse/*.c)\"\necho \"ugen_src := \\\$(wildcard src/ugen/*.c)\"\necho \"util_src := \\\$(wildcard src/util/*.c)\"\necho \"drvr_src := src/drvr/driver.c\"\n"
+  printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"lib_src := \\\$(wildcard src/lib/*.c)\"\necho \"oo_src := \\\$(wildcard src/oo/*.c)\"\necho \"ast_src := \\\$(wildcard src/ast/*.c)\"\necho \"parse_src := \\\$(wildcard src/parse/*.c)\"\necho \"ugen_src := \\\$(wildcard src/ugen/*.c)\"\necho \"util_src := \\\$(wildcard src/util/*.c)\"\necho \"emit_src := \\\$(wildcard src/emit/*.c)\"\necho \"drvr_src := src/drvr/driver.c\"\n"
   echo "}"
 }
 
