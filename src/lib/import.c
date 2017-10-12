@@ -1,49 +1,27 @@
-#include <math.h>
 #include <string.h>
-#include <stdlib.h>
-#include <string.h>
-#include <dirent.h>
-#include <dlfcn.h>
 #include <ctype.h>
 #include "err_msg.h"
 #include "type.h"
-#include "instr.h"
-#include "import.h"
 #include "traverse.h"
-#include "lang_private.h"
+#include "import.h"
+#include "importer.h"
+
+
 #define CHECK_EB(a) if(!a) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 #define CHECK_EO(a) if(!a) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
 
-typedef struct {
-  m_str name;
-  m_str type;
-} DL_Value;
-
-typedef struct {
-  m_str    name;
-  m_str    type;
-  m_uint   addr;
-  m_uint   narg;
-  DL_Value args[DLARG_MAX];
-} DL_Func;
-
-typedef struct {
-  Operator op;
-  m_str ret, lhs, rhs;
-} DL_Oper;
-
-typedef struct {
-  m_uint n;
-  m_str* list;
-}Templater;
-
-struct Importer_{
-  Env env;
-  DL_Func func;
-  DL_Oper oper;
-  void* addr;
-  Templater templater;
+struct Path {
+  m_str path, curr;
+  m_uint len;
 };
+
+typedef struct {
+  Type_Decl t;
+  struct Var_Decl_List_ list;
+  struct Var_Decl_ var;
+  struct Exp_ exp;
+  m_uint array_depth;
+} DL_Var;
 
 static ID_List templater_def(Templater* templater) {
   m_uint i;
@@ -129,11 +107,6 @@ static void path_valid_inner(m_str curr) {
     curr[size - j - 1] = s;
   }
 }
-
-struct Path {
-  m_str path, curr;
-  m_uint len;
-};
 
 static m_bool path_valid(ID_List* list, struct Path* p) {
   char last = '\0';
@@ -244,14 +217,6 @@ static m_int import_class_end(Env env) {
 m_int importer_class_end(Importer importer) {
   return import_class_end(importer->env);
 }
-
-typedef struct {
-  Type_Decl t;
-  struct Var_Decl_List_ list;
-  struct Var_Decl_ var;
-  struct Exp_ exp;
-  m_uint array_depth;
-} DL_Var;
 
 static void dl_var_new_array(DL_Var* v) {
   v->t.array = new_array_sub(NULL, 0);
@@ -425,90 +390,3 @@ m_int importer_oper_end(Importer importer, Operator op, const f_instr f, const m
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {
   return env_add_value(importer->env, name, type, is_const, value);
 }
-
-static m_bool  import_libs(Importer importer) {
-  CHECK_BB(importer_add_type(importer, &t_void))
-  CHECK_BB(importer_add_type(importer, &t_null))
-  CHECK_BB(importer_add_type(importer, &t_now))
-  CHECK_BB(import_int(importer))
-  CHECK_BB(import_float(importer))
-  CHECK_BB(import_complex(importer))
-  CHECK_BB(import_vec3(importer))
-  CHECK_BB(import_vec4(importer))
-  CHECK_BB(import_object(importer))
-  CHECK_BB(import_vararg(importer))
-  CHECK_BB(import_string(importer))
-  CHECK_BB(import_shred(importer))
-  CHECK_BB(import_event(importer))
-  CHECK_BB(import_ugen(importer))
-  CHECK_BB(import_array(importer))
-  importer->env->type_xid = te_last;
-  CHECK_BB(import_fileio(importer))
-  CHECK_BB(import_std(importer))
-  CHECK_BB(import_math(importer))
-  CHECK_BB(import_machine(importer))
-  CHECK_BB(import_soundpipe(importer))
-  CHECK_BB(import_modules(importer))
-  return 1;
-}
-
-static int so_filter(const struct dirent* dir) {
-  return strstr(dir->d_name, ".so") ? 1 : 0;
-}
-
-static void handle_plug(Importer importer, m_str c) {
-  void* handler;
-  if((handler = dlopen(c, RTLD_LAZY))) {
-    m_bool(*import)(Importer) = (m_bool(*)(Importer))(intptr_t)dlsym(handler, "import");
-    if(import) {
-      if(import(importer) > 0)
-        vector_add(&vm->plug, (vtype)handler);
-      else {
-        env_pop_class(importer->env);
-        dlclose(handler);
-      }
-    } else {
-      const char* err = dlerror();
-      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
-        dlclose(handler);
-    }
-  } else {
-    const char* err = dlerror();
-    if(err_msg(TYPE_, 0, "error in %s.", err) < 0){}
-  }
-}
-
-static void add_plugs(Importer importer, Vector plug_dirs) {
-  m_uint i;
-   for(i = 0; i < vector_size(plug_dirs); i++) {
-    m_str dirname = (m_str)vector_at(plug_dirs, i);
-    struct dirent **namelist;
-    int n = scandir(dirname, &namelist, so_filter, alphasort);
-    if(n > 0) {
-      while(n--) {
-        char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
-        sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(importer, c);
-        free(namelist[n]);
-      }
-      free(namelist);
-    }
-  }
-}
-
-Env type_engine_init(VM* vm, Vector plug_dirs) {
-  Env env = new_env();
-  struct Importer_ importer = { env };
-  if(import_libs(&importer) < 0) {
-    free_env(env);
-    return NULL;
-  }
-  nspc_commit(env->global_nspc);
-  // user nspc
-  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
-  /*  env->user_nspc->parent = env->global_nspc;*/
-  add_plugs(&importer, plug_dirs);
-  nspc_commit(env->curr);
-  return env;
-}
-
