@@ -14,15 +14,15 @@ IMPORT
 {
   CHECK_BB(importer_class_begin(importer, &t_coverage, NULL, NULL))
   importer_func_begin(importer, "int", "i", (m_uint)coverage_int);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
   importer_func_begin(importer, "float", "f", (m_uint)coverage_float);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
   importer_func_begin(importer, "complex", "c", (m_uint)coverage_complex);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
   importer_func_begin(importer, "Vec3", "v", (m_uint)coverage_vec3);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
   importer_func_begin(importer, "Vec4", "w", (m_uint)coverage_vec4);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   m_uint* i = malloc(sizeof(m_uint));
   *i = 5;

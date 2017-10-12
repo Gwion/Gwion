@@ -11,7 +11,7 @@ IMPORT
 {
   CHECK_BB(importer_class_begin(importer, &t_invalid_var_type, NULL, NULL))
   importer_func_begin(importer, ".int", "i", (m_uint)test_mfun);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   CHECK_BB(importer_class_end(importer))
   return 1;

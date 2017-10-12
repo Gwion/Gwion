@@ -15,18 +15,18 @@ IMPORT
     importer_add_arg(importer, "int", "j[]");
     importer_add_arg(importer, "int[]", "k[]");
     importer_add_arg(importer, "int", "l");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "int[]", "func", (m_uint)test_mfun);
     importer_add_arg(importer, "int", "j[][]");
     importer_add_arg(importer, "int[]", "+k[][][]");
     importer_add_arg(importer, "int", "l");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "int[]", "func", (m_uint)test_mfun);
     importer_add_arg(importer, "+int", "j[][]");
     importer_add_arg(importer, "int[]", "+k[][][]");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   CHECK_BB(importer_class_end(importer))
   return 1;
