@@ -7,21 +7,13 @@
 #include "importer.h"
 
 
-#define CHECK_EB(a) if(!a) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
-#define CHECK_EO(a) if(!a) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between begin/end")) }
+#define CHECK_EB(a) if(!a) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between ini/end")) }
+#define CHECK_EO(a) if(!a) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between ini/end")) }
 
 struct Path {
   m_str path, curr;
   m_uint len;
 };
-
-typedef struct {
-  Type_Decl t;
-  struct Var_Decl_List_ list;
-  struct Var_Decl_ var;
-  struct Exp_ exp;
-  m_uint array_depth;
-} DL_Var;
 
 static ID_List templater_def(Templater* templater) {
   m_uint i;
@@ -61,21 +53,21 @@ static void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) 
   a->narg = 0;
 }
 
-m_int importer_func_begin(Importer importer, const m_str t, const m_str n, m_uint addr) {
+m_int importer_func_ini(Importer importer, const m_str t, const m_str n, m_uint addr) {
   dl_func_init(&importer->func, t, n, addr);
   return 1;
 }
 
-static void dl_func_add_arg(DL_Func* a, const m_str t, const m_str n) {
+static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
   a->args[a->narg].type = t;
   a->args[a->narg++].name = n;
 }
 
-m_int importer_add_arg(Importer importer, const m_str t, const m_str n) {
+m_int importer_func_arg(Importer importer, const m_str t, const m_str n) {
   if(importer->func.narg == DLARG_MAX - 1)
     CHECK_BB(err_msg(UTIL_, 0,
           "to many arguments for function '%s'.", importer->func.name))
-  dl_func_add_arg(&importer->func, t, n);
+  dl_func_func_arg(&importer->func, t, n);
   return 1;
 }
 
@@ -125,7 +117,7 @@ static m_bool path_valid(ID_List* list, struct Path* p) {
         memset(p->curr, 0, p->len + 1);
       } else
         CHECK_BB(err_msg(UTIL_,  0,
-              "path '%s' must not begin or end with '.'", p->path))
+              "path '%s' must not ini or end with '.'", p->path))
     }
     last = c;
   }
@@ -176,7 +168,7 @@ m_int importer_add_type(Importer importer, Type type) {
   return type->xid;
 }
 
-static m_bool import_class_begin(Env env, Type type, f_xtor pre_ctor, f_xtor dtor) {
+static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor) {
   type->info = new_nspc(type->name, "global_nspc");
   type->info->parent = env->curr;
   if(pre_ctor)
@@ -193,7 +185,7 @@ static m_bool import_class_begin(Env env, Type type, f_xtor pre_ctor, f_xtor dto
   return 1;
 }
 
-m_int importer_class_begin(Importer importer, Type type, f_xtor pre_ctor, f_xtor dtor) {
+m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(importer->templater.n) {
@@ -202,7 +194,7 @@ m_int importer_class_begin(Importer importer, Type type, f_xtor pre_ctor, f_xtor
     SET_FLAG(type, ae_flag_template);
   }
   CHECK_BB(importer_add_type(importer, type))
-  CHECK_BB(import_class_begin(importer->env, type, pre_ctor, dtor))
+  CHECK_BB(import_class_ini(importer->env, type, pre_ctor, dtor))
   return type->xid;
 }
 
@@ -245,23 +237,28 @@ static void dl_var_release(DL_Var* v) {
   free(v->t.xid);
 }
 
-m_int importer_add_var(Importer importer, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
-  DL_Var v;
-
+m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
+  DL_Var* v = &importer->var;
   CHECK_EB(importer->env->class_def)
-  memset(&v, 0, sizeof(DL_Var));
-  if(!(v.t.xid = str2list(type, &v.array_depth)))
+  memset(v, 0, sizeof(DL_Var));
+  if(!(v->t.xid = str2list(type, &v->array_depth)))
     CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...",
           importer->env->class_def->name, name))
-  dl_var_set(&v, flag);
-  v.var.xid = insert_symbol(name);
-  v.var.addr = (void*)addr;
+  v->var.xid = insert_symbol(name);
+  return 1;
+}
+
+m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
+  DL_Var* v = &importer->var;
+  CHECK_EB(importer->env->class_def)
+  dl_var_set(v, flag);
+  v->var.addr = (void*)addr;
   if(importer->templater.n)
-    v.exp.d.exp_decl.types = templater_call(&importer->templater);
-  if(traverse_decl(importer->env, &v.exp.d.exp_decl) < 0)
-    v.var.value->offset = -1;
-  dl_var_release(&v);
-  return v.var.value->offset;
+    v->exp.d.exp_decl.types = templater_call(&importer->templater);
+  if(traverse_decl(importer->env, &v->exp.d.exp_decl) < 0)
+    v->var.value->offset = -1;
+  dl_var_release(v);
+  return v->var.value->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
@@ -375,7 +372,7 @@ static m_int import_op(Env env, DL_Oper* op,
   return env_add_op(env, &opi);
 }
 
-m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const m_str t) {
+m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m_str t) {
   importer->oper.ret = t;
   importer->oper.rhs = r;
   importer->oper.lhs = l;

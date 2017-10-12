@@ -104,22 +104,22 @@ static SFUN(machine_shreds) {
 }
 
 m_bool import_machine(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_machine, NULL, NULL))
-  importer_func_begin(importer, "void",  "add", (m_uint)machine_add);
-  importer_add_arg(importer,       "string",  "filename");
+  CHECK_BB(importer_class_ini(importer,  &t_machine, NULL, NULL))
+  importer_func_ini(importer, "void",  "add", (m_uint)machine_add);
+  importer_func_arg(importer,       "string",  "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int[]", "shreds", (m_uint)machine_shreds);
+  importer_func_ini(importer, "int[]", "shreds", (m_uint)machine_shreds);
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int",  "check", (m_uint)machine_check);
-  importer_add_arg(importer,      "string",  "prefix");
-  importer_add_arg(importer,      "string",  "code");
+  importer_func_ini(importer, "int",  "check", (m_uint)machine_check);
+  importer_func_arg(importer,      "string",  "prefix");
+  importer_func_arg(importer,      "string",  "code");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "void", "compile", (m_uint)machine_compile);
-  importer_add_arg(importer,      "string",  "prefix");
-  importer_add_arg(importer,      "string",  "filename");
+  importer_func_ini(importer, "void", "compile", (m_uint)machine_compile);
+  importer_func_arg(importer,      "string",  "prefix");
+  importer_func_arg(importer,      "string",  "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   CHECK_BB(importer_class_end(importer))

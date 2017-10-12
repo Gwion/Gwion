@@ -272,7 +272,7 @@ static INSTR(int_rsxor) {
 
 m_bool import_int(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_int))
-    CHECK_BB(importer_oper_begin(importer, "int", "int", "int"))
+    CHECK_BB(importer_oper_ini(importer, "int", "int", "int"))
     CHECK_BB(importer_oper_end(importer, op_assign,       int_assign,     0))
     CHECK_BB(importer_oper_end(importer, op_plus,         int_plus,       0))
     CHECK_BB(importer_oper_end(importer, op_minus,        int_minus,      0))
@@ -311,12 +311,12 @@ m_bool import_int(Importer importer) {
     CHECK_BB(importer_oper_end(importer, op_rsand,        int_rsand,      0))
     CHECK_BB(importer_oper_end(importer, op_rsor,         int_rsor,       0))
     CHECK_BB(importer_oper_end(importer, op_rsxor, 			 int_rsxor,      0))
-    CHECK_BB(importer_oper_begin(importer, NULL, "int", "int"))
+    CHECK_BB(importer_oper_ini(importer, NULL, "int", "int"))
     CHECK_BB(importer_oper_end(importer, op_minus,       int_negate,     0))
     CHECK_BB(importer_oper_end(importer, op_exclamation, int_not,        0))
     CHECK_BB(importer_oper_end(importer, op_plusplus,    int_pre_inc,    0))
     CHECK_BB(importer_oper_end(importer, op_minusminus,  int_pre_dec,    0))
-    CHECK_BB(importer_oper_begin(importer, "int", NULL, "int"))
+    CHECK_BB(importer_oper_ini(importer, "int", NULL, "int"))
     CHECK_BB(importer_oper_end(importer, op_plusplus,    int_post_inc,   0))
     CHECK_BB(importer_oper_end(importer, op_minusminus,  int_post_dec,   0))
     return 1;

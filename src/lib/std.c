@@ -185,91 +185,91 @@ static SFUN(std_lintodb) {
 }
 
 m_bool import_std(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_std, NULL, NULL))
+  CHECK_BB(importer_class_ini(importer,  &t_std, NULL, NULL))
 
-  importer_func_begin(importer, "int", "clamp", (m_uint)std_clamp);
-  importer_add_arg(importer, "int", "value");
-  importer_add_arg(importer, "int", "min");
-  importer_add_arg(importer, "int", "max");
+  importer_func_ini(importer, "int", "clamp", (m_uint)std_clamp);
+  importer_func_arg(importer, "int", "value");
+  importer_func_arg(importer, "int", "min");
+  importer_func_arg(importer, "int", "max");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "clampf", (m_uint)std_clampf);
-  importer_add_arg(importer, "float", "value");
-  importer_add_arg(importer, "float", "min");
-  importer_add_arg(importer, "float", "max");
+  importer_func_ini(importer, "float", "clampf", (m_uint)std_clampf);
+  importer_func_arg(importer, "float", "value");
+  importer_func_arg(importer, "float", "min");
+  importer_func_arg(importer, "float", "max");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "scale", (m_uint)std_scale);
-  importer_add_arg(importer, "float", "value");
-  importer_add_arg(importer, "float", "srcmin");
-  importer_add_arg(importer, "float", "srcmax");
-  importer_add_arg(importer, "float", "dstmin");
-  importer_add_arg(importer, "float", "dstmax");
+  importer_func_ini(importer, "float", "scale", (m_uint)std_scale);
+  importer_func_arg(importer, "float", "value");
+  importer_func_arg(importer, "float", "srcmin");
+  importer_func_arg(importer, "float", "srcmax");
+  importer_func_arg(importer, "float", "dstmin");
+  importer_func_arg(importer, "float", "dstmax");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int", "system", (m_uint)std_system);
-  importer_add_arg(importer, "string", "cmd");
+  importer_func_ini(importer, "int", "system", (m_uint)std_system);
+  importer_func_arg(importer, "string", "cmd");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "string", "getenv", (m_uint)std_getenv);
-  importer_add_arg(importer, "string", "key");
+  importer_func_ini(importer, "string", "getenv", (m_uint)std_getenv);
+  importer_func_arg(importer, "string", "key");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int", "setenv", (m_uint)std_setenv);
-  importer_add_arg(importer, "string", "key");
-  importer_add_arg(importer, "string", "value");
+  importer_func_ini(importer, "int", "setenv", (m_uint)std_setenv);
+  importer_func_arg(importer, "string", "key");
+  importer_func_arg(importer, "string", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int", "atoi", (m_uint)std_atoi);
-  importer_add_arg(importer, "string", "value");
+  importer_func_ini(importer, "int", "atoi", (m_uint)std_atoi);
+  importer_func_arg(importer, "string", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "atof", (m_uint)std_atof);
-  importer_add_arg(importer, "string", "value");
+  importer_func_ini(importer, "float", "atof", (m_uint)std_atof);
+  importer_func_arg(importer, "string", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "string", "itoa", (m_uint)std_itoa);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "string", "itoa", (m_uint)std_itoa);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "string", "ftoa", (m_uint)std_ftoa);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "string", "ftoa", (m_uint)std_ftoa);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "int", "ftoi", (m_uint)std_ftoi);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "int", "ftoi", (m_uint)std_ftoi);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "mtof", (m_uint)std_mtof);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "mtof", (m_uint)std_mtof);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "ftom", (m_uint)std_ftom);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "ftom", (m_uint)std_ftom);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "powtodb", (m_uint)std_powtodb);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "powtodb", (m_uint)std_powtodb);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "rmstodb", (m_uint)std_rmstodb);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "rmstodb", (m_uint)std_rmstodb);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "dbtopow", (m_uint)std_dbtopow);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "dbtopow", (m_uint)std_dbtopow);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "dbtorms", (m_uint)std_dbtorms);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "dbtorms", (m_uint)std_dbtorms);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "dbtolin", (m_uint)std_dbtolin);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "dbtolin", (m_uint)std_dbtolin);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_begin(importer, "float", "lintodb", (m_uint)std_lintodb);
-  importer_add_arg(importer, "float", "value");
+  importer_func_ini(importer, "float", "lintodb", (m_uint)std_lintodb);
+  importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
   CHECK_BB(importer_class_end(importer))
 

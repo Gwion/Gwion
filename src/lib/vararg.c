@@ -125,18 +125,29 @@ INSTR(Vararg_Vec4) {
 m_bool import_vararg(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_varobj))
   CHECK_BB(importer_add_type(importer,  &t_varloop))
-  CHECK_BB(importer_class_begin(importer,  &t_vararg, NULL, NULL))
-  importer_add_var(importer,  "@VarLoop",  "start", ae_flag_const, NULL);
-  importer_add_var(importer,  "@VarLoop",  "end",   ae_flag_const, NULL);
-  importer_add_var(importer,  "int",       "i",     ae_flag_const, NULL);
-  importer_add_var(importer,  "float",     "f",     ae_flag_const, NULL);
-  importer_add_var(importer,  "time",      "t",     ae_flag_const, NULL);
-  importer_add_var(importer,  "dur",       "d",     ae_flag_const, NULL);
-  importer_add_var(importer,  "complex",   "c",     ae_flag_const, NULL);
-  importer_add_var(importer,  "polar",     "p",     ae_flag_const, NULL);
-  importer_add_var(importer,  "Vec3",      "v3",    ae_flag_const, NULL);
-  importer_add_var(importer,  "Vec4",      "v4",    ae_flag_const, NULL);
-  importer_add_var(importer,  "VarObject", "o",     ae_flag_const, NULL);
+  CHECK_BB(importer_class_ini(importer,  &t_vararg, NULL, NULL))
+	importer_item_ini(importer, "@VarLoop",  "start");
+  importer_item_end(importer, ae_flag_const, NULL);
+	importer_item_ini(importer, "@VarLoop",  "end");
+  importer_item_end(importer,   ae_flag_const, NULL);
+	importer_item_ini(importer, "int",       "i");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "float",     "f");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "time",      "t");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "dur",       "d");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "complex",   "c");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "polar",     "p");
+  importer_item_end(importer,     ae_flag_const, NULL);
+	importer_item_ini(importer, "Vec3",      "v3");
+  importer_item_end(importer,    ae_flag_const, NULL);
+	importer_item_ini(importer, "Vec4",      "v4");
+  importer_item_end(importer,    ae_flag_const, NULL);
+	importer_item_ini(importer, "VarObject", "o");
+  importer_item_end(importer,     ae_flag_const, NULL);
   CHECK_BB(importer_class_end(importer))
   return 1;
 }

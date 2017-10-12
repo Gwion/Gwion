@@ -137,21 +137,21 @@ static INSTR(neq_Object) {
 }
 
 m_bool import_object(Importer importer) {
-  CHECK_BB(importer_class_begin(importer, &t_object, NULL, object_dtor))
-  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "Object"))
+  CHECK_BB(importer_class_ini(importer, &t_object, NULL, object_dtor))
+  CHECK_BB(importer_oper_ini(importer, "@null", "Object", "Object"))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "Object"))
+  CHECK_BB(importer_oper_ini(importer, "Object", "Object", "Object"))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "int"))
+  CHECK_BB(importer_oper_ini(importer, "Object", "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "int"))
+  CHECK_BB(importer_oper_ini(importer, "@null", "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "@null", "int"))
+  CHECK_BB(importer_oper_ini(importer, "Object", "@null", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq, eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, NULL, "Object", "int"))
+  CHECK_BB(importer_oper_ini(importer, NULL, "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_exclamation, int_not, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;

@@ -237,54 +237,55 @@ SFUN(file_list) {
 }
 
 m_bool import_fileio(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_fileio, fileio_ctor, fileio_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_fileio, fileio_ctor, fileio_dtor))
 
   // import vars
-  o_fileio_file = importer_add_var(importer,  "int", "@file", ae_flag_member, NULL);
+	importer_item_ini(importer, "int", "@file");
+  o_fileio_file = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  importer_func_begin(importer, "int", "nl", (m_uint)file_nl);
+  importer_func_ini(importer, "int", "nl", (m_uint)file_nl);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_begin(importer, "int", "open", (m_uint)file_open);
-  importer_add_arg(importer, "string", "filename");
-  importer_add_arg(importer, "string", "mode");
+  importer_func_ini(importer, "int", "open", (m_uint)file_open);
+  importer_func_arg(importer, "string", "filename");
+  importer_func_arg(importer, "string", "mode");
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_begin(importer, "int", "close", (m_uint)file_close);
+  importer_func_ini(importer, "int", "close", (m_uint)file_close);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_begin(importer, "int", "remove", (m_uint)file_remove);
-  importer_add_arg(importer, "string", "filename");
+  importer_func_ini(importer, "int", "remove", (m_uint)file_remove);
+  importer_func_arg(importer, "string", "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
-  importer_func_begin(importer, "string[]", "list", (m_uint)file_list);
-  importer_add_arg(importer, "string", "filename");
+  importer_func_ini(importer, "string[]", "list", (m_uint)file_list);
+  importer_func_arg(importer, "string", "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   // import operators
-  CHECK_BB(importer_oper_begin(importer, "int",    "FileIO", "FileIO"))
+  CHECK_BB(importer_oper_ini(importer, "int",    "FileIO", "FileIO"))
   CHECK_BB(importer_oper_end(importer, op_chuck, int_to_file, 1))
-  CHECK_BB(importer_oper_begin(importer, "float",  "FileIO", "FileIO"))
+  CHECK_BB(importer_oper_ini(importer, "float",  "FileIO", "FileIO"))
   CHECK_BB(importer_oper_end(importer, op_chuck, float_to_file, 1))
-  CHECK_BB(importer_oper_begin(importer,"string", "FileIO", "FileIO"))
+  CHECK_BB(importer_oper_ini(importer,"string", "FileIO", "FileIO"))
   CHECK_BB(importer_oper_end(importer, op_chuck, string_to_file, 1))
-  CHECK_BB(importer_oper_begin(importer,"Object", "FileIO", "FileIO"))
+  CHECK_BB(importer_oper_ini(importer,"Object", "FileIO", "FileIO"))
   CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file, 1))
-  CHECK_BB(importer_oper_begin(importer,"@null",  "FileIO", "FileIO"))
+  CHECK_BB(importer_oper_ini(importer,"@null",  "FileIO", "FileIO"))
   CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file, 1))
-  CHECK_BB(importer_oper_begin(importer, "FileIO", "string", "string"))
+  CHECK_BB(importer_oper_ini(importer, "FileIO", "string", "string"))
   CHECK_BB(importer_oper_end(importer, op_chuck, file_to_string, 1))
-  CHECK_BB(importer_oper_begin(importer, "FileIO", "int",    "int"))
+  CHECK_BB(importer_oper_ini(importer, "FileIO", "int",    "int"))
   CHECK_BB(importer_oper_end(importer, op_chuck, file_to_int, 1))
-  CHECK_BB(importer_oper_begin(importer, "FileIO", "float",  "float"))
+  CHECK_BB(importer_oper_ini(importer, "FileIO", "float",  "float"))
   CHECK_BB(importer_oper_end(importer, op_chuck, file_to_float, 1))
   CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(importer_class_begin(importer,  &t_cout, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_cout, NULL, static_fileio_dtor))
   CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(importer_class_begin(importer,  &t_cerr, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_cerr, NULL, static_fileio_dtor))
   CHECK_BB(importer_class_end(importer))
 
-  CHECK_BB(importer_class_begin(importer,  &t_cin, NULL, static_fileio_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_cin, NULL, static_fileio_dtor))
   CHECK_BB(importer_class_end(importer))
 
   gw_cin = new_M_Object(NULL);

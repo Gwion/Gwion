@@ -221,22 +221,23 @@ INSTR(Array_Append) {
 }
 
 m_bool import_array(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_array, NULL, array_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
 
-  o_object_array = importer_add_var(importer,  "int", "@array", ae_flag_member, NULL);
+	importer_item_ini(importer, "int", "@array");
+  o_object_array = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_object_array)
 
-  importer_func_begin(importer, "int", "size", (m_uint)vm_vector_size);
+  importer_func_ini(importer, "int", "size", (m_uint)vm_vector_size);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "depth", (m_uint)vm_vector_depth);
+  importer_func_ini(importer, "int", "depth", (m_uint)vm_vector_depth);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "cap", (m_uint)vm_vector_cap);
+  importer_func_ini(importer, "int", "cap", (m_uint)vm_vector_cap);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "remove", (m_uint)vm_vector_rem);
-  importer_add_arg(importer, "int", "index");
+  importer_func_ini(importer, "int", "remove", (m_uint)vm_vector_rem);
+  importer_func_arg(importer, "int", "index");
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
