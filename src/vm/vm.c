@@ -1,6 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <dlfcn.h>
 #include "vm.h"
 #include "type.h"
@@ -10,20 +8,6 @@
 
 Shreduler new_shreduler(VM* vm);
 Shreduler free_shreduler(Shreduler s);
-
-m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
-  di->func(d, vm);
-  if(d->ini(vm, di) < 0)
-    return -1; // LCOV_EXCL_LINE
-  sp_createn(&vm->sp, di->out);
-  free(vm->sp->out);
-  vm->sp->out   = calloc(di->out, sizeof(SPFLOAT));
-  vm->in   = calloc(di->in, sizeof(SPFLOAT));
-  vm->n_in = di->in;
-  vm->sp->sr = di->sr;
-  sp_srand(vm->sp, time(NULL));
-  return 1;
-}
 
 VM* new_vm(m_bool loop) {
   VM* vm         = (VM*)calloc(1, sizeof(VM));

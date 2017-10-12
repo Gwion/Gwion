@@ -1,8 +1,23 @@
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
+#include <time.h>
 #include <stdio.h>
 #include "vm.h"
 #include "driver.h"
+
+m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
+  di->func(d, vm);
+  if(d->ini(vm, di) < 0)
+    return -1; // LCOV_EXCL_LINE
+  sp_createn(&vm->sp, di->out);
+  vm->sp->out   = realloc(vm->sp->out, di->out * sizeof(SPFLOAT));
+  vm->in   = calloc(di->in, sizeof(SPFLOAT));
+  vm->n_in = di->in;
+  vm->sp->sr = di->sr;
+  sp_srand(vm->sp, time(NULL));
+  return 1;
+}
 
 void free_driver(Driver* d, VM* vm) {
   if(d->del)
