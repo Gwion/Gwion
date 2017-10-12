@@ -61,6 +61,26 @@ static m_bool Recv(int i, char* buf) {
 #endif
   return -1;
 }
+void udp_do(VM* vm) {
+  m_uint i;
+  if(!state)
+    return;
+  if(state == -1) {
+    shreduler_set_loop(vm->shreduler, 0);
+  } else if(state == 1) {
+    shreduler_set_loop(vm->shreduler, 1);
+  }
+  for(i = 0; i < vector_size(&add); i++) {
+    m_str filename = (m_str)vector_at(&add, i);
+    compile(vm, filename);
+    free(filename);
+  }
+  for(i = 0; i < vector_size(&rem); i++)
+    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(&rem, i), 1);
+  vector_clear(&add);
+  vector_clear(&rem);
+  state = 0;
+}
 
 void* server_thread(void* data) {
   VM* vm = (VM*)data;
@@ -92,6 +112,9 @@ void* server_thread(void* data) {
       else
         state = 1;
     }
+pthread_mutex_lock(&vm->mutex);
+udp_do(vm);
+pthread_mutex_unlock(&vm->mutex);
   }
   return NULL;
 }
@@ -145,25 +168,4 @@ void server_destroy(pthread_t t) {
   shutdown(sock, SHUT_RDWR);
   vector_release(&add);
   vector_release(&rem);
-}
-
-void udp_do(VM* vm) {
-  m_uint i;
-  if(!state)
-    return;
-  if(state == -1) {
-    shreduler_set_loop(vm->shreduler, 0);
-  } else if(state == 1) {
-    shreduler_set_loop(vm->shreduler, 1);
-  }
-  for(i = 0; i < vector_size(&add); i++) {
-    m_str filename = (m_str)vector_at(&add, i);
-    compile(vm, filename);
-    free(filename);
-  }
-  for(i = 0; i < vector_size(&rem); i++)
-    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(&rem, i), 1);
-  vector_clear(&add);
-  vector_clear(&rem);
-  state = 0;
 }

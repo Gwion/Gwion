@@ -1,16 +1,20 @@
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <pthread.h>
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
 #include "ugen.h"
-#include "driver.h"
 
 Shreduler new_shreduler(VM* vm);
 Shreduler free_shreduler(Shreduler s);
 
 VM* new_vm(m_bool loop) {
-  VM* vm         = (VM*)calloc(1, sizeof(VM));
+  VM* vm = (VM*)calloc(1, sizeof(VM));
+  if(pthread_mutex_init(&vm->mutex, NULL)) {
+    free(vm);
+    return NULL;
+  }
   vm->shreduler  = new_shreduler(vm);
   vector_init(&vm->shred);
   vector_init(&vm->ugen);
@@ -86,6 +90,5 @@ void vm_run(VM* vm) {
     vm_run_shred(vm, shred);
   if(!vm->is_running)
     return;
-  udp_do(vm);
   vm_ugen_init(vm);
 }

@@ -45,6 +45,7 @@ typedef struct {
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Vector_ plug;
+  pthread_mutex_t mutex;
   m_bool is_running;
 } VM;
 
