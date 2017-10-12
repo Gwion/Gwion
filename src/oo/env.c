@@ -2,6 +2,7 @@
 #include "env.h"
 #include "context.h"
 #include "type.h"
+#include "traverse.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
@@ -96,3 +97,52 @@ m_bool env_add_type(Env env, Type type) {
     type->xid = ++env->type_xid;
   return 1;
 }
+
+Map env_label(Env env) {
+  return &env->context->label;
+}
+
+Nspc env_nspc(Env env) {
+  return env->context->nspc;
+}
+
+Class_Def env_class_def(Env env, Class_Def def) {
+  if(def)
+    env->context->public_class_def = def;
+  return env->context->public_class_def;
+}
+
+m_str env_filename(Env env) {
+  return env->context->filename;
+}
+
+m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
+  m_bool ret;
+  Context context = new_context(ast, filename);
+  env_reset(env);
+  CHECK_BB(load_context(context, env))
+  ret = traverse_ast(env, ast);
+  if(ret > 0) {
+    nspc_commit(env->curr);
+    vector_add(&env->known_ctx, (vtype)context);
+  } // else { nspc_rollback(env->global_nspc); }
+  CHECK_BB(unload_context(context, env)) // no real need to check that
+  if(ret < 0) {
+    free_ast(ast);
+    REM_REF(context);
+    free(filename);
+  }
+  return ret;
+}
+
+extern m_bool add_op(Nspc nspc, struct Op_Import* opi);
+
+m_bool env_add_op(Env env, struct Op_Import* opi) {
+  Nspc nspc = opi->global ? env->global_nspc : env->curr;
+
+  if(!nspc->op_map.ptr)
+    map_init(&nspc->op_map);
+  CHECK_BB(add_op(nspc, opi))
+  return 1;
+}
+

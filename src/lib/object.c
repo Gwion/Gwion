@@ -39,11 +39,22 @@ m_bool initialize_object(M_Object object, Type type) {
   return 1;
 }
 
+void instantiate_object(VM * vm, VM_Shred shred, Type type) {
+  M_Object object = new_M_Object(NULL);
+  if(!object) Except(shred, "NullPtrException");
+  initialize_object(object, type);
+  *(M_Object*)REG(0) =  object;
+  PUSH_REG(shred,  SZ_INT);
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "instantiate object (internal)%p %s", object, type->name);
+#endif
+  return;
+}
+
 static void handle_dtor(Type t, VM_Shred shred) {
   VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
        "[dtor]", "[in code dtor exec]");
   VM_Shred sh = new_vm_shred(code);
-  sh->me = new_shred(shred->vm_ref, sh);
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
@@ -126,22 +137,22 @@ static INSTR(neq_Object) {
 }
 
 m_bool import_object(Importer importer) {
-  CHECK_BB(importer_class_begin(importer, &t_object, NULL, object_dtor))
-  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "Object"))
-  CHECK_BB(importer_add_op(importer, op_at_chuck, Assign_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "Object"))
-  CHECK_BB(importer_add_op(importer, op_at_chuck, Assign_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "Object", "int"))
-  CHECK_BB(importer_add_op(importer, op_eq,  eq_Object, 1))
-  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "@null", "Object", "int"))
-  CHECK_BB(importer_add_op(importer, op_eq,  eq_Object, 1))
-  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, "Object", "@null", "int"))
-  CHECK_BB(importer_add_op(importer, op_eq, eq_Object, 1))
-  CHECK_BB(importer_add_op(importer, op_neq, neq_Object, 1))
-  CHECK_BB(importer_oper_begin(importer, NULL, "Object", "int"))
-  CHECK_BB(importer_add_op(importer, op_exclamation, int_not, 1))
+  CHECK_BB(importer_class_ini(importer, &t_object, NULL, object_dtor))
+  CHECK_BB(importer_oper_ini(importer, "@null", "Object", "Object"))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
+  CHECK_BB(importer_oper_ini(importer, "Object", "Object", "Object"))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
+  CHECK_BB(importer_oper_ini(importer, "Object", "Object", "int"))
+  CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
+  CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_ini(importer, "@null", "Object", "int"))
+  CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
+  CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_ini(importer, "Object", "@null", "int"))
+  CHECK_BB(importer_oper_end(importer, op_eq, eq_Object, 1))
+  CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_ini(importer, NULL, "Object", "int"))
+  CHECK_BB(importer_oper_end(importer, op_exclamation, int_not, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }

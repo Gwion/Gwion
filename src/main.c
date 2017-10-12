@@ -34,7 +34,6 @@ static void sig(int unused) {
 }
 
 m_bool compile(VM* vm, const m_str filename) {
-  m_bool ret = 1;
   VM_Shred shred;
   VM_Code  code;
   Ast      ast;
@@ -53,8 +52,8 @@ m_bool compile(VM* vm, const m_str filename) {
     return -1;
   }
   if(!(ast = parse(name))) {
-    ret = -1;
-    goto clean;
+    free(name);
+    return -1;
   }
   CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
   CHECK_BB(emit_ast(vm->emit, ast, name))
@@ -65,11 +64,9 @@ m_bool compile(VM* vm, const m_str filename) {
   free_ast(ast);
   shred = new_vm_shred(code);
   shred->args = args;
-  shred->me = new_shred(vm, shred);
   vm_add_shred(vm, shred);
-clean:
   free(name);
-  return ret;
+  return -1;
 }
 
 static const struct option long_option[] = {

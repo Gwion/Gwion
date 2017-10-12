@@ -9,7 +9,6 @@ typedef void (*f_xtor)(M_Object o, VM_Shred sh);
 typedef void (*f_mfun)(M_Object o, char* RETURN, VM_Shred sh);
 typedef void (*f_sfun)(char* RETURN, VM_Shred sh);
 typedef struct Importer_* Importer;
-void importer_add_arg(Importer importer, const m_str t, const m_str  n);
 
 #define MFUN(a) void a(M_Object o, char* RETURN, VM_Shred shred)
 #define SFUN(a) void a(char* RETURN, VM_Shred shred)
@@ -19,13 +18,20 @@ void importer_add_arg(Importer importer, const m_str t, const m_str  n);
 #define IMPORT m_bool import(Importer importer)
 #define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c
 
-m_int importer_class_begin(Importer importer, Type type, const f_xtor pre_ctor, const f_xtor dtor);
-m_int importer_add_var(Importer importer, const m_str type, const m_str name, ae_flag flag, m_uint* addr);
-void importer_func_begin(Importer importer, const m_str type, const m_str name, m_uint addr);
-
-m_int importer_add_fun(Importer importer, ae_flag flag);
-m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const m_str t);
-m_int importer_add_op(Importer importer, const Operator op, const f_instr f, const m_bool global);
-m_int importer_class_end(Importer importer);
 m_int importer_add_type(Importer importer, Type type);
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* data);
+
+
+m_int importer_class_ini(Importer importer, Type type, const f_xtor pre_ctor, const f_xtor dtor);
+m_int importer_class_end(Importer importer);
+
+m_int importer_item_ini(Importer importer, const m_str type, const m_str name);
+m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr);
+
+m_int importer_func_ini(Importer importer, const m_str type, const m_str name, m_uint addr);
+m_int importer_func_arg(Importer importer, const m_str t, const m_str  n);
+m_int importer_func_end(Importer importer, const ae_flag flag);
+
+m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m_str t);
+m_int importer_oper_end(Importer importer, const Operator op, const f_instr f, const m_bool global);
+

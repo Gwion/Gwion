@@ -1,7 +1,6 @@
 #include "string.h"
 #include "err_msg.h"
 #include "absyn.h"
-#include "context.h"
 #include "type.h"
 #include "func.h"
 
@@ -23,7 +22,7 @@ static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
   t->owner = env->curr;
   t->array_depth = 0;
   t->size = SZ_INT;
-  t->info = new_nspc(name, env->context->filename);
+  t->info = new_nspc(name, env_filename(env));
   nspc_add_type(env->curr, ptr->xid, t);
   type = type_copy(env, &t_class);
   type->d.actual_type = t;
@@ -54,12 +53,12 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
 
 static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
   if(class_def->decl == ae_flag_public) {
-    if(env->context->public_class_def) {
+    if(env_class_def(env, NULL)) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
                        "more than one 'public' class defined..."))
     }
     class_def->home = env->global_nspc; // migth be user
-    env->context->public_class_def = class_def;
+    env_class_def(env, class_def);
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = class_def->home;
   }
@@ -86,9 +85,9 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->owner = env->curr;
   the_class->array_depth = 0;
   the_class->size = SZ_INT;
-  the_class->info = new_nspc(the_class->name, env->context->filename);
-  the_class->info->parent = env->context->public_class_def == class_def ?
-    env->context->nspc : env->curr;
+  the_class->info = new_nspc(the_class->name, env_filename(env));
+  the_class->info->parent = env_class_def(env, NULL) == class_def ?
+    env_nspc(env) : env->curr;
   the_class->d.func = NULL;
   the_class->def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
@@ -821,7 +820,6 @@ static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
 }
 
 static m_bool scan2_exp_array(Env env, Exp_Array* array) {
-  CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan2_exp(env, array->base))
   CHECK_BB(scan2_exp(env, array->indices->exp_list))
   return 1;
@@ -1033,15 +1031,14 @@ static m_bool scan2_stmt_case(Env env, Stmt_Case stmt) {
 }
 
 static Map scan2_label_map(Env env, Stmt_Goto_Label stmt) {
-  Map m;
+  Map m, label = env_label(env);
   m_uint* key = env->class_def && !env->func ?
     (m_uint*)env->class_def : (m_uint*)env->func;
-  if(!env->context->label.ptr)
-    map_init(&env->context->label);
-  m = (Map)map_get(&env->context->label, (vtype)key);
-   if(!m) {
+  if(!label->ptr)
+    map_init(label);
+  if(!(m = (Map)map_get(label, (vtype)key))) {
     m = new_map();
-    map_set(&env->context->label, (vtype)key, (vtype)m);
+    map_set(label, (vtype)key, (vtype)m);
   }
   return m;
 }

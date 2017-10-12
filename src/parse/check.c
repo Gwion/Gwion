@@ -5,7 +5,6 @@
 #include <inttypes.h>
 #include "err_msg.h"
 #include "type.h"
-#include "context.h"
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
@@ -363,7 +362,6 @@ Type check_exp_array(Env env, Exp_Array* array) {
   Type t_base, t;
   m_uint depth;
 
-  CHECK_BO(verify_array(array->indices))
   CHECK_OO((t_base = check_exp(env, array->base)))
 
   if(array->indices->depth > t_base->array_depth)
@@ -490,11 +488,11 @@ static Func find_func_match(Func up, Exp args) {
   return NULL;
 }
 
-static m_bool find_template_match_inner(Env env, Exp func, Func_Def def, Exp args) {
+static m_bool find_template_match_inner(Env env, Exp_Func* exp, Func_Def def) {
   m_bool ret = traverse_func_def(env, def);
   nspc_pop_type(env->curr);
-  if(ret < 0 || !check_exp(env, func) ||
-     (args  && !check_exp(env, args)))
+  if(ret < 0 || !check_exp(env, exp->func) ||
+     (exp->args  && !check_exp(env, exp->args)))
     return -1;
   return 1;
 }
@@ -508,9 +506,10 @@ static m_bool template_set_env(Env env, Value v) {
   return 1;
 }
 
-Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) {
+Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   Exp func = exp_func->func;
   Exp args = exp_func->args;
+  Type_List types = exp_func->types;
   Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   Func_Def base;
@@ -534,7 +533,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func, Type_List types) 
                                 base->arg_list, base->code, func->pos);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->types, types))
-    if(find_template_match_inner(env, func, def, args) < 0)
+    if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
     def->d.func->next = NULL;
     m_func = find_func_match(def->d.func, args);
@@ -621,7 +620,7 @@ static m_uint get_type_number(ID_List list) {
 }
 
 static Func get_template_func(Env env, Exp_Func* func, Value v) {
-  Func f = find_template_match(env, v, func, func->types);
+  Func f = find_template_match(env, v, func);
   if(f) {
     env->current->types = func->types;
     env->current->base = v->func_ref->def->types;
@@ -1042,9 +1041,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
                          "template call of non-template function."))
       } else
       CHECK_BO(err_msg(TYPE_, call->pos, "invalid template call."))
-//    if(!(ret = find_template_match(env, v,
-//                                   call->m_func, call->types, call->func, call->args)))
-    if(!(ret = find_template_match(env, v, call, call->types)))
+    if(!(ret = find_template_match(env, v, call)))
       CHECK_BO(err_msg(TYPE_, call->pos,
                        "arguments do not match for template call"))
       call->m_func = ret;
@@ -1434,13 +1431,13 @@ static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
 }
 
 static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
-  Map m;
+  Map m, label = env_label(env);
   m_uint* key = env->class_def && !env->func ?
                 (m_uint*)env->class_def : (m_uint*)env->func;
   Stmt_Goto_Label ref;
   if(stmt->is_label)
     return 1;
-  if(!(m = env->context->label.ptr ? (Map)map_get(&env->context->label, (vtype)key) : NULL))
+  if(!(m = label->ptr ? (Map)map_get(label, (vtype)key) : NULL))
     CHECK_BB(err_msg(TYPE_, stmt->pos,
                      "label '%s' used but not defined", s_name(stmt->name)))
     if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
@@ -1767,23 +1764,4 @@ m_bool check_ast(Env env, Ast ast) {
     ast = ast->next;
   }
   return 1;
-}
-
-m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
-  m_bool ret;
-  Context context = new_context(ast, filename);
-  env_reset(env);
-  CHECK_BB(load_context(context, env))
-  ret = traverse_ast(env, ast);
-  if(ret > 0) {
-    nspc_commit(env->curr);
-    vector_add(&env->known_ctx, (vtype)context);
-  } // else { nspc_rollback(env->global_nspc); }
-  CHECK_BB(unload_context(context, env)) // no real need to check that
-  if(ret < 0) {
-    free_ast(ast);
-    REM_REF(context);
-    free(filename);
-  }
-  return ret;
 }

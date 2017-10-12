@@ -7,6 +7,7 @@ struct M_Object_ {
 
 //m_bool import_object(Importer import);
 m_bool initialize_object(M_Object o, Type type);
+void instantiate_object(VM* vm, VM_Shred shred, Type type);
 M_Object new_M_Object(VM_Shred shred);
 M_Object new_M_UGen();
 M_Object new_M_Array(m_uint size, m_uint length, m_uint depth);

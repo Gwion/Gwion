@@ -221,24 +221,249 @@ INSTR(Array_Append) {
 }
 
 m_bool import_array(Importer importer) {
-  CHECK_BB(importer_class_begin(importer,  &t_array, NULL, array_dtor))
+  CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
 
-  o_object_array = importer_add_var(importer,  "int", "@array", ae_flag_member, NULL);
+	importer_item_ini(importer, "int", "@array");
+  o_object_array = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_object_array)
 
-  importer_func_begin(importer, "int", "size", (m_uint)vm_vector_size);
-  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_ini(importer, "int", "size", (m_uint)vm_vector_size);
+  CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "depth", (m_uint)vm_vector_depth);
-  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_ini(importer, "int", "depth", (m_uint)vm_vector_depth);
+  CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "cap", (m_uint)vm_vector_cap);
-  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_ini(importer, "int", "cap", (m_uint)vm_vector_cap);
+  CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_begin(importer, "int", "remove", (m_uint)vm_vector_rem);
-  importer_add_arg(importer, "int", "index");
-  CHECK_BB(importer_add_fun(importer, 0))
+  importer_func_ini(importer, "int", "remove", (m_uint)vm_vector_rem);
+  importer_func_arg(importer, "int", "index");
+  CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
   return 1;
+}
+
+INSTR(Instr_Pre_Ctor_Array_Top) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array alloc top");
+#endif
+  if(*(m_uint*)REG(-SZ_INT * 2) >= *(m_uint*)REG(-SZ_INT))
+    shred->next_pc = instr->m_val;
+  else
+    instantiate_object(vm, shred, *(Type*)instr->ptr);
+}
+
+INSTR(Instr_Pre_Ctor_Array_Bottom) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array alloc bottom");
+#endif
+  POP_REG(shred,  SZ_INT);
+  M_Object obj = *(M_Object*)REG(0);
+  m_uint * array = *(m_uint**)REG(-SZ_INT * 3);
+  m_int i = *(m_int*)REG(-SZ_INT * 2);
+  *(m_uint*)array[i] = (m_uint)obj;
+  (*(m_int*)REG(-SZ_INT * 2))++;
+  shred->next_pc = instr->m_val;
+}
+
+INSTR(Instr_Pre_Ctor_Array_Post) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array alloc post");
+#endif
+  POP_REG(shred,  SZ_INT * 3);
+  m_uint* array = *(m_uint**)REG(0);
+  free(array);
+}
+
+struct ArrayAllocInfo {
+  m_int capacity;
+  const m_int top;
+  Type type;
+  m_bool is_obj;
+  m_uint* objs;
+  m_int* index;
+};
+
+static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
+  M_Object base;
+  if(cap < 0) {
+    fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
+    REM_REF(info->type);
+    return NULL;
+  }
+  base = new_M_Array(info->capacity >= info->top ?
+      info->type->d.array_type->size : SZ_INT, cap, -info->capacity);
+  if(!base) {
+    fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
+    return NULL;
+  }
+  base->type_ref = info->type; // /13/03/17
+  ADD_REF(info->type);
+  return base;
+}
+
+static M_Object do_alloc_array_init(struct ArrayAllocInfo* info, m_int cap,
+    M_Object base) {
+  if(info->is_obj && info->objs) {
+    m_int i;
+    for(i = 0; i < cap; i++) {
+      info->objs[*info->index] = (m_uint)m_vector_addr(ARRAY(base), i);
+      (*info->index)++;
+    }
+  }
+  return base;
+}
+
+static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info);
+static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
+    m_int cap, M_Object base) {
+  m_int i;
+  for(i = 0; i < cap; i++) {
+    struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
+      info->is_obj, info->objs, info->index };
+    M_Object next = do_alloc_array(shred, &aai);
+    if(!next) {
+      release(base, shred);
+      return NULL;
+    }
+    i_vector_set(ARRAY(base), i, (m_uint)next);
+  }
+  return base;
+}
+
+static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
+  M_Object base;
+  m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
+
+  if(!(base = do_alloc_array_object(info, cap)))
+    return NULL;
+  if(info->capacity >= info->top)
+    return do_alloc_array_init(info, cap, base);
+  else
+    return do_alloc_array_loop(shred, info, cap, base);
+  return base;
+}
+
+INSTR(Instr_Array_Init) { // for litteral array
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array init");
+#endif
+  m_uint i;
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  M_Object obj;
+  POP_REG(shred, instr->m_val2 * info->length);
+  obj = new_M_Array(info->type->d.array_type->size, info->length, info->depth);
+  obj->type_ref = info->type;
+  vector_add(&shred->gc, (vtype) obj);
+  for(i = 0; i < info->length; i++)
+    m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
+  *(M_Object*)REG(0) = obj;
+  PUSH_REG(shred,  SZ_INT);
+}
+
+static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) {
+  m_int curr = -info->depth;
+  m_int top = - 1;
+  m_int tmp;
+  *num_obj = 1;
+  while(curr <= top) {
+    tmp = *(m_int*)REG(SZ_INT * curr);
+    *num_obj *= tmp;
+    curr++;
+  }
+  if(*num_obj > 0)
+    return (m_uint*)calloc(*num_obj, sizeof(m_uint));
+  return (m_uint*)1;
+}
+
+INSTR(Instr_Array_Alloc) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array alloc");
+#endif
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  M_Object ref;
+  m_uint num_obj = 0;
+  m_int index = 0;
+  struct ArrayAllocInfo aai = { -info->depth, -1, info->type,  info->is_obj, NULL, &index};
+  if(info->is_obj && !info->is_ref &&
+      !(aai.objs = init_array(shred, info, &num_obj)))
+      goto out_of_memory;
+  if(!(ref = do_alloc_array(shred, &aai)))
+    goto error;
+  POP_REG(shred, SZ_INT * info->depth);
+  *(M_Object*)REG(0) = ref;
+  PUSH_REG(shred,  SZ_INT);
+  if(info->is_obj && !info->is_ref) {
+    *(m_uint**)REG(0) = aai.objs;
+    PUSH_REG(shred,  SZ_INT);
+    *(m_uint*) REG(0) = 0;
+    PUSH_REG(shred,  SZ_INT);
+    *(m_uint*) REG(0) = num_obj;
+    PUSH_REG(shred,  SZ_INT);
+  }
+  REM_REF(info->type);
+  return;
+
+out_of_memory:
+  fprintf(stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
+  goto error;                                                                  // LCOV_EXCL_LINE
+error:
+  fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
+  release(shred->me, shred);
+  shred->me = NULL;
+}
+
+static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool emit_var) {
+  if(emit_var)
+      *(char**)REG(0) = m_vector_addr(a, i);
+  else
+    m_vector_get(a, i, REG(0));
+  PUSH_REG(shred,  kind);
+}
+
+static void oob(M_Object obj, VM_Shred shred, m_int i) {
+  fprintf(stderr,
+          "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
+          shred->xid, shred->name, shred->pc, i);
+  release(obj, shred);
+  release(shred->me, shred);
+  shred->me = NULL;
+}
+
+#define OOB(shred, obj, i)  if(i < 0 || i >=  m_vector_size(ARRAY(obj))) { \
+  oob(obj, shred, i); return; }
+
+INSTR(Instr_Array_Access) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array access '%p'  (emit: %i) [%i] ", *(m_uint*)REG(-SZ_INT * 2), instr->m_val, instr->m_val2);
+#endif
+  m_int i = 0;
+  M_Object obj;
+  POP_REG(shred,  SZ_INT * 2);
+  if(!(obj = *(M_Object*)REG(0)))
+    Except(shred, "NullPtrException");
+  i = *(m_int*)REG(SZ_INT);
+  OOB(shred, obj, i)
+  array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
+}
+
+INSTR(Instr_Array_Access_Multi) {
+#ifdef DEBUG_INSTR
+  debug_msg("instr", "array access multi");
+#endif
+  m_int i, j;
+  POP_REG(shred,  SZ_INT * (instr->m_val + 1));
+  M_Object obj, *base = (M_Object*)REG(0);
+  if(!(obj = *base))
+    Except(shred, "NullPtrException");
+  for(j = 0; j < instr->m_val - 1; j++) {
+    i = *(m_int*)REG(SZ_INT * (j + 1));
+    OOB(shred, obj, *(m_int*)REG(SZ_INT * (j + 1)))
+    if(!(obj = (M_Object)i_vector_at(ARRAY(obj), i)))
+      Except(shred, "NullPtrException");
+  }
+  i = *(m_int*)REG(SZ_INT * (j + 1));
+  OOB(shred, obj ,*(m_int*)REG(SZ_INT * (j + 1)))
+  array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }

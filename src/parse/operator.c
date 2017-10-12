@@ -26,6 +26,7 @@ static void free_op(M_Operator* a) {
       REM_REF(a->ret)
       free(a);
 }
+
 void free_op_map(Map map) {
   m_uint i;
   Vector v;
@@ -55,18 +56,10 @@ static M_Operator* operator_find(Vector v, Type lhs, Type rhs) {
   return NULL;
 }
 
-m_bool env_add_op(Env env, struct Op_Import* opi) {
-  Nspc nspc = env->curr;
-  Vector v;
+m_bool add_op(Nspc nspc, struct Op_Import* opi) {
+  Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
   M_Operator* mo;
-
-  if(opi->global)
-    nspc = env->global_nspc;
-
-  if(!nspc->op_map.ptr)
-    map_init(&nspc->op_map);
-
-  if(!(v = (Vector)map_get(&nspc->op_map, (vtype)opi->op))) {
+  if(!v) {
     if(!op2str(opi->op))
       CHECK_BB(err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
@@ -89,10 +82,10 @@ m_bool env_add_op(Env env, struct Op_Import* opi) {
   vector_add(v, (vtype)mo);
   if(opi->lhs)
     ADD_REF(opi->lhs)
-    if(opi->rhs)
-      ADD_REF(opi->rhs)
-      ADD_REF(opi->ret)
-      return 1;
+  if(opi->rhs)
+    ADD_REF(opi->rhs)
+  ADD_REF(opi->ret)
+  return 1;
 }
 
 static Type get_return_type_inner(Map map, struct Op_Import* opi) {
@@ -144,6 +137,7 @@ static Instr handle_instr(Emitter emit, M_Operator* mo) {
   CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return NULL;
 }
+
 Instr get_instr(Emitter emit, struct Op_Import* opi) {
   Nspc nspc = emit->env->curr;
 

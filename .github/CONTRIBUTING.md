@@ -78,7 +78,7 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
     * :white_check_mark:  `:white_check_mark:`  when working on tests
     * :lock:              `:lock:`              when dealing with security
     * :shirt:             `:shirt:`             when enforcing [style](#styleguides)
-    * :floppy_disk:       `:floppy_disk:`       when updating plugins
+    * :santa:             `:santa:`             when updating plugins
     * :car:               `:car:`               when updating drivers
 
 ## Additional Notes
