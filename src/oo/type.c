@@ -15,6 +15,10 @@ void free_type(Type a) {
     REM_REF(a->info);
   if(!GET_FLAG(a, ae_flag_builtin))
     free(a);
+  else if(a->def) {
+    free_id_list(a->def->types);
+    free(a->def);
+  }
 }
 
 Type type_copy(Env env, Type type) {

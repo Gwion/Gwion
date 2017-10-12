@@ -506,6 +506,7 @@ struct Class_Def_ {
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
                         ID_List ext, Class_Body body, int pos);
+void free_class_def(Class_Def a);
 Class_Body new_class_body(Section* section, int pos);
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos);
 Section* new_section_class_def(Class_Def class_def, int pos);
