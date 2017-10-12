@@ -326,23 +326,23 @@ m_bool import_ugen(Importer importer) {
 
   importer_func_begin(importer, "UGen", "chan", (m_uint)ugen_channel);
   importer_add_arg(importer, "int", "arg0");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "op", (m_uint)ugen_get_op);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "op", (m_uint)ugen_set_op);
   importer_add_arg(importer, "int", "arg0");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "float", "last", (m_uint)ugen_get_last);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_oper_begin(importer, "UGen", "UGen", "UGen"))
-  CHECK_BB(importer_add_op(importer, op_chuck,   ugen_connect, 1))
-  CHECK_BB(importer_add_op(importer, op_unchuck, ugen_disconnect, 1))
-  CHECK_BB(importer_add_op(importer, op_trig,    trig_connect, 1))
-  CHECK_BB(importer_add_op(importer, op_untrig,  trig_disconnect, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect, 1))
+  CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect, 1))
+  CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect, 1))
+  CHECK_BB(importer_oper_end(importer, op_untrig,  trig_disconnect, 1))
 
   CHECK_BB(importer_class_end(importer))
 

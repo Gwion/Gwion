@@ -227,17 +227,17 @@ m_bool import_array(Importer importer) {
   CHECK_BB(o_object_array)
 
   importer_func_begin(importer, "int", "size", (m_uint)vm_vector_size);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "depth", (m_uint)vm_vector_depth);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "cap", (m_uint)vm_vector_cap);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "remove", (m_uint)vm_vector_rem);
   importer_add_arg(importer, "int", "index");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
   return 1;

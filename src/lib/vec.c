@@ -174,47 +174,47 @@ m_bool import_vec3(Importer importer) {
   importer_add_arg(importer, "float", "x");
   importer_add_arg(importer, "float", "y");
   importer_add_arg(importer, "float", "z");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "setAll", (m_uint)vec3_setAll);
   importer_add_arg(importer, "float", "x");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "float", "magnitude", (m_uint)vec3_magnitude);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "normalize", (m_uint)vec3_normalize);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "float", "interp", (m_uint)vec3_interp);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "float", "interp", (m_uint)vec3_float);
   importer_add_arg(importer, "float", "delta");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "float", "interp", (m_uint)vec3_dur);
   importer_add_arg(importer, "dur", "delta");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "update", (m_uint)vec3_update);
   importer_add_arg(importer, "float", "goal");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "update", (m_uint)vec3_update_slew);
   importer_add_arg(importer, "float", "goal");
   importer_add_arg(importer, "float", "slew");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "supdate", (m_uint)vec3_update_set);
   importer_add_arg(importer, "float", "goalAndValue");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "supdate", (m_uint)vec3_update_set_slew);
   importer_add_arg(importer, "float", "goalAndValue");
   importer_add_arg(importer, "float", "slew");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_oper_begin(importer, "Vec3", "Vec3", "Vec3"))
-  CHECK_BB(importer_add_op(importer, op_plus, vec3_add, 1))
-  CHECK_BB(importer_add_op(importer, op_minus, vec3_minus, 1))
-  CHECK_BB(importer_add_op(importer, op_times, vec3_xproduct, 1))
-  CHECK_BB(importer_add_op(importer, op_chuck, vec3_r_assign, 1))
+  CHECK_BB(importer_oper_end(importer, op_plus, vec3_add, 1))
+  CHECK_BB(importer_oper_end(importer, op_minus, vec3_minus, 1))
+  CHECK_BB(importer_oper_end(importer, op_times, vec3_xproduct, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, vec3_r_assign, 1))
   CHECK_BB(importer_oper_begin(importer, "Vec3", "float", "Vec3"))
-  CHECK_BB(importer_add_op(importer, op_times,  vec3_times_float, 1))
-  CHECK_BB(importer_add_op(importer, op_divide, vec3_divide_float, 1))
+  CHECK_BB(importer_oper_end(importer, op_times,  vec3_times_float, 1))
+  CHECK_BB(importer_oper_end(importer, op_divide, vec3_divide_float, 1))
   CHECK_BB(importer_oper_begin(importer, "float", "Vec3", "Vec3"))
-  CHECK_BB(importer_add_op(importer, op_times,  float_times_vec3, 1))
+  CHECK_BB(importer_oper_end(importer, op_times,  float_times_vec3, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
@@ -328,24 +328,24 @@ m_bool import_vec4(Importer importer) {
   importer_add_arg(importer, "float", "y");
   importer_add_arg(importer, "float", "z");
   importer_add_arg(importer, "float", "w");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "setAll", (m_uint)vec4_setAll);
   importer_add_arg(importer, "float", "x");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "float", "magnitude", (m_uint)vec4_magnitude);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
     importer_func_begin(importer, "void", "normalize", (m_uint)vec4_normalize);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_oper_begin(importer, "Vec4", "Vec4", "Vec4"))
-  CHECK_BB(importer_add_op(importer, op_plus,  vec4_add, 1))
-  CHECK_BB(importer_add_op(importer, op_minus, vec4_minus, 1))
-  CHECK_BB(importer_add_op(importer, op_times, vec4_xproduct, 1))
-  CHECK_BB(importer_add_op(importer, op_chuck, vec4_r_assign, 1))
+  CHECK_BB(importer_oper_end(importer, op_plus,  vec4_add, 1))
+  CHECK_BB(importer_oper_end(importer, op_minus, vec4_minus, 1))
+  CHECK_BB(importer_oper_end(importer, op_times, vec4_xproduct, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, vec4_r_assign, 1))
   CHECK_BB(importer_oper_begin(importer, "Vec4", "float", "Vec4"))
-  CHECK_BB(importer_add_op(importer, op_times, vec4_times_float, 1))
-  CHECK_BB(importer_add_op(importer, op_divide, vec4_divide_float, 1))
+  CHECK_BB(importer_oper_end(importer, op_times, vec4_times_float, 1))
+  CHECK_BB(importer_oper_end(importer, op_divide, vec4_divide_float, 1))
   CHECK_BB(importer_oper_begin(importer, "float", "Vec4", "Vec4"))
-  CHECK_BB(importer_add_op(importer, op_times, float_times_vec4, 1))
+  CHECK_BB(importer_oper_end(importer, op_times, float_times_vec4, 1))
   CHECK_BB(importer_class_end(importer))
     return 1;
 }

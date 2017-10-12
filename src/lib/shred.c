@@ -93,36 +93,36 @@ m_bool import_shred(Importer importer) {
   CHECK_BB(o_shred_me)
 
   importer_func_begin(importer, "void", "exit", (m_uint)vm_shred_exit);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "running", (m_uint)vm_shred_is_running);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "done", (m_uint)vm_shred_is_done);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "id", (m_uint)vm_shred_id);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "Shred", "fromId", (m_uint)vm_shred_from_id);
   importer_add_arg(importer, "int", "arg1");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "void", "yield", (m_uint)shred_yield);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "int", "args", (m_uint)shred_args);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "string", "arg", (m_uint)shred_arg);
   importer_add_arg(importer, "int", "n");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "string", "path", (m_uint)shred_path);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   importer_func_begin(importer, "string", "dir", (m_uint)shred_dir);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
   return 1;

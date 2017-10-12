@@ -46,8 +46,9 @@ static void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) 
   a->narg = 0;
 }
 
-void importer_func_begin(Importer importer, const m_str t, const m_str n, m_uint addr) {
+m_int importer_func_begin(Importer importer, const m_str t, const m_str n, m_uint addr) {
   dl_func_init(&importer->func, t, n, addr);
+  return 1;
 }
 
 static void dl_func_add_arg(DL_Func* a, const m_str t, const m_str  n) {
@@ -330,7 +331,7 @@ static m_int import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   return 1;
 }
 
-m_int importer_add_fun(Importer importer, ae_flag flag) {
+m_int importer_func_end(Importer importer, ae_flag flag) {
   import_fun(importer->env, &importer->func, flag);
   return 1;
 }
@@ -360,7 +361,7 @@ m_int importer_oper_begin(Importer importer, const m_str l, const m_str r, const
   return 1;
 }
 
-m_int importer_add_op(Importer importer, Operator op, const f_instr f, const m_bool global) {
+m_int importer_oper_end(Importer importer, Operator op, const f_instr f, const m_bool global) {
   importer->oper.op = op;
   return import_op(importer->env, &importer->oper, f, global);
 }

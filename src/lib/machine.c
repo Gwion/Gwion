@@ -107,20 +107,20 @@ m_bool import_machine(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_machine, NULL, NULL))
   importer_func_begin(importer, "void",  "add", (m_uint)machine_add);
   importer_add_arg(importer,       "string",  "filename");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "int[]", "shreds", (m_uint)machine_shreds);
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "int",  "check", (m_uint)machine_check);
   importer_add_arg(importer,      "string",  "prefix");
   importer_add_arg(importer,      "string",  "code");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   importer_func_begin(importer, "void", "compile", (m_uint)machine_compile);
   importer_add_arg(importer,      "string",  "prefix");
   importer_add_arg(importer,      "string",  "filename");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   CHECK_BB(importer_class_end(importer))
   return 1;

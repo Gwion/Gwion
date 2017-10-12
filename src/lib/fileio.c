@@ -245,37 +245,37 @@ m_bool import_fileio(Importer importer) {
 
   // import funcs
   importer_func_begin(importer, "int", "nl", (m_uint)file_nl);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "int", "open", (m_uint)file_open);
   importer_add_arg(importer, "string", "filename");
   importer_add_arg(importer, "string", "mode");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "int", "close", (m_uint)file_close);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "int", "remove", (m_uint)file_remove);
   importer_add_arg(importer, "string", "filename");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
   importer_func_begin(importer, "string[]", "list", (m_uint)file_list);
   importer_add_arg(importer, "string", "filename");
-  CHECK_BB(importer_add_fun(importer, ae_flag_static))
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
 
   // import operators
   CHECK_BB(importer_oper_begin(importer, "int",    "FileIO", "FileIO"))
-  CHECK_BB(importer_add_op(importer, op_chuck, int_to_file, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, int_to_file, 1))
   CHECK_BB(importer_oper_begin(importer, "float",  "FileIO", "FileIO"))
-  CHECK_BB(importer_add_op(importer, op_chuck, float_to_file, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, float_to_file, 1))
   CHECK_BB(importer_oper_begin(importer,"string", "FileIO", "FileIO"))
-  CHECK_BB(importer_add_op(importer, op_chuck, string_to_file, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, string_to_file, 1))
   CHECK_BB(importer_oper_begin(importer,"Object", "FileIO", "FileIO"))
-  CHECK_BB(importer_add_op(importer, op_chuck, object_to_file, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file, 1))
   CHECK_BB(importer_oper_begin(importer,"@null",  "FileIO", "FileIO"))
-  CHECK_BB(importer_add_op(importer, op_chuck, object_to_file, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file, 1))
   CHECK_BB(importer_oper_begin(importer, "FileIO", "string", "string"))
-  CHECK_BB(importer_add_op(importer, op_chuck, file_to_string, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_string, 1))
   CHECK_BB(importer_oper_begin(importer, "FileIO", "int",    "int"))
-  CHECK_BB(importer_add_op(importer, op_chuck, file_to_int, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_int, 1))
   CHECK_BB(importer_oper_begin(importer, "FileIO", "float",  "float"))
-  CHECK_BB(importer_add_op(importer, op_chuck, file_to_float, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_float, 1))
   CHECK_BB(importer_class_end(importer))
 
   CHECK_BB(importer_class_begin(importer,  &t_cout, NULL, static_fileio_dtor))

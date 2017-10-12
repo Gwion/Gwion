@@ -95,21 +95,21 @@ static m_bool import_sinosc(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_sinosc, sinosc_ctor, sinosc_dtor))
   importer_func_begin(importer, "void", "init", (m_uint)sinosc_size);
   importer_add_arg(importer, "int", "size");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "void", "init", (m_uint)sinosc_size_phase);
   importer_add_arg(importer, "int", "size");
   importer_add_arg(importer, "float", "phase");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "freq", (m_uint)sinosc_get_freq);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "freq", (m_uint)sinosc_set_freq);
   importer_add_arg(importer, "float", "freq");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "amp", (m_uint)sinosc_get_amp);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "amp", (m_uint)sinosc_set_amp);
   importer_add_arg(importer, "float", "amp");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
@@ -143,10 +143,10 @@ static MFUN(gain_set_gain) {
 static m_bool import_gain(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_gain, gain_ctor, basic_dtor))
   importer_func_begin(importer, "float", "gain", (m_uint)gain_get_gain);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "gain", (m_uint)gain_set_gain);
   importer_add_arg(importer, "float", "arg0");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
@@ -176,10 +176,10 @@ static MFUN(impulse_set_next) {
 static m_bool import_impulse(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_impulse, impulse_ctor, basic_dtor))
   importer_func_begin(importer, "float", "next", (m_uint)impulse_get_next);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "next", (m_uint)impulse_set_next);
   importer_add_arg(importer, "float", "arg0");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
@@ -248,10 +248,10 @@ static MFUN(step_set_next) {
 static m_bool import_step(Importer importer) {
   CHECK_BB(importer_class_begin(importer,  &t_step, step_ctor, basic_dtor))
   importer_func_begin(importer, "float", "next", (m_uint)step_get_next);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "float", "next", (m_uint)step_set_next);
   importer_add_arg(importer, "float", "arg0");
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }

@@ -71,11 +71,11 @@ m_bool import_event(Importer importer) {
   o_event_shred = importer_add_var(importer,  "int", "@shreds", ae_flag_member, NULL);
   CHECK_BB(o_event_shred);
   importer_func_begin(importer, "int", "signal", (m_uint)event_signal);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   importer_func_begin(importer, "int", "broadcast", (m_uint)event_broadcast);
-  CHECK_BB(importer_add_fun(importer, 0))
+  CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_oper_begin(importer, "Event", "@now", "int"))
-  CHECK_BB(importer_add_op(importer,  op_chuck, Event_Wait, 1))
+  CHECK_BB(importer_oper_end(importer,  op_chuck, Event_Wait, 1))
   CHECK_BB(importer_class_end(importer))
   return 1;
 }
