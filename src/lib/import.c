@@ -245,51 +245,58 @@ m_int importer_class_end(Importer importer) {
   return import_class_end(importer->env);
 }
 
-m_int importer_add_var(Importer importer, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
-  m_uint array_depth = 0;
-  ID_List path;
+typedef struct {
   Type_Decl t;
   struct Var_Decl_List_ list;
   struct Var_Decl_ var;
   struct Exp_ exp;
+  m_uint array_depth;
+} DL_Var;
+
+static void dl_var_new_array(DL_Var* v) {
+  v->t.array = new_array_sub(NULL, 0);
+  v->t.array->depth = v->array_depth;
+  v->var.array = new_array_sub(NULL, 0);
+  v->var.array->depth = v->array_depth;
+}
+
+static void dl_var_set(DL_Var* v, ae_flag flag) {
+  v->list.self = &v->var;
+  v->t.flag = flag;
+  v->exp.exp_type = ae_exp_decl;
+  v->exp.d.exp_decl.type = &v->t;
+  v->exp.d.exp_decl.list = &v->list;
+  v->exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
+  v->exp.d.exp_decl.self = &v->exp;
+  if(v->array_depth)
+    dl_var_new_array(v);
+}
+
+static void dl_var_release(DL_Var* v) {
+  if(v->array_depth) {
+    free_array_sub(v->t.array);
+    free_array_sub(v->var.array);
+  }
+  free(v->t.xid);
+}
+
+m_int importer_add_var(Importer importer, const m_str type, const m_str name, ae_flag flag, m_uint* addr) {
+  DL_Var v;
 
   CHECK_EB(importer->env->class_def)
-  if(!(path = str2list(type, &array_depth)))
-    CHECK_BB(err_msg(TYPE_, 0,
-          "... during var import '%s.%s'...",
+  memset(&v, 0, sizeof(DL_Var));
+  if(!(v.t.xid = str2list(type, &v.array_depth)))
+    CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...",
           importer->env->class_def->name, name))
-  memset(&t, 0, sizeof(Type_Decl));
-  memset(&list, 0, sizeof(struct Var_Decl_List_));
-  memset(&var, 0, sizeof(struct Var_Decl_));
-  memset(&exp, 0, sizeof(struct Exp_));
-  t.xid = path;
-  t.flag = flag;
-
-  var.xid = insert_symbol(name);
-  var.addr = (void*)addr;
-  list.self = &var;
-
-  exp.exp_type = ae_exp_decl;
-  exp.d.exp_decl.type = &t;
-  exp.d.exp_decl.list = &list;
-  exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
-  exp.d.exp_decl.self = &exp;
-  if(array_depth) {
-    t.array = new_array_sub(NULL, 0);
-    t.array->depth = array_depth;
-    var.array = new_array_sub(NULL, 0);
-    var.array->depth = array_depth;
-  }
+  dl_var_set(&v, flag);
+  v.var.xid = insert_symbol(name);
+  v.var.addr = (void*)addr;
   if(importer->templater.n)
-    exp.d.exp_decl.types = templater_call(&importer->templater);
-  if(traverse_decl(importer->env, &exp.d.exp_decl) < 0)
-    var.value->offset = -1;;
-  free(path);
-  if(array_depth) {
-    free_array_sub(t.array);
-    free_array_sub(var.array);
-  }
-  return var.value->offset;
+    v.exp.d.exp_decl.types = templater_call(&importer->templater);
+  if(traverse_decl(importer->env, &v.exp.d.exp_decl) < 0)
+    v.var.value->offset = -1;
+  dl_var_release(&v);
+  return v.var.value->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
@@ -449,17 +456,15 @@ static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
-static void handle_plug(Env env, m_str c) {
+static void handle_plug(Importer importer, m_str c) {
   void* handler;
-  struct Importer_ importer;
-  importer.env = env;
   if((handler = dlopen(c, RTLD_LAZY))) {
     m_bool(*import)(Importer) = (m_bool(*)(Importer))(intptr_t)dlsym(handler, "import");
     if(import) {
-      if(import(&importer) > 0)
+      if(import(importer) > 0)
         vector_add(&vm->plug, (vtype)handler);
       else {
-        env_pop_class(env);
+        env_pop_class(importer->env);
         dlclose(handler);
       }
     } else {
@@ -483,7 +488,7 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
       while(n--) {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(importer->env, c);
+        handle_plug(importer, c);
         free(namelist[n]);
       }
       free(namelist);
