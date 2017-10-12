@@ -86,9 +86,11 @@ static void vm_ugen_init(VM* vm) {
 
 void vm_run(VM* vm) {
   VM_Shred shred;
+  pthread_mutex_lock(&vm->mutex);
   while((shred = shreduler_get(vm->shreduler)))
     vm_run_shred(vm, shred);
   if(!vm->is_running)
     return;
   vm_ugen_init(vm);
+  pthread_mutex_unlock(&vm->mutex);
 }

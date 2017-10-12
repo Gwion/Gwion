@@ -112,9 +112,9 @@ void* server_thread(void* data) {
       else
         state = 1;
     }
-pthread_mutex_lock(&vm->mutex);
-udp_do(vm);
-pthread_mutex_unlock(&vm->mutex);
+    pthread_mutex_lock(&vm->mutex);
+    udp_do(vm);
+    pthread_mutex_unlock(&vm->mutex);
   }
   return NULL;
 }
