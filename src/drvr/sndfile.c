@@ -47,7 +47,6 @@ static void sndfile_run(VM* vm, DriverInfo* di) {
     }
     for(chan = 0; chan < nchan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], bufsize);
-    GWION_CTL
   }
 }
 

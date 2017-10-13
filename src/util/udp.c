@@ -13,6 +13,7 @@
 #include "vm.h"
 #include "compile.h"
 #include "udp.h"
+#include "arg.h"
 
 static Udp udp;
 
@@ -33,8 +34,8 @@ static m_bool Recv(int i, char* buf) {
 
   FD_ZERO(&read_flags);
   FD_ZERO(&write_flags);
-  FD_SET(udp.sock, &read_flags);
-  FD_SET(udp.sock, &write_flags);
+  FD_SET(sock, &read_flags);
+  FD_SET(sock, &write_flags);
 #endif
 
   memset(buf, 0, 256);
@@ -56,7 +57,39 @@ static m_bool Recv(int i, char* buf) {
 #endif
   return -1;
 }
-void udp_do(VM* vm) {
+
+static void send_vector(Vector v, m_str prefix) {
+  m_uint i;
+  for(i = 0; i < vector_size(v); i++) {
+    m_str file = (m_str)vector_at(v, i);
+    m_uint size = strlen(prefix) + 1 + strlen(file) + 1;
+    char name[size];
+    memset(name, 0, size);
+    strcpy(name, prefix);
+    strcpy(name, " ");
+    strcat(name, file);
+    Send(name, 1);
+  }
+}
+
+void udp_client(Arg* arg) {
+  if(server_init(arg->host, arg->port) == -1) {
+    if(arg->quit)
+      Send("quit", 1);
+    if(arg->loop > 0)
+      Send("loop 1", 1);
+    else if(arg->loop < 0)
+      Send("loop 0", 1);
+    send_vector(&arg->rem, "- ");
+    send_vector(&arg->add, "- ");
+    vector_release(&arg->add);
+    vector_release(&arg->rem);
+    vector_release(&arg->lib);
+    exit(0);
+  }
+}
+
+static void udp_run(VM* vm) {
   m_uint i;
   if(!udp.state)
     return;
@@ -77,7 +110,7 @@ void udp_do(VM* vm) {
   udp.state = 0;
 }
 
-void* server_thread(void* data) {
+void* udp_thread(void* data) {
   VM* vm = (VM*)data;
   vector_init(&udp.add);
   vector_init(&udp.rem);
@@ -108,7 +141,7 @@ void* server_thread(void* data) {
         udp.state = 1;
     }
     pthread_mutex_lock(&vm->mutex);
-    udp_do(vm);
+    udp_run(vm);
     pthread_mutex_unlock(&vm->mutex);
   }
   return NULL;
@@ -153,7 +186,7 @@ int server_init(char* hostname, int port) {
   return 1;
 }
 
-void server_destroy(pthread_t t) {
+void udp_release(pthread_t t) {
 #ifdef __linux__
 #ifndef ANDROID
   pthread_cancel(t);

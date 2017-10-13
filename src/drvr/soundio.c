@@ -152,7 +152,6 @@ static void read_callback(In stream, int min, int left) {
     check_cb_error2(stream, (int(*)(void*))soundio_instream_end_read);
     left -= count;
   }
-  GWION_CTL
 }
 
 static m_bool init_soundio() {

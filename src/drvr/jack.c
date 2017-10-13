@@ -45,7 +45,6 @@ static int gwion_cb(jack_nframes_t nframes, void *arg) {
   for(chan = 0; chan < sp->nchan; chan++)
     out[chan] = jack_port_get_buffer(oport[chan], nframes);
   inner_cb(vm, in, out, nframes);
-  GWION_CTL
   return 0;
 }
 

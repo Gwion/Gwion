@@ -260,7 +260,7 @@ extern int gwion_debug;
 
 union YYSTYPE
 {
-#line 26 "utils/gwion.y" /* yacc.c:1909  */
+#line 25 "utils/gwion.y" /* yacc.c:1909  */
 
   char* sval;
   int ival;
@@ -297,6 +297,6 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int gwion_parse (MyArg* arg);
+int gwion_parse (Scanner* arg);
 
 #endif /* !YY_GWION_INCLUDE_PARSER_H_INCLUDED  */

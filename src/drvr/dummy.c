@@ -10,7 +10,6 @@ static void dummy_run(VM* vm, DriverInfo* di) {
   while(vm->is_running) {
     di->run(vm);
     sp->pos++;
-    GWION_CTL
   }
 }
 
@@ -21,7 +20,6 @@ static void silent_run(VM* vm, DriverInfo* di) {
     di->run(vm);
     sp->pos++;
     usleep(timer);
-    GWION_CTL
   }
 }
 

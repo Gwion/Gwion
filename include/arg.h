@@ -1,12 +1,15 @@
-#include <stdio.h>
-#include "map.h"
-
 typedef struct {
-  void* scanner;
-  Ast ast;
-  unsigned int line;
-  unsigned int pos;
-  unsigned int comment_depth;
-  FILE* file;
-  m_str filename;
-} MyArg;
+  int argc;
+  char** argv;
+  m_str  host;
+  int    port;
+  m_uint quit;
+  m_uint loop;
+  struct Vector_ add;
+  struct Vector_ rem;
+  struct Vector_ lib;
+  Vector ref;
+} Arg;
+
+void arg_init(Arg* arg);
+void arg_release(Arg* arg);

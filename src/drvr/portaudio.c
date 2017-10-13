@@ -30,7 +30,6 @@ static int callback(const void *inputBuffer, void *outputBuffer,
       *out++ = sp->out[j];
     sp->pos++;
   }
-  GWION_CTL
   return paContinue;
 }
 

@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <getopt.h>
 #include <string.h>
+#include <pthread.h>
 #include "err_msg.h"
 #include "defs.h"
 #include "map.h"
@@ -12,19 +13,13 @@
 #include "udp.h"
 #include "driver.h"
 #include "instr.h"
+#include "arg.h"
 
 volatile m_bool signaled = 0;
 VM* vm;
-struct Vector_ add;
-struct Vector_ rem;
-struct Vector_ plug_dirs;
-Vector ref;
-int do_quit = 0;
-m_bool udp = 1;
-int port = 8888;
-char* hostname = "localhost";
-int loop = 0;
-DriverInfo di = { 2, 2, 2,
+static m_bool udp = 1;
+
+static DriverInfo di = { 2, 2, 2,
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
 
 static void sig(int unused) {
@@ -126,23 +121,23 @@ static const char usage[] =
 "\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
 "\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
-static void parse_args_additionnal(int argc, char** argv) {
-  if(optind < argc) {
-    while(optind < argc) {
-      m_str str = argv[optind++];
+static void parse_args_additionnal(Arg* arg) {
+  if(optind < arg->argc) {
+    while(optind < arg->argc) {
+      m_str str = arg->argv[optind++];
       if(!strcmp(str, "-")) {
-        ref = &rem;
-        str = argv[optind++];
+        arg->ref = &arg->rem;
+        str = arg->argv[optind++];
       } else if(!strcmp(str, "+")) {
-        ref = &add;
-        str = argv[optind++];
+        arg->ref = &arg->add;
+        str = arg->argv[optind++];
       }
-      vector_add(ref, (vtype)str);
+      vector_add(arg->ref, (vtype)str);
     }
   }
 }
 
-static void parse_args2(int i) {
+static void parse_args2(Arg* arg, int i) {
     switch(i) {
     case 'g':
       di.chan       = atoi(optarg);
@@ -159,8 +154,8 @@ static void parse_args2(int i) {
       di.sr      = atoi(optarg);
       break;
     case 'l':
-      loop        = atoi(optarg);
-      if(loop == 0) loop = -1;
+      arg->loop        = atoi(optarg);
+      if(arg->loop == 0) arg->loop = -1;
       break;
     case 'd':
       select_driver(&di, optarg);
@@ -178,35 +173,35 @@ static void parse_args2(int i) {
       udp = 0;
       break;
     case 'P':
-      vector_add(&plug_dirs, (vtype)optarg);
+      vector_add(&arg->lib, (vtype)optarg);
       break;
     default:
       exit(1);
   }
 }
 
-static void parse_args(int argc, char** argv) {
+static void parse_args(Arg* arg) {
   int i, index;
-  while((i = getopt_long(argc, argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C ", long_option, &index)) != -1) {
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C ", long_option, &index)) != -1) {
     switch(i) {
       case '?':
         fprintf(stderr, usage);
         exit(0);
       case 'C':
         fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
-        do_quit     = 1;
+        arg->quit = 1;
         break;
       case 'q':
-        do_quit     = 1;
+        arg->quit  = 1;
         break;
       case 'c':
         di.card     = optarg;
         break;
       case 'h':
-        hostname    = optarg;
+        arg->host = optarg;
         break;
       case 'p':
-        port        = atoi(optarg);
+        arg->port        = atoi(optarg);
         break;
       case 'n':
         di.bufnum    = atoi(optarg);
@@ -215,96 +210,57 @@ static void parse_args(int argc, char** argv) {
         di.bufsize    = atoi(optarg);
         break;
       default:
-        parse_args2(i);
+        parse_args2(arg, i);
     }
   }
-  parse_args_additionnal(argc, argv);
-}
-
-static void do_udp() {
-  m_uint i;
-  if(server_init(hostname, port) == -1) {
-    if(do_quit)
-      Send("quit", 1);
-    if(loop > 0)
-      Send("loop 1", 1);
-    else if(loop < 0)
-      Send("loop 0", 1);
-    for(i = 0; i < vector_size(&rem); i++) {
-      m_str file = (m_str)vector_at(&rem, i);
-      m_uint size = strlen(file) + 3;
-      char name[size];
-      memset(name, 0, size);
-      strcpy(name, "- ");
-      strcat(name, file);
-      Send(name, 1);
-    }
-    for(i = 0; i < vector_size(&add); i++) {
-      m_str file = (m_str)vector_at(&add, i);
-      m_uint size = strlen(file) + 3;
-      char name[size];
-      memset(name, 0, size);
-      strcpy(name, "+ ");
-      strcat(name, file);
-      Send(name, 1);
-    }
-    vector_release(&add);
-    vector_release(&rem);
-    vector_release(&plug_dirs);
-    exit(0);
-  }
+  parse_args_additionnal(arg);
 }
 
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
+  Arg arg = { argc, argv, "localhost", 8888 };
   int i;
-  pthread_t udp_thread = 0;
+  pthread_t thread = 0;
 
   d.del = NULL;
-  vector_init(&add);
-  vector_init(&rem);
-  vector_init(&plug_dirs);
-  ref = &add;
-  vector_add(&plug_dirs, (vtype)GWION_ADD_DIR);
-  parse_args(argc, argv);
+  arg_init(&arg);
+  parse_args(&arg);
 
   if(udp)
-    do_udp();
-  if(do_quit)
+    udp_client(&arg);
+  if(arg.quit)
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   scan_map = new_map();
-  if(!loop)
-    loop = -1;
-  if(!(vm = new_vm(loop)))
+  if(!arg.loop)
+    arg.loop = -1;
+  if(!(vm = new_vm(arg.loop)))
     goto clean;
   if(init_bbq(vm, &di, &d) < 0)
     goto clean;
-  if(!(env = type_engine_init(vm, &plug_dirs)))
+  if(!(env = type_engine_init(vm, &arg.lib)))
     goto clean;
   if(!(vm->emit = new_emitter(env)))
     goto clean;
   srand(time(NULL));
 
-  for(i = 0; i < vector_size(&add); i++)
-    compile(vm, (m_str)vector_at(&add, i));
+  for(i = 0; i < vector_size(&arg.add); i++)
+    compile(vm, (m_str)vector_at(&arg.add, i));
 
   vm->is_running = 1;
   if(udp) {
-    pthread_create(&udp_thread, NULL, server_thread, vm);
+    pthread_create(&thread, NULL, udp_thread, vm);
 #ifndef __linux__
-    pthread_detach(udp_thread);
+    pthread_detach(thread);
 #endif
   }
   d.run(vm, &di);
   if(udp)
-    server_destroy(udp_thread);
+    udp_release(thread);
 clean:
-  vector_release(&plug_dirs);
-  vector_release(&add);
-  vector_release(&rem);
+  arg_release(&arg);
   d.del(vm);
   if(scan_map)
     free_map(scan_map);

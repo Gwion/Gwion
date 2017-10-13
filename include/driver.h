@@ -53,6 +53,8 @@ void pa_driver(Driver* d, VM* vm);
 void pulse_driver(Driver* d, VM* vm);
 #endif
 m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d);
+/*
 void udp_do(VM* vm);
 #define GWION_CTL_SIZE 8192
 #define GWION_CTL if(!(sp->pos%GWION_CTL_SIZE))udp_do(vm);
+*/

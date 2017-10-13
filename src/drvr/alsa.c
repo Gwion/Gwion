@@ -156,7 +156,6 @@ static void alsa_run(VM* vm, DriverInfo* di) {
     out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
     alsa_run_interleaved(sp, di);
   }
-  GWION_CTL
 }
 
 static void alsa_del_non_interleaved() {
