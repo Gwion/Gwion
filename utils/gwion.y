@@ -1,14 +1,13 @@
 %define api.pure full
 /* %define parse.error verbose */
-%parse-param { MyArg* arg }
+%parse-param { Scanner* arg }
 %lex-param  { void* scanner }  
-%lex-param { MyArg* arg }
-/* %param { MyArg* arg } */
+%lex-param { Scanner* arg }
 %name-prefix "gwion_"
 %{
 #define YYERROR_VERBOSE
 #include "absyn.h"
-#include "arg.h"
+#include "scanner.h"
 #define scanner arg->scanner
 
 
@@ -17,8 +16,8 @@ void gwion_error(void* data, const char* s);
 int gwion_lex(void*, void* , void*);
 static int get_pos(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  return arg->line;
+  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  return scan->line;
 }
 
 %}

@@ -3,7 +3,7 @@ IS          (u|U|l|L)*
 %{
 
 #include "absyn.h"
-#include "arg.h"
+#include "scanner.h"
 #include "parser.h"
 
 static char* strip_lit( char* str )
@@ -47,9 +47,9 @@ static long htol( char* str )
 
 static int newline(void*data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  arg->line++;
-  arg->pos = 1;
+  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  scan->line++;
+  scan->pos = 1;
   return 1;
 }
 char *gwion_get_text(yyscan_t yyscanner );
@@ -57,9 +57,9 @@ char *gwion_get_text(yyscan_t yyscanner );
 static int adjust(void* data);
 
 static int comment_depth(void* data, m_uint i) {
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  arg->comment_depth += i;
-  return arg->comment_depth;
+  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  scan->comment_depth += i;
+  return scan->comment_depth;
 }
 
 %}
@@ -215,12 +215,12 @@ static int comment_depth(void* data, m_uint i) {
 
 static int adjust(void* data)
 {
-  MyArg* arg = (MyArg*)map_get(scan_map, (vtype)data);
-  arg->pos += gwion_get_leng(data);
+  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  scan->pos += gwion_get_leng(data);
   return 0;
 }
 
-int gwion_error(MyArg* arg, char* s)
+int gwion_error(Scanner* scan, char* s)
 {
   m_uint i;
   m_str line = NULL;
@@ -229,22 +229,22 @@ int gwion_error(MyArg* arg, char* s)
   size_t len = 0;
   memset(sign, 0, 256);
 
-  err_msg(PARSE_, arg->line, "in file '%s'", arg->filename);
-  err_msg(PARSE_, arg->line, "%s at pos %i\n", s, arg->pos);
+  err_msg(PARSE_, scan->line, "in file '%s'", scan->filename);
+  err_msg(PARSE_, scan->line, "%s at pos %i\n", s, scan->pos);
 
-  fseek(arg->file, 0, SEEK_SET);
-  while (getline(&line, &len, arg->file) != -1) {
-    if(n == arg->line) {
+  fseek(scan->file, 0, SEEK_SET);
+  while (getline(&line, &len, scan->file) != -1) {
+    if(n == scan->line) {
       fprintf(stderr, "%s\n", line);
       break;
     }
     n++;
   }
   free(line);
-  for(i = 0; i < arg->pos  -1; i++)
+  for(i = 0; i < scan->pos  -1; i++)
     fprintf(stderr, " ");
   fprintf(stderr, "^\n");
-  fclose(arg->file);
+  fclose(scan->file);
   return 0;
 
 }
@@ -256,12 +256,13 @@ Ast parse(m_str filename)
 {
   Ast    ast  = NULL;
   FILE*  file = NULL;
-  MyArg arg;
-  gwion_lex_init(&arg.scanner);
-  gwion_set_extra(&arg, arg.scanner);
-  map_set(scan_map, (vtype)arg.scanner, (vtype)&arg);
-  arg.line = 1; arg.pos  = 0;
-  arg.comment_depth = 0;
+  Scanner scan;
+  gwion_lex_init(&scan.scanner);
+  gwion_set_extra(&scan, scan.scanner);
+  map_set(scan_map, (vtype)scan.scanner, (vtype)&scan);
+  scan.line = 1;
+  scan.pos  = 0;
+  scan.comment_depth = 0;
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
@@ -270,16 +271,16 @@ Ast parse(m_str filename)
     err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
     return NULL;
   } // LCOV_EXCL_STOP
-  arg.file = file;
-  arg.filename = filename;
-  gwion_set_in(file, arg.scanner);
-  if(gwion_parse(&arg)) {
+  scan.file = file;
+  scan.filename = filename;
+  gwion_set_in(file, scan.scanner);
+  if(gwion_parse(&scan)) {
     free_ast(ast);
-    gwion_lex_destroy(arg.scanner);
+    gwion_lex_destroy(scan.scanner);
     return NULL;
   }
-  ast = arg.ast;
+  ast = scan.ast;
   fclose(file);
-  gwion_lex_destroy(arg.scanner);
+  gwion_lex_destroy(scan.scanner);
   return ast;
 }
