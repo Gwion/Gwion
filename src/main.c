@@ -261,7 +261,8 @@ int main(int argc, char** argv) {
     udp_release(thread);
 clean:
   arg_release(&arg);
-  d.del(vm);
+  if(d.del)
+    d.del(vm);
   if(scan_map)
     free_map(scan_map);
 #ifndef __linux__
