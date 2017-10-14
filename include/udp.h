@@ -5,6 +5,7 @@
 
 typedef struct {
   VM* vm;
+  void* arg;
   int sock;
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
@@ -13,9 +14,7 @@ typedef struct {
   m_int state;
 } Udp;
 
-void Send(const char* c, unsigned int i);
 void* udp_thread(void* data);
 void udp_client(void* data);
-int server_init(char* hostname, int port);
 void udp_release();
 #endif

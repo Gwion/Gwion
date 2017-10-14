@@ -66,19 +66,20 @@ int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
   Arg arg = { argc, argv , -1 };
-  UdpIf udp = { "localhost", 8888, 1 };
+  Udp udp;
+  UdpIf udpif = { "localhost", 8888, 1 };
   int i;
 
   pthread_t thread = 0;
 
   d.del = NULL;
-
   arg_init(&arg);
-  arg.udp = &udp;
+  arg.udp = &udpif;
+  udp.arg = &arg;
   parse_args(&arg, &di);
 
-  if(udp.on)
-    udp_client(&arg);
+  if(udpif.on)
+    udp_client(&udp);
   if(arg.quit)
     goto clean;
   signal(SIGINT, sig);
@@ -97,15 +98,16 @@ int main(int argc, char** argv) {
   for(i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
 
+  udp.vm = vm;
   vm->is_running = 1;
-  if(udp.on) {
-    pthread_create(&thread, NULL, udp_thread, vm);
+  if(udpif.on) {
+    pthread_create(&thread, NULL, udp_thread, &udp);
 #ifndef __linux__
     pthread_detach(thread);
 #endif
   }
   d.run(vm, &di);
-  if(udp.on)
+  if(udpif.on)
     udp_release(thread);
 clean:
   arg_release(&arg);
