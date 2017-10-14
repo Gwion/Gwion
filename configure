@@ -616,9 +616,9 @@ clean:
 	@echo "cleaning..."
 	@rm -f */*/*.o */*/*.gcda */*/*.gcno ${PRG}
 
-src/main.o:
-	@echo "compile main (with arguments defines)"
-	@\${CC} \${CFLAGS} -c src/main.c -o src/main.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
+src/arg.o:
+	@echo "compile arg (with arguments defines)"
+	@\${CC} \${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\${LDCFG}' -DCFLAGS='\${CCFG}'
 
 .c.o:
 	@echo "compile \$(<:.c=)"
