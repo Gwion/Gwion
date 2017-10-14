@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 typedef struct {
+  VM* vm;
   int sock;
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
-
   struct Vector_ add;
   struct Vector_ rem;
   m_int state;
@@ -15,6 +15,7 @@ typedef struct {
 
 void Send(const char* c, unsigned int i);
 void* udp_thread(void* data);
+void udp_client(void* data);
 int server_init(char* hostname, int port);
 void udp_release();
 #endif

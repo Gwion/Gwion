@@ -17,14 +17,14 @@
 
 static Udp udp;
 
-void Send(const char* c, unsigned int i) {
+void udp_send(const char* c, unsigned int i) {
   struct sockaddr_in addr = i ? udp.saddr : udp.caddr;
   if(sendto(udp.sock, c, strlen(c), 0,
             (struct sockaddr *) &addr, sizeof(addr)) < 1)
     err_msg(UDP, 0, "problem while sending"); // LCOV_EXCL_LINE
 }
 
-static m_bool Recv(int i, char* buf) {
+static m_bool udp_recv(int i, char* buf) {
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -68,18 +68,19 @@ static void send_vector(Vector v, m_str prefix) {
     strcpy(name, prefix);
     strcpy(name, " ");
     strcat(name, file);
-    Send(name, 1);
+    udp_send(name, 1);
   }
 }
 
-void udp_client(Arg* arg) {
-  if(server_init(arg->host, arg->port) == -1) {
+void udp_client(void* data) {
+  Arg* arg= (Arg*)data;
+  if(server_init(arg->udp->host, arg->udp->port) == -1) {
     if(arg->quit)
-      Send("quit", 1);
+      udp_send("quit", 1);
     if(arg->loop > 0)
-      Send("loop 1", 1);
+      udp_send("loop 1", 1);
     else if(arg->loop < 0)
-      Send("loop 0", 1);
+      udp_send("loop 0", 1);
     send_vector(&arg->rem, "- ");
     send_vector(&arg->add, "- ");
     vector_release(&arg->add);
@@ -116,7 +117,7 @@ void* udp_thread(void* data) {
   vector_init(&udp.rem);
   while(vm->is_running) {
     char buf[256];
-    if(Recv(0, buf) < 0)
+    if(udp_recv(0, buf) < 0)
       continue; // LCOV_EXCL_LINE
     udp.state = 1;
     if(strncmp(buf, "quit", 4) == 0) {

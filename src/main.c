@@ -16,11 +16,9 @@
 #include "arg.h"
 
 volatile m_bool signaled = 0;
-VM* vm;
-static m_bool udp = 1;
-
 static DriverInfo di = { 2, 2, 2,
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
+VM* vm;
 
 static void sig(int unused) {
   vm->is_running = 0;
@@ -121,7 +119,7 @@ static const char usage[] =
 "\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
 "\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
-static void parse_args_additionnal(Arg* arg) {
+static void arg_add(Arg* arg) {
   if(optind < arg->argc) {
     while(optind < arg->argc) {
       m_str str = arg->argv[optind++];
@@ -137,53 +135,67 @@ static void parse_args_additionnal(Arg* arg) {
   }
 }
 
-static void parse_args2(Arg* arg, int i) {
+static void arg_drvr(DriverInfo* di, int i) {
     switch(i) {
-    case 'g':
-      di.chan       = atoi(optarg);
-      di.in       = atoi(optarg);
-      di.out       = atoi(optarg);
-      break;
-    case 'i':
-      di.in       = atoi(optarg);
-      break;
-    case 'o':
-      di.out      = atoi(optarg);
-      break;
-    case 's':
-      di.sr      = atoi(optarg);
-      break;
-    case 'l':
-      arg->loop        = atoi(optarg);
-      if(arg->loop == 0) arg->loop = -1;
-      break;
-    case 'd':
-      select_driver(&di, optarg);
-      break;
-    case 'f':
-      select_format(&di, optarg);
-      break;
-    case 'e':
-      select_backend(&di, optarg);
-      break;
-    case 'r':
-      di.raw = 1;
-      break;
-    case 'a':
-      udp = 0;
-      break;
-    case 'P':
-      vector_add(&arg->lib, (vtype)optarg);
-      break;
+      case 'c':
+        di->card     = optarg;
+        break;
+      case 'g':
+        di->chan       = atoi(optarg);
+        di->in       = atoi(optarg);
+        di->out       = atoi(optarg);
+        break;
+      case 'i':
+        di->in       = atoi(optarg);
+        break;
+      case 'o':
+        di->out      = atoi(optarg);
+        break;
+      case 's':
+        di->sr      = atoi(optarg);
+        break;
+      case 'd':
+        select_driver(di, optarg);
+        break;
+      case 'f':
+        select_format(di, optarg);
+        break;
+      case 'e':
+        select_backend(di, optarg);
+        break;
+      case 'r':
+        di->raw = 1;
+        break;
+      case 'n':
+        di->bufnum    = atoi(optarg);
+        break;
+      case 'b':
+        di->bufsize    = atoi(optarg);
+        break;
     default:
       exit(1);
   }
 }
 
+static void arg_udp(UdpIf* udp, char c) {
+  switch(c) { 
+    case 'a':
+      udp->on = 0;
+      break;
+    case 'h':
+      udp->host = optarg;
+      break;
+    case 'p':
+      udp->port = atoi(optarg);
+      break;
+  } 
+}
 static void parse_args(Arg* arg) {
   int i, index;
   while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C ", long_option, &index)) != -1) {
-    switch(i) {
+    if(strchr("ahp", i))
+      arg_udp(arg->udp, i);
+    else switch(i) { 
       case '?':
         fprintf(stderr, usage);
         exit(0);
@@ -194,48 +206,42 @@ static void parse_args(Arg* arg) {
       case 'q':
         arg->quit  = 1;
         break;
-      case 'c':
-        di.card     = optarg;
+      case 'l':
+        arg->loop = atoi(optarg) > 0 ? 1 : -1;
         break;
-      case 'h':
-        arg->host = optarg;
-        break;
-      case 'p':
-        arg->port        = atoi(optarg);
-        break;
-      case 'n':
-        di.bufnum    = atoi(optarg);
-        break;
-      case 'b':
-        di.bufsize    = atoi(optarg);
+      case 'P':
+        vector_add(&arg->lib, (vtype)optarg);
         break;
       default:
-        parse_args2(arg, i);
+        arg_drvr(&di, i);
     }
   }
-  parse_args_additionnal(arg);
+  arg_add(arg);
 }
 
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
-  Arg arg = { argc, argv, "localhost", 8888 };
+  Arg arg = { argc, argv , -1 };
+  UdpIf udpif = { "localhost", 8888, 1 };
+  Udp udp = { vm }; 
   int i;
+  
   pthread_t thread = 0;
 
   d.del = NULL;
+
   arg_init(&arg);
+  arg.udp = &udpif;
   parse_args(&arg);
 
-  if(udp)
+  if(udpif.on)
     udp_client(&arg);
   if(arg.quit)
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   scan_map = new_map();
-  if(!arg.loop)
-    arg.loop = -1;
   if(!(vm = new_vm(arg.loop)))
     goto clean;
   if(init_bbq(vm, &di, &d) < 0)
@@ -250,14 +256,14 @@ int main(int argc, char** argv) {
     compile(vm, (m_str)vector_at(&arg.add, i));
 
   vm->is_running = 1;
-  if(udp) {
-    pthread_create(&thread, NULL, udp_thread, vm);
+  if(udpif.on) {
+    pthread_create(&thread, NULL, udp_thread, &udp);
 #ifndef __linux__
     pthread_detach(thread);
 #endif
   }
   d.run(vm, &di);
-  if(udp)
+  if(udpif.on)
     udp_release(thread);
 clean:
   arg_release(&arg);
@@ -274,4 +280,4 @@ clean:
     free_vm(vm);
   }
   return 0;
-}
+ }
