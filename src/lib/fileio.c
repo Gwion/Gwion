@@ -30,9 +30,6 @@ DTOR(static_fileio_dtor) {
 }
 
 INSTR(int_to_file) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "int to file");
-#endif
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   release(o, shred);
@@ -42,9 +39,6 @@ INSTR(int_to_file) {
 }
 
 INSTR(float_to_file) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "float to file");
-#endif
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   o = **(M_Object**)REG(0);
@@ -56,9 +50,6 @@ INSTR(float_to_file) {
 }
 
 INSTR(string_to_file) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "string to file");
-#endif
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -70,9 +61,6 @@ INSTR(string_to_file) {
 }
 
 INSTR(object_to_file) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "string to file");
-#endif
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -84,9 +72,6 @@ INSTR(object_to_file) {
 }
 
 INSTR(file_to_int) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "file => int");
-#endif
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)REG(- SZ_INT);
@@ -106,9 +91,6 @@ INSTR(file_to_int) {
 }
 
 INSTR(file_to_float) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "file => float");
-#endif
   POP_REG(shred, SZ_INT)
   /*  m_float ret;*/
   float ret;
@@ -144,9 +126,6 @@ m_bool inputAvailable(FILE* f)
 }
 */
 INSTR(file_to_string) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "file => string");
-#endif
   POP_REG(shred, SZ_INT)
   M_Object o    = *(M_Object*)REG(- SZ_INT);
   M_Object s    = **(M_Object**)REG(0);

@@ -26,19 +26,3 @@ char err_msg(a_header header, long int pos, const char* fmt, ...) {
   va_end(arg);
   return -1;
 }
-#ifdef DEBUG
-void debug_msg(const char* header, const char* fmt, ...) {
-  char msg[256];
-  va_list arg;
-  va_start(arg, fmt);
-#ifdef COLOR
-  fprintf(stderr, "\033[1m[\033[0m\033[31m%s\033[0m\033[1m]\033[0m", header);
-#else
-  fprintf(stderr, "%s", header);
-#endif
-  memset(msg, 0, 256);
-  vsnprintf(msg, 256, fmt, arg);
-  fprintf(stderr, "\t%s\n", msg);
-  va_end(arg);
-}
-#endif

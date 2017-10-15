@@ -30,8 +30,3 @@ LIB: pulse:::off::-lpulse-simple
 
 
 DIR: add:::add
-
-DBG: type      :::off
-DBG: instr     :::off
-DBG: stack     :::off
-

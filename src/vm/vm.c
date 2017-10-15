@@ -57,10 +57,8 @@ static void vm_run_shred(VM* vm, VM_Shred shred) {
     shred->pc = shred->next_pc++;
     instr = (Instr)vector_at(shred->code->instr, shred->pc);
     instr->execute(vm, shred, instr);
-#ifdef DEBUG_STACK
-    debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
-              shred->mem - shred->_mem, shred->reg - shred->_reg);
-#endif
+//    debug_msg("stack", "shred[%i] mem[%i] reg[%i]", shred->xid,
+//              shred->mem - shred->_mem, shred->reg - shred->_reg);
     if(!shred->me)
      shreduler_remove(vm->shreduler, shred, 1);
   }

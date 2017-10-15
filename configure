@@ -91,17 +91,11 @@ begins_with_short_option()
 : "${_arg_pulse_lib:=$PULSE_LIB}"
 : "${ADD_DIR:="add"}"
 : "${_arg_add:=$ADD_DIR}"
-: "${DEBUG_TYPE:=off}"
-: "${_arg_debug_type:=$DEBUG_TYPE}"
-: "${DEBUG_INSTR:=off}"
-: "${_arg_debug_instr:=$DEBUG_INSTR}"
-: "${DEBUG_STACK:=off}"
-: "${_arg_debug_stack:=$DEBUG_STACK}"
 
 print_help ()
 {
 	printf "%s\n" "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [--(no-)debug-type] [--(no-)debug-instr] [--(no-)debug-stack] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -138,9 +132,6 @@ print_help ()
 	printf "\t%s\n" "--pulse-inc: Directories where to look for include files for pulse (empty by default)"
 	printf "\t%s\n" "--pulse-lib: pulse library (default: '-lpulse-simple')"
 	printf "\t%s\n" "--add: add path (default: 'add')"
-	printf "\t%s\n" "--debug-type,--no-debug-type: debug type (off by default)"
-	printf "\t%s\n" "--debug-instr,--no-debug-instr: debug instr (off by default)"
-	printf "\t%s\n" "--debug-stack,--no-debug-stack: debug stack (off by default)"
 	printf "\t%s\n" "-h,--help: Prints help"
 }
 
@@ -394,18 +385,6 @@ parse_commandline ()
 			--add=*)
 				_arg_add="${_key##--add=}"
 				;;
-			--no-debug-type|--debug-type)
-				_arg_debug_type="on"
-				test "${1:0:5}" = "--no-" && _arg_debug_type="off"
-				;;
-			--no-debug-instr|--debug-instr)
-				_arg_debug_instr="on"
-				test "${1:0:5}" = "--no-" && _arg_debug_instr="off"
-				;;
-			--no-debug-stack|--debug-stack)
-				_arg_debug_stack="on"
-				test "${1:0:5}" = "--no-" && _arg_debug_stack="off"
-				;;
 			-h|--help)
 				print_help
 				exit 0
@@ -491,15 +470,6 @@ do
 	echo "$(to_upper $iter)_D ?= $(eval echo \$_arg_$iter)"
 done
 
-printf "\n# handle debug\n"
-for iter in type:off instr:off stack:off
-do
-	key=$(echo "$iter" | cut -d ':' -f 1)
-	val=$(echo "$iter" | cut -d ':' -f 2)
-	lib=$(echo "$iter" | cut -d ':' -f 4)
-	echo "DEBUG_$(to_upper "$key") ?= $(eval echo "\$_arg_debug_$key")"
-done
-
 printf "\n# initialize source lists\n"
 for iter in src
 do
@@ -568,13 +538,6 @@ for iter in $add
 
 do
 	printf "CFLAGS+=-DGWION_%s_DIR=\\\\\\\"\${GWION_%s_DIR}\\\\\\\"\n" "$(to_upper $iter)" "$(to_upper $iter)"
-done
-
-printf "\n# add debug flags\n"
-for iter in type instr stack
-do
-	printf "ifeq (\${DEBUG_%s}, on)\nCFLAGS += -DDEBUG_%s\nelse " "$(to_upper $iter)" "$(to_upper $iter)"
-	printf "ifeq (\${DEBUG_%s},  1)\nCFLAGS += -DDEBUG_%s\nendif\n" "$(to_upper "$key")" "$(to_upper "$key")"
 done
 
 printf "\n# add soundpipe\n"

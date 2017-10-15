@@ -245,9 +245,6 @@ m_bool import_array(Importer importer) {
 }
 
 INSTR(Instr_Pre_Ctor_Array_Top) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array alloc top");
-#endif
   if(*(m_uint*)REG(-SZ_INT * 2) >= *(m_uint*)REG(-SZ_INT))
     shred->next_pc = instr->m_val;
   else
@@ -255,9 +252,6 @@ INSTR(Instr_Pre_Ctor_Array_Top) {
 }
 
 INSTR(Instr_Pre_Ctor_Array_Bottom) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array alloc bottom");
-#endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   m_uint * array = *(m_uint**)REG(-SZ_INT * 3);
@@ -268,9 +262,6 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) {
 }
 
 INSTR(Instr_Pre_Ctor_Array_Post) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array alloc post");
-#endif
   POP_REG(shred,  SZ_INT * 3);
   m_uint* array = *(m_uint**)REG(0);
   free(array);
@@ -346,9 +337,6 @@ static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
 }
 
 INSTR(Instr_Array_Init) { // for litteral array
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array init");
-#endif
   m_uint i;
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object obj;
@@ -378,9 +366,6 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
 }
 
 INSTR(Instr_Array_Alloc) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array alloc");
-#endif
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object ref;
   m_uint num_obj = 0;
@@ -435,9 +420,6 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array access '%p'  (emit: %i) [%i] ", *(m_uint*)REG(-SZ_INT * 2), instr->m_val, instr->m_val2);
-#endif
   m_int i = 0;
   M_Object obj;
   POP_REG(shred,  SZ_INT * 2);
@@ -449,9 +431,6 @@ INSTR(Instr_Array_Access) {
 }
 
 INSTR(Instr_Array_Access_Multi) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "array access multi");
-#endif
   m_int i, j;
   POP_REG(shred,  SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)REG(0);

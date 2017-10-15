@@ -14,9 +14,6 @@ struct Vararg {
 };
 
 INSTR(Vararg_start) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "vararg start %i", instr->m_val);
-#endif
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
@@ -30,9 +27,6 @@ INSTR(Vararg_start) {
 }
 
 INSTR(MkVararg) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Make Vararg %i %p", instr->m_val, (void*)instr->m_val2);
-#endif
   POP_REG(shred,  instr->m_val);
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;

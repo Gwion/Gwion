@@ -115,12 +115,6 @@ config_prep() {
     sed -i "s/^_arg_${key}=\(.*\)/: \"\${${key~~}_DIR:=\1}\"\n: \"\$\{_arg_${key}:=\$${key~~}_DIR\}\"/" configure
   done
 
-  for iter in $DBG
-  do
-    key=$(echo "${iter}" | cut -d ":" -f 1)
-    sed -i "s/^_arg_debug_${key}=\(.*\)/: \"\${DEBUG_${key~~}:=\1}\"\n: \"\$\{_arg_debug_${key}:=\$DEBUG_${key~~}\}\"/" configure
-  done
-
   for iter in $USE
   do
     key=$(echo "${iter}" | cut -d ":" -f 1)
@@ -198,11 +192,6 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
   printf "echo \"\$(to_upper \$iter)_D ?= \$(eval echo \\\$_arg_\$iter)\"\ndone\n"
 #  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
 
-  mk_header "handle debug"
-  do_expand2 "$DBG"
-  printf "echo \"DEBUG_\$(to_upper \"\$key\") ?= \$(eval echo \"\\\$_arg_debug_\$key\")\"\ndone\n"
-#  printf "arg=\"_arg_debug_\$key\"\n\techo \"DEBUG_\${key~~} ?= \${!arg}\"\ndone\n"
-
   mk_header "initialize source lists"
   do_expand "src"
   printf "echo \"\${iter}_src := \\\$(wildcard \${iter}/*.c)\"\ndone\necho \"lib_src := \\\$(wildcard src/lib/*.c)\"\necho \"oo_src := \\\$(wildcard src/oo/*.c)\"\necho \"vm_src := \\\$(wildcard src/vm/*.c)\"\necho \"ast_src := \\\$(wildcard src/ast/*.c)\"\necho \"parse_src := \\\$(wildcard src/parse/*.c)\"\necho \"ugen_src := \\\$(wildcard src/ugen/*.c)\"\necho \"util_src := \\\$(wildcard src/util/*.c)\"\necho \"emit_src := \\\$(wildcard src/emit/*.c)\"\necho \"drvr_src := src/drvr/driver.c\"\n"
@@ -247,11 +236,6 @@ EOF
   mk_header "add directories"
   do_expand "$DIR"
   printf "printf \"CFLAGS+=-DGWION_%%s_DIR=%q\\\${GWION_%%s_DIR}%q\\\n\" \"\$(to_upper \$iter)\" \"\$(to_upper \$iter)\"\ndone\n" '\\\"' '\\\"'
-
-  mk_header "add debug flags"
-  do_expand "$DBG"
-  printf "printf \"ifeq (\\\${DEBUG_%%s}, on)\\\nCFLAGS += -DDEBUG_%%s\\\nelse \" \"\$(to_upper \$iter)\" \"\$(to_upper \$iter)\"\n"
-  printf "\tprintf \"ifeq (\\\${DEBUG_%%s},  1)\\\nCFLAGS += -DDEBUG_%%s\\\nendif\\\n\" \"\$(to_upper \"\$key\")\" \"\$(to_upper \"\$key\")\"\ndone\n"
 
   mk_header "add soundpipe"
   echo "echo \"LDFLAGS += \\\${SOUNDPIPE_LIB}\""

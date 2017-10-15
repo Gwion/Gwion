@@ -17,32 +17,20 @@ static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
 }
 
 INSTR(EOC) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Shred [%i]: End of Code", shred->xid);
-#endif
   release(shred->me, shred);
   shred->me = NULL;
 }
 
 INSTR(Reg_Pop_Word4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] pop %i", instr->m_val);
-#endif
   POP_REG(shred,  instr->m_val);
 }
 
 INSTR(Reg_Push_Imm) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm %p", (void*)instr->m_val);
-#endif
   *(m_uint*)REG(0) = instr->m_val;
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_Push_Imm2) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push imm2 %f", *(m_float*)instr->ptr);
-#endif
   *(m_float*)REG(0) = *(m_float*)instr->ptr;
   PUSH_REG(shred,  SZ_FLOAT);
 }
@@ -53,32 +41,20 @@ INSTR(Reg_Push_ImmX) {
 }
 
 INSTR(Reg_Push_Mem_Addr) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push mem addr %i %i", instr->m_val, instr->m_val2);
-#endif
   *(m_uint**)REG(0) = (m_uint*)((instr->m_val2 ? shred->base : shred->mem) + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Mem_Push_Imm) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] push imm %i %i", instr->m_val, instr->m_val2);
-#endif
   *(m_uint*)MEM(0) = instr->m_val;
   PUSH_MEM(shred,  SZ_INT);
 }
 
 INSTR(Mem_Set_Imm) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[mem] set imm [%i] %p", instr->m_val, *(m_uint*)instr->ptr);
-#endif
   *(m_uint**)MEM(instr->m_val) = *(m_uint**)instr->ptr;
 }
 
 INSTR(assign_func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "assign func");
-#endif
   if(!instr->m_val) {
     POP_REG(shred,  SZ_INT * 2);
     **(m_uint**)REG(SZ_INT) = *(m_uint*)REG(0);
@@ -94,56 +70,35 @@ INSTR(assign_func) {
 }
 
 INSTR(Reg_Push_Mem) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] reg push '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_uint*)REG(0) = *(m_uint*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_Push_Mem2) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] reg push float '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_float*)REG(0) = *(m_float*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(Reg_Push_Mem_Complex) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'complex' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_complex*)REG(0) = *(m_complex*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 INSTR(Reg_Push_Mem_Vec3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'vec3' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_vec3*)REG(0) = *(m_vec3*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
   PUSH_REG(shred, SZ_VEC3);
 }
 
 INSTR(Reg_Push_Mem_Vec4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] 'vec4' push mem '%s' [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_vec4*)REG(0) = *(m_vec4*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
   PUSH_REG(shred, SZ_VEC4);
 }
 
 INSTR(Reg_Push_Ptr) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push ptr (%p)", *(m_uint*)instr->ptr);
-#endif
   *(m_uint*)REG(-SZ_INT) = *(m_uint*)instr->ptr;
 }
 
 INSTR(Reg_Push_Code) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push code [%i] (%i)", instr->m_val, instr->m_val2);
-#endif
   Func f;
   if(!(f =  *(Func*)(instr->m_val2 ? REG(-SZ_INT) : MEM(instr->m_val)))) {
     err_msg(INSTR_, 0, "trying to call empty func pointer.");
@@ -155,50 +110,32 @@ INSTR(Reg_Push_Code) {
 }
 
 INSTR(Reg_Dup_Last) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] dup last %p", *(m_uint*)REG(-SZ_INT));
-#endif
   *(m_uint*)REG(0) = *(m_uint*)REG(-SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_AddRef_Object3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] add ref %i %p", instr->m_val, instr->m_val ? **(M_Object**)REG(-SZ_INT) : * (M_Object*)REG(-SZ_INT));
-#endif
   M_Object obj = instr->m_val ? **(M_Object**)REG(-SZ_INT) : *(M_Object*)REG(-SZ_INT);
   if(obj)
     obj->ref++;
 }
 
 INSTR(Reg_Push_Me) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push me %p", (void*)shred->me);
-#endif
   *(M_Object*)REG(0) = shred->me;
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(Reg_Push_Now) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push now %f", (m_float)vm->sp->pos);
-#endif
   *(m_float*)REG(0) = vm->sp->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(Reg_Push_Maybe) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "[reg] push maybe");
-#endif
   *(m_uint*)REG(0) = (sp_rand(shred->vm_ref->sp) > (RAND_MAX / 2)) ? 1 : 0;
   PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(Alloc_Word) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc_word '%s' (%p)[%i]", instr->m_val2 ? "base" : "mem", (void*) * (m_uint*)MEM(instr->m_val), instr->m_val);
-#endif
   *(m_uint*)MEM(instr->m_val) = 0; // since template
   if(*(m_uint*)instr->ptr)
     *(m_uint**)REG(0) = &*(m_uint*)MEM(instr->m_val);
@@ -208,9 +145,6 @@ INSTR(Alloc_Word) {
 }
 
 INSTR(Alloc_Word_Float) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instr alloc word float %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   *(m_float*)MEM(instr->m_val) = 0; // since template
   if(*(m_uint*)instr->ptr) {
     *(m_float**)REG(0) = &*(m_float*)MEM(instr->m_val);
@@ -222,9 +156,6 @@ INSTR(Alloc_Word_Float) {
 }
 
 INSTR(Alloc_Word_Complex) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instr alloc word complex %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   if(*(m_uint*)instr->ptr) {
     *(m_complex**)REG(0) = &*(m_complex*)MEM(instr->m_val);
     PUSH_REG(shred, SZ_INT);
@@ -235,9 +166,6 @@ INSTR(Alloc_Word_Complex) {
 }
 
 INSTR(Alloc_Word_Vec3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instr alloc word vec3 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   if(*(m_uint*)instr->ptr) {
     *(m_vec3**)REG(0) = &*(m_vec3*)MEM(instr->m_val);
     PUSH_REG(shred,  SZ_INT);
@@ -248,9 +176,6 @@ INSTR(Alloc_Word_Vec3) {
 }
 
 INSTR(Alloc_Word_Vec4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instr alloc word vec4 %s [%i]", instr->m_val2 ? "base" : "mem", instr->m_val);
-#endif
   if(*(m_uint*)instr->ptr) {
     *(m_vec4**)REG(0) = &*(m_vec4*)MEM(instr->m_val);
     PUSH_REG(shred,  SZ_INT);
@@ -262,9 +187,6 @@ INSTR(Alloc_Word_Vec4) {
 
 /* branching */
 INSTR(Branch_Switch) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "branch switch %i %i", *(m_int*)REG(-SZ_INT), instr->m_val);
-#endif
   Map map = *(Map*)instr->ptr;
   POP_REG(shred,  SZ_INT);
   shred->next_pc = (m_int)map_get(map, (vtype) * (m_int*)REG(0));
@@ -273,85 +195,55 @@ INSTR(Branch_Switch) {
 }
 
 INSTR(Branch_Eq_Int) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "branch eq int %i %i %i", instr->m_val,  *(m_int**)REG(-SZ_INT * 2),  *(m_int**)REG(-SZ_INT));
-#endif
   POP_REG(shred,  SZ_INT * 2);
   if(*(m_uint*)REG(0) == *(m_uint*)REG(SZ_INT))
     shred->next_pc = instr->m_val;
 }
 
 INSTR(Branch_Neq_Int) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "branch !=");
-#endif
   POP_REG(shred,  SZ_INT * 2);
   if(*(m_uint*)REG(0) != *(m_uint*)REG(SZ_INT))
     shred->next_pc = instr->m_val;
 }
 
 INSTR(Branch_Eq_Float) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "branch eq int %i %f %f", instr->m_val,  *(m_float*)REG(- SZ_FLOAT * 2),  *(m_float*)REG(- SZ_FLOAT));
-#endif
   POP_REG(shred,  SZ_FLOAT * 2);
   if(*(m_float*)REG(0) == *(m_float*)REG(SZ_FLOAT))
     shred->next_pc = instr->m_val;
 }
 
 INSTR(Branch_Neq_Float) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "branch != float %f %f", *(m_float*)REG(- SZ_FLOAT * 2), *(m_float*)REG(- SZ_FLOAT));
-#endif
   POP_REG(shred,  SZ_FLOAT * 2);
   if(*(m_float*)REG(0) != *(m_float*)REG(SZ_FLOAT))
     shred->next_pc = instr->m_val;
 }
 
 INSTR(Init_Loop_Counter) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "loop: init counter");
-#endif
   POP_REG(shred,  SZ_INT);
   m_int* sp = (m_int*)REG(0);
   (*(m_int*)instr->m_val) = (*sp >= 0 ? *sp : -*sp);
 }
 
 INSTR(Reg_Push_Deref) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "reg  push deref %i", instr->m_val);
-#endif
   *(m_int*)REG(0) = *(m_int*)instr->m_val;
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Dec_int_Addr) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dec int addr");
-#endif
   (*((m_int*)(instr->m_val)))--;
 }
 
 INSTR(Goto) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "goto %i", instr->m_val);
-#endif
   shred->next_pc = instr->m_val;
 }
 
 INSTR(Cast_i2f) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "cast i2f");
-#endif
   POP_REG(shred,  SZ_INT);
   *(m_float*)REG(0) = *(m_int*)REG(0);
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
 INSTR(Cast_f2i) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "castf2i");
-#endif
   POP_REG(shred,  SZ_FLOAT);
   *(m_int*)REG(0) = *(m_float*)REG(0);
   PUSH_REG(shred,  SZ_INT);
@@ -370,9 +262,6 @@ static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
 }
 
 INSTR(Spork) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Spork");
-#endif
   m_uint this_ptr = 0;
   VM_Code code;
   Func func;
@@ -449,9 +338,6 @@ static void shred_func_finish(VM_Shred shred) {
 }
 
 INSTR(Instr_Exp_Func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func call");
-#endif
   VM_Code code;
   m_uint stack_depth;
   shred_func_prepare(shred, instr);
@@ -468,9 +354,6 @@ INSTR(Instr_Exp_Func) {
 }
 
 INSTR(Instr_Op_Call_Binary) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "binary call");
-#endif
   Type l = (Type)instr->m_val2;
   Type r = *(Type*)instr->ptr;
   shred_func_prepare(shred, instr);
@@ -486,33 +369,20 @@ INSTR(Instr_Op_Call_Binary) {
 }
 
 INSTR(Dot_Static_Func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dot static func %s", ((Func)instr->m_val)->name);
-#endif
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
 }
 
 INSTR(Reg_Dup_Last_Vec3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dup last vec3");
-#endif
   *(m_vec3*)REG(0) = *(m_vec3*)REG(-SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Reg_Dup_Last_Vec4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dup last vec4");
-#endif
   *(m_vec4*)REG(0) = *(m_vec4*)REG(-SZ_INT);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(member_function) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "member function %p [%i] %p", *(m_uint*)instr->ptr, instr->m_val, vector_at(*(Vector*)instr->ptr,
-            instr->m_val));
-#endif
   POP_REG(shred,  SZ_INT);
   *(VM_Code*)REG(0) = ((Func)vector_at(*(Vector*)instr->ptr, instr->m_val))->code;
   PUSH_REG(shred,  SZ_INT);
@@ -520,9 +390,6 @@ INSTR(member_function) {
 }
 
 INSTR(Exp_Dot_Func) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dot member func");
-#endif
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   if(!obj) Except(shred, "NullPtrException");
@@ -531,10 +398,6 @@ INSTR(Exp_Dot_Func) {
 }
 
 INSTR(Instr_Exp_Func_Static) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func call static");
-#endif
-
   f_sfun f;
   m_uint local_depth, stack_depth;
   VM_Code func;
@@ -575,9 +438,6 @@ static void copy_member_args(VM_Shred shred, VM_Code func) {
 }
 
 INSTR(Instr_Exp_Func_Member) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func call member");
-#endif
   VM_Code func;
   m_uint local_depth;
 
@@ -603,9 +463,6 @@ INSTR(Instr_Exp_Func_Member) {
 }
 
 INSTR(Func_Return) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "func return %p", MEM(0));
-#endif
   VM_Code func;
 
   POP_MEM(shred,  SZ_INT * 2);
@@ -631,32 +488,20 @@ static void call_pre_constructor(VM * vm, VM_Shred shred, VM_Code pre_ctor, m_ui
 }
 
 INSTR(Reg_Push_This) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "push this %p", *(m_uint*)MEM(0));
-#endif
   *(m_uint*)REG(0) = *(m_uint*)MEM(0);
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Pre_Constructor) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "pre constructor");
-#endif
   call_pre_constructor(vm, shred, (VM_Code)instr->m_val, instr->m_val2);
 }
 
 INSTR(Instantiate_Object) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instantiate object %p", *(m_uint*)instr->ptr);
-#endif
   instantiate_object(vm, shred, *(Type*)instr->ptr);
   vector_add(&shred->gc1, *(vtype*)REG(-SZ_INT));
 }
 
 INSTR(Alloc_Member_Word) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member word: %p[%i]", *(m_uint*)MEM(0), instr->m_val);
-#endif
   M_Object obj = *(M_Object*)MEM(0);
   *(m_uint*)(obj->data + instr->m_val) = 0;
   if(*(m_uint*)instr->ptr)
@@ -667,9 +512,6 @@ INSTR(Alloc_Member_Word) {
 }
 
 INSTR(Alloc_Member_Word_Float) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member float: %p[%i]", *(m_uint*)MEM(0), instr->m_val);
-#endif
   M_Object obj = *(M_Object*)MEM(0);
   *(m_float*)(obj->data + instr->m_val) = 0.0;
   if(*(m_uint*)instr->ptr) {
@@ -682,9 +524,6 @@ INSTR(Alloc_Member_Word_Float) {
 }
 
 INSTR(Alloc_Member_Word_Complex) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member complex: %p[%i] = '%p'", *(m_uint*)MEM(-SZ_INT), instr->m_val, *(m_uint*)MEM(0));
-#endif
   M_Object obj = *(M_Object*)MEM(0);
   *(m_complex*)(obj->data + instr->m_val) = 0.0;
   if(*(m_uint*)instr->ptr) {
@@ -697,9 +536,6 @@ INSTR(Alloc_Member_Word_Complex) {
 }
 
 INSTR(Alloc_Member_Word_Vec3) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member vec3: %p[%i] = '%p'", *(m_uint*)MEM(-SZ_INT), instr->m_val, *(m_uint*)MEM(0));
-#endif
   M_Object obj = *(M_Object*)MEM(0);
   memset((obj->data + instr->m_val), 0, SZ_VEC3);
   if(*(m_uint*)instr->ptr) {
@@ -712,9 +548,6 @@ INSTR(Alloc_Member_Word_Vec3) {
 }
 
 INSTR(Alloc_Member_Word_Vec4) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "alloc member vec4: %p[%i] = '%p'", *(m_uint*)MEM(-SZ_INT), instr->m_val, *(m_uint*)MEM(0));
-#endif
   M_Object obj = *(M_Object*)MEM(0);
   memset((obj->data + instr->m_val), 0, SZ_VEC4);
   if(*(m_uint*)instr->ptr) {
@@ -727,9 +560,6 @@ INSTR(Alloc_Member_Word_Vec4) {
 }
 
 INSTR(Dot_Static_Data) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Dot STATIC DATA: [%i] (%i) (emit:%i)", instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
-#endif
   Type t = *(Type*)REG(-SZ_INT);
 
   POP_REG(shred,  SZ_INT);
@@ -743,9 +573,6 @@ INSTR(Dot_Static_Data) {
 }
 
 INSTR(Dot_Static_Import_Data) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Dot STATIC Import DATA: %p", *(m_uint*)instr->ptr);
-#endif
   if(*(m_uint*)instr->ptr)
     *(char**)REG(0) = &*(char*)(instr->m_val);
   else
@@ -754,9 +581,6 @@ INSTR(Dot_Static_Import_Data) {
 }
 
 INSTR(Exp_Dot_Data) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "dot member data '%p'[%i] (%i) (emit:%i)", *(M_Object*)REG(-SZ_INT), instr->m_val, instr->m_val2, *(m_uint*)instr->ptr);
-#endif
   M_Object obj;
   m_bool ptr = *(m_uint*)instr->ptr;
   char* c;
@@ -769,9 +593,6 @@ INSTR(Exp_Dot_Data) {
 }
 
 INSTR(Release_Object2) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "release object %p %i", *(m_uint*)MEM(instr->m_val), instr->m_val);
-#endif
   release(*(M_Object*)MEM(instr->m_val), shred);
 }
 

@@ -21,9 +21,6 @@ static void push_new_string(VM_Shred shred, m_str c) {
 }
 
 static INSTR(String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "string => string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -37,9 +34,6 @@ static INSTR(String_Assign) {
 }
 
 static INSTR(Int_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "int '=>' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -51,9 +45,6 @@ static INSTR(Int_String_Assign) {
 }
 
 static INSTR(Float_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "float '=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
@@ -65,9 +56,6 @@ static INSTR(Float_String_Assign) {
 }
 
 static INSTR(Complex_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Complex '=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex lhs = *(m_complex*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -79,9 +67,6 @@ static INSTR(Complex_String_Assign) {
 }
 
 static INSTR(Polar_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Polar '=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex lhs = *(m_complex*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -94,9 +79,6 @@ static INSTR(Polar_String_Assign) {
 }
 
 static INSTR(Vec3_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec3 '=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3 lhs = *(m_vec3*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC3);
@@ -108,9 +90,6 @@ static INSTR(Vec3_String_Assign) {
 }
 
 static INSTR(Vec4_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec4 '=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4 lhs = *(m_vec4*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC4);
@@ -122,9 +101,6 @@ static INSTR(Vec4_String_Assign) {
 }
 
 static INSTR(Object_String_Assign) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Object '=>' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -138,9 +114,6 @@ static INSTR(Object_String_Assign) {
 }
 
 static INSTR(String_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "string '+' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -152,9 +125,6 @@ static INSTR(String_String) {
 }
 
 static INSTR(Int_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "int '+' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -165,9 +135,6 @@ static INSTR(Int_String) {
 }
 
 static INSTR(Float_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "float '+' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_FLOAT);
@@ -178,9 +145,6 @@ static INSTR(Float_String) {
 }
 
 static INSTR(Complex_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "complex '+' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
@@ -191,9 +155,6 @@ static INSTR(Complex_String) {
 }
 
 static INSTR(Polar_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "polar '+' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
@@ -204,9 +165,6 @@ static INSTR(Polar_String) {
 }
 
 static INSTR(Vec3_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec3 '+' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3  lhs = *(m_vec3*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC3);
@@ -218,9 +176,6 @@ static INSTR(Vec3_String) {
 }
 
 static INSTR(Vec4_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec4 '+' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4  lhs = *(m_vec4*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC4);
@@ -232,9 +187,6 @@ static INSTR(Vec4_String) {
 }
 
 static INSTR(Object_String) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Object '+' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -246,9 +198,6 @@ static INSTR(Object_String) {
 }
 
 static INSTR(String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "string '+=>' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -268,9 +217,6 @@ static INSTR(String_Plus) {
 }
 
 static INSTR(Int_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "int '+=>' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -283,9 +229,6 @@ static INSTR(Int_String_Plus) {
 }
 
 static INSTR(Float_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "float '+=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
@@ -298,9 +241,6 @@ static INSTR(Float_String_Plus) {
 }
 
 static INSTR(Complex_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "complex '+=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -313,9 +253,6 @@ static INSTR(Complex_String_Plus) {
 }
 
 static INSTR(Polar_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "polar '+=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -328,9 +265,6 @@ static INSTR(Polar_String_Plus) {
 }
 
 static INSTR(Vec3_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec3 '+=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3 lhs = *(m_vec3*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC3);
@@ -342,9 +276,6 @@ static INSTR(Vec3_String_Plus) {
 }
 
 static INSTR(Vec4_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Vec4 '+=>' string");
-#endif
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4 lhs = *(m_vec4*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC4);
@@ -356,9 +287,6 @@ static INSTR(Vec4_String_Plus) {
 }
 
 static INSTR(Object_String_Plus) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "Object '+=>' string");
-#endif
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -376,9 +304,6 @@ static INSTR(Object_String_Plus) {
 }
 
 INSTR(Reg_Push_Str) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "push string %s", (m_str)instr->m_val);
-#endif
   *(M_Object*)REG(0) = new_String(shred, (m_str)instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }

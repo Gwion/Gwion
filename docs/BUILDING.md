@@ -67,27 +67,6 @@ These options **need** argument, e.g.: `--xxx=dir_name`
 
 All directories will be prefixed with `$PREFIX/lib/Gwion/`
 
-### Debug flags
-
-This might concerns only people interrested in develloping Gwion.  
-get Gwion to output useful (in debugging proccess) 
-messages passing it `--debug-xxx`  
-All debug flags are off by default.
-
-#### Debug list
-
-  * compile
-  * operator
-  * scan0
-  * scan1
-  * scan2
-  * type (type checking phase)
-  * emit
-  * vm
-  * instr (vm instruction) 
-  * shreduler (shred ordering)
-  * stack
-
 -----------------
 
 ## Make 

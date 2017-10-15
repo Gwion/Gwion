@@ -952,9 +952,6 @@ void free_type_list(Type_List a) {
 }
 
 Section* new_section_class_def(Class_Def class_def, int pos) {
-#ifdef DEBUG_AST
-  debug_msg("emit", "class def");
-#endif
   Section* a = calloc(1, sizeof(Section));
   a->type = ae_section_class;
   a->d.class_def = class_def;
@@ -963,9 +960,6 @@ Section* new_section_class_def(Class_Def class_def, int pos) {
 }
 
 Ast new_ast(Section* section, Ast next, int pos) {
-#ifdef DEBUG_AST
-  debug_msg("emit", "new Ast");
-#endif
   Ast ast = malloc(sizeof(struct Ast_));
   ast->section = section;
   ast->next = next;
@@ -974,9 +968,6 @@ Ast new_ast(Section* section, Ast next, int pos) {
 }
 
 void free_ast(Ast prog) {
-#ifdef DEBUG_AST
-  debug_msg("ast", "free AST");
-#endif
   Ast tmp, ast = prog;
   while(ast) {
     tmp = ast;

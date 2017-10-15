@@ -45,9 +45,6 @@ void instantiate_object(VM * vm, VM_Shred shred, Type type) {
   initialize_object(object, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred,  SZ_INT);
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "instantiate object (internal)%p %s", object, type->name);
-#endif
   return;
 }
 
@@ -70,9 +67,6 @@ void release(M_Object obj, VM_Shred shred) {
   if(!--obj->ref) {
     Type t = obj->type_ref;
     while(t) {
-#ifdef DEBUG_INSTR
-      debug_msg("instr", "dtor loop %p %s", obj, t->name);
-#endif
       m_uint i;
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
@@ -98,10 +92,6 @@ static DTOR(object_dtor) {
 }
 
 INSTR(Assign_Object) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "assign object %lu %p %p", instr->m_val,
-            *(m_uint*)REG(- SZ_INT * 2), **(m_uint**)REG(- SZ_INT));
-#endif
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
   src = *(M_Object*)REG(0);
@@ -115,9 +105,6 @@ INSTR(Assign_Object) {
 }
 
 static INSTR(eq_Object) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "eq Object");
-#endif
   POP_REG(shred, SZ_INT * 2);
   m_uint* lhs = *(m_uint**)REG(0);
   m_uint* rhs = *(m_uint**)REG(SZ_INT);
@@ -126,9 +113,6 @@ static INSTR(eq_Object) {
 }
 
 static INSTR(neq_Object) {
-#ifdef DEBUG_INSTR
-  debug_msg("instr", "neq Object");
-#endif
   POP_REG(shred, SZ_INT * 2);
   m_uint* lhs = *(m_uint**)REG(0);
   m_uint* rhs = *(m_uint**)REG(SZ_INT);

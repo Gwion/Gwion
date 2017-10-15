@@ -80,9 +80,6 @@ static m_bool check_exp_decl_valid(Env env, Value v, S_Symbol xid) {
 }
 
 Type check_exp_decl(Env env, Exp_Decl* decl) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "decl");
-#endif
   Var_Decl_List list = decl->list;
   if(GET_FLAG(decl->m_type , ae_flag_template))
     CHECK_BO(check_exp_decl_template(env, decl))
@@ -316,9 +313,6 @@ static Type check_exp_prim_gack(Env env, Exp exp) {
 }
 
 static Type check_exp_primary(Env env, Exp_Primary* primary) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "primary");
-#endif
   Type t = NULL;
   switch(primary->type) {
     case ae_primary_id:
@@ -695,9 +689,6 @@ static m_bool check_exp_call1_check(Env env, Exp exp_func, Value* ptr) {
 }
 
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func call");
-#endif
   Func func = NULL;
   Value ptr = NULL;
 
@@ -783,10 +774,6 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
 }
 
 static Type check_op(Env env, Exp_Binary* binary) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "'%s' %s '%s'", binary->lhs->type->name, op2str(op),
-      binary->rhs->type->name);
-#endif
   Operator op = binary->op;
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
@@ -871,9 +858,6 @@ static m_bool check_exp_binary_chuck(Exp cl, Exp cr) {
 }
 
 static Type check_exp_binary(Env env, Exp_Binary* binary) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "binary expression '%p' '%p'", binary->lhs, binary->rhs);
-#endif
   Type ret = NULL;
   Exp cl = binary->lhs, cr = binary->rhs;
 
@@ -945,9 +929,6 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "cast expression");
-#endif
   Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
   Type t2 = find_type(env, cast->type->xid);
@@ -1124,9 +1105,6 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
 }
 
 static Type check_exp_if(Env env, Exp_If* exp_if) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "debug exp if");
-#endif
   Type cond     = check_exp(env, exp_if->cond);
   Type if_exp   = check_exp(env, exp_if->if_exp);
   Type else_exp = check_exp(env, exp_if->else_exp);
@@ -1183,9 +1161,6 @@ static Value get_dot_value(Exp_Dot* member, Type the_base) {
 }
 
 static Type check_exp_dot(Env env, Exp_Dot* member) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "dot member");
-#endif
   Value value;
   Type  the_base;
   m_bool base_static;
@@ -1208,9 +1183,6 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
 }
 
 static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func pointer '%s'", s_name(ptr->xid));
-#endif
   Type t     = nspc_lookup_type1(env->curr, ptr->xid);
   t->size    = SZ_INT;
   t->name    = s_name(ptr->xid);
@@ -1468,9 +1440,6 @@ static m_bool check_stmt_union(Env env, Stmt_Union stmt) {
 }
 
 static m_bool check_stmt(Env env, Stmt stmt) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "stmt");
-#endif
   m_bool ret = 1;
   if(!stmt)
     return 1;
@@ -1529,9 +1498,6 @@ static m_bool check_stmt(Env env, Stmt stmt) {
 }
 
 static m_bool check_stmt_list(Env env, Stmt_List list) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "statement list");
-#endif
   Stmt_List curr = list;
   while(curr) {
     CHECK_BB(check_stmt(env, curr->stmt))
@@ -1668,9 +1634,6 @@ static Value set_variadic(Env env) {
 }
 
 m_bool check_func_def(Env env, Func_Def f) {
-#ifdef DEBUG_TYPE
-  debug_msg("check", "func def '%s'", s_name(f->name));
-#endif
   Func func = f->d.func;
   Value variadic = NULL;
   m_bool ret = 1;
