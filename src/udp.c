@@ -29,18 +29,18 @@ static m_bool udp_recv(Udp* udp, char* buf) {
 
   FD_ZERO(&read_flags);
   FD_ZERO(&write_flags);
-  FD_SET(sock, &read_flags);
-  FD_SET(sock, &write_flags);
+  FD_SET(udp->sock, &read_flags);
+  FD_SET(udp->sock, &write_flags);
 #endif
 
   memset(buf, 0, 256);
   addr  = udp->caddr;
 
 #ifndef __linux__
-  if(select(sock + 1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
+  if(select(udp->sock + 1, &read_flags, &write_flags, (fd_set*)0, &waitd) < 0)
     return -1;
-  if(FD_ISSET(sock, &read_flags)) {
-    FD_CLR(sock, &read_flags);
+  if(FD_ISSET(udp->sock, &read_flags)) {
+    FD_CLR(udp->sock, &read_flags);
 #endif
     ssize_t len;
     if((len = recvfrom(udp->sock, buf, 255, 0, (struct sockaddr*)&addr, &addrlen)) < 0)
@@ -81,7 +81,7 @@ static m_bool server_init(Udp* udp) {
   if((udp->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
     CHECK_BB(err_msg(UDP, 0, "can't create socket"))
 #ifndef __linux__
-  set_nonblock(sock);
+  set_nonblock(udp->sock);
 #endif
 
   memset(&udp->saddr, 0, sizeof(udp->saddr));
