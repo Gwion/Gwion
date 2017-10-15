@@ -124,7 +124,6 @@ static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
     if(snd_pcm_writen(out, _out_buf, di->bufsize) < 0)
       snd_pcm_prepare(out);
   }
-
 }
 
 static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {

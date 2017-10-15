@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
   }
   d.run(vm, &di);
   if(udpif.on)
-    udp_release(thread);
+    udp_release(&udp, thread);
 clean:
   arg_release(&arg);
   if(d.del)

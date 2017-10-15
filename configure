@@ -443,7 +443,7 @@ if [ "$_arg_double" = "1"  ];then _CFLAGS+=" -DUSE_DOUBLE -DSPFLOAT=double";fi
 if [ "$USE_COVERAGE" = "1"  ]; then _CFLAGS+=" -ftest-coverage -fprofile-arcs --coverage";fi
 if [ "$USE_COVERAGE" = "on" ]; then _CFLAGS+=" -ftest-coverage -fprofile-arcs --coverage";fi
 if [ "$_arg_soundpipe_inc" ]; then _CFLAGS+=" $_arg_soundpipe_inc";fi
-cmd="$_arg_cc -Iinclude $_CFLAGS utils/generate_header.c -o utils/generate_header"
+cmd="$_arg_cc -I/usr/local/include -Iinclude $_CFLAGS utils/generate_header.c -o utils/generate_header"
 eval "$cmd" || (echo 'invalid compilation options'; exit 1;)
 ./utils/generate_header || exit 1
 }

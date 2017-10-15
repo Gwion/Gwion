@@ -61,7 +61,7 @@ static void send_vector(Udp* udp, Vector v, m_str prefix) {
     char name[size];
     memset(name, 0, size);
     strcpy(name, prefix);
-    strcpy(name, " ");
+    strcat(name, " ");
     strcat(name, file);
     udp_send(udp, name);
   }
@@ -103,15 +103,6 @@ static m_bool server_init(Udp* udp) {
   return 1;
 }
 
-void udp_release(pthread_t t) {
-  Udp* udp;
-  pthread_cancel(t);
-  pthread_join(t, (void**)&udp);
-  shutdown(udp->sock, SHUT_RDWR);
-  vector_release(&udp->add);
-  vector_release(&udp->rem);
-}
-
 void udp_client(void* data) {
   Udp* udp = (Udp*)data;
   Arg* arg= (Arg*)udp->arg;
@@ -122,8 +113,8 @@ void udp_client(void* data) {
       udp_send(udp, "loop 1");
     else if(arg->loop < 0)
       udp_send(udp, "loop 0");
-    send_vector(udp, &arg->rem, "- ");
-    send_vector(udp, &arg->add, "+ ");
+    send_vector(udp, &arg->rem, "-");
+    send_vector(udp, &arg->add, "+");
     vector_release(&arg->add);
     vector_release(&arg->rem);
     vector_release(&arg->lib);
@@ -188,5 +179,17 @@ void* udp_thread(void* data) {
     udp_run(udp);
     pthread_mutex_unlock(&vm->mutex);
   }
-  pthread_exit(udp);
+  return NULL;
+}
+
+void udp_release(Udp* udp, pthread_t t) {
+#ifdef __linux__
+#ifndef ANDROID
+  pthread_cancel(t);
+  pthread_join(t, NULL);
+#endif
+#endif
+  shutdown(udp->sock, SHUT_RDWR);
+  vector_release(&udp->add);
+  vector_release(&udp->rem);
 }
