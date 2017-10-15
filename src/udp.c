@@ -1,5 +1,6 @@
 #include <string.h>
 #ifndef __linux__
+#include <fcntl.h>
 #include <sys/select.h>
 #endif
 #include <netdb.h>
