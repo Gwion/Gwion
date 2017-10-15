@@ -67,10 +67,6 @@ config_init() {
     then
       echo "# ARG_OPTIONAL_SINGLE([$long], , [$long path], [$default])"
       DIR+="${long}:$default "
-    elif [ "$category" = "DBG" ]
-    then
-      DBG+="$long:$default "
-      echo "# ARG_OPTIONAL_BOOLEAN([debug-${long}], , [debug $long], [$default])"
     elif [ "$category" = "USE" ]
     then
       USE+="$long:$default "
