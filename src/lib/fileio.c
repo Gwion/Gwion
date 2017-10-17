@@ -5,7 +5,7 @@
 #include "import.h"
 #include "lang.h"
 
-#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
+#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { if(o)release(o, shred); err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
 
 struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
 struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };

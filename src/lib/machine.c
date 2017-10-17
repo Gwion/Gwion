@@ -50,9 +50,9 @@ static m_bool code_to_file(VM_Shred shred, m_str filename) {
   FILE* file;
 
   CHECK_OB(code_obj)
+  release(code_obj, shred);
   CHECK_OB((file = fopen(filename, "w")))
   fprintf(file, "%s\n", STRING(code_obj));
-  release(code_obj, shred);
   fclose(file);
   return 1;
 }

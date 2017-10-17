@@ -393,10 +393,16 @@ static m_bool scan1_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
 }
 
 static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
+  Func f = env->func;
+  if(env->class_def && !env->func)
+   env->func = (Func)2;
+  nspc_push_value(env->curr);
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
   CHECK_BB(scan1_exp(env, stmt->c3))
   CHECK_BB(scan1_stmt(env, stmt->body))
+  nspc_pop_value(env->curr);
+  env->func = f;
   return 1;
 }
 
@@ -635,14 +641,22 @@ static m_bool scan1_func_def_flag(Env env, Func_Def f) {
   return 1;
 }
 
+static m_bool scan1_func_def_code(Env env, Func_Def f) {
+  m_bool ret;
+  nspc_push_value(env->curr);
+  ret = scan1_stmt_code(env, &f->code->d.stmt_code, 0);
+  nspc_pop_value(env->curr);
+  return ret;
+}
+
 m_bool scan1_func_def(Env env, Func_Def f) {
   if(f->types)
     return 1;
-  env->func = (Func)1;
-  if( scan1_func_def_flag(env, f) < 0 ||
-      scan1_func_def_type(env, f) < 0 ||
+  env->func = (Func)2;
+  if(scan1_func_def_flag(env, f) < 0 ||
+     scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
-    (f->code && scan1_stmt_code(env, &f->code->d.stmt_code, 0) < 0))
+    (f->code && scan1_func_def_code(env, f) < 0))
     CHECK_BB(err_msg(SCAN1_, f->pos, "\t...in function '%s'", s_name(f->name)))
   env->func = NULL;
   return 1;

@@ -188,12 +188,12 @@ static void prepare_this_exp(Exp base, Exp dot) {
   base->exp_type = ae_exp_primary;
   base->d.exp_primary.type = ae_primary_id;
   base->d.exp_primary.d.var = insert_symbol("this");
-  base->d.exp_primary.self = base; 
+  base->d.exp_primary.self = base;
   dot->exp_type = ae_exp_dot;
   dot->meta = ae_meta_var;
   dot->d.exp_dot.base = base;
   dot->d.exp_dot.self = dot;
-} 
+}
 
 static m_bool emit_symbol_owned(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
@@ -531,6 +531,7 @@ static m_uint vararg_size(Exp_Func* exp_func, Vector kinds) {
   while(e) { 
     if(!l) { 
       size += e->type->size;
+      if(e->type->size)
       vector_add(kinds, (vtype)kindof(e->type));
     } else 
       l = l->next;
@@ -613,6 +614,20 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
   return 1;
 }
 
+static m_bool emit_binary_func(Emitter emit, Exp_Binary* binary) {
+  Exp lhs = binary->lhs;
+  Exp rhs = binary->rhs;
+  CHECK_BB(emit_exp(emit, lhs, 1))
+  if(GET_FLAG(rhs->type->d.func->def, ae_flag_variadic)) {
+    Exp_Func exp;
+    exp.args = lhs;
+    exp.m_func = rhs->type->d.func;
+    emit_func_arg_vararg(emit, &exp);
+  }
+  CHECK_BB(emit_exp(emit, rhs, 1))
+  return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
+}
+
 static m_bool emit_array_append(Emitter emit, Type type) {
   Instr instr = emitter_add_instr(emit, Array_Append);
   instr->m_val = kindof(type);
@@ -624,16 +639,15 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   Exp rhs = binary->rhs;
   struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL, NULL, 0 };
 
+  if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
+    return emit_binary_func(emit, binary);
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
-
+  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0)
+    return emit_exp_binary_ptr(emit, rhs);
   if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
       && isa(lhs->type->d.array_type, rhs->type) > 0)
     return emit_array_append(emit, rhs->type);
-  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0)
-    return emit_exp_binary_ptr(emit, rhs);
-  if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
-    return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
   CHECK_OB(get_instr(emit, &opi))
   return 1;
 }

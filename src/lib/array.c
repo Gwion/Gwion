@@ -152,6 +152,8 @@ MFUN(vm_vector_rem) {
   M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
     return;
+  if(isa(o->type_ref, &t_object) > 0)
+    release((M_Object)i_vector_at(v, index), shred);
   m_vector_rem(v, index);
 }
 

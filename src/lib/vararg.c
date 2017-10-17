@@ -18,7 +18,8 @@ INSTR(Vararg_start) {
   if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
   if(!arg->s) {
-    POP_REG(shred, SZ_INT); // pop vararg
+    if(arg->k)
+      POP_REG(shred, SZ_INT); // pop vararg
     free(arg);
     return;
   }
