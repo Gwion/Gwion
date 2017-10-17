@@ -30,6 +30,12 @@ m_bool load_context(Context context, Env env) {
 }
 
 m_bool unload_context(Context context, Env env) {
+  if(context->label.ptr) {
+    m_uint i;
+    for(i = 0; i < map_size(&context->label); i++)
+      free_map((Map)map_at(&context->label, i));
+    map_release(&context->label);
+  }
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
   REM_REF(env->context);
   env->context = (Context)vector_pop(&env->contexts);

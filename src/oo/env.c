@@ -28,7 +28,6 @@ void env_reset(Env env) {
 
   vector_clear(&env->class_stack);
   vector_add(&env->class_stack, (vtype)NULL);
-
 //  if(env->user_nspc)
 //    env->curr = env->user_nspc;
 //  else

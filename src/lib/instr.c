@@ -602,6 +602,10 @@ INSTR(start_gc) {
   vector_add(&shred->gc, (vtype)NULL); // enable scoping
 }
 
+INSTR(add2gc) {
+  vector_add(&shred->gc, *(vtype*)REG(-SZ_INT)); // enable scoping
+}
+
 INSTR(stop_gc) {
   M_Object o;
   while((o = (M_Object)vector_pop(&shred->gc)))

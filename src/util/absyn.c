@@ -31,7 +31,7 @@ static void free_var_decl(Var_Decl a) {
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     } else if(!a->value->owner_class && !GET_FLAG(a->value, ae_flag_global))
-        REM_REF(a->value);
+        REM_REF(a->value)
   }
   if(a->array)
     free_array_sub(a->array);
@@ -413,6 +413,8 @@ static void free_unary_expression(Exp_Unary* a) {
     free_type_decl(a->type);
   if(a->code)
     free_stmt(a->code);
+  if(a->array)
+    free_array_sub(a->array);
 }
 
 Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos) {

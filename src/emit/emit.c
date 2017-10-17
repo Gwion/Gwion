@@ -862,6 +862,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
     case op_new:
       CHECK_BB(emit_instantiate_object(emit, unary->self->type, 
             unary->array, GET_FLAG(unary->type, ae_flag_ref)))
+      CHECK_OB(emitter_add_instr(emit, add2gc))
       break;
     default:
       opi.rhs = unary->exp->type;
@@ -901,7 +902,7 @@ static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   CHECK_OB((op = emit_flow(emit, exp_if->cond->type, Branch_Eq_Int, Branch_Eq_Float)))
   CHECK_BB((ret = emit_exp(emit, exp_if->if_exp, 0)))
-  op2 = emitter_add_instr(emit, Goto);
+  CHECK_OB((op2 = emitter_add_instr(emit, Goto)))
   op->m_val = emit_code_size(emit);
   ret = emit_exp(emit, exp_if->else_exp, 0);
   nspc_pop_value(emit->env->curr);
