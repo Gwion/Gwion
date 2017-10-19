@@ -232,7 +232,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       if(!list->self->array->exp_list)
         SET_FLAG(decl->type, ae_flag_ref);
     }
-    list->self->value = new_value(t, s_name(list->self->xid));
+    if(!list->self->value)
+      list->self->value = new_value(t, s_name(list->self->xid));
     if(GET_FLAG(decl->type, ae_flag_const)) {
       SET_FLAG(list->self->value, ae_flag_const);
       SET_FLAG(list->self->value, ae_flag_uconst);
