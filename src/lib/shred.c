@@ -87,6 +87,7 @@ static DTOR(shred_dtor) {
 }
 
 m_bool import_shred(Importer importer) {
+  SET_FLAG((&t_shred), ae_flag_abstract);
   CHECK_BB(importer_class_ini(importer,  &t_shred, NULL, shred_dtor))
 
 	importer_item_ini(importer, "int", "@me");
