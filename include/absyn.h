@@ -2,16 +2,17 @@
 #define __ABSYN
 #include <vm.h>
 
+typedef struct Ast_       * Ast;
+typedef struct Class_Def_ * Class_Def;
+typedef struct Func_Def_  * Func_Def;
+typedef struct Stmt_List_       * Stmt_List;
 typedef struct Exp_ * Exp;
+typedef struct Stmt_            * Stmt;
 typedef struct Var_Decl_* Var_Decl;
 typedef struct Var_Decl_List_* Var_Decl_List;
-typedef struct Ast_       * Ast;
-typedef struct Func_Def_  * Func_Def;
-typedef struct Class_Def_ * Class_Def;
 typedef struct Array_Sub_ * Array_Sub;
 typedef struct Arg_List_ * Arg_List;
 
-typedef struct Stmt_            * Stmt;
 extern Map scan_map;
 
 typedef enum {
@@ -33,7 +34,8 @@ typedef enum {
   ae_flag_enum  = 1 << 17,
   ae_flag_arg  = 1 << 18,
   ae_flag_ref  = 1 << 19,
-  ae_flag_uconst  = 1 << 20
+  ae_flag_uconst  = 1 << 20,
+  ae_flag_abstract  = 1 << 21
 } ae_flag;
 
 typedef struct {
@@ -85,7 +87,6 @@ struct Var_Decl_List_ {
   Var_Decl_List next;
   int pos;
 };
-
 Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, int pos);
 
 typedef struct {
@@ -98,7 +99,6 @@ typedef struct {
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);
 Type_Decl* new_type_decl2(ID_List name, int ref, int pos);
 void free_type_decl(Type_Decl* a);
-
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, int pos);
 
 struct ID_List_    {
@@ -133,13 +133,12 @@ typedef struct {
 } Polar;
 Polar* new_polar(Exp mod, int pos);
 
-typedef struct Vec_* Vec;
-struct Vec_ {
+typedef struct {
   Exp args;
   m_uint numdims;
   int pos;
-};
-Vec new_vec(Exp e, int pos);
+} Vec;
+Vec* new_vec(Exp e, int pos);
 
 struct Arg_List_ {
   Type_Decl* type_decl;
@@ -185,7 +184,7 @@ typedef struct {
     Exp exp;
     Complex* cmp;
     Polar* polar;
-    Vec vec;
+    Vec* vec;
   } d;
   Exp self;
   int pos;
@@ -277,7 +276,7 @@ Exp new_exp_prim_array(Array_Sub exp_list, int pos);
 Exp new_exp_prim_hack(Exp exp, int pos);
 Exp new_exp_prim_complex(Complex* exp, int pos);
 Exp new_exp_prim_polar(Polar* exp, int pos);
-Exp new_exp_prim_vec(Vec a, int pos);
+Exp new_exp_prim_vec(Vec* a, int pos);
 Exp new_exp_prim_char(m_str chr, int pos);
 Exp new_exp_prim_nil(int pos);
 Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
@@ -307,7 +306,6 @@ typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_l
                ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
              } ae_Stmt_Type;
 
-typedef struct Stmt_List_       * Stmt_List;
 typedef struct Stmt_Code_       * Stmt_Code;
 typedef struct Stmt_Exp_        * Stmt_Return;
 typedef struct Stmt_Basic_      * Stmt_Continue;
@@ -441,6 +439,7 @@ Stmt new_stmt_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
 Stmt new_func_ptr_stmt(ae_flag key, m_str type, Type_Decl* decl, Arg_List args, int pos);
+
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
@@ -469,9 +468,6 @@ struct Func_Def_ {
 
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
-m_bool scan1_func_def(Env env, Func_Def f);
-m_bool scan2_func_def(Env env, Func_Def f);
-m_bool check_func_def(Env env, Func_Def f);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {
@@ -519,6 +515,4 @@ struct Ast_ {
 Ast new_ast(Section* section, Ast next, int pos);
 Ast parse(m_str);
 void free_ast();
-Type_List new_type_list(ID_List list, Type_List next, int pos);
-void free_type_list(Type_List a);
 #endif
