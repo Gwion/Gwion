@@ -34,4 +34,3 @@ f.open("/tmp/test_fileio", "r");
 <<<f => float g>>>;
 //<<<f => string s>>>;
 f.close();
-
