@@ -15,6 +15,8 @@
 #include "instr.h"
 #include "arg.h"
 
+extern void parse_args(Arg*, DriverInfo*);
+
 volatile m_bool signaled = 0;
 static DriverInfo di = { 2, 2, 2,
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
