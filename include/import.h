@@ -16,7 +16,7 @@ typedef struct Importer_* Importer;
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)
 #define IMPORT m_bool import(Importer importer)
-#define ALLOC_PTR(a, b, c) b* a = malloc(sizeof(b)); *a =c
+#define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 
 m_int importer_add_type(Importer importer, Type type);
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* data);

@@ -26,22 +26,12 @@ static ID_List templater_def(Templater* templater) {
   return list[0];
 }
 
-static Type_List templater_call(Templater* templater) {
-  m_uint i;
-  Type_List list[templater->n];
-  for(i = templater->n; --i;) {
-    ID_List id = new_id_list(templater->list[i - 1], 0);
-    list[i - 1] = new_type_list(id, i ? list[i - 1] : NULL, 0);
-  }
-  return list[0];
-}
-
-void importer_template_stop(Importer importer) {
+void importer_tmpl_end(Importer importer) {
   importer->templater.n = 0;
   importer->templater.list = NULL;
 }
 
-void importer_template_init(Importer importer, m_uint n, const m_str* list) {
+void importer_tmpl_ini(Importer importer, m_uint n, const m_str* list) {
   importer->templater.n = n;
   importer->templater.list = (m_str*)list;
 }
@@ -66,7 +56,7 @@ static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
 m_int importer_func_arg(Importer importer, const m_str t, const m_str n) {
   if(importer->func.narg == DLARG_MAX - 1)
     CHECK_BB(err_msg(UTIL_, 0,
-          "to many arguments for function '%s'.", importer->func.name))
+          "too many arguments for function '%s'.", importer->func.name))
   dl_func_func_arg(&importer->func, t, n);
   return 1;
 }
@@ -103,13 +93,12 @@ static void path_valid_inner(m_str curr) {
 static m_bool path_valid(ID_List* list, struct Path* p) {
   char last = '\0';
   m_uint i;
-  for(i = p->len; --i;) {
+  for(i = p->len + 1; --i;) {
     char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0)
       CHECK_BB(err_msg(UTIL_,  0,
             "illegal character '%c' in path '%s'...", c, p->path))
     if(c == '.' || i == 1) {
-
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
         path_valid_inner(p->curr);
@@ -177,7 +166,7 @@ static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor)
     mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->obj_size;
-    vector_copy2(&type->info->obj_v_table, &type->parent->info->obj_v_table);
+    vector_copy2(&type->parent->info->obj_v_table, &type->info->obj_v_table);
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);
@@ -191,6 +180,7 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
   if(importer->templater.n) {
     type->def = calloc(1, sizeof(struct Class_Def_));
     type->def->types = templater_def(&importer->templater);
+    type->def->type = type;
     SET_FLAG(type, ae_flag_template);
   }
   CHECK_BB(importer_add_type(importer, type))
@@ -227,7 +217,7 @@ static void dl_var_set(DL_Var* v, ae_flag flag) {
   v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
     dl_var_new_array(v);
-}
+} 
 
 static void dl_var_release(DL_Var* v) {
   if(v->array_depth) {
@@ -251,12 +241,32 @@ m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &importer->var;
   CHECK_EB(importer->env->class_def)
-  dl_var_set(v, flag);
+  dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
-  if(importer->templater.n)
-    v->exp.d.exp_decl.types = templater_call(&importer->templater);
-  if(traverse_decl(importer->env, &v->exp.d.exp_decl) < 0)
-    v->var.value->offset = -1;
+  if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
+    Type_Decl *type_decl = new_type_decl(v->t.xid,
+        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
+        0, 0);
+    Var_Decl var_decl = new_var_decl(s_name(v->var.xid), v->var.array, 0);
+    Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list,
+        (flag & ae_flag_static) == ae_flag_static, 0);
+    Stmt stmt = new_stmt_expression(exp, 0);
+    Stmt_List list = new_stmt_list(stmt, NULL, 0);
+    Section* section = new_section_stmt_list(list, 0);
+    Class_Body body = new_class_body(section, 0);
+    type_decl->array = v->t.array;
+    if(!importer->env->class_def->def->body)
+      importer->env->class_def->def->body = importer->body = body;
+    else {
+      importer->body->next = body;
+      importer->body = body;
+    }
+    return 1;
+  }
+  else
+  CHECK_BB(traverse_decl(importer->env, &v->exp.d.exp_decl))
+  SET_FLAG(v->var.value, ae_flag_builtin);
   dl_var_release(v);
   return v->var.value->offset;
 }

@@ -177,6 +177,14 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
     emit_pre_ctor(emit, type);
+    if(strstr(type->name, "@")){ // handle templates
+      char* name = strdup(type->name);
+      char* c = strsep(&name, "@");
+      Type parent = nspc_lookup_type0(emit->env->curr, insert_symbol(c));
+      free(c);
+      if(parent)
+        emit_pre_ctor(emit, parent);
+    }
   }
   return 1;
 }
@@ -475,10 +483,10 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   Type type = value->m_type;
   Instr alloc;
   Array_Sub array = var_decl->array;
-  m_bool is_array = array && array->exp_list; 
+  m_bool is_array = array && array->exp_list;
   m_bool is_obj = isa(type, &t_object) > 0 || var_decl->array;
   Kindof kind = kindof(type);
-  if(is_obj && ( is_array || !is_ref))
+  if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   if(GET_FLAG(value, ae_flag_member))
     alloc = emitter_add_instr(emit, decl_member_instr[kind]);
@@ -501,7 +509,6 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
 
 static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
   CHECK_BB(template_push_types(emit->env, decl->base->types, decl->types))
-  CHECK_BB(traverse_class_def(emit->env, decl->m_type->def))
   CHECK_BB(emit_class_def(emit, decl->m_type->def))
   nspc_pop_type(emit->env->curr);
   return 1;
@@ -528,12 +535,12 @@ static m_uint vararg_size(Exp_Func* exp_func, Vector kinds) {
   Exp e = exp_func->args;
   Arg_List l = exp_func->m_func->def->arg_list;
   m_uint size = 0;
-  while(e) { 
-    if(!l) { 
+  while(e) {
+    if(!l) {
       size += e->type->size;
       if(e->type->size)
       vector_add(kinds, (vtype)kindof(e->type));
-    } else 
+    } else
       l = l->next;
     e = e->next;
   }
@@ -731,11 +738,7 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
 }
 
 static m_bool emit_exp_call1_offset(Emitter emit, m_bool is_member) {
-  Instr offset;
-
-  if(!emit->code->stack_depth && !emit_code_offset(emit) && !is_member)
-    CHECK_OB(emitter_add_instr(emit, Mem_Push_Imm))
-  offset = emitter_add_instr(emit, Reg_Push_Imm);
+  Instr offset = emitter_add_instr(emit, Reg_Push_Imm);
   offset->m_val = emit_code_offset(emit);
   return 1;
 }
@@ -767,14 +770,15 @@ static m_bool emit_exp_call1_usr(Emitter emit) {
 }
 
 m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
-  Instr code;
+  m_bool is_member = GET_FLAG(func, ae_flag_member) ||
+    (!GET_FLAG(func, ae_flag_member) && !GET_FLAG(func, ae_flag_builtin));
   if(!func->code) // function pointer or template
     CHECK_BB(emit_exp_call1_code(emit, func))
   else {
-    code = emitter_add_instr(emit, Reg_Push_Ptr);
+    Instr code = emitter_add_instr(emit, Reg_Push_Ptr);
     *(VM_Code*)code->ptr = func->code;
   }
-  CHECK_BB(emit_exp_call1_offset(emit, GET_FLAG(func, ae_flag_member)))
+  CHECK_BB(emit_exp_call1_offset(emit, is_member))
   if(GET_FLAG(func->def, ae_flag_builtin))
     return emit_exp_call1_builtin(emit, func);
   else if(!strcmp(s_name(func->def->name), "chuck"))

@@ -17,7 +17,7 @@ typedef struct {
   m_uint   addr;
   m_uint   narg;
   DL_Value args[DLARG_MAX];
-}  DL_Func;
+} DL_Func;
 
 typedef struct {
   Operator op;
@@ -27,10 +27,11 @@ typedef struct {
 typedef struct {
   m_uint n;
   m_str* list;
-}Templater;
+} Templater;
 
 struct Importer_{
   Env env;
+  Class_Body body;
   DL_Var var;
   DL_Func func;
   DL_Oper oper;

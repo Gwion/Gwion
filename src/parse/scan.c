@@ -173,14 +173,19 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     CHECK_BB(template_push_types(env, t->def->types, decl->types))
     CHECK_BB(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
+    if(GET_FLAG(t, ae_flag_builtin))
+      SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BB(scan1_class_def(env, a))
     decl->m_type = a->type;
     a->tref = t->def->types;
     a->base = decl->types;
   } else if(decl->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' is not template", t->name))
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
+    if(GET_FLAG(env->class_def, ae_flag_builtin))
+	  decl->m_type = NULL;
     decl->num_decl = 0;
+  }
   return 1;
 }
 
@@ -190,14 +195,14 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
     CHECK_BO(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
           s_name(decl->type->xid->xid)))
   if(!t->size)
-    CHECK_BO(err_msg(SCAN2_, decl->pos,
+    CHECK_BO(err_msg(SCAN1_, decl->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
   if(!GET_FLAG(decl->type, ae_flag_ref)) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
-      CHECK_BO(err_msg(SCAN2_, decl->pos,
+      CHECK_BO(err_msg(SCAN1_, decl->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
-  } else if((isprim(t) > 0))
-    CHECK_BO(err_msg(SCAN2_, decl->pos,
+  } else if(isprim(t) > 0 && !decl->type->array)
+    CHECK_BO(err_msg(SCAN1_, decl->pos,
           "cannot declare references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
   return t;
@@ -234,6 +239,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     }
     if(!list->self->value)
       list->self->value = new_value(t, s_name(list->self->xid));
+    else
+      list->self->value->m_type = t;
     if(GET_FLAG(decl->type, ae_flag_const)) {
       SET_FLAG(list->self->value, ae_flag_const);
       SET_FLAG(list->self->value, ae_flag_uconst);
@@ -244,6 +251,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(list->self->value, ae_flag_global);
     if(env->func == (Func)1)
       ADD_REF(list->self->value)
+
     list->self->value->ptr = list->self->addr;
     list->self->value->owner = env->curr;
     list->self->value->owner_class = env->func ? NULL : env->class_def;
@@ -636,9 +644,9 @@ static m_bool scan1_func_def_flag(Env env, Func_Def f) {
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
   if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(env, f))
-  else if(name2op(s_name(f->name)) > 0)
+/*  else if(name2op(s_name(f->name)) > 0)
       CHECK_BB(err_msg(SCAN1_, f->pos,
-                "'%s' is a reserved operator name", s_name(f->name)))
+                "'%s' is a reserved operator name", s_name(f->name))) */
   return 1;
 }
 
@@ -704,13 +712,13 @@ m_bool scan2_class_def(Env env, Class_Def class_def);
 
 static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    template_push_types(env, env->class_def->def->types, decl->types);
   if(GET_FLAG(type, ae_flag_template)) {
-    template_push_types(env, decl->base->types, decl->types);
-    CHECK_BB(scan1_class_def(env, type->def))
+    CHECK_BB(template_push_types(env, decl->base->types, decl->types));
+//    CHECK_BB(scan1_class_def(env, type->def))
     CHECK_BB(scan2_class_def(env, type->def))
   }
+  else if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    template_push_types(env, env->class_def->def->types, decl->types);
   return 1;
 }
 

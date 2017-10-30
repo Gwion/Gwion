@@ -50,6 +50,7 @@ static void handle_plug(Importer importer, m_str c) {
         vector_add(&vm->plug, (vtype)handler);
         nspc_commit(importer->env->curr);
       } else {
+exit(2);
         env_pop_class(importer->env);
         dlclose(handler);
        }

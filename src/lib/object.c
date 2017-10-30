@@ -71,6 +71,17 @@ void release(M_Object obj, VM_Shred shred) {
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
+/*
+printf("value->name %s\n", value->name);
+printf("value->name %s\n", value->m_type->name);
+printf("value->name %p\n", obj->data);
+printf("value->name %p\n", obj->data + value->offset);
+printf("value->name %p\n", *(M_Object*)obj->data + value->offset);
+if(value->m_type->def)
+if(!GET_FLAG(value, ae_flag_template))
+*/
+//printf("value->name %p\n", *(M_Object*)(obj->data + value->offset));
+//printf("flag %p\n", value->m_type->d.array_type->def);
         if(!GET_FLAG(value, ae_flag_static) && isprim(value->m_type) < 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
