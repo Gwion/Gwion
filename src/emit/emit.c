@@ -303,9 +303,9 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   return 1;
 }
 
-static m_bool emit_exp_prim_vec(Emitter emit, Vec val) {
-  CHECK_BB(emit_exp(emit, val->args, 0));
-  m_int n = 3 - val->numdims;
+static m_bool emit_exp_prim_vec(Emitter emit, Vec* vec) {
+  CHECK_BB(emit_exp(emit, vec->args, 0));
+  m_int n = 3 - vec->numdims;
   while(n > 0) {
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm2))
     n--;

@@ -343,7 +343,7 @@ union YYSTYPE
   m_float fval;
   Complex* c_val;
   Polar* polar;
-  Vec vec;
+  Vec* vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;

@@ -348,8 +348,8 @@ __inline static void free_polar(Polar* a) {
   free(a);
 }
 
-Vec new_vec(Exp e, int pos) {
-  Vec a = calloc(1, sizeof(struct Vec_));
+Vec* new_vec(Exp e, int pos) {
+  Vec* a = calloc(1, sizeof(Vec));
   a->args = e;
   while(e) {
     a->numdims++;
@@ -359,12 +359,12 @@ Vec new_vec(Exp e, int pos) {
   return a;
 }
 
-__inline static void free_vec(Vec a) {
+__inline static void free_vec(Vec* a) {
   free_expression(a->args);
   free(a);
 }
 
-Exp new_exp_prim_vec(Vec exp, int pos) {
+Exp new_exp_prim_vec(Vec* exp, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.type = ae_primary_vec;
   a->d.exp_primary.d.vec = exp;

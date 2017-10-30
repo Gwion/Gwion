@@ -156,13 +156,12 @@ static m_bool check_exp_prim_vec_actual(Env env, Exp e) {
   return 1;
 }
 
-static Type check_exp_primary_vec(Env env, Vec vec) {
-  Vec val = vec;
-  if(val->numdims > 4)
+static Type check_exp_primary_vec(Env env, Vec* vec) {
+  if(vec->numdims > 4)
     CHECK_BO(err_msg(TYPE_, vec->pos,
           "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
-  CHECK_BO(check_exp_prim_vec_actual(env, val->args))
-  return val->numdims < 4 ? &t_vec3 : &t_vec4;
+  CHECK_BO(check_exp_prim_vec_actual(env, vec->args))
+  return vec->numdims < 4 ? &t_vec3 : &t_vec4;
 }
 
 static Value check_non_res_value(Env env, Exp_Primary* primary) {
