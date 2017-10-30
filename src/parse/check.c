@@ -21,8 +21,7 @@ struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 
-static m_bool check_exp_array_subscripts(Env env, Exp exp_list) {
-  Exp exp = exp_list;
+static m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
     if(isa(exp->type, &t_int) < 0)
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
@@ -298,15 +297,13 @@ static m_bool gack_verify(Exp e) {
   return 1;
 }
 
-static Type check_exp_prim_gack(Env env, Exp exp) {
-  if(exp->exp_type == ae_exp_decl)
-    CHECK_BO(err_msg(TYPE_, exp->pos, "cannot use <<< >>> on variable declarations...\n"))
-  CHECK_OO((check_exp(env, exp))) {
-    Exp e = exp;
-    while(e) {
-      CHECK_BO(gack_verify(e))
-      e = e->next;
-    }
+static Type check_exp_prim_gack(Env env, Exp e) {
+  if(e->exp_type == ae_exp_decl)
+    CHECK_BO(err_msg(TYPE_, e->pos, "cannot use <<< >>> on variable declarations...\n"))
+  CHECK_OO((check_exp(env, e)))
+  while(e) {
+    CHECK_BO(gack_verify(e))
+    e = e->next;
   }
   return &t_gack;
 }
@@ -1372,14 +1369,14 @@ static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
 static m_bool check_stmt_continue(Env env, Stmt_Continue cont) {
   if(!vector_size(&env->breaks))
     CHECK_BB(err_msg(TYPE_,  cont->pos,
-                     "'continue' found outside of for/while/until..."))
+             "'continue' found outside of for/while/until..."))
     return 1;
 }
 
 static m_bool check_stmt_break(Env env, Stmt_Break cont) {
   if(!vector_size(&env->breaks))
     CHECK_BB(err_msg(TYPE_,  cont->pos,
-                     "'break' found outside of for/while/until..."))
+             "'break' found outside of for/while/until..."))
     return 1;
 }
 
