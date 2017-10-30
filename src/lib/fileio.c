@@ -94,7 +94,7 @@ INSTR(file_to_float) {
   POP_REG(shred, SZ_INT)
   /*  m_float ret;*/
   float ret;
-  M_Object o = *(M_Object*)REG(- SZ_INT);
+  M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -108,6 +108,7 @@ INSTR(file_to_float) {
     release(o, shred);
     Except(shred, "EmptyFileException");
   }
+POP_REG(shred, SZ_FLOAT)
 }
 /*
 m_bool inputAvailable(FILE* f)
