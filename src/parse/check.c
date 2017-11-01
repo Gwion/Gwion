@@ -721,10 +721,14 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   if(binary->rhs->exp_type == ae_exp_primary) {
     v = nspc_lookup_value1(env->curr, binary->rhs->d.exp_primary.d.var);
     f1 = v->func_ref ? v->func_ref :
-      nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
+      //nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
+      nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_dot) {
-    v = find_value(binary->rhs->d.exp_dot.t_base, binary->rhs->d.exp_dot.xid);
-    f1 = find_func(binary->rhs->d.exp_dot.t_base, insert_symbol(v->m_type->name));
+    Type t = binary->rhs->d.exp_dot.t_base;
+    if(isa(t, &t_class) > 0)
+      t = t->d.actual_type;
+    v = find_value(t, binary->rhs->d.exp_dot.xid);
+    f1 = find_func(t, insert_symbol(v->m_type->name));
   } else if(binary->rhs->exp_type == ae_exp_decl) {
     v = binary->rhs->d.exp_decl.list->self->value;
     f1 = v->m_type->d.func;
@@ -736,7 +740,10 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
     f2 = nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   } else if(binary->lhs->exp_type == ae_exp_dot) {
-    v = find_value(binary->lhs->d.exp_dot.t_base, binary->lhs->d.exp_dot.xid);
+    Type t = binary->lhs->d.exp_dot.t_base;
+    if(isa(t, &t_class) > 0)
+      t = t->d.actual_type;
+    v = find_value(t, binary->lhs->d.exp_dot.xid);
     f2 = v->func_ref;
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   } else
@@ -1178,7 +1185,7 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   return value->m_type;
 }
 
-static m_bool check_stmt_typedef(Env env, Stmt_Ptr ptr) {
+m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
   Type t     = nspc_lookup_type1(env->curr, ptr->xid);
   t->size    = SZ_INT;
   t->name    = s_name(ptr->xid);
@@ -1484,7 +1491,7 @@ static m_bool check_stmt(Env env, Stmt stmt) {
       ret = check_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
       break;
     case ae_stmt_funcptr:
-      ret = check_stmt_typedef(env, &stmt->d.stmt_ptr);
+      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_union:
       ret = check_stmt_union(env, &stmt->d.stmt_union);

@@ -13,6 +13,11 @@ m_bool scan1_func_def(Env env, Func_Def def);
 m_bool scan2_func_def(Env env, Func_Def def);
 m_bool check_func_def(Env env, Func_Def def);
 
+m_bool scan0_stmt_fptr(Env env, Func_Def def);
+m_bool scan1_stmt_fptr(Env env, Func_Def def);
+m_bool scan2_stmt_fptr(Env env, Func_Def def);
+m_bool check_stmt_fptr(Env env, Func_Def def);
+
 m_bool scan1_class_def(Env env, Class_Def def);
 m_bool scan2_class_def(Env env, Class_Def def);
 m_bool check_class_def(Env env, Class_Def def);
@@ -42,6 +47,14 @@ m_bool traverse_func_def(Env env, Func_Def def) {
   return 1;
 }
 
+m_bool traverse_stmt_fptr(Env env, Func_Def def) {
+  if(scan0_stmt_fptr(env, def) < 0 ||
+     scan1_stmt_fptr(env, def) < 0 ||
+     scan2_stmt_fptr(env, def) < 0 ||
+     check_stmt_fptr(env, def) < 0)
+    return -1;
+  return 1;
+}
 m_bool traverse_class_def(Env env, Class_Def def) {
   if(scan1_class_def(env, def) < 0 ||
      scan2_class_def(env, def) < 0 ||

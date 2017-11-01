@@ -192,6 +192,9 @@ static m_int import_class_end(Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   env->class_def->obj_size = env->class_def->info->offset;
+  Nspc nspc = env->class_def->info;
+  if(nspc->class_data_size && !nspc->class_data)
+    nspc->class_data = calloc(1, nspc->class_data_size);
   CHECK_BB(env_pop_class(env))
   return 1;
 }
@@ -217,7 +220,7 @@ static void dl_var_set(DL_Var* v, ae_flag flag) {
   v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
     dl_var_new_array(v);
-} 
+}
 
 static void dl_var_release(DL_Var* v) {
   if(v->array_depth) {
@@ -392,6 +395,34 @@ m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m
 m_int importer_oper_end(Importer importer, Operator op, const f_instr f, const m_bool global) {
   importer->oper.op = op;
   return import_op(importer->env, &importer->oper, f, global);
+}
+
+m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name) {
+  dl_func_init(&importer->func, type, name, 0);
+  return 1;
+}
+
+static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
+  m_uint array_depth;
+  ID_List type_path;
+  Type_Decl* type_decl = NULL;
+  Arg_List args = make_dll_arg_list(dl_fun);
+  flag |= ae_flag_func | ae_flag_builtin;
+  if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
+      !(type_decl = new_type_decl(type_path, 0, 0)))
+    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import %Q (type)...",
+          dl_fun->name))
+  return new_func_ptr_stmt(flag, dl_fun->name, type_decl, args, 0);
+}
+#include "func.h"
+m_int importer_fptr_end(Importer importer, ae_flag flag) {
+  Stmt stmt = import_fptr(&importer->func, flag);
+  CHECK_BB(traverse_stmt_fptr(importer->env, &stmt->d.stmt_ptr))
+  if(importer->env->class_def)
+    SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
+  else
+  SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
+  return 1;
 }
 
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {

@@ -14,7 +14,7 @@ static m_bool isres(S_Symbol xid, m_uint pos) {
 }
 
 m_bool scan0_class_def(Env env, Class_Def class_def);
-static m_bool scan0_Stmt_Typedef(Env env, Stmt_Ptr ptr) {
+m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   Value v;
   m_str name = s_name(ptr->xid);
   Type type;
@@ -38,7 +38,7 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
   if(!stmt)
     return 1;
   if(stmt->type == ae_stmt_funcptr)
-    CHECK_BB(scan0_Stmt_Typedef(env, &stmt->d.stmt_ptr))
+    CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
   return 1;
 }
 
@@ -579,7 +579,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
       ret = 1;
       break;
     case ae_stmt_funcptr:
-      ret = scan1_stmt_typedef(env, &stmt->d.stmt_ptr);
+      ret = scan1_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_union:
       ret = scan1_stmt_union(env, &stmt->d.stmt_union);
@@ -1146,7 +1146,7 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
       ret = scan2_stmt_enum(env, &stmt->d.stmt_enum);
       break;
     case ae_stmt_funcptr:
-      ret = scan2_stmt_typedef(env, &stmt->d.stmt_ptr);
+      ret = scan2_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_union:
       ret = scan2_stmt_union(env, &stmt->d.stmt_union);

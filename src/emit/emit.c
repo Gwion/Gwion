@@ -607,8 +607,15 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
   Value v = NULL;
   Instr instr = emitter_add_instr(emit, assign_func);
   if(rhs->exp_type == ae_exp_dot) {
-    v = find_value(rhs->d.exp_dot.t_base, rhs->d.exp_dot.xid);
-    instr->m_val = 1;
+    Type t = rhs->d.exp_dot.t_base;
+    if(isa(t, &t_class) > 0)
+      t = t->d.actual_type;
+    v = find_value(t, rhs->d.exp_dot.xid);
+    if(!GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
+      instr->m_val = 3;
+      *(Type*)instr->ptr = t;
+    } else 
+        instr->m_val = 1; 
   } else if(rhs->exp_type == ae_exp_primary) {
     if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
       v = rhs->d.exp_primary.value;
@@ -746,6 +753,10 @@ static m_bool emit_exp_call1_offset(Emitter emit, m_bool is_member) {
 m_bool emit_exp_call1_builtin(Emitter emit, Func func) {
   Instr call;
 
+  Type t = func->value_ref->m_type;
+  if(isa(t, &t_class) > 0)
+    t = t->d.actual_type;
+  if(isa(t, &t_func_ptr) < 0)
   if(!func->code || !func->code->native_func)
     CHECK_BB(err_msg(EMIT_, func->def->pos,
           "missing native func. are you trying to spork?"))
@@ -1298,7 +1309,7 @@ static m_bool emit_stmt_case(Emitter emit, Stmt_Case stmt) {
   return 1;
 }
 
-static m_bool emit_stmt_typedef(Emitter emit, Stmt_Ptr ptr) {
+static m_bool emit_stmt_fptr(Emitter emit, Stmt_Ptr ptr) {
   if(GET_FLAG(ptr, ae_flag_static))
     ADD_REF(ptr->func)
     return 1;
@@ -1391,7 +1402,7 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
     case ae_stmt_switch:
       return emit_stmt_switch(emit, &stmt->d.stmt_switch);
     case ae_stmt_funcptr:
-      return emit_stmt_typedef(emit, &stmt->d.stmt_ptr);
+      return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
     case ae_stmt_union:
       return emit_stmt_union(emit, &stmt->d.stmt_union);
   }
@@ -1601,6 +1612,8 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
   Type t_base = member->t_base->d.actual_type;
   Value value = find_value(t_base, member->xid);
 
+  if(isa(member->self->type, &t_func_ptr) > 0)
+    return emit_dot_static_import_data(emit, value, member->self->emit_var);
   if(isa(member->self->type, &t_function) > 0)
     return emit_dot_static_func(emit, t_base, value->func_ref);
   return emit_dot_static_import_data(emit, value, member->self->emit_var);
