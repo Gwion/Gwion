@@ -486,14 +486,14 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
       char path[id_list_len(arg_list->type_decl->xid)];
       type_path(path, arg_list->type_decl->xid);
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-            "'%s' unknown type in argument %i", path, count))
+            "%Q unknown type in argument %i", path, count))
     }
     arg_list = arg_list->next;
   }
   return count;
 }
 
-static m_bool scan1_stmt_typedef(Env env, Stmt_Ptr ptr) {
+m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
   ptr->ret_type = find_type(env, ptr->type->xid);
   if(!ptr->ret_type)
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
@@ -809,7 +809,7 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
   return f->value_ref = v;
 }
 
-static m_bool scan2_stmt_typedef(Env env, Stmt_Ptr ptr) {
+m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
   struct Func_Def_ d;
   d.arg_list = ptr->args;
   if(nspc_lookup_func2(env->curr, ptr->xid))
