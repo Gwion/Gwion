@@ -1,0 +1,16 @@
+int i;
+int j;
+int K;
+fun Vec4 test() { <<<"test">>>; }
+fun void test2(PtrType t) { Callback.callback(t); }
+
+test @=> PtrType t;
+<<<Callback.callback(t)>>>;
+<<<Callback.callback(t)>>>;
+<<<Callback.callback(t)>>>;
+Callback.callback(t);
+test2(t);
+test2(t);
+spork ~test2(t);
+spork ~Callback.callback(t);
+me.yield();
