@@ -1,6 +1,7 @@
 m_bool traverse_ast(Env env, Ast ast);
 m_bool traverse_class_def(Env env, Class_Def def);
 m_bool traverse_func_def(Env env, Func_Def def);
+m_bool traverse_stmt_fptr(Env env, Stmt_Ptr stmt);
 m_bool traverse_decl(Env env, Exp_Decl* decl);
 
 Class_Def template_class(Env env, Class_Def def, Type_List call);

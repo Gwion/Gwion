@@ -1,13 +1,23 @@
+#include <string.h>
 #include "stdlib.h"
 #include "defs.h"
 #include "type.h"
-
+#include "err_msg.h"
 m_bool isa(Type var, Type parent) {
   return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
 }
 
 m_bool isprim(Type type) {
   return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
+}
+
+m_bool isres(S_Symbol xid, m_uint pos) {
+  m_str s = s_name(xid);
+  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
+    int ret = err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    return -ret;
+  }
+  return -1;
 }
 
 Type find_common_anc(Type lhs, Type rhs) {
