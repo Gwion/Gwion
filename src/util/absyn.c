@@ -6,7 +6,7 @@
 
 void free_expression(Exp exp);
 void free_arg_list(Arg_List a);
-static void free_stmt(Stmt a);
+void free_stmt(Stmt a);
 static void free_stmt_list(Stmt_List a);
 static void free_stmt_code(Stmt_Code a);
 static void free_section();
@@ -797,7 +797,7 @@ __inline static void free_stmt_union(Stmt_Union a) {
   vector_release(&a->v);
 }
 
-static void free_stmt(Stmt stmt) {
+void free_stmt(Stmt stmt) {
   switch(stmt->type) {
     case ae_stmt_exp:
       free_stmt_exp(&stmt->d.stmt_exp);

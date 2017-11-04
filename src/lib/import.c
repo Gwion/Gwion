@@ -421,7 +421,8 @@ m_int importer_fptr_end(Importer importer, ae_flag flag) {
   if(importer->env->class_def)
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
   else
-  SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
+    SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
+  free(stmt);
   return 1;
 }
 
