@@ -1149,7 +1149,7 @@ static m_bool check_enum(Exp exp, Value v) {
 
 static Value get_dot_value(Exp_Dot* member, Type the_base) {
   Value value = find_value(the_base, member->xid);
-  
+
   if(!value) {
     m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
     char s[len];

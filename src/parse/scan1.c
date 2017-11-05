@@ -24,8 +24,9 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     decl->m_type = a->type;
     a->tref = t->def->types;
     a->base = decl->types;
-  } else if(decl->types)
-      CHECK_BB(err_msg(SCAN1_, decl->pos, "type '%s' is not template", t->name))
+  } else if( decl->types)
+      CHECK_BB(err_msg(SCAN1_, decl->pos,
+            "type '%s' is not template", t->name))
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
     if(GET_FLAG(env->class_def, ae_flag_builtin))
 	  decl->m_type = NULL;
@@ -71,7 +72,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     if((value = nspc_lookup_value0(env->curr, list->self->xid)) &&
       !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
         CHECK_BB(err_msg(SCAN2_, list->self->pos,
-              "variable %s has already been defined in the same scope...", s_name(list->self->xid)))
+              "variable %s has already been defined in the same scope...",
+              s_name(list->self->xid)))
     decl->num_decl++;
     if(var_decl->array) {
       Type t2 = t;
@@ -110,13 +112,13 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   return 1;
 }
 
-static m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
+static  m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
   CHECK_BB(scan1_exp(env, binary->lhs))
   CHECK_BB(scan1_exp(env, binary->rhs))
   return 1;
 }
 
-static m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
+static  m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
   if(prim->type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
     return 1;
@@ -179,47 +181,46 @@ static m_bool scan1_exp_spork(Env env, Stmt code) {
 }
 
 static m_bool scan1_exp(Env env, Exp exp) {
-  Exp curr = exp;
-  while(curr) {
-    switch(curr->exp_type) {
+  while(exp) {
+    switch(exp->exp_type) {
       case ae_exp_primary:
-        CHECK_BB(scan1_exp_primary(env, &curr->d.exp_primary))
+        CHECK_BB(scan1_exp_primary(env, &exp->d.exp_primary))
         break;
       case ae_exp_decl:
-        CHECK_BB(scan1_exp_decl(env, &curr->d.exp_decl))
+        CHECK_BB(scan1_exp_decl(env, &exp->d.exp_decl))
         break;
       case ae_exp_unary:
-        if(curr->d.exp_unary.op == op_spork && curr->d.exp_unary.code)
-          CHECK_BB(scan1_exp_spork(env, curr->d.exp_unary.code))
+        if(exp->d.exp_unary.op == op_spork && exp->d.exp_unary.code)
+          CHECK_BB(scan1_exp_spork(env, exp->d.exp_unary.code))
         break;
       case ae_exp_binary:
-        CHECK_BB(scan1_exp_binary(env, &curr->d.exp_binary))
+        CHECK_BB(scan1_exp_binary(env, &exp->d.exp_binary))
         break;
       case ae_exp_postfix:
-        CHECK_BB(scan1_exp_postfix(env, &curr->d.exp_postfix))
+        CHECK_BB(scan1_exp_postfix(env, &exp->d.exp_postfix))
         break;
       case ae_exp_cast:
-        CHECK_BB(scan1_exp_cast(env, &curr->d.exp_cast))
+        CHECK_BB(scan1_exp_cast(env, &exp->d.exp_cast))
         break;
       case ae_exp_call:
-        CHECK_BB(scan1_exp_call(env, &curr->d.exp_func))
+        CHECK_BB(scan1_exp_call(env, &exp->d.exp_func))
         break;
       case ae_exp_array:
-        CHECK_BB(scan1_exp_array(env, &curr->d.exp_array))
+        CHECK_BB(scan1_exp_array(env, &exp->d.exp_array))
         break;
       case ae_exp_dot:
-        CHECK_BB(scan1_exp_dot(env, &curr->d.exp_dot))
+        CHECK_BB(scan1_exp_dot(env, &exp->d.exp_dot))
         break;
       case ae_exp_dur:
-        CHECK_BB(scan1_exp_dur(env, &curr->d.exp_dur))
+        CHECK_BB(scan1_exp_dur(env, &exp->d.exp_dur))
         break;
       case ae_exp_if:
-        CHECK_BB(scan1_exp_if(env, &curr->d.exp_if))
+        CHECK_BB(scan1_exp_if(env, &exp->d.exp_if))
         break;
     }
-    curr = curr->next;
-    if(curr&& curr->exp_type == ae_exp_decl)
-      CHECK_BB(err_msg(SCAN1_, curr->pos, "can't declare after expression"))
+    exp = exp->next;
+    if(exp&& exp->exp_type == ae_exp_decl)
+      CHECK_BB(err_msg(SCAN1_, exp->pos, "can't declare after expression"))
   }
   return 1;
 }

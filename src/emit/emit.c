@@ -375,6 +375,8 @@ static m_bool emit_exp_prim_gack(Emitter emit, Exp exp) {
   e = exp;
   while(e) {
     vector_add(types, (vtype)e->type);
+    if(!(emit->env->func && GET_FLAG(emit->env->func, ae_flag_member) &&
+        e->type == emit->env->class_def))
     ADD_REF(e->type);
     e = e->next;
   }
@@ -942,39 +944,38 @@ static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
 }
 
 static m_bool emit_exp(Emitter emit, Exp exp, m_bool ref) {
-  Exp tmp = exp;
-  while(tmp) {
-    switch(tmp->exp_type) {
+  while(exp) {
+    switch(exp->exp_type) {
       case ae_exp_decl:
-        CHECK_BB(emit_exp_decl(emit, &tmp->d.exp_decl))       break;
+        CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))       break;
       case ae_exp_primary:
-        CHECK_BB(emit_exp_primary(emit, &tmp->d.exp_primary)) break;
+        CHECK_BB(emit_exp_primary(emit, &exp->d.exp_primary)) break;
       case ae_exp_unary:
-        CHECK_BB(emit_exp_unary(emit, &tmp->d.exp_unary))     break;
+        CHECK_BB(emit_exp_unary(emit, &exp->d.exp_unary))     break;
       case ae_exp_binary:
-        CHECK_BB(emit_exp_binary(emit, &tmp->d.exp_binary))   break;
+        CHECK_BB(emit_exp_binary(emit, &exp->d.exp_binary))   break;
       case ae_exp_postfix:
-        CHECK_BB(emit_exp_postfix(emit, &tmp->d.exp_postfix)) break;
+        CHECK_BB(emit_exp_postfix(emit, &exp->d.exp_postfix)) break;
       case ae_exp_cast:
-        CHECK_BB(exp_exp_cast(emit, &tmp->d.exp_cast))        break;
+        CHECK_BB(exp_exp_cast(emit, &exp->d.exp_cast))        break;
       case ae_exp_dot:
-        CHECK_BB(emit_exp_dot(emit, &tmp->d.exp_dot))         break;
+        CHECK_BB(emit_exp_dot(emit, &exp->d.exp_dot))         break;
       case ae_exp_call:
-        CHECK_BB(emit_exp_call(emit, &tmp->d.exp_func, 0))    break;
+        CHECK_BB(emit_exp_call(emit, &exp->d.exp_func, 0))    break;
       case ae_exp_array:
-        CHECK_BB(emit_exp_array(emit, &tmp->d.exp_array))     break;
+        CHECK_BB(emit_exp_array(emit, &exp->d.exp_array))     break;
       case ae_exp_if:
-        CHECK_BB(emit_exp_if(emit, &tmp->d.exp_if))           break;
+        CHECK_BB(emit_exp_if(emit, &exp->d.exp_if))           break;
       case ae_exp_dur:
-        CHECK_BB(emit_exp_dur(emit, &tmp->d.exp_dur))         break;
+        CHECK_BB(emit_exp_dur(emit, &exp->d.exp_dur))         break;
     }
-    if(tmp->cast_to)
-      CHECK_BB(emit_implicit_cast(emit, tmp->type, tmp->cast_to))
-      if(ref && isa(tmp->type, &t_object) > 0 && isa(tmp->type, &t_void) < 0) {
+    if(exp->cast_to)
+      CHECK_BB(emit_implicit_cast(emit, exp->type, exp->cast_to))
+      if(ref && isa(exp->type, &t_object) > 0 && isa(exp->type, &t_void) < 0) {
         Instr ref = emitter_add_instr(emit, Reg_AddRef_Object3);
-        ref->m_val = tmp->emit_var;
+        ref->m_val = exp->emit_var;
       }
-    tmp = tmp->next;
+    exp = exp->next;
   }
   return 1;
 }
