@@ -360,14 +360,9 @@ INSTR(Instr_Exp_Func) {
 
 INSTR(Instr_Op_Call_Binary) {
   Type l = (Type)instr->m_val2;
-  Type r = *(Type*)instr->ptr;
   shred_func_prepare(shred, instr);
   POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1
   shred_func_need_this(shred);
-  if(isa(l, &t_object) > 0)
-    release(*(M_Object*)REG(0), shred);
-  if(isa(r, &t_object) > 0)
-    release(**(M_Object**)REG(l->size), shred);
   memcpy(MEM(0), REG(0), l->size);
   memcpy(MEM(l->size), *(m_uint**)REG(l->size), SZ_INT);
   shred_func_finish(shred);

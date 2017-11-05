@@ -120,6 +120,8 @@ static INSTR(eq_Object) {
   m_uint* lhs = *(m_uint**)REG(0);
   m_uint* rhs = *(m_uint**)REG(SZ_INT);
   *(m_uint*)REG(0) = (lhs == rhs);
+  release(lhs, shred);
+  release(rhs, shred);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -128,6 +130,8 @@ static INSTR(neq_Object) {
   m_uint* lhs = *(m_uint**)REG(0);
   m_uint* rhs = *(m_uint**)REG(SZ_INT);
   *(m_uint*)REG(0) = (lhs != rhs);
+  release(lhs, shred);
+  release(rhs, shred);
   PUSH_REG(shred, SZ_INT);
 }
 
