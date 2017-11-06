@@ -64,9 +64,9 @@ static void print_vec(char* f, m_uint size) {
 
 static void print_string1(m_str str) {
   fprintf(stdout, BOLD "%s" CLEAR, str);
-} 
+}
 
-static void print_string(M_Object obj) { 
+static void print_string(M_Object obj) {
   print_string1(obj ? STRING(obj) : "(null string)");
 }
 
@@ -75,7 +75,7 @@ static void print_object(Type type, M_Object obj) {
     print_string(obj);
   else
     fprintf(stdout, BOLD "%p" CLEAR, (void*)obj);
-} 
+}
 
 static void print_func(Type type, char* stack) {
     if(isa(type, &t_func_ptr) > 0)
