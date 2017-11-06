@@ -288,23 +288,10 @@ static Type check_exp_prim_polar(Env env, Polar* polar) {
   return  &t_polar;
 }
 
-static m_bool gack_verify(Exp e) {
-  if(e->type->xid == te_function &&
-      !GET_FLAG(e->type->d.func, ae_flag_builtin) &&
-      GET_FLAG(e->type->d.func, ae_flag_member))
-    CHECK_BB(err_msg(TYPE_, e->pos,
-          "can't GACK user defined member function (for now)"))
-  return 1;
-}
-
 static Type check_exp_prim_gack(Env env, Exp e) {
   if(e->exp_type == ae_exp_decl)
     CHECK_BO(err_msg(TYPE_, e->pos, "cannot use <<< >>> on variable declarations...\n"))
   CHECK_OO((check_exp(env, e)))
-  while(e) {
-    CHECK_BO(gack_verify(e))
-    e = e->next;
-  }
   return &t_gack;
 }
 

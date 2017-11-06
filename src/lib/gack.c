@@ -1,6 +1,5 @@
 #include "type.h"
 #include "instr.h"
-#include "func.h"
 
 #ifdef COLOR
 #define BOLD  "\033[1m"
@@ -14,40 +13,31 @@
 #define BLUE  ""
 #endif
 
-static m_uint get_longest(VM_Shred shred, Vector v) {
-  m_uint i, len, longest = 0;
-  m_uint size = vector_size(v);
+static void pop(VM_Shred shred, Vector v) {
+  m_uint i, size = vector_size(v);
   for(i = 0; i < size; i++) {
     Type type = (Type)vector_at(v, i);
-    if(type->xid == te_function && GET_FLAG(type->d.func, ae_flag_member))
-      POP_REG(shred, SZ_INT);
     POP_REG(shred,  type->size);
-    len = strlen(type->name);
-    if(len > longest)
-      longest = len;
   }
-  return longest;
 }
 
-static void print_type(Type type, m_uint longest) {
-  m_uint j;
+static void print_type(Type type) {
+  m_uint i;
   m_bool is_func = isa(type, &t_function) > 0 && isa(type, &t_func_ptr) < 0;
   m_str name = is_func ? strdup("@function") : strdup(type->name);
-  fprintf(stdout, "%s(%s%s%s%s", BOLD, GREEN, name, CLEAR, BOLD);
-  for(j = 0; j < type->array_depth; j++)
+  fprintf(stdout, BOLD "(" GREEN "%s" CLEAR BOLD, name);
+  for(i = 0; i < type->array_depth; i++)
     fprintf(stdout, "[]");
-  fprintf(stdout, ")%s ", CLEAR);
-  for(j = 0; j < longest - (name ? strlen(name) : 0); j++)
-    fprintf(stdout, " ");
+  fprintf(stdout, ") " CLEAR);
   free(name);
 }
 
 static void print_int(m_int i) {
-      fprintf(stdout, "%s%li%s", BOLD, i, CLEAR);
+  fprintf(stdout, BOLD "%li" CLEAR , i);
 }
 
 static void print_float(m_float f) {
-  fprintf(stdout, "%s%.4f%s", BOLD, f, CLEAR);
+  fprintf(stdout, BOLD "%.4f" CLEAR, f);
 }
 
 static void print_complex(m_complex c) {
@@ -73,10 +63,10 @@ static void print_vec(char* f, m_uint size) {
 }
 
 static void print_string1(m_str str) {
-  fprintf(stdout, "%s%s%s", BOLD, str , CLEAR);
-}
+  fprintf(stdout, BOLD "%s" CLEAR, str);
+} 
 
-static void print_string(M_Object obj) {
+static void print_string(M_Object obj) { 
   print_string1(obj ? STRING(obj) : "(null string)");
 }
 
@@ -84,14 +74,14 @@ static void print_object(Type type, M_Object obj) {
   if(isa(type, &t_string) > 0)
     print_string(obj);
   else
-    fprintf(stdout, "%s%p%s", BOLD, (void*)obj, CLEAR);
-}
+    fprintf(stdout, BOLD "%p" CLEAR, (void*)obj);
+} 
 
 static void print_func(Type type, char* stack) {
     if(isa(type, &t_func_ptr) > 0)
-      fprintf(stdout, "%p", (void*) * (Func*)stack);
+      fprintf(stdout, BOLD "%p" CLEAR, (void*) * (Func*)stack);
     else
-      fprintf(stdout, "%s%s%s", BOLD, type->name, CLEAR);
+      fprintf(stdout, BOLD "%s" CLEAR, type->name);
 }
 
 static void print_prim(Type type, char* stack) {
@@ -113,10 +103,11 @@ INSTR(Gack) {
   Type type;
   Vector v = *(Vector*)instr->ptr;
   m_uint i, size = vector_size(v);
-  m_uint longest = get_longest(shred, v);
+  pop(shred, v);
   for(i = size + 1; --i;) {
     type = (Type)vector_at(v, size - i);
-    print_type(type, longest);
+    if(size == 1)
+      print_type(type);
     if(isa(type, &t_object) > 0)
       print_object(type, *(M_Object*)REG(0));
     else if(isa(type, &t_function) > 0)
@@ -127,7 +118,9 @@ INSTR(Gack) {
       print_string1("void");
     else
       print_prim(type, REG(0));
-    fprintf(stdout, "%s\n", CLEAR);
+    if(i > 1)
+      fprintf(stdout, ", " CLEAR);
     PUSH_REG(shred,  type->size);
   }
+  fprintf(stdout, CLEAR"\n");
 }

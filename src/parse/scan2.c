@@ -620,6 +620,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     CHECK_BB(scan2_func_def_builtin(func, name))
   type = new_type(te_function, func_name, &t_function);
   type->size = SZ_INT;
+  if(GET_FLAG(func, ae_flag_member))
+    type->size += SZ_INT;
   type->d.func = func;
   value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))

@@ -1,0 +1,31 @@
+// just to check uncalled function to not push the stack
+
+class C { fun void test(){} fun static void stest() {}}
+C c;
+SinOsc s;
+
+c.test;
+C.stest;
+s.amp;
+Math.min;
+c.test;
+C.stest;
+s.amp;
+Math.min;
+c.test;
+C.stest;
+s.amp;
+Math.min;
+
+<<<c.test>>>;
+<<<C.stest>>>;
+<<<s.amp>>>;
+<<<Math.min>>>;
+<<<c.test>>>;
+<<<C.stest>>>;
+<<<s.amp>>>;
+<<<Math.min>>>;
+<<<c.test>>>;
+<<<C.stest>>>;
+<<<s.amp>>>;
+<<<Math.min>>>;
