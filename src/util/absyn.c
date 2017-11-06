@@ -20,7 +20,7 @@ Var_Decl new_var_decl(m_str name, Array_Sub array, int pos) {
 }
 
 void free_array_sub(Array_Sub a) {
-  free_expression(a->exp_list);
+    free_expression(a->exp_list);
   free(a);
 }
 
@@ -154,7 +154,7 @@ void free_id_list(ID_List a) {
 
 void free_type_decl(Type_Decl* a) {
   if(a->array)
-    free(a->array);
+    free_array_sub(a->array);
   free_id_list(a->xid);
   free(a);
 }
