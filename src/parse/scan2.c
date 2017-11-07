@@ -26,7 +26,7 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   Type type = decl->m_type;
 
-  if(GET_FLAG(type, ae_flag_abstract))
+  if(GET_FLAG(type, ae_flag_abstract) && !GET_FLAG(decl->type, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_, decl->pos, "Type '%s' is abstract, declare as ref"
         ". (use @)", type->name))
   CHECK_BB(scan2_exp_decl_template(env, decl))
