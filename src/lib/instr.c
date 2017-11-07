@@ -317,16 +317,6 @@ INSTR(Dot_Static_Func) {
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
 }
 
-INSTR(Reg_Dup_Last_Vec3) {
-  *(m_vec3*)REG(0) = *(m_vec3*)REG(-SZ_INT);
-  PUSH_REG(shred,  SZ_INT);
-}
-
-INSTR(Reg_Dup_Last_Vec4) {
-  *(m_vec4*)REG(0) = *(m_vec4*)REG(-SZ_INT);
-  PUSH_REG(shred,  SZ_INT);
-}
-
 INSTR(member_function) {
   POP_REG(shred,  SZ_INT);
   *(VM_Code*)REG(0) = ((Func)vector_at(*(Vector*)instr->ptr, instr->m_val))->code;

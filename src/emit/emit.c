@@ -1446,7 +1446,7 @@ static m_bool emit_complex_member(Emitter emit, Exp_Dot* member) {
 
 static m_bool emit_vec_func(Emitter emit, Value v) {
   Instr instr;
-  CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last_Vec4))
+  CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
   instr = emitter_add_instr(emit, member_function);
   *(Vector*)instr->ptr = &v->owner_class->info->obj_v_table;
   instr->m_val = v->func_ref->vt_index;
@@ -1488,27 +1488,8 @@ static m_bool emit_vararg_end(Emitter emit, m_uint offset) {
   return 1;
 }
 
-static m_bool emit_vararg_vec(Emitter emit, m_uint offset, char c) {
-  Instr instr = emitter_add_instr(emit, c =='3' ? Vararg_Vec3 : Vararg_Vec4);
-  instr->m_val = offset;
-  return 1;
-}
-
-static m_bool emit_vararg_other(Emitter emit, m_uint offset, char c) {
-  Instr instr = NULL;
-  if(c == 'i')
-    instr = emitter_add_instr(emit, Vararg_int);
-  else if(c == 'f' || c == 't' || c == 'd')
-    instr = emitter_add_instr(emit, Vararg_float);
-  else if(c == 'o')
-    instr = emitter_add_instr(emit, Vararg_object);
-  else
-    instr = emitter_add_instr(emit, Vararg_complex);
-  instr->m_val = offset;
-  return 1;
-}
-
 static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
+  Instr instr;
   m_uint offset = 0;
   Arg_List l = emit->env->func->def->arg_list;
   m_str str = s_name(member->xid);
@@ -1520,9 +1501,10 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
     return emit_vararg_start(emit, offset);
   if(!strcmp(str, "end"))
     return emit_vararg_end(emit, offset);
-  if(str[0] == 'v')
-    return emit_vararg_vec(emit, offset, str[1]);
-  return emit_vararg_other(emit, offset, str[0]);
+  instr = emitter_add_instr(emit, Vararg_Member);
+  instr->m_val = offset;
+  instr->m_val2 = member->self->type->size;
+  return 1;
 }
 
 static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {

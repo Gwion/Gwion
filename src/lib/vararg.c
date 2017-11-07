@@ -82,39 +82,11 @@ INSTR(Vararg_end) {
   }
 }
 
-INSTR(Vararg_int) {
+INSTR(Vararg_Member) {
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(m_uint*)REG(0) = *(m_uint*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_INT);
-}
-INSTR(Vararg_float) {
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(m_float*)REG(0) = *(m_float*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-INSTR(Vararg_complex) {
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(m_complex*)REG(0) = *(m_complex*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_COMPLEX);
-}
-
-INSTR(Vararg_object) {
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(M_Object*)REG(0) = *(M_Object*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_INT);
-}
-
-INSTR(Vararg_Vec3) {
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(m_vec3*)REG(0) = *(m_vec3*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_VEC3);
-}
-
-INSTR(Vararg_Vec4) {
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  *(m_vec4*)REG(0) = *(m_vec4*)(arg->d + arg->o);
-  PUSH_REG(shred, SZ_VEC4);
+  /**(char*)REG(0) = *(char*)(arg->d + arg->o);*/
+  memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
 }
 
 m_bool import_vararg(Importer importer) {

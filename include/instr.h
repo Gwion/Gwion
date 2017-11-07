@@ -40,7 +40,7 @@ INSTR(Reg_Push_Code);
 INSTR(Reg_Dup_Last);
 INSTR(Reg_AddRef_Object3);
 
-/* braching */
+/* branching */
 INSTR(Branch_Switch);
 INSTR(Branch_Eq_Int);
 INSTR(Branch_Neq_Int);
@@ -99,22 +99,15 @@ INSTR(Instr_Array_Access);
 INSTR(Instr_Array_Access_Multi);
 INSTR(Array_Append);
 INSTR(assign_func);
+
+/* vararg */
 INSTR(MkVararg);
 INSTR(Vararg_start);
 INSTR(Vararg_end);
-INSTR(Vararg_int);
-INSTR(Vararg_float);
-INSTR(Vararg_complex);
-INSTR(Vararg_object);
-INSTR(Vararg_Vec3);
-INSTR(Vararg_Vec4);
+INSTR(Vararg_Member);
 
 INSTR(member_function);
 INSTR(vec_member);
-INSTR(Reg_Dup_Last_Vec3);
-INSTR(Reg_Dup_Last_Vec4);
-
-//INSTR(Mem_Push_Ret); // test on 13/01/17 // removed 09/04/17
 
 INSTR(Instr_Op_Call_Binary);
 
