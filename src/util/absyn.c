@@ -47,13 +47,10 @@ Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, int pos) {
 }
 
 static void free_var_decl_list(Var_Decl_List a) {
-  Var_Decl_List tmp, list = a;
-  while(list) {
-    free_var_decl(list->self);
-    tmp = list;
-    list = list->next;
-    free(tmp);
-  }
+  if(a->next)
+    free_var_decl_list(a->next);
+  free_var_decl(a->self);
+  free(a);
 }
 
 Type_Decl* new_type_decl(ID_List xid, int ref, int pos) {
@@ -857,13 +854,11 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, int pos) {
 }
 
 static void free_stmt_list(Stmt_List list) {
-  Stmt_List tmp;
-  while(list) {
-    tmp = list;
-    list = list->next;
-    free_stmt(tmp->stmt);
-    free(tmp);
-  }
+  if(!list)
+    return;
+  free_stmt(list->stmt);
+  free_stmt_list(list->next);
+  free(list);
 }
 
 Section* new_section_stmt_list(Stmt_List list, int pos) {
@@ -882,19 +877,23 @@ Section* new_section_func_def(Func_Def func_def, int pos) {
   return a;
 }
 
+static void free_class_body(Class_Body a) {
+  if(!a)
+    return;
+  free_class_body(a->next);
+  if(a->section)
+    free_section(a->section);
+  free(a);
+  
+
+}
+
 void free_class_def(Class_Def a) {
   if(a->ext)
     free_id_list(a->ext);
   if(a->types)
     free_id_list(a->types);
-  Class_Body tmp, b = a->body;
-  while(b) {
-    tmp = b;
-    if(b->section)
-      free_section(b->section);
-    b = b->next;
-    free(tmp);
-  }
+  free_class_body(a->body);
   free_id_list(a->name);
   free(a);
 }
@@ -971,12 +970,10 @@ Ast new_ast(Section* section, Ast next, int pos) {
   return ast;
 }
 
-void free_ast(Ast prog) {
-  Ast tmp, ast = prog;
-  while(ast) {
-    tmp = ast;
-    ast = ast->next;
-    free_section(tmp->section);
-    free(tmp);
-  }
+void free_ast(Ast a) {
+  if(!a)
+    return;
+  free_ast(a->next);
+  free_section(a->section);
+  free(a);
 }
