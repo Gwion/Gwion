@@ -241,16 +241,11 @@ static m_bool emit_symbol_addr(Emitter emit, Value v) {
   return 1;
 }
 
-static f_instr s_instr[] = { NULL, Reg_Push_Mem, Reg_Push_Mem2,
-  Reg_Push_Mem_Complex, Reg_Push_Mem_Vec3, Reg_Push_Mem_Vec4};
-
 static m_bool emit_symbol_actual(Emitter emit, Value v) {
-  Instr instr;
-  Kindof kind = kindof(v->m_type);
-
-  instr         = emitter_add_instr(emit, s_instr[kind]);
+  Instr instr = emitter_add_instr(emit, Reg_Push_Mem);
   instr->m_val  = v->offset;
-  instr->m_val2 = GET_FLAG(v, ae_flag_global);
+  instr->m_val2 = v->m_type->size;
+  *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
   return 1;
 }
 
@@ -440,13 +435,6 @@ static m_bool emit_dot_static_data(Emitter emit, Value v, m_bool emit_var) {
   return 1;
 }
 
-static f_instr decl_member_instr[] = { NULL, Alloc_Member_Word,
-  Alloc_Word_Float, Alloc_Member_Word_Complex,
-  Alloc_Member_Word_Vec3, Alloc_Word_Vec4 };
-
-static f_instr decl_global_instr[] = { NULL, Alloc_Word, Alloc_Word_Float,
-  Alloc_Word_Complex, Alloc_Word_Vec3, Alloc_Word_Vec4 };
-
 static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
   Value v = var_decl->value;
   Code* code = emit->code;
@@ -469,14 +457,10 @@ static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_re
 }
 
 static Instr emit_exp_decl_global(Emitter emit, Value v, m_uint flag) {
-  Instr alloc;
-  Kindof kind = kindof(v->m_type);
   m_int offset= emit_alloc_local(emit, v->m_type->size, flag);
   CHECK_BO(offset)
   v->offset   = offset;
-  alloc = emitter_add_instr(emit, decl_global_instr[kind]);
-  alloc->m_val2 = GET_FLAG(v, ae_flag_global);
-  return alloc;
+  return emitter_add_instr(emit, Alloc_Word);
 }
 
 static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
@@ -487,14 +471,14 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   Array_Sub array = var_decl->array;
   m_bool is_array = array && array->exp_list;
   m_bool is_obj = isa(type, &t_object) > 0 || var_decl->array;
-  Kindof kind = kindof(type);
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   if(GET_FLAG(value, ae_flag_member))
-    alloc = emitter_add_instr(emit, decl_member_instr[kind]);
+    alloc = emitter_add_instr(emit, Alloc_Member);
   else
     alloc = emit_exp_decl_global(emit, value, (is_ref ? 1 << 1 : 0) |
         (is_obj ? 1 << 2 : 0));
+  alloc->m_val2 = type->size;
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {

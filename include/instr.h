@@ -35,10 +35,6 @@ INSTR(Reg_Push_ImmX);
 INSTR(Mem_Push_Imm);
 INSTR(Mem_Set_Imm);
 INSTR(Reg_Push_Mem);
-INSTR(Reg_Push_Mem2);
-INSTR(Reg_Push_Mem_Complex);
-INSTR(Reg_Push_Mem_Vec3);
-INSTR(Reg_Push_Mem_Vec4);
 INSTR(Reg_Push_Ptr);
 INSTR(Reg_Push_Code);
 INSTR(Reg_Dup_Last);
@@ -72,10 +68,6 @@ INSTR(complex_real);
 INSTR(complex_imag);
 
 INSTR(Alloc_Word);
-INSTR(Alloc_Word_Float);
-INSTR(Alloc_Word_Complex);
-INSTR(Alloc_Word_Vec3);
-INSTR(Alloc_Word_Vec4);
 
 /* function */
 INSTR(Spork);
@@ -91,11 +83,7 @@ INSTR(Reg_Push_This);
 INSTR(Pre_Constructor);
 INSTR(Instantiate_Object);
 INSTR(Assign_Object);
-INSTR(Alloc_Member_Word);
-INSTR(Alloc_Member_Word_Float);
-INSTR(Alloc_Member_Word_Complex);
-INSTR(Alloc_Member_Word_Vec3);
-INSTR(Alloc_Member_Word_Vec4);
+INSTR(Alloc_Member);
 INSTR(Dot_Static_Data);
 INSTR(Dot_Static_Import_Data);
 INSTR(Exp_Dot_Data);

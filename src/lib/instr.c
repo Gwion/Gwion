@@ -75,28 +75,9 @@ INSTR(assign_func) {
 }
 
 INSTR(Reg_Push_Mem) {
-  *(m_uint*)REG(0) = *(m_uint*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
-  PUSH_REG(shred,  SZ_INT);
-}
-
-INSTR(Reg_Push_Mem2) {
-  *(m_float*)REG(0) = *(m_float*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
-  PUSH_REG(shred,  SZ_FLOAT);
-}
-
-INSTR(Reg_Push_Mem_Complex) {
-  *(m_complex*)REG(0) = *(m_complex*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
-  PUSH_REG(shred, SZ_COMPLEX);
-}
-
-INSTR(Reg_Push_Mem_Vec3) {
-  *(m_vec3*)REG(0) = *(m_vec3*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
-  PUSH_REG(shred, SZ_VEC3);
-}
-
-INSTR(Reg_Push_Mem_Vec4) {
-  *(m_vec4*)REG(0) = *(m_vec4*)(instr->m_val2 ? (shred->base + instr->m_val) : MEM(instr->m_val));
-  PUSH_REG(shred, SZ_VEC4);
+  *(m_uint*)REG(0) = *(m_uint*)(*(m_uint*)instr->ptr ?
+      (shred->base + instr->m_val) : MEM(instr->m_val));
+  PUSH_REG(shred, instr->m_val2);
 }
 
 INSTR(Reg_Push_Ptr) {
@@ -141,53 +122,17 @@ INSTR(Reg_Push_Maybe) {
 }
 
 INSTR(Alloc_Word) {
-  *(m_uint*)MEM(instr->m_val) = 0; // since template
-  if(*(m_uint*)instr->ptr)
-    *(m_uint**)REG(0) = &*(m_uint*)MEM(instr->m_val);
-  else
-    *(m_uint*)REG(0) = *(m_uint*)MEM(instr->m_val);
-  PUSH_REG(shred, SZ_INT);
-}
-
-INSTR(Alloc_Word_Float) {
-  *(m_float*)MEM(instr->m_val) = 0; // since template
+  memset(MEM(instr->m_val), 0, instr->m_val2);
+  /**(m_uint*)MEM(instr->m_val) = 0; // since template*/
   if(*(m_uint*)instr->ptr) {
-    *(m_float**)REG(0) = &*(m_float*)MEM(instr->m_val);
+    *(char**)REG(0) = &*(char*)MEM(instr->m_val);
     PUSH_REG(shred, SZ_INT);
   } else {
-    *(m_float*)REG(0) = *(m_float*)MEM(instr->m_val);
-    PUSH_REG(shred, SZ_FLOAT);
+    memcpy(REG(0), MEM(instr->m_val), instr->m_val2);
+    /**(m_uint*)REG(0) = *(m_uint*)MEM(instr->m_val);*/
+    PUSH_REG(shred, instr->m_val2);
   }
-}
 
-INSTR(Alloc_Word_Complex) {
-  if(*(m_uint*)instr->ptr) {
-    *(m_complex**)REG(0) = &*(m_complex*)MEM(instr->m_val);
-    PUSH_REG(shred, SZ_INT);
-  } else {
-    *(m_complex*)REG(0) = *(m_complex*)MEM(instr->m_val);
-    PUSH_REG(shred, SZ_COMPLEX);
-  }
-}
-
-INSTR(Alloc_Word_Vec3) {
-  if(*(m_uint*)instr->ptr) {
-    *(m_vec3**)REG(0) = &*(m_vec3*)MEM(instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else {
-    *(m_vec3*)REG(0) = *(m_vec3*)MEM(instr->m_val);
-    PUSH_REG(shred,  SZ_VEC3);
-  }
-}
-
-INSTR(Alloc_Word_Vec4) {
-  if(*(m_uint*)instr->ptr) {
-    *(m_vec4**)REG(0) = &*(m_vec4*)MEM(instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else {
-    *(m_vec4*)REG(0) = *(m_vec4*)MEM(instr->m_val);
-    PUSH_REG(shred,  SZ_VEC4);
-  }
 }
 
 /* branching */
@@ -422,7 +367,7 @@ INSTR(Instr_Exp_Func_Static) {
   POP_MEM(shred, local_depth);
 }
 
-static void copy_member_args(VM_Shred shred, VM_Code func) { 
+static void copy_member_args(VM_Shred shred, VM_Code func) {
   m_uint stack_depth = func->stack_depth;
   if(stack_depth) {
     POP_REG(shred,  stack_depth);
@@ -501,61 +446,15 @@ INSTR(Instantiate_Object) {
   vector_add(&shred->gc1, *(vtype*)REG(-SZ_INT));
 }
 
-INSTR(Alloc_Member_Word) {
+INSTR(Alloc_Member) {
   M_Object obj = *(M_Object*)MEM(0);
-  *(m_uint*)(obj->data + instr->m_val) = 0;
-  if(*(m_uint*)instr->ptr)
-    *(m_uint**)REG(0) = &*(m_uint*)(obj->data + instr->m_val);
-  else
-    *(m_uint*)REG(0) = *(m_uint*)(obj->data + instr->m_val);
-  PUSH_REG(shred,  SZ_INT);
-}
-
-INSTR(Alloc_Member_Word_Float) {
-  M_Object obj = *(M_Object*)MEM(0);
-  *(m_float*)(obj->data + instr->m_val) = 0.0;
+  memset(obj->data + instr->m_val, 0, instr->m_val2);
   if(*(m_uint*)instr->ptr) {
-    *(m_float**)REG(0) = &*(m_float*)(obj->data + instr->m_val);
+    *(char**)REG(0) = &*(char*)(obj->data + instr->m_val);
     PUSH_REG(shred,  SZ_INT);
   } else {
-    *(m_float*)REG(0) = *(m_float*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_FLOAT);
-  }
-}
-
-INSTR(Alloc_Member_Word_Complex) {
-  M_Object obj = *(M_Object*)MEM(0);
-  *(m_complex*)(obj->data + instr->m_val) = 0.0;
-  if(*(m_uint*)instr->ptr) {
-    *(m_complex**)REG(0) = &*(m_complex*)(obj->data + instr->m_val);
-    PUSH_REG(shred, SZ_INT);
-  } else {
-    *(m_complex*)REG(0) = *(m_complex*)(obj->data + instr->m_val);
-    PUSH_REG(shred, SZ_COMPLEX);
-  }
-}
-
-INSTR(Alloc_Member_Word_Vec3) {
-  M_Object obj = *(M_Object*)MEM(0);
-  memset((obj->data + instr->m_val), 0, SZ_VEC3);
-  if(*(m_uint*)instr->ptr) {
-    *(m_vec3**)REG(0) = &*(m_vec3*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else {
-    *(m_vec3*)REG(0) = *(m_vec3*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_VEC3);
-  }
-}
-
-INSTR(Alloc_Member_Word_Vec4) {
-  M_Object obj = *(M_Object*)MEM(0);
-  memset((obj->data + instr->m_val), 0, SZ_VEC4);
-  if(*(m_uint*)instr->ptr) {
-    *(m_vec4**)REG(0) = &*(m_vec4*)(obj->data + instr->m_val);
-    PUSH_REG(shred, SZ_INT);
-  } else {
-    *(m_vec4*)REG(0) = *(m_vec4*)(obj->data + instr->m_val);
-    PUSH_REG(shred, SZ_VEC4);
+    memset(REG(0),  *(char*)(obj->data + instr->m_val), instr->m_val2);
+    PUSH_REG(shred, instr->m_val2);
   }
 }
 
@@ -566,7 +465,7 @@ INSTR(Dot_Static_Data) {
   // take care of emit_addr ? (instr->ptr)
   if(*(m_uint*)instr->ptr)
     *(char**)REG(0) = &*(char*)(t->info->class_data + instr->m_val);
-  else 
+  else
     memcpy(REG(0), t->info->class_data + instr->m_val, instr->m_val2);
   PUSH_REG(shred,  instr->m_val2);
 
