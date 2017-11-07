@@ -889,11 +889,14 @@ static void free_class_body(Class_Body a) {
 }
 
 void free_class_def(Class_Def a) {
+  if(a->type && GET_FLAG(a->type, ae_flag_template))
+    return;
   if(a->ext)
     free_id_list(a->ext);
   if(a->types)
     free_id_list(a->types);
-  free_class_body(a->body);
+  if(a->type && !GET_FLAG(a->type, ae_flag_ref))
+    free_class_body(a->body);
   free_id_list(a->name);
   free(a);
 }

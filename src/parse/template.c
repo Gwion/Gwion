@@ -51,10 +51,22 @@ static m_bool template_match(ID_List base, Type_List call) {
 }
 
 Class_Def template_class(Env env, Class_Def def, Type_List call) {
-  ID_List name;
-
+  ID_List last, name;
+  m_str s;
+  m_uint i = 0;
+  S_Symbol xid;
   CHECK_BO(template_match(def->types, call))
   name = template_id(env, def, call);
+  last = name;
+  s = s_name(last->xid);
+  while(last->next) { last = last->next; }
+  do {
+    char c[strlen(s) + num_digit(i) + 1];
+    sprintf(c, "%s-%lu\n", s, i);
+    xid = insert_symbol(c);
+    i++;
+  } while(nspc_lookup_value0(env->curr, xid));
+  last->xid = xid;
   return new_class_def(def->decl, name, def->ext, def->body, call->pos);
 }
 

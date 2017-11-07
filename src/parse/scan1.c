@@ -18,6 +18,7 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     CHECK_BB(template_push_types(env, t->def->types, decl->types))
     CHECK_BB(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
+    SET_FLAG(a->type, ae_flag_ref);
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BB(scan1_class_def(env, a))

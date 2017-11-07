@@ -125,8 +125,17 @@ static void free_nspc_value(Nspc a) {
   Vector v = scope_get(&a->value);
   for(i = vector_size(v) + 1; --i;) {
     Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->m_type, &t_class) > 0)
+    if(isa(value->m_type, &t_class) > 0) {
+      if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
+          value->m_type->d.actual_type->flag &= ~ae_flag_template;
+        if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
+          free_class_def(value->m_type->d.actual_type->def);
+          /*REM_REF(value->m_type->d.actual_type)*/
+        } else
+        free_class_def(value->m_type->d.actual_type->def);
+      }
       REM_REF(value->m_type)
+    }
     else if(isa(value->m_type, &t_object) > 0)
       nspc_release_object(a, value);
     else if(isa(value->m_type, &t_func_ptr) > 0)
