@@ -161,26 +161,6 @@ char* m_vector_addr(M_Vector v, m_uint i) {
   return &*(char*)(v->ptr + i * v->size);
 }
 
-m_uint*  i_vector_addr(M_Vector v, m_uint i) {
-  return &*(m_uint*)(v->ptr + i * v->size);
-}
-
-m_float*  f_vector_addr(M_Vector v, m_uint i) {
-  return &*(m_float*)(v->ptr + i * v->size);
-}
-
-m_complex*  c_vector_addr(M_Vector v, m_uint i) {
-  return &*(m_complex*)(v->ptr + i * v->size);
-}
-
-m_vec3*  v3_vector_addr(M_Vector v, m_uint i) {
-  return &*(m_vec3*)(v->ptr + i * v->size);
-}
-
-m_vec4*  v4_vector_addr(M_Vector v, m_uint i) {
-  return &*(m_vec4*)(v->ptr + i * v->size);
-}
-
 MFUN(vm_vector_size) {
   *(m_uint*)RETURN = o ? m_vector_size(ARRAY(o)) : - 1;
 }

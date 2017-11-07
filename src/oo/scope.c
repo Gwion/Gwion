@@ -35,17 +35,6 @@ vtype scope_lookup2(Scope scope, S_Symbol xid) {
   return ret;
 }
 
-vtype scope_lookup(Scope scope, S_Symbol xid, m_bool climb) {
-  vtype ret = 0;
-  if(climb == 0)
-    ret = scope_lookup0(scope, xid);
-  else if(climb > 0)
-    ret = scope_lookup1(scope, xid);
-  else
-    ret = scope_lookup2(scope, xid);
-  return ret;
-}
-
 void scope_add(Scope scope, S_Symbol xid, vtype value) {
   if(vector_front(&scope->vector) != vector_back(&scope->vector))
     map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
