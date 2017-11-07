@@ -128,7 +128,8 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
 
 static Instr handle_instr(Emitter emit, M_Operator* mo) {
   if(mo->func) {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm); //do we need to set offset ?
+    Instr instr = emitter_add_instr(emit, Reg_PushImm); //do we need to set offset ?
+    instr->m_val = SZ_INT;
     CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
     return instr;
   }

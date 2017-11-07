@@ -28,10 +28,8 @@ INSTR(Reg_Push_Maybe);
 
 /* staking */
 INSTR(Reg_Pop_Word4);
-INSTR(Reg_Push_Imm);
+INSTR(Reg_PushImm);
 INSTR(Reg_Push_Mem_Addr);
-INSTR(Reg_Push_Imm2);
-INSTR(Reg_Push_ImmX);
 INSTR(Mem_Push_Imm);
 INSTR(Mem_Set_Imm);
 INSTR(Reg_Push_Mem);

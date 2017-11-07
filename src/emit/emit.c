@@ -220,16 +220,17 @@ static m_bool emit_symbol_owned(Emitter emit, Exp_Primary* prim) {
 
 static m_bool emit_symbol_const(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
+    Instr instr = emitter_add_instr(emit, Reg_PushImm);
   if(v->func_ref) {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-    instr->m_val = (m_uint)v->func_ref;
+    instr->m_val = SZ_INT;
+    *(Func*)instr->ptr = v->func_ref;
   } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_time) > 0 ||
       isa(v->m_type, &t_dur) > 0) {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm2);
+    instr->m_val = SZ_FLOAT;
     *(m_float*)instr->ptr = *(m_float*)v->ptr;
   } else {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-    instr->m_val = (prim->self->emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
+    instr->m_val = SZ_INT;
+    *(m_uint*)instr->ptr = (prim->self->emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
   }
   return 1;
 }
@@ -310,7 +311,9 @@ static m_bool emit_exp_prim_vec(Emitter emit, Vec* vec) {
   CHECK_BB(emit_exp(emit, vec->args, 0));
   m_int n = 3 - vec->numdims;
   while(n > 0) {
-    CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm2))
+    Instr push = emitter_add_instr(emit, Reg_PushImm);
+    CHECK_OB(push);
+    push->m_val = SZ_FLOAT;
     n--;
   }
   return 1;
@@ -325,12 +328,16 @@ static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Now))
   else if(prim->d.var == insert_symbol("false") ||
       prim->d.var == insert_symbol("null") ||
-      prim->d.var == insert_symbol("NULL"))
-    CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm))
+      prim->d.var == insert_symbol("NULL")) {
+    Instr push = emitter_add_instr(emit, Reg_PushImm);
+    CHECK_OB(push)
+    push->m_val = SZ_INT;
+  }
   else if(prim->d.var == insert_symbol("true")) {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-    instr->m_val = 1;
-  } else if(prim->d.var == insert_symbol("maybe"))
+    Instr instr = emitter_add_instr(emit, Reg_PushImm);
+    instr->m_val = SZ_INT;
+    *(m_uint*)instr->ptr = 1;
+  }  else if(prim->d.var == insert_symbol("maybe"))
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Maybe))
   else
     emit_symbol(emit, prim);
@@ -338,20 +345,23 @@ static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
 }
 
 static m_bool emit_exp_prim_num(Emitter emit, m_uint i) {
-  Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-  instr->m_val = i;
+  Instr instr = emitter_add_instr(emit, Reg_PushImm);
+  instr->m_val = SZ_INT;
+  *(m_uint*)instr->ptr = i;
   return 1;
 }
 
 static m_bool emit_exp_prim_float(Emitter emit, m_float f) {
-  Instr instr = emitter_add_instr(emit, Reg_Push_Imm2);
+  Instr instr = emitter_add_instr(emit, Reg_PushImm);
+  instr->m_val = SZ_FLOAT;
   *(m_float*)instr->ptr = f;
   return 1;
 }
 
 static m_bool emit_exp_prim_char(Emitter emit, Exp_Primary* prim) {
-  Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-  instr->m_val = str2char(prim->d.chr, prim->pos);
+  Instr instr = emitter_add_instr(emit, Reg_PushImm);
+  instr->m_val = SZ_INT;
+  *(m_uint*)instr->ptr = str2char(prim->d.chr, prim->pos);
   return 1;
 }
 
@@ -426,8 +436,9 @@ static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
 }
 
 static m_bool emit_dot_static_data(Emitter emit, Value v, m_bool emit_var) {
-  Instr alloc, push = emitter_add_instr(emit, Reg_Push_Imm);
-  push->m_val = (m_uint)v->owner_class;
+  Instr alloc, push = emitter_add_instr(emit, Reg_PushImm);
+  push->m_val = SZ_INT;
+  *(Type*)push->ptr = v->owner_class;
   alloc = emitter_add_instr(emit, Dot_Static_Data);
   alloc->m_val2 = emit_var ? SZ_INT : v->m_type->size;
   *(m_uint*)alloc->ptr = emit_var;
@@ -562,7 +573,8 @@ static m_bool emit_exp_call_helper(Emitter emit, Exp_Func* exp_func, m_bool spor
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
     // handle empty call to variadic functions
     CHECK_OB(emitter_add_instr(emit, MkVararg))
-    CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm))
+    Instr push = emitter_add_instr(emit, Reg_PushImm);
+    push->m_val = SZ_INT;
   }
   return 1;
 }
@@ -670,8 +682,9 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
   Type to = cast->self->type;
   Type from = cast->exp->type;
   if(isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0) {
-    Instr push = emitter_add_instr(emit, Reg_Push_Imm);
-    push->m_val = (m_uint)cast->func;
+    Instr push = emitter_add_instr(emit, Reg_PushImm);
+    push->m_val = SZ_INT;
+    *(Func*)push->ptr = cast->func;
     return 1;
   }
   CHECK_BB(emit_exp(emit, cast->exp, 0))
@@ -732,8 +745,9 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
 }
 
 static m_bool emit_exp_call1_offset(Emitter emit, m_bool is_member) {
-  Instr offset = emitter_add_instr(emit, Reg_Push_Imm);
-  offset->m_val = emit_code_offset(emit);
+  Instr offset = emitter_add_instr(emit, Reg_PushImm);
+  offset->m_val = SZ_INT;
+  *(m_uint*)offset->ptr = emit_code_offset(emit);
   return 1;
 }
 
@@ -787,8 +801,9 @@ m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
 static m_bool emit_exp_spork_finish(Emitter emit, VM_Code code, Func f, m_uint arg_size, m_uint stack_depth) {
   Instr push_code, spork;
 
-  push_code = emitter_add_instr(emit, Reg_Push_Imm);
-  push_code->m_val = (m_uint)code;
+  push_code = emitter_add_instr(emit, Reg_PushImm);
+  push_code->m_val = SZ_INT;
+  *(VM_Code*)push_code->ptr = code;
   spork = emitter_add_instr(emit, Spork);
   spork->m_val = arg_size;
   spork->m_val2 = (m_uint)f;
@@ -841,8 +856,9 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 
   if(emit->env->class_def)
     CHECK_OB(emitter_add_instr(emit, Reg_Push_This))
-  Instr push = emitter_add_instr(emit, Reg_Push_Imm);
-  push->m_val = (m_uint)f;
+  Instr push = emitter_add_instr(emit, Reg_PushImm);
+  push->m_val = SZ_INT;
+  *(Func*)push->ptr = f;
 
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code();
@@ -896,14 +912,16 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
 }
 
 static Instr emit_flow(Emitter emit, Type type, f_instr f1, f_instr f2) {
+  Instr push = emitter_add_instr(emit, Reg_PushImm);
+  CHECK_OO(push)
   switch(type->xid) {
     case te_int:
-      CHECK_OO(emitter_add_instr(emit, Reg_Push_Imm))
+      push->m_val = SZ_INT;
       return emitter_add_instr(emit, f1);
     case te_float:
     case te_dur:
     case te_time:
-      CHECK_OO(emitter_add_instr(emit, Reg_Push_Imm2))
+      push->m_val = SZ_FLOAT;
       return emitter_add_instr(emit, f2);
     default:
       break;
@@ -1160,7 +1178,7 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
 }
 
 static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
-  Instr init, op, deref, dec, _goto;
+  Instr init, op, deref, dec, _goto, push;
   m_int* counter;
   m_uint index;
 
@@ -1174,7 +1192,8 @@ static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
   deref = emitter_add_instr(emit, Reg_Push_Deref);
   deref->m_val = (m_uint)counter;
 
-  CHECK_OB(emitter_add_instr(emit, Reg_Push_Imm))
+  CHECK_OB((push = emitter_add_instr(emit, Reg_PushImm)))
+  push->m_val = SZ_INT;
   op = emitter_add_instr(emit, Branch_Eq_Int);
   dec = emitter_add_instr(emit, Dec_int_Addr);
   dec->m_val = (m_uint)counter;
@@ -1419,9 +1438,10 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
     func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
     *(m_uint*)func_i->ptr = emit_addr;
   } else { // from code
-    Instr push_i = emitter_add_instr(emit, Reg_Push_Imm);
+    Instr push_i = emitter_add_instr(emit, Reg_PushImm);
     func_i = emitter_add_instr(emit, Dot_Static_Data);
-    push_i->m_val = (m_uint)v->owner_class;
+    push_i->m_val = SZ_INT;
+    *(Type*)push_i->ptr = v->owner_class;
     func_i->m_val = (m_uint)v->offset;
     func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
     *(m_uint*)func_i->ptr = emit_addr;
@@ -1518,9 +1538,10 @@ static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_dot_static_func(Emitter emit, Type type, Func func) {
-  Instr push_i = emitter_add_instr(emit, Reg_Push_Imm);
+  Instr push_i = emitter_add_instr(emit, Reg_PushImm);
   Instr func_i = emitter_add_instr(emit, Dot_Static_Func);
-  push_i->m_val = (m_uint)type;
+  push_i->m_val = SZ_INT;
+  *(Type*)push_i->ptr = type;
   func_i->m_val = (m_uint)func;
   return 1;
 }
@@ -1643,7 +1664,7 @@ static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
 static m_bool emit_func_def_ensure(Emitter emit, m_uint size) {
   Instr instr;
   if(size) {
-    instr = emitter_add_instr(emit, Reg_Push_ImmX);
+    instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = size;
   } 
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));

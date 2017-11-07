@@ -25,19 +25,12 @@ INSTR(Reg_Pop_Word4) {
   POP_REG(shred,  instr->m_val);
 }
 
-INSTR(Reg_Push_Imm) {
-  *(m_uint*)REG(0) = instr->m_val;
-  PUSH_REG(shred,  SZ_INT);
-}
-
-INSTR(Reg_Push_Imm2) {
-  *(m_float*)REG(0) = *(m_float*)instr->ptr;
-  PUSH_REG(shred,  SZ_FLOAT);
-}
-
-INSTR(Reg_Push_ImmX) {
-  memset(shred->reg, 0, instr->m_val);
-  PUSH_REG(shred,  instr->m_val);
+INSTR(Reg_PushImm) {
+  if(!*(m_uint*)instr->ptr)
+    memset(REG(0), 0, instr->m_val);
+  else
+    memcpy(REG(0), instr->ptr, instr->m_val);
+  PUSH_REG(shred, instr->m_val);
 }
 
 INSTR(Reg_Push_Mem_Addr) {
