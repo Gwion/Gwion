@@ -13,7 +13,7 @@ languages:
       include:
         - /tests/test_plugins/.*\.c
 
-  - name: go
+  - name: java
     production:
       include:
        - fake_entry
@@ -24,6 +24,9 @@ languages:
         - /tests/.*/.*\.gw
 
   - name: script
+    production:
+      include:
+       - fake_entry
     test:
       include:
       - /utils/.*\.sh
