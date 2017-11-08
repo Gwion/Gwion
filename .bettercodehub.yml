@@ -13,15 +13,19 @@ languages:
       include:
         - /tests/test_plugins/.*\.c
 
-  - name: java
+  - name: go
     production:
       include:
        - fake_entry
     test:
       include:
         - /examples/.*\.gw
-        - /examples/.*/.*\.gw
-        - /tests/.*/.*\.gw
+        - /examples/complex/.*\.gw
+        - /tests/bug/.*\.gw
+        - /tests/error/.*\.gw
+        - /tests/test_plugin/.*\.gw
+        - /tests/tree/.*\.gw
+        - /tests/ugen_coverage/.*\.gw
 
   - name: script
     production:
