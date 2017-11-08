@@ -71,17 +71,6 @@ void release(M_Object obj, VM_Shred shred) {
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
-/*
-printf("value->name %s\n", value->name);
-printf("value->name %s\n", value->m_type->name);
-printf("value->name %p\n", obj->data);
-printf("value->name %p\n", obj->data + value->offset);
-printf("value->name %p\n", *(M_Object*)obj->data + value->offset);
-if(value->m_type->def)
-if(!GET_FLAG(value, ae_flag_template))
-*/
-//printf("value->name %p\n", *(M_Object*)(obj->data + value->offset));
-//printf("flag %p\n", value->m_type->d.array_type->def);
         if(!GET_FLAG(value, ae_flag_static) && isprim(value->m_type) < 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
@@ -117,8 +106,8 @@ INSTR(Assign_Object) {
 
 static INSTR(eq_Object) {
   POP_REG(shred, SZ_INT * 2);
-  m_uint* lhs = *(m_uint**)REG(0);
-  m_uint* rhs = *(m_uint**)REG(SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
   *(m_uint*)REG(0) = (lhs == rhs);
   release(lhs, shred);
   release(rhs, shred);
@@ -127,8 +116,8 @@ static INSTR(eq_Object) {
 
 static INSTR(neq_Object) {
   POP_REG(shred, SZ_INT * 2);
-  m_uint* lhs = *(m_uint**)REG(0);
-  m_uint* rhs = *(m_uint**)REG(SZ_INT);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
   *(m_uint*)REG(0) = (lhs != rhs);
   release(lhs, shred);
   release(rhs, shred);
