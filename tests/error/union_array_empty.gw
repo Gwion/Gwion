@@ -2,5 +2,5 @@
  union
 {
   int i;
-  int array[4];
+  int @array[4];
 };

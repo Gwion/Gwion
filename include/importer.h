@@ -36,5 +36,6 @@ struct Importer_{
   DL_Func func;
   DL_Oper oper;
   void* addr;
+  Decl_List decl_list;
   Templater templater;
 };

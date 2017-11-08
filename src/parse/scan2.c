@@ -403,7 +403,7 @@ static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
+m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   while(l) {
     CHECK_BB(scan2_exp(env, l->self))

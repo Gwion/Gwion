@@ -1415,13 +1415,15 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   return 1;
 }
 
-static m_bool check_stmt_union(Env env, Stmt_Union stmt) {
+m_bool check_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(env->class_def)  {
     stmt->o = env->class_def->obj_size;
   }
   while(l) {
     CHECK_OB(check_exp(env, l->self))
+    if(isa(l->self->type, &t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.type, ae_flag_ref))
+      CHECK_BB(err_msg(TYPE_, l->self->pos, "In union, Objects must be declared as reference (use '@')"))
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
     l = l->next;

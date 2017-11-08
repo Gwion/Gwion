@@ -426,6 +426,51 @@ m_int importer_fptr_end(Importer importer, ae_flag flag) {
   return 1;
 }
 
+static Exp make_exp(const m_str type, const m_str name) {
+  Type_Decl *type_decl;
+  ID_List id_list;
+  m_uint array_depth;
+  Array_Sub array = NULL;
+  CHECK_OO((id_list = str2list(type, &array_depth)))
+  if(array_depth) {
+    array = new_array_sub(NULL, 0);
+    array->depth = array_depth;
+  }
+  type_decl = new_type_decl(id_list, 0, 0);
+  Var_Decl var_decl = new_var_decl(name, array, 0);
+  Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+  return new_exp_decl(type_decl, var_decl_list, 0, 0);
+}
+
+m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag) {
+  Exp exp = make_exp(type, name);
+  if((flag & ae_flag_static) == ae_flag_static) // ???
+    exp->d.exp_decl.is_static = 1;
+  if((flag & ae_flag_ref) == ae_flag_ref)
+    SET_FLAG(exp->d.exp_decl.type, ae_flag_ref);
+  importer->decl_list = new_decl_list(exp, importer->decl_list);
+  return 1;
+}
+
+m_int importer_union_end(Importer importer) {
+  Stmt stmt = new_stmt_union(importer->decl_list, 0);
+  CHECK_BB(traverse_stmt_union(importer->env, &stmt->d.stmt_union))
+  // this is from emit.c. TODO: puts this in a func
+  Decl_List l = stmt->d.stmt_union.l;
+  while(l) {
+    Var_Decl_List var_list = l->self->d.exp_decl.list;
+    while(var_list) {
+      var_list->self->value->offset = stmt->d.stmt_union.o;
+      var_list = var_list->next;
+    }
+    l = l->next;
+  }
+  importer->env->class_def->info->offset = stmt->d.stmt_union.o + stmt->d.stmt_union.s;
+  free_stmt(stmt);
+  importer->decl_list = NULL;
+  return 1;
+}
+
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {
   return env_add_value(importer->env, name, type, is_const, value);
 }

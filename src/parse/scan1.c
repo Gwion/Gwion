@@ -362,7 +362,7 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
   return 1;
 }
 
-static m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
+m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
   while(l) {

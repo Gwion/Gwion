@@ -18,6 +18,10 @@ m_bool scan1_stmt_fptr(Env env, Func_Def def);
 m_bool scan2_stmt_fptr(Env env, Func_Def def);
 m_bool check_stmt_fptr(Env env, Func_Def def);
 
+m_bool scan1_stmt_union(Env env, Stmt_Union def);
+m_bool scan2_stmt_union(Env env, Stmt_Union def);
+m_bool check_stmt_union(Env env, Stmt_Union def);
+
 m_bool scan1_class_def(Env env, Class_Def def);
 m_bool scan2_class_def(Env env, Class_Def def);
 m_bool check_class_def(Env env, Class_Def def);
@@ -47,6 +51,13 @@ m_bool traverse_func_def(Env env, Func_Def def) {
   return 1;
 }
 
+m_bool traverse_stmt_union(Env env, Stmt_Union def) {
+  if(scan1_stmt_union(env, def) < 0 ||
+     scan2_stmt_union(env, def) < 0 ||
+     check_stmt_union(env, def) < 0)
+    return -1;
+  return 1;
+}
 m_bool traverse_stmt_fptr(Env env, Func_Def def) {
   if(scan0_stmt_fptr(env, def) < 0 ||
      scan1_stmt_fptr(env, def) < 0 ||

@@ -439,7 +439,7 @@ Stmt new_stmt_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
 Stmt new_func_ptr_stmt(ae_flag key, m_str type, Type_Decl* decl, Arg_List args, int pos);
-
+void free_stmt(Stmt a);
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
@@ -504,6 +504,7 @@ Class_Def new_class_def(ae_flag class_decl, ID_List name,
                         ID_List ext, Class_Body body, int pos);
 void free_class_def(Class_Def a);
 Class_Body new_class_body(Section* section, int pos);
+void free_class_body(Class_Body a);
 Class_Body prepend_class_body(Section* section, Class_Body body, int pos);
 Section* new_section_class_def(Class_Def class_def, int pos);
 

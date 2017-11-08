@@ -1,0 +1,7 @@
+// [contains] In union, Objects must be declared as reference (use '@')
+union
+{
+	int i;
+	Object o;
+
+};
