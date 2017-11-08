@@ -1,15 +1,15 @@
-class child {}
-template<{A, B}>
-class C{ A key; B value; }
-<{int, int}>C c1;
-<{float, float}>C c2;
-<<<c1>>>;
-<<<c2>>>;
-<<<c2.value>>>;
+//class child {}
+//template<{A, B}>
+//class C{ A key; B value; }
+//<{int, int}>C c1;
+//<{float, float}>C c2;
+//<<<c1>>>;
+//<<<c2>>>;
+//<<<c2.value>>>;
 
 <{int, int}>ClassTemplate ct;
 <<<ct.key>>>;
-<{float, float}>ClassTemplate ct2;
-<<<ct2.key>>>;
-<{child, float}>ClassTemplate ct3;
-<<<ct3.key>>>;
+//<{float, float}>ClassTemplate ct2;
+//<<<ct2.key>>>;
+//<{child, float}>ClassTemplate ct3;
+//<<<ct3.key>>>;

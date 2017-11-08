@@ -877,7 +877,7 @@ Section* new_section_func_def(Func_Def func_def, int pos) {
   return a;
 }
 
-static void free_class_body(Class_Body a) {
+void free_class_body(Class_Body a) {
   if(!a)
     return;
   free_class_body(a->next);

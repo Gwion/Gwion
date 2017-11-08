@@ -62,7 +62,7 @@ Class_Def template_class(Env env, Class_Def def, Type_List call) {
   while(last->next) { last = last->next; }
   do {
     char c[strlen(s) + num_digit(i) + 1];
-    sprintf(c, "%s-%lu\n", s, i);
+    sprintf(c, "%s-%lu", s, i);
     xid = insert_symbol(c);
     i++;
   } while(nspc_lookup_value0(env->curr, xid));
