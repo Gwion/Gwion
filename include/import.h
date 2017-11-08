@@ -28,6 +28,12 @@ m_int importer_class_end(Importer importer);
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name);
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr);
 
+m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name);
+m_int importer_fptr_end(Importer importer, const ae_flag flag);
+
+m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag);
+m_int importer_union_end(Importer importer);
+
 m_int importer_func_ini(Importer importer, const m_str type, const m_str name, m_uint addr);
 m_int importer_func_arg(Importer importer, const m_str t, const m_str  n);
 m_int importer_func_end(Importer importer, const ae_flag flag);

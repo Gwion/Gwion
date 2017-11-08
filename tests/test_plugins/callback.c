@@ -17,7 +17,7 @@ struct ret_info {
 static INSTR(my_ret) {
   struct ret_info* info = (struct ret_info*)instr->m_val;
   POP_MEM(shred, info->offset);
-        vector_set(shred->code->instr, shred->pc, info->instr);
+        vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
   shred->code = *(VM_Code*)instr->ptr;
   /*if(shred->mem == shred->_mem)*/
   POP_REG(shred, info->size)
@@ -48,16 +48,16 @@ static SFUN(cb_func) {
   info->size = f->def->ret_type->size; 
   instr->execute = my_ret;
   *(VM_Code*)instr->ptr = shred->code;
-  instr->m_val = info;
+  instr->m_val = (m_uint)info;
   instr->m_val2 = shred->pc + 1;
   /*instr->m_val2 = shred->pc;*/
   /*instr->m_val2 = shred->next_pc;*/
   for(m_uint i = 0; i < vector_size(f->code->instr); i++) {
-    Instr in = vector_at(f->code->instr, i);
+    Instr in = (Instr)vector_at(f->code->instr, i);
     if(in->execute == Func_Return ||
       in->execute == my_ret) {
       info->instr = in; 
-      vector_set(f->code->instr, i, instr);
+      vector_set(f->code->instr, i, (vtype)instr);
     }
   }
   *(m_int*)RETURN = 1;
