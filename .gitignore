@@ -1,4 +1,6 @@
 gwion
+*.gwcov
+*.gwda
 include/generated.h
 utils/generate_header
 utils/coverity_scan.sh

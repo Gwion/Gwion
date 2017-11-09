@@ -47,6 +47,7 @@ static const struct option long_option[] = {
   { "help",     0, NULL, '?' },
   { "version",  0, NULL, 'v' },
   { "config",   0, NULL, 'C' },
+  { "coverage",   0, NULL, 'K' },
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -55,30 +56,31 @@ static const char usage[] =
 "usage: Gwion <options>\n"
 "\toption can be any of:\n"
 "GLOBAL options:  <argument>  : description\n"
-"\t--help,   -?\t             : this help\n"
-"\t--version -v\t             : this help\n"
+"\t--help,    -?\t             : this help\n"
+"\t--version  -v\t             : this help\n"
 "VM     options:\n"
-"\t--add,    -+\t <file>      : add file\n"
-"\t--rem,    --\t <shred id>  : remove shred\n"
-"\t--plugdir,-P\t <directory> : add a plugin directory\n"
-"\t--quit    -q\t             : quit the vm\n"
+"\t--add,     -+\t <file>      : add file\n"
+"\t--rem,     --\t <shred id>  : remove shred\n"
+"\t--plugdir, -P\t <directory> : add a plugin directory\n"
+"\t--quit     -q\t             : quit the vm\n"
+"\t--coverage -k\t             : quit the vm\n"
 "UDP    options:\n"
-"\t--host    -h\t  <string>   : set host\n"
-"\t--port    -p\t  <number>   : set port\n"
-"\t--loop    -l\t  <0 or 1>   : loop state (0 or 1)\n"
-"\t--alone   -a\t             : standalone mode. (no udp)\n"
+"\t--host     -h\t  <string>   : set host\n"
+"\t--port     -p\t  <number>   : set port\n"
+"\t--loop     -l\t  <0 or 1>   : loop state (0 or 1)\n"
+"\t--alone    -a\t             : standalone mode. (no udp)\n"
 "DRIVER options:\n"
-"\t--driver  -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n"
-"\t--sr      -s\t  <number>   : set samplerate\n"
-"\t--bufnum  -n\t  <number>   : set number of buffers\n"
-"\t--bufsize -b\t  <number>   : set size   of buffers\n"
-"\t--chan    -g\t  <number>   : (global) channel number\n"
-"\t--in      -i\t  <number>   : number of  input channel\n"
-"\t--out     -o\t  <number>   : number of output channel\n"
-"\t--card    -c\t  <string>   : card identifier or output file (depending on driver)\n"
-"\t--raw     -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n"
-"\t--format  -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
-"\t--backend -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
+"\t--driver   -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n"
+"\t--sr       -s\t  <number>   : set samplerate\n"
+"\t--bufnum   -n\t  <number>   : set number of buffers\n"
+"\t--bufsize  -b\t  <number>   : set size   of buffers\n"
+"\t--chan     -g\t  <number>   : (global) channel number\n"
+"\t--in       -i\t  <number>   : number of  input channel\n"
+"\t--out      -o\t  <number>   : number of output channel\n"
+"\t--card     -c\t  <string>   : card identifier or output file (depending on driver)\n"
+"\t--raw      -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n"
+"\t--format   -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
+"\t--backend  -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
 static void arg_add(Arg* arg) {
   if(optind < arg->argc) {
@@ -154,7 +156,7 @@ static void arg_udp(UdpIf* udp, char c) {
 
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C ", long_option, &index)) != -1) {
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C:K ", long_option, &index)) != -1) {
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
     else switch(i) {
@@ -173,6 +175,9 @@ void parse_args(Arg* arg, DriverInfo* di) {
         break;
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);
+        break;
+      case 'K':
+        arg->coverage = 1;
         break;
       default:
         arg_drvr(di, i);

@@ -1,10 +1,10 @@
 float f;
-if(f)
-	<<<"not ok">>>;
-else
-	<<<"ok">>>;
+//if(f)
+//	<<<"not ok">>>;
+//else
+//	<<<"ok">>>;
 while(f)
-	<<<"not ok">>>;
+	<<<"not ok (pass 2)">>>;
 1 => f;
 do { <<<"test">>>; }
 	until(f);

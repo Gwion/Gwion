@@ -15,6 +15,7 @@ typedef struct {
   struct Vector_ lib;
   Vector ref;
   UdpIf* udp;
+  m_bool coverage;
 } Arg;
 
 void arg_init(Arg* arg);

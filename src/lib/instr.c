@@ -493,3 +493,12 @@ INSTR(stop_gc) {
   while((o = (M_Object)vector_pop(&shred->gc)))
     release(o, shred);
 }
+
+INSTR(InstrCoverage) {
+  char c[strlen(shred->filename) + 4];
+  sprintf(c, "%scov", shred->filename);
+  FILE* file = fopen(c, "a");
+  fprintf(file, "%lu %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
+  fclose(file);
+}
+

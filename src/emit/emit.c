@@ -1372,43 +1372,72 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
 }
 
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
-  switch(stmt ? stmt->type : -1) {
-    case ae_stmt_exp:
-      return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
-    case ae_stmt_code:
-      return emit_stmt_code(emit, &stmt->d.stmt_code, 1);
-    case ae_stmt_if:
-      return emit_stmt_if(emit, &stmt->d.stmt_if);
-    case ae_stmt_return:
-      return emit_stmt_return(emit, &stmt->d.stmt_return);
-    case ae_stmt_break:
-      return emit_stmt_break(emit, &stmt->d.stmt_break);
-    case ae_stmt_continue:
-      return emit_stmt_continue(emit, &stmt->d.stmt_continue);
-    case ae_stmt_while:
-      return stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
-            emit_stmt_while(emit, &stmt->d.stmt_while);
-    case ae_stmt_until:
-      return stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
-            emit_stmt_until(emit, &stmt->d.stmt_until);
-    case ae_stmt_for:
-      return emit_stmt_for(emit, &stmt->d.stmt_for);
-    case ae_stmt_loop:
-      return emit_stmt_loop(emit, &stmt->d.stmt_loop);
-    case ae_stmt_gotolabel:
-      return emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
-    case ae_stmt_case:
-      return emit_stmt_case(emit, &stmt->d.stmt_case);
-    case ae_stmt_enum:
-      return emit_stmt_enum(emit, &stmt->d.stmt_enum);
-    case ae_stmt_switch:
-      return emit_stmt_switch(emit, &stmt->d.stmt_switch);
-    case ae_stmt_funcptr:
-      return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
-    case ae_stmt_union:
-      return emit_stmt_union(emit, &stmt->d.stmt_union);
+  m_bool ret = 1;
+  if(!stmt)
+    return 1;
+  if(emit->coverage) {
+    fprintf(emit->cov_file, "%i ini\n", stmt->pos);
+    Instr cov = emitter_add_instr(emit, InstrCoverage);
+    cov->m_val = stmt->pos;
   }
-  return 1;
+  switch(stmt->type) {
+    case ae_stmt_exp:
+      ret = emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
+      break;
+    case ae_stmt_code:
+      ret = emit_stmt_code(emit, &stmt->d.stmt_code, 1);
+      break;
+    case ae_stmt_if:
+      ret = emit_stmt_if(emit, &stmt->d.stmt_if);
+      break;
+    case ae_stmt_return:
+      ret = emit_stmt_return(emit, &stmt->d.stmt_return);
+      break;
+    case ae_stmt_break:
+      ret = emit_stmt_break(emit, &stmt->d.stmt_break);
+      break;
+    case ae_stmt_continue:
+      ret = emit_stmt_continue(emit, &stmt->d.stmt_continue);
+      break;
+    case ae_stmt_while:
+      ret = stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
+            emit_stmt_while(emit, &stmt->d.stmt_while);
+      break;
+    case ae_stmt_until:
+      ret = stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
+            emit_stmt_until(emit, &stmt->d.stmt_until);
+      break;
+    case ae_stmt_for:
+      ret = emit_stmt_for(emit, &stmt->d.stmt_for);
+      break;
+    case ae_stmt_loop:
+      ret = emit_stmt_loop(emit, &stmt->d.stmt_loop);
+      break;
+    case ae_stmt_gotolabel:
+      ret = emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
+      break;
+    case ae_stmt_case:
+      ret = emit_stmt_case(emit, &stmt->d.stmt_case);
+      break;
+    case ae_stmt_enum:
+      ret = emit_stmt_enum(emit, &stmt->d.stmt_enum);
+      break;
+    case ae_stmt_switch:
+      ret = emit_stmt_switch(emit, &stmt->d.stmt_switch);
+      break;
+    case ae_stmt_funcptr:
+      ret = emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_union:
+      ret = emit_stmt_union(emit, &stmt->d.stmt_union);
+  }
+  if(emit->coverage && (stmt->type != ae_stmt_if)) {  
+    fprintf(emit->cov_file, "%i end\n", stmt->pos);
+    Instr cov = emitter_add_instr(emit, InstrCoverage);
+    cov->m_val  = stmt->pos;
+    cov->m_val2 = 1;
+  }
+  return ret;
 }
 
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
@@ -1841,6 +1870,11 @@ static m_bool emit_ast_inner(Emitter emit, Ast ast) {
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret;
   emit->filename = filename;
+  if(emit->coverage) {
+    char cov_filename[strlen(filename) + 3];
+    sprintf(cov_filename, "%sda", filename);
+    emit->cov_file = fopen(cov_filename, "a");
+  }
   emit->code = new_code();
   vector_clear(&emit->stack);
   emit_push_scope(emit);
@@ -1857,5 +1891,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     free(filename);
     free_ast(ast);
   }
+  if(emit->coverage)
+    fclose(emit->cov_file);
   return ret;
 }
