@@ -395,7 +395,7 @@ static m_bool scan2_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
   return 1;
 }
 
-static m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
+m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
   Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
     CHECK_BB(err_msg(SCAN2_, stmt->pos,

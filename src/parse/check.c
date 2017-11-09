@@ -1229,7 +1229,7 @@ static Type check_exp(Env env, Exp exp) {
   return exp ? exp->type : NULL;
 }
 
-static m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
+m_bool check_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   Value v;
   while(list) {

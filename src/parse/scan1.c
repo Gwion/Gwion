@@ -296,7 +296,7 @@ static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   return 1;
 } 
 
-static m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
+m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   Type t;
   ID_List list = stmt->list;
   m_uint count = 1;

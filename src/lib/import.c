@@ -442,7 +442,7 @@ static Exp make_exp(const m_str type, const m_str name) {
   return new_exp_decl(type_decl, var_decl_list, 0, 0);
 }
 
-m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag) {
+ m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag) {
   Exp exp = make_exp(type, name);
   if((flag & ae_flag_static) == ae_flag_static) // ???
     exp->d.exp_decl.is_static = 1;
@@ -468,6 +468,49 @@ m_int importer_union_end(Importer importer) {
   importer->env->class_def->info->offset = stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
   importer->decl_list = NULL;
+  return 1;
+}
+
+m_int importer_enum_ini(Importer importer, const m_str type) {
+  importer->enum_data.t = type;
+  return 1;
+}
+
+m_int importer_enum_add(Importer importer, const m_str name) {
+  ID_List list = new_id_list(name, 0);
+  DL_Enum* d = &importer->enum_data;
+
+  if(!d->base)
+    d->base = list;
+  else
+    d->curr->next = list;
+  d->curr = list;
+  return list ? 1 : -1;
+}
+
+static void import_enum_end(DL_Enum* d, Vector v) {
+  m_uint i;
+
+  for(i = 0; i < vector_size(v); i++) {
+    Value value = (Value)vector_at(v, i);
+    SET_FLAG(value, ae_flag_builtin);
+    value->ptr = (m_uint*)i;
+  }
+  d->t = NULL;
+  d->base = NULL;
+}
+
+m_int importer_enum_end(Importer importer) {
+  DL_Enum* d = &importer->enum_data;
+  Stmt stmt = new_stmt_enum(d->base, d->t, 0);
+
+  CHECK_OB(stmt)
+  if(traverse_stmt_enum(importer->env, &stmt->d.stmt_enum) < 0) {
+    free_id_list(d->base);
+    return -1;
+  }
+  import_enum_end(d, &stmt->d.stmt_enum.values);
+  free_stmt(stmt);
   return 1;
 }
 

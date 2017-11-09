@@ -29,6 +29,11 @@ typedef struct {
   m_str* list;
 } Templater;
 
+typedef struct {
+  m_str t;
+  ID_List base, curr;
+} DL_Enum;
+
 struct Importer_{
   Env env;
   Class_Body body;
@@ -37,5 +42,6 @@ struct Importer_{
   DL_Oper oper;
   void* addr;
   Decl_List decl_list;
+  DL_Enum enum_data;
   Templater templater;
 };

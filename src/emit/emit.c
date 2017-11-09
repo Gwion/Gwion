@@ -1292,8 +1292,8 @@ static m_int get_case_value(Stmt_Case stmt, m_int* value) {
         stmt->val->d.exp_dot.t_base->d.actual_type :
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
-    *value = GET_FLAG(v, ae_flag_enum) ?
-      t->info->class_data[v->offset] : *(m_uint*)v->ptr;
+    *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
+      t->info->class_data[v->offset] : (m_uint)v->ptr : *(m_uint*)v->ptr;
   } else
     CHECK_BB(err_msg(EMIT_, stmt->pos,
           "unhandled expression type '%i'", stmt->val->exp_type))
@@ -1433,10 +1433,16 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
   Instr func_i;
 
   if(v->ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
-    func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
-    func_i->m_val = (m_uint)v->ptr;
-    func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
-    *(m_uint*)func_i->ptr = emit_addr;
+    if(GET_FLAG(v, ae_flag_enum)) {
+      func_i = emitter_add_instr(emit, Reg_PushImm);
+      *(m_uint*)func_i->ptr = (m_uint)v->ptr;
+      func_i->m_val = SZ_INT;
+    } else {
+      func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
+      func_i->m_val = (m_uint)v->ptr;
+      func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
+      *(m_uint*)func_i->ptr = emit_addr; 
+    } 
   } else { // from code
     Instr push_i = emitter_add_instr(emit, Reg_PushImm);
     func_i = emitter_add_instr(emit, Dot_Static_Data);
