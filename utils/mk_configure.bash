@@ -296,7 +296,7 @@ uninstall:
 	rm \\\${PREFIX}/\\\${PRG}
 
 test:
-	@bash utils/test.sh severity=11 examples severity=10 tests/error tests/tree tests/sh tests/ugen_coverage test/bug
+	@bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
 
 parser:
 	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y

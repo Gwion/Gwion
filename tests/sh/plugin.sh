@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #13
+# [test] #18
 
 n=0
 [ "$1" ] && n="$1"
@@ -30,18 +30,11 @@ rm "${GWION_ADD_DIR}/empty.so"
 
 
 pushd tests/test_plugins
-test_plugin coverage
-test_plugin array
-test_plugin begin_class
-test_plugin end_class
-test_plugin invalid_type1
-test_plugin invalid_type2
-test_plugin invalid_type3
-test_plugin invalid_func
-test_plugin invalid_array
-test_plugin invalid_arg
-test_plugin no_import
-test_plugin op_err
+for test_file in $(ls *.c)
+do
+  name=$(echo $test_file | sed 's/\.c//')
+  test_plugin $name
+done
 
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
