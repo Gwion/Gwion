@@ -449,6 +449,7 @@ m_bool import_float(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_plus,         float_plus,         0))
   CHECK_BB(importer_oper_end(importer, op_minus,        float_minus,        0))
   CHECK_BB(importer_oper_end(importer, op_times,        float_times,        0))
+  CHECK_BB(importer_oper_ini(importer, "dur", "dur", "float"))
   CHECK_BB(importer_oper_end(importer, op_divide,       float_divide,       0))
 
   CHECK_BB(importer_oper_ini(importer, "dur", "dur", "int"))
@@ -470,6 +471,9 @@ m_bool import_float(Importer importer) {
 
   CHECK_BB(importer_oper_ini(importer, "time", "time", "int"))
   CHECK_BB(importer_oper_end(importer, op_gt,           float_gt,           0))
+  CHECK_BB(importer_oper_end(importer, op_ge, 			 	    float_ge,         0))
+  CHECK_BB(importer_oper_end(importer, op_lt, 			 	    float_lt,         0))
+  CHECK_BB(importer_oper_end(importer, op_le, 			 	    float_le,         0))
 
   CHECK_BB(import_values(importer))
   return 1;
