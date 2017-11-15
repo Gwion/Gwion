@@ -70,6 +70,7 @@ struct VM_Shred_ {
   M_Object wait;
   struct Vector_ child;
   struct Vector_ gc, gc1;
+  struct Vector_ sporks;
   m_float wake_time;
 };
 

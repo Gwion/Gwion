@@ -55,6 +55,8 @@ static void shreduler_child(Shreduler s, Vector v) {
     child->wait = NULL;
     if(child == s->list) // 09/03/17
       s->list = NULL;
+    else if(s->list && (child == s->list->next)) // 09/03/17
+      s->list->next = child->next;
     shreduler_remove(s, child, 1);
   }
 }
