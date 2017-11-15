@@ -8,6 +8,7 @@
 #include <soundpipe.h>
 #endif
 
+#include <pthread.h>
 #include "defs.h"
 #include "oo.h"
 #include "map.h"
