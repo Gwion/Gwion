@@ -196,6 +196,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
+    value->func_ref->def->flag &= ~ae_flag_template;
     while(tld) {
       if(!tlc)
         break;
@@ -207,6 +208,8 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     if(!tlc && !tld)
       match = 1;
   }
+  if(match)
+    SET_FLAG(v, ae_flag_template);
   return match;
 }
 
@@ -222,20 +225,22 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-function value."))
       Func_Def base = v->func_ref->def;
+      base->flag &= ~ae_flag_template;
       if(!base->types)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-template function."))
       Type_List list = exp_func->types;
       while(list) {
-        Type t = find_type(env, list->list);
-        if(!t)
+        if(!find_type(env, list->list)) {
           CHECK_BB(err_msg(SCAN1_, exp_func->pos,
                 "type '%s' unknown in template call", s_name(list->list->xid)))
-          list = list->next;
+        }
+        list = list->next;
       }
       if(scan2_template_match(env, v, exp_func->types) < 0)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template type number mismatch."))
+      SET_FLAG(base, ae_flag_template);
       return 1;
     } else if(exp_func->func->exp_type == ae_exp_dot) {
       return 1;      // see type.c

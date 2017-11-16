@@ -121,7 +121,7 @@ Exp new_array(Exp base, Array_Sub indices, int pos) {
 }
 
 static void free_array_expression(Exp_Array* a) {
-  if(a->indices->depth < a->base->type->array_depth)
+  if(a->base && a->base->type && a->indices->depth < a->base->type->array_depth)
     free(a->self->type);
   free_array_sub(a->indices);
   free_expression(a->base);

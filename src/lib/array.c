@@ -262,7 +262,6 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
   M_Object base;
   if(cap < 0) {
     fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-    REM_REF(info->type);
     return NULL;
   }
   base = new_M_Array(info->capacity >= info->top ?
@@ -330,6 +329,7 @@ INSTR(Instr_Array_Init) { // for litteral array
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
   PUSH_REG(shred,  SZ_INT);
+  instr->m_val = 1;
 }
 
 static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) {
@@ -370,6 +370,7 @@ INSTR(Instr_Array_Alloc) {
     PUSH_REG(shred,  SZ_INT);
   }
   REM_REF(info->type);
+  instr->m_val = 1;
   return;
 
 out_of_memory:

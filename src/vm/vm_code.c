@@ -31,8 +31,12 @@ static void free_code_instr(Vector v) {
   for(i = vector_size(v) + 1; --i;) {
     Instr instr = (Instr)vector_at(v, i - 1);
     if(instr->execute == Instr_Array_Init ||
-        instr->execute == Instr_Array_Alloc)
-      free(*(VM_Array_Info**)instr->ptr);
+        instr->execute == Instr_Array_Alloc) {
+      VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+      if(!instr->m_val)
+        REM_REF(info->type)
+      free(info);
+    }
     else if(instr->execute == Gack)
       free_code_instr_gack(instr);
     else if(instr->execute == Branch_Switch)
