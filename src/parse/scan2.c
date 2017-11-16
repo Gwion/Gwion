@@ -556,11 +556,7 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
   Func func = value->func_ref;
 
   SET_FLAG(value, ae_flag_checked);
-  nspc_add_func(env->curr, insert_symbol(func->name), func);
-  if(!overload)
-    nspc_add_value(env->curr, value->func_ref->def->name, value);
-  else {
-    nspc_add_value(env->curr, insert_symbol(func->name), value);
+  if(overload) {
     if(overload->func_ref->def->ret_type)
       if(!GET_FLAG(func->def, ae_flag_template))
         if(func->def->ret_type->xid != overload->func_ref->def->ret_type->xid) {
@@ -614,6 +610,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   func_name = s_name(insert_symbol(name));
   func = new_func(func_name, f);
+  nspc_add_func(env->curr, insert_symbol(func->name), func);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
@@ -624,6 +621,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     type->size += SZ_INT;
   type->d.func = func;
   value = new_value(type, func_name);
+  nspc_add_value(env->curr, !overload ?
+      f->name : insert_symbol(func->name), value);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   scan2_func_def_flag(env, f);
   if(overload) {

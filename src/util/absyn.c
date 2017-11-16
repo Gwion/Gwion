@@ -20,7 +20,7 @@ Var_Decl new_var_decl(m_str name, Array_Sub array, int pos) {
 }
 
 void free_array_sub(Array_Sub a) {
-    free_expression(a->exp_list);
+  free_expression(a->exp_list);
   free(a);
 }
 
@@ -474,9 +474,10 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
 static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
-  else if(a->args) {
-        free_arg_list(a->args);
-      free_type_decl(a->type);
+  else {
+    if(a->args)
+      free_arg_list(a->args);
+    free_type_decl(a->type);
   }
 }
 

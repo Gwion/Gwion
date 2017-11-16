@@ -420,11 +420,13 @@ INSTR(Instr_Array_Access_Multi) {
     Except(shred, "NullPtrException");
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)REG(SZ_INT * (j + 1));
-    OOB(shred, obj, *(m_int*)REG(SZ_INT * (j + 1)))
-    if(!(obj = (M_Object)i_vector_at(ARRAY(obj), i)))
+    OOB(shred, *base, *(m_int*)REG(SZ_INT * (j + 1)))
+    if(!(obj = (M_Object)i_vector_at(ARRAY(obj), i))) {
+      release(*base, shred);
       Except(shred, "NullPtrException");
+    }
   }
   i = *(m_int*)REG(SZ_INT * (j + 1));
-  OOB(shred, obj ,*(m_int*)REG(SZ_INT * (j + 1)))
+  OOB(shred, *base,*(m_int*)REG(SZ_INT * (j + 1)))
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }
