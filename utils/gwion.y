@@ -357,7 +357,7 @@ array_exp
 array_empty
   : LBRACK RBRACK             { $$ = new_array_sub(NULL, get_pos(scanner)); }
   | array_empty LBRACK RBRACK { $$ = prepend_array_sub($1, NULL); }
-  | array_empty array_exp     { $$ = prepend_array_sub($1, $2->exp_list); }
+  | array_empty array_exp     { $$ = prepend_array_sub($1, $2->exp_list); free($2); }
   ;
 
 decl_exp

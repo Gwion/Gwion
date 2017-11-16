@@ -2540,7 +2540,7 @@ yyreduce:
 
   case 107:
 #line 360 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.array_sub) = prepend_array_sub((yyvsp[-1].array_sub), (yyvsp[0].array_sub)->exp_list); }
+    { (yyval.array_sub) = prepend_array_sub((yyvsp[-1].array_sub), (yyvsp[0].array_sub)->exp_list); free((yyvsp[0].array_sub)); }
 #line 2545 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
