@@ -7,27 +7,30 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define TABLEN 2
+
 typedef struct {
   unsigned int set;
   unsigned int ini;
   unsigned int end;
-} Line; 
+} Line;
+
 static int last, max_exec;
 static Line* lines;
 
 static void da(char* base) {
-  int line_count = 64; 
+  int line_count = 64;
   int curr_line;
   char c[8];
   char filename[strlen(base) + 3];
   sprintf(filename, "%sda", base);
-  FILE* fpda = fopen(filename, "r");
+  FILE* f = fopen(filename, "r");
 
   char * line = NULL;
-  if(!fpda) // err msg
+  if(!f) // err msg
     exit(EXIT_FAILURE);
         while (1) {
-        int ret = fscanf(fpda, "%i %s", &curr_line, (char*)&c);
+        int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
         if(ret == 2) {
           if(curr_line >= line_count) {
             lines = realloc(lines, 2 * line_count * sizeof(Line)); // check
@@ -41,14 +44,14 @@ static void da(char* base) {
         else if(errno != 0) {
           perror("scanf:");
           break;
-        } 
+        }
         else if(ret == EOF) {
             break;
         } else {
             printf("No match.\n");
         }
     }
-  fclose(fpda);
+  fclose(f);
   if(line)
     free(line);
 }
@@ -57,14 +60,14 @@ void cov(char* base) {
   char filename[strlen(base) + 4];
   int curr_line;
   char c[8];
-  FILE* fp;
-  
+  FILE* f;
+
   sprintf(filename, "%scov", base);
-  fp = fopen(filename, "r");
-  if(!fp) // err msg
+  f = fopen(filename, "r");
+  if(!f) // err msg
     exit(EXIT_FAILURE);
   while (1) {
-    int ret = fscanf(fp, "%i %s", &curr_line, (char*)&c);
+    int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
     if(ret == 2) {
       if(!strcmp(c, "ini")) {
         lines[curr_line].ini++;
@@ -76,18 +79,31 @@ void cov(char* base) {
     else if(errno != 0) {
       perror("scanf:");
       break;
-    } 
+    }
     else if(ret == EOF) {
         break;
     } else {
         printf("No match.\n");
     }
   }
-  fclose(fp);
+  fclose(f);
+}
+
+static void detab(char* in, char* out, size_t max_len) {
+  size_t i = 0;
+  while(*in && i < max_len - 1) {
+    if(*in == '\t') {
+      for(int j = 0; j < TABLEN; j++)
+        out[i++] = ' ';
+    } else
+        out[i++] = *in;
+    *in++;
+  }
+  out[i] = 0;
 }
 
 void diagnostic(char* filename){
-  FILE * fp;
+  FILE * f;
   char * line = NULL;
   size_t len = 0;
   ssize_t read;
@@ -98,16 +114,18 @@ void diagnostic(char* filename){
 
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
-  printf ("lines %d\n", w.ws_col);
 
-  if(!(fp = fopen(filename, "r")))
+  if(!(f = fopen(filename, "r")))
     exit(EXIT_FAILURE);
 
-  while((read = getline(&line, &len, fp)) != -1) {
+  while((read = getline(&line, &len, f)) != -1) {
     char* prefix = "";
     ssize_t line_len = read > line_size ? line_size : read - 1;
+    char detabed[TABLEN*line_len];
     char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
     int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
+    detab(stripped_line, detabed, TABLEN*line_len);
+    line_len = strlen(detabed);
     if(lines[line_count].set) {
 //      prefix = lines[line_count].ini == lines[line_count].end ?
       prefix = lines[line_count].ini ?
@@ -118,7 +136,8 @@ void diagnostic(char* filename){
       num_digit++;
       printf(" ");
     }
-    printf(":\033[0m %s%s\033[0m\033[2m", prefix, stripped_line);
+//    printf(":\033[0m %s%s\033[0m\033[2m", prefix, stripped_line);
+    printf(":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
     free(stripped_line);
     while(line_len < line_size) {
       line_len++;
@@ -129,10 +148,9 @@ void diagnostic(char* filename){
     else puts("|\033[0m");
       line_count++;
   }
-  fclose(fp);
+  fclose(f);
   if(line)
     free(line);
-  exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char** argv) {
@@ -147,4 +165,5 @@ int main(int argc, char** argv) {
     argc--;
     argv++;
   }
+  exit(EXIT_SUCCESS);
 }

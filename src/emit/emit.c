@@ -1370,15 +1370,22 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
  return ret;
 }
 
+static void emit_stmt_coverage(Emitter emit, Stmt stmt) {
+  Instr cov;
+
+  fprintf(emit->cov_file, "%i ini\n", stmt->pos);
+  cov = emitter_add_instr(emit, InstrCoverage);
+  cov->m_val = stmt->pos;
+
+}
+
+
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
   m_bool ret = 1;
   if(!stmt)
     return 1;
-  if(emit->coverage) {
-    fprintf(emit->cov_file, "%i ini\n", stmt->pos);
-    Instr cov = emitter_add_instr(emit, InstrCoverage);
-    cov->m_val = stmt->pos;
-  }
+  if(emit->coverage)
+    emit_stmt_coverage(emit, stmt);
   switch(stmt->type) {
     case ae_stmt_exp:
       ret = emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
