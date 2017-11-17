@@ -27,7 +27,7 @@ static void da(char* base) {
   if(!fpda) // err msg
     exit(EXIT_FAILURE);
         while (1) {
-        int ret = fscanf(fpda, "%i %s", &curr_line, &c);
+        int ret = fscanf(fpda, "%i %s", &curr_line, (char*)&c);
         if(ret == 2) {
           if(curr_line >= line_count) {
             lines = realloc(lines, 2 * line_count * sizeof(Line)); // check
@@ -64,7 +64,7 @@ void cov(char* base) {
   if(!fp) // err msg
     exit(EXIT_FAILURE);
   while (1) {
-    int ret = fscanf(fp, "%i %s", &curr_line, &c);
+    int ret = fscanf(fp, "%i %s", &curr_line, (char*)&c);
     if(ret == 2) {
       if(!strcmp(c, "ini")) {
         lines[curr_line].ini++;
@@ -87,30 +87,31 @@ void cov(char* base) {
 }
 
 void diagnostic(char* filename){
-    FILE * fp;
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    int line_count = 1;
-    int max_line_digit = last ? floor(log10(last) + 1) : 1;
-    int max_exec_digit = last ? floor(log10(max_exec) + 1) : 1;
-    
-        struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    int line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
-    printf ("lines %d\n", w.ws_col);
+  FILE * fp;
+  char * line = NULL;
+  size_t len = 0;
+  ssize_t read;
+  int line_size, line_count = 1;
+  int max_line_digit = last ? floor(log10(last) + 1) : 1;
+  int max_exec_digit = last ? floor(log10(max_exec) + 1) : 1;
+  struct winsize w;
 
-    fp = fopen(filename, "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
-    while ((read = getline(&line, &len, fp)) != -1) {
-      char* prefix = "";
-      ssize_t line_len = read > line_size ? line_size : read - 1;
-      char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
-      int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
-      if(lines[line_count].set) {
-        prefix = lines[line_count].ini == lines[line_count].end ?
-        "\033[32m" : "\033[31m";
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
+  printf ("lines %d\n", w.ws_col);
+
+  if(!(fp = fopen(filename, "r")))
+    exit(EXIT_FAILURE);
+
+  while((read = getline(&line, &len, fp)) != -1) {
+    char* prefix = "";
+    ssize_t line_len = read > line_size ? line_size : read - 1;
+    char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
+    int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
+    if(lines[line_count].set) {
+//      prefix = lines[line_count].ini == lines[line_count].end ?
+      prefix = lines[line_count].ini ?
+      "\033[32m" : "\033[31m";
     }
     printf("\033[2m%i", line_count);
     while(num_digit < max_line_digit) {
@@ -124,14 +125,14 @@ void diagnostic(char* filename){
       printf(" ");
     }
     if(lines[line_count].set)
-    printf("| (%i)\n\033[0m", lines[line_count].end);
+      printf("| (%i)\n\033[0m", lines[line_count].ini);
     else puts("|\033[0m");
-    line_count++;
-    }
-    fclose(fp);
-    if (line)
-        free(line);
-    exit(EXIT_SUCCESS);
+      line_count++;
+  }
+  fclose(fp);
+  if(line)
+    free(line);
+  exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char** argv) {

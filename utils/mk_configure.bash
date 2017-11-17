@@ -274,7 +274,7 @@ all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit
 	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 gwcov:
-	@cc -lm utils/gwcov.c -o gwcov
+	@cc utils/gwcov.c -lm -o gwcov
 
 options:
 	@echo "CFLAGS  : \\\${CFLAGS}"

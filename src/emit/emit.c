@@ -1430,12 +1430,14 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
     case ae_stmt_union:
       ret = emit_stmt_union(emit, &stmt->d.stmt_union);
   }
-  if(emit->coverage && (stmt->type != ae_stmt_if)) {  
+/*
+  if(emit->coverage && (stmt->type != ae_stmt_if)) {
     fprintf(emit->cov_file, "%i end\n", stmt->pos);
     Instr cov = emitter_add_instr(emit, InstrCoverage);
     cov->m_val  = stmt->pos;
     cov->m_val2 = 1;
   }
+*/
   return ret;
 }
 

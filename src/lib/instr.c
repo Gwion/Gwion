@@ -505,8 +505,8 @@ INSTR(stop_gc) {
 }
 
 INSTR(InstrCoverage) {
-  char c[strlen(shred->filename) + 4];
-  sprintf(c, "%scov", shred->filename);
+  char c[(shred->filename ? strlen(shred->filename) : 6) + 4];
+  sprintf(c, "%scov", shred->filename ? shred->filename : "gwion.");
   FILE* file = fopen(c, "a");
   fprintf(file, "%lu %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
   fclose(file);
