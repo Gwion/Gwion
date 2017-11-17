@@ -14,6 +14,16 @@
 #define COVERAGE(a)
 #endif
 
+#ifdef GWCOV
+static void coverage(Emitter emit, m_uint pos) {
+  Instr cov;
+
+  fprintf(emit->cov_file, "%li ini\n", pos);
+  cov = emitter_add_instr(emit, InstrCoverage);
+  cov->m_val = pos;
+}
+#endif
+
 typedef struct {
   m_uint size;
   m_uint offset;
@@ -65,16 +75,6 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop);
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list);
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member);
 static m_bool emit_func_def(Emitter emit, Func_Def func_def);
-
-static void coverage(Emitter emit, m_uint pos) {
-  Instr cov;
-
-  fprintf(emit->cov_file, "%li ini\n", pos);
-  cov = emitter_add_instr(emit, InstrCoverage);
-  cov->m_val = pos;
-}
-
-
 
 Emitter new_emitter(Env env) {
   Emitter emit = calloc(1, sizeof(struct Emitter_));

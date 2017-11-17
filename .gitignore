@@ -1,4 +1,5 @@
 gwion
+gwcov
 *.gwcov
 *.gwda
 include/generated.h
