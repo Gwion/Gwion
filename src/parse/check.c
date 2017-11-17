@@ -522,7 +522,8 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     if(m_func) {
       if(v->owner_class)
         env_pop_class(env);
-      SET_FLAG(m_func, ae_flag_template);
+      SET_FLAG(base, ae_flag_template);
+      SET_FLAG(m_func, ae_flag_checked);
       SET_FLAG(m_func, ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
@@ -590,10 +591,13 @@ static Value get_template_value(Env env, Exp exp_func) {
     v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
   if(v)
     v->func_ref->def->flag &= ~ae_flag_template;
-  else
+  else {
+    v = nspc_lookup_value1(exp_func->type->owner, insert_symbol("test"));
+    v->func_ref->def->flag &= ~ae_flag_template;
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
       exp_func->exp_type))
+  }
   return v;
 }
 
@@ -622,7 +626,6 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   m_uint type_number, args_number = 0;
   Value value;
   ID_List list;
-
   CHECK_OO((value = get_template_value(env, exp_func)))
   type_number = get_type_number(value->func_ref->def->types);
 

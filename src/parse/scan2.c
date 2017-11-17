@@ -501,6 +501,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
   m_str func_name = s_name(f->name);
   Func func = new_func(func_name, f);
   Value value;
+  Type type;
   m_uint len = strlen(func_name) +
     num_digit(overload ? overload->func_num_overloads + 1 : 0) +
     strlen(env->curr->name) + 13;
@@ -510,12 +511,16 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     func->next = overload->func_ref->next;
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  value = new_value(&t_function, func_name);
+  type = type_copy(env, &t_function);
+  type->name = func_name;
+  type->owner = env->curr;
+  value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
   if(overload)
     overload->func_num_overloads++;
   else {
+    ADD_REF(type);
     ADD_REF(value);
     ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);

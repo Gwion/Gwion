@@ -590,6 +590,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)
     CHECK_BB(env_pop_class(emit->env))
+  exp_func->m_func->flag &= ~ae_flag_checked;
   return 1;
 }
 

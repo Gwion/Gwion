@@ -494,6 +494,8 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
 }
 
 static void free_exp_call(Exp_Func* a) {
+  if(a->m_func && GET_FLAG(a->m_func, ae_flag_checked))
+    free(a->m_func->def);
   if(a->types)
     free_type_list(a->types);
   free_expression(a->func);
