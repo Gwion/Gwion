@@ -590,6 +590,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)
     CHECK_BB(env_pop_class(emit->env))
+  exp_func->m_func->flag &= ~ae_flag_checked;
   return 1;
 }
 
@@ -1287,16 +1288,14 @@ static m_bool primary_case(Exp_Primary* prim, m_int* value) {
 static m_int get_case_value(Stmt_Case stmt, m_int* value) {
   if(stmt->val->exp_type == ae_exp_primary)
     CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
-  else if(stmt->val->exp_type == ae_exp_dot) {
+  else {
     Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
         stmt->val->d.exp_dot.t_base->d.actual_type :
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
       t->info->class_data[v->offset] : (m_uint)v->ptr : *(m_uint*)v->ptr;
-  } else
-    CHECK_BB(err_msg(EMIT_, stmt->pos,
-          "unhandled expression type '%i'", stmt->val->exp_type))
+  }
   return 1;
 }
 

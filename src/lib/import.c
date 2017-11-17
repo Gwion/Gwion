@@ -26,14 +26,16 @@ static ID_List templater_def(Templater* templater) {
   return list[0];
 }
 
-void importer_tmpl_end(Importer importer) {
+m_int importer_tmpl_end(Importer importer) {
   importer->templater.n = 0;
   importer->templater.list = NULL;
+  return 1;
 }
 
-void importer_tmpl_ini(Importer importer, m_uint n, const m_str* list) {
+m_int importer_tmpl_ini(Importer importer, m_uint n, const m_str* list) {
   importer->templater.n = n;
   importer->templater.list = (m_str*)list;
+  return 1;
 }
 
 static void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {

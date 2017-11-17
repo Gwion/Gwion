@@ -13,7 +13,7 @@ IMPORT {
   CHECK_BB(importer_class_ini(importer, &t_func_typedef, NULL, NULL))
     CHECK_BB(importer_fptr_ini(importer, "void", "PtrType"))
     CHECK_BB(importer_fptr_end(importer, ae_flag_static))
-    CHECK_BB(importer_func_ini(importer, "void", "test_func", test_func))
+    CHECK_BB(importer_func_ini(importer, "void", "test_func", (m_uint)test_func))
     CHECK_BB(importer_func_end(importer, ae_flag_static))
     CHECK_BB(importer_item_ini(importer, "PtrType", "ptr"))
     CHECK_BB(importer_item_end(importer, ae_flag_static, NULL))

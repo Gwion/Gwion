@@ -20,7 +20,7 @@ Var_Decl new_var_decl(m_str name, Array_Sub array, int pos) {
 }
 
 void free_array_sub(Array_Sub a) {
-    free_expression(a->exp_list);
+  free_expression(a->exp_list);
   free(a);
 }
 
@@ -121,7 +121,7 @@ Exp new_array(Exp base, Array_Sub indices, int pos) {
 }
 
 static void free_array_expression(Exp_Array* a) {
-  if(a->indices->depth < a->base->type->array_depth)
+  if(a->base && a->base->type && a->indices->depth < a->base->type->array_depth)
     free(a->self->type);
   free_array_sub(a->indices);
   free_expression(a->base);
@@ -474,9 +474,10 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
 static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
-  else if(a->args) {
-        free_arg_list(a->args);
-      free_type_decl(a->type);
+  else {
+    if(a->args)
+      free_arg_list(a->args);
+    free_type_decl(a->type);
   }
 }
 
@@ -493,6 +494,8 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
 }
 
 static void free_exp_call(Exp_Func* a) {
+  if(a->m_func && GET_FLAG(a->m_func, ae_flag_checked))
+    free(a->m_func->def);
   if(a->types)
     free_type_list(a->types);
   free_expression(a->func);

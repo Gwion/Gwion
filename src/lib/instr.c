@@ -236,6 +236,16 @@ INSTR(Spork) {
   PUSH_REG(shred,  SZ_INT);
   if(instr->m_val2)
     ADD_REF(code)
+  else {
+    VM_Shred parent = shred;
+    while(parent->parent)
+      parent = parent->parent;
+    if(!parent->sporks.ptr)
+      vector_init(&parent->sporks);
+    else if(vector_find(&parent->sporks, (vtype)code) != -1)
+      return;
+    vector_add(&parent->sporks, (vtype)code);
+  }
 }
 
 // LCOV_EXCL_START

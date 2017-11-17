@@ -146,8 +146,10 @@ static void free_nspc_value(Nspc a) {
     else if(isa(value->m_type, &t_func_ptr) > 0)
       free_nspc_value_fptr(value->func_ref);
     else if(isa(value->m_type, &t_function) > 0) {
-      if(GET_FLAG(value, ae_flag_template))
+      if(GET_FLAG(value, ae_flag_template)) {
+        REM_REF(value->m_type)
         REM_REF(value->func_ref)
+      }
       else
         REM_REF(value->m_type)
     }
