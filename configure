@@ -37,6 +37,8 @@ begins_with_short_option()
 : "${_arg_double:=$USE_DOUBLE}"
 : "${USE_COVERAGE:=off}"
 : "${_arg_coverage:=$USE_COVERAGE}"
+: "${USE_GWCOV:=off}"
+: "${_arg_gwcov:=$USE_GWCOV}"
 : "${USE_MEMCHECK:=off}"
 : "${_arg_memcheck:=$USE_MEMCHECK}"
 : "${D_FUNC:=dummy}"
@@ -95,7 +97,7 @@ begins_with_short_option()
 print_help ()
 {
 	printf "%s\n" "The general script's help msg"
-	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [-h|--help]\n' "$0"
+	printf 'Usage: %s [--prg <arg>] [--cc <arg>] [--yacc <arg>] [--lex <arg>] [--prefix <arg>] [--soundpipe_lib <arg>] [--soundpipe_inc <arg>] [--(no-)double] [--(no-)coverage] [--(no-)gwcov] [--(no-)memcheck] [--d_func <arg>] [--(no-)dummy] [--dummy-inc <arg>] [--dummy-lib <arg>] [--(no-)spa] [--spa-inc <arg>] [--spa-lib <arg>] [--(no-)sndfile] [--sndfile-inc <arg>] [--sndfile-lib <arg>] [--(no-)alsa] [--alsa-inc <arg>] [--alsa-lib <arg>] [--(no-)jack] [--jack-inc <arg>] [--jack-lib <arg>] [--(no-)portaudio] [--portaudio-inc <arg>] [--portaudio-lib <arg>] [--(no-)soundio] [--soundio-inc <arg>] [--soundio-lib <arg>] [--(no-)pulse] [--pulse-inc <arg>] [--pulse-lib <arg>] [--add <arg>] [-h|--help]\n' "$0"
 	printf "\t%s\n" "--prg: value for PRG (default: 'gwion')"
 	printf "\t%s\n" "--cc: value for CC (default: 'gcc')"
 	printf "\t%s\n" "--yacc: value for YACC (default: 'yacc')"
@@ -105,6 +107,7 @@ print_help ()
 	printf "\t%s\n" "--soundpipe_inc: value for SOUNDPIPE_INC (no default)"
 	printf "\t%s\n" "--double,--no-double: debug double (off by default)"
 	printf "\t%s\n" "--coverage,--no-coverage: debug coverage (off by default)"
+	printf "\t%s\n" "--gwcov,--no-gwcov: debug gwcov (off by default)"
 	printf "\t%s\n" "--memcheck,--no-memcheck: debug memcheck (off by default)"
 	printf "\t%s\n" "--d_func: debug d_func (default: 'dummy')"
 	printf "\t%s\n" "--dummy,--no-dummy: enable dummy (on by default)"
@@ -204,6 +207,10 @@ parse_commandline ()
 			--no-coverage|--coverage)
 				_arg_coverage="on"
 				test "${1:0:5}" = "--no-" && _arg_coverage="off"
+				;;
+			--no-gwcov|--gwcov)
+				_arg_gwcov="on"
+				test "${1:0:5}" = "--no-" && _arg_gwcov="off"
 				;;
 			--no-memcheck|--memcheck)
 				_arg_memcheck="on"
@@ -438,7 +445,7 @@ do
  printf "LDFLAGS += -lm -ldl -rdynamic -lpthread\nCFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\n"
 
 printf "\n# handle boolean options\n"
-for iter in double coverage memcheck
+for iter in double coverage gwcov memcheck
 do
 	if [ "$iter" = "double" ]
 	then echo "USE_$(to_upper $iter) = $(eval echo \$_arg_$iter)"
@@ -502,7 +509,7 @@ do
     done
 
 printf "\n# add boolean\n"
-for iter in double:off coverage:off memcheck:off
+for iter in double:off coverage:off gwcov:off memcheck:off
 do
 	key=$(echo "$iter" | cut -d ':' -f 1)
 	val=$(echo "$iter" | cut -d ':' -f 2)
@@ -517,6 +524,8 @@ do
     [ "$key" = "coverage" ] && printf "ifeq (\${USE_%s}, 1)\\nCFLAGS += -ftest-coverage -fprofile-arcs\\nendif\n" "$(to_upper "$key")"
     [ "$key" = "coverage" ] && printf "ifeq (\${USE_%s}, on)\\nLDFLAGS += --coverage\nelse " "$(to_upper "$key")"
     [ "$key" = "coverage" ] && printf "ifeq (\${USE_%s}, 1)\\nLDFLAGS += --coverage\nendif\n" "$(to_upper "$key")"
+    [ "$key" = "gwcov"    ] && printf "ifeq (\${USE_%s}, 1)\\nCFLAGS += -DGWCOV\nendif\n" "$(to_upper "$key")"
+    [ "$key" = "gwcov"    ] && printf "ifeq (\${USE_%s}, on)\\nCFLAGS += -DGWCOV\nendif\n" "$(to_upper "$key")"
   done
   key="double"
   printf "ifeq (\${USE_%s}, on)\\nCFLAGS += -DUSE_%s -DSPFLOAT=double\\nelse ifeq (\${USE_%s}, 1)\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\nelse\\nCFLAGS+=-DSPFLOAT=float\\nendif\\n" "$(to_upper $key)" "$(to_upper $key)" "$(to_upper $key)" "$(to_upper $key)"

@@ -18,6 +18,14 @@ typedef struct {
 static int last, max_exec;
 static Line* lines;
 
+static void err(const char* base, const char* file) {
+  fprintf(stderr, "Unable to do coverage for '\033[1m%s\033[0m'.\n", base);
+  fprintf(stderr, "Reason: '\033[1m%s\033[0m', no such file.\n", file);
+  if(strcmp(base, file))
+    fprintf(stderr, "Did you run '\033[32;1mgwion -k\033[0m \033[1m%s\033[0m' ?\n", base);
+  exit(EXIT_FAILURE);
+
+}
 static void da(char* base) {
   int line_count = 64;
   int curr_line;
@@ -28,7 +36,7 @@ static void da(char* base) {
 
   char * line = NULL;
   if(!f) // err msg
-    exit(EXIT_FAILURE);
+    err(base, filename);
         while (1) {
         int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
         if(ret == 2) {
@@ -65,7 +73,7 @@ void cov(char* base) {
   sprintf(filename, "%scov", base);
   f = fopen(filename, "r");
   if(!f) // err msg
-    exit(EXIT_FAILURE);
+    err(base, filename);
   while (1) {
     int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
     if(ret == 2) {
@@ -116,7 +124,7 @@ void diagnostic(char* filename){
   line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
 
   if(!(f = fopen(filename, "r")))
-    exit(EXIT_FAILURE);
+    err(filename, filename);
 
   while((read = getline(&line, &len, f)) != -1) {
     char* prefix = "";
@@ -127,22 +135,16 @@ void diagnostic(char* filename){
     detab(stripped_line, detabed, TABLEN*line_len);
     line_len = strlen(detabed);
     if(lines[line_count].set) {
-//      prefix = lines[line_count].ini == lines[line_count].end ?
       prefix = lines[line_count].ini ?
       "\033[32m" : "\033[31m";
     }
     printf("\033[2m%i", line_count);
-    while(num_digit < max_line_digit) {
-      num_digit++;
+    while(num_digit++ < max_line_digit)
       printf(" ");
-    }
-//    printf(":\033[0m %s%s\033[0m\033[2m", prefix, stripped_line);
     printf(":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
     free(stripped_line);
-    while(line_len < line_size) {
-      line_len++;
+    while(line_len++ < line_size)
       printf(" ");
-    }
     if(lines[line_count].set)
       printf("| (%i)\n\033[0m", lines[line_count].ini);
     else puts("|\033[0m");

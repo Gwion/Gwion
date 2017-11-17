@@ -47,7 +47,9 @@ static const struct option long_option[] = {
   { "help",     0, NULL, '?' },
   { "version",  0, NULL, 'v' },
   { "config",   0, NULL, 'C' },
+#ifdef GWCOV
   { "coverage",   0, NULL, 'K' },
+#endif
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -63,7 +65,7 @@ static const char usage[] =
 "\t--rem,     --\t <shred id>  : remove shred\n"
 "\t--plugdir, -P\t <directory> : add a plugin directory\n"
 "\t--quit     -q\t             : quit the vm\n"
-"\t--coverage -k\t             : quit the vm\n"
+"\t--coverage -k\t             : enter coverage mode (if enabled)\n"
 "UDP    options:\n"
 "\t--host     -h\t  <string>   : set host\n"
 "\t--port     -p\t  <number>   : set port\n"
@@ -176,9 +178,11 @@ void parse_args(Arg* arg, DriverInfo* di) {
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);
         break;
+#ifdef GWCOV
       case 'K':
         arg->coverage = 1;
         break;
+#endif
       default:
         arg_drvr(di, i);
     }
