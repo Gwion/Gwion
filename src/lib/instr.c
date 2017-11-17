@@ -195,6 +195,7 @@ INSTR(Cast_f2i) {
 static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
+  sh->filename = shred->filename;
   if(!shred->child.ptr)
     vector_init(&shred->child);
   vector_add(&shred->child, (vtype)sh);
