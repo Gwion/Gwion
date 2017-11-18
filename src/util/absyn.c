@@ -887,8 +887,6 @@ void free_class_body(Class_Body a) {
   if(a->section)
     free_section(a->section);
   free(a);
-  
-
 }
 
 void free_class_def(Class_Def a) {
@@ -898,7 +896,7 @@ void free_class_def(Class_Def a) {
     free_id_list(a->ext);
   if(a->types)
     free_id_list(a->types);
-  if(a->type && !GET_FLAG(a->type, ae_flag_ref))
+  if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
     free_class_body(a->body);
   free_id_list(a->name);
   free(a);
