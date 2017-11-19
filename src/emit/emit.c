@@ -1348,7 +1348,8 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
     exp->d.exp_decl.m_type = stmt->value->m_type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
-    ADD_REF(stmt->value);
+    if(!emit->env->class_def)
+      ADD_REF(stmt->value);
     free_expression(exp);
     env_push_class(emit->env, stmt->value->m_type);
   }
