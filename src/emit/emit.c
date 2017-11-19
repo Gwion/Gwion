@@ -610,8 +610,8 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
     v = find_value(t, rhs->d.exp_dot.xid);
-    if(!GET_FLAG(rhs->d.exp_primary.value, ae_flag_member) &&
-          GET_FLAG(rhs->d.exp_primary.value->m_type, ae_flag_builtin)) {
+    if(!GET_FLAG(v, ae_flag_member) &&
+          GET_FLAG(v->m_type, ae_flag_builtin)) {
       instr->m_val = 3;
       *(Type*)instr->ptr = t;
     } else 
