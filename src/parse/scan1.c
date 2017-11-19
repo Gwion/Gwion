@@ -299,7 +299,7 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   m_uint count = 1;
   CHECK_BB(check_enum_xid(env, stmt))
-  t = type_copy(env, &t_int);
+  t = type_copy(&t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
   nspc_add_type(env->curr, stmt->xid, t);
@@ -363,7 +363,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(stmt->xid) {
     m_str name = s_name(stmt->xid);
-    Type t = type_copy(env, &t_union);
+    Type t = type_copy(&t_union);
     t->name = name;
     t->info = new_nspc(name, "[union declarator]");
     t->info->parent = env->curr;

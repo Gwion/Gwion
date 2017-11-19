@@ -367,7 +367,7 @@ Type check_exp_array(Env env, Exp_Array* array) {
   if(depth == t_base->array_depth)
     t = array->base->type->d.array_type;
   else {
-    t = type_copy(env, array->base->type);
+    t = type_copy(array->base->type);
     t->array_depth -= depth;
   }
   return t;

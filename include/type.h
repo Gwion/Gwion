@@ -32,7 +32,7 @@ struct Type_ {
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str str);
 Type new_type(te_type xid, m_str name, Type parent);
-Type type_copy(Env env, Type type);
+Type type_copy(Type type);
 Env type_engine_init(VM* vm, Vector plug_dirs);
 /***
   UTILS

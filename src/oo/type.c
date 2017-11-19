@@ -21,7 +21,7 @@ void free_type(Type a) {
   }
 }
 
-Type type_copy(Env env, Type type) {
+Type type_copy(Type type) {
   Type a = new_type(type->xid, type->name, type->parent);
   a->info          = type->info;
   a->owner         = type->owner;

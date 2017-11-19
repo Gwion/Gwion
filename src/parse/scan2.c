@@ -514,7 +514,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     func->next = overload->func_ref->next;
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  type = type_copy(env, &t_function);
+  type = type_copy(&t_function);
   type->name = func_name;
   type->owner = env->curr;
   value = new_value(type, func_name);
