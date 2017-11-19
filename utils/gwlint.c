@@ -1,8 +1,8 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
 #include "absyn.h"
-#include "type.h"
-#include "stdio.h"
-#include "stdarg.h"
-#include "math.h"
 
 static void lint_print(FILE* file, const char* fmt, ...) {
   va_list arg;
@@ -51,13 +51,13 @@ static void lint_id_list(FILE* file, ID_List list) {
 static void lint_array(FILE* file, Array_Sub array) {
   m_uint i;
   Exp exp = array->exp_list;
-  for(i = 0; i < array->depth; i++) {  
+  for(i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     if(exp)
       exp->next = NULL;
     lint_print(file, "[");
     if(exp)
-     lint_exp(file, exp); 
+     lint_exp(file, exp);
     lint_print(file, "]");
     if(exp) {
       exp->next = tmp;
@@ -69,7 +69,7 @@ static void lint_array(FILE* file, Array_Sub array) {
 static void lint_array_lit(FILE* file, Array_Sub array) {
   m_uint i;
   Exp exp = array->exp_list;
-  for(i = 0; i < array->depth; i++) {  
+  for(i = 0; i < array->depth; i++) {
     Exp tmp = exp ?exp->next : NULL;
     lint_print(file, "[");
     if(exp)
@@ -113,8 +113,8 @@ static void lint_stmt_indent(FILE* file, Stmt stmt) {
   } else if(stmt->type != ae_stmt_code) {
     lint_print(file, "\n");
     indent++;
-  } else
-    lint_print(file, " ");
+  }/* else
+    lint_print(file, " "); */
   lint_stmt(file, stmt);
   if(stmt->type != ae_stmt_code)
     indent--;
@@ -133,6 +133,28 @@ static void lint_exp_decl(FILE* file, Exp_Decl* decl) {
     list = list->next;
     if(list)
       lint_print(file, ", ");
+  }
+}
+
+static void lint_exp_unary(FILE* file, Exp_Unary* unary) {
+  lint_print(file, "%s", op2str(unary->op));
+  switch(unary->op) {
+    case op_plusplus:
+    case op_minusminus:
+      lint_exp(file, unary->exp);
+      break;
+    case op_new:
+      lint_print(file, " ");
+      lint_type_decl(file, unary->type);
+      lint_array(file, unary->array);
+    case op_spork:
+      lint_print(file, " ~");
+      if(unary->code)
+        lint_stmt(file, unary->code);
+      else
+        lint_exp(file, unary->exp);
+    default:
+      break;
   }
 }
 
@@ -230,12 +252,7 @@ static void lint_exp_if(FILE* file, Exp_If* exp_if) {
   lint_exp(file, exp_if->if_exp);
   lint_print(file, " : ");
   lint_exp(file, exp_if->else_exp);
-} 
-
-static void lint_exp_spork(FILE* file, Stmt code) {
-  lint_print(file, "spork ~");
-  lint_stmt(file, code);
-} 
+}
 
 static void lint_exp(FILE* file,  Exp exp) {
   while(file, exp) {
@@ -247,8 +264,7 @@ static void lint_exp(FILE* file,  Exp exp) {
         lint_exp_decl(file, &exp->d.exp_decl);
         break;
       case ae_exp_unary:
-        if(file, exp->d.exp_unary.op == op_spork && exp->d.exp_unary.code)
-          lint_exp_spork(file, exp->d.exp_unary.code);
+        lint_exp_unary(file, &exp->d.exp_unary);
         break;
       case ae_exp_binary:
         lint_exp_binary(file, &exp->d.exp_binary);
@@ -292,7 +308,7 @@ static void lint_stmt_code(FILE* file, Stmt_Code stmt) {
     lint_stmt_list(file, stmt->stmt_list);
   indent--;
   lint_indent(file);
-  lint_print(file, "}\n");
+  lint_print(file, "}");
 }
 
 static void lint_stmt_return(FILE* file, Stmt_Return stmt) {
@@ -304,16 +320,19 @@ static void lint_stmt_return(FILE* file, Stmt_Return stmt) {
   lint_print(file, ";\n");
 }
 
-static void lint_stmt_flow(FILE* file, struct Stmt_Flow_* stmt) {
-  lint_exp(file, stmt->cond);
-  lint_stmt(file, stmt->body);
-}
-
-static void lint_stmt_while(FILE* file, struct Stmt_Flow_* stmt) {
-  lint_print(file, "while(");
-  lint_exp(file, stmt->cond);
-  lint_print(file, ")");
-  lint_stmt_indent(file, stmt->body);
+static void lint_stmt_flow(FILE* file, struct Stmt_Flow_* stmt, m_str str) {
+  if(!stmt->is_do) {
+    lint_print(file, "%s(", str);
+    lint_exp(file, stmt->cond);
+    lint_print(file, ")");
+    lint_stmt_indent(file, stmt->body);
+  } else {
+    lint_print(file, "do");
+    lint_stmt_indent(file, stmt->body);
+    lint_print(file, " %s(", str);
+    lint_exp(file, stmt->cond);
+    lint_print(file, ")\n");
+  }
 }
 static void lint_stmt_for(FILE* file, Stmt_For stmt) {
   lint_print(file, "for(");
@@ -351,25 +370,40 @@ static void lint_stmt_if(FILE* file, Stmt_If stmt) {
   lint_print(file, "if(");
   lint_exp(file, stmt->cond);
   lint_print(file, ")");
+    if(stmt->else_body->type == ae_stmt_code)
+      skip++;
   lint_stmt_indent(file, stmt->if_body);
   if(stmt->else_body) {
-    lint_print(file, "\n");
-    lint_indent(file);
+    if(stmt->if_body->type != ae_stmt_code) {
+//      lint_print(file, "\n");
+      lint_indent(file);
+    } else
+      lint_print(file, " ");
     lint_print(file, "else");
+    if(stmt->else_body->type == ae_stmt_code)
+      skip++;
     lint_stmt_indent(file, stmt->else_body);
-  } 
+    if(stmt->else_body->type == ae_stmt_code)
+      lint_print(file, "\n");
+  }
 }
 
 void lint_stmt_enum(FILE* file, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   lint_print(file, "enum {\n");
+  indent++;
   while(list) {
+    lint_indent(file);
     lint_print(file, "%s", s_name(list->xid));
     list = list->next;
     if(list)
       lint_print(file, ",\n");
+    else
+      lint_print(file, "\n");
   }
-  lint_print(file, "\n}");
+  indent--;
+  lint_indent(file);
+  lint_print(file, "}");
   if(stmt->xid)
     lint_print(file, " %s", s_name(stmt->xid));
   lint_print(file, ";\n");
@@ -397,11 +431,14 @@ void lint_stmt_fptr(FILE* file, Stmt_Ptr ptr) {
 void lint_stmt_union(FILE* file, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   lint_print(file, "union {\n");
+  indent++;
   while(l) {
+    lint_indent(file);
     lint_exp(file, l->self);
     lint_print(file, ";\n");
     l = l->next;
   }
+  indent--;
   lint_print(file, "}\n");
 }
 
@@ -414,7 +451,7 @@ void lint_stmt_continue(FILE* file, Stmt_Continue stmt) {
 }
 
 void lint_stmt_break(FILE* file, Stmt_Break stmt) {
-  lint_print(file, "break;");
+  lint_print(file, "break;\n");
 }
 
 static void lint_stmt(FILE* file, Stmt stmt) {
@@ -439,13 +476,13 @@ static void lint_stmt(FILE* file, Stmt stmt) {
       lint_stmt_if(file, &stmt->d.stmt_if);
       break;
     case ae_stmt_while:
-      lint_stmt_while(file, &stmt->d.stmt_while);
+      lint_stmt_flow(file, &stmt->d.stmt_while, "while");
       break;
     case ae_stmt_for:
       lint_stmt_for(file, &stmt->d.stmt_for);
       break;
     case ae_stmt_until:
-      lint_stmt_flow(file, &stmt->d.stmt_until);
+      lint_stmt_flow(file, &stmt->d.stmt_until, "until");
       break;
     case ae_stmt_loop:
       lint_stmt_loop(file, &stmt->d.stmt_loop);
@@ -521,6 +558,7 @@ static void lint_section(FILE* file, Section* section) {
 
 static void lint_class_def(FILE* file, Class_Def class_def) {
   Class_Body body = class_def->body;
+  lint_indent(file);
   if(class_def->types) {
     lint_print(file, "template");
     lint_id_list(file, class_def->types);
