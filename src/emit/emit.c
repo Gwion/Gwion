@@ -1635,26 +1635,6 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
-/*
-  if(isa(member->self->type, &t_union) > 0) {
-    puts("got named union here");
-    Value v = find_value(member->t_base, member->xid);
-    if(emit_exp(emit, member->base, 0) < 0)
-      CHECK_BB(err_msg(EMIT_, member->pos, "... in member union")) // LCOV_EXCL_LINE
-    CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
-  //  CHECK_OB(emitter_add_instr(emit, Exp_Dot_Data))
-  Instr func_i = emitter_add_instr(emit, Exp_Dot_Data);
-  func_i->m_val = v->offset;
-  func_i->m_val2 = SZ_INT;
-  //*(m_uint*)func_i->ptr = member->self->emit_var;
-   return 1; 
-    
-    //SET_FLAG(value, ae_flag_member); 
-    //return emit_exp_dot_instance(emit, member);
-//    return emit_member(emit, value, member->self->emit_var);
-
-  } 
-  */
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   if(member->t_base->xid != te_class)
