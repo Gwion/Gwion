@@ -50,8 +50,6 @@ struct Array_Sub_ {
   m_uint depth;
   Exp exp_list;
   Type type;
-  int err_num;
-  int err_pos;
   int pos;
 };
 Array_Sub new_array_sub(Exp exp, int pos);

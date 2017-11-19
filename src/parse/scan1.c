@@ -78,7 +78,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     decl->num_decl++;
     if(var_decl->array) {
       Type t2 = t;
-      CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
       t = new_array_type(env, list->self->array->depth, t2, env->curr);
@@ -126,7 +125,6 @@ static  m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
 }
 
 static m_bool scan1_exp_array(Env env, Exp_Array* array) {
-  CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan1_exp(env, array->base))
   CHECK_BB(scan1_exp(env, array->indices->exp_list))
   return 1;
@@ -355,7 +353,6 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan1_stmt_union_array(Array_Sub array) {
-  CHECK_BB(verify_array(array))
   if(array->exp_list)
     CHECK_BB(err_msg(SCAN1_, array->pos,
       "array declaration must be empty in union."))
@@ -448,7 +445,6 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
   Type t = NULL;
   Type t2 = f->ret_type;
 
-  CHECK_BB(verify_array(f->type_decl->array))
   if(f->type_decl->array->exp_list)
     CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
       "in function '%s':\n\treturn array type must be defined with empty []'s",

@@ -350,14 +350,14 @@ op
 
 array_exp
   : LBRACK exp RBRACK           { $$ = new_array_sub( $2, get_pos(scanner) ); }
-  | LBRACK exp RBRACK array_exp { $$ = prepend_array_sub( $4, $2); }
-  | LBRACK exp RBRACK LBRACK RBRACK { $$ = prepend_array_sub( new_array_sub( NULL, get_pos(scanner)), $2); }
+  | LBRACK exp RBRACK array_exp { if($2->next){ yyerror(&scanner, "invalid format for array init [...][...]...");YYERROR; } $$ = prepend_array_sub( $4, $2); }
+  | LBRACK exp RBRACK LBRACK RBRACK { yyerror(&scanner, "partially empty array init [...][]..."); YYERROR; }
   ;
 
 array_empty
   : LBRACK RBRACK             { $$ = new_array_sub(NULL, get_pos(scanner)); }
   | array_empty LBRACK RBRACK { $$ = prepend_array_sub($1, NULL); }
-  | array_empty array_exp     { $$ = prepend_array_sub($1, $2->exp_list); free($2); }
+  | array_empty array_exp     { yyerror(&scanner, "partially empty array init [][...]"); YYERROR; }
   ;
 
 decl_exp

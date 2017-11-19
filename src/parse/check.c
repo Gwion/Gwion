@@ -132,7 +132,6 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
 static Type check_exp_prim_array(Env env, Array_Sub array) {
   Exp e;
 
-  CHECK_BO(verify_array(array))
   if(!(e = array->exp_list))
     CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
@@ -1091,7 +1090,6 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           if(!(t = find_type(env, unary->type->xid)))
             CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
             if(unary->array) {
-              CHECK_BO(verify_array(unary->array))
               CHECK_OO(check_exp(env, unary->array->exp_list))
               CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
               t = new_array_type(env, unary->array->depth, t, env->curr);

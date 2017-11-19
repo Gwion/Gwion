@@ -24,7 +24,7 @@ static void vm_shred_free_args(Vector v) {
 }
 
 static void free_shred_code(VM_Shred shred) {
-  if(strcmp(shred->name, "spork~exp"))
+  if(strncmp(shred->name, "spork~exp", 9))
     REM_REF(shred->code)
   if(shred->sporks.ptr) {
     m_uint i;
