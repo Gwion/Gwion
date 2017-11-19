@@ -360,8 +360,22 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
 }
 
 m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
+  m_str name = s_name(stmt->xid);
   Decl_List l = stmt->l;
-
+  if(name) {
+    Type t = type_copy(env, &t_union);
+    t->name = name;
+    t->info = new_nspc(name, "[union declarator]");
+    t->info->parent = env->curr;
+    stmt->value = new_value(t, name);
+    stmt->value->owner_class = env->class_def;
+    stmt->value->owner = env->curr;
+    nspc_add_value(env->curr, stmt->xid, stmt->value);
+    SET_FLAG(stmt->value, ae_flag_checked);
+    if(env->class_def) // TODO: enable static
+      SET_FLAG(stmt->value, ae_flag_member);
+    env_push_class(env, stmt->value->m_type);
+  }
   while(l) {
     Var_Decl_List list = l->self->d.exp_decl.list;
 
@@ -377,6 +391,8 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
     l = l->next;
   }
+  if(name)
+    env_pop_class(env);
   return 1;
 }
 

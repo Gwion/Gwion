@@ -395,6 +395,8 @@ struct Stmt_Ptr_ {
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
+  S_Symbol xid;
+  Value value;
   m_uint s;
   m_uint o;
   int pos;

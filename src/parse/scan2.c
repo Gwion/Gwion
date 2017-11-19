@@ -409,10 +409,14 @@ m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
 
 m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
+  if(stmt->xid)
+    env_push_class(env, stmt->value->m_type);
   while(l) {
     CHECK_BB(scan2_exp(env, l->self))
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 

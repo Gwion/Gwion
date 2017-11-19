@@ -66,6 +66,7 @@ extern struct Type_ t_class;
 extern struct Type_ t_machine;
 //extern struct Type_ t_template;
 extern struct Type_ t_null;
+extern struct Type_ t_union;
 
 // base classes
 extern struct Type_ t_object, t_string, t_shred, t_event, t_ugen;

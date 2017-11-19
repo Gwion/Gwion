@@ -1338,7 +1338,21 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
-  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
+  if(stmt->xid) {
+    Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
+        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
+        0, emit->env->class_def ? ae_flag_member : 0);
+    Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
+    Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list, 0, 0);
+    exp->d.exp_decl.m_type = stmt->value->m_type;
+    var_decl->value = stmt->value;
+    CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
+    ADD_REF(stmt->value);
+    free_expression(exp);
+    env_push_class(emit->env, stmt->value->m_type);
+  }
+  else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
     m_int offset = emit_alloc_local(emit, stmt->s, 1 << 1);
     CHECK_BB(offset)
     stmt->o = offset;
@@ -1351,6 +1365,11 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
       var_list = var_list->next;
     }
     l = l->next;
+  }
+  if(stmt->xid) {
+    Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
+    instr->m_val = SZ_INT;
+    env_pop_class(emit->env);
   }
   return 1;
 }
@@ -1615,6 +1634,26 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
+/*
+  if(isa(member->self->type, &t_union) > 0) {
+    puts("got named union here");
+    Value v = find_value(member->t_base, member->xid);
+    if(emit_exp(emit, member->base, 0) < 0)
+      CHECK_BB(err_msg(EMIT_, member->pos, "... in member union")) // LCOV_EXCL_LINE
+    CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
+  //  CHECK_OB(emitter_add_instr(emit, Exp_Dot_Data))
+  Instr func_i = emitter_add_instr(emit, Exp_Dot_Data);
+  func_i->m_val = v->offset;
+  func_i->m_val2 = SZ_INT;
+  //*(m_uint*)func_i->ptr = member->self->emit_var;
+   return 1; 
+    
+    //SET_FLAG(value, ae_flag_member); 
+    //return emit_exp_dot_instance(emit, member);
+//    return emit_member(emit, value, member->self->emit_var);
+
+  } 
+  */
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   if(member->t_base->xid != te_class)

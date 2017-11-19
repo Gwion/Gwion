@@ -404,6 +404,7 @@ decl_list
 
 union_stmt
   : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner)); }
+  | UNION LBRACE decl_list RBRACE ID SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner));$$->d.stmt_union.xid = insert_symbol($5); }
   ;
 
 var_decl_list

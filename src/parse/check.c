@@ -20,6 +20,7 @@ struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
+struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
 
 static m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
@@ -1436,7 +1437,13 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 
 m_bool check_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-  if(env->class_def)  {
+  if(stmt->xid) {
+    if(env->class_def) {
+      stmt->value->offset = env->curr->offset;
+      env->curr->offset += SZ_INT;
+    }
+    env_push_class(env, stmt->value->m_type);
+  } else if(env->class_def)  {
     stmt->o = env->class_def->obj_size;
   }
   while(l) {
@@ -1447,6 +1454,8 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
       stmt->s = l->self->type->size;
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 
