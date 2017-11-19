@@ -80,27 +80,11 @@ Array_Sub new_array_sub(Exp exp, int pos) {
 }
 
 Array_Sub prepend_array_sub(Array_Sub a, Exp exp) {
-  if(a->err_num)
-    goto error;
-  if(exp && exp->next) {
-    a->err_num = 1;
-    a->err_pos = exp->pos;
-    goto error;
-  }
-  if((exp && !a->exp_list) || (!exp && a->exp_list)) {
-    a->err_num = 2;
-    a->err_pos = a->pos;
-    goto error;
-  }
   if(exp) {
     exp->next = a->exp_list;
     a->exp_list = exp;
   }
   a->depth++;
-  return a;
-
-error:
-  free_expression(exp);
   return a;
 }
 
@@ -887,8 +871,6 @@ void free_class_body(Class_Body a) {
   if(a->section)
     free_section(a->section);
   free(a);
-  
-
 }
 
 void free_class_def(Class_Def a) {
@@ -898,7 +880,7 @@ void free_class_def(Class_Def a) {
     free_id_list(a->ext);
   if(a->types)
     free_id_list(a->types);
-  if(a->type && !GET_FLAG(a->type, ae_flag_ref))
+  if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
     free_class_body(a->body);
   free_id_list(a->name);
   free(a);

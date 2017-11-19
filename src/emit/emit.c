@@ -626,8 +626,8 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
     v = find_value(t, rhs->d.exp_dot.xid);
-    if(!GET_FLAG(rhs->d.exp_primary.value, ae_flag_member) &&
-          GET_FLAG(rhs->d.exp_primary.value->m_type, ae_flag_builtin)) {
+    if(!GET_FLAG(v, ae_flag_member) &&
+          GET_FLAG(v->m_type, ae_flag_builtin)) {
       instr->m_val = 3;
       *(Type*)instr->ptr = t;
     } else 
@@ -849,7 +849,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code = new_code();
   CHECK_OB(emitter_add_instr(emit, start_gc))
   emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
-  emit->code->name = strdup("spork~exp");
+  char c[11 + num_digit(exp->pos)];
+  sprintf(c, "spork~exp:%i\n", exp->pos);
+  emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->ret_type, exp->pos))
@@ -883,7 +885,9 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
     SET_FLAG(f, ae_flag_member);
     emit->code->need_this = 1;
   }
-  emit->code->name = strdup("spork~code");
+  char c[12 + num_digit(stmt->pos)];
+  sprintf(c, "spork~code:%i\n", stmt->pos);
+  emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   emit_push_scope(emit);
@@ -1352,7 +1356,22 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
-  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
+  if(stmt->xid) {
+    Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
+        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
+        0, emit->env->class_def ? ae_flag_member : 0);
+    Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
+    Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list, 0, 0);
+    exp->d.exp_decl.m_type = stmt->value->m_type;
+    var_decl->value = stmt->value;
+    CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
+    if(!emit->env->class_def)
+      ADD_REF(stmt->value);
+    free_expression(exp);
+    env_push_class(emit->env, stmt->value->m_type);
+  }
+  else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
     m_int offset = emit_alloc_local(emit, stmt->s, 1 << 1);
     CHECK_BB(offset)
     stmt->o = offset;
@@ -1365,6 +1384,11 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
       var_list = var_list->next;
     }
     l = l->next;
+  }
+  if(stmt->xid) {
+    Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
+    instr->m_val = SZ_INT;
+    env_pop_class(emit->env);
   }
   return 1;
 }

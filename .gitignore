@@ -1,4 +1,5 @@
 gwion
+gwlint
 gwcov
 *.gwcov
 *.gwda

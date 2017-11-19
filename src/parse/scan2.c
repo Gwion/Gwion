@@ -61,7 +61,6 @@ static m_bool scan2_arg_def_check(Arg_List list) {
 }
 
 static m_bool scan2_arg_def_array(Env env, Arg_List list) {
-  CHECK_BB(verify_array(list->var_decl->array))
   if(list->var_decl->array->exp_list)
     CHECK_BB(err_msg(SCAN2_, list->pos,
           "\t'%s': function arguments must be defined with empty []'s",
@@ -410,10 +409,14 @@ m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
 
 m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
+  if(stmt->xid)
+    env_push_class(env, stmt->value->m_type);
   while(l) {
     CHECK_BB(scan2_exp(env, l->self))
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 
@@ -511,7 +514,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     func->next = overload->func_ref->next;
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  type = type_copy(env, &t_function);
+  type = type_copy(&t_function);
   type->name = func_name;
   type->owner = env->curr;
   value = new_value(type, func_name);

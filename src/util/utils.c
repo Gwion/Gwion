@@ -19,18 +19,6 @@ m_uint num_digit(m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
-m_bool verify_array(Array_Sub array) {
-  if(array->err_num) {
-    if(array->err_num == 1)
-      CHECK_BB(err_msg(UTIL_, array->pos,
-            "invalid format for array init [...][...]..."))
-    else if(array->err_num == 2)
-      CHECK_BB(err_msg(UTIL_, array->pos,
-            "partially empty array init [...][]..."))
-  }
-  return 1;
-}
-
 static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);

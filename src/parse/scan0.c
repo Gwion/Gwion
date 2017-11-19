@@ -15,7 +15,7 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   t->size = SZ_INT;
   t->info = new_nspc(name, env_filename(env));
   nspc_add_type(env->curr, ptr->xid, t);
-  type = type_copy(env, &t_class);
+  type = type_copy(&t_class);
   type->d.actual_type = t;
   v = new_value(type, name);
   v->owner = env->curr;
@@ -107,7 +107,7 @@ static m_bool scan0_class_def_body(Env env, Class_Body body) {
 static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   Value value;
   Type  type;
-  type = type_copy(env, &t_class);
+  type = type_copy(&t_class);
   type->d.actual_type = class_def->type;
   value = new_value(type, class_def->type->name);
   value->owner = env->curr;

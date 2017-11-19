@@ -20,6 +20,7 @@ struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
+struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
 
 static m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
@@ -132,7 +133,6 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
 static Type check_exp_prim_array(Env env, Array_Sub array) {
   Exp e;
 
-  CHECK_BO(verify_array(array))
   if(!(e = array->exp_list))
     CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
@@ -367,7 +367,7 @@ Type check_exp_array(Env env, Exp_Array* array) {
   if(depth == t_base->array_depth)
     t = array->base->type->d.array_type;
   else {
-    t = type_copy(env, array->base->type);
+    t = type_copy(array->base->type);
     t->array_depth -= depth;
   }
   return t;
@@ -1091,7 +1091,6 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           if(!(t = find_type(env, unary->type->xid)))
             CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
             if(unary->array) {
-              CHECK_BO(verify_array(unary->array))
               CHECK_OO(check_exp(env, unary->array->exp_list))
               CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
               t = new_array_type(env, unary->array->depth, t, env->curr);
@@ -1438,7 +1437,13 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 
 m_bool check_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-  if(env->class_def)  {
+  if(stmt->xid) {
+    if(env->class_def) {
+      stmt->value->offset = env->curr->offset;
+      env->curr->offset += SZ_INT;
+    }
+    env_push_class(env, stmt->value->m_type);
+  } else if(env->class_def)  {
     stmt->o = env->class_def->obj_size;
   }
   while(l) {
@@ -1449,6 +1454,8 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
       stmt->s = l->self->type->size;
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 
