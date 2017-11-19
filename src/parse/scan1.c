@@ -360,9 +360,9 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
 }
 
 m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
-  m_str name = s_name(stmt->xid);
   Decl_List l = stmt->l;
-  if(name) {
+  if(stmt->xid) {
+    m_str name = s_name(stmt->xid);
     Type t = type_copy(env, &t_union);
     t->name = name;
     t->info = new_nspc(name, "[union declarator]");
@@ -391,7 +391,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
     l = l->next;
   }
-  if(name)
+  if(stmt->xid)
     env_pop_class(env);
   return 1;
 }
