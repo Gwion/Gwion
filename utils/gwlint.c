@@ -79,7 +79,7 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
     Exp tmp = exp ?exp->next : NULL;
     lint_print(linter, "[");
     if(exp)
-     lint_exp(linter, exp); 
+     lint_exp(linter, exp);
     lint_print(linter, "]");
     if(exp)
       exp->next = tmp;
@@ -243,7 +243,7 @@ static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
   if(exp_func->args)
    lint_exp(linter, exp_func->args);
   lint_print(linter, ")");
-} 
+}
 
 static void  lint_exp_dot(Linter* linter, Exp_Dot* member) {
   lint_exp(linter, member->base);
@@ -594,11 +594,13 @@ int main(int argc, char** argv) {
   argc--; argv++;
   scan_map = new_map();
   while(argc--) {
+    Ast ast;
     Linter linter = {};
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.lint", *argv);
+    if(!(ast = parse(*argv++)))
+      continue;
     linter.file = fopen(c, "w");
-    Ast ast = parse(*argv++);
     lint_ast(&linter, ast);
     free_ast(ast);
     fclose(linter.file);
