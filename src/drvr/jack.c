@@ -27,7 +27,7 @@ static void inner_cb(VM* vm, jack_default_audio_sample_t** in,
   for(frame = 0; frame < nframes; frame++) {
     for(chan = 0; chan < vm->n_in; chan++)
       vm->in[chan] = in[chan][frame];
-    di->run(vm);
+    vm_run(vm);
     for(chan = 0; chan < sp->nchan; chan++)
       out[chan][frame] = sp->out[chan];
     sp->pos++;
