@@ -61,7 +61,6 @@ static m_bool scan2_arg_def_check(Arg_List list) {
 }
 
 static m_bool scan2_arg_def_array(Env env, Arg_List list) {
-  CHECK_BB(verify_array(list->var_decl->array))
   if(list->var_decl->array->exp_list)
     CHECK_BB(err_msg(SCAN2_, list->pos,
           "\t'%s': function arguments must be defined with empty []'s",

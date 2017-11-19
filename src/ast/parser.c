@@ -2516,13 +2516,13 @@ yyreduce:
 
   case 103:
 #line 353 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.array_sub) = prepend_array_sub( (yyvsp[0].array_sub), (yyvsp[-2].exp)); }
+    { if((yyvsp[-2].exp)->next){ yyerror(&scanner, "invalid format for array init [...][...]...");YYERROR; } (yyval.array_sub) = prepend_array_sub( (yyvsp[0].array_sub), (yyvsp[-2].exp)); }
 #line 2521 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 104:
 #line 354 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.array_sub) = prepend_array_sub( new_array_sub( NULL, get_pos(scanner)), (yyvsp[-3].exp)); }
+    { yyerror(&scanner, "partially empty array init [...][]..."); YYERROR; }
 #line 2527 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2540,7 +2540,7 @@ yyreduce:
 
   case 107:
 #line 360 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.array_sub) = prepend_array_sub((yyvsp[-1].array_sub), (yyvsp[0].array_sub)->exp_list); free((yyvsp[0].array_sub)); }
+    { yyerror(&scanner, "partially empty array init [][...]"); YYERROR; }
 #line 2545 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
