@@ -366,7 +366,13 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
 }
 
 m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
+  ae_flag flag = stmt->flag;
   Decl_List l = stmt->l;
+
+  if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
+      !env->class_def)
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "'static' and 'private' can only be used at class scope."))
   if(stmt->xid) {
     m_str name = s_name(stmt->xid);
     Type t = type_copy(&t_union);
@@ -377,8 +383,9 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = env->curr;
     nspc_add_value(env->curr, stmt->xid, stmt->value);
-    SET_FLAG(stmt->value, ae_flag_checked);
-    if(env->class_def) // TODO: enable static
+    SET_FLAG(stmt->value, ae_flag_checked | flag);
+    flag &= ~ae_flag_private;
+    if(env->class_def && !GET_FLAG(stmt, ae_flag_static)) // TODO: enable static
       SET_FLAG(stmt->value, ae_flag_member);
     env_push_class(env, stmt->value->m_type);
   }
@@ -388,6 +395,9 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     if(l->self->exp_type != ae_exp_decl)
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
             "invalid expression type '%i' in union declaration."))
+    SET_FLAG(l->self->d.exp_decl.type, ae_flag_checked | flag);
+    if(GET_FLAG(stmt, ae_flag_static))
+      l->self->d.exp_decl.is_static = 1;
     while(list) {
       Var_Decl var_decl = list->self;
       if(var_decl->array)

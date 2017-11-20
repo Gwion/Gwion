@@ -1443,12 +1443,19 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(stmt->xid) {
     if(env->class_def) {
-      stmt->value->offset = env->curr->offset;
-      env->curr->offset += SZ_INT;
+      if(GET_FLAG(stmt, ae_flag_static))
+        check_exp_decl_static(env, stmt->value, stmt->pos);
+      else
+        check_exp_decl_member(env->curr, stmt->value);
     }
     env_push_class(env, stmt->value->m_type);
   } else if(env->class_def)  {
-    stmt->o = env->class_def->obj_size;
+      if(GET_FLAG(stmt, ae_flag_static)) {
+        env->class_def->info->class_data_size += SZ_INT;
+        env->class_def->info->offset += SZ_INT;
+      }
+      else  
+        stmt->o = env->class_def->obj_size;
   }
   while(l) {
     CHECK_OB(check_exp(env, l->self))

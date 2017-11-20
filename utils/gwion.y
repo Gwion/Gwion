@@ -417,6 +417,9 @@ decl_list
 
 union_stmt
   : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner));$$->d.stmt_union.xid = $5 ? insert_symbol($5) : NULL; }
+  | STATIC UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($4, get_pos(scanner));$$->d.stmt_union.xid = $6 ? insert_symbol($6) : NULL; $$->d.stmt_union.flag |= ae_flag_static; }
+  | PRIVATE UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($4, get_pos(scanner));$$->d.stmt_union.xid = $6 ? insert_symbol($6) : NULL; $$->d.stmt_union.flag |= ae_flag_private; }
+  | PRIVATE STATIC UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($5, get_pos(scanner));$$->d.stmt_union.xid = $7 ? insert_symbol($7) : NULL; $$->d.stmt_union.flag |= ae_flag_private | ae_flag_static; }
   ;
 
 var_decl_list

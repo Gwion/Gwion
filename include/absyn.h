@@ -395,6 +395,7 @@ struct Stmt_Union_ {
   struct Vector_ v;
   S_Symbol xid;
   Value value;
+  ae_flag flag;
   m_uint s;
   m_uint o;
   int pos;

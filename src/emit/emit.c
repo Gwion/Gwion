@@ -300,7 +300,7 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   } else {
     Instr instr = emitter_add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
-    instr->m_val2 = (is_var || array->self->type->array_depth) ? 
+    instr->m_val2 = (is_var || array->self->type->array_depth) ?
       SZ_INT : array->base->type->d.array_type->size;
     *(m_uint*)instr->ptr = is_var || array->self->type->array_depth;
   }
@@ -614,8 +614,8 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
           GET_FLAG(v->m_type, ae_flag_builtin)) {
       instr->m_val = 3;
       *(Type*)instr->ptr = t;
-    } else 
-        instr->m_val = 1; 
+    } else
+        instr->m_val = 1;
   } else if(rhs->exp_type == ae_exp_primary) {
     if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
       v = rhs->d.exp_primary.value;
@@ -897,7 +897,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
       CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func)))
       break;
     case op_new:
-      CHECK_BB(emit_instantiate_object(emit, unary->self->type, 
+      CHECK_BB(emit_instantiate_object(emit, unary->self->type,
             unary->array, GET_FLAG(unary->type, ae_flag_ref)))
       CHECK_OB(emitter_add_instr(emit, add2gc))
       break;
@@ -1282,7 +1282,7 @@ static m_bool primary_case(Exp_Primary* prim, m_int* value) {
     CHECK_BB(err_msg(EMIT_, prim->pos, "'maybe' is not constant."))
   else {
     if(!GET_FLAG(prim->value, ae_flag_const))
-      CHECK_BB(err_msg(EMIT_, prim->pos, 
+      CHECK_BB(err_msg(EMIT_, prim->pos,
             "value is not const. this is not allowed for now"))
     *value = (m_uint)prim->value->ptr; // assume enum.
   }
@@ -1339,12 +1339,16 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
   if(stmt->xid) {
+    if(!stmt->value->m_type->info->class_data)
+      stmt->value->m_type->info->class_data =
+        calloc(1, stmt->value->m_type->info->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
         /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
         0, emit->env->class_def ? ae_flag_member : 0);
     Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-    Exp exp = new_exp_decl(type_decl, var_decl_list, 0, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list,
+        GET_FLAG(stmt, ae_flag_static), 0);
     exp->d.exp_decl.m_type = stmt->value->m_type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
@@ -1464,8 +1468,8 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
       func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
       func_i->m_val = (m_uint)v->ptr;
       func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
-      *(m_uint*)func_i->ptr = emit_addr; 
-    } 
+      *(m_uint*)func_i->ptr = emit_addr;
+    }
   } else { // from code
     Instr push_i = emitter_add_instr(emit, Reg_PushImm);
     func_i = emitter_add_instr(emit, Dot_Static_Data);
@@ -1484,7 +1488,7 @@ static m_bool emit_complex_member(Emitter emit, Exp_Dot* member) {
 
   base->emit_var = 1;
   CHECK_BB(emit_exp(emit, base, 0))
-  if(!strcmp((isa(base->type, &t_complex) > 0  ? "re" : "phase") , 
+  if(!strcmp((isa(base->type, &t_complex) > 0  ? "re" : "phase") ,
         s_name(member->xid)))
     instr = emitter_add_instr(emit, complex_real);
   else
@@ -1695,7 +1699,7 @@ static m_bool emit_func_def_ensure(Emitter emit, m_uint size) {
   if(size) {
     instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = size;
-  } 
+  }
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
   return 1;
 }
@@ -1828,12 +1832,12 @@ static m_bool emit_class_pop(Emitter emit) {
 static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Type type = class_def->type;
   m_bool ret = 1;
-  
+
   if(class_def->types)
     return 1;
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))
-  CHECK_OB((emit->code = emit_class_code(emit, type->name))) 
+  CHECK_OB((emit->code = emit_class_code(emit, type->name)))
   ret = emit_class_def_body(emit, class_def->body);
   CHECK_BB(emit_class_finish(emit, type->info, ret))
   CHECK_BB(emit_class_pop(emit))
@@ -1859,7 +1863,7 @@ static m_bool emit_ast_inner(Emitter emit, Ast ast) {
     ast = ast->next;
    }
   return 1;
-} 
+}
 
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret;
