@@ -440,15 +440,20 @@ static Exp make_exp(const m_str type, const m_str name) {
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
- m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag) {
-  Exp exp = make_exp(type, name);
-  SET_FLAG(exp->d.exp_decl.type, flag);
-  importer->decl_list = new_decl_list(exp, importer->decl_list);
+m_int importer_union_ini(Importer importer, const m_str name) {
+  if(name)
+    importer->union_data.xid = insert_symbol(name);
   return 1;
 }
 
-m_int importer_union_end(Importer importer) {
-  Stmt stmt = new_stmt_union(importer->decl_list, 0);
+m_int importer_union_add(Importer importer, const m_str type, const m_str name) {
+  Exp exp = make_exp(type, name);
+  importer->union_data.list = new_decl_list(exp, importer->union_data.list);
+  return 1;
+}
+
+m_int importer_union_end(Importer importer, ae_flag flag) {
+  Stmt stmt = new_stmt_union(importer->union_data.list, 0);
   CHECK_BB(traverse_stmt_union(importer->env, &stmt->d.stmt_union))
   // this is from emit.c. TODO: puts this in a func
   Decl_List l = stmt->d.stmt_union.l;
@@ -460,9 +465,12 @@ m_int importer_union_end(Importer importer) {
     }
     l = l->next;
   }
-  importer->env->class_def->info->offset = stmt->d.stmt_union.o + stmt->d.stmt_union.s;
+  if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
+    importer->env->class_def->info->offset =
+      stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
-  importer->decl_list = NULL;
+  importer->union_data.list = NULL;
+  importer->union_data.xid  = NULL;
   return 1;
 }
 

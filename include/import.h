@@ -34,8 +34,9 @@ m_int importer_fptr_end(Importer importer, const ae_flag flag);
 m_int importer_tmpl_ini(Importer importer, const m_uint n, const m_str *name);
 m_int importer_tmpl_end(Importer importer);
 
-m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag);
-m_int importer_union_end(Importer importer);
+m_int importer_union_ini(Importer importer, const m_str name);
+m_int importer_union_add(Importer importer, const m_str type, const m_str name);
+m_int importer_union_end(Importer importer, ae_flag flag);
 
 m_int importer_enum_ini(Importer importer, const m_str type);
 m_int importer_enum_add(Importer importer, const m_str name);

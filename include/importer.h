@@ -34,6 +34,11 @@ typedef struct {
   ID_List base, curr;
 } DL_Enum;
 
+typedef struct {
+  S_Symbol xid;
+  Decl_List list;
+} DL_Union;
+
 struct Importer_{
   Env env;
   Class_Body body;
@@ -41,7 +46,7 @@ struct Importer_{
   DL_Func func;
   DL_Oper oper;
   void* addr;
-  Decl_List decl_list;
   DL_Enum enum_data;
+  DL_Union union_data;
   Templater templater;
 };
