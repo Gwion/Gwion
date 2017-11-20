@@ -1343,7 +1343,6 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
       stmt->value->m_type->info->class_data =
         calloc(1, stmt->value->m_type->info->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
-        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
         0, emit->env->class_def ? ae_flag_member : 0);
     Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
