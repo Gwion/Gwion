@@ -519,7 +519,7 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   if(GET_FLAG(decl->m_type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   while(list) {
-    if(decl->is_static)
+    if(GET_FLAG(decl->type, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
     else
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, ref, var))
@@ -1344,10 +1344,10 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
         calloc(1, stmt->value->m_type->info->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
+    type_decl->flag = stmt->flag;
     Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-    Exp exp = new_exp_decl(type_decl, var_decl_list,
-        GET_FLAG(stmt, ae_flag_static), 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
     exp->d.exp_decl.m_type = stmt->value->m_type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))

@@ -92,7 +92,7 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
       CHECK_BO(check_exp_decl_array(env, var->array->exp_list))
     if(GET_FLAG(value, ae_flag_member))
       CHECK_BO(check_exp_decl_member(env->curr, value))
-    else if(decl->is_static)
+    else if(GET_FLAG(decl->type, ae_flag_static))
       CHECK_BO(check_exp_decl_static(env, value, var->pos))
     CHECK_BO(check_exp_decl_valid(env, value, var->xid))
     list = list->next;

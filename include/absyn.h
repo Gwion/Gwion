@@ -277,7 +277,7 @@ Exp new_exp_prim_polar(Polar* exp, int pos);
 Exp new_exp_prim_vec(Vec* a, int pos);
 Exp new_exp_prim_char(m_str chr, int pos);
 Exp new_exp_prim_nil(int pos);
-Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos);
+Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos);
 Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, int pos);
 Exp new_exp_postfix(Exp exp, Operator op, int pos);
 Exp new_exp_call(Exp base, Exp args, int pos);

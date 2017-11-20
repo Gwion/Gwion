@@ -140,13 +140,12 @@ void free_type_decl(Type_Decl* a) {
   free(a);
 }
 
-Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, m_bool is_static, int pos) {
+Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos) {
   Exp a = calloc(1, sizeof(struct Exp_));
   a->exp_type = ae_exp_decl;
   a->d.exp_decl.type = type;
   a->d.exp_decl.num_decl = 0;
   a->d.exp_decl.list = list;
-  a->d.exp_decl.is_static = is_static;
   a->pos  = a->d.exp_decl.pos  = pos;
   a->d.exp_decl.self = a;
   return a;

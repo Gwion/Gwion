@@ -2567,49 +2567,49 @@ yyreduce:
 
   case 110:
 #line 370 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); }
 #line 2572 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 111:
 #line 371 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
 #line 2578 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 112:
 #line 372 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_static); }
 #line 2584 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 113:
 #line 373 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_static); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
 #line 2590 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 115:
 #line 378 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_private); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_private); }
 #line 2596 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 116:
 #line 379 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 0, get_pos(scanner)); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_private); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
 #line 2602 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 117:
 #line 380 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner)); SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_private | ae_flag_static); }
 #line 2608 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 118:
 #line 381 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), 1, get_pos(scanner)); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
+    { (yyval.exp)= new_exp_decl((yyvsp[-1].type_decl), (yyvsp[0].var_decl_list), get_pos(scanner));  SET_FLAG((yyval.exp)->d.exp_decl.type, ae_flag_private | ae_flag_static); (yyval.exp)->d.exp_decl.types = (yyvsp[-3].type_list); }
 #line 2614 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 

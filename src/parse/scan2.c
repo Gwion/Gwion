@@ -122,8 +122,8 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
       SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  Func_Def def = new_func_def(ae_flag_func | (!env->class_def ? ae_flag_func :
-        !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static),
+  Func_Def def = new_func_def(!env->class_def ? ae_flag_func :
+        !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static,
       ptr->type, s_name(ptr->xid), ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
@@ -137,7 +137,8 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(env->curr, ptr->xid, ptr->func);
-  if(!GET_FLAG(ptr, ae_flag_static) && !GET_FLAG(ptr, ae_flag_builtin))
+  //if(!GET_FLAG(ptr, ae_flag_static) && !GET_FLAG(ptr, ae_flag_builtin))
+  if(!GET_FLAG(ptr, ae_flag_builtin))
     ADD_REF(ptr->func);
   return 1;
 }

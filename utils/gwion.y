@@ -367,18 +367,18 @@ array_empty
 
 decl_exp
   : conditional_expression
-  | type_decl var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
-  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, get_pos(scanner)); $$->d.exp_decl.types = $2; }
-  | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, 1, get_pos(scanner)); }
-  | STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($5, $6, 1, get_pos(scanner)); $$->d.exp_decl.types = $3; }
+  | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(scanner)); }
+  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, get_pos(scanner)); $$->d.exp_decl.types = $2; }
+  | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_static); }
+  | STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($5, $6, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_static); $$->d.exp_decl.types = $3; }
   | private_decl
   ;
 
 private_decl
-  : PRIVATE type_decl var_decl_list { $$= new_exp_decl($2, $3, 0, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); }
-  | PRIVATE LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($5, $6, 0, get_pos(scanner)); $$->d.exp_decl.types = $3; }
-  | PRIVATE STATIC type_decl var_decl_list { $$= new_exp_decl($3, $4, 1, get_pos(scanner)); }
-  | PRIVATE STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($6, $7, 1, get_pos(scanner)); $$->d.exp_decl.types = $4; }
+  : PRIVATE type_decl var_decl_list { $$= new_exp_decl($2, $3, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); }
+  | PRIVATE LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($5, $6, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); $$->d.exp_decl.types = $3; }
+  | PRIVATE STATIC type_decl var_decl_list { $$= new_exp_decl($3, $4, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_private | ae_flag_static); }
+  | PRIVATE STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($6, $7, get_pos(scanner));  SET_FLAG($$->d.exp_decl.type, ae_flag_private | ae_flag_static); $$->d.exp_decl.types = $4; }
   ;
 
 func_args

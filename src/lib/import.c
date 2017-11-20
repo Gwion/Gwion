@@ -218,7 +218,6 @@ static void dl_var_set(DL_Var* v, ae_flag flag) {
   v->exp.exp_type = ae_exp_decl;
   v->exp.d.exp_decl.type = &v->t;
   v->exp.d.exp_decl.list = &v->list;
-  v->exp.d.exp_decl.is_static = ((flag & ae_flag_static) == ae_flag_static);
   v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
     dl_var_new_array(v);
@@ -249,13 +248,10 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
   if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
-    Type_Decl *type_decl = new_type_decl(v->t.xid,
-        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
-        0, 0);
+    Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
     Var_Decl var_decl = new_var_decl(s_name(v->var.xid), v->var.array, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-    Exp exp = new_exp_decl(type_decl, var_decl_list,
-        (flag & ae_flag_static) == ae_flag_static, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
     Stmt stmt = new_stmt_expression(exp, 0);
     Stmt_List list = new_stmt_list(stmt, NULL, 0);
     Section* section = new_section_stmt_list(list, 0);
@@ -441,15 +437,12 @@ static Exp make_exp(const m_str type, const m_str name) {
   type_decl = new_type_decl(id_list, 0, 0);
   Var_Decl var_decl = new_var_decl(name, array, 0);
   Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-  return new_exp_decl(type_decl, var_decl_list, 0, 0);
+  return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
  m_int importer_union_add(Importer importer, const m_str type, const m_str name, ae_flag flag) {
   Exp exp = make_exp(type, name);
-  if((flag & ae_flag_static) == ae_flag_static) // ???
-    exp->d.exp_decl.is_static = 1;
-  if((flag & ae_flag_ref) == ae_flag_ref)
-    SET_FLAG(exp->d.exp_decl.type, ae_flag_ref);
+  SET_FLAG(exp->d.exp_decl.type, flag);
   importer->decl_list = new_decl_list(exp, importer->decl_list);
   return 1;
 }
