@@ -1180,6 +1180,10 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
     CHECK_BO(err_msg(TYPE_,  member->pos,
           	"keyword 'this' must be associated with object instance..."))
   CHECK_OO((value = get_dot_value(member, the_base)))
+  if(GET_FLAG(value, ae_flag_private) &&
+        (!env->class_def || isa(env->class_def, value->owner_class) < 0))
+    CHECK_BO(err_msg(TYPE_,  member->pos,
+          	"can't access private '%s' outside of class...", value->name))
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
           "cannot access member '%s.%s' without object instance...",

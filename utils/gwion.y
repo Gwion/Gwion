@@ -1,7 +1,7 @@
 %define api.pure full
 /* %define parse.error verbose */
 %parse-param { Scanner* arg }
-%lex-param  { void* scanner }  
+%lex-param  { void* scanner }
 %lex-param { Scanner* arg }
 %name-prefix "gwion_"
 %{
@@ -60,7 +60,7 @@ static int get_pos(void* data)
   RETURN BREAK CONTINUE
   PLUSPLUS MINUSMINUS
   NEW SPORK
-  CLASS STATIC PUBLIC EXTENDS DOT COLONCOLON
+  CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON
   AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
   AST_DTOR OPERATOR FUNC_PTR
 	RSL RSR RSAND RSOR RSXOR
@@ -80,11 +80,12 @@ static int get_pos(void* data)
 %type<ival> class_decl
 %type<ival> static_decl
 %type<ival> function_decl
+%type<sval> opt_id
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
 %type<type_decl> type_decl type_decl2
 %type<exp> primary_exp
-%type<exp> decl_exp
+%type<exp> decl_exp private_decl
 %type<exp> binary_exp
 %type<exp> call_paren
 %type <array_sub> array_exp
@@ -248,9 +249,13 @@ stmt
   | union_stmt
   ;
 
+opt_id
+  : { $$ = NULL; }
+  | ID { $$ = $1;  }
+  ;
+
 enum_stmt
-  : ENUM LBRACE id_list RBRACE SEMICOLON    { $$ = new_stmt_enum($3, NULL, get_pos(scanner)); }
-  | ENUM LBRACE id_list RBRACE ID SEMICOLON { $$ = new_stmt_enum($3, $5, get_pos(scanner)); }
+  : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(scanner)); }
   ;
 
 label_stmt
@@ -362,10 +367,18 @@ array_empty
 
 decl_exp
   : conditional_expression
-  | type_decl  var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
+  | type_decl var_decl_list { $$= new_exp_decl($1, $2, 0, get_pos(scanner)); }
   | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, 0, get_pos(scanner)); $$->d.exp_decl.types = $2; }
   | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, 1, get_pos(scanner)); }
   | STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($5, $6, 1, get_pos(scanner)); $$->d.exp_decl.types = $3; }
+  | private_decl
+  ;
+
+private_decl
+  : PRIVATE type_decl var_decl_list { $$= new_exp_decl($2, $3, 0, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); }
+  | PRIVATE LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($5, $6, 0, get_pos(scanner)); $$->d.exp_decl.types = $3; }
+  | PRIVATE STATIC type_decl var_decl_list { $$= new_exp_decl($3, $4, 1, get_pos(scanner)); }
+  | PRIVATE STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($6, $7, 1, get_pos(scanner)); $$->d.exp_decl.types = $4; }
   ;
 
 func_args
@@ -381,7 +394,7 @@ func_def
   | OPERATOR type_decl ID func_args code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scanner)); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list("void", get_pos(scanner)), 0, 
+    { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list("void", get_pos(scanner)), 0,
       get_pos(scanner)), "dtor", NULL, $4, get_pos(scanner)); }
   ;
 
@@ -403,8 +416,7 @@ decl_list
   ;
 
 union_stmt
-  : UNION LBRACE decl_list RBRACE SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner)); }
-  | UNION LBRACE decl_list RBRACE ID SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner));$$->d.stmt_union.xid = insert_symbol($5); }
+  : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(scanner));$$->d.stmt_union.xid = $5 ? insert_symbol($5) : NULL; }
   ;
 
 var_decl_list

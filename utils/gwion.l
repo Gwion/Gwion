@@ -174,6 +174,7 @@ static int comment_depth(void* data, m_uint i) {
 "operator"                          { adjust(yyscanner); return OPERATOR;}
 "extends"                           { adjust(yyscanner); return EXTENDS;}
 "public"                            { adjust(yyscanner); return PUBLIC;}
+"private"                           { adjust(yyscanner); return PRIVATE;}
 "static "                           { adjust(yyscanner); return STATIC;}
 "."                                 { adjust(yyscanner); return DOT;}
 

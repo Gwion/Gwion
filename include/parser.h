@@ -99,55 +99,56 @@ extern int gwion_debug;
     CLASS = 309,
     STATIC = 310,
     PUBLIC = 311,
-    EXTENDS = 312,
-    DOT = 313,
-    COLONCOLON = 314,
-    AND = 315,
-    EQ = 316,
-    GE = 317,
-    GT = 318,
-    LE = 319,
-    LT = 320,
-    MINUS = 321,
-    PLUS = 322,
-    NEQ = 323,
-    SHIFT_LEFT = 324,
-    SHIFT_RIGHT = 325,
-    S_AND = 326,
-    S_OR = 327,
-    S_XOR = 328,
-    OR = 329,
-    AST_DTOR = 330,
-    OPERATOR = 331,
-    FUNC_PTR = 332,
-    RSL = 333,
-    RSR = 334,
-    RSAND = 335,
-    RSOR = 336,
-    RSXOR = 337,
-    RAND = 338,
-    ROR = 339,
-    REQ = 340,
-    RNEQ = 341,
-    RGT = 342,
-    RGE = 343,
-    RLT = 344,
-    RLE = 345,
-    TEMPLATE = 346,
-    NOELSE = 347,
-    LTB = 348,
-    GTB = 349,
-    VARARG = 350,
-    UNION = 351,
-    ATPAREN = 352,
-    TYPEOF = 353,
-    CONST = 354,
-    NUM = 355,
-    FLOAT = 356,
-    ID = 357,
-    STRING_LIT = 358,
-    CHAR_LIT = 359,
-    NEG = 360
+    PRIVATE = 312,
+    EXTENDS = 313,
+    DOT = 314,
+    COLONCOLON = 315,
+    AND = 316,
+    EQ = 317,
+    GE = 318,
+    GT = 319,
+    LE = 320,
+    LT = 321,
+    MINUS = 322,
+    PLUS = 323,
+    NEQ = 324,
+    SHIFT_LEFT = 325,
+    SHIFT_RIGHT = 326,
+    S_AND = 327,
+    S_OR = 328,
+    S_XOR = 329,
+    OR = 330,
+    AST_DTOR = 331,
+    OPERATOR = 332,
+    FUNC_PTR = 333,
+    RSL = 334,
+    RSR = 335,
+    RSAND = 336,
+    RSOR = 337,
+    RSXOR = 338,
+    RAND = 339,
+    ROR = 340,
+    REQ = 341,
+    RNEQ = 342,
+    RGT = 343,
+    RGE = 344,
+    RLT = 345,
+    RLE = 346,
+    TEMPLATE = 347,
+    NOELSE = 348,
+    LTB = 349,
+    GTB = 350,
+    VARARG = 351,
+    UNION = 352,
+    ATPAREN = 353,
+    TYPEOF = 354,
+    CONST = 355,
+    NUM = 356,
+    FLOAT = 357,
+    ID = 358,
+    STRING_LIT = 359,
+    CHAR_LIT = 360,
+    NEG = 361
   };
 #endif
 /* Tokens.  */
@@ -205,55 +206,56 @@ extern int gwion_debug;
 #define CLASS 309
 #define STATIC 310
 #define PUBLIC 311
-#define EXTENDS 312
-#define DOT 313
-#define COLONCOLON 314
-#define AND 315
-#define EQ 316
-#define GE 317
-#define GT 318
-#define LE 319
-#define LT 320
-#define MINUS 321
-#define PLUS 322
-#define NEQ 323
-#define SHIFT_LEFT 324
-#define SHIFT_RIGHT 325
-#define S_AND 326
-#define S_OR 327
-#define S_XOR 328
-#define OR 329
-#define AST_DTOR 330
-#define OPERATOR 331
-#define FUNC_PTR 332
-#define RSL 333
-#define RSR 334
-#define RSAND 335
-#define RSOR 336
-#define RSXOR 337
-#define RAND 338
-#define ROR 339
-#define REQ 340
-#define RNEQ 341
-#define RGT 342
-#define RGE 343
-#define RLT 344
-#define RLE 345
-#define TEMPLATE 346
-#define NOELSE 347
-#define LTB 348
-#define GTB 349
-#define VARARG 350
-#define UNION 351
-#define ATPAREN 352
-#define TYPEOF 353
-#define CONST 354
-#define NUM 355
-#define FLOAT 356
-#define ID 357
-#define STRING_LIT 358
-#define CHAR_LIT 359
-#define NEG 360
+#define PRIVATE 312
+#define EXTENDS 313
+#define DOT 314
+#define COLONCOLON 315
+#define AND 316
+#define EQ 317
+#define GE 318
+#define GT 319
+#define LE 320
+#define LT 321
+#define MINUS 322
+#define PLUS 323
+#define NEQ 324
+#define SHIFT_LEFT 325
+#define SHIFT_RIGHT 326
+#define S_AND 327
+#define S_OR 328
+#define S_XOR 329
+#define OR 330
+#define AST_DTOR 331
+#define OPERATOR 332
+#define FUNC_PTR 333
+#define RSL 334
+#define RSR 335
+#define RSAND 336
+#define RSOR 337
+#define RSXOR 338
+#define RAND 339
+#define ROR 340
+#define REQ 341
+#define RNEQ 342
+#define RGT 343
+#define RGE 344
+#define RLT 345
+#define RLE 346
+#define TEMPLATE 347
+#define NOELSE 348
+#define LTB 349
+#define GTB 350
+#define VARARG 351
+#define UNION 352
+#define ATPAREN 353
+#define TYPEOF 354
+#define CONST 355
+#define NUM 356
+#define FLOAT 357
+#define ID 358
+#define STRING_LIT 359
+#define CHAR_LIT 360
+#define NEG 361
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -287,7 +289,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 291 "include/parser.h" /* yacc.c:1909  */
+#line 293 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

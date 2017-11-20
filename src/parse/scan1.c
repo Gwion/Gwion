@@ -72,7 +72,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
             "\t... in variable declaration", s_name(list->self->xid)))
     if((value = nspc_lookup_value0(env->curr, list->self->xid)) &&
       !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
-        CHECK_BB(err_msg(SCAN2_, list->self->pos,
+        CHECK_BB(err_msg(SCAN1_, list->self->pos,
               "variable %s has already been defined in the same scope...",
               s_name(list->self->xid)))
     decl->num_decl++;
@@ -88,6 +88,12 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       list->self->value = new_value(t, s_name(list->self->xid));
     else
       list->self->value->m_type = t;
+    if(GET_FLAG(decl->type, ae_flag_private)) {
+      if(!env->class_def)
+        CHECK_BB(err_msg(SCAN2_, list->self->pos,
+              "must declare private variables at class scope..."))
+      SET_FLAG(list->self->value, ae_flag_private);
+    }
     if(GET_FLAG(decl->type, ae_flag_const)) {
       SET_FLAG(list->self->value, ae_flag_const);
       SET_FLAG(list->self->value, ae_flag_uconst);

@@ -3618,61 +3618,6 @@ MFUN(line_set_b)
 typedef struct
 {
 	sp_data* sp;
-	sp_lpc* osc;
-	m_bool is_init;
-} GW_lpc;
-
-TICK(lpc_tick)
-{
-	GW_lpc* ug = (GW_lpc*)u->ug;
-	if(!ug->is_init)
-	{ // LCOV_EXCL_START
-		u->out = 0;
-		return 1;
-	} // LCOV_EXCL_STOP
-	base_tick(u);
-	sp_lpc_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
-}
-
-CTOR(lpc_ctor)
-{
-	GW_lpc* ug = malloc(sizeof(GW_lpc));
-	ug->sp = shred->vm_ref->sp;
-	ug->is_init = 0;
-	ug->osc = NULL;
-	UGEN(o)->tick = lpc_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
-}
-
-DTOR(lpc_dtor)
-{
-	GW_lpc* ug = UGEN(o)->ug;
-	if(ug->is_init) {
-
-		sp_lpc_destroy(&ug->osc);
-	}
-	free(ug);
-}
-
-MFUN(lpc_init)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_lpc* ug = (GW_lpc*)UGEN(o)->ug;
-	if(ug->osc) {
-		sp_lpc_destroy(&ug->osc);
-		ug->osc = NULL;
-	}
-	m_int framesize = *(m_int*)(shred->mem + gw_offset);
-	if(sp_lpc_create(&ug->osc) == SP_NOT_OK || sp_lpc_init(ug->sp, ug->osc, framesize) == SP_NOT_OK) {
-		Except(shred, "UgenCreateException") // LCOV_EXCL_LINE
-	}
-	ug->is_init = 1;
-}
-
-typedef struct
-{
-	sp_data* sp;
 	sp_lpf18* osc;
 } GW_lpf18;
 
@@ -6083,92 +6028,6 @@ MFUN(rpt_init)
 typedef struct
 {
 	sp_data* sp;
-	sp_rspline* osc;
-} GW_rspline;
-
-TICK(rspline_tick)
-{
-	GW_rspline* ug = (GW_rspline*)u->ug;
-	sp_rspline_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
-}
-
-CTOR(rspline_ctor)
-{
-	GW_rspline* ug = malloc(sizeof(GW_rspline));
-	ug->sp = shred->vm_ref->sp;
-	sp_rspline_create(&ug->osc);
-	sp_rspline_init(ug->sp, ug->osc);
-	UGEN(o)->tick = rspline_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
-}
-
-DTOR(rspline_dtor)
-{
-	GW_rspline* ug = UGEN(o)->ug;
-	sp_rspline_destroy(&ug->osc);
-	free(ug);
-}
-
-MFUN(rspline_get_min)
-{
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	*(m_float*)RETURN = ug->osc->min;
-}
-
-MFUN(rspline_set_min)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	m_float min = *(m_float*)(shred->mem + gw_offset);
-	*(m_float*)RETURN = (ug->osc->min = min);
-}
-
-MFUN(rspline_get_max)
-{
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	*(m_float*)RETURN = ug->osc->max;
-}
-
-MFUN(rspline_set_max)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	m_float max = *(m_float*)(shred->mem + gw_offset);
-	*(m_float*)RETURN = (ug->osc->max = max);
-}
-
-MFUN(rspline_get_cps_min)
-{
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	*(m_float*)RETURN = ug->osc->cps_min;
-}
-
-MFUN(rspline_set_cps_min)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	m_float cps_min = *(m_float*)(shred->mem + gw_offset);
-	*(m_float*)RETURN = (ug->osc->cps_min = cps_min);
-}
-
-MFUN(rspline_get_cps_max)
-{
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	*(m_float*)RETURN = ug->osc->cps_max;
-}
-
-MFUN(rspline_set_cps_max)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
-	m_float cps_max = *(m_float*)(shred->mem + gw_offset);
-	*(m_float*)RETURN = (ug->osc->cps_max = cps_max);
-}
-
-typedef struct
-{
-	sp_data* sp;
 	sp_samphold* osc;
 } GW_samphold;
 
@@ -6925,52 +6784,6 @@ MFUN(tadsr_set_rel)
 	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
-}
-
-typedef struct
-{
-	sp_data* sp;
-	sp_talkbox* osc;
-} GW_talkbox;
-
-TICK(talkbox_tick)
-{
-	GW_talkbox* ug = (GW_talkbox*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
-	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
-	return 1;
-}
-
-CTOR(talkbox_ctor)
-{
-	GW_talkbox* ug = malloc(sizeof(GW_talkbox));
-	ug->sp = shred->vm_ref->sp;
-	sp_talkbox_create(&ug->osc);
-	sp_talkbox_init(ug->sp, ug->osc);
-	UGEN(o)->tick = talkbox_tick;
-	assign_ugen(UGEN(o), 2, 1, 0, ug);
-}
-
-DTOR(talkbox_dtor)
-{
-	GW_talkbox* ug = UGEN(o)->ug;
-	sp_talkbox_destroy(&ug->osc);
-	free(ug);
-}
-
-MFUN(talkbox_get_quality)
-{
-	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->ug;
-	*(m_float*)RETURN = ug->osc->quality;
-}
-
-MFUN(talkbox_set_quality)
-{
-	m_uint gw_offset = SZ_INT;
-	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->ug;
-	m_float quality = *(m_float*)(shred->mem + gw_offset);
-	*(m_float*)RETURN = (ug->osc->quality = quality);
 }
 
 typedef struct
@@ -7902,36 +7715,6 @@ MFUN(vdelay_set_del)
 typedef struct
 {
 	sp_data* sp;
-	sp_voc* osc;
-} GW_voc;
-
-TICK(voc_tick)
-{
-	GW_voc* ug = (GW_voc*)u->ug;
-	sp_voc_compute(ug->sp, ug->osc, &u->out);
-	return 1;
-}
-
-CTOR(voc_ctor)
-{
-	GW_voc* ug = malloc(sizeof(GW_voc));
-	ug->sp = shred->vm_ref->sp;
-	sp_voc_create(&ug->osc);
-	sp_voc_init(ug->sp, ug->osc);
-	UGEN(o)->tick = voc_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
-}
-
-DTOR(voc_dtor)
-{
-	GW_voc* ug = UGEN(o)->ug;
-	sp_voc_destroy(&ug->osc);
-	free(ug);
-}
-
-typedef struct
-{
-	sp_data* sp;
 	sp_vocoder* osc;
 } GW_vocoder;
 
@@ -8379,7 +8162,6 @@ struct Type_ t_incr = {"Incr", SZ_INT, &t_ugen};
 struct Type_ t_jcrev = {"Jcrev", SZ_INT, &t_ugen};
 struct Type_ t_jitter = {"Jitter", SZ_INT, &t_ugen};
 struct Type_ t_line = {"Line", SZ_INT, &t_ugen};
-struct Type_ t_lpc = {"Lpc", SZ_INT, &t_ugen};
 struct Type_ t_lpf18 = {"Lpf18", SZ_INT, &t_ugen};
 struct Type_ t_maygate = {"Maygate", SZ_INT, &t_ugen};
 struct Type_ t_metro = {"Metro", SZ_INT, &t_ugen};
@@ -8415,7 +8197,6 @@ struct Type_ t_reverse = {"Reverse", SZ_INT, &t_ugen};
 struct Type_ t_revsc = {"Revsc", SZ_INT, &t_ugen};
 struct Type_ t_rms = {"Rms", SZ_INT, &t_ugen};
 struct Type_ t_rpt = {"Rpt", SZ_INT, &t_ugen};
-struct Type_ t_rspline = {"Rspline", SZ_INT, &t_ugen};
 struct Type_ t_samphold = {"Samphold", SZ_INT, &t_ugen};
 struct Type_ t_saturator = {"Saturator", SZ_INT, &t_ugen};
 struct Type_ t_scale = {"Scale", SZ_INT, &t_ugen};
@@ -8428,7 +8209,6 @@ struct Type_ t_streson = {"Streson", SZ_INT, &t_ugen};
 struct Type_ t_switch = {"Switch", SZ_INT, &t_ugen};
 struct Type_ t_tabread = {"Tabread", SZ_INT, &t_ugen};
 struct Type_ t_tadsr = {"Tadsr", SZ_INT, &t_ugen};
-struct Type_ t_talkbox = {"Talkbox", SZ_INT, &t_ugen};
 struct Type_ t_tblrec = {"Tblrec", SZ_INT, &t_ugen};
 struct Type_ t_tbvcf = {"Tbvcf", SZ_INT, &t_ugen};
 struct Type_ t_tdiv = {"Tdiv", SZ_INT, &t_ugen};
@@ -8444,7 +8224,6 @@ struct Type_ t_trand = {"Trand", SZ_INT, &t_ugen};
 struct Type_ t_tseg = {"Tseg", SZ_INT, &t_ugen};
 struct Type_ t_tseq = {"Tseq", SZ_INT, &t_ugen};
 struct Type_ t_vdelay = {"Vdelay", SZ_INT, &t_ugen};
-struct Type_ t_voc = {"Voc", SZ_INT, &t_ugen};
 struct Type_ t_vocoder = {"Vocoder", SZ_INT, &t_ugen};
 struct Type_ t_waveset = {"Waveset", SZ_INT, &t_ugen};
 struct Type_ t_wpkorg35 = {"Wpkorg35", SZ_INT, &t_ugen};
@@ -9274,12 +9053,6 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
-	CHECK_BB(importer_class_ini(importer, &t_lpc, lpc_ctor, lpc_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)lpc_init);
-		 importer_func_arg(importer, "int", "framesize");
-	CHECK_BB(importer_func_end(importer, 0))
-	CHECK_BB(importer_class_end(importer))
-
 	CHECK_BB(importer_class_ini(importer, &t_lpf18, lpf18_ctor, lpf18_dtor))
 	importer_func_ini(importer, "float", "cutoff", (m_uint)lpf18_get_cutoff);
 	CHECK_BB(importer_func_end(importer, 0))
@@ -9777,29 +9550,6 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
-	CHECK_BB(importer_class_ini(importer, &t_rspline, rspline_ctor, rspline_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)rspline_get_min);
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)rspline_set_min);
-		 importer_func_arg(importer, "float", "min");
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)rspline_get_max);
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)rspline_set_max);
-		 importer_func_arg(importer, "float", "max");
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_min", (m_uint)rspline_get_cps_min);
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_min", (m_uint)rspline_set_cps_min);
-		 importer_func_arg(importer, "float", "cps_min");
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_max", (m_uint)rspline_get_cps_max);
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_max", (m_uint)rspline_set_cps_max);
-		 importer_func_arg(importer, "float", "cps_max");
-	CHECK_BB(importer_func_end(importer, 0))
-	CHECK_BB(importer_class_end(importer))
-
 	CHECK_BB(importer_class_ini(importer, &t_samphold, samphold_ctor, samphold_dtor))
 	CHECK_BB(importer_class_end(importer))
 
@@ -9934,14 +9684,6 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_func_end(importer, 0))
 	importer_func_ini(importer, "float", "rel", (m_uint)tadsr_set_rel);
 		 importer_func_arg(importer, "float", "rel");
-	CHECK_BB(importer_func_end(importer, 0))
-	CHECK_BB(importer_class_end(importer))
-
-	CHECK_BB(importer_class_ini(importer, &t_talkbox, talkbox_ctor, talkbox_dtor))
-	importer_func_ini(importer, "float", "quality", (m_uint)talkbox_get_quality);
-	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "quality", (m_uint)talkbox_set_quality);
-		 importer_func_arg(importer, "float", "quality");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
@@ -10125,9 +9867,6 @@ m_bool import_soundpipe(Importer importer)
 	importer_func_ini(importer, "float", "del", (m_uint)vdelay_set_del);
 		 importer_func_arg(importer, "float", "del");
 	CHECK_BB(importer_func_end(importer, 0))
-	CHECK_BB(importer_class_end(importer))
-
-	CHECK_BB(importer_class_ini(importer, &t_voc, voc_ctor, voc_dtor))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_vocoder, vocoder_ctor, vocoder_dtor))

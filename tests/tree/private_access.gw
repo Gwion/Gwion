@@ -1,0 +1,2 @@
+class C { private int i; <<<i>>>; }
+C c;
