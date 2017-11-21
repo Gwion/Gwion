@@ -166,8 +166,8 @@ static m_bool scan2_exp_cast(Env env, Exp_Cast* cast) {
   return 1;
 }
 
-static m_bool scan2_exp_postfix(Env env, Exp_Postfix* postfix) {
-  CHECK_BB(scan2_exp(env, postfix->exp))
+static m_bool scan2_exp_post(Env env, Exp_Postfix* post) {
+  CHECK_BB(scan2_exp(env, post->exp))
   return 1;
 }
 
@@ -291,8 +291,8 @@ static m_bool scan2_exp(Env env, Exp exp) {
       case ae_exp_binary:
         ret = scan2_exp_binary(env, &exp->d.exp_binary);
         break;
-      case ae_exp_postfix:
-        ret = scan2_exp_postfix(env, &exp->d.exp_postfix);
+      case ae_exp_post:
+        ret = scan2_exp_post(env, &exp->d.exp_post);
         break;
       case ae_exp_cast:
         ret = scan2_exp_cast(env, &exp->d.exp_cast);

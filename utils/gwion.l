@@ -268,11 +268,7 @@ Ast parse(m_str filename)
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);
-
-  if(!(file = fopen(c, "r"))) { // LCOV_EXCL_START
-    err_msg(PARSE_, 0, "error while opening file '%s'.", filename);
-    return NULL;
-  } // LCOV_EXCL_STOP
+  file = fopen(c, "r");
   scan.file = file;
   scan.filename = filename;
   gwion_set_in(file, scan.scanner);

@@ -30,7 +30,7 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
             "type '%s' is not template", t->name))
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
     if(GET_FLAG(env->class_def, ae_flag_builtin))
-	  decl->m_type = NULL;
+    decl->m_type = NULL;
     decl->num_decl = 0;
   }
   return 1;
@@ -141,12 +141,12 @@ static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
   return 1;
 }
 
-static m_bool scan1_exp_postfix(Env env, Exp_Postfix* postfix) {
-  CHECK_BB(scan1_exp(env, postfix->exp))
-  if(postfix->exp->meta != ae_meta_var)
-    CHECK_BB(err_msg(SCAN1_, postfix->exp->pos,
-          "postfix operator '%s' cannot be used"
-          " on non-mutable data-type...", op2str(postfix->op)))
+static m_bool scan1_exp_post(Env env, Exp_Postfix* post) {
+  CHECK_BB(scan1_exp(env, post->exp))
+  if(post->exp->meta != ae_meta_var)
+    CHECK_BB(err_msg(SCAN1_, post->exp->pos,
+          "post operator '%s' cannot be used"
+          " on non-mutable data-type...", op2str(post->op)))
   return 1;
 }
 
@@ -201,8 +201,8 @@ static m_bool scan1_exp(Env env, Exp exp) {
       case ae_exp_binary:
         CHECK_BB(scan1_exp_binary(env, &exp->d.exp_binary))
         break;
-      case ae_exp_postfix:
-        CHECK_BB(scan1_exp_postfix(env, &exp->d.exp_postfix))
+      case ae_exp_post:
+        CHECK_BB(scan1_exp_post(env, &exp->d.exp_post))
         break;
       case ae_exp_cast:
         CHECK_BB(scan1_exp_cast(env, &exp->d.exp_cast))
@@ -298,7 +298,7 @@ static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
             "'%s' already declared as variable", s_name(stmt->xid)))
   }
   return 1;
-} 
+}
 
 m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   Type t;

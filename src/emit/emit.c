@@ -692,10 +692,10 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
   return exp_exp_cast1(emit, to, from);
 }
 
-static m_bool emit_exp_postfix(Emitter emit, Exp_Postfix* postfix) {
-  struct Op_Import opi = { postfix->op, NULL, NULL, NULL, 0 };
-  CHECK_BB(emit_exp(emit, postfix->exp, 0))
-  opi.lhs = postfix->exp->type;
+static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
+  struct Op_Import opi = { post->op, NULL, NULL, NULL, 0 };
+  CHECK_BB(emit_exp(emit, post->exp, 0))
+  opi.lhs = post->exp->type;
   return get_instr(emit, &opi) ? 1 : -1;
 }
 
@@ -961,8 +961,8 @@ static m_bool emit_exp(Emitter emit, Exp exp, m_bool ref) {
         CHECK_BB(emit_exp_unary(emit, &exp->d.exp_unary))     break;
       case ae_exp_binary:
         CHECK_BB(emit_exp_binary(emit, &exp->d.exp_binary))   break;
-      case ae_exp_postfix:
-        CHECK_BB(emit_exp_postfix(emit, &exp->d.exp_postfix)) break;
+      case ae_exp_post:
+        CHECK_BB(emit_exp_post(emit, &exp->d.exp_post)) break;
       case ae_exp_cast:
         CHECK_BB(exp_exp_cast(emit, &exp->d.exp_cast))        break;
       case ae_exp_dot:
@@ -1353,7 +1353,7 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
     if(!emit->env->class_def)
       ADD_REF(stmt->value);
-    free_expression(exp);
+    free_exp(exp);
     env_push_class(emit->env, stmt->value->m_type);
   }
   else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {

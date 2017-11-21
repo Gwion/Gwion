@@ -124,8 +124,8 @@ static void tag_exp_cast(Tagger* tagger, Exp_Cast* cast) {
   tag_exp(tagger, cast->exp);
 }
 
-static void tag_exp_postfix(Tagger* tagger, Exp_Postfix* postfix) {
-  tag_exp(tagger, postfix->exp);
+static void tag_exp_post(Tagger* tagger, Exp_Postfix* post) {
+  tag_exp(tagger, post->exp);
 }
 
 static void tag_exp_call(Tagger* tagger, Exp_Func* exp_func) {
@@ -161,8 +161,8 @@ static void tag_exp(Tagger* tagger,  Exp exp) {
       case ae_exp_binary:
         tag_exp_binary(tagger, &exp->d.exp_binary);
         break;
-      case ae_exp_postfix:
-        tag_exp_postfix(tagger, &exp->d.exp_postfix);
+      case ae_exp_post:
+        tag_exp_post(tagger, &exp->d.exp_post);
         break;
       case ae_exp_cast:
         tag_exp_cast(tagger, &exp->d.exp_cast);

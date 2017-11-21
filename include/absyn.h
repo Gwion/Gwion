@@ -149,7 +149,7 @@ Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list
 void free_arg_list(Arg_List a);
 
 typedef enum { ae_exp_decl, ae_exp_binary, ae_exp_unary, ae_exp_primary,
-               ae_exp_cast, ae_exp_postfix, ae_exp_call, ae_exp_array,
+               ae_exp_cast, ae_exp_post, ae_exp_call, ae_exp_array,
                ae_exp_if, ae_exp_dot, ae_exp_dur
              } Exp_type;
 typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
@@ -250,7 +250,7 @@ struct Exp_ {
   Type cast_to;
   Exp next;
   union {
-    Exp_Postfix   exp_postfix;
+    Exp_Postfix   exp_post;
     Exp_Primary   exp_primary;
     Exp_Decl      exp_decl;
     Exp_Unary     exp_unary;
@@ -279,7 +279,7 @@ Exp new_exp_prim_char(m_str chr, int pos);
 Exp new_exp_prim_nil(int pos);
 Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos);
 Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, int pos);
-Exp new_exp_postfix(Exp exp, Operator op, int pos);
+Exp new_exp_post(Exp exp, Operator op, int pos);
 Exp new_exp_call(Exp base, Exp args, int pos);
 Exp new_exp_cast(Type_Decl* type, Exp exp, int pos);
 Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos);
@@ -288,8 +288,8 @@ Exp new_exp_dot(Exp base, m_str xid, int pos);
 Exp new_exp_unary(Operator oper, Exp exp, int pos);
 Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, int pos);
-Exp prepend_expression(Exp exp, Exp next, int pos);
-void free_expression(Exp exp);
+Exp prepend_exp(Exp exp, Exp next, int pos);
+void free_exp(Exp exp);
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {
@@ -424,7 +424,7 @@ struct Stmt_ {
   int pos;
 };
 
-Stmt new_stmt_expression(Exp exp, int pos);
+Stmt new_stmt_exp(Exp exp, int pos);
 Stmt new_stmt_code(Stmt_List stmt_list, int pos);
 Stmt new_stmt_while(Exp cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_return(Exp exp, int pos);

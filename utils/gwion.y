@@ -10,12 +10,10 @@
 #include "scanner.h"
 #define scanner arg->scanner
 
-
 char *strcat(char *dest, const char *src);
 void gwion_error(void* data, const char* s);
 int gwion_lex(void*, void* , void*);
-static int get_pos(void* data)
-{
+static int get_pos(void* data) {
   Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
   return scan->line;
 }
@@ -38,103 +36,57 @@ static int get_pos(void* data)
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
-  Decl_List decl_list; // for union
+  Decl_List decl_list;
   Func_Def func_def;
   Section* section;
   ID_List id_list;
-  Type_List type_list; // call template
+  Type_List type_list;
   Class_Body class_body;
   ID_List class_ext;
   Class_Def class_def;
   Ast ast;
 };
 
-%token SEMICOLON CHUCK COMMA
-  ASSIGN DIVIDE TIMES PERCENT
-  L_HACK R_HACK LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
-  PLUSCHUCK MINUSCHUCK TIMESCHUCK DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG
-  PERCENTPAREN SHARPPAREN
-  ATSYM FUNCTION DOLLAR TILDA
-  QUESTION COLON EXCLAMATION
-  IF ELSE WHILE DO UNTIL LOOP FOR GOTO SWITCH CASE ENUM
-  RETURN BREAK CONTINUE
-  PLUSPLUS MINUSMINUS
-  NEW SPORK
-  CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON
-  AND EQ GE GT LE LT MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR
-  AST_DTOR OPERATOR FUNC_PTR
-	RSL RSR RSAND RSOR RSXOR
-	RAND ROR REQ RNEQ RGT RGE RLT RLE
-  TEMPLATE
-  NOELSE
-  LTB GTB
-  VARARG UNION ATPAREN TYPEOF CONST
+%token SEMICOLON CHUCK COMMA ASSIGN DIVIDE TIMES PERCENT L_HACK R_HACK
+  LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE PLUSCHUCK MINUSCHUCK TIMESCHUCK
+  DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG PERCENTPAREN SHARPPAREN
+  ATSYM FUNCTION DOLLAR TILDA QUESTION COLON EXCLAMATION IF ELSE WHILE DO UNTIL
+  LOOP FOR GOTO SWITCH CASE ENUM RETURN BREAK CONTINUE PLUSPLUS MINUSMINUS NEW
+  SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
+  MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
+  FUNC_PTR RSL RSR RSAND RSOR RSXOR RAND ROR REQ RNEQ RGT RGE RLT RLE TEMPLATE
+  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST
 
 %token<ival> NUM
+%type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op
+%type<ival> atsym class_decl static_decl function_decl
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
-
-%type<ival> atsym
-%type<ival> op shift_op postfix_op relationnal_op equality_op
-%type<ival> unary_op additive_op multiplicative_op
-%type<ival> class_decl
-%type<ival> static_decl
-%type<ival> function_decl
-%type<sval> opt_id
+%type<sval>opt_id
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
 %type<type_decl> type_decl type_decl2
-%type<exp> primary_exp
-%type<exp> decl_exp private_decl
-%type<exp> binary_exp
-%type<exp> call_paren
-%type <array_sub> array_exp
-%type <array_sub> array_empty
-%type <exp> conditional_expression
-%type <exp> logical_or_expression
-%type <exp> logical_and_expression
-%type <exp> inclusive_or_expression
-%type <exp> exclusive_or_expression
-%type <exp> and_expression
-%type <exp> equality_expression
-%type <exp> relational_expression
-%type <exp> shift_expression
-%type <exp> additive_expression
-%type <exp> multiplicative_expression
-%type <exp> unary_expression
-%type <exp> dur_exp
+%type<exp> primary_exp decl_exp private_decl binary_exp call_paren
+%type<exp> con_exp log_or_exp log_and_exp inc_or_exp exc_or_exp and_exp eq_exp
+%type<exp> relational_exp shift_exp add_exp mul_exp unary_exp dur_exp
+%type<exp> post_exp cast_exp exp
+%type<array_sub> array_exp array_empty
 %type<polar> polar_exp
 %type<c_val> complex_exp
 %type<vec> vec_exp
-%type<exp> postfix_exp
-%type<exp> cast_exp
-%type<exp> exp
-%type<stmt> stmt
-%type<stmt> loop_stmt
-%type<stmt> selection_stmt
-%type<stmt> jump_stmt
-%type<stmt> code_segment
-%type<stmt> exp_stmt
-%type<stmt> case_stmt
+%type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
+%type<stmt> case_stmt label_stmt goto_stmt switch_stmt
+%type<stmt> enum_stmt func_ptr union_stmt
 %type<stmt_list> stmt_list
-%type<stmt> label_stmt
-%type<stmt> goto_stmt
-%type<stmt> switch_stmt
-%type<stmt> enum_stmt
-%type<stmt> func_ptr
-%type<stmt> union_stmt
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
 %type<func_def> func_def
 %type<section> section
 %type<class_def> class_def
 %type<id_list> class_ext
-%type<class_body> class_body
-%type<class_body> class_body2
-%type<id_list> id_list
-%type<id_list> id_dot decl_template
-%type<type_list> type_list
-%type<type_list> template call_template
+%type<class_body> class_body class_body2
+%type<id_list> id_list id_dot decl_template
+%type<type_list> type_list template call_template
 %type<section> class_section
 %type<ast> ast
 
@@ -146,7 +98,11 @@ static int get_pos(void* data)
 %precedence NEG
 %left DOT
 
+%destructor { free_stmt($$); } <stmt>
+%destructor { free_class_def($$); } <class_def>
+%destructor { free_class_body($$); } <class_body>
 %destructor { free_type_decl($$); } <type_decl>
+%destructor { free_type_list($$); } <type_list>
 %%
 
 ast
@@ -268,7 +224,7 @@ goto_stmt
 
 case_stmt
   : CASE primary_exp COLON { $$ = new_stmt_case($2, get_pos(scanner)); }
-  | CASE postfix_exp COLON { $$ = new_stmt_case($2, get_pos(scanner)); }
+  | CASE post_exp COLON { $$ = new_stmt_case($2, get_pos(scanner)); }
   ;
 
 switch_stmt
@@ -307,13 +263,13 @@ jump_stmt
   ;
 
 exp_stmt
-  : exp SEMICOLON { $$ = new_stmt_expression($1,   get_pos(scanner)); }
-  | SEMICOLON     { $$ = new_stmt_expression(NULL, get_pos(scanner)); }
+  : exp SEMICOLON { $$ = new_stmt_exp($1,   get_pos(scanner)); }
+  | SEMICOLON     { $$ = new_stmt_exp(NULL, get_pos(scanner)); }
   ;
 
 exp
   : binary_exp            { $$ = $1; }
-  | binary_exp COMMA exp  { $$ = prepend_expression($1, $3, get_pos(scanner)); }
+  | binary_exp COMMA exp  { $$ = prepend_exp($1, $3, get_pos(scanner)); }
   ;
 
 binary_exp
@@ -325,48 +281,32 @@ template
   : LTB type_list GTB { $$ = $2; }
   ;
 
-op
-  : CHUCK       { $$ = op_chuck; }
-  | UNCHUCK     { $$ = op_unchuck; }
-  | EQ          { $$ = op_eq; /* LCOV_EXCL_LINE */ }
-  | ATCHUCK     { $$ = op_at_chuck; }
-  | PLUSCHUCK   { $$ = op_plus_chuck; }
-  | MINUSCHUCK  { $$ = op_minus_chuck; }
-  | TIMESCHUCK  { $$ = op_times_chuck; }
-  | DIVIDECHUCK { $$ = op_divide_chuck; }
-  | MODULOCHUCK { $$ = op_modulo_chuck; }
-  | TRIG        { $$ = op_trig; }
-  | UNTRIG      { $$ = op_untrig; }
-  | RSL         { $$ = op_rsl; }
-  | RSR         { $$ = op_rsr; }
-  | RSAND       { $$ = op_rsand; }
-  | RSOR        { $$ = op_rsor; }
-  | RSXOR       { $$ = op_rsxor; }
-  | RAND        { $$ = op_rand; }
-  | ROR         { $$ = op_ror; }
-  | REQ         { $$ = op_req; }
-  | RNEQ        { $$ = op_rneq; }
-  | RGT         { $$ = op_rgt; }
-  | RGE         { $$ = op_rge; }
-  | RLT         { $$ = op_rlt; }
-  | RLE         { $$ = op_rle; }
-  | ASSIGN      { $$ = op_assign; }
+op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
+  | ATCHUCK     { $$ = op_at_chuck; } | PLUSCHUCK   { $$ = op_plus_chuck; }
+  | MINUSCHUCK  { $$ = op_minus_chuck; } | TIMESCHUCK  { $$ = op_times_chuck; }
+  | DIVIDECHUCK { $$ = op_divide_chuck; } | MODULOCHUCK { $$ = op_modulo_chuck; }
+  | TRIG { $$ = op_trig; } | UNTRIG { $$ = op_untrig; }
+  | RSL { $$ = op_rsl; } | RSR { $$ = op_rsr; } | RSAND { $$ = op_rsand; }
+  | RSOR { $$ = op_rsor; } | RSXOR { $$ = op_rsxor; } | RAND { $$ = op_rand; }
+  | ROR { $$ = op_ror; } | REQ { $$ = op_req; } | RNEQ { $$ = op_rneq; }
+  | RGT { $$ = op_rgt; } | RGE { $$ = op_rge; } | RLT { $$ = op_rlt; }
+  | RLE { $$ = op_rle; } | ASSIGN { $$ = op_assign; }
   ;
 
 array_exp
   : LBRACK exp RBRACK           { $$ = new_array_sub( $2, get_pos(scanner) ); }
-  | LBRACK exp RBRACK array_exp { if($2->next){ yyerror(&scanner, "invalid format for array init [...][...]...");YYERROR; } $$ = prepend_array_sub( $4, $2); }
-  | LBRACK exp RBRACK LBRACK RBRACK { yyerror(&scanner, "partially empty array init [...][]..."); YYERROR; }
+  | LBRACK exp RBRACK array_exp { if($2->next){ yyerror(&scanner, "invalid format for array init [...][...]..."); free_exp($2); free_array_sub($4); YYERROR; } $$ = prepend_array_sub( $4, $2); }
+  | LBRACK exp RBRACK LBRACK RBRACK { yyerror(&scanner, "partially empty array init [...][]..."); free_exp($2); YYERROR; }
   ;
 
 array_empty
   : LBRACK RBRACK             { $$ = new_array_sub(NULL, get_pos(scanner)); }
   | array_empty LBRACK RBRACK { $$ = prepend_array_sub($1, NULL); }
-  | array_empty array_exp     { yyerror(&scanner, "partially empty array init [][...]"); YYERROR; }
+  | array_empty array_exp     { yyerror(&scanner, "partially empty array init [][...]"); free_array_sub($1); free_array_sub($2); YYERROR; }
   ;
 
 decl_exp
-  : conditional_expression
+  : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(scanner)); }
   | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, get_pos(scanner)); $$->d.exp_decl.types = $2; }
   | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, get_pos(scanner)); SET_FLAG($$->d.exp_decl.type, ae_flag_static); }
@@ -436,57 +376,57 @@ var_decl
   ;
 
 complex_exp: SHARPPAREN   exp RPAREN { $$ = new_complex( $2, get_pos(scanner)); };
-polar_exp:   PERCENTPAREN exp RPAREN { $$ = new_polar(   $2, get_pos(scanner)); };
+           polar_exp:   PERCENTPAREN exp RPAREN { $$ = new_polar(   $2, get_pos(scanner)); };
 vec_exp:     ATPAREN      exp RPAREN { $$ = new_vec(     $2, get_pos(scanner)); };
 
-conditional_expression
-  : logical_or_expression
-  | logical_or_expression QUESTION exp COLON conditional_expression
+con_exp
+  : log_or_exp
+  | log_or_exp QUESTION exp COLON con_exp
       { $$ = new_exp_if( $1, $3, $5, get_pos(scanner)); }
   ;
 
-logical_or_expression
-  : logical_and_expression            { $$ = $1; }
-  | logical_or_expression OR logical_and_expression
+log_or_exp
+  : log_and_exp            { $$ = $1; }
+  | log_or_exp OR log_and_exp
       { $$ = new_exp_binary( $1, op_or, $3, get_pos(scanner)); }
   ;
 
-logical_and_expression
-  : inclusive_or_expression           { $$ = $1; }
-  | logical_and_expression AND inclusive_or_expression
+log_and_exp
+  : inc_or_exp           { $$ = $1; }
+  | log_and_exp AND inc_or_exp
       { $$ = new_exp_binary( $1, op_and, $3, get_pos(scanner)); }
   ;
 
-inclusive_or_expression
-  : exclusive_or_expression           { $$ = $1; }
-  | inclusive_or_expression S_OR exclusive_or_expression
+inc_or_exp
+  : exc_or_exp           { $$ = $1; }
+  | inc_or_exp S_OR exc_or_exp
       { $$ = new_exp_binary( $1, op_s_or, $3, get_pos(scanner)); }
   ;
 
-exclusive_or_expression
-  : and_expression                    { $$ = $1; }
-  | exclusive_or_expression S_XOR and_expression
+exc_or_exp
+  : and_exp                    { $$ = $1; }
+  | exc_or_exp S_XOR and_exp
       { $$ = new_exp_binary( $1, op_s_xor, $3, get_pos(scanner)); }
   ;
 
-and_expression
-  : equality_expression               { $$ = $1; }
-  | and_expression S_AND equality_expression
+and_exp
+  : eq_exp               { $$ = $1; }
+  | and_exp S_AND eq_exp
       { $$ = new_exp_binary( $1, op_s_and, $3, get_pos(scanner)); }
   ;
 
-equality_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
-equality_expression
-  : relational_expression             { $$ = $1; }
-  | equality_expression equality_op relational_expression
+eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
+            eq_exp
+  : relational_exp             { $$ = $1; }
+  | eq_exp eq_op relational_exp
     { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
-relationnal_op: LT { $$ = op_lt; } | GT { $$ = op_gt; } | LE { $$ = op_le; } | GE { $$ = op_ge; };
+rel_op: LT { $$ = op_lt; } | GT { $$ = op_gt; } | LE { $$ = op_le; } | GE { $$ = op_ge; };
 
-relational_expression
-  : shift_expression                  { $$ = $1; }
-  | relational_expression relationnal_op shift_expression
+relational_exp
+  : shift_exp                  { $$ = $1; }
+  | relational_exp rel_op shift_exp
     { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
@@ -495,42 +435,42 @@ shift_op
   | SHIFT_RIGHT { $$ = op_shift_right; }
   ;
 
-shift_expression
-  : additive_expression               { $$ = $1; }
-  | shift_expression shift_op  additive_expression
+shift_exp
+  : add_exp               { $$ = $1; }
+  | shift_exp shift_op  add_exp
     { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
-additive_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
+add_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
 
-additive_expression
-  : multiplicative_expression          { $$ = $1; }
-  | additive_expression additive_op multiplicative_expression
+add_exp
+  : mul_exp          { $$ = $1; }
+  | add_exp add_op mul_exp
     { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
-multiplicative_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
+mul_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
 
-multiplicative_expression
+mul_exp
   : cast_exp { $$ = $1; }
-  | multiplicative_expression multiplicative_op cast_exp
+  | mul_exp mul_op cast_exp
       { $$ = new_exp_binary( $1, $2, $3, get_pos(scanner)); }
   ;
 
 cast_exp
-  : unary_expression
+  : unary_exp
   | cast_exp DOLLAR type_decl
       { $$ = new_exp_cast( $3, $1, get_pos(scanner)); }
   ;
 
 unary_op : PLUS { $$ = op_plus; } | MINUS %prec NEG { $$ = op_minus; } | TIMES { $$ = op_times; }
-  | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
+         | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
   | EXCLAMATION { $$ = op_exclamation; } | SPORK TILDA { $$ = op_spork; }
   ;
 
-unary_expression
+unary_exp
   : dur_exp { $$ = $1; }
-  | unary_op unary_expression
+  | unary_op unary_exp
       { $$ = new_exp_unary( $1, $2, get_pos(scanner)); }
   | NEW type_decl
       { $$ = new_exp_unary2(op_new, $2, NULL, get_pos(scanner)); }
@@ -542,8 +482,8 @@ unary_expression
 
 
 dur_exp
-  : postfix_exp
-  | dur_exp COLONCOLON postfix_exp { $$ = new_exp_dur( $1, $3, get_pos(scanner)); }
+  : post_exp
+  | dur_exp COLONCOLON post_exp { $$ = new_exp_dur( $1, $3, get_pos(scanner)); }
   ;
 
 type_list
@@ -552,22 +492,20 @@ type_list
   ;
 
 call_template : { $$ = NULL; } | template { $$ = $1;} ;
-call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
+              call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
+post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
 
-
-postfix_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
-
-postfix_exp
+post_exp
   : primary_exp
-  | postfix_exp array_exp
+  | post_exp array_exp
     { $$ = new_array( $1, $2, get_pos(scanner)); }
-  | postfix_exp call_template call_paren
+  | post_exp call_template call_paren
     { $$ = new_exp_call( $1, $3, get_pos(scanner)); $$->d.exp_func.types = $2; }  ;
-  | postfix_exp DOT ID
+  | post_exp DOT ID
     { $$ = new_exp_dot( $1, $3, get_pos(scanner)); }
-  | postfix_exp postfix_op
-    { $$ = new_exp_postfix( $1, $2, get_pos(scanner)); }
+  | post_exp post_op
+    { $$ = new_exp_post( $1, $2, get_pos(scanner)); }
   ;
 
 primary_exp

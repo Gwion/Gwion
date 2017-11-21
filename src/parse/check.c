@@ -976,20 +976,20 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
   return NULL;
 }
 
-static Type check_exp_postfix(Env env, Exp_Postfix* postfix) {
-  Type ret, t = check_exp(env, postfix->exp);
-  struct Op_Import opi = { postfix->op, t, NULL, NULL, NULL, NULL, 0 };
+static Type check_exp_post(Env env, Exp_Postfix* post) {
+  Type ret, t = check_exp(env, post->exp);
+  struct Op_Import opi = { post->op, t, NULL, NULL, NULL, NULL, 0 };
   CHECK_OO(t)
-  if(postfix->exp->meta != ae_meta_var)
-    CHECK_BO(err_msg(TYPE_, postfix->exp->pos,
-                     "postfix operator '%s' cannot be used on non-mutable data-type...",
-                     op2str(postfix->op)))
-    postfix->exp->emit_var = 1;
-  postfix->self->meta = ae_meta_value;
+  if(post->exp->meta != ae_meta_var)
+    CHECK_BO(err_msg(TYPE_, post->exp->pos,
+                     "post operator '%s' cannot be used on non-mutable data-type...",
+                     op2str(post->op)))
+    post->exp->emit_var = 1;
+  post->self->meta = ae_meta_value;
   if(!(ret = get_return_type(env, &opi)))
-    err_msg(TYPE_, postfix->pos,
+    err_msg(TYPE_, post->pos,
             "no suitable resolutation for postfix operator '%s' on type '%s'...",
-            op2str(postfix->op), t->name);
+            op2str(post->op), t->name);
   return ret;
 }
 
@@ -1178,12 +1178,12 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   CHECK_BO(check_nspc(member, the_base))
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
-          	"keyword 'this' must be associated with object instance..."))
+          "keyword 'this' must be associated with object instance..."))
   CHECK_OO((value = get_dot_value(member, the_base)))
   if(GET_FLAG(value, ae_flag_private) &&
         (!env->class_def || isa(env->class_def, value->owner_class) < 0))
     CHECK_BO(err_msg(TYPE_,  member->pos,
-          	"can't access private '%s' outside of class...", value->name))
+          "can't access private '%s' outside of class...", value->name))
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->pos,
           "cannot access member '%s.%s' without object instance...",
@@ -1220,8 +1220,8 @@ static Type check_exp(Env env, Exp exp) {
       case ae_exp_binary:
         curr->type = check_exp_binary(env, &curr->d.exp_binary);
         break;
-      case ae_exp_postfix:
-        curr->type = check_exp_postfix(env, &curr->d.exp_postfix);
+      case ae_exp_post:
+        curr->type = check_exp_post(env, &curr->d.exp_post);
         break;
       case ae_exp_dur:
         curr->type = check_exp_dur(env, &curr->d.exp_dur);
@@ -1454,7 +1454,7 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
         env->class_def->info->class_data_size += SZ_INT;
         env->class_def->info->offset += SZ_INT;
       }
-      else  
+      else
         stmt->o = env->class_def->obj_size;
   }
   while(l) {

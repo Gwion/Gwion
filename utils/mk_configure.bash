@@ -81,7 +81,7 @@ config_init() {
   # ARG_HELP([The general script's help msg])
   # ARGBASH_GO
 
-  EOF
+EOF
 }
 
 config_prep() {
@@ -223,7 +223,7 @@ fi
   done
   key="double"
   printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)"
-  EOF
+EOF
 
   mk_header "add definitions"
   do_expand2 "$DEF"
@@ -245,103 +245,104 @@ fi
 
 make_recipe() {
   cat << _EOF
-  make_recipe() {
-    ###########
-    # recipes #
-    ###########
-    cat << EOF
+make_recipe() {
+###########
+# recipes #
+###########
+cat << EOF
 
-    # if any debug flag is set, we need -DDEBUG
-    ifeq (\\\$(findstring DEBUG,\\\$(CFLAGS)), DEBUG)
-    DEBUG = 1
-    endif
+# if any debug flag is set, we need -DDEBUG
+ifeq (\\\$(findstring DEBUG,\\\$(CFLAGS)), DEBUG)
+DEBUG = 1
+endif
 
-    ifeq (\\\${DEBUG}, 1)
-    CFLAGS+=-DDEBUG
-    endif
+ifeq (\\\${DEBUG}, 1)
+CFLAGS+=-DDEBUG
+endif
 
-    # config flags
-    CCFG="\\\${CFLAGS}"
-    LDCFG="\\\${LDFLAGS}"
-    # os specific
-    ifeq (\\\$(shell uname), Linux)
-    LDFLAGS+=-lrt
-    endif
+# config flags
+CCFG="\\\${CFLAGS}"
+LDCFG="\\\${LDFLAGS}"
+# os specific
+ifeq (\\\$(shell uname), Linux)
+LDFLAGS+=-lrt
+endif
 
-    # recipes
-    all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${util_obj} \\\${ugen_obj} \\\${drvr_obj}
-    @echo "link \\\${PRG}"
-    @\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+# recipes
+all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${util_obj} \\\${ugen_obj} \\\${drvr_obj}
+	@echo "link \\\${PRG}"
+	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
-    options:
-    @echo "CFLAGS  : \\\${CFLAGS}"
-    @echo "LDFLAGS : \\\${LDFLAGS}"
+options:
+	@echo "CFLAGS  : \\\${CFLAGS}"
+	@echo "LDFLAGS : \\\${LDFLAGS}"
 
-    clean:
-    @echo "cleaning..."
-    @rm -f */*/*.o */*/*.gcda */*/*.gcno \${PRG}
+clean:
+	@echo "cleaning..."
+	@rm -f */*.o */*/*.o */*/*.gcda */*/*.gcno \${PRG}
 
-    src/arg.o:
-    @echo "compile arg (with arguments defines)"
-    @\\\${CC} \\\${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
+src/arg.o:
+	@echo "compile arg (with arguments defines)"
+	@\\\${CC} \\\${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
 
-    .c.o:
-    @echo "compile \\\$(<:.c=)"
-    @\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
+.c.o:
+	@echo "compile \\\$(<:.c=)"
+	@\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
-    install: directories
-    cp \\\${PRG} \\\${PREFIX}
+install: directories
+	cp \\\${PRG} \\\${PREFIX}
 
-    uninstall:
-    rm \\\${PREFIX}/\\\${PRG}
+uninstall:
+	rm \\\${PREFIX}/\\\${PRG}
 
-    test:
-    @bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
+test:
+	@bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
 
-    parser:
-    \\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
+parser:
+	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
 
-    lexer:
-    \\\${LEX}  -o src/ast/lexer.c utils/gwion.l
+lexer:
+	\\\${LEX}  -o src/ast/lexer.c utils/gwion.l
 
-    gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-    \\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
-      src/util/map.o src/util/vector.o\
-      src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-      src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+	\\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
+		src/util/map.o src/util/vector.o\
+		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
+		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
-    gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-    \\\${CC} -o gwtag -DGWLINT -Iinclude utils/gwlint.c \
-      src/util/map.o src/util/vector.o\
-      src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-      src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+	\\\${CC} -o gwtag -DGWLINT -Iinclude utils/gwlint.c \
+		src/util/map.o src/util/vector.o\
+		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
+		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
-    directories:
-    mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
-    EOF
+directories:
+	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
+EOF
 
-    _EOF
-    echo "}"
+_EOF
+  echo "}"
   }
 
-  config_post() {
-    printf "config_check\nmake_handle\nmake_add\nmake_recipe\n# ] <-- needed because of Argbash"
-    sed -i "s/'\"\(.*\)\"'/'\1'/" configure
-    sed -i "s/\"\"\(.*\)\"\"/'\1'/" configure
-    grep -v '^\#' configure > configure.tmp
-    grep -v '^  \#' configure.tmp > configure
-    printf "%s\n%s\n" "#!/bin/bash" "$(cat configure)" > configure
-    chmod +x configure
-    rm configure.tmp
-  }
-  # ] <-- needed because of Argbash
+config_post() {
+  printf "config_check\nmake_handle\nmake_add\nmake_recipe\n# ] <-- needed because of Argbash"
+  sed -i "s/'\"\(.*\)\"'/'\1'/" configure
+  sed -i "s/\"\"\(.*\)\"\"/'\1'/" configure
+  grep -v '^\#' configure > configure.tmp
+  grep -v '^  \#' configure.tmp > configure
+  printf "%s\n%s\n" "#!/bin/bash" "$(cat configure)" > configure
+  chmod +x configure
+  rm configure.tmp
+}
+# ] <-- needed because of Argbash
 
-  config_init "$1" > configure.tmp
-  config_prep
-  exec 5<&1
-  exec >> configure
-  config_check
-  make_handle
-  make_add
-  make_recipe
-  config_post
+config_init "$1" > configure.tmp
+config_prep
+exec 5<&1
+exec >> configure
+config_check
+make_handle
+make_add
+make_recipe
+config_post
+

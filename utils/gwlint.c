@@ -230,9 +230,9 @@ static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
   lint_type_decl(linter, cast->type);
 }
 
-static void lint_exp_postfix(Linter* linter, Exp_Postfix* postfix) {
-  lint_exp(linter, postfix->exp);
-  lint_print(linter, "%s", op2str(postfix->op));
+static void lint_exp_post(Linter* linter, Exp_Postfix* post) {
+  lint_exp(linter, post->exp);
+  lint_print(linter, "%s", op2str(post->op));
 }
 
 static void lint_exp_dur(Linter* linter, Exp_Dur* dur) {
@@ -279,8 +279,8 @@ static void lint_exp(Linter* linter,  Exp exp) {
       case ae_exp_binary:
         lint_exp_binary(linter, &exp->d.exp_binary);
         break;
-      case ae_exp_postfix:
-        lint_exp_postfix(linter, &exp->d.exp_postfix);
+      case ae_exp_post:
+        lint_exp_post(linter, &exp->d.exp_post);
         break;
       case ae_exp_cast:
         lint_exp_cast(linter, &exp->d.exp_cast);

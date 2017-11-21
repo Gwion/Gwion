@@ -262,7 +262,7 @@ extern int gwion_debug;
 
 union YYSTYPE
 {
-#line 25 "utils/gwion.y" /* yacc.c:1909  */
+#line 23 "utils/gwion.y" /* yacc.c:1909  */
 
   char* sval;
   int ival;
@@ -279,11 +279,11 @@ union YYSTYPE
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
-  Decl_List decl_list; // for union
+  Decl_List decl_list;
   Func_Def func_def;
   Section* section;
   ID_List id_list;
-  Type_List type_list; // call template
+  Type_List type_list;
   Class_Body class_body;
   ID_List class_ext;
   Class_Def class_def;

@@ -252,7 +252,7 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     Var_Decl var_decl = new_var_decl(s_name(v->var.xid), v->var.array, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
     Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
-    Stmt stmt = new_stmt_expression(exp, 0);
+    Stmt stmt = new_stmt_exp(exp, 0);
     Stmt_List list = new_stmt_list(stmt, NULL, 0);
     Section* section = new_section_stmt_list(list, 0);
     Class_Body body = new_class_body(section, 0);
