@@ -173,7 +173,7 @@ test_gw(){
   local n file log ret
   n=$2
   file=$1
-   log=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n")
+  log=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n")
   slog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").std.log
   elog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").err.log
   vlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").valgrind.log
@@ -297,7 +297,7 @@ test_dir() {
       [ "$file" = "$1/*.sh" ] && continue
       local count
       count=$(grep "\[test\] #" "$file" | cut -d '#' -f 3)
-      [ $count -gt 0 ] && echo "## $file"
+      [ "$count" -gt 0 ] && echo "## $file"
       bash "$file" "$((n))"
       n=$((n+count))
     done
@@ -343,54 +343,54 @@ do_test() {
       async=$(echo "$arg" | cut -d '=' -f 2);
       [ "$async" -eq 1 ] && async=0
     elif [ "${arg:0:9}" = "severity=" ]
-	then if [ $(uname) == "Linux" ] # only use severity on linux
-	    then severity=$(echo "$arg" | cut -d '=' -f 2);
-    	fi
-	elif [ "${arg:0:9}" = "suppressions=" ]
-    then suppressions=$(echo "$arg" | cut -d '=' -f 2);
-      #		elif [ "${arg:0:9}" = "bailout=" ]
-      #		then bailout=$(echo "$arg" | cut -d '=' -f 2);
-    elif [ -f "$arg" ]
-    then
-      #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
-      if [ "${arg: -3}" = ".gw" ]
-      then test_gw "$arg" "$n_test"
-        n_test=$((n_test + 1))
-      elif [ "${arg: -3}" = ".sh" ]
-      then
-        local old_async=$async
-        async=0
-        local c
-        c=$(count_tests_sh "$arg")
-        [ $c -gt 0 ] && echo "## $arg"
-        bash "$arg" "$n_test"
-        n_test=$((n_test + c))
-        async=$old_async
-      fi
-    elif [ -d "$arg" ]
-    then
-      #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
-      [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
-      # make header
-      for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-      echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
-      for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-      echo -e "\n"
-      test_dir "$arg" "$n_test"
-      n_test=$((n_test + $(count_tests "$arg")))
+    then if [ "$(uname)" == "Linux" ] # only use severity on linux
+    then severity=$(echo "$arg" | cut -d '=' -f 2);
     fi
-  done
-  which bc > /dev/null && {
-	  local dt dd dt2 dh dt3 dm ds res2
-      res2=$(date +%s.%N)
-	  dt=$(echo "$res2 - $res1" | bc)
-	  dd=$(echo "$dt/86400" | bc)
-	  dt2=$(echo "$dt-86400*$dd" | bc)
-	  dh=$(echo "$dt2/3600" | bc)
-	  dt3=$(echo "$dt2-3600*$dh" | bc)
-	  dm=$(echo "$dt3/60" | bc)
-	  ds=$(echo "$dt3-60*$dm" | bc)
-	  printf "# Total runtime: %d:%02d:%02d:%s\n" "$dd" "$dh" "$dm" "$ds"
+  elif [ "${arg:0:9}" = "suppressions=" ]
+  then suppressions=$(echo "$arg" | cut -d '=' -f 2);
+    #		elif [ "${arg:0:9}" = "bailout=" ]
+    #		then bailout=$(echo "$arg" | cut -d '=' -f 2);
+  elif [ -f "$arg" ]
+  then
+    #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
+    if [ "${arg: -3}" = ".gw" ]
+    then test_gw "$arg" "$n_test"
+      n_test=$((n_test + 1))
+    elif [ "${arg: -3}" = ".sh" ]
+    then
+      local old_async=$async
+      async=0
+      local c
+      c=$(count_tests_sh "$arg")
+      [ "$c" -gt 0 ] && echo "## $arg"
+      bash "$arg" "$n_test"
+      n_test=$((n_test + c))
+      async=$old_async
+    fi
+  elif [ -d "$arg" ]
+  then
+    #			[ -f ${GWT_OUTDIR}/${GWT_PREFIX}bailout ] && exit 1
+    [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
+    # make header
+    for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+    echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
+    for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
+    echo -e "\n"
+    test_dir "$arg" "$n_test"
+    n_test=$((n_test + $(count_tests "$arg")))
+  fi
+done
+which bc > /dev/null && {
+local dt dd dt2 dh dt3 dm ds res2
+res2=$(date +%s.%N)
+dt=$(echo "$res2 - $res1" | bc)
+dd=$(echo "$dt/86400" | bc)
+dt2=$(echo "$dt-86400*$dd" | bc)
+dh=$(echo "$dt2/3600" | bc)
+dt3=$(echo "$dt2-3600*$dh" | bc)
+dm=$(echo "$dt3/60" | bc)
+ds=$(echo "$dt3-60*$dm" | bc)
+printf "# Total runtime: %d:%02d:%02d:%s\n" "$dd" "$dh" "$dm" "$ds"
   }
 }
 
@@ -425,16 +425,16 @@ consummer() {
       fi
       [ "${directive:1:4}" = "Todo" ] && todo=$((todo+1))
       [ "${directive:1:4}" = "Skip" ] && skip=$((skip+1))
-#    elif [ "${line:0:9}" = "Bail out!" ]
-#    then
-#      base=$(echo "$line" | cut -d "#" -f 1)
-#      directive=$(echo "$line" | cut -d "#" -f 2)
-#      total=$((win+failure+1))
-#      if [ "$directive" != "$base" ]
-#      then echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total# ${ANSI_BOLD}# $directive${ANSI_RESET}"
-#      else echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total"
-#      fi
-#      break
+      #    elif [ "${line:0:9}" = "Bail out!" ]
+      #    then
+      #      base=$(echo "$line" | cut -d "#" -f 1)
+      #      directive=$(echo "$line" | cut -d "#" -f 2)
+      #      total=$((win+failure+1))
+      #      if [ "$directive" != "$base" ]
+      #      then echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total# ${ANSI_BOLD}# $directive${ANSI_RESET}"
+      #      else echo -e "${ANSI_RED}${base}${ANSI_RESET} at test $total"
+      #      fi
+      #      break
     fi
     # ignore the rest
   done <&0
