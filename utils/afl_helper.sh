@@ -1,7 +1,7 @@
 #!/bin/sh
 
 remove_crash() {
-	rm "crashes/$1.gw" && reorder
+  rm "crashes/$1.gw" && reorder
 }
 
 
@@ -12,15 +12,15 @@ get_usable_results() {
   if [ "$dir" ]
   then
     for file in afl_out/*/"$dir"/*
-     do
+    do
       [ "$(basename "$file")" = "README.txt" ] && continue
       mv "$file" "$dir"/${count}.gw
       count=$((count+1))
     done
   else
-echo lol
+    echo lol
     for file in afl_out/crashes/*
-     do
+    do
       [ "$(basename "$file")" = "README.txt" ] && continue
       mv "$file" "crashes/${count}.gw"
       count=$((count+1))
@@ -31,21 +31,21 @@ echo lol
 reorder() {
   count=0;
   for file in crashes/*
-   do
+  do
     mv "$file" crashes/${count}.gw.old
     count=$((count+1))
   done
   count=0;
   for file in crashes/*
-   do
+  do
     mv "$file" crashes/${count}.gw
     count=$((count+1))
   done
 }
 
 launch() {
-	dvtm \
-	"nice -10 afl-fuzz -M 1 -i cmin -o afl_out ./gwion -a @@ -a"\
-	"nice -10 afl-fuzz -S 2 -i cmin -o afl_out ./gwion -a @@ -a"\
+  dvtm \
+    "nice -10 afl-fuzz -M 1 -i cmin -o afl_out ./gwion -a @@ -a"\
+    "nice -10 afl-fuzz -S 2 -i cmin -o afl_out ./gwion -a @@ -a"\
     "nice -10 afl-fuzz -S 3 -i cmin -o afl_out ./gwion -a @@ -a"
 }
