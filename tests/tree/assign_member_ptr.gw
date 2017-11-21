@@ -1,11 +1,3 @@
-/*
-typedef void (Test)();
-<<<Test>>>;
-Test t;
-<<<t>>>;
-<<<t>>>;
-*/
-
 class C
 {
 	typedef void (Test)();
