@@ -87,6 +87,8 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
 }
 
 static void lint_type_decl(Linter* linter, Type_Decl* type) {
+  if(GET_FLAG(type, ae_flag_private))
+    lint_print(linter, "private ");
   if(GET_FLAG(type, ae_flag_static))
     lint_print(linter, "static ");
   if(type->xid->ref) {
@@ -216,6 +218,7 @@ static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
       break;
   }
 }
+
 static void lint_exp_array(Linter* linter, Exp_Array* array) {
   lint_exp(linter, array->base);
   lint_exp(linter, array->indices->exp_list);
@@ -223,6 +226,8 @@ static void lint_exp_array(Linter* linter, Exp_Array* array) {
 
 static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
   lint_exp(linter, cast->exp);
+  lint_print(linter, "$ ");
+  lint_type_decl(linter, cast->type);
 }
 
 static void lint_exp_postfix(Linter* linter, Exp_Postfix* postfix) {
@@ -325,7 +330,7 @@ static void lint_stmt_return(Linter* linter, Stmt_Return stmt) {
   lint_print(linter, ";\n");
 }
 
-static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, m_str str) {
+static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str str) {
   if(!stmt->is_do) {
     lint_print(linter, "%s(", str);
     lint_exp(linter, stmt->cond);
@@ -437,6 +442,10 @@ void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
 
 void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   Decl_List l = stmt->l;
+  if(GET_FLAG(stmt, ae_flag_private))
+    lint_print(linter, "private ");
+  if(GET_FLAG(stmt, ae_flag_static))
+    lint_print(linter, "static ");
   lint_print(linter, "union {\n");
   linter->indent++;
   while(l) {
@@ -450,7 +459,10 @@ void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
 }
 
 void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
-  lint_print(linter, "goto;\n");
+  if(stmt->is_label)
+    lint_print(linter, "%s:\n", s_name(stmt->name));
+  else
+    lint_print(linter, "goto %s;\n", s_name(stmt->name));
 }
 
 void lint_stmt_continue(Linter* linter, Stmt_Continue stmt) {
