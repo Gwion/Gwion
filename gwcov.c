@@ -11,12 +11,12 @@ typedef struct {
   unsigned int set;
   unsigned int ini;
   unsigned int end;
-} Line; 
+} Line;
 static int last, max_exec;
 static Line* lines;
 
 static void da(char* base) {
-  int line_count = 64; 
+  int line_count = 64;
   int curr_line;
   char c[8];
   char filename[strlen(base) + 3];
@@ -41,7 +41,7 @@ static void da(char* base) {
         else if(errno != 0) {
           perror("scanf:");
           break;
-        } 
+        }
         else if(ret == EOF) {
             break;
         } else {
@@ -58,7 +58,7 @@ void cov(char* base) {
   int curr_line;
   char c[8];
   FILE* fp;
-  
+
   sprintf(filename, "%scov", base);
   fp = fopen(filename, "r");
   if(!fp) // err msg
@@ -76,7 +76,7 @@ void cov(char* base) {
     else if(errno != 0) {
       perror("scanf:");
       break;
-    } 
+    }
     else if(ret == EOF) {
         break;
     } else {
@@ -94,7 +94,7 @@ void diagnostic(char* filename){
     int line_count = 1;
     int max_line_digit = last ? floor(log10(last) + 1) : 1;
     int max_exec_digit = last ? floor(log10(max_exec) + 1) : 1;
-    
+
         struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
