@@ -50,8 +50,6 @@ struct Array_Sub_ {
   m_uint depth;
   Exp exp_list;
   Type type;
-  int err_num;
-  int err_pos;
   int pos;
 };
 Array_Sub new_array_sub(Exp exp, int pos);
@@ -395,6 +393,8 @@ struct Stmt_Ptr_ {
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
+  S_Symbol xid;
+  Value value;
   m_uint s;
   m_uint o;
   int pos;

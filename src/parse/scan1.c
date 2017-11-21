@@ -78,7 +78,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     decl->num_decl++;
     if(var_decl->array) {
       Type t2 = t;
-      CHECK_BB(verify_array(var_decl->array))
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
       t = new_array_type(env, list->self->array->depth, t2, env->curr);
@@ -126,7 +125,6 @@ static  m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
 }
 
 static m_bool scan1_exp_array(Env env, Exp_Array* array) {
-  CHECK_BB(verify_array(array->indices))
   CHECK_BB(scan1_exp(env, array->base))
   CHECK_BB(scan1_exp(env, array->indices->exp_list))
   return 1;
@@ -301,7 +299,7 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   m_uint count = 1;
   CHECK_BB(check_enum_xid(env, stmt))
-  t = type_copy(env, &t_int);
+  t = type_copy(&t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = &t_int;
   nspc_add_type(env->curr, stmt->xid, t);
@@ -355,7 +353,6 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan1_stmt_union_array(Array_Sub array) {
-  CHECK_BB(verify_array(array))
   if(array->exp_list)
     CHECK_BB(err_msg(SCAN1_, array->pos,
       "array declaration must be empty in union."))
@@ -364,7 +361,21 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
 
 m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-
+  if(stmt->xid) {
+    m_str name = s_name(stmt->xid);
+    Type t = type_copy(&t_union);
+    t->name = name;
+    t->info = new_nspc(name, "[union declarator]");
+    t->info->parent = env->curr;
+    stmt->value = new_value(t, name);
+    stmt->value->owner_class = env->class_def;
+    stmt->value->owner = env->curr;
+    nspc_add_value(env->curr, stmt->xid, stmt->value);
+    SET_FLAG(stmt->value, ae_flag_checked);
+    if(env->class_def) // TODO: enable static
+      SET_FLAG(stmt->value, ae_flag_member);
+    env_push_class(env, stmt->value->m_type);
+  }
   while(l) {
     Var_Decl_List list = l->self->d.exp_decl.list;
 
@@ -380,6 +391,8 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 
@@ -448,7 +461,6 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
   Type t = NULL;
   Type t2 = f->ret_type;
 
-  CHECK_BB(verify_array(f->type_decl->array))
   if(f->type_decl->array->exp_list)
     CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
       "in function '%s':\n\treturn array type must be defined with empty []'s",

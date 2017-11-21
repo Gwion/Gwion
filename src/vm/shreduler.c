@@ -51,10 +51,16 @@ static void shreduler_child(Shreduler s, Vector v) {
   m_uint i, size = vector_size(v);
   for(i = 0; i < size; i++) {
     VM_Shred child = (VM_Shred)vector_front(v);
+    if(child->prev)
+      child->prev->next = child->next;
+    if(child->next)
+      child->next->prev = child->prev;
     child->prev = child->next = NULL;
     child->wait = NULL;
     if(child == s->list) // 09/03/17
       s->list = NULL;
+    else if(s->list && (child == s->list->next)) // 09/03/17
+      s->list->next = child->next;
     shreduler_remove(s, child, 1);
   }
 }

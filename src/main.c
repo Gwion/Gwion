@@ -96,8 +96,10 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(vm->emit = new_emitter(env)))
     goto clean;
+#ifdef GWCOV
   if(arg.coverage)
     vm->emit->coverage = 1;
+#endif
   srand(time(NULL));
 
   for(i = 0; i < vector_size(&arg.add); i++)

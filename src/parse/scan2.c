@@ -61,7 +61,6 @@ static m_bool scan2_arg_def_check(Arg_List list) {
 }
 
 static m_bool scan2_arg_def_array(Env env, Arg_List list) {
-  CHECK_BB(verify_array(list->var_decl->array))
   if(list->var_decl->array->exp_list)
     CHECK_BB(err_msg(SCAN2_, list->pos,
           "\t'%s': function arguments must be defined with empty []'s",
@@ -196,6 +195,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
+    value->func_ref->def->flag &= ~ae_flag_template;
     while(tld) {
       if(!tlc)
         break;
@@ -207,6 +207,8 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     if(!tlc && !tld)
       match = 1;
   }
+  if(match)
+    SET_FLAG(v, ae_flag_template);
   return match;
 }
 
@@ -222,20 +224,22 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-function value."))
       Func_Def base = v->func_ref->def;
+      base->flag &= ~ae_flag_template;
       if(!base->types)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-template function."))
       Type_List list = exp_func->types;
       while(list) {
-        Type t = find_type(env, list->list);
-        if(!t)
+        if(!find_type(env, list->list)) {
           CHECK_BB(err_msg(SCAN1_, exp_func->pos,
                 "type '%s' unknown in template call", s_name(list->list->xid)))
-          list = list->next;
+        }
+        list = list->next;
       }
       if(scan2_template_match(env, v, exp_func->types) < 0)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template type number mismatch."))
+      SET_FLAG(base, ae_flag_template);
       return 1;
     } else if(exp_func->func->exp_type == ae_exp_dot) {
       return 1;      // see type.c
@@ -405,10 +409,14 @@ m_bool scan2_stmt_enum(Env env, Stmt_Enum stmt) {
 
 m_bool scan2_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
+  if(stmt->xid)
+    env_push_class(env, stmt->value->m_type);
   while(l) {
     CHECK_BB(scan2_exp(env, l->self))
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 
@@ -496,6 +504,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
   m_str func_name = s_name(f->name);
   Func func = new_func(func_name, f);
   Value value;
+  Type type;
   m_uint len = strlen(func_name) +
     num_digit(overload ? overload->func_num_overloads + 1 : 0) +
     strlen(env->curr->name) + 13;
@@ -505,12 +514,16 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     func->next = overload->func_ref->next;
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  value = new_value(&t_function, func_name);
+  type = type_copy(&t_function);
+  type->name = func_name;
+  type->owner = env->curr;
+  value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
   if(overload)
     overload->func_num_overloads++;
   else {
+    ADD_REF(type);
     ADD_REF(value);
     ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
@@ -556,11 +569,7 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
   Func func = value->func_ref;
 
   SET_FLAG(value, ae_flag_checked);
-  nspc_add_func(env->curr, insert_symbol(func->name), func);
-  if(!overload)
-    nspc_add_value(env->curr, value->func_ref->def->name, value);
-  else {
-    nspc_add_value(env->curr, insert_symbol(func->name), value);
+  if(overload) {
     if(overload->func_ref->def->ret_type)
       if(!GET_FLAG(func->def, ae_flag_template))
         if(func->def->ret_type->xid != overload->func_ref->def->ret_type->xid) {
@@ -614,6 +623,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 
   func_name = s_name(insert_symbol(name));
   func = new_func(func_name, f);
+  nspc_add_func(env->curr, insert_symbol(func->name), func);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
@@ -624,6 +634,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     type->size += SZ_INT;
   type->d.func = func;
   value = new_value(type, func_name);
+  nspc_add_value(env->curr, !overload ?
+      f->name : insert_symbol(func->name), value);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   scan2_func_def_flag(env, f);
   if(overload) {

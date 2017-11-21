@@ -220,6 +220,8 @@ EOF
     [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\$(to_upper "\$key")"
     [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\$(to_upper "\$key")"
     [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\$(to_upper "\$key")"
+    [ "\$key" = "gwcov"    ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -DGWCOV\nendif\n" "\$(to_upper "\$key")"
+    [ "\$key" = "gwcov"    ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DGWCOV\nendif\n" "\$(to_upper "\$key")"
   done
   key="double"
   printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)"
@@ -274,7 +276,7 @@ all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit
 	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 gwcov:
-	@cc -lm utils/gwcov.c -o gwcov
+	@cc utils/gwcov.c -lm -o gwcov
 
 options:
 	@echo "CFLAGS  : \\\${CFLAGS}"
@@ -299,13 +301,19 @@ uninstall:
 	rm \\\${PREFIX}/\\\${PRG}
 
 test:
-	@bash utils/test.sh severity=11 examples severity=10 tests/error tests/tree tests/sh tests/ugen_coverage test/bug
+	@bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
 
 parser:
 	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
 
 lexer:
 	\\\${LEX}  -o src/ast/lexer.c utils/gwion.l
+
+gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+	\\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
+		src/util/map.o src/util/vector.o\
+		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
+		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
 directories:
 	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}

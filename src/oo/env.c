@@ -84,7 +84,7 @@ m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data
 }
 
 m_bool env_add_type(Env env, Type type) {
-  Type v_type = type_copy(env, &t_class);
+  Type v_type = type_copy(&t_class);
   v_type->d.actual_type = type;
   INIT_OO(type, e_type_obj);
   SET_FLAG(type, ae_flag_builtin);

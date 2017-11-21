@@ -8,6 +8,22 @@
 #include "func.h"
 #include "traverse.h"
 
+#ifdef GWCOV
+#define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
+#else
+#define COVERAGE(a)
+#endif
+
+#ifdef GWCOV
+static void coverage(Emitter emit, m_uint pos) {
+  Instr cov;
+
+  fprintf(emit->cov_file, "%li ini\n", pos);
+  cov = emitter_add_instr(emit, InstrCoverage);
+  cov->m_val = pos;
+}
+#endif
+
 typedef struct {
   m_uint size;
   m_uint offset;
@@ -590,6 +606,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)
     CHECK_BB(env_pop_class(emit->env))
+  exp_func->m_func->flag &= ~ae_flag_checked;
   return 1;
 }
 
@@ -609,8 +626,8 @@ static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
     v = find_value(t, rhs->d.exp_dot.xid);
-    if(!GET_FLAG(rhs->d.exp_primary.value, ae_flag_member) &&
-          GET_FLAG(rhs->d.exp_primary.value->m_type, ae_flag_builtin)) {
+    if(!GET_FLAG(v, ae_flag_member) &&
+          GET_FLAG(v->m_type, ae_flag_builtin)) {
       instr->m_val = 3;
       *(Type*)instr->ptr = t;
     } else 
@@ -832,7 +849,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code = new_code();
   CHECK_OB(emitter_add_instr(emit, start_gc))
   emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
-  emit->code->name = strdup("spork~exp");
+  char c[11 + num_digit(exp->pos)];
+  sprintf(c, "spork~exp:%i\n", exp->pos);
+  emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->ret_type, exp->pos))
@@ -866,7 +885,9 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
     SET_FLAG(f, ae_flag_member);
     emit->code->need_this = 1;
   }
-  emit->code->name = strdup("spork~code");
+  char c[12 + num_digit(stmt->pos)];
+  sprintf(c, "spork~code:%i\n", stmt->pos);
+  emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   emit_push_scope(emit);
@@ -987,6 +1008,7 @@ static m_bool emit_stmt_if(Emitter emit, Stmt_If stmt) {
 
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
+  COVERAGE(stmt->cond)
   CHECK_OB((op = emit_flow(emit, isa(stmt->cond->type, &t_object) > 0 ? &t_int : stmt->cond->type,
                            Branch_Eq_Int, Branch_Eq_Float)))
   emit_push_scope(emit);
@@ -1070,6 +1092,7 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   emit_push_scope(emit);
   emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
+  COVERAGE(stmt->cond)
   CHECK_OB((op = emit_flow(emit, stmt->cond->type, Branch_Eq_Int, Branch_Eq_Float)))
 
   emit_push_scope(emit);
@@ -1287,16 +1310,14 @@ static m_bool primary_case(Exp_Primary* prim, m_int* value) {
 static m_int get_case_value(Stmt_Case stmt, m_int* value) {
   if(stmt->val->exp_type == ae_exp_primary)
     CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
-  else if(stmt->val->exp_type == ae_exp_dot) {
+  else {
     Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
         stmt->val->d.exp_dot.t_base->d.actual_type :
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
       t->info->class_data[v->offset] : (m_uint)v->ptr : *(m_uint*)v->ptr;
-  } else
-    CHECK_BB(err_msg(EMIT_, stmt->pos,
-          "unhandled expression type '%i'", stmt->val->exp_type))
+  }
   return 1;
 }
 
@@ -1335,7 +1356,22 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
-  if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
+  if(stmt->xid) {
+    Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
+        /*(flag & ae_flag_ref) == ae_flag_ref, 0);*/
+        0, emit->env->class_def ? ae_flag_member : 0);
+    Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
+    Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+    Exp exp = new_exp_decl(type_decl, var_decl_list, 0, 0);
+    exp->d.exp_decl.m_type = stmt->value->m_type;
+    var_decl->value = stmt->value;
+    CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
+    if(!emit->env->class_def)
+      ADD_REF(stmt->value);
+    free_expression(exp);
+    env_push_class(emit->env, stmt->value->m_type);
+  }
+  else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
     m_int offset = emit_alloc_local(emit, stmt->s, 1 << 1);
     CHECK_BB(offset)
     stmt->o = offset;
@@ -1348,6 +1384,11 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
       var_list = var_list->next;
     }
     l = l->next;
+  }
+  if(stmt->xid) {
+    Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
+    instr->m_val = SZ_INT;
+    env_pop_class(emit->env);
   }
   return 1;
 }
@@ -1372,72 +1413,62 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
 }
 
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
-  m_bool ret = 1;
   if(!stmt)
     return 1;
-  if(emit->coverage) {
-    fprintf(emit->cov_file, "%i ini\n", stmt->pos);
-    Instr cov = emitter_add_instr(emit, InstrCoverage);
-    cov->m_val = stmt->pos;
-  }
+  if(stmt->type != ae_stmt_if || stmt->type != ae_stmt_while)
+    COVERAGE(stmt)
   switch(stmt->type) {
     case ae_stmt_exp:
-      ret = emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
+      return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
       break;
     case ae_stmt_code:
-      ret = emit_stmt_code(emit, &stmt->d.stmt_code, 1);
+      return emit_stmt_code(emit, &stmt->d.stmt_code, 1);
       break;
     case ae_stmt_if:
-      ret = emit_stmt_if(emit, &stmt->d.stmt_if);
+      return emit_stmt_if(emit, &stmt->d.stmt_if);
       break;
     case ae_stmt_return:
-      ret = emit_stmt_return(emit, &stmt->d.stmt_return);
+      return emit_stmt_return(emit, &stmt->d.stmt_return);
       break;
     case ae_stmt_break:
-      ret = emit_stmt_break(emit, &stmt->d.stmt_break);
+      return emit_stmt_break(emit, &stmt->d.stmt_break);
       break;
     case ae_stmt_continue:
-      ret = emit_stmt_continue(emit, &stmt->d.stmt_continue);
+      return emit_stmt_continue(emit, &stmt->d.stmt_continue);
       break;
     case ae_stmt_while:
-      ret = stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
+      return stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
             emit_stmt_while(emit, &stmt->d.stmt_while);
       break;
     case ae_stmt_until:
-      ret = stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
+      return stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
             emit_stmt_until(emit, &stmt->d.stmt_until);
       break;
     case ae_stmt_for:
-      ret = emit_stmt_for(emit, &stmt->d.stmt_for);
+      return emit_stmt_for(emit, &stmt->d.stmt_for);
       break;
     case ae_stmt_loop:
-      ret = emit_stmt_loop(emit, &stmt->d.stmt_loop);
+      return emit_stmt_loop(emit, &stmt->d.stmt_loop);
       break;
     case ae_stmt_gotolabel:
-      ret = emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
+      return emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
       break;
     case ae_stmt_case:
-      ret = emit_stmt_case(emit, &stmt->d.stmt_case);
+      return emit_stmt_case(emit, &stmt->d.stmt_case);
       break;
     case ae_stmt_enum:
-      ret = emit_stmt_enum(emit, &stmt->d.stmt_enum);
+      return emit_stmt_enum(emit, &stmt->d.stmt_enum);
       break;
     case ae_stmt_switch:
-      ret = emit_stmt_switch(emit, &stmt->d.stmt_switch);
+      return emit_stmt_switch(emit, &stmt->d.stmt_switch);
       break;
     case ae_stmt_funcptr:
-      ret = emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
+      return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_union:
-      ret = emit_stmt_union(emit, &stmt->d.stmt_union);
+      return emit_stmt_union(emit, &stmt->d.stmt_union);
   }
-  if(emit->coverage && (stmt->type != ae_stmt_if)) {  
-    fprintf(emit->cov_file, "%i end\n", stmt->pos);
-    Instr cov = emitter_add_instr(emit, InstrCoverage);
-    cov->m_val  = stmt->pos;
-    cov->m_val2 = 1;
-  }
-  return ret;
+  return 1;
 }
 
 static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
@@ -1470,8 +1501,8 @@ static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_add
       func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
       func_i->m_val = (m_uint)v->ptr;
       func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
-      *(m_uint*)func_i->ptr = emit_addr; 
-    } 
+      *(m_uint*)func_i->ptr = emit_addr;
+    }
   } else { // from code
     Instr push_i = emitter_add_instr(emit, Reg_PushImm);
     func_i = emitter_add_instr(emit, Dot_Static_Data);
@@ -1865,16 +1896,18 @@ static m_bool emit_ast_inner(Emitter emit, Ast ast) {
     ast = ast->next;
    }
   return 1;
-} 
+}
 
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret;
   emit->filename = filename;
+#ifdef GWCOV
   if(emit->coverage) {
     char cov_filename[strlen(filename) + 3];
     sprintf(cov_filename, "%sda", filename);
     emit->cov_file = fopen(cov_filename, "a");
   }
+#endif
   emit->code = new_code();
   vector_clear(&emit->stack);
   emit_push_scope(emit);
@@ -1891,7 +1924,9 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     free(filename);
     free_ast(ast);
   }
+#ifdef GWCOV
   if(emit->coverage)
     fclose(emit->cov_file);
+#endif
   return ret;
 }

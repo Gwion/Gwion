@@ -195,6 +195,7 @@ INSTR(Cast_f2i) {
 static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
+  sh->filename = strdup(shred->filename);
   if(!shred->child.ptr)
     vector_init(&shred->child);
   vector_add(&shred->child, (vtype)sh);
@@ -236,6 +237,16 @@ INSTR(Spork) {
   PUSH_REG(shred,  SZ_INT);
   if(instr->m_val2)
     ADD_REF(code)
+  else {
+    VM_Shred parent = shred;
+    while(parent->parent)
+      parent = parent->parent;
+    if(!parent->sporks.ptr)
+      vector_init(&parent->sporks);
+    else if(vector_find(&parent->sporks, (vtype)code) != -1)
+      return;
+    vector_add(&parent->sporks, (vtype)code);
+  }
 }
 
 // LCOV_EXCL_START
@@ -495,8 +506,8 @@ INSTR(stop_gc) {
 }
 
 INSTR(InstrCoverage) {
-  char c[strlen(shred->filename) + 4];
-  sprintf(c, "%scov", shred->filename);
+  char c[(shred->filename ? strlen(shred->filename) : 6) + 4];
+  sprintf(c, "%scov", shred->filename ? shred->filename : "gwion.");
   FILE* file = fopen(c, "a");
   fprintf(file, "%lu %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
   fclose(file);

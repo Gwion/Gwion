@@ -6,76 +6,81 @@
 #define MAP_CAP 4
 #define OFFSET 2
 
+#define LEN(v)    (v)->ptr[0]
+#define CAP(v)    (v)->ptr[1]
+#define KEY(v, i) (v)->ptr[OFFSET + (i) * 2]
+#define VAL(v, i) (v)->ptr[OFFSET + (i) * 2 + 1]
+
 void map_clear(Map v) {
-  v->ptr = realloc(v->ptr, (v->ptr[1] = MAP_CAP) * sizeof(vtype));
-  v->ptr[0] = 0;
+  v->ptr = realloc(v->ptr, (CAP(v) = MAP_CAP) * SZ_INT);
+  LEN(v) = 0;
 }
 
 Map new_map() {
   Map map  = malloc(sizeof(struct Map_));
-  map->ptr = calloc(MAP_CAP, sizeof(vtype));
-  map->ptr[1] = MAP_CAP;
+  map->ptr = calloc(MAP_CAP, SZ_INT);
+  CAP(map) = MAP_CAP;
   return map;
 }
 
 void map_init(Map a) {
-  a->ptr = calloc(MAP_CAP, sizeof(vtype));
-  a->ptr[1] = MAP_CAP;
+  a->ptr = calloc(MAP_CAP, SZ_INT);
+  CAP(a) = MAP_CAP;
 }
 
-vtype map_get(Map map, vtype key) {
+vtype map_get(const Map map, const vtype key) {
   vtype i;
-  for(i = map->ptr[0] + 1; --i;)
-    if(map->ptr[OFFSET + (i - 1) * 2] == key)
-      return map->ptr[OFFSET + (i - 1) * 2 + 1];
+  for(i = LEN(map) + 1; --i;)
+    if(KEY(map, i - 1) == key)
+      return VAL(map, i - 1);
   return 0;
 }
 
-vtype map_at(Map map, const vtype index) {
-  if(index > map->ptr[0])
+vtype map_at(const Map map, const vtype index) {
+  if(index > LEN(map))
     return 0;
-  return map->ptr[OFFSET + index * 2 + 1];
+  return VAL(map, index);
 }
 
-void map_set(Map map, vtype key, vtype ptr) {
+void map_set(Map map, const vtype key, const vtype ptr) {
   vtype i;
-  for(i = 0; i < map->ptr[0]; i++) {
-    if(map->ptr[OFFSET + i * 2] == key) {
-      map->ptr[OFFSET + i * 2 + 1] = ptr;
+  for(i = 0; i < LEN(map); i++) {
+    if(KEY(map, i) == key) {
+      VAL(map, i) = ptr;
       return;
     }
   }
-  if((OFFSET + map->ptr[0] * 2 + 1) > map->ptr[1]) {
-    map->ptr[1] *= 2;
-    map->ptr = realloc(map->ptr, map->ptr[1] * sizeof(vtype));
+  if((OFFSET + LEN(map) * 2 + 1) > CAP(map)) {
+    CAP(map) *= 2;
+    map->ptr = realloc(map->ptr, CAP(map) * SZ_INT);
   }
-  map->ptr[OFFSET + map->ptr[0] * 2] = key;
-  map->ptr[OFFSET + map->ptr[0] * 2 + 1] = ptr;
-  map->ptr[0]++;
-}
+  KEY(map, LEN(map)) = key;
+  VAL(map, LEN(map)) = ptr;
+  LEN(map)++;
+} 
 
-void map_remove(Map map, vtype key) {
+void map_remove(Map map, const vtype key) {
   vtype i;
   struct Map_ tmp;
   map_init(&tmp);
-  for(i = 0; i < map->ptr[0]; i++)
-    if(map->ptr[OFFSET + i * 2] != key)
-      map_set(&tmp, key, map->ptr[OFFSET + i * 2 + 1]);
+  for(i = 0; i < LEN(map); i++)
+    if(KEY(map, i) != key)
+      map_set(&tmp, key, VAL(map, i));
   free(map->ptr);
   map->ptr = tmp.ptr;
-  map->ptr[0] = tmp.ptr[0];
-  map->ptr[1] = tmp.ptr[1];
-}
+  LEN(map) = LEN(&tmp);
+  CAP(map) = CAP(&tmp);
+} 
 
-void map_commit(Map map, Map commit) {
+void map_commit(Map map, const Map commit) {
   vtype i;
-  for(i = 0; i < commit->ptr[0]; i++)
-    map_set(map, commit->ptr[OFFSET + i * 2], commit->ptr[OFFSET + i * 2 + 1]);
-}
+  for(i = 0; i < LEN(commit); i++)
+    map_set(map, KEY(commit, i), VAL(commit, i));
+} 
 
-vtype map_size(Map map) {
-  return map->ptr[0];
-}
+vtype map_size(const Map map) {
+  return LEN(map);
+} 
 
 void free_map(Map map) {
   free(map->ptr);

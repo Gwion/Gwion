@@ -20,11 +20,9 @@ vtype scope_lookup1(Scope scope, S_Symbol xid) {
   for(i = vector_size(&scope->vector) + 1; --i;) {
     Map map = (Map)vector_at(&scope->vector, i - 1);
     if((ret = map_get(map, (vtype)xid)))
-      break;
-   }
-  if(!ret)
-    ret = map_get(&scope->commit_map, (vtype)xid);
-  return ret;
+      return ret;
+  }
+  return map_get(&scope->commit_map, (vtype)xid);
 }
 
 vtype scope_lookup2(Scope scope, S_Symbol xid) {

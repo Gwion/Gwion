@@ -12,19 +12,12 @@ typedef struct {
 } M_Operator;
 
 static void free_op(M_Operator* a) {
-  if(a->func && a->func->def) {
-//    REM_REF(a->func);
-    REM_REF(a->func->value_ref->m_type);
-    REM_REF(a->func->value_ref);
-    REM_REF(a->func);
-//    free_func_def(a->func->def);
-  }
   if(a->lhs)
     REM_REF(a->lhs)
-    if(a->rhs)
-      REM_REF(a->rhs)
-      REM_REF(a->ret)
-      free(a);
+  if(a->rhs)
+    REM_REF(a->rhs)
+  REM_REF(a->ret)
+  free(a);
 }
 
 void free_op_map(Map map) {

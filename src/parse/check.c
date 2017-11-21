@@ -20,6 +20,7 @@ struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
 struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
 struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
 struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
+struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
 
 static m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
@@ -132,7 +133,6 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
 static Type check_exp_prim_array(Env env, Array_Sub array) {
   Exp e;
 
-  CHECK_BO(verify_array(array))
   if(!(e = array->exp_list))
     CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
@@ -367,7 +367,7 @@ Type check_exp_array(Env env, Exp_Array* array) {
   if(depth == t_base->array_depth)
     t = array->base->type->d.array_type;
   else {
-    t = type_copy(env, array->base->type);
+    t = type_copy(array->base->type);
     t->array_depth -= depth;
   }
   return t;
@@ -498,25 +498,32 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   if(v->owner_class)
     CHECK_BO(template_set_env(env, v))
   for(i = 0; i < v->func_num_overloads + 1; i++) {
+    Func_Def def = NULL;
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
     value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name));
-    if(!value)
-      CHECK_BO(err_msg(TYPE_, func->pos, "unknown argument in template  call."))
+    if(!value) // should be continue, for sure
+      CHECK_BO(err_msg(TYPE_, func->pos,
+            " %s unknown argument in template  call.", name))
     base = value->func_ref->def;
-    Func_Def def = new_func_def(base->flag,
-                                base->type_decl, s_name(func->d.exp_primary.d.var),
-                                base->arg_list, base->code, func->pos);
+    base->flag &= ~ae_flag_template;
+    def = new_func_def(base->flag,
+                base->type_decl, s_name(func->d.exp_primary.d.var),
+                base->arg_list, base->code, func->pos);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->types, types))
     if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
+    Func next = def->d.func->next;
     def->d.func->next = NULL;
     m_func = find_func_match(def->d.func, args);
+    def->d.func->next = next;
     if(m_func) {
       if(v->owner_class)
         env_pop_class(env);
+      SET_FLAG(base, ae_flag_template);
+      SET_FLAG(m_func, ae_flag_checked);
       SET_FLAG(m_func, ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
@@ -577,14 +584,21 @@ static void* function_alternative(Type f, Exp args){
 }
 
 static Value get_template_value(Env env, Exp exp_func) {
+  Value v = NULL;
   if(exp_func->exp_type == ae_exp_primary)
-    return nspc_lookup_value1(env->curr, exp_func->d.exp_primary.d.var);
+    v = nspc_lookup_value1(env->curr, exp_func->d.exp_primary.d.var);
   else if(exp_func->exp_type == ae_exp_dot)
-    return find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
-  CHECK_BO(err_msg(TYPE_, exp_func->pos,
+    v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
+  if(v)
+    v->func_ref->def->flag &= ~ae_flag_template;
+  else {
+    v = nspc_lookup_value1(exp_func->type->owner, insert_symbol("test"));
+    v->func_ref->def->flag &= ~ae_flag_template;
+    CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%lu\' in template call.",
       exp_func->exp_type))
-    return NULL;
+  }
+  return v;
 }
 
 static m_uint get_type_number(ID_List list) {
@@ -612,7 +626,6 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   m_uint type_number, args_number = 0;
   Value value;
   ID_List list;
-
   CHECK_OO((value = get_template_value(env, exp_func)))
   type_number = get_type_number(value->func_ref->def->types);
 
@@ -813,11 +826,15 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
                      "...(reason: --- right-side operand is not mutable)",
                      "=>", cl->type->name, cr->type->name))
   }
-  if(cl->type != &t_null && cl->type->array_depth != cr->type->array_depth)
+  if(cl->type != &t_null && cl->type->array_depth != cr->type->array_depth) {
+    REM_REF(cl->type)
     CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
+  }
   if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-    if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0)
+    if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0) {
+      REM_REF(cl->type)
       CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
+    }
       cr->emit_var = 1;
     return 1;
   }
@@ -1074,7 +1091,6 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
           if(!(t = find_type(env, unary->type->xid)))
             CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
             if(unary->array) {
-              CHECK_BO(verify_array(unary->array))
               CHECK_OO(check_exp(env, unary->array->exp_list))
               CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
               t = new_array_type(env, unary->array->depth, t, env->curr);
@@ -1384,6 +1400,10 @@ static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
 }
 
 static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
+  if(stmt->val->exp_type  != ae_exp_primary &&
+      stmt->val->exp_type != ae_exp_dot)
+    CHECK_BB(err_msg(TYPE_, stmt->pos,
+          "unhandled expression type '%i'", stmt->val->exp_type))
   Type t = check_exp(env, stmt->val);
   if(!t || t->xid !=  te_int)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
@@ -1417,7 +1437,13 @@ static m_bool check_stmt_gotolabel(Env env, Stmt_Goto_Label stmt) {
 
 m_bool check_stmt_union(Env env, Stmt_Union stmt) {
   Decl_List l = stmt->l;
-  if(env->class_def)  {
+  if(stmt->xid) {
+    if(env->class_def) {
+      stmt->value->offset = env->curr->offset;
+      env->curr->offset += SZ_INT;
+    }
+    env_push_class(env, stmt->value->m_type);
+  } else if(env->class_def)  {
     stmt->o = env->class_def->obj_size;
   }
   while(l) {
@@ -1428,6 +1454,8 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
       stmt->s = l->self->type->size;
     l = l->next;
   }
+  if(stmt->xid)
+    env_pop_class(env);
   return 1;
 }
 

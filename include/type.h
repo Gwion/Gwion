@@ -32,7 +32,7 @@ struct Type_ {
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str str);
 Type new_type(te_type xid, m_str name, Type parent);
-Type type_copy(Env env, Type type);
+Type type_copy(Type type);
 Env type_engine_init(VM* vm, Vector plug_dirs);
 /***
   UTILS
@@ -44,7 +44,6 @@ Type find_type(Env env, ID_List list);
 m_bool isprim(Type type);
 m_bool isa(Type var, Type parent);
 m_bool isres(S_Symbol xid, m_uint pos);
-m_bool verify_array(Array_Sub array);
 Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc);
 Type find_common_anc(Type lhs, Type rhs);
 m_uint id_list_len(ID_List list);
@@ -67,6 +66,7 @@ extern struct Type_ t_class;
 extern struct Type_ t_machine;
 //extern struct Type_ t_template;
 extern struct Type_ t_null;
+extern struct Type_ t_union;
 
 // base classes
 extern struct Type_ t_object, t_string, t_shred, t_event, t_ugen;
