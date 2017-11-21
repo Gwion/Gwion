@@ -73,6 +73,7 @@ static int comment_depth(void* data, m_uint i) {
 %option prefix="gwion_"
 %option noinput
 %option nounput
+%option never-interactive
 
 %x comment
 %x COMMENT
