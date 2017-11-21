@@ -56,7 +56,7 @@ static void da(char* base) {
         else if(ret == EOF) {
             break;
         } else {
-            printf("No match.\n");
+            fprintf(stderr, "No match.\n");
         }
     }
   fclose(f);
@@ -91,7 +91,7 @@ void cov(char* base) {
     else if(ret == EOF) {
         break;
     } else {
-        printf("No match.\n");
+        fprintf(stderr, "No match.\n");
     }
   }
   fclose(f);
@@ -138,15 +138,15 @@ void diagnostic(char* filename){
       prefix = lines[line_count].ini ?
       "\033[32m" : "\033[31m";
     }
-    printf("\033[2m%i", line_count);
+    fprintf(stdout, "\033[2m%i", line_count);
     while(num_digit++ < max_line_digit)
-      printf(" ");
-    printf(":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
+      fprintf(stdout, " ");
+    fprintf(stdout, ":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
     free(stripped_line);
     while(line_len++ < line_size)
-      printf(" ");
+      fprintf(stdout, " ");
     if(lines[line_count].set)
-      printf("| (%i)\n\033[0m", lines[line_count].ini);
+      fprintf(stdout, "| (%i)\n\033[0m", lines[line_count].ini);
     else puts("|\033[0m");
       line_count++;
   }
