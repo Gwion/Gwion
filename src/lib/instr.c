@@ -505,6 +505,7 @@ INSTR(stop_gc) {
     release(o, shred);
 }
 
+#ifdef GWCOV
 INSTR(InstrCoverage) {
   char c[(shred->filename ? strlen(shred->filename) : 6) + 4];
   sprintf(c, "%scov", shred->filename ? shred->filename : "gwion.");
@@ -512,4 +513,4 @@ INSTR(InstrCoverage) {
   fprintf(file, "%lu %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
   fclose(file);
 }
-
+#endif

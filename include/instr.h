@@ -113,4 +113,6 @@ INSTR(start_gc);
 INSTR(stop_gc);
 INSTR(add2gc);
 
+#ifdef GWCOV
 INSTR(InstrCoverage);
+#endif
