@@ -1,0 +1,7 @@
+// [contains] can't access private
+class C {
+  private fun void test(){}
+}
+
+C c;
+c.test();

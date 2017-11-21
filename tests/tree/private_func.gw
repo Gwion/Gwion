@@ -1,0 +1,6 @@
+class C {
+  private fun void test(){}
+  test();
+}
+
+C c;

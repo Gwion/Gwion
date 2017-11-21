@@ -1,0 +1,2 @@
+// [contains] private outside of class
+private fun void test(){}

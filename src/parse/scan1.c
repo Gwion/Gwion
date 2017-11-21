@@ -533,6 +533,8 @@ static m_bool scan1_func_def_code(Env env, Func_Def f) {
 }
 
 m_bool scan1_func_def(Env env, Func_Def f) {
+  if(!env->class_def && GET_FLAG(f, ae_flag_private))
+    CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(f->types)
     return 1;
   env->func = (Func)2;
