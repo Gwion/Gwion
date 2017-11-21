@@ -81,7 +81,7 @@ config_init() {
   # ARG_HELP([The general script's help msg])
   # ARGBASH_GO
 
-EOF
+  EOF
 }
 
 config_prep() {
@@ -129,7 +129,7 @@ config_prep() {
 config_check() {
   echo "set -e"
   echo -e "\n# remove Makefile\n[ -f Makefile  ] && rm Makefile"
-printf "to_upper(){\n\techo \"\$1\" | tr '[:lower:]' '[:upper:]'\n}\n\n"
+  printf "to_upper(){\n\techo \"\$1\" | tr '[:lower:]' '[:upper:]'\n}\n\n"
   echo "config_check() {"
   # check default driver
   echo -e "\n# check default driver"
@@ -163,21 +163,21 @@ make_handle() {
   echo "make_handle() {"
   mk_header "handle base options"
   do_expand "$OPT"
-printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
-#  printf "arg=\"_arg_\${iter}\"\n\techo \"\$(to_upper iter) ?= \${!arg}\"\ndone\n"
+  printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
+  #  printf "arg=\"_arg_\${iter}\"\n\techo \"\$(to_upper iter) ?= \${!arg}\"\ndone\n"
   printf " printf \"LDFLAGS += -lm -ldl -rdynamic -lpthread\\\nCFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE\\\n\"\n"
 
   mk_header "handle boolean options"
   do_expand "$USE"
   printf "if [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\$(to_upper \$iter) = \$(eval echo \\\$_arg_\$iter)\"\n"
   printf "\telse echo \"USE_\$(to_upper \$iter) ?= \$(eval echo \\\$_arg_\$iter)\"\n\tfi\ndone\n"
-#  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
-#  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
+  #  printf "arg=\"_arg_\$iter\"\n\tif [ \"\$iter\" = \"double\" ]\n\tthen echo \"USE_\${iter~~}  = \${!arg}\"\n"
+  #  printf "\telse echo \"USE_\${iter~~} ?= \${!arg}\"\n\tfi\ndone\n"
 
   mk_header "handle definitions"
   do_expand "$DEF"
   printf "echo \"\$(to_upper \$iter) ?= \$(eval echo \\\$_arg_\${iter})_driver\"\ndone\n"
-#  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
+  #  printf "arg=\"_arg_\${iter}\"\n\techo \"\${iter~~} ?= \${!arg}_driver\"\ndone\n"
 
   mk_header "handle directories"
   do_expand2 "$DIR"
@@ -186,7 +186,7 @@ printf "echo \"\$(to_upper \$iter) ?=\$(eval echo \\\$_arg_\$iter)\"\n\tdone\n"
   mk_header "handle libraries"
   do_expand "$LIB"
   printf "echo \"\$(to_upper \$iter)_D ?= \$(eval echo \\\$_arg_\$iter)\"\ndone\n"
-#  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
+  #  printf "arg=\"_arg_\$iter\"\n\techo \"\${iter~~}_D ?= \${!arg}\"\ndone\n"
 
   mk_header "initialize source lists"
   do_expand "src"
@@ -204,26 +204,26 @@ make_add() {
     "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\$key" "\$(to_upper "\$key")" "\$(to_upper "\$key")" "\${key}"
   [ -z "\$lib" ] || printf "ifeq (\\\${%s_D}, on)\\\nLDFLAGS += %s\\\nCFLAGS += -DHAVE_%s\\\ndrvr_src += src/drvr/%s.c\\\nelse ifeq (\\\${%s_D}, 1)\\\nLDFLAGS += %s\\\nCFLAGS +=-DHAVE_%s\\\ndrvr_src +=src/drvr/%s.c\\\nendif\\\n" \
     "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}" "\$(to_upper "\$key")" "\${lib}" "\$(to_upper "\$key")" "\${key}"
-    done
+done
 EOF
 
-  mk_header "add boolean"
-  do_expand2 "$USE"
-  cat << EOF
-    if [ "\${val}" = "on" ]
-    then [ "\$key" = "double" ] && val=double;
-    else [ "\$key" = "double" ] && val=float;
-    fi
-    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -g\\\nelse " "\$(to_upper "\$key")"
-    [ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -g\\\nendif\n" "\$(to_upper "\$key")"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\nelse " "\$(to_upper "\$key")"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\$(to_upper "\$key")"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\$(to_upper "\$key")"
-    [ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\$(to_upper "\$key")"
+mk_header "add boolean"
+do_expand2 "$USE"
+cat << EOF
+if [ "\${val}" = "on" ]
+then [ "\$key" = "double" ] && val=double;
+else [ "\$key" = "double" ] && val=float;
+fi
+[ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -g\\\nelse " "\$(to_upper "\$key")"
+[ "\$key" = "memcheck" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -g\\\nendif\n" "\$(to_upper "\$key")"
+[ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\nelse " "\$(to_upper "\$key")"
+[ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nCFLAGS += -ftest-coverage -fprofile-arcs\\\\nendif\n" "\$(to_upper "\$key")"
+[ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, on)\\\nLDFLAGS += --coverage\nelse " "\$(to_upper "\$key")"
+[ "\$key" = "coverage" ] && printf "ifeq (\\\${USE_%s}, 1)\\\nLDFLAGS += --coverage\nendif\n" "\$(to_upper "\$key")"
   done
   key="double"
   printf "ifeq (\\\${USE_%s}, on)\\\nCFLAGS += -DUSE_%s -DSPFLOAT=double\\\nelse ifeq (\\\${USE_%s}, 1)\\\nCFLAGS +=-DUSE_%s -DSPFLOAT=double\\\nelse\\\nCFLAGS+=-DSPFLOAT=float\\\nendif\\\n" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)" "\$(to_upper \$key)"
-EOF
+  EOF
 
   mk_header "add definitions"
   do_expand2 "$DEF"
@@ -245,103 +245,103 @@ EOF
 
 make_recipe() {
   cat << _EOF
-make_recipe() {
-###########
-# recipes #
-###########
-  cat << EOF
+  make_recipe() {
+    ###########
+    # recipes #
+    ###########
+    cat << EOF
 
-# if any debug flag is set, we need -DDEBUG
-ifeq (\\\$(findstring DEBUG,\\\$(CFLAGS)), DEBUG)
-DEBUG = 1
-endif
+    # if any debug flag is set, we need -DDEBUG
+    ifeq (\\\$(findstring DEBUG,\\\$(CFLAGS)), DEBUG)
+    DEBUG = 1
+    endif
 
-ifeq (\\\${DEBUG}, 1)
-CFLAGS+=-DDEBUG
-endif
+    ifeq (\\\${DEBUG}, 1)
+    CFLAGS+=-DDEBUG
+    endif
 
-# config flags
-CCFG="\\\${CFLAGS}"
-LDCFG="\\\${LDFLAGS}"
-# os specific
-ifeq (\\\$(shell uname), Linux)
-LDFLAGS+=-lrt
-endif
+    # config flags
+    CCFG="\\\${CFLAGS}"
+    LDCFG="\\\${LDFLAGS}"
+    # os specific
+    ifeq (\\\$(shell uname), Linux)
+    LDFLAGS+=-lrt
+    endif
 
-# recipes
-all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${util_obj} \\\${ugen_obj} \\\${drvr_obj}
-	@echo "link \\\${PRG}"
-	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
+    # recipes
+    all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${util_obj} \\\${ugen_obj} \\\${drvr_obj}
+    @echo "link \\\${PRG}"
+    @\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
-options:
-	@echo "CFLAGS  : \\\${CFLAGS}"
-	@echo "LDFLAGS : \\\${LDFLAGS}"
+    options:
+    @echo "CFLAGS  : \\\${CFLAGS}"
+    @echo "LDFLAGS : \\\${LDFLAGS}"
 
-clean:
-	@echo "cleaning..."
-	@rm -f */*/*.o */*/*.gcda */*/*.gcno \${PRG}
+    clean:
+    @echo "cleaning..."
+    @rm -f */*/*.o */*/*.gcda */*/*.gcno \${PRG}
 
-src/arg.o:
-	@echo "compile arg (with arguments defines)"
-	@\\\${CC} \\\${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
+    src/arg.o:
+    @echo "compile arg (with arguments defines)"
+    @\\\${CC} \\\${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
 
-.c.o:
-	@echo "compile \\\$(<:.c=)"
-	@\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
+    .c.o:
+    @echo "compile \\\$(<:.c=)"
+    @\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
-install: directories
-	cp \\\${PRG} \\\${PREFIX}
+    install: directories
+    cp \\\${PRG} \\\${PREFIX}
 
-uninstall:
-	rm \\\${PREFIX}/\\\${PRG}
+    uninstall:
+    rm \\\${PREFIX}/\\\${PRG}
 
-test:
-	@bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
+    test:
+    @bash utils/test.sh test/sh severity=11 examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
 
-parser:
-	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
+    parser:
+    \\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
 
-lexer:
-	\\\${LEX}  -o src/ast/lexer.c utils/gwion.l
+    lexer:
+    \\\${LEX}  -o src/ast/lexer.c utils/gwion.l
 
-gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-	\\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
-		src/util/map.o src/util/vector.o\
-		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+    gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+    \\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
+      src/util/map.o src/util/vector.o\
+      src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
+      src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
-gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-	\\\${CC} -o gwtag -DGWLINT -Iinclude utils/gwlint.c \
-		src/util/map.o src/util/vector.o\
-		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+    gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+    \\\${CC} -o gwtag -DGWLINT -Iinclude utils/gwlint.c \
+      src/util/map.o src/util/vector.o\
+      src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
+      src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
-directories:
-	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
-EOF
+    directories:
+    mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
+    EOF
 
-_EOF
-  echo "}"
-}
+    _EOF
+    echo "}"
+  }
 
-config_post() {
-  printf "config_check\nmake_handle\nmake_add\nmake_recipe\n# ] <-- needed because of Argbash"
-  sed -i "s/'\"\(.*\)\"'/'\1'/" configure
-  sed -i "s/\"\"\(.*\)\"\"/'\1'/" configure
-  grep -v '^\#' configure > configure.tmp
-  grep -v '^  \#' configure.tmp > configure
-  printf "%s\n%s\n" "#!/bin/bash" "$(cat configure)" > configure
-  chmod +x configure
-  rm configure.tmp
-}
-# ] <-- needed because of Argbash
+  config_post() {
+    printf "config_check\nmake_handle\nmake_add\nmake_recipe\n# ] <-- needed because of Argbash"
+    sed -i "s/'\"\(.*\)\"'/'\1'/" configure
+    sed -i "s/\"\"\(.*\)\"\"/'\1'/" configure
+    grep -v '^\#' configure > configure.tmp
+    grep -v '^  \#' configure.tmp > configure
+    printf "%s\n%s\n" "#!/bin/bash" "$(cat configure)" > configure
+    chmod +x configure
+    rm configure.tmp
+  }
+  # ] <-- needed because of Argbash
 
-config_init "$1" > configure.tmp
-config_prep
-exec 5<&1
-exec >> configure
-config_check
-make_handle
-make_add
-make_recipe
-config_post
+  config_init "$1" > configure.tmp
+  config_prep
+  exec 5<&1
+  exec >> configure
+  config_check
+  make_handle
+  make_add
+  make_recipe
+  config_post
