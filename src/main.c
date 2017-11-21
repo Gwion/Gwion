@@ -58,6 +58,7 @@ m_bool compile(VM* vm, const m_str filename) {
   code = emit_code(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);
+  shred->filename = strdup(vm->emit->filename);
   shred->args = args;
   vm_add_shred(vm, shred);
   free(name);
@@ -95,6 +96,10 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(vm->emit = new_emitter(env)))
     goto clean;
+#ifdef GWCOV
+  if(arg.coverage)
+    vm->emit->coverage = 1;
+#endif
   srand(time(NULL));
 
   for(i = 0; i < vector_size(&arg.add); i++)

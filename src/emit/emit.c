@@ -8,6 +8,22 @@
 #include "func.h"
 #include "traverse.h"
 
+#ifdef GWCOV
+#define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
+#else
+#define COVERAGE(a)
+#endif
+
+#ifdef GWCOV
+static void coverage(Emitter emit, m_uint pos) {
+  Instr cov;
+
+  fprintf(emit->cov_file, "%li ini\n", pos);
+  cov = emitter_add_instr(emit, InstrCoverage);
+  cov->m_val = pos;
+}
+#endif
+
 typedef struct {
   m_uint size;
   m_uint offset;
@@ -992,6 +1008,7 @@ static m_bool emit_stmt_if(Emitter emit, Stmt_If stmt) {
 
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
+  COVERAGE(stmt->cond)
   CHECK_OB((op = emit_flow(emit, isa(stmt->cond->type, &t_object) > 0 ? &t_int : stmt->cond->type,
                            Branch_Eq_Int, Branch_Eq_Float)))
   emit_push_scope(emit);
@@ -1075,6 +1092,7 @@ static m_bool emit_stmt_while(Emitter emit, Stmt_While stmt) {
   emit_push_scope(emit);
   emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
+  COVERAGE(stmt->cond)
   CHECK_OB((op = emit_flow(emit, stmt->cond->type, Branch_Eq_Int, Branch_Eq_Float)))
 
   emit_push_scope(emit);
@@ -1398,39 +1416,58 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
 }
 
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
-  switch(stmt ? stmt->type : -1) {
+  if(!stmt)
+    return 1;
+  if(stmt->type != ae_stmt_if || stmt->type != ae_stmt_while)
+    COVERAGE(stmt)
+  switch(stmt->type) {
     case ae_stmt_exp:
       return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
+      break;
     case ae_stmt_code:
       return emit_stmt_code(emit, &stmt->d.stmt_code, 1);
+      break;
     case ae_stmt_if:
       return emit_stmt_if(emit, &stmt->d.stmt_if);
+      break;
     case ae_stmt_return:
       return emit_stmt_return(emit, &stmt->d.stmt_return);
+      break;
     case ae_stmt_break:
       return emit_stmt_break(emit, &stmt->d.stmt_break);
+      break;
     case ae_stmt_continue:
       return emit_stmt_continue(emit, &stmt->d.stmt_continue);
+      break;
     case ae_stmt_while:
       return stmt->d.stmt_while.is_do ? emit_stmt_do_while(emit, &stmt->d.stmt_while) :
             emit_stmt_while(emit, &stmt->d.stmt_while);
+      break;
     case ae_stmt_until:
       return stmt->d.stmt_until.is_do ? emit_stmt_do_until(emit, &stmt->d.stmt_until) :
             emit_stmt_until(emit, &stmt->d.stmt_until);
+      break;
     case ae_stmt_for:
       return emit_stmt_for(emit, &stmt->d.stmt_for);
+      break;
     case ae_stmt_loop:
       return emit_stmt_loop(emit, &stmt->d.stmt_loop);
+      break;
     case ae_stmt_gotolabel:
       return emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
+      break;
     case ae_stmt_case:
       return emit_stmt_case(emit, &stmt->d.stmt_case);
+      break;
     case ae_stmt_enum:
       return emit_stmt_enum(emit, &stmt->d.stmt_enum);
+      break;
     case ae_stmt_switch:
       return emit_stmt_switch(emit, &stmt->d.stmt_switch);
+      break;
     case ae_stmt_funcptr:
       return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
+      break;
     case ae_stmt_union:
       return emit_stmt_union(emit, &stmt->d.stmt_union);
   }
@@ -1867,6 +1904,13 @@ static m_bool emit_ast_inner(Emitter emit, Ast ast) {
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret;
   emit->filename = filename;
+#ifdef GWCOV
+  if(emit->coverage) {
+    char cov_filename[strlen(filename) + 3];
+    sprintf(cov_filename, "%sda", filename);
+    emit->cov_file = fopen(cov_filename, "a");
+  }
+#endif
   emit->code = new_code();
   vector_clear(&emit->stack);
   emit_push_scope(emit);
@@ -1883,5 +1927,9 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     free(filename);
     free_ast(ast);
   }
+#ifdef GWCOV
+  if(emit->coverage)
+    fclose(emit->cov_file);
+#endif
   return ret;
 }

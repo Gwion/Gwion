@@ -12,4 +12,9 @@ make gwtag && echo "ok $n make gwtag" || echo "not ok $n make gwlint"
 n=$((n+1))
 ./gwtag examples/*.gw && echo "ok $n test gwtag"
 n=$((n+1))
+make gwcov && echo "ok $n make gwcov" || echo "not ok $n make gwlint"
+n=$((n+1))
+./gwcov examples/*.gw && echo "ok $n test gwcov"
+n=$((n+1))
+
 

@@ -1,8 +1,11 @@
 gwion
 gwlint
 gwtag
+gwcov
 *.gw.lint
 *.gw.tag
+*.gwcov
+*.gwda
 include/generated.h
 utils/generate_header
 utils/coverity_scan.sh

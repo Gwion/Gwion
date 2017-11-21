@@ -23,6 +23,10 @@ struct Emitter_ {
   Map    cases; // passed to instr: is a pointer
   Code*  code;
   struct Vector_    stack;
+#ifdef GWCOV
+  m_bool coverage;
+  FILE* cov_file;
+#endif
 };
 
 Emitter new_emitter(Env env);

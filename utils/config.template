@@ -9,6 +9,7 @@ OPT: soundpipe_inc:::
 
 USE: double:::off
 USE: coverage:::off
+USE: gwcov:::off
 USE: memcheck:::off
 
 DEF: d_func:::dummy
