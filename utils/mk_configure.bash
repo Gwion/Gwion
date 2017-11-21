@@ -316,6 +316,9 @@ gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src
 		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
 		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
 
+gwcov: utils/gwcov.c
+	\\\${CC} -o gwcov utils/gwcov.c -lm
+
 directories:
 	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
 EOF
