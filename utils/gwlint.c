@@ -119,7 +119,8 @@ static void lint_stmt_indent(Linter* linter, Stmt stmt) {
   } else if(stmt->type != ae_stmt_code) {
     lint_print(linter, "\n");
     linter->indent++;
-  }
+  } else if(!linter->skip)
+      lint_print(linter, " ");
   lint_stmt(linter, stmt);
   if(stmt->type != ae_stmt_code)
     linter->indent--;
@@ -329,7 +330,9 @@ static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, m_str str) {
     lint_print(linter, "%s(", str);
     lint_exp(linter, stmt->cond);
     lint_print(linter, ")");
+    linter->skip++;
     lint_stmt_indent(linter, stmt->body);
+    lint_print(linter, "\n");
   } else {
     lint_print(linter, "do");
     lint_stmt_indent(linter, stmt->body);
@@ -338,6 +341,7 @@ static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, m_str str) {
     lint_print(linter, ")\n");
   }
 }
+
 static void lint_stmt_for(Linter* linter, Stmt_For stmt) {
   lint_print(linter, "for(");
   linter->nonl++;
@@ -374,7 +378,7 @@ static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
   lint_print(linter, "if(");
   lint_exp(linter, stmt->cond);
   lint_print(linter, ")");
-    if(stmt->else_body->type == ae_stmt_code)
+    if(stmt->if_body->type == ae_stmt_code)
       linter->skip++;
   lint_stmt_indent(linter, stmt->if_body);
   if(stmt->else_body) {
