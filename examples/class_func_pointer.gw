@@ -11,7 +11,7 @@ class C {
 //	test @=> func_p;
 //	test @=> s_ptr;
 
-// those are forbidden
+/* those are forbidden */
 //func_p();
 //this.func_p();
 

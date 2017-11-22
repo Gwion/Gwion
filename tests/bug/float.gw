@@ -132,7 +132,7 @@ float a;
 	float	variable2;
 <<< variable1*=>variable2 >>>;
 }
-
+/*
 //testing operator for float and float
 {
 	float	variable1;
@@ -378,10 +378,24 @@ float a;
 <<< variable1*variable2 >>>;
 }
 
+//testing operator for dur and float
+{
+	dur	variable1;
+	float	variable2;
+<<< variable1*variable2 >>>;
+}
+
 //testing operator for dur and dur
 {
 	dur	variable1;
 	dur	variable2;
+<<< variable1/variable2 >>>;
+}
+
+//testing operator for dur and float
+{
+	dur	variable1;
+	float	variable2;
 <<< variable1/variable2 >>>;
 }
 
@@ -475,3 +489,4 @@ float a;
 <<< variable1<=variable2 >>>;
 }
 
+*/
