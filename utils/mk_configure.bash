@@ -281,7 +281,7 @@ options:
 
 clean:
 	@echo "cleaning..."
-	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno \${PRG}
+	@rm -f */*.o */*/*.o */*/*.gcda */*/*.gcno \${PRG}
 
 src/arg.o:
 	@echo "compile arg (with arguments defines)"
