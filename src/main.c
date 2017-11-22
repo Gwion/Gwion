@@ -18,8 +18,6 @@
 extern void parse_args(Arg*, DriverInfo*);
 
 volatile m_bool signaled = 0;
-static DriverInfo di = { 2, 2, 2,
-  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
 VM* vm;
 
 static void sig(int unused) {
@@ -71,6 +69,8 @@ int main(int argc, char** argv) {
   Arg arg = { argc, argv , -1 };
   Udp udp;
   UdpIf udpif = { "localhost", 8888, 1 };
+  DriverInfo di = { 2, 2, 2,
+  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
   int i;
 
   pthread_t thread = 0;
