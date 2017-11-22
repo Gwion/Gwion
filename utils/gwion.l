@@ -6,58 +6,13 @@ IS          (u|U|l|L)*
 #include "scanner.h"
 #include "parser.h"
 
-static char* strip_lit( char* str )
-{
-  str[strlen(str)-1] = '\0';
-  return str+1;
-}
-
-static char* alloc_str( char* str )
-{
-  S_Symbol sym = insert_symbol(str);
-  return s_name(sym);
-}
-
-static long htol( char* str )
-{
-  char * c = str;
-  unsigned long n = 0;
-
-  c += 2;
-  while( *c )
-  {
-    n <<= 4;
-    switch( *c )
-    {
-      case '1': case '2': case '3': case '4': case '5':
-      case '6': case '7': case '8': case '9': case '0':
-        n += *c - '0';
-        break;
-      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-        n += *c - 'a' + 10;
-        break;
-      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-        n += *c - 'A' + 10;
-        break;
-    }
-    c++;
-  }
-  return n;
-}
-
-static int newline(void*data)
-{
-  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
-  scan->line++;
-  scan->pos = 1;
-  return 1;
-}
-char *gwion_get_text(yyscan_t yyscanner );
-
+static char* strip_lit(char* str);
+static char* alloc_str(char* str);
+static long htol(char* str);
+static int newline(void* data);
 static int adjust(void* data);
 
 %}
-
 
 %option noyywrap
 %option noyylineno
@@ -199,48 +154,86 @@ static int adjust(void* data);
 #include <stdlib.h>
 #include "err_msg.h"
 
+Map scan_map = NULL;
 
-static int adjust(void* data)
-{
+char* strip_lit(char* str){
+  str[strlen(str)-1] = '\0';
+  return str+1;
+}
+
+char* alloc_str(char* str) {
+  S_Symbol sym = insert_symbol(str);
+  return s_name(sym);
+}
+
+long htol(char* str) {
+  char * c = str;
+  unsigned long n = 0;
+
+  c += 2;
+  while(*c) {
+    n <<= 4;
+    switch(*c) {
+      case '1': case '2': case '3': case '4': case '5':
+      case '6': case '7': case '8': case '9': case '0':
+        n += *c - '0';
+        break;
+      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        n += *c - 'a' + 10;
+        break;
+      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+        n += *c - 'A' + 10;
+        break;
+    }
+    c++;
+  }
+  return n;
+}
+
+int newline(void*data) {
+  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  scan->line++;
+  scan->pos = 1;
+  return 1;
+}
+
+int adjust(void* data) {
   Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
   scan->pos += gwion_get_leng(data);
   return 0;
 }
 
-int gwion_error(Scanner* scan, char* s)
-{
-  m_uint i;
-  m_str line = NULL;
-  char sign[256];
+static void err_line(Scanner* scan) {
   int n = 1;
   size_t len = 0;
-  memset(sign, 0, 256);
-
-  err_msg(PARSE_, scan->line, "in file '%s'", scan->filename);
-  err_msg(PARSE_, scan->line, "%s at pos %i\n", s, scan->pos);
-
+  m_str line = NULL;
   fseek(scan->file, 0, SEEK_SET);
   while (getline(&line, &len, scan->file) != -1) {
     if(n == scan->line) {
-      fprintf(stderr, "%s\n", line);
+      fprintf(stderr, "%s", line);
       break;
     }
     n++;
   }
   free(line);
-  for(i = 0; i < scan->pos  -1; i++)
-    fprintf(stderr, " ");
-  fprintf(stderr, "^\n");
-  fclose(scan->file);
-  return 0;
-
 }
 
+static void err_marker(Scanner* scan) {
+  while(--scan->pos > 0)
+    fprintf(stderr, " ");
+  fprintf(stderr, "\033[1;31m^\033[0m\n");
+}
 
-Map scan_map = NULL;
+int gwion_error(Scanner* scan, char* s) {
+  err_msg(PARSE_, scan->line, "in file '%s'. at pos: %i", scan->filename, scan->pos);
+  err_msg(PARSE_, scan->line, "%s\n", s);
+  err_line(scan);
+  err_marker(scan);
+  fclose(scan->file);
+  return 0;
+}
 
-Ast parse(m_str filename)
-{
+Ast parse(m_str filename) {
   Ast    ast  = NULL;
   FILE*  file = NULL;
   Scanner scan;
@@ -260,7 +253,7 @@ Ast parse(m_str filename)
     free_ast(ast);
     gwion_lex_destroy(scan.scanner);
     return NULL;
-  }
+}
   ast = scan.ast;
   fclose(file);
   gwion_lex_destroy(scan.scanner);
