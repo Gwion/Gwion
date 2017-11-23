@@ -60,12 +60,10 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
       v = new_vector();
     map_set(&nspc->op_map, (vtype)opi->op, (vtype)v);
   }
-  if((mo = operator_find(v, opi->lhs, opi->rhs))) {
-    if((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
+  if((mo = operator_find(v, opi->lhs, opi->rhs)))
+    CHECK_BB((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
-            opi->rhs ? opi->rhs->name : NULL) < 0))
-       return -1;
-  }
+            opi->rhs ? opi->rhs->name : NULL)))
   mo = malloc(sizeof(M_Operator));
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
@@ -83,7 +81,7 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
 
 static Type get_return_type_inner(Map map, struct Op_Import* opi) {
   Type r = opi->rhs;
-  do {
+  do { 
     M_Operator* mo;
     Vector v = (Vector)map_get(map, (vtype)opi->op);
     if((mo = operator_find(v, opi->lhs, r)))

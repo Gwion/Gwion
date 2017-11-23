@@ -1,0 +1,4 @@
+<<<"test" == "test">>>;
+string s;
+<<<s == s>>>;
+<<<"test" == s>>>;

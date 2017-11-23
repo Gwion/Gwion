@@ -33,6 +33,16 @@ static INSTR(String_Assign) {
   PUSH_REG(shred, SZ_INT);
 }
 
+static INSTR(String_eq) {
+  POP_REG(shred, SZ_INT * 2);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  *(m_int*)REG(0) = lhs && rhs && !strcmp(STRING(lhs), STRING(rhs));
+  PUSH_REG(shred, SZ_INT);
+  release(lhs, shred);
+  release(rhs, shred);
+}
+
 static INSTR(Int_String_Assign) {
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
@@ -846,6 +856,9 @@ m_bool import_string(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_plus,       String_String, 1))
   CHECK_BB(importer_oper_end(importer, op_plus_chuck, String_Plus, 1))
 
+  CHECK_BB(importer_oper_ini(importer, "string",  "string", "int"))
+  CHECK_BB(importer_oper_end(importer, op_eq,       String_eq, 1))
+  
   CHECK_BB(importer_oper_ini(importer, "int",     "string", "string"))
   CHECK_BB(importer_oper_end(importer, op_chuck,      Int_String_Assign, 1))
   CHECK_BB(importer_oper_end(importer, op_plus,       Int_String, 1))
