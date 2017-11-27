@@ -2955,6 +2955,10 @@ int gwion_error(Scanner* scan, char* s) {
   return 0;
 }
 
+int get_pos(void* data) {
+  Scanner* scan = *(Scanner**)data;
+  return scan->line;
+}
 Ast parse(m_str filename) {
   Ast    ast  = NULL;
   FILE*  file = NULL;
