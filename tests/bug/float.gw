@@ -132,7 +132,6 @@ float a;
 	float	variable2;
 <<< variable1*=>variable2 >>>;
 }
-/*
 //testing operator for float and float
 {
 	float	variable1;
@@ -488,5 +487,3 @@ float a;
 	time	variable2;
 <<< variable1<=variable2 >>>;
 }
-
-*/

@@ -12,12 +12,6 @@ static long htol(char* str);
 static int newline(void* data);
 static int adjust(void* data);
 
-static int comment_depth(void* data, m_uint i) {
-  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
-  scan->comment_depth += i;
-  return scan->comment_depth;
-}
-
 %}
 
 %option noyywrap
@@ -37,14 +31,6 @@ static int comment_depth(void* data, m_uint i) {
 "//"              { BEGIN(comment); }
 <comment>.         { adjust(yyscanner); continue;}
 <comment>"\n"      { newline(yyscanner); BEGIN(INITIAL); }
-
-
-
-<INITIAL,COMMENT>"/*"               { BEGIN(COMMENT); comment_depth(yyscanner, +1);}
-<COMMENT>.                          { adjust(yyscanner); continue;}
-<COMMENT>\n                         { newline(yyscanner); continue;}
-<COMMENT,INITIAL>"*/"               { if(!comment_depth(yyscanner, -1))BEGIN(INITIAL); }
-
 
 "\n"                                { newline(yyscanner); continue; }
 [ \r\t]                             { adjust(yyscanner); continue; }
