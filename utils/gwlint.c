@@ -9,7 +9,9 @@
 extern m_str op2str(Operator);
 
 typedef struct {
+  const m_str name;
   FILE*  file;
+  m_uint line, pos;
   m_uint indent;
   m_bool skip;
   m_bool nonl;
@@ -26,6 +28,16 @@ static void lint_print(Linter* linter, const char* fmt, ...) {
   va_start(arg, fmt);
   vfprintf(linter->file, fmt, arg);
   va_end(arg);
+}
+
+static void lint_nl(Linter* linter) {
+  m_uint pos = linter->pos;
+  fprintf(linter->file, "\n");
+  linter->pos = ftell(linter->file);
+  if(linter->pos > 80)
+    fprintf(stderr, "'\033[31;1m%s\033[0m'long line %i\n",
+        linter->name, linter->line);
+  linter->line++;
 }
 
 static void lint_indent(Linter* linter) {
@@ -119,7 +131,7 @@ static void lint_stmt_indent(Linter* linter, Stmt stmt) {
     lint_stmt_if(linter, &stmt->d.stmt_if);
     return;
   } else if(stmt->type != ae_stmt_code) {
-    lint_print(linter, "\n");
+    lint_nl(linter);
     linter->indent++;
   } else if(!linter->skip)
       lint_print(linter, " ");
@@ -312,7 +324,8 @@ static void lint_stmt_code(Linter* linter, Stmt_Code stmt) {
     lint_print(linter, "{}");
     return;
   }
-  lint_print(linter, "{\n");
+  lint_print(linter, "{");
+  lint_nl(linter);
   linter->indent++;
   if(stmt->stmt_list)
     lint_stmt_list(linter, stmt->stmt_list);
@@ -326,8 +339,9 @@ static void lint_stmt_return(Linter* linter, Stmt_Return stmt) {
   if(stmt->val) {
     lint_print(linter, " ");
     lint_exp(linter, stmt->val);
-  }
-  lint_print(linter, ";\n");
+  } 
+  lint_print(linter, ";");
+  lint_nl(linter);
 }
 
 static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str str) {
@@ -337,13 +351,14 @@ static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str 
     lint_print(linter, ")");
     linter->skip++;
     lint_stmt_indent(linter, stmt->body);
-    lint_print(linter, "\n");
+    lint_nl(linter);
   } else {
     lint_print(linter, "do");
     lint_stmt_indent(linter, stmt->body);
     lint_print(linter, " %s(", str);
     lint_exp(linter, stmt->cond);
-    lint_print(linter, ")\n");
+    lint_print(linter, ")");
+    lint_nl(linter);
   }
 }
 
@@ -376,7 +391,8 @@ static void lint_stmt_switch(Linter* linter, Stmt_Switch stmt) {
 static void lint_stmt_case(Linter* linter, Stmt_Case stmt) {
   lint_print(linter, "case ");
   lint_exp(linter, stmt->val);
-  lint_print(linter, ":\n");
+  lint_print(linter, ":");
+  lint_nl(linter);
 }
 
 static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
@@ -396,29 +412,30 @@ static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
       linter->skip++;
     lint_stmt_indent(linter, stmt->else_body);
     if(stmt->else_body->type == ae_stmt_code)
-      lint_print(linter, "\n");
+      lint_nl(linter);
   }
 }
 
 void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
   ID_List list = stmt->list;
-  lint_print(linter, "enum {\n");
+  lint_print(linter, "enum {");
+  lint_nl(linter);
   linter->indent++;
   while(list) {
     lint_indent(linter);
     lint_print(linter, "%s", s_name(list->xid));
     list = list->next;
     if(list)
-      lint_print(linter, ",\n");
-    else
-      lint_print(linter, "\n");
+      lint_print(linter, ",");
+    lint_nl(linter);
   }
   linter->indent--;
   lint_indent(linter);
   lint_print(linter, "}");
   if(stmt->xid)
     lint_print(linter, " %s", s_name(stmt->xid));
-  lint_print(linter, ";\n");
+  lint_print(linter, ";");
+  lint_nl(linter);
 }
 
 void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
@@ -437,7 +454,8 @@ void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
     if(list)
       lint_print(linter, ", ");
   }
-  lint_print(linter, ")\n");
+  lint_print(linter, ")");
+  lint_nl(linter);
 }
 
 void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
@@ -446,31 +464,37 @@ void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
     lint_print(linter, "private ");
   if(GET_FLAG(stmt, ae_flag_static))
     lint_print(linter, "static ");
-  lint_print(linter, "union {\n");
+  lint_print(linter, "union {");
+  lint_nl(linter);
   linter->indent++;
   while(l) {
     lint_indent(linter);
     lint_exp(linter, l->self);
-    lint_print(linter, ";\n");
+    lint_print(linter, ";");
+    lint_nl(linter);
     l = l->next;
   }
   linter->indent--;
-  lint_print(linter, "}\n");
+  lint_print(linter, "}");
+  lint_nl(linter);
 }
 
 void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
   if(stmt->is_label)
-    lint_print(linter, "%s:\n", s_name(stmt->name));
+    lint_print(linter, "%s:", s_name(stmt->name));
   else
-    lint_print(linter, "goto %s;\n", s_name(stmt->name));
+    lint_print(linter, "goto %s;", s_name(stmt->name));
+  lint_nl(linter);
 }
 
 void lint_stmt_continue(Linter* linter, Stmt_Continue stmt) {
-  lint_print(linter, "continue;\n");
+  lint_print(linter, "continue;");
+  lint_nl(linter);
 }
 
 void lint_stmt_break(Linter* linter, Stmt_Break stmt) {
-  lint_print(linter, "break;\n");
+  lint_print(linter, "break;");
+  lint_nl(linter);
 }
 
 static void lint_stmt(Linter* linter, Stmt stmt) {
@@ -480,11 +504,10 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
   switch(linter, stmt->type) {
     case ae_stmt_exp:
       lint_exp(linter, stmt->d.stmt_exp.val);
-      if(linter->nonl)
         lint_print(linter, ";");
-      else
-        lint_print(linter, ";\n");
-      break;
+      if(!linter->nonl)
+        lint_nl(linter);
+        break;
     case ae_stmt_code:
       lint_stmt_code(linter, &stmt->d.stmt_code);
       break;
@@ -561,7 +584,7 @@ static void lint_func_def(Linter* linter, Func_Def f) {
   lint_print(linter, ")");
   linter->skip++;
   lint_stmt_indent(linter, f->code);
-  lint_print(linter, "\n");
+  lint_nl(linter);
   f->flag &= ~ae_flag_template;
 }
 
@@ -587,16 +610,18 @@ static void lint_class_def(Linter* linter, Class_Def class_def) {
   if(class_def->ext) {
     lint_print(linter, " extends ");
     lint_id_list(linter, class_def->ext);
-    lint_print(linter, "\n");
+    lint_nl(linter);
   }
-  lint_print(linter, " {\n");
+  lint_print(linter, " {");
+  lint_nl(linter);
   linter->indent++;
   while(body) {
     lint_section(linter, body->section);
     body = body->next;
   }
-  lint_print(linter, "}\n\n");
   linter->indent--;
+  lint_nl(linter);
+  lint_nl(linter);
 }
 
 void lint_ast(Linter* linter, Ast ast) {
@@ -611,7 +636,7 @@ int main(int argc, char** argv) {
   scan_map = new_map();
   while(argc--) {
     Ast ast;
-    Linter linter = {};
+    Linter linter = { *argv, NULL, 1 };
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.lint", *argv);
     if(!(ast = parse(*argv++)))
