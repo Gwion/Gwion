@@ -411,7 +411,6 @@ void tag_ast(Tagger* tagger, Ast ast) {
 
 int main(int argc, char** argv) {
   argc--; argv++;
-  scan_map = new_map();
   while(argc--) {
     Ast ast;
     Tagger tagger = { *argv , new_vector() };
@@ -425,7 +424,6 @@ int main(int argc, char** argv) {
     free_vector(tagger.class_stack);
     fclose(tagger.file);
   }
-  free_map(scan_map);
   free_symbols();
   return 0;
 }

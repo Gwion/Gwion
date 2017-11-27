@@ -155,8 +155,6 @@ static int adjust(void* data);
 #include <stdlib.h>
 #include "err_msg.h"
 
-Map scan_map = NULL;
-
 char* strip_lit(char* str){
   str[strlen(str)-1] = '\0';
   return str+1;
@@ -192,14 +190,14 @@ long htol(char* str) {
 }
 
 int newline(void*data) {
-  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  Scanner* scan = *(Scanner**)data;
   scan->line++;
   scan->pos = 1;
   return 1;
 }
 
 int adjust(void* data) {
-  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  Scanner* scan = *(Scanner**)data;
   scan->pos += gwion_get_leng(data);
   return 0;
 }
@@ -240,10 +238,8 @@ Ast parse(m_str filename) {
   Scanner scan;
   gwion_lex_init(&scan.scanner);
   gwion_set_extra(&scan, scan.scanner);
-  map_set(scan_map, (vtype)scan.scanner, (vtype)&scan);
   scan.line = 1;
   scan.pos  = 0;
-  scan.comment_depth = 0;
   char c[1025];
   memset(c, 0, 1025);
   strncat(c, filename, 1024);

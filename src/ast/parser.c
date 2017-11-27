@@ -79,7 +79,7 @@ char *strcat(char *dest, const char *src);
 void gwion_error(void* data, const char* s);
 int gwion_lex(void*, void* , void*);
 static int get_pos(void* data) {
-  Scanner* scan = (Scanner*)map_get(scan_map, (vtype)data);
+  Scanner* scan = *(Scanner**)data;
   return scan->line;
 }
 

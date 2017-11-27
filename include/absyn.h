@@ -13,8 +13,6 @@ typedef struct Var_Decl_List_* Var_Decl_List;
 typedef struct Array_Sub_ * Array_Sub;
 typedef struct Arg_List_ * Arg_List;
 
-extern Map scan_map;
-
 typedef enum {
   ae_flag_builtin = 1 << 1,
   ae_flag_checked   = 1 << 2,

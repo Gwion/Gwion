@@ -87,7 +87,6 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  scan_map = new_map();
   if(!(vm = new_vm(arg.loop)))
     goto clean;
   if(init_bbq(vm, &di, &d) < 0)
@@ -120,8 +119,6 @@ clean:
   arg_release(&arg);
   if(d.del)
     d.del(vm);
-  if(scan_map)
-    free_map(scan_map);
 #ifndef __linux__
   sleep(1);
 #endif

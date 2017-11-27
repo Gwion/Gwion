@@ -633,7 +633,6 @@ void lint_ast(Linter* linter, Ast ast) {
 
 int main(int argc, char** argv) {
   argc--; argv++;
-  scan_map = new_map();
   while(argc--) {
     Ast ast;
     Linter linter = { *argv, NULL, 1 };
@@ -646,7 +645,6 @@ int main(int argc, char** argv) {
     free_ast(ast);
     fclose(linter.file);
   }
-  free_map(scan_map);
   free_symbols();
   return 0;
 }
