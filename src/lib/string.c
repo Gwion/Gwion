@@ -50,7 +50,7 @@ static INSTR(Int_String_Assign) {
   if(!rhs)
     Except(shred, "NullStringException.");
   char str[num_digit(labs(lhs)) + strlen(STRING(rhs)) + 2];
-  sprintf(str, "%li", lhs);
+  sprintf(str, "%" INT_F "", lhs);
   push_string(shred, rhs, str);
 }
 
@@ -118,7 +118,7 @@ static INSTR(Object_String_Assign) {
     Except(shred, "NullStringException");
 
   char str[16];
-  sprintf(str, "0x%08lu", (uintptr_t)lhs);
+  sprintf(str, "0x%08" UINT_F, (uintptr_t)lhs);
   push_string(shred, rhs, str);
   release(lhs, shred);
 }
@@ -139,7 +139,7 @@ static INSTR(Int_String) {
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[num_digit(lhs) + (rhs ? strlen(STRING(rhs)) : 0) + 1];
-  sprintf(str, "%li%s", lhs, rhs ? STRING(rhs) : NULL);
+  sprintf(str, "%" INT_F "%s", lhs, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
   release(rhs, shred);
 }
@@ -201,7 +201,7 @@ static INSTR(Object_String) {
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[11 + (rhs ? strlen(STRING(rhs)) : 0)];
-  sprintf(str, "0x%08lu%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
+  sprintf(str, "0x%08" UINT_F "%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
   release(rhs, shred);
   release(lhs, shred);
@@ -234,7 +234,7 @@ static INSTR(Int_String_Plus) {
     Except(shred, "NullStringException.");
   m_uint len = strlen(STRING(rhs)) + 1;
   char c[len + num_digit(lhs) + 1];
-  sprintf(c, "%s%li", STRING(rhs), lhs);
+  sprintf(c, "%s%" INT_F "", STRING(rhs), lhs);
   push_string(shred, rhs, c);
 }
 
@@ -308,7 +308,7 @@ static INSTR(Object_String_Plus) {
   m_uint len = strlen(STRING(rhs)) + 11;
   char c[len + 1];
   c[len] = '\0';
-  sprintf(c, "%s0x%08lu", STRING(rhs), (uintptr_t)lhs);
+  sprintf(c, "%s0x%08" UINT_F, STRING(rhs), (uintptr_t)lhs);
   push_string(shred, rhs, c);
   release(lhs, shred);
 }

@@ -252,7 +252,7 @@ INSTR(Spork) {
 // LCOV_EXCL_START
 void handle_overflow(VM_Shred shred) {
   fprintf(stderr,
-          "[Gwion](VM): StackOverflow: shred[id=%lu:%s], PC=[%lu]\n",
+          "[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           shred->xid, shred->name, shred->pc);
 }
 // LCOV_EXCL_STOP
@@ -511,7 +511,7 @@ INSTR(InstrCoverage) {
   char c[(shred->filename ? strlen(shred->filename) : 6) + 4];
   sprintf(c, "%scov", shred->filename ? shred->filename : "gwion.");
   FILE* file = fopen(c, "a");
-  fprintf(file, "%lu %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
+  fprintf(file, "%" UINT_F " %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
   fclose(file);
 }
 #endif

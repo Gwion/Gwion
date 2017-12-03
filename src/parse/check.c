@@ -500,7 +500,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     Func_Def def = NULL;
     char name[len + digit + 13];
-    sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+    sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
     value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value) // should be continue, for sure
@@ -595,7 +595,7 @@ static Value get_template_value(Env env, Exp exp_func) {
     v = nspc_lookup_value1(exp_func->type->owner, insert_symbol("test"));
     v->func_ref->def->flag &= ~ae_flag_template;
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
-      "unhandled expression type '%lu\' in template call.",
+      "unhandled expression type '%" UINT_F "\' in template call.",
       exp_func->exp_type))
   }
   return v;
@@ -763,7 +763,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
       if(binary->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
-        sprintf(name, "%s@%li@%s", c, i, env->curr->name);
+        sprintf(name, "%s@%" INT_F "@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
       }
       if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
@@ -1612,7 +1612,7 @@ static m_bool check_func_args(Env env, Arg_List arg_list) {
 }
 
 static m_bool check_func_overload_inner(Env env, Func_Def def, m_str name, m_uint j) {
-  sprintf(name, "%s@%li@%s", s_name(def->name), j, env->curr->name);
+  sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
   Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
   if(compat_func(def, f2->def, f2->def->pos) > 0) {
     CHECK_BB(err_msg(TYPE_, f2->def->pos,
@@ -1629,7 +1629,7 @@ static m_bool check_func_overload(Env env, Func_Def f) {
     char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
                                       num_digit(v->func_num_overloads) + 3];
     for(i = 0; i <= v->func_num_overloads; i++) {
-      sprintf(name, "%s@%li@%s", s_name(f->name), i, env->curr->name);
+      sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
       Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
       for(j = 1; j <= v->func_num_overloads; j++) {
         if(i != j)

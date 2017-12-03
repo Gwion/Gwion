@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include "defs.h"
 #include "err_msg.h"
 static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK", "EMIT!", "UTILS", "LEXER",
                                      "INSTR", " UDP ", "ALSA", " VM  ", " OP  "
 
 };
 
-int err_msg(a_header header, long int pos, const char* fmt, ...) {
+m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
   char msg[256];
   va_list arg;
   va_start(arg, fmt);
@@ -17,9 +18,9 @@ int err_msg(a_header header, long int pos, const char* fmt, ...) {
 #endif
   if(pos > 0)
 #ifdef COLOR
-    fprintf(stderr, " \033[4mline \033[1m%li\033[0m\t", pos);
+    fprintf(stderr, " \033[4mline \033[1m%" INT_F "\033[0m\t", pos);
 #else
-    fprintf(stderr, " line: %li\t", pos);
+    fprintf(stderr, " line: %" INT_F "\t", pos);
 #endif
   vsnprintf(msg, 256, fmt, arg);
   fprintf(stderr, "\t%s\n", msg);

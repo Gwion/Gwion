@@ -192,7 +192,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     ID_List tld;
     char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
 
-    sprintf(name, "%s<template>@%li@%s", v->name, i, env->curr->name);
+    sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
@@ -531,7 +531,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
   }
-  snprintf(name, len, "%s<template>@%li@%s", func_name,
+  snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
            overload ? overload->func_num_overloads : 0, env->curr->name);
   nspc_add_value(env->curr, insert_symbol(name), value);
   return 1;
@@ -621,7 +621,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(f->types)
     return scan2_func_def_template(env, f, overload);
 
-  snprintf(name, len, "%s@%li@%s", func_name,
+  snprintf(name, len, "%s@%" INT_F "@%s", func_name,
            overload ? ++overload->func_num_overloads : 0, env->curr->name);
 
   func_name = s_name(insert_symbol(name));

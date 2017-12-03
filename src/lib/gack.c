@@ -33,7 +33,7 @@ static void print_type(Type type) {
 }
 
 static void print_int(m_int i) {
-  fprintf(stdout, BOLD "%li" CLEAR , i);
+  fprintf(stdout, BOLD "%" INT_F "" CLEAR , i);
 }
 
 static void print_float(m_float f) {

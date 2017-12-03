@@ -7,7 +7,7 @@ struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};
 struct Type_ t_object  = { "Object",    SZ_INT, NULL,      te_object };
 
 void NullException(VM_Shred shred, const m_str c) {
-  err_msg(INSTR_, 0, "%s: shred[id=%lu:%s], PC=[%lu]\n",
+  err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           c, shred->xid, shred->name, shred->pc);
   release(shred->me, shred);
   shred->me = NULL;

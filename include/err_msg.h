@@ -2,4 +2,4 @@
 typedef enum { PARSE_, SCAN0_, SCAN1_, SCAN2_, TYPE_, EMIT_, UTIL_, COMPILE_, INSTR_, UDP, ALSA_,
                VM_, OPERATOR_
              } a_header;
-int err_msg(a_header header, long int pos, const char* fmt, ...);
+m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...);

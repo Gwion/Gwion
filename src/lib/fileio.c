@@ -34,7 +34,7 @@ INSTR(int_to_file) {
   M_Object o = **(M_Object**)REG(0);
   release(o, shred);
   CHECK_FIO(o)
-  fprintf(IO_FILE(o), "%li", *(m_int*)REG(- SZ_INT));
+  fprintf(IO_FILE(o), "%" INT_F "", *(m_int*)REG(- SZ_INT));
   *(M_Object*)REG(- SZ_INT) = o;
 }
 

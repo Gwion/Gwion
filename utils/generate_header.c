@@ -44,6 +44,13 @@ typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_COMPLEX %lu\n", sizeof(SPFLOAT) * 2);
   fprintf(file, "#define SZ_VEC3    %lu\n", sizeof(SPFLOAT) * 3);
   fprintf(file, "#define SZ_VEC4    %lu\n", sizeof(SPFLOAT) * 4);
+  if(sizeof(uintptr_t) == sizeof(unsigned int)) {
+    fprintf(file, "#define  INT_F \"i\"\n");
+    fprintf(file, "#define UINT_F \"u\"\n");
+  } else {
+    fprintf(file, "#define  INT_F \"li\"\n");
+    fprintf(file, "#define UINT_F \"lu\"\n");
+  }
   fclose(file);
   fprintf(stderr, "config written to '%s'.\n", filename);
   return 0;

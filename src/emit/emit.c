@@ -18,7 +18,7 @@
 static void coverage(Emitter emit, m_uint pos) {
   Instr cov;
 
-  fprintf(emit->cov_file, "%li ini\n", pos);
+  fprintf(emit->cov_file, "%" INT_F " ini\n", pos);
   cov = emitter_add_instr(emit, InstrCoverage);
   cov->m_val = pos;
 }

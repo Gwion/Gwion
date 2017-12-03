@@ -377,7 +377,7 @@ out_of_memory:
   fprintf(stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
   goto error;                                                                  // LCOV_EXCL_LINE
 error:
-  fprintf(stderr, "[Gwion](VM): (note: in shred[id=%lu:%s])\n", shred->xid, shred->name);
+  fprintf(stderr, "[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->xid, shred->name);
   release(shred->me, shred);
   shred->me = NULL;
 }
@@ -392,7 +392,7 @@ static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool
 
 static void oob(M_Object obj, VM_Shred shred, m_int i) {
   fprintf(stderr,
-          "[Gwion](VM): ArrayOutofBounds: in shred[id=%lu:%s], PC=[%lu], index=[%ld]\n",
+          "[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" UINT_F "]\n",
           shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
   release(shred->me, shred);
