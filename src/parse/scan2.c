@@ -88,7 +88,7 @@ static m_bool scan2_arg_def(Env env, Func_Def f) {
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     if(GET_FLAG(list->type_decl, ae_flag_const))
-      SET_FLAG(v, ae_flag_const | ae_flag_uconst);
+      SET_FLAG(v, ae_flag_const);
     if(f) {
       v->offset = f->stack_depth;
       f->stack_depth += list->type->size;

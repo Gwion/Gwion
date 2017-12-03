@@ -95,10 +95,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
               "must declare private variables at class scope..."))
       SET_FLAG(list->self->value, ae_flag_private);
     }
-    if(GET_FLAG(decl->type, ae_flag_const)) {
+    if(GET_FLAG(decl->type, ae_flag_const))
       SET_FLAG(list->self->value, ae_flag_const);
-      SET_FLAG(list->self->value, ae_flag_uconst);
-    }
     if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->type, ae_flag_static))
       SET_FLAG(list->self->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)

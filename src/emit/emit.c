@@ -271,7 +271,7 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, ae_flag_const) && !GET_FLAG(v, ae_flag_uconst))
+  if(GET_FLAG(v, ae_flag_const) && GET_FLAG(v, ae_flag_builtin))
     return emit_symbol_const(emit, prim);
   if(prim->self->emit_var)
     return emit_symbol_addr(emit, v);
