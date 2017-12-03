@@ -98,7 +98,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(list->self->value, ae_flag_const);
       SET_FLAG(list->self->value, ae_flag_uconst);
     }
-    if(env->class_def && !env->class_scope && !env->func && !decl->is_static)
+    if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->type, ae_flag_static))
       SET_FLAG(list->self->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
       SET_FLAG(list->self->value, ae_flag_global);
@@ -397,7 +397,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
             "invalid expression type '%i' in union declaration."))
     SET_FLAG(l->self->d.exp_decl.type, ae_flag_checked | flag);
     if(GET_FLAG(stmt, ae_flag_static))
-      l->self->d.exp_decl.is_static = 1;
+      SET_FLAG(l->self->d.exp_decl.type, ae_flag_static);
     while(list) {
       Var_Decl var_decl = list->self;
       if(var_decl->array)
