@@ -28,7 +28,7 @@ static m_bool sndfile_ini(VM* v, DriverInfo* di) {
     sprintf(tmp, "%s.wav", di->card);
     sf[0] = sf_open(tmp, SFM_WRITE, &info);
   } else for(chan = 0; chan < nchan; chan++) {
-      sprintf(tmp, "%s_%02ld.wav", di->card, chan);
+      sprintf(tmp, "%s_%02" UINT_F ".wav", di->card, chan);
       sf[chan] = sf_open(tmp, SFM_WRITE, &info);
     }
   return 1;
