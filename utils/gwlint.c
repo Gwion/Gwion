@@ -88,13 +88,19 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
   m_uint i;
   Exp exp = array->exp_list;
   for(i = 0; i < array->depth; i++) {
-    Exp tmp = exp ?exp->next : NULL;
+    Exp tmp = exp ? exp->next : NULL;
     lint_print(linter, "[");
-    if(exp)
-     lint_exp(linter, exp);
+    if(exp) {
+      if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_array)
+        lint_print(linter, " ");
+      lint_exp(linter, exp);
+      if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_array)
+        lint_print(linter, " ");
+    }
     lint_print(linter, "]");
-    if(exp)
+    if(exp) {
       exp->next = tmp;
+    }
   }
 }
 

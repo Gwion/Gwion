@@ -6,7 +6,7 @@ a =< dac;
 
 // testing 'init'
 {
-	float	ifreq;
+	2 => float	ifreq;
 
 	a.init(ifreq);a.init(ifreq);
 }

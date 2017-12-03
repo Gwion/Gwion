@@ -1194,8 +1194,6 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   }
   Instr _goto = emitter_add_instr(emit, Goto);
   _goto->m_val = index;
-
-//  if(stmt->c2) // coverity told me to do so
   op->m_val = emit_code_size(emit);
   emit_pop_stack(emit, action_index);
   return 1;
