@@ -6,7 +6,7 @@ static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK
 
 };
 
-char err_msg(a_header header, long int pos, const char* fmt, ...) {
+int err_msg(a_header header, long int pos, const char* fmt, ...) {
   char msg[256];
   va_list arg;
   va_start(arg, fmt);
