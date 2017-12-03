@@ -8,7 +8,7 @@
 #include "driver.h"
 
 #ifndef SP_ALSA_ACCESS
-#define SP_ALSA_ACCESS SND_PCM_ACCESS_RW_NONINTERLEAVED
+#define SP_ALSA_ACCESS SND_PCM_ACCESS_RW_INTERLEAVED
 #endif
 
 #ifdef USE_DOUBLE
@@ -52,9 +52,10 @@ static int sp_alsa_init(DriverInfo* di, const char* device, int stream, int mode
     snd_pcm_hw_params_set_channels(handle, params, di->chan);
   else return -1;;
 
-  if(snd_pcm_hw_params_set_period_size_near(handle, params, &di->bufsize, &dir))
+  snd_pcm_uframes_t size = di->bufsize;
+  if(snd_pcm_hw_params_set_period_size_near(handle, params, &size, &dir))
     return -1;
-
+  di->bufsize = size;
   if(snd_pcm_hw_params_set_periods_near(handle, params, &num, &dir))
     return -1;
   di->bufnum = num;
@@ -68,8 +69,6 @@ static int sp_alsa_init(DriverInfo* di, const char* device, int stream, int mode
 }
 
 static void alsa_run_init(VM* vm, DriverInfo* di) {
-  snd_pcm_get_params(out, &di->bufsize, &di->bufnum);
-  di->bufsize /= di->bufnum;
   snd_pcm_hwsync(out);
   snd_pcm_hwsync(in);
   snd_pcm_start(out);
@@ -137,10 +136,10 @@ static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {
       di->run(vm);
       for(chan = 0; chan < sp->nchan; chan++)
         ((m_float*)out_bufi)[k++] = sp->out[chan];
-      if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
-        snd_pcm_prepare(out);
       sp->pos++;
     }
+    if(snd_pcm_writei(out, out_bufi, di->bufsize) < 0)
+      snd_pcm_prepare(out);
   }
 }
 
