@@ -57,8 +57,11 @@ static void print_polar(m_complex c) {
 static void print_vec(char* f, m_uint size) {
   m_uint i;
   fprintf(stdout, "@(");
-  for(i = 0; i < size; i++)
+  for(i = 0; i < size; i++) {
     print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
+    if(i < size - 1)
+      fprintf(stdout, ", ");
+  }
   fprintf(stdout, ")");
 }
 
