@@ -3,6 +3,7 @@
 #include <dlfcn.h>
 #include <dirent.h>
 #include <inttypes.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "type.h"
 #include "func.h"

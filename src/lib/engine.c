@@ -1,6 +1,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <dlfcn.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "type.h"
 #include "import.h"

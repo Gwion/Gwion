@@ -1,5 +1,6 @@
 #include <alsa/asoundlib.h>
 #include <alsa/mixer.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "vm.h"
 #include "oo.h"

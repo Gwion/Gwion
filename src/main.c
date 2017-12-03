@@ -2,8 +2,8 @@
 #include <getopt.h>
 #include <string.h>
 #include <pthread.h>
-#include "err_msg.h"
 #include "defs.h"
+#include "err_msg.h"
 #include "map.h"
 #include "vm.h"
 #include "absyn.h"

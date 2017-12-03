@@ -1,4 +1,5 @@
-#include "string.h"
+#include <string.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"

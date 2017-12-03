@@ -10,6 +10,7 @@
 #define _XOPEN_SOURCE 700
 #include <math.h>
 #include <string.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
