@@ -3,5 +3,5 @@ Machine.compile("/tmp", "int i;<<<120>>>;");
 //Machine.compile("/tmp", "int i[error];");
 
 <<<Machine.check("/tmp/","int i;")>>>;
-Machine.check("/tmp/", "int i[error];"); // leak parsed invalid array.
+Machine.check("/tmp/", "int i[error];");
 Machine.check(NULL, NULL);
