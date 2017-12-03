@@ -179,7 +179,7 @@ static Type check_exp_prim_id_non_res(Env env, Exp_Primary* primary) {
   Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, ae_flag_checked))
     CHECK_BO(err_msg(TYPE_, primary->pos, "variable %s not legit at this point.",
-          v ? v->name : ""))
+          s_name(primary->d.var)))
   primary->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;
