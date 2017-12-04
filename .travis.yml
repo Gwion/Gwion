@@ -48,6 +48,8 @@ before_script:
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then bash utils/lcov_helper.sh; fi
+
+after_failure:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.5  ]; then valgrind ./gwion; fi
 
 git:
