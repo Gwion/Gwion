@@ -362,7 +362,8 @@ do_test() {
       async=0
       local c
       c=$(count_tests_sh "$arg")
-      [ "$c" -gt 0 ] && echo "## $arg"
+      [ "$c" -eq 0 ] && continue
+      echo "## $arg"
       bash "$arg" "$n_test"
       n_test=$((n_test + c))
       async=$old_async
