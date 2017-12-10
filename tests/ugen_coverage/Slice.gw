@@ -22,7 +22,7 @@ a =< dac;
 
 // testing 'id'
 {
-	float	id;
+	1 => float	id;
 
 	a.id(id);
 }

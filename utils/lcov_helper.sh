@@ -55,14 +55,14 @@ document.addEventListener("keydown", keyDownTextField, false);
 EOF
 }
 
-keyboard.cb 'LineNoCov'
+keyboard_cb 'LineNoCov'
 keyboard_cb 'coverFnLo'
 
-for file in lcov/*/*.c.gcov.html
+for file in lcov/**/*.c.gcov.html
 do sed -i 's/<body>/<body><script src="..\/helper_gcov.js"><\/script>/' "$file"
 done
 
-for file in lcov/*/*.*.func*.html
+for file in lcov/**/*.*.func*.html
 do sed -i 's/<body>/<body><script src="..\/helper_func.js"><\/script>/' "$file"
 done
 

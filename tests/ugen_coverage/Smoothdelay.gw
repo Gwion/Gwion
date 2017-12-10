@@ -33,7 +33,7 @@ a =< dac;
 
 // testing 'del'
 {
-	float	del;
+	 1=> float	del;
 
 	a.del(del);
 }

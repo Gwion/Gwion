@@ -35,7 +35,7 @@ static void lint_nl(Linter* linter) {
   fprintf(linter->file, "\n");
   linter->pos = ftell(linter->file);
   if(linter->pos - pos > 80)
-    fprintf(stderr, "'\033[31;1m%s\033[0m'long line %i\n",
+    fprintf(stderr, "'\033[31;1m%s\033[0m'long line %" INT_F "\n",
         linter->name, linter->line);
   linter->line++;
 }
@@ -180,6 +180,7 @@ static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
         lint_stmt(linter, unary->code);
       else
         lint_exp(linter, unary->exp);
+    default: break;
   }
 }
 
@@ -283,8 +284,8 @@ static void lint_exp_if(Linter* linter, Exp_If* exp_if) {
 }
 
 static void lint_exp(Linter* linter,  Exp exp) {
-  while(linter, exp) {
-    switch(linter, exp->exp_type) {
+  while(exp) {
+    switch(exp->exp_type) {
       case ae_exp_primary:
         lint_exp_primary(linter, &exp->d.exp_primary);
         break;
@@ -507,7 +508,7 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
   if(stmt->type == ae_stmt_exp && !stmt->d.stmt_exp.val)
     return;
   lint_indent(linter);
-  switch(linter, stmt->type) {
+  switch(stmt->type) {
     case ae_stmt_exp:
       lint_exp(linter, stmt->d.stmt_exp.val);
         lint_print(linter, ";");
@@ -596,11 +597,11 @@ static void lint_func_def(Linter* linter, Func_Def f) {
 
 static void lint_section(Linter* linter, Section* section) {
   ae_Section_Type t = section->type;
-  if(linter, t == ae_section_stmt)
+  if(t == ae_section_stmt)
     lint_stmt_list(linter, section->d.stmt_list);
-  else if(linter, t == ae_section_func)
+  else if(t == ae_section_func)
     lint_func_def(linter, section->d.func_def);
-  else if(linter, t == ae_section_class)
+  else if(t == ae_section_class)
     lint_class_def(linter, section->d.class_def);
 }
 

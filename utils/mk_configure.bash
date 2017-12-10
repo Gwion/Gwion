@@ -248,6 +248,10 @@ EOF
 make_recipe() {
   cat << _EOF
 make_recipe() {
+cat << EOF
+TOOL_OBJ=src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+EOF
+
 ###########
 # recipes #
 ###########
@@ -272,23 +276,23 @@ endif
 
 # recipes
 all: options \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${util_obj} \\\${ugen_obj} \\\${drvr_obj}
-	@echo "link \\\${PRG}"
+	\\\$(info link \\\${PRG})
 	@\\\${CC} \\\${src_obj} \\\${lib_obj} \\\${ast_obj} \\\${parse_obj} \\\${emit_obj} \\\${oo_obj} \\\${vm_obj} \\\${ugen_obj} \\\${util_obj} \\\${drvr_obj} \\\${LDFLAGS} -o \\\${PRG}
 
 options:
-	@echo "CFLAGS  : \\\${CFLAGS}"
-	@echo "LDFLAGS : \\\${LDFLAGS}"
+	\\\$(info CFLAGS  : \\\${CFLAGS})
+	\\\$(info LDFLAGS  : \\\${LDFLAGS})
 
 clean:
-	@echo "cleaning..."
+	\\\$(info cleaning ...)
 	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno \${PRG}
 
 src/arg.o:
-	@echo "compile arg (with arguments defines)"
+	\\\$(info compile \\\$(<:.c=) (with arguments defines))
 	@\\\${CC} \\\${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='\\\${LDCFG}' -DCFLAGS='\\\${CCFG}'
 
 .c.o:
-	@echo "compile \\\$(<:.c=)"
+	\\\$(info compile \\\$(<:.c=))
 	@\\\${CC} \\\${CFLAGS} -c \\\$< -o \\\$(<:.c=.o)
 
 install: directories
@@ -301,22 +305,24 @@ test:
 	@bash utils/test.sh tests/sh severity=11 test/sh examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
 
 parser:
+	\\\$(info generating parser)
 	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
 
 lexer:
-	\\\${LEX}  -o src/ast/lexer.c utils/gwion.l
+	\\\$(info generating lexer)
+	@\\\${LEX}  -o src/ast/lexer.c utils/gwion.l
 
-gwlint: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-	\\\${CC} -o gwlint -DGWLINT -Iinclude utils/gwlint.c \
-		src/util/map.o src/util/vector.o\
-		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+gwcov: utils/gwcov.o
+	\\\$(info compiling gwcov)
+	@\\\${CC} \\\${LDFLAGS} utils/gwcov.o -o gwcov
 
-gwtag: src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
-	\\\${CC} -o gwtag -DGWLINT -Iinclude utils/gwlint.c \
-		src/util/map.o src/util/vector.o\
-		src/util/symbol.o src/util/err_msg.o src/util/absyn.c\
-		src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o -lm
+gwlint: \\\${TOOL_OBJ} utils/gwlint.o
+	\\\$(info compiling gwlint)
+	@\\\${CC} \\\${LDFLAGS} \\\${CFLAGS} \\\${TOOL_OBJ} -o gwlint -DGWLINT utils/gwlint.o
+
+gwtag: \\\${TOOL_OBJ} utils/gwtag.o
+	\\\$(info compiling gwlint)
+	@\\\${CC}  \\\${LDFLAGS} \\\${CFLAGS} \\\${TOOL_OBJ} -o gwtag -DGWLINT utils/gwtag.o
 
 directories:
 	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}

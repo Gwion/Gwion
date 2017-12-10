@@ -147,8 +147,8 @@ static void tag_exp_if(Tagger* tagger, Exp_If* exp_if) {
 }
 
 static void tag_exp(Tagger* tagger,  Exp exp) {
-  while(tagger, exp) {
-    switch(tagger, exp->exp_type) {
+  while(exp) {
+    switch(exp->exp_type) {
       case ae_exp_primary:
         tag_exp_primary(tagger, &exp->d.exp_primary);
         break;
@@ -290,7 +290,7 @@ void tag_stmt_break(Tagger* tagger, Stmt_Break stmt) {
 static void tag_stmt(Tagger* tagger, Stmt stmt) {
   if(stmt->type == ae_stmt_exp && !stmt->d.stmt_exp.val)
     return;
-  switch(tagger, stmt->type) {
+  switch(stmt->type) {
     case ae_stmt_exp:
       tag_exp(tagger, stmt->d.stmt_exp.val);
       break;
@@ -377,11 +377,11 @@ static void tag_func_def(Tagger* tagger, Func_Def f) {
 
 static void tag_section(Tagger* tagger, Section* section) {
   ae_Section_Type t = section->type;
-  if(tagger, t == ae_section_stmt)
+  if(t == ae_section_stmt)
     tag_stmt_list(tagger, section->d.stmt_list);
-  else if(tagger, t == ae_section_func)
+  else if(t == ae_section_func)
     tag_func_def(tagger, section->d.func_def);
-  else if(tagger, t == ae_section_class)
+  else if(t == ae_section_class)
     tag_class_def(tagger, section->d.class_def);
 }
 

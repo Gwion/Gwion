@@ -548,7 +548,7 @@ static m_bool scan2_func_def_builtin(Func func, m_str name) {
 }
 
 static m_bool scan2_func_def_op(Env env, Func_Def f) {
-  m_bool ret = name2op(strtok(s_name(f->name), "@"));
+  Operator ret = name2op(strtok(s_name(f->name), "@"));
   struct Op_Import opi = { ret, f->arg_list->var_decl->value->m_type,
       f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL,
 f->ret_type, NULL, NULL, 1};

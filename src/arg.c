@@ -158,7 +158,7 @@ static void arg_udp(UdpIf* udp, char c) {
 
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:C:K ", long_option, &index)) != -1) {
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CK ", long_option, &index)) != -1) {
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
     else switch(i) {

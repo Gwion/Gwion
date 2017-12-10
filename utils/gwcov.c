@@ -105,7 +105,7 @@ static void detab(char* in, char* out, size_t max_len) {
         out[i++] = ' ';
     } else
         out[i++] = *in;
-    *in++;
+    (*in)++;
   }
   out[i] = 0;
 }
