@@ -263,6 +263,15 @@ void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
   tag_print(tagger, ") {$/;\tt\n");
 }
 
+void tag_stmt_typedef(Tagger* tagger, Stmt_Typedef ptr) {
+  tag(tagger, s_name(ptr->xid));
+  tag_print(tagger, "/^");
+  tag_type_decl(tagger, ptr->type);
+  tag_print(tagger, " ");
+  tag_print(tagger, s_name(ptr->xid));
+  tag_print(tagger, ") {$/;\tt\n");
+}
+
 void tag_stmt_union(Tagger* tagger, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(stmt->xid) {
@@ -335,6 +344,9 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
       break;
     case ae_stmt_funcptr:
       tag_stmt_fptr(tagger, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_typedef:
+      tag_stmt_typedef(tagger, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       tag_stmt_union(tagger, &stmt->d.stmt_union);

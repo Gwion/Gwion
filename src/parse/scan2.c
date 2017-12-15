@@ -469,6 +469,9 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
     case ae_stmt_funcptr:
       ret = scan2_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
+    case ae_stmt_typedef:
+      ret = 1;
+      break;
     case ae_stmt_union:
       ret = scan2_stmt_union(env, &stmt->d.stmt_union);
       break;

@@ -454,6 +454,18 @@ Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, i
 
 }
 
+Stmt new_stmt_typedef(Type_Decl* decl, m_str xid, int pos) {
+  Stmt a              = calloc(1, sizeof(struct Stmt_));
+  a->type             = ae_stmt_typedef;
+  a->d.stmt_type.type  = decl;
+  a->d.stmt_type.xid   = insert_symbol(xid);
+  a->pos = a->d.stmt_ptr.pos  = pos;
+  return a;
+}
+static void free_stmt_typedef(Stmt_Typedef a){
+  free_type_decl(a->type);
+}
+
 static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
@@ -824,6 +836,9 @@ void free_stmt(Stmt stmt) {
       break;
     case ae_stmt_funcptr:
       free_stmt_func_ptr(&stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_typedef:
+      free_stmt_typedef(&stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       free_stmt_union(&stmt->d.stmt_union);

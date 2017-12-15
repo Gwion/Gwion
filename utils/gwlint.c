@@ -465,6 +465,14 @@ void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
   lint_nl(linter);
 }
 
+void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
+  lint_print(linter, "typedef ");
+  lint_type_decl(linter, ptr->type);
+  lint_print(linter, " ");
+  lint_print(linter, s_name(ptr->xid));
+  lint_print(linter, ";");
+  lint_nl(linter);
+}
 void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(GET_FLAG(stmt, ae_flag_private))
@@ -556,6 +564,9 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
       break;
     case ae_stmt_funcptr:
       lint_stmt_fptr(linter, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_typedef:
+      lint_stmt_typedef(linter, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       lint_stmt_union(linter, &stmt->d.stmt_union);

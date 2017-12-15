@@ -298,7 +298,7 @@ Decl_List new_decl_list(Exp d, Decl_List l);
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
-               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_union
+               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_typedef, ae_stmt_union
              } ae_Stmt_Type;
 
 typedef struct Stmt_Code_       * Stmt_Code;
@@ -315,6 +315,7 @@ typedef struct Stmt_Exp_        * Stmt_Case;
 typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
 typedef struct Stmt_Enum_       * Stmt_Enum;
 typedef struct Stmt_Ptr_        * Stmt_Ptr;
+typedef struct Stmt_Typedef_    * Stmt_Typedef;
 typedef struct Stmt_Union_      * Stmt_Union;
 
 struct Stmt_Basic_ {
@@ -387,6 +388,11 @@ struct Stmt_Ptr_ {
   Value      value;
   int        pos;
 };
+struct Stmt_Typedef_ {
+  Type_Decl* type;
+  S_Symbol   xid;
+  int        pos;
+};
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
@@ -416,6 +422,7 @@ struct Stmt_ {
     struct Stmt_Exp_        stmt_case;
     struct Stmt_Enum_       stmt_enum;
     struct Stmt_Ptr_        stmt_ptr;
+    struct Stmt_Typedef_     stmt_type;
     struct Stmt_Union_      stmt_union;
   } d;
   int pos;
@@ -437,6 +444,7 @@ Stmt new_stmt_enum(ID_List list, m_str type, int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
 Stmt new_func_ptr_stmt(ae_flag key, m_str type, Type_Decl* decl, Arg_List args, int pos);
+Stmt new_stmt_typedef(Type_Decl* decl, m_str xid, int pos);
 void free_stmt(Stmt a);
 struct Stmt_List_ {
   Stmt stmt;

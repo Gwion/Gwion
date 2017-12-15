@@ -77,11 +77,21 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
               "variable %s has already been defined in the same scope...",
               s_name(list->self->xid)))
     decl->num_decl++;
-    if(var_decl->array) {
-      Type t2 = t;
+    if(t->array_depth && !var_decl->array) { // catch typedef xxx[] before making array type
+      ADD_REF(t);
+      SET_FLAG(decl->type, ae_flag_ref);
+    }
+    if(var_decl->array) { // get depth, including typedef
+      m_uint depth = list->self->array->depth;
+      Type t3, t2 = t;
+      t3 = t;
+      while(t3) {
+        depth += t3->array_depth;
+        t3 = t3->d.array_type;
+      }
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-      t = new_array_type(env, list->self->array->depth, t2, env->curr);
+      t = new_array_type(env, depth, t2, env->curr);
       if(!list->self->array->exp_list)
         SET_FLAG(decl->type, ae_flag_ref);
     }
@@ -455,6 +465,10 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
       break;
     case ae_stmt_funcptr:
       ret = scan1_stmt_fptr(env, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_typedef:
+      ret = 1;
+      /*ret = scan1_stmt_fptr(env, &stmt->d.stmt_ptr);*/
       break;
     case ae_stmt_union:
       ret = scan1_stmt_union(env, &stmt->d.stmt_union);

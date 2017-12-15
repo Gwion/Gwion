@@ -24,6 +24,24 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   nspc_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
   return 1;
+} 
+
+static m_bool scan0_typedef(Env env, Stmt_Typedef stmt) {
+  Type base = find_type(env, stmt->type->xid);
+  if(!base)exit(90);
+  if(stmt->type->array) {
+    Type t = base;
+    base = new_array_type(env, stmt->type->array->depth, t, env->curr);
+    /*base->parent = t; */
+  }
+  nspc_add_type(env->curr, stmt->xid, base);
+  Type type = type_copy(&t_class);
+  type->d.actual_type = base;
+  Value v = new_value(type, s_name(stmt->xid));
+  v->owner = env->curr;
+  SET_FLAG(v, ae_flag_const | ae_flag_checked);
+  nspc_add_value(env->curr, stmt->xid, v);
+  return 1;
 }
 
 static m_bool scan0_Stmt(Env env, Stmt stmt) {
@@ -31,6 +49,8 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
     return 1;
   if(stmt->type == ae_stmt_funcptr)
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
+  else if(stmt->type == ae_stmt_typedef)
+    CHECK_BB(scan0_typedef(env, &stmt->d.stmt_type))
   return 1;
 }
 

@@ -8,16 +8,17 @@ make gwlint && echo "ok $n make gwlint" || echo "not ok $n make gwlint"
 n=$((n+1))
 ./gwlint examples/*.gw && echo "ok $n test gwlint"
 n=$((n+1))
-make gwtag && echo "ok $n make gwtag" || echo "not ok $n make gwlint"
+make gwtag && echo "ok $n make gwtag" || echo "not ok $n make gwtag"
 n=$((n+1))
 ./gwtag examples/*.gw && echo "ok $n test gwtag"
 n=$((n+1))
-make gwcov && echo "ok $n make gwcov" || echo "not ok $n make gwlint"
+make gwcov && echo "ok $n make gwcov" || echo "not ok $n make gwcov"
 n=$((n+1))
-./gwion -K examples/*.gw &>/dev/null && echo "ok $n test gwion on all examples"
+./gwion -K examples/*.gw &>/dev/null && echo "ok $n test gwion on all examples" || echo "ok $n [skip] make gwion coverage"
+
 n=$((n+1))
 
 #if [ $( grep GWCOV <<< "$(./gwion -C 2>&1)" ) ]
-./gwtag examples/*.gw && echo "ok $n test gwcov"
+./gwcov examples/*.gw && echo "ok $n test gwcov" || echo "ok $n [skip] make gwcov test"
 #else echo "ok $n [ skipped: gwion not compiled with coverage ]"
 #fi

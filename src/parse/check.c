@@ -817,6 +817,12 @@ static Type check_op(Env env, Exp_Binary* binary) {
   return NULL;
 }
 
+static Type get_array_type(Type t) {
+  while(t->d.array_type)
+    t = t->d.array_type;
+  return t;
+}
+
 static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
   if(cr->exp_type == ae_exp_decl)
     SET_FLAG(cr->d.exp_decl.type, ae_flag_ref);
@@ -832,7 +838,9 @@ static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
     CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
   }
   if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-    if(isa(cl->type->d.array_type, cr->type->d.array_type) < 0) {
+    Type l = get_array_type(cl->type);
+    Type r = get_array_type(cr->type);
+    if(isa(l, r) < 0) {
       REM_REF(cl->type)
       CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
     }
@@ -1521,6 +1529,9 @@ static m_bool check_stmt(Env env, Stmt stmt) {
       break;
     case ae_stmt_funcptr:
       ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
+      break;
+    case ae_stmt_typedef:
+      ret = 1;
       break;
     case ae_stmt_union:
       ret = check_stmt_union(env, &stmt->d.stmt_union);

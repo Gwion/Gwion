@@ -68,7 +68,7 @@ int get_pos(void* data);
 %type<vec> vec_exp
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
-%type<stmt> enum_stmt func_ptr union_stmt
+%type<stmt> enum_stmt func_ptr stmt_typedef union_stmt
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
@@ -166,6 +166,8 @@ func_ptr
   | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN func_args { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $7, get_pos(scan)); }
   ;
 
+stmt_typedef: FUNC_PTR type_decl2 ID SEMICOLON { if($2->array->exp_list) gwion_error(&scan, ("array must be empty in typedef expression.")); $$ = new_stmt_typedef($2, $3, get_pos(scan)); };
+
 type_decl2
   : type_decl                         { $$ = $1; }
   | type_decl array_empty             { $$ = add_type_decl_array( $1, $2, get_pos(scan)); }
@@ -194,6 +196,7 @@ stmt
   | enum_stmt
   | jump_stmt
   | func_ptr
+  | stmt_typedef
   | union_stmt
   ;
 
@@ -325,7 +328,7 @@ func_def
     { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scan)); $$->types = $1; if($1) SET_FLAG($$, ae_flag_template);}
   | PRIVATE decl_template function_decl static_decl type_decl2 ID func_args code_segment
     { $$ = new_func_def($3 | $4, $5, $6, $7, $8, get_pos(scan)); $$->types = $2; if($2) SET_FLAG($$, ae_flag_template); SET_FLAG($$, ae_flag_private); }
-  | OPERATOR type_decl ID func_args code_segment
+  | OPERATOR type_decl2 ID func_args code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scan)); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list("void", get_pos(scan)), 0,
