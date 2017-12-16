@@ -2277,13 +2277,13 @@ yyreduce:
 
   case 26:
 #line 154 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = ae_flag_instance; }
+    { (yyval.ival) = 0; }
 #line 2282 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 27:
 #line 158 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = ae_flag_func; }
+    { (yyval.ival) = 0; }
 #line 2288 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2781,13 +2781,13 @@ yyreduce:
 
   case 124:
 #line 329 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , (yyvsp[-3].type_decl), (yyvsp[-2].sym), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
+    { (yyval.func_def) = new_func_def(ae_flag_static | ae_flag_op , (yyvsp[-3].type_decl), (yyvsp[-2].sym), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
 #line 2786 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 125:
 #line 331 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
+    { (yyval.func_def) = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
       get_pos(arg)), insert_symbol("dtor"), NULL, (yyvsp[0].stmt), get_pos(arg)); }
 #line 2793 "src/ast/parser.c" /* yacc.c:1646  */
     break;

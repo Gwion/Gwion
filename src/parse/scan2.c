@@ -123,8 +123,7 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
       SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  Func_Def def = new_func_def(!env->class_def ? ae_flag_func :
-        !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static,
+  Func_Def def = new_func_def(GET_FLAG(ptr, ae_flag_static) ? ae_flag_static : 0,
       ptr->type, ptr->xid, ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);

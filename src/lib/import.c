@@ -326,7 +326,7 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   Arg_List arg_list = NULL;
   m_uint i, array_depth = 0;
 
-  flag |= ae_flag_func | ae_flag_builtin;
+  flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name))
@@ -406,7 +406,7 @@ static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
   ID_List type_path;
   Type_Decl* type_decl = NULL;
   Arg_List args = make_dll_arg_list(dl_fun);
-  flag |= ae_flag_func | ae_flag_builtin;
+  flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import %Q (type)...",

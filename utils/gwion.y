@@ -151,11 +151,11 @@ stmt_list
 
 static_decl
   : STATIC                            { $$ = ae_flag_static;   }
-  |                                   { $$ = ae_flag_instance; }
+  |                                   { $$ = 0; }
   ;
 
 function_decl
-  : FUNCTION { $$ = ae_flag_func; }
+  : FUNCTION { $$ = 0; }
   | VARARG   { $$ = ae_flag_variadic; }
   ;
 
@@ -326,9 +326,9 @@ func_def
   | PRIVATE func_def
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | OPERATOR type_decl2 id func_args code_segment
-    { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(arg)); }
+    { $$ = new_func_def(ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(arg)); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_flag_func | ae_flag_instance | ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
+    { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
       get_pos(arg)), insert_symbol("dtor"), NULL, $4, get_pos(arg)); }
   ;
 
