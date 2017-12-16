@@ -180,11 +180,23 @@ static m_bool emit_pre_constructor_array(Emitter emit, Type type) {
 static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     m_bool is_ref) {
   if(type->array_depth) {
-    CHECK_BB(emit_exp(emit, array->exp_list, 0))
+    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
+      return 1;
+    if(array)
+      CHECK_BB(emit_exp(emit, array->exp_list, 0))
+    Type tmp = NULL, t = type;
+    while(t) {
+      if(t && GET_FLAG(t, ae_flag_typedef) && t->e.exp_list)
+        CHECK_BB(emit_exp(emit, t->e.exp_list, 0))
+      if(t->array_depth)
+        tmp = t;
+      t = t->d.array_type;
+    }
+        
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
     info->type = type;
-    info->is_obj = isa(type->d.array_type, &t_object) > 0 ? 1 : 0;
+    info->is_obj = isa(tmp->d.array_type, &t_object) > 0 ? 1 : 0;
     info->is_ref = is_ref;
     Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
@@ -510,6 +522,8 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
+    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
+      return 1;
     if((is_array) || !is_ref) {
       Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
@@ -523,7 +537,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
 
 static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
   CHECK_BB(template_push_types(emit->env, decl->base->types, decl->types))
-  CHECK_BB(emit_class_def(emit, decl->m_type->def))
+  CHECK_BB(emit_class_def(emit, decl->m_type->e.def))
   nspc_pop_type(emit->env->curr);
   return 1;
 }
@@ -535,6 +549,8 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 
   if(GET_FLAG(decl->m_type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
+  if(GET_FLAG(decl->m_type, ae_flag_typedef) && GET_FLAG(decl->m_type, ae_flag_ref))
+    ref = 1;
   while(list) {
     if(GET_FLAG(decl->type, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
@@ -747,7 +763,7 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
     if(func->value_ref->owner_class &&
         GET_FLAG(func->value_ref->owner_class, ae_flag_template))
       CHECK_BB(emit_exp_call_code_template(emit->env,
-            func->value_ref->owner_class->def))
+            func->value_ref->owner_class->e.def))
     else if(!GET_FLAG(func->def, ae_flag_template))
       CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
     if(emit_func_def(emit, func->def) < 0)

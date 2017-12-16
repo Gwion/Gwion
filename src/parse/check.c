@@ -34,7 +34,7 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp) {
 
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
   CHECK_BB(template_push_types(env, decl->base->types, decl->types))
-  CHECK_BB(check_class_def(env, decl->m_type->def))
+  CHECK_BB(check_class_def(env, decl->m_type->e.def))
   return 1;
 }
 
@@ -665,7 +665,7 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   value = func->value_ref;
   if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
   {
-    Class_Def def = value->owner_class->def;
+    Class_Def def = value->owner_class->e.def;
     CHECK_BB(template_push_types(env, def->tref, def->base))
     CHECK_BB(traverse_class_def(env, def))
   }
@@ -1212,6 +1212,12 @@ m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
+static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
+  if(stmt->type->array)
+    CHECK_OB(check_exp(env, stmt->type->array->exp_list))
+  return 1;
+}
+
 static Type check_exp(Env env, Exp exp) {
   Exp curr = exp;
   while(curr) {
@@ -1531,7 +1537,7 @@ static m_bool check_stmt(Env env, Stmt stmt) {
       ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
-      ret = 1;
+      ret = check_stmt_type(env, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       ret = check_stmt_union(env, &stmt->d.stmt_union);

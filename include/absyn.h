@@ -32,7 +32,8 @@ typedef enum {
   ae_flag_enum  = 1 << 17,
   ae_flag_arg  = 1 << 18,
   ae_flag_ref  = 1 << 19,
-  ae_flag_abstract  = 1 << 20
+  ae_flag_abstract  = 1 << 20,
+  ae_flag_typedef  = 1 << 21
 } ae_flag;
 
 typedef struct {
@@ -390,6 +391,7 @@ struct Stmt_Ptr_ {
 };
 struct Stmt_Typedef_ {
   Type_Decl* type;
+  Type       m_type;
   S_Symbol   xid;
   int        pos;
 };

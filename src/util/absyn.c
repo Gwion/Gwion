@@ -462,7 +462,10 @@ Stmt new_stmt_typedef(Type_Decl* decl, m_str xid, int pos) {
   a->pos = a->d.stmt_ptr.pos  = pos;
   return a;
 }
+
 static void free_stmt_typedef(Stmt_Typedef a){
+  /*if(a->m_type)*/
+  /*REM_REF(a->m_type)*/
   free_type_decl(a->type);
 }
 

@@ -166,7 +166,7 @@ func_ptr
   | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN func_args { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $7, get_pos(scan)); }
   ;
 
-stmt_typedef: FUNC_PTR type_decl2 ID SEMICOLON { if($2->array->exp_list) gwion_error(&scan, ("array must be empty in typedef expression.")); $$ = new_stmt_typedef($2, $3, get_pos(scan)); };
+stmt_typedef: FUNC_PTR type_decl2 ID SEMICOLON { /*if($2->array->exp_list) gwion_error(&scan, ("array must be empty in typedef expression.")); */ $$ = new_stmt_typedef($2, $3, get_pos(scan)); };
 
 type_decl2
   : type_decl                         { $$ = $1; }

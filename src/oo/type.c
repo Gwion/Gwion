@@ -15,9 +15,11 @@ void free_type(Type a) {
     REM_REF(a->info);
   if(!GET_FLAG(a, ae_flag_builtin))
     free(a);
-  else if(a->def) {
-    free_id_list(a->def->types);
-    free(a->def);
+  else if(!GET_FLAG(a, ae_flag_typedef)) { 
+    if(a->e.def) {
+    free_id_list(a->e.def->types);
+    free(a->e.def);
+    }
   }
 }
 
@@ -28,6 +30,6 @@ Type type_copy(Type type) {
   a->size          = type->size;
   a->d.actual_type = type->d.actual_type;
   a->array_depth   = type->array_depth;
-  a->def           = type->def;
+  a->e.def           = type->e.def;
   return a;
 }

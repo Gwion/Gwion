@@ -16,10 +16,10 @@ static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
   if(GET_FLAG(type, ae_flag_template)) {
     CHECK_BB(template_push_types(env, decl->base->types, decl->types));
-    CHECK_BB(scan2_class_def(env, type->def))
+    CHECK_BB(scan2_class_def(env, type->e.def))
   }
   else if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    template_push_types(env, env->class_def->def->types, decl->types);
+    template_push_types(env, env->class_def->e.def->types, decl->types);
   return 1;
 }
 
@@ -141,6 +141,12 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
   //if(!GET_FLAG(ptr, ae_flag_static) && !GET_FLAG(ptr, ae_flag_builtin))
   if(!GET_FLAG(ptr, ae_flag_builtin))
     ADD_REF(ptr->func);
+  return 1;
+}
+
+static m_bool scan2_stmt_type(Env env, Stmt_Typedef stmt) {
+  if(stmt->type->array)
+    return scan2_exp(env, stmt->type->array->exp_list);
   return 1;
 }
 
@@ -470,7 +476,7 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
       ret = scan2_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
-      ret = 1;
+      ret = scan2_stmt_type(env, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       ret = scan2_stmt_union(env, &stmt->d.stmt_union);

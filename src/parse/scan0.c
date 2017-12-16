@@ -27,19 +27,41 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
 } 
 
 static m_bool scan0_typedef(Env env, Stmt_Typedef stmt) {
-  Type base = find_type(env, stmt->type->xid);
-  if(!base)exit(90);
+  Type type, base = find_type(env, stmt->type->xid);
+  Value v = nspc_lookup_value1(env->curr, stmt->xid);
+  if(v)
+    CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
+          "value '%s' already defined in this scope"
+          " with type '%s'.", s_name(stmt->xid), v->m_type->name))
+  if(!base) {
+    char c[id_list_len(stmt->type->xid)];
+    type_path(c, stmt->type->xid);
+    CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
+          "type '%s' unknown in typedef '%s'",
+          s_name(stmt->type->xid->xid), s_name(stmt->xid)))
+  }
   if(stmt->type->array) {
     Type t = base;
     base = new_array_type(env, stmt->type->array->depth, t, env->curr);
-    /*base->parent = t; */
+    base->e.exp_list = stmt->type->array->exp_list;
+  } else {
+    Type t = base;
+    base = type_copy(t);
+    if(t->info)
+      ADD_REF(t->info);
+    base->parent = t;
+    base->d.array_type = t;
+    stmt->m_type = t;
   }
+  SET_FLAG(base, ae_flag_typedef);
+  base->name = s_name(stmt->xid);
   nspc_add_type(env->curr, stmt->xid, base);
-  Type type = type_copy(&t_class);
+  type = type_copy(&t_class);
   type->d.actual_type = base;
-  Value v = new_value(type, s_name(stmt->xid));
+  v = new_value(type, s_name(stmt->xid));
   v->owner = env->curr;
-  SET_FLAG(v, ae_flag_const | ae_flag_checked);
+  SET_FLAG(v, ae_flag_const | ae_flag_checked | ae_flag_typedef);
+  SET_FLAG(type, ae_flag_typedef);
   nspc_add_value(env->curr, stmt->xid, v);
   return 1;
 }
@@ -101,7 +123,7 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
     env_nspc(env) : env->curr;
   the_class->d.func = NULL;
-  the_class->def = class_def;
+  the_class->e.def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, class_def->name->xid, the_class);
   if(class_def->types)

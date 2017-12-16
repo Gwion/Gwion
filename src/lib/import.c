@@ -181,9 +181,9 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(importer->templater.n) {
-    type->def = calloc(1, sizeof(struct Class_Def_));
-    type->def->types = templater_def(&importer->templater);
-    type->def->type = type;
+    type->e.def = calloc(1, sizeof(struct Class_Def_));
+    type->e.def->types = templater_def(&importer->templater);
+    type->e.def->type = type;
     SET_FLAG(type, ae_flag_template);
   }
   CHECK_BB(importer_add_type(importer, type))
@@ -258,8 +258,8 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     Section* section = new_section_stmt_list(list, 0);
     Class_Body body = new_class_body(section, 0);
     type_decl->array = v->t.array;
-    if(!importer->env->class_def->def->body)
-      importer->env->class_def->def->body = importer->body = body;
+    if(!importer->env->class_def->e.def->body)
+      importer->env->class_def->e.def->body = importer->body = body;
     else {
       importer->body->next = body;
       importer->body = body;

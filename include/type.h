@@ -23,7 +23,10 @@ struct Type_ {
     Type      actual_type;
     Type      array_type;
   } d;
-  Class_Def def;
+  union {
+    Class_Def def;
+    Exp exp_list;
+  } e;
   m_uint    obj_size;
 //	UGenInfo ugen_info;
   m_uint flag;

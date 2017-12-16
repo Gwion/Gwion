@@ -14,9 +14,9 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(!decl->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos, "you must provide template types"))
-    decl->base = t->def;
-    Class_Def a = template_class(env, t->def, decl->types);
-    CHECK_BB(template_push_types(env, t->def->types, decl->types))
+    decl->base = t->e.def;
+    Class_Def a = template_class(env, t->e.def, decl->types);
+    CHECK_BB(template_push_types(env, t->e.def->types, decl->types))
     CHECK_BB(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
@@ -24,7 +24,7 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BB(scan1_class_def(env, a))
     decl->m_type = a->type;
-    a->tref = t->def->types;
+    a->tref = t->e.def->types;
     a->base = decl->types;
   } else if( decl->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos,
@@ -79,7 +79,8 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     decl->num_decl++;
     if(t->array_depth && !var_decl->array) { // catch typedef xxx[] before making array type
       ADD_REF(t);
-      SET_FLAG(decl->type, ae_flag_ref);
+      if(!t->e.exp_list)
+        SET_FLAG(decl->type, ae_flag_ref);
     }
     if(var_decl->array) { // get depth, including typedef
       m_uint depth = list->self->array->depth;
@@ -94,6 +95,11 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       t = new_array_type(env, depth, t2, env->curr);
       if(!list->self->array->exp_list)
         SET_FLAG(decl->type, ae_flag_ref);
+      if(t2->array_depth) {
+        if(!t2->e.exp_list)
+          SET_FLAG(t, ae_flag_ref);
+        SET_FLAG(t, ae_flag_typedef);  
+      }
     }
     if(!list->self->value)
       list->self->value = new_value(t, s_name(list->self->xid));
@@ -367,6 +373,12 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
+static m_bool scan1_stmt_type(Env env, Stmt_Typedef stmt) {
+  if(stmt->type->array)
+    return scan1_exp(env, stmt->type->array->exp_list);
+  return 1;
+}
+
 static m_bool scan1_stmt_union_array(Array_Sub array) {
   if(array->exp_list)
     CHECK_BB(err_msg(SCAN1_, array->pos,
@@ -467,8 +479,7 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
       ret = scan1_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
-      ret = 1;
-      /*ret = scan1_stmt_fptr(env, &stmt->d.stmt_ptr);*/
+      ret = scan1_stmt_type(env, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       ret = scan1_stmt_union(env, &stmt->d.stmt_union);
