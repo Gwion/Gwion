@@ -12,7 +12,6 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   Type type;
   Type t = new_type(te_func_ptr, name, &t_func_ptr);
   t->owner = env->curr;
-  t->array_depth = 0;
   t->size = SZ_INT;
   t->info = new_nspc(name, env_filename(env));
   nspc_add_type(env->curr, ptr->xid, t);
@@ -117,12 +116,10 @@ static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
 static Type scan0_class_def_init(Env env, Class_Def class_def) {
   Type the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
-  the_class->array_depth = 0;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name, env_filename(env));
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
     env_nspc(env) : env->curr;
-  the_class->d.func = NULL;
   the_class->e.def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
   nspc_add_type(env->curr, class_def->name->xid, the_class);
@@ -176,7 +173,6 @@ m_bool scan0_class_def(Env env, Class_Def class_def) {
 }
 
 m_bool scan0_Ast(Env env, Ast prog) {
-  CHECK_OB(prog)
   while(prog) {
     switch(prog->section->type) {
       case ae_section_stmt:
