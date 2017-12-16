@@ -58,7 +58,7 @@ int get_pos(void* data);
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
 %type<type_decl> type_decl type_decl2
-%type<exp> primary_exp decl_exp private_decl binary_exp call_paren
+%type<exp> primary_exp decl_exp binary_exp call_paren
 %type<exp> con_exp log_or_exp log_and_exp inc_or_exp exc_or_exp and_exp eq_exp
 %type<exp> relational_exp shift_exp add_exp mul_exp unary_exp dur_exp
 %type<exp> post_exp cast_exp exp
@@ -166,7 +166,9 @@ func_ptr
   | STATIC FUNC_PTR type_decl2 LPAREN ID RPAREN func_args { $$ = new_func_ptr_stmt(ae_flag_static, $5, $3, $7, get_pos(scan)); }
   ;
 
-stmt_typedef: FUNC_PTR type_decl2 ID SEMICOLON { /*if($2->array->exp_list) gwion_error(&scan, ("array must be empty in typedef expression.")); */ $$ = new_stmt_typedef($2, $3, get_pos(scan)); };
+stmt_typedef:
+  FUNC_PTR type_decl2 ID SEMICOLON
+  { $$ = new_stmt_typedef($2, $3, get_pos(scan)); };
 
 type_decl2
   : type_decl                         { $$ = $1; }
@@ -303,17 +305,9 @@ array_empty
 decl_exp
   : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(scan)); }
-  | LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($4, $5, get_pos(scan)); $$->d.exp_decl.types = $2; }
-  | STATIC type_decl var_decl_list { $$= new_exp_decl($2, $3, get_pos(scan)); SET_FLAG($$->d.exp_decl.type, ae_flag_static); }
-  | STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($5, $6, get_pos(scan)); SET_FLAG($$->d.exp_decl.type, ae_flag_static); $$->d.exp_decl.types = $3; }
-  | private_decl
-  ;
-
-private_decl
-  : PRIVATE type_decl var_decl_list { $$= new_exp_decl($2, $3, get_pos(scan)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); }
-  | PRIVATE LTB type_list GTB type_decl  var_decl_list { $$= new_exp_decl($5, $6, get_pos(scan)); SET_FLAG($$->d.exp_decl.type, ae_flag_private); $$->d.exp_decl.types = $3; }
-  | PRIVATE STATIC type_decl var_decl_list { $$= new_exp_decl($3, $4, get_pos(scan)); SET_FLAG($$->d.exp_decl.type, ae_flag_private | ae_flag_static); }
-  | PRIVATE STATIC LTB type_list GTB type_decl var_decl_list { $$= new_exp_decl($6, $7, get_pos(scan));  SET_FLAG($$->d.exp_decl.type, ae_flag_private | ae_flag_static); $$->d.exp_decl.types = $4; }
+  | LTB type_list GTB decl_exp { $$ = $4; $$->d.exp_decl.types = $2; }
+  | STATIC decl_exp  { $$ = $2; SET_FLAG($$->d.exp_decl.type, ae_flag_static); }
+  | PRIVATE decl_exp { $$ = $2; SET_FLAG($$->d.exp_decl.type, ae_flag_private); }
   ;
 
 func_args
@@ -326,8 +320,8 @@ decl_template: { $$ = NULL; } | TEMPLATE LTB id_list GTB { $$ = $3; };
 func_def
   : decl_template function_decl static_decl type_decl2 ID func_args code_segment
     { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(scan)); $$->types = $1; if($1) SET_FLAG($$, ae_flag_template);}
-  | PRIVATE decl_template function_decl static_decl type_decl2 ID func_args code_segment
-    { $$ = new_func_def($3 | $4, $5, $6, $7, $8, get_pos(scan)); $$->types = $2; if($2) SET_FLAG($$, ae_flag_template); SET_FLAG($$, ae_flag_private); }
+  | PRIVATE func_def
+    { $$ = $2; SET_FLAG($$, ae_flag_private); }
   | OPERATOR type_decl2 ID func_args code_segment
     { $$ = new_func_def(ae_flag_func | ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(scan)); }
   | AST_DTOR LPAREN RPAREN code_segment
@@ -346,7 +340,6 @@ type_decl
   | CONST TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($4, $6, get_pos(scan)); SET_FLAG($$, ae_flag_const); }
   ;
 
-
 decl_list
   : exp SEMICOLON { $$ = new_decl_list($1, NULL); }
   | exp SEMICOLON decl_list { $$ = new_decl_list($1, $3); }
@@ -354,9 +347,8 @@ decl_list
 
 union_stmt
   : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(scan));$$->d.stmt_union.xid = $5 ? insert_symbol($5) : NULL; }
-  | STATIC UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($4, get_pos(scan));$$->d.stmt_union.xid = $6 ? insert_symbol($6) : NULL; $$->d.stmt_union.flag |= ae_flag_static; }
-  | PRIVATE UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($4, get_pos(scan));$$->d.stmt_union.xid = $6 ? insert_symbol($6) : NULL; $$->d.stmt_union.flag |= ae_flag_private; }
-  | PRIVATE STATIC UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($5, get_pos(scan));$$->d.stmt_union.xid = $7 ? insert_symbol($7) : NULL; $$->d.stmt_union.flag |= ae_flag_private | ae_flag_static; }
+  | STATIC union_stmt{ $$ = $2; $$->d.stmt_union.flag |= ae_flag_static; }
+  | PRIVATE union_stmt{ $$ = $2; $$->d.stmt_union.flag |= ae_flag_private; }
   ;
 
 var_decl_list
