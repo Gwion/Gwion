@@ -11,9 +11,9 @@ static void free_stmt_list(Stmt_List a);
 static void free_stmt_code(Stmt_Code a);
 static void free_section();
 
-Var_Decl new_var_decl(m_str name, Array_Sub array, int pos) {
+Var_Decl new_var_decl(S_Symbol xid, Array_Sub array, int pos) {
   Var_Decl a = calloc(1, sizeof(struct Var_Decl_));
-  a->xid = insert_symbol(name);
+  a->xid = xid;
   a->array = array;
   a->pos = pos;
   return a;
@@ -64,7 +64,7 @@ Type_Decl* new_type_decl(ID_List xid, int ref, int pos) {
 
 Type_Decl* new_type_decl2(ID_List xid, int ref, int pos) {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
-  a->xid = new_id_list("", pos);
+  a->xid = new_id_list(insert_symbol(""), pos);
   a->xid->ref = xid;
   if(ref)
     SET_FLAG(a, ae_flag_ref);
@@ -111,14 +111,14 @@ static void free_array_exp(Exp_Array* a) {
   free_exp(a->base);
 }
 
-ID_List new_id_list(const m_str xid, int pos) {
+ID_List new_id_list(const S_Symbol xid, int pos) {
   ID_List a = calloc(1,  sizeof(struct ID_List_));
-  a->xid = insert_symbol(xid);
+  a->xid = xid;
   a->pos = pos;
   return a;
 }
 
-ID_List prepend_id_list(const m_str xid, ID_List list, int pos) {
+ID_List prepend_id_list(const S_Symbol xid, ID_List list, int pos) {
   ID_List a = new_id_list(xid, pos);
   a->next = list;
   a->pos = pos;
@@ -258,11 +258,11 @@ Exp new_exp_prim_nil(int pos) {
   return a;
 }
 
-Exp new_exp_prim_ID(m_str s, int pos) {
+Exp new_exp_prim_id(S_Symbol xid, int pos) {
   Exp a = new_exp_prim(pos);
   a->meta = ae_meta_var;
   a->d.exp_primary.type = ae_primary_id;
-  a->d.exp_primary.d.var = insert_symbol(s);
+  a->d.exp_primary.d.var = xid;
   return a;
 }
 
@@ -382,7 +382,7 @@ Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos) {
 Exp new_exp_unary3(Operator oper, Stmt code, int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
-  ID_List id = new_id_list("void", pos);
+  ID_List id = new_id_list(insert_symbol("void"), pos);
   a->d.exp_unary.type = new_type_decl(id, 0, pos);
   a->d.exp_unary.code = code;
   return a;
@@ -418,11 +418,11 @@ static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
-Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos) {
+Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos) {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
   a->flag = flag;
   a->type_decl = type_decl;
-  a->name = insert_symbol(name);
+  a->name = xid;
   a->arg_list = arg_list;
   a->code = code;
   a->pos = pos;
@@ -442,23 +442,23 @@ void free_func_def(Func_Def a) {
   free(a);
 }
 
-Stmt new_func_ptr_stmt(ae_flag key, m_str xid, Type_Decl* decl, Arg_List args, int pos) {
+Stmt new_func_ptr_stmt(ae_flag key, S_Symbol xid, Type_Decl* decl, Arg_List args, int pos) {
   Stmt a              = calloc(1, sizeof(struct Stmt_));
   a->type             = ae_stmt_funcptr;
   a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.type  = decl;
-  a->d.stmt_ptr.xid   = insert_symbol(xid);
+  a->d.stmt_ptr.xid   = xid;
   a->d.stmt_ptr.args  = args;
   a->pos = a->d.stmt_ptr.pos  = pos;
   return a;
 
 }
 
-Stmt new_stmt_typedef(Type_Decl* decl, m_str xid, int pos) {
+Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, int pos) {
   Stmt a              = calloc(1, sizeof(struct Stmt_));
   a->type             = ae_stmt_typedef;
   a->d.stmt_type.type  = decl;
-  a->d.stmt_type.xid   = insert_symbol(xid);
+  a->d.stmt_type.xid   = xid;
   a->pos = a->d.stmt_ptr.pos  = pos;
   return a;
 }
@@ -501,12 +501,12 @@ static void free_exp_call(Exp_Func* a) {
     free_exp(a->args);
 }
 
-Exp new_exp_dot(Exp base, m_str xid, int pos) {
+Exp new_exp_dot(Exp base, S_Symbol xid, int pos) {
   Exp a = calloc(1, sizeof(struct Exp_));
   a->exp_type = ae_exp_dot;
   a->meta = ae_meta_var;
   a->d.exp_dot.base = base;
-  a->d.exp_dot.xid = insert_symbol(xid);
+  a->d.exp_dot.xid = xid;
   a->pos = a->d.exp_dot.pos = pos;
   a->d.exp_dot.self = a;
   return a;
@@ -687,10 +687,10 @@ static void free_stmt_for(Stmt_For a) {
   free_stmt(a->body);
 }
 
-Stmt new_stmt_gotolabel(m_str xid, m_bool is_label, int pos) {
+Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_gotolabel;
-  a->d.stmt_gotolabel.name = insert_symbol(xid);
+  a->d.stmt_gotolabel.name = xid;
   a->d.stmt_gotolabel.is_label = is_label;
   a->pos = a->d.stmt_gotolabel.pos = pos;
   return a;
@@ -751,10 +751,10 @@ Stmt new_stmt_case(Exp val, int pos) {
   return a;
 }
 
-Stmt new_stmt_enum(ID_List list, m_str xid, int pos) {
+Stmt new_stmt_enum(ID_List list, S_Symbol xid, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_enum;
-  a->d.stmt_enum.xid = xid ? insert_symbol(xid) : NULL;
+  a->d.stmt_enum.xid = xid;
   a->d.stmt_enum.list = list;
   vector_init(&a->d.stmt_enum.values);
   a->pos = a->d.stmt_enum.pos = pos;

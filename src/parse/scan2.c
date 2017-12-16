@@ -125,7 +125,7 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
 
   Func_Def def = new_func_def(!env->class_def ? ae_flag_func :
         !GET_FLAG(ptr, ae_flag_static) ? ae_flag_instance : ae_flag_static,
-      ptr->type, s_name(ptr->xid), ptr->args, NULL, ptr->pos);
+      ptr->type, ptr->xid, ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
   ptr->value->func_ref = ptr->func;

@@ -76,7 +76,7 @@ struct Var_Decl_ {
   void* addr;
   int pos;
 };
-Var_Decl new_var_decl(m_str name, Array_Sub array, int pos);
+Var_Decl new_var_decl(S_Symbol xid, Array_Sub array, int pos);
 
 struct Var_Decl_List_ {
   Var_Decl self;
@@ -103,8 +103,8 @@ struct ID_List_    {
   ID_List ref;
   int pos;
 };
-ID_List new_id_list(const m_str xid, int pos);
-ID_List prepend_id_list(const m_str xid, ID_List list, int pos);
+ID_List new_id_list(const S_Symbol xid, int pos);
+ID_List prepend_id_list(const S_Symbol xid, ID_List list, int pos);
 void free_id_list(ID_List a);
 
 struct Type_List_  {
@@ -264,7 +264,7 @@ struct Exp_ {
   m_bool emit_var;
 };
 
-Exp new_exp_prim_ID(m_str s, int pos);
+Exp new_exp_prim_id(S_Symbol xid, int pos);
 Exp new_exp_prim_int(long i, int pos);
 Exp new_exp_prim_float(m_float num, int pos);
 Exp new_exp_prim_string(m_str s, int pos);
@@ -282,7 +282,7 @@ Exp new_exp_call(Exp base, Exp args, int pos);
 Exp new_exp_cast(Type_Decl* type, Exp exp, int pos);
 Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos);
 Exp new_exp_dur(Exp base, Exp unit, int pos);
-Exp new_exp_dot(Exp base, m_str xid, int pos);
+Exp new_exp_dot(Exp base, S_Symbol xid, int pos);
 Exp new_exp_unary(Operator oper, Exp exp, int pos);
 Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, int pos);
@@ -440,13 +440,13 @@ Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, int pos);
 Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, int pos);
 Stmt new_stmt_loop(Exp cond, Stmt body, int pos);
-Stmt new_stmt_gotolabel(m_str xid, m_bool is_label, int pos);
+Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos);
 Stmt new_stmt_case(Exp exp, int pos);
-Stmt new_stmt_enum(ID_List list, m_str type, int pos);
+Stmt new_stmt_enum(ID_List list, S_Symbol xid, int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos);
 Stmt new_stmt_union(Decl_List l, int pos);
-Stmt new_func_ptr_stmt(ae_flag key, m_str type, Type_Decl* decl, Arg_List args, int pos);
-Stmt new_stmt_typedef(Type_Decl* decl, m_str xid, int pos);
+Stmt new_func_ptr_stmt(ae_flag key, S_Symbol type, Type_Decl* decl, Arg_List args, int pos);
+Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, int pos);
 void free_stmt(Stmt a);
 struct Stmt_List_ {
   Stmt stmt;
@@ -474,7 +474,7 @@ struct Func_Def_ {
   int pos;
 };
 
-Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, m_str name, Arg_List arg_list, Stmt code, int pos);
+Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;

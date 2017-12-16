@@ -446,7 +446,6 @@ void yyfree ( void * , yyscan_t yyscanner );
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
 #define comment 1
-#define COMMENT 2
 
 #endif
 
@@ -714,9 +713,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 151 "utils/gwion.l"
+#line 150 "utils/gwion.l"
 
 
-#line 720 "include/lexer.h"
+#line 719 "include/lexer.h"
 #undef gwion_IN_HEADER
 #endif /* gwion_HEADER_H */

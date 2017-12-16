@@ -34,7 +34,7 @@ static ID_List template_id(Env env, Class_Def c, Type_List call) {
   ID_List list;
 
   CHECK_BO(template_name(env, c, call, name))
-  list = new_id_list(name, call->pos);
+  list = new_id_list(insert_symbol(name), call->pos);
   return list;
 }
 

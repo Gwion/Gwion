@@ -19,9 +19,9 @@ struct Path {
 static ID_List templater_def(Templater* templater) {
   m_uint i;
   ID_List list[templater->n];
-  list[0] = new_id_list(templater->list[0], 0);
+  list[0] = new_id_list(insert_symbol(templater->list[0]), 0);
   for(i = 1; i < templater->n; i++) {
-    list[i] = new_id_list(templater->list[i], 0);
+    list[i] = new_id_list(insert_symbol(templater->list[i]), 0);
     list[i - 1]->next = list[i];
   }
   return list[0];
@@ -105,7 +105,7 @@ static m_bool path_valid(ID_List* list, struct Path* p) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
         path_valid_inner(p->curr);
-        *list = prepend_id_list(p->curr, *list, 0);
+        *list = prepend_id_list(insert_symbol(p->curr), *list, 0);
         memset(p->curr, 0, p->len + 1);
       } else
         CHECK_BB(err_msg(UTIL_,  0,
@@ -250,7 +250,7 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
   v->var.addr = (void*)addr;
   if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
-    Var_Decl var_decl = new_var_decl(s_name(v->var.xid), v->var.array, 0);
+    Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
     Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
     Stmt stmt = new_stmt_exp(exp, 0);
@@ -312,7 +312,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
       CHECK_BO(err_msg(TYPE_, 0, "array subscript specified incorrectly for built-in module"))
     }
     array_sub = make_dll_arg_list_array(array_sub, &array_depth, array_depth2);
-    var_decl = new_var_decl(arg->name, array_sub, 0);
+    var_decl = new_var_decl(insert_symbol(arg->name), array_sub, 0);
     arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
   }
   return arg_list;
@@ -338,7 +338,7 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(dl_fun);
-  func_def = new_func_def(flag, type_decl, name, arg_list, NULL, 0);
+  func_def = new_func_def(flag, type_decl, insert_symbol(name), arg_list, NULL, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -411,7 +411,7 @@ static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import %Q (type)...",
           dl_fun->name))
-  return new_func_ptr_stmt(flag, dl_fun->name, type_decl, args, 0);
+  return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }
 #include "func.h"
 m_int importer_fptr_end(Importer importer, ae_flag flag) {
@@ -436,7 +436,7 @@ static Exp make_exp(const m_str type, const m_str name) {
     array->depth = array_depth;
   }
   type_decl = new_type_decl(id_list, 0, 0);
-  Var_Decl var_decl = new_var_decl(name, array, 0);
+  Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
   Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
@@ -481,7 +481,7 @@ m_int importer_enum_ini(Importer importer, const m_str type) {
 }
 
 m_int importer_enum_add(Importer importer, const m_str name) {
-  ID_List list = new_id_list(name, 0);
+  ID_List list = new_id_list(insert_symbol(name), 0);
   DL_Enum* d = &importer->enum_data;
 
   if(!d->base)
@@ -506,7 +506,7 @@ static void import_enum_end(DL_Enum* d, Vector v) {
 
 m_int importer_enum_end(Importer importer) {
   DL_Enum* d = &importer->enum_data;
-  Stmt stmt = new_stmt_enum(d->base, d->t, 0);
+  Stmt stmt = new_stmt_enum(d->base, insert_symbol(d->t), 0);
 
   CHECK_OB(stmt)
   if(traverse_stmt_enum(importer->env, &stmt->d.stmt_enum) < 0) {

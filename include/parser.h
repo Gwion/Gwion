@@ -120,7 +120,7 @@ extern int gwion_debug;
     OR = 330,
     AST_DTOR = 331,
     OPERATOR = 332,
-    FUNC_PTR = 333,
+    TYPEDEF = 333,
     RSL = 334,
     RSR = 335,
     RSAND = 336,
@@ -147,8 +147,7 @@ extern int gwion_debug;
     FLOAT = 357,
     ID = 358,
     STRING_LIT = 359,
-    CHAR_LIT = 360,
-    NEG = 361
+    CHAR_LIT = 360
   };
 #endif
 /* Tokens.  */
@@ -227,7 +226,7 @@ extern int gwion_debug;
 #define OR 330
 #define AST_DTOR 331
 #define OPERATOR 332
-#define FUNC_PTR 333
+#define TYPEDEF 333
 #define RSL 334
 #define RSR 335
 #define RSAND 336
@@ -255,7 +254,6 @@ extern int gwion_debug;
 #define ID 358
 #define STRING_LIT 359
 #define CHAR_LIT 360
-#define NEG 361
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -267,6 +265,7 @@ union YYSTYPE
   char* sval;
   int ival;
   m_float fval;
+  S_Symbol sym;
   Complex* c_val;
   Polar* polar;
   Vec* vec;
@@ -289,7 +288,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 293 "include/parser.h" /* yacc.c:1909  */
+#line 292 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

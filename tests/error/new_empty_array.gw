@@ -1,0 +1,2 @@
+// [contains] can't use empty
+new Object[];

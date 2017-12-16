@@ -25,7 +25,6 @@ static int adjust(void* data);
 %option never-interactive
 
 %x comment
-%x COMMENT
 %%
 
 "//"              { BEGIN(comment); }
@@ -63,7 +62,7 @@ static int adjust(void* data);
 "--"                                { adjust(yyscanner); return MINUSMINUS;}
 "fun"|"function"                    { adjust(yyscanner); return FUNCTION;}
 "variadic"                          { adjust(yyscanner); return VARARG; }
-"typedef"                           { adjust(yyscanner); return FUNC_PTR;}
+"typedef"                           { adjust(yyscanner); return TYPEDEF;}
 "<<<"                               { adjust(yyscanner); return L_HACK;}
 ">>>"                               { adjust(yyscanner); return R_HACK;}
 "#("                                { adjust(yyscanner); return SHARPPAREN;}
@@ -189,10 +188,10 @@ long htol(char* str) {
   return n;
 }
 
-int newline(void*data) {
+int newline(void* data) {
   Scanner* scan = *(Scanner**)data;
   scan->line++;
-  scan->pos = 1;
+  scan->pos = 0;
   return 1;
 }
 
@@ -218,24 +217,23 @@ static void err_line(Scanner* scan) {
 }
 
 static void err_marker(Scanner* scan) {
-  while(--scan->pos > 0)
+  while(--scan->pos)
     fprintf(stderr, " ");
   fprintf(stderr, "\033[1;31m^\033[0m\n");
 }
 
 int gwion_error(Scanner* scan, char* s) {
-  err_msg(PARSE_, scan->line, "in file '%s'. at pos: %i", scan->filename, scan->pos);
-  err_msg(PARSE_, scan->line, "%s\n", s);
+  err_msg(PARSE_, 0, "in file '%s'.", scan->filename);
+  err_msg(PARSE_, scan->line, "%s. at pos %i\n", s, scan->pos);
   err_line(scan);
   err_marker(scan);
-  fclose(scan->file);
   return 0;
 }
 
-int get_pos(void* data) {
-  Scanner* scan = *(Scanner**)data;
+int get_pos(Scanner* scan) {
   return scan->line;
 }
+
 Ast parse(m_str filename) {
   Ast    ast  = NULL;
   FILE*  file = NULL;

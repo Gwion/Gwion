@@ -201,7 +201,7 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
     if(!is_ref && info->is_obj)
-      emit_pre_constructor_array(emit, type->d.array_type);
+      emit_pre_constructor_array(emit, tmp->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
@@ -887,8 +887,9 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
 static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   Instr op;
   VM_Code code;
-  ID_List list = new_id_list("sporked", stmt->pos);
-  Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), "sporked", NULL, stmt, stmt->pos));
+  S_Symbol sporked = insert_symbol("sporked");
+  ID_List list = new_id_list(sporked, stmt->pos);
+  Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt, stmt->pos));
 
   if(emit->env->class_def)
     CHECK_OB(emitter_add_instr(emit, Reg_Push_This))
@@ -1375,10 +1376,10 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
     if(!stmt->value->m_type->info->class_data)
       stmt->value->m_type->info->class_data =
         calloc(1, stmt->value->m_type->info->class_data_size);
-    Type_Decl *type_decl = new_type_decl(new_id_list(s_name(stmt->xid), stmt->pos),
+    Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
-    Var_Decl var_decl = new_var_decl(s_name(stmt->xid), NULL, 0);
+    Var_Decl var_decl = new_var_decl(stmt->xid, NULL, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
     Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
     exp->d.exp_decl.m_type = stmt->value->m_type;

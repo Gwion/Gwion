@@ -402,7 +402,7 @@ static Type_List mk_type_list(Env env, Type type) {
   ID_List id = NULL;
   Type_List list = NULL;
   for(i = vector_size(&v); i > 0; i--)
-    id = prepend_id_list((m_str)vector_at(&v, i - 1), id, 0);
+    id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
   list = new_type_list(id, NULL, 0);
   vector_release(&v);
   return list;
@@ -510,7 +510,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     base = value->func_ref->def;
     base->flag &= ~ae_flag_template;
     def = new_func_def(base->flag,
-                base->type_decl, s_name(func->d.exp_primary.d.var),
+                base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->types, types))

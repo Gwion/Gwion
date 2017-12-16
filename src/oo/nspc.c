@@ -109,6 +109,9 @@ static void nspc_release_object(Nspc a, Value value) {
     free_vm_shred(s);
   }
   if(value->m_type->array_depth && !GET_FLAG(value->m_type, ae_flag_typedef))
+    REM_REF(value->m_type)
+  else if(GET_FLAG(value->m_type, ae_flag_typedef) && 
+      GET_FLAG(value->m_type->d.array_type, ae_flag_typedef))
     REM_REF(value->m_type);
 }
 

@@ -271,7 +271,7 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
     fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
     return NULL;
   }
-  base->type_ref = info->type; // /13/03/17
+  base->type_ref = info->type; // /13/03/17 
   ADD_REF(info->type);
   return base;
 }
