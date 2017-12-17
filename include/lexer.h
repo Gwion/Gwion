@@ -470,35 +470,15 @@ int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 int yylex_destroy ( yyscan_t yyscanner );
 
-int yyget_debug ( yyscan_t yyscanner );
-
-void yyset_debug ( int debug_flag , yyscan_t yyscanner );
-
-YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
-
 void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
-
-FILE *yyget_in ( yyscan_t yyscanner );
 
 void yyset_in  ( FILE * _in_str , yyscan_t yyscanner );
 
-FILE *yyget_out ( yyscan_t yyscanner );
-
-void yyset_out  ( FILE * _out_str , yyscan_t yyscanner );
-
 			int yyget_leng ( yyscan_t yyscanner );
-
-char *yyget_text ( yyscan_t yyscanner );
-
-int yyget_lineno ( yyscan_t yyscanner );
-
-void yyset_lineno ( int _line_number , yyscan_t yyscanner );
 
 int yyget_column  ( yyscan_t yyscanner );
 
 void yyset_column ( int _column_no , yyscan_t yyscanner );
-
-YYSTYPE * yyget_lval ( yyscan_t yyscanner );
 
 void yyset_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
 
@@ -713,9 +693,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 150 "utils/gwion.l"
+#line 157 "utils/gwion.l"
 
 
-#line 719 "include/lexer.h"
+#line 699 "include/lexer.h"
 #undef gwion_IN_HEADER
 #endif /* gwion_HEADER_H */

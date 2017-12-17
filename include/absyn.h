@@ -23,15 +23,14 @@ typedef enum {
   ae_flag_ctor  = 1 << 7,
   ae_flag_dtor  = 1 << 8,
   ae_flag_op  = 1 << 9,
-  ae_flag_public  = 1 << 10,
-  ae_flag_private  = 1 << 11,
-  ae_flag_global  = 1 << 12,
-  ae_flag_const  = 1 << 13,
-  ae_flag_enum  = 1 << 14,
-  ae_flag_arg  = 1 << 15,
-  ae_flag_ref  = 1 << 16,
-  ae_flag_abstract  = 1 << 17,
-  ae_flag_typedef  = 1 << 18
+  ae_flag_private  = 1 << 10,
+  ae_flag_global  = 1 << 11,
+  ae_flag_const  = 1 << 12,
+  ae_flag_enum  = 1 << 13,
+  ae_flag_arg  = 1 << 14,
+  ae_flag_ref  = 1 << 15,
+  ae_flag_abstract  = 1 << 16,
+  ae_flag_typedef  = 1 << 17
 } ae_flag;
 
 typedef struct {

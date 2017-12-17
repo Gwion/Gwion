@@ -192,7 +192,7 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
         tmp = t;
       t = t->d.array_type;
     }
-        
+
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
     info->type = type;

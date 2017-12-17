@@ -1,7 +1,6 @@
 IS          (u|U|l|L)*
 
 %{
-
 #include "absyn.h"
 #include "scanner.h"
 #include "parser.h"
@@ -11,18 +10,26 @@ static char* alloc_str(char* str);
 static long htol(char* str);
 static int newline(void* data);
 static int adjust(void* data);
-
 %}
 
 %option noyywrap
-%option noyylineno
+%option noyylineno noyymore
+%option noyyget_extra
+%option noyyget_text
+%option noyyget_lineno noyyset_lineno
+%option noyyget_in
+%option noyyget_out noyyset_out
+%option noyyget_lval noyyset_lval
+%option noyyget_lloc noyyset_lloc
+%option noyyget_debug noyyset_debug
 %option bison-bridge
 %option reentrant
 %option header-file="include/lexer.h"
 %option prefix="gwion_"
 %option noinput
 %option nounput
-%option never-interactive
+%option never-interactive batch
+%option nobackup nodebug
 
 %x comment
 %%
@@ -191,7 +198,7 @@ long htol(char* str) {
 int newline(void* data) {
   Scanner* scan = *(Scanner**)data;
   scan->line++;
-  scan->pos = 0;
+  scan->pos = 1;
   return 1;
 }
 
@@ -217,7 +224,7 @@ static void err_line(Scanner* scan) {
 }
 
 static void err_marker(Scanner* scan) {
-  while(--scan->pos)
+  while(--scan->pos > 0)
     fprintf(stderr, " ");
   fprintf(stderr, "\033[1;31m^\033[0m\n");
 }
@@ -235,27 +242,17 @@ int get_pos(Scanner* scan) {
 }
 
 Ast parse(m_str filename) {
-  Ast    ast  = NULL;
-  FILE*  file = NULL;
   Scanner scan;
   gwion_lex_init(&scan.scanner);
   gwion_set_extra(&scan, scan.scanner);
   scan.line = 1;
-  scan.pos  = 0;
-  char c[1025];
-  memset(c, 0, 1025);
-  strncat(c, filename, 1024);
-  file = fopen(c, "r");
-  scan.file = file;
+  scan.pos  = 1;
+  scan.file = fopen(filename, "r");
   scan.filename = filename;
-  gwion_set_in(file, scan.scanner);
-  if(gwion_parse(&scan)) {
-    free_ast(ast);
-    gwion_lex_destroy(scan.scanner);
-    return NULL;
-}
-  ast = scan.ast;
-  fclose(file);
+  gwion_set_in(scan.file, scan.scanner);
+  if(gwion_parse(&scan))
+    scan.ast = NULL;
+  fclose(scan.file);
   gwion_lex_destroy(scan.scanner);
-  return ast;
+  return scan.ast;
 }

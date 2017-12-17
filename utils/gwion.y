@@ -7,6 +7,15 @@
 #include "scanner.h"
 #define scan arg->scanner
 #define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) gwion_error(a, "flag set twice");  SET_FLAG(b, c);
+#define CHECK_TEMPLATE(a, b, c, free_function) { if(c->types) {\
+        free_id_list(b);\
+        free_function(c);\
+        gwion_error(a, "double template decl");\
+        YYERROR;\
+      }\
+      c->types = b;\
+    };
+
 int gwion_error(Scanner*, const char*);
 int gwion_lex(void*, Scanner*);
 int get_pos(Scanner*);
@@ -73,7 +82,7 @@ int get_pos(Scanner*);
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
-%type<func_def> func_def
+%type<func_def> func_def func_def_base
 %type<section> section
 %type<class_def> class_def
 %type<id_list> class_ext
@@ -92,6 +101,8 @@ int get_pos(Scanner*);
 %destructor { free_class_body($$); } <class_body>
 %destructor { free_type_decl($$); } <type_decl>
 %destructor { free_type_list($$); } <type_list>
+
+%expect 48
 %%
 
 ast
@@ -106,10 +117,11 @@ section
   ;
 
 class_def
-  : decl_template CLASS id_list class_ext LBRACE class_body RBRACE
-      { $$ = new_class_def(0, $3, $4, $6, get_pos(arg)); $$->types = $1; }
-  | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_public); $$ = $2; }
-  ;
+  : CLASS id_list class_ext LBRACE class_body RBRACE
+      { $$ = new_class_def(0, $2, $3, $5, get_pos(arg)); }
+  | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
+  | decl_template class_def
+    { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
 
 class_ext : EXTENDS id_dot { $$ = $2; } | { $$ = NULL; };
 
@@ -186,6 +198,7 @@ stmt
   | stmt_typedef
   | union_stmt
   ;
+
 id: ID { $$ = insert_symbol($1); }
 
 opt_id: { $$ = NULL; } | id;
@@ -298,14 +311,20 @@ func_args
   | LPAREN arg_list RPAREN { $$ = $2; }
   ;
 
-decl_template: { $$ = NULL; } | TEMPLATE LTB id_list GTB { $$ = $3; };
+decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
+
+func_def_base
+  : function_decl static_decl type_decl2 id func_args code_segment
+    { $$ = new_func_def($1 | $2, $3, $4, $5, $6, get_pos(arg)); }
+  | PRIVATE func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | decl_template func_def_base
+    { CHECK_TEMPLATE(arg, $1, $2, free_func_def);
+      $$ = $2; SET_FLAG($$, ae_flag_template); };
 
 func_def
-  : decl_template function_decl static_decl type_decl2 id func_args code_segment
-    { $$ = new_func_def($2 | $3, $4, $5, $6, $7, get_pos(arg)); $$->types = $1; if($1) SET_FLAG($$, ae_flag_template);}
-  | PRIVATE func_def
-    { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
-  | OPERATOR type_decl2 id func_args code_segment
+  : func_def_base
+  |  OPERATOR type_decl2 id func_args code_segment
     { $$ = new_func_def(ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(arg)); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,

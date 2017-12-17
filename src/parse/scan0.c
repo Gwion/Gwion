@@ -23,7 +23,7 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   nspc_add_value(env->curr, ptr->xid, v);
   ptr->value = v;
   return 1;
-} 
+}
 
 static m_bool scan0_typedef(Env env, Stmt_Typedef stmt) {
   Type type, base = find_type(env, stmt->type->xid);
@@ -85,7 +85,7 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
 }
 
 static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
-  if(GET_FLAG(class_def, ae_flag_public)) {
+  if(GET_FLAG(class_def, ae_flag_global)) {
     if(env_class_def(env, NULL)) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
                        "more than one 'public' class defined..."))

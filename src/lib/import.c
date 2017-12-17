@@ -256,7 +256,7 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     Stmt stmt = new_stmt_exp(exp, 0);
     Stmt_List list = new_stmt_list(stmt, NULL, 0);
     Section* section = new_section_stmt_list(list, 0);
-    Class_Body body = new_class_body(section, 0);
+    Class_Body body = new_class_body(section, NULL, 0);
     type_decl->array = v->t.array;
     if(!importer->env->class_def->e.def->body)
       importer->env->class_def->e.def->body = importer->body = body;
