@@ -42,7 +42,7 @@ static void da(char* base) {
         if(ret == 2) {
           if(curr_line >= line_count) {
             lines = realloc(lines, 2 * line_count * sizeof(Line)); // check
-            memset(lines + line_count, 0, line_count);
+            memset(lines + line_count, 0, line_count * sizeof(Line));
             line_count *= 2;
           }
           lines[curr_line].set++;
@@ -105,7 +105,7 @@ static void detab(char* in, char* out, size_t max_len) {
         out[i++] = ' ';
     } else
         out[i++] = *in;
-    (*in)++;
+    (void)*in++;
   }
   out[i] = 0;
 }
@@ -127,11 +127,21 @@ void diagnostic(char* filename){
     err(filename, filename);
 
   while((read = getline(&line, &len, f)) != -1) {
-    char* prefix = "";
+    int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
     ssize_t line_len = read > line_size ? line_size : read - 1;
+    if(read == 1) {
+      fprintf(stdout, "\033[2m%i", line_count);
+      while(num_digit++ < max_line_digit)
+        fprintf(stdout, " ");
+      fprintf(stdout, ":");
+      while(line_len++ < line_size)
+        fprintf(stdout, " ");
+      fprintf(stdout, "\n");
+      continue;
+    }
+    char* prefix = "";
     char detabed[TABLEN*line_len];
     char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
-    int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
     detab(stripped_line, detabed, TABLEN*line_len);
     line_len = strlen(detabed);
     if(lines[line_count].set) {
