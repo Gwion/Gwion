@@ -17,8 +17,4 @@ n=$((n+1))
 ./gwion -K examples/*.gw &>/dev/null && echo "ok $n test gwion on all examples" || echo "ok $n [skip] make gwion coverage"
 
 n=$((n+1))
-
-#if [ $( grep GWCOV <<< "$(./gwion -C 2>&1)" ) ]
-./gwcov examples/*.gw && echo "ok $n test gwcov" || echo "ok $n [skip] make gwcov test"
-#else echo "ok $n [ skipped: gwion not compiled with coverage ]"
-#fi
+./gwcov examples/*.gw &>/dev/null && echo "ok $n test gwcov" || echo "ok $n make gwcov test"
