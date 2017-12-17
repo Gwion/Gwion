@@ -506,7 +506,7 @@ static void import_enum_end(DL_Enum* d, Vector v) {
 
 m_int importer_enum_end(Importer importer) {
   DL_Enum* d = &importer->enum_data;
-  Stmt stmt = new_stmt_enum(d->base, insert_symbol(d->t), 0);
+  Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
 
   CHECK_OB(stmt)
   if(traverse_stmt_enum(importer->env, &stmt->d.stmt_enum) < 0) {
