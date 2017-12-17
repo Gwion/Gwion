@@ -3,7 +3,7 @@ CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs
+CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs -std=c99
 
 LDFLAGS  = -fPIC --coverage
 PREFIX ?= /usr
