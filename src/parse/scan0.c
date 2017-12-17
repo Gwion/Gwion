@@ -85,7 +85,7 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
 }
 
 static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
-  if(class_def->decl == ae_flag_public) {
+  if(GET_FLAG(class_def, ae_flag_public)) {
     if(env_class_def(env, NULL)) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
                        "more than one 'public' class defined..."))

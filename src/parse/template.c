@@ -67,7 +67,7 @@ Class_Def template_class(Env env, Class_Def def, Type_List call) {
     i++;
   } while(nspc_lookup_value0(env->curr, xid));
   last->xid = xid;
-  return new_class_def(def->decl, name, def->ext, def->body, call->pos);
+  return new_class_def(def->flag, name, def->ext, def->body, call->pos);
 }
 
 m_bool template_push_types(Env env, ID_List base, Type_List call) {

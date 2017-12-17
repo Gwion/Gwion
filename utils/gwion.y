@@ -52,7 +52,7 @@ int get_pos(Scanner*);
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op
-%type<ival> atsym class_decl static_decl function_decl
+%type<ival> atsym static_decl function_decl
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
 %type<sym>id opt_id
@@ -80,7 +80,6 @@ int get_pos(Scanner*);
 %type<class_body> class_body class_body2
 %type<id_list> id_list id_dot decl_template
 %type<type_list> type_list template
-%type<section> class_section
 %type<ast> ast
 
 %start ast
@@ -107,31 +106,18 @@ section
   ;
 
 class_def
-  : decl_template class_decl CLASS id_list class_ext LBRACE class_body RBRACE
-      { $$ = new_class_def($2, $4, $5, $7, get_pos(arg)); $$->types = $1; }
+  : decl_template CLASS id_list class_ext LBRACE class_body RBRACE
+      { $$ = new_class_def(0, $3, $4, $6, get_pos(arg)); $$->types = $1; }
+  | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_public); $$ = $2; }
   ;
 
 class_ext : EXTENDS id_dot { $$ = $2; } | { $$ = NULL; };
 
-class_decl
-  : PUBLIC  { $$ = ae_flag_public; }
-  |         { $$ = ae_flag_private; }
-  ;
-
-class_body
-  : class_body2 { $$ = $1; }
-  |             { $$ = NULL; }
-  ;
+class_body : class_body2 | { $$ = NULL; };
 
 class_body2
-  : class_section             { $$ = new_class_body($1, get_pos(arg)); }
-  | class_section class_body2 { $$ = prepend_class_body($1, $2, get_pos(arg)); }
-  ;
-
-class_section
-  : stmt_list    { $$ = new_section_stmt_list($1, get_pos(arg)); }
-  | func_def     { $$ = new_section_func_def($1, get_pos(arg)); }
-  | class_def    { $$ = new_section_class_def($1, get_pos(arg)); }
+  : section             { $$ = new_class_body($1, NULL, get_pos(arg)); }
+  | section class_body2 { $$ = new_class_body($1, $2, get_pos(arg)); }
   ;
 
 id_list
@@ -170,7 +156,7 @@ stmt_typedef:
   { $$ = new_stmt_typedef($2, $3, get_pos(arg)); };
 
 type_decl2
-  : type_decl                         { $$ = $1; }
+  : type_decl
   | type_decl array_empty             { $$ = add_type_decl_array($1, $2, get_pos(arg)); }
   | type_decl array_exp               { $$ = add_type_decl_array($1, $2, get_pos(arg)); }
   ;
@@ -200,12 +186,9 @@ stmt
   | stmt_typedef
   | union_stmt
   ;
-id : ID { $$ = insert_symbol($1); }
+id: ID { $$ = insert_symbol($1); }
 
-opt_id
-  : { $$ = NULL; }
-  | id { $$ = $1;  }
-  ;
+opt_id: { $$ = NULL; } | id;
 
 enum_stmt
   : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(arg)); }
@@ -265,19 +248,16 @@ exp_stmt
   ;
 
 exp
-  : binary_exp            { $$ = $1; }
+  : binary_exp
   | binary_exp COMMA exp  { $$ = prepend_exp($1, $3, get_pos(arg)); }
   ;
 
 binary_exp
-  : decl_exp      { $$ = $1; }
+  : decl_exp
   | binary_exp op decl_exp     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
   ;
 
-template
-  : { $$ = NULL; }
-  | LTB type_list GTB { $$ = $2; }
-  ;
+template: { $$ = NULL; } | LTB type_list GTB { $$ = $2; };
 
 op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
   | ATCHUCK     { $$ = op_at_chuck; } | PLUSCHUCK   { $$ = op_plus_chuck; }
@@ -369,98 +349,62 @@ complex_exp: SHARPPAREN   exp RPAREN { $$ = new_complex($2, get_pos(arg)); };
 polar_exp:   PERCENTPAREN exp RPAREN { $$ = new_polar(  $2, get_pos(arg)); };
 vec_exp:     ATPAREN      exp RPAREN { $$ = new_vec(    $2, get_pos(arg)); };
 
-con_exp
-  : log_or_exp
-  | log_or_exp QUESTION exp COLON con_exp
-      { $$ = new_exp_if($1, $3, $5, get_pos(arg)); }
-  ;
+con_exp: log_or_exp | log_or_exp QUESTION exp COLON con_exp
+      { $$ = new_exp_if($1, $3, $5, get_pos(arg)); };
 
-log_or_exp
-  : log_and_exp            { $$ = $1; }
-  | log_or_exp OR log_and_exp
-      { $$ = new_exp_binary($1, op_or, $3, get_pos(arg)); }
-  ;
+log_or_exp: log_and_exp | log_or_exp OR log_and_exp
+      { $$ = new_exp_binary($1, op_or, $3, get_pos(arg)); };
 
-log_and_exp
-  : inc_or_exp           { $$ = $1; }
-  | log_and_exp AND inc_or_exp
-      { $$ = new_exp_binary($1, op_and, $3, get_pos(arg)); }
-  ;
+log_and_exp: inc_or_exp | log_and_exp AND inc_or_exp
+      { $$ = new_exp_binary($1, op_and, $3, get_pos(arg)); };
 
-inc_or_exp
-  : exc_or_exp           { $$ = $1; }
-  | inc_or_exp S_OR exc_or_exp
-      { $$ = new_exp_binary($1, op_s_or, $3, get_pos(arg)); }
-  ;
+inc_or_exp: exc_or_exp | inc_or_exp S_OR exc_or_exp
+      { $$ = new_exp_binary($1, op_s_or, $3, get_pos(arg)); };
 
-exc_or_exp
-  : and_exp                    { $$ = $1; }
-  | exc_or_exp S_XOR and_exp
-      { $$ = new_exp_binary($1, op_s_xor, $3, get_pos(arg)); }
-  ;
+exc_or_exp: and_exp | exc_or_exp S_XOR and_exp
+      { $$ = new_exp_binary($1, op_s_xor, $3, get_pos(arg)); };
 
-and_exp
-  : eq_exp               { $$ = $1; }
-  | and_exp S_AND eq_exp
-      { $$ = new_exp_binary($1, op_s_and, $3, get_pos(arg)); }
-  ;
+and_exp: eq_exp | and_exp S_AND eq_exp
+      { $$ = new_exp_binary($1, op_s_and, $3, get_pos(arg)); };
 
 eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
-            eq_exp
-  : relational_exp             { $$ = $1; }
-  | eq_exp eq_op relational_exp
-    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
-  ;
 
-rel_op: LT { $$ = op_lt; } | GT { $$ = op_gt; } | LE { $$ = op_le; } | GE { $$ = op_ge; };
+eq_exp: relational_exp | eq_exp eq_op relational_exp
+    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-relational_exp
-  : shift_exp                  { $$ = $1; }
-  | relational_exp rel_op shift_exp
-    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
-  ;
+rel_op: LT { $$ = op_lt; } | GT { $$ = op_gt; } |
+    LE { $$ = op_le; } | GE { $$ = op_ge; };
+
+relational_exp: shift_exp | relational_exp rel_op shift_exp
+    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
 shift_op
   : SHIFT_LEFT  { $$ = op_shift_left;  }
   | SHIFT_RIGHT { $$ = op_shift_right; }
   ;
 
-shift_exp
-  : add_exp               { $$ = $1; }
-  | shift_exp shift_op  add_exp
-    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
-  ;
+shift_exp: add_exp | shift_exp shift_op  add_exp
+    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
 add_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
 
-add_exp
-  : mul_exp          { $$ = $1; }
-  | add_exp add_op mul_exp
-    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
-  ;
+add_exp: mul_exp | add_exp add_op mul_exp
+    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
 mul_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
 
-mul_exp
-  : cast_exp { $$ = $1; }
-  | mul_exp mul_op cast_exp
-      { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
-  ;
+mul_exp: cast_exp | mul_exp mul_op cast_exp
+    { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-cast_exp
-  : unary_exp
-  | cast_exp DOLLAR type_decl
-      { $$ = new_exp_cast($3, $1, get_pos(arg)); }
-  ;
+cast_exp: unary_exp | cast_exp DOLLAR type_decl
+    { $$ = new_exp_cast($3, $1, get_pos(arg)); };
 
 unary_op : PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; } | TIMES { $$ = op_times; }
          | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
   | EXCLAMATION { $$ = op_exclamation; } | SPORK TILDA { $$ = op_spork; }
   ;
 
-unary_exp
-  : dur_exp { $$ = $1; }
-  | unary_op unary_exp
+unary_exp : dur_exp | unary_op unary_exp
       { $$ = new_exp_unary($1, $2, get_pos(arg)); }
   | NEW type_decl2
     {
@@ -472,13 +416,10 @@ unary_exp
       $$ = new_exp_unary2(op_new, $2, NULL, get_pos(arg));
     }
   | SPORK TILDA code_segment
-        { $$ = new_exp_unary3(op_spork, $3, get_pos(arg)); }
-  ;
+        { $$ = new_exp_unary3(op_spork, $3, get_pos(arg)); };
 
-dur_exp
-  : post_exp
-  | dur_exp COLONCOLON post_exp { $$ = new_exp_dur($1, $3, get_pos(arg)); }
-  ;
+dur_exp: post_exp | dur_exp COLONCOLON post_exp
+    { $$ = new_exp_dur($1, $3, get_pos(arg)); };
 
 type_list
   : id { $$ = new_type_list(new_id_list($1, get_pos(arg)), NULL, get_pos(arg)); }
@@ -489,9 +430,7 @@ call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
 post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
 
-post_exp
-  : primary_exp
-  | post_exp array_exp
+post_exp: primary_exp | post_exp array_exp
     { $$ = new_array($1, $2, get_pos(arg)); }
   | post_exp template call_paren
     { $$ = new_exp_call($1, $3, get_pos(arg)); $$->d.exp_func.types = $2; }

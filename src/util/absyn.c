@@ -922,7 +922,7 @@ static void free_section(Section* section) {
 
 Class_Def new_class_def(ae_flag class_decl, ID_List name, ID_List ext, Class_Body body, int pos) {
   Class_Def a = calloc(1, sizeof(struct Class_Def_));
-  a->decl = class_decl;
+  a->flag = class_decl;
   a->name = name;
   a->ext  = ext;
   a->body = body;
@@ -930,15 +930,9 @@ Class_Def new_class_def(ae_flag class_decl, ID_List name, ID_List ext, Class_Bod
   return a;
 }
 
-Class_Body new_class_body(Section* section, int pos) {
+Class_Body new_class_body(Section* section, Class_Body body, int pos) {
   Class_Body a = calloc(1, sizeof(struct Class_Body_));
   a->section = section;
-  a->pos = pos;
-  return a;
-}
-
-Class_Body prepend_class_body(Section* section, Class_Body body, int pos) {
-  Class_Body a = new_class_body(section, pos);
   a->next = body;
   a->pos = pos;
   return a;
