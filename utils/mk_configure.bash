@@ -306,7 +306,7 @@ test:
 
 parser:
 	\\\$(info generating parser)
-	\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
+	@\\\${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
 
 lexer:
 	\\\$(info generating lexer)
