@@ -264,30 +264,19 @@ static m_bool emit_symbol_const(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
-static m_bool emit_symbol_addr(Emitter emit, Value v) {
-  Instr instr = emitter_add_instr(emit, Reg_Push_Mem_Addr);
-  instr->m_val = v->offset;
-  instr->m_val2 = GET_FLAG(v, ae_flag_global);
-  return 1;
-}
-
-static m_bool emit_symbol_actual(Emitter emit, Value v) {
-  Instr instr = emitter_add_instr(emit, Reg_Push_Mem);
-  instr->m_val  = v->offset;
-  instr->m_val2 = v->m_type->size;
-  *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
-  return 1;
-}
-
 static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
+  Instr instr;
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
     return emit_symbol_owned(emit, prim);
   if(GET_FLAG(v, ae_flag_const) && GET_FLAG(v, ae_flag_builtin))
     return emit_symbol_const(emit, prim);
-  if(prim->self->emit_var)
-    return emit_symbol_addr(emit, v);
-  return emit_symbol_actual(emit, v);
+  instr = emitter_add_instr(emit, prim->self->emit_var ?
+      Reg_Push_Mem_Addr : Reg_Push_Mem);
+  instr->m_val  = v->offset;
+  instr->m_val2 = v->m_type->size;
+  *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
+  return 1;
 }
 
 VM_Code emit_code(Emitter emit) {

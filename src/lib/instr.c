@@ -34,7 +34,8 @@ INSTR(Reg_PushImm) {
 }
 
 INSTR(Reg_Push_Mem_Addr) {
-  *(m_uint**)REG(0) = (m_uint*)((instr->m_val2 ? shred->base : shred->mem) + instr->m_val);
+  *(m_uint**)REG(0) = (m_uint*)((*(m_uint*)instr->ptr ?
+        shred->base : shred->mem) + instr->m_val);
   PUSH_REG(shred,  SZ_INT);
 }
 
