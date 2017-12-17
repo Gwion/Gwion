@@ -46,6 +46,8 @@ before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - bash utils/travis_prepare.sh
 
+script:
+  - ./configure && make clean all test
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then bash utils/lcov_helper.sh; fi
 
