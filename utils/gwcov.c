@@ -97,14 +97,26 @@ void cov(char* base) {
   fclose(f);
 }
 
-static void detab(char* in, char* out, size_t max_len) {
+static void colorize(char* out, size_t* i, const char color ) {
+  out[(*i)++] = '\033';
+  out[(*i)++] = '[';
+  out[(*i)++] = color;
+  out[(*i)++] = 'm';
+}
+
+static void detab(char* in, char* out, size_t max_len, uint* has_comment) {
   size_t i = 0;
   while(*in && i < max_len - 1) {
     if(*in == '\t') {
       for(int j = 0; j < TABLEN; j++)
         out[i++] = ' ';
+    } else if(!*has_comment && *in == '/' && *(in + 1) && *(in + 1) == '/') {
+      *has_comment = 1;
+      colorize(out, &i, '0');
+      colorize(out, &i, '2');
+      out[i++] = *in;
     } else
-        out[i++] = *in;
+      out[i++] = *in;
     (void)*in++;
   }
   out[i] = 0;
@@ -128,23 +140,15 @@ void diagnostic(char* filename){
 
   while((read = getline(&line, &len, f)) != -1) {
     uint too_long = 0;
+    uint has_comment = 0;
     int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
     ssize_t line_len = read > line_size ? line_size : read - 1;
-    if(read == 1) {
-      fprintf(stdout, "\033[2m%i", line_count);
-      while(num_digit++ < max_line_digit)
-        fprintf(stdout, " ");
-      fprintf(stdout, ":");
-      while(line_len++ <= line_size)
-        fprintf(stdout, " ");
-      fprintf(stdout, "|\n");
-      continue;
-    } else if(read > line_size)
+    if(read >= line_size)
       too_long = 1;
     char* prefix = "";
     char detabed[TABLEN*line_len];
     char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
-    detab(stripped_line, detabed, TABLEN*line_len);
+    detab(stripped_line, detabed, TABLEN*line_len, &has_comment);
     line_len = strlen(detabed);
     if(lines[line_count].set) {
       prefix = lines[line_count].ini ?
@@ -155,11 +159,12 @@ void diagnostic(char* filename){
       fprintf(stdout, " ");
     fprintf(stdout, ":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
     free(stripped_line);
-    while(line_len++ < line_size)
+    while(line_len++ < line_size + (has_comment ? 8 : 0))
       fprintf(stdout, " ");
     if(lines[line_count].set)
-      fprintf(stdout, "%s(%i)\n\033[0m", too_long ? "\b\b..." : "| ", lines[line_count].ini);
-    else puts("|\033[0m");
+      fprintf(stdout, "%s (%i)\n\033[0m",
+          too_long ? "\b\b..." : "|", lines[line_count].ini);
+    else puts("| ...\033[0m");
       line_count++;
   }
   fclose(f);
