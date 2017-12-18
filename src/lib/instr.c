@@ -52,11 +52,6 @@ INSTR(assign_func) {
   if(!instr->m_val) {
     POP_REG(shred,  SZ_INT * 2);
     **(m_uint**)REG(SZ_INT) = *(m_uint*)REG(0);
-  } else if(instr->m_val == 3) {
-    Type t = *(Type*)instr->ptr;
-    POP_REG(shred,  SZ_INT * 2);
-    Func f = (Func) * (m_uint*)REG(0);
-    *(Func*)(t->info->class_data + instr->m_val2) = f;
   } else {
     POP_REG(shred,  SZ_INT * 4);
     Func f = (Func) * (m_uint*)REG(SZ_INT);
