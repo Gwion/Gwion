@@ -65,6 +65,53 @@ static m_bool scan0_typedef(Env env, Stmt_Typedef stmt) {
   return 1;
 }
 
+static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
+  if(stmt->xid) {
+    if(nspc_lookup_type0(env->curr, stmt->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "type '%s' already declared", s_name(stmt->xid)))
+    if(nspc_lookup_value0(env->curr, stmt->xid))
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "'%s' already declared as variable", s_name(stmt->xid)))
+  }
+  return 1;
+}
+
+static m_bool scan0_enum(Env env, Stmt_Enum stmt) {
+  Type t;
+  if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
+    CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
+  CHECK_BB(check_enum_xid(env, stmt))
+  t = type_copy(&t_int);
+  t->name = stmt->xid ? s_name(stmt->xid) : "int";
+  t->parent = &t_int;
+  nspc_add_type(env->curr, stmt->xid, t);
+  stmt->t = t;
+  return 1;
+}
+
+static m_bool scan0_union(Env env, Stmt_Union stmt) {
+  if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
+      !env->class_def)
+      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+            "'static' and 'private' can only be used at class scope."))
+  if(stmt->xid) {
+    m_str name = s_name(stmt->xid);
+    Type t = type_copy(&t_union);
+    t->name = name;
+    t->info = new_nspc(name, "[union declarator]");
+    t->info->parent = env->curr;
+    stmt->value = new_value(t, name);
+    stmt->value->owner_class = env->class_def;
+    stmt->value->owner = env->curr;
+    nspc_add_value(env->curr, stmt->xid, stmt->value);
+    SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
+    if(env->class_def && !GET_FLAG(stmt, ae_flag_static)) // TODO: enable static
+      SET_FLAG(stmt->value, ae_flag_member);
+  }
+  return 1;
+}
+
 static m_bool scan0_Stmt(Env env, Stmt stmt) {
   if(!stmt)
     return 1;
@@ -72,6 +119,10 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
   else if(stmt->type == ae_stmt_typedef)
     CHECK_BB(scan0_typedef(env, &stmt->d.stmt_type))
+  else if(stmt->type == ae_stmt_enum)
+    CHECK_BB(scan0_enum(env, &stmt->d.stmt_enum))
+  else if(stmt->type == ae_stmt_union)
+    CHECK_BB(scan0_union(env, &stmt->d.stmt_union))
   return 1;
 }
 

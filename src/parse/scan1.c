@@ -98,7 +98,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       if(t2->array_depth) {
         if(!t2->e.exp_list)
           SET_FLAG(t, ae_flag_ref);
-        SET_FLAG(t, ae_flag_typedef);  
+        SET_FLAG(t, ae_flag_typedef);
       }
     }
     if(!list->self->value)
@@ -303,36 +303,16 @@ static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
     return 1;
 }
 
-static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
-  if(stmt->xid) {
-    if(nspc_lookup_type0(env->curr, stmt->xid))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
-            "type '%s' already declared", s_name(stmt->xid)))
-    if(nspc_lookup_value0(env->curr, stmt->xid))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
-            "'%s' already declared as variable", s_name(stmt->xid)))
-  }
-  return 1;
-}
-
 m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
-  Type t;
   ID_List list = stmt->list;
   m_uint count = 1;
-  if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
-    CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
-  CHECK_BB(check_enum_xid(env, stmt))
-  t = type_copy(&t_int);
-  t->name = stmt->xid ? s_name(stmt->xid) : "int";
-  t->parent = &t_int;
-  nspc_add_type(env->curr, stmt->xid, t);
   while(list) {
     Value v;
     if(nspc_lookup_value0(env->curr, list->xid))
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
             "in enum argument %i '%s' already declared as variable",
             count, s_name(list->xid)))
-    v = new_value(t, s_name(list->xid));
+    v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
@@ -394,24 +374,8 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   ae_flag flag = stmt->flag;
   Decl_List l = stmt->l;
 
-  if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
-      !env->class_def)
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
-            "'static' and 'private' can only be used at class scope."))
   if(stmt->xid) {
-    m_str name = s_name(stmt->xid);
-    Type t = type_copy(&t_union);
-    t->name = name;
-    t->info = new_nspc(name, "[union declarator]");
-    t->info->parent = env->curr;
-    stmt->value = new_value(t, name);
-    stmt->value->owner_class = env->class_def;
-    stmt->value->owner = env->curr;
-    nspc_add_value(env->curr, stmt->xid, stmt->value);
-    SET_FLAG(stmt->value, ae_flag_checked | flag);
     flag &= ~ae_flag_private;
-    if(env->class_def && !GET_FLAG(stmt, ae_flag_static)) // TODO: enable static
-      SET_FLAG(stmt->value, ae_flag_member);
     env_push_class(env, stmt->value->m_type);
   }
   while(l) {
