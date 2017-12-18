@@ -756,6 +756,7 @@ Stmt new_stmt_enum(ID_List list, S_Symbol xid, int pos) {
   a->type = ae_stmt_enum;
   a->d.stmt_enum.xid = xid;
   a->d.stmt_enum.list = list;
+  a->d.stmt_enum.flag = 0;
   vector_init(&a->d.stmt_enum.values);
   a->pos = a->d.stmt_enum.pos = pos;
   return a;

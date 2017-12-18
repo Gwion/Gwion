@@ -319,6 +319,8 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   Type t;
   ID_List list = stmt->list;
   m_uint count = 1;
+  if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
+    CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
   CHECK_BB(check_enum_xid(env, stmt))
   t = type_copy(&t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
@@ -334,6 +336,8 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
+      if(GET_FLAG(stmt, ae_flag_private))
+       SET_FLAG(v, ae_flag_private);
     }
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(env->curr, list->xid, v);

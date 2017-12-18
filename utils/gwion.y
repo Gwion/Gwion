@@ -6,7 +6,7 @@
 #include "absyn.h"
 #include "scanner.h"
 #define scan arg->scanner
-#define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) gwion_error(a, "flag set twice");  SET_FLAG(b, c);
+#define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) { gwion_error(a, "flag set twice");  ; } SET_FLAG(b, c);
 #define CHECK_TEMPLATE(a, b, c, free_function) { if(c->types) {\
         free_id_list(b);\
         free_function(c);\
@@ -205,6 +205,7 @@ opt_id: { $$ = NULL; } | id;
 
 enum_stmt
   : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(arg)); }
+  | PRIVATE enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_private); $$ = $2; }
   ;
 
 label_stmt

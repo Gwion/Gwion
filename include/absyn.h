@@ -86,7 +86,7 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Exp_Dot* dot;
-  m_uint flag;
+  ae_flag flag;
   int pos;
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, int ref, int pos);
@@ -372,9 +372,11 @@ struct Stmt_Switch_ {
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
+  ae_flag flag;
   struct Vector_ values;
   int pos;
 };
+
 struct Stmt_Ptr_ {
   Type_Decl* type;
   Type       m_type;
