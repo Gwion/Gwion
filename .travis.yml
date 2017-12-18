@@ -24,6 +24,7 @@ env:
     - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - USE_MEMCHECK=1
+    - USE_GWCOV=1
     - PREFIX=$TRAVIS_BUILD_DIR
   matrix:
     - USE_DOUBLE=1 SP_BRANCH=dev
