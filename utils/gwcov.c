@@ -127,6 +127,7 @@ void diagnostic(char* filename){
     err(filename, filename);
 
   while((read = getline(&line, &len, f)) != -1) {
+    uint too_long = 0;
     int num_digit = line_count ? floor(log10(line_count) + 1) : 1;
     ssize_t line_len = read > line_size ? line_size : read - 1;
     if(read == 1) {
@@ -134,11 +135,12 @@ void diagnostic(char* filename){
       while(num_digit++ < max_line_digit)
         fprintf(stdout, " ");
       fprintf(stdout, ":");
-      while(line_len++ < line_size)
+      while(line_len++ <= line_size)
         fprintf(stdout, " ");
-      fprintf(stdout, "\n");
+      fprintf(stdout, "|\n");
       continue;
-    }
+    } else if(read > line_size)
+      too_long = 1;
     char* prefix = "";
     char detabed[TABLEN*line_len];
     char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
@@ -156,7 +158,7 @@ void diagnostic(char* filename){
     while(line_len++ < line_size)
       fprintf(stdout, " ");
     if(lines[line_count].set)
-      fprintf(stdout, "| (%i)\n\033[0m", lines[line_count].ini);
+      fprintf(stdout, "%s(%i)\n\033[0m", too_long ? "\b\b..." : "| ", lines[line_count].ini);
     else puts("|\033[0m");
       line_count++;
   }
