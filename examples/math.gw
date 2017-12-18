@@ -47,8 +47,8 @@
 <<< Math.atanh(1)            >>>;
 <<< Math.atanh(1.0)          >>>;
 
-<<< Math.pow(2, 2)           >>>;        
-<<< Math.pow(2.0, 2)         >>>; 
+<<< Math.pow(2, 2)           >>>;
+<<< Math.pow(2.0, 2)         >>>;
 <<< Math.pow(2, 2.0)         >>>;
 <<< Math.pow(2.0, 2.0)       >>>;
 
@@ -70,20 +70,20 @@
 <<< Math.round(2.0)          >>>;
 <<< Math.trunc(2)            >>>;
 <<< Math.trunc(2.0)          >>>;
-<<< Math.fmod(2, 2)          >>>;        
-<<< Math.fmod(2.0, 2)        >>>; 
+<<< Math.fmod(2, 2)          >>>;
+<<< Math.fmod(2.0, 2)        >>>;
 <<< Math.fmod(2, 2.0)        >>>;
 <<< Math.fmod(2.0, 2.0)      >>>;
-<<< Math.remainder(2, 2)     >>>;        
-<<< Math.remainder(2.0, 2)   >>>; 
+<<< Math.remainder(2, 2)     >>>;
+<<< Math.remainder(2.0, 2)   >>>;
 <<< Math.remainder(2, 2.0)   >>>;
 <<< Math.remainder(2.0, 2.0) >>>;
-<<< Math.min(2, 2)           >>>;        
-<<< Math.min(2.0, 2)         >>>; 
+<<< Math.min(2, 2)           >>>;
+<<< Math.min(2.0, 2)         >>>;
 <<< Math.min(2, 2.0)         >>>;
 <<< Math.min(2.0, 2.0)       >>>;
-<<< Math.max(2, 2)           >>>;        
-<<< Math.max(2.0, 2)         >>>; 
+<<< Math.max(2, 2)           >>>;
+<<< Math.max(2.0, 2)         >>>;
 <<< Math.max(2, 2.0)         >>>;
 <<< Math.max(2.0, 2.0)       >>>;
 <<< Math.atan2(2.0, 2.0)     >>>;

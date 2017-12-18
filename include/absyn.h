@@ -372,6 +372,7 @@ struct Stmt_Switch_ {
 struct Stmt_Enum_ {
   ID_List list;
   S_Symbol xid;
+  Type t;
   ae_flag flag;
   struct Vector_ values;
   int pos;

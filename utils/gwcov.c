@@ -8,11 +8,11 @@
 #include <unistd.h>
 
 #define TABLEN 2
-
+#define MIN_LINE 64
 typedef struct {
   unsigned int set;
   unsigned int ini;
-  unsigned int end;
+  /*unsigned int end;*/
 } Line;
 
 static int last, max_exec;
@@ -22,12 +22,14 @@ static void err(const char* base, const char* file) {
   fprintf(stderr, "Unable to do coverage for '\033[1m%s\033[0m'.\n", base);
   fprintf(stderr, "Reason: '\033[1m%s\033[0m', no such file.\n", file);
   if(strcmp(base, file))
-    fprintf(stderr, "Did you run '\033[32;1mgwion -k\033[0m \033[1m%s\033[0m' ?\n", base);
+    fprintf(stderr, "Did you run '\033[32;1mgwion -k\033[0m"
+        " \033[1m%s\033[0m' ?\n", base);
   exit(EXIT_FAILURE);
 
 }
+
 static void da(char* base) {
-  int line_count = 64;
+  int line_count = MIN_LINE;
   int curr_line;
   char c[8];
   char filename[strlen(base) + 3];
@@ -37,28 +39,28 @@ static void da(char* base) {
   char * line = NULL;
   if(!f) // err msg
     err(base, filename);
-        while (1) {
-        int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
-        if(ret == 2) {
-          if(curr_line >= line_count) {
-            lines = realloc(lines, 2 * line_count * sizeof(Line)); // check
-            memset(lines + line_count, 0, line_count * sizeof(Line));
-            line_count *= 2;
-          }
-          lines[curr_line].set++;
-          if(curr_line > last)
-            last = curr_line;
-        }
-        else if(errno != 0) {
-          perror("scanf:");
-          break;
-        }
-        else if(ret == EOF) {
-            break;
-        } else {
-            fprintf(stderr, "No match.\n");
-        }
+  while (1) {
+    int ret = fscanf(f, "%i %s", &curr_line, (char*)&c);
+    if(ret == 2) {
+      if(curr_line >= line_count) {
+        lines = realloc(lines, 2 * line_count * sizeof(Line));
+        memset(lines + line_count, 0, line_count * sizeof(Line));
+        line_count *= 2;
+      }
+      lines[curr_line].set++;
+      if(curr_line > last)
+        last = curr_line;
     }
+    else if(errno != 0) {
+      perror("scanf:");
+      break;
+    }
+    else if(ret == EOF) {
+        break;
+    } else {
+        fprintf(stderr, "No match.\n");
+    }
+  }
   fclose(f);
   if(line)
     free(line);
@@ -81,26 +83,27 @@ void cov(char* base) {
         lines[curr_line].ini++;
         max_exec++;
       }
-      else
-        lines[curr_line].end++;
+      /*else*/
+      /*lines[curr_line].end++;*/
     }
     else if(errno != 0) {
       perror("scanf:");
       break;
-    }
-    else if(ret == EOF) {
-        break;
+    } else if(ret == EOF) {
+      break;
     } else {
-        fprintf(stderr, "No match.\n");
+      fprintf(stderr, "No match.\n");
     }
   }
   fclose(f);
 }
 
-static void colorize(char* out, size_t* i, const char color ) {
+static void colorize(char* out, size_t* i, const char* color ) {
+  size_t j, len = strlen(color);
   out[(*i)++] = '\033';
   out[(*i)++] = '[';
-  out[(*i)++] = color;
+  for(j = 0; j < len; j++)
+    out[(*i)++] = color[j];
   out[(*i)++] = 'm';
 }
 
@@ -112,14 +115,19 @@ static void detab(char* in, char* out, size_t max_len, uint* has_comment) {
         out[i++] = ' ';
     } else if(!*has_comment && *in == '/' && *(in + 1) && *(in + 1) == '/') {
       *has_comment = 1;
-      colorize(out, &i, '0');
-      colorize(out, &i, '2');
+      colorize(out, &i, "0");
+      colorize(out, &i, "2");
       out[i++] = *in;
     } else
       out[i++] = *in;
     (void)*in++;
   }
   out[i] = 0;
+}
+
+static void fill(uint min, uint max) {
+  while(min++ < max)
+    fprintf(stdout, " ");
 }
 
 void diagnostic(char* filename){
@@ -145,27 +153,27 @@ void diagnostic(char* filename){
     ssize_t line_len = read > line_size ? line_size : read - 1;
     if(read >= line_size)
       too_long = 1;
-    char* prefix = "";
+    const char* prefix;
     char detabed[TABLEN*line_len];
     char *stripped_line = read == 1 ? strdup("") : strndup(line, line_len);
     detab(stripped_line, detabed, TABLEN*line_len, &has_comment);
+    free(stripped_line);
     line_len = strlen(detabed);
     if(lines[line_count].set) {
       prefix = lines[line_count].ini ?
       "\033[32m" : "\033[31m";
-    }
+    } else
+      prefix = "";
     fprintf(stdout, "\033[2m%i", line_count);
-    while(num_digit++ < max_line_digit)
-      fprintf(stdout, " ");
+    fill(num_digit, max_line_digit);
     fprintf(stdout, ":\033[0m %s%s\033[0m\033[2m", prefix, detabed);
-    free(stripped_line);
-    while(line_len++ < line_size + (has_comment ? 8 : 0))
-      fprintf(stdout, " ");
+    fill(line_len, line_size + (has_comment ? 8 : 0));
     if(lines[line_count].set)
       fprintf(stdout, "%s (%i)\n\033[0m",
           too_long ? "\b\b..." : "|", lines[line_count].ini);
-    else puts("| ...\033[0m");
-      line_count++;
+    else
+      puts("| ...\033[0m");
+    line_count++;
   }
   fclose(f);
   if(line)
@@ -176,7 +184,7 @@ int main(int argc, char** argv) {
   argv++;
   argc--;
   while(argc) {
-    lines = calloc(64, sizeof(Line));
+    lines = calloc(MIN_LINE, sizeof(Line));
     da(*argv);
     cov(*argv);
     diagnostic(*argv);
