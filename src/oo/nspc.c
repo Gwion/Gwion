@@ -147,8 +147,11 @@ static void free_nspc_value(Nspc a) {
         }
       }
       REM_REF(value->m_type)
-    } else if(isa(value->m_type, &t_union) > 0)
+    } else if(isa(value->m_type, &t_union) > 0) {
+      if(GET_FLAG(value, ae_flag_static))
+        nspc_release_object(a, value);
       REM_REF(value->m_type)
+    }
     else if(isa(value->m_type, &t_object) > 0)
       nspc_release_object(a, value);
     else if(isa(value->m_type, &t_func_ptr) > 0)
