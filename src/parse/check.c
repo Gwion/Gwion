@@ -953,7 +953,10 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
     type_path(path, cast->type->xid);
     CHECK_BO(err_msg(TYPE_, cast->pos, "unknown type '%s' in cast expression.", path))
   }
-
+  if(cast->type->array) {
+    t2 = new_array_type(env, cast->type->array->depth, t2, env->curr);
+    cast->t = t2;
+  }
   if(isa(t2, &t_func_ptr) > 0) {
     if(isa(t, &t_function) < 0)
       CHECK_BO(err_msg(TYPE_, cast->pos, "can't cast '%s' to '%s'",
@@ -976,7 +979,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
     return isa(t, t2) > 0 ? t2 : NULL;
   Type type = t;
   while(type) {
-    if(t2 == type)
+    if(t2->xid == type->xid && t2->array_depth == type->array_depth)
       return t2;
     type = type->parent;
   }

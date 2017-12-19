@@ -416,7 +416,7 @@ mul_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = o
 mul_exp: cast_exp | mul_exp mul_op cast_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-cast_exp: unary_exp | cast_exp DOLLAR type_decl
+cast_exp: unary_exp | cast_exp DOLLAR type_decl2
     { $$ = new_exp_cast($3, $1, get_pos(arg)); };
 
 unary_op : PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; } | TIMES { $$ = op_times; }

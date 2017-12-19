@@ -186,8 +186,10 @@ Exp new_exp_cast(Type_Decl* type, Exp exp, int pos) {
   return a;
 }
 
-__inline static void free_exp_cast(Exp_Cast* a) {
+static void free_exp_cast(Exp_Cast* a) {
   free_type_decl(a->type);
+  if(a->t)
+    REM_REF(a->t)
   free_exp(a->exp);
 }
 

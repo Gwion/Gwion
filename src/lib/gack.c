@@ -26,7 +26,7 @@ static void print_typedef(Type type) {
   struct Vector_ v, d;
   vector_init(&v);
   vector_init(&d);
-  while(type->d.array_type) {
+  while(type) {
     vector_add(&v, (vtype)type);
     vector_add(&d, (vtype)type->array_depth);
     type = type->d.array_type;
@@ -36,12 +36,12 @@ static void print_typedef(Type type) {
   for(i = size + 1; --i;) {
     Type t = (Type)vector_at(&v, i - 1);
     vector_set(&d, size - i - 1, t->array_depth - depth);
-    depth += t->d.array_type->array_depth;
+    depth += t->array_depth;
   }
   for(i = 0; i < size; i++) {
     m_uint j;
     Type t = (Type)vector_at(&v, i);
-    fprintf(stdout, "%s", t->d.array_type->name);
+    fprintf(stdout, "%s", t->name);
     for(j = 0; j < vector_at(&d, size -i - 1); j++)
       fprintf(stdout, "[]");
     if(i < size - 1)
@@ -153,11 +153,10 @@ INSTR(Gack) {
     else if(isa(type, &t_function) > 0)
       print_func(type, REG(0));
     else if(type->xid == te_class) {
-      print_string1(type->d.actual_type->name);
-      if(GET_FLAG(type, ae_flag_typedef)) {
-        fprintf(stdout, " aka ");
+      if(GET_FLAG(type, ae_flag_typedef))
         print_typedef(type->d.array_type);
-      }
+      else
+        print_string1(type->d.actual_type->name);
     }
     else if(type->xid == te_void)
       print_string1("void");

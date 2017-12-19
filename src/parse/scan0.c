@@ -25,7 +25,7 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
-static m_bool scan0_typedef(Env env, Stmt_Typedef stmt) {
+static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
   Type type, base = find_type(env, stmt->type->xid);
   Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
@@ -77,7 +77,7 @@ static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan0_enum(Env env, Stmt_Enum stmt) {
+static m_bool scan0_stmt_enum(Env env, Stmt_Enum stmt) {
   Type t;
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
@@ -90,7 +90,7 @@ static m_bool scan0_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan0_union(Env env, Stmt_Union stmt) {
+static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
   if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
       !env->class_def)
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
@@ -118,11 +118,11 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
   if(stmt->type == ae_stmt_funcptr)
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
   else if(stmt->type == ae_stmt_typedef)
-    CHECK_BB(scan0_typedef(env, &stmt->d.stmt_type))
+    CHECK_BB(scan0_stmt_typedef(env, &stmt->d.stmt_type))
   else if(stmt->type == ae_stmt_enum)
-    CHECK_BB(scan0_enum(env, &stmt->d.stmt_enum))
+    CHECK_BB(scan0_stmt_enum(env, &stmt->d.stmt_enum))
   else if(stmt->type == ae_stmt_union)
-    CHECK_BB(scan0_union(env, &stmt->d.stmt_union))
+    CHECK_BB(scan0_stmt_union(env, &stmt->d.stmt_union))
   return 1;
 }
 

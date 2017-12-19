@@ -196,6 +196,7 @@ typedef struct {
 } Exp_Func;
 typedef struct {
   Type_Decl* type;
+  Type t;
   Exp exp;
   Exp self;
   Func func;
