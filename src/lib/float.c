@@ -1,4 +1,6 @@
-#include "math.h"
+#include <math.h>
+#include "defs.h"
+#include "err_msg.h"
 #include "type.h"
 #include "instr.h"
 #include "import.h"
@@ -371,6 +373,12 @@ static m_bool import_values(Importer importer) {
   return 1;
 }
 
+Type chuck_now(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign 'now' to 'now'"))
+  return NULL;
+}
+
 m_bool import_float(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_float))
   CHECK_BB(importer_add_type(importer,  &t_time))
@@ -468,6 +476,9 @@ m_bool import_float(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_plus,         float_plus,         0))
   CHECK_BB(importer_oper_ini(importer,  "dur",  "@now", "time"))
   CHECK_BB(importer_oper_end(importer, op_chuck,        Time_Advance,       0))
+  CHECK_BB(importer_oper_ini(importer,  "@now",  "@now", NULL))
+  CHECK_BB(importer_oper_add(importer,  chuck_now))
+  CHECK_BB(importer_oper_end(importer, op_chuck,        NULL,       0))
 
   CHECK_BB(importer_oper_ini(importer, "time", "time", "int"))
   CHECK_BB(importer_oper_end(importer, op_gt,           float_gt,           0))

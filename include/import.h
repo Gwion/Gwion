@@ -47,5 +47,6 @@ m_int importer_func_arg(Importer importer, const m_str t, const m_str  n);
 m_int importer_func_end(Importer importer, const ae_flag flag);
 
 m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m_str t);
+m_int importer_oper_add(Importer importer, Type (*check)(Env env, void*));
 m_int importer_oper_end(Importer importer, const Operator op, const f_instr f, const m_bool global);
 

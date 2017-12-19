@@ -10,6 +10,7 @@ typedef struct {
   Type lhs, rhs, ret;
   f_instr instr;
   Func func;
+  Type (*check)(Env, void*);
 } M_Operator;
 
 static void free_op(M_Operator* a) {
@@ -17,7 +18,8 @@ static void free_op(M_Operator* a) {
     REM_REF(a->lhs)
   if(a->rhs)
     REM_REF(a->rhs)
-  REM_REF(a->ret)
+  if(a->ret)
+    REM_REF(a->ret)
   free(a);
 }
 
@@ -65,28 +67,33 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
     CHECK_BB((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
             opi->rhs ? opi->rhs->name : NULL)))
-  mo = malloc(sizeof(M_Operator));
+  mo = calloc(1, sizeof(M_Operator));
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;
   mo->instr     = opi->f;
-  mo->func      = NULL;
+  mo->check     = opi->check;
   vector_add(v, (vtype)mo);
   if(opi->lhs)
     ADD_REF(opi->lhs)
   if(opi->rhs)
     ADD_REF(opi->rhs)
+  if(opi->ret)
   ADD_REF(opi->ret)
   return 1;
 }
 
-static Type get_return_type_inner(Map map, struct Op_Import* opi) {
-  Type r = opi->rhs;
+static Type get_return_type_inner(Env env, Map map, struct Op_Import* opi) {
+  Type t, r = opi->rhs;
   do { 
     M_Operator* mo;
     Vector v = (Vector)map_get(map, (vtype)opi->op);
-    if((mo = operator_find(v, opi->lhs, r)))
-      return mo->ret;
+    if((mo = operator_find(v, opi->lhs, r))) {
+      if((mo->check && (t = mo->check(env, opi->data))))
+        return t;
+      else
+        return mo->ret;
+    } 
   } while(r && (r = r->parent));
   return NULL;
 }
@@ -98,10 +105,11 @@ Type get_return_type(Env env, struct Op_Import* opi) {
     if(nspc->op_map.ptr) {
       Type l = opi->lhs;
       do {
-        struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL, NULL, NULL, 0 };
-        Type ret = get_return_type_inner(&nspc->op_map, &opi2);
+        struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL,
+          NULL, NULL, NULL, opi->data, 0 };
+        Type ret = get_return_type_inner(env, &nspc->op_map, &opi2);
         if(ret)
-          return ret;
+          return ret == &t_null ? NULL : ret;
       } while(l && (l = l->parent));
     }
     nspc = nspc->parent;

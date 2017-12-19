@@ -17,4 +17,3 @@ void free_func(Func a) {
   }
   free(a);
 }
-

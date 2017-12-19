@@ -782,24 +782,13 @@ static Type check_op(Env env, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
   Type t;
-  struct Op_Import opi = { op, lhs->type, rhs->type, NULL, NULL, NULL, 0 };
+  struct Op_Import opi = { op, lhs->type, rhs->type, NULL,
+    NULL, NULL, NULL, binary, 0 };
 
   if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
     return check_op_ptr(env, binary);
-  if((lhs->type->array_depth == rhs->type->array_depth + 1) && op == op_shift_left &&
-      isa(lhs->type->d.array_type, rhs->type) > 0)
-    return lhs->type;
-  if((lhs->type->array_depth && rhs->type->array_depth) && (op == op_at_chuck && lhs->type->array_depth == rhs->type->array_depth))
-    return rhs->type;
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
     return check_exp_call1(env, rhs, lhs, &binary->func);
-  if(isa(binary->lhs->type, &t_varobj) > 0 && binary->op == op_at_chuck)
-    return rhs->type;
-  if(isa(binary->rhs->type, binary->lhs->type) > 0 && binary->op == op_at_chuck)
-    return rhs->type;
-  if(isa(binary->rhs->type, &t_now) > 0 &&  isa(binary->lhs->type, &t_now) > 0 && binary->op == op_chuck)
-    CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign 'now' to 'now'"))
-//  if((t = get_return_type(env, op, lhs->type, rhs->type)))
   if((t = get_return_type(env, &opi)))
     return t;
   m_uint i;
@@ -812,89 +801,58 @@ static Type check_op(Env env, Exp_Binary* binary) {
     strcat(la, "[]");
   for(i = 0; i < rhs->type->array_depth; i++)
     strcat(ra, "[]");
-  CHECK_BO(err_msg(TYPE_, 0, "no match found for operator '%s' on types '%s%s' and '%s%s'",
+  CHECK_BO(err_msg(TYPE_, 0, "no match found for operator '%s'"
+        "on types '%s%s' and '%s%s'",
           op2str(op), lhs->type->name, la, rhs->type->name, ra))
   return NULL;
 }
 
-static Type get_array_type(Type t) {
-  while(t->d.array_type)
-    t = t->d.array_type;
-  return t;
-}
+static m_bool check_exp_binary_at_chuck(Exp l, Exp r) {
+  if(r->exp_type == ae_exp_decl)
+    SET_FLAG(r->d.exp_decl.type, ae_flag_ref);
 
-static m_bool check_exp_binary_at_chuck(Exp cl, Exp cr) {
-  if(cr->exp_type == ae_exp_decl)
-    SET_FLAG(cr->d.exp_decl.type, ae_flag_ref);
-
-  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
-    CHECK_BB(err_msg(TYPE_, cl->pos,
-                     "cannot assign '%s' on types '%s' and'%s'...\n"
-                     "...(reason: --- right-side operand is not mutable)",
-                     "=>", cl->type->name, cr->type->name))
+  if(r->meta != ae_meta_var && isa(r->type, &t_function) < 0 && isa(r->type, &t_fileio) < 0) {
+    CHECK_BB(err_msg(TYPE_, l->pos,
+          "cannot assign '%s' on types '%s' and'%s'...\n"
+          "...(reason: --- right-side operand is not mutable)",
+          "=>", l->type->name, r->type->name))
   }
-  if(cl->type != &t_null && cl->type->array_depth != cr->type->array_depth) {
-    REM_REF(cl->type)
-    CHECK_BB(err_msg(TYPE_, cl->pos, "array depths do not match."))
-  }
-  if(isa(cl->type, &t_array) > 0 && isa(cr->type, &t_array) > 0) {
-    Type l = get_array_type(cl->type);
-    Type r = get_array_type(cr->type);
-    if(isa(l, r) < 0) {
-      REM_REF(cl->type)
-      CHECK_BB(err_msg(TYPE_, cl->pos, "array types do not match."))
-    }
-      cr->emit_var = 1;
-    return 1;
-  }
-  if(isa(cl->type, &t_object) > 0 && isa(cr->type, &t_object) > 0) {
-    if(isa(cl->type, cr->type) < 0)
-      CHECK_BB(err_msg(TYPE_, cl->pos, "'%s' @=> '%s' not allowed", cl->type->name, cr->type->name))
-      cr->emit_var = 1;
-    return 1;
-  }
-  if(isa(cr->type, &t_func_ptr) < 0 && isa(cl->type, &t_object) < 0 && isa(cr->type, &t_object) < 0)
-      CHECK_BB(err_msg(TYPE_, cl->pos, "'@=>' not allowed for primitives", cl->type->name, cr->type->name))
   return 1;
 }
 
-static m_bool check_exp_binary_chuck(Exp cl, Exp cr) {
-  if(isa(cl->type, &t_ugen) > 0 && isa(cr->type, &t_ugen) > 0) {
-    cr->emit_var = cl->emit_var = 0;
-    return 1;
+static m_bool check_exp_binary_chuck(Exp l, Exp r) {
+  if(r->meta != ae_meta_var && isa(r->type, &t_ugen)  < 0 && isa(r->type, &t_function) < 0 && isa(r->type, &t_fileio) < 0) {
+    CHECK_BB(err_msg(TYPE_, l->pos,
+          "cannot assign '%s' on types '%s' and'%s'...\n"
+          "...(reason: --- right-side operand is not mutable)",
+          "=>", l->type->name, r->type->name))
   }
-  if(cr->meta != ae_meta_var && isa(cr->type, &t_function) < 0 && isa(cr->type, &t_fileio) < 0) {
-    CHECK_BB(err_msg(TYPE_, cl->pos,
-                     "cannot assign '%s' on types '%s' and'%s'...\n"
-                     "...(reason: --- right-side operand is not mutable)",
-                     "=>", cl->type->name, cr->type->name))
-  }
-  cr->emit_var = 1;
+  r->emit_var = 1;
   return 1;
 }
 
 static Type check_exp_binary(Env env, Exp_Binary* binary) {
   Type ret = NULL;
-  Exp cl = binary->lhs, cr = binary->rhs;
+  Exp l = binary->lhs, r = binary->rhs;
 
-  CHECK_OO(check_exp(env, cl))
-  CHECK_OO(check_exp(env, cr))
+  CHECK_OO(check_exp(env, l))
+  CHECK_OO(check_exp(env, r))
 
   switch(binary->op) {
     case op_assign:
-      if(cl->meta != ae_meta_var) {
-        CHECK_BO(err_msg(TYPE_, cr->pos, "cannot assign '%s' on types '%s' and'%s'...",
-                         "...(reason: --- left-side operand is not mutable)",
-                         op2str(binary->op), cl->type->name, cr->type->name))
+      if(l->meta != ae_meta_var) {
+        CHECK_BO(err_msg(TYPE_, r->pos, "cannot assign '%s' on types '%s' and'%s'...",
+              "...(reason: --- left-side operand is not mutable)",
+              op2str(binary->op), l->type->name, r->type->name))
       }
-      cl->emit_var = 1;
+      l->emit_var = 1;
       break;
     case op_at_chuck:
-      CHECK_BO(check_exp_binary_chuck(cl, cr))
-      CHECK_BO(check_exp_binary_at_chuck(cl, cr))
+      CHECK_BO(check_exp_binary_chuck(l, r))
+      CHECK_BO(check_exp_binary_at_chuck(l, r))
       break;
     case op_chuck:
-      CHECK_BO(check_exp_binary_chuck(cl, cr))
+      CHECK_BO(check_exp_binary_chuck(l, r))
       break;
     case op_plus_chuck:
     case op_minus_chuck:
@@ -914,32 +872,20 @@ static Type check_exp_binary(Env env, Exp_Binary* binary) {
     case op_rge:
     case op_rlt:
     case op_rle:
-      if(cr->meta != ae_meta_var) {
-        CHECK_BO(err_msg(TYPE_, cl->pos,
-                         "cannot assign '%s' on types '%s' and'%s'...\n",
-                         "\t...(reason: --- right-side operand is not mutable)",
-                         op2str(binary->op), cl->type->name, cr->type->name))
+      if(r->meta != ae_meta_var) {
+        CHECK_BO(err_msg(TYPE_, l->pos,
+              "cannot assign '%s' on types '%s' and'%s'...\n",
+              "\t...(reason: --- right-side operand is not mutable)",
+              op2str(binary->op), l->type->name, r->type->name))
       }
-      cr->emit_var = 1;
+      r->emit_var = 1;
       break;
     default:
       break;
   }
-
-  if(binary->op == op_at_chuck) {
-    if(isa(binary->lhs->type, &t_null) > 0 &&
-        isa(binary->rhs->type, &t_object) > 0) {
-      if(cr->exp_type == ae_exp_decl && !GET_FLAG(cr->d.exp_decl.type, ae_flag_ref)) {
-        CHECK_BO(err_msg(TYPE_, cr->pos, "can't 'NULL' assign declaration."))
-        return NULL;
-      }
-      return cl->type;
-    }
-  }
-
-  while(cr) {
+  while(r) {
     CHECK_OO((ret = check_op(env, binary)))
-    cr = cr->next;
+    r = r->next;
   }
   return ret;
 }
@@ -990,13 +936,14 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 
 static Type check_exp_post(Env env, Exp_Postfix* post) {
   Type ret, t = check_exp(env, post->exp);
-  struct Op_Import opi = { post->op, t, NULL, NULL, NULL, NULL, 0 };
+  struct Op_Import opi = { post->op, t, NULL, NULL,
+    NULL, NULL, NULL, post, 0 };
   CHECK_OO(t)
   if(post->exp->meta != ae_meta_var)
     CHECK_BO(err_msg(TYPE_, post->exp->pos,
-                     "post operator '%s' cannot be used on non-mutable data-type...",
-                     op2str(post->op)))
-    post->exp->emit_var = 1;
+          "post operator '%s' cannot be used on non-mutable data-type...",
+          op2str(post->op)))
+  post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
   if(!(ret = get_return_type(env, &opi)))
     err_msg(TYPE_, post->pos,
@@ -1067,58 +1014,60 @@ static Type check_exp_unary_spork(Env env, Stmt code) {
 
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
-  struct Op_Import opi = { unary->op, NULL, NULL, NULL, NULL, NULL, 0 };
+  struct Op_Import opi = { unary->op, NULL, NULL, NULL,
+    NULL, NULL, NULL, unary, 0 };
   if(unary->op != op_new && !unary->code)
     CHECK_OO((t = check_exp(env, unary->exp)))
     if(unary->code)
       CHECK_BO(check_stmt(env, unary->code))
 
-      switch(unary->op) {
-        case op_plusplus:
-        case op_minusminus:
-          if(unary->exp->meta != ae_meta_var) {
-            CHECK_BO(err_msg(TYPE_, unary->pos, "prefix unary operator '%s' cannot "
-                             "be used on non-mutable data-types...", op2str(unary->op)))
-          }
-          unary->exp->emit_var = 1;
-          break;
+switch(unary->op) {
+  case op_plusplus:
+  case op_minusminus:
+    if(unary->exp->meta != ae_meta_var) {
+      CHECK_BO(err_msg(TYPE_, unary->pos, "prefix unary operator '%s' cannot "
+            "be used on non-mutable data-types...", op2str(unary->op)))
+    }
+    unary->exp->emit_var = 1;
+    break;
 
-        case op_minus:
-        case op_tilda:
-        case op_exclamation:
-          unary->self->meta = ae_meta_value;
+  case op_minus:
+  case op_tilda:
+  case op_exclamation:
+    unary->self->meta = ae_meta_value;
 
-          break;
-        case op_spork:
-          if(unary->exp && unary->exp->exp_type == ae_exp_call)
-            return &t_shred;
-          else if(unary->code) {
-            return check_exp_unary_spork(env, unary->code);
-          } else
-            CHECK_BO(err_msg(TYPE_,  unary->pos,
-                             "only function calls can be sporked..."))
-            break;
+    break;
+  case op_spork:
+    if(unary->exp && unary->exp->exp_type == ae_exp_call)
+      return &t_shred;
+    else if(unary->code) {
+      return check_exp_unary_spork(env, unary->code);
+    } else
+      CHECK_BO(err_msg(TYPE_,  unary->pos,
+            "only function calls can be sporked..."))
+      break;
 
-        case op_new:
-          if(!(t = find_type(env, unary->type->xid)))
-            CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
-            if(unary->array) {
-              CHECK_OO(check_exp(env, unary->array->exp_list))
-              CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
-              t = new_array_type(env, unary->array->depth, t, env->curr);
-            } else if(isa(t, &t_object) < 0) {
-              CHECK_BO(err_msg(TYPE_, unary->pos,
-                               "cannot instantiate/(new) primitive type '%s'...\n"
-                               "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
-            }
-          return t;
-        default:
-          break;
+  case op_new:
+    if(!(t = find_type(env, unary->type->xid)))
+      CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
+      if(unary->array) {
+        CHECK_OO(check_exp(env, unary->array->exp_list))
+        CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
+        t = new_array_type(env, unary->array->depth, t, env->curr);
+      } else if(isa(t, &t_object) < 0) {
+        CHECK_BO(err_msg(TYPE_, unary->pos,
+              "cannot instantiate/(new) primitive type '%s'...\n"
+              "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
       }
+      return t;
+    default:
+      break;
+  }
   opi.rhs = unary->exp->type;
   if(!(t = get_return_type(env, &opi)))
     CHECK_BO(err_msg(TYPE_, unary->pos,
-            "no suitable resolution for prefix operator '%s'", op2str(unary->op)))
+          "no suitable resolution for prefix operator '%s'",
+          op2str(unary->op)))
   return t;
 }
 

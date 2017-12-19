@@ -125,11 +125,24 @@ static INSTR(neq_Object) {
   PUSH_REG(shred, SZ_INT);
 }
 
+static Type at_object(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  Type l = bin->lhs->type;
+  Type r = bin->rhs->type;
+  if(isa(l, r) < 0) {
+    if(err_msg(TYPE_, bin->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
+    return &t_null;
+  }
+  bin->rhs->emit_var = 1;
+  return r;
+}
+
 m_bool import_object(Importer importer) {
   CHECK_BB(importer_class_ini(importer, &t_object, NULL, object_dtor))
   CHECK_BB(importer_oper_ini(importer, "@null", "Object", "Object"))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
-  CHECK_BB(importer_oper_ini(importer, "Object", "Object", "Object"))
+  CHECK_BB(importer_oper_ini(importer, "Object", "Object", NULL))
+  CHECK_BB(importer_oper_add(importer, at_object))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
   CHECK_BB(importer_oper_ini(importer, "Object", "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))

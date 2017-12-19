@@ -368,7 +368,7 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
 
 static Type get_type(Env env, const m_str str) {
   m_uint depth = 0;
-  ID_List list = str2list(str, &depth);
+  ID_List list = str ? str2list(str, &depth) : NULL;
   Type  t = list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(list);
@@ -380,7 +380,7 @@ static m_int import_op(Env env, DL_Oper* op,
   Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   Type ret = get_type(env, op->ret);
-  struct Op_Import opi = { op->op, lhs, rhs, ret, f, NULL, global};
+  struct Op_Import opi = { op->op, lhs, rhs, ret, f, NULL, op->check, NULL, global};
   return env_add_op(env, &opi);
 }
 
@@ -388,6 +388,12 @@ m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m
   importer->oper.ret = t;
   importer->oper.rhs = r;
   importer->oper.lhs = l;
+  importer->oper.check = NULL;
+  return 1;
+} 
+
+m_int importer_oper_add(Importer importer, Type (*check)(Env env, void*)) {
+  importer->oper.check = check;
   return 1;
 }
 
@@ -409,7 +415,7 @@ static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
-    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import %Q (type)...",
+    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...",
           dl_fun->name))
   return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }

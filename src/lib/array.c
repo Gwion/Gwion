@@ -5,7 +5,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_array  = { "@Array", SZ_INT, &t_object, te_array };
+struct Type_ t_array  = { "Array", SZ_INT, &t_object, te_array };
 
 m_int o_object_array;
 
@@ -203,7 +203,44 @@ INSTR(Array_Append) {
   PUSH_REG(shred, SZ_INT);
 }
 
+static Type get_array_type(Type t) {
+  while(t->d.array_type)
+    t = t->d.array_type;
+  return t;
+}
+
+static Type at_array(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  Type l = get_array_type(bin->lhs->type);
+  Type r = get_array_type(bin->rhs->type);
+  
+  if(isa(l, r) < 0) {
+    err_msg(TYPE_, bin->pos, "array types do not match.");
+    return &t_null;
+  }
+  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
+    err_msg(TYPE_, bin->pos, "array depths do not match.");
+    return &t_null;
+  }
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
+
+static Type shift_array(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  Type l = get_array_type(bin->lhs->type);
+  Type r = get_array_type(bin->rhs->type);
+  if(isa(l, r) < 0) {
+    err_msg(TYPE_, bin->pos, "array types do not match.");
+    return &t_null;
+  }
+  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
+    return &t_null;
+  return bin->lhs->type;
+}
+
 m_bool import_array(Importer importer) {
+  SET_FLAG((&t_array), ae_flag_abstract);
   CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
 
 	importer_item_ini(importer, "int", "@array");
@@ -224,6 +261,12 @@ m_bool import_array(Importer importer) {
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
+  CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
+  CHECK_BB(importer_oper_add(importer, at_array))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 0))
+  CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
+  CHECK_BB(importer_oper_add(importer, shift_array))
+  CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append, 0))
   return 1;
 }
 

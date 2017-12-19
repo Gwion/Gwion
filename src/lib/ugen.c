@@ -319,6 +319,12 @@ static m_bool import_global_ugens(Importer importer) {
   return 1;
 }
 
+static Type chuck_ugen(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  bin->lhs->emit_var = bin->rhs->emit_var = 0;
+  return bin->rhs->type;
+}
+
 m_bool import_ugen(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_ugen, ugen_ctor, ugen_dtor))
 
@@ -341,6 +347,7 @@ m_bool import_ugen(Importer importer) {
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_oper_ini(importer, "UGen", "UGen", "UGen"))
+  CHECK_BB(importer_oper_add(importer, chuck_ugen))
   CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect, 1))
   CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect, 1))
   CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect, 1))

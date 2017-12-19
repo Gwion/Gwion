@@ -90,6 +90,17 @@ INSTR(Vararg_Member) {
   PUSH_REG(shred, instr->m_val2);
 }
 
+Type at_varobj(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  return bin->rhs->type;
+}
+
+INSTR(varobj_assign) {
+  POP_REG(shred, 2 * SZ_INT);
+  *(M_Object**)REG(SZ_INT) = &*(M_Object*)REG(0);
+  PUSH_REG(shred, SZ_INT);
+}
+
 m_bool import_vararg(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_varobj))
   CHECK_BB(importer_add_type(importer,  &t_varloop))
@@ -117,5 +128,8 @@ m_bool import_vararg(Importer importer) {
 	importer_item_ini(importer, "VarObject", "o");
   importer_item_end(importer,     ae_flag_const, NULL);
   CHECK_BB(importer_class_end(importer))
+  CHECK_BB(importer_oper_ini(importer, "VarObject", "Object", NULL))
+  CHECK_BB(importer_oper_add(importer, at_varobj))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, varobj_assign, 0))
   return 1;
 }

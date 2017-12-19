@@ -9,6 +9,8 @@ struct Op_Import {
   Type lhs, rhs, ret;
   f_instr f;
   Func func;
+  Type (*check)(Env env, void* data);
+  void* data;
   m_bool global;
 };
 m_bool env_add_op(Env env, struct Op_Import* opi);
