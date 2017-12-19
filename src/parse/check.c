@@ -1213,7 +1213,7 @@ m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
-  if(stmt->type->array)
+  if(stmt->type->array && stmt->type->array->exp_list)
     CHECK_OB(check_exp(env, stmt->type->array->exp_list))
   return 1;
 }
@@ -1722,6 +1722,7 @@ static m_bool check_section(Env env, Section* section) {
 
 static m_bool check_class_parent(Env env, Class_Def class_def) {
   Type t_parent = find_type(env, class_def->ext);
+
   if(!t_parent) {
     char path[id_list_len(class_def->ext)];
     type_path(path, class_def->ext);
@@ -1732,6 +1733,9 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
   if(isprim(t_parent) > 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend primitive type '%s'", t_parent->name))
+  if(t_parent->array_depth)
+    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend typedef'd array type '%s'\n", t_parent->name))
   if(!GET_FLAG(t_parent, ae_flag_checked))
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend incomplete type '%s'i\n"

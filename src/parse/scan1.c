@@ -553,7 +553,6 @@ static m_bool scan1_section(Env env, Section* section) {
 m_bool scan1_class_def(Env env, Class_Def class_def) {
   m_bool ret = 1;
   Class_Body body = class_def->body;
-
   if(class_def->types)
     return 1;
   CHECK_BB(env_push_class(env, class_def->type))

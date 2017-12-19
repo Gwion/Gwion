@@ -153,13 +153,12 @@ static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
   CHECK_BB(scan0_class_def_public(env, class_def))
   if(nspc_lookup_type1(env->curr, class_def->name->xid)) {
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
-                     "class/type '%s' is already defined in namespace '%s'",
-                     s_name(class_def->name->xid), env->curr->name))
+          "class/type '%s' is already defined in namespace '%s'",
+          s_name(class_def->name->xid), env->curr->name))
   }
-
   if(isres(class_def->name->xid, class_def->name->pos) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-                     s_name(class_def->name->xid)))
+          s_name(class_def->name->xid)))
   }
   return 1;
 }

@@ -1,0 +1,5 @@
+// [contains] cannot extend typedef'd array
+typedef Object[2] Class;
+class C extends Class {}
+C c;
+<<<c>>>;
