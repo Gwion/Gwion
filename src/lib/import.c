@@ -568,6 +568,18 @@ Type check_rassign(Env env, void* data) {
   return bin->rhs->type;
 }
 
+Type check_unary(Env env, void* data) {
+  Exp_Unary* unary = (Exp_Unary*)data;
+  if(unary->exp->meta != ae_meta_var)
+    if(err_msg(TYPE_, unary->exp->pos,
+          "unary operator '%s' cannot be used on non-mutable data-types...",
+          op2str(unary->op)) < 0)
+      return &t_null;
+  unary->exp->emit_var = 1;
+  unary->self->meta = ae_meta_value;
+  return unary->exp->type;
+}
+
 Type check_post(Env env, void* data) {
   Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var)

@@ -810,6 +810,9 @@ static Type check_op(Env env, Exp_Binary* binary) {
     return check_op_ptr(env, binary);
   if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
     return check_exp_call1(env, rhs, lhs, &binary->func);
+  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
+      && isa(lhs->type->d.array_type, rhs->type) > 0)
+    return lhs->type;
   return (t = get_return_type(env, &opi)) ? t : op_err(env, binary);
 }
 
@@ -953,18 +956,11 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
 switch(unary->op) {
   case op_plusplus:
   case op_minusminus:
-    if(unary->exp->meta != ae_meta_var) {
-      CHECK_BO(err_msg(TYPE_, unary->pos, "prefix unary operator '%s' cannot "
-            "be used on non-mutable data-types...", op2str(unary->op)))
-    }
-    unary->exp->emit_var = 1;
     break;
-
   case op_minus:
   case op_tilda:
   case op_exclamation:
     unary->self->meta = ae_meta_value;
-
     break;
   case op_spork:
     if(unary->exp && unary->exp->exp_type == ae_exp_call)
@@ -975,7 +971,6 @@ switch(unary->op) {
       CHECK_BO(err_msg(TYPE_,  unary->pos,
             "only function calls can be sporked..."))
       break;
-
   case op_new:
     if(!(t = find_type(env, unary->type->xid)))
       CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))

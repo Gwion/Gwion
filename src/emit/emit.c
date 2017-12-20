@@ -716,7 +716,7 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, NULL, NULL, NULL, 0 };
-  CHECK_BB(emit_exp(emit, post->exp, 0))
+  CHECK_BB(emit_exp(emit, post->exp, 1))
   opi.lhs = post->exp->type;
   return get_instr(emit, &opi) ? 1 : -1;
 }
@@ -794,7 +794,7 @@ static m_bool emit_exp_call1_op(Emitter emit, Arg_List list) {
   Instr call    = emitter_add_instr(emit, Instr_Op_Call_Binary);
   call->m_val   = emit->code->stack_depth;
   call->m_val2  = (m_uint)list->type;
-  *(Type*)call->ptr     = list->next->type;
+  *(Type*)call->ptr     = list->next ? list->next->type : NULL;
   return 1;
 }
 
@@ -816,7 +816,7 @@ m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
   CHECK_BB(emit_exp_call1_offset(emit, is_member))
   if(GET_FLAG(func->def, ae_flag_builtin))
     return emit_exp_call1_builtin(emit, func);
-  else if(!strcmp(s_name(func->def->name), "chuck"))
+  else if(GET_FLAG(func->def, ae_flag_op))
     return emit_exp_call1_op(emit, func->def->arg_list);
   return emit_exp_call1_usr(emit);
 }
@@ -913,7 +913,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
   struct Op_Import opi = { unary->op, NULL, NULL, NULL, 0 };
-  if(unary->op != op_spork && emit_exp(emit, unary->exp, 0) < 0)
+  if(unary->op != op_spork && emit_exp(emit, unary->exp, 1) < 0)
     return -1;
   switch(unary->op) {
     case op_spork:
@@ -1755,8 +1755,12 @@ static m_bool emit_func_def_code(Emitter emit, Func func) {
   func->code = emit_code(emit);
   if(GET_FLAG(func->def, ae_flag_dtor))
     emit->env->class_def->info->dtor = func->code;
-  else if(GET_FLAG(func->def, ae_flag_op))
-    operator_set_func(emit->env, func, a->type, a->next->type);
+  else if(GET_FLAG(func->def, ae_flag_op)) {
+    m_bool is_unary = GET_FLAG(func->def, ae_flag_unary);
+    Type l = is_unary ? NULL : a->type;
+    Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
+    operator_set_func(emit->env, func, l, r);
+  }
   return 1;
 }
 

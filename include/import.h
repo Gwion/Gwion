@@ -51,6 +51,7 @@ m_int importer_oper_add(Importer importer, Type (*check)(Env env, void*));
 m_int importer_oper_end(Importer importer, const Operator op, const f_instr f, const m_bool global);
 
 Type check_const_lhs(Env env, void* data);
+Type check_unary(Env env, void* data);
 Type check_post(Env env, void* data);
 Type check_assign(Env env, void* data);
 Type check_rassign(Env env, void* data);

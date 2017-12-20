@@ -30,7 +30,8 @@ typedef enum {
   ae_flag_arg  = 1 << 14,
   ae_flag_ref  = 1 << 15,
   ae_flag_abstract  = 1 << 16,
-  ae_flag_typedef  = 1 << 17
+  ae_flag_typedef  = 1 << 17,
+  ae_flag_unary  = 1 << 18
 } ae_flag;
 
 typedef struct {
