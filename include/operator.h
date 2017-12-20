@@ -1,4 +1,5 @@
-typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
+typedef void (*f_instr)(VM*, VM_Shred, Instr);
+typedef Type (*op_check)(Env, void*);
 #define OP_ANY_TYPE (Type)1
 const m_str op2str(Operator op);
 m_int name2op(m_str);
@@ -9,7 +10,7 @@ struct Op_Import {
   Type lhs, rhs, ret;
   f_instr f;
   Func func;
-  Type (*check)(Env env, void* data);
+  op_check check;
   void* data;
   m_bool global;
 };

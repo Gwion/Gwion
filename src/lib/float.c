@@ -373,7 +373,7 @@ static m_bool import_values(Importer importer) {
   return 1;
 }
 
-Type chuck_now(Env env, void* data) {
+static OP_CHECK(chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
   CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign 'now' to 'now'"))
   return NULL;

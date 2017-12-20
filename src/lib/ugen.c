@@ -319,7 +319,7 @@ static m_bool import_global_ugens(Importer importer) {
   return 1;
 }
 
-static Type chuck_ugen(Env env, void* data) {
+static OP_CHECK(chuck_ugen) {
   Exp_Binary* bin = (Exp_Binary*)data;
   bin->lhs->emit_var = bin->rhs->emit_var = 0;
   return bin->rhs->type;

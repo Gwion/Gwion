@@ -15,6 +15,7 @@ typedef struct Importer_* Importer;
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
 #define TICK(a) m_bool a(UGen u)
+#define OP_CHECK(a) Type a(Env env, void* data)
 #define IMPORT m_bool import(Importer importer)
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 

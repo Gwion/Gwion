@@ -90,7 +90,7 @@ INSTR(Vararg_Member) {
   PUSH_REG(shred, instr->m_val2);
 }
 
-Type at_varobj(Env env, void* data) {
+static OP_CHECK(at_varobj) {
   Exp_Binary* bin = (Exp_Binary*)data;
   return bin->rhs->type;
 }

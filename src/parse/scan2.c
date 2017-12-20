@@ -563,9 +563,11 @@ static m_bool scan2_func_def_op(Env env, Func_Def f) {
     f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL;
   struct Op_Import opi = { ret, l, r, f->ret_type,
     NULL, NULL, NULL, NULL, 1};
-
-  if(env->class_def)
-    SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
+  
+  if(l && env->curr == l->info)
+    ADD_REF(l);
+  if(r && env->curr == r->info)
+    ADD_REF(r);
   CHECK_BB(env_add_op(env, &opi))
   return 1;
 }

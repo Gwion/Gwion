@@ -209,7 +209,7 @@ static Type get_array_type(Type t) {
   return t;
 }
 
-static Type at_array(Env env, void* data) {
+static OP_CHECK(at_array) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = get_array_type(bin->lhs->type);
   Type r = get_array_type(bin->rhs->type);
@@ -226,7 +226,7 @@ static Type at_array(Env env, void* data) {
   return bin->rhs->type;
 }
 
-static Type shift_array(Env env, void* data) {
+static OP_CHECK(shift_array) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = get_array_type(bin->lhs->type);
   Type r = get_array_type(bin->rhs->type);

@@ -125,7 +125,7 @@ static INSTR(neq_Object) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static Type at_object(Env env, void* data) {
+static OP_CHECK(at_object) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = bin->lhs->type;
   Type r = bin->rhs->type;

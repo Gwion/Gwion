@@ -16,9 +16,9 @@ struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
 
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
-Type check_op_ptr(Env env, void* data);
+OP_CHECK(check_op_ptr);
 
-static Type _check_func_call(Env env, void* data) {
+static OP_CHECK(check_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
 }
@@ -42,7 +42,7 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(import_ugen(importer))
   CHECK_BB(import_array(importer))
   CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "@function", NULL))
-  CHECK_BB(importer_oper_add(importer, _check_func_call))
+  CHECK_BB(importer_oper_add(importer, check_func_call))
   CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 0))
   CHECK_BB(importer_oper_ini(importer, "@function", "@func_ptr", NULL))
   CHECK_BB(importer_oper_add(importer, check_op_ptr))

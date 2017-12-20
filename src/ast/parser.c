@@ -2659,13 +2659,13 @@ yyreduce:
 
   case 121:
 #line 330 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_static | ae_flag_op , (yyvsp[-2].type_decl), OP_SYM((yyvsp[-3].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
+    { (yyval.func_def) = new_func_def(ae_flag_op , (yyvsp[-2].type_decl), OP_SYM((yyvsp[-3].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
 #line 2664 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 122:
 #line 332 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.func_def) = new_func_def(ae_flag_static | ae_flag_op | ae_flag_unary, (yyvsp[-2].type_decl), OP_SYM((yyvsp[-4].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
+    { (yyval.func_def) = new_func_def(ae_flag_op | ae_flag_unary, (yyvsp[-2].type_decl), OP_SYM((yyvsp[-4].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), get_pos(arg)); }
 #line 2670 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
