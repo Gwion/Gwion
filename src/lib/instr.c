@@ -305,11 +305,12 @@ INSTR(Instr_Exp_Func) {
 
 INSTR(Instr_Op_Call_Binary) {
   Type l = (Type)instr->m_val2;
+  Type r = *(Type*)instr->ptr;
   shred_func_prepare(shred, instr);
-  POP_REG(shred,  l->size + SZ_INT); // cause rhs has emit_var = 1
+  POP_REG(shred,  l->size + r->size);
   shred_func_need_this(shred);
   memcpy(MEM(0), REG(0), l->size);
-  memcpy(MEM(l->size), *(m_uint**)REG(l->size), SZ_INT);
+  memcpy(MEM(l->size), REG(l->size), r->size);
   shred_func_finish(shred);
 }
 

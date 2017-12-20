@@ -719,6 +719,7 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   Value v = NULL;
   Type ret_type;
 
+  binary->rhs->emit_var = 1;
   if(binary->rhs->exp_type == ae_exp_primary) {
     v = nspc_lookup_value1(env->curr, binary->rhs->d.exp_primary.d.var);
     f1 = v->func_ref ? v->func_ref :
@@ -777,20 +778,10 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   return NULL;
 }
 
-static Type check_op(Env env, Exp_Binary* binary) {
+static Type op_err(Env env, Exp_Binary* binary) {
   Operator op = binary->op;
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
-  Type t;
-  struct Op_Import opi = { op, lhs->type, rhs->type, NULL,
-    NULL, NULL, NULL, binary, 0 };
-
-  if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
-    return check_op_ptr(env, binary);
-  if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
-    return check_exp_call1(env, rhs, lhs, &binary->func);
-  if((t = get_return_type(env, &opi)))
-    return t;
   m_uint i;
   m_uint llen = 1 + lhs->type->array_depth * 2;
   m_uint rlen = 1 + rhs->type->array_depth * 2;
@@ -807,82 +798,27 @@ static Type check_op(Env env, Exp_Binary* binary) {
   return NULL;
 }
 
-static m_bool check_exp_binary_at_chuck(Exp l, Exp r) {
-  if(r->exp_type == ae_exp_decl)
-    SET_FLAG(r->d.exp_decl.type, ae_flag_ref);
+static Type check_op(Env env, Exp_Binary* binary) {
+  Operator op = binary->op;
+  Exp lhs = binary->lhs;
+  Exp rhs = binary->rhs;
+  Type t;
+  struct Op_Import opi = { op, lhs->type, rhs->type, NULL,
+    NULL, NULL, NULL, binary, 0 };
 
-  if(r->meta != ae_meta_var && isa(r->type, &t_function) < 0 && isa(r->type, &t_fileio) < 0) {
-    CHECK_BB(err_msg(TYPE_, l->pos,
-          "cannot assign '%s' on types '%s' and'%s'...\n"
-          "...(reason: --- right-side operand is not mutable)",
-          "=>", l->type->name, r->type->name))
-  }
-  return 1;
-}
-
-static m_bool check_exp_binary_chuck(Exp l, Exp r) {
-  if(r->meta != ae_meta_var && isa(r->type, &t_ugen)  < 0 && isa(r->type, &t_function) < 0 && isa(r->type, &t_fileio) < 0) {
-    CHECK_BB(err_msg(TYPE_, l->pos,
-          "cannot assign '%s' on types '%s' and'%s'...\n"
-          "...(reason: --- right-side operand is not mutable)",
-          "=>", l->type->name, r->type->name))
-  }
-  r->emit_var = 1;
-  return 1;
+  if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
+    return check_op_ptr(env, binary);
+  if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
+    return check_exp_call1(env, rhs, lhs, &binary->func);
+  return (t = get_return_type(env, &opi)) ? t : op_err(env, binary);
 }
 
 static Type check_exp_binary(Env env, Exp_Binary* binary) {
   Type ret = NULL;
-  Exp l = binary->lhs, r = binary->rhs;
+  Exp r = binary->rhs;
 
-  CHECK_OO(check_exp(env, l))
-  CHECK_OO(check_exp(env, r))
-
-  switch(binary->op) {
-    case op_assign:
-      if(l->meta != ae_meta_var) {
-        CHECK_BO(err_msg(TYPE_, r->pos, "cannot assign '%s' on types '%s' and'%s'...",
-              "...(reason: --- left-side operand is not mutable)",
-              op2str(binary->op), l->type->name, r->type->name))
-      }
-      l->emit_var = 1;
-      break;
-    case op_at_chuck:
-      CHECK_BO(check_exp_binary_chuck(l, r))
-      CHECK_BO(check_exp_binary_at_chuck(l, r))
-      break;
-    case op_chuck:
-      CHECK_BO(check_exp_binary_chuck(l, r))
-      break;
-    case op_plus_chuck:
-    case op_minus_chuck:
-    case op_times_chuck:
-    case op_divide_chuck:
-    case op_modulo_chuck:
-    case op_rsand:
-    case op_rsor:
-    case op_rsxor:
-    case op_rsl:
-    case op_rsr:
-    case op_rand:
-    case op_ror:
-    case op_req:
-    case op_rneq:
-    case op_rgt:
-    case op_rge:
-    case op_rlt:
-    case op_rle:
-      if(r->meta != ae_meta_var) {
-        CHECK_BO(err_msg(TYPE_, l->pos,
-              "cannot assign '%s' on types '%s' and'%s'...\n",
-              "\t...(reason: --- right-side operand is not mutable)",
-              op2str(binary->op), l->type->name, r->type->name))
-      }
-      r->emit_var = 1;
-      break;
-    default:
-      break;
-  }
+  CHECK_OO(check_exp(env, binary->lhs))
+  CHECK_OO(check_exp(env, binary->rhs))
   while(r) {
     CHECK_OO((ret = check_op(env, binary)))
     r = r->next;
@@ -939,16 +875,9 @@ static Type check_exp_post(Env env, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, t, NULL, NULL,
     NULL, NULL, NULL, post, 0 };
   CHECK_OO(t)
-  if(post->exp->meta != ae_meta_var)
-    CHECK_BO(err_msg(TYPE_, post->exp->pos,
-          "post operator '%s' cannot be used on non-mutable data-type...",
-          op2str(post->op)))
-  post->exp->emit_var = 1;
-  post->self->meta = ae_meta_value;
   if(!(ret = get_return_type(env, &opi)))
-    err_msg(TYPE_, post->pos,
-            "no suitable resolutation for postfix operator '%s' on type '%s'...",
-            op2str(post->op), t->name);
+    err_msg(TYPE_, post->pos, "no suitable resolutation for"
+        " postfix operator '%s' on type '%s'...", op2str(post->op), t->name);
   return ret;
 }
 

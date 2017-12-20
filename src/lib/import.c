@@ -388,7 +388,6 @@ m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m
   importer->oper.ret = t;
   importer->oper.rhs = r;
   importer->oper.lhs = l;
-  importer->oper.check = NULL;
   return 1;
 } 
 
@@ -398,8 +397,11 @@ m_int importer_oper_add(Importer importer, Type (*check)(Env env, void*)) {
 }
 
 m_int importer_oper_end(Importer importer, Operator op, const f_instr f, const m_bool global) {
+  m_bool ret;
   importer->oper.op = op;
-  return import_op(importer->env, &importer->oper, f, global);
+  ret = import_op(importer->env, &importer->oper, f, global);
+  importer->oper.check = NULL;
+  return ret;
 }
 
 m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name) {
@@ -526,4 +528,54 @@ m_int importer_enum_end(Importer importer) {
 
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {
   return env_add_value(importer->env, name, type, is_const, value);
+}
+
+Type check_const_lhs(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->lhs->meta != ae_meta_var) {
+    if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'...",
+          "...(reason: --- left-side operand is not mutable)",
+          op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
+    return &t_null;
+  }
+  return bin->lhs->type;
+}
+
+Type check_assign(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  if(check_const_lhs(env, data) == &t_null)
+    return &t_null;
+  bin->lhs->emit_var = 1;
+  return bin->lhs->type;
+}
+
+Type check_rhs_emit_var(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
+
+Type check_rassign(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->meta != ae_meta_var) {
+    if(err_msg(TYPE_, bin->pos,
+          "cannot assign '%s' on types '%s' and'%s'...\n",
+          "\t...(reason: --- right-side operand is not mutable)",
+          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
+      return &t_null;
+  }
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
+
+Type check_post(Env env, void* data) {
+  Exp_Postfix* post = (Exp_Postfix*)data;
+  if(post->exp->meta != ae_meta_var)
+    if(err_msg(TYPE_, post->exp->pos,
+          "post operator '%s' cannot be used on non-mutable data-type...",
+          op2str(post->op)) < 0)
+        return &t_null;
+  post->exp->emit_var = 1;
+  post->self->meta = ae_meta_value;
+  return post->exp->type;
 }

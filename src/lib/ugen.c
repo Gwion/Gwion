@@ -349,8 +349,11 @@ m_bool import_ugen(Importer importer) {
   CHECK_BB(importer_oper_ini(importer, "UGen", "UGen", "UGen"))
   CHECK_BB(importer_oper_add(importer, chuck_ugen))
   CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect, 1))
+  CHECK_BB(importer_oper_add(importer, chuck_ugen))
   CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect, 1))
+  CHECK_BB(importer_oper_add(importer, chuck_ugen))
   CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect, 1))
+  CHECK_BB(importer_oper_add(importer, chuck_ugen))
   CHECK_BB(importer_oper_end(importer, op_untrig,  trig_disconnect, 1))
 
   CHECK_BB(importer_class_end(importer))

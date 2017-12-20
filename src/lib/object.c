@@ -129,7 +129,9 @@ static Type at_object(Env env, void* data) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = bin->lhs->type;
   Type r = bin->rhs->type;
-  if(isa(l, r) < 0) {
+  if(check_rassign(env, data) == &t_null)
+    return &t_null;
+  if(l != &t_null && isa(l, r) < 0) {
     if(err_msg(TYPE_, bin->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
     return &t_null;
   }
@@ -140,6 +142,7 @@ static Type at_object(Env env, void* data) {
 m_bool import_object(Importer importer) {
   CHECK_BB(importer_class_ini(importer, &t_object, NULL, object_dtor))
   CHECK_BB(importer_oper_ini(importer, "@null", "Object", "Object"))
+  CHECK_BB(importer_oper_add(importer, at_object))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 1))
   CHECK_BB(importer_oper_ini(importer, "Object", "Object", NULL))
   CHECK_BB(importer_oper_add(importer, at_object))
