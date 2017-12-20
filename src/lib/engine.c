@@ -8,10 +8,27 @@
 #include "importer.h"
 #include "lang_private.h"
 
+struct Type_ t_void      = { "void",       0,      NULL,        te_void};
+struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
+struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
+struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
+struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
+struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
+
+Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
+Type check_op_ptr(Env env, void* data);
+
+static Type _check_func_call(Env env, void* data) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
+}
+
 static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_add_type(importer, &t_void))
   CHECK_BB(importer_add_type(importer, &t_null))
   CHECK_BB(importer_add_type(importer, &t_now))
+  CHECK_BB(importer_add_type(importer, &t_function))
+  CHECK_BB(importer_add_type(importer, &t_func_ptr))
   CHECK_BB(import_int(importer))
   CHECK_BB(import_float(importer))
   CHECK_BB(import_complex(importer))
@@ -24,6 +41,12 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(import_event(importer))
   CHECK_BB(import_ugen(importer))
   CHECK_BB(import_array(importer))
+  CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "@function", NULL))
+  CHECK_BB(importer_oper_add(importer, _check_func_call))
+  CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 0))
+  CHECK_BB(importer_oper_ini(importer, "@function", "@func_ptr", NULL))
+  CHECK_BB(importer_oper_add(importer, check_op_ptr))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL, 0))
   return 1;
 }
 

@@ -1,5 +1,5 @@
 typedef void (*f_instr)(VM* vm, VM_Shred shred, Instr instr);
-
+#define OP_ANY_TYPE (Type)1
 const m_str op2str(Operator op);
 m_int name2op(m_str);
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs);

@@ -14,9 +14,9 @@ typedef struct {
 } M_Operator;
 
 static void free_op(M_Operator* a) {
-  if(a->lhs)
+  if(a->lhs && a->lhs != OP_ANY_TYPE)
     REM_REF(a->lhs)
-  if(a->rhs)
+  if(a->rhs && a->rhs != OP_ANY_TYPE)
     REM_REF(a->rhs)
   if(a->ret)
     REM_REF(a->ret)
@@ -37,6 +37,10 @@ void free_op_map(Map map) {
 }
 
 static m_bool op_match(Type t, Type mo) {
+  if(t == OP_ANY_TYPE)
+    return 1;
+  if(mo == OP_ANY_TYPE)
+    return 1;
   if((t && mo && mo->xid == t->xid) || (!t && !mo))
     return 1;
   return 0;
@@ -74,9 +78,9 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
   mo->instr     = opi->f;
   mo->check     = opi->check;
   vector_add(v, (vtype)mo);
-  if(opi->lhs)
+  if(opi->lhs && opi->lhs != OP_ANY_TYPE)
     ADD_REF(opi->lhs)
-  if(opi->rhs)
+  if(opi->rhs && opi->rhs != OP_ANY_TYPE)
     ADD_REF(opi->rhs)
   if(opi->ret)
   ADD_REF(opi->ret)
@@ -100,7 +104,6 @@ static Type get_return_type_inner(Env env, Map map, struct Op_Import* opi) {
 
 Type get_return_type(Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
-
   while(nspc) {
     if(nspc->op_map.ptr) {
       Type l = opi->lhs;
@@ -109,7 +112,7 @@ Type get_return_type(Env env, struct Op_Import* opi) {
           NULL, NULL, NULL, opi->data, 0 };
         Type ret = get_return_type_inner(env, &nspc->op_map, &opi2);
         if(ret)
-          return ret == &t_null ? NULL : ret;
+          return (ret == &t_null) ? NULL : ret;
       } while(l && (l = l->parent));
     }
     nspc = nspc->parent;

@@ -227,7 +227,6 @@ static Type at_array(Env env, void* data) {
 }
 
 static Type shift_array(Env env, void* data) {
-  exit(2);
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = get_array_type(bin->lhs->type);
   Type r = get_array_type(bin->rhs->type);
@@ -262,7 +261,7 @@ m_bool import_array(Importer importer) {
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
+  CHECK_BB(importer_oper_ini(importer, "Array", (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(importer_oper_add(importer, at_array))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 0))
   CHECK_BB(importer_oper_add(importer, shift_array))

@@ -16,13 +16,6 @@ static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
 m_bool check_class_def(Env env, Class_Def class_def);
 
-struct Type_ t_void      = { "void",       0,      NULL,        te_void};
-struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
-struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
-struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
-struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
-struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
-
 static m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
     if(isa(exp->type, &t_int) < 0)
@@ -711,7 +704,7 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
   return func->def->ret_type;
 }
 
-static Type check_op_ptr(Env env, Exp_Binary* binary ) {
+Type check_op_ptr(Env env, Exp_Binary* bin ) {
   Type r_nspc, l_nspc = NULL;
   m_uint i;
   Func f1 = NULL;
@@ -719,57 +712,57 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   Value v = NULL;
   Type ret_type;
 
-  binary->rhs->emit_var = 1;
-  if(binary->rhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value1(env->curr, binary->rhs->d.exp_primary.d.var);
+  bin->rhs->emit_var = 1;
+  if(bin->rhs->exp_type == ae_exp_primary) {
+    v = nspc_lookup_value1(env->curr, bin->rhs->d.exp_primary.d.var);
     f1 = v->func_ref ? v->func_ref :
       //nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
       nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
-  } else if(binary->rhs->exp_type == ae_exp_dot) {
-    Type t = binary->rhs->d.exp_dot.t_base;
+  } else if(bin->rhs->exp_type == ae_exp_dot) {
+    Type t = bin->rhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
-    v = find_value(t, binary->rhs->d.exp_dot.xid);
+    v = find_value(t, bin->rhs->d.exp_dot.xid);
     f1 = find_func(t, insert_symbol(v->m_type->name));
-  } else if(binary->rhs->exp_type == ae_exp_decl) {
-    v = binary->rhs->d.exp_decl.list->self->value;
+  } else if(bin->rhs->exp_type == ae_exp_decl) {
+    v = bin->rhs->d.exp_decl.list->self->value;
     f1 = v->m_type->d.func;
   } else
-    CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (rhs)."))
+    CHECK_BO(err_msg(TYPE_, bin->pos, "unhandled function pointer assignement (rhs)."))
   r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-  if(binary->lhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value1(env->curr, binary->lhs->d.exp_primary.d.var);
+  if(bin->lhs->exp_type == ae_exp_primary) {
+    v = nspc_lookup_value1(env->curr, bin->lhs->d.exp_primary.d.var);
     f2 = nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
-  } else if(binary->lhs->exp_type == ae_exp_dot) {
-    Type t = binary->lhs->d.exp_dot.t_base;
+  } else if(bin->lhs->exp_type == ae_exp_dot) {
+    Type t = bin->lhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
-    v = find_value(t, binary->lhs->d.exp_dot.xid);
+    v = find_value(t, bin->lhs->d.exp_dot.xid);
     f2 = v->func_ref;
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
   } else
-    CHECK_BO(err_msg(TYPE_, binary->pos, "unhandled function pointer assignement (lhs)."))
+    CHECK_BO(err_msg(TYPE_, bin->pos, "unhandled function pointer assignement (lhs)."))
     if((r_nspc && l_nspc) && (r_nspc != l_nspc))
-      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to member function pointer of an other class"))
+      CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign member function to member function pointer of an other class"))
     if(!r_nspc && l_nspc)
-      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign member function to non member function pointer"))
+      CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign member function to non member function pointer"))
     if(r_nspc && !l_nspc)
-      CHECK_BO(err_msg(TYPE_, binary->pos, "can't assign non member function to member function pointer"))
+      CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign non member function to member function pointer"))
     if(!f1 || !f2)
-      CHECK_BO(err_msg(TYPE_, binary->pos, "function not found."))
+      CHECK_BO(err_msg(TYPE_, bin->pos, "function not found."))
     if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
       CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
            f1->def->ret_type->name, f2->def->ret_type->name))
     for(i = 0; i <= v->func_num_overloads; i++) {
-      if(binary->lhs->exp_type == ae_exp_primary) {
+      if(bin->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
         sprintf(name, "%s@%" INT_F "@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
       }
       if(f2 && compat_func(f1->def, f2->def, f2->def->pos) > 0) {
-        binary->func = f2;
+        bin->func = f2;
         ret_type = f1->value_ref->m_type;
         return ret_type;
       }
@@ -778,10 +771,10 @@ static Type check_op_ptr(Env env, Exp_Binary* binary ) {
   return NULL;
 }
 
-static Type op_err(Env env, Exp_Binary* binary) {
-  Operator op = binary->op;
-  Exp lhs = binary->lhs;
-  Exp rhs = binary->rhs;
+static Type op_err(Env env, Exp_Binary* bin) {
+  Operator op = bin->op;
+  Exp lhs = bin->lhs;
+  Exp rhs = bin->rhs;
   m_uint i;
   m_uint llen = 1 + lhs->type->array_depth * 2;
   m_uint rlen = 1 + rhs->type->array_depth * 2;
@@ -798,35 +791,14 @@ static Type op_err(Env env, Exp_Binary* binary) {
   return NULL;
 }
 
-static Type check_op(Env env, Exp_Binary* binary) {
-  Operator op = binary->op;
-  Exp lhs = binary->lhs;
-  Exp rhs = binary->rhs;
+static Type check_exp_binary(Env env, Exp_Binary* bin) {
   Type t;
-  struct Op_Import opi = { op, lhs->type, rhs->type, NULL,
-    NULL, NULL, NULL, binary, 0 };
+  struct Op_Import opi = { bin->op, NULL, NULL, NULL,
+    NULL, NULL, NULL, bin, 0 };
 
-  if(op == op_at_chuck &&  isa(binary->lhs->type, &t_function) > 0 && isa(binary->rhs->type, &t_func_ptr) > 0)
-    return check_op_ptr(env, binary);
-  if(isa(binary->rhs->type, &t_function) > 0 && binary->op == op_chuck)
-    return check_exp_call1(env, rhs, lhs, &binary->func);
-  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
-      && isa(lhs->type->d.array_type, rhs->type) > 0)
-    return lhs->type;
-  return (t = get_return_type(env, &opi)) ? t : op_err(env, binary);
-}
-
-static Type check_exp_binary(Env env, Exp_Binary* binary) {
-  Type ret = NULL;
-  Exp r = binary->rhs;
-
-  CHECK_OO(check_exp(env, binary->lhs))
-  CHECK_OO(check_exp(env, binary->rhs))
-  while(r) {
-    CHECK_OO((ret = check_op(env, binary)))
-    r = r->next;
-  }
-  return ret;
+  CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
+  CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
+  return (t = get_return_type(env, &opi)) ? t : op_err(env, bin);
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
@@ -891,13 +863,13 @@ static Type check_exp_dur(Env env, Exp_Dur* dur) {
     return NULL;
   if(isa(base, &t_int) < 0 && isa(base, &t_float) < 0) {
     CHECK_BO(err_msg(TYPE_, dur->base->pos,
-                     "invalid type '%s' in prefix of dur expression...\n"
-                     "    (must be of type 'int' or 'float')", base->name))
+          "invalid type '%s' in prefix of dur expression...\n"
+          "    (must be of type 'int' or 'float')", base->name))
   }
   if(isa(unit, &t_dur) < 0) {
     CHECK_BO(err_msg(TYPE_, dur->unit->pos,
-                     "invalid type '%s' in postfix of dur expression...\n"
-                     "    (must be of type 'dur')", unit->name))
+          "invalid type '%s' in postfix of dur expression...\n"
+          "    (must be of type 'dur')", unit->name))
   }
   return unit;
 }
@@ -1005,11 +977,11 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
 
   if(isa(cond, &t_int) < 0 && isa(cond, &t_float) < 0)
     CHECK_BO(err_msg(TYPE_, exp_if->pos,
-                     "Invalid type '%s' in if expression condition.", cond->name))
+          "Invalid type '%s' in if expression condition.", cond->name))
     if(!(ret = find_common_anc(if_exp, else_exp)))
       CHECK_BO(err_msg(TYPE_, exp_if->pos,
-                       "incompatible types '%s' and '%s' in if expression...",
-                       if_exp->name, else_exp->name))
+            "incompatible types '%s' and '%s' in if expression...",
+            if_exp->name, else_exp->name))
       return ret;
 }
 

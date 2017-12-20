@@ -368,8 +368,8 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
 
 static Type get_type(Env env, const m_str str) {
   m_uint depth = 0;
-  ID_List list = str ? str2list(str, &depth) : NULL;
-  Type  t = list ? find_type(env, list) : NULL;
+  ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
+  Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(list);
   return t ? (depth ? new_array_type(env, depth, t, env->curr) : t) : NULL;
