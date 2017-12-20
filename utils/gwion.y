@@ -15,10 +15,12 @@
       }\
       c->types = b;\
     };
-
+#define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);
 int gwion_lex(void*, Scanner*);
 int get_pos(Scanner*);
+
+m_str op2str(Operator op);
 %}
 
 %union {
@@ -60,7 +62,7 @@ int get_pos(Scanner*);
   NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST
 
 %token<ival> NUM
-%type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op
+%type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
 %type<ival> atsym static_decl function_decl
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
@@ -323,12 +325,13 @@ func_def_base
     { CHECK_TEMPLATE(arg, $1, $2, free_func_def);
       $$ = $2; SET_FLAG($$, ae_flag_template); };
 
+op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def
   : func_def_base
-  |  OPERATOR type_decl2 id func_args code_segment
-    { $$ = new_func_def(ae_flag_static | ae_flag_op , $2, $3, $4, $5, get_pos(arg)); }
-  |  id OPERATOR type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_static | ae_flag_op | ae_flag_unary, $3, $1, $4, $5, get_pos(arg)); }
+  |  OPERATOR op_op type_decl2 func_args code_segment
+    { $$ = new_func_def(ae_flag_static | ae_flag_op , $3, OP_SYM($2), $4, $5, get_pos(arg)); }
+  |  unary_op OPERATOR type_decl2 func_args code_segment
+    { $$ = new_func_def(ae_flag_static | ae_flag_op | ae_flag_unary, $3, OP_SYM($1), $4, $5, get_pos(arg)); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
       get_pos(arg)), insert_symbol("dtor"), NULL, $4, get_pos(arg)); }

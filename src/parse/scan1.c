@@ -499,9 +499,6 @@ static m_bool scan1_func_def_op(Env env, Func_Def f) {
   if(count > 2 || !count)
     CHECK_BB(err_msg(SCAN1_, f->pos,
           "operators can only have one or two arguments"))
-  if(name2op(s_name(f->name)) < 0)
-    CHECK_BB(err_msg(SCAN1_, f->pos,
-          "%s is not a valid operator name", s_name(f->name)))
   return 1;
 }
 

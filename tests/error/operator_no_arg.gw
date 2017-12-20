@@ -1,2 +1,2 @@
 // [contains] operators can only have one or two arguments
-operator void chuck() {}
+operator => void() {}

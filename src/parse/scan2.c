@@ -556,14 +556,14 @@ static m_bool scan2_func_def_builtin(Func func, m_str name) {
 }
 
 static m_bool scan2_func_def_op(Env env, Func_Def f) {
-  Operator ret = name2op(strtok(s_name(f->name), "@"));
+  Operator ret = name2op(s_name(f->name));
   Type l = GET_FLAG(f, ae_flag_unary) ? NULL :
     f->arg_list->var_decl->value->m_type;
   Type r = GET_FLAG(f, ae_flag_unary) ? f->arg_list->var_decl->value->m_type :
     f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL;
-
   struct Op_Import opi = { ret, l, r, f->ret_type,
     NULL, NULL, NULL, NULL, 1};
+
   if(env->class_def)
     SET_FLAG(f->d.func, ae_flag_member); // 04/05/17
   CHECK_BB(env_add_op(env, &opi))

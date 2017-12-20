@@ -56,11 +56,11 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
   Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
   M_Operator* mo;
   if(!v) {
-    if(!op2str(opi->op))
-      CHECK_BB(err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",
-            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
-            opi->rhs ? opi->rhs->name : NULL))
-      v = new_vector();
+    /*if(!op2str(opi->op))*/
+    /*CHECK_BB(err_msg(TYPE_, 0, "failed to import operator '%s', for type '%s' and '%s'. reason: no such operator",*/
+    /*op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,*/
+    /*opi->rhs ? opi->rhs->name : NULL))*/
+    v = new_vector();
     map_set(&nspc->op_map, (vtype)opi->op, (vtype)v);
   }
   if((mo = operator_find(v, opi->lhs, opi->rhs)))

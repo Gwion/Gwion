@@ -1,2 +1,0 @@
-// [contains] is not a valid operator name
- operator void op(int i){}
