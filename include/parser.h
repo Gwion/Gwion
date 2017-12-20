@@ -126,28 +126,20 @@ extern int gwion_debug;
     RSAND = 336,
     RSOR = 337,
     RSXOR = 338,
-    RAND = 339,
-    ROR = 340,
-    REQ = 341,
-    RNEQ = 342,
-    RGT = 343,
-    RGE = 344,
-    RLT = 345,
-    RLE = 346,
-    TEMPLATE = 347,
-    NOELSE = 348,
-    LTB = 349,
-    GTB = 350,
-    VARARG = 351,
-    UNION = 352,
-    ATPAREN = 353,
-    TYPEOF = 354,
-    CONST = 355,
-    NUM = 356,
-    FLOAT = 357,
-    ID = 358,
-    STRING_LIT = 359,
-    CHAR_LIT = 360
+    TEMPLATE = 339,
+    NOELSE = 340,
+    LTB = 341,
+    GTB = 342,
+    VARARG = 343,
+    UNION = 344,
+    ATPAREN = 345,
+    TYPEOF = 346,
+    CONST = 347,
+    NUM = 348,
+    FLOAT = 349,
+    ID = 350,
+    STRING_LIT = 351,
+    CHAR_LIT = 352
   };
 #endif
 /* Tokens.  */
@@ -232,28 +224,20 @@ extern int gwion_debug;
 #define RSAND 336
 #define RSOR 337
 #define RSXOR 338
-#define RAND 339
-#define ROR 340
-#define REQ 341
-#define RNEQ 342
-#define RGT 343
-#define RGE 344
-#define RLT 345
-#define RLE 346
-#define TEMPLATE 347
-#define NOELSE 348
-#define LTB 349
-#define GTB 350
-#define VARARG 351
-#define UNION 352
-#define ATPAREN 353
-#define TYPEOF 354
-#define CONST 355
-#define NUM 356
-#define FLOAT 357
-#define ID 358
-#define STRING_LIT 359
-#define CHAR_LIT 360
+#define TEMPLATE 339
+#define NOELSE 340
+#define LTB 341
+#define GTB 342
+#define VARARG 343
+#define UNION 344
+#define ATPAREN 345
+#define TYPEOF 346
+#define CONST 347
+#define NUM 348
+#define FLOAT 349
+#define ID 350
+#define STRING_LIT 351
+#define CHAR_LIT 352
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -288,7 +272,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 292 "include/parser.h" /* yacc.c:1909  */
+#line 276 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

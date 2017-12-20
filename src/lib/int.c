@@ -192,54 +192,6 @@ static INSTR(int_r_modulo) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-static INSTR(int_r_and) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) && (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_ror) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) || (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_req) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) == (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_rneq) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) != (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_rgt) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) > (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_rge) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) >= (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_rlt) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) < (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_rle) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) <= (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
 static INSTR(int_rsl) {
   POP_REG(shred, SZ_INT * 2);
   *(m_int*)REG(0) = (**(m_int**)REG(SZ_INT) <<= (*(m_int*)REG(0)));
@@ -305,22 +257,6 @@ m_bool import_int(Importer importer) {
     CHECK_BB(importer_oper_end(importer, op_divide_chuck, int_r_divide,   0))
     CHECK_BB(importer_oper_add(importer, check_rassign))
     CHECK_BB(importer_oper_end(importer, op_modulo_chuck, int_r_modulo,   0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rand,         int_r_and,      0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_ror,          int_ror,       0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_req, 			 	 int_req,        0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rneq, 			 	 int_rneq,       0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rgt, 			 	 int_rgt,        0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rge, 			 	 int_rge,        0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rlt, 			 	 int_rlt,        0))
-    CHECK_BB(importer_oper_add(importer, check_rassign))
-    CHECK_BB(importer_oper_end(importer, op_rle, 			 	 int_rle,        0))
     CHECK_BB(importer_oper_add(importer, check_rassign))
     CHECK_BB(importer_oper_end(importer, op_rsl,          int_rsl,        0))
     CHECK_BB(importer_oper_add(importer, check_rassign))

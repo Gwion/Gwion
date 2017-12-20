@@ -5,7 +5,7 @@
 #include "import.h"
 
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
-struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_object, te_vararg};
+struct Type_ t_varobj  = { "@VarObject", SZ_INT, &t_object, te_vararg};
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
 
 struct Vararg {
@@ -125,7 +125,7 @@ m_bool import_vararg(Importer importer) {
   importer_item_end(importer,    ae_flag_const, NULL);
 	importer_item_ini(importer, "Vec4",      "v4");
   importer_item_end(importer,    ae_flag_const, NULL);
-	importer_item_ini(importer, "VarObject", "o");
+	importer_item_ini(importer, "@VarObject", "o");
   importer_item_end(importer,     ae_flag_const, NULL);
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "VarObject", "Object", NULL))

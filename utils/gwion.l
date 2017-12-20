@@ -57,14 +57,6 @@ static int adjust(void* data);
 "&=>"                               { adjust(yyscanner); return RSAND;}
 "|=>"                               { adjust(yyscanner); return RSOR;}
 "^=>"                               { adjust(yyscanner); return RSXOR;}
-"&&=>"                              { adjust(yyscanner); return RAND;}
-"||=>"                              { adjust(yyscanner); return ROR;}
-"==>"                               { adjust(yyscanner); return REQ;}
-"!=>"                               { adjust(yyscanner); return RNEQ;}
-"<=>"                               { adjust(yyscanner); return RLT; }
-">=>"                               { adjust(yyscanner); return RGT; }
-"<==>"                              { adjust(yyscanner); return RLE; }
-">==>"                              { adjust(yyscanner); return RGE; }
 "++"                                { adjust(yyscanner); return PLUSPLUS;}
 "--"                                { adjust(yyscanner); return MINUSMINUS;}
 "fun"|"function"                    { adjust(yyscanner); return FUNCTION;}

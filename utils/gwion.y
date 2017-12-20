@@ -58,7 +58,7 @@ m_str op2str(Operator op);
   LOOP FOR GOTO SWITCH CASE ENUM RETURN BREAK CONTINUE PLUSPLUS MINUSMINUS NEW
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
-  TYPEDEF RSL RSR RSAND RSOR RSXOR RAND ROR REQ RNEQ RGT RGE RLT RLE TEMPLATE
+  TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
   NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST
 
 %token<ival> NUM
@@ -281,10 +281,8 @@ op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
   | DIVIDECHUCK { $$ = op_divide_chuck; } | MODULOCHUCK { $$ = op_modulo_chuck; }
   | TRIG { $$ = op_trig; } | UNTRIG { $$ = op_untrig; }
   | RSL { $$ = op_rsl; } | RSR { $$ = op_rsr; } | RSAND { $$ = op_rsand; }
-  | RSOR { $$ = op_rsor; } | RSXOR { $$ = op_rsxor; } | RAND { $$ = op_rand; }
-  | ROR { $$ = op_ror; } | REQ { $$ = op_req; } | RNEQ { $$ = op_rneq; }
-  | RGT { $$ = op_rgt; } | RGE { $$ = op_rge; } | RLT { $$ = op_rlt; }
-  | RLE { $$ = op_rle; } | ASSIGN { $$ = op_assign; }
+  | RSOR { $$ = op_rsor; } | RSXOR { $$ = op_rsxor; }
+  | ASSIGN { $$ = op_assign; }
   ;
 
 array_exp
