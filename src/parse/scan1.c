@@ -371,11 +371,10 @@ static m_bool scan1_stmt_union_array(Array_Sub array) {
 }
 
 m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
-  ae_flag flag = stmt->flag;
   Decl_List l = stmt->l;
 
   if(stmt->xid) {
-    flag &= ~ae_flag_private;
+    UNSET_FLAG(stmt, ae_flag_private);
     env_push_class(env, stmt->value->m_type);
   }
   while(l) {
@@ -384,7 +383,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     if(l->self->exp_type != ae_exp_decl)
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
             "invalid expression type '%i' in union declaration."))
-    SET_FLAG(l->self->d.exp_decl.type, ae_flag_checked | flag);
+    SET_FLAG(l->self->d.exp_decl.type, ae_flag_checked | stmt->flag);
     if(GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(l->self->d.exp_decl.type, ae_flag_static);
     while(list) {

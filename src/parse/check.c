@@ -501,7 +501,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       CHECK_BO(err_msg(TYPE_, func->pos,
             " %s unknown argument in template  call.", name))
     base = value->func_ref->def;
-    base->flag &= ~ae_flag_template;
+    UNSET_FLAG(base, ae_flag_template);
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
@@ -584,10 +584,10 @@ static Value get_template_value(Env env, Exp exp_func) {
   else if(exp_func->exp_type == ae_exp_dot)
     v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
   if(v)
-    v->func_ref->def->flag &= ~ae_flag_template;
+    UNSET_FLAG(v->func_ref->def, ae_flag_template);
   else {
     v = nspc_lookup_value1(exp_func->type->owner, insert_symbol("test"));
-    v->func_ref->def->flag &= ~ae_flag_template;
+    UNSET_FLAG(v->func_ref->def, ae_flag_template);
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%" UINT_F "\' in template call.",
       exp_func->exp_type))
@@ -922,8 +922,8 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
     NULL, NULL, NULL, unary, 0 };
   if(unary->op != op_new && !unary->code)
     CHECK_OO((t = check_exp(env, unary->exp)))
-    if(unary->code)
-      CHECK_BO(check_stmt(env, unary->code))
+  if(unary->code)
+    CHECK_BO(check_stmt(env, unary->code))
 
 switch(unary->op) {
   case op_plusplus:

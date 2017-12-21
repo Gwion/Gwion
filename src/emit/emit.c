@@ -616,7 +616,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   nspc_pop_type(emit->env->curr);
   if(exp_func->m_func->value_ref->owner_class)
     CHECK_BB(env_pop_class(emit->env))
-  exp_func->m_func->flag &= ~ae_flag_checked;
+  UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
 
@@ -715,9 +715,8 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
 }
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
-  struct Op_Import opi = { post->op, NULL, NULL, NULL, 0 };
+  struct Op_Import opi = { post->op, post->exp->type, NULL, NULL, 0 };
   CHECK_BB(emit_exp(emit, post->exp, 1))
-  opi.lhs = post->exp->type;
   return get_instr(emit, &opi) ? 1 : -1;
 }
 

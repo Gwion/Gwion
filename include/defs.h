@@ -8,6 +8,7 @@
 
 #define SET_FLAG(a, b) a->flag |= b
 #define GET_FLAG(a, b) ((a->flag & b) == b)
+#define UNSET_FLAG(a, b) (a->flag &= ~b)
 
 #include "generated.h"
 

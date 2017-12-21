@@ -202,7 +202,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
     tld = value->func_ref->def->types;
-    value->func_ref->def->flag &= ~ae_flag_template;
+    UNSET_FLAG(value->func_ref->def, ae_flag_template);
     while(tld) {
       if(!tlc)
         break;
@@ -231,7 +231,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-function value."))
       Func_Def base = v->func_ref->def;
-      base->flag &= ~ae_flag_template;
+      UNSET_FLAG(base, ae_flag_template);
       if(!base->types)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-template function."))

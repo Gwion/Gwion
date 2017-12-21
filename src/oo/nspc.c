@@ -134,7 +134,7 @@ static void free_nspc_value(Nspc a) {
       ;    /*REM_REF(value->m_type->d.actual_type);*/
       }
       else if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
-          value->m_type->d.actual_type->flag &= ~ae_flag_template;
+        UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);  
         if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
           free_class_def(value->m_type->d.actual_type->e.def);
           /*REM_REF(value->m_type->d.actual_type)*/
