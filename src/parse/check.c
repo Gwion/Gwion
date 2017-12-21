@@ -792,7 +792,7 @@ static Type op_err(Env env, Exp_Binary* bin) {
 }
 
 static m_bool multi_decl(Exp e, Operator op) {
-  if(e->type == ae_exp_decl &&  e->d.exp_decl.num_decl > 1)
+  if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.num_decl > 1)
     CHECK_BB(err_msg(TYPE_, e->pos,
           "cant '%s' from/to a multi-variable declaration.", op2str(op)))
   return 1;
