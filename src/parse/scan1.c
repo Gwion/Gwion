@@ -496,7 +496,7 @@ static m_bool scan1_func_def_op(Env env, Func_Def f) {
     count++;
     list = list->next;
   }
-  if(count > GET_FLAG(f, ae_flag_unary) ? 1 : 2 || !count)
+  if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)
     CHECK_BB(err_msg(SCAN1_, f->pos,
           "operators can only have one or two arguments"))
   return 1;
