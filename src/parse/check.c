@@ -791,11 +791,20 @@ static Type op_err(Env env, Exp_Binary* bin) {
   return NULL;
 }
 
+static m_bool multi_decl(Exp e, Operator op) {
+  if(e->type == ae_exp_decl &&  e->d.exp_decl.num_decl > 1)
+    CHECK_BB(err_msg(TYPE_, e->pos,
+          "cant '%s' from/to a multi-variable declaration.", op2str(op)))
+  return 1;
+}
+
 static Type check_exp_binary(Env env, Exp_Binary* bin) {
   Type t;
   struct Op_Import opi = { bin->op, NULL, NULL, NULL,
     NULL, NULL, NULL, bin };
 
+  CHECK_BO(multi_decl(bin->lhs, bin->op));
+  CHECK_BO(multi_decl(bin->rhs, bin->op));
   CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
   CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
   return (t = get_return_type(env, &opi)) ? t : op_err(env, bin);
