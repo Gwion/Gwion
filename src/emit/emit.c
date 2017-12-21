@@ -673,7 +673,7 @@ static m_bool emit_array_append(Emitter emit, Type type) {
 static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
-  struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL, NULL, 0 };
+  struct Op_Import opi = { binary->op, lhs->type, rhs->type };
 
   if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
     return emit_binary_func(emit, binary);
@@ -715,7 +715,7 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
 }
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
-  struct Op_Import opi = { post->op, post->exp->type, NULL, NULL, 0 };
+  struct Op_Import opi = { post->op, post->exp->type };
   CHECK_BB(emit_exp(emit, post->exp, 1))
   return get_instr(emit, &opi) ? 1 : -1;
 }
@@ -911,7 +911,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 }
 
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
-  struct Op_Import opi = { unary->op, NULL, NULL, NULL, 0 };
+  struct Op_Import opi = { unary->op };
   if(unary->op != op_spork && emit_exp(emit, unary->exp, 1) < 0)
     return -1;
   switch(unary->op) {

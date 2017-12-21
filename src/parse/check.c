@@ -794,7 +794,7 @@ static Type op_err(Env env, Exp_Binary* bin) {
 static Type check_exp_binary(Env env, Exp_Binary* bin) {
   Type t;
   struct Op_Import opi = { bin->op, NULL, NULL, NULL,
-    NULL, NULL, NULL, bin, 0 };
+    NULL, NULL, NULL, bin };
 
   CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
   CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
@@ -848,7 +848,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 static Type check_exp_post(Env env, Exp_Postfix* post) {
   Type ret, t = check_exp(env, post->exp);
   struct Op_Import opi = { post->op, t, NULL, NULL,
-    NULL, NULL, NULL, post, 0 };
+    NULL, NULL, NULL, post };
   CHECK_OO(t)
   if(!(ret = get_return_type(env, &opi)))
     err_msg(TYPE_, post->pos, "no suitable resolutation for"
@@ -919,7 +919,7 @@ static Type check_exp_unary_spork(Env env, Stmt code) {
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
   struct Op_Import opi = { unary->op, NULL, NULL, NULL,
-    NULL, NULL, NULL, unary, 0 };
+    NULL, NULL, NULL, unary };
   if(unary->op != op_new && !unary->code)
     CHECK_OO((t = check_exp(env, unary->exp)))
   if(unary->code)
