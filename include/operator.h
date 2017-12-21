@@ -8,10 +8,8 @@ void free_op_map();
 struct Op_Import {
   Operator op;
   Type lhs, rhs, ret;
-  f_instr f;
-  Func func;
   op_check check;
-  void* data;
+  uintptr_t data;
   m_bool global;
 };
 m_bool env_add_op(Env env, struct Op_Import* opi);

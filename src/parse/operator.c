@@ -75,7 +75,7 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;
-  mo->instr     = opi->f;
+  mo->instr     = (f_instr)opi->data;
   mo->check     = opi->check;
   vector_add(v, (vtype)mo);
   if(opi->lhs && opi->lhs != OP_ANY_TYPE)
@@ -89,15 +89,15 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
 
 static Type get_return_type_inner(Env env, Map map, struct Op_Import* opi) {
   Type t, r = opi->rhs;
-  do { 
+  do {
     M_Operator* mo;
     Vector v = (Vector)map_get(map, (vtype)opi->op);
     if((mo = operator_find(v, opi->lhs, r))) {
-      if((mo->check && (t = mo->check(env, opi->data))))
+      if((mo->check && (t = mo->check(env, (void*)opi->data))))
         return t;
       else
         return mo->ret;
-    } 
+    }
   } while(r && (r = r->parent));
   return NULL;
 }
@@ -109,7 +109,7 @@ Type get_return_type(Env env, struct Op_Import* opi) {
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL,
-          NULL, NULL, NULL, opi->data, 0 };
+          NULL, opi->data, 0 };
         Type ret = get_return_type_inner(env, &nspc->op_map, &opi2);
         if(ret)
           return (ret == &t_null) ? NULL : ret;

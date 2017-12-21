@@ -800,8 +800,7 @@ static m_bool multi_decl(Exp e, Operator op) {
 
 static Type check_exp_binary(Env env, Exp_Binary* bin) {
   Type t;
-  struct Op_Import opi = { bin->op, NULL, NULL, NULL,
-    NULL, NULL, NULL, bin };
+  struct Op_Import opi = { bin->op, NULL, NULL, NULL, NULL, (uintptr_t)bin };
 
   CHECK_BO(multi_decl(bin->lhs, bin->op));
   CHECK_BO(multi_decl(bin->rhs, bin->op));
@@ -856,8 +855,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
 
 static Type check_exp_post(Env env, Exp_Postfix* post) {
   Type ret, t = check_exp(env, post->exp);
-  struct Op_Import opi = { post->op, t, NULL, NULL,
-    NULL, NULL, NULL, post };
+  struct Op_Import opi = { post->op, t, NULL, NULL, NULL, (uintptr_t)post };
   CHECK_OO(t)
   if(!(ret = get_return_type(env, &opi)))
     err_msg(TYPE_, post->pos, "no suitable resolutation for"
@@ -927,8 +925,7 @@ static Type check_exp_unary_spork(Env env, Stmt code) {
 
 static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
-  struct Op_Import opi = { unary->op, NULL, NULL, NULL,
-    NULL, NULL, NULL, unary };
+  struct Op_Import opi = { unary->op, NULL, NULL, NULL, NULL, (uintptr_t)unary };
   if(unary->op != op_new && !unary->code)
     CHECK_OO((t = check_exp(env, unary->exp)))
   if(unary->code)
