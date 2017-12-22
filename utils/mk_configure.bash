@@ -314,15 +314,15 @@ lexer:
 
 gwcov: utils/gwcov.o
 	\\\$(info compiling gwcov)
-	@\\\${CC} \\\${LDFLAGS} utils/gwcov.o -o gwcov
+	@\\\${CC} \\\${CFLAGS} utils/gwcov.o -o gwcov \\\${LDFLAGS}
 
 gwlint: \\\${TOOL_OBJ} utils/gwlint.o
 	\\\$(info compiling gwlint)
-	@\\\${CC} \\\${LDFLAGS} \\\${CFLAGS} \\\${TOOL_OBJ} -o gwlint -DGWLINT utils/gwlint.o
+	@\\\${CC} \\\${CFLAGS} -DGWLINT \\\${TOOL_OBJ} utils/gwlint.o \\\${LDFLAGS} -o gwlint
 
 gwtag: \\\${TOOL_OBJ} utils/gwtag.o
-	\\\$(info compiling gwlint)
-	@\\\${CC}  \\\${LDFLAGS} \\\${CFLAGS} \\\${TOOL_OBJ} -o gwtag -DGWLINT utils/gwtag.o
+	\\\$(info compiling gwtag)
+	@\\\${CC} \\\${CFLAGS} -DGWLINT \\\${TOOL_OBJ} utils/gwtag.o \\\${LDFLAGS} -o gwtag
 
 directories:
 	mkdir -p \\\${PREFIX} \\\${GWION_ADD_DIR}
