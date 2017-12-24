@@ -36,6 +36,7 @@ static INSTR(my_ret) {
 }
 
 static SFUN(cb_func) {
+  m_uint i;
   Func f = *(Func*)(shred->mem + SZ_INT);
   if(!f){
     Except(shred, "NullCallbackException");
@@ -52,7 +53,7 @@ static SFUN(cb_func) {
   instr->m_val2 = shred->pc + 1;
   /*instr->m_val2 = shred->pc;*/
   /*instr->m_val2 = shred->next_pc;*/
-  for(m_uint i = 0; i < vector_size(f->code->instr); i++) {
+  for(i = 0; i < vector_size(f->code->instr); i++) {
     Instr in = (Instr)vector_at(f->code->instr, i);
     if(in->execute == Func_Return ||
       in->execute == my_ret) {

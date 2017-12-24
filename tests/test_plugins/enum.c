@@ -4,7 +4,7 @@
 #include "lang.h"
 #include "import.h"
 
-static struct Type_ t_enum = { "Enum", SZ_INT, &t_object };
+static struct Type_ t_enum = { "Enum", SZ_INT };
 
 IMPORT {
   CHECK_BB(importer_enum_ini(importer, NULL))

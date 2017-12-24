@@ -77,7 +77,7 @@ static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan0_stmt_enum(Env env, Stmt_Enum stmt) {
+m_bool scan0_stmt_enum(Env env, Stmt_Enum stmt) {
   Type t;
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))

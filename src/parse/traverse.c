@@ -64,7 +64,8 @@ m_bool traverse_stmt_union(Env env, Stmt_Union def) {
 }
 
 m_bool traverse_stmt_enum(Env env, Stmt_Enum def) {
-  if(scan1_stmt_enum(env, def) < 0 ||
+  if(scan0_stmt_enum(env, def) < 0 ||
+     scan1_stmt_enum(env, def) < 0 ||
      scan2_stmt_enum(env, def) < 0 ||
      check_stmt_enum(env, def) < 0)
     return -1;
