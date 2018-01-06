@@ -22,6 +22,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union def);
 m_bool scan2_stmt_union(Env env, Stmt_Union def);
 m_bool check_stmt_union(Env env, Stmt_Union def);
 
+m_bool scan0_stmt_enum(Env env, Stmt_Enum def);
 m_bool scan1_stmt_enum(Env env, Stmt_Enum def);
 m_bool scan2_stmt_enum(Env env, Stmt_Enum def);
 m_bool check_stmt_enum(Env env, Stmt_Enum def);
