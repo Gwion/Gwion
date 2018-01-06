@@ -300,7 +300,6 @@ array_empty
 decl_exp
   : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(arg)); }
-  | LTB type_list GTB decl_exp { $$ = $4; $$->d.exp_decl.types = $2; }
   | STATIC decl_exp
     { CHECK_FLAG(arg, $2->d.exp_decl.type, ae_flag_static); $$ = $2; }
   | PRIVATE decl_exp
@@ -340,6 +339,10 @@ atsym: { $$ = 0; } | ATSYM { $$ = 1; };
 type_decl
   : id atsym  { $$ = new_type_decl(new_id_list($1, get_pos(arg)), $2, get_pos(arg)); }
   | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(arg)); }
+  | LTB type_list GTB id atsym  { $$ = new_type_decl(new_id_list($4, get_pos(arg)),
+      $5, get_pos(arg)); $$->types = $2; }
+  | LTB type_list GTB LT id_dot GT atsym { $$ = new_type_decl($5, $7, get_pos(arg));
+      $$->types = $2; }
   | TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($3, $5, get_pos(arg)); }
   | CONST type_decl { CHECK_FLAG(arg, $2, ae_flag_const); $$ = $2; }
   ;

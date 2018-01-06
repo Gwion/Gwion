@@ -87,6 +87,7 @@ typedef struct {
   ID_List xid;
   Array_Sub array;
   Exp_Dot* dot;
+  Type_List types;
   ae_flag flag;
   int pos;
 } Type_Decl;
@@ -158,7 +159,6 @@ typedef struct {
   Type_Decl* type;
   Type m_type;
   Var_Decl_List list;
-  Type_List types;
   Class_Def base;
   Exp self;
   int pos;

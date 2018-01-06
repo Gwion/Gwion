@@ -152,8 +152,6 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos) {
 }
 
 static void free_exp_decl(Exp_Decl* a) {
-  if(a->types)
-    free_type_list(a->types);
   free_type_decl(a->type);
   free_var_decl_list(a->list);
 }
@@ -466,8 +464,6 @@ Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, int pos) {
 }
 
 static void free_stmt_typedef(Stmt_Typedef a){
-  /*if(a->m_type)*/
-  /*REM_REF(a->m_type)*/
   free_type_decl(a->type);
 }
 

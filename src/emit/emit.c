@@ -529,7 +529,7 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
 static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
 
 static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
-  CHECK_BB(template_push_types(emit->env, decl->base->types, decl->types))
+  CHECK_BB(template_push_types(emit->env, decl->base->types, decl->type->types))
   CHECK_BB(emit_class_def(emit, decl->m_type->e.def))
   nspc_pop_type(emit->env->curr);
   return 1;

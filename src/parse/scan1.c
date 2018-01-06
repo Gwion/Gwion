@@ -12,11 +12,11 @@ static m_bool scan1_stmt(Env env, Stmt stmt);
 
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   if(GET_FLAG(t, ae_flag_template)) {
-    if(!decl->types)
+    if(!decl->type->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos, "you must provide template types"))
     decl->base = t->e.def;
-    Class_Def a = template_class(env, t->e.def, decl->types);
-    CHECK_BB(template_push_types(env, t->e.def->types, decl->types))
+    Class_Def a = template_class(env, t->e.def, decl->type->types);
+    CHECK_BB(template_push_types(env, t->e.def->types, decl->type->types))
     CHECK_BB(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
@@ -25,8 +25,8 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     CHECK_BB(scan1_class_def(env, a))
     decl->m_type = a->type;
     a->tref = t->e.def->types;
-    a->base = decl->types;
-  } else if( decl->types)
+    a->base = decl->type->types;
+  } else if( decl->type->types)
       CHECK_BB(err_msg(SCAN1_, decl->pos,
             "type '%s' is not template", t->name))
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
@@ -126,7 +126,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
-  if(decl->types)
+  if(decl->type->types)
     nspc_pop_type(env->curr);
   if(!decl->m_type)
     decl->m_type = t;
