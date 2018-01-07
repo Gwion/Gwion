@@ -59,3 +59,5 @@ Type check_post(Env env, void* data);
 Type check_assign(Env env, void* data);
 Type check_rassign(Env env, void* data);
 Type check_rhs_emit_var(Env env, void* data);
+Type opck_basic_cast(Env env, void* data);
+OP_EMIT(opem_basic_cast);

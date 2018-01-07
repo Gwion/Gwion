@@ -22,13 +22,32 @@ OP_CHECK(check_op_ptr);
 static OP_CHECK(check_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
-} 
+}
 
 static OP_EMIT(emit_func_ptr) {
   Exp_Binary* bin = (Exp_Binary*)data;
   return emit_exp_binary_ptr(emit, bin->rhs);
+}
+#include "func.h"
+static OP_CHECK(opck_fptr_cast) {
+  Exp_Cast* cast = (Exp_Cast*)data;
+  Type t = cast->self->type;
+  Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
+  Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
+            v->m_type->d.func :
+            nspc_lookup_func1(env->curr, insert_symbol(v->name));
+  CHECK_BO(compat_func(t->d.func->def, f->def, f->def->pos))
+  cast->func = f;
+  return t;
+}
 
+OP_CHECK(opck_basic_cast) {
+  Exp_Cast* cast = (Exp_Cast*)data;
+  return cast->self->type;
+}
 
+OP_EMIT(opem_basic_cast) {
+  return 1;
 }
 static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_add_type(importer, &t_void))
@@ -55,6 +74,9 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_oper_add(importer, check_op_ptr))
   CHECK_BB(importer_oper_emi(importer, emit_func_ptr))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL, 0))
+  CHECK_BB(importer_oper_add(importer, opck_fptr_cast))
+  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 0))
   return 1;
 }
 

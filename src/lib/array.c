@@ -247,6 +247,15 @@ static OP_EMIT(emit_array_append) {
   return 1;
 }
 
+static OP_CHECK(opck_array_cast) {
+  Exp_Cast* cast = (Exp_Cast*)data;
+  Type l = cast->exp->type;
+  Type r = cast->self->type;
+  if(l->array_depth == r->array_depth || isa(l->d.array_type, r->d.array_type) > 0)
+    return l;
+  return &t_null;
+}
+
 m_bool import_array(Importer importer) {
   SET_FLAG((&t_array), ae_flag_abstract);
   CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
@@ -275,6 +284,10 @@ m_bool import_array(Importer importer) {
   CHECK_BB(importer_oper_add(importer, shift_array))
   CHECK_BB(importer_oper_emi(importer, emit_array_append))
   CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append, 0))
+  CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
+  CHECK_BB(importer_oper_add(importer, opck_array_cast))
+  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 0))
   return 1;
 }
 

@@ -366,7 +366,7 @@ Type check_exp_array(Env env, Exp_Array* array) {
   return t;
 }
 
-__inline m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos) {
+m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos) {
   Arg_List e1 = lhs->arg_list;
   Arg_List e2 = rhs->arg_list;
 
@@ -822,36 +822,14 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
     t2 = new_array_type(env, cast->type->array->depth, t2, env->curr);
     cast->t = t2;
   }
-  if(isa(t2, &t_func_ptr) > 0) {
-    if(isa(t, &t_function) < 0)
-      CHECK_BO(err_msg(TYPE_, cast->pos, "can't cast '%s' to '%s'",
-                       t->name, t2->name))
-      else {
-        Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-        Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
-                  v->m_type->d.func :
-                  nspc_lookup_func1(env->curr, insert_symbol(v->name));
-        if(compat_func(t2->d.func->def, f->def, f->def->pos)) {
-          cast->func = f;
-          return t2;
-        }
-      }
-  }
-  if((isa(t, &t_float) > 0 && isa(t2, &t_int)    > 0) ||
-     (isa(t, &t_int)   > 0 && isa(t2, &t_float)  > 0) ||
-     (isa(t, &t_null)  > 0 && isa(t2, &t_object) > 0))
-    return t2;
-  if(isa(t, &t_object) < 0)
-    return isa(t, t2) > 0 ? t2 : NULL;
-  Type type = t;
-  while(type) {
-    if(t2->xid == type->xid && t2->array_depth == type->array_depth)
-      return t2;
-    type = type->parent;
-  }
+  cast->self->type = t2;
+  struct Op_Import opi = { op_dollar, t, t2, NULL,
+    NULL, NULL, (uintptr_t)cast };
+  Type ret = get_return_type(env, &opi);
+  if(!ret)
   CHECK_BO(err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...",
-          s_name(cast->type->xid->xid), t->name))
-  return NULL;
+          t2->name, t->name))
+  return ret;
 }
 
 static Type check_exp_post(Env env, Exp_Postfix* post) {

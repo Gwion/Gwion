@@ -50,7 +50,7 @@ typedef enum {
   op_plusplus, op_minusminus, op_exclamation, op_tilda, op_new, op_spork,
   op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
   op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
-  op_chuck, op_unchuck, op_at_chuck, op_at_unchuck, op_trig, op_untrig
+  op_chuck, op_unchuck, op_at_chuck, op_at_unchuck, op_trig, op_untrig, op_dollar
 } Operator;
 
 #endif

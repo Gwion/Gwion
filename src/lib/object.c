@@ -139,6 +139,13 @@ static OP_CHECK(at_object) {
   return r;
 }
 
+static OP_CHECK(opck_object_cast) {
+  Exp_Cast* cast = (Exp_Cast*)data;
+  Type l = cast->exp->type;
+  Type r = cast->self->type;
+  return isa(l, r) > 0 ? r : &t_null;
+}
+
 m_bool import_object(Importer importer) {
   CHECK_BB(importer_class_ini(importer, &t_object, NULL, object_dtor))
   CHECK_BB(importer_oper_ini(importer, "@null", "Object", "Object"))
@@ -150,9 +157,15 @@ m_bool import_object(Importer importer) {
   CHECK_BB(importer_oper_ini(importer, "Object", "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_add(importer, opck_object_cast))
+  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 1))
   CHECK_BB(importer_oper_ini(importer, "@null", "Object", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq,  eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
+  CHECK_BB(importer_oper_add(importer, opck_basic_cast))
+  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 1))
   CHECK_BB(importer_oper_ini(importer, "Object", "@null", "int"))
   CHECK_BB(importer_oper_end(importer, op_eq, eq_Object, 1))
   CHECK_BB(importer_oper_end(importer, op_neq, neq_Object, 1))
