@@ -536,7 +536,7 @@ m_int importer_add_value(Importer importer, const m_str name, Type type, const m
   return env_add_value(importer->env, name, type, is_const, value);
 }
 
-Type check_const_lhs(Env env, void* data) {
+OP_CHECK(opck_const_lhs) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
     if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'...",
@@ -547,21 +547,21 @@ Type check_const_lhs(Env env, void* data) {
   return bin->lhs->type;
 }
 
-Type check_assign(Env env, void* data) {
+OP_CHECK(opck_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(check_const_lhs(env, data) == &t_null)
+  if(opck_const_lhs(env, data) == &t_null)
     return &t_null;
   bin->lhs->emit_var = 1;
   return bin->lhs->type;
 }
 
-Type check_rhs_emit_var(Env env, void* data) {
+OP_CHECK(opck_rhs_emit_var) {
   Exp_Binary* bin = (Exp_Binary*)data;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
 
-Type check_rassign(Env env, void* data) {
+OP_CHECK(opck_rassign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var) {
     if(err_msg(TYPE_, bin->pos,
@@ -574,7 +574,7 @@ Type check_rassign(Env env, void* data) {
   return bin->rhs->type;
 }
 
-Type check_unary(Env env, void* data) {
+OP_CHECK(opck_unary) {
   Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)
     if(err_msg(TYPE_, unary->exp->pos,
@@ -586,7 +586,7 @@ Type check_unary(Env env, void* data) {
   return unary->exp->type;
 }
 
-Type check_post(Env env, void* data) {
+OP_CHECK(opck_post) {
   Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var)
     if(err_msg(TYPE_, post->exp->pos,

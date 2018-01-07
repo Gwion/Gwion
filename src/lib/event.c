@@ -77,7 +77,7 @@ m_bool import_event(Importer importer) {
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "Event", "@now", "int"))
-  CHECK_BB(importer_oper_add(importer, check_rassign))
+  CHECK_BB(importer_oper_add(importer, opck_rassign))
   CHECK_BB(importer_oper_end(importer,  op_chuck, Event_Wait, 0))
   return 1;
 }

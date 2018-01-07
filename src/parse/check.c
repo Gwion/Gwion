@@ -703,7 +703,7 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
   return func->def->ret_type;
 }
 
-Type check_op_ptr(Env env, Exp_Binary* bin ) {
+Type opck_fptr_at(Env env, Exp_Binary* bin ) {
   Type r_nspc, l_nspc = NULL;
   m_uint i;
   Func f1 = NULL;

@@ -129,7 +129,7 @@ static OP_CHECK(at_object) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = bin->lhs->type;
   Type r = bin->rhs->type;
-  if(check_rassign(env, data) == &t_null)
+  if(opck_rassign(env, data) == &t_null)
     return &t_null;
   if(l != &t_null && isa(l, r) < 0) {
     if(err_msg(TYPE_, bin->pos, "'%s' @=> '%s': not allowed", l->name, r->name))

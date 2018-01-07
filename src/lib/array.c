@@ -195,11 +195,11 @@ static Type get_array_type(Type t) {
   return t;
 }
 
-static OP_CHECK(at_array) {
+static OP_CHECK(opck_array_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = get_array_type(bin->lhs->type);
   Type r = get_array_type(bin->rhs->type);
-  
+
   if(isa(l, r) < 0) {
     err_msg(TYPE_, bin->pos, "array types do not match.");
     return &t_null;
@@ -212,7 +212,7 @@ static OP_CHECK(at_array) {
   return bin->rhs->type;
 }
 
-static OP_CHECK(shift_array) {
+static OP_CHECK(opck_array_shift) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = get_array_type(bin->lhs->type);
   Type r = get_array_type(bin->rhs->type);
@@ -225,7 +225,7 @@ static OP_CHECK(shift_array) {
   return bin->lhs->type;
 }
 
-static OP_EMIT(emit_array_append) {
+static OP_EMIT(opem_array_shift) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type type = bin->rhs->type;
   Instr instr = emitter_add_instr(emit, Array_Append);
@@ -265,10 +265,10 @@ m_bool import_array(Importer importer) {
 
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "Array", (m_str)OP_ANY_TYPE, NULL))
-  CHECK_BB(importer_oper_add(importer, at_array))
+  CHECK_BB(importer_oper_add(importer, opck_array_at))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 0))
-  CHECK_BB(importer_oper_add(importer, shift_array))
-  CHECK_BB(importer_oper_emi(importer, emit_array_append))
+  CHECK_BB(importer_oper_add(importer, opck_array_shift))
+  CHECK_BB(importer_oper_emi(importer, opem_array_shift))
   CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append, 0))
   CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
   CHECK_BB(importer_oper_add(importer, opck_array_cast))

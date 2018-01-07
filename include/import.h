@@ -53,11 +53,11 @@ m_int importer_oper_add(Importer importer, Type (*check)(Env, void*));
 m_int importer_oper_emi(Importer importer, m_bool (*check)(Emitter, void*));
 m_int importer_oper_end(Importer importer, const Operator op, const f_instr f, const m_bool global);
 
-Type check_const_lhs(Env env, void* data);
-Type check_unary(Env env, void* data);
-Type check_post(Env env, void* data);
-Type check_assign(Env env, void* data);
-Type check_rassign(Env env, void* data);
-Type check_rhs_emit_var(Env env, void* data);
-Type opck_basic_cast(Env env, void* data);
+OP_CHECK(opck_const_lhs);
+OP_CHECK(opck_unary);
+OP_CHECK(opck_post);
+OP_CHECK(opck_assign);
+OP_CHECK(opck_rassign);
+OP_CHECK(opck_rhs_emit_var);
+OP_CHECK(opck_basic_cast);
 OP_EMIT(opem_basic_cast);
