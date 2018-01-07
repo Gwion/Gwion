@@ -86,6 +86,12 @@ m_vec4 v4_vector_at(M_Vector v, m_uint i) {
     v->ptr = realloc(v->ptr, v->cap * v->size);   \
   }                                               \
 
+void m_vector_add(M_Vector v, char* data) {
+  CHECK_VEC_SIZE(v)
+  memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
+//  *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
+}
+
 void i_vector_add(M_Vector v, m_uint i) {
   CHECK_VEC_SIZE(v)
   *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
@@ -175,29 +181,9 @@ MFUN(vm_vector_cap) {
 }
 
 INSTR(Array_Append) {
-  POP_REG(shred, SZ_INT);
-  M_Object o = NULL;
-  if(instr->m_val == Kindof_Int) {
-    POP_REG(shred, SZ_INT);
-    o = *(M_Object*)REG(0);
-    i_vector_add(ARRAY(o), *(m_uint*)REG(SZ_INT));
-  } else if(instr->m_val == Kindof_Float) {
-    POP_REG(shred, SZ_FLOAT);
-    o = *(M_Object*)REG(0);
-    f_vector_add(ARRAY(o), *(m_float*)REG(SZ_INT));
-  } else if(instr->m_val == Kindof_Complex) {
-    POP_REG(shred, SZ_COMPLEX);
-    o = *(M_Object*)REG(0);
-    c_vector_add(ARRAY(o), *(m_complex*)REG(SZ_INT));
-  } else if(instr->m_val == Kindof_Vec3) {
-    POP_REG(shred, SZ_VEC3);
-    o = *(M_Object*)REG(0);
-    v3_vector_add(ARRAY(o), *(m_vec3*)REG(SZ_INT));
-  } else if(instr->m_val == Kindof_Vec4) {
-    POP_REG(shred, SZ_VEC4);
-    o = *(M_Object*)REG(0);
-    v4_vector_add(ARRAY(o), *(m_vec4*)REG(SZ_INT));
-  }
+  POP_REG(shred, SZ_INT + instr->m_val);
+  M_Object o = *(M_Object*)REG(0);
+  m_vector_add(ARRAY(o), REG(SZ_INT));
   release(o, shred);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT);
@@ -243,7 +229,7 @@ static OP_EMIT(emit_array_append) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type type = bin->rhs->type;
   Instr instr = emitter_add_instr(emit, Array_Append);
-  instr->m_val = kindof(type);
+  instr->m_val = type->size;
   return 1;
 }
 
