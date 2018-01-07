@@ -11,6 +11,12 @@
 #include "traverse.h"
 #include "plug.h"
 
+#define OP_RET(a, b)\
+  Type op_ret = op_check(env, &opi);\
+  if(!op_ret)\
+    CHECK_BO(err_msg(TYPE_, a->pos, b))\
+  return op_ret;
+
 static Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
@@ -785,7 +791,7 @@ static Type check_exp_binary(Env env, Exp_Binary* bin) {
   CHECK_BO(multi_decl(bin->rhs, bin->op));
   CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
   CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
-  return get_return_type(env, &opi);
+  OP_RET(bin, "in binary expression")
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
@@ -804,22 +810,13 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
   cast->self->type = t2;
   struct Op_Import opi = { op_dollar, t, t2, NULL,
     NULL, NULL, (uintptr_t)cast };
-  Type ret = get_return_type(env, &opi);
-  if(!ret)
-  CHECK_BO(err_msg(TYPE_, cast->pos, "invalid cast to '%s' from '%s'...",
-          t2->name, t->name))
-  return ret;
+  OP_RET(cast, "in cast expression")
 }
-
 static Type check_exp_post(Env env, Exp_Postfix* post) {
-  Type ret, t = check_exp(env, post->exp);
-  struct Op_Import opi = { post->op, t, NULL, NULL,
+  struct Op_Import opi = { post->op, check_exp(env, post->exp), NULL, NULL,
     NULL, NULL, (uintptr_t)post };
-  CHECK_OO(t)
-  if(!(ret = get_return_type(env, &opi)))
-    err_msg(TYPE_, post->pos, "no suitable resolutation for"
-        " postfix operator '%s' on type '%s'...", op2str(post->op), t->name);
-  return ret;
+  CHECK_OO(opi.lhs)
+  OP_RET(post, "in postfix expression");
 }
 
 static Type check_exp_dur(Env env, Exp_Dur* dur) {
@@ -926,11 +923,7 @@ switch(unary->op) {
       break;
   }
   opi.rhs = unary->exp->type;
-  if(!(t = get_return_type(env, &opi)))
-    CHECK_BO(err_msg(TYPE_, unary->pos,
-          "no suitable resolution for prefix operator '%s'",
-          op2str(unary->op)))
-  return t;
+  OP_RET(unary, "in unary expression")
 }
 
 static Type check_exp_if(Env env, Exp_If* exp_if) {

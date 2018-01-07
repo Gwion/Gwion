@@ -1,3 +1,3 @@
-// [contains] no suitable resolution for prefix operator
+// [contains] no match found for operator
 int i;
 +i;

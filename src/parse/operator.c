@@ -89,7 +89,7 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
   return 1;
 }
 
-static Type get_return_type_inner(Env env, Map map, struct Op_Import* opi) {
+static Type op_check_inner(Env env, Map map, struct Op_Import* opi) {
   Type t, r = opi->rhs;
   do {
     M_Operator* mo;
@@ -104,7 +104,7 @@ static Type get_return_type_inner(Env env, Map map, struct Op_Import* opi) {
   return NULL;
 }
 
-Type get_return_type(Env env, struct Op_Import* opi) {
+Type op_check(Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
   while(nspc) {
     if(nspc->op_map.ptr) {
@@ -112,9 +112,12 @@ Type get_return_type(Env env, struct Op_Import* opi) {
       do {
         struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL,
           NULL, NULL, opi->data, 0 };
-        Type ret = get_return_type_inner(env, &nspc->op_map, &opi2);
-        if(ret)
-          return (ret == &t_null) ? NULL : ret;
+        Type ret = op_check_inner(env, &nspc->op_map, &opi2);
+        if(ret) {
+          if(ret == &t_null)
+            break;
+          return ret;
+        }
       } while(l && (l = l->parent));
     }
     nspc = nspc->parent;
