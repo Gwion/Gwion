@@ -63,18 +63,6 @@ static void tag_array(Tagger* tagger, Array_Sub array) {
   }
 }
 
-static void tag_type_decl(Tagger* tagger, Type_Decl* type) {
-  if(type->xid->ref) {
-    tag_print(tagger, "typeof ");
-    tag_id_list(tagger, type->xid->ref ? type->xid->ref : type->xid);
-  } else
-    tag_id_list(tagger, type->xid);
-  if(GET_FLAG(type, ae_flag_ref))
-    tag_print(tagger, "@");
-  if(type->array)
-    tag_array(tagger, type->array);
-}
-
 static void tag_type_list(Tagger* tagger, Type_List list) {
   tag_print(tagger, "<{");
   while(list) {
@@ -86,6 +74,21 @@ static void tag_type_list(Tagger* tagger, Type_List list) {
   tag_print(tagger, "}>");
 }
 
+static void tag_type_decl(Tagger* tagger, Type_Decl* type) {
+  if(type->xid->ref) {
+    tag_print(tagger, "typeof ");
+    tag_id_list(tagger, type->xid->ref ? type->xid->ref : type->xid);
+  } else {
+    if(type->types)
+      tag_type_list(tagger, type->types);
+    tag_id_list(tagger, type->xid);
+  }
+  if(GET_FLAG(type, ae_flag_ref))
+    tag_print(tagger, "@");
+  if(type->array)
+    tag_array(tagger, type->array);
+}
+
 static void tag_exp_decl(Tagger* tagger, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   while(list) {
@@ -94,8 +97,6 @@ static void tag_exp_decl(Tagger* tagger, Exp_Decl* decl) {
     tag_type_decl(tagger, decl->type);
     if(list->self->array)
       tag_array(tagger, list->self->array);
-    if(decl->types)
-      tag_type_list(tagger, decl->types);
     tag_print(tagger, "$/;\"\t%s\n", vector_at(tagger->class_stack, 0) ?
         "m" : "v");
     list = list->next;

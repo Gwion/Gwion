@@ -664,16 +664,11 @@ static m_bool emit_binary_func(Emitter emit, Exp_Binary* binary) {
   return emit_exp_call1(emit, binary->func, binary->func->value_ref->m_type, binary->pos);
 }
 
-static m_bool emit_array_append(Emitter emit, Type type) {
-  Instr instr = emitter_add_instr(emit, Array_Append);
-  instr->m_val = kindof(type);
-  return 1;
-}
-
 static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   Exp lhs = binary->lhs;
   Exp rhs = binary->rhs;
-  struct Op_Import opi = { binary->op, lhs->type, rhs->type };
+  struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL,
+    NULL, NULL, (uintptr_t)binary };
 
   if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
     return emit_binary_func(emit, binary);
@@ -681,9 +676,6 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   CHECK_BB(emit_exp(emit, rhs, 1))
   if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0)
     return emit_exp_binary_ptr(emit, rhs);
-  if(binary->op == op_shift_left && (lhs->type->array_depth == rhs->type->array_depth + 1)
-      && isa(lhs->type->d.array_type, rhs->type) > 0)
-    return emit_array_append(emit, rhs->type);
   CHECK_OB(get_instr(emit, &opi))
   return 1;
 }
@@ -1673,7 +1665,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
     return emit_exp_dot_special(emit, member);
   if(member->t_base->xid != te_class)
     ret = emit_exp_dot_instance(emit, member);
-  else  
+  else
     ret = emit_exp_dot_static(emit, member);
   emit->gack =gack;
   return ret;

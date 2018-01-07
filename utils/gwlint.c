@@ -104,22 +104,6 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
   }
 }
 
-static void lint_type_decl(Linter* linter, Type_Decl* type) {
-  if(GET_FLAG(type, ae_flag_private))
-    lint_print(linter, "private ");
-  if(GET_FLAG(type, ae_flag_static))
-    lint_print(linter, "static ");
-  if(type->xid->ref) {
-    lint_print(linter, "typeof ");
-    lint_id_list(linter, type->xid->ref ? type->xid->ref : type->xid);
-  } else
-    lint_id_list(linter, type->xid);
-  if(GET_FLAG(type, ae_flag_ref))
-    lint_print(linter, "@");
-  if(type->array)
-    lint_array(linter, type->array);
-}
-
 static void lint_type_list(Linter* linter, Type_List list) {
   lint_print(linter, "<{");
   while(list) {
@@ -129,6 +113,25 @@ static void lint_type_list(Linter* linter, Type_List list) {
       lint_print(linter, ", ");
   }
   lint_print(linter, "}>");
+}
+
+static void lint_type_decl(Linter* linter, Type_Decl* type) {
+  if(GET_FLAG(type, ae_flag_private))
+    lint_print(linter, "private ");
+  if(GET_FLAG(type, ae_flag_static))
+    lint_print(linter, "static ");
+  if(type->xid->ref) {
+    lint_print(linter, "typeof ");
+    lint_id_list(linter, type->xid->ref ? type->xid->ref : type->xid);
+  } else {
+    if(type->types)
+    lint_type_list(linter, type->types);
+    lint_id_list(linter, type->xid);
+  }
+  if(GET_FLAG(type, ae_flag_ref))
+    lint_print(linter, "@");
+  if(type->array)
+    lint_array(linter, type->array);
 }
 
 static void lint_stmt_indent(Linter* linter, Stmt stmt) {
@@ -148,8 +151,6 @@ static void lint_stmt_indent(Linter* linter, Stmt stmt) {
 
 static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  if(decl->types)
-    lint_type_list(linter, decl->types);
   lint_type_decl(linter, decl->type);
   lint_print(linter, " ");
   while(list) {
@@ -346,7 +347,7 @@ static void lint_stmt_return(Linter* linter, Stmt_Return stmt) {
   if(stmt->val) {
     lint_print(linter, " ");
     lint_exp(linter, stmt->val);
-  } 
+  }
   lint_print(linter, ";");
   lint_nl(linter);
 }

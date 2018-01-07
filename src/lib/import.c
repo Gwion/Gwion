@@ -380,7 +380,8 @@ static m_int import_op(Env env, DL_Oper* op,
   Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   Type ret = get_type(env, op->ret);
-  struct Op_Import opi = { op->op, lhs, rhs, ret, op->check, (uintptr_t)f, global};
+  struct Op_Import opi = { op->op, lhs, rhs, ret,
+    op->ck, op->em, (uintptr_t)f, global};
   return env_add_op(env, &opi);
 }
 
@@ -389,10 +390,15 @@ m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m
   importer->oper.rhs = r;
   importer->oper.lhs = l;
   return 1;
-} 
+}
 
-m_int importer_oper_add(Importer importer, Type (*check)(Env env, void*)) {
-  importer->oper.check = check;
+m_int importer_oper_add(Importer importer, Type (*ck)(Env, void*)) {
+  importer->oper.ck = ck;
+  return 1;
+}
+
+m_int importer_oper_emi(Importer importer, m_bool (*em)(Emitter, void*)) {
+  importer->oper.em = em;
   return 1;
 }
 
@@ -400,7 +406,8 @@ m_int importer_oper_end(Importer importer, Operator op, const f_instr f, const m
   m_bool ret;
   importer->oper.op = op;
   ret = import_op(importer->env, &importer->oper, f, global);
-  importer->oper.check = NULL;
+  importer->oper.ck = NULL;
+  importer->oper.em = NULL;
   return ret;
 }
 

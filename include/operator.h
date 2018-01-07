@@ -1,5 +1,6 @@
 typedef void (*f_instr)(VM*, VM_Shred, Instr);
-typedef Type (*op_check)(Env, void*);
+typedef Type (*opck)(Env, void*);
+typedef m_bool (*opem)(Emitter, void*);
 #define OP_ANY_TYPE (Type)1
 const m_str op2str(Operator op);
 m_int name2op(m_str);
@@ -8,7 +9,8 @@ void free_op_map();
 struct Op_Import {
   Operator op;
   Type lhs, rhs, ret;
-  op_check check;
+  opck ck;
+  opem em;
   uintptr_t data;
   m_bool global;
 };

@@ -22,7 +22,8 @@ typedef struct {
 typedef struct {
   Operator op;
   m_str ret, lhs, rhs;
-  Type (*check)(Env, void*);
+  Type   (*ck)(Env, void*);
+  m_bool (*em)(Emitter, void*);
  } DL_Oper;
 
 typedef struct {

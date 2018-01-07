@@ -239,6 +239,14 @@ static OP_CHECK(shift_array) {
   return bin->lhs->type;
 }
 
+static OP_EMIT(emit_array_append) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  Type type = bin->rhs->type;
+  Instr instr = emitter_add_instr(emit, Array_Append);
+  instr->m_val = kindof(type);
+  return 1;
+}
+
 m_bool import_array(Importer importer) {
   SET_FLAG((&t_array), ae_flag_abstract);
   CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
@@ -265,6 +273,7 @@ m_bool import_array(Importer importer) {
   CHECK_BB(importer_oper_add(importer, at_array))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 0))
   CHECK_BB(importer_oper_add(importer, shift_array))
+  CHECK_BB(importer_oper_emi(importer, emit_array_append))
   CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append, 0))
   return 1;
 }
