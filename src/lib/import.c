@@ -168,7 +168,7 @@ static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor)
   if(dtor)
     mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
-    type->info->offset = type->parent->obj_size;
+    type->info->offset = type->parent->info->offset;
     vector_copy2(&type->parent->info->obj_v_table, &type->info->obj_v_table);
   }
   type->owner = env->curr;
@@ -194,7 +194,6 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
 static m_int import_class_end(Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
-  env->class_def->obj_size = env->class_def->info->offset;
   Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = calloc(1, nspc->class_data_size);

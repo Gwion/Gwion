@@ -27,7 +27,6 @@ struct Type_ {
     Class_Def def;
     Exp exp_list;
   } e;
-  m_uint    obj_size;
 //	UGenInfo ugen_info;
   m_uint flag;
   struct VM_Object_ obj;

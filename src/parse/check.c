@@ -49,7 +49,6 @@ static m_bool check_exp_decl_member(Nspc nspc, Value v) {
   Type type  = v->m_type;
 
   v->offset = nspc->offset;
-  v->owner_class->obj_size += type->size;
   nspc->offset += type->size;
   return 1;
 }
@@ -1327,7 +1326,7 @@ m_bool check_stmt_union(Env env, Stmt_Union stmt) {
         env->class_def->info->offset += SZ_INT;
       }
       else
-        stmt->o = env->class_def->obj_size;
+        stmt->o = env->class_def->info->offset;
   }
   while(l) {
     CHECK_OB(check_exp(env, l->self))
@@ -1620,13 +1619,12 @@ m_bool check_class_def(Env env, Class_Def class_def) {
     CHECK_BB(check_class_parent(env, class_def))
   else
     the_class->parent = &t_object;
-  the_class->info->offset = the_class->parent->obj_size;
+  the_class->info->offset = the_class->parent->info->offset;
   vector_copy2(&the_class->parent->info->obj_v_table, &the_class->info->obj_v_table);
 
   CHECK_BB(env_push_class(env, the_class))
   ret = check_class_def_body(env, class_def->body);
   CHECK_BB(env_pop_class(env))
-  the_class->obj_size = the_class->info->offset;
   SET_FLAG(the_class, ae_flag_checked);
   return ret;
 }

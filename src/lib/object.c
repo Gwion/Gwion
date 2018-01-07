@@ -32,8 +32,8 @@ M_Object new_String(VM_Shred shred, m_str str) {
 m_bool initialize_object(M_Object object, Type type) {
   object->vtable = &type->info->obj_v_table;
   object->type_ref = type;
-  if(type->obj_size) {
-    if(!(object->data = calloc(type->obj_size, sizeof(unsigned char))))
+  if(type->info->offset) {
+    if(!(object->data = calloc(type->info->offset, sizeof(unsigned char))))
       CHECK_BB(err_msg(TYPE_, 0,
           "OutOfMemory: while instantiating object '%s'\n", type->name))
   }
