@@ -1822,24 +1822,10 @@ static Code* emit_class_code(Emitter emit, m_str name) {
 
 }
 
-static m_bool emit_class_def_body(Emitter emit, Class_Body body) {
-  if(emit_alloc_local(emit, SZ_INT, 1 << 1 | 1 << 2) < 0)
-    CHECK_BB(err_msg(EMIT_, body->pos,
-          "internal error: cannot allocate local 'this'..."))
-  while(body) {
-    CHECK_BB(emit_section(emit, body->section))
-    body = body->next;
-  }
-  return 1;
-}
-
-static m_bool emit_class_finish(Emitter emit, Nspc nspc, m_bool ret) {
-  if(ret > 0) {
-    CHECK_OB(emitter_add_instr(emit, Func_Return))
-    free_vm_code(nspc->pre_ctor);
-    nspc->pre_ctor = emit_code(emit);
-  } else if(nspc->class_data_size)
-    free(nspc->class_data);
+static m_bool emit_class_finish(Emitter emit, Nspc nspc) {
+  CHECK_OB(emitter_add_instr(emit, Func_Return))
+  free_vm_code(nspc->pre_ctor);
+  nspc->pre_ctor = emit_code(emit);
   return 1;
 }
 
@@ -1858,17 +1844,23 @@ static m_bool emit_class_pop(Emitter emit) {
 
 static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Type type = class_def->type;
-  m_bool ret = 1;
+  Class_Body body = class_def->body;
 
   if(class_def->types)
     return 1;
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))
   CHECK_OB((emit->code = emit_class_code(emit, type->name)))
-  ret = emit_class_def_body(emit, class_def->body);
-  CHECK_BB(emit_class_finish(emit, type->info, ret))
+  if(emit_alloc_local(emit, SZ_INT, 1 << 1 | 1 << 2) < 0)
+    CHECK_BB(err_msg(EMIT_, body->pos,
+          "internal error: cannot allocate local 'this'..."))
+  while(body) {
+    CHECK_BB(emit_section(emit, body->section))
+    body = body->next;
+  }
+  CHECK_BB(emit_class_finish(emit, type->info))
   CHECK_BB(emit_class_pop(emit))
-  return ret;
+  return 1;
 }
 
 static void emit_free_stack(Emitter emit) {

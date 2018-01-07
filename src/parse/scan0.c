@@ -178,22 +178,6 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   return the_class;
 }
 
-static m_bool scan0_class_def_body(Env env, Class_Body body) {
-  while(body) {
-    switch(body->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(scan0_Stmt_List(env, body->section->d.stmt_list))
-      case ae_section_func:
-        break;
-      case ae_section_class:
-        CHECK_BB(scan0_class_def(env, body->section->d.class_def))
-        break;
-    }
-    body = body->next;
-  }
-  return 1;
-}
-
 static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   Value value;
   Type  type;
@@ -210,30 +194,32 @@ static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   return 1;
 }
 
+static m_bool scan0_section(Env env, Section* section) {
+  if(section->type == ae_section_stmt)
+    CHECK_BB(scan0_Stmt_List(env, section->d.stmt_list))
+  else if(section->type == ae_section_class)
+      CHECK_BB(scan0_class_def(env, section->d.class_def))
+  return 1;
+}
+
 m_bool scan0_class_def(Env env, Class_Def class_def) {
-  m_bool ret;
+  Class_Body body = class_def->body;
 
   CHECK_BB(scan0_class_def_pre(env, class_def))
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   CHECK_BB(env_push_class(env, class_def->type))
-  ret = scan0_class_def_body(env, class_def->body);
+  while(body) {
+    CHECK_BB(scan0_section(env, body->section))
+    body = body->next;
+  }
   CHECK_BB(env_pop_class(env))
   CHECK_BB(scan0_class_def_post(env, class_def))
-  return ret;
+  return 1;
 }
 
 m_bool scan0_Ast(Env env, Ast prog) {
   while(prog) {
-    switch(prog->section->type) {
-      case ae_section_stmt:
-        CHECK_BB(scan0_Stmt_List(env, prog->section->d.stmt_list))
-        break;
-      case ae_section_func:
-        break;
-      case ae_section_class:
-        CHECK_BB(scan0_class_def(env, prog->section->d.class_def))
-        break;
-    }
+    CHECK_BB(scan0_section(env, prog->section))
     prog = prog->next;
   }
   return 1;

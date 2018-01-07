@@ -1601,17 +1601,9 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
   return 1;
 }
 
-static m_bool check_class_def_body(Env env, Class_Body body) {
-  while(body) {
-    CHECK_BB(check_section(env, body->section))
-    body = body->next;
-  }
-  return 1;
-}
-
 m_bool check_class_def(Env env, Class_Def class_def) {
+  Class_Body body = class_def->body;
   Type the_class = class_def->type;
-  m_bool ret;
 
   if(class_def->types)
     return 1;
@@ -1623,10 +1615,13 @@ m_bool check_class_def(Env env, Class_Def class_def) {
   vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
 
   CHECK_BB(env_push_class(env, the_class))
-  ret = check_class_def_body(env, class_def->body);
+  while(body) {
+    CHECK_BB(check_section(env, body->section))
+    body = body->next;
+  }
   CHECK_BB(env_pop_class(env))
   SET_FLAG(the_class, ae_flag_checked);
-  return ret;
+  return 1;
 }
 
 m_bool check_ast(Env env, Ast ast) {

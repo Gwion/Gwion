@@ -690,19 +690,16 @@ static m_bool scan2_section(Env env, Section* section) {
   return 1;
 }
 
-static m_bool scan2_class_def_body(Env env, Class_Body body) {
+m_bool scan2_class_def(Env env, Class_Def class_def) {
+  Class_Body body = class_def->body;
+
+  if(class_def->types)
+    return 1;
+  CHECK_BB(env_push_class(env, class_def->type))
   while(body) {
     CHECK_BB(scan2_section(env, body->section))
     body = body->next;
   }
-  return 1;
-}
-
-m_bool scan2_class_def(Env env, Class_Def class_def) {
-  if(class_def->types)
-    return 1;
-  CHECK_BB(env_push_class(env, class_def->type))
-  CHECK_BB(scan2_class_def_body(env, class_def->body))
   CHECK_BB(env_pop_class(env))
   return 1;
 }

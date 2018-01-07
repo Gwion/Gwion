@@ -547,17 +547,17 @@ static m_bool scan1_section(Env env, Section* section) {
 }
 
 m_bool scan1_class_def(Env env, Class_Def class_def) {
-  m_bool ret = 1;
   Class_Body body = class_def->body;
+
   if(class_def->types)
     return 1;
   CHECK_BB(env_push_class(env, class_def->type))
-  while(body && ret > 0) {
-    ret = scan1_section(env, body->section);
+  while(body) {
+    CHECK_BB(scan1_section(env, body->section))
     body = body->next;
   }
   CHECK_BB(env_pop_class(env))
-  return ret;
+  return 1;
 }
 
 m_bool scan1_ast(Env env, Ast ast) {
