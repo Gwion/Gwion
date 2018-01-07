@@ -674,21 +674,21 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return emit_binary_func(emit, binary);
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
-  CHECK_BB(get_instr(emit, &opi))
+  CHECK_BB(op_emit(emit, &opi))
   return 1;
 }
 
 static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
   struct Op_Import opi = { op_dollar, cast->exp->type, cast->self->type };
   CHECK_BB(emit_exp(emit, cast->exp, 0))
-  (void)get_instr(emit, &opi);
+  (void)op_emit(emit, &opi);
   return 1;
 }
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, post->exp->type };
   CHECK_BB(emit_exp(emit, post->exp, 1))
-  return get_instr(emit, &opi);
+  return op_emit(emit, &opi);
 }
 
 static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
@@ -896,7 +896,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
       break;
     default:
       opi.rhs = unary->exp->type;
-      return get_instr(emit, &opi);
+      return op_emit(emit, &opi);
   }
   return 1;
 }

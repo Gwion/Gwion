@@ -148,7 +148,7 @@ static m_bool handle_instr(Emitter emit, M_Operator* mo) {
   return -1;
 }
 
-m_bool get_instr(Emitter emit, struct Op_Import* opi) {
+m_bool op_emit(Emitter emit, struct Op_Import* opi) {
   Nspc nspc = emit->env->curr;
 
   while(nspc) {

@@ -15,5 +15,5 @@ struct Op_Import {
   m_bool global;
 };
 m_bool env_add_op(Env env, struct Op_Import* opi);
-m_bool get_instr(Emitter emit, struct Op_Import* opi);
+m_bool op_emit(Emitter emit, struct Op_Import* opi);
 Type get_return_type(Env env, struct Op_Import* opi);
