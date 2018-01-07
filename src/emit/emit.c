@@ -628,7 +628,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
   return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
 }
 
-static m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
+m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
   Value v = NULL;
   Instr instr = emitter_add_instr(emit, assign_func);
   if(rhs->exp_type == ae_exp_dot) {
@@ -674,9 +674,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
     return emit_binary_func(emit, binary);
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
-  if(binary->op == op_at_chuck && isa(lhs->type, &t_function) > 0 && isa(rhs->type, &t_func_ptr) > 0)
-    return emit_exp_binary_ptr(emit, rhs);
-  CHECK_OB(get_instr(emit, &opi))
+  CHECK_BB(get_instr(emit, &opi))
   return 1;
 }
 
@@ -709,7 +707,7 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, post->exp->type };
   CHECK_BB(emit_exp(emit, post->exp, 1))
-  return get_instr(emit, &opi) ? 1 : -1;
+  return get_instr(emit, &opi);
 }
 
 static m_bool emit_exp_dur(Emitter emit, Exp_Dur* dur) {
@@ -917,7 +915,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
       break;
     default:
       opi.rhs = unary->exp->type;
-      return get_instr(emit, &opi) ? 1 : -1;
+      return get_instr(emit, &opi);
   }
   return 1;
 }

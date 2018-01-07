@@ -16,13 +16,20 @@ struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
 struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
 
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
+m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs);
 OP_CHECK(check_op_ptr);
 
 static OP_CHECK(check_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
-}
+} 
 
+static OP_EMIT(emit_func_ptr) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  return emit_exp_binary_ptr(emit, bin->rhs);
+
+
+}
 static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_add_type(importer, &t_void))
   CHECK_BB(importer_add_type(importer, &t_null))
@@ -46,6 +53,7 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 0))
   CHECK_BB(importer_oper_ini(importer, "@function", "@func_ptr", NULL))
   CHECK_BB(importer_oper_add(importer, check_op_ptr))
+  CHECK_BB(importer_oper_emi(importer, emit_func_ptr))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL, 0))
   return 1;
 }

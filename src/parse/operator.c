@@ -131,20 +131,20 @@ m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
   return 1;
 }
 
-static Instr handle_instr(Emitter emit, M_Operator* mo) {
+static m_bool handle_instr(Emitter emit, M_Operator* mo) {
   if(mo->func) {
     Instr instr = emitter_add_instr(emit, Reg_PushImm); //do we need to set offset ?
     instr->m_val = SZ_INT;
-    CHECK_BO(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
-    return instr;
+    CHECK_BB(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
+    return 1;
   }
   if(mo->instr)
-    return emitter_add_instr(emit, mo->instr);
-  CHECK_BO(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
-  return NULL;
+    return emitter_add_instr(emit, mo->instr) ? 1 : -1;
+  CHECK_BB(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
+  return -1;
 }
 
-Instr get_instr(Emitter emit, struct Op_Import* opi) {
+m_bool get_instr(Emitter emit, struct Op_Import* opi) {
   Nspc nspc = emit->env->curr;
 
   while(nspc) {
@@ -159,12 +159,12 @@ Instr get_instr(Emitter emit, struct Op_Import* opi) {
         v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
         if((mo = operator_find(v, l, r))) {
           if(mo->em)
-            CHECK_BO(mo->em(emit, (void*)opi->data)) // watch me
+            return mo->em(emit, (void*)opi->data);// watch me
           return  handle_instr(emit, mo);
         }
       } while(r && (r = r->parent));
     } while(l && (l = l->parent));
     nspc = nspc->parent;
   }
-  return NULL;
+  return -1;
 }
