@@ -379,6 +379,29 @@ static OP_CHECK(chuck_now) {
   return NULL;
 }
 
+static OP_EMIT(opem_i2f) {
+  CHECK_OB(emitter_add_instr(emit, Cast_i2f))
+  return 1;
+}
+
+static OP_EMIT(opem_f2i) {
+  CHECK_OB(emitter_add_instr(emit, Cast_f2i))
+  return 1;
+}
+
+INSTR(Cast_i2f) {
+  POP_REG(shred,  SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0);
+  PUSH_REG(shred,  SZ_FLOAT);
+}
+
+
+INSTR(Cast_f2i) {
+  POP_REG(shred,  SZ_FLOAT);
+  *(m_int*)REG(0) = *(m_float*)REG(0);
+  PUSH_REG(shred,  SZ_INT);
+}
+
 m_bool import_float(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_float))
   CHECK_BB(importer_add_type(importer,  &t_time))
@@ -443,6 +466,8 @@ m_bool import_float(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_times_chuck,  int_float_r_times,  0))
   CHECK_BB(importer_oper_add(importer, check_rassign))
   CHECK_BB(importer_oper_end(importer, op_divide_chuck, int_float_r_divide, 0))
+  CHECK_BB(importer_oper_emi(importer, opem_i2f))
+  CHECK_BB(importer_oper_end(importer, op_dollar,       Cast_i2f, 0))
   CHECK_BB(importer_oper_ini(importer, "float", "int", "float"))
   CHECK_BB(importer_oper_add(importer, check_assign))
   CHECK_BB(importer_oper_end(importer, op_assign,       float_int_assign,   0))
@@ -469,6 +494,8 @@ m_bool import_float(Importer importer) {
   CHECK_BB(importer_oper_end(importer, op_times_chuck,  float_int_r_times,  0))
   CHECK_BB(importer_oper_add(importer, check_rassign))
   CHECK_BB(importer_oper_end(importer, op_divide_chuck, float_int_r_divide, 0))
+  CHECK_BB(importer_oper_emi(importer, opem_f2i))
+  CHECK_BB(importer_oper_end(importer, op_dollar, Cast_f2i, 0))
 
   CHECK_BB(importer_oper_ini(importer, "dur", "dur", "dur"))
   CHECK_BB(importer_oper_add(importer, check_rassign))

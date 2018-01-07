@@ -678,30 +678,11 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
   return 1;
 }
 
-static m_bool exp_exp_cast1(Emitter emit, Type to, Type from) {
-  f_instr f = NULL;
-  if(to->xid == from->xid || isa(from, to) > 0 ||
-      (isa(from, &t_null) > 0 && isa(to, &t_object) > 0))
-    return 1;
-  else if(to->xid == te_int && from->xid == te_float)
-    f = Cast_f2i;
-  else if(to->xid == te_float && from->xid == te_int)
-    f = Cast_i2f;
-  CHECK_OB(emitter_add_instr(emit, f))
-  return 1;
-}
-
 static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
-  Type to = cast->self->type;
-  Type from = cast->exp->type;
-  if(isa(to, &t_func_ptr) > 0 && isa(from, &t_function) > 0) {
-    Instr push = emitter_add_instr(emit, Reg_PushImm);
-    push->m_val = SZ_INT;
-    *(Func*)push->ptr = cast->func;
-    return 1;
-  }
+  struct Op_Import opi = { op_dollar, cast->exp->type, cast->self->type };
   CHECK_BB(emit_exp(emit, cast->exp, 0))
-  return exp_exp_cast1(emit, to, from);
+  (void)get_instr(emit, &opi);
+  return 1;
 }
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {

@@ -838,6 +838,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
       }
   }
   if((isa(t, &t_float) > 0 && isa(t2, &t_int)    > 0) ||
+     (isa(t, &t_int)   > 0 && isa(t2, &t_float)  > 0) ||
      (isa(t, &t_null)  > 0 && isa(t2, &t_object) > 0))
     return t2;
   if(isa(t, &t_object) < 0)

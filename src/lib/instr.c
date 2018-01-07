@@ -176,18 +176,6 @@ INSTR(Goto) {
   shred->next_pc = instr->m_val;
 }
 
-INSTR(Cast_i2f) {
-  POP_REG(shred,  SZ_INT);
-  *(m_float*)REG(0) = *(m_int*)REG(0);
-  PUSH_REG(shred,  SZ_FLOAT);
-}
-
-INSTR(Cast_f2i) {
-  POP_REG(shred,  SZ_FLOAT);
-  *(m_int*)REG(0) = *(m_float*)REG(0);
-  PUSH_REG(shred,  SZ_INT);
-}
-
 static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
