@@ -21,52 +21,17 @@ static void pop(VM_Shred shred, Vector v) {
   }
 }
 
-static void print_typedef(Type type) {
-  m_uint i;
-  struct Vector_ v, d;
-  vector_init(&v);
-  vector_init(&d);
-  while(type) {
-    vector_add(&v, (vtype)type);
-    vector_add(&d, (vtype)type->array_depth);
-    type = type->d.array_type;
-  }
-  m_uint depth = 0;
-  m_uint size = vector_size(&v);
-  for(i = size + 1; --i;) {
-    Type t = (Type)vector_at(&v, i - 1);
-    vector_set(&d, size - i - 1, t->array_depth - depth);
-    depth += t->array_depth;
-  }
-  for(i = 0; i < size; i++) {
-    m_uint j;
-    Type t = (Type)vector_at(&v, i);
-    fprintf(stdout, "%s", t->name);
-    for(j = 0; j < vector_at(&d, size -i - 1); j++)
-      fprintf(stdout, "[]");
-    if(i < size - 1)
-      fprintf(stdout, " aka ");
-    else
-      fprintf(stdout, " ");
-  }
-  vector_release(&v);
-  vector_release(&d);
-}
-
 static void print_type(Type type) {
-  m_uint i;
   m_bool is_func = isa(type, &t_function) > 0 && isa(type, &t_func_ptr) < 0;
   m_str name;
-  if(GET_FLAG(type, ae_flag_typedef)) {
-    print_typedef(type);
-    return;
-  }
   name = is_func ? strdup("@function") : strdup(type->name);
   fprintf(stdout, BOLD "(" GREEN "%s" CLEAR BOLD, name);
-  for(i = 0; i < type->array_depth; i++)
-    fprintf(stdout, "[]");
   fprintf(stdout, ") " CLEAR);
   free(name);
+  if(GET_FLAG(type, ae_flag_typedef)) {
+    fprintf(stdout, " aka ");
+    print_type(type->d.array_type);
+  }
 }
 
 static void print_int(m_int i) {
@@ -152,12 +117,8 @@ INSTR(Gack) {
       print_object(type, *(M_Object*)REG(0));
     else if(isa(type, &t_function) > 0)
       print_func(type, REG(0));
-    else if(type->xid == te_class) {
-      if(GET_FLAG(type, ae_flag_typedef))
-        print_typedef(type->d.array_type);
-      else
-        print_string1(type->d.actual_type->name);
-    }
+    else if(type->xid == te_class)
+        print_type(type->d.actual_type);
     else if(type->xid == te_void)
       print_string1("void");
     else

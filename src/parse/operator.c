@@ -119,6 +119,10 @@ Type get_return_type(Env env, struct Op_Import* opi) {
     }
     nspc = nspc->parent;
   }
+  (void)err_msg(TYPE_, 0, "no match found for operator.\n\t'%s' %s '%s'", 
+    opi->lhs ? opi->lhs == OP_ANY_TYPE ? "any" : opi->lhs->name : "",
+    op2str(opi->op),
+    opi->rhs ? opi->rhs == OP_ANY_TYPE ? "any" : opi->rhs->name : "");
   return NULL;
 }
 

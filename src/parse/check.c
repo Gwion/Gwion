@@ -770,26 +770,6 @@ Type check_op_ptr(Env env, Exp_Binary* bin ) {
   return NULL;
 }
 
-static Type op_err(Env env, Exp_Binary* bin) {
-  Operator op = bin->op;
-  Exp lhs = bin->lhs;
-  Exp rhs = bin->rhs;
-  m_uint i;
-  m_uint llen = 1 + lhs->type->array_depth * 2;
-  m_uint rlen = 1 + rhs->type->array_depth * 2;
-  char la[llen], ra[rlen];
-  memset(la, 0, rlen);
-  memset(ra, 0, llen);
-  for(i = 0; i < lhs->type->array_depth; i++)
-    strcat(la, "[]");
-  for(i = 0; i < rhs->type->array_depth; i++)
-    strcat(ra, "[]");
-  CHECK_BO(err_msg(TYPE_, 0, "no match found for operator '%s'"
-        "on types '%s%s' and '%s%s'",
-          op2str(op), lhs->type->name, la, rhs->type->name, ra))
-  return NULL;
-}
-
 static m_bool multi_decl(Exp e, Operator op) {
   if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.num_decl > 1)
     CHECK_BB(err_msg(TYPE_, e->pos,
@@ -798,7 +778,6 @@ static m_bool multi_decl(Exp e, Operator op) {
 }
 
 static Type check_exp_binary(Env env, Exp_Binary* bin) {
-  Type t;
   struct Op_Import opi = { bin->op, NULL, NULL, NULL,
     NULL, NULL, (uintptr_t)bin };
 
@@ -806,7 +785,7 @@ static Type check_exp_binary(Env env, Exp_Binary* bin) {
   CHECK_BO(multi_decl(bin->rhs, bin->op));
   CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
   CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
-  return (t = get_return_type(env, &opi)) ? t : op_err(env, bin);
+  return get_return_type(env, &opi);
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {

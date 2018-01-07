@@ -5,28 +5,30 @@
 #include "type.h"
 #include "func.h"
 
+static Value mk_class(Env env, Type base) {
+  Type t = type_copy(&t_class);
+  Value v = new_value(t, base->name);
+  t->d.actual_type = base;
+  v->owner = env->curr;
+  SET_FLAG(v, ae_flag_const | ae_flag_checked);
+  nspc_add_value(env->curr, insert_symbol(base->name), v);
+  return v;
+}
+
 m_bool scan0_class_def(Env env, Class_Def class_def);
 m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
-  Value v;
   m_str name = s_name(ptr->xid);
-  Type type;
   Type t = new_type(te_func_ptr, name, &t_func_ptr);
   t->owner = env->curr;
   t->size = SZ_INT;
   t->info = new_nspc(name, env_filename(env));
   nspc_add_type(env->curr, ptr->xid, t);
-  type = type_copy(&t_class);
-  type->d.actual_type = t;
-  v = new_value(type, name);
-  v->owner = env->curr;
-  SET_FLAG(v, ae_flag_const | ae_flag_checked);
-  nspc_add_value(env->curr, ptr->xid, v);
-  ptr->value = v;
+  ptr->value = mk_class(env, t);
   return 1;
 }
 
 static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
-  Type type, base = find_type(env, stmt->type->xid);
+  Type base = find_type(env, stmt->type->xid);
   Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
     CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
@@ -55,13 +57,9 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
   SET_FLAG(base, ae_flag_typedef);
   base->name = s_name(stmt->xid);
   nspc_add_type(env->curr, stmt->xid, base);
-  type = type_copy(&t_class);
-  type->d.actual_type = base;
-  v = new_value(type, s_name(stmt->xid));
-  v->owner = env->curr;
-  SET_FLAG(v, ae_flag_const | ae_flag_checked | ae_flag_typedef);
-  SET_FLAG(type, ae_flag_typedef);
-  nspc_add_value(env->curr, stmt->xid, v);
+  v = mk_class(env, base);
+  SET_FLAG(v, ae_flag_typedef);
+  SET_FLAG(v->m_type, ae_flag_typedef);
   return 1;
 }
 
@@ -179,14 +177,7 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
 }
 
 static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
-  Value value;
-  Type  type;
-  type = type_copy(&t_class);
-  type->d.actual_type = class_def->type;
-  value = new_value(type, class_def->type->name);
-  value->owner = env->curr;
-  SET_FLAG(value, ae_flag_const | ae_flag_checked);
-  nspc_add_value(env->curr, insert_symbol(class_def->type->name), value);
+  (void)mk_class(env, class_def->type);
   if(class_def->home)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   else

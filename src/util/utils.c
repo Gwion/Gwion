@@ -103,14 +103,25 @@ void type_path(char* str, ID_List list) {
   }
 }
 
-Type new_array_type(Env env, m_uint depth, Type base_type, Nspc owner_nspc) {
-  Type t = new_type(te_array, base_type->name, &t_array);
+Type new_array_type(Env env, m_uint depth, Type base, Nspc owner_nspc) {
+  m_uint i = depth;
+  Type t;
+  char name[strlen(base->name) + 2* depth + 1];
+
+  strcpy(name, base->name);
+  while(i--)
+    strcat(name, "[]");
+  if((t = nspc_lookup_type1(base->owner, insert_symbol(name)))) {
+    ADD_REF(t)
+    return t;
+  }
+  t = new_type(te_array, base->name, &t_array);
   t->size = SZ_INT;
   t->array_depth = depth;
-  t->d.array_type = base_type;
+  t->d.array_type = base;
   t->info = t_array.info;
   ADD_REF(t->info);
-  t->owner = owner_nspc;
+  t->owner = base->owner;
   return t;
 }
 
