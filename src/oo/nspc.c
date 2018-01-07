@@ -90,7 +90,7 @@ Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   a->filename        = filename;
-  vector_init(&a->obj_v_table);
+  vector_init(&a->vtable);
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);
@@ -193,8 +193,8 @@ void free_nspc(Nspc a) {
 
   if(a->class_data)
     free(a->class_data);
-  if(a->obj_v_table.ptr)
-    vector_release(&a->obj_v_table);
+  if(a->vtable.ptr)
+    vector_release(&a->vtable);
   if(a->pre_ctor)
     REM_REF(a->pre_ctor);
   if(a->dtor)

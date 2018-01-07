@@ -30,7 +30,7 @@ M_Object new_String(VM_Shred shred, m_str str) {
 }
 
 m_bool initialize_object(M_Object object, Type type) {
-  object->vtable = &type->info->obj_v_table;
+  object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
     if(!(object->data = calloc(type->info->offset, sizeof(unsigned char))))

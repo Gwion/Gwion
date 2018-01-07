@@ -169,7 +169,7 @@ static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor)
     mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
     type->info->offset = type->parent->info->offset;
-    vector_copy2(&type->parent->info->obj_v_table, &type->info->obj_v_table);
+    vector_copy2(&type->parent->info->vtable, &type->info->vtable);
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);

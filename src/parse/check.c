@@ -1445,7 +1445,7 @@ static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
       CHECK_BB(check_signature_match(f, parent_func))
       *parent_match = 1;
       func->vt_index = parent_func->vt_index;
-      vector_set(&env->curr->obj_v_table, func->vt_index, (vtype)func);
+      vector_set(&env->curr->vtable, func->vt_index, (vtype)func);
       func->value_ref->name = func->name = parent_func->name;
     }
   }
@@ -1463,8 +1463,8 @@ static m_bool check_parent_match(Env env, Func_Def f) {
     parent = parent->parent;
   }
   if(GET_FLAG(func, ae_flag_member) && !parent_match) {
-    func->vt_index = vector_size(&env->curr->obj_v_table);
-    vector_add(&env->curr->obj_v_table, (vtype)func);
+    func->vt_index = vector_size(&env->curr->vtable);
+    vector_add(&env->curr->vtable, (vtype)func);
   }
   return 1;
 }
@@ -1620,7 +1620,7 @@ m_bool check_class_def(Env env, Class_Def class_def) {
   else
     the_class->parent = &t_object;
   the_class->info->offset = the_class->parent->info->offset;
-  vector_copy2(&the_class->parent->info->obj_v_table, &the_class->info->obj_v_table);
+  vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
 
   CHECK_BB(env_push_class(env, the_class))
   ret = check_class_def_body(env, class_def->body);

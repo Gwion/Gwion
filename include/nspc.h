@@ -13,7 +13,7 @@ struct Nspc_ {
   VM_Code   dtor;
   char*		class_data;
   m_uint    class_data_size;
-  struct Vector_    obj_v_table;
+  struct Vector_    vtable;
   struct Map_      	op_map;
   struct Scope_     value;
   struct Scope_     type;

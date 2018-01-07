@@ -1518,7 +1518,7 @@ static m_bool emit_vec_func(Emitter emit, Value v) {
   Instr instr;
   CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
   instr = emitter_add_instr(emit, member_function);
-  *(Vector*)instr->ptr = &v->owner_class->info->obj_v_table;
+  *(Vector*)instr->ptr = &v->owner_class->info->vtable;
   instr->m_val = v->func_ref->vt_index;
   return 1;
 }
