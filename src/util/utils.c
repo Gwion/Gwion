@@ -115,10 +115,8 @@ Type new_array_type(Env env, m_uint depth, Type base, Nspc owner_nspc) {
   sym = insert_symbol(name);
   if((t = nspc_lookup_type1(base->owner, sym))) {
     ADD_REF(t)
-puts("found");
     return t;
   }
-puts("not found");
   t = new_type(te_array, base->name, &t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
