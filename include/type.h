@@ -79,7 +79,7 @@ extern struct Type_ t_fileio;
 extern struct Type_ t_vararg, t_varobj;
 
 extern struct Type_ t_gack;
-
+extern struct Type_ t_ptr;
 m_uint get_type_xid(); // 19/05/17 // should be included in new type.
 m_uint num_digit(m_uint i);
 #endif

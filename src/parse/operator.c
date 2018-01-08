@@ -37,6 +37,16 @@ void free_op_map(Map map) {
   map_release(map);
 }
 
+Type op_parent(Env env, Type t) {
+  if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
+    m_str post = strstr(t->name, "<");
+    char c[strlen(t->name) - strlen(post) + 1];
+    memset(c, 0, strlen(t->name) - strlen(post) + 1);
+    strncpy(c, t->name, strlen(t->name) - strlen(post));
+    return nspc_lookup_type1(env->curr, insert_symbol(c));
+  }
+  return t->parent;
+}
 static m_bool op_match(Type t, Type mo) {
   if(t == OP_ANY_TYPE)
     return 1;
@@ -100,7 +110,7 @@ static Type op_check_inner(Env env, Map map, struct Op_Import* opi) {
       else
         return mo->ret;
     }
-  } while(r && (r = r->parent));
+  } while(r && (r = op_parent(env, r)));
   return NULL;
 }
 
@@ -118,7 +128,7 @@ Type op_check(Env env, struct Op_Import* opi) {
             break;
           return ret;
         }
-      } while(l && (l = l->parent));
+      } while(l && (l = op_parent(env, l)));
     }
     nspc = nspc->parent;
   }
@@ -169,8 +179,8 @@ m_bool op_emit(Emitter emit, struct Op_Import* opi) {
             return mo->em(emit, (void*)opi->data);// watch me
           return  handle_instr(emit, mo);
         }
-      } while(r && (r = r->parent));
-    } while(l && (l = l->parent));
+      } while(r && (r = op_parent(emit->env, r)));
+    } while(l && (l = op_parent(emit->env, l)));
     nspc = nspc->parent;
   }
   return -1;

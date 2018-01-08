@@ -409,6 +409,13 @@ static Type_List mk_type_list(Env env, Type type) {
 static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific ) {
   m_bool match = specific ? e->type == t : isa(e->type, t) > 0 && e->type->array_depth == t->array_depth;
   if(!match) {
+//    if(isa(t, &t_ptr) > 0) {
+    if(!strncmp(t->name, "Ptr", 3)) {
+      if(strcmp(get_type_name(t->name, 1), e->type->name))exit(12);
+      e->cast_to = t;
+      e->emit_var = 1;
+      return 1;
+    }
     if(implicit && e->type->xid == te_int && t->xid == te_float)
       e->cast_to = &t_float;
     else if(!(isa(e->type, &t_null) > 0 && isa(t, &t_object) > 0))

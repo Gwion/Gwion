@@ -10,6 +10,27 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list);
 m_bool scan1_class_def(Env env, Class_Def class_def);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
+static Type scan_type(Env env, Type t, Type_Decl* type) {
+  if(GET_FLAG(t, ae_flag_template)) {
+    if(!type->types)
+      CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
+    Class_Def a = template_class(env, t->e.def, type->types);
+    CHECK_BO(template_push_types(env, t->e.def->types, type->types))
+    CHECK_BO(scan0_class_def(env, a))
+    SET_FLAG(a->type, ae_flag_template);
+    SET_FLAG(a->type, ae_flag_ref);
+    if(GET_FLAG(t, ae_flag_builtin))
+      SET_FLAG(a->type, ae_flag_builtin);
+    CHECK_BO(scan1_class_def(env, a))
+    a->tref = t->e.def->types;
+    a->base = type->types;
+    t = a->type;
+  } else if(type->types)
+      CHECK_BO(err_msg(SCAN1_, type->pos,
+            "type '%s' is not template. You should not provide template types", t->name))
+  return t;
+}
+
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(!decl->type->types)
@@ -344,6 +365,9 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
       CHECK_BB(err_msg(SCAN1_, arg_list->pos,
             "%Q unknown type in argument %i", path, count))
     }
+    CHECK_OB((arg_list->type = scan_type(env, arg_list->type, arg_list->type_decl)))
+if(arg_list->type_decl->types)
+    ADD_REF(arg_list->type)
     arg_list = arg_list->next;
   }
   return count;

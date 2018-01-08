@@ -35,7 +35,7 @@ typedef enum {
   te_function, te_func_ptr, te_object, te_class, te_null,
   te_fileio, te_polar, te_complex, te_vec3, te_vec4, te_array, te_shred,
   te_machine, te_event, te_std, te_template, te_ugen, te_vararg, te_vararg_loop,
-  te_gack, te_union, te_last
+  te_gack, te_union, te_ptr, te_last
 } te_type;
 
 typedef enum {

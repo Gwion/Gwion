@@ -161,6 +161,15 @@ static m_bool emit_pre_ctor(Emitter emit, Type type) {
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit_code_offset(emit);
   }
+if(GET_FLAG(type, ae_flag_template) && GET_FLAG(type, ae_flag_builtin)) {
+
+//    emit_pre_ctor(emit, 
+//op_parent(type);//);
+
+// emit_pre_ctor(emit, type->parent);
+//exit(56);
+
+}
   return 1;
 }
 
@@ -883,6 +892,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
   struct Op_Import opi = { unary->op };
+  opi.data = (uintptr_t)unary;
   if(unary->op != op_spork && emit_exp(emit, unary->exp, 1) < 0)
     return -1;
   switch(unary->op) {
@@ -906,6 +916,12 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
     CHECK_OB(emitter_add_instr(emit, Cast_i2f))
   else if(from->xid == te_float && to->xid == te_int)
     CHECK_OB(emitter_add_instr(emit, Cast_f2i))
+  else if(!strncmp(to->name, "Ptr", 3)) {
+    Instr instr = emitter_add_instr(emit, Cast2Ptr);
+    CHECK_OB(instr)
+    instr->m_val = from->size;
+
+  }
   return 1;
 }
 

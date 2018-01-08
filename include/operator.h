@@ -20,3 +20,4 @@ const m_str op2str(Operator op);
 m_int name2op(m_str);
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs);
 void free_op_map();
+m_str get_type_name(m_str str, m_uint index);

@@ -67,6 +67,7 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(import_event(importer))
   CHECK_BB(import_ugen(importer))
   CHECK_BB(import_array(importer))
+  CHECK_BB(import_ptr(importer))
   CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(importer_oper_add(importer, opck_func_call))
   CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 0))
