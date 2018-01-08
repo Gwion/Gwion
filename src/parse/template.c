@@ -4,27 +4,31 @@
 
 static m_uint template_size(Env env, Class_Def c, Type_List call) {
   ID_List base = c->types;
-  m_uint size = strlen(c->type->name) + 2;
+  m_uint size = strlen(c->type->name) + 3;
   while(base) {
     Type t = find_type(env, call->list);
-    size += strlen(t->name) + 1;
+    size += strlen(t->name);
     call = call->next;
     base = base->next;
+    if(base)
+      size++;
   }
   return size;
 }
 
 static m_bool template_name(Env env, Class_Def c, Type_List call, m_str str) {
   ID_List base = c->types;
-  str[0] = '\0';
-  strcat(str, c->type->name);
+  strcpy(str, c->type->name);
+  strcat(str, "<");
   while(base) {
     Type t = find_type(env, call->list);
-    strcat(str, "@");
     strcat(str, t->name);
     call = call->next;
     base = base->next;
+    if(base)
+      strcat(str, ",");
   }
+  strcat(str, ">");
   return 1;
 }
 
