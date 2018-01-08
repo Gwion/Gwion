@@ -295,7 +295,7 @@ struct Decl_List_ {
 };
 Decl_List new_decl_list(Exp d, Decl_List l);
 
-typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_loop,
+typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_auto, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
                ae_stmt_enum, ae_stmt_funcptr, ae_stmt_typedef, ae_stmt_union
@@ -308,6 +308,7 @@ typedef struct Stmt_Basic_      * Stmt_Break;
 typedef struct Stmt_Flow_       * Stmt_While;
 typedef struct Stmt_Flow_       * Stmt_Until;
 typedef struct Stmt_For_        * Stmt_For;
+typedef struct Stmt_Auto_       * Stmt_Auto;
 typedef struct Stmt_Loop_       * Stmt_Loop;
 typedef struct Stmt_If_         * Stmt_If;
 typedef struct Stmt_Switch_     * Stmt_Switch;
@@ -342,6 +343,13 @@ struct Stmt_For_ {
   Exp c3;
   Stmt body;
   Stmt self;
+  int pos;
+};
+struct Stmt_Auto_ {
+  S_Symbol sym;
+  Exp exp;
+  Stmt body;
+  Value v;
   int pos;
 };
 struct Stmt_Loop_ {
@@ -417,6 +425,7 @@ struct Stmt_ {
     struct Stmt_Flow_       stmt_until;
     struct Stmt_Loop_       stmt_loop;
     struct Stmt_For_        stmt_for;
+    struct Stmt_Auto_       stmt_auto;
     struct Stmt_If_         stmt_if;
     struct Stmt_Basic_      stmt_break;
     struct Stmt_Basic_      stmt_continue;
@@ -441,6 +450,7 @@ Stmt new_stmt_continue(int pos);
 Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, int pos);
 Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, int pos);
 Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, int pos);
+Stmt new_stmt_auto(S_Symbol sym, Exp exp, Stmt body, int pos);
 Stmt new_stmt_loop(Exp cond, Stmt body, int pos);
 Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos);
 Stmt new_stmt_case(Exp exp, int pos);

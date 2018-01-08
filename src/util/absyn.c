@@ -685,6 +685,23 @@ static void free_stmt_for(Stmt_For a) {
   free_stmt(a->body);
 }
 
+Stmt new_stmt_auto(S_Symbol sym, Exp exp, Stmt body, int pos) {
+  Stmt a = calloc(1, sizeof(struct Stmt_));
+  a->type = ae_stmt_auto;
+  a->d.stmt_auto.sym = sym;
+  a->d.stmt_auto.exp = exp;
+  a->d.stmt_auto.body = body;
+  a->pos = a->d.stmt_auto.pos = pos;
+  return a;
+}
+
+static void free_stmt_auto(Stmt_Auto a) {
+  free_exp(a->exp);
+  free_stmt(a->body);
+  if(a->v)
+    REM_REF(a->v)
+}
+
 Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
   a->type = ae_stmt_gotolabel;
@@ -809,6 +826,9 @@ void free_stmt(Stmt stmt) {
       break;
     case ae_stmt_for:
       free_stmt_for(&stmt->d.stmt_for);
+      break;
+    case ae_stmt_auto:
+      free_stmt_auto(&stmt->d.stmt_auto);
       break;
     case ae_stmt_loop:
       free_stmt_loop(&stmt->d.stmt_loop);

@@ -135,11 +135,12 @@ extern int gwion_debug;
     ATPAREN = 345,
     TYPEOF = 346,
     CONST = 347,
-    NUM = 348,
-    FLOAT = 349,
-    ID = 350,
-    STRING_LIT = 351,
-    CHAR_LIT = 352
+    AUTO = 348,
+    NUM = 349,
+    FLOAT = 350,
+    ID = 351,
+    STRING_LIT = 352,
+    CHAR_LIT = 353
   };
 #endif
 /* Tokens.  */
@@ -233,11 +234,12 @@ extern int gwion_debug;
 #define ATPAREN 345
 #define TYPEOF 346
 #define CONST 347
-#define NUM 348
-#define FLOAT 349
-#define ID 350
-#define STRING_LIT 351
-#define CHAR_LIT 352
+#define AUTO 348
+#define NUM 349
+#define FLOAT 350
+#define ID 351
+#define STRING_LIT 352
+#define CHAR_LIT 353
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -272,7 +274,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 276 "include/parser.h" /* yacc.c:1909  */
+#line 278 "include/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

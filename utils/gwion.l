@@ -134,6 +134,7 @@ static int adjust(void* data);
 "enum"                              { adjust(yyscanner); return ENUM;}
 "typeof"                            { adjust(yyscanner); return TYPEOF;}
 "const"                             { adjust(yyscanner); return CONST;}
+"auto"                              { adjust(yyscanner); return AUTO;}
 
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }

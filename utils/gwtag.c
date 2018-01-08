@@ -210,6 +210,11 @@ static void tag_stmt_for(Tagger* tagger, Stmt_For stmt) {
   tag_stmt(tagger, stmt->body);
 }
 
+static void tag_stmt_auto(Tagger* tagger, Stmt_Auto stmt) {
+  // TODO tag id
+  tag_exp(tagger, stmt->exp);
+  tag_stmt(tagger, stmt->body);
+}
 static void tag_stmt_loop(Tagger* tagger, Stmt_Loop stmt) {
   tag_exp(tagger, stmt->cond);
   tag_stmt(tagger, stmt->body);
@@ -318,6 +323,9 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
       break;
     case ae_stmt_for:
       tag_stmt_for(tagger, &stmt->d.stmt_for);
+      break;
+    case ae_stmt_auto:
+      tag_stmt_auto(tagger, &stmt->d.stmt_auto);
       break;
     case ae_stmt_until:
       tag_stmt_flow(tagger, &stmt->d.stmt_until);

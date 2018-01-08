@@ -59,7 +59,7 @@ m_str op2str(Operator op);
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST
+  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
@@ -165,7 +165,8 @@ func_ptr
     { CHECK_FLAG(arg, (&$2->d.stmt_ptr), ae_flag_static); $$ = $2; }
   ;
 
-stmt_typedef:
+stmt_typedef
+  :
   TYPEDEF type_decl2 id SEMICOLON
   { $$ = new_stmt_typedef($2, $3, get_pos(arg)); };
 
@@ -236,6 +237,8 @@ loop_stmt
       { $$ = new_stmt_for($3, $4, NULL, $6, get_pos(arg)); }
   | FOR LPAREN exp_stmt exp_stmt exp RPAREN stmt
       { $$ = new_stmt_for($3, $4, $5, $7, get_pos(arg)); }
+  | FOR LPAREN AUTO id COLON binary_exp RPAREN stmt
+      { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); }
   | UNTIL LPAREN exp RPAREN stmt
       { $$ = new_stmt_until($3, $5, 0, get_pos(arg)); }
   | DO stmt UNTIL LPAREN exp RPAREN SEMICOLON

@@ -1161,6 +1161,20 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
     return check_breaks(env, stmt->self, stmt->body);
 }
 
+static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
+  Type t = check_exp(env, stmt->exp);
+  CHECK_OB(t)
+  if(isa(t, &t_array) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->pos, "type '%s' is not array.\n"
+          " This is not allowed in auto loop", t->name))
+  t = t->array_depth - 1 ? new_array_type(env, t->array_depth - 1, t, env->curr) :
+     t->d.array_type;
+  stmt->v = new_value(t, s_name(stmt->sym));
+  SET_FLAG(stmt->v, ae_flag_checked);
+  nspc_add_value(env->curr, stmt->sym, stmt->v);
+  CHECK_BB(check_stmt(env, stmt->body))
+  return 1;
+}
 static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
   Type type = check_exp(env, stmt->cond);
 
@@ -1324,6 +1338,9 @@ static m_bool check_stmt(Env env, Stmt stmt) {
       break;
     case ae_stmt_for:
       NSPC(ret = check_stmt_for(env, &stmt->d.stmt_for))
+      break;
+    case ae_stmt_auto:
+      NSPC(ret = check_stmt_auto(env, &stmt->d.stmt_auto))
       break;
     case ae_stmt_loop:
       NSPC(ret = check_stmt_loop(env, &stmt->d.stmt_loop))

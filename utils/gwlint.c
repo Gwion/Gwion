@@ -383,6 +383,16 @@ static void lint_stmt_for(Linter* linter, Stmt_For stmt) {
   lint_stmt_indent(linter, stmt->body);
 }
 
+static void lint_stmt_auto(Linter* linter, Stmt_Auto stmt) {
+  lint_print(linter, "for(");
+  lint_print(linter, "auto ");
+  lint_print(linter, s_name(stmt->sym));
+  lint_print(linter, " : ");
+  lint_exp(linter, stmt->exp);
+  lint_print(linter, ")");
+  lint_stmt_indent(linter, stmt->body);
+}
+
 static void lint_stmt_loop(Linter* linter, Stmt_Loop stmt) {
   lint_print(linter, "repeat(");
   lint_exp(linter, stmt->cond);
@@ -538,6 +548,9 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
       break;
     case ae_stmt_for:
       lint_stmt_for(linter, &stmt->d.stmt_for);
+      break;
+    case ae_stmt_auto:
+      lint_stmt_auto(linter, &stmt->d.stmt_auto);
       break;
     case ae_stmt_until:
       lint_stmt_flow(linter, &stmt->d.stmt_until, "until");

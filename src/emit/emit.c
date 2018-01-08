@@ -1175,6 +1175,23 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
   return 1;
 }
 
+static m_bool emit_stmt_auto(Emitter emit, Stmt_Auto stmt) {
+  m_uint start, offset;
+  Instr loop, tgt;
+
+  CHECK_BB(emit_exp(emit, stmt->exp, 0))
+  start  = emit_code_size(emit);
+  loop = emitter_add_instr(emit, AutoLoop);
+  offset = emit_alloc_local(emit, 2*SZ_INT, 0);
+  stmt->v->offset = offset + SZ_INT;
+  CHECK_BB(emit_stmt(emit, stmt->body, 1))
+  tgt = emitter_add_instr(emit, Goto);
+  tgt->m_val = start;
+  loop->m_val = offset;
+  loop->m_val2 = emit_code_size(emit);
+  return 1;
+}
+
 static m_bool emit_stmt_loop(Emitter emit, Stmt_Loop stmt) {
   Instr init, op, deref, dec, _goto, push;
   m_int* counter;
@@ -1416,6 +1433,8 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
             emit_stmt_until(emit, &stmt->d.stmt_until);
     case ae_stmt_for:
       return emit_stmt_for(emit, &stmt->d.stmt_for);
+    case ae_stmt_auto:
+      return emit_stmt_auto(emit, &stmt->d.stmt_auto);
     case ae_stmt_loop:
       return emit_stmt_loop(emit, &stmt->d.stmt_loop);
     case ae_stmt_gotolabel:

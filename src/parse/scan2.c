@@ -357,6 +357,12 @@ static m_bool scan2_stmt_for(Env env, Stmt_For stmt) {
   return 1;
 }
 
+static m_bool scan2_stmt_auto(Env env, Stmt_Auto stmt) {
+  CHECK_BB(scan2_exp(env, stmt->exp))
+  CHECK_BB(scan2_stmt(env, stmt->body))
+  return 1;
+}
+
 static m_bool scan2_stmt_loop(Env env, Stmt_Loop stmt) {
   CHECK_BB(scan2_exp(env, stmt->cond))
   CHECK_BB(scan2_stmt(env, stmt->body))
@@ -452,6 +458,9 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
       break;
     case ae_stmt_for:
       NSPC(ret = scan2_stmt_for(env, &stmt->d.stmt_for))
+      break;
+    case ae_stmt_auto:
+      NSPC(ret = scan2_stmt_auto(env, &stmt->d.stmt_auto))
       break;
     case ae_stmt_loop:
       NSPC(ret = scan2_stmt_loop(env, &stmt->d.stmt_loop))

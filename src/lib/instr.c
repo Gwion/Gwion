@@ -491,6 +491,15 @@ INSTR(stop_gc) {
     release(o, shred);
 }
 
+INSTR(AutoLoop) {
+  M_Object o =  *(M_Object*)REG(-SZ_INT);
+  if(*(m_uint*)MEM(instr->m_val) != m_vector_size(ARRAY(o))) { // put vector size in mem at first run ?
+    m_vector_get(ARRAY(o), *(m_uint*)MEM(instr->m_val), MEM(instr->m_val + SZ_INT));
+    (*(m_uint*)MEM(instr->m_val))++;
+  }
+  else
+    shred->next_pc = instr->m_val2;
+}
 
 #ifdef GWCOV
 INSTR(InstrCoverage) {
