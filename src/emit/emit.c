@@ -1193,9 +1193,11 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
 
 static m_bool emit_stmt_auto(Emitter emit, Stmt_Auto stmt) {
   m_uint start, offset;
-  Instr loop, tgt;
+  Instr s1, s2, loop, tgt;
 
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
+  s1 = emitter_add_instr(emit, Mem_Set_Imm);
+  s2 = emitter_add_instr(emit, Mem_Set_Imm);
   start  = emit_code_size(emit);
   loop = emitter_add_instr(emit, AutoLoop);
   offset = emit_alloc_local(emit, 2*SZ_INT, 0);
@@ -1204,6 +1206,10 @@ static m_bool emit_stmt_auto(Emitter emit, Stmt_Auto stmt) {
   tgt = emitter_add_instr(emit, Goto);
   tgt->m_val = start;
   loop->m_val = offset;
+  s1->m_val = offset;
+  s2->m_val = offset + SZ_INT;
+  if(stmt->is_ptr)
+    *(Type*)loop->ptr = stmt->v->m_type;
   loop->m_val2 = emit_code_size(emit);
   return 1;
 }

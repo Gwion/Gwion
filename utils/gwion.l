@@ -134,6 +134,7 @@ static int adjust(void* data);
 "enum"                              { adjust(yyscanner); return ENUM;}
 "typeof"                            { adjust(yyscanner); return TYPEOF;}
 "const"                             { adjust(yyscanner); return CONST;}
+"auto_ptr"                          { adjust(yyscanner); return AUTO_PTR;}
 "auto"                              { adjust(yyscanner); return AUTO;}
 
 

@@ -90,7 +90,6 @@ Nspc new_nspc(m_str name, m_str filename) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   a->filename        = filename;
-  vector_init(&a->vtable);
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);

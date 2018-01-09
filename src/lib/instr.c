@@ -493,12 +493,28 @@ INSTR(stop_gc) {
 
 INSTR(AutoLoop) {
   M_Object o =  *(M_Object*)REG(-SZ_INT);
+  M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
+  Type t = *(Type*)instr->ptr;
+  if(t) {
+    if(!*(m_uint*)MEM(instr->m_val)) {
+      ptr = new_M_Object(NULL);
+      initialize_object(ptr, t);
+      *(M_Object*)MEM(instr->m_val + SZ_INT) = ptr;
+    } else
+        release(ptr, shred);
+  }
   if(*(m_uint*)MEM(instr->m_val) != m_vector_size(ARRAY(o))) { // put vector size in mem at first run ?
-    m_vector_get(ARRAY(o), *(m_uint*)MEM(instr->m_val), MEM(instr->m_val + SZ_INT));
+   if(t)
+      *(char**)ptr->data = m_vector_addr(ARRAY(o), *(m_uint*)MEM(instr->m_val));
+    else
+      m_vector_get(ARRAY(o), *(m_uint*)MEM(instr->m_val), MEM(instr->m_val + SZ_INT));
     (*(m_uint*)MEM(instr->m_val))++;
   }
-  else
+  else {
+    if(t)
+      release(ptr, shred);
     shred->next_pc = instr->m_val2;
+  }
 }
 
 #ifdef GWCOV

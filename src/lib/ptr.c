@@ -62,7 +62,7 @@ static OP_CHECK(opck_ptr_assign) {
 static INSTR(instr_ptr_assign) {
   POP_REG(shred, SZ_INT * 2)
   M_Object o = *(M_Object*)REG(SZ_INT);
-  *(m_uint*)o->data = *(m_uint**)REG(0);
+  *(m_uint**)o->data = *(m_uint**)REG(0);
   PUSH_REG(shred, SZ_INT)
 }
 
@@ -94,7 +94,7 @@ INSTR(Cast2Ptr) {
   POP_REG(shred, instr->m_val)
   M_Object o = new_M_Object(shred);
   o->data = malloc(SZ_INT);
-  *(m_uint*)o->data = *(m_uint**)REG(0);
+  *(m_uint**)o->data = *(m_uint**)REG(0);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)
 }

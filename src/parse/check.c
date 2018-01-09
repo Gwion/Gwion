@@ -1169,12 +1169,27 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
 
 static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
   Type t = check_exp(env, stmt->exp);
+  Type ptr = t->d.array_type;
   CHECK_OB(t)
   if(isa(t, &t_array) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos, "type '%s' is not array.\n"
           " This is not allowed in auto loop", t->name))
-  t = t->array_depth - 1 ? new_array_type(env, t->array_depth - 1, t, env->curr) :
-     t->d.array_type;
+  if(stmt->is_ptr) {
+    struct ID_List_   id;
+    struct Type_List_ tl;
+    Type_Decl td;
+    memset(&id, 0, sizeof(struct ID_List_));
+    memset(&tl, 0, sizeof(struct Type_List_));
+    memset(&td, 0, sizeof(Type_Decl));
+    id.xid = insert_symbol(ptr->name);
+    tl.list = &id;
+    td.types = &tl;
+    ptr = scan_type(env, &t_ptr, &td);
+    if(!ptr->info->offset) // no pointer of that type checked yet
+      check_class_def(env, ptr->e.def);
+  }
+  t = t->array_depth - 1 ? new_array_type(env, t->array_depth - 1, ptr, env->curr) :
+     ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, ae_flag_checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
@@ -1437,6 +1452,8 @@ static m_bool check_parent_match(Env env, Func_Def f) {
     parent = parent->parent;
   }
   if(GET_FLAG(func, ae_flag_member) && !parent_match) {
+    if(!env->curr->vtable.ptr)
+      vector_init(&env->curr->vtable);
     func->vt_index = vector_size(&env->curr->vtable);
     vector_add(&env->curr->vtable, (vtype)func);
   }
@@ -1586,7 +1603,8 @@ m_bool check_class_def(Env env, Class_Def class_def) {
   else
     the_class->parent = &t_object;
   the_class->info->offset = the_class->parent->info->offset;
-  vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
+  if(the_class->parent->info->vtable.ptr)
+    vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
 
   CHECK_BB(env_push_class(env, the_class))
   while(body) {

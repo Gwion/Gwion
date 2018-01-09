@@ -60,6 +60,7 @@ Class_Def template_class(Env env, Class_Def def, Type_List call) {
   CHECK_BO(template_match(def->types, call)) // err_msg ?
   name = template_id(env, def, call);
   if((t = nspc_lookup_type1(env->curr, name->xid))) {
+    free_id_list(name);
     ADD_REF(t)
     return t->e.def;
   }

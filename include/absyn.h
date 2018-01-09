@@ -349,7 +349,8 @@ struct Stmt_Auto_ {
   S_Symbol sym;
   Exp exp;
   Stmt body;
-  Value v;
+  Value v; // is this useful ?
+  m_bool is_ptr;
   int pos;
 };
 struct Stmt_Loop_ {

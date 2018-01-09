@@ -10,7 +10,9 @@ m_bool import_shred(Importer importer);
 m_bool import_event(Importer importer);
 m_bool import_ugen(Importer importer);
 m_bool import_array(Importer importer);
+m_bool import_ptr(Importer importer);
 
+m_bool import_pair(Importer importer);
 m_bool import_fileio(Importer importer);
 m_bool import_std(Importer importer);
 m_bool import_math(Importer importer);

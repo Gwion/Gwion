@@ -10,7 +10,7 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list);
 m_bool scan1_class_def(Env env, Class_Def class_def);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
-static Type scan_type(Env env, Type t, Type_Decl* type) {
+Type scan_type(Env env, Type t, Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(!type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
