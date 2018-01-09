@@ -34,6 +34,7 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp) {
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
   CHECK_BB(template_push_types(env, decl->base->types, decl->type->types))
   CHECK_BB(check_class_def(env, decl->m_type->e.def))
+  nspc_pop_type(env->curr);
   return 1;
 }
 
@@ -96,8 +97,6 @@ Type check_exp_decl(Env env, Exp_Decl* decl) {
     CHECK_BO(check_exp_decl_valid(env, value, var->xid))
     list = list->next;
   }
-  if(GET_FLAG(decl->m_type , ae_flag_template))
-    nspc_pop_type(env->curr);
   return decl->m_type;
 }
 

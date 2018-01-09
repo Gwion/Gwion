@@ -17,9 +17,8 @@ static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   if(GET_FLAG(type, ae_flag_template)) {
     CHECK_BB(template_push_types(env, decl->base->types, decl->type->types));
     CHECK_BB(scan2_class_def(env, type->e.def))
+    nspc_pop_type(env->curr);
   }
-  else if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    template_push_types(env, env->class_def->e.def->types, decl->type->types);
   return 1;
 }
 
@@ -36,9 +35,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(scan2_exp(env, list->self->array->exp_list))
     list = list->next;
   }
-  if(GET_FLAG(type, ae_flag_template) ||
-      (env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
-    nspc_pop_type(env->curr);
   return 1;
 }
 

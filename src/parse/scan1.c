@@ -22,6 +22,7 @@ static Type scan_type(Env env, Type t, Type_Decl* type) {
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BO(scan1_class_def(env, a))
+    nspc_pop_type(env->curr);
     a->tref = t->e.def->types;
     a->base = type->types;
     t = a->type;
@@ -32,29 +33,13 @@ static Type scan_type(Env env, Type t, Type_Decl* type) {
 }
 
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
+  t = scan_type(env, t, decl->type);
   if(GET_FLAG(t, ae_flag_template)) {
-    if(!decl->type->types)
-      CHECK_BB(err_msg(SCAN1_, decl->pos, "you must provide template types"))
     decl->base = t->e.def;
-    Class_Def a = template_class(env, t->e.def, decl->type->types);
-    CHECK_BB(template_push_types(env, t->e.def->types, decl->type->types))
-    CHECK_BB(scan0_class_def(env, a))
-    SET_FLAG(a->type, ae_flag_template);
-    SET_FLAG(a->type, ae_flag_ref);
-    if(GET_FLAG(t, ae_flag_builtin))
-      SET_FLAG(a->type, ae_flag_builtin);
-    CHECK_BB(scan1_class_def(env, a))
-    decl->m_type = a->type;
-    a->tref = t->e.def->types;
-    a->base = decl->type->types;
-  } else if( decl->type->types)
-      CHECK_BB(err_msg(SCAN1_, decl->pos,
-            "type '%s' is not template", t->name))
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
-    if(GET_FLAG(env->class_def, ae_flag_builtin))
-    decl->m_type = NULL;
-    decl->num_decl = 0;
+    decl->m_type = t;
   }
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    decl->num_decl = 0;
   return 1;
 }
 
@@ -147,8 +132,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
-  if(decl->type->types)
-    nspc_pop_type(env->curr);
   if(!decl->m_type)
     decl->m_type = t;
   return 1;
@@ -366,8 +349,8 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
             "%Q unknown type in argument %i", path, count))
     }
     CHECK_OB((arg_list->type = scan_type(env, arg_list->type, arg_list->type_decl)))
-if(arg_list->type_decl->types)
-    ADD_REF(arg_list->type)
+    if(arg_list->type_decl->types)
+      ADD_REF(arg_list->type)
     arg_list = arg_list->next;
   }
   return count;

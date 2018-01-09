@@ -83,6 +83,7 @@ static m_bool import_core_libs(Importer importer) {
 
 static m_bool import_other_libs(Importer importer) {
   importer->env->type_xid = te_last;
+  CHECK_BB(import_pair(importer))
   CHECK_BB(import_fileio(importer))
   CHECK_BB(import_std(importer))
   CHECK_BB(import_math(importer))
