@@ -134,6 +134,8 @@ void free_id_list(ID_List a) {
 }
 
 void free_type_decl(Type_Decl* a) {
+  if(a->types)
+    free_type_list(a->types);
   if(a->array)
     free_array_sub(a->array);
   free_id_list(a->xid);
@@ -931,8 +933,9 @@ static void free_section(Section* section) {
       free_stmt_list(section->d.stmt_list);
       break;
     case ae_section_func:
-      free_stmt(section->d.func_def->code);
-      if(!section->d.func_def->d.func)
+      if(section->d.func_def->code)
+        free_stmt(section->d.func_def->code);
+      if(!section->d.func_def->d.func || GET_FLAG(section->d.func_def, ae_flag_builtin))
         free_func_def(section->d.func_def);
       break;
   }

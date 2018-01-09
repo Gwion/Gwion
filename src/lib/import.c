@@ -265,7 +265,6 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     }
     return 1;
   }
-  else
   CHECK_BB(traverse_decl(importer->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, ae_flag_builtin);
   dl_var_release(v);
@@ -357,6 +356,17 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
     def = calloc(1, sizeof(struct Class_Def_));
     def->types = templater_def(&importer->templater);
     SET_FLAG(def, ae_flag_template);
+  }
+  if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
+    Section* section = new_section_func_def(def, 0);
+    Class_Body body = new_class_body(section, NULL, 0);
+    if(!importer->env->class_def->e.def->body)
+      importer->env->class_def->e.def->body = importer->body = body;
+    else {
+      importer->body->next = body;
+      importer->body = body;
+    }
+    return 1;
   }
   if(traverse_func_def(importer->env, def) < 0) {
     free_func_def(def);
