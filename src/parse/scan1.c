@@ -36,6 +36,14 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
   return t;
 }
 
+m_bool type_unknown(ID_List id, m_str orig) {
+  char path[id_list_len(id)];
+  type_path(path, id);
+  CHECK_BB(err_msg(SCAN1_, id->pos,
+        "'%s' unknown type in %s", path, orig))
+  return -1;
+}
+
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
@@ -50,8 +58,7 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
 static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
   Type t = find_type(env, decl->type->xid);
   if(!t)
-    CHECK_BO(err_msg(SCAN1_, decl->pos, "type '%s' unknown in declaration ",
-          s_name(decl->type->xid->xid)))
+    CHECK_BO(type_unknown(decl->type->xid, "declaration"))
   if(!t->size)
     CHECK_BO(err_msg(SCAN1_, decl->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
@@ -346,12 +353,8 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
   m_int count = 0;
   while(arg_list) {
     count++;
-    if(!(arg_list->type = find_type(env, arg_list->type_decl->xid))) {
-      char path[id_list_len(arg_list->type_decl->xid)];
-      type_path(path, arg_list->type_decl->xid);
-      CHECK_BB(err_msg(SCAN1_, arg_list->pos,
-            "%Q unknown type in argument %i", path, count))
-    }
+    if(!(arg_list->type = find_type(env, arg_list->type_decl->xid)))
+      CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument")) // TODO: use count
     CHECK_OB((arg_list->type = scan_type(env, arg_list->type, arg_list->type_decl)))
     if(arg_list->type_decl->types)
       ADD_REF(arg_list->type)
@@ -361,10 +364,9 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
 }
 
 m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
-  ptr->ret_type = find_type(env, ptr->type->xid);
-  if(!ptr->ret_type)
-    CHECK_BB(err_msg(SCAN1_, ptr->pos,
-          "unknown type '%s' in func ptr declaration",  s_name(ptr->xid)))
+  if(!(ptr->ret_type = find_type(env, ptr->type->xid)))
+      CHECK_BB(type_unknown(ptr->type->xid, "function pointer return type")) // TODO: use count
+  CHECK_OB((ptr->ret_type = scan_type(env, ptr->ret_type, ptr->type)))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "can't declare func pointer static outside of a class"))
@@ -499,10 +501,9 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
 }
 
 static m_bool scan1_func_def_type(Env env, Func_Def f) {
-  f->ret_type = find_type(env, f->type_decl->xid);
-  if(!f->ret_type)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "unknown return type '%s'",
-                     s_name(f->type_decl->xid->xid)))
+  if(!(f->ret_type = find_type(env, f->type_decl->xid)))
+      CHECK_BB(type_unknown(f->type_decl->xid, "function return type"))
+  CHECK_OB((f->ret_type = scan_type(env, f->ret_type, f->type_decl)))
   if(f->type_decl->array)
     CHECK_BB(scan1_func_def_array(env, f))
   return 1;

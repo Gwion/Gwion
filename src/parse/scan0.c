@@ -30,17 +30,12 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
 static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
   Type base = find_type(env, stmt->type->xid);
   Value v = nspc_lookup_value1(env->curr, stmt->xid);
+  if(!base)
+    CHECK_BB(type_unknown(stmt->type->xid, "typedef"))
   if(v)
     CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
-  if(!base) {
-    char c[id_list_len(stmt->type->xid)];
-    type_path(c, stmt->type->xid);
-    CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
-          "type '%s' unknown in typedef '%s'",
-          s_name(stmt->type->xid->xid), s_name(stmt->xid)))
-  }
   if(stmt->type->array) {
     Type t = base;
     base = new_array_type(env, stmt->type->array->depth, t, env->curr);

@@ -1,2 +1,2 @@
-// [contains] unknown type in argument
+// [contains] unknown type in
  typedef void(my_func)(unknown_type type);

@@ -37,4 +37,5 @@ Class_Def env_class_def(Env env, Class_Def def);
 m_str env_filename(Env env);
 Type scan_type(Env env, Type t, Type_Decl* decl);
 m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos);
+m_bool type_unknown(Type_Decl* td, m_str orig);
 #endif

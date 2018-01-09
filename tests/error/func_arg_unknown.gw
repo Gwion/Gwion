@@ -1,2 +1,2 @@
-// [contains] unknown type in argument
+// [contains] unknown type in
  function void my_func(unknown_type unknown_arg){}

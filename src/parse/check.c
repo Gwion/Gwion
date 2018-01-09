@@ -14,7 +14,7 @@
 #define OP_RET(a, b)\
   Type op_ret = op_check(env, &opi);\
   if(!op_ret)\
-    CHECK_BO(err_msg(TYPE_, a->pos, b))\
+    CHECK_BO(err_msg(TYPE_, a->pos, "in %s expression", b))\
   return op_ret;
 
 static Type   check_exp(Env env, Exp exp);
@@ -506,11 +506,9 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     Func_Def def = NULL;
     char name[len + digit + 13];
     sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
-    value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
-            nspc_lookup_value1(env->curr, insert_symbol(name));
-    if(!value) // should be continue, for sure
-      CHECK_BO(err_msg(TYPE_, func->pos,
-            " %s unknown argument in template  call.", name))
+    if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
+            nspc_lookup_value1(env->curr, insert_symbol(name))))
+      continue;
     base = value->func_ref->def;
     UNSET_FLAG(base, ae_flag_template);
     def = new_func_def(base->flag,
@@ -797,18 +795,15 @@ static Type check_exp_binary(Env env, Exp_Binary* bin) {
   CHECK_BO(multi_decl(bin->rhs, bin->op));
   CHECK_OO((opi.lhs = check_exp(env, bin->lhs)))
   CHECK_OO((opi.rhs = check_exp(env, bin->rhs)))
-  OP_RET(bin, "in binary expression")
+  OP_RET(bin, "binary")
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
-  Type t = check_exp(env, cast->exp);
+  Type t2, t = check_exp(env, cast->exp);
   if(!t) return NULL;
-  Type t2 = find_type(env, cast->type->xid);
-  if(!t2) {
-    char path[id_list_len(cast->type->xid)];
-    type_path(path, cast->type->xid);
-    CHECK_BO(err_msg(TYPE_, cast->pos, "unknown type '%s' in cast expression.", path))
-  }
+  if(!(t2 = find_type(env, cast->type->xid)))
+    CHECK_BO(type_unknown(cast->type->xid, "cast expression"))
+  CHECK_OO((t2 = scan_type(env, t2, cast->type)))
   if(cast->type->array) {
     t2 = new_array_type(env, cast->type->array->depth, t2, env->curr);
     cast->t = t2;
@@ -816,13 +811,14 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
   cast->self->type = t2;
   struct Op_Import opi = { op_dollar, t, t2, NULL,
     NULL, NULL, (uintptr_t)cast };
-  OP_RET(cast, "in cast expression")
+  OP_RET(cast, "cast")
 }
+
 static Type check_exp_post(Env env, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, check_exp(env, post->exp), NULL, NULL,
     NULL, NULL, (uintptr_t)post };
   CHECK_OO(opi.lhs)
-  OP_RET(post, "in postfix expression");
+  OP_RET(post, "postfix");
 }
 
 static Type check_exp_dur(Env env, Exp_Dur* dur) {
@@ -929,7 +925,7 @@ switch(unary->op) {
       break;
   }
   opi.rhs = unary->exp->type;
-  OP_RET(unary, "in unary expression")
+  OP_RET(unary, "unary")
 }
 
 static Type check_exp_if(Env env, Exp_If* exp_if) {

@@ -233,10 +233,8 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
               "template call of non-template function."))
       Type_List list = exp_func->types;
       while(list) {
-        if(!find_type(env, list->list)) {
-          CHECK_BB(err_msg(SCAN1_, exp_func->pos,
-                "type '%s' unknown in template call", s_name(list->list->xid)))
-        }
+        if(!find_type(env, list->list))
+          CHECK_BB(type_unknown(list->list, "template call"))
         list = list->next;
       }
       if(scan2_template_match(env, v, exp_func->types) < 0)

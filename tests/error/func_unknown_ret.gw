@@ -1,2 +1,2 @@
-// [contains] unknown return type
+// [contains] unknown type in
  function unknwon_type my_function(){}

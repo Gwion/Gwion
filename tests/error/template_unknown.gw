@@ -1,4 +1,4 @@
-// [contains] unknown in template call
+// [contains] unknown type in
  template<{my_type}>
 function void my_function() {}
 
