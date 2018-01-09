@@ -14,8 +14,12 @@ static Type scan_type(Env env, Type t, Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(!type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
-    Class_Def a = template_class(env, t->e.def, type->types);
     CHECK_BO(template_push_types(env, t->e.def->types, type->types))
+    Class_Def a = template_class(env, t->e.def, type->types);
+    if(a->type) {
+      nspc_pop_type(env->curr);
+      return a->type;
+    }
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
@@ -33,7 +37,7 @@ static Type scan_type(Env env, Type t, Type_Decl* type) {
 }
 
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
-  t = scan_type(env, t, decl->type);
+  CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
     decl->base = t->e.def;
     decl->m_type = t;

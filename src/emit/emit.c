@@ -1840,8 +1840,11 @@ static Code* emit_class_code(Emitter emit, m_str name) {
 
 static m_bool emit_class_finish(Emitter emit, Nspc nspc) {
   CHECK_OB(emitter_add_instr(emit, Func_Return))
-  free_vm_code(nspc->pre_ctor);
-  nspc->pre_ctor = emit_code(emit);
+  VM_Code code = emit_code(emit);
+  free(nspc->pre_ctor->name);
+  free(nspc->pre_ctor->filename);
+  memcpy(nspc->pre_ctor, code, sizeof(struct VM_Code_));
+  free(code);
   return 1;
 }
 

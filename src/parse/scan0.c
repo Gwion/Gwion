@@ -170,7 +170,11 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
     env_nspc(env) : env->curr;
   the_class->e.def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
-  nspc_add_type(env->curr, class_def->name->xid, the_class);
+  if(strstr(the_class->name, "<")) {
+    nspc_add_type(env->curr->parent, class_def->name->xid, the_class);
+    ADD_REF(the_class);
+  } else
+    nspc_add_type(env->curr, class_def->name->xid, the_class);
   if(class_def->types)
     SET_FLAG(the_class, ae_flag_template);
   return the_class;
