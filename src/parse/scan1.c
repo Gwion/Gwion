@@ -495,7 +495,6 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
       "in function '%s':\n\treturn array type must be defined with empty []'s",
       s_name(f->name)))
   t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
-  SET_FLAG(f->type_decl, ae_flag_ref);
   f->ret_type = t;
   return 1;
 }

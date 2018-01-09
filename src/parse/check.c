@@ -910,7 +910,7 @@ switch(unary->op) {
       break;
   case op_new:
     if(!(t = find_type(env, unary->type->xid)))
-      CHECK_BO(err_msg(TYPE_,  unary->pos,  "... in 'new' expression ..."))
+      CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
       if(unary->array) {
         CHECK_OO(check_exp(env, unary->array->exp_list))
         CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
@@ -1565,14 +1565,9 @@ static m_bool check_section(Env env, Section* section) {
 
 static m_bool check_class_parent(Env env, Class_Def class_def) {
   Type t_parent = find_type(env, class_def->ext);
-
-  if(!t_parent) {
-    char path[id_list_len(class_def->ext)];
-    type_path(path, class_def->ext);
-    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-            "undefined parent class '%s' in definition of class '%s'",
-            path, s_name(class_def->name->xid)))
-  }
+  if(!t_parent)
+    CHECK_BB(type_unknown(class_def->ext, "child class definition"))
+//            "undefined parent class '%s' in definition of class '%s'",
   if(isprim(t_parent) > 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend primitive type '%s'", t_parent->name))

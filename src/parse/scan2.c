@@ -64,7 +64,6 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
           s_name(list->var_decl->xid)))
   list->type  = new_array_type(env, list->var_decl->array->depth,
       list->type, env->curr);
-  SET_FLAG(list->type, ae_flag_ref);
   return 1;
 }
 
