@@ -36,6 +36,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
+  CHECK_OB((base = scan_type(env, base, stmt->type)))
   if(stmt->type->array) {
     Type t = base;
     base = new_array_type(env, stmt->type->array->depth, t, env->curr);

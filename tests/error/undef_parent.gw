@@ -1,2 +1,2 @@
-// [contains] undefined parent class
+// [contains] unknown type in
 class C extends Undefined {}

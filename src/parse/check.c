@@ -890,27 +890,28 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
   if(unary->code)
     CHECK_BO(check_stmt(env, unary->code))
 
-switch(unary->op) {
-  case op_plusplus:
-  case op_minusminus:
-    break;
-  case op_minus:
-  case op_tilda:
-  case op_exclamation:
-    unary->self->meta = ae_meta_value;
-    break;
-  case op_spork:
-    if(unary->exp && unary->exp->exp_type == ae_exp_call)
-      return &t_shred;
-    else if(unary->code) {
-      return check_exp_unary_spork(env, unary->code);
-    } else
-      CHECK_BO(err_msg(TYPE_,  unary->pos,
-            "only function calls can be sporked..."))
+  switch(unary->op) {
+    case op_plusplus:
+    case op_minusminus:
       break;
-  case op_new:
-    if(!(t = find_type(env, unary->type->xid)))
-      CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
+    case op_minus:
+    case op_tilda:
+    case op_exclamation:
+      unary->self->meta = ae_meta_value;
+      break;
+    case op_spork:
+      if(unary->exp && unary->exp->exp_type == ae_exp_call)
+        return &t_shred;
+      else if(unary->code) {
+        return check_exp_unary_spork(env, unary->code);
+      } else
+        CHECK_BO(err_msg(TYPE_,  unary->pos,
+              "only function calls can be sporked..."))
+      break;
+    case op_new:
+      if(!(t = find_type(env, unary->type->xid)))
+        CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
+      CHECK_OO((t = scan_type(env, t, unary->type)))
       if(unary->array) {
         CHECK_OO(check_exp(env, unary->array->exp_list))
         CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
