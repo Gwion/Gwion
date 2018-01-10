@@ -124,8 +124,7 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
       CHECK_BO(check_exp_prim_array_inner(t, type, e))
     e = e->next;
   }
-  return new_array_type(env, type->array_depth + 1,
-                     type->array_depth ? type->d.array_type : type,  env->curr);
+  return new_array_type(type->array_depth + 1, type->array_depth ? type->d.array_type : type);
 }
 
 static Type check_exp_prim_array(Env env, Array_Sub array) {
@@ -805,7 +804,7 @@ static Type check_exp_cast(Env env, Exp_Cast* cast) {
     CHECK_BO(type_unknown(cast->type->xid, "cast expression"))
   CHECK_OO((t2 = scan_type(env, t2, cast->type)))
   if(cast->type->array) {
-    t2 = new_array_type(env, cast->type->array->depth, t2, env->curr);
+    t2 = new_array_type(cast->type->array->depth, t2);
     cast->t = t2;
   }
   cast->self->type = t2;
@@ -915,7 +914,7 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
       if(unary->array) {
         CHECK_OO(check_exp(env, unary->array->exp_list))
         CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
-        t = new_array_type(env, unary->array->depth, t, env->curr);
+        t = new_array_type(unary->array->depth, t);
       } else if(isa(t, &t_object) < 0) {
         CHECK_BO(err_msg(TYPE_, unary->pos,
               "cannot instantiate/(new) primitive type '%s'...\n"
@@ -1185,7 +1184,7 @@ static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
     if(!ptr->info->offset) // no pointer of that type checked yet
       check_class_def(env, ptr->e.def);
   }
-  t = t->array_depth - 1 ? new_array_type(env, t->array_depth - 1, ptr, env->curr) :
+  t = t->array_depth - 1 ? new_array_type(t->array_depth - 1, ptr) :
      ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, ae_flag_checked);

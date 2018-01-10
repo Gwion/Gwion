@@ -204,7 +204,7 @@ SFUN(file_list) {
     *(m_uint*)RETURN = 0;
     return;
   }
-  Type t = new_array_type(shred->vm_ref->emit->env,  1, &t_string, shred->vm_ref->emit->env->curr);
+  Type t = new_array_type(1, &t_string);
   M_Object ret = new_M_Array(SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
   ret->type_ref = t;

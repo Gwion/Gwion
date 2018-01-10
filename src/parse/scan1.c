@@ -109,7 +109,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       }
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-      t = new_array_type(env, depth, t2, env->curr);
+      t = new_array_type(depth, t2);
       if(!list->self->array->exp_list)
         SET_FLAG(decl->type, ae_flag_ref);
       if(t2->array_depth) {
@@ -494,7 +494,7 @@ static m_int scan1_func_def_array(Env env, Func_Def f) {
     CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
       "in function '%s':\n\treturn array type must be defined with empty []'s",
       s_name(f->name)))
-  t = new_array_type(env, f->type_decl->array->depth, t2, env->curr);
+  t = new_array_type(f->type_decl->array->depth, t2);
   f->ret_type = t;
   return 1;
 }

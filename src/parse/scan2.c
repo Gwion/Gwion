@@ -62,8 +62,7 @@ static m_bool scan2_arg_def_array(Env env, Arg_List list) {
     CHECK_BB(err_msg(SCAN2_, list->pos,
           "\t'%s': function arguments must be defined with empty []'s",
           s_name(list->var_decl->xid)))
-  list->type  = new_array_type(env, list->var_decl->array->depth,
-      list->type, env->curr);
+  list->type  = new_array_type(list->var_decl->array->depth, list->type);
   return 1;
 }
 

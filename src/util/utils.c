@@ -103,7 +103,8 @@ void type_path(char* str, ID_List list) {
   }
 }
 
-Type new_array_type(Env env, m_uint depth, Type base, Nspc owner_nspc) {
+//Type new_array_type(Env env, m_uint depth, Type base, Nspc owner_nspc) {
+Type new_array_type(m_uint depth, Type base) {
   m_uint i = depth;
   Type t;
   S_Symbol sym;
