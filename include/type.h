@@ -47,6 +47,7 @@ m_bool isprim(Type type);
 m_bool isa(Type var, Type parent);
 m_bool isres(S_Symbol xid, m_uint pos);
 Type array_type(Type base_type, m_uint depth);
+Type get_array(Type t, Array_Sub a, m_str orig);
 Type find_common_anc(Type lhs, Type rhs);
 m_uint id_list_len(ID_List list);
 void type_path(m_str str, ID_List path);

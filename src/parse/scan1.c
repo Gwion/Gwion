@@ -44,6 +44,13 @@ m_bool type_unknown(ID_List id, m_str orig) {
   return -1;
 }
 
+Type get_array(Type t, Array_Sub a, m_str orig) {
+  if(a->exp_list)
+    CHECK_BO(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
+          " in %s declaration", orig))
+   return array_type(t, a->depth);
+}
+
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
@@ -367,6 +374,8 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
   if(!(ptr->ret_type = find_type(env, ptr->type->xid)))
       CHECK_BB(type_unknown(ptr->type->xid, "function pointer return type")) // TODO: use count
   CHECK_OB((ptr->ret_type = scan_type(env, ptr->ret_type, ptr->type)))
+  if(ptr->type->array)
+    CHECK_OB((ptr->ret_type = get_array(ptr->ret_type, ptr->type->array, "function pointer")))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "can't declare func pointer static outside of a class"))
@@ -486,25 +495,12 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list) {
   return 1;
 }
 
-static m_int scan1_func_def_array(Env env, Func_Def f) {
-  Type t = NULL;
-  Type t2 = f->ret_type;
-
-  if(f->type_decl->array->exp_list)
-    CHECK_BB(err_msg(SCAN1_, f->type_decl->array->pos,
-      "in function '%s':\n\treturn array type must be defined with empty []'s",
-      s_name(f->name)))
-  t = array_type(t2, f->type_decl->array->depth);
-  f->ret_type = t;
-  return 1;
-}
-
 static m_bool scan1_func_def_type(Env env, Func_Def f) {
   if(!(f->ret_type = find_type(env, f->type_decl->xid)))
-      CHECK_BB(type_unknown(f->type_decl->xid, "function return type"))
+      CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
   CHECK_OB((f->ret_type = scan_type(env, f->ret_type, f->type_decl)))
   if(f->type_decl->array)
-    CHECK_BB(scan1_func_def_array(env, f))
+    CHECK_OB((f->ret_type = get_array(f->ret_type, f->type_decl->array, "function return")))
   return 1;
 }
 

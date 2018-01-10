@@ -798,17 +798,14 @@ static Type check_exp_binary(Env env, Exp_Binary* bin) {
 }
 
 static Type check_exp_cast(Env env, Exp_Cast* cast) {
-  Type t2, t = check_exp(env, cast->exp);
+  Type t = check_exp(env, cast->exp);
   if(!t) return NULL;
-  if(!(t2 = find_type(env, cast->type->xid)))
+  if(!(cast->self->type = find_type(env, cast->type->xid)))
     CHECK_BO(type_unknown(cast->type->xid, "cast expression"))
-  CHECK_OO((t2 = scan_type(env, t2, cast->type)))
-  if(cast->type->array) {
-    t2 = array_type(t2, cast->type->array->depth);
-    cast->t = t2;
-  }
-  cast->self->type = t2;
-  struct Op_Import opi = { op_dollar, t, t2, NULL,
+  CHECK_OO((cast->self->type = scan_type(env, cast->self->type, cast->type)))
+  if(cast->type->array)
+    CHECK_OO((cast->self->type = get_array(cast->self->type, cast->type->array, "cast")))
+  struct Op_Import opi = { op_dollar, t, cast->self->type, NULL,
     NULL, NULL, (uintptr_t)cast };
   OP_RET(cast, "cast")
 }

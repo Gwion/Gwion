@@ -57,15 +57,6 @@ static m_bool scan2_arg_def_check(Arg_List list) {
   return 1;
 }
 
-static m_bool scan2_arg_def_array(Env env, Arg_List list) {
-  if(list->var_decl->array->exp_list)
-    CHECK_BB(err_msg(SCAN2_, list->pos,
-          "\t'%s': function arguments must be defined with empty []'s",
-          s_name(list->var_decl->xid)))
-  list->type  = array_type(list->type, list->var_decl->array->depth);
-  return 1;
-}
-
 static m_bool scan2_arg_def(Env env, Func_Def f) {
   Arg_List list = f->arg_list;
   m_uint count = 1;
@@ -73,7 +64,7 @@ static m_bool scan2_arg_def(Env env, Func_Def f) {
   while(list) {
     Value v;
     if(scan2_arg_def_check(list) < 0 ||
-        (list->var_decl->array && scan2_arg_def_array(env, list) < 0)) {
+        (list->var_decl->array && !(list->type = get_array(list->type, list->var_decl->array, "argument")))) {
       nspc_pop_value(env->curr);
       return -1;
     }
