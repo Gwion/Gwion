@@ -382,7 +382,7 @@ static Type get_type(Env env, const m_str str) {
   Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(list);
-  return t ? (depth ? new_array_type(depth, t) : t) : NULL;
+  return t ? (depth ? array_type(t, depth) : t) : NULL;
 }
 
 static m_int import_op(Env env, DL_Oper* op,

@@ -39,7 +39,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
   CHECK_OB((base = scan_type(env, base, stmt->type)))
   if(stmt->type->array) {
     Type t = base;
-    base = new_array_type(stmt->type->array->depth, t);
+    base = array_type(t, stmt->type->array->depth);
     base->e.exp_list = stmt->type->array->exp_list;
   } else {
     Type t = base;
