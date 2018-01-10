@@ -132,7 +132,7 @@ Type op_check(Env env, struct Op_Import* opi) {
     }
     nspc = nspc->parent;
   }
-  (void)err_msg(TYPE_, 0, "no match found for operator.\n\t'%s' %s '%s'", 
+  (void)err_msg(TYPE_, 0, "%s %s %s: no match found for operator",
     opi->lhs ? opi->lhs == OP_ANY_TYPE ? "any" : opi->lhs->name : "",
     op2str(opi->op),
     opi->rhs ? opi->rhs == OP_ANY_TYPE ? "any" : opi->rhs->name : "");
