@@ -109,13 +109,13 @@ static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
 static m_bool scan0_Stmt(Env env, Stmt stmt) {
   if(!stmt)
     return 1;
-  if(stmt->type == ae_stmt_funcptr)
+  if(stmt->stmt_type == ae_stmt_funcptr)
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
-  else if(stmt->type == ae_stmt_typedef)
+  else if(stmt->stmt_type == ae_stmt_typedef)
     CHECK_BB(scan0_stmt_typedef(env, &stmt->d.stmt_type))
-  else if(stmt->type == ae_stmt_enum)
+  else if(stmt->stmt_type == ae_stmt_enum)
     CHECK_BB(scan0_stmt_enum(env, &stmt->d.stmt_enum))
-  else if(stmt->type == ae_stmt_union)
+  else if(stmt->stmt_type == ae_stmt_union)
     CHECK_BB(scan0_stmt_union(env, &stmt->d.stmt_union))
   return 1;
 }

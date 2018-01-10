@@ -446,7 +446,7 @@ void free_func_def(Func_Def a) {
 
 Stmt new_func_ptr_stmt(ae_flag key, S_Symbol xid, Type_Decl* decl, Arg_List args, int pos) {
   Stmt a              = calloc(1, sizeof(struct Stmt_));
-  a->type             = ae_stmt_funcptr;
+  a->stmt_type             = ae_stmt_funcptr;
   a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.type  = decl;
   a->d.stmt_ptr.xid   = xid;
@@ -458,7 +458,7 @@ Stmt new_func_ptr_stmt(ae_flag key, S_Symbol xid, Type_Decl* decl, Arg_List args
 
 Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, int pos) {
   Stmt a              = calloc(1, sizeof(struct Stmt_));
-  a->type             = ae_stmt_typedef;
+  a->stmt_type             = ae_stmt_typedef;
   a->d.stmt_type.type  = decl;
   a->d.stmt_type.xid   = xid;
   a->pos = a->d.stmt_ptr.pos  = pos;
@@ -597,7 +597,7 @@ void free_arg_list(Arg_List a) {
 
 Stmt new_stmt_exp(Exp exp, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_exp;
+  a->stmt_type = ae_stmt_exp;
   a->d.stmt_exp.val = exp;
   a->pos = a->d.stmt_exp.pos = pos;
   return a;
@@ -605,7 +605,7 @@ Stmt new_stmt_exp(Exp exp, int pos) {
 
 Stmt new_stmt_code(Stmt_List stmt_list, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_code;
+  a->stmt_type = ae_stmt_code;
   a->d.stmt_code.stmt_list = stmt_list;
   a->pos = a->d.stmt_code.pos = pos;
   return a;
@@ -617,7 +617,7 @@ static void free_stmt_code(Stmt_Code a) {
 
 Stmt new_stmt_return(Exp exp, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_return;
+  a->stmt_type = ae_stmt_return;
   a->d.stmt_return.val = exp;
   a->pos = a->d.stmt_return.pos = pos;
   return a;
@@ -629,21 +629,21 @@ __inline static void free_stmt_exp(struct Stmt_Exp_* a) {
 
 Stmt new_stmt_break(int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_break;
+  a->stmt_type = ae_stmt_break;
   a->pos = a->d.stmt_break.pos = pos;
   return a;
 }
 
 Stmt new_stmt_continue(int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_continue;
+  a->stmt_type = ae_stmt_continue;
   a->pos = a->d.stmt_continue.pos = pos;
   return a;
 }
 
 Stmt new_stmt_while(Exp cond, Stmt body, m_bool is_do, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_while;
+  a->stmt_type = ae_stmt_while;
   a->d.stmt_while.is_do = is_do;
   a->d.stmt_while.cond = cond;
   a->d.stmt_while.body = body;
@@ -659,7 +659,7 @@ static void free_stmt_flow(struct Stmt_Flow_* a) {
 
 Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_until;
+  a->stmt_type = ae_stmt_until;
   a->d.stmt_until.is_do = is_do;
   a->d.stmt_until.cond = cond;
   a->d.stmt_until.body = body;
@@ -670,7 +670,7 @@ Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, int pos) {
 
 Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_for;
+  a->stmt_type = ae_stmt_for;
   a->d.stmt_for.c1 = c1;
   a->d.stmt_for.c2 = c2;
   a->d.stmt_for.c3 = c3;
@@ -689,7 +689,7 @@ static void free_stmt_for(Stmt_For a) {
 
 Stmt new_stmt_auto(S_Symbol sym, Exp exp, Stmt body, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_auto;
+  a->stmt_type = ae_stmt_auto;
   a->d.stmt_auto.sym = sym;
   a->d.stmt_auto.exp = exp;
   a->d.stmt_auto.body = body;
@@ -706,7 +706,7 @@ static void free_stmt_auto(Stmt_Auto a) {
 
 Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_gotolabel;
+  a->stmt_type = ae_stmt_gotolabel;
   a->d.stmt_gotolabel.name = xid;
   a->d.stmt_gotolabel.is_label = is_label;
   a->pos = a->d.stmt_gotolabel.pos = pos;
@@ -715,7 +715,7 @@ Stmt new_stmt_gotolabel(S_Symbol xid, m_bool is_label, int pos) {
 
 Stmt new_stmt_loop(Exp cond, Stmt body, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_loop;
+  a->stmt_type = ae_stmt_loop;
   a->d.stmt_loop.cond = cond;
   a->d.stmt_loop.body = body;
   a->pos = a->d.stmt_loop.pos = pos;
@@ -730,7 +730,7 @@ static void free_stmt_loop(Stmt_Loop a) {
 
 Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_if;
+  a->stmt_type = ae_stmt_if;
   a->d.stmt_if.cond = cond;
   a->d.stmt_if.if_body = if_body;
   a->d.stmt_if.else_body = else_body;
@@ -747,7 +747,7 @@ static void free_stmt_if(Stmt_If a) {
 
 Stmt new_stmt_switch(Exp val, Stmt stmt, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_switch;
+  a->stmt_type = ae_stmt_switch;
   a->d.stmt_switch.val = val;
   a->d.stmt_switch.stmt = stmt;
   a->pos = a->d.stmt_switch.pos = pos;
@@ -762,7 +762,7 @@ __inline static void free_stmt_switch(Stmt_Switch a) {
 
 Stmt new_stmt_case(Exp val, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_case;
+  a->stmt_type = ae_stmt_case;
   a->d.stmt_case.val = val;
   a->pos = a->d.stmt_case.pos = pos;
   return a;
@@ -770,7 +770,7 @@ Stmt new_stmt_case(Exp val, int pos) {
 
 Stmt new_stmt_enum(ID_List list, S_Symbol xid, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_enum;
+  a->stmt_type = ae_stmt_enum;
   a->d.stmt_enum.xid = xid;
   a->d.stmt_enum.list = list;
   a->d.stmt_enum.flag = 0;
@@ -786,7 +786,7 @@ static void free_stmt_enum(Stmt_Enum a) {
 
 Stmt new_stmt_union(Decl_List l, int pos) {
   Stmt a = calloc(1, sizeof(struct Stmt_));
-  a->type = ae_stmt_union;
+  a->stmt_type = ae_stmt_union;
   a->d.stmt_union.l = l;
   vector_init(&a->d.stmt_union.v);
   a->pos = a->d.stmt_union.pos = pos;
@@ -816,7 +816,7 @@ __inline static void free_stmt_union(Stmt_Union a) {
 }
 
 void free_stmt(Stmt stmt) {
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       free_stmt_exp(&stmt->d.stmt_exp);
       break;

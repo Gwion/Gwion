@@ -431,7 +431,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
 static m_bool scan1_stmt(Env env, Stmt stmt) {
   m_bool ret = -1;
 
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       ret = scan1_exp(env, stmt->d.stmt_exp.val);
       break;

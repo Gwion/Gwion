@@ -124,7 +124,6 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
   struct Path p = { path, curr, len };
   memset(curr, 0, len + 1);
 
-
   while(p.len > 2 && path[p.len - 1] == ']' && path[p.len - 2] == '[') {
     depth++;
     p.len -= 2;

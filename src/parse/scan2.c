@@ -420,7 +420,7 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
   m_bool ret = 1;
   if(!stmt)
     return 1;
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       ret = scan2_exp(env, stmt->d.stmt_exp.val);
       break;

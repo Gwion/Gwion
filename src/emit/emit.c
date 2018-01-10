@@ -1432,9 +1432,9 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
   if(!stmt)
     return 1;
-  if(stmt->type != ae_stmt_if || stmt->type != ae_stmt_while)
+  if(stmt->stmt_type != ae_stmt_if || stmt->stmt_type != ae_stmt_while)
     COVERAGE(stmt)
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);
     case ae_stmt_code:

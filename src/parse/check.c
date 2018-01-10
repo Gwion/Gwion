@@ -1324,7 +1324,7 @@ static m_bool check_stmt(Env env, Stmt stmt) {
   m_bool ret = 1;
   if(!stmt)
     return 1;
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       if(stmt->d.stmt_exp.val)
         ret = (check_exp(env, stmt->d.stmt_exp.val) ? 1 : -1);

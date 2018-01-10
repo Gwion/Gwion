@@ -418,7 +418,7 @@ struct Stmt_Union_ {
 };
 
 struct Stmt_ {
-  ae_Stmt_Type type;
+  ae_Stmt_Type stmt_type;
   union {
     struct Stmt_Exp_        stmt_exp;
     struct Stmt_Code_       stmt_code;
@@ -436,7 +436,7 @@ struct Stmt_ {
     struct Stmt_Exp_        stmt_case;
     struct Stmt_Enum_       stmt_enum;
     struct Stmt_Ptr_        stmt_ptr;
-    struct Stmt_Typedef_     stmt_type;
+    struct Stmt_Typedef_    stmt_type;
     struct Stmt_Union_      stmt_union;
   } d;
   int pos;
@@ -493,7 +493,6 @@ void free_func_def(Func_Def def);
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {
   ae_Section_Type type;
-
   union {
     Stmt_List stmt_list;
     Class_Def class_def;

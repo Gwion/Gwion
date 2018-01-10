@@ -303,9 +303,9 @@ void tag_stmt_break(Tagger* tagger, Stmt_Break stmt) {
 }
 
 static void tag_stmt(Tagger* tagger, Stmt stmt) {
-  if(stmt->type == ae_stmt_exp && !stmt->d.stmt_exp.val)
+  if(stmt->stmt_type == ae_stmt_exp && !stmt->d.stmt_exp.val)
     return;
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       tag_exp(tagger, stmt->d.stmt_exp.val);
       break;

@@ -135,17 +135,17 @@ static void lint_type_decl(Linter* linter, Type_Decl* type) {
 }
 
 static void lint_stmt_indent(Linter* linter, Stmt stmt) {
-  if(stmt->type == ae_stmt_if) {
+  if(stmt->stmt_type == ae_stmt_if) {
     lint_print(linter, " ");
     lint_stmt_if(linter, &stmt->d.stmt_if);
     return;
-  } else if(stmt->type != ae_stmt_code) {
+  } else if(stmt->stmt_type != ae_stmt_code) {
     lint_nl(linter);
     linter->indent++;
   } else if(!linter->skip)
       lint_print(linter, " ");
   lint_stmt(linter, stmt);
-  if(stmt->type != ae_stmt_code)
+  if(stmt->stmt_type != ae_stmt_code)
     linter->indent--;
 }
 
@@ -417,19 +417,19 @@ static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
   lint_print(linter, "if(");
   lint_exp(linter, stmt->cond);
   lint_print(linter, ")");
-    if(stmt->if_body->type == ae_stmt_code)
+    if(stmt->if_body->stmt_type == ae_stmt_code)
       linter->skip++;
   lint_stmt_indent(linter, stmt->if_body);
   if(stmt->else_body) {
-    if(stmt->if_body->type != ae_stmt_code)
+    if(stmt->if_body->stmt_type != ae_stmt_code)
       lint_indent(linter);
     else
       lint_print(linter, " ");
     lint_print(linter, "else");
-    if(stmt->else_body->type == ae_stmt_code)
+    if(stmt->else_body->stmt_type == ae_stmt_code)
       linter->skip++;
     lint_stmt_indent(linter, stmt->else_body);
-    if(stmt->else_body->type == ae_stmt_code)
+    if(stmt->else_body->stmt_type == ae_stmt_code)
       lint_nl(linter);
   }
 }
@@ -524,10 +524,10 @@ void lint_stmt_break(Linter* linter, Stmt_Break stmt) {
 }
 
 static void lint_stmt(Linter* linter, Stmt stmt) {
-  if(stmt->type == ae_stmt_exp && !stmt->d.stmt_exp.val)
+  if(stmt->stmt_type == ae_stmt_exp && !stmt->d.stmt_exp.val)
     return;
   lint_indent(linter);
-  switch(stmt->type) {
+  switch(stmt->stmt_type) {
     case ae_stmt_exp:
       lint_exp(linter, stmt->d.stmt_exp.val);
         lint_print(linter, ";");
