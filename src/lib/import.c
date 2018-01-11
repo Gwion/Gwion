@@ -74,14 +74,30 @@ static m_bool check_illegal(char* curr, char c, m_uint i) {
 
 static m_bool name_valid(m_str a) {
   m_uint i, len = strlen(a);
+  m_uint lvl = 0;
   for(i = 0; i < len; i++) {
     char c = a[i];
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
         || (c == '_') || (c >= '0' && c <= '9'))
       continue;
+    if(c == '<') {
+      lvl++;
+      continue;
+    }
+    if(c == ',') {
+      if(!lvl)
+        CHECK_BB(err_msg(UTIL_,  0, "illegal use of ',' outside of templating in name '%s'...", a))
+      continue;
+    }
+    if(c == '>') {
+      if(!lvl)
+        CHECK_BB(err_msg(UTIL_,  0, "illegal templating in name '%s'...", a))
+      lvl--;
+      continue;
+    }
     CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", c, a))
   }
-  return 1;
+  return !lvl ? 1 : -1;
 }
 
 static void path_valid_inner(m_str curr) {

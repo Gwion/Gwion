@@ -50,7 +50,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     base->d.array_type = t;
     stmt->m_type = t;
   }
-  SET_FLAG(base, ae_flag_typedef);
+  SET_FLAG(base, ae_flag_typedef | ae_flag_checked);
   base->name = s_name(stmt->xid);
   nspc_add_type(env->curr, stmt->xid, base);
   v = mk_class(env, base);

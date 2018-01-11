@@ -191,17 +191,18 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
   if(type->array_depth) {
     if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
       return 1;
-    if(array)
+    if(array) {
       CHECK_BB(emit_exp(emit, array->exp_list, 0))
+    }
     Type tmp = NULL, t = type;
     while(t) {
-      if(t && GET_FLAG(t, ae_flag_typedef) && t->e.exp_list)
+      if(t && GET_FLAG(t, ae_flag_typedef) && t->e.exp_list) {
         CHECK_BB(emit_exp(emit, t->e.exp_list, 0))
+      }
       if(t->array_depth)
         tmp = t;
       t = t->d.array_type;
     }
-
     VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
     info->depth = type->array_depth;
     info->type = type;
@@ -209,6 +210,13 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     info->is_ref = is_ref;
     Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
+    if(GET_FLAG(type, ae_flag_unary)) { // only type extending from [] have this flag set
+      info->size = type->info->offset;
+      //Instr instr = emitter_add_instr(emit, ReallocData);
+      //instr->m_val = list->self->value->m_type->info->offset;
+//      printf("look %lu\n", list->self->value->m_type->info ? list->self->value->m_type->info->offset : 0);
+      emit_pre_ctor(emit, type);
+    }
     if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, tmp->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
@@ -530,7 +538,7 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
       Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
     }
-    if(is_array)
+    if(is_array || GET_FLAG(type, ae_flag_unary))
       ADD_REF(type);
   }
   return 1;
@@ -1847,10 +1855,14 @@ static Code* emit_class_code(Emitter emit, m_str name) {
 static m_bool emit_class_finish(Emitter emit, Nspc nspc) {
   CHECK_OB(emitter_add_instr(emit, Func_Return))
   VM_Code code = emit_code(emit);
+
+//if(nspc->pre_ctor) {
   free(nspc->pre_ctor->name);
   free(nspc->pre_ctor->filename);
   memcpy(nspc->pre_ctor, code, sizeof(struct VM_Code_));
   free(code);
+//} else free_vm_code(code);
+
   return 1;
 }
 

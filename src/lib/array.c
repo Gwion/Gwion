@@ -304,9 +304,10 @@ struct ArrayAllocInfo {
   m_int capacity;
   const m_int top;
   Type type;
-  m_bool is_obj;
   m_uint* objs;
   m_int* index;
+  m_uint size;
+  m_bool is_obj;
 };
 
 static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
@@ -320,6 +321,10 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
   if(!base) {
     fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
     return NULL;
+  }
+  if(info->size) {
+    base->data = realloc(base->data, info->size);
+    memset(base->data + SZ_INT, 0, info->size -SZ_INT);
   }
   base->type_ref = info->type; // /13/03/17 
   ADD_REF(info->type);
@@ -344,7 +349,7 @@ static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
   m_int i;
   for(i = 0; i < cap; i++) {
     struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
-      info->is_obj, info->objs, info->index };
+      info->objs, info->index, info->size, info->is_obj };
     M_Object next = do_alloc_array(shred, &aai);
     if(!next) {
       release(base, shred);
@@ -403,7 +408,7 @@ INSTR(Instr_Array_Alloc) {
   M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
-  struct ArrayAllocInfo aai = { -info->depth, -1, info->type,  info->is_obj, NULL, &index};
+  struct ArrayAllocInfo aai = { -info->depth, -1, info->type, NULL, &index, info->size, info->is_obj};
   if(info->is_obj && !info->is_ref &&
       !(aai.objs = init_array(shred, info, &num_obj)))
       goto out_of_memory;
