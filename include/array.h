@@ -2,7 +2,6 @@ typedef struct {
   Type   type;
   m_uint length;
   m_uint depth;
-  m_uint size;
   m_bool is_obj;
   m_bool is_ref;
 } VM_Array_Info;

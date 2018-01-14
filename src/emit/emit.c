@@ -210,27 +210,14 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     info->is_ref = is_ref;
     Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
-    if(GET_FLAG(type, ae_flag_unary)) { // only type extending from [] have this flag set
-      info->size = type->info->offset;
-      //Instr instr = emitter_add_instr(emit, ReallocData);
-      //instr->m_val = list->self->value->m_type->info->offset;
-//      printf("look %lu\n", list->self->value->m_type->info ? list->self->value->m_type->info->offset : 0);
+    if(GET_FLAG(type, ae_flag_unary)) // only type extending from [] have this flag set
       emit_pre_ctor(emit, type);
-    }
     if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, tmp->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
     emit_pre_ctor(emit, type);
-    if(strstr(type->name, "@")){ // handle templates
-      char* name = strdup(type->name);
-      char* c = strsep(&name, "@");
-      Type parent = nspc_lookup_type0(emit->env->curr, insert_symbol(c));
-      free(c);
-      if(parent)
-        emit_pre_ctor(emit, parent);
-    }
   }
   return 1;
 }
