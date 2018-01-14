@@ -75,14 +75,6 @@ struct VM_Shred_ {
   m_float wake_time;
 };
 
-struct  Shreduler_ {
-  VM* vm;
-  VM_Shred list;
-  VM_Shred curr;
-  m_uint n_shred;
-  m_bool loop;
-};
-
 VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
 void free_vm_code(VM_Code a);
 
@@ -91,6 +83,8 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
 VM_Shred shreduler_get(Shreduler s);
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time);
 void shreduler_set_loop(Shreduler s, m_bool loop);
+m_bool shreduler_curr(Shreduler s);
+int shreduler_shred(Shreduler s);
 
 VM_Shred new_vm_shred(VM_Code code);
 void free_vm_shred(VM_Shred shred);

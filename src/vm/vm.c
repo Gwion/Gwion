@@ -46,14 +46,14 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
     shred->me = new_shred(vm, shred);
   if(!shred->xid) {
     vector_add(&vm->shred, (vtype)shred);
-    shred->xid = vm->shreduler->n_shred++;
+    shred->xid = shreduler_shred(vm->shreduler);
   }
   shredule(vm->shreduler, shred, .5);
 }
 
 static void vm_run_shred(VM* vm, VM_Shred shred) {
   Instr instr;
-  while(vm->shreduler->curr) {
+  while(shreduler_curr(vm->shreduler)) {
     shred->pc = shred->next_pc++;
     instr = (Instr)vector_at(shred->code->instr, shred->pc);
     instr->execute(vm, shred, instr);
