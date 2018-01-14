@@ -1,0 +1,5 @@
+//int i[];
+typedef int[2] lol;
+class C extends lol { }
+C c;
+<<<c.size()>>>;
