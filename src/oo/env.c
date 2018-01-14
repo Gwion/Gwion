@@ -21,6 +21,8 @@ Env new_env() {
 }
 
 void env_reset(Env env) {
+  vector_clear(&env->breaks);
+  vector_clear(&env->conts);
   vector_clear(&env->nspc_stack);
   vector_add(&env->nspc_stack, (vtype)env->global_nspc);
 
