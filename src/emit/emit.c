@@ -843,7 +843,7 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   CHECK_OB(emitter_add_instr(emit, start_gc))
   emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
   char c[11 + num_digit(exp->pos)];
-  sprintf(c, "spork~exp:%i\n", exp->pos);
+  sprintf(c, "spork~exp:%i", exp->pos);
   emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
@@ -880,7 +880,7 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
     emit->code->need_this = 1;
   }
   char c[12 + num_digit(stmt->pos)];
-  sprintf(c, "spork~code:%i\n", stmt->pos);
+  sprintf(c, "spork~code:%i", stmt->pos);
   emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
