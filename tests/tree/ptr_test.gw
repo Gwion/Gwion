@@ -1,3 +1,4 @@
 typedef void (Test)();
-function Test t0(){}
+function  void t0(){}
 t0 @=> Test test;
+test();
