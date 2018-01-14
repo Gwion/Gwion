@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "vm.h"
 #include "object.h"
+
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
@@ -51,16 +52,14 @@ static void shreduler_child(Shreduler s, Vector v) {
   m_uint i, size = vector_size(v);
   for(i = 0; i < size; i++) {
     VM_Shred child = (VM_Shred)vector_front(v);
+    if(child == s->list)
+      s->list = child->next;
     if(child->prev)
       child->prev->next = child->next;
     if(child->next)
       child->next->prev = child->prev;
     child->prev = child->next = NULL;
     child->wait = NULL;
-    if(child == s->list) // 09/03/17
-      s->list = NULL;
-    else if(s->list && (child == s->list->next)) // 09/03/17
-      s->list->next = child->next;
     shreduler_remove(s, child, 1);
   }
 }
@@ -87,25 +86,12 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_gc(out);
 }
 
-static m_bool shreduler_free_shred(Shreduler s, VM_Shred out, m_bool erase) {
-  if(!out->prev && !out->next && out != s->list) {
-    if(erase && !out->wait && !out->child.ptr)
-      free_vm_shred(out);
-    return - 1;
-  }
-  return 1;
-}
-
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
-  if(erase)
-    shreduler_erase(s, out);
   s->curr = (s->curr == out) ? NULL : s->curr;
-  if(shreduler_free_shred(s, out, erase) < 0)
-    return;
-  out->prev ? (out->prev->next = out->next) : (s->list = out->next);
-  if(out->next)
-    out->next->prev = out->prev;
-  out->next = out->prev = NULL;
+  if(erase) {
+    shreduler_erase(s, out);
+    free_vm_shred(out);
+  }
   return;
 }
 
