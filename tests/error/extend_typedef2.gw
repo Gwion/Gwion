@@ -1,4 +1,4 @@
-// [contains] cannot extend typedef'd array
+// [contains] can't use empty
 typedef Object[] Class;
 class C extends Class {}
 C c;
