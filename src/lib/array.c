@@ -201,10 +201,12 @@ static OP_CHECK(opck_array_at) {
   Type r = get_array_type(bin->rhs->type);
 
   if(isa(l, r) < 0) {
+    REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->pos, "array types do not match.");
     return &t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
+    REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->pos, "array depths do not match.");
     return &t_null;
   }

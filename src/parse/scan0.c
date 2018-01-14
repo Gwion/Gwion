@@ -41,15 +41,15 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     Type t = base;
     base = array_type(t, stmt->type->array->depth);
     base->e.exp_list = stmt->type->array->exp_list;
-  } else {
-    Type t = base;
-    base = type_copy(t);
-    if(t->info)
-      ADD_REF(t->info);
-    base->parent = t;
-    base->d.array_type = t;
-    stmt->m_type = t;
+    REM_REF(base)
   }
+  Type t = base;
+  base = type_copy(t);
+  if(t->info)
+    ADD_REF(t->info);
+  base->parent = t;
+  base->d.array_type = t;
+  stmt->m_type = t;
   SET_FLAG(base, ae_flag_typedef | ae_flag_checked);
   base->name = s_name(stmt->xid);
   nspc_add_type(env->curr, stmt->xid, base);
