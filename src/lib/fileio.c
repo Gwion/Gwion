@@ -6,7 +6,7 @@
 #include "import.h"
 #include "lang.h"
 
-#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) { if(o)release(o, shred); err_msg(INSTR_, 0, "trying to write an empty file."); Except(shred, "EmptyFileException"); }
+#define CHECK_FIO(o)   if(!o || !IO_FILE(o)) Except(shred, "EmptyFileException");
 
 struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
 struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
@@ -85,15 +85,12 @@ INSTR(file_to_int) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     *(m_uint*)REG(- SZ_INT) = (**(m_uint**)REG(0) = ret);
-  } else {
-    release(o, shred);
+  } else
     Except(shred, "EmptyFileException");
-  }
 }
 
 INSTR(file_to_float) {
   POP_REG(shred, SZ_INT)
-  /*  m_float ret;*/
   float ret;
   M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!o) {
@@ -105,11 +102,9 @@ INSTR(file_to_float) {
       Except(shred, "FileReadException");                                     // LCOV_EXCL_LINE
     }
     *(m_float*)REG(- SZ_FLOAT) = (**(m_float**)REG(0) = ret);
-  } else {
-    release(o, shred);
+  } else
     Except(shred, "EmptyFileException");
-  }
-POP_REG(shred, SZ_FLOAT)
+  POP_REG(shred, SZ_FLOAT)
 }
 /*
 m_bool inputAvailable(FILE* f)

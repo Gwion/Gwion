@@ -1,4 +1,4 @@
-// [contains] trying to call empty func pointer
+// [contains] NullFuncPtrException
 typedef void (Test)()
 Test test;
 test();

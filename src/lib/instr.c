@@ -75,12 +75,8 @@ INSTR(Reg_Push_Ptr) {
 
 INSTR(Reg_Push_Code) {
   Func f;
-  if(!(f =  *(Func*)(instr->m_val2 ? REG(-SZ_INT) : MEM(instr->m_val)))) {
-    err_msg(INSTR_, 0, "trying to call empty func pointer.");
-    if(instr->m_val2) // if any, release owner on error
-      release(*(M_Object*)REG(-SZ_INT * 2), shred);
+  if(!(f =  *(Func*)(instr->m_val2 ? REG(-SZ_INT) : MEM(instr->m_val))))
     Except(shred, "NullFuncPtrException");
-  }
   *(VM_Code*)REG(-SZ_INT) = f->code;
 }
 
@@ -112,16 +108,13 @@ INSTR(Reg_Push_Maybe) {
 
 INSTR(Alloc_Word) {
   memset(MEM(instr->m_val), 0, instr->m_val2);
-  /**(m_uint*)MEM(instr->m_val) = 0; // since template*/
   if(*(m_uint*)instr->ptr) {
     *(char**)REG(0) = &*(char*)MEM(instr->m_val);
     PUSH_REG(shred, SZ_INT);
   } else {
     memcpy(REG(0), MEM(instr->m_val), instr->m_val2);
-    /**(m_uint*)REG(0) = *(m_uint*)MEM(instr->m_val);*/
     PUSH_REG(shred, instr->m_val2);
   }
-
 }
 
 /* branching */
@@ -234,7 +227,7 @@ INSTR(Spork) {
 }
 
 // LCOV_EXCL_START
-void handle_overflow(VM_Shred shred) {
+static void handle_overflow(VM_Shred shred) {
   fprintf(stderr,
           "[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           shred->xid, shred->name, shred->pc);

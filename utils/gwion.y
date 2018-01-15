@@ -103,6 +103,7 @@ m_str op2str(Operator op);
 %destructor { free_class_body($$); } <class_body>
 %destructor { free_type_decl($$); } <type_decl>
 %destructor { free_type_list($$); } <type_list>
+%destructor { free_exp($$); } <exp>
 
 %expect 48
 %%

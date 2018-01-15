@@ -342,11 +342,8 @@ static m_bool emit_exp_prim_vec(Emitter emit, Vec* vec) {
 }
 
 static m_bool emit_exp_prim_id(Emitter emit, Exp_Primary* prim) {
-  if(prim->d.var == insert_symbol("this")) {
+  if(prim->d.var == insert_symbol("this"))
     CHECK_OB(emitter_add_instr(emit, Reg_Push_This))
-    if(emit->gack)
-      REM_REF(emit->env->class_def)
-  }
   else if(prim->d.var == insert_symbol("me"))
     CHECK_OB(emitter_add_instr(emit, Reg_Push_Me))
   else if(prim->d.var == insert_symbol("now"))
@@ -402,15 +399,14 @@ static m_bool emit_exp_prim_gack(Emitter emit, Exp exp) {
   Exp e = exp;
   while(e) {
     vector_add(v, (vtype)e->type);
-    ADD_REF(e->type);
+    if(e->type != emit->env->class_def)
+      ADD_REF(e->type);
     e = e->next;
   }
-  emit->gack = 1;
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(v);
     CHECK_BB(err_msg(EMIT_, exp->pos, "\t... in 'gack' expression."))
   }
-  emit->gack = 0;
   instr = emitter_add_instr(emit, Gack);
   *(Vector*)instr->ptr = v;
   return 1;
@@ -1673,17 +1669,11 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
-  m_bool ret = 1;
-  m_bool gack = emit->gack;
-  emit->gack = 0;
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   if(member->t_base->xid != te_class)
-    ret = emit_exp_dot_instance(emit, member);
-  else
-    ret = emit_exp_dot_static(emit, member);
-  emit->gack =gack;
-  return ret;
+    return emit_exp_dot_instance(emit, member);
+  return emit_exp_dot_static(emit, member);
 }
 
 static m_bool emit_func_def_global(Emitter emit, Value value) {

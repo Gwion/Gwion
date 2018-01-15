@@ -8,6 +8,10 @@ struct Type_ t_null    = { "@null",     SZ_INT, NULL,      te_null};
 struct Type_ t_object  = { "Object",    SZ_INT, NULL,      te_object };
 
 void NullException(VM_Shred shred, const m_str c) {
+  m_uint i;
+  for(i = 0; i < vector_size(&shred->gc1); i++)
+    release((M_Object)vector_at(&shred->gc1, i), shred);
+
   err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
           c, shred->xid, shred->name, shred->pc);
   release(shred->me, shred);
@@ -98,7 +102,6 @@ INSTR(Assign_Object) {
   src = *(M_Object*)REG(0);
   if((tgt = **(M_Object**)REG(SZ_INT)))
     release(tgt, shred);
-  /*if(instr->m_val2)*/
   release(tgt, shred);
   **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
   **(M_Object**)REG(SZ_INT) = src;

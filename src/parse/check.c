@@ -544,10 +544,9 @@ static void print_current_args(Exp e) {
   fprintf(stderr, "and not");
   fprintf(stderr, "\n\t");
   while(e) {
-    m_uint i;
     fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
-    for(i = 0; i < e->type->array_depth; i++)
-      fprintf(stderr, "[]");
+    if(e->type->array_depth)
+      REM_REF(e->type)
     e = e->next;
     if(e)
       fprintf(stderr, ",");
@@ -557,12 +556,9 @@ static void print_current_args(Exp e) {
 
 static void print_arg(Arg_List e) {
   while(e) {
-    m_uint i;
     char path[id_list_len(e->type_decl->xid)];
     type_path(path, e->type_decl->xid);
     fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
-    for(i = 0; i < e->type->array_depth; i++)
-      fprintf(stderr, "[]");
     e = e->next;
     if(e)
       fprintf(stderr, ",");
