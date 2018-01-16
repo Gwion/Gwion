@@ -480,7 +480,7 @@ static m_bool find_template_match_inner(Env env, Exp_Func* exp, Func_Def def) {
 
 static m_bool template_set_env(Env env, Value v) {
   vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = v->owner_class->info;
+  env->curr = v->owner;
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = v->owner_class;
   env->class_scope = 0; // should keep former value somewhere
@@ -499,8 +499,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   CHECK_OO(v)
   digit = num_digit(v->func_num_overloads + 1);
   len = strlen(v->name) + strlen(env->curr->name);
-  if(v->owner_class)
-    CHECK_BO(template_set_env(env, v))
+  CHECK_BO(template_set_env(env, v))
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     Func_Def def = NULL;
     char name[len + digit + 13];
@@ -509,10 +508,10 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
             nspc_lookup_value1(env->curr, insert_symbol(name))))
       continue;
     base = value->func_ref->def;
-    UNSET_FLAG(base, ae_flag_template);
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
+    UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->types, types))
     if(find_template_match_inner(env, exp_func, def) < 0)
@@ -522,11 +521,9 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     m_func = find_func_match(def->d.func, args);
     def->d.func->next = next;
     if(m_func) {
-      if(v->owner_class)
-        env_pop_class(env);
+      env_pop_class(env);
       SET_FLAG(base, ae_flag_template);
-      SET_FLAG(m_func, ae_flag_checked);
-      SET_FLAG(m_func, ae_flag_template);
+      SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
       m_func->def->base = value->func_ref->def->types;
       return m_func;
     }
@@ -535,8 +532,7 @@ next:
       def->d.func->def = NULL;
     free_func_def(def);
   }
-  if(v->owner_class)
-    env_pop_class(env);
+  env_pop_class(env);
   return NULL;
 }
 

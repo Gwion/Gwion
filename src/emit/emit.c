@@ -607,15 +607,16 @@ static m_bool emit_exp_call_helper(Emitter emit, Exp_Func* exp_func, m_bool spor
 
 static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool spork) {
   Func_Def def = exp_func->m_func->def;
-  if(exp_func->m_func->value_ref->owner_class)
-    CHECK_BB(env_push_class(emit->env, exp_func->m_func->value_ref->owner_class))
+  vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
+  emit->env->class_def = exp_func->m_func->value_ref->owner_class;
+  vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
+  emit->env->curr = exp_func->m_func->value_ref->owner;
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(template_push_types(emit->env, def->base, exp_func->types))
   CHECK_BB(traverse_func_def(emit->env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(emit->env->curr);
-  if(exp_func->m_func->value_ref->owner_class)
-    CHECK_BB(env_pop_class(emit->env))
+  env_pop_class(emit->env);
   UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
