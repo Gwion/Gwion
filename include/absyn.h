@@ -162,8 +162,6 @@ typedef struct {
   Class_Def base;
   Exp self;
   int pos;
-  int num_decl;
-  int is_static;
 } Exp_Decl;
 typedef struct {
   ae_Exp_Primary_Type type;
@@ -188,11 +186,8 @@ typedef struct {
   Exp args;
   Type_List types;
   Func m_func;
-  Type ret_type;
-  VM_Code vm_code;
   Exp self;
   ID_List base;// hack for template
-  Func    base_func;// hack for template //hack
   int pos;
 } Exp_Func;
 typedef struct {
@@ -233,7 +228,7 @@ typedef struct {
   Operator op;
   Exp exp;
   Type_Decl* type;
-  Array_Sub array;
+//  Array_Sub array;
   Stmt code;
   m_uint code_depth;
   Exp self;
@@ -283,7 +278,7 @@ Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos);
 Exp new_exp_dur(Exp base, Exp unit, int pos);
 Exp new_exp_dot(Exp base, S_Symbol xid, int pos);
 Exp new_exp_unary(Operator oper, Exp exp, int pos);
-Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos);
+Exp new_exp_unary2(Operator oper, Type_Decl* type, int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, int pos);
 Exp prepend_exp(Exp exp, Exp next, int pos);
 void free_exp(Exp exp);

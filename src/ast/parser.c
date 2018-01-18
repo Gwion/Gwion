@@ -3195,7 +3195,7 @@ yyreduce:
         gwion_error(arg, "can't use empty '[]' in 'new' expression");
         YYERROR;
       }
-      (yyval.exp) = new_exp_unary2(op_new, (yyvsp[0].type_decl), NULL, get_pos(arg));
+      (yyval.exp) = new_exp_unary2(op_new, (yyvsp[0].type_decl), get_pos(arg));
     }
 #line 3201 "src/ast/parser.c" /* yacc.c:1646  */
     break;

@@ -626,7 +626,7 @@ static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
     CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
   else
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
-  return emit_exp_call1(emit, exp_func->m_func, exp_func->ret_type, exp_func->pos);
+  return emit_exp_call1(emit, exp_func->m_func, exp_func->m_func->def->ret_type, exp_func->pos);
 }
 
 m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
@@ -831,13 +831,12 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code->name = strdup(c);
   emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
-  CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->ret_type, exp->pos))
+  CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->m_func->def->ret_type, exp->pos))
   CHECK_OB(emitter_add_instr(emit, stop_gc))
   CHECK_OB(emitter_add_instr(emit, EOC))
   op->m_val = emit->code->stack_depth;
 
   code = emit_code(emit);
-  exp->vm_code = code;
   emit->code = (Code*)vector_pop(&emit->stack);
   size = emit_exp_spork_size(emit, exp->args);
   CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0)) // last arg migth have to be 'emit_code_offset(emit)'
@@ -893,7 +892,7 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
       break;
     case op_new:
       CHECK_BB(emit_instantiate_object(emit, unary->self->type,
-            unary->array, GET_FLAG(unary->type, ae_flag_ref)))
+            unary->type->array, GET_FLAG(unary->type, ae_flag_ref)))
       CHECK_OB(emitter_add_instr(emit, add2gc))
       break;
     default:

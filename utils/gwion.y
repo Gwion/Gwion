@@ -445,7 +445,7 @@ unary_exp : dur_exp | unary_op unary_exp
         gwion_error(arg, "can't use empty '[]' in 'new' expression");
         YYERROR;
       }
-      $$ = new_exp_unary2(op_new, $2, NULL, get_pos(arg));
+      $$ = new_exp_unary2(op_new, $2, get_pos(arg));
     }
   | SPORK TILDA code_segment
         { $$ = new_exp_unary3(op_spork, $3, get_pos(arg)); };

@@ -57,8 +57,6 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
     decl->base = t->e.def;
     decl->m_type = t;
   }
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    decl->num_decl = 0;
   return 1;
 }
 
@@ -100,7 +98,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(err_msg(SCAN1_, list->self->pos,
               "variable %s has already been defined in the same scope...",
               s_name(list->self->xid)))
-    decl->num_decl++;
     if(t->array_depth && !var_decl->array) { // catch typedef xxx[] before making array type
       ADD_REF(t);
       if(!t->e.exp_list)

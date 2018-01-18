@@ -585,13 +585,10 @@ static Value get_template_value(Env env, Exp exp_func) {
     v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
   if(v)
     UNSET_FLAG(v->func_ref->def, ae_flag_template);
-  else {
-    v = nspc_lookup_value1(exp_func->type->owner, insert_symbol("test"));
-    UNSET_FLAG(v->func_ref->def, ae_flag_template);
+  else
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%" UINT_F "\' in template call.",
       exp_func->exp_type))
-  }
   return v;
 }
 
@@ -772,7 +769,7 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
 }
 
 static m_bool multi_decl(Exp e, Operator op) {
-  if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.num_decl > 1)
+  if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.list->next)
     CHECK_BB(err_msg(TYPE_, e->pos,
           "cant '%s' from/to a multi-variable declaration.", op2str(op)))
   return 1;
@@ -900,10 +897,10 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
       if(!(t = find_type(env, unary->type->xid)))
         CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
       CHECK_OO((t = scan_type(env, t, unary->type)))
-      if(unary->array) {
-        CHECK_OO(check_exp(env, unary->array->exp_list))
-        CHECK_BO(check_exp_array_subscripts(env, unary->array->exp_list))
-        t = array_type(t, unary->array->depth);
+      if(unary->type->array) {
+        CHECK_OO(check_exp(env, unary->type->array->exp_list))
+        CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
+        t = array_type(t, unary->type->array->depth);
       } else if(isa(t, &t_object) < 0) {
         CHECK_BO(err_msg(TYPE_, unary->pos,
               "cannot instantiate/(new) primitive type '%s'...\n"
@@ -1044,7 +1041,6 @@ static Type check_exp(Env env, Exp exp) {
         break;
       case ae_exp_call:
         curr->type = check_exp_call(env, &curr->d.exp_func);
-        curr->d.exp_func.ret_type = curr->type;
         break;
       case ae_exp_if:
         curr->type = check_exp_if(env, &curr->d.exp_if);

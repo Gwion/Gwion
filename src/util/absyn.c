@@ -146,7 +146,6 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos) {
   Exp a = calloc(1, sizeof(struct Exp_));
   a->exp_type = ae_exp_decl;
   a->d.exp_decl.type = type;
-  a->d.exp_decl.num_decl = 0;
   a->d.exp_decl.list = list;
   a->pos  = a->d.exp_decl.pos  = pos;
   a->d.exp_decl.self = a;
@@ -373,11 +372,10 @@ Exp new_exp_unary(Operator oper, Exp exp, int pos) {
   return a;
 }
 
-Exp new_exp_unary2(Operator oper, Type_Decl* type, Array_Sub array, int pos) {
+Exp new_exp_unary2(Operator oper, Type_Decl* type, int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   a->d.exp_unary.type = type;
-  a->d.exp_unary.array = array;
   return a;
 }
 
@@ -397,8 +395,6 @@ static void free_unary_exp(Exp_Unary* a) {
     free_type_decl(a->type);
   if(a->code)
     free_stmt(a->code);
-  if(a->array)
-    free_array_sub(a->array);
 }
 
 Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, int pos) {

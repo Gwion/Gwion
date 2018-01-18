@@ -173,7 +173,6 @@ static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
     case op_new:
       lint_print(linter, " ");
       lint_type_decl(linter, unary->type);
-      lint_array(linter, unary->array);
       break;
     case op_spork:
       lint_print(linter, " ~");
