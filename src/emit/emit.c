@@ -1402,6 +1402,15 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   return 1;
 }
 
+static m_uint get_decl_size(Var_Decl_List a) {
+  m_uint size = 0;
+  while(a) {
+    size += a->self->value->m_type->size;
+    a = a->next;
+  }
+  return size;
+}
+
 static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
   int ret;
   if(!exp->val)
@@ -1414,7 +1423,7 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
     while(e) {
       Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
       instr->m_val = (e->exp_type == ae_exp_decl ?
-        e->d.exp_decl.num_decl * e->type->size : e->type->size);
+        get_decl_size(e->d.exp_decl.list) : e->type->size);
       e = e->next;
     }
   }
