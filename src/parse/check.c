@@ -1008,6 +1008,11 @@ m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
+  if(stmt->type->types) {
+    CHECK_BB(template_push_types(env, stmt->m_type->e.def->tref, stmt->type->types))
+    CHECK_BB(check_class_def(env, stmt->m_type->e.def))
+    nspc_pop_type(env->curr);
+  }
   if(stmt->type->array && stmt->type->array->exp_list)
     CHECK_OB(check_exp(env, stmt->type->array->exp_list))
   return 1;

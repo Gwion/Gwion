@@ -1343,6 +1343,15 @@ static m_bool emit_stmt_fptr(Emitter emit, Stmt_Ptr ptr) {
     return 1;
 }
 
+static m_bool emit_stmt_type(Emitter emit, Stmt_Typedef stmt) {
+  if(stmt->type->types) {
+    CHECK_BB(template_push_types(emit->env, stmt->m_type->e.def->tref, stmt->type->types))
+    CHECK_BB(emit_class_def(emit, stmt->m_type->e.def))
+    nspc_pop_type(emit->env->curr);
+  }
+  return 1;
+}
+
 static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   m_uint i;
   for(i = 0; i < vector_size(&stmt->values); i++) {
@@ -1470,7 +1479,7 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
     case ae_stmt_funcptr:
       return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
     case ae_stmt_typedef:
-      return 1;
+      return emit_stmt_type(emit, &stmt->d.stmt_type);
     case ae_stmt_union:
       return emit_stmt_union(emit, &stmt->d.stmt_union);
   }
