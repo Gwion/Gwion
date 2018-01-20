@@ -100,7 +100,7 @@ static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
     stmt->value->owner = env->curr;
     nspc_add_value(env->curr, stmt->xid, stmt->value);
     SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
-    if(env->class_def && !GET_FLAG(stmt, ae_flag_static)) // TODO: enable static
+    if(env->class_def && !GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(stmt->value, ae_flag_member);
   }
   return 1;
