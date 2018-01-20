@@ -323,9 +323,9 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
     fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
     return NULL;
   }
-  if(info->type->size != SZ_INT) {
-    base->data = realloc(base->data, info->type->size);
-    memset(base->data + SZ_INT, 0, info->type->size -SZ_INT);
+  if(info->type->info->offset != SZ_INT) {
+    base->data = realloc(base->data, info->type->info->offset);
+    memset(base->data + SZ_INT, 0, info->type->info->offset - SZ_INT);
   }
   base->type_ref = info->type; // /13/03/17 
   ADD_REF(info->type);

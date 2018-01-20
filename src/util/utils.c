@@ -125,6 +125,7 @@ Type array_type(Type base, m_uint depth) {
   t->info = t_array.info;
   ADD_REF(t->info);
   ADD_REF(t);
+  SET_FLAG(t, ae_flag_checked);
   t->owner = base->owner;
   nspc_add_type(base->owner, sym, t);
   return t;

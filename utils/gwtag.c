@@ -414,6 +414,7 @@ static void tag_class_def(Tagger* tagger, Class_Def class_def) {
     tag_print(tagger, "template");
     tag_id_list(tagger, class_def->types);
   }
+// TODO: handle class extend
   tag_print(tagger, " class %s$/;\"\tc\n", s_name(class_def->name->xid));
   vector_add(tagger->class_stack, (vtype)class_def);
   while(body) {

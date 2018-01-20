@@ -507,7 +507,7 @@ struct Class_Body_ {
 struct Class_Def_ {
   ae_flag flag;
   ID_List name;
-  ID_List ext;
+  Type_Decl* ext;
   Class_Body body;
   Type type;
   Nspc home;
@@ -516,7 +516,7 @@ struct Class_Def_ {
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
-                        ID_List ext, Class_Body body, int pos);
+                        Type_Decl* ext, Class_Body body, int pos);
 void free_class_def(Class_Def a);
 Class_Body new_class_body(Section* section, Class_Body body, int pos);
 void free_class_body(Class_Body a);

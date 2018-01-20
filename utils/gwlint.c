@@ -640,7 +640,7 @@ static void lint_class_def(Linter* linter, Class_Def class_def) {
   lint_print(linter, "class %s", s_name(class_def->name->xid));
   if(class_def->ext) {
     lint_print(linter, " extends ");
-    lint_id_list(linter, class_def->ext);
+    lint_type_decl(linter, class_def->ext);
     lint_nl(linter);
   }
   lint_print(linter, " {");

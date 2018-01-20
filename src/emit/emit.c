@@ -161,15 +161,6 @@ static m_bool emit_pre_ctor(Emitter emit, Type type) {
     instr->m_val = (m_uint)type->info->pre_ctor;
     instr->m_val2 = (m_uint)emit_code_offset(emit);
   }
-if(GET_FLAG(type, ae_flag_template) && GET_FLAG(type, ae_flag_builtin)) {
-
-//    emit_pre_ctor(emit, 
-//op_parent(type);//);
-
-// emit_pre_ctor(emit, type->parent);
-//exit(56);
-
-}
   return 1;
 }
 

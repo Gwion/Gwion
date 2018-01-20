@@ -910,8 +910,11 @@ void free_class_body(Class_Body a) {
 void free_class_def(Class_Def a) {
   if(a->type && GET_FLAG(a->type, ae_flag_template))
     return;
-  if(a->ext)
-    free_id_list(a->ext);
+  if(a->ext) {
+    if(a->ext->array)
+      REM_REF(a->type->parent); // ?
+    free_type_decl(a->ext);
+  }
   if(a->types)
     free_id_list(a->types);
   if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
@@ -938,7 +941,7 @@ static void free_section(Section* section) {
   free(section);
 }
 
-Class_Def new_class_def(ae_flag class_decl, ID_List name, ID_List ext, Class_Body body, int pos) {
+Class_Def new_class_def(ae_flag class_decl, ID_List name, Type_Decl* ext, Class_Body body, int pos) {
   Class_Def a = calloc(1, sizeof(struct Class_Def_));
   a->flag = class_decl;
   a->name = name;

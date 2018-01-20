@@ -1554,23 +1554,30 @@ static m_bool check_section(Env env, Section* section) {
 }
 
 static m_bool check_class_parent(Env env, Class_Def class_def) {
-  Type t_parent = find_type(env, class_def->ext);
+  Type t_parent = find_type(env, class_def->ext->xid);
   if(!t_parent)
-    CHECK_BB(type_unknown(class_def->ext, "child class definition"))
+    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
+  CHECK_OB((t_parent = scan_type(env, t_parent, class_def->ext)))
+  if(class_def->ext->array) {
+    CHECK_OB(check_exp(env, class_def->ext->array->exp_list))
+    CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp_list))
+    CHECK_OB((t_parent = array_type(t_parent, class_def->ext->array->depth)))
+    class_def->type->array_depth = t_parent->array_depth;
+    class_def->type->d.array_type = t_parent->d.array_type;
+    class_def->type->e.exp_list = class_def->ext->array->exp_list;
+    SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
 //            "undefined parent class '%s' in definition of class '%s'",
+  }
   if(isprim(t_parent) > 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend primitive type '%s'", t_parent->name))
-// if(t_parent->array_depth)
-// CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-// "cannot extend typedef'd array type '%s'\n", t_parent->name))
   if(!GET_FLAG(t_parent, ae_flag_checked))
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
             t_parent->name))
-  class_def->type->parent = t_parent;
-   if(t_parent->array_depth) {
+   class_def->type->parent = t_parent;
+   if(t_parent->array_depth && !class_def->ext->array) {
      if(!t_parent->e.exp_list)
        CHECK_BB(err_msg(TYPE_, class_def->pos, "can't use empty []'s in class extend"))
     class_def->type->xid = t_parent->xid;
@@ -1579,7 +1586,6 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
     class_def->type->e.exp_list = t_parent->e.exp_list;
     SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
   }
-
   return 1;
 }
 

@@ -69,7 +69,7 @@ m_str op2str(Operator op);
 %type<sym>id opt_id
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
-%type<type_decl> type_decl type_decl2
+%type<type_decl> type_decl type_decl2 class_ext
 %type<exp> primary_exp decl_exp binary_exp call_paren
 %type<exp> con_exp log_or_exp log_and_exp inc_or_exp exc_or_exp and_exp eq_exp
 %type<exp> relational_exp shift_exp add_exp mul_exp unary_exp dur_exp
@@ -87,7 +87,6 @@ m_str op2str(Operator op);
 %type<func_def> func_def func_def_base
 %type<section> section
 %type<class_def> class_def
-%type<id_list> class_ext
 %type<class_body> class_body class_body2
 %type<id_list> id_list id_dot decl_template
 %type<type_list> type_list template
@@ -126,7 +125,7 @@ class_def
   | decl_template class_def
     { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
 
-class_ext : EXTENDS id_dot { $$ = $2; } | { $$ = NULL; };
+class_ext : EXTENDS type_decl2 { $$ = $2; } | { $$ = NULL; };
 
 class_body : class_body2 | { $$ = NULL; };
 

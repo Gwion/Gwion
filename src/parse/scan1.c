@@ -569,6 +569,11 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
 
   if(class_def->types)
     return 1;
+  if(class_def->ext && class_def->ext->array) {
+    if(!class_def->ext->array->exp_list)
+      CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use empty []'s in class extend"))
+    CHECK_BB(scan1_exp(env, class_def->ext->array->exp_list))
+  }
   CHECK_BB(env_push_class(env, class_def->type))
   while(body) {
     CHECK_BB(scan1_section(env, body->section))
