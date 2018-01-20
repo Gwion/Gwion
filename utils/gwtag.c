@@ -16,6 +16,7 @@ typedef struct {
 } Tagger;
 
 static void tag_exp(Tagger* tagger, Exp exp);
+static void tag_type_decl(Tagger* tagger, Type_Decl* type);
 static void tag_stmt(Tagger* tagger, Stmt stmt);
 static void tag_stmt_list(Tagger* tagger, Stmt_List list);
 static void tag_class_def(Tagger* tagger, Class_Def class_def);
@@ -66,7 +67,7 @@ static void tag_array(Tagger* tagger, Array_Sub array) {
 static void tag_type_list(Tagger* tagger, Type_List list) {
   tag_print(tagger, "<{");
   while(list) {
-    tag_id_list(tagger, list->list);
+    tag_type_decl(tagger, list->list);
     list = list->next;
     if(list)
       tag_print(tagger, ", ");

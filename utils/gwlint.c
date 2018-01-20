@@ -17,6 +17,7 @@ typedef struct {
   m_bool nonl;
 } Linter;
 
+static void lint_type_decl(Linter* linter, Type_Decl* type);
 static void lint_exp(Linter* linter, Exp exp);
 static void lint_stmt(Linter* linter, Stmt stmt);
 static void lint_stmt_if(Linter* linter, Stmt_If stmt);
@@ -107,7 +108,7 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
 static void lint_type_list(Linter* linter, Type_List list) {
   lint_print(linter, "<{");
   while(list) {
-    lint_id_list(linter, list->list);
+    lint_type_decl(linter, list->list);
     list = list->next;
     if(list)
       lint_print(linter, ", ");
