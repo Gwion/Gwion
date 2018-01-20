@@ -562,7 +562,7 @@ static m_uint vararg_size(Exp_Func* exp_func, Vector kinds) {
     if(!l) {
       size += e->type->size;
       if(e->type->size)
-      vector_add(kinds, (vtype)kindof(e->type));
+        vector_add(kinds, e->type->size);
     } else
       l = l->next;
     e = e->next;

@@ -1,0 +1,20 @@
+<{int, int}>Pair p;
+typedef <{int, int}>Pair lol;
+lol t;
+<<<t>>>;
+<<<t.key>>>;
+class C extends lol { int i;}
+C c;
+<<<c.i>>>;
+template <{A}> class D {
+  <<<"lol">>>;
+  int i;
+}
+typedef <{int}>D Lol;
+class E extends Lol {
+  float f;
+}
+E d;
+<<<d>>>;
+<<<d.i>>>;
+<<<d.f>>>;

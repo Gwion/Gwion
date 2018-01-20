@@ -3,16 +3,11 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "vararg.h"
 
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
 struct Type_ t_varobj  = { "@VarObject", SZ_INT, &t_object, te_vararg};
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
-
-struct Vararg {
-  Kindof* k;      // k(ind)
-  char* d;	// d(ata)
-  m_uint o, i, s; // o(ffset), i(ndex)
-};
 
 INSTR(Vararg_start) {
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
@@ -40,7 +35,7 @@ INSTR(MkVararg) {
   arg->s = kinds ? vector_size(kinds) : 0;
   arg->k = arg->s ? calloc(arg->s, sizeof(Kindof)) : NULL;
   for(i = 0; i < arg->s; i++) {
-    arg->k[i] = (Kindof)vector_at(kinds, i);
+    arg->k[i] = vector_at(kinds, i);
   }
   arg->o = 0;
   arg->i = 0;
@@ -52,25 +47,7 @@ INSTR(MkVararg) {
 
 INSTR(Vararg_end) {
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  switch(arg->k[arg->i]) {
-    case Kindof_Int:
-      arg->o += SZ_INT;
-      break;
-    case Kindof_Float:
-      arg->o += SZ_FLOAT;
-      break;
-    case Kindof_Complex:
-      arg->o += SZ_COMPLEX;
-      break;
-    case Kindof_Vec3:
-      arg->o += SZ_VEC3;
-      break;
-    case Kindof_Vec4:
-      arg->o += SZ_VEC4;
-      break;
-    case Kindof_Void:
-      break;
-  }
+  arg->o += arg->k[arg->i];
   PUSH_REG(shred, SZ_INT);
   arg->i++;
   if(arg->i == arg->s) {
@@ -78,14 +55,13 @@ INSTR(Vararg_end) {
     free(arg->k);
     free(arg);
   } else {
-    *(m_uint*)REG(- SZ_INT) = 0;
+    *(m_uint*)REG(-SZ_INT) = 0;
     shred->next_pc = instr->m_val2;
   }
 }
 
 INSTR(Vararg_Member) {
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
-  /**(char*)REG(0) = *(char*)(arg->d + arg->o);*/
   memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }
