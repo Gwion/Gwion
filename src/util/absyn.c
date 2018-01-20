@@ -959,7 +959,7 @@ Class_Body new_class_body(Section* section, Class_Body body, int pos) {
   return a;
 }
 
-Type_List new_type_list(ID_List list, Type_List next, int pos) {
+Type_List new_type_list(Type_Decl* list, Type_List next, int pos) {
   Type_List a = calloc(1,  sizeof(struct Type_List_));
   a->list = list;
   a->next = next;
@@ -970,7 +970,7 @@ Type_List new_type_list(ID_List list, Type_List next, int pos) {
 void free_type_list(Type_List a) {
   if(a->next)
     free_type_list(a->next);
-  free_id_list(a->list);
+  free_type_decl(a->list);
   free(a);
 }
 

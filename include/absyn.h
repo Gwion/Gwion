@@ -107,11 +107,11 @@ ID_List prepend_id_list(const S_Symbol xid, ID_List list, int pos);
 void free_id_list(ID_List a);
 
 struct Type_List_  {
-  ID_List list;
+  Type_Decl* list;
   Type_List next;
   int pos;
 };
-Type_List new_type_list(ID_List list, Type_List next, int pos);
+Type_List new_type_list(Type_Decl* list, Type_List next, int pos);
 void free_type_list(Type_List a);
 
 typedef struct {

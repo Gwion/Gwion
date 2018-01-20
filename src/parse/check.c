@@ -396,10 +396,18 @@ static Type_List mk_type_list(Env env, Type type) {
     nspc = nspc->parent;
   }
   ID_List id = NULL;
+  Type_Decl* td = NULL;
   Type_List list = NULL;
+  Array_Sub array = NULL;
   for(i = vector_size(&v); i > 0; i--)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
-  list = new_type_list(id, NULL, 0);
+  td = new_type_decl(id, 0, 0);
+  if(type->array_depth) {
+    array = calloc(1, sizeof(struct Array_Sub_));
+    array->depth = type->array_depth;
+    add_type_decl_array(td, array, 0);
+  }
+  list = new_type_list(td, NULL, 0);
   vector_release(&v);
   return list;
 }
@@ -1163,12 +1171,14 @@ static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
   if(stmt->is_ptr) {
     struct ID_List_   id;
     struct Type_List_ tl;
-    Type_Decl td;
+    Type_Decl td0, td;
     memset(&id, 0, sizeof(struct ID_List_));
     memset(&tl, 0, sizeof(struct Type_List_));
+    memset(&td0, 0, sizeof(Type_Decl));
     memset(&td, 0, sizeof(Type_Decl));
     id.xid = insert_symbol(ptr->name);
-    tl.list = &id;
+    td0.xid = &id;
+    tl.list = &td0;
     td.types = &tl;
     ptr = scan_type(env, &t_ptr, &td);
     if(!ptr->info->offset) // no pointer of that type checked yet

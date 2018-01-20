@@ -453,8 +453,8 @@ dur_exp: post_exp | dur_exp COLONCOLON post_exp
     { $$ = new_exp_dur($1, $3, get_pos(arg)); };
 
 type_list
-  : id { $$ = new_type_list(new_id_list($1, get_pos(arg)), NULL, get_pos(arg)); }
-  | id COMMA type_list{ $$ = new_type_list(new_id_list($1, get_pos(arg)), $3, get_pos(arg)); }
+  : type_decl2 { $$ = new_type_list($1, NULL, get_pos(arg)); }
+  | type_decl2 COMMA type_list{ $$ = new_type_list($1, $3, get_pos(arg)); }
   ;
 
 call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;

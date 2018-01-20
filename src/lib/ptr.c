@@ -16,10 +16,8 @@ m_str get_type_name(m_str s, m_uint index) {
   size_t len = name ? strlen(name) : 0;
   char c[len];
 
-  if(!name) {
-    puts(index ? "NULL" : s);
+  if(!name)
     return index ? s : NULL;
-  }
   memset(c, 0, strlen(name-1));
   ++name;
   if(index == 0) {
