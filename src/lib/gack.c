@@ -42,17 +42,22 @@ static void print_float(m_float f) {
   fprintf(stdout, BOLD "%.4f" CLEAR, f);
 }
 
+
+static void print_complex_inner(m_complex c) {
+  print_float(creal(c));
+  fprintf(stdout, ", ");
+  print_float(cimag(c));
+}
+
 static void print_complex(m_complex c) {
   fprintf(stdout, "#(");
-  print_float(creal(c));
-  print_float(cimag(c));
+  print_complex_inner(c);
   fprintf(stdout, ")");
 }
 
 static void print_polar(m_complex c) {
   fprintf(stdout, "%%(");
-  print_float(creal(c));
-  print_float(cimag(c));
+  print_complex_inner(c);
   fprintf(stdout, "*pi)");
 }
 
