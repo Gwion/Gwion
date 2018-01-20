@@ -21,12 +21,12 @@ test_plugin() {
 }
 
 # empty plug file
-touch "${GWION_ADD_DIR}/empty.so"
-./gwion &> /dev/null
+touch "empty.so"
+./gwion -P. &> /dev/null
 N=$(printf "% 4i" "$n")
 echo "ok $N plugin test: 'empty'"
 n=$((n+1))
-rm "${GWION_ADD_DIR}/empty.so"
+rm "empty.so"
 
 
 pushd tests/test_plugins
