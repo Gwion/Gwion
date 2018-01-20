@@ -12,9 +12,9 @@ export GWION_ADD_DIR
 
 test_plugin() {
 	export NAME=$"$1"
-	make install
-	../../gwion "$NAME.gw" &> /dev/null
-    NAME="$1" make uninstall clean
+	make
+	../../gwion -P. "$NAME.gw" &> /dev/null
+    NAME="$1" make clean
 	N=$(printf "% 4i" "$n")
 	echo "ok $N plugin test: '$NAME'"
     n=$((n+1))
