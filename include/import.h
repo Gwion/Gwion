@@ -25,6 +25,7 @@ m_int importer_add_value(Importer importer, const m_str name, Type type, const m
 
 
 m_int importer_class_ini(Importer importer, Type type, const f_xtor pre_ctor, const f_xtor dtor);
+m_int importer_class_ext(Importer importer, Type_Decl* td);
 m_int importer_class_end(Importer importer);
 
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name);

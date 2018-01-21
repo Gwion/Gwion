@@ -207,6 +207,36 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
   return type->xid;
 }
 
+m_int importer_class_ext(Importer importer, Type_Decl* td) {
+  CHECK_EB(importer->env->class_def)
+  if(td->array && !td->array->exp_list)
+    CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
+  if(!importer->env->class_def->e.def) {
+  Type t = find_type(importer->env, td->xid);
+    if(!t)
+      CHECK_BB(type_unknown(td->xid, "builtin class extend"))
+    CHECK_OB((t = scan_type(importer->env, t, td)))
+    if(td->array) {
+      CHECK_OB((t = array_type(t, td->array->depth)))
+      importer->env->class_def->array_depth = t->array_depth;
+      importer->env->class_def->d.array_type = t->d.array_type;
+      t->e.exp_list = td->array->exp_list;
+      importer->env->class_def->e.exp_list = td->array->exp_list;
+      td->array->exp_list = NULL;
+      SET_FLAG(importer->env->class_def, ae_flag_typedef | ae_flag_unary | ae_flag_builtin);
+    }
+    importer->env->class_def->parent = t;
+    importer->env->class_def->info->offset = t->info->offset;
+    if(t->info->vtable.ptr)
+      vector_copy2(&t->info->vtable, &importer->env->class_def->info->vtable);
+    free_type_decl(td);
+  } else {
+      SET_FLAG(importer->env->class_def, ae_flag_typedef);
+      importer->env->class_def->e.def->ext = td;
+  }
+  return 1;
+}
+
 static m_int import_class_end(Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
