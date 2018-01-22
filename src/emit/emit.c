@@ -1871,6 +1871,10 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
 
   if(class_def->types)
     return 1;
+
+  if(class_def->ext && !GET_FLAG(class_def->type->parent, ae_flag_emit) && GET_FLAG(class_def->ext, ae_flag_typedef))
+    CHECK_BB(emit_class_def(emit, class_def->type->parent->e.def))
+
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))
   CHECK_OB((emit->code = emit_class_code(emit, type->name)))
@@ -1883,6 +1887,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   }
   CHECK_BB(emit_class_finish(emit, type->info))
   CHECK_BB(emit_class_pop(emit))
+  SET_FLAG(class_def->type, ae_flag_emit);
   return 1;
 }
 

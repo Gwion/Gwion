@@ -1564,36 +1564,35 @@ static m_bool check_section(Env env, Section* section) {
 }
 
 static m_bool check_class_parent(Env env, Class_Def class_def) {
-  Type t_parent = find_type(env, class_def->ext->xid);
-  if(!t_parent)
-    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-  CHECK_OB((t_parent = scan_type(env, t_parent, class_def->ext)))
   if(class_def->ext->array) {
     CHECK_OB(check_exp(env, class_def->ext->array->exp_list))
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp_list))
-    CHECK_OB((t_parent = array_type(t_parent, class_def->ext->array->depth)))
-    class_def->type->array_depth = t_parent->array_depth;
-    class_def->type->d.array_type = t_parent->d.array_type;
+    CHECK_OB((class_def->type->parent = array_type(class_def->type->parent, class_def->ext->array->depth)))
+    class_def->type->array_depth = class_def->type->parent->array_depth;
+    class_def->type->d.array_type = class_def->type->parent->d.array_type;
     class_def->type->e.exp_list = class_def->ext->array->exp_list;
     SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
 //            "undefined parent class '%s' in definition of class '%s'",
   }
-  if(isprim(t_parent) > 0)
+  if(isprim(class_def->type->parent) > 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-            "cannot extend primitive type '%s'", t_parent->name))
-  if(!GET_FLAG(t_parent, ae_flag_checked))
-    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+            "cannot extend primitive type '%s'", class_def->type->parent->name))
+  if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {
+    if(GET_FLAG(class_def->ext, ae_flag_typedef))
+      CHECK_BB(check_class_def(env, class_def->type->parent->e.def))
+    else
+      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
-            t_parent->name))
-   class_def->type->parent = t_parent;
-   if(t_parent->array_depth && !class_def->ext->array) {
-     if(!t_parent->e.exp_list)
+            class_def->type->parent->name))
+  }
+   if(class_def->type->parent->array_depth && !class_def->ext->array) {
+     if(!class_def->type->parent->e.exp_list)
        CHECK_BB(err_msg(TYPE_, class_def->pos, "can't use empty []'s in class extend"))
-    class_def->type->xid = t_parent->xid;
-    class_def->type->d.array_type = t_parent->d.array_type;
-    class_def->type->array_depth = t_parent->array_depth;
-    class_def->type->e.exp_list = t_parent->e.exp_list;
+    class_def->type->xid = class_def->type->parent->xid;
+    class_def->type->d.array_type = class_def->type->parent->d.array_type;
+    class_def->type->array_depth = class_def->type->parent->array_depth;
+    class_def->type->e.exp_list = class_def->type->parent->e.exp_list;
     SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
   }
   return 1;
@@ -1620,6 +1619,7 @@ m_bool check_class_def(Env env, Class_Def class_def) {
   }
   CHECK_BB(env_pop_class(env))
   SET_FLAG(the_class, ae_flag_checked);
+  SET_FLAG(class_def->type, ae_flag_check);
   return 1;
 }
 

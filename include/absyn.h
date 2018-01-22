@@ -31,7 +31,14 @@ typedef enum {
   ae_flag_ref  = 1 << 15,
   ae_flag_abstract  = 1 << 16,
   ae_flag_typedef  = 1 << 17,
-  ae_flag_unary  = 1 << 18
+  ae_flag_unary  = 1 << 18,
+
+// parsing flags for class_def->type
+  ae_flag_scan1 = 1 << 21,
+  ae_flag_scan2 = 1 << 22,
+  ae_flag_check = 1 << 23,
+  ae_flag_emit  = 1 << 24
+
 } ae_flag;
 
 typedef struct {

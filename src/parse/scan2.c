@@ -687,14 +687,19 @@ m_bool scan2_class_def(Env env, Class_Def class_def) {
 
   if(class_def->types)
     return 1;
-  if(class_def->ext && class_def->ext->array)
-    CHECK_BB(scan2_exp(env, class_def->ext->array->exp_list))
+  if(class_def->ext) {
+    if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+      CHECK_BB(scan2_class_def(env, class_def->type->parent->e.def))
+    if(class_def->ext->array)
+      CHECK_BB(scan2_exp(env, class_def->ext->array->exp_list))
+  }
   CHECK_BB(env_push_class(env, class_def->type))
   while(body) {
     CHECK_BB(scan2_section(env, body->section))
     body = body->next;
   }
   CHECK_BB(env_pop_class(env))
+  SET_FLAG(class_def->type, ae_flag_scan2);
   return 1;
 }
 

@@ -201,7 +201,8 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
     type->e.def->types = templater_def(&importer->templater);
     type->e.def->type = type;
     SET_FLAG(type, ae_flag_template);
-  }
+  } else
+    SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   CHECK_BB(importer_add_type(importer, type))
   CHECK_BB(import_class_ini(importer->env, type, pre_ctor, dtor))
   return type->xid;
@@ -231,7 +232,7 @@ m_int importer_class_ext(Importer importer, Type_Decl* td) {
       vector_copy2(&t->info->vtable, &importer->env->class_def->info->vtable);
     free_type_decl(td);
   } else {
-      SET_FLAG(importer->env->class_def, ae_flag_typedef);
+      SET_FLAG(td, ae_flag_typedef);
       importer->env->class_def->e.def->ext = td;
   }
   return 1;
