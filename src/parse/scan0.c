@@ -166,6 +166,8 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
     env_nspc(env) : env->curr;
   the_class->e.def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
+if(class_def->ext && class_def->ext->array)
+the_class->e.exp_list = class_def->ext->array->exp_list;
   if(strstr(the_class->name, "<")) {
     nspc_add_type(env->curr->parent, class_def->name->xid, the_class);
     ADD_REF(the_class);

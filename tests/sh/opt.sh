@@ -29,7 +29,7 @@ run "$n" "help (long)" "--help" "file"
 n=$((n+1))
 run "$n" "host invalid (short)" "-h non_existant_host" "file"
 n=$((n+1))
-run "$n" "host invlaid (long)" "--host non_existant_host " "file"
+run "$n" "host invalid (long)" "--host non_existant_host " "file"
 
 # help
 n=$((n+1))

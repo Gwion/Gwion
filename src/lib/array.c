@@ -299,7 +299,8 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) {
 INSTR(Instr_Pre_Ctor_Array_Post) {
   POP_REG(shred,  SZ_INT * 3);
   m_uint* array = *(m_uint**)REG(0);
-  free(array);
+  if(array && array != (m_uint*)1) // shit happens (array pluin extend related)
+    free(array);
 }
 
 struct ArrayAllocInfo {

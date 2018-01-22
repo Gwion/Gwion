@@ -181,15 +181,15 @@ static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     m_bool is_ref) {
   if(type->array_depth) {
     if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
+if(!(type->e.def && type->e.def->ext && GET_FLAG(type->e.def->ext, ae_flag_typedef)))
       return 1;
-    if(array) {
+    if(array) { puts("array");
       CHECK_BB(emit_exp(emit, array->exp_list, 0))
     }
     Type tmp = NULL, t = type;
     while(t) {
-      if(t && GET_FLAG(t, ae_flag_typedef) && t->e.exp_list) {
+      if(t->e.exp_list)
         CHECK_BB(emit_exp(emit, t->e.exp_list, 0))
-      }
       if(t->array_depth)
         tmp = t;
       t = t->d.array_type;
@@ -506,8 +506,10 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
-    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
+    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref)) {
+if(!(type->e.def && type->e.def->ext && GET_FLAG(type->e.def->ext, ae_flag_typedef)))
       return 1;
+    }
     if((is_array) || !is_ref) {
       Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
@@ -534,7 +536,10 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   if(GET_FLAG(decl->m_type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   if(GET_FLAG(decl->m_type, ae_flag_typedef) && GET_FLAG(decl->m_type, ae_flag_ref))
-    ref = 1;
+    if(!(decl->m_type->e.def && decl->m_type->e.def->ext && decl->m_type->e.def->ext->array))
+      ref = 1;
+
+printf("ref %i\n", ref);
   while(list) {
     if(GET_FLAG(decl->type, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
@@ -1873,7 +1878,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
     return 1;
 
   if(class_def->ext && !GET_FLAG(class_def->type->parent, ae_flag_emit) && GET_FLAG(class_def->ext, ae_flag_typedef))
-    CHECK_BB(emit_class_def(emit, class_def->type->parent->e.def))
+    CHECK_BB(emit_class_def(emit, class_def->ext->array ? class_def->type->parent->d.array_type->e.def : class_def->type->parent->e.def))
 
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))

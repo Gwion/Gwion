@@ -1570,8 +1570,17 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
     CHECK_OB((class_def->type->parent = array_type(class_def->type->parent, class_def->ext->array->depth)))
     class_def->type->array_depth = class_def->type->parent->array_depth;
     class_def->type->d.array_type = class_def->type->parent->d.array_type;
-    class_def->type->e.exp_list = class_def->ext->array->exp_list;
+//    class_def->type->e.exp_list = class_def->ext->array->exp_list;
     SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
+if(GET_FLAG(class_def->ext, ae_flag_typedef) && class_def->type->parent->d.array_type->e.def->base) {
+//if(class_def->type->d.array_type->e.def->base) {
+  CHECK_BB(template_push_types(env, class_def->tref, class_def->base))
+  CHECK_BB(template_push_types(env, class_def->type->parent->d.array_type->e.def->tref, class_def->ext->types))
+CHECK_BB(traverse_class_def(env, class_def->type->parent->d.array_type->e.def))
+nspc_pop_type(env->curr);
+nspc_pop_type(env->curr);
+//  exit(12);
+}//else
 //            "undefined parent class '%s' in definition of class '%s'",
   }
   if(isprim(class_def->type->parent) > 0)

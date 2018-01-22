@@ -23,7 +23,7 @@ struct Type_ {
     Type      actual_type;
     Type      array_type;
   } d;
-  union {
+  struct {
     Class_Def def;
     Exp exp_list;
   } e;
