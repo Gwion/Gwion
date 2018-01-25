@@ -201,8 +201,6 @@ if(!(type->e.def && type->e.def->ext && GET_FLAG(type->e.def->ext, ae_flag_typed
     info->is_ref = is_ref;
     Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
     *(VM_Array_Info**)alloc->ptr = info;
-    if(GET_FLAG(type, ae_flag_unary)) // only type extending from [] have this flag set
-      emit_pre_ctor(emit, type);
     if(!is_ref && info->is_obj)
       emit_pre_constructor_array(emit, tmp->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
@@ -1883,6 +1881,11 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))
   CHECK_OB((emit->code = emit_class_code(emit, type->name)))
+
+  if(class_def->ext && class_def->ext->array) {
+    CHECK_BB(emit_exp(emit, class_def->ext->array->exp_list, 0))
+    CHECK_BB(emit_pre_constructor_array(emit, class_def->type->parent))
+  }
   if(emit_alloc_local(emit, SZ_INT, 1 << 1 | 1 << 2) < 0)
     CHECK_BB(err_msg(EMIT_, body->pos,
           "internal error: cannot allocate local 'this'..."))
