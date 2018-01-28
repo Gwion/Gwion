@@ -187,8 +187,8 @@ Exp new_exp_cast(Type_Decl* type, Exp exp, int pos) {
 
 static void free_exp_cast(Exp_Cast* a) {
   free_type_decl(a->type);
-  if(a->t)
-    REM_REF(a->t)
+  if(a->self->type && a->self->type->array_depth)
+    REM_REF(a->self->type)
   free_exp(a->exp);
 }
 
@@ -462,7 +462,8 @@ Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, int pos) {
 }
 
 static void free_stmt_typedef(Stmt_Typedef a){
-  free_type_decl(a->type);
+  if(!a->m_type)
+    free_type_decl(a->type);
 }
 
 static void free_stmt_func_ptr(Stmt_Ptr a) {

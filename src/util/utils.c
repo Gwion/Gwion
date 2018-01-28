@@ -103,6 +103,12 @@ void type_path(char* str, ID_List list) {
   }
 }
 
+Type array_base(Type t) {
+  while(GET_FLAG(t, ae_flag_typedef))
+    t = t->parent;
+  return t->d.array_type;
+}
+
 Type array_type(Type base, m_uint depth) {
   m_uint i = depth;
   Type t;

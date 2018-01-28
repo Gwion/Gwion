@@ -42,6 +42,7 @@ typedef struct {
 } DL_Union;
 
 struct Importer_{
+  Emitter emit;
   Env env;
   Class_Body body;
   DL_Var var;

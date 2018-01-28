@@ -93,8 +93,6 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(env = type_engine_init(vm, &arg.lib)))
     goto clean;
-  if(!(vm->emit = new_emitter(env)))
-    goto clean;
 #ifdef GWCOV
   if(arg.coverage)
     vm->emit->coverage = 1;

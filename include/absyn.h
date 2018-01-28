@@ -173,7 +173,7 @@ typedef struct {
 typedef struct {
   ae_Exp_Primary_Type type;
   Value value;
-  union {
+  union exp_primary_data {
     S_Symbol var;
     long num;
     m_float fnum;
@@ -199,7 +199,6 @@ typedef struct {
 } Exp_Func;
 typedef struct {
   Type_Decl* type;
-  Type t;
   Exp exp;
   Exp self;
   Func func;
@@ -248,7 +247,7 @@ struct Exp_ {
   Type type;
   Type cast_to;
   Exp next;
-  union {
+  union exp_data {
     Exp_Postfix   exp_post;
     Exp_Primary   exp_primary;
     Exp_Decl      exp_decl;
@@ -369,7 +368,7 @@ struct Stmt_If_ {
 };
 struct Stmt_Goto_Label_ {
   S_Symbol name;
-  union {
+  union stmt_goto_data {
     struct Vector_ v;
     Instr instr;
   } data;
@@ -421,7 +420,7 @@ struct Stmt_Union_ {
 
 struct Stmt_ {
   ae_Stmt_Type stmt_type;
-  union {
+  union stmt_data {
     struct Stmt_Exp_        stmt_exp;
     struct Stmt_Code_       stmt_code;
     struct Stmt_Flow_       stmt_while;
@@ -480,7 +479,7 @@ struct Func_Def_ {
   Arg_List arg_list;
   Stmt code;
   m_uint stack_depth;
-  union {
+  union func_def_data {
     Func func;
     void* dl_func_ptr;
   } d;
@@ -495,7 +494,7 @@ void free_func_def(Func_Def def);
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {
   ae_Section_Type type;
-  union {
+  union section_data {
     Stmt_List stmt_list;
     Class_Def class_def;
     Func_Def func_def;

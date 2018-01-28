@@ -18,22 +18,21 @@ struct M_Vector_ {
 };
 
 DTOR(array_dtor) {
-  if(o->type_ref->d.array_type) {// maybe unnecessary. preferably check array depth
-    if(ARRAY(o)->depth > 1 || isa(o->type_ref->d.array_type, &t_object) > 0) {
-      m_uint i;
-      for(i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
-        release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
-    }
+  Type base = array_base(o->type_ref);
+  if(ARRAY(o)->depth > 1 || isa(base, &t_object) > 0) {
+    m_uint i;
+    for(i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
+      release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
   }
   free(ARRAY(o)->ptr);
   free(ARRAY(o));
-  REM_REF(o->type_ref);
+  REM_REF(o->type_ref)
 }
 
-M_Object new_M_Array(m_uint size, m_uint length, m_uint depth) {
+M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth) {
   m_uint cap = 1;
   M_Object a = new_M_Object(NULL);
-  initialize_object(a, &t_array);
+  initialize_object(a, t);
   while(cap < length)
     cap *= 2;
   ARRAY(a)  	  = malloc(sizeof(struct M_Vector_));
@@ -89,7 +88,6 @@ m_vec4 v4_vector_at(M_Vector v, m_uint i) {
 void m_vector_add(M_Vector v, char* data) {
   CHECK_VEC_SIZE(v)
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
-//  *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
 }
 
 void i_vector_add(M_Vector v, m_uint i) {
@@ -239,6 +237,8 @@ static OP_CHECK(opck_array_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = cast->self->type;
+  if(!l->d.array_type) l = l->parent;
+  if(!r->d.array_type) l = r->parent;
   if(l->array_depth == r->array_depth || isa(l->d.array_type, r->d.array_type) > 0)
     return l;
   return &t_null;
@@ -306,7 +306,7 @@ INSTR(Instr_Pre_Ctor_Array_Post) {
 struct ArrayAllocInfo {
   m_int capacity;
   const m_int top;
-  Type type;
+  Type type, base;
   m_uint* objs;
   m_int* index;
   m_bool is_obj;
@@ -318,17 +318,12 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
     fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
-  base = new_M_Array(info->capacity >= info->top ?
-      info->type->d.array_type->size : SZ_INT, cap, -info->capacity);
+  base = new_M_Array(info->type, info->capacity >= info->top ?
+      info->base->size : SZ_INT, cap, -info->capacity);
   if(!base) {
     fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
     return NULL;
   }
-  if(info->type->info->offset != SZ_INT) {
-    base->data = realloc(base->data, info->type->info->offset);
-    memset(base->data + SZ_INT, 0, info->type->info->offset - SZ_INT);
-  }
-  base->type_ref = info->type; // /13/03/17 
   ADD_REF(info->type);
   return base;
 }
@@ -351,7 +346,7 @@ static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
   m_int i;
   for(i = 0; i < cap; i++) {
     struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
-      info->objs, info->index, info->is_obj };
+      info->base, info->objs, info->index, info->is_obj };
     M_Object next = do_alloc_array(shred, &aai);
     if(!next) {
       release(base, shred);
@@ -380,8 +375,7 @@ INSTR(Instr_Array_Init) { // for litteral array
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object obj;
   POP_REG(shred, instr->m_val2 * info->length);
-  obj = new_M_Array(info->type->d.array_type->size, info->length, info->depth);
-  obj->type_ref = info->type;
+  obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
   vector_add(&shred->gc, (vtype) obj);
   for(i = 0; i < info->length; i++)
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
@@ -410,10 +404,15 @@ INSTR(Instr_Array_Alloc) {
   M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
-  struct ArrayAllocInfo aai = { -info->depth, -1, info->type, NULL, &index, info->is_obj};
+  struct ArrayAllocInfo aai = { -info->depth, -1, info->type, info->base,
+         NULL, &index, info->is_obj};
   if(info->is_obj && !info->is_ref &&
       !(aai.objs = init_array(shred, info, &num_obj)))
+{
+puts("error array");
       goto out_of_memory;
+
+}
   if(!(ref = do_alloc_array(shred, &aai)))
     goto error;
   POP_REG(shred, SZ_INT * info->depth);

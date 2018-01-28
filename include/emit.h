@@ -35,4 +35,8 @@ VM_Code emit_code(Emitter emit);
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename);
 m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos);
 Instr emitter_add_instr(Emitter emit, f_instr f);
+Code* emit_class_code(Emitter emit, m_str name);
+m_bool emit_array_extend(Emitter emit, Type t, Exp e);
+m_bool emit_class_finish(Emitter emit, Nspc nspc);
+m_bool emit_ext_ctor(Emitter emit, VM_Code code);
 #endif

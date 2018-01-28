@@ -6,6 +6,7 @@
 #include "traverse.h"
 #include "import.h"
 #include "importer.h"
+#include "emit.h"
 
 
 #define CHECK_EB(a) if(!a) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between ini/end")) }
@@ -197,9 +198,9 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(importer->templater.n) {
-    type->e.def = calloc(1, sizeof(struct Class_Def_));
-    type->e.def->types = templater_def(&importer->templater);
-    type->e.def->type = type;
+    type->def = calloc(1, sizeof(struct Class_Def_));
+    type->def->types = templater_def(&importer->templater);
+    type->def->type = type;
     SET_FLAG(type, ae_flag_template);
   } else
     SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
@@ -210,30 +211,39 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
 
 m_int importer_class_ext(Importer importer, Type_Decl* td) {
   CHECK_EB(importer->env->class_def)
+  VM_Code ctor = importer->env->class_def->info->pre_ctor;
+  if(importer->env->class_def->parent ||
+      (importer->env->class_def->def && importer->env->class_def->def->ext))
+    CHECK_BB(err_msg(TYPE_, 0, "class extend already set"))
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
-  if(!importer->env->class_def->e.def) {
+  if(!importer->env->class_def->def) {
   Type t = find_type(importer->env, td->xid);
     if(!t)
       CHECK_BB(type_unknown(td->xid, "builtin class extend"))
     CHECK_OB((t = scan_type(importer->env, t, td)))
     if(td->array) {
       CHECK_OB((t = array_type(t, td->array->depth)))
-      importer->env->class_def->array_depth = t->array_depth;
-      importer->env->class_def->d.array_type = t->d.array_type;
-      t->e.exp_list = td->array->exp_list;
-      importer->env->class_def->e.exp_list = td->array->exp_list;
-      td->array->exp_list = NULL;
-      SET_FLAG(importer->env->class_def, ae_flag_typedef | ae_flag_unary | ae_flag_builtin);
+      SET_FLAG(importer->env->class_def, ae_flag_typedef);
     }
     importer->env->class_def->parent = t;
     importer->env->class_def->info->offset = t->info->offset;
     if(t->info->vtable.ptr)
       vector_copy2(&t->info->vtable, &importer->env->class_def->info->vtable);
+      importer->env->class_def->info->pre_ctor = new_vm_code(NULL,
+          SZ_INT, 1, importer->env->class_def->name, "ext ctor");
+    CHECK_OB((importer->emit->code = emit_class_code(importer->emit,
+          importer->env->class_def->name)))
+    if(td->array)
+      CHECK_BB(emit_array_extend(importer->emit, t, td->array->exp_list))
+    if(ctor)
+      CHECK_BB(emit_ext_ctor(importer->emit, ctor))
+    CHECK_BB(emit_class_finish(importer->emit, importer->env->class_def->info))
     free_type_decl(td);
   } else {
+// use ctor here too?
       SET_FLAG(td, ae_flag_typedef);
-      importer->env->class_def->e.def->ext = td;
+      importer->env->class_def->def->ext = td;
   }
   return 1;
 }
@@ -304,8 +314,8 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     Section* section = new_section_stmt_list(list, 0);
     Class_Body body = new_class_body(section, NULL, 0);
     type_decl->array = v->t.array;
-    if(!importer->env->class_def->e.def->body)
-      importer->env->class_def->e.def->body = importer->body = body;
+    if(!importer->env->class_def->def->body)
+      importer->env->class_def->def->body = importer->body = body;
     else {
       importer->body->next = body;
       importer->body = body;
@@ -407,8 +417,8 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
   if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
     Section* section = new_section_func_def(def, 0);
     Class_Body body = new_class_body(section, NULL, 0);
-    if(!importer->env->class_def->e.def->body)
-      importer->env->class_def->e.def->body = importer->body = body;
+    if(!importer->env->class_def->def->body)
+      importer->env->class_def->def->body = importer->body = body;
     else {
       importer->body->next = body;
       importer->body = body;

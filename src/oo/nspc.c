@@ -109,9 +109,8 @@ static void nspc_release_object(Nspc a, Value value) {
   }
   if(value->m_type->array_depth && !GET_FLAG(value->m_type, ae_flag_typedef))
     REM_REF(value->m_type)
-  else if(GET_FLAG(value->m_type, ae_flag_typedef) && 
-      GET_FLAG(value->m_type->d.array_type, ae_flag_typedef))
-    REM_REF(value->m_type);
+//  else if(GET_FLAG(value->m_type, ae_flag_typedef))
+//    REM_REF(value->m_type->parent)
 }
 
 static void free_nspc_value_fptr(Func f) {
@@ -128,20 +127,16 @@ static void free_nspc_value(Nspc a) {
   for(i = vector_size(v) + 1; --i;) {
     Value value = (Value)vector_at(v, i - 1);
     if(isa(value->m_type, &t_class) > 0) {
-      if(GET_FLAG(value->m_type, ae_flag_typedef)) {
-        if(!value->m_type->d.actual_type->array_depth)
-      ;    /*REM_REF(value->m_type->d.actual_type);*/
-      }
-      else if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
-        UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);  
+      if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
+        UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);
         if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
-          free_class_def(value->m_type->d.actual_type->e.def);
+          free_class_def(value->m_type->d.actual_type->def);
           /*REM_REF(value->m_type->d.actual_type)*/
         } else if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
-        free_class_def(value->m_type->d.actual_type->e.def);
+        free_class_def(value->m_type->d.actual_type->def);
         else {
           /*REM_REF(value->m_type->d.actual_type)*/
-     free_class_body(value->m_type->d.actual_type->e.def->body); 
+     free_class_body(value->m_type->d.actual_type->def->body);
      /*REM_REF(value->m_type->d.actual_type)*/
         }
       }
@@ -184,7 +179,7 @@ void free_nspc(Nspc a) {
 
   v = scope_get(&a->type);
   for(i = vector_size(v); i > 0; i--) {
-    Type type = (Type)vector_at(v, i - 1); 
+    Type type = (Type)vector_at(v, i - 1);
     REM_REF(type);
   }
   free_vector(v);

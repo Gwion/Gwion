@@ -18,15 +18,12 @@ struct Type_ {
   Nspc info;
   Nspc owner;
   m_uint    array_depth;
-  union {
+  union type_data {
     Func      func;
     Type      actual_type;
     Type      array_type;
   } d;
-  struct {
-    Class_Def def;
-    Exp exp_list;
-  } e;
+  Class_Def def;
 //	UGenInfo ugen_info;
   m_uint flag;
   struct VM_Object_ obj;
@@ -83,4 +80,6 @@ extern struct Type_ t_gack;
 extern struct Type_ t_ptr;
 m_uint get_type_xid(); // 19/05/17 // should be included in new type.
 m_uint num_digit(m_uint i);
+Type array_base(Type t);
 #endif
+

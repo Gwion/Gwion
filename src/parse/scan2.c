@@ -16,7 +16,7 @@ static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
   if(GET_FLAG(type, ae_flag_template)) {
     CHECK_BB(template_push_types(env, decl->base->types, decl->type->types));
-    CHECK_BB(scan2_class_def(env, type->e.def))
+    CHECK_BB(scan2_class_def(env, type->def))
     nspc_pop_type(env->curr);
   }
   return 1;
@@ -41,7 +41,8 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
 static m_bool scan2_arg_def_check(Arg_List list) {
   if(list->var_decl->value) {
     if(list->var_decl->value->m_type->array_depth)
-      REM_REF(list->var_decl->value->m_type->d.array_type)
+//      REM_REF(list->var_decl->value->m_type->d.array_type)
+      REM_REF(array_base(list->var_decl->value->m_type))
       list->var_decl->value->m_type = list->type;
   }
   if(!list->type->size)
@@ -129,14 +130,7 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan2_stmt_type(Env env, Stmt_Typedef stmt) {
-  if(stmt->type->types) {
-    CHECK_BB(template_push_types(env, stmt->m_type->e.def->tref, stmt->type->types))
-    CHECK_BB(scan2_class_def(env, stmt->m_type->e.def))
-    nspc_pop_type(env->curr);
-  }
-  if(stmt->type->array)
-    return scan2_exp(env, stmt->type->array->exp_list);
-  return 1;
+  return scan2_class_def(env, stmt->m_type->def);
 }
 
 static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
@@ -689,7 +683,7 @@ m_bool scan2_class_def(Env env, Class_Def class_def) {
     return 1;
   if(class_def->ext) {
     if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
-      CHECK_BB(scan2_class_def(env, class_def->type->parent->e.def))
+      CHECK_BB(scan2_class_def(env, class_def->type->parent->def))
     if(class_def->ext->array)
       CHECK_BB(scan2_exp(env, class_def->ext->array->exp_list))
   }

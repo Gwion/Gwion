@@ -1,5 +1,5 @@
 typedef struct {
-  Type   type;
+  Type   type, base;
   m_uint length;
   m_uint depth;
   m_bool is_obj;

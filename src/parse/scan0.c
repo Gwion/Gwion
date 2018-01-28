@@ -28,6 +28,8 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
+  ae_flag flag;
+  Class_Def def;
   Type base = find_type(env, stmt->type->xid);
   Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
@@ -37,25 +39,16 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
   CHECK_OB((base = scan_type(env, base, stmt->type)))
-  if(stmt->type->array) {
-    Type t = base;
-    base = array_type(t, stmt->type->array->depth);
-    base->e.exp_list = stmt->type->array->exp_list;
-    REM_REF(base)
-  }
-  Type t = base;
-  base = type_copy(t);
-  if(t->info)
-    ADD_REF(t->info);
-  base->parent = t;
-  base->d.array_type = t;
-  stmt->m_type = t;
-  SET_FLAG(base, ae_flag_typedef | ae_flag_checked);
-  base->name = s_name(stmt->xid);
-  nspc_add_type(env->curr, stmt->xid, base);
-  v = mk_class(env, base);
-  SET_FLAG(v, ae_flag_typedef);
-  SET_FLAG(v->m_type, ae_flag_typedef);
+  flag = base->def ? base->def->flag : 0;
+  CHECK_OB((def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
+    stmt->type, NULL, stmt->pos)))
+  CHECK_BB(scan0_class_def(env, def))
+// TODO : just a typedef
+//  v = mk_class(env, def->type);
+//  SET_FLAG(v, ae_flag_typedef);
+//  SET_FLAG(v->m_type, ae_flag_typedef);
+  SET_FLAG(def->type, ae_flag_typedef);
+  stmt->m_type = def->type;
   return 1;
 }
 
@@ -164,10 +157,8 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->info = new_nspc(the_class->name, env_filename(env));
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
     env_nspc(env) : env->curr;
-  the_class->e.def = class_def;
+  the_class->def = class_def;
   the_class->info->pre_ctor = new_vm_code(NULL, 0, 0, the_class->name, "[in code ctor definition]");
-if(class_def->ext && class_def->ext->array)
-the_class->e.exp_list = class_def->ext->array->exp_list;
   if(strstr(the_class->name, "<")) {
     nspc_add_type(env->curr->parent, class_def->name->xid, the_class);
     ADD_REF(the_class);
@@ -175,6 +166,8 @@ the_class->e.exp_list = class_def->ext->array->exp_list;
     nspc_add_type(env->curr, class_def->name->xid, the_class);
   if(class_def->types)
     SET_FLAG(the_class, ae_flag_template);
+  if(class_def->ext && class_def->ext->array)
+    SET_FLAG(the_class, ae_flag_typedef);
   return the_class;
 }
 

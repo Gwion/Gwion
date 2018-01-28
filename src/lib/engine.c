@@ -7,6 +7,7 @@
 #include "import.h"
 #include "importer.h"
 #include "lang_private.h"
+#include "emit.h"
 
 struct Type_ t_void      = { "void",       0,      NULL,        te_void};
 struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
@@ -139,9 +140,11 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
    }
 }
 
- Env type_engine_init(VM* vm, Vector plug_dirs) {
+Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
-  struct Importer_ importer = { env };
+  CHECK_OO((vm->emit = new_emitter(env)))
+  vm->emit->filename = "builtin";
+  struct Importer_ importer = { vm->emit, env };
    if(import_core_libs(&importer) < 0 ||
       import_other_libs(&importer) < 0 ) {
     free_env(env);

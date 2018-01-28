@@ -9,6 +9,9 @@
 #include "func.h"
 #include "traverse.h"
 
+#define IS_REF 1 << 1
+#define IS_OBJ 1 << 2
+
 #ifdef GWCOV
 #define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
 #else
@@ -50,8 +53,8 @@ static Local* frame_alloc_local(Frame* frame, m_uint size, m_uint flag) {
   Local* local = calloc(1, sizeof(Local));
   local->size = size;
   local->offset = frame->curr_offset;
-  local->is_ref = (flag & 1 << 1) == 1 << 1;
-  local->is_obj = (flag & 1 << 2) == 1 << 2;
+  local->is_ref = (flag & IS_REF) == IS_REF;
+  local->is_obj = (flag & IS_OBJ) == IS_OBJ;
   frame->curr_offset += local->size;
   vector_add(&frame->stack, (vtype)local);
   return local;
@@ -177,32 +180,55 @@ static m_bool emit_pre_constructor_array(Emitter emit, Type type) {
   return 1;
 }
 
+VM_Array_Info*  emit_array_extend_inner(Emitter emit, Type t, Exp e) {
+  Type base = array_base(t);
+  CHECK_BO(emit_exp(emit, e, 0))
+  VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
+  info->depth = t->array_depth;
+  info->type = t;
+  info->base = base;
+  Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
+  *(VM_Array_Info**)alloc->ptr = info;
+  if(isa(base, &t_object) > 0) {
+    CHECK_BO(emit_pre_constructor_array(emit, base))
+    info->is_obj = 1;
+  }
+  return info;
+}
+
+static INSTR(pop_array_class) {
+  POP_REG(shred, SZ_INT);
+  M_Object obj = *(M_Object*)REG(-SZ_INT);
+  M_Object tmp = *(M_Object*)REG(0);
+  ARRAY(obj) = ARRAY(tmp);
+  free(tmp->data);
+  free(tmp);
+  ADD_REF(obj->type_ref) // add ref to typedef array type
+}
+
+m_bool emit_ext_ctor(Emitter emit, VM_Code code) {
+  Instr push_f = emitter_add_instr(emit, Reg_PushImm);
+  Instr offset = emitter_add_instr(emit, Reg_PushImm);
+  push_f->m_val = SZ_INT;
+  *(VM_Code*)push_f->ptr = code;
+  offset->m_val = SZ_INT;
+  *(m_uint*)offset->ptr = emit_code_offset(emit);
+  return 1;
+}
+
+m_bool emit_array_extend(Emitter emit, Type t, Exp e) {
+  CHECK_OB(emit_array_extend_inner(emit, t, e))
+  emitter_add_instr(emit, pop_array_class);
+  return 1;
+}
+
+
 static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     m_bool is_ref) {
   if(type->array_depth) {
-    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref))
-if(!(type->e.def && type->e.def->ext && GET_FLAG(type->e.def->ext, ae_flag_typedef)))
-      return 1;
-    if(array) { puts("array");
-      CHECK_BB(emit_exp(emit, array->exp_list, 0))
-    }
-    Type tmp = NULL, t = type;
-    while(t) {
-      if(t->e.exp_list)
-        CHECK_BB(emit_exp(emit, t->e.exp_list, 0))
-      if(t->array_depth)
-        tmp = t;
-      t = t->d.array_type;
-    }
-    VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
-    info->depth = type->array_depth;
-    info->type = type;
-    info->is_obj = isa(tmp->d.array_type, &t_object) > 0 ? 1 : 0;
+    VM_Array_Info* info = emit_array_extend_inner(emit, type, array->exp_list);
+    CHECK_OB(info)
     info->is_ref = is_ref;
-    Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
-    *(VM_Array_Info**)alloc->ptr = info;
-    if(!is_ref && info->is_obj)
-      emit_pre_constructor_array(emit, tmp->d.array_type);
   } else if(isa(type, &t_object) > 0 && !is_ref) {
     Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
@@ -282,26 +308,36 @@ VM_Code emit_code(Emitter emit) {
 
 static m_bool emit_exp_prim_array(Emitter emit, Array_Sub array) {
   m_uint count = 0;
-  CHECK_BB(emit_exp(emit, array->exp_list, 0))
   Exp e = array->exp_list;
+  CHECK_BB(emit_exp(emit, e, 0))
   while(e) {
     count++;
     e = e->next;
   }
   Type type = array->type;
+  Type base = array_base(type);
   Instr instr = emitter_add_instr(emit, Instr_Array_Init);
   VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
   info->type = type;
+  info->base = base;
   info->length = count;
   *(VM_Array_Info**)instr->ptr = info;
-  instr->m_val2 = type->d.array_type->size;
+  instr->m_val2 = base->size;
   return 1;
+}
+
+static m_uint get_depth(Type t) {
+  m_uint depth = 0;
+  while(t) {
+    depth += t->array_depth;
+    t = t->parent;
+  }
+  return depth;
 }
 
 static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   m_uint is_var = array->self->emit_var;
-  m_uint depth = array->base->type->array_depth - array->self->type->array_depth;
-
+  m_uint depth = get_depth(array->base->type) - array->self->type->array_depth;
   CHECK_BB(emit_exp(emit, array->base, 0))
   CHECK_BB(emit_exp(emit, array->indices->exp_list, 0))
   if(depth == 1) {
@@ -312,7 +348,7 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
     Instr instr = emitter_add_instr(emit, Instr_Array_Access_Multi);
     instr->m_val = depth;
     instr->m_val2 = (is_var || array->self->type->array_depth) ?
-      SZ_INT : array->base->type->d.array_type->size;
+      SZ_INT : array_base(array->base->type)->size;
     *(m_uint*)instr->ptr = is_var || array->self->type->array_depth;
   }
   return 1;
@@ -498,14 +534,14 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   if(GET_FLAG(value, ae_flag_member))
     alloc = emitter_add_instr(emit, Alloc_Member);
   else
-    alloc = emit_exp_decl_global(emit, value, (is_ref ? 1 << 1 : 0) |
-        (is_obj ? 1 << 2 : 0));
+    alloc = emit_exp_decl_global(emit, value, (is_ref ? IS_REF : 0) |
+        (is_obj ? IS_OBJ : 0));
   alloc->m_val2 = type->size;
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
     if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref)) {
-if(!(type->e.def && type->e.def->ext && GET_FLAG(type->e.def->ext, ae_flag_typedef)))
+if(!(type->def && type->def->ext && GET_FLAG(type->def->ext, ae_flag_typedef)))
       return 1;
     }
     if((is_array) || !is_ref) {
@@ -521,7 +557,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
 
 static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
   CHECK_BB(template_push_types(emit->env, decl->base->types, decl->type->types))
-  CHECK_BB(emit_class_def(emit, decl->m_type->e.def))
+  CHECK_BB(emit_class_def(emit, decl->m_type->def))
   nspc_pop_type(emit->env->curr);
   return 1;
 }
@@ -533,11 +569,6 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
 
   if(GET_FLAG(decl->m_type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
-  if(GET_FLAG(decl->m_type, ae_flag_typedef) && GET_FLAG(decl->m_type, ae_flag_ref))
-    if(!(decl->m_type->e.def && decl->m_type->e.def->ext && decl->m_type->e.def->ext->array))
-      ref = 1;
-
-printf("ref %i\n", ref);
   while(list) {
     if(GET_FLAG(decl->type, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
@@ -717,7 +748,7 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
     if(func->value_ref->owner_class &&
         GET_FLAG(func->value_ref->owner_class, ae_flag_template))
       CHECK_BB(emit_exp_call_code_template(emit->env,
-            func->value_ref->owner_class->e.def))
+            func->value_ref->owner_class->def))
     else if(!GET_FLAG(func->def, ae_flag_template))
       CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
     if(emit_func_def(emit, func->def) < 0)
@@ -1338,12 +1369,7 @@ static m_bool emit_stmt_fptr(Emitter emit, Stmt_Ptr ptr) {
 }
 
 static m_bool emit_stmt_type(Emitter emit, Stmt_Typedef stmt) {
-  if(stmt->type->types) {
-    CHECK_BB(template_push_types(emit->env, stmt->m_type->e.def->tref, stmt->type->types))
-    CHECK_BB(emit_class_def(emit, stmt->m_type->e.def))
-    nspc_pop_type(emit->env->curr);
-  }
-  return 1;
+  return emit_class_def(emit, stmt->m_type->def);
 }
 
 static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
@@ -1383,7 +1409,7 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
     env_push_class(emit->env, stmt->value->m_type);
   }
   else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member)) {
-    m_int offset = emit_alloc_local(emit, stmt->s, 1 << 1);
+    m_int offset = emit_alloc_local(emit, stmt->s, IS_REF);
     CHECK_BB(offset)
     stmt->o = offset;
   }
@@ -1689,7 +1715,7 @@ static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_func_def_global(Emitter emit, Value value) {
-  m_int offset = emit_alloc_local(emit, value->m_type->size, 1 << 1);
+  m_int offset = emit_alloc_local(emit, value->m_type->size, IS_REF);
   Instr set_mem = emitter_add_instr(emit, Mem_Set_Imm);
   CHECK_BB(offset)
   set_mem->m_val = value->offset = offset;
@@ -1713,7 +1739,7 @@ static m_bool emit_func_def_init(Emitter emit, Func func) {
 static m_bool emit_func_def_flag(Emitter emit, Func func) {
   if(GET_FLAG(func, ae_flag_member)) {
     emit->code->stack_depth += SZ_INT;
-    if(emit_alloc_local(emit, SZ_INT, 1 << 1) < 0)
+    if(emit_alloc_local(emit, SZ_INT, IS_REF) < 0)
       CHECK_BB(err_msg(EMIT_, func->def->pos, "(emit): internal error: cannot allocate local 'this'...")) // LCOV_EXCL_LINE
   }
 
@@ -1724,8 +1750,8 @@ static m_bool emit_func_def_args(Emitter emit, Arg_List a) {
   while(a) {
     Value value = a->var_decl->value;
     m_int offset, size = value->m_type->size;
-    m_bool obj = isa(value->m_type, &t_object) > 0 ? 1 << 2 : 0;
-    m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref) ? 1 << 1 : 0;
+    m_bool obj = isa(value->m_type, &t_object) > 0 ? IS_OBJ : 0;
+    m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref) ? IS_REF : 0;
     emit->code->stack_depth += size;
     if((offset = emit_alloc_local(emit, size, ref | obj)) < 0)
       CHECK_BB(err_msg(EMIT_, a->pos,
@@ -1775,7 +1801,7 @@ static m_bool emit_func_def_code(Emitter emit, Func func) {
 static m_bool emit_func_def_body(Emitter emit, Func_Def func_def) {
   CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
   if(GET_FLAG(func_def, ae_flag_variadic)) {
-    if(emit_alloc_local(emit, SZ_INT, 1 << 1) < 0)
+    if(emit_alloc_local(emit, SZ_INT, IS_REF) < 0)
       CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE
       emit->code->stack_depth += SZ_INT;
   }
@@ -1828,7 +1854,7 @@ static m_bool init_class_data(Nspc nspc) {
   return 1;
 }
 
-static Code* emit_class_code(Emitter emit, m_str name) {
+Code* emit_class_code(Emitter emit, m_str name) {
   char c[strlen(name) + 7];
   Code* code = new_code();
   CHECK_OO(code);
@@ -1841,7 +1867,7 @@ static Code* emit_class_code(Emitter emit, m_str name) {
 
 }
 
-static m_bool emit_class_finish(Emitter emit, Nspc nspc) {
+m_bool emit_class_finish(Emitter emit, Nspc nspc) {
   CHECK_OB(emitter_add_instr(emit, Func_Return))
   VM_Code code = emit_code(emit);
 
@@ -1875,18 +1901,20 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   if(class_def->types)
     return 1;
 
-  if(class_def->ext && !GET_FLAG(class_def->type->parent, ae_flag_emit) && GET_FLAG(class_def->ext, ae_flag_typedef))
-    CHECK_BB(emit_class_def(emit, class_def->ext->array ? class_def->type->parent->d.array_type->e.def : class_def->type->parent->e.def))
-
+  if(class_def->ext && ((!GET_FLAG(class_def->type->parent, ae_flag_emit) &&
+      GET_FLAG(class_def->ext, ae_flag_typedef)) || class_def->ext->types)) {
+    Type base = class_def->ext->array ?
+             array_base(class_def->type->parent) : class_def->type->parent;
+    CHECK_BB(emit_class_def(emit, base->def))
+  }
   CHECK_BB(init_class_data(type->info))
   CHECK_BB(emit_class_push(emit, type))
   CHECK_OB((emit->code = emit_class_code(emit, type->name)))
 
-  if(class_def->ext && class_def->ext->array) {
-    CHECK_BB(emit_exp(emit, class_def->ext->array->exp_list, 0))
-    CHECK_BB(emit_pre_constructor_array(emit, class_def->type->parent))
-  }
-  if(emit_alloc_local(emit, SZ_INT, 1 << 1 | 1 << 2) < 0)
+  if(class_def->ext && class_def->ext->array)
+      CHECK_BB(emit_array_extend(emit, class_def->type->parent,
+            class_def->ext->array->exp_list))
+  if(emit_alloc_local(emit, SZ_INT, IS_REF | IS_OBJ) < 0)
     CHECK_BB(err_msg(EMIT_, body->pos,
           "internal error: cannot allocate local 'this'..."))
   while(body) {

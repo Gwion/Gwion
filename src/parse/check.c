@@ -33,7 +33,7 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp) {
 
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
   CHECK_BB(template_push_types(env, decl->base->types, decl->type->types))
-  CHECK_BB(check_class_def(env, decl->m_type->e.def))
+  CHECK_BB(check_class_def(env, decl->m_type->def))
   nspc_pop_type(env->curr);
   return 1;
 }
@@ -124,7 +124,7 @@ static Type check_exp_prim_array_match(Env env, Exp e) {
       CHECK_BO(check_exp_prim_array_inner(t, type, e))
     e = e->next;
   }
-  return array_type(type->array_depth ? type->d.array_type : type, type->array_depth + 1);
+  return array_type(type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
 static Type check_exp_prim_array(Env env, Array_Sub array) {
@@ -338,10 +338,6 @@ Type check_exp_array(Env env, Exp_Array* array) {
 
   CHECK_OO((t_base = check_exp(env, array->base)))
 
-  if(array->indices->depth > t_base->array_depth)
-    CHECK_BO(err_msg(TYPE_,  array->pos,
-                     "array subscripts (%i) exceeds defined dimension (%i)",
-                     array->indices->depth, t_base->array_depth))
   CHECK_OO(check_exp(env, array->indices->exp_list))
 
   Exp e = array->indices->exp_list;
@@ -356,15 +352,26 @@ Type check_exp_array(Env env, Exp_Array* array) {
     e = e->next;
   }
 
-  t = NULL;
-
   if(depth != array->indices->depth)
     CHECK_BO(err_msg(TYPE_, array->pos, "invalid array acces expression."))
 
+  while(t_base && array->indices->depth > t_base->array_depth) {
+     depth -= t_base->array_depth;
+     if(t_base->parent)
+       t_base = t_base->parent;
+     else
+       CHECK_BO(err_msg(TYPE_,  array->pos,
+             "array subscripts (%i) exceeds defined dimension (%i)",
+             array->indices->depth, t_base->array_depth))
+  }
+
+  t = NULL;
+
+
   if(depth == t_base->array_depth)
-    t = array->base->type->d.array_type;
+    t = array_base(t_base);
   else {
-    t = type_copy(array->base->type);
+    t = type_copy(t_base);
     t->array_depth -= depth;
   }
   return t;
@@ -663,7 +670,7 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   value = func->value_ref;
   if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
   {
-    Class_Def def = value->owner_class->e.def;
+    Class_Def def = value->owner_class->def;
     CHECK_BB(template_push_types(env, def->tref, def->base))
     CHECK_BB(traverse_class_def(env, def))
   }
@@ -1016,14 +1023,7 @@ m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
-  if(stmt->type->types) {
-    CHECK_BB(template_push_types(env, stmt->m_type->e.def->tref, stmt->type->types))
-    CHECK_BB(check_class_def(env, stmt->m_type->e.def))
-    nspc_pop_type(env->curr);
-  }
-  if(stmt->type->array && stmt->type->array->exp_list)
-    CHECK_OB(check_exp(env, stmt->type->array->exp_list))
-  return 1;
+  return check_class_def(env, stmt->m_type->def);
 }
 
 static Type check_exp(Env env, Exp exp) {
@@ -1163,11 +1163,12 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
 
 static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
   Type t = check_exp(env, stmt->exp);
-  Type ptr = t->d.array_type;
-  CHECK_OB(t)
-  if(isa(t, &t_array) < 0)
+  Type ptr = array_base(t);
+  if(GET_FLAG(t, ae_flag_typedef))
+    t = t->parent;
+  if(!t || !ptr || isa(t, &t_array) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos, "type '%s' is not array.\n"
-          " This is not allowed in auto loop", t->name))
+          " This is not allowed in auto loop", stmt->exp->type->name))
   if(stmt->is_ptr) {
     struct ID_List_   id;
     struct Type_List_ tl;
@@ -1181,8 +1182,9 @@ static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
     tl.list = &td0;
     td.types = &tl;
     ptr = scan_type(env, &t_ptr, &td);
-    if(!ptr->info->offset) // no pointer of that type checked yet
-      check_class_def(env, ptr->e.def);
+//    if(!ptr->info->offset) // no pointer of that type checked yet
+    if(!GET_FLAG(ptr, ae_flag_checked))
+      check_class_def(env, ptr->def);
   }
   t = t->array_depth - 1 ? array_type(ptr, t->array_depth - 1) :
      ptr;
@@ -1568,42 +1570,31 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
     CHECK_OB(check_exp(env, class_def->ext->array->exp_list))
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp_list))
     CHECK_OB((class_def->type->parent = array_type(class_def->type->parent, class_def->ext->array->depth)))
-    class_def->type->array_depth = class_def->type->parent->array_depth;
-    class_def->type->d.array_type = class_def->type->parent->d.array_type;
-//    class_def->type->e.exp_list = class_def->ext->array->exp_list;
-    SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
-if(GET_FLAG(class_def->ext, ae_flag_typedef) && class_def->type->parent->d.array_type->e.def->base) {
-//if(class_def->type->d.array_type->e.def->base) {
-  CHECK_BB(template_push_types(env, class_def->tref, class_def->base))
-  CHECK_BB(template_push_types(env, class_def->type->parent->d.array_type->e.def->tref, class_def->ext->types))
-CHECK_BB(traverse_class_def(env, class_def->type->parent->d.array_type->e.def))
-nspc_pop_type(env->curr);
-nspc_pop_type(env->curr);
-//  exit(12);
-}//else
-//            "undefined parent class '%s' in definition of class '%s'",
+  }
+  if(class_def->ext->types) {
+    Type t = class_def->type->parent->array_depth ?
+      array_base(class_def->type->parent) : class_def->type->parent;
+    CHECK_BB(template_push_types(env, class_def->tref, class_def->base))
+    CHECK_BB(template_push_types(env, t->def->tref, 
+      class_def->ext->types))
+    CHECK_BB(traverse_class_def(env, t->def))
+    nspc_pop_type(env->curr);
+    nspc_pop_type(env->curr);
   }
   if(isprim(class_def->type->parent) > 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend primitive type '%s'", class_def->type->parent->name))
   if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {
-    if(GET_FLAG(class_def->ext, ae_flag_typedef))
-      CHECK_BB(check_class_def(env, class_def->type->parent->e.def))
+    if(GET_FLAG(class_def->ext, ae_flag_typedef)) // ??????
+      CHECK_BB(check_class_def(env, class_def->type->parent->def))
     else
       CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
             class_def->type->parent->name))
   }
-   if(class_def->type->parent->array_depth && !class_def->ext->array) {
-     if(!class_def->type->parent->e.exp_list)
-       CHECK_BB(err_msg(TYPE_, class_def->pos, "can't use empty []'s in class extend"))
-    class_def->type->xid = class_def->type->parent->xid;
-    class_def->type->d.array_type = class_def->type->parent->d.array_type;
-    class_def->type->array_depth = class_def->type->parent->array_depth;
-    class_def->type->e.exp_list = class_def->type->parent->e.exp_list;
-    SET_FLAG(class_def->type, ae_flag_typedef | ae_flag_unary);
-  }
+  if(GET_FLAG(class_def->type->parent, ae_flag_typedef))
+    SET_FLAG(class_def->type, ae_flag_typedef);
   return 1;
 }
 

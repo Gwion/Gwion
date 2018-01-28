@@ -30,7 +30,7 @@ static void print_type(Type type) {
   free(name);
   if(GET_FLAG(type, ae_flag_typedef) && !GET_FLAG(type, ae_flag_unary)) {
     fprintf(stdout, " aka ");
-    print_type(type->d.array_type);
+    print_type(type->parent);
   }
 }
 

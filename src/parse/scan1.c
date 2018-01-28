@@ -14,8 +14,8 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(!type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
-    CHECK_BO(template_push_types(env, t->e.def->types, type->types))
-    Class_Def a = template_class(env, t->e.def, type->types);
+    CHECK_BO(template_push_types(env, t->def->types, type->types))
+    Class_Def a = template_class(env, t->def, type->types);
     if(a->type) {
       nspc_pop_type(env->curr);
       return a->type;
@@ -27,7 +27,7 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BO(scan1_class_def(env, a))
     nspc_pop_type(env->curr);
-    a->tref = t->e.def->types;
+    a->tref = t->def->types;
     a->base = type->types;
     t = a->type;
   } else if(type->types)
@@ -54,7 +54,7 @@ Type get_array(Type t, Array_Sub a, m_str orig) {
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
-    decl->base = t->e.def;
+    decl->base = t->def;
     decl->m_type = t;
   }
   return 1;
@@ -98,29 +98,12 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
         CHECK_BB(err_msg(SCAN1_, list->self->pos,
               "variable %s has already been defined in the same scope...",
               s_name(list->self->xid)))
-    if(t->array_depth && !var_decl->array) { // catch typedef xxx[] before making array type
-      ADD_REF(t);
-      if(!t->e.exp_list)
-        SET_FLAG(decl->type, ae_flag_ref);
-    }
     if(var_decl->array) { // get depth, including typedef
-      m_uint depth = list->self->array->depth;
-      Type t3, t2 = t;
-      t3 = t;
-      while(t3) {
-        depth += t3->array_depth;
-        t3 = t3->d.array_type;
-      }
       if(var_decl->array->exp_list)
         CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-      t = array_type(t2, depth);
+      t = array_type(t, var_decl->array->depth);
       if(!list->self->array->exp_list)
         SET_FLAG(decl->type, ae_flag_ref);
-      if(t2->array_depth) {
-        if(!t2->e.exp_list)
-          SET_FLAG(t, ae_flag_ref);
-        SET_FLAG(t, ae_flag_typedef);
-      }
     }
     if(!list->self->value)
       list->self->value = new_value(t, s_name(list->self->xid));
@@ -383,14 +366,7 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan1_stmt_type(Env env, Stmt_Typedef stmt) {
-  if(stmt->type->types) {
-    CHECK_BB(template_push_types(env, stmt->m_type->e.def->tref, stmt->type->types))
-    CHECK_BB(scan1_class_def(env, stmt->m_type->e.def))
-    nspc_pop_type(env->curr);
-  }
-  if(stmt->type->array)
-    return scan1_exp(env, stmt->type->array->exp_list);
-  return 1;
+  return scan1_class_def(env, stmt->m_type->def);
 }
 
 static m_bool scan1_stmt_union_array(Array_Sub array) {
