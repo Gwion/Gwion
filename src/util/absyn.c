@@ -31,7 +31,7 @@ static void free_var_decl(Var_Decl a) {
         REM_REF(a->value->m_type);
       REM_REF(a->value);
     } else if(!a->value->owner_class && !GET_FLAG(a->value, ae_flag_global))
-        REM_REF(a->value)
+      REM_REF(a->value)
   }
   if(a->array)
     free_array_sub(a->array);

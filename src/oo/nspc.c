@@ -109,8 +109,8 @@ static void nspc_release_object(Nspc a, Value value) {
   }
   if(value->m_type->array_depth && !GET_FLAG(value->m_type, ae_flag_typedef))
     REM_REF(value->m_type)
-//  else if(GET_FLAG(value->m_type, ae_flag_typedef))
-//    REM_REF(value->m_type->parent)
+  else if(GET_FLAG(value->m_type, ae_flag_builtin) &&GET_FLAG(value->m_type, ae_flag_typedef))
+    REM_REF(value->m_type->parent)
 }
 
 static void free_nspc_value_fptr(Func f) {

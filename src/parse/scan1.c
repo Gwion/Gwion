@@ -85,11 +85,14 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
 
   CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(env, t, decl))
-  if(decl->m_type)
+  if(decl->m_type && !env->func)
     t = decl->m_type;
+  else
+    decl->m_type = t;
   while(list) {
     Value value;
     var_decl = list->self;
+    t = decl->m_type;
     if(isres(list->self->xid, list->self->pos) > 0)
       CHECK_BB(err_msg(SCAN2_, list->self->pos,
             "\t... in variable declaration", s_name(list->self->xid)))
@@ -130,8 +133,6 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     nspc_add_value(env->curr, list->self->xid, list->self->value);
     list = list->next;
   }
-  if(!decl->m_type)
-    decl->m_type = t;
   return 1;
 }
 
