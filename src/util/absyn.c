@@ -234,42 +234,42 @@ static Exp new_exp_prim(int pos) {
 
 Exp new_exp_prim_int(long i, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_num;
+  a->d.exp_primary.primary_type = ae_primary_num;
   a->d.exp_primary.d.num = i;
   return a;
 }
 
 Exp new_exp_prim_float(m_float num, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_float;
+  a->d.exp_primary.primary_type = ae_primary_float;
   a->d.exp_primary.d.fnum = num;
   return a;
 }
 
 Exp new_exp_prim_string(m_str s, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_str;
+  a->d.exp_primary.primary_type = ae_primary_str;
   a->d.exp_primary.d.str = s;
   return a;
 }
 
 Exp new_exp_prim_nil(int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_nil;
+  a->d.exp_primary.primary_type = ae_primary_nil;
   return a;
 }
 
 Exp new_exp_prim_id(S_Symbol xid, int pos) {
   Exp a = new_exp_prim(pos);
   a->meta = ae_meta_var;
-  a->d.exp_primary.type = ae_primary_id;
+  a->d.exp_primary.primary_type = ae_primary_id;
   a->d.exp_primary.d.var = xid;
   return a;
 }
 
 Exp new_exp_prim_hack(Exp exp, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_hack;
+  a->d.exp_primary.primary_type = ae_primary_hack;
   a->d.exp_primary.d.exp = exp;
   return a;
 }
@@ -291,28 +291,28 @@ __inline static void free_complex(Complex* a) {
 
 Exp new_exp_prim_char(m_str chr, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_char;
+  a->d.exp_primary.primary_type = ae_primary_char;
   a->d.exp_primary.d.chr = chr;
   return a;
 }
 
 Exp new_exp_prim_array(Array_Sub exp_list, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_array;
+  a->d.exp_primary.primary_type = ae_primary_array;
   a->d.exp_primary.d.array = exp_list;
   return a;
 }
 
 Exp new_exp_prim_complex(Complex* exp, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type  = ae_primary_complex;
+  a->d.exp_primary.primary_type  = ae_primary_complex;
   a->d.exp_primary.d.cmp = exp;
   return a;
 }
 
 Exp new_exp_prim_polar(Polar* exp, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_polar;
+  a->d.exp_primary.primary_type = ae_primary_polar;
   a->d.exp_primary.d.polar = exp;
   return a;
 }
@@ -349,7 +349,7 @@ __inline static void free_vec(Vec* a) {
 
 Exp new_exp_prim_vec(Vec* exp, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.type = ae_primary_vec;
+  a->d.exp_primary.primary_type = ae_primary_vec;
   a->d.exp_primary.d.vec = exp;
   a->d.exp_primary.self = a;
   return a;
@@ -520,15 +520,15 @@ Exp prepend_exp(Exp exp, Exp next, int pos) {
 }
 
 static void free_exp_primary(Exp_Primary* a) {
-  if(a->type == ae_primary_hack)
+  if(a->primary_type == ae_primary_hack)
     free_exp(a->d.exp);
-  else if(a->type == ae_primary_array)
+  else if(a->primary_type == ae_primary_array)
     free_array_sub(a->d.array);
-  else if(a->type == ae_primary_complex)
+  else if(a->primary_type == ae_primary_complex)
     free_complex(a->d.cmp);
-  else if(a->type == ae_primary_polar)
+  else if(a->primary_type == ae_primary_polar)
     free_polar(a->d.polar);
-  else if(a->type == ae_primary_vec)
+  else if(a->primary_type == ae_primary_vec)
     free_vec(a->d.vec);
 }
 
@@ -885,7 +885,7 @@ static void free_stmt_list(Stmt_List list) {
 
 Section* new_section_stmt_list(Stmt_List list, int pos) {
   Section* a = calloc(1, sizeof(Section));
-  a->type = ae_section_stmt;
+  a->section_type = ae_section_stmt;
   a->d.stmt_list = list;
   a->pos = pos;
   return a;
@@ -893,7 +893,7 @@ Section* new_section_stmt_list(Stmt_List list, int pos) {
 
 Section* new_section_func_def(Func_Def func_def, int pos) {
   Section* a = calloc(1, sizeof(Section));
-  a->type = ae_section_func;
+  a->section_type = ae_section_func;
   a->d.func_def = func_def;
   a->pos = pos;
   return a;
@@ -925,7 +925,7 @@ void free_class_def(Class_Def a) {
 }
 
 static void free_section(Section* section) {
-  switch(section->type) {
+  switch(section->section_type) {
     case ae_section_class:
       free_class_def(section->d.class_def);
       break;
@@ -977,7 +977,7 @@ void free_type_list(Type_List a) {
 
 Section* new_section_class_def(Class_Def class_def, int pos) {
   Section* a = calloc(1, sizeof(Section));
-  a->type = ae_section_class;
+  a->section_type = ae_section_class;
   a->d.class_def = class_def;
   a->pos = pos;
   return a;

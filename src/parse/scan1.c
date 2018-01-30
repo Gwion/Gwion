@@ -143,7 +143,7 @@ static  m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
 }
 
 static  m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
-  if(prim->type == ae_primary_hack)
+  if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
     return 1;
 }
@@ -531,7 +531,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
 }
 
 static m_bool scan1_section(Env env, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(scan1_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)

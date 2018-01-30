@@ -181,9 +181,9 @@ static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
 }
 
 static m_bool scan0_section(Env env, Section* section) {
-  if(section->type == ae_section_stmt)
+  if(section->section_type == ae_section_stmt)
     CHECK_BB(scan0_Stmt_List(env, section->d.stmt_list))
-  else if(section->type == ae_section_class)
+  else if(section->section_type == ae_section_class)
       CHECK_BB(scan0_class_def(env, section->d.class_def))
   return 1;
 }

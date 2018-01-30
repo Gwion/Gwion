@@ -134,7 +134,7 @@ static m_bool scan2_stmt_type(Env env, Stmt_Typedef stmt) {
 }
 
 static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {
-  if(prim->type == ae_primary_hack)
+  if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
     return 1;
 }
@@ -666,7 +666,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
 }
 
 static m_bool scan2_section(Env env, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(scan2_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)

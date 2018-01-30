@@ -398,7 +398,7 @@ static void tag_func_def(Tagger* tagger, Func_Def f) {
 }
 
 static void tag_section(Tagger* tagger, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     tag_stmt_list(tagger, section->d.stmt_list);
   else if(t == ae_section_func)

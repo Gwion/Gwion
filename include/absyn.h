@@ -171,7 +171,7 @@ typedef struct {
   int pos;
 } Exp_Decl;
 typedef struct {
-  ae_Exp_Primary_Type type;
+  ae_Exp_Primary_Type primary_type;
   Value value;
   union exp_primary_data {
     S_Symbol var;
@@ -497,7 +497,7 @@ void free_func_def(Func_Def def);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct {
-  ae_Section_Type type;
+  ae_Section_Type section_type;
   union section_data {
     Stmt_List stmt_list;
     Class_Def class_def;

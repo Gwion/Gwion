@@ -242,7 +242,7 @@ static void prepare_this_exp(Exp base, Exp dot) {
   memset(dot, 0, sizeof(struct Exp_));
   base->meta = ae_meta_var;
   base->exp_type = ae_exp_primary;
-  base->d.exp_primary.type = ae_primary_id;
+  base->d.exp_primary.primary_type = ae_primary_id;
   base->d.exp_primary.d.var = insert_symbol("this");
   base->d.exp_primary.self = base;
   dot->exp_type = ae_exp_dot;
@@ -438,7 +438,7 @@ static m_bool emit_exp_prim_gack(Emitter emit, Exp exp) {
 }
 
 static m_bool emit_exp_primary2(Emitter emit, Exp_Primary* prim) {
-  switch(prim->type) {
+  switch(prim->primary_type) {
     case ae_primary_str:
       return emit_exp_prim_str(emit, prim->d.str);
     case ae_primary_array:
@@ -453,7 +453,7 @@ static m_bool emit_exp_primary2(Emitter emit, Exp_Primary* prim) {
 }
 
 static m_bool emit_exp_primary1(Emitter emit, Exp_Primary* prim) {
-  switch(prim->type) {
+  switch(prim->primary_type) {
     case ae_primary_complex:
       return emit_exp(emit, prim->d.cmp->re, 0);
     case ae_primary_polar:
@@ -467,7 +467,7 @@ static m_bool emit_exp_primary1(Emitter emit, Exp_Primary* prim) {
 }
 
 static m_bool emit_exp_primary(Emitter emit, Exp_Primary* prim) {
-  switch(prim->type) {
+  switch(prim->primary_type) {
     case ae_primary_id:
       return emit_exp_prim_id(emit, prim);
     case ae_primary_num:
@@ -1322,7 +1322,7 @@ static m_bool emit_stmt_switch(Emitter emit, Stmt_Switch stmt) {
 }
 
 static m_bool primary_case(Exp_Primary* prim, m_int* value) {
-  if(prim->type == ae_primary_num)
+  if(prim->primary_type == ae_primary_num)
     *value = prim->d.num;
   else if(prim->d.var == insert_symbol("true"))
     *value = 1;
@@ -1448,7 +1448,8 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
   ret = emit_exp(emit, exp->val, 0);
   if(ret > 0 && pop && exp->val->type && exp->val->type->size > 0) {
     Exp e = exp->val;
-    if(e->exp_type == ae_exp_primary && e->d.exp_primary.type == ae_primary_hack)
+    if(e->exp_type == ae_exp_primary &&
+        e->d.exp_primary.primary_type == ae_primary_hack)
       e = e->d.exp_primary.d.exp;
     while(e) {
       Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
@@ -1836,7 +1837,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
 }
 
 static m_bool emit_section(Emitter emit, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(emit_stmt_list(emit, section->d.stmt_list))
   else if(t == ae_section_func)

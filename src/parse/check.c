@@ -294,7 +294,7 @@ static Type check_exp_prim_gack(Env env, Exp e) {
 
 static Type check_exp_primary(Env env, Exp_Primary* primary) {
   Type t = NULL;
-  switch(primary->type) {
+  switch(primary->primary_type) {
     case ae_primary_id:
       t = check_exp_prim_id(env, primary);
       break;
@@ -1555,7 +1555,7 @@ m_bool check_func_def(Env env, Func_Def f) {
 }
 
 static m_bool check_section(Env env, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(check_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)

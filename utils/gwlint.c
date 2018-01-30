@@ -92,10 +92,12 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
     Exp tmp = exp ? exp->next : NULL;
     lint_print(linter, "[");
     if(exp) {
-      if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_array)
+      if(exp->exp_type == ae_exp_primary &&
+          exp->d.exp_primary.primary_type == ae_primary_array)
         lint_print(linter, " ");
       lint_exp(linter, exp);
-      if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.type == ae_primary_array)
+      if(exp->exp_type == ae_exp_primary &&
+          exp->d.exp_primary.primary_type == ae_primary_array)
         lint_print(linter, " ");
     }
     lint_print(linter, "]");
@@ -192,7 +194,7 @@ static void lint_exp_binary(Linter* linter, Exp_Binary* binary) {
 }
 
 static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
-  switch(exp->type) {
+  switch(exp->primary_type) {
     case ae_primary_id:
       lint_print(linter, "%s", s_name(exp->d.var));
       break;
@@ -621,7 +623,7 @@ static void lint_func_def(Linter* linter, Func_Def f) {
 }
 
 static void lint_section(Linter* linter, Section* section) {
-  ae_Section_Type t = section->type;
+  ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     lint_stmt_list(linter, section->d.stmt_list);
   else if(t == ae_section_func)
