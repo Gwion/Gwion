@@ -10,8 +10,8 @@ MFUN(test_mfun){}
 IMPORT
 {
   importer_oper_ini(importer, "int", "int", "int"); // ignore the check
-  importer_oper_end(importer, 220, NULL, 1); // ignore the check.
+  importer_oper_end(importer, 220, NULL); // ignore the check.
   CHECK_BB(importer_oper_ini(importer, "int", "int", "int"))
-  CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck, NULL))
   return 1;
 }

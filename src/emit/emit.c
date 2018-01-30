@@ -207,12 +207,14 @@ static INSTR(pop_array_class) {
 }
 
 m_bool emit_ext_ctor(Emitter emit, VM_Code code) {
+  emitter_add_instr(emit, Reg_Dup_Last);
   Instr push_f = emitter_add_instr(emit, Reg_PushImm);
   Instr offset = emitter_add_instr(emit, Reg_PushImm);
   push_f->m_val = SZ_INT;
   *(VM_Code*)push_f->ptr = code;
   offset->m_val = SZ_INT;
   *(m_uint*)offset->ptr = emit_code_offset(emit);
+  emitter_add_instr(emit, Instr_Exp_Func_Member);
   return 1;
 }
 

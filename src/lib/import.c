@@ -218,7 +218,7 @@ m_int importer_class_ext(Importer importer, Type_Decl* td) {
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
   if(!importer->env->class_def->def) {
-  Type t = find_type(importer->env, td->xid);
+    Type t = find_type(importer->env, td->xid);
     if(!t)
       CHECK_BB(type_unknown(td->xid, "builtin class extend"))
     CHECK_OB((t = scan_type(importer->env, t, td)))
@@ -242,8 +242,8 @@ m_int importer_class_ext(Importer importer, Type_Decl* td) {
     free_type_decl(td);
   } else {
 // use ctor here too?
-      SET_FLAG(td, ae_flag_typedef);
-      importer->env->class_def->def->ext = td;
+    SET_FLAG(td, ae_flag_typedef);
+    importer->env->class_def->def->ext = td;
   }
   return 1;
 }
