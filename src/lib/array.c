@@ -268,14 +268,14 @@ m_bool import_array(Importer importer) {
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "Array", (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(importer_oper_add(importer, opck_array_at))
-  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object, 0))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object))
   CHECK_BB(importer_oper_add(importer, opck_array_shift))
   CHECK_BB(importer_oper_emi(importer, opem_array_shift))
-  CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append, 0))
+  CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append))
   CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
   CHECK_BB(importer_oper_add(importer, opck_array_cast))
   CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
-  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 0))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL))
   return 1;
 }
 

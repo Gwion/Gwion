@@ -706,6 +706,7 @@ static m_bool emit_exp_binary(Emitter emit, Exp_Binary* binary) {
 
 static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
   struct Op_Import opi = { op_dollar, cast->exp->type, cast->self->type };
+  opi.data = (uintptr_t)cast;
   CHECK_BB(emit_exp(emit, cast->exp, 0))
   (void)op_emit(emit, &opi);
   return 1;
@@ -713,6 +714,7 @@ static m_bool exp_exp_cast(Emitter emit, Exp_Cast* cast) {
 
 static m_bool emit_exp_post(Emitter emit, Exp_Postfix* post) {
   struct Op_Import opi = { post->op, post->exp->type };
+  opi.data = (uintptr_t)post;
   CHECK_BB(emit_exp(emit, post->exp, 1))
   return op_emit(emit, &opi);
 }

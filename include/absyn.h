@@ -201,18 +201,21 @@ typedef struct {
   Type_Decl* type;
   Exp exp;
   Exp self;
+  Nspc nspc;
   Func func;
   int pos;
 } Exp_Cast;
 typedef struct {
   Exp lhs, rhs;
   Operator op;
+  Nspc nspc;
   Func func;
   Exp self;
   int pos;
 } Exp_Binary;
 typedef struct {
   Operator op;
+  Nspc nspc;
   Exp exp;
   Exp self;
   int pos;
@@ -232,6 +235,7 @@ typedef struct {
 } Exp_Dur;
 typedef struct {
   Operator op;
+  Nspc nspc;
   Exp exp;
   Type_Decl* type;
 //  Array_Sub array;

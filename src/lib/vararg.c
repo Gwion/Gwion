@@ -106,6 +106,6 @@ m_bool import_vararg(Importer importer) {
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "VarObject", "Object", NULL))
   CHECK_BB(importer_oper_add(importer, at_varobj))
-  CHECK_BB(importer_oper_end(importer, op_at_chuck, varobj_assign, 0))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, varobj_assign))
   return 1;
 }

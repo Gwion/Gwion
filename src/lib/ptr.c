@@ -107,10 +107,10 @@ m_bool import_ptr(Importer importer) {
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   CHECK_BB(importer_oper_add(importer, opck_ptr_assign))
-  CHECK_BB(importer_oper_end(importer, op_trig, instr_ptr_assign, 0))
+  CHECK_BB(importer_oper_end(importer, op_trig, instr_ptr_assign))
   CHECK_BB(importer_oper_ini(importer, NULL, "Ptr", NULL))
   CHECK_BB(importer_oper_add(importer, opck_ptr_deref))
   CHECK_BB(importer_oper_emi(importer, opem_ptr_deref))
-  CHECK_BB(importer_oper_end(importer, op_times, instr_ptr_deref, 0))
+  CHECK_BB(importer_oper_end(importer, op_times, instr_ptr_deref))
   return 1;
 }

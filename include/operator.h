@@ -10,7 +10,6 @@ struct Op_Import {
   opck ck;
   opem em;
   uintptr_t data;
-  m_bool global;
 };
 
 m_bool env_add_op(Env env, struct Op_Import* opi);

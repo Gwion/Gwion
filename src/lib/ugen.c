@@ -345,18 +345,18 @@ m_bool import_ugen(Importer importer) {
 
   importer_func_ini(importer, "float", "last", (m_uint)ugen_get_last);
   CHECK_BB(importer_func_end(importer, 0))
+  CHECK_BB(importer_class_end(importer))
 
   CHECK_BB(importer_oper_ini(importer, "UGen", "UGen", "UGen"))
   CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect, 1))
+  CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect))
   CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect, 1))
+  CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect))
   CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect, 1))
+  CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect))
   CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_untrig,  trig_disconnect, 1))
+  CHECK_BB(importer_oper_end(importer, op_untrig,  trig_disconnect))
 
-  CHECK_BB(importer_class_end(importer))
 
   CHECK_BB(import_global_ugens(importer))
   return 1;

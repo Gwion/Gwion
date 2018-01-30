@@ -99,12 +99,25 @@ m_bool add_op(Nspc nspc, struct Op_Import* opi) {
   return 1;
 }
 
+static void set_nspc(struct Op_Import* opi, Nspc nspc) {
+  if(opi->op == op_dollar)
+    ((Exp_Cast*)opi->data)->nspc = nspc;
+  if(opi->lhs) {
+    if(opi->rhs)
+      ((Exp_Binary*)opi->data)->nspc = nspc;
+    else
+      ((Exp_Postfix*)opi->data)->nspc = nspc;
+  } else
+    ((Exp_Unary*)opi->data)->nspc = nspc;
+}
+
 static Type op_check_inner(Env env, Map map, struct Op_Import* opi) {
   Type t, r = opi->rhs;
   do {
     M_Operator* mo;
     Vector v = (Vector)map_get(map, (vtype)opi->op);
-    if((mo = operator_find(v, opi->lhs, r))) {
+
+    if(v && (mo = operator_find(v, opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(env, (void*)opi->data))))
         return t;
       else
@@ -121,11 +134,12 @@ Type op_check(Env env, struct Op_Import* opi) {
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL,
-          NULL, NULL, opi->data, 0 };
+          NULL, NULL, opi->data };
         Type ret = op_check_inner(env, &nspc->op_map, &opi2);
         if(ret) {
           if(ret == &t_null)
             break;
+          set_nspc(opi, nspc);
           return ret;
         }
       } while(l && (l = op_parent(env, l)));
@@ -140,7 +154,8 @@ Type op_check(Env env, struct Op_Import* opi) {
 }
 
 m_bool operator_set_func(Env env, Func f, Type lhs, Type rhs) {
-  Nspc nspc = env->curr;
+//  Nspc nspc = env->curr;
+  Nspc nspc = f->value_ref->owner;
   M_Operator* mo;
   Vector v = (Vector)map_get(&nspc->op_map, (vtype)name2op(s_name(f->def->name)));
   mo = operator_find(v, lhs, rhs);
@@ -161,27 +176,36 @@ static m_bool handle_instr(Emitter emit, M_Operator* mo) {
   return -1;
 }
 
-m_bool op_emit(Emitter emit, struct Op_Import* opi) {
-  Nspc nspc = emit->env->curr;
-
-  while(nspc) {
-    Type l = opi->lhs;
-    do {
-      Type r = opi->rhs;
-      do {
-        M_Operator* mo;
-        Vector v;
-        if(!nspc->op_map.ptr)
-          continue;
-        v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
-        if((mo = operator_find(v, l, r))) {
-          if(mo->em)
-            return mo->em(emit, (void*)opi->data);// watch me
-          return  handle_instr(emit, mo);
-        }
-      } while(r && (r = op_parent(emit->env, r)));
-    } while(l && (l = op_parent(emit->env, l)));
-    nspc = nspc->parent;
+Nspc get_nspc(struct Op_Import* opi) {
+  if(opi->op == op_dollar)
+    return ((Exp_Cast*)opi->data)->nspc;
+  if(opi->lhs) {
+    if(opi->rhs)
+      return ((Exp_Binary*)opi->data)->nspc;
+    else
+      return ((Exp_Postfix*)opi->data)->nspc;
   }
+  return ((Exp_Unary*)opi->data)->nspc;
+}
+
+m_bool op_emit(Emitter emit, struct Op_Import* opi) {
+  Nspc nspc = get_nspc(opi);
+
+  Type l = opi->lhs;
+  do {
+    Type r = opi->rhs;
+    do {
+      M_Operator* mo;
+      Vector v;
+      if(!nspc->op_map.ptr)
+        continue;
+      v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
+      if((mo = operator_find(v, l, r))) {
+        if(mo->em)
+          return mo->em(emit, (void*)opi->data);// watch me
+        return  handle_instr(emit, mo);
+      }
+    } while(r && (r = op_parent(emit->env, r)));
+  } while(l && (l = op_parent(emit->env, l)));
   return -1;
 }

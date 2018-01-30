@@ -71,14 +71,14 @@ static m_bool import_core_libs(Importer importer) {
   CHECK_BB(import_ptr(importer))
   CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(importer_oper_add(importer, opck_func_call))
-  CHECK_BB(importer_oper_end(importer, op_chuck, NULL, 0))
+  CHECK_BB(importer_oper_end(importer, op_chuck, NULL))
   CHECK_BB(importer_oper_ini(importer, "@function", "@func_ptr", NULL))
   CHECK_BB(importer_oper_add(importer, opck_fptr_at))
   CHECK_BB(importer_oper_emi(importer, opem_fptr_at))
-  CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL, 0))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL))
   CHECK_BB(importer_oper_add(importer, opck_fptr_cast))
   CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
-  CHECK_BB(importer_oper_end(importer, op_dollar, NULL, 0))
+  CHECK_BB(importer_oper_end(importer, op_dollar, NULL))
   return 1;
 }
 

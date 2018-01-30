@@ -52,7 +52,7 @@ m_int importer_func_end(Importer importer, const ae_flag flag);
 m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m_str t);
 m_int importer_oper_add(Importer importer, Type (*check)(Env, void*));
 m_int importer_oper_emi(Importer importer, m_bool (*check)(Emitter, void*));
-m_int importer_oper_end(Importer importer, const Operator op, const f_instr f, const m_bool global);
+m_int importer_oper_end(Importer importer, const Operator op, const f_instr f);
 
 OP_CHECK(opck_const_lhs);
 OP_CHECK(opck_unary);
