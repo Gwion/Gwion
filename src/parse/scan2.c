@@ -562,7 +562,7 @@ static m_bool scan2_func_def_code(Env env, Func_Def f) {
   env->func = f->d.func;
   nspc_push_value(env->curr);
   if(scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    ret = err_msg(SCAN2_, f->pos, "qsdq ...in function '%s'", s_name(f->name));
+    ret = err_msg(SCAN2_, f->pos, "... in function '%s'", s_name(f->name));
   nspc_pop_value(env->curr);
   env->func = NULL;
   return ret;
