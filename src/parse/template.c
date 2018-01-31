@@ -67,7 +67,7 @@ Class_Def template_class(Env env, Class_Def def, Type_List call) {
   name = template_id(env, def, call);
   if((t = nspc_lookup_type1(env->curr, name->xid))) {
     free_id_list(name);
-    ADD_REF(t)
+    //ADD_REF(t)
     return t->def;
   }
   return new_class_def(def->flag, name, def->ext, def->body, call->pos);

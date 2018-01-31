@@ -14,7 +14,7 @@ m_bool scan2_class_def(Env env, Class_Def class_def);
 
 static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
-  if(GET_FLAG(type, ae_flag_template)) {
+  if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2)) {
     CHECK_BB(template_push_types(env, decl->base->types, decl->type->types));
     CHECK_BB(scan2_class_def(env, type->def))
     nspc_pop_type(env->curr);

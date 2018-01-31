@@ -17,3 +17,21 @@ void free_func(Func a) {
   }
   free(a);
 }
+
+#include <string.h>
+#include "env.h"
+#include "type.h"
+Func get_func(Env env, Func_Def def) {
+  Func f = def->d.func;
+  m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
+  if(end && env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
+    end++;
+    size_t len = strlen(f->name) - strlen(end);
+    char c[len + strlen(env->class_def->name) + 1];
+    memset(c, 0, len + strlen(env->class_def->name) + 1);
+    strncpy(c, f->name, len);
+    strcat(c, env->class_def->name);
+    f = nspc_lookup_func1(env->class_def->info, insert_symbol(c));
+  }
+  return f;
+}

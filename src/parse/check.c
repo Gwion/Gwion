@@ -32,9 +32,11 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp) {
 }
 
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
-  CHECK_BB(template_push_types(env, decl->base->types, decl->type->types))
-  CHECK_BB(check_class_def(env, decl->m_type->def))
-  nspc_pop_type(env->curr);
+  if(!GET_FLAG(decl->m_type, ae_flag_check)) {
+    CHECK_BB(template_push_types(env, decl->base->types, decl->type->types))
+    CHECK_BB(check_class_def(env, decl->m_type->def))
+    nspc_pop_type(env->curr);
+  }
   return 1;
 }
 
@@ -526,6 +528,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
+    def->tmpl = new_func_def_tmpl(value->func_ref->def->tmpl->list, 0);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->tmpl->list, types))
@@ -539,7 +542,6 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       env_pop_class(env);
       SET_FLAG(base, ae_flag_template);
       SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-      m_func->def->tmpl = new_func_def_tmpl(value->func_ref->def->tmpl->list, 0);
       return m_func;
     }
 next:
@@ -671,8 +673,10 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
   {
     Class_Def def = value->owner_class->def;
+    CHECK_BB(env_push_class(env, value->owner_class))
     CHECK_BB(template_push_types(env, def->tref, def->base))
-    CHECK_BB(traverse_class_def(env, def))
+    if(!GET_FLAG(value->owner_class, ae_flag_check))
+      CHECK_BB(traverse_class_def(env, def))
   }
   return 1;
 }
@@ -711,8 +715,10 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
     func = ptr->func_ref = f;
   }
   *m_func = func;
-  if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template))
+  if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template)) {
     nspc_pop_type(env->curr);
+    env_pop_class(env);
+  }
   return func->def->ret_type;
 }
 
@@ -1528,7 +1534,7 @@ static Value set_variadic(Env env) {
 }
 
 m_bool check_func_def(Env env, Func_Def f) {
-  Func func = f->d.func;
+  Func func = get_func(env, f);
   Value variadic = NULL;
   m_bool ret = 1;
 

@@ -14,3 +14,4 @@ struct Func_ {
 };
 
 Func new_func(m_str name, Func_Def def);
+Func get_func(Env, Func_Def);
