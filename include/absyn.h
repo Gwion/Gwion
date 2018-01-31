@@ -493,8 +493,6 @@ struct Func_Def_ {
     void* dl_func_ptr;
   } d;
   Func_Def_Tmpl* tmpl;
-//  ID_List types;
-  ID_List base;
   int pos;
 };
 Func_Def_Tmpl* new_func_def_tmpl(ID_List list, m_bool base);

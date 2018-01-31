@@ -539,7 +539,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       env_pop_class(env);
       SET_FLAG(base, ae_flag_template);
       SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-      m_func->def->base = value->func_ref->def->tmpl->list;
+      m_func->def->tmpl = new_func_def_tmpl(value->func_ref->def->tmpl->list, 0);
       return m_func;
     }
 next:

@@ -436,22 +436,23 @@ Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List
 
 void free_func_def(Func_Def a) {
   if(!GET_FLAG(a, ae_flag_template)) {
-    if(a->tmpl) {
-      free_id_list(a->tmpl->list);
-      free(a->tmpl);
-    }
     if(a->ret_type && a->ret_type->array_depth)
       REM_REF(a->ret_type);
     if(a->arg_list)
       free_arg_list(a->arg_list);
     free_type_decl(a->type_decl);
   }
+  if(a->tmpl) {
+    if(a->tmpl->base)
+      free_id_list(a->tmpl->list);
+    free(a->tmpl);
+  }
   free(a);
 }
 
 Stmt new_func_ptr_stmt(ae_flag key, S_Symbol xid, Type_Decl* decl, Arg_List args, int pos) {
   Stmt a              = calloc(1, sizeof(struct Stmt_));
-  a->stmt_type             = ae_stmt_funcptr;
+  a->stmt_type        = ae_stmt_funcptr;
   a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.type  = decl;
   a->d.stmt_ptr.xid   = xid;
