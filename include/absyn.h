@@ -475,6 +475,11 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, int pos);
 
 typedef struct Class_Body_ * Class_Body;
 
+typedef struct {
+  ID_List list;
+  m_bool  base;
+} Func_Def_Tmpl;
+
 struct Func_Def_ {
   Type_Decl* type_decl;
   Type ret_type;
@@ -487,11 +492,12 @@ struct Func_Def_ {
     Func func;
     void* dl_func_ptr;
   } d;
-  ID_List types;
+  Func_Def_Tmpl* tmpl;
+//  ID_List types;
   ID_List base;
   int pos;
 };
-
+Func_Def_Tmpl* new_func_def_tmpl(ID_List list, m_bool base);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
 

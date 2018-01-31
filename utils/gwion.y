@@ -324,8 +324,17 @@ func_def_base
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | decl_template func_def_base
-    { CHECK_TEMPLATE(arg, $1, $2, free_func_def);
-      $$ = $2; SET_FLAG($$, ae_flag_template); };
+    { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
+
+      if($2->tmpl) {
+        free_id_list($1);
+        free_func_def($2);
+        gwion_error(arg, "double template decl");
+        YYERROR;
+      }
+      $2->tmpl = new_func_def_tmpl($1, 1);
+      $$ = $2; SET_FLAG($$, ae_flag_template);
+    };
 
 op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def

@@ -528,7 +528,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
                 base->arg_list, base->code, func->pos);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
-    CHECK_BO(template_push_types(env, base->types, types))
+    CHECK_BO(template_push_types(env, base->tmpl->list, types))
     if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
     Func next = def->d.func->next;
@@ -539,7 +539,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       env_pop_class(env);
       SET_FLAG(base, ae_flag_template);
       SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-      m_func->def->base = value->func_ref->def->types;
+      m_func->def->base = value->func_ref->def->tmpl->list;
       return m_func;
     }
 next:
@@ -620,7 +620,7 @@ static Func get_template_func(Env env, Exp_Func* func, Value v) {
   Func f = find_template_match(env, v, func);
   if(f) {
     env->current->types = func->types;
-    env->current->base = v->func_ref->def->types;
+    env->current->base = v->func_ref->def->tmpl->list;
     return f;
   }
   if(err_msg(TYPE_, func->pos, "function is template. automatic type guess not fully implemented yet.\n"
@@ -633,9 +633,9 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   Value value;
   ID_List list;
   CHECK_OO((value = get_template_value(env, exp_func)))
-  type_number = get_type_number(value->func_ref->def->types);
+  type_number = get_type_number(value->func_ref->def->tmpl->list);
 
-  list = value->func_ref->def->types;
+  list = value->func_ref->def->tmpl->list;
   Type_List tl[type_number];
   while(list) { // iterate through types
     Arg_List arg = value->func_ref->def->arg_list;
@@ -852,7 +852,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
       if(isa(t, &t_class) > 0)
         t = t->d.actual_type;
       v = find_value(t, call->func->d.exp_dot.xid);
-      if(!v->func_ref->def->types)
+      if(!v->func_ref->def->tmpl)
         CHECK_BO(err_msg(TYPE_, call->pos,
                          "template call of non-template function."))
       } else
@@ -1488,7 +1488,7 @@ static m_bool check_func_overload_inner(Env env, Func_Def def, m_str name, m_uin
 static m_bool check_func_overload(Env env, Func_Def f) {
   m_uint i, j;
   Value v = f->d.func->value_ref;
-  if(!f->types) {
+  if(!f->tmpl || !f->tmpl->base) {
     char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
                                       num_digit(v->func_num_overloads) + 3];
     for(i = 0; i <= v->func_num_overloads; i++) {
@@ -1508,7 +1508,7 @@ static m_bool check_func_def_override(Env env, Func_Def f) {
   Func func = f->d.func;
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
-  else if(func->value_ref->func_num_overloads && !f->types)
+  else if(func->value_ref->func_num_overloads && (!f->tmpl || !f->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
   if(env->class_def &&  override && isa(override->m_type, &t_function) < 0)
     CHECK_BB(err_msg(TYPE_, f->pos,
@@ -1532,7 +1532,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   Value variadic = NULL;
   m_bool ret = 1;
 
-  if(f->types)
+  if(f->tmpl && f->tmpl->base)
     return 1;
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)

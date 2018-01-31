@@ -375,9 +375,9 @@ static void tag_func_def(Tagger* tagger, Func_Def f) {
   Arg_List list = f->arg_list;
   tag_print(tagger, s_name(f->name));
   tag_print(tagger, "/^");
-  if(f->types) {
+  if(f->tmpl && f->tmpl->base) {
     tag_print(tagger, "template ");
-    tag_id_list(tagger, f->types);
+    tag_id_list(tagger, f->tmpl->list);
     tag_print(tagger, " ");
   }
   tag_type_decl(tagger, f->type_decl);

@@ -416,6 +416,13 @@ static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
+Func_Def_Tmpl* new_func_def_tmpl(ID_List list, m_bool base) {
+  Func_Def_Tmpl* a = malloc(sizeof(Func_Def_Tmpl));
+  a->list = list;
+  a->base = base;
+  return a;
+}
+
 Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos) {
   Func_Def a = calloc(1, sizeof(struct Func_Def_));
   a->flag = flag;
@@ -429,8 +436,10 @@ Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List
 
 void free_func_def(Func_Def a) {
   if(!GET_FLAG(a, ae_flag_template)) {
-    if(a->types)
-      free_id_list(a->types);
+    if(a->tmpl) {
+      free_id_list(a->tmpl->list);
+      free(a->tmpl);
+    }
     if(a->ret_type && a->ret_type->array_depth)
       REM_REF(a->ret_type);
     if(a->arg_list)

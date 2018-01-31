@@ -411,7 +411,8 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
   CHECK_OB(def)
   if(importer->templater.n) {
     def = calloc(1, sizeof(struct Class_Def_));
-    def->types = templater_def(&importer->templater);
+    ID_List list = templater_def(&importer->templater);
+    def->tmpl = new_func_def_tmpl(list, 1);
     SET_FLAG(def, ae_flag_template);
   }
   if(GET_FLAG(importer->env->class_def, ae_flag_template)) {

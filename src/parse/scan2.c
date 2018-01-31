@@ -185,7 +185,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
-    tld = value->func_ref->def->types;
+    tld = value->func_ref->def->tmpl->list;
     UNSET_FLAG(value->func_ref->def, ae_flag_template);
     while(tld) {
       if(!tlc)
@@ -216,7 +216,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
               "template call of non-function value."))
       Func_Def base = v->func_ref->def;
       UNSET_FLAG(base, ae_flag_template);
-      if(!base->types)
+      if(!base->tmpl || !base->tmpl->base)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-template function."))
       Type_List list = exp_func->types;
@@ -493,8 +493,8 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "internal error: missing function '%s'",
           overload->name))
-  if((!GET_FLAG(overload, ae_flag_template) && f->types) ||
-      (GET_FLAG(overload, ae_flag_template) && !f->types &&
+  if((!GET_FLAG(overload, ae_flag_template) && f->tmpl && f->tmpl->base)||
+      (GET_FLAG(overload, ae_flag_template) && (!f->tmpl || !f->tmpl->base) &&
        !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "must override template function with template"))
@@ -619,7 +619,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
 
-  if(f->types)
+  if(f->tmpl && f->tmpl->base)
     return scan2_func_def_template(env, f, overload);
 
   snprintf(name, len, "%s@%" INT_F "@%s", func_name,
