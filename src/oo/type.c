@@ -16,7 +16,8 @@ void free_type(Type a) {
   if(GET_FLAG(a, ae_flag_builtin)) {
     if(!GET_FLAG(a, ae_flag_typedef)) {
       if(a->def) {
-        free_id_list(a->def->types);
+        if(!get_type_name(a->name, 1))
+          free_id_list(a->def->types);
         free(a->def);
       }
     }

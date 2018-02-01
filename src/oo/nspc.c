@@ -130,8 +130,9 @@ static void free_nspc_value(Nspc a) {
       if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
         UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);
         if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
+if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
           free_class_def(value->m_type->d.actual_type->def);
-          /*REM_REF(value->m_type->d.actual_type)*/
+          REM_REF(value->m_type->d.actual_type)
         } else if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
         free_class_def(value->m_type->d.actual_type->def);
         else {

@@ -513,6 +513,8 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
   char name[len];
   if(overload)
     func->next = overload->func_ref->next;
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    SET_FLAG(func, ae_flag_ref);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   type = type_copy(&t_function);
@@ -628,6 +630,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   func_name = s_name(insert_symbol(name));
   func = new_func(func_name, f);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    SET_FLAG(func, ae_flag_ref);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
