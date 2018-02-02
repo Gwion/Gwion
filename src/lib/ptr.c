@@ -6,9 +6,7 @@
 
 struct Type_ t_ptr = { "Ptr", SZ_INT, &t_object, te_ptr};
 
-// move me
-//static 
-m_str get_type_name(m_str s, m_uint index) {
+const m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
   m_uint i = 0;
   m_uint lvl = 0;

@@ -1802,7 +1802,9 @@ static m_bool emit_func_def_code(Emitter emit, Func func) {
     m_bool is_unary = GET_FLAG(func->def, ae_flag_unary);
     Type l = is_unary ? NULL : a->type;
     Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
-    operator_set_func(emit->env, func, l, r);
+    struct Op_Import opi = { name2op(s_name(func->def->name)), l, r };
+    opi.data = (m_uint)func;
+    operator_set_func(emit->env, &opi);
   }
   return 1;
 }
