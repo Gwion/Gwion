@@ -72,7 +72,7 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   Type t = new_type(te_func_ptr, name, &t_func_ptr);
   t->owner = env->curr;
   t->size = SZ_INT;
-  t->info = new_nspc(name, env_filename(env));
+  t->info = new_nspc(name);
   nspc_add_type(env->curr, ptr->xid, t);
   ptr->value = mk_class(env, t);
   return 1;
@@ -144,7 +144,7 @@ static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
     m_str name = s_name(stmt->xid);
     Type t = type_copy(&t_union);
     t->name = name;
-    t->info = new_nspc(name, "[union declarator]");
+    t->info = new_nspc(name);
     t->info->parent = env->curr;
     stmt->value = new_value(t, name);
     stmt->value->owner_class = env->class_def;
@@ -212,7 +212,7 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   Type the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->size = SZ_INT;
-  the_class->info = new_nspc(the_class->name, env_filename(env));
+  the_class->info = new_nspc(the_class->name);
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
     env_nspc(env) : env->curr;
   the_class->def = class_def;

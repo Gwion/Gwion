@@ -6,18 +6,18 @@
 #include "func.h"
 #include "object.h"
 
-Value nspc_lookup_value0(Nspc nspc, S_Symbol xid) {
+Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid) {
   return (Value)scope_lookup0(&nspc->value, xid);
 }
 
-Value nspc_lookup_value1(Nspc nspc, S_Symbol xid) {
+Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid) {
   Value v = (Value)scope_lookup1(&nspc->value, xid);
   if(!v && nspc->parent)
     v = nspc_lookup_value1(nspc->parent, xid);
   return v;
 }
 
-Value nspc_lookup_value2(Nspc nspc, S_Symbol xid) {
+Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid) {
   return (Value)scope_lookup2(&nspc->value, xid);
 }
 
@@ -32,18 +32,18 @@ void nspc_pop_value(Nspc nspc) {
   scope_pop(&nspc->value);
 }
 
-Func nspc_lookup_func0(Nspc nspc, S_Symbol xid) {
+Func nspc_lookup_func0(const Nspc nspc, const S_Symbol xid) {
   return (Func)scope_lookup0(&nspc->func, xid);
 }
 
-Func nspc_lookup_func1(Nspc nspc, S_Symbol xid) {
+Func nspc_lookup_func1(const Nspc nspc, const S_Symbol xid) {
   Func t = (Func)scope_lookup1(&nspc->func, xid);
   if(!t && nspc->parent)
     t = (Func)nspc_lookup_func1(nspc->parent, xid);
   return t;
 }
 
-Func nspc_lookup_func2(Nspc nspc, S_Symbol xid) {
+Func nspc_lookup_func2(const Nspc nspc, const S_Symbol xid) {
   return (Func)scope_lookup2(&nspc->func, xid);
 }
 
@@ -51,18 +51,18 @@ void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
   scope_add(&nspc->func, xid, (vtype)value);
 }
 
-Type nspc_lookup_type0(Nspc nspc, S_Symbol xid) {
+Type nspc_lookup_type0(const Nspc nspc, const S_Symbol xid) {
   return (Type)scope_lookup0(&nspc->type, xid);
 }
 
-Type nspc_lookup_type1(Nspc  nspc, S_Symbol xid) {
+Type nspc_lookup_type1(const Nspc nspc, const S_Symbol xid) {
   Type t = (Type)scope_lookup1(&nspc->type, xid);
   if(!t && nspc->parent)
     t = (Type)nspc_lookup_type1(nspc->parent, xid);
   return t;
 }
 
-Type nspc_lookup_type2(Nspc nspc, S_Symbol xid) {
+Type nspc_lookup_type2(const Nspc nspc, const S_Symbol xid) {
   return (Type)scope_lookup2(&nspc->type, xid);
 }
 
@@ -82,14 +82,13 @@ void nspc_commit(Nspc nspc) {
   scope_commit(&nspc->type);
 }
 
-Vector nspc_get_value(Nspc nspc) {
+Vector nspc_get_value(const Nspc nspc) {
   return scope_get(&nspc->value);
 }
 
-Nspc new_nspc(m_str name, m_str filename) {
+Nspc new_nspc(m_str name) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
-  a->filename        = filename;
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);

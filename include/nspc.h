@@ -6,7 +6,6 @@
 
 struct Nspc_ {
   m_str     name;
-  m_str     filename;
   m_uint    offset;
   Nspc parent;
   VM_Code   pre_ctor;
@@ -21,20 +20,20 @@ struct Nspc_ {
   struct VM_Object_ obj;
 };
 
-extern Nspc new_nspc(m_str name, m_str filename);
+extern Nspc new_nspc(const m_str name);
 extern void free_nspc(Nspc a);
 
-extern Value nspc_lookup_value0(Nspc nspc, S_Symbol xid);
-extern Value nspc_lookup_value1(Nspc nspc, S_Symbol xid);
-extern Value nspc_lookup_value2(Nspc nspc, S_Symbol xid);
-extern Type  nspc_lookup_type0(Nspc nspc, S_Symbol xid);
-extern Type  nspc_lookup_type1(Nspc nspc, S_Symbol xid);
-extern Type  nspc_lookup_type2(Nspc nspc, S_Symbol xid);
-extern Func  nspc_lookup_func0(Nspc nspc, S_Symbol xid);
-extern Func  nspc_lookup_func1(Nspc nspc, S_Symbol xid);
-extern Func  nspc_lookup_func2(Nspc nspc, S_Symbol xid);
+extern Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid);
+extern Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid);
+extern Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid);
+extern Type  nspc_lookup_type0(const Nspc nspc, const S_Symbol xid);
+extern Type  nspc_lookup_type1(const Nspc nspc, const S_Symbol xid);
+extern Type  nspc_lookup_type2(const Nspc nspc, const S_Symbol xid);
+extern Func  nspc_lookup_func0(const Nspc nspc, const S_Symbol xid);
+extern Func  nspc_lookup_func1(const Nspc nspc, const S_Symbol xid);
+extern Func  nspc_lookup_func2(const Nspc nspc, const S_Symbol xid);
 
-extern Vector nspc_get_value(Nspc nspc);
+extern Vector nspc_get_value(const Nspc nspc);
 
 extern void  nspc_commit(Nspc nspc);
 extern void  nspc_rollback(Nspc nspc);

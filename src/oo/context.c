@@ -5,7 +5,7 @@
 
 Context new_context(Ast prog, m_str filename) {
   Context context = malloc(sizeof(struct Context_));
-  context->nspc = new_nspc(filename, filename);
+  context->nspc = new_nspc(filename);
   context->tree = prog;
   context->filename = filename;
   context->public_class_def = NULL;

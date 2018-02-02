@@ -81,5 +81,6 @@ extern struct Type_ t_ptr;
 m_uint get_type_xid(); // 19/05/17 // should be included in new type.
 m_uint num_digit(m_uint i);
 Type array_base(Type t);
+m_bool type_ref(Type t);
 #endif
 

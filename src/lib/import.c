@@ -177,7 +177,7 @@ m_int importer_add_type(Importer importer, Type type) {
 }
 
 static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor) {
-  type->info = new_nspc(type->name, "global_nspc");
+  type->info = new_nspc(type->name);
   type->info->parent = env->curr;
   if(pre_ctor)
     mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);

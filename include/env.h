@@ -34,7 +34,6 @@ nspc_pop_value(env->curr);env->class_scope--;
 Map env_label(Env env);
 Nspc env_nspc(Env env);
 Class_Def env_class_def(Env env, Class_Def def);
-m_str env_filename(Env env);
 Type scan_type(Env env, Type t, Type_Decl* decl);
 m_bool compat_func(Func_Def lhs, Func_Def rhs, int pos);
 m_bool type_unknown(ID_List id, m_str orig);

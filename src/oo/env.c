@@ -6,7 +6,7 @@
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
-  env->global_nspc = new_nspc("global_nspc", "global_nspc");
+  env->global_nspc = new_nspc("global_nspc");
 //  env->user_nspc = NULL;
   env->context = NULL;
   vector_init(&env->breaks);
@@ -112,10 +112,6 @@ Class_Def env_class_def(Env env, Class_Def def) {
   if(def)
     env->context->public_class_def = def;
   return env->context->public_class_def;
-}
-
-m_str env_filename(Env env) {
-  return env->context ? env->context->filename : NULL;
 }
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
