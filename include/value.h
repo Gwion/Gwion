@@ -15,5 +15,5 @@ struct Value_ {
   struct VM_Object_ obj;
 };
 
-Value new_value(Type type, m_str name);
+Value new_value(const Type type, const m_str name);
 void free_value(Value a);

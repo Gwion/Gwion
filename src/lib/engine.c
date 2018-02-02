@@ -143,7 +143,7 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
 Env type_engine_init(VM* vm, Vector plug_dirs) {
   Env env = new_env();
   CHECK_OO((vm->emit = new_emitter(env)))
-  vm->emit->filename = "builtin";
+  vm->emit->filename = "[builtin]";
   struct Importer_ importer = { vm->emit, env };
    if(import_core_libs(&importer) < 0 ||
       import_other_libs(&importer) < 0 ) {
@@ -152,9 +152,8 @@ Env type_engine_init(VM* vm, Vector plug_dirs) {
   }
   nspc_commit(env->global_nspc);
   // user nspc
-  /*  env->curr = env->user_nspc = new_nspc("[user]", "[user]");*/
+  /*  env->curr = env->user_nspc = new_nspc("[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
   add_plugs(&importer, plug_dirs);
   return env;
 }
-

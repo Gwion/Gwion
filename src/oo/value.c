@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "type.h"
 
-Value new_value(Type type, m_str name) {
+Value new_value(const Type type, const m_str name) {
   Value a               = (Value)calloc(1, sizeof(struct Value_));
   a->m_type             = type;
   a->name               = name;
