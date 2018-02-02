@@ -5,6 +5,57 @@
 #include "type.h"
 #include "func.h"
 
+static Type owner_type(Type t) {
+  Nspc nspc = t->info;
+  if(!nspc || !(nspc = nspc->parent) || !nspc->parent)
+    return NULL;
+  return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
+}
+
+static Vector get_types(Type t) {
+  Vector v = new_vector();
+  while(t) {
+    if(GET_FLAG(t, ae_flag_template))
+      vector_add(v, (vtype)t->def->types);
+    t = owner_type(t);
+  }
+  return v;
+}
+
+static ID_List id_list_copy(ID_List src) {
+  ID_List tmp, list = new_id_list(src->xid, src->pos);
+  src = src->next;
+  tmp = list;
+  while(src) {
+    tmp->next = new_id_list(src->xid, src->pos);
+    tmp = tmp->next;
+    src = src->next;
+  }
+  return list;
+}
+
+static ID_List get_total_type_list(Type t) {
+  Type parent = owner_type(t);
+  if(!parent)
+    return t->def->types;
+  Vector v = get_types(parent);
+  ID_List base = (ID_List)vector_pop(v);
+  if(!base) {
+    free_vector(v);
+    return t->def->types;
+  }
+  ID_List tmp, types = id_list_copy(base);
+  tmp = types;
+  while(vector_size(v)) {
+    base = (ID_List)vector_pop(v);
+    tmp->next = id_list_copy(base);
+    tmp = tmp->next;
+  }
+  tmp->next = t->def->types;
+  free_vector(v);
+  return types;
+}
+
 static Value mk_class(Env env, Type base) {
   Type t = type_copy(&t_class);
   Value v = new_value(t, base->name);
@@ -164,6 +215,7 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
     ADD_REF(the_class);
   } else
     nspc_add_type(env->curr, class_def->name->xid, the_class);
+  class_def->types = get_total_type_list(the_class);
   if(class_def->types)
     SET_FLAG(the_class, ae_flag_template);
   if(class_def->ext && class_def->ext->array)

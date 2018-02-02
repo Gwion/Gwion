@@ -14,8 +14,8 @@ void free_func(Func a) {
     if(GET_FLAG(a, ae_flag_template)) {
       free(a->def->tmpl);
       free(a->def);
-    } else if((m_uint)a->code > SZ_INT)
-      REM_REF(a->code)
+    } //else if((m_uint)a->code > SZ_INT)
+      //REM_REF(a->code)
 //else printf("problem with code in %s\n", a->name);
   } else if(a->def && !GET_FLAG(a, ae_flag_template)) {
     if(a->code && !GET_FLAG(a->def, ae_flag_dtor))

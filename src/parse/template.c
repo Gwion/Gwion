@@ -1,4 +1,6 @@
 #include <string.h>
+#include "defs.h"
+#include "err_msg.h"
 #include "env.h"
 #include "type.h"
 
@@ -60,10 +62,9 @@ static m_bool template_match(ID_List base, Type_List call) {
   return 1;
 }
 
-Class_Def template_class(Env env, Class_Def def, Type_List call) {
+static Class_Def template_class(Env env, Class_Def def, Type_List call) {
   Type t;
   ID_List name;
-  CHECK_BO(template_match(def->types, call)) // err_msg ?
   name = template_id(env, def, call);
   if((t = nspc_lookup_type1(env->curr, name->xid))) {
     free_id_list(name);
@@ -81,8 +82,39 @@ m_bool template_push_types(Env env, ID_List base, Type_List call) {
     if(call->list->array)
       get_array(t, call->list->array, "template name");
     nspc_add_type(env->curr, base->xid, t);
-    call = call->next;
     base = base->next;
+    call = call->next;
   }
   return 1;
+}
+
+extern m_bool scan0_class_def(Env, Class_Def);
+extern m_bool scan1_class_def(Env, Class_Def);
+Type scan_type(Env env, Type t, Type_Decl* type) {
+  if(GET_FLAG(t, ae_flag_template)) {
+    if(!type->types)
+      CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
+    if(template_match(t->def->types, type->types) < 0)
+      CHECK_BO(err_msg(SCAN1_, type->pos, "invalid template types number"))
+
+    CHECK_BO(template_push_types(env, t->def->types, type->types))
+    Class_Def a = template_class(env, t->def, type->types);
+    if(a->type) {
+      nspc_pop_type(env->curr);
+      return a->type;
+    }
+    CHECK_BO(scan0_class_def(env, a))
+    SET_FLAG(a->type, ae_flag_template);
+    SET_FLAG(a->type, ae_flag_ref);
+    if(GET_FLAG(t, ae_flag_builtin))
+      SET_FLAG(a->type, ae_flag_builtin);
+    CHECK_BO(scan1_class_def(env, a))
+    nspc_pop_type(env->curr);
+    a->tref = t->def->types;
+    a->base = type->types;
+    t = a->type;
+  } else if(type->types)
+      CHECK_BO(err_msg(SCAN1_, type->pos,
+            "type '%s' is not template. You should not provide template types", t->name))
+  return t;
 }

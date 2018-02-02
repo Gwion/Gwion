@@ -675,8 +675,7 @@ static m_bool check_exp_call1_template(Env env, Func func) {
     Class_Def def = value->owner_class->def;
     CHECK_BB(env_push_class(env, value->owner_class))
     CHECK_BB(template_push_types(env, def->tref, def->base))
-    if(!GET_FLAG(value->owner_class, ae_flag_check))
-      CHECK_BB(traverse_class_def(env, def))
+    CHECK_BB(traverse_class_def(env, def))
   }
   return 1;
 }

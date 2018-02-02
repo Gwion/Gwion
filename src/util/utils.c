@@ -157,3 +157,19 @@ m_int str2char(const m_str c, m_int linepos) {
   else
     return c[0];
 }
+
+m_bool type_unknown(ID_List id, m_str orig) {
+  char path[id_list_len(id)];
+  type_path(path, id);
+  CHECK_BB(err_msg(SCAN1_, id->pos,
+        "'%s' unknown type in %s", path, orig))
+  return -1;
+}
+
+Type get_array(Type t, Array_Sub a, m_str orig) {
+  if(a->exp_list)
+    CHECK_BO(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
+          " in %s declaration", orig))
+   return array_type(t, a->depth);
+}
+

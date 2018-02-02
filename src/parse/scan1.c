@@ -10,47 +10,6 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list);
 m_bool scan1_class_def(Env env, Class_Def class_def);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
-Type scan_type(Env env, Type t, Type_Decl* type) {
-  if(GET_FLAG(t, ae_flag_template)) {
-    if(!type->types)
-      CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
-    CHECK_BO(template_push_types(env, t->def->types, type->types))
-    Class_Def a = template_class(env, t->def, type->types);
-    if(a->type) {
-      nspc_pop_type(env->curr);
-      return a->type;
-    }
-    CHECK_BO(scan0_class_def(env, a))
-    SET_FLAG(a->type, ae_flag_template);
-    SET_FLAG(a->type, ae_flag_ref);
-    if(GET_FLAG(t, ae_flag_builtin))
-      SET_FLAG(a->type, ae_flag_builtin);
-    CHECK_BO(scan1_class_def(env, a))
-    nspc_pop_type(env->curr);
-    a->tref = t->def->types;
-    a->base = type->types;
-    t = a->type;
-  } else if(type->types)
-      CHECK_BO(err_msg(SCAN1_, type->pos,
-            "type '%s' is not template. You should not provide template types", t->name))
-  return t;
-}
-
-m_bool type_unknown(ID_List id, m_str orig) {
-  char path[id_list_len(id)];
-  type_path(path, id);
-  CHECK_BB(err_msg(SCAN1_, id->pos,
-        "'%s' unknown type in %s", path, orig))
-  return -1;
-}
-
-Type get_array(Type t, Array_Sub a, m_str orig) {
-  if(a->exp_list)
-    CHECK_BO(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
-          " in %s declaration", orig))
-   return array_type(t, a->depth);
-}
-
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
