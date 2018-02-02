@@ -130,7 +130,7 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan2_stmt_type(Env env, Stmt_Typedef stmt) {
-  return scan2_class_def(env, stmt->m_type->def);
+  return stmt->m_type->def ? scan2_class_def(env, stmt->m_type->def) : 1;
 }
 
 static m_bool scan2_exp_primary(Env env, Exp_Primary* prim) {

@@ -326,7 +326,7 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool scan1_stmt_type(Env env, Stmt_Typedef stmt) {
-  return scan1_class_def(env, stmt->m_type->def);
+  return stmt->m_type->def ? scan1_class_def(env, stmt->m_type->def) : 1;
 }
 
 static m_bool scan1_stmt_union_array(Array_Sub array) {
@@ -515,6 +515,8 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
         CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use empty []'s in class extend"))
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp_list))
     }
+    if(type_ref(class_def->type->parent))
+        CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use ref type in class extend"))
   }
   CHECK_BB(env_push_class(env, class_def->type))
   while(body) {

@@ -568,7 +568,7 @@ static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
 
 static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  m_bool ref = GET_FLAG(decl->type, ae_flag_ref);
+  m_bool ref = GET_FLAG(decl->type, ae_flag_ref) || type_ref(decl->m_type);
   m_bool var = decl->self->emit_var;
 
   if(GET_FLAG(decl->m_type, ae_flag_template))
@@ -1377,7 +1377,7 @@ static m_bool emit_stmt_fptr(Emitter emit, Stmt_Ptr ptr) {
 }
 
 static m_bool emit_stmt_type(Emitter emit, Stmt_Typedef stmt) {
-  return emit_class_def(emit, stmt->m_type->def);
+  return stmt->m_type->def ? emit_class_def(emit, stmt->m_type->def) : 1;
 }
 
 static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {

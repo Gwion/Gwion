@@ -1028,7 +1028,7 @@ m_bool check_stmt_fptr(Env env, Stmt_Ptr ptr) {
 }
 
 static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
-  return check_class_def(env, stmt->m_type->def);
+  return stmt->m_type->def ? check_class_def(env, stmt->m_type->def) : 1;
 }
 
 static Type check_exp(Env env, Exp exp) {

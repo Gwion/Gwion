@@ -1,4 +1,4 @@
-// [contains] can't use empty
+// [contains] can't use ref type in class extend
 typedef Object[] Class;
 class C extends Class {}
 C c;

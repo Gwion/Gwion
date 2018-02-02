@@ -90,16 +90,23 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
   CHECK_OB((base = scan_type(env, base, stmt->type)))
-  flag = base->def ? base->def->flag : 0;
-  CHECK_OB((def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
-    stmt->type, NULL, stmt->pos)))
-  CHECK_BB(scan0_class_def(env, def))
-// TODO : just a typedef
-//  v = mk_class(env, def->type);
-//  SET_FLAG(v, ae_flag_typedef);
-//  SET_FLAG(v->m_type, ae_flag_typedef);
-  SET_FLAG(def->type, ae_flag_typedef);
-  stmt->m_type = def->type;
+  if((isprim(base) > 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
+    Type t = NULL;
+    if(stmt->type->array)
+      base = array_type(base, stmt->type->array->depth);
+    t = new_type(env->type_xid++, s_name(stmt->xid), base);
+    t->size = base->size;
+    SET_FLAG(t, ae_flag_checked);
+    nspc_add_type(env->curr, stmt->xid, t);
+    stmt->m_type = t;
+  } else {
+    flag = base->def ? base->def->flag : 0;
+    CHECK_OB((def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
+      stmt->type, NULL, stmt->pos)))
+    CHECK_BB(scan0_class_def(env, def))
+    stmt->m_type = def->type;
+}
+  SET_FLAG(stmt->m_type, ae_flag_typedef);
   return 1;
 }
 

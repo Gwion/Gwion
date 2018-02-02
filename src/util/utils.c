@@ -173,3 +173,13 @@ Type get_array(Type t, Array_Sub a, m_str orig) {
    return array_type(t, a->depth);
 }
 
+m_bool type_ref(Type t) {
+puts(t->name);
+  while(t) {
+    if(GET_FLAG(t, ae_flag_typedef))
+      if(!t->def || (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
+        return 1;
+    t = t->parent;
+  }
+  return 0;
+}
