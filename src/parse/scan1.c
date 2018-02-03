@@ -2,6 +2,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
+#include "value.h"
 #include "traverse.h"
 
 m_bool scan0_class_def(Env env, Class_Def class_def);
@@ -34,12 +35,14 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
     CHECK_BO(err_msg(SCAN1_, decl->pos,
           "cannot declare references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
+  if(GET_FLAG(decl->type, ae_flag_private) && !env->class_def)
+      CHECK_BO(err_msg(SCAN2_, decl->pos,
+            "must declare private variables at class scope..."))
   return t;
 }
 
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  Var_Decl var_decl = NULL;
   Type t = scan1_exp_decl_type(env, decl);
 
   CHECK_OB(t)
@@ -49,47 +52,33 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   else
     decl->m_type = t;
   while(list) {
-    Value value;
-    var_decl = list->self;
-    t = decl->m_type;
-    if(isres(list->self->xid, list->self->pos) > 0)
-      CHECK_BB(err_msg(SCAN2_, list->self->pos,
-            "\t... in variable declaration", s_name(list->self->xid)))
-    if((value = nspc_lookup_value0(env->curr, list->self->xid)) &&
+    Var_Decl v = list->self;
+    if(isres(v->xid, v->pos) > 0)
+      CHECK_BB(err_msg(SCAN2_, v->pos,
+            "\t... in variable declaration", s_name(v->xid)))
+    if(nspc_lookup_value0(env->curr, v->xid) &&
       !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
-        CHECK_BB(err_msg(SCAN1_, list->self->pos,
+        CHECK_BB(err_msg(SCAN1_, v->pos,
               "variable %s has already been defined in the same scope...",
-              s_name(list->self->xid)))
-    if(var_decl->array) { // get depth, including typedef
-      if(var_decl->array->exp_list)
-        CHECK_BB(scan1_exp(env, var_decl->array->exp_list))
-      t = array_type(t, var_decl->array->depth);
-      if(!list->self->array->exp_list)
-        SET_FLAG(decl->type, ae_flag_ref);
-    }
-//    if(!list->self->value)
-      list->self->value = new_value(t, s_name(list->self->xid));
-//    else
-//      list->self->value->m_type = t;
-    if(GET_FLAG(decl->type, ae_flag_private)) {
-      if(!env->class_def)
-        CHECK_BB(err_msg(SCAN2_, list->self->pos,
-              "must declare private variables at class scope..."))
-      SET_FLAG(list->self->value, ae_flag_private);
-    }
-    if(GET_FLAG(decl->type, ae_flag_const))
-      SET_FLAG(list->self->value, ae_flag_const);
+              s_name(v->xid)))
+    if(v->array) {
+      if(v->array->exp_list)
+        CHECK_BB(scan1_exp(env, v->array->exp_list))
+      CHECK_OB((t = array_type(decl->m_type, v->array->depth)))
+    } else
+      t = decl->m_type;
+    CHECK_OB((v->value = new_value(t, s_name(v->xid))))
+    nspc_add_value(env->curr, v->xid, v->value);
+    v->value->flag = decl->type->flag;
+    if(v->array && !v->array->exp_list)
+      SET_FLAG(v->value, ae_flag_ref);
     if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->type, ae_flag_static))
-      SET_FLAG(list->self->value, ae_flag_member);
+      SET_FLAG(v->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
-      SET_FLAG(list->self->value, ae_flag_global);
-    if(env->func == (Func)1)
-      ADD_REF(list->self->value)
-
-    list->self->value->ptr = list->self->addr;
-    list->self->value->owner = env->curr;
-    list->self->value->owner_class = env->func ? NULL : env->class_def;
-    nspc_add_value(env->curr, list->self->xid, list->self->value);
+      SET_FLAG(v->value, ae_flag_global);
+    v->value->ptr = v->addr;
+    v->value->owner = env->curr;
+    v->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;
   }
   return 1;
@@ -201,8 +190,6 @@ static m_bool scan1_exp(Env env, Exp exp) {
         break;
     }
     exp = exp->next;
-    if(exp&& exp->exp_type == ae_exp_decl)
-      CHECK_BB(err_msg(SCAN1_, exp->pos, "can't declare after expression"))
   }
   return 1;
 }
@@ -297,22 +284,20 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
 }
 
 static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
-  m_int count = 0;
   while(arg_list) {
-    count++;
     if(!(arg_list->type = find_type(env, arg_list->type_decl->xid)))
-      CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument")) // TODO: use count
+      CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument"))
     CHECK_OB((arg_list->type = scan_type(env, arg_list->type, arg_list->type_decl)))
     if(arg_list->type_decl->types)
       ADD_REF(arg_list->type)
     arg_list = arg_list->next;
   }
-  return count;
+  return 1;
 }
 
 m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
   if(!(ptr->ret_type = find_type(env, ptr->type->xid)))
-      CHECK_BB(type_unknown(ptr->type->xid, "function pointer return type")) // TODO: use count
+      CHECK_BB(type_unknown(ptr->type->xid, "function pointer return type"))
   CHECK_OB((ptr->ret_type = scan_type(env, ptr->ret_type, ptr->type)))
   if(ptr->type->array)
     CHECK_OB((ptr->ret_type = get_array(ptr->ret_type, ptr->type->array, "function pointer")))
@@ -460,9 +445,6 @@ static m_bool scan1_func_def_flag(Env env, Func_Def f) {
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
   if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(env, f))
-/*  else if(name2op(s_name(f->name)) > 0)
-      CHECK_BB(err_msg(SCAN1_, f->pos,
-                "'%s' is a reserved operator name", s_name(f->name))) */
   return 1;
 }
 
@@ -475,7 +457,7 @@ static m_bool scan1_func_def_code(Env env, Func_Def f) {
 }
 
 m_bool scan1_func_def(Env env, Func_Def f) {
-  if(!env->class_def && GET_FLAG(f, ae_flag_private))
+  if(GET_FLAG(f, ae_flag_private) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(f->tmpl && f->tmpl->base)
     return 1;
@@ -508,7 +490,8 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
   if(class_def->ext) {
     if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))
       CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-// TODO: make sure SCAN1 flag is set
+    if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+      CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
     CHECK_OB((class_def->type->parent  = scan_type(env, class_def->type->parent, class_def->ext)))
     if(class_def->ext->array) {
       if(!class_def->ext->array->exp_list)

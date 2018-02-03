@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <math.h>
 #include "defs.h"
 #include "err_msg.h"
@@ -406,6 +407,7 @@ m_bool import_float(Importer importer) {
   CHECK_BB(importer_add_type(importer,  &t_float))
   CHECK_BB(importer_add_type(importer,  &t_time))
   CHECK_BB(importer_add_type(importer,  &t_dur))
+  CHECK_BB(importer_add_type(importer,  &t_now))
   CHECK_BB(importer_oper_ini(importer, "float", "float", "float"))
   CHECK_BB(importer_oper_add(importer, opck_assign))
   CHECK_BB(importer_oper_end(importer, op_assign,        float_assign))

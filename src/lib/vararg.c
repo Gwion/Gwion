@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
@@ -6,7 +8,7 @@
 #include "vararg.h"
 
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
-struct Type_ t_varobj  = { "@VarObject", SZ_INT, &t_object, te_vararg};
+struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_object, te_vararg};
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
 
 INSTR(Vararg_start) {
@@ -33,7 +35,7 @@ INSTR(MkVararg) {
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
   arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? calloc(arg->s, sizeof(Kindof)) : NULL;
+  arg->k = arg->s ? calloc(arg->s, sizeof(m_uint)) : NULL;
   for(i = 0; i < arg->s; i++) {
     arg->k[i] = vector_at(kinds, i);
   }
@@ -78,33 +80,37 @@ INSTR(varobj_assign) {
 }
 
 m_bool import_vararg(Importer importer) {
+  SET_FLAG(&t_varobj, ae_flag_abstract);
   CHECK_BB(importer_add_type(importer,  &t_varobj))
   CHECK_BB(importer_add_type(importer,  &t_varloop))
   CHECK_BB(importer_class_ini(importer,  &t_vararg, NULL, NULL))
-	importer_item_ini(importer, "@VarLoop",  "start");
-  importer_item_end(importer, ae_flag_const, NULL);
-	importer_item_ini(importer, "@VarLoop",  "end");
-  importer_item_end(importer,   ae_flag_const, NULL);
-	importer_item_ini(importer, "int",       "i");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "float",     "f");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "time",      "t");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "dur",       "d");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "complex",   "c");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "polar",     "p");
-  importer_item_end(importer,     ae_flag_const, NULL);
-	importer_item_ini(importer, "Vec3",      "v3");
-  importer_item_end(importer,    ae_flag_const, NULL);
-	importer_item_ini(importer, "Vec4",      "v4");
-  importer_item_end(importer,    ae_flag_const, NULL);
-	importer_item_ini(importer, "@VarObject", "o");
-  importer_item_end(importer,     ae_flag_const, NULL);
+  CHECK_BB(importer_item_ini(importer, "@VarLoop",  "start"))
+  CHECK_BB(importer_item_end(importer, ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "@VarLoop",  "end"))
+  CHECK_BB(importer_item_end(importer, ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "int",       "i"))
+  CHECK_BB(importer_item_end(importer, ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "float",     "f"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "time",      "t"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "dur",       "d"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "complex",   "c"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "polar",     "p"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "Vec3",      "v3"))
+  CHECK_BB(importer_item_end(importer,    ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "Vec4",      "v4"))
+  CHECK_BB(importer_item_end(importer,    ae_flag_const, NULL))
+  CHECK_BB(importer_item_ini(importer, "VarObject", "o"))
+  CHECK_BB(importer_item_end(importer,     ae_flag_const | ae_flag_ref, NULL))
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "VarObject", "Object", NULL))
+  CHECK_BB(importer_oper_add(importer, at_varobj))
+  CHECK_BB(importer_oper_end(importer, op_at_chuck, varobj_assign))
+  CHECK_BB(importer_oper_ini(importer, "Object", "VarObject", NULL))
   CHECK_BB(importer_oper_add(importer, at_varobj))
   CHECK_BB(importer_oper_end(importer, op_at_chuck, varobj_assign))
   return 1;

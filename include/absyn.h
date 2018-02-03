@@ -13,34 +13,6 @@ typedef struct Var_Decl_List_* Var_Decl_List;
 typedef struct Array_Sub_ * Array_Sub;
 typedef struct Arg_List_ * Arg_List;
 
-typedef enum {
-  ae_flag_builtin = 1 << 1,
-  ae_flag_checked   = 1 << 2,
-  ae_flag_member  = 1 << 3,
-  ae_flag_static  = 1 << 4,
-  ae_flag_template  = 1 << 5,
-  ae_flag_variadic  = 1 << 6,
-  ae_flag_ctor  = 1 << 7,
-  ae_flag_dtor  = 1 << 8,
-  ae_flag_op  = 1 << 9,
-  ae_flag_private  = 1 << 10,
-  ae_flag_global  = 1 << 11,
-  ae_flag_const  = 1 << 12,
-  ae_flag_enum  = 1 << 13,
-  ae_flag_arg  = 1 << 14,
-  ae_flag_ref  = 1 << 15,
-  ae_flag_abstract  = 1 << 16,
-  ae_flag_typedef  = 1 << 17,
-  ae_flag_unary  = 1 << 18,
-
-// parsing flags for class_def->type
-  ae_flag_scan1 = 1 << 21,
-  ae_flag_scan2 = 1 << 22,
-  ae_flag_check = 1 << 23,
-  ae_flag_emit  = 1 << 24
-
-} ae_flag;
-
 typedef struct {
   Exp base;
   Type t_base;

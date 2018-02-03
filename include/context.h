@@ -1,9 +1,3 @@
-#include "defs.h"
-#include "absyn.h"
-#include "map.h"
-#include "oo.h"
-#include "map_private.h"
-
 struct Context_ {
   m_str     filename;
   Ast       tree;

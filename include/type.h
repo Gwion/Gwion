@@ -1,14 +1,8 @@
 #ifndef __TYPE
 #define __TYPE
 
-#include <complex.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "defs.h"
-#include "symbol.h"
 #include "nspc.h"
 #include "env.h"
-#include "value.h"
 
 struct Type_ {
   m_str     name;
@@ -24,63 +18,38 @@ struct Type_ {
     Type      array_type;
   } d;
   Class_Def def;
-//	UGenInfo ugen_info;
   m_uint flag;
   struct VM_Object_ obj;
 };
 
-m_bool type_engine_check_prog(Env env, Ast ast, m_str str);
-Type new_type(te_type xid, m_str name, Type parent);
-Type type_copy(Type type);
-Env type_engine_init(VM* vm, Vector plug_dirs);
-/***
-  UTILS
-    ***/
-void start_type_xid();
-Value find_value(Type type, S_Symbol xid);
-Func find_func(Type type, S_Symbol xid);
-Type find_type(Env env, ID_List list);
-m_bool isprim(Type type);
-m_bool isa(Type var, Type parent);
-m_bool isres(S_Symbol xid, m_uint pos);
-Type array_type(Type base_type, m_uint depth);
-Type get_array(Type t, Array_Sub a, m_str orig);
-Type find_common_anc(Type lhs, Type rhs);
-m_uint id_list_len(ID_List list);
-void type_path(m_str str, ID_List path);
-m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const,  void* value);
-m_bool env_add_type(Env env, Type type);
-Kindof kindof(Type type);
-m_int str2char(const m_str c, m_int linepos);
-extern struct Type_ t_void;
-extern struct Type_ t_int;
-extern struct Type_ t_float;
+m_bool type_engine_check_prog(Env, Ast, const m_str);
+Type new_type(const te_type xid, const m_str name, const Type);
+Type type_copy(const Type type);
+Env type_engine_init(VM*, const Vector);
+void start_type_xid(void);
+Value find_value(const Type, const S_Symbol);
+Func find_func(const Type, const S_Symbol);
+Type find_type(const Env, ID_List);
+const m_bool isprim(const Type);
+const m_bool isa(const Type, const Type);
+const m_bool isres(const S_Symbol, const m_uint);
+const Type array_type(const Type, const m_uint);
+const Type get_array(const Type, const Array_Sub, const m_str);
+const Type find_common_anc(const Type, const Type);
+const m_uint id_list_len(ID_List);
+void type_path(m_str, const ID_List);
+const m_bool env_add_value(Env env, const m_str, const Type, const m_bool, void* value);
+const m_bool env_add_type(Env, const Type);
+const m_int str2char(const m_str, const m_int);
+const m_uint num_digit(const m_uint);
+const Type array_base(Type);
+const m_bool type_ref(Type);
+
+extern struct Type_ t_int, t_float, t_dur, t_time, t_now;
 extern struct Type_ t_complex, t_polar, t_vec3, t_vec4;
-extern struct Type_ t_function;
-extern struct Type_ t_func_ptr;
-extern struct Type_ t_dur;
-extern struct Type_ t_time;
-extern struct Type_ t_now;
-extern struct Type_ t_class;
-//extern struct Type_ t_std;
-extern struct Type_ t_machine;
-//extern struct Type_ t_template;
-extern struct Type_ t_null;
-extern struct Type_ t_union;
-
-// base classes
-extern struct Type_ t_object, t_string, t_shred, t_event, t_ugen;
-// concept
-extern struct Type_ t_array;
-// event child
-extern struct Type_ t_fileio;
-extern struct Type_ t_vararg, t_varobj;
-
-extern struct Type_ t_gack;
-extern struct Type_ t_ptr;
-m_uint get_type_xid(); // 19/05/17 // should be included in new type.
-m_uint num_digit(m_uint i);
-Type array_base(Type t);
-m_bool type_ref(Type t);
+extern struct Type_ t_function, t_func_ptr;
+extern struct Type_ t_void, t_class, t_null, t_union;
+extern struct Type_ t_object, t_shred, t_event, t_ugen, t_array;
+extern struct Type_ t_vararg, t_string, t_ptr, t_gack;
 #endif
 

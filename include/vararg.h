@@ -1,5 +1,5 @@
 struct Vararg {
-  Kindof* k;      // k(ind)
+  m_uint* k;      // sizes
   char* d;  // d(ata)
   m_uint o, i, s; // o(ffset), i(ndex), s(ize)
 };

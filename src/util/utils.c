@@ -1,22 +1,12 @@
-#include <stdio.h>
 #include <string.h>
-#ifndef __linux__
-#include <sys/select.h>
-#endif
-#include <netdb.h>
-#include <pthread.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#define _XOPEN_SOURCE 700
 #include <math.h>
-#include <string.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
-#include "compile.h"
+#include "value.h"
 
-m_uint num_digit(m_uint i) {
+const m_uint num_digit(const m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
@@ -33,7 +23,7 @@ static Type find_typeof(Env env, ID_List path) {
   return v->m_type;
 }
 
-Type find_type(Env env, ID_List path) {
+Type find_type(const Env env, ID_List path) {
   Nspc nspc;
   Type type;
 
@@ -60,7 +50,7 @@ Type find_type(Env env, ID_List path) {
   return type;
  }
 
-Value find_value(Type type, S_Symbol xid) {
+Value find_value(const Type type, const S_Symbol xid) {
   Value value;
   if(!type || !type->info)
     return NULL;
@@ -80,7 +70,7 @@ Func find_func(Type type, S_Symbol xid) {
   return NULL;
 }
 
-m_uint id_list_len(ID_List list) {
+const m_uint id_list_len(ID_List list) {
   m_uint len = 0;
   while(list) {
     len += strlen(s_name(list->xid));
@@ -103,13 +93,13 @@ void type_path(char* str, ID_List list) {
   }
 }
 
-Type array_base(Type t) {
+const Type array_base(Type t) {
   while(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
   return t->d.array_type;
 }
 
-Type array_type(Type base, m_uint depth) {
+const Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth;
   Type t;
   S_Symbol sym;
@@ -151,7 +141,7 @@ m_int get_escape(const char c, int linepos) {
   return -1;
 }
 
-m_int str2char(const m_str c, m_int linepos) {
+const m_int str2char(const m_str c, const m_int linepos) {
   if(c[0] == '\\')
     return get_escape(c[1], linepos);
   else
@@ -166,15 +156,14 @@ m_bool type_unknown(ID_List id, m_str orig) {
   return -1;
 }
 
-Type get_array(Type t, Array_Sub a, m_str orig) {
+const Type get_array(const Type t, const Array_Sub a, const m_str orig) {
   if(a->exp_list)
     CHECK_BO(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
           " in %s declaration", orig))
    return array_type(t, a->depth);
 }
 
-m_bool type_ref(Type t) {
-puts(t->name);
+const m_bool type_ref(Type t) {
   while(t) {
     if(GET_FLAG(t, ae_flag_typedef))
       if(!t->def || (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))

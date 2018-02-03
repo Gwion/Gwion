@@ -2,6 +2,7 @@
 #include "env.h"
 #include "context.h"
 #include "type.h"
+#include "value.h"
 #include "traverse.h"
 
 Env new_env() {
@@ -75,7 +76,8 @@ m_bool env_pop_class(Env env) {
   return 1;
 }
 
-m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data) {
+const m_bool env_add_value(Env env, const m_str name, const Type type,
+      const m_bool is_const, void* data) {
   Value v = new_value(type, name);
   ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
   v->flag = flag;
@@ -85,7 +87,7 @@ m_bool env_add_value(Env env, m_str name, Type type, m_bool is_const, void* data
   return 1;
 }
 
-m_bool env_add_type(Env env, Type type) {
+const m_bool env_add_type(Env env, const Type type) {
   Type v_type = type_copy(&t_class);
   v_type->d.actual_type = type;
   INIT_OO(type, e_type_obj);

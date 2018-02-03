@@ -1,4 +1,7 @@
 #include <stdlib.h>
+#include "defs.h"
+#include "oo.h"
+#include "value.h"
 #include "type.h"
 
 Value new_value(const Type type, const m_str name) {

@@ -1,9 +1,11 @@
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <dlfcn.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
+#include "value.h"
 #include "import.h"
 #include "importer.h"
 #include "lang_private.h"
@@ -53,7 +55,6 @@ OP_EMIT(opem_basic_cast) {
 static m_bool import_core_libs(Importer importer) {
   CHECK_BB(importer_add_type(importer, &t_void))
   CHECK_BB(importer_add_type(importer, &t_null))
-  CHECK_BB(importer_add_type(importer, &t_now))
   CHECK_BB(importer_add_type(importer, &t_function))
   CHECK_BB(importer_add_type(importer, &t_func_ptr))
   CHECK_BB(import_int(importer))
@@ -140,7 +141,7 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
    }
 }
 
-Env type_engine_init(VM* vm, Vector plug_dirs) {
+Env type_engine_init(VM* vm, const Vector plug_dirs) {
   Env env = new_env();
   CHECK_OO((vm->emit = new_emitter(env)))
   vm->emit->filename = "[builtin]";

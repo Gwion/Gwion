@@ -3,6 +3,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
+#include "value.h"
 #include "func.h"
 
 #include "traverse.h"
@@ -41,7 +42,6 @@ m_bool scan2_exp_decl(Env env, Exp_Decl* decl) {
 static m_bool scan2_arg_def_check(Arg_List list) {
   if(list->var_decl->value) {
     if(list->var_decl->value->m_type->array_depth)
-//      REM_REF(list->var_decl->value->m_type->d.array_type)
       REM_REF(array_base(list->var_decl->value->m_type))
       list->var_decl->value->m_type = list->type;
   }
@@ -123,7 +123,6 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(env->curr, ptr->xid, ptr->func);
-  //if(!GET_FLAG(ptr, ae_flag_static) && !GET_FLAG(ptr, ae_flag_builtin))
   if(!GET_FLAG(ptr, ae_flag_builtin))
     ADD_REF(ptr->func);
   return 1;
@@ -223,7 +222,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       while(list) {
         if(!find_type(env, list->list->xid))
           CHECK_BB(type_unknown(list->list->xid, "template call"))
-        list = list->next; // TODO: check me since type_list change
+        list = list->next;
       }
       if(scan2_template_match(env, v, exp_func->types) < 0)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
@@ -231,7 +230,7 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       SET_FLAG(base, ae_flag_template);
       return 1;
     } else if(exp_func->func->exp_type == ae_exp_dot) {
-      return 1;      // see type.c
+      return 1;
     } else {
       CHECK_BB(err_msg(SCAN2_, exp_func->pos,
             "unhandled expression type '%i' in template func call.",
@@ -560,21 +559,19 @@ static m_bool scan2_func_def_op(Env env, Func_Def f) {
 }
 
 static m_bool scan2_func_def_code(Env env, Func_Def f) {
-  m_bool ret = 1;
   env->func = f->d.func;
   nspc_push_value(env->curr);
   if(scan2_stmt_code(env, &f->code->d.stmt_code, 0) < 0)
-    ret = err_msg(SCAN2_, f->pos, "... in function '%s'", s_name(f->name));
+    CHECK_BB(err_msg(SCAN2_, f->pos, "... in function '%s'", s_name(f->name)))
   nspc_pop_value(env->curr);
   env->func = NULL;
-  return ret;
+  return 1;
 }
 
 static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
   m_str name = s_name(value->func_ref->def->name);
   Func func = value->func_ref;
 
-  SET_FLAG(value, ae_flag_checked);
   if(overload) {
     if(overload->func_ref->def->ret_type)
       if(!GET_FLAG(func->def, ae_flag_template))
@@ -590,11 +587,11 @@ static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
                     value->owner_class->name, name))
         }
   }
+  SET_FLAG(value, ae_flag_checked);
   return 1;
 }
 
 static void scan2_func_def_flag(Env env, Func_Def f) {
-  SET_FLAG(f->d.func->value_ref, ae_flag_const);
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(f->d.func->value_ref, ae_flag_builtin);
   if(GET_FLAG(f, ae_flag_dtor))
@@ -603,6 +600,7 @@ static void scan2_func_def_flag(Env env, Func_Def f) {
     SET_FLAG(f->d.func->value_ref->owner_class, ae_flag_dtor);
   else if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
+  SET_FLAG(f->d.func->value_ref, ae_flag_const);
 }
 
 m_bool scan2_func_def(Env env, Func_Def f) {
@@ -610,7 +608,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   Value    value    = NULL;
   Func     func     = NULL;
 
-  Value overload = nspc_lookup_value0(env->curr,  f->name);
+  Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   m_uint len = strlen(func_name) +
     num_digit(overload ? overload->func_num_overloads + 1 : 0) +

@@ -3,6 +3,7 @@
 #include "oo.h"
 #include "func.h"
 #include "type.h"
+#include "value.h"
 
 void free_exp(Exp exp);
 void free_arg_list(Arg_List a);

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "type.h"
 #include "instr.h"
 #include "import.h"

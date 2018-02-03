@@ -1,4 +1,6 @@
+#include <string.h>
 #include <libgen.h>
+#include "absyn.h"
 #include "type.h"
 #include "instr.h"
 #include "import.h"

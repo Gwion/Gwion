@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+#include <complex.h>
 #include "type.h"
 #include "instr.h"
 

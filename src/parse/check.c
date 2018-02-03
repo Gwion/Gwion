@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <dlfcn.h>
@@ -6,6 +7,7 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
+#include "value.h"
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
@@ -639,7 +641,7 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
 
   list = value->func_ref->def->tmpl->list;
   Type_List tl[type_number];
-  while(list) { // iterate through types
+  while(list) {
     Arg_List arg = value->func_ref->def->arg_list;
     Exp template_arg = args;
     while(arg && template_arg) {
@@ -733,7 +735,6 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
   if(bin->rhs->exp_type == ae_exp_primary) {
     v = nspc_lookup_value1(env->curr, bin->rhs->d.exp_primary.d.var);
     f1 = v->func_ref ? v->func_ref :
-      //nspc_lookup_func2(env->curr, insert_symbol(v->m_type->name));
       nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
   } else if(bin->rhs->exp_type == ae_exp_dot) {
     Type t = bin->rhs->d.exp_dot.t_base;
@@ -746,18 +747,18 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
     f1 = v->m_type->d.func;
   } else
     CHECK_BO(err_msg(TYPE_, bin->pos, "unhandled function pointer assignement (rhs)."))
-  r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+    r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
   if(bin->lhs->exp_type == ae_exp_primary) {
     v = nspc_lookup_value1(env->curr, bin->lhs->d.exp_primary.d.var);
     f2 = nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
-    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
   } else if(bin->lhs->exp_type == ae_exp_dot) {
     Type t = bin->lhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
       t = t->d.actual_type;
     v = find_value(t, bin->lhs->d.exp_dot.xid);
     f2 = v->func_ref;
-    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL; // get owner
+    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
   } else
     CHECK_BO(err_msg(TYPE_, bin->pos, "unhandled function pointer assignement (lhs)."))
     if((r_nspc && l_nspc) && (r_nspc != l_nspc))
@@ -881,7 +882,7 @@ static Type check_exp_unary_spork(Env env, Stmt code) {
     env->class_scope--;
     return (ret > 0) ? &t_shred : NULL;
   } else if(check_stmt(env, code) < 0) {
-    CHECK_BO(err_msg(TYPE_, code->pos, "problem in evaluating sporked code")) // LCOV_EXCL_LIN
+    CHECK_BO(err_msg(TYPE_, code->pos, "problem in evaluating sporked code"))
   }
   return &t_shred;
 }
@@ -1187,7 +1188,6 @@ static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
     tl.list = &td0;
     td.types = &tl;
     ptr = scan_type(env, &t_ptr, &td);
-//    if(!ptr->info->offset) // no pointer of that type checked yet
     if(!GET_FLAG(ptr, ae_flag_checked))
       check_class_def(env, ptr->def);
   }

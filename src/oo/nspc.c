@@ -3,6 +3,7 @@
 #include "symbol.h"
 #include "map.h"
 #include "type.h"
+#include "value.h"
 #include "func.h"
 #include "object.h"
 

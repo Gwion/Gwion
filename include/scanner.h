@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 typedef struct {
   void* scanner;
   Ast ast;

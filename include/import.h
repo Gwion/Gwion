@@ -1,8 +1,3 @@
-#include <stdlib.h>
-#include <complex.h>
-#include "defs.h"
-#include "vm.h"
-
 #define DLARG_MAX 6
 
 typedef void (*f_xtor)(M_Object o, VM_Shred sh);

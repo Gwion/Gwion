@@ -1,7 +1,6 @@
 #ifndef __UDP_H
 #define __UDP_H
 #include <netdb.h>
-#include <stdlib.h>
 
 typedef struct {
   VM* vm;

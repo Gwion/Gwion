@@ -3,6 +3,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
+#include "value.h"
 #include "func.h"
 
 static Type owner_type(Type t) {

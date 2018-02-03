@@ -1,7 +1,3 @@
-#include "defs.h"
-#include "map.h"
-#include "oo.h"
-
 struct Value_ {
   Type m_type;
   m_str name;

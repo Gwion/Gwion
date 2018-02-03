@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <string.h>
 #include "lang.h"
 
 #define PUSH_MEM(a, b) a->mem += b;

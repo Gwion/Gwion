@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "vm.h"
 #include "type.h"
 #include "instr.h"

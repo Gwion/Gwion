@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "vm.h"
 #include "type.h"
 #include "err_msg.h"

@@ -4,6 +4,7 @@
 #include "err_msg.h"
 #include "absyn.h"
 #include "type.h"
+#include "value.h"
 #include "instr.h"
 #include "context.h"
 #include "func.h"
@@ -574,10 +575,11 @@ static m_bool emit_exp_decl(Emitter emit, Exp_Decl* decl) {
   if(GET_FLAG(decl->m_type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   while(list) {
+  m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
     if(GET_FLAG(decl->type, ae_flag_static))
-      CHECK_BB(emit_exp_decl_static(emit, list->self, ref))
+      CHECK_BB(emit_exp_decl_static(emit, list->self, r))
     else
-      CHECK_BB(emit_exp_decl_non_static(emit, list->self, ref, var))
+      CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
     list = list->next;
   }
   return 1;

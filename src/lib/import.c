@@ -1,8 +1,10 @@
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
+#include "value.h"
 #include "traverse.h"
 #include "import.h"
 #include "importer.h"

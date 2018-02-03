@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
@@ -439,12 +441,12 @@ error:
   shred->me = NULL;
 }
 
-static void array_push(VM_Shred shred, M_Vector a, m_uint i, Kindof kind, m_bool emit_var) {
+static void array_push(VM_Shred shred, M_Vector a, m_uint i, m_uint size, m_bool emit_var) {
   if(emit_var)
       *(char**)REG(0) = m_vector_addr(a, i);
   else
     m_vector_get(a, i, REG(0));
-  PUSH_REG(shred,  kind);
+  PUSH_REG(shred,  size);
 }
 
 static void oob(M_Object obj, VM_Shred shred, m_int i) {
