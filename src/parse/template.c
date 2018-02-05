@@ -78,9 +78,10 @@ m_bool template_push_types(Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   while(base) {
     Type t = find_type(env, call->list->xid);
-    t = scan_type(env, t, call->list);
+    CHECK_OB(t)
+    CHECK_OB((t = scan_type(env, t, call->list)))
     if(call->list->array)
-      get_array(t, call->list->array, "template name");
+      CHECK_OB((t = get_array(t, call->list->array, "template name")))
     nspc_add_type(env->curr, base->xid, t);
     base = base->next;
     call = call->next;
@@ -92,8 +93,11 @@ extern m_bool scan0_class_def(Env, Class_Def);
 extern m_bool scan1_class_def(Env, Class_Def);
 Type scan_type(Env env, Type t, Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
+    if(GET_FLAG(t, ae_flag_ref))
+      return t;
     if(!type->types)
-      CHECK_BO(err_msg(SCAN1_, type->pos, "you must provide template types"))
+      CHECK_BO(err_msg(SCAN1_, type->pos,
+        "you must provide template types for type '%s'", t->name))
     if(template_match(t->def->types, type->types) < 0)
       CHECK_BO(err_msg(SCAN1_, type->pos, "invalid template types number"))
 
@@ -110,6 +114,10 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BO(scan1_class_def(env, a))
     nspc_pop_type(env->curr);
+    if(t->info->dtor) {
+      a->type->info->dtor = t->info->dtor;
+      SET_FLAG(a->type, ae_flag_dtor);
+    }
     a->tref = t->def->types;
     a->base = type->types;
     t = a->type;
