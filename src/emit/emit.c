@@ -170,7 +170,7 @@ static m_bool emit_pre_ctor(Emitter emit, Type type) {
     emit_pre_ctor(emit, type->parent);
   if(type->info->pre_ctor)
     emit_pre_ctor_inner(emit, type);
-  if(GET_FLAG(type, (ae_flag_template || ae_flag_builtin))) {
+  if(GET_FLAG(type, ae_flag_template) && GET_FLAG(type, ae_flag_builtin)) {
     m_str name = get_type_name(type->name, 0);
     Type t = nspc_lookup_type1(type->info->parent, insert_symbol(name));
     if(t->info->pre_ctor)
@@ -302,7 +302,7 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   Instr instr;
   if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, ae_flag_const) && GET_FLAG(v, ae_flag_builtin))
+  if(GET_FLAG(v, ae_flag_const | ae_flag_builtin))
     return emit_symbol_const(emit, prim);
   instr = emitter_add_instr(emit, prim->self->emit_var ?
       Reg_Push_Mem_Addr : Reg_Push_Mem);
@@ -554,7 +554,7 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
   if(is_obj) {
-    if(GET_FLAG(type, ae_flag_typedef) && GET_FLAG(type, ae_flag_ref)) {
+    if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
 if(!(type->def && type->def->ext && GET_FLAG(type->def->ext, ae_flag_typedef)))
       return 1;
     }
