@@ -157,13 +157,24 @@ static m_int emit_alloc_local(Emitter emit, m_uint size, m_uint flag) {
   return l ? l->offset : -1;
 }
 
+static m_bool emit_pre_ctor_inner(Emitter emit, Type type) {
+  Instr instr = emitter_add_instr(emit, Pre_Constructor);
+  CHECK_OB(instr)
+  instr->m_val = (m_uint)type->info->pre_ctor;
+  instr->m_val2 = (m_uint)emit_code_offset(emit);
+  return 1;
+}
+
 static m_bool emit_pre_ctor(Emitter emit, Type type) {
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
-  if(type->info->pre_ctor) {
-    Instr instr = emitter_add_instr(emit, Pre_Constructor);
-    instr->m_val = (m_uint)type->info->pre_ctor;
-    instr->m_val2 = (m_uint)emit_code_offset(emit);
+  if(type->info->pre_ctor)
+    emit_pre_ctor_inner(emit, type);
+  if(GET_FLAG(type, (ae_flag_template || ae_flag_builtin))) {
+    m_str name = get_type_name(type->name, 0);
+    Type t = nspc_lookup_type1(type->info->parent, insert_symbol(name));
+    if(t->info->pre_ctor)
+      emit_pre_ctor_inner(emit, t);
   }
   return 1;
 }
