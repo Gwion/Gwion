@@ -10,10 +10,6 @@
 #include "importer.h"
 #include "emit.h"
 
-
-#define CHECK_EB(a) if(!a) { CHECK_BB(err_msg(TYPE_, 0, "import error: import_xxx invoked between ini/end")) }
-#define CHECK_EO(a) if(!a) { CHECK_BO(err_msg(TYPE_, 0, "import error: import_xxx invoked between ini/end")) }
-
 struct Path {
   m_str path, curr;
   m_uint len;
@@ -212,7 +208,9 @@ m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor d
 }
 
 m_int importer_class_ext(Importer importer, Type_Decl* td) {
-  CHECK_EB(importer->env->class_def)
+  if(!td->types)
+    CHECK_BB(err_msg(TYPE_, 0, "importer_class_ext invoked before "
+          "importer_class_ini"))
   VM_Code ctor = importer->env->class_def->info->pre_ctor;
   if(importer->env->class_def->parent ||
       (importer->env->class_def->def && importer->env->class_def->def->ext))
@@ -292,7 +290,6 @@ static void dl_var_release(DL_Var* v) {
 
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
   DL_Var* v = &importer->var;
-  CHECK_EB(importer->env->class_def)
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
     CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...",
@@ -303,10 +300,9 @@ m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
 
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &importer->var;
-  CHECK_EB(importer->env->class_def)
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
-  if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
+  if(importer->env->class_def && GET_FLAG(importer->env->class_def, ae_flag_template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
     Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
@@ -343,7 +339,43 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   return array_sub;
 }
 
-static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
+static Type_Decl* str2decl(Env env, m_str s, m_uint *depth);
+static Type_List str2tl(Env env, m_str s, m_uint *depth) {
+  Type_Decl* td = str2decl(env, s, depth);
+  td->array = make_dll_arg_list_array(NULL, depth, 0);
+  Type_List tl = new_type_list(td, NULL, 0);
+  return tl;
+}
+
+static Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
+  m_uint i = 0;
+  m_str type_name = get_type_name(s, i++);
+  CHECK_OO(type_name)
+  ID_List id = str2list(type_name, depth);
+  CHECK_OO(id)
+  Type_Decl* td = new_type_decl(id, 0, 0);
+  Type_List tmp = NULL;
+  if(!td) {
+    free_id_list(id);
+    return NULL;
+  }
+  while((type_name = get_type_name(s, i++))) {
+    m_uint depth = 0;
+    if(!tmp)
+      td->types = tmp = str2tl(env, type_name, &depth);
+    else {
+      tmp->next = str2tl(env, type_name, &depth);
+      tmp = tmp->next;
+    }
+  }
+  if(td->types) {
+    Type t = find_type(env, td->xid);
+    t = scan_type(env, t, td);
+  }
+  return td;
+}
+
+static Arg_List make_dll_arg_list(Env env, DL_Func * dl_fun) {
   Arg_List arg_list    = NULL;
   m_int i = 0;
 
@@ -353,13 +385,12 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
     Type_Decl* type_decl = NULL;
     Var_Decl var_decl    = NULL;
     DL_Value* arg = &dl_fun->args[i-1];
-    ID_List type_path2, type_path = str2list(arg->type, &array_depth);
-    if(!type_path) {
+    ID_List type_path2;
+    if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(arg_list);
       CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
     }
-    type_decl = new_type_decl(type_path, 0, 0);
     if((type_path2 = str2list(arg->name, &array_depth2)))
       free_id_list(type_path2);
     if(array_depth && array_depth2) {
@@ -375,7 +406,7 @@ static Arg_List make_dll_arg_list(DL_Func * dl_fun) {
   return arg_list;
 }
 
-static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
+static Func_Def make_dll_as_fun(Env env, DL_Func * dl_fun, ae_flag flag) {
   Func_Def func_def = NULL;
   ID_List type_path = NULL;
   Type_Decl* type_decl = NULL;
@@ -394,17 +425,16 @@ static Func_Def make_dll_as_fun(DL_Func * dl_fun, ae_flag flag) {
     type_decl = add_type_decl_array(type_decl, array_sub, 0);
   }
   name = dl_fun->name;
-  arg_list = make_dll_arg_list(dl_fun);
+  arg_list = make_dll_arg_list(env, dl_fun);
   func_def = new_func_def(flag, type_decl, insert_symbol(name), arg_list, NULL, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
 
 static Func_Def import_fun(Env env, DL_Func * mfun, ae_flag flag) {
-  CHECK_OO(mfun) // probably deserve an err msg
+  CHECK_OO(mfun) // probably deserve an err msg or attr non-null
   CHECK_BO(name_valid(mfun->name));
-  CHECK_EO(env->class_def)
-  return make_dll_as_fun(mfun, flag);
+  return make_dll_as_fun(env, mfun, flag);
 }
 
 m_int importer_func_end(Importer importer, ae_flag flag) {
@@ -417,7 +447,7 @@ m_int importer_func_end(Importer importer, ae_flag flag) {
     def->tmpl = new_func_def_tmpl(list, 1);
     SET_FLAG(def, ae_flag_template);
   }
-  if(GET_FLAG(importer->env->class_def, ae_flag_template)) {
+  if(importer->env->class_def && GET_FLAG(importer->env->class_def, ae_flag_template)) {
     Section* section = new_section_func_def(def, 0);
     Class_Body body = new_class_body(section, NULL, 0);
     if(!importer->env->class_def->def->body)
@@ -485,11 +515,11 @@ m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name) {
   return 1;
 }
 
-static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
+static Stmt import_fptr(Env env, DL_Func* dl_fun, ae_flag flag) {
   m_uint array_depth;
   ID_List type_path;
   Type_Decl* type_decl = NULL;
-  Arg_List args = make_dll_arg_list(dl_fun);
+  Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
@@ -499,7 +529,7 @@ static Stmt import_fptr(DL_Func* dl_fun, ae_flag flag) {
 }
 #include "func.h"
 m_int importer_fptr_end(Importer importer, ae_flag flag) {
-  Stmt stmt = import_fptr(&importer->func, flag);
+  Stmt stmt = import_fptr(importer->env, &importer->func, flag);
   CHECK_BB(traverse_stmt_fptr(importer->env, &stmt->d.stmt_ptr))
   if(importer->env->class_def)
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
