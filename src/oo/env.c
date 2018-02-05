@@ -113,7 +113,7 @@ Nspc env_nspc(Env env) {
 Class_Def env_class_def(Env env, Class_Def def) {
   if(def)
     env->context->public_class_def = def;
-  return env->context->public_class_def;
+  return env->context ? env->context->public_class_def : NULL;
 }
 
 m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
