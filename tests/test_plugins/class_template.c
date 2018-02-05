@@ -9,6 +9,7 @@ static m_int o_map_value;
 #define MAP_KEY(a) *((M_Object*)(a->data + o_map_key))
 #define MAP_VAL(a) *((M_Object*)(a->data + o_map_value))
 static CTOR(class_template_ctor) {
+//exit(2);
   /*char* name = strdup(o->type_ref->name);*/
   /*char* tmp = strsep(&name, "@");*/
   /*char* name1 = strsep(&name, "@");*/
