@@ -14,18 +14,16 @@ const m_str get_type_name(const m_str s, const m_uint index) {
   m_uint lvl = 0;
   m_uint n = 1;
   size_t len = name ? strlen(name) : 0;
-  char c[len];
+  char c[strlen(s)];
 
   if(!name)
-    return index ? NULL : s;
-  memset(c, 0, strlen(name-1));
-  ++name;
+    return index ? NULL : s_name(insert_symbol(s));
+  memset(c, 0, strlen(s));
   if(index == 0) {
     strncpy(c, s, strlen(s) - len);
-    puts(c);
     return s_name(insert_symbol(c));
   }
-  while(*name) {
+  while(*name++) {
     if(*name == '<')
       lvl++;
     else if(*name == '>' && !lvl--)
@@ -36,13 +34,9 @@ const m_str get_type_name(const m_str s, const m_uint index) {
     }
     if(n == index)
       c[i++] = *name;
-    ++name;
   }
-  puts(c);
-return s_name(insert_symbol(c));
+  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
 }
-
-
 
 static OP_CHECK(opck_ptr_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
@@ -96,6 +90,14 @@ INSTR(Cast2Ptr) {
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)
 }
+
+/*
+// handle builtin pointer. we shoud provide a function for creation
+static DTOR(ptr_dtor) {
+  if(sizeof(o->data) > SZ_INT)
+    free(o->data + SZ_INT);
+}
+*/
 
 m_bool import_ptr(Importer importer) {
   const m_str list[] = { "A" };
