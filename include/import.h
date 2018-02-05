@@ -18,7 +18,6 @@ typedef struct Importer_* Importer;
 m_int importer_add_type(Importer importer, Type type);
 m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* data);
 
-
 m_int importer_class_ini(Importer importer, Type type, const f_xtor pre_ctor, const f_xtor dtor);
 m_int importer_class_ext(Importer importer, Type_Decl* td);
 m_int importer_class_end(Importer importer);
