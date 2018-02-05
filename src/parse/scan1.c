@@ -490,8 +490,9 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
   if(class_def->ext) {
     if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))
       CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-    if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+    if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def) {
       CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
+    }
     CHECK_OB((class_def->type->parent  = scan_type(env, class_def->type->parent, class_def->ext)))
     if(class_def->ext->array) {
       if(!class_def->ext->array->exp_list)
