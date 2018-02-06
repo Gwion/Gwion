@@ -1408,6 +1408,17 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   return 1;
 }
 
+void emit_union_offset(Decl_List l, m_uint o) {
+  while(l) {
+    Var_Decl_List v = l->self->d.exp_decl.list;
+    while(v) {
+      v->self->value->offset = o;
+      v = v->next;
+    }
+    l = l->next;
+  }
+}
+
 static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
@@ -1434,15 +1445,7 @@ static m_bool emit_stmt_union(Emitter emit, Stmt_Union stmt) {
     CHECK_BB(offset)
     stmt->o = offset;
   }
-
-  while(l) {
-    Var_Decl_List var_list = l->self->d.exp_decl.list;
-    while(var_list) {
-      var_list->self->value->offset = stmt->o;
-      var_list = var_list->next;
-    }
-    l = l->next;
-  }
+  emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid) {
     Instr instr = emitter_add_instr(emit, Reg_Pop_Word4);
     instr->m_val = SZ_INT;

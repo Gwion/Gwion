@@ -570,16 +570,7 @@ m_int importer_union_add(Importer importer, const m_str type, const m_str name) 
 m_int importer_union_end(Importer importer, ae_flag flag) {
   Stmt stmt = new_stmt_union(importer->union_data.list, 0);
   CHECK_BB(traverse_stmt_union(importer->env, &stmt->d.stmt_union))
-  // this is from emit.c. TODO: puts this in a func
-  Decl_List l = stmt->d.stmt_union.l;
-  while(l) {
-    Var_Decl_List var_list = l->self->d.exp_decl.list;
-    while(var_list) {
-      var_list->self->value->offset = stmt->d.stmt_union.o;
-      var_list = var_list->next;
-    }
-    l = l->next;
-  }
+  emit_union_offset(stmt->d.stmt_union.l);
   if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
     importer->env->class_def->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
