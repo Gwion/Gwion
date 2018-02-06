@@ -1896,15 +1896,7 @@ Code* emit_class_code(Emitter emit, m_str name) {
 
 m_bool emit_class_finish(Emitter emit, Nspc nspc) {
   CHECK_OB(emitter_add_instr(emit, Func_Return))
-  VM_Code code = emit_code(emit);
-
-//if(nspc->pre_ctor) {
-  free(nspc->pre_ctor->name);
-  free(nspc->pre_ctor->filename);
-  memcpy(nspc->pre_ctor, code, sizeof(struct VM_Code_));
-  free(code);
-//} else free_vm_code(code);
-
+  nspc->pre_ctor = emit_code(emit);
   return 1;
 }
 
