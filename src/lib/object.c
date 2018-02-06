@@ -79,7 +79,7 @@ void release(M_Object obj, VM_Shred shred) {
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
-        if(!GET_FLAG(value, ae_flag_static) && isprim(value->m_type) < 0)
+        if(!GET_FLAG(value, ae_flag_static) && isa(value->m_type, &t_object) > 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
       free_vector(v);

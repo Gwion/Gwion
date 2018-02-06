@@ -98,7 +98,10 @@ Nspc new_nspc(m_str name) {
 }
 
 static void nspc_release_object(Nspc a, Value value) {
-  if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data)) {
+  if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
+(value->ptr && GET_FLAG(value, ae_flag_builtin))
+
+) {
     VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
     VM_Shred s = new_vm_shred(code);
     M_Object obj = value->ptr ? (M_Object)value->ptr :

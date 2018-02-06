@@ -314,9 +314,14 @@ static m_bool import_global_ugens(Importer importer) {
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
 
-  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
-  importer_add_value(importer, "dac",        &t_ugen, 1, vm->dac);
-  importer_add_value(importer, "blackhole",  &t_ugen, 1, vm->blackhole);
+//  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
+
+  importer_item_ini(importer, "UGen", "adc");
+  importer_item_end(importer, ae_flag_const, vm->adc);
+  importer_item_ini(importer, "UGen", "dac");
+  importer_item_end(importer, ae_flag_const, vm->dac);
+  importer_item_ini(importer, "UGen", "blackhole");
+  importer_item_end(importer, ae_flag_const, vm->blackhole);
   return 1;
 }
 

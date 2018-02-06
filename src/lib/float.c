@@ -360,17 +360,24 @@ static m_bool import_values(Importer importer) {
   ALLOC_PTR(t_zero, m_float, 0.0);
   ALLOC_PTR(pi, m_float, M_PI);
 
-  importer_add_value(importer, "d_zero",     &t_dur,   1, d_zero);
-  importer_add_value(importer, "samplerate", &t_dur,   1, sr);
-  importer_add_value(importer, "samp",       &t_dur,   1, samp);
-  importer_add_value(importer, "ms",         &t_dur,   1, ms);
-  importer_add_value(importer, "second",     &t_dur,   1, second);
-  importer_add_value(importer, "minute",     &t_dur,   1, minute);
-  importer_add_value(importer, "day",        &t_dur,   1, hour);
-  importer_add_value(importer, "hour",       &t_dur,   1, day);
-  importer_add_value(importer, "t_zero",     &t_time,  1, t_zero);
-  importer_add_value(importer, "pi",         &t_float, 1, pi);
-
+  importer_item_ini(importer, "float", "samplerate");
+  importer_item_end(importer, ae_flag_const, sr);
+  importer_item_ini(importer, "float", "pi");
+  importer_item_end(importer, ae_flag_const, pi);
+  importer_item_ini(importer, "dur", "d_zero");
+  importer_item_end(importer, ae_flag_const, d_zero);
+  importer_item_ini(importer, "dur", "samp");
+  importer_item_end(importer, ae_flag_const, samp);
+  importer_item_ini(importer, "dur", "ms");
+  importer_item_end(importer, ae_flag_const, ms);
+  importer_item_ini(importer, "dur", "second");
+  importer_item_end(importer, ae_flag_const, second);
+  importer_item_ini(importer, "dur", "minute");
+  importer_item_end(importer, ae_flag_const, minute);
+  importer_item_ini(importer, "dur", "hour");
+  importer_item_end(importer, ae_flag_const, hour);
+  importer_item_ini(importer, "time", "t_zero");
+  importer_item_end(importer, ae_flag_const, t_zero);
   return 1;
 }
 

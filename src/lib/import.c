@@ -297,7 +297,7 @@ m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
   v->var.xid = insert_symbol(name);
   return 1;
 }
-
+#undef importer_item_end
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &importer->var;
   dl_var_set(v, flag | ae_flag_builtin);
@@ -570,7 +570,7 @@ m_int importer_union_add(Importer importer, const m_str type, const m_str name) 
 m_int importer_union_end(Importer importer, ae_flag flag) {
   Stmt stmt = new_stmt_union(importer->union_data.list, 0);
   CHECK_BB(traverse_stmt_union(importer->env, &stmt->d.stmt_union))
-  emit_union_offset(stmt->d.stmt_union.l);
+  emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
     importer->env->class_def->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
@@ -630,7 +630,7 @@ m_int importer_add_value(Importer importer, const m_str name, Type type, const m
 OP_CHECK(opck_const_lhs) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'...",
+    if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'..."
           "...(reason: --- left-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
     return &t_null;
@@ -656,7 +656,7 @@ OP_CHECK(opck_rassign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var) {
     if(err_msg(TYPE_, bin->pos,
-          "cannot assign '%s' on types '%s' and'%s'...\n",
+          "cannot assign '%s' on types '%s' and'%s'...\n"
           "\t...(reason: --- right-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
       return &t_null;

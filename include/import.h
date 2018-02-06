@@ -24,6 +24,7 @@ m_int importer_class_end(Importer importer);
 
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name);
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr);
+#define importer_item_end(a, b, c) importer_item_end(a, b, (m_uint*)c)
 
 m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name);
 m_int importer_fptr_end(Importer importer, const ae_flag flag);

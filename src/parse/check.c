@@ -1231,7 +1231,8 @@ static m_bool check_stmt_return(Env env, Stmt_Return stmt) {
       CHECK_OB((ret_type = check_exp(env, stmt->val)))
     else
       ret_type = &t_void;
-  if(ret_type->xid == te_null && isprim(env->func->def->ret_type) < 0)
+  if(isa(ret_type, &t_null) > 0 &&
+     isa(env->func->def->ret_type, &t_object) > 0)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos,

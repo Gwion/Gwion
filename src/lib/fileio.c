@@ -284,8 +284,14 @@ m_bool import_fileio(Importer importer) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-  importer_add_value(importer,  "cin",  &t_fileio, 1, gw_cin);
-  importer_add_value(importer,  "cout", &t_fileio, 1, gw_cout);
-  importer_add_value(importer,  "cerr", &t_fileio, 1, gw_cerr);
+//  importer_add_value(importer,  "cin",  &t_fileio, 1, gw_cin);
+//  importer_add_value(importer,  "cout", &t_fileio, 1, gw_cout);
+//  importer_add_value(importer,  "cerr", &t_fileio, 1, gw_cerr);
+  importer_item_ini(importer, "FileIO", "cin");
+  importer_item_end(importer, ae_flag_const, gw_cin);
+  importer_item_ini(importer, "FileIO", "cout");
+  importer_item_end(importer, ae_flag_const, gw_cout);
+  importer_item_ini(importer, "FileIO", "cerr");
+  importer_item_end(importer, ae_flag_const, gw_cerr);
   return 1;
 }

@@ -280,18 +280,19 @@ static m_bool emit_symbol_owned(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
-static m_bool emit_symbol_const(Emitter emit, Exp_Primary* prim) {
+static m_bool emit_symbol_builtin(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
-    Instr instr = emitter_add_instr(emit, Reg_PushImm);
+  Instr instr = emitter_add_instr(emit, Reg_PushImm);
+
   if(v->func_ref) {
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->func_ref;
-  } else if(isa(v->m_type, &t_float) > 0 || isa(v->m_type, &t_time) > 0 ||
-      isa(v->m_type, &t_dur) > 0) {
-    instr->m_val = SZ_FLOAT;
-    *(m_float*)instr->ptr = *(m_float*)v->ptr;
+  } else if(!prim->self->emit_var && isprim(v->m_type) > 0 && !GET_FLAG(v,ae_flag_enum)) {
+    instr->m_val = v->m_type->size;
+    if(v->ptr)
+      memcpy(instr->ptr, v->ptr, v->m_type->size);
   } else {
-    instr->m_val = SZ_INT;
+    instr->m_val = v->m_type->size;
     *(m_uint*)instr->ptr = (prim->self->emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
   }
   return 1;
@@ -300,10 +301,10 @@ static m_bool emit_symbol_const(Emitter emit, Exp_Primary* prim) {
 static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
   Instr instr;
-  if(GET_FLAG(v, ae_flag_member) || GET_FLAG(v, ae_flag_static))
+  if(v->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, ae_flag_const | ae_flag_builtin))
-    return emit_symbol_const(emit, prim);
+  if(GET_FLAG(v, ae_flag_builtin))
+    return emit_symbol_builtin(emit, prim);
   instr = emitter_add_instr(emit, prim->self->emit_var ?
       Reg_Push_Mem_Addr : Reg_Push_Mem);
   instr->m_val  = v->offset;
@@ -1408,7 +1409,7 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   return 1;
 }
 
-void emit_union_offset(Decl_List l, m_uint o) {
+void emit_union_offset(Decl_List l, const m_uint o) {
   while(l) {
     Var_Decl_List v = l->self->d.exp_decl.list;
     while(v) {
