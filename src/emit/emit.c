@@ -1398,7 +1398,7 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
   for(i = 0; i < vector_size(&stmt->values); i++) {
     Value v = (Value)vector_at(&stmt->values, i);
     if(!emit->env->class_def) {
-      m_int offset = emit_alloc_local(emit, sizeof(m_uint), 0);
+      m_int offset = emit_alloc_local(emit, SZ_INT, 0);
       CHECK_BB(offset)
       v->offset = offset;
       v->ptr = (m_uint*)i;
