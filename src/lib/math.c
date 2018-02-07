@@ -213,162 +213,162 @@ static SFUN(math_isnan) {
 m_bool import_math(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_math, NULL, NULL))
 
-  importer_func_ini(importer, "int", "abs", (m_uint)math_abs);
+  importer_func_ini(importer, "int", "abs", math_abs);
   importer_func_arg(importer, "int", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "fabs", (m_uint)math_fabs);
+  importer_func_ini(importer, "float", "fabs", math_fabs);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "int", "rand", (m_uint)math_rand);
+  importer_func_ini(importer, "int", "rand", math_rand);
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "int", "rand2", (m_uint)math_rand2);
+  importer_func_ini(importer, "int", "rand2", math_rand2);
   importer_func_arg(importer, "int", "min");
   importer_func_arg(importer, "int", "max");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "randf", (m_uint)math_randf);
+  importer_func_ini(importer, "float", "randf", math_randf);
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "rand2f", (m_uint)math_rand2f);
+  importer_func_ini(importer, "float", "rand2f", math_rand2f);
   importer_func_arg(importer, "float", "min");
   importer_func_arg(importer, "float", "max");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "srand", (m_uint)math_srand);
+  importer_func_ini(importer, "float", "srand", math_srand);
   importer_func_arg(importer, "float", "seed");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "int", "sgn", (m_uint)math_sgn);
+  importer_func_ini(importer, "int", "sgn", math_sgn);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "hypot", (m_uint)math_hypot);
+  importer_func_ini(importer, "float", "hypot", math_hypot);
   importer_func_arg(importer, "float", "min");
   importer_func_arg(importer, "float", "max");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "sin", (m_uint)math_sin);
+  importer_func_ini(importer, "float", "sin", math_sin);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "cos", (m_uint)math_cos);
+  importer_func_ini(importer, "float", "cos", math_cos);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "tan", (m_uint)math_tan);
+  importer_func_ini(importer, "float", "tan", math_tan);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "asin", (m_uint)math_asin);
+  importer_func_ini(importer, "float", "asin", math_asin);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "acos", (m_uint)math_acos);
+  importer_func_ini(importer, "float", "acos", math_acos);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atan", (m_uint)math_atan);
+  importer_func_ini(importer, "float", "atan", math_atan);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atan2", (m_uint)math_atan2);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "sinh", (m_uint)math_sinh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "cosh", (m_uint)math_cosh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "tanh", (m_uint)math_tanh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "asinh", (m_uint)math_asinh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "acosh", (m_uint)math_acosh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "atanh", (m_uint)math_atanh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "pow", (m_uint)math_pow);
+  importer_func_ini(importer, "float", "atan2", math_atan2);
   importer_func_arg(importer, "float", "value");
   importer_func_arg(importer, "float", "value2");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "sqrt", (m_uint)math_sqrt);
+  importer_func_ini(importer, "float", "sinh", math_sinh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "exp", (m_uint)math_exp);
+  importer_func_ini(importer, "float", "cosh", math_cosh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log", (m_uint)math_log);
+  importer_func_ini(importer, "float", "tanh", math_tanh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log2", (m_uint)math_log2);
+  importer_func_ini(importer, "float", "asinh", math_asinh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log10", (m_uint)math_log10);
+  importer_func_ini(importer, "float", "acosh", math_acosh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "floor", (m_uint)math_floor);
+  importer_func_ini(importer, "float", "atanh", math_atanh);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "ceil", (m_uint)math_ceil);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "round", (m_uint)math_round);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "trunc", (m_uint)math_trunc);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-
-  importer_func_ini(importer, "float", "fmod", (m_uint)math_fmod);
+  importer_func_ini(importer, "float", "pow", math_pow);
   importer_func_arg(importer, "float", "value");
   importer_func_arg(importer, "float", "value2");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "remainder", (m_uint)math_remainder);
+  importer_func_ini(importer, "float", "sqrt", math_sqrt);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "exp", math_exp);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "log", math_log);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "log2", math_log2);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "log10", math_log10);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "floor", math_floor);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "ceil", math_ceil);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "round", math_round);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "trunc", math_trunc);
+  importer_func_arg(importer, "float", "value");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "fmod", math_fmod);
   importer_func_arg(importer, "float", "value");
   importer_func_arg(importer, "float", "value2");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "min", (m_uint)math_min);
+  importer_func_ini(importer, "float", "remainder", math_remainder);
   importer_func_arg(importer, "float", "value");
   importer_func_arg(importer, "float", "value2");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "max", (m_uint)math_max);
+  importer_func_ini(importer, "float", "min", math_min);
   importer_func_arg(importer, "float", "value");
   importer_func_arg(importer, "float", "value2");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "isinf", (m_uint)math_isinf);
+  importer_func_ini(importer, "float", "max", math_max);
+  importer_func_arg(importer, "float", "value");
+  importer_func_arg(importer, "float", "value2");
+  CHECK_BB(importer_func_end(importer, ae_flag_static))
+
+  importer_func_ini(importer, "float", "isinf", math_isinf);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "float", "isnan", (m_uint)math_isnan);
+  importer_func_ini(importer, "float", "isnan", math_isnan);
   importer_func_arg(importer, "float", "value");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
   CHECK_BB(importer_class_end(importer))

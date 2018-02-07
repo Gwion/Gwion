@@ -72,7 +72,7 @@ IMPORT {
   CHECK_BB(importer_fptr_end(importer, 0))
   
   CHECK_BB(importer_class_ini(importer, &t_callback, NULL, NULL))
-    CHECK_BB(importer_func_ini(importer, "int", "callback", (m_uint)cb_func))
+    CHECK_BB(importer_func_ini(importer, "int", "callback", cb_func))
       CHECK_BB(importer_func_arg(importer, "PtrType", "func"))
       /*CHECK_BB(importer_func_arg(importer, "int", "unused"))*/
     CHECK_BB(importer_func_end(importer, ae_flag_static))

@@ -173,37 +173,37 @@ m_bool import_vec3(Importer importer) {
   importer_item_end(importer, ae_flag_member, NULL);
 	importer_item_ini(importer, "float", "z");
   importer_item_end(importer, ae_flag_member, NULL);
-  importer_func_ini(importer, "void", "set", (m_uint)vec3_set);
+  importer_func_ini(importer, "void", "set", vec3_set);
   importer_func_arg(importer, "float", "x");
   importer_func_arg(importer, "float", "y");
   importer_func_arg(importer, "float", "z");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "setAll", (m_uint)vec3_setAll);
+    importer_func_ini(importer, "void", "setAll", vec3_setAll);
   importer_func_arg(importer, "float", "x");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "magnitude", (m_uint)vec3_magnitude);
+    importer_func_ini(importer, "float", "magnitude", vec3_magnitude);
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "normalize", (m_uint)vec3_normalize);
+    importer_func_ini(importer, "void", "normalize", vec3_normalize);
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", (m_uint)vec3_interp);
+    importer_func_ini(importer, "float", "interp", vec3_interp);
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", (m_uint)vec3_float);
+    importer_func_ini(importer, "float", "interp", vec3_float);
   importer_func_arg(importer, "float", "delta");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", (m_uint)vec3_dur);
+    importer_func_ini(importer, "float", "interp", vec3_dur);
   importer_func_arg(importer, "dur", "delta");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "update", (m_uint)vec3_update);
+    importer_func_ini(importer, "void", "update", vec3_update);
   importer_func_arg(importer, "float", "goal");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "update", (m_uint)vec3_update_slew);
+    importer_func_ini(importer, "void", "update", vec3_update_slew);
   importer_func_arg(importer, "float", "goal");
   importer_func_arg(importer, "float", "slew");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "supdate", (m_uint)vec3_update_set);
+    importer_func_ini(importer, "void", "supdate", vec3_update_set);
   importer_func_arg(importer, "float", "goalAndValue");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "supdate", (m_uint)vec3_update_set_slew);
+    importer_func_ini(importer, "void", "supdate", vec3_update_set_slew);
   importer_func_arg(importer, "float", "goalAndValue");
   importer_func_arg(importer, "float", "slew");
   CHECK_BB(importer_func_end(importer, 0))
@@ -331,18 +331,18 @@ m_bool import_vec4(Importer importer) {
   importer_item_end(importer, ae_flag_member, NULL);
 	importer_item_ini(importer, "float", "w");
   importer_item_end(importer, ae_flag_member, NULL);
-  importer_func_ini(importer, "void", "set", (m_uint)vec4_set);
+  importer_func_ini(importer, "void", "set", vec4_set);
   importer_func_arg(importer, "float", "x");
   importer_func_arg(importer, "float", "y");
   importer_func_arg(importer, "float", "z");
   importer_func_arg(importer, "float", "w");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "setAll", (m_uint)vec4_setAll);
+    importer_func_ini(importer, "void", "setAll", vec4_setAll);
   importer_func_arg(importer, "float", "x");
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "magnitude", (m_uint)vec4_magnitude);
+    importer_func_ini(importer, "float", "magnitude", vec4_magnitude);
   CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "normalize", (m_uint)vec4_normalize);
+    importer_func_ini(importer, "void", "normalize", vec4_normalize);
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
   CHECK_BB(importer_oper_ini(importer, "Vec4", "Vec4", "Vec4"))

@@ -3,6 +3,7 @@
 typedef void (*f_xtor)(M_Object o, VM_Shred sh);
 typedef void (*f_mfun)(M_Object o, char* RETURN, VM_Shred sh);
 typedef void (*f_sfun)(char* RETURN, VM_Shred sh);
+typedef void (*f_xfun)();
 typedef struct Importer_* Importer;
 
 #define MFUN(a) void a(M_Object o, char* RETURN, VM_Shred shred)
@@ -24,7 +25,7 @@ m_int importer_class_end(Importer importer);
 
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name);
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr);
-#define importer_item_end(a, b, c) importer_item_end(a, b, (m_uint*)c)
+#define importer_item_end(a, b, c) importer_item_end(a, (ae_flag)(b), (m_uint*)c)
 
 m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name);
 m_int importer_fptr_end(Importer importer, const ae_flag flag);
@@ -37,10 +38,10 @@ m_int importer_union_add(Importer importer, const m_str type, const m_str name);
 m_int importer_union_end(Importer importer, ae_flag flag);
 
 m_int importer_enum_ini(Importer importer, const m_str type);
-m_int importer_enum_add(Importer importer, const m_str name);
+m_int importer_enum_add(Importer importer, const m_str name, const m_uint value);
 m_int importer_enum_end(Importer importer);
 
-m_int importer_func_ini(Importer importer, const m_str type, const m_str name, m_uint addr);
+m_int importer_func_ini(Importer importer, const m_str type, const m_str name, f_xfun addr);
 m_int importer_func_arg(Importer importer, const m_str t, const m_str  n);
 m_int importer_func_end(Importer importer, const ae_flag flag);
 

@@ -94,21 +94,21 @@ MFUN(sinosc_set_amp) {
 
 static m_bool import_sinosc(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_sinosc, sinosc_ctor, sinosc_dtor))
-  importer_func_ini(importer, "void", "init", (m_uint)sinosc_size);
+  importer_func_ini(importer, "void", "init", sinosc_size);
   importer_func_arg(importer, "int", "size");
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "void", "init", (m_uint)sinosc_size_phase);
+  importer_func_ini(importer, "void", "init", sinosc_size_phase);
   importer_func_arg(importer, "int", "size");
   importer_func_arg(importer, "float", "phase");
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "freq", (m_uint)sinosc_get_freq);
+  importer_func_ini(importer, "float", "freq", sinosc_get_freq);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "freq", (m_uint)sinosc_set_freq);
+  importer_func_ini(importer, "float", "freq", sinosc_set_freq);
   importer_func_arg(importer, "float", "freq");
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "amp", (m_uint)sinosc_get_amp);
+  importer_func_ini(importer, "float", "amp", sinosc_get_amp);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "amp", (m_uint)sinosc_set_amp);
+  importer_func_ini(importer, "float", "amp", sinosc_set_amp);
   importer_func_arg(importer, "float", "amp");
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
@@ -143,9 +143,9 @@ static MFUN(gain_set_gain) {
 
 static m_bool import_gain(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_gain, gain_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "gain", (m_uint)gain_get_gain);
+  importer_func_ini(importer, "float", "gain", gain_get_gain);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "gain", (m_uint)gain_set_gain);
+  importer_func_ini(importer, "float", "gain", gain_set_gain);
   importer_func_arg(importer, "float", "arg0");
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
@@ -176,9 +176,9 @@ static MFUN(impulse_set_next) {
 
 static m_bool import_impulse(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_impulse, impulse_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "next", (m_uint)impulse_get_next);
+  importer_func_ini(importer, "float", "next", impulse_get_next);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "next", (m_uint)impulse_set_next);
+  importer_func_ini(importer, "float", "next", impulse_set_next);
   importer_func_arg(importer, "float", "arg0");
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
@@ -248,9 +248,9 @@ static MFUN(step_set_next) {
 
 static m_bool import_step(Importer importer) {
   CHECK_BB(importer_class_ini(importer,  &t_step, step_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "next", (m_uint)step_get_next);
+  importer_func_ini(importer, "float", "next", step_get_next);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "next", (m_uint)step_set_next);
+  importer_func_ini(importer, "float", "next", step_set_next);
   importer_func_arg(importer, "float", "arg0");
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))

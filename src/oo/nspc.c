@@ -129,7 +129,14 @@ static void free_nspc_value(Nspc a) {
   Vector v = scope_get(&a->value);
   for(i = vector_size(v) + 1; --i;) {
     Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->m_type, &t_class) > 0) {
+/*
+    if(GET_FLAG(value->m_type, ae_flag_enum) > 0) {
+puts(value->m_type->name);
+if(GET_FLAG(value, ae_flag_builtin))
+REM_REF(value->m_type)
+}
+    else */
+if(isa(value->m_type, &t_class) > 0) {
       if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
         UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);
         if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
@@ -161,7 +168,8 @@ if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
       }
       else
         REM_REF(value->m_type)
-    }
+    } /* else if(GET_FLAG(value->m_type, ae_flag_enum))
+      REM_REF(value->m_type) */
     REM_REF(value);
   }
   free_vector(v);

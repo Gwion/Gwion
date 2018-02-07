@@ -222,18 +222,18 @@ m_bool import_fileio(Importer importer) {
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  importer_func_ini(importer, "int", "nl", (m_uint)file_nl);
+  importer_func_ini(importer, "int", "nl", file_nl);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "open", (m_uint)file_open);
+  importer_func_ini(importer, "int", "open", file_open);
   importer_func_arg(importer, "string", "filename");
   importer_func_arg(importer, "string", "mode");
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "close", (m_uint)file_close);
+  importer_func_ini(importer, "int", "close", file_close);
   CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "remove", (m_uint)file_remove);
+  importer_func_ini(importer, "int", "remove", file_remove);
   importer_func_arg(importer, "string", "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
-  importer_func_ini(importer, "string[]", "list", (m_uint)file_list);
+  importer_func_ini(importer, "string[]", "list", file_list);
   importer_func_arg(importer, "string", "filename");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 

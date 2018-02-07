@@ -14,7 +14,7 @@ typedef struct {
 typedef struct {
   m_str    name;
   m_str    type;
-  m_uint   addr;
+  f_xfun   addr;
   m_uint   narg;
   DL_Value args[DLARG_MAX];
 } DL_Func;
@@ -34,6 +34,7 @@ typedef struct {
 typedef struct {
   m_str t;
   ID_List base, curr;
+  struct Vector_ addr;
 } DL_Enum;
 
 typedef struct {

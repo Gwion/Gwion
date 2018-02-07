@@ -10,7 +10,7 @@ MFUN(test_mfun){}
 IMPORT
 {
   CHECK_BB(importer_class_ini(importer, &t_invalid_var_type, NULL, NULL))
-  CHECK_BB(importer_func_ini(importer, "int[]", "func", (m_uint)test_mfun))
+  CHECK_BB(importer_func_ini(importer, "int[]", "func", test_mfun))
   CHECK_BB(importer_func_arg(importer, ".int", "i"))
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 

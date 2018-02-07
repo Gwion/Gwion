@@ -303,7 +303,7 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   Instr instr;
   if(v->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, ae_flag_builtin))
+  if(GET_FLAG(v, ae_flag_builtin) || GET_FLAG(v, ae_flag_enum))
     return emit_symbol_builtin(emit, prim);
   instr = emitter_add_instr(emit, prim->self->emit_var ?
       Reg_Push_Mem_Addr : Reg_Push_Mem);

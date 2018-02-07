@@ -19,7 +19,7 @@ m_bool import_pair(Importer importer) {
   CHECK_BB(importer_item_end(importer, 0, NULL))
   CHECK_BB(importer_item_ini(importer, "B", "val"))
   CHECK_BB(importer_item_end(importer, 0, NULL))
-  CHECK_BB(importer_func_ini(importer, "void", "set", (m_uint)gwf_pair_set))
+  CHECK_BB(importer_func_ini(importer, "void", "set", gwf_pair_set))
   CHECK_BB(importer_func_arg(importer, "A", "key"))
   CHECK_BB(importer_func_arg(importer, "B", "val"))
   CHECK_BB(importer_func_end(importer, 0))

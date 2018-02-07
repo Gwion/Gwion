@@ -338,18 +338,18 @@ m_bool import_ugen(Importer importer) {
   o_object_ugen = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_object_ugen)
 
-  importer_func_ini(importer, "UGen", "chan", (m_uint)ugen_channel);
+  importer_func_ini(importer, "UGen", "chan", ugen_channel);
   importer_func_arg(importer, "int", "arg0");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "op", (m_uint)ugen_get_op);
+  importer_func_ini(importer, "int", "op", ugen_get_op);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "op", (m_uint)ugen_set_op);
+  importer_func_ini(importer, "int", "op", ugen_set_op);
   importer_func_arg(importer, "int", "arg0");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "float", "last", (m_uint)ugen_get_last);
+  importer_func_ini(importer, "float", "last", ugen_get_last);
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))
 

@@ -9,7 +9,7 @@ MFUN(template_arg_fun) {}
 
 IMPORT{
   CHECK_BB(importer_class_ini(importer, &t_template_arg, NULL, NULL))
-  CHECK_BB(importer_func_ini(importer, "int", "set", (m_uint)template_arg_fun))
+  CHECK_BB(importer_func_ini(importer, "int", "set", template_arg_fun))
   CHECK_BB(importer_func_arg(importer, "Pair<Ptr<int>,float>","test"))
   CHECK_BB(importer_func_end(importer, 0))
   CHECK_BB(importer_class_end(importer))

@@ -96,36 +96,36 @@ m_bool import_shred(Importer importer) {
   o_shred_me = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_shred_me)
 
-  importer_func_ini(importer, "void", "exit", (m_uint)vm_shred_exit);
+  importer_func_ini(importer, "void", "exit", vm_shred_exit);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "running", (m_uint)vm_shred_is_running);
+  importer_func_ini(importer, "int", "running", vm_shred_is_running);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "done", (m_uint)vm_shred_is_done);
+  importer_func_ini(importer, "int", "done", vm_shred_is_done);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "id", (m_uint)vm_shred_id);
+  importer_func_ini(importer, "int", "id", vm_shred_id);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "Shred", "fromId", (m_uint)vm_shred_from_id);
+  importer_func_ini(importer, "Shred", "fromId", vm_shred_from_id);
   importer_func_arg(importer, "int", "arg1");
   CHECK_BB(importer_func_end(importer, ae_flag_static))
 
-  importer_func_ini(importer, "void", "yield", (m_uint)shred_yield);
+  importer_func_ini(importer, "void", "yield", shred_yield);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "args", (m_uint)shred_args);
+  importer_func_ini(importer, "int", "args", shred_args);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "arg", (m_uint)shred_arg);
+  importer_func_ini(importer, "string", "arg", shred_arg);
   importer_func_arg(importer, "int", "n");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "path", (m_uint)shred_path);
+  importer_func_ini(importer, "string", "path", shred_path);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "dir", (m_uint)shred_dir);
+  importer_func_ini(importer, "string", "dir", shred_dir);
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))

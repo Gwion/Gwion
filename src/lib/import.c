@@ -38,14 +38,14 @@ m_int importer_tmpl_ini(Importer importer, m_uint n, const m_str* list) {
   return 1;
 }
 
-static void dl_func_init(DL_Func* a, const m_str t, const m_str n, m_uint addr) {
+static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
   a->narg = 0;
 }
 
-m_int importer_func_ini(Importer importer, const m_str t, const m_str n, m_uint addr) {
+m_int importer_func_ini(Importer importer, const m_str t, const m_str n, f_xfun addr) {
   dl_func_init(&importer->func, t, n, addr);
   return 1;
 }
@@ -285,7 +285,7 @@ static void dl_var_release(DL_Var* v) {
     free_array_sub(v->t.array);
     free_array_sub(v->var.array);
   }
-  free(v->t.xid);
+  free_id_list(v->t.xid);
 }
 
 m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
@@ -297,6 +297,7 @@ m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
   v->var.xid = insert_symbol(name);
   return 1;
 }
+
 #undef importer_item_end
 m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &importer->var;
@@ -582,13 +583,14 @@ m_int importer_union_end(Importer importer, ae_flag flag) {
 
 m_int importer_enum_ini(Importer importer, const m_str type) {
   importer->enum_data.t = type;
+  vector_init(&importer->enum_data.addr);
   return 1;
 }
 
-m_int importer_enum_add(Importer importer, const m_str name) {
+m_int importer_enum_add(Importer importer, const m_str name, const m_uint addr) {
   ID_List list = new_id_list(insert_symbol(name), 0);
   DL_Enum* d = &importer->enum_data;
-
+  vector_add(&importer->enum_data.addr, addr);
   if(!d->base)
     d->base = list;
   else
@@ -602,11 +604,13 @@ static void import_enum_end(DL_Enum* d, Vector v) {
 
   for(i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
+    const m_uint addr = vector_at(&d->addr, i);
     SET_FLAG(value, ae_flag_builtin);
-    value->ptr = (m_uint*)i;
+    value->ptr = (m_uint*)(addr ? addr : i);
   }
   d->t = NULL;
   d->base = NULL;
+  vector_release(&d->addr);
 }
 
 m_int importer_enum_end(Importer importer) {

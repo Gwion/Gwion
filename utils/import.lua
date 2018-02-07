@@ -310,7 +310,8 @@ a = {}
 for n in pairs(sptbl) do table.insert(a, n) end
 table.sort(a)
 
-print('#include "vm.h"\
+print('#include <stdlib.h>\
+#include "vm.h"\
 #include "type.h"\
 #include "err_msg.h"\
 #include "instr.h"\
@@ -353,7 +354,7 @@ for n in ipairs(a) do
   local gen_name = a[n]
   local object = sptbl[gen_name]
   if string.match(object.modtype, "gen") then
-    print("\timporter_func_ini(importer, \"void\", \""..gen_name.."\", (m_uint)ftbl_"..gen_name..");")
+    print("\timporter_func_ini(importer, \"void\", \""..gen_name.."\", ftbl_"..gen_name..");")
     local i = 1; -- why this 'i' ?
     print("\timporter_func_arg(importer, \"int\", \"size\");")
     if(object.params ~= nil) then
@@ -380,7 +381,7 @@ for n in ipairs(a) do
       end
     end
     if nmandatory > 0 then
-      print("\timporter_func_ini(importer, \"void\", \"init\", (m_uint)"..mod_name.."_init);")
+      print("\timporter_func_ini(importer, \"void\", \"init\", "..mod_name.."_init);")
       local tbl = object.params.mandatory
       if tbl then
         for _, v in pairs(tbl) do
@@ -393,27 +394,27 @@ for n in ipairs(a) do
     if tbl then
       for _, v in pairs(tbl) do
         if string.match(v.type, "int") then
-          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "SPFLOAT") then
-          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "char") then
-          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*%*") then
-          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*") then
-          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_get_"..v.name..");")
+          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         end
         print("\tCHECK_BB(importer_func_end(importer, 0))")
         if string.match(v.type, "int") then
-          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "SPFLOAT") then
-          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "char") then
-          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*%*") then
-          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*") then
-          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", (m_uint)"..mod_name.."_set_"..v.name..");")
+          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         end
         declare_gw_param(v)
         print("\tCHECK_BB(importer_func_end(importer, 0))")

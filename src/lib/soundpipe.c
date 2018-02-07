@@ -8457,106 +8457,106 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_ini(importer, &t_ftbl, NULL, ftbl_dtor))
 	CHECK_BB(importer_item_ini(importer, "int", "@ftbl"))
 	o_ftbl_data = importer_item_end(importer, 0, NULL);
-	importer_func_ini(importer, "void", "gen_composite", (m_uint)ftbl_gen_composite);
+	importer_func_ini(importer, "void", "gen_composite", ftbl_gen_composite);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "argstring");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_file", (m_uint)ftbl_gen_file);
+	importer_func_ini(importer, "void", "gen_file", ftbl_gen_file);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "filename");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_gauss", (m_uint)ftbl_gen_gauss);
+	importer_func_ini(importer, "void", "gen_gauss", ftbl_gen_gauss);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "float", "scale");
 		 importer_func_arg(importer, "int", "seed");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_line", (m_uint)ftbl_gen_line);
+	importer_func_ini(importer, "void", "gen_line", ftbl_gen_line);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "argstring");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_padsynth", (m_uint)ftbl_gen_padsynth);
+	importer_func_ini(importer, "void", "gen_padsynth", ftbl_gen_padsynth);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "ftbl", "amps");
 		 importer_func_arg(importer, "float", "f");
 		 importer_func_arg(importer, "float", "bw");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_rand", (m_uint)ftbl_gen_rand);
+	importer_func_ini(importer, "void", "gen_rand", ftbl_gen_rand);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "argstring");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_scrambler", (m_uint)ftbl_gen_scrambler);
+	importer_func_ini(importer, "void", "gen_scrambler", ftbl_gen_scrambler);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "ftbl", "dest");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_sine", (m_uint)ftbl_gen_sine);
+	importer_func_ini(importer, "void", "gen_sine", ftbl_gen_sine);
 	importer_func_arg(importer, "int", "size");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_sinesum", (m_uint)ftbl_gen_sinesum);
+	importer_func_ini(importer, "void", "gen_sinesum", ftbl_gen_sinesum);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "argstring");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "void", "gen_xline", (m_uint)ftbl_gen_xline);
+	importer_func_ini(importer, "void", "gen_xline", ftbl_gen_xline);
 	importer_func_arg(importer, "int", "size");
 		 importer_func_arg(importer, "string", "argstring");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_adsr, adsr_ctor, adsr_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)adsr_get_atk);
+	importer_func_ini(importer, "float", "atk", adsr_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)adsr_set_atk);
+	importer_func_ini(importer, "float", "atk", adsr_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)adsr_get_dec);
+	importer_func_ini(importer, "float", "dec", adsr_get_dec);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)adsr_set_dec);
+	importer_func_ini(importer, "float", "dec", adsr_set_dec);
 		 importer_func_arg(importer, "float", "dec");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "sus", (m_uint)adsr_get_sus);
+	importer_func_ini(importer, "float", "sus", adsr_get_sus);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "sus", (m_uint)adsr_set_sus);
+	importer_func_ini(importer, "float", "sus", adsr_set_sus);
 		 importer_func_arg(importer, "float", "sus");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)adsr_get_rel);
+	importer_func_ini(importer, "float", "rel", adsr_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)adsr_set_rel);
+	importer_func_ini(importer, "float", "rel", adsr_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_allpass, allpass_ctor, allpass_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)allpass_init);
+	importer_func_ini(importer, "void", "init", allpass_init);
 		 importer_func_arg(importer, "float", "looptime");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "revtime", (m_uint)allpass_get_revtime);
+	importer_func_ini(importer, "float", "revtime", allpass_get_revtime);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "revtime", (m_uint)allpass_set_revtime);
+	importer_func_ini(importer, "float", "revtime", allpass_set_revtime);
 		 importer_func_arg(importer, "float", "revtime");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_atone, atone_ctor, atone_dtor))
-	importer_func_ini(importer, "float", "hp", (m_uint)atone_get_hp);
+	importer_func_ini(importer, "float", "hp", atone_get_hp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hp", (m_uint)atone_set_hp);
+	importer_func_ini(importer, "float", "hp", atone_set_hp);
 		 importer_func_arg(importer, "float", "hp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_autowah, autowah_ctor, autowah_dtor))
-	importer_func_ini(importer, "float", "level", (m_uint)autowah_get_level);
+	importer_func_ini(importer, "float", "level", autowah_get_level);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "level", (m_uint)autowah_set_level);
+	importer_func_ini(importer, "float", "level", autowah_set_level);
 		 importer_func_arg(importer, "float", "level");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wah", (m_uint)autowah_get_wah);
+	importer_func_ini(importer, "float", "wah", autowah_get_wah);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wah", (m_uint)autowah_set_wah);
+	importer_func_ini(importer, "float", "wah", autowah_set_wah);
 		 importer_func_arg(importer, "float", "wah");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mix", (m_uint)autowah_get_mix);
+	importer_func_ini(importer, "float", "mix", autowah_get_mix);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mix", (m_uint)autowah_set_mix);
+	importer_func_ini(importer, "float", "mix", autowah_set_mix);
 		 importer_func_arg(importer, "float", "mix");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -8565,146 +8565,146 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_bar, bar_ctor, bar_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)bar_init);
+	importer_func_ini(importer, "void", "init", bar_init);
 		 importer_func_arg(importer, "float", "iK");
 		 importer_func_arg(importer, "float", "ib");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bcL", (m_uint)bar_get_bcL);
+	importer_func_ini(importer, "float", "bcL", bar_get_bcL);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bcL", (m_uint)bar_set_bcL);
+	importer_func_ini(importer, "float", "bcL", bar_set_bcL);
 		 importer_func_arg(importer, "float", "bcL");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bcR", (m_uint)bar_get_bcR);
+	importer_func_ini(importer, "float", "bcR", bar_get_bcR);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bcR", (m_uint)bar_set_bcR);
+	importer_func_ini(importer, "float", "bcR", bar_set_bcR);
 		 importer_func_arg(importer, "float", "bcR");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "T30", (m_uint)bar_get_T30);
+	importer_func_ini(importer, "float", "T30", bar_get_T30);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "T30", (m_uint)bar_set_T30);
+	importer_func_ini(importer, "float", "T30", bar_set_T30);
 		 importer_func_arg(importer, "float", "T30");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "scan", (m_uint)bar_get_scan);
+	importer_func_ini(importer, "float", "scan", bar_get_scan);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "scan", (m_uint)bar_set_scan);
+	importer_func_ini(importer, "float", "scan", bar_set_scan);
 		 importer_func_arg(importer, "float", "scan");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pos", (m_uint)bar_get_pos);
+	importer_func_ini(importer, "float", "pos", bar_get_pos);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pos", (m_uint)bar_set_pos);
+	importer_func_ini(importer, "float", "pos", bar_set_pos);
 		 importer_func_arg(importer, "float", "pos");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "vel", (m_uint)bar_get_vel);
+	importer_func_ini(importer, "float", "vel", bar_get_vel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "vel", (m_uint)bar_set_vel);
+	importer_func_ini(importer, "float", "vel", bar_set_vel);
 		 importer_func_arg(importer, "float", "vel");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wid", (m_uint)bar_get_wid);
+	importer_func_ini(importer, "float", "wid", bar_get_wid);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wid", (m_uint)bar_set_wid);
+	importer_func_ini(importer, "float", "wid", bar_set_wid);
 		 importer_func_arg(importer, "float", "wid");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_biquad, biquad_ctor, biquad_dtor))
-	importer_func_ini(importer, "float", "b0", (m_uint)biquad_get_b0);
+	importer_func_ini(importer, "float", "b0", biquad_get_b0);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b0", (m_uint)biquad_set_b0);
+	importer_func_ini(importer, "float", "b0", biquad_set_b0);
 		 importer_func_arg(importer, "float", "b0");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b1", (m_uint)biquad_get_b1);
+	importer_func_ini(importer, "float", "b1", biquad_get_b1);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b1", (m_uint)biquad_set_b1);
+	importer_func_ini(importer, "float", "b1", biquad_set_b1);
 		 importer_func_arg(importer, "float", "b1");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b2", (m_uint)biquad_get_b2);
+	importer_func_ini(importer, "float", "b2", biquad_get_b2);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b2", (m_uint)biquad_set_b2);
+	importer_func_ini(importer, "float", "b2", biquad_set_b2);
 		 importer_func_arg(importer, "float", "b2");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a0", (m_uint)biquad_get_a0);
+	importer_func_ini(importer, "float", "a0", biquad_get_a0);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a0", (m_uint)biquad_set_a0);
+	importer_func_ini(importer, "float", "a0", biquad_set_a0);
 		 importer_func_arg(importer, "float", "a0");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a1", (m_uint)biquad_get_a1);
+	importer_func_ini(importer, "float", "a1", biquad_get_a1);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a1", (m_uint)biquad_set_a1);
+	importer_func_ini(importer, "float", "a1", biquad_set_a1);
 		 importer_func_arg(importer, "float", "a1");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a2", (m_uint)biquad_get_a2);
+	importer_func_ini(importer, "float", "a2", biquad_get_a2);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a2", (m_uint)biquad_set_a2);
+	importer_func_ini(importer, "float", "a2", biquad_set_a2);
 		 importer_func_arg(importer, "float", "a2");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_biscale, biscale_ctor, biscale_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)biscale_get_min);
+	importer_func_ini(importer, "float", "min", biscale_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)biscale_set_min);
+	importer_func_ini(importer, "float", "min", biscale_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)biscale_get_max);
+	importer_func_ini(importer, "float", "max", biscale_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)biscale_set_max);
+	importer_func_ini(importer, "float", "max", biscale_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_bitcrush, bitcrush_ctor, bitcrush_dtor))
-	importer_func_ini(importer, "float", "bitdepth", (m_uint)bitcrush_get_bitdepth);
+	importer_func_ini(importer, "float", "bitdepth", bitcrush_get_bitdepth);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bitdepth", (m_uint)bitcrush_set_bitdepth);
+	importer_func_ini(importer, "float", "bitdepth", bitcrush_set_bitdepth);
 		 importer_func_arg(importer, "float", "bitdepth");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "srate", (m_uint)bitcrush_get_srate);
+	importer_func_ini(importer, "float", "srate", bitcrush_get_srate);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "srate", (m_uint)bitcrush_set_srate);
+	importer_func_ini(importer, "float", "srate", bitcrush_set_srate);
 		 importer_func_arg(importer, "float", "srate");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_blsaw, blsaw_ctor, blsaw_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)blsaw_get_freq);
+	importer_func_ini(importer, "float", "freq", blsaw_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)blsaw_set_freq);
+	importer_func_ini(importer, "float", "freq", blsaw_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)blsaw_get_amp);
+	importer_func_ini(importer, "float", "amp", blsaw_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)blsaw_set_amp);
+	importer_func_ini(importer, "float", "amp", blsaw_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_blsquare, blsquare_ctor, blsquare_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)blsquare_get_freq);
+	importer_func_ini(importer, "float", "freq", blsquare_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)blsquare_set_freq);
+	importer_func_ini(importer, "float", "freq", blsquare_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)blsquare_get_amp);
+	importer_func_ini(importer, "float", "amp", blsquare_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)blsquare_set_amp);
+	importer_func_ini(importer, "float", "amp", blsquare_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "width", (m_uint)blsquare_get_width);
+	importer_func_ini(importer, "float", "width", blsquare_get_width);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "width", (m_uint)blsquare_set_width);
+	importer_func_ini(importer, "float", "width", blsquare_set_width);
 		 importer_func_arg(importer, "float", "width");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_bltriangle, bltriangle_ctor, bltriangle_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)bltriangle_get_freq);
+	importer_func_ini(importer, "float", "freq", bltriangle_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)bltriangle_set_freq);
+	importer_func_ini(importer, "float", "freq", bltriangle_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)bltriangle_get_amp);
+	importer_func_ini(importer, "float", "amp", bltriangle_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)bltriangle_set_amp);
+	importer_func_ini(importer, "float", "amp", bltriangle_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -8713,126 +8713,126 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_butbp, butbp_ctor, butbp_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)butbp_get_freq);
+	importer_func_ini(importer, "float", "freq", butbp_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)butbp_set_freq);
+	importer_func_ini(importer, "float", "freq", butbp_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)butbp_get_bw);
+	importer_func_ini(importer, "float", "bw", butbp_get_bw);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)butbp_set_bw);
+	importer_func_ini(importer, "float", "bw", butbp_set_bw);
 		 importer_func_arg(importer, "float", "bw");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_butbr, butbr_ctor, butbr_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)butbr_get_freq);
+	importer_func_ini(importer, "float", "freq", butbr_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)butbr_set_freq);
+	importer_func_ini(importer, "float", "freq", butbr_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)butbr_get_bw);
+	importer_func_ini(importer, "float", "bw", butbr_get_bw);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)butbr_set_bw);
+	importer_func_ini(importer, "float", "bw", butbr_set_bw);
 		 importer_func_arg(importer, "float", "bw");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_buthp, buthp_ctor, buthp_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)buthp_get_freq);
+	importer_func_ini(importer, "float", "freq", buthp_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)buthp_set_freq);
+	importer_func_ini(importer, "float", "freq", buthp_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_butlp, butlp_ctor, butlp_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)butlp_get_freq);
+	importer_func_ini(importer, "float", "freq", butlp_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)butlp_set_freq);
+	importer_func_ini(importer, "float", "freq", butlp_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_clip, clip_ctor, clip_dtor))
-	importer_func_ini(importer, "float", "lim", (m_uint)clip_get_lim);
+	importer_func_ini(importer, "float", "lim", clip_get_lim);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lim", (m_uint)clip_set_lim);
+	importer_func_ini(importer, "float", "lim", clip_set_lim);
 		 importer_func_arg(importer, "float", "lim");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_clock, clock_ctor, clock_dtor))
-	importer_func_ini(importer, "float", "bpm", (m_uint)clock_get_bpm);
+	importer_func_ini(importer, "float", "bpm", clock_get_bpm);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bpm", (m_uint)clock_set_bpm);
+	importer_func_ini(importer, "float", "bpm", clock_set_bpm);
 		 importer_func_arg(importer, "float", "bpm");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "subdiv", (m_uint)clock_get_subdiv);
+	importer_func_ini(importer, "float", "subdiv", clock_get_subdiv);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "subdiv", (m_uint)clock_set_subdiv);
+	importer_func_ini(importer, "float", "subdiv", clock_set_subdiv);
 		 importer_func_arg(importer, "float", "subdiv");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_comb, comb_ctor, comb_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)comb_init);
+	importer_func_ini(importer, "void", "init", comb_init);
 		 importer_func_arg(importer, "float", "looptime");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "revtime", (m_uint)comb_get_revtime);
+	importer_func_ini(importer, "float", "revtime", comb_get_revtime);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "revtime", (m_uint)comb_set_revtime);
+	importer_func_ini(importer, "float", "revtime", comb_set_revtime);
 		 importer_func_arg(importer, "float", "revtime");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_compressor, compressor_ctor, compressor_dtor))
-	importer_func_ini(importer, "float", "ratio", (m_uint)compressor_get_ratio);
+	importer_func_ini(importer, "float", "ratio", compressor_get_ratio);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ratio", (m_uint)compressor_set_ratio);
+	importer_func_ini(importer, "float", "ratio", compressor_set_ratio);
 		 importer_func_arg(importer, "float", "ratio");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "thresh", (m_uint)compressor_get_thresh);
+	importer_func_ini(importer, "float", "thresh", compressor_get_thresh);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "thresh", (m_uint)compressor_set_thresh);
+	importer_func_ini(importer, "float", "thresh", compressor_set_thresh);
 		 importer_func_arg(importer, "float", "thresh");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)compressor_get_atk);
+	importer_func_ini(importer, "float", "atk", compressor_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)compressor_set_atk);
+	importer_func_ini(importer, "float", "atk", compressor_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)compressor_get_rel);
+	importer_func_ini(importer, "float", "rel", compressor_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)compressor_set_rel);
+	importer_func_ini(importer, "float", "rel", compressor_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_conv, conv_ctor, conv_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)conv_init);
+	importer_func_ini(importer, "void", "init", conv_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "float", "iPartLen");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_count, count_ctor, count_dtor))
-	importer_func_ini(importer, "float", "count", (m_uint)count_get_count);
+	importer_func_ini(importer, "float", "count", count_get_count);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "count", (m_uint)count_set_count);
+	importer_func_ini(importer, "float", "count", count_set_count);
 		 importer_func_arg(importer, "float", "count");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)count_get_mode);
+	importer_func_ini(importer, "float", "mode", count_get_mode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)count_set_mode);
+	importer_func_ini(importer, "float", "mode", count_set_mode);
 		 importer_func_arg(importer, "float", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_crossfade, crossfade_ctor, crossfade_dtor))
-	importer_func_ini(importer, "float", "pos", (m_uint)crossfade_get_pos);
+	importer_func_ini(importer, "float", "pos", crossfade_get_pos);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pos", (m_uint)crossfade_set_pos);
+	importer_func_ini(importer, "float", "pos", crossfade_set_pos);
 		 importer_func_arg(importer, "float", "pos");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -8841,370 +8841,370 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_delay, delay_ctor, delay_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)delay_init);
+	importer_func_ini(importer, "void", "init", delay_init);
 		 importer_func_arg(importer, "float", "time");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback", (m_uint)delay_get_feedback);
+	importer_func_ini(importer, "float", "feedback", delay_get_feedback);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback", (m_uint)delay_set_feedback);
+	importer_func_ini(importer, "float", "feedback", delay_set_feedback);
 		 importer_func_arg(importer, "float", "feedback");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_diode, diode_ctor, diode_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)diode_get_freq);
+	importer_func_ini(importer, "float", "freq", diode_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)diode_set_freq);
+	importer_func_ini(importer, "float", "freq", diode_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)diode_get_res);
+	importer_func_ini(importer, "float", "res", diode_get_res);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)diode_set_res);
+	importer_func_ini(importer, "float", "res", diode_set_res);
 		 importer_func_arg(importer, "float", "res");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_diskin, diskin_ctor, diskin_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)diskin_init);
+	importer_func_ini(importer, "void", "init", diskin_init);
 		 importer_func_arg(importer, "string", "filename");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_dist, dist_ctor, dist_dtor))
-	importer_func_ini(importer, "float", "pregain", (m_uint)dist_get_pregain);
+	importer_func_ini(importer, "float", "pregain", dist_get_pregain);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pregain", (m_uint)dist_set_pregain);
+	importer_func_ini(importer, "float", "pregain", dist_set_pregain);
 		 importer_func_arg(importer, "float", "pregain");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "postgain", (m_uint)dist_get_postgain);
+	importer_func_ini(importer, "float", "postgain", dist_get_postgain);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "postgain", (m_uint)dist_set_postgain);
+	importer_func_ini(importer, "float", "postgain", dist_set_postgain);
 		 importer_func_arg(importer, "float", "postgain");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shape1", (m_uint)dist_get_shape1);
+	importer_func_ini(importer, "float", "shape1", dist_get_shape1);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shape1", (m_uint)dist_set_shape1);
+	importer_func_ini(importer, "float", "shape1", dist_set_shape1);
 		 importer_func_arg(importer, "float", "shape1");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shape2", (m_uint)dist_get_shape2);
+	importer_func_ini(importer, "float", "shape2", dist_get_shape2);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shape2", (m_uint)dist_set_shape2);
+	importer_func_ini(importer, "float", "shape2", dist_set_shape2);
 		 importer_func_arg(importer, "float", "shape2");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_dmetro, dmetro_ctor, dmetro_dtor))
-	importer_func_ini(importer, "float", "time", (m_uint)dmetro_get_time);
+	importer_func_ini(importer, "float", "time", dmetro_get_time);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "time", (m_uint)dmetro_set_time);
+	importer_func_ini(importer, "float", "time", dmetro_set_time);
 		 importer_func_arg(importer, "float", "time");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_drip, drip_ctor, drip_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)drip_init);
+	importer_func_ini(importer, "void", "init", drip_init);
 		 importer_func_arg(importer, "float", "dettack");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "num_tubes", (m_uint)drip_get_num_tubes);
+	importer_func_ini(importer, "float", "num_tubes", drip_get_num_tubes);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "num_tubes", (m_uint)drip_set_num_tubes);
+	importer_func_ini(importer, "float", "num_tubes", drip_set_num_tubes);
 		 importer_func_arg(importer, "float", "num_tubes");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)drip_get_amp);
+	importer_func_ini(importer, "float", "amp", drip_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)drip_set_amp);
+	importer_func_ini(importer, "float", "amp", drip_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "damp", (m_uint)drip_get_damp);
+	importer_func_ini(importer, "float", "damp", drip_get_damp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "damp", (m_uint)drip_set_damp);
+	importer_func_ini(importer, "float", "damp", drip_set_damp);
 		 importer_func_arg(importer, "float", "damp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shake_max", (m_uint)drip_get_shake_max);
+	importer_func_ini(importer, "float", "shake_max", drip_get_shake_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shake_max", (m_uint)drip_set_shake_max);
+	importer_func_ini(importer, "float", "shake_max", drip_set_shake_max);
 		 importer_func_arg(importer, "float", "shake_max");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)drip_get_freq);
+	importer_func_ini(importer, "float", "freq", drip_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)drip_set_freq);
+	importer_func_ini(importer, "float", "freq", drip_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq1", (m_uint)drip_get_freq1);
+	importer_func_ini(importer, "float", "freq1", drip_get_freq1);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq1", (m_uint)drip_set_freq1);
+	importer_func_ini(importer, "float", "freq1", drip_set_freq1);
 		 importer_func_arg(importer, "float", "freq1");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq2", (m_uint)drip_get_freq2);
+	importer_func_ini(importer, "float", "freq2", drip_get_freq2);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq2", (m_uint)drip_set_freq2);
+	importer_func_ini(importer, "float", "freq2", drip_set_freq2);
 		 importer_func_arg(importer, "float", "freq2");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_dtrig, dtrig_ctor, dtrig_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)dtrig_init);
+	importer_func_ini(importer, "void", "init", dtrig_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "loop", (m_uint)dtrig_get_loop);
+	importer_func_ini(importer, "int", "loop", dtrig_get_loop);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "loop", (m_uint)dtrig_set_loop);
+	importer_func_ini(importer, "int", "loop", dtrig_set_loop);
 		 importer_func_arg(importer, "int", "loop");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "delay", (m_uint)dtrig_get_delay);
+	importer_func_ini(importer, "float", "delay", dtrig_get_delay);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "delay", (m_uint)dtrig_set_delay);
+	importer_func_ini(importer, "float", "delay", dtrig_set_delay);
 		 importer_func_arg(importer, "float", "delay");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "scale", (m_uint)dtrig_get_scale);
+	importer_func_ini(importer, "float", "scale", dtrig_get_scale);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "scale", (m_uint)dtrig_set_scale);
+	importer_func_ini(importer, "float", "scale", dtrig_set_scale);
 		 importer_func_arg(importer, "float", "scale");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_dust, dust_ctor, dust_dtor))
-	importer_func_ini(importer, "float", "amp", (m_uint)dust_get_amp);
+	importer_func_ini(importer, "float", "amp", dust_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)dust_set_amp);
+	importer_func_ini(importer, "float", "amp", dust_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "density", (m_uint)dust_get_density);
+	importer_func_ini(importer, "float", "density", dust_get_density);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "density", (m_uint)dust_set_density);
+	importer_func_ini(importer, "float", "density", dust_set_density);
 		 importer_func_arg(importer, "float", "density");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "bipolar", (m_uint)dust_get_bipolar);
+	importer_func_ini(importer, "int", "bipolar", dust_get_bipolar);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "bipolar", (m_uint)dust_set_bipolar);
+	importer_func_ini(importer, "int", "bipolar", dust_set_bipolar);
 		 importer_func_arg(importer, "int", "bipolar");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_eqfil, eqfil_ctor, eqfil_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)eqfil_get_freq);
+	importer_func_ini(importer, "float", "freq", eqfil_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)eqfil_set_freq);
+	importer_func_ini(importer, "float", "freq", eqfil_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)eqfil_get_bw);
+	importer_func_ini(importer, "float", "bw", eqfil_get_bw);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)eqfil_set_bw);
+	importer_func_ini(importer, "float", "bw", eqfil_set_bw);
 		 importer_func_arg(importer, "float", "bw");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "gain", (m_uint)eqfil_get_gain);
+	importer_func_ini(importer, "float", "gain", eqfil_get_gain);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "gain", (m_uint)eqfil_set_gain);
+	importer_func_ini(importer, "float", "gain", eqfil_set_gain);
 		 importer_func_arg(importer, "float", "gain");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_expon, expon_ctor, expon_dtor))
-	importer_func_ini(importer, "float", "a", (m_uint)expon_get_a);
+	importer_func_ini(importer, "float", "a", expon_get_a);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a", (m_uint)expon_set_a);
+	importer_func_ini(importer, "float", "a", expon_set_a);
 		 importer_func_arg(importer, "float", "a");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)expon_get_dur);
+	importer_func_ini(importer, "float", "dur", expon_get_dur);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)expon_set_dur);
+	importer_func_ini(importer, "float", "dur", expon_set_dur);
 		 importer_func_arg(importer, "float", "dur");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b", (m_uint)expon_get_b);
+	importer_func_ini(importer, "float", "b", expon_get_b);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b", (m_uint)expon_set_b);
+	importer_func_ini(importer, "float", "b", expon_set_b);
 		 importer_func_arg(importer, "float", "b");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_fof, fof_ctor, fof_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)fof_init);
+	importer_func_ini(importer, "void", "init", fof_init);
 		 importer_func_arg(importer, "ftbl", "sine");
 		 importer_func_arg(importer, "ftbl", "win");
 		 importer_func_arg(importer, "int", "iolaps");
 		 importer_func_arg(importer, "float", "iphs");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fof_get_amp);
+	importer_func_ini(importer, "float", "amp", fof_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fof_set_amp);
+	importer_func_ini(importer, "float", "amp", fof_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fund", (m_uint)fof_get_fund);
+	importer_func_ini(importer, "float", "fund", fof_get_fund);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fund", (m_uint)fof_set_fund);
+	importer_func_ini(importer, "float", "fund", fof_set_fund);
 		 importer_func_arg(importer, "float", "fund");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "form", (m_uint)fof_get_form);
+	importer_func_ini(importer, "float", "form", fof_get_form);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "form", (m_uint)fof_set_form);
+	importer_func_ini(importer, "float", "form", fof_set_form);
 		 importer_func_arg(importer, "float", "form");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "oct", (m_uint)fof_get_oct);
+	importer_func_ini(importer, "float", "oct", fof_get_oct);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "oct", (m_uint)fof_set_oct);
+	importer_func_ini(importer, "float", "oct", fof_set_oct);
 		 importer_func_arg(importer, "float", "oct");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "band", (m_uint)fof_get_band);
+	importer_func_ini(importer, "float", "band", fof_get_band);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "band", (m_uint)fof_set_band);
+	importer_func_ini(importer, "float", "band", fof_set_band);
 		 importer_func_arg(importer, "float", "band");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ris", (m_uint)fof_get_ris);
+	importer_func_ini(importer, "float", "ris", fof_get_ris);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ris", (m_uint)fof_set_ris);
+	importer_func_ini(importer, "float", "ris", fof_set_ris);
 		 importer_func_arg(importer, "float", "ris");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fof_get_dec);
+	importer_func_ini(importer, "float", "dec", fof_get_dec);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fof_set_dec);
+	importer_func_ini(importer, "float", "dec", fof_set_dec);
 		 importer_func_arg(importer, "float", "dec");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)fof_get_dur);
+	importer_func_ini(importer, "float", "dur", fof_get_dur);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)fof_set_dur);
+	importer_func_ini(importer, "float", "dur", fof_set_dur);
 		 importer_func_arg(importer, "float", "dur");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_fofilt, fofilt_ctor, fofilt_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)fofilt_get_freq);
+	importer_func_ini(importer, "float", "freq", fofilt_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)fofilt_set_freq);
+	importer_func_ini(importer, "float", "freq", fofilt_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)fofilt_get_atk);
+	importer_func_ini(importer, "float", "atk", fofilt_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)fofilt_set_atk);
+	importer_func_ini(importer, "float", "atk", fofilt_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fofilt_get_dec);
+	importer_func_ini(importer, "float", "dec", fofilt_get_dec);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fofilt_set_dec);
+	importer_func_ini(importer, "float", "dec", fofilt_set_dec);
 		 importer_func_arg(importer, "float", "dec");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_fog, fog_ctor, fog_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)fog_init);
+	importer_func_ini(importer, "void", "init", fog_init);
 		 importer_func_arg(importer, "ftbl", "wav");
 		 importer_func_arg(importer, "ftbl", "win");
 		 importer_func_arg(importer, "int", "iolaps");
 		 importer_func_arg(importer, "float", "iphs");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fog_get_amp);
+	importer_func_ini(importer, "float", "amp", fog_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fog_set_amp);
+	importer_func_ini(importer, "float", "amp", fog_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dens", (m_uint)fog_get_dens);
+	importer_func_ini(importer, "float", "dens", fog_get_dens);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dens", (m_uint)fog_set_dens);
+	importer_func_ini(importer, "float", "dens", fog_set_dens);
 		 importer_func_arg(importer, "float", "dens");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "trans", (m_uint)fog_get_trans);
+	importer_func_ini(importer, "float", "trans", fog_get_trans);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "trans", (m_uint)fog_set_trans);
+	importer_func_ini(importer, "float", "trans", fog_set_trans);
 		 importer_func_arg(importer, "float", "trans");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "spd", (m_uint)fog_get_spd);
+	importer_func_ini(importer, "float", "spd", fog_get_spd);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "spd", (m_uint)fog_set_spd);
+	importer_func_ini(importer, "float", "spd", fog_set_spd);
 		 importer_func_arg(importer, "float", "spd");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "oct", (m_uint)fog_get_oct);
+	importer_func_ini(importer, "float", "oct", fog_get_oct);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "oct", (m_uint)fog_set_oct);
+	importer_func_ini(importer, "float", "oct", fog_set_oct);
 		 importer_func_arg(importer, "float", "oct");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "band", (m_uint)fog_get_band);
+	importer_func_ini(importer, "float", "band", fog_get_band);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "band", (m_uint)fog_set_band);
+	importer_func_ini(importer, "float", "band", fog_set_band);
 		 importer_func_arg(importer, "float", "band");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ris", (m_uint)fog_get_ris);
+	importer_func_ini(importer, "float", "ris", fog_get_ris);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ris", (m_uint)fog_set_ris);
+	importer_func_ini(importer, "float", "ris", fog_set_ris);
 		 importer_func_arg(importer, "float", "ris");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fog_get_dec);
+	importer_func_ini(importer, "float", "dec", fog_get_dec);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)fog_set_dec);
+	importer_func_ini(importer, "float", "dec", fog_set_dec);
 		 importer_func_arg(importer, "float", "dec");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)fog_get_dur);
+	importer_func_ini(importer, "float", "dur", fog_get_dur);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)fog_set_dur);
+	importer_func_ini(importer, "float", "dur", fog_set_dur);
 		 importer_func_arg(importer, "float", "dur");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_fold, fold_ctor, fold_dtor))
-	importer_func_ini(importer, "float", "incr", (m_uint)fold_get_incr);
+	importer_func_ini(importer, "float", "incr", fold_get_incr);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "incr", (m_uint)fold_set_incr);
+	importer_func_ini(importer, "float", "incr", fold_set_incr);
 		 importer_func_arg(importer, "float", "incr");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_fosc, fosc_ctor, fosc_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)fosc_init);
+	importer_func_ini(importer, "void", "init", fosc_init);
 		 importer_func_arg(importer, "ftbl", "tbl");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)fosc_get_freq);
+	importer_func_ini(importer, "float", "freq", fosc_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)fosc_set_freq);
+	importer_func_ini(importer, "float", "freq", fosc_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fosc_get_amp);
+	importer_func_ini(importer, "float", "amp", fosc_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)fosc_set_amp);
+	importer_func_ini(importer, "float", "amp", fosc_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "car", (m_uint)fosc_get_car);
+	importer_func_ini(importer, "float", "car", fosc_get_car);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "car", (m_uint)fosc_set_car);
+	importer_func_ini(importer, "float", "car", fosc_set_car);
 		 importer_func_arg(importer, "float", "car");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mod", (m_uint)fosc_get_mod);
+	importer_func_ini(importer, "float", "mod", fosc_get_mod);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mod", (m_uint)fosc_set_mod);
+	importer_func_ini(importer, "float", "mod", fosc_set_mod);
 		 importer_func_arg(importer, "float", "mod");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "indx", (m_uint)fosc_get_indx);
+	importer_func_ini(importer, "float", "indx", fosc_get_indx);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "indx", (m_uint)fosc_set_indx);
+	importer_func_ini(importer, "float", "indx", fosc_set_indx);
 		 importer_func_arg(importer, "float", "indx");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_gbuzz, gbuzz_ctor, gbuzz_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)gbuzz_init);
+	importer_func_ini(importer, "void", "init", gbuzz_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "float", "iphs");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)gbuzz_get_freq);
+	importer_func_ini(importer, "float", "freq", gbuzz_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)gbuzz_set_freq);
+	importer_func_ini(importer, "float", "freq", gbuzz_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)gbuzz_get_amp);
+	importer_func_ini(importer, "float", "amp", gbuzz_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)gbuzz_set_amp);
+	importer_func_ini(importer, "float", "amp", gbuzz_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "nharm", (m_uint)gbuzz_get_nharm);
+	importer_func_ini(importer, "float", "nharm", gbuzz_get_nharm);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "nharm", (m_uint)gbuzz_set_nharm);
+	importer_func_ini(importer, "float", "nharm", gbuzz_set_nharm);
 		 importer_func_arg(importer, "float", "nharm");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lharm", (m_uint)gbuzz_get_lharm);
+	importer_func_ini(importer, "float", "lharm", gbuzz_get_lharm);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lharm", (m_uint)gbuzz_set_lharm);
+	importer_func_ini(importer, "float", "lharm", gbuzz_set_lharm);
 		 importer_func_arg(importer, "float", "lharm");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mul", (m_uint)gbuzz_get_mul);
+	importer_func_ini(importer, "float", "mul", gbuzz_get_mul);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mul", (m_uint)gbuzz_set_mul);
+	importer_func_ini(importer, "float", "mul", gbuzz_set_mul);
 		 importer_func_arg(importer, "float", "mul");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -9216,22 +9216,22 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_incr, incr_ctor, incr_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)incr_init);
+	importer_func_ini(importer, "void", "init", incr_init);
 		 importer_func_arg(importer, "float", "val");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "step", (m_uint)incr_get_step);
+	importer_func_ini(importer, "float", "step", incr_get_step);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "step", (m_uint)incr_set_step);
+	importer_func_ini(importer, "float", "step", incr_set_step);
 		 importer_func_arg(importer, "float", "step");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)incr_get_min);
+	importer_func_ini(importer, "float", "min", incr_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)incr_set_min);
+	importer_func_ini(importer, "float", "min", incr_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)incr_get_max);
+	importer_func_ini(importer, "float", "max", incr_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)incr_set_max);
+	importer_func_ini(importer, "float", "max", incr_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -9240,246 +9240,246 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_jitter, jitter_ctor, jitter_dtor))
-	importer_func_ini(importer, "float", "amp", (m_uint)jitter_get_amp);
+	importer_func_ini(importer, "float", "amp", jitter_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)jitter_set_amp);
+	importer_func_ini(importer, "float", "amp", jitter_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cpsMin", (m_uint)jitter_get_cpsMin);
+	importer_func_ini(importer, "float", "cpsMin", jitter_get_cpsMin);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cpsMin", (m_uint)jitter_set_cpsMin);
+	importer_func_ini(importer, "float", "cpsMin", jitter_set_cpsMin);
 		 importer_func_arg(importer, "float", "cpsMin");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cpsMax", (m_uint)jitter_get_cpsMax);
+	importer_func_ini(importer, "float", "cpsMax", jitter_get_cpsMax);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cpsMax", (m_uint)jitter_set_cpsMax);
+	importer_func_ini(importer, "float", "cpsMax", jitter_set_cpsMax);
 		 importer_func_arg(importer, "float", "cpsMax");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_line, line_ctor, line_dtor))
-	importer_func_ini(importer, "float", "a", (m_uint)line_get_a);
+	importer_func_ini(importer, "float", "a", line_get_a);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "a", (m_uint)line_set_a);
+	importer_func_ini(importer, "float", "a", line_set_a);
 		 importer_func_arg(importer, "float", "a");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)line_get_dur);
+	importer_func_ini(importer, "float", "dur", line_get_dur);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)line_set_dur);
+	importer_func_ini(importer, "float", "dur", line_set_dur);
 		 importer_func_arg(importer, "float", "dur");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b", (m_uint)line_get_b);
+	importer_func_ini(importer, "float", "b", line_get_b);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "b", (m_uint)line_set_b);
+	importer_func_ini(importer, "float", "b", line_set_b);
 		 importer_func_arg(importer, "float", "b");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_lpc, lpc_ctor, lpc_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)lpc_init);
+	importer_func_ini(importer, "void", "init", lpc_init);
 		 importer_func_arg(importer, "int", "framesize");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_lpf18, lpf18_ctor, lpf18_dtor))
-	importer_func_ini(importer, "float", "cutoff", (m_uint)lpf18_get_cutoff);
+	importer_func_ini(importer, "float", "cutoff", lpf18_get_cutoff);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cutoff", (m_uint)lpf18_set_cutoff);
+	importer_func_ini(importer, "float", "cutoff", lpf18_set_cutoff);
 		 importer_func_arg(importer, "float", "cutoff");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)lpf18_get_res);
+	importer_func_ini(importer, "float", "res", lpf18_get_res);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)lpf18_set_res);
+	importer_func_ini(importer, "float", "res", lpf18_set_res);
 		 importer_func_arg(importer, "float", "res");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dist", (m_uint)lpf18_get_dist);
+	importer_func_ini(importer, "float", "dist", lpf18_get_dist);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dist", (m_uint)lpf18_set_dist);
+	importer_func_ini(importer, "float", "dist", lpf18_set_dist);
 		 importer_func_arg(importer, "float", "dist");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_maygate, maygate_ctor, maygate_dtor))
-	importer_func_ini(importer, "float", "prob", (m_uint)maygate_get_prob);
+	importer_func_ini(importer, "float", "prob", maygate_get_prob);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "prob", (m_uint)maygate_set_prob);
+	importer_func_ini(importer, "float", "prob", maygate_set_prob);
 		 importer_func_arg(importer, "float", "prob");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "mode", (m_uint)maygate_get_mode);
+	importer_func_ini(importer, "int", "mode", maygate_get_mode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "mode", (m_uint)maygate_set_mode);
+	importer_func_ini(importer, "int", "mode", maygate_set_mode);
 		 importer_func_arg(importer, "int", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_metro, metro_ctor, metro_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)metro_get_freq);
+	importer_func_ini(importer, "float", "freq", metro_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)metro_set_freq);
+	importer_func_ini(importer, "float", "freq", metro_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_mincer, mincer_ctor, mincer_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)mincer_init);
+	importer_func_ini(importer, "void", "init", mincer_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "int", "winsize");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "time", (m_uint)mincer_get_time);
+	importer_func_ini(importer, "float", "time", mincer_get_time);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "time", (m_uint)mincer_set_time);
+	importer_func_ini(importer, "float", "time", mincer_set_time);
 		 importer_func_arg(importer, "float", "time");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)mincer_get_amp);
+	importer_func_ini(importer, "float", "amp", mincer_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)mincer_set_amp);
+	importer_func_ini(importer, "float", "amp", mincer_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pitch", (m_uint)mincer_get_pitch);
+	importer_func_ini(importer, "float", "pitch", mincer_get_pitch);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pitch", (m_uint)mincer_set_pitch);
+	importer_func_ini(importer, "float", "pitch", mincer_set_pitch);
 		 importer_func_arg(importer, "float", "pitch");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_mode, mode_ctor, mode_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)mode_get_freq);
+	importer_func_ini(importer, "float", "freq", mode_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)mode_set_freq);
+	importer_func_ini(importer, "float", "freq", mode_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "q", (m_uint)mode_get_q);
+	importer_func_ini(importer, "float", "q", mode_get_q);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "q", (m_uint)mode_set_q);
+	importer_func_ini(importer, "float", "q", mode_set_q);
 		 importer_func_arg(importer, "float", "q");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_moogladder, moogladder_ctor, moogladder_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)moogladder_get_freq);
+	importer_func_ini(importer, "float", "freq", moogladder_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)moogladder_set_freq);
+	importer_func_ini(importer, "float", "freq", moogladder_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)moogladder_get_res);
+	importer_func_ini(importer, "float", "res", moogladder_get_res);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)moogladder_set_res);
+	importer_func_ini(importer, "float", "res", moogladder_set_res);
 		 importer_func_arg(importer, "float", "res");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_noise, noise_ctor, noise_dtor))
-	importer_func_ini(importer, "float", "amp", (m_uint)noise_get_amp);
+	importer_func_ini(importer, "float", "amp", noise_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)noise_set_amp);
+	importer_func_ini(importer, "float", "amp", noise_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_nsmp, nsmp_ctor, nsmp_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)nsmp_init);
+	importer_func_ini(importer, "void", "init", nsmp_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "int", "sr");
 		 importer_func_arg(importer, "string", "init");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "index", (m_uint)nsmp_get_index);
+	importer_func_ini(importer, "int", "index", nsmp_get_index);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "index", (m_uint)nsmp_set_index);
+	importer_func_ini(importer, "int", "index", nsmp_set_index);
 		 importer_func_arg(importer, "int", "index");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_osc, osc_ctor, osc_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)osc_init);
+	importer_func_ini(importer, "void", "init", osc_init);
 		 importer_func_arg(importer, "ftbl", "tbl");
 		 importer_func_arg(importer, "float", "phase");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)osc_get_freq);
+	importer_func_ini(importer, "float", "freq", osc_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)osc_set_freq);
+	importer_func_ini(importer, "float", "freq", osc_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)osc_get_amp);
+	importer_func_ini(importer, "float", "amp", osc_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)osc_set_amp);
+	importer_func_ini(importer, "float", "amp", osc_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_oscmorph, oscmorph_ctor, oscmorph_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)oscmorph_init);
+	importer_func_ini(importer, "void", "init", oscmorph_init);
 		 importer_func_arg(importer, "ftbl[]", "tbl");
 		 importer_func_arg(importer, "int", "nft");
 		 importer_func_arg(importer, "float", "phase");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)oscmorph_get_freq);
+	importer_func_ini(importer, "float", "freq", oscmorph_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)oscmorph_set_freq);
+	importer_func_ini(importer, "float", "freq", oscmorph_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)oscmorph_get_amp);
+	importer_func_ini(importer, "float", "amp", oscmorph_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)oscmorph_set_amp);
+	importer_func_ini(importer, "float", "amp", oscmorph_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wtpos", (m_uint)oscmorph_get_wtpos);
+	importer_func_ini(importer, "float", "wtpos", oscmorph_get_wtpos);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wtpos", (m_uint)oscmorph_set_wtpos);
+	importer_func_ini(importer, "float", "wtpos", oscmorph_set_wtpos);
 		 importer_func_arg(importer, "float", "wtpos");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pan2, pan2_ctor, pan2_dtor))
-	importer_func_ini(importer, "int", "type", (m_uint)pan2_get_type);
+	importer_func_ini(importer, "int", "type", pan2_get_type);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "type", (m_uint)pan2_set_type);
+	importer_func_ini(importer, "int", "type", pan2_set_type);
 		 importer_func_arg(importer, "int", "type");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pan", (m_uint)pan2_get_pan);
+	importer_func_ini(importer, "float", "pan", pan2_get_pan);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pan", (m_uint)pan2_set_pan);
+	importer_func_ini(importer, "float", "pan", pan2_set_pan);
 		 importer_func_arg(importer, "float", "pan");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_panst, panst_ctor, panst_dtor))
-	importer_func_ini(importer, "int", "type", (m_uint)panst_get_type);
+	importer_func_ini(importer, "int", "type", panst_get_type);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "type", (m_uint)panst_set_type);
+	importer_func_ini(importer, "int", "type", panst_set_type);
 		 importer_func_arg(importer, "int", "type");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pan", (m_uint)panst_get_pan);
+	importer_func_ini(importer, "float", "pan", panst_get_pan);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "pan", (m_uint)panst_set_pan);
+	importer_func_ini(importer, "float", "pan", panst_set_pan);
 		 importer_func_arg(importer, "float", "pan");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pareq, pareq_ctor, pareq_dtor))
-	importer_func_ini(importer, "float", "fc", (m_uint)pareq_get_fc);
+	importer_func_ini(importer, "float", "fc", pareq_get_fc);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fc", (m_uint)pareq_set_fc);
+	importer_func_ini(importer, "float", "fc", pareq_set_fc);
 		 importer_func_arg(importer, "float", "fc");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "v", (m_uint)pareq_get_v);
+	importer_func_ini(importer, "float", "v", pareq_get_v);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "v", (m_uint)pareq_set_v);
+	importer_func_ini(importer, "float", "v", pareq_set_v);
 		 importer_func_arg(importer, "float", "v");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "q", (m_uint)pareq_get_q);
+	importer_func_ini(importer, "float", "q", pareq_get_q);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "q", (m_uint)pareq_set_q);
+	importer_func_ini(importer, "float", "q", pareq_set_q);
 		 importer_func_arg(importer, "float", "q");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)pareq_get_mode);
+	importer_func_ini(importer, "float", "mode", pareq_get_mode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)pareq_set_mode);
+	importer_func_ini(importer, "float", "mode", pareq_set_mode);
 		 importer_func_arg(importer, "float", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_paulstretch, paulstretch_ctor, paulstretch_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)paulstretch_init);
+	importer_func_ini(importer, "void", "init", paulstretch_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "float", "windowsize");
 		 importer_func_arg(importer, "float", "stretch");
@@ -9487,316 +9487,316 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pdhalf, pdhalf_ctor, pdhalf_dtor))
-	importer_func_ini(importer, "float", "amount", (m_uint)pdhalf_get_amount);
+	importer_func_ini(importer, "float", "amount", pdhalf_get_amount);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amount", (m_uint)pdhalf_set_amount);
+	importer_func_ini(importer, "float", "amount", pdhalf_set_amount);
 		 importer_func_arg(importer, "float", "amount");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_peaklim, peaklim_ctor, peaklim_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)peaklim_get_atk);
+	importer_func_ini(importer, "float", "atk", peaklim_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)peaklim_set_atk);
+	importer_func_ini(importer, "float", "atk", peaklim_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)peaklim_get_rel);
+	importer_func_ini(importer, "float", "rel", peaklim_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)peaklim_set_rel);
+	importer_func_ini(importer, "float", "rel", peaklim_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "thresh", (m_uint)peaklim_get_thresh);
+	importer_func_ini(importer, "float", "thresh", peaklim_get_thresh);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "thresh", (m_uint)peaklim_set_thresh);
+	importer_func_ini(importer, "float", "thresh", peaklim_set_thresh);
 		 importer_func_arg(importer, "float", "thresh");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_phaser, phaser_ctor, phaser_dtor))
-	importer_func_ini(importer, "float", "MaxNotch1Freq", (m_uint)phaser_get_MaxNotch1Freq);
+	importer_func_ini(importer, "float", "MaxNotch1Freq", phaser_get_MaxNotch1Freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "MaxNotch1Freq", (m_uint)phaser_set_MaxNotch1Freq);
+	importer_func_ini(importer, "float", "MaxNotch1Freq", phaser_set_MaxNotch1Freq);
 		 importer_func_arg(importer, "float", "MaxNotch1Freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "MinNotch1Freq", (m_uint)phaser_get_MinNotch1Freq);
+	importer_func_ini(importer, "float", "MinNotch1Freq", phaser_get_MinNotch1Freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "MinNotch1Freq", (m_uint)phaser_set_MinNotch1Freq);
+	importer_func_ini(importer, "float", "MinNotch1Freq", phaser_set_MinNotch1Freq);
 		 importer_func_arg(importer, "float", "MinNotch1Freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "Notch_width", (m_uint)phaser_get_Notch_width);
+	importer_func_ini(importer, "float", "Notch_width", phaser_get_Notch_width);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "Notch_width", (m_uint)phaser_set_Notch_width);
+	importer_func_ini(importer, "float", "Notch_width", phaser_set_Notch_width);
 		 importer_func_arg(importer, "float", "Notch_width");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "NotchFreq", (m_uint)phaser_get_NotchFreq);
+	importer_func_ini(importer, "float", "NotchFreq", phaser_get_NotchFreq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "NotchFreq", (m_uint)phaser_set_NotchFreq);
+	importer_func_ini(importer, "float", "NotchFreq", phaser_set_NotchFreq);
 		 importer_func_arg(importer, "float", "NotchFreq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "VibratoMode", (m_uint)phaser_get_VibratoMode);
+	importer_func_ini(importer, "float", "VibratoMode", phaser_get_VibratoMode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "VibratoMode", (m_uint)phaser_set_VibratoMode);
+	importer_func_ini(importer, "float", "VibratoMode", phaser_set_VibratoMode);
 		 importer_func_arg(importer, "float", "VibratoMode");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "depth", (m_uint)phaser_get_depth);
+	importer_func_ini(importer, "float", "depth", phaser_get_depth);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "depth", (m_uint)phaser_set_depth);
+	importer_func_ini(importer, "float", "depth", phaser_set_depth);
 		 importer_func_arg(importer, "float", "depth");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback_gain", (m_uint)phaser_get_feedback_gain);
+	importer_func_ini(importer, "float", "feedback_gain", phaser_get_feedback_gain);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback_gain", (m_uint)phaser_set_feedback_gain);
+	importer_func_ini(importer, "float", "feedback_gain", phaser_set_feedback_gain);
 		 importer_func_arg(importer, "float", "feedback_gain");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "invert", (m_uint)phaser_get_invert);
+	importer_func_ini(importer, "float", "invert", phaser_get_invert);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "invert", (m_uint)phaser_set_invert);
+	importer_func_ini(importer, "float", "invert", phaser_set_invert);
 		 importer_func_arg(importer, "float", "invert");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "level", (m_uint)phaser_get_level);
+	importer_func_ini(importer, "float", "level", phaser_get_level);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "level", (m_uint)phaser_set_level);
+	importer_func_ini(importer, "float", "level", phaser_set_level);
 		 importer_func_arg(importer, "float", "level");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lfobpm", (m_uint)phaser_get_lfobpm);
+	importer_func_ini(importer, "float", "lfobpm", phaser_get_lfobpm);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lfobpm", (m_uint)phaser_set_lfobpm);
+	importer_func_ini(importer, "float", "lfobpm", phaser_set_lfobpm);
 		 importer_func_arg(importer, "float", "lfobpm");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_phasor, phasor_ctor, phasor_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)phasor_init);
+	importer_func_ini(importer, "void", "init", phasor_init);
 		 importer_func_arg(importer, "float", "iphs");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)phasor_get_freq);
+	importer_func_ini(importer, "float", "freq", phasor_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)phasor_set_freq);
+	importer_func_ini(importer, "float", "freq", phasor_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pinknoise, pinknoise_ctor, pinknoise_dtor))
-	importer_func_ini(importer, "float", "amp", (m_uint)pinknoise_get_amp);
+	importer_func_ini(importer, "float", "amp", pinknoise_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)pinknoise_set_amp);
+	importer_func_ini(importer, "float", "amp", pinknoise_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pitchamdf, pitchamdf_ctor, pitchamdf_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)pitchamdf_init);
+	importer_func_ini(importer, "void", "init", pitchamdf_init);
 		 importer_func_arg(importer, "float", "min");
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pluck, pluck_ctor, pluck_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)pluck_init);
+	importer_func_ini(importer, "void", "init", pluck_init);
 		 importer_func_arg(importer, "float", "ifreq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)pluck_get_freq);
+	importer_func_ini(importer, "float", "freq", pluck_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)pluck_set_freq);
+	importer_func_ini(importer, "float", "freq", pluck_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)pluck_get_amp);
+	importer_func_ini(importer, "float", "amp", pluck_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)pluck_set_amp);
+	importer_func_ini(importer, "float", "amp", pluck_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_port, port_ctor, port_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)port_init);
+	importer_func_ini(importer, "void", "init", port_init);
 		 importer_func_arg(importer, "float", "htime");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_posc3, posc3_ctor, posc3_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)posc3_init);
+	importer_func_ini(importer, "void", "init", posc3_init);
 		 importer_func_arg(importer, "ftbl", "tbl");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)posc3_get_freq);
+	importer_func_ini(importer, "float", "freq", posc3_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)posc3_set_freq);
+	importer_func_ini(importer, "float", "freq", posc3_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)posc3_get_amp);
+	importer_func_ini(importer, "float", "amp", posc3_get_amp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "amp", (m_uint)posc3_set_amp);
+	importer_func_ini(importer, "float", "amp", posc3_set_amp);
 		 importer_func_arg(importer, "float", "amp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_progress, progress_ctor, progress_dtor))
-	importer_func_ini(importer, "int", "nbars", (m_uint)progress_get_nbars);
+	importer_func_ini(importer, "int", "nbars", progress_get_nbars);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "nbars", (m_uint)progress_set_nbars);
+	importer_func_ini(importer, "int", "nbars", progress_set_nbars);
 		 importer_func_arg(importer, "int", "nbars");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "skip", (m_uint)progress_get_skip);
+	importer_func_ini(importer, "int", "skip", progress_get_skip);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "skip", (m_uint)progress_set_skip);
+	importer_func_ini(importer, "int", "skip", progress_set_skip);
 		 importer_func_arg(importer, "int", "skip");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_prop, prop_ctor, prop_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)prop_init);
+	importer_func_ini(importer, "void", "init", prop_init);
 		 importer_func_arg(importer, "string", "str");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bpm", (m_uint)prop_get_bpm);
+	importer_func_ini(importer, "float", "bpm", prop_get_bpm);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bpm", (m_uint)prop_set_bpm);
+	importer_func_ini(importer, "float", "bpm", prop_set_bpm);
 		 importer_func_arg(importer, "float", "bpm");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_pshift, pshift_ctor, pshift_dtor))
-	importer_func_ini(importer, "float", "shift", (m_uint)pshift_get_shift);
+	importer_func_ini(importer, "float", "shift", pshift_get_shift);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "shift", (m_uint)pshift_set_shift);
+	importer_func_ini(importer, "float", "shift", pshift_set_shift);
 		 importer_func_arg(importer, "float", "shift");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "window", (m_uint)pshift_get_window);
+	importer_func_ini(importer, "float", "window", pshift_get_window);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "window", (m_uint)pshift_set_window);
+	importer_func_ini(importer, "float", "window", pshift_set_window);
 		 importer_func_arg(importer, "float", "window");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "xfade", (m_uint)pshift_get_xfade);
+	importer_func_ini(importer, "float", "xfade", pshift_get_xfade);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "xfade", (m_uint)pshift_set_xfade);
+	importer_func_ini(importer, "float", "xfade", pshift_set_xfade);
 		 importer_func_arg(importer, "float", "xfade");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_ptrack, ptrack_ctor, ptrack_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)ptrack_init);
+	importer_func_ini(importer, "void", "init", ptrack_init);
 		 importer_func_arg(importer, "int", "ihopsize");
 		 importer_func_arg(importer, "int", "ipeaks");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_randh, randh_ctor, randh_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)randh_get_min);
+	importer_func_ini(importer, "float", "min", randh_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)randh_set_min);
+	importer_func_ini(importer, "float", "min", randh_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)randh_get_max);
+	importer_func_ini(importer, "float", "max", randh_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)randh_set_max);
+	importer_func_ini(importer, "float", "max", randh_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)randh_get_freq);
+	importer_func_ini(importer, "float", "freq", randh_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)randh_set_freq);
+	importer_func_ini(importer, "float", "freq", randh_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_randi, randi_ctor, randi_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)randi_get_min);
+	importer_func_ini(importer, "float", "min", randi_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)randi_set_min);
+	importer_func_ini(importer, "float", "min", randi_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)randi_get_max);
+	importer_func_ini(importer, "float", "max", randi_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)randi_set_max);
+	importer_func_ini(importer, "float", "max", randi_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps", (m_uint)randi_get_cps);
+	importer_func_ini(importer, "float", "cps", randi_get_cps);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps", (m_uint)randi_set_cps);
+	importer_func_ini(importer, "float", "cps", randi_set_cps);
 		 importer_func_arg(importer, "float", "cps");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)randi_get_mode);
+	importer_func_ini(importer, "float", "mode", randi_get_mode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mode", (m_uint)randi_set_mode);
+	importer_func_ini(importer, "float", "mode", randi_set_mode);
 		 importer_func_arg(importer, "float", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_random, random_ctor, random_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)random_get_min);
+	importer_func_ini(importer, "float", "min", random_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)random_set_min);
+	importer_func_ini(importer, "float", "min", random_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)random_get_max);
+	importer_func_ini(importer, "float", "max", random_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)random_set_max);
+	importer_func_ini(importer, "float", "max", random_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_reson, reson_ctor, reson_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)reson_get_freq);
+	importer_func_ini(importer, "float", "freq", reson_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)reson_set_freq);
+	importer_func_ini(importer, "float", "freq", reson_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)reson_get_bw);
+	importer_func_ini(importer, "float", "bw", reson_get_bw);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bw", (m_uint)reson_set_bw);
+	importer_func_ini(importer, "float", "bw", reson_set_bw);
 		 importer_func_arg(importer, "float", "bw");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_reverse, reverse_ctor, reverse_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)reverse_init);
+	importer_func_ini(importer, "void", "init", reverse_init);
 		 importer_func_arg(importer, "float", "delay");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_revsc, revsc_ctor, revsc_dtor))
-	importer_func_ini(importer, "float", "feedback", (m_uint)revsc_get_feedback);
+	importer_func_ini(importer, "float", "feedback", revsc_get_feedback);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback", (m_uint)revsc_set_feedback);
+	importer_func_ini(importer, "float", "feedback", revsc_set_feedback);
 		 importer_func_arg(importer, "float", "feedback");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lpfreq", (m_uint)revsc_get_lpfreq);
+	importer_func_ini(importer, "float", "lpfreq", revsc_get_lpfreq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lpfreq", (m_uint)revsc_set_lpfreq);
+	importer_func_ini(importer, "float", "lpfreq", revsc_set_lpfreq);
 		 importer_func_arg(importer, "float", "lpfreq");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_rms, rms_ctor, rms_dtor))
-	importer_func_ini(importer, "float", "ihp", (m_uint)rms_get_ihp);
+	importer_func_ini(importer, "float", "ihp", rms_get_ihp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "ihp", (m_uint)rms_set_ihp);
+	importer_func_ini(importer, "float", "ihp", rms_set_ihp);
 		 importer_func_arg(importer, "float", "ihp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_rpt, rpt_ctor, rpt_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)rpt_init);
+	importer_func_ini(importer, "void", "init", rpt_init);
 		 importer_func_arg(importer, "float", "maxdur");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_rspline, rspline_ctor, rspline_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)rspline_get_min);
+	importer_func_ini(importer, "float", "min", rspline_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)rspline_set_min);
+	importer_func_ini(importer, "float", "min", rspline_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)rspline_get_max);
+	importer_func_ini(importer, "float", "max", rspline_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)rspline_set_max);
+	importer_func_ini(importer, "float", "max", rspline_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_min", (m_uint)rspline_get_cps_min);
+	importer_func_ini(importer, "float", "cps_min", rspline_get_cps_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_min", (m_uint)rspline_set_cps_min);
+	importer_func_ini(importer, "float", "cps_min", rspline_set_cps_min);
 		 importer_func_arg(importer, "float", "cps_min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_max", (m_uint)rspline_get_cps_max);
+	importer_func_ini(importer, "float", "cps_max", rspline_get_cps_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cps_max", (m_uint)rspline_set_cps_max);
+	importer_func_ini(importer, "float", "cps_max", rspline_set_cps_max);
 		 importer_func_arg(importer, "float", "cps_max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -9805,87 +9805,87 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_saturator, saturator_ctor, saturator_dtor))
-	importer_func_ini(importer, "float", "drive", (m_uint)saturator_get_drive);
+	importer_func_ini(importer, "float", "drive", saturator_get_drive);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "drive", (m_uint)saturator_set_drive);
+	importer_func_ini(importer, "float", "drive", saturator_set_drive);
 		 importer_func_arg(importer, "float", "drive");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dcoffset", (m_uint)saturator_get_dcoffset);
+	importer_func_ini(importer, "float", "dcoffset", saturator_get_dcoffset);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dcoffset", (m_uint)saturator_set_dcoffset);
+	importer_func_ini(importer, "float", "dcoffset", saturator_set_dcoffset);
 		 importer_func_arg(importer, "float", "dcoffset");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_scale, scale_ctor, scale_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)scale_get_min);
+	importer_func_ini(importer, "float", "min", scale_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)scale_set_min);
+	importer_func_ini(importer, "float", "min", scale_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)scale_get_max);
+	importer_func_ini(importer, "float", "max", scale_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)scale_set_max);
+	importer_func_ini(importer, "float", "max", scale_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_sdelay, sdelay_ctor, sdelay_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)sdelay_init);
+	importer_func_ini(importer, "void", "init", sdelay_init);
 		 importer_func_arg(importer, "float", "size");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_slice, slice_ctor, slice_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)slice_init);
+	importer_func_ini(importer, "void", "init", slice_init);
 		 importer_func_arg(importer, "ftbl", "vals");
 		 importer_func_arg(importer, "ftbl", "buf");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "id", (m_uint)slice_get_id);
+	importer_func_ini(importer, "float", "id", slice_get_id);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "id", (m_uint)slice_set_id);
+	importer_func_ini(importer, "float", "id", slice_set_id);
 		 importer_func_arg(importer, "float", "id");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_smoothdelay, smoothdelay_ctor, smoothdelay_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)smoothdelay_init);
+	importer_func_ini(importer, "void", "init", smoothdelay_init);
 		 importer_func_arg(importer, "float", "maxdel");
 		 importer_func_arg(importer, "int", "interp");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback", (m_uint)smoothdelay_get_feedback);
+	importer_func_ini(importer, "float", "feedback", smoothdelay_get_feedback);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "feedback", (m_uint)smoothdelay_set_feedback);
+	importer_func_ini(importer, "float", "feedback", smoothdelay_set_feedback);
 		 importer_func_arg(importer, "float", "feedback");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "del", (m_uint)smoothdelay_get_del);
+	importer_func_ini(importer, "float", "del", smoothdelay_get_del);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "del", (m_uint)smoothdelay_set_del);
+	importer_func_ini(importer, "float", "del", smoothdelay_set_del);
 		 importer_func_arg(importer, "float", "del");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_spa, spa_ctor, spa_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)spa_init);
+	importer_func_ini(importer, "void", "init", spa_init);
 		 importer_func_arg(importer, "string", "filename");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_sparec, sparec_ctor, sparec_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)sparec_init);
+	importer_func_ini(importer, "void", "init", sparec_init);
 		 importer_func_arg(importer, "string", "filename");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_streson, streson_ctor, streson_dtor))
-	importer_func_ini(importer, "float", "freq", (m_uint)streson_get_freq);
+	importer_func_ini(importer, "float", "freq", streson_get_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "freq", (m_uint)streson_set_freq);
+	importer_func_ini(importer, "float", "freq", streson_set_freq);
 		 importer_func_arg(importer, "float", "freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fdbgain", (m_uint)streson_get_fdbgain);
+	importer_func_ini(importer, "float", "fdbgain", streson_get_fdbgain);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fdbgain", (m_uint)streson_set_fdbgain);
+	importer_func_ini(importer, "float", "fdbgain", streson_set_fdbgain);
 		 importer_func_arg(importer, "float", "fdbgain");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -9894,166 +9894,166 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tabread, tabread_ctor, tabread_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)tabread_init);
+	importer_func_ini(importer, "void", "init", tabread_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 		 importer_func_arg(importer, "float", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "index", (m_uint)tabread_get_index);
+	importer_func_ini(importer, "float", "index", tabread_get_index);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "index", (m_uint)tabread_set_index);
+	importer_func_ini(importer, "float", "index", tabread_set_index);
 		 importer_func_arg(importer, "float", "index");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "offset", (m_uint)tabread_get_offset);
+	importer_func_ini(importer, "float", "offset", tabread_get_offset);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "offset", (m_uint)tabread_set_offset);
+	importer_func_ini(importer, "float", "offset", tabread_set_offset);
 		 importer_func_arg(importer, "float", "offset");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wrap", (m_uint)tabread_get_wrap);
+	importer_func_ini(importer, "float", "wrap", tabread_get_wrap);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "wrap", (m_uint)tabread_set_wrap);
+	importer_func_ini(importer, "float", "wrap", tabread_set_wrap);
 		 importer_func_arg(importer, "float", "wrap");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tadsr, tadsr_ctor, tadsr_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)tadsr_get_atk);
+	importer_func_ini(importer, "float", "atk", tadsr_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)tadsr_set_atk);
+	importer_func_ini(importer, "float", "atk", tadsr_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)tadsr_get_dec);
+	importer_func_ini(importer, "float", "dec", tadsr_get_dec);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dec", (m_uint)tadsr_set_dec);
+	importer_func_ini(importer, "float", "dec", tadsr_set_dec);
 		 importer_func_arg(importer, "float", "dec");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "sus", (m_uint)tadsr_get_sus);
+	importer_func_ini(importer, "float", "sus", tadsr_get_sus);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "sus", (m_uint)tadsr_set_sus);
+	importer_func_ini(importer, "float", "sus", tadsr_set_sus);
 		 importer_func_arg(importer, "float", "sus");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tadsr_get_rel);
+	importer_func_ini(importer, "float", "rel", tadsr_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tadsr_set_rel);
+	importer_func_ini(importer, "float", "rel", tadsr_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_talkbox, talkbox_ctor, talkbox_dtor))
-	importer_func_ini(importer, "float", "quality", (m_uint)talkbox_get_quality);
+	importer_func_ini(importer, "float", "quality", talkbox_get_quality);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "quality", (m_uint)talkbox_set_quality);
+	importer_func_ini(importer, "float", "quality", talkbox_set_quality);
 		 importer_func_arg(importer, "float", "quality");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tblrec, tblrec_ctor, tblrec_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)tblrec_init);
+	importer_func_ini(importer, "void", "init", tblrec_init);
 		 importer_func_arg(importer, "ftbl", "bar");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tbvcf, tbvcf_ctor, tbvcf_dtor))
-	importer_func_ini(importer, "float", "fco", (m_uint)tbvcf_get_fco);
+	importer_func_ini(importer, "float", "fco", tbvcf_get_fco);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "fco", (m_uint)tbvcf_set_fco);
+	importer_func_ini(importer, "float", "fco", tbvcf_set_fco);
 		 importer_func_arg(importer, "float", "fco");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)tbvcf_get_res);
+	importer_func_ini(importer, "float", "res", tbvcf_get_res);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)tbvcf_set_res);
+	importer_func_ini(importer, "float", "res", tbvcf_set_res);
 		 importer_func_arg(importer, "float", "res");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dist", (m_uint)tbvcf_get_dist);
+	importer_func_ini(importer, "float", "dist", tbvcf_get_dist);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dist", (m_uint)tbvcf_set_dist);
+	importer_func_ini(importer, "float", "dist", tbvcf_set_dist);
 		 importer_func_arg(importer, "float", "dist");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "asym", (m_uint)tbvcf_get_asym);
+	importer_func_ini(importer, "float", "asym", tbvcf_get_asym);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "asym", (m_uint)tbvcf_set_asym);
+	importer_func_ini(importer, "float", "asym", tbvcf_set_asym);
 		 importer_func_arg(importer, "float", "asym");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tdiv, tdiv_ctor, tdiv_dtor))
-	importer_func_ini(importer, "float", "num", (m_uint)tdiv_get_num);
+	importer_func_ini(importer, "float", "num", tdiv_get_num);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "num", (m_uint)tdiv_set_num);
+	importer_func_ini(importer, "float", "num", tdiv_set_num);
 		 importer_func_arg(importer, "float", "num");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "offset", (m_uint)tdiv_get_offset);
+	importer_func_ini(importer, "float", "offset", tdiv_get_offset);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "offset", (m_uint)tdiv_set_offset);
+	importer_func_ini(importer, "float", "offset", tdiv_set_offset);
 		 importer_func_arg(importer, "float", "offset");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tenv, tenv_ctor, tenv_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenv_get_atk);
+	importer_func_ini(importer, "float", "atk", tenv_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenv_set_atk);
+	importer_func_ini(importer, "float", "atk", tenv_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hold", (m_uint)tenv_get_hold);
+	importer_func_ini(importer, "float", "hold", tenv_get_hold);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hold", (m_uint)tenv_set_hold);
+	importer_func_ini(importer, "float", "hold", tenv_set_hold);
 		 importer_func_arg(importer, "float", "hold");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenv_get_rel);
+	importer_func_ini(importer, "float", "rel", tenv_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenv_set_rel);
+	importer_func_ini(importer, "float", "rel", tenv_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tenv2, tenv2_ctor, tenv2_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenv2_get_atk);
+	importer_func_ini(importer, "float", "atk", tenv2_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenv2_set_atk);
+	importer_func_ini(importer, "float", "atk", tenv2_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenv2_get_rel);
+	importer_func_ini(importer, "float", "rel", tenv2_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenv2_set_rel);
+	importer_func_ini(importer, "float", "rel", tenv2_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tenvx, tenvx_ctor, tenvx_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenvx_get_atk);
+	importer_func_ini(importer, "float", "atk", tenvx_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)tenvx_set_atk);
+	importer_func_ini(importer, "float", "atk", tenvx_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hold", (m_uint)tenvx_get_hold);
+	importer_func_ini(importer, "float", "hold", tenvx_get_hold);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hold", (m_uint)tenvx_set_hold);
+	importer_func_ini(importer, "float", "hold", tenvx_set_hold);
 		 importer_func_arg(importer, "float", "hold");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenvx_get_rel);
+	importer_func_ini(importer, "float", "rel", tenvx_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)tenvx_set_rel);
+	importer_func_ini(importer, "float", "rel", tenvx_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tgate, tgate_ctor, tgate_dtor))
-	importer_func_ini(importer, "float", "time", (m_uint)tgate_get_time);
+	importer_func_ini(importer, "float", "time", tgate_get_time);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "time", (m_uint)tgate_set_time);
+	importer_func_ini(importer, "float", "time", tgate_set_time);
 		 importer_func_arg(importer, "float", "time");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_thresh, thresh_ctor, thresh_dtor))
-	importer_func_ini(importer, "float", "thresh", (m_uint)thresh_get_thresh);
+	importer_func_ini(importer, "float", "thresh", thresh_get_thresh);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "thresh", (m_uint)thresh_set_thresh);
+	importer_func_ini(importer, "float", "thresh", thresh_set_thresh);
 		 importer_func_arg(importer, "float", "thresh");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "mode", (m_uint)thresh_get_mode);
+	importer_func_ini(importer, "int", "mode", thresh_get_mode);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "mode", (m_uint)thresh_set_mode);
+	importer_func_ini(importer, "int", "mode", thresh_set_mode);
 		 importer_func_arg(importer, "int", "mode");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -10065,65 +10065,65 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tone, tone_ctor, tone_dtor))
-	importer_func_ini(importer, "float", "hp", (m_uint)tone_get_hp);
+	importer_func_ini(importer, "float", "hp", tone_get_hp);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hp", (m_uint)tone_set_hp);
+	importer_func_ini(importer, "float", "hp", tone_set_hp);
 		 importer_func_arg(importer, "float", "hp");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_trand, trand_ctor, trand_dtor))
-	importer_func_ini(importer, "float", "min", (m_uint)trand_get_min);
+	importer_func_ini(importer, "float", "min", trand_get_min);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "min", (m_uint)trand_set_min);
+	importer_func_ini(importer, "float", "min", trand_set_min);
 		 importer_func_arg(importer, "float", "min");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)trand_get_max);
+	importer_func_ini(importer, "float", "max", trand_get_max);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "max", (m_uint)trand_set_max);
+	importer_func_ini(importer, "float", "max", trand_set_max);
 		 importer_func_arg(importer, "float", "max");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tseg, tseg_ctor, tseg_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)tseg_init);
+	importer_func_ini(importer, "void", "init", tseg_init);
 		 importer_func_arg(importer, "float", "ibeg");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "end", (m_uint)tseg_get_end);
+	importer_func_ini(importer, "float", "end", tseg_get_end);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "end", (m_uint)tseg_set_end);
+	importer_func_ini(importer, "float", "end", tseg_set_end);
 		 importer_func_arg(importer, "float", "end");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)tseg_get_dur);
+	importer_func_ini(importer, "float", "dur", tseg_get_dur);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "dur", (m_uint)tseg_set_dur);
+	importer_func_ini(importer, "float", "dur", tseg_set_dur);
 		 importer_func_arg(importer, "float", "dur");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "type", (m_uint)tseg_get_type);
+	importer_func_ini(importer, "float", "type", tseg_get_type);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "type", (m_uint)tseg_set_type);
+	importer_func_ini(importer, "float", "type", tseg_set_type);
 		 importer_func_arg(importer, "float", "type");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_tseq, tseq_ctor, tseq_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)tseq_init);
+	importer_func_ini(importer, "void", "init", tseq_init);
 		 importer_func_arg(importer, "ftbl", "ft");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "shuf", (m_uint)tseq_get_shuf);
+	importer_func_ini(importer, "int", "shuf", tseq_get_shuf);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "int", "shuf", (m_uint)tseq_set_shuf);
+	importer_func_ini(importer, "int", "shuf", tseq_set_shuf);
 		 importer_func_arg(importer, "int", "shuf");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_vdelay, vdelay_ctor, vdelay_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)vdelay_init);
+	importer_func_ini(importer, "void", "init", vdelay_init);
 		 importer_func_arg(importer, "float", "maxdel");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "del", (m_uint)vdelay_get_del);
+	importer_func_ini(importer, "float", "del", vdelay_get_del);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "del", (m_uint)vdelay_set_del);
+	importer_func_ini(importer, "float", "del", vdelay_set_del);
 		 importer_func_arg(importer, "float", "del");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
@@ -10132,106 +10132,106 @@ m_bool import_soundpipe(Importer importer)
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_vocoder, vocoder_ctor, vocoder_dtor))
-	importer_func_ini(importer, "float", "atk", (m_uint)vocoder_get_atk);
+	importer_func_ini(importer, "float", "atk", vocoder_get_atk);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "atk", (m_uint)vocoder_set_atk);
+	importer_func_ini(importer, "float", "atk", vocoder_set_atk);
 		 importer_func_arg(importer, "float", "atk");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)vocoder_get_rel);
+	importer_func_ini(importer, "float", "rel", vocoder_get_rel);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rel", (m_uint)vocoder_set_rel);
+	importer_func_ini(importer, "float", "rel", vocoder_set_rel);
 		 importer_func_arg(importer, "float", "rel");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bwratio", (m_uint)vocoder_get_bwratio);
+	importer_func_ini(importer, "float", "bwratio", vocoder_get_bwratio);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "bwratio", (m_uint)vocoder_set_bwratio);
+	importer_func_ini(importer, "float", "bwratio", vocoder_set_bwratio);
 		 importer_func_arg(importer, "float", "bwratio");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_waveset, waveset_ctor, waveset_dtor))
-	importer_func_ini(importer, "void", "init", (m_uint)waveset_init);
+	importer_func_ini(importer, "void", "init", waveset_init);
 		 importer_func_arg(importer, "float", "ilen");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rep", (m_uint)waveset_get_rep);
+	importer_func_ini(importer, "float", "rep", waveset_get_rep);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rep", (m_uint)waveset_set_rep);
+	importer_func_ini(importer, "float", "rep", waveset_set_rep);
 		 importer_func_arg(importer, "float", "rep");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_wpkorg35, wpkorg35_ctor, wpkorg35_dtor))
-	importer_func_ini(importer, "float", "cutoff", (m_uint)wpkorg35_get_cutoff);
+	importer_func_ini(importer, "float", "cutoff", wpkorg35_get_cutoff);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "cutoff", (m_uint)wpkorg35_set_cutoff);
+	importer_func_ini(importer, "float", "cutoff", wpkorg35_set_cutoff);
 		 importer_func_arg(importer, "float", "cutoff");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)wpkorg35_get_res);
+	importer_func_ini(importer, "float", "res", wpkorg35_get_res);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "res", (m_uint)wpkorg35_set_res);
+	importer_func_ini(importer, "float", "res", wpkorg35_set_res);
 		 importer_func_arg(importer, "float", "res");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "saturation", (m_uint)wpkorg35_get_saturation);
+	importer_func_ini(importer, "float", "saturation", wpkorg35_get_saturation);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "saturation", (m_uint)wpkorg35_set_saturation);
+	importer_func_ini(importer, "float", "saturation", wpkorg35_set_saturation);
 		 importer_func_arg(importer, "float", "saturation");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))
 
 	CHECK_BB(importer_class_ini(importer, &t_zitarev, zitarev_ctor, zitarev_dtor))
-	importer_func_ini(importer, "float", "in_delay", (m_uint)zitarev_get_in_delay);
+	importer_func_ini(importer, "float", "in_delay", zitarev_get_in_delay);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "in_delay", (m_uint)zitarev_set_in_delay);
+	importer_func_ini(importer, "float", "in_delay", zitarev_set_in_delay);
 		 importer_func_arg(importer, "float", "in_delay");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lf_x", (m_uint)zitarev_get_lf_x);
+	importer_func_ini(importer, "float", "lf_x", zitarev_get_lf_x);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "lf_x", (m_uint)zitarev_set_lf_x);
+	importer_func_ini(importer, "float", "lf_x", zitarev_set_lf_x);
 		 importer_func_arg(importer, "float", "lf_x");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rt60_low", (m_uint)zitarev_get_rt60_low);
+	importer_func_ini(importer, "float", "rt60_low", zitarev_get_rt60_low);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rt60_low", (m_uint)zitarev_set_rt60_low);
+	importer_func_ini(importer, "float", "rt60_low", zitarev_set_rt60_low);
 		 importer_func_arg(importer, "float", "rt60_low");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rt60_mid", (m_uint)zitarev_get_rt60_mid);
+	importer_func_ini(importer, "float", "rt60_mid", zitarev_get_rt60_mid);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "rt60_mid", (m_uint)zitarev_set_rt60_mid);
+	importer_func_ini(importer, "float", "rt60_mid", zitarev_set_rt60_mid);
 		 importer_func_arg(importer, "float", "rt60_mid");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hf_damping", (m_uint)zitarev_get_hf_damping);
+	importer_func_ini(importer, "float", "hf_damping", zitarev_get_hf_damping);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "hf_damping", (m_uint)zitarev_set_hf_damping);
+	importer_func_ini(importer, "float", "hf_damping", zitarev_set_hf_damping);
 		 importer_func_arg(importer, "float", "hf_damping");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq1_freq", (m_uint)zitarev_get_eq1_freq);
+	importer_func_ini(importer, "float", "eq1_freq", zitarev_get_eq1_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq1_freq", (m_uint)zitarev_set_eq1_freq);
+	importer_func_ini(importer, "float", "eq1_freq", zitarev_set_eq1_freq);
 		 importer_func_arg(importer, "float", "eq1_freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq1_level", (m_uint)zitarev_get_eq1_level);
+	importer_func_ini(importer, "float", "eq1_level", zitarev_get_eq1_level);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq1_level", (m_uint)zitarev_set_eq1_level);
+	importer_func_ini(importer, "float", "eq1_level", zitarev_set_eq1_level);
 		 importer_func_arg(importer, "float", "eq1_level");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq2_freq", (m_uint)zitarev_get_eq2_freq);
+	importer_func_ini(importer, "float", "eq2_freq", zitarev_get_eq2_freq);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq2_freq", (m_uint)zitarev_set_eq2_freq);
+	importer_func_ini(importer, "float", "eq2_freq", zitarev_set_eq2_freq);
 		 importer_func_arg(importer, "float", "eq2_freq");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq2_level", (m_uint)zitarev_get_eq2_level);
+	importer_func_ini(importer, "float", "eq2_level", zitarev_get_eq2_level);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "eq2_level", (m_uint)zitarev_set_eq2_level);
+	importer_func_ini(importer, "float", "eq2_level", zitarev_set_eq2_level);
 		 importer_func_arg(importer, "float", "eq2_level");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mix", (m_uint)zitarev_get_mix);
+	importer_func_ini(importer, "float", "mix", zitarev_get_mix);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "mix", (m_uint)zitarev_set_mix);
+	importer_func_ini(importer, "float", "mix", zitarev_set_mix);
 		 importer_func_arg(importer, "float", "mix");
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "level", (m_uint)zitarev_get_level);
+	importer_func_ini(importer, "float", "level", zitarev_get_level);
 	CHECK_BB(importer_func_end(importer, 0))
-	importer_func_ini(importer, "float", "level", (m_uint)zitarev_set_level);
+	importer_func_ini(importer, "float", "level", zitarev_set_level);
 		 importer_func_arg(importer, "float", "level");
 	CHECK_BB(importer_func_end(importer, 0))
 	CHECK_BB(importer_class_end(importer))

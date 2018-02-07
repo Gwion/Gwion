@@ -254,16 +254,16 @@ m_bool import_array(Importer importer) {
   o_object_array = importer_item_end(importer, ae_flag_member, NULL);
   CHECK_BB(o_object_array)
 
-  importer_func_ini(importer, "int", "size", (m_uint)vm_vector_size);
+  importer_func_ini(importer, "int", "size", vm_vector_size);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "depth", (m_uint)vm_vector_depth);
+  importer_func_ini(importer, "int", "depth", vm_vector_depth);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "cap", (m_uint)vm_vector_cap);
+  importer_func_ini(importer, "int", "cap", vm_vector_cap);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "remove", (m_uint)vm_vector_rem);
+  importer_func_ini(importer, "int", "remove", vm_vector_rem);
   importer_func_arg(importer, "int", "index");
   CHECK_BB(importer_func_end(importer, 0))
 

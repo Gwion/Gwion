@@ -757,103 +757,103 @@ m_bool import_string(Importer importer) {
   o_string_data = importer_item_end(importer,   ae_flag_const, NULL);
   CHECK_BB(o_string_data)
 
-  importer_func_ini(importer, "int", "size", (m_uint)string_len);
+  importer_func_ini(importer, "int", "size", string_len);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "upper", (m_uint)string_upper);
+  importer_func_ini(importer, "string", "upper", string_upper);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "lower", (m_uint)string_lower);
+  importer_func_ini(importer, "string", "lower", string_lower);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "ltrim", (m_uint)string_ltrim);
+  importer_func_ini(importer, "string", "ltrim", string_ltrim);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "rtrim", (m_uint)string_rtrim);
+  importer_func_ini(importer, "string", "rtrim", string_rtrim);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "trim", (m_uint)string_trim);
+  importer_func_ini(importer, "string", "trim", string_trim);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "charAt", (m_uint)string_charAt);
+  importer_func_ini(importer, "int", "charAt", string_charAt);
   importer_func_arg(importer, "int", "pos");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "charAt", (m_uint)string_setCharAt);
+  importer_func_ini(importer, "int", "charAt", string_setCharAt);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "int", "char");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "substring", (m_uint)string_substring);
+  importer_func_ini(importer, "string", "substring", string_substring);
   importer_func_arg(importer, "int", "start");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "substring", (m_uint)string_substringN);
+  importer_func_ini(importer, "string", "substring", string_substringN);
   importer_func_arg(importer, "int", "start");
   importer_func_arg(importer, "int", "end");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "insert", (m_uint)string_insert);
+  importer_func_ini(importer, "string", "insert", string_insert);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "string", "string");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "replace", (m_uint)string_replace);
+  importer_func_ini(importer, "string", "replace", string_replace);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "string", "string");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "string", "replace", (m_uint)string_replaceN);
+  importer_func_ini(importer, "string", "replace", string_replaceN);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "int", "n");
   importer_func_arg(importer, "string", "string");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "find", (m_uint)string_find);
+  importer_func_ini(importer, "int", "find", string_find);
   importer_func_arg(importer, "int", "char");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "find", (m_uint)string_findStart);
+  importer_func_ini(importer, "int", "find", string_findStart);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "int", "char");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "find", (m_uint)string_findStr);
+  importer_func_ini(importer, "int", "find", string_findStr);
   importer_func_arg(importer, "string", "str");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "find", (m_uint)string_findStrStart);
+  importer_func_ini(importer, "int", "find", string_findStrStart);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "string", "str");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "rfind", (m_uint)string_rfind);
+  importer_func_ini(importer, "int", "rfind", string_rfind);
   importer_func_arg(importer, "int", "char");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "rfind", (m_uint)string_rfindStart);
+  importer_func_ini(importer, "int", "rfind", string_rfindStart);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "int", "char");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "rfind", (m_uint)string_rfindStr);
+  importer_func_ini(importer, "int", "rfind", string_rfindStr);
   importer_func_arg(importer, "string", "str");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "rfind", (m_uint)string_rfindStrStart);
+  importer_func_ini(importer, "int", "rfind", string_rfindStrStart);
   importer_func_arg(importer, "int", "pos");
   importer_func_arg(importer, "string", "str");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "void",   "erase", (m_uint)string_erase);
+  importer_func_ini(importer, "void",   "erase", string_erase);
   importer_func_arg(importer, "int", "start");
   importer_func_arg(importer, "int", "length");
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "int", "toInt", (m_uint)string_toInt);
+  importer_func_ini(importer, "int", "toInt", string_toInt);
   CHECK_BB(importer_func_end(importer, 0))
 
-  importer_func_ini(importer, "float", "toFloat", (m_uint)string_toFloat);
+  importer_func_ini(importer, "float", "toFloat", string_toFloat);
   CHECK_BB(importer_func_end(importer, 0))
 
   CHECK_BB(importer_class_end(importer))
