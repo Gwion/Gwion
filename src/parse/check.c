@@ -1587,7 +1587,7 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
     nspc_pop_type(env->curr);
     nspc_pop_type(env->curr);
   }
-  if(isprim(class_def->type->parent) > 0)
+  if(isa(class_def->type->parent, &t_object) < 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
             "cannot extend primitive type '%s'", class_def->type->parent->name))
   if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {

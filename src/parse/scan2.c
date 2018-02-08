@@ -50,7 +50,7 @@ static m_bool scan2_arg_def_check(Arg_List list) {
           "cannot declare variables of size '0' (i.e. 'void')..."))
   if(isres(list->var_decl->xid, list->pos) > 0)
     return -1;
-  if((isprim(list->type) > 0) && GET_FLAG(list->type_decl, ae_flag_ref))
+  if(isa(list->type, &t_object) < 0 && GET_FLAG(list->type_decl, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
           "cannot declare references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur')",
@@ -650,7 +650,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->next = overload->func_ref->next;
     overload->func_ref->next = func;
   }
-  if(isprim(f->ret_type) > 0 && GET_FLAG(f->type_decl, ae_flag_ref))
+  if(isa(f->ret_type, &t_object) < 0 && GET_FLAG(f->type_decl, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_,  f->type_decl->pos,
           "FUNC cannot declare references (@) of primitive type '%s'...\n"
         "...(primitive types: 'int', 'float', 'time', 'dur')",

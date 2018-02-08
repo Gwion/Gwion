@@ -91,7 +91,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
   CHECK_OB((base = scan_type(env, base, stmt->type)))
-  if((isprim(base) > 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
+  if((isa(base, &t_object) < 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
     Type t = NULL;
     if(stmt->type->array)
       base = array_type(base, stmt->type->array->depth);

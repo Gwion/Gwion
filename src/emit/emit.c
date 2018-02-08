@@ -287,7 +287,7 @@ static m_bool emit_symbol_builtin(Emitter emit, Exp_Primary* prim) {
   if(v->func_ref) {
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->func_ref;
-  } else if(!prim->self->emit_var && isprim(v->m_type) > 0 && !GET_FLAG(v,ae_flag_enum)) {
+  } else if(!prim->self->emit_var && isa(v->m_type, &t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
     instr->m_val = v->m_type->size;
     if(v->ptr)
       memcpy(instr->ptr, v->ptr, v->m_type->size);
@@ -523,7 +523,7 @@ static m_bool decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
 static m_bool emit_exp_decl_static(Emitter emit, Var_Decl var_decl, m_bool is_ref) {
   Value value = var_decl->value;
 
-  if(isprim(value->m_type) < 0 && !is_ref)
+  if(isa(value->m_type, &t_object) > 0 && !is_ref)
     CHECK_BB(decl_static(emit, var_decl, 0))
   CHECK_BB(emit_dot_static_data(emit, value, 1))
   return 1;
@@ -553,7 +553,7 @@ static m_bool emit_exp_decl_non_static(Emitter emit, Var_Decl var_decl,
         (is_obj ? IS_OBJ : 0));
   alloc->m_val2 = type->size;
   alloc->m_val = value->offset;
-  *(m_uint*)alloc->ptr = ((is_ref && !array) || isprim(type) > 0)  ? emit_var : 1;
+  *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, &t_object) < 0)  ? emit_var : 1;
   if(is_obj) {
     if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
 if(!(type->def && type->def->ext && GET_FLAG(type->def->ext, ae_flag_typedef)))

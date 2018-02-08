@@ -30,7 +30,6 @@ void start_type_xid(void);
 Value find_value(const Type, const S_Symbol);
 Func find_func(const Type, const S_Symbol);
 Type find_type(const Env, ID_List);
-const m_bool isprim(const Type);
 const m_bool isa(const Type, const Type);
 const m_bool isres(const S_Symbol, const m_uint);
 const Type array_type(const Type, const m_uint);

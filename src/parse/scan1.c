@@ -33,7 +33,7 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
       CHECK_BO(err_msg(SCAN1_, decl->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
-  } else if(isprim(t) > 0 && !decl->type->array)
+  } else if(isa(t, &t_object) < 0 && !decl->type->array)
     CHECK_BO(err_msg(SCAN1_, decl->pos,
           "cannot declare references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))

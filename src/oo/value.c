@@ -13,7 +13,7 @@ Value new_value(const Type type, const m_str name) {
 }
 
 void free_value(Value a) {
-  if(a->ptr && isprim(a->m_type) > 0 && !GET_FLAG(a, ae_flag_enum))
+  if(a->ptr && isa(a->m_type, &t_object) < 0 && !GET_FLAG(a, ae_flag_enum))
     free(a->ptr);
   free(a);
 }

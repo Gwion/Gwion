@@ -7,10 +7,6 @@ const m_bool isa(const Type var, const Type parent) {
   return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
 }
 
-const m_bool isprim(const Type type) {
-  return (type->array_depth || isa(type, &t_object) > 0) ? -1 : 1;
-}
-
 const m_bool isres(const S_Symbol xid, const m_uint pos) {
   m_str s = s_name(xid);
   if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
