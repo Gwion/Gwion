@@ -98,13 +98,13 @@ Nspc new_nspc(m_str name) {
 }
 
 static void nspc_release_object(Nspc a, Value value) {
-  if(value->ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
-(value->ptr && GET_FLAG(value, ae_flag_builtin))
+  if(value->d.ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
+(value->d.ptr && GET_FLAG(value, ae_flag_builtin))
 
 ) {
     VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
     VM_Shred s = new_vm_shred(code);
-    M_Object obj = value->ptr ? (M_Object)value->ptr :
+    M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->class_data + value->offset);
     s->vm_ref = vm;
     release(obj, s);
@@ -160,11 +160,11 @@ if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin))
     else if(isa(value->m_type, &t_object) > 0)
       nspc_release_object(a, value);
     else if(isa(value->m_type, &t_func_ptr) > 0)
-      free_nspc_value_fptr(value->func_ref);
+      free_nspc_value_fptr(value->d.func_ref);
     else if(isa(value->m_type, &t_function) > 0) {
       if(GET_FLAG(value, ae_flag_template)) {
         REM_REF(value->m_type)
-        REM_REF(value->func_ref)
+        REM_REF(value->d.func_ref)
       }
       else
         REM_REF(value->m_type)

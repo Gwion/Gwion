@@ -606,7 +606,7 @@ static void import_enum_end(DL_Enum* d, Vector v) {
     Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&d->addr, i);
     SET_FLAG(value, ae_flag_builtin);
-    value->ptr = (m_uint*)(addr ? addr : i);
+    value->d.ptr = (m_uint*)(addr ? addr : i);
   }
   d->t = NULL;
   d->base = NULL;

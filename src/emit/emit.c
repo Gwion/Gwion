@@ -284,16 +284,16 @@ static m_bool emit_symbol_builtin(Emitter emit, Exp_Primary* prim) {
   Value v = prim->value;
   Instr instr = emitter_add_instr(emit, Reg_PushImm);
 
-  if(v->func_ref) {
+  if(GET_FLAG(v, ae_flag_func)) {
     instr->m_val = SZ_INT;
-    *(Func*)instr->ptr = v->func_ref;
+    *(Func*)instr->ptr = v->d.func_ref;
   } else if(!prim->self->emit_var && isa(v->m_type, &t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
     instr->m_val = v->m_type->size;
-    if(v->ptr)
-      memcpy(instr->ptr, v->ptr, v->m_type->size);
+    if(v->d.ptr)
+      memcpy(instr->ptr, v->d.ptr, v->m_type->size);
   } else {
     instr->m_val = v->m_type->size;
-    *(m_uint*)instr->ptr = (prim->self->emit_var ? (m_uint)&v->ptr : (m_uint)v->ptr);
+    *(m_uint*)instr->ptr = (prim->self->emit_var ? (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
   }
   return 1;
 }
@@ -1354,7 +1354,7 @@ static m_bool primary_case(Exp_Primary* prim, m_int* value) {
     if(!GET_FLAG(prim->value, ae_flag_const))
       CHECK_BB(err_msg(EMIT_, prim->pos,
             "value is not const. this is not allowed for now"))
-    *value = (m_uint)prim->value->ptr; // assume enum.
+    *value = (m_uint)prim->value->d.ptr; // assume enum.
   }
   return 1;
 }
@@ -1368,7 +1368,7 @@ static m_int get_case_value(Stmt_Case stmt, m_int* value) {
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
-      t->info->class_data[v->offset] : (m_uint)v->ptr : *(m_uint*)v->ptr;
+      t->info->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr;
   }
   return 1;
 }
@@ -1402,7 +1402,7 @@ static m_bool emit_stmt_enum(Emitter emit, Stmt_Enum stmt) {
       m_int offset = emit_alloc_local(emit, SZ_INT, 0);
       CHECK_BB(offset)
       v->offset = offset;
-      v->ptr = (m_uint*)i;
+      v->d.ptr = (m_uint*)i;
     } else
       emit->env->class_def->info->class_data[v->offset] = i;
   }
@@ -1553,14 +1553,14 @@ static m_bool is_special(Type t) {
 static m_bool emit_dot_static_import_data(Emitter emit, Value v, m_bool emit_addr) {
   Instr func_i;
 
-  if(v->ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
+  if(v->d.ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
     if(GET_FLAG(v, ae_flag_enum)) {
       func_i = emitter_add_instr(emit, Reg_PushImm);
-      *(m_uint*)func_i->ptr = (m_uint)v->ptr;
+      *(m_uint*)func_i->ptr = (m_uint)v->d.ptr;
       func_i->m_val = SZ_INT;
     } else {
       func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
-      func_i->m_val = (m_uint)v->ptr;
+      func_i->m_val = (m_uint)v->d.ptr;
       func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
       *(m_uint*)func_i->ptr = emit_addr;
     }
@@ -1596,7 +1596,7 @@ static m_bool emit_vec_func(Emitter emit, Value v) {
   CHECK_OB(emitter_add_instr(emit, Reg_Dup_Last))
   instr = emitter_add_instr(emit, member_function);
   *(Vector*)instr->ptr = &v->owner_class->info->vtable;
-  instr->m_val = v->func_ref->vt_index;
+  instr->m_val = v->d.func_ref->vt_index;
   return 1;
 }
 
@@ -1607,7 +1607,7 @@ static m_bool emit_vec_member(Emitter emit, Exp_Dot* member) {
   member->base->emit_var = 1;
   CHECK_BB(emit_exp(emit, member->base, 0))
   v = find_value(member->base->type, member->xid);
-  if(v->func_ref)
+  if(GET_FLAG(v, ae_flag_func))
     return emit_vec_func(emit, v);
   instr = emitter_add_instr(emit, vec_member);
   instr->m_val2 = v->offset;
@@ -1706,7 +1706,7 @@ static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
     } else
       return emit_dot_static_data(emit, value, emit_addr);
   } else if(isa(member->self->type, &t_function) > 0) { // function
-    Func func = value->func_ref;
+    Func func = value->d.func_ref;
     if(GET_FLAG(func, ae_flag_member))
       return emit_member_func(emit, member, func);
     else
@@ -1728,7 +1728,7 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
   if(isa(member->self->type, &t_func_ptr) > 0)
     return emit_dot_static_import_data(emit, value, member->self->emit_var);
   if(isa(member->self->type, &t_function) > 0)
-    return emit_dot_static_func(emit, t_base, value->func_ref);
+    return emit_dot_static_func(emit, t_base, value->d.func_ref);
   return emit_dot_static_import_data(emit, value, member->self->emit_var);
 }
 
@@ -1745,7 +1745,7 @@ static m_bool emit_func_def_global(Emitter emit, Value value) {
   Instr set_mem = emitter_add_instr(emit, Mem_Set_Imm);
   CHECK_BB(offset)
   set_mem->m_val = value->offset = offset;
-  *(Func*)set_mem->ptr = value->func_ref;
+  *(Func*)set_mem->ptr = value->d.func_ref;
   return 1;
 }
 

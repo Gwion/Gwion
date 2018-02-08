@@ -78,7 +78,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       SET_FLAG(v->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
       SET_FLAG(v->value, ae_flag_global);
-    v->value->ptr = v->addr;
+    v->value->d.ptr = v->addr;
     v->value->owner = env->curr;
     v->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;

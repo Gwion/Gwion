@@ -4,8 +4,10 @@ struct Value_ {
   Nspc owner;
   Type owner_class;
   m_uint offset;
-  m_uint* ptr;
-  Func func_ref;
+  union value_data{
+    m_uint* ptr;
+    Func func_ref;
+  } d;
   m_uint func_num_overloads;
   ae_flag flag;
   struct VM_Object_ obj;

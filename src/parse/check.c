@@ -515,11 +515,11 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name))))
       continue;
-    base = value->func_ref->def;
+    base = value->d.func_ref->def;
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
-    def->tmpl = new_func_def_tmpl(value->func_ref->def->tmpl->list, 0);
+    def->tmpl = new_func_def_tmpl(value->d.func_ref->def->tmpl->list, 0);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->tmpl->list, types))
@@ -592,7 +592,7 @@ static Value get_template_value(Env env, Exp exp_func) {
   else if(exp_func->exp_type == ae_exp_dot)
     v = find_value(exp_func->d.exp_dot.t_base, exp_func->d.exp_dot.xid);
   if(v)
-    UNSET_FLAG(v->func_ref->def, ae_flag_template);
+    UNSET_FLAG(v->d.func_ref->def, ae_flag_template);
   else
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
       "unhandled expression type '%" UINT_F "\' in template call.",
@@ -613,7 +613,7 @@ static Func get_template_func(Env env, Exp_Func* func, Value v) {
   Func f = find_template_match(env, v, func);
   if(f) {
     env->current->types = func->types;
-    env->current->base = v->func_ref->def->tmpl->list;
+    env->current->base = v->d.func_ref->def->tmpl->list;
     return f;
   }
   if(err_msg(TYPE_, func->pos, "function is template. automatic type guess not fully implemented yet.\n"
@@ -626,12 +626,12 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   Value value;
   ID_List list;
   CHECK_OO((value = get_template_value(env, exp_func)))
-  type_number = get_type_number(value->func_ref->def->tmpl->list);
+  type_number = get_type_number(value->d.func_ref->def->tmpl->list);
 
-  list = value->func_ref->def->tmpl->list;
+  list = value->d.func_ref->def->tmpl->list;
   Type_List tl[type_number];
   while(list) {
-    Arg_List arg = value->func_ref->def->arg_list;
+    Arg_List arg = value->d.func_ref->def->arg_list;
     Exp template_arg = args;
     while(arg && template_arg) {
       char path[id_list_len(arg->type_decl->xid)];
@@ -700,9 +700,10 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
     Func f = malloc(sizeof(struct Func_));
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
-    if(ptr->func_ref)
-      f->next = ptr->func_ref;
-    func = ptr->func_ref = f;
+    SET_FLAG(ptr, ae_flag_func); // there might be a better place
+    if(ptr->d.func_ref)
+      f->next = ptr->d.func_ref;
+    func = ptr->d.func_ref = f;
   }
   *m_func = func;
   if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template)) {
@@ -723,7 +724,7 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
   bin->rhs->emit_var = 1;
   if(bin->rhs->exp_type == ae_exp_primary) {
     v = nspc_lookup_value1(env->curr, bin->rhs->d.exp_primary.d.var);
-    f1 = v->func_ref ? v->func_ref :
+    f1 = v->d.func_ref ? v->d.func_ref :
       nspc_lookup_func1(env->curr, insert_symbol(v->m_type->name));
   } else if(bin->rhs->exp_type == ae_exp_dot) {
     Type t = bin->rhs->d.exp_dot.t_base;
@@ -746,7 +747,7 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
     if(isa(t, &t_class) > 0)
       t = t->d.base_type;
     v = find_value(t, bin->lhs->d.exp_dot.xid);
-    f2 = v->func_ref;
+    f2 = v->d.func_ref;
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
   } else
     CHECK_BO(err_msg(TYPE_, bin->pos, "unhandled function pointer assignement (lhs)."))
@@ -847,7 +848,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
       if(isa(t, &t_class) > 0)
         t = t->d.base_type;
       v = find_value(t, call->func->d.exp_dot.xid);
-      if(!v->func_ref->def->tmpl)
+      if(!v->d.func_ref->def->tmpl)
         CHECK_BO(err_msg(TYPE_, call->pos,
                          "template call of non-template function."))
       } else
@@ -1418,7 +1419,7 @@ static m_bool parent_match_actual(Env env, Func_Def f, m_bool* parent_match) {
   Value v;
   Func func = f->d.func;
   if((v = find_value(env->class_def->parent, f->name))) {
-    Func parent_func = v->func_ref;
+    Func parent_func = v->d.func_ref;
     while(parent_func && !*parent_match) {
       if(compat_func(f, parent_func->def, f->pos) < 0) {
         parent_func = parent_func->next;
@@ -1513,7 +1514,7 @@ static m_bool check_func_def_override(Env env, Func_Def f) {
   if(override) {
     while(func->next)
       func = func->next;
-    func->next = override->func_ref;
+    func->next = override->d.func_ref;
   }
   return 1;
 }

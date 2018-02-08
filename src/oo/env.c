@@ -81,7 +81,7 @@ const m_bool env_add_value(Env env, const m_str name, const Type type,
   Value v = new_value(type, name);
   ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
   v->flag = flag;
-  v->ptr = data;
+  v->d.ptr = data;
   v->owner = env->global_nspc;
   nspc_add_value(env->global_nspc, insert_symbol(name), v);
   return 1;

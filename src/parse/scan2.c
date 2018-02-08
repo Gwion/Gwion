@@ -94,7 +94,7 @@ static Value scan2_func_assign(Env env, Func_Def d, Func f, Value v) {
     SET_FLAG(v, ae_flag_member);
   if(!(v->owner_class = env->class_def))
     SET_FLAG(v, ae_flag_global);
-  d->d.func = v->func_ref = f;
+  d->d.func = v->d.func_ref = f;
   return f->value_ref = v;
 }
 
@@ -113,8 +113,9 @@ m_bool scan2_stmt_fptr(Env env, Stmt_Ptr ptr) {
       ptr->type, ptr->xid, ptr->args, NULL, ptr->pos);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
-  ptr->value->func_ref = ptr->func;
+  ptr->value->d.func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
+  SET_FLAG(ptr->value, ae_flag_func);
   if(env->class_def) {
     if(!GET_FLAG(ptr, ae_flag_static)) {
       SET_FLAG(ptr->value, ae_flag_member);
@@ -184,8 +185,8 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
     sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
     value = nspc_lookup_value1(env->curr, insert_symbol(name));
     if(!value)continue;
-    tld = value->func_ref->def->tmpl->list;
-    UNSET_FLAG(value->func_ref->def, ae_flag_template);
+    tld = value->d.func_ref->def->tmpl->list;
+    UNSET_FLAG(value->d.func_ref->def, ae_flag_template);
     while(tld) {
       if(!tlc)
         break;
@@ -210,10 +211,10 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       if(!v)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-existant function."))
-      if(!v->func_ref)
+      if(!v->d.func_ref)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-function value."))
-      Func_Def base = v->func_ref->def;
+      Func_Def base = v->d.func_ref->def;
       UNSET_FLAG(base, ae_flag_template);
       if(!base->tmpl || !base->tmpl->base)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
@@ -488,7 +489,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "function name '%s' is already used by another value",
           s_name(f->name)))
-  else if(!overload->func_ref)
+  else if(!overload->d.func_ref)
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "internal error: missing function '%s'",
           overload->name))
@@ -511,7 +512,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
 
   char name[len];
   if(overload)
-    func->next = overload->func_ref->next;
+    func->next = overload->d.func_ref->next;
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
     SET_FLAG(func, ae_flag_ref);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
@@ -572,17 +573,17 @@ static m_bool scan2_func_def_code(Env env, Func_Def f) {
 }
 
 static m_bool scan2_func_def_add(Env env, Value value, Value overload) {
-  m_str name = s_name(value->func_ref->def->name);
-  Func func = value->func_ref;
+  m_str name = s_name(value->d.func_ref->def->name);
+  Func func = value->d.func_ref;
 
   if(overload) {
-    if(overload->func_ref->def->ret_type)
+    if(overload->d.func_ref->def->ret_type)
       if(!GET_FLAG(func->def, ae_flag_template))
-        if(func->def->ret_type->xid != overload->func_ref->def->ret_type->xid) {
+        if(func->def->ret_type->xid != overload->d.func_ref->def->ret_type->xid) {
           err_msg(SCAN2_,  func->def->pos,
               "function signatures differ in return type... '%s' and '%s'",
                   func->def->ret_type->name,
-                  overload->func_ref->def->ret_type->name);
+                  overload->d.func_ref->def->ret_type->name);
           if(env->class_def)
             CHECK_BB(err_msg(SCAN2_, func->def->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
@@ -650,8 +651,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   CHECK_OB(scan2_func_assign(env, f, func, value))
   scan2_func_def_flag(env, f);
   if(overload) {
-    func->next = overload->func_ref->next;
-    overload->func_ref->next = func;
+    func->next = overload->d.func_ref->next;
+    overload->d.func_ref->next = func;
   }
   if(isa(f->ret_type, &t_object) < 0 && GET_FLAG(f->type_decl, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_,  f->type_decl->pos,
