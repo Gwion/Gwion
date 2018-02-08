@@ -207,7 +207,7 @@ INSTR(Spork) {
     *(m_uint*)sh->reg = this_ptr;
     PUSH_REG(sh, SZ_INT);
   }
-  if(*(m_uint*)instr->ptr && code->need_this) // sporked function
+  if(*(m_uint*)instr->ptr && GET_FLAG(code, _NEED_THIS_)) // sporked function
     *(m_uint*)sh->mem = this_ptr;
   *(Func*)sh->reg = func;
   PUSH_REG(sh, SZ_INT);
@@ -256,14 +256,14 @@ static void shred_func_prepare(VM_Shred shred, Instr instr) {
 }
 
 static void shred_func_need_this(VM_Shred shred) {
-  if(shred->code->need_this) {
+  if(GET_FLAG(shred->code, _NEED_THIS_)) {
     *(m_uint*)MEM(0) = *(m_uint*)REG(shred->code->stack_depth - SZ_INT);
     PUSH_MEM(shred,  SZ_INT);
   }
 }
 
 static void shred_func_finish(VM_Shred shred) {
-  if(shred->code->need_this)
+  if(GET_FLAG(shred->code, _NEED_THIS_))
     POP_MEM(shred, SZ_INT);
   if(overflow_(shred))
     handle_overflow(shred);
@@ -279,7 +279,7 @@ INSTR(Instr_Exp_Func) {
     POP_REG(shred,  stack_depth);
     shred_func_need_this(shred);
     memcpy(shred->mem, shred->reg, stack_depth
-        - (code->need_this ? SZ_INT : 0));
+        - (GET_FLAG(code, _NEED_THIS_) ? SZ_INT : 0));
   }
   shred_func_finish(shred);
   return;
@@ -345,14 +345,14 @@ static void copy_member_args(VM_Shred shred, VM_Code func) {
   m_uint stack_depth = func->stack_depth;
   if(stack_depth) {
     POP_REG(shred,  stack_depth);
-    if(func->need_this) {
+  if(GET_FLAG(func, _NEED_THIS_)) {
       *(m_uint*)MEM(0) = *(m_uint*)REG(-SZ_INT + stack_depth);
       PUSH_MEM(shred,  SZ_INT);
       stack_depth -= SZ_INT;
     }
     memcpy(shred->mem, shred->reg, stack_depth);
   }
-  if(func->need_this)
+  if(GET_FLAG(func, _NEED_THIS_))
     POP_MEM(shred,  SZ_INT);
 }
 
@@ -369,7 +369,7 @@ INSTR(Instr_Exp_Func_Member) {
     handle_overflow(shred);
     return;
   }
-  if(func->native_func_type == NATIVE_CTOR) {
+  if(GET_FLAG(func, NATIVE_CTOR)) {
     f_xtor f = (f_xtor)func->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
@@ -400,7 +400,7 @@ static void call_pre_constructor(VM * vm, VM_Shred shred, VM_Code pre_ctor, m_ui
   PUSH_REG(shred,  SZ_INT);
   *(m_uint*)REG(0) = stack_offset;
   PUSH_REG(shred,  SZ_INT);
-  if(pre_ctor->native_func_type != NATIVE_UNKNOWN)
+  if(!GET_FLAG(pre_ctor, NATIVE_NOT))
     Instr_Exp_Func_Member(vm, shred, NULL);
   else
     Instr_Exp_Func(vm, shred, NULL);

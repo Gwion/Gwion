@@ -155,7 +155,7 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
   return list;
 }
 
-static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
+static m_bool mk_xtor(Type type, m_uint d, e_func e) {
   VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
   m_str name = type->name;
   m_str filename = e == NATIVE_CTOR ? "[ctor]" : "[dtor]";
@@ -163,7 +163,7 @@ static m_bool mk_xtor(Type type, m_uint d, e_native_func e) {
   SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
   *code = new_vm_code(NULL, SZ_INT, 1, name, filename);
   (*code)->native_func = (m_uint)d;
-  (*code)->native_func_type = e;
+  (*code)->flag = (e | _NEED_THIS_);
   return 1;
 }
 

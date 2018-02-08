@@ -1521,8 +1521,8 @@ static m_bool check_func_def_override(Env env, Func_Def f) {
                      "function name '%s' conflicts with previously defined value...\n"
                      "\tfrom super class '%s'...",
                      s_name(f->name), override->owner_class->name))
-  if(override)
-    func->up = override;
+//  if(override)
+//    func->up = override;
   return 1;
 }
 

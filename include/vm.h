@@ -15,11 +15,11 @@
 #include "map_private.h"
 
 typedef enum {
-  NATIVE_UNKNOWN,
-  NATIVE_CTOR,
-  NATIVE_DTOR,NATIVE_MFUN,
-  NATIVE_SFUN
-} e_native_func;
+  NATIVE_NOT  = 1 << 1,
+  NATIVE_CTOR = 1 << 2,
+  NATIVE_DTOR = 1 << 3,
+  _NEED_THIS_ = 1 << 4
+} e_func;
 
 typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
@@ -27,8 +27,7 @@ struct VM_Code_ {
   m_str name, filename;
   m_uint stack_depth;
   m_uint native_func;
-  e_native_func native_func_type;
-  m_bool need_this; // merge this in native_func
+  e_func flag;
   struct VM_Object_ obj;
 };
 
