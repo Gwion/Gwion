@@ -89,7 +89,7 @@ const m_bool env_add_value(Env env, const m_str name, const Type type,
 
 const m_bool env_add_type(Env env, const Type type) {
   Type v_type = type_copy(&t_class);
-  v_type->d.actual_type = type;
+  v_type->d.base_type = type;
   INIT_OO(type, e_type_obj);
   SET_FLAG(type, ae_flag_builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);

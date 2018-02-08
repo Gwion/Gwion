@@ -739,7 +739,7 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
   } else if(bin->rhs->exp_type == ae_exp_dot) {
     Type t = bin->rhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
-      t = t->d.actual_type;
+      t = t->d.base_type;
     v = find_value(t, bin->rhs->d.exp_dot.xid);
     f1 = find_func(t, insert_symbol(v->m_type->name));
   } else if(bin->rhs->exp_type == ae_exp_decl) {
@@ -755,7 +755,7 @@ Type opck_fptr_at(Env env, Exp_Binary* bin ) {
   } else if(bin->lhs->exp_type == ae_exp_dot) {
     Type t = bin->lhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
-      t = t->d.actual_type;
+      t = t->d.base_type;
     v = find_value(t, bin->lhs->d.exp_dot.xid);
     f2 = v->func_ref;
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
@@ -856,7 +856,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
       CHECK_OO(check_exp(env, call->func))
       t = call->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
-        t = t->d.actual_type;
+        t = t->d.base_type;
       v = find_value(t, call->func->d.exp_dot.xid);
       if(!v->func_ref->def->tmpl)
         CHECK_BO(err_msg(TYPE_, call->pos,
@@ -958,7 +958,7 @@ static m_bool member_static(Exp_Dot* member) {
 }
 
 static Type get_base_type(Exp_Dot* member, m_bool base_static) {
-  return base_static ? member->t_base->d.actual_type : member->t_base;
+  return base_static ? member->t_base->d.base_type : member->t_base;
 }
 
 static m_bool check_nspc(Exp_Dot* member, Type t) {

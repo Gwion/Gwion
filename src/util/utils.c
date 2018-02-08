@@ -13,7 +13,7 @@ const m_uint num_digit(const m_uint i) {
 static Type find_typeof(Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);
-  Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.actual_type : v->m_type;
+  Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.base_type : v->m_type;
   path = path->next;
   while(path) {
     CHECK_OO((v = find_value(t, path->xid)))
@@ -96,7 +96,7 @@ void type_path(char* str, ID_List list) {
 const Type array_base(Type t) {
   while(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
-  return t->d.array_type;
+  return t->d.base_type;
 }
 
 const Type array_type(const Type base, const m_uint depth) {
@@ -117,7 +117,7 @@ const Type array_type(const Type base, const m_uint depth) {
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth;
-  t->d.array_type = base;
+  t->d.base_type = base;
   t->info = t_array.info;
   ADD_REF(t->info);
   ADD_REF(t);

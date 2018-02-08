@@ -28,7 +28,7 @@ struct VM_Code_ {
   m_uint stack_depth;
   m_uint native_func;
   e_native_func native_func_type;
-  m_bool need_this;
+  m_bool need_this; // merge this in native_func
   struct VM_Object_ obj;
 };
 
@@ -45,9 +45,9 @@ typedef struct {
   void (*wakeup)();
   struct Vector_ shred;
   struct Vector_ ugen;
-  struct Vector_ plug;
+  struct Vector_ plug; // in main?
   pthread_mutex_t mutex;
-  m_bool is_running;
+  m_bool is_running; // => shreduler
 } VM;
 
 extern VM* vm;

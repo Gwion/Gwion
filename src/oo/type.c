@@ -33,7 +33,7 @@ Type type_copy(Type type) {
   a->info          = type->info;
   a->owner         = type->owner;
   a->size          = type->size;
-  a->d.actual_type = type->d.actual_type;
+  a->d.base_type = type->d.base_type;
   a->array_depth   = type->array_depth;
   a->def           = type->def;
   return a;

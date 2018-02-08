@@ -678,7 +678,7 @@ m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs) {
   if(rhs->exp_type == ae_exp_dot) {
     Type t = rhs->d.exp_dot.t_base;
     if(isa(t, &t_class) > 0)
-      t = t->d.actual_type;
+      t = t->d.base_type;
     v = find_value(t, rhs->d.exp_dot.xid);
     if(GET_FLAG(v, ae_flag_member))
         instr->m_val = 1;
@@ -797,7 +797,7 @@ m_bool emit_exp_call1_builtin(Emitter emit, Func func) {
 
   Type t = func->value_ref->m_type;
   if(isa(t, &t_class) > 0)
-    t = t->d.actual_type;
+    t = t->d.base_type;
   if(isa(t, &t_func_ptr) < 0)
   if(!func->code || !func->code->native_func)
     CHECK_BB(err_msg(EMIT_, func->def->pos,
@@ -1364,7 +1364,7 @@ static m_int get_case_value(Stmt_Case stmt, m_int* value) {
     CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
   else {
     Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
-        stmt->val->d.exp_dot.t_base->d.actual_type :
+        stmt->val->d.exp_dot.t_base->d.base_type :
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
@@ -1722,7 +1722,7 @@ static m_bool emit_exp_dot_instance(Emitter emit, Exp_Dot* member) {
 }
 
 static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
-  Type t_base = member->t_base->d.actual_type;
+  Type t_base = member->t_base->d.base_type;
   Value value = find_value(t_base, member->xid);
 
   if(isa(member->self->type, &t_func_ptr) > 0)

@@ -60,7 +60,7 @@ static ID_List get_total_type_list(Type t) {
 static Value mk_class(Env env, Type base) {
   Type t = type_copy(&t_class);
   Value v = new_value(t, base->name);
-  t->d.actual_type = base;
+  t->d.base_type = base;
   v->owner = env->curr;
   SET_FLAG(v, ae_flag_const | ae_flag_checked);
   nspc_add_value(env->curr, insert_symbol(base->name), v);

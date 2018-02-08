@@ -190,8 +190,8 @@ INSTR(Array_Append) {
 }
 
 static Type get_array_type(Type t) {
-  while(t->d.array_type)
-    t = t->d.array_type;
+  while(t->d.base_type)
+    t = t->d.base_type;
   return t;
 }
 
@@ -239,9 +239,9 @@ static OP_CHECK(opck_array_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = cast->self->type;
-  if(!l->d.array_type) l = l->parent;
-  if(!r->d.array_type) l = r->parent;
-  if(l->array_depth == r->array_depth || isa(l->d.array_type, r->d.array_type) > 0)
+  if(!l->d.base_type) l = l->parent;
+  if(!r->d.base_type) l = r->parent;
+  if(l->array_depth == r->array_depth || isa(l->d.base_type, r->d.base_type) > 0)
     return l;
   return &t_null;
 }

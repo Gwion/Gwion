@@ -126,7 +126,7 @@ INSTR(Gack) {
     else if(isa(type, &t_function) > 0)
       print_func(type, REG(0));
     else if(type->xid == te_class)
-        print_type(type->d.actual_type);
+        print_type(type->d.base_type);
     else if(type->xid == te_void)
       print_string1("void");
     else

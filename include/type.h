@@ -9,15 +9,14 @@ struct Type_ {
   m_uint    size;
   Type      parent;
   te_type   xid;
-  Nspc info;
-  Nspc owner;
+  Nspc      info;
+  Nspc      owner;
   m_uint    array_depth;
+  Class_Def def;
   union type_data {
     Func      func;
-    Type      actual_type;
-    Type      array_type;
+    Type      base_type;
   } d;
-  Class_Def def;
   m_uint flag;
   struct VM_Object_ obj;
 };

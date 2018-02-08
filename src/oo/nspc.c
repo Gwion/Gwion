@@ -137,18 +137,18 @@ REM_REF(value->m_type)
 }
     else */
 if(isa(value->m_type, &t_class) > 0) {
-      if(GET_FLAG(value->m_type->d.actual_type, ae_flag_template)) {
-        UNSET_FLAG(value->m_type->d.actual_type, ae_flag_template);
-        if(GET_FLAG(value->m_type->d.actual_type, ae_flag_ref)) {
-if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
-          free_class_def(value->m_type->d.actual_type->def);
-          REM_REF(value->m_type->d.actual_type)
-        } else if(!GET_FLAG(value->m_type->d.actual_type, ae_flag_builtin))
-        free_class_def(value->m_type->d.actual_type->def);
+      if(GET_FLAG(value->m_type->d.base_type, ae_flag_template)) {
+        UNSET_FLAG(value->m_type->d.base_type, ae_flag_template);
+        if(GET_FLAG(value->m_type->d.base_type, ae_flag_ref)) {
+if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin))
+          free_class_def(value->m_type->d.base_type->def);
+          REM_REF(value->m_type->d.base_type)
+        } else if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin))
+        free_class_def(value->m_type->d.base_type->def);
         else {
-          /*REM_REF(value->m_type->d.actual_type)*/
-     free_class_body(value->m_type->d.actual_type->def->body);
-     /*REM_REF(value->m_type->d.actual_type)*/
+          /*REM_REF(value->m_type->d.base_type)*/
+     free_class_body(value->m_type->d.base_type->def->body);
+     /*REM_REF(value->m_type->d.base_type)*/
         }
       }
       REM_REF(value->m_type)
