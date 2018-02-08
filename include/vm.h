@@ -67,7 +67,6 @@ struct VM_Shred_ {
   Vector args; // passed pointer from compile
   M_Object me;
   m_str filename;
-  M_Object wait;
   struct Vector_ child;
   struct Vector_ gc, gc1;
   struct Vector_ sporks;

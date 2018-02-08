@@ -75,7 +75,6 @@ static void shreduler_child(Shreduler s, Vector v) {
     if(child->next)
       child->next->prev = child->prev;
     child->prev = child->next = NULL;
-    child->wait = NULL;
     shreduler_remove(s, child, 1);
   }
 }
