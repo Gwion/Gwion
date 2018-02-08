@@ -5,7 +5,6 @@ struct Func_ {
   Func_Def def;
   VM_Code code;
   Value value_ref;
-  Value up;
   Func next;
   m_uint vt_index;
   ae_flag flag;

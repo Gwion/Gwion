@@ -441,7 +441,7 @@ static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific )
   return 1;
 }
 
-static Func find_func_match_actual_inner(Func func, Exp args, m_bool implicit, m_bool specific) {
+static Func find_func_match_actual(Func func, Exp args, m_bool implicit, m_bool specific) {
   while(func) {
     Exp e = args;
     Arg_List e1 = func->def->arg_list;
@@ -465,21 +465,10 @@ moveon:
   return NULL;
 }
 
-static Func find_func_match_actual(Func up, Exp args, m_bool implicit, m_bool specific) {
-  if(args && isa(args->type, &t_void) > 0)
-    args = NULL;
-
-  while(up) {
-    Func func;
-    if((func = find_func_match_actual_inner(up, args, implicit, specific)))
-      return func;
-    up = up->up ? up->up->func_ref : NULL;
-  }
-  return NULL;
-}
-
 static Func find_func_match(Func up, Exp args) {
   Func func;
+  if(args && isa(args->type, &t_void) > 0)
+    args = NULL;
   if((func = find_func_match_actual(up, args, 0, 1)) ||
       (func = find_func_match_actual(up, args, 1, 1)) ||
       (func = find_func_match_actual(up, args, 0, 0)) ||
@@ -1521,8 +1510,11 @@ static m_bool check_func_def_override(Env env, Func_Def f) {
                      "function name '%s' conflicts with previously defined value...\n"
                      "\tfrom super class '%s'...",
                      s_name(f->name), override->owner_class->name))
-  if(override)
-    func->up = override;
+  if(override) {
+    while(func->next)
+      func = func->next;
+    func->next = override->func_ref;
+  }
   return 1;
 }
 
