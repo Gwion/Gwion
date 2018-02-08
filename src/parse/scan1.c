@@ -5,6 +5,8 @@
 #include "value.h"
 #include "traverse.h"
 
+#define FAKE_FUNC ((Func)1)
+
 m_bool scan0_class_def(Env env, Class_Def class_def);
 static m_bool scan1_exp(Env env, Exp exp);
 static m_bool scan1_stmt_list(Env env, Stmt_List list);
@@ -145,7 +147,7 @@ static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
 
 static m_bool scan1_exp_spork(Env env, Stmt code) {
   Func f = env->func;
-  env->func = f ? f: (Func)2;
+  env->func = f ? f: FAKE_FUNC;
   CHECK_BB(scan1_stmt(env, code))
   env->func = f;
   return 1;
@@ -219,7 +221,7 @@ static m_bool scan1_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
 static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
   Func f = env->func;
   if(env->class_def && !env->func)
-   env->func = (Func)2;
+   env->func = FAKE_FUNC;
   nspc_push_value(env->curr);
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
@@ -461,7 +463,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
     CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(f->tmpl && f->tmpl->base)
     return 1;
-  env->func = (Func)2;
+  env->func = FAKE_FUNC;
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
@@ -490,9 +492,8 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
   if(class_def->ext) {
     if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))
       CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-    if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def) {
+    if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def)
       CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
-    }
     CHECK_OB((class_def->type->parent  = scan_type(env, class_def->type->parent, class_def->ext)))
     if(class_def->ext->array) {
       if(!class_def->ext->array->exp_list)
