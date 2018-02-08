@@ -1637,7 +1637,7 @@ static m_bool emit_vararg_end(Emitter emit, m_uint offset) {
 
 static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
   Instr instr;
-  m_uint offset = 0;
+  m_uint offset = emit->env->class_def ? SZ_INT : 0;
   Arg_List l = emit->env->func->def->arg_list;
   m_str str = s_name(member->xid);
   while(l) {
