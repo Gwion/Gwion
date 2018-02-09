@@ -7,7 +7,7 @@ ptr();
 
 FuncTypedef.test_func();
 <<<FuncTypedef.test_func @=> FuncTypedef.ptr>>>;
-<FuncTypedef.PtrType> _ptr;
+FuncTypedef→PtrType _ptr;
 <<<FuncTypedef.ptr>>>;
 FuncTypedef.ptr();
 

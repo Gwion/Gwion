@@ -1,4 +1,4 @@
-<{int}>Ptr ptr;
+<int>Ptr ptr;
 int i[4];
 for(auto_ptr a : i)
 //for(auto a : i)
