@@ -8,10 +8,11 @@
 
 static struct Type_ t_pair_array_ext = { "PairArrayExt", SZ_INT };
 
+static CTOR(pair_array_ext_ctor) { puts("!!! builtin template ctor !!!"); }
 IMPORT {
   m_str types[] = { "A", "B" };
   CHECK_BB(importer_tmpl_ini(importer, 2, types))
-  CHECK_BB(importer_class_ini(importer, &t_pair_array_ext, NULL, NULL))
+  CHECK_BB(importer_class_ini(importer, &t_pair_array_ext, pair_array_ext_ctor, NULL))
   CHECK_BB(importer_tmpl_end(importer))
   Type_Decl* td  = new_type_decl(new_id_list(insert_symbol("Pair"), 0), 0, 0);
   Type_Decl* td0 = new_type_decl(new_id_list(insert_symbol("A"), 0), 0, 0);
