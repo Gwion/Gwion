@@ -1,8 +1,8 @@
 // [contains] template type number mismatch
-template <i>
+template <{i}>
 function void test(){}
-template <i>
+template <{i}>
 function void test(int i){}
 
-test<int, float, int>();
-//test<int>();
+test<{int, float, int}>();
+//test<{int}>();

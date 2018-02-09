@@ -1,22 +1,22 @@
-template<A, B>
+template<{A, B}>
 class C {
   A a;
   B b; 
   fun A test() {
     <<<"lol">>>;
   }
-  template<C>
+  template<{C}>
   fun void test2(C c) {
     <<<c>>>;
   }
 }
 
 //<<<C>>>;
-<int, int>C c;
-<float, int>C d;
-<polar, int>C e;
-<Vec3, int>C f;
-<Object, int>C g;
+<{int, int}>C c;
+<{float, int}>C d;
+<{polar, int}>C e;
+<{Vec3, int}>C f;
+<{Object, int}>C g;
 //C c;
 //<<<c.a>>>;
 //<<<d.a>>>;

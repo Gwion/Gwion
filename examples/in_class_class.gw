@@ -1,12 +1,12 @@
 class C
 {
-	template<a>
+	template<{a}>
 	function void test(a var){ <<<var>>>; }
 	class D { int i;}
-}
+}	
 
 C c;
-C→D d;
-C→D @d_ref;
+<C.D> d;
+<C.D> @d_ref;
 
 <<< c, d >>>;

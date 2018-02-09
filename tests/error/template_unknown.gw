@@ -1,5 +1,5 @@
 // [contains] unknown type in
- template<my_type>
+ template<{my_type}>
 function void my_function() {}
 
-my_function<unknown_type>();
+my_function<{unknown_type}>();

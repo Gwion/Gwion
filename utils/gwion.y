@@ -1,4 +1,4 @@
-%define api.pure
+%define api.pure full
 %parse-param { Scanner* arg }
 %lex-param  { void* scan }
 %name-prefix "gwion_"
@@ -58,8 +58,8 @@ m_str op2str(Operator op);
   LOOP FOR GOTO SWITCH CASE ENUM RETURN BREAK CONTINUE PLUSPLUS MINUSMINUS NEW
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
-  TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE LARROW
-  NOELSE VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
+  TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
+  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
@@ -88,7 +88,7 @@ m_str op2str(Operator op);
 %type<section> section
 %type<class_def> class_def
 %type<class_body> class_body class_body2
-%type<id_list> id_list id_dot id_decl decl_template
+%type<id_list> id_list id_dot decl_template
 %type<type_list> type_list template
 %type<ast> ast
 
@@ -100,11 +100,11 @@ m_str op2str(Operator op);
 %destructor { free_stmt($$); } <stmt>
 %destructor { free_class_def($$); } <class_def>
 %destructor { free_class_body($$); } <class_body>
-//%destructor { free_type_decl($$); } <type_decl>
+%destructor { free_type_decl($$); } <type_decl>
 %destructor { free_type_list($$); } <type_list>
 %destructor { free_exp($$); } <exp>
 
-%expect 49
+%expect 48
 %%
 
 ast
@@ -137,11 +137,6 @@ class_body2
 id_list
   : id                { $$ = new_id_list($1, get_pos(arg)); }
   | id COMMA id_list  { $$ = prepend_id_list($1, $3, get_pos(arg)); }
-  ;
-
-id_decl
-  : id                { $$ = new_id_list($1, get_pos(arg)); }
-  | id LARROW id_dot     { $$ = prepend_id_list($1, $3, get_pos(arg)); }
   ;
 
 id_dot
@@ -283,7 +278,7 @@ binary_exp
   | binary_exp op decl_exp     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); }
   ;
 
-template: { $$ = NULL; } | LT type_list GT { $$ = $2; };
+template: { $$ = NULL; } | LTB type_list GTB { $$ = $2; };
 
 op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
   | ATCHUCK     { $$ = op_at_chuck; } | PLUSCHUCK   { $$ = op_plus_chuck; }
@@ -321,7 +316,7 @@ func_args
   | LPAREN arg_list RPAREN { $$ = $2; }
   ;
 
-decl_template: TEMPLATE LT id_list GT { $$ = $3; };
+decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
   : function_decl static_decl type_decl2 id func_args code_segment
@@ -356,8 +351,11 @@ func_def
 atsym: { $$ = 0; } | ATSYM { $$ = 1; };
 
 type_decl
-  : id_decl atsym { $$ = new_type_decl($1, $2, get_pos(arg)); }
-  | LT type_list GT id_decl atsym { $$ = new_type_decl($4, $5, get_pos(arg));
+  : id atsym  { $$ = new_type_decl(new_id_list($1, get_pos(arg)), $2, get_pos(arg)); }
+  | LT id_dot GT atsym { $$ = new_type_decl($2, $4, get_pos(arg)); }
+  | LTB type_list GTB id atsym  { $$ = new_type_decl(new_id_list($4, get_pos(arg)),
+      $5, get_pos(arg)); $$->types = $2; }
+  | LTB type_list GTB LT id_dot GT atsym { $$ = new_type_decl($5, $7, get_pos(arg));
       $$->types = $2; }
   | TYPEOF LPAREN id_dot RPAREN atsym { $$ = new_type_decl2($3, $5, get_pos(arg)); }
   | CONST type_decl { CHECK_FLAG(arg, $2, ae_flag_const); $$ = $2; }

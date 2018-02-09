@@ -68,7 +68,6 @@ static int adjust(void* data);
 "%("                                { adjust(yyscanner); return PERCENTPAREN;}
 "@("                                { adjust(yyscanner); return ATPAREN;}
 "template"                          { adjust(yyscanner); return TEMPLATE;}
-"→"                                 { adjust(yyscanner); return LARROW;}
 
 "+"                                 { adjust(yyscanner); return PLUS; }
 "-"                                 { adjust(yyscanner); return MINUS; }
@@ -84,7 +83,9 @@ static int adjust(void* data);
 "=="                                { adjust(yyscanner); return EQ; }
 "!="                                { adjust(yyscanner); return NEQ; }
 "<"                                 { adjust(yyscanner); return LT; }
+"<{"                                { adjust(yyscanner); return LTB; }
 ">"                                 { adjust(yyscanner); return GT; }
+"}>"                                { adjust(yyscanner); return GTB; }
 "<="                                { adjust(yyscanner); return LE; }
 ">="                                { adjust(yyscanner); return GE; }
 "&&"                                { adjust(yyscanner); return AND; }
