@@ -9,7 +9,9 @@ const m_bool isa(const Type var, const Type parent) {
 
 const m_bool isres(const S_Symbol xid, const m_uint pos) {
   m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "now") || !name2op(s)) {
+  if(!strcmp(s, "this") || !strcmp(s, "now") ||
+     !strcmp(s, "me")   || !strcmp(s, "vararg") ||
+     !name2op(s)) {
     int ret = err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
     return -ret;
   }
