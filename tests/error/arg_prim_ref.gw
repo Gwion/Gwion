@@ -1,1 +1,2 @@
+// [contains] cannot declare/instantiate references (@) of primitive type
 function void test(int @i){}

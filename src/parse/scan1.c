@@ -33,10 +33,8 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
       CHECK_BO(err_msg(SCAN1_, decl->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
-  } else if(isa(t, &t_object) < 0 && !decl->type->array)
-    CHECK_BO(err_msg(SCAN1_, decl->pos,
-          "cannot declare references (@) of primitive type '%s'...\n"
-          "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
+  } else
+    CHECK_BO(prim_ref(decl->type, t))
   if(GET_FLAG(decl->type, ae_flag_private) && !env->class_def)
       CHECK_BO(err_msg(SCAN2_, decl->pos,
             "must declare private variables at class scope..."))

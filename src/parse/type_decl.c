@@ -3,7 +3,7 @@
 #include "absyn.h"
 #include "type.h"
 
-m_bool prim_ref(Type_Decl* td, Type t) {
+const m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, &t_object) < 0)
     CHECK_BB(err_msg(SCAN2_, td->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"

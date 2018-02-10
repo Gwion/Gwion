@@ -42,6 +42,7 @@ const m_int str2char(const m_str, const m_int);
 const m_uint num_digit(const m_uint);
 const Type array_base(Type);
 const m_bool type_ref(Type);
+const m_bool prim_ref(const Type_Decl*, const Type);
 
 extern struct Type_ t_int, t_float, t_dur, t_time, t_now;
 extern struct Type_ t_complex, t_polar, t_vec3, t_vec4;

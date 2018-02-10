@@ -1,2 +1,2 @@
-// [contains] cannot instantiate/(new) primitive type
+// [contains] cannot declare/instantiate references (@) of primitive type
 new int;

@@ -1,2 +1,2 @@
-// [contains] cannot declare references
- int @i;
+// [contains] cannot declare/instantiate references (@) of primitive type
+int @i;

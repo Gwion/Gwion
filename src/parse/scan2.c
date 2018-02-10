@@ -50,11 +50,8 @@ static m_bool scan2_arg_def_check(Arg_List list) {
           "cannot declare variables of size '0' (i.e. 'void')..."))
   if(isres(list->var_decl->xid, list->pos) > 0)
     return -1;
-  if(isa(list->type, &t_object) < 0 && GET_FLAG(list->type_decl, ae_flag_ref))
-    CHECK_BB(err_msg(SCAN2_, list->type_decl->pos,
-          "cannot declare references (@) of primitive type '%s'...\n"
-          "\t...(primitive types: 'int', 'float', 'time', 'dur')",
-          list->type->name))
+  if(GET_FLAG(list->type_decl, ae_flag_ref))
+    CHECK_BB(prim_ref(list->type_decl, list->type))
   return 1;
 }
 
@@ -654,11 +651,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     func->next = overload->d.func_ref->next;
     overload->d.func_ref->next = func;
   }
-  if(isa(f->ret_type, &t_object) < 0 && GET_FLAG(f->type_decl, ae_flag_ref))
-    CHECK_BB(err_msg(SCAN2_,  f->type_decl->pos,
-          "FUNC cannot declare references (@) of primitive type '%s'...\n"
-        "...(primitive types: 'int', 'float', 'time', 'dur')",
-        f->ret_type->name))
+  if(GET_FLAG(f->type_decl, ae_flag_ref))
+    CHECK_BB(prim_ref(f->type_decl, f->ret_type))
   f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
 
   if(scan2_arg_def(env, f) < 0)

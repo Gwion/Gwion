@@ -913,11 +913,8 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
         CHECK_OO(check_exp(env, unary->type->array->exp_list))
         CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
         t = array_type(t, unary->type->array->depth);
-      } else if(isa(t, &t_object) < 0) {
-        CHECK_BO(err_msg(TYPE_, unary->pos,
-              "cannot instantiate/(new) primitive type '%s'...\n"
-              "\t...(primitive types: 'int', 'float', 'time', 'dur')", t->name))
-      }
+      } else
+        CHECK_BO(prim_ref(unary->type, t))
       return t;
     default:
       break;
