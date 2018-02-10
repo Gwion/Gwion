@@ -514,6 +514,8 @@ INSTR(AutoLoop) {
 #ifdef GWCOV
 INSTR(InstrCoverage) {
   m_str str = code_name(shred->name, 1);
+  if(!strcmp(str, "[dtor]"))
+    return;
   size_t len = str ? strlen(str) : 6;
   char c[len + 4];
   sprintf(c, "%scov", str ? str : "gwion.");
