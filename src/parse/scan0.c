@@ -183,10 +183,9 @@ static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
 
 static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
   if(GET_FLAG(class_def, ae_flag_global)) {
-    if(env_class_def(env, NULL)) {
+    if(env_class_def(env, NULL))
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
-                       "more than one 'public' class defined..."))
-    }
+            "more than one 'public' class defined..."))
     env_class_def(env, class_def);
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
@@ -196,11 +195,10 @@ static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
 
 static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
   CHECK_BB(scan0_class_def_public(env, class_def))
-  if(nspc_lookup_type1(env->curr, class_def->name->xid)) {
+  if(nspc_lookup_type1(env->curr, class_def->name->xid))
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
           "class/type '%s' is already defined in namespace '%s'",
           s_name(class_def->name->xid), env->curr->name))
-  }
   if(isres(class_def->name->xid, class_def->name->pos) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
           s_name(class_def->name->xid)))
@@ -214,7 +212,7 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name);
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
-    env_nspc(env) : env->curr;
+      env_nspc(env) : env->curr;
   the_class->def = class_def;
   if(strstr(the_class->name, "<")) {
     ID_List types = get_total_type_list(the_class);
