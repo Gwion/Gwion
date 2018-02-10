@@ -510,7 +510,6 @@ struct Class_Def_ {
   Type_Decl* ext;
   Class_Body body;
   Type type;
-  Nspc home;
   Tmpl_Class*  tmpl;
   int pos;
 };

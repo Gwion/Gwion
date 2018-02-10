@@ -187,10 +187,9 @@ static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
                        "more than one 'public' class defined..."))
     }
-    class_def->home = env->global_nspc; // migth be user
     env_class_def(env, class_def);
     vector_add(&env->nspc_stack, (vtype)env->curr);
-    env->curr = class_def->home;
+    env->curr = env->global_nspc;
   }
   return 1;
 }
@@ -233,10 +232,8 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
 
 static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
   (void)mk_class(env, class_def->type);
-  if(class_def->home)
+  if(env->curr == env->global_nspc)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  else
-    class_def->home = env->curr;
   return 1;
 }
 
