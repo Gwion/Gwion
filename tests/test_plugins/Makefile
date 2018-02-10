@@ -15,7 +15,7 @@ else
 LDFLAGS += -bundle -undefined dynamic_lookup
 endif
 
-default: ${NAME}.so
+all: ${NAME}.so
 
 
 ${NAME}.so: ${OBJ}
