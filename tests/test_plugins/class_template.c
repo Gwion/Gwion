@@ -27,17 +27,17 @@ static MFUN(class_template_set) {
 IMPORT
 {
   const m_str list[2] = { "A", "B" };
-  importer_tmpl_ini(importer, 2, list);
-  CHECK_BB(importer_class_ini(importer, &t_class_template, class_template_ctor, NULL))
-  importer_tmpl_end(importer);
-  CHECK_BB(importer_item_ini(importer, "A[]", "key"))
-    CHECK_BB((o_map_key = importer_item_end(importer, ae_flag_member | ae_flag_template, NULL)))
-    CHECK_BB(importer_item_ini(importer, "B[]", "value"))
-    CHECK_BB((o_map_value = importer_item_end(importer, ae_flag_member, NULL)))
+  gwi_tmpl_ini(gwi, 2, list);
+  CHECK_BB(gwi_class_ini(gwi, &t_class_template, class_template_ctor, NULL))
+  gwi_tmpl_end(gwi);
+  CHECK_BB(gwi_item_ini(gwi, "A[]", "key"))
+    CHECK_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
+    CHECK_BB(gwi_item_ini(gwi, "B[]", "value"))
+    CHECK_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
 
 
-    /*importer_func_ini(importer, "B", "set", class_template_set);*/
-    /*importer_func_end(importer, ae_flag_member);*/
-  CHECK_BB(importer_class_end(importer))
+    /*gwi_func_ini(gwi, "B", "set", class_template_set);*/
+    /*gwi_func_end(gwi, ae_flag_member);*/
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

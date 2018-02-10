@@ -61,18 +61,18 @@ static MFUN(event_broadcast) {
   broadcast(o);
 }
 
-m_bool import_event(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_event, event_ctor, event_dtor))
-	importer_item_ini(importer, "int", "@shreds");
-  o_event_shred = importer_item_end(importer, ae_flag_member, NULL);
+m_bool import_event(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_event, event_ctor, event_dtor))
+	gwi_item_ini(gwi, "int", "@shreds");
+  o_event_shred = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_event_shred);
-  importer_func_ini(importer, "int", "signal", event_signal);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "broadcast", event_broadcast);
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "Event", "@now", "int"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer,  op_chuck, Event_Wait))
+  gwi_func_ini(gwi, "int", "signal", event_signal);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "broadcast", event_broadcast);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi,  op_chuck, Event_Wait))
   return 1;
 }

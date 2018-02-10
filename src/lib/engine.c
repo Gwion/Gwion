@@ -7,7 +7,7 @@
 #include "type.h"
 #include "value.h"
 #include "import.h"
-#include "importer.h"
+#include "gwi.h"
 #include "lang_private.h"
 #include "emit.h"
 
@@ -52,46 +52,46 @@ OP_CHECK(opck_basic_cast) {
 OP_EMIT(opem_basic_cast) {
   return 1;
 }
-static m_bool import_core_libs(Importer importer) {
-  CHECK_BB(importer_add_type(importer, &t_void))
-  CHECK_BB(importer_add_type(importer, &t_null))
-  CHECK_BB(importer_add_type(importer, &t_function))
-  CHECK_BB(importer_add_type(importer, &t_func_ptr))
-  CHECK_BB(import_int(importer))
-  CHECK_BB(import_float(importer))
-  CHECK_BB(import_complex(importer))
-  CHECK_BB(import_vec3(importer))
-  CHECK_BB(import_vec4(importer))
-  CHECK_BB(import_object(importer))
-  CHECK_BB(import_vararg(importer))
-  CHECK_BB(import_string(importer))
-  CHECK_BB(import_shred(importer))
-  CHECK_BB(import_event(importer))
-  CHECK_BB(import_ugen(importer))
-  CHECK_BB(import_array(importer))
-  CHECK_BB(import_ptr(importer))
-  CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "@function", NULL))
-  CHECK_BB(importer_oper_add(importer, opck_func_call))
-  CHECK_BB(importer_oper_end(importer, op_chuck, NULL))
-  CHECK_BB(importer_oper_ini(importer, "@function", "@func_ptr", NULL))
-  CHECK_BB(importer_oper_add(importer, opck_fptr_at))
-  CHECK_BB(importer_oper_emi(importer, opem_fptr_at))
-  CHECK_BB(importer_oper_end(importer, op_at_chuck, NULL))
-  CHECK_BB(importer_oper_add(importer, opck_fptr_cast))
-  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
-  CHECK_BB(importer_oper_end(importer, op_dollar, NULL))
+static m_bool import_core_libs(Gwi gwi) {
+  CHECK_BB(gwi_add_type(gwi, &t_void))
+  CHECK_BB(gwi_add_type(gwi, &t_null))
+  CHECK_BB(gwi_add_type(gwi, &t_function))
+  CHECK_BB(gwi_add_type(gwi, &t_func_ptr))
+  CHECK_BB(import_int(gwi))
+  CHECK_BB(import_float(gwi))
+  CHECK_BB(import_complex(gwi))
+  CHECK_BB(import_vec3(gwi))
+  CHECK_BB(import_vec4(gwi))
+  CHECK_BB(import_object(gwi))
+  CHECK_BB(import_vararg(gwi))
+  CHECK_BB(import_string(gwi))
+  CHECK_BB(import_shred(gwi))
+  CHECK_BB(import_event(gwi))
+  CHECK_BB(import_ugen(gwi))
+  CHECK_BB(import_array(gwi))
+  CHECK_BB(import_ptr(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_func_call))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
+  CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
+  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_at))
+  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
+  CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
   return 1;
 }
 
-static m_bool import_other_libs(Importer importer) {
-  importer->env->type_xid = te_last;
-  CHECK_BB(import_pair(importer))
-  CHECK_BB(import_fileio(importer))
-  CHECK_BB(import_std(importer))
-  CHECK_BB(import_math(importer))
-  CHECK_BB(import_machine(importer))
-  CHECK_BB(import_soundpipe(importer))
-  CHECK_BB(import_modules(importer))
+static m_bool import_other_libs(Gwi gwi) {
+  gwi->env->type_xid = te_last;
+  CHECK_BB(import_pair(gwi))
+  CHECK_BB(import_fileio(gwi))
+  CHECK_BB(import_std(gwi))
+  CHECK_BB(import_math(gwi))
+  CHECK_BB(import_machine(gwi))
+  CHECK_BB(import_soundpipe(gwi))
+  CHECK_BB(import_modules(gwi))
   return 1;
 }
 
@@ -99,17 +99,17 @@ static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
-static void handle_plug(Importer importer, m_str c) {
+static void handle_plug(Gwi gwi, m_str c) {
   void* handler;
   if((handler = dlopen(c, RTLD_LAZY))) {
-    m_bool(*import)(Importer) = (m_bool(*)(Importer))(intptr_t)dlsym(handler, "import");
+    m_bool(*import)(Gwi) = (m_bool(*)(Gwi))(intptr_t)dlsym(handler, "import");
     if(import) {
-      if(import(importer) > 0) {
+      if(import(gwi) > 0) {
         vector_add(&vm->plug, (vtype)handler);
-        nspc_commit(importer->env->curr);
+        nspc_commit(gwi->env->curr);
       } else {
 exit(2);
-        env_pop_class(importer->env);
+        env_pop_class(gwi->env);
         dlclose(handler);
        }
     } else {
@@ -123,7 +123,7 @@ exit(2);
    }
 }
 
-static void add_plugs(Importer importer, Vector plug_dirs) {
+static void add_plugs(Gwi gwi, Vector plug_dirs) {
   m_uint i;
    for(i = 0; i < vector_size(plug_dirs); i++) {
     m_str dirname = (m_str)vector_at(plug_dirs, i);
@@ -133,7 +133,7 @@ static void add_plugs(Importer importer, Vector plug_dirs) {
       while(n--) {
         char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
         sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(importer, c);
+        handle_plug(gwi, c);
         free(namelist[n]);
        }
       free(namelist);
@@ -145,9 +145,9 @@ Env type_engine_init(VM* vm, const Vector plug_dirs) {
   Env env = new_env();
   CHECK_OO((vm->emit = new_emitter(env)))
   vm->emit->filename = "[builtin]";
-  struct Importer_ importer = { vm->emit, env };
-   if(import_core_libs(&importer) < 0 ||
-      import_other_libs(&importer) < 0 ) {
+  struct Gwi_ gwi = { vm->emit, env };
+   if(import_core_libs(&gwi) < 0 ||
+      import_other_libs(&gwi) < 0 ) {
     free_env(env);
     return NULL;
   }
@@ -155,6 +155,6 @@ Env type_engine_init(VM* vm, const Vector plug_dirs) {
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
-  add_plugs(&importer, plug_dirs);
+  add_plugs(&gwi, plug_dirs);
   return env;
 }

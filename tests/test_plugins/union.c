@@ -6,10 +6,10 @@
 
 IMPORT
 {
-  CHECK_BB(importer_union_ini(importer, NULL))
-  CHECK_BB(importer_union_add(importer,"float", "f"))
-  CHECK_BB(importer_union_add(importer,"int", "i"))
-  /*CHECK_BB(importer_union_add(importer,"Object", "o", ae_flag_ref))*/
-  CHECK_BB(importer_union_end(importer, 0))
+  CHECK_BB(gwi_union_ini(gwi, NULL))
+  CHECK_BB(gwi_union_add(gwi,"float", "f"))
+  CHECK_BB(gwi_union_add(gwi,"int", "i"))
+  /*CHECK_BB(gwi_union_add(gwi,"Object", "o", ae_flag_ref))*/
+  CHECK_BB(gwi_union_end(gwi, 0))
   return 1;
 }

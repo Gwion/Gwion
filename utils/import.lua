@@ -39,19 +39,19 @@ end
 
 function declare_gw_param(param)
   if string.match(param.type, "int") then
-    print("\t\t importer_func_arg(importer, \"int\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"int\", \""..param.name.."\");")
   elseif string.match(param.type, "SPFLOAT") then
-    print("\t\t importer_func_arg(importer, \"float\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"float\", \""..param.name.."\");")
   elseif string.match(param.type, "char*") then
-    print("\t\t importer_func_arg(importer, \"string\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"string\", \""..param.name.."\");")
   elseif string.match(param.type, "sp_ftbl%s%*%*") then
-    print("\t\t importer_func_arg(importer, \"ftbl[]\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"ftbl[]\", \""..param.name.."\");")
   elseif string.match(param.type, "sp_ftbl%*%*") then
-    print("\t\t importer_func_arg(importer, \"ftbl[]\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"ftbl[]\", \""..param.name.."\");")
   elseif string.match(param.type, "sp_ftbl%s%*") then
-    print("\t\t importer_func_arg(importer, \"ftbl\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"ftbl\", \""..param.name.."\");")
   elseif string.match(param.type, "sp_ftbl%*") then
-    print("\t\t importer_func_arg(importer, \"ftbl\", \""..param.name.."\");")
+    print("\t\t gwi_func_arg(gwi, \"ftbl\", \""..param.name.."\");")
   else print("unknown "..param.type)
     os.exit(1);
   end
@@ -346,33 +346,33 @@ for n in ipairs(a) do
   end
 end
 print("")
-print("m_bool import_soundpipe(Importer importer)\n{\n")
-print("\tCHECK_BB(importer_class_ini(importer, &t_ftbl, NULL, ftbl_dtor))")
-print("\tCHECK_BB(importer_item_ini(importer, \"int\", \"@ftbl\"))")
-print("\to_ftbl_data = importer_item_end(importer, 0, NULL);")
+print("m_bool import_soundpipe(Gwi gwi)\n{\n")
+print("\tCHECK_BB(gwi_class_ini(gwi, &t_ftbl, NULL, ftbl_dtor))")
+print("\tCHECK_BB(gwi_item_ini(gwi, \"int\", \"@ftbl\"))")
+print("\to_ftbl_data = gwi_item_end(gwi, 0, NULL);")
 for n in ipairs(a) do
   local gen_name = a[n]
   local object = sptbl[gen_name]
   if string.match(object.modtype, "gen") then
-    print("\timporter_func_ini(importer, \"void\", \""..gen_name.."\", ftbl_"..gen_name..");")
+    print("\tgwi_func_ini(gwi, \"void\", \""..gen_name.."\", ftbl_"..gen_name..");")
     local i = 1; -- why this 'i' ?
-    print("\timporter_func_arg(importer, \"int\", \"size\");")
+    print("\tgwi_func_arg(gwi, \"int\", \"size\");")
     if(object.params ~= nil) then
       while object.params[i]  do
         declare_gw_param(object.params[i])
         i = i+1
       end
     end
-    print("\tCHECK_BB(importer_func_end(importer, 0))")
+    print("\tCHECK_BB(gwi_func_end(gwi, 0))")
   end
 end
-print("\tCHECK_BB(importer_class_end(importer))\n")
+print("\tCHECK_BB(gwi_class_end(gwi))\n")
 
 for n in ipairs(a) do
   local mod_name = a[n]
   local object = sptbl[mod_name]
   if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
-    print("\tCHECK_BB(importer_class_ini(importer, &t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
+    print("\tCHECK_BB(gwi_class_ini(gwi, &t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
     local nmandatory = 0
     local tbl = object.params.mandatory
     if tbl then
@@ -381,46 +381,46 @@ for n in ipairs(a) do
       end
     end
     if nmandatory > 0 then
-      print("\timporter_func_ini(importer, \"void\", \"init\", "..mod_name.."_init);")
+      print("\tgwi_func_ini(gwi, \"void\", \"init\", "..mod_name.."_init);")
       local tbl = object.params.mandatory
       if tbl then
         for _, v in pairs(tbl) do
           declare_gw_param(v)
         end
       end
-      print("\tCHECK_BB(importer_func_end(importer, 0))")
+      print("\tCHECK_BB(gwi_func_end(gwi, 0))")
     end
     local tbl = object.params.optional
     if tbl then
       for _, v in pairs(tbl) do
         if string.match(v.type, "int") then
-          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"int\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "SPFLOAT") then
-          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"float\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "char") then
-          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"string\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*%*") then
-          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*") then
-          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"ftbl\", \""..v.name.."\", "..mod_name.."_get_"..v.name..");")
         end
-        print("\tCHECK_BB(importer_func_end(importer, 0))")
+        print("\tCHECK_BB(gwi_func_end(gwi, 0))")
         if string.match(v.type, "int") then
-          print("\timporter_func_ini(importer, \"int\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"int\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "SPFLOAT") then
-          print("\timporter_func_ini(importer, \"float\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"float\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "char") then
-          print("\timporter_func_ini(importer, \"string\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"string\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*%*") then
-          print("\timporter_func_ini(importer, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"ftbl[]\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         elseif string.match(v.type, "sp_ftbl%s%*") then
-          print("\timporter_func_ini(importer, \"ftbl\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
+          print("\tgwi_func_ini(gwi, \"ftbl\", \""..v.name.."\", "..mod_name.."_set_"..v.name..");")
         end
         declare_gw_param(v)
-        print("\tCHECK_BB(importer_func_end(importer, 0))")
+        print("\tCHECK_BB(gwi_func_end(gwi, 0))")
       end
     end
-    print("\tCHECK_BB(importer_class_end(importer))\n")
+    print("\tCHECK_BB(gwi_class_end(gwi))\n")
   end
 end
 print("\treturn 1;\n}")

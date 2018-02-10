@@ -91,46 +91,46 @@ static DTOR(shred_dtor) {
   release(o, shred);
 }
 
-m_bool import_shred(Importer importer) {
+m_bool import_shred(Gwi gwi) {
   SET_FLAG((&t_shred), ae_flag_abstract);
-  CHECK_BB(importer_class_ini(importer,  &t_shred, NULL, shred_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  &t_shred, NULL, shred_dtor))
 
-	importer_item_ini(importer, "int", "@me");
-  o_shred_me = importer_item_end(importer, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "int", "@me");
+  o_shred_me = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_shred_me)
 
-  importer_func_ini(importer, "void", "exit", vm_shred_exit);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "void", "exit", vm_shred_exit);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "running", vm_shred_is_running);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "running", vm_shred_is_running);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "done", vm_shred_is_done);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "done", vm_shred_is_done);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "id", vm_shred_id);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "id", vm_shred_id);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "Shred", "fromId", vm_shred_from_id);
-  importer_func_arg(importer, "int", "arg1");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "Shred", "fromId", vm_shred_from_id);
+  gwi_func_arg(gwi, "int", "arg1");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "void", "yield", shred_yield);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "void", "yield", shred_yield);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "args", shred_args);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "args", shred_args);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "arg", shred_arg);
-  importer_func_arg(importer, "int", "n");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "arg", shred_arg);
+  gwi_func_arg(gwi, "int", "n");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "path", shred_path);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "path", shred_path);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "dir", shred_dir);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "dir", shred_dir);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

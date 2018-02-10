@@ -92,26 +92,26 @@ MFUN(sinosc_set_amp) {
   *(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
-static m_bool import_sinosc(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_sinosc, sinosc_ctor, sinosc_dtor))
-  importer_func_ini(importer, "void", "init", sinosc_size);
-  importer_func_arg(importer, "int", "size");
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "void", "init", sinosc_size_phase);
-  importer_func_arg(importer, "int", "size");
-  importer_func_arg(importer, "float", "phase");
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "freq", sinosc_get_freq);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "freq", sinosc_set_freq);
-  importer_func_arg(importer, "float", "freq");
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "amp", sinosc_get_amp);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "amp", sinosc_set_amp);
-  importer_func_arg(importer, "float", "amp");
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_sinosc(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_sinosc, sinosc_ctor, sinosc_dtor))
+  gwi_func_ini(gwi, "void", "init", sinosc_size);
+  gwi_func_arg(gwi, "int", "size");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "init", sinosc_size_phase);
+  gwi_func_arg(gwi, "int", "size");
+  gwi_func_arg(gwi, "float", "phase");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "freq", sinosc_get_freq);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "freq", sinosc_set_freq);
+  gwi_func_arg(gwi, "float", "freq");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "amp", sinosc_get_amp);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "amp", sinosc_set_amp);
+  gwi_func_arg(gwi, "float", "amp");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -141,14 +141,14 @@ static MFUN(gain_set_gain) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT);
 }
 
-static m_bool import_gain(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_gain, gain_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "gain", gain_get_gain);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "gain", gain_set_gain);
-  importer_func_arg(importer, "float", "arg0");
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_gain(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_gain, gain_ctor, basic_dtor))
+  gwi_func_ini(gwi, "float", "gain", gain_get_gain);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "gain", gain_set_gain);
+  gwi_func_arg(gwi, "float", "arg0");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -174,14 +174,14 @@ static MFUN(impulse_set_next) {
   *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT));
 }
 
-static m_bool import_impulse(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_impulse, impulse_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "next", impulse_get_next);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "next", impulse_set_next);
-  importer_func_arg(importer, "float", "arg0");
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_impulse(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_impulse, impulse_ctor, basic_dtor))
+  gwi_func_ini(gwi, "float", "next", impulse_get_next);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "next", impulse_set_next);
+  gwi_func_arg(gwi, "float", "arg0");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -198,9 +198,9 @@ static CTOR(fullrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_fullrect(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_fullrect, fullrect_ctor, basic_dtor))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_fullrect(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_fullrect, fullrect_ctor, basic_dtor))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -220,9 +220,9 @@ static CTOR(halfrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_halfrect(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_halfrect, halfrect_ctor, basic_dtor))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_halfrect(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_halfrect, halfrect_ctor, basic_dtor))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -246,14 +246,14 @@ static MFUN(step_set_next) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
-static m_bool import_step(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_step, step_ctor, basic_dtor))
-  importer_func_ini(importer, "float", "next", step_get_next);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "float", "next", step_set_next);
-  importer_func_arg(importer, "float", "arg0");
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_step(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_step, step_ctor, basic_dtor))
+  gwi_func_ini(gwi, "float", "next", step_get_next);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "float", "next", step_set_next);
+  gwi_func_arg(gwi, "float", "arg0");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
@@ -274,19 +274,19 @@ static CTOR(zerox_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_zerox(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_zerox, zerox_ctor, basic_dtor))
-  CHECK_BB(importer_class_end(importer))
+static m_bool import_zerox(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_zerox, zerox_ctor, basic_dtor))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
-m_bool import_modules(Importer importer) {
-  CHECK_BB(import_sinosc(importer))
-  CHECK_BB(import_gain(importer))
-  CHECK_BB(import_impulse(importer))
-  CHECK_BB(import_fullrect(importer))
-  CHECK_BB(import_halfrect(importer))
-  CHECK_BB(import_step(importer))
-  CHECK_BB(import_zerox(importer))
+m_bool import_modules(Gwi gwi) {
+  CHECK_BB(import_sinosc(gwi))
+  CHECK_BB(import_gain(gwi))
+  CHECK_BB(import_impulse(gwi))
+  CHECK_BB(import_fullrect(gwi))
+  CHECK_BB(import_halfrect(gwi))
+  CHECK_BB(import_step(gwi))
+  CHECK_BB(import_zerox(gwi))
   return 1;
 }

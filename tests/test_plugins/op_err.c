@@ -9,9 +9,9 @@ static struct Type_ t_invalid_var_name = { "invalid_var_name", SZ_INT, &t_object
 MFUN(test_mfun){}
 IMPORT
 {
-  importer_oper_ini(importer, "int", "int", "int"); // ignore the check
-  importer_oper_end(importer, 220, NULL); // ignore the check.
-  CHECK_BB(importer_oper_ini(importer, "int", "int", "int"))
-  CHECK_BB(importer_oper_end(importer, op_chuck, NULL))
+  gwi_oper_ini(gwi, "int", "int", "int"); // ignore the check
+  gwi_oper_end(gwi, 220, NULL); // ignore the check.
+  CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
   return 1;
 }

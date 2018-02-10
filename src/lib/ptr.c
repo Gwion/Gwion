@@ -99,20 +99,20 @@ static DTOR(ptr_dtor) {
 }
 */
 
-m_bool import_ptr(Importer importer) {
+m_bool import_ptr(Gwi gwi) {
   const m_str list[] = { "A" };
-  CHECK_BB(importer_tmpl_ini(importer, 1, list))
-  CHECK_BB(importer_class_ini(importer, &t_ptr, NULL, NULL))
-  CHECK_BB(importer_tmpl_end(importer))
-  CHECK_BB(importer_item_ini(importer, "int", "@val"))
-  CHECK_BB(importer_item_end(importer, 0, NULL))
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, (m_str)OP_ANY_TYPE, "Ptr", NULL))
-  CHECK_BB(importer_oper_add(importer, opck_ptr_assign))
-  CHECK_BB(importer_oper_end(importer, op_trig, instr_ptr_assign))
-  CHECK_BB(importer_oper_ini(importer, NULL, "Ptr", NULL))
-  CHECK_BB(importer_oper_add(importer, opck_ptr_deref))
-  CHECK_BB(importer_oper_emi(importer, opem_ptr_deref))
-  CHECK_BB(importer_oper_end(importer, op_times, instr_ptr_deref))
+  CHECK_BB(gwi_tmpl_ini(gwi, 1, list))
+  CHECK_BB(gwi_class_ini(gwi, &t_ptr, NULL, NULL))
+  CHECK_BB(gwi_tmpl_end(gwi))
+  CHECK_BB(gwi_item_ini(gwi, "int", "@val"))
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_ptr_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_trig, instr_ptr_assign))
+  CHECK_BB(gwi_oper_ini(gwi, NULL, "Ptr", NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_ptr_deref))
+  CHECK_BB(gwi_oper_emi(gwi, opem_ptr_deref))
+  CHECK_BB(gwi_oper_end(gwi, op_times, instr_ptr_deref))
   return 1;
 }

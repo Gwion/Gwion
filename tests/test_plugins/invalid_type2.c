@@ -9,9 +9,9 @@ static struct Type_ t_invalid_var_type = { "invalid_var_type", SZ_INT, &t_object
 MFUN(test_mfun){}
 IMPORT
 {
-  CHECK_BB(importer_class_ini(importer, &t_invalid_var_type, NULL, NULL))
-  CHECK_BB(importer_item_ini(importer,".int", "test"))
-  CHECK_BB(importer_item_end(importer, 0, NULL))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi, &t_invalid_var_type, NULL, NULL))
+  CHECK_BB(gwi_item_ini(gwi,".int", "test"))
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

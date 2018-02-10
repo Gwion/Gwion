@@ -750,177 +750,177 @@ static MFUN(string_toFloat) {
   *(m_float*)RETURN = atof(STRING(o));
 }
 
-m_bool import_string(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_string, string_ctor, NULL))
+m_bool import_string(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_string, string_ctor, NULL))
 
-	importer_item_ini(importer, "int", "@data");
-  o_string_data = importer_item_end(importer,   ae_flag_const, NULL);
+	gwi_item_ini(gwi, "int", "@data");
+  o_string_data = gwi_item_end(gwi,   ae_flag_const, NULL);
   CHECK_BB(o_string_data)
 
-  importer_func_ini(importer, "int", "size", string_len);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "size", string_len);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "upper", string_upper);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "upper", string_upper);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "lower", string_lower);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "lower", string_lower);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "ltrim", string_ltrim);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "ltrim", string_ltrim);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "rtrim", string_rtrim);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "rtrim", string_rtrim);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "trim", string_trim);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "trim", string_trim);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "charAt", string_charAt);
-  importer_func_arg(importer, "int", "pos");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "charAt", string_charAt);
+  gwi_func_arg(gwi, "int", "pos");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "charAt", string_setCharAt);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "int", "char");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "charAt", string_setCharAt);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "int", "char");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "substring", string_substring);
-  importer_func_arg(importer, "int", "start");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "substring", string_substring);
+  gwi_func_arg(gwi, "int", "start");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "substring", string_substringN);
-  importer_func_arg(importer, "int", "start");
-  importer_func_arg(importer, "int", "end");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "substring", string_substringN);
+  gwi_func_arg(gwi, "int", "start");
+  gwi_func_arg(gwi, "int", "end");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "insert", string_insert);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "string", "string");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "insert", string_insert);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "string", "string");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "replace", string_replace);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "string", "string");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "replace", string_replace);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "string", "string");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "string", "replace", string_replaceN);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "int", "n");
-  importer_func_arg(importer, "string", "string");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "string", "replace", string_replaceN);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "int", "n");
+  gwi_func_arg(gwi, "string", "string");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "find", string_find);
-  importer_func_arg(importer, "int", "char");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "find", string_find);
+  gwi_func_arg(gwi, "int", "char");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "find", string_findStart);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "int", "char");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "find", string_findStart);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "int", "char");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "find", string_findStr);
-  importer_func_arg(importer, "string", "str");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "find", string_findStr);
+  gwi_func_arg(gwi, "string", "str");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "find", string_findStrStart);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "string", "str");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "find", string_findStrStart);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "string", "str");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "rfind", string_rfind);
-  importer_func_arg(importer, "int", "char");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "rfind", string_rfind);
+  gwi_func_arg(gwi, "int", "char");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "rfind", string_rfindStart);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "int", "char");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "rfind", string_rfindStart);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "int", "char");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "rfind", string_rfindStr);
-  importer_func_arg(importer, "string", "str");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "rfind", string_rfindStr);
+  gwi_func_arg(gwi, "string", "str");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "rfind", string_rfindStrStart);
-  importer_func_arg(importer, "int", "pos");
-  importer_func_arg(importer, "string", "str");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "rfind", string_rfindStrStart);
+  gwi_func_arg(gwi, "int", "pos");
+  gwi_func_arg(gwi, "string", "str");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "void",   "erase", string_erase);
-  importer_func_arg(importer, "int", "start");
-  importer_func_arg(importer, "int", "length");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "void",   "erase", string_erase);
+  gwi_func_arg(gwi, "int", "start");
+  gwi_func_arg(gwi, "int", "length");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "toInt", string_toInt);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "toInt", string_toInt);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "float", "toFloat", string_toFloat);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "float", "toFloat", string_toFloat);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "string",  "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       String_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, String_Plus))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, "string",  "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       String_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "string",  "string", "int"))
-  CHECK_BB(importer_oper_end(importer, op_eq,       String_eq))
+  CHECK_BB(gwi_oper_ini(gwi, "string",  "string", "int"))
+  CHECK_BB(gwi_oper_end(gwi, op_eq,       String_eq))
 
-  CHECK_BB(importer_oper_ini(importer, "int",     "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Int_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Int_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Int_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "int",     "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Int_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Int_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Int_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "float",   "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Float_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Float_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Float_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "float",   "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Float_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Float_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Float_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "complex", "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Complex_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Complex_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Complex_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "complex", "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Complex_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Complex_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Complex_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "polar",   "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Polar_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Polar_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Polar_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "polar",   "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Polar_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Polar_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Polar_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer,"Vec3",     "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Vec3_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Vec3_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Vec3_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi,"Vec3",     "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Vec3_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Vec3_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Vec3_String_Plus))
   
-  CHECK_BB(importer_oper_ini(importer, "Vec4",    "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Vec4_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Vec4_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Vec4_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec4",    "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Vec4_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Vec4_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Vec4_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "Object",  "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Object_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Object_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Object_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "Object",  "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Object_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Object_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Object_String_Plus))
 
-  CHECK_BB(importer_oper_ini(importer, "@null",   "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,      Object_String_Assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,       Object_String))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck, Object_String_Plus))
+  CHECK_BB(gwi_oper_ini(gwi, "@null",   "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,      Object_String_Assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,       Object_String))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Object_String_Plus))
   return 1;
 }

@@ -300,7 +300,7 @@ static MFUN(ugen_get_last) {
   *(m_float*)RETURN = UGEN(o)->last;
 }
 
-static m_bool import_global_ugens(Importer importer) {
+static m_bool import_global_ugens(Gwi gwi) {
   vm->dac       = new_M_UGen();
   vm->adc       = new_M_UGen();
   vm->blackhole = new_M_UGen();
@@ -314,14 +314,14 @@ static m_bool import_global_ugens(Importer importer) {
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
 
-//  importer_add_value(importer, "adc",        &t_ugen, 1, vm->adc);
+//  gwi_add_value(gwi, "adc",        &t_ugen, 1, vm->adc);
 
-  importer_item_ini(importer, "UGen", "adc");
-  importer_item_end(importer, ae_flag_const, vm->adc);
-  importer_item_ini(importer, "UGen", "dac");
-  importer_item_end(importer, ae_flag_const, vm->dac);
-  importer_item_ini(importer, "UGen", "blackhole");
-  importer_item_end(importer, ae_flag_const, vm->blackhole);
+  gwi_item_ini(gwi, "UGen", "adc");
+  gwi_item_end(gwi, ae_flag_const, vm->adc);
+  gwi_item_ini(gwi, "UGen", "dac");
+  gwi_item_end(gwi, ae_flag_const, vm->dac);
+  gwi_item_ini(gwi, "UGen", "blackhole");
+  gwi_item_end(gwi, ae_flag_const, vm->blackhole);
   return 1;
 }
 
@@ -331,39 +331,39 @@ static OP_CHECK(chuck_ugen) {
   return bin->rhs->type;
 }
 
-m_bool import_ugen(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_ugen, ugen_ctor, ugen_dtor))
+m_bool import_ugen(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_ugen, ugen_ctor, ugen_dtor))
 
-	importer_item_ini(importer, "int", "@ugen");
-  o_object_ugen = importer_item_end(importer, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "int", "@ugen");
+  o_object_ugen = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_object_ugen)
 
-  importer_func_ini(importer, "UGen", "chan", ugen_channel);
-  importer_func_arg(importer, "int", "arg0");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "UGen", "chan", ugen_channel);
+  gwi_func_arg(gwi, "int", "arg0");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "op", ugen_get_op);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "op", ugen_get_op);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "op", ugen_set_op);
-  importer_func_arg(importer, "int", "arg0");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "op", ugen_set_op);
+  gwi_func_arg(gwi, "int", "arg0");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "float", "last", ugen_get_last);
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+  gwi_func_ini(gwi, "float", "last", ugen_get_last);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(importer_oper_ini(importer, "UGen", "UGen", "UGen"))
-  CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_chuck,   ugen_connect))
-  CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_unchuck, ugen_disconnect))
-  CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_trig,    trig_connect))
-  CHECK_BB(importer_oper_add(importer, chuck_ugen))
-  CHECK_BB(importer_oper_end(importer, op_untrig,  trig_disconnect))
+  CHECK_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
+  CHECK_BB(gwi_oper_add(gwi, chuck_ugen))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,   ugen_connect))
+  CHECK_BB(gwi_oper_add(gwi, chuck_ugen))
+  CHECK_BB(gwi_oper_end(gwi, op_unchuck, ugen_disconnect))
+  CHECK_BB(gwi_oper_add(gwi, chuck_ugen))
+  CHECK_BB(gwi_oper_end(gwi, op_trig,    trig_connect))
+  CHECK_BB(gwi_oper_add(gwi, chuck_ugen))
+  CHECK_BB(gwi_oper_end(gwi, op_untrig,  trig_disconnect))
 
 
-  CHECK_BB(import_global_ugens(importer))
+  CHECK_BB(import_global_ugens(gwi))
   return 1;
 }

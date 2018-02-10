@@ -29,10 +29,10 @@ static MFUN(m_variadic) {
 
 
 IMPORT {
-  CHECK_BB(importer_class_ini(importer, &t_variadic, NULL, NULL))
-  CHECK_BB(importer_func_ini(importer, "void", "member", m_variadic))
-  CHECK_BB(importer_func_arg(importer, "string", "format"))
-  CHECK_BB(importer_func_end(importer, ae_flag_variadic))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi, &t_variadic, NULL, NULL))
+  CHECK_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
+  CHECK_BB(gwi_func_arg(gwi, "string", "format"))
+  CHECK_BB(gwi_func_end(gwi, ae_flag_variadic))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

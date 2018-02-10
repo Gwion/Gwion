@@ -519,7 +519,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
-    def->tmpl = new_func_def_tmpl(value->d.func_ref->def->tmpl->list, 0);
+    def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, 0);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
     CHECK_BO(template_push_types(env, base->tmpl->list, types))
@@ -1531,7 +1531,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   Value variadic = NULL;
   m_bool ret = 1;
 
-  if(f->tmpl && f->tmpl->base)
+  if(tmpl_base(f->tmpl))
     return 1;
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)

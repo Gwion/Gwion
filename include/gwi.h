@@ -42,7 +42,7 @@ typedef struct {
   Decl_List list;
 } DL_Union;
 
-struct Importer_{
+struct Gwi_{
   Emitter emit;
   Env env;
   Class_Body body;

@@ -165,61 +165,61 @@ static INSTR(vec3_r_assign) {
   PUSH_REG(shred, SZ_VEC3);
 }
 
-m_bool import_vec3(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_vec3, NULL, NULL))
-	importer_item_ini(importer, "float", "x");
-    importer_item_end(importer, ae_flag_member, NULL);
-	importer_item_ini(importer, "float", "y");
-  importer_item_end(importer, ae_flag_member, NULL);
-	importer_item_ini(importer, "float", "z");
-  importer_item_end(importer, ae_flag_member, NULL);
-  importer_func_ini(importer, "void", "set", vec3_set);
-  importer_func_arg(importer, "float", "x");
-  importer_func_arg(importer, "float", "y");
-  importer_func_arg(importer, "float", "z");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "setAll", vec3_setAll);
-  importer_func_arg(importer, "float", "x");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "magnitude", vec3_magnitude);
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "normalize", vec3_normalize);
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", vec3_interp);
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", vec3_float);
-  importer_func_arg(importer, "float", "delta");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "interp", vec3_dur);
-  importer_func_arg(importer, "dur", "delta");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "update", vec3_update);
-  importer_func_arg(importer, "float", "goal");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "update", vec3_update_slew);
-  importer_func_arg(importer, "float", "goal");
-  importer_func_arg(importer, "float", "slew");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "supdate", vec3_update_set);
-  importer_func_arg(importer, "float", "goalAndValue");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "supdate", vec3_update_set_slew);
-  importer_func_arg(importer, "float", "goalAndValue");
-  importer_func_arg(importer, "float", "slew");
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+m_bool import_vec3(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_vec3, NULL, NULL))
+	gwi_item_ini(gwi, "float", "x");
+    gwi_item_end(gwi, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "y");
+  gwi_item_end(gwi, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "z");
+  gwi_item_end(gwi, ae_flag_member, NULL);
+  gwi_func_ini(gwi, "void", "set", vec3_set);
+  gwi_func_arg(gwi, "float", "x");
+  gwi_func_arg(gwi, "float", "y");
+  gwi_func_arg(gwi, "float", "z");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "setAll", vec3_setAll);
+  gwi_func_arg(gwi, "float", "x");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "float", "magnitude", vec3_magnitude);
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "normalize", vec3_normalize);
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "float", "interp", vec3_interp);
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "float", "interp", vec3_float);
+  gwi_func_arg(gwi, "float", "delta");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "float", "interp", vec3_dur);
+  gwi_func_arg(gwi, "dur", "delta");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "update", vec3_update);
+  gwi_func_arg(gwi, "float", "goal");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "update", vec3_update_slew);
+  gwi_func_arg(gwi, "float", "goal");
+  gwi_func_arg(gwi, "float", "slew");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "supdate", vec3_update_set);
+  gwi_func_arg(gwi, "float", "goalAndValue");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "supdate", vec3_update_set_slew);
+  gwi_func_arg(gwi, "float", "goalAndValue");
+  gwi_func_arg(gwi, "float", "slew");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(importer_oper_ini(importer, "Vec3", "Vec3", "Vec3"))
-  CHECK_BB(importer_oper_end(importer, op_plus, vec3_add))
-  CHECK_BB(importer_oper_end(importer, op_minus, vec3_minus))
-  CHECK_BB(importer_oper_end(importer, op_times, vec3_xproduct))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck, vec3_r_assign))
-  CHECK_BB(importer_oper_ini(importer, "Vec3", "float", "Vec3"))
-  CHECK_BB(importer_oper_end(importer, op_times,  vec3_times_float))
-  CHECK_BB(importer_oper_end(importer, op_divide, vec3_divide_float))
-  CHECK_BB(importer_oper_ini(importer, "float", "Vec3", "Vec3"))
-  CHECK_BB(importer_oper_end(importer, op_times,  float_times_vec3))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "Vec3"))
+  CHECK_BB(gwi_oper_end(gwi, op_plus, vec3_add))
+  CHECK_BB(gwi_oper_end(gwi, op_minus, vec3_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_times, vec3_xproduct))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec3_r_assign))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
+  CHECK_BB(gwi_oper_end(gwi, op_times,  vec3_times_float))
+  CHECK_BB(gwi_oper_end(gwi, op_divide, vec3_divide_float))
+  CHECK_BB(gwi_oper_ini(gwi, "float", "Vec3", "Vec3"))
+  CHECK_BB(gwi_oper_end(gwi, op_times,  float_times_vec3))
   return 1;
 }
 
@@ -321,40 +321,40 @@ static INSTR(vec4_r_assign) {
   PUSH_REG(shred, SZ_VEC4);
 }
 
-m_bool import_vec4(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_vec4, NULL, NULL))
-	importer_item_ini(importer, "float", "x");
-    importer_item_end(importer, ae_flag_member, NULL);
-	importer_item_ini(importer, "float", "y");
-  importer_item_end(importer, ae_flag_member, NULL);
-	importer_item_ini(importer, "float", "z");
-  importer_item_end(importer, ae_flag_member, NULL);
-	importer_item_ini(importer, "float", "w");
-  importer_item_end(importer, ae_flag_member, NULL);
-  importer_func_ini(importer, "void", "set", vec4_set);
-  importer_func_arg(importer, "float", "x");
-  importer_func_arg(importer, "float", "y");
-  importer_func_arg(importer, "float", "z");
-  importer_func_arg(importer, "float", "w");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "setAll", vec4_setAll);
-  importer_func_arg(importer, "float", "x");
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "float", "magnitude", vec4_magnitude);
-  CHECK_BB(importer_func_end(importer, 0))
-    importer_func_ini(importer, "void", "normalize", vec4_normalize);
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "Vec4", "Vec4", "Vec4"))
-  CHECK_BB(importer_oper_end(importer, op_plus,  vec4_add))
-  CHECK_BB(importer_oper_end(importer, op_minus, vec4_minus))
-  CHECK_BB(importer_oper_end(importer, op_times, vec4_xproduct))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck, vec4_r_assign))
-  CHECK_BB(importer_oper_ini(importer, "Vec4", "float", "Vec4"))
-  CHECK_BB(importer_oper_end(importer, op_times, vec4_times_float))
-  CHECK_BB(importer_oper_end(importer, op_divide, vec4_divide_float))
-  CHECK_BB(importer_oper_ini(importer, "float", "Vec4", "Vec4"))
-  CHECK_BB(importer_oper_end(importer, op_times, float_times_vec4))
+m_bool import_vec4(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_vec4, NULL, NULL))
+	gwi_item_ini(gwi, "float", "x");
+    gwi_item_end(gwi, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "y");
+  gwi_item_end(gwi, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "z");
+  gwi_item_end(gwi, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "w");
+  gwi_item_end(gwi, ae_flag_member, NULL);
+  gwi_func_ini(gwi, "void", "set", vec4_set);
+  gwi_func_arg(gwi, "float", "x");
+  gwi_func_arg(gwi, "float", "y");
+  gwi_func_arg(gwi, "float", "z");
+  gwi_func_arg(gwi, "float", "w");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "setAll", vec4_setAll);
+  gwi_func_arg(gwi, "float", "x");
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "float", "magnitude", vec4_magnitude);
+  CHECK_BB(gwi_func_end(gwi, 0))
+    gwi_func_ini(gwi, "void", "normalize", vec4_normalize);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "Vec4"))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,  vec4_add))
+  CHECK_BB(gwi_oper_end(gwi, op_minus, vec4_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_times, vec4_xproduct))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec4_r_assign))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec4", "float", "Vec4"))
+  CHECK_BB(gwi_oper_end(gwi, op_times, vec4_times_float))
+  CHECK_BB(gwi_oper_end(gwi, op_divide, vec4_divide_float))
+  CHECK_BB(gwi_oper_ini(gwi, "float", "Vec4", "Vec4"))
+  CHECK_BB(gwi_oper_end(gwi, op_times, float_times_vec4))
     return 1;
 }

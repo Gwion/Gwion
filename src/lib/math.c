@@ -210,168 +210,168 @@ static SFUN(math_isnan) {
   *(m_uint*)RETURN = isnan(ret);
 }
 
-m_bool import_math(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_math, NULL, NULL))
+m_bool import_math(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_math, NULL, NULL))
 
-  importer_func_ini(importer, "int", "abs", math_abs);
-  importer_func_arg(importer, "int", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "abs", math_abs);
+  gwi_func_arg(gwi, "int", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "fabs", math_fabs);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "fabs", math_fabs);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "rand", math_rand);
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "rand", math_rand);
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "rand2", math_rand2);
-  importer_func_arg(importer, "int", "min");
-  importer_func_arg(importer, "int", "max");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "rand2", math_rand2);
+  gwi_func_arg(gwi, "int", "min");
+  gwi_func_arg(gwi, "int", "max");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "randf", math_randf);
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "randf", math_randf);
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "rand2f", math_rand2f);
-  importer_func_arg(importer, "float", "min");
-  importer_func_arg(importer, "float", "max");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "rand2f", math_rand2f);
+  gwi_func_arg(gwi, "float", "min");
+  gwi_func_arg(gwi, "float", "max");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "srand", math_srand);
-  importer_func_arg(importer, "float", "seed");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "srand", math_srand);
+  gwi_func_arg(gwi, "float", "seed");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "sgn", math_sgn);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "sgn", math_sgn);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "hypot", math_hypot);
-  importer_func_arg(importer, "float", "min");
-  importer_func_arg(importer, "float", "max");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "hypot", math_hypot);
+  gwi_func_arg(gwi, "float", "min");
+  gwi_func_arg(gwi, "float", "max");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "sin", math_sin);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "sin", math_sin);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "cos", math_cos);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "cos", math_cos);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "tan", math_tan);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "tan", math_tan);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "asin", math_asin);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "asin", math_asin);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "acos", math_acos);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "acos", math_acos);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atan", math_atan);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "atan", math_atan);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atan2", math_atan2);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "atan2", math_atan2);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "sinh", math_sinh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "sinh", math_sinh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "cosh", math_cosh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "cosh", math_cosh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "tanh", math_tanh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "tanh", math_tanh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "asinh", math_asinh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "asinh", math_asinh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "acosh", math_acosh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "acosh", math_acosh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atanh", math_atanh);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "atanh", math_atanh);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "pow", math_pow);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "pow", math_pow);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "sqrt", math_sqrt);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "sqrt", math_sqrt);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "exp", math_exp);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "exp", math_exp);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log", math_log);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "log", math_log);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log2", math_log2);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "log2", math_log2);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "log10", math_log10);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "log10", math_log10);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "floor", math_floor);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "floor", math_floor);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "ceil", math_ceil);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "ceil", math_ceil);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "round", math_round);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "round", math_round);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "trunc", math_trunc);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "trunc", math_trunc);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "fmod", math_fmod);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "fmod", math_fmod);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "remainder", math_remainder);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "remainder", math_remainder);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "min", math_min);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "min", math_min);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "max", math_max);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "value2");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "max", math_max);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "value2");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "isinf", math_isinf);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "isinf", math_isinf);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "isnan", math_isnan);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-  CHECK_BB(importer_class_end(importer))
+  gwi_func_ini(gwi, "float", "isnan", math_isnan);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  CHECK_BB(gwi_class_end(gwi))
 
   return 1;
 }

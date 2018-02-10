@@ -623,7 +623,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
 
-  if(f->tmpl && f->tmpl->base)
+  if(tmpl_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
 
   snprintf(name, len, "%s@%" INT_F "@%s", func_name,

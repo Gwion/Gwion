@@ -9,8 +9,8 @@ SFUN(coverage_int) {
 }
 
 IMPORT {
-  CHECK_BB(importer_func_ini(importer, "int", "test", coverage_int))
-  CHECK_BB(importer_func_arg(importer, "int", "i"))
-  CHECK_BB(importer_func_end(importer, 0))
+  CHECK_BB(gwi_func_ini(gwi, "int", "test", coverage_int))
+  CHECK_BB(gwi_func_arg(gwi, "int", "i"))
+  CHECK_BB(gwi_func_end(gwi, 0))
   return 1;
 }

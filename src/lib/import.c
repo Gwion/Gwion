@@ -7,7 +7,7 @@
 #include "value.h"
 #include "traverse.h"
 #include "import.h"
-#include "importer.h"
+#include "gwi.h"
 #include "emit.h"
 
 struct Path {
@@ -26,15 +26,15 @@ static ID_List templater_def(Templater* templater) {
   return list[0];
 }
 
-m_int importer_tmpl_end(Importer importer) {
-  importer->templater.n = 0;
-  importer->templater.list = NULL;
+m_int gwi_tmpl_end(Gwi gwi) {
+  gwi->templater.n = 0;
+  gwi->templater.list = NULL;
   return 1;
 }
 
-m_int importer_tmpl_ini(Importer importer, m_uint n, const m_str* list) {
-  importer->templater.n = n;
-  importer->templater.list = (m_str*)list;
+m_int gwi_tmpl_ini(Gwi gwi, m_uint n, const m_str* list) {
+  gwi->templater.n = n;
+  gwi->templater.list = (m_str*)list;
   return 1;
 }
 
@@ -45,8 +45,8 @@ static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun 
   a->narg = 0;
 }
 
-m_int importer_func_ini(Importer importer, const m_str t, const m_str n, f_xfun addr) {
-  dl_func_init(&importer->func, t, n, addr);
+m_int gwi_func_ini(Gwi gwi, const m_str t, const m_str n, f_xfun addr) {
+  dl_func_init(&gwi->func, t, n, addr);
   return 1;
 }
 
@@ -55,11 +55,11 @@ static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
   a->args[a->narg++].name = n;
 }
 
-m_int importer_func_arg(Importer importer, const m_str t, const m_str n) {
-  if(importer->func.narg == DLARG_MAX - 1)
+m_int gwi_func_arg(Gwi gwi, const m_str t, const m_str n) {
+  if(gwi->func.narg == DLARG_MAX - 1)
     CHECK_BB(err_msg(UTIL_, 0,
-          "too many arguments for function '%s'.", importer->func.name))
-  dl_func_func_arg(&importer->func, t, n);
+          "too many arguments for function '%s'.", gwi->func.name))
+  dl_func_func_arg(&gwi->func, t, n);
   return 1;
 }
 
@@ -168,10 +168,10 @@ static m_bool mk_xtor(Type type, m_uint d, e_func e) {
   return 1;
 }
 
-m_int importer_add_type(Importer importer, Type type) {
+m_int gwi_add_type(Gwi gwi, Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
-  CHECK_BB(env_add_type(importer->env, type))
+  CHECK_BB(env_add_type(gwi->env, type))
   return type->xid;
 }
 
@@ -193,60 +193,60 @@ static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor)
   return 1;
 }
 
-m_int importer_class_ini(Importer importer, Type type, f_xtor pre_ctor, f_xtor dtor) {
+m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
-  if(importer->templater.n) {
+  if(gwi->templater.n) {
     type->def = calloc(1, sizeof(struct Class_Def_));
-    type->def->types = templater_def(&importer->templater);
+    type->def->types = templater_def(&gwi->templater);
     type->def->type = type;
     SET_FLAG(type, ae_flag_template);
   } else
     SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
-  CHECK_BB(importer_add_type(importer, type))
-  CHECK_BB(import_class_ini(importer->env, type, pre_ctor, dtor))
+  CHECK_BB(gwi_add_type(gwi, type))
+  CHECK_BB(import_class_ini(gwi->env, type, pre_ctor, dtor))
   return type->xid;
 }
 
-m_int importer_class_ext(Importer importer, Type_Decl* td) {
+m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
   if(!td->types)
-    CHECK_BB(err_msg(TYPE_, 0, "importer_class_ext invoked before "
-          "importer_class_ini"))
-  VM_Code ctor = importer->env->class_def->info->pre_ctor;
-  if(importer->env->class_def->parent ||
-      (importer->env->class_def->def && importer->env->class_def->def->ext))
+    CHECK_BB(err_msg(TYPE_, 0, "gwi_class_ext invoked before "
+          "gwi_class_ini"))
+  VM_Code ctor = gwi->env->class_def->info->pre_ctor;
+  if(gwi->env->class_def->parent ||
+      (gwi->env->class_def->def && gwi->env->class_def->def->ext))
     CHECK_BB(err_msg(TYPE_, 0, "class extend already set"))
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
-  if(!importer->env->class_def->def) {
-    Type t = find_type(importer->env, td->xid);
+  if(!gwi->env->class_def->def) {
+    Type t = find_type(gwi->env, td->xid);
     if(!t)
       CHECK_BB(type_unknown(td->xid, "builtin class extend"))
-    CHECK_OB((t = scan_type(importer->env, t, td)))
+    CHECK_OB((t = scan_type(gwi->env, t, td)))
     if(td->array) {
       CHECK_OB((t = array_type(t, td->array->depth)))
-      SET_FLAG(importer->env->class_def, ae_flag_typedef);
+      SET_FLAG(gwi->env->class_def, ae_flag_typedef);
     }
-    importer->env->class_def->parent = t;
-    importer->env->class_def->info->offset = t->info->offset;
+    gwi->env->class_def->parent = t;
+    gwi->env->class_def->info->offset = t->info->offset;
     if(t->info->vtable.ptr)
-      vector_copy2(&t->info->vtable, &importer->env->class_def->info->vtable);
-      importer->env->class_def->info->pre_ctor = new_vm_code(NULL,
-//          SZ_INT, 1, code_name_set(importer->env->class_def->name,
+      vector_copy2(&t->info->vtable, &gwi->env->class_def->info->vtable);
+      gwi->env->class_def->info->pre_ctor = new_vm_code(NULL,
+//          SZ_INT, 1, code_name_set(gwi->env->class_def->name,
 //            "ext ctor"));
-          SZ_INT, 1, importer->env->class_def->name);
-    CHECK_OB((importer->emit->code = emit_class_code(importer->emit,
-          importer->env->class_def->name)))
+          SZ_INT, 1, gwi->env->class_def->name);
+    CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
+          gwi->env->class_def->name)))
     if(td->array)
-      CHECK_BB(emit_array_extend(importer->emit, t, td->array->exp_list))
+      CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp_list))
     if(ctor)
-      CHECK_BB(emit_ext_ctor(importer->emit, ctor))
-    CHECK_BB(emit_class_finish(importer->emit, importer->env->class_def->info))
+      CHECK_BB(emit_ext_ctor(gwi->emit, ctor))
+    CHECK_BB(emit_class_finish(gwi->emit, gwi->env->class_def->info))
     free_type_decl(td);
   } else {
 // use ctor here too?
     SET_FLAG(td, ae_flag_typedef);
-    importer->env->class_def->def->ext = td;
+    gwi->env->class_def->def->ext = td;
   }
   return 1;
 }
@@ -261,8 +261,8 @@ static m_int import_class_end(Env env) {
   return 1;
 }
 
-m_int importer_class_end(Importer importer) {
-  return import_class_end(importer->env);
+m_int gwi_class_end(Gwi gwi) {
+  return import_class_end(gwi->env);
 }
 
 static void dl_var_new_array(DL_Var* v) {
@@ -291,22 +291,22 @@ static void dl_var_release(DL_Var* v) {
   free_id_list(v->t.xid);
 }
 
-m_int importer_item_ini(Importer importer, const m_str type, const m_str name) {
-  DL_Var* v = &importer->var;
+m_int gwi_item_ini(Gwi gwi, const m_str type, const m_str name) {
+  DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
     CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...",
-          importer->env->class_def->name, name))
+          gwi->env->class_def->name, name))
   v->var.xid = insert_symbol(name);
   return 1;
 }
 
-#undef importer_item_end
-m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* addr) {
-  DL_Var* v = &importer->var;
+#undef gwi_item_end
+m_int gwi_item_end(Gwi gwi, const ae_flag flag, const m_uint* addr) {
+  DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
-  if(importer->env->class_def && GET_FLAG(importer->env->class_def, ae_flag_template)) {
+  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
     Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
@@ -316,15 +316,15 @@ m_int importer_item_end(Importer importer, const ae_flag flag, const m_uint* add
     Section* section = new_section_stmt_list(list, 0);
     Class_Body body = new_class_body(section, NULL, 0);
     type_decl->array = v->t.array;
-    if(!importer->env->class_def->def->body)
-      importer->env->class_def->def->body = importer->body = body;
+    if(!gwi->env->class_def->def->body)
+      gwi->env->class_def->def->body = gwi->body = body;
     else {
-      importer->body->next = body;
-      importer->body = body;
+      gwi->body->next = body;
+      gwi->body = body;
     }
     return 1;
   }
-  CHECK_BB(traverse_decl(importer->env, &v->exp.d.exp_decl))
+  CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, ae_flag_builtin);
   dl_var_release(v);
   return v->var.value->offset;
@@ -441,28 +441,28 @@ static Func_Def import_fun(Env env, DL_Func * mfun, ae_flag flag) {
   return make_dll_as_fun(env, mfun, flag);
 }
 
-m_int importer_func_end(Importer importer, ae_flag flag) {
-  Func_Def def = import_fun(importer->env, &importer->func, flag);
+m_int gwi_func_end(Gwi gwi, ae_flag flag) {
+  Func_Def def = import_fun(gwi->env, &gwi->func, flag);
 
   CHECK_OB(def)
-  if(importer->templater.n) {
+  if(gwi->templater.n) {
     def = calloc(1, sizeof(struct Class_Def_));
-    ID_List list = templater_def(&importer->templater);
-    def->tmpl = new_func_def_tmpl(list, 1);
+    ID_List list = templater_def(&gwi->templater);
+    def->tmpl = new_tmpl_list(list, 1);
     SET_FLAG(def, ae_flag_template);
   }
-  if(importer->env->class_def && GET_FLAG(importer->env->class_def, ae_flag_template)) {
+  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
     Section* section = new_section_func_def(def, 0);
     Class_Body body = new_class_body(section, NULL, 0);
-    if(!importer->env->class_def->def->body)
-      importer->env->class_def->def->body = importer->body = body;
+    if(!gwi->env->class_def->def->body)
+      gwi->env->class_def->def->body = gwi->body = body;
     else {
-      importer->body->next = body;
-      importer->body = body;
+      gwi->body->next = body;
+      gwi->body = body;
     }
     return 1;
   }
-  if(traverse_func_def(importer->env, def) < 0) {
+  if(traverse_func_def(gwi->env, def) < 0) {
     free_func_def(def);
     return -1;
   }
@@ -488,34 +488,34 @@ static m_int import_op(Env env, DL_Oper* op,
   return env_add_op(env, &opi);
 }
 
-m_int importer_oper_ini(Importer importer, const m_str l, const m_str r, const m_str t) {
-  importer->oper.ret = t;
-  importer->oper.rhs = r;
-  importer->oper.lhs = l;
+m_int gwi_oper_ini(Gwi gwi, const m_str l, const m_str r, const m_str t) {
+  gwi->oper.ret = t;
+  gwi->oper.rhs = r;
+  gwi->oper.lhs = l;
   return 1;
 }
 
-m_int importer_oper_add(Importer importer, Type (*ck)(Env, void*)) {
-  importer->oper.ck = ck;
+m_int gwi_oper_add(Gwi gwi, Type (*ck)(Env, void*)) {
+  gwi->oper.ck = ck;
   return 1;
 }
 
-m_int importer_oper_emi(Importer importer, m_bool (*em)(Emitter, void*)) {
-  importer->oper.em = em;
+m_int gwi_oper_emi(Gwi gwi, m_bool (*em)(Emitter, void*)) {
+  gwi->oper.em = em;
   return 1;
 }
 
-m_int importer_oper_end(Importer importer, Operator op, const f_instr f) {
+m_int gwi_oper_end(Gwi gwi, Operator op, const f_instr f) {
   m_bool ret;
-  importer->oper.op = op;
-  ret = import_op(importer->env, &importer->oper, f);
-  importer->oper.ck = NULL;
-  importer->oper.em = NULL;
+  gwi->oper.op = op;
+  ret = import_op(gwi->env, &gwi->oper, f);
+  gwi->oper.ck = NULL;
+  gwi->oper.em = NULL;
   return ret;
 }
 
-m_int importer_fptr_ini(Importer importer, const m_str type, const m_str name) {
-  dl_func_init(&importer->func, type, name, 0);
+m_int gwi_fptr_ini(Gwi gwi, const m_str type, const m_str name) {
+  dl_func_init(&gwi->func, type, name, 0);
   return 1;
 }
 
@@ -532,10 +532,10 @@ static Stmt import_fptr(Env env, DL_Func* dl_fun, ae_flag flag) {
   return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }
 #include "func.h"
-m_int importer_fptr_end(Importer importer, ae_flag flag) {
-  Stmt stmt = import_fptr(importer->env, &importer->func, flag);
-  CHECK_BB(traverse_stmt_fptr(importer->env, &stmt->d.stmt_ptr))
-  if(importer->env->class_def)
+m_int gwi_fptr_end(Gwi gwi, ae_flag flag) {
+  Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
+  CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
+  if(gwi->env->class_def)
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
   else
     SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
@@ -559,41 +559,41 @@ static Exp make_exp(const m_str type, const m_str name) {
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
-m_int importer_union_ini(Importer importer, const m_str name) {
+m_int gwi_union_ini(Gwi gwi, const m_str name) {
   if(name)
-    importer->union_data.xid = insert_symbol(name);
+    gwi->union_data.xid = insert_symbol(name);
   return 1;
 }
 
-m_int importer_union_add(Importer importer, const m_str type, const m_str name) {
+m_int gwi_union_add(Gwi gwi, const m_str type, const m_str name) {
   Exp exp = make_exp(type, name);
-  importer->union_data.list = new_decl_list(exp, importer->union_data.list);
+  gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
   return 1;
 }
 
-m_int importer_union_end(Importer importer, ae_flag flag) {
-  Stmt stmt = new_stmt_union(importer->union_data.list, 0);
-  CHECK_BB(traverse_stmt_union(importer->env, &stmt->d.stmt_union))
+m_int gwi_union_end(Gwi gwi, ae_flag flag) {
+  Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
+  CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
-    importer->env->class_def->info->offset =
+    gwi->env->class_def->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
-  importer->union_data.list = NULL;
-  importer->union_data.xid  = NULL;
+  gwi->union_data.list = NULL;
+  gwi->union_data.xid  = NULL;
   return 1;
 }
 
-m_int importer_enum_ini(Importer importer, const m_str type) {
-  importer->enum_data.t = type;
-  vector_init(&importer->enum_data.addr);
+m_int gwi_enum_ini(Gwi gwi, const m_str type) {
+  gwi->enum_data.t = type;
+  vector_init(&gwi->enum_data.addr);
   return 1;
 }
 
-m_int importer_enum_add(Importer importer, const m_str name, const m_uint addr) {
+m_int gwi_enum_add(Gwi gwi, const m_str name, const m_uint addr) {
   ID_List list = new_id_list(insert_symbol(name), 0);
-  DL_Enum* d = &importer->enum_data;
-  vector_add(&importer->enum_data.addr, addr);
+  DL_Enum* d = &gwi->enum_data;
+  vector_add(&gwi->enum_data.addr, addr);
   if(!d->base)
     d->base = list;
   else
@@ -616,12 +616,12 @@ static void import_enum_end(DL_Enum* d, Vector v) {
   vector_release(&d->addr);
 }
 
-m_int importer_enum_end(Importer importer) {
-  DL_Enum* d = &importer->enum_data;
+m_int gwi_enum_end(Gwi gwi) {
+  DL_Enum* d = &gwi->enum_data;
   Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
 
   CHECK_OB(stmt)
-  if(traverse_stmt_enum(importer->env, &stmt->d.stmt_enum) < 0) {
+  if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return -1;
   }
@@ -630,8 +630,8 @@ m_int importer_enum_end(Importer importer) {
   return 1;
 }
 
-m_int importer_add_value(Importer importer, const m_str name, Type type, const m_bool is_const, void* value) {
-  return env_add_value(importer->env, name, type, is_const, value);
+m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* value) {
+  return env_add_value(gwi->env, name, type, is_const, value);
 }
 
 OP_CHECK(opck_const_lhs) {

@@ -246,38 +246,38 @@ static OP_CHECK(opck_array_cast) {
   return &t_null;
 }
 
-m_bool import_array(Importer importer) {
+m_bool import_array(Gwi gwi) {
   SET_FLAG((&t_array), ae_flag_abstract);
-  CHECK_BB(importer_class_ini(importer,  &t_array, NULL, array_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  &t_array, NULL, array_dtor))
 
-	importer_item_ini(importer, "int", "@array");
-  o_object_array = importer_item_end(importer, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "int", "@array");
+  o_object_array = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_object_array)
 
-  importer_func_ini(importer, "int", "size", vm_vector_size);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "size", vm_vector_size);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "depth", vm_vector_depth);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "depth", vm_vector_depth);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "cap", vm_vector_cap);
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "cap", vm_vector_cap);
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  importer_func_ini(importer, "int", "remove", vm_vector_rem);
-  importer_func_arg(importer, "int", "index");
-  CHECK_BB(importer_func_end(importer, 0))
+  gwi_func_ini(gwi, "int", "remove", vm_vector_rem);
+  gwi_func_arg(gwi, "int", "index");
+  CHECK_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "Array", (m_str)OP_ANY_TYPE, NULL))
-  CHECK_BB(importer_oper_add(importer, opck_array_at))
-  CHECK_BB(importer_oper_end(importer, op_at_chuck, Assign_Object))
-  CHECK_BB(importer_oper_add(importer, opck_array_shift))
-  CHECK_BB(importer_oper_emi(importer, opem_array_shift))
-  CHECK_BB(importer_oper_end(importer, op_shift_left, Array_Append))
-  CHECK_BB(importer_oper_ini(importer, "Array", "Array", NULL))
-  CHECK_BB(importer_oper_add(importer, opck_array_cast))
-  CHECK_BB(importer_oper_emi(importer, opem_basic_cast))
-  CHECK_BB(importer_oper_end(importer, op_dollar, NULL))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_array_at))
+  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, Assign_Object))
+  CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
+  CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
+  CHECK_BB(gwi_oper_end(gwi, op_shift_left, Array_Append))
+  CHECK_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
+  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
+  CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
   return 1;
 }
 

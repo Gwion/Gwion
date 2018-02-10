@@ -213,65 +213,65 @@ SFUN(file_list) {
   *(m_uint*)RETURN = (m_uint)ret;
 }
 
-m_bool import_fileio(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_fileio, fileio_ctor, fileio_dtor))
+m_bool import_fileio(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_fileio, fileio_ctor, fileio_dtor))
 
   // import vars
-	importer_item_ini(importer, "int", "@file");
-  o_fileio_file = importer_item_end(importer, ae_flag_member, NULL);
+	gwi_item_ini(gwi, "int", "@file");
+  o_fileio_file = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_fileio_file)
 
   // import funcs
-  importer_func_ini(importer, "int", "nl", file_nl);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "open", file_open);
-  importer_func_arg(importer, "string", "filename");
-  importer_func_arg(importer, "string", "mode");
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "close", file_close);
-  CHECK_BB(importer_func_end(importer, 0))
-  importer_func_ini(importer, "int", "remove", file_remove);
-  importer_func_arg(importer, "string", "filename");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-  importer_func_ini(importer, "string[]", "list", file_list);
-  importer_func_arg(importer, "string", "filename");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "nl", file_nl);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "open", file_open);
+  gwi_func_arg(gwi, "string", "filename");
+  gwi_func_arg(gwi, "string", "mode");
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "close", file_close);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "remove", file_remove);
+  gwi_func_arg(gwi, "string", "filename");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  gwi_func_ini(gwi, "string[]", "list", file_list);
+  gwi_func_arg(gwi, "string", "filename");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_end(gwi))
   // import operators
-  CHECK_BB(importer_oper_ini(importer, "int",    "FileIO", "FileIO"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, int_to_file))
-  CHECK_BB(importer_oper_ini(importer, "float",  "FileIO", "FileIO"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, float_to_file))
-  CHECK_BB(importer_oper_ini(importer,"string", "FileIO", "FileIO"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, string_to_file))
-  CHECK_BB(importer_oper_ini(importer,"Object", "FileIO", "FileIO"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file))
-  CHECK_BB(importer_oper_ini(importer,"@null",  "FileIO", "FileIO"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, object_to_file))
-  CHECK_BB(importer_oper_ini(importer, "FileIO", "string", "string"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_string))
-  CHECK_BB(importer_oper_ini(importer, "FileIO", "int",    "int"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_int))
-  CHECK_BB(importer_oper_ini(importer, "FileIO", "float",  "float"))
-  CHECK_BB(importer_oper_add(importer, opck_rhs_emit_var))
-  CHECK_BB(importer_oper_end(importer, op_chuck, file_to_float))
+  CHECK_BB(gwi_oper_ini(gwi, "int",    "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, int_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "float",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, float_to_file))
+  CHECK_BB(gwi_oper_ini(gwi,"string", "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, string_to_file))
+  CHECK_BB(gwi_oper_ini(gwi,"Object", "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, object_to_file))
+  CHECK_BB(gwi_oper_ini(gwi,"@null",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, object_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "FileIO", "string", "string"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, file_to_string))
+  CHECK_BB(gwi_oper_ini(gwi, "FileIO", "int",    "int"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, file_to_int))
+  CHECK_BB(gwi_oper_ini(gwi, "FileIO", "float",  "float"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, file_to_float))
 
-  CHECK_BB(importer_class_ini(importer,  &t_cout, NULL, static_fileio_dtor))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi,  &t_cout, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(importer_class_ini(importer,  &t_cerr, NULL, static_fileio_dtor))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi,  &t_cerr, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(importer_class_ini(importer,  &t_cin, NULL, static_fileio_dtor))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi,  &t_cin, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_end(gwi))
 
   gw_cin = new_M_Object(NULL);
   initialize_object(gw_cin, &t_cin);
@@ -284,14 +284,14 @@ m_bool import_fileio(Importer importer) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-//  importer_add_value(importer,  "cin",  &t_fileio, 1, gw_cin);
-//  importer_add_value(importer,  "cout", &t_fileio, 1, gw_cout);
-//  importer_add_value(importer,  "cerr", &t_fileio, 1, gw_cerr);
-  importer_item_ini(importer, "FileIO", "cin");
-  importer_item_end(importer, ae_flag_const, gw_cin);
-  importer_item_ini(importer, "FileIO", "cout");
-  importer_item_end(importer, ae_flag_const, gw_cout);
-  importer_item_ini(importer, "FileIO", "cerr");
-  importer_item_end(importer, ae_flag_const, gw_cerr);
+//  gwi_add_value(gwi,  "cin",  &t_fileio, 1, gw_cin);
+//  gwi_add_value(gwi,  "cout", &t_fileio, 1, gw_cout);
+//  gwi_add_value(gwi,  "cerr", &t_fileio, 1, gw_cerr);
+  gwi_item_ini(gwi, "FileIO", "cin");
+  gwi_item_end(gwi, ae_flag_const, gw_cin);
+  gwi_item_ini(gwi, "FileIO", "cout");
+  gwi_item_end(gwi, ae_flag_const, gw_cout);
+  gwi_item_ini(gwi, "FileIO", "cerr");
+  gwi_item_end(gwi, ae_flag_const, gw_cerr);
   return 1;
 }

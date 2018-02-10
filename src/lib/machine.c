@@ -106,25 +106,25 @@ static SFUN(machine_shreds) {
   *(M_Object*)RETURN = obj;
 }
 
-m_bool import_machine(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_machine, NULL, NULL))
-  importer_func_ini(importer, "void",  "add", machine_add);
-  importer_func_arg(importer,       "string",  "filename");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+m_bool import_machine(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_machine, NULL, NULL))
+  gwi_func_ini(gwi, "void",  "add", machine_add);
+  gwi_func_arg(gwi,       "string",  "filename");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int[]", "shreds", machine_shreds);
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int[]", "shreds", machine_shreds);
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int",  "check", machine_check);
-  importer_func_arg(importer,      "string",  "prefix");
-  importer_func_arg(importer,      "string",  "code");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int",  "check", machine_check);
+  gwi_func_arg(gwi,      "string",  "prefix");
+  gwi_func_arg(gwi,      "string",  "code");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "void", "compile", machine_compile);
-  importer_func_arg(importer,      "string",  "prefix");
-  importer_func_arg(importer,      "string",  "filename");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "void", "compile", machine_compile);
+  gwi_func_arg(gwi,      "string",  "prefix");
+  gwi_func_arg(gwi,      "string",  "filename");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

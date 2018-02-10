@@ -186,94 +186,94 @@ static SFUN(std_lintodb) {
   *(m_float*)RETURN = 20.0 * log10(*(m_float*)MEM(SZ_INT));
 }
 
-m_bool import_std(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_std, NULL, NULL))
+m_bool import_std(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_std, NULL, NULL))
 
-  importer_func_ini(importer, "int", "clamp", std_clamp);
-  importer_func_arg(importer, "int", "value");
-  importer_func_arg(importer, "int", "min");
-  importer_func_arg(importer, "int", "max");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "clamp", std_clamp);
+  gwi_func_arg(gwi, "int", "value");
+  gwi_func_arg(gwi, "int", "min");
+  gwi_func_arg(gwi, "int", "max");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "clampf", std_clampf);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "min");
-  importer_func_arg(importer, "float", "max");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "clampf", std_clampf);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "min");
+  gwi_func_arg(gwi, "float", "max");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "scale", std_scale);
-  importer_func_arg(importer, "float", "value");
-  importer_func_arg(importer, "float", "srcmin");
-  importer_func_arg(importer, "float", "srcmax");
-  importer_func_arg(importer, "float", "dstmin");
-  importer_func_arg(importer, "float", "dstmax");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "scale", std_scale);
+  gwi_func_arg(gwi, "float", "value");
+  gwi_func_arg(gwi, "float", "srcmin");
+  gwi_func_arg(gwi, "float", "srcmax");
+  gwi_func_arg(gwi, "float", "dstmin");
+  gwi_func_arg(gwi, "float", "dstmax");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "system", std_system);
-  importer_func_arg(importer, "string", "cmd");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "system", std_system);
+  gwi_func_arg(gwi, "string", "cmd");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "string", "getenv", std_getenv);
-  importer_func_arg(importer, "string", "key");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "string", "getenv", std_getenv);
+  gwi_func_arg(gwi, "string", "key");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "setenv", std_setenv);
-  importer_func_arg(importer, "string", "key");
-  importer_func_arg(importer, "string", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "setenv", std_setenv);
+  gwi_func_arg(gwi, "string", "key");
+  gwi_func_arg(gwi, "string", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "atoi", std_atoi);
-  importer_func_arg(importer, "string", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "atoi", std_atoi);
+  gwi_func_arg(gwi, "string", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "atof", std_atof);
-  importer_func_arg(importer, "string", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "atof", std_atof);
+  gwi_func_arg(gwi, "string", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "string", "itoa", std_itoa);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "string", "itoa", std_itoa);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "string", "ftoa", std_ftoa);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "string", "ftoa", std_ftoa);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "int", "ftoi", std_ftoi);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "int", "ftoi", std_ftoi);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "mtof", std_mtof);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "mtof", std_mtof);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "ftom", std_ftom);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "ftom", std_ftom);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "powtodb", std_powtodb);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "powtodb", std_powtodb);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "rmstodb", std_rmstodb);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "rmstodb", std_rmstodb);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "dbtopow", std_dbtopow);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "dbtopow", std_dbtopow);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "dbtorms", std_dbtorms);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "dbtorms", std_dbtorms);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "dbtolin", std_dbtolin);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
+  gwi_func_ini(gwi, "float", "dbtolin", std_dbtolin);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  importer_func_ini(importer, "float", "lintodb", std_lintodb);
-  importer_func_arg(importer, "float", "value");
-  CHECK_BB(importer_func_end(importer, ae_flag_static))
-  CHECK_BB(importer_class_end(importer))
+  gwi_func_ini(gwi, "float", "lintodb", std_lintodb);
+  gwi_func_arg(gwi, "float", "value");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  CHECK_BB(gwi_class_end(gwi))
 
   return 1;
 

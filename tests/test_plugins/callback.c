@@ -68,14 +68,14 @@ static SFUN(cb_func) {
 }
 
 IMPORT {
-  CHECK_BB(importer_fptr_ini(importer, "Vec4", "PtrType"))
-  CHECK_BB(importer_fptr_end(importer, 0))
+  CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
+  CHECK_BB(gwi_fptr_end(gwi, 0))
   
-  CHECK_BB(importer_class_ini(importer, &t_callback, NULL, NULL))
-    CHECK_BB(importer_func_ini(importer, "int", "callback", cb_func))
-      CHECK_BB(importer_func_arg(importer, "PtrType", "func"))
-      /*CHECK_BB(importer_func_arg(importer, "int", "unused"))*/
-    CHECK_BB(importer_func_end(importer, ae_flag_static))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_ini(gwi, &t_callback, NULL, NULL))
+    CHECK_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
+      CHECK_BB(gwi_func_arg(gwi, "PtrType", "func"))
+      /*CHECK_BB(gwi_func_arg(gwi, "int", "unused"))*/
+    CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

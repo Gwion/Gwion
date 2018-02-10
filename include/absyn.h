@@ -450,7 +450,7 @@ typedef struct Class_Body_ * Class_Body;
 typedef struct {
   ID_List list;
   m_bool  base;
-} Func_Def_Tmpl;
+} Tmpl_List;
 
 struct Func_Def_ {
   Type_Decl* type_decl;
@@ -464,10 +464,11 @@ struct Func_Def_ {
     Func func;
     void* dl_func_ptr;
   } d;
-  Func_Def_Tmpl* tmpl;
+  Tmpl_List* tmpl;
   int pos;
 };
-Func_Def_Tmpl* new_func_def_tmpl(ID_List list, m_bool base);
+Tmpl_List* new_tmpl_list(ID_List list, m_bool base);
+const m_bool tmpl_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
 

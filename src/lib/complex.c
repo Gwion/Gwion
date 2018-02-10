@@ -178,57 +178,57 @@ static INSTR(polar_divide_r) {
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-m_bool import_complex(Importer importer) {
-  CHECK_BB(importer_class_ini(importer,  &t_complex, NULL, NULL))
-	importer_item_ini(importer, "float", "re");
-  o_complex_real = importer_item_end(importer,   ae_flag_member, NULL);
+m_bool import_complex(Gwi gwi) {
+  CHECK_BB(gwi_class_ini(gwi,  &t_complex, NULL, NULL))
+	gwi_item_ini(gwi, "float", "re");
+  o_complex_real = gwi_item_end(gwi,   ae_flag_member, NULL);
   CHECK_BB(o_complex_real)
-	importer_item_ini(importer, "float", "im");
-  o_complex_imag = importer_item_end(importer,   ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "im");
+  o_complex_imag = gwi_item_end(gwi,   ae_flag_member, NULL);
   CHECK_BB(o_complex_imag)
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(importer_class_ini(importer,  &t_polar, NULL, NULL))
-	importer_item_ini(importer, "float", "mod");
-  o_polar_mod = importer_item_end(importer,   ae_flag_member, NULL);
+  CHECK_BB(gwi_class_ini(gwi,  &t_polar, NULL, NULL))
+	gwi_item_ini(gwi, "float", "mod");
+  o_polar_mod = gwi_item_end(gwi,   ae_flag_member, NULL);
   CHECK_BB(o_polar_mod)
-	importer_item_ini(importer, "float", "phase");
-  o_polar_phase = importer_item_end(importer,   ae_flag_member, NULL);
+	gwi_item_ini(gwi, "float", "phase");
+  o_polar_phase = gwi_item_end(gwi,   ae_flag_member, NULL);
   CHECK_BB(o_polar_phase)
-  CHECK_BB(importer_class_end(importer))
-  CHECK_BB(importer_oper_ini(importer, "complex", "complex", "complex"))
-  CHECK_BB(importer_oper_add(importer, opck_assign))
-  CHECK_BB(importer_oper_end(importer, op_assign,        complex_assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,          complex_plus))
-  CHECK_BB(importer_oper_end(importer, op_minus,         complex_minus))
-  CHECK_BB(importer_oper_end(importer, op_times,         complex_times))
-  CHECK_BB(importer_oper_end(importer, op_divide,        complex_divide))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,         complex_r_assign))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck,    complex_r_plus))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_minus_chuck,   complex_r_minus))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_times_chuck,   complex_r_times))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_divide_chuck,  complex_r_divide))
-  CHECK_BB(importer_oper_ini(importer, "polar", "polar", "polar"))
-  CHECK_BB(importer_oper_add(importer, opck_assign))
-  CHECK_BB(importer_oper_end(importer, op_assign,        complex_assign))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_chuck,         complex_r_assign))
-  CHECK_BB(importer_oper_end(importer, op_plus,          polar_plus))
-  CHECK_BB(importer_oper_end(importer, op_minus,         polar_minus))
-  CHECK_BB(importer_oper_end(importer, op_times,         polar_times))
-  CHECK_BB(importer_oper_end(importer, op_divide,        polar_divide))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_plus_chuck,    polar_plus_r))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_minus_chuck,   polar_minus_r))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_times_chuck,   polar_times_r))
-  CHECK_BB(importer_oper_add(importer, opck_rassign))
-  CHECK_BB(importer_oper_end(importer, op_divide_chuck,  polar_divide_r))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
+  CHECK_BB(gwi_oper_add(gwi, opck_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,          complex_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_minus,         complex_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_times,         complex_times))
+  CHECK_BB(gwi_oper_end(gwi, op_divide,        complex_divide))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,    complex_r_plus))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,   complex_r_minus))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,   complex_r_times))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  complex_r_divide))
+  CHECK_BB(gwi_oper_ini(gwi, "polar", "polar", "polar"))
+  CHECK_BB(gwi_oper_add(gwi, opck_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,          polar_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_minus,         polar_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_times,         polar_times))
+  CHECK_BB(gwi_oper_end(gwi, op_divide,        polar_divide))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,    polar_plus_r))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,   polar_minus_r))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,   polar_times_r))
+  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
+  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  polar_divide_r))
   return 1;
 }

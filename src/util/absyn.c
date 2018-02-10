@@ -417,11 +417,23 @@ static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
-Func_Def_Tmpl* new_func_def_tmpl(ID_List list, m_bool base) {
-  Func_Def_Tmpl* a = malloc(sizeof(Func_Def_Tmpl));
+Tmpl_List* new_tmpl_list(ID_List list, m_bool base) {
+  Tmpl_List* a = malloc(sizeof(Tmpl_List));
   a->list = list;
   a->base = base;
   return a;
+}
+
+void free_tmpl_list(Tmpl_List* a) {
+  if(a->base)
+    free_id_list(a->list);
+  free(a);
+}
+
+const m_bool tmpl_base(const Tmpl_List* a) {
+  if(a && a->base)
+    return 1;
+  return 0;
 }
 
 Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos) {
@@ -443,11 +455,8 @@ void free_func_def(Func_Def a) {
       free_arg_list(a->arg_list);
     free_type_decl(a->type_decl);
   }
-  if(a->tmpl) {
-    if(a->tmpl->base)
-      free_id_list(a->tmpl->list);
-    free(a->tmpl);
-  }
+  if(a->tmpl)
+    free_tmpl_list(a->tmpl);
   free(a);
 }
 

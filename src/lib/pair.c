@@ -10,19 +10,19 @@ static MFUN(gwf_pair_set) {
   memcpy(o->data, MEM(SZ_INT), sz);
 }
 
-m_bool import_pair(Importer importer) {
+m_bool import_pair(Gwi gwi) {
   const m_str list[] = { "A" , "B"};
-  CHECK_BB(importer_tmpl_ini(importer, 2, list))
-  CHECK_BB(importer_class_ini(importer, &t_pair, NULL, NULL))
-  CHECK_BB(importer_tmpl_end(importer))
-  CHECK_BB(importer_item_ini(importer, "A", "key"))
-  CHECK_BB(importer_item_end(importer, 0, NULL))
-  CHECK_BB(importer_item_ini(importer, "B", "val"))
-  CHECK_BB(importer_item_end(importer, 0, NULL))
-  CHECK_BB(importer_func_ini(importer, "void", "set", gwf_pair_set))
-  CHECK_BB(importer_func_arg(importer, "A", "key"))
-  CHECK_BB(importer_func_arg(importer, "B", "val"))
-  CHECK_BB(importer_func_end(importer, 0))
-  CHECK_BB(importer_class_end(importer))
+  CHECK_BB(gwi_tmpl_ini(gwi, 2, list))
+  CHECK_BB(gwi_class_ini(gwi, &t_pair, NULL, NULL))
+  CHECK_BB(gwi_tmpl_end(gwi))
+  CHECK_BB(gwi_item_ini(gwi, "A", "key"))
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  CHECK_BB(gwi_item_ini(gwi, "B", "val"))
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  CHECK_BB(gwi_func_ini(gwi, "void", "set", gwf_pair_set))
+  CHECK_BB(gwi_func_arg(gwi, "A", "key"))
+  CHECK_BB(gwi_func_arg(gwi, "B", "val"))
+  CHECK_BB(gwi_func_end(gwi, 0))
+  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
