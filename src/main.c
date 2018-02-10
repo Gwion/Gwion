@@ -52,11 +52,9 @@ m_bool compile(VM* vm, const m_str filename) {
   CHECK_BB(emit_ast(vm->emit, ast, name))
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
-  vm->emit->code->filename = strdup(name);
   code = emit_code(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);
-  shred->filename = strdup(vm->emit->filename);
   shred->args = args;
   vm_add_shred(vm, shred);
   free(name);

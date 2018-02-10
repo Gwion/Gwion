@@ -173,7 +173,7 @@ INSTR(Goto) {
 static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
-  sh->filename = strdup(shred->filename);
+//  sh->filename = strdup(shred->filename);
   if(!shred->child.ptr)
     vector_init(&shred->child);
   vector_add(&shred->child, (vtype)sh);
@@ -513,8 +513,10 @@ INSTR(AutoLoop) {
 
 #ifdef GWCOV
 INSTR(InstrCoverage) {
-  char c[(shred->filename ? strlen(shred->filename) : 6) + 4];
-  sprintf(c, "%scov", shred->filename ? shred->filename : "gwion.");
+  m_str str = code_name(shred->name, 1);
+  size_t len = str ? strlen(str) : 6;
+  char c[len + 4];
+  sprintf(c, "%scov", str ? str : "gwion.");
   FILE* file = fopen(c, "a");
   fprintf(file, "%" UINT_F " %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
   fclose(file);

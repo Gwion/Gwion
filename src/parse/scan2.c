@@ -542,8 +542,8 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
 static m_bool scan2_func_def_builtin(Func func, m_str name) {
   SET_FLAG(func, ae_flag_builtin);
   func->code = new_vm_code(NULL, func->def->stack_depth, 1,
-      name, "builtin func code");
-//  func->code->need_this = GET_FLAG(func, ae_flag_member);
+//      code_name_set(name, "builtin func code"));
+      name);
   if(GET_FLAG(func, ae_flag_member))
     SET_FLAG(func->code, _NEED_THIS_);
   UNSET_FLAG(func->code, NATIVE_NOT);
