@@ -24,7 +24,7 @@ typedef enum {
 typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   Vector instr;
-  m_str name, filename;
+  m_str name;
   m_uint stack_depth;
   m_uint native_func;
   e_func flag;
@@ -66,14 +66,13 @@ struct VM_Shred_ {
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
   M_Object me;
-  m_str filename;
   struct Vector_ child;
   struct Vector_ gc, gc1;
   struct Vector_ sporks;
   m_float wake_time;
 };
 
-VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this, m_str name, m_str filename);
+VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
 void free_vm_code(VM_Code a);
 
 VM_Shred shreduler_get(Shreduler s);
@@ -91,4 +90,6 @@ void vm_run(VM* vm);
 VM* new_vm(m_bool loop);
 void free_vm(VM* vm);
 void vm_add_shred(VM* vm, VM_Shred shred);
+m_str code_name_set(const m_str, const m_str);
+const m_str code_name(const m_str, const m_bool);
 #endif

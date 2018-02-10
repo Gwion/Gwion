@@ -158,10 +158,11 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
 static m_bool mk_xtor(Type type, m_uint d, e_func e) {
   VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
   m_str name = type->name;
-  m_str filename = e == NATIVE_CTOR ? "[ctor]" : "[dtor]";
+//  m_str filename = e == NATIVE_CTOR ? "[ctor]" : "[dtor]";
 
   SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
-  *code = new_vm_code(NULL, SZ_INT, 1, name, filename);
+//  *code = new_vm_code(NULL, SZ_INT, 1, code_name_set(name, filename));
+  *code = new_vm_code(NULL, SZ_INT, 1, name);
   (*code)->native_func = (m_uint)d;
   (*code)->flag = (e | _NEED_THIS_);
   return 1;
@@ -231,7 +232,9 @@ m_int importer_class_ext(Importer importer, Type_Decl* td) {
     if(t->info->vtable.ptr)
       vector_copy2(&t->info->vtable, &importer->env->class_def->info->vtable);
       importer->env->class_def->info->pre_ctor = new_vm_code(NULL,
-          SZ_INT, 1, importer->env->class_def->name, "ext ctor");
+//          SZ_INT, 1, code_name_set(importer->env->class_def->name,
+//            "ext ctor"));
+          SZ_INT, 1, importer->env->class_def->name);
     CHECK_OB((importer->emit->code = emit_class_code(importer->emit,
           importer->env->class_def->name)))
     if(td->array)
