@@ -936,8 +936,8 @@ void free_class_def(Class_Def a) {
       REM_REF(a->type->parent); // ?
     free_type_decl(a->ext);
   }
-  if(a->types)
-    free_id_list(a->types);
+  if(tmpl_base(a->tmpl))
+    free_tmpl_list(a->tmpl);
   if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
     free_class_body(a->body);
   free_id_list(a->name);

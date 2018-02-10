@@ -197,8 +197,9 @@ m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
+    ID_List types = templater_def(&gwi->templater); // improve me ?
     type->def = calloc(1, sizeof(struct Class_Def_));
-    type->def->types = templater_def(&gwi->templater);
+    type->def->tmpl = new_tmpl_list(types, 1);
     type->def->type = type;
     SET_FLAG(type, ae_flag_template);
   } else

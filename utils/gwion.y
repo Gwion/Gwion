@@ -7,13 +7,13 @@
 #include "scanner.h"
 #define scan arg->scanner
 #define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) { gwion_error(a, "flag set twice");  ; } SET_FLAG(b, c);
-#define CHECK_TEMPLATE(a, b, c, free_function) { if(c->types) {\
+#define CHECK_TEMPLATE(a, b, c, free_function) { if(c->tmpl) {\
         free_id_list(b);\
         free_function(c);\
         gwion_error(a, "double template decl");\
         YYERROR;\
       }\
-      c->types = b;\
+      c->tmpl = new_tmpl_list(b, 1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);
@@ -332,7 +332,7 @@ func_def_base
         gwion_error(arg, "double template decl");
         YYERROR;
       }
-      $2->tmpl = new_func_def_tmpl($1, 1);
+      $2->tmpl = new_tmpl_list($1, 1);
       $$ = $2; SET_FLAG($$, ae_flag_template);
     };
 

@@ -17,7 +17,7 @@ static Vector get_types(Type t) {
   Vector v = new_vector();
   while(t) {
     if(GET_FLAG(t, ae_flag_template))
-      vector_add(v, (vtype)t->def->types);
+      vector_add(v, (vtype)t->def->tmpl->list);
     t = owner_type(t);
   }
   return v;
@@ -38,12 +38,12 @@ static ID_List id_list_copy(ID_List src) {
 static ID_List get_total_type_list(Type t) {
   Type parent = owner_type(t);
   if(!parent)
-    return t->def->types;
+    return t->def->tmpl ? t->def->tmpl->list : NULL;
   Vector v = get_types(parent);
   ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(v);
-    return t->def->types;
+    return t->def->tmpl ? t->def->tmpl->list : NULL;
   }
   ID_List tmp, types = id_list_copy(base);
   tmp = types;
@@ -52,7 +52,7 @@ static ID_List get_total_type_list(Type t) {
     tmp->next = id_list_copy(base);
     tmp = tmp->next;
   }
-  tmp->next = t->def->types;
+  tmp->next = t->def->tmpl->list;
   free_vector(v);
   return types;
 }
@@ -218,12 +218,13 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
     env_nspc(env) : env->curr;
   the_class->def = class_def;
   if(strstr(the_class->name, "<")) {
+    ID_List types = get_total_type_list(the_class);
+    class_def->tmpl = new_tmpl_list(types, 0);
     nspc_add_type(env->curr->parent, class_def->name->xid, the_class);
     ADD_REF(the_class);
   } else
     nspc_add_type(env->curr, class_def->name->xid, the_class);
-  class_def->types = get_total_type_list(the_class);
-  if(class_def->types)
+  if(class_def->tmpl)
     SET_FLAG(the_class, ae_flag_template);
   if(class_def->ext && class_def->ext->array)
     SET_FLAG(the_class, ae_flag_typedef);

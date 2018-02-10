@@ -635,9 +635,9 @@ static void lint_section(Linter* linter, Section* section) {
 static void lint_class_def(Linter* linter, Class_Def class_def) {
   Class_Body body = class_def->body;
   lint_indent(linter);
-  if(class_def->types) {
+  if(class_def->tmpl) {
     lint_print(linter, "template");
-    lint_id_list(linter, class_def->types);
+    lint_id_list(linter, class_def->tmpl->list);
   }
 
   lint_print(linter, "class %s", s_name(class_def->name->xid));

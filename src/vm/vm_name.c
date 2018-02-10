@@ -7,7 +7,6 @@ m_str code_name_set(const m_str name, const m_str file) {
   size_t len = strlen(name) + strlen(file) + 2;
   m_str  str = calloc(1, len);
   sprintf(str, "%s$%s", name, file);
-puts(str);
   return str;
 }
 

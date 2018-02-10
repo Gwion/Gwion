@@ -16,7 +16,7 @@ m_bool scan2_class_def(Env env, Class_Def class_def);
 static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
   if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2)) {
-    CHECK_BB(template_push_types(env, decl->base->types, decl->type->types));
+    CHECK_BB(template_push_types(env, decl->base->tmpl->list, decl->type->types));
     CHECK_BB(scan2_class_def(env, type->def))
     nspc_pop_type(env->curr);
   }
@@ -685,7 +685,7 @@ static m_bool scan2_section(Env env, Section* section) {
 m_bool scan2_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
-  if(class_def->types)
+  if(tmpl_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
     if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))

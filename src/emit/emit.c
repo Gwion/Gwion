@@ -571,7 +571,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_Def);
 
 static m_bool emit_exp_decl_template(Emitter emit, Exp_Decl* decl) {
   if(!GET_FLAG(decl->m_type, ae_flag_emit)) {
-    CHECK_BB(template_push_types(emit->env, decl->base->types, decl->type->types))
+    CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list, decl->type->types))
     CHECK_BB(emit_class_def(emit, decl->m_type->def))
     nspc_pop_type(emit->env->curr);
   }
@@ -755,7 +755,7 @@ static Func emit_get_func(Nspc nspc, Func f) {
 
 static m_bool emit_exp_call_code_template(Env env, Class_Def class_def) {
   CHECK_BB(env_push_class(env, class_def->type))
-  CHECK_BB(template_push_types(env, class_def->tref, class_def->base))
+  CHECK_BB(template_push_types(env, class_def->tmpl->list, class_def->base))
   CHECK_BB(traverse_class_def(env, class_def))
   nspc_pop_type(env->curr);
   env_pop_class(env);
@@ -1913,7 +1913,7 @@ static m_bool emit_class_def(Emitter emit, Class_Def class_def) {
   Type type = class_def->type;
   Class_Body body = class_def->body;
 
-  if(class_def->types)
+  if(tmpl_base(class_def->tmpl))
     return 1;
 
   if(class_def->ext && ((!GET_FLAG(class_def->type->parent, ae_flag_emit) &&

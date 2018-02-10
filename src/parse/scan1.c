@@ -487,7 +487,7 @@ static m_bool scan1_section(Env env, Section* section) {
 m_bool scan1_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
-  if(class_def->types)
+  if(tmpl_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
     if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))

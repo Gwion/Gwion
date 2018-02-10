@@ -468,6 +468,7 @@ struct Func_Def_ {
   int pos;
 };
 Tmpl_List* new_tmpl_list(ID_List list, m_bool base);
+void free_tmpl_list(Tmpl_List*);
 const m_bool tmpl_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
@@ -485,12 +486,12 @@ typedef struct {
 Section* new_section_stmt_list(Stmt_List list, int pos);
 Section* new_section_func_def(Func_Def func_def, int pos);
 
-
 struct Class_Body_ {
   Section* section;
   Class_Body next;
   int pos;
 };
+
 struct Class_Def_ {
   ae_flag flag;
   ID_List name;
@@ -498,7 +499,7 @@ struct Class_Def_ {
   Class_Body body;
   Type type;
   Nspc home;
-  ID_List types, tref;
+  Tmpl_List*  tmpl;
   Type_List base;
   int pos;
 };
