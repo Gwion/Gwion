@@ -44,6 +44,7 @@ void free_vm_shred(VM_Shred shred) {
   free(shred->_reg);
   free_shred_code(shred);
   free(shred->name);
+  free(shred->filename);
   vector_release(&shred->gc1);
   if(shred->args)
     vm_shred_free_args(shred->args);

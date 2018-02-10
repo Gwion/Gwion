@@ -5,13 +5,14 @@
 #include "func.h"
 #include "instr.h"
 
-VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
-    const m_bool need_this, const m_str name) {
+VM_Code new_vm_code(Vector instr, m_uint stack_depth, m_bool need_this,
+    m_str name, m_str filename) {
   VM_Code code           = malloc(sizeof(struct VM_Code_));
   code->instr            = instr ?  vector_copy(instr) : NULL;
   code->stack_depth      = stack_depth;
   code->flag = need_this ? _NEED_THIS_ : 0;
   code->name             = strdup(name);
+  code->filename         = strdup(filename);
   code->native_func      = 0;
   SET_FLAG(code, NATIVE_NOT);
   INIT_OO(code, e_code_obj)
@@ -57,5 +58,6 @@ void free_vm_code(VM_Code a) {
   } else if(a->instr)
     free_code_instr(a->instr);
   free(a->name);
+  free(a->filename);
   free(a);
 }

@@ -102,7 +102,7 @@ static void nspc_release_object(Nspc a, Value value) {
 (value->d.ptr && GET_FLAG(value, ae_flag_builtin))
 
 ) {
-    VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
+    VM_Code code = new_vm_code(NULL, 0, 0, "in nspc dtor", "");
     VM_Shred s = new_vm_shred(code);
     M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->class_data + value->offset);

@@ -120,6 +120,7 @@ static void free_code(Code* code) {
   vector_release(&code->stack_return);
   free_frame(code->frame);
   free(code->name);
+  free(code->filename);
   free(code);
 }
 
@@ -315,7 +316,7 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
 VM_Code emit_code(Emitter emit) {
   Code* c = emit->code;
   VM_Code code = new_vm_code(&c->code, c->stack_depth,
-      c->need_this, c->name);
+      c->need_this, c->name, c->filename);
   free_code(c);
   return code;
 }
@@ -874,7 +875,8 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
   char c[11 + num_digit(exp->pos)];
   sprintf(c, "spork~exp:%i", exp->pos);
-  emit->code->name = code_name_set(c, emit->filename);
+  emit->code->name = strdup(c);
+  emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   CHECK_BB(emit_exp_call1(emit, exp->m_func, exp->m_func->def->ret_type, exp->pos))
   CHECK_OB(emitter_add_instr(emit, stop_gc))
@@ -909,7 +911,8 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   }
   char c[12 + num_digit(stmt->pos)];
   sprintf(c, "spork~code:%i", stmt->pos);
-  emit->code->name = code_name_set(c, emit->filename);
+  emit->code->name = strdup(c);
+  emit->code->filename = strdup(emit->filename);
   op = emitter_add_instr(emit, Mem_Push_Imm);
   emit_push_scope(emit);
 
@@ -1753,8 +1756,9 @@ static m_bool emit_func_def_init(Emitter emit, Func func) {
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code();
   sprintf(c, "%s%s%s(...)", t ? t->name : "", t ? "." : "", func->name);
-  emit->code->name = code_name_set(c, emit->filename);
+  emit->code->name = strdup(c);
   emit->code->need_this = GET_FLAG(func, ae_flag_member);
+  emit->code->filename = strdup(emit->filename);
   return 1;
 }
 
@@ -1883,8 +1887,9 @@ Code* emit_class_code(Emitter emit, m_str name) {
   Code* code = new_code();
   CHECK_OO(code);
   sprintf(c, "class %s", name);
-  code->name = code_name_set(c, emit->filename);
+  code->name = strdup(c);
   code->need_this = 1;
+  code->filename = strdup(emit->filename);
   code->stack_depth += SZ_INT;
   return code;
 

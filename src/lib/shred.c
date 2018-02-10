@@ -73,17 +73,14 @@ static MFUN(shred_arg) {
 
 static MFUN(shred_path) {
   VM_Shred  s = ME(o);
-  m_str str = code_name(s->code->name, 1);
-  *(m_uint*)RETURN = (m_uint)new_String(shred, str);
+  *(m_uint*)RETURN = (m_uint)new_String(shred, s->code->filename);
 }
 
 static MFUN(shred_dir) {
   VM_Shred  s = ME(o);
-  m_str str = code_name(s->code->name, 1);
-  size_t len = strlen(str);
-  char c[len + 1];
-  memset(c, 0, len + 1);
-  strncpy(c, str, len);
+  char c[strlen(s->code->filename) + 1];
+  memset(c, 0, strlen(s->code->filename) + 1);
+  strncpy(c, s->code->filename, strlen(s->code->filename));
   *(m_uint*)RETURN = (m_uint)new_String(shred, dirname(c));
 }
 

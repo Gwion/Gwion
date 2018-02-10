@@ -57,8 +57,8 @@ void instantiate_object(VM * vm, VM_Shred shred, Type type) {
 }
 
 static void handle_dtor(Type t, VM_Shred shred) {
-  VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
-// also was filename = "[in code dtor exec]"
+  VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1,
+       "[dtor]", "[in code dtor exec]");
   VM_Shred sh = new_vm_shred(code);
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
