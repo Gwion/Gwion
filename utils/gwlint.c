@@ -264,8 +264,8 @@ static void lint_exp_dur(Linter* linter, Exp_Dur* dur) {
 }
 
 static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
-  if(exp_func->types)
-    lint_type_list(linter, exp_func->types);
+  if(exp_func->tmpl)
+    lint_type_list(linter, exp_func->tmpl->types);
   lint_exp(linter, exp_func->func);
   lint_print(linter, "(");
   if(exp_func->args)

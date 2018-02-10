@@ -126,7 +126,7 @@ static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
 
 static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
   Exp args = exp_func->args;
-  if(exp_func->types)
+  if(exp_func->tmpl)
     return 1;
   CHECK_BB(scan1_exp(env, exp_func->func))
   CHECK_BB(args && scan1_exp(env, args))

@@ -654,7 +654,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
   vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
   emit->env->curr = exp_func->m_func->value_ref->owner;
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(template_push_types(emit->env, def->tmpl->list, exp_func->types))
+  CHECK_BB(template_push_types(emit->env, def->tmpl->list, exp_func->tmpl->types))
   CHECK_BB(traverse_func_def(emit->env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(emit->env->curr);
@@ -664,7 +664,7 @@ static m_bool emit_exp_call_template(Emitter emit, Exp_Func* exp_func, m_bool sp
 }
 
 static m_bool emit_exp_call(Emitter emit, Exp_Func* exp_func, m_bool spork) {
-  if(exp_func->types)
+  if(exp_func->tmpl)
     CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
   else
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))

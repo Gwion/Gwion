@@ -473,7 +473,8 @@ post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
 post_exp: primary_exp | post_exp array_exp
     { $$ = new_array($1, $2, get_pos(arg)); }
   | post_exp template call_paren
-    { $$ = new_exp_call($1, $3, get_pos(arg)); $$->d.exp_func.types = $2; }
+    { $$ = new_exp_call($1, $3, get_pos(arg));
+      if($2)$$->d.exp_func.tmpl = new_tmpl_call($2); }
   | post_exp DOT id
     { $$ = new_exp_dot($1, $3, get_pos(arg)); }
   | post_exp post_op

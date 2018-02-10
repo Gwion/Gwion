@@ -160,13 +160,18 @@ typedef struct {
   Exp self;
   int pos;
 } Exp_Primary;
+
+typedef struct {
+  Type_List types;
+  ID_List base;// hack for template
+} Tmpl_Call;
+Tmpl_Call* new_tmpl_call(Type_List);
 typedef struct {
   Exp func;
   Exp args;
-  Type_List types;
   Func m_func;
+  Tmpl_Call* tmpl;
   Exp self;
-  ID_List base;// hack for template
   int pos;
 } Exp_Func;
 typedef struct {

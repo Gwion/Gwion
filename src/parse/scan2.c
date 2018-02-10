@@ -204,7 +204,7 @@ static m_bool scan2_template_match(Env env, Value v, Type_List types) {
 }
 
 static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
-  if(exp_func->types) {
+  if(exp_func->tmpl) {
     if(exp_func->func->exp_type == ae_exp_primary) {
       Value v = nspc_lookup_value1(env->curr,
           exp_func->func->d.exp_primary.d.var);
@@ -219,13 +219,13 @@ static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
       if(!base->tmpl || !base->tmpl->base)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template call of non-template function."))
-      Type_List list = exp_func->types;
+      Type_List list = exp_func->tmpl->types;
       while(list) {
         if(!find_type(env, list->list->xid))
           CHECK_BB(type_unknown(list->list->xid, "template call"))
         list = list->next;
       }
-      if(scan2_template_match(env, v, exp_func->types) < 0)
+      if(scan2_template_match(env, v, exp_func->tmpl->types) < 0)
         CHECK_BB(err_msg(SCAN2_, exp_func->pos,
               "template type number mismatch."))
       SET_FLAG(base, ae_flag_template);

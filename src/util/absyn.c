@@ -496,13 +496,24 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
   }
 }
 
+Tmpl_Call* new_tmpl_call(Type_List tl) {
+  Tmpl_Call* a = malloc(sizeof(Tmpl_Call));
+  a->types = tl;
+  a->base = NULL;
+  return a;
+}
+
+static void free_tmpl_call(Tmpl_Call* a) {
+  free_type_list(a->types);
+  free(a);
+}
+
 Exp new_exp_call(Exp base, Exp args, int pos) {
   Exp a = calloc(1, sizeof(struct Exp_));
   a->exp_type = ae_exp_call;
   a->meta = ae_meta_value;
   a->d.exp_func.func = base;
   a->d.exp_func.args = args;
-  a->d.exp_func.m_func = NULL;
   a->pos = a->d.exp_func.pos = pos;
   a->d.exp_func.self = a;
   return a;
@@ -511,8 +522,8 @@ Exp new_exp_call(Exp base, Exp args, int pos) {
 static void free_exp_call(Exp_Func* a) {
   if(a->m_func && GET_FLAG(a->m_func, ae_flag_checked))
     free(a->m_func->def);
-  if(a->types)
-    free_type_list(a->types);
+  if(a->tmpl)
+    free_tmpl_call(a->tmpl);
   free_exp(a->func);
   if(a->args)
     free_exp(a->args);
@@ -904,7 +915,7 @@ static void free_stmt_list(Stmt_List list) {
 }
 
 Section* new_section_stmt_list(Stmt_List list, int pos) {
-  Section* a = calloc(1, sizeof(Section));
+  Section* a = malloc(sizeof(Section));
   a->section_type = ae_section_stmt;
   a->d.stmt_list = list;
   a->pos = pos;
@@ -912,7 +923,7 @@ Section* new_section_stmt_list(Stmt_List list, int pos) {
 }
 
 Section* new_section_func_def(Func_Def func_def, int pos) {
-  Section* a = calloc(1, sizeof(Section));
+  Section* a = malloc(sizeof(Section));
   a->section_type = ae_section_func;
   a->d.func_def = func_def;
   a->pos = pos;
@@ -996,7 +1007,7 @@ void free_type_list(Type_List a) {
 }
 
 Section* new_section_class_def(Class_Def class_def, int pos) {
-  Section* a = calloc(1, sizeof(Section));
+  Section* a = malloc(sizeof(Section));
   a->section_type = ae_section_class;
   a->d.class_def = class_def;
   a->pos = pos;

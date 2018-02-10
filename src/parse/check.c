@@ -498,7 +498,7 @@ static m_bool template_set_env(Env env, Value v) {
 Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   Exp func = exp_func->func;
   Exp args = exp_func->args;
-  Type_List types = exp_func->types;
+  Type_List types = exp_func->tmpl ? exp_func->tmpl->types : NULL; // check me
   Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   Func_Def base;
@@ -612,8 +612,8 @@ static m_uint get_type_number(ID_List list) {
 static Func get_template_func(Env env, Exp_Func* func, Value v) {
   Func f = find_template_match(env, v, func);
   if(f) {
-    env->current->types = func->types;
-    env->current->base = v->d.func_ref->def->tmpl->list;
+    env->current->tmpl = new_tmpl_call(func->tmpl->types);
+    env->current->tmpl->base = v->d.func_ref->def->tmpl->list;
     return f;
   }
   if(err_msg(TYPE_, func->pos, "function is template. automatic type guess not fully implemented yet.\n"
@@ -651,7 +651,8 @@ static Type check_exp_call_template(Env env, Exp exp_func, Exp args, Func* m_fun
   if(args_number < type_number)
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
           "not able to guess types for template call."))
-  Exp_Func tmp_func = { exp_func, args, tl[0]};
+  Tmpl_Call tmpl = { tl[0], NULL };
+  Exp_Func tmp_func = { exp_func, args, NULL, &tmpl};
   *m_func = get_template_func(env, &tmp_func, value);
   return *m_func ? (*m_func)->def->ret_type : NULL;
 }
@@ -836,7 +837,7 @@ static Type check_exp_dur(Env env, Exp_Dur* dur) {
 }
 
 static Type check_exp_call(Env env, Exp_Func* call) {
-  if(call->types) {
+  if(call->tmpl) {
     Func ret;
     Value v = NULL;
     if(call->func->exp_type == ae_exp_primary) {
