@@ -17,7 +17,7 @@ void free_type(Type a) {
     if(!GET_FLAG(a, ae_flag_typedef)) {
       if(a->def) {
         if(!get_type_name(a->name, 1))
-          free_tmpl_list(a->def->tmpl);
+          free_tmpl_class(a->def->tmpl);
         free(a->def);
       }
     }

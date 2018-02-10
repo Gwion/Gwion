@@ -13,7 +13,7 @@
         gwion_error(a, "double template decl");\
         YYERROR;\
       }\
-      c->tmpl = new_tmpl_list(b, 1);\
+      c->tmpl = new_tmpl_class(b, 1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);

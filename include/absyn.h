@@ -474,7 +474,7 @@ struct Func_Def_ {
 };
 Tmpl_List* new_tmpl_list(ID_List list, m_bool base);
 void free_tmpl_list(Tmpl_List*);
-const m_bool tmpl_base(const Tmpl_List*);
+const m_bool tmpl_list_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);
 void free_func_def(Func_Def def);
 
@@ -497,6 +497,13 @@ struct Class_Body_ {
   int pos;
 };
 
+typedef struct {
+  Tmpl_List list;
+  Type_List base;
+} Tmpl_Class;
+Tmpl_Class* new_tmpl_class(const ID_List, const m_bool);
+const m_bool tmpl_class_base(const Tmpl_Class*);
+void free_tmpl_class(Tmpl_Class*);
 struct Class_Def_ {
   ae_flag flag;
   ID_List name;
@@ -504,8 +511,7 @@ struct Class_Def_ {
   Class_Body body;
   Type type;
   Nspc home;
-  Tmpl_List*  tmpl;
-  Type_List base;
+  Tmpl_Class*  tmpl;
   int pos;
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,

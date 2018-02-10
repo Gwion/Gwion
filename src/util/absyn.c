@@ -424,16 +424,34 @@ Tmpl_List* new_tmpl_list(ID_List list, m_bool base) {
   return a;
 }
 
+Tmpl_Class* new_tmpl_class(ID_List list, m_bool base) {
+  Tmpl_Class* a = malloc(sizeof(Tmpl_Class));
+  a->list.list = list;
+  a->list.base = base;
+  a->base = NULL;
+  return a;
+}
+
 void free_tmpl_list(Tmpl_List* a) {
   if(a->base)
     free_id_list(a->list);
   free(a);
 }
 
-const m_bool tmpl_base(const Tmpl_List* a) {
+void free_tmpl_class(Tmpl_Class* a) {
+  if(a->list.base)
+    free_id_list(a->list.list);
+  free(a);
+}
+
+const m_bool tmpl_list_base(const Tmpl_List* a) {
   if(a && a->base)
     return 1;
   return 0;
+}
+
+const m_bool tmpl_class_base(const Tmpl_Class* a) {
+  return a ? tmpl_list_base(&a->list) : 0;
 }
 
 Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos) {
@@ -947,8 +965,8 @@ void free_class_def(Class_Def a) {
       REM_REF(a->type->parent); // ?
     free_type_decl(a->ext);
   }
-  if(tmpl_base(a->tmpl))
-    free_tmpl_list(a->tmpl);
+  if(a->tmpl)
+    free_tmpl_class(a->tmpl);
   if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
     free_class_body(a->body);
   free_id_list(a->name);

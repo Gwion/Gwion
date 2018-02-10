@@ -35,7 +35,7 @@ static m_bool check_exp_array_subscripts(Env env, Exp exp) {
 
 static m_bool check_exp_decl_template(Env env, Exp_Decl* decl) {
   if(!GET_FLAG(decl->m_type, ae_flag_check)) {
-    CHECK_BB(template_push_types(env, decl->base->tmpl->list, decl->type->types))
+    CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->type->types))
     CHECK_BB(check_class_def(env, decl->m_type->def))
     nspc_pop_type(env->curr);
   }
@@ -666,7 +666,7 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   {
     Class_Def def = value->owner_class->def;
     CHECK_BB(env_push_class(env, value->owner_class))
-    CHECK_BB(template_push_types(env, def->tmpl->list, def->base))
+    CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
     CHECK_BB(traverse_class_def(env, def))
   }
   return 1;
@@ -1532,7 +1532,7 @@ m_bool check_func_def(Env env, Func_Def f) {
   Value variadic = NULL;
   m_bool ret = 1;
 
-  if(tmpl_base(f->tmpl))
+  if(tmpl_list_base(f->tmpl))
     return 1;
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
@@ -1575,8 +1575,8 @@ static m_bool check_class_parent(Env env, Class_Def class_def) {
     Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
     if(class_def->tmpl)
-      CHECK_BB(template_push_types(env, class_def->tmpl->list, class_def->base))
-    CHECK_BB(template_push_types(env, t->def->tmpl->list, class_def->ext->types))
+      CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
+    CHECK_BB(template_push_types(env, t->def->tmpl->list.list, class_def->ext->types))
     CHECK_BB(traverse_class_def(env, t->def))
     nspc_pop_type(env->curr);
     if(class_def->tmpl)
@@ -1603,7 +1603,7 @@ m_bool check_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
   Type the_class = class_def->type;
 
-  if(tmpl_base(class_def->tmpl))
+  if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext)
     CHECK_BB(check_class_parent(env, class_def))

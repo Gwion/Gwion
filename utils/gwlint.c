@@ -637,7 +637,7 @@ static void lint_class_def(Linter* linter, Class_Def class_def) {
   lint_indent(linter);
   if(class_def->tmpl) {
     lint_print(linter, "template");
-    lint_id_list(linter, class_def->tmpl->list);
+    lint_id_list(linter, class_def->tmpl->list.list);
   }
 
   lint_print(linter, "class %s", s_name(class_def->name->xid));

@@ -461,7 +461,7 @@ static m_bool scan1_func_def_code(Env env, Func_Def f) {
 m_bool scan1_func_def(Env env, Func_Def f) {
   if(GET_FLAG(f, ae_flag_private) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
-  if(tmpl_base(f->tmpl))
+  if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
   if(scan1_func_def_flag(env, f) < 0 ||
@@ -487,7 +487,7 @@ static m_bool scan1_section(Env env, Section* section) {
 m_bool scan1_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
-  if(tmpl_base(class_def->tmpl))
+  if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
     if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))

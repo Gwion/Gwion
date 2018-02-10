@@ -5,7 +5,7 @@
 #include "type.h"
 
 static m_uint template_size(Env env, Class_Def c, Type_List call) {
-  ID_List base = c->tmpl->list;
+  ID_List base = c->tmpl->list.list;
   m_uint size = strlen(c->type->name) + 3;
   while(base) {
     Type t = find_type(env, call->list->xid);
@@ -22,7 +22,7 @@ static m_uint template_size(Env env, Class_Def c, Type_List call) {
 }
 
 static m_bool template_name(Env env, Class_Def c, Type_List call, m_str str) {
-  ID_List base = c->tmpl->list;
+  ID_List base = c->tmpl->list.list;
   strcpy(str, c->type->name);
   strcat(str, "<");
   while(base) { // TODO: error checking
@@ -98,10 +98,10 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
     if(!type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos,
         "you must provide template types for type '%s'", t->name))
-    if(template_match(t->def->tmpl->list, type->types) < 0)
+    if(template_match(t->def->tmpl->list.list, type->types) < 0)
       CHECK_BO(err_msg(SCAN1_, type->pos, "invalid template types number"))
 
-    CHECK_BO(template_push_types(env, t->def->tmpl->list, type->types))
+    CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
     Class_Def a = template_class(env, t->def, type->types);
     if(a->type) {
       nspc_pop_type(env->curr);
@@ -118,8 +118,8 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
       a->type->info->dtor = t->info->dtor;
       SET_FLAG(a->type, ae_flag_dtor);
     }
-    a->tmpl = new_tmpl_list(t->def->tmpl->list, 0);
-    a->base = type->types;
+    a->tmpl = new_tmpl_class(t->def->tmpl->list.list, 0);
+    a->tmpl->base = type->types;
     t = a->type;
   } else if(type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos,

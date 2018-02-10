@@ -16,7 +16,7 @@ m_bool scan2_class_def(Env env, Class_Def class_def);
 static m_bool scan2_exp_decl_template(Env env, Exp_Decl* decl) {
   Type type = decl->m_type;
   if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2)) {
-    CHECK_BB(template_push_types(env, decl->base->tmpl->list, decl->type->types));
+    CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->type->types));
     CHECK_BB(scan2_class_def(env, type->def))
     nspc_pop_type(env->curr);
   }
@@ -623,7 +623,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
 
-  if(tmpl_base(f->tmpl))
+  if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
 
   snprintf(name, len, "%s@%" INT_F "@%s", func_name,
@@ -685,7 +685,7 @@ static m_bool scan2_section(Env env, Section* section) {
 m_bool scan2_class_def(Env env, Class_Def class_def) {
   Class_Body body = class_def->body;
 
-  if(tmpl_base(class_def->tmpl))
+  if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
     if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
