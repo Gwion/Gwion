@@ -12,6 +12,10 @@ struct Op_Import {
   uintptr_t data;
 };
 
+struct Implicit {
+  void* e;
+  Type  t;
+};
 const m_bool env_add_op(Env env, const struct Op_Import* opi);
 const Type   op_check(Env env, struct Op_Import* opi);
 const m_bool op_emit(Emitter emit, const struct Op_Import* opi);

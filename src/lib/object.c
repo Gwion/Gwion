@@ -152,6 +152,11 @@ static OP_CHECK(opck_object_cast) {
   return isa(l, r) > 0 ? r : &t_null;
 }
 
+static OP_CHECK(opck_implicit_null2obj) {
+  struct Implicit* imp = (struct Implicit*)data;
+  return imp->t;
+}
+
 m_bool import_object(Gwi gwi) {
   CHECK_BB(gwi_class_ini(gwi, &t_object, NULL, object_dtor))
   CHECK_BB(gwi_class_end(gwi))
@@ -173,6 +178,8 @@ m_bool import_object(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
+  CHECK_BB(gwi_oper_end(gwi, op_implicit, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_eq, eq_Object))
   CHECK_BB(gwi_oper_end(gwi, op_neq, neq_Object))

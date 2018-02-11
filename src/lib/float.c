@@ -387,6 +387,16 @@ static OP_CHECK(chuck_now) {
   return NULL;
 }
 
+static OP_CHECK(opck_implicit_f2i) {
+  return &t_null;
+}
+
+static OP_CHECK(opck_implicit_i2f) {
+  struct Implicit* imp = (struct Implicit*)data;
+  ((Exp)imp->e)->cast_to = &t_float;
+  return &t_float;
+}
+
 static OP_EMIT(opem_i2f) {
   CHECK_OB(emitter_add_instr(emit, Cast_i2f))
   return 1;
@@ -480,6 +490,8 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_i2f))
   CHECK_BB(gwi_oper_end(gwi, op_dollar,       Cast_i2f))
+  CHECK_BB(gwi_oper_add(gwi, opck_implicit_i2f))
+  CHECK_BB(gwi_oper_end(gwi, op_implicit,    Cast_i2f))
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,       float_int_assign))
@@ -509,7 +521,8 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_f2i))
   CHECK_BB(gwi_oper_end(gwi, op_dollar, Cast_f2i))
-
+  CHECK_BB(gwi_oper_add(gwi, opck_implicit_f2i))
+  CHECK_BB(gwi_oper_end(gwi, op_implicit, Cast_f2i))
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck,        float_r_assign))

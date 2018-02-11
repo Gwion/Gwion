@@ -64,6 +64,21 @@ static OP_CHECK(opck_ptr_deref) {
   return unary->self->type;
 }
 
+static OP_CHECK(opck_implicit_ptr) {
+  struct Implicit* imp = (struct Implicit*)data;
+  Exp e = (Exp)imp->e;
+  if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
+    if(e->meta == ae_meta_value) {
+      err_msg(INSTR_, 0, "can't cast constant to Ptr");
+      return &t_null;
+    }
+    e->cast_to = imp->t;
+    e->emit_var = 1;
+    return imp->t;
+  }
+  return NULL;
+}
+
 static INSTR(instr_ptr_deref) {
   POP_REG(shred, SZ_INT)
   M_Object o = *(M_Object*)REG(0);
@@ -83,21 +98,13 @@ static OP_EMIT(opem_ptr_deref) {
 }
 
 INSTR(Cast2Ptr) {
-  POP_REG(shred, instr->m_val)
+  POP_REG(shred, SZ_INT)
   M_Object o = new_M_Object(shred);
   o->data = malloc(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)
 }
-
-/*
-// handle builtin pointer. we shoud provide a function for creation
-static DTOR(ptr_dtor) {
-  if(sizeof(o->data) > SZ_INT)
-    free(o->data + SZ_INT);
-}
-*/
 
 m_bool import_ptr(Gwi gwi) {
   const m_str list[] = { "A" };
@@ -110,6 +117,8 @@ m_bool import_ptr(Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_ptr_assign))
   CHECK_BB(gwi_oper_end(gwi, op_trig, instr_ptr_assign))
+  CHECK_BB(gwi_oper_add(gwi, opck_implicit_ptr))
+  CHECK_BB(gwi_oper_end(gwi, op_implicit, Cast2Ptr))
   CHECK_BB(gwi_oper_ini(gwi, NULL, "Ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_ptr_deref))
   CHECK_BB(gwi_oper_emi(gwi, opem_ptr_deref))

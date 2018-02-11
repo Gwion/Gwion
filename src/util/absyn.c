@@ -107,7 +107,7 @@ Exp new_array(Exp base, Array_Sub indices, int pos) {
 
 static void free_array_exp(Exp_Array* a) {
   if(a->base && a->base->type && a->indices->depth < a->base->type->array_depth)
-    free(a->self->type);
+    REM_REF(a->self->type);
   free_array_sub(a->indices);
   free_exp(a->base);
 }

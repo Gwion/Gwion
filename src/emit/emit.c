@@ -939,16 +939,9 @@ static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
 }
 
 static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
-  if(from->xid == te_int && to->xid == te_float)
-    CHECK_OB(emitter_add_instr(emit, Cast_i2f))
-  else if(from->xid == te_float && to->xid == te_int)
-    CHECK_OB(emitter_add_instr(emit, Cast_f2i))
-  else if(!strncmp(to->name, "Ptr", 3)) {
-    Instr instr = emitter_add_instr(emit, Cast2Ptr);
-    CHECK_OB(instr)
-    instr->m_val = from->size;
-
-  }
+  struct Op_Import opi = { op_implicit, from, to, NULL,
+         NULL, NULL, (m_uint)from };
+  op_emit(emit, &opi);
   return 1;
 }
 

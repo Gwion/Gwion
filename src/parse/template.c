@@ -110,6 +110,8 @@ Type scan_type(Env env, Type t, Type_Decl* type) {
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
+    nspc_add_type(t->owner, a->name->xid, a->type);
+    a->type->owner = t->owner;
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BO(scan1_class_def(env, a))

@@ -374,10 +374,8 @@ Type check_exp_array(Env env, Exp_Array* array) {
 
   if(depth == t_base->array_depth)
     t = array_base(t_base);
-  else {
-    t = type_copy(t_base);
-    t->array_depth -= depth;
-  }
+  else
+    t = array_type(array_base(t_base), t_base->array_depth - depth);
   return t;
 }
 
@@ -423,26 +421,22 @@ static Type_List mk_type_list(Env env, Type type) {
   return list;
 }
 
-static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific ) {
-  m_bool match = specific ? e->type == t : isa(e->type, t) > 0  &&
+static m_bool func_match_inner(Env env, Exp e, Type t,
+  m_bool implicit, m_bool specific) {
+  m_bool match = (specific ? e->type == t : isa(e->type, t) > 0) &&
     e->type->array_depth == t->array_depth &&
     array_base(e->type) == array_base(t);
-  if(!match) {//    if(isa(t, &t_ptr) > 0) {
-    if(!strncmp(t->name, "Ptr", 3) &&
-        !strcmp(get_type_name(t->name, 1), e->type->name)) {
-      e->cast_to = t;
-      e->emit_var = 1;
-      return 1;
-    }
-    if(implicit && e->type->xid == te_int && t->xid == te_float)
-      e->cast_to = &t_float;
-    else if(!(isa(e->type, &t_null) > 0 && isa(t, &t_object) > 0))
-      return -1;
+  if(!match && implicit) {
+    struct Implicit imp = { e, t };
+    struct Op_Import opi = { op_implicit, e->type, t, NULL,
+      NULL, NULL, (m_uint)&imp };
+    return op_check(env, &opi) ? 1 : -1;
   }
-  return 1;
+  return match ? 1 : -1;
 }
 
-static Func find_func_match_actual(Func func, Exp args, m_bool implicit, m_bool specific) {
+static Func find_func_match_actual(Env env, Func func, Exp args,
+  m_bool implicit, m_bool specific) {
   while(func) {
     Exp e = args;
     Arg_List e1 = func->def->arg_list;
@@ -453,7 +447,7 @@ static Func find_func_match_actual(Func func, Exp args, m_bool implicit, m_bool 
           return func;
         goto moveon;
       }
-      if(func_match_inner(e, e1->type, implicit, specific) < 0)
+      if(func_match_inner(env, e, e1->type, implicit, specific) < 0)
           goto moveon;
       e = e->next;
       e1 = e1->next;
@@ -466,14 +460,18 @@ moveon:
   return NULL;
 }
 
-static Func find_func_match(Func up, Exp args) {
+static Func find_func_match(Env env, Func up, Exp args) {
   Func func;
   if(args && isa(args->type, &t_void) > 0)
     args = NULL;
-  if((func = find_func_match_actual(up, args, 0, 1)) ||
-      (func = find_func_match_actual(up, args, 1, 1)) ||
-      (func = find_func_match_actual(up, args, 0, 0)) ||
-      (func = find_func_match_actual(up, args, 1, 0)))
+//  if((func = find_func_match_actual(env, up, args, )))
+//  if((func = find_func_match_actual(env, up, args, 0)) ||
+//     (func = find_func_match_actual(env, up, args, 1)))
+ // once we used implicit , specific
+  if((func = find_func_match_actual(env, up, args, 0, 1)) ||
+      (func = find_func_match_actual(env, up, args, 1, 1)) ||
+      (func = find_func_match_actual(env, up, args, 0, 0)) ||
+      (func = find_func_match_actual(env, up, args, 1, 0)))
     return func;
   return NULL;
 }
@@ -528,7 +526,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       goto next;
     Func next = def->d.func->next;
     def->d.func->next = NULL;
-    m_func = find_func_match(def->d.func, args);
+    m_func = find_func_match(env, def->d.func, args);
     def->d.func->next = next;
     if(m_func) {
       env_pop_class(env);
@@ -537,7 +535,6 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       return m_func;
     }
 next:
-    puts(name);
     if(def->d.func) // still leaks
       def->d.func->def = NULL;
     free_func_def(def);
@@ -696,7 +693,7 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
     CHECK_OO(check_exp(env, args))
   if(!exp_func->type->d.func)
     return check_exp_call_template(env, exp_func, args, m_func);
-  if(!(func = find_func_match(exp_func->type->d.func, args)))
+  if(!(func = find_func_match(env, exp_func->type->d.func, args)))
     return function_alternative(exp_func->type, args);
   if(ptr) {
     Func f = malloc(sizeof(struct Func_));
