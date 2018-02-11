@@ -81,6 +81,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     v->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;
   }
+  decl->m_type = decl->list->self->value->m_type;
   return 1;
 }
 

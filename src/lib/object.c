@@ -177,6 +177,7 @@ m_bool import_object(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_eq, eq_Object))
   CHECK_BB(gwi_oper_end(gwi, op_neq, neq_Object))
   CHECK_BB(gwi_oper_ini(gwi, NULL, "Object", "int"))
+  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi, op_exclamation, int_not))
   return 1;
 }

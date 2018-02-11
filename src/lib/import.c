@@ -673,6 +673,12 @@ OP_CHECK(opck_rassign) {
   return bin->rhs->type;
 }
 
+OP_CHECK(opck_unary_meta) {
+  Exp_Unary* unary = (Exp_Unary*)data;
+  unary->self->meta = ae_meta_value;
+  return unary->exp->type;
+}
+
 OP_CHECK(opck_unary) {
   Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)
@@ -683,6 +689,18 @@ OP_CHECK(opck_unary) {
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
   return unary->exp->type;
+}
+Type check_exp_unary_spork(Env env, Stmt code);
+OP_CHECK(opck_spork) {
+  Exp_Unary* unary = (Exp_Unary*)data;
+  if(unary->exp && unary->exp->exp_type == ae_exp_call)
+    return &t_shred;
+  else if(unary->code)
+    return check_exp_unary_spork(env, unary->code);
+  else
+    CHECK_BO(err_msg(TYPE_,  unary->pos,
+          "only function calls can be sporked..."))
+  return NULL;
 }
 
 OP_CHECK(opck_post) {
@@ -695,4 +713,42 @@ OP_CHECK(opck_post) {
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
   return post->exp->type;
+}
+
+Type   check_exp(Env env, Exp exp);
+m_bool check_exp_array_subscripts(Env env, Exp exp);
+OP_CHECK(opck_new) {
+  Type t;
+  Exp_Unary* unary = (Exp_Unary*)data;
+  if(!(t = find_type(env, unary->type->xid)))
+    CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
+  CHECK_OO((t = scan_type(env, t, unary->type)))
+  if(unary->type->array) {
+    CHECK_OO(check_exp(env, unary->type->array->exp_list))
+    CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
+    t = array_type(t, unary->type->array->depth);
+  } else
+    CHECK_BO(prim_ref(unary->type, t))
+  return t;
+}
+
+#include "instr.h"
+m_bool emit_instantiate_object(Emitter emit, Type type, 
+Array_Sub array, m_bool is_ref);
+OP_EMIT(opem_new) {
+  Exp_Unary* unary = (Exp_Unary*)data;
+  CHECK_BB(emit_instantiate_object(emit, unary->self->type,
+    unary->type->array, GET_FLAG(unary->type, ae_flag_ref)))
+  CHECK_OB(emitter_add_instr(emit, add2gc))
+  return 1;
+}
+
+
+m_bool emit_exp_spork(Emitter emit, Exp_Func* exp);
+m_bool emit_exp_spork1(Emitter emit, Stmt stmt);
+OP_EMIT(opem_spork) {
+  Exp_Unary* unary = (Exp_Unary*)data;
+  CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : 
+        emit_exp_spork(emit, &unary->exp->d.exp_func)))
+  return 1;
 }

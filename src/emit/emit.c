@@ -236,7 +236,8 @@ m_bool emit_array_extend(Emitter emit, Type t, Exp e) {
 }
 
 
-static m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
+//static 
+m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     m_bool is_ref) {
   if(type->array_depth) {
     VM_Array_Info* info = emit_array_extend_inner(emit, type, array->exp_list);
@@ -860,7 +861,8 @@ static m_uint emit_exp_spork_size(Emitter emit, Exp e) {
   return size;
 }
 
-static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
+//static 
+m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   Instr op;
   VM_Code code;
   m_uint size;
@@ -888,7 +890,8 @@ static m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   return 1;
 }
 
-static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
+//static 
+m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   Instr op;
   VM_Code code;
   S_Symbol sporked = insert_symbol("sporked");
@@ -928,22 +931,11 @@ static m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
 static m_bool emit_exp_unary(Emitter emit, Exp_Unary* unary) {
   struct Op_Import opi = { unary->op };
   opi.data = (uintptr_t)unary;
-  if(unary->op != op_spork && emit_exp(emit, unary->exp, 1) < 0)
-    return -1;
-  switch(unary->op) {
-    case op_spork:
-      CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : emit_exp_spork(emit, &unary->exp->d.exp_func)))
-      break;
-    case op_new:
-      CHECK_BB(emit_instantiate_object(emit, unary->self->type,
-            unary->type->array, GET_FLAG(unary->type, ae_flag_ref)))
-      CHECK_OB(emitter_add_instr(emit, add2gc))
-      break;
-    default:
-      opi.rhs = unary->exp->type;
-      return op_emit(emit, &opi);
+  if(unary->exp) {
+    CHECK_BB(emit_exp(emit, unary->exp, 1))
+    opi.rhs = unary->exp->type;
   }
-  return 1;
+  return op_emit(emit, &opi);
 }
 
 static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {

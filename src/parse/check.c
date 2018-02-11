@@ -19,12 +19,12 @@
     CHECK_BO(err_msg(TYPE_, a->pos, "in %s expression", b))\
   return op_ret;
 
-static Type   check_exp(Env env, Exp exp);
+Type   check_exp(Env env, Exp exp);
 static m_bool check_stmt(Env env, Stmt stmt);
 static m_bool check_stmt_list(Env env, Stmt_List list);
 m_bool check_class_def(Env env, Class_Def class_def);
 
-static m_bool check_exp_array_subscripts(Env env, Exp exp) {
+m_bool check_exp_array_subscripts(Env env, Exp exp) {
   while(exp) {
     if(isa(exp->type, &t_int) < 0)
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
@@ -865,11 +865,14 @@ static Type check_exp_call(Env env, Exp_Func* call) {
   return check_exp_call1(env, call->func, call->args, &call->m_func);
 }
 
-static Type check_exp_unary_spork(Env env, Stmt code) {
+//static 
+// Move me ?
+Type check_exp_unary_spork(Env env, Stmt code) {
+  CHECK_BO(check_stmt(env, code))
   if(env->func) {
     env->class_scope++;
     nspc_push_value(env->curr);
-    int ret = check_stmt(env, code);
+    m_bool ret = check_stmt(env, code);
     nspc_pop_value(env->curr);
     env->class_scope--;
     return (ret > 0) ? &t_shred : NULL;
@@ -883,44 +886,10 @@ static Type check_exp_unary(Env env, Exp_Unary* unary) {
   Type t = NULL;
   struct Op_Import opi = { unary->op, NULL, NULL, NULL,
     NULL, NULL, (uintptr_t)unary };
-  if(unary->op != op_new && !unary->code)
+  if(unary->exp) {
     CHECK_OO((t = check_exp(env, unary->exp)))
-  if(unary->code)
-    CHECK_BO(check_stmt(env, unary->code))
-
-  switch(unary->op) {
-    case op_plusplus:
-    case op_minusminus:
-      break;
-    case op_minus:
-    case op_tilda:
-    case op_exclamation:
-      unary->self->meta = ae_meta_value;
-      break;
-    case op_spork:
-      if(unary->exp && unary->exp->exp_type == ae_exp_call)
-        return &t_shred;
-      else if(unary->code) {
-        return check_exp_unary_spork(env, unary->code);
-      } else
-        CHECK_BO(err_msg(TYPE_,  unary->pos,
-              "only function calls can be sporked..."))
-      break;
-    case op_new:
-      if(!(t = find_type(env, unary->type->xid)))
-        CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
-      CHECK_OO((t = scan_type(env, t, unary->type)))
-      if(unary->type->array) {
-        CHECK_OO(check_exp(env, unary->type->array->exp_list))
-        CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
-        t = array_type(t, unary->type->array->depth);
-      } else
-        CHECK_BO(prim_ref(unary->type, t))
-      return t;
-    default:
-      break;
+    opi.rhs = unary->exp->type;
   }
-  opi.rhs = unary->exp->type;
   OP_RET(unary, "unary")
 }
 
@@ -1021,7 +990,7 @@ static m_bool check_stmt_type(Env env, Stmt_Typedef stmt) {
   return stmt->m_type->def ? check_class_def(env, stmt->m_type->def) : 1;
 }
 
-static Type check_exp(Env env, Exp exp) {
+Type check_exp(Env env, Exp exp) {
   Exp curr = exp;
   while(curr) {
     curr->type = NULL;

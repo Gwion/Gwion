@@ -80,6 +80,14 @@ static m_bool import_core_libs(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
+  CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_spork))
+  CHECK_BB(gwi_oper_emi(gwi, opem_spork))
+  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
+  CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_new))
+  CHECK_BB(gwi_oper_emi(gwi, opem_new))
+  CHECK_BB(gwi_oper_end(gwi, op_new, NULL))
   return 1;
 }
 
