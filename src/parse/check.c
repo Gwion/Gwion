@@ -424,11 +424,12 @@ static Type_List mk_type_list(Env env, Type type) {
 }
 
 static m_bool func_match_inner(Exp e, Type t, m_bool implicit, m_bool specific ) {
-  m_bool match = specific ? e->type == t : isa(e->type, t) > 0 && e->type->array_depth == t->array_depth;
-  if(!match) {
-//    if(isa(t, &t_ptr) > 0) {
-    if(!strncmp(t->name, "Ptr", 3)) {
-      if(strcmp(get_type_name(t->name, 1), e->type->name))exit(12);
+  m_bool match = specific ? e->type == t : isa(e->type, t) > 0  &&
+    e->type->array_depth == t->array_depth &&
+    array_base(e->type) == array_base(t);
+  if(!match) {//    if(isa(t, &t_ptr) > 0) {
+    if(!strncmp(t->name, "Ptr", 3) &&
+        !strcmp(get_type_name(t->name, 1), e->type->name)) {
       e->cast_to = t;
       e->emit_var = 1;
       return 1;
@@ -536,6 +537,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
       return m_func;
     }
 next:
+    puts(name);
     if(def->d.func) // still leaks
       def->d.func->def = NULL;
     free_func_def(def);
@@ -560,9 +562,8 @@ static void print_current_args(Exp e) {
 
 static void print_arg(Arg_List e) {
   while(e) {
-    char path[id_list_len(e->type_decl->xid)];
-    type_path(path, e->type_decl->xid);
-    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", path, s_name(e->var_decl->xid));
+    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, 
+        s_name(e->var_decl->xid));
     e = e->next;
     if(e)
       fprintf(stderr, ",");
