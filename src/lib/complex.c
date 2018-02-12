@@ -4,8 +4,8 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_complex = { "complex", SZ_COMPLEX, NULL, te_complex};
-struct Type_ t_polar   = { "polar",   SZ_COMPLEX, NULL, te_polar};
+struct Type_ t_complex = { "complex", SZ_COMPLEX };
+struct Type_ t_polar   = { "polar",   SZ_COMPLEX };
 
 m_int o_complex_real, o_complex_imag;
 m_int o_polar_mod,    o_polar_phase;

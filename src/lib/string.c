@@ -9,7 +9,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_string = { "string", SZ_INT, &t_object, te_string };
+struct Type_ t_string = { "string", SZ_INT, &t_object };
 m_int o_string_data;
 
 static void push_string(VM_Shred shred, M_Object obj, m_str c) {

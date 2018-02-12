@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "type.h"
 
-Type new_type(te_type xid, m_str name, Type parent) {
+Type new_type(m_uint xid, m_str name, Type parent) {
   Type type    = calloc(1, sizeof(struct Type_));
   type->xid    = xid;
   type->name   = name;

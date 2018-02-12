@@ -8,7 +8,7 @@ struct Type_ {
   m_str     name;
   m_uint    size;
   Type      parent;
-  te_type   xid;
+  m_uint    xid;
   Nspc      info;
   Nspc      owner;
   m_uint    array_depth;
@@ -22,7 +22,7 @@ struct Type_ {
 };
 
 m_bool type_engine_check_prog(Env, Ast, const m_str);
-Type new_type(const te_type xid, const m_str name, const Type);
+Type new_type(const m_uint xid, const m_str name, const Type);
 Type type_copy(const Type type);
 Env type_engine_init(VM*, const Vector);
 void start_type_xid(void);

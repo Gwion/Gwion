@@ -2,7 +2,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_event = { "Event", SZ_INT, &t_object, te_event };
+struct Type_ t_event = { "Event", SZ_INT, &t_object };
 
 m_int o_event_shred;
 

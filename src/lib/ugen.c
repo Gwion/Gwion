@@ -6,7 +6,7 @@
 #include "import.h"
 #include "ugen.h"
 
-struct Type_ t_ugen = { "UGen", SZ_INT, &t_object, te_ugen };
+struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
 m_bool base_tick(UGen u) {

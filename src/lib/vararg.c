@@ -7,9 +7,9 @@
 #include "import.h"
 #include "vararg.h"
 
-struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object, te_vararg};
-struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_object, te_vararg};
-struct Type_ t_varloop = { "@VarLoop",  SZ_INT, NULL,      te_vararg_loop};
+struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object };
+struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_vararg };
+struct Type_ t_varloop = { "@VarLoop",  SZ_INT };
 
 INSTR(Vararg_start) {
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);

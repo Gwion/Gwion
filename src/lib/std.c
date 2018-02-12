@@ -71,7 +71,7 @@ static double dbtorms(double f) {
   }
 }
 
-static struct Type_ t_std  = { "Std",  0, NULL, te_std};
+static struct Type_ t_std  = { "Std" };
 
 static SFUN(std_system) {
   M_Object obj = *(M_Object*)MEM(SZ_INT);

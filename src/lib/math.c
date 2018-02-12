@@ -4,7 +4,7 @@
 #include "instr.h"
 #include "import.h"
 
-static struct Type_ t_math = { "Math", 0, NULL};
+static struct Type_ t_math = { "Math" };
 
 static SFUN(math_abs) {
   *(m_uint*)RETURN = labs(*(m_int*)MEM(SZ_INT));

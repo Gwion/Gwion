@@ -6,7 +6,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_ptr = { "Ptr", SZ_INT, &t_object, te_ptr};
+struct Type_ t_ptr = { "Ptr", SZ_INT, &t_object };
 
 const m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");

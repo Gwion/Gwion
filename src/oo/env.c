@@ -97,8 +97,7 @@ const m_bool env_add_type(Env env, const Type type) {
   SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
-  if(env->type_xid)
-    type->xid = ++env->type_xid;
+  type->xid = ++env->type_xid;
   return 1;
 }
 

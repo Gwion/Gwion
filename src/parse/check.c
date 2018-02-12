@@ -909,7 +909,7 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
 }
 
 static m_bool member_static(Exp_Dot* member) {
-  return member->t_base->xid == te_class;
+  return isa(member->t_base, &t_class) > 0;
 }
 
 static Type get_base_type(Exp_Dot* member, m_bool base_static) {
@@ -1065,16 +1065,11 @@ static m_bool check_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
 }
 
 static m_bool check_flow(Env env, Exp exp) {
-  switch(exp->type->xid) {
-    case te_int:
-    case te_float:
-    case te_dur:
-    case te_time:
-      break;
-    default:
-      CHECK_BB(err_msg(TYPE_,  exp->pos,
-                       "invalid type '%s'", exp->type->name))
-  }
+  if(isa(exp->type, &t_int) > 0 || isa(exp->type, &t_float) > 0 ||
+     isa(exp->type, &t_dur) > 0 || isa(exp->type, &t_time)  > 0)
+    return 1;
+  CHECK_BB(err_msg(TYPE_,  exp->pos,
+        "invalid type '%s'", exp->type->name))
   return 1;
 }
 
@@ -1212,7 +1207,7 @@ static m_bool check_stmt_break(Env env, Stmt_Break cont) {
 
 static m_bool check_stmt_switch(Env env, Stmt_Switch a) {
   Type t = check_exp(env, a->val);
-  if(!t || t->xid !=  te_int)
+  if(!t || isa(t, &t_int) < 0)
     CHECK_BB(err_msg(TYPE_, a->pos,
                      "invalid type '%s' in switch expression. should be 'int'",
                      t ? t->name : "unknown"))
@@ -1225,7 +1220,7 @@ static m_bool check_stmt_case(Env env, Stmt_Case stmt) {
     CHECK_BB(err_msg(TYPE_, stmt->pos,
           "unhandled expression type '%i'", stmt->val->exp_type))
   Type t = check_exp(env, stmt->val);
-  if(!t || t->xid !=  te_int)
+  if(!t || isa(t, &t_int) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos,
                      "invalid type '%s' case expression. should be 'int'",
                      t ? t->name : "unknown"))

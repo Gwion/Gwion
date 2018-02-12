@@ -100,13 +100,13 @@ static void print_func(Type type, char* stack) {
 static void print_prim(Type type, char* stack) {
     if(isa(type, &t_int) > 0)
       print_int(*(m_int*)stack);
-    else if(type->xid == te_complex)
+    else if(isa(type, &t_complex) > 0)
       print_complex(*(m_complex*)stack);
-    else if(type->xid == te_polar)
+    else if(isa(type, &t_polar) > 0)
       print_polar(*(m_complex*)stack);
-    else if(type->xid == te_vec3)
+    else if(isa(type, &t_vec3) > 0)
       print_vec(stack, 3);
-    else if(type->xid == te_vec4)
+    else if(isa(type, &t_vec4) > 0)
       print_vec(stack, 4);
     else
      print_float(*(m_float*)stack);
@@ -119,15 +119,15 @@ INSTR(Gack) {
   pop(shred, v);
   for(i = size + 1; --i;) {
     type = (Type)vector_at(v, size - i);
-    if(size == 1 && type->xid != te_class)
+    if(size == 1 && isa(type, &t_class) < 0)
       print_type(type);
     if(isa(type, &t_object) > 0)
       print_object(type, *(M_Object*)REG(0));
     else if(isa(type, &t_function) > 0)
       print_func(type, REG(0));
-    else if(type->xid == te_class)
+    else if(isa(type, &t_class) > 0)
         print_type(type->d.base_type);
-    else if(type->xid == te_void)
+    else if(isa(type, &t_void) > 0)
       print_string1("void");
     else
       print_prim(type, REG(0));

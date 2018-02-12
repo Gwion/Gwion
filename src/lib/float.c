@@ -6,10 +6,10 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_float = { "float", SZ_FLOAT, NULL,    te_float };
-struct Type_ t_dur   = { "dur",   SZ_FLOAT, NULL,    te_dur };
-struct Type_ t_time  = { "time",  SZ_FLOAT, NULL,    te_time };
-struct Type_ t_now   = { "@now",  SZ_FLOAT, &t_time, te_now };
+struct Type_ t_float = { "float", SZ_FLOAT };
+struct Type_ t_dur   = { "dur",   SZ_FLOAT };
+struct Type_ t_time  = { "time",  SZ_FLOAT };
+struct Type_ t_now   = { "@now",  SZ_FLOAT };
 
 static INSTR(float_assign) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
@@ -421,10 +421,6 @@ INSTR(Cast_f2i) {
 }
 
 m_bool import_float(Gwi gwi) {
-  CHECK_BB(gwi_add_type(gwi,  &t_float))
-  CHECK_BB(gwi_add_type(gwi,  &t_time))
-  CHECK_BB(gwi_add_type(gwi,  &t_dur))
-  CHECK_BB(gwi_add_type(gwi,  &t_now))
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,        float_assign))

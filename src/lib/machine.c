@@ -7,7 +7,7 @@
 
 #define RAND_LEN 12
 
-struct Type_ t_machine   = { "Machine",      0, NULL, te_machine};
+struct Type_ t_machine   = { "Machine" };
 
 static void randstring(VM* vm, m_uint length, m_str str) {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";

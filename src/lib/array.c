@@ -7,7 +7,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_array  = { "Array", SZ_INT, &t_object, te_array };
+struct Type_ t_array  = { "Array", SZ_INT, &t_object };
 
 m_int o_object_array;
 

@@ -32,14 +32,6 @@ typedef struct M_Vector_  * M_Vector;
 typedef struct UGen_      * UGen;
 
 typedef enum {
-  te_int, te_float, te_dur, te_time, te_now, te_string, te_void,
-  te_function, te_func_ptr, te_object, te_class, te_null,
-  te_fileio, te_polar, te_complex, te_vec3, te_vec4, te_array, te_shred,
-  te_machine, te_event, te_std, te_template, te_ugen, te_vararg, te_vararg_loop,
-  te_gack, te_union, te_ptr, te_last
-} te_type;
-
-typedef enum {
   ae_flag_builtin = 1 << 1,
   ae_flag_checked   = 1 << 2,
   ae_flag_member  = 1 << 3,

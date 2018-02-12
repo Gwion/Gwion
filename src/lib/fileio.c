@@ -10,10 +10,10 @@
 
 #define CHECK_FIO(o)   if(!o || !IO_FILE(o)) Except(shred, "EmptyFileException");
 
-struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event,  te_fileio };
-struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio, te_fileio };
-struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio, te_fileio };
-struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio, te_fileio };
+struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event  };
+struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio };
+struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio };
+struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio };
 
 m_int o_fileio_file;
 static M_Object gw_cin, gw_cout, gw_cerr;

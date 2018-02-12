@@ -113,7 +113,7 @@ const Type array_type(const Type base, const m_uint depth) {
     ADD_REF(t)
     return t;
   }
-  t = new_type(te_array, base->name, &t_array);
+  t = new_type(t_array.xid, base->name, &t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth;

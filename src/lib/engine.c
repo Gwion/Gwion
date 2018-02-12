@@ -11,12 +11,12 @@
 #include "lang_private.h"
 #include "emit.h"
 
-struct Type_ t_void      = { "void",       0,      NULL,        te_void};
-struct Type_ t_function  = { "@function",  SZ_INT, NULL,        te_function };
-struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function, te_func_ptr};
-struct Type_ t_class     = { "@Class",     SZ_INT, NULL,        te_class };
-struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL,        te_gack };
-struct Type_ t_union     = { "@Union",     SZ_INT, &t_object,   te_union };
+struct Type_ t_void      = { "void",       0,      NULL };
+struct Type_ t_function  = { "@function",  SZ_INT, NULL };
+struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function };
+struct Type_ t_class     = { "@Class",     SZ_INT, NULL };
+struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL };
+struct Type_ t_union     = { "@Union",     SZ_INT, &t_object };
 
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
 m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs);
@@ -57,18 +57,17 @@ static m_bool import_core_libs(Gwi gwi) {
   CHECK_BB(gwi_add_type(gwi, &t_null))
   CHECK_BB(gwi_add_type(gwi, &t_function))
   CHECK_BB(gwi_add_type(gwi, &t_func_ptr))
-  CHECK_BB(import_int(gwi))
-  CHECK_BB(import_float(gwi))
-  CHECK_BB(import_complex(gwi))
-  CHECK_BB(import_vec3(gwi))
-  CHECK_BB(import_vec4(gwi))
+  CHECK_BB(gwi_add_type(gwi, &t_gack))
+  CHECK_BB(gwi_add_type(gwi, &t_int))
+  CHECK_BB(gwi_add_type(gwi, &t_float))
+  CHECK_BB(gwi_add_type(gwi, &t_dur))
+  CHECK_BB(gwi_add_type(gwi, &t_time))
+  CHECK_BB(gwi_add_type(gwi, &t_now))
   CHECK_BB(import_object(gwi))
-  CHECK_BB(import_vararg(gwi))
-  CHECK_BB(import_string(gwi))
-  CHECK_BB(import_shred(gwi))
+  CHECK_BB(import_array(gwi))
+  CHECK_BB(gwi_add_type(gwi, &t_union))
   CHECK_BB(import_event(gwi))
   CHECK_BB(import_ugen(gwi))
-  CHECK_BB(import_array(gwi))
   CHECK_BB(import_ptr(gwi))
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
@@ -88,11 +87,18 @@ static m_bool import_core_libs(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_new))
   CHECK_BB(gwi_oper_emi(gwi, opem_new))
   CHECK_BB(gwi_oper_end(gwi, op_new, NULL))
+  CHECK_BB(import_int(gwi))
+  CHECK_BB(import_float(gwi))
+  CHECK_BB(import_complex(gwi))
+  CHECK_BB(import_vec3(gwi))
+  CHECK_BB(import_vec4(gwi))
+  CHECK_BB(import_vararg(gwi))
+  CHECK_BB(import_string(gwi))
+  CHECK_BB(import_shred(gwi))
   return 1;
 }
 
 static m_bool import_other_libs(Gwi gwi) {
-  gwi->env->type_xid = te_last;
   CHECK_BB(import_pair(gwi))
   CHECK_BB(import_fileio(gwi))
   CHECK_BB(import_std(gwi))

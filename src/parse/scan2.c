@@ -635,7 +635,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
     CHECK_BB(scan2_func_def_builtin(func, name))
-  type = new_type(te_function, func_name, &t_function);
+  type = new_type(t_function.xid, func_name, &t_function);
   type->size = SZ_INT;
   if(GET_FLAG(func, ae_flag_member))
     type->size += SZ_INT;

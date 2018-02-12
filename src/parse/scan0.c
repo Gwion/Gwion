@@ -70,7 +70,7 @@ static Value mk_class(Env env, Type base) {
 m_bool scan0_class_def(Env env, Class_Def class_def);
 m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   m_str name = s_name(ptr->xid);
-  Type t = new_type(te_func_ptr, name, &t_func_ptr);
+  Type t = new_type(t_func_ptr.xid, name, &t_func_ptr);
   t->owner = env->curr;
   t->size = SZ_INT;
   t->info = new_nspc(name);
@@ -207,7 +207,7 @@ static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
 }
 
 static Type scan0_class_def_init(Env env, Class_Def class_def) {
-  Type the_class = new_type(env->type_xid++, s_name(class_def->name->xid), &t_object);
+  Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name);

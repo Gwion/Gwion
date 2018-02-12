@@ -948,19 +948,12 @@ static m_bool emit_implicit_cast(Emitter emit, Type from, Type to) {
 static Instr emit_flow(Emitter emit, Type type, f_instr f1, f_instr f2) {
   Instr push = emitter_add_instr(emit, Reg_PushImm);
   CHECK_OO(push)
-  switch(type->xid) {
-    case te_int:
-      push->m_val = SZ_INT;
-      return emitter_add_instr(emit, f1);
-    case te_float:
-    case te_dur:
-    case te_time:
-      push->m_val = SZ_FLOAT;
-      return emitter_add_instr(emit, f2);
-    default:
-      break;
+  if(isa(type, &t_int) > 0) {
+    push->m_val = SZ_INT;
+    return emitter_add_instr(emit, f1);
   }
-  return NULL;
+  push->m_val = SZ_FLOAT;
+  return emitter_add_instr(emit, f2);
 }
 
 static m_bool emit_exp_if(Emitter emit, Exp_If* exp_if) {
@@ -1524,10 +1517,9 @@ static m_bool emit_stmt_list(Emitter emit, Stmt_List list) {
 }
 
 static m_bool is_special(Type t) {
-  m_uint xid = t->xid;
-  if(xid == te_complex || xid == te_polar ||
-     xid == te_vec3    || xid == te_vec4  ||
-     xid == te_vararg)
+  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0 ||
+     isa(t, &t_vec3)    > 0 || isa(t, &t_vec4)  > 0  ||
+     isa(t, &t_vararg)  > 0)
     return 1;
   return -1;
 }
@@ -1639,9 +1631,9 @@ static m_bool emit_vararg(Emitter emit, Exp_Dot* member) {
 static m_bool emit_exp_dot_special(Emitter emit, Exp_Dot* member) {
   Type t = member->t_base;
 
-  if(t->xid == te_complex || t->xid == te_polar)
+  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0)
     return emit_complex_member(emit, member);
-  else if(t->xid == te_vec3 || t->xid == te_vec4)
+  else if(isa(t, &t_vec3) > 0 || isa(t, &t_vec4) > 0)
     return emit_vec_member(emit, member);
   return emit_vararg(emit, member);
 }
@@ -1717,9 +1709,9 @@ static m_bool emit_exp_dot_static(Emitter emit, Exp_Dot* member) {
 static m_bool emit_exp_dot(Emitter emit, Exp_Dot* member) {
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
-  if(member->t_base->xid != te_class)
-    return emit_exp_dot_instance(emit, member);
-  return emit_exp_dot_static(emit, member);
+  if(isa(member->t_base, &t_class) > 0)
+    return emit_exp_dot_static(emit, member);
+  return emit_exp_dot_instance(emit, member);
 }
 
 static m_bool emit_func_def_global(Emitter emit, Value value) {

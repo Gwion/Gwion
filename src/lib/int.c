@@ -2,7 +2,7 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_int   = { "int",   SZ_INT,   NULL,    te_int};
+struct Type_ t_int = { "int", SZ_INT };
 
 static INSTR(int_assign) {
   POP_REG(shred, SZ_INT * 2);
@@ -223,7 +223,6 @@ static INSTR(int_rsxor) {
 }
 
 m_bool import_int(Gwi gwi) {
-  CHECK_BB(gwi_add_type(gwi,  &t_int))
     CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
     CHECK_BB(gwi_oper_add(gwi, opck_assign))
     CHECK_BB(gwi_oper_end(gwi, op_assign,       int_assign))
