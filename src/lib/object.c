@@ -17,8 +17,7 @@ void NullException(VM_Shred shred, const m_str c) {
 
   err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
           c, shred->xid, shred->name, shred->pc);
-  release(shred->me, shred);
-  shred->me = NULL;
+  vm_shred_exit(shred);
 }
 
 M_Object new_M_Object(VM_Shred shred) {

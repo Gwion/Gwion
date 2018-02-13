@@ -118,7 +118,7 @@ function print_mod_func(name, mod)
   print("TICK("..name.."_tick)\n{")
   print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory > 0) then
-    print("\tif(!ug->is_init)\n\t{ // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn 1;\n\t} // LCOV_EXCL_STOP")
+    print("\tif(!ug->is_init)\n\t{ // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
   if mod.ninputs == 1 and mod.noutputs == 1 then
     print("\tbase_tick(u);");
@@ -151,7 +151,8 @@ function print_mod_func(name, mod)
     print("\tugen_compute(UGEN(u->trig));")
   end
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
-  print("\treturn 1;\n}\n")
+--  print("\treturn;\n}\n")
+  print("\n}\n")
   print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
   print("\tug->sp = shred->vm_ref->sp;")
   if(nmandatory > 0) then

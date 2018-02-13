@@ -35,8 +35,8 @@ DTOR(static_fileio_dtor) {
 INSTR(int_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
-  release(o, shred);
   CHECK_FIO(o)
+  release(o, shred);
   fprintf(IO_FILE(o), "%" INT_F "", *(m_int*)REG(- SZ_INT));
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -45,8 +45,8 @@ INSTR(float_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   o = **(M_Object**)REG(0);
-  release(o, shred);
   CHECK_FIO(o)
+  release(o, shred);
   fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
   PUSH_REG(shred, SZ_FLOAT);
   *(M_Object*)REG(- SZ_INT) = o;
@@ -56,9 +56,9 @@ INSTR(string_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
-  release(o, shred);
   release(lhs, shred);
   CHECK_FIO(o)
+  release(o, shred);
   fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -67,9 +67,9 @@ INSTR(object_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
-  release(o, shred);
   release(lhs, shred);
   CHECK_FIO(o)
+  release(o, shred);
   fprintf(IO_FILE(o), "%p", (void*)lhs);
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -129,11 +129,9 @@ INSTR(file_to_string) {
   M_Object o    = *(M_Object*)REG(- SZ_INT);
   M_Object s    = **(M_Object**)REG(0);
   if(!o) {
-    release(s, shred);
     Except(shred, "EmptyFileException");
   }
   if(!s) {
-    release(o, shred);
     Except(shred, "EmptyStringException");
   }
   if(IO_FILE(o)) {

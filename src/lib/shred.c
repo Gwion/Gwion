@@ -15,13 +15,9 @@ M_Object new_shred(VM* vm, VM_Shred shred) {
   return obj;
 }
 
-static MFUN(vm_shred_exit) {
-  m_uint i;
+static MFUN(gw_shred_exit) {
   VM_Shred  s = ME(o);
-  for(i = 0; i < vector_size(&s->gc1); i++)
-    release((M_Object)vector_at(&s->gc1, i), s);
-  release(o, s);
-  s->me = NULL;
+  shred->next_pc = vector_size(s->code->instr) -2;
 }
 
 static MFUN(vm_shred_id) {
@@ -99,7 +95,7 @@ m_bool import_shred(Gwi gwi) {
   o_shred_me = gwi_item_end(gwi, ae_flag_member, NULL);
   CHECK_BB(o_shred_me)
 
-  gwi_func_ini(gwi, "void", "exit", vm_shred_exit);
+  gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
   CHECK_BB(gwi_func_end(gwi, 0))
 
   gwi_func_ini(gwi, "int", "running", vm_shred_is_running);

@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
 
   pthread_t thread = 0;
 
+
   d.del = NULL;
   arg_init(&arg);
   arg.udp = &udpif;
@@ -109,6 +110,7 @@ int main(int argc, char** argv) {
 #endif
   }
   d.run(vm, &di);
+
   if(udpif.on)
     udp_release(&udp, thread);
 clean:

@@ -1,4 +1,4 @@
-typedef m_bool(*f_tick)(UGen ug);
+typedef void (*f_tick)(UGen ug);
 
 struct UGen_ {
   m_uint n_in, n_out, n_chan;
@@ -18,7 +18,7 @@ struct UGen_ {
 m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug);
 void ugen_compute(UGen u);
 
-m_bool dac_tick(UGen u);
-m_bool adc_tick(UGen u);
-m_bool base_tick(UGen u);
-m_bool blackhole_tick(UGen u);
+TICK(dac_tick);
+TICK(adc_tick);
+TICK(base_tick);
+TICK(blackhole_tick);

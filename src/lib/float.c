@@ -359,7 +359,6 @@ static m_bool import_values(Gwi gwi) {
   ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
   ALLOC_PTR(t_zero, m_float, 0.0);
   ALLOC_PTR(pi, m_float, M_PI);
-
   gwi_item_ini(gwi, "float", "samplerate");
   gwi_item_end(gwi, ae_flag_const, sr);
   gwi_item_ini(gwi, "float", "pi");

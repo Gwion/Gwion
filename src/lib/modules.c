@@ -19,10 +19,9 @@ typedef struct {
   m_float   phase;
 } SP_osc; // copied from ge nerated osc.c
 
-TICK(sinosc_tick) {
+static TICK(sinosc_tick) {
   SP_osc* ug = (SP_osc*)u->ug;
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
-  return 1;
 }
 
 static void refresh_sine(SP_osc* ug, m_int size, m_float phase) {
@@ -120,10 +119,34 @@ static DTOR(basic_dtor) {
 }
 
 static struct Type_ t_gain      = { "Gain", SZ_INT, &t_ugen };
-static m_bool gain_tick(UGen u) {
-  base_tick(u);
+TICK(gain_tick) {
+  UGen ugen;
+  m_uint i, size = vector_size(&u->ugen);
+  if(!size) {
+    u->out = 0;
+    return;
+  }
+  ugen = (UGen)vector_at(&u->ugen, 0);
+  u->out = ugen->out;
+  for(i = 1; i < size; i++) {
+    ugen = (UGen)vector_at(&u->ugen, i);
+    switch(u->op) {
+      case 1:
+       u->out += ugen->out;
+       break;
+      case 2:
+        u->out -= ugen->out;
+       break;
+      case 3:
+        u->out *= ugen->out;
+       break;
+      case 4:
+        u->out /= ugen->out;
+       break;
+    }
+  }
+  u->in = u->out;
   u->out *= *(m_float*)u->ug;
-  return 1;
 }
 
 static CTOR(gain_ctor) {
@@ -154,10 +177,9 @@ static m_bool import_gain(Gwi gwi) {
 
 
 static struct Type_ t_impulse      = { "Impulse", SZ_INT, &t_ugen };
-static m_bool impulse_tick(UGen u) {
+static TICK(impulse_tick) {
   u->out = *(m_float*)u->ug;
   *(m_float*)u->ug = 0;
-  return 1;
 }
 
 static CTOR(impulse_ctor) {
@@ -186,10 +208,9 @@ static m_bool import_impulse(Gwi gwi) {
 }
 
 static struct Type_ t_fullrect = { "FullRect", SZ_INT, &t_ugen };
-static m_bool fullrect_tick(UGen u) {
+static TICK(fullrect_tick) {
   base_tick(u);
   u->out = fabs(u->in);
-  return 1;
 }
 
 static CTOR(fullrect_ctor) {
@@ -205,13 +226,12 @@ static m_bool import_fullrect(Gwi gwi) {
 }
 
 static struct Type_ t_halfrect = { "HalfRect", SZ_INT, &t_ugen };
-static m_bool halfrect_tick(UGen u) {
+static TICK(halfrect_tick) {
   base_tick(u);
   if(u->in > 0)
     u->out = u->in;
   else
     u->out = 0;
-  return 1;
 }
 
 static CTOR(halfrect_ctor) {
@@ -227,9 +247,8 @@ static m_bool import_halfrect(Gwi gwi) {
 }
 
 static struct Type_ t_step = { "Step", SZ_INT, &t_ugen };
-static m_bool step_tick(UGen u) {
+static TICK(step_tick) {
   u->out = *(m_float*)u->ug;
-  return 1;
 }
 
 static CTOR(step_ctor) {
@@ -259,13 +278,12 @@ static m_bool import_step(Gwi gwi) {
 
 static struct Type_ t_zerox       = { "ZeroX",       SZ_INT, &t_ugen };
 
-static m_bool zerox_tick(UGen u) {
+static TICK(zerox_tick) {
   base_tick(u);
   m_float in = (u->in < 0) ? -1 : (u->in > 0);
   m_float f = *(m_float*)u->ug;
   u->out = f == in ? 1 : 0;
   *(m_float*) u->ug = in;
-  return 1;
 }
 
 static CTOR(zerox_ctor) {

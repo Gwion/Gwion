@@ -84,6 +84,7 @@ m_bool shreduler_curr(Shreduler s);
 int shreduler_shred(Shreduler s);
 
 VM_Shred new_vm_shred(VM_Code code);
+inline void vm_shred_exit(VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
 void free_vm_shred(VM_Shred shred);
 
 void vm_run(VM* vm);

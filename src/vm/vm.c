@@ -5,6 +5,7 @@
 #include "type.h"
 #include "instr.h"
 #include "ugen.h"
+#include "shreduler_private.h"
 
 Shreduler new_shreduler(VM* vm);
 Shreduler free_shreduler(Shreduler s);
@@ -19,7 +20,7 @@ VM* new_vm(m_bool loop) {
   vector_init(&vm->shred);
   vector_init(&vm->ugen);
   vector_init(&vm->plug);
-  shreduler_set_loop(vm->shreduler, loop < 0 ? 0 : 1);
+  shreduler_set_loop(vm->shreduler, loop);
   return vm;
 }
 
@@ -35,7 +36,7 @@ void free_vm(VM* vm) {
   if(vm->sp)
     sp_destroy(&vm->sp);
   free(vm->in);
-  free_shreduler(vm->shreduler);
+  free(vm->shreduler);
   free(vm);
   free_symbols();
 }
@@ -46,22 +47,22 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
     shred->me = new_shred(vm, shred);
   if(!shred->xid) {
     vector_add(&vm->shred, (vtype)shred);
-    shred->xid = shreduler_shred(vm->shreduler);
+    shred->xid = vm->shreduler->n_shred++;
   }
   shredule(vm->shreduler, shred, .5);
 }
 
-static void vm_run_shred(VM* vm, VM_Shred shred) {
+static void vm_run_shred(Shreduler s) {
   Instr instr;
-  while(shreduler_curr(vm->shreduler)) {
-    shred->pc = shred->next_pc++;
-    instr = (Instr)vector_at(shred->code->instr, shred->pc);
-    instr->execute(vm, shred, instr);
-    /*fprintf(stderr, "shred[%" UINT_F "] mem[%" INT_F"] 
-reg[%" INT_F"]\n", shred->xid,
+  VM_Shred shred;
+  while((shred = shreduler_get(s))) {
+    while(s->curr) {
+      shred->pc = shred->next_pc++;
+      instr = (Instr)vector_at(shred->code->instr, shred->pc);
+      instr->execute(vm, shred, instr);
+    /*fprintf(stderr, "shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid,
     shred->mem - shred->_mem, shred->reg - shred->_reg); */
-    if(!shred->me)
-      shreduler_remove(vm->shreduler, shred, 1);
+    }
   }
 }
 
@@ -84,12 +85,17 @@ static void vm_ugen_init(VM* vm) {
 }
 
 void vm_run(VM* vm) {
-  VM_Shred shred;
+//pthread_t thread;
+//pthread_create(&thread, NULL, vm_ugen_init, vm);
   pthread_mutex_lock(&vm->mutex);
-  while((shred = shreduler_get(vm->shreduler)))
-    vm_run_shred(vm, shred);
+  vm_run_shred(vm->shreduler);
   pthread_mutex_unlock(&vm->mutex);
+//pthread_join(thread, NULL);
+//pthread_cancel(thread);
   if(!vm->is_running)
     return;
   vm_ugen_init(vm);
+//  ugen_compute(UGEN(vm->adc));
+//  ugen_compute(UGEN(vm->dac));
+//  ugen_compute(UGEN(vm->blackhole));
 }

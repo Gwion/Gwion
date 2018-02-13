@@ -9,45 +9,30 @@
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
-m_bool base_tick(UGen u) {
+void base_tick(UGen u) {
   UGen ugen;
   m_uint i, size = vector_size(&u->ugen);
   if(!size) {
     u->out = 0;
-    return 1;
+    return;
   }
   ugen = (UGen)vector_at(&u->ugen, 0);
   u->out = ugen->out;
   for(i = 1; i < size; i++) {
     ugen = (UGen)vector_at(&u->ugen, i);
-    switch(u->op) {
-      case 1:
-       u->out += ugen->out;
-       break;
-      case 2:
-        u->out -= ugen->out;
-       break;
-      case 3:
-        u->out *= ugen->out;
-       break;
-      case 4:
-        u->out /= ugen->out;
-       break;
-    }
+    u->out += ugen->out;
   }
   u->in = u->out;
-  return 1;
 }
 
-m_bool dac_tick(UGen u) {
+void dac_tick(UGen u) {
   m_uint  i;
   VM* vm = (VM*)u->ug;
   for(i = u->n_out + 1; --i;)
     vm->sp->out[i - 1] = UGEN(u->channel[i - 1])->out;
-  return 1;
 }
 
-m_bool adc_tick(UGen u) {
+void adc_tick(UGen u) {
   m_uint  i;
   m_float last = 0;
   VM* vm = (VM*)u->ug;
@@ -58,7 +43,6 @@ m_bool adc_tick(UGen u) {
     last += (UGEN(obj)->out = vm->in[j]);
   }
   u->last = last;
-  return 1;
 }
 
 static void ref_compute(UGen u) {
@@ -73,15 +57,21 @@ static void ref_compute(UGen u) {
 
 void ugen_compute(UGen u) {
   m_uint  i;
-  if(u->done)
-    return;
+//  if(u->done)
+//    return;
   u->done = 1;
-  if(u->channel)
-    for(i = u->n_chan + 1; --i;)
-      ugen_compute(UGEN(u->channel[i - 1]));
-  else for(i = vector_size(&u->ugen) + 1; --i;)
-      ugen_compute((UGen)vector_at(&u->ugen, i - 1));
-  if(u->ref) {
+  if(u->channel) {
+    for(i = u->n_chan + 1; --i;) {
+      UGen v = UGEN(u->channel[i - 1]);
+      if(!v->done)
+        ugen_compute(v);
+    }
+  } else for(i = vector_size(&u->ugen) + 1; --i;) {
+    UGen v = (UGen)vector_at(&u->ugen, i - 1);
+    if(!v->done)
+      ugen_compute(v);
+  }
+  if(u->ref && !u->ref->done) {
     ref_compute(u->ref);
     return;
   }

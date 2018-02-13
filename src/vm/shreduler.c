@@ -1,15 +1,7 @@
 #include <stdlib.h>
 #include "vm.h"
 #include "object.h"
-
-struct  Shreduler_ {
-  VM* vm;
-  VM_Shred list;
-  VM_Shred curr;
-  m_uint n_shred;
-  m_bool loop;
-};
-
+#include "shreduler_private.h"
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
@@ -18,20 +10,8 @@ Shreduler new_shreduler(VM* vm) {
   return s;
 }
 
-void free_shreduler(Shreduler s) {
-  free(s);
-}
-
-inline void shreduler_set_loop(Shreduler s, m_bool loop) {
-  s->loop = loop;
-}
-
-m_bool shreduler_curr(Shreduler s) {
-  return s->curr ? 1 : 0;
-}
-
-int shreduler_shred(Shreduler s) {
-  return s->n_shred++;
+void shreduler_set_loop(Shreduler s, m_bool loop) {
+  s->loop = loop < 0 ? 0 : 1;
 }
 
 VM_Shred shreduler_get(Shreduler s) {

@@ -18,8 +18,7 @@ static void dl_return_push(const char* retval, VM_Shred shred, m_uint size) {
 }
 
 INSTR(EOC) {
-  release(shred->me, shred);
-  shred->me = NULL;
+  vm_shred_exit(shred);
 }
 
 INSTR(Reg_Pop_Word4) {

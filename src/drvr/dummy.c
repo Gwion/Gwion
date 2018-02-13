@@ -41,4 +41,3 @@ void dummy_driver(Driver* d, VM* vm) {
   d->del = dummy_del;
   vm->wakeup = no_wakeup;
 }
-

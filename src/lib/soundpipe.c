@@ -28,7 +28,7 @@ TICK(adsr_tick)
 	GW_adsr* ug = (GW_adsr*)u->ug;
 	base_tick(u);
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(adsr_ctor)
@@ -117,11 +117,11 @@ TICK(allpass_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(allpass_ctor)
@@ -184,7 +184,7 @@ TICK(atone_tick)
 	GW_atone* ug = (GW_atone*)u->ug;
 	base_tick(u);
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(atone_ctor)
@@ -229,7 +229,7 @@ TICK(autowah_tick)
 	GW_autowah* ug = (GW_autowah*)u->ug;
 	base_tick(u);
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(autowah_ctor)
@@ -303,7 +303,7 @@ TICK(bal_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_bal_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
-	return 1;
+
 }
 
 CTOR(bal_ctor)
@@ -336,12 +336,12 @@ TICK(bar_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_bar_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(bar_ctor)
@@ -490,7 +490,7 @@ TICK(biquad_tick)
 	GW_biquad* ug = (GW_biquad*)u->ug;
 	base_tick(u);
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(biquad_ctor)
@@ -605,7 +605,7 @@ TICK(biscale_tick)
 	GW_biscale* ug = (GW_biscale*)u->ug;
 	base_tick(u);
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(biscale_ctor)
@@ -664,7 +664,7 @@ TICK(bitcrush_tick)
 	GW_bitcrush* ug = (GW_bitcrush*)u->ug;
 	base_tick(u);
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(bitcrush_ctor)
@@ -722,7 +722,7 @@ TICK(blsaw_tick)
 {
 	GW_blsaw* ug = (GW_blsaw*)u->ug;
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(blsaw_ctor)
@@ -780,7 +780,7 @@ TICK(blsquare_tick)
 {
 	GW_blsquare* ug = (GW_blsquare*)u->ug;
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(blsquare_ctor)
@@ -852,7 +852,7 @@ TICK(bltriangle_tick)
 {
 	GW_bltriangle* ug = (GW_bltriangle*)u->ug;
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(bltriangle_ctor)
@@ -910,7 +910,7 @@ TICK(brown_tick)
 {
 	GW_brown* ug = (GW_brown*)u->ug;
 	sp_brown_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(brown_ctor)
@@ -941,7 +941,7 @@ TICK(butbp_tick)
 	GW_butbp* ug = (GW_butbp*)u->ug;
 	base_tick(u);
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(butbp_ctor)
@@ -1000,7 +1000,7 @@ TICK(butbr_tick)
 	GW_butbr* ug = (GW_butbr*)u->ug;
 	base_tick(u);
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(butbr_ctor)
@@ -1059,7 +1059,7 @@ TICK(buthp_tick)
 	GW_buthp* ug = (GW_buthp*)u->ug;
 	base_tick(u);
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(buthp_ctor)
@@ -1104,7 +1104,7 @@ TICK(butlp_tick)
 	GW_butlp* ug = (GW_butlp*)u->ug;
 	base_tick(u);
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(butlp_ctor)
@@ -1149,7 +1149,7 @@ TICK(clip_tick)
 	GW_clip* ug = (GW_clip*)u->ug;
 	base_tick(u);
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(clip_ctor)
@@ -1195,7 +1195,7 @@ TICK(clock_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_clock_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(clock_ctor)
@@ -1256,11 +1256,11 @@ TICK(comb_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(comb_ctor)
@@ -1323,7 +1323,7 @@ TICK(compressor_tick)
 	GW_compressor* ug = (GW_compressor*)u->ug;
 	base_tick(u);
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(compressor_ctor)
@@ -1412,11 +1412,11 @@ TICK(conv_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(conv_ctor)
@@ -1470,7 +1470,7 @@ TICK(count_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_count_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(count_ctor)
@@ -1530,7 +1530,7 @@ TICK(crossfade_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_crossfade_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
-	return 1;
+
 }
 
 CTOR(crossfade_ctor)
@@ -1575,7 +1575,7 @@ TICK(dcblock_tick)
 	GW_dcblock* ug = (GW_dcblock*)u->ug;
 	base_tick(u);
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(dcblock_ctor)
@@ -1608,11 +1608,11 @@ TICK(delay_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(delay_ctor)
@@ -1675,7 +1675,7 @@ TICK(diode_tick)
 	GW_diode* ug = (GW_diode*)u->ug;
 	base_tick(u);
 	sp_diode_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(diode_ctor)
@@ -1736,10 +1736,10 @@ TICK(diskin_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_diskin_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(diskin_ctor)
@@ -1790,7 +1790,7 @@ TICK(dist_tick)
 	GW_dist* ug = (GW_dist*)u->ug;
 	base_tick(u);
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(dist_ctor)
@@ -1876,7 +1876,7 @@ TICK(dmetro_tick)
 {
 	GW_dmetro* ug = (GW_dmetro*)u->ug;
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(dmetro_ctor)
@@ -1923,12 +1923,12 @@ TICK(drip_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_drip_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(drip_ctor)
@@ -2077,12 +2077,12 @@ TICK(dtrig_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_dtrig_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(dtrig_ctor)
@@ -2174,7 +2174,7 @@ TICK(dust_tick)
 {
 	GW_dust* ug = (GW_dust*)u->ug;
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(dust_ctor)
@@ -2247,7 +2247,7 @@ TICK(eqfil_tick)
 	GW_eqfil* ug = (GW_eqfil*)u->ug;
 	base_tick(u);
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(eqfil_ctor)
@@ -2321,7 +2321,7 @@ TICK(expon_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_expon_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(expon_ctor)
@@ -2396,10 +2396,10 @@ TICK(fof_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_fof_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(fof_ctor)
@@ -2570,7 +2570,7 @@ TICK(fofilt_tick)
 	GW_fofilt* ug = (GW_fofilt*)u->ug;
 	base_tick(u);
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(fofilt_ctor)
@@ -2645,10 +2645,10 @@ TICK(fog_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_fog_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(fog_ctor)
@@ -2833,7 +2833,7 @@ TICK(fold_tick)
 	GW_fold* ug = (GW_fold*)u->ug;
 	base_tick(u);
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(fold_ctor)
@@ -2880,10 +2880,10 @@ TICK(fosc_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_fosc_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(fosc_ctor)
@@ -3006,10 +3006,10 @@ TICK(gbuzz_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_gbuzz_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(gbuzz_ctor)
@@ -3291,7 +3291,7 @@ TICK(hilbert_tick)
 {
 	GW_hilbert* ug = (GW_hilbert*)u->ug;
 	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(hilbert_ctor)
@@ -3321,7 +3321,7 @@ TICK(in_tick)
 {
 	GW_in* ug = (GW_in*)u->ug;
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(in_ctor)
@@ -3354,12 +3354,12 @@ TICK(incr_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_incr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(incr_ctor)
@@ -3450,7 +3450,7 @@ TICK(jcrev_tick)
 	GW_jcrev* ug = (GW_jcrev*)u->ug;
 	base_tick(u);
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(jcrev_ctor)
@@ -3480,7 +3480,7 @@ TICK(jitter_tick)
 {
 	GW_jitter* ug = (GW_jitter*)u->ug;
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(jitter_ctor)
@@ -3554,7 +3554,7 @@ TICK(line_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_line_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(line_ctor)
@@ -3629,11 +3629,11 @@ TICK(lpc_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_lpc_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(lpc_ctor)
@@ -3682,7 +3682,7 @@ TICK(lpf18_tick)
 	GW_lpf18* ug = (GW_lpf18*)u->ug;
 	base_tick(u);
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(lpf18_ctor)
@@ -3756,7 +3756,7 @@ TICK(maygate_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_maygate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(maygate_ctor)
@@ -3814,7 +3814,7 @@ TICK(metro_tick)
 {
 	GW_metro* ug = (GW_metro*)u->ug;
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(metro_ctor)
@@ -3861,10 +3861,10 @@ TICK(mincer_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_mincer_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(mincer_ctor)
@@ -3959,7 +3959,7 @@ TICK(mode_tick)
 	GW_mode* ug = (GW_mode*)u->ug;
 	base_tick(u);
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(mode_ctor)
@@ -4018,7 +4018,7 @@ TICK(moogladder_tick)
 	GW_moogladder* ug = (GW_moogladder*)u->ug;
 	base_tick(u);
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(moogladder_ctor)
@@ -4076,7 +4076,7 @@ TICK(noise_tick)
 {
 	GW_noise* ug = (GW_noise*)u->ug;
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(noise_ctor)
@@ -4123,12 +4123,12 @@ TICK(nsmp_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_nsmp_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(nsmp_ctor)
@@ -4201,10 +4201,10 @@ TICK(osc_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(osc_ctor)
@@ -4289,10 +4289,10 @@ TICK(oscmorph_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_oscmorph_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(oscmorph_ctor)
@@ -4396,7 +4396,7 @@ TICK(pan2_tick)
 {
 	GW_pan2* ug = (GW_pan2*)u->ug;
 	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(pan2_ctor)
@@ -4456,7 +4456,7 @@ TICK(panst_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_panst_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(panst_ctor)
@@ -4515,7 +4515,7 @@ TICK(pareq_tick)
 	GW_pareq* ug = (GW_pareq*)u->ug;
 	base_tick(u);
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(pareq_ctor)
@@ -4604,10 +4604,10 @@ TICK(paulstretch_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_paulstretch_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(paulstretch_ctor)
@@ -4662,7 +4662,7 @@ TICK(pdhalf_tick)
 	GW_pdhalf* ug = (GW_pdhalf*)u->ug;
 	base_tick(u);
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(pdhalf_ctor)
@@ -4707,7 +4707,7 @@ TICK(peaklim_tick)
 	GW_peaklim* ug = (GW_peaklim*)u->ug;
 	base_tick(u);
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(peaklim_ctor)
@@ -4781,7 +4781,7 @@ TICK(phaser_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_phaser_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(phaser_ctor)
@@ -4954,10 +4954,10 @@ TICK(phasor_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_phasor_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(phasor_ctor)
@@ -5019,7 +5019,7 @@ TICK(pinknoise_tick)
 {
 	GW_pinknoise* ug = (GW_pinknoise*)u->ug;
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(pinknoise_ctor)
@@ -5066,10 +5066,10 @@ TICK(pitchamdf_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(pitchamdf_ctor)
@@ -5122,12 +5122,12 @@ TICK(pluck_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_pluck_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(pluck_ctor)
@@ -5206,11 +5206,11 @@ TICK(port_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(port_ctor)
@@ -5261,10 +5261,10 @@ TICK(posc3_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_posc3_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(posc3_ctor)
@@ -5342,7 +5342,7 @@ TICK(progress_tick)
 {
 	GW_progress* ug = (GW_progress*)u->ug;
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(progress_ctor)
@@ -5403,10 +5403,10 @@ TICK(prop_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_prop_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(prop_ctor)
@@ -5471,7 +5471,7 @@ TICK(pshift_tick)
 	GW_pshift* ug = (GW_pshift*)u->ug;
 	base_tick(u);
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(pshift_ctor)
@@ -5546,10 +5546,10 @@ TICK(ptrack_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(ptrack_ctor)
@@ -5599,7 +5599,7 @@ TICK(randh_tick)
 {
 	GW_randh* ug = (GW_randh*)u->ug;
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(randh_ctor)
@@ -5671,7 +5671,7 @@ TICK(randi_tick)
 {
 	GW_randi* ug = (GW_randi*)u->ug;
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(randi_ctor)
@@ -5757,7 +5757,7 @@ TICK(random_tick)
 {
 	GW_random* ug = (GW_random*)u->ug;
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(random_ctor)
@@ -5816,7 +5816,7 @@ TICK(reson_tick)
 	GW_reson* ug = (GW_reson*)u->ug;
 	base_tick(u);
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(reson_ctor)
@@ -5877,11 +5877,11 @@ TICK(reverse_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(reverse_ctor)
@@ -5931,7 +5931,7 @@ TICK(revsc_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_revsc_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(revsc_ctor)
@@ -5990,7 +5990,7 @@ TICK(rms_tick)
 	GW_rms* ug = (GW_rms*)u->ug;
 	base_tick(u);
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(rms_ctor)
@@ -6037,13 +6037,13 @@ TICK(rpt_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(rpt_ctor)
@@ -6091,7 +6091,7 @@ TICK(rspline_tick)
 {
 	GW_rspline* ug = (GW_rspline*)u->ug;
 	sp_rspline_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(rspline_ctor)
@@ -6180,7 +6180,7 @@ TICK(samphold_tick)
 	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_samphold_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(samphold_ctor)
@@ -6211,7 +6211,7 @@ TICK(saturator_tick)
 	GW_saturator* ug = (GW_saturator*)u->ug;
 	base_tick(u);
 	sp_saturator_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(saturator_ctor)
@@ -6270,7 +6270,7 @@ TICK(scale_tick)
 	GW_scale* ug = (GW_scale*)u->ug;
 	base_tick(u);
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(scale_ctor)
@@ -6331,11 +6331,11 @@ TICK(sdelay_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(sdelay_ctor)
@@ -6386,12 +6386,12 @@ TICK(slice_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_slice_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(slice_ctor)
@@ -6462,11 +6462,11 @@ TICK(smoothdelay_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(smoothdelay_ctor)
@@ -6547,10 +6547,10 @@ TICK(spa_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_spa_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(spa_ctor)
@@ -6603,11 +6603,11 @@ TICK(sparec_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_sparec_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(sparec_ctor)
@@ -6658,7 +6658,7 @@ TICK(streson_tick)
 	GW_streson* ug = (GW_streson*)u->ug;
 	base_tick(u);
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(streson_ctor)
@@ -6720,7 +6720,7 @@ TICK(switch_tick)
 	base_tick(UGEN(u->channel[2]));
 	ugen_compute(UGEN(u->trig));
 	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(switch_ctor)
@@ -6753,10 +6753,10 @@ TICK(tabread_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	sp_tabread_compute(ug->sp, ug->osc, NULL, &u->out);
-	return 1;
+
 }
 
 CTOR(tabread_ctor)
@@ -6852,7 +6852,7 @@ TICK(tadsr_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tadsr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tadsr_ctor)
@@ -6940,7 +6940,7 @@ TICK(talkbox_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
-	return 1;
+
 }
 
 CTOR(talkbox_ctor)
@@ -6987,13 +6987,13 @@ TICK(tblrec_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tblrec_ctor)
@@ -7044,7 +7044,7 @@ TICK(tbvcf_tick)
 	GW_tbvcf* ug = (GW_tbvcf*)u->ug;
 	base_tick(u);
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(tbvcf_ctor)
@@ -7132,7 +7132,7 @@ TICK(tdiv_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tdiv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tdiv_ctor)
@@ -7192,7 +7192,7 @@ TICK(tenv_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tenv_ctor)
@@ -7266,7 +7266,7 @@ TICK(tenv2_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenv2_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tenv2_ctor)
@@ -7326,7 +7326,7 @@ TICK(tenvx_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenvx_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tenvx_ctor)
@@ -7400,7 +7400,7 @@ TICK(tgate_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tgate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tgate_ctor)
@@ -7445,7 +7445,7 @@ TICK(thresh_tick)
 	GW_thresh* ug = (GW_thresh*)u->ug;
 	base_tick(u);
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(thresh_ctor)
@@ -7504,7 +7504,7 @@ TICK(timer_tick)
 	GW_timer* ug = (GW_timer*)u->ug;
 	base_tick(u);
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(timer_ctor)
@@ -7536,7 +7536,7 @@ TICK(tin_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tin_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tin_ctor)
@@ -7567,7 +7567,7 @@ TICK(tone_tick)
 	GW_tone* ug = (GW_tone*)u->ug;
 	base_tick(u);
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(tone_ctor)
@@ -7613,7 +7613,7 @@ TICK(trand_tick)
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_trand_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(trand_ctor)
@@ -7674,12 +7674,12 @@ TICK(tseg_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tseg_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tseg_ctor)
@@ -7772,12 +7772,12 @@ TICK(tseq_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tseq_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
-	return 1;
+
 }
 
 CTOR(tseq_ctor)
@@ -7844,11 +7844,11 @@ TICK(vdelay_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(vdelay_ctor)
@@ -7910,7 +7910,7 @@ TICK(voc_tick)
 {
 	GW_voc* ug = (GW_voc*)u->ug;
 	sp_voc_compute(ug->sp, ug->osc, &u->out);
-	return 1;
+
 }
 
 CTOR(voc_ctor)
@@ -7942,7 +7942,7 @@ TICK(vocoder_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_vocoder_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
-	return 1;
+
 }
 
 CTOR(vocoder_ctor)
@@ -8017,11 +8017,11 @@ TICK(waveset_tick)
 	if(!ug->is_init)
 	{ // LCOV_EXCL_START
 		u->out = 0;
-		return 1;
+		return;
 	} // LCOV_EXCL_STOP
 	base_tick(u);
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(waveset_ctor)
@@ -8084,7 +8084,7 @@ TICK(wpkorg35_tick)
 	GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
 	base_tick(u);
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
-	return 1;
+
 }
 
 CTOR(wpkorg35_ctor)
@@ -8158,7 +8158,7 @@ TICK(zitarev_tick)
 	base_tick(UGEN(u->channel[0]));
 	base_tick(UGEN(u->channel[1]));
 	sp_zitarev_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
-	return 1;
+
 }
 
 CTOR(zitarev_ctor)
