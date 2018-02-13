@@ -220,14 +220,10 @@ m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
   if(!gwi->env->class_def->def) {
-    Type t = find_type(gwi->env, td->xid);
-    if(!t)
-      CHECK_BB(type_unknown(td->xid, "builtin class extend"))
-    CHECK_OB((t = scan_type(gwi->env, t, td)))
-    if(td->array) {
-      CHECK_OB((t = array_type(t, td->array->depth)))
+    Type t;
+    CHECK_OB((t = type_decl_resolve(gwi->env, td)))
+    if(td->array)
       SET_FLAG(gwi->env->class_def, ae_flag_typedef);
-    }
     gwi->env->class_def->parent = t;
     gwi->env->class_def->info->offset = t->info->offset;
     if(t->info->vtable.ptr)
@@ -373,10 +369,8 @@ static Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
       tmp = tmp->next;
     }
   }
-  if(td->types) {
-    Type t = find_type(env, td->xid);
-    t = scan_type(env, t, td);
-  }
+  if(td->types)
+    CHECK_OO(type_decl_resolve(env, td))
   return td;
 }
 
@@ -718,23 +712,20 @@ OP_CHECK(opck_post) {
 Type   check_exp(Env env, Exp exp);
 m_bool check_exp_array_subscripts(Env env, Exp exp);
 OP_CHECK(opck_new) {
-  Type t;
   Exp_Unary* unary = (Exp_Unary*)data;
-  if(!(t = find_type(env, unary->type->xid)))
+  Type t = type_decl_resolve(env, unary->type);
+  if(!t)
     CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
-  CHECK_OO((t = scan_type(env, t, unary->type)))
   if(unary->type->array) {
     CHECK_OO(check_exp(env, unary->type->array->exp_list))
     CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
-    t = array_type(t, unary->type->array->depth);
   } else
     CHECK_BO(prim_ref(unary->type, t))
   return t;
 }
 
 #include "instr.h"
-m_bool emit_instantiate_object(Emitter emit, Type type, 
-Array_Sub array, m_bool is_ref);
+m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, m_bool is_ref);
 OP_EMIT(opem_new) {
   Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,

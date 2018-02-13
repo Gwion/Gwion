@@ -14,7 +14,6 @@ m_bool scan1_class_def(Env env, Class_Def class_def);
 static m_bool scan1_stmt(Env env, Stmt stmt);
 
 static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
-  CHECK_OB((t = scan_type(env, t, decl->type)))
   if(GET_FLAG(t, ae_flag_template)) {
     decl->base = t->def;
     decl->m_type = t;
@@ -23,7 +22,8 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
 }
 
 static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
-  Type t = find_type(env, decl->type->xid);
+  Type t = type_decl_resolve(env, decl->type);
+//find_type(env, decl->type->xid);
   if(!t)
     CHECK_BO(type_unknown(decl->type->xid, "declaration"))
   if(!t->size)
@@ -286,9 +286,8 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
 
 static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
   while(arg_list) {
-    if(!(arg_list->type = find_type(env, arg_list->type_decl->xid)))
+    if(!(arg_list->type = type_decl_resolve(env, arg_list->type_decl)))
       CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument"))
-    CHECK_OB((arg_list->type = scan_type(env, arg_list->type, arg_list->type_decl)))
     if(arg_list->type_decl->types)
       ADD_REF(arg_list->type)
     arg_list = arg_list->next;
@@ -297,11 +296,8 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
 }
 
 m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
-  if(!(ptr->ret_type = find_type(env, ptr->type->xid)))
-      CHECK_BB(type_unknown(ptr->type->xid, "function pointer return type"))
-  CHECK_OB((ptr->ret_type = scan_type(env, ptr->ret_type, ptr->type)))
-  if(ptr->type->array)
-    CHECK_OB((ptr->ret_type = get_array(ptr->ret_type, ptr->type->array, "function pointer")))
+  if(!(ptr->ret_type = type_decl_resolve(env, ptr->type)))
+    CHECK_BB(type_unknown(ptr->type->xid, "func pointer definition"))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "can't declare func pointer static outside of a class"))
@@ -420,11 +416,8 @@ static m_bool scan1_stmt_list(Env env, Stmt_List list) {
 }
 
 static m_bool scan1_func_def_type(Env env, Func_Def f) {
-  if(!(f->ret_type = find_type(env, f->type_decl->xid)))
+  if(!(f->ret_type = type_decl_resolve(env, f->type_decl)))
       CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
-  CHECK_OB((f->ret_type = scan_type(env, f->ret_type, f->type_decl)))
-  if(f->type_decl->array)
-    CHECK_OB((f->ret_type = get_array(f->ret_type, f->type_decl->array, "function return")))
   return 1;
 }
 

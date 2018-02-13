@@ -8,10 +8,7 @@ static m_uint template_size(Env env, Class_Def c, Type_List call) {
   ID_List base = c->tmpl->list.list;
   m_uint size = strlen(c->type->name) + 3;
   while(base) {
-    Type t = find_type(env, call->list->xid);
-    t = scan_type(env, t, call->list);
-    if(call->list->array)
-      t = get_array(t, call->list->array, "template name");
+    Type t = type_decl_resolve(env, call->list);
     size += strlen(t->name);
     call = call->next;
     base = base->next;
@@ -26,10 +23,7 @@ static m_bool template_name(Env env, Class_Def c, Type_List call, m_str str) {
   strcpy(str, c->type->name);
   strcat(str, "<");
   while(base) { // TODO: error checking
-    Type t = find_type(env, call->list->xid);
-    t = scan_type(env, t, call->list);
-    if(call->list->array)
-      t = get_array(t, call->list->array, "template name");
+    Type t = type_decl_resolve(env, call->list);
     strcat(str, t->name);
     call = call->next;
     base = base->next;
@@ -77,11 +71,7 @@ static Class_Def template_class(Env env, Class_Def def, Type_List call) {
 m_bool template_push_types(Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   while(base) {
-    Type t = find_type(env, call->list->xid);
-    CHECK_OB(t)
-    CHECK_OB((t = scan_type(env, t, call->list)))
-    if(call->list->array)
-      CHECK_OB((t = get_array(t, call->list->array, "template name")))
+    Type t = type_decl_resolve(env, call->list);
     nspc_add_type(env->curr, base->xid, t);
     base = base->next;
     call = call->next;
@@ -91,7 +81,8 @@ m_bool template_push_types(Env env, ID_List base, Type_List call) {
 
 extern m_bool scan0_class_def(Env, Class_Def);
 extern m_bool scan1_class_def(Env, Class_Def);
-Type scan_type(Env env, Type t, Type_Decl* type) {
+
+Type scan_type(Env env, Type t, const Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(GET_FLAG(t, ae_flag_ref))
       return t;

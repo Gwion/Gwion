@@ -12,3 +12,12 @@ const m_bool prim_ref(const Type_Decl* td, const Type t) {
           t->name))
   return 1;
 }
+
+Type type_decl_resolve(Env env, const Type_Decl* td) {
+  Type t = find_type(env, td->xid);
+  CHECK_OO(t)
+  CHECK_OO((t = scan_type(env, t, td)))
+  if(td->array)
+    CHECK_OO((t = get_array(t, td->array, "type decl resolve")))
+  return t;
+}

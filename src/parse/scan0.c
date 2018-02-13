@@ -90,11 +90,9 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
-  CHECK_OB((base = scan_type(env, base, stmt->type)))
+  CHECK_OB((base = type_decl_resolve(env, stmt->type)))
   if((isa(base, &t_object) < 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
     Type t = NULL;
-    if(stmt->type->array)
-      base = array_type(base, stmt->type->array->depth);
     t = new_type(env->type_xid++, s_name(stmt->xid), base);
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
