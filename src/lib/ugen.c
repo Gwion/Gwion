@@ -9,10 +9,6 @@
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
-TICK(base_tick) {
-  u->out = u->in;
-}
-
 static TICK(dac_tick) {
   VM* vm = (VM*)u->ug;
   for(m_uint i = u->n_out + 1; --i;)
@@ -87,7 +83,7 @@ M_Object new_M_UGen() {
   return o;
 }
 
-static m_bool assign_channel(UGen u) {
+static const m_bool assign_channel(UGen u) {
   m_uint i;
   u->channel = malloc(u->n_chan * sizeof(M_Object));
   for(i = u->n_chan + 1; --i;) {
@@ -100,7 +96,7 @@ static m_bool assign_channel(UGen u) {
   return 1;
 }
 
-m_bool assign_ugen(UGen u, m_uint n_in, m_uint n_out, m_bool trig, void* ug) {
+const m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug) {
   u->n_chan = n_in > n_out ? n_in : n_out;
   u->in = u->out = 0;
   u->n_in   = n_in;

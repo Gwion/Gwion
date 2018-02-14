@@ -6,6 +6,7 @@
 #include "type.h"
 #include "value.h"
 #include "traverse.h"
+#include "instr.h"
 #include "import.h"
 #include "gwi.h"
 #include "emit.h"
@@ -158,10 +159,8 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
 static m_bool mk_xtor(Type type, m_uint d, e_func e) {
   VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
   m_str name = type->name;
-//  m_str filename = e == NATIVE_CTOR ? "[ctor]" : "[dtor]";
 
   SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
-//  *code = new_vm_code(NULL, SZ_INT, 1, code_name_set(name, filename));
   *code = new_vm_code(NULL, SZ_INT, 1, name);
   (*code)->native_func = (m_uint)d;
   (*code)->flag = (e | _NEED_THIS_);
@@ -197,7 +196,7 @@ m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
-    ID_List types = templater_def(&gwi->templater); // improve me ?
+    ID_List types = templater_def(&gwi->templater);
     type->def = calloc(1, sizeof(struct Class_Def_));
     type->def->tmpl = new_tmpl_class(types, 1);
     type->def->type = type;
@@ -210,7 +209,7 @@ m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
 }
 
 m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
-  if(!td->types)
+  if(!gwi->env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "gwi_class_ext invoked before "
           "gwi_class_ini"))
   VM_Code ctor = gwi->env->class_def->info->pre_ctor;
@@ -220,18 +219,18 @@ m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
   if(!gwi->env->class_def->def) {
-    Type t;
-    CHECK_OB((t = type_decl_resolve(gwi->env, td)))
-    if(td->array)
+    Type t = find_type(gwi->env, td->xid);
+    if(!t)
+      CHECK_BB(type_unknown(td->xid, "builtin class extend"))
+    CHECK_OB((t = scan_type(gwi->env, t, td)))
+    if(td->array) {
+      CHECK_OB((t = array_type(t, td->array->depth)))
       SET_FLAG(gwi->env->class_def, ae_flag_typedef);
+    }
     gwi->env->class_def->parent = t;
     gwi->env->class_def->info->offset = t->info->offset;
     if(t->info->vtable.ptr)
       vector_copy2(&t->info->vtable, &gwi->env->class_def->info->vtable);
-      gwi->env->class_def->info->pre_ctor = new_vm_code(NULL,
-//          SZ_INT, 1, code_name_set(gwi->env->class_def->name,
-//            "ext ctor"));
-          SZ_INT, 1, gwi->env->class_def->name);
     CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
           gwi->env->class_def->name)))
     if(td->array)
@@ -241,7 +240,6 @@ m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
     CHECK_BB(emit_class_finish(gwi->emit, gwi->env->class_def->info))
     free_type_decl(td);
   } else {
-// use ctor here too?
     SET_FLAG(td, ae_flag_typedef);
     gwi->env->class_def->def->ext = td;
   }
@@ -712,20 +710,20 @@ OP_CHECK(opck_post) {
 Type   check_exp(Env env, Exp exp);
 m_bool check_exp_array_subscripts(Env env, Exp exp);
 OP_CHECK(opck_new) {
+  Type t;
   Exp_Unary* unary = (Exp_Unary*)data;
-  Type t = type_decl_resolve(env, unary->type);
-  if(!t)
+  if(!(t = find_type(env, unary->type->xid)))
     CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
+  CHECK_OO((t = scan_type(env, t, unary->type)))
   if(unary->type->array) {
     CHECK_OO(check_exp(env, unary->type->array->exp_list))
     CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
+    t = array_type(t, unary->type->array->depth);
   } else
     CHECK_BO(prim_ref(unary->type, t))
   return t;
 }
 
-#include "instr.h"
-m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, m_bool is_ref);
 OP_EMIT(opem_new) {
   Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,

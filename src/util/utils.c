@@ -165,8 +165,9 @@ const Type get_array(const Type t, const Array_Sub a, const m_str orig) {
 
 const m_bool type_ref(Type t) {
   while(t) {
+    if(GET_FLAG(t, ae_flag_ref))return 1;
     if(GET_FLAG(t, ae_flag_typedef))
-      if(!t->def || (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
+      if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
         return 1;
     t = t->parent;
   }

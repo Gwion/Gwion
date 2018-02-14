@@ -10,7 +10,6 @@ typedef struct Gwi_* Gwi;
 #define SFUN(a) void a(char* RETURN, VM_Shred shred)
 #define CTOR(a) void a(M_Object o, VM_Shred shred)
 #define DTOR(a) void a(M_Object o, VM_Shred shred)
-#define TICK(a) void a(UGen u) // was m_bool
 #define OP_CHECK(a) Type a(Env env, void* data)
 #define OP_EMIT(a) m_bool a(Emitter emit, void* data)
 #define IMPORT m_bool import(Gwi gwi)

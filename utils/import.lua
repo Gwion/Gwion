@@ -115,7 +115,7 @@ function print_mod_func(name, mod)
     end
   end
   print("} GW_"..name..";\n")
-  print("TICK("..name.."_tick)\n{")
+  print("static TICK("..name.."_tick)\n{")
   print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory > 0) then
     print("\tif(!ug->is_init)\n\t{ // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")

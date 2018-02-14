@@ -39,4 +39,5 @@ m_bool emit_array_extend(Emitter emit, Type t, Exp e);
 m_bool emit_class_finish(Emitter emit, Nspc nspc);
 m_bool emit_ext_ctor(Emitter emit, VM_Code code);
 void emit_union_offset(Decl_List l, const m_uint o);
+m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, m_bool is_ref);
 #endif

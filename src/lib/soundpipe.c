@@ -23,7 +23,7 @@ typedef struct
 	sp_adsr* osc;
 } GW_adsr;
 
-TICK(adsr_tick)
+static TICK(adsr_tick)
 {
 	GW_adsr* ug = (GW_adsr*)u->ug;
 	base_tick(u);
@@ -111,7 +111,7 @@ typedef struct
 	m_bool is_init;
 } GW_allpass;
 
-TICK(allpass_tick)
+static TICK(allpass_tick)
 {
 	GW_allpass* ug = (GW_allpass*)u->ug;
 	if(!ug->is_init)
@@ -179,7 +179,7 @@ typedef struct
 	sp_atone* osc;
 } GW_atone;
 
-TICK(atone_tick)
+static TICK(atone_tick)
 {
 	GW_atone* ug = (GW_atone*)u->ug;
 	base_tick(u);
@@ -224,7 +224,7 @@ typedef struct
 	sp_autowah* osc;
 } GW_autowah;
 
-TICK(autowah_tick)
+static TICK(autowah_tick)
 {
 	GW_autowah* ug = (GW_autowah*)u->ug;
 	base_tick(u);
@@ -297,7 +297,7 @@ typedef struct
 	sp_bal* osc;
 } GW_bal;
 
-TICK(bal_tick)
+static TICK(bal_tick)
 {
 	GW_bal* ug = (GW_bal*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -330,7 +330,7 @@ typedef struct
 	m_bool is_init;
 } GW_bar;
 
-TICK(bar_tick)
+static TICK(bar_tick)
 {
 	GW_bar* ug = (GW_bar*)u->ug;
 	if(!ug->is_init)
@@ -485,7 +485,7 @@ typedef struct
 	sp_biquad* osc;
 } GW_biquad;
 
-TICK(biquad_tick)
+static TICK(biquad_tick)
 {
 	GW_biquad* ug = (GW_biquad*)u->ug;
 	base_tick(u);
@@ -600,7 +600,7 @@ typedef struct
 	sp_biscale* osc;
 } GW_biscale;
 
-TICK(biscale_tick)
+static TICK(biscale_tick)
 {
 	GW_biscale* ug = (GW_biscale*)u->ug;
 	base_tick(u);
@@ -659,7 +659,7 @@ typedef struct
 	sp_bitcrush* osc;
 } GW_bitcrush;
 
-TICK(bitcrush_tick)
+static TICK(bitcrush_tick)
 {
 	GW_bitcrush* ug = (GW_bitcrush*)u->ug;
 	base_tick(u);
@@ -718,7 +718,7 @@ typedef struct
 	sp_blsaw* osc;
 } GW_blsaw;
 
-TICK(blsaw_tick)
+static TICK(blsaw_tick)
 {
 	GW_blsaw* ug = (GW_blsaw*)u->ug;
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -776,7 +776,7 @@ typedef struct
 	sp_blsquare* osc;
 } GW_blsquare;
 
-TICK(blsquare_tick)
+static TICK(blsquare_tick)
 {
 	GW_blsquare* ug = (GW_blsquare*)u->ug;
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -848,7 +848,7 @@ typedef struct
 	sp_bltriangle* osc;
 } GW_bltriangle;
 
-TICK(bltriangle_tick)
+static TICK(bltriangle_tick)
 {
 	GW_bltriangle* ug = (GW_bltriangle*)u->ug;
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -906,7 +906,7 @@ typedef struct
 	sp_brown* osc;
 } GW_brown;
 
-TICK(brown_tick)
+static TICK(brown_tick)
 {
 	GW_brown* ug = (GW_brown*)u->ug;
 	sp_brown_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -936,7 +936,7 @@ typedef struct
 	sp_butbp* osc;
 } GW_butbp;
 
-TICK(butbp_tick)
+static TICK(butbp_tick)
 {
 	GW_butbp* ug = (GW_butbp*)u->ug;
 	base_tick(u);
@@ -995,7 +995,7 @@ typedef struct
 	sp_butbr* osc;
 } GW_butbr;
 
-TICK(butbr_tick)
+static TICK(butbr_tick)
 {
 	GW_butbr* ug = (GW_butbr*)u->ug;
 	base_tick(u);
@@ -1054,7 +1054,7 @@ typedef struct
 	sp_buthp* osc;
 } GW_buthp;
 
-TICK(buthp_tick)
+static TICK(buthp_tick)
 {
 	GW_buthp* ug = (GW_buthp*)u->ug;
 	base_tick(u);
@@ -1099,7 +1099,7 @@ typedef struct
 	sp_butlp* osc;
 } GW_butlp;
 
-TICK(butlp_tick)
+static TICK(butlp_tick)
 {
 	GW_butlp* ug = (GW_butlp*)u->ug;
 	base_tick(u);
@@ -1144,7 +1144,7 @@ typedef struct
 	sp_clip* osc;
 } GW_clip;
 
-TICK(clip_tick)
+static TICK(clip_tick)
 {
 	GW_clip* ug = (GW_clip*)u->ug;
 	base_tick(u);
@@ -1189,7 +1189,7 @@ typedef struct
 	sp_clock* osc;
 } GW_clock;
 
-TICK(clock_tick)
+static TICK(clock_tick)
 {
 	GW_clock* ug = (GW_clock*)u->ug;
 	base_tick(u);
@@ -1250,7 +1250,7 @@ typedef struct
 	m_bool is_init;
 } GW_comb;
 
-TICK(comb_tick)
+static TICK(comb_tick)
 {
 	GW_comb* ug = (GW_comb*)u->ug;
 	if(!ug->is_init)
@@ -1318,7 +1318,7 @@ typedef struct
 	sp_compressor* osc;
 } GW_compressor;
 
-TICK(compressor_tick)
+static TICK(compressor_tick)
 {
 	GW_compressor* ug = (GW_compressor*)u->ug;
 	base_tick(u);
@@ -1406,7 +1406,7 @@ typedef struct
 	m_bool is_init;
 } GW_conv;
 
-TICK(conv_tick)
+static TICK(conv_tick)
 {
 	GW_conv* ug = (GW_conv*)u->ug;
 	if(!ug->is_init)
@@ -1464,7 +1464,7 @@ typedef struct
 	sp_count* osc;
 } GW_count;
 
-TICK(count_tick)
+static TICK(count_tick)
 {
 	GW_count* ug = (GW_count*)u->ug;
 	base_tick(u);
@@ -1524,7 +1524,7 @@ typedef struct
 	sp_crossfade* osc;
 } GW_crossfade;
 
-TICK(crossfade_tick)
+static TICK(crossfade_tick)
 {
 	GW_crossfade* ug = (GW_crossfade*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -1570,7 +1570,7 @@ typedef struct
 	sp_dcblock* osc;
 } GW_dcblock;
 
-TICK(dcblock_tick)
+static TICK(dcblock_tick)
 {
 	GW_dcblock* ug = (GW_dcblock*)u->ug;
 	base_tick(u);
@@ -1602,7 +1602,7 @@ typedef struct
 	m_bool is_init;
 } GW_delay;
 
-TICK(delay_tick)
+static TICK(delay_tick)
 {
 	GW_delay* ug = (GW_delay*)u->ug;
 	if(!ug->is_init)
@@ -1670,7 +1670,7 @@ typedef struct
 	sp_diode* osc;
 } GW_diode;
 
-TICK(diode_tick)
+static TICK(diode_tick)
 {
 	GW_diode* ug = (GW_diode*)u->ug;
 	base_tick(u);
@@ -1730,7 +1730,7 @@ typedef struct
 	m_bool is_init;
 } GW_diskin;
 
-TICK(diskin_tick)
+static TICK(diskin_tick)
 {
 	GW_diskin* ug = (GW_diskin*)u->ug;
 	if(!ug->is_init)
@@ -1785,7 +1785,7 @@ typedef struct
 	sp_dist* osc;
 } GW_dist;
 
-TICK(dist_tick)
+static TICK(dist_tick)
 {
 	GW_dist* ug = (GW_dist*)u->ug;
 	base_tick(u);
@@ -1872,7 +1872,7 @@ typedef struct
 	sp_dmetro* osc;
 } GW_dmetro;
 
-TICK(dmetro_tick)
+static TICK(dmetro_tick)
 {
 	GW_dmetro* ug = (GW_dmetro*)u->ug;
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -1917,7 +1917,7 @@ typedef struct
 	m_bool is_init;
 } GW_drip;
 
-TICK(drip_tick)
+static TICK(drip_tick)
 {
 	GW_drip* ug = (GW_drip*)u->ug;
 	if(!ug->is_init)
@@ -2071,7 +2071,7 @@ typedef struct
 	m_bool is_init;
 } GW_dtrig;
 
-TICK(dtrig_tick)
+static TICK(dtrig_tick)
 {
 	GW_dtrig* ug = (GW_dtrig*)u->ug;
 	if(!ug->is_init)
@@ -2170,7 +2170,7 @@ typedef struct
 	sp_dust* osc;
 } GW_dust;
 
-TICK(dust_tick)
+static TICK(dust_tick)
 {
 	GW_dust* ug = (GW_dust*)u->ug;
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -2242,7 +2242,7 @@ typedef struct
 	sp_eqfil* osc;
 } GW_eqfil;
 
-TICK(eqfil_tick)
+static TICK(eqfil_tick)
 {
 	GW_eqfil* ug = (GW_eqfil*)u->ug;
 	base_tick(u);
@@ -2315,7 +2315,7 @@ typedef struct
 	sp_expon* osc;
 } GW_expon;
 
-TICK(expon_tick)
+static TICK(expon_tick)
 {
 	GW_expon* ug = (GW_expon*)u->ug;
 	base_tick(u);
@@ -2390,7 +2390,7 @@ typedef struct
 	m_bool is_init;
 } GW_fof;
 
-TICK(fof_tick)
+static TICK(fof_tick)
 {
 	GW_fof* ug = (GW_fof*)u->ug;
 	if(!ug->is_init)
@@ -2565,7 +2565,7 @@ typedef struct
 	sp_fofilt* osc;
 } GW_fofilt;
 
-TICK(fofilt_tick)
+static TICK(fofilt_tick)
 {
 	GW_fofilt* ug = (GW_fofilt*)u->ug;
 	base_tick(u);
@@ -2639,7 +2639,7 @@ typedef struct
 	m_bool is_init;
 } GW_fog;
 
-TICK(fog_tick)
+static TICK(fog_tick)
 {
 	GW_fog* ug = (GW_fog*)u->ug;
 	if(!ug->is_init)
@@ -2828,7 +2828,7 @@ typedef struct
 	sp_fold* osc;
 } GW_fold;
 
-TICK(fold_tick)
+static TICK(fold_tick)
 {
 	GW_fold* ug = (GW_fold*)u->ug;
 	base_tick(u);
@@ -2874,7 +2874,7 @@ typedef struct
 	m_bool is_init;
 } GW_fosc;
 
-TICK(fosc_tick)
+static TICK(fosc_tick)
 {
 	GW_fosc* ug = (GW_fosc*)u->ug;
 	if(!ug->is_init)
@@ -3000,7 +3000,7 @@ typedef struct
 	m_bool is_init;
 } GW_gbuzz;
 
-TICK(gbuzz_tick)
+static TICK(gbuzz_tick)
 {
 	GW_gbuzz* ug = (GW_gbuzz*)u->ug;
 	if(!ug->is_init)
@@ -3287,7 +3287,7 @@ typedef struct
 	sp_hilbert* osc;
 } GW_hilbert;
 
-TICK(hilbert_tick)
+static TICK(hilbert_tick)
 {
 	GW_hilbert* ug = (GW_hilbert*)u->ug;
 	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
@@ -3317,7 +3317,7 @@ typedef struct
 	sp_in* osc;
 } GW_in;
 
-TICK(in_tick)
+static TICK(in_tick)
 {
 	GW_in* ug = (GW_in*)u->ug;
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -3348,7 +3348,7 @@ typedef struct
 	m_bool is_init;
 } GW_incr;
 
-TICK(incr_tick)
+static TICK(incr_tick)
 {
 	GW_incr* ug = (GW_incr*)u->ug;
 	if(!ug->is_init)
@@ -3445,7 +3445,7 @@ typedef struct
 	sp_jcrev* osc;
 } GW_jcrev;
 
-TICK(jcrev_tick)
+static TICK(jcrev_tick)
 {
 	GW_jcrev* ug = (GW_jcrev*)u->ug;
 	base_tick(u);
@@ -3476,7 +3476,7 @@ typedef struct
 	sp_jitter* osc;
 } GW_jitter;
 
-TICK(jitter_tick)
+static TICK(jitter_tick)
 {
 	GW_jitter* ug = (GW_jitter*)u->ug;
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -3548,7 +3548,7 @@ typedef struct
 	sp_line* osc;
 } GW_line;
 
-TICK(line_tick)
+static TICK(line_tick)
 {
 	GW_line* ug = (GW_line*)u->ug;
 	base_tick(u);
@@ -3623,7 +3623,7 @@ typedef struct
 	m_bool is_init;
 } GW_lpc;
 
-TICK(lpc_tick)
+static TICK(lpc_tick)
 {
 	GW_lpc* ug = (GW_lpc*)u->ug;
 	if(!ug->is_init)
@@ -3677,7 +3677,7 @@ typedef struct
 	sp_lpf18* osc;
 } GW_lpf18;
 
-TICK(lpf18_tick)
+static TICK(lpf18_tick)
 {
 	GW_lpf18* ug = (GW_lpf18*)u->ug;
 	base_tick(u);
@@ -3750,7 +3750,7 @@ typedef struct
 	sp_maygate* osc;
 } GW_maygate;
 
-TICK(maygate_tick)
+static TICK(maygate_tick)
 {
 	GW_maygate* ug = (GW_maygate*)u->ug;
 	base_tick(u);
@@ -3810,7 +3810,7 @@ typedef struct
 	sp_metro* osc;
 } GW_metro;
 
-TICK(metro_tick)
+static TICK(metro_tick)
 {
 	GW_metro* ug = (GW_metro*)u->ug;
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -3855,7 +3855,7 @@ typedef struct
 	m_bool is_init;
 } GW_mincer;
 
-TICK(mincer_tick)
+static TICK(mincer_tick)
 {
 	GW_mincer* ug = (GW_mincer*)u->ug;
 	if(!ug->is_init)
@@ -3954,7 +3954,7 @@ typedef struct
 	sp_mode* osc;
 } GW_mode;
 
-TICK(mode_tick)
+static TICK(mode_tick)
 {
 	GW_mode* ug = (GW_mode*)u->ug;
 	base_tick(u);
@@ -4013,7 +4013,7 @@ typedef struct
 	sp_moogladder* osc;
 } GW_moogladder;
 
-TICK(moogladder_tick)
+static TICK(moogladder_tick)
 {
 	GW_moogladder* ug = (GW_moogladder*)u->ug;
 	base_tick(u);
@@ -4072,7 +4072,7 @@ typedef struct
 	sp_noise* osc;
 } GW_noise;
 
-TICK(noise_tick)
+static TICK(noise_tick)
 {
 	GW_noise* ug = (GW_noise*)u->ug;
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -4117,7 +4117,7 @@ typedef struct
 	m_bool is_init;
 } GW_nsmp;
 
-TICK(nsmp_tick)
+static TICK(nsmp_tick)
 {
 	GW_nsmp* ug = (GW_nsmp*)u->ug;
 	if(!ug->is_init)
@@ -4195,7 +4195,7 @@ typedef struct
 	m_bool is_init;
 } GW_osc;
 
-TICK(osc_tick)
+static TICK(osc_tick)
 {
 	GW_osc* ug = (GW_osc*)u->ug;
 	if(!ug->is_init)
@@ -4283,7 +4283,7 @@ typedef struct
 
 } GW_oscmorph;
 
-TICK(oscmorph_tick)
+static TICK(oscmorph_tick)
 {
 	GW_oscmorph* ug = (GW_oscmorph*)u->ug;
 	if(!ug->is_init)
@@ -4392,7 +4392,7 @@ typedef struct
 	sp_pan2* osc;
 } GW_pan2;
 
-TICK(pan2_tick)
+static TICK(pan2_tick)
 {
 	GW_pan2* ug = (GW_pan2*)u->ug;
 	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
@@ -4450,7 +4450,7 @@ typedef struct
 	sp_panst* osc;
 } GW_panst;
 
-TICK(panst_tick)
+static TICK(panst_tick)
 {
 	GW_panst* ug = (GW_panst*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -4510,7 +4510,7 @@ typedef struct
 	sp_pareq* osc;
 } GW_pareq;
 
-TICK(pareq_tick)
+static TICK(pareq_tick)
 {
 	GW_pareq* ug = (GW_pareq*)u->ug;
 	base_tick(u);
@@ -4598,7 +4598,7 @@ typedef struct
 	m_bool is_init;
 } GW_paulstretch;
 
-TICK(paulstretch_tick)
+static TICK(paulstretch_tick)
 {
 	GW_paulstretch* ug = (GW_paulstretch*)u->ug;
 	if(!ug->is_init)
@@ -4657,7 +4657,7 @@ typedef struct
 	sp_pdhalf* osc;
 } GW_pdhalf;
 
-TICK(pdhalf_tick)
+static TICK(pdhalf_tick)
 {
 	GW_pdhalf* ug = (GW_pdhalf*)u->ug;
 	base_tick(u);
@@ -4702,7 +4702,7 @@ typedef struct
 	sp_peaklim* osc;
 } GW_peaklim;
 
-TICK(peaklim_tick)
+static TICK(peaklim_tick)
 {
 	GW_peaklim* ug = (GW_peaklim*)u->ug;
 	base_tick(u);
@@ -4775,7 +4775,7 @@ typedef struct
 	sp_phaser* osc;
 } GW_phaser;
 
-TICK(phaser_tick)
+static TICK(phaser_tick)
 {
 	GW_phaser* ug = (GW_phaser*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -4948,7 +4948,7 @@ typedef struct
 	m_bool is_init;
 } GW_phasor;
 
-TICK(phasor_tick)
+static TICK(phasor_tick)
 {
 	GW_phasor* ug = (GW_phasor*)u->ug;
 	if(!ug->is_init)
@@ -5015,7 +5015,7 @@ typedef struct
 	sp_pinknoise* osc;
 } GW_pinknoise;
 
-TICK(pinknoise_tick)
+static TICK(pinknoise_tick)
 {
 	GW_pinknoise* ug = (GW_pinknoise*)u->ug;
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -5060,7 +5060,7 @@ typedef struct
 	m_bool is_init;
 } GW_pitchamdf;
 
-TICK(pitchamdf_tick)
+static TICK(pitchamdf_tick)
 {
 	GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
 	if(!ug->is_init)
@@ -5116,7 +5116,7 @@ typedef struct
 	m_bool is_init;
 } GW_pluck;
 
-TICK(pluck_tick)
+static TICK(pluck_tick)
 {
 	GW_pluck* ug = (GW_pluck*)u->ug;
 	if(!ug->is_init)
@@ -5200,7 +5200,7 @@ typedef struct
 	m_bool is_init;
 } GW_port;
 
-TICK(port_tick)
+static TICK(port_tick)
 {
 	GW_port* ug = (GW_port*)u->ug;
 	if(!ug->is_init)
@@ -5255,7 +5255,7 @@ typedef struct
 	m_bool is_init;
 } GW_posc3;
 
-TICK(posc3_tick)
+static TICK(posc3_tick)
 {
 	GW_posc3* ug = (GW_posc3*)u->ug;
 	if(!ug->is_init)
@@ -5338,7 +5338,7 @@ typedef struct
 	sp_progress* osc;
 } GW_progress;
 
-TICK(progress_tick)
+static TICK(progress_tick)
 {
 	GW_progress* ug = (GW_progress*)u->ug;
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -5397,7 +5397,7 @@ typedef struct
 	m_bool is_init;
 } GW_prop;
 
-TICK(prop_tick)
+static TICK(prop_tick)
 {
 	GW_prop* ug = (GW_prop*)u->ug;
 	if(!ug->is_init)
@@ -5466,7 +5466,7 @@ typedef struct
 	sp_pshift* osc;
 } GW_pshift;
 
-TICK(pshift_tick)
+static TICK(pshift_tick)
 {
 	GW_pshift* ug = (GW_pshift*)u->ug;
 	base_tick(u);
@@ -5540,7 +5540,7 @@ typedef struct
 	m_bool is_init;
 } GW_ptrack;
 
-TICK(ptrack_tick)
+static TICK(ptrack_tick)
 {
 	GW_ptrack* ug = (GW_ptrack*)u->ug;
 	if(!ug->is_init)
@@ -5595,7 +5595,7 @@ typedef struct
 	sp_randh* osc;
 } GW_randh;
 
-TICK(randh_tick)
+static TICK(randh_tick)
 {
 	GW_randh* ug = (GW_randh*)u->ug;
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -5667,7 +5667,7 @@ typedef struct
 	sp_randi* osc;
 } GW_randi;
 
-TICK(randi_tick)
+static TICK(randi_tick)
 {
 	GW_randi* ug = (GW_randi*)u->ug;
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -5753,7 +5753,7 @@ typedef struct
 	sp_random* osc;
 } GW_random;
 
-TICK(random_tick)
+static TICK(random_tick)
 {
 	GW_random* ug = (GW_random*)u->ug;
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -5811,7 +5811,7 @@ typedef struct
 	sp_reson* osc;
 } GW_reson;
 
-TICK(reson_tick)
+static TICK(reson_tick)
 {
 	GW_reson* ug = (GW_reson*)u->ug;
 	base_tick(u);
@@ -5871,7 +5871,7 @@ typedef struct
 	m_bool is_init;
 } GW_reverse;
 
-TICK(reverse_tick)
+static TICK(reverse_tick)
 {
 	GW_reverse* ug = (GW_reverse*)u->ug;
 	if(!ug->is_init)
@@ -5925,7 +5925,7 @@ typedef struct
 	sp_revsc* osc;
 } GW_revsc;
 
-TICK(revsc_tick)
+static TICK(revsc_tick)
 {
 	GW_revsc* ug = (GW_revsc*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -5985,7 +5985,7 @@ typedef struct
 	sp_rms* osc;
 } GW_rms;
 
-TICK(rms_tick)
+static TICK(rms_tick)
 {
 	GW_rms* ug = (GW_rms*)u->ug;
 	base_tick(u);
@@ -6031,7 +6031,7 @@ typedef struct
 	m_bool is_init;
 } GW_rpt;
 
-TICK(rpt_tick)
+static TICK(rpt_tick)
 {
 	GW_rpt* ug = (GW_rpt*)u->ug;
 	if(!ug->is_init)
@@ -6087,7 +6087,7 @@ typedef struct
 	sp_rspline* osc;
 } GW_rspline;
 
-TICK(rspline_tick)
+static TICK(rspline_tick)
 {
 	GW_rspline* ug = (GW_rspline*)u->ug;
 	sp_rspline_compute(ug->sp, ug->osc, NULL, &u->out);
@@ -6173,7 +6173,7 @@ typedef struct
 	sp_samphold* osc;
 } GW_samphold;
 
-TICK(samphold_tick)
+static TICK(samphold_tick)
 {
 	GW_samphold* ug = (GW_samphold*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -6206,7 +6206,7 @@ typedef struct
 	sp_saturator* osc;
 } GW_saturator;
 
-TICK(saturator_tick)
+static TICK(saturator_tick)
 {
 	GW_saturator* ug = (GW_saturator*)u->ug;
 	base_tick(u);
@@ -6265,7 +6265,7 @@ typedef struct
 	sp_scale* osc;
 } GW_scale;
 
-TICK(scale_tick)
+static TICK(scale_tick)
 {
 	GW_scale* ug = (GW_scale*)u->ug;
 	base_tick(u);
@@ -6325,7 +6325,7 @@ typedef struct
 	m_bool is_init;
 } GW_sdelay;
 
-TICK(sdelay_tick)
+static TICK(sdelay_tick)
 {
 	GW_sdelay* ug = (GW_sdelay*)u->ug;
 	if(!ug->is_init)
@@ -6380,7 +6380,7 @@ typedef struct
 	m_bool is_init;
 } GW_slice;
 
-TICK(slice_tick)
+static TICK(slice_tick)
 {
 	GW_slice* ug = (GW_slice*)u->ug;
 	if(!ug->is_init)
@@ -6456,7 +6456,7 @@ typedef struct
 	m_bool is_init;
 } GW_smoothdelay;
 
-TICK(smoothdelay_tick)
+static TICK(smoothdelay_tick)
 {
 	GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
 	if(!ug->is_init)
@@ -6541,7 +6541,7 @@ typedef struct
 	m_bool is_init;
 } GW_spa;
 
-TICK(spa_tick)
+static TICK(spa_tick)
 {
 	GW_spa* ug = (GW_spa*)u->ug;
 	if(!ug->is_init)
@@ -6597,7 +6597,7 @@ typedef struct
 	m_bool is_init;
 } GW_sparec;
 
-TICK(sparec_tick)
+static TICK(sparec_tick)
 {
 	GW_sparec* ug = (GW_sparec*)u->ug;
 	if(!ug->is_init)
@@ -6653,7 +6653,7 @@ typedef struct
 	sp_streson* osc;
 } GW_streson;
 
-TICK(streson_tick)
+static TICK(streson_tick)
 {
 	GW_streson* ug = (GW_streson*)u->ug;
 	base_tick(u);
@@ -6712,7 +6712,7 @@ typedef struct
 	sp_switch* osc;
 } GW_switch;
 
-TICK(switch_tick)
+static TICK(switch_tick)
 {
 	GW_switch* ug = (GW_switch*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -6747,7 +6747,7 @@ typedef struct
 	m_bool is_init;
 } GW_tabread;
 
-TICK(tabread_tick)
+static TICK(tabread_tick)
 {
 	GW_tabread* ug = (GW_tabread*)u->ug;
 	if(!ug->is_init)
@@ -6846,7 +6846,7 @@ typedef struct
 	sp_tadsr* osc;
 } GW_tadsr;
 
-TICK(tadsr_tick)
+static TICK(tadsr_tick)
 {
 	GW_tadsr* ug = (GW_tadsr*)u->ug;
 	base_tick(u);
@@ -6934,7 +6934,7 @@ typedef struct
 	sp_talkbox* osc;
 } GW_talkbox;
 
-TICK(talkbox_tick)
+static TICK(talkbox_tick)
 {
 	GW_talkbox* ug = (GW_talkbox*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -6981,7 +6981,7 @@ typedef struct
 	m_bool is_init;
 } GW_tblrec;
 
-TICK(tblrec_tick)
+static TICK(tblrec_tick)
 {
 	GW_tblrec* ug = (GW_tblrec*)u->ug;
 	if(!ug->is_init)
@@ -7039,7 +7039,7 @@ typedef struct
 	sp_tbvcf* osc;
 } GW_tbvcf;
 
-TICK(tbvcf_tick)
+static TICK(tbvcf_tick)
 {
 	GW_tbvcf* ug = (GW_tbvcf*)u->ug;
 	base_tick(u);
@@ -7126,7 +7126,7 @@ typedef struct
 	sp_tdiv* osc;
 } GW_tdiv;
 
-TICK(tdiv_tick)
+static TICK(tdiv_tick)
 {
 	GW_tdiv* ug = (GW_tdiv*)u->ug;
 	base_tick(u);
@@ -7186,7 +7186,7 @@ typedef struct
 	sp_tenv* osc;
 } GW_tenv;
 
-TICK(tenv_tick)
+static TICK(tenv_tick)
 {
 	GW_tenv* ug = (GW_tenv*)u->ug;
 	base_tick(u);
@@ -7260,7 +7260,7 @@ typedef struct
 	sp_tenv2* osc;
 } GW_tenv2;
 
-TICK(tenv2_tick)
+static TICK(tenv2_tick)
 {
 	GW_tenv2* ug = (GW_tenv2*)u->ug;
 	base_tick(u);
@@ -7320,7 +7320,7 @@ typedef struct
 	sp_tenvx* osc;
 } GW_tenvx;
 
-TICK(tenvx_tick)
+static TICK(tenvx_tick)
 {
 	GW_tenvx* ug = (GW_tenvx*)u->ug;
 	base_tick(u);
@@ -7394,7 +7394,7 @@ typedef struct
 	sp_tgate* osc;
 } GW_tgate;
 
-TICK(tgate_tick)
+static TICK(tgate_tick)
 {
 	GW_tgate* ug = (GW_tgate*)u->ug;
 	base_tick(u);
@@ -7440,7 +7440,7 @@ typedef struct
 	sp_thresh* osc;
 } GW_thresh;
 
-TICK(thresh_tick)
+static TICK(thresh_tick)
 {
 	GW_thresh* ug = (GW_thresh*)u->ug;
 	base_tick(u);
@@ -7499,7 +7499,7 @@ typedef struct
 	sp_timer* osc;
 } GW_timer;
 
-TICK(timer_tick)
+static TICK(timer_tick)
 {
 	GW_timer* ug = (GW_timer*)u->ug;
 	base_tick(u);
@@ -7530,7 +7530,7 @@ typedef struct
 	sp_tin* osc;
 } GW_tin;
 
-TICK(tin_tick)
+static TICK(tin_tick)
 {
 	GW_tin* ug = (GW_tin*)u->ug;
 	base_tick(u);
@@ -7562,7 +7562,7 @@ typedef struct
 	sp_tone* osc;
 } GW_tone;
 
-TICK(tone_tick)
+static TICK(tone_tick)
 {
 	GW_tone* ug = (GW_tone*)u->ug;
 	base_tick(u);
@@ -7607,7 +7607,7 @@ typedef struct
 	sp_trand* osc;
 } GW_trand;
 
-TICK(trand_tick)
+static TICK(trand_tick)
 {
 	GW_trand* ug = (GW_trand*)u->ug;
 	base_tick(u);
@@ -7668,7 +7668,7 @@ typedef struct
 	m_bool is_init;
 } GW_tseg;
 
-TICK(tseg_tick)
+static TICK(tseg_tick)
 {
 	GW_tseg* ug = (GW_tseg*)u->ug;
 	if(!ug->is_init)
@@ -7766,7 +7766,7 @@ typedef struct
 	m_bool is_init;
 } GW_tseq;
 
-TICK(tseq_tick)
+static TICK(tseq_tick)
 {
 	GW_tseq* ug = (GW_tseq*)u->ug;
 	if(!ug->is_init)
@@ -7838,7 +7838,7 @@ typedef struct
 	m_bool is_init;
 } GW_vdelay;
 
-TICK(vdelay_tick)
+static TICK(vdelay_tick)
 {
 	GW_vdelay* ug = (GW_vdelay*)u->ug;
 	if(!ug->is_init)
@@ -7906,7 +7906,7 @@ typedef struct
 	sp_voc* osc;
 } GW_voc;
 
-TICK(voc_tick)
+static TICK(voc_tick)
 {
 	GW_voc* ug = (GW_voc*)u->ug;
 	sp_voc_compute(ug->sp, ug->osc, &u->out);
@@ -7936,7 +7936,7 @@ typedef struct
 	sp_vocoder* osc;
 } GW_vocoder;
 
-TICK(vocoder_tick)
+static TICK(vocoder_tick)
 {
 	GW_vocoder* ug = (GW_vocoder*)u->ug;
 	base_tick(UGEN(u->channel[0]));
@@ -8011,7 +8011,7 @@ typedef struct
 	m_bool is_init;
 } GW_waveset;
 
-TICK(waveset_tick)
+static TICK(waveset_tick)
 {
 	GW_waveset* ug = (GW_waveset*)u->ug;
 	if(!ug->is_init)
@@ -8079,7 +8079,7 @@ typedef struct
 	sp_wpkorg35* osc;
 } GW_wpkorg35;
 
-TICK(wpkorg35_tick)
+static TICK(wpkorg35_tick)
 {
 	GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
 	base_tick(u);
@@ -8152,7 +8152,7 @@ typedef struct
 	sp_zitarev* osc;
 } GW_zitarev;
 
-TICK(zitarev_tick)
+static TICK(zitarev_tick)
 {
 	GW_zitarev* ug = (GW_zitarev*)u->ug;
 	base_tick(UGEN(u->channel[0]));
