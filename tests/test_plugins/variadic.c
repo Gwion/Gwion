@@ -12,7 +12,7 @@ static MFUN(m_variadic) {
 
   while(arg->i < arg->s) {
     if(*str == 'i') {
-      printf("%i\n", *(m_int*)(arg->d + arg->o));
+      printf("%" INT_F "\n", *(m_int*)(arg->d + arg->o));
       arg->o += SZ_INT;
     } else if(*str == 'f') {
       printf("%f\n", *(m_float*)(arg->d + arg->o));

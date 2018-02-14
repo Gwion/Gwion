@@ -14,4 +14,6 @@ struct Scope_ {
   struct Vector_ vector;
 };
 
+#define MAP_CAP 4
+#define OFFSET 2
 #endif

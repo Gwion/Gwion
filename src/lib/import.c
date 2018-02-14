@@ -340,7 +340,7 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   return array_sub;
 }
 
-static Type_Decl* str2decl(Env env, m_str s, m_uint *depth);
+Type_Decl* str2decl(Env env, m_str s, m_uint *depth);
 static Type_List str2tl(Env env, m_str s, m_uint *depth) {
   Type_Decl* td = str2decl(env, s, depth);
   td->array = make_dll_arg_list_array(NULL, depth, 0);
@@ -348,7 +348,7 @@ static Type_List str2tl(Env env, m_str s, m_uint *depth) {
   return tl;
 }
 
-static Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
+Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
   m_uint i = 0;
   m_str type_name = get_type_name(s, i++);
   CHECK_OO(type_name)

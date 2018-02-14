@@ -50,6 +50,8 @@ m_int gwi_oper_add(Gwi gwi, Type (*check)(Env, void*));
 m_int gwi_oper_emi(Gwi gwi, m_bool (*check)(Emitter, void*));
 m_int gwi_oper_end(Gwi gwi, const Operator op, const f_instr f);
 
+Type_Decl* str2decl(Env, m_str, m_uint* depth);
+
 OP_CHECK(opck_const_lhs);
 OP_CHECK(opck_unary_meta);
 OP_CHECK(opck_unary);

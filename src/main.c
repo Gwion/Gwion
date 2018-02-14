@@ -61,6 +61,8 @@ m_bool compile(VM* vm, const m_str filename) {
   return -1;
 }
 
+//#include <sys/mman.h>
+
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
@@ -72,7 +74,6 @@ int main(int argc, char** argv) {
   int i;
 
   pthread_t thread = 0;
-
 
   d.del = NULL;
   arg_init(&arg);
@@ -86,6 +87,7 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
+//  mlockall(MCL_CURRENT|MCL_FUTURE);
   if(!(vm = new_vm(arg.loop)))
     goto clean;
   if(init_bbq(vm, &di, &d) < 0)

@@ -12,10 +12,6 @@ Shreduler free_shreduler(Shreduler s);
 
 VM* new_vm(m_bool loop) {
   VM* vm = (VM*)calloc(1, sizeof(VM));
-  if(pthread_mutex_init(&vm->mutex, NULL)) {
-    free(vm);
-    return NULL;
-  }
   vm->shreduler  = new_shreduler(vm);
   vector_init(&vm->shred);
   vector_init(&vm->ugen);
@@ -52,7 +48,7 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
   shredule(vm->shreduler, shred, .5);
 }
 
-static void vm_run_shred(Shreduler s) {
+static inline void vm_run_shred(Shreduler s) {
   Instr instr;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
@@ -66,16 +62,14 @@ static void vm_run_shred(Shreduler s) {
   }
 }
 
-static void vm_ugen_init(VM* vm) {
+static inline void vm_ugen_init(VM* vm) {
   m_uint i;
   for(i = vector_size(&vm->ugen) + 1; --i;) {
     UGen u = (UGen)vector_at(&vm->ugen, i - 1);
     u->done = 0;
-    if(u->channel) {
-      m_uint j;
-      for(j = u->n_chan + 1; --j;) // miss + 1
+    if(u->channel)
+      for(m_uint j = u->n_chan + 1; --j;)
         UGEN(u->channel[j - 1])->done = 0;
-    }
     if(u->trig)
       UGEN(u->trig)->done = 0;
   }
@@ -85,17 +79,8 @@ static void vm_ugen_init(VM* vm) {
 }
 
 void vm_run(VM* vm) {
-//pthread_t thread;
-//pthread_create(&thread, NULL, vm_ugen_init, vm);
-  pthread_mutex_lock(&vm->mutex);
   vm_run_shred(vm->shreduler);
-  pthread_mutex_unlock(&vm->mutex);
-//pthread_join(thread, NULL);
-//pthread_cancel(thread);
   if(!vm->is_running)
     return;
   vm_ugen_init(vm);
-//  ugen_compute(UGEN(vm->adc));
-//  ugen_compute(UGEN(vm->dac));
-//  ugen_compute(UGEN(vm->blackhole));
 }

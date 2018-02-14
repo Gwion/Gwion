@@ -160,26 +160,26 @@ void* udp_thread(void* data) {
       vm->is_running = 0;
       vm->wakeup();
     } else if(strncmp(buf, "-", 1) == 0) {
-      m_uint i;
-      VM_Shred shred = NULL;
-
+      m_str endptr;
+      m_uint i, index = strtol(buf + 2, &endptr, 10) - 1;
       for(i = 0; i < vector_size(&vm->shred); i++) {
-        shred = (VM_Shred)vector_at(&vm->shred, i);
-        if(shred->xid == atoi(buf + 2) - 1)
+        VM_Shred shred = (VM_Shred)vector_at(&vm->shred, i);
+        if(shred->xid == index) {
           vector_add(&udp->rem, (vtype)shred);
+          break;
+        }
       }
     } else if(strncmp(buf, "+", 1) == 0) {
       vector_add(&udp->add, (vtype)strdup(buf + 2));
     } else if(strncmp(buf, "loop", 4) == 0) {
-      m_int i = atoi(buf + 5);
+      m_str endptr;
+      m_int i = strtol(buf + 5, &endptr, 10);
       if(i <= 0)
         udp->state = -1;
       else
         udp->state = 1;
     }
-    pthread_mutex_lock(&vm->mutex);
     udp_run(udp);
-    pthread_mutex_unlock(&vm->mutex);
   }
   return NULL;
 }

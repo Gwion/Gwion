@@ -101,23 +101,24 @@ static void arg_add(Arg* arg) {
 }
 
 static void arg_drvr(DriverInfo* di, int i) {
+    m_str endptr;
     switch(i) {
       case 'c':
         di->card     = optarg;
         break;
       case 'g':
-        di->chan       = atoi(optarg);
-        di->in       = atoi(optarg);
-        di->out       = atoi(optarg);
+        di->chan     = strtol(optarg, &endptr, 10);
+        di->in       = strtol(optarg, &endptr, 10);
+        di->out      = strtol(optarg, &endptr, 10);
         break;
       case 'i':
-        di->in       = atoi(optarg);
+        di->in       = strtol(optarg, &endptr, 10);
         break;
       case 'o':
-        di->out      = atoi(optarg);
+        di->out      = strtol(optarg, &endptr, 10);
         break;
       case 's':
-        di->sr      = atoi(optarg);
+        di->sr       = strtol(optarg, &endptr, 10);
         break;
       case 'd':
         select_driver(di, optarg);
@@ -132,10 +133,10 @@ static void arg_drvr(DriverInfo* di, int i) {
         di->raw = 1;
         break;
       case 'n':
-        di->bufnum    = atoi(optarg);
+        di->bufnum    = strtol(optarg, &endptr, 10);
         break;
       case 'b':
-        di->bufsize    = atoi(optarg);
+        di->bufsize    = strtol(optarg, &endptr, 10);
         break;
     default:
       exit(1);
@@ -143,6 +144,7 @@ static void arg_drvr(DriverInfo* di, int i) {
 }
 
 static void arg_udp(UdpIf* udp, char c) {
+  m_str endptr;
   switch(c) {
     case 'a':
       udp->on = 0;
@@ -151,13 +153,14 @@ static void arg_udp(UdpIf* udp, char c) {
       udp->host = optarg;
       break;
     case 'p':
-      udp->port = atoi(optarg);
+      udp->port = strtol(optarg, &endptr, 10);
       break;
   }
 }
 
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
+  m_str endptr;
   while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CK ", long_option, &index)) != -1) {
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
@@ -173,7 +176,7 @@ void parse_args(Arg* arg, DriverInfo* di) {
         arg->quit  = 1;
         break;
       case 'l':
-        arg->loop = atoi(optarg) > 0 ? 1 : -1;
+        arg->loop = strtol(optarg, &endptr, 10) > 0 ? 1 : -1;
         break;
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);

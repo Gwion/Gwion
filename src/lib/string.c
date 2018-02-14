@@ -743,7 +743,8 @@ static MFUN(string_erase) {
 }
 
 static MFUN(string_toInt) {
-  *(m_uint*)RETURN = atoi(STRING(o));
+  m_str endptr;
+  *(m_uint*)RETURN = strtol(STRING(o), &endptr, 10);
 }
 
 static MFUN(string_toFloat) {

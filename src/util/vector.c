@@ -1,10 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include "defs.h"
 #include "map.h"
-#include "map_private.h"
-
-#define MAP_CAP 4
-#define OFFSET 2
 
 Vector new_vector() {
   Vector v = malloc(sizeof(struct Vector_));
@@ -48,10 +45,6 @@ m_int vector_find(Vector v, vtype data) {
   return -1;
 }
 
-void vector_set(Vector v, const vtype i, vtype arg) {
-  v->ptr[i + OFFSET] = arg;
-}
-
 void vector_rem(Vector v, const vtype index) {
   vtype i;
   if(index >= v->ptr[0])
@@ -69,22 +62,6 @@ vtype vector_pop(Vector v) {
   ret = v->ptr[v->ptr[0] + OFFSET - 1];
   vector_rem(v, v->ptr[0] - 1);
   return ret;
-}
-
-vtype vector_front(Vector v) {
-  return v->ptr[0] ? v->ptr[0 + OFFSET] : 0;
-}
-
-vtype vector_at(Vector v, const vtype i) {
-  return (i >= v->ptr[0]) ? 0 : v->ptr[i + OFFSET];
-}
-
-vtype vector_back(Vector v) {
-  return v->ptr[v->ptr[0] + OFFSET - 1];
-}
-
-vtype vector_size(Vector v) {
-  return v->ptr[0];
 }
 
 void free_vector(Vector v) {

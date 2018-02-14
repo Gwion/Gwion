@@ -33,11 +33,9 @@ struct VM_Code_ {
 
 typedef struct Shreduler_* Shreduler;
 typedef struct {
-// BBQ
   unsigned int n_in;
   SPFLOAT* in;
-  sp_data* sp; // holds sample rate and out
-// !BBQ
+  sp_data* sp;
   Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;
@@ -45,8 +43,7 @@ typedef struct {
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Vector_ plug; // in main?
-  pthread_mutex_t mutex;
-  m_bool is_running; // => shreduler
+  volatile m_bool is_running; // => shreduler
 } VM;
 
 extern VM* vm;

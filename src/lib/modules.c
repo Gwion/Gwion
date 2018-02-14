@@ -119,34 +119,9 @@ static DTOR(basic_dtor) {
 }
 
 static struct Type_ t_gain      = { "Gain", SZ_INT, &t_ugen };
-TICK(gain_tick) {
-  UGen ugen;
-  m_uint i, size = vector_size(&u->ugen);
-  if(!size) {
-    u->out = 0;
-    return;
-  }
-  ugen = (UGen)vector_at(&u->ugen, 0);
-  u->out = ugen->out;
-  for(i = 1; i < size; i++) {
-    ugen = (UGen)vector_at(&u->ugen, i);
-    switch(u->op) {
-      case 1:
-       u->out += ugen->out;
-       break;
-      case 2:
-        u->out -= ugen->out;
-       break;
-      case 3:
-        u->out *= ugen->out;
-       break;
-      case 4:
-        u->out /= ugen->out;
-       break;
-    }
-  }
-  u->in = u->out;
-  u->out *= *(m_float*)u->ug;
+
+static TICK(gain_tick) {
+  u->out = (u->in * *(m_float*)u->ug);
 }
 
 static CTOR(gain_ctor) {

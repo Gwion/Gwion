@@ -1,16 +1,23 @@
 #!/bin/bash
-# [test] #5
+# [test] #6
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
+
 source tests/sh/common.sh
 
-run "$((n+3))" "start loop " "-l1" "file1"&
+./gwion -l1 &>/dev/null &
+n=$(printf "% 4i" "$((n))")
+echo "ok    $((n)) start loop"
 sleep .3
-run "$((n))" "remove " "- 1" "file2"
-run "$((n+1))" "add  " "+ examples/int.gw -l1" "file3"
-run "$((n+2))" "end loop  " "-l0" "file4"
+run "$((n+1))" "add  " "+ examples/int.gw" "file3"
+sleep .3
+run "$((n+2))" "remove " "- 1" "file2"
+sleep .3
+run "$((n+3))" "end loop  " "-q" "file4"
 wait
+n=$(printf "% 4i" "$((n+4))")
+echo "ok $n quitted"
 
-n=$((n+4))
+n=$((n+1))
 run "$n" "format " "-f F32" "file"

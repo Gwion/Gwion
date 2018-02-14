@@ -3,9 +3,6 @@
 #include "map.h"
 #include "map_private.h"
 
-#define MAP_CAP 4
-#define OFFSET 2
-
 #define LEN(v)    (v)->ptr[0]
 #define CAP(v)    (v)->ptr[1]
 #define KEY(v, i) (v)->ptr[OFFSET + (i) * 2]
@@ -44,9 +41,9 @@ vtype map_at(const Map map, const vtype index) {
 
 void map_set(Map map, const vtype key, const vtype ptr) {
   vtype i;
-  for(i = 0; i < LEN(map); i++) {
-    if(KEY(map, i) == key) {
-      VAL(map, i) = ptr;
+  for(i = LEN(map) + 1; --i;) {
+    if(KEY(map, i - 1) == key) {
+      VAL(map, i - 1) = ptr;
       return;
     }
   }

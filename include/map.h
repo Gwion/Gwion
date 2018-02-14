@@ -4,6 +4,7 @@
 #include <symbol.h>
 
 typedef m_uint vtype;
+#include "map_private.h"
 typedef struct Vector_ * Vector;
 typedef struct Map_    * Map;
 
@@ -12,15 +13,28 @@ extern Vector new_vector();
 extern void   vector_init(Vector v);
 extern Vector vector_copy(Vector v);
 extern void vector_copy2(Vector v, Vector ret);
-extern void vector_set(Vector vector, const vtype i, vtype data);
 extern m_int vector_find(Vector vector, vtype data);
+inline void vector_set(Vector v, const vtype i, vtype arg) {
+  v->ptr[i + OFFSET] = arg;
+}
+inline vtype vector_front(Vector v) {
+  return v->ptr[0] ? v->ptr[0 + OFFSET] : 0;
+}
+
+inline vtype vector_at(Vector v, const vtype i) {
+  return (i >= v->ptr[0]) ? 0 : v->ptr[i + OFFSET];
+}
+
+inline vtype vector_back(Vector v) {
+  return v->ptr[v->ptr[0] + OFFSET - 1];
+}
+
+inline vtype vector_size(Vector v) {
+  return v->ptr[0];
+}
 extern void vector_add(Vector vector, vtype data);
 extern void vector_rem(Vector vector, const vtype index);
 extern vtype vector_pop(Vector vector);
-extern vtype vector_front(Vector vector);
-extern vtype vector_at(Vector vector, const vtype);
-extern vtype vector_back(Vector vector);
-extern vtype vector_size(Vector vector);
 extern void vector_clear(Vector vector);
 extern void free_vector(Vector vector);
 extern void vector_release(Vector vector);

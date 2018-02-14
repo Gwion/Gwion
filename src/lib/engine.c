@@ -122,7 +122,6 @@ static void handle_plug(Gwi gwi, m_str c) {
         vector_add(&vm->plug, (vtype)handler);
         nspc_commit(gwi->env->curr);
       } else {
-exit(2);
         env_pop_class(gwi->env);
         dlclose(handler);
        }

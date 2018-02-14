@@ -9,45 +9,29 @@
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
-void base_tick(UGen u) {
-  UGen ugen;
-  m_uint i, size = vector_size(&u->ugen);
-  if(!size) {
-    u->out = 0;
-    return;
-  }
-  ugen = (UGen)vector_at(&u->ugen, 0);
-  u->out = ugen->out;
-  for(i = 1; i < size; i++) {
-    ugen = (UGen)vector_at(&u->ugen, i);
-    u->out += ugen->out;
-  }
-  u->in = u->out;
+TICK(base_tick) {
+  u->out = u->in;
 }
 
-void dac_tick(UGen u) {
-  m_uint  i;
+static TICK(dac_tick) {
   VM* vm = (VM*)u->ug;
-  for(i = u->n_out + 1; --i;)
+  for(m_uint i = u->n_out + 1; --i;)
     vm->sp->out[i - 1] = UGEN(u->channel[i - 1])->out;
 }
 
-void adc_tick(UGen u) {
-  m_uint  i;
-  m_float last = 0;
+static TICK(adc_tick) {
   VM* vm = (VM*)u->ug;
-  for(i = u->n_out + 1; --i;) {
+  u->last = 0;
+  for(m_uint i = u->n_out + 1; --i;) {
     m_uint j = i - 1;
     M_Object obj = u->channel[j];
     UGEN(obj)->last = vm->in[j];
-    last += (UGEN(obj)->out = vm->in[j]);
+    u->last += (UGEN(obj)->out = vm->in[j]);
   }
-  u->last = last;
 }
 
-static void ref_compute(UGen u) {
-  m_uint i;
-  for(i = u->n_chan + 1; --i;) {
+static inline void ref_compute(UGen u) {
+  for(m_uint i = u->n_chan + 1; --i;) {
     UGen ugen = UGEN(u->channel[i - 1]);
     ugen->tick(ugen);
   }
@@ -55,10 +39,9 @@ static void ref_compute(UGen u) {
   return;
 }
 
+//static inline
 void ugen_compute(UGen u) {
   m_uint  i;
-//  if(u->done)
-//    return;
   u->done = 1;
   if(u->channel) {
     for(i = u->n_chan + 1; --i;) {
@@ -66,10 +49,20 @@ void ugen_compute(UGen u) {
       if(!v->done)
         ugen_compute(v);
     }
-  } else for(i = vector_size(&u->ugen) + 1; --i;) {
-    UGen v = (UGen)vector_at(&u->ugen, i - 1);
-    if(!v->done)
-      ugen_compute(v);
+  } else {
+    m_uint size = vector_size(&u->ugen);
+    if(size) {
+      UGen v = (UGen)vector_at(&u->ugen, size - 1);
+      if(!v->done)
+        ugen_compute(v);
+      u->in = v->out;
+      for(i = size; --i;) {
+        UGen v = (UGen)vector_at(&u->ugen, i - 1);
+        if(!v->done)
+          ugen_compute(v);
+        u->op(u, v->out);
+      }
+    }
   }
   if(u->ref && !u->ref->done) {
     ref_compute(u->ref);
@@ -83,7 +76,7 @@ UGen new_UGen() {
   UGen u = (UGen) calloc(1, sizeof(struct UGen_));
   vector_init(&u->to);
   u->tick = base_tick;
-  u->op = 1;
+  u->op = ugop_plus;
   return u;
 }
 
@@ -131,12 +124,12 @@ static void release_connect(VM_Shred shred) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static void connect(UGen lhs, UGen rhs) {
+static inline void connect(UGen lhs, UGen rhs) {
   vector_add(&rhs->ugen, (vtype)lhs);
   vector_add(&lhs->to,   (vtype)rhs);
 }
-  
-static void disconnect(UGen lhs, UGen rhs) {
+
+static inline void disconnect(UGen lhs, UGen rhs) {
   vector_rem(&rhs->ugen, vector_find(&rhs->ugen, (vtype)lhs));
   vector_rem(&lhs->to,   vector_find(&lhs->to,   (vtype)rhs));
 }
@@ -176,7 +169,7 @@ static void do_disconnect(UGen lhs, UGen rhs) {
       disconnect(lhs, UGEN(rhs->channel[i - 1]));
   } else
     disconnect(lhs, rhs);
-} 
+}
 
 static INSTR(ugen_connect) {
   M_Object lhs, rhs;
@@ -190,12 +183,13 @@ static INSTR(ugen_connect) {
 
 static INSTR(ugen_disconnect) {
   M_Object lhs, rhs;
+
   if(connect_init(shred, &lhs, &rhs) < 0)
     return;
   if(UGEN(rhs)->n_in)
     do_disconnect(UGEN(lhs), UGEN(rhs));
   release_connect(shred);
-} 
+}
 
 static INSTR(trig_connect) {
   M_Object lhs, rhs;
@@ -254,7 +248,7 @@ static void ugen_release(UGen ug, VM_Shred shred) {
 static DTOR(ugen_dtor) {
   UGen ug = UGEN(o);
   m_int j = vector_find(&shred->vm_ref->ugen, (vtype)ug);
-  
+
   vector_rem(&shred->vm_ref->ugen, j);
   ugen_unref(ug, shred);
   ugen_release(ug, shred);
@@ -274,16 +268,28 @@ static MFUN(ugen_channel) {
 }
 
 static MFUN(ugen_get_op) {
-  *(m_uint*)RETURN = UGEN(o)->op;
+  f_ugop f = UGEN(o)->op;
+  if(f == ugop_plus)
+    *(m_uint*)RETURN = 1;
+  else if(f == ugop_minus)
+    *(m_uint*)RETURN = 2;
+  else if(f == ugop_times)
+    *(m_uint*)RETURN = 3;
+  else if(f == ugop_divide)
+    *(m_uint*)RETURN = 4;
 }
 
 static MFUN(ugen_set_op) {
   m_int i = *(m_int*)MEM(SZ_INT);
-  if(i < 1 || i > 4)
-    err_msg(INSTR_, 0, "invalid op %i", i);
-  else
-    UGEN(o)->op = i;
-  *(m_uint*)RETURN = UGEN(o)->op;
+  if(i == 1)
+    UGEN(o)->op = ugop_plus;
+  else if(i == 2)
+    UGEN(o)->op = ugop_minus;
+  else if(i == 3)
+    UGEN(o)->op = ugop_times;
+  else if(i == 4)
+    UGEN(o)->op = ugop_divide;
+  *(m_uint*)RETURN = i;
 }
 
 static MFUN(ugen_get_last) {
@@ -303,9 +309,6 @@ static m_bool import_global_ugens(Gwi gwi) {
   vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
-
-//  gwi_add_value(gwi, "adc",        &t_ugen, 1, vm->adc);
-
   gwi_item_ini(gwi, "UGen", "adc");
   gwi_item_end(gwi, ae_flag_const, vm->adc);
   gwi_item_ini(gwi, "UGen", "dac");
@@ -323,23 +326,21 @@ static OP_CHECK(chuck_ugen) {
 
 m_bool import_ugen(Gwi gwi) {
   CHECK_BB(gwi_class_ini(gwi,  &t_ugen, ugen_ctor, ugen_dtor))
+  CHECK_BB(gwi_item_ini(gwi, "int", "@ugen"))
+  CHECK_BB((o_object_ugen = gwi_item_end(gwi, ae_flag_member, NULL)))
 
-	gwi_item_ini(gwi, "int", "@ugen");
-  o_object_ugen = gwi_item_end(gwi, ae_flag_member, NULL);
-  CHECK_BB(o_object_ugen)
-
-  gwi_func_ini(gwi, "UGen", "chan", ugen_channel);
-  gwi_func_arg(gwi, "int", "arg0");
+  CHECK_BB(gwi_func_ini(gwi, "UGen", "chan", ugen_channel))
+  CHECK_BB(gwi_func_arg(gwi, "int", "arg0"))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "int", "op", ugen_get_op);
+  CHECK_BB(gwi_func_ini(gwi, "int", "op", ugen_get_op))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "int", "op", ugen_set_op);
-  gwi_func_arg(gwi, "int", "arg0");
+  CHECK_BB(gwi_func_ini(gwi, "int", "op", ugen_set_op))
+  CHECK_BB(gwi_func_arg(gwi, "int", "arg0"))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "float", "last", ugen_get_last);
+  CHECK_BB(gwi_func_ini(gwi, "float", "last", ugen_get_last))
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
 
@@ -352,7 +353,6 @@ m_bool import_ugen(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_trig,    trig_connect))
   CHECK_BB(gwi_oper_add(gwi, chuck_ugen))
   CHECK_BB(gwi_oper_end(gwi, op_untrig,  trig_disconnect))
-
 
   CHECK_BB(import_global_ugens(gwi))
   return 1;

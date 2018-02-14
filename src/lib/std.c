@@ -17,6 +17,7 @@
 
 #define LOGTWO log(2)
 #define LOGTEN log(10)
+
 static double mtof(double f) {
   if(f <= -1500) return (0);
   else if(f > 1499) return (mtof(1499));
@@ -37,10 +38,6 @@ static double powtodb(double f) {
 }
 
 
-//-----------------------------------------------------------------------------
-// name: rmstodb()
-// desc: ...
-//-----------------------------------------------------------------------------
 static double rmstodb(double f) {
   if(f <= 0) return (0);
   else {
@@ -49,11 +46,6 @@ static double rmstodb(double f) {
   }
 }
 
-
-//-----------------------------------------------------------------------------
-// name: dbtopow()
-// desc: ...
-//-----------------------------------------------------------------------------
 static double dbtopow(double f) {
   if(f <= 0)
     return (0);
@@ -121,10 +113,11 @@ static SFUN(std_setenv) {
 }
 
 static SFUN(std_atoi) {
+  m_str endptr;
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   m_str value = STRING(obj);
   release(obj, shred);
-  *(m_uint*)RETURN = atoi(value);
+  *(m_uint*)RETURN = strtol(value, &endptr, 10);
 }
 
 static SFUN(std_atof) {
