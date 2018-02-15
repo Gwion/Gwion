@@ -97,7 +97,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
     if(stmt->type->array && !stmt->type->array->exp_list)
-      SET_FLAG(t, ae_flag_ref);
+      SET_FLAG(t, ae_flag_unary); // find another flag
     nspc_add_type(env->curr, stmt->xid, t);
     stmt->m_type = t;
   } else {

@@ -14,5 +14,5 @@ extern m_int o_shred_me;
 
 void broadcast(M_Object o);
 void release(M_Object obj, VM_Shred shred);
-m_bool initialize_object(M_Object object, Type type);
+m_bool initialize_object(M_Object object, Type type)__attribute__((hot, nonnull));
 #endif

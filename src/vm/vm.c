@@ -48,7 +48,8 @@ void vm_add_shred(VM* vm, VM_Shred shred) {
   shredule(vm->shreduler, shred, .5);
 }
 
-static inline void vm_run_shred(Shreduler s) {
+__attribute__((hot, nonnull(1)))
+static inline void vm_run_shred(const Shreduler s) {
   Instr instr;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {

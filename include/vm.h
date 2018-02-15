@@ -72,9 +72,9 @@ struct VM_Shred_ {
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
 void free_vm_code(VM_Code a);
 
-VM_Shred shreduler_get(Shreduler s);
+VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
-VM_Shred shreduler_get(Shreduler s);
+VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull(1)));
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time);
 void shreduler_set_loop(Shreduler s, m_bool loop);
 m_bool shreduler_curr(Shreduler s);
@@ -84,7 +84,7 @@ VM_Shred new_vm_shred(VM_Code code);
 inline void vm_shred_exit(VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
 void free_vm_shred(VM_Shred shred);
 
-void vm_run(VM* vm);
+void vm_run(VM* vm) __attribute__((hot, nonnull(1)));
 VM* new_vm(m_bool loop);
 void free_vm(VM* vm);
 void vm_add_shred(VM* vm, VM_Shred shred);

@@ -1,6 +1,6 @@
-#define TICK(a) inline void a(UGen u) // was m_bool
-typedef void (*f_ugop)(UGen, const m_float);
-typedef void (*f_tick)(UGen ug);
+#define TICK(a) __attribute__((hot, nonnull)) inline void a(UGen u) // was m_bool
+typedef void (*f_ugop)(UGen, const m_float)  __attribute__((nonnull));
+typedef void (*f_tick)(UGen ug) __attribute__((nonnull));
 
 struct UGen_ {
   m_uint n_in, n_out, n_chan;
@@ -23,5 +23,5 @@ static inline void ugop_times  (UGen u, m_float f) { u->in *= f; }
 static inline void ugop_divide (UGen u, m_float f) { u->in /= f; }
 
 const m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug);
-void ugen_compute(const UGen u);
+void ugen_compute(const UGen u) __attribute__((hot, nonnull));
 static TICK(base_tick) { u->out = u->in; }
