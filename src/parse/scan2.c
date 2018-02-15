@@ -170,72 +170,9 @@ static m_bool scan2_exp_call1(Env env, Exp func, Exp args) {
   return 1;
 }
 
-static m_bool scan2_template_match(Env env, Value v, Type_List types) {
-  m_uint i, match = -1;
-  m_uint digit = num_digit(v->func_num_overloads);
-  for(i = 0; i < v->func_num_overloads + 1; i++) {
-    Value value;
-    Type_List tlc = types;
-    ID_List tld;
-    char name[strlen(v->name) + strlen(env->curr->name) + digit + 13];
-
-    sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
-    value = nspc_lookup_value1(env->curr, insert_symbol(name));
-    if(!value)continue;
-    tld = value->d.func_ref->def->tmpl->list;
-    UNSET_FLAG(value->d.func_ref->def, ae_flag_template);
-    while(tld) {
-      if(!tlc)
-        break;
-      tld = tld->next;
-      if(!tld && tlc->next)
-        break;
-      tlc = tlc->next;
-    }
-    if(!tlc && !tld)
-      match = 1;
-  }
-  if(match)
-    SET_FLAG(v, ae_flag_template);
-  return match;
-}
-
 static m_bool scan2_exp_call(Env env, Exp_Func* exp_func) {
-  if(exp_func->tmpl) {
-    if(exp_func->func->exp_type == ae_exp_primary) {
-      Value v = nspc_lookup_value1(env->curr,
-          exp_func->func->d.exp_primary.d.var);
-      if(!v)
-        CHECK_BB(err_msg(SCAN2_, exp_func->pos,
-              "template call of non-existant function."))
-      if(!v->d.func_ref)
-        CHECK_BB(err_msg(SCAN2_, exp_func->pos,
-              "template call of non-function value."))
-      Func_Def base = v->d.func_ref->def;
-      UNSET_FLAG(base, ae_flag_template);
-      if(!base->tmpl || !base->tmpl->base)
-        CHECK_BB(err_msg(SCAN2_, exp_func->pos,
-              "template call of non-template function."))
-      Type_List list = exp_func->tmpl->types;
-      while(list) {
-        if(!find_type(env, list->list->xid))
-          CHECK_BB(type_unknown(list->list->xid, "template call"))
-        list = list->next;
-      }
-      if(scan2_template_match(env, v, exp_func->tmpl->types) < 0)
-        CHECK_BB(err_msg(SCAN2_, exp_func->pos,
-              "template type number mismatch."))
-      SET_FLAG(base, ae_flag_template);
-      return 1;
-    } else if(exp_func->func->exp_type == ae_exp_dot) {
-      return 1;
-    } else {
-      CHECK_BB(err_msg(SCAN2_, exp_func->pos,
-            "unhandled expression type '%i' in template func call.",
-            exp_func->func->exp_type))
-      return -1;
-    }
-  }
+  if(exp_func->tmpl)
+    return 1;
   return scan2_exp_call1(env, exp_func->func, exp_func->args);
 }
 
@@ -490,7 +427,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "internal error: missing function '%s'",
           overload->name))
-  if((!GET_FLAG(overload, ae_flag_template) && f->tmpl && f->tmpl->base)||
+  if((!GET_FLAG(overload, ae_flag_template) &&   f->tmpl &&  f->tmpl->base) ||
       (GET_FLAG(overload, ae_flag_template) && (!f->tmpl || !f->tmpl->base) &&
        !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->pos,
@@ -538,9 +475,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
 
 static m_bool scan2_func_def_builtin(Func func, m_str name) {
   SET_FLAG(func, ae_flag_builtin);
-  func->code = new_vm_code(NULL, func->def->stack_depth, 1,
-//      code_name_set(name, "builtin func code"));
-      name);
+  func->code = new_vm_code(NULL, func->def->stack_depth, 1, name);
   if(GET_FLAG(func, ae_flag_member))
     SET_FLAG(func->code, _NEED_THIS_);
   UNSET_FLAG(func->code, NATIVE_NOT);
@@ -633,7 +568,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     SET_FLAG(func, ae_flag_ref);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  if(GET_FLAG(f, ae_flag_builtin)) // actual builtin func import
+  if(GET_FLAG(f, ae_flag_builtin))
     CHECK_BB(scan2_func_def_builtin(func, name))
   type = new_type(t_function.xid, func_name, &t_function);
   type->size = SZ_INT;

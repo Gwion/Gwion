@@ -8,3 +8,4 @@ m_bool traverse_decl(Env env, Exp_Decl* decl);
 
 Class_Def template_class(Env env, Class_Def def, Type_List call);
 m_bool template_push_types(Env env, ID_List base, Type_List call);
+m_bool template_match(ID_List base, Type_List call);

@@ -500,6 +500,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   Type_List types = exp_func->tmpl ? exp_func->tmpl->types : NULL; // check me
   Func m_func = exp_func->m_func;
   m_uint i, digit, len;
+  m_int mismatch = 0;
   Func_Def base;
   Value value;
 
@@ -514,6 +515,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name))))
       continue;
+    mismatch = 0;
     base = value->d.func_ref->def;
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
@@ -521,7 +523,10 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, 0);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
-    CHECK_BO(template_push_types(env, base->tmpl->list, types))
+    if((mismatch = template_match(base->tmpl->list, types)) < 0)
+      goto next;
+    if(template_push_types(env, base->tmpl->list, types) < 0)
+      goto next;
     if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
     Func next = def->d.func->next;
@@ -539,7 +544,10 @@ next:
       def->d.func->def = NULL;
     free_func_def(def);
   }
+  if(mismatch < 0)
+    CHECK_BO(err_msg(TYPE_, exp_func->pos, "template type number mismatch."))
   env_pop_class(env);
+  (void)err_msg(TYPE_, exp_func->pos, "arguments do not match for template call");
   return NULL;
 }
 
@@ -835,23 +843,27 @@ static Type check_exp_call(Env env, Exp_Func* call) {
   if(call->tmpl) {
     Func ret;
     Value v = NULL;
-    if(call->func->exp_type == ae_exp_primary) {
+    if(call->func->exp_type == ae_exp_primary)
       v = nspc_lookup_value1(env->curr, call->func->d.exp_primary.d.var);
-    } else if(call->func->exp_type == ae_exp_dot) {
+    else if(call->func->exp_type == ae_exp_dot) {
       Type t;
-      CHECK_OO(check_exp(env, call->func))
+      CHECK_OO(check_exp(env, call->func)) // → puts this up ?
       t = call->func->d.exp_dot.t_base;
       if(isa(t, &t_class) > 0)
         t = t->d.base_type;
       v = find_value(t, call->func->d.exp_dot.xid);
-      if(!v->d.func_ref->def->tmpl)
-        CHECK_BO(err_msg(TYPE_, call->pos,
-                         "template call of non-template function."))
       } else
       CHECK_BO(err_msg(TYPE_, call->pos, "invalid template call."))
-    if(!(ret = find_template_match(env, v, call)))
+    if(!v)
       CHECK_BO(err_msg(TYPE_, call->pos,
-                       "arguments do not match for template call"))
+            " template call of non-existant function."))
+    if(!GET_FLAG(v, ae_flag_func))
+      CHECK_BO(err_msg(TYPE_, call->pos,
+            "template call of non-function value."))
+    if(!v->d.func_ref->def->tmpl)
+      CHECK_BO(err_msg(TYPE_, call->pos,
+            "template call of non-template function."))
+    CHECK_OO((ret = find_template_match(env, v, call)))
       call->m_func = ret;
     return ret->def->ret_type;
   }
@@ -859,7 +871,7 @@ static Type check_exp_call(Env env, Exp_Func* call) {
   return check_exp_call1(env, call->func, call->args, &call->m_func);
 }
 
-//static 
+//static
 // Move me ?
 Type check_exp_unary_spork(Env env, Stmt code) {
   CHECK_BO(check_stmt(env, code))

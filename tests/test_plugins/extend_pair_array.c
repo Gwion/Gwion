@@ -44,7 +44,7 @@ info->key_size = key_type->size;
 m_str   val_name = get_type_name(info->t->name, 2);
 
 Type_Decl* val_decl = str2decl(env, key_name, &depth);
-Type val_type = type_decl_resolve(env, key_decl);
+Type val_type = type_decl_resolve(env, val_decl);
 free_type_decl(val_decl);
 info->val_size = val_type->size;
   MAP_INFO(o) = info;

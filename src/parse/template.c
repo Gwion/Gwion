@@ -44,7 +44,8 @@ static ID_List template_id(Env env, Class_Def c, Type_List call) {
   return list;
 }
 
-static m_bool template_match(ID_List base, Type_List call) {
+//static
+m_bool template_match(ID_List base, Type_List call) {
   while(base) {
     if(!call)
       return -1;
@@ -71,7 +72,10 @@ static Class_Def template_class(Env env, Class_Def def, Type_List call) {
 m_bool template_push_types(Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   while(base) {
+    CHECK_OB(call);
     Type t = type_decl_resolve(env, call->list);
+    if(!t)
+      CHECK_BB(type_unknown(call->list->xid, "template"))
     nspc_add_type(env->curr, base->xid, t);
     base = base->next;
     call = call->next;
