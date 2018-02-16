@@ -64,8 +64,8 @@ INSTR(assign_func) {
 }
 
 INSTR(Reg_Push_Mem) {
-  *(m_uint*)REG(0) = *(m_uint*)(*(m_uint*)instr->ptr ?
-      (shred->base + instr->m_val) : MEM(instr->m_val));
+  memcpy(REG(0), *(m_uint*)instr->ptr ?
+      (shred->base + instr->m_val) : MEM(instr->m_val), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }
 
