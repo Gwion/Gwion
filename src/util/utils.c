@@ -70,26 +70,22 @@ Func find_func(Type type, S_Symbol xid) {
   return NULL;
 }
 
-const m_uint id_list_len(ID_List list) {
+const m_uint id_list_len(ID_List l) {
   m_uint len = 0;
-  while(list) {
-    len += strlen(s_name(list->xid));
-    if(list->next)
+  while(l) {
+    len += strlen(s_name(l->xid));
+    if((l = l->next))
       len++;
-    list = list->next;
   }
   return len + 1;
 }
 
-void type_path(char* str, ID_List list) {
-  ID_List path = list;
-
-  str[0] = '\0';
-  while(path) {
-    strcat(str, s_name(path->xid));
-    if(path->next)
-      strcat(str, ".");
-    path = path->next;
+void type_path(m_str s, ID_List l) {
+  s[0] = '\0';
+  while(l) {
+    strcat(s, s_name(l->xid));
+    if((l = l->next))
+      strcat(s, ".");
   }
 }
 

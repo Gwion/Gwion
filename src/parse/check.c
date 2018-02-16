@@ -399,7 +399,8 @@ static Type_List mk_type_list(Env env, Type type) {
   Nspc nspc = type->info;
   struct Vector_ v;
   vector_init(&v);
-  vector_add(&v, (vtype)type->name);
+  if(!type->info)
+    vector_add(&v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     vector_add(&v, (vtype)s_name(insert_symbol((nspc->name))));
     nspc = nspc->parent;
@@ -408,7 +409,7 @@ static Type_List mk_type_list(Env env, Type type) {
   Type_Decl* td = NULL;
   Type_List list = NULL;
   Array_Sub array = NULL;
-  for(i = vector_size(&v); i > 0; i--)
+  for(i = vector_size(&v) + 1; --i;)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
   td = new_type_decl(id, 0, 0);
   if(type->array_depth) {
@@ -485,6 +486,13 @@ static m_bool find_template_match_inner(Env env, Exp_Func* exp, Func_Def def) {
   return 1;
 }
 
+static Value template_get_ready(Env env, Value v, m_str tmpl, m_uint len, m_uint i) {
+      char c[len + 2];
+      snprintf(c, len + 2, "%s<%s>@%" INT_F "@%s", v->name, tmpl, i, env->curr->name);
+      return  v->owner_class ? find_value(v->owner_class, insert_symbol(c)) :
+            nspc_lookup_value1(env->curr, insert_symbol(c));
+}
+
 static m_bool template_set_env(Env env, Value v) {
   vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = v->owner;
@@ -501,30 +509,42 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   m_int mismatch = 0;
-  Func_Def base;
-  Value value;
+//  Func_Def base = NULL;
+
 
   CHECK_OO(v)
   digit = num_digit(v->func_num_overloads + 1);
   len = strlen(v->name) + strlen(env->curr->name);
+
+
+  m_str tmpl_name = tl2str(env, types);
+  m_uint tlen = strlen(tmpl_name);
+
+
   CHECK_BO(template_set_env(env, v))
   for(i = 0; i < v->func_num_overloads + 1; i++) {
     Func_Def def = NULL;
-    char name[len + digit + 13];
-    sprintf(name, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
-    if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
+    Func_Def base = NULL;
+    Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
+    if(value)
+      base = def = value->d.func_ref->def;
+    else {
+      char name[len + digit + 13];
+      snprintf(name, len + digit + 13, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
+      if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name))))
       continue;
-    mismatch = 0;
-    base = value->d.func_ref->def;
-    def = new_func_def(base->flag,
+      mismatch = 0;
+      base = value->d.func_ref->def;
+      def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
-    def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
-    UNSET_FLAG(base, ae_flag_template);
-    SET_FLAG(def, ae_flag_template);
-    if((mismatch = template_match(base->tmpl->list, types)) < 0)
-      goto next;
+      def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
+      UNSET_FLAG(base, ae_flag_template);
+      SET_FLAG(def, ae_flag_template);
+      if((mismatch = template_match(base->tmpl->list, types)) < 0)
+        goto next;
+    }
     if(template_push_types(env, base->tmpl->list, types) < 0)
       goto next;
     if(find_template_match_inner(env, exp_func, def) < 0)
@@ -534,6 +554,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     m_func = find_func_match(env, def->d.func, args);
     def->d.func->next = next;
     if(m_func) {
+      free(tmpl_name);
       env_pop_class(env);
       SET_FLAG(base, ae_flag_template);
       SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
@@ -544,6 +565,7 @@ next:
       def->d.func->def = NULL;
     free_func_def(def);
   }
+free(tmpl_name);
   if(mismatch < 0)
     CHECK_BO(err_msg(TYPE_, exp_func->pos, "template type number mismatch."))
   env_pop_class(env);
@@ -694,7 +716,6 @@ static m_bool check_exp_call1_check(Env env, Exp exp_func, Value* ptr) {
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
   Func func = NULL;
   Value ptr = NULL;
-
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   CHECK_BO(check_exp_call1_template(env, exp_func->type->d.func))
   if(args)
@@ -1502,6 +1523,8 @@ m_bool check_func_def(Env env, Func_Def f) {
 
   if(tmpl_list_base(f->tmpl))
     return 1;
+
+if(!GET_FLAG(f, ae_flag_builtin))
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))

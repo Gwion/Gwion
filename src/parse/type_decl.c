@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
@@ -20,4 +22,55 @@ Type type_decl_resolve(Env env, const Type_Decl* td) {
   if(td->array)
     CHECK_OO((t = get_array(t, td->array, "type decl resolve")))
   return t;
+}
+
+static inline void strcheck(m_str str, m_uint src, m_uint tgt) {
+  while(tgt >= src)
+    str = realloc(str, src *= 2);
+}
+
+static m_str td2str(Env env, Type_Decl* td) {
+  m_uint depth = td->array ? td->array->depth : 0;
+  m_uint l = id_list_len(td->xid) + depth *2;
+  m_uint m = l;
+  m_str s = malloc(m);
+  type_path(s, td->xid);
+  while(depth--)
+    strcat(s, "[]");
+  Type_List tl = td->types;
+  if(tl) {
+    l += 2;
+    strcheck(s, m, l);
+    strcat(s, "<");
+    while(tl) {
+      m_str name = td2str(env, tl->list);
+      l += strlen(name);
+      strcheck(s, m, l);
+      strcat(s, name);
+      free(name);
+      tl = tl->next;
+      if(tl)
+        strcat(s, ",");
+    }
+    strcat(s, ">");
+  }
+  return s;
+}
+
+m_str tl2str(Env env, Type_List tl) {
+  m_uint l = 0;
+  m_uint m = 32;
+  m_str s = malloc(m);
+  memset(s, 0, 32);
+  while(tl) {
+    m_str name = td2str(env, tl->list);
+    l += strlen(name) + 1;
+    strcheck(s, m, l);
+    strcat(s, name);
+    free(name);
+    tl = tl->next;
+    if(tl)
+      strcat(s, ",");
+  }
+  return s;
 }

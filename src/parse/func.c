@@ -21,7 +21,12 @@ void free_func(Func a) {
     if(a->code && !GET_FLAG(a->def, ae_flag_dtor))
         REM_REF(a->code);
     free_func_def(a->def);
-  }
+  } else {
+if(a->def)
+    free_func_def(a->def);
+if(a->code)
+free_vm_code(a->code);
+}
   free(a);
 }
 

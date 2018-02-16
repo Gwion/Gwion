@@ -410,11 +410,7 @@ INSTR(Instr_Array_Alloc) {
          NULL, &index, info->is_obj};
   if(info->is_obj && !info->is_ref &&
       !(aai.objs = init_array(shred, info, &num_obj)))
-{
-puts("error array");
       goto out_of_memory;
-
-}
   if(!(ref = do_alloc_array(shred, &aai)))
     goto error;
   POP_REG(shred, SZ_INT * info->depth);

@@ -539,6 +539,37 @@ static void scan2_func_def_flag(Env env, Func_Def f) {
   SET_FLAG(f->d.func->value_ref, ae_flag_const);
 }
 
+const m_str func_tmpl_name(Env env, Func_Def f, m_uint len) {
+  m_str func_name = s_name(f->name);
+    struct Vector_ v;
+    vector_init(&v);
+    ID_List id = f->tmpl->list;
+    m_uint tlen = 0;
+    while(id) {
+      Type t = nspc_lookup_type0(env->curr, id->xid);
+      vector_add(&v, (vtype)t);
+      tlen += strlen (t->name);
+      id = id->next;
+      if(id)
+        tlen++;
+    }
+    char name[len + tlen + 3];
+    char tmpl_name[tlen + 1];
+    memset(name, 0, len + tlen + 3);
+    memset(tmpl_name, 0, tlen + 1);
+    tmpl_name[0] = '\0';
+    for(m_int i = 0; i < vector_size(&v); i++) {
+      strcat(tmpl_name, ((Type)vector_at(&v, i))->name);
+      if(i + 1 < vector_size(&v))
+        strcat(tmpl_name, ",");
+    }
+    tmpl_name[len+1] = '\0';
+    vector_release(&v);
+    snprintf(name, len + tlen + 3, "%s<%s>@%" INT_F "@%s",
+    func_name, tmpl_name, f->tmpl->base, env->curr->name);
+    return s_name(insert_symbol(name));
+}
+
 m_bool scan2_func_def(Env env, Func_Def f) {
   Type     type     = NULL;
   Value    value    = NULL;
@@ -550,7 +581,6 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     num_digit(overload ? overload->func_num_overloads + 1 : 0) +
     strlen(env->curr->name) + 3;
 
-  char name[len];
 
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
@@ -558,10 +588,18 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
 
-  snprintf(name, len, "%s@%" INT_F "@%s", func_name,
+  if(f->tmpl) {
+    func_name = func_tmpl_name(env, f, len);
+    Func func;
+    if((func = nspc_lookup_func1(env->curr, insert_symbol(func_name)))) {
+      return scan2_arg_def(env, f);
+    }
+  } else {
+    char name[len];
+    snprintf(name, len, "%s@%" INT_F "@%s", func_name,
            overload ? ++overload->func_num_overloads : 0, env->curr->name);
-
-  func_name = s_name(insert_symbol(name));
+    func_name = s_name(insert_symbol(name));
+  }
   func = new_func(func_name, f);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
@@ -569,7 +607,7 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin))
-    CHECK_BB(scan2_func_def_builtin(func, name))
+    CHECK_BB(scan2_func_def_builtin(func, func->name))
   type = new_type(t_function.xid, func_name, &t_function);
   type->size = SZ_INT;
   if(GET_FLAG(func, ae_flag_member))
@@ -588,8 +626,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
   }
   if(GET_FLAG(f->type_decl, ae_flag_ref))
     CHECK_BB(prim_ref(f->type_decl, f->ret_type))
-  f->stack_depth = GET_FLAG(func, ae_flag_member) ? SZ_INT : 0;
-
+  if(GET_FLAG(func, ae_flag_member))
+    f->stack_depth += SZ_INT;
   if(scan2_arg_def(env, f) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "\t... in function '%s'\n", s_name(f->name)))
