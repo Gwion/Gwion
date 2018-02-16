@@ -165,8 +165,7 @@ const Type get_array(const Type t, const Array_Sub a, const m_str orig) {
 
 const m_bool type_ref(Type t) {
   while(t) {
-    // find another flag
-    if(GET_FLAG(t, ae_flag_unary))return 1;
+    if(GET_FLAG(t, ae_flag_empty))return 1;
     if(GET_FLAG(t, ae_flag_typedef))
       if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
         return 1;

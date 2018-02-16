@@ -198,7 +198,7 @@ m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
   if(gwi->templater.n) {
     ID_List types = templater_def(&gwi->templater);
     type->def = calloc(1, sizeof(struct Class_Def_));
-    type->def->tmpl = new_tmpl_class(types, 1);
+    type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
     SET_FLAG(type, ae_flag_template);
   } else
@@ -441,7 +441,7 @@ m_int gwi_func_end(Gwi gwi, ae_flag flag) {
   if(gwi->templater.n) {
     def = calloc(1, sizeof(struct Class_Def_));
     ID_List list = templater_def(&gwi->templater);
-    def->tmpl = new_tmpl_list(list, 1);
+    def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, ae_flag_template);
   }
   if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {

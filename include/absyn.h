@@ -454,7 +454,7 @@ typedef struct Class_Body_ * Class_Body;
 
 typedef struct {
   ID_List list;
-  m_bool  base;
+  m_int  base;
 } Tmpl_List;
 
 struct Func_Def_ {
@@ -472,7 +472,7 @@ struct Func_Def_ {
   Tmpl_List* tmpl;
   int pos;
 };
-Tmpl_List* new_tmpl_list(ID_List list, m_bool base);
+Tmpl_List* new_tmpl_list(ID_List list, m_int base);
 void free_tmpl_list(Tmpl_List*);
 const m_bool tmpl_list_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, int pos);

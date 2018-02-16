@@ -13,7 +13,7 @@
         gwion_error(a, "double template decl");\
         YYERROR;\
       }\
-      c->tmpl = new_tmpl_class(b, 1);\
+      c->tmpl = new_tmpl_class(b, -1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);
@@ -332,7 +332,7 @@ func_def_base
         gwion_error(arg, "double template decl");
         YYERROR;
       }
-      $2->tmpl = new_tmpl_list($1, 1);
+      $2->tmpl = new_tmpl_list($1, -1);
       $$ = $2; SET_FLAG($$, ae_flag_template);
     };
 

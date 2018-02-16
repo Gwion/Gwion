@@ -410,15 +410,16 @@ static m_bool scan2_stmt(Env env, Stmt stmt) {
 }
 
 static m_bool scan2_stmt_list(Env env, Stmt_List list) {
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(scan2_stmt(env, curr->stmt))
-    curr = curr->next;
+  while(list) {
+    CHECK_BB(scan2_stmt(env, list->stmt))
+    list = list->next;
   }
   return 1;
 }
 
 static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
+  m_bool base = tmpl_list_base(f->tmpl);
+  m_bool tmpl = GET_FLAG(overload, ae_flag_template);
   if(isa(overload->m_type, &t_function) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "function name '%s' is already used by another value",
@@ -427,9 +428,8 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "internal error: missing function '%s'",
           overload->name))
-  if((!GET_FLAG(overload, ae_flag_template) &&   f->tmpl &&  f->tmpl->base) ||
-      (GET_FLAG(overload, ae_flag_template) && (!f->tmpl || !f->tmpl->base) &&
-       !GET_FLAG(f, ae_flag_template)))
+  if((!tmpl &&  base) ||
+      (tmpl && !base && !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "must override template function with template"))
   return 1;

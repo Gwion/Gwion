@@ -97,7 +97,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
     if(stmt->type->array && !stmt->type->array->exp_list)
-      SET_FLAG(t, ae_flag_unary); // find another flag
+      SET_FLAG(t, ae_flag_empty);
     nspc_add_type(env->curr, stmt->xid, t);
     stmt->m_type = t;
   } else {
@@ -217,7 +217,6 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   if(strstr(the_class->name, "<")) {
     ID_List types = get_total_type_list(the_class);
     class_def->tmpl = new_tmpl_class(types, 0);
-//    nspc_add_type(env->curr->parent, class_def->name->xid, the_class);
     ADD_REF(the_class);
   } else
     nspc_add_type(env->curr, class_def->name->xid, the_class);

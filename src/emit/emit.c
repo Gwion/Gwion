@@ -1813,7 +1813,7 @@ static m_bool emit_func_def_body(Emitter emit, Func_Def func_def) {
 
 static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   Func func = get_func(emit->env, func_def);
-  if(func_def->tmpl && func_def->tmpl->base) { // don't check template definition
+  if(tmpl_list_base(func_def->tmpl)) { // don't check template definition
     func_def->flag &= ~ae_flag_template;
     return 1;
   }

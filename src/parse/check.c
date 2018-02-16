@@ -520,7 +520,7 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
     def = new_func_def(base->flag,
                 base->type_decl, func->d.exp_primary.d.var,
                 base->arg_list, base->code, func->pos);
-    def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, 0);
+    def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
     UNSET_FLAG(base, ae_flag_template);
     SET_FLAG(def, ae_flag_template);
     if((mismatch = template_match(base->tmpl->list, types)) < 0)

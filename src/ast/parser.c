@@ -80,7 +80,7 @@
         gwion_error(a, "double template decl");\
         YYERROR;\
       }\
-      c->tmpl = new_tmpl_class(b, 1);\
+      c->tmpl = new_tmpl_class(b, -1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);
@@ -2851,7 +2851,7 @@ yyreduce:
         gwion_error(arg, "double template decl");
         YYERROR;
       }
-      (yyvsp[0].func_def)->tmpl = new_tmpl_list((yyvsp[-1].id_list), 1);
+      (yyvsp[0].func_def)->tmpl = new_tmpl_list((yyvsp[-1].id_list), -1);
       (yyval.func_def) = (yyvsp[0].func_def); SET_FLAG((yyval.func_def), ae_flag_template);
     }
 #line 2858 "src/ast/parser.c" /* yacc.c:1646  */

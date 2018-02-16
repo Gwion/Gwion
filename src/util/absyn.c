@@ -417,7 +417,7 @@ static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
-Tmpl_List* new_tmpl_list(ID_List list, m_bool base) {
+Tmpl_List* new_tmpl_list(ID_List list, const m_int base) {
   Tmpl_List* a = malloc(sizeof(Tmpl_List));
   a->list = list;
   a->base = base;
@@ -433,19 +433,19 @@ Tmpl_Class* new_tmpl_class(ID_List list, m_bool base) {
 }
 
 void free_tmpl_list(Tmpl_List* a) {
-  if(a->base)
+  if(a->base == -1)
     free_id_list(a->list);
   free(a);
 }
 
 void free_tmpl_class(Tmpl_Class* a) {
-  if(a->list.base)
+  if(a->list.base == -1)
     free_id_list(a->list.list);
   free(a);
 }
 
 const m_bool tmpl_list_base(const Tmpl_List* a) {
-  if(a && a->base)
+  if(a && a->base == -1)
     return 1;
   return 0;
 }
