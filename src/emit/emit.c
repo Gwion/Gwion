@@ -755,11 +755,9 @@ static Func emit_get_func(Nspc nspc, Func f) {
 }
 
 static m_bool emit_exp_call_code_template(Env env, Class_Def class_def) {
-  CHECK_BB(env_push_class(env, class_def->type))
   CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
   CHECK_BB(traverse_class_def(env, class_def))
   nspc_pop_type(env->curr);
-  env_pop_class(env);
   return 1;
 }
 
