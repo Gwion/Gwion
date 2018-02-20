@@ -458,7 +458,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
-f->stack_depth = 0;
+  f->stack_depth = 0;
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||

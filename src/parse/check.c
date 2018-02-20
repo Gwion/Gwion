@@ -56,11 +56,9 @@ static m_bool check_exp_decl_array(Env env, Exp array) {
   return 1;
 }
 
-static m_bool check_exp_decl_member(Nspc nspc, Value v) {
-  Type type  = v->m_type;
-
+static inline m_bool check_exp_decl_member(Nspc nspc, Value v) {
   v->offset = nspc->offset;
-  nspc->offset += type->size;
+  nspc->offset += v->m_type->size;
   return 1;
 }
 
@@ -196,12 +194,12 @@ static Type check_exp_prim_this(Env env, Exp_Primary* primary) {
   return env->class_def;
 }
 
-static Type check_exp_prim_me(Exp_Primary* primary) {
+static inline Type check_exp_prim_me(Exp_Primary* primary) {
   primary->self->meta = ae_meta_value;
   return &t_shred;
 }
 
-static Type check_exp_prim_now(Exp_Primary* primary) {
+static inline Type check_exp_prim_now(Exp_Primary* primary) {
   primary->self->meta = ae_meta_var;
   return &t_now;
 }
@@ -242,23 +240,21 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
 static Type check_exp_prim_complex(Env env, Complex* cmp) {
   if(!cmp->im)
     CHECK_BO(err_msg(TYPE_, cmp->pos, "missing imaginary component of complex value..."))
-    if(cmp->im->next)
-      CHECK_BO(err_msg(TYPE_, cmp->pos, "extraneous component of complex value..."))
-      CHECK_OO(check_exp(env, cmp->re))
-      if(isa(cmp->re->type, &t_float) < 0) {
-        if(isa(cmp->re->type, &t_int) < 0) {
-          CHECK_BO(err_msg(TYPE_, cmp->pos,
-                           "invalid type '%s' in real component of complex value...\n"
-                           "    (must be of type 'int' or 'float')", cmp->re->type->name))
-        }
-        cmp->re->cast_to = &t_float;
-      }
+  if(cmp->im->next)
+    CHECK_BO(err_msg(TYPE_, cmp->pos, "extraneous component of complex value..."))
+  CHECK_OO(check_exp(env, cmp->re))
+  if(isa(cmp->re->type, &t_float) < 0) {
+    if(isa(cmp->re->type, &t_int) < 0)
+      CHECK_BO(err_msg(TYPE_, cmp->pos,
+            "invalid type '%s' in real component of complex value...\n"
+            "    (must be of type 'int' or 'float')", cmp->re->type->name))
+    cmp->re->cast_to = &t_float;
+  }
   if(isa(cmp->im->type, &t_float) < 0) {
-    if(isa(cmp->im->type, &t_int) < 0) {
+    if(isa(cmp->im->type, &t_int) < 0)
       CHECK_BO(err_msg(TYPE_, cmp->pos,
                        "invalid type '%s' in imaginary component of complex value...\n"
                        "    (must be of type 'int' or 'float')", cmp->im->type->name))
-    }
     cmp->im->cast_to = &t_float;
   }
   return &t_complex;
@@ -267,23 +263,21 @@ static Type check_exp_prim_complex(Env env, Complex* cmp) {
 static Type check_exp_prim_polar(Env env, Polar* polar) {
   if(!polar->phase)
     CHECK_BO(err_msg(TYPE_, polar->pos, "missing phase component of polar value..."))
-    if(polar->phase->next)
-      CHECK_BO(err_msg(TYPE_, polar->pos, "extraneous component of polar value..."))
-      CHECK_OO(check_exp(env, polar->mod))
-      if(isa(polar->mod->type, &t_float) < 0) {
-        if(isa(polar->mod->type, &t_int) < 0) {
-          CHECK_BO(err_msg(TYPE_, polar->pos,
-                           "invalid type '%s' in modulus component of polar value...\n"
-                           "    (must be of type 'int' or 'float')", polar->mod->type->name))
-        }
-        polar->mod->cast_to = &t_float;
-      }
+  if(polar->phase->next)
+    CHECK_BO(err_msg(TYPE_, polar->pos, "extraneous component of polar value..."))
+  CHECK_OO(check_exp(env, polar->mod))
+  if(isa(polar->mod->type, &t_float) < 0) {
+    if(isa(polar->mod->type, &t_int) < 0)
+      CHECK_BO(err_msg(TYPE_, polar->pos,
+      "invalid type '%s' in modulus component of polar value...\n"
+      "    (must be of type 'int' or 'float')", polar->mod->type->name))
+    polar->mod->cast_to = &t_float;
+  }
   if(isa(polar->phase->type, &t_float) < 0) {
-    if(isa(polar->phase->type, &t_int) < 0) {
+    if(isa(polar->phase->type, &t_int) < 0)
       CHECK_BO(err_msg(TYPE_, polar->pos,
                        "invalid type '%s' in phase component of polar value...\n"
                        "    (must be of type 'int' or 'float')", polar->phase->type->name))
-    }
     polar->phase->cast_to = &t_float;
   }
   return  &t_polar;
@@ -338,24 +332,18 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
 
 Type check_exp_array(Env env, Exp_Array* array) {
   Type t_base, t;
-  m_uint depth;
+  m_uint depth = 0;
+  Exp e = array->indices->exp_list;
 
   CHECK_OO((t_base = check_exp(env, array->base)))
-
   CHECK_OO(check_exp(env, array->indices->exp_list))
-
-  Exp e = array->indices->exp_list;
-  depth = 0;
-
   while(e) {
     depth++;
-    if(isa(e->type, &t_int) < 0) {
+    if(isa(e->type, &t_int) < 0)
       CHECK_BO(err_msg(TYPE_,  e->pos, "array index %i must be of type 'int', not '%s'",
-                       depth, e->type->name))
-    }
+            depth, e->type->name))
     e = e->next;
   }
-
   if(depth != array->indices->depth)
     CHECK_BO(err_msg(TYPE_, array->pos, "invalid array acces expression."))
 
@@ -368,10 +356,6 @@ Type check_exp_array(Env env, Exp_Array* array) {
              "array subscripts (%i) exceeds defined dimension (%i)",
              array->indices->depth, t_base->array_depth))
   }
-
-  t = NULL;
-
-
   if(depth == t_base->array_depth)
     t = array_base(t_base);
   else
@@ -407,19 +391,16 @@ static Type_List mk_type_list(Env env, Type type) {
   }
   ID_List id = NULL;
   Type_Decl* td = NULL;
-  Type_List list = NULL;
-  Array_Sub array = NULL;
   for(i = vector_size(&v) + 1; --i;)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
+  vector_release(&v);
   td = new_type_decl(id, 0, 0);
   if(type->array_depth) {
-    array = calloc(1, sizeof(struct Array_Sub_));
+    Array_Sub array = calloc(1, sizeof(struct Array_Sub_));
     array->depth = type->array_depth;
     add_type_decl_array(td, array, 0);
   }
-  list = new_type_list(td, NULL, 0);
-  vector_release(&v);
-  return list;
+  return new_type_list(td, NULL, 0);
 }
 
 static m_bool func_match_inner(Env env, Exp e, Type t,
@@ -465,14 +446,10 @@ static Func find_func_match(Env env, Func up, Exp args) {
   Func func;
   if(args && isa(args->type, &t_void) > 0)
     args = NULL;
-//  if((func = find_func_match_actual(env, up, args, )))
-//  if((func = find_func_match_actual(env, up, args, 0)) ||
-//     (func = find_func_match_actual(env, up, args, 1)))
- // once we used implicit , specific
   if((func = find_func_match_actual(env, up, args, 0, 1)) ||
-      (func = find_func_match_actual(env, up, args, 1, 1)) ||
-      (func = find_func_match_actual(env, up, args, 0, 0)) ||
-      (func = find_func_match_actual(env, up, args, 1, 0)))
+     (func = find_func_match_actual(env, up, args, 1, 1)) ||
+     (func = find_func_match_actual(env, up, args, 0, 0)) ||
+     (func = find_func_match_actual(env, up, args, 1, 0)))
     return func;
   return NULL;
 }
@@ -509,8 +486,6 @@ Func find_template_match(Env env, Value v, Exp_Func* exp_func) {
   Func m_func = exp_func->m_func;
   m_uint i, digit, len;
   m_int mismatch = 0;
-//  Func_Def base = NULL;
-
 
   CHECK_OO(v)
   digit = num_digit(v->func_num_overloads + 1);
@@ -934,14 +909,6 @@ static Type check_exp_if(Env env, Exp_If* exp_if) {
       return ret;
 }
 
-static m_bool member_static(Exp_Dot* member) {
-  return isa(member->t_base, &t_class) > 0;
-}
-
-static Type get_base_type(Exp_Dot* member, m_bool base_static) {
-  return base_static ? member->t_base->d.base_type : member->t_base;
-}
-
 static m_bool check_nspc(Exp_Dot* member, Type t) {
   if(!t->info)
     CHECK_BB(err_msg(TYPE_,  member->base->pos,
@@ -979,8 +946,8 @@ static Type check_exp_dot(Env env, Exp_Dot* member) {
   m_str str = s_name(member->xid);
 
   CHECK_OO((member->t_base = check_exp(env, member->base)))
-  base_static = member_static(member);
-  the_base = get_base_type(member, base_static);
+  base_static = isa(member->t_base, &t_class) > 0;
+  the_base = base_static ? member->t_base->d.base_type : member->t_base;
   CHECK_BO(check_nspc(member, the_base))
   if(!strcmp(str, "this") && base_static)
     CHECK_BO(err_msg(TYPE_,  member->pos,
