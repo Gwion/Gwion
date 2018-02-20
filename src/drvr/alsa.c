@@ -113,10 +113,12 @@ static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
   m_uint i, chan;
   while(vm->is_running) {
     snd_pcm_readn(in, _in_buf, di->bufsize);
+    LOOP_OPTIM
     for(i = 0; i < di->bufsize; i++) {
       for(chan = 0; chan < sp->nchan; chan++)
         vm->in[chan] = ((m_float**)(_in_buf))[chan][i];
       di->run(vm);
+      LOOP_OPTIM
       for(chan = 0; chan < sp->nchan; chan++)
         out_buf[chan][i] = sp->out[chan];
       sp->pos++;
@@ -131,10 +133,13 @@ static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {
     m_uint i, chan;
     m_int j = 0, k = 0;
     snd_pcm_readi(in, in_bufi, di->bufsize);
+    LOOP_OPTIM
     for(i = 0; i < di->bufsize; i++) {
+      LOOP_OPTIM
       for(chan = 0; chan < sp->nchan; chan++)
         vm->in[chan] = ((m_float*)(in_bufi))[j++];
       di->run(vm);
+      LOOP_OPTIM
       for(chan = 0; chan < sp->nchan; chan++)
         ((m_float*)out_bufi)[k++] = sp->out[chan];
       sp->pos++;
