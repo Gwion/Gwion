@@ -19,6 +19,10 @@ struct M_Vector_ {
   m_uint cap;
 };
 
+m_uint m_vector_size(M_Vector v) {
+  return v->len;
+}
+
 DTOR(array_dtor) {
   Type base = array_base(o->type_ref);
   if(ARRAY(o)->depth > 1 || isa(base, &t_object) > 0) {
@@ -46,99 +50,20 @@ M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth) {
   return a;
 }
 
-m_uint m_vector_size(M_Vector v) {
-  return v->len;
-}
-
-static inline m_uint m_vector_depth(M_Vector v) {
-  return v->depth;
-}
-
-static inline m_uint m_vector_cap(M_Vector v) {
-  return v->cap;
-}
-
-void m_vector_get(M_Vector v, m_uint i, char* c) {
+void m_vector_get(M_Vector v, const m_uint i, void* c) {
   memcpy(c, v->ptr + i * v->size, v->size);
 }
 
-m_uint  i_vector_at(M_Vector v, m_uint i) {
-  return *(m_uint*)(v->ptr + i * v->size);
-}
-
-m_float f_vector_at(M_Vector v, m_uint i) {
-  return *(m_float*)(v->ptr + i * v->size);
-}
-
-m_complex c_vector_at(M_Vector v, m_uint i) {
-  return *(m_complex*)(v->ptr + i * v->size);
-}
-
-m_vec3 v3_vector_at(M_Vector v, m_uint i) {
-  return *(m_vec3*)(v->ptr + i * v->size);
-}
-
-m_vec4 v4_vector_at(M_Vector v, m_uint i) {
-  return *(m_vec4*)(v->ptr + i * v->size);
-}
-
-#define CHECK_VEC_SIZE(v)   if(++v->len >= v->cap) { \
-    v->cap *=2;                                   \
-    v->ptr = realloc(v->ptr, v->cap * v->size);   \
-  }                                               \
-
-void m_vector_add(M_Vector v, char* data) {
-  CHECK_VEC_SIZE(v)
+void m_vector_add(M_Vector v, const void* data) {
+  if(++v->len >= v->cap) {
+    v->cap *=2;
+    v->ptr = realloc(v->ptr, v->cap * v->size);
+  }
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
 }
 
-void i_vector_add(M_Vector v, m_uint i) {
-  CHECK_VEC_SIZE(v)
-  *(m_uint*)(v->ptr + (v->len - 1)*v->size) = i;
-}
-
-void f_vector_add(M_Vector v, m_float f) {
-  CHECK_VEC_SIZE(v)
-  *(m_float*)(v->ptr + (v->len - 1)*v->size) = f;
-}
-
-void c_vector_add(M_Vector v, m_complex c) {
-  CHECK_VEC_SIZE(v)
-  *(m_complex*)(v->ptr + (v->len - 1)*v->size) = c;
-}
-
-void v3_vector_add(M_Vector v, m_vec3 c) {
-  CHECK_VEC_SIZE(v)
-  *(m_vec3*)(v->ptr + (v->len - 1)*v->size) = c;
-}
-
-void v4_vector_add(M_Vector v, m_vec4 c) {
-  CHECK_VEC_SIZE(v)
-  *(m_vec4*)(v->ptr + (v->len - 1)*v->size) = c;
-}
-
-void m_vector_set(M_Vector v, m_uint i, char* data) {
+void m_vector_set(M_Vector v, const m_uint i, const void* data) {
   memcpy(v->ptr + i * v->size, data,  v->size);
-}
-
-void i_vector_set(M_Vector v, m_uint i, m_uint data) {
-  *(m_uint*)(v->ptr + i * v->size) = data;
-}
-
-void f_vector_set(M_Vector v, m_uint i, m_float data) {
-  *(m_float*)(v->ptr + i * v->size) = data;
-}
-
-void c_vector_set(M_Vector v, m_uint i, m_complex data) {
-  *(m_complex*)(v->ptr + i * v->size) = data;
-}
-
-void v3_vector_set(M_Vector v, m_uint i, m_vec3 data) {
-  *(m_vec3*)(v->ptr + i * v->size) = data;
-}
-
-void v4_vector_set(M_Vector v, m_uint i, m_vec4 data) {
-  *(m_vec4*)(v->ptr + i * v->size) = data;
 }
 
 void m_vector_rem(M_Vector v, m_uint index) {
@@ -159,8 +84,11 @@ MFUN(vm_vector_rem) {
   M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
     return;
-  if(isa(o->type_ref, &t_object) > 0)
-    release((M_Object)i_vector_at(v, index), shred);
+  if(isa(o->type_ref, &t_object) > 0) {
+    M_Object obj;
+    m_vector_get(v, index, &obj);
+    release(obj,shred);
+  }
   m_vector_rem(v, index);
 }
 
@@ -169,15 +97,15 @@ char* m_vector_addr(M_Vector v, m_uint i) {
 }
 
 MFUN(vm_vector_size) {
-  *(m_uint*)RETURN = o ? m_vector_size(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = ARRAY(o)->len;
 }
 
 MFUN(vm_vector_depth) {
-  *(m_uint*)RETURN = o ? m_vector_depth(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = ARRAY(o)->depth;
 }
 
 MFUN(vm_vector_cap) {
-  *(m_uint*)RETURN = o ? m_vector_cap(ARRAY(o)) : - 1;
+  *(m_uint*)RETURN = ARRAY(o)->cap;
 }
 
 INSTR(Array_Append) {
@@ -354,7 +282,7 @@ static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
       release(base, shred);
       return NULL;
     }
-    i_vector_set(ARRAY(base), i, (m_uint)next);
+    m_vector_set(ARRAY(base), i, &next);
   }
   return base;
 }
@@ -451,7 +379,7 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i)  if(i < 0 || i >=  m_vector_size(ARRAY(obj))) { \
+#define OOB(shred, obj, i)  if(i < 0 || i >=  ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) {
@@ -474,7 +402,8 @@ INSTR(Instr_Array_Access_Multi) {
   for(j = 0; j < instr->m_val - 1; j++) {
     i = *(m_int*)REG(SZ_INT * (j + 1));
     OOB(shred, *base, *(m_int*)REG(SZ_INT * (j + 1)))
-    if(!(obj = (M_Object)i_vector_at(ARRAY(obj), i))) {
+    m_vector_get(ARRAY(obj), i, &obj);
+    if(!obj) {
       release(*base, shred);
       Except(shred, "NullPtrException");
     }

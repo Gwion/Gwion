@@ -4329,8 +4329,11 @@ MFUN(oscmorph_init)
 	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
 	m_uint tbl_iter;
 	sp_ftbl** tbl = malloc(m_vector_size(ARRAY(tbl_ptr)) * SZ_INT);
-	for(tbl_iter = 0; tbl_iter < m_vector_size(ARRAY(tbl_ptr)); tbl_iter++)
-		tbl[tbl_iter] = FTBL((M_Object)i_vector_at(ARRAY(tbl_ptr), tbl_iter));
+	for(tbl_iter = 0; tbl_iter < m_vector_size(ARRAY(tbl_ptr)); tbl_iter++) {
+			M_Object tbl_ftl_obj;
+			m_vector_get(ARRAY(tbl_ptr), tbl_iter, &tbl_ftl_obj);
+			tbl[tbl_iter] = FTBL(tbl_ftl_obj);
+	}
 	release(tbl_ptr, shred);
 	gw_offset +=SZ_INT;
 	m_int nft = *(m_int*)(shred->mem + gw_offset);

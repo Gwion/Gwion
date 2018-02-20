@@ -1,6 +1,12 @@
 #ifndef __DEF
 #define __DEF
 
+#ifdef __GNUC__
+#ifndef __clang__
+#define LOOP_OPTIM _Pragma("GCC ivdep")
+#endif
+#endif
+
 #define CHECK_BB(f) { if(f < 0) return -1;   }
 #define CHECK_OB(f) { if(!f)    return -1;   }
 #define CHECK_BO(f) { if(f < 0) return NULL; }

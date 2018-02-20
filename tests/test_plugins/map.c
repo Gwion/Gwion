@@ -71,11 +71,10 @@ static DTOR(map_dtor) {
 static MFUN(gw_map_get) {
   M_Vector v = ARRAY(o);
   m_uint size = m_vector_size(v);
-printf("size %lu\n", size);
   for(m_uint i = 0; i < size; i++) {
-    M_Object p = (M_Object)i_vector_at(v, i);
+    M_Object p;
+    m_vector_get(v, i, &p);
     if(MAP_INFO(o)->cmp(MAP_KEY(p), MEM(SZ_INT), MAP_INFO(o)->key_size)) {
-puts("found");
       memcpy(RETURN, MAP_VAL(p, o), MAP_INFO(o)->key_size);
       return;
     }
@@ -88,7 +87,8 @@ static MFUN(gw_map_set) {
   m_uint size = m_vector_size(v);
   memcpy(RETURN, MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->val_size);
   for(m_uint i = 0; i < size; i++) {
-    M_Object p = (M_Object)i_vector_at(v, i);
+    M_Object p;
+    m_vector_get(v, i, &p);
     if(MAP_INFO(o)->cmp(MAP_KEY(p), MEM(SZ_INT), MAP_INFO(o)->key_size)) {
       memcpy(MAP_VAL(p, o), MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->key_size);
       return;

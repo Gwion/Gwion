@@ -204,7 +204,7 @@ SFUN(file_list) {
   vector_add(&shred->gc, (vtype)ret);
   for(i = 0; i < n; i++) {
     M_Object string = new_String(NULL, namelist[i]->d_name);
-    i_vector_set(ARRAY(ret), i, (m_uint)string);
+    m_vector_set(ARRAY(ret), i, &string);
     free(namelist[i]);
   }
   free(namelist);

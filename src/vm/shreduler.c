@@ -2,6 +2,8 @@
 #include "vm.h"
 #include "object.h"
 #include "shreduler_private.h"
+
+__attribute__((nonnull))
 Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
@@ -10,10 +12,12 @@ Shreduler new_shreduler(VM* vm) {
   return s;
 }
 
+__attribute__((nonnull))
 void shreduler_set_loop(Shreduler s, m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;
 }
 
+__attribute__((hot, nonnull))
 VM_Shred shreduler_get(Shreduler s) {
   VM_Shred shred = s->list;
   if(!shred) {
@@ -35,6 +39,7 @@ VM_Shred shreduler_get(Shreduler s) {
   return NULL;
 }
 
+__attribute__((nonnull))
 static void shreduler_parent(VM_Shred out, Vector v) {
   m_uint index = vector_find(v, (vtype)out);
   vector_rem(v, index);
@@ -44,6 +49,7 @@ static void shreduler_parent(VM_Shred out, Vector v) {
   }
 }
 
+__attribute__((nonnull))
 static void shreduler_child(Shreduler s, Vector v) {
   m_uint i, size = vector_size(v);
   for(i = 0; i < size; i++) {
@@ -59,6 +65,7 @@ static void shreduler_child(Shreduler s, Vector v) {
   }
 }
 
+__attribute__((nonnull))
 static void shreduler_gc(VM_Shred out) {
   m_uint i;
   for(i = 0; i < vector_size(&out->gc); i++) {
@@ -69,6 +76,7 @@ static void shreduler_gc(VM_Shred out) {
   vector_release(&out->gc);
 }
 
+__attribute__((nonnull))
 static void shreduler_erase(Shreduler s, VM_Shred out) {
   vtype index;
   if(out->parent)
@@ -81,6 +89,7 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_gc(out);
 }
 
+__attribute__((nonnull))
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   s->curr = (s->curr == out) ? NULL : s->curr;
   if(erase) {
@@ -90,6 +99,7 @@ void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   return;
 }
 
+__attribute__((hot, nonnull))
 m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
   VM_Shred curr, prev;
 

@@ -10,34 +10,40 @@ Vector new_vector() {
   return v;
 }
 
-void vector_init(struct Vector_* v) {
+__attribute__((nonnull))
+void vector_init(Vector v) {
   v->ptr = calloc(MAP_CAP, sizeof(vtype));
   v->ptr[1] = MAP_CAP;
 }
 
+__attribute__((nonnull))
 void vector_release(Vector v) {
   free(v->ptr);
 }
 
-void vector_add(Vector v, vtype data) {
+__attribute__((nonnull))
+void vector_add(const Vector v, const vtype data) {
   if(!(v->ptr[1] - v->ptr[0] - OFFSET))
     v->ptr = realloc(v->ptr, (v->ptr[1] *= 2) * sizeof(vtype));
   v->ptr[v->ptr[0]++ + OFFSET] = (vtype)data;
 }
 
-Vector vector_copy(Vector v) {
+__attribute__((nonnull))
+const Vector vector_copy(const Vector v) {
   Vector ret = malloc(sizeof(struct Vector_));
   ret->ptr = calloc(v->ptr[1], sizeof(vtype));
   memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
   return ret;
 }
 
-void vector_copy2(Vector v, Vector ret) {
+__attribute__((nonnull))
+void vector_copy2(const restrict Vector v, const Vector ret) {
   ret->ptr = realloc(ret->ptr, v->ptr[1] * sizeof(vtype));
   memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
 }
 
-m_int vector_find(Vector v, vtype data) {
+__attribute__((nonnull))
+const m_int vector_find(const Vector v, const vtype data) {
   vtype i;
   for(i = v->ptr[0] + 1; --i;)
     if(v->ptr[i + OFFSET - 1] == (vtype)data)
@@ -45,7 +51,8 @@ m_int vector_find(Vector v, vtype data) {
   return -1;
 }
 
-void vector_rem(Vector v, const vtype index) {
+__attribute__((nonnull))
+void vector_rem(const Vector v, const vtype index) {
   vtype i;
   if(index >= v->ptr[0])
     return;
@@ -55,7 +62,8 @@ void vector_rem(Vector v, const vtype index) {
     v->ptr = realloc(v->ptr, (v->ptr[1] /= 2) * sizeof(vtype));
 }
 
-vtype vector_pop(Vector v) {
+__attribute__((nonnull))
+const vtype vector_pop(const Vector v) {
   vtype ret;
   if(!v->ptr[0])
     return 0;
@@ -64,11 +72,13 @@ vtype vector_pop(Vector v) {
   return ret;
 }
 
+__attribute__((nonnull))
 void free_vector(Vector v) {
   free(v->ptr);
   free(v);
 }
 
+__attribute__((nonnull))
 void vector_clear(Vector v) {
   v->ptr = realloc(v->ptr, (v->ptr[1] = MAP_CAP) * sizeof(vtype));
   v->ptr[0] = 0;

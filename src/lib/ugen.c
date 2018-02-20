@@ -26,6 +26,7 @@ static TICK(adc_tick) {
   }
 }
 
+__attribute__((hot, nonnull))
 static inline void ref_compute(UGen u) {
   for(m_uint i = u->n_chan + 1; --i;) {
     UGen ugen = UGEN(u->channel[i - 1]);
@@ -36,6 +37,7 @@ static inline void ref_compute(UGen u) {
 }
 
 //static inline
+__attribute__((hot, nonnull))
 void ugen_compute(UGen u) {
   m_uint  i;
   u->done = 1;
