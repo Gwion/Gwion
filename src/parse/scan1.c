@@ -42,12 +42,14 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
 }
 
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
+//decl->m_type = NULL;
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
 
   CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(env, t, decl))
-  if(decl->m_type && !env->func)
+  if(decl->m_type && !env->func &&
+    !(env->class_def && GET_FLAG(env->class_def, ae_flag_template) && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->m_type;
   else
     decl->m_type = t;
@@ -456,6 +458,7 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
+f->stack_depth = 0;
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||

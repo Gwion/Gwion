@@ -465,7 +465,8 @@ struct Func_Def_ {
   Arg_List arg_list;
   Stmt code;
   m_uint stack_depth;
-  union func_def_data {
+  struct  func_def_data {
+//  union func_def_data {
     Func func;
     void* dl_func_ptr;
   } d;

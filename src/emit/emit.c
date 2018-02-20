@@ -1817,6 +1817,8 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def) {
   }
   if(!emit->env->class_def)
     CHECK_BB(emit_func_def_global(emit, func->value_ref))
+  else if(GET_FLAG(emit->env->class_def, ae_flag_builtin) && GET_FLAG(emit->env->class_def, ae_flag_template))
+    return 1;
   CHECK_BB(emit_func_def_init(emit, func))
   CHECK_BB(emit_func_def_flag(emit, func))
   emit_push_scope(emit);
@@ -1854,10 +1856,11 @@ static m_bool init_class_data(Nspc nspc) {
 }
 
 Code* emit_class_code(Emitter emit, m_str name) {
-  char c[strlen(name) + 7];
+  m_uint len = strlen(name) + 7;
+  char c[len];
   Code* code = new_code();
   CHECK_OO(code);
-  sprintf(c, "class %s", name);
+  snprintf(c, len, "class %s", name);
   code->name = code_name_set(c, emit->filename);
   code->need_this = 1;
   code->stack_depth += SZ_INT;
