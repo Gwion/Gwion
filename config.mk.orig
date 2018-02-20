@@ -1,0 +1,33 @@
+# handle base options
+PRG ?=gwion
+CC ?=gcc
+YACC ?=yacc
+LEX ?=flex
+PREFIX ?=/usr/local
+SOUNDPIPE_LIB ?=-lsoundpipe
+SOUNDPIPE_INC ?=
+LDFLAGS += -lm -ldl -rdynamic -lpthread
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
+
+# handle boolean options
+USE_DOUBLE = off
+USE_COVERAGE ?= off
+USE_GWCOV ?= off
+USE_MEMCHECK ?= off
+
+# handle definitions
+D_FUNC ?= dummy_driver
+
+# handle directories
+GWION_ADD_DIR ?= ${PREFIX}/lib/Gwion/add
+
+# handle libraries
+DUMMY_D ?= 1
+SILENT_D ?= 1
+SPA_D ?= 1
+SNDFILE_D ?= 1
+ALSA_D ?= 1
+JACK_D ?= 0
+PORTAUDIO_D ?= 0
+SOUNDIO_D ?= 0
+PULSE_D ?= 0

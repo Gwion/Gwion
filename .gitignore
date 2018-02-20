@@ -6,8 +6,7 @@ gwcov
 *.gw.tag
 *.gwcov
 *.gwda
+config.mk
 include/generated.h
 utils/generate_header
-utils/coverity_scan.sh
-Makefile
 docs/WIP_*.md

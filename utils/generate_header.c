@@ -20,7 +20,6 @@ static const char* type	 = "float ";
 
 int main(int argc, char** argv) {
   FILE* file;
-  fprintf(stderr, "creating Gwion header.\n");
   if(SZ != sizeof(SPFLOAT)) {
     fprintf(stderr, "sizes do not match.\n"
         "please recompile soundpipe to use %s.\n", type);
@@ -51,6 +50,5 @@ typedef _Complex %s m_complex;\n", type, type);
     fprintf(file, "#define UINT_F \"lu\"\n");
   }
   fclose(file);
-  fprintf(stderr, "config written to '%s'.\n", filename);
   return 0;
 }
