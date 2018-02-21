@@ -100,6 +100,7 @@ static m_bool import_core_libs(Gwi gwi) {
 
 static m_bool import_other_libs(Gwi gwi) {
   CHECK_BB(import_pair(gwi))
+  CHECK_BB(import_map(gwi))
   CHECK_BB(import_fileio(gwi))
   CHECK_BB(import_std(gwi))
   CHECK_BB(import_math(gwi))

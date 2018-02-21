@@ -13,6 +13,7 @@ m_bool import_array(Gwi gwi);
 m_bool import_ptr(Gwi gwi);
 
 m_bool import_pair(Gwi gwi);
+m_bool import_map(Gwi gwi);
 m_bool import_fileio(Gwi gwi);
 m_bool import_std(Gwi gwi);
 m_bool import_math(Gwi gwi);

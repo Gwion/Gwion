@@ -39,9 +39,6 @@ static CTOR(map_ctor) {
   info->t = array_base(o->type_ref->parent);
   Env env = shred->vm_ref->emit->env;
   Nspc curr = env->curr;
-printf("type ! %p\n", info->t);
-printf("type ! %s\n", o->type_ref->name);
-printf("type ! %p\n", o->type_ref->parent->d.base_type);
   m_str   key_name = get_type_name(info->t->name, 1);
   m_uint depth;
   Type_Decl* key_decl = str2decl(env, key_name, &depth);
@@ -59,8 +56,8 @@ printf("type ! %p\n", o->type_ref->parent->d.base_type);
     MAP_INFO(o)->cmp = string_cmp;
   else
     MAP_INFO(o)->cmp = cmp;
-ADD_REF(o->type_ref);
-ADD_REF(o->type_ref->parent);
+  ADD_REF(o->type_ref);
+  ADD_REF(o->type_ref->parent);
 }
 
 static DTOR(map_dtor) {
@@ -98,11 +95,9 @@ static MFUN(gw_map_set) {
   initialize_object(pair, MAP_INFO(o)->t);
   memcpy(pair->data, MEM(SZ_INT), MAP_INFO(o)->key_size + MAP_INFO(o)->val_size);
   m_vector_add(v, (char*)&pair);
-printf("size %lu\n", size);
 }
 
-//m_bool import_map(Gwi gwi) {
-IMPORT {
+m_bool import_map(Gwi gwi) {
   m_str types[] = { "A", "B" };
   CHECK_BB(gwi_tmpl_ini(gwi, 2, types))
   CHECK_BB(gwi_class_ini(gwi, &t_map, map_ctor, map_dtor))
