@@ -297,12 +297,25 @@ Exp new_exp_prim_complex(Exp e, int pos) {
   return a;
 }
 
-Exp new_exp_prim_polar(Exp e, int pos) {
+Exp new_exp_prim_polar(Polar* exp, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_polar;
-  a->d.exp_primary.d.polar.mod = e;
-  a->d.exp_primary.d.polar.pos = pos;
+  a->d.exp_primary.d.polar = exp;
   return a;
+}
+
+Polar* new_polar(Exp mod, int pos) {
+  Polar* a = calloc(1, sizeof(Polar));
+  a->mod = mod;
+  if(mod)
+    a->phase = mod->next;
+  a->pos = pos;
+  return a;
+}
+
+__inline static void free_polar(Polar* a) {
+  free_exp(a->mod);
+  free(a);
 }
 
 Vec* new_vec(Exp e, int pos) {
@@ -549,7 +562,7 @@ static void free_exp_primary(Exp_Primary* a) {
   else if(a->primary_type == ae_primary_complex)
     free_exp(a->d.cmp.re);
   else if(a->primary_type == ae_primary_polar)
-    free_exp(a->d.polar.mod);
+    free_polar(a->d.polar);
   else if(a->primary_type == ae_primary_vec)
     free_vec(a->d.vec);
 }
