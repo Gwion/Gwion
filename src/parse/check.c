@@ -303,7 +303,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = &t_float;
       break;
     case ae_primary_complex:
-      t = check_exp_prim_complex(env, &primary->d.cmp);
+      t = check_exp_prim_complex(env, primary->d.cmp);
       break;
     case ae_primary_polar:
       t = check_exp_prim_polar(env, primary->d.polar);

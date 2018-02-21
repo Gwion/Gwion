@@ -98,6 +98,7 @@ typedef struct {
   Exp im;
   int pos;
 } Complex;
+Complex* new_complex(Exp re, int pos);
 
 typedef struct {
   Exp mod;
@@ -152,7 +153,7 @@ typedef struct {
     m_str str;
     Array_Sub array;
     Exp exp;
-    Complex cmp;
+    Complex* cmp;
     Polar* polar;
     Vec* vec;
   } d;
@@ -250,7 +251,7 @@ Exp new_exp_prim_float(m_float num, int pos);
 Exp new_exp_prim_string(m_str s, int pos);
 Exp new_exp_prim_array(Array_Sub exp_list, int pos);
 Exp new_exp_prim_hack(Exp exp, int pos);
-Exp new_exp_prim_complex(Exp exp, int pos);
+Exp new_exp_prim_complex(Complex* exp, int pos);
 Exp new_exp_prim_polar(Polar* exp, int pos);
 Exp new_exp_prim_vec(Vec* a, int pos);
 Exp new_exp_prim_char(m_str chr, int pos);
