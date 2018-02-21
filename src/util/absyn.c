@@ -275,21 +275,6 @@ Exp new_exp_prim_hack(Exp exp, int pos) {
   return a;
 }
 
-Complex* new_complex(Exp re, int pos) {
-  Complex* a = calloc(1, sizeof(Complex));
-  a->re = re;
-  if(re)
-    a->im = re->next;
-  a->pos = pos;
-  return a;
-}
-
-__inline static void free_complex(Complex* a) {
-  free_exp(a->re);
-  free(a);
-
-}
-
 Exp new_exp_prim_char(m_str chr, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_char;
@@ -304,10 +289,11 @@ Exp new_exp_prim_array(Array_Sub exp_list, int pos) {
   return a;
 }
 
-Exp new_exp_prim_complex(Complex* exp, int pos) {
+Exp new_exp_prim_complex(Exp e, int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type  = ae_primary_complex;
-  a->d.exp_primary.d.cmp = exp;
+  a->d.exp_primary.d.cmp.re = e;
+  a->d.exp_primary.d.cmp.pos = pos;
   return a;
 }
 
@@ -574,7 +560,7 @@ static void free_exp_primary(Exp_Primary* a) {
   else if(a->primary_type == ae_primary_array)
     free_array_sub(a->d.array);
   else if(a->primary_type == ae_primary_complex)
-    free_complex(a->d.cmp);
+    free_exp(a->d.cmp.re);
   else if(a->primary_type == ae_primary_polar)
     free_polar(a->d.polar);
   else if(a->primary_type == ae_primary_vec)
