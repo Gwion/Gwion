@@ -94,21 +94,9 @@ Type_List new_type_list(Type_Decl* list, Type_List next, int pos);
 void free_type_list(Type_List a);
 
 typedef struct {
-  Exp re;
-  Exp im;
-  int pos;
-} Complex;
-
-typedef struct {
-  Exp mod;
-  Exp phase;
-  int pos;
-} Polar;
-
-typedef struct {
-  Exp args;
-  m_uint numdims;
-  int pos;
+  Exp    exp;
+  m_uint dim;
+  int    pos;
 } Vec;
 
 struct Arg_List_ {
@@ -150,8 +138,6 @@ typedef struct {
     m_str str;
     Array_Sub array;
     Exp exp;
-    Complex cmp;
-    Polar polar;
     Vec vec;
   } d;
   Exp self;
@@ -248,9 +234,7 @@ Exp new_exp_prim_float(m_float num, int pos);
 Exp new_exp_prim_string(m_str s, int pos);
 Exp new_exp_prim_array(Array_Sub exp_list, int pos);
 Exp new_exp_prim_hack(Exp exp, int pos);
-Exp new_exp_prim_complex(Exp, int pos);
-Exp new_exp_prim_polar(Exp, int pos);
-Exp new_exp_prim_vec(Exp, int pos);
+Exp new_exp_prim_vec(ae_Exp_Primary_Type t, Exp, int pos);
 Exp new_exp_prim_char(m_str chr, int pos);
 Exp new_exp_prim_nil(int pos);
 Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, int pos);

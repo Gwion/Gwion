@@ -219,17 +219,17 @@ static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
       break;
     case ae_primary_complex:
       lint_print(linter, "#(");
-      lint_exp(linter, exp->d.cmp.re);
+      lint_exp(linter, exp->d.vec.exp);
       lint_print(linter, ")");
       break;
     case ae_primary_polar:
       lint_print(linter, "%(");
-      lint_exp(linter, exp->d.polar.mod);
+      lint_exp(linter, exp->d.vec.exp);
       lint_print(linter, ")");
       break;
     case ae_primary_vec:
       lint_print(linter, "@(");
-      lint_exp(linter, exp->d.vec.args);
+      lint_exp(linter, exp->d.vec.exp);
       lint_print(linter, ")");
       break;
     case ae_primary_char:

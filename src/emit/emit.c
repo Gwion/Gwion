@@ -236,7 +236,7 @@ m_bool emit_array_extend(Emitter emit, Type t, Exp e) {
 }
 
 
-//static 
+//static
 m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array,
     m_bool is_ref) {
   if(type->array_depth) {
@@ -369,14 +369,13 @@ static m_bool emit_exp_array(Emitter emit, Exp_Array* array) {
   return 1;
 }
 
-static m_bool emit_exp_prim_vec(Emitter emit, Vec* vec) {
-  CHECK_BB(emit_exp(emit, vec->args, 0));
-  m_int n = 3 - vec->numdims;
-  while(n > 0) {
+static m_bool emit_exp_prim_vec(Emitter emit, Vec* vec, ae_Exp_Primary_Type t) {
+  CHECK_BB(emit_exp(emit, vec->exp, 0));
+  m_int n = (t == ae_primary_vec ? 3 : 2) - vec->dim;
+  while(n-- > 0) {
     Instr push = emitter_add_instr(emit, Reg_PushImm);
     CHECK_OB(push);
     push->m_val = SZ_FLOAT;
-    n--;
   }
   return 1;
 }
@@ -470,11 +469,9 @@ static m_bool emit_exp_primary2(Emitter emit, Exp_Primary* prim) {
 static m_bool emit_exp_primary1(Emitter emit, Exp_Primary* prim) {
   switch(prim->primary_type) {
     case ae_primary_complex:
-      return emit_exp(emit, prim->d.cmp.re, 0);
     case ae_primary_polar:
-      return emit_exp(emit, prim->d.polar.mod, 0);
     case ae_primary_vec:
-      return emit_exp_prim_vec(emit, &prim->d.vec);
+      return emit_exp_prim_vec(emit, &prim->d.vec, prim->primary_type);
     default:
       return emit_exp_primary2(emit, prim);
   }
@@ -860,7 +857,7 @@ static m_uint emit_exp_spork_size(Emitter emit, Exp e) {
   return size;
 }
 
-//static 
+//static
 m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   Instr op;
   VM_Code code;
@@ -889,7 +886,6 @@ m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   return 1;
 }
 
-//static 
 m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   Instr op;
   VM_Code code;

@@ -289,36 +289,14 @@ Exp new_exp_prim_array(Array_Sub exp_list, int pos) {
   return a;
 }
 
-Exp new_exp_prim_complex(Exp e, int pos) {
+Exp new_exp_prim_vec(ae_Exp_Primary_Type t, Exp e, int pos) {
   Exp a = new_exp_prim(pos);
-  a->d.exp_primary.primary_type  = ae_primary_complex;
-  a->d.exp_primary.d.cmp.re = e;
-  a->d.exp_primary.d.cmp.pos = pos;
-  return a;
-}
-
-Exp new_exp_prim_polar(Exp e, int pos) {
-  Exp a = new_exp_prim(pos);
-  a->d.exp_primary.primary_type = ae_primary_polar;
-  a->d.exp_primary.d.polar.mod = e;
-  a->d.exp_primary.d.polar.pos = pos;
-  return a;
-}
-
-static inline m_uint get_dims(Exp e) {
-  m_uint i = 0;
+  a->d.exp_primary.primary_type = t;
+  a->d.exp_primary.d.vec.exp = e;
   while(e) {
-    i++;
+    a->d.exp_primary.d.vec.dim++;
     e = e->next;
   }
-  return i;
-}
-
-Exp new_exp_prim_vec(Exp e, int pos) {
-  Exp a = new_exp_prim(pos);
-  a->d.exp_primary.primary_type = ae_primary_vec;
-  a->d.exp_primary.d.vec.args = e;
-  a->d.exp_primary.d.vec.numdims = get_dims(e);
   a->d.exp_primary.self = a;
   return a;
 }
@@ -536,16 +514,15 @@ Exp prepend_exp(Exp exp, Exp next, int pos) {
 }
 
 static void free_exp_primary(Exp_Primary* a) {
-  if(a->primary_type == ae_primary_hack)
+  ae_Exp_Primary_Type t = a->primary_type;
+  if(t == ae_primary_hack)
     free_exp(a->d.exp);
-  else if(a->primary_type == ae_primary_array)
+  else if(t == ae_primary_array)
     free_array_sub(a->d.array);
-  else if(a->primary_type == ae_primary_complex)
-    free_exp(a->d.cmp.re);
-  else if(a->primary_type == ae_primary_polar)
-    free_exp(a->d.polar.mod);
-  else if(a->primary_type == ae_primary_vec)
-    free_exp(a->d.vec.args);
+  else if(t== ae_primary_complex ||
+          t == ae_primary_polar  ||
+          t == ae_primary_vec)
+    free_exp(a->d.vec.exp);
 }
 
 void free_exp(Exp exp) {

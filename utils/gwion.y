@@ -60,7 +60,7 @@ m_str op2str(Operator op);
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
-%type<ival> atsym static_decl function_decl
+%type<ival> atsym static_decl function_decl vec_type
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
 %type<sym>id opt_id
@@ -471,19 +471,21 @@ post_exp: primary_exp | post_exp array_exp
     { $$ = new_exp_post($1, $2, get_pos(arg)); }
   ;
 
+vec_type: SHARPPAREN   { $$ = ae_primary_complex; }
+        | PERCENTPAREN { $$ = ae_primary_polar;   }
+        | ATPAREN      { $$ = ae_primary_vec;     };
+
 primary_exp
-  : id                { $$ = new_exp_prim_id(     $1, get_pos(arg)); }
-  | NUM               { $$ = new_exp_prim_int(    $1, get_pos(arg)); }
-  | FLOAT             { $$ = new_exp_prim_float(  $1, get_pos(arg)); }
-  | STRING_LIT        { $$ = new_exp_prim_string( $1, get_pos(arg)); }
-  | CHAR_LIT          { $$ = new_exp_prim_char(   $1, get_pos(arg)); }
-  | array_exp         { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
-  | array_empty       { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
-  | SHARPPAREN exp RPAREN { $$ = new_exp_prim_complex($2, get_pos(arg)); };
-  | PERCENTPAREN exp RPAREN { $$ = new_exp_prim_polar($2, get_pos(arg)); };
-  | ATPAREN      exp RPAREN { $$ = new_exp_prim_vec($2, get_pos(arg)); };
-  | L_HACK exp R_HACK { $$ = new_exp_prim_hack(   $2, get_pos(arg)); }
-  | LPAREN exp RPAREN { $$ =                       $2;                    }
-  | LPAREN RPAREN     { $$ = new_exp_prim_nil(        get_pos(arg)); }
+  : id                  { $$ = new_exp_prim_id(     $1, get_pos(arg)); }
+  | NUM                 { $$ = new_exp_prim_int(    $1, get_pos(arg)); }
+  | FLOAT               { $$ = new_exp_prim_float(  $1, get_pos(arg)); }
+  | STRING_LIT          { $$ = new_exp_prim_string( $1, get_pos(arg)); }
+  | CHAR_LIT            { $$ = new_exp_prim_char(   $1, get_pos(arg)); }
+  | array_exp           { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
+  | array_empty         { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
+  | vec_type exp RPAREN { $$ = new_exp_prim_vec($1, $2, get_pos(arg)); }
+  | L_HACK exp R_HACK   { $$ = new_exp_prim_hack(   $2, get_pos(arg)); }
+  | LPAREN exp RPAREN   { $$ =                      $2;                }
+  | LPAREN RPAREN       { $$ = new_exp_prim_nil(        get_pos(arg)); }
   ;
 %%

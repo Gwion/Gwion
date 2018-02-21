@@ -138,30 +138,6 @@ static Type check_exp_prim_array(Env env, Array_Sub array) {
   return (array->type = check_exp_prim_array_match(env, e));
 }
 
-static m_bool check_exp_prim_vec_actual(Env env, Exp e) {
-  int count = 1;
-  Type t;
-  while(e) {
-    CHECK_OB((t = check_exp(env, e)))
-    if(isa(t, &t_int) > 0) e->cast_to = &t_float;
-    else if(isa(t, &t_float) < 0)
-      CHECK_BB(err_msg(TYPE_, e->pos,
-            "invalid type '%s' in vector value #%d...\n"
-            "    (must be of type 'int' or 'float')", t->name, count))
-    count++;
-    e = e->next;
-  }
-  return 1;
-}
-
-static Type check_exp_primary_vec(Env env, Vec* vec) {
-  if(vec->numdims > 4)
-    CHECK_BO(err_msg(TYPE_, vec->pos,
-          "vector dimensions not supported > 4...\n\t    --> format: @(x,y,z,w)"))
-  CHECK_BO(check_exp_prim_vec_actual(env, vec->args))
-  return vec->numdims < 4 ? &t_vec3 : &t_vec4;
-}
-
 static Value check_non_res_value(Env env, Exp_Primary* primary) {
   m_str str = s_name(primary->d.var);
   Value v = nspc_lookup_value1(env->curr, primary->d.var);
@@ -237,50 +213,47 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
     return check_exp_prim_id1(env, primary);
 }
 
-static Type check_exp_prim_complex(Env env, Complex* cmp) {
-  if(!cmp->re->next)
-    CHECK_BO(err_msg(TYPE_, cmp->pos, "missing imaginary component of complex value..."))
-  if(cmp->re->next->next)
-    CHECK_BO(err_msg(TYPE_, cmp->pos, "extraneous component of complex value..."))
-  CHECK_OO(check_exp(env, cmp->re))
-  if(isa(cmp->re->type, &t_float) < 0) {
-    if(isa(cmp->re->type, &t_int) < 0)
-      CHECK_BO(err_msg(TYPE_, cmp->pos,
-            "invalid type '%s' in real component of complex value...\n"
-            "    (must be of type 'int' or 'float')", cmp->re->type->name))
-    cmp->re->cast_to = &t_float;
+static m_bool vec_value(Env env, Exp e, m_str s) {
+  int count = 1;
+  CHECK_OB(check_exp(env, e))
+  while(e) {
+    Type t = e->type;
+    if(isa(t, &t_int) > 0) e->cast_to = &t_float;
+    else if(isa(t, &t_float) < 0)
+      CHECK_BB(err_msg(TYPE_, e->pos,
+            "invalid type '%s' in %s value #%d...\n"
+            "    (must be of type 'int' or 'float')", t->name, s, count))
+    count++;
+    e = e->next;
   }
-  if(isa(cmp->re->next->type, &t_float) < 0) {
-    if(isa(cmp->re->next->type, &t_int) < 0)
-      CHECK_BO(err_msg(TYPE_, cmp->pos,
-                       "invalid type '%s' in imaginary component of complex value...\n"
-                       "    (must be of type 'int' or 'float')", cmp->re->next->type->name))
-    cmp->re->next->cast_to = &t_float;
-  }
-  return &t_complex;
+  return 1;
 }
 
-static Type check_exp_prim_polar(Env env, Polar* polar) {
-  if(!polar->mod->next)
-    CHECK_BO(err_msg(TYPE_, polar->pos, "missing phase component of polar value..."))
-  if(polar->mod->next->next)
-    CHECK_BO(err_msg(TYPE_, polar->pos, "extraneous component of polar value..."))
-  CHECK_OO(check_exp(env, polar->mod))
-  if(isa(polar->mod->type, &t_float) < 0) {
-    if(isa(polar->mod->type, &t_int) < 0)
-      CHECK_BO(err_msg(TYPE_, polar->pos,
-      "invalid type '%s' in modulus component of polar value...\n"
-      "    (must be of type 'int' or 'float')", polar->mod->type->name))
-    polar->mod->cast_to = &t_float;
+struct VecInfo {
+  Type   t;
+  m_str  s;
+  m_uint n;
+};
+
+static void vec_info(ae_Exp_Primary_Type t, struct VecInfo* v) {
+  if(t == ae_primary_vec) {
+    v->t = v->n == 4 ? &t_vec4 : &t_vec3;
+    v->n = 4;
+    v->s = "vector";
+  } else if(t == ae_primary_complex) {
+    v->s = "complex";
+    v->t = &t_complex;
   }
-  if(isa(polar->mod->next->type, &t_float) < 0) {
-    if(isa(polar->mod->next->type, &t_int) < 0)
-      CHECK_BO(err_msg(TYPE_, polar->pos,
-            "invalid type '%s' in phase component of polar value...\n"
-            "    (must be of type 'int' or 'float')", polar->mod->next->type->name))
-    polar->mod->next->cast_to = &t_float;
-  }
-  return  &t_polar;
+}
+
+static Type check_exp_prim_vec(Env env, Vec* vec, ae_Exp_Primary_Type t) {
+  struct VecInfo info = { &t_polar, "polar", 2 };
+  vec_info(t, &info);
+  if(vec->dim > info.n)
+    CHECK_BO(err_msg(TYPE_, vec->pos,
+          "extraneous component of %s value...", info.s))
+  CHECK_BO(vec_value(env, vec->exp, info.s))
+  return info.t;
 }
 
 static Type check_exp_prim_gack(Env env, Exp e) {
@@ -303,13 +276,9 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = &t_float;
       break;
     case ae_primary_complex:
-      t = check_exp_prim_complex(env, &primary->d.cmp);
-      break;
     case ae_primary_polar:
-      t = check_exp_prim_polar(env, &primary->d.polar);
-      break;
     case ae_primary_vec:
-      t = check_exp_primary_vec(env, &primary->d.vec);
+      t = check_exp_prim_vec(env, &primary->d.vec, primary->primary_type);
       break;
     case ae_primary_nil:
       t = &t_void;
@@ -564,7 +533,7 @@ static void print_current_args(Exp e) {
 
 static void print_arg(Arg_List e) {
   while(e) {
-    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name, 
+    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
         s_name(e->var_decl->xid));
     e = e->next;
     if(e)
