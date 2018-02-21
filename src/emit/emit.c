@@ -470,11 +470,11 @@ static m_bool emit_exp_primary2(Emitter emit, Exp_Primary* prim) {
 static m_bool emit_exp_primary1(Emitter emit, Exp_Primary* prim) {
   switch(prim->primary_type) {
     case ae_primary_complex:
-      return emit_exp(emit, prim->d.cmp->re, 0);
+      return emit_exp(emit, prim->d.cmp.re, 0);
     case ae_primary_polar:
-      return emit_exp(emit, prim->d.polar->mod, 0);
+      return emit_exp(emit, prim->d.polar.mod, 0);
     case ae_primary_vec:
-      return emit_exp_prim_vec(emit, prim->d.vec);
+      return emit_exp_prim_vec(emit, &prim->d.vec);
     default:
       return emit_exp_primary2(emit, prim);
   }

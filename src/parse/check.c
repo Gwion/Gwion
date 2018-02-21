@@ -238,9 +238,9 @@ static Type check_exp_prim_id(Env env, Exp_Primary* primary) {
 }
 
 static Type check_exp_prim_complex(Env env, Complex* cmp) {
-  if(!cmp->im)
+  if(!cmp->re->next)
     CHECK_BO(err_msg(TYPE_, cmp->pos, "missing imaginary component of complex value..."))
-  if(cmp->im->next)
+  if(cmp->re->next->next)
     CHECK_BO(err_msg(TYPE_, cmp->pos, "extraneous component of complex value..."))
   CHECK_OO(check_exp(env, cmp->re))
   if(isa(cmp->re->type, &t_float) < 0) {
@@ -250,20 +250,20 @@ static Type check_exp_prim_complex(Env env, Complex* cmp) {
             "    (must be of type 'int' or 'float')", cmp->re->type->name))
     cmp->re->cast_to = &t_float;
   }
-  if(isa(cmp->im->type, &t_float) < 0) {
-    if(isa(cmp->im->type, &t_int) < 0)
+  if(isa(cmp->re->next->type, &t_float) < 0) {
+    if(isa(cmp->re->next->type, &t_int) < 0)
       CHECK_BO(err_msg(TYPE_, cmp->pos,
                        "invalid type '%s' in imaginary component of complex value...\n"
-                       "    (must be of type 'int' or 'float')", cmp->im->type->name))
-    cmp->im->cast_to = &t_float;
+                       "    (must be of type 'int' or 'float')", cmp->re->next->type->name))
+    cmp->re->next->cast_to = &t_float;
   }
   return &t_complex;
 }
 
 static Type check_exp_prim_polar(Env env, Polar* polar) {
-  if(!polar->phase)
+  if(!polar->mod->next)
     CHECK_BO(err_msg(TYPE_, polar->pos, "missing phase component of polar value..."))
-  if(polar->phase->next)
+  if(polar->mod->next->next)
     CHECK_BO(err_msg(TYPE_, polar->pos, "extraneous component of polar value..."))
   CHECK_OO(check_exp(env, polar->mod))
   if(isa(polar->mod->type, &t_float) < 0) {
@@ -273,12 +273,12 @@ static Type check_exp_prim_polar(Env env, Polar* polar) {
       "    (must be of type 'int' or 'float')", polar->mod->type->name))
     polar->mod->cast_to = &t_float;
   }
-  if(isa(polar->phase->type, &t_float) < 0) {
-    if(isa(polar->phase->type, &t_int) < 0)
+  if(isa(polar->mod->next->type, &t_float) < 0) {
+    if(isa(polar->mod->next->type, &t_int) < 0)
       CHECK_BO(err_msg(TYPE_, polar->pos,
-                       "invalid type '%s' in phase component of polar value...\n"
-                       "    (must be of type 'int' or 'float')", polar->phase->type->name))
-    polar->phase->cast_to = &t_float;
+            "invalid type '%s' in phase component of polar value...\n"
+            "    (must be of type 'int' or 'float')", polar->mod->next->type->name))
+    polar->mod->next->cast_to = &t_float;
   }
   return  &t_polar;
 }
@@ -303,13 +303,13 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = &t_float;
       break;
     case ae_primary_complex:
-      t = check_exp_prim_complex(env, primary->d.cmp);
+      t = check_exp_prim_complex(env, &primary->d.cmp);
       break;
     case ae_primary_polar:
-      t = check_exp_prim_polar(env, primary->d.polar);
+      t = check_exp_prim_polar(env, &primary->d.polar);
       break;
     case ae_primary_vec:
-      t = check_exp_primary_vec(env, primary->d.vec);
+      t = check_exp_primary_vec(env, &primary->d.vec);
       break;
     case ae_primary_nil:
       t = &t_void;

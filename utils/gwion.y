@@ -28,9 +28,6 @@ m_str op2str(Operator op);
   int ival;
   m_float fval;
   S_Symbol sym;
-  Complex* c_val;
-  Polar* polar;
-  Vec* vec;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;
@@ -75,9 +72,6 @@ m_str op2str(Operator op);
 %type<exp> relational_exp shift_exp add_exp mul_exp unary_exp dur_exp
 %type<exp> post_exp cast_exp exp
 %type<array_sub> array_exp array_empty
-%type<polar> polar_exp
-%type<c_val> complex_exp
-%type<vec> vec_exp
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
 %type<stmt> enum_stmt func_ptr stmt_typedef union_stmt
@@ -385,10 +379,6 @@ var_decl
   | id array_empty  { $$ = new_var_decl($1,   $2, get_pos(arg)); }
   ;
 
-complex_exp: SHARPPAREN   exp RPAREN { $$ = new_complex($2, get_pos(arg)); };
-polar_exp:   PERCENTPAREN exp RPAREN { $$ = new_polar(  $2, get_pos(arg)); };
-vec_exp:     ATPAREN      exp RPAREN { $$ = new_vec(    $2, get_pos(arg)); };
-
 con_exp: log_or_exp | log_or_exp QUESTION exp COLON con_exp
       { $$ = new_exp_if($1, $3, $5, get_pos(arg)); };
 
@@ -489,9 +479,9 @@ primary_exp
   | CHAR_LIT          { $$ = new_exp_prim_char(   $1, get_pos(arg)); }
   | array_exp         { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
   | array_empty       { $$ = new_exp_prim_array(  $1, get_pos(arg)); }
-  | complex_exp       { $$ = new_exp_prim_complex($1, get_pos(arg)); }
-  | polar_exp         { $$ = new_exp_prim_polar(  $1, get_pos(arg)); }
-  | vec_exp           { $$ = new_exp_prim_vec(    $1, get_pos(arg)); }
+  | SHARPPAREN exp RPAREN { $$ = new_exp_prim_complex($2, get_pos(arg)); };
+  | PERCENTPAREN exp RPAREN { $$ = new_exp_prim_polar($2, get_pos(arg)); };
+  | ATPAREN      exp RPAREN { $$ = new_exp_prim_vec($2, get_pos(arg)); };
   | L_HACK exp R_HACK { $$ = new_exp_prim_hack(   $2, get_pos(arg)); }
   | LPAREN exp RPAREN { $$ =                       $2;                    }
   | LPAREN RPAREN     { $$ = new_exp_prim_nil(        get_pos(arg)); }
