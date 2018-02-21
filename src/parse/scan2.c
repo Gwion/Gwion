@@ -570,10 +570,40 @@ const m_str func_tmpl_name(Env env, Func_Def f, m_uint len) {
     return s_name(insert_symbol(name));
 }
 
+static Value func_create(Env env, Func_Def f, Value overload, m_str func_name) {
+  Func func = new_func(func_name, f);
+  nspc_add_func(env->curr, insert_symbol(func->name), func);
+  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
+    SET_FLAG(func, ae_flag_ref);
+  if(env->class_def && !GET_FLAG(f, ae_flag_static))
+    SET_FLAG(func, ae_flag_member);
+  if(GET_FLAG(f, ae_flag_builtin))
+    CHECK_BO(scan2_func_def_builtin(func, func->name))
+  Type type = new_type(t_function.xid, func_name, &t_function);
+  type->size = SZ_INT;
+  if(GET_FLAG(func, ae_flag_member))
+    type->size += SZ_INT;
+  type->d.func = func;
+  Value value = new_value(type, func_name);
+  if(GET_FLAG(f, ae_flag_private))
+    SET_FLAG(value, ae_flag_private);
+  nspc_add_value(env->curr, !overload ?
+      f->name : insert_symbol(func->name), value);
+  CHECK_OO(scan2_func_assign(env, f, func, value))
+  scan2_func_def_flag(env, f);
+  if(overload) {
+    func->next = overload->d.func_ref->next;
+    overload->d.func_ref->next = func;
+  }
+  if(GET_FLAG(f->type_decl, ae_flag_ref))
+    CHECK_BO(prim_ref(f->type_decl, f->ret_type))
+  if(GET_FLAG(func, ae_flag_member))
+    f->stack_depth += SZ_INT;
+  return value;
+}
 m_bool scan2_func_def(Env env, Func_Def f) {
-  Type     type     = NULL;
-  Value    value    = NULL;
-  Func     func     = NULL;
+  Value value    = NULL;
+  Func  base;
 
   Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
@@ -589,8 +619,8 @@ m_bool scan2_func_def(Env env, Func_Def f) {
     return scan2_func_def_template(env, f, overload);
 
   if(f->tmpl) {
-    func_name = func_tmpl_name(env, f, len);
     Func func;
+    func_name = func_tmpl_name(env, f, len);
     if((func = nspc_lookup_func1(env->curr, insert_symbol(func_name)))) {
       return scan2_arg_def(env, f);
     }
@@ -600,41 +630,18 @@ m_bool scan2_func_def(Env env, Func_Def f) {
            overload ? ++overload->func_num_overloads : 0, env->curr->name);
     func_name = s_name(insert_symbol(name));
   }
-  func = new_func(func_name, f);
-  nspc_add_func(env->curr, insert_symbol(func->name), func);
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    SET_FLAG(func, ae_flag_ref);
-  if(env->class_def && !GET_FLAG(f, ae_flag_static))
-    SET_FLAG(func, ae_flag_member);
-  if(GET_FLAG(f, ae_flag_builtin))
-    CHECK_BB(scan2_func_def_builtin(func, func->name))
-  type = new_type(t_function.xid, func_name, &t_function);
-  type->size = SZ_INT;
-  if(GET_FLAG(func, ae_flag_member))
-    type->size += SZ_INT;
-  type->d.func = func;
-  value = new_value(type, func_name);
-  if(GET_FLAG(f, ae_flag_private))
-    SET_FLAG(value, ae_flag_private);
-  nspc_add_value(env->curr, !overload ?
-      f->name : insert_symbol(func->name), value);
-  CHECK_OB(scan2_func_assign(env, f, func, value))
-  scan2_func_def_flag(env, f);
-  if(overload) {
-    func->next = overload->d.func_ref->next;
-    overload->d.func_ref->next = func;
-  }
-  if(GET_FLAG(f->type_decl, ae_flag_ref))
-    CHECK_BB(prim_ref(f->type_decl, f->ret_type))
-  if(GET_FLAG(func, ae_flag_member))
-    f->stack_depth += SZ_INT;
+  if(!(base = get_func(env, f)))
+    CHECK_OB((value = func_create(env, f, overload, func_name)))
+  else
+    f->d.func = base;
   if(scan2_arg_def(env, f) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "\t... in function '%s'\n", s_name(f->name)))
-  if(GET_FLAG(f, ae_flag_op))
-    return scan2_func_def_op(env, f);
-
-  CHECK_BB(scan2_func_def_add(env, value, overload))
+  if(!base) {
+    if(GET_FLAG(f, ae_flag_op))
+      return scan2_func_def_op(env, f);
+    CHECK_BB(scan2_func_def_add(env, value, overload))
+  }
   return f->code ? scan2_func_def_code(env, f) : 1;
 }
 

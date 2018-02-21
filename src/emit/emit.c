@@ -823,7 +823,8 @@ static m_bool emit_exp_call1_usr(Emitter emit) {
 m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos) {
   m_bool is_member = GET_FLAG(func, ae_flag_member) ||
     (!GET_FLAG(func, ae_flag_member) && !GET_FLAG(func, ae_flag_builtin));
-  if(!func->code) // function pointer or template
+  if(!func->code ||
+      (GET_FLAG(func, ae_flag_ref) &&!GET_FLAG(func, ae_flag_builtin)))
     CHECK_BB(emit_exp_call1_code(emit, func))
   else {
     Instr code = emitter_add_instr(emit, Reg_Push_Ptr);

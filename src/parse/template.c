@@ -4,6 +4,57 @@
 #include "env.h"
 #include "type.h"
 
+static Type owner_type(Type t) {
+  Nspc nspc = t->info;
+  if(!nspc || !(nspc = nspc->parent) || !nspc->parent)
+    return NULL;
+  return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
+}
+
+static Vector get_types(Type t) {
+  Vector v = new_vector();
+  while(t) {
+    if(GET_FLAG(t, ae_flag_template))
+      vector_add(v, (vtype)t->def->tmpl->list.list);
+    t = owner_type(t);
+  }
+  return v;
+}
+
+static ID_List id_list_copy(ID_List src) {
+  ID_List tmp, list = new_id_list(src->xid, src->pos);
+  src = src->next;
+  tmp = list;
+  while(src) {
+    tmp->next = new_id_list(src->xid, src->pos);
+    tmp = tmp->next;
+    src = src->next;
+  }
+  return list;
+}
+
+static ID_List get_total_type_list(Type t) {
+  Type parent = owner_type(t);
+  if(!parent)
+    return t->def->tmpl ? t->def->tmpl->list.list : NULL;
+  Vector v = get_types(parent);
+  ID_List base = (ID_List)vector_pop(v);
+  if(!base) {
+    free_vector(v);
+    return t->def->tmpl ? t->def->tmpl->list.list : NULL;
+  }
+  ID_List tmp, types = id_list_copy(base);
+  tmp = types;
+  while(vector_size(v)) {
+    base = (ID_List)vector_pop(v);
+    tmp->next = id_list_copy(base);
+    tmp = tmp->next;
+  }
+  tmp->next = t->def->tmpl->list.list;
+  free_vector(v);
+  return types;
+}
+
 static m_uint template_size(Env env, Class_Def c, Type_List call) {
   ID_List base = c->tmpl->list.list;
   m_uint size = strlen(c->type->name) + 3;
@@ -105,7 +156,6 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
-    nspc_add_type(t->owner, a->name->xid, a->type);
     a->type->owner = t->owner;
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
@@ -115,9 +165,10 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
       a->type->info->dtor = t->info->dtor;
       SET_FLAG(a->type, ae_flag_dtor);
     }
-    a->tmpl = new_tmpl_class(t->def->tmpl->list.list, 0);
+    ID_List list = get_total_type_list(t);
+    a->tmpl = new_tmpl_class(list, 0);
     a->tmpl->base = type->types;
-    t = a->type;
+    ADD_REF((t = a->type))
   } else if(type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos,
             "type '%s' is not template. You should not provide template types", t->name))

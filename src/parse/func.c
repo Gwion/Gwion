@@ -35,6 +35,7 @@ free_vm_code(a->code);
 #include "type.h"
 Func get_func(Env env, Func_Def def) {
   Func f = def->d.func;
+  CHECK_OO(f)
   m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
   if(end && env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
     end++;

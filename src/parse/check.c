@@ -665,10 +665,12 @@ static m_bool check_exp_call1_template(Env env, Func func) {
   if(!func)
     return 1;
   value = func->value_ref;
-  if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template)) {
+  if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) &&
+     !GET_FLAG(value->owner_class, ae_flag_builtin)) {
     Class_Def def = value->owner_class->def;
     CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
     CHECK_BB(traverse_class_def(env, def))
+    nspc_pop_type(env->curr);
   }
   return 1;
 }
@@ -707,8 +709,6 @@ Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func) {
     func = ptr->d.func_ref = f;
   }
   *m_func = func;
-  if(func->value_ref->owner_class && GET_FLAG(func->value_ref->owner_class, ae_flag_template))
-    nspc_pop_type(env->curr);
   return func->def->ret_type;
 }
 
