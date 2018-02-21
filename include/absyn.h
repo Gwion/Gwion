@@ -104,7 +104,6 @@ typedef struct {
   Exp phase;
   int pos;
 } Polar;
-Polar* new_polar(Exp mod, int pos);
 
 typedef struct {
   Exp args;
@@ -153,7 +152,7 @@ typedef struct {
     Array_Sub array;
     Exp exp;
     Complex cmp;
-    Polar* polar;
+    Polar polar;
     Vec* vec;
   } d;
   Exp self;
@@ -250,8 +249,8 @@ Exp new_exp_prim_float(m_float num, int pos);
 Exp new_exp_prim_string(m_str s, int pos);
 Exp new_exp_prim_array(Array_Sub exp_list, int pos);
 Exp new_exp_prim_hack(Exp exp, int pos);
-Exp new_exp_prim_complex(Exp exp, int pos);
-Exp new_exp_prim_polar(Polar* exp, int pos);
+Exp new_exp_prim_complex(Exp, int pos);
+Exp new_exp_prim_polar(Exp, int pos);
 Exp new_exp_prim_vec(Vec* a, int pos);
 Exp new_exp_prim_char(m_str chr, int pos);
 Exp new_exp_prim_nil(int pos);

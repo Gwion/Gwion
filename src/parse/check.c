@@ -306,7 +306,7 @@ static Type check_exp_primary(Env env, Exp_Primary* primary) {
       t = check_exp_prim_complex(env, &primary->d.cmp);
       break;
     case ae_primary_polar:
-      t = check_exp_prim_polar(env, primary->d.polar);
+      t = check_exp_prim_polar(env, &primary->d.polar);
       break;
     case ae_primary_vec:
       t = check_exp_primary_vec(env, primary->d.vec);
