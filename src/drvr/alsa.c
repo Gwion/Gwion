@@ -180,7 +180,7 @@ static void alsa_del_non_interleaved(VM* vm) {
     free(_out_buf);
 }
 
-static void alsa_del(VM* vm) {
+static void alsa_del(VM* vm, DriverInfo* info) {
   if(in)
     snd_pcm_close(in);
   if(out)

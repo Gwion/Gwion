@@ -44,7 +44,7 @@ static void pulse_run(VM* vm, DriverInfo* di) {
     return;
 }
 
-static void pulse_del() {
+static void pulse_del(VM* vm, DiverInfo* di) {
   if(in)
     pa_simple_free(in);
   if(out)

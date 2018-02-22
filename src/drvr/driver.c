@@ -19,11 +19,6 @@ m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
   return 1;
 }
 
-void free_driver(Driver* d, VM* vm) {
-  if(d->del)
-    d->del(vm);
-}
-
 void select_driver(DriverInfo* di, const m_str d) {
   if(!strcmp("dummy", d))
     di->func = dummy_driver;

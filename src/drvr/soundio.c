@@ -349,7 +349,7 @@ static void sio_run(VM* vm, DriverInfo* info) {
     soundio_flush_events(soundio);
 }
 
-static void sio_del(VM* vm) {
+static void sio_del(VM* vm, DriverInfo* di) {
   soundio_outstream_destroy(outstream);
   soundio_instream_destroy(instream);
   soundio_device_unref(in_device);

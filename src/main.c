@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 clean:
   arg_release(&arg);
   if(d.del)
-    d.del(vm);
+    d.del(vm, &di);
 #ifndef __linux__
   sleep(1);
 #endif

@@ -50,7 +50,7 @@ static void sndfile_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void sndfile_del() {
+static void sndfile_del(VM* vm, DriverInfo* di) {
   m_uint i;
   for(i = 0; i < nchan; i++)
     sf_close(sf[i]);

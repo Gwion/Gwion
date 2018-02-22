@@ -75,7 +75,7 @@ error:
   return -1;
 }
 
-static void del(VM* vm) {
+static void del(VM* vm, DriverInfo* di) {
   Pa_StopStream(stream);
   Pa_Terminate();
 }

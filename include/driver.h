@@ -10,17 +10,17 @@ typedef struct containing_driver_info {
   m_uint format;
   void (*func)(Driver_);
   void (*run)(VM*);
+  void* data;
   m_bool raw;
 } DriverInfo;
 
 
 typedef struct driver_wrapper {
-  m_bool(*ini)(VM* vm, DriverInfo* info);
-  void (*run)(VM* vm, DriverInfo* info);
-  void (*del)(VM* vm);
+  m_bool (*ini)(VM* vm, DriverInfo* info);
+  void   (*run)(VM* vm, DriverInfo* info);
+  void   (*del)(VM* vm, DriverInfo* info);
 } Driver;
 
-extern void free_driver(Driver* driver, VM* vm);
 extern void select_driver(DriverInfo* di, const m_str d);
 extern void select_backend(DriverInfo* di, const m_str d);
 extern void select_format(DriverInfo* di, const m_str d);

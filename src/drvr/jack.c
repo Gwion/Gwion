@@ -120,7 +120,7 @@ static void jack_run(VM* vm, DriverInfo* di) {
     usleep(10);
 }
 
-static void jack_del() {
+static void jack_del(VM* vm, DriverInfo* di) {
   jack_deactivate(client);
   jack_client_close(client);
   free(iport);

@@ -24,7 +24,7 @@ static void spa_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void spa_del(VM* vm) {
+static void spa_del(VM* vm, DriverInfo* di) {
   spa_close(&spa);
 }
 
