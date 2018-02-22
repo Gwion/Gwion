@@ -5,18 +5,23 @@
 
 #include "vm.h"
 #include "driver.h"
-jack_port_t** iport;
-jack_port_t** oport;
-jack_client_t* client;
+
+struct JackInfo {
+  jack_port_t** iport;
+  jack_port_t** oport;
+  jack_client_t* client;
+  VM* vm;
+};
 
 static void gwion_shutdown(void *arg) {
   VM *vm = (VM *)arg;
   vm->is_running = 0;
 }
 
-static void inner_cb(VM* vm, jack_default_audio_sample_t** in,
+static void inner_cb(struct JackInfo* info, jack_default_audio_sample_t** in,
     jack_default_audio_sample_t** out, jack_nframes_t nframes) {
   jack_nframes_t frame;
+  VM* vm = info->vm;
   sp_data* sp = vm->sp;
   m_uint chan;
   for(frame = 0; frame < nframes; frame++) {
@@ -31,42 +36,44 @@ static void inner_cb(VM* vm, jack_default_audio_sample_t** in,
 
 static int gwion_cb(jack_nframes_t nframes, void *arg) {
   int chan;
-  VM* vm  = (VM*)arg;
+  struct JackInfo* info = (struct JackInfo*)arg;
+  VM* vm  = info->vm;
   sp_data* sp = vm->sp;
   jack_default_audio_sample_t  * in[vm->n_in];
   jack_default_audio_sample_t  * out[sp->nchan];
   for(chan = 0; chan < vm->n_in; chan++)
-    in[chan] = jack_port_get_buffer(iport[chan], nframes);
+    in[chan] = jack_port_get_buffer(info->iport[chan], nframes);
   for(chan = 0; chan < sp->nchan; chan++)
-    out[chan] = jack_port_get_buffer(oport[chan], nframes);
-  inner_cb(vm, in, out, nframes);
+    out[chan] = jack_port_get_buffer(info->oport[chan], nframes);
+  inner_cb(info, in, out, nframes);
   return 0;
 }
 
-static m_bool init_client(VM* vm) {
+static m_bool init_client(VM* vm, struct JackInfo* info) {
   jack_status_t status;
-  client = jack_client_open("Gwion", JackNullOption, &status, NULL);
-  if(!client) {
+  info->client = jack_client_open("Gwion", JackNullOption, &status, NULL);
+  if(!info->client) {
     fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", status);
     if(status & JackServerFailed)
       fprintf(stderr, "Unable to connect to JACK server\n");
     return -1;
   }
-  jack_set_process_callback(client, gwion_cb, vm);
-  jack_on_shutdown(client, gwion_shutdown, vm);
+  info->vm = vm;
+  jack_set_process_callback(info->client, gwion_cb, info);
+  jack_on_shutdown(info->client, gwion_shutdown, vm);
   return 1;
 }
 
-static m_bool set_chan(m_uint nchan, m_bool input) {
+static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
   char chan_name[50];
   m_uint chan;
-  jack_port_t** port = input ? iport : oport;
+  jack_port_t** port = input ? info->iport : info->oport;
   for(chan = 0; chan < nchan; chan++) {
     sprintf(chan_name, input ? "input_%ld" : "output_%ld", chan);
-    if(!(port[chan] = jack_port_register(client, chan_name,
-        JACK_DEFAULT_AUDIO_TYPE, input ? 
+    if(!(port[chan] = jack_port_register(info->client, chan_name,
+        JACK_DEFAULT_AUDIO_TYPE, input ?
         JackPortIsInput : JackPortIsOutput , chan))) {
-      fprintf(stderr, "no more JACK %s ports available\n", input ? 
+      fprintf(stderr, "no more JACK %s ports available\n", input ?
           "input" : "output");
       return -1;
     }
@@ -75,22 +82,25 @@ static m_bool set_chan(m_uint nchan, m_bool input) {
 }
 
 static m_bool jack_ini(VM* vm, DriverInfo* di) {
-  iport = malloc(sizeof(jack_port_t *) * di->in);
-  oport = malloc(sizeof(jack_port_t *) * di->out);
-  CHECK_BB(init_client(vm))
-  CHECK_BB(set_chan(di->out, 0))
-  CHECK_BB(set_chan(di->in,  1))
-  di->sr = jack_get_sample_rate(client);
+  struct JackInfo* info = malloc(sizeof(struct JackInfo));
+  info->iport = malloc(sizeof(jack_port_t *) * di->in);
+  info->oport = malloc(sizeof(jack_port_t *) * di->out);
+  CHECK_BB(init_client(vm, info))
+  CHECK_BB(set_chan(info, di->out, 0))
+  CHECK_BB(set_chan(info, di->in,  1))
+  di->sr = jack_get_sample_rate(info->client);
+  di->data = info;
   return 1;
 }
 
-static m_bool connect_ports(const char** ports, m_uint nchan, m_bool input) {
+static m_bool connect_ports(struct JackInfo* info, const char** ports,
+    m_uint nchan, m_bool input) {
   m_uint chan;
-  jack_port_t** jport = input ? iport : oport;
+  jack_port_t** jport = input ? info->iport : info->oport;
   for(chan = 0; chan < nchan; chan++) {
     const char* l = input ? ports[chan] : jack_port_name(jport[chan]);
     const char* r = input ? jack_port_name(jport[chan]) : ports[chan];
-    if(jack_connect(client, l, r)) {
+    if(jack_connect(info->client, l, r)) {
       fprintf(stderr, "cannot connect %s ports\n", input ? "input" : "output");
       return -1;
     }
@@ -98,33 +108,35 @@ static m_bool connect_ports(const char** ports, m_uint nchan, m_bool input) {
   return 1;
 }
 
-static m_bool init_ports(m_uint nchan, m_bool input) {
+static m_bool init_ports(struct JackInfo* info, m_uint nchan, m_bool input) {
   m_bool ret;
-  const char** ports = jack_get_ports(client, NULL, NULL,
+  const char** ports = jack_get_ports(info->client, NULL, NULL,
       JackPortIsPhysical | (input ? JackPortIsOutput : JackPortIsInput));
   if(!ports)
     return - 1;
-  ret = connect_ports(ports, nchan, input);
+  ret = connect_ports(info, ports, nchan, input);
   free(ports);
   return ret;
 }
 
 static void jack_run(VM* vm, DriverInfo* di) {
-  if(jack_activate(client)) {
+  struct JackInfo* info = (struct JackInfo*)di->data;
+  if(jack_activate(info->client)) {
     fprintf(stderr, "cannot activate client\n");
     return;
   }
-  if(init_ports(di->out, 0) < 0 || init_ports(di->in,  1) < 0)
+  if(init_ports(info, di->out, 0) < 0 || init_ports(info, di->in,  1) < 0)
     return;
   while(vm->is_running)
     usleep(10);
 }
 
 static void jack_del(VM* vm, DriverInfo* di) {
-  jack_deactivate(client);
-  jack_client_close(client);
-  free(iport);
-  free(oport);
+  struct JackInfo* info = (struct JackInfo*)di->data;
+  jack_deactivate(info->client);
+  jack_client_close(info->client);
+  free(info->iport);
+  free(info->oport);
 }
 
 void jack_driver(Driver* d) {
