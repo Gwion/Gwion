@@ -135,16 +135,25 @@ static void free_nspc_value(Nspc a) {
       if(GET_FLAG(value->m_type->d.base_type, ae_flag_template)) {
         UNSET_FLAG(value->m_type->d.base_type, ae_flag_template);
         if(GET_FLAG(value->m_type->d.base_type, ae_flag_ref)) {
-          if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin))
+          if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin)) {
             free_class_def(value->m_type->d.base_type->def);
           REM_REF(value->m_type->d.base_type)
-        } else if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin))
-        free_class_def(value->m_type->d.base_type->def);
-        else {
-          if(value->m_type->d.base_type->def->ext)
-            free_type_decl(value->m_type->d.base_type->def->ext);
-          free_class_body(value->m_type->d.base_type->def->body);
-        }
+} else {
+          if(value->m_type->d.base_type->def->tmpl)
+            free(value->m_type->d.base_type->def->tmpl);
+free_id_list(value->m_type->d.base_type->def->name);
+//          if(value->m_type->d.base_type->def->ext)
+//            free_type_decl(value->m_type->d.base_type->def->ext);
+            free(value->m_type->d.base_type->def);
+//          free(value->m_type->d.base_type);
+printf("%s ref %lu\n", value->name, 
+value->m_type->d.base_type->obj.ref_count);
+        SET_FLAG(value->m_type->d.base_type, ae_flag_template);
+          REM_REF(value->m_type->d.base_type)
+
+}
+        } else
+          free_class_def(value->m_type->d.base_type->def);
       }
       REM_REF(value->m_type)
     } else if(isa(value->m_type, &t_union) > 0) {

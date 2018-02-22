@@ -149,7 +149,6 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
     Class_Def a = template_class(env, t->def, type->types);
     if(a->type) {
       nspc_pop_type(env->curr);
-      ADD_REF(a->type)
       return a->type;
     }
     CHECK_BO(scan0_class_def(env, a))
@@ -163,12 +162,14 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
     if(t->info->dtor) {
       a->type->info->dtor = t->info->dtor;
       SET_FLAG(a->type, ae_flag_dtor);
+      ADD_REF(t->info->dtor)
     }
     ID_List list = get_total_type_list(t);
     a->tmpl = new_tmpl_class(list, 0);
     a->tmpl->base = type->types;
     nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
     ADD_REF((t = a->type))
+    t = a->type;
   } else if(type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos,
             "type '%s' is not template. You should not provide template types", t->name))

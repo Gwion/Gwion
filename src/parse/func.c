@@ -14,19 +14,11 @@ void free_func(Func a) {
     if(GET_FLAG(a, ae_flag_template)) {
       free_tmpl_list(a->def->tmpl);
       free(a->def);
-    } //else if((m_uint)a->code > SZ_INT)
-      //REM_REF(a->code)
-//else printf("problem with code in %s\n", a->name);
-  } else if(a->def && !GET_FLAG(a, ae_flag_template)) {
-    if(a->code && !GET_FLAG(a->def, ae_flag_dtor))
-        REM_REF(a->code);
+  } //else puts(a->name);
+  } else if(a->def)
     free_func_def(a->def);
-  } else {
-if(a->def)
-    free_func_def(a->def);
-if(a->code)
-free_vm_code(a->code);
-}
+  if(a->code)
+    REM_REF(a->code);
   free(a);
 }
 

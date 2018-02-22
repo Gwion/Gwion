@@ -8,8 +8,7 @@
 
 static struct Type_ t_ev = { "Ev", SZ_INT };
 
-static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); 
-}
+static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); }
 
 IMPORT {
   CHECK_BB(gwi_class_ini(gwi, &t_ev, ev_ctor, NULL))

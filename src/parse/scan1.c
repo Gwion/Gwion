@@ -70,7 +70,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       CHECK_OB((t = array_type(decl->m_type, v->array->depth)))
     } else
       t = decl->m_type;
-    CHECK_OB((v->value = value ? :new_value(t, s_name(v->xid))))
+    CHECK_OB((v->value = value ? value : new_value(t, s_name(v->xid))))
     nspc_add_value(env->curr, v->xid, v->value);
     v->value->flag = decl->type->flag;
     if(v->array && !v->array->exp_list)

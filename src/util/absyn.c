@@ -905,7 +905,7 @@ void free_class_def(Class_Def a) {
   if(a->type && GET_FLAG(a->type, ae_flag_template))
     return;
   if(a->ext) {
-    if(a->ext->array)
+    if(a->ext->array && a->type->parent)
       REM_REF(a->type->parent); // ?
     free_type_decl(a->ext);
   }
@@ -913,6 +913,7 @@ void free_class_def(Class_Def a) {
     free_tmpl_class(a->tmpl);
   if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
     free_class_body(a->body);
+  if(a->name) // Find why some remplate have no name
   free_id_list(a->name);
   free(a);
 }

@@ -1781,8 +1781,10 @@ static m_bool emit_func_def_return(Emitter emit) {
 static m_bool emit_func_def_code(Emitter emit, Func func) {
   Arg_List a = func->def->arg_list;
   func->code = emit_code(emit);
-  if(GET_FLAG(func->def, ae_flag_dtor))
+  if(GET_FLAG(func->def, ae_flag_dtor)) {
     emit->env->class_def->info->dtor = func->code;
+    ADD_REF(func->code)
+  }
   else if(GET_FLAG(func->def, ae_flag_op)) {
     m_bool is_unary = GET_FLAG(func->def, ae_flag_unary);
     Type l = is_unary ? NULL : a->type;

@@ -56,7 +56,6 @@ static CTOR(map_ctor) {
     MAP_INFO(o)->cmp = string_cmp;
   else
     MAP_INFO(o)->cmp = cmp;
-  ADD_REF(o->type_ref);
   ADD_REF(o->type_ref->parent);
 }
 

@@ -16,10 +16,12 @@ void free_type(Type a) {
   if(GET_FLAG(a, ae_flag_builtin)) {
     if(!GET_FLAG(a, ae_flag_typedef)) {
       if(a->def) {
-        if(!get_type_name(a->name, 1))
-          free_tmpl_class(a->def->tmpl);
-        free(a->def);
+//        if(!get_type_name(a->name, 1))
+//          free_tmpl_class(a->def->tmpl);
+//        free(a->def);
       }
+if(GET_FLAG(a, ae_flag_template))
+free(a);
     }
   } else {
     if(GET_FLAG(a, ae_flag_typedef) && GET_FLAG(a->parent, ae_flag_typedef))
