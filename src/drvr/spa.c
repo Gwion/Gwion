@@ -28,9 +28,8 @@ static void spa_del(VM* vm) {
   spa_close(&spa);
 }
 
-void spa_driver(Driver* d, VM* vm) {
+void spa_driver(Driver* d) {
   d->ini = spa_ini;
   d->run = spa_run;
   d->del = spa_del;
-  vm->wakeup = no_wakeup;
 }

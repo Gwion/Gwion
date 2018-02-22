@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <signal.h>
 #include <getopt.h>
 #include <string.h>
@@ -22,7 +23,6 @@ VM* vm;
 
 static void sig(int unused) {
   vm->is_running = 0;
-  vm->wakeup();
   signaled = 1;
 }
 

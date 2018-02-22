@@ -7,6 +7,8 @@
 #include "func.h"
 #include "object.h"
 
+extern VM* vm;
+
 Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid) {
   return (Value)scope_lookup0(&nspc->value, xid);
 }

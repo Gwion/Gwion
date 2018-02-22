@@ -109,7 +109,8 @@ static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
   }
 }
 
-static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
+static void alsa_run_non_interleaved(VM* vm, DriverInfo* di) {
+  sp_data* sp = vm->sp;
   m_uint i, chan;
   while(vm->is_running) {
     snd_pcm_readn(in, _in_buf, di->bufsize);
@@ -128,7 +129,8 @@ static void alsa_run_non_interleaved(sp_data* sp, DriverInfo* di) {
   }
 }
 
-static void alsa_run_interleaved(sp_data* sp, DriverInfo* di) {
+static void alsa_run_interleaved(VM* vm, DriverInfo* di) {
+  sp_data* sp = vm->sp;
   while(vm->is_running) {
     m_uint i, chan;
     m_int j = 0, k = 0;
@@ -154,15 +156,15 @@ static void alsa_run(VM* vm, DriverInfo* di) {
   alsa_run_init(vm, di);
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
     alsa_run_init_non_interleaved(sp, di);
-    alsa_run_non_interleaved(sp, di);
+    alsa_run_non_interleaved(vm, di);
   } else {
     in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
     out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
-    alsa_run_interleaved(sp, di);
+    alsa_run_interleaved(vm, di);
   }
 }
 
-static void alsa_del_non_interleaved() {
+static void alsa_del_non_interleaved(VM* vm) {
   m_uint chan;
   if(in_buf && out_buf) {
     for(chan = 0; chan < vm->sp->nchan; chan++) {
@@ -185,7 +187,7 @@ static void alsa_del(VM* vm) {
     snd_pcm_close(out);
   snd_config_update_free_global();
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED)
-    alsa_del_non_interleaved();
+    alsa_del_non_interleaved(vm);
   else {
     if(in_bufi)
       free(in_bufi);
@@ -194,10 +196,9 @@ static void alsa_del(VM* vm) {
   }
 }
 
-void alsa_driver(Driver* d, VM* vm) {
+void alsa_driver(Driver* d) {
   d->ini = alsa_ini;
   d->run = alsa_run;
   d->del = alsa_del;
-  vm->wakeup = no_wakeup;
 }
 

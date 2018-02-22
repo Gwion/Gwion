@@ -1,3 +1,4 @@
+typedef struct driver_wrapper* Driver_;
 typedef struct containing_driver_info {
   m_uint in, out;
   m_uint chan;
@@ -7,7 +8,7 @@ typedef struct containing_driver_info {
   m_str card;
   m_uint backend;
   m_uint format;
-  void (*func)();
+  void (*func)(Driver_);
   void (*run)(VM*);
   m_bool raw;
 } DriverInfo;
@@ -19,36 +20,35 @@ typedef struct driver_wrapper {
   void (*del)(VM* vm);
 } Driver;
 
-static inline void no_wakeup() {}
-void free_driver(Driver* driver, VM* vm);
-void select_driver(DriverInfo* di, const m_str d);
-void select_backend(DriverInfo* di, const m_str d);
-void select_format(DriverInfo* di, const m_str d);
+extern void free_driver(Driver* driver, VM* vm);
+extern void select_driver(DriverInfo* di, const m_str d);
+extern void select_backend(DriverInfo* di, const m_str d);
+extern void select_format(DriverInfo* di, const m_str d);
 
-void dummy_driver(Driver* d, VM* vm);
+void dummy_driver(Driver* d);
 #ifdef HAVE_SPA
-void spa_driver(Driver* d, VM* vm);
+void spa_driver(Driver* d);
 #endif
 #ifdef HAVE_SNDFILE
-void sndfile_driver(Driver* d, VM* vm);
+void sndfile_driver(Driver* d);
 #endif
-void silent_driver(Driver* d, VM* vm);
+void silent_driver(Driver* d);
 #ifdef HAVE_ALSA
-void alsa_driver(Driver* d, VM* vm);
+void alsa_driver(Driver* d);
 #include <alsa/asoundlib.h>
 #endif
 #ifdef HAVE_JACK
-void jack_driver(Driver* d, VM* vm);
+void jack_driver(Driver* d);
 #endif
 #ifdef HAVE_SOUNDIO
 #include <soundio/soundio.h>
-void sio_driver(Driver* d, VM* vm);
+void sio_driver(Driver* d);
 #endif
 #ifdef HAVE_PORTAUDIO
-void pa_driver(Driver* d, VM* vm);
+void pa_driver(Driver* d);
 #include <portaudio.h>
 #endif
 #ifdef HAVE_PULSE
-void pulse_driver(Driver* d, VM* vm);
+void pulse_driver(Driver* d);
 #endif
 m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d);

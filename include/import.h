@@ -15,6 +15,7 @@ typedef struct Gwi_* Gwi;
 #define IMPORT m_bool import(Gwi gwi)
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 
+VM* gwi_vm(Gwi);
 m_int gwi_add_type(Gwi gwi, Type type);
 m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* data);
 

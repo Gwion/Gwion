@@ -349,6 +349,7 @@ static INSTR(float_int_r_divide) {
 }
 
 static m_bool import_values(Gwi gwi) {
+  VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
   ALLOC_PTR(samp,   m_float, 1.0);

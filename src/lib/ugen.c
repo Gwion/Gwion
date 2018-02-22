@@ -295,6 +295,8 @@ static MFUN(ugen_get_last) {
 }
 
 static m_bool import_global_ugens(Gwi gwi) {
+  VM* vm = gwi_vm(gwi);
+
   vm->dac       = new_M_UGen();
   vm->adc       = new_M_UGen();
   vm->blackhole = new_M_UGen();

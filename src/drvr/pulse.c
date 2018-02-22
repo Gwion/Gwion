@@ -51,9 +51,8 @@ static void pulse_del() {
     pa_simple_free(out);
 }
 
-void pulse_driver(Driver* d, VM* vm) {
+void pulse_driver(Driver* d) {
   d->ini = pulse_ini;
   d->run = pulse_run;
   d->del = pulse_del;
-  vm->wakeup = no_wakeup;
 }

@@ -27,6 +27,10 @@ static ID_List templater_def(Templater* templater) {
   return list[0];
 }
 
+VM* gwi_vm(Gwi gwi) {
+  return gwi->vm;
+}
+
 m_int gwi_tmpl_end(Gwi gwi) {
   gwi->templater.n = 0;
   gwi->templater.list = NULL;

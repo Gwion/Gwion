@@ -146,7 +146,7 @@ typedef struct {
 
 typedef struct {
   Type_List types;
-  ID_List base;// hack for template
+  ID_List base;
 } Tmpl_Call;
 Tmpl_Call* new_tmpl_call(Type_List);
 typedef struct {

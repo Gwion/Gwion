@@ -7,7 +7,7 @@
 #include "driver.h"
 
 m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
-  di->func(d, vm);
+  di->func(d);
   if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
   sp_createn(&vm->sp, di->out);

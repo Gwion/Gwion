@@ -43,14 +43,15 @@ typedef struct {
 } DL_Union;
 
 struct Gwi_{
+  VM* vm;
   Emitter emit;
   Env env;
   Class_Body body;
   DL_Var var;
   DL_Func func;
-  DL_Oper oper;
-  void* addr;
   DL_Enum enum_data;
   DL_Union union_data;
+  DL_Oper oper;
+  void* addr;
   Templater templater;
 };

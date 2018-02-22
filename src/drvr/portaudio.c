@@ -1,4 +1,5 @@
 #include <portaudio.h>
+#include "defs.h"
 #include "err_msg.h"
 #include "vm.h"
 #include "oo.h"
@@ -25,7 +26,8 @@ static int callback(const void *inputBuffer, void *outputBuffer,
   for(i = 0; i < framesPerBuffer; i++) {
     for(j = 0; j < vm->n_in; j++)
       vm->in[j] = *in++;
-    di->run(vm);
+//    di->run(vm);
+    vm_run(vm);
     for(j = 0; j < sp->nchan; j++)
       *out++ = sp->out[j];
     sp->pos++;
@@ -84,9 +86,8 @@ static void run(VM* vm, DriverInfo* di) {
     Pa_Sleep(1);
 }
 
-void pa_driver(Driver* d, VM* vm) {
+void pa_driver(Driver* d) {
   d->ini = ini;
   d->run = run;
   d->del = del;
-  vm->wakeup = no_wakeup;
 }

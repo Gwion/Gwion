@@ -9,11 +9,6 @@ jack_port_t** iport;
 jack_port_t** oport;
 jack_client_t* client;
 
-void jack_wakeup() {
-//	jack_client_close(client);
-  jack_deactivate(client);
-}
-
 static void gwion_shutdown(void *arg) {
   VM *vm = (VM *)arg;
   vm->is_running = 0;
@@ -48,7 +43,7 @@ static int gwion_cb(jack_nframes_t nframes, void *arg) {
   return 0;
 }
 
-static m_bool init_client() {
+static m_bool init_client(VM* vm) {
   jack_status_t status;
   client = jack_client_open("Gwion", JackNullOption, &status, NULL);
   if(!client) {
@@ -82,7 +77,7 @@ static m_bool set_chan(m_uint nchan, m_bool input) {
 static m_bool jack_ini(VM* vm, DriverInfo* di) {
   iport = malloc(sizeof(jack_port_t *) * di->in);
   oport = malloc(sizeof(jack_port_t *) * di->out);
-  CHECK_BB(init_client())
+  CHECK_BB(init_client(vm))
   CHECK_BB(set_chan(di->out, 0))
   CHECK_BB(set_chan(di->in,  1))
   di->sr = jack_get_sample_rate(client);
@@ -126,14 +121,14 @@ static void jack_run(VM* vm, DriverInfo* di) {
 }
 
 static void jack_del() {
+  jack_deactivate(client);
   jack_client_close(client);
   free(iport);
   free(oport);
 }
 
-void jack_driver(Driver* d, VM* vm) {
+void jack_driver(Driver* d) {
   d->ini = jack_ini;
   d->run = jack_run;
   d->del = jack_del;
-  vm->wakeup = jack_wakeup;
 }

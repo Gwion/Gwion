@@ -24,7 +24,7 @@ static TICK(sinosc_tick) {
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
 }
 
-static void refresh_sine(SP_osc* ug, m_int size, m_float phase) {
+static void refresh_sine(VM* vm, SP_osc* ug, m_int size, m_float phase) {
   if(size <= 0) {
     err_msg(INSTR_, 0, "%s size requested for sinosc. doing nothing",
             size < 0 ? "negative" : "zero");
@@ -59,14 +59,14 @@ DTOR(sinosc_dtor) {
 static MFUN(sinosc_size) {
   int size = *(m_int*)(shred->mem + SZ_INT);
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  refresh_sine(ug, size, 0);
+  refresh_sine(shred->vm_ref, ug, size, 0);
 }
 
 static MFUN(sinosc_size_phase) {
   int size    = *(m_int*)(shred->mem + SZ_INT);
   float phase = *(m_int*)(shred->mem + SZ_INT * 2);
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
-  refresh_sine(ug, size, phase);
+  refresh_sine(shred->vm_ref, ug, size, phase);
 }
 
 MFUN(sinosc_get_freq) {

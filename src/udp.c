@@ -156,10 +156,9 @@ void* udp_thread(void* data) {
     if(udp_recv(udp, buf) < 0)
       continue; // LCOV_EXCL_LINE
     udp->state = 1;
-    if(strncmp(buf, "quit", 4) == 0) {
+    if(strncmp(buf, "quit", 4) == 0)
       vm->is_running = 0;
-      vm->wakeup();
-    } else if(strncmp(buf, "-", 1) == 0) {
+    else if(strncmp(buf, "-", 1) == 0) {
       m_str endptr;
       m_uint i, index = strtol(buf + 2, &endptr, 10) - 1;
       for(i = 0; i < vector_size(&vm->shred); i++) {

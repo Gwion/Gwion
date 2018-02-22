@@ -120,7 +120,7 @@ static void handle_plug(Gwi gwi, m_str c) {
     m_bool(*import)(Gwi) = (m_bool(*)(Gwi))(intptr_t)dlsym(handler, "import");
     if(import) {
       if(import(gwi) > 0) {
-        vector_add(&vm->plug, (vtype)handler);
+        vector_add(&gwi->vm->plug, (vtype)handler);
         nspc_commit(gwi->env->curr);
       } else {
         env_pop_class(gwi->env);
@@ -159,7 +159,7 @@ Env type_engine_init(VM* vm, const Vector plug_dirs) {
   Env env = new_env();
   CHECK_OO((vm->emit = new_emitter(env)))
   vm->emit->filename = "[builtin]";
-  struct Gwi_ gwi = { vm->emit, env };
+  struct Gwi_ gwi = { vm, vm->emit, env };
    if(import_core_libs(&gwi) < 0 ||
       import_other_libs(&gwi) < 0 ) {
     free_env(env);

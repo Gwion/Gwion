@@ -39,14 +39,11 @@ typedef struct {
   Shreduler shreduler;
   M_Object adc, dac, blackhole;
   Emitter emit;
-  void (*wakeup)();
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Vector_ plug; // in main?
   volatile m_bool is_running; // => shreduler
 } VM;
-
-extern VM* vm;
 
 typedef struct VM_Shred_* VM_Shred;
 struct VM_Shred_ {
@@ -70,24 +67,23 @@ struct VM_Shred_ {
 };
 
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
-void free_vm_code(VM_Code a);
+void free_vm_code(VM_Code a) __attribute__((nonnull));
 
 VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
-void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase);
-VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull(1)));
-m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time);
+void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)__attribute__((hot, nonnull));
+VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
+m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)__attribute__((hot, nonnull));
 void shreduler_set_loop(Shreduler s, m_bool loop);
-m_bool shreduler_curr(Shreduler s);
-int shreduler_shred(Shreduler s);
 
-VM_Shred new_vm_shred(VM_Code code);
-inline void vm_shred_exit(VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
-void free_vm_shred(VM_Shred shred);
+VM_Shred new_vm_shred(VM_Code code) __attribute__((hot, nonnull));
+__attribute__((hot, nonnull))
+static inline void vm_shred_exit(VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
+void free_vm_shred(VM_Shred shred)__attribute__((hot, nonnull));
 
-void vm_run(VM* vm) __attribute__((hot, nonnull(1)));
+void vm_run(VM* vm) __attribute__((hot, nonnull));
 VM* new_vm(m_bool loop);
-void free_vm(VM* vm);
-void vm_add_shred(VM* vm, VM_Shred shred);
-m_str code_name_set(const m_str, const m_str);
-const m_str code_name(const m_str, const m_bool);
+void free_vm(VM* vm)__attribute__((nonnull));
+void vm_add_shred(VM* vm, VM_Shred shred)__attribute__((hot, nonnull));
+m_str code_name_set(const m_str, const m_str)__attribute__((hot, nonnull(1)));
+const m_str code_name(const m_str, const m_bool)__attribute__((hot, nonnull));
 #endif

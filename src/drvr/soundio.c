@@ -24,9 +24,10 @@ typedef struct SoundIoChannelArea* Areas;
 typedef struct SoundIoOutStream * Out;
 typedef struct SoundIoInStream * In;
 
-void sio_wakeup() {
-  soundio_wakeup(soundio);
-}
+struct SioInfo {
+  VM* vm;
+  DriverInfo* di;
+};
 
 static void write_sample_s16ne(char *ptr, m_float sample) {
   int16_t *buf = (int16_t *)ptr;
@@ -84,11 +85,11 @@ static void overflow_callback(In stream) {
   fprintf(stderr, "overflow %d\n", count++);
 }
 
-static m_bool check_cb_error1(void* data, Areas* areas, int* count, m_bool in) {
-  int err = in ? 
+static m_bool check_cb_error1(VM* vm, void* data, Areas* areas, int* count, m_bool in) {
+  int err = in ?
     soundio_instream_begin_read((In)data, areas, count) :
     soundio_outstream_begin_write((Out)data, areas, count);
-  if(err) { 
+  if(err) {
     fprintf(stderr, "unrecoverable stream error: %s\n", soundio_strerror(err));
     vm->is_running = 0;
     return -1;
@@ -96,9 +97,9 @@ static m_bool check_cb_error1(void* data, Areas* areas, int* count, m_bool in) {
   return 1;
 }
 
-static m_bool check_cb_error2(void* data, int (*f)(void*)) {
+static m_bool check_cb_error2(VM* vm, void* data, int (*f)(void*)) {
   int err = f(data);
-  if(err) { 
+  if(err) {
     fprintf(stderr, "%s\n", soundio_strerror(err));
     vm->is_running = 0;
     return -1;
@@ -108,11 +109,13 @@ static m_bool check_cb_error2(void* data, int (*f)(void*)) {
 
 static void write_callback(Out stream, int min, int left) {
   Areas areas;
+  struct SioInfo* info = (struct SioInfo*)stream->userdata;
+  VM* vm = info->vm;
   sp_data* sp = vm->sp;
-  DriverInfo* di = (DriverInfo*)stream->userdata;
+  DriverInfo* di = info->di;
   while(left > 0) {
     int count = left;
-    if(check_cb_error1(stream, &areas, &count, 0) < 0)
+    if(check_cb_error1(vm, stream, &areas, &count, 0) < 0)
       return;
     if(!count)
       break;
@@ -126,7 +129,7 @@ static void write_callback(Out stream, int min, int left) {
       }
       sp->pos++;
     }
-    check_cb_error2(stream, (int (*)(void*))soundio_outstream_end_write);
+    check_cb_error2(info->vm, stream, (int (*)(void*))soundio_outstream_end_write);
     left -= count;
   }
   soundio_outstream_pause(stream, 0);
@@ -134,10 +137,10 @@ static void write_callback(Out stream, int min, int left) {
 
 static void read_callback(In stream, int min, int left) {
   Areas areas;
-  sp_data* sp = vm->sp;
+  VM* vm = (VM*)stream->userdata;
   while(left > 0) {
     int count = left;
-    if(check_cb_error1(stream, &areas, &count, 1) < 0)
+    if(check_cb_error1(vm, stream, &areas, &count, 1) < 0)
       return;
     if(!count)
       break;
@@ -149,7 +152,7 @@ static void read_callback(In stream, int min, int left) {
         areas[ch].ptr += areas[ch].step;
       }
     }
-    check_cb_error2(stream, (int(*)(void*))soundio_instream_end_read);
+    check_cb_error2(vm, stream, (int(*)(void*))soundio_instream_end_read);
     left -= count;
   }
 }
@@ -172,7 +175,7 @@ static m_bool init_soundio() {
 
 static int get_index() {
   int selected_device_index = -1;
-  if(device_id) { 
+  if(device_id) {
     int device_count = soundio_output_device_count(soundio);
     for(int i = 0; i < device_count; i += 1) {
       struct SoundIoDevice *device = soundio_get_output_device(soundio, i);
@@ -218,7 +221,8 @@ static m_bool probe() {
   return 1;
 }
 
-static m_bool out_create(DriverInfo* di) {
+static m_bool out_create(VM* vm, DriverInfo* di) {
+  struct SioInfo info = { vm, di };
   outstream = soundio_outstream_create(out_device);
   if(!outstream) {
     fprintf(stderr, "out of memory\n");
@@ -229,11 +233,11 @@ static m_bool out_create(DriverInfo* di) {
   outstream->name = "Gwion output";
   outstream->software_latency = 0;
   outstream->sample_rate = di->sr;
-  outstream->userdata = di;
+  outstream->userdata = &info;
   return 1;
 }
 
-static m_bool in_create(DriverInfo* di) {
+static m_bool in_create(VM* vm, DriverInfo* di) {
   instream = soundio_instream_create(in_device);
   if(!instream) {
     fprintf(stderr, "out of memory\n");
@@ -302,13 +306,13 @@ static m_bool open_stream() {
 }
 
 static m_bool check_layout() {
-  if(outstream->layout_error) { 
+  if(outstream->layout_error) {
     fprintf(stderr, "unable to set output channel layout: %s\n",
         soundio_strerror(outstream->layout_error));
     return -1;
   }
-  if(instream->layout_error) {  
-    fprintf(stderr, "unable to set input channel layout: %s\n", 
+  if(instream->layout_error) {
+    fprintf(stderr, "unable to set input channel layout: %s\n",
         soundio_strerror(instream->layout_error));
     return -1;
   }
@@ -322,8 +326,8 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   CHECK_BB(selected_device_index)
   CHECK_BB(get_device(selected_device_index))
   CHECK_BB(probe())
-  CHECK_BB(out_create(di))
-  CHECK_BB(in_create(di))
+  CHECK_BB(out_create(vm, di))
+  CHECK_BB(in_create(vm, di))
   CHECK_BB(out_format())
   CHECK_BB(in_format())
   CHECK_BB(open_stream())
@@ -331,7 +335,7 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   return 1;
 }
 
-static void sio_run() {
+static void sio_run(VM* vm, DriverInfo* info) {
   int err;
   if((err = soundio_instream_start(instream))) {
     fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
@@ -342,7 +346,7 @@ static void sio_run() {
     return;
   }
   while(vm->is_running)
-    soundio_wait_events(soundio);
+    soundio_flush_events(soundio);
 }
 
 static void sio_del(VM* vm) {
@@ -353,9 +357,8 @@ static void sio_del(VM* vm) {
   soundio_destroy(soundio);
 }
 
-void sio_driver(Driver* d, VM* vm) {
+void sio_driver(Driver* d) {
   d->ini = sio_ini;
   d->run = sio_run;
   d->del = sio_del;
-  vm->wakeup = sio_wakeup;
 }

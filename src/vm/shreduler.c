@@ -21,10 +21,8 @@ __attribute__((hot, nonnull))
 VM_Shred shreduler_get(Shreduler s) {
   VM_Shred shred = s->list;
   if(!shred) {
-    if(!vector_size(&s->vm->shred) && !s->loop) {
+    if(!vector_size(&s->vm->shred) && !s->loop)
       s->vm->is_running = 0;
-      s->vm->wakeup();
-    }
     return NULL;
   }
   if(shred->wake_time <= (s->vm->sp->pos + .5)) {

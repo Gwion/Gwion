@@ -163,7 +163,8 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   the_class->info->parent = env_class_def(env, NULL) == class_def ?
       env_nspc(env) : env->curr;
   the_class->def = class_def;
-  nspc_add_type(env->curr, class_def->name->xid, the_class);
+  if(!strstr(the_class->name, "<"))
+    nspc_add_type(env->curr, class_def->name->xid, the_class);
   if(class_def->tmpl)
     SET_FLAG(the_class, ae_flag_template);
   if(class_def->ext && class_def->ext->array)

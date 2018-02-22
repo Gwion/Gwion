@@ -110,11 +110,9 @@ m_bool template_match(ID_List base, Type_List call) {
 
 static Class_Def template_class(Env env, Class_Def def, Type_List call) {
   Type t;
-  ID_List name;
-  name = template_id(env, def, call);
+  ID_List name = template_id(env, def, call);
   if((t = nspc_lookup_type1(env->curr, name->xid))) {
     free_id_list(name);
-    //ADD_REF(t)
     return t->def;
   }
   return new_class_def(def->flag, name, def->ext, def->body, call->pos);
@@ -151,6 +149,7 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
     Class_Def a = template_class(env, t->def, type->types);
     if(a->type) {
       nspc_pop_type(env->curr);
+      ADD_REF(a->type)
       return a->type;
     }
     CHECK_BO(scan0_class_def(env, a))
@@ -168,6 +167,7 @@ Type scan_type(Env env, Type t, const Type_Decl* type) {
     ID_List list = get_total_type_list(t);
     a->tmpl = new_tmpl_class(list, 0);
     a->tmpl->base = type->types;
+    nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
     ADD_REF((t = a->type))
   } else if(type->types)
       CHECK_BO(err_msg(SCAN1_, type->pos,

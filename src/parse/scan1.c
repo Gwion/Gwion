@@ -42,10 +42,8 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
 }
 
 m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
-//decl->m_type = NULL;
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
-
   CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(env, t, decl))
   if(decl->m_type && !env->func &&
@@ -54,12 +52,15 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   else
     decl->m_type = t;
   while(list) {
+    Value value;
     Var_Decl v = list->self;
     if(isres(v->xid, v->pos) > 0)
       CHECK_BB(err_msg(SCAN2_, v->pos,
             "\t... in variable declaration", s_name(v->xid)))
-    if(nspc_lookup_value0(env->curr, v->xid) &&
-      !(env->class_def && GET_FLAG(env->class_def, ae_flag_template)))
+    if((value = nspc_lookup_value0(env->curr, v->xid)) &&
+      (!(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) ||
+      (env->class_def && GET_FLAG(env->class_def, ae_flag_template) &&
+        !GET_FLAG(env->class_def, ae_flag_scan1))))
         CHECK_BB(err_msg(SCAN1_, v->pos,
               "variable %s has already been defined in the same scope...",
               s_name(v->xid)))
@@ -69,7 +70,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
       CHECK_OB((t = array_type(decl->m_type, v->array->depth)))
     } else
       t = decl->m_type;
-    CHECK_OB((v->value = new_value(t, s_name(v->xid))))
+    CHECK_OB((v->value = value ? :new_value(t, s_name(v->xid))))
     nspc_add_value(env->curr, v->xid, v->value);
     v->value->flag = decl->type->flag;
     if(v->array && !v->array->exp_list)

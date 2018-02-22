@@ -178,7 +178,7 @@ static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   vector_add(&shred->child, (vtype)sh);
   sh->_mem = sh->base;
   sh->base = shred->base;
-  vm_add_shred(vm, sh);
+  vm_add_shred(shred->vm_ref, sh);
   return sh;
 }
 
