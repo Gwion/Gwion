@@ -289,7 +289,7 @@ static m_bool in_format() {
     fprintf(stderr, "No suitable device format available.\n");
     return -1;
   }
-  return 1; 
+  return 1;
 }
 
 static m_bool open_stream() {
