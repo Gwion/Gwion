@@ -8,7 +8,6 @@ static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK
 };
 
 m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
-  char msg[256];
   va_list arg;
   va_start(arg, fmt);
 #ifdef COLOR
@@ -22,8 +21,7 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
 #else
     fprintf(stderr, " line: %" INT_F "\t", pos);
 #endif
-  vsnprintf(msg, 256, fmt, arg);
-  fprintf(stderr, "\t%s\n", msg);
+  vfprintf(stderr, fmt, arg);
   va_end(arg);
   return -1;
 }
