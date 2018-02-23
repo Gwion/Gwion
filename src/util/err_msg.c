@@ -21,6 +21,8 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
 #else
     fprintf(stderr, " line: %" INT_F "\t", pos);
 #endif
+  else
+    fprintf(stderr, "\t");
   vfprintf(stderr, fmt, arg);
   va_end(arg);
   return -1;
