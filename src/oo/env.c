@@ -42,18 +42,13 @@ void env_reset(Env env) {
 }
 
 void free_env(Env a) {
-  m_uint i;
-  for(i = 0; i < vector_size(&a->known_ctx); i++) {
-    Context ctx = (Context)vector_at(&a->known_ctx, i);
-    REM_REF(ctx);
-  }
+  Context ctx;
+
+  while((ctx = (Context)vector_pop(&a->known_ctx)))
+    REM_REF(ctx)
+  REM_REF(a->global_nspc);
   vector_release(&a->contexts);
   vector_release(&a->known_ctx);
-
-  for(i = 0; i < vector_size(&a->nspc_stack); i++) {
-    Nspc  nspc = (Nspc)vector_pop(&a->nspc_stack);
-    REM_REF(nspc);
-  }
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
