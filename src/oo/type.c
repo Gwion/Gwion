@@ -14,15 +14,10 @@ void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
   if(GET_FLAG(a, ae_flag_builtin)) {
-    if(!GET_FLAG(a, ae_flag_typedef)) {
-      if(a->def) {
-//        if(!get_type_name(a->name, 1))
-//          free_tmpl_class(a->def->tmpl);
-//        free(a->def);
-      }
-if(GET_FLAG(a, ae_flag_template))
-free(a);
-    }
+    if(a->parent && a->parent->array_depth)
+      REM_REF(a->parent)
+    if(GET_FLAG(a, ae_flag_template))
+      free(a);
   } else {
     if(GET_FLAG(a, ae_flag_typedef) && GET_FLAG(a->parent, ae_flag_typedef))
       free_class_def(a->parent->def);
