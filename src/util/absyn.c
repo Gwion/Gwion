@@ -683,6 +683,7 @@ Stmt new_stmt_auto(S_Symbol sym, Exp exp, Stmt body, int pos) {
   a->d.stmt_auto.sym = sym;
   a->d.stmt_auto.exp = exp;
   a->d.stmt_auto.body = body;
+  a->d.stmt_auto.self = a;
   a->pos = a->d.stmt_auto.pos = pos;
   return a;
 }

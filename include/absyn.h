@@ -314,6 +314,7 @@ struct Stmt_Auto_ {
   Stmt body;
   Value v; // is this useful ?
   m_bool is_ptr;
+  Stmt self;
   int pos;
 };
 struct Stmt_Loop_ {

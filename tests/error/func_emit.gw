@@ -1,3 +1,0 @@
-// [contains] function not emitted yet
-test();
-function void test(){}

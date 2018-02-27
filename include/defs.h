@@ -63,8 +63,9 @@ typedef enum {
   ae_flag_scan1 = 1 << 21,
   ae_flag_scan2 = 1 << 22,
   ae_flag_check = 1 << 23,
-  ae_flag_emit  = 1 << 24
+  ae_flag_emit  = 1 << 24,
 
+  ae_flag_recurs = 1 << 30
 } ae_flag;
 
 typedef enum {

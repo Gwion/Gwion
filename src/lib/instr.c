@@ -227,10 +227,12 @@ INSTR(Spork) {
 }
 
 // LCOV_EXCL_START
+// IMPROVE ME
 static void handle_overflow(VM_Shred shred) {
   fprintf(stderr,
           "[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           shred->xid, shred->name, shred->pc);
+  vm_shred_exit(shred);
 }
 // LCOV_EXCL_STOP
 

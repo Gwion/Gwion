@@ -84,6 +84,7 @@ static m_bool emit_func_def(Emitter emit, Func_Def func_def);
 Emitter new_emitter(Env env) {
   Emitter emit = calloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
+  vector_init(&emit->codes);
   emit->env = env;
   return emit;
 }
@@ -91,6 +92,7 @@ Emitter new_emitter(Env env) {
 void free_emitter(Emitter a) {
   free_env(a->env);
   vector_release(&a->stack);
+  vector_release(&a->codes);
   free(a);
 }
 
@@ -104,7 +106,6 @@ Instr emitter_add_instr(Emitter emit, f_instr f) {
 static Code* new_code() {
   Code* code = calloc(1, sizeof(Code));
   code->stack_depth = 0;
-  code->need_this = 0;
   vector_init(&code->code);
   vector_init(&code->stack_break);
   vector_init(&code->stack_cont);
@@ -313,10 +314,28 @@ static m_bool emit_symbol(Emitter emit, Exp_Primary* prim) {
   return 1;
 }
 
+__attribute__ ((warn_unused_result))
 VM_Code emit_code(Emitter emit) {
   Code* c = emit->code;
   VM_Code code = new_vm_code(&c->code, c->stack_depth,
-      c->need_this, c->name);
+      GET_FLAG(c, ae_flag_member), c->name);
+  if(GET_FLAG(c, ae_flag_recurs))
+SET_FLAG(code, ae_flag_recurs);
+/*
+    for(m_uint i = 0; i < vector_size(code->instr); i++) {
+      Instr instr = (Instr)vector_at(code->instr, i);
+      if(instr->execute == (f_instr)1) {
+        instr->execute = Reg_Push_Ptr;
+        Func func = (Func)instr->m_val;
+// check func->code ?
+if(!func->code)
+  CHECK_BO(err_msg(EMIT_, 0, "function not emitted yet"))
+        *(VM_Code*)instr->ptr = func->code;
+      }
+    }
+  }
+*/
+  vector_add(&emit->codes, (vtype)code);
   free_code(c);
   return code;
 }
@@ -560,7 +579,7 @@ if(!(type->def && type->def->ext && GET_FLAG(type->def->ext, ae_flag_typedef)))
       Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
     }
-    if(is_array || GET_FLAG(type, ae_flag_unary))
+    if(is_array)
       ADD_REF(type);
   }
   return 1;
@@ -766,8 +785,12 @@ static m_bool emit_exp_call1_code(Emitter emit, Func func) {
         GET_FLAG(func->value_ref->owner_class, ae_flag_template))
       CHECK_BB(emit_exp_call_code_template(emit->env,
             func->value_ref->owner_class->def))
-    else if(!GET_FLAG(func->def, ae_flag_template))
-      CHECK_BB(err_msg(EMIT_, func->def->pos, "function not emitted yet"))
+    else if(!GET_FLAG(func->def, ae_flag_template)) {
+      code = emitter_add_instr(emit, (f_instr)1);
+      code->m_val = (m_uint)func;
+      SET_FLAG(emit->code, ae_flag_recurs);
+      return 1;
+    }
     if(emit_func_def(emit, func->def) < 0)
       CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
     code = emitter_add_instr(emit, Reg_Push_Ptr);
@@ -869,7 +892,8 @@ m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code();
   CHECK_OB(emitter_add_instr(emit, start_gc))
-  emit->code->need_this = GET_FLAG(exp->m_func, ae_flag_member);
+  if(GET_FLAG(exp->m_func, ae_flag_member))
+    SET_FLAG(emit->code, ae_flag_member);
   char c[11 + num_digit(exp->pos)];
   sprintf(c, "spork~exp:%i", exp->pos);
   emit->code->name = code_name_set(c, emit->filename);
@@ -879,7 +903,7 @@ m_bool emit_exp_spork(Emitter emit, Exp_Func* exp) {
   CHECK_OB(emitter_add_instr(emit, EOC))
   op->m_val = emit->code->stack_depth;
 
-  code = emit_code(emit);
+  CHECK_OB((code = emit_code(emit)))
   emit->code = (Code*)vector_pop(&emit->stack);
   size = emit_exp_spork_size(emit, exp->args);
   CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0)) // last arg migth have to be 'emit_code_offset(emit)'
@@ -903,7 +927,7 @@ m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   emit->code = new_code();
   if(emit->env->class_def) {
     SET_FLAG(f, ae_flag_member);
-    emit->code->need_this = 1;
+    SET_FLAG(emit->code, ae_flag_member);
   }
   char c[12 + num_digit(stmt->pos)];
   sprintf(c, "spork~code:%i", stmt->pos);
@@ -917,7 +941,7 @@ m_bool emit_exp_spork1(Emitter emit, Stmt stmt) {
   emit_pop_scope(emit);
   CHECK_OB(emitter_add_instr(emit, EOC))
   op->m_val = emit->code->stack_depth;
-  f->code = code = emit_code(emit);
+  CHECK_OB((f->code = code = emit_code(emit)))
   emit->code = (Code*)vector_pop(&emit->stack);
   CHECK_BB(emit_exp_spork_finish(emit, code, f, 0, emit->env->func ? emit->env->func->def->stack_depth : 0))
   return 1;
@@ -1726,7 +1750,8 @@ static m_bool emit_func_def_init(Emitter emit, Func func) {
   emit->code = new_code();
   sprintf(c, "%s%s%s(...)", t ? t->name : "", t ? "." : "", func->name);
   emit->code->name = code_name_set(c, emit->filename);
-  emit->code->need_this = GET_FLAG(func, ae_flag_member);
+  if(GET_FLAG(func, ae_flag_member))
+    SET_FLAG(emit->code, ae_flag_member);
   return 1;
 }
 
@@ -1780,7 +1805,8 @@ static m_bool emit_func_def_return(Emitter emit) {
 
 static m_bool emit_func_def_code(Emitter emit, Func func) {
   Arg_List a = func->def->arg_list;
-  func->code = emit_code(emit);
+  if(!(func->code = emit_code(emit)))
+    CHECK_BB(err_msg(EMIT_, func->def->pos, "\tin function %s", func->name))
   if(GET_FLAG(func->def, ae_flag_dtor)) {
     emit->env->class_def->info->dtor = func->code;
     ADD_REF(func->code)
@@ -1861,7 +1887,7 @@ Code* emit_class_code(Emitter emit, m_str name) {
   CHECK_OO(code);
   snprintf(c, len, "class %s", name);
   code->name = code_name_set(c, emit->filename);
-  code->need_this = 1;
+  SET_FLAG(code, ae_flag_member);
   code->stack_depth += SZ_INT;
   return code;
 
@@ -1869,7 +1895,7 @@ Code* emit_class_code(Emitter emit, m_str name) {
 
 m_bool emit_class_finish(Emitter emit, Nspc nspc) {
   CHECK_OB(emitter_add_instr(emit, Func_Return))
-  nspc->pre_ctor = emit_code(emit);
+  CHECK_OB((nspc->pre_ctor = emit_code(emit)))
   return 1;
 }
 
@@ -1961,6 +1987,22 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     emit->cases = NULL;
   }
   emit_pop_scope(emit);
+  for(m_uint i = vector_size(&emit->codes) + 1; --i;) {
+    VM_Code c = (VM_Code)vector_at(&emit->codes, i - 1);
+    if(GET_FLAG(c, ae_flag_recurs)) {
+    for(m_uint i = 0; i < vector_size(c->instr); i++) {
+      Instr instr = (Instr)vector_at(c->instr, i);
+      if(instr->execute == (f_instr)1) {
+        instr->execute = Reg_Push_Ptr;
+        Func func = (Func)instr->m_val;
+//        if(!func->code)
+//          CHECK_BB(err_msg(EMIT_, 0, "function not emitted yet"))
+        *(VM_Code*)instr->ptr = func->code;
+      }
+    }
+  }
+  }
+  vector_clear(&emit->codes);
   if(ret < 0) { // should free all stack.
     emit_free_stack(emit);
     free(filename);

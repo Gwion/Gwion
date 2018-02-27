@@ -24,6 +24,7 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
   else
     fprintf(stderr, "\t");
   vfprintf(stderr, fmt, arg);
+  fprintf(stderr, "\n");
   va_end(arg);
   return -1;
 }

@@ -1076,7 +1076,7 @@ static m_bool check_stmt_for(Env env, Stmt_For stmt) {
     CHECK_BB(err_msg(TYPE_, stmt->c2->pos, "\t... in 'for' condition."))
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
-    return check_breaks(env, stmt->self, stmt->body);
+  return check_breaks(env, stmt->self, stmt->body);
 }
 
 static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
@@ -1108,9 +1108,9 @@ static m_bool check_stmt_auto(Env env, Stmt_Auto stmt) {
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, ae_flag_checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
-  CHECK_BB(check_stmt(env, stmt->body))
-  return 1;
+  return check_breaks(env, stmt->self, stmt->body);
 }
+
 static m_bool check_stmt_loop(Env env, Stmt_Loop stmt) {
   Type type = check_exp(env, stmt->cond);
 

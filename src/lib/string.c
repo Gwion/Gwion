@@ -42,7 +42,18 @@ static INSTR(String_eq) {
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
-  *(m_int*)REG(0) = lhs && rhs && !strcmp(STRING(lhs), STRING(rhs));
+  *(m_int*)REG(0) = (lhs && rhs && !strcmp(STRING(lhs), STRING(rhs))) || (!lhs && !rhs);
+  PUSH_REG(shred, SZ_INT);
+  release(lhs, shred);
+  release(rhs, shred);
+}
+
+static INSTR(String_neq) {
+  POP_REG(shred, SZ_INT * 2);
+  M_Object lhs = *(M_Object*)REG(0);
+  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  *(m_int*)REG(0) = (lhs && rhs && strcmp(STRING(lhs), STRING(rhs))) ||
+    (lhs && !rhs) || (!lhs && rhs);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
   release(rhs, shred);
@@ -867,6 +878,7 @@ m_bool import_string(Gwi gwi) {
 
   CHECK_BB(gwi_oper_ini(gwi, "string",  "string", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_eq,       String_eq))
+  CHECK_BB(gwi_oper_end(gwi, op_neq,       String_neq))
 
   CHECK_BB(gwi_oper_ini(gwi, "int",     "string", "string"))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))

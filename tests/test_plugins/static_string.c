@@ -12,7 +12,7 @@ IMPORT
   M_Object obj = new_String(NULL, "test static string");
 //  CHECK_BB(gwi_add_value(gwi, "self", &t_string, 1, obj))
 //  ALLOC_PTR(obj, M_Object, new_String(NULL, "test static string"));
-  CHECK_BB(gwi_item_end(gwi, ae_flag_unary | ae_flag_global, obj))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_global, obj))
 //  CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

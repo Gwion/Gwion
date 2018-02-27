@@ -12,7 +12,7 @@ typedef struct Code_ {
   struct Vector_ code;
   struct Vector_ stack_cont, stack_break, stack_return;
   Frame* frame;
-  m_bool need_this;
+  ae_flag flag;
 } Code;
 
 struct Emitter_ {
@@ -22,6 +22,7 @@ struct Emitter_ {
   Map    cases; // passed to instr: is a pointer
   Code*  code;
   struct Vector_    stack;
+  struct Vector_    codes;
 #ifdef GWCOV
   m_bool coverage;
   FILE* cov_file;
@@ -30,7 +31,7 @@ struct Emitter_ {
 
 Emitter new_emitter(Env env);
 void free_emitter(Emitter emit);
-VM_Code emit_code(Emitter emit);
+VM_Code emit_code(Emitter emit)__attribute__ ((warn_unused_result));
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename);
 m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos);
 Instr emitter_add_instr(Emitter emit, f_instr f);
