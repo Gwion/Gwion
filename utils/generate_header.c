@@ -37,11 +37,11 @@ int main(int argc, char** argv) {
 typedef short         int m_bool;\ntypedef %s            m_float;\ntypedef char *            m_str;\n\
 typedef struct { m_float x, y, z; }  m_vec3;\ntypedef struct { m_float x, y, z, w; } m_vec4;\n\
 typedef _Complex %s m_complex;\n", type, type);
-  fprintf(file, "#define SZ_INT     %lu\n", sizeof(uintptr_t));
-  fprintf(file, "#define SZ_FLOAT   %lu\n", sizeof(SPFLOAT));
-  fprintf(file, "#define SZ_COMPLEX %lu\n", sizeof(SPFLOAT) * 2);
-  fprintf(file, "#define SZ_VEC3    %lu\n", sizeof(SPFLOAT) * 3);
-  fprintf(file, "#define SZ_VEC4    %lu\n", sizeof(SPFLOAT) * 4);
+  fprintf(file, "#define SZ_INT     %zu\n", sizeof(uintptr_t));
+  fprintf(file, "#define SZ_FLOAT   %zu\n", sizeof(SPFLOAT));
+  fprintf(file, "#define SZ_COMPLEX %zu\n", sizeof(SPFLOAT) * 2);
+  fprintf(file, "#define SZ_VEC3    %zu\n", sizeof(SPFLOAT) * 3);
+  fprintf(file, "#define SZ_VEC4    %zu\n", sizeof(SPFLOAT) * 4);
   if(sizeof(uintptr_t) == sizeof(unsigned int)) {
     fprintf(file, "#define  INT_F \"i\"\n");
     fprintf(file, "#define UINT_F \"u\"\n");
