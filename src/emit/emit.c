@@ -1224,25 +1224,34 @@ static m_bool emit_stmt_for(Emitter emit, Stmt_For stmt) {
 }
 
 static m_bool emit_stmt_auto(Emitter emit, Stmt_Auto stmt) {
-  m_uint start, offset;
-  Instr s1, s2, loop, tgt;
+  m_uint start, offset, index;
+  Instr s1, s2, loop, tgt, end;
 
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   s1 = emitter_add_instr(emit, Mem_Set_Imm);
   s2 = emitter_add_instr(emit, Mem_Set_Imm);
   start  = emit_code_size(emit);
-  loop = emitter_add_instr(emit, AutoLoop);
+  emit_push_stack(emit);
+  loop = emitter_add_instr(emit, AutoLoopStart);
   offset = emit_alloc_local(emit, 2*SZ_INT, 0);
   stmt->v->offset = offset + SZ_INT;
+  emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
+  emit_pop_scope(emit);
+  index = emit_code_size(emit);
+  end = emitter_add_instr(emit, AutoLoopEnd);
   tgt = emitter_add_instr(emit, Goto);
+  end->m_val2 = emit_code_size(emit);
   tgt->m_val = start;
   loop->m_val = offset;
+  end->m_val = offset;
   s1->m_val = offset;
   s2->m_val = offset + SZ_INT;
-  if(stmt->is_ptr)
+  if(stmt->is_ptr) {
     *(Type*)loop->ptr = stmt->v->m_type;
-  loop->m_val2 = emit_code_size(emit);
+    *(Type*)end->ptr = stmt->v->m_type;
+  }
+  emit_pop_stack(emit, index);
   return 1;
 }
 

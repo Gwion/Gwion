@@ -112,7 +112,8 @@ INSTR(start_gc);
 INSTR(stop_gc);
 INSTR(add2gc);
 
-INSTR(AutoLoop);
+INSTR(AutoLoopStart);
+INSTR(AutoLoopEnd);
 INSTR(Cast2Ptr);
 
 #ifdef GWCOV
