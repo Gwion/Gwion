@@ -146,8 +146,6 @@ free_id_list(value->m_type->d.base_type->def->name);
 //            free_type_decl(value->m_type->d.base_type->def->ext);
             free(value->m_type->d.base_type->def);
 //          free(value->m_type->d.base_type);
-printf("%s ref %lu\n", value->name, 
-value->m_type->d.base_type->obj.ref_count);
         SET_FLAG(value->m_type->d.base_type, ae_flag_template);
           REM_REF(value->m_type->d.base_type)
 
