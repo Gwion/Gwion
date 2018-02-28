@@ -34,7 +34,7 @@ DTOR(static_fileio_dtor) {
   IO_FILE(o) = NULL;
 }
 
-INSTR(int_to_file) {
+static INSTR(int_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   CHECK_FIO(o)
@@ -43,7 +43,7 @@ INSTR(int_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(float_to_file) {
+static INSTR(float_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   o = **(M_Object**)REG(0);
@@ -54,7 +54,7 @@ INSTR(float_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(string_to_file) {
+static INSTR(string_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -65,7 +65,7 @@ INSTR(string_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(object_to_file) {
+static INSTR(object_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -76,7 +76,7 @@ INSTR(object_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(complex_to_file) {
+static INSTR(complex_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
@@ -86,7 +86,7 @@ INSTR(complex_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(polar_to_file) {
+static INSTR(polar_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
@@ -96,7 +96,7 @@ INSTR(polar_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(vec3_to_file) {
+static INSTR(vec3_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
@@ -107,7 +107,7 @@ INSTR(vec3_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(vec4_to_file) {
+static INSTR(vec4_to_file) {
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
@@ -118,7 +118,7 @@ INSTR(vec4_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-INSTR(file_to_int) {
+static INSTR(file_to_int) {
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)REG(- SZ_INT);
@@ -135,7 +135,7 @@ INSTR(file_to_int) {
     Except(shred, "EmptyFileException");
 }
 
-INSTR(file_to_float) {
+static INSTR(file_to_float) {
   POP_REG(shred, SZ_INT)
   float ret;
   M_Object o = *(M_Object*)REG(-SZ_INT);
@@ -169,7 +169,7 @@ m_bool inputAvailable(FILE* f)
   return (FD_ISSET(0, &fds));
 }
 */
-INSTR(file_to_string) {
+static INSTR(file_to_string) {
   POP_REG(shred, SZ_INT)
   M_Object o    = *(M_Object*)REG(- SZ_INT);
   M_Object s    = **(M_Object**)REG(0);
