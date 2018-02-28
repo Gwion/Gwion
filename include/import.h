@@ -14,6 +14,9 @@ typedef struct Gwi_* Gwi;
 #define OP_EMIT(a) m_bool a(Emitter emit, void* data)
 #define IMPORT m_bool import(Gwi gwi)
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
+#define _CHECK_OP(op, check, func)\
+    CHECK_BB(gwi_oper_add(gwi, opck_##check))\
+    CHECK_BB(gwi_oper_end(gwi, op_##op, func))\
 
 VM* gwi_vm(Gwi);
 m_int gwi_add_type(Gwi gwi, Type type);

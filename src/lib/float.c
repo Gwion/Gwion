@@ -17,77 +17,31 @@ static INSTR(float_assign) {
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-static INSTR(float_plus) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)REG(0) += *(m_float*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe(name, op) \
+INSTR(float_##name) { \
+  POP_REG(shred, SZ_FLOAT); \
+  *(m_float*)REG(-SZ_FLOAT) op##= *(m_float*)REG(0); \
 }
 
-static INSTR(float_minus) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)REG(0) -= *(m_float*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
-}
+static describe(plus, +)
+static describe(minus, -)
+describe(times, *)
+static describe(divide, /)
 
-INSTR(float_times) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)REG(0) *= *(m_float*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_logical(name, op) \
+static INSTR(float_##name) { \
+  POP_REG(shred, SZ_FLOAT * 2); \
+  *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_float*)REG(SZ_FLOAT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
-
-static INSTR(float_divide) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_float*)REG(0) /= *(m_float*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(float_and) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) && *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_or) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) || *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_eq) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) == *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_neq)  {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) != *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_gt) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) > *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_ge) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) >= *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_lt) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) < * (m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_le) {
-  POP_REG(shred, SZ_FLOAT * 2);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) <= *(m_float*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
+describe_logical(and, &&)
+describe_logical(or,  ||)
+describe_logical(eq,  ==)
+describe_logical(neq, !=)
+describe_logical(gt,   >)
+describe_logical(ge,  >=)
+describe_logical(lt,   <)
+describe_logical(le,  <=)
 
 INSTR(float_negate) {
   POP_REG(shred, SZ_FLOAT)
@@ -107,29 +61,17 @@ static INSTR(float_r_assign) {
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-static INSTR(float_r_plus) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_r(name, op) \
+static INSTR(float_r_##name) { \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
 
-static INSTR(float_r_minus) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) -= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(float_r_times) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) *= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(float_r_divide) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) /= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
+describe_r(plus,   +)
+describe_r(minus,  -)
+describe_r(times,  *)
+describe_r(divide, /)
 
 static INSTR(int_float_assign) {
   POP_REG(shred, SZ_INT + SZ_FLOAT);
@@ -137,107 +79,43 @@ static INSTR(int_float_assign) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(int_float_plus) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)REG(0) = *(m_int*)REG(0) + *(m_float*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_if(name, op) \
+static INSTR(int_float_##name) { \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_float*)REG(0) = *(m_int*)REG(0) op *(m_float*)REG(SZ_INT); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
+describe_if(plus,   +)
+describe_if(minus,  -)
+describe_if(times,  *)
+describe_if(divide, /)
 
-static INSTR(int_float_minus) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)REG(0) = *(m_int*)REG(0) + -*(m_float*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_logical_if(name, op) \
+static INSTR(int_float_##name) { \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_int*)REG(0) = (*(m_int*)REG(0) op *(m_float*)REG(SZ_INT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
+describe_logical_if(and, &&)
+describe_logical_if(or,  ||)
+describe_logical_if(eq,  ==)
+describe_logical_if(neq, !=)
+describe_logical_if(gt,   >)
+describe_logical_if(ge,  >=)
+describe_logical_if(lt,   <)
+describe_logical_if(le,  <=)
 
-INSTR(int_float_timesf) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)REG(0) = *(m_int*)REG(0) * *(m_float*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_r_if(name, op) \
+static INSTR(int_float_r_##name) { \
+  POP_REG(shred, SZ_INT * 2); \
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) op##= *(m_int*)REG(0)); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
-
-static INSTR(int_float_divide) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_float*)REG(0) = *(m_int*)REG(0) / *(m_float*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(int_float_and) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) && *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_or) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) || *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_eq) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) == *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_neq) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) != *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_gt) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) > *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_ge) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) >= *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_lt) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) < * (m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_le) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) <= *(m_float*)REG(SZ_INT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(int_float_r_assign) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) = *(m_int*)REG(0));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(int_float_r_plus) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) += (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(int_float_r_minus) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) -= (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(int_float_r_times) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) *= (*(m_int*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(int_float_r_divide) {
-  POP_REG(shred, SZ_INT * 2);
-  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) /= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_FLOAT);
-}
+describe_r_if(assign,  )
+describe_r_if(plus,   +)
+describe_r_if(minus,  -)
+describe_r_if(times,  *)
+describe_r_if(divide, /)
 
 static INSTR(float_int_assign) {
   POP_REG(shred, SZ_INT * 2);
@@ -245,77 +123,31 @@ static INSTR(float_int_assign) {
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-static INSTR(float_int_plus) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) += *(m_int*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_fi(name, op) \
+static INSTR(float_int_##name) { \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_float*)REG(0) op##= *(m_int*)REG(SZ_FLOAT); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
+describe_fi(plus,   +)
+describe_fi(minus,  -)
+describe_fi(times,  *)
+describe_fi(divide, /)
 
-static INSTR(float_int_minus) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) -= *(m_int*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
+#define describe_logical_fi(name, op) \
+static INSTR(float_int_##name) { \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_int*)REG(SZ_FLOAT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
-
-INSTR(float_int_timesf) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) *= *(m_int*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(float_int_divide) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_float*)REG(0) /= *(m_int*)REG(SZ_FLOAT);
-  PUSH_REG(shred, SZ_FLOAT);
-}
-
-static INSTR(float_int_and) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) && *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_or) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) || *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_eq) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) == *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_neq) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) != *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_gt) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) > *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_ge) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (*(m_int*)REG(0) >= *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_lt) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) < * (m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_le) {
-  POP_REG(shred, SZ_FLOAT + SZ_INT);
-  *(m_int*)REG(0) = (*(m_float*)REG(0) <= *(m_int*)REG(SZ_FLOAT));
-  PUSH_REG(shred, SZ_INT);
-}
+describe_logical_fi(and, &&)
+describe_logical_fi(or,  ||)
+describe_logical_fi(eq,  ==)
+describe_logical_fi(neq, !=)
+describe_logical_fi(gt,   >)
+describe_logical_fi(ge,  >=)
+describe_logical_fi(lt,   <)
+describe_logical_fi(le,  <=)
 
 static INSTR(float_int_r_assign) {
   POP_REG(shred, SZ_FLOAT + SZ_INT);
@@ -324,29 +156,16 @@ static INSTR(float_int_r_assign) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(float_int_r_plus) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
+#define describe_r_fi(name, op) \
+static INSTR(float_int_r_##name) { \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
+  PUSH_REG(shred, SZ_INT); \
 }
-
-static INSTR(float_int_r_minus) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) += (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_r_times) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) *= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
-
-static INSTR(float_int_r_divide) {
-  POP_REG(shred, SZ_INT + SZ_FLOAT);
-  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) /= (*(m_float*)REG(0)));
-  PUSH_REG(shred, SZ_INT);
-}
+describe_r_fi(plus,   +)
+describe_r_fi(minus,  -)
+describe_r_fi(times,  *)
+describe_r_fi(divide, /)
 
 static m_bool import_values(Gwi gwi) {
   VM* vm = gwi_vm(gwi);
@@ -381,7 +200,7 @@ static m_bool import_values(Gwi gwi) {
   return 1;
 }
 
-static OP_CHECK(chuck_now) {
+static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
   CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign 'now' to 'now'"))
   return NULL;
@@ -420,24 +239,22 @@ INSTR(Cast_f2i) {
   PUSH_REG(shred,  SZ_INT);
 }
 
+#define CHECK_OP(op, check, func) _CHECK_OP(op, check, float_##func)
+#define CHECK_IF(op, check, func) _CHECK_OP(op, check, int_float_##func)
+#define CHECK_FI(op, check, func) _CHECK_OP(op, check, float_int_##func)
+
 m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        float_assign))
+  CHECK_OP(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,          float_plus))
   CHECK_BB(gwi_oper_end(gwi, op_minus,         float_minus))
   CHECK_BB(gwi_oper_end(gwi, op_times,         float_times))
   CHECK_BB(gwi_oper_end(gwi, op_divide,        float_divide))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,         float_r_assign))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,    float_r_plus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,   float_r_minus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,   float_r_times))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  float_r_divide))
+  CHECK_OP(chuck, rassign, r_assign)
+  CHECK_OP(plus_chuck, rassign, r_plus)
+  CHECK_OP(minus_chuck, rassign, r_minus)
+  CHECK_OP(times_chuck, rassign, r_times)
+  CHECK_OP(divide_chuck, rassign, r_divide)
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_and,           float_and))
   CHECK_BB(gwi_oper_end(gwi, op_or,            float_or))
@@ -448,18 +265,15 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_lt, 			 float_lt))
   CHECK_BB(gwi_oper_end(gwi, op_le, 			 float_le))
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "float"))
-  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta))
-  CHECK_BB(gwi_oper_end(gwi, op_minus,         float_negate))
+  CHECK_OP(minus, unary_meta, negate)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "int"))
-  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta))
-  CHECK_BB(gwi_oper_end(gwi, op_exclamation,   float_not))
+  CHECK_OP(exclamation, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "time", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_exclamation,   float_not))
+  CHECK_OP(exclamation, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_exclamation,   float_not))
+  CHECK_OP(exclamation, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, "int", "float", "int"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        int_float_assign))
+  CHECK_IF(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_and,           int_float_and))
   CHECK_BB(gwi_oper_end(gwi, op_or,            int_float_or))
   CHECK_BB(gwi_oper_end(gwi, op_eq, 			 int_float_eq))
@@ -470,30 +284,22 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_le, 			 int_float_le))
   CHECK_BB(gwi_oper_ini(gwi, "int", "float", "float"))
   CHECK_BB(gwi_oper_end(gwi, op_plus,          int_float_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,         int_float_timesf))
+  CHECK_BB(gwi_oper_end(gwi, op_times,         int_float_times))
   CHECK_BB(gwi_oper_end(gwi, op_minus,         int_float_minus))
   CHECK_BB(gwi_oper_end(gwi, op_divide,        int_float_divide))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        int_float_r_assign))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,   int_float_r_plus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,  int_float_r_minus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,  int_float_r_times))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck, int_float_r_divide))
-  CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
+  CHECK_IF(chuck, rassign, r_assign)
+  CHECK_IF(plus_chuck, rassign, r_plus)
+  CHECK_IF(minus_chuck, rassign, r_minus)
+  CHECK_IF(times_chuck, rassign, r_times)
+  CHECK_IF(divide_chuck, rassign, r_divide)
   CHECK_BB(gwi_oper_emi(gwi, opem_i2f))
-  CHECK_BB(gwi_oper_end(gwi, op_dollar,       Cast_i2f))
-  CHECK_BB(gwi_oper_add(gwi, opck_implicit_i2f))
-  CHECK_BB(gwi_oper_end(gwi, op_implicit,    Cast_i2f))
+  _CHECK_OP(dollar, basic_cast, Cast_i2f)
+  _CHECK_OP(implicit, implicit_i2f, Cast_i2f)
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,       float_int_assign))
+  CHECK_FI(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,         float_int_plus))
   CHECK_BB(gwi_oper_end(gwi, op_minus,        float_int_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,        float_int_timesf))
+  CHECK_BB(gwi_oper_end(gwi, op_times,        float_int_times))
   CHECK_BB(gwi_oper_end(gwi, op_divide,       float_int_divide))
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_and,          float_int_and))
@@ -504,24 +310,16 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_ge, 			float_int_ge))
   CHECK_BB(gwi_oper_end(gwi, op_lt, 			float_int_lt))
   CHECK_BB(gwi_oper_end(gwi, op_le, 			float_int_le))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        float_int_r_assign))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,   float_int_r_plus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,  float_int_r_minus))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,  float_int_r_times))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck, float_int_r_divide))
-  CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
+  CHECK_FI(chuck, rassign, r_assign)
+  CHECK_FI(plus_chuck, rassign, r_plus)
+  CHECK_FI(minus_chuck, rassign, r_minus)
+  CHECK_FI(times_chuck, rassign, r_times)
+  CHECK_FI(divide_chuck, rassign, r_divide)
   CHECK_BB(gwi_oper_emi(gwi, opem_f2i))
-  CHECK_BB(gwi_oper_end(gwi, op_dollar, Cast_f2i))
-  CHECK_BB(gwi_oper_add(gwi, opck_implicit_f2i))
-  CHECK_BB(gwi_oper_end(gwi, op_implicit, Cast_f2i))
+  _CHECK_OP(dollar, basic_cast, Cast_f2i)
+  _CHECK_OP(implicit, implicit_f2i, Cast_f2i)
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        float_r_assign))
+  CHECK_OP(chuck, rassign, r_assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
   CHECK_BB(gwi_oper_end(gwi, op_minus,        float_minus))
   CHECK_BB(gwi_oper_end(gwi, op_times,        float_times))
@@ -535,27 +333,22 @@ m_bool import_float(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_le,           float_le))
 
   CHECK_BB(gwi_oper_ini(gwi, "time", "time", "time"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        float_r_assign))
+  CHECK_OP(chuck, rassign, r_assign)
 
   CHECK_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
   CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
   CHECK_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        float_r_assign))
+  CHECK_OP(chuck, rassign, r_assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
   CHECK_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        Time_Advance))
+  _CHECK_OP(chuck, rassign, Time_Advance)
   CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
-  CHECK_BB(gwi_oper_add(gwi,  chuck_now))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,        NULL))
-
+  _CHECK_OP(chuck, chuck_now, NULL)
   CHECK_BB(gwi_oper_ini(gwi, "time", "time", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 			 	    float_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 			 	    float_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le, 			 	    float_le))
+  CHECK_BB(gwi_oper_end(gwi, op_ge, 	      float_ge))
+  CHECK_BB(gwi_oper_end(gwi, op_lt, 		  float_lt))
+  CHECK_BB(gwi_oper_end(gwi, op_le,           float_le))
 
   CHECK_BB(import_values(gwi))
   return 1;
