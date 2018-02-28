@@ -236,6 +236,7 @@ struct VecInfo {
 };
 
 static void vec_info(ae_Exp_Primary_Type t, struct VecInfo* v) {
+printf("%lu\n", v->n);
   if(t == ae_primary_vec) {
     v->t = v->n == 4 ? &t_vec4 : &t_vec3;
     v->n = 4;
@@ -243,11 +244,16 @@ static void vec_info(ae_Exp_Primary_Type t, struct VecInfo* v) {
   } else if(t == ae_primary_complex) {
     v->s = "complex";
     v->t = &t_complex;
+    v->n = 2;
+  } else {
+    v->s = "polar";
+    v->t = &t_polar;
+    v->n = 2;
   }
 }
 
 static Type check_exp_prim_vec(Env env, Vec* vec, ae_Exp_Primary_Type t) {
-  struct VecInfo info = { &t_polar, "polar", 2 };
+  struct VecInfo info = { NULL, NULL, vec->dim };
   vec_info(t, &info);
   if(vec->dim > info.n)
     CHECK_BO(err_msg(TYPE_, vec->pos,
