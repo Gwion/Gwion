@@ -31,3 +31,6 @@ JACK_D ?= 0
 PORTAUDIO_D ?= 0
 SOUNDIO_D ?= 0
 PULSE_D ?= 0
+
+DEBUG_STACK ?= 1
+

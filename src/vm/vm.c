@@ -60,9 +60,11 @@ static inline void vm_run_shred(VM* vm, const Shreduler s) {
       shred->pc = shred->next_pc++;
       instr = (Instr)vector_at(shred->code->instr, shred->pc);
       instr->execute(vm, shred, instr);
-/*    if(s->curr)
+#ifdef DEBUG_STACK
+    if(s->curr)
         fprintf(stderr, "shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid,
-        shred->mem - shred->_mem, shred->reg - shred->_reg); */
+        shred->mem - shred->_mem, shred->reg - shred->_reg);
+#endif
     }
   }
 }

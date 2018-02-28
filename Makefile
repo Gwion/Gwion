@@ -70,6 +70,10 @@ else
 CFLAGS+=-DSPFLOAT=float
 endif
 
+ifeq (${DEBUG_STACK}, 1)
+CFLAGS += -DDEBUG_STACK
+endif
+
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
