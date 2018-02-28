@@ -72,3 +72,7 @@ s.substring(2);
 <<<"test" + s >>>; // also leak
 <<< NULL +=> s >>>; // also hang 
 <<< "test" +=> s>>>; // test me
+<<< "test" == "test" >>>;
+<<< "test" != "test" >>>;
+<<< "test" == "test1" >>>;
+<<< "test" != "test1" >>>;
