@@ -191,11 +191,11 @@ static INSTR(file_to_string) {
   release(s, shred);
 }
 
-MFUN(file_nl) {
+static MFUN(file_nl) {
   *(m_uint*)RETURN = fwrite("\n",  strlen("\n"), 1, IO_FILE(o));
 }
 
-MFUN(file_open) {
+static MFUN(file_open) {
   M_Object lhs = *(M_Object*)MEM(SZ_INT * 2);
   M_Object rhs = *(M_Object*)MEM(SZ_INT);
   if(!lhs || !rhs)
@@ -212,7 +212,7 @@ MFUN(file_open) {
   *(m_uint*)RETURN = IO_FILE(o) ? 1 : 0;
 }
 
-MFUN(file_close) {
+static MFUN(file_close) {
   if(IO_FILE(o)) {
     fclose(IO_FILE(o));
     IO_FILE(o) = NULL;
@@ -220,7 +220,7 @@ MFUN(file_close) {
   *(m_uint*)RETURN = !IO_FILE(o) ? 1 : 0;
 }
 
-SFUN(file_remove) {
+static SFUN(file_remove) {
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
@@ -228,7 +228,7 @@ SFUN(file_remove) {
   *(m_uint*)RETURN = remove(STRING(*(M_Object*)MEM(SZ_INT)));
 }
 
-SFUN(file_list) {
+static SFUN(file_list) {
   m_uint i;
   struct dirent **namelist;
   M_Object obj = *(M_Object*)MEM(SZ_INT);
