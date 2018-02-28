@@ -508,6 +508,7 @@ INSTR(AutoLoopEnd) {
   (*(m_uint*)MEM(instr->m_val))++;
   if(*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
     shred->next_pc = instr->m_val2;
+    POP_REG(shred, SZ_INT);
   }
   if(t)
     release(ptr, shred);
