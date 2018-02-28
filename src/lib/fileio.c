@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <math.h>
+#include <complex.h>
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
@@ -74,6 +76,48 @@ INSTR(object_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
+INSTR(complex_to_file) {
+  POP_REG(shred, SZ_INT)
+  M_Object o = **(M_Object**)REG(0);
+  m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
+  CHECK_FIO(o)
+  release(o, shred);
+  fprintf(IO_FILE(o), "#(%f, %f)", creal(lhs), cimag(lhs));
+  *(M_Object*)REG(- SZ_INT) = o;
+}
+
+INSTR(polar_to_file) {
+  POP_REG(shred, SZ_INT)
+  M_Object o = **(M_Object**)REG(0);
+  m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
+  CHECK_FIO(o)
+  release(o, shred);
+  fprintf(IO_FILE(o), "%%(%f, %f * pi)", creal(lhs), cimag(lhs) / M_PI);
+  *(M_Object*)REG(- SZ_INT) = o;
+}
+
+INSTR(vec3_to_file) {
+  POP_REG(shred, SZ_INT)
+  M_Object o = **(M_Object**)REG(0);
+  m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
+  CHECK_FIO(o)
+  release(o, shred);
+  fprintf(IO_FILE(o), "@(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
+  POP_REG(shred, SZ_FLOAT)
+  *(M_Object*)REG(- SZ_INT) = o;
+}
+
+INSTR(vec4_to_file) {
+  POP_REG(shred, SZ_INT)
+  M_Object o = **(M_Object**)REG(0);
+  m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
+  CHECK_FIO(o)
+  release(o, shred);
+  fprintf(IO_FILE(o), "@(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
+  POP_REG(shred, 2*SZ_FLOAT)
+  *(M_Object*)REG(- SZ_INT) = o;
+}
+
 INSTR(file_to_int) {
   POP_REG(shred, SZ_INT)
   int ret;
@@ -108,6 +152,7 @@ INSTR(file_to_float) {
     Except(shred, "EmptyFileException");
   POP_REG(shred, SZ_FLOAT)
 }
+
 /*
 m_bool inputAvailable(FILE* f)
 {
@@ -243,6 +288,18 @@ m_bool import_fileio(Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, "float",  "FileIO", "FileIO"))
   CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, float_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "complex",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, complex_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "polar",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, polar_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec3",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec3_to_file))
+  CHECK_BB(gwi_oper_ini(gwi, "Vec4",  "FileIO", "FileIO"))
+  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec4_to_file))
   CHECK_BB(gwi_oper_ini(gwi,"string", "FileIO", "FileIO"))
   CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, string_to_file))

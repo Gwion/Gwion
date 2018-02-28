@@ -31,7 +31,7 @@ s.substring(2);
 <<<"su".insert(1, "test")>>>;
 <<<"su".replace(1, "t")>>>;
 <<<"su".replace(1, 2, "turlututu")>>>;
-//<<<" su ".charAt(1, 'n')>>>;
+<<<" su ".charAt(1, 'n')>>>;
 //NULL @=> s;
 <<<1 => s>>>;
 <<<1.0 => s>>>;
