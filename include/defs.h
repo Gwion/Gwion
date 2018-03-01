@@ -2,7 +2,9 @@
 #define __DEF
 
 #ifdef __GNUC__
-#ifndef __clang__
+#ifdef __clang__
+#define LOOP_OPTIM
+#else
 #define LOOP_OPTIM _Pragma("GCC ivdep")
 #endif
 #endif
