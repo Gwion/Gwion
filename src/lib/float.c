@@ -167,6 +167,14 @@ describe_r_fi(minus,  -)
 describe_r_fi(times,  *)
 describe_r_fi(divide, /)
 
+static INSTR(Time_Advance) {
+  POP_REG(shred, SZ_FLOAT);
+  m_float f = *(m_float*)REG(-SZ_FLOAT);
+  *(m_float*)REG(-SZ_FLOAT) = (shred->wake_time += f);
+  shredule(vm->shreduler, shred, f);
+}
+
+
 static m_bool import_values(Gwi gwi) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);

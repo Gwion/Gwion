@@ -56,7 +56,6 @@ INSTR(Cast_f2i);
 INSTR(Gack);
 
 INSTR(Reg_Push_Str);
-INSTR(Time_Advance);
 
 INSTR(int_not);
 INSTR(float_times);

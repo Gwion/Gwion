@@ -57,7 +57,6 @@ void instantiate_object(VM * vm, VM_Shred shred, Type type) {
 
 static void handle_dtor(Type t, VM_Shred shred) {
   VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
-// also was filename = "[in code dtor exec]"
   VM_Shred sh = new_vm_shred(code);
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
@@ -110,25 +109,19 @@ INSTR(Assign_Object) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(eq_Object) {
-  POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
-  *(m_uint*)REG(0) = (lhs == rhs);
-  release(lhs, shred);
-  release(rhs, shred);
-  PUSH_REG(shred, SZ_INT);
+#define describe_logical(name, op) \
+static INSTR(name##_Object) { \
+  POP_REG(shred, SZ_INT * 2); \
+  M_Object lhs = *(M_Object*)REG(0); \
+  M_Object rhs = *(M_Object*)REG(SZ_INT); \
+  *(m_uint*)REG(0) = (lhs == rhs); \
+  release(lhs, shred); \
+  release(rhs, shred); \
+  PUSH_REG(shred, SZ_INT); \
 }
 
-static INSTR(neq_Object) {
-  POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
-  *(m_uint*)REG(0) = (lhs != rhs);
-  release(lhs, shred);
-  release(rhs, shred);
-  PUSH_REG(shred, SZ_INT);
-}
+describe_logical(eq,  ==)
+describe_logical(neq, !=)
 
 static OP_CHECK(at_object) {
   Exp_Binary* bin = (Exp_Binary*)data;

@@ -16,29 +16,16 @@ static INSTR(complex_assign) {
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(complex_plus) {
-  POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)REG(0) += *(m_complex*)REG(SZ_COMPLEX);
-  PUSH_REG(shred, SZ_COMPLEX);
-}
 
-static INSTR(complex_minus) {
-  POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)REG(0) -= *(m_complex*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_COMPLEX);
+#define describe(name, op) \
+static INSTR(complex_##name) { \
+  POP_REG(shred, SZ_COMPLEX); \
+  *(m_complex*)REG(-SZ_COMPLEX) op##= *(m_complex*)REG(0); \
 }
-
-static INSTR(complex_times) {
-  POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)REG(0) *= *(m_complex*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_COMPLEX);
-}
-
-static INSTR(complex_divide) {
-  POP_REG(shred, SZ_COMPLEX * 2);
-  *(m_complex*)REG(0) /= *(m_complex*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_COMPLEX);
-}
+describe(plus,   +)
+describe(minus,  -)
+describe(times,  *)
+describe(divide, /)
 
 static INSTR(complex_r_assign) {
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
@@ -46,29 +33,16 @@ static INSTR(complex_r_assign) {
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(complex_r_plus) {
-  POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) += (*(m_complex*)REG(0)));
-  PUSH_REG(shred, SZ_COMPLEX);
+#define describe_r(name, op) \
+static INSTR(complex_r_##name) { \
+  POP_REG(shred, SZ_COMPLEX + SZ_INT); \
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) op##= (*(m_complex*)REG(0))); \
+  PUSH_REG(shred, SZ_COMPLEX); \
 }
-
-static INSTR(complex_r_minus) {
-  POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) -= (*(m_complex*)REG(0)));
-  PUSH_REG(shred, SZ_COMPLEX);
-}
-
-static INSTR(complex_r_times) {
-  POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) *= (*(m_complex*)REG(0)));
-  PUSH_REG(shred, SZ_COMPLEX);
-}
-
-static INSTR(complex_r_divide) {
-  POP_REG(shred, SZ_COMPLEX + SZ_INT);
-  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) /= (*(m_complex*)REG(0)));
-  PUSH_REG(shred, SZ_COMPLEX);
-}
+describe_r(plus,  +)
+describe_r(minus, -)
+describe_r(times, *)
+describe_r(divide, /)
 
 INSTR(complex_real) {
   POP_REG(shred, SZ_INT);
@@ -189,12 +163,10 @@ m_bool import_complex(Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
 
   CHECK_BB(gwi_class_ini(gwi,  &t_polar, NULL, NULL))
-	gwi_item_ini(gwi, "float", "mod");
-  o_polar_mod = gwi_item_end(gwi,   ae_flag_member, NULL);
-  CHECK_BB(o_polar_mod)
-	gwi_item_ini(gwi, "float", "phase");
-  o_polar_phase = gwi_item_end(gwi,   ae_flag_member, NULL);
-  CHECK_BB(o_polar_phase)
+  CHECK_BB(gwi_item_ini(gwi, "float", "mod"))
+  CHECK_BB((o_polar_mod = gwi_item_end(gwi,   ae_flag_member, NULL)))
+  CHECK_BB(gwi_item_ini(gwi, "float", "phase"))
+  CHECK_BB((o_polar_phase = gwi_item_end(gwi,   ae_flag_member, NULL)))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
