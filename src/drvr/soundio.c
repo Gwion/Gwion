@@ -8,18 +8,6 @@
 #include "vm.h"
 #include "driver.h"
 
-static struct SoundIo          *soundio    = NULL;
-static struct SoundIoOutStream *outstream  = NULL;
-static struct SoundIoInStream  *instream   = NULL;
-static struct SoundIoDevice    *out_device = NULL;
-static struct SoundIoDevice    *in_device  = NULL;
-
-static enum SoundIoBackend backend = SoundIoBackendNone;
-static m_str  device_id = NULL;
-static m_bool raw = false;
-static void (*write_sample)(char *ptr, m_float sample);
-static void (*read_sample)(char *ptr, m_float *sample);
-
 typedef struct SoundIoChannelArea* Areas;
 typedef struct SoundIoOutStream * Out;
 typedef struct SoundIoInStream * In;
@@ -27,6 +15,17 @@ typedef struct SoundIoInStream * In;
 struct SioInfo {
   VM* vm;
   DriverInfo* di;
+  struct SoundIo          *soundio;
+  struct SoundIoOutStream *outstream;
+  struct SoundIoInStream  *instream;
+  struct SoundIoDevice    *out_device;
+  struct SoundIoDevice    *in_device;
+  enum SoundIoBackend backend;// = SoundIoBackendNone;
+  m_str  device_id;
+  m_bool raw;
+  void (*write_sample)(char *ptr, m_float sample);
+  void (*read_sample)(char *ptr, m_float *sample);
+
 };
 
 static void write_sample_s16ne(char *ptr, m_float sample) {
@@ -124,7 +123,7 @@ static void write_callback(Out stream, int min, int left) {
     else for(int  frame = 0; frame < count; frame++) {
       di->run(vm);
       for(int  channel = 0; channel < stream->layout.channel_count; channel++) {
-        write_sample(areas[channel].ptr, sp->out[channel]);
+        info->write_sample(areas[channel].ptr, sp->out[channel]);
         areas[channel].ptr += areas[channel].step;
       }
       sp->pos++;
@@ -137,7 +136,8 @@ static void write_callback(Out stream, int min, int left) {
 
 static void read_callback(In stream, int min, int left) {
   Areas areas;
-  VM* vm = (VM*)stream->userdata;
+  struct SioInfo* info = (struct SioInfo*)stream->userdata;
+  VM* vm = info->vm;
   while(left > 0) {
     int count = left;
     if(check_cb_error1(vm, stream, &areas, &count, 1) < 0)
@@ -148,7 +148,7 @@ static void read_callback(In stream, int min, int left) {
       fprintf(stderr, "Dropped %d frames due to internal overflow\n", count);
     else for(int frame = 0; frame < count; frame += 1) {
       for(int ch = 0; ch < stream->layout.channel_count; ch += 1) {
-        read_sample(areas[ch].ptr, &vm->in[ch]);
+        info->read_sample(areas[ch].ptr, &vm->in[ch]);
         areas[ch].ptr += areas[ch].step;
       }
     }
@@ -157,29 +157,29 @@ static void read_callback(In stream, int min, int left) {
   }
 }
 
-static m_bool init_soundio() {
+static m_bool init_soundio(struct SioInfo* info) {
   int err;
-  if(!(soundio = soundio_create())) {
+  if(!(info->soundio = soundio_create())) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-  err = (backend == SoundIoBackendNone) ?
-            soundio_connect(soundio) : soundio_connect_backend(soundio, backend);
+  err = (info->backend == SoundIoBackendNone) ?
+            soundio_connect(info->soundio) : soundio_connect_backend(info->soundio, info->backend);
   if(err) {
     fprintf(stderr, "Unable to connect to backend: %s\n", soundio_strerror(err));
     return -1;
   }
-  soundio_flush_events(soundio);
+  soundio_flush_events(info->soundio);
   return 1;
 }
 
-static int get_index() {
+static int get_index(struct SioInfo* info) {
   int selected_device_index = -1;
-  if(device_id) {
-    int device_count = soundio_output_device_count(soundio);
+  if(info->device_id) {
+    int device_count = soundio_output_device_count(info->soundio);
     for(int i = 0; i < device_count; i += 1) {
-      struct SoundIoDevice *device = soundio_get_output_device(soundio, i);
-      bool select_this_one = strcmp(device->id, device_id) == 0 && device->is_raw == raw;
+      struct SoundIoDevice *device = soundio_get_output_device(info->soundio, i);
+      bool select_this_one = strcmp(device->id, info->device_id) == 0 && device->is_raw == info->raw;
       soundio_device_unref(device);
       if(select_this_one) {
         selected_device_index = i;
@@ -187,7 +187,7 @@ static int get_index() {
       }
     }
   } else
-    selected_device_index = soundio_default_output_device_index(soundio);
+    selected_device_index = soundio_default_output_device_index(info->soundio);
   if(selected_device_index < 0) {
     fprintf(stderr, "Output device not found\n");
     return -1;
@@ -195,76 +195,77 @@ static int get_index() {
   return selected_device_index;
 }
 
-static m_bool get_device(int selected_device_index) {
-  out_device = soundio_get_output_device(soundio, selected_device_index);
-  if(!out_device) {
+static m_bool get_device(struct SioInfo* info, int selected_device_index) {
+  info->out_device = soundio_get_output_device(info->soundio, selected_device_index);
+  if(!info->out_device) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-  in_device = soundio_get_input_device(soundio, selected_device_index);
-  if(!in_device) {
+  info->in_device = soundio_get_input_device(info->soundio, selected_device_index);
+  if(!info->in_device) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
   return 1;
 }
 
-static m_bool probe() {
-  if(out_device->probe_error) {
-    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+static m_bool probe(struct SioInfo* info) {
+  if(info->out_device->probe_error) {
+    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(info->out_device->probe_error));
     return -1;
   }
-  if(in_device->probe_error) {
-    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(out_device->probe_error));
+  if(info->in_device->probe_error) {
+    fprintf(stderr, "Cannot probe device: %s\n", soundio_strerror(info->in_device->probe_error));
     return -1;
   }
   return 1;
 }
 
 static m_bool out_create(VM* vm, DriverInfo* di) {
-  struct SioInfo info = { vm, di };
-  outstream = soundio_outstream_create(out_device);
-  if(!outstream) {
+  struct SioInfo* info = (struct SioInfo*)di->data;
+  info->outstream = soundio_outstream_create(info->out_device);
+  if(!info->outstream) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-  outstream->write_callback = write_callback;
-  outstream->underflow_callback = underflow_callback;
-  outstream->name = "Gwion output";
-  outstream->software_latency = 0;
-  outstream->sample_rate = di->sr;
-  outstream->userdata = &info;
+  info->outstream->write_callback = write_callback;
+  info->outstream->underflow_callback = underflow_callback;
+  info->outstream->name = "Gwion output";
+  info->outstream->software_latency = 0;
+  info->outstream->sample_rate = di->sr;
+  info->outstream->userdata = info;
   return 1;
 }
 
 static m_bool in_create(VM* vm, DriverInfo* di) {
-  instream = soundio_instream_create(in_device);
-  if(!instream) {
+  struct SioInfo* info = (struct SioInfo*)di->data;
+  info->instream = soundio_instream_create(info->in_device);
+  if(!info->instream) {
     fprintf(stderr, "out of memory\n");
     return -1;
   }
-  instream->read_callback = read_callback;
-  instream->overflow_callback = overflow_callback;
-  instream->name = "Gwion input";
-  instream->software_latency = 0;
-  instream->sample_rate = di->sr;
-  instream->userdata = vm;
+  info->instream->read_callback = read_callback;
+  info->instream->overflow_callback = overflow_callback;
+  info->instream->name = "Gwion input";
+  info->instream->software_latency = 0;
+  info->instream->sample_rate = di->sr;
+  info->instream->userdata = info;
   return 1;
 }
 
-static m_bool out_format() {
-  if(soundio_device_supports_format(out_device, SoundIoFormatFloat64NE)) {
-    outstream->format = SoundIoFormatFloat64NE;
-    write_sample = write_sample_float64ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatFloat32NE)) {
-    outstream->format = SoundIoFormatFloat32NE;
-    write_sample = write_sample_float32ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatS32NE)) {
-    outstream->format = SoundIoFormatS32NE;
-    write_sample = write_sample_s32ne;
-  } else if(soundio_device_supports_format(out_device, SoundIoFormatS16NE)) {
-    outstream->format = SoundIoFormatS16NE;
-    write_sample = write_sample_s16ne;
+static m_bool out_format(struct SioInfo* info) {
+  if(soundio_device_supports_format(info->out_device, SoundIoFormatFloat64NE)) {
+    info->outstream->format = SoundIoFormatFloat64NE;
+    info->write_sample = write_sample_float64ne;
+  } else if(soundio_device_supports_format(info->out_device, SoundIoFormatFloat32NE)) {
+    info->outstream->format = SoundIoFormatFloat32NE;
+    info->write_sample = write_sample_float32ne;
+  } else if(soundio_device_supports_format(info->out_device, SoundIoFormatS32NE)) {
+    info->outstream->format = SoundIoFormatS32NE;
+    info->write_sample = write_sample_s32ne;
+  } else if(soundio_device_supports_format(info->out_device, SoundIoFormatS16NE)) {
+    info->outstream->format = SoundIoFormatS16NE;
+    info->write_sample = write_sample_s16ne;
   } else {
     fprintf(stderr, "No suitable device format available.\n");
     return -1;
@@ -272,19 +273,19 @@ static m_bool out_format() {
   return 1;
 }
 
-static m_bool in_format() {
-  if(soundio_device_supports_format(in_device, SoundIoFormatFloat64NE)) {
-    instream->format = SoundIoFormatFloat64NE;
-    read_sample = read_sample_float64ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatFloat32NE)) {
-    instream->format = SoundIoFormatFloat32NE;
-    read_sample = read_sample_float32ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatS32NE)) {
-    instream->format = SoundIoFormatS32NE;
-    read_sample = read_sample_s32ne;
-  } else if(soundio_device_supports_format(in_device, SoundIoFormatS16NE)) {
-    instream->format = SoundIoFormatS16NE;
-    read_sample = read_sample_s16ne;
+static m_bool in_format(struct SioInfo* info) {
+  if(soundio_device_supports_format(info->in_device, SoundIoFormatFloat64NE)) {
+    info->instream->format = SoundIoFormatFloat64NE;
+    info->read_sample = read_sample_float64ne;
+  } else if(soundio_device_supports_format(info->in_device, SoundIoFormatFloat32NE)) {
+    info->instream->format = SoundIoFormatFloat32NE;
+    info->read_sample = read_sample_float32ne;
+  } else if(soundio_device_supports_format(info->in_device, SoundIoFormatS32NE)) {
+    info->instream->format = SoundIoFormatS32NE;
+    info->read_sample = read_sample_s32ne;
+  } else if(soundio_device_supports_format(info->in_device, SoundIoFormatS16NE)) {
+    info->instream->format = SoundIoFormatS16NE;
+    info->read_sample = read_sample_s16ne;
   } else {
     fprintf(stderr, "No suitable device format available.\n");
     return -1;
@@ -292,69 +293,77 @@ static m_bool in_format() {
   return 1;
 }
 
-static m_bool open_stream() {
+static m_bool open_stream(struct SioInfo* info) {
   int err;
-  if((err = soundio_outstream_open(outstream))) {
+  if((err = soundio_outstream_open(info->outstream))) {
     fprintf(stderr, "unable to open output device: %s", soundio_strerror(err));
     return -1;
   }
-  if((err = soundio_instream_open(instream))) {
+  if((err = soundio_instream_open(info->instream))) {
     fprintf(stderr, "unable to open input device: %s", soundio_strerror(err));
     return -1;
   }
   return 1;
 }
 
-static m_bool check_layout() {
-  if(outstream->layout_error) {
+static m_bool check_layout(struct SioInfo* info) {
+  if(info->outstream->layout_error) {
     fprintf(stderr, "unable to set output channel layout: %s\n",
-        soundio_strerror(outstream->layout_error));
+        soundio_strerror(info->outstream->layout_error));
     return -1;
   }
-  if(instream->layout_error) {
+  if(info->instream->layout_error) {
     fprintf(stderr, "unable to set input channel layout: %s\n",
-        soundio_strerror(instream->layout_error));
+        soundio_strerror(info->instream->layout_error));
     return -1;
   }
   return 1;
 }
 
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
-  device_id = di->card;
-  CHECK_BB(init_soundio())
-  int selected_device_index = get_index();
+  struct SioInfo* info = calloc(1, sizeof(struct SioInfo));
+  info->vm = vm;
+  info->di = di;
+  info->device_id = di->card;
+  info->backend = SoundIoBackendNone;
+  di->data = info;
+  CHECK_BB(init_soundio(info))
+  int selected_device_index = get_index(info);
   CHECK_BB(selected_device_index)
-  CHECK_BB(get_device(selected_device_index))
-  CHECK_BB(probe())
+  CHECK_BB(get_device(info, selected_device_index))
+  CHECK_BB(probe(info))
   CHECK_BB(out_create(vm, di))
   CHECK_BB(in_create(vm, di))
-  CHECK_BB(out_format())
-  CHECK_BB(in_format())
-  CHECK_BB(open_stream())
-  CHECK_BB(check_layout())
+  CHECK_BB(out_format(info))
+  CHECK_BB(in_format(info))
+  CHECK_BB(open_stream(info))
+  CHECK_BB(check_layout(info))
   return 1;
 }
 
-static void sio_run(VM* vm, DriverInfo* info) {
+static void sio_run(VM* vm, DriverInfo* di) {
+  struct SioInfo* info = (struct SioInfo*)di->data;
   int err;
-  if((err = soundio_instream_start(instream))) {
+  if((err = soundio_instream_start(info->instream))) {
     fprintf(stderr, "unable to start input device: %s\n", soundio_strerror(err));
     return;
   }
-  if((err = soundio_outstream_start(outstream))) {
+  if((err = soundio_outstream_start(info->outstream))) {
     fprintf(stderr, "unable to start ouput device: %s\n", soundio_strerror(err));
     return;
   }
   while(vm->is_running)
-    soundio_flush_events(soundio);
+    soundio_flush_events(info->soundio);
 }
 
 static void sio_del(VM* vm, DriverInfo* di) {
-  soundio_outstream_destroy(outstream);
-  soundio_instream_destroy(instream);
-  soundio_device_unref(in_device);
-  soundio_device_unref(out_device);
-  soundio_destroy(soundio);
+  struct SioInfo* info = (struct SioInfo*)di->data;
+  soundio_outstream_destroy(info->outstream);
+  soundio_instream_destroy(info->instream);
+  soundio_device_unref(info->in_device);
+  soundio_device_unref(info->out_device);
+  soundio_destroy(info->soundio);
+  free(info);
 }
 
 void sio_driver(Driver* d) {
