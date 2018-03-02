@@ -53,9 +53,9 @@ static m_bool init_client(VM* vm, struct JackInfo* info) {
   jack_status_t status;
   info->client = jack_client_open("Gwion", JackNullOption, &status, NULL);
   if(!info->client) {
-    fprintf(stderr, "jack_client_open() failed, status = 0x%2.0x\n", status);
+    gw_err("jack_client_open() failed, status = 0x%2.0x\n", status);
     if(status & JackServerFailed)
-      fprintf(stderr, "Unable to connect to JACK server\n");
+      gw_err("Unable to connect to JACK server\n");
     return -1;
   }
   info->vm = vm;
@@ -73,7 +73,7 @@ static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
     if(!(port[chan] = jack_port_register(info->client, chan_name,
         JACK_DEFAULT_AUDIO_TYPE, input ?
         JackPortIsInput : JackPortIsOutput , chan))) {
-      fprintf(stderr, "no more JACK %s ports available\n", input ?
+      gw_err("no more JACK %s ports available\n", input ?
           "input" : "output");
       return -1;
     }
@@ -101,7 +101,7 @@ static m_bool connect_ports(struct JackInfo* info, const char** ports,
     const char* l = input ? ports[chan] : jack_port_name(jport[chan]);
     const char* r = input ? jack_port_name(jport[chan]) : ports[chan];
     if(jack_connect(info->client, l, r)) {
-      fprintf(stderr, "cannot connect %s ports\n", input ? "input" : "output");
+      gw_err("cannot connect %s ports\n", input ? "input" : "output");
       return -1;
     }
   }
@@ -122,7 +122,7 @@ static m_bool init_ports(struct JackInfo* info, m_uint nchan, m_bool input) {
 static void jack_run(VM* vm, DriverInfo* di) {
   struct JackInfo* info = (struct JackInfo*)di->data;
   if(jack_activate(info->client)) {
-    fprintf(stderr, "cannot activate client\n");
+    gw_err("cannot activate client\n");
     return;
   }
   if(init_ports(info, di->out, 0) < 0 || init_ports(info, di->in,  1) < 0)

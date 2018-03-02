@@ -2,6 +2,7 @@
 #include <string.h>
 #include "vm.h"
 #include "driver.h"
+#include "err_msg.h"
 
 static m_bool spa_ini(VM* vm, DriverInfo* di) {
   di->data = malloc(sizeof(sp_audio));
@@ -14,7 +15,7 @@ static void spa_run(VM* vm, DriverInfo* di) {
   sp_audio* spa = di->data;
   sprintf(tmp, "%s.spa", di->card);
   if(spa_open(vm->sp, spa, tmp, SPA_WRITE) == SP_NOT_OK) {
-    fprintf(stderr, "Error: could not open file %s.\n", di->card);
+    gw_err("Error: could not open file %s.\n", di->card);
     return;
   }
   while(vm->is_running) {

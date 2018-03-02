@@ -51,7 +51,7 @@ static OP_CHECK(opck_ptr_assign) {
   return &t_null;
 }
 
-static INSTR(instr_ptr_assign) {
+static INSTR(instr_ptr_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2)
   M_Object o = *(M_Object*)REG(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
@@ -79,7 +79,7 @@ static OP_CHECK(opck_implicit_ptr) {
   return NULL;
 }
 
-static INSTR(instr_ptr_deref) {
+static INSTR(instr_ptr_deref) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = *(M_Object*)REG(0);
   if(instr->m_val2)
@@ -97,7 +97,7 @@ static OP_EMIT(opem_ptr_deref) {
   return 1;
 }
 
-INSTR(Cast2Ptr) {
+INSTR(Cast2Ptr) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = new_M_Object(shred);
   o->data = malloc(SZ_INT);

@@ -169,7 +169,7 @@ static void do_disconnect(UGen lhs, UGen rhs) {
     disconnect(lhs, rhs);
 }
 
-static INSTR(ugen_connect) {
+static INSTR(ugen_connect) { GWDEBUG_INSTR
   M_Object lhs, rhs;
 
   if(connect_init(shred, &lhs, &rhs) < 0)
@@ -179,7 +179,7 @@ static INSTR(ugen_connect) {
   release_connect(shred);
 }
 
-static INSTR(ugen_disconnect) {
+static INSTR(ugen_disconnect) { GWDEBUG_INSTR
   M_Object lhs, rhs;
 
   if(connect_init(shred, &lhs, &rhs) < 0)
@@ -189,7 +189,7 @@ static INSTR(ugen_disconnect) {
   release_connect(shred);
 }
 
-static INSTR(trig_connect) {
+static INSTR(trig_connect) { GWDEBUG_INSTR
   M_Object lhs, rhs;
 
   if(connect_init(shred, &lhs, &rhs) < 0)
@@ -199,7 +199,7 @@ static INSTR(trig_connect) {
   release_connect(shred);
 }
 
-static INSTR(trig_disconnect) {
+static INSTR(trig_disconnect) { GWDEBUG_INSTR
   M_Object lhs, rhs;
 
   if(connect_init(shred, &lhs, &rhs) < 0)

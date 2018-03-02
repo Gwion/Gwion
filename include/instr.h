@@ -1,5 +1,11 @@
 #include "lang.h"
 
+#ifdef  CURSES
+#define GWDEBUG_INSTR gw_exe((const m_str)__func__, "(%s:%i)\n", __FILE__, __LINE__);
+#else
+#define GWDEBUG_INSTR
+#endif
+
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;
@@ -10,8 +16,8 @@
 #define INSTR(a) __attribute__((hot, nonnull(1, 2)))\
 void a(VM* vm, VM_Shred shred, Instr instr)
 #define MEM_STEP 16
-#define SIZEOF_MEM 0x1 << MEM_STEP
-#define SIZEOF_REG 0x1 << 14
+#define SIZEOF_MEM (0x1 << MEM_STEP)
+#define SIZEOF_REG (0x1 << 14)
 
 struct Instr_ {
   void (*execute)(VM* vm, VM_Shred shred, Instr instr);

@@ -4,6 +4,7 @@ IS          (u|U|l|L)*
 #include "absyn.h"
 #include "scanner.h"
 #include "parser.h"
+#include "err_msg.h"
 
 static char* strip_lit(char* str);
 static char* alloc_str(char* str);
@@ -153,7 +154,7 @@ static int adjust(void* data);
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "err_msg.h"
+//#include "err_msg.h"
 
 char* strip_lit(char* str){
   str[strlen(str)-1] = '\0';

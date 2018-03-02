@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdio.h>
 #include "vm.h"
+#include "err_msg.h"
 #include "driver.h"
 
 m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
@@ -78,7 +79,7 @@ void select_driver(DriverInfo* di, const m_str d) {
   }
 #endif
   else
-    fprintf(stderr, "invalid driver specified. using default.\n");
+    gw_err("invalid driver specified. using default.\n");
 }
 
 void select_backend(DriverInfo* di, const m_str d) {

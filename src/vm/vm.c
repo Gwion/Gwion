@@ -2,10 +2,15 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include "vm.h"
+#include "err_msg.h"
 #include "type.h"
 #include "instr.h"
 #include "ugen.h"
 #include "shreduler_private.h"
+
+#ifdef CURSES
+extern void gw_shred(VM_Shred shred);
+#endif
 
 Shreduler new_shreduler(VM* vm);
 Shreduler free_shreduler(Shreduler s);
@@ -62,8 +67,11 @@ static inline void vm_run_shred(VM* vm, const Shreduler s) {
       instr->execute(vm, shred, instr);
 #ifdef DEBUG_STACK
     if(s->curr)
-        fprintf(stderr, "shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid,
+        gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid,
         shred->mem - shred->_mem, shred->reg - shred->_reg);
+#endif
+#ifdef CURSES
+      gw_shred(s->curr);
 #endif
     }
   }

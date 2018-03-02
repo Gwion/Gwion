@@ -12,6 +12,15 @@ emit_src := $(wildcard src/emit/*.c)
 drvr_src := src/drvr/driver.c
 
 # add libraries
+ifeq (${CURSES_DEBUG}, 1)
+$(msg compile debug)
+#CURSES_DEBUG=1
+DEBUG_STACK=0
+CFLAGS+=-DCURSES
+LDFLAGS+=-lcurses
+CFLAGS+=-DD_FUNC=dummy_driver
+drvr_src +=src/drvr/dummy.c
+else
 ifeq (${DUMMY_D}, 1)
 CFLAGS +=-DHAVE_DUMMY
 drvr_src +=src/drvr/dummy.c
@@ -19,11 +28,6 @@ endif
 ifeq (${SPA_D}, 1)
 CFLAGS +=-DHAVE_SPA
 drvr_src +=src/drvr/spa.c
-endif
-ifeq (${SNDFILE_D}, 1)
-LDFLAGS += -lsndfile
-CFLAGS +=-DHAVE_SNDFILE
-drvr_src +=src/drvr/sndfile.c
 endif
 ifeq (${ALSA_D}, 1)
 LDFLAGS += -lasound
@@ -50,7 +54,12 @@ LDFLAGS += -lpulse-simple
 CFLAGS +=-DHAVE_PULSE
 drvr_src +=src/drvr/pulse.c
 endif
-
+endif
+ifeq (${SNDFILE_D}, 1)
+LDFLAGS += -lsndfile
+CFLAGS +=-DHAVE_SNDFILE
+drvr_src +=src/drvr/sndfile.c
+endif
 # add boolean
 ifeq (${USE_COVERAGE}, 1)
 CFLAGS += -ftest-coverage -fprofile-arcs
@@ -103,7 +112,7 @@ ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: config.mk generated.h options ${GW_OBJ}
+all: generated.h options ${GW_OBJ}
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${LDFLAGS} -o ${PRG}
 
@@ -164,3 +173,6 @@ gwtag: ${TOOL_OBJ} utils/gwtag.o
 
 directories:
 	mkdir -p ${PREFIX} ${GWION_ADD_DIR}
+
+gwdebug:
+	CURSES_DEBUG=1 PRG=gwdbg make

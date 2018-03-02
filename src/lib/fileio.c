@@ -34,7 +34,7 @@ DTOR(static_fileio_dtor) {
   IO_FILE(o) = NULL;
 }
 
-static INSTR(int_to_file) {
+static INSTR(int_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   CHECK_FIO(o)
@@ -43,7 +43,7 @@ static INSTR(int_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(float_to_file) {
+static INSTR(float_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   o = **(M_Object**)REG(0);
@@ -54,7 +54,7 @@ static INSTR(float_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(string_to_file) {
+static INSTR(string_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -65,7 +65,7 @@ static INSTR(string_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(object_to_file) {
+static INSTR(object_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
@@ -76,7 +76,7 @@ static INSTR(object_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(complex_to_file) {
+static INSTR(complex_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
@@ -86,7 +86,7 @@ static INSTR(complex_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(polar_to_file) {
+static INSTR(polar_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
@@ -96,7 +96,7 @@ static INSTR(polar_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(vec3_to_file) {
+static INSTR(vec3_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
@@ -107,7 +107,7 @@ static INSTR(vec3_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(vec4_to_file) {
+static INSTR(vec4_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
@@ -118,7 +118,7 @@ static INSTR(vec4_to_file) {
   *(M_Object*)REG(- SZ_INT) = o;
 }
 
-static INSTR(file_to_int) {
+static INSTR(file_to_int) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   int ret;
   M_Object o = *(M_Object*)REG(- SZ_INT);
@@ -135,7 +135,7 @@ static INSTR(file_to_int) {
     Except(shred, "EmptyFileException");
 }
 
-static INSTR(file_to_float) {
+static INSTR(file_to_float) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   float ret;
   M_Object o = *(M_Object*)REG(-SZ_INT);
@@ -169,7 +169,7 @@ m_bool inputAvailable(FILE* f)
   return (FD_ISSET(0, &fds));
 }
 */
-static INSTR(file_to_string) {
+static INSTR(file_to_string) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o    = *(M_Object*)REG(- SZ_INT);
   M_Object s    = **(M_Object**)REG(0);

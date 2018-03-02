@@ -1,0 +1,3 @@
+// [contains] NullEventWait
+Event @e;
+e => now;

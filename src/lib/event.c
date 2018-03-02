@@ -1,4 +1,5 @@
 #include "type.h"
+#include "err_msg.h"
 #include "instr.h"
 #include "import.h"
 
@@ -14,7 +15,7 @@ static DTOR(event_dtor) {
   free_vector(EV_SHREDS(o));
 }
 
-static INSTR(Event_Wait) {
+static INSTR(Event_Wait) { GWDEBUG_INSTR
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)REG(0);

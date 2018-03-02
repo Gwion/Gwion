@@ -236,7 +236,6 @@ struct VecInfo {
 };
 
 static void vec_info(ae_Exp_Primary_Type t, struct VecInfo* v) {
-printf("%lu\n", v->n);
   if(t == ae_primary_vec) {
     v->t = v->n == 4 ? &t_vec4 : &t_vec3;
     v->n = 4;
@@ -524,26 +523,26 @@ free(tmpl_name);
 }
 
 static void print_current_args(Exp e) {
-  fprintf(stderr, "and not");
-  fprintf(stderr, "\n\t");
+  gw_err("and not");
+  gw_err("\n\t");
   while(e) {
-    fprintf(stderr, " \033[32m%s\033[0m", e->type->name);
+    gw_err(" \033[32m%s\033[0m", e->type->name);
     if(e->type->array_depth)
       REM_REF(e->type)
     e = e->next;
     if(e)
-      fprintf(stderr, ",");
+      gw_err(",");
   }
-  fprintf(stderr, "\n");
+  gw_err("\n");
 }
 
 static void print_arg(Arg_List e) {
   while(e) {
-    fprintf(stderr, " \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
+    gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
         s_name(e->var_decl->xid));
     e = e->next;
     if(e)
-      fprintf(stderr, ",");
+      gw_err(",");
   }
 }
 
@@ -552,12 +551,12 @@ static void* function_alternative(Type f, Exp args){
   Func up = f->d.func;
   while(up) {
     Arg_List e = up->def->arg_list;
-    fprintf(stderr, "\t");
+    gw_err("\t");
     if(!e)
-      fprintf(stderr, "\033[32mvoid\033[0m");
+      gw_err("\033[32mvoid\033[0m");
     print_arg(e);
     up = up->next;
-    fprintf(stderr, ". (%s)\n%s", f->name, up ? "or :" : "");
+    gw_err(". (%s)\n%s", f->name, up ? "or :" : "");
   }
   print_current_args(args);
   return NULL;

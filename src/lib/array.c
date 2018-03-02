@@ -108,7 +108,7 @@ MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY(o)->cap;
 }
 
-INSTR(Array_Append) {
+INSTR(Array_Append) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + instr->m_val);
   M_Object o = *(M_Object*)REG(0);
   m_vector_add(ARRAY(o), REG(SZ_INT));
@@ -209,14 +209,14 @@ m_bool import_array(Gwi gwi) {
   return 1;
 }
 
-INSTR(Instr_Pre_Ctor_Array_Top) {
+INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_INSTR
   if(*(m_uint*)REG(-SZ_INT * 2) >= *(m_uint*)REG(-SZ_INT))
     shred->next_pc = instr->m_val;
   else
     instantiate_object(vm, shred, *(Type*)instr->ptr);
 }
 
-INSTR(Instr_Pre_Ctor_Array_Bottom) {
+INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_INSTR
   POP_REG(shred,  SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   m_uint * array = *(m_uint**)REG(-SZ_INT * 3);
@@ -226,7 +226,7 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) {
   shred->next_pc = instr->m_val;
 }
 
-INSTR(Instr_Pre_Ctor_Array_Post) {
+INSTR(Instr_Pre_Ctor_Array_Post) { GWDEBUG_INSTR
   POP_REG(shred,  SZ_INT * 3);
   m_uint* array = *(m_uint**)REG(0);
   if(array && array != (m_uint*)1) // shit happens (array pluin extend related)
@@ -245,13 +245,13 @@ struct ArrayAllocInfo {
 static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
   M_Object base;
   if(cap < 0) {
-    fprintf(stderr, "[gwion](VM): NegativeArraySize: while allocating arrays...\n");
+    gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
   base = new_M_Array(info->type, info->capacity >= info->top ?
       info->base->size : SZ_INT, cap, -info->capacity);
   if(!base) {
-    fprintf(stderr, "[gwion](VM): OutOfMemory: while allocating arrays...\n");
+    gw_err("[gwion](VM): OutOfMemory: while allocating arrays...\n");
     return NULL;
   }
   ADD_REF(info->type);
@@ -300,7 +300,7 @@ static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
   return base;
 }
 
-INSTR(Instr_Array_Init) { // for litteral array
+INSTR(Instr_Array_Init) { GWDEBUG_INSTR // for litteral array
   m_uint i;
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object obj;
@@ -329,7 +329,7 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
   return (m_uint*)1;
 }
 
-INSTR(Instr_Array_Alloc) {
+INSTR(Instr_Array_Alloc) { GWDEBUG_INSTR
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object ref;
   m_uint num_obj = 0;
@@ -357,9 +357,9 @@ INSTR(Instr_Array_Alloc) {
   return;
 
 out_of_memory:
-  fprintf(stderr, "[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
+  gw_err("[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
 error:
-  fprintf(stderr, "[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->xid, shred->name);
+  gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->xid, shred->name);
   vm_shred_exit(shred);
 }
 
@@ -382,7 +382,7 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
 #define OOB(shred, obj, i)  if(i < 0 || i >=  ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
-INSTR(Instr_Array_Access) {
+INSTR(Instr_Array_Access) { GWDEBUG_INSTR
   m_int i = 0;
   M_Object obj;
   POP_REG(shred,  SZ_INT * 2);
@@ -393,7 +393,7 @@ INSTR(Instr_Array_Access) {
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }
 
-INSTR(Instr_Array_Access_Multi) {
+INSTR(Instr_Array_Access_Multi) { GWDEBUG_INSTR
   m_int i, j;
   POP_REG(shred,  SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)REG(0);

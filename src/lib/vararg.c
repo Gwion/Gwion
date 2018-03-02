@@ -11,7 +11,7 @@ struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object };
 struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_vararg };
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT };
 
-INSTR(Vararg_start) {
+INSTR(Vararg_start) { GWDEBUG_INSTR
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
@@ -25,7 +25,7 @@ INSTR(Vararg_start) {
   *(m_uint*)REG(- SZ_INT) = 0;
 }
 
-INSTR(MkVararg) {
+INSTR(MkVararg) { GWDEBUG_INSTR
   POP_REG(shred,  instr->m_val);
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;
@@ -47,7 +47,7 @@ INSTR(MkVararg) {
   PUSH_REG(shred,  SZ_INT);
 }
 
-INSTR(Vararg_end) {
+INSTR(Vararg_end) { GWDEBUG_INSTR
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   arg->o += arg->k[arg->i];
   PUSH_REG(shred, SZ_INT);
@@ -62,7 +62,7 @@ INSTR(Vararg_end) {
   }
 }
 
-INSTR(Vararg_Member) {
+INSTR(Vararg_Member) { GWDEBUG_INSTR
   struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
   memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
@@ -73,7 +73,7 @@ static OP_CHECK(at_varobj) {
   return bin->rhs->type;
 }
 
-INSTR(varobj_assign) {
+INSTR(varobj_assign) { GWDEBUG_INSTR
   POP_REG(shred, 2 * SZ_INT);
   *(M_Object**)REG(SZ_INT) = &*(M_Object*)REG(0);
   PUSH_REG(shred, SZ_INT);

@@ -43,7 +43,7 @@ static m_bool ini(VM* vm, DriverInfo* di) {
     return -1;
   info->outputParameters.device = Pa_GetDefaultOutputDevice();
   if(info->outputParameters.device == paNoDevice) {
-    fprintf(stderr, "Error: No default output device.\n");
+    gw_err("Error: No default output device.\n");
     goto error;
   }
   info->outputParameters.channelCount = 2;
@@ -53,7 +53,7 @@ static m_bool ini(VM* vm, DriverInfo* di) {
 
   info->inputParameters.device = Pa_GetDefaultInputDevice(); /* default output device */
   if(info->inputParameters.device == paNoDevice) {
-    fprintf(stderr, "Error: No default input device.\n");
+    gw_err("Error: No default input device.\n");
     goto error;
   }
   info->inputParameters.channelCount = 2;

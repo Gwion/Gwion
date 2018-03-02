@@ -3350,7 +3350,7 @@ yyreduce:
 
   case 216:
 #line 488 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) =                       (yyvsp[-1].exp);                    }
+    { (yyval.exp) =                      (yyvsp[-1].exp);                }
 #line 3355 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 

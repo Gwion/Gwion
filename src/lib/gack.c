@@ -2,6 +2,7 @@
 #include <string.h>
 #include <complex.h>
 #include "type.h"
+#include "err_msg.h"
 #include "instr.h"
 
 #ifdef COLOR
@@ -28,55 +29,55 @@ static void print_type(Type type) {
   m_bool is_func = isa(type, &t_function) > 0 && isa(type, &t_func_ptr) < 0;
   m_str name;
   name = is_func ? strdup("@function") : strdup(type->name);
-  fprintf(stdout, BOLD "(" GREEN "%s" CLEAR BOLD, name);
-  fprintf(stdout, ") " CLEAR);
+  gw_out(BOLD "(" GREEN "%s" CLEAR BOLD, name);
+  gw_out(") " CLEAR);
   free(name);
   if(GET_FLAG(type, ae_flag_typedef)) {
-    fprintf(stdout, " aka ");
+    gw_out(" aka ");
     print_type(type->parent);
   }
 }
 
 static void print_int(m_int i) {
-  fprintf(stdout, BOLD "%" INT_F "" CLEAR , i);
+  gw_out(BOLD "%" INT_F "" CLEAR , i);
 }
 
 static void print_float(m_float f) {
-  fprintf(stdout, BOLD "%.4f" CLEAR, f);
+  gw_out(BOLD "%.4f" CLEAR, f);
 }
 
 
 static void print_complex_inner(m_complex c) {
   print_float(creal(c));
-  fprintf(stdout, ", ");
+  gw_out(", ");
   print_float(cimag(c));
 }
 
 static void print_complex(m_complex c) {
-  fprintf(stdout, "#(");
+  gw_out("#(");
   print_complex_inner(c);
-  fprintf(stdout, ")");
+  gw_out(")");
 }
 
 static void print_polar(m_complex c) {
-  fprintf(stdout, "%%(");
+  gw_out("%%(");
   print_complex_inner(c);
-  fprintf(stdout, "*pi)");
+  gw_out("*pi)");
 }
 
 static void print_vec(char* f, m_uint size) {
   m_uint i;
-  fprintf(stdout, "@(");
+  gw_out("@(");
   for(i = 0; i < size; i++) {
     print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
     if(i < size - 1)
-      fprintf(stdout, ", ");
+      gw_out(", ");
   }
-  fprintf(stdout, ")");
+  gw_out(")");
 }
 
 static void print_string1(m_str str) {
-  fprintf(stdout, BOLD "%s" CLEAR, str);
+  gw_out(BOLD "%s" CLEAR, str);
 }
 
 static void print_string(M_Object obj) {
@@ -87,14 +88,14 @@ static void print_object(Type type, M_Object obj) {
   if(isa(type, &t_string) > 0)
     print_string(obj);
   else
-    fprintf(stdout, BOLD "%p" CLEAR, (void*)obj);
+    gw_out(BOLD "%p" CLEAR, (void*)obj);
 }
 
 static void print_func(Type type, char* stack) {
     if(isa(type, &t_func_ptr) > 0)
-      fprintf(stdout, BOLD "%p" CLEAR, (void*) * (Func*)stack);
+      gw_out(BOLD "%p" CLEAR, (void*) * (Func*)stack);
     else
-      fprintf(stdout, BOLD "%s" CLEAR, type->name);
+      gw_out(BOLD "%s" CLEAR, type->name);
 }
 
 static void print_prim(Type type, char* stack) {
@@ -112,7 +113,7 @@ static void print_prim(Type type, char* stack) {
      print_float(*(m_float*)stack);
 }
 
-INSTR(Gack) {
+INSTR(Gack) { GWDEBUG_INSTR
   Type type;
   Vector v = *(Vector*)instr->ptr;
   m_uint i, size = vector_size(v);
@@ -132,8 +133,8 @@ INSTR(Gack) {
     else
       print_prim(type, REG(0));
     if(i > 1)
-      fprintf(stdout, ", " CLEAR);
+      gw_out(", " CLEAR);
     PUSH_REG(shred,  type->size);
   }
-  fprintf(stdout, CLEAR"\n");
+  gw_out(CLEAR"\n");
 }

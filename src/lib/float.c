@@ -11,14 +11,14 @@ struct Type_ t_dur   = { "dur",   SZ_FLOAT };
 struct Type_ t_time  = { "time",  SZ_FLOAT };
 struct Type_ t_now   = { "@now",  SZ_FLOAT };
 
-static INSTR(float_assign) {
+static INSTR(float_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe(name, op) \
-INSTR(float_##name) { \
+INSTR(float_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_FLOAT); \
   *(m_float*)REG(-SZ_FLOAT) op##= *(m_float*)REG(0); \
 }
@@ -29,7 +29,7 @@ describe(times, *)
 static describe(divide, /)
 
 #define describe_logical(name, op) \
-static INSTR(float_##name) { \
+static INSTR(float_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_FLOAT * 2); \
   *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_float*)REG(SZ_FLOAT)); \
   PUSH_REG(shred, SZ_INT); \
@@ -43,26 +43,26 @@ describe_logical(ge,  >=)
 describe_logical(lt,   <)
 describe_logical(le,  <=)
 
-INSTR(float_negate) {
+INSTR(float_negate) { GWDEBUG_INSTR
   POP_REG(shred, SZ_FLOAT)
     *(m_float*)REG(0) = -*(m_float*)REG(0);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-INSTR(float_not) {
+INSTR(float_not) { GWDEBUG_INSTR
   POP_REG(shred, SZ_FLOAT)
     *(m_int*)REG(0) = !*(m_float*)REG(0);
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(float_r_assign) {
+static INSTR(float_r_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   **(m_float**)REG(SZ_FLOAT) = *(m_float*)REG(0);
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe_r(name, op) \
-static INSTR(float_r_##name) { \
+static INSTR(float_r_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_FLOAT + SZ_INT); \
   *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
   PUSH_REG(shred, SZ_FLOAT); \
@@ -73,14 +73,14 @@ describe_r(minus,  -)
 describe_r(times,  *)
 describe_r(divide, /)
 
-static INSTR(int_float_assign) {
+static INSTR(int_float_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_int*)REG(0) = (**(m_int**)REG(0) = *(m_float*)REG(SZ_INT));
   PUSH_REG(shred, SZ_INT);
 }
 
 #define describe_if(name, op) \
-static INSTR(int_float_##name) { \
+static INSTR(int_float_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_INT + SZ_FLOAT); \
   *(m_float*)REG(0) = *(m_int*)REG(0) op *(m_float*)REG(SZ_INT); \
   PUSH_REG(shred, SZ_FLOAT); \
@@ -91,7 +91,7 @@ describe_if(times,  *)
 describe_if(divide, /)
 
 #define describe_logical_if(name, op) \
-static INSTR(int_float_##name) { \
+static INSTR(int_float_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_INT + SZ_FLOAT); \
   *(m_int*)REG(0) = (*(m_int*)REG(0) op *(m_float*)REG(SZ_INT)); \
   PUSH_REG(shred, SZ_INT); \
@@ -106,7 +106,7 @@ describe_logical_if(lt,   <)
 describe_logical_if(le,  <=)
 
 #define describe_r_if(name, op) \
-static INSTR(int_float_r_##name) { \
+static INSTR(int_float_r_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_INT * 2); \
   *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) op##= *(m_int*)REG(0)); \
   PUSH_REG(shred, SZ_FLOAT); \
@@ -117,14 +117,14 @@ describe_r_if(minus,  -)
 describe_r_if(times,  *)
 describe_r_if(divide, /)
 
-static INSTR(float_int_assign) {
+static INSTR(float_int_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_int*)REG(SZ_INT));
   PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe_fi(name, op) \
-static INSTR(float_int_##name) { \
+static INSTR(float_int_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_FLOAT + SZ_INT); \
   *(m_float*)REG(0) op##= *(m_int*)REG(SZ_FLOAT); \
   PUSH_REG(shred, SZ_FLOAT); \
@@ -135,7 +135,7 @@ describe_fi(times,  *)
 describe_fi(divide, /)
 
 #define describe_logical_fi(name, op) \
-static INSTR(float_int_##name) { \
+static INSTR(float_int_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_FLOAT + SZ_INT); \
   *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_int*)REG(SZ_FLOAT)); \
   PUSH_REG(shred, SZ_INT); \
@@ -149,7 +149,7 @@ describe_logical_fi(ge,  >=)
 describe_logical_fi(lt,   <)
 describe_logical_fi(le,  <=)
 
-static INSTR(float_int_r_assign) {
+static INSTR(float_int_r_assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_FLOAT + SZ_INT);
   **(m_int**)REG(SZ_FLOAT) = *(m_float*)REG(0);
   *(m_int*)REG(0) = **(m_int**)REG(SZ_FLOAT);
@@ -157,7 +157,7 @@ static INSTR(float_int_r_assign) {
 }
 
 #define describe_r_fi(name, op) \
-static INSTR(float_int_r_##name) { \
+static INSTR(float_int_r_##name) { GWDEBUG_INSTR \
   POP_REG(shred, SZ_INT + SZ_FLOAT); \
   *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
   PUSH_REG(shred, SZ_INT); \
@@ -167,7 +167,7 @@ describe_r_fi(minus,  -)
 describe_r_fi(times,  *)
 describe_r_fi(divide, /)
 
-static INSTR(Time_Advance) {
+static INSTR(Time_Advance) { GWDEBUG_INSTR
   POP_REG(shred, SZ_FLOAT);
   m_float f = *(m_float*)REG(-SZ_FLOAT);
   *(m_float*)REG(-SZ_FLOAT) = (shred->wake_time += f);
@@ -234,14 +234,14 @@ static OP_EMIT(opem_f2i) {
   return 1;
 }
 
-INSTR(Cast_i2f) {
+INSTR(Cast_i2f) { GWDEBUG_INSTR
   POP_REG(shred,  SZ_INT);
   *(m_float*)REG(0) = *(m_int*)REG(0);
   PUSH_REG(shred,  SZ_FLOAT);
 }
 
 
-INSTR(Cast_f2i) {
+INSTR(Cast_f2i) { GWDEBUG_INSTR
   POP_REG(shred,  SZ_FLOAT);
   *(m_int*)REG(0) = *(m_float*)REG(0);
   PUSH_REG(shred,  SZ_INT);

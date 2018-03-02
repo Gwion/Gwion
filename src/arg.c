@@ -4,6 +4,7 @@
 #include <string.h>
 #include "defs.h"
 #include "map.h"
+#include "err_msg.h"
 #include "map_private.h"
 #include "arg.h"
 #include "vm.h"
@@ -166,10 +167,10 @@ void parse_args(Arg* arg, DriverInfo* di) {
       arg_udp(arg->udp, i);
     else switch(i) {
       case '?':
-        fprintf(stderr, usage);
+        gw_err(usage);
         exit(0);
       case 'C':
-        fprintf(stderr, "CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
+        gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
         arg->quit = 1;
         break;
       case 'q':

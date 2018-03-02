@@ -208,7 +208,7 @@ VM_Array_Info*  emit_array_extend_inner(Emitter emit, Type t, Exp e) {
   return info;
 }
 
-static INSTR(pop_array_class) {
+static INSTR(pop_array_class) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT);
   M_Object obj = *(M_Object*)REG(-SZ_INT);
   M_Object tmp = *(M_Object*)REG(0);
@@ -1486,12 +1486,22 @@ static m_bool emit_stmt_exp(Emitter emit, struct Stmt_Exp_* exp, m_bool pop) {
   }
  return ret;
 }
-
+#ifdef CURSES
+static INSTR(dbg_pos) {
+  gw_pos(instr->m_val);
+}
+#endif
 static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
   if(!stmt)
     return 1;
   if(stmt->stmt_type != ae_stmt_if || stmt->stmt_type != ae_stmt_while)
     COVERAGE(stmt)
+#ifdef CURSES
+{
+  Instr instr = emitter_add_instr(emit, dbg_pos);
+  instr->m_val = stmt->pos;
+}
+#endif
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
       return emit_stmt_exp(emit, &stmt->d.stmt_exp, pop);

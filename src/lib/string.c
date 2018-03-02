@@ -25,7 +25,7 @@ static void push_new_string(VM_Shred shred, m_str c) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(String_Assign) {
+static INSTR(String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -38,7 +38,7 @@ static INSTR(String_Assign) {
   PUSH_REG(shred, SZ_INT);
 }
 
-static INSTR(String_eq) {
+static INSTR(String_eq) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -48,7 +48,7 @@ static INSTR(String_eq) {
   release(rhs, shred);
 }
 
-static INSTR(String_neq) {
+static INSTR(String_neq) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -59,7 +59,7 @@ static INSTR(String_neq) {
   release(rhs, shred);
 }
 
-static INSTR(Int_String_Assign) {
+static INSTR(Int_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -70,7 +70,7 @@ static INSTR(Int_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Float_String_Assign) {
+static INSTR(Float_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
@@ -81,7 +81,7 @@ static INSTR(Float_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Complex_String_Assign) {
+static INSTR(Complex_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex lhs = *(m_complex*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -92,7 +92,7 @@ static INSTR(Complex_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Polar_String_Assign) {
+static INSTR(Polar_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex lhs = *(m_complex*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -104,7 +104,7 @@ static INSTR(Polar_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Vec3_String_Assign) {
+static INSTR(Vec3_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3 lhs = *(m_vec3*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC3);
@@ -115,7 +115,7 @@ static INSTR(Vec3_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Vec4_String_Assign) {
+static INSTR(Vec4_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4 lhs = *(m_vec4*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC4);
@@ -126,7 +126,7 @@ static INSTR(Vec4_String_Assign) {
   push_string(shred, rhs, str);
 }
 
-static INSTR(Object_String_Assign) {
+static INSTR(Object_String_Assign) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -139,7 +139,7 @@ static INSTR(Object_String_Assign) {
   release(lhs, shred);
 }
 
-static INSTR(String_String) {
+static INSTR(String_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -150,7 +150,7 @@ static INSTR(String_String) {
   release(lhs, shred);
 }
 
-static INSTR(Int_String) {
+static INSTR(Int_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -160,7 +160,7 @@ static INSTR(Int_String) {
   release(rhs, shred);
 }
 
-static INSTR(Float_String) {
+static INSTR(Float_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_FLOAT);
@@ -170,7 +170,7 @@ static INSTR(Float_String) {
   release(rhs, shred);
 }
 
-static INSTR(Complex_String) {
+static INSTR(Complex_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
@@ -180,7 +180,7 @@ static INSTR(Complex_String) {
   release(rhs, shred);
 }
 
-static INSTR(Polar_String) {
+static INSTR(Polar_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_complex  lhs = *(m_complex*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
@@ -190,7 +190,7 @@ static INSTR(Polar_String) {
   release(rhs, shred);
 }
 
-static INSTR(Vec3_String) {
+static INSTR(Vec3_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3  lhs = *(m_vec3*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC3);
@@ -201,7 +201,7 @@ static INSTR(Vec3_String) {
   release(rhs, shred);
 }
 
-static INSTR(Vec4_String) {
+static INSTR(Vec4_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4  lhs = *(m_vec4*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_VEC4);
@@ -212,7 +212,7 @@ static INSTR(Vec4_String) {
   release(rhs, shred);
 }
 
-static INSTR(Object_String) {
+static INSTR(Object_String) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = *(M_Object*)REG(SZ_INT);
@@ -223,7 +223,7 @@ static INSTR(Object_String) {
   release(lhs, shred);
 }
 
-static INSTR(String_Plus) {
+static INSTR(String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -242,7 +242,7 @@ static INSTR(String_Plus) {
   release(lhs, shred);
 }
 
-static INSTR(Int_String_Plus) {
+static INSTR(Int_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   m_int lhs = *(m_int*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -254,7 +254,7 @@ static INSTR(Int_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Float_String_Plus) {
+static INSTR(Float_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
@@ -266,7 +266,7 @@ static INSTR(Float_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Complex_String_Plus) {
+static INSTR(Complex_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -278,7 +278,7 @@ static INSTR(Complex_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Polar_String_Plus) {
+static INSTR(Polar_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   m_float lhs = *(m_float*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
@@ -290,7 +290,7 @@ static INSTR(Polar_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Vec3_String_Plus) {
+static INSTR(Vec3_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC3);
   m_vec3 lhs = *(m_vec3*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC3);
@@ -301,7 +301,7 @@ static INSTR(Vec3_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Vec4_String_Plus) {
+static INSTR(Vec4_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT + SZ_VEC4);
   m_vec4 lhs = *(m_vec4*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_VEC4);
@@ -312,7 +312,7 @@ static INSTR(Vec4_String_Plus) {
   push_string(shred, rhs, c);
 }
 
-static INSTR(Object_String_Plus) {
+static INSTR(Object_String_Plus) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT * 2);
   M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
@@ -329,7 +329,7 @@ static INSTR(Object_String_Plus) {
   release(lhs, shred);
 }
 
-INSTR(Reg_Push_Str) {
+INSTR(Reg_Push_Str) { GWDEBUG_INSTR
   *(M_Object*)REG(0) = new_String(shred, (m_str)instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
