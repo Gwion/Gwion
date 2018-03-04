@@ -8,8 +8,6 @@ Value new_value(const Type type, const m_str name) {
   Value a               = (Value)calloc(1, sizeof(struct Value_));
   a->m_type             = type;
   a->name               = name;
-  if(isa(type, &t_function) > 0)
-    SET_FLAG(a, ae_flag_func);
   INIT_OO(a, e_value_obj);
   return a;
 }

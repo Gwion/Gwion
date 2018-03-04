@@ -455,6 +455,7 @@ static m_bool scan2_func_def_overload(Func_Def f, Value overload) {
   type->name = func_name;
   type->owner = env->curr;
   value = new_value(type, func_name);
+  SET_FLAG(value, ae_flag_func);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
   if(GET_FLAG(f, ae_flag_private))
@@ -585,6 +586,7 @@ static Value func_create(Env env, Func_Def f, Value overload, m_str func_name) {
     type->size += SZ_INT;
   type->d.func = func;
   Value value = new_value(type, func_name);
+  SET_FLAG(value, ae_flag_func);
   if(GET_FLAG(f, ae_flag_private))
     SET_FLAG(value, ae_flag_private);
   nspc_add_value(env->curr, !overload ?
