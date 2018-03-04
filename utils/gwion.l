@@ -5,12 +5,25 @@ IS          (u|U|l|L)*
 #include "scanner.h"
 #include "parser.h"
 #include "err_msg.h"
+#include <setjmp.h>
 
+#define YYEROR
+static jmp_buf jmp;
+#define YY_FATAL_ERROR(msg) gwion_fatal_error(msg, yyscanner)
+static void yynoreturn gwion_fatal_error (const char* msg , yyscan_t yyscanner) {
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+    (void)yyg;
+    gw_err("%s\n", msg );
+    longjmp(jmp, 1);
+}
 static char* strip_lit(char* str);
 static char* alloc_str(char* str);
 static long htol(char* str);
 static int newline(void* data);
 static int adjust(void* data);
+
+
+
 %}
 
 %option noyywrap
@@ -245,7 +258,9 @@ Ast parse(m_str filename) {
   scan.file = fopen(filename, "r");
   scan.filename = filename;
   gwion_set_in(scan.file, scan.scanner);
-  if(gwion_parse(&scan))
+  if(setjmp(jmp)) {
+    scan.ast = NULL;
+  } else if(gwion_parse(&scan))
     scan.ast = NULL;
   fclose(scan.file);
   gwion_lex_destroy(scan.scanner);
