@@ -172,7 +172,6 @@ INSTR(Goto) { GWDEBUG_INSTR
 static VM_Shred init_spork_shred(VM_Shred shred, VM_Code code) {
   VM_Shred sh = new_vm_shred(code);
   sh->parent = shred;
-//  sh->filename = strdup(shred->filename);
   if(!shred->child.ptr)
     vector_init(&shred->child);
   vector_add(&shred->child, (vtype)sh);
@@ -229,9 +228,8 @@ INSTR(Spork) { GWDEBUG_INSTR
 // LCOV_EXCL_START
 // IMPROVE ME
 static void handle_overflow(VM_Shred shred) {
-  fprintf(stderr,
-          "[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
-          shred->xid, shred->name, shred->pc);
+  gw_err("[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
+         shred->xid, shred->name, shred->pc);
   vm_shred_exit(shred);
 }
 // LCOV_EXCL_STOP
@@ -424,13 +422,11 @@ INSTR(Instantiate_Object) { GWDEBUG_INSTR
 INSTR(Alloc_Member) { GWDEBUG_INSTR
   M_Object obj = *(M_Object*)MEM(0);
   memset(obj->data + instr->m_val, 0, instr->m_val2);
-  if(*(m_uint*)instr->ptr) {
+  if(*(m_uint*)instr->ptr)
     *(char**)REG(0) = &*(char*)(obj->data + instr->m_val);
-    PUSH_REG(shred,  SZ_INT);
-  } else {
+  else
     memset(REG(0),  *(char*)(obj->data + instr->m_val), instr->m_val2);
-    PUSH_REG(shred, instr->m_val2);
-  }
+  PUSH_REG(shred, instr->m_val2);
 }
 
 INSTR(Dot_Static_Data) { GWDEBUG_INSTR

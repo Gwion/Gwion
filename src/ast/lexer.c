@@ -1662,7 +1662,7 @@ YY_RULE_SETUP
 case 104:
 YY_RULE_SETUP
 #line 150 "utils/gwion.l"
-{ fprintf(stderr, "error: stray in program\n"); return 1; }
+{ gw_err("error: stray in program\n"); return 1; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
@@ -2785,7 +2785,7 @@ static void err_line(Scanner* scan) {
   fseek(scan->file, 0, SEEK_SET);
   while (getline(&line, &len, scan->file) != -1) {
     if(n == scan->line) {
-      fprintf(stderr, "%s", line);
+      gw_err("%s", line);
       break;
     }
     n++;
@@ -2795,8 +2795,8 @@ static void err_line(Scanner* scan) {
 
 static void err_marker(Scanner* scan) {
   while(--scan->pos > 0)
-    fprintf(stderr, " ");
-  fprintf(stderr, "\033[1;31m^\033[0m\n");
+    gw_err(" ");
+  gw_err("\033[1;31m^\033[0m\n");
 }
 
 int gwion_error(Scanner* scan, char* s) {

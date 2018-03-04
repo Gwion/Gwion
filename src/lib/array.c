@@ -372,9 +372,8 @@ static void array_push(VM_Shred shred, M_Vector a, m_uint i, m_uint size, m_bool
 }
 
 static void oob(M_Object obj, VM_Shred shred, m_int i) {
-  fprintf(stderr,
-          "[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" UINT_F "]\n",
-          shred->xid, shred->name, shred->pc, i);
+  gw_err("[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" UINT_F "]\n",
+         shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
   vm_shred_exit(shred);
 }
