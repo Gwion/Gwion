@@ -1497,10 +1497,10 @@ static m_bool emit_stmt(Emitter emit, Stmt stmt, m_bool pop) {
   if(stmt->stmt_type != ae_stmt_if || stmt->stmt_type != ae_stmt_while)
     COVERAGE(stmt)
 #ifdef CURSES
-{
-  Instr instr = emitter_add_instr(emit, dbg_pos);
-  instr->m_val = stmt->pos;
-}
+  {
+    Instr instr = emitter_add_instr(emit, dbg_pos);
+    instr->m_val = stmt->pos;
+  }
 #endif
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
@@ -1985,6 +1985,27 @@ static m_bool emit_ast_inner(Emitter emit, Ast ast) {
   return 1;
 }
 
+static void handle_code(VM_Code c) {
+  for(m_uint i = 0; i < vector_size(c->instr); i++) {
+    Instr instr = (Instr)vector_at(c->instr, i);
+    if(instr->execute == (f_instr)1) {
+      instr->execute = Reg_Push_Ptr;
+      Func func = (Func)instr->m_val;
+//        if(!func->code)
+//          CHECK_BB(err_msg(EMIT_, 0, "function not emitted yet"))
+      *(VM_Code*)instr->ptr = func->code;
+    }
+  }
+}
+static void code_optim(Emitter emit) {
+  for(m_uint i = vector_size(&emit->codes) + 1; --i;) {
+    VM_Code c = (VM_Code)vector_at(&emit->codes, i - 1);
+    if(GET_FLAG(c, ae_flag_recurs))
+      handle_code(c);
+  }
+  vector_clear(&emit->codes);
+}
+
 m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   int ret;
   emit->filename = filename;
@@ -2006,22 +2027,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
     emit->cases = NULL;
   }
   emit_pop_scope(emit);
-  for(m_uint i = vector_size(&emit->codes) + 1; --i;) {
-    VM_Code c = (VM_Code)vector_at(&emit->codes, i - 1);
-    if(GET_FLAG(c, ae_flag_recurs)) {
-    for(m_uint i = 0; i < vector_size(c->instr); i++) {
-      Instr instr = (Instr)vector_at(c->instr, i);
-      if(instr->execute == (f_instr)1) {
-        instr->execute = Reg_Push_Ptr;
-        Func func = (Func)instr->m_val;
-//        if(!func->code)
-//          CHECK_BB(err_msg(EMIT_, 0, "function not emitted yet"))
-        *(VM_Code*)instr->ptr = func->code;
-      }
-    }
-  }
-  }
-  vector_clear(&emit->codes);
+  code_optim(emit);
   if(ret < 0) { // should free all stack.
     gw_err("in file '%s'\n", filename);
     emit_free_stack(emit);

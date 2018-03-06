@@ -244,7 +244,7 @@ static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
 static void lint_exp_array(Linter* linter, Exp_Array* array) {
   lint_exp(linter, array->base);
   lint_exp(linter, array->indices->exp_list);
- }
+}
 
 static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
   lint_exp(linter, cast->exp);

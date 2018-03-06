@@ -120,7 +120,7 @@ static void tag_exp_primary(Tagger* tagger, Exp_Primary* exp) {
 static void tag_exp_array(Tagger* tagger, Exp_Array* array) {
   tag_exp(tagger, array->base);
   tag_exp(tagger, array->indices->exp_list);
- }
+}
 
 static void tag_exp_cast(Tagger* tagger, Exp_Cast* cast) {
   tag_exp(tagger, cast->exp);

@@ -137,19 +137,15 @@ static void free_nspc_value(Nspc a) {
         if(GET_FLAG(value->m_type->d.base_type, ae_flag_ref)) {
           if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin)) {
             free_class_def(value->m_type->d.base_type->def);
-          REM_REF(value->m_type->d.base_type)
-} else {
-          if(value->m_type->d.base_type->def->tmpl)
-            free(value->m_type->d.base_type->def->tmpl);
-free_id_list(value->m_type->d.base_type->def->name);
-//          if(value->m_type->d.base_type->def->ext)
-//            free_type_decl(value->m_type->d.base_type->def->ext);
+            REM_REF(value->m_type->d.base_type)
+          } else {
+            if(value->m_type->d.base_type->def->tmpl)
+              free(value->m_type->d.base_type->def->tmpl);
+            free_id_list(value->m_type->d.base_type->def->name);
             free(value->m_type->d.base_type->def);
-//          free(value->m_type->d.base_type);
-        SET_FLAG(value->m_type->d.base_type, ae_flag_template);
-          REM_REF(value->m_type->d.base_type)
-
-}
+            SET_FLAG(value->m_type->d.base_type, ae_flag_template);
+            REM_REF(value->m_type->d.base_type)
+          }
         } else
           free_class_def(value->m_type->d.base_type->def);
       }

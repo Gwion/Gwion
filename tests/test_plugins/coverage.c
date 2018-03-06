@@ -11,8 +11,7 @@ SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   *(m_vec3*)RETURN = v; }
 SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
 
-IMPORT
-{
+IMPORT {
   CHECK_BB(gwi_class_ini(gwi, &t_coverage, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, "int", "i", coverage_int))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))

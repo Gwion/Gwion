@@ -48,7 +48,7 @@ Type find_type(const Env env, ID_List path) {
     path = path->next;
   }
   return type;
- }
+}
 
 Value find_value(const Type type, const S_Symbol xid) {
   Value value;

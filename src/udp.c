@@ -146,6 +146,28 @@ static void udp_run(Udp* udp) {
   udp->state = 0;
 }
 
+static void remove_shred(Udp* udp, const char* buf) {
+  Vector v = &udp->vm->shred;
+  m_str endptr;
+  m_uint i, index = strtol(buf + 2, &endptr, 10) - 1;
+  for(i = 0; i < vector_size(v); i++) {
+    VM_Shred shred = (VM_Shred)vector_at(v, i);
+    if(shred->xid == index) {
+      vector_add(&udp->rem, (vtype)shred);
+      break;
+    }
+  }
+}
+
+static void handle_loop(Udp* udp, const char* buf) {
+  m_str endptr;
+  m_int i = strtol(buf + 5, &endptr, 10);
+  if(i <= 0)
+    udp->state = -1;
+  else
+    udp->state = 1;
+}
+
 void* udp_thread(void* data) {
   Udp* udp = (Udp*)data;
   VM* vm = udp->vm;
@@ -158,26 +180,12 @@ void* udp_thread(void* data) {
     udp->state = 1;
     if(strncmp(buf, "quit", 4) == 0)
       vm->is_running = 0;
-    else if(strncmp(buf, "-", 1) == 0) {
-      m_str endptr;
-      m_uint i, index = strtol(buf + 2, &endptr, 10) - 1;
-      for(i = 0; i < vector_size(&vm->shred); i++) {
-        VM_Shred shred = (VM_Shred)vector_at(&vm->shred, i);
-        if(shred->xid == index) {
-          vector_add(&udp->rem, (vtype)shred);
-          break;
-        }
-      }
-    } else if(strncmp(buf, "+", 1) == 0) {
+    else if(strncmp(buf, "-", 1) == 0)
+      remove_shred(udp, buf);
+    else if(strncmp(buf, "+", 1) == 0)
       vector_add(&udp->add, (vtype)strdup(buf + 2));
-    } else if(strncmp(buf, "loop", 4) == 0) {
-      m_str endptr;
-      m_int i = strtol(buf + 5, &endptr, 10);
-      if(i <= 0)
-        udp->state = -1;
-      else
-        udp->state = 1;
-    }
+    else if(strncmp(buf, "loop", 4) == 0)
+      handle_loop(udp, buf);
     udp_run(udp);
   }
   return NULL;

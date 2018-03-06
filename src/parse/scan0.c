@@ -55,7 +55,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
       stmt->type, NULL, stmt->pos)))
     CHECK_BB(scan0_class_def(env, def))
     stmt->m_type = def->type;
-}
+  }
   SET_FLAG(stmt->m_type, ae_flag_typedef);
   return 1;
 }

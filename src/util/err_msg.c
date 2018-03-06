@@ -149,6 +149,41 @@ static void display(VM_Shred shred, struct ShredInfo* info) {
   prefresh(info->pad, 0, 0, 0, 0, height, width/2);
 }
 
+static void bp_add() {
+  char s[256];
+  mvwin(w, height*2, 0);
+  deleteln();
+  mvwprintw(w, height*2, 0, "new breakpoint: ");
+  refresh();
+  echo();
+  getnstr(s, 256);
+  noecho();
+  struct BP* bp = malloc(sizeof(struct BP));
+  strcpy(bp->c, s);
+  regcomp(&bp->r, s, 0);
+  vector_add(breaks, (vtype)bp);
+}
+
+static void bp_rem() {
+  char s[256];
+  mvwin(w, height*2, 0);
+  deleteln();
+  mvwprintw(w, height*2, 0, "remove breakpoint: ");
+  refresh();
+  echo();
+  getnstr(s, 256);
+  noecho();
+  for(m_uint i = 0; i < vector_size(breaks); i++) {
+    struct BP* bp = (struct BP*)vector_at(breaks, i);
+    if(!strcmp(bp->c, s)) {
+      vector_rem(breaks, i);
+      regfree(&bp->r);
+      free(bp);
+      break;
+    }
+  }
+}
+
 static void handle(VM_Shred shred, struct ShredInfo* info) {
   int key = getch();
   switch(key) {
@@ -176,47 +211,12 @@ static void handle(VM_Shred shred, struct ShredInfo* info) {
       if((info->index -= height) < info->offset)
         info->offset -= height;
       break;
-    case 'b': {
-char s[256];
-
-mvwin(w, height*2, 0);
-mvwin(w, height*2, 0);
-deleteln();
-mvwprintw(w, height*2, 0, "new breakpoint: ");
-refresh();
-echo();
-getnstr(s, 256);
-noecho();
-
-struct BP* bp = malloc(sizeof(struct BP));
-strcpy(bp->c, s);
-regcomp(&bp->r, s, 0);
-vector_add(breaks, (vtype)bp);
-}
+    case 'b':
+      bp_add();
       break;
-case 'r':
-{char s[256];
-
-mvwin(w, height*2, 0);
-mvwin(w, height*2, 0);
-deleteln();
-mvwprintw(w, height*2, 0, "remove breakpoint: ");
-refresh();
-echo();
-getnstr(s, 256);
-noecho();
-for(m_uint i = 0; i < vector_size(breaks); i++) {
-  struct BP* bp = (struct BP*)vector_at(breaks, i);
-  if(!strcmp(bp->c, s)) {
-    vector_rem(breaks, i);
-    regfree(&bp->r);
-    free(bp);
-  }
-
-}
-}
-break;
-
+    case 'r':
+      bp_rem();
+      break;
     case 'f':
       info->t = DBG_FLOAT;
       break;
@@ -264,15 +264,15 @@ void gw_shred(VM_Shred shred) {
   mvwprintw(w, height*2, 0, "%s [%" INT_F"] [%" INT_F"->%"INT_F"] %i", shred->name, shred->xid,
     shred->pc, shred->next_pc, curr->pos);
   display(shred, curr);
-if(vector_size(breaks)) {
-  for(m_uint i = 0; i < vector_size(breaks); i++) {
-    struct BP* bp = (struct BP*)vector_at(breaks, i);
-    if(!regexec(&bp->r, curr->func, 0, NULL, 0)) {
-      handle(shred, curr);
-      break;
+  if(vector_size(breaks)) {
+    for(m_uint i = 0; i < vector_size(breaks); i++) {
+      struct BP* bp = (struct BP*)vector_at(breaks, i);
+      if(!regexec(&bp->r, curr->func, 0, NULL, 0)) {
+        handle(shred, curr);
+        break;
+      }
     }
-  }
-} else
+  } else
   handle(shred, curr);
 }
 
