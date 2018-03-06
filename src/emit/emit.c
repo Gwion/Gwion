@@ -2023,6 +2023,7 @@ m_bool emit_ast(Emitter emit, Ast ast, m_str filename) {
   }
   vector_clear(&emit->codes);
   if(ret < 0) { // should free all stack.
+    gw_err("in file '%s'\n", filename);
     emit_free_stack(emit);
     free(filename);
     free_ast(ast);

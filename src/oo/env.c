@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "env.h"
+#include "err_msg.h"
 #include "context.h"
 #include "type.h"
 #include "value.h"
@@ -122,6 +123,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   } // else { nspc_rollback(env->global_nspc); }
   CHECK_BB(unload_context(context, env)) // no real need to check that
   if(ret < 0) {
+    gw_err("in file '%s'\n", context->filename);
     free_ast(ast);
     REM_REF(context);
     free(filename);
