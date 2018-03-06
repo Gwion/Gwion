@@ -18,8 +18,8 @@ USE_MEMCHECK ?= off
 # handle definitions
 D_FUNC ?= dummy_driver
 
-# handle directories
-GWION_ADD_DIR ?= ${PREFIX}/lib/Gwion/add
+# base plugin directories
+GWPLUG_DIR ?= $(shell echo ~/.gwplug)
 
 # handle libraries
 DUMMY_D ?= 1
@@ -32,5 +32,4 @@ PORTAUDIO_D ?= 0
 SOUNDIO_D ?= 0
 PULSE_D ?= 0
 
-DEBUG_STACK ?= 1
-
+DEBUG_STACK ?= °

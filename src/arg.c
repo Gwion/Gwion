@@ -14,7 +14,7 @@ void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->rem);
   vector_init(&arg->lib);
-  vector_add(&arg->lib, (vtype)GWION_ADD_DIR);
+  vector_add(&arg->lib, (vtype)GWPLUG_DIR);
   arg->ref = &arg->add;
 }
 

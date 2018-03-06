@@ -87,7 +87,7 @@ endif
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
 # add directories
-CFLAGS+=-DGWION_ADD_DIR=\"${GWION_ADD_DIR}\"
+CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
 # add soundpipe
 LDFLAGS += ${SOUNDPIPE_LIB}
@@ -112,7 +112,7 @@ ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: generated.h options ${GW_OBJ}
+all: include/generated.h options ${GW_OBJ}
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${LDFLAGS} -o ${PRG}
 
@@ -120,15 +120,16 @@ config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
 
-generated.h: include/generated.h
+include/generated.h:
 	$(info generating generated.h)
 	@cc utils/generate_header.c ${CFLAGS} -o generate_header
 	@./generate_header
 	@rm generate_header
 
 options:
+	$(info CC      : ${CC})
 	$(info CFLAGS  : ${CFLAGS})
-	$(info LDFLAGS  : ${LDFLAGS})
+	$(info LDFLAGS : ${LDFLAGS})
 
 clean:
 	$(info cleaning ...)
