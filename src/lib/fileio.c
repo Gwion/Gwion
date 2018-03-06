@@ -46,7 +46,6 @@ static INSTR(int_to_file) { GWDEBUG_INSTR
 static INSTR(float_to_file) { GWDEBUG_INSTR
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
-  o = **(M_Object**)REG(0);
   CHECK_FIO(o)
   release(o, shred);
   fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
