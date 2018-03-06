@@ -320,6 +320,7 @@ m_bool gw_err(const char* fmt, ...) {
   vfprintf(stderr, fmt, arg);
   va_end(arg);
   wrefresh(stderr);
+  getch();
   return -1;
 }
 
