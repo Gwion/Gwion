@@ -10,10 +10,10 @@ LDFLAGS += -lm -ldl -rdynamic -lpthread
 CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
 
 # handle boolean options
-USE_DOUBLE = off
-USE_COVERAGE ?= off
-USE_GWCOV ?= off
-USE_MEMCHECK ?= off
+USE_DOUBLE = 0
+USE_COVERAGE ?= 0
+USE_GWCOV ?= 0
+USE_MEMCHECK ?= 0
 
 # handle definitions
 D_FUNC ?= dummy_driver
@@ -32,4 +32,4 @@ PORTAUDIO_D ?= 0
 SOUNDIO_D ?= 0
 PULSE_D ?= 0
 
-DEBUG_STACK ?= °
+DEBUG_STACK ?= 0

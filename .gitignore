@@ -2,6 +2,7 @@ gwion
 gwlint
 gwtag
 gwcov
+gwdbg
 *.gw.lint
 *.gw.tag
 *.gwcov
