@@ -10,7 +10,7 @@ const m_uint num_digit(const m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
-static Type find_typeof(Env env, ID_List path) {
+ANN static Type find_typeof(const Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);
   Type t = (isa(v->m_type, &t_class) > 0) ? v->m_type->d.base_type : v->m_type;
@@ -23,7 +23,7 @@ static Type find_typeof(Env env, ID_List path) {
   return v->m_type;
 }
 
-Type find_type(const Env env, ID_List path) {
+ANN Type find_type(const Env env, ID_List path) {
   Nspc nspc;
   Type type;
 
@@ -61,7 +61,7 @@ Value find_value(const Type type, const S_Symbol xid) {
   return NULL;
 }
 
-Func find_func(Type type, S_Symbol xid) {
+ANN Func find_func(const Type type, const S_Symbol xid) {
   Func func;
   if((func = nspc_lookup_func2(type->info, xid)))
     return func;
@@ -70,7 +70,7 @@ Func find_func(Type type, S_Symbol xid) {
   return NULL;
 }
 
-const m_uint id_list_len(ID_List l) {
+ANN const m_uint id_list_len(ID_List l) {
   m_uint len = 0;
   while(l) {
     len += strlen(s_name(l->xid));
@@ -80,7 +80,7 @@ const m_uint id_list_len(ID_List l) {
   return len + 1;
 }
 
-void type_path(m_str s, ID_List l) {
+ANN void type_path(m_str s, ID_List l) {
   s[0] = '\0';
   while(l) {
     strcat(s, s_name(l->xid));
@@ -89,13 +89,13 @@ void type_path(m_str s, ID_List l) {
   }
 }
 
-const Type array_base(Type t) {
+ANN const Type array_base(Type t) {
   while(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
   return t->d.base_type;
 }
 
-const Type array_type(const Type base, const m_uint depth) {
+ANN const Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth;
   Type t;
   S_Symbol sym;
@@ -126,7 +126,7 @@ const Type array_type(const Type base, const m_uint depth) {
 static const char escape1[] = "0'abfnrtv";
 static const char escape2[] = "\0\'\a\b\f\n\r\t\v";
 
-m_int get_escape(const char c, int linepos) {
+m_int get_escape(const char c, const int linepos) {
   m_uint i = 0;
   while(escape1[i] != '\0') {
     if(c == escape1[i])
@@ -137,14 +137,14 @@ m_int get_escape(const char c, int linepos) {
   return -1;
 }
 
-const m_int str2char(const m_str c, const m_int linepos) {
+ANN const m_int str2char(const m_str c, const m_int linepos) {
   if(c[0] == '\\')
     return get_escape(c[1], linepos);
   else
     return c[0];
 }
 
-m_bool type_unknown(ID_List id, m_str orig) {
+ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
   CHECK_BB(err_msg(SCAN1_, id->pos,
@@ -159,7 +159,7 @@ const Type get_array(const Type t, const Array_Sub a, const m_str orig) {
    return array_type(t, a->depth);
 }
 
-const m_bool type_ref(Type t) {
+ANN const m_bool type_ref(Type t) {
   while(t) {
     if(GET_FLAG(t, ae_flag_empty))return 1;
     if(GET_FLAG(t, ae_flag_typedef))

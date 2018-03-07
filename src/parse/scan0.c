@@ -6,9 +6,11 @@
 #include "value.h"
 #include "func.h"
 
-static Value mk_class(Env env, Type base) {
-  Type t = type_copy(&t_class);
-  Value v = new_value(t, base->name);
+ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
+
+ANN static const Value mk_class(const Env env, const Type base) {
+  const Type t = type_copy(&t_class);
+  const Value v = new_value(t, base->name);
   t->d.base_type = base;
   v->owner = env->curr;
   SET_FLAG(v, ae_flag_const | ae_flag_checked);
@@ -16,10 +18,9 @@ static Value mk_class(Env env, Type base) {
   return v;
 }
 
-m_bool scan0_class_def(Env env, Class_Def class_def);
-m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
-  m_str name = s_name(ptr->xid);
-  Type t = new_type(t_func_ptr.xid, name, &t_func_ptr);
+ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) {
+  const m_str name = s_name(ptr->xid);
+  const Type t = new_type(t_func_ptr.xid, name, &t_func_ptr);
   t->owner = env->curr;
   t->size = SZ_INT;
   t->info = new_nspc(name);
@@ -28,11 +29,9 @@ m_bool scan0_stmt_fptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
-static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
-  ae_flag flag;
-  Class_Def def;
+ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) {
   Type base = find_type(env, stmt->type->xid);
-  Value v = nspc_lookup_value1(env->curr, stmt->xid);
+  const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
     CHECK_BB(type_unknown(stmt->type->xid, "typedef"))
   if(v)
@@ -50,9 +49,9 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
     nspc_add_type(env->curr, stmt->xid, t);
     stmt->m_type = t;
   } else {
-    flag = base->def ? base->def->flag : 0;
-    CHECK_OB((def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
-      stmt->type, NULL, stmt->pos)))
+    const ae_flag flag = base->def ? base->def->flag : 0;
+    const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
+      stmt->type, NULL, stmt->pos);
     CHECK_BB(scan0_class_def(env, def))
     stmt->m_type = def->type;
   }
@@ -60,7 +59,7 @@ static m_bool scan0_stmt_typedef(Env env, Stmt_Typedef stmt) {
   return 1;
 }
 
-static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
+ANN static m_bool check_enum_xid(const Env env, const Stmt_Enum stmt) {
   if(stmt->xid) {
     if(nspc_lookup_type0(env->curr, stmt->xid))
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
@@ -72,7 +71,7 @@ static m_bool check_enum_xid(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-m_bool scan0_stmt_enum(Env env, Stmt_Enum stmt) {
+ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
   Type t;
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
@@ -85,14 +84,14 @@ m_bool scan0_stmt_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
+ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
   if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
       !env->class_def)
       CHECK_BB(err_msg(SCAN1_, stmt->pos,
             "'static' and 'private' can only be used at class scope."))
   if(stmt->xid) {
-    m_str name = s_name(stmt->xid);
-    Type t = type_copy(&t_union);
+    const m_str name = s_name(stmt->xid);
+    const Type t = type_copy(&t_union);
     t->name = name;
     t->info = new_nspc(name);
     t->info->parent = env->curr;
@@ -107,9 +106,7 @@ static m_bool scan0_stmt_union(Env env, Stmt_Union stmt) {
   return 1;
 }
 
-static m_bool scan0_Stmt(Env env, Stmt stmt) {
-  if(!stmt)
-    return 1;
+ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) {
   if(stmt->stmt_type == ae_stmt_funcptr)
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
   else if(stmt->stmt_type == ae_stmt_typedef)
@@ -121,16 +118,15 @@ static m_bool scan0_Stmt(Env env, Stmt stmt) {
   return 1;
 }
 
-static m_bool scan0_Stmt_List(Env env, Stmt_List list) {
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(scan0_Stmt(env, curr->stmt))
-    curr = curr->next;
+ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) {
+  while(l) {
+    CHECK_BB(scan0_Stmt(env, l->stmt))
+    l = l->next;
   }
   return 1;
 }
 
-static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
+ANN static m_bool scan0_class_def_public(const Env env, const Class_Def class_def) {
   if(GET_FLAG(class_def, ae_flag_global)) {
     if(env_class_def(env, NULL))
       CHECK_BB(err_msg(SCAN0_, class_def->pos,
@@ -142,7 +138,7 @@ static m_bool scan0_class_def_public(Env env, Class_Def class_def) {
   return 1;
 }
 
-static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
+ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) {
   CHECK_BB(scan0_class_def_public(env, class_def))
   if(nspc_lookup_type1(env->curr, class_def->name->xid))
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
@@ -155,8 +151,8 @@ static m_bool scan0_class_def_pre(Env env, Class_Def class_def) {
   return 1;
 }
 
-static Type scan0_class_def_init(Env env, Class_Def class_def) {
-  Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), &t_object);
+ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
+  const Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), &t_object);
   the_class->owner = env->curr;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name);
@@ -172,14 +168,14 @@ static Type scan0_class_def_init(Env env, Class_Def class_def) {
   return the_class;
 }
 
-static m_bool scan0_class_def_post(Env env, Class_Def class_def) {
+ANN static m_bool scan0_class_def_post(const Env env, const Class_Def class_def) {
   (void)mk_class(env, class_def->type);
   if(env->curr == env->global_nspc)
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
 }
 
-static m_bool scan0_section(Env env, Section* section) {
+ANN static m_bool scan0_section(const Env env, const Section* section) {
   if(section->section_type == ae_section_stmt)
     CHECK_BB(scan0_Stmt_List(env, section->d.stmt_list))
   else if(section->section_type == ae_section_class)
@@ -187,7 +183,7 @@ static m_bool scan0_section(Env env, Section* section) {
   return 1;
 }
 
-m_bool scan0_class_def(Env env, Class_Def class_def) {
+ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) {
   Class_Body body = class_def->body;
 
   CHECK_BB(scan0_class_def_pre(env, class_def))
@@ -202,7 +198,7 @@ m_bool scan0_class_def(Env env, Class_Def class_def) {
   return 1;
 }
 
-m_bool scan0_Ast(Env env, Ast prog) {
+ANN m_bool scan0_ast(const Env env, Ast prog) {
   while(prog) {
     CHECK_BB(scan0_section(env, prog->section))
     prog = prog->next;

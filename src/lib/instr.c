@@ -392,7 +392,9 @@ INSTR(Func_Return) { GWDEBUG_INSTR
   shred->code = func;
 }
 
-static void call_pre_constructor(VM * vm, VM_Shred shred, VM_Code pre_ctor, m_uint stack_offset) {
+static void call_pre_constructor(const VM * vm, VM_Shred 
+const shred, const VM_Code pre_ctor, const m_uint 
+stack_offset) {
   *(m_uint*)REG(0) = *(m_uint*)REG(-SZ_INT); // ref dup last
   PUSH_REG(shred,  SZ_INT);
   *(VM_Code*)REG(0) = pre_ctor;

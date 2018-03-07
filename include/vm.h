@@ -65,9 +65,9 @@ struct VM_Shred_ {
   struct Vector_ sporks;
   m_float wake_time;
 };
-
+__attribute__((nonnull(4)))
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
-void free_vm_code(VM_Code a) __attribute__((nonnull));
+ANN void free_vm_code(VM_Code a);
 
 VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
 void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)__attribute__((hot, nonnull));

@@ -19,7 +19,7 @@ struct M_Vector_ {
   m_uint cap;
 };
 
-m_uint m_vector_size(M_Vector v) {
+ANN m_uint m_vector_size(M_Vector v) {
   return v->len;
 }
 
@@ -50,11 +50,11 @@ M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth) {
   return a;
 }
 
-void m_vector_get(M_Vector v, const m_uint i, void* c) {
+ANN void m_vector_get(M_Vector v, const m_uint i, void* c) {
   memcpy(c, v->ptr + i * v->size, v->size);
 }
 
-void m_vector_add(M_Vector v, const void* data) {
+ANN void m_vector_add(M_Vector v, const void* data) {
   if(++v->len >= v->cap) {
     v->cap *=2;
     v->ptr = realloc(v->ptr, v->cap * v->size);
@@ -62,11 +62,11 @@ void m_vector_add(M_Vector v, const void* data) {
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
 }
 
-void m_vector_set(M_Vector v, const m_uint i, const void* data) {
+ANN void m_vector_set(M_Vector v, const m_uint i, const void* data) {
   memcpy(v->ptr + i * v->size, data,  v->size);
 }
 
-void m_vector_rem(M_Vector v, m_uint index) {
+ANN void m_vector_rem(M_Vector v, m_uint index) {
   char c[--v->len * v->size];
   if(index)
     memcpy(c, v->ptr, index * v->size);
@@ -92,7 +92,7 @@ MFUN(vm_vector_rem) {
   m_vector_rem(v, index);
 }
 
-char* m_vector_addr(M_Vector v, m_uint i) {
+ANN char* m_vector_addr(M_Vector v, m_uint i) {
   return &*(char*)(v->ptr + i * v->size);
 }
 
@@ -117,7 +117,7 @@ INSTR(Array_Append) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_INT);
 }
 
-static Type get_array_type(Type t) {
+ANN static Type get_array_type(Type t) {
   while(t->d.base_type)
     t = t->d.base_type;
   return t;
@@ -174,7 +174,7 @@ static OP_CHECK(opck_array_cast) {
   return &t_null;
 }
 
-m_bool import_array(Gwi gwi) {
+m_bool import_array(const Gwi gwi) {
   SET_FLAG((&t_array), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  &t_array, NULL, array_dtor))
 

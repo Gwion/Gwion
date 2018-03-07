@@ -1,6 +1,6 @@
 #define TICK(a) __attribute__((hot, nonnull)) inline void a(UGen u) // was m_bool
-typedef void (*f_ugop)(UGen, const m_float)  __attribute__((nonnull));
-typedef void (*f_tick)(UGen ug) __attribute__((nonnull));
+typedef void (*f_ugop)(UGen, const m_float) ANN;
+typedef void (*f_tick)(UGen ug) ANN;
 
 struct UGen_ {
   m_uint n_in, n_out, n_chan;

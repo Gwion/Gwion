@@ -5,16 +5,15 @@ struct M_Object_ {
   unsigned char* data;
 };
 
-//m_bool import_object(Gwi import);
-m_bool initialize_object(M_Object o, Type type);
-void instantiate_object(VM* vm, VM_Shred shred, Type type);
-M_Object new_M_Object(VM_Shred shred);
+m_bool initialize_object(M_Object o, const Type type);
+void instantiate_object(const VM*, const VM_Shred, const Type);
+M_Object new_M_Object(const VM_Shred shred);
 M_Object new_M_UGen();
 M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth);
-M_Object new_String(VM_Shred shred, m_str str);
+M_Object new_String(const VM_Shred shred, const m_str str);
 
-void release(M_Object obj, VM_Shred shred);
-void NullException(VM_Shred shred, const m_str c);
+void release(M_Object obj, const VM_Shred shred);
+void NullException(const VM_Shred shred, const m_str c);
 
 m_int o_object_ugen;
 m_int o_object_array;

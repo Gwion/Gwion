@@ -11,7 +11,7 @@
 
 typedef struct S_Symbol_ * S_Symbol;
 
-S_Symbol insert_symbol(const m_str) __attribute__((nonnull));
-m_str s_name(S_Symbol) __attribute__((nonnull));
+S_Symbol insert_symbol(const m_str) ANN;
+m_str s_name(const S_Symbol) ANN;
 void free_symbols(void );
 #endif

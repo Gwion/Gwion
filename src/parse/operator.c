@@ -168,7 +168,7 @@ static const m_bool handle_instr(Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     Instr instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = SZ_INT;
-    CHECK_BB(emit_exp_call1(emit, mo->func, mo->func->def->ret_type, 0))
+    CHECK_BB(emit_exp_call1(emit, mo->func, mo->func->def->ret_type))
     return 1;
   }
   if(mo->instr)

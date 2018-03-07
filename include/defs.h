@@ -1,6 +1,8 @@
 #ifndef __DEF
 #define __DEF
 
+#define ANN __attribute((nonnull))
+
 #ifdef __GNUC__
 #ifdef __clang__
 #define LOOP_OPTIM

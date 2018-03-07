@@ -39,7 +39,7 @@ static OP_CHECK(opck_fptr_cast) {
   Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
             v->m_type->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
-  CHECK_BO(compat_func(t->d.func->def, f->def, f->def->pos))
+  CHECK_BO(compat_func(t->d.func->def, f->def))
   cast->func = f;
   return t;
 }

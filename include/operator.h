@@ -1,6 +1,6 @@
 #define OP_ANY_TYPE (Type)1
 
-typedef void (*f_instr)(VM*, VM_Shred, Instr);
+typedef void (*f_instr)(const VM*, const VM_Shred, const Instr);
 typedef Type (*opck)(Env, void*);
 typedef m_bool (*opem)(Emitter, void*);
 

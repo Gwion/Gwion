@@ -9,87 +9,87 @@
 
 extern VM* vm;
 
-Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid) {
+ANN Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid) {
   return (Value)scope_lookup0(&nspc->value, xid);
 }
 
-Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid) {
+ANN Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid) {
   Value v = (Value)scope_lookup1(&nspc->value, xid);
   if(!v && nspc->parent)
     v = nspc_lookup_value1(nspc->parent, xid);
   return v;
 }
 
-Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid) {
+ANN Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid) {
   return (Value)scope_lookup2(&nspc->value, xid);
 }
 
-void  nspc_add_value(Nspc nspc, S_Symbol xid, Value value) {
+ANN void  nspc_add_value(const Nspc nspc, const S_Symbol xid, const Value value) {
   scope_add(&nspc->value, xid, (vtype)value);
 }
-void nspc_push_value(Nspc nspc) {
+ANN void nspc_push_value(const Nspc nspc) {
   scope_push(&nspc->value);
 }
 
-void nspc_pop_value(Nspc nspc) {
+ANN void nspc_pop_value(const Nspc nspc) {
   scope_pop(&nspc->value);
 }
 
-Func nspc_lookup_func0(const Nspc nspc, const S_Symbol xid) {
+ANN Func nspc_lookup_func0(const Nspc nspc, const S_Symbol xid) {
   return (Func)scope_lookup0(&nspc->func, xid);
 }
 
-Func nspc_lookup_func1(const Nspc nspc, const S_Symbol xid) {
+ANN Func nspc_lookup_func1(const Nspc nspc, const S_Symbol xid) {
   Func t = (Func)scope_lookup1(&nspc->func, xid);
   if(!t && nspc->parent)
     t = (Func)nspc_lookup_func1(nspc->parent, xid);
   return t;
 }
 
-Func nspc_lookup_func2(const Nspc nspc, const S_Symbol xid) {
+ANN Func nspc_lookup_func2(const Nspc nspc, const S_Symbol xid) {
   return (Func)scope_lookup2(&nspc->func, xid);
 }
 
-void nspc_add_func(Nspc nspc, S_Symbol xid, Func value) {
+ANN void nspc_add_func(const Nspc nspc, const S_Symbol xid, const Func value) {
   scope_add(&nspc->func, xid, (vtype)value);
 }
 
-Type nspc_lookup_type0(const Nspc nspc, const S_Symbol xid) {
+ANN Type nspc_lookup_type0(const Nspc nspc, const S_Symbol xid) {
   return (Type)scope_lookup0(&nspc->type, xid);
 }
 
-Type nspc_lookup_type1(const Nspc nspc, const S_Symbol xid) {
+ANN Type nspc_lookup_type1(const Nspc nspc, const S_Symbol xid) {
   Type t = (Type)scope_lookup1(&nspc->type, xid);
   if(!t && nspc->parent)
     t = (Type)nspc_lookup_type1(nspc->parent, xid);
   return t;
 }
 
-Type nspc_lookup_type2(const Nspc nspc, const S_Symbol xid) {
+ANN Type nspc_lookup_type2(const Nspc nspc, const S_Symbol xid) {
   return (Type)scope_lookup2(&nspc->type, xid);
 }
 
-void nspc_add_type(Nspc nspc, S_Symbol xid, Type value) {
+ANN void nspc_add_type(const Nspc nspc, const S_Symbol xid, const Type value) {
   scope_add(&nspc->type, xid, (vtype)value);
 }
-void nspc_push_type(Nspc nspc) {
+ANN void nspc_push_type(const Nspc nspc) {
   scope_push(&nspc->type);
 }
-void nspc_pop_type(Nspc nspc) {
+ANN void nspc_pop_type(const Nspc nspc) {
   scope_pop(&nspc->type);
 }
 
-void nspc_commit(Nspc nspc) {
+ANN void nspc_commit(const Nspc nspc) {
   scope_commit(&nspc->value);
   scope_commit(&nspc->func);
   scope_commit(&nspc->type);
 }
 
-Vector nspc_get_value(const Nspc nspc) {
+ANN Vector nspc_get_value(const Nspc nspc) {
   return scope_get(&nspc->value);
 }
 
-Nspc new_nspc(m_str name) {
+ANN Nspc new_nspc(const m_str name) {
   Nspc a = calloc(1, sizeof(struct Nspc_));
   a->name            = name;
   scope_init(&a->value);
@@ -99,7 +99,7 @@ Nspc new_nspc(m_str name) {
   return a;
 }
 
-static void nspc_release_object(Nspc a, Value value) {
+ANN static void nspc_release_object(const Nspc a, Value value) {
   if(value->d.ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
 (value->d.ptr && GET_FLAG(value, ae_flag_builtin))
 
@@ -118,7 +118,7 @@ static void nspc_release_object(Nspc a, Value value) {
     REM_REF(value->m_type->parent)
 }
 
-static void free_nspc_value_fptr(Func f) {
+ANN static void free_nspc_value_fptr(Func f) {
   while(f) {
     Func tmp = f->next;
     free(f);
@@ -126,7 +126,7 @@ static void free_nspc_value_fptr(Func f) {
   }
 }
 
-static void free_nspc_value(Nspc a) {
+ANN static void free_nspc_value(const Nspc a) {
   m_uint i;
   Vector v = scope_get(&a->value);
   for(i = vector_size(v) + 1; --i;) {
@@ -173,7 +173,7 @@ static void free_nspc_value(Nspc a) {
   scope_release(&a->value);
 }
 
-void free_nspc(Nspc a) {
+ANN void free_nspc(Nspc a) {
   m_uint i;
   Vector v;
 

@@ -7,13 +7,14 @@
 
 #define FAKE_FUNC ((Func)1)
 
-m_bool scan0_class_def(Env env, Class_Def class_def);
-static m_bool scan1_exp(Env env, Exp exp);
-static m_bool scan1_stmt_list(Env env, Stmt_List list);
-m_bool scan1_class_def(Env env, Class_Def class_def);
-static m_bool scan1_stmt(Env env, Stmt stmt);
+ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
+__attribute__((nonnull(1)))
+static m_bool scan1_exp(const Env env, Exp exp);
+ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
+ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
+ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
+ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, Exp_Decl* decl) {
   if(GET_FLAG(t, ae_flag_template)) {
     decl->base = t->def;
     decl->m_type = t;
@@ -21,9 +22,8 @@ static m_bool scan1_exp_decl_template(Env env, Type t, Exp_Decl* decl) {
   return 1;
 }
 
-static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
-  Type t = type_decl_resolve(env, decl->type);
-//find_type(env, decl->type->xid);
+ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
+  const Type t = type_decl_resolve(env, decl->type);
   if(!t)
     CHECK_BO(type_unknown(decl->type->xid, "declaration"))
   if(!t->size)
@@ -41,7 +41,7 @@ static Type scan1_exp_decl_type(Env env, Exp_Decl* decl) {
   return t;
 }
 
-m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
+ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
   CHECK_OB(t)
@@ -53,7 +53,7 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
     decl->m_type = t;
   while(list) {
     Value value;
-    Var_Decl v = list->self;
+    const Var_Decl v = list->self;
     if(isres(v->xid, v->pos) > 0)
       CHECK_BB(err_msg(SCAN2_, v->pos,
             "\t... in variable declaration", s_name(v->xid)))
@@ -88,30 +88,27 @@ m_bool scan1_exp_decl(Env env, Exp_Decl* decl) {
   return 1;
 }
 
-static  m_bool scan1_exp_binary(Env env, Exp_Binary* binary) {
+ANN static m_bool scan1_exp_binary(const Env env, const Exp_Binary* binary) {
   CHECK_BB(scan1_exp(env, binary->lhs))
-  CHECK_BB(scan1_exp(env, binary->rhs))
-  return 1;
+  return scan1_exp(env, binary->rhs);
 }
 
-static  m_bool scan1_exp_primary(Env env, Exp_Primary* prim) {
+ANN static m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) {
   if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
-    return 1;
+  return 1;
 }
 
-static m_bool scan1_exp_array(Env env, Exp_Array* array) {
+ANN static m_bool scan1_exp_array(const Env env, const Exp_Array* array) {
   CHECK_BB(scan1_exp(env, array->base))
-  CHECK_BB(scan1_exp(env, array->indices->exp_list))
-  return 1;
+  return scan1_exp(env, array->indices->exp_list);
 }
 
-static m_bool scan1_exp_cast(Env env, Exp_Cast* cast) {
-  CHECK_BB(scan1_exp(env, cast->exp))
-  return 1;
+ANN static m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) {
+  return scan1_exp(env, cast->exp);
 }
 
-static m_bool scan1_exp_post(Env env, Exp_Postfix* post) {
+ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   CHECK_BB(scan1_exp(env, post->exp))
   if(post->exp->meta != ae_meta_var)
     CHECK_BB(err_msg(SCAN1_, post->exp->pos,
@@ -120,42 +117,38 @@ static m_bool scan1_exp_post(Env env, Exp_Postfix* post) {
   return 1;
 }
 
-static m_bool scan1_exp_dur(Env env, Exp_Dur* dur) {
+ANN static m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) {
   CHECK_BB(scan1_exp(env, dur->base))
-  CHECK_BB(scan1_exp(env, dur->unit))
-  return 1;
+  return scan1_exp(env, dur->unit);
 }
 
-static m_bool scan1_exp_call(Env env, Exp_Func* exp_func) {
+ANN static m_bool scan1_exp_call(const Env env, const Exp_Func* exp_func) {
   Exp args = exp_func->args;
   if(exp_func->tmpl)
     return 1;
   CHECK_BB(scan1_exp(env, exp_func->func))
-  CHECK_BB(args && scan1_exp(env, args))
-  return 1;
+  return scan1_exp(env, args);
 }
 
-static m_bool scan1_exp_dot(Env env, Exp_Dot* member) {
-  CHECK_BB(scan1_exp(env, member->base));
-  return 1;
+ANN static m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) {
+  return scan1_exp(env, member->base);
 }
 
-static m_bool scan1_exp_if(Env env, Exp_If* exp_if) {
+ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
   CHECK_BB(scan1_exp(env, exp_if->cond))
   CHECK_BB(scan1_exp(env, exp_if->if_exp))
-  CHECK_BB(scan1_exp(env, exp_if->else_exp))
-  return 1;
+  return scan1_exp(env, exp_if->else_exp);
 }
 
-static m_bool scan1_exp_spork(Env env, Stmt code) {
-  Func f = env->func;
+ANN static m_bool scan1_exp_spork(const Env env, const Stmt code) {
+  const Func f = env->func;
   env->func = f ? f: FAKE_FUNC;
   CHECK_BB(scan1_stmt(env, code))
   env->func = f;
   return 1;
 }
 
-static m_bool scan1_exp(Env env, Exp exp) {
+static m_bool scan1_exp(const Env env, Exp exp) {
   while(exp) {
     switch(exp->exp_type) {
       case ae_exp_primary:
@@ -198,7 +191,7 @@ static m_bool scan1_exp(Env env, Exp exp) {
   return 1;
 }
 
-static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
+ANN static m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) {
   m_bool ret;
   env->class_scope++;
   if(push)
@@ -210,18 +203,17 @@ static m_bool scan1_stmt_code(Env env, Stmt_Code stmt, m_bool push) {
   return ret;
 }
 
-static m_bool scan1_stmt_return(Env env, Stmt_Return stmt) {
-  return stmt->val ? scan1_exp(env, stmt->val) : 1;
+ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Return stmt) {
+  return scan1_exp(env, stmt->val);
 }
 
-static m_bool scan1_stmt_flow(Env env, struct Stmt_Flow_* stmt) {
+ANN static m_bool scan1_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) {
   CHECK_BB(scan1_exp(env, stmt->cond))
-  CHECK_BB(scan1_stmt(env, stmt->body))
-  return 1;
+  return scan1_stmt(env, stmt->body);
 }
 
-static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
-  Func f = env->func;
+ANN static m_bool scan1_stmt_for(const Env env, const Stmt_For stmt) {
+  const Func f = env->func;
   if(env->class_def && !env->func)
    env->func = FAKE_FUNC;
   nspc_push_value(env->curr);
@@ -234,35 +226,34 @@ static m_bool scan1_stmt_for(Env env, Stmt_For stmt) {
   return 1;
 }
 
-static m_bool scan1_stmt_auto(Env env, Stmt_Auto stmt) {
+ANN static m_bool scan1_stmt_auto(const Env env, const Stmt_Auto stmt) {
   CHECK_BB(scan1_exp(env, stmt->exp))
-  CHECK_BB(scan1_stmt(env, stmt->body))
-  return 1;
+  return scan1_stmt(env, stmt->body);
 }
 
-static m_bool scan1_stmt_loop(Env env, Stmt_Loop stmt) {
+ANN static m_bool scan1_stmt_loop(const Env env, const Stmt_Loop stmt) {
   CHECK_BB(scan1_exp(env, stmt->cond))
-  CHECK_BB(scan1_stmt(env, stmt->body))
+  return scan1_stmt(env, stmt->body);
   return 1;
 }
 
-static m_bool scan1_stmt_switch(Env env, Stmt_Switch stmt) {
+ANN static m_bool scan1_stmt_switch(const Env env, const Stmt_Switch stmt) {
   return scan1_exp(env, stmt->val);
 }
 
-static m_bool scan1_stmt_case(Env env, Stmt_Case stmt) {
-  return scan1_exp(env, stmt->val);
+ANN static m_bool scan1_stmt_case(const Env env, const Stmt_Case stmt) {
+  return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
-static m_bool scan1_stmt_if(Env env, Stmt_If stmt) {
+ANN static m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) {
   CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->if_body))
   if(stmt->else_body)
     CHECK_BB(scan1_stmt(env, stmt->else_body))
-    return 1;
+  return 1;
 }
 
-m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
+ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
   ID_List list = stmt->list;
   m_uint count = 1;
   while(list) {
@@ -287,7 +278,7 @@ m_bool scan1_stmt_enum(Env env, Stmt_Enum stmt) {
   return 1;
 }
 
-static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
+ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) {
   while(arg_list) {
     if(!(arg_list->type = type_decl_resolve(env, arg_list->type_decl)))
       CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument"))
@@ -298,7 +289,7 @@ static m_int scan1_func_def_args(Env env, Arg_List arg_list) {
   return 1;
 }
 
-m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
+ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) {
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->type)))
     CHECK_BB(type_unknown(ptr->type->xid, "func pointer definition"))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
@@ -310,18 +301,18 @@ m_bool scan1_stmt_fptr(Env env, Stmt_Ptr ptr) {
   return 1;
 }
 
-static m_bool scan1_stmt_type(Env env, Stmt_Typedef stmt) {
+ANN static m_bool scan1_stmt_type(const Env env, const Stmt_Typedef stmt) {
   return stmt->m_type->def ? scan1_class_def(env, stmt->m_type->def) : 1;
 }
 
-static m_bool scan1_stmt_union_array(Array_Sub array) {
+ANN static m_bool scan1_stmt_union_array(const Array_Sub array) {
   if(array->exp_list)
     CHECK_BB(err_msg(SCAN1_, array->pos,
       "array declaration must be empty in union."))
   return 1;
 }
 
-m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
+ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
   Decl_List l = stmt->l;
 
   if(stmt->xid) {
@@ -338,7 +329,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
     if(GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(l->self->d.exp_decl.type, ae_flag_static);
     while(list) {
-      Var_Decl var_decl = list->self;
+      const Var_Decl var_decl = list->self;
       if(var_decl->array)
         CHECK_BB(scan1_stmt_union_array(var_decl->array))
       list = list->next;
@@ -351,7 +342,7 @@ m_bool scan1_stmt_union(Env env, Stmt_Union stmt) {
   return 1;
 }
 
-static m_bool scan1_stmt(Env env, Stmt stmt) {
+ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) {
   m_bool ret = -1;
 
   switch(stmt->stmt_type) {
@@ -409,22 +400,21 @@ static m_bool scan1_stmt(Env env, Stmt stmt) {
   return ret;
 }
 
-static m_bool scan1_stmt_list(Env env, Stmt_List list) {
-  Stmt_List curr = list;
-  while(curr) {
-    CHECK_BB(scan1_stmt(env, curr->stmt))
-    curr = curr->next;
+ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
+  while(l) {
+    CHECK_BB(scan1_stmt(env, l->stmt))
+    l = l->next;
   }
   return 1;
 }
 
-static m_bool scan1_func_def_type(Env env, Func_Def f) {
+ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) {
   if(!(f->ret_type = type_decl_resolve(env, f->type_decl)))
       CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
   return 1;
 }
 
-static m_bool scan1_func_def_op(Env env, Func_Def f) {
+ANN static m_bool scan1_func_def_op(const Env env, const Func_Def f) {
   m_int count = 0;
   Arg_List list = f->arg_list;
   while(list) {
@@ -437,7 +427,7 @@ static m_bool scan1_func_def_op(Env env, Func_Def f) {
   return 1;
 }
 
-static m_bool scan1_func_def_flag(Env env, Func_Def f) {
+ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) {
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
   if(GET_FLAG(f, ae_flag_op))
@@ -445,7 +435,7 @@ static m_bool scan1_func_def_flag(Env env, Func_Def f) {
   return 1;
 }
 
-static m_bool scan1_func_def_code(Env env, Func_Def f) {
+ANN static m_bool scan1_func_def_code(const Env env, const Func_Def f) {
   m_bool ret;
   nspc_push_value(env->curr);
   ret = scan1_stmt_code(env, &f->code->d.stmt_code, 0);
@@ -453,7 +443,7 @@ static m_bool scan1_func_def_code(Env env, Func_Def f) {
   return ret;
 }
 
-m_bool scan1_func_def(Env env, Func_Def f) {
+ANN m_bool scan1_func_def(const Env env, const Func_Def f) {
   if(GET_FLAG(f, ae_flag_private) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(tmpl_list_base(f->tmpl))
@@ -469,8 +459,8 @@ m_bool scan1_func_def(Env env, Func_Def f) {
   return 1;
 }
 
-static m_bool scan1_section(Env env, Section* section) {
-  ae_Section_Type t = section->section_type;
+ANN static m_bool scan1_section(const Env env, const Section* section) {
+  const ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(scan1_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)
@@ -480,7 +470,7 @@ static m_bool scan1_section(Env env, Section* section) {
   return 1;
 }
 
-m_bool scan1_class_def(Env env, Class_Def class_def) {
+ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) {
   Class_Body body = class_def->body;
 
   if(tmpl_class_base(class_def->tmpl))
@@ -504,12 +494,11 @@ m_bool scan1_class_def(Env env, Class_Def class_def) {
     CHECK_BB(scan1_section(env, body->section))
     body = body->next;
   }
-  CHECK_BB(env_pop_class(env))
   SET_FLAG(class_def->type, ae_flag_scan1);
-  return 1;
+  return env_pop_class(env);
 }
 
-m_bool scan1_ast(Env env, Ast ast) {
+ANN m_bool scan1_ast(const Env env, Ast ast) {
   while(ast) {
     CHECK_BB(scan1_section(env, ast->section))
     ast = ast->next;

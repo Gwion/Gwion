@@ -132,7 +132,8 @@ m_bool template_push_types(Env env, ID_List base, Type_List call) {
   return 1;
 }
 
-extern m_bool scan0_class_def(Env, Class_Def);
+__attribute__((nonnull))
+extern m_bool scan0_class_def(const Env, const Class_Def);
 extern m_bool scan1_class_def(Env, Class_Def);
 
 Type scan_type(Env env, Type t, const Type_Decl* type) {

@@ -11,21 +11,22 @@ struct S_Symbol_ {
 
 static S_Symbol hashtable[SIZE];
 
-static S_Symbol mksymbol(const m_str name, S_Symbol next) {
+__attribute__((nonnull(1)))
+static S_Symbol mksymbol(const m_str name, const S_Symbol next) {
   S_Symbol s = malloc(sizeof(*s));
   s->name = strdup(name);
   s->next = next;
   return s;
 }
 
-static void free_symbol(S_Symbol s) {
+ANN static void free_symbol(S_Symbol s) {
   if(s->next)
     free_symbol(s->next);
   free(s->name);
   free(s);
 }
 
-void free_symbols() {
+void free_symbols(void) {
   int i;
   for(i = SIZE + 1; --i;) {
     S_Symbol s = hashtable[i - 1];
@@ -34,7 +35,7 @@ void free_symbols() {
   }
 }
 
-static unsigned int hash(const char *s0) {
+ANN static unsigned int hash(const char *s0) {
   unsigned int h = 0;
   const char *s;
   for(s = s0; *s; s++)
@@ -42,7 +43,7 @@ static unsigned int hash(const char *s0) {
   return h;
 }
 
-S_Symbol insert_symbol(const m_str name) {
+ANN S_Symbol insert_symbol(const m_str name) {
   int index = hash(name) % SIZE;
   S_Symbol sym, syms = hashtable[index];
 
@@ -52,7 +53,7 @@ S_Symbol insert_symbol(const m_str name) {
   return hashtable[index] = mksymbol(name, syms);
 }
 
-m_str s_name(S_Symbol sym) {
+ANN m_str s_name(const S_Symbol sym) {
   return sym->name;
 }
 

@@ -31,14 +31,15 @@ struct Emitter_ {
 
 Emitter new_emitter(Env env);
 void free_emitter(Emitter emit);
-VM_Code emit_code(Emitter emit)__attribute__ ((warn_unused_result));
-m_bool emit_ast(Emitter emit, Ast ast, m_str filename);
-m_bool emit_exp_call1(Emitter emit, Func func, Type type, int pos);
-Instr emitter_add_instr(Emitter emit, f_instr f);
-Code* emit_class_code(Emitter emit, m_str name);
-m_bool emit_array_extend(Emitter emit, Type t, Exp e);
-m_bool emit_class_finish(Emitter emit, Nspc nspc);
-m_bool emit_ext_ctor(Emitter emit, VM_Code code);
-void emit_union_offset(Decl_List l, const m_uint o);
-m_bool emit_instantiate_object(Emitter emit, Type type, Array_Sub array, m_bool is_ref);
+VM_Code emit_code(const Emitter emit)__attribute__ ((nonnull, warn_unused_result));
+m_bool emit_ast(const Emitter emit, Ast ast, m_str filename) ANN;
+m_bool emit_exp_call1(const Emitter emit, const Func func, const Type type) ANN;
+Instr emitter_add_instr(const Emitter emit, const f_instr f) __attribute__((nonnull(1)));
+Code* emit_class_code(const Emitter emit, const m_str name) ANN;
+m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) ANN;
+m_bool emit_class_finish(const Emitter emit, const Nspc nspc) ANN;
+m_bool emit_ext_ctor(const Emitter emit, const VM_Code code) ANN;
+void emit_union_offset(Decl_List l, const m_uint o) ANN;
+m_bool emit_instantiate_object(const Emitter emit, const Type type, const Array_Sub array, const m_bool is_ref)
+__attribute__((nonnull(1,2)));
 #endif

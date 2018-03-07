@@ -16,7 +16,7 @@ struct Path {
   m_uint len;
 };
 
-static ID_List templater_def(Templater* templater) {
+ANN static ID_List templater_def(const Templater* templater) {
   m_uint i;
   ID_List list[templater->n];
   list[0] = new_id_list(insert_symbol(templater->list[0]), 0);
@@ -27,22 +27,23 @@ static ID_List templater_def(Templater* templater) {
   return list[0];
 }
 
-VM* gwi_vm(Gwi gwi) {
+ANN VM* gwi_vm(const Gwi gwi) {
   return gwi->vm;
 }
 
-m_int gwi_tmpl_end(Gwi gwi) {
+ANN m_int gwi_tmpl_end(const Gwi gwi) {
   gwi->templater.n = 0;
   gwi->templater.list = NULL;
   return 1;
 }
 
-m_int gwi_tmpl_ini(Gwi gwi, m_uint n, const m_str* list) {
+ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str* list) {
   gwi->templater.n = n;
   gwi->templater.list = (m_str*)list;
   return 1;
 }
 
+__attribute((nonnull(1,2,3)))
 static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
   a->name = n;
   a->type = t;
@@ -50,17 +51,17 @@ static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun 
   a->narg = 0;
 }
 
-m_int gwi_func_ini(Gwi gwi, const m_str t, const m_str n, f_xfun addr) {
+ANN m_int gwi_func_ini(const Gwi gwi, const m_str t, const m_str n, const f_xfun addr) {
   dl_func_init(&gwi->func, t, n, addr);
   return 1;
 }
 
-static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
+ANN static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
   a->args[a->narg].type = t;
   a->args[a->narg++].name = n;
 }
 
-m_int gwi_func_arg(Gwi gwi, const m_str t, const m_str n) {
+ANN m_int gwi_func_arg(const Gwi gwi, const m_str t, const m_str n) {
   if(gwi->func.narg == DLARG_MAX - 1)
     CHECK_BB(err_msg(UTIL_, 0,
           "too many arguments for function '%s'.", gwi->func.name))
@@ -68,7 +69,7 @@ m_int gwi_func_arg(Gwi gwi, const m_str t, const m_str n) {
   return 1;
 }
 
-static m_bool check_illegal(char* curr, char c, m_uint i) {
+ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
   if(isalnum(c) || c == '_' || (i == 1 && c== '@'))
     curr[i - 1] = c;
   else
@@ -76,7 +77,7 @@ static m_bool check_illegal(char* curr, char c, m_uint i) {
   return 1;
 }
 
-static m_bool name_valid(m_str a) {
+ANN static m_bool name_valid(const m_str a) {
   m_uint i, len = strlen(a);
   m_uint lvl = 0;
   for(i = 0; i < len; i++) {
@@ -104,7 +105,7 @@ static m_bool name_valid(m_str a) {
   return !lvl ? 1 : -1;
 }
 
-static void path_valid_inner(m_str curr) {
+ANN static void path_valid_inner(const m_str curr) {
   m_int j, size = strlen(curr);
   for(j = (size / 2) + 1; --j;) {
     char s = curr[j];
@@ -113,7 +114,7 @@ static void path_valid_inner(m_str curr) {
   }
 }
 
-static m_bool path_valid(ID_List* list, struct Path* p) {
+ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
   char last = '\0';
   m_uint i;
   for(i = p->len + 1; --i;) {
@@ -136,7 +137,7 @@ static m_bool path_valid(ID_List* list, struct Path* p) {
   return 1;
 }
 
-static ID_List str2list(m_str path, m_uint* array_depth) {
+ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
   m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;
@@ -160,7 +161,7 @@ static ID_List str2list(m_str path, m_uint* array_depth) {
   return list;
 }
 
-static m_bool mk_xtor(Type type, m_uint d, e_func e) {
+ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
   m_str name = type->name;
 
@@ -171,14 +172,16 @@ static m_bool mk_xtor(Type type, m_uint d, e_func e) {
   return 1;
 }
 
-m_int gwi_add_type(Gwi gwi, Type type) {
+ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
   CHECK_BB(env_add_type(gwi->env, type))
   return type->xid;
 }
 
-static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor) {
+__attribute__((nonnull(1,2)))
+static m_bool import_class_ini(const Env env, const Type type,
+    const f_xtor pre_ctor, const f_xtor dtor) {
   type->info = new_nspc(type->name);
   type->info->parent = env->curr;
   if(pre_ctor)
@@ -196,7 +199,8 @@ static m_bool import_class_ini(Env env, Type type, f_xtor pre_ctor, f_xtor dtor)
   return 1;
 }
 
-m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
+__attribute__((nonnull(1,2)))
+m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
@@ -212,7 +216,7 @@ m_int gwi_class_ini(Gwi gwi, Type type, f_xtor pre_ctor, f_xtor dtor) {
   return type->xid;
 }
 
-m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
+ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "gwi_class_ext invoked before "
           "gwi_class_ini"))
@@ -250,7 +254,7 @@ m_int gwi_class_ext(Gwi gwi, Type_Decl* td) {
   return 1;
 }
 
-static m_int import_class_end(Env env) {
+ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   Nspc nspc = env->class_def->info;
@@ -260,18 +264,18 @@ static m_int import_class_end(Env env) {
   return 1;
 }
 
-m_int gwi_class_end(Gwi gwi) {
+ANN m_int gwi_class_end(const Gwi gwi) {
   return import_class_end(gwi->env);
 }
 
-static void dl_var_new_array(DL_Var* v) {
+ANN static void dl_var_new_array(DL_Var* v) {
   v->t.array = new_array_sub(NULL, 0);
   v->t.array->depth = v->array_depth;
   v->var.array = new_array_sub(NULL, 0);
   v->var.array->depth = v->array_depth;
 }
 
-static void dl_var_set(DL_Var* v, ae_flag flag) {
+ANN static void dl_var_set(DL_Var* v, const ae_flag flag) {
   v->list.self = &v->var;
   v->t.flag = flag;
   v->exp.exp_type = ae_exp_decl;
@@ -282,7 +286,7 @@ static void dl_var_set(DL_Var* v, ae_flag flag) {
     dl_var_new_array(v);
 }
 
-static void dl_var_release(DL_Var* v) {
+ANN static void dl_var_release(const DL_Var* v) {
   if(v->array_depth) {
     free_array_sub(v->t.array);
     free_array_sub(v->var.array);
@@ -290,7 +294,7 @@ static void dl_var_release(DL_Var* v) {
   free_id_list(v->t.xid);
 }
 
-m_int gwi_item_ini(Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
@@ -301,7 +305,8 @@ m_int gwi_item_ini(Gwi gwi, const m_str type, const m_str name) {
 }
 
 #undef gwi_item_end
-m_int gwi_item_end(Gwi gwi, const ae_flag flag, const m_uint* addr) {
+__attribute__((nonnull(1)))
+m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
@@ -330,7 +335,7 @@ m_int gwi_item_end(Gwi gwi, const ae_flag flag, const m_uint* addr) {
 }
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
-  m_uint* array_depth, m_uint array_depth2) {
+  m_uint* array_depth, const m_uint array_depth2) {
   m_uint i;
   if(array_depth2)
     *array_depth = array_depth2;
@@ -342,15 +347,15 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   return array_sub;
 }
 
-Type_Decl* str2decl(Env env, m_str s, m_uint *depth);
-static Type_List str2tl(Env env, m_str s, m_uint *depth) {
+ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth);
+ANN static Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
   Type_Decl* td = str2decl(env, s, depth);
   td->array = make_dll_arg_list_array(NULL, depth, 0);
   Type_List tl = new_type_list(td, NULL, 0);
   return tl;
 }
 
-Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
+ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   m_uint i = 0;
   m_str type_name = get_type_name(s, i++);
   CHECK_OO(type_name)
@@ -376,7 +381,7 @@ Type_Decl* str2decl(Env env, m_str s, m_uint *depth) {
   return td;
 }
 
-static Arg_List make_dll_arg_list(Env env, DL_Func * dl_fun) {
+ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
   Arg_List arg_list    = NULL;
   m_int i = 0;
 
@@ -407,7 +412,7 @@ static Arg_List make_dll_arg_list(Env env, DL_Func * dl_fun) {
   return arg_list;
 }
 
-static Func_Def make_dll_as_fun(Env env, DL_Func * dl_fun, ae_flag flag) {
+ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag flag) {
   Func_Def func_def = NULL;
   ID_List type_path = NULL;
   Type_Decl* type_decl = NULL;
@@ -432,13 +437,13 @@ static Func_Def make_dll_as_fun(Env env, DL_Func * dl_fun, ae_flag flag) {
   return func_def;
 }
 
-static Func_Def import_fun(Env env, DL_Func * mfun, ae_flag flag) {
-  CHECK_OO(mfun) // probably deserve an err msg or attr non-null
+ANN static Func_Def import_fun(const Env env, DL_Func * mfun, const ae_flag flag) {
+//  CHECK_OO(mfun) // probably deserve an err msg or attr non-null
   CHECK_BO(name_valid(mfun->name));
   return make_dll_as_fun(env, mfun, flag);
 }
 
-m_int gwi_func_end(Gwi gwi, ae_flag flag) {
+ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   Func_Def def = import_fun(gwi->env, &gwi->func, flag);
 
   CHECK_OB(def)
@@ -466,7 +471,7 @@ m_int gwi_func_end(Gwi gwi, ae_flag flag) {
   return 1;
 }
 
-static Type get_type(Env env, const m_str str) {
+ANN static Type get_type(const Env env, const m_str str) {
   m_uint depth = 0;
   ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
   Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
@@ -475,7 +480,8 @@ static Type get_type(Env env, const m_str str) {
   return t ? (depth ? array_type(t, depth) : t) : NULL;
 }
 
-static m_int import_op(Env env, DL_Oper* op,
+__attribute__((nonnull(1,2)))
+static m_int import_op(const Env env, const DL_Oper* op,
                 const f_instr f) {
   Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
@@ -485,24 +491,26 @@ static m_int import_op(Env env, DL_Oper* op,
   return env_add_op(env, &opi);
 }
 
-m_int gwi_oper_ini(Gwi gwi, const m_str l, const m_str r, const m_str t) {
+
+__attribute__((nonnull(1)))
+m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t) {
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
   return 1;
 }
 
-m_int gwi_oper_add(Gwi gwi, Type (*ck)(Env, void*)) {
+ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
   gwi->oper.ck = ck;
   return 1;
 }
 
-m_int gwi_oper_emi(Gwi gwi, m_bool (*em)(Emitter, void*)) {
+ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
   gwi->oper.em = em;
   return 1;
 }
 
-m_int gwi_oper_end(Gwi gwi, Operator op, const f_instr f) {
+ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
   m_bool ret;
   gwi->oper.op = op;
   ret = import_op(gwi->env, &gwi->oper, f);
@@ -511,12 +519,12 @@ m_int gwi_oper_end(Gwi gwi, Operator op, const f_instr f) {
   return ret;
 }
 
-m_int gwi_fptr_ini(Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str type, const m_str name) {
   dl_func_init(&gwi->func, type, name, 0);
   return 1;
 }
 
-static Stmt import_fptr(Env env, DL_Func* dl_fun, ae_flag flag) {
+ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   m_uint array_depth;
   ID_List type_path;
   Type_Decl* type_decl = NULL;
@@ -528,8 +536,10 @@ static Stmt import_fptr(Env env, DL_Func* dl_fun, ae_flag flag) {
           dl_fun->name))
   return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }
+
 #include "func.h"
-m_int gwi_fptr_end(Gwi gwi, ae_flag flag) {
+
+ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
   CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
   if(gwi->env->class_def)
@@ -540,7 +550,7 @@ m_int gwi_fptr_end(Gwi gwi, ae_flag flag) {
   return 1;
 }
 
-static Exp make_exp(const m_str type, const m_str name) {
+ANN static Exp make_exp(const m_str type, const m_str name) {
   Type_Decl *type_decl;
   ID_List id_list;
   m_uint array_depth;
@@ -556,19 +566,20 @@ static Exp make_exp(const m_str type, const m_str name) {
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
-m_int gwi_union_ini(Gwi gwi, const m_str name) {
+__attribute__((nonnull(1)))
+m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   if(name)
     gwi->union_data.xid = insert_symbol(name);
   return 1;
 }
 
-m_int gwi_union_add(Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name) {
   Exp exp = make_exp(type, name);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
   return 1;
 }
 
-m_int gwi_union_end(Gwi gwi, ae_flag flag) {
+ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
@@ -581,13 +592,14 @@ m_int gwi_union_end(Gwi gwi, ae_flag flag) {
   return 1;
 }
 
-m_int gwi_enum_ini(Gwi gwi, const m_str type) {
+__attribute__((nonnull(1)))
+m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   gwi->enum_data.t = type;
   vector_init(&gwi->enum_data.addr);
   return 1;
 }
 
-m_int gwi_enum_add(Gwi gwi, const m_str name, const m_uint addr) {
+ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint addr) {
   ID_List list = new_id_list(insert_symbol(name), 0);
   DL_Enum* d = &gwi->enum_data;
   vector_add(&gwi->enum_data.addr, addr);
@@ -599,7 +611,7 @@ m_int gwi_enum_add(Gwi gwi, const m_str name, const m_uint addr) {
   return list ? 1 : -1;
 }
 
-static void import_enum_end(DL_Enum* d, Vector v) {
+ANN static void import_enum_end(DL_Enum* d, const Vector v) {
   m_uint i;
 
   for(i = 0; i < vector_size(v); i++) {
@@ -613,7 +625,7 @@ static void import_enum_end(DL_Enum* d, Vector v) {
   vector_release(&d->addr);
 }
 
-m_int gwi_enum_end(Gwi gwi) {
+ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
   Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
 

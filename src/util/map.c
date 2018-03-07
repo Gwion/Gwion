@@ -8,8 +8,7 @@
 #define KEY(v, i) (v)->ptr[OFFSET + (i) * 2]
 #define VAL(v, i) (v)->ptr[OFFSET + (i) * 2 + 1]
 
-__attribute__((nonnull))
-void map_clear(Map v) {
+ANN void map_clear(Map v) {
   v->ptr = realloc(v->ptr, (CAP(v) = MAP_CAP) * SZ_INT);
   LEN(v) = 0;
 }
@@ -21,14 +20,12 @@ Map new_map() {
   return map;
 }
 
-__attribute__((nonnull))
-void map_init(Map a) {
+ANN void map_init(Map a) {
   a->ptr = calloc(MAP_CAP, SZ_INT);
   CAP(a) = MAP_CAP;
 }
 
-__attribute__((nonnull))
-const vtype map_get(const Map map, const vtype key) {
+ANN const vtype map_get(const Map map, const vtype key) {
   vtype i;
   for(i = LEN(map) + 1; --i;)
     if(KEY(map, i - 1) == key)
@@ -36,15 +33,13 @@ const vtype map_get(const Map map, const vtype key) {
   return 0;
 }
 
-__attribute__((nonnull))
-const vtype map_at(const Map map, const vtype index) {
+ANN const vtype map_at(const Map map, const vtype index) {
   if(index > LEN(map))
     return 0;
   return VAL(map, index);
 }
 
-__attribute__((nonnull))
-void map_set(const Map map, const vtype key, const vtype ptr) {
+ANN void map_set(const Map map, const vtype key, const vtype ptr) {
   vtype i;
   for(i = LEN(map) + 1; --i;) {
     if(KEY(map, i - 1) == key) {
@@ -61,8 +56,7 @@ void map_set(const Map map, const vtype key, const vtype ptr) {
   LEN(map)++;
 }
 
-__attribute__((nonnull))
-void map_remove(const Map map, const vtype key) {
+ANN void map_remove(const Map map, const vtype key) {
   vtype i;
   struct Map_ tmp;
   map_init(&tmp);
@@ -75,20 +69,17 @@ void map_remove(const Map map, const vtype key) {
   CAP(map) = CAP(&tmp);
 }
 
-__attribute__((nonnull))
-void map_commit(const restrict Map map, const restrict Map commit) {
+ANN void map_commit(const restrict Map map, const restrict Map commit) {
   vtype i;
   for(i = 0; i < LEN(commit); i++)
     map_set(map, KEY(commit, i), VAL(commit, i));
 }
 
-__attribute__((nonnull))
-void free_map(Map map) {
+ANN void free_map(Map map) {
   free(map->ptr);
   free(map);
 }
 
-__attribute__((nonnull))
-void map_release(Map map) {
+ANN void map_release(Map map) {
   free(map->ptr);
 }

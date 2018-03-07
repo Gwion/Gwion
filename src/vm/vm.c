@@ -25,8 +25,7 @@ VM* new_vm(m_bool loop) {
   return vm;
 }
 
-__attribute__((nonnull))
-void free_vm(VM* vm) {
+ANN void free_vm(VM* vm) {
   m_uint i;
   if(vm->emit)
     free_emitter(vm->emit);
@@ -44,8 +43,7 @@ void free_vm(VM* vm) {
   free_symbols();
 }
 
-__attribute__((nonnull))
-void vm_add_shred(VM* vm, VM_Shred shred) {
+ANN void vm_add_shred(VM* vm, VM_Shred shred) {
   shred->vm_ref = vm;
   if(!shred->me)
     shred->me = new_shred(vm, shred);
@@ -77,7 +75,7 @@ static inline void vm_run_shred(VM* vm, const Shreduler s) {
   }
 }
 
-__attribute__((nonnull))
+__attribute__((hot, nonnull))
 static inline void vm_ugen_init(VM* vm) {
   m_uint i;
   LOOP_OPTIM

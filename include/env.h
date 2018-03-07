@@ -35,6 +35,6 @@ Class_Def env_class_def(Env, Class_Def);
 Type scan_type(Env, Type, const Type_Decl*);
 Type type_decl_resolve(Env env, const Type_Decl* td);
 m_str tl2str(Env env, Type_List tl);
-m_bool compat_func(Func_Def, Func_Def, int);
+ANN m_bool compat_func(const Func_Def, const Func_Def);
 m_bool type_unknown(ID_List, m_str);
 #endif

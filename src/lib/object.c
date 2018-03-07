@@ -10,7 +10,7 @@
 struct Type_ t_null    = { "@null",  SZ_INT };
 struct Type_ t_object  = { "Object", SZ_INT };
 
-void NullException(VM_Shred shred, const m_str c) {
+void NullException(const VM_Shred shred, const m_str c) {
   m_uint i;
   for(i = 0; i < vector_size(&shred->gc1); i++)
     release((M_Object)vector_at(&shred->gc1, i), shred);
@@ -20,7 +20,7 @@ void NullException(VM_Shred shred, const m_str c) {
   vm_shred_exit(shred);
 }
 
-M_Object new_M_Object(VM_Shred shred) {
+M_Object new_M_Object(const VM_Shred shred) {
   M_Object a = calloc(1, sizeof(struct M_Object_));
   a->ref = 1;
   if(shred)
@@ -28,14 +28,14 @@ M_Object new_M_Object(VM_Shred shred) {
   return a;
 }
 
-M_Object new_String(VM_Shred shred, m_str str) {
+M_Object new_String(const VM_Shred shred, const m_str str) {
   M_Object o = new_M_Object(shred);
   initialize_object(o, &t_string);
   STRING(o) = s_name(insert_symbol(str));
   return o;
 }
 
-m_bool initialize_object(M_Object object, Type type) {
+m_bool initialize_object(M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
@@ -46,7 +46,8 @@ m_bool initialize_object(M_Object object, Type type) {
   return 1;
 }
 
-void instantiate_object(VM * vm, VM_Shred shred, Type type) {
+void instantiate_object(const VM * vm, const VM_Shred shred,
+    const Type type) {
   M_Object object = new_M_Object(NULL);
   if(!object) Except(shred, "NullPtrException");
   initialize_object(object, type);
@@ -55,7 +56,7 @@ void instantiate_object(VM * vm, VM_Shred shred, Type type) {
   return;
 }
 
-static void handle_dtor(Type t, VM_Shred shred) {
+static void handle_dtor(const Type t, const VM_Shred shred) {
   VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
   VM_Shred sh = new_vm_shred(code);
   vector_init(&sh->gc);
@@ -67,7 +68,7 @@ static void handle_dtor(Type t, VM_Shred shred) {
   vm_add_shred(shred->vm_ref, sh);
 }
 
-void release(M_Object obj, VM_Shred shred) {
+void release(M_Object obj, const VM_Shred shred) {
   if(!obj)
     return;
   if(!--obj->ref) {

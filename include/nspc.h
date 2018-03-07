@@ -23,29 +23,29 @@ struct Nspc_ {
 extern Nspc new_nspc(const m_str name);
 extern void free_nspc(Nspc a);
 
-extern Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Type  nspc_lookup_type0(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Type  nspc_lookup_type1(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Type  nspc_lookup_type2(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Func  nspc_lookup_func0(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Func  nspc_lookup_func1(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
-extern Func  nspc_lookup_func2(const Nspc nspc, const S_Symbol xid)__attribute__((nonnull));
+extern Value nspc_lookup_value0(const Nspc nspc, const S_Symbol xid) ANN;
+extern Value nspc_lookup_value1(const Nspc nspc, const S_Symbol xid) ANN;
+extern Value nspc_lookup_value2(const Nspc nspc, const S_Symbol xid) ANN;
+extern Type  nspc_lookup_type0(const Nspc nspc, const S_Symbol xid)  ANN;
+extern Type  nspc_lookup_type1(const Nspc nspc, const S_Symbol xid)  ANN;
+extern Type  nspc_lookup_type2(const Nspc nspc, const S_Symbol xid)  ANN;
+extern Func  nspc_lookup_func0(const Nspc nspc, const S_Symbol xid)  ANN;
+extern Func  nspc_lookup_func1(const Nspc nspc, const S_Symbol xid)  ANN;
+extern Func  nspc_lookup_func2(const Nspc nspc, const S_Symbol xid)  ANN;
 
-extern Vector nspc_get_value(const Nspc nspc);
+extern Vector nspc_get_value(const Nspc);
 
-extern void  nspc_commit(Nspc nspc);
-extern void  nspc_rollback(Nspc nspc);
+extern void  nspc_commit(const Nspc) ANN;
+extern void  nspc_rollback(const Nspc) ANN;
 
-void nspc_add_value(Nspc nspc, S_Symbol xid, Value value);
-void nspc_push_value(Nspc nspc);
-void nspc_pop_value(Nspc nspc);
+void nspc_add_value(const Nspc, const S_Symbol, const Value) ANN;
+void nspc_push_value(const Nspc) ANN;
+void nspc_pop_value(const Nspc) ANN;
 
-void nspc_add_func(Nspc nspc, S_Symbol xid, Func value);
-void nspc_push_func(Nspc nspc);
-void nspc_pop_func(Nspc nspc);
+void nspc_add_func(const Nspc, const S_Symbol, const Func) ANN;
+void nspc_push_func(const Nspc) ANN;
+void nspc_pop_func(const Nspc) ANN;
 
-void nspc_add_type(Nspc nspc, S_Symbol xid, Type value);
-void nspc_push_type(Nspc nspc);
-void nspc_pop_type(Nspc nspc);
+void nspc_add_type(const Nspc, const S_Symbol, const Type) ANN;
+void nspc_push_type(const Nspc) ANN;
+void nspc_pop_type(const Nspc) ANN;
