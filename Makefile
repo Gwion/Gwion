@@ -1,5 +1,9 @@
 include config.mk
 
+DEPDIR := .d
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(@F:.o=.Td)
+
 # initialize source lists
 src_src := $(wildcard src/*.c)
 lib_src := $(wildcard src/lib/*.c)
@@ -73,12 +77,14 @@ endif
 ifeq (${USE_MEMCHECK}, 1)
 CFLAGS += -g
 endif
+ifeq (${USE_MLOCK}, 1)
+CFLAGS += -DUSE_MLOCK
+endif
 ifeq (${USE_DOUBLE}, 1)
 CFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double
 else
 CFLAGS+=-DSPFLOAT=float
 endif
-
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
@@ -137,11 +143,15 @@ clean:
 
 src/arg.o:
 	$(info compile $(<:.c=) (with arguments defines))
-	@${CC} ${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
+	@${CC} $(DEPFLAGS) ${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
+	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
+	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
-.c.o:
+.c.o: $(DEPDIR)/%.d
 	$(info compile $(<:.c=))
-	@${CC} ${CFLAGS} -c $< -o $(<:.c=.o)
+	@${CC} $(DEPFLAGS) ${CFLAGS} -c $< -o $(<:.c=.o)
+	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
+	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
 install: directories
 	cp ${PRG} ${PREFIX}
@@ -177,3 +187,5 @@ directories:
 
 gwdebug:
 	CURSES_DEBUG=1 PRG=gwdbg make
+
+include $(wildcard .d/*.d)
