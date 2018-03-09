@@ -15,7 +15,12 @@ typedef struct {
   struct Vector_ lib;
   Vector ref;
   UdpIf* udp;
+#ifdef GWCOV
   m_bool coverage;
+#endif
+#ifdef GWCGRAPH
+  m_bool profile;
+#endif
 } Arg;
 
 void arg_init(Arg* arg);

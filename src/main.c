@@ -87,7 +87,6 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-//  mlockall(MCL_CURRENT|MCL_FUTURE);
   if(!(vm = new_vm(arg.loop)))
     goto clean;
   if(init_bbq(vm, &di, &d) < 0)
@@ -97,6 +96,12 @@ int main(int argc, char** argv) {
 #ifdef GWCOV
   if(arg.coverage)
     vm->emit->coverage = 1;
+#endif
+#ifdef GWCGRAPH
+  if(arg.profile) {
+    vm->emit->profile = 1;
+    vm->emit->call_file = fopen("gwmon.out", "w");
+  }
 #endif
   srand(time(NULL));
 

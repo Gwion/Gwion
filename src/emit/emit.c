@@ -15,11 +15,6 @@
 
 #ifdef GWCOV
 #define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
-#else
-#define COVERAGE(a)
-#endif
-
-#ifdef GWCOV
 ANN static void coverage(const Emitter emit, const m_uint pos) {
   Instr cov;
 
@@ -27,6 +22,41 @@ ANN static void coverage(const Emitter emit, const m_uint pos) {
   cov = emitter_add_instr(emit, InstrCoverage);
   cov->m_val = pos;
 }
+#else
+#define COVERAGE(a)
+#endif
+
+#ifdef GWCGRAPH
+#define GWCGRAPH_INI\
+  m_uint index = emit_alloc_local(emit, 2*SZ_INT, 0);\
+  if(emit->profile) {\
+    Instr start = emitter_add_instr(emit, gwcgraph_ini);\
+    start->m_val = index;\
+  }
+#define GWCGRAPH_END(name)\
+  if(emit->profile) {\
+    Instr instr = emitter_add_instr(emit, gwcgraph_end);\
+    instr->m_val = index;\
+    instr->m_val2 = (m_uint)name;\
+    *(FILE**)instr->ptr = emit->call_file;\
+  }
+static INSTR(gwcgraph_ini) {
+  struct timespec ts;
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+  *(struct timespec*)MEM(instr->m_val) = ts;
+}
+static INSTR(gwcgraph_end) {
+  struct timespec end, start = *(struct timespec*)MEM(instr->m_val);
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
+  fprintf(*(FILE**)instr->ptr, "%s %s %lu %lu %lu %lu\n",
+    (m_str)instr->m_val2,
+    shred->code->name,
+    start.tv_sec, start.tv_nsec,
+    end.tv_sec, end.tv_nsec);
+}
+#else
+#define GWCGRAPH_INI
+#define GWCGRAPH_END(a)
 #endif
 
 typedef struct {
@@ -90,6 +120,10 @@ ANN Emitter new_emitter(const Env env) {
 }
 
 ANN void free_emitter(Emitter a) {
+#ifdef GWCGRAPH
+  if(a->profile)
+    fclose(a->call_file);
+#endif
   free_env(a->env);
   vector_release(&a->stack);
   vector_release(&a->codes);
@@ -828,6 +862,8 @@ ANN static m_bool emit_exp_call1_usr(const Emitter emit) {
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func, const Type type) {
   const m_bool is_member = GET_FLAG(func, ae_flag_member) ||
     (!GET_FLAG(func, ae_flag_member) && !GET_FLAG(func, ae_flag_builtin));
+
+  GWCGRAPH_INI
   if(!func->code ||
       (GET_FLAG(func, ae_flag_ref) &&!GET_FLAG(func, ae_flag_builtin)))
     CHECK_BB(emit_exp_call1_code(emit, func))
@@ -837,10 +873,13 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func func, const Type type) 
   }
   CHECK_BB(emit_exp_call1_offset(emit, is_member))
   if(GET_FLAG(func->def, ae_flag_builtin))
-    return emit_exp_call1_builtin(emit, func);
+    CHECK_BB(emit_exp_call1_builtin(emit, func))
   else if(GET_FLAG(func->def, ae_flag_op))
-    return emit_exp_call1_op(emit, func->def->arg_list);
-  return emit_exp_call1_usr(emit);
+    CHECK_BB(emit_exp_call1_op(emit, func->def->arg_list))
+  else
+    CHECK_BB(emit_exp_call1_usr(emit))
+  GWCGRAPH_END(func->name)
+  return 1;
 }
 
 __attribute__((nonnull(1,2)))

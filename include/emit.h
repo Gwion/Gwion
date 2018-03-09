@@ -24,8 +24,16 @@ struct Emitter_ {
   struct Vector_    stack;
   struct Vector_    codes;
 #ifdef GWCOV
-  m_bool coverage;
   FILE* cov_file;
+#endif
+#ifdef GWCGRAPH
+  FILE* call_file;
+#endif
+#ifdef GWCOV
+  m_bool coverage;
+#endif
+#ifdef GWCGRAPH
+  m_bool profile;
 #endif
 };
 

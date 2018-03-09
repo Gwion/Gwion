@@ -67,8 +67,6 @@ endif
 # add boolean
 ifeq (${USE_COVERAGE}, 1)
 CFLAGS += -ftest-coverage -fprofile-arcs
-endif
-ifeq (${USE_COVERAGE}, 1)
 LDFLAGS += --coverage
 endif
 ifeq (${USE_GWCOV}, 1)
@@ -77,9 +75,10 @@ endif
 ifeq (${USE_MEMCHECK}, 1)
 CFLAGS += -g
 endif
-ifeq (${USE_MLOCK}, 1)
-CFLAGS += -DUSE_MLOCK
+ifeq (${USE_GWCGRAPH}, 1)
+CFLAGS += -DGWCGRAPH
 endif
+
 ifeq (${USE_DOUBLE}, 1)
 CFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double
 else

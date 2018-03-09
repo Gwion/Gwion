@@ -49,7 +49,10 @@ static const struct option long_option[] = {
   { "version",  0, NULL, 'v' },
   { "config",   0, NULL, 'C' },
 #ifdef GWCOV
-  { "coverage",   0, NULL, 'K' },
+  { "coverage", 0, NULL, 'K' },
+#endif
+#ifdef GWCGRAPH
+  { "profile",  0, NULL, 'G' },
 #endif
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
@@ -162,7 +165,7 @@ static void arg_udp(UdpIf* udp, char c) {
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
   m_str endptr;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CK ", long_option, &index)) != -1) {
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKG ", long_option, &index)) != -1) {
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
     else switch(i) {
@@ -185,6 +188,11 @@ void parse_args(Arg* arg, DriverInfo* di) {
 #ifdef GWCOV
       case 'K':
         arg->coverage = 1;
+        break;
+#endif
+#ifdef GWCGRAPH
+      case 'G':
+        arg->profile = 1;
         break;
 #endif
       default:
