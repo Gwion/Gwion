@@ -66,7 +66,9 @@ m_bool compile(VM* vm, const m_str filename) {
   return -1;
 }
 
-//#include <sys/mman.h>
+#ifdef GWREPL
+extern void* repl_process(void*);
+#endif
 
 int main(int argc, char** argv) {
   Env env = NULL;
@@ -78,8 +80,10 @@ int main(int argc, char** argv) {
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
   int i;
 
-  pthread_t thread = 0;
-
+  pthread_t thread;
+#ifdef GWREPL
+  pthread_t repl_thread;
+#endif
   d.del = NULL;
   arg_init(&arg);
   arg.udp = &udpif;
@@ -121,8 +125,23 @@ int main(int argc, char** argv) {
     pthread_detach(thread);
 #endif
   }
+
+#ifdef GWREPL
+if(arg.repl) {
+  pthread_create(&repl_thread, NULL, repl_process, vm);
+#ifndef __linux__
+    pthread_detach(repl_thread);
+#endif
+}
+#endif
+
   d.run(vm, &di);
 
+//pthread_cancel(repl_thread);
+#ifdef GWREPL
+if(arg.repl)
+  pthread_join(repl_thread, NULL);
+#endif
   if(udpif.on)
     udp_release(&udp, thread);
 clean:

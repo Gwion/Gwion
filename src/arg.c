@@ -54,6 +54,9 @@ static const struct option long_option[] = {
 #ifdef GWCGRAPH
   { "profile",  0, NULL, 'G' },
 #endif
+#ifdef GWREPL
+  { "repl",  0, NULL, 'R' },
+#endif
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -69,7 +72,9 @@ static const char usage[] =
 "\t--rem,     --\t <shred id>  : remove shred\n"
 "\t--plugdir, -P\t <directory> : add a plugin directory\n"
 "\t--quit     -q\t             : quit the vm\n"
+"\t--profile  -G\t             : enter profile mode (if enabled)\n"
 "\t--coverage -k\t             : enter coverage mode (if enabled)\n"
+"\t--repl     -R\t             : enter repl  mode (if enabled)\n"
 "UDP    options:\n"
 "\t--host     -h\t  <string>   : set host\n"
 "\t--port     -p\t  <number>   : set port\n"
@@ -165,7 +170,7 @@ static void arg_udp(UdpIf* udp, char c) {
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
   m_str endptr;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKG ", long_option, &index)) != -1) {
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKGR ", long_option, &index)) != -1) {
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
     else switch(i) {
@@ -193,6 +198,11 @@ void parse_args(Arg* arg, DriverInfo* di) {
 #ifdef GWCGRAPH
       case 'G':
         arg->profile = 1;
+        break;
+#endif
+#ifdef GWREPL
+      case 'R':
+        arg->repl = 1;
         break;
 #endif
       default:

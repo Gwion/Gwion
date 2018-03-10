@@ -21,6 +21,11 @@ INSTR(EOC) { GWDEBUG_INSTR
   vm_shred_exit(shred);
 }
 
+INSTR(EOC2) { GWDEBUG_INSTR
+  shred->next_pc = shred->pc = 0;
+  shreduler_remove(shred->vm_ref->shreduler, shred, 0);
+}
+
 INSTR(Reg_Pop_Word4) { GWDEBUG_INSTR
   POP_REG(shred,  instr->m_val);
 }

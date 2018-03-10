@@ -27,6 +27,9 @@ struct Instr_ {
 
 INSTR(EOC);
 
+
+INSTR(EOC2); // repl
+
 INSTR(Reg_Push_Me);
 INSTR(Reg_Push_Now);
 INSTR(Reg_Push_Maybe);

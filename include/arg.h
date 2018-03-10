@@ -21,6 +21,9 @@ typedef struct {
 #ifdef GWCGRAPH
   m_bool profile;
 #endif
+#ifdef GWREPL
+  m_bool repl;
+#endif
 } Arg;
 
 void arg_init(Arg* arg);
