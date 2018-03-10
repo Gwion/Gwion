@@ -36,15 +36,23 @@ static void get_filename(VM_Shred shred, m_str c, m_str prefix) {
 }
 
 static m_bool check_code(VM_Shred shred, m_str c) {
+  m_bool ret;
   m_str s;
   Ast ast;
-
-  CHECK_OB((ast = parse(c)))
+  FILE* f = fopen(c, "r");
+  if(!f)
+    return - 1;
+  if(!(ast = parse(c, f))) {
+    fclose(f);
+    return - 1;
+  }
   s = strdup(c);
-  CHECK_BB(type_engine_check_prog(shred->vm_ref->emit->env,  ast, s))
-  free(s);
-  free_ast(ast);
-  return 1;
+  if((ret = type_engine_check_prog(shred->vm_ref->emit->env,  ast, s)) > 0) {
+    free_ast(ast);
+    free(s);
+  }
+  fclose(f);
+  return ret;
 }
 
 static m_bool code_to_file(VM_Shred shred, m_str filename) {

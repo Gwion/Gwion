@@ -509,6 +509,6 @@ struct Ast_ {
   int pos;
 };
 Ast new_ast(Section* section, Ast next, int pos);
-Ast parse(m_str);
+Ast parse(m_str, FILE*);
 void free_ast();
 #endif

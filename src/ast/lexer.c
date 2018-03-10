@@ -2806,20 +2806,20 @@ int get_pos(Scanner* scan) {
   return scan->line;
 }
 
-Ast parse(m_str filename) {
+Ast parse(m_str filename, FILE* f) {
   Scanner scan;
   gwion_lex_init(&scan.scanner);
   gwion_set_extra(&scan, scan.scanner);
   scan.line = 1;
   scan.pos  = 1;
-  scan.file = fopen(filename, "r");
+  scan.file = f;
   scan.filename = filename;
   gwion_set_in(scan.file, scan.scanner);
   if(setjmp(jmp)) {
     scan.ast = NULL;
   } else if(gwion_parse(&scan))
     scan.ast = NULL;
-  fclose(scan.file);
+//  fclose(scan.file);
   gwion_lex_destroy(scan.scanner);
   return scan.ast;
 }

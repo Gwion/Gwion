@@ -2,6 +2,6 @@ Machine.add("examples/int.gw");
 Machine.compile("/tmp", "int i;<<<120>>>;");
 //Machine.compile("/tmp", "int i[error];");
 
-<<<Machine.check("/tmp/","int i;")>>>;
+<<<Machine.check("/tmp/","12 => int i; <<<i>>>")>>>;
 Machine.check("/tmp/", "int i[error];");
 Machine.check(NULL, NULL);

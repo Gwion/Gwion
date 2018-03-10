@@ -439,13 +439,18 @@ int main(int argc, char** argv) {
     Tagger tagger = { *argv , new_vector() };
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.tag", *argv);
-    if(!(ast = parse(*argv++)))
+    FILE* f = fopen(*argv, "r");
+    if(!f)continue;
+    if(!(ast = parse(*argv++, f))) {
+      fclose(f);
       continue;
+    }
     tagger.file = fopen(c, "w");
     tag_ast(&tagger, ast);
     free_ast(ast);
     free_vector(tagger.class_stack);
     fclose(tagger.file);
+    fclose(f);
   }
   free_symbols();
   return 0;

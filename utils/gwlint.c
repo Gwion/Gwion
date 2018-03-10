@@ -672,11 +672,14 @@ int main(int argc, char** argv) {
     Linter linter = { *argv, NULL, 1 };
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.lint", *argv);
-    if(!(ast = parse(*argv++)))
+    FILE* f = fopen(*argv, "r");
+    if(!f)continue;
+    if(!(ast = parse(*argv++, f)))
       continue;
     linter.file = fopen(c, "w");
     lint_ast(&linter, ast);
     free_ast(ast);
+    fclose(f);
     fclose(linter.file);
   }
   free_symbols();

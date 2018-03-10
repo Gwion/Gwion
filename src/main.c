@@ -30,6 +30,7 @@ m_bool compile(VM* vm, const m_str filename) {
   VM_Shred shred;
   VM_Code  code;
   Ast      ast;
+  FILE* f;
   Vector args = NULL;
   m_str _name, name, d = strdup(filename);
   _name = strsep(&d, ":");
@@ -44,8 +45,11 @@ m_bool compile(VM* vm, const m_str filename) {
     err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
     return -1;
   }
-  if(!(ast = parse(name))) {
+  if(!(f = fopen(name, "r")))
     free(name);
+  if(!(ast = parse(name, f))) {
+    free(name);
+    fclose(f);
     return -1;
   }
   CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
@@ -58,6 +62,7 @@ m_bool compile(VM* vm, const m_str filename) {
   shred->args = args;
   vm_add_shred(vm, shred);
   free(name);
+  fclose(f);
   return -1;
 }
 
