@@ -27,8 +27,8 @@ ANN static void free_symbol(S_Symbol s) {
 }
 
 void free_symbols(void) {
-  int i;
-  for(i = SIZE + 1; --i;) {
+  LOOP_OPTIM
+  for(unsigned int i = SIZE + 1; --i;) {
     S_Symbol s = hashtable[i - 1];
     if(s)
       free_symbol(s);
@@ -44,9 +44,10 @@ ANN static unsigned int hash(const char *s0) {
 }
 
 ANN S_Symbol insert_symbol(const m_str name) {
-  int index = hash(name) % SIZE;
+  unsigned int index = hash(name) % SIZE;
   S_Symbol sym, syms = hashtable[index];
 
+  LOOP_OPTIM
   for(sym = syms; sym; sym = sym->next)
     if(!strcmp(sym->name, (m_str)name))
       return sym;
