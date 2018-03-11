@@ -20,17 +20,17 @@ struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio };
 m_int o_fileio_file;
 static M_Object gw_cin, gw_cout, gw_cerr;
 
-CTOR(fileio_ctor) {
+static CTOR(fileio_ctor) {
   IO_FILE(o)  = NULL;
 
 }
 
-DTOR(fileio_dtor) {
+static DTOR(fileio_dtor) {
   if(IO_FILE(o))
     fclose(IO_FILE(o));
 }
 
-DTOR(static_fileio_dtor) {
+static DTOR(static_fileio_dtor) {
   IO_FILE(o) = NULL;
 }
 
@@ -58,8 +58,8 @@ static INSTR(string_to_file) { GWDEBUG_EXE
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%s", lhs ? STRING(lhs) : NULL);
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -338,9 +338,6 @@ m_bool import_fileio(Gwi gwi) {
   initialize_object(gw_cerr, &t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
-//  gwi_add_value(gwi,  "cin",  &t_fileio, 1, gw_cin);
-//  gwi_add_value(gwi,  "cout", &t_fileio, 1, gw_cout);
-//  gwi_add_value(gwi,  "cerr", &t_fileio, 1, gw_cerr);
   gwi_item_ini(gwi, "FileIO", "cin");
   gwi_item_end(gwi, ae_flag_const, gw_cin);
   gwi_item_ini(gwi, "FileIO", "cout");
