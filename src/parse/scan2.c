@@ -8,8 +8,7 @@
 
 #include "traverse.h"
 
-__attribute__((nonnull(1)))
-static m_bool scan2_exp(const Env, const Exp);
+ANN static m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
@@ -163,9 +162,10 @@ ANN static m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   return scan2_exp(env, dur->unit);
 }
 
-ANN static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
+__attribute__((nonnull(1,2)))
+static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, func))
-  return scan2_exp(env, args);
+  return args ? scan2_exp(env, args) : 1;
 }
 
 ANN static m_bool scan2_exp_call(const Env env, const Exp_Func* exp_func) { GWDEBUG_EXE
@@ -263,7 +263,8 @@ ANN static m_bool scan2_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) 
 ANN static m_bool scan2_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_EXE
   CHECK_BB(scan2_stmt(env, stmt->c1))
   CHECK_BB(scan2_stmt(env, stmt->c2))
-  CHECK_BB(scan2_exp(env, stmt->c3))
+  if(stmt->c3)
+    CHECK_BB(scan2_exp(env, stmt->c3))
   return scan2_stmt(env, stmt->body);
 }
 
@@ -286,7 +287,7 @@ ANN static m_bool scan2_stmt_switch(const Env env, const Stmt_Switch stmt) { GWD
 }
 
 ANN static m_bool scan2_stmt_case(const Env env, const Stmt_Case stmt) { GWDEBUG_EXE
-  return scan2_exp(env, stmt->val);
+  return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
 ANN static Map scan2_label_map(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
@@ -343,7 +344,7 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
   m_bool ret = 1;
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
-      ret = scan2_exp(env, stmt->d.stmt_exp.val);
+      ret = stmt->d.stmt_exp.val ? scan2_exp(env, stmt->d.stmt_exp.val) : 1;
       break;
     case ae_stmt_return:
       ret = scan2_stmt_return(env, &stmt->d.stmt_return);
@@ -480,7 +481,16 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
   const Type r = GET_FLAG(f, ae_flag_unary) ? f->arg_list->var_decl->value->m_type :
     f->arg_list->next ? f->arg_list->next->var_decl->value->m_type : NULL;
   struct Op_Import opi = { ret, l, r, f->ret_type, NULL, NULL, 0};
-  return env_add_op(env, &opi);
+  CHECK_BB(env_add_op(env, &opi))
+  if(env->class_def) {
+    if(env->class_def == l)
+      REM_REF(l)
+    if(env->class_def == r)
+      REM_REF(r)
+    if(env->class_def == f->ret_type)
+      REM_REF(f->ret_type)
+  }
+  return 1;
 }
 
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE

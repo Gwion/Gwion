@@ -19,8 +19,7 @@
     CHECK_BO(err_msg(TYPE_, a->pos, "in %s expression", b))\
   return op_ret;
 
-__attribute__((nonnull(1)))
-Type   check_exp(const Env env, Exp exp);
+ANN Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt(const Env env, const Stmt stmt);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
@@ -957,8 +956,7 @@ ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDE
   return stmt->m_type->def ? check_class_def(env, stmt->m_type->def) : 1;
 }
 
-__attribute__((nonnull(1)))
-Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
+ANN Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
   while(curr) {
     curr->type = NULL;
@@ -1000,7 +998,7 @@ Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
     CHECK_OO(curr->type)
     curr = curr->next;
   }
-  return exp ? exp->type : NULL;
+  return exp->type;
 }
 
 ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE

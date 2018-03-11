@@ -104,8 +104,7 @@ ANN static void frame_pop_scope(Frame* frame, Vector v) {
   vector_pop(&frame->stack);
 }
 
-__attribute__((nonnull(1)))
-static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
+ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
@@ -660,7 +659,7 @@ ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Func* exp_f
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(emit_exp(emit, exp_func->args, 1) < 0)
+  if(exp_func->args && emit_exp(emit, exp_func->args, 1) < 0)
     CHECK_BB(err_msg(EMIT_, exp_func->pos,
           "(emit): internal error in emitting function call arguments..."))
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic))
@@ -1102,7 +1101,8 @@ ANN static void emit_func_release(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Return stmt) { GWDEBUG_EXE
-  CHECK_BB(emit_exp(emit, stmt->val, 0))
+  if(stmt->val)
+    CHECK_BB(emit_exp(emit, stmt->val, 0))
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
   return 1;
 }
@@ -1852,8 +1852,7 @@ ANN static m_bool emit_func_def_code(const Emitter emit, const Func func) { GWDE
   if(GET_FLAG(func->def, ae_flag_dtor)) {
     emit->env->class_def->info->dtor = func->code;
     ADD_REF(func->code)
-  }
-  else if(GET_FLAG(func->def, ae_flag_op)) {
+  } else if(GET_FLAG(func->def, ae_flag_op)) {
     const m_bool is_unary = GET_FLAG(func->def, ae_flag_unary);
     const Type l = is_unary ? NULL : a->type;
     const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;

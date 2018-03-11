@@ -8,8 +8,7 @@
 #define FAKE_FUNC ((Func)1)
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
-__attribute__((nonnull(1)))
-static m_bool scan1_exp(const Env env, Exp exp);
+ANN static m_bool scan1_exp(const Env env, Exp exp);
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -127,7 +126,7 @@ ANN static m_bool scan1_exp_call(const Env env, const Exp_Func* exp_func) { GWDE
   if(exp_func->tmpl)
     return 1;
   CHECK_BB(scan1_exp(env, exp_func->func))
-  return scan1_exp(env, args);
+  return args ? scan1_exp(env, args) : 1;
 }
 
 ANN static m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
@@ -148,7 +147,7 @@ ANN static m_bool scan1_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
   return 1;
 }
 
-static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
+ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
   while(exp) {
     switch(exp->exp_type) {
       case ae_exp_primary:
@@ -204,7 +203,7 @@ ANN static m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt, const m_b
 }
 
 ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Return stmt) { GWDEBUG_EXE
-  return scan1_exp(env, stmt->val);
+  return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
 ANN static m_bool scan1_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) { GWDEBUG_EXE
@@ -219,7 +218,8 @@ ANN static m_bool scan1_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
   nspc_push_value(env->curr);
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
-  CHECK_BB(scan1_exp(env, stmt->c3))
+  if(stmt->c3)
+    CHECK_BB(scan1_exp(env, stmt->c3))
   CHECK_BB(scan1_stmt(env, stmt->body))
   nspc_pop_value(env->curr);
   env->func = f;
@@ -347,7 +347,7 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
-      ret = scan1_exp(env, stmt->d.stmt_exp.val);
+      ret = stmt->d.stmt_exp.val ? scan1_exp(env, stmt->d.stmt_exp.val) : 1;
       break;
     case ae_stmt_code:
       SCOPE(ret = scan1_stmt_code(env, &stmt->d.stmt_code, 1))
