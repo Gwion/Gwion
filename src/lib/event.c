@@ -18,8 +18,7 @@ static DTOR(event_dtor) {
 static INSTR(Event_Wait) { GWDEBUG_EXE
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  event = *(M_Object*)REG(0);
-  if(!event)
+  if(!(event = *(M_Object*)REG(0)))
     Except(shred, "NullEventWait");
   shreduler_remove(vm->shreduler, shred, 0);
   Vector v = EV_SHREDS(event);
