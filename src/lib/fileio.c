@@ -37,8 +37,8 @@ DTOR(static_fileio_dtor) {
 static INSTR(int_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%" INT_F "", *(m_int*)REG(- SZ_INT));
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -46,8 +46,8 @@ static INSTR(int_to_file) { GWDEBUG_EXE
 static INSTR(float_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
   PUSH_REG(shred, SZ_FLOAT);
   *(M_Object*)REG(- SZ_INT) = o;
@@ -69,8 +69,8 @@ static INSTR(object_to_file) { GWDEBUG_EXE
   M_Object o = **(M_Object**)REG(0);
   M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%p", (void*)lhs);
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -79,8 +79,8 @@ static INSTR(complex_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "#(%f, %f)", creal(lhs), cimag(lhs));
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -89,8 +89,8 @@ static INSTR(polar_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "%%(%f, %f * pi)", creal(lhs), cimag(lhs) / M_PI);
   *(M_Object*)REG(- SZ_INT) = o;
 }
@@ -99,8 +99,8 @@ static INSTR(vec3_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "@(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
   POP_REG(shred, SZ_FLOAT)
   *(M_Object*)REG(- SZ_INT) = o;
@@ -110,8 +110,8 @@ static INSTR(vec4_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = **(M_Object**)REG(0);
   m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
-  CHECK_FIO(o)
   release(o, shred);
+  CHECK_FIO(o)
   fprintf(IO_FILE(o), "@(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
   POP_REG(shred, 2*SZ_FLOAT)
   *(M_Object*)REG(- SZ_INT) = o;
