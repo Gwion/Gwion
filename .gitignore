@@ -3,6 +3,7 @@ gwlint
 gwtag
 gwcov
 gwdbg
+.d
 *.gw.lint
 *.gw.tag
 *.gwcov
