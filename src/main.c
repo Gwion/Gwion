@@ -15,6 +15,7 @@
 #include "driver.h"
 #include "instr.h"
 #include "arg.h"
+#include "repl.h"
 
 extern void parse_args(Arg*, DriverInfo*);
 
@@ -66,10 +67,6 @@ m_bool compile(VM* vm, const m_str filename) {
   return -1;
 }
 
-#ifdef GWREPL
-extern void* repl_process(void*);
-#endif
-
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
@@ -81,9 +78,7 @@ int main(int argc, char** argv) {
   int i;
 
   pthread_t thread;
-#ifdef GWREPL
-  pthread_t repl_thread;
-#endif
+  GWREPL_THREAD
   d.del = NULL;
   arg_init(&arg);
   arg.udp = &udpif;
@@ -125,23 +120,9 @@ int main(int argc, char** argv) {
     pthread_detach(thread);
 #endif
   }
-
-#ifdef GWREPL
-if(arg.repl) {
-  pthread_create(&repl_thread, NULL, repl_process, vm);
-#ifndef __linux__
-    pthread_detach(repl_thread);
-#endif
-}
-#endif
-
+  GWREPL_INI(vm, &repl_thread)
   d.run(vm, &di);
-
-//pthread_cancel(repl_thread);
-#ifdef GWREPL
-if(arg.repl)
-  pthread_join(repl_thread, NULL);
-#endif
+  GWREPL_END(repl_thread)
   if(udpif.on)
     udp_release(&udp, thread);
 clean:
