@@ -189,10 +189,13 @@ gwtag: ${TOOL_OBJ} utils/gwtag.o
 	$(info compiling gwlint)
 	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwtag -DGWLINT utils/gwtag.o ${LDFLAGS}
 
+gwdot:
+	cc -lbsd -Wall -lcgraph -lgvc -lm -I include utils/gwdot.c -o gwdot
+
 directories:
 	mkdir -p ${PREFIX} ${GWION_ADD_DIR}
 
-gwdebug:
+gwdbg:
 	CURSES_DEBUG=1 PRG=gwdbg make
 
 include $(wildcard .d/*.d)
