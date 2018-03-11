@@ -3,7 +3,8 @@
 #include "context.h"
 #include "nspc.h"
 
-ANN Context new_context(const Ast prog, const m_str filename) {
+__attribute__((nonnull(2)))
+Context new_context(const Ast prog, const m_str filename) {
   Context context = malloc(sizeof(struct Context_));
   context->nspc = new_nspc(filename);
   context->tree = prog;

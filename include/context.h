@@ -7,7 +7,8 @@ struct Context_ {
   struct VM_Object_ obj;
 };
 
-ANN Context new_context(const Ast prog, char* filename);
+__attribute__((nonnull(2)))
+Context new_context(const Ast prog, const m_str filename);
 ANN m_bool load_context(const Context context, const Env env);
 ANN m_bool unload_context(const Context context, const Env env);
 ANN void free_context(const Context context);
