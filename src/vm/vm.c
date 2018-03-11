@@ -49,7 +49,7 @@ ANN void vm_add_shred(VM* vm, VM_Shred shred) {
     shred->me = new_shred(vm, shred);
   if(!shred->xid) {
     vector_add(&vm->shred, (vtype)shred);
-    shred->xid = vm->shreduler->n_shred++;
+    shred->xid = ++vm->shreduler->n_shred;
   }
   shredule(vm->shreduler, shred, .5);
 }
