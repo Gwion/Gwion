@@ -94,18 +94,16 @@ static const char usage[] =
 "\t--backend  -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
 static void arg_add(Arg* arg) {
-  if(optind < arg->argc) {
-    while(optind < arg->argc) {
-      m_str str = arg->argv[optind++];
-      if(!strcmp(str, "-")) {
-        arg->ref = &arg->rem;
-        str = arg->argv[optind++];
-      } else if(!strcmp(str, "+")) {
-        arg->ref = &arg->add;
-        str = arg->argv[optind++];
-      }
-      vector_add(arg->ref, (vtype)str);
+  while(optind < arg->argc) {
+    m_str str = arg->argv[optind++];
+    if(!strcmp(str, "-")) {
+      arg->ref = &arg->rem;
+      str = arg->argv[optind++];
+    } else if(!strcmp(str, "+")) {
+      arg->ref = &arg->add;
+      str = arg->argv[optind++];
     }
+    vector_add(arg->ref, (vtype)str);
   }
 }
 
