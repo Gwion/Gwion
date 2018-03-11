@@ -3,8 +3,7 @@
 #include "object.h"
 #include "shreduler_private.h"
 
-__attribute__((nonnull))
-Shreduler new_shreduler(VM* vm) {
+ANN Shreduler new_shreduler(VM* vm) {
   Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
   s->vm = vm;
@@ -12,8 +11,7 @@ Shreduler new_shreduler(VM* vm) {
   return s;
 }
 
-__attribute__((nonnull))
-void shreduler_set_loop(Shreduler s, m_bool loop) {
+ANN void shreduler_set_loop(Shreduler s, m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;
 }
 
@@ -37,8 +35,7 @@ VM_Shred shreduler_get(Shreduler s) {
   return NULL;
 }
 
-__attribute__((nonnull))
-static void shreduler_parent(VM_Shred out, Vector v) {
+ANN static void shreduler_parent(VM_Shred out, Vector v) {
   m_uint index = vector_find(v, (vtype)out);
   vector_rem(v, index);
   if(!vector_size(v)) {
@@ -47,11 +44,10 @@ static void shreduler_parent(VM_Shred out, Vector v) {
   }
 }
 
-__attribute__((nonnull))
-static void shreduler_child(Shreduler s, Vector v) {
-  m_uint i, size = vector_size(v);
-  for(i = 0; i < size; i++) {
-    VM_Shred child = (VM_Shred)vector_front(v);
+ANN static void shreduler_child(Shreduler s, Vector v) {
+  m_uint size = vector_size(v) + 1;
+  while(--size) {
+    VM_Shred child = (VM_Shred)vector_pop(v);
     if(child == s->list)
       s->list = child->next;
     if(child->prev)
@@ -63,19 +59,17 @@ static void shreduler_child(Shreduler s, Vector v) {
   }
 }
 
-__attribute__((nonnull))
-static void shreduler_gc(VM_Shred out) {
-  m_uint i;
-  for(i = 0; i < vector_size(&out->gc); i++) {
-    M_Object o = (M_Object)vector_at(&out->gc, i);
+ANN static void shreduler_gc(VM_Shred out) {
+  m_uint size = vector_size(&out->gc) + 1;
+  while(--size) {
+    M_Object o = (M_Object)vector_pop(&out->gc);
     if(o)
       release(o, out);
   }
   vector_release(&out->gc);
 }
 
-__attribute__((nonnull))
-static void shreduler_erase(Shreduler s, VM_Shred out) {
+ANN static void shreduler_erase(Shreduler s, VM_Shred out) {
   vtype index;
   if(out->parent)
     shreduler_parent(out, &out->parent->child);
@@ -87,8 +81,7 @@ static void shreduler_erase(Shreduler s, VM_Shred out) {
     shreduler_gc(out);
 }
 
-__attribute__((nonnull))
-void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
+ANN void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   s->curr = (s->curr == out) ? NULL : s->curr;
   if(erase) {
     shreduler_erase(s, out);
