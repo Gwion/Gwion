@@ -23,7 +23,7 @@ ANN m_uint m_vector_size(M_Vector v) {
   return v->len;
 }
 
-DTOR(array_dtor) {
+static DTOR(array_dtor) {
   Type base = array_base(o->type_ref);
   if(ARRAY(o)->depth > 1 || isa(base, &t_object) > 0) {
     m_uint i;
@@ -35,7 +35,8 @@ DTOR(array_dtor) {
   REM_REF(o->type_ref)
 }
 
-M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth) {
+ANN M_Object new_M_Array(const Type t, const m_uint size,
+    const m_uint length, const m_uint depth) {
   m_uint cap = 1;
   M_Object a = new_M_Object(NULL);
   initialize_object(a, t);
@@ -79,7 +80,7 @@ ANN void m_vector_rem(M_Vector v, m_uint index) {
   memcpy(v->ptr, c, v->cap * v->size);
 }
 
-MFUN(vm_vector_rem) {
+static MFUN(vm_vector_rem) {
   m_int index = *(m_int*)(shred + SZ_INT);
   M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
@@ -96,15 +97,15 @@ ANN char* m_vector_addr(M_Vector v, m_uint i) {
   return &*(char*)(v->ptr + i * v->size);
 }
 
-MFUN(vm_vector_size) {
+static MFUN(vm_vector_size) {
   *(m_uint*)RETURN = ARRAY(o)->len;
 }
 
-MFUN(vm_vector_depth) {
+static MFUN(vm_vector_depth) {
   *(m_uint*)RETURN = ARRAY(o)->depth;
 }
 
-MFUN(vm_vector_cap) {
+static MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY(o)->cap;
 }
 
