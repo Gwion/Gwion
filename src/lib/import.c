@@ -753,7 +753,7 @@ m_bool emit_exp_spork(Emitter emit, Exp_Func* exp);
 m_bool emit_exp_spork1(Emitter emit, Stmt stmt);
 OP_EMIT(opem_spork) {
   Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) : 
+  CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) :
         emit_exp_spork(emit, &unary->exp->d.exp_func)))
   return 1;
 }

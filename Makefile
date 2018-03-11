@@ -92,6 +92,10 @@ CFLAGS+=-DGWREPL
 LDFLAGS+=-lreadline
 src_src += utils/repl.c
 endif
+ifeq (${USE_GWUDP}, 1)
+CFLAGS+=-DGWUDP
+src_src += utils/udp.c
+endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 

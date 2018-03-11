@@ -7,7 +7,7 @@
 #define PREFIX int
 
 #define _describe(prefix, sz, name, action, ...) \
-static INSTR(prefix##_##name) { GWDEBUG_INSTR \
+static INSTR(prefix##_##name) { GWDEBUG_EXE \
   POP_REG(shred, sz); \
    __VA_ARGS__ \
   action \
@@ -24,20 +24,20 @@ static INSTR(prefix##_##name) { GWDEBUG_INSTR \
 #define describe_pre(name, op) \
 static INSTR(int_pre_##name)  { *(m_int*)REG(- SZ_INT) = op(**(m_int**)REG(- SZ_INT)); }
 #define describe_post(name, op) \
-static INSTR(int_post_##name) { GWDEBUG_INSTR *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))op; }
+static INSTR(int_post_##name) { GWDEBUG_EXE *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))op; }
 
 struct Type_ t_int = { "int", SZ_INT };
 
-static INSTR(int_assign) { GWDEBUG_INSTR
+static INSTR(int_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = *(m_int*)REG(0));
 }
 
-static INSTR(int_negate) { GWDEBUG_INSTR *(m_int*)REG(-SZ_INT) *= -1; }
+static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
 
-INSTR(int_not) { GWDEBUG_INSTR *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(0); }
+INSTR(int_not) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(0); }
 
-static INSTR(int_r_assign) { GWDEBUG_INSTR
+static INSTR(int_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   **(m_int**)REG(0) = *(m_int*)REG(-SZ_INT);
 }

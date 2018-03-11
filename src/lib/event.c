@@ -15,7 +15,7 @@ static DTOR(event_dtor) {
   free_vector(EV_SHREDS(o));
 }
 
-static INSTR(Event_Wait) { GWDEBUG_INSTR
+static INSTR(Event_Wait) { GWDEBUG_EXE
   M_Object event;
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   event = *(M_Object*)REG(0);

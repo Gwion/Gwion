@@ -1,11 +1,5 @@
 #include "lang.h"
 
-#ifdef  CURSES
-#define GWDEBUG_INSTR gw_exe((const m_str)__func__, "(%s:%i)\n", __FILE__, __LINE__);
-#else
-#define GWDEBUG_INSTR
-#endif
-
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;

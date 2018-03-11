@@ -16,6 +16,7 @@ USE_GWCOV    ?= 0
 USE_MEMCHECK ?= 0
 USE_GWCGRAPH ?= 0
 USE_GWREPL   ?= 0
+USE_GWUDP    ?= 1
 
 # handle definitions
 D_FUNC       ?= dummy_driver

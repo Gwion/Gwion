@@ -11,7 +11,7 @@ struct Type_ t_polar   = { "polar",   SZ_COMPLEX };
 m_int o_complex_real, o_complex_imag;
 m_int o_polar_mod,    o_polar_phase;
 
-static INSTR(complex_assign) { GWDEBUG_INSTR
+static INSTR(complex_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
   *(m_complex*)REG(0) = (**(m_complex**)REG(0) = *(m_complex*)REG(SZ_INT));
   PUSH_REG(shred, SZ_COMPLEX);
@@ -19,7 +19,7 @@ static INSTR(complex_assign) { GWDEBUG_INSTR
 
 
 #define describe(name, op) \
-static INSTR(complex_##name) { GWDEBUG_INSTR \
+static INSTR(complex_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_COMPLEX); \
   *(m_complex*)REG(-SZ_COMPLEX) op##= *(m_complex*)REG(0); \
 }
@@ -28,14 +28,14 @@ describe(minus,  -)
 describe(times,  *)
 describe(divide, /)
 
-static INSTR(complex_r_assign) { GWDEBUG_INSTR
+static INSTR(complex_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
   **(m_complex**)REG(SZ_COMPLEX) = *(m_complex*)REG(0);
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
 #define describe_r(name, op) \
-static INSTR(complex_r_##name) { GWDEBUG_INSTR \
+static INSTR(complex_r_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_COMPLEX + SZ_INT); \
   *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) op##= (*(m_complex*)REG(0))); \
   PUSH_REG(shred, SZ_COMPLEX); \
@@ -45,7 +45,7 @@ describe_r(minus, -)
 describe_r(times, *)
 describe_r(divide, /)
 
-INSTR(complex_real) { GWDEBUG_INSTR
+INSTR(complex_real) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   if(instr->m_val)
     PUSH_REG(shred, SZ_INT)
@@ -55,7 +55,7 @@ INSTR(complex_real) { GWDEBUG_INSTR
   }
 }
 
-INSTR(complex_imag) { GWDEBUG_INSTR
+INSTR(complex_imag) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
     m_float* f = &**(m_float**)REG(0);
@@ -68,7 +68,7 @@ INSTR(complex_imag) { GWDEBUG_INSTR
   }
 }
 
-static INSTR(polar_plus) { GWDEBUG_INSTR
+static INSTR(polar_plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX * 2);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
@@ -78,7 +78,7 @@ static INSTR(polar_plus) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_minus) { GWDEBUG_INSTR
+static INSTR(polar_minus) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX * 2);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
@@ -88,7 +88,7 @@ static INSTR(polar_minus) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_times) { GWDEBUG_INSTR
+static INSTR(polar_times) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX * 2);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
@@ -98,7 +98,7 @@ static INSTR(polar_times) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_divide) { GWDEBUG_INSTR
+static INSTR(polar_divide) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX * 2);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = *(m_complex*)REG(SZ_COMPLEX);
@@ -108,7 +108,7 @@ static INSTR(polar_divide) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_plus_r) { GWDEBUG_INSTR
+static INSTR(polar_plus_r) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = **(m_complex**)REG(SZ_COMPLEX);
@@ -119,7 +119,7 @@ static INSTR(polar_plus_r) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_minus_r) { GWDEBUG_INSTR
+static INSTR(polar_minus_r) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = **(m_complex**)REG(SZ_COMPLEX);
@@ -131,7 +131,7 @@ static INSTR(polar_minus_r) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_times_r) { GWDEBUG_INSTR
+static INSTR(polar_times_r) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = **(m_complex**)REG(SZ_COMPLEX);
@@ -142,7 +142,7 @@ static INSTR(polar_times_r) { GWDEBUG_INSTR
   PUSH_REG(shred, SZ_COMPLEX);
 }
 
-static INSTR(polar_divide_r) { GWDEBUG_INSTR
+static INSTR(polar_divide_r) { GWDEBUG_EXE
   POP_REG(shred, SZ_COMPLEX + SZ_INT);
   m_complex a = *(m_complex*)REG(0);
   m_complex b = **(m_complex**)REG(SZ_COMPLEX);

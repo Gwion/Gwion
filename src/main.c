@@ -71,22 +71,30 @@ int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
   Arg arg = { argc, argv , -1 };
+#ifdef GWUDP
   Udp udp;
   UdpIf udpif = { "localhost", 8888, 1 };
+#endif
   DriverInfo di = { 2, 2, 2,
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
   int i;
 
+#ifdef GWUDP
   pthread_t thread;
+#endif
   GWREPL_THREAD
   d.del = NULL;
   arg_init(&arg);
+#ifdef GWUDP
   arg.udp = &udpif;
   udp.arg = &arg;
+#endif
   parse_args(&arg, &di);
 
+#ifdef GWUDP
   if(udpif.on)
     udp_client(&udp);
+#endif
   if(arg.quit)
     goto clean;
   signal(SIGINT, sig);
@@ -112,19 +120,24 @@ int main(int argc, char** argv) {
   for(i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
 
-  udp.vm = vm;
   vm->is_running = 1;
+#ifdef GWUDP
   if(udpif.on) {
-    pthread_create(&thread, NULL, udp_thread, &udp);
+    udp.vm = vm;
+    pthread_create(&thread, NULL, udp_process, &udp);
 #ifndef __linux__
     pthread_detach(thread);
 #endif
   }
+#endif
   GWREPL_INI(vm, &repl_thread)
   d.run(vm, &di);
   GWREPL_END(repl_thread)
+
+#ifdef GWUDP
   if(udpif.on)
     udp_release(&udp, thread);
+#endif
 clean:
   arg_release(&arg);
   if(d.del)

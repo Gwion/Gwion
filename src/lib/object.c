@@ -98,7 +98,7 @@ static DTOR(object_dtor) {
   free(o);
 }
 
-INSTR(Assign_Object) { GWDEBUG_INSTR
+INSTR(Assign_Object) { GWDEBUG_EXE
   M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
   src = *(M_Object*)REG(0);
@@ -111,7 +111,7 @@ INSTR(Assign_Object) { GWDEBUG_INSTR
 }
 
 #define describe_logical(name, op) \
-static INSTR(name##_Object) { GWDEBUG_INSTR \
+static INSTR(name##_Object) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT * 2); \
   M_Object lhs = *(M_Object*)REG(0); \
   M_Object rhs = *(M_Object*)REG(SZ_INT); \

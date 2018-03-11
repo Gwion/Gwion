@@ -75,7 +75,7 @@ static const char usage[] =
 "\t--profile  -G\t             : enter profile mode (if enabled)\n"
 "\t--coverage -k\t             : enter coverage mode (if enabled)\n"
 "\t--repl     -R\t             : enter repl  mode (if enabled)\n"
-"UDP    options:\n"
+"UDP    options (if enabled):\n"
 "\t--host     -h\t  <string>   : set host\n"
 "\t--port     -p\t  <number>   : set port\n"
 "\t--loop     -l\t  <0 or 1>   : loop state (0 or 1)\n"
@@ -152,6 +152,7 @@ static void arg_drvr(DriverInfo* di, int i) {
   }
 }
 
+#ifdef GWUDP
 static void arg_udp(UdpIf* udp, char c) {
   m_str endptr;
   switch(c) {
@@ -166,14 +167,18 @@ static void arg_udp(UdpIf* udp, char c) {
       break;
   }
 }
+#endif
 
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
   m_str endptr;
   while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKGR ", long_option, &index)) != -1) {
+#ifdef GWUDP
     if(strchr("ahp", i))
       arg_udp(arg->udp, i);
-    else switch(i) {
+    else
+#endif
+    switch(i) {
       case '?':
         gw_err(usage);
         exit(0);

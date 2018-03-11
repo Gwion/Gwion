@@ -113,7 +113,7 @@ static void print_prim(Type type, char* stack) {
      print_float(*(m_float*)stack);
 }
 
-INSTR(Gack) { GWDEBUG_INSTR
+INSTR(Gack) { GWDEBUG_EXE
   Type type;
   Vector v = *(Vector*)instr->ptr;
   m_uint i, size = vector_size(v);

@@ -8,6 +8,6 @@ extern void* repl_init(VM* vm, pthread_t*) ANN;
 
 #else
 #define GWREPL_THREAD
-#define GWREPL_INI(a)
+#define GWREPL_INI(a, b)
 #define GWREPL_END(a)
 #endif

@@ -1,10 +1,10 @@
+#ifdef GWUDP
 typedef struct {
   m_str  host;
   int    port;
   m_bool on;
-// VM* vm
 } UdpIf;
-
+#endif
 typedef struct {
   int argc;
   char** argv;
@@ -14,7 +14,9 @@ typedef struct {
   struct Vector_ rem;
   struct Vector_ lib;
   Vector ref;
+#ifdef GWUDP
   UdpIf* udp;
+#endif
 #ifdef GWCOV
   m_bool coverage;
 #endif

@@ -13,7 +13,7 @@ typedef struct {
   m_int state;
 } Udp;
 
-void* udp_thread(void* data);
+void* udp_process(void* data);
 void udp_client(void* data);
 void udp_release(Udp* udp, pthread_t t);
 #endif
