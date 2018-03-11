@@ -9,7 +9,7 @@
 struct Type_ t_float = { "float", SZ_FLOAT };
 struct Type_ t_dur   = { "dur",   SZ_FLOAT };
 struct Type_ t_time  = { "time",  SZ_FLOAT };
-struct Type_ t_now   = { "@now",  SZ_FLOAT };
+struct Type_ t_now   = { "@now",  SZ_FLOAT, &t_time };
 
 static INSTR(float_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_FLOAT);
