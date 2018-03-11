@@ -53,8 +53,11 @@ m_bool compile(VM* vm, const m_str filename) {
     fclose(f);
     return -1;
   }
-  CHECK_BB(type_engine_check_prog(vm->emit->env, ast, name))
-  CHECK_BB(emit_ast(vm->emit, ast, name))
+  if(type_engine_check_prog(vm->emit->env, ast, name) < 0 ||
+    emit_ast(vm->emit, ast, name) < 0) {
+    fclose(f);
+    return -1;
+  }
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   code = emit_code(vm->emit);
