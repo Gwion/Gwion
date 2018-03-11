@@ -156,13 +156,22 @@ static INSTR(vec3_divide_float) { GWDEBUG_EXE
   PUSH_REG(shred,  SZ_VEC3);
 }
 
+static INSTR(vec3_assign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_VEC3 + SZ_INT);
+  m_vec3* r = &**(m_vec3**)REG(0);
+  r->x = *(m_float*)REG(SZ_INT);
+  r->y = *(m_float*)REG(SZ_INT+SZ_FLOAT);
+  r->z = *(m_float*)REG(SZ_INT+SZ_COMPLEX);
+  *(m_vec3*)REG(0) = *r;
+  PUSH_REG(shred, SZ_VEC3);
+}
 static INSTR(vec3_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_VEC3 + SZ_INT);
-  m_vec3 r = **(m_vec3**)REG(SZ_VEC3);
-  r.x = *(m_float*)REG(0);
-  r.y = *(m_float*)REG(SZ_FLOAT);
-  r.z = *(m_float*)REG(SZ_COMPLEX);
-  *(m_vec3*)REG(0) = r;
+  m_vec3* r = &**(m_vec3**)REG(SZ_VEC3);
+  r->x = *(m_float*)REG(0);
+  r->y = *(m_float*)REG(SZ_FLOAT);
+  r->z = *(m_float*)REG(SZ_COMPLEX);
+  *(m_vec3*)REG(0) = *r;
   PUSH_REG(shred, SZ_VEC3);
 }
 
@@ -214,6 +223,8 @@ m_bool import_vec3(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_plus, vec3_add))
   CHECK_BB(gwi_oper_end(gwi, op_minus, vec3_minus))
   CHECK_BB(gwi_oper_end(gwi, op_times, vec3_xproduct))
+  CHECK_BB(gwi_oper_add(gwi, opck_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign, vec3_assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, vec3_r_assign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
@@ -312,6 +323,16 @@ static INSTR(vec4_divide_float) { GWDEBUG_EXE
   PUSH_REG(shred,  SZ_VEC4);
 }
 
+static INSTR(vec4_assign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_VEC4 + SZ_INT);
+  m_vec4* r = *(m_vec4**)REG(0);
+  r->x = *(m_float*)REG(SZ_INT);
+  r->y = *(m_float*)REG(SZ_INT+SZ_FLOAT);
+  r->z = *(m_float*)REG(SZ_INT+SZ_FLOAT * 2);
+  r->w = *(m_float*)REG(SZ_INT+SZ_FLOAT * 3);
+  PUSH_REG(shred, SZ_VEC4);
+}
+
 static INSTR(vec4_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_VEC4 + SZ_INT);
   m_vec4* r = *(m_vec4**)REG(SZ_VEC4);
@@ -350,6 +371,8 @@ m_bool import_vec4(Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_plus,  vec4_add))
   CHECK_BB(gwi_oper_end(gwi, op_minus, vec4_minus))
   CHECK_BB(gwi_oper_end(gwi, op_times, vec4_xproduct))
+  CHECK_BB(gwi_oper_add(gwi, opck_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign, vec4_assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, vec4_r_assign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4", "float", "Vec4"))
