@@ -27,6 +27,10 @@ static inline VM_Shred repl_shred() {
 }
 
 ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
+  if(shred == vm->shreduler->list) {
+    gw_err("shred[%"UINT_F"] is running.please use ':spork'\n");
+    return;
+  }
   FILE* f = fmemopen(line, strlen(line), "r");
   Ast ast = parse("repl", f);
   m_str str;
@@ -60,6 +64,17 @@ ANN static void repl_finish(VM* vm, VM_Shred shred) {
 ANN static VM_Shred repl_cmd(VM* vm, VM_Shred shred, const m_str line) {
   if(*line == '+')
     compile(vm, line+1);
+  else if(*line == '-') {
+    m_str endptr;
+    m_uint i, index = strtol(line + 1, &endptr, 10) - 1;
+    for(i = 0; i < vector_size(&vm->shred); i++) {
+      VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i);
+      if(sh->xid == index) {
+       shreduler_remove(vm->shreduler, sh, 1);
+       break;
+      }
+    }
+  }
   else if(strcmp(line, "spork")) {
      gw_err("unknown command '%s'\n", line);
      return shred;
@@ -91,7 +106,19 @@ ANN static void* repl_process(void* data) {
   load_context(ctx, vm->emit->env);
   read_history(NULL);
   while(vm->is_running) {
-    char* line = readline("\033[32;1m=>\033[0m ");
+
+    char prompt[128];
+    char prompt1[128];
+    if(shred->xid) {
+      snprintf(prompt, 128, "\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", shred->xid);
+      snprintf(prompt1, 128, "[%"UINT_F"]=> ", shred->xid);
+    } else {
+      snprintf(prompt, 128, "\033[30;3;1m[!]\033[32m=>\033[0m ");
+      snprintf(prompt1, 128, "[!]=> ");
+    }
+//    char* line = readline("\033[32;1m=>\033[0m ");
+    char* line = readline(prompt);
+    rl_prompt = prompt1;
     if(!line)
       break;
     if(strlen(line))

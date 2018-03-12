@@ -25,6 +25,22 @@ VM* new_vm(m_bool loop) {
   return vm;
 }
 
+__attribute__((hot, nonnull))
+void vm_remove(VM* vm, m_uint index) {
+  LOOP_OPTIM
+  for(m_uint i = 0; i < vector_size(&vm->shred); i++) {
+    VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i);
+    if(sh->xid == index) {
+      if(sh->child.ptr)
+        LOOP_OPTIM
+        for(m_uint i = vector_size(&sh->child) + 1; --i;)
+          NullException((VM_Shred)vector_at(&sh->child, i-1), "MsgRemove");
+       NullException(sh, "MsgRemove");
+       return;
+    }
+  }
+}
+
 ANN void free_vm(VM* vm) {
   m_uint i;
   if(vm->emit)

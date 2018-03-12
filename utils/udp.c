@@ -137,23 +137,16 @@ static void udp_run(Udp* udp) {
     free(filename);
   }
   for(i = 0; i < vector_size(&udp->rem); i++)
-    shreduler_remove(vm->shreduler, (VM_Shred)vector_at(&udp->rem, i), 1);
+    vm_remove(vm, vector_at(&udp->rem, i));
   vector_clear(&udp->add);
   vector_clear(&udp->rem);
   udp->state = 0;
 }
 
 static void remove_shred(Udp* udp, const char* buf) {
-  Vector v = &udp->vm->shred;
   m_str endptr;
-  m_uint i, index = strtol(buf + 2, &endptr, 10) - 1;
-  for(i = 0; i < vector_size(v); i++) {
-    VM_Shred shred = (VM_Shred)vector_at(v, i);
-    if(shred->xid == index) {
-      vector_add(&udp->rem, (vtype)shred);
-      break;
-    }
-  }
+  m_uint index = strtol(buf + 2, &endptr, 10);
+  vector_add(&udp->rem, index);
 }
 
 static void handle_loop(Udp* udp, const char* buf) {

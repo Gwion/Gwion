@@ -84,6 +84,7 @@ void vm_run(VM* vm) __attribute__((hot, nonnull));
 VM* new_vm(m_bool loop);
 void free_vm(VM* vm)__attribute__((nonnull));
 void vm_add_shred(VM* vm, VM_Shred shred)__attribute__((hot, nonnull));
+void vm_remove(VM* vm, m_uint index)__attribute__((hot, nonnull));
 m_str code_name_set(const m_str, const m_str)__attribute__((hot, nonnull(1)));
 const m_str code_name(const m_str, const m_bool)__attribute__((hot, nonnull));
 #endif

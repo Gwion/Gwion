@@ -83,6 +83,7 @@ ANN static void shreduler_erase(Shreduler s, VM_Shred out) {
 
 ANN void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   s->curr = (s->curr == out) ? NULL : s->curr;
+  s->list = (s->list == out) ? NULL : s->list;
   if(erase) {
     shreduler_erase(s, out);
     free_vm_shred(out);
