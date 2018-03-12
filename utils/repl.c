@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/wait.h>
+#include <pthread.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "vm.h"
@@ -11,13 +13,46 @@
 #include "traverse.h"
 #include "shreduler_private.h"
 
+#define PROMPT_SZ 128
+
+static m_bool accept, chctx, fork, add, sys;
+
 static inline int _bind_cr(int count, int key) {
+  if(accept) {
+    printf("\n");
+    return rl_done = 1;
+  }
   printf("\n(...)");
   return 0;
 }
 
 static inline int _bind_accept(int count, int key) {
-  printf("\n"); return rl_done = 1;
+  accept = 1;
+  return 0;
+}
+
+static inline int _bind_add(int count, int key) {
+  accept = rl_done = 1;
+  add = key == 97 ? 1 : -1;
+  return 0;
+}
+
+
+static inline int _bind_ctx(int count, int key) {
+  printf("\n");
+  chctx = 1;
+  return rl_done = 1;
+}
+
+static inline int _bind_fork(int count, int key) {
+  fork = 1;
+  return 0;
+}
+
+static inline int _bind_sys(int count, int key) {
+  printf("\n");
+  sys = 1;
+  return accept = rl_done = 1;
 }
 
 static inline VM_Shred repl_shred() {
@@ -28,7 +63,7 @@ static inline VM_Shred repl_shred() {
 
 ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
   if(shred == vm->shreduler->list) {
-    gw_err("shred[%"UINT_F"] is running.please use ':spork'\n");
+    gw_err("shred[%"UINT_F"] is running.please use '\\C-f' to spork it\n", shred->xid);
     return;
   }
   FILE* f = fmemopen(line, strlen(line), "r");
@@ -52,90 +87,156 @@ close:
   fclose(f);
 }
 
-ANN static void repl_finish(VM* vm, VM_Shred shred) {
-  if(shred->code->instr) {
-    ((Instr)vector_back(shred->code->instr))->execute = EOC;
-    shred->next_pc = vector_size(shred->code->instr) - 2;
-    vm_add_shred(vm, shred);
-  } else
-    shreduler_remove(vm->shreduler, shred, 1);
+struct Repl {
+  Context ctx;
+  VM_Shred shred;
+};
+
+ANN static struct Repl* new_repl(const m_str name) {
+  struct Repl* repl = malloc(sizeof(struct Repl));
+  repl->shred = repl_shred();
+  repl->ctx = new_context(NULL, name);
+  return repl;
 }
 
-ANN static VM_Shred repl_cmd(VM* vm, VM_Shred shred, const m_str line) {
-  if(*line == '+')
-    compile(vm, line+1);
-  else if(*line == '-') {
-    m_str endptr;
-    m_uint i, index = strtol(line + 1, &endptr, 10) - 1;
-    for(i = 0; i < vector_size(&vm->shred); i++) {
-      VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i);
-      if(sh->xid == index) {
-       shreduler_remove(vm->shreduler, sh, 1);
+ANN static void free_repl(struct Repl* repl, VM* vm) {
+  if(repl->shred->code->instr) {
+    ((Instr)vector_back(repl->shred->code->instr))->execute = EOC;
+    repl->shred->next_pc = vector_size(repl->shred->code->instr) - 2;
+    vm_add_shred(vm, repl->shred);
+  } else
+    shreduler_remove(vm->shreduler, repl->shred, 1);
+  REM_REF(repl->ctx);
+  free(repl);
+}
+
+ANN static struct Repl* repl_ctx(struct Repl* repl, Vector v, VM* vm) {
+  struct Repl* r = NULL;
+  accept = 1;
+  m_str ln = readline("\033[1mcontext:\033[0m ");
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    struct Repl* s = (struct Repl*)vector_at(v, i-1);
+    if(!strcmp(ln, s->ctx->filename)) {
+       r = s;
        break;
-      }
     }
   }
-  else if(strcmp(line, "spork")) {
-     gw_err("unknown command '%s'\n", line);
-     return shred;
+  if(!r) {
+      printf("creating new context \033[1m'%s'\033[0m\n", ln);
+      r = new_repl(ln);
+      vector_add(v, (vtype)r);
   }
-  VM_Shred old = shred;
-  shred = repl_shred();
-  old->parent = shred;
-  if(!shred->child.ptr)
-    vector_init(&shred->child);
-  vector_add(&shred->child, (vtype)old);
-  memcpy(shred->_mem, old->_mem, SIZEOF_MEM);
-  memcpy(shred->_reg, old->_reg, SIZEOF_REG);
-  return shred;
+  if(repl != r) {
+    unload_context(repl->ctx, vm->emit->env);
+    repl = r;
+    load_context(repl->ctx, vm->emit->env);
+  }
+  chctx = 0;
+  return repl;
 }
 
-ANN static VM_Shred handle_line(VM* vm, VM_Shred shred, const m_str line) {
-  add_history(line);
-  if(*line == ':')
-    shred = repl_cmd(vm, shred, line + 1);
+ANN static void repl_fork(struct Repl* repl) {
+  printf("fork shred [%"UINT_F"]\n", repl->shred->xid);
+  VM_Shred old = repl->shred;
+  repl->shred = repl_shred();
+  old->parent = repl->shred;
+  if(!repl->shred->child.ptr)
+    vector_init(&repl->shred->child);
+  vector_add(&repl->shred->child, (vtype)old);
+  memcpy(repl->shred->_mem, old->_mem, SIZEOF_MEM);
+  memcpy(repl->shred->_reg, old->_reg, SIZEOF_REG);
+  fork = 0;
+}
+
+static void repl_sys() {
+  pid_t cpid = fork;
+  int status;
+  m_str cmd = readline("command: ");
+  system(cmd);
+  free(cmd);
+  waitpid(cpid, &status, 0);
+  sys = 0;
+}
+
+ANN static void repl_add(VM* vm) {
+  m_str line = readline(add > 0 ? "add file: " : "rem file:");
+  if(add > 0)
+    compile(vm, line);
+  else {
+    m_uint index = strtol(line, NULL, 10);
+    vm_remove(vm, index);
+  }
+  free(line);
+  add = 0;
+}
+
+ANN static m_str repl_prompt(struct Repl* repl) {
+  char prompt[PROMPT_SZ];
+  if(repl->shred->xid)
+    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", repl->ctx->filename, repl->shred->xid);
   else
-    eval(vm, shred, line);
-  return shred;
+    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[!]\033[32m=>\033[0m ", repl->ctx->filename);
+  accept = 0;
+  return readline(prompt);
+}
+
+ANN static void repl_cmd(struct Repl* repl, VM* vm, Vector v) {
+    if(chctx)
+      repl = repl_ctx(repl, v, vm);
+    if(sys)
+      repl_sys();
+    if(add)
+      repl_add(vm);
+    if(fork)
+      repl_fork(repl);
+}
+
+ANN static struct Repl* repl_ini(VM* vm, Vector v) {
+  struct Repl* repl = new_repl("repl");
+  vector_init(v);
+  vector_add(v, (vtype)repl);
+  load_context(repl->ctx, vm->emit->env);
+  read_history(NULL);
+  rl_bind_key('\n', _bind_cr);\
+  rl_bind_key('\r', _bind_cr);\
+  rl_bind_keyseq("\\M-g", _bind_accept);\
+  rl_bind_keyseq("\\M-f", _bind_fork);\
+  rl_bind_keyseq("\\M-c", _bind_ctx);\
+  rl_bind_keyseq("\\M-a", _bind_add);\
+  rl_bind_keyseq("\\M-r", _bind_add);\
+  rl_bind_keyseq("\\M-s", _bind_sys);\
+  return repl;
+}
+
+ANN static void repl_end(struct Repl* repl, VM* vm, Vector v) {
+  unload_context(repl->ctx, vm->emit->env);
+  for(m_uint i = vector_size(v) + 1; --i;)
+    free_repl((struct Repl*)vector_at(v, i-1), vm);
+  vector_release(v);
+  write_history(NULL);
+  vm->is_running = 0;
 }
 
 ANN static void* repl_process(void* data) {
   VM* vm = (VM*)data;
-  VM_Shred shred = repl_shred();
-  Context ctx = new_context(NULL, "repl ctx");
-  load_context(ctx, vm->emit->env);
-  read_history(NULL);
+  struct Vector_ v;
+  struct Repl* repl = repl_ini(vm, &v);
   while(vm->is_running) {
-
-    char prompt[128];
-    char prompt1[128];
-    if(shred->xid) {
-      snprintf(prompt, 128, "\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", shred->xid);
-      snprintf(prompt1, 128, "[%"UINT_F"]=> ", shred->xid);
-    } else {
-      snprintf(prompt, 128, "\033[30;3;1m[!]\033[32m=>\033[0m ");
-      snprintf(prompt1, 128, "[!]=> ");
-    }
-//    char* line = readline("\033[32;1m=>\033[0m ");
-    char* line = readline(prompt);
-    rl_prompt = prompt1;
+    char* line = repl_prompt(repl);
     if(!line)
       break;
-    if(strlen(line))
-      shred = handle_line(vm, shred, line);
+    if(strlen(line)) {
+      eval(vm, repl->shred, line);
+      add_history(line);
+    }
+    repl_cmd(repl, vm, &v);
     free(line);
   }
-  repl_finish(vm, shred);
-  write_history(NULL);
-  unload_context(ctx, vm->emit->env);
-  REM_REF(ctx);
+  repl_end(repl, vm, &v);
   return NULL;
 }
 
 ANN void repl_init(VM* vm, pthread_t* p) {
-  rl_bind_key('\n', _bind_cr);\
-  rl_bind_key('\r', _bind_cr);\
-  rl_bind_keyseq("\\C-g", _bind_accept);\
   pthread_create(p, NULL, repl_process, vm);
 #ifndef __linux__
   pthread_detach(*p);
