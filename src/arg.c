@@ -145,7 +145,7 @@ static void arg_drvr(DriverInfo* di, int i) {
         di->bufsize    = strtol(optarg, NULL, 10);
         break;
     default:
-      exit(1);
+      gw_err("Unknown argument '%c'\n", i);
   }
 }
 
