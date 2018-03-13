@@ -8,13 +8,13 @@
 #define MEM(a) (shred->mem + (a))
 #define REG(a) (shred->reg + (a))
 #define INSTR(a) __attribute__((hot, nonnull(1, 2)))\
-void a(const VM* vm, VM_Shred shred, Instr instr)
+void a(const VM* vm, const VM_Shred shred, const Instr instr)
 #define MEM_STEP 16
 #define SIZEOF_MEM (0x1 << MEM_STEP)
 #define SIZEOF_REG (0x1 << 14)
 
 struct Instr_ {
-  void (*execute)(const VM* vm, VM_Shred shred, Instr instr);
+  void (*execute)(const VM* vm, const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
   char ptr[SZ_INT];
 };
