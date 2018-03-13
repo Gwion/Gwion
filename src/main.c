@@ -27,7 +27,7 @@ static void sig(int unused) {
   signaled = 1;
 }
 
-m_bool compile(VM* vm, const m_str filename) {
+m_uint compile(VM* vm, const m_str filename) {
   VM_Shred shred;
   VM_Code  code;
   Ast      ast;
@@ -44,19 +44,19 @@ m_bool compile(VM* vm, const m_str filename) {
   free(_name);
   if(!name) {
     err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
-    return -1;
+    return 0;
   }
   if(!(f = fopen(name, "r")))
     free(name);
   if(!(ast = parse(name, f))) {
     free(name);
     fclose(f);
-    return -1;
+    return 0;
   }
   if(type_engine_check_prog(vm->emit->env, ast, name) < 0 ||
     emit_ast(vm->emit, ast, name) < 0) {
     fclose(f);
-    return -1;
+    return 0;
   }
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
@@ -67,7 +67,7 @@ m_bool compile(VM* vm, const m_str filename) {
   vm_add_shred(vm, shred);
   free(name);
   fclose(f);
-  return -1;
+  return shred->xid;
 }
 
 int main(int argc, char** argv) {

@@ -144,14 +144,12 @@ static void udp_run(Udp* udp) {
 }
 
 static void remove_shred(Udp* udp, const char* buf) {
-  m_str endptr;
-  m_uint index = strtol(buf + 2, &endptr, 10);
+  m_uint index = strtol(buf + 2, NULL, 10);
   vector_add(&udp->rem, index);
 }
 
 static void handle_loop(Udp* udp, const char* buf) {
-  m_str endptr;
-  m_int i = strtol(buf + 5, &endptr, 10);
+  m_int i = strtol(buf + 5, NULL, 10);
   if(i <= 0)
     udp->state = -1;
   else

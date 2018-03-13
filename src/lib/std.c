@@ -12,7 +12,6 @@
 #define fabs fabsf
 #endif
 #include <soundpipe.h> // for sp_rand
-#include "compile.h"
 #include <err_msg.h>
 
 #define LOGTWO log(2)

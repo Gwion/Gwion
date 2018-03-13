@@ -1,1 +1,1 @@
-m_bool compile(VM* vm, const m_str filename);
+m_uint compile(VM* vm, const m_str filename);

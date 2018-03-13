@@ -97,7 +97,7 @@ static SFUN(machine_compile) {
   get_filename(shred, c, prefix);
   if(code_to_file(shred, c) < 0)
     return;
-  compile(shred->vm_ref, c);
+  *(m_uint*)RETURN = compile(shred->vm_ref, c);
 }
 
 static SFUN(machine_shreds) {
