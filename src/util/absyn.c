@@ -54,7 +54,7 @@ static void free_var_decl_list(Var_Decl_List a) {
   free(a);
 }
 
-Type_Decl* new_type_decl(ID_List xid, const int ref, const int pos) {
+Type_Decl* new_type_decl(ID_List xid, const m_bool ref, const int pos) {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = xid;
   if(ref)
@@ -63,7 +63,7 @@ Type_Decl* new_type_decl(ID_List xid, const int ref, const int pos) {
   return a;
 }
 
-Type_Decl* new_type_decl2(ID_List xid, const int ref, const int pos) {
+Type_Decl* new_type_decl2(ID_List xid, const m_bool ref, const int pos) {
   Type_Decl* a = calloc(1, sizeof(Type_Decl));
   a->xid = new_id_list(insert_symbol(""), pos);
   a->xid->ref = xid;
