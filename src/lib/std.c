@@ -113,11 +113,10 @@ static SFUN(std_setenv) {
 }
 
 static SFUN(std_atoi) {
-  m_str endptr;
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   m_str value = STRING(obj);
   release(obj, shred);
-  *(m_uint*)RETURN = strtol(value, &endptr, 10);
+  *(m_uint*)RETURN = strtol(value, NULL, 10);
 }
 
 static SFUN(std_atof) {

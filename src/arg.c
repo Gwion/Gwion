@@ -108,24 +108,23 @@ static void arg_add(Arg* arg) {
 }
 
 static void arg_drvr(DriverInfo* di, int i) {
-    m_str endptr;
     switch(i) {
       case 'c':
         di->card     = optarg;
         break;
       case 'g':
-        di->chan     = strtol(optarg, &endptr, 10);
-        di->in       = strtol(optarg, &endptr, 10);
-        di->out      = strtol(optarg, &endptr, 10);
+        di->chan     = strtol(optarg, NULL, 10);
+        di->in       = strtol(optarg, NULL, 10);
+        di->out      = strtol(optarg, NULL, 10);
         break;
       case 'i':
-        di->in       = strtol(optarg, &endptr, 10);
+        di->in       = strtol(optarg, NULL, 10);
         break;
       case 'o':
-        di->out      = strtol(optarg, &endptr, 10);
+        di->out      = strtol(optarg, NULL, 10);
         break;
       case 's':
-        di->sr       = strtol(optarg, &endptr, 10);
+        di->sr       = strtol(optarg, NULL, 10);
         break;
       case 'd':
         select_driver(di, optarg);
@@ -140,10 +139,10 @@ static void arg_drvr(DriverInfo* di, int i) {
         di->raw = 1;
         break;
       case 'n':
-        di->bufnum    = strtol(optarg, &endptr, 10);
+        di->bufnum    = strtol(optarg, NULL, 10);
         break;
       case 'b':
-        di->bufsize    = strtol(optarg, &endptr, 10);
+        di->bufsize    = strtol(optarg, NULL, 10);
         break;
     default:
       exit(1);
@@ -152,7 +151,6 @@ static void arg_drvr(DriverInfo* di, int i) {
 
 #ifdef GWUDP
 static void arg_udp(UdpIf* udp, char c) {
-  m_str endptr;
   switch(c) {
     case 'a':
       udp->on = 0;
@@ -161,7 +159,7 @@ static void arg_udp(UdpIf* udp, char c) {
       udp->host = optarg;
       break;
     case 'p':
-      udp->port = strtol(optarg, &endptr, 10);
+      udp->port = strtol(optarg, NULL, 10);
       break;
   }
 }
@@ -169,7 +167,6 @@ static void arg_udp(UdpIf* udp, char c) {
 
 void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  m_str endptr;
   while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKGR ", long_option, &index)) != -1) {
 #ifdef GWUDP
     if(strchr("ahp", i))
@@ -188,7 +185,7 @@ void parse_args(Arg* arg, DriverInfo* di) {
         arg->quit  = 1;
         break;
       case 'l':
-        arg->loop = strtol(optarg, &endptr, 10) > 0 ? 1 : -1;
+        arg->loop = strtol(optarg, NULL, 10) > 0 ? 1 : -1;
         break;
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);

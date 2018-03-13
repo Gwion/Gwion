@@ -40,18 +40,25 @@ static WINDOW* w;
 static WINDOW* wout;
 static WINDOW* werr;
 static WINDOW* wexe;
+static m_uint hexe, hout, herr;
 static Vector shreds;
 static Vector infos;
 static Vector breaks;
-__attribute__((constructor))
-void init_curses() {
-  w = initscr();
-  start_color();
-  use_default_colors();
-  int x, y;
+
+static void size() {
+  int y, x;
   getmaxyx(w, y, x);
   height = (y-1)/2;
   width = x - 1;
+}
+
+static void _init() {
+  w = initscr();
+  start_color();
+  use_default_colors();
+  shreds = new_vector();
+  infos = new_vector();
+  breaks = new_vector();
   init_pair(1, COLOR_CYAN, -1);
   init_pair(2, COLOR_MAGENTA, -1);
   init_pair(3, COLOR_GREEN, -1);
@@ -59,20 +66,11 @@ void init_curses() {
   init_pair(5, COLOR_BLUE, -1);
   noecho();
   curs_set(0);
+  size();
   keypad(w, TRUE);
-  shreds = new_vector();
-  infos = new_vector();
-  breaks = new_vector();
+}
 
-  wexe = subwin(w, height, width/2, 0, width/2 + 1);
-  scrollok(wexe, 1);
-
-  wout = subwin(w, height, width/2, height+1, 0);
-  scrollok(wout, 1);
-
-  werr = subwin(w, height, width/2, height+1, width/2 + 1);
-  wrefresh(werr);
-
+static void cross() {
   for(int i = 0; i < width/2; i++) {
     mvwaddch(w, height, i, ACS_HLINE | COLOR_PAIR(3));
     mvwaddch(w, height, i+width/2, ACS_HLINE | COLOR_PAIR(5));
@@ -82,10 +80,24 @@ void init_curses() {
     mvwaddch(w, i+height+1, width/2, ACS_VLINE | COLOR_PAIR(4));
   }
   mvwaddch(w, height, width/2, ACS_PLUS);
+}
+
+__attribute__((constructor))
+void init_curses() {
+_init();
+  wexe = newpad(10000, 256);
+  scrollok(wexe, 1);
+
+  wout = newpad(10000, 256);
+  scrollok(wout, 1);
+
+  werr = newpad(10000, 256);
   scrollok(werr, 1);
-  wrefresh(w);
+
+  cross();
   refresh();
 }
+
 __attribute__((destructor))
 void end_curses() {
   delwin(w);
@@ -115,7 +127,7 @@ m_bool gw_exe(const m_str func, char* fmt, ...) {
   vfprintf(wexe, fmt, arg);
   va_end(arg);
 
-  wrefresh(wexe);
+  prefresh(wexe, hexe++, 0, 0, width/2 + 1, height - 1, width);
   return -1;
 }
 
@@ -146,7 +158,10 @@ static void display(VM_Shred shred, struct ShredInfo* info) {
     mvwaddch(info->pad, (mpos% height), width/4+6, '<' | A_BOLD | COLOR_PAIR(2));
   if(rpos >= info->offset)
     mvwaddch(info->pad, (rpos% height), width/2, '<' | A_BOLD | COLOR_PAIR(2));
-  prefresh(info->pad, 0, 0, 0, 0, height, width/2);
+  prefresh(info->pad, 0, 0, 0, 0, height - 1, width/2 -1);
+  prefresh(wexe, hexe, 0, 0, width/2 + 1, height - 1, width);
+  prefresh(wout, hout, 0, height + 1, 0, height*2, width/2 - 1);
+  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
 }
 
 static void bp_add() {
@@ -187,6 +202,16 @@ static void bp_rem() {
 static void handle(VM_Shred shred, struct ShredInfo* info) {
   int key = getch();
   switch(key) {
+    case KEY_RESIZE:
+  {
+    endwin();
+    refresh();
+    clear();
+    size();
+    cross();
+    refresh();
+  }
+break;
     case KEY_NPAGE:
       if(info->index >= DBG_SZ)break;
       info->index += height;
@@ -210,6 +235,30 @@ static void handle(VM_Shred shred, struct ShredInfo* info) {
         break;
       if((info->index -= height) < info->offset)
         info->offset -= height;
+      break;
+    case KEY_F(1):
+      if(!hexe)
+        break;
+        prefresh(wexe, --hexe, 0, 0, width/2 + 1, height - 1, width);
+      break;
+    case KEY_F(13):
+        prefresh(wexe, ++hexe, 0, 0, width/2 + 1, height - 1, width);
+      break;
+    case KEY_F(2):
+      if(!hout)
+        break;
+      prefresh(wout, --hout, 0, height + 1, 0, height*2, width/2 - 1);
+      break;
+    case KEY_F(14):
+      prefresh(wout, ++hout, 0, height + 1, 0, height*2, width/2 - 1);
+      break;
+    case KEY_F(3):
+      if(!herr)
+        break;
+      prefresh(werr, --herr, 0, height + 1, width/2 + 1, height*2, width);
+      break;
+    case KEY_F(15):
+      prefresh(werr, ++herr, 0, height + 1, width/2 + 1, height*2, width);
       break;
     case 'b':
       bp_add();
@@ -280,9 +329,6 @@ void gw_pos(int pos) {
   if(curr)
     curr->pos = pos;
 }
-#else
-#define wrefresh(a)
-#define getch()
 #endif
 
 static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK", "EMIT!", "UTILS", "LEXER",
@@ -309,8 +355,10 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
   vfprintf(stderr, fmt, arg);
   fprintf(stderr, "\n");
   va_end(arg);
-  wrefresh(stderr);
+#ifdef CURSES
+  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
   getch();
+#endif
   return -1;
 }
 
@@ -319,8 +367,10 @@ m_bool gw_err(const char* fmt, ...) {
   va_start(arg, fmt);
   vfprintf(stderr, fmt, arg);
   va_end(arg);
-  wrefresh(stderr);
+#ifdef CURSES
+  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
   getch();
+#endif
   return -1;
 }
 
@@ -329,6 +379,9 @@ m_bool gw_out(const char* fmt, ...) {
   va_start(arg, fmt);
   vfprintf(stdout, fmt, arg);
   va_end(arg);
-  wrefresh(stdout);
+#ifdef CURSES
+  prefresh(wout, hout, 0, height + 1, 0, height*2, width/2 - 1);
+  getch();
+#endif
   return -1;
 }
