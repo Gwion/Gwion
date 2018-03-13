@@ -6,6 +6,19 @@ n=0
 
 source tests/sh/common.sh
 
+# test gwion copiled with UDP
+./gwion -C | grep GWUDP || {
+  echo "ok $(printf "% 4i" "$n") UDP (skip)"
+  echo "ok $(printf "% 4i" "$((n+1))") UDP (skip)"
+  echo "ok $(printf "% 4i" "$((n+2))") UDP (skip)"
+  echo "ok $(printf "% 4i" "$((n+3))") UDP (skip)"
+  echo "ok $(printf "% 4i" "$((n+4))") UDP (skip)"
+  echo "ok $(printf "% 4i" "$((n+5))") UDP (skip)"
+  exit;
+}
+
+
+
 ./gwion -l1 &>/dev/null &
 n=$(printf "% 4i" "$((n))")
 echo "ok    $((n)) start loop"
