@@ -10,7 +10,7 @@
 #include "vm.h"
 #include "driver.h"
 
-void arg_init(Arg* arg) {
+ANN void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->rem);
   vector_init(&arg->lib);
@@ -18,7 +18,7 @@ void arg_init(Arg* arg) {
   arg->ref = &arg->add;
 }
 
-void arg_release(Arg* arg) {
+ANN void arg_release(Arg* arg) {
   vector_release(&arg->add);
   vector_release(&arg->rem);
   vector_release(&arg->lib);
@@ -93,7 +93,7 @@ static const char usage[] =
 "\t--format   -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
 "\t--backend  -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n";
 
-static void arg_add(Arg* arg) {
+ANN static void arg_add(Arg* arg) {
   while(optind < arg->argc) {
     m_str str = arg->argv[optind++];
     if(!strcmp(str, "-")) {
@@ -107,7 +107,7 @@ static void arg_add(Arg* arg) {
   }
 }
 
-static void arg_drvr(DriverInfo* di, int i) {
+ANN static void arg_drvr(DriverInfo* di, int i) {
     switch(i) {
       case 'c':
         di->card     = optarg;
@@ -150,7 +150,7 @@ static void arg_drvr(DriverInfo* di, int i) {
 }
 
 #ifdef GWUDP
-static void arg_udp(UdpIf* udp, char c) {
+ANN static void arg_udp(UdpIf* udp, char c) {
   switch(c) {
     case 'a':
       udp->on = 0;
@@ -165,7 +165,7 @@ static void arg_udp(UdpIf* udp, char c) {
 }
 #endif
 
-void parse_args(Arg* arg, DriverInfo* di) {
+ANN void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
   while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKGR ", long_option, &index)) != -1) {
 #ifdef GWUDP

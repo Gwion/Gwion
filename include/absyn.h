@@ -148,7 +148,7 @@ typedef struct {
   Type_List types;
   ID_List base;
 } Tmpl_Call;
-Tmpl_Call* new_tmpl_call(Type_List);
+ANN Tmpl_Call* new_tmpl_call(Type_List);
 typedef struct {
   Exp func;
   Exp args;
@@ -455,8 +455,8 @@ struct Func_Def_ {
   Tmpl_List* tmpl;
   int pos;
 };
-Tmpl_List* new_tmpl_list(ID_List list, m_int base);
-void free_tmpl_list(Tmpl_List*);
+ANN Tmpl_List* new_tmpl_list(ID_List list, m_int base);
+ANN void free_tmpl_list(Tmpl_List*);
 const m_bool tmpl_list_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, const int pos);
 void free_func_def(Func_Def def);
@@ -484,9 +484,9 @@ typedef struct {
   Tmpl_List list;
   Type_List base;
 } Tmpl_Class;
-Tmpl_Class* new_tmpl_class(const ID_List, const m_bool);
+ANN Tmpl_Class* new_tmpl_class(const ID_List, const m_bool);
 const m_bool tmpl_class_base(const Tmpl_Class*);
-void free_tmpl_class(Tmpl_Class*);
+ANN void free_tmpl_class(Tmpl_Class*);
 struct Class_Def_ {
   ae_flag flag;
   ID_List name;

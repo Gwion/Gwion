@@ -28,5 +28,5 @@ typedef struct {
 #endif
 } Arg;
 
-void arg_init(Arg* arg);
-void arg_release(Arg* arg);
+ANN void arg_init(Arg* arg);
+ANN void arg_release(Arg* arg);

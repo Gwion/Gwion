@@ -5,7 +5,7 @@
 #include "absyn.h"
 #include "type.h"
 
-const m_bool prim_ref(const Type_Decl* td, const Type t) {
+ANN const m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, &t_object) < 0)
     CHECK_BB(err_msg(SCAN2_, td->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"
@@ -15,7 +15,7 @@ const m_bool prim_ref(const Type_Decl* td, const Type t) {
   return 1;
 }
 
-Type type_decl_resolve(Env env, const Type_Decl* td) {
+ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   Type t = find_type(env, td->xid);
   CHECK_OO(t)
   CHECK_OO((t = scan_type(env, t, td)))
@@ -24,12 +24,12 @@ Type type_decl_resolve(Env env, const Type_Decl* td) {
   return t;
 }
 
-static inline void strcheck(m_str str, m_uint src, m_uint tgt) {
+ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
   while(tgt >= src)
     str = realloc(str, src *= 2);
 }
 
-static m_str td2str(Env env, Type_Decl* td) {
+ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
   m_uint l = id_list_len(td->xid) + depth *2;
   m_uint m = l;
@@ -57,7 +57,7 @@ static m_str td2str(Env env, Type_Decl* td) {
   return s;
 }
 
-m_str tl2str(Env env, Type_List tl) {
+ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint l = 0;
   m_uint m = 32;
   m_str s = malloc(m);

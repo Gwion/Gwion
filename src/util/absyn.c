@@ -362,14 +362,14 @@ static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
-Tmpl_List* new_tmpl_list(ID_List list, const m_int base) {
+ANN Tmpl_List* new_tmpl_list(ID_List list, const m_int base) {
   Tmpl_List* a = malloc(sizeof(Tmpl_List));
   a->list = list;
   a->base = base;
   return a;
 }
 
-Tmpl_Class* new_tmpl_class(ID_List list, m_bool base) {
+ANN Tmpl_Class* new_tmpl_class(ID_List list, const m_bool base) {
   Tmpl_Class* a = malloc(sizeof(Tmpl_Class));
   a->list.list = list;
   a->list.base = base;
@@ -377,13 +377,13 @@ Tmpl_Class* new_tmpl_class(ID_List list, m_bool base) {
   return a;
 }
 
-void free_tmpl_list(Tmpl_List* a) {
+ANN void free_tmpl_list(Tmpl_List* a) {
   if(a->base == -1)
     free_id_list(a->list);
   free(a);
 }
 
-void free_tmpl_class(Tmpl_Class* a) {
+ANN void free_tmpl_class(Tmpl_Class* a) {
   if(a->list.base == -1)
     free_id_list(a->list.list);
   free(a);
@@ -459,14 +459,14 @@ static void free_stmt_func_ptr(Stmt_Ptr a) {
   }
 }
 
-Tmpl_Call* new_tmpl_call(Type_List tl) {
+ANN Tmpl_Call* new_tmpl_call(Type_List tl) {
   Tmpl_Call* a = malloc(sizeof(Tmpl_Call));
   a->types = tl;
   a->base = NULL;
   return a;
 }
 
-static void free_tmpl_call(Tmpl_Call* a) {
+ANN static void free_tmpl_call(Tmpl_Call* a) {
   free_type_list(a->types);
   free(a);
 }

@@ -12,5 +12,5 @@ struct Func_ {
   struct VM_Object_ obj;
 };
 
-Func new_func(m_str name, Func_Def def);
-Func get_func(Env, Func_Def);
+ANN Func new_func(const m_str name, const Func_Def def);
+ANN Func get_func(const Env, const Func_Def);

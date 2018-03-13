@@ -14,14 +14,14 @@
 #include "udp.h"
 #include "arg.h"
 
-static void udp_send(Udp* udp, const char* c) {
+ANN static void udp_send(Udp* udp, const char* c) {
   struct sockaddr_in addr = udp->saddr;
   if(sendto(udp->sock, c, strlen(c), 0,
             (struct sockaddr *) &addr, sizeof(addr)) < 1)
     err_msg(UDP, 0, "problem while sending"); // LCOV_EXCL_LINE
 }
 
-static m_bool udp_recv(Udp* udp, char* buf) {
+ANN static m_bool udp_recv(Udp* udp, char* buf) {
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -55,7 +55,7 @@ static m_bool udp_recv(Udp* udp, char* buf) {
   return -1;
 }
 
-static void send_vector(Udp* udp, Vector v, m_str prefix) {
+ANN static void send_vector(Udp* udp, Vector v, m_str prefix) {
   m_uint i;
   for(i = 0; i < vector_size(v); i++) {
     m_str file = (m_str)vector_at(v, i);
@@ -74,7 +74,7 @@ static void set_nonblock(int socket) {
 }
 #endif
 
-static m_bool server_init(Udp* udp) {
+ANN static m_bool server_init(Udp* udp) {
   struct hostent * host;
   UdpIf* udpif = ((Arg*)udp->arg)->udp;
   if((udp->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
@@ -102,7 +102,7 @@ static m_bool server_init(Udp* udp) {
   return 1;
 }
 
-void udp_client(void* data) {
+ANN void udp_client(void* data) {
   Udp* udp = (Udp*)data;
   Arg* arg= (Arg*)udp->arg;
   if(server_init(udp) == -1) {
@@ -121,7 +121,7 @@ void udp_client(void* data) {
   }
 }
 
-static void udp_run(Udp* udp) {
+ANN static void udp_run(Udp* udp) {
   VM* vm = udp->vm;
   m_uint i;
   if(!udp->state)
@@ -143,12 +143,12 @@ static void udp_run(Udp* udp) {
   udp->state = 0;
 }
 
-static void remove_shred(Udp* udp, const char* buf) {
+ANN static void remove_shred(Udp* udp, const char* buf) {
   m_uint index = strtol(buf + 2, NULL, 10);
   vector_add(&udp->rem, index);
 }
 
-static void handle_loop(Udp* udp, const char* buf) {
+ANN static void handle_loop(Udp* udp, const char* buf) {
   m_int i = strtol(buf + 5, NULL, 10);
   if(i <= 0)
     udp->state = -1;
@@ -156,7 +156,7 @@ static void handle_loop(Udp* udp, const char* buf) {
     udp->state = 1;
 }
 
-void* udp_process(void* data) {
+ANN void* udp_process(void* data) {
   Udp* udp = (Udp*)data;
   VM* vm = udp->vm;
   vector_init(&udp->add);
@@ -179,7 +179,7 @@ void* udp_process(void* data) {
   return NULL;
 }
 
-void udp_release(Udp* udp, pthread_t t) {
+ANN void udp_release(Udp* udp, pthread_t t) {
 #ifdef __linux__
 #ifndef ANDROID
   pthread_cancel(t);
