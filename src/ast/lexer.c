@@ -2806,7 +2806,7 @@ int get_pos(Scanner* scan) {
   return scan->line;
 }
 
-Ast parse(m_str filename, FILE* f) {
+Ast parse(const m_str filename, FILE* f) {
   Scanner scan;
   gwion_lex_init(&scan.scanner);
   gwion_set_extra(&scan, scan.scanner);
