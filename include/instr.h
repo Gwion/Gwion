@@ -16,7 +16,7 @@ void a(const VM* vm, const VM_Shred shred, const Instr instr)
 struct Instr_ {
   void (*execute)(const VM* vm, const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
-  char ptr[SZ_INT];
+  char ptr[SZ_VEC4];
 };
 
 INSTR(EOC);
