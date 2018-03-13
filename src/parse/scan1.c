@@ -13,10 +13,11 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, Exp_Decl* decl) { GWDEBUG_EXE
+ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, const Exp_Decl* decl) { GWDEBUG_EXE
   if(GET_FLAG(t, ae_flag_template)) {
-    decl->base = t->def;
-    decl->m_type = t;
+    Exp_Decl* d = (Exp_Decl*)decl;
+    d->base = t->def;
+    d->m_type = t;
   }
   return 1;
 }
@@ -40,7 +41,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEB
   return t;
 }
 
-ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
+ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
   CHECK_OB(t)
@@ -49,7 +50,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     !(env->class_def && GET_FLAG(env->class_def, ae_flag_template) && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->m_type;
   else
-    decl->m_type = t;
+    ((Exp_Decl*)decl)->m_type = t;
   while(list) {
     Value value;
     const Var_Decl v = list->self;
@@ -83,7 +84,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     v->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;
   }
-  decl->m_type = decl->list->self->value->m_type;
+  ((Exp_Decl*)decl)->m_type = decl->list->self->value->m_type;
   return 1;
 }
 
