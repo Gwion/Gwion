@@ -12,8 +12,6 @@
 #include "vm.h"
 #include "instr.h"
 
-static m_uint height, width;
-
 enum dbg_t{
   DBG_PTR,
   DBG_INT,
@@ -36,7 +34,6 @@ struct ShredInfo {
 
 
 static struct ShredInfo* curr;
-static WINDOW* w;
 static WINDOW* wout;
 static WINDOW* werr;
 static WINDOW* wexe;
@@ -45,15 +42,8 @@ static Vector shreds;
 static Vector infos;
 static Vector breaks;
 
-static void size() {
-  int y, x;
-  getmaxyx(w, y, x);
-  height = (y-1)/2;
-  width = x - 1;
-}
-
 static void _init() {
-  w = initscr();
+  initscr();
   start_color();
   use_default_colors();
   shreds = new_vector();
@@ -66,25 +56,24 @@ static void _init() {
   init_pair(5, COLOR_BLUE, -1);
   noecho();
   curs_set(0);
-  size();
-  keypad(w, TRUE);
+  keypad(stdscr, TRUE);
 }
 
 static void cross() {
-  for(int i = 0; i < width/2; i++) {
-    mvwaddch(w, height, i, ACS_HLINE | COLOR_PAIR(3));
-    mvwaddch(w, height, i+width/2, ACS_HLINE | COLOR_PAIR(5));
+  for(int i = 0; i < COLS/2; i++) {
+    mvwaddch(stdscr, (LINES-1)/2, i, ACS_HLINE | COLOR_PAIR(3));
+    mvwaddch(stdscr, (LINES-1)/2, i+COLS/2, ACS_HLINE | COLOR_PAIR(5));
   }
-  for(int i = 0; i < height; i++) {
-    mvwaddch(w, i, width/2, ACS_VLINE | COLOR_PAIR(1));
-    mvwaddch(w, i+height+1, width/2, ACS_VLINE | COLOR_PAIR(4));
+  for(int i = 0; i < (LINES-1)/2; i++) {
+    mvwaddch(stdscr, i, COLS/2, ACS_VLINE | COLOR_PAIR(1));
+    mvwaddch(stdscr, i+(LINES-1)/2+1, COLS/2, ACS_VLINE | COLOR_PAIR(4));
   }
-  mvwaddch(w, height, width/2, ACS_PLUS);
+  mvwaddch(stdscr, (LINES-1)/2, COLS/2, ACS_PLUS);
 }
 
 __attribute__((constructor))
 void init_curses() {
-_init();
+  _init();
   wexe = newpad(10000, 256);
   scrollok(wexe, 1);
 
@@ -100,7 +89,7 @@ _init();
 
 __attribute__((destructor))
 void end_curses() {
-  delwin(w);
+  delwin(stdscr);
   endwin();
   free_vector(shreds);
   free_vector(infos);
@@ -127,15 +116,15 @@ m_bool gw_exe(const m_str func, char* fmt, ...) {
   vfprintf(wexe, fmt, arg);
   va_end(arg);
 
-  prefresh(wexe, hexe++, 0, 0, width/2 + 1, height - 1, width);
+  prefresh(wexe, hexe++, 0, 0, COLS/2 + 1, (LINES-1)/2 - 1, COLS);
   return -1;
 }
 
-static void do_stack(struct ShredInfo* info, m_uint i, m_uint w, char* data) {
+static void do_stack(struct ShredInfo* info, m_uint i, m_uint stdscr, char* data) {
   if(info->t == DBG_FLOAT) {
-    mvwprintw(info->pad, i, w, "% 20.4f", *(m_float*)(data+i*SZ_FLOAT));
+    mvwprintw(info->pad, i, stdscr, "% 20.4f", *(m_float*)(data+i*SZ_FLOAT));
   } else if(info->t == DBG_INT) {
-    mvwprintw(info->pad, i, w, "% 20i", *(m_int*)(data+i*SZ_FLOAT));
+    mvwprintw(info->pad, i, stdscr, "% 20i", *(m_int*)(data+i*SZ_FLOAT));
   } else
     wprintw(info->pad, "% 20p", *(m_uint*)(data+i*SZ_FLOAT));
  waddch(info->pad, ' ' | A_BOLD);
@@ -146,29 +135,29 @@ static void display(VM_Shred shred, struct ShredInfo* info) {
   m_int mpos = (shred->mem - shred->_mem)/SZ_FLOAT;
   m_int rpos = (shred->reg - shred->_reg)/SZ_FLOAT;
 
-  for(m_uint i = 0; i < height; i++) {
+  for(m_uint i = 0; i < (LINES-1)/2; i++) {
     mvwprintw(info->pad, i, 0, "% 5lu", (info->offset+i)*SZ_FLOAT);
     mvwaddch(info->pad, i, 5, ':');
     do_stack(info, info->offset + i, 6, shred->_mem);
     wprintw(info->pad, " ");
-    do_stack(info, info->offset + i, (width-10)/4, shred->_reg);
+    do_stack(info, info->offset + i, (COLS-10)/4, shred->_reg);
   }
-  mvwchgat(info->pad, (info->index % height), 0, -1, A_BOLD, 0, NULL);
+  mvwchgat(info->pad, (info->index % (LINES-1)/2), 0, -1, A_BOLD, 0, NULL);
   if(mpos >= info->offset)
-    mvwaddch(info->pad, (mpos% height), width/4+6, '<' | A_BOLD | COLOR_PAIR(2));
+    mvwaddch(info->pad, (mpos% (LINES-1)/2), COLS/4+6, '<' | A_BOLD | COLOR_PAIR(2));
   if(rpos >= info->offset)
-    mvwaddch(info->pad, (rpos% height), width/2, '<' | A_BOLD | COLOR_PAIR(2));
-  prefresh(info->pad, 0, 0, 0, 0, height - 1, width/2 -1);
-  prefresh(wexe, hexe, 0, 0, width/2 + 1, height - 1, width);
-  prefresh(wout, hout, 0, height + 1, 0, height*2, width/2 - 1);
-  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
+    mvwaddch(info->pad, (rpos% (LINES-1)/2), COLS/2, '<' | A_BOLD | COLOR_PAIR(2));
+  prefresh(info->pad, 0, 0, 0, 0, (LINES-1)/2 - 1, COLS/2 -1);
+  prefresh(wexe, hexe, 0, 0, COLS/2 + 1, (LINES-1)/2 - 1, COLS-1);
+  prefresh(wout, hout, 0, (LINES-1)/2 + 1, 0, (LINES-1)/2*2, COLS/2 - 1);
+  prefresh(werr, herr, 0, (LINES-1)/2 + 1, COLS/2 + 1, (LINES-1)/2*2, COLS-1);
 }
 
 static void bp_add() {
   char s[256];
-  mvwin(w, height*2, 0);
+  mvwin(stdscr, (LINES-1)/2*2, 0);
   deleteln();
-  mvwprintw(w, height*2, 0, "new breakpoint: ");
+  mvwprintw(stdscr, (LINES-1)/2*2, 0, "new breakpoint: ");
   refresh();
   echo();
   getnstr(s, 256);
@@ -181,9 +170,9 @@ static void bp_add() {
 
 static void bp_rem() {
   char s[256];
-  mvwin(w, height*2, 0);
+  mvwin(stdscr, (LINES-1)/2*2, 0);
   deleteln();
-  mvwprintw(w, height*2, 0, "remove breakpoint: ");
+  mvwprintw(stdscr, (LINES-1)/2*2, 0, "remove breakpoint: ");
   refresh();
   echo();
   getnstr(s, 256);
@@ -207,58 +196,57 @@ static void handle(VM_Shred shred, struct ShredInfo* info) {
     endwin();
     refresh();
     clear();
-    size();
     cross();
     refresh();
   }
 break;
     case KEY_NPAGE:
       if(info->index >= DBG_SZ)break;
-      info->index += height;
-      if(info->index >= info->offset + height)
-        info->offset += height;
+      info->index += (LINES-1)/2;
+      if(info->index >= info->offset + (LINES-1)/2)
+        info->offset += (LINES-1)/2;
       break;
     case KEY_UP:
       if(info->index >= DBG_SZ)break;
       info->index++;
-      if(info->index >= info->offset + height)
-        info->offset += height;
+      if(info->index >= info->offset + (LINES-1)/2)
+        info->offset += (LINES-1)/2;
       break;
     case KEY_DOWN:
       if(!info->index)
         break;
       if(--info->index < info->offset)
-        info->offset -= height;
+        info->offset -= (LINES-1)/2;
       break;
     case KEY_PPAGE:
       if(!info->index)
         break;
-      if((info->index -= height) < info->offset)
-        info->offset -= height;
+      if((info->index -= (LINES-1)/2) < info->offset)
+        info->offset -= (LINES-1)/2;
       break;
     case KEY_F(1):
       if(!hexe)
         break;
-        prefresh(wexe, --hexe, 0, 0, width/2 + 1, height - 1, width);
+        --hexe;
       break;
     case KEY_F(13):
-        prefresh(wexe, ++hexe, 0, 0, width/2 + 1, height - 1, width);
+      ++hexe;
       break;
     case KEY_F(2):
       if(!hout)
         break;
-      prefresh(wout, --hout, 0, height + 1, 0, height*2, width/2 - 1);
+      --hout;
       break;
     case KEY_F(14):
-      prefresh(wout, ++hout, 0, height + 1, 0, height*2, width/2 - 1);
+      ++hout;
       break;
     case KEY_F(3):
       if(!herr)
         break;
-      prefresh(werr, --herr, 0, height + 1, width/2 + 1, height*2, width);
+      --herr;
       break;
     case KEY_F(15):
-      prefresh(werr, ++herr, 0, height + 1, width/2 + 1, height*2, width);
+      ++herr;
       break;
     case 'b':
       bp_add();
@@ -286,10 +274,10 @@ break;
 
 void gw_shred(VM_Shred shred) {
   if(!shred) {
-    wattron(w, COLOR_PAIR(2));
-    mvwprintw(w, height*2, width-14, "shred finished!");
-    wattroff(w, COLOR_PAIR(2));
-    wrefresh(w);
+    wattron(stdscr, COLOR_PAIR(2));
+    mvwprintw(stdscr, (LINES-1)/2*2, COLS-14, "shred finished!");
+    wattroff(stdscr, COLOR_PAIR(2));
+    refresh();
     getch();
     m_int index = vector_find(infos, (vtype)curr);
     vector_rem(infos, index);
@@ -297,20 +285,20 @@ void gw_shred(VM_Shred shred) {
     free(curr);
     return;
   } else
-    mvwprintw(w, height*2, width-14, "               ");
-  wattron(w, A_BOLD);
-  wattroff(w, A_BOLD);
+    mvwprintw(stdscr, (LINES-1)/2*2, COLS-14, "               ");
+  wattron(stdscr, A_BOLD);
+  wattroff(stdscr, A_BOLD);
   m_int index = vector_find(shreds, (vtype)shred);
   if(index == -1) {
     vector_add(shreds, (vtype)shred);
     curr = calloc(1, sizeof(struct ShredInfo));
     vector_add(infos, (vtype)curr);
-    curr->pad = newpad(height, width/2);
+    curr->pad = newpad(10000, 256);
   } else
     curr = (struct ShredInfo*)vector_at(infos, index);
-  mvwin(w, height*2, 0);
+  mvwin(stdscr, (LINES-1)/2*2, 0);
   deleteln();
-  mvwprintw(w, height*2, 0, "%s [%" INT_F"] [%" INT_F"->%"INT_F"] %i", shred->name, shred->xid,
+  mvwprintw(stdscr, (LINES-1)/2*2, 0, "%s [%" INT_F"] [%" INT_F"->%"INT_F"] %i", shred->name, shred->xid,
     shred->pc, shred->next_pc, curr->pos);
   display(shred, curr);
   if(vector_size(breaks)) {
@@ -356,7 +344,7 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
   fprintf(stderr, "\n");
   va_end(arg);
 #ifdef CURSES
-  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
+  prefresh(werr, herr, 0, (LINES-1)/2 + 1, COLS/2 + 1, (LINES-1)/2*2, COLS);
   getch();
 #endif
   return -1;
@@ -368,7 +356,7 @@ m_bool gw_err(const char* fmt, ...) {
   vfprintf(stderr, fmt, arg);
   va_end(arg);
 #ifdef CURSES
-  prefresh(werr, herr, 0, height + 1, width/2 + 1, height*2, width);
+  prefresh(werr, herr, 0, (LINES-1)/2 + 1, COLS/2 + 1, (LINES-1)/2*2, COLS);
   getch();
 #endif
   return -1;
@@ -380,7 +368,7 @@ m_bool gw_out(const char* fmt, ...) {
   vfprintf(stdout, fmt, arg);
   va_end(arg);
 #ifdef CURSES
-  prefresh(wout, hout, 0, height + 1, 0, height*2, width/2 - 1);
+  prefresh(wout, hout, 0, (LINES-1)/2 + 1, 0, (LINES-1)/2*2, COLS/2 - 1);
   getch();
 #endif
   return -1;
