@@ -6,6 +6,11 @@ n=0
 export DRIVER=silent
 source tests/sh/common.sh
 
+./gwion -C | grep GWUDP || {
+  echo "ok $(printf "% 4i" "$n") UDP (skip)"
+  exit;
+}
+
 (ret=$(./gwion -l1 &> /dev/null)
 if [ "$ret" ]
 then echo "not ok  $(printf "% 4i" "$n") remote "
