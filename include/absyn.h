@@ -29,7 +29,7 @@ struct Array_Sub_ {
 };
 Array_Sub new_array_sub(Exp exp, const int pos);
 Array_Sub prepend_array_sub(Array_Sub array, Exp exp);
-void free_array_sub(Array_Sub array);
+ANN void free_array_sub(Array_Sub array);
 
 typedef struct {
   Exp base;
@@ -72,7 +72,7 @@ typedef struct Type_Decl_ {
 } Type_Decl;
 Type_Decl* new_type_decl(ID_List name, const m_bool ref, const int pos);
 Type_Decl* new_type_decl2(ID_List name, const m_bool ref, const int pos);
-void free_type_decl(Type_Decl* a);
+ANN void free_type_decl(Type_Decl* a);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, const int pos);
 
 struct ID_List_    {
@@ -83,7 +83,7 @@ struct ID_List_    {
 };
 ID_List new_id_list(const Symbol xid, const int pos);
 ID_List prepend_id_list(const Symbol xid, ID_List list, const int pos);
-void free_id_list(ID_List a);
+ANN void free_id_list(ID_List a);
 
 struct Type_List_  {
   Type_Decl* list;
@@ -91,7 +91,7 @@ struct Type_List_  {
   int pos;
 };
 Type_List new_type_list(Type_Decl* list, Type_List next, const int pos);
-void free_type_list(Type_List a);
+ANN void free_type_list(Type_List a);
 
 typedef struct {
   Exp    exp;
@@ -107,7 +107,7 @@ struct Arg_List_ {
   int pos;
 };
 Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, const int pos);
-void free_arg_list(Arg_List a);
+ANN void free_arg_list(Arg_List a);
 
 typedef enum { ae_exp_decl, ae_exp_binary, ae_exp_unary, ae_exp_primary,
                ae_exp_cast, ae_exp_post, ae_exp_call, ae_exp_array,
@@ -248,7 +248,7 @@ Exp new_exp_unary(Operator oper, Exp exp, const int pos);
 Exp new_exp_unary2(Operator oper, Type_Decl* type, const int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, const int pos);
 Exp prepend_exp(Exp exp, Exp next, const int pos);
-void free_exp(Exp exp);
+ANN void free_exp(Exp exp);
 
 typedef struct Decl_List_* Decl_List;
 struct Decl_List_ {
@@ -423,7 +423,7 @@ Stmt new_stmt_switch(Exp val, Stmt stmt, const int pos);
 Stmt new_stmt_union(Decl_List l, const int pos);
 Stmt new_func_ptr_stmt(ae_flag key, Symbol type, Type_Decl* decl, Arg_List args, const int pos);
 Stmt new_stmt_typedef(Type_Decl* decl, Symbol xid, const int pos);
-void free_stmt(Stmt a);
+ANN void free_stmt(Stmt a);
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
@@ -458,8 +458,8 @@ ANN Tmpl_List* new_tmpl_list(ID_List list, m_int base);
 ANN void free_tmpl_list(Tmpl_List*);
 const m_bool tmpl_list_base(const Tmpl_List*);
 Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, Symbol xid, Arg_List arg_list, Stmt code, const int pos);
-void free_func_def(Func_Def def);
-void free_func_def_simple(Func_Def def);
+ANN void free_func_def(Func_Def def);
+ANN void free_func_def_simple(Func_Def def);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
 typedef struct Section_ {
@@ -498,10 +498,10 @@ struct Class_Def_ {
 };
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
                         Type_Decl* ext, Class_Body body, const int pos);
-void free_class_def(Class_Def a);
-void free_class_def_simple(Class_Def a);
+ANN void free_class_def(Class_Def a);
+ANN void free_class_def_simple(Class_Def a);
 Class_Body new_class_body(Section* section, Class_Body body, const int pos);
-void free_class_body(Class_Body a);
+ANN void free_class_body(Class_Body a);
 Section* new_section_class_def(Class_Def class_def, const int pos);
 
 struct Ast_ {
@@ -511,5 +511,5 @@ struct Ast_ {
 };
 Ast new_ast(Section* section, Ast next, const int pos);
 Ast parse(const m_str, FILE*);
-void free_ast();
+ANN void free_ast(Ast);
 #endif

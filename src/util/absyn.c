@@ -25,12 +25,10 @@ POOL_HANDLE(Var_Decl_List, 1024)
 POOL_HANDLE(Var_Decl, 1024)
 POOL_HANDLE(Exp, 1024)
 
-void free_exp(Exp exp);
-void free_arg_list(Arg_List a);
-void free_stmt(Stmt a);
-static void free_stmt_list(Stmt_List a);
-static void free_stmt_code(Stmt_Code a);
-static void free_section();
+//ANN 
+static void free_stmt_list(Stmt_List);
+ANN static void free_stmt_code(Stmt_Code);
+ANN static void free_section(Section*);
 
 Var_Decl new_var_decl(Symbol xid, Array_Sub array, const int pos) {
   Var_Decl a = mp_alloc(Var_Decl);
@@ -40,12 +38,13 @@ Var_Decl new_var_decl(Symbol xid, Array_Sub array, const int pos) {
   return a;
 }
 
-void free_array_sub(Array_Sub a) {
-  free_exp(a->exp_list);
+ANN void free_array_sub(Array_Sub a) {
+  if(a->exp_list)
+    free_exp(a->exp_list);
   mp_free(Array_Sub, a);
 }
 
-static void free_var_decl(Var_Decl a) {
+ANN static void free_var_decl(Var_Decl a) {
   if(a->value) {
     if(GET_FLAG(a->value, ae_flag_arg)) {
       if(a->value->m_type->array_depth)
@@ -67,7 +66,7 @@ Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, const int pos
   return a;
 }
 
-static void free_var_decl_list(Var_Decl_List a) {
+ANN static void free_var_decl_list(Var_Decl_List a) {
   if(a->next)
     free_var_decl_list(a->next);
   free_var_decl(a->self);
@@ -125,7 +124,7 @@ Exp new_array(Exp base, Array_Sub indices, const int pos) {
   return a;
 }
 
-static void free_array_exp(Exp_Array* a) {
+ANN static void free_array_exp(Exp_Array* a) {
   if(a->base && a->base->type && a->indices->depth < a->base->type->array_depth)
     REM_REF(a->self->type);
   free_array_sub(a->indices);
@@ -146,7 +145,7 @@ ID_List prepend_id_list(const Symbol xid, ID_List list, const int pos) {
   return a;
 }
 
-void free_id_list(ID_List a) {
+ANN void free_id_list(ID_List a) {
   if(a->ref)
     free_id_list(a->ref);
   if(a->next)
@@ -154,7 +153,7 @@ void free_id_list(ID_List a) {
   mp_free(ID_List, a);
 }
 
-void free_type_decl(Type_Decl* a) {
+ANN void free_type_decl(Type_Decl* a) {
   if(a->types)
     free_type_list(a->types);
   if(a->array)
@@ -173,7 +172,7 @@ Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, const int pos) {
   return a;
 }
 
-static void free_exp_decl(Exp_Decl* a) {
+ANN static void free_exp_decl(Exp_Decl* a) {
   free_type_decl(a->type);
   free_var_decl_list(a->list);
 }
@@ -190,7 +189,7 @@ Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, const int pos) {
   return a;
 }
 
-static void free_exp_binary(Exp_Binary* binary) {
+ANN static void free_exp_binary(Exp_Binary* binary) {
   free_exp(binary->lhs);
   free_exp(binary->rhs);
 }
@@ -206,7 +205,7 @@ Exp new_exp_cast(Type_Decl* type, Exp exp, const int pos) {
   return a;
 }
 
-static void free_exp_cast(Exp_Cast* a) {
+ANN static void free_exp_cast(Exp_Cast* a) {
   free_type_decl(a->type);
   if(a->self->type && a->self->type->array_depth)
     REM_REF(a->self->type)
@@ -224,7 +223,7 @@ Exp new_exp_post(Exp exp, Operator op, const int pos) {
   return a;
 }
 
-static void free_exp_post(Exp_Postfix* post) {
+ANN static void free_exp_post(Exp_Postfix* post) {
   free_exp(post->exp);
 }
 
@@ -239,7 +238,7 @@ Exp new_exp_dur(Exp base, Exp unit, const int pos) {
   return a;
 }
 
-static void free_dur_exp(Exp_Dur* a) {
+ANN static void free_dur_exp(Exp_Dur* a) {
   free_exp(a->base);
   free_exp(a->unit);
 }
@@ -354,7 +353,7 @@ Exp new_exp_unary3(Operator oper, Stmt code, const int pos) {
   return a;
 }
 
-static void free_unary_exp(Exp_Unary* a) {
+ANN static void free_unary_exp(Exp_Unary* a) {
   if(a->exp)
     free_exp(a->exp);
   if(a->type)
@@ -376,7 +375,7 @@ Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, const int pos) {
   return a;
 }
 
-static void free_if_exp(Exp_If* a) {
+ANN static void free_if_exp(Exp_If* a) {
   free_exp(a->cond);
   free_exp(a->if_exp);
   free_exp(a->else_exp);
@@ -430,7 +429,7 @@ Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, Symbol xid, Arg_List a
   return a;
 }
 
-void free_func_def(Func_Def a) {
+ANN void free_func_def(Func_Def a) {
   if(!GET_FLAG(a, ae_flag_template)) {
     if(a->ret_type && a->ret_type->array_depth)
       REM_REF(a->ret_type);
@@ -441,10 +440,8 @@ void free_func_def(Func_Def a) {
   if(a->tmpl)
     free_tmpl_list(a->tmpl);
   mp_free(Func_Def, a);
-//  free(a);
 }
-void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
-//void free_func_def_simple(Func_Def a) { free(a); }
+ANN void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 
 Stmt new_func_ptr_stmt(ae_flag key, Symbol xid, Type_Decl* decl, Arg_List args, const int pos) {
   Stmt a              = mp_alloc(Stmt);
@@ -467,12 +464,12 @@ Stmt new_stmt_typedef(Type_Decl* decl, Symbol xid, const int pos) {
   return a;
 }
 
-static void free_stmt_typedef(Stmt_Typedef a){
+ANN static void free_stmt_typedef(Stmt_Typedef a){
   if(!a->m_type)
     free_type_decl(a->type);
 }
 
-static void free_stmt_func_ptr(Stmt_Ptr a) {
+ANN static void free_stmt_func_ptr(Stmt_Ptr a) {
   if(a->func)
     REM_REF(a->func)
   else {
@@ -505,7 +502,7 @@ Exp new_exp_call(Exp base, Exp args, const int pos) {
   return a;
 }
 
-static void free_exp_call(Exp_Func* a) {
+ANN static void free_exp_call(Exp_Func* a) {
   if(a->m_func && GET_FLAG(a->m_func, ae_flag_checked))
     if(a->m_func->def)
       free_func_def_simple(a->m_func->def);
@@ -527,7 +524,7 @@ Exp new_exp_dot(Exp base, Symbol xid, const int pos) {
   return a;
 }
 
-static void free_dot_member_exp(Exp_Dot* dot) {
+ANN static void free_dot_member_exp(Exp_Dot* dot) {
   if(dot->base)
     free_exp(dot->base);
 }
@@ -537,7 +534,7 @@ Exp prepend_exp(Exp exp, Exp next, const int pos) {
   return exp;
 }
 
-static void free_exp_primary(Exp_Primary* a) {
+ANN static void free_exp_primary(Exp_Primary* a) {
   ae_Exp_Primary_Type t = a->primary_type;
   if(t == ae_primary_hack)
     free_exp(a->d.exp);
@@ -549,9 +546,7 @@ static void free_exp_primary(Exp_Primary* a) {
     free_exp(a->d.vec.exp);
 }
 
-void free_exp(Exp exp) {
-  if(!exp)
-    return;
+ANN void free_exp(Exp exp) {
   switch(exp->exp_type) {
     case ae_exp_decl:
       free_exp_decl(&exp->d.exp_decl);
@@ -587,7 +582,8 @@ void free_exp(Exp exp) {
       free_dur_exp(&exp->d.exp_dur);
       break;
   }
-  free_exp(exp->next);
+  if(exp->next)
+    free_exp(exp->next);
   mp_free(Exp, exp);
 }
 
@@ -600,7 +596,7 @@ Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list
   return a;
 }
 
-void free_arg_list(Arg_List a) {
+ANN void free_arg_list(Arg_List a) {
   if(a->next)
     free_arg_list(a->next);
   free_type_decl(a->type_decl);
@@ -625,7 +621,7 @@ Stmt new_stmt_code(Stmt_List stmt_list, const int pos) {
   return a;
 }
 
-static void free_stmt_code(Stmt_Code a) {
+ANN static void free_stmt_code(Stmt_Code a) {
   free_stmt_list(a->stmt_list);
 }
 
@@ -637,8 +633,9 @@ Stmt new_stmt_return(Exp exp, const int pos) {
   return a;
 }
 
-__inline static void free_stmt_exp(struct Stmt_Exp_* a) {
-  free_exp(a->val);
+ANN __inline static void free_stmt_exp(struct Stmt_Exp_* a) {
+  if(a->val)
+    free_exp(a->val);
 }
 
 Stmt new_stmt_break(const int pos) {
@@ -666,7 +663,7 @@ Stmt new_stmt_while(Exp cond, Stmt body, m_bool is_do, const int pos) {
   return a;
 }
 
-static void free_stmt_flow(struct Stmt_Flow_* a) {
+ANN static void free_stmt_flow(struct Stmt_Flow_* a) {
   free_exp(a->cond);
   free_stmt(a->body);
 }
@@ -694,10 +691,11 @@ Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, const int pos) {
   return a;
 }
 
-static void free_stmt_for(Stmt_For a) {
+ANN static void free_stmt_for(Stmt_For a) {
   free_stmt(a->c1);
   free_stmt(a->c2);
-  free_exp(a->c3);
+  if(a->c3)
+    free_exp(a->c3);
   free_stmt(a->body);
 }
 
@@ -712,7 +710,7 @@ Stmt new_stmt_auto(Symbol sym, Exp exp, Stmt body, const int pos) {
   return a;
 }
 
-static void free_stmt_auto(Stmt_Auto a) {
+ANN static void free_stmt_auto(Stmt_Auto a) {
   free_exp(a->exp);
   free_stmt(a->body);
   if(a->v)
@@ -738,7 +736,7 @@ Stmt new_stmt_loop(Exp cond, Stmt body, const int pos) {
   return a;
 }
 
-static void free_stmt_loop(Stmt_Loop a) {
+ANN static void free_stmt_loop(Stmt_Loop a) {
   free_exp(a->cond);
   free_stmt(a->body);
 }
@@ -753,7 +751,7 @@ Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, const int pos) {
   return a;
 }
 
-static void free_stmt_if(Stmt_If a) {
+ANN static void free_stmt_if(Stmt_If a) {
   free_exp(a->cond);
   free_stmt(a->if_body);
   if(a->else_body)
@@ -770,7 +768,7 @@ Stmt new_stmt_switch(Exp val, Stmt stmt, const int pos) {
   return a;
 }
 
-__inline static void free_stmt_switch(Stmt_Switch a) {
+ANN __inline static void free_stmt_switch(Stmt_Switch a) {
   free_exp(a->val);
   free_stmt(a->stmt);
 }
@@ -794,7 +792,7 @@ Stmt new_stmt_enum(ID_List list, Symbol xid, const int pos) {
   return a;
 }
 
-static void free_stmt_enum(Stmt_Enum a) {
+ANN static void free_stmt_enum(Stmt_Enum a) {
   free_id_list(a->list);
   vector_release(&a->values);
 }
@@ -815,9 +813,7 @@ Decl_List new_decl_list(Exp d, Decl_List l) {
   return a;
 }
 
-static void free_decl_list(Decl_List a) {
-  if(!a)
-    return;
+ANN static void free_decl_list(Decl_List a) {
   if(a->next)
     free_decl_list(a->next);
   if(a->self)
@@ -825,12 +821,12 @@ static void free_decl_list(Decl_List a) {
   mp_free(Decl_List, a);
 }
 
-__inline static void free_stmt_union(Stmt_Union a) {
+ANN __inline static void free_stmt_union(Stmt_Union a) {
   free_decl_list(a->l);
   vector_release(&a->v);
 }
 
-void free_stmt(Stmt stmt) {
+ANN void free_stmt(Stmt stmt) {
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
       free_stmt_exp(&stmt->d.stmt_exp);
@@ -893,11 +889,13 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, const int pos) {
   return list;
 }
 
+//ANN
 static void free_stmt_list(Stmt_List list) {
   if(!list)
     return;
   free_stmt(list->stmt);
-  free_stmt_list(list->next);
+  if(list->next);
+    free_stmt_list(list->next);
   mp_free(Stmt_List, list);
 }
 
@@ -917,16 +915,15 @@ Section* new_section_func_def(Func_Def func_def, const int pos) {
   return a;
 }
 
-void free_class_body(Class_Body a) {
-  if(!a)
-    return;
-  free_class_body(a->next);
+ANN void free_class_body(Class_Body a) {
+  if(a->next)
+    free_class_body(a->next);
   if(a->section)
     free_section(a->section);
   mp_free(Class_Body, a);
 }
 
-void free_class_def(Class_Def a) {
+ANN void free_class_def(Class_Def a) {
   if(a->type && GET_FLAG(a->type, ae_flag_template))
     return;
   if(a->ext) {
@@ -936,14 +933,14 @@ void free_class_def(Class_Def a) {
   }
   if(a->tmpl)
     free_tmpl_class(a->tmpl);
-  if(!a->type || !GET_FLAG(a->type, ae_flag_ref))
+  if(a->body && (!a->type || !GET_FLAG(a->type, ae_flag_ref)))
     free_class_body(a->body);
   free_id_list(a->name);
   mp_free(Class_Def, a);
 }
-void free_class_def_simple(Class_Def a) { mp_free(Class_Def, a); }
+ANN void free_class_def_simple(Class_Def a) { mp_free(Class_Def, a); }
 
-static void free_section(Section* section) {
+ANN static void free_section(Section* section) {
   switch(section->section_type) {
     case ae_section_class:
       free_class_def(section->d.class_def);
@@ -987,7 +984,7 @@ Type_List new_type_list(Type_Decl* list, Type_List next, const int pos) {
   return a;
 }
 
-void free_type_list(Type_List a) {
+ANN void free_type_list(Type_List a) {
   if(a->next)
     free_type_list(a->next);
   free_type_decl(a->list);
@@ -1010,10 +1007,9 @@ Ast new_ast(Section* section, Ast next, const int pos) {
   return ast;
 }
 
-void free_ast(Ast a) {
-  if(!a)
-    return;
-  free_ast(a->next);
+ANN void free_ast(Ast a) {
+  if(a->next)
+    free_ast(a->next);
   free_section(a->section);
   mp_free(Ast, a);
 }
