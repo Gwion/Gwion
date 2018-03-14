@@ -8,7 +8,7 @@ struct Context_ {
 };
 
 __attribute__((nonnull(2)))
-Context new_context(const Ast prog, const m_str filename);
-ANN m_bool load_context(const Context context, const Env env);
-ANN m_bool unload_context(const Context context, const Env env);
-ANN void free_context(const Context context);
+const Context new_context(const Ast, const m_str);
+ANN const m_bool load_context(const Context, const Env);
+ANN const m_bool unload_context(const Context, const Env);
+ANN void free_context(const Context);

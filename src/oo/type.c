@@ -3,7 +3,8 @@
 #include "mpool.h"
 
 POOL_HANDLE(Type, 2048)
-Type new_type(m_uint xid, m_str name, Type parent) {
+__attribute__((nonnull(2)))
+Type new_type(const m_uint xid, const m_str name, const Type parent) {
   Type type    = mp_alloc(Type);
   type->xid    = xid;
   type->name   = name;
@@ -12,7 +13,7 @@ Type new_type(m_uint xid, m_str name, Type parent) {
   return type;
 }
 
-void free_type(Type a) {
+ANN void free_type(Type a) {
   if(a->info)
     REM_REF(a->info);
   if(GET_FLAG(a, ae_flag_builtin)) {
@@ -27,7 +28,7 @@ void free_type(Type a) {
   }
 }
 
-Type type_copy(Type type) {
+ANN Type type_copy(const Type type) {
   Type a = new_type(type->xid, type->name, type->parent);
   a->info          = type->info;
   a->owner         = type->owner;

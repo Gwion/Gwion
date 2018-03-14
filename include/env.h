@@ -20,18 +20,19 @@ struct Env_ {
   struct Vector_    known_ctx;
 };
 
-Env new_env();
-void env_reset(Env);
-void free_env(Env);
-m_bool env_push_class(Env, Type);
-m_bool env_pop_class(Env);
+const Env new_env();
+ANN void env_reset(const Env);
+ANN void free_env(Env);
+ANN const m_bool env_push_class(const Env, const Type);
+ANN const m_bool env_pop_class(const Env);
 #define SCOPE(a) env->class_scope++;a;env->class_scope--;
 #define NSPC(a) env->class_scope++;nspc_push_value(env->curr);a;\
 nspc_pop_value(env->curr);env->class_scope--;
 
-Map env_label(Env);
-Nspc env_nspc(Env);
-Class_Def env_class_def(Env, Class_Def);
+ANN const Map env_label(const Env);
+ANN const Nspc env_nspc(const Env);
+__attribute__((nonnull(1)))
+const Class_Def env_class_def(const Env, const Class_Def);
 Type scan_type(Env, Type, const Type_Decl*);
 Type type_decl_resolve(Env env, const Type_Decl* td);
 m_str tl2str(Env env, Type_List tl);

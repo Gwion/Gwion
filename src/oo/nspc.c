@@ -106,9 +106,9 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
 (value->d.ptr && GET_FLAG(value, ae_flag_builtin))
 
 ) {
-    VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
-    VM_Shred s = new_vm_shred(code);
-    M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
+    const VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
+    const VM_Shred s = new_vm_shred(code);
+    const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->class_data + value->offset);
     s->vm_ref = vm;
     release(obj, s);
@@ -129,10 +129,9 @@ ANN static void free_nspc_value_fptr(Func f) {
 }
 
 ANN static void free_nspc_value(const Nspc a) {
-  m_uint i;
-  Vector v = scope_get(&a->value);
-  for(i = vector_size(v) + 1; --i;) {
-    Value value = (Value)vector_at(v, i - 1);
+  const Vector v = scope_get(&a->value);
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    const Value value = (Value)vector_at(v, i - 1);
     if(isa(value->m_type, &t_class) > 0) {
       if(GET_FLAG(value->m_type->d.base_type, ae_flag_template)) {
         UNSET_FLAG(value->m_type->d.base_type, ae_flag_template);
@@ -176,21 +175,20 @@ ANN static void free_nspc_value(const Nspc a) {
 }
 
 ANN void free_nspc(Nspc a) {
-  m_uint i;
   Vector v;
 
   free_nspc_value(a);
   v = scope_get(&a->func);
-  for(i = vector_size(v) + 1; --i;) {
-    Func func = (Func)vector_at(v, i - 1);
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    const Func func = (Func)vector_at(v, i - 1);
     REM_REF(func);
   }
   free_vector(v);
   scope_release(&a->func);
 
   v = scope_get(&a->type);
-  for(i = vector_size(v); i > 0; i--) {
-    Type type = (Type)vector_at(v, i - 1);
+  for(m_uint i = vector_size(v); i > 0; i--) {
+    const Type type = (Type)vector_at(v, i - 1);
     REM_REF(type);
   }
   free_vector(v);

@@ -1,8 +1,9 @@
 #include <string.h>
 #include "defs.h"
+#include "absyn.h"
 #include "err_msg.h"
-#include "env.h"
 #include "type.h"
+#include "env.h"
 
 static Type owner_type(Type t) {
   Nspc nspc = t->info;

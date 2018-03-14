@@ -8,7 +8,7 @@
 
 POOL_HANDLE(Context, 16)
 __attribute__((nonnull(2)))
-Context new_context(const Ast prog, const m_str filename) {
+const Context new_context(const Ast prog, const m_str filename) {
   Context context = mp_alloc(Context);
   context->nspc = new_nspc(filename);
   context->tree = prog;
@@ -22,7 +22,7 @@ ANN void free_context(Context a) {
   mp_free(Context, a);
 }
 
-ANN m_bool load_context(const Context context, const Env env) {
+ANN const m_bool load_context(const Context context, const Env env) {
   vector_add(&env->contexts, (vtype)env->context);
   ADD_REF((env->context = context))
   vector_add(&env->nspc_stack, (vtype)env->curr);
@@ -31,7 +31,7 @@ ANN m_bool load_context(const Context context, const Env env) {
   return 1;
 }
 
-ANN m_bool unload_context(const Context context, const Env env) {
+ANN const m_bool unload_context(const Context context, const Env env) {
   if(context->label.ptr) {
     m_uint i;
     for(i = 0; i < map_size(&context->label); i++)

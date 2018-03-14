@@ -21,9 +21,10 @@ struct Type_ {
   struct VM_Object_ obj;
 };
 
-m_bool type_engine_check_prog(Env, Ast, const m_str) ANN;
+ANN const m_bool type_engine_check_prog(const Env, const Ast, const m_str);
+__attribute__((nonnull(2)))
 Type new_type(const m_uint xid, const m_str name, const Type);
-Type type_copy(const Type type) ANN;
+ANN Type type_copy(const Type type) ANN;
 Env type_engine_init(VM*, const Vector) ANN;
 void start_type_xid(void);
 Value find_value(const Type, const Symbol);
@@ -36,8 +37,9 @@ const Type get_array(const Type, const Array_Sub, const m_str);
 const Type find_common_anc(const Type, const Type) ANN;
 const m_uint id_list_len(ID_List) ANN;
 void type_path(m_str, const ID_List) ANN;
-const m_bool env_add_value(Env env, const m_str, const Type, const m_bool, void* value);
-const m_bool env_add_type(Env, const Type) ANN;
+__attribute__((nonnull(1,2)))
+const m_bool env_add_value(const Env env, const m_str, const Type, const m_bool, void* value);
+ANN const m_bool env_add_type(const Env, const Type);
 const m_int str2char(const m_str, const m_int) ANN;
 const m_uint num_digit(const m_uint);
 const Type array_base(Type) ANN;

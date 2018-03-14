@@ -81,7 +81,8 @@ static Frame* new_frame() {
 
 ANN static void free_frame(Frame* a) {
   for(vtype i = vector_size(&a->stack) + 1; --i;)
-    mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
+    if(vector_at(&a->stack, i - 1))
+      mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
   mp_free(Frame, a);
 }
@@ -1100,10 +1101,8 @@ ANN static void emit_func_release(const Emitter emit) { GWDEBUG_EXE
   m_uint i;
   Vector v = &emit->code->frame->stack;
   for(i = vector_size(v); i; i--) {
-    const Local* l = (Local*)vector_at(v, i - 1);
-    if(!l)
-      break;
-    else if(l->is_obj) {
+    Local* l = (Local*)vector_at(v, i - 1);
+    if(l && l->is_obj) {
       Instr rel = emitter_add_instr(emit, Release_Object2);
       rel->m_val = l->offset;
     }
@@ -1720,7 +1719,7 @@ ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, cons
 }
 
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
-  if(GET_FLAG(func, ae_flag_member)) { // member
+  if(GET_FLAG(func, ae_flag_member)) {
     Instr func_i;
     if(emit_exp(emit, member->base, 0) < 0)
       CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE

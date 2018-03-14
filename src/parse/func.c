@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include "absyn.h"
+#include "type.h"
 #include "func.h"
 #include "mpool.h"
 
