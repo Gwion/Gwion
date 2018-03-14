@@ -80,8 +80,8 @@ static Frame* new_frame() {
 }
 
 ANN static void free_frame(Frame* a) {
-//  for(vtype i = vector_size(&a->stack) + 1; --i;)
-//    mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
+  for(vtype i = vector_size(&a->stack) + 1; --i;)
+    mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
   mp_free(Frame, a);
 }
