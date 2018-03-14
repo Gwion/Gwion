@@ -6,16 +6,18 @@
 #include "value.h"
 #include "func.h"
 #include "instr.h"
+#include "mpool.h"
 
 typedef Type (*f_type)(Env env, Exp exp);
 
-typedef struct {
+typedef struct M_Operator_{
   Type lhs, rhs, ret;
   f_instr instr;
   Func func;
   Type (*ck)(Env, void*);
   m_bool (*em)(Emitter, void*);
 } M_Operator;
+POOL_HANDLE(M_Operator, 2048)
 
 static void free_op(M_Operator* a) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)
@@ -24,7 +26,7 @@ static void free_op(M_Operator* a) {
     REM_REF(a->rhs)
   if(a->ret)
     REM_REF(a->ret)
-  free(a);
+  mp_free(M_Operator, a);
 }
 
 void free_op_map(Map map) {
@@ -80,7 +82,7 @@ const m_bool add_op(Nspc nspc, const struct Op_Import* opi) {
     CHECK_BB((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
             opi->rhs ? opi->rhs->name : NULL)))
-  mo = calloc(1, sizeof(M_Operator));
+  mo = mp_alloc(M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;

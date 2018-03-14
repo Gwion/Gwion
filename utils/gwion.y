@@ -27,7 +27,7 @@ m_str op2str(Operator op);
   char* sval;
   int ival;
   m_float fval;
-  S_Symbol sym;
+  Symbol sym;
   Array_Sub array_sub;
   Var_Decl var_decl;
   Var_Decl_List var_decl_list;

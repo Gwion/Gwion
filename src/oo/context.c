@@ -2,22 +2,22 @@
 #include "env.h"
 #include "context.h"
 #include "nspc.h"
+#include "mpool.h"
 
+POOL_HANDLE(Context, 16)
 __attribute__((nonnull(2)))
 Context new_context(const Ast prog, const m_str filename) {
-  Context context = malloc(sizeof(struct Context_));
+  Context context = mp_alloc(Context);
   context->nspc = new_nspc(filename);
   context->tree = prog;
   context->filename = filename;
-  context->public_class_def = NULL;
-  context->label.ptr = NULL;
   INIT_OO(context, e_context_obj);
   return context;
 }
 
 ANN void free_context(Context a) {
   REM_REF(a->nspc);
-  free(a);
+  mp_free(Context, a);
 }
 
 ANN m_bool load_context(const Context context, const Env env) {

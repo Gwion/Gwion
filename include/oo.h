@@ -6,7 +6,6 @@ typedef enum {
   e_type_obj, e_value_obj, e_func_obj, e_code_obj
 } e_obj;
 
-
 struct VM_Object_ {
   e_obj  type;
   m_uint ref_count;

@@ -16,7 +16,7 @@ typedef struct Arg_List_ * Arg_List;
 typedef struct {
   Exp base;
   Type t_base;
-  S_Symbol xid;
+  Symbol xid;
   Exp self;
   int pos;
 } Exp_Dot;
@@ -47,13 +47,13 @@ typedef struct {
 Exp new_array(Exp base, Array_Sub indices, const int pos);
 
 struct Var_Decl_ {
-  S_Symbol xid;
+  Symbol xid;
   Value value;
   Array_Sub array;
   void* addr;
   int pos;
 };
-Var_Decl new_var_decl(S_Symbol xid, Array_Sub array, const int pos);
+Var_Decl new_var_decl(Symbol xid, Array_Sub array, const int pos);
 
 struct Var_Decl_List_ {
   Var_Decl self;
@@ -62,7 +62,7 @@ struct Var_Decl_List_ {
 };
 Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, const int pos);
 
-typedef struct {
+typedef struct Type_Decl_ {
   ID_List xid;
   Array_Sub array;
   Exp_Dot* dot;
@@ -76,13 +76,13 @@ void free_type_decl(Type_Decl* a);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, const int pos);
 
 struct ID_List_    {
-  S_Symbol xid;
+  Symbol xid;
   ID_List next;
   ID_List ref;
   int pos;
 };
-ID_List new_id_list(const S_Symbol xid, const int pos);
-ID_List prepend_id_list(const S_Symbol xid, ID_List list, const int pos);
+ID_List new_id_list(const Symbol xid, const int pos);
+ID_List prepend_id_list(const Symbol xid, ID_List list, const int pos);
 void free_id_list(ID_List a);
 
 struct Type_List_  {
@@ -131,7 +131,7 @@ typedef struct {
   ae_Exp_Primary_Type primary_type;
   Value value;
   union exp_primary_data {
-    S_Symbol var;
+    Symbol var;
     long num;
     m_float fnum;
     m_str chr;
@@ -144,7 +144,7 @@ typedef struct {
   int pos;
 } Exp_Primary;
 
-typedef struct {
+typedef struct Tmpl_Call_ {
   Type_List types;
   ID_List base;
 } Tmpl_Call;
@@ -198,7 +198,6 @@ typedef struct {
   Nspc nspc;
   Exp exp;
   Type_Decl* type;
-//  Array_Sub array;
   Stmt code;
   m_uint code_depth;
   Exp self;
@@ -228,7 +227,7 @@ struct Exp_ {
   m_bool emit_var;
 };
 
-Exp new_exp_prim_id(S_Symbol xid, const int pos);
+Exp new_exp_prim_id(Symbol xid, const int pos);
 Exp new_exp_prim_int(long i, const int pos);
 Exp new_exp_prim_float(m_float num, const int pos);
 Exp new_exp_prim_string(m_str s, const int pos);
@@ -244,7 +243,7 @@ Exp new_exp_call(Exp base, Exp args, const int pos);
 Exp new_exp_cast(Type_Decl* type, Exp exp, const int pos);
 Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, const int pos);
 Exp new_exp_dur(Exp base, Exp unit, const int pos);
-Exp new_exp_dot(Exp base, S_Symbol xid, const int pos);
+Exp new_exp_dot(Exp base, Symbol xid, const int pos);
 Exp new_exp_unary(Operator oper, Exp exp, const int pos);
 Exp new_exp_unary2(Operator oper, Type_Decl* type, const int pos);
 Exp new_exp_unary3(Operator oper, Stmt code, const int pos);
@@ -290,10 +289,10 @@ struct Stmt_Exp_ {
   int pos;
 };
 struct Stmt_Flow_ {
-  int is_do;
   Exp cond;
   Stmt body;
   Stmt self;
+  m_bool is_do;
   int pos;
 };
 struct Stmt_Code_ {
@@ -309,7 +308,7 @@ struct Stmt_For_ {
   int pos;
 };
 struct Stmt_Auto_ {
-  S_Symbol sym;
+  Symbol sym;
   Exp exp;
   Stmt body;
   Value v; // is this useful ?
@@ -330,7 +329,7 @@ struct Stmt_If_ {
   int pos;
 };
 struct Stmt_Goto_Label_ {
-  S_Symbol name;
+  Symbol name;
   union stmt_goto_data {
     struct Vector_ v;
     Instr instr;
@@ -346,7 +345,7 @@ struct Stmt_Switch_ {
 };
 struct Stmt_Enum_ {
   ID_List list;
-  S_Symbol xid;
+  Symbol xid;
   Type t;
   ae_flag flag;
   struct Vector_ values;
@@ -356,7 +355,7 @@ struct Stmt_Enum_ {
 struct Stmt_Ptr_ {
   Type_Decl* type;
   Type       m_type;
-  S_Symbol   xid;
+  Symbol   xid;
   ae_flag    flag;
   Arg_List   args;
   Type       ret_type;
@@ -367,13 +366,13 @@ struct Stmt_Ptr_ {
 struct Stmt_Typedef_ {
   Type_Decl* type;
   Type       m_type;
-  S_Symbol   xid;
+  Symbol   xid;
   int        pos;
 };
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
-  S_Symbol xid;
+  Symbol xid;
   Value value;
   ae_flag flag;
   m_uint s;
@@ -415,15 +414,15 @@ Stmt new_stmt_continue(const int pos);
 Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, const int pos);
 Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, const int pos);
 Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, const int pos);
-Stmt new_stmt_auto(S_Symbol sym, Exp exp, Stmt body, const int pos);
+Stmt new_stmt_auto(Symbol sym, Exp exp, Stmt body, const int pos);
 Stmt new_stmt_loop(Exp cond, Stmt body, const int pos);
-Stmt new_stmt_gotolabel(S_Symbol xid, const m_bool is_label, const int pos);
+Stmt new_stmt_gotolabel(Symbol xid, const m_bool is_label, const int pos);
 Stmt new_stmt_case(Exp exp, const int pos);
-Stmt new_stmt_enum(ID_List list, S_Symbol xid, const int pos);
+Stmt new_stmt_enum(ID_List list, Symbol xid, const int pos);
 Stmt new_stmt_switch(Exp val, Stmt stmt, const int pos);
 Stmt new_stmt_union(Decl_List l, const int pos);
-Stmt new_func_ptr_stmt(ae_flag key, S_Symbol type, Type_Decl* decl, Arg_List args, const int pos);
-Stmt new_stmt_typedef(Type_Decl* decl, S_Symbol xid, const int pos);
+Stmt new_func_ptr_stmt(ae_flag key, Symbol type, Type_Decl* decl, Arg_List args, const int pos);
+Stmt new_stmt_typedef(Type_Decl* decl, Symbol xid, const int pos);
 void free_stmt(Stmt a);
 struct Stmt_List_ {
   Stmt stmt;
@@ -434,7 +433,7 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, const int pos);
 
 typedef struct Class_Body_ * Class_Body;
 
-typedef struct {
+typedef struct Tmpl_List_ {
   ID_List list;
   m_int  base;
 } Tmpl_List;
@@ -443,7 +442,7 @@ struct Func_Def_ {
   Type_Decl* type_decl;
   Type ret_type;
   ae_flag flag;
-  S_Symbol name;
+  Symbol name;
   Arg_List arg_list;
   Stmt code;
   m_uint stack_depth;
@@ -458,11 +457,12 @@ struct Func_Def_ {
 ANN Tmpl_List* new_tmpl_list(ID_List list, m_int base);
 ANN void free_tmpl_list(Tmpl_List*);
 const m_bool tmpl_list_base(const Tmpl_List*);
-Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, S_Symbol xid, Arg_List arg_list, Stmt code, const int pos);
+Func_Def new_func_def(ae_flag func_decl, Type_Decl* type_decl, Symbol xid, Arg_List arg_list, Stmt code, const int pos);
 void free_func_def(Func_Def def);
+void free_func_def_simple(Func_Def def);
 
 typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
-typedef struct {
+typedef struct Section_ {
   ae_Section_Type section_type;
   union section_data {
     Stmt_List stmt_list;
@@ -480,7 +480,7 @@ struct Class_Body_ {
   int pos;
 };
 
-typedef struct {
+typedef struct Tmpl_Class_ {
   Tmpl_List list;
   Type_List base;
 } Tmpl_Class;
@@ -499,6 +499,7 @@ struct Class_Def_ {
 Class_Def new_class_def(ae_flag class_decl, ID_List name,
                         Type_Decl* ext, Class_Body body, const int pos);
 void free_class_def(Class_Def a);
+void free_class_def_simple(Class_Def a);
 Class_Body new_class_body(Section* section, Class_Body body, const int pos);
 void free_class_body(Class_Body a);
 Section* new_section_class_def(Class_Def class_def, const int pos);

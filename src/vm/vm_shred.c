@@ -3,9 +3,11 @@
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
+#include "mpool.h"
 
+POOL_HANDLE(VM_Shred, 2048)
 VM_Shred new_vm_shred(VM_Code c) {
-  VM_Shred shred    = calloc(1, sizeof(struct VM_Shred_));
+  VM_Shred shred    = mp_alloc(VM_Shred);
   shred->base       = calloc(SIZEOF_MEM, sizeof(char));
   shred->_reg       = calloc(SIZEOF_REG, sizeof(char));
   shred->reg        = shred->_reg;
@@ -47,5 +49,5 @@ void free_vm_shred(VM_Shred shred) {
   vector_release(&shred->gc1);
   if(shred->args)
     vm_shred_free_args(shred->args);
-  free(shred);
+  mp_free(VM_Shred, shred);
 }

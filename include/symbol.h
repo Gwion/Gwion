@@ -9,9 +9,9 @@
 #ifndef __SYMBOL_H__
 #define __SYMBOL_H__
 
-typedef struct S_Symbol_ * S_Symbol;
+typedef struct Symbol_ * Symbol;
 
-S_Symbol insert_symbol(const m_str) ANN;
-m_str s_name(const S_Symbol) ANN;
+Symbol insert_symbol(const m_str) ANN;
+m_str s_name(const Symbol) ANN;
 void free_symbols(void );
 #endif

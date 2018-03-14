@@ -6,6 +6,8 @@
 #include "value.h"
 #include "instr.h"
 #include "import.h"
+#include "mpool.h"
+POOL_HANDLE(M_Object, 2048)
 
 struct Type_ t_null    = { "@null",  SZ_INT };
 struct Type_ t_object  = { "Object", SZ_INT };
@@ -19,7 +21,7 @@ ANN void NullException(const VM_Shred shred, const m_str c) {
 }
 
 M_Object new_M_Object(const VM_Shred shred) {
-  M_Object a = calloc(1, sizeof(struct M_Object_));
+  M_Object a = mp_alloc(M_Object);
   a->ref = 1;
   if(shred)
     vector_add(&shred->gc, (vtype)a);
@@ -60,7 +62,7 @@ ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
-  Instr eoc = malloc(sizeof(struct Instr_));
+  Instr eoc = new_instr();
   eoc->execute = EOC;
   vector_add(code->instr, (vtype)eoc);
   vm_add_shred(shred->vm_ref, sh);
@@ -91,9 +93,13 @@ void release(M_Object obj, const VM_Shred shred) {
   }
 }
 
+void free_object(M_Object o) {
+  mp_free(M_Object, o);
+}
+
 static DTOR(object_dtor) {
   free(o->data);
-  free(o);
+  mp_free(M_Object, o);
 }
 
 INSTR(Assign_Object) { GWDEBUG_EXE

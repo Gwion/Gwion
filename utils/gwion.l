@@ -175,7 +175,7 @@ char* strip_lit(char* str){
 }
 
 char* alloc_str(char* str) {
-  S_Symbol sym = insert_symbol(str);
+  Symbol sym = insert_symbol(str);
   return s_name(sym);
 }
 

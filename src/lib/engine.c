@@ -122,9 +122,9 @@ static void handle_plug(Gwi gwi, m_str c) {
       if(import(gwi) > 0) {
         vector_add(&gwi->vm->plug, (vtype)handler);
         nspc_commit(gwi->env->curr);
-      } else {
-        env_pop_class(gwi->env);
-        dlclose(handler);
+      } else { // maybe we should rollback
+        env_reset(gwi->env);
+        vector_add(&gwi->vm->plug, (vtype)handler);
        }
     } else {
       const char* err = dlerror();

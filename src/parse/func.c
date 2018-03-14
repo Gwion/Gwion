@@ -1,26 +1,31 @@
 #include <stdlib.h>
 #include "func.h"
+#include "mpool.h"
+
+POOL_HANDLE(Func, 1024)
 
 ANN Func new_func(const m_str name, const Func_Def def) {
-  Func func = calloc(1, sizeof(struct Func_));
+  Func func = mp_alloc(Func);
   func->name = name;
   func->def = def;
   INIT_OO(func, e_func_obj);
   return func;
 }
+Func new_func_simple() { return mp_alloc(Func); }
 
 ANN void free_func(Func a) {
   if(GET_FLAG(a, ae_flag_ref)) {
     if(GET_FLAG(a, ae_flag_template)) {
       free_tmpl_list(a->def->tmpl);
-      free(a->def);
-  } //else puts(a->name);
+      free_func_def_simple(a->def);
+    } //else puts(a->name);
   } else if(a->def)
     free_func_def(a->def);
   if(a->code)
     REM_REF(a->code);
-  free(a);
+  mp_free(Func, a);
 }
+void free_func_simple(Func a) { mp_free(Func, a); }
 
 #include <string.h>
 #include "env.h"

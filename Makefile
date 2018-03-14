@@ -96,6 +96,11 @@ ifeq (${USE_GWUDP}, 1)
 CFLAGS+=-DGWUDP
 src_src += utils/udp.c
 endif
+ifeq (${USE_GWMPOOL}, 1)
+CFLAGS+=-DGWMPOOL
+TOOL_OBJ += utils/mpool.o
+util_src += utils/mpool.c
+endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
@@ -116,7 +121,7 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
-TOOL_OBJ=src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+TOOL_OBJ +=src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
 GW_OBJ=${src_obj} ${lib_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${drvr_obj}
 
 CCFG="${CFLAGS}"
@@ -186,16 +191,18 @@ gwlint: ${TOOL_OBJ} utils/gwlint.o
 	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwlint -DGWLINT utils/gwlint.o ${LDFLAGS}
 
 gwtag: ${TOOL_OBJ} utils/gwtag.o
-	$(info compiling gwlint)
+	$(info compiling gwtag)
 	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwtag -DGWLINT utils/gwtag.o ${LDFLAGS}
 
 gwdot:
-	cc -lbsd -Wall -lcgraph -lgvc -lm -I include utils/gwdot.c -o gwdot
+	$(info compiling gwdot)
+	@cc -lbsd -Wall -lcgraph -lgvc -lm -I include utils/gwdot.c -o gwdot
 
 directories:
 	mkdir -p ${PREFIX} ${GWION_ADD_DIR}
 
 gwdbg:
+	$(info compiling gwdbg)
 	CURSES_DEBUG=1 PRG=gwdbg make
 
 include $(wildcard .d/*.d)

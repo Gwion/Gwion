@@ -74,7 +74,7 @@ ANN static m_bool check_exp_decl_static(const Env env , const Value v, const m_u
   return 1;
 }
 
-ANN static m_bool check_exp_decl_valid(const Env env, const Value v, const S_Symbol xid) { GWDEBUG_EXE
+ANN static m_bool check_exp_decl_valid(const Env env, const Value v, const Symbol xid) { GWDEBUG_EXE
   SET_FLAG(v, ae_flag_checked);
   if(!env->class_def || env->class_scope)
     nspc_add_value(env->curr, xid, v);
@@ -369,7 +369,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   vector_release(&v);
   td = new_type_decl(id, 0, 0);
   if(type->array_depth) {
-    Array_Sub array = calloc(1, sizeof(struct Array_Sub_));
+    Array_Sub array = new_array_sub(NULL, 0);
     array->depth = type->array_depth;
     add_type_decl_array(td, array, 0);
   }
@@ -676,7 +676,7 @@ Type check_exp_call1(const Env env, const Exp exp_func, const Exp args, Func *m_
   if(!(func = find_func_match(env, exp_func->type->d.func, args)))
     return function_alternative(exp_func->type, args);
   if(ptr) {
-    Func f = malloc(sizeof(struct Func_));
+    Func f = new_func_simple();
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
     SET_FLAG(ptr, ae_flag_func); // there might be a better place

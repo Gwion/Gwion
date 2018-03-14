@@ -54,10 +54,10 @@ ANN static inline const vtype map_size(const Map map) {
 extern           Scope  new_scope();
 extern ANN       void   scope_init(Scope);
 extern ANN const Vector scope_get(const Scope);
-extern ANN const vtype  scope_lookup0(const Scope, const S_Symbol);
-extern ANN const vtype  scope_lookup1(const Scope, const S_Symbol);
-extern ANN const vtype  scope_lookup2(const Scope, const S_Symbol);
-extern ANN       void   scope_add(const Scope, const S_Symbol, const vtype);
+extern ANN const vtype  scope_lookup0(const Scope, const Symbol);
+extern ANN const vtype  scope_lookup1(const Scope, const Symbol);
+extern ANN const vtype  scope_lookup2(const Scope, const Symbol);
+extern ANN       void   scope_add(const Scope, const Symbol, const vtype);
 extern ANN       void   scope_commit(const Scope);
 extern ANN       void   scope_push(const Scope);
 extern ANN       void   scope_pop(const Scope);

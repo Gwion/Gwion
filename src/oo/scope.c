@@ -6,7 +6,7 @@
 #define MAP_CAP 4
 #define OFFSET 2
 
-ANN const vtype scope_lookup0(const Scope scope, const S_Symbol xid) {
+ANN const vtype scope_lookup0(const Scope scope, const Symbol xid) {
   Map map = (Map)vector_back(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
   if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
@@ -14,7 +14,7 @@ ANN const vtype scope_lookup0(const Scope scope, const S_Symbol xid) {
   return ret;
 }
 
-ANN const vtype scope_lookup1(const Scope scope, const S_Symbol xid) {
+ANN const vtype scope_lookup1(const Scope scope, const Symbol xid) {
   m_uint i;
   vtype ret;
   for(i = vector_size(&scope->vector) + 1; --i;) {
@@ -25,7 +25,7 @@ ANN const vtype scope_lookup1(const Scope scope, const S_Symbol xid) {
   return map_get(&scope->commit_map, (vtype)xid);
 }
 
-ANN const vtype scope_lookup2(const Scope scope, const S_Symbol xid) {
+ANN const vtype scope_lookup2(const Scope scope, const Symbol xid) {
   Map map = (Map)vector_front(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
   if(!ret)
@@ -33,7 +33,7 @@ ANN const vtype scope_lookup2(const Scope scope, const S_Symbol xid) {
   return ret;
 }
 
-ANN void scope_add(const Scope scope, const S_Symbol xid, const vtype value) {
+ANN void scope_add(const Scope scope, const Symbol xid, const vtype value) {
   if(vector_front(&scope->vector) != vector_back(&scope->vector))
     map_set((Map)vector_back(&scope->vector), (vtype)xid, (vtype)value);
   else

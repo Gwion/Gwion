@@ -2,7 +2,8 @@
 #include <string.h>
 #include "map.h"
 #include "map_private.h"
-
+#include "mpool.h"
+POOL_HANDLE(Map, 2048)
 #define LEN(v)    (v)->ptr[0]
 #define CAP(v)    (v)->ptr[1]
 #define KEY(v, i) (v)->ptr[OFFSET + (i) * 2]
@@ -14,7 +15,7 @@ ANN void map_clear(Map v) {
 }
 
 Map new_map() {
-  Map map  = malloc(sizeof(struct Map_));
+  Map map  = mp_alloc(Map);
   map->ptr = calloc(MAP_CAP, SZ_INT);
   CAP(map) = MAP_CAP;
   return map;
@@ -77,7 +78,7 @@ ANN void map_commit(const restrict Map map, const restrict Map commit) {
 
 ANN void free_map(Map map) {
   free(map->ptr);
-  free(map);
+  mp_free(Map, map);
 }
 
 ANN void map_release(Map map) {

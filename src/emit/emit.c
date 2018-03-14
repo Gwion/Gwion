@@ -9,12 +9,26 @@
 #include "context.h"
 #include "func.h"
 #include "traverse.h"
+#include "mpool.h"
+
+typedef struct Local_ {
+  m_uint size;
+  m_uint offset;
+  m_bool is_ref;
+  m_bool is_obj;
+} Local;
+POOL_HANDLE(Local, 2048)
+POOL_HANDLE(Frame, 1024)
+POOL_HANDLE(Code,  1024)
+POOL_HANDLE(Instr, 2048)
+POOL_HANDLE(VM_Array_Info, 1024)
 
 #define IS_REF 1 << 1
 #define IS_OBJ 1 << 2
 
 #ifdef GWCOV
 #define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
+
 ANN static void coverage(const Emitter emit, const m_uint pos) {
   Instr cov;
 
@@ -59,28 +73,21 @@ static INSTR(gwcgraph_end) {
 #define GWCGRAPH_END(a)
 #endif
 
-typedef struct {
-  m_uint size;
-  m_uint offset;
-  m_bool is_ref;
-  m_bool is_obj;
-} Local;
-
 static Frame* new_frame() {
-  Frame* frame = calloc(1, sizeof(Frame));
+  Frame* frame = mp_alloc(Frame);
   vector_init(&frame->stack);
   return frame;
 }
 
 ANN static void free_frame(Frame* a) {
-  for(vtype i = vector_size(&a->stack) + 1; --i;)
-    free((Local*)vector_at(&a->stack, i - 1));
+//  for(vtype i = vector_size(&a->stack) + 1; --i;)
+//    mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
-  free(a);
+  mp_free(Frame, a);
 }
 
 ANN static Local* frame_alloc_local(Frame* frame, const m_uint size, const m_uint flag) {
-  Local* local = calloc(1, sizeof(Local));
+  Local* local = mp_alloc(Local);
   local->size = size;
   local->offset = frame->curr_offset;
   local->is_ref = (flag & IS_REF) == IS_REF;
@@ -129,16 +136,19 @@ ANN void free_emitter(Emitter a) {
   free(a);
 }
 
+Instr new_instr() { return mp_alloc(Instr); }
+ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
+
 __attribute__((nonnull(1)))
 Instr emitter_add_instr(const Emitter emit, const f_instr f) {
-  Instr instr = calloc(1, sizeof(struct Instr_));
+  Instr instr = mp_alloc(Instr);
   instr->execute = f;
   vector_add(&emit->code->code, (vtype)instr);
   return instr;
 }
 
 static Code* new_code() {
-  Code* code = calloc(1, sizeof(Code));
+  Code* code = mp_alloc(Code);
   code->stack_depth = 0;
   vector_init(&code->code);
   vector_init(&code->stack_break);
@@ -155,7 +165,7 @@ ANN static void free_code(Code* code) {
   vector_release(&code->stack_return);
   free_frame(code->frame);
   free(code->name);
-  free(code);
+  mp_free(Code, code);
 }
 
 ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
@@ -169,7 +179,7 @@ ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
       Instr instr = emitter_add_instr(emit, Release_Object2);
       instr->m_val = l->offset;
     }
-    free(l);
+    mp_free(Local, l);
   }
   vector_release(&v);
 }
@@ -225,11 +235,11 @@ ANN static m_bool emit_pre_constructor_array(const Emitter emit, const Type type
   CHECK_OB(emitter_add_instr(emit, Instr_Pre_Ctor_Array_Post))
   return 1;
 }
-
+void free_array_info(VM_Array_Info* info) { mp_free(VM_Array_Info, info); }
 ANN VM_Array_Info* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
   const Type base = array_base(t);
   CHECK_BO(emit_exp(emit, e, 0))
-  VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
+  VM_Array_Info* info = mp_alloc(VM_Array_Info);
   info->depth = t->array_depth;
   info->type = t;
   info->base = base;
@@ -248,7 +258,7 @@ static INSTR(pop_array_class) { GWDEBUG_EXE
   M_Object tmp = *(M_Object*)REG(0);
   ARRAY(obj) = ARRAY(tmp);
   free(tmp->data);
-  free(tmp);
+  free_object(tmp);
   ADD_REF(obj->type_ref) // add ref to typedef array type
 }
 
@@ -371,7 +381,7 @@ ANN static m_bool emit_exp_prim_array(const Emitter emit, const Array_Sub array)
   const Type type = array->type;
   const Type base = array_base(type);
   Instr instr = emitter_add_instr(emit, Instr_Array_Init);
-  VM_Array_Info* info = calloc(1, sizeof(VM_Array_Info));
+  VM_Array_Info* info = mp_alloc(VM_Array_Info);
   info->type = type;
   info->base = base;
   info->length = count;
@@ -937,7 +947,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp) { GWDEBUG_EXE
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   Instr op;
   VM_Code code;
-  const S_Symbol sporked = insert_symbol("sporked");
+  const Symbol sporked = insert_symbol("sporked");
   const ID_List list = new_id_list(sporked, stmt->pos);
   const Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt, stmt->pos));
 
@@ -1990,11 +2000,11 @@ ANN static void emit_free_stack(const Emitter emit) { GWDEBUG_EXE
   for(i = 0;  i < vector_size(&emit->stack); i++) {
     Code* code = (Code*)vector_at(&emit->stack, i);
     for(j = 0; j < vector_size(&code->code); j++)
-      free((Instr)vector_at(&code->code, j));
+      free_instr((Instr)vector_at(&code->code, j));
      free_code(code);
   }
   for(i = 0; i < emit_code_size(emit); i++)
-    free((Instr)vector_at(&emit->code->code, i));
+    free_instr((Instr)vector_at(&emit->code->code, i));
   free_code(emit->code);
 }
 

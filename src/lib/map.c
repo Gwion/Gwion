@@ -7,20 +7,21 @@
 
 #include "func.h"
 #include "type.h"
+#include "mpool.h"
 
-#define MAP_INFO(o) (*(struct map_info**)(o->data + t_array.info->offset))
+#define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array.info->offset))
 #define MAP_KEY(p) ((char*)(p->data))
 #define MAP_VAL(p, o) ((char*)(p->data + MAP_INFO(o)->key_size))
 
 typedef m_bool (*f_cmp)(const char* restrict , const char* restrict , const m_uint);
 
-struct map_info {
+struct Map_Info_ {
   Type t;
   m_uint key_size;
   m_uint val_size;
   f_cmp cmp;
 };
-
+POOL_HANDLE(Map_Info, 16)
 static struct Type_ t_map = { "Map", SZ_INT };
 
 static m_bool string_cmp(const char *restrict a, const char*restrict b, const m_uint size) {
@@ -35,7 +36,7 @@ static m_bool cmp(const char *restrict a, const char*restrict b, const m_uint si
 }
 
 static CTOR(map_ctor) {
-  struct map_info* info = malloc(sizeof(struct map_info));
+  struct Map_Info_* info = mp_alloc(Map_Info);
   info->t = array_base(o->type_ref->parent);
   Env env = shred->vm_ref->emit->env;
   Nspc curr = env->curr;
@@ -60,7 +61,7 @@ static CTOR(map_ctor) {
 }
 
 static DTOR(map_dtor) {
-  free(*(struct map_info**)(o->data + t_array.info->offset));
+  mp_free(Map_Info, MAP_INFO(o));
 }
 
 

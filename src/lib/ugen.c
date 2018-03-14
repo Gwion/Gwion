@@ -5,7 +5,8 @@
 #include "instr.h"
 #include "import.h"
 #include "ugen.h"
-
+#include "mpool.h"
+POOL_HANDLE(UGen, 1024)
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
@@ -71,7 +72,7 @@ void ugen_compute(UGen u) {
 }
 
 UGen new_UGen() {
-  UGen u = (UGen) calloc(1, sizeof(struct UGen_));
+  UGen u = mp_alloc(UGen);
   vector_init(&u->to);
   u->tick = base_tick;
   u->op = ugop_plus;
@@ -252,7 +253,7 @@ static DTOR(ugen_dtor) {
   ugen_release(ug, shred);
   release(ug->trig, shred);
   vector_release(&ug->to);
-  free(ug);
+  mp_free(UGen, ug);
 }
 
 static MFUN(ugen_channel) {

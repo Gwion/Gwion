@@ -6,19 +6,21 @@
 #include "instr.h"
 #include "import.h"
 #include "vararg.h"
+#include "mpool.h"
 
+POOL_HANDLE(Vararg, 16)
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object };
 struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_vararg };
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT };
 
 INSTR(Vararg_start) { GWDEBUG_EXE
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(!arg->d)
     shred->next_pc = instr->m_val2 + 1;
   if(!arg->s) {
     if(arg->k)
       POP_REG(shred, SZ_INT); // pop vararg
-    free(arg);
+    mp_free(Vararg, arg);
     return;
   }
   PUSH_REG(shred, SZ_INT);
@@ -29,7 +31,7 @@ INSTR(MkVararg) { GWDEBUG_EXE
   POP_REG(shred,  instr->m_val);
   m_uint i;
   Vector kinds = (Vector)instr->m_val2;
-  struct Vararg* arg = calloc(1, sizeof(struct Vararg));
+  struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
     arg->d = malloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
@@ -43,19 +45,19 @@ INSTR(MkVararg) { GWDEBUG_EXE
   arg->i = 0;
   if(kinds)
     free_vector(kinds);
-  *(struct Vararg**)REG(0) = arg;
+  *(struct Vararg_**)REG(0) = arg;
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Vararg_end) { GWDEBUG_EXE
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   arg->o += arg->k[arg->i];
   PUSH_REG(shred, SZ_INT);
   arg->i++;
   if(arg->i == arg->s) {
     free(arg->d);
     free(arg->k);
-    free(arg);
+    mp_free(Vararg, arg);
   } else {
     *(m_uint*)REG(-SZ_INT) = 0;
     shred->next_pc = instr->m_val2;
@@ -63,7 +65,7 @@ INSTR(Vararg_end) { GWDEBUG_EXE
 }
 
 INSTR(Vararg_Member) { GWDEBUG_EXE
-  struct Vararg* arg = *(struct Vararg**)MEM(instr->m_val);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }

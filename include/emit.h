@@ -1,7 +1,7 @@
 #ifndef EMIT_H
 #define EMIT_H
 
-typedef struct {
+typedef struct Frame_ {
   m_uint curr_offset;
   struct Vector_ stack;
 } Frame;

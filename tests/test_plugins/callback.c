@@ -31,7 +31,7 @@ static INSTR(my_ret) { GWDEBUG_EXE
   
   shred->next_pc = instr->m_val2;
   free(info);
-  free(instr);
+  free_instr(instr);
   *(m_int*)shred->reg = 2;
   PUSH_REG(shred, SZ_INT);
   /*POP_REG(shred, shred->code->stack_depth);*/
@@ -45,7 +45,7 @@ static SFUN(cb_func) {
   }
   m_uint offset = shred->mem -shred->_mem;
   PUSH_MEM(shred, offset);
-  Instr instr = malloc(sizeof(struct Instr_));
+  Instr instr = new_instr();
   struct ret_info* info = malloc(sizeof(struct ret_info));
   info->offset = offset; 
   info->size = f->def->ret_type->size; 

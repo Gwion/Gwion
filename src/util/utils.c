@@ -34,7 +34,7 @@ ANN Type find_type(const Env env, ID_List path) {
   path = path->next;
 
   while(path) {
-    S_Symbol xid = path->xid;
+    Symbol xid = path->xid;
     Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
       t = nspc_lookup_type2(type->parent->info, xid);
@@ -50,7 +50,7 @@ ANN Type find_type(const Env env, ID_List path) {
   return type;
 }
 
-Value find_value(const Type type, const S_Symbol xid) {
+Value find_value(const Type type, const Symbol xid) {
   Value value;
   if(!type || !type->info)
     return NULL;
@@ -61,7 +61,7 @@ Value find_value(const Type type, const S_Symbol xid) {
   return NULL;
 }
 
-ANN Func find_func(const Type type, const S_Symbol xid) {
+ANN Func find_func(const Type type, const Symbol xid) {
   Func func;
   if((func = nspc_lookup_func2(type->info, xid)))
     return func;
@@ -98,7 +98,7 @@ ANN const Type array_base(Type t) {
 ANN const Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth;
   Type t;
-  S_Symbol sym;
+  Symbol sym;
   char name[strlen(base->name) + 2* depth + 1];
 
   strcpy(name, base->name);

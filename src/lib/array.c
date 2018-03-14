@@ -6,6 +6,7 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "mpool.h"
 
 struct Type_ t_array  = { "Array", SZ_INT, &t_object };
 
@@ -18,7 +19,7 @@ struct M_Vector_ {
   m_uint depth;
   m_uint cap;
 };
-
+POOL_HANDLE(M_Vector, 2048)
 ANN m_uint m_vector_size(M_Vector v) {
   return v->len;
 }
@@ -31,7 +32,7 @@ static DTOR(array_dtor) {
       release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
   }
   free(ARRAY(o)->ptr);
-  free(ARRAY(o));
+  mp_free(M_Vector, ARRAY(o));
   REM_REF(o->type_ref)
 }
 
@@ -42,7 +43,7 @@ ANN M_Object new_M_Array(const Type t, const m_uint size,
   initialize_object(a, t);
   while(cap < length)
     cap *= 2;
-  ARRAY(a)  	  = malloc(sizeof(struct M_Vector_));
+  ARRAY(a)  	  = mp_alloc(M_Vector);
   ARRAY(a)->ptr   = calloc(cap, size);
   ARRAY(a)->cap   = cap;
   ARRAY(a)->size  = size;

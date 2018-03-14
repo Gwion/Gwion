@@ -550,6 +550,7 @@ typedef int yy_state_type;
 static yy_state_type yy_get_previous_state ( yyscan_t yyscanner );
 static yy_state_type yy_try_NUL_trans ( yy_state_type current_state  , yyscan_t yyscanner);
 static int yy_get_next_buffer ( yyscan_t yyscanner );
+static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 
 /* Done after the current pattern has been matched and before the
  * corresponding action - sets up yytext.
@@ -1021,6 +1022,11 @@ static int input ( yyscan_t yyscanner );
 /* Number of entries by which start-condition stack grows. */
 #ifndef YY_START_STACK_INCR
 #define YY_START_STACK_INCR 25
+#endif
+
+/* Report a fatal error. */
+#ifndef YY_FATAL_ERROR
+#define YY_FATAL_ERROR(msg) yy_fatal_error( msg , yyscanner)
 #endif
 
 /* end tables serialization structures and prototypes */
@@ -2453,6 +2459,18 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len , yyscan
 	return b;
 }
 
+#ifndef YY_EXIT_FAILURE
+#define YY_EXIT_FAILURE 2
+#endif
+
+static void yynoreturn yy_fatal_error (const char* msg , yyscan_t yyscanner)
+{
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+	fprintf( stderr, "%s\n", msg );
+	exit( YY_EXIT_FAILURE );
+}
+
 /* Redefine yyless() so it works in section 3 code. */
 
 #undef yyless
@@ -2732,7 +2750,7 @@ char* strip_lit(char* str){
 }
 
 char* alloc_str(char* str) {
-  S_Symbol sym = insert_symbol(str);
+  Symbol sym = insert_symbol(str);
   return s_name(sym);
 }
 

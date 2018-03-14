@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include "type.h"
+#include "mpool.h"
 
+POOL_HANDLE(Type, 2048)
 Type new_type(m_uint xid, m_str name, Type parent) {
-  Type type    = calloc(1, sizeof(struct Type_));
+  Type type    = mp_alloc(Type);
   type->xid    = xid;
   type->name   = name;
   type->parent = parent;
@@ -17,11 +19,11 @@ void free_type(Type a) {
     if(a->parent && a->parent->array_depth)
       REM_REF(a->parent)
     if(GET_FLAG(a, ae_flag_template))
-      free(a);
+      mp_free(Type, a);
   } else {
     if(GET_FLAG(a, ae_flag_typedef) && GET_FLAG(a->parent, ae_flag_typedef))
       free_class_def(a->parent->def);
-    free(a);
+    mp_free(Type, a);
   }
 }
 

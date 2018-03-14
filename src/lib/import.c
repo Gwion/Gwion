@@ -43,7 +43,7 @@ ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str* list) {
   return 1;
 }
 
-__attribute((nonnull(1,2,3)))
+__attribute__((nonnull(1,2,3)))
 static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
   a->name = n;
   a->type = t;
@@ -205,7 +205,7 @@ m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
     ID_List types = templater_def(&gwi->templater);
-    type->def = calloc(1, sizeof(struct Class_Def_));
+    type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL, 0);
     type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
     SET_FLAG(type, ae_flag_template);
@@ -448,7 +448,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
   CHECK_OB(def)
   if(gwi->templater.n) {
-    def = calloc(1, sizeof(struct Class_Def_));
+    def = new_func_def(0, NULL, NULL, NULL, NULL, 0);
     ID_List list = templater_def(&gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, ae_flag_template);
@@ -546,7 +546,7 @@ ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
   else
     SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
-  free(stmt);
+  free_stmt(stmt);
   return 1;
 }
 

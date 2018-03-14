@@ -2,9 +2,12 @@
 #include <string.h>
 #include "defs.h"
 #include "map.h"
+#include "mpool.h"
+
+POOL_HANDLE(Vector, 2048)
 
 Vector new_vector() {
-  Vector v = malloc(sizeof(struct Vector_));
+  Vector v = mp_alloc(Vector);
   v->ptr = calloc(MAP_CAP, sizeof(vtype));
   v->ptr[1] = MAP_CAP;
   return v;
@@ -26,7 +29,7 @@ ANN void vector_add(const Vector v, const vtype data) {
 }
 
 ANN const Vector vector_copy(const Vector v) {
-  Vector ret = malloc(sizeof(struct Vector_));
+  Vector ret = mp_alloc(Vector);
   ret->ptr = calloc(v->ptr[1], sizeof(vtype));
   memcpy(ret->ptr, v->ptr, v->ptr[1] * SZ_INT);
   return ret;
@@ -66,7 +69,7 @@ ANN const vtype vector_pop(const Vector v) {
 
 ANN void free_vector(Vector v) {
   free(v->ptr);
-  free(v);
+  mp_free(Vector, v);
 }
 
 ANN void vector_clear(Vector v) {

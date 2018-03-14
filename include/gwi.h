@@ -38,7 +38,7 @@ typedef struct {
 } DL_Enum;
 
 typedef struct {
-  S_Symbol xid;
+  Symbol xid;
   Decl_List list;
 } DL_Union;
 

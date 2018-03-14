@@ -2,34 +2,35 @@
 #include "string.h"
 #include "defs.h"
 #include "symbol.h"
+#include "mpool.h"
 #define SIZE 65347  /* should be prime */
 
-struct S_Symbol_ {
+struct Symbol_ {
   m_str name;
-  S_Symbol next;
+  Symbol next;
 };
-
-static S_Symbol hashtable[SIZE];
+POOL_HANDLE(Symbol, 2048)
+static Symbol hashtable[SIZE];
 
 __attribute__((nonnull(1)))
-static S_Symbol mksymbol(const m_str name, const S_Symbol next) {
-  S_Symbol s = malloc(sizeof(*s));
+static Symbol mksymbol(const m_str name, const Symbol next) {
+  Symbol s = mp_alloc(Symbol);
   s->name = strdup(name);
   s->next = next;
   return s;
 }
 
-ANN static void free_symbol(S_Symbol s) {
+ANN static void free_symbol(Symbol s) {
   if(s->next)
     free_symbol(s->next);
   free(s->name);
-  free(s);
+  mp_free(Symbol, s);
 }
 
 void free_symbols(void) {
   LOOP_OPTIM
   for(unsigned int i = SIZE + 1; --i;) {
-    S_Symbol s = hashtable[i - 1];
+    Symbol s = hashtable[i - 1];
     if(s)
       free_symbol(s);
   }
@@ -43,9 +44,9 @@ ANN static unsigned int hash(const char *s0) {
   return h;
 }
 
-ANN S_Symbol insert_symbol(const m_str name) {
+ANN Symbol insert_symbol(const m_str name) {
   unsigned int index = hash(name) % SIZE;
-  S_Symbol sym, syms = hashtable[index];
+  Symbol sym, syms = hashtable[index];
 
   LOOP_OPTIM
   for(sym = syms; sym; sym = sym->next)
@@ -54,7 +55,7 @@ ANN S_Symbol insert_symbol(const m_str name) {
   return hashtable[index] = mksymbol(name, syms);
 }
 
-ANN m_str s_name(const S_Symbol sym) {
+ANN m_str s_name(const Symbol sym) {
   return sym->name;
 }
 
