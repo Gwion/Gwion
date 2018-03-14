@@ -15,19 +15,19 @@ ANN extern       void   vector_copy2(const __restrict__ Vector, __restrict__ Vec
 ANN extern const m_int  vector_find(const Vector, const vtype);
 
 ANN static inline void vector_set(const Vector v, const vtype i, const vtype arg) {
-  v->ptr[i + OFFSET] = arg;
+  VPTR(v, i) = arg;
 }
 ANN static inline vtype vector_front(const Vector v) {
-  return v->ptr[0] ? v->ptr[0 + OFFSET] : 0;
+  return VLEN(v) ? VPTR(v, 0) : 0;
 }
 ANN static inline vtype vector_at(Vector v, const vtype i) {
-  return (i >= v->ptr[0]) ? 0 : v->ptr[i + OFFSET];
+  return (i >= VLEN(v)) ? 0 : VPTR(v, i);
 }
 ANN static inline vtype vector_back(const Vector v) {
-  return v->ptr[v->ptr[0] + OFFSET - 1];
+  return VPTR(v, VLEN(v) - 1);
 }
 ANN static inline vtype vector_size(const Vector v) {
-  return v->ptr[0];
+  return VLEN(v);
 }
 
 extern ANN       void  vector_add(const Vector, const vtype);
@@ -48,7 +48,7 @@ extern ANN void map_clear(const Map);
 extern ANN void free_map(Map);
 extern ANN void map_release(Map);
 ANN static inline const vtype map_size(const Map map) {
-  return map->ptr[0];
+  return VLEN(map);
 }
 
 extern           Scope  new_scope();

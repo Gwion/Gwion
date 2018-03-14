@@ -3,9 +3,6 @@
 #include "map.h"
 #include "map_private.h"
 
-#define MAP_CAP 4
-#define OFFSET 2
-
 ANN const vtype scope_lookup0(const Scope scope, const Symbol xid) {
   Map map = (Map)vector_back(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
@@ -70,11 +67,11 @@ ANN const Vector scope_get(const Scope s) {
   Vector ret = new_vector();
   for(j = 0; j < vector_size(&s->vector); j++) {
     Map map = (Map)vector_at(&s->vector, j);
-    for(i = 0; i < map->ptr[0]; i++)
-      vector_add(ret, map->ptr[OFFSET + i * 2 + 1]);
+    for(i = 0; i < VLEN(map); i++)
+      vector_add(ret, VVAL(map, i));
   }
-  for(i = 0; i < s->commit_map.ptr[0]; i++)
-    vector_add(ret, (vtype)s->commit_map.ptr[OFFSET + i * 2 + 1]);
+  for(i = 0; i < VLEN(&s->commit_map); i++)
+    vector_add(ret, VVAL(&s->commit_map, i));
   return ret;
 }
 

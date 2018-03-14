@@ -3,77 +3,74 @@
 #include "map.h"
 #include "map_private.h"
 #include "mpool.h"
+
 POOL_HANDLE(Map, 2048)
-#define LEN(v)    (v)->ptr[0]
-#define CAP(v)    (v)->ptr[1]
-#define KEY(v, i) (v)->ptr[OFFSET + (i) * 2]
-#define VAL(v, i) (v)->ptr[OFFSET + (i) * 2 + 1]
 
 ANN void map_clear(Map v) {
-  v->ptr = realloc(v->ptr, (CAP(v) = MAP_CAP) * SZ_INT);
-  LEN(v) = 0;
+  v->ptr = realloc(v->ptr, (VCAP(v) = MAP_CAP) * SZ_INT);
+  VLEN(v) = 0;
 }
 
 Map new_map() {
   Map map  = mp_alloc(Map);
   map->ptr = calloc(MAP_CAP, SZ_INT);
-  CAP(map) = MAP_CAP;
+  VCAP(map) = MAP_CAP;
   return map;
 }
 
 ANN void map_init(Map a) {
   a->ptr = calloc(MAP_CAP, SZ_INT);
-  CAP(a) = MAP_CAP;
+  VCAP(a) = MAP_CAP;
 }
 
 ANN const vtype map_get(const Map map, const vtype key) {
   vtype i;
-  for(i = LEN(map) + 1; --i;)
-    if(KEY(map, i - 1) == key)
-      return VAL(map, i - 1);
+  for(i = VLEN(map) + 1; --i;)
+    if(VKEY(map, i - 1) == key)
+      return VVAL(map, i - 1);
   return 0;
 }
 
 ANN const vtype map_at(const Map map, const vtype index) {
-  if(index > LEN(map))
+  if(index > VLEN(map))
     return 0;
-  return VAL(map, index);
+  return VVAL(map, index);
 }
 
 ANN void map_set(const Map map, const vtype key, const vtype ptr) {
   vtype i;
-  for(i = LEN(map) + 1; --i;) {
-    if(KEY(map, i - 1) == key) {
-      VAL(map, i - 1) = ptr;
+  for(i = VLEN(map) + 1; --i;) {
+    if(VKEY(map, i - 1) == key) {
+      VVAL(map, i - 1) = ptr;
       return;
     }
   }
-  if((OFFSET + LEN(map) * 2 + 1) > CAP(map)) {
-    CAP(map) *= 2;
-    map->ptr = realloc(map->ptr, CAP(map) * SZ_INT);
+  if((OFFSET + VLEN(map) * 2 + 1) > VCAP(map)) {
+    VCAP(map) *= 2;
+    map->ptr = realloc(map->ptr, VCAP(map) * SZ_INT);
   }
-  KEY(map, LEN(map)) = key;
-  VAL(map, LEN(map)) = ptr;
-  LEN(map)++;
+  VKEY(map, VLEN(map)) = key;
+  VVAL(map, VLEN(map)) = ptr;
+  VLEN(map)++;
 }
 
 ANN void map_remove(const Map map, const vtype key) {
   vtype i;
   struct Map_ tmp;
   map_init(&tmp);
-  for(i = 0; i < LEN(map); i++)
-    if(KEY(map, i) != key)
-      map_set(&tmp, key, VAL(map, i));
+  for(i = 0; i < VLEN(map); i++)
+    if(VKEY(map, i) != key)
+      map_set(&tmp, key, VVAL(map, i));
   free(map->ptr);
   map->ptr = tmp.ptr;
-  LEN(map) = LEN(&tmp);
-  CAP(map) = CAP(&tmp);
+  VLEN(map) = VLEN(&tmp);
+  VCAP(map) = VCAP(&tmp);
 }
 
 ANN void map_commit(const restrict Map map, const restrict Map commit) {
   vtype i;
-  for(i = 0; i < LEN(commit); i++)
-    map_set(map, KEY(commit, i), VAL(commit, i));
+  for(i = 0; i < VLEN(commit); i++)
+    map_set(map, VKEY(commit, i), VVAL(commit, i));
 }
 
 ANN void free_map(Map map) {
