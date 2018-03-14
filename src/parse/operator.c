@@ -8,7 +8,7 @@
 #include "instr.h"
 #include "mpool.h"
 
-typedef Type (*f_type)(Env env, Exp exp);
+typedef Type (*f_type)(const Env env, const Exp exp);
 
 typedef struct M_Operator_{
   Type lhs, rhs, ret;
@@ -19,7 +19,7 @@ typedef struct M_Operator_{
 } M_Operator;
 POOL_HANDLE(M_Operator, 2048)
 
-static void free_op(M_Operator* a) {
+ANN static void free_op(M_Operator* a) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)
     REM_REF(a->lhs)
   if(a->rhs && a->rhs != OP_ANY_TYPE)
@@ -29,22 +29,19 @@ static void free_op(M_Operator* a) {
   mp_free(M_Operator, a);
 }
 
-void free_op_map(Map map) {
-  m_uint i;
-  Vector v;
-  for(i = map_size(map) + 1; --i;) {
-    m_uint j;
-    v = (Vector)map_at(map, (vtype)i - 1);
-    for(j = vector_size(v) + 1; --j;)
+ANN void free_op_map(Map map) {
+  for(m_uint i = map_size(map) + 1; --i;) {
+    Vector v = (Vector)map_at(map, (vtype)i - 1);
+    for(m_uint j = vector_size(v) + 1; --j;)
       free_op((M_Operator*)vector_at(v, j - 1));
     free_vector(v);
   }
   map_release(map);
 }
 
-static const Type op_parent(const Env env, const Type t) {
+ANN static const Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
-    m_str post = strstr(t->name, "<");
+    const m_str post = strstr(t->name, "<");
     char c[strlen(t->name) - strlen(post) + 1];
     memset(c, 0, strlen(t->name) - strlen(post) + 1);
     strncpy(c, t->name, strlen(t->name) - strlen(post));
@@ -61,9 +58,9 @@ static const m_bool op_match(const Type t, const Type mo) {
   return 0;
 }
 
+__attribute__((nonnull(1)))
 static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs) {
-  m_uint i;
-  for(i = vector_size(v) + 1; --i;) {
+  for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))
       return mo;
@@ -71,7 +68,7 @@ static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs)
   return NULL;
 }
 
-const m_bool add_op(Nspc nspc, const struct Op_Import* opi) {
+ANN const m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
   Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
   M_Operator* mo;
   if(!v) {
@@ -99,7 +96,7 @@ const m_bool add_op(Nspc nspc, const struct Op_Import* opi) {
   return 1;
 }
 
-static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
+ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
   if(opi->op == op_implicit)return;
   if(opi->op == op_dollar)
     ((Exp_Cast*)opi->data)->nspc = nspc;
@@ -112,11 +109,11 @@ static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
     ((Exp_Unary*)opi->data)->nspc = nspc;
 }
 
-static const Type op_check_inner(const Env env, const Map map, const struct Op_Import* opi) {
+ANN static const Type op_check_inner(const Env env, const Map map, const struct Op_Import* opi) {
   Type t, r = opi->rhs;
   do {
-    M_Operator* mo;
-    Vector v = (Vector)map_get(map, (vtype)opi->op);
+    const M_Operator* mo;
+    const Vector v = (Vector)map_get(map, (vtype)opi->op);
 
     if(v && (mo = operator_find(v, opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(env, (void*)opi->data))))
@@ -132,7 +129,7 @@ static const m_str type_name(const Type t) {
   return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
 }
 
-const Type op_check(const Env env, struct Op_Import* opi) {
+ANN const Type op_check(const Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
   while(nspc) {
     if(nspc->op_map.ptr) {
@@ -157,16 +154,15 @@ const Type op_check(const Env env, struct Op_Import* opi) {
   return NULL;
 }
 
-const m_bool operator_set_func(const Env env, const struct Op_Import* opi) {
-  Nspc nspc = ((Func)opi->data)->value_ref->owner;
-  M_Operator* mo;
-  Vector v = (Vector)map_get(&nspc->op_map, opi->op);
-  mo = operator_find(v, opi->lhs, opi->rhs);
+ANN const m_bool operator_set_func(const Env env, const struct Op_Import* opi) {
+  const Nspc nspc = ((Func)opi->data)->value_ref->owner;
+  const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
+  M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
   mo->func = ((Func)opi->data);
   return 1;
 }
 
-static const m_bool handle_instr(Emitter emit, const M_Operator* mo) {
+ANN static const m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     Instr instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = SZ_INT;
@@ -179,7 +175,7 @@ static const m_bool handle_instr(Emitter emit, const M_Operator* mo) {
   return -1;
 }
 
-static const Nspc get_nspc(const struct Op_Import* opi) {
+ANN static const Nspc get_nspc(const struct Op_Import* opi) {
   if(opi->op == op_implicit)
     return opi->rhs->owner;
   if(opi->op == op_dollar)
@@ -193,8 +189,8 @@ static const Nspc get_nspc(const struct Op_Import* opi) {
   return ((Exp_Unary*)opi->data)->nspc;
 }
 
-const m_bool op_emit(Emitter emit, const struct Op_Import* opi) {
-  Nspc nspc = get_nspc(opi);
+ANN const m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
+  const Nspc nspc = get_nspc(opi);
 
   Type l = opi->lhs;
   do {

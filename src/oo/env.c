@@ -1,10 +1,12 @@
 #include <stdlib.h>
-#include "env.h"
+#include "defs.h"
 #include "err_msg.h"
+#include "absyn.h"
 #include "context.h"
-#include "type.h"
 #include "value.h"
 #include "traverse.h"
+#include "type.h"
+#include "env.h"
 
 Env new_env() {
   Env env = malloc(sizeof(struct Env_));
@@ -131,9 +133,7 @@ m_bool type_engine_check_prog(Env env, Ast ast, m_str filename) {
   return ret;
 }
 
-extern m_bool add_op(Nspc nspc, const struct Op_Import* opi);
-
-const m_bool env_add_op(Env env, const struct Op_Import* opi) {
+ANN const m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   Nspc nspc = env->curr;
 
   if(!nspc->op_map.ptr)

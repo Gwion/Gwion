@@ -37,4 +37,5 @@ Type type_decl_resolve(Env env, const Type_Decl* td);
 m_str tl2str(Env env, Type_List tl);
 ANN m_bool compat_func(const Func_Def, const Func_Def);
 m_bool type_unknown(ID_List, m_str);
+ANN const m_bool env_add_op(const Env, const struct Op_Import*);
 #endif
