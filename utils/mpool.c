@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "mpool.h"
 #undef mp_alloc
+#undef mp_free
 
 typedef struct Recycle {
     struct Recycle *next;
