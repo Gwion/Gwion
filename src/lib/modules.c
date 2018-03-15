@@ -8,7 +8,6 @@
 #include "ugen.h"
 #include "func.h"
 
-extern struct Type_ t_osc;
 static struct Type_ t_sinosc      = { "SinOsc",      SZ_INT, &t_ugen };
 
 typedef struct {
