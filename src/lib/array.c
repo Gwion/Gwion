@@ -19,7 +19,7 @@ struct M_Vector_ {
   m_uint depth;
   m_uint cap;
 };
-POOL_HANDLE(M_Vector, 2048)
+POOL_HANDLE(M_Vector, 512)
 ANN m_uint m_vector_size(M_Vector v) {
   return v->len;
 }
@@ -327,7 +327,7 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
     curr++;
   }
   if(*num_obj > 0)
-    return (m_uint*)calloc(*num_obj, sizeof(m_uint));
+    return (m_uint*)calloc(*num_obj, SZ_INT);
   return (m_uint*)1;
 }
 
