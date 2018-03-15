@@ -17,7 +17,7 @@ typedef struct M_Operator_{
   Type (*ck)(Env, void*);
   m_bool (*em)(Emitter, void*);
 } M_Operator;
-POOL_HANDLE(M_Operator, 2048)
+POOL_HANDLE(M_Operator, 256)
 
 ANN static void free_op(M_Operator* a) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)

@@ -107,15 +107,14 @@ static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
   m_uint i;
 
-  info->in_buf  = calloc(sp->nchan, sizeof(SPFLOAT*));
-  info->out_buf = calloc(sp->nchan, sizeof(SPFLOAT*));
-  info->_out_buf   = calloc(sp->nchan, sizeof(void*));
-  info->_in_buf    = calloc(sp->nchan, sizeof(void*));
-
+  info->in_buf  = calloc(sp->nchan, SZ_FLOAT);
+  info->out_buf = calloc(sp->nchan, SZ_FLOAT);
+  info->_out_buf   = calloc(sp->nchan, SZ_INT);
+  info->_in_buf    = calloc(sp->nchan, SZ_INT);
   for(i = 0; i < sp->nchan; i++) {
-    info->out_buf[i]  = calloc(di->bufsize, sizeof(SPFLOAT));
+    info->out_buf[i]  = calloc(di->bufsize, SZ_FLOAT);
     info->_out_buf[i] = info->out_buf[i];
-    info->in_buf[i]   = calloc(di->bufsize, sizeof(SPFLOAT));
+    info->in_buf[i]   = calloc(di->bufsize, SZ_FLOAT);
     info->_in_buf[i]  = info->in_buf[i];
   }
 }
@@ -172,8 +171,8 @@ static void alsa_run(VM* vm, DriverInfo* di) {
     alsa_run_init_non_interleaved(sp, di);
     alsa_run_non_interleaved(vm, di);
   } else {
-    info->in_bufi  = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
-    info->out_bufi = calloc(sp->nchan * di->bufsize, sizeof(SPFLOAT));
+    info->in_bufi  = calloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->out_bufi = calloc(sp->nchan * di->bufsize, SZ_FLOAT);
     alsa_run_interleaved(vm, di);
   }
 }

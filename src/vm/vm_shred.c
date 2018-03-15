@@ -5,11 +5,17 @@
 #include "instr.h"
 #include "mpool.h"
 
-POOL_HANDLE(VM_Shred, 2048)
+struct MemStack_ { char c[SIZEOF_MEM]; };
+struct RegStack_ { char c[SIZEOF_REG]; };
+
+POOL_HANDLE(VM_Shred, 512)
+POOL_HANDLE(MemStack, 512)
+POOL_HANDLE(RegStack, 512)
+
 VM_Shred new_vm_shred(VM_Code c) {
   VM_Shred shred    = mp_alloc(VM_Shred);
-  shred->base       = calloc(SIZEOF_MEM, sizeof(char));
-  shred->_reg       = calloc(SIZEOF_REG, sizeof(char));
+  shred->base       = mp_alloc(MemStack);
+  shred->_reg       = mp_alloc(RegStack);
   shred->reg        = shred->_reg;
   shred->mem        = shred->base;
   shred->_mem       = shred->base;
@@ -40,10 +46,10 @@ static void free_shred_code(VM_Shred shred) {
 void free_vm_shred(VM_Shred shred) {
   release(shred->me, shred);
   if(strstr(shred->name, "spork~"))
-    free(shred->_mem);
+    mp_free(MemStack, shred->_mem);
   else
-    free(shred->base);
-  free(shred->_reg);
+    mp_free(MemStack, shred->base);
+  mp_free(RegStack, shred->_reg);
   free_shred_code(shred);
   free(shred->name);
   vector_release(&shred->gc1);

@@ -22,7 +22,7 @@ struct BP {
   char    c[256];
   regex_t r;
 };
-#define DBG_SZ SIZEOF_MEM/SZ_FLOAT
+static m_uint dbg_sz, dbg_max_sz;
 struct ShredInfo {
   enum dbg_t t;
   char func[256];
@@ -73,6 +73,9 @@ static void cross() {
 
 __attribute__((constructor))
 void init_curses() {
+  dbg_sz = SZ_INT > SZ_FLOAT ? SZ_FLOAT : SZ_INT;
+  dbg_max_sz = SIZEOF_MEM / dbg_sz;
+
   _init();
   wexe = newpad(10000, 256);
   scrollok(wexe, 1);
@@ -122,21 +125,21 @@ m_bool gw_exe(const m_str func, char* fmt, ...) {
 
 static void do_stack(struct ShredInfo* info, m_uint i, m_uint stdscr, char* data) {
   if(info->t == DBG_FLOAT) {
-    mvwprintw(info->pad, i, stdscr, "% 20.4f", *(m_float*)(data+i*SZ_FLOAT));
+    mvwprintw(info->pad, i, stdscr, "% 20.4f", *(m_float*)(data+i*dbg_sz));
   } else if(info->t == DBG_INT) {
-    mvwprintw(info->pad, i, stdscr, "% 20i", *(m_int*)(data+i*SZ_FLOAT));
+    mvwprintw(info->pad, i, stdscr, "% 20i", *(m_int*)(data+i*dbg_sz));
   } else
-    wprintw(info->pad, "% 20p", *(m_uint*)(data+i*SZ_FLOAT));
+    wprintw(info->pad, "% 20p", *(m_uint*)(data+i*dbg_sz));
  waddch(info->pad, ' ' | A_BOLD);
  waddch(info->pad, ' ' | A_BOLD);
 }
 
 static void display(VM_Shred shred, struct ShredInfo* info) {
-  m_int mpos = (shred->mem - shred->_mem)/SZ_FLOAT;
-  m_int rpos = (shred->reg - shred->_reg)/SZ_FLOAT;
+  m_int mpos = (shred->mem - shred->_mem)/dbg_sz;
+  m_int rpos = (shred->reg - shred->_reg)/dbg_sz;
 
   for(m_uint i = 0; i < (LINES-1)/2; i++) {
-    mvwprintw(info->pad, i, 0, "% 5lu", (info->offset+i)*SZ_FLOAT);
+    mvwprintw(info->pad, i, 0, "% 5lu", (info->offset+i)*dbg_sz);
     mvwaddch(info->pad, i, 5, ':');
     do_stack(info, info->offset + i, 6, shred->_mem);
     wprintw(info->pad, " ");
@@ -201,13 +204,13 @@ static void handle(VM_Shred shred, struct ShredInfo* info) {
   }
 break;
     case KEY_NPAGE:
-      if(info->index >= DBG_SZ)break;
+      if(info->index >= dbg_max_sz)break;
       info->index += (LINES-1)/2;
       if(info->index >= info->offset + (LINES-1)/2)
         info->offset += (LINES-1)/2;
       break;
     case KEY_UP:
-      if(info->index >= DBG_SZ)break;
+      if(info->index >= dbg_max_sz)break;
       info->index++;
       if(info->index >= info->offset + (LINES-1)/2)
         info->offset += (LINES-1)/2;

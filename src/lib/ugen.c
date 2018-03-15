@@ -6,7 +6,7 @@
 #include "import.h"
 #include "ugen.h"
 #include "mpool.h"
-POOL_HANDLE(UGen, 1024)
+POOL_HANDLE(UGen, 256)
 struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
@@ -88,7 +88,7 @@ M_Object new_M_UGen() {
 
 static const m_bool assign_channel(UGen u) {
   m_uint i;
-  u->channel = malloc(u->n_chan * sizeof(M_Object));
+  u->channel = malloc(u->n_chan * SZ_INT);
   for(i = u->n_chan + 1; --i;) {
     m_uint j = i - 1;
     M_Object chan = new_M_UGen();

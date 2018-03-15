@@ -4,8 +4,8 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_vec3  = { "Vec3",  SZ_VEC3 };
-struct Type_ t_vec4  = { "Vec4",  SZ_VEC4 };
+struct Type_ t_vec3 = { "Vec3", SZ_VEC3 };
+struct Type_ t_vec4 = { "Vec4", SZ_VEC4 };
 
 INSTR(vec_member) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);

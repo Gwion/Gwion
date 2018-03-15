@@ -8,7 +8,12 @@ static pool name##_pool;\
 __attribute__((constructor))\
 static void mp_ini_##name() { mp_ini(&name##_pool, sizeof(struct name##_), (nelem)); }\
 __attribute__((destructor))\
-static void mp_end_##name() { mp_end(&name##_pool);}\
+static void mp_end_##name() {\
+/*\
+printf("%s %s %u %u %i requested: %u\n", __FILE__, __func__, \
+name##_pool.obj_id, name##_pool.nblk, name##_pool.blk_id, name##_pool.blk_sz); \
+*/\
+mp_end(&name##_pool);}\
 
 typedef struct {
 	uint32_t  obj_sz;

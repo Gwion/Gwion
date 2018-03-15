@@ -70,8 +70,8 @@ typedef struct Type_Decl_ {
   ae_flag flag;
   int pos;
 } Type_Decl;
-Type_Decl* new_type_decl(ID_List name, const m_bool ref, const int pos);
-Type_Decl* new_type_decl2(ID_List name, const m_bool ref, const int pos);
+ANN Type_Decl* new_type_decl(const ID_List, const ae_flag, const int);
+ANN Type_Decl* new_type_decl2(const ID_List, const ae_flag, const int);
 ANN void free_type_decl(Type_Decl* a);
 Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, const int pos);
 

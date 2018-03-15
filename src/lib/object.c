@@ -7,7 +7,7 @@
 #include "instr.h"
 #include "import.h"
 #include "mpool.h"
-POOL_HANDLE(M_Object, 2048)
+POOL_HANDLE(M_Object, 512)
 
 struct Type_ t_null    = { "@null",  SZ_INT };
 struct Type_ t_object  = { "Object", SZ_INT };
@@ -39,7 +39,7 @@ ANN m_bool initialize_object(M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
-    if(!(object->data = calloc(type->info->offset, sizeof(unsigned char))))
+    if(!(object->data = calloc(1, type->info->offset)))
       CHECK_BB(err_msg(TYPE_, 0,
           "OutOfMemory: while instantiating object '%s'\n", type->name))
   }

@@ -8,7 +8,7 @@
 #include "vararg.h"
 #include "mpool.h"
 
-POOL_HANDLE(Vararg, 16)
+POOL_HANDLE(Vararg, 4)
 struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object };
 struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_vararg };
 struct Type_ t_varloop = { "@VarLoop",  SZ_INT };
@@ -37,7 +37,7 @@ INSTR(MkVararg) { GWDEBUG_EXE
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
   arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? calloc(arg->s, sizeof(m_uint)) : NULL;
+  arg->k = arg->s ? calloc(arg->s, SZ_INT) : NULL;
   for(i = 0; i < arg->s; i++) {
     arg->k[i] = vector_at(kinds, i);
   }

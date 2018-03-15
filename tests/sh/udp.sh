@@ -6,7 +6,7 @@ n=0
 export DRIVER=silent
 source tests/sh/common.sh
 
-./gwion -C | grep GWUDP || {
+(./gwion -C | grep GWUDP) &>/dev/null || {
   echo "ok $(printf "% 4i" "$n") UDP (skip)"
   exit;
 }

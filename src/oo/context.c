@@ -6,7 +6,7 @@
 #include "env.h"
 #include "mpool.h"
 
-POOL_HANDLE(Context, 16)
+POOL_HANDLE(Context, 32)
 __attribute__((nonnull(2)))
 const Context new_context(const Ast prog, const m_str filename) {
   Context context = mp_alloc(Context);

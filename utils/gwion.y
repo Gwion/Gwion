@@ -342,7 +342,7 @@ func_def
       get_pos(arg)), insert_symbol("dtor"), NULL, $4, get_pos(arg)); }
   ;
 
-atsym: { $$ = 0; } | ATSYM { $$ = 1; };
+atsym: { $$ = 0; } | ATSYM { $$ = ae_flag_ref; };
 
 type_decl
   : id atsym  { $$ = new_type_decl(new_id_list($1, get_pos(arg)), $2, get_pos(arg)); }

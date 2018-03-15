@@ -5,25 +5,25 @@
 #include "type.h"
 #include "value.h"
 #include "mpool.h"
-POOL_HANDLE(Ast,    8)
-POOL_HANDLE(Section,    512)
-POOL_HANDLE(Class_Def, 1024)
-POOL_HANDLE(Class_Body, 1024)
-POOL_HANDLE(Func_Def, 1024)
-POOL_HANDLE(Arg_List, 1024)
-POOL_HANDLE(Array_Sub, 512)
-POOL_HANDLE(Stmt_List, 1024)
-POOL_HANDLE(Stmt, 1024)
-POOL_HANDLE(Type_Decl, 1024)
-POOL_HANDLE(Type_List, 64)
-POOL_HANDLE(Tmpl_Call, 64)
-POOL_HANDLE(Tmpl_Class, 64)
-POOL_HANDLE(Tmpl_List, 64)
-POOL_HANDLE(Decl_List, 64)
-POOL_HANDLE(ID_List, 512)
-POOL_HANDLE(Var_Decl_List, 1024)
-POOL_HANDLE(Var_Decl, 1024)
-POOL_HANDLE(Exp, 1024)
+POOL_HANDLE(Ast,           8)
+POOL_HANDLE(Section,       32)
+POOL_HANDLE(Class_Def,     32)
+POOL_HANDLE(Class_Body,    32)
+POOL_HANDLE(Func_Def,      1024)
+POOL_HANDLE(Arg_List,      1024)
+POOL_HANDLE(Array_Sub,     128)
+POOL_HANDLE(Stmt_List,     1024)
+POOL_HANDLE(Stmt,          1024)
+POOL_HANDLE(Type_Decl,     512)
+POOL_HANDLE(Type_List,     32)
+POOL_HANDLE(Tmpl_Call,     32)
+POOL_HANDLE(Tmpl_Class,    32)
+POOL_HANDLE(Tmpl_List,     32)
+POOL_HANDLE(Decl_List,     8)
+POOL_HANDLE(ID_List,       512)
+POOL_HANDLE(Var_Decl_List, 256)
+POOL_HANDLE(Var_Decl,      1024)
+POOL_HANDLE(Exp,           1024)
 
 //ANN 
 static void free_stmt_list(Stmt_List);
@@ -73,22 +73,24 @@ ANN static void free_var_decl_list(Var_Decl_List a) {
   mp_free(Var_Decl_List, a);
 }
 
-Type_Decl* new_type_decl(ID_List xid, const m_bool ref, const int pos) {
-  Type_Decl* a = mp_alloc(Type_Decl);
-  a->xid = xid;
-  if(ref)
-    SET_FLAG(a, ae_flag_ref);
+
+static Type_Decl* td_alloc(const ae_flag flag, const int pos) {
+  Type_Decl* a = mp_alloc(Type_Decl);\
+  a->flag = flag;
   a->pos = pos;
   return a;
 }
 
-Type_Decl* new_type_decl2(ID_List xid, const m_bool ref, const int pos) {
-  Type_Decl* a = mp_alloc(Type_Decl);
+ANN Type_Decl* new_type_decl(const ID_List xid, const ae_flag flag, const int pos) {
+  Type_Decl* a = td_alloc(flag, pos);
+  a->xid = xid;
+  return a;
+}
+
+ANN Type_Decl* new_type_decl2(const ID_List xid, const ae_flag flag, const int pos) {
+  Type_Decl* a = td_alloc(flag, pos);
   a->xid = new_id_list(insert_symbol(""), pos);
   a->xid->ref = xid;
-  if(ref)
-    SET_FLAG(a, ae_flag_ref);
-  a->pos = pos;
   return a;
 }
 Array_Sub new_array_sub(Exp exp, const int pos) {

@@ -2890,7 +2890,7 @@ yyreduce:
 
   case 126:
 #line 345 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.ival) = 1; }
+    { (yyval.ival) = ae_flag_ref; }
 #line 2895 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 

@@ -17,11 +17,11 @@ typedef struct Local_ {
   m_bool is_ref;
   m_bool is_obj;
 } Local;
-POOL_HANDLE(Local, 2048)
-POOL_HANDLE(Frame, 1024)
-POOL_HANDLE(Code,  1024)
+POOL_HANDLE(Local, 128)
+POOL_HANDLE(Frame, 8)
+POOL_HANDLE(Code,  8)
 POOL_HANDLE(Instr, 2048)
-POOL_HANDLE(VM_Array_Info, 1024)
+POOL_HANDLE(VM_Array_Info, 64)
 
 #define IS_REF 1 << 1
 #define IS_OBJ 1 << 2
@@ -1298,7 +1298,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
 
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  counter = calloc(1, sizeof(m_int));
+  counter = calloc(1, SZ_INT);
   init = emitter_add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
   index = emit_code_size(emit);
@@ -1922,7 +1922,7 @@ ANN static m_bool emit_section(const Emitter emit, const Section* section) { GWD
 
 ANN static m_bool init_class_data(const Nspc nspc) {
   if(nspc->class_data_size) {
-    nspc->class_data = calloc(nspc->class_data_size, sizeof(char));
+    nspc->class_data = calloc(1, nspc->class_data_size);
     if(!nspc->class_data)
       CHECK_BB(err_msg(EMIT_, 0, "OutOfMemory: while allocating static data '%s'\n", nspc->name))
   }
