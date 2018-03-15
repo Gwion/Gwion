@@ -125,7 +125,7 @@ static TICK(gain_tick) {
 }
 
 static CTOR(gain_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = gain_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -158,7 +158,7 @@ static TICK(impulse_tick) {
 }
 
 static CTOR(impulse_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 0, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = impulse_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -189,7 +189,7 @@ static TICK(fullrect_tick) {
 }
 
 static CTOR(fullrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = fullrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -210,7 +210,7 @@ static TICK(halfrect_tick) {
 }
 
 static CTOR(halfrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = halfrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -227,7 +227,7 @@ static TICK(step_tick) {
 }
 
 static CTOR(step_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 0, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = step_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -262,7 +262,7 @@ static TICK(zerox_tick) {
 }
 
 static CTOR(zerox_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(sizeof(m_float)));
+  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
   UGEN(o)->tick = zerox_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }

@@ -405,25 +405,28 @@ struct Stmt_ {
   int pos;
 };
 
-Stmt new_stmt_exp(Exp exp, const int pos);
-Stmt new_stmt_code(Stmt_List stmt_list, const int pos);
-Stmt new_stmt_while(Exp cond, Stmt body, m_bool is_do, const int pos);
-Stmt new_stmt_return(Exp exp, const int pos);
-Stmt new_stmt_break(const int pos);
-Stmt new_stmt_continue(const int pos);
-Stmt new_stmt_if(Exp cond, Stmt if_body, Stmt else_body, const int pos);
-Stmt new_stmt_until(Exp cond, Stmt body, m_bool is_do, const int pos);
-Stmt new_stmt_for(Stmt c1, Stmt c2, Exp c3, Stmt body, const int pos);
-Stmt new_stmt_auto(Symbol sym, Exp exp, Stmt body, const int pos);
-Stmt new_stmt_loop(Exp cond, Stmt body, const int pos);
-Stmt new_stmt_gotolabel(Symbol xid, const m_bool is_label, const int pos);
-Stmt new_stmt_case(Exp exp, const int pos);
-Stmt new_stmt_enum(ID_List list, Symbol xid, const int pos);
-Stmt new_stmt_switch(Exp val, Stmt stmt, const int pos);
-Stmt new_stmt_union(Decl_List l, const int pos);
-Stmt new_func_ptr_stmt(ae_flag key, Symbol type, Type_Decl* decl, Arg_List args, const int pos);
-Stmt new_stmt_typedef(Type_Decl* decl, Symbol xid, const int pos);
-ANN void free_stmt(Stmt a);
+const Stmt new_stmt_exp(const Exp, const int);
+const Stmt new_stmt_code(const Stmt_List, const int);
+ANN const Stmt new_stmt_while(const Exp, const Stmt, const m_bool, const int);
+const Stmt new_stmt_return(const Exp, const int);
+const Stmt new_stmt_break(const int);
+const Stmt new_stmt_continue(const int);
+__attribute__((nonnull(1,2)))
+const Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
+ANN const Stmt new_stmt_until(const Exp, const Stmt, const m_bool, const int);
+__attribute__((nonnull(1,2,4)))
+const Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
+ANN const Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const int);
+ANN const Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
+ANN const Stmt new_stmt_gotolabel(const Symbol, const m_bool, const int);
+ANN const Stmt new_stmt_case(const Exp, const int);
+__attribute__((nonnull(1)))
+const Stmt new_stmt_enum(const ID_List, const Symbol, const int);
+ANN const Stmt new_stmt_switch(Exp, Stmt, const int);
+ANN const Stmt new_stmt_union(const Decl_List, const int);
+ANN const Stmt new_func_ptr_stmt(const ae_flag, const Symbol, Type_Decl*, const Arg_List, const int);
+ANN const Stmt new_stmt_typedef(Type_Decl*, const Symbol, const int);
+ANN void free_stmt(Stmt);
 struct Stmt_List_ {
   Stmt stmt;
   Stmt_List next;
