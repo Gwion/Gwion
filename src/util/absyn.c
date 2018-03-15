@@ -30,7 +30,8 @@ static void free_stmt_list(Stmt_List);
 ANN static void free_stmt_code(Stmt_Code);
 ANN static void free_section(Section*);
 
-Var_Decl new_var_decl(Symbol xid, Array_Sub array, const int pos) {
+__attribute__((nonnull(1)))
+Var_Decl new_var_decl(const Symbol xid, const Array_Sub array, const int pos) {
   Var_Decl a = mp_alloc(Var_Decl);
   a->xid = xid;
   a->array = array;
@@ -58,7 +59,8 @@ ANN static void free_var_decl(Var_Decl a) {
   mp_free(Var_Decl, a);
 }
 
-Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, const int pos) {
+__attribute__((nonnull(1)))
+Var_Decl_List new_var_decl_list(const Var_Decl decl, const Var_Decl_List list, const int pos) {
   Var_Decl_List a = mp_alloc(Var_Decl_List);
   a->self = decl;
   a->next = list;
@@ -93,7 +95,7 @@ ANN Type_Decl* new_type_decl2(const ID_List xid, const ae_flag flag, const int p
   a->xid->ref = xid;
   return a;
 }
-Array_Sub new_array_sub(Exp exp, const int pos) {
+Array_Sub new_array_sub(const Exp exp, const int pos) {
   Array_Sub a = mp_alloc(Array_Sub);
   a->exp_list = exp;
   a->depth = 1;
@@ -101,7 +103,8 @@ Array_Sub new_array_sub(Exp exp, const int pos) {
   return a;
 }
 
-Array_Sub prepend_array_sub(Array_Sub a, Exp exp) {
+__attribute__((nonnull(1)))
+Array_Sub prepend_array_sub(const Array_Sub a, const Exp exp) {
   if(exp) {
     exp->next = a->exp_list;
     a->exp_list = exp;
@@ -110,12 +113,12 @@ Array_Sub prepend_array_sub(Array_Sub a, Exp exp) {
   return a;
 }
 
-Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, const int pos) {
+ANN Type_Decl* add_type_decl_array(Type_Decl* a, const Array_Sub array, const int pos) {
   a->array = array;
   return a;
 }
 
-Exp new_array(Exp base, Array_Sub indices, const int pos) {
+ANN Exp new_array(const Exp base, const Array_Sub indices, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_array;
   a->meta = ae_meta_var;
@@ -133,14 +136,14 @@ ANN static void free_array_exp(Exp_Array* a) {
   free_exp(a->base);
 }
 
-ID_List new_id_list(const Symbol xid, const int pos) {
+ANN ID_List new_id_list(const Symbol xid, const int pos) {
   ID_List a = mp_alloc(ID_List);
   a->xid = xid;
   a->pos = pos;
   return a;
 }
 
-ID_List prepend_id_list(const Symbol xid, ID_List list, const int pos) {
+ANN ID_List prepend_id_list(const Symbol xid, const ID_List list, const int pos) {
   ID_List a = new_id_list(xid, pos);
   a->next = list;
   a->pos = pos;
@@ -981,7 +984,7 @@ Class_Body new_class_body(Section* section, Class_Body body, const int pos) {
   return a;
 }
 
-Type_List new_type_list(Type_Decl* list, Type_List next, const int pos) {
+Type_List new_type_list(Type_Decl* list, const Type_List next, const int pos) {
   Type_List a = mp_alloc(Type_List);
   a->list = list;
   a->next = next;

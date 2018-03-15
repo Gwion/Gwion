@@ -27,9 +27,10 @@ struct Array_Sub_ {
   Type type;
   int pos;
 };
-Array_Sub new_array_sub(Exp exp, const int pos);
-Array_Sub prepend_array_sub(Array_Sub array, Exp exp);
-ANN void free_array_sub(Array_Sub array);
+Array_Sub new_array_sub(const Exp, const int);
+__attribute__((nonnull(1)))
+Array_Sub prepend_array_sub(const Array_Sub, const Exp);
+ANN void free_array_sub(Array_Sub);
 
 typedef struct {
   Exp base;
@@ -44,7 +45,7 @@ typedef struct {
   int pos;
 } Exp_Array;
 
-Exp new_array(Exp base, Array_Sub indices, const int pos);
+ANN Exp new_array(const Exp, const Array_Sub, const int);
 
 struct Var_Decl_ {
   Symbol xid;
@@ -53,14 +54,16 @@ struct Var_Decl_ {
   void* addr;
   int pos;
 };
-Var_Decl new_var_decl(Symbol xid, Array_Sub array, const int pos);
+__attribute__((nonnull(1)))
+Var_Decl new_var_decl(const Symbol, const Array_Sub, const int);
 
 struct Var_Decl_List_ {
   Var_Decl self;
   Var_Decl_List next;
   int pos;
 };
-Var_Decl_List new_var_decl_list(Var_Decl decl, Var_Decl_List list, const int pos);
+__attribute__((nonnull(1)))
+Var_Decl_List new_var_decl_list(const Var_Decl, const Var_Decl_List, const int);
 
 typedef struct Type_Decl_ {
   ID_List xid;
@@ -73,7 +76,7 @@ typedef struct Type_Decl_ {
 ANN Type_Decl* new_type_decl(const ID_List, const ae_flag, const int);
 ANN Type_Decl* new_type_decl2(const ID_List, const ae_flag, const int);
 ANN void free_type_decl(Type_Decl* a);
-Type_Decl* add_type_decl_array(Type_Decl* a, Array_Sub array, const int pos);
+ANN Type_Decl* add_type_decl_array(Type_Decl*, const Array_Sub, const int);
 
 struct ID_List_    {
   Symbol xid;
@@ -81,8 +84,8 @@ struct ID_List_    {
   ID_List ref;
   int pos;
 };
-ID_List new_id_list(const Symbol xid, const int pos);
-ID_List prepend_id_list(const Symbol xid, ID_List list, const int pos);
+ANN ID_List new_id_list(const Symbol, const int);
+ANN ID_List prepend_id_list(const Symbol, ID_List, const int);
 ANN void free_id_list(ID_List a);
 
 struct Type_List_  {
@@ -90,7 +93,8 @@ struct Type_List_  {
   Type_List next;
   int pos;
 };
-Type_List new_type_list(Type_Decl* list, Type_List next, const int pos);
+__attribute__((nonnull(1)))
+Type_List new_type_list(Type_Decl*, const Type_List, const int);
 ANN void free_type_list(Type_List a);
 
 typedef struct {
