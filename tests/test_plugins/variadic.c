@@ -3,7 +3,7 @@
 #include "import.h"
 #include "vararg.h"
 
-static struct Type_ t_variadic = { "Variadic", SZ_INT, &t_object };
+static struct Type_ t_variadic = { "Variadic", SZ_INT, t_object };
 
 static MFUN(m_variadic) {
   M_Object str_obj = *(M_Object*)MEM(-SZ_INT);

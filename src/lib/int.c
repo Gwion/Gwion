@@ -26,8 +26,6 @@ static INSTR(int_pre_##name)  { *(m_int*)REG(- SZ_INT) = op(**(m_int**)REG(- SZ_
 #define describe_post(name, op) \
 static INSTR(int_post_##name) { GWDEBUG_EXE *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))op; }
 
-struct Type_ t_int = { "int", SZ_INT };
-
 static INSTR(int_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = *(m_int*)REG(0));

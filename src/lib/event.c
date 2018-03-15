@@ -3,8 +3,6 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_event = { "Event", SZ_INT, &t_object };
-
 m_int o_event_shred;
 
 static CTOR(event_ctor) {
@@ -50,7 +48,8 @@ static MFUN(event_broadcast) {
 }
 
 m_bool import_event(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_event, event_ctor, event_dtor))
+  CHECK_OB((t_event = gwi_mk_type(gwi, "Event", SZ_INT, t_object )))
+  CHECK_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
   CHECK_BB(gwi_item_ini(gwi, "int", "@shreds"))
   CHECK_BB((o_event_shred = gwi_item_end(gwi, ae_flag_member, NULL)))
   CHECK_BB(gwi_func_ini(gwi, "int", "signal", event_signal))

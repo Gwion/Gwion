@@ -12,11 +12,6 @@
 
 #define CHECK_FIO(o)   if(!o || !IO_FILE(o)) Except(shred, "EmptyFileException");
 
-struct Type_ t_fileio  = { "FileIO", SZ_INT, &t_event  };
-struct Type_ t_cout    = { "@Cout",  SZ_INT, &t_fileio };
-struct Type_ t_cerr    = { "@Cerr",  SZ_INT, &t_fileio };
-struct Type_ t_cin     = { "@Cin",   SZ_INT, &t_fileio };
-
 m_int o_fileio_file;
 static M_Object gw_cin, gw_cout, gw_cerr;
 
@@ -243,7 +238,7 @@ static SFUN(file_list) {
     *(m_uint*)RETURN = 0;
     return;
   }
-  Type t = array_type(&t_string, 1);
+  Type t = array_type(t_string, 1);
   M_Object ret = new_M_Array(t, SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
   for(i = 0; i < n; i++) {
@@ -255,8 +250,13 @@ static SFUN(file_list) {
   *(m_uint*)RETURN = (m_uint)ret;
 }
 
-m_bool import_fileio(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_fileio, fileio_ctor, fileio_dtor))
+const m_bool import_fileio(const Gwi gwi) {
+  Type t_fileio, t_cout, t_cerr, t_cin;
+  CHECK_OB((t_fileio  = gwi_mk_type(gwi, "FileIO", SZ_INT, t_event)))
+  CHECK_OB((t_cout    = gwi_mk_type(gwi, "@Cout",  SZ_INT, t_fileio)))
+  CHECK_OB((t_cerr    = gwi_mk_type(gwi, "@Cerr",  SZ_INT, t_fileio)))
+  CHECK_OB((t_cin     = gwi_mk_type(gwi, "@Cin",   SZ_INT, t_fileio)))
+  CHECK_BB(gwi_class_ini(gwi,  t_fileio, fileio_ctor, fileio_dtor))
 
   // import vars
 	gwi_item_ini(gwi, "int", "@file");
@@ -318,24 +318,24 @@ m_bool import_fileio(Gwi gwi) {
   CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, file_to_float))
 
-  CHECK_BB(gwi_class_ini(gwi,  &t_cout, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  t_cout, NULL, static_fileio_dtor))
   CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(gwi_class_ini(gwi,  &t_cerr, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  t_cerr, NULL, static_fileio_dtor))
   CHECK_BB(gwi_class_end(gwi))
 
-  CHECK_BB(gwi_class_ini(gwi,  &t_cin, NULL, static_fileio_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  t_cin, NULL, static_fileio_dtor))
   CHECK_BB(gwi_class_end(gwi))
 
   gw_cin = new_M_Object(NULL);
-  initialize_object(gw_cin, &t_cin);
+  initialize_object(gw_cin, t_cin);
   EV_SHREDS(gw_cin) = new_vector();
   gw_cout = new_M_Object(NULL);
-  initialize_object(gw_cout, &t_cout);
+  initialize_object(gw_cout, t_cout);
   IO_FILE(gw_cout) = stdout;
   EV_SHREDS(gw_cout) = new_vector();
   gw_cerr = new_M_Object(NULL);
-  initialize_object(gw_cerr, &t_cerr);
+  initialize_object(gw_cerr, t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();
   gwi_item_ini(gwi, "FileIO", "cin");

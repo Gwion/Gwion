@@ -3,7 +3,7 @@
 #include "object.h"
 #include "emit.h"
 
-static struct Type_ t_template_arg = { "TemplateArg", SZ_INT, &t_object };
+static struct Type_ t_template_arg = { "TemplateArg", SZ_INT, t_object };
 
 MFUN(template_arg_fun) {}
 

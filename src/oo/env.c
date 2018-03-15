@@ -8,6 +8,10 @@
 #include "type.h"
 #include "env.h"
 
+#define obstack_chunk_alloc malloc
+#define obstack_chunk_free free
+
+
 const Env new_env() {
   Env env = malloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
@@ -88,7 +92,7 @@ const m_bool env_add_value(const Env env, const m_str name, const Type type,
 }
 
 ANN const m_bool env_add_type(const Env env, const Type type) {
-  const Type v_type = type_copy(&t_class);
+  const Type v_type = type_copy(t_class);
   v_type->d.base_type = type;
   INIT_OO(type, e_type_obj);
   SET_FLAG(type, ae_flag_builtin);

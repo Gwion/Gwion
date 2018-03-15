@@ -3,7 +3,7 @@
 #include "object.h"
 #include "emit.h"
 
-static struct Type_ t_func_typedef = { "FuncTypedef", SZ_INT, &t_object };
+static struct Type_ t_func_typedef = { "FuncTypedef", SZ_INT, t_object };
 
 static MFUN(test_func) { puts("test"); }
 IMPORT {

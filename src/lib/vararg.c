@@ -9,9 +9,6 @@
 #include "mpool.h"
 
 POOL_HANDLE(Vararg, 4)
-struct Type_ t_vararg  = { "@Vararg",   SZ_INT, &t_object };
-struct Type_ t_varobj  = { "VarObject", SZ_INT, &t_vararg };
-struct Type_ t_varloop = { "@VarLoop",  SZ_INT };
 
 INSTR(Vararg_start) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
@@ -82,10 +79,14 @@ INSTR(varobj_assign) { GWDEBUG_EXE
 }
 
 m_bool import_vararg(Gwi gwi) {
-  SET_FLAG(&t_varobj, ae_flag_abstract);
-  CHECK_BB(gwi_add_type(gwi,  &t_varobj))
-  CHECK_BB(gwi_add_type(gwi,  &t_varloop))
-  CHECK_BB(gwi_class_ini(gwi,  &t_vararg, NULL, NULL))
+  Type t_varobj, t_varloop;
+  CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
+  CHECK_OB((t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg)))
+  CHECK_OB((t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL)))
+  SET_FLAG(t_varobj, ae_flag_abstract);
+  CHECK_BB(gwi_add_type(gwi,  t_varobj))
+  CHECK_BB(gwi_add_type(gwi,  t_varloop))
+  CHECK_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
   CHECK_BB(gwi_item_ini(gwi, "@VarLoop",  "start"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "@VarLoop",  "end"))

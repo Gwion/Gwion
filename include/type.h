@@ -46,11 +46,23 @@ const Type array_base(Type) ANN;
 const m_bool type_ref(Type) ANN;
 const m_bool prim_ref(const Type_Decl*, const Type) ANN;
 
-extern struct Type_ t_int, t_float, t_dur, t_time, t_now;
-extern struct Type_ t_complex, t_polar, t_vec3, t_vec4;
-extern struct Type_ t_function, t_func_ptr;
-extern struct Type_ t_void, t_class, t_null, t_union;
-extern struct Type_ t_object, t_shred, t_event, t_ugen, t_array;
-extern struct Type_ t_vararg, t_string, t_ptr, t_gack;
+
+Type t_int, t_float, t_dur, t_time, t_now, t_complex, t_polar;
+Type t_void;
+Type t_vec3, t_vec4;
+Type t_func_ptr;
+Type t_function;
+Type t_class;
+Type t_null;
+Type t_object;
+Type t_shred;
+Type t_event;
+Type t_ugen;
+Type t_vararg;
+Type t_string;
+Type t_gack;
+Type t_ptr;
+Type t_array;
+Type t_union;
 #endif
 

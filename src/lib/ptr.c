@@ -6,8 +6,6 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_ptr = { "Ptr", SZ_INT, &t_object };
-
 const m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
   m_uint i = 0;
@@ -43,12 +41,12 @@ static OP_CHECK(opck_ptr_assign) {
   if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {
     if(bin->lhs->meta != ae_meta_var) {
       err_msg(INSTR_, 0, "left side operand is constant");
-      return &t_null;
+      return t_null;
     }
     bin->lhs->emit_var = 1;
     return bin->lhs->type;
   }
-  return &t_null;
+  return t_null;
 }
 
 static INSTR(instr_ptr_assign) { GWDEBUG_EXE
@@ -70,7 +68,7 @@ static OP_CHECK(opck_implicit_ptr) {
   if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
     if(e->meta == ae_meta_value) {
       err_msg(INSTR_, 0, "can't cast constant to Ptr");
-      return &t_null;
+      return t_null;
     }
     e->cast_to = imp->t;
     e->emit_var = 1;
@@ -108,8 +106,9 @@ INSTR(Cast2Ptr) { GWDEBUG_EXE
 
 m_bool import_ptr(Gwi gwi) {
   const m_str list[] = { "A" };
+  CHECK_OB((t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, t_object)))
   CHECK_BB(gwi_tmpl_ini(gwi, 1, list))
-  CHECK_BB(gwi_class_ini(gwi, &t_ptr, NULL, NULL))
+  CHECK_BB(gwi_class_ini(gwi, t_ptr, NULL, NULL))
   CHECK_BB(gwi_tmpl_end(gwi))
   CHECK_BB(gwi_item_ini(gwi, "int", "@val"))
   CHECK_BB(gwi_item_end(gwi, 0, NULL))

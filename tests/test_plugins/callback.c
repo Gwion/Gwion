@@ -8,7 +8,7 @@
 #include "func.h"
 
 
-static struct Type_ t_callback = { "Callback", SZ_INT, &t_object };
+static struct Type_ t_callback = { "Callback", SZ_INT, t_object };
 
 struct ret_info {
   Instr instr;

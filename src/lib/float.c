@@ -6,11 +6,6 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_float = { "float", SZ_FLOAT };
-struct Type_ t_dur   = { "dur",   SZ_FLOAT };
-struct Type_ t_time  = { "time",  SZ_FLOAT };
-struct Type_ t_now   = { "@now",  SZ_FLOAT, &t_time };
-
 static INSTR(float_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_FLOAT);
   *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_float*)REG(SZ_INT));
@@ -215,13 +210,13 @@ static OP_CHECK(opck_chuck_now) {
 }
 
 static OP_CHECK(opck_implicit_f2i) {
-  return &t_null;
+  return t_null;
 }
 
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
-  ((Exp)imp->e)->cast_to = &t_float;
-  return &t_float;
+  ((Exp)imp->e)->cast_to = t_float;
+  return t_float;
 }
 
 static OP_EMIT(opem_i2f) {

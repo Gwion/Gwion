@@ -9,7 +9,7 @@
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 
 ANN static const Value mk_class(const Env env, const Type base) {
-  const Type t = type_copy(&t_class);
+  const Type t = type_copy(t_class);
   const Value v = new_value(t, base->name);
   t->d.base_type = base;
   v->owner = env->curr;
@@ -20,7 +20,7 @@ ANN static const Value mk_class(const Env env, const Type base) {
 
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   const m_str name = s_name(ptr->xid);
-  const Type t = new_type(t_func_ptr.xid, name, &t_func_ptr);
+  const Type t = new_type(t_func_ptr->xid, name, t_func_ptr);
   t->owner = env->curr;
   t->size = SZ_INT;
   t->info = new_nspc(name);
@@ -39,7 +39,7 @@ ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) { G
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
   CHECK_OB((base = scan_type(env, base, stmt->type)))
-  if((isa(base, &t_object) < 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
+  if((isa(base, t_object) < 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
     Type t = NULL;
     t = new_type(env->type_xid++, s_name(stmt->xid), base);
     t->size = base->size;
@@ -76,9 +76,9 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
   CHECK_BB(check_enum_xid(env, stmt))
-  t = type_copy(&t_int);
+  t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
-  t->parent = &t_int;
+  t->parent = t_int;
   nspc_add_type(env->curr, stmt->xid, t);
   stmt->t = t;
   return 1;
@@ -91,7 +91,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
             "'static' and 'private' can only be used at class scope."))
   if(stmt->xid) {
     const m_str name = s_name(stmt->xid);
-    const Type t = type_copy(&t_union);
+    const Type t = type_copy(t_union);
     t->name = name;
     t->info = new_nspc(name);
     t->info->parent = env->curr;
@@ -152,7 +152,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  const Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), &t_object);
+  const Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
   the_class->owner = env->curr;
   the_class->size = SZ_INT;
   the_class->info = new_nspc(the_class->name);

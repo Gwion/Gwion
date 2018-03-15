@@ -172,6 +172,16 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   return 1;
 }
 
+Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, const Type parent) {
+//  Type t = obstack_alloc(&gwi->env->type_obs, sizeof(struct Type_));
+//  memset(t, 0, sizeof(struct Type_));
+  Type t = new_type(0, name, parent);
+//  t->name = s_name(insert_symbol(name));
+  t->size = size;
+//  t->parent = parent;
+  return t;
+}
+
 ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
@@ -649,15 +659,15 @@ OP_CHECK(opck_const_lhs) {
     if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'..."
           "...(reason: --- left-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
-    return &t_null;
+    return t_null;
   }
   return bin->lhs->type;
 }
 
 OP_CHECK(opck_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_lhs(env, data) == &t_null)
-    return &t_null;
+  if(opck_const_lhs(env, data) == t_null)
+    return t_null;
   bin->lhs->emit_var = 1;
   return bin->lhs->type;
 }
@@ -675,7 +685,7 @@ OP_CHECK(opck_rassign) {
           "cannot assign '%s' on types '%s' and'%s'...\n"
           "\t...(reason: --- right-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
-      return &t_null;
+      return t_null;
   }
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
@@ -693,7 +703,7 @@ OP_CHECK(opck_unary) {
     if(err_msg(TYPE_, unary->exp->pos,
           "unary operator '%s' cannot be used on non-mutable data-types...",
           op2str(unary->op)) < 0)
-      return &t_null;
+      return t_null;
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
   return unary->exp->type;
@@ -702,7 +712,7 @@ Type check_exp_unary_spork(Env env, Stmt code);
 OP_CHECK(opck_spork) {
   Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return &t_shred;
+    return t_shred;
   else if(unary->code)
     return check_exp_unary_spork(env, unary->code);
   else
@@ -717,7 +727,7 @@ OP_CHECK(opck_post) {
     if(err_msg(TYPE_, post->exp->pos,
           "post operator '%s' cannot be used on non-mutable data-type...",
           op2str(post->op)) < 0)
-        return &t_null;
+        return t_null;
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
   return post->exp->type;

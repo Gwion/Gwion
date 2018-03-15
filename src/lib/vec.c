@@ -4,9 +4,6 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_vec3 = { "Vec3", SZ_VEC3 };
-struct Type_ t_vec4 = { "Vec4", SZ_VEC4 };
-
 INSTR(vec_member) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
@@ -176,7 +173,8 @@ static INSTR(vec3_r_assign) { GWDEBUG_EXE
 }
 
 m_bool import_vec3(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_vec3, NULL, NULL))
+  CHECK_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
+  CHECK_BB(gwi_class_ini(gwi,  t_vec3, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "y");
@@ -344,7 +342,8 @@ static INSTR(vec4_r_assign) { GWDEBUG_EXE
 }
 
 m_bool import_vec4(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_vec4, NULL, NULL))
+  CHECK_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
+  CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "y");

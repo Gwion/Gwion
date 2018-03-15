@@ -3,7 +3,7 @@
 #include "object.h"
 #include "emit.h"
 
-static struct Type_ t_class_template = { "ClassTemplate", SZ_INT, &t_object };
+static struct Type_ t_class_template = { "ClassTemplate", SZ_INT, t_object };
 static m_int o_map_key;
 static m_int o_map_value;
 #define MAP_KEY(a) *((M_Object*)(a->data + o_map_key))
@@ -28,7 +28,7 @@ IMPORT
 {
   const m_str list[2] = { "A", "B" };
   gwi_tmpl_ini(gwi, 2, list);
-  CHECK_BB(gwi_class_ini(gwi, &t_class_template, class_template_ctor, NULL))
+  CHECK_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
   gwi_tmpl_end(gwi);
   CHECK_BB(gwi_item_ini(gwi, "A[]", "key"))
     CHECK_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))

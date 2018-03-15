@@ -62,8 +62,6 @@ static double dbtorms(double f) {
   }
 }
 
-static struct Type_ t_std  = { "Std" };
-
 static SFUN(std_system) {
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   m_str str = STRING(obj);
@@ -178,7 +176,9 @@ static SFUN(std_lintodb) {
 }
 
 m_bool import_std(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_std, NULL, NULL))
+  Type t_std;
+  CHECK_OB((t_std = gwi_mk_type(gwi, "Std", 0, NULL)))
+  CHECK_BB(gwi_class_ini(gwi,  t_std, NULL, NULL))
 
   gwi_func_ini(gwi, "int", "clamp", std_clamp);
   gwi_func_arg(gwi, "int", "value");

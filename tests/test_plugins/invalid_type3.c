@@ -4,7 +4,7 @@
 #include "lang.h"
 #include "import.h"
 
-static struct Type_ t_invalid_var_type = { ".invalid_var_type", SZ_INT, &t_object };
+static struct Type_ t_invalid_var_type = { ".invalid_var_type", SZ_INT, t_object };
 
 MFUN(test_mfun){}
 IMPORT

@@ -3,17 +3,17 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_pair = { "Pair", SZ_INT, &t_object};
-
 static MFUN(gwf_pair_set) {
   m_uint sz = sizeof(o->data);
   memcpy(o->data, MEM(SZ_INT), sz);
 }
 
 m_bool import_pair(Gwi gwi) {
+  Type t_pair;
   const m_str list[] = { "A" , "B"};
+  CHECK_OB((t_pair = gwi_mk_type(gwi, "Pair", SZ_INT, t_object)))
   CHECK_BB(gwi_tmpl_ini(gwi, 2, list))
-  CHECK_BB(gwi_class_ini(gwi, &t_pair, NULL, NULL))
+  CHECK_BB(gwi_class_ini(gwi, t_pair, NULL, NULL))
   CHECK_BB(gwi_tmpl_end(gwi))
   CHECK_BB(gwi_item_ini(gwi, "A", "key"))
   CHECK_BB(gwi_item_end(gwi, 0, NULL))

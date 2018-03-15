@@ -5,12 +5,11 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_shred = { "Shred", SZ_INT, &t_object };
 m_int o_shred_me;
 
 M_Object new_shred(VM* vm, VM_Shred shred) {
   M_Object obj = new_M_Object(NULL);
-  initialize_object(obj, &t_shred);
+  initialize_object(obj, t_shred);
   ME(obj) = shred;
   return obj;
 }
@@ -88,8 +87,9 @@ static DTOR(shred_dtor) {
 }
 
 m_bool import_shred(Gwi gwi) {
-  SET_FLAG((&t_shred), ae_flag_abstract);
-  CHECK_BB(gwi_class_ini(gwi,  &t_shred, NULL, shred_dtor))
+  CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
+  SET_FLAG((t_shred), ae_flag_abstract);
+  CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
 	gwi_item_ini(gwi, "int", "@me");
   o_shred_me = gwi_item_end(gwi, ae_flag_member, NULL);

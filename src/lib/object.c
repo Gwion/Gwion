@@ -9,9 +9,6 @@
 #include "mpool.h"
 POOL_HANDLE(M_Object, 512)
 
-struct Type_ t_null    = { "@null",  SZ_INT };
-struct Type_ t_object  = { "Object", SZ_INT };
-
 ANN void NullException(const VM_Shred shred, const m_str c) {
   for(m_uint i = vector_size(&shred->gc1) + 1; --i;)
     release((M_Object)vector_at(&shred->gc1, i-1), shred);
@@ -30,7 +27,7 @@ M_Object new_M_Object(const VM_Shred shred) {
 
 M_Object new_String(const VM_Shred shred, const m_str str) {
   M_Object o = new_M_Object(shred);
-  initialize_object(o, &t_string);
+  initialize_object(o, t_string);
   STRING(o) = s_name(insert_symbol(str));
   return o;
 }
@@ -78,7 +75,7 @@ void release(M_Object obj, const VM_Shred shred) {
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
-        if(!GET_FLAG(value, ae_flag_static) && isa(value->m_type, &t_object) > 0)
+        if(!GET_FLAG(value, ae_flag_static) && isa(value->m_type, t_object) > 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
       free_vector(v);
@@ -132,11 +129,11 @@ static OP_CHECK(at_object) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Type l = bin->lhs->type;
   Type r = bin->rhs->type;
-  if(opck_rassign(env, data) == &t_null)
-    return &t_null;
-  if(l != &t_null && isa(l, r) < 0) {
+  if(opck_rassign(env, data) == t_null)
+    return t_null;
+  if(l != t_null && isa(l, r) < 0) {
     if(err_msg(TYPE_, bin->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
-    return &t_null;
+    return t_null;
   }
   bin->rhs->emit_var = 1;
   return r;
@@ -146,7 +143,7 @@ static OP_CHECK(opck_object_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = cast->self->type;
-  return isa(l, r) > 0 ? r : &t_null;
+  return isa(l, r) > 0 ? r : t_null;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
@@ -155,7 +152,8 @@ static OP_CHECK(opck_implicit_null2obj) {
 }
 
 m_bool import_object(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi, &t_object, NULL, object_dtor))
+  CHECK_OB((t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL)))
+  CHECK_BB(gwi_class_ini(gwi, t_object, NULL, object_dtor))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
   CHECK_BB(gwi_oper_add(gwi, at_object))

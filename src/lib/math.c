@@ -4,8 +4,6 @@
 #include "instr.h"
 #include "import.h"
 
-static struct Type_ t_math = { "Math" };
-
 static SFUN(math_abs) {
   *(m_uint*)RETURN = labs(*(m_int*)MEM(SZ_INT));
 }
@@ -210,8 +208,12 @@ static SFUN(math_isnan) {
   *(m_uint*)RETURN = isnan(ret);
 }
 
-m_bool import_math(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_math, NULL, NULL))
+const m_bool import_math(const Gwi gwi) {
+  Type t_math;
+  CHECK_OB((t_math = gwi_mk_type(gwi, "Math", 0, NULL)))
+
+
+  CHECK_BB(gwi_class_ini(gwi,  t_math, NULL, NULL))
 
   gwi_func_ini(gwi, "int", "abs", math_abs);
   gwi_func_arg(gwi, "int", "value");

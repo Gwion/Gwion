@@ -11,13 +11,6 @@
 #include "lang_private.h"
 #include "emit.h"
 
-struct Type_ t_void      = { "void",       0,      NULL };
-struct Type_ t_function  = { "@function",  SZ_INT, NULL };
-struct Type_ t_func_ptr  = { "@func_ptr",  SZ_INT, &t_function };
-struct Type_ t_class     = { "@Class",     SZ_INT, NULL };
-struct Type_ t_gack      = { "@Gack",      SZ_INT, NULL };
-struct Type_ t_union     = { "@Union",     SZ_INT, &t_object };
-
 Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
 m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs);
 OP_CHECK(opck_fptr_at);
@@ -36,7 +29,7 @@ static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   Type t = cast->self->type;
   Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  Func  f = isa(v->m_type, &t_func_ptr) > 0 ?
+  Func  f = isa(v->m_type, t_func_ptr) > 0 ?
             v->m_type->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
   CHECK_BO(compat_func(t->d.func->def, f->def))
@@ -52,20 +45,33 @@ OP_CHECK(opck_basic_cast) {
 OP_EMIT(opem_basic_cast) {
   return 1;
 }
+
 static m_bool import_core_libs(Gwi gwi) {
-  CHECK_BB(gwi_add_type(gwi, &t_void))
-  CHECK_BB(gwi_add_type(gwi, &t_null))
-  CHECK_BB(gwi_add_type(gwi, &t_function))
-  CHECK_BB(gwi_add_type(gwi, &t_func_ptr))
-  CHECK_BB(gwi_add_type(gwi, &t_gack))
-  CHECK_BB(gwi_add_type(gwi, &t_int))
-  CHECK_BB(gwi_add_type(gwi, &t_float))
-  CHECK_BB(gwi_add_type(gwi, &t_dur))
-  CHECK_BB(gwi_add_type(gwi, &t_time))
-  CHECK_BB(gwi_add_type(gwi, &t_now))
+  CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
+  CHECK_OB((t_void = gwi_mk_type(gwi, "void", 0, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_void))
+  CHECK_OB((t_null    = gwi_mk_type(gwi, "@null",  SZ_INT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_null))
+  CHECK_OB((t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_function))
+  CHECK_OB((t_func_ptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function)))
+  CHECK_BB(gwi_add_type(gwi, t_func_ptr))
+  CHECK_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_gack))
+  CHECK_OB((t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_int))
+  CHECK_OB((t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_float))
+  CHECK_OB((t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_dur))
+  CHECK_OB((t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_time))
+  CHECK_OB((t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, t_time)))
+  CHECK_BB(gwi_add_type(gwi, t_now))
+  CHECK_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
   CHECK_BB(import_object(gwi))
   CHECK_BB(import_array(gwi))
-  CHECK_BB(gwi_add_type(gwi, &t_union))
+  CHECK_BB(gwi_add_type(gwi, t_union))
   CHECK_BB(import_event(gwi))
   CHECK_BB(import_ugen(gwi))
   CHECK_BB(import_ptr(gwi))

@@ -2,7 +2,7 @@
 #include "type.h"
 #include "import.h"
 
-static struct Type_ t_coverage = { "Coverage", SZ_INT, &t_object };
+static struct Type_ t_coverage = { "Coverage", SZ_INT, t_object };
 
 SFUN(coverage_int)     { *(m_uint*)RETURN    = 0; }
 SFUN(coverage_float)   { *(m_float*)RETURN   = 0; }

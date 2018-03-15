@@ -9,7 +9,7 @@
 #include "type.h"
 #include "mpool.h"
 
-#define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array.info->offset))
+#define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array->info->offset))
 #define MAP_KEY(p) ((char*)(p->data))
 #define MAP_VAL(p, o) ((char*)(p->data + MAP_INFO(o)->key_size))
 
@@ -22,7 +22,6 @@ struct Map_Info_ {
   f_cmp cmp;
 };
 POOL_HANDLE(Map_Info, 16)
-static struct Type_ t_map = { "Map", SZ_INT };
 
 static m_bool string_cmp(const char *restrict a, const char*restrict b, const m_uint size) {
   M_Object o = (M_Object)b;
@@ -53,7 +52,7 @@ static CTOR(map_ctor) {
   info->val_size = val_type->size;
   MAP_INFO(o) = info;
   env->curr = curr;
-  if(isa(key_type, &t_string) > 0)
+  if(isa(key_type, t_string) > 0)
     MAP_INFO(o)->cmp = string_cmp;
   else
     MAP_INFO(o)->cmp = cmp;
@@ -98,9 +97,11 @@ static MFUN(gw_map_set) {
 }
 
 m_bool import_map(Gwi gwi) {
+  Type t_map;
   m_str types[] = { "A", "B" };
+  CHECK_OB((t_map = gwi_mk_type(gwi, "Map", SZ_INT, NULL)))
   CHECK_BB(gwi_tmpl_ini(gwi, 2, types))
-  CHECK_BB(gwi_class_ini(gwi, &t_map, map_ctor, map_dtor))
+  CHECK_BB(gwi_class_ini(gwi, t_map, map_ctor, map_dtor))
   CHECK_BB(gwi_tmpl_end(gwi))
   Type_Decl* td  = new_type_decl(new_id_list(insert_symbol("Pair"), 0), 0, 0);
   Type_Decl* td0 = new_type_decl(new_id_list(insert_symbol("A"), 0), 0, 0);

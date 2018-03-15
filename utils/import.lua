@@ -340,18 +340,22 @@ for n in ipairs(a) do
   end
 end
 
-print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
+--
+--print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
+print("")
+print("m_bool import_soundpipe(Gwi gwi)\n{\n")
+print("\tType t_ftbl;")
 for n in ipairs(a) do
   local name = a[n]
   local object = sptbl[name]
   local title = string.format("%s%s", string.upper(name:sub(1, 1)), string.sub(name, 2))
   if not string.match(object.modtype, "gen") and not string.match(name, "foo") then
-    print("struct Type_ t_"..name.." = {\""..title.."\", SZ_INT, &t_ugen};")
+    print("\tType t_"..name..";")-- = {\""..title.."\", SZ_INT, &t_ugen};")
+    print("\tCHECK_OB((t_"..name.." = gwi_mk_type(gwi, \""..title.."\", SZ_INT, t_ugen)))")
   end
 end
-print("")
-print("m_bool import_soundpipe(Gwi gwi)\n{\n")
-print("\tCHECK_BB(gwi_class_ini(gwi, &t_ftbl, NULL, ftbl_dtor))")
+print("\tCHECK_OB((t_ftbl = gwi_mk_type(gwi, \"ftbl\", SZ_INT, t_object)))")
+print("\tCHECK_BB(gwi_class_ini(gwi, t_ftbl, NULL, ftbl_dtor))")
 print("\tCHECK_BB(gwi_item_ini(gwi, \"int\", \"@ftbl\"))")
 print("\to_ftbl_data = gwi_item_end(gwi, 0, NULL);")
 for n in ipairs(a) do
@@ -376,7 +380,7 @@ for n in ipairs(a) do
   local mod_name = a[n]
   local object = sptbl[mod_name]
   if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
-    print("\tCHECK_BB(gwi_class_ini(gwi, &t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
+    print("\tCHECK_BB(gwi_class_ini(gwi, t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
     local nmandatory = 0
     local tbl = object.params.mandatory
     if tbl then

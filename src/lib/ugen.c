@@ -7,7 +7,6 @@
 #include "ugen.h"
 #include "mpool.h"
 POOL_HANDLE(UGen, 256)
-struct Type_ t_ugen = { "UGen", SZ_INT, &t_object };
 m_int o_object_ugen;
 
 static TICK(dac_tick) {
@@ -81,7 +80,7 @@ UGen new_UGen() {
 
 M_Object new_M_UGen() {
   M_Object o = new_M_Object(NULL);
-  initialize_object(o, &t_ugen);
+  initialize_object(o, t_ugen);
   UGEN(o) = new_UGen();
   return o;
 }
@@ -326,7 +325,8 @@ static OP_CHECK(chuck_ugen) {
 }
 
 m_bool import_ugen(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_ugen, ugen_ctor, ugen_dtor))
+  CHECK_OB((t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, t_object)))
+  CHECK_BB(gwi_class_ini(gwi,  t_ugen, ugen_ctor, ugen_dtor))
   CHECK_BB(gwi_item_ini(gwi, "int", "@ugen"))
   CHECK_BB((o_object_ugen = gwi_item_end(gwi, ae_flag_member, NULL)))
 

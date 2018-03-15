@@ -8,8 +8,6 @@
 #include "import.h"
 #include "mpool.h"
 
-struct Type_ t_array  = { "Array", SZ_INT, &t_object };
-
 m_int o_object_array;
 
 struct M_Vector_ {
@@ -26,7 +24,7 @@ ANN m_uint m_vector_size(M_Vector v) {
 
 static DTOR(array_dtor) {
   Type base = array_base(o->type_ref);
-  if(ARRAY(o)->depth > 1 || isa(base, &t_object) > 0) {
+  if(ARRAY(o)->depth > 1 || isa(base, t_object) > 0) {
     m_uint i;
     for(i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
       release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
@@ -86,7 +84,7 @@ static MFUN(vm_vector_rem) {
   M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
     return;
-  if(isa(o->type_ref, &t_object) > 0) {
+  if(isa(o->type_ref, t_object) > 0) {
     M_Object obj;
     m_vector_get(v, index, &obj);
     release(obj,shred);
@@ -133,12 +131,12 @@ static OP_CHECK(opck_array_at) {
   if(isa(l, r) < 0) {
     REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->pos, "array types do not match.");
-    return &t_null;
+    return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
     REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->pos, "array depths do not match.");
-    return &t_null;
+    return t_null;
   }
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
@@ -150,10 +148,10 @@ static OP_CHECK(opck_array_shift) {
   Type r = get_array_type(bin->rhs->type);
   if(isa(l, r) < 0) {
     err_msg(TYPE_, bin->pos, "array types do not match.");
-    return &t_null;
+    return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
-    return &t_null;
+    return t_null;
   return bin->lhs->type;
 }
 
@@ -173,12 +171,13 @@ static OP_CHECK(opck_array_cast) {
   if(!r->d.base_type) l = r->parent;
   if(l->array_depth == r->array_depth || isa(l->d.base_type, r->d.base_type) > 0)
     return l;
-  return &t_null;
+  return t_null;
 }
 
 m_bool import_array(const Gwi gwi) {
-  SET_FLAG((&t_array), ae_flag_abstract);
-  CHECK_BB(gwi_class_ini(gwi,  &t_array, NULL, array_dtor))
+  t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object );
+  SET_FLAG((t_array), ae_flag_abstract);
+  CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
 	gwi_item_ini(gwi, "int", "@array");
   o_object_array = gwi_item_end(gwi, ae_flag_member, NULL);

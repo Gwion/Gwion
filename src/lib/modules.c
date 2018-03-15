@@ -8,8 +8,6 @@
 #include "ugen.h"
 #include "func.h"
 
-static struct Type_ t_sinosc      = { "SinOsc",      SZ_INT, &t_ugen };
-
 typedef struct {
   sp_data* sp;
   sp_osc* osc;
@@ -48,7 +46,7 @@ static CTOR(sinosc_ctor) {
   ug->is_init = 1;
 }
 
-DTOR(sinosc_dtor) {
+static DTOR(sinosc_dtor) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   sp_osc_destroy(&ug->osc);
   sp_ftbl_destroy(&ug->tbl);
@@ -68,30 +66,32 @@ static MFUN(sinosc_size_phase) {
   refresh_sine(shred->vm_ref, ug, size, phase);
 }
 
-MFUN(sinosc_get_freq) {
+static MFUN(sinosc_get_freq) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   *(m_float*)RETURN = ug->osc->freq;
 }
 
-MFUN(sinosc_set_freq) {
+static MFUN(sinosc_set_freq) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float freq = *(m_float*)(shred->mem + SZ_INT);
   *(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
-MFUN(sinosc_get_amp) {
+static MFUN(sinosc_get_amp) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   *(m_float*)RETURN = ug->osc->amp;
 }
 
-MFUN(sinosc_set_amp) {
+static MFUN(sinosc_set_amp) {
   SP_osc* ug = (SP_osc*)UGEN(o)->ug;
   m_float amp = *(m_float*)(shred->mem + SZ_INT);
   *(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
-static m_bool import_sinosc(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_sinosc, sinosc_ctor, sinosc_dtor))
+static const m_bool import_sinosc(const Gwi gwi) {
+  Type t_sinosc;
+  CHECK_OB((t_sinosc = gwi_mk_type(gwi, "SinOsc", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_sinosc, sinosc_ctor, sinosc_dtor))
   gwi_func_ini(gwi, "void", "init", sinosc_size);
   gwi_func_arg(gwi, "int", "size");
   CHECK_BB(gwi_func_end(gwi, 0))
@@ -117,8 +117,6 @@ static DTOR(basic_dtor) {
   free(UGEN(o)->ug);
 }
 
-static struct Type_ t_gain      = { "Gain", SZ_INT, &t_ugen };
-
 static TICK(gain_tick) {
   u->out = (u->in * *(m_float*)u->ug);
 }
@@ -138,8 +136,10 @@ static MFUN(gain_set_gain) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT);
 }
 
-static m_bool import_gain(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_gain, gain_ctor, basic_dtor))
+static const m_bool import_gain(const Gwi gwi) {
+  Type t_gain;
+  CHECK_OB((t_gain = gwi_mk_type(gwi, "Gain", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_gain, gain_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "gain", gain_get_gain);
   CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "gain", gain_set_gain);
@@ -149,8 +149,6 @@ static m_bool import_gain(Gwi gwi) {
   return 1;
 }
 
-
-static struct Type_ t_impulse      = { "Impulse", SZ_INT, &t_ugen };
 static TICK(impulse_tick) {
   u->out = *(m_float*)u->ug;
   *(m_float*)u->ug = 0;
@@ -170,8 +168,10 @@ static MFUN(impulse_set_next) {
   *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT));
 }
 
-static m_bool import_impulse(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_impulse, impulse_ctor, basic_dtor))
+static const m_bool import_impulse(const Gwi gwi) {
+  Type t_impulse;
+  CHECK_OB((t_impulse = gwi_mk_type(gwi, "Impulse", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_impulse, impulse_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "next", impulse_get_next);
   CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "next", impulse_set_next);
@@ -181,7 +181,6 @@ static m_bool import_impulse(Gwi gwi) {
   return 1;
 }
 
-static struct Type_ t_fullrect = { "FullRect", SZ_INT, &t_ugen };
 static TICK(fullrect_tick) {
   base_tick(u);
   u->out = fabs(u->in);
@@ -193,13 +192,14 @@ static CTOR(fullrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_fullrect(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_fullrect, fullrect_ctor, basic_dtor))
+static m_bool const import_fullrect(const Gwi gwi) {
+  Type t_fullrect;
+  CHECK_OB((t_fullrect = gwi_mk_type(gwi, "FullRect", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_fullrect, fullrect_ctor, basic_dtor))
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
-static struct Type_ t_halfrect = { "HalfRect", SZ_INT, &t_ugen };
 static TICK(halfrect_tick) {
   base_tick(u);
   if(u->in > 0)
@@ -214,13 +214,14 @@ static CTOR(halfrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_halfrect(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_halfrect, halfrect_ctor, basic_dtor))
+static const m_bool import_halfrect(const Gwi gwi) {
+  Type t_halfrect;
+  CHECK_OB((t_halfrect = gwi_mk_type(gwi, "HalfRect", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_halfrect, halfrect_ctor, basic_dtor))
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
-static struct Type_ t_step = { "Step", SZ_INT, &t_ugen };
 static TICK(step_tick) {
   u->out = *(m_float*)u->ug;
 }
@@ -239,8 +240,10 @@ static MFUN(step_set_next) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
-static m_bool import_step(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_step, step_ctor, basic_dtor))
+static m_bool const import_step(const Gwi gwi) {
+  Type t_step;
+  CHECK_OB((t_step = gwi_mk_type(gwi, "Step", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi,  t_step, step_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "next", step_get_next);
   CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "next", step_set_next);
@@ -249,8 +252,6 @@ static m_bool import_step(Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
-
-static struct Type_ t_zerox       = { "ZeroX",       SZ_INT, &t_ugen };
 
 static TICK(zerox_tick) {
   base_tick(u);
@@ -266,13 +267,15 @@ static CTOR(zerox_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool import_zerox(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_zerox, zerox_ctor, basic_dtor))
+static const m_bool import_zerox(const Gwi gwi) {
+  Type t_zerox;
+  CHECK_OB((t_zerox = gwi_mk_type(gwi, "ZeroX", SZ_INT, t_ugen)))
+  CHECK_BB(gwi_class_ini(gwi, t_zerox, zerox_ctor, basic_dtor))
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
 
-m_bool import_modules(Gwi gwi) {
+const m_bool import_modules(const Gwi gwi) {
   CHECK_BB(import_sinosc(gwi))
   CHECK_BB(import_gain(gwi))
   CHECK_BB(import_impulse(gwi))

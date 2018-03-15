@@ -139,7 +139,7 @@ ANN const Type op_check(const Env env, struct Op_Import* opi) {
           NULL, NULL, opi->data };
         Type ret = op_check_inner(env, &nspc->op_map, &opi2);
         if(ret) {
-          if(ret == &t_null)
+          if(ret == t_null)
             break;
           set_nspc(opi, nspc);
           return ret;

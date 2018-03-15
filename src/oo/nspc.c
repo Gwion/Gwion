@@ -132,7 +132,7 @@ ANN static void free_nspc_value(const Nspc a) {
   const Vector v = scope_get(&a->value);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->m_type, &t_class) > 0) {
+    if(isa(value->m_type, t_class) > 0) {
       if(GET_FLAG(value->m_type->d.base_type, ae_flag_template)) {
         UNSET_FLAG(value->m_type->d.base_type, ae_flag_template);
         if(GET_FLAG(value->m_type->d.base_type, ae_flag_ref)) {
@@ -151,16 +151,16 @@ ANN static void free_nspc_value(const Nspc a) {
           free_class_def(value->m_type->d.base_type->def);
       }
       REM_REF(value->m_type)
-    } else if(isa(value->m_type, &t_union) > 0) {
+    } else if(isa(value->m_type, t_union) > 0) {
       if(GET_FLAG(value, ae_flag_static))
         nspc_release_object(a, value);
       REM_REF(value->m_type)
     }
-    else if(isa(value->m_type, &t_object) > 0)
+    else if(isa(value->m_type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->m_type, &t_func_ptr) > 0)
+    else if(isa(value->m_type, t_func_ptr) > 0)
       free_nspc_value_fptr(value->d.func_ref);
-    else if(isa(value->m_type, &t_function) > 0) {
+    else if(isa(value->m_type, t_function) > 0) {
       if(GET_FLAG(value, ae_flag_template)) {
         REM_REF(value->m_type)
         REM_REF(value->d.func_ref)

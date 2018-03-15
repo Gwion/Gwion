@@ -19,6 +19,8 @@ typedef struct Gwi_* Gwi;
     CHECK_BB(gwi_oper_end(gwi, op_##op, func))\
 
 ANN VM* gwi_vm(const Gwi);
+__attribute__((nonnull(1,2)))
+Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
 ANN m_int gwi_add_type(const Gwi gwi, Type type);
 __attribute__((nonnull(1,2,3)))
 m_int gwi_add_value(const Gwi gwi, const m_str name, Type type, const m_bool is_const, void* data);

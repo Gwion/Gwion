@@ -409,7 +409,7 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
 ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, ae_flag_template);
-  if(isa(overload->m_type, &t_function) < 0)
+  if(isa(overload->m_type, t_function) < 0)
     CHECK_BB(err_msg(SCAN2_, f->pos,
           "function name '%s' is already used by another value",
           s_name(f->name)))
@@ -441,7 +441,7 @@ static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Va
     SET_FLAG(func, ae_flag_ref);
   if(env->class_def && !GET_FLAG(f, ae_flag_static))
     SET_FLAG(func, ae_flag_member);
-  type = type_copy(&t_function);
+  type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
   value = new_value(type, func_name);
@@ -581,7 +581,7 @@ static Value func_create(const Env env, const Func_Def f,
     SET_FLAG(func, ae_flag_member);
   if(GET_FLAG(f, ae_flag_builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
-  const Type type = new_type(t_function.xid, func_name, &t_function);
+  const Type type = new_type(t_function->xid, func_name, t_function);
   type->size = SZ_INT;
   if(GET_FLAG(func, ae_flag_member))
     type->size += SZ_INT;

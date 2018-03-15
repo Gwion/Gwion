@@ -246,7 +246,7 @@ ANN VM_Array_Info* emit_array_extend_inner(const Emitter emit, const Type t, con
   info->base = base;
   Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
   *(VM_Array_Info**)alloc->ptr = info;
-  if(isa(base, &t_object) > 0) {
+  if(isa(base, t_object) > 0) {
     CHECK_BO(emit_pre_constructor_array(emit, base))
     info->is_obj = 1;
   }
@@ -289,7 +289,7 @@ m_bool emit_instantiate_object(const Emitter emit, const Type type,
     VM_Array_Info* info = emit_array_extend_inner(emit, type, array->exp_list);
     CHECK_OB(info)
     info->is_ref = is_ref;
-  } else if(isa(type, &t_object) > 0 && !is_ref) {
+  } else if(isa(type, t_object) > 0 && !is_ref) {
     Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
     emit_pre_ctor(emit, type);
@@ -333,7 +333,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   if(GET_FLAG(v, ae_flag_func)) {
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->d.func_ref;
-  } else if(!prim->self->emit_var && isa(v->m_type, &t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) { GWDEBUG_EXE
+  } else if(!prim->self->emit_var && isa(v->m_type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) { GWDEBUG_EXE
     instr->m_val = v->m_type->size;
     if(v->d.ptr)
       memcpy(instr->ptr, v->d.ptr, v->m_type->size);
@@ -570,7 +570,7 @@ ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const
 ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const m_bool is_ref) { GWDEBUG_EXE
   const Value value = var_decl->value;
 
-  if(isa(value->m_type, &t_object) > 0 && !is_ref)
+  if(isa(value->m_type, t_object) > 0 && !is_ref)
     CHECK_BB(decl_static(emit, var_decl, 0))
   CHECK_BB(emit_dot_static_data(emit, value, 1))
   return 1;
@@ -588,7 +588,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   Instr alloc;
   const Array_Sub array = var_decl->array;
   const m_bool is_array = array && array->exp_list;
-  const m_bool is_obj = isa(type, &t_object) > 0 || var_decl->array;
+  const m_bool is_obj = isa(type, t_object) > 0 || var_decl->array;
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   if(GET_FLAG(value, ae_flag_member))
@@ -598,7 +598,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
         (is_obj ? IS_OBJ : 0));
   alloc->m_val2 = type->size;
   alloc->m_val = value->offset;
-  *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, &t_object) < 0)  ? emit_var : 1;
+  *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, t_object) < 0)  ? emit_var : 1;
   if(is_obj) {
     if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
 if(!(type->def && type->def->ext && GET_FLAG(type->def->ext, ae_flag_typedef)))
@@ -723,7 +723,7 @@ ANN m_bool emit_exp_binary_ptr(const Emitter emit, const Exp rhs) { GWDEBUG_EXE
   Instr instr = emitter_add_instr(emit, assign_func);
   if(rhs->exp_type == ae_exp_dot) {
     Type t = rhs->d.exp_dot.t_base;
-    if(isa(t, &t_class) > 0)
+    if(isa(t, t_class) > 0)
       t = t->d.base_type;
     v = find_value(t, rhs->d.exp_dot.xid);
     if(GET_FLAG(v, ae_flag_member))
@@ -760,7 +760,7 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* binary) 
   struct Op_Import opi = { binary->op, lhs->type, rhs->type, NULL,
     NULL, NULL, (uintptr_t)binary };
 
-  if(binary->op == op_chuck && isa(rhs->type, &t_function) > 0)
+  if(binary->op == op_chuck && isa(rhs->type, t_function) > 0)
     return emit_binary_func(emit, binary);
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
@@ -785,7 +785,7 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { G
 
 ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, dur->base, 0))
-  if(isa(dur->base->type, &t_int) > 0)
+  if(isa(dur->base->type, t_int) > 0)
     CHECK_OB(emitter_add_instr(emit, Cast_i2f))
   CHECK_BB(emit_exp(emit, dur->unit, 0))
   CHECK_OB(emitter_add_instr(emit, float_times))
@@ -793,8 +793,8 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
 }
 
 ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
-  return isa(f->value_ref->m_type, &t_func_ptr) > 0 ||
-         isa(f->value_ref->m_type, &t_class) > 0 ?
+  return isa(f->value_ref->m_type, t_func_ptr) > 0 ||
+         isa(f->value_ref->m_type, t_class) > 0 ?
          nspc_lookup_func1(f->value_ref->owner, f->def->name) :
          nspc_lookup_func2(nspc, insert_symbol(f->name));
 }
@@ -843,9 +843,9 @@ ANN m_bool emit_exp_call1_builtin(const Emitter emit, const Func func) { GWDEBUG
   Instr call;
 
   Type t = func->value_ref->m_type;
-  if(isa(t, &t_class) > 0)
+  if(isa(t, t_class) > 0)
     t = t->d.base_type;
-  if(isa(t, &t_func_ptr) < 0)
+  if(isa(t, t_func_ptr) < 0)
   if(!func->code || !func->code->native_func)
     CHECK_BB(err_msg(EMIT_, func->def->pos,
           "missing native func. are you trying to spork?"))
@@ -1002,7 +1002,7 @@ ANN static m_bool emit_implicit_cast(const Emitter emit, const Type from, const 
 ANN static Instr emit_flow(const Emitter emit, const Type type, const f_instr f1, const f_instr f2) { GWDEBUG_EXE
   Instr push = emitter_add_instr(emit, Reg_PushImm);
   CHECK_OO(push)
-  if(isa(type, &t_int) > 0) {
+  if(isa(type, t_int) > 0) {
     push->m_val = SZ_INT;
     return emitter_add_instr(emit, f1);
   }
@@ -1055,7 +1055,7 @@ static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_
     }
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp->type, exp->cast_to))
-      if(ref && isa(exp->type, &t_object) > 0 && isa(exp->type, &t_void) < 0) {
+      if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_void) < 0) {
         Instr ref = emitter_add_instr(emit, Reg_AddRef_Object3);
         ref->m_val = exp->emit_var;
       }
@@ -1070,7 +1070,7 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
   COVERAGE(stmt->cond)
-  CHECK_OB((op = emit_flow(emit, isa(stmt->cond->type, &t_object) > 0 ? &t_int : stmt->cond->type,
+  CHECK_OB((op = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ? t_int : stmt->cond->type,
                            Branch_Eq_Int, Branch_Eq_Float)))
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
@@ -1402,7 +1402,7 @@ ANN static m_int get_case_value(const Stmt_Case stmt, m_int* value) {
   if(stmt->val->exp_type == ae_exp_primary)
     CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
   else {
-    Type t = isa(stmt->val->d.exp_dot.t_base, &t_class) > 0 ?
+    Type t = isa(stmt->val->d.exp_dot.t_base, t_class) > 0 ?
         stmt->val->d.exp_dot.t_base->d.base_type :
         stmt->val->d.exp_dot.t_base;
     Value v = find_value(t, stmt->val->d.exp_dot.xid);
@@ -1588,9 +1588,9 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool is_special(const Type t) {
-  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0 ||
-     isa(t, &t_vec3)    > 0 || isa(t, &t_vec4)  > 0  ||
-     isa(t, &t_vararg)  > 0)
+  if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0 ||
+     isa(t, t_vec3)    > 0 || isa(t, t_vec4)  > 0  ||
+     isa(t, t_vararg)  > 0)
     return 1;
   return -1;
 }
@@ -1605,7 +1605,7 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       func_i->m_val = SZ_INT;
     } else {
       func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
-      func_i->m_val = (isa(v->m_type, &t_object) > 0 ?
+      func_i->m_val = (isa(v->m_type, t_object) > 0 ?
         (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
       func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
       *(m_uint*)func_i->ptr = emit_addr;
@@ -1628,7 +1628,7 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
 
   base->emit_var = 1;
   CHECK_BB(emit_exp(emit, base, 0))
-  if(!strcmp((isa(base->type, &t_complex) > 0  ? "re" : "phase") ,
+  if(!strcmp((isa(base->type, t_complex) > 0  ? "re" : "phase") ,
         s_name(member->xid)))
     instr = emitter_add_instr(emit, complex_real);
   else
@@ -1703,9 +1703,9 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) { GWDEB
 ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   const Type t = member->t_base;
 
-  if(isa(t, &t_complex) > 0 || isa(t, &t_polar) > 0)
+  if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0)
     return emit_complex_member(emit, member);
-  else if(isa(t, &t_vec3) > 0 || isa(t, &t_vec4) > 0)
+  else if(isa(t, t_vec3) > 0 || isa(t, t_vec4) > 0)
     return emit_vec_member(emit, member);
   return emit_vararg(emit, member);
 }
@@ -1743,7 +1743,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
   const Type t_base = member->t_base;
   const Value value = find_value(t_base, member->xid);
   const m_bool emit_addr = member->self->emit_var;
-  if(isa(member->self->type, &t_func_ptr) > 0) { // function pointer
+  if(isa(member->self->type, t_func_ptr) > 0) { // function pointer
     if(GET_FLAG(value, ae_flag_member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
         CHECK_BB(err_msg(EMIT_, member->pos, "... in member function")) // LCOV_EXCL_LINE
@@ -1751,7 +1751,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
       return emit_member(emit, value, emit_addr);
     } else
       return emit_dot_static_data(emit, value, emit_addr);
-  } else if(isa(member->self->type, &t_function) > 0) { // function
+  } else if(isa(member->self->type, t_function) > 0) { // function
     const Func func = value->d.func_ref;
     if(GET_FLAG(func, ae_flag_member))
       return emit_member_func(emit, member, func);
@@ -1771,9 +1771,9 @@ ANN static m_bool emit_exp_dot_static(const Emitter emit, const Exp_Dot* member)
   const Type t_base = member->t_base->d.base_type;
   const Value value = find_value(t_base, member->xid);
 
-  if(isa(member->self->type, &t_func_ptr) > 0)
+  if(isa(member->self->type, t_func_ptr) > 0)
     return emit_dot_static_import_data(emit, value, member->self->emit_var);
-  if(isa(member->self->type, &t_function) > 0)
+  if(isa(member->self->type, t_function) > 0)
     return emit_dot_static_func(emit, t_base, value->d.func_ref);
   return emit_dot_static_import_data(emit, value, member->self->emit_var);
 }
@@ -1781,7 +1781,7 @@ ANN static m_bool emit_exp_dot_static(const Emitter emit, const Exp_Dot* member)
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
-  if(isa(member->t_base, &t_class) > 0)
+  if(isa(member->t_base, t_class) > 0)
     return emit_exp_dot_static(emit, member);
   return emit_exp_dot_instance(emit, member);
 }
@@ -1821,7 +1821,7 @@ ANN static m_bool emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_E
   while(a) {
     Value value = a->var_decl->value;
     m_int offset, size = value->m_type->size;
-    m_bool obj = isa(value->m_type, &t_object) > 0 ? IS_OBJ : 0;
+    m_bool obj = isa(value->m_type, t_object) > 0 ? IS_OBJ : 0;
     m_bool ref = GET_FLAG(a->type_decl, ae_flag_ref) ? IS_REF : 0;
     emit->code->stack_depth += size;
     if((offset = emit_alloc_local(emit, size, ref | obj)) < 0)

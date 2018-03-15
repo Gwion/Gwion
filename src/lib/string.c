@@ -9,7 +9,6 @@
 #include "instr.h"
 #include "import.h"
 
-struct Type_ t_string = { "string", SZ_INT, &t_object };
 m_int o_string_data;
 
 static void push_string(VM_Shred shred, M_Object obj, m_str c) {
@@ -762,7 +761,8 @@ static MFUN(string_toFloat) {
 }
 
 m_bool import_string(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_string, string_ctor, NULL))
+  CHECK_OB((t_string = gwi_mk_type(gwi, "string", SZ_INT, t_object)))
+  CHECK_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
 
 	gwi_item_ini(gwi, "int", "@data");
   o_string_data = gwi_item_end(gwi,   ae_flag_const, NULL);

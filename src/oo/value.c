@@ -16,7 +16,7 @@ ANN Value new_value(const Type type, const m_str name) {
 }
 
 ANN void free_value(Value a) {
-  if(!GET_FLAG(a, ae_flag_func) && a->d.ptr && isa(a->m_type, &t_object) < 0 &&
+  if(!GET_FLAG(a, ae_flag_func) && a->d.ptr && isa(a->m_type, t_object) < 0 &&
       !GET_FLAG(a, ae_flag_enum))
     free(a->d.ptr);
   mp_free(Value, a);

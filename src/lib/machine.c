@@ -7,8 +7,6 @@
 
 #define RAND_LEN 12
 
-struct Type_ t_machine   = { "Machine" };
-
 static void randstring(VM* vm, m_uint length, m_str str) {
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
   size_t stringLen = 26 * 2 + 10 + 2;
@@ -104,7 +102,7 @@ static SFUN(machine_shreds) {
   int i;
   VM* vm = shred->vm_ref;
   VM_Shred sh;
-  Type t = array_type(&t_int, 1);
+  Type t = array_type(t_int, 1);
   M_Object obj = new_M_Array(t, SZ_INT, vector_size(&vm->shred), 1);
   for(i = 0; i < vector_size(&vm->shred); i++) {
     sh = (VM_Shred)vector_at(&vm->shred, i);
@@ -115,7 +113,9 @@ static SFUN(machine_shreds) {
 }
 
 m_bool import_machine(Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  &t_machine, NULL, NULL))
+  Type t_machine;
+  CHECK_OB((t_machine = gwi_mk_type(gwi, "Machine", 0, NULL)))
+  CHECK_BB(gwi_class_ini(gwi,  t_machine, NULL, NULL))
   gwi_func_ini(gwi, "void",  "add", machine_add);
   gwi_func_arg(gwi,       "string",  "filename");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
