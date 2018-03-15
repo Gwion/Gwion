@@ -1605,7 +1605,8 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       func_i->m_val = SZ_INT;
     } else {
       func_i = emitter_add_instr(emit, Dot_Static_Import_Data);
-      func_i->m_val = (m_uint)v->d.ptr;
+      func_i->m_val = (isa(v->m_type, &t_object) > 0 ?
+        (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
       func_i->m_val2 = emit_addr ? SZ_INT : v->m_type->size;
       *(m_uint*)func_i->ptr = emit_addr;
     }
