@@ -1,10 +1,6 @@
 #include "defs.h"
 #include "type.h"
-#include "err_msg.h"
-#include "lang.h"
 #include "import.h"
-
-static struct Type_ t_enum = { "Enum", SZ_INT };
 
 IMPORT {
   CHECK_BB(gwi_enum_ini(gwi, NULL))
@@ -33,7 +29,9 @@ IMPORT {
   CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 0))
   CHECK_BB(gwi_enum_end(gwi))
   
-  CHECK_BB(gwi_class_ini(gwi, &t_enum, 0, NULL))
+  Type t_enum;
+  CHECK_OB((t_enum = gwi_mk_type(gwi, "Enum", SZ_INT, NULL)))
+  CHECK_BB(gwi_class_ini(gwi, t_enum, 0, NULL))
   
     CHECK_BB(gwi_enum_ini(gwi, 0))
     CHECK_BB(gwi_enum_add(gwi, "ENUM0", 0))

@@ -3,8 +3,6 @@
 #include "import.h"
 #include "vararg.h"
 
-static struct Type_ t_variadic = { "Variadic", SZ_INT, t_object };
-
 static MFUN(m_variadic) {
   M_Object str_obj = *(M_Object*)MEM(-SZ_INT);
   m_str str = STRING(str_obj);
@@ -29,7 +27,10 @@ static MFUN(m_variadic) {
 
 
 IMPORT {
-  CHECK_BB(gwi_class_ini(gwi, &t_variadic, NULL, NULL))
+  Type t_variadic;
+  CHECK_OB((t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, t_object)))
+
+  CHECK_BB(gwi_class_ini(gwi, t_variadic, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
   CHECK_BB(gwi_func_arg(gwi, "string", "format"))
   CHECK_BB(gwi_func_end(gwi, ae_flag_variadic))

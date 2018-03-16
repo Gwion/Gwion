@@ -3,12 +3,7 @@
 #include "err_msg.h"
 #include "instr.h"
 #include "import.h"
-#include "emit.h"
-
 #include "func.h"
-
-
-static struct Type_ t_callback = { "Callback", SZ_INT, t_object };
 
 struct ret_info {
   Instr instr;
@@ -69,10 +64,12 @@ static SFUN(cb_func) {
 }
 
 IMPORT {
+  Type t_callback;
   CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
   CHECK_BB(gwi_fptr_end(gwi, 0))
-  
-  CHECK_BB(gwi_class_ini(gwi, &t_callback, NULL, NULL))
+
+  CHECK_OB((t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, t_object)))
+  CHECK_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))
     CHECK_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
       CHECK_BB(gwi_func_arg(gwi, "PtrType", "func"))
       /*CHECK_BB(gwi_func_arg(gwi, "int", "unused"))*/

@@ -173,7 +173,6 @@ static INSTR(vec3_r_assign) { GWDEBUG_EXE
 }
 
 m_bool import_vec3(Gwi gwi) {
-  CHECK_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
   CHECK_BB(gwi_class_ini(gwi,  t_vec3, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
@@ -342,7 +341,6 @@ static INSTR(vec4_r_assign) { GWDEBUG_EXE
 }
 
 m_bool import_vec4(Gwi gwi) {
-  CHECK_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
   CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);

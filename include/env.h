@@ -1,6 +1,7 @@
 #ifndef __ENV
 #define __ENV
 #include "absyn.h"
+#include "obstack.h"
 
 struct Env_ {
   Nspc curr;
@@ -18,6 +19,7 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
+  struct obstack obs;
 };
 
 const Env new_env();

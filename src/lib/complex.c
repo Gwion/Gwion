@@ -151,7 +151,6 @@ static INSTR(polar_divide_r) { GWDEBUG_EXE
 }
 
 m_bool import_complex(Gwi gwi) {
-  CHECK_OB((t_complex = gwi_mk_type(gwi, "complex", SZ_COMPLEX , NULL)))
   CHECK_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
 	gwi_item_ini(gwi, "float", "re");
   o_complex_real = gwi_item_end(gwi,   ae_flag_member, NULL);
@@ -160,7 +159,6 @@ m_bool import_complex(Gwi gwi) {
   o_complex_imag = gwi_item_end(gwi,   ae_flag_member, NULL);
   CHECK_BB(o_complex_imag)
   CHECK_BB(gwi_class_end(gwi))
-  CHECK_OB((t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL)))
   CHECK_BB(gwi_class_ini(gwi,  t_polar, NULL, NULL))
   CHECK_BB(gwi_item_ini(gwi, "float", "mod"))
   CHECK_BB((o_polar_mod = gwi_item_end(gwi,   ae_flag_member, NULL)))

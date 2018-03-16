@@ -2,17 +2,16 @@
 #include "type.h"
 #include "import.h"
 
-static struct Type_ t_coverage = { "Coverage", SZ_INT, t_object };
-
 SFUN(coverage_int)     { *(m_uint*)RETURN    = 0; }
 SFUN(coverage_float)   { *(m_float*)RETURN   = 0; }
 SFUN(coverage_complex) { *(m_complex*)RETURN = 0; }
 SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   *(m_vec3*)RETURN = v; }
 SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
-
 IMPORT {
-  CHECK_BB(gwi_class_ini(gwi, &t_coverage, NULL, NULL))
+  Type t_coverage;
+  CHECK_OB((t_coverage = gwi_mk_type(gwi, "Coverage", SZ_INT, t_object)))
+  CHECK_BB(gwi_class_ini(gwi, t_coverage, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, "int", "i", coverage_int))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
   CHECK_BB(gwi_func_ini(gwi, "float", "f", coverage_float))

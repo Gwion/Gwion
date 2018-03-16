@@ -173,12 +173,12 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
 }
 
 Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, const Type parent) {
-//  Type t = obstack_alloc(&gwi->env->type_obs, sizeof(struct Type_));
-//  memset(t, 0, sizeof(struct Type_));
-  Type t = new_type(0, name, parent);
-//  t->name = s_name(insert_symbol(name));
+  Type t = obstack_alloc(&gwi->env->obs, sizeof(struct Type_));
+  memset(t, 0, sizeof(struct Type_));
+//  Type t = new_type(0, name, parent);
+  t->name = s_name(insert_symbol(name));
   t->size = size;
-//  t->parent = parent;
+  t->parent = parent;
   return t;
 }
 

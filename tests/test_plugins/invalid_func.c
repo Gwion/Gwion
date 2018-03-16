@@ -1,15 +1,13 @@
 #include "defs.h"
 #include "type.h"
-#include "err_msg.h"
-#include "lang.h"
 #include "import.h"
 
-static struct Type_ t_invalid_var_type = { "invalid_var_type", SZ_INT, t_object };
-
-MFUN(test_mfun){}
-IMPORT
-{
-  CHECK_BB(gwi_class_ini(gwi, &t_invalid_var_type, NULL, NULL))
+static MFUN(test_mfun){}
+IMPORT {
+  Type t_invalid_var_type ;
+  CHECK_OB((t_invalid_var_type = gwi_mk_type(gwi, "invalid_var_type",
+          SZ_INT , NULL)))
+  CHECK_BB(gwi_class_ini(gwi, t_invalid_var_type, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, ".int", "i", test_mfun))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 

@@ -1,9 +1,7 @@
 #include "type.h"
 #include "import.h"
 #include "object.h"
-#include "emit.h"
 
-static struct Type_ t_class_template = { "ClassTemplate", SZ_INT, t_object };
 static m_int o_map_key;
 static m_int o_map_value;
 #define MAP_KEY(a) *((M_Object*)(a->data + o_map_key))
@@ -26,8 +24,10 @@ static MFUN(class_template_set) {
 
 IMPORT
 {
+  Type t_class_template;
   const m_str list[2] = { "A", "B" };
   gwi_tmpl_ini(gwi, 2, list);
+  CHECK_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, t_object)))
   CHECK_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
   gwi_tmpl_end(gwi);
   CHECK_BB(gwi_item_ini(gwi, "A[]", "key"))
