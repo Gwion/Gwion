@@ -23,8 +23,8 @@ struct Type_ {
 
 ANN const m_bool type_engine_check_prog(const Env, const Ast, const m_str);
 __attribute__((nonnull(2)))
-Type new_type(const m_uint xid, const m_str name, const Type);
-ANN Type type_copy(const Type type) ANN;
+ANEW Type new_type(const m_uint xid, const m_str name, const Type);
+ANEW ANN Type type_copy(const Type type) ANN;
 Env type_engine_init(VM*, const Vector) ANN;
 void start_type_xid(void);
 Value find_value(const Type, const Symbol);

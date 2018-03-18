@@ -1,7 +1,8 @@
 #ifndef __DEF
 #define __DEF
 
-#define ANN __attribute((nonnull))
+#define ANN __attribute__((nonnull))
+#define ANEW __attribute__((malloc))
 
 #ifdef __GNUC__
 #ifdef __clang__

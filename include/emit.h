@@ -37,7 +37,7 @@ struct Emitter_ {
 #endif
 };
 
-Emitter new_emitter(Env env);
+ANEW Emitter new_emitter(Env env);
 void free_emitter(Emitter emit);
 VM_Code emit_code(const Emitter emit)__attribute__ ((nonnull, warn_unused_result));
 m_bool emit_ast(const Emitter emit, Ast ast, m_str filename) ANN;

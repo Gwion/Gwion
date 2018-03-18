@@ -8,10 +8,10 @@ struct M_Object_ {
 m_bool initialize_object(M_Object o, const Type type);
 void instantiate_object(const VM*, const VM_Shred, const Type);
 void free_object(M_Object);
-M_Object new_M_Object(const VM_Shred shred);
-M_Object new_M_UGen();
-M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth);
-M_Object new_String(const VM_Shred shred, const m_str str);
+ANEW M_Object new_M_Object(const VM_Shred shred);
+ANEW M_Object new_M_UGen();
+ANEW M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth);
+ANEW M_Object new_String(const VM_Shred shred, const m_str str);
 
 void release(M_Object obj, const VM_Shred shred);
 void NullException(const VM_Shred shred, const m_str c);

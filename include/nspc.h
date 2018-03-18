@@ -20,7 +20,7 @@ struct Nspc_ {
   struct VM_Object_ obj;
 };
 
-extern Nspc new_nspc(const m_str name);
+extern ANEW Nspc new_nspc(const m_str name);
 extern void free_nspc(Nspc a);
 
 extern Value nspc_lookup_value0(const Nspc nspc, const Symbol xid) ANN;
@@ -33,7 +33,7 @@ extern Func  nspc_lookup_func0(const Nspc nspc, const Symbol xid)  ANN;
 extern Func  nspc_lookup_func1(const Nspc nspc, const Symbol xid)  ANN;
 extern Func  nspc_lookup_func2(const Nspc nspc, const Symbol xid)  ANN;
 
-extern Vector nspc_get_value(const Nspc);
+extern ANEW Vector nspc_get_value(const Nspc);
 
 extern void  nspc_commit(const Nspc) ANN;
 extern void  nspc_rollback(const Nspc) ANN;

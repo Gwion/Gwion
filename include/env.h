@@ -22,7 +22,7 @@ struct Env_ {
   struct obstack obs;
 };
 
-const Env new_env();
+ANEW const Env new_env();
 ANN void env_reset(const Env);
 ANN void free_env(Env);
 ANN const m_bool env_push_class(const Env, const Type);

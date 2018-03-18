@@ -13,5 +13,5 @@ struct Value_ {
   struct VM_Object_ obj;
 };
 
-ANN Value new_value(const Type type, const m_str name);
+ANEW ANN Value new_value(const Type type, const m_str name);
 ANN void free_value(Value a);

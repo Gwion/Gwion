@@ -8,7 +8,7 @@ typedef m_uint vtype;
 typedef struct Vector_ * Vector;
 typedef struct Map_    * Map;
 
-extern       Vector new_vector();
+ANEW extern       Vector new_vector();
 ANN extern       void   vector_init(Vector);
 ANN extern const Vector vector_copy(Vector);
 ANN extern       void   vector_copy2(const __restrict__ Vector, __restrict__ Vector);
@@ -37,7 +37,7 @@ extern ANN       void  vector_clear(const Vector);
 extern ANN       void  free_vector(Vector vector);
 extern ANN       void  vector_release(Vector vector);
 
-extern Map new_map();
+ANEW extern Map new_map();
 extern     void map_init();
 extern ANN const vtype map_get(const Map, const vtype);
 extern ANN const vtype map_at(const Map, const vtype);
@@ -51,9 +51,9 @@ ANN static inline const vtype map_size(const Map map) {
   return VLEN(map);
 }
 
-extern           Scope  new_scope();
+extern ANEW          Scope  new_scope();
 extern ANN       void   scope_init(Scope);
-extern ANN const Vector scope_get(const Scope);
+extern ANEW ANN const Vector scope_get(const Scope);
 extern ANN const vtype  scope_lookup0(const Scope, const Symbol);
 extern ANN const vtype  scope_lookup1(const Scope, const Symbol);
 extern ANN const vtype  scope_lookup2(const Scope, const Symbol);

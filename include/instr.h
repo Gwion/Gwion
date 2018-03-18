@@ -19,7 +19,7 @@ struct Instr_ {
   char ptr[SZ_VEC4];
 };
 
-Instr new_instr();
+ANEW Instr new_instr();
 ANN void free_instr(Instr instr);
 INSTR(EOC);
 

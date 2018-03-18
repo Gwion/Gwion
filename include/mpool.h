@@ -25,7 +25,7 @@ typedef struct {
 
 ANN void mp_ini(pool *p, const uint32_t elementSize, const uint32_t blockSize);
 ANN void mp_end(pool *p);
-ANN void *mp_alloc(pool *p) __attribute__((hot));
+ANEW ANN void *mp_alloc(pool *p) __attribute__((hot));
 ANN void mp_free(pool *p, void *ptr);
 #define mp_alloc(name) mp_alloc(&name##_pool)
 #define mp_free(name, a) mp_free(&name##_pool, (a))
