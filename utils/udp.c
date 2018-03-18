@@ -14,14 +14,14 @@
 #include "udp.h"
 #include "arg.h"
 
-ANN static void udp_send(Udp* udp, const char* c) {
-  struct sockaddr_in addr = udp->saddr;
+ANN static void udp_send(Udp* const udp, const char* c) {
+  const struct sockaddr_in addr = udp->saddr;
   if(sendto(udp->sock, c, strlen(c), 0,
             (struct sockaddr *) &addr, sizeof(addr)) < 1)
     err_msg(UDP, 0, "problem while sending"); // LCOV_EXCL_LINE
 }
 
-ANN static m_bool udp_recv(Udp* udp, char* buf) {
+ANN static m_bool udp_recv(const Udp* udp, char* buf) {
   unsigned int addrlen = 0;
   struct sockaddr_in addr;
 
@@ -67,9 +67,8 @@ ANN static void send_vector(Udp* udp, Vector v, m_str prefix) {
 }
 
 #ifndef __linux__
-static void set_nonblock(int socket) {
-  int flags;
-  flags = fcntl(socket, F_GETFL, 0);
+static void set_nonblock(const int socket) {
+  const int flags = fcntl(socket, F_GETFL, 0);
   fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 }
 #endif
@@ -123,7 +122,6 @@ ANN void udp_client(void* data) {
 
 ANN static void udp_run(Udp* udp) {
   VM* vm = udp->vm;
-  m_uint i;
   if(!udp->state)
     return;
   if(udp->state == -1) {
@@ -131,12 +129,12 @@ ANN static void udp_run(Udp* udp) {
   } else if(udp->state == 1) {
     shreduler_set_loop(vm->shreduler, 1);
   }
-  for(i = 0; i < vector_size(&udp->add); i++) {
+  for(m_uint i = 0; i < vector_size(&udp->add); i++) {
     m_str filename = (m_str)vector_at(&udp->add, i);
     compile(vm, filename);
     free(filename);
   }
-  for(i = 0; i < vector_size(&udp->rem); i++)
+  for(m_uint i = 0; i < vector_size(&udp->rem); i++)
     vm_remove(vm, vector_at(&udp->rem, i));
   vector_clear(&udp->add);
   vector_clear(&udp->rem);
@@ -179,7 +177,7 @@ ANN void* udp_process(void* data) {
   return NULL;
 }
 
-ANN void udp_release(Udp* udp, pthread_t t) {
+ANN void udp_release(Udp* udp, const pthread_t t) {
 #ifdef __linux__
 #ifndef ANDROID
   pthread_cancel(t);

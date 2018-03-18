@@ -15,5 +15,5 @@ typedef struct {
 
 ANN void* udp_process(void* data);
 ANN void udp_client(void* data);
-ANN void udp_release(Udp* udp, pthread_t t);
+ANN void udp_release(Udp* udp, const pthread_t t);
 #endif

@@ -107,7 +107,7 @@ ANN static void arg_add(Arg* arg) {
   }
 }
 
-ANN static void arg_drvr(DriverInfo* di, int i) {
+ANN static void arg_drvr(DriverInfo* di, const int i) {
     switch(i) {
       case 'c':
         di->card     = optarg;
@@ -150,7 +150,7 @@ ANN static void arg_drvr(DriverInfo* di, int i) {
 }
 
 #ifdef GWUDP
-ANN static void arg_udp(UdpIf* udp, char c) {
+ANN static void arg_udp(UdpIf* udp, const char c) {
   switch(c) {
     case 'a':
       udp->on = 0;

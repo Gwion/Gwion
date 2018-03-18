@@ -41,6 +41,7 @@ __attribute__((nonnull(1,2)))
 const m_bool env_add_value(const Env env, const m_str, const Type, const m_bool, void* value);
 ANN const m_bool env_add_type(const Env, const Type);
 const m_int str2char(const m_str, const m_int) ANN;
+__attribute__((pure))
 const m_uint num_digit(const m_uint);
 const Type array_base(Type) ANN;
 const m_bool type_ref(Type) ANN;
