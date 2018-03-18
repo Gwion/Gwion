@@ -1,8 +1,0 @@
-{
-	Might be a 'dl' bug
-	Memcheck:Leak
-	fun:calloc
-	obj:/usr/lib/libdl*
-	fun:dlopen
-	fun:type_engine_init
-}

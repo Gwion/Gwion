@@ -178,7 +178,7 @@ test_gw(){
   elog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").err.log
   vlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").log
-  valgrind --log-file="$vlog" --suppressions=utils/gwion.supp ./gwion $UDP -d $DRIVER "$file" > "$slog" 2>"$elog" |:
+  valgrind --log-file="$vlog" ./gwion $UDP -d $DRIVER "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
