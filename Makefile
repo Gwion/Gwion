@@ -121,7 +121,7 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
-TOOL_OBJ +=src/util/map.o src/util/vector.o src/util/symbol.o src/util/err_msg.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
+TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o
 GW_OBJ=${src_obj} ${lib_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${drvr_obj}
 
 CCFG="${CFLAGS}"
@@ -186,7 +186,7 @@ gwcov: utils/gwcov.o
 	$(info compiling gwcov)
 	@${CC} utils/gwcov.o -o gwcov ${LDFLAGS}
 
-gwlint: ${TOOL_OBJ} utils/gwlint.o
+gwlint: ${TOOL_OBJ} src/util/vector.o utils/gwlint.o
 	$(info compiling gwlint)
 	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwlint -DGWLINT utils/gwlint.o ${LDFLAGS}
 

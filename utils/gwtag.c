@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <math.h>
 #include "absyn.h"
-#include "map.h"
 
 #define TABLEN 2
 

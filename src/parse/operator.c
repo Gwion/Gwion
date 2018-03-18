@@ -30,8 +30,10 @@ ANN static void free_op(M_Operator* a) {
 }
 
 ANN void free_op_map(Map map) {
+  LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
     Vector v = (Vector)map_at(map, (vtype)i - 1);
+    LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
       free_op((M_Operator*)vector_at(v, j - 1));
     free_vector(v);

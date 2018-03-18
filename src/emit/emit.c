@@ -80,6 +80,7 @@ static Frame* new_frame() {
 }
 
 ANN static void free_frame(Frame* a) {
+  LOOP_OPTIM
   for(vtype i = vector_size(&a->stack) + 1; --i;)
     if(vector_at(&a->stack, i - 1))
       mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
@@ -1344,6 +1345,7 @@ ANN static m_bool emit_stmt_gotolabel(const Emitter emit, const Stmt_Goto_Label 
       vector_release(&stmt->data.v);
       CHECK_BB(err_msg(EMIT_, stmt->pos, "label '%s' defined but not used.", s_name(stmt->name)))
     }
+    LOOP_OPTIM
     for(i = size + 1; --i;) {
       label = (Stmt_Goto_Label)vector_at(&stmt->data.v, i - 1);
       label->data.instr->m_val = emit_code_size(emit);
@@ -1435,6 +1437,7 @@ ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Typedef stmt) { 
 
 ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWDEBUG_EXE
   m_uint i;
+  LOOP_OPTIM
   for(i = 0; i < vector_size(&stmt->values); i++) {
     Value v = (Value)vector_at(&stmt->values, i);
     if(!emit->env->class_def) {
@@ -1845,6 +1848,7 @@ ANN static m_bool emit_func_def_ensure(const Emitter emit, const m_uint size) { 
 
 ANN static m_bool emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   m_uint i;
+  LOOP_OPTIM
   for(i = 0; i < vector_size(&emit->code->stack_return); i++) {
     Instr instr = (Instr)vector_at(&emit->code->stack_return, i);
     instr->m_val = emit_code_size(emit);
@@ -1997,12 +2001,15 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
 
 ANN static void emit_free_stack(const Emitter emit) { GWDEBUG_EXE
   m_uint i, j;
+  LOOP_OPTIM
   for(i = 0;  i < vector_size(&emit->stack); i++) {
     Code* code = (Code*)vector_at(&emit->stack, i);
+    LOOP_OPTIM
     for(j = 0; j < vector_size(&code->code); j++)
       free_instr((Instr)vector_at(&code->code, j));
      free_code(code);
   }
+  LOOP_OPTIM
   for(i = 0; i < emit_code_size(emit); i++)
     free_instr((Instr)vector_at(&emit->code->code, i));
   free_code(emit->code);
@@ -2017,6 +2024,7 @@ ANN static m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_EXE
 }
 
 ANN static void handle_code(const VM_Code c) {
+  LOOP_OPTIM
   for(m_uint i = 0; i < vector_size(c->instr); i++) {
     Instr instr = (Instr)vector_at(c->instr, i);
     if(instr->execute == (f_instr)1) {
