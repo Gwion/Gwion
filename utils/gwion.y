@@ -91,13 +91,6 @@ m_str op2str(Operator op);
 %nonassoc NOELSE
 %nonassoc ELSE
 
-%destructor { free_stmt($$); } <stmt>
-%destructor { free_class_def($$); } <class_def>
-%destructor { free_class_body($$); } <class_body>
-%destructor { free_type_decl($$); } <type_decl>
-%destructor { free_type_list($$); } <type_list>
-%destructor { free_exp($$); } <exp>
-
 %expect 48
 %%
 

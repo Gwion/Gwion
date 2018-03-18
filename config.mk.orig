@@ -16,7 +16,8 @@ USE_GWCOV    ?= 0
 USE_MEMCHECK ?= 0
 USE_GWCGRAPH ?= 0
 USE_GWREPL   ?= 0
-USE_GWUDP    ?= 1
+USE_GWUDP    ?= 0
+USE_GWMPOOL  ?= 1
 
 # handle definitions
 D_FUNC       ?= dummy_driver
@@ -26,13 +27,14 @@ GWPLUG_DIR   ?= $(shell echo ~/.gwplug)
 
 # handle libraries
 DUMMY_D      ?= 1
-SILENT_D     ?= 1
-SPA_D        ?= 1
+SILENT_D     ?= 0
+SPA_D        ?= 0
 SNDFILE_D    ?= 1
-ALSA_D       ?= 1
+ALSA_D       ?= 0
 JACK_D       ?= 0
 PORTAUDIO_D  ?= 0
 SOUNDIO_D    ?= 0
 PULSE_D      ?= 0
+PLOT_D       ?= 0
 
 DEBUG_STACK  ?= 0

@@ -1459,7 +1459,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_BB(check_parent_match(env, f))
   env->func = func;
   nspc_push_value(env->curr);
-  ret = check_func_args(env, f->arg_list);
+  if(f->arg_list)
+    ret = check_func_args(env, f->arg_list);
   if(GET_FLAG(f, ae_flag_variadic))
     variadic = set_variadic(env);
   if(f->code && check_stmt_code(env, &f->code->d.stmt_code, 0) < 0)

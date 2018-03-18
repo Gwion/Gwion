@@ -64,6 +64,10 @@ LDFLAGS += -lsndfile
 CFLAGS +=-DHAVE_SNDFILE
 drvr_src +=src/drvr/sndfile.c
 endif
+ifeq (${PLOT_D}, 1)
+CFLAGS +=-DHAVE_PLOT
+drvr_src +=src/drvr/plot.c
+endif
 # add boolean
 ifeq (${USE_COVERAGE}, 1)
 CFLAGS += -ftest-coverage -fprofile-arcs

@@ -25,8 +25,7 @@ POOL_HANDLE(Var_Decl_List, 256)
 POOL_HANDLE(Var_Decl,      1024)
 POOL_HANDLE(Exp,           1024)
 
-//ANN 
-static void free_stmt_list(Stmt_List);
+ANN static void free_stmt_list(Stmt_List);
 ANN static void free_stmt_code(Stmt_Code);
 ANN static void free_section(Section*);
 
@@ -167,7 +166,7 @@ ANN void free_type_decl(Type_Decl* a) {
   mp_free(Type_Decl, a);
 }
 
-Exp new_exp_decl(Type_Decl* type, Var_Decl_List list, const int pos) {
+Exp new_exp_decl(Type_Decl* type, const Var_Decl_List list, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_decl;
   a->d.exp_decl.type = type;
@@ -182,7 +181,7 @@ ANN static void free_exp_decl(Exp_Decl* a) {
   free_var_decl_list(a->list);
 }
 
-Exp new_exp_binary(Exp lhs, Operator op, Exp rhs, const int pos) {
+Exp new_exp_binary(const Exp lhs, const Operator op, const Exp rhs, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_binary;
   a->meta = ae_meta_value;
@@ -199,7 +198,7 @@ ANN static void free_exp_binary(Exp_Binary* binary) {
   free_exp(binary->rhs);
 }
 
-Exp new_exp_cast(Type_Decl* type, Exp exp, const int pos) {
+Exp new_exp_cast(Type_Decl* type, const Exp exp, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_cast;
   a->meta = ae_meta_value;
@@ -217,7 +216,7 @@ ANN static void free_exp_cast(Exp_Cast* a) {
   free_exp(a->exp);
 }
 
-Exp new_exp_post(Exp exp, Operator op, const int pos) {
+Exp new_exp_post(const Exp exp, const Operator op, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_post;
   a->meta = ae_meta_var;
@@ -232,7 +231,7 @@ ANN static void free_exp_post(Exp_Postfix* post) {
   free_exp(post->exp);
 }
 
-Exp new_exp_dur(Exp base, Exp unit, const int pos) {
+Exp new_exp_dur(const Exp base, const Exp unit, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_dur;
   a->meta = ae_meta_value;
@@ -257,21 +256,21 @@ static Exp new_exp_prim(const int pos) {
   return a;
 }
 
-Exp new_exp_prim_int(long i, const int pos) {
+Exp new_exp_prim_int(const long i, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_num;
   a->d.exp_primary.d.num = i;
   return a;
 }
 
-Exp new_exp_prim_float(m_float num, const int pos) {
+Exp new_exp_prim_float(const m_float num, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_float;
   a->d.exp_primary.d.fnum = num;
   return a;
 }
 
-Exp new_exp_prim_string(m_str s, const int pos) {
+Exp new_exp_prim_string(const m_str s, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_str;
   a->d.exp_primary.d.str = s;
@@ -284,7 +283,7 @@ Exp new_exp_prim_nil(const int pos) {
   return a;
 }
 
-Exp new_exp_prim_id(Symbol xid, const int pos) {
+Exp new_exp_prim_id(const Symbol xid, const int pos) {
   Exp a = new_exp_prim(pos);
   a->meta = ae_meta_var;
   a->d.exp_primary.primary_type = ae_primary_id;
@@ -292,28 +291,28 @@ Exp new_exp_prim_id(Symbol xid, const int pos) {
   return a;
 }
 
-Exp new_exp_prim_hack(Exp exp, const int pos) {
+Exp new_exp_prim_hack(const Exp exp, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_hack;
   a->d.exp_primary.d.exp = exp;
   return a;
 }
 
-Exp new_exp_prim_char(m_str chr, const int pos) {
+Exp new_exp_prim_char(const m_str chr, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_char;
   a->d.exp_primary.d.chr = chr;
   return a;
 }
 
-Exp new_exp_prim_array(Array_Sub exp_list, const int pos) {
+Exp new_exp_prim_array(const Array_Sub exp_list, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_array;
   a->d.exp_primary.d.array = exp_list;
   return a;
 }
 
-Exp new_exp_prim_vec(ae_Exp_Primary_Type t, Exp e, const int pos) {
+Exp new_exp_prim_vec(const ae_Exp_Primary_Type t, Exp e, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = t;
   a->d.exp_primary.d.vec.exp = e;
@@ -334,7 +333,7 @@ static Exp new_exp_unary_base(const int pos)  {
   return a;
 }
 
-Exp new_exp_unary(Operator oper, Exp exp, const int pos) {
+Exp new_exp_unary(const Operator oper, const Exp exp, const int pos) {
   Exp a = new_exp_unary_base(pos);
   a->meta = exp->meta;
   a->d.exp_unary.op = oper;
@@ -342,14 +341,14 @@ Exp new_exp_unary(Operator oper, Exp exp, const int pos) {
   return a;
 }
 
-Exp new_exp_unary2(Operator oper, Type_Decl* type, const int pos) {
+Exp new_exp_unary2(const Operator oper, Type_Decl* type, const int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   a->d.exp_unary.type = type;
   return a;
 }
 
-Exp new_exp_unary3(Operator oper, Stmt code, const int pos) {
+Exp new_exp_unary3(const Operator oper, const Stmt code, const int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   ID_List id = new_id_list(insert_symbol("void"), pos);
@@ -367,7 +366,7 @@ ANN static void free_unary_exp(Exp_Unary* a) {
     free_stmt(a->code);
 }
 
-Exp new_exp_if(Exp cond, Exp if_exp, Exp else_exp, const int pos) {
+Exp new_exp_if(const Exp cond, const Exp if_exp, const Exp else_exp, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_if;
   a->meta = ((if_exp->meta == ae_meta_var &&
@@ -386,7 +385,7 @@ ANN static void free_if_exp(Exp_If* a) {
   free_exp(a->else_exp);
 }
 
-ANN Tmpl_List* new_tmpl_list(ID_List list, const m_int base) {
+ANN Tmpl_List* new_tmpl_list(const ID_List list, const m_int base) {
   Tmpl_List* a = mp_alloc(Tmpl_List);
   a->list = list;
   a->base = base;
@@ -423,7 +422,8 @@ const m_bool tmpl_class_base(const Tmpl_Class* a) {
   return a ? tmpl_list_base(&a->list) : 0;
 }
 
-Func_Def new_func_def(ae_flag flag, Type_Decl* type_decl, Symbol xid, Arg_List arg_list, Stmt code, const int pos) {
+Func_Def new_func_def(const ae_flag flag, Type_Decl* type_decl, const Symbol xid,
+  const Arg_List arg_list, const Stmt code, const int pos) {
   Func_Def a = mp_alloc(Func_Def);
   a->flag = flag;
   a->type_decl = type_decl;
@@ -484,7 +484,7 @@ ANN static void free_stmt_func_ptr(Stmt_Ptr a) {
   }
 }
 
-ANN Tmpl_Call* new_tmpl_call(Type_List tl) {
+ANN Tmpl_Call* new_tmpl_call(const Type_List tl) {
   Tmpl_Call* a = mp_alloc(Tmpl_Call);
   a->types = tl;
   a->base = NULL;
@@ -496,7 +496,7 @@ ANN static void free_tmpl_call(Tmpl_Call* a) {
   mp_free(Tmpl_Call, a);
 }
 
-Exp new_exp_call(Exp base, Exp args, const int pos) {
+Exp new_exp_call(const Exp base, const Exp args, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_call;
   a->meta = ae_meta_value;
@@ -518,7 +518,7 @@ ANN static void free_exp_call(Exp_Func* a) {
     free_exp(a->args);
 }
 
-Exp new_exp_dot(Exp base, Symbol xid, const int pos) {
+Exp new_exp_dot(const Exp base, const Symbol xid, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_dot;
   a->meta = ae_meta_var;
@@ -534,7 +534,7 @@ ANN static void free_dot_member_exp(Exp_Dot* dot) {
     free_exp(dot->base);
 }
 
-Exp prepend_exp(Exp exp, Exp next, const int pos) {
+Exp prepend_exp(const Exp exp, const Exp next, const int pos) {
   exp->next = next;
   return exp;
 }
@@ -592,7 +592,8 @@ ANN void free_exp(Exp exp) {
   mp_free(Exp, exp);
 }
 
-Arg_List new_arg_list(Type_Decl* type_decl, Var_Decl var_decl, Arg_List arg_list, const int pos) {
+Arg_List new_arg_list(Type_Decl* type_decl, const Var_Decl var_decl,
+    const Arg_List arg_list, const int pos) {
   Arg_List a = mp_alloc(Arg_List);
   a->type_decl = type_decl;
   a->var_decl = var_decl;
@@ -627,7 +628,8 @@ const Stmt new_stmt_code(const Stmt_List stmt_list, const int pos) {
 }
 
 ANN static void free_stmt_code(Stmt_Code a) {
-  free_stmt_list(a->stmt_list);
+  if(a->stmt_list)
+    free_stmt_list(a->stmt_list);
 }
 
 const Stmt new_stmt_return(const Exp exp, const int pos) {
@@ -814,7 +816,7 @@ ANN const Stmt new_stmt_union(const Decl_List l, const int pos) {
   return a;
 }
 
-Decl_List new_decl_list(Exp d, Decl_List l) {
+Decl_List new_decl_list(const Exp d, const Decl_List l) {
   Decl_List a = mp_alloc(Decl_List);
   a->self = d;
   a->next = l;
@@ -897,17 +899,14 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next, const int pos) {
   return list;
 }
 
-//ANN
-static void free_stmt_list(Stmt_List list) {
-  if(!list)
-    return;
+ANN static void free_stmt_list(Stmt_List list) {
   free_stmt(list->stmt);
-  if(list->next);
+  if(list->next)
     free_stmt_list(list->next);
   mp_free(Stmt_List, list);
 }
 
-Section* new_section_stmt_list(Stmt_List list, const int pos) {
+Section* new_section_stmt_list(const Stmt_List list, const int pos) {
   Section* a = mp_alloc(Section);
   a->section_type = ae_section_stmt;
   a->d.stmt_list = list;
@@ -915,7 +914,7 @@ Section* new_section_stmt_list(Stmt_List list, const int pos) {
   return a;
 }
 
-Section* new_section_func_def(Func_Def func_def, const int pos) {
+Section* new_section_func_def(const Func_Def func_def, const int pos) {
   Section* a = mp_alloc(Section);
   a->section_type = ae_section_func;
   a->d.func_def = func_def;
@@ -966,7 +965,8 @@ ANN static void free_section(Section* section) {
   mp_free(Section, section);
 }
 
-Class_Def new_class_def(ae_flag class_decl, ID_List name, Type_Decl* ext, Class_Body body, const int pos) {
+Class_Def new_class_def(const ae_flag class_decl, const ID_List name, Type_Decl* ext,
+    const Class_Body body, const int pos) {
   Class_Def a = mp_alloc(Class_Def);
   a->flag = class_decl;
   a->name = name;
@@ -976,7 +976,7 @@ Class_Def new_class_def(ae_flag class_decl, ID_List name, Type_Decl* ext, Class_
   return a;
 }
 
-Class_Body new_class_body(Section* section, Class_Body body, const int pos) {
+Class_Body new_class_body(Section* section, const Class_Body body, const int pos) {
   Class_Body a = mp_alloc(Class_Body);
   a->section = section;
   a->next = body;
@@ -999,7 +999,7 @@ ANN void free_type_list(Type_List a) {
   mp_free(Type_List, a);
 }
 
-Section* new_section_class_def(Class_Def class_def, const int pos) {
+Section* new_section_class_def(const Class_Def class_def, const int pos) {
   Section* a = mp_alloc(Section);
   a->section_type = ae_section_class;
   a->d.class_def = class_def;
@@ -1007,7 +1007,7 @@ Section* new_section_class_def(Class_Def class_def, const int pos) {
   return a;
 }
 
-Ast new_ast(Section* section, Ast next, const int pos) {
+Ast new_ast(Section* section, const Ast next, const int pos) {
   Ast ast = mp_alloc(Ast);
   ast->section = section;
   ast->next = next;

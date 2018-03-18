@@ -121,11 +121,14 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
 }
 
 ANN static void free_nspc_value_fptr(Func f) {
-  while(f) {
-    Func tmp = f->next;
-    free_func_simple(f);
-    f = tmp;
-  }
+//  while(f) {
+//    Func tmp = f->next;
+//    free_func_simple(f);
+//    f = tmp;
+//  }
+  if(f->next)
+    free_nspc_value_fptr(f->next);
+  free_func_simple(f);
 }
 
 ANN static void free_nspc_value(const Nspc a) {
@@ -158,7 +161,7 @@ ANN static void free_nspc_value(const Nspc a) {
     }
     else if(isa(value->m_type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->m_type, t_func_ptr) > 0)
+    else if(isa(value->m_type, t_func_ptr) > 0 && value->d.func_ref)
       free_nspc_value_fptr(value->d.func_ref);
     else if(isa(value->m_type, t_function) > 0) {
       if(GET_FLAG(value, ae_flag_template)) {

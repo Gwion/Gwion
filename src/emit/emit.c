@@ -941,7 +941,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp) { GWDEBUG_EXE
 
   CHECK_OB((code = emit_code(emit)))
   emit->code = (Code*)vector_pop(&emit->stack);
-  size = emit_exp_spork_size(emit, exp->args);
+  size = exp->args ? emit_exp_spork_size(emit, exp->args) : 0;
   CHECK_BB(emit_exp_spork_finish(emit, code, NULL, size, 0)) // last arg migth have to be 'emit_code_offset(emit)'
   return 1;
 }
@@ -1878,7 +1878,8 @@ ANN static m_bool emit_func_def_code(const Emitter emit, const Func func) { GWDE
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
-  CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
+  if(func_def->arg_list)
+    CHECK_BB(emit_func_def_args(emit, func_def->arg_list))
   if(GET_FLAG(func_def, ae_flag_variadic)) {
     if(emit_alloc_local(emit, SZ_INT, IS_REF) < 0)
       CHECK_BB(err_msg(EMIT_, func_def->pos, "(emit): internal error: cannot allocate local 'vararg'...")) // LCOV_EXCL_LINE

@@ -78,6 +78,10 @@ void select_driver(DriverInfo* di, const m_str d) {
 //    di->card = "default";
   }
 #endif
+#ifdef HAVE_PLOT
+  else if(!strcmp("plot", d))
+    di->func = plot_driver;
+#endif
   else
     gw_err("invalid driver specified. using default.\n");
 }

@@ -296,7 +296,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "can't declare func pointer static outside of a class"))
-  if(scan1_func_def_args(env, ptr->args) < 0)
+  if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
     CHECK_BB(err_msg(SCAN1_, ptr->pos,
           "\t... in typedef '%s'...", s_name(ptr->xid)))
   return 1;

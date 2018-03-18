@@ -5,14 +5,14 @@
 #include "type.h"
 #include "env.h"
 
-static Type owner_type(Type t) {
+ANN static Type owner_type(const Type t) {
   Nspc nspc = t->info;
   if(!nspc || !(nspc = nspc->parent) || !nspc->parent)
     return NULL;
   return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
 }
 
-static Vector get_types(Type t) {
+ANN static Vector get_types(Type t) {
   Vector v = new_vector();
   while(t) {
     if(GET_FLAG(t, ae_flag_template))
@@ -22,7 +22,7 @@ static Vector get_types(Type t) {
   return v;
 }
 
-static ID_List id_list_copy(ID_List src) {
+ANN static ID_List id_list_copy(ID_List src) {
   ID_List tmp, list = new_id_list(src->xid, src->pos);
   src = src->next;
   tmp = list;
@@ -34,7 +34,7 @@ static ID_List id_list_copy(ID_List src) {
   return list;
 }
 
-static ID_List get_total_type_list(Type t) {
+ANN static ID_List get_total_type_list(const Type t) {
   Type parent = owner_type(t);
   if(!parent)
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
@@ -56,7 +56,8 @@ static ID_List get_total_type_list(Type t) {
   return types;
 }
 
-static m_uint template_size(Env env, Class_Def c, Type_List call) {
+ANN static m_uint template_size(const Env env, const Class_Def c,
+    Type_List call) {
   ID_List base = c->tmpl->list.list;
   m_uint size = strlen(c->type->name) + 3;
   while(base) {
@@ -70,7 +71,7 @@ static m_uint template_size(Env env, Class_Def c, Type_List call) {
   return size;
 }
 
-static m_bool template_name(Env env, Class_Def c, Type_List call, m_str str) {
+ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call, m_str str) {
   ID_List base = c->tmpl->list.list;
   strcpy(str, c->type->name);
   strcat(str, "<");
@@ -86,7 +87,7 @@ static m_bool template_name(Env env, Class_Def c, Type_List call, m_str str) {
   return 1;
 }
 
-static ID_List template_id(Env env, Class_Def c, Type_List call) {
+ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
   m_uint size = template_size(env, c, call);
   char name[size];
   ID_List list;
@@ -97,7 +98,7 @@ static ID_List template_id(Env env, Class_Def c, Type_List call) {
 }
 
 //static
-m_bool template_match(ID_List base, Type_List call) {
+ANN m_bool template_match(ID_List base, Type_List call) {
   while(base) {
     if(!call)
       return -1;
@@ -109,7 +110,7 @@ m_bool template_match(ID_List base, Type_List call) {
   return 1;
 }
 
-static Class_Def template_class(Env env, Class_Def def, Type_List call) {
+ANN static Class_Def template_class(const Env env, const Class_Def def, Type_List call) {
   Type t;
   ID_List name = template_id(env, def, call);
   if((t = nspc_lookup_type1(env->curr, name->xid))) {
@@ -119,7 +120,7 @@ static Class_Def template_class(Env env, Class_Def def, Type_List call) {
   return new_class_def(def->flag, name, def->ext, def->body, call->pos);
 }
 
-m_bool template_push_types(Env env, ID_List base, Type_List call) {
+ANN m_bool template_push_types(const Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   while(base) {
     CHECK_OB(call);
@@ -133,11 +134,10 @@ m_bool template_push_types(Env env, ID_List base, Type_List call) {
   return 1;
 }
 
-__attribute__((nonnull))
-extern m_bool scan0_class_def(const Env, const Class_Def);
-extern m_bool scan1_class_def(Env, Class_Def);
+extern ANN m_bool scan0_class_def(const Env, const Class_Def);
+extern ANN m_bool scan1_class_def(Env, Class_Def);
 
-Type scan_type(Env env, Type t, const Type_Decl* type) {
+ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(GET_FLAG(t, ae_flag_ref))
       return t;

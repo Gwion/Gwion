@@ -481,7 +481,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   return 1;
 }
 
-ANN static Type get_type(const Env env, const m_str str) {
+static Type get_type(const Env env, const m_str str) {
   m_uint depth = 0;
   ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
   Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
