@@ -4,7 +4,7 @@
 #include "shreduler_private.h"
 
 ANN Shreduler new_shreduler(VM* vm) {
-  Shreduler s = (Shreduler)malloc(sizeof(struct Shreduler_));
+  Shreduler s = (Shreduler)xmalloc(sizeof(struct Shreduler_));
   s->curr = s->list = NULL;
   s->vm = vm;
   s->n_shred = 0;

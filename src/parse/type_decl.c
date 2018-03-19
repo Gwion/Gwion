@@ -26,14 +26,14 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
 
 ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
   while(tgt >= src)
-    str = realloc(str, src *= 2);
+    str = xrealloc(str, src *= 2);
 }
 
 ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
   m_uint l = id_list_len(td->xid) + depth *2;
   m_uint m = l;
-  m_str s = malloc(m);
+  m_str s = xmalloc(m);
   type_path(s, td->xid);
   while(depth--)
     strcat(s, "[]");
@@ -60,7 +60,7 @@ ANN static m_str td2str(const Env env, const Type_Decl* td) {
 ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint l = 0;
   m_uint m = 32;
-  m_str s = malloc(m);
+  m_str s = xmalloc(m);
   memset(s, 0, 32);
   while(tl) {
     m_str name = td2str(env, tl->list);

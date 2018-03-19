@@ -120,7 +120,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
 ANN Emitter new_emitter(const Env env) {
-  Emitter emit = calloc(1, sizeof(struct Emitter_));
+  Emitter emit = xcalloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
   vector_init(&emit->codes);
   emit->env = env;
@@ -1299,7 +1299,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
 
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  counter = calloc(1, SZ_INT);
+  counter = xcalloc(1, SZ_INT);
   init = emitter_add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
   index = emit_code_size(emit);
@@ -1468,7 +1468,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   if(stmt->xid) {
     if(!stmt->value->m_type->info->class_data)
       stmt->value->m_type->info->class_data =
-        calloc(1, stmt->value->m_type->info->class_data_size);
+        xcalloc(1, stmt->value->m_type->info->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
@@ -1928,7 +1928,7 @@ ANN static m_bool emit_section(const Emitter emit, const Section* section) { GWD
 
 ANN static m_bool init_class_data(const Nspc nspc) {
   if(nspc->class_data_size) {
-    nspc->class_data = calloc(1, nspc->class_data_size);
+    nspc->class_data = xcalloc(1, nspc->class_data_size);
     if(!nspc->class_data)
       CHECK_BB(err_msg(EMIT_, 0, "OutOfMemory: while allocating static data '%s'\n", nspc->name))
   }

@@ -3,7 +3,7 @@
 #include "driver.h"
 
 static m_bool plot_ini(VM* vm, DriverInfo* di) {
-  FILE** sf = calloc(di->chan, sizeof(void*));
+  FILE** sf = xcalloc(di->chan, sizeof(void*));
   char tmp[140];
   if(di->chan == 1) {
     sprintf(tmp, "%s.wav", di->card);

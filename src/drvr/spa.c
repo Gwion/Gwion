@@ -5,7 +5,7 @@
 #include "err_msg.h"
 
 static m_bool spa_ini(VM* vm, DriverInfo* di) {
-  di->data = malloc(sizeof(sp_audio));
+  di->data = xmalloc(sizeof(sp_audio));
   return 1;
 }
 

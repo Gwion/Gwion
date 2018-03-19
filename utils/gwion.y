@@ -5,6 +5,7 @@
 %{
 #include "absyn.h"
 #include "scanner.h"
+#define YYMALLOC xmalloc
 #define scan arg->scanner
 #define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) { gwion_error(a, "flag set twice");  ; } SET_FLAG(b, c);
 #define CHECK_TEMPLATE(a, b, c, free_function) { if(c->tmpl) {\

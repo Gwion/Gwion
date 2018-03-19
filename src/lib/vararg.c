@@ -30,11 +30,11 @@ INSTR(MkVararg) { GWDEBUG_EXE
   Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
-    arg->d = malloc(instr->m_val);
+    arg->d = xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
   arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? calloc(arg->s, SZ_INT) : NULL;
+  arg->k = arg->s ? xcalloc(arg->s, SZ_INT) : NULL;
   for(i = 0; i < arg->s; i++) {
     arg->k[i] = vector_at(kinds, i);
   }

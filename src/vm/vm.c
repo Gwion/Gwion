@@ -16,7 +16,7 @@ Shreduler new_shreduler(VM* vm);
 Shreduler free_shreduler(Shreduler s);
 
 VM* new_vm(m_bool loop) {
-  VM* vm = (VM*)calloc(1, sizeof(VM));
+  VM* vm = (VM*)xcalloc(1, sizeof(VM));
   vm->shreduler  = new_shreduler(vm);
   vector_init(&vm->shred);
   vector_init(&vm->ugen);

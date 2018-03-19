@@ -1,12 +1,17 @@
+%option noyyalloc
+%option noyyrealloc
+%option noyyfree
 IS          (u|U|l|L)*
 
 %{
+#define gwion_alloc(a,b) xmalloc(a)
+#define gwion_realloc(a,b,c) xrealloc(a,b)
+#define gwion_free(a,b)  xfree(a)
 #include "absyn.h"
 #include "scanner.h"
 #include "parser.h"
 #include "err_msg.h"
 #include <setjmp.h>
-
 #define YYEROR
 static jmp_buf jmp;
 #define YY_FATAL_ERROR(msg) gwion_fatal_error(msg, yyscanner)
@@ -21,11 +26,7 @@ static char* alloc_str(char* str);
 static long htol(char* str);
 static int newline(void* data);
 static int adjust(void* data);
-
-
-
 %}
-
 %option noyywrap
 %option noyylineno noyymore
 %option noyyget_extra
@@ -44,7 +45,8 @@ static int adjust(void* data);
 %option nounput
 %option never-interactive batch
 %option nobackup nodebug
-
+%option noyy_push_state noyy_pop_state noyy_top_state
+%option noyy_scan_buffer noyy_scan_bytes noyy_scan_string
 %x comment
 %%
 

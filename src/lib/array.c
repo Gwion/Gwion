@@ -42,7 +42,7 @@ ANN M_Object new_M_Array(const Type t, const m_uint size,
   while(cap < length)
     cap *= 2;
   ARRAY(a)  	  = mp_alloc(M_Vector);
-  ARRAY(a)->ptr   = calloc(cap, size);
+  ARRAY(a)->ptr   = xcalloc(cap, size);
   ARRAY(a)->cap   = cap;
   ARRAY(a)->size  = size;
   ARRAY(a)->len   = length;
@@ -57,7 +57,7 @@ ANN void m_vector_get(M_Vector v, const m_uint i, void* c) {
 ANN void m_vector_add(M_Vector v, const void* data) {
   if(++v->len >= v->cap) {
     v->cap *=2;
-    v->ptr = realloc(v->ptr, v->cap * v->size);
+    v->ptr = xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
 }
@@ -74,7 +74,7 @@ ANN void m_vector_rem(M_Vector v, m_uint index) {
   memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
   if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
-    v->ptr = realloc(v->ptr, v->cap * v->size);
+    v->ptr = xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy(v->ptr, c, v->cap * v->size);
 }
@@ -326,7 +326,7 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
     curr++;
   }
   if(*num_obj > 0)
-    return (m_uint*)calloc(*num_obj, SZ_INT);
+    return (m_uint*)xcalloc(*num_obj, SZ_INT);
   return (m_uint*)1;
 }
 

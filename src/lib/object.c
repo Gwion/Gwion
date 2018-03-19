@@ -36,7 +36,7 @@ ANN m_bool initialize_object(M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
-    if(!(object->data = calloc(1, type->info->offset)))
+    if(!(object->data = xcalloc(1, type->info->offset)))
       CHECK_BB(err_msg(TYPE_, 0,
           "OutOfMemory: while instantiating object '%s'\n", type->name))
   }

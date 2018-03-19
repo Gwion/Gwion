@@ -7,19 +7,19 @@
 POOL_HANDLE(Map, 2048)
 
 ANN void map_clear(Map v) {
-  v->ptr = realloc(v->ptr, (VCAP(v) = MAP_CAP) * SZ_INT);
+  v->ptr = xrealloc(v->ptr, (VCAP(v) = MAP_CAP) * SZ_INT);
   VLEN(v) = 0;
 }
 
 Map new_map() {
   Map map  = mp_alloc(Map);
-  map->ptr = calloc(MAP_CAP, SZ_INT);
+  map->ptr = xcalloc(MAP_CAP, SZ_INT);
   VCAP(map) = MAP_CAP;
   return map;
 }
 
 ANN void map_init(Map a) {
-  a->ptr = calloc(MAP_CAP, SZ_INT);
+  a->ptr = xcalloc(MAP_CAP, SZ_INT);
   VCAP(a) = MAP_CAP;
 }
 
@@ -47,7 +47,7 @@ ANN void map_set(const Map map, const vtype key, const vtype ptr) {
   }
   if((OFFSET + VLEN(map) * 2 + 1) > VCAP(map)) {
     VCAP(map) *= 2;
-    map->ptr = realloc(map->ptr, VCAP(map) * SZ_INT);
+    map->ptr = xrealloc(map->ptr, VCAP(map) * SZ_INT);
   }
   VKEY(map, VLEN(map)) = key;
   VVAL(map, VLEN(map)) = ptr;

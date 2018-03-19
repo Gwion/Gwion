@@ -23,28 +23,28 @@ IMPORT {
   CHECK_BB(gwi_func_ini(gwi, "Vec4", "w", coverage_vec4))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  m_uint* i = malloc(sizeof(m_uint));
+  m_uint* i = xmalloc(sizeof(m_uint));
   *i = 5;
   CHECK_BB(gwi_item_ini(gwi,"int", "s_i"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, i))
-  m_float* f = malloc(sizeof(m_float));
+  m_float* f = xmalloc(sizeof(m_float));
   *f = 2.1;
   CHECK_BB(gwi_item_ini(gwi,"float", "s_f"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)f))
 
-  m_complex* c = malloc(sizeof(m_complex));
+  m_complex* c = xmalloc(sizeof(m_complex));
   *c = 2.1;
   CHECK_BB(gwi_item_ini(gwi,"complex", "s_c"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)c))
 
-  m_vec3* v = malloc(sizeof(m_vec3));
+  m_vec3* v = xmalloc(sizeof(m_vec3));
   v->x = 2.1;
   v->y = 2.2;
   v->z = 2.3;
   CHECK_BB(gwi_item_ini(gwi,"Vec3", "s_v"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)v))
 
-  m_vec4* w = malloc(sizeof(m_vec4));
+  m_vec4* w = xmalloc(sizeof(m_vec4));
   w->x = 2.1;
   w->y = 2.2;
   w->z = 2.3;

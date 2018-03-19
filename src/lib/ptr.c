@@ -98,7 +98,7 @@ static OP_EMIT(opem_ptr_deref) {
 INSTR(Cast2Ptr) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   M_Object o = new_M_Object(shred);
-  o->data = malloc(SZ_INT);
+  o->data = xmalloc(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)

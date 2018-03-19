@@ -37,7 +37,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
 }
 
 static m_bool ini(VM* vm, DriverInfo* di) {
-  struct PaInfo* info = malloc(sizeof(struct PaInfo*));
+  struct PaInfo* info = xmalloc(sizeof(struct PaInfo*));
   di->data = info;
   if(Pa_Initialize() != paNoError)
     return -1;

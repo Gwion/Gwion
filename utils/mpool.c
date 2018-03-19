@@ -35,7 +35,7 @@ ANN void *mp_alloc(pool *p) {
     p->obj_id = 0;
     if(++p->blk_id == (int32_t)p->nblk) {
       p->nblk <<= 1;
-      p->data = realloc(p->data, sizeof(uint8_t*)* p->nblk);
+      p->data = xrealloc(p->data, sizeof(uint8_t*)* p->nblk);
       memset(p->data + (p->nblk >> 1), 0, (p->nblk - (p->nblk >> 1)) * sizeof(uint8_t*));
     }
     p->data[p->blk_id] = calloc(p->obj_sz, p->blk_sz);

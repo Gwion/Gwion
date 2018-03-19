@@ -87,7 +87,7 @@ M_Object new_M_UGen() {
 
 static const m_bool assign_channel(UGen u) {
   m_uint i;
-  u->channel = malloc(u->n_chan * SZ_INT);
+  u->channel = xmalloc(u->n_chan * SZ_INT);
   for(i = u->n_chan + 1; --i;) {
     m_uint j = i - 1;
     M_Object chan = new_M_UGen();

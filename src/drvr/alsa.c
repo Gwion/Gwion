@@ -85,7 +85,7 @@ static void alsa_run_init(VM* vm, DriverInfo* di) {
 }
 
 static m_bool alsa_ini(VM* vm, DriverInfo* di) {
-  struct AlsaInfo* info = calloc(1, sizeof(struct AlsaInfo));
+  struct AlsaInfo* info = xcalloc(1, sizeof(struct AlsaInfo));
   di->data = info;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
     err_msg(ALSA_, 0, "problem with playback");
@@ -107,14 +107,14 @@ static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
   m_uint i;
 
-  info->in_buf  = calloc(sp->nchan, SZ_FLOAT);
-  info->out_buf = calloc(sp->nchan, SZ_FLOAT);
-  info->_out_buf   = calloc(sp->nchan, SZ_INT);
-  info->_in_buf    = calloc(sp->nchan, SZ_INT);
+  info->in_buf  = xcalloc(sp->nchan, SZ_FLOAT);
+  info->out_buf = xcalloc(sp->nchan, SZ_FLOAT);
+  info->_out_buf   = xcalloc(sp->nchan, SZ_INT);
+  info->_in_buf    = xcalloc(sp->nchan, SZ_INT);
   for(i = 0; i < sp->nchan; i++) {
-    info->out_buf[i]  = calloc(di->bufsize, SZ_FLOAT);
+    info->out_buf[i]  = xcalloc(di->bufsize, SZ_FLOAT);
     info->_out_buf[i] = info->out_buf[i];
-    info->in_buf[i]   = calloc(di->bufsize, SZ_FLOAT);
+    info->in_buf[i]   = xcalloc(di->bufsize, SZ_FLOAT);
     info->_in_buf[i]  = info->in_buf[i];
   }
 }
@@ -171,8 +171,8 @@ static void alsa_run(VM* vm, DriverInfo* di) {
     alsa_run_init_non_interleaved(sp, di);
     alsa_run_non_interleaved(vm, di);
   } else {
-    info->in_bufi  = calloc(sp->nchan * di->bufsize, SZ_FLOAT);
-    info->out_bufi = calloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->in_bufi  = xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->out_bufi = xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
     alsa_run_interleaved(vm, di);
   }
 }

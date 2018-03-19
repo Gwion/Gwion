@@ -24,6 +24,10 @@
 
 #include "generated.h"
 
+ANEW void* xmalloc(m_uint);
+ANEW void* xcalloc(m_uint, m_uint);
+ANEW void* xrealloc(void*, m_uint);
+#define xfree free
 typedef struct VM_Object_ * VM_Object;
 typedef struct Nspc_ * Nspc;
 typedef struct Scope_     * Scope;

@@ -20,7 +20,7 @@ static pa_simple* pulse_open(m_uint direction, pa_sample_spec* ss) {
 }
 
 static m_bool pulse_ini(VM* vm, DriverInfo* di) {
-  struct PaInfo* info = malloc(sizeof(struct PaInfo));
+  struct PaInfo* info = xmalloc(sizeof(struct PaInfo));
   pa_sample_spec ss = { PA_SAMPLE_FLOAT32NE, 48000, 2};
   CHECK_OB((info->out = pulse_open(PA_STREAM_PLAYBACK, &ss)))
   CHECK_OB((info->in  = pulse_open(PA_STREAM_RECORD,   &ss)))

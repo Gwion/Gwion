@@ -165,7 +165,7 @@ static void bp_add() {
   echo();
   getnstr(s, 256);
   noecho();
-  struct BP* bp = malloc(sizeof(struct BP));
+  struct BP* bp = xmalloc(sizeof(struct BP));
   strcpy(bp->c, s);
   regcomp(&bp->r, s, 0);
   vector_add(breaks, (vtype)bp);
@@ -294,7 +294,7 @@ void gw_shred(VM_Shred shred) {
   m_int index = vector_find(shreds, (vtype)shred);
   if(index == -1) {
     vector_add(shreds, (vtype)shred);
-    curr = calloc(1, sizeof(struct ShredInfo));
+    curr = xcalloc(1, sizeof(struct ShredInfo));
     vector_add(infos, (vtype)curr);
     curr->pad = newpad(10000, 256);
   } else

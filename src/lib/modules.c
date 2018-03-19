@@ -36,7 +36,7 @@ static void refresh_sine(VM* vm, SP_osc* ug, m_int size, m_float phase) {
 }
 
 static CTOR(sinosc_ctor) {
-  SP_osc* ug = malloc(sizeof(SP_osc));
+  SP_osc* ug = xmalloc(sizeof(SP_osc));
   sp_osc_create(&ug->osc);
   sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->sp, ug->tbl);
@@ -122,7 +122,7 @@ static TICK(gain_tick) {
 }
 
 static CTOR(gain_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = gain_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -155,7 +155,7 @@ static TICK(impulse_tick) {
 }
 
 static CTOR(impulse_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 0, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = impulse_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -187,7 +187,7 @@ static TICK(fullrect_tick) {
 }
 
 static CTOR(fullrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = fullrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -209,7 +209,7 @@ static TICK(halfrect_tick) {
 }
 
 static CTOR(halfrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = halfrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -227,7 +227,7 @@ static TICK(step_tick) {
 }
 
 static CTOR(step_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 0, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = step_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -262,7 +262,7 @@ static TICK(zerox_tick) {
 }
 
 static CTOR(zerox_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, malloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, 0, xmalloc(SZ_FLOAT));
   UGEN(o)->tick = zerox_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }

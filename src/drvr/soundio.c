@@ -321,7 +321,7 @@ static m_bool check_layout(struct SioInfo* info) {
 }
 
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
-  struct SioInfo* info = calloc(1, sizeof(struct SioInfo));
+  struct SioInfo* info = xcalloc(1, sizeof(struct SioInfo));
   info->vm = vm;
   info->di = di;
   info->device_id = di->card;

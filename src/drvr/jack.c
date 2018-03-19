@@ -82,9 +82,9 @@ static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
 }
 
 static m_bool jack_ini(VM* vm, DriverInfo* di) {
-  struct JackInfo* info = malloc(sizeof(struct JackInfo));
-  info->iport = malloc(sizeof(jack_port_t *) * di->in);
-  info->oport = malloc(sizeof(jack_port_t *) * di->out);
+  struct JackInfo* info = xmalloc(sizeof(struct JackInfo));
+  info->iport = xmalloc(sizeof(jack_port_t *) * di->in);
+  info->oport = xmalloc(sizeof(jack_port_t *) * di->out);
   CHECK_BB(init_client(vm, info))
   CHECK_BB(set_chan(info, di->out, 0))
   CHECK_BB(set_chan(info, di->in,  1))

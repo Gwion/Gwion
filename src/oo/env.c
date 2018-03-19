@@ -13,7 +13,7 @@
 
 
 const Env new_env() {
-  Env env = malloc(sizeof(struct Env_));
+  Env env = xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
 //  env->user_nspc = NULL;
   env->context = NULL;

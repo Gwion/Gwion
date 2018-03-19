@@ -269,7 +269,7 @@ ANN static m_int import_class_end(const Env env) {
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
-    nspc->class_data = calloc(1, nspc->class_data_size);
+    nspc->class_data = xcalloc(1, nspc->class_data_size);
   CHECK_BB(env_pop_class(env))
   return 1;
 }

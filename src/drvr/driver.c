@@ -12,8 +12,8 @@ m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
   if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
   sp_createn(&vm->sp, di->out);
-  vm->sp->out   = realloc(vm->sp->out, di->out * SZ_FLOAT);
-  vm->in   = calloc(di->in, SZ_FLOAT);
+  vm->sp->out   = xrealloc(vm->sp->out, di->out * SZ_FLOAT);
+  vm->in   = xcalloc(di->in, SZ_FLOAT);
   vm->n_in = di->in;
   vm->sp->sr = di->sr;
   sp_srand(vm->sp, time(NULL));

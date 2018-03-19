@@ -33,7 +33,7 @@ static TICK(adsr_tick)
 
 CTOR(adsr_ctor)
 {
-	GW_adsr* ug = malloc(sizeof(GW_adsr));
+	GW_adsr* ug = xmalloc(sizeof(GW_adsr));
 	ug->sp = shred->vm_ref->sp;
 	sp_adsr_create(&ug->osc);
 	sp_adsr_init(ug->sp, ug->osc);
@@ -126,7 +126,7 @@ static TICK(allpass_tick)
 
 CTOR(allpass_ctor)
 {
-	GW_allpass* ug = malloc(sizeof(GW_allpass));
+	GW_allpass* ug = xmalloc(sizeof(GW_allpass));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -189,7 +189,7 @@ static TICK(atone_tick)
 
 CTOR(atone_ctor)
 {
-	GW_atone* ug = malloc(sizeof(GW_atone));
+	GW_atone* ug = xmalloc(sizeof(GW_atone));
 	ug->sp = shred->vm_ref->sp;
 	sp_atone_create(&ug->osc);
 	sp_atone_init(ug->sp, ug->osc);
@@ -234,7 +234,7 @@ static TICK(autowah_tick)
 
 CTOR(autowah_ctor)
 {
-	GW_autowah* ug = malloc(sizeof(GW_autowah));
+	GW_autowah* ug = xmalloc(sizeof(GW_autowah));
 	ug->sp = shred->vm_ref->sp;
 	sp_autowah_create(&ug->osc);
 	sp_autowah_init(ug->sp, ug->osc);
@@ -308,7 +308,7 @@ static TICK(bal_tick)
 
 CTOR(bal_ctor)
 {
-	GW_bal* ug = malloc(sizeof(GW_bal));
+	GW_bal* ug = xmalloc(sizeof(GW_bal));
 	ug->sp = shred->vm_ref->sp;
 	sp_bal_create(&ug->osc);
 	sp_bal_init(ug->sp, ug->osc);
@@ -346,7 +346,7 @@ static TICK(bar_tick)
 
 CTOR(bar_ctor)
 {
-	GW_bar* ug = malloc(sizeof(GW_bar));
+	GW_bar* ug = xmalloc(sizeof(GW_bar));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -495,7 +495,7 @@ static TICK(biquad_tick)
 
 CTOR(biquad_ctor)
 {
-	GW_biquad* ug = malloc(sizeof(GW_biquad));
+	GW_biquad* ug = xmalloc(sizeof(GW_biquad));
 	ug->sp = shred->vm_ref->sp;
 	sp_biquad_create(&ug->osc);
 	sp_biquad_init(ug->sp, ug->osc);
@@ -610,7 +610,7 @@ static TICK(biscale_tick)
 
 CTOR(biscale_ctor)
 {
-	GW_biscale* ug = malloc(sizeof(GW_biscale));
+	GW_biscale* ug = xmalloc(sizeof(GW_biscale));
 	ug->sp = shred->vm_ref->sp;
 	sp_biscale_create(&ug->osc);
 	sp_biscale_init(ug->sp, ug->osc);
@@ -669,7 +669,7 @@ static TICK(bitcrush_tick)
 
 CTOR(bitcrush_ctor)
 {
-	GW_bitcrush* ug = malloc(sizeof(GW_bitcrush));
+	GW_bitcrush* ug = xmalloc(sizeof(GW_bitcrush));
 	ug->sp = shred->vm_ref->sp;
 	sp_bitcrush_create(&ug->osc);
 	sp_bitcrush_init(ug->sp, ug->osc);
@@ -727,7 +727,7 @@ static TICK(blsaw_tick)
 
 CTOR(blsaw_ctor)
 {
-	GW_blsaw* ug = malloc(sizeof(GW_blsaw));
+	GW_blsaw* ug = xmalloc(sizeof(GW_blsaw));
 	ug->sp = shred->vm_ref->sp;
 	sp_blsaw_create(&ug->osc);
 	sp_blsaw_init(ug->sp, ug->osc);
@@ -785,7 +785,7 @@ static TICK(blsquare_tick)
 
 CTOR(blsquare_ctor)
 {
-	GW_blsquare* ug = malloc(sizeof(GW_blsquare));
+	GW_blsquare* ug = xmalloc(sizeof(GW_blsquare));
 	ug->sp = shred->vm_ref->sp;
 	sp_blsquare_create(&ug->osc);
 	sp_blsquare_init(ug->sp, ug->osc);
@@ -857,7 +857,7 @@ static TICK(bltriangle_tick)
 
 CTOR(bltriangle_ctor)
 {
-	GW_bltriangle* ug = malloc(sizeof(GW_bltriangle));
+	GW_bltriangle* ug = xmalloc(sizeof(GW_bltriangle));
 	ug->sp = shred->vm_ref->sp;
 	sp_bltriangle_create(&ug->osc);
 	sp_bltriangle_init(ug->sp, ug->osc);
@@ -915,7 +915,7 @@ static TICK(brown_tick)
 
 CTOR(brown_ctor)
 {
-	GW_brown* ug = malloc(sizeof(GW_brown));
+	GW_brown* ug = xmalloc(sizeof(GW_brown));
 	ug->sp = shred->vm_ref->sp;
 	sp_brown_create(&ug->osc);
 	sp_brown_init(ug->sp, ug->osc);
@@ -946,7 +946,7 @@ static TICK(butbp_tick)
 
 CTOR(butbp_ctor)
 {
-	GW_butbp* ug = malloc(sizeof(GW_butbp));
+	GW_butbp* ug = xmalloc(sizeof(GW_butbp));
 	ug->sp = shred->vm_ref->sp;
 	sp_butbp_create(&ug->osc);
 	sp_butbp_init(ug->sp, ug->osc);
@@ -1005,7 +1005,7 @@ static TICK(butbr_tick)
 
 CTOR(butbr_ctor)
 {
-	GW_butbr* ug = malloc(sizeof(GW_butbr));
+	GW_butbr* ug = xmalloc(sizeof(GW_butbr));
 	ug->sp = shred->vm_ref->sp;
 	sp_butbr_create(&ug->osc);
 	sp_butbr_init(ug->sp, ug->osc);
@@ -1064,7 +1064,7 @@ static TICK(buthp_tick)
 
 CTOR(buthp_ctor)
 {
-	GW_buthp* ug = malloc(sizeof(GW_buthp));
+	GW_buthp* ug = xmalloc(sizeof(GW_buthp));
 	ug->sp = shred->vm_ref->sp;
 	sp_buthp_create(&ug->osc);
 	sp_buthp_init(ug->sp, ug->osc);
@@ -1109,7 +1109,7 @@ static TICK(butlp_tick)
 
 CTOR(butlp_ctor)
 {
-	GW_butlp* ug = malloc(sizeof(GW_butlp));
+	GW_butlp* ug = xmalloc(sizeof(GW_butlp));
 	ug->sp = shred->vm_ref->sp;
 	sp_butlp_create(&ug->osc);
 	sp_butlp_init(ug->sp, ug->osc);
@@ -1154,7 +1154,7 @@ static TICK(clip_tick)
 
 CTOR(clip_ctor)
 {
-	GW_clip* ug = malloc(sizeof(GW_clip));
+	GW_clip* ug = xmalloc(sizeof(GW_clip));
 	ug->sp = shred->vm_ref->sp;
 	sp_clip_create(&ug->osc);
 	sp_clip_init(ug->sp, ug->osc);
@@ -1200,7 +1200,7 @@ static TICK(clock_tick)
 
 CTOR(clock_ctor)
 {
-	GW_clock* ug = malloc(sizeof(GW_clock));
+	GW_clock* ug = xmalloc(sizeof(GW_clock));
 	ug->sp = shred->vm_ref->sp;
 	sp_clock_create(&ug->osc);
 	sp_clock_init(ug->sp, ug->osc);
@@ -1265,7 +1265,7 @@ static TICK(comb_tick)
 
 CTOR(comb_ctor)
 {
-	GW_comb* ug = malloc(sizeof(GW_comb));
+	GW_comb* ug = xmalloc(sizeof(GW_comb));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1328,7 +1328,7 @@ static TICK(compressor_tick)
 
 CTOR(compressor_ctor)
 {
-	GW_compressor* ug = malloc(sizeof(GW_compressor));
+	GW_compressor* ug = xmalloc(sizeof(GW_compressor));
 	ug->sp = shred->vm_ref->sp;
 	sp_compressor_create(&ug->osc);
 	sp_compressor_init(ug->sp, ug->osc);
@@ -1421,7 +1421,7 @@ static TICK(conv_tick)
 
 CTOR(conv_ctor)
 {
-	GW_conv* ug = malloc(sizeof(GW_conv));
+	GW_conv* ug = xmalloc(sizeof(GW_conv));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1475,7 +1475,7 @@ static TICK(count_tick)
 
 CTOR(count_ctor)
 {
-	GW_count* ug = malloc(sizeof(GW_count));
+	GW_count* ug = xmalloc(sizeof(GW_count));
 	ug->sp = shred->vm_ref->sp;
 	sp_count_create(&ug->osc);
 	sp_count_init(ug->sp, ug->osc);
@@ -1535,7 +1535,7 @@ static TICK(crossfade_tick)
 
 CTOR(crossfade_ctor)
 {
-	GW_crossfade* ug = malloc(sizeof(GW_crossfade));
+	GW_crossfade* ug = xmalloc(sizeof(GW_crossfade));
 	ug->sp = shred->vm_ref->sp;
 	sp_crossfade_create(&ug->osc);
 	sp_crossfade_init(ug->sp, ug->osc);
@@ -1580,7 +1580,7 @@ static TICK(dcblock_tick)
 
 CTOR(dcblock_ctor)
 {
-	GW_dcblock* ug = malloc(sizeof(GW_dcblock));
+	GW_dcblock* ug = xmalloc(sizeof(GW_dcblock));
 	ug->sp = shred->vm_ref->sp;
 	sp_dcblock_create(&ug->osc);
 	sp_dcblock_init(ug->sp, ug->osc);
@@ -1617,7 +1617,7 @@ static TICK(delay_tick)
 
 CTOR(delay_ctor)
 {
-	GW_delay* ug = malloc(sizeof(GW_delay));
+	GW_delay* ug = xmalloc(sizeof(GW_delay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1680,7 +1680,7 @@ static TICK(diode_tick)
 
 CTOR(diode_ctor)
 {
-	GW_diode* ug = malloc(sizeof(GW_diode));
+	GW_diode* ug = xmalloc(sizeof(GW_diode));
 	ug->sp = shred->vm_ref->sp;
 	sp_diode_create(&ug->osc);
 	sp_diode_init(ug->sp, ug->osc);
@@ -1744,7 +1744,7 @@ static TICK(diskin_tick)
 
 CTOR(diskin_ctor)
 {
-	GW_diskin* ug = malloc(sizeof(GW_diskin));
+	GW_diskin* ug = xmalloc(sizeof(GW_diskin));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1795,7 +1795,7 @@ static TICK(dist_tick)
 
 CTOR(dist_ctor)
 {
-	GW_dist* ug = malloc(sizeof(GW_dist));
+	GW_dist* ug = xmalloc(sizeof(GW_dist));
 	ug->sp = shred->vm_ref->sp;
 	sp_dist_create(&ug->osc);
 	sp_dist_init(ug->sp, ug->osc);
@@ -1881,7 +1881,7 @@ static TICK(dmetro_tick)
 
 CTOR(dmetro_ctor)
 {
-	GW_dmetro* ug = malloc(sizeof(GW_dmetro));
+	GW_dmetro* ug = xmalloc(sizeof(GW_dmetro));
 	ug->sp = shred->vm_ref->sp;
 	sp_dmetro_create(&ug->osc);
 	sp_dmetro_init(ug->sp, ug->osc);
@@ -1933,7 +1933,7 @@ static TICK(drip_tick)
 
 CTOR(drip_ctor)
 {
-	GW_drip* ug = malloc(sizeof(GW_drip));
+	GW_drip* ug = xmalloc(sizeof(GW_drip));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2087,7 +2087,7 @@ static TICK(dtrig_tick)
 
 CTOR(dtrig_ctor)
 {
-	GW_dtrig* ug = malloc(sizeof(GW_dtrig));
+	GW_dtrig* ug = xmalloc(sizeof(GW_dtrig));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2179,7 +2179,7 @@ static TICK(dust_tick)
 
 CTOR(dust_ctor)
 {
-	GW_dust* ug = malloc(sizeof(GW_dust));
+	GW_dust* ug = xmalloc(sizeof(GW_dust));
 	ug->sp = shred->vm_ref->sp;
 	sp_dust_create(&ug->osc);
 	sp_dust_init(ug->sp, ug->osc);
@@ -2252,7 +2252,7 @@ static TICK(eqfil_tick)
 
 CTOR(eqfil_ctor)
 {
-	GW_eqfil* ug = malloc(sizeof(GW_eqfil));
+	GW_eqfil* ug = xmalloc(sizeof(GW_eqfil));
 	ug->sp = shred->vm_ref->sp;
 	sp_eqfil_create(&ug->osc);
 	sp_eqfil_init(ug->sp, ug->osc);
@@ -2326,7 +2326,7 @@ static TICK(expon_tick)
 
 CTOR(expon_ctor)
 {
-	GW_expon* ug = malloc(sizeof(GW_expon));
+	GW_expon* ug = xmalloc(sizeof(GW_expon));
 	ug->sp = shred->vm_ref->sp;
 	sp_expon_create(&ug->osc);
 	sp_expon_init(ug->sp, ug->osc);
@@ -2404,7 +2404,7 @@ static TICK(fof_tick)
 
 CTOR(fof_ctor)
 {
-	GW_fof* ug = malloc(sizeof(GW_fof));
+	GW_fof* ug = xmalloc(sizeof(GW_fof));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2575,7 +2575,7 @@ static TICK(fofilt_tick)
 
 CTOR(fofilt_ctor)
 {
-	GW_fofilt* ug = malloc(sizeof(GW_fofilt));
+	GW_fofilt* ug = xmalloc(sizeof(GW_fofilt));
 	ug->sp = shred->vm_ref->sp;
 	sp_fofilt_create(&ug->osc);
 	sp_fofilt_init(ug->sp, ug->osc);
@@ -2653,7 +2653,7 @@ static TICK(fog_tick)
 
 CTOR(fog_ctor)
 {
-	GW_fog* ug = malloc(sizeof(GW_fog));
+	GW_fog* ug = xmalloc(sizeof(GW_fog));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2838,7 +2838,7 @@ static TICK(fold_tick)
 
 CTOR(fold_ctor)
 {
-	GW_fold* ug = malloc(sizeof(GW_fold));
+	GW_fold* ug = xmalloc(sizeof(GW_fold));
 	ug->sp = shred->vm_ref->sp;
 	sp_fold_create(&ug->osc);
 	sp_fold_init(ug->sp, ug->osc);
@@ -2888,7 +2888,7 @@ static TICK(fosc_tick)
 
 CTOR(fosc_ctor)
 {
-	GW_fosc* ug = malloc(sizeof(GW_fosc));
+	GW_fosc* ug = xmalloc(sizeof(GW_fosc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3014,7 +3014,7 @@ static TICK(gbuzz_tick)
 
 CTOR(gbuzz_ctor)
 {
-	GW_gbuzz* ug = malloc(sizeof(GW_gbuzz));
+	GW_gbuzz* ug = xmalloc(sizeof(GW_gbuzz));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3296,7 +3296,7 @@ static TICK(hilbert_tick)
 
 CTOR(hilbert_ctor)
 {
-	GW_hilbert* ug = malloc(sizeof(GW_hilbert));
+	GW_hilbert* ug = xmalloc(sizeof(GW_hilbert));
 	ug->sp = shred->vm_ref->sp;
 	sp_hilbert_create(&ug->osc);
 	sp_hilbert_init(ug->sp, ug->osc);
@@ -3326,7 +3326,7 @@ static TICK(in_tick)
 
 CTOR(in_ctor)
 {
-	GW_in* ug = malloc(sizeof(GW_in));
+	GW_in* ug = xmalloc(sizeof(GW_in));
 	ug->sp = shred->vm_ref->sp;
 	sp_in_create(&ug->osc);
 	sp_in_init(ug->sp, ug->osc);
@@ -3364,7 +3364,7 @@ static TICK(incr_tick)
 
 CTOR(incr_ctor)
 {
-	GW_incr* ug = malloc(sizeof(GW_incr));
+	GW_incr* ug = xmalloc(sizeof(GW_incr));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3455,7 +3455,7 @@ static TICK(jcrev_tick)
 
 CTOR(jcrev_ctor)
 {
-	GW_jcrev* ug = malloc(sizeof(GW_jcrev));
+	GW_jcrev* ug = xmalloc(sizeof(GW_jcrev));
 	ug->sp = shred->vm_ref->sp;
 	sp_jcrev_create(&ug->osc);
 	sp_jcrev_init(ug->sp, ug->osc);
@@ -3485,7 +3485,7 @@ static TICK(jitter_tick)
 
 CTOR(jitter_ctor)
 {
-	GW_jitter* ug = malloc(sizeof(GW_jitter));
+	GW_jitter* ug = xmalloc(sizeof(GW_jitter));
 	ug->sp = shred->vm_ref->sp;
 	sp_jitter_create(&ug->osc);
 	sp_jitter_init(ug->sp, ug->osc);
@@ -3559,7 +3559,7 @@ static TICK(line_tick)
 
 CTOR(line_ctor)
 {
-	GW_line* ug = malloc(sizeof(GW_line));
+	GW_line* ug = xmalloc(sizeof(GW_line));
 	ug->sp = shred->vm_ref->sp;
 	sp_line_create(&ug->osc);
 	sp_line_init(ug->sp, ug->osc);
@@ -3638,7 +3638,7 @@ static TICK(lpc_tick)
 
 CTOR(lpc_ctor)
 {
-	GW_lpc* ug = malloc(sizeof(GW_lpc));
+	GW_lpc* ug = xmalloc(sizeof(GW_lpc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3687,7 +3687,7 @@ static TICK(lpf18_tick)
 
 CTOR(lpf18_ctor)
 {
-	GW_lpf18* ug = malloc(sizeof(GW_lpf18));
+	GW_lpf18* ug = xmalloc(sizeof(GW_lpf18));
 	ug->sp = shred->vm_ref->sp;
 	sp_lpf18_create(&ug->osc);
 	sp_lpf18_init(ug->sp, ug->osc);
@@ -3761,7 +3761,7 @@ static TICK(maygate_tick)
 
 CTOR(maygate_ctor)
 {
-	GW_maygate* ug = malloc(sizeof(GW_maygate));
+	GW_maygate* ug = xmalloc(sizeof(GW_maygate));
 	ug->sp = shred->vm_ref->sp;
 	sp_maygate_create(&ug->osc);
 	sp_maygate_init(ug->sp, ug->osc);
@@ -3819,7 +3819,7 @@ static TICK(metro_tick)
 
 CTOR(metro_ctor)
 {
-	GW_metro* ug = malloc(sizeof(GW_metro));
+	GW_metro* ug = xmalloc(sizeof(GW_metro));
 	ug->sp = shred->vm_ref->sp;
 	sp_metro_create(&ug->osc);
 	sp_metro_init(ug->sp, ug->osc);
@@ -3869,7 +3869,7 @@ static TICK(mincer_tick)
 
 CTOR(mincer_ctor)
 {
-	GW_mincer* ug = malloc(sizeof(GW_mincer));
+	GW_mincer* ug = xmalloc(sizeof(GW_mincer));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3964,7 +3964,7 @@ static TICK(mode_tick)
 
 CTOR(mode_ctor)
 {
-	GW_mode* ug = malloc(sizeof(GW_mode));
+	GW_mode* ug = xmalloc(sizeof(GW_mode));
 	ug->sp = shred->vm_ref->sp;
 	sp_mode_create(&ug->osc);
 	sp_mode_init(ug->sp, ug->osc);
@@ -4023,7 +4023,7 @@ static TICK(moogladder_tick)
 
 CTOR(moogladder_ctor)
 {
-	GW_moogladder* ug = malloc(sizeof(GW_moogladder));
+	GW_moogladder* ug = xmalloc(sizeof(GW_moogladder));
 	ug->sp = shred->vm_ref->sp;
 	sp_moogladder_create(&ug->osc);
 	sp_moogladder_init(ug->sp, ug->osc);
@@ -4081,7 +4081,7 @@ static TICK(noise_tick)
 
 CTOR(noise_ctor)
 {
-	GW_noise* ug = malloc(sizeof(GW_noise));
+	GW_noise* ug = xmalloc(sizeof(GW_noise));
 	ug->sp = shred->vm_ref->sp;
 	sp_noise_create(&ug->osc);
 	sp_noise_init(ug->sp, ug->osc);
@@ -4133,7 +4133,7 @@ static TICK(nsmp_tick)
 
 CTOR(nsmp_ctor)
 {
-	GW_nsmp* ug = malloc(sizeof(GW_nsmp));
+	GW_nsmp* ug = xmalloc(sizeof(GW_nsmp));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4209,7 +4209,7 @@ static TICK(osc_tick)
 
 CTOR(osc_ctor)
 {
-	GW_osc* ug = malloc(sizeof(GW_osc));
+	GW_osc* ug = xmalloc(sizeof(GW_osc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4297,7 +4297,7 @@ static TICK(oscmorph_tick)
 
 CTOR(oscmorph_ctor)
 {
-	GW_oscmorph* ug = malloc(sizeof(GW_oscmorph));
+	GW_oscmorph* ug = xmalloc(sizeof(GW_oscmorph));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4328,7 +4328,7 @@ MFUN(oscmorph_init)
 	}
 	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
 	m_uint tbl_iter;
-	sp_ftbl** tbl = malloc(m_vector_size(ARRAY(tbl_ptr)) * SZ_INT);
+	sp_ftbl** tbl = xmalloc(m_vector_size(ARRAY(tbl_ptr)) * SZ_INT);
 	for(tbl_iter = 0; tbl_iter < m_vector_size(ARRAY(tbl_ptr)); tbl_iter++) {
 			M_Object tbl_ftl_obj;
 			m_vector_get(ARRAY(tbl_ptr), tbl_iter, &tbl_ftl_obj);
@@ -4404,7 +4404,7 @@ static TICK(pan2_tick)
 
 CTOR(pan2_ctor)
 {
-	GW_pan2* ug = malloc(sizeof(GW_pan2));
+	GW_pan2* ug = xmalloc(sizeof(GW_pan2));
 	ug->sp = shred->vm_ref->sp;
 	sp_pan2_create(&ug->osc);
 	sp_pan2_init(ug->sp, ug->osc);
@@ -4464,7 +4464,7 @@ static TICK(panst_tick)
 
 CTOR(panst_ctor)
 {
-	GW_panst* ug = malloc(sizeof(GW_panst));
+	GW_panst* ug = xmalloc(sizeof(GW_panst));
 	ug->sp = shred->vm_ref->sp;
 	sp_panst_create(&ug->osc);
 	sp_panst_init(ug->sp, ug->osc);
@@ -4523,7 +4523,7 @@ static TICK(pareq_tick)
 
 CTOR(pareq_ctor)
 {
-	GW_pareq* ug = malloc(sizeof(GW_pareq));
+	GW_pareq* ug = xmalloc(sizeof(GW_pareq));
 	ug->sp = shred->vm_ref->sp;
 	sp_pareq_create(&ug->osc);
 	sp_pareq_init(ug->sp, ug->osc);
@@ -4615,7 +4615,7 @@ static TICK(paulstretch_tick)
 
 CTOR(paulstretch_ctor)
 {
-	GW_paulstretch* ug = malloc(sizeof(GW_paulstretch));
+	GW_paulstretch* ug = xmalloc(sizeof(GW_paulstretch));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4670,7 +4670,7 @@ static TICK(pdhalf_tick)
 
 CTOR(pdhalf_ctor)
 {
-	GW_pdhalf* ug = malloc(sizeof(GW_pdhalf));
+	GW_pdhalf* ug = xmalloc(sizeof(GW_pdhalf));
 	ug->sp = shred->vm_ref->sp;
 	sp_pdhalf_create(&ug->osc);
 	sp_pdhalf_init(ug->sp, ug->osc);
@@ -4715,7 +4715,7 @@ static TICK(peaklim_tick)
 
 CTOR(peaklim_ctor)
 {
-	GW_peaklim* ug = malloc(sizeof(GW_peaklim));
+	GW_peaklim* ug = xmalloc(sizeof(GW_peaklim));
 	ug->sp = shred->vm_ref->sp;
 	sp_peaklim_create(&ug->osc);
 	sp_peaklim_init(ug->sp, ug->osc);
@@ -4789,7 +4789,7 @@ static TICK(phaser_tick)
 
 CTOR(phaser_ctor)
 {
-	GW_phaser* ug = malloc(sizeof(GW_phaser));
+	GW_phaser* ug = xmalloc(sizeof(GW_phaser));
 	ug->sp = shred->vm_ref->sp;
 	sp_phaser_create(&ug->osc);
 	sp_phaser_init(ug->sp, ug->osc);
@@ -4965,7 +4965,7 @@ static TICK(phasor_tick)
 
 CTOR(phasor_ctor)
 {
-	GW_phasor* ug = malloc(sizeof(GW_phasor));
+	GW_phasor* ug = xmalloc(sizeof(GW_phasor));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5027,7 +5027,7 @@ static TICK(pinknoise_tick)
 
 CTOR(pinknoise_ctor)
 {
-	GW_pinknoise* ug = malloc(sizeof(GW_pinknoise));
+	GW_pinknoise* ug = xmalloc(sizeof(GW_pinknoise));
 	ug->sp = shred->vm_ref->sp;
 	sp_pinknoise_create(&ug->osc);
 	sp_pinknoise_init(ug->sp, ug->osc);
@@ -5077,7 +5077,7 @@ static TICK(pitchamdf_tick)
 
 CTOR(pitchamdf_ctor)
 {
-	GW_pitchamdf* ug = malloc(sizeof(GW_pitchamdf));
+	GW_pitchamdf* ug = xmalloc(sizeof(GW_pitchamdf));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5135,7 +5135,7 @@ static TICK(pluck_tick)
 
 CTOR(pluck_ctor)
 {
-	GW_pluck* ug = malloc(sizeof(GW_pluck));
+	GW_pluck* ug = xmalloc(sizeof(GW_pluck));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5218,7 +5218,7 @@ static TICK(port_tick)
 
 CTOR(port_ctor)
 {
-	GW_port* ug = malloc(sizeof(GW_port));
+	GW_port* ug = xmalloc(sizeof(GW_port));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5272,7 +5272,7 @@ static TICK(posc3_tick)
 
 CTOR(posc3_ctor)
 {
-	GW_posc3* ug = malloc(sizeof(GW_posc3));
+	GW_posc3* ug = xmalloc(sizeof(GW_posc3));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5350,7 +5350,7 @@ static TICK(progress_tick)
 
 CTOR(progress_ctor)
 {
-	GW_progress* ug = malloc(sizeof(GW_progress));
+	GW_progress* ug = xmalloc(sizeof(GW_progress));
 	ug->sp = shred->vm_ref->sp;
 	sp_progress_create(&ug->osc);
 	sp_progress_init(ug->sp, ug->osc);
@@ -5414,7 +5414,7 @@ static TICK(prop_tick)
 
 CTOR(prop_ctor)
 {
-	GW_prop* ug = malloc(sizeof(GW_prop));
+	GW_prop* ug = xmalloc(sizeof(GW_prop));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5479,7 +5479,7 @@ static TICK(pshift_tick)
 
 CTOR(pshift_ctor)
 {
-	GW_pshift* ug = malloc(sizeof(GW_pshift));
+	GW_pshift* ug = xmalloc(sizeof(GW_pshift));
 	ug->sp = shred->vm_ref->sp;
 	sp_pshift_create(&ug->osc);
 	sp_pshift_init(ug->sp, ug->osc);
@@ -5557,7 +5557,7 @@ static TICK(ptrack_tick)
 
 CTOR(ptrack_ctor)
 {
-	GW_ptrack* ug = malloc(sizeof(GW_ptrack));
+	GW_ptrack* ug = xmalloc(sizeof(GW_ptrack));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5607,7 +5607,7 @@ static TICK(randh_tick)
 
 CTOR(randh_ctor)
 {
-	GW_randh* ug = malloc(sizeof(GW_randh));
+	GW_randh* ug = xmalloc(sizeof(GW_randh));
 	ug->sp = shred->vm_ref->sp;
 	sp_randh_create(&ug->osc);
 	sp_randh_init(ug->sp, ug->osc);
@@ -5679,7 +5679,7 @@ static TICK(randi_tick)
 
 CTOR(randi_ctor)
 {
-	GW_randi* ug = malloc(sizeof(GW_randi));
+	GW_randi* ug = xmalloc(sizeof(GW_randi));
 	ug->sp = shred->vm_ref->sp;
 	sp_randi_create(&ug->osc);
 	sp_randi_init(ug->sp, ug->osc);
@@ -5765,7 +5765,7 @@ static TICK(random_tick)
 
 CTOR(random_ctor)
 {
-	GW_random* ug = malloc(sizeof(GW_random));
+	GW_random* ug = xmalloc(sizeof(GW_random));
 	ug->sp = shred->vm_ref->sp;
 	sp_random_create(&ug->osc);
 	sp_random_init(ug->sp, ug->osc);
@@ -5824,7 +5824,7 @@ static TICK(reson_tick)
 
 CTOR(reson_ctor)
 {
-	GW_reson* ug = malloc(sizeof(GW_reson));
+	GW_reson* ug = xmalloc(sizeof(GW_reson));
 	ug->sp = shred->vm_ref->sp;
 	sp_reson_create(&ug->osc);
 	sp_reson_init(ug->sp, ug->osc);
@@ -5889,7 +5889,7 @@ static TICK(reverse_tick)
 
 CTOR(reverse_ctor)
 {
-	GW_reverse* ug = malloc(sizeof(GW_reverse));
+	GW_reverse* ug = xmalloc(sizeof(GW_reverse));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5939,7 +5939,7 @@ static TICK(revsc_tick)
 
 CTOR(revsc_ctor)
 {
-	GW_revsc* ug = malloc(sizeof(GW_revsc));
+	GW_revsc* ug = xmalloc(sizeof(GW_revsc));
 	ug->sp = shred->vm_ref->sp;
 	sp_revsc_create(&ug->osc);
 	sp_revsc_init(ug->sp, ug->osc);
@@ -5998,7 +5998,7 @@ static TICK(rms_tick)
 
 CTOR(rms_ctor)
 {
-	GW_rms* ug = malloc(sizeof(GW_rms));
+	GW_rms* ug = xmalloc(sizeof(GW_rms));
 	ug->sp = shred->vm_ref->sp;
 	sp_rms_create(&ug->osc);
 	sp_rms_init(ug->sp, ug->osc);
@@ -6051,7 +6051,7 @@ static TICK(rpt_tick)
 
 CTOR(rpt_ctor)
 {
-	GW_rpt* ug = malloc(sizeof(GW_rpt));
+	GW_rpt* ug = xmalloc(sizeof(GW_rpt));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6099,7 +6099,7 @@ static TICK(rspline_tick)
 
 CTOR(rspline_ctor)
 {
-	GW_rspline* ug = malloc(sizeof(GW_rspline));
+	GW_rspline* ug = xmalloc(sizeof(GW_rspline));
 	ug->sp = shred->vm_ref->sp;
 	sp_rspline_create(&ug->osc);
 	sp_rspline_init(ug->sp, ug->osc);
@@ -6188,7 +6188,7 @@ static TICK(samphold_tick)
 
 CTOR(samphold_ctor)
 {
-	GW_samphold* ug = malloc(sizeof(GW_samphold));
+	GW_samphold* ug = xmalloc(sizeof(GW_samphold));
 	ug->sp = shred->vm_ref->sp;
 	sp_samphold_create(&ug->osc);
 	sp_samphold_init(ug->sp, ug->osc);
@@ -6219,7 +6219,7 @@ static TICK(saturator_tick)
 
 CTOR(saturator_ctor)
 {
-	GW_saturator* ug = malloc(sizeof(GW_saturator));
+	GW_saturator* ug = xmalloc(sizeof(GW_saturator));
 	ug->sp = shred->vm_ref->sp;
 	sp_saturator_create(&ug->osc);
 	sp_saturator_init(ug->sp, ug->osc);
@@ -6278,7 +6278,7 @@ static TICK(scale_tick)
 
 CTOR(scale_ctor)
 {
-	GW_scale* ug = malloc(sizeof(GW_scale));
+	GW_scale* ug = xmalloc(sizeof(GW_scale));
 	ug->sp = shred->vm_ref->sp;
 	sp_scale_create(&ug->osc);
 	sp_scale_init(ug->sp, ug->osc);
@@ -6343,7 +6343,7 @@ static TICK(sdelay_tick)
 
 CTOR(sdelay_ctor)
 {
-	GW_sdelay* ug = malloc(sizeof(GW_sdelay));
+	GW_sdelay* ug = xmalloc(sizeof(GW_sdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6399,7 +6399,7 @@ static TICK(slice_tick)
 
 CTOR(slice_ctor)
 {
-	GW_slice* ug = malloc(sizeof(GW_slice));
+	GW_slice* ug = xmalloc(sizeof(GW_slice));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6474,7 +6474,7 @@ static TICK(smoothdelay_tick)
 
 CTOR(smoothdelay_ctor)
 {
-	GW_smoothdelay* ug = malloc(sizeof(GW_smoothdelay));
+	GW_smoothdelay* ug = xmalloc(sizeof(GW_smoothdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6558,7 +6558,7 @@ static TICK(spa_tick)
 
 CTOR(spa_ctor)
 {
-	GW_spa* ug = malloc(sizeof(GW_spa));
+	GW_spa* ug = xmalloc(sizeof(GW_spa));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6615,7 +6615,7 @@ static TICK(sparec_tick)
 
 CTOR(sparec_ctor)
 {
-	GW_sparec* ug = malloc(sizeof(GW_sparec));
+	GW_sparec* ug = xmalloc(sizeof(GW_sparec));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6666,7 +6666,7 @@ static TICK(streson_tick)
 
 CTOR(streson_ctor)
 {
-	GW_streson* ug = malloc(sizeof(GW_streson));
+	GW_streson* ug = xmalloc(sizeof(GW_streson));
 	ug->sp = shred->vm_ref->sp;
 	sp_streson_create(&ug->osc);
 	sp_streson_init(ug->sp, ug->osc);
@@ -6728,7 +6728,7 @@ static TICK(switch_tick)
 
 CTOR(switch_ctor)
 {
-	GW_switch* ug = malloc(sizeof(GW_switch));
+	GW_switch* ug = xmalloc(sizeof(GW_switch));
 	ug->sp = shred->vm_ref->sp;
 	sp_switch_create(&ug->osc);
 	sp_switch_init(ug->sp, ug->osc);
@@ -6764,7 +6764,7 @@ static TICK(tabread_tick)
 
 CTOR(tabread_ctor)
 {
-	GW_tabread* ug = malloc(sizeof(GW_tabread));
+	GW_tabread* ug = xmalloc(sizeof(GW_tabread));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6860,7 +6860,7 @@ static TICK(tadsr_tick)
 
 CTOR(tadsr_ctor)
 {
-	GW_tadsr* ug = malloc(sizeof(GW_tadsr));
+	GW_tadsr* ug = xmalloc(sizeof(GW_tadsr));
 	ug->sp = shred->vm_ref->sp;
 	sp_tadsr_create(&ug->osc);
 	sp_tadsr_init(ug->sp, ug->osc);
@@ -6948,7 +6948,7 @@ static TICK(talkbox_tick)
 
 CTOR(talkbox_ctor)
 {
-	GW_talkbox* ug = malloc(sizeof(GW_talkbox));
+	GW_talkbox* ug = xmalloc(sizeof(GW_talkbox));
 	ug->sp = shred->vm_ref->sp;
 	sp_talkbox_create(&ug->osc);
 	sp_talkbox_init(ug->sp, ug->osc);
@@ -7001,7 +7001,7 @@ static TICK(tblrec_tick)
 
 CTOR(tblrec_ctor)
 {
-	GW_tblrec* ug = malloc(sizeof(GW_tblrec));
+	GW_tblrec* ug = xmalloc(sizeof(GW_tblrec));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -7052,7 +7052,7 @@ static TICK(tbvcf_tick)
 
 CTOR(tbvcf_ctor)
 {
-	GW_tbvcf* ug = malloc(sizeof(GW_tbvcf));
+	GW_tbvcf* ug = xmalloc(sizeof(GW_tbvcf));
 	ug->sp = shred->vm_ref->sp;
 	sp_tbvcf_create(&ug->osc);
 	sp_tbvcf_init(ug->sp, ug->osc);
@@ -7140,7 +7140,7 @@ static TICK(tdiv_tick)
 
 CTOR(tdiv_ctor)
 {
-	GW_tdiv* ug = malloc(sizeof(GW_tdiv));
+	GW_tdiv* ug = xmalloc(sizeof(GW_tdiv));
 	ug->sp = shred->vm_ref->sp;
 	sp_tdiv_create(&ug->osc);
 	sp_tdiv_init(ug->sp, ug->osc);
@@ -7200,7 +7200,7 @@ static TICK(tenv_tick)
 
 CTOR(tenv_ctor)
 {
-	GW_tenv* ug = malloc(sizeof(GW_tenv));
+	GW_tenv* ug = xmalloc(sizeof(GW_tenv));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv_create(&ug->osc);
 	sp_tenv_init(ug->sp, ug->osc);
@@ -7274,7 +7274,7 @@ static TICK(tenv2_tick)
 
 CTOR(tenv2_ctor)
 {
-	GW_tenv2* ug = malloc(sizeof(GW_tenv2));
+	GW_tenv2* ug = xmalloc(sizeof(GW_tenv2));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv2_create(&ug->osc);
 	sp_tenv2_init(ug->sp, ug->osc);
@@ -7334,7 +7334,7 @@ static TICK(tenvx_tick)
 
 CTOR(tenvx_ctor)
 {
-	GW_tenvx* ug = malloc(sizeof(GW_tenvx));
+	GW_tenvx* ug = xmalloc(sizeof(GW_tenvx));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenvx_create(&ug->osc);
 	sp_tenvx_init(ug->sp, ug->osc);
@@ -7408,7 +7408,7 @@ static TICK(tgate_tick)
 
 CTOR(tgate_ctor)
 {
-	GW_tgate* ug = malloc(sizeof(GW_tgate));
+	GW_tgate* ug = xmalloc(sizeof(GW_tgate));
 	ug->sp = shred->vm_ref->sp;
 	sp_tgate_create(&ug->osc);
 	sp_tgate_init(ug->sp, ug->osc);
@@ -7453,7 +7453,7 @@ static TICK(thresh_tick)
 
 CTOR(thresh_ctor)
 {
-	GW_thresh* ug = malloc(sizeof(GW_thresh));
+	GW_thresh* ug = xmalloc(sizeof(GW_thresh));
 	ug->sp = shred->vm_ref->sp;
 	sp_thresh_create(&ug->osc);
 	sp_thresh_init(ug->sp, ug->osc);
@@ -7512,7 +7512,7 @@ static TICK(timer_tick)
 
 CTOR(timer_ctor)
 {
-	GW_timer* ug = malloc(sizeof(GW_timer));
+	GW_timer* ug = xmalloc(sizeof(GW_timer));
 	ug->sp = shred->vm_ref->sp;
 	sp_timer_create(&ug->osc);
 	sp_timer_init(ug->sp, ug->osc);
@@ -7544,7 +7544,7 @@ static TICK(tin_tick)
 
 CTOR(tin_ctor)
 {
-	GW_tin* ug = malloc(sizeof(GW_tin));
+	GW_tin* ug = xmalloc(sizeof(GW_tin));
 	ug->sp = shred->vm_ref->sp;
 	sp_tin_create(&ug->osc);
 	sp_tin_init(ug->sp, ug->osc);
@@ -7575,7 +7575,7 @@ static TICK(tone_tick)
 
 CTOR(tone_ctor)
 {
-	GW_tone* ug = malloc(sizeof(GW_tone));
+	GW_tone* ug = xmalloc(sizeof(GW_tone));
 	ug->sp = shred->vm_ref->sp;
 	sp_tone_create(&ug->osc);
 	sp_tone_init(ug->sp, ug->osc);
@@ -7621,7 +7621,7 @@ static TICK(trand_tick)
 
 CTOR(trand_ctor)
 {
-	GW_trand* ug = malloc(sizeof(GW_trand));
+	GW_trand* ug = xmalloc(sizeof(GW_trand));
 	ug->sp = shred->vm_ref->sp;
 	sp_trand_create(&ug->osc);
 	sp_trand_init(ug->sp, ug->osc);
@@ -7687,7 +7687,7 @@ static TICK(tseg_tick)
 
 CTOR(tseg_ctor)
 {
-	GW_tseg* ug = malloc(sizeof(GW_tseg));
+	GW_tseg* ug = xmalloc(sizeof(GW_tseg));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -7785,7 +7785,7 @@ static TICK(tseq_tick)
 
 CTOR(tseq_ctor)
 {
-	GW_tseq* ug = malloc(sizeof(GW_tseq));
+	GW_tseq* ug = xmalloc(sizeof(GW_tseq));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -7856,7 +7856,7 @@ static TICK(vdelay_tick)
 
 CTOR(vdelay_ctor)
 {
-	GW_vdelay* ug = malloc(sizeof(GW_vdelay));
+	GW_vdelay* ug = xmalloc(sizeof(GW_vdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -7918,7 +7918,7 @@ static TICK(voc_tick)
 
 CTOR(voc_ctor)
 {
-	GW_voc* ug = malloc(sizeof(GW_voc));
+	GW_voc* ug = xmalloc(sizeof(GW_voc));
 	ug->sp = shred->vm_ref->sp;
 	sp_voc_create(&ug->osc);
 	sp_voc_init(ug->sp, ug->osc);
@@ -7950,7 +7950,7 @@ static TICK(vocoder_tick)
 
 CTOR(vocoder_ctor)
 {
-	GW_vocoder* ug = malloc(sizeof(GW_vocoder));
+	GW_vocoder* ug = xmalloc(sizeof(GW_vocoder));
 	ug->sp = shred->vm_ref->sp;
 	sp_vocoder_create(&ug->osc);
 	sp_vocoder_init(ug->sp, ug->osc);
@@ -8029,7 +8029,7 @@ static TICK(waveset_tick)
 
 CTOR(waveset_ctor)
 {
-	GW_waveset* ug = malloc(sizeof(GW_waveset));
+	GW_waveset* ug = xmalloc(sizeof(GW_waveset));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -8092,7 +8092,7 @@ static TICK(wpkorg35_tick)
 
 CTOR(wpkorg35_ctor)
 {
-	GW_wpkorg35* ug = malloc(sizeof(GW_wpkorg35));
+	GW_wpkorg35* ug = xmalloc(sizeof(GW_wpkorg35));
 	ug->sp = shred->vm_ref->sp;
 	sp_wpkorg35_create(&ug->osc);
 	sp_wpkorg35_init(ug->sp, ug->osc);
@@ -8166,7 +8166,7 @@ static TICK(zitarev_tick)
 
 CTOR(zitarev_ctor)
 {
-	GW_zitarev* ug = malloc(sizeof(GW_zitarev));
+	GW_zitarev* ug = xmalloc(sizeof(GW_zitarev));
 	ug->sp = shred->vm_ref->sp;
 	sp_zitarev_create(&ug->osc);
 	sp_zitarev_init(ug->sp, ug->osc);

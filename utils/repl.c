@@ -93,7 +93,7 @@ struct Repl {
 };
 
 ANN static struct Repl* new_repl(const m_str name) {
-  struct Repl* repl = malloc(sizeof(struct Repl));
+  struct Repl* repl = xmalloc(sizeof(struct Repl));
   repl->shred = repl_shred();
   repl->ctx = new_context(NULL, name);
   return repl;
