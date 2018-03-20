@@ -24,7 +24,6 @@ VM* vm;
 
 static void sig(int unused) {
   vm->is_running = 0;
-  signaled = 1;
 }
 
 m_uint compile(VM* vm, const m_str filename) {
@@ -102,8 +101,7 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  if(!(vm = new_vm(arg.loop)))
-    goto clean;
+  vm = new_vm(arg.loop);
   if(init_bbq(vm, &di, &d) < 0)
     goto clean;
   if(!(env = type_engine_init(vm, &arg.lib)))
@@ -148,10 +146,8 @@ clean:
 #ifndef __linux__
   sleep(1);
 #endif
-  if(vm && !signaled) {
     if(!vm->emit && env)
       free(env);
     free_vm(vm);
-  }
   return 0;
- }
+}

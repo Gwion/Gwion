@@ -635,8 +635,6 @@ ANN static void import_enum_end(DL_Enum* d, const Vector v) {
 ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
   Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
-
-  CHECK_OB(stmt)
   if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return -1;

@@ -68,8 +68,7 @@ static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
       return -1;
     }
-    v = list->var_decl->value ? list->var_decl->value :
-      new_value(list->type, s_name(list->var_decl->xid));
+    v = list->var_decl->value ?: new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     if(GET_FLAG(list->type_decl, ae_flag_const))

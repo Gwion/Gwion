@@ -23,10 +23,9 @@ ANN m_uint m_vector_size(M_Vector v) {
 }
 
 static DTOR(array_dtor) {
-  Type base = array_base(o->type_ref);
+  const Type base = array_base(o->type_ref);
   if(ARRAY(o)->depth > 1 || isa(base, t_object) > 0) {
-    m_uint i;
-    for(i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
+    for(m_uint i = 0; i < ARRAY(o)->len * SZ_INT; i += SZ_INT)
       release(*(M_Object*)(ARRAY(o)->ptr + i), shred);
   }
   free(ARRAY(o)->ptr);
@@ -80,8 +79,8 @@ ANN void m_vector_rem(M_Vector v, m_uint index) {
 }
 
 static MFUN(vm_vector_rem) {
-  m_int index = *(m_int*)(shred + SZ_INT);
-  M_Vector v = ARRAY(o);
+  const m_int index = *(m_int*)(shred + SZ_INT);
+  const M_Vector v = ARRAY(o);
   if(index < 0 || index >= v->len)
     return;
   if(isa(o->type_ref, t_object) > 0) {
@@ -110,7 +109,7 @@ static MFUN(vm_vector_cap) {
 
 INSTR(Array_Append) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + instr->m_val);
-  M_Object o = *(M_Object*)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   m_vector_add(ARRAY(o), REG(SZ_INT));
   release(o, shred);
   *(M_Object*)REG(0) = o;
@@ -124,9 +123,9 @@ ANN static Type get_array_type(Type t) {
 }
 
 static OP_CHECK(opck_array_at) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  Type l = get_array_type(bin->lhs->type);
-  Type r = get_array_type(bin->rhs->type);
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Type l = get_array_type(bin->lhs->type);
+  const Type r = get_array_type(bin->rhs->type);
 
   if(isa(l, r) < 0) {
     REM_REF(bin->lhs->type)
@@ -143,9 +142,9 @@ static OP_CHECK(opck_array_at) {
 }
 
 static OP_CHECK(opck_array_shift) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  Type l = get_array_type(bin->lhs->type);
-  Type r = get_array_type(bin->rhs->type);
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Type l = get_array_type(bin->lhs->type);
+  const Type r = get_array_type(bin->rhs->type);
   if(isa(l, r) < 0) {
     err_msg(TYPE_, bin->pos, "array types do not match.");
     return t_null;
@@ -156,15 +155,15 @@ static OP_CHECK(opck_array_shift) {
 }
 
 static OP_EMIT(opem_array_shift) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  Type type = bin->rhs->type;
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Type type = bin->rhs->type;
   Instr instr = emitter_add_instr(emit, Array_Append);
   instr->m_val = type->size;
   return 1;
 }
 
 static OP_CHECK(opck_array_cast) {
-  Exp_Cast* cast = (Exp_Cast*)data;
+  const Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = cast->self->type;
   if(!l->d.base_type) l = l->parent;
@@ -179,21 +178,20 @@ m_bool import_array(const Gwi gwi) {
   SET_FLAG((t_array), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
-	gwi_item_ini(gwi, "int", "@array");
-  o_object_array = gwi_item_end(gwi, ae_flag_member, NULL);
-  CHECK_BB(o_object_array)
+  CHECK_BB(gwi_item_ini(gwi, "int", "@array"))
+  CHECK_BB((o_object_array = gwi_item_end(gwi, ae_flag_member, NULL)))
 
-  gwi_func_ini(gwi, "int", "size", vm_vector_size);
+  CHECK_BB(gwi_func_ini(gwi, "int", "size", vm_vector_size))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "int", "depth", vm_vector_depth);
+  CHECK_BB(gwi_func_ini(gwi, "int", "depth", vm_vector_depth))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "int", "cap", vm_vector_cap);
+  CHECK_BB(gwi_func_ini(gwi, "int", "cap", vm_vector_cap))
   CHECK_BB(gwi_func_end(gwi, 0))
 
-  gwi_func_ini(gwi, "int", "remove", vm_vector_rem);
-  gwi_func_arg(gwi, "int", "index");
+  CHECK_BB(gwi_func_ini(gwi, "int", "remove", vm_vector_rem))
+  CHECK_BB(gwi_func_arg(gwi, "int", "index"))
   CHECK_BB(gwi_func_end(gwi, 0))
 
   CHECK_BB(gwi_class_end(gwi))
@@ -223,7 +221,7 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
   m_uint * array = *(m_uint**)REG(-SZ_INT * 3);
   m_int i = *(m_int*)REG(-SZ_INT * 2);
   *(m_uint*)array[i] = (m_uint)obj;
-  (*(m_int*)REG(-SZ_INT * 2))++;
+  ++(*(m_int*)REG(-SZ_INT * 2));
   shred->next_pc = instr->m_val;
 }
 
@@ -263,9 +261,9 @@ static M_Object do_alloc_array_init(struct ArrayAllocInfo* info, m_int cap,
     M_Object base) {
   if(info->is_obj && info->objs) {
     m_int i;
-    for(i = 0; i < cap; i++) {
+    for(i = 0; i < cap; ++i) {
       info->objs[*info->index] = (m_uint)m_vector_addr(ARRAY(base), i);
-      (*info->index)++;
+      ++(*info->index);
     }
   }
   return base;
@@ -275,7 +273,7 @@ static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info);
 static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
     m_int cap, M_Object base) {
   m_int i;
-  for(i = 0; i < cap; i++) {
+  for(i = 0; i < cap; ++i) {
     struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
       info->base, info->objs, info->index, info->is_obj };
     M_Object next = do_alloc_array(shred, &aai);
@@ -308,7 +306,7 @@ INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
   POP_REG(shred, instr->m_val2 * info->length);
   obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
   vector_add(&shred->gc, (vtype) obj);
-  for(i = 0; i < info->length; i++)
+  for(i = 0; i < info->length; ++i)
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
   PUSH_REG(shred,  SZ_INT);
@@ -323,7 +321,7 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
   while(curr <= top) {
     tmp = *(m_int*)REG(SZ_INT * curr);
     *num_obj *= tmp;
-    curr++;
+    ++curr;
   }
   if(*num_obj > 0)
     return (m_uint*)xcalloc(*num_obj, SZ_INT);
@@ -399,7 +397,7 @@ INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
   M_Object obj, *base = (M_Object*)REG(0);
   if(!(obj = *base))
     Except(shred, "NullPtrException");
-  for(j = 0; j < instr->m_val - 1; j++) {
+  for(j = 0; j < instr->m_val - 1; ++j) {
     i = *(m_int*)REG(SZ_INT * (j + 1));
     OOB(shred, *base, *(m_int*)REG(SZ_INT * (j + 1)))
     m_vector_get(ARRAY(obj), i, &obj);

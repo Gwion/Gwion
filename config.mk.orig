@@ -7,7 +7,7 @@ PREFIX ?=/usr/local
 SOUNDPIPE_LIB ?=-lsoundpipe
 SOUNDPIPE_INC ?=
 LDFLAGS += -lm -ldl -rdynamic -lpthread
-CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -pedantic -D_GNU_SOURCE
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -Wall -D_GNU_SOURCE
 
 # handle boolean options
 USE_DOUBLE    = 0

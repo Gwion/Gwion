@@ -167,7 +167,7 @@ static void add_plugs(Gwi gwi, Vector plug_dirs) {
 
 Env type_engine_init(VM* vm, const Vector plug_dirs) {
   Env env = new_env();
-  CHECK_OO((vm->emit = new_emitter(env)))
+  vm->emit = new_emitter(env);
   vm->emit->filename = "[builtin]";
   struct Gwi_ gwi = { vm, vm->emit, env };
    if(import_core_libs(&gwi) < 0 ||
