@@ -18,7 +18,7 @@ USE_GWCGRAPH ?= 0
 USE_GWREPL   ?= 0
 USE_GWUDP    ?= 0
 USE_GWMPOOL  ?= 1
-
+USE_OPTIMIZE ?= 0
 # handle definitions
 D_FUNC       ?= dummy_driver
 
@@ -37,4 +37,4 @@ SOUNDIO_D    ?= 0
 PULSE_D      ?= 0
 PLOT_D       ?= 0
 
-DEBUG_STACK  ?= 0
+DEBUG_STACK  ?= 1

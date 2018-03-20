@@ -123,3 +123,6 @@ INSTR(Cast2Ptr);
 #ifdef GWCOV
 INSTR(InstrCoverage);
 #endif
+
+// optimizations
+INSTR(PutArgsInMem);

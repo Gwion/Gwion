@@ -1110,9 +1110,31 @@ ANN static void emit_func_release(const Emitter emit) { GWDEBUG_EXE
   }
 }
 
+#ifdef OPTIMIZE
+ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Func* e) {
+  Exp arg = e->args;
+  emit_exp(emit, e->args, 0);
+  Instr instr = emitter_add_instr(emit, PutArgsInMem);
+  while(arg) {
+    instr->m_val += arg->type->size;
+    arg = arg->next;
+  }
+  emitter_add_instr(emit, Goto);
+  return 1;
+}
+#define OPTIMIZE_TCO\
+  if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_func.m_func)\
+    return optimize_taill_call(emit, &stmt->val->d.exp_func);
+#else
+#define OPTIMIZE_TCO
+#endif
+
+
 ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Return stmt) { GWDEBUG_EXE
-  if(stmt->val)
+  if(stmt->val) {
+    OPTIMIZE_TCO
     CHECK_BB(emit_exp(emit, stmt->val, 0))
+  }
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
   return 1;
 }

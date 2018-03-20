@@ -105,6 +105,9 @@ CFLAGS+=-DGWMPOOL
 TOOL_OBJ += utils/mpool.o
 util_src += utils/mpool.c
 endif
+ifeq (${USE_OPTIMIZE}, 1)
+CFLAGS+= -DOPTIMIZE
+endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
