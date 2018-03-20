@@ -33,7 +33,7 @@ static INSTR(int_assign) { GWDEBUG_EXE
 
 static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
 
-INSTR(int_not) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(0); }
+INSTR(int_not) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(-SZ_INT); }
 
 static INSTR(int_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
