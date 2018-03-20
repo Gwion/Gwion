@@ -292,7 +292,7 @@ ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   if(ptr->type->array)
-    CHECK_BB(get_array(ptr->type->array, "function pointer"))
+    CHECK_BB(check_array_empty(ptr->type->array, "function pointer"))
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->type)))
     CHECK_BB(type_unknown(ptr->type->xid, "func pointer definition"))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
@@ -413,7 +413,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->type_decl->array)
-    CHECK_BB(get_array(f->type_decl->array, "function return"))
+    CHECK_BB(check_array_empty(f->type_decl->array, "function return"))
   if(!(f->ret_type = type_decl_resolve(env, f->type_decl)))
       CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
   return 1;

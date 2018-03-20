@@ -63,7 +63,7 @@ static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   while(list) {
     Value v;
     if(list->var_decl->array)
-      CHECK_BB(get_array(list->var_decl->array, "argument"))
+      CHECK_BB(check_array_empty(list->var_decl->array, "argument"))
     if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
       return -1;
