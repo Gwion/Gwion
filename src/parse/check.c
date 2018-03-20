@@ -1084,29 +1084,38 @@ ANN static m_bool check_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
 ANN static m_bool check_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
   Type t = check_exp(env, stmt->exp);
   Type ptr = array_base(t);
+  const m_uint depth = t->array_depth - 1;
   if(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
   if(!t || !ptr || isa(t, t_array) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->pos, "type '%s' is not array.\n"
           " This is not allowed in auto loop", stmt->exp->type->name))
   if(stmt->is_ptr) {
-    struct ID_List_   id;
+    struct ID_List_   id0, id;
     struct Type_List_ tl;
+    struct Array_Sub_ array;
     Type_Decl td0, td;
+    memset(&id0, 0, sizeof(struct ID_List_));
     memset(&id, 0, sizeof(struct ID_List_));
     memset(&tl, 0, sizeof(struct Type_List_));
+    memset(&array, 0, sizeof(struct Array_Sub_));
     memset(&td0, 0, sizeof(Type_Decl));
     memset(&td, 0, sizeof(Type_Decl));
-    id.xid = insert_symbol(ptr->name);
-    td0.xid = &id;
+    id.xid  = insert_symbol("Ptr");
+    id0.xid = insert_symbol(ptr->name);
+    td0.xid = &id0;
+    td.xid = &id;
     tl.list = &td0;
     td.types = &tl;
-    ptr = scan_type(env, t_ptr, &td);
+    if(depth) {
+      array.depth = depth;
+      td.array = &array;
+    }
+    ptr = type_decl_resolve(env, &td);
     if(!GET_FLAG(ptr, ae_flag_checked))
       check_class_def(env, ptr->def);
-  }
-  t = t->array_depth - 1 ? array_type(ptr, t->array_depth - 1) :
-     ptr;
+  } else
+  t = depth ? array_type(ptr, depth) : ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, ae_flag_checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
@@ -1490,7 +1499,6 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->ext->array) {
     CHECK_OB(check_exp(env, class_def->ext->array->exp_list))
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp_list))
-    CHECK_OB((class_def->type->parent = array_type(class_def->type->parent, class_def->ext->array->depth)))
   }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?

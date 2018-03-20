@@ -20,7 +20,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   CHECK_OO(t)
   CHECK_OO((t = scan_type(env, t, td)))
   if(td->array)
-    CHECK_OO((t = get_array(t, td->array, "type decl resolve")))
+    CHECK_OO((t = array_type(t, td->array->depth)))
   return t;
 }
 
@@ -29,7 +29,7 @@ ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
     str = xrealloc(str, src *= 2);
 }
 
-ANN static m_str td2str(const Env env, const Type_Decl* td) {
+ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
   m_uint l = id_list_len(td->xid) + depth *2;
   m_uint m = l;
@@ -57,7 +57,7 @@ ANN static m_str td2str(const Env env, const Type_Decl* td) {
   return s;
 }
 
-ANN m_str tl2str(const Env env, Type_List tl) {
+ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint l = 0;
   m_uint m = 32;
   m_str s = xmalloc(m);

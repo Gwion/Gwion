@@ -33,7 +33,7 @@ Type find_type(const Env, ID_List) ANN;
 const m_bool isa(const Type, const Type) ANN;
 const m_bool isres(const Symbol, const m_uint) ANN;
 const Type array_type(const Type, const m_uint) ANN;
-const Type get_array(const Type, const Array_Sub, const m_str);
+const m_bool get_array(const Array_Sub, const m_str);
 const Type find_common_anc(const Type, const Type) ANN;
 const m_uint id_list_len(ID_List) ANN;
 void type_path(m_str, const ID_List) ANN;

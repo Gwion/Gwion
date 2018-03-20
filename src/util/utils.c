@@ -152,11 +152,11 @@ ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   return -1;
 }
 
-const Type get_array(const Type t, const Array_Sub a, const m_str orig) {
+const m_bool get_array(const Array_Sub a, const m_str orig) {
   if(a->exp_list)
-    CHECK_BO(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
+    CHECK_BB(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
           " in %s declaration", orig))
-   return array_type(t, a->depth);
+   return 1;
 }
 
 ANN const m_bool type_ref(Type t) {

@@ -62,9 +62,10 @@ static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_push_value(env->curr);
   while(list) {
     Value v;
+    if(list->var_decl->array)
+      CHECK_BB(get_array(list->var_decl->array, "argument"))
     if(scan2_arg_def_check(list) < 0 ||
-        (list->var_decl->array && !(list->type = get_array(list->type, list->var_decl->array, "argument")))) {
-      nspc_pop_value(env->curr);
+        (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
       return -1;
     }
     v = list->var_decl->value ? list->var_decl->value :
@@ -665,8 +666,10 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
-    if(!GET_FLAG(class_def->type->parent, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
-      CHECK_BB(scan2_class_def(env, class_def->type->parent->def))
+    const Type t = class_def->type->parent->array_depth ?
+      array_base(class_def->type->parent) : class_def->type->parent;
+    if(!GET_FLAG(t, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+      CHECK_BB(scan2_class_def(env, t->def))
     if(class_def->ext->array)
       CHECK_BB(scan2_exp(env, class_def->ext->array->exp_list))
   }

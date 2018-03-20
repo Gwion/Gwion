@@ -12,7 +12,7 @@ ANN static Type owner_type(const Type t) {
   return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
 }
 
-ANN static Vector get_types(Type t) {
+ANEW ANN static Vector get_types(Type t) {
   Vector v = new_vector();
   while(t) {
     if(GET_FLAG(t, ae_flag_template))
@@ -22,7 +22,7 @@ ANN static Vector get_types(Type t) {
   return v;
 }
 
-ANN static ID_List id_list_copy(ID_List src) {
+ANEW ANN static ID_List id_list_copy(ID_List src) {
   ID_List tmp, list = new_id_list(src->xid, src->pos);
   src = src->next;
   tmp = list;
@@ -87,7 +87,7 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
   return 1;
 }
 
-ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
+ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
   m_uint size = template_size(env, c, call);
   char name[size];
   ID_List list;

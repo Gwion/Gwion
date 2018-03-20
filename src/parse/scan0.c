@@ -30,7 +30,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
-  Type base = find_type(env, stmt->type->xid);
+  const Type base = type_decl_resolve(env, stmt->type);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
     CHECK_BB(type_unknown(stmt->type->xid, "typedef"))
@@ -38,8 +38,7 @@ ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) { G
     CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->m_type->name))
-  CHECK_OB((base = scan_type(env, base, stmt->type)))
-  if((isa(base, t_object) < 0 && !stmt->type->array) || (stmt->type->array && !stmt->type->array->exp_list)) {
+  if(!stmt->type->array || (stmt->type->array && !stmt->type->array->exp_list)) {
     Type t = NULL;
     t = new_type(env->type_xid++, s_name(stmt->xid), base);
     t->size = base->size;
@@ -53,6 +52,7 @@ ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) { G
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
       stmt->type, NULL, stmt->pos);
     CHECK_BB(scan0_class_def(env, def))
+    REM_REF(base) // because it get's over referenced it scan_type for now
     stmt->m_type = def->type;
   }
   SET_FLAG(stmt->m_type, ae_flag_typedef);

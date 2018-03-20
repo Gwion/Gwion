@@ -230,21 +230,18 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "gwi_class_ext invoked before "
           "gwi_class_ini"))
-  VM_Code ctor = gwi->env->class_def->info->pre_ctor;
+  const VM_Code ctor = gwi->env->class_def->info->pre_ctor;
   if(gwi->env->class_def->parent ||
       (gwi->env->class_def->def && gwi->env->class_def->def->ext))
     CHECK_BB(err_msg(TYPE_, 0, "class extend already set"))
   if(td->array && !td->array->exp_list)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
   if(!gwi->env->class_def->def) {
-    Type t = find_type(gwi->env, td->xid);
+    const Type t =type_decl_resolve(gwi->env, td);
     if(!t)
       CHECK_BB(type_unknown(td->xid, "builtin class extend"))
-    CHECK_OB((t = scan_type(gwi->env, t, td)))
-    if(td->array) {
-      CHECK_OB((t = array_type(t, td->array->depth)))
+    if(td->array)
       SET_FLAG(gwi->env->class_def, ae_flag_typedef);
-    }
     gwi->env->class_def->parent = t;
     gwi->env->class_def->info->offset = t->info->offset;
     if(t->info->vtable.ptr)
@@ -736,15 +733,13 @@ OP_CHECK(opck_post) {
 Type   check_exp(Env env, Exp exp);
 m_bool check_exp_array_subscripts(Env env, Exp exp);
 OP_CHECK(opck_new) {
-  Type t;
-  Exp_Unary* unary = (Exp_Unary*)data;
-  if(!(t = find_type(env, unary->type->xid)))
+  const Exp_Unary* unary = (Exp_Unary*)data;
+  const Type t = type_decl_resolve(env, unary->type);
+  if(!t)
     CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
-  CHECK_OO((t = scan_type(env, t, unary->type)))
   if(unary->type->array) {
     CHECK_OO(check_exp(env, unary->type->array->exp_list))
     CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
-    t = array_type(t, unary->type->array->depth);
   } else
     CHECK_BO(prim_ref(unary->type, t))
   return t;

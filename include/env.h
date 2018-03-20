@@ -37,7 +37,7 @@ __attribute__((nonnull(1)))
 const Class_Def env_class_def(const Env, const Class_Def);
 ANN Type scan_type(const Env, const Type, const Type_Decl*);
 ANN Type type_decl_resolve(const Env, const Type_Decl*);
-ANN m_str tl2str(const Env, const Type_List);
+ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const Func_Def, const Func_Def);
 ANN m_bool type_unknown(const ID_List, const m_str);
 ANN const m_bool env_add_op(const Env, const struct Op_Import*);

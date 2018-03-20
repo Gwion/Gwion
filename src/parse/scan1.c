@@ -23,7 +23,7 @@ ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, const Exp
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  const Type t = type_decl_resolve(env, decl->type);
+  const Type t = type_decl_resolve(env, decl->type); // no array here anyway
   if(!t)
     CHECK_BO(type_unknown(decl->type->xid, "declaration"))
   if(!t->size)
@@ -291,6 +291,8 @@ ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+  if(ptr->type->array)
+    CHECK_BB(get_array(ptr->type->array, "function pointer"))
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->type)))
     CHECK_BB(type_unknown(ptr->type->xid, "func pointer definition"))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
@@ -410,6 +412,8 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
+  if(f->type_decl->array)
+    CHECK_BB(get_array(f->type_decl->array, "function return"))
   if(!(f->ret_type = type_decl_resolve(env, f->type_decl)))
       CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
   return 1;
@@ -477,11 +481,10 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
-    if(!(class_def->type->parent = find_type(env, class_def->ext->xid)))
+    if(!(class_def->type->parent = type_decl_resolve(env, class_def->ext)))
       CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
     if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def)
       CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
-    CHECK_OB((class_def->type->parent  = scan_type(env, class_def->type->parent, class_def->ext)))
     if(class_def->ext->array) {
       if(!class_def->ext->array->exp_list)
         CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use empty []'s in class extend"))
