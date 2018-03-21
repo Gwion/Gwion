@@ -88,9 +88,63 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   return 1;
 }
 
+#ifdef OPTIMIZE
+ANN static m_bool is_const(Exp e) {
+  return e->exp_type == ae_exp_primary && e->d.exp_primary.primary_type == ae_primary_num && e->meta == ae_meta_value;
+}
+
+ANN static m_bool optimize_const_folding(const Exp_Binary* bin) {
+  Exp l = bin->lhs, r = bin->rhs;
+  m_int ret = 0;
+  switch(bin->op) {
+    case op_plus:
+      ret = l->d.exp_primary.d.num + r->d.exp_primary.d.num;
+      break;
+    case op_minus:
+      ret = l->d.exp_primary.d.num - r->d.exp_primary.d.num;
+      break;
+    case op_times:
+       ret = l->d.exp_primary.d.num * r->d.exp_primary.d.num;
+       break;
+    case op_divide:
+       ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
+       break;
+    case op_percent:
+      ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
+      break;
+    case op_shift_left:
+      ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;
+      break;
+    case op_shift_right:
+      ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
+      break;
+    default:
+      return 1;
+  }
+  Exp n = bin->self->next;
+  Exp e = bin->self;
+  free_exp(l);
+  free_exp(r);
+  memset(e, 0, sizeof(struct Exp_));
+  e->exp_type = ae_exp_primary;
+  e->d.exp_primary.primary_type = ae_primary_num;
+  e->d.exp_primary.d.num = ret;
+  e->d.exp_primary.self = e;
+  e->next = n;
+}
+#define OPTIMIZE_CONST_FOLD\
+  if(is_const(binary->lhs) && is_const(binary->rhs))\
+    optimize_const_folding(binary);
+#else
+#define OPTIMIZE_CONST_FOLD
+#endif
+
 ANN static m_bool scan1_exp_binary(const Env env, const Exp_Binary* binary) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, binary->lhs))
-  return scan1_exp(env, binary->rhs);
+  CHECK_BB(scan1_exp(env, binary->rhs))
+  OPTIMIZE_CONST_FOLD
+  return 1;
+
 }
 
 ANN static m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
