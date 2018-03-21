@@ -62,10 +62,15 @@ static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_push_value(env->curr);
   while(list) {
     Value v;
-    if(list->var_decl->array)
-      CHECK_BB(check_array_empty(list->var_decl->array, "argument"))
+    if(list->var_decl->array) {
+      if(check_array_empty(list->var_decl->array, "argument") < 0) {
+        nspc_pop_value(env->curr);
+        return -1;
+      }
+    }
     if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
+      nspc_pop_value(env->curr);
       return -1;
     }
     v = list->var_decl->value ?: new_value(list->type, s_name(list->var_decl->xid));
