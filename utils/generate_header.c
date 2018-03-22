@@ -1,5 +1,6 @@
 /* use this to generate include/generated.h */
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 
 #ifdef USE_DOUBLE
@@ -49,6 +50,20 @@ typedef _Complex %s m_complex;\n", type, type);
     fprintf(file, "#define  INT_F \"li\"\n");
     fprintf(file, "#define UINT_F \"lu\"\n");
   }
+  if(strcmp(type, "double"))
+    fprintf(file, "#define creal crealf\n#define cimag cimagf\n"
+                  "#define abs fabs\n"
+                  "#define cos cosf\n#define sin sinf\n#define tan tanf\n"
+                  "#define acos acosf\n#define asin asinf\n#define atan atanf\n"
+                  "#define cosh coshf\n#define sinh sinhf\n#define tanh tanhf\n"
+                  "#define acosh acoshf\n#define asinh asinhf\n#define atanh atanhf\n"
+                  "#define atan2 atan2f\n#define hypot hypotf\n"
+                  "#define pow powf\n#define sqrt sqrtf\n"
+                  "#define exp expf\n#define log logf\n"
+                  "#define log2 log2f\n#define log10 log10f\n"
+                  "#define floor floorf\n#define ceil ceilf\n"
+                  "#define round roundf\n#define trunc truncf\n"
+                  "#define fmod fmodf\n#define remainder remainderf\n");
   fclose(file);
   return 0;
 }

@@ -62,7 +62,7 @@ function declare_gw_param(param)
 end
 
 function print_gen_func(name, func)
-  print("MFUN(ftbl_"..name..")\n{")
+  print("MFUN(ftbl_"..name..") {")
   print("\tsp_ftbl* ftbl = FTBL(o);")
   if(func.params ~= nil) then
     print("\tm_uint gw_offset = SZ_INT*2;")
@@ -105,7 +105,7 @@ function print_mod_func(name, mod)
       ninputs  = ninputs - 1
     end
   end
-  print("typedef struct\n{\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
+  print("typedef struct {\n\tsp_data* sp;\n\tsp_"..name.."* osc;")
   if(nmandatory > 0) then
     print("\tm_bool is_init;")
     local tbl = mod.params.mandatory
@@ -118,10 +118,10 @@ function print_mod_func(name, mod)
     end
   end
   print("} GW_"..name..";\n")
-  print("static TICK("..name.."_tick)\n{")
+  print("static TICK("..name.."_tick) {")
   print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory > 0) then
-    print("\tif(!ug->is_init)\n\t{ // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
+    print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
   if mod.ninputs == 1 and mod.noutputs == 1 then
     print("\tbase_tick(u);");
@@ -156,7 +156,7 @@ function print_mod_func(name, mod)
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 --  print("\treturn;\n}\n")
   print("\n}\n")
-  print("CTOR("..name.."_ctor)\n{\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
+  print("CTOR("..name.."_ctor) {\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
   print("\tug->sp = shred->vm_ref->sp;")
   if(nmandatory > 0) then
     print("\tug->is_init = 0;")
@@ -173,7 +173,7 @@ function print_mod_func(name, mod)
   print("\tUGEN(o)->tick = "..name.."_tick;")
   print("\tassign_ugen(UGEN(o), "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
   print("}\n")
-  print("DTOR("..name.."_dtor)\n{\n\tGW_"..name.."* ug = UGEN(o)->ug;")
+  print("DTOR("..name.."_dtor) {\n\tGW_"..name.."* ug = UGEN(o)->ug;")
   if(nmandatory > 0) then
     print("\tif(ug->is_init) {\n")
     local  arg = mod.params.mandatory
@@ -191,7 +191,7 @@ function print_mod_func(name, mod)
   print("\tfree(ug);");
   print("}\n")
   if nmandatory > 0 then
-    print("MFUN("..name.."_init)\n{")
+    print("MFUN("..name.."_init) {")
     print("\tm_uint gw_offset = SZ_INT;")
     print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
     local args = ""
@@ -241,7 +241,7 @@ function print_mod_func(name, mod)
   --		local tbl = mod.params.mandatory
   --		if tbl then
   --			for _, v in pairs(tbl) do
-  --				print("MFUN("..name.."_"..v.name..")\n{")
+  --				print("MFUN("..name.."_"..v.name..") {")
   --				print("\tm_uint gw_offset = SZ_INT;")
   --				print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
   --				declare_c_param(v)
@@ -253,7 +253,7 @@ function print_mod_func(name, mod)
   local opt = mod.params.optional
   if opt then
     for _, v in pairs(opt) do
-      print("MFUN("..name.."_get_"..v.name..")\n{")
+      print("MFUN("..name.."_get_"..v.name..") {")
       print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
       if string.match(v.type, "int") then
         print("\t*(m_uint*)RETURN = ug->osc->"..v.name..";")
@@ -270,7 +270,7 @@ function print_mod_func(name, mod)
         os.exit(1);
       end
       print("}\n")
-      print("MFUN("..name.."_set_"..v.name..")\n{")
+      print("MFUN("..name.."_set_"..v.name..") {")
       print("\tm_uint gw_offset = SZ_INT;")
       print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
       declare_c_param(v, true)
@@ -327,7 +327,7 @@ print('#include <stdlib.h>\
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)")
 print("#define CHECK_SIZE(size)\tif(size <= 0){fprintf(stderr, \"'gen_ftbl' size argument must be more than 0\");return;}")
-print("\nDTOR(ftbl_dtor)\n{")
+print("\nDTOR(ftbl_dtor) {")
 print("\tif(FTBL(o))\n\t\tsp_ftbl_destroy(&FTBL(o));")
 print("}\n")
 for n in ipairs(a) do
@@ -343,7 +343,7 @@ end
 --
 --print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
 print("")
-print("m_bool import_soundpipe(Gwi gwi)\n{\n")
+print("m_bool import_soundpipe(Gwi gwi) {\n")
 print("\tType t_ftbl;")
 for n in ipairs(a) do
   local name = a[n]
