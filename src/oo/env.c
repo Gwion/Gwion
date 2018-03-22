@@ -23,7 +23,9 @@ Env new_env() {
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
+#ifdef OBSTACK
   obstack_init(&env->obs);
+#endif
   env->type_xid = 0;
   env_reset(env);
   return env;
@@ -61,7 +63,9 @@ ANN void free_env(Env a) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
+#ifdef OBSTACK
   obstack_free(&a->obs, NULL);
+#endif
   free(a);
 }
 

@@ -172,13 +172,16 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   return 1;
 }
 
-Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, const Type parent) {
+Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
+#ifdef OBSTACK
   Type t = obstack_alloc(&gwi->env->obs, sizeof(struct Type_));
   memset(t, 0, sizeof(struct Type_));
-//  Type t = new_type(0, name, parent);
   t->name = s_name(insert_symbol(name));
-  t->size = size;
   t->parent = parent;
+#else
+  Type t = new_type(0, name, parent);
+#endif
+  t->size = size;
   return t;
 }
 
@@ -730,7 +733,7 @@ OP_CHECK(opck_post) {
 }
 
 Type   check_exp(Env env, Exp exp);
-m_bool check_exp_array_subscripts(Env env, Exp exp);
+m_bool check_exp_array_subscripts(Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   const Type t = type_decl_resolve(env, unary->type);
@@ -738,7 +741,7 @@ OP_CHECK(opck_new) {
     CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
   if(unary->type->array) {
     CHECK_OO(check_exp(env, unary->type->array->exp_list))
-    CHECK_BO(check_exp_array_subscripts(env, unary->type->array->exp_list))
+    CHECK_BO(check_exp_array_subscripts(unary->type->array->exp_list))
   } else
     CHECK_BO(prim_ref(unary->type, t))
   return t;

@@ -1,8 +1,9 @@
 #ifndef __ENV
 #define __ENV
 #include "absyn.h"
+#ifdef OBSTACK
 #include "obstack.h"
-
+#endif
 struct Env_ {
   Nspc curr;
   Nspc global_nspc;
@@ -19,7 +20,9 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
+#ifdef OBSTACK
   struct obstack obs;
+#endif
 };
 
 ANEW Env new_env();

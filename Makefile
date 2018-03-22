@@ -108,6 +108,9 @@ endif
 ifeq (${USE_OPTIMIZE}, 1)
 CFLAGS+= -DOPTIMIZE
 endif
+ifeq (${USE_OBSTACK}, 1)
+CFLAGS+= -DOBSTACK
+endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
