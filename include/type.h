@@ -25,15 +25,14 @@ ANN const m_bool type_engine_check_prog(const Env, const Ast, const m_str);
 __attribute__((nonnull(2)))
 ANEW Type new_type(const m_uint xid, const m_str name, const Type);
 ANEW ANN Type type_copy(const Type type) ANN;
-Env type_engine_init(VM*, const Vector) ANN;
-void start_type_xid(void);
-Value find_value(const Type, const Symbol);
+Env type_engine_init(VM*, const Vector) ANEW ANN;
+Value find_value(const Type, const Symbol) ANN;
 Func find_func(const Type, const Symbol) ANN;
 Type find_type(const Env, ID_List) ANN;
 const m_bool isa(const Type, const Type) ANN;
 const m_bool isres(const Symbol, const m_uint) ANN;
 const Type array_type(const Type, const m_uint) ANN;
-const m_bool check_array_empty(const Array_Sub, const m_str);
+const m_bool check_array_empty(const Array_Sub, const m_str) ANN;
 const Type find_common_anc(const Type, const Type) ANN;
 const m_uint id_list_len(ID_List) ANN;
 void type_path(m_str, const ID_List) ANN;

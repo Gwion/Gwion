@@ -141,7 +141,7 @@ ANN void free_emitter(Emitter a) {
 ANEW Instr new_instr() { return mp_alloc(Instr); }
 ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
 
-__attribute__((nonnull(1)))
+__attribute__((returns_nonnull, nonnull(1)))
 Instr emitter_add_instr(const Emitter emit, const f_instr f) {
   Instr instr = mp_alloc(Instr);
   instr->execute = f;

@@ -1,2 +1,2 @@
-void add_plugs(Env env, Vector plug_dirs);
+ANN void add_plugs(const Env env, const Vector plug_dirs);
 

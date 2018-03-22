@@ -7,12 +7,12 @@
 
 ANEW M_Object new_shred(VM* vm, VM_Shred shred);
 
-extern void array_ctor(M_Object o,  VM_Shred shred);
 extern m_int o_string_data;
 extern m_int o_event_shred;
 extern m_int o_shred_me;
 
-void broadcast(M_Object o);
+ANN void broadcast(M_Object o);
+__attribute__((nonnull(2)))
 void release(M_Object obj, VM_Shred shred);
 m_bool initialize_object(M_Object object, Type type)__attribute__((hot, nonnull));
 #endif

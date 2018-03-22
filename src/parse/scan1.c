@@ -23,7 +23,7 @@ ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, const Exp
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  const Type t = type_decl_resolve(env, decl->type); // no array here anyway
+  const Type t = type_decl_resolve(env, decl->type);
   if(!t)
     CHECK_BO(type_unknown(decl->type->xid, "declaration"))
   if(!t->size)

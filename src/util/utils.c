@@ -50,9 +50,9 @@ ANN Type find_type(const Env env, ID_List path) {
   return type;
 }
 
-Value find_value(const Type type, const Symbol xid) {
+ANN Value find_value(const Type type, const Symbol xid) {
   Value value;
-  if(!type || !type->info)
+  if(!type->info)
     return NULL;
   if((value = nspc_lookup_value2(type->info, xid)))
     return value;

@@ -13,5 +13,5 @@ typedef struct Symbol_ * Symbol;
 
 Symbol insert_symbol(const m_str) ANN;
 m_str s_name(const Symbol) ANN;
-void free_symbols(void );
+void free_symbols(void);
 #endif

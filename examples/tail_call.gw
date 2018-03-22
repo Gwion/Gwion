@@ -1,0 +1,8 @@
+fun void test(int i) {
+  if(i == 2)return;
+//  if(i == 0)return;
+<<<i>>>;
+  return test(--i + 3 - 4);
+}
+
+test(6);

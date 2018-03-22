@@ -51,7 +51,7 @@ ANN static inline const vtype map_size(const Map map) {
   return VLEN(map);
 }
 
-extern ANEW          Scope  new_scope();
+//extern ANEW          Scope  new_scope();
 extern ANN       void   scope_init(Scope);
 extern ANEW ANN const Vector scope_get(const Scope);
 extern ANN const vtype  scope_lookup0(const Scope, const Symbol);
@@ -61,6 +61,6 @@ extern ANN       void   scope_add(const Scope, const Symbol, const vtype);
 extern ANN       void   scope_commit(const Scope);
 extern ANN       void   scope_push(const Scope);
 extern ANN       void   scope_pop(const Scope);
-extern ANN       void   free_scope(Scope);
+//extern ANN       void   free_scope(Scope);
 extern ANN       void   scope_release(Scope);
 #endif

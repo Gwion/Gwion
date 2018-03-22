@@ -4,65 +4,16 @@
 #include "instr.h"
 #include "import.h"
 #include "compile.h"
+#include "traverse.h"
 
-#define RAND_LEN 12
-
-static void randstring(VM* vm, m_uint length, m_str str) {
-  char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
-  size_t stringLen = 26 * 2 + 10 + 2;
-  m_uint n;
-  for(n = 0; n < length; n++) {
-    unsigned int key = sp_rand(vm->sp) % stringLen;
-    str[n] = string[key];
+static void unescape(m_str s) {
+  m_uint j = 0, l = strlen(s);
+  for(m_uint i = 0; i < l; i++) {
+    if(s[i] == '\\')
+      i++;
+    s[j++] = s[i];
   }
-  str[length] = '\0';
-}
-
-static const m_str get_prefix(VM_Shred shred) {
-  M_Object prefix_obj = *(M_Object*)MEM(SZ_INT);
-  if(!prefix_obj)
-    return ".";
-  release(prefix_obj, shred);
-  return STRING(prefix_obj);
-}
-
-static void get_filename(VM_Shred shred, m_str c, m_str prefix) {
-  char filename[RAND_LEN + 1];
-
-  randstring(shred->vm_ref, 12, filename);
-  sprintf(c, "%s/%s", prefix, filename);
-}
-
-static m_bool check_code(VM_Shred shred, m_str c) {
-  m_bool ret;
-  m_str s;
-  Ast ast;
-  FILE* f = fopen(c, "r");
-  if(!f)
-    return - 1;
-  if(!(ast = parse(c, f))) {
-    fclose(f);
-    return - 1;
-  }
-  s = strdup(c);
-  if((ret = type_engine_check_prog(shred->vm_ref->emit->env,  ast, s)) > 0) {
-    free_ast(ast);
-    free(s);
-  }
-  fclose(f);
-  return ret;
-}
-
-static m_bool code_to_file(VM_Shred shred, m_str filename) {
-  M_Object code_obj = *(M_Object*)MEM(SZ_INT * 2);
-  FILE* file;
-
-  CHECK_OB(code_obj)
-  release(code_obj, shred);
-  CHECK_OB((file = fopen(filename, "w")))
-  fprintf(file, "%s\n", STRING(code_obj));
-  fclose(file);
-  return 1;
+  memset(s+j, 0, l-j);
 }
 
 static SFUN(machine_add) {
@@ -77,25 +28,50 @@ static SFUN(machine_add) {
 }
 
 static SFUN(machine_check) {
-  const m_str prefix = get_prefix(shred);
-  char c[strlen(prefix) + 17];
-
-  *(m_uint*)RETURN = 0;
-  get_filename(shred, c, prefix);
-  if(code_to_file(shred, c) < 0)
-    return;
-  *(m_uint*)RETURN = check_code(shred, c) > 0 ? 1 : 0;
+  *(m_uint*)RETURN = -1;
+  M_Object code_obj = *(M_Object*)MEM(SZ_INT);
+  m_str line = code_obj ? STRING(code_obj) : NULL;
+  release(code_obj, shred);
+  if(!line)return;
+  m_str _code = strdup(line);
+  unescape(_code);
+  release(code_obj, shred);
+  FILE* f = fmemopen(_code, strlen(_code), "r");
+  Ast ast = parse("Machine.check", f);
+  if(!ast)
+    goto close;
+  *(m_uint*)RETURN = traverse_ast(shred->vm_ref->emit->env, ast);
+close:
+  free(_code);
+  fclose(f);
 }
 
 static SFUN(machine_compile) {
-  const m_str prefix = get_prefix(shred);
-  char c[strlen(prefix) + 17];
-
-  *(m_uint*)RETURN = 0;
-  get_filename(shred, c, prefix);
-  if(code_to_file(shred, c) < 0)
-    return;
-  *(m_uint*)RETURN = compile(shred->vm_ref, c);
+  *(m_uint*)RETURN = -1;
+  M_Object code_obj = *(M_Object*)MEM(SZ_INT);
+  m_str line = code_obj ? STRING(code_obj) : NULL;
+  if(!line)return;
+  m_str _code = strdup(line);
+  unescape(_code);
+  release(code_obj, shred);
+  FILE* f = fmemopen(_code, strlen(_code), "r");
+  Ast ast = parse("Machine.compile", f);
+  if(!ast)
+    goto close;
+  m_str str = strdup("Machine.compile");
+  if(traverse_ast(shred->vm_ref->emit->env, ast) < 0)
+    goto close;
+  *(m_uint*)RETURN = emit_ast(shred->vm_ref->emit, ast, str);
+  emitter_add_instr(shred->vm_ref->emit, EOC);
+  shred->vm_ref->emit->code->name = strdup(str);
+  VM_Code code = emit_code(shred->vm_ref->emit);
+  free_ast(ast);
+  VM_Shred sh = new_vm_shred(code);
+  vm_add_shred(shred->vm_ref, sh);
+  free(str);
+close:
+  free(_code);
+  fclose(f);
 }
 
 static SFUN(machine_shreds) {
@@ -124,12 +100,10 @@ m_bool import_machine(Gwi gwi) {
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
   gwi_func_ini(gwi, "int",  "check", machine_check);
-  gwi_func_arg(gwi,      "string",  "prefix");
   gwi_func_arg(gwi,      "string",  "code");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
   gwi_func_ini(gwi, "void", "compile", machine_compile);
-  gwi_func_arg(gwi,      "string",  "prefix");
   gwi_func_arg(gwi,      "string",  "filename");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 

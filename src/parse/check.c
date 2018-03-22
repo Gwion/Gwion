@@ -88,7 +88,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   while(list) {
     Var_Decl var = list->self;
     Value value = var->value;
-    if(env->class_def && !env->class_scope)
+    if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp_list)
       CHECK_BO(check_exp_decl_array(env, var->array->exp_list))
@@ -141,7 +141,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   m_str str = s_name(primary->d.var);
   Value v = nspc_lookup_value1(env->curr, primary->d.var);
   if(!v)
-    v = find_value(env->class_def, primary->d.var);
+    v = env->class_def ? find_value(env->class_def, primary->d.var) : NULL;
   if(v && env->class_def && env->func && GET_FLAG(env->func->def, ae_flag_static) &&
     GET_FLAG(v, ae_flag_member) && !GET_FLAG(v, ae_flag_static))
         CHECK_BO(err_msg(TYPE_, primary->pos,
