@@ -81,7 +81,7 @@ ANN void m_vector_rem(M_Vector v, m_uint index) {
 static MFUN(vm_vector_rem) {
   const m_int index = *(m_int*)(shred + SZ_INT);
   const M_Vector v = ARRAY(o);
-  if(index < 0 || index >= v->len)
+  if(index < 0 || (m_uint)index >= v->len)
     return;
   if(isa(o->type_ref, t_object) > 0) {
     M_Object obj;
@@ -212,7 +212,7 @@ INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_EXE
   if(*(m_uint*)REG(-SZ_INT * 2) >= *(m_uint*)REG(-SZ_INT))
     shred->next_pc = instr->m_val;
   else
-    instantiate_object(vm, shred, *(Type*)instr->ptr);
+    instantiate_object(shred, *(Type*)instr->ptr);
 }
 
 INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
@@ -377,7 +377,7 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i)  if(i < 0 || i >=  ARRAY(obj)->len) { \
+#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >=  ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
@@ -392,7 +392,8 @@ INSTR(Instr_Array_Access) { GWDEBUG_EXE
 }
 
 INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
-  m_int i, j;
+  m_int i;
+  m_uint j;
   POP_REG(shred,  SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)REG(0);
   if(!(obj = *base))

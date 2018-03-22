@@ -28,7 +28,7 @@ ANN void vector_add(const Vector v, const vtype data) {
   VPTR(v, VLEN(v)++) = (vtype)data;
 }
 
-ANN const Vector vector_copy(const Vector v) {
+ANN Vector vector_copy(const Vector v) {
   Vector ret = mp_alloc(Vector);
   ret->ptr = xcalloc(VCAP(v), SZ_INT);
   memcpy(ret->ptr, v->ptr, VCAP(v) * SZ_INT);
@@ -40,7 +40,7 @@ ANN void vector_copy2(const restrict Vector v, const Vector ret) {
   memcpy(ret->ptr, v->ptr, VCAP(v) * SZ_INT);
 }
 
-ANN const m_int vector_find(const Vector v, const vtype data) {
+ANN m_int vector_find(const Vector v, const vtype data) {
   vtype i;
   for(i = VLEN(v) + 1; --i;)
     if(VPTR(v, i - 1) == (vtype)data)
@@ -58,7 +58,7 @@ ANN void vector_rem(const Vector v, const vtype index) {
     v->ptr = xrealloc(v->ptr, (VCAP(v) /= 2) * SZ_INT);
 }
 
-ANN const vtype vector_pop(const Vector v) {
+ANN vtype vector_pop(const Vector v) {
   vtype ret;
   if(!VLEN(v))
     return 0;

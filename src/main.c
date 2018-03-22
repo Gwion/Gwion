@@ -22,7 +22,7 @@ extern void parse_args(Arg*, DriverInfo*);
 volatile m_bool signaled = 0;
 VM* vm;
 
-static void sig(int unused) {
+static void sig(int unused __attribute__((unused))) {
   vm->is_running = 0;
 }
 
@@ -72,20 +72,23 @@ m_uint compile(VM* vm, const m_str filename) {
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
-  Arg arg = { argc, argv , -1 };
+  Arg arg;
 #ifdef GWUDP
   Udp udp;
   UdpIf udpif = { "localhost", 8888, 1 };
 #endif
   DriverInfo di = { 2, 2, 2,
-  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0};
-  int i;
+  48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0, 0};
 
 #ifdef GWUDP
   pthread_t thread;
 #endif
   GWREPL_THREAD
   d.del = NULL;
+  memset(&arg, 0, sizeof(Arg));
+  arg.argc = argc;
+  arg.argv = argv;
+  arg.loop = -1;
   arg_init(&arg);
 #ifdef GWUDP
   arg.udp = &udpif;
@@ -118,7 +121,7 @@ int main(int argc, char** argv) {
 #endif
   srand(time(NULL));
 
-  for(i = 0; i < vector_size(&arg.add); i++)
+  for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
 
   vm->is_running = 1;

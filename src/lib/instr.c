@@ -422,7 +422,7 @@ INSTR(Pre_Constructor) { GWDEBUG_EXE
 }
 
 INSTR(Instantiate_Object) { GWDEBUG_EXE
-  instantiate_object(vm, shred, *(Type*)instr->ptr);
+  instantiate_object(shred, *(Type*)instr->ptr);
   vector_add(&shred->gc1, *(vtype*)REG(-SZ_INT));
 }
 

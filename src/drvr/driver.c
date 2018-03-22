@@ -7,7 +7,7 @@
 #include "err_msg.h"
 #include "driver.h"
 
-m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
+ANN m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
   di->func(d);
   if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
@@ -86,7 +86,7 @@ void select_driver(DriverInfo* di, const m_str d) {
     gw_err("invalid driver specified. using default.\n");
 }
 
-void select_backend(DriverInfo* di, const m_str d) {
+void select_backend(DriverInfo* di __attribute__((unused)), const m_str d __attribute__((unused))) {
 #ifdef HAVE_SOUNDIO
   if(!strcmp("dummy", d))
     di->backend = SoundIoBackendDummy;
@@ -103,7 +103,7 @@ void select_backend(DriverInfo* di, const m_str d) {
 #endif
 }
 
-void select_format(DriverInfo* di, m_str d) {
+void select_format(DriverInfo* di __attribute__((unused)), const m_str d __attribute__((unused))) {
 #ifdef HAVE_ALSA
   if(di->func == alsa_driver) {
     if(!strcmp("S8", d))

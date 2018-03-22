@@ -1,2 +1,2 @@
-Machine.compile(NULL, NULL);
-Machine.check(NULL, "jgjl.");
+Machine.compile(NULL);
+Machine.check("jgjl.");

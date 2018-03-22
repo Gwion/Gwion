@@ -75,12 +75,11 @@ close:
 }
 
 static SFUN(machine_shreds) {
-  int i;
   VM* vm = shred->vm_ref;
   VM_Shred sh;
   Type t = array_type(t_int, 1);
   M_Object obj = new_M_Array(t, SZ_INT, vector_size(&vm->shred), 1);
-  for(i = 0; i < vector_size(&vm->shred); i++) {
+  for(m_uint i = 0; i < vector_size(&vm->shred); i++) {
     sh = (VM_Shred)vector_at(&vm->shred, i);
     m_vector_set(ARRAY(obj), i, &sh->xid);
   }

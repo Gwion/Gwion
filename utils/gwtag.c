@@ -102,7 +102,7 @@ static void tag_exp_decl(Tagger* tagger, Exp_Decl* decl) {
   }
 }
 
-static void tag_exp_unary(Tagger* tagger, Exp_Unary* unary) {
+static void tag_exp_unary(Tagger* tagger __attribute__((unused)), Exp_Unary* unary __attribute__((unused))) {
   return;
 }
 
@@ -111,7 +111,7 @@ static void tag_exp_binary(Tagger* tagger, Exp_Binary* binary) {
   tag_exp(tagger, binary->rhs);
 }
 
-static void tag_exp_primary(Tagger* tagger, Exp_Primary* exp) {
+static void tag_exp_primary(Tagger* tagger __attribute__((unused)), Exp_Primary* exp __attribute__((unused))) {
   return;
 }
 
@@ -128,15 +128,15 @@ static void tag_exp_post(Tagger* tagger, Exp_Postfix* post) {
   tag_exp(tagger, post->exp);
 }
 
-static void tag_exp_call(Tagger* tagger, Exp_Func* exp_func) {
+static void tag_exp_call(Tagger* tagger __attribute__((unused)), Exp_Func* exp_func __attribute__((unused))) {
   return;
 }
 
-static void  tag_exp_dot(Tagger* tagger, Exp_Dot* member) {
+static void  tag_exp_dot(Tagger* tagger __attribute__((unused)), Exp_Dot* member __attribute__((unused))) {
   return;
 }
 
-static void  tag_exp_dur(Tagger* tagger, Exp_Dur* member) {
+static void  tag_exp_dur(Tagger* tagger __attribute__((unused)), Exp_Dur* member __attribute__((unused))) {
   return;
 }
 
@@ -289,15 +289,15 @@ void tag_stmt_union(Tagger* tagger, Stmt_Union stmt) {
   }
 }
 
-void tag_stmt_goto(Tagger* tagger, Stmt_Goto_Label stmt) {
+void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Goto_Label stmt __attribute__((unused))) {
   return;
 }
 
-void tag_stmt_continue(Tagger* tagger, Stmt_Continue stmt) {
+void tag_stmt_continue(Tagger* tagger __attribute__((unused)), Stmt_Continue stmt __attribute__((unused))) {
   return;
 }
 
-void tag_stmt_break(Tagger* tagger, Stmt_Break stmt) {
+void tag_stmt_break(Tagger* tagger __attribute__((unused)), Stmt_Break stmt __attribute__((unused))) {
   return;
 }
 
@@ -434,7 +434,7 @@ int main(int argc, char** argv) {
   argc--; argv++;
   while(argc--) {
     Ast ast;
-    Tagger tagger = { *argv , new_vector() };
+    Tagger tagger = { *argv , new_vector(), NULL };
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.tag", *argv);
     FILE* f = fopen(*argv, "r");

@@ -8,7 +8,7 @@
 #define MEM(a) (shred->mem + (a))
 #define REG(a) (shred->reg + (a))
 #define INSTR(a) __attribute__((hot, nonnull(1, 2)))\
-void a(const VM* vm, const VM_Shred shred, const Instr instr)
+void a(const VM* vm __attribute__((unused)), const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
 #define MEM_STEP 16
 #define SIZEOF_MEM (0x1 << MEM_STEP)
 #define SIZEOF_REG (0x1 << 14)

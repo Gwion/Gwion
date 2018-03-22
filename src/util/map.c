@@ -23,7 +23,7 @@ ANN void map_init(Map a) {
   VCAP(a) = MAP_CAP;
 }
 
-ANN const vtype map_get(const Map map, const vtype key) {
+ANN vtype map_get(const Map map, const vtype key) {
   vtype i;
   for(i = VLEN(map) + 1; --i;)
     if(VKEY(map, i - 1) == key)
@@ -31,7 +31,7 @@ ANN const vtype map_get(const Map map, const vtype key) {
   return 0;
 }
 
-ANN const vtype map_at(const Map map, const vtype index) {
+ANN vtype map_at(const Map map, const vtype index) {
   if(index > VLEN(map))
     return 0;
   return VVAL(map, index);

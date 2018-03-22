@@ -208,7 +208,7 @@ static SFUN(math_isnan) {
   *(m_uint*)RETURN = isnan(ret);
 }
 
-const m_bool import_math(const Gwi gwi) {
+m_bool import_math(const Gwi gwi) {
   Type t_math;
   CHECK_OB((t_math = gwi_mk_type(gwi, "Math", 0, NULL)))
 

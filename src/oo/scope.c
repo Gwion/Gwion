@@ -3,7 +3,7 @@
 #include "map.h"
 #include "map_private.h"
 
-ANN const vtype scope_lookup0(const Scope scope, const Symbol xid) {
+ANN vtype scope_lookup0(const Scope scope, const Symbol xid) {
   Map map = (Map)vector_back(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
   if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
@@ -11,7 +11,7 @@ ANN const vtype scope_lookup0(const Scope scope, const Symbol xid) {
   return ret;
 }
 
-ANN const vtype scope_lookup1(const Scope scope, const Symbol xid) {
+ANN vtype scope_lookup1(const Scope scope, const Symbol xid) {
   m_uint i;
   vtype ret;
   for(i = vector_size(&scope->vector) + 1; --i;) {
@@ -22,7 +22,7 @@ ANN const vtype scope_lookup1(const Scope scope, const Symbol xid) {
   return map_get(&scope->commit_map, (vtype)xid);
 }
 
-ANN const vtype scope_lookup2(const Scope scope, const Symbol xid) {
+ANN vtype scope_lookup2(const Scope scope, const Symbol xid) {
   Map map = (Map)vector_front(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
   if(!ret)
@@ -62,7 +62,7 @@ ANN void scope_release(Scope a) {
   vector_release((Vector)&a->commit_map);
 }
 
-ANN const Vector scope_get(const Scope s) {
+ANN Vector scope_get(const Scope s) {
   vtype i, j;
   Vector ret = new_vector();
   for(j = 0; j < vector_size(&s->vector); j++) {

@@ -12,7 +12,7 @@
 #define obstack_chunk_free free
 
 
-const Env new_env() {
+Env new_env() {
   Env env = xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
 //  env->user_nspc = NULL;
@@ -65,7 +65,7 @@ ANN void free_env(Env a) {
   free(a);
 }
 
-ANN const m_bool env_push_class(const Env env, const Type type) {
+ANN m_bool env_push_class(const Env env, const Type type) {
   vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
   vector_add(&env->class_stack, (vtype)env->class_def);
@@ -74,7 +74,7 @@ ANN const m_bool env_push_class(const Env env, const Type type) {
   return 1;
 }
 
-ANN const m_bool env_pop_class(const Env env) {
+ANN m_bool env_pop_class(const Env env) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
@@ -82,7 +82,7 @@ ANN const m_bool env_pop_class(const Env env) {
 
 
 __attribute__((nonnull(1,2)))
-const m_bool env_add_value(const Env env, const m_str name, const Type type,
+m_bool env_add_value(const Env env, const m_str name, const Type type,
       const m_bool is_const, void* data) {
   const Value v = new_value(type, name);
   ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
@@ -93,7 +93,7 @@ const m_bool env_add_value(const Env env, const m_str name, const Type type,
   return 1;
 }
 
-ANN const m_bool env_add_type(const Env env, const Type type) {
+ANN m_bool env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(t_class);
   v_type->d.base_type = type;
   INIT_OO(type, e_type_obj);
@@ -107,22 +107,22 @@ ANN const m_bool env_add_type(const Env env, const Type type) {
   return 1;
 }
 
-ANN const Map env_label(const Env env) {
+ANN Map env_label(const Env env) {
   return &env->context->label;
 }
 
-ANN const Nspc env_nspc(const Env env) {
+ANN Nspc env_nspc(const Env env) {
   return env->context->nspc;
 }
 
 __attribute__((nonnull(1)))
-const Class_Def env_class_def(const Env env, const Class_Def def) {
+Class_Def env_class_def(const Env env, const Class_Def def) {
   if(def)
     env->context->public_class_def = def;
   return env->context ? env->context->public_class_def : NULL;
 }
 
-ANN const m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
+ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
   m_bool ret;
   const Context context = new_context(ast, filename);
   env_reset(env);
@@ -142,7 +142,7 @@ ANN const m_bool type_engine_check_prog(const Env env, const Ast ast, const m_st
   return ret;
 }
 
-ANN const m_bool env_add_op(const Env env, const struct Op_Import* opi) {
+ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   const Nspc nspc = env->curr;
 
   if(!nspc->op_map.ptr)

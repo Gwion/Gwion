@@ -43,8 +43,7 @@ ANN m_bool initialize_object(M_Object object, const Type type) {
   return 1;
 }
 
-ANN void instantiate_object(const VM * vm, const VM_Shred shred,
-    const Type type) {
+ANN void instantiate_object(const VM_Shred shred, const Type type) {
   M_Object object = new_M_Object(NULL);
   if(!object) Except(shred, "NullPtrException");
   initialize_object(object, type);

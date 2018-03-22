@@ -219,7 +219,7 @@ int adjust(void* data) {
 }
 
 static void err_line(Scanner* scan) {
-  int n = 1;
+  m_uint n = 1;
   size_t len = 0;
   m_str line = NULL;
   fseek(scan->file, 0, SEEK_SET);

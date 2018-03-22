@@ -435,18 +435,18 @@ static MFUN(string_setCharAt) {
 }
 
 static MFUN(string_substring) {
-  m_uint i, len = 0;
+  m_uint len = 0;
   m_int  index = *(m_int*)MEM(SZ_INT);
   m_str str = STRING(o);
   while(str[len] != '\0')
     len++;
-  if(!len || index > len || (len - index + 1) <= 0) {
+  if(!len || (m_uint)index > len || (len - index + 1) <= 0) {
     *(M_Object*)RETURN = NULL;
     return;
   }
   char c[len - index + 1];
   memset(c, 0, len - index + 1);
-  for(i = index; i < len; i++)
+  for(m_uint i = index; i < len; i++)
     c[i - index] = str[i];
   *(M_Object*)RETURN = new_String(shred, c);
 }
@@ -531,7 +531,7 @@ static MFUN(string_replaceN) {
   m_int i, len = 0, index = *(m_int*)MEM(SZ_INT);
   M_Object arg = *(M_Object*)MEM(SZ_INT * 3);
   m_int _len = *(m_int*)MEM(SZ_INT * 2);
-  if(!arg || index > strlen(STRING(o)) || _len > strlen(STRING(arg))) {
+  if(!arg || index > (m_int)strlen(STRING(o)) || _len > (m_int)strlen(STRING(arg))) {
     *(M_Object*)RETURN = NULL;
     return;
   }

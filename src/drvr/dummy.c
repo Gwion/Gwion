@@ -22,7 +22,7 @@ static void silent_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static m_bool dummy_ini(VM* vm, DriverInfo* di) {
+static m_bool dummy_ini(VM* vm __attribute__((unused)), DriverInfo* di __attribute__((unused))) {
   return 1;
 }
 

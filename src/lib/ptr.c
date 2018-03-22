@@ -6,7 +6,7 @@
 #include "instr.h"
 #include "import.h"
 
-const m_str get_type_name(const m_str s, const m_uint index) {
+m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
   m_uint i = 0;
   m_uint lvl = 0;

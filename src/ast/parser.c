@@ -2137,13 +2137,13 @@ yyreduce:
 
   case 20:
 #line 136 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.stmt_list) = new_stmt_list((yyvsp[0].stmt), NULL, get_pos(arg));}
+    { (yyval.stmt_list) = new_stmt_list((yyvsp[0].stmt), NULL);}
 #line 2142 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 21:
 #line 137 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.stmt_list) = new_stmt_list((yyvsp[-1].stmt), (yyvsp[0].stmt_list), get_pos(arg));}
+    { (yyval.stmt_list) = new_stmt_list((yyvsp[-1].stmt), (yyvsp[0].stmt_list));}
 #line 2148 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2191,13 +2191,13 @@ yyreduce:
 
   case 30:
 #line 163 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.type_decl) = add_type_decl_array((yyvsp[-1].type_decl), (yyvsp[0].array_sub), get_pos(arg)); }
+    { (yyval.type_decl) = add_type_decl_array((yyvsp[-1].type_decl), (yyvsp[0].array_sub)); }
 #line 2196 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
   case 31:
 #line 164 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.type_decl) = add_type_decl_array((yyvsp[-1].type_decl), (yyvsp[0].array_sub), get_pos(arg)); }
+    { (yyval.type_decl) = add_type_decl_array((yyvsp[-1].type_decl), (yyvsp[0].array_sub)); }
 #line 2202 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 
@@ -2383,7 +2383,7 @@ yyreduce:
 
   case 77:
 #line 261 "utils/gwion.y" /* yacc.c:1646  */
-    { (yyval.exp) = prepend_exp((yyvsp[-2].exp), (yyvsp[0].exp), get_pos(arg)); }
+    { (yyval.exp) = prepend_exp((yyvsp[-2].exp), (yyvsp[0].exp)); }
 #line 2388 "src/ast/parser.c" /* yacc.c:1646  */
     break;
 

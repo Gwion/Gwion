@@ -8,7 +8,7 @@
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 
-ANN static const Value mk_class(const Env env, const Type base) {
+ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(t_class);
   const Value v = new_value(t, base->name);
   t->d.base_type = base;
@@ -144,7 +144,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
           "class/type '%s' is already defined in namespace '%s'",
           s_name(class_def->name->xid), env->curr->name))
-  if(isres(class_def->name->xid, class_def->name->pos) > 0) {
+  if(isres(class_def->name->xid) > 0) {
     CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
           s_name(class_def->name->xid)))
   }

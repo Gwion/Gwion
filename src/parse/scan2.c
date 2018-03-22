@@ -48,7 +48,7 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
   if(!list->type->size)
     CHECK_BB(err_msg(SCAN2_, list->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
-  if(isres(list->var_decl->xid, list->pos) > 0)
+  if(isres(list->var_decl->xid) > 0)
     return -1;
   if(GET_FLAG(list->type_decl, ae_flag_ref))
     CHECK_BB(prim_ref(list->type_decl, list->type))
@@ -73,7 +73,7 @@ static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       nspc_pop_value(env->curr);
       return -1;
     }
-    v = list->var_decl->value ?: new_value(list->type, s_name(list->var_decl->xid));
+    v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     if(GET_FLAG(list->type_decl, ae_flag_const))
@@ -295,7 +295,7 @@ ANN static m_bool scan2_stmt_case(const Env env, const Stmt_Case stmt) { GWDEBUG
   return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
-ANN static Map scan2_label_map(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
+ANN static Map scan2_label_map(const Env env) { GWDEBUG_EXE
   Map m, label = env_label(env);
   const m_uint* key = env->class_def && !env->func ?
     (m_uint*)env->class_def : (m_uint*)env->func;
@@ -310,7 +310,7 @@ ANN static Map scan2_label_map(const Env env, const Stmt_Goto_Label stmt) { GWDE
 
 ANN static m_bool scan2_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
   if(stmt->is_label) {
-    const Map m = scan2_label_map(env, stmt);
+    const Map m = scan2_label_map(env);
     CHECK_OB(m)
     if(map_get(m, (vtype)stmt->name)) {
       Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
@@ -532,7 +532,7 @@ static m_bool scan2_func_def_add(const Env env, const Value value, const Value o
   return 1;
 }
 
-ANN static void scan2_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(f->d.func->value_ref, ae_flag_builtin);
   if(GET_FLAG(f, ae_flag_dtor))
@@ -544,7 +544,7 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_E
   SET_FLAG(f->d.func->value_ref, ae_flag_const);
 }
 
-ANN const m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
+ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
   const m_str func_name = s_name(f->name);
   struct Vector_ v;
   ID_List id = f->tmpl->list;
@@ -563,7 +563,7 @@ ANN const m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len
   memset(name, 0, len + tlen + 3);
   memset(tmpl_name, 0, tlen + 1);
   tmpl_name[0] = '\0';
-  for(m_int i = 0; i < vector_size(&v); i++) {
+  for(m_uint i = 0; i < vector_size(&v); i++) {
     strcat(tmpl_name, ((Type)vector_at(&v, i))->name);
     if(i + 1 < vector_size(&v))
       strcat(tmpl_name, ",");
@@ -598,7 +598,7 @@ static Value func_create(const Env env, const Func_Def f,
   nspc_add_value(env->curr, !overload ?
       f->name : insert_symbol(func->name), value);
   CHECK_OO(scan2_func_assign(env, f, func, value))
-  scan2_func_def_flag(env, f);
+  scan2_func_def_flag(f);
   if(overload) {
     func->next = overload->d.func_ref->next;
     overload->d.func_ref->next = func;

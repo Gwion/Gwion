@@ -88,7 +88,7 @@ static MFUN(sinosc_set_amp) {
   *(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
-static const m_bool import_sinosc(const Gwi gwi) {
+static m_bool import_sinosc(const Gwi gwi) {
   Type t_sinosc;
   CHECK_OB((t_sinosc = gwi_mk_type(gwi, "SinOsc", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_sinosc, sinosc_ctor, sinosc_dtor))
@@ -136,7 +136,7 @@ static MFUN(gain_set_gain) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT);
 }
 
-static const m_bool import_gain(const Gwi gwi) {
+static m_bool import_gain(const Gwi gwi) {
   Type t_gain;
   CHECK_OB((t_gain = gwi_mk_type(gwi, "Gain", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_gain, gain_ctor, basic_dtor))
@@ -168,7 +168,7 @@ static MFUN(impulse_set_next) {
   *(m_float*)RETURN = (*(m_float*)UGEN(o)->ug = *(m_float*)MEM(SZ_INT));
 }
 
-static const m_bool import_impulse(const Gwi gwi) {
+static m_bool import_impulse(const Gwi gwi) {
   Type t_impulse;
   CHECK_OB((t_impulse = gwi_mk_type(gwi, "Impulse", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_impulse, impulse_ctor, basic_dtor))
@@ -192,7 +192,7 @@ static CTOR(fullrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static m_bool const import_fullrect(const Gwi gwi) {
+static m_bool import_fullrect(const Gwi gwi) {
   Type t_fullrect;
   CHECK_OB((t_fullrect = gwi_mk_type(gwi, "FullRect", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_fullrect, fullrect_ctor, basic_dtor))
@@ -214,7 +214,7 @@ static CTOR(halfrect_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static const m_bool import_halfrect(const Gwi gwi) {
+static m_bool import_halfrect(const Gwi gwi) {
   Type t_halfrect;
   CHECK_OB((t_halfrect = gwi_mk_type(gwi, "HalfRect", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_halfrect, halfrect_ctor, basic_dtor))
@@ -240,7 +240,7 @@ static MFUN(step_set_next) {
   *(m_float*)RETURN = *(m_float*)UGEN(o)->ug = *(m_float*)(shred->mem + SZ_INT);
 }
 
-static m_bool const import_step(const Gwi gwi) {
+static m_bool import_step(const Gwi gwi) {
   Type t_step;
   CHECK_OB((t_step = gwi_mk_type(gwi, "Step", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi,  t_step, step_ctor, basic_dtor))
@@ -267,7 +267,7 @@ static CTOR(zerox_ctor) {
   *(m_float*)UGEN(o)->ug = 1;
 }
 
-static const m_bool import_zerox(const Gwi gwi) {
+static m_bool import_zerox(const Gwi gwi) {
   Type t_zerox;
   CHECK_OB((t_zerox = gwi_mk_type(gwi, "ZeroX", SZ_INT, t_ugen)))
   CHECK_BB(gwi_class_ini(gwi, t_zerox, zerox_ctor, basic_dtor))
@@ -275,7 +275,7 @@ static const m_bool import_zerox(const Gwi gwi) {
   return 1;
 }
 
-const m_bool import_modules(const Gwi gwi) {
+m_bool import_modules(const Gwi gwi) {
   CHECK_BB(import_sinosc(gwi))
   CHECK_BB(import_gain(gwi))
   CHECK_BB(import_impulse(gwi))

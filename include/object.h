@@ -6,7 +6,7 @@ struct M_Object_ {
 };
 
 m_bool initialize_object(M_Object o, const Type type);
-void instantiate_object(const VM*, const VM_Shred, const Type);
+void instantiate_object(const VM_Shred, const Type);
 void free_object(M_Object);
 ANEW M_Object new_M_Object(const VM_Shred shred);
 ANEW M_Object new_M_UGen();

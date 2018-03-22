@@ -515,12 +515,12 @@ void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
   lint_nl(linter);
 }
 
-void lint_stmt_continue(Linter* linter, Stmt_Continue stmt) {
+void lint_stmt_continue(Linter* linter, Stmt_Continue stmt __attribute__((unused))) {
   lint_print(linter, "continue;");
   lint_nl(linter);
 }
 
-void lint_stmt_break(Linter* linter, Stmt_Break stmt) {
+void lint_stmt_break(Linter* linter, Stmt_Break stmt __attribute__((unused))) {
   lint_print(linter, "break;");
   lint_nl(linter);
 }
@@ -669,7 +669,7 @@ int main(int argc, char** argv) {
   argc--; argv++;
   while(argc--) {
     Ast ast;
-    Linter linter = { *argv, NULL, 1 };
+    Linter linter = { *argv, NULL, 1, 0, 0, 0, 0 };
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.lint", *argv);
     FILE* f = fopen(*argv, "r");

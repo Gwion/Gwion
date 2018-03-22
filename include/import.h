@@ -6,12 +6,12 @@ typedef void (*f_sfun)(char* RETURN, const VM_Shred sh);
 typedef void (*f_xfun)();
 typedef struct Gwi_* Gwi;
 
-#define MFUN(a) ANN void a(const M_Object o, char* RETURN, const VM_Shred shred)
-#define SFUN(a) ANN void a(char* RETURN, const VM_Shred shred)
-#define CTOR(a) ANN void a(const M_Object o, const VM_Shred shred)
-#define DTOR(a) ANN void a(const M_Object o, const VM_Shred shred)
-#define OP_CHECK(a) ANN Type a(const Env env, void* data)
-#define OP_EMIT(a)  ANN m_bool a(const Emitter emit, void* data)
+#define MFUN(a) ANN void a(const M_Object o __attribute__((unused)), char* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
+#define SFUN(a) ANN void a(char* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
+#define CTOR(a) ANN void a(const M_Object o, const VM_Shred shred __attribute__((unused)))
+#define DTOR(a) ANN void a(const M_Object o, const VM_Shred shred __attribute__((unused)))
+#define OP_CHECK(a) ANN Type a(const Env env __attribute__((unused)), void* data __attribute__((unused)))
+#define OP_EMIT(a)  ANN m_bool a(const Emitter emit __attribute__((unused)), void* data __attribute__((unused)))
 #define IMPORT ANN m_bool import(const Gwi gwi)
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 #define _CHECK_OP(op, check, func)\

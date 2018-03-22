@@ -23,7 +23,7 @@ struct Map_Info_ {
 };
 POOL_HANDLE(Map_Info, 16)
 
-static m_bool string_cmp(const char *restrict a, const char*restrict b, const m_uint size) {
+static m_bool string_cmp(const char *restrict a, const char*restrict b, const m_uint size __attribute__((unused))) {
   M_Object o = (M_Object)b;
   if(!o && !a)
     return 1;
@@ -111,7 +111,7 @@ m_bool import_map(Gwi gwi) {
   td->types = tl0;
   Exp e = new_exp_prim_int(0, 0);
   Array_Sub array = new_array_sub(e, 0);
-  add_type_decl_array(td, array, 0);
+  add_type_decl_array(td, array);
   CHECK_BB(gwi_class_ext(gwi, td))
   CHECK_BB(gwi_item_ini(gwi, "int", "@map_info"))
   CHECK_BB(gwi_item_end(gwi, 0, NULL));

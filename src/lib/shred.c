@@ -7,7 +7,7 @@
 
 m_int o_shred_me;
 
-M_Object new_shred(VM* vm, VM_Shred shred) {
+M_Object new_shred(VM_Shred shred) {
   M_Object obj = new_M_Object(NULL);
   initialize_object(obj, t_shred);
   ME(obj) = shred;
@@ -21,7 +21,7 @@ static MFUN(gw_shred_exit) {
 
 static MFUN(vm_shred_id) {
   VM_Shred  s = ME(o);
-  *(m_uint*)RETURN = s ? s->xid : -1;
+  *(m_int*)RETURN = s ? (m_int)s->xid : -1;
 }
 
 static MFUN(vm_shred_is_running) {

@@ -6,7 +6,7 @@
 #include "type.h"
 #include "value.h"
 
-const m_uint num_digit(const m_uint i) {
+m_uint num_digit(const m_uint i) {
   return i ? (m_uint)floor(log10(i) + 1) : 1;
 }
 
@@ -70,7 +70,7 @@ ANN Func find_func(const Type type, const Symbol xid) {
   return NULL;
 }
 
-ANN const m_uint id_list_len(ID_List l) {
+ANN m_uint id_list_len(ID_List l) {
   m_uint len = 0;
   while(l) {
     len += strlen(s_name(l->xid));
@@ -89,13 +89,13 @@ ANN void type_path(m_str s, ID_List l) {
   }
 }
 
-ANN const Type array_base(Type t) {
+ANN Type array_base(Type t) {
   while(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
   return t->d.base_type;
 }
 
-ANN const Type array_type(const Type base, const m_uint depth) {
+ANN Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth;
   Type t;
   Symbol sym;
@@ -137,7 +137,7 @@ m_int get_escape(const char c, const int linepos) {
   return -1;
 }
 
-ANN const m_int str2char(const m_str c, const m_int linepos) {
+ANN m_int str2char(const m_str c, const m_int linepos) {
   if(c[0] == '\\')
     return get_escape(c[1], linepos);
   else
@@ -152,14 +152,14 @@ ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   return -1;
 }
 
-const m_bool check_array_empty(const Array_Sub a, const m_str orig) {
+m_bool check_array_empty(const Array_Sub a, const m_str orig) {
   if(a->exp_list)
     CHECK_BB(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
           " in %s declaration", orig))
    return 1;
 }
 
-ANN const m_bool type_ref(Type t) {
+ANN m_bool type_ref(Type t) {
   while(t) {
     if(GET_FLAG(t, ae_flag_empty))return 1;
     if(GET_FLAG(t, ae_flag_typedef))

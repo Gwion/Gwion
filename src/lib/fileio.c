@@ -223,7 +223,6 @@ static SFUN(file_remove) {
 }
 
 static SFUN(file_list) {
-  m_uint i;
   struct dirent **namelist;
   M_Object obj = *(M_Object*)MEM(SZ_INT);
   m_str str;
@@ -241,7 +240,7 @@ static SFUN(file_list) {
   Type t = array_type(t_string, 1);
   M_Object ret = new_M_Array(t, SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
-  for(i = 0; i < n; i++) {
+  for(m_uint i = 0; i < (m_uint)n; i++) {
     M_Object string = new_String(NULL, namelist[i]->d_name);
     m_vector_set(ARRAY(ret), i, &string);
     free(namelist[i]);
@@ -250,7 +249,7 @@ static SFUN(file_list) {
   *(m_uint*)RETURN = (m_uint)ret;
 }
 
-const m_bool import_fileio(const Gwi gwi) {
+m_bool import_fileio(const Gwi gwi) {
   Type t_fileio, t_cout, t_cerr, t_cin;
   CHECK_OB((t_fileio  = gwi_mk_type(gwi, "FileIO", SZ_INT, t_event)))
   CHECK_OB((t_cout    = gwi_mk_type(gwi, "@Cout",  SZ_INT, t_fileio)))

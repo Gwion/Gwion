@@ -85,7 +85,7 @@ M_Object new_M_UGen() {
   return o;
 }
 
-static const m_bool assign_channel(UGen u) {
+static m_bool assign_channel(UGen u) {
   m_uint i;
   u->channel = xmalloc(u->n_chan * SZ_INT);
   for(i = u->n_chan + 1; --i;) {
@@ -98,7 +98,7 @@ static const m_bool assign_channel(UGen u) {
   return 1;
 }
 
-const m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug) {
+m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug) {
   u->n_chan = n_in > n_out ? n_in : n_out;
   u->in = u->out = 0;
   u->n_in   = n_in;
@@ -214,7 +214,7 @@ static CTOR(ugen_ctor) {
   vector_add(&shred->vm_ref->ugen, (vtype)UGEN(o));
 }
 
-static void ugen_unref(UGen ug, VM_Shred shred) {
+static void ugen_unref(UGen ug) {
   m_uint i;
   for(i = vector_size(&ug->to) + 1; --i;) {
     UGen u = (UGen)vector_at(&ug->to, i - 1);
@@ -248,7 +248,7 @@ static DTOR(ugen_dtor) {
   m_int j = vector_find(&shred->vm_ref->ugen, (vtype)ug);
 
   vector_rem(&shred->vm_ref->ugen, j);
-  ugen_unref(ug, shred);
+  ugen_unref(ug);
   ugen_release(ug, shred);
   release(ug->trig, shred);
   vector_release(&ug->to);
@@ -259,7 +259,7 @@ static MFUN(ugen_channel) {
   m_int i = *(m_int*)MEM(SZ_INT);
   if(!UGEN(o)->channel)
     *(M_Object*)RETURN = !i ? o : NULL;
-  else if(i < 0 || i >= UGEN(o)->n_chan)
+  else if(i < 0 || (m_uint)i >= UGEN(o)->n_chan)
     *(M_Object*)RETURN = NULL;
   else
     *(M_Object*)RETURN = UGEN(o)->channel[i];

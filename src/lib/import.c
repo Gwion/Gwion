@@ -323,7 +323,7 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
     Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
     Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
     Stmt stmt = new_stmt_exp(exp, 0);
-    Stmt_List list = new_stmt_list(stmt, NULL, 0);
+    Stmt_List list = new_stmt_list(stmt, NULL);
     Section* section = new_section_stmt_list(list, 0);
     Class_Body body = new_class_body(section, NULL, 0);
     type_decl->array = v->t.array;
@@ -435,7 +435,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
-    type_decl = add_type_decl_array(type_decl, array_sub, 0);
+    type_decl = add_type_decl_array(type_decl, array_sub);
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
@@ -588,6 +588,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name) {
 
 ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
+  stmt->d.stmt_union.flag = flag;
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))

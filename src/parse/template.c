@@ -97,7 +97,6 @@ ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type
   return list;
 }
 
-//static
 ANN m_bool template_match(ID_List base, Type_List call) {
   while(base) {
     if(!call)

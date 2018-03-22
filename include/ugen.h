@@ -23,6 +23,6 @@ ANN static inline void ugop_times  (UGen u, m_float f) { u->in *= f; }
 ANN static inline void ugop_divide (UGen u, m_float f) { u->in /= f; }
 
 __attribute__((nonnull(1)))
-const m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug);
+m_bool assign_ugen(UGen u, const m_uint n_in, const m_uint n_out, const m_bool trig, void* ug);
 ANN void ugen_compute(const UGen u) __attribute__((hot, nonnull));
 static TICK(base_tick) { u->out = u->in; }

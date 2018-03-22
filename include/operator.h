@@ -16,11 +16,11 @@ struct Implicit {
   void* e;
   Type  t;
 };
-ANN const m_bool add_op(const Nspc , const struct Op_Import*);
-ANN const Type   op_check(const Env, struct Op_Import*);
-ANN const m_bool op_emit(const Emitter, const struct Op_Import*);
-ANN const m_int name2op(const m_str);
-ANN const m_bool operator_set_func(const Env, const struct Op_Import*);
+ANN m_bool add_op(const Nspc , const struct Op_Import*);
+ANN Type   op_check(const Env, struct Op_Import*);
+ANN m_bool op_emit(const Emitter, const struct Op_Import*);
+ANN m_int name2op(const m_str);
+ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map);
-ANN const m_str get_type_name(const m_str, const m_uint);
-const m_str op2str(const Operator);
+ANN m_str get_type_name(const m_str, const m_uint);
+m_str op2str(const Operator);

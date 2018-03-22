@@ -1,1 +1,1 @@
-Machine.check("/usr/", "int i");
+Machine.check("int i");

@@ -41,7 +41,7 @@ ANN void free_op_map(Map map) {
   map_release(map);
 }
 
-ANN static const Type op_parent(const Env env, const Type t) {
+ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
     const m_str post = strstr(t->name, "<");
     char c[strlen(t->name) - strlen(post) + 1];
@@ -52,7 +52,7 @@ ANN static const Type op_parent(const Env env, const Type t) {
   return t->parent;
 }
 
-static const m_bool op_match(const Type t, const Type mo) {
+static m_bool op_match(const Type t, const Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return 1;
   if((t && mo && mo->xid == t->xid) || (!t && !mo))
@@ -70,7 +70,7 @@ static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs)
   return NULL;
 }
 
-ANN const m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
+ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
   Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
   M_Operator* mo;
   if(!v) {
@@ -111,7 +111,7 @@ ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
     ((Exp_Unary*)opi->data)->nspc = nspc;
 }
 
-ANN static const Type op_check_inner(const Env env, const Map map, const struct Op_Import* opi) {
+ANN static Type op_check_inner(const Env env, const Map map, const struct Op_Import* opi) {
   Type t, r = opi->rhs;
   do {
     const M_Operator* mo;
@@ -127,11 +127,11 @@ ANN static const Type op_check_inner(const Env env, const Map map, const struct 
   return NULL;
 }
 
-static const m_str type_name(const Type t) {
+static m_str type_name(const Type t) {
   return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
 }
 
-ANN const Type op_check(const Env env, struct Op_Import* opi) {
+ANN Type op_check(const Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
   while(nspc) {
     if(nspc->op_map.ptr) {
@@ -156,7 +156,7 @@ ANN const Type op_check(const Env env, struct Op_Import* opi) {
   return NULL;
 }
 
-ANN const m_bool operator_set_func(const Env env, const struct Op_Import* opi) {
+ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
   const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
@@ -164,11 +164,11 @@ ANN const m_bool operator_set_func(const Env env, const struct Op_Import* opi) {
   return 1;
 }
 
-ANN static const m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     Instr instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = SZ_INT;
-    CHECK_BB(emit_exp_call1(emit, mo->func, mo->func->def->ret_type))
+    CHECK_BB(emit_exp_call1(emit, mo->func))
     return 1;
   }
   if(mo->instr)
@@ -177,7 +177,7 @@ ANN static const m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   return -1;
 }
 
-ANN static const Nspc get_nspc(const struct Op_Import* opi) {
+ANN static Nspc get_nspc(const struct Op_Import* opi) {
   if(opi->op == op_implicit)
     return opi->rhs->owner;
   if(opi->op == op_dollar)
@@ -191,7 +191,7 @@ ANN static const Nspc get_nspc(const struct Op_Import* opi) {
   return ((Exp_Unary*)opi->data)->nspc;
 }
 
-ANN const m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
+ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   const Nspc nspc = get_nspc(opi);
 
   Type l = opi->lhs;

@@ -5,7 +5,7 @@
 #include "array.h"
 #include "emit.h"
 
-ANEW M_Object new_shred(VM* vm, VM_Shred shred);
+ANEW M_Object new_shred(VM_Shred shred);
 
 extern m_int o_string_data;
 extern m_int o_event_shred;

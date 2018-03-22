@@ -8,7 +8,7 @@
 #include "vm.h"
 #include "driver.h"
 
-static m_bool sndfile_ini(VM* vm, DriverInfo* di) {
+static m_bool sndfile_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   SNDFILE** sf = xcalloc(di->chan, sizeof(void*));
   char tmp[140];
   SF_INFO info;
@@ -44,7 +44,7 @@ static void sndfile_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void sndfile_del(VM* vm, DriverInfo* di) {
+static void sndfile_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   SNDFILE** sf = (SNDFILE**)di->data;
   for(m_uint i = 0; i < di->chan; i++)
     sf_close(sf[i]);

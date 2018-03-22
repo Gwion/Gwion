@@ -183,7 +183,7 @@ void vector_add2ts(const Vector v,
     const struct timespec ini, const struct timespec end) {
   int sz;
   while((sz = (v->ptr[1] - v->ptr[0] - OFFSET - (3*sizeof(unsigned int)))) < 0)
-    v->ptr = xrealloc(v->ptr, (v->ptr[1] *= 2) * sizeof(unsigned int));
+    v->ptr = realloc(v->ptr, (v->ptr[1] *= 2) * sizeof(unsigned int));
   v->ptr[v->ptr[0]++ + OFFSET] = ini.tv_sec;
   v->ptr[v->ptr[0]++ + OFFSET] = ini.tv_nsec;
   v->ptr[v->ptr[0]++ + OFFSET] = end.tv_sec;

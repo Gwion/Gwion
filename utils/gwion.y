@@ -133,8 +133,8 @@ id_dot
   ;
 
 stmt_list
-  : stmt { $$ = new_stmt_list($1, NULL, get_pos(arg));}
-  | stmt stmt_list { $$ = new_stmt_list($1, $2, get_pos(arg));}
+  : stmt { $$ = new_stmt_list($1, NULL);}
+  | stmt stmt_list { $$ = new_stmt_list($1, $2);}
   ;
 
 static_decl
@@ -160,8 +160,8 @@ stmt_typedef
 
 type_decl2
   : type_decl
-  | type_decl array_empty             { $$ = add_type_decl_array($1, $2, get_pos(arg)); }
-  | type_decl array_exp               { $$ = add_type_decl_array($1, $2, get_pos(arg)); }
+  | type_decl array_empty             { $$ = add_type_decl_array($1, $2); }
+  | type_decl array_exp               { $$ = add_type_decl_array($1, $2); }
   ;
 
 arg_list
@@ -258,7 +258,7 @@ exp_stmt
 
 exp
   : binary_exp
-  | binary_exp COMMA exp  { $$ = prepend_exp($1, $3, get_pos(arg)); }
+  | binary_exp COMMA exp  { $$ = prepend_exp($1, $3); }
   ;
 
 binary_exp

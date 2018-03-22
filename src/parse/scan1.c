@@ -13,7 +13,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static m_bool scan1_exp_decl_template(const Env env, const Type t, const Exp_Decl* decl) { GWDEBUG_EXE
+ANN static m_bool scan1_exp_decl_template(const Type t, const Exp_Decl* decl) { GWDEBUG_EXE
   if(GET_FLAG(t, ae_flag_template)) {
     Exp_Decl* d = (Exp_Decl*)decl;
     d->base = t->def;
@@ -45,7 +45,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
   CHECK_OB(t)
-  CHECK_BB(scan1_exp_decl_template(env, t, decl))
+  CHECK_BB(scan1_exp_decl_template(t, decl))
   if(decl->m_type && !env->func &&
     !(env->class_def && GET_FLAG(env->class_def, ae_flag_template) && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->m_type;
@@ -54,7 +54,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   while(list) {
     Value value;
     const Var_Decl v = list->self;
-    if(isres(v->xid, v->pos) > 0)
+    if(isres(v->xid) > 0)
       CHECK_BB(err_msg(SCAN2_, v->pos,
             "\t... in variable declaration", s_name(v->xid)))
     if((value = nspc_lookup_value0(env->curr, v->xid)) &&
@@ -70,7 +70,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       CHECK_OB((t = array_type(decl->m_type, v->array->depth)))
     } else
       t = decl->m_type;
-    v->value = value ?: new_value(t, s_name(v->xid));
+    v->value = value ? value : new_value(t, s_name(v->xid));
     nspc_add_value(env->curr, v->xid, v->value);
     v->value->flag = decl->type->flag;
     if(v->array && !v->array->exp_list)
@@ -473,7 +473,7 @@ ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG
   return 1;
 }
 
-ANN static m_bool scan1_func_def_op(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
   m_int count = 0;
   Arg_List list = f->arg_list;
   while(list) {
@@ -490,7 +490,7 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
   if(GET_FLAG(f, ae_flag_op))
-    CHECK_BB(scan1_func_def_op(env, f))
+    CHECK_BB(scan1_func_def_op(f))
   return 1;
 }
 

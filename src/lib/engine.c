@@ -169,8 +169,12 @@ Env type_engine_init(VM* vm, const Vector plug_dirs) {
   Env env = new_env();
   vm->emit = new_emitter(env);
   vm->emit->filename = "[builtin]";
-  struct Gwi_ gwi = { vm, vm->emit, env };
-   if(import_core_libs(&gwi) < 0 ||
+  struct Gwi_ gwi;
+  memset(&gwi, 0, sizeof(struct Gwi_));
+  gwi.vm = vm;
+  gwi.emit = vm->emit;
+  gwi.env = env;
+  if(import_core_libs(&gwi) < 0 ||
       import_other_libs(&gwi) < 0 ) {
     free_env(env);
     return NULL;

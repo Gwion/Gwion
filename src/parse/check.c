@@ -24,7 +24,7 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN m_bool check_exp_array_subscripts(const Env env, Exp exp) { GWDEBUG_EXE
+ANN m_bool check_exp_array_subscripts(Exp exp) { GWDEBUG_EXE
   while(exp) {
     if(isa(exp->type, t_int) < 0)
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
@@ -53,7 +53,7 @@ ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWD
 
 ANN static m_bool check_exp_decl_array(const Env env, const Exp array) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, array))
-  return check_exp_array_subscripts(env, array);
+  return check_exp_array_subscripts(array);
 }
 
 ANN static inline m_bool check_exp_decl_member(const Nspc nspc, const Value v) { GWDEBUG_EXE
@@ -116,7 +116,7 @@ ANN static m_bool check_exp_prim_array_inner(const Type t, Type type, const Exp 
   return 1;
 }
 
-ANN static Type check_exp_prim_array_match(const Env env, Exp e) { GWDEBUG_EXE
+ANN static Type check_exp_prim_array_match(Exp e) { GWDEBUG_EXE
   Type t, type = NULL;
   while(e) {
     t = e->type;
@@ -134,7 +134,7 @@ ANN static Type check_exp_prim_array(const Env env, const Array_Sub array) { GWD
   if(!e)
     CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
-  return (array->type = check_exp_prim_array_match(env, e));
+  return (array->type = check_exp_prim_array_match(e));
 }
 
 ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
@@ -371,7 +371,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   if(type->array_depth) {
     Array_Sub array = new_array_sub(NULL, 0);
     array->depth = type->array_depth;
-    add_type_decl_array(td, array, 0);
+    add_type_decl_array(td, array);
   }
   return new_type_list(td, NULL, 0);
 }
@@ -629,7 +629,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
           "not able to guess types for template call."))
   Tmpl_Call tmpl = { tl[0], NULL };
-  Exp_Func tmp_func = { exp_func, args, NULL, &tmpl};
+  Exp_Func tmp_func = { exp_func, args, NULL, &tmpl, NULL, 0};
   *m_func = get_template_func(env, &tmp_func, value);
   return *m_func ? (*m_func)->def->ret_type : NULL;
 }
@@ -1028,7 +1028,7 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt, const m_b
   return ret;
 }
 
-ANN static m_bool check_flow(const Env env, const Exp exp) { GWDEBUG_EXE
+ANN static m_bool check_flow(const Exp exp) { GWDEBUG_EXE
   if(isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
      isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
     return 1;
@@ -1039,7 +1039,7 @@ ANN static m_bool check_flow(const Env env, const Exp exp) { GWDEBUG_EXE
 
 ANN static m_bool check_stmt_while(const Env env, const Stmt_While stmt) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, stmt->cond))
-  if(check_flow(env, stmt->cond) < 0)
+  if(check_flow(stmt->cond) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'while' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   vector_add(&env->conts, (vtype)stmt->self);
@@ -1051,7 +1051,7 @@ ANN static m_bool check_stmt_while(const Env env, const Stmt_While stmt) { GWDEB
 
 ANN static m_bool check_stmt_until(const Env env, const Stmt_Until stmt) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, stmt->cond))
-  if(check_flow(env, stmt->cond) < 0)
+  if(check_flow(stmt->cond) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'until' condition."))
   vector_add(&env->breaks, (vtype)stmt->self);
   CHECK_BB(check_stmt(env, stmt->body))
@@ -1074,7 +1074,7 @@ ANN static m_bool check_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
                      "...(note: explicitly use 'true' if it's the intent)",
                      "...(e.g., 'for(; true;){ /*...*/ }')"))
   }
-  if(check_flow(env, stmt->c2->d.stmt_exp.val) < 0)
+  if(check_flow(stmt->c2->d.stmt_exp.val) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->c2->pos, "\t... in 'for' condition."))
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
@@ -1137,7 +1137,7 @@ ANN static m_bool check_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG
 ANN static m_bool check_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, stmt->cond))
   if(isa(stmt->cond->type, t_object) > 0)
-    if(check_flow(env, stmt->cond) < 0)
+    if(check_flow(stmt->cond) < 0)
       CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'if' condition."))
   CHECK_BB(check_stmt(env, stmt->if_body))
   if(stmt->else_body)
@@ -1498,7 +1498,7 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(class_def->ext->array) {
     CHECK_OB(check_exp(env, class_def->ext->array->exp_list))
-    CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp_list))
+    CHECK_BB(check_exp_array_subscripts(class_def->ext->array->exp_list))
   }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?

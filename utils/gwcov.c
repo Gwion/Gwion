@@ -63,8 +63,11 @@ static void co(Cov *cov, Data* d) {
 
 static void run(Cov *cov, void(*func)(Cov*, Data*)) {
   char filename[strlen(cov->base) + strlen(cov->postfix)+ 1];
-  Data d = { MIN_LINE };
+  Data d;
   FILE* f;
+
+  memset(&d, 0, sizeof(Data));
+  d.line_count = MIN_LINE;
 
   sprintf(filename, "%s%s", cov->base, cov->postfix);
   if(!(f = fopen(filename, "r")))
@@ -161,9 +164,11 @@ static void terminal(Cov* cov, Data* d) {
 
 void diagnostic(Cov* cov, cov_func func){
   FILE * f;
-  Data d = { 1, NULL };
+  Data d;
   size_t len = 0;
 
+  memset(&d, 0, sizeof(Data));
+  d.line_count = 1;
   if(!(f = fopen(cov->base, "r")))
     err(cov->base, cov->base);
   while((d.s = getline(&d.line, &len, f)) != -1) {
@@ -182,7 +187,7 @@ int main(int argc, char** argv) {
   argv++;
   argc--;
   while(argc) {
-    Cov c = { *argv, out, 1, max_exec };
+    Cov c = { *argv, out, 1, max_exec, NULL, NULL };
     c.lines = calloc(MIN_LINE, sizeof(Line));
     c. postfix = "da";
     run(&c, da);
