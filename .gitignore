@@ -1,5 +1,6 @@
 gwion
 gwlint
+gwlit
 gwtag
 gwcov
 gwdbg
@@ -9,8 +10,7 @@ gwdot
 *.gw.tag
 *.gwcov
 *.gwda
-gwmon.out
+*.out
 config.mk
 include/generated.h
-utils/generate_header
 docs/WIP_*.md

@@ -150,7 +150,7 @@ config.mk:
 
 include/generated.h: utils/generate_header.c
 	$(info generating generated.h)
-	@cc utils/generate_header.c ${CFLAGS} -o generate_header
+	@cc ${DFLAGS} utils/generate_header.c -o generate_header
 	@./generate_header
 	@rm generate_header
 
