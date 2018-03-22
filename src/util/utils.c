@@ -72,21 +72,22 @@ ANN Func find_func(const Type type, const Symbol xid) {
 
 ANN m_uint id_list_len(ID_List l) {
   m_uint len = 0;
-  while(l) {
+  do {
     len += strlen(s_name(l->xid));
-    if((l = l->next))
+    if(l->next)
       len++;
   }
+  while((l = l->next));
   return len + 1;
 }
 
 ANN void type_path(m_str s, ID_List l) {
   s[0] = '\0';
-  while(l) {
+  do {
     strcat(s, s_name(l->xid));
-    if((l = l->next))
+    if(l->next)
       strcat(s, ".");
-  }
+  } while((l = l->next));
 }
 
 ANN Type array_base(Type t) {
@@ -160,12 +161,11 @@ m_bool check_array_empty(const Array_Sub a, const m_str orig) {
 }
 
 ANN m_bool type_ref(Type t) {
-  while(t) {
+  do {
     if(GET_FLAG(t, ae_flag_empty))return 1;
     if(GET_FLAG(t, ae_flag_typedef))
       if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
         return 1;
-    t = t->parent;
-  }
+  } while((t = t->parent));
   return 0;
 }

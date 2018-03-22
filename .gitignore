@@ -10,6 +10,7 @@ gwdot
 *.gwcov
 *.gwda
 gwmon.out
+config.mk
 include/generated.h
 utils/generate_header
 docs/WIP_*.md

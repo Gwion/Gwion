@@ -203,7 +203,7 @@ ANN static m_bool scan1_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
-  while(exp) {
+  do {
     switch(exp->exp_type) {
       case ae_exp_primary:
         CHECK_BB(scan1_exp_primary(env, &exp->d.exp_primary))
@@ -240,13 +240,14 @@ ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
         CHECK_BB(scan1_exp_if(env, &exp->d.exp_if))
         break;
     }
-    exp = exp->next;
-  }
+  } while((exp = exp->next));
   return 1;
 }
 
 ANN static m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
   m_bool ret;
+  if(!stmt->stmt_list)
+    return 1;
   env->class_scope++;
   if(push)
     nspc_push_value(env->curr);
@@ -334,13 +335,12 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 }
 
 ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
-  while(arg_list) {
+  do {
     if(!(arg_list->type = type_decl_resolve(env, arg_list->type_decl)))
       CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument"))
     if(arg_list->type_decl->types)
       ADD_REF(arg_list->type)
-    arg_list = arg_list->next;
-  }
+  } while((arg_list = arg_list->next));
   return 1;
 }
 
@@ -458,10 +458,8 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
-  while(l) {
-    CHECK_BB(scan1_stmt(env, l->stmt))
-    l = l->next;
-  }
+  do CHECK_BB(scan1_stmt(env, l->stmt))
+  while((l = l->next));
   return 1;
 }
 
@@ -557,9 +555,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
 }
 
 ANN m_bool scan1_ast(const Env env, Ast ast) { GWDEBUG_EXE
-  while(ast) {
-    CHECK_BB(scan1_section(env, ast->section))
-    ast = ast->next;
-  }
+  do CHECK_BB(scan1_section(env, ast->section))
+  while((ast = ast->next));
   return 1;
 }

@@ -198,50 +198,50 @@ ANN static m_bool scan2_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
 }
 
 static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
-  m_bool ret = 1;
-  while(exp && ret > 0) {
+  do {
     switch(exp->exp_type) {
       case ae_exp_primary:
-        ret = scan2_exp_primary(env, &exp->d.exp_primary);
+        CHECK_BB(scan2_exp_primary(env, &exp->d.exp_primary))
         break;
       case ae_exp_decl:
-        ret = scan2_exp_decl(env, &exp->d.exp_decl);
+        CHECK_BB(scan2_exp_decl(env, &exp->d.exp_decl))
         break;
       case ae_exp_unary:
-        ret = (exp->d.exp_unary.op == op_spork && exp->d.exp_unary.code) ?
-          scan2_exp_spork(env, exp->d.exp_unary.code) : 1;
+        if(exp->d.exp_unary.op == op_spork && exp->d.exp_unary.code)
+          CHECK_BB(scan2_exp_spork(env, exp->d.exp_unary.code))
         break;
       case ae_exp_binary:
-        ret = scan2_exp_binary(env, &exp->d.exp_binary);
+        CHECK_BB(scan2_exp_binary(env, &exp->d.exp_binary))
         break;
       case ae_exp_post:
-        ret = scan2_exp_post(env, &exp->d.exp_post);
+        CHECK_BB(scan2_exp_post(env, &exp->d.exp_post))
         break;
       case ae_exp_cast:
-        ret = scan2_exp_cast(env, &exp->d.exp_cast);
+        CHECK_BB(scan2_exp_cast(env, &exp->d.exp_cast))
         break;
       case ae_exp_call:
-        ret = scan2_exp_call(env, &exp->d.exp_func);
+        CHECK_BB(scan2_exp_call(env, &exp->d.exp_func))
         break;
       case ae_exp_array:
-        ret = scan2_exp_array(env, &exp->d.exp_array);
+        CHECK_BB(scan2_exp_array(env, &exp->d.exp_array))
         break;
       case ae_exp_dot:
-        ret = scan2_exp_dot(env, &exp->d.exp_dot);
+        CHECK_BB(scan2_exp_dot(env, &exp->d.exp_dot))
         break;
       case ae_exp_if:
-        ret = scan2_exp_if(env, &exp->d.exp_if);
+        CHECK_BB(scan2_exp_if(env, &exp->d.exp_if))
         break;
       case ae_exp_dur:
-        ret = scan2_exp_dur(env, &exp->d.exp_dur);
+        CHECK_BB(scan2_exp_dur(env, &exp->d.exp_dur))
         break;
     }
-    exp = exp->next;
-  }
-  return ret;
+  } while((exp = exp->next));
+  return 1;
 }
 
 ANN static m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
+  if(!stmt->stmt_list)
+   return 1;
   env->class_scope++;
   if(push)
     nspc_push_value(env->curr);
@@ -404,10 +404,8 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
-  while(list) {
-    CHECK_BB(scan2_stmt(env, list->stmt))
-    list = list->next;
-  }
+  do CHECK_BB(scan2_stmt(env, list->stmt))
+  while((list = list->next));
   return 1;
 }
 
@@ -687,9 +685,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
 }
 
 ANN m_bool scan2_ast(const Env env, Ast ast) { GWDEBUG_EXE
-  while(ast) {
-    CHECK_BB(scan2_section(env, ast->section))
-    ast = ast->next;
-  }
+  do CHECK_BB(scan2_section(env, ast->section))
+  while((ast = ast->next));
   return 1;
 }

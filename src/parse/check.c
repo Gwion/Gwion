@@ -25,11 +25,9 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN m_bool check_exp_array_subscripts(Exp exp) { GWDEBUG_EXE
-  while(exp) {
-    if(isa(exp->type, t_int) < 0)
+  do if(isa(exp->type, t_int) < 0)
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
-      exp = exp->next;
-  }
+  while((exp = exp->next));
   return 1;
 }
 
@@ -118,14 +116,13 @@ ANN static m_bool check_exp_prim_array_inner(const Type t, Type type, const Exp 
 
 ANN static Type check_exp_prim_array_match(Exp e) { GWDEBUG_EXE
   Type t, type = NULL;
-  while(e) {
+  do {
     t = e->type;
     if(!type)
       type = t;
     else
       CHECK_BO(check_exp_prim_array_inner(t, type, e))
-    e = e->next;
-  }
+  } while((e = e->next));
   return array_type(type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
@@ -215,7 +212,7 @@ ANN static Type check_exp_prim_id(const Env env, const Exp_Primary* primary) { G
 ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
   int count = 1;
   CHECK_OB(check_exp(env, e))
-  while(e) {
+  do {
     Type t = e->type;
     if(isa(t, t_int) > 0) e->cast_to = t_float;
     else if(isa(t, t_float) < 0)
@@ -223,8 +220,7 @@ ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
             "invalid type '%s' in %s value #%d...\n"
             "    (must be of type 'int' or 'float')", t->name, s, count))
     count++;
-    e = e->next;
-  }
+  } while((e = e->next));
   return 1;
 }
 
@@ -393,7 +389,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
 __attribute__((nonnull(1,2)))
 static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
-  while(func) {
+  do {
     Exp e = args;
     Arg_List e1 = func->def->arg_list;
 
@@ -401,7 +397,8 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
       if(!e1) {
         if(GET_FLAG(func->def, ae_flag_variadic))
           return func;
-        goto moveon;
+        CHECK_OO(func->next);
+        return find_func_match_actual(env, func->next, args, implicit, specific);
       }
       if(func_match_inner(env, e, e1->type, implicit, specific) < 0)
           goto moveon;
@@ -410,9 +407,8 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     }
     if(!e1)
       return func;
-moveon:
-    func = func->next;
-  }
+moveon:;
+  } while((func = func->next));
   return NULL;
 }
 
@@ -523,14 +519,13 @@ next:
 ANN static void print_current_args(Exp e) {
   gw_err("and not");
   gw_err("\n\t");
-  while(e) {
+  do {
     gw_err(" \033[32m%s\033[0m", e->type->name);
     if(e->type->array_depth)
       REM_REF(e->type)
-    e = e->next;
-    if(e)
+    if(e->next)
       gw_err(",");
-  }
+  } while((e = e->next));
   gw_err("\n");
 }
 
@@ -578,10 +573,8 @@ ANN static Value get_template_value(const Env env, const Exp exp_func) {
 
 ANN static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
-  while(list) {
-    type_number++;
-    list = list->next;
-  }
+  do type_number++;
+  while((list = list->next));
   return type_number;
 }
 
@@ -1018,6 +1011,8 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 
 ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
   m_bool ret;
+  if(!stmt->stmt_list)
+    return 1;
   env->class_scope++;
   if(push)
     nspc_push_value(env->curr);
@@ -1317,10 +1312,8 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
-  while(l) {
-    CHECK_BB(check_stmt(env, l->stmt))
-    l = l->next;
-  }
+  do CHECK_BB(check_stmt(env, l->stmt))
+  while((l = l->next));
   return 1;
 }
 
@@ -1384,8 +1377,8 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
 
 ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
   m_uint count = 1;
-  while(arg_list) {
-    Value v = arg_list->var_decl->value;
+  do {
+    const Value v = arg_list->var_decl->value;
     if(nspc_lookup_value0(env->curr, arg_list->var_decl->xid))
       CHECK_BB(err_msg(TYPE_, arg_list->pos,
                     "argument %i '%s' is already defined in this scope\n",
@@ -1393,8 +1386,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
     SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     count++;
-    arg_list = arg_list->next;
-  }
+  } while((arg_list = arg_list->next));
   return 1;
 }
 
@@ -1554,9 +1546,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
 }
 
 ANN m_bool check_ast(const Env env, Ast ast) { GWDEBUG_EXE
-  while(ast) {
-    CHECK_BB(check_section(env, ast->section))
-    ast = ast->next;
-  }
+  do CHECK_BB(check_section(env, ast->section))
+  while((ast = ast->next));
   return 1;
 }

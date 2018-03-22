@@ -171,8 +171,10 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
     CHECK_BB(emit_exp_call1(emit, mo->func))
     return 1;
   }
-  if(mo->instr)
-    return emitter_add_instr(emit, mo->instr) ? 1 : -1;
+  if(mo->instr) {
+    emitter_add_instr(emit, mo->instr);
+    return 1;
+  }
   CHECK_BB(err_msg(EMIT_, 0, "Trying to call non emitted operator."))
   return -1;
 }

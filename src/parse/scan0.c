@@ -119,10 +119,8 @@ ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
-  while(l) {
-    CHECK_BB(scan0_Stmt(env, l->stmt))
-    l = l->next;
-  }
+  do CHECK_BB(scan0_Stmt(env, l->stmt))
+  while((l = l->next));
   return 1;
 }
 
@@ -199,9 +197,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
 }
 
 ANN m_bool scan0_ast(const Env env, Ast prog) { GWDEBUG_EXE
-  while(prog) {
-    CHECK_BB(scan0_section(env, prog->section))
-    prog = prog->next;
-  }
+  do CHECK_BB(scan0_section(env, prog->section))
+  while((prog = prog->next));
   return 1;
 }

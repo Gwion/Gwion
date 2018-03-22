@@ -14,11 +14,9 @@ ANN static Type owner_type(const Type t) {
 
 ANEW ANN static Vector get_types(Type t) {
   Vector v = new_vector();
-  while(t) {
-    if(GET_FLAG(t, ae_flag_template))
+  do if(GET_FLAG(t, ae_flag_template))
       vector_add(v, (vtype)t->def->tmpl->list.list);
-    t = owner_type(t);
-  }
+  while((t = owner_type(t)));
   return v;
 }
 
@@ -92,18 +90,16 @@ ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type
   char name[size];
   ID_List list;
 
-  CHECK_BO(template_name(env, c, call, name))
+  template_name(env, c, call, name);
   list = new_id_list(insert_symbol(name), call->pos);
   return list;
 }
 
 ANN m_bool template_match(ID_List base, Type_List call) {
-  while(base) {
-    if(!call)
-      return -1;
-    base = base->next;
+  do{
+    CHECK_OB(call)
     call = call->next;
-  }
+  } while((base = base->next));
   if(call)
     return -1;
   return 1;
@@ -121,15 +117,14 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, Type_Lis
 
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
-  while(base) {
+  do {
     CHECK_OB(call);
     Type t = type_decl_resolve(env, call->list);
     if(!t)
       CHECK_BB(type_unknown(call->list->xid, "template"))
     nspc_add_type(env->curr, base->xid, t);
-    base = base->next;
     call = call->next;
-  }
+  } while((base = base->next));
   return 1;
 }
 

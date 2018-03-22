@@ -62,15 +62,14 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint m = 32;
   m_str s = xmalloc(m);
   memset(s, 0, 32);
-  while(tl) {
+  do {
     m_str name = td2str(env, tl->list);
     l += strlen(name) + 1;
     strcheck(s, m, l);
     strcat(s, name);
     free(name);
-    tl = tl->next;
-    if(tl)
+    if(tl->next)
       strcat(s, ",");
-  }
+  } while((tl = tl->next));
   return s;
 }

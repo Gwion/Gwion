@@ -316,10 +316,9 @@ Exp new_exp_prim_vec(const ae_Exp_Primary_Type t, Exp e, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = t;
   a->d.exp_primary.d.vec.exp = e;
-  while(e) {
+  do
     a->d.exp_primary.d.vec.dim++;
-    e = e->next;
-  }
+  while((e = e->next));
   a->d.exp_primary.self = a;
   return a;
 }

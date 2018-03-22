@@ -394,10 +394,8 @@ ANN static m_bool emit_exp_prim_array(const Emitter emit, const Array_Sub array)
 
 ANN static m_uint get_depth(Type t) {
   m_uint depth = 0;
-  while(t) {
-    depth += t->array_depth;
-    t = t->parent;
-  }
+  do depth += t->array_depth;
+  while((t = t->parent));
   return depth;
 }
 
@@ -910,10 +908,8 @@ static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code, cons
 
 ANN static m_uint emit_exp_spork_size(Exp e) { GWDEBUG_EXE
   m_uint size = 0;
-  while(e) {
-    size += e->cast_to ? e->cast_to->size : e->type->size;
-    e = e->next;
-  }
+  do size += e->cast_to ? e->cast_to->size : e->type->size;
+  while((e = e->next));
   return size;
 }
 
@@ -1031,7 +1027,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBU
 
 __attribute__((nonnull(1)))
 static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_EXE
-  while(exp) {
+  do {
     switch(exp->exp_type) {
       case ae_exp_decl:
         CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))       break;
@@ -1062,8 +1058,7 @@ static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_
         Instr ref = emitter_add_instr(emit, Reg_AddRef_Object3);
         ref->m_val = exp->emit_var;
       }
-    exp = exp->next;
-  }
+  } while((exp = exp->next));
   return 1;
 }
 
@@ -1477,14 +1472,11 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
 }
 
 ANN void emit_union_offset(Decl_List l, const m_uint o) { GWDEBUG_EXE
-  while(l) {
+  do {
     Var_Decl_List v = l->self->d.exp_decl.list;
-    while(v) {
-      v->self->value->offset = o;
-      v = v->next;
-    }
-    l = l->next;
-  }
+    do v->self->value->offset = o;
+    while((v = v->next));
+  } while((l = l->next));
 }
 
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { GWDEBUG_EXE
@@ -1524,10 +1516,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
-  while(a) {
-    size += a->self->value->m_type->size;
-    a = a->next;
-  }
+  do size += a->self->value->m_type->size;
+  while((a = a->next));
   return size;
 }
 
@@ -1609,10 +1599,8 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool po
 }
 
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) { GWDEBUG_EXE
-  while(l) {
-    CHECK_BB(emit_stmt(emit, l->stmt, 1))
-    l = l->next;
-  }
+  do CHECK_BB(emit_stmt(emit, l->stmt, 1))
+  while((l = l->next));
   return 1;
 }
 
@@ -1847,7 +1835,7 @@ ANN static m_bool emit_func_def_flag(const Emitter emit, const Func func) { GWDE
 }
 
 ANN static m_bool emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_EXE
-  while(a) {
+  do {
     Value value = a->var_decl->value;
     m_int offset, size = value->m_type->size;
     m_bool obj = isa(value->m_type, t_object) > 0 ? IS_OBJ : 0;
@@ -1857,8 +1845,7 @@ ANN static m_bool emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_E
       CHECK_BB(err_msg(EMIT_, a->pos,
         "(emit): internal error: cannot allocate local '%s'...", value->name))
     value->offset = offset;
-    a = a->next;
-  }
+  } while((a = a->next));
   return 1;
 }
 
@@ -2043,10 +2030,8 @@ ANN static void emit_free_stack(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_EXE
-  while(ast) {
-    CHECK_BB(emit_section(emit, ast->section))
-    ast = ast->next;
-   }
+  do CHECK_BB(emit_section(emit, ast->section))
+  while((ast = ast->next));
   return 1;
 }
 

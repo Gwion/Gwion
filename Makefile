@@ -148,7 +148,7 @@ config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
 
-include/generated.h:
+include/generated.h: utils/generate_header.c
 	$(info generating generated.h)
 	@cc utils/generate_header.c ${CFLAGS} -o generate_header
 	@./generate_header
