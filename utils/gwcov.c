@@ -130,8 +130,8 @@ static void tty(Cov* cov, Data* d) {
   uint too_long = 0;
   uint has_comment = 0;
   uint num_digit = d->line_count ? floor(log10(d->line_count) + 1) : 1;
-  ssize_t line_len = (d->s > line_size) ? line_size  - 1: d->s - 1;
-  if(d->s > line_size)
+  ssize_t line_len = ((uint)d->s > line_size) ? line_size  - 1: d->s - 1;
+  if((uint)d->s > line_size)
     too_long = 1;
   const char* prefix;
   char detabed[TABLEN*line_len];
