@@ -191,7 +191,7 @@ lexer:
 
 gwcov: utils/gwcov.o
 	$(info compiling gwcov)
-	@${CC} utils/gwcov.o -o gwcov ${LDFLAGS}
+	@${CC} ${CFLAGS} utils/gwcov.o -o gwcov ${LDFLAGS}
 
 gwlint: ${TOOL_OBJ} src/util/vector.o utils/gwlint.o
 	$(info compiling gwlint)

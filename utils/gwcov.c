@@ -129,7 +129,7 @@ static void tty(Cov* cov, Data* d) {
   uint line_size = w.ws_col - max_line_digit - max_exec_digit - 6;
   uint too_long = 0;
   uint has_comment = 0;
-  int num_digit = d->line_count ? floor(log10(d->line_count) + 1) : 1;
+  uint num_digit = d->line_count ? floor(log10(d->line_count) + 1) : 1;
   ssize_t line_len = (d->s > line_size) ? line_size  - 1: d->s - 1;
   if(d->s > line_size)
     too_long = 1;
