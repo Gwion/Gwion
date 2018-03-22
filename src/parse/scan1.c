@@ -4,7 +4,9 @@
 #include "type.h"
 #include "value.h"
 #include "traverse.h"
-
+#ifdef OPTIMIZE
+#include <string.h>
+#endif
 #define FAKE_FUNC ((Func)1)
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
@@ -93,7 +95,7 @@ ANN static m_bool is_const(Exp e) {
   return e->exp_type == ae_exp_primary && e->d.exp_primary.primary_type == ae_primary_num && e->meta == ae_meta_value;
 }
 
-ANN static m_bool optimize_const_folding(const Exp_Binary* bin) {
+ANN static void optimize_const_folding(const Exp_Binary* bin) {
   Exp l = bin->lhs, r = bin->rhs;
   m_int ret = 0;
   switch(bin->op) {
@@ -119,7 +121,7 @@ ANN static m_bool optimize_const_folding(const Exp_Binary* bin) {
       ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
       break;
     default:
-      return 1;
+      return;
   }
   Exp n = bin->self->next;
   Exp e = bin->self;
