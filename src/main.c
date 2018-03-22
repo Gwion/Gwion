@@ -11,7 +11,9 @@
 #include "type.h"
 #include "emit.h"
 #include "compile.h"
+#ifdef UPD
 #include "udp.h"
+#endif
 #include "driver.h"
 #include "instr.h"
 #include "arg.h"
