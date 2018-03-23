@@ -8,7 +8,7 @@ ANN m_bool check_ast(const Env env, Ast ast);
 
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl);
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl);
-ANN m_bool check_exp_decl(const Env env, const Exp_Decl* decl);
+ANN Type   check_exp_decl(const Env env, const Exp_Decl* decl);
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def def);
 ANN m_bool scan2_func_def(const Env env, const Func_Def def);
