@@ -1850,9 +1850,8 @@ ANN static m_bool emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_E
 }
 
 ANN static m_bool emit_func_def_ensure(const Emitter emit, const m_uint size) { GWDEBUG_EXE
-  Instr instr;
   if(size) {
-    instr = emitter_add_instr(emit, Reg_PushImm);
+    Instr instr = emitter_add_instr(emit, Reg_PushImm);
     instr->m_val = size;
   }
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
@@ -1860,11 +1859,11 @@ ANN static m_bool emit_func_def_ensure(const Emitter emit, const m_uint size) { 
 }
 
 ANN static m_bool emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
-  m_uint i;
+  m_uint i, val = emit_code_size(emit);
   LOOP_OPTIM
-  for(i = 0; i < vector_size(&emit->code->stack_return); i++) {
-    Instr instr = (Instr)vector_at(&emit->code->stack_return, i);
-    instr->m_val = emit_code_size(emit);
+  for(i = vector_size(&emit->code->stack_return) + 1; --i; ) {
+    Instr instr = (Instr)vector_at(&emit->code->stack_return, i-1);
+    instr->m_val = val;
   }
   vector_clear(&emit->code->stack_return);
   emit_func_release(emit);
