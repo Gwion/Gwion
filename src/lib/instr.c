@@ -531,7 +531,9 @@ INSTR(InstrCoverage) { GWDEBUG_EXE
 }
 #endif
 
+#ifdef OPTIMIZE
 INSTR(PutArgsInMem) {
   POP_REG(shred, instr->m_val)
   memcpy(shred->mem, shred->reg, instr->m_val);
 }
+#endif

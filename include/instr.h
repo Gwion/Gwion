@@ -125,4 +125,6 @@ INSTR(InstrCoverage);
 #endif
 
 // optimizations
+#ifdef OPTIMIZE
 INSTR(PutArgsInMem);
+#endif
