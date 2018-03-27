@@ -31,7 +31,7 @@ static DTOR(static_fileio_dtor) {
 
 static INSTR(int_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
+  const M_Object o = **(M_Object**)REG(0);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%" INT_F "", *(m_int*)REG(- SZ_INT));
@@ -40,7 +40,7 @@ static INSTR(int_to_file) { GWDEBUG_EXE
 
 static INSTR(float_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
+  const M_Object o = **(M_Object**)REG(0);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
@@ -50,8 +50,8 @@ static INSTR(float_to_file) { GWDEBUG_EXE
 
 static INSTR(string_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  M_Object lhs = *(M_Object*)REG(- SZ_INT);
+  const M_Object o = **(M_Object**)REG(0);
+  const M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
   release(o, shred);
   CHECK_FIO(o)
@@ -61,8 +61,8 @@ static INSTR(string_to_file) { GWDEBUG_EXE
 
 static INSTR(object_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  M_Object lhs = *(M_Object*)REG(- SZ_INT);
+  const M_Object o = **(M_Object**)REG(0);
+  const M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
   release(o, shred);
   CHECK_FIO(o)
@@ -72,8 +72,8 @@ static INSTR(object_to_file) { GWDEBUG_EXE
 
 static INSTR(complex_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
+  const M_Object o = **(M_Object**)REG(0);
+  const m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "#(%f, %f)", creal(lhs), cimag(lhs));
@@ -82,8 +82,8 @@ static INSTR(complex_to_file) { GWDEBUG_EXE
 
 static INSTR(polar_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
+  const M_Object o = **(M_Object**)REG(0);
+  const m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%%(%f, %f * pi)", creal(lhs), cimag(lhs) / M_PI);
@@ -92,8 +92,8 @@ static INSTR(polar_to_file) { GWDEBUG_EXE
 
 static INSTR(vec3_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
+  const M_Object o = **(M_Object**)REG(0);
+  const m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "@(%f, %f, %f)", lhs.x, lhs.y, lhs.z);
@@ -103,8 +103,8 @@ static INSTR(vec3_to_file) { GWDEBUG_EXE
 
 static INSTR(vec4_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = **(M_Object**)REG(0);
-  m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
+  const M_Object o = **(M_Object**)REG(0);
+  const m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "@(%f, %f, %f, %f)", lhs.x, lhs.y, lhs.z, lhs.w);
@@ -115,7 +115,7 @@ static INSTR(vec4_to_file) { GWDEBUG_EXE
 static INSTR(file_to_int) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   int ret;
-  M_Object o = *(M_Object*)REG(- SZ_INT);
+  const M_Object o = *(M_Object*)REG(- SZ_INT);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -132,7 +132,7 @@ static INSTR(file_to_int) { GWDEBUG_EXE
 static INSTR(file_to_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   float ret;
-  M_Object o = *(M_Object*)REG(-SZ_INT);
+  const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -165,8 +165,8 @@ m_bool inputAvailable(FILE* f)
 */
 static INSTR(file_to_string) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o    = *(M_Object*)REG(- SZ_INT);
-  M_Object s    = **(M_Object**)REG(0);
+  const M_Object o    = *(M_Object*)REG(- SZ_INT);
+  const M_Object s    = **(M_Object**)REG(0);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -190,12 +190,12 @@ static MFUN(file_nl) {
 }
 
 static MFUN(file_open) {
-  M_Object lhs = *(M_Object*)MEM(SZ_INT * 2);
-  M_Object rhs = *(M_Object*)MEM(SZ_INT);
+  const M_Object lhs = *(M_Object*)MEM(SZ_INT * 2);
+  const M_Object rhs = *(M_Object*)MEM(SZ_INT);
   if(!lhs || !rhs)
     Except(shred, "invalid arguments to FileIO.open()");
-  m_str filename = STRING(rhs);
-  m_str mode = STRING(lhs);
+  const m_str filename = STRING(rhs);
+  const m_str mode = STRING(lhs);
   release(rhs, shred);
   release(lhs, shred);
   if(IO_FILE(o)) {
@@ -215,7 +215,7 @@ static MFUN(file_close) {
 }
 
 static SFUN(file_remove) {
-  M_Object obj = *(M_Object*)MEM(SZ_INT);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
   release(obj, shred);
@@ -224,24 +224,23 @@ static SFUN(file_remove) {
 
 static SFUN(file_list) {
   struct dirent **namelist;
-  M_Object obj = *(M_Object*)MEM(SZ_INT);
-  m_str str;
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
-  str = STRING(obj);
+  const m_str str = STRING(obj);
   release(obj, shred);
   if(!str)
     return;
-  m_int n = scandir(str, &namelist, NULL, alphasort);
+  const m_int n = scandir(str, &namelist, NULL, alphasort);
   if(n < 0) {
     *(m_uint*)RETURN = 0;
     return;
   }
-  Type t = array_type(t_string, 1);
-  M_Object ret = new_M_Array(t, SZ_INT, n, 1);
+  const Type t = array_type(t_string, 1);
+  const M_Object ret = new_M_Array(t, SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
   for(m_uint i = 0; i < (m_uint)n; i++) {
-    M_Object string = new_String(NULL, namelist[i]->d_name);
+    const M_Object string = new_String(NULL, namelist[i]->d_name);
     m_vector_set(ARRAY(ret), i, &string);
     free(namelist[i]);
   }
@@ -249,7 +248,7 @@ static SFUN(file_list) {
   *(m_uint*)RETURN = (m_uint)ret;
 }
 
-m_bool import_fileio(const Gwi gwi) {
+ANN m_bool import_fileio(const Gwi gwi) {
   Type t_fileio, t_cout, t_cerr, t_cin;
   CHECK_OB((t_fileio  = gwi_mk_type(gwi, "FileIO", SZ_INT, t_event)))
   CHECK_OB((t_cout    = gwi_mk_type(gwi, "@Cout",  SZ_INT, t_fileio)))

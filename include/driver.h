@@ -54,4 +54,7 @@ void pulse_driver(Driver* d);
 #ifdef HAVE_PLOT
 void plot_driver(Driver* d);
 #endif
+#ifdef HAVE_SLES
+void sles_driver(Driver* d);
+#endif
 ANN m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d);

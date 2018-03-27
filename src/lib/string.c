@@ -19,15 +19,15 @@ static void push_string(VM_Shred shred, M_Object obj, m_str c) {
 }
 
 static void push_new_string(VM_Shred shred, m_str c) {
-  M_Object obj = new_String(shred, c);
+  const M_Object obj = new_String(shred, c);
   *(M_Object*)REG(0) = (M_Object)obj;
   PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(rhs && rhs->data) { // assigning with chuck a empty ref
     release(lhs, shred);
     release(rhs, shred);
@@ -39,8 +39,8 @@ static INSTR(String_Assign) { GWDEBUG_EXE
 
 static INSTR(String_eq) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_INT);
   *(m_int*)REG(0) = (lhs && rhs && !strcmp(STRING(lhs), STRING(rhs))) || (!lhs && !rhs);
   PUSH_REG(shred, SZ_INT);
   release(lhs, shred);
@@ -49,8 +49,8 @@ static INSTR(String_eq) { GWDEBUG_EXE
 
 static INSTR(String_neq) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_INT);
   *(m_int*)REG(0) = (lhs && rhs && strcmp(STRING(lhs), STRING(rhs))) ||
     (lhs && !rhs) || (!lhs && rhs);
   PUSH_REG(shred, SZ_INT);
@@ -60,8 +60,8 @@ static INSTR(String_neq) { GWDEBUG_EXE
 
 static INSTR(Int_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  m_int lhs = *(m_int*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_INT);
+  const m_int lhs = *(m_int*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs)
     Except(shred, "NullStringException.");
   char str[num_digit(labs(lhs)) + strlen(STRING(rhs)) + 2];
@@ -71,8 +71,8 @@ static INSTR(Int_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Float_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  m_float lhs = *(m_float*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
+  const m_float lhs = *(m_float*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
   char str[num_digit((m_uint)lhs) + 6];
   if(!rhs)
     Except(shred, "NullStringException.");
@@ -82,8 +82,8 @@ static INSTR(Float_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Complex_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_complex lhs = *(m_complex*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
+  const m_complex lhs = *(m_complex*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 16];
   if(!rhs)
     Except(shred, "NullStringException.");
@@ -93,8 +93,8 @@ static INSTR(Complex_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Polar_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_complex lhs = *(m_complex*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
+  const m_complex lhs = *(m_complex*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 16];
   if(!rhs)
     Except(shred, "NullStringException.");
@@ -105,8 +105,8 @@ static INSTR(Polar_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Vec3_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  m_vec3 lhs = *(m_vec3*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_VEC3);
+  const m_vec3 lhs = *(m_vec3*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_VEC3);
   char str[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + 23];
   if(!rhs)
     Except(shred, "NullStringException.");
@@ -116,8 +116,8 @@ static INSTR(Vec3_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Vec4_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  m_vec4 lhs = *(m_vec4*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_VEC4);
+  const m_vec4 lhs = *(m_vec4*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_VEC4);
   char str[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + 30];
   if(!rhs)
     Except(shred, "NullStringException.");
@@ -127,11 +127,10 @@ static INSTR(Vec4_String_Assign) { GWDEBUG_EXE
 
 static INSTR(Object_String_Assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs)
     Except(shred, "NullStringException");
-
   char str[16];
   sprintf(str, "0x%08" UINT_F, (uintptr_t)lhs);
   push_string(shred, rhs, str);
@@ -140,8 +139,8 @@ static INSTR(Object_String_Assign) { GWDEBUG_EXE
 
 static INSTR(String_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[(lhs ? strlen(STRING(lhs)) : 0) + (rhs ? strlen(STRING(rhs)) : 0) + 1];
   sprintf(str, "%s%s", lhs ? STRING(lhs) : NULL, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -151,8 +150,8 @@ static INSTR(String_String) { GWDEBUG_EXE
 
 static INSTR(Int_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  m_int lhs = *(m_int*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  const m_int lhs = *(m_int*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[num_digit(lhs) + (rhs ? strlen(STRING(rhs)) : 0) + 1];
   sprintf(str, "%" INT_F "%s", lhs, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -161,8 +160,8 @@ static INSTR(Int_String) { GWDEBUG_EXE
 
 static INSTR(Float_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  m_float lhs = *(m_float*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_FLOAT);
+  const m_float lhs = *(m_float*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_FLOAT);
   char str[num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)) : 0) + 1];
   sprintf(str, "%.4f%s", lhs, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -171,8 +170,8 @@ static INSTR(Float_String) { GWDEBUG_EXE
 
 static INSTR(Complex_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_complex  lhs = *(m_complex*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
+  const m_complex  lhs = *(m_complex*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  12];
   sprintf(str, "#(%.4f, %.4f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -181,8 +180,8 @@ static INSTR(Complex_String) { GWDEBUG_EXE
 
 static INSTR(Polar_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_complex  lhs = *(m_complex*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
+  const m_complex  lhs = *(m_complex*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_COMPLEX);
   char str[num_digit(creal(lhs)) + num_digit(cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  12];
   sprintf(str, "%%(%f, %f)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -191,8 +190,8 @@ static INSTR(Polar_String) { GWDEBUG_EXE
 
 static INSTR(Vec3_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  m_vec3  lhs = *(m_vec3*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_VEC3);
+  const m_vec3  lhs = *(m_vec3*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_VEC3);
   char str[(rhs ? strlen(STRING(rhs)) : 0) + 23 + num_digit((m_uint)lhs.x) +
                                       num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) ];
   sprintf(str, "@(%.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, rhs ? STRING(rhs) : NULL);
@@ -202,8 +201,8 @@ static INSTR(Vec3_String) { GWDEBUG_EXE
 
 static INSTR(Vec4_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  m_vec4  lhs = *(m_vec4*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_VEC4);
+  const m_vec4  lhs = *(m_vec4*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_VEC4);
   char str[(rhs ? strlen(STRING(rhs)) : 0) + 28 + num_digit((m_uint)lhs.x) +
                                       num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w)];
   sprintf(str, "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : NULL);
@@ -213,8 +212,8 @@ static INSTR(Vec4_String) { GWDEBUG_EXE
 
 static INSTR(Object_String) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = *(M_Object*)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = *(M_Object*)REG(SZ_INT);
   char str[11 + (rhs ? strlen(STRING(rhs)) : 0)];
   sprintf(str, "0x%08" UINT_F "%s", (uintptr_t)lhs, rhs ? STRING(rhs) : NULL);
   push_new_string(shred, str);
@@ -224,7 +223,7 @@ static INSTR(Object_String) { GWDEBUG_EXE
 
 static INSTR(String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
+  const M_Object lhs = *(M_Object*)REG(0);
   M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs) { // TODO release
     rhs = lhs;
@@ -233,8 +232,8 @@ static INSTR(String_Plus) { GWDEBUG_EXE
     PUSH_REG(shred, SZ_INT);
     return;
   }
-  m_uint l_len = strlen(STRING(lhs));
-  m_uint r_len = strlen(STRING(rhs));
+  const m_uint l_len = strlen(STRING(lhs));
+  const m_uint r_len = strlen(STRING(rhs));
   char c[l_len + r_len + 1];
   sprintf(c, "%s%s", STRING(rhs), lhs ? STRING(lhs) : NULL);
   push_string(shred, rhs, c);
@@ -243,11 +242,11 @@ static INSTR(String_Plus) { GWDEBUG_EXE
 
 static INSTR(Int_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  m_int lhs = *(m_int*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_INT);
+  const m_int lhs = *(m_int*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs)
     Except(shred, "NullStringException.");
-  m_uint len = strlen(STRING(rhs)) + 1;
+  const m_uint len = strlen(STRING(rhs)) + 1;
   char c[len + num_digit(lhs) + 1];
   sprintf(c, "%s%" INT_F "", STRING(rhs), lhs);
   push_string(shred, rhs, c);
@@ -255,9 +254,9 @@ static INSTR(Int_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Float_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_FLOAT);
-  m_float lhs = *(m_float*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
-  m_uint len = (rhs ? STRING(rhs) ? strlen(STRING(rhs)) : 0 : 0) + 1 + 7;
+  const m_float lhs = *(m_float*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_FLOAT);
+  const m_uint len = (rhs ? STRING(rhs) ? strlen(STRING(rhs)) : 0 : 0) + 1 + 7;
   if(!rhs)
     Except(shred, "NullStringException");
   char c[len + num_digit(lhs) + 6];
@@ -267,11 +266,11 @@ static INSTR(Float_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Complex_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_float lhs = *(m_float*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
+  const m_float lhs = *(m_float*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   if(!rhs)
     Except(shred, "NullStringException")
-  m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
+  const m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   char c[len + num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 18];
   sprintf(c, "%s#(%.4f, %.4f)", STRING(rhs), creal(lhs), cimag(lhs));
   push_string(shred, rhs, c);
@@ -279,11 +278,11 @@ static INSTR(Complex_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Polar_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_COMPLEX);
-  m_float lhs = *(m_float*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
+  const m_float lhs = *(m_float*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_COMPLEX);
   if(!rhs)
     Except(shred, "NullStringException")
-  m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
+  const m_uint len = strlen(STRING(rhs)) + 1 + 5 + 13;
   char c[len + num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 18];
   sprintf(c, "%s%%(%.4f, %.4f)", STRING(rhs), creal(lhs), cimag(lhs) / M_PI);
   push_string(shred, rhs, c);
@@ -291,8 +290,8 @@ static INSTR(Polar_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Vec3_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC3);
-  m_vec3 lhs = *(m_vec3*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_VEC3);
+  const m_vec3 lhs = *(m_vec3*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_VEC3);
   if(!rhs)
     Except(shred, "NullStringException")
   char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + strlen(STRING(rhs)) + 20];
@@ -302,8 +301,8 @@ static INSTR(Vec3_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Vec4_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT + SZ_VEC4);
-  m_vec4 lhs = *(m_vec4*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_VEC4);
+  const m_vec4 lhs = *(m_vec4*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_VEC4);
   if(!rhs)
     Except(shred, "NullStringException")
   char c[num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + num_digit(lhs.z) + strlen(STRING(rhs)) + 28];
@@ -313,14 +312,14 @@ static INSTR(Vec4_String_Plus) { GWDEBUG_EXE
 
 static INSTR(Object_String_Plus) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
-  M_Object lhs = *(M_Object*)REG(0);
-  M_Object rhs = **(M_Object**)REG(SZ_INT);
+  const M_Object lhs = *(M_Object*)REG(0);
+  const M_Object rhs = **(M_Object**)REG(SZ_INT);
   if(!rhs) {
     if(lhs)
       release(rhs, shred);
     Except(shred, "NullStringException")
   }
-  m_uint len = strlen(STRING(rhs)) + 11;
+  const m_uint len = strlen(STRING(rhs)) + 11;
   char c[len + 1];
   c[len] = '\0';
   sprintf(c, "%s0x%08" UINT_F, STRING(rhs), (uintptr_t)lhs);
@@ -342,20 +341,18 @@ static MFUN(string_len) {
 }
 
 static MFUN(string_upper) {
-  m_uint i;
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
-  for(i = 0; i < strlen(c); i++)
+  for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
   *(M_Object*)RETURN = new_String(shred, c);
 }
 
 static MFUN(string_lower) {
-  m_uint i;
   char c[strlen(STRING(o)) + 1];
   strcpy(c, STRING(o));
-  for(i = 0; i < strlen(c); i++)
+  for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
   *(M_Object*)RETURN = new_String(shred, c);
@@ -363,7 +360,7 @@ static MFUN(string_lower) {
 
 static MFUN(string_ltrim) {
   m_uint i = 0;
-  m_str str = STRING(o);
+  const m_str str = STRING(o);
   while(str[i] == ' ')
     i++;
   char c[strlen(str) - i + 1];
@@ -372,7 +369,7 @@ static MFUN(string_ltrim) {
 }
 
 static MFUN(string_rtrim) {
-  m_str str = STRING(o);
+  const m_str str = STRING(o);
   m_uint len = strlen(str) - 1;
   while(str[len] == ' ')
     len--;
@@ -383,7 +380,7 @@ static MFUN(string_rtrim) {
 }
 
 static MFUN(string_trim) {
-  m_str str = STRING(o);
+  const m_str str = STRING(o);
   m_int i, start = 0, end = 0, len = 0;
   while(str[len] != '\0')
     len++;
@@ -409,23 +406,25 @@ static MFUN(string_trim) {
 }
 
 static MFUN(string_charAt) {
-  m_str str = STRING(o);
-  m_int i = *(m_int*)MEM(SZ_INT), len = 0;
+  const m_str str = STRING(o);
+  const m_int i = *(m_int*)MEM(SZ_INT);
+  m_uint len = 0;
   while(str[len] != '\0')
     len++;
-  if(i < 0 || i >= len)
+  if(i < 0 || (m_uint)i >= len)
     *(m_uint*)RETURN = -1;
   else
     *(m_uint*)RETURN = str[i];
 }
 
 static MFUN(string_setCharAt) {
-  m_str str = STRING(o);
-  m_int i = *(m_int*)MEM(SZ_INT), len = 0;
-  m_int c = *(m_int*)MEM(SZ_INT * 2);
+  const m_str str = STRING(o);
+  const m_int i = *(m_int*)MEM(SZ_INT);
+  const m_int c = *(m_int*)MEM(SZ_INT * 2);
+  m_uint len = 0;
   while(str[len] != '\0')
     len++;
-  if(i < 0 || i >= len)
+  if(i < 0 || (m_uint)i >= len)
     *(m_uint*)RETURN = -1;
   else {
     str[i] = c;
@@ -474,7 +473,7 @@ static MFUN(string_insert) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)MEM(SZ_INT);
-  M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
+  const M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
 
   if(!arg) {
     *(M_Object*)RETURN = NULL;
@@ -501,7 +500,7 @@ static MFUN(string_replace) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int i, len = 0, len_insert = 0, index = *(m_int*)MEM(SZ_INT);
-  M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
+  const M_Object arg = *(M_Object*)MEM(SZ_INT * 2);
   if(!arg) {
     *(M_Object*)RETURN = o;
     return;
@@ -529,8 +528,8 @@ static MFUN(string_replaceN) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int i, len = 0, index = *(m_int*)MEM(SZ_INT);
-  M_Object arg = *(M_Object*)MEM(SZ_INT * 3);
-  m_int _len = *(m_int*)MEM(SZ_INT * 2);
+  const M_Object arg = *(M_Object*)MEM(SZ_INT * 3);
+  const m_int _len = *(m_int*)MEM(SZ_INT * 2);
   if(!arg || index > (m_int)strlen(STRING(o)) || _len > (m_int)strlen(STRING(arg))) {
     *(M_Object*)RETURN = NULL;
     return;
@@ -556,7 +555,7 @@ static MFUN(string_replaceN) {
 }
 
 static MFUN(string_find) {
-  m_str str = STRING(o);
+  const m_str str = STRING(o);
   m_int i = 0, ret = -1;
   char arg = *(m_int*)MEM(SZ_INT);
   while(str[i] != '\0') {
@@ -570,9 +569,9 @@ static MFUN(string_find) {
 }
 
 static MFUN(string_findStart) {
-  m_str str = STRING(o);
-  char pos = *(m_int*)MEM(SZ_INT);
-  char arg = *(m_int*)MEM(SZ_INT * 2);
+  const m_str str = STRING(o);
+  const char pos = *(m_int*)MEM(SZ_INT);
+  const char arg = *(m_int*)MEM(SZ_INT * 2);
   m_int i = pos, ret = -1;
   if(!strlen(str)) {
     *(M_Object*)RETURN = NULL;
@@ -596,7 +595,7 @@ static MFUN(string_findStr) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
-  M_Object obj = *(M_Object*)MEM(SZ_INT);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj) {
     *(m_uint*)RETURN = 0;
     return;
@@ -624,16 +623,16 @@ static MFUN(string_findStrStart) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
-  m_int start = *(m_int*)MEM(SZ_INT);
-  M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
+  const m_int start = *(m_int*)MEM(SZ_INT);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
   if(!obj) {
     *(M_Object*)RETURN = NULL;
     return;
   }
-  m_str arg = STRING(obj);
-  m_int len  = strlen(str);
+  const m_str arg = STRING(obj);
+  const m_int len  = strlen(str);
   m_int i = start;
-  m_int arg_len = strlen(arg);
+  const m_int arg_len = strlen(arg);
   while(i < len) {
     if(!strncmp(str + i, arg, arg_len)) {
       ret = i;
@@ -646,9 +645,9 @@ static MFUN(string_findStrStart) {
 }
 
 static MFUN(string_rfind) {
-  m_str str = STRING(o);
+  const m_str str = STRING(o);
   m_int i = strlen(str) - 1, ret = -1;
-  char arg = *(m_int*)MEM(SZ_INT);
+  const char arg = *(m_int*)MEM(SZ_INT);
   while(i > -1 && str[i] != '\0') {
     if(str[i] == arg) {
       ret = i;
@@ -666,8 +665,8 @@ static MFUN(string_rfindStart) {
   }
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
-  char pos = *(m_int*)MEM(SZ_INT);
-  char arg = *(m_int*)MEM(SZ_INT * 2);
+  const char pos = *(m_int*)MEM(SZ_INT);
+  const char arg = *(m_int*)MEM(SZ_INT * 2);
   m_int i = pos, ret = -1;
   while(i > 0 && str[i] != '\0') {
     if(str[i] == arg) {
@@ -687,8 +686,8 @@ static MFUN(string_rfindStr) {
   char str[strlen(STRING(o)) + 1];
   strcpy(str, STRING(o));
   m_int ret = -1;
-  M_Object obj = *(M_Object*)MEM(SZ_INT);
-  m_str arg = STRING(o);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
+  const m_str arg = STRING(o);
   m_int len  = strlen(str);
   m_int i = len - 1;
   m_int arg_len = strlen(arg);
@@ -712,7 +711,7 @@ static MFUN(string_rfindStrStart) {
   strcpy(str, STRING(o));
   m_int ret = -1;
   m_int start = *(m_int*)MEM(SZ_INT);
-  M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
   if(!obj) {
     *(m_uint*)RETURN = 0;
     return;
@@ -733,11 +732,10 @@ static MFUN(string_rfindStrStart) {
 }
 
 static MFUN(string_erase) {
-  m_str str = STRING(o);
-  m_int i;
-  m_int start = *(m_int*)MEM(SZ_INT);
-  m_int rem = *(m_int*)MEM(SZ_INT * 2);
-  m_int len = strlen(str);
+  const m_str str = STRING(o);
+  const m_int start = *(m_int*)MEM(SZ_INT);
+  const m_int rem = *(m_int*)MEM(SZ_INT * 2);
+  const m_int len = strlen(str);
   m_int size = len - rem + 1;
   if(start >= len || size <= 0) {
     *(M_Object*)RETURN = NULL;
@@ -745,9 +743,9 @@ static MFUN(string_erase) {
   }
   char c[size];
   c[size - 1] = '\0';
-  for(i = 0; i < start; i++)
+  for(m_int i = 0; i < start; i++)
     c[i] = str[i];
-  for(i = start + rem; i < len; i++)
+  for(m_int i = start + rem; i < len; i++)
     c[i - rem] = str[i];
   STRING(o) = s_name(insert_symbol(c));
 }
@@ -760,7 +758,7 @@ static MFUN(string_toFloat) {
   *(m_float*)RETURN = atof(STRING(o));
 }
 
-m_bool import_string(Gwi gwi) {
+ANN m_bool import_string(const Gwi gwi) {
   CHECK_OB((t_string = gwi_mk_type(gwi, "string", SZ_INT, t_object)))
   CHECK_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
 

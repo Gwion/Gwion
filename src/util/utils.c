@@ -13,28 +13,27 @@ m_uint num_digit(const m_uint i) {
 ANN static Type find_typeof(const Env env, ID_List path) {
   path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);
-  Type t = (isa(v->m_type, t_class) > 0) ? v->m_type->d.base_type : v->m_type;
+  Type t = (isa(v->type, t_class) > 0) ? v->type->d.base_type : v->type;
   path = path->next;
   while(path) {
     CHECK_OO((v = find_value(t, path->xid)))
-    t = v->m_type;
+    t = v->type;
     path = path->next;
   }
-  return v->m_type;
+  return v->type;
 }
 
 ANN Type find_type(const Env env, ID_List path) {
-  Nspc nspc;
   Type type;
 
   if(path->ref)
     return find_typeof(env, path);
   CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
-  nspc = type->info;
+  Nspc nspc = type->info;
   path = path->next;
 
   while(path) {
-    Symbol xid = path->xid;
+    const Symbol xid = path->xid;
     Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
       t = nspc_lookup_type2(type->parent->info, xid);
@@ -51,10 +50,10 @@ ANN Type find_type(const Env env, ID_List path) {
 }
 
 ANN Value find_value(const Type type, const Symbol xid) {
-  Value value;
   if(!type->info)
     return NULL;
-  if((value = nspc_lookup_value2(type->info, xid)))
+  const Value value = nspc_lookup_value2(type->info, xid);
+  if(value)
     return value;
   if(type->parent)
     return find_value(type->parent, xid);
@@ -62,8 +61,8 @@ ANN Value find_value(const Type type, const Symbol xid) {
 }
 
 ANN Func find_func(const Type type, const Symbol xid) {
-  Func func;
-  if((func = nspc_lookup_func2(type->info, xid)))
+  const Func func = nspc_lookup_func2(type->info, xid);
+  if(func)
     return func;
   if(type->parent)
     return find_func(type->parent, xid);
@@ -81,7 +80,7 @@ ANN m_uint id_list_len(ID_List l) {
   return len + 1;
 }
 
-ANN void type_path(m_str s, ID_List l) {
+ANN void type_path(const m_str s, ID_List l) {
   s[0] = '\0';
   do {
     strcat(s, s_name(l->xid));
@@ -98,15 +97,14 @@ ANN Type array_base(Type t) {
 
 ANN Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth;
-  Type t;
-  Symbol sym;
   char name[strlen(base->name) + 2* depth + 1];
 
   strcpy(name, base->name);
   while(i--)
     strcat(name, "[]");
-  sym = insert_symbol(name);
-  if((t = nspc_lookup_type1(base->owner, sym))) {
+  const Symbol sym = insert_symbol(name);
+  Type t = nspc_lookup_type1(base->owner, sym);
+  if(t) {
     ADD_REF(t)
     return t;
   }
@@ -154,7 +152,7 @@ ANN m_bool type_unknown(const ID_List id, const m_str orig) {
 }
 
 m_bool check_array_empty(const Array_Sub a, const m_str orig) {
-  if(a->exp_list)
+  if(a->exp)
     CHECK_BB(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
           " in %s declaration", orig))
    return 1;
@@ -164,7 +162,7 @@ ANN m_bool type_ref(Type t) {
   do {
     if(GET_FLAG(t, ae_flag_empty))return 1;
     if(GET_FLAG(t, ae_flag_typedef))
-      if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp_list))
+      if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp))
         return 1;
   } while((t = t->parent));
   return 0;

@@ -6,8 +6,9 @@
 #include "compile.h"
 #include "traverse.h"
 
-static void unescape(m_str s) {
-  m_uint j = 0, l = strlen(s);
+ANN static void unescape(const m_str s) {
+  m_uint j = 0;
+  const m_uint l = strlen(s);
   for(m_uint i = 0; i < l; i++) {
     if(s[i] == '\\')
       i++;
@@ -17,10 +18,10 @@ static void unescape(m_str s) {
 }
 
 static SFUN(machine_add) {
-  M_Object obj = *(M_Object*)MEM(SZ_INT);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
     return;
-  m_str str = STRING(obj);
+  const m_str str = STRING(obj);
   release(obj, shred);
   if(!str)
     return;
@@ -29,65 +30,69 @@ static SFUN(machine_add) {
 
 static SFUN(machine_check) {
   *(m_uint*)RETURN = -1;
-  M_Object code_obj = *(M_Object*)MEM(SZ_INT);
-  m_str line = code_obj ? STRING(code_obj) : NULL;
+  const M_Object code_obj = *(M_Object*)MEM(SZ_INT);
+  const m_str line = code_obj ? STRING(code_obj) : NULL;
   release(code_obj, shred);
   if(!line)return;
-  m_str _code = strdup(line);
+  const m_str _code = strdup(line);
   unescape(_code);
-  release(code_obj, shred);
+//  release(code_obj, shred);
   FILE* f = fmemopen(_code, strlen(_code), "r");
-  Ast ast = parse("Machine.check", f);
+  const Ast ast = parse("Machine.check", f);
   if(!ast)
     goto close;
   *(m_uint*)RETURN = traverse_ast(shred->vm_ref->emit->env, ast);
 close:
+  if(ast)
+    free_ast(ast);
   free(_code);
   fclose(f);
 }
 
 static SFUN(machine_compile) {
   *(m_uint*)RETURN = -1;
-  M_Object code_obj = *(M_Object*)MEM(SZ_INT);
-  m_str line = code_obj ? STRING(code_obj) : NULL;
-  if(!line)return;
-  m_str _code = strdup(line);
-  unescape(_code);
+  const M_Object code_obj = *(M_Object*)MEM(SZ_INT);
+  const m_str line = code_obj ? STRING(code_obj) : NULL;
   release(code_obj, shred);
+  if(!line)return;
+  const m_str _code = strdup(line);
+  unescape(_code);
   FILE* f = fmemopen(_code, strlen(_code), "r");
-  Ast ast = parse("Machine.compile", f);
+  const Ast ast = parse("Machine.compile", f);
   if(!ast)
     goto close;
-  m_str str = strdup("Machine.compile");
-  if(traverse_ast(shred->vm_ref->emit->env, ast) < 0)
+  const m_str str = strdup("Machine.compile");
+  if(traverse_ast(shred->vm_ref->emit->env, ast) < 0) {
+free(str);
     goto close;
+}
   *(m_uint*)RETURN = emit_ast(shred->vm_ref->emit, ast, str);
   emitter_add_instr(shred->vm_ref->emit, EOC);
   shred->vm_ref->emit->code->name = strdup(str);
-  VM_Code code = emit_code(shred->vm_ref->emit);
-  free_ast(ast);
-  VM_Shred sh = new_vm_shred(code);
+  const VM_Code code = emit_code(shred->vm_ref->emit);
+  const VM_Shred sh = new_vm_shred(code);
   vm_add_shred(shred->vm_ref, sh);
   free(str);
 close:
+  if(ast)
+    free_ast(ast);
   free(_code);
   fclose(f);
 }
 
 static SFUN(machine_shreds) {
   VM* vm = shred->vm_ref;
-  VM_Shred sh;
-  Type t = array_type(t_int, 1);
-  M_Object obj = new_M_Array(t, SZ_INT, vector_size(&vm->shred), 1);
+  const Type t = array_type(t_int, 1);
+  const M_Object obj = new_M_Array(t, SZ_INT, vector_size(&vm->shred), 1);
   for(m_uint i = 0; i < vector_size(&vm->shred); i++) {
-    sh = (VM_Shred)vector_at(&vm->shred, i);
+    const VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i);
     m_vector_set(ARRAY(obj), i, &sh->xid);
   }
   vector_add(&shred->gc, (vtype)obj);
   *(M_Object*)RETURN = obj;
 }
 
-m_bool import_machine(Gwi gwi) {
+ANN m_bool import_machine(const Gwi gwi) {
   Type t_machine;
   CHECK_OB((t_machine = gwi_mk_type(gwi, "Machine", 0, NULL)))
   CHECK_BB(gwi_class_ini(gwi,  t_machine, NULL, NULL))

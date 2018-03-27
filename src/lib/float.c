@@ -170,7 +170,7 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
 }
 
 
-static m_bool import_values(Gwi gwi) {
+ANN static m_bool import_values(const Gwi gwi) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
@@ -179,7 +179,7 @@ static m_bool import_values(Gwi gwi) {
   ALLOC_PTR(second, m_float, (m_float)*sr);
   ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
   ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
-  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
+//  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
   ALLOC_PTR(t_zero, m_float, 0.0);
   ALLOC_PTR(pi, m_float, M_PI);
   gwi_item_ini(gwi, "float", "samplerate");
@@ -205,7 +205,7 @@ static m_bool import_values(Gwi gwi) {
 
 static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  CHECK_BO(err_msg(TYPE_, bin->pos, "can't assign 'now' to 'now'"))
+  CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign 'now' to 'now'"))
   return NULL;
 }
 
@@ -246,7 +246,7 @@ INSTR(Cast_f2i) { GWDEBUG_EXE
 #define CHECK_IF(op, check, func) _CHECK_OP(op, check, int_float_##func)
 #define CHECK_FI(op, check, func) _CHECK_OP(op, check, float_int_##func)
 
-m_bool import_float(Gwi gwi) {
+ANN m_bool import_float(const Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
   CHECK_OP(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,          float_plus))

@@ -11,8 +11,8 @@
 #include "lang_private.h"
 #include "emit.h"
 
-Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
-m_bool emit_exp_binary_ptr(Emitter emit, Exp rhs);
+ANN Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
+ANN m_bool emit_exp_binary_ptr(const Emitter emit, const Exp rhs);
 OP_CHECK(opck_fptr_at);
 
 static OP_CHECK(opck_func_call) {
@@ -21,16 +21,16 @@ static OP_CHECK(opck_func_call) {
 }
 
 static OP_EMIT(opem_fptr_at) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   return emit_exp_binary_ptr(emit, bin->rhs);
 }
 #include "func.h"
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
-  Type t = cast->self->type;
-  Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  Func  f = isa(v->m_type, t_func_ptr) > 0 ?
-            v->m_type->d.func :
+  const Type t = cast->self->type;
+  const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
+  const Func  f = isa(v->type, t_func_ptr) > 0 ?
+            v->type->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
   CHECK_BO(compat_func(t->d.func->def, f->def))
   cast->func = f;
@@ -38,7 +38,7 @@ static OP_CHECK(opck_fptr_cast) {
 }
 
 OP_CHECK(opck_basic_cast) {
-  Exp_Cast* cast = (Exp_Cast*)data;
+  const Exp_Cast* cast = (Exp_Cast*)data;
   return cast->self->type;
 }
 
@@ -46,7 +46,7 @@ OP_EMIT(opem_basic_cast) {
   return 1;
 }
 
-static m_bool import_core_libs(Gwi gwi) {
+ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
   CHECK_OB((t_void  = gwi_mk_type(gwi, "void", 0, NULL)))
   CHECK_BB(gwi_add_type(gwi, t_void))
@@ -108,7 +108,7 @@ static m_bool import_core_libs(Gwi gwi) {
   return 1;
 }
 
-static m_bool import_other_libs(Gwi gwi) {
+ANN static m_bool import_other_libs(const Gwi gwi) {
   CHECK_BB(import_pair(gwi))
   CHECK_BB(import_map(gwi))
   CHECK_BB(import_fileio(gwi))
@@ -124,7 +124,7 @@ static int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
 }
 
-static void handle_plug(Gwi gwi, m_str c) {
+ANN static void handle_plug(const Gwi gwi, const m_str c) {
   void* handler;
   if((handler = dlopen(c, RTLD_LAZY))) {
     m_bool(*import)(Gwi) = (m_bool(*)(Gwi))(intptr_t)dlsym(handler, "import");
@@ -148,9 +148,8 @@ static void handle_plug(Gwi gwi, m_str c) {
 }
 
 static void add_plugs(Gwi gwi, Vector plug_dirs) {
-  m_uint i;
-   for(i = 0; i < vector_size(plug_dirs); i++) {
-    m_str dirname = (m_str)vector_at(plug_dirs, i);
+   for(m_uint i = 0; i < vector_size(plug_dirs); i++) {
+    const m_str dirname = (m_str)vector_at(plug_dirs, i);
     struct dirent **namelist;
     int n = scandir(dirname, &namelist, so_filter, alphasort);
     if(n > 0) {
@@ -165,8 +164,8 @@ static void add_plugs(Gwi gwi, Vector plug_dirs) {
    }
 }
 
-Env type_engine_init(VM* vm, const Vector plug_dirs) {
-  Env env = new_env();
+ANN Env type_engine_init(VM* vm, const Vector plug_dirs) {
+  const Env env = new_env();
   vm->emit = new_emitter(env);
   vm->emit->filename = "[builtin]";
   struct Gwi_ gwi;

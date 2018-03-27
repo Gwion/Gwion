@@ -18,7 +18,7 @@ ANN void NullException(const VM_Shred shred, const m_str c) {
 }
 
 M_Object new_M_Object(const VM_Shred shred) {
-  M_Object a = mp_alloc(M_Object);
+  const M_Object a = mp_alloc(M_Object);
   a->ref = 1;
   if(shred)
     vector_add(&shred->gc, (vtype)a);
@@ -26,17 +26,17 @@ M_Object new_M_Object(const VM_Shred shred) {
 }
 
 M_Object new_String(const VM_Shred shred, const m_str str) {
-  M_Object o = new_M_Object(shred);
+  const M_Object o = new_M_Object(shred);
   initialize_object(o, t_string);
   STRING(o) = s_name(insert_symbol(str));
   return o;
 }
 
-ANN m_bool initialize_object(M_Object object, const Type type) {
+ANN m_bool initialize_object(const M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
-    if(!(object->data = xcalloc(1, type->info->offset)))
+    if(!(object->data = (unsigned char*)xcalloc(1, type->info->offset)))
       CHECK_BB(err_msg(TYPE_, 0,
           "OutOfMemory: while instantiating object '%s'\n", type->name))
   }
@@ -44,7 +44,7 @@ ANN m_bool initialize_object(M_Object object, const Type type) {
 }
 
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
-  M_Object object = new_M_Object(NULL);
+  const M_Object object = new_M_Object(NULL);
   if(!object) Except(shred, "NullPtrException");
   initialize_object(object, type);
   *(M_Object*)REG(0) =  object;
@@ -53,8 +53,8 @@ ANN void instantiate_object(const VM_Shred shred, const Type type) {
 }
 
 ANN static void handle_dtor(const Type t, const VM_Shred shred) {
-  VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
-  VM_Shred sh = new_vm_shred(code);
+  const VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
+  const VM_Shred sh = new_vm_shred(code);
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
@@ -64,7 +64,8 @@ ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   vm_add_shred(shred->vm_ref, sh);
 }
 
-void release(M_Object obj, const VM_Shred shred) {
+__attribute__((nonnull(2)))
+void release(const M_Object obj, const VM_Shred shred) {
   if(!obj)
     return;
   if(!--obj->ref) {
@@ -74,7 +75,7 @@ void release(M_Object obj, const VM_Shred shred) {
       Vector v = nspc_get_value(t->info);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
-        if(!GET_FLAG(value, ae_flag_static) && isa(value->m_type, t_object) > 0)
+        if(!GET_FLAG(value, ae_flag_static) && isa(value->type, t_object) > 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
       free_vector(v);
@@ -89,7 +90,7 @@ void release(M_Object obj, const VM_Shred shred) {
   }
 }
 
-void free_object(M_Object o) {
+void free_object(const M_Object o) {
   mp_free(M_Object, o);
 }
 
@@ -99,10 +100,10 @@ static DTOR(object_dtor) {
 }
 
 INSTR(Assign_Object) { GWDEBUG_EXE
-  M_Object tgt, src;
   POP_REG(shred, SZ_INT * 2);
-  src = *(M_Object*)REG(0);
-  if((tgt = **(M_Object**)REG(SZ_INT)))
+  const M_Object src = *(M_Object*)REG(0);
+  M_Object tgt = **(M_Object**)REG(SZ_INT);
+  if(tgt)
     release(tgt, shred);
   release(tgt, shred);
   **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
@@ -113,8 +114,8 @@ INSTR(Assign_Object) { GWDEBUG_EXE
 #define describe_logical(name, op) \
 static INSTR(name##_Object) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT * 2); \
-  M_Object lhs = *(M_Object*)REG(0); \
-  M_Object rhs = *(M_Object*)REG(SZ_INT); \
+  const M_Object lhs = *(M_Object*)REG(0); \
+  const M_Object rhs = *(M_Object*)REG(SZ_INT); \
   *(m_uint*)REG(0) = (lhs == rhs); \
   release(lhs, shred); \
   release(rhs, shred); \
@@ -125,13 +126,13 @@ describe_logical(eq,  ==)
 describe_logical(neq, !=)
 
 static OP_CHECK(at_object) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  Type l = bin->lhs->type;
-  Type r = bin->rhs->type;
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Type l = bin->lhs->type;
+  const Type r = bin->rhs->type;
   if(opck_rassign(env, data) == t_null)
     return t_null;
   if(l != t_null && isa(l, r) < 0) {
-    if(err_msg(TYPE_, bin->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
+    if(err_msg(TYPE_, bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
     return t_null;
   }
   bin->rhs->emit_var = 1;
@@ -139,18 +140,18 @@ static OP_CHECK(at_object) {
 }
 
 static OP_CHECK(opck_object_cast) {
-  Exp_Cast* cast = (Exp_Cast*)data;
-  Type l = cast->exp->type;
-  Type r = cast->self->type;
+  const Exp_Cast* cast = (Exp_Cast*)data;
+  const Type l = cast->exp->type;
+  const Type r = cast->self->type;
   return isa(l, r) > 0 ? r : t_null;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
-  struct Implicit* imp = (struct Implicit*)data;
+  const struct Implicit* imp = (struct Implicit*)data;
   return imp->t;
 }
 
-m_bool import_object(Gwi gwi) {
+ANN m_bool import_object(const Gwi gwi) {
   CHECK_OB((t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL)))
   CHECK_BB(gwi_class_ini(gwi, t_object, NULL, object_dtor))
   CHECK_BB(gwi_class_end(gwi))

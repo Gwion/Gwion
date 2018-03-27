@@ -68,6 +68,11 @@ ifeq (${PLOT_D}, 1)
 CFLAGS +=-DHAVE_PLOT
 drvr_src +=src/drvr/plot.c
 endif
+ifeq (${SLES_D}, 1)
+LDFLAGS += -lOpenSLES
+CFLAGS +=-DHAVE_SLES
+drvr_src +=src/drvr/sles.c
+endif
 # add boolean
 ifeq (${USE_COVERAGE}, 1)
 CFLAGS += -ftest-coverage -fprofile-arcs
@@ -102,7 +107,7 @@ src_src += utils/udp.c
 endif
 ifeq (${USE_GWMPOOL}, 1)
 CFLAGS+=-DGWMPOOL
-TOOL_OBJ += utils/mpool.o
+TOOL_OBJ += utils/mpool.o src/util/map.o
 util_src += utils/mpool.c
 endif
 ifeq (${USE_OPTIMIZE}, 1)
@@ -110,6 +115,9 @@ CFLAGS+= -DOPTIMIZE
 endif
 ifeq (${USE_OBSTACK}, 1)
 CFLAGS+= -DOBSTACK
+endif
+ifeq (${USE_COLOR}, 1)
+CFLAGS+= -DCOLOR
 endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}

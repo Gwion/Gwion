@@ -15,15 +15,13 @@ INSTR(vec_member) { GWDEBUG_EXE
   }
 }
 
-static void vec_times(char* v, int size, m_float f) {
-  int i;
-  for(i = size + 1; --i;)
+static void vec_times(char* v, short int size, m_float f) {
+  for(short int i = size + 1; --i;)
     *(m_float*)(v + (i-1) * SZ_FLOAT) *= f;
 }
 
-static void vec_divide(char* v, int size, m_float f) {
-  int i;
-  for(i = size + 1; --i;)
+static void vec_divide(char* v, short int size, m_float f) {
+  for(short int i = size + 1; --i;)
     *(m_float*)(v + (i-1) * SZ_FLOAT) /= f;
 }
 
@@ -42,13 +40,13 @@ static MFUN(vec3_setAll) {
 }
 
 static MFUN(vec3_magnitude) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  const m_vec3* v =  &**(m_vec3**)MEM(0);
   *(m_float*)RETURN = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
 static MFUN(vec3_normalize) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
-  m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+  const m_vec3* v =  &**(m_vec3**)MEM(0);
+  const m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
   if(mag  > 0)
     vec_divide((char*)v, 3, mag);
 }
@@ -138,7 +136,7 @@ static INSTR(float_times_vec3) { GWDEBUG_EXE
 static INSTR(vec3_times_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_vec3 r = *(m_vec3*)REG(0);
-  m_float f = *(m_float*)REG(SZ_VEC3);
+  const m_float f = *(m_float*)REG(SZ_VEC3);
   vec_times((char*)&r, 3, f);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC3);
@@ -147,7 +145,7 @@ static INSTR(vec3_times_float) { GWDEBUG_EXE
 static INSTR(vec3_divide_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_vec3 r = *(m_vec3*)REG(0);
-  m_float f = *(m_float*)REG(SZ_VEC3);
+  const m_float f = *(m_float*)REG(SZ_VEC3);
   vec_divide((char*)&r, 3, f);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC3);
@@ -172,7 +170,7 @@ static INSTR(vec3_r_assign) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_VEC3);
 }
 
-m_bool import_vec3(Gwi gwi) {
+ANN m_bool import_vec3(const Gwi gwi) {
   CHECK_BB(gwi_class_ini(gwi,  t_vec3, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);

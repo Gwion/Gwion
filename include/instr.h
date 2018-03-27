@@ -24,7 +24,9 @@ ANN void free_instr(Instr instr);
 INSTR(EOC);
 
 
+#ifdef GWREPL
 INSTR(EOC2); // repl
+#endif
 
 INSTR(Reg_Push_Me);
 INSTR(Reg_Push_Now);
@@ -127,4 +129,11 @@ INSTR(InstrCoverage);
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
+INSTR(ConstPropSet);
+INSTR(ConstPropGet);
+INSTR(InlineStart);
+INSTR(InlineStop);
+INSTR(InlineGoto);
 #endif
+
+

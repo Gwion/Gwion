@@ -1,13 +1,11 @@
-INC      = ../../include ${SOUNDPIPE_INC}
+INC      = -I../../include
 CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS   = -I${INC} -ftest-coverage -fprofile-arcs -std=c99
+CFLAGS   = $(../../gwion -C 2>&1 | grep CFLAGS) ${INC}
+LDFLAGS   = $(../../gwion -C 2>&1 | grep LDFLAGS)
 
-LDFLAGS  = -fPIC --coverage
-PREFIX ?= /usr
-GWION_ADD_DIR ?= ${PREFIX}/lib/Gwion/add
 # os specific
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
@@ -25,12 +23,11 @@ else
 	${CC} $^ -o ${NAME}.so ${LDFLAGS}
 endif
 
-
 clean:
 	rm -f ${OBJ} ${NAME}.so
 
 .c.o:
-	${CC} -fPIC ${CFLAGS} -c $< -o $(<:.c=.o)
+	${CC} -fPIC ${CFLAGS} -c $< -o $(<:.c=.o) -g
 
 install: ${NAME}.so
 	install ${NAME}.so ${GWION_ADD_DIR}

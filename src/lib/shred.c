@@ -8,19 +8,19 @@
 m_int o_shred_me;
 
 M_Object new_shred(VM_Shred shred) {
-  M_Object obj = new_M_Object(NULL);
+  const M_Object obj = new_M_Object(NULL);
   initialize_object(obj, t_shred);
   ME(obj) = shred;
   return obj;
 }
 
 static MFUN(gw_shred_exit) {
-  VM_Shred  s = ME(o);
+  const VM_Shred  s = ME(o);
   shred->next_pc = vector_size(s->code->instr) -2;
 }
 
 static MFUN(vm_shred_id) {
-  VM_Shred  s = ME(o);
+  const VM_Shred  s = ME(o);
   *(m_int*)RETURN = s ? (m_int)s->xid : -1;
 }
 
@@ -33,14 +33,14 @@ static MFUN(vm_shred_is_done) {
 }
 
 static MFUN(shred_yield) {
-  VM_Shred  s = ME(o);
-  Shreduler sh = shred->vm_ref->shreduler;
+  const VM_Shred  s = ME(o);
+  const Shreduler sh = shred->vm_ref->shreduler;
   shreduler_remove(sh, s, 0);
   shredule(sh, s, .5);
 }
 
 static SFUN(vm_shred_from_id) {
-  VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, *(m_uint*)MEM(SZ_INT) - 1);
+  const VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, *(m_uint*)MEM(SZ_INT) - 1);
   if(!s)
     *(m_uint*)RETURN = 0;
   else {
@@ -51,31 +51,30 @@ static SFUN(vm_shred_from_id) {
 }
 
 static MFUN(shred_args) {
-  VM_Shred  s = ME(o);
+  const VM_Shred  s = ME(o);
   *(m_uint*)RETURN = s->args ? vector_size(s->args) : 0;
 }
 
 static MFUN(shred_arg) {
-  m_str str;
-  VM_Shred  s = ME(o);
+  const VM_Shred  s = ME(o);
   if(!s->args) {
     *(m_uint*)RETURN = 0;
     return;
   }
-  str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
+  const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
   *(m_uint*)RETURN = str ? (m_uint)new_String(shred, str) : 0;
 }
 
 static MFUN(shred_path) {
-  VM_Shred  s = ME(o);
-  m_str str = code_name(s->code->name, 1);
+  const VM_Shred  s = ME(o);
+  const m_str str = code_name(s->code->name, 1);
   *(m_uint*)RETURN = (m_uint)new_String(shred, str);
 }
 
 static MFUN(shred_dir) {
-  VM_Shred  s = ME(o);
-  m_str str = code_name(s->code->name, 1);
-  size_t len = strlen(str);
+  const VM_Shred  s = ME(o);
+  const m_str str = code_name(s->code->name, 1);
+  const size_t len = strlen(str);
   char c[len + 1];
   memset(c, 0, len + 1);
   strncpy(c, str, len);
@@ -86,7 +85,7 @@ static DTOR(shred_dtor) {
   release(o, shred);
 }
 
-m_bool import_shred(Gwi gwi) {
+ANN m_bool import_shred(const Gwi gwi) {
   CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
   SET_FLAG((t_shred), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))

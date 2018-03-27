@@ -9,7 +9,7 @@
 #include "driver.h"
 
 static m_bool sndfile_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
-  SNDFILE** sf = xcalloc(di->chan, sizeof(void*));
+  SNDFILE** sf = (SNDFILE**)xcalloc(di->chan, sizeof(void*));
   char tmp[140];
   SF_INFO info;
   info.samplerate = di->sr;

@@ -6,7 +6,7 @@
 
 m_str code_name_set(const m_str name, const m_str file) {
   size_t len = strlen(name) + strlen(file) + 2;
-  m_str  str = xcalloc(1, len);
+  const m_str str = (const m_str)xcalloc(1, len);
   sprintf(str, "%s$%s", name, file);
   return str;
 }

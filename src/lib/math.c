@@ -17,9 +17,9 @@ static SFUN(math_rand) {
 }
 
 static SFUN(math_rand2) {
-  m_int min = *(m_int*)MEM(SZ_INT);
-  m_int max = *(m_int*)MEM(SZ_INT * 2);
-  m_int range = max - min;
+  const m_int min = *(m_int*)MEM(SZ_INT);
+  const m_int max = *(m_int*)MEM(SZ_INT * 2);
+  const m_int range = max - min;
   if(range == 0)
     *(m_uint*)RETURN = min;
   else {
@@ -35,180 +35,180 @@ static SFUN(math_randf) {
 }
 
 static SFUN(math_rand2f) {
-  m_float min = *(m_float*)MEM(SZ_INT);
-  m_float max = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float min = *(m_float*)MEM(SZ_INT);
+  const m_float max = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = min + (max - min) * (sp_rand(shred->vm_ref->sp) / (m_float)RAND_MAX);
 }
 
 static SFUN(math_srand) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   srand(ret);
   *(m_float*)RETURN = ret;
 }
 
 static SFUN(math_sgn) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = ret < 0. ? -1 : ret > 0. ? 1 : 0;
 }
 
 static SFUN(math_sin) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sin(ret);
 }
 
 static SFUN(math_cos) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cos(ret);
 }
 
 static SFUN(math_tan) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = tan(ret);
 }
 
 static SFUN(math_asin) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = asin(ret);
 }
 
 static SFUN(math_acos) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = acos(ret);
 }
 
 static SFUN(math_atan) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = atan(ret);
 }
 
 static SFUN(math_sinh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sinh(ret);
 }
 
 static SFUN(math_cosh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cosh(ret);
 }
 
 static SFUN(math_tanh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = tanh(ret);
 }
 
 static SFUN(math_asinh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sinh(ret);
 }
 
 static SFUN(math_acosh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = cosh(ret);
 }
 
 static SFUN(math_atanh) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = atanh(ret);
 }
 
 static SFUN(math_atan2) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = atan2(ret1, ret2);
 }
 
 static SFUN(math_hypot) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = hypot(ret1, ret2);
 }
 
 static SFUN(math_pow) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = pow(ret1, ret2);
 }
 
 static SFUN(math_sqrt) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = sqrt(ret);
 }
 
 static SFUN(math_exp) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = exp(ret);
 }
 
 static SFUN(math_log) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log(ret);
 }
 
 static SFUN(math_log2) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log2(ret);
 }
 
 static SFUN(math_log10) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = log10(ret);
 }
 
 static SFUN(math_floor) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = floor(ret);
 }
 
 static SFUN(math_ceil) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = floor(ret);
 }
 
 static SFUN(math_round) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = round(ret);
 }
 
 static SFUN(math_trunc) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_float*)RETURN = trunc(ret);
 }
 
 static SFUN(math_fmod) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = fmod(ret1, ret2);
 }
 
 static SFUN(math_remainder) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = remainder(ret1, ret2);
 }
 
 static SFUN(math_min) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = ret1 < ret2 ? ret1 : ret2;
 }
 
 static SFUN(math_max) {
-  m_float ret1 = *(m_float*)MEM(SZ_INT);
-  m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   *(m_float*)RETURN = ret1 > ret2 ? ret1 : ret2;
 }
 
 static SFUN(math_isinf) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = isinf(ret);
 }
 
 static SFUN(math_isnan) {
-  m_float ret = *(m_float*)MEM(SZ_INT);
+  const m_float ret = *(m_float*)MEM(SZ_INT);
   *(m_uint*)RETURN = isnan(ret);
 }
 
-m_bool import_math(const Gwi gwi) {
+ANN m_bool import_math(const Gwi gwi) {
   Type t_math;
   CHECK_OB((t_math = gwi_mk_type(gwi, "Math", 0, NULL)))
 

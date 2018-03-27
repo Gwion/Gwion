@@ -26,14 +26,14 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
 
 ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
   while(tgt >= src)
-    str = xrealloc(str, src *= 2);
+    str = (m_str)xrealloc(str, src *= 2);
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
   m_uint l = id_list_len(td->xid) + depth *2;
-  m_uint m = l;
-  m_str s = xmalloc(m);
+  const m_uint m = l;
+  const m_str s = (m_str)xmalloc(m);
   type_path(s, td->xid);
   while(depth--)
     strcat(s, "[]");
@@ -43,7 +43,7 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
     strcheck(s, m, l);
     strcat(s, "<");
     while(tl) {
-      m_str name = td2str(env, tl->list);
+      m_str name = td2str(env, tl->td);
       l += strlen(name);
       strcheck(s, m, l);
       strcat(s, name);
@@ -59,11 +59,11 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint l = 0;
-  m_uint m = 32;
-  m_str s = xmalloc(m);
+  const m_uint m = 32;
+  const m_str s = (m_str)xmalloc(m);
   memset(s, 0, 32);
   do {
-    m_str name = td2str(env, tl->list);
+    const m_str name = td2str(env, tl->td);
     l += strlen(name) + 1;
     strcheck(s, m, l);
     strcat(s, name);

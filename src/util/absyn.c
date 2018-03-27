@@ -25,7 +25,7 @@ POOL_HANDLE(Var_Decl_List, 256)
 POOL_HANDLE(Var_Decl,      1024)
 POOL_HANDLE(Exp,           1024)
 
-ANN static void free_stmt_list(Stmt_List);
+ANN /* static */void free_stmt_list(Stmt_List);
 ANN static void free_stmt_code(Stmt_Code);
 ANN static void free_section(Section*);
 
@@ -39,16 +39,16 @@ Var_Decl new_var_decl(const Symbol xid, const Array_Sub array, const int pos) {
 }
 
 ANN void free_array_sub(Array_Sub a) {
-  if(a->exp_list)
-    free_exp(a->exp_list);
+  if(a->exp)
+    free_exp(a->exp);
   mp_free(Array_Sub, a);
 }
 
 ANN static void free_var_decl(Var_Decl a) {
   if(a->value) {
     if(GET_FLAG(a->value, ae_flag_arg)) {
-      if(a->value->m_type->array_depth)
-        REM_REF(a->value->m_type);
+      if(a->value->type->array_depth)
+        REM_REF(a->value->type);
       REM_REF(a->value);
     } else if(!a->value->owner_class && !GET_FLAG(a->value, ae_flag_global))
       REM_REF(a->value)
@@ -59,11 +59,10 @@ ANN static void free_var_decl(Var_Decl a) {
 }
 
 __attribute__((nonnull(1)))
-Var_Decl_List new_var_decl_list(const Var_Decl decl, const Var_Decl_List list, const int pos) {
+Var_Decl_List new_var_decl_list(const Var_Decl decl, const Var_Decl_List list) {
   Var_Decl_List a = mp_alloc(Var_Decl_List);
   a->self = decl;
   a->next = list;
-  a->pos = pos;
   return a;
 }
 
@@ -96,7 +95,7 @@ ANN Type_Decl* new_type_decl2(const ID_List xid, const ae_flag flag, const int p
 }
 Array_Sub new_array_sub(const Exp exp, const int pos) {
   Array_Sub a = mp_alloc(Array_Sub);
-  a->exp_list = exp;
+  a->exp = exp;
   a->depth = 1;
   a->pos = pos;
   return a;
@@ -105,8 +104,8 @@ Array_Sub new_array_sub(const Exp exp, const int pos) {
 __attribute__((nonnull(1)))
 Array_Sub prepend_array_sub(const Array_Sub a, const Exp exp) {
   if(exp) {
-    exp->next = a->exp_list;
-    a->exp_list = exp;
+    exp->next = a->exp;
+    a->exp = exp;
   }
   a->depth++;
   return a;
@@ -117,21 +116,21 @@ ANN Type_Decl* add_type_decl_array(Type_Decl* a, const Array_Sub array) {
   return a;
 }
 
-ANN Exp new_array(const Exp base, const Array_Sub indices, const int pos) {
+ANN Exp new_array(const Exp base, const Array_Sub array, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_array;
   a->meta = ae_meta_var;
   a->d.exp_array.base = base;
-  a->d.exp_array.indices = indices;
-  a->pos = a->d.exp_array.pos = pos;
+  a->d.exp_array.array = array;
+  a->pos = pos;
   a->d.exp_array.self = a;
   return a;
 }
 
 ANN static void free_array_exp(Exp_Array* a) {
-  if(a->base && a->base->type && a->indices->depth < a->base->type->array_depth)
+  if(a->base && a->base->type && a->array->depth < a->base->type->array_depth)
     REM_REF(a->self->type);
-  free_array_sub(a->indices);
+  free_array_sub(a->array);
   free_exp(a->base);
 }
 
@@ -169,15 +168,15 @@ ANN void free_type_decl(Type_Decl* a) {
 Exp new_exp_decl(Type_Decl* type, const Var_Decl_List list, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_decl;
-  a->d.exp_decl.type = type;
+  a->d.exp_decl.td = type;
   a->d.exp_decl.list = list;
-  a->pos  = a->d.exp_decl.pos  = pos;
+  a->pos = pos;
   a->d.exp_decl.self = a;
   return a;
 }
 
 ANN static void free_exp_decl(Exp_Decl* a) {
-  free_type_decl(a->type);
+  free_type_decl(a->td);
   free_var_decl_list(a->list);
 }
 
@@ -188,7 +187,7 @@ Exp new_exp_binary(const Exp lhs, const Operator op, const Exp rhs, const int po
   a->d.exp_binary.lhs = lhs;
   a->d.exp_binary.op = op;
   a->d.exp_binary.rhs = rhs;
-  a->pos = a->d.exp_binary.pos = pos;
+  a->pos = pos;
   a->d.exp_binary.self = a;
   return a;
 }
@@ -198,19 +197,19 @@ ANN static void free_exp_binary(Exp_Binary* binary) {
   free_exp(binary->rhs);
 }
 
-Exp new_exp_cast(Type_Decl* type, const Exp exp, const int pos) {
+Exp new_exp_cast(Type_Decl* td, const Exp exp, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_cast;
   a->meta = ae_meta_value;
-  a->d.exp_cast.type = type;
-  a->pos = a->d.exp_cast.pos = pos;
+  a->d.exp_cast.td = td;
+  a->pos = pos;
   a->d.exp_cast.exp = exp;
   a->d.exp_cast.self = a;
   return a;
 }
 
 ANN static void free_exp_cast(Exp_Cast* a) {
-  free_type_decl(a->type);
+  free_type_decl(a->td);
   if(a->self->type && a->self->type->array_depth)
     REM_REF(a->self->type)
   free_exp(a->exp);
@@ -222,7 +221,7 @@ Exp new_exp_post(const Exp exp, const Operator op, const int pos) {
   a->meta = ae_meta_var;
   a->d.exp_post.exp = exp;
   a->d.exp_post.op = op;
-  a->pos = a->d.exp_post.pos = pos;
+  a->pos = pos;
   a->d.exp_post.self = a;
   return a;
 }
@@ -237,7 +236,7 @@ Exp new_exp_dur(const Exp base, const Exp unit, const int pos) {
   a->meta = ae_meta_value;
   a->d.exp_dur.base = base;
   a->d.exp_dur.unit = unit;
-  a->pos = a->d.exp_dur.pos = pos;
+  a->pos = pos;
   a->d.exp_dur.self = a;
   return a;
 }
@@ -251,7 +250,7 @@ static Exp new_exp_prim(const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_primary;
   a->meta = ae_meta_value;
-  a->pos = a->d.exp_primary.pos = pos;
+  a->pos = pos;
   a->d.exp_primary.self = a;
   return a;
 }
@@ -305,10 +304,10 @@ Exp new_exp_prim_char(const m_str chr, const int pos) {
   return a;
 }
 
-Exp new_exp_prim_array(const Array_Sub exp_list, const int pos) {
+Exp new_exp_prim_array(const Array_Sub exp, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = ae_primary_array;
-  a->d.exp_primary.d.array = exp_list;
+  a->d.exp_primary.d.array = exp;
   return a;
 }
 
@@ -327,7 +326,7 @@ static Exp new_exp_unary_base(const int pos)  {
   Exp a = mp_alloc(Exp);
   a->meta = ae_meta_value;
   a->exp_type = ae_exp_unary;
-  a->pos = a->d.exp_unary.pos = pos;
+  a->pos = pos;
   a->d.exp_unary.self = a;
   return a;
 }
@@ -340,10 +339,10 @@ Exp new_exp_unary(const Operator oper, const Exp exp, const int pos) {
   return a;
 }
 
-Exp new_exp_unary2(const Operator oper, Type_Decl* type, const int pos) {
+Exp new_exp_unary2(const Operator oper, Type_Decl* td, const int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
-  a->d.exp_unary.type = type;
+  a->d.exp_unary.td = td;
   return a;
 }
 
@@ -351,7 +350,7 @@ Exp new_exp_unary3(const Operator oper, const Stmt code, const int pos) {
   Exp a = new_exp_unary_base(pos);
   a->d.exp_unary.op = oper;
   ID_List id = new_id_list(insert_symbol("void"), pos);
-  a->d.exp_unary.type = new_type_decl(id, 0, pos);
+  a->d.exp_unary.td = new_type_decl(id, 0, pos);
   a->d.exp_unary.code = code;
   return a;
 }
@@ -359,8 +358,8 @@ Exp new_exp_unary3(const Operator oper, const Stmt code, const int pos) {
 ANN static void free_unary_exp(Exp_Unary* a) {
   if(a->exp)
     free_exp(a->exp);
-  if(a->type)
-    free_type_decl(a->type);
+  if(a->td)
+    free_type_decl(a->td);
   if(a->code)
     free_stmt(a->code);
 }
@@ -373,7 +372,7 @@ Exp new_exp_if(const Exp cond, const Exp if_exp, const Exp else_exp, const int p
   a->d.exp_if.cond = cond;
   a->d.exp_if.if_exp = if_exp;
   a->d.exp_if.else_exp = else_exp;
-  a->pos = a->d.exp_if.pos = pos;
+  a->pos = pos;
   a->d.exp_if.self = a;
   return a;
 }
@@ -421,15 +420,14 @@ m_bool tmpl_class_base(const Tmpl_Class* a) {
   return a ? tmpl_list_base(&a->list) : 0;
 }
 
-Func_Def new_func_def(const ae_flag flag, Type_Decl* type_decl, const Symbol xid,
-  const Arg_List arg_list, const Stmt code, const int pos) {
+Func_Def new_func_def(const ae_flag flag, Type_Decl* td, const Symbol xid,
+  const Arg_List arg_list, const Stmt code) {
   Func_Def a = mp_alloc(Func_Def);
   a->flag = flag;
-  a->type_decl = type_decl;
+  a->td   = td;
   a->name = xid;
   a->arg_list = arg_list;
-  a->code = code;
-  a->pos = pos;
+  a->d.code = code;
   return a;
 }
 
@@ -439,7 +437,7 @@ ANN void free_func_def(Func_Def a) {
       REM_REF(a->ret_type);
     if(a->arg_list)
       free_arg_list(a->arg_list);
-    free_type_decl(a->type_decl);
+    free_type_decl(a->td);
   }
   if(a->tmpl)
     free_tmpl_list(a->tmpl);
@@ -447,30 +445,30 @@ ANN void free_func_def(Func_Def a) {
 }
 ANN void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 
-ANN Stmt new_func_ptr_stmt(const ae_flag key, const Symbol xid, Type_Decl* decl, const Arg_List args, const int pos) {
+ANN Stmt new_func_ptr_stmt(const ae_flag key, const Symbol xid, Type_Decl* td, const Arg_List args, const int pos) {
   Stmt a              = mp_alloc(Stmt);
   a->stmt_type        = ae_stmt_funcptr;
   a->d.stmt_ptr.flag  = key;
-  a->d.stmt_ptr.type  = decl;
+  a->d.stmt_ptr.td    = td;
   a->d.stmt_ptr.xid   = xid;
   a->d.stmt_ptr.args  = args;
-  a->pos = a->d.stmt_ptr.pos  = pos;
+  a->pos = pos;
   return a;
 
 }
 
-ANN Stmt new_stmt_typedef(Type_Decl* decl, const Symbol xid, const int pos) {
+ANN Stmt new_stmt_typedef(Type_Decl* td, const Symbol xid, const int pos) {
   Stmt a              = mp_alloc(Stmt);
-  a->stmt_type             = ae_stmt_typedef;
-  a->d.stmt_type.type  = decl;
-  a->d.stmt_type.xid   = xid;
-  a->pos = a->d.stmt_ptr.pos  = pos;
+  a->stmt_type        = ae_stmt_typedef;
+  a->d.stmt_type.td   = td;
+  a->d.stmt_type.xid  = xid;
+  a->pos = pos;
   return a;
 }
 
 ANN static void free_stmt_typedef(Stmt_Typedef a){
-  if(!a->m_type)
-    free_type_decl(a->type);
+  if(!a->type)
+    free_type_decl(a->td);
 }
 
 ANN static void free_stmt_func_ptr(Stmt_Ptr a) {
@@ -479,7 +477,7 @@ ANN static void free_stmt_func_ptr(Stmt_Ptr a) {
   else {
     if(a->args)
       free_arg_list(a->args);
-    free_type_decl(a->type);
+    free_type_decl(a->td);
   }
 }
 
@@ -501,7 +499,7 @@ Exp new_exp_call(const Exp base, const Exp args, const int pos) {
   a->meta = ae_meta_value;
   a->d.exp_func.func = base;
   a->d.exp_func.args = args;
-  a->pos = a->d.exp_func.pos = pos;
+  a->pos = pos;
   a->d.exp_func.self = a;
   return a;
 }
@@ -523,7 +521,7 @@ Exp new_exp_dot(const Exp base, const Symbol xid, const int pos) {
   a->meta = ae_meta_var;
   a->d.exp_dot.base = base;
   a->d.exp_dot.xid = xid;
-  a->pos = a->d.exp_dot.pos = pos;
+  a->pos = pos;
   a->d.exp_dot.self = a;
   return a;
 }
@@ -531,12 +529,12 @@ Exp new_exp_dot(const Exp base, const Symbol xid, const int pos) {
 ANN static void free_dot_member_exp(Exp_Dot* dot) {
   if(dot->base)
     free_exp(dot->base);
-}
+} 
 
 Exp prepend_exp(const Exp exp, const Exp next) {
   exp->next = next;
   return exp;
-}
+} 
 
 ANN static void free_exp_primary(Exp_Primary* a) {
   ae_Exp_Primary_Type t = a->primary_type;
@@ -549,6 +547,14 @@ ANN static void free_exp_primary(Exp_Primary* a) {
           t == ae_primary_vec)
     free_exp(a->d.vec.exp);
 }
+
+/*
+#ifdef OPTIMIZE
+ANN static void free_exp_constprop(Exp_Constprop* a) {
+  free_exp(a->exp);
+}
+#endif
+*/
 
 ANN void free_exp(Exp exp) {
   switch(exp->exp_type) {
@@ -585,36 +591,41 @@ ANN void free_exp(Exp exp) {
     case ae_exp_dur:
       free_dur_exp(&exp->d.exp_dur);
       break;
+#ifdef OPTIMIZE
+    case ae_exp_constprop:
+    case ae_exp_constprop2:
+      /*free_exp_constprop(&exp->d.exp_constprop);*/
+      break;
+#endif
   }
   if(exp->next)
     free_exp(exp->next);
   mp_free(Exp, exp);
 }
 
-Arg_List new_arg_list(Type_Decl* type_decl, const Var_Decl var_decl,
-    const Arg_List arg_list, const int pos) {
+Arg_List new_arg_list(Type_Decl* td, const Var_Decl var_decl, const Arg_List arg_list) {
   Arg_List a = mp_alloc(Arg_List);
-  a->type_decl = type_decl;
+  a->td       = td;
   a->var_decl = var_decl;
-  a->next = arg_list;
-  a->pos = pos;
+  a->next     = arg_list;
   return a;
 }
 
 ANN void free_arg_list(Arg_List a) {
   if(a->next)
     free_arg_list(a->next);
-  free_type_decl(a->type_decl);
+  free_type_decl(a->td);
   free_var_decl(a->var_decl);
   mp_free(Arg_List, a);
 
 }
 
-Stmt new_stmt_exp(const Exp exp, const int pos) {
+Stmt new_stmt_exp(const ae_Stmt_Type type, const Exp exp, const int pos) {
   Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_exp;
+  a->stmt_type = type;
   a->d.stmt_exp.val = exp;
-  a->pos = a->d.stmt_exp.pos = pos;
+  a->d.stmt_exp.self = a;
+  a->pos = pos;
   return a;
 }
 
@@ -622,7 +633,7 @@ Stmt new_stmt_code(const Stmt_List stmt_list, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_code;
   a->d.stmt_code.stmt_list = stmt_list;
-  a->pos = a->d.stmt_code.pos = pos;
+  a->pos = pos;
   return a;
 }
 
@@ -631,58 +642,32 @@ ANN static void free_stmt_code(Stmt_Code a) {
     free_stmt_list(a->stmt_list);
 }
 
-Stmt new_stmt_return(const Exp exp, const int pos) {
-  Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_return;
-  a->d.stmt_return.val = exp;
-  a->pos = a->d.stmt_return.pos = pos;
-  return a;
-}
-
 ANN __inline static void free_stmt_exp(struct Stmt_Exp_* a) {
   if(a->val)
     free_exp(a->val);
 }
 
-Stmt new_stmt_break(const int pos) {
+Stmt new_stmt(const ae_Stmt_Type type, const int pos) {
   Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_break;
-  a->pos = a->d.stmt_break.pos = pos;
+  a->stmt_type = type;
+  a->pos = pos;
   return a;
 }
 
-Stmt new_stmt_continue(const int pos) {
+ANN Stmt new_stmt_flow(const ae_Stmt_Type type, const Exp cond, const Stmt body, const m_bool is_do, const int pos) {
   Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_continue;
-  a->pos = a->d.stmt_continue.pos = pos;
-  return a;
-}
-
-ANN Stmt new_stmt_while(const Exp cond, const Stmt body, const m_bool is_do, const int pos) {
-  Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_while;
-  a->d.stmt_while.is_do = is_do;
-  a->d.stmt_while.cond = cond;
-  a->d.stmt_while.body = body;
-  a->pos = a->d.stmt_while.pos = pos;
-  a->d.stmt_while.self = a;
+  a->stmt_type = type;
+  a->d.stmt_flow.is_do = is_do;
+  a->d.stmt_flow.cond = cond;
+  a->d.stmt_flow.body = body;
+  a->pos = pos;
+  a->d.stmt_flow.self = a;
   return a;
 }
 
 ANN static void free_stmt_flow(struct Stmt_Flow_* a) {
   free_exp(a->cond);
   free_stmt(a->body);
-}
-
-ANN Stmt new_stmt_until(const Exp cond, const Stmt body, const m_bool is_do, const int pos) {
-  Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_until;
-  a->d.stmt_until.is_do = is_do;
-  a->d.stmt_until.cond = cond;
-  a->d.stmt_until.body = body;
-  a->pos = a->d.stmt_until.pos = pos;
-  a->d.stmt_until.self = a;
-  return a;
 }
 
 __attribute__((nonnull(1,2,4)))
@@ -693,7 +678,7 @@ Stmt new_stmt_for(const Stmt c1, const Stmt c2, const Exp c3, const Stmt body, c
   a->d.stmt_for.c2 = c2;
   a->d.stmt_for.c3 = c3;
   a->d.stmt_for.body = body;
-  a->pos = a->d.stmt_for.pos = pos;
+  a->pos = pos;
   a->d.stmt_for.self = a;
   return a;
 }
@@ -713,7 +698,7 @@ ANN Stmt new_stmt_auto(const Symbol sym, const Exp exp, const Stmt body, const i
   a->d.stmt_auto.exp = exp;
   a->d.stmt_auto.body = body;
   a->d.stmt_auto.self = a;
-  a->pos = a->d.stmt_auto.pos = pos;
+  a->pos = pos;
   return a;
 }
 
@@ -729,7 +714,8 @@ ANN Stmt new_stmt_gotolabel(const Symbol xid, const m_bool is_label, const int p
   a->stmt_type = ae_stmt_gotolabel;
   a->d.stmt_gotolabel.name = xid;
   a->d.stmt_gotolabel.is_label = is_label;
-  a->pos = a->d.stmt_gotolabel.pos = pos;
+  a->d.stmt_gotolabel.self = a;
+  a->pos = pos;
   return a;
 }
 
@@ -738,7 +724,7 @@ ANN Stmt new_stmt_loop(const Exp cond, const Stmt body, const int pos) {
   a->stmt_type = ae_stmt_loop;
   a->d.stmt_loop.cond = cond;
   a->d.stmt_loop.body = body;
-  a->pos = a->d.stmt_loop.pos = pos;
+  a->pos = pos;
   a->d.stmt_loop.self = a;
   return a;
 }
@@ -755,7 +741,7 @@ Stmt new_stmt_if(const Exp cond, const Stmt if_body, const Stmt else_body, const
   a->d.stmt_if.cond = cond;
   a->d.stmt_if.if_body = if_body;
   a->d.stmt_if.else_body = else_body;
-  a->pos = a->d.stmt_if.pos = pos;
+  a->pos = pos;
   return a;
 }
 
@@ -771,22 +757,14 @@ ANN Stmt new_stmt_switch(const Exp val, Stmt stmt, const int pos) {
   a->stmt_type = ae_stmt_switch;
   a->d.stmt_switch.val = val;
   a->d.stmt_switch.stmt = stmt;
-  a->pos = a->d.stmt_switch.pos = pos;
   a->d.stmt_switch.self = a;
+  a->pos = pos;
   return a;
 }
 
 ANN __inline static void free_stmt_switch(Stmt_Switch a) {
   free_exp(a->val);
   free_stmt(a->stmt);
-}
-
-ANN Stmt new_stmt_case(const Exp val, const int pos) {
-  Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_case;
-  a->d.stmt_case.val = val;
-  a->pos = a->d.stmt_case.pos = pos;
-  return a;
 }
 
 __attribute__((nonnull(1)))
@@ -796,8 +774,9 @@ Stmt new_stmt_enum(const ID_List list, const Symbol xid, const int pos) {
   a->d.stmt_enum.xid = xid;
   a->d.stmt_enum.list = list;
   a->d.stmt_enum.flag = 0;
+  a->d.stmt_enum.self = a;
   vector_init(&a->d.stmt_enum.values);
-  a->pos = a->d.stmt_enum.pos = pos;
+  a->pos = pos;
   return a;
 }
 
@@ -810,8 +789,9 @@ ANN Stmt new_stmt_union(const Decl_List l, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_union;
   a->d.stmt_union.l = l;
+  a->d.stmt_union.self = a;
   vector_init(&a->d.stmt_union.v);
-  a->pos = a->d.stmt_union.pos = pos;
+  a->pos = pos;
   return a;
 }
 
@@ -841,10 +821,10 @@ ANN void free_stmt(Stmt stmt) {
       free_stmt_exp(&stmt->d.stmt_exp);
       break;
     case ae_stmt_while:
-      free_stmt_flow(&stmt->d.stmt_while);
+      free_stmt_flow(&stmt->d.stmt_flow);
       break;
     case ae_stmt_until:
-      free_stmt_flow(&stmt->d.stmt_until);
+      free_stmt_flow(&stmt->d.stmt_flow);
       break;
     case ae_stmt_for:
       free_stmt_for(&stmt->d.stmt_for);
@@ -868,10 +848,10 @@ ANN void free_stmt(Stmt stmt) {
     case ae_stmt_continue:
       break;
     case ae_stmt_return:
-      free_stmt_exp(&stmt->d.stmt_return);
+      free_stmt_exp(&stmt->d.stmt_exp);
       break;
     case ae_stmt_case:
-      free_stmt_exp(&stmt->d.stmt_case);
+      free_stmt_exp(&stmt->d.stmt_exp);
       break;
     case ae_stmt_gotolabel:
       break;
@@ -898,26 +878,31 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next) {
   return list;
 }
 
-ANN static void free_stmt_list(Stmt_List list) {
+ANN /* static */ void free_stmt_list(Stmt_List list) {
   free_stmt(list->stmt);
   if(list->next)
     free_stmt_list(list->next);
   mp_free(Stmt_List, list);
 }
 
-Section* new_section_stmt_list(const Stmt_List list, const int pos) {
+Section* new_section_stmt_list(const Stmt_List list) {
   Section* a = mp_alloc(Section);
   a->section_type = ae_section_stmt;
   a->d.stmt_list = list;
-  a->pos = pos;
   return a;
 }
 
-Section* new_section_func_def(const Func_Def func_def, const int pos) {
+Section* new_section_func_def(const Func_Def func_def) {
   Section* a = mp_alloc(Section);
   a->section_type = ae_section_func;
   a->d.func_def = func_def;
-  a->pos = pos;
+  return a;
+}
+
+Section* new_section_class_def(const Class_Def class_def) {
+  Section* a = mp_alloc(Section);
+  a->section_type = ae_section_class;
+  a->d.class_def = class_def;
   return a;
 }
 
@@ -955,9 +940,9 @@ ANN static void free_section(Section* section) {
       free_stmt_list(section->d.stmt_list);
       break;
     case ae_section_func:
-      if(section->d.func_def->code)
-        free_stmt(section->d.func_def->code);
-      if(!section->d.func_def->d.func || GET_FLAG(section->d.func_def, ae_flag_builtin))
+      if(!GET_FLAG(section->d.func_def, ae_flag_builtin))
+        free_stmt(section->d.func_def->d.code);
+      if(!section->d.func_def->func || GET_FLAG(section->d.func_def, ae_flag_builtin))
         free_func_def(section->d.func_def);
       break;
   }
@@ -965,52 +950,40 @@ ANN static void free_section(Section* section) {
 }
 
 Class_Def new_class_def(const ae_flag class_decl, const ID_List name, Type_Decl* ext,
-    const Class_Body body, const int pos) {
+    const Class_Body body) {
   Class_Def a = mp_alloc(Class_Def);
   a->flag = class_decl;
   a->name = name;
   a->ext  = ext;
   a->body = body;
-  a->pos  = pos;
   return a;
 }
 
-Class_Body new_class_body(Section* section, const Class_Body body, const int pos) {
+Class_Body new_class_body(Section* section, const Class_Body body) {
   Class_Body a = mp_alloc(Class_Body);
   a->section = section;
   a->next = body;
-  a->pos = pos;
   return a;
 }
 
-Type_List new_type_list(Type_Decl* list, const Type_List next, const int pos) {
+Type_List new_type_list(Type_Decl* td, const Type_List next) {
   Type_List a = mp_alloc(Type_List);
-  a->list = list;
+  a->td   = td;
   a->next = next;
-  a->pos = pos;
   return a;
 }
 
 ANN void free_type_list(Type_List a) {
   if(a->next)
     free_type_list(a->next);
-  free_type_decl(a->list);
+  free_type_decl(a->td);
   mp_free(Type_List, a);
 }
 
-Section* new_section_class_def(const Class_Def class_def, const int pos) {
-  Section* a = mp_alloc(Section);
-  a->section_type = ae_section_class;
-  a->d.class_def = class_def;
-  a->pos = pos;
-  return a;
-}
-
-Ast new_ast(Section* section, const Ast next, const int pos) {
+Ast new_ast(Section* section, const Ast next) {
   Ast ast = mp_alloc(Ast);
   ast->section = section;
   ast->next = next;
-  ast->pos = pos;
   return ast;
 }
 

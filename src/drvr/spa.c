@@ -4,8 +4,8 @@
 #include "driver.h"
 #include "err_msg.h"
 
-static m_bool spa_ini(VM* vm, DriverInfo* di) {
-  di->data = xmalloc(sizeof(sp_audio));
+static m_bool spa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
+  di->data = (sp_audio*)xmalloc(sizeof(sp_audio));
   return 1;
 }
 
@@ -25,7 +25,7 @@ static void spa_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void spa_del(VM* vm, DriverInfo* di) {
+static void spa_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   sp_audio* spa = (sp_audio*)di->data;
   spa_close(spa);
   free(spa);

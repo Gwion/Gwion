@@ -179,7 +179,7 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
         exit(0);
       case 'C':
         gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
-        arg->quit = 1;
+        exit(1);
         break;
       case 'q':
         arg->quit  = 1;

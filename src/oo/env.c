@@ -13,7 +13,7 @@
 
 
 Env new_env() {
-  Env env = xmalloc(sizeof(struct Env_));
+  const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
 //  env->user_nspc = NULL;
   env->context = NULL;
@@ -53,7 +53,6 @@ ANN void env_reset(const Env env) {
 
 ANN void free_env(Env a) {
   Context ctx;
-
   while((ctx = (Context)vector_pop(&a->known_ctx)))
     REM_REF(ctx)
   REM_REF(a->global_nspc);
@@ -127,11 +126,10 @@ Class_Def env_class_def(const Env env, const Class_Def def) {
 }
 
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
-  m_bool ret;
   const Context context = new_context(ast, filename);
   env_reset(env);
   CHECK_BB(load_context(context, env))
-  ret = traverse_ast(env, ast);
+  const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)context);
@@ -148,7 +146,6 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str file
 
 ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   const Nspc nspc = env->curr;
-
   if(!nspc->op_map.ptr)
     map_init(&nspc->op_map);
   CHECK_BB(add_op(nspc, opi))

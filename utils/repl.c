@@ -17,7 +17,7 @@
 
 static m_bool accept, chctx, fork, add, sys;
 
-static inline int _bind_cr(int count, int key) {
+static inline int _bind_cr(int count __attribute__((unused)), int key __attribute__((unused))) {
   if(accept) {
     printf("\n");
     return rl_done = 1;
@@ -26,38 +26,38 @@ static inline int _bind_cr(int count, int key) {
   return 0;
 }
 
-static inline int _bind_accept(int count, int key) {
+static inline int _bind_accept(int count __attribute__((unused)), int key __attribute__((unused))) {
   accept = 1;
   return 0;
 }
 
-static inline int _bind_add(int count, int key) {
+static inline int _bind_add(int count __attribute__((unused)), int key __attribute__((unused))) {
   accept = rl_done = 1;
   add = key == 97 ? 1 : -1;
   return 0;
 }
 
 
-static inline int _bind_ctx(int count, int key) {
+static inline int _bind_ctx(int count __attribute__((unused)), int key __attribute__((unused))) {
   printf("\n");
   chctx = 1;
   return rl_done = 1;
 }
 
-static inline int _bind_fork(int count, int key) {
+static inline int _bind_fork(int count __attribute__((unused)), int key __attribute__((unused))) {
   fork = 1;
   return 0;
 }
 
-static inline int _bind_sys(int count, int key) {
+static inline int _bind_sys(int count __attribute__((unused)), int key __attribute__((unused))) {
   printf("\n");
   sys = 1;
   return accept = rl_done = 1;
 }
 
 static inline VM_Shred repl_shred() {
-  VM_Code code = new_vm_code(NULL, 0, 0, "repl");
-  VM_Shred shred = new_vm_shred(code);
+  const VM_Code code = new_vm_code(NULL, 0, 0, "repl");
+  const VM_Shred shred = new_vm_shred(code);
   return shred;
 }
 
@@ -67,11 +67,10 @@ ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
     return;
   }
   FILE* f = fmemopen(line, strlen(line), "r");
-  Ast ast = parse("repl", f);
-  m_str str;
+  const Ast ast = parse("repl", f);
   if(!ast)
     goto close;
-  str = strdup("repl");
+  const m_str str = strdup("repl");
   if(traverse_ast(vm->emit->env, ast) < 0)
     goto close;
   if(emit_ast(vm->emit, ast, str) < 0)
@@ -93,7 +92,7 @@ struct Repl {
 };
 
 ANN static struct Repl* new_repl(const m_str name) {
-  struct Repl* repl = xmalloc(sizeof(struct Repl));
+  struct Repl* repl = (struct Repl*)xmalloc(sizeof(struct Repl));
   repl->shred = repl_shred();
   repl->ctx = new_context(NULL, name);
   return repl;
@@ -110,10 +109,10 @@ ANN static void free_repl(struct Repl* repl, VM* vm) {
   free(repl);
 }
 
-ANN static struct Repl* repl_ctx(struct Repl* repl, Vector v, VM* vm) {
+ANN static struct Repl* repl_ctx(struct Repl* repl, const Vector v, VM* vm) {
   struct Repl* r = NULL;
   accept = 1;
-  m_str ln = readline("\033[1mcontext:\033[0m ");
+  const m_str ln = readline("\033[1mcontext:\033[0m ");
   for(m_uint i = vector_size(v) + 1; --i;) {
     struct Repl* s = (struct Repl*)vector_at(v, i-1);
     if(!strcmp(ln, s->ctx->filename)) {
@@ -137,7 +136,7 @@ ANN static struct Repl* repl_ctx(struct Repl* repl, Vector v, VM* vm) {
 
 ANN static void repl_fork(struct Repl* repl) {
   printf("fork shred [%"UINT_F"]\n", repl->shred->xid);
-  VM_Shred old = repl->shred;
+  const VM_Shred old = repl->shred;
   repl->shred = repl_shred();
   old->parent = repl->shred;
   if(!repl->shred->child.ptr)
@@ -148,10 +147,10 @@ ANN static void repl_fork(struct Repl* repl) {
   fork = 0;
 }
 
-static void repl_sys() {
-  pid_t cpid = fork;
+static void repl_sys(void) {
+  const pid_t cpid = fork;
   int status;
-  m_str cmd = readline("command: ");
+  const m_str cmd = readline("command: ");
   system(cmd);
   free(cmd);
   waitpid(cpid, &status, 0);
@@ -159,11 +158,11 @@ static void repl_sys() {
 }
 
 ANN static void repl_add(VM* vm) {
-  m_str line = readline(add > 0 ? "add file: " : "rem file:");
+  const m_str line = readline(add > 0 ? "add file: " : "rem file:");
   if(add > 0)
     compile(vm, line);
   else {
-    m_uint index = strtol(line, NULL, 10);
+    const m_uint index = strtol(line, NULL, 10);
     vm_remove(vm, index);
   }
   free(line);
@@ -180,7 +179,7 @@ ANN static m_str repl_prompt(struct Repl* repl) {
   return readline(prompt);
 }
 
-ANN static void repl_cmd(struct Repl* repl, VM* vm, Vector v) {
+ANN static void repl_cmd(struct Repl* repl, VM* vm, const Vector v) {
     if(chctx)
       repl = repl_ctx(repl, v, vm);
     if(sys)
@@ -191,7 +190,7 @@ ANN static void repl_cmd(struct Repl* repl, VM* vm, Vector v) {
       repl_fork(repl);
 }
 
-ANN static struct Repl* repl_ini(VM* vm, Vector v) {
+ANN static struct Repl* repl_ini(const VM* vm, const Vector v) {
   struct Repl* repl = new_repl("repl");
   vector_init(v);
   vector_add(v, (vtype)repl);
@@ -208,7 +207,7 @@ ANN static struct Repl* repl_ini(VM* vm, Vector v) {
   return repl;
 }
 
-ANN static void repl_end(struct Repl* repl, VM* vm, Vector v) {
+ANN static void repl_end(struct Repl* repl, VM* vm, const Vector v) {
   unload_context(repl->ctx, vm->emit->env);
   for(m_uint i = vector_size(v) + 1; --i;)
     free_repl((struct Repl*)vector_at(v, i-1), vm);

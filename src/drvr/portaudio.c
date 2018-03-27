@@ -17,19 +17,19 @@ struct PaInfo {
 };
 
 static int callback(const void *inputBuffer, void *outputBuffer,
-                    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
-                    PaStreamCallbackFlags statusFlags, void *userData) {
+                    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo __attribute__((unused)),
+                    PaStreamCallbackFlags statusFlags __attribute__((unused)), void *userData) {
   VM* vm = (VM*)userData;
   sp_data* sp = vm->sp;
   float *in  = (float*)inputBuffer;
   float *out = (float*)outputBuffer;
-  m_bool i, j;
+  m_uint i, j;
   for(i = 0; i < framesPerBuffer; i++) {
     for(j = 0; j < vm->n_in; j++)
       vm->in[j] = *in++;
 //    di->run(vm);
     vm_run(vm);
-    for(j = 0; j < sp->nchan; j++)
+    for(j = 0; j < (m_uint)sp->nchan; j++)
       *out++ = sp->out[j];
     sp->pos++;
   }
@@ -37,7 +37,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
 }
 
 static m_bool ini(VM* vm, DriverInfo* di) {
-  struct PaInfo* info = xmalloc(sizeof(struct PaInfo*));
+  struct PaInfo* info = (struct PaInfo*)xmalloc(sizeof(struct PaInfo*));
   di->data = info;
   if(Pa_Initialize() != paNoError)
     return -1;
@@ -77,7 +77,7 @@ error:
   return -1;
 }
 
-static void del(VM* vm, DriverInfo* di) {
+static void del(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct PaInfo* info = (struct PaInfo*)di->data;
   Pa_StopStream(info->stream);
   Pa_Terminate();

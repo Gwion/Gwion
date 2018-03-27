@@ -112,15 +112,16 @@ const char** strsplit(const char* s, unsigned int *n) {
   return data;
 }
 
-static void print(unsigned int i, const unsigned max) {
-  for(i; i < max; i++) {
+static void print(const unsigned int min, const unsigned max) {
+  unsigned int i;
+  for(i = min; i < max; i++) {
     char s[128];
     snprintf(s, strlen(info[i].name) - 2, "%s", info[i].name);
     printf("\t%s\n", s);
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc __attribute__((unused)), char **argv) {
   unsigned int i;
   pdir = get("GWPLUG_DIR");
   path = get("GWPLUG_PATH");

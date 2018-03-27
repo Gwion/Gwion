@@ -18,7 +18,7 @@ struct M_Vector_ {
   m_uint cap;
 };
 POOL_HANDLE(M_Vector, 512)
-ANN m_uint m_vector_size(M_Vector v) {
+ANN m_uint m_vector_size(const M_Vector v) {
   return v->len;
 }
 
@@ -41,7 +41,7 @@ ANN M_Object new_M_Array(const Type t, const m_uint size,
   while(cap < length)
     cap *= 2;
   ARRAY(a)  	  = mp_alloc(M_Vector);
-  ARRAY(a)->ptr   = xcalloc(cap, size);
+  ARRAY(a)->ptr   = (char*)xcalloc(cap, size);
   ARRAY(a)->cap   = cap;
   ARRAY(a)->size  = size;
   ARRAY(a)->len   = length;
@@ -49,23 +49,23 @@ ANN M_Object new_M_Array(const Type t, const m_uint size,
   return a;
 }
 
-ANN void m_vector_get(M_Vector v, const m_uint i, void* c) {
+ANN void m_vector_get(const M_Vector v, const m_uint i, void* c) {
   memcpy(c, v->ptr + i * v->size, v->size);
 }
 
-ANN void m_vector_add(M_Vector v, const void* data) {
+ANN void m_vector_add(const M_Vector v, const void* data) {
   if(++v->len >= v->cap) {
     v->cap *=2;
-    v->ptr = xrealloc(v->ptr, v->cap * v->size);
+    v->ptr = (char*)xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
 }
 
-ANN void m_vector_set(M_Vector v, const m_uint i, const void* data) {
+ANN void m_vector_set(const M_Vector v, const m_uint i, const void* data) {
   memcpy(v->ptr + i * v->size, data,  v->size);
 }
 
-ANN void m_vector_rem(M_Vector v, m_uint index) {
+ANN void m_vector_rem(const M_Vector v, m_uint index) {
   char c[--v->len * v->size];
   if(index)
     memcpy(c, v->ptr, index * v->size);
@@ -73,7 +73,7 @@ ANN void m_vector_rem(M_Vector v, m_uint index) {
   memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
   if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
-    v->ptr = xrealloc(v->ptr, v->cap * v->size);
+    v->ptr = (char*)xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy(v->ptr, c, v->cap * v->size);
 }
@@ -91,7 +91,7 @@ static MFUN(vm_vector_rem) {
   m_vector_rem(v, index);
 }
 
-ANN char* m_vector_addr(M_Vector v, m_uint i) {
+ANN char* m_vector_addr(const M_Vector v, const m_uint i) {
   return &*(char*)(v->ptr + i * v->size);
 }
 
@@ -129,12 +129,12 @@ static OP_CHECK(opck_array_at) {
 
   if(isa(l, r) < 0) {
     REM_REF(bin->lhs->type)
-    err_msg(TYPE_, bin->pos, "array types do not match.");
+    err_msg(TYPE_, bin->self->pos, "array types do not match.");
     return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
     REM_REF(bin->lhs->type)
-    err_msg(TYPE_, bin->pos, "array depths do not match.");
+    err_msg(TYPE_, bin->self->pos, "array depths do not match.");
     return t_null;
   }
   bin->rhs->emit_var = 1;
@@ -146,7 +146,7 @@ static OP_CHECK(opck_array_shift) {
   const Type l = get_array_type(bin->lhs->type);
   const Type r = get_array_type(bin->rhs->type);
   if(isa(l, r) < 0) {
-    err_msg(TYPE_, bin->pos, "array types do not match.");
+    err_msg(TYPE_, bin->self->pos, "array types do not match.");
     return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
@@ -173,7 +173,7 @@ static OP_CHECK(opck_array_cast) {
   return t_null;
 }
 
-m_bool import_array(const Gwi gwi) {
+ANN m_bool import_array(const Gwi gwi) {
   t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object );
   SET_FLAG((t_array), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
@@ -241,13 +241,12 @@ struct ArrayAllocInfo {
   m_bool is_obj;
 };
 
-static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
-  M_Object base;
+ANN static M_Object do_alloc_array_object(const struct ArrayAllocInfo* info, const m_int cap) {
   if(cap < 0) {
     gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
-  base = new_M_Array(info->type, info->capacity >= info->top ?
+  const M_Object base = new_M_Array(info->type, info->capacity >= info->top ?
       info->base->size : SZ_INT, cap, -info->capacity);
   if(!base) {
     gw_err("[gwion](VM): OutOfMemory: while allocating arrays...\n");
@@ -257,11 +256,10 @@ static M_Object do_alloc_array_object(struct ArrayAllocInfo* info, m_int cap) {
   return base;
 }
 
-static M_Object do_alloc_array_init(struct ArrayAllocInfo* info, m_int cap,
-    M_Object base) {
+ANN static M_Object do_alloc_array_init(const struct ArrayAllocInfo* info, const m_uint cap,
+    const M_Object base) {
   if(info->is_obj && info->objs) {
-    m_int i;
-    for(i = 0; i < cap; ++i) {
+    for(m_uint i = 0; i < cap; ++i) {
       info->objs[*info->index] = (m_uint)m_vector_addr(ARRAY(base), i);
       ++(*info->index);
     }
@@ -269,14 +267,13 @@ static M_Object do_alloc_array_init(struct ArrayAllocInfo* info, m_int cap,
   return base;
 }
 
-static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info);
-static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
-    m_int cap, M_Object base) {
-  m_int i;
-  for(i = 0; i < cap; ++i) {
-    struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
+ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAllocInfo* info);
+ANN static M_Object do_alloc_array_loop(const VM_Shred shred, const struct ArrayAllocInfo* info,
+    m_uint cap, M_Object base) {
+  for(m_uint i = 0; i < cap; ++i) {
+    const struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
       info->base, info->objs, info->index, info->is_obj };
-    M_Object next = do_alloc_array(shred, &aai);
+    const M_Object next = do_alloc_array(shred, &aai);
     if(!next) {
       release(base, shred);
       return NULL;
@@ -286,10 +283,9 @@ static M_Object do_alloc_array_loop(VM_Shred shred, struct ArrayAllocInfo* info,
   return base;
 }
 
-static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
+ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAllocInfo* info) {
   M_Object base;
   m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
-
   if(!(base = do_alloc_array_object(info, cap)))
     return NULL;
   if(info->capacity >= info->top)
@@ -300,22 +296,20 @@ static M_Object do_alloc_array(VM_Shred shred, struct ArrayAllocInfo* info) {
 }
 
 INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
-  m_uint i;
-  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
-  M_Object obj;
+  const VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   POP_REG(shred, instr->m_val2 * info->length);
-  obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
+  const M_Object obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
   vector_add(&shred->gc, (vtype) obj);
-  for(i = 0; i < info->length; ++i)
+  for(m_uint i = 0; i < info->length; ++i)
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
   PUSH_REG(shred,  SZ_INT);
   instr->m_val = 1;
 }
 
-static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) {
+ANN static m_uint* init_array(const VM_Shred shred, const VM_Array_Info* info, m_uint* num_obj) {
   m_int curr = -info->depth;
-  m_int top = - 1;
+  const m_int top = - 1;
   m_int tmp;
   *num_obj = 1;
   while(curr <= top) {
@@ -329,7 +323,7 @@ static m_uint* init_array(VM_Shred shred, VM_Array_Info* info, m_uint* num_obj) 
 }
 
 INSTR(Instr_Array_Alloc) { GWDEBUG_EXE
-  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  const VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
@@ -362,7 +356,8 @@ error:
   vm_shred_exit(shred);
 }
 
-static void array_push(VM_Shred shred, M_Vector a, m_uint i, m_uint size, m_bool emit_var) {
+ANN static void array_push(const VM_Shred shred, const M_Vector a,
+    const m_uint i, const m_uint size, const m_bool emit_var) {
   if(emit_var)
       *(char**)REG(0) = m_vector_addr(a, i);
   else
@@ -370,7 +365,7 @@ static void array_push(VM_Shred shred, M_Vector a, m_uint i, m_uint size, m_bool
   PUSH_REG(shred,  size);
 }
 
-static void oob(M_Object obj, VM_Shred shred, m_int i) {
+ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
   gw_err("[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" UINT_F "]\n",
          shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
@@ -381,12 +376,11 @@ static void oob(M_Object obj, VM_Shred shred, m_int i) {
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
-  m_int i = 0;
-  M_Object obj;
   POP_REG(shred,  SZ_INT * 2);
-  if(!(obj = *(M_Object*)REG(0)))
+  const M_Object obj = *(M_Object*)REG(0);
+  if(!obj)
     Except(shred, "NullPtrException");
-  i = *(m_int*)REG(SZ_INT);
+  const m_int i = *(m_int*)REG(SZ_INT);
   OOB(shred, obj, i)
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }

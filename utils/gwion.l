@@ -4,28 +4,20 @@
 IS          (u|U|l|L)*
 
 %{
-#define gwion_alloc(a,b) xmalloc(a)
-#define gwion_realloc(a,b,c) xrealloc(a,b)
-#define gwion_free(a,b)  xfree(a)
 #include "absyn.h"
 #include "scanner.h"
 #include "parser.h"
 #include "err_msg.h"
-#include <setjmp.h>
-#define YYEROR
-static jmp_buf jmp;
+#define gwion_alloc(a,b) xmalloc(a)
+#define gwion_realloc(a,b,c) xrealloc(a,b)
+#define gwion_free(a,b)  xfree(a)
 #define YY_FATAL_ERROR(msg) gwion_fatal_error(msg, yyscanner)
-static void yynoreturn gwion_fatal_error (const char* msg , yyscan_t yyscanner) {
-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    (void)yyg;
-    gw_err("%s\n", msg );
-    longjmp(jmp, 1);
-}
-static char* strip_lit(char* str);
-static char* alloc_str(char* str);
-static long htol(char* str);
-static int newline(void* data);
-static int adjust(void* data);
+ANN static void yynoreturn gwion_fatal_error (const char* msg , yyscan_t yyscanner);
+ANN static char* strip_lit(char* str);
+ANN static char* alloc_str(const char* str);
+ANN static long htol(const char* str);
+ANN static int newline(const void* data);
+ANN static int adjust(const void* data);
 %}
 %option noyywrap
 %option noyylineno noyymore
@@ -152,6 +144,7 @@ static int adjust(void* data);
 "const"                             { adjust(yyscanner); return CONST;}
 "auto_ptr"                          { adjust(yyscanner); return AUTO_PTR;}
 "auto"                              { adjust(yyscanner); return AUTO;}
+"inline"                            { adjust(yyscanner); return INLINE;}
 
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }
@@ -169,20 +162,26 @@ static int adjust(void* data);
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include "err_msg.h"
+
+ANN static void yynoreturn gwion_fatal_error (const char* msg , yyscan_t yyscanner) {
+  struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+  Scanner* scan = (Scanner*)yyg->yyextra_r;
+  gw_err("%s\n", msg);
+  longjmp(scan->jmp, 1);
+}
 
 char* strip_lit(char* str){
   str[strlen(str)-1] = '\0';
   return str+1;
 }
 
-char* alloc_str(char* str) {
-  Symbol sym = insert_symbol(str);
+char* alloc_str(const char* str) {
+  const Symbol sym = insert_symbol((m_str)str);
   return s_name(sym);
 }
 
-long htol(char* str) {
-  char * c = str;
+long htol(const char* str) {
+  char * c = (char*)str;
   unsigned long n = 0;
 
   c += 2;
@@ -205,20 +204,20 @@ long htol(char* str) {
   return n;
 }
 
-int newline(void* data) {
+int newline(const void* data) {
   Scanner* scan = *(Scanner**)data;
   scan->line++;
   scan->pos = 1;
   return 1;
 }
 
-int adjust(void* data) {
+int adjust(const void* data) {
   Scanner* scan = *(Scanner**)data;
-  scan->pos += gwion_get_leng(data);
+  scan->pos += gwion_get_leng((void*)data);
   return 0;
 }
 
-static void err_line(Scanner* scan) {
+static void err_line(const Scanner* scan) {
   m_uint n = 1;
   size_t len = 0;
   m_str line = NULL;
@@ -247,7 +246,7 @@ int gwion_error(Scanner* scan, char* s) {
   return 0;
 }
 
-int get_pos(Scanner* scan) {
+int get_pos(const Scanner* scan) {
   return scan->line;
 }
 
@@ -260,11 +259,10 @@ Ast parse(const m_str filename, FILE* f) {
   scan.file = f;
   scan.filename = filename;
   gwion_set_in(scan.file, scan.scanner);
-  if(setjmp(jmp)) {
+  if(setjmp(scan.jmp)) {
     scan.ast = NULL;
   } else if(gwion_parse(&scan))
     scan.ast = NULL;
-//  fclose(scan.file);
   gwion_lex_destroy(scan.scanner);
   return scan.ast;
 }

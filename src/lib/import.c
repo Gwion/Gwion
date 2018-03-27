@@ -17,10 +17,9 @@ struct Path {
 };
 
 ANN static ID_List templater_def(const Templater* templater) {
-  m_uint i;
   ID_List list[templater->n];
   list[0] = new_id_list(insert_symbol(templater->list[0]), 0);
-  for(i = 1; i < templater->n; i++) {
+  for(m_uint i = 1; i < templater->n; i++) {
     list[i] = new_id_list(insert_symbol(templater->list[i]), 0);
     list[i - 1]->next = list[i];
   }
@@ -78,9 +77,9 @@ ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
 }
 
 ANN static m_bool name_valid(const m_str a) {
-  m_uint i, len = strlen(a);
+  const m_uint len = strlen(a);
   m_uint lvl = 0;
-  for(i = 0; i < len; i++) {
+  for(m_uint i = 0; i < len; i++) {
     char c = a[i];
     if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
         || (c == '_') || (c >= '0' && c <= '9'))
@@ -106,9 +105,9 @@ ANN static m_bool name_valid(const m_str a) {
 }
 
 ANN static void path_valid_inner(const m_str curr) {
-  m_int j, size = strlen(curr);
-  for(j = (size / 2) + 1; --j;) {
-    char s = curr[j];
+  const m_int size = strlen(curr);
+  for(m_uint j = (size / 2) + 1; --j;) {
+    const char s = curr[j];
     curr[j] = curr[size - j - 1];
     curr[size - j - 1] = s;
   }
@@ -116,9 +115,8 @@ ANN static void path_valid_inner(const m_str curr) {
 
 ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
   char last = '\0';
-  m_uint i;
-  for(i = p->len + 1; --i;) {
-    char c = p->path[i - 1];
+  for(m_uint i = p->len + 1; --i;) {
+    const char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0)
       CHECK_BB(err_msg(UTIL_,  0,
             "illegal character '%c' in path '%s'...", c, p->path))
@@ -138,7 +136,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
 }
 
 ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
-  m_uint len = strlen(path);
+  const m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;
   char curr[len + 1];
@@ -163,7 +161,7 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
 
 ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
-  m_str name = type->name;
+  const m_str name = type->name;
 
   SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
   *code = new_vm_code(NULL, SZ_INT, 1, name);
@@ -172,14 +170,15 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   return 1;
 }
 
+__attribute__((nonnull(1,2)))
 Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
 #ifdef OBSTACK
-  Type t = obstack_alloc(&gwi->env->obs, sizeof(struct Type_));
+  const Type t = obstack_alloc(&gwi->env->obs, sizeof(struct Type_));
   memset(t, 0, sizeof(struct Type_));
   t->name = s_name(insert_symbol(name));
   t->parent = parent;
 #else
-  Type t = new_type(0, name, parent);
+  const Type t = new_type(0, name, parent);
 #endif
   t->size = size;
   return t;
@@ -217,8 +216,8 @@ m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
-    ID_List types = templater_def(&gwi->templater);
-    type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL, 0);
+    const ID_List types = templater_def(&gwi->templater);
+    type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL);
     type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
     SET_FLAG(type, ae_flag_template);
@@ -237,7 +236,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(gwi->env->class_def->parent ||
       (gwi->env->class_def->def && gwi->env->class_def->def->ext))
     CHECK_BB(err_msg(TYPE_, 0, "class extend already set"))
-  if(td->array && !td->array->exp_list)
+  if(td->array && !td->array->exp)
     CHECK_BB(err_msg(TYPE_, 0, "class extend array can't be empty"))
   if(!gwi->env->class_def->def) {
     const Type t =type_decl_resolve(gwi->env, td);
@@ -252,10 +251,10 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
           gwi->env->class_def->name)))
     if(td->array)
-      CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp_list))
+      CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp))
     if(ctor)
       CHECK_BB(emit_ext_ctor(gwi->emit, ctor))
-    CHECK_BB(emit_class_finish(gwi->emit, gwi->env->class_def->info))
+    emit_class_finish(gwi->emit, gwi->env->class_def->info);
     free_type_decl(td);
   } else {
     SET_FLAG(td, ae_flag_typedef);
@@ -267,9 +266,9 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
-  Nspc nspc = env->class_def->info;
+  const Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
-    nspc->class_data = xcalloc(1, nspc->class_data_size);
+    nspc->class_data = (char*)xcalloc(1, nspc->class_data_size);
   CHECK_BB(env_pop_class(env))
   return 1;
 }
@@ -289,7 +288,7 @@ ANN static void dl_var_set(DL_Var* v, const ae_flag flag) {
   v->list.self = &v->var;
   v->t.flag = flag;
   v->exp.exp_type = ae_exp_decl;
-  v->exp.d.exp_decl.type = &v->t;
+  v->exp.d.exp_decl.td   = &v->t;
   v->exp.d.exp_decl.list = &v->list;
   v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
@@ -322,13 +321,13 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
   v->var.addr = (void*)addr;
   if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
-    Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
-    Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
-    Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
-    Stmt stmt = new_stmt_exp(exp, 0);
-    Stmt_List list = new_stmt_list(stmt, NULL);
-    Section* section = new_section_stmt_list(list, 0);
-    Class_Body body = new_class_body(section, NULL, 0);
+    const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
+    const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
+    const Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
+    const Stmt stmt = new_stmt_exp(ae_stmt_exp, exp, 0);
+    const Stmt_List list = new_stmt_list(stmt, NULL);
+    Section* section = new_section_stmt_list(list);
+    Class_Body body = new_class_body(section, NULL);
     type_decl->array = v->t.array;
     if(!gwi->env->class_def->def->body)
       gwi->env->class_def->def->body = gwi->body = body;
@@ -346,12 +345,11 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   m_uint* array_depth, const m_uint array_depth2) {
-  m_uint i;
   if(array_depth2)
     *array_depth = array_depth2;
   if(*array_depth) {
     array_sub = new_array_sub(NULL, 0);
-    for(i = 1; i < *array_depth; i++)
+    for(m_uint i = 1; i < *array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
   }
   return array_sub;
@@ -361,8 +359,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth);
 ANN static Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
   Type_Decl* td = str2decl(env, s, depth);
   td->array = make_dll_arg_list_array(NULL, depth, 0);
-  Type_List tl = new_type_list(td, NULL, 0);
-  return tl;
+  return new_type_list(td, NULL);
 }
 
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
@@ -393,9 +390,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
 
 ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
   Arg_List arg_list    = NULL;
-  m_int i = 0;
-
-  for(i = dl_fun->narg + 1; --i; ) {
+  for(m_uint i = dl_fun->narg + 1; --i; ) {
     m_uint array_depth = 0, array_depth2 = 0;
     Array_Sub array_sub = NULL;
     Type_Decl* type_decl = NULL;
@@ -417,7 +412,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
     }
     array_sub = make_dll_arg_list_array(array_sub, &array_depth, array_depth2);
     var_decl = new_var_decl(insert_symbol(arg->name), array_sub, 0);
-    arg_list = new_arg_list(type_decl, var_decl, arg_list, 0);
+    arg_list = new_arg_list(type_decl, var_decl, arg_list);
   }
   return arg_list;
 }
@@ -442,7 +437,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
-  func_def = new_func_def(flag, type_decl, insert_symbol(name), arg_list, NULL, 0);
+  func_def = new_func_def(flag, type_decl, insert_symbol(name), arg_list, NULL);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -458,14 +453,14 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
   CHECK_OB(def)
   if(gwi->templater.n) {
-    def = new_func_def(0, NULL, NULL, NULL, NULL, 0);
-    ID_List list = templater_def(&gwi->templater);
+    def = new_func_def(0, NULL, NULL, NULL, NULL);
+    const ID_List list = templater_def(&gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, ae_flag_template);
   }
   if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
-    Section* section = new_section_func_def(def, 0);
-    Class_Body body = new_class_body(section, NULL, 0);
+    Section* section = new_section_func_def(def);
+    Class_Body body = new_class_body(section, NULL);
     if(!gwi->env->class_def->def->body)
       gwi->env->class_def->def->body = gwi->body = body;
     else {
@@ -483,8 +478,8 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
 static Type get_type(const Env env, const m_str str) {
   m_uint depth = 0;
-  ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
-  Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
+  const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
+  const Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(list);
   return t ? (depth ? array_type(t, depth) : t) : NULL;
@@ -492,11 +487,11 @@ static Type get_type(const Env env, const m_str str) {
 
 __attribute__((nonnull(1,2)))
 static m_int import_op(const Env env, const DL_Oper* op,
-                const f_instr f) {
-  Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
-  Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
-  Type ret = get_type(env, op->ret);
-  struct Op_Import opi = { op->op, lhs, rhs, ret,
+    const f_instr f) {
+  const Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
+  const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
+  const Type ret = get_type(env, op->ret);
+  const struct Op_Import opi = { op->op, lhs, rhs, ret,
     op->ck, op->em, (uintptr_t)f };
   return env_add_op(env, &opi);
 }
@@ -521,9 +516,8 @@ ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
 }
 
 ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
-  m_bool ret;
   gwi->oper.op = op;
-  ret = import_op(gwi->env, &gwi->oper, f);
+  const m_bool ret = import_op(gwi->env, &gwi->oper, f);
   gwi->oper.ck = NULL;
   gwi->oper.em = NULL;
   return ret;
@@ -538,7 +532,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   m_uint array_depth;
   ID_List type_path;
   Type_Decl* type_decl = NULL;
-  Arg_List args = make_dll_arg_list(env, dl_fun);
+  const Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
@@ -550,12 +544,14 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
 #include "func.h"
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
+  const Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
   CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
   if(gwi->env->class_def)
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
   else
     SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
+  ADD_REF(stmt->d.stmt_ptr.func);
+  ADD_REF(stmt->d.stmt_ptr.type);
   free_stmt(stmt);
   return 1;
 }
@@ -571,8 +567,8 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
     array->depth = array_depth;
   }
   type_decl = new_type_decl(id_list, 0, 0);
-  Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
-  Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL, 0);
+  const Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
+  const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
@@ -584,13 +580,13 @@ m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name) {
-  Exp exp = make_exp(type, name);
+  const Exp exp = make_exp(type, name);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
   return 1;
 }
 
 ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
-  Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
+  const Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
   stmt->d.stmt_union.flag = flag;
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
@@ -611,7 +607,7 @@ m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
 }
 
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint addr) {
-  ID_List list = new_id_list(insert_symbol(name), 0);
+  const ID_List list = new_id_list(insert_symbol(name), 0);
   DL_Enum* d = &gwi->enum_data;
   vector_add(&gwi->enum_data.addr, addr);
   if(!d->base)
@@ -623,9 +619,7 @@ ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint addr) {
 }
 
 ANN static void import_enum_end(DL_Enum* d, const Vector v) {
-  m_uint i;
-
-  for(i = 0; i < vector_size(v); i++) {
+  for(m_uint i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&d->addr, i);
     SET_FLAG(value, ae_flag_builtin);
@@ -638,7 +632,7 @@ ANN static void import_enum_end(DL_Enum* d, const Vector v) {
 
 ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
-  Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
+  const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
   if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return -1;
@@ -653,9 +647,9 @@ m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const,
 }
 
 OP_CHECK(opck_const_lhs) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->pos, "cannot assign '%s' on types '%s' and'%s'..."
+    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and'%s'..."
           "...(reason: --- left-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
     return t_null;
@@ -664,7 +658,7 @@ OP_CHECK(opck_const_lhs) {
 }
 
 OP_CHECK(opck_assign) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_lhs(env, data) == t_null)
     return t_null;
   bin->lhs->emit_var = 1;
@@ -672,15 +666,15 @@ OP_CHECK(opck_assign) {
 }
 
 OP_CHECK(opck_rhs_emit_var) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
 
 OP_CHECK(opck_rassign) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->pos,
+    if(err_msg(TYPE_, bin->self->pos,
           "cannot assign '%s' on types '%s' and'%s'...\n"
           "\t...(reason: --- right-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
@@ -691,13 +685,22 @@ OP_CHECK(opck_rassign) {
 }
 
 OP_CHECK(opck_unary_meta) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   unary->self->meta = ae_meta_value;
+#ifdef OPTIMIZE
+  if(unary->exp->exp_type == ae_exp_constprop2) {
+    unary->exp->exp_type =ae_exp_primary;
+    unary->exp->d.exp_primary.primary_type = ae_primary_id;
+    unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
+    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    unary->exp->d.exp_primary.value->d.ptr = 0;
+  }
+#endif
   return unary->exp->type;
 }
 
 OP_CHECK(opck_unary) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)
     if(err_msg(TYPE_, unary->exp->pos,
           "unary operator '%s' cannot be used on non-mutable data-types...",
@@ -705,23 +708,39 @@ OP_CHECK(opck_unary) {
       return t_null;
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
+#ifdef OPTIMIZE
+if(unary->exp->exp_type == ae_exp_primary &&
+    GET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop)) {
+    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    unary->exp->d.exp_primary.value->d.ptr = 0;
   return unary->exp->type;
 }
-Type check_exp_unary_spork(Env env, Stmt code);
+  if(unary->exp->exp_type == ae_exp_constprop) {
+    unary->exp->exp_type = ae_exp_primary;
+    unary->exp->d.exp_primary.primary_type = ae_primary_constprop;
+    unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
+    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    unary->exp->d.exp_primary.value->d.ptr = 0;
+  }
+#endif
+  return unary->exp->type;
+}
+
+ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 OP_CHECK(opck_spork) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return t_shred;
   else if(unary->code)
     return check_exp_unary_spork(env, unary->code);
   else
-    CHECK_BO(err_msg(TYPE_,  unary->pos,
+    CHECK_BO(err_msg(TYPE_,  unary->self->pos,
           "only function calls can be sporked..."))
   return NULL;
 }
 
 OP_CHECK(opck_post) {
-  Exp_Postfix* post = (Exp_Postfix*)data;
+  const Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var)
     if(err_msg(TYPE_, post->exp->pos,
           "post operator '%s' cannot be used on non-mutable data-type...",
@@ -729,37 +748,53 @@ OP_CHECK(opck_post) {
         return t_null;
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
+#ifdef OPTIMIZE
+if(post->exp->exp_type == ae_exp_primary &&
+    GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop)) {
+    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    post->exp->d.exp_primary.value->d.ptr = 0;
+  return post->exp->type;
+}
+  if(post->exp->exp_type == ae_exp_constprop2) {
+    post->exp->exp_type =ae_exp_primary;
+    post->exp->d.exp_primary.primary_type = ae_primary_constprop;
+    post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
+    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    post->exp->d.exp_primary.value->d.ptr = 0;
+}
+#endif
   return post->exp->type;
 }
 
-Type   check_exp(Env env, Exp exp);
-m_bool check_exp_array_subscripts(Exp exp);
+ANN Type check_exp(const Env env, const Exp exp);
+ANN m_bool check_exp_array_subscripts(const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  const Type t = type_decl_resolve(env, unary->type);
+  const Type t = type_decl_resolve(env, unary->td);
   if(!t)
-    CHECK_BO(type_unknown(unary->type->xid, "'new' expression"))
-  if(unary->type->array) {
-    CHECK_OO(check_exp(env, unary->type->array->exp_list))
-    CHECK_BO(check_exp_array_subscripts(unary->type->array->exp_list))
+    CHECK_BO(type_unknown(unary->td->xid, "'new' expression"))
+  if(unary->td->array) {
+    CHECK_OO(check_exp(env, unary->td->array->exp))
+    CHECK_BO(check_exp_array_subscripts(unary->td->array->exp))
   } else
-    CHECK_BO(prim_ref(unary->type, t))
+    CHECK_BO(prim_ref(unary->td, t))
   return t;
 }
 
 OP_EMIT(opem_new) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,
-    unary->type->array, GET_FLAG(unary->type, ae_flag_ref)))
+    unary->td->array, GET_FLAG(unary->td, ae_flag_ref)))
   CHECK_OB(emitter_add_instr(emit, add2gc))
   return 1;
 }
 
 
-m_bool emit_exp_spork(Emitter emit, Exp_Func* exp);
-m_bool emit_exp_spork1(Emitter emit, Stmt stmt);
+ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp);
+ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
+
 OP_EMIT(opem_spork) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) :
         emit_exp_spork(emit, &unary->exp->d.exp_func)))
   return 1;

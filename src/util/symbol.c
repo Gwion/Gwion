@@ -14,13 +14,13 @@ static Symbol hashtable[SIZE];
 
 __attribute__((nonnull(1)))
 static Symbol mksymbol(const m_str name, const Symbol next) {
-  Symbol s = mp_alloc(Symbol);
+  const Symbol s = mp_alloc(Symbol);
   s->name = strdup(name);
   s->next = next;
   return s;
 }
 
-ANN static void free_symbol(Symbol s) {
+ANN static void free_symbol(const Symbol s) {
   if(s->next)
     free_symbol(s->next);
   free(s->name);
@@ -30,7 +30,7 @@ ANN static void free_symbol(Symbol s) {
 void free_symbols(void) {
   LOOP_OPTIM
   for(unsigned int i = SIZE + 1; --i;) {
-    Symbol s = hashtable[i - 1];
+    const Symbol s = hashtable[i - 1];
     if(s)
       free_symbol(s);
   }
@@ -45,11 +45,10 @@ ANN static unsigned int hash(const char *s0) {
 }
 
 ANN Symbol insert_symbol(const m_str name) {
-  unsigned int index = hash(name) % SIZE;
-  Symbol sym, syms = hashtable[index];
-
+  const unsigned int index = hash(name) % SIZE;
+  const Symbol syms = hashtable[index];
   LOOP_OPTIM
-  for(sym = syms; sym; sym = sym->next)
+  for(Symbol sym = syms; sym; sym = sym->next)
     if(!strcmp(sym->name, (m_str)name))
       return sym;
   return hashtable[index] = mksymbol(name, syms);

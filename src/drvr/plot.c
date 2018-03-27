@@ -2,8 +2,8 @@
 #include "vm.h"
 #include "driver.h"
 
-static m_bool plot_ini(VM* vm, DriverInfo* di) {
-  FILE** sf = xcalloc(di->chan, sizeof(void*));
+static m_bool plot_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
+  FILE** sf = (FILE**)xcalloc(di->chan, sizeof(void*));
   char tmp[140];
   if(di->chan == 1) {
     sprintf(tmp, "%s.wav", di->card);
@@ -16,7 +16,7 @@ static m_bool plot_ini(VM* vm, DriverInfo* di) {
   return 1;
 }
 
-static void plot_run(VM* vm, DriverInfo* di) {
+static void plot_run(VM* vm __attribute__((unused)), DriverInfo* di) {
   m_uint i, chan;
   sp_data* sp = vm->sp;
   FILE** sf = (FILE**)di->data;
@@ -31,7 +31,7 @@ static void plot_run(VM* vm, DriverInfo* di) {
   }
 }
 
-static void plot_del(VM* vm, DriverInfo* di) {
+static void plot_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   FILE** sf = (FILE**)di->data;
   LOOP_OPTIM
   for(m_uint i = 0; i < di->chan; i++)

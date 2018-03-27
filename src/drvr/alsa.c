@@ -76,7 +76,7 @@ static int sp_alsa_init(DriverInfo* di, const char* device,
   return 1;
 }
 
-static void alsa_run_init(VM* vm, DriverInfo* di) {
+static void alsa_run_init(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*)di->data;
   snd_pcm_hwsync(info->out);
   snd_pcm_hwsync(info->in);
@@ -84,8 +84,8 @@ static void alsa_run_init(VM* vm, DriverInfo* di) {
   snd_pcm_start(info->in);
 }
 
-static m_bool alsa_ini(VM* vm, DriverInfo* di) {
-  struct AlsaInfo* info = xcalloc(1, sizeof(struct AlsaInfo));
+static m_bool alsa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
+  struct AlsaInfo* info = (struct AlsaInfo*)xcalloc(1, sizeof(struct AlsaInfo));
   di->data = info;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
     err_msg(ALSA_, 0, "problem with playback");
@@ -107,14 +107,14 @@ static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
   m_uint i;
 
-  info->in_buf  = xcalloc(sp->nchan, SZ_FLOAT);
-  info->out_buf = xcalloc(sp->nchan, SZ_FLOAT);
-  info->_out_buf   = xcalloc(sp->nchan, SZ_INT);
-  info->_in_buf    = xcalloc(sp->nchan, SZ_INT);
-  for(i = 0; i < sp->nchan; i++) {
-    info->out_buf[i]  = xcalloc(di->bufsize, SZ_FLOAT);
+  info->in_buf  = (m_float**)xcalloc(sp->nchan, SZ_FLOAT);
+  info->out_buf = (m_float**)xcalloc(sp->nchan, SZ_FLOAT);
+  info->_out_buf   = (void**)xcalloc(sp->nchan, SZ_INT);
+  info->_in_buf    = (void**)xcalloc(sp->nchan, SZ_INT);
+  for(i = 0; i < (m_uint)sp->nchan; i++) {
+    info->out_buf[i]  = (m_float*)xcalloc(di->bufsize, SZ_FLOAT);
     info->_out_buf[i] = info->out_buf[i];
-    info->in_buf[i]   = xcalloc(di->bufsize, SZ_FLOAT);
+    info->in_buf[i]   = (m_float*)xcalloc(di->bufsize, SZ_FLOAT);
     info->_in_buf[i]  = info->in_buf[i];
   }
 }
@@ -127,11 +127,11 @@ static void alsa_run_non_interleaved(VM* vm, DriverInfo* di) {
     snd_pcm_readn(info->in, info->_in_buf, di->bufsize);
     LOOP_OPTIM
     for(i = 0; i < di->bufsize; i++) {
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         vm->in[chan] = ((m_float**)(info->_in_buf))[chan][i];
       di->run(vm);
       LOOP_OPTIM
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         info->out_buf[chan][i] = sp->out[chan];
       sp->pos++;
     }
@@ -150,11 +150,11 @@ static void alsa_run_interleaved(VM* vm, DriverInfo* di) {
     LOOP_OPTIM
     for(i = 0; i < di->bufsize; i++) {
       LOOP_OPTIM
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         vm->in[chan] = ((m_float*)(info->in_bufi))[j++];
       di->run(vm);
       LOOP_OPTIM
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         ((m_float*)info->out_bufi)[k++] = sp->out[chan];
       sp->pos++;
     }
@@ -171,8 +171,8 @@ static void alsa_run(VM* vm, DriverInfo* di) {
     alsa_run_init_non_interleaved(sp, di);
     alsa_run_non_interleaved(vm, di);
   } else {
-    info->in_bufi  = xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
-    info->out_bufi = xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->in_bufi  = (void*)xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->out_bufi = (void*)xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
     alsa_run_interleaved(vm, di);
   }
 }
@@ -180,7 +180,7 @@ static void alsa_run(VM* vm, DriverInfo* di) {
 static void alsa_del_non_interleaved(VM* vm, struct AlsaInfo* info) {
   m_uint chan;
   if(info->in_buf && info->out_buf) {
-    for(chan = 0; chan < vm->sp->nchan; chan++) {
+    for(chan = 0; chan < (m_uint)vm->sp->nchan; chan++) {
       free(info->in_buf[chan]);
       free(info->out_buf[chan]);
     }

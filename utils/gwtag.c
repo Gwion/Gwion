@@ -46,7 +46,7 @@ static void tag_id_list(Tagger* tagger, ID_List list) {
 
 static void tag_array(Tagger* tagger, Array_Sub array) {
   m_uint i;
-  Exp exp = array->exp_list;
+  Exp exp = array->exp;
   for(i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     if(exp)
@@ -65,7 +65,7 @@ static void tag_array(Tagger* tagger, Array_Sub array) {
 static void tag_type_list(Tagger* tagger, Type_List list) {
   tag_print(tagger, "<{");
   while(list) {
-    tag_type_decl(tagger, list->list);
+    tag_type_decl(tagger, list->td);
     list = list->next;
     if(list)
       tag_print(tagger, ", ");
@@ -93,7 +93,7 @@ static void tag_exp_decl(Tagger* tagger, Exp_Decl* decl) {
   while(list) {
     tag(tagger, s_name(list->self->xid));
     tag_print(tagger, "/^");
-    tag_type_decl(tagger, decl->type);
+    tag_type_decl(tagger, decl->td);
     if(list->self->array)
       tag_array(tagger, list->self->array);
     tag_print(tagger, "$/;\"\t%s\n", vector_at(tagger->class_stack, 0) ?
@@ -117,7 +117,7 @@ static void tag_exp_primary(Tagger* tagger __attribute__((unused)), Exp_Primary*
 
 static void tag_exp_array(Tagger* tagger, Exp_Array* array) {
   tag_exp(tagger, array->base);
-  tag_exp(tagger, array->indices->exp_list);
+  tag_exp(tagger, array->array->exp);
 }
 
 static void tag_exp_cast(Tagger* tagger, Exp_Cast* cast) {
@@ -182,6 +182,8 @@ static void tag_exp(Tagger* tagger,  Exp exp) {
       case ae_exp_if:
         tag_exp_if(tagger, &exp->d.exp_if);
         break;
+      default:
+        break;
     }
     exp = exp->next;
   }
@@ -192,7 +194,7 @@ static void tag_stmt_code(Tagger* tagger, Stmt_Code stmt) {
     tag_stmt_list(tagger, stmt->stmt_list);
 }
 
-static void tag_stmt_return(Tagger* tagger, Stmt_Return stmt) {
+static void tag_stmt_return(Tagger* tagger, Stmt_Exp stmt) {
   if(stmt->val)
     tag_exp(tagger, stmt->val);
 }
@@ -223,7 +225,7 @@ static void tag_stmt_switch(Tagger* tagger, Stmt_Switch stmt) {
   tag_exp(tagger, stmt->val);
 }
 
-static void tag_stmt_case(Tagger* tagger, Stmt_Case stmt) {
+static void tag_stmt_case(Tagger* tagger, Stmt_Exp stmt) {
   tag_exp(tagger, stmt->val);
 }
 
@@ -251,17 +253,17 @@ void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
   Arg_List list = ptr->args;
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
-  tag_type_decl(tagger, ptr->type);
+  tag_type_decl(tagger, ptr->td);
   tag_print(tagger, " ");
   tag_print(tagger, s_name(ptr->xid));
   tag_print(tagger, "(");
   while(list) {
-    tag_type_decl(tagger, list->type_decl);
+    tag_type_decl(tagger, list->td);
     tag_print(tagger, " %s", s_name(list->var_decl->xid));
     list = list->next;
     if(list)
       tag_print(tagger, ", ");
-    else if(GET_FLAG(ptr->type, ae_flag_variadic))
+    else if(GET_FLAG(ptr->td, ae_flag_variadic))
       tag_print(tagger, ", ...");
   }
 
@@ -271,7 +273,7 @@ void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
 void tag_stmt_typedef(Tagger* tagger, Stmt_Typedef ptr) {
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
-  tag_type_decl(tagger, ptr->type);
+  tag_type_decl(tagger, ptr->td);
   tag_print(tagger, " ");
   tag_print(tagger, s_name(ptr->xid));
   tag_print(tagger, ") {$/;\tt\n");
@@ -293,11 +295,11 @@ void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Goto_Label stmt 
   return;
 }
 
-void tag_stmt_continue(Tagger* tagger __attribute__((unused)), Stmt_Continue stmt __attribute__((unused))) {
+void tag_stmt_continue(Tagger* tagger __attribute__((unused)), Stmt stmt __attribute__((unused))) {
   return;
 }
 
-void tag_stmt_break(Tagger* tagger __attribute__((unused)), Stmt_Break stmt __attribute__((unused))) {
+void tag_stmt_break(Tagger* tagger __attribute__((unused)), Stmt stmt __attribute__((unused))) {
   return;
 }
 
@@ -312,13 +314,13 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
       tag_stmt_code(tagger, &stmt->d.stmt_code);
       break;
     case ae_stmt_return:
-      tag_stmt_return(tagger, &stmt->d.stmt_return);
+      tag_stmt_return(tagger, &stmt->d.stmt_exp);
       break;
     case ae_stmt_if:
       tag_stmt_if(tagger, &stmt->d.stmt_if);
       break;
     case ae_stmt_while:
-      tag_stmt_flow(tagger, &stmt->d.stmt_while);
+      tag_stmt_flow(tagger, &stmt->d.stmt_flow);
       break;
     case ae_stmt_for:
       tag_stmt_for(tagger, &stmt->d.stmt_for);
@@ -327,7 +329,7 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
       tag_stmt_auto(tagger, &stmt->d.stmt_auto);
       break;
     case ae_stmt_until:
-      tag_stmt_flow(tagger, &stmt->d.stmt_until);
+      tag_stmt_flow(tagger, &stmt->d.stmt_flow);
       break;
     case ae_stmt_loop:
       tag_stmt_loop(tagger, &stmt->d.stmt_loop);
@@ -336,16 +338,16 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
       tag_stmt_switch(tagger, &stmt->d.stmt_switch);
       break;
     case ae_stmt_case:
-      tag_stmt_case(tagger, &stmt->d.stmt_case);
+      tag_stmt_case(tagger, &stmt->d.stmt_exp);
       break;
     case ae_stmt_enum:
       tag_stmt_enum(tagger, &stmt->d.stmt_enum);
       break;
     case ae_stmt_continue:
-      tag_stmt_continue(tagger, &stmt->d.stmt_continue);
+      tag_stmt_continue(tagger, stmt);
       break;
     case ae_stmt_break:
-      tag_stmt_break(tagger, &stmt->d.stmt_break);
+      tag_stmt_break(tagger, stmt);
       break;
     case ae_stmt_gotolabel:
       tag_stmt_goto(tagger, &stmt->d.stmt_gotolabel);
@@ -378,12 +380,12 @@ static void tag_func_def(Tagger* tagger, Func_Def f) {
     tag_id_list(tagger, f->tmpl->list);
     tag_print(tagger, " ");
   }
-  tag_type_decl(tagger, f->type_decl);
+  tag_type_decl(tagger, f->td);
   tag_print(tagger, " ");
   tag_print(tagger, s_name(f->name));
   tag_print(tagger, "(");
   while(list) {
-    tag_type_decl(tagger, list->type_decl);
+    tag_type_decl(tagger, list->td);
     tag_print(tagger, " %s", s_name(list->var_decl->xid));
     list = list->next;
     if(list)

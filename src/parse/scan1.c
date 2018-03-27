@@ -19,26 +19,26 @@ ANN static m_bool scan1_exp_decl_template(const Type t, const Exp_Decl* decl) { 
   if(GET_FLAG(t, ae_flag_template)) {
     Exp_Decl* d = (Exp_Decl*)decl;
     d->base = t->def;
-    d->m_type = t;
+    d->type = t;
   }
   return 1;
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  const Type t = type_decl_resolve(env, decl->type);
+  const Type t = type_decl_resolve(env, decl->td);
   if(!t)
-    CHECK_BO(type_unknown(decl->type->xid, "declaration"))
+    CHECK_BO(type_unknown(decl->td->xid, "declaration"))
   if(!t->size)
-    CHECK_BO(err_msg(SCAN1_, decl->pos,
+    CHECK_BO(err_msg(SCAN1_, decl->self->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
-  if(!GET_FLAG(decl->type, ae_flag_ref)) {
+  if(!GET_FLAG(decl->td, ae_flag_ref)) {
     if(env->class_def && (t == env->class_def) && !env->class_scope)
-      CHECK_BO(err_msg(SCAN1_, decl->pos,
+      CHECK_BO(err_msg(SCAN1_, decl->self->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
   } else
-    CHECK_BO(prim_ref(decl->type, t))
-  if(GET_FLAG(decl->type, ae_flag_private) && !env->class_def)
-      CHECK_BO(err_msg(SCAN2_, decl->pos,
+    CHECK_BO(prim_ref(decl->td, t))
+  if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
+      CHECK_BO(err_msg(SCAN1_, decl->self->pos,
             "must declare private variables at class scope..."))
   return t;
 }
@@ -48,16 +48,16 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Type t = scan1_exp_decl_type(env, decl);
   CHECK_OB(t)
   CHECK_BB(scan1_exp_decl_template(t, decl))
-  if(decl->m_type && !env->func &&
+  if(decl->type && !env->func &&
     !(env->class_def && GET_FLAG(env->class_def, ae_flag_template) && GET_FLAG(env->class_def, ae_flag_builtin)))
-    t = decl->m_type;
+    t = decl->type;
   else
-    ((Exp_Decl*)decl)->m_type = t;
+    ((Exp_Decl*)decl)->type = t;
   while(list) {
     Value value;
     const Var_Decl v = list->self;
     if(isres(v->xid) > 0)
-      CHECK_BB(err_msg(SCAN2_, v->pos,
+      CHECK_BB(err_msg(SCAN1_, v->pos,
             "\t... in variable declaration", s_name(v->xid)))
     if((value = nspc_lookup_value0(env->curr, v->xid)) &&
       (!(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) ||
@@ -67,17 +67,17 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
               "variable %s has already been defined in the same scope...",
               s_name(v->xid)))
     if(v->array) {
-      if(v->array->exp_list)
-        CHECK_BB(scan1_exp(env, v->array->exp_list))
-      CHECK_OB((t = array_type(decl->m_type, v->array->depth)))
+      if(v->array->exp)
+        CHECK_BB(scan1_exp(env, v->array->exp))
+      t = array_type(decl->type, v->array->depth);
     } else
-      t = decl->m_type;
+      t = decl->type;
     v->value = value ? value : new_value(t, s_name(v->xid));
     nspc_add_value(env->curr, v->xid, v->value);
-    v->value->flag = decl->type->flag;
-    if(v->array && !v->array->exp_list)
+    v->value->flag = decl->td->flag;
+    if(v->array && !v->array->exp)
       SET_FLAG(v->value, ae_flag_ref);
-    if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->type, ae_flag_static))
+    if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->td, ae_flag_static))
       SET_FLAG(v->value, ae_flag_member);
     if(!env->class_def && !env->func && !env->class_scope)
       SET_FLAG(v->value, ae_flag_global);
@@ -86,67 +86,13 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     v->value->owner_class = env->func ? NULL : env->class_def;
     list = list->next;
   }
-  ((Exp_Decl*)decl)->m_type = decl->list->self->value->m_type;
+  ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   return 1;
 }
 
-#ifdef OPTIMIZE
-ANN static m_bool is_const(Exp e) {
-  return e->exp_type == ae_exp_primary && e->d.exp_primary.primary_type == ae_primary_num && e->meta == ae_meta_value;
-}
-
-ANN static void optimize_const_folding(const Exp_Binary* bin) {
-  Exp l = bin->lhs, r = bin->rhs;
-  m_int ret = 0;
-  switch(bin->op) {
-    case op_plus:
-      ret = l->d.exp_primary.d.num + r->d.exp_primary.d.num;
-      break;
-    case op_minus:
-      ret = l->d.exp_primary.d.num - r->d.exp_primary.d.num;
-      break;
-    case op_times:
-       ret = l->d.exp_primary.d.num * r->d.exp_primary.d.num;
-       break;
-    case op_divide:
-       ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
-       break;
-    case op_percent:
-      ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
-      break;
-    case op_shift_left:
-      ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;
-      break;
-    case op_shift_right:
-      ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
-      break;
-    default:
-      return;
-  }
-  Exp n = bin->self->next;
-  Exp e = bin->self;
-  free_exp(l);
-  free_exp(r);
-  memset(e, 0, sizeof(struct Exp_));
-  e->exp_type = ae_exp_primary;
-  e->d.exp_primary.primary_type = ae_primary_num;
-  e->d.exp_primary.d.num = ret;
-  e->d.exp_primary.self = e;
-  e->next = n;
-}
-#define OPTIMIZE_CONST_FOLD\
-  if(is_const(binary->lhs) && is_const(binary->rhs))\
-    optimize_const_folding(binary);
-#else
-#define OPTIMIZE_CONST_FOLD
-#endif
-
-ANN static m_bool scan1_exp_binary(const Env env, const Exp_Binary* binary) { GWDEBUG_EXE
-  CHECK_BB(scan1_exp(env, binary->lhs))
-  CHECK_BB(scan1_exp(env, binary->rhs))
-  OPTIMIZE_CONST_FOLD
-  return 1;
-
+ANN static m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
+  CHECK_BB(scan1_exp(env, bin->lhs))
+  return scan1_exp(env, bin->rhs);
 }
 
 ANN static m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
@@ -157,7 +103,7 @@ ANN static m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GW
 
 ANN static m_bool scan1_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, array->base))
-  return scan1_exp(env, array->indices->exp_list);
+  return scan1_exp(env, array->array->exp);
 }
 
 ANN static m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
@@ -241,6 +187,10 @@ ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
       case ae_exp_if:
         CHECK_BB(scan1_exp_if(env, &exp->d.exp_if))
         break;
+#ifdef OPTIMIZE
+      default:
+         break;
+#endif
     }
   } while((exp = exp->next));
   return 1;
@@ -260,7 +210,7 @@ ANN static m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt, const m_b
   return ret;
 }
 
-ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Return stmt) { GWDEBUG_EXE
+ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
@@ -299,7 +249,7 @@ ANN static m_bool scan1_stmt_switch(const Env env, const Stmt_Switch stmt) { GWD
   return scan1_exp(env, stmt->val);
 }
 
-ANN static m_bool scan1_stmt_case(const Env env, const Stmt_Case stmt) { GWDEBUG_EXE
+ANN static m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
@@ -317,7 +267,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   while(list) {
     Value v;
     if(nspc_lookup_value0(env->curr, list->xid))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+      CHECK_BB(err_msg(SCAN1_, stmt->self->pos,
             "in enum argument %i '%s' already declared as variable",
             count, s_name(list->xid)))
     v = new_value(stmt->t, s_name(list->xid));
@@ -338,34 +288,34 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 
 ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
   do {
-    if(!(arg_list->type = type_decl_resolve(env, arg_list->type_decl)))
-      CHECK_BB(type_unknown(arg_list->type_decl->xid, "function argument"))
-    if(arg_list->type_decl->types)
+    if(!(arg_list->type = type_decl_resolve(env, arg_list->td)))
+      CHECK_BB(type_unknown(arg_list->td->xid, "function argument"))
+    if(arg_list->td->types)
       ADD_REF(arg_list->type)
   } while((arg_list = arg_list->next));
   return 1;
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
-  if(ptr->type->array)
-    CHECK_BB(check_array_empty(ptr->type->array, "function pointer"))
-  if(!(ptr->ret_type = type_decl_resolve(env, ptr->type)))
-    CHECK_BB(type_unknown(ptr->type->xid, "func pointer definition"))
+  if(ptr->td->array)
+    CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
+  if(!(ptr->ret_type = type_decl_resolve(env, ptr->td)))
+    CHECK_BB(type_unknown(ptr->td->xid, "func pointer definition"))
   if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
-    CHECK_BB(err_msg(SCAN1_, ptr->pos,
+    CHECK_BB(err_msg(SCAN1_, ptr->td->pos,
           "can't declare func pointer static outside of a class"))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
-    CHECK_BB(err_msg(SCAN1_, ptr->pos,
+    CHECK_BB(err_msg(SCAN1_, ptr->td->pos,
           "\t... in typedef '%s'...", s_name(ptr->xid)))
   return 1;
 }
 
 ANN static m_bool scan1_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
-  return stmt->m_type->def ? scan1_class_def(env, stmt->m_type->def) : 1;
+  return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;
 }
 
 ANN static m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
-  if(array->exp_list)
+  if(array->exp)
     CHECK_BB(err_msg(SCAN1_, array->pos,
       "array declaration must be empty in union."))
   return 1;
@@ -376,17 +326,17 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
 
   if(stmt->xid) {
     UNSET_FLAG(stmt, ae_flag_private);
-    env_push_class(env, stmt->value->m_type);
+    env_push_class(env, stmt->value->type);
   }
   while(l) {
     Var_Decl_List list = l->self->d.exp_decl.list;
 
     if(l->self->exp_type != ae_exp_decl)
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+      CHECK_BB(err_msg(SCAN1_, stmt->self->pos,
             "invalid expression type '%i' in union declaration."))
-    SET_FLAG(l->self->d.exp_decl.type, ae_flag_checked | stmt->flag);
+    SET_FLAG(l->self->d.exp_decl.td, ae_flag_checked | stmt->flag);
     if(GET_FLAG(stmt, ae_flag_static))
-      SET_FLAG(l->self->d.exp_decl.type, ae_flag_static);
+      SET_FLAG(l->self->d.exp_decl.td, ae_flag_static);
     while(list) {
       const Var_Decl var_decl = list->self;
       if(var_decl->array)
@@ -412,13 +362,10 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       SCOPE(ret = scan1_stmt_code(env, &stmt->d.stmt_code, 1))
       break;
     case ae_stmt_return:
-      ret = scan1_stmt_return(env, &stmt->d.stmt_return);
+      ret = scan1_stmt_return(env, &stmt->d.stmt_exp);
       break;
     case ae_stmt_if:
       NSPC(ret = scan1_stmt_if(env, &stmt->d.stmt_if))
-      break;
-    case ae_stmt_while:
-      NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_while))
       break;
     case ae_stmt_for:
       NSPC(ret = scan1_stmt_for(env, &stmt->d.stmt_for))
@@ -426,8 +373,9 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     case ae_stmt_auto:
       NSPC(ret = scan1_stmt_auto(env, &stmt->d.stmt_auto))
       break;
+    case ae_stmt_while:
     case ae_stmt_until:
-      NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_until))
+      NSPC(ret = scan1_stmt_flow(env, &stmt->d.stmt_flow))
       break;
     case ae_stmt_loop:
       NSPC(ret = scan1_stmt_loop(env, &stmt->d.stmt_loop))
@@ -436,7 +384,7 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       NSPC(ret = scan1_stmt_switch(env, &stmt->d.stmt_switch))
       break;
     case ae_stmt_case:
-      ret = scan1_stmt_case(env, &stmt->d.stmt_case);
+      ret = scan1_stmt_case(env, &stmt->d.stmt_exp);
       break;
     case ae_stmt_enum:
       ret = scan1_stmt_enum(env, &stmt->d.stmt_enum);
@@ -460,16 +408,32 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
+#ifdef OPTIMIZE
+  do {
+    CHECK_BB(scan1_stmt(env, l->stmt))
+    if(l->next) {
+      if(l->stmt->stmt_type == ae_stmt_return) {
+        Stmt_List tmp = l->next;
+        l->next = NULL;
+        free_stmt_list(tmp);
+      } else if(l->next->stmt->stmt_type == ae_stmt_exp &&
+          !l->next->stmt->d.stmt_exp.val) {
+        l->next = l->next->next;
+      }
+    }
+  }while((l = l->next));
+#else
   do CHECK_BB(scan1_stmt(env, l->stmt))
   while((l = l->next));
+#endif
   return 1;
 }
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(f->type_decl->array)
-    CHECK_BB(check_array_empty(f->type_decl->array, "function return"))
-  if(!(f->ret_type = type_decl_resolve(env, f->type_decl)))
-      CHECK_BB(type_unknown(f->type_decl->xid, "function return"))
+  if(f->td->array)
+    CHECK_BB(check_array_empty(f->td->array, "function return"))
+  if(!(f->ret_type = type_decl_resolve(env, f->td)))
+      CHECK_BB(type_unknown(f->td->xid, "function return"))
   return 1;
 }
 
@@ -481,14 +445,14 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
     list = list->next;
   }
   if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)
-    CHECK_BB(err_msg(SCAN1_, f->pos,
+    CHECK_BB(err_msg(SCAN1_, f->td->pos,
           "operators can only have one or two arguments"))
   return 1;
 }
 
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "dtor must be in class def!!"))
+    CHECK_BB(err_msg(SCAN1_, f->td->pos, "dtor must be in class def!!"))
   if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(f))
   return 1;
@@ -497,14 +461,14 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
 ANN static m_bool scan1_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   m_bool ret;
   nspc_push_value(env->curr);
-  ret = scan1_stmt_code(env, &f->code->d.stmt_code, 0);
+  ret = scan1_stmt_code(env, &f->d.code->d.stmt_code, 0);
   nspc_pop_value(env->curr);
   return ret;
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_private) && !env->class_def)
-    CHECK_BB(err_msg(SCAN1_, f->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
+    CHECK_BB(err_msg(SCAN1_, f->td->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
@@ -512,8 +476,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
-    (f->code && scan1_func_def_code(env, f) < 0))
-    CHECK_BB(err_msg(SCAN1_, f->pos, "\t...in function '%s'", s_name(f->name)))
+    (!GET_FLAG(f, ae_flag_builtin) && scan1_func_def_code(env, f) < 0))
+    CHECK_BB(err_msg(SCAN1_, f->td->pos, "\t...in function '%s'", s_name(f->name)))
   env->func = NULL;
   return 1;
 }
@@ -540,12 +504,12 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def)
       CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
     if(class_def->ext->array) {
-      if(!class_def->ext->array->exp_list)
-        CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use empty []'s in class extend"))
-      CHECK_BB(scan1_exp(env, class_def->ext->array->exp_list))
+      if(!class_def->ext->array->exp)
+        CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend"))
+      CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
     if(type_ref(class_def->type->parent))
-        CHECK_BB(err_msg(SCAN1_, class_def->pos, "can't use ref type in class extend"))
+        CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
   }
   CHECK_BB(env_push_class(env, class_def->type))
   while(body) {

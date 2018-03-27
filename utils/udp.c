@@ -87,7 +87,7 @@ ANN static m_bool server_init(Udp* udp) {
   host = gethostbyname(udpif->host);
   if(!host) {
     udp->saddr.sin_addr.s_addr = inet_addr(udpif->host);
-    if(udp->saddr.sin_addr.s_addr == -1) {
+    if((m_bool)udp->saddr.sin_addr.s_addr == -1) {
       udp->saddr.sin_addr.s_addr = htonl(INADDR_ANY);
       err_msg(UDP, 0, "%s not found. setting hostname to localhost",
           udpif->host);

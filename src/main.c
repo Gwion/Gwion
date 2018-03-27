@@ -11,7 +11,7 @@
 #include "type.h"
 #include "emit.h"
 #include "compile.h"
-#ifdef UPD
+#ifdef GWUDP
 #include "udp.h"
 #endif
 #include "driver.h"
@@ -62,6 +62,8 @@ m_uint compile(VM* vm, const m_str filename) {
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   code = emit_code(vm->emit);
+  if(GET_FLAG(code, ae_flag_recurs))
+    code_optim(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);
   shred->args = args;

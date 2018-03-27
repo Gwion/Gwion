@@ -4,7 +4,7 @@
 #include "import.h"
 
 static MFUN(gwf_pair_set) {
-  m_uint sz = sizeof(o->data);
+  const m_uint sz = sizeof(o->data);
   memcpy(o->data, MEM(SZ_INT), sz);
 }
 

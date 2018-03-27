@@ -5,6 +5,7 @@
 
 #include "vm.h"
 #include "driver.h"
+#include "err_msg.h"
 
 struct JackInfo {
   jack_port_t** iport;
@@ -28,14 +29,14 @@ static void inner_cb(struct JackInfo* info, jack_default_audio_sample_t** in,
     for(chan = 0; chan < vm->n_in; chan++)
       vm->in[chan] = in[chan][frame];
     vm_run(vm);
-    for(chan = 0; chan < sp->nchan; chan++)
+    for(chan = 0; chan < (m_uint)sp->nchan; chan++)
       out[chan][frame] = sp->out[chan];
     sp->pos++;
   }
 }
 
 static int gwion_cb(jack_nframes_t nframes, void *arg) {
-  int chan;
+  m_uint chan;
   struct JackInfo* info = (struct JackInfo*)arg;
   VM* vm  = info->vm;
   sp_data* sp = vm->sp;
@@ -43,7 +44,7 @@ static int gwion_cb(jack_nframes_t nframes, void *arg) {
   jack_default_audio_sample_t  * out[sp->nchan];
   for(chan = 0; chan < vm->n_in; chan++)
     in[chan] = jack_port_get_buffer(info->iport[chan], nframes);
-  for(chan = 0; chan < sp->nchan; chan++)
+  for(chan = 0; chan < (m_uint)sp->nchan; chan++)
     out[chan] = jack_port_get_buffer(info->oport[chan], nframes);
   inner_cb(info, in, out, nframes);
   return 0;
@@ -82,9 +83,9 @@ static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
 }
 
 static m_bool jack_ini(VM* vm, DriverInfo* di) {
-  struct JackInfo* info = xmalloc(sizeof(struct JackInfo));
-  info->iport = xmalloc(sizeof(jack_port_t *) * di->in);
-  info->oport = xmalloc(sizeof(jack_port_t *) * di->out);
+  struct JackInfo* info = (struct JackInfo*)xmalloc(sizeof(struct JackInfo));
+  info->iport = (jack_port_t**)xmalloc(sizeof(jack_port_t *) * di->in);
+  info->oport = (jack_port_t**)xmalloc(sizeof(jack_port_t *) * di->out);
   CHECK_BB(init_client(vm, info))
   CHECK_BB(set_chan(info, di->out, 0))
   CHECK_BB(set_chan(info, di->in,  1))
@@ -131,7 +132,7 @@ static void jack_run(VM* vm, DriverInfo* di) {
     usleep(10);
 }
 
-static void jack_del(VM* vm, DriverInfo* di) {
+static void jack_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct JackInfo* info = (struct JackInfo*)di->data;
   jack_deactivate(info->client);
   jack_client_close(info->client);

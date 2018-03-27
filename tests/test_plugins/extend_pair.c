@@ -12,8 +12,8 @@ IMPORT {
   Type_Decl* td  = new_type_decl(new_id_list(insert_symbol("Pair"), 0), 0, 0);
   Type_Decl* td0 = new_type_decl(new_id_list(insert_symbol("A"), 0), 0, 0);
   Type_Decl* td1 = new_type_decl(new_id_list(insert_symbol("B"), 0), 0, 0);
-  Type_List tl1  = new_type_list(td1, NULL, 0);
-  Type_List tl0  = new_type_list(td0, tl1, 0);
+  Type_List tl1  = new_type_list(td1, NULL);
+  Type_List tl0  = new_type_list(td0, tl1);
   td->types = tl0;
   CHECK_BB(gwi_class_ext(gwi, td))
   CHECK_BB(gwi_class_end(gwi))

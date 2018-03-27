@@ -78,7 +78,7 @@ describe_r(sxor,   ^,)
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
-m_bool import_int(Gwi gwi) {
+ANN m_bool import_int(const Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,       int_assign))
@@ -114,8 +114,9 @@ m_bool import_int(Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi,  op_minus,       int_negate))
-  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
-  CHECK_BB(gwi_oper_end(gwi,  op_exclamation, int_not))
+//  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
+//  CHECK_BB(gwi_oper_end(gwi,  op_exclamation, int_not))
+  CHECK_OP(exclamation, unary_meta, not)
   CHECK_OP(plusplus,   unary, pre_inc)
   CHECK_OP(minusminus, unary, pre_dec)
   CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))

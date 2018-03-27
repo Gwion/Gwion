@@ -33,7 +33,7 @@ void free_func_simple(Func a) { mp_free(Func, a); }
 #include "env.h"
 #include "type.h"
 ANN Func get_func(const Env env, const Func_Def def) {
-  Func f = def->d.func;
+  Func f = def->func;
   CHECK_OO(f)
   m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
   if(end && env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {

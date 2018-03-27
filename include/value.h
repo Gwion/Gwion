@@ -1,5 +1,5 @@
 struct Value_ {
-  Type m_type;
+  Type type;
   m_str name;
   Nspc owner;
   Type owner_class;

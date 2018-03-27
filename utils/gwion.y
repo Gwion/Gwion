@@ -19,9 +19,8 @@
 #define OP_SYM(a) insert_symbol(op2str(a))
 int gwion_error(Scanner*, const char*);
 int gwion_lex(void*, Scanner*);
-int get_pos(Scanner*);
-
-m_str op2str(Operator op);
+ANN int get_pos(const Scanner*);
+m_str op2str(const Operator op);
 %}
 
 %union {
@@ -57,7 +56,7 @@ m_str op2str(Operator op);
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
+  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR INLINE
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
@@ -93,22 +92,26 @@ m_str op2str(Operator op);
 %nonassoc ELSE
 
 %expect 48
+
+%destructor { free_stmt($$); } <stmt>
+%destructor { free_exp($$); } <exp>
+//%destructor { free_type_decl($$); } <type_decl>
 %%
 
 ast
-  : section { arg->ast = $$ = new_ast($1, NULL, get_pos(arg));  }
-  | section ast { arg->ast = $$ = new_ast($1, $2, get_pos(arg)); }
+  : section { arg->ast = $$ = new_ast($1, NULL);  }
+  | section ast { arg->ast = $$ = new_ast($1, $2); }
   ;
 
 section
-  : stmt_list  { $$ = new_section_stmt_list($1, get_pos(arg)); }
-  | func_def   { $$ = new_section_func_def ($1, get_pos(arg)); }
-  | class_def  { $$ = new_section_class_def($1, get_pos(arg)); }
+  : stmt_list  { $$ = new_section_stmt_list($1); }
+  | func_def   { $$ = new_section_func_def ($1); }
+  | class_def  { $$ = new_section_class_def($1); }
   ;
 
 class_def
   : CLASS id_list class_ext LBRACE class_body RBRACE
-      { $$ = new_class_def(0, $2, $3, $5, get_pos(arg)); }
+      { $$ = new_class_def(0, $2, $3, $5); }
   | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
   | decl_template class_def
     { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
@@ -118,8 +121,8 @@ class_ext : EXTENDS type_decl2 { $$ = $2; } | { $$ = NULL; };
 class_body : class_body2 | { $$ = NULL; };
 
 class_body2
-  : section             { $$ = new_class_body($1, NULL, get_pos(arg)); }
-  | section class_body2 { $$ = new_class_body($1, $2, get_pos(arg)); }
+  : section             { $$ = new_class_body($1, NULL); }
+  | section class_body2 { $$ = new_class_body($1, $2); }
   ;
 
 id_list
@@ -165,8 +168,8 @@ type_decl2
   ;
 
 arg_list
-  : type_decl var_decl { $$ = new_arg_list($1, $2, NULL, get_pos(arg)); }
-  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4, get_pos(arg)); }
+  : type_decl var_decl { $$ = new_arg_list($1, $2, NULL); }
+  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4); }
   ;
 
 code_segment
@@ -208,8 +211,8 @@ goto_stmt
   ;
 
 case_stmt
-  : CASE primary_exp COLON { $$ = new_stmt_case($2, get_pos(arg)); }
-  | CASE post_exp COLON { $$ = new_stmt_case($2, get_pos(arg)); }
+  : CASE primary_exp COLON { $$ = new_stmt_exp(ae_stmt_case, $2, get_pos(arg)); }
+  | CASE post_exp COLON { $$ = new_stmt_exp(ae_stmt_case, $2, get_pos(arg)); }
   ;
 
 switch_stmt
@@ -218,9 +221,9 @@ switch_stmt
 
 loop_stmt
   : WHILE LPAREN exp RPAREN stmt
-    { $$ = new_stmt_while($3, $5, 0, get_pos(arg)); }
+    { $$ = new_stmt_flow(ae_stmt_while, $3, $5, 0, get_pos(arg)); }
   | DO stmt WHILE LPAREN exp RPAREN SEMICOLON
-    { $$ = new_stmt_while($5, $2, 1, get_pos(arg)); }
+    { $$ = new_stmt_flow(ae_stmt_while, $5, $2, 1, get_pos(arg)); }
   | FOR LPAREN exp_stmt exp_stmt RPAREN stmt
       { $$ = new_stmt_for($3, $4, NULL, $6, get_pos(arg)); }
   | FOR LPAREN exp_stmt exp_stmt exp RPAREN stmt
@@ -230,9 +233,9 @@ loop_stmt
   | FOR LPAREN AUTO_PTR id COLON binary_exp RPAREN stmt
       { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); $$->d.stmt_auto.is_ptr = 1;}
   | UNTIL LPAREN exp RPAREN stmt
-      { $$ = new_stmt_until($3, $5, 0, get_pos(arg)); }
+      { $$ = new_stmt_flow(ae_stmt_until, $3, $5, 0, get_pos(arg)); }
   | DO stmt UNTIL LPAREN exp RPAREN SEMICOLON
-      { $$ = new_stmt_until($5, $2, 1, get_pos(arg)); }
+      { $$ = new_stmt_flow(ae_stmt_until, $5, $2, 1, get_pos(arg)); }
   | LOOP LPAREN exp RPAREN stmt
       { $$ = new_stmt_loop($3, $5, get_pos(arg)); }
   ;
@@ -245,15 +248,15 @@ selection_stmt
   ;
 
 jump_stmt
-  : RETURN SEMICOLON     { $$ = new_stmt_return(NULL, get_pos(arg)); }
-  | RETURN exp SEMICOLON { $$ = new_stmt_return($2, get_pos(arg)); }
-  | BREAK SEMICOLON      { $$ = new_stmt_break(get_pos(arg)); }
-  | CONTINUE SEMICOLON   { $$ = new_stmt_continue(get_pos(arg)); }
+  : RETURN SEMICOLON     { $$ = new_stmt_exp(ae_stmt_return, NULL, get_pos(arg)); }
+  | RETURN exp SEMICOLON { $$ = new_stmt_exp(ae_stmt_return, $2, get_pos(arg)); }
+  | BREAK SEMICOLON      { $$ = new_stmt(ae_stmt_break, get_pos(arg)); }
+  | CONTINUE SEMICOLON   { $$ = new_stmt(ae_stmt_continue, get_pos(arg)); }
   ;
 
 exp_stmt
-  : exp SEMICOLON { $$ = new_stmt_exp($1,   get_pos(arg)); }
-  | SEMICOLON     { $$ = new_stmt_exp(NULL, get_pos(arg)); }
+  : exp SEMICOLON { $$ = new_stmt_exp(ae_stmt_exp, $1,   get_pos(arg)); }
+  | SEMICOLON     { $$ = new_stmt_exp(ae_stmt_exp, NULL, get_pos(arg)); }
   ;
 
 exp
@@ -294,9 +297,9 @@ decl_exp
   : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(arg)); }
   | STATIC decl_exp
-    { CHECK_FLAG(arg, $2->d.exp_decl.type, ae_flag_static); $$ = $2; }
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static); $$ = $2; }
   | PRIVATE decl_exp
-    { CHECK_FLAG(arg, $2->d.exp_decl.type, ae_flag_private); $$ = $2; }
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_private); $$ = $2; }
   ;
 
 func_args
@@ -308,9 +311,11 @@ decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
   : function_decl static_decl type_decl2 id func_args code_segment
-    { $$ = new_func_def($1 | $2, $3, $4, $5, $6, get_pos(arg)); }
+    { $$ = new_func_def($1 | $2, $3, $4, $5, $6); }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | INLINE func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_inline); $$ = $2; }
   | decl_template func_def_base
     { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
 
@@ -328,12 +333,12 @@ op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def
   : func_def_base
   |  OPERATOR op_op type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op , $3, OP_SYM($2), $4, $5, get_pos(arg)); }
+    { $$ = new_func_def(ae_flag_op , $3, OP_SYM($2), $4, $5); }
   |  unary_op OPERATOR type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op | ae_flag_unary, $3, OP_SYM($1), $4, $5, get_pos(arg)); }
+    { $$ = new_func_def(ae_flag_op | ae_flag_unary, $3, OP_SYM($1), $4, $5); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
-      get_pos(arg)), insert_symbol("dtor"), NULL, $4, get_pos(arg)); }
+      get_pos(arg)), insert_symbol("dtor"), NULL, $4); }
   ;
 
 atsym: { $$ = 0; } | ATSYM { $$ = ae_flag_ref; };
@@ -363,8 +368,8 @@ union_stmt
   ;
 
 var_decl_list
-  : var_decl  { $$ = new_var_decl_list($1, NULL, get_pos(arg)); }
-  | var_decl  COMMA var_decl_list { $$ = new_var_decl_list($1, $3, get_pos(arg)); }
+  : var_decl  { $$ = new_var_decl_list($1, NULL); }
+  | var_decl  COMMA var_decl_list { $$ = new_var_decl_list($1, $3); }
   ;
 
 var_decl
@@ -432,7 +437,7 @@ unary_exp : dur_exp | unary_op unary_exp
       { $$ = new_exp_unary($1, $2, get_pos(arg)); }
   | NEW type_decl2
     {
-      if($2->array && !$2->array->exp_list) {
+      if($2->array && !$2->array->exp) {
         free_type_decl($2);
         gwion_error(arg, "can't use empty '[]' in 'new' expression");
         YYERROR;
@@ -446,8 +451,8 @@ dur_exp: post_exp | dur_exp COLONCOLON post_exp
     { $$ = new_exp_dur($1, $3, get_pos(arg)); };
 
 type_list
-  : type_decl2 { $$ = new_type_list($1, NULL, get_pos(arg)); }
-  | type_decl2 COMMA type_list { $$ = new_type_list($1, $3, get_pos(arg)); }
+  : type_decl2 { $$ = new_type_list($1, NULL); }
+  | type_decl2 COMMA type_list { $$ = new_type_list($1, $3); }
   ;
 
 call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;

@@ -24,9 +24,9 @@
 
 #include "generated.h"
 
-ANEW void* xmalloc(m_uint);
-ANEW void* xcalloc(m_uint, m_uint);
-ANEW void* xrealloc(void*, m_uint);
+ANEW const void* xmalloc(const m_uint);
+ANEW const void* xcalloc(const m_uint, const m_uint);
+ANEW const void* xrealloc(void*, const m_uint);
 #define xfree free
 typedef struct VM_Object_ * VM_Object;
 typedef struct Nspc_ * Nspc;
@@ -73,6 +73,9 @@ typedef enum {
   ae_flag_scan2 = 1 << 22,
   ae_flag_check = 1 << 23,
   ae_flag_emit  = 1 << 24,
+
+ae_flag_inline = 1 << 25,
+ae_flag_constprop = 1 << 26,
 
   ae_flag_recurs = 1 << 30
 } ae_flag;

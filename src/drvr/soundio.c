@@ -3,10 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <soundio/soundio.h>
-
 #include "defs.h"
 #include "vm.h"
 #include "driver.h"
+#include "err_msg.h"
 
 typedef struct SoundIoChannelArea* Areas;
 typedef struct SoundIoOutStream * Out;
@@ -74,12 +74,12 @@ static void read_sample_float64ne(char *ptr, m_float *sample) {
   *sample = *(m_float *)ptr;
 }
 
-static void underflow_callback(Out outstream) {
+static void underflow_callback(Out outstream __attribute__((unused))) {
   static int count = 0;
   gw_err("underflow %d\n", count++);
 }
 
-static void overflow_callback(In stream) {
+static void overflow_callback(In stream __attribute__((unused))) {
   static int count = 0;
   gw_err("overflow %d\n", count++);
 }
@@ -106,7 +106,7 @@ static m_bool check_cb_error2(VM* vm, void* data, int (*f)(void*)) {
   return 1;
 }
 
-static void write_callback(Out stream, int min, int left) {
+static void write_callback(Out stream, int min __attribute__((unused)), int left) {
   Areas areas;
   struct SioInfo* info = (struct SioInfo*)stream->userdata;
   VM* vm = info->vm;
@@ -134,7 +134,7 @@ static void write_callback(Out stream, int min, int left) {
   soundio_outstream_pause(stream, 0);
 }
 
-static void read_callback(In stream, int min, int left) {
+static void read_callback(In stream, int min __attribute__((unused)), int left) {
   Areas areas;
   struct SioInfo* info = (struct SioInfo*)stream->userdata;
   VM* vm = info->vm;
@@ -221,7 +221,7 @@ static m_bool probe(struct SioInfo* info) {
   return 1;
 }
 
-static m_bool out_create(VM* vm, DriverInfo* di) {
+static m_bool out_create(DriverInfo* di) {
   struct SioInfo* info = (struct SioInfo*)di->data;
   info->outstream = soundio_outstream_create(info->out_device);
   if(!info->outstream) {
@@ -237,7 +237,7 @@ static m_bool out_create(VM* vm, DriverInfo* di) {
   return 1;
 }
 
-static m_bool in_create(VM* vm, DriverInfo* di) {
+static m_bool in_create(DriverInfo* di) {
   struct SioInfo* info = (struct SioInfo*)di->data;
   info->instream = soundio_instream_create(info->in_device);
   if(!info->instream) {
@@ -321,7 +321,7 @@ static m_bool check_layout(struct SioInfo* info) {
 }
 
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
-  struct SioInfo* info = xcalloc(1, sizeof(struct SioInfo));
+  struct SioInfo* info = (struct SioInfo*)xcalloc(1, sizeof(struct SioInfo));
   info->vm = vm;
   info->di = di;
   info->device_id = di->card;
@@ -332,8 +332,8 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   CHECK_BB(selected_device_index)
   CHECK_BB(get_device(info, selected_device_index))
   CHECK_BB(probe(info))
-  CHECK_BB(out_create(vm, di))
-  CHECK_BB(in_create(vm, di))
+  CHECK_BB(out_create(di))
+  CHECK_BB(in_create(di))
   CHECK_BB(out_format(info))
   CHECK_BB(in_format(info))
   CHECK_BB(open_stream(info))
@@ -356,7 +356,7 @@ static void sio_run(VM* vm, DriverInfo* di) {
     soundio_flush_events(info->soundio);
 }
 
-static void sio_del(VM* vm, DriverInfo* di) {
+static void sio_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct SioInfo* info = (struct SioInfo*)di->data;
   soundio_outstream_destroy(info->outstream);
   soundio_instream_destroy(info->instream);

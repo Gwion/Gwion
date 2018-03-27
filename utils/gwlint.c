@@ -69,7 +69,7 @@ static void lint_id_list(Linter* linter, ID_List list) {
 
 static void lint_array(Linter* linter, Array_Sub array) {
   m_uint i;
-  Exp exp = array->exp_list;
+  Exp exp = array->exp;
   for(i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     if(exp)
@@ -87,7 +87,7 @@ static void lint_array(Linter* linter, Array_Sub array) {
 
 static void lint_array_lit(Linter* linter, Array_Sub array) {
   m_uint i;
-  Exp exp = array->exp_list;
+  Exp exp = array->exp;
   for(i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     lint_print(linter, "[");
@@ -110,7 +110,7 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
 static void lint_type_list(Linter* linter, Type_List list) {
   lint_print(linter, "<{");
   while(list) {
-    lint_type_decl(linter, list->list);
+    lint_type_decl(linter, list->td);
     list = list->next;
     if(list)
       lint_print(linter, ", ");
@@ -154,7 +154,7 @@ static void lint_stmt_indent(Linter* linter, Stmt stmt) {
 
 static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  lint_type_decl(linter, decl->type);
+  lint_type_decl(linter, decl->td);
   lint_print(linter, " ");
   while(list) {
     lint_print(linter, s_name(list->self->xid));
@@ -175,7 +175,7 @@ static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
       break;
     case op_new:
       lint_print(linter, " ");
-      lint_type_decl(linter, unary->type);
+      lint_type_decl(linter, unary->td);
       break;
     case op_spork:
       lint_print(linter, " ~");
@@ -238,18 +238,20 @@ static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
     case ae_primary_nil:
       lint_print(linter, "()");
       break;
+    default:
+      break;
   }
 }
 
 static void lint_exp_array(Linter* linter, Exp_Array* array) {
   lint_exp(linter, array->base);
-  lint_exp(linter, array->indices->exp_list);
+  lint_exp(linter, array->array->exp);
 }
 
 static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
   lint_exp(linter, cast->exp);
   lint_print(linter, "$ ");
-  lint_type_decl(linter, cast->type);
+  lint_type_decl(linter, cast->td);
 }
 
 static void lint_exp_post(Linter* linter, Exp_Postfix* post) {
@@ -322,6 +324,8 @@ static void lint_exp(Linter* linter,  Exp exp) {
       case ae_exp_if:
         lint_exp_if(linter, &exp->d.exp_if);
         break;
+      default:
+        break;
     }
     exp = exp->next;
     if(exp)
@@ -344,7 +348,7 @@ static void lint_stmt_code(Linter* linter, Stmt_Code stmt) {
   lint_print(linter, "}");
 }
 
-static void lint_stmt_return(Linter* linter, Stmt_Return stmt) {
+static void lint_stmt_return(Linter* linter, Stmt_Exp stmt) {
   lint_print(linter, "return");
   if(stmt->val) {
     lint_print(linter, " ");
@@ -408,7 +412,7 @@ static void lint_stmt_switch(Linter* linter, Stmt_Switch stmt) {
   lint_print(linter, ")");
 }
 
-static void lint_stmt_case(Linter* linter, Stmt_Case stmt) {
+static void lint_stmt_case(Linter* linter, Stmt_Exp stmt) {
   lint_print(linter, "case ");
   lint_exp(linter, stmt->val);
   lint_print(linter, ":");
@@ -461,14 +465,14 @@ void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
 void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
   Arg_List list = ptr->args;
   lint_print(linter, "typedef ");
-  lint_print(linter, "%s", GET_FLAG(ptr->type, ae_flag_variadic) ?
+  lint_print(linter, "%s", GET_FLAG(ptr->td, ae_flag_variadic) ?
       "variadic " : "function ");
-  lint_type_decl(linter, ptr->type);
+  lint_type_decl(linter, ptr->td);
   lint_print(linter, " ");
   lint_print(linter, s_name(ptr->xid));
   lint_print(linter, "(");
   while(list) {
-    lint_type_decl(linter, list->type_decl);
+    lint_type_decl(linter, list->td);
     lint_print(linter, " %s", s_name(list->var_decl->xid));
     list = list->next;
     if(list)
@@ -480,7 +484,7 @@ void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
 
 void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
   lint_print(linter, "typedef ");
-  lint_type_decl(linter, ptr->type);
+  lint_type_decl(linter, ptr->td);
   lint_print(linter, " ");
   lint_print(linter, s_name(ptr->xid));
   lint_print(linter, ";");
@@ -515,12 +519,12 @@ void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
   lint_nl(linter);
 }
 
-void lint_stmt_continue(Linter* linter, Stmt_Continue stmt __attribute__((unused))) {
+void lint_stmt_continue(Linter* linter, Stmt stmt __attribute__((unused))) {
   lint_print(linter, "continue;");
   lint_nl(linter);
 }
 
-void lint_stmt_break(Linter* linter, Stmt_Break stmt __attribute__((unused))) {
+void lint_stmt_break(Linter* linter, Stmt stmt __attribute__((unused))) {
   lint_print(linter, "break;");
   lint_nl(linter);
 }
@@ -540,13 +544,13 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
       lint_stmt_code(linter, &stmt->d.stmt_code);
       break;
     case ae_stmt_return:
-      lint_stmt_return(linter, &stmt->d.stmt_return);
+      lint_stmt_return(linter, &stmt->d.stmt_exp);
       break;
     case ae_stmt_if:
       lint_stmt_if(linter, &stmt->d.stmt_if);
       break;
     case ae_stmt_while:
-      lint_stmt_flow(linter, &stmt->d.stmt_while, "while");
+      lint_stmt_flow(linter, &stmt->d.stmt_flow, "while");
       break;
     case ae_stmt_for:
       lint_stmt_for(linter, &stmt->d.stmt_for);
@@ -555,7 +559,7 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
       lint_stmt_auto(linter, &stmt->d.stmt_auto);
       break;
     case ae_stmt_until:
-      lint_stmt_flow(linter, &stmt->d.stmt_until, "until");
+      lint_stmt_flow(linter, &stmt->d.stmt_flow, "until");
       break;
     case ae_stmt_loop:
       lint_stmt_loop(linter, &stmt->d.stmt_loop);
@@ -564,16 +568,16 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
       lint_stmt_switch(linter, &stmt->d.stmt_switch);
       break;
     case ae_stmt_case:
-      lint_stmt_case(linter, &stmt->d.stmt_case);
+      lint_stmt_case(linter, &stmt->d.stmt_exp);
       break;
     case ae_stmt_enum:
       lint_stmt_enum(linter, &stmt->d.stmt_enum);
       break;
     case ae_stmt_continue:
-      lint_stmt_continue(linter, &stmt->d.stmt_continue);
+      lint_stmt_continue(linter, stmt);
       break;
     case ae_stmt_break:
-      lint_stmt_break(linter, &stmt->d.stmt_break);
+      lint_stmt_break(linter, stmt);
       break;
     case ae_stmt_gotolabel:
       lint_stmt_goto(linter, &stmt->d.stmt_gotolabel);
@@ -600,16 +604,18 @@ static void lint_stmt_list(Linter* linter, Stmt_List list) {
 static void lint_func_def(Linter* linter, Func_Def f) {
   Arg_List list = f->arg_list;
   lint_indent(linter);
+  if(GET_FLAG(f, ae_flag_inline))
+    lint_print(linter, "inline ");
   lint_print(linter, "%s", GET_FLAG(f, ae_flag_variadic) ?
       "variadic " : "function ");
   if(GET_FLAG(f, ae_flag_static))
     lint_print(linter, "static ");
-  lint_type_decl(linter, f->type_decl);
+  lint_type_decl(linter, f->td);
   lint_print(linter, " ");
   lint_print(linter, s_name(f->name));
   lint_print(linter, "(");
   while(list) {
-    lint_type_decl(linter, list->type_decl);
+    lint_type_decl(linter, list->td);
     lint_print(linter, " %s", s_name(list->var_decl->xid));
     list = list->next;
     if(list)
@@ -617,7 +623,7 @@ static void lint_func_def(Linter* linter, Func_Def f) {
   }
   lint_print(linter, ")");
   linter->skip++;
-  lint_stmt_indent(linter, f->code);
+  lint_stmt_indent(linter, f->d.code);
   lint_nl(linter);
   f->flag &= ~ae_flag_template;
 }

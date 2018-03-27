@@ -4,7 +4,7 @@
 #include "map_private.h"
 
 ANN vtype scope_lookup0(const Scope scope, const Symbol xid) {
-  Map map = (Map)vector_back(&scope->vector);
+  const Map map = (Map)vector_back(&scope->vector);
   vtype ret = map_get(map, (vtype)xid);
   if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
     ret = map_get(&scope->commit_map, (vtype)xid);
@@ -12,22 +12,21 @@ ANN vtype scope_lookup0(const Scope scope, const Symbol xid) {
 }
 
 ANN vtype scope_lookup1(const Scope scope, const Symbol xid) {
-  m_uint i;
-  vtype ret;
-  for(i = vector_size(&scope->vector) + 1; --i;) {
+  for(m_uint i = vector_size(&scope->vector) + 1; --i;) {
     Map map = (Map)vector_at(&scope->vector, i - 1);
-    if((ret = map_get(map, (vtype)xid)))
+    const vtype ret = map_get(map, (vtype)xid);
+    if(ret)
       return ret;
   }
   return map_get(&scope->commit_map, (vtype)xid);
 }
 
 ANN vtype scope_lookup2(const Scope scope, const Symbol xid) {
-  Map map = (Map)vector_front(&scope->vector);
-  vtype ret = map_get(map, (vtype)xid);
-  if(!ret)
-    ret = map_get(&scope->commit_map, (vtype)xid);
-  return ret;
+  const Map map = (Map)vector_front(&scope->vector);
+  const vtype ret = map_get(map, (vtype)xid);
+  if(ret)
+    return ret;
+  return map_get(&scope->commit_map, (vtype)xid);
 }
 
 ANN void scope_add(const Scope scope, const Symbol xid, const vtype value) {
@@ -63,14 +62,13 @@ ANN void scope_release(Scope a) {
 }
 
 ANN Vector scope_get(const Scope s) {
-  vtype i, j;
-  Vector ret = new_vector();
-  for(j = 0; j < vector_size(&s->vector); j++) {
+  const Vector ret = new_vector();
+  for(m_uint j = 0; j < vector_size(&s->vector); j++) {
     Map map = (Map)vector_at(&s->vector, j);
-    for(i = 0; i < VLEN(map); i++)
+    for(m_uint i = 0; i < VLEN(map); i++)
       vector_add(ret, VVAL(map, i));
   }
-  for(i = 0; i < VLEN(&s->commit_map); i++)
+  for(m_uint i = 0; i < VLEN(&s->commit_map); i++)
     vector_add(ret, VVAL(&s->commit_map, i));
   return ret;
 }

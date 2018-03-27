@@ -35,7 +35,7 @@ Type array_type(const Type, const m_uint) ANN;
 m_bool check_array_empty(const Array_Sub, const m_str) ANN;
 Type find_common_anc(const Type, const Type) ANN;
 m_uint id_list_len(ID_List) ANN;
-void type_path(m_str, const ID_List) ANN;
+void type_path(const m_str, const ID_List) ANN;
 __attribute__((nonnull(1,2)))
 m_bool env_add_value(const Env env, const m_str, const Type, const m_bool, void* value);
 ANN m_bool env_add_type(const Env, const Type);

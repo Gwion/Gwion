@@ -4,9 +4,10 @@
 #include "vararg.h"
 
 static MFUN(m_variadic) {
-  M_Object str_obj = *(M_Object*)MEM(-SZ_INT);
+  M_Object str_obj = *(M_Object*)MEM(SZ_INT);
+  if(!str_obj)return;
   m_str str = STRING(str_obj);
-  struct Vararg_* arg = *(struct Vararg_**)MEM(SZ_INT);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(SZ_INT*2);
 
   while(arg->i < arg->s) {
     if(*str == 'i') {

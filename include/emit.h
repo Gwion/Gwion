@@ -39,13 +39,13 @@ struct Emitter_ {
 
 ANEW ANN Emitter new_emitter(const Env);
 ANN void free_emitter(Emitter);
-ANN VM_Code emit_code(const Emitter);
+ANEW ANN VM_Code emit_code(const Emitter);
 ANN m_bool emit_ast(const Emitter emit, Ast ast, m_str filename);
 ANN m_bool emit_exp_call1(const Emitter, const Func);
 Instr emitter_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull, nonnull(1)));
 ANN Code* emit_class_code(const Emitter, const m_str);
 ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
-ANN m_bool emit_class_finish(const Emitter, const Nspc);
+ANN void emit_class_finish(const Emitter, const Nspc);
 ANN m_bool emit_ext_ctor(const Emitter, const VM_Code);
 ANN void emit_union_offset(Decl_List, const m_uint);
 m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool)

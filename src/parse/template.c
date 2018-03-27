@@ -59,7 +59,7 @@ ANN static m_uint template_size(const Env env, const Class_Def c,
   ID_List base = c->tmpl->list.list;
   m_uint size = strlen(c->type->name) + 3;
   while(base) {
-    Type t = type_decl_resolve(env, call->list);
+    Type t = type_decl_resolve(env, call->td);
     size += strlen(t->name);
     call = call->next;
     base = base->next;
@@ -74,7 +74,7 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
   strcpy(str, c->type->name);
   strcat(str, "<");
   while(base) { // TODO: error checking
-    Type t = type_decl_resolve(env, call->list);
+    Type t = type_decl_resolve(env, call->td);
     strcat(str, t->name);
     call = call->next;
     base = base->next;
@@ -91,7 +91,7 @@ ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type
   ID_List list;
 
   template_name(env, c, call, name);
-  list = new_id_list(insert_symbol(name), call->pos);
+  list = new_id_list(insert_symbol(name), call->td->pos);
   return list;
 }
 
@@ -112,16 +112,16 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, Type_Lis
     free_id_list(name);
     return t->def;
   }
-  return new_class_def(def->flag, name, def->ext, def->body, call->pos);
+  return new_class_def(def->flag, name, def->ext, def->body);
 }
 
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   do {
     CHECK_OB(call);
-    Type t = type_decl_resolve(env, call->list);
+    Type t = type_decl_resolve(env, call->td);
     if(!t)
-      CHECK_BB(type_unknown(call->list->xid, "template"))
+      CHECK_BB(type_unknown(call->td->xid, "template"))
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
   } while((base = base->next));

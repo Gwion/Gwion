@@ -9,7 +9,7 @@
 POOL_HANDLE(Context, 32)
 __attribute__((nonnull(2)))
 Context new_context(const Ast prog, const m_str filename) {
-  Context context = mp_alloc(Context);
+  const Context context = mp_alloc(Context);
   context->nspc = new_nspc(filename);
   context->tree = prog;
   context->filename = filename;
@@ -33,9 +33,8 @@ ANN m_bool load_context(const Context context, const Env env) {
 
 ANN m_bool unload_context(const Context context, const Env env) {
   if(context->label.ptr) {
-    m_uint i;
     LOOP_OPTIM
-    for(i = 0; i < map_size(&context->label); i++)
+    for(m_uint i = 0; i < map_size(&context->label); i++)
       free_map((Map)map_at(&context->label, i));
     map_release(&context->label);
   }

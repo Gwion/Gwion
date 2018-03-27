@@ -9,7 +9,7 @@ ANN m_bool isa(const Type var, const Type parent) {
 }
 
 ANN m_bool isres(const Symbol xid) {
-  m_str s = s_name(xid);
+  const m_str s = s_name(xid);
   if(!strcmp(s, "this") || !strcmp(s, "now") ||
      !strcmp(s, "me")   || !strcmp(s, "vararg") ||
      !name2op(s)) {

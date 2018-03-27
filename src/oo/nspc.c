@@ -92,8 +92,8 @@ ANN Vector nspc_get_value(const Nspc nspc) {
 }
 
 ANN Nspc new_nspc(const m_str name) {
-  Nspc a = mp_alloc(Nspc);
-  a->name            = name;
+  const Nspc a = mp_alloc(Nspc);
+  a->name = name;
   scope_init(&a->value);
   scope_init(&a->type);
   scope_init(&a->func);
@@ -114,18 +114,13 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
     release(obj, s);
     free_vm_shred(s);
   }
-  if(value->m_type->array_depth && !GET_FLAG(value->m_type, ae_flag_typedef))
-    REM_REF(value->m_type)
-  else if(GET_FLAG(value->m_type, ae_flag_builtin) && GET_FLAG(value->m_type, ae_flag_typedef))
-    REM_REF(value->m_type->parent)
+  if(value->type->array_depth && !GET_FLAG(value->type, ae_flag_typedef))
+    REM_REF(value->type)
+  else if(GET_FLAG(value->type, ae_flag_builtin) && GET_FLAG(value->type, ae_flag_typedef))
+    REM_REF(value->type->parent)
 }
 
 ANN static void free_nspc_value_fptr(Func f) {
-//  while(f) {
-//    Func tmp = f->next;
-//    free_func_simple(f);
-//    f = tmp;
-//  }
   if(f->next)
     free_nspc_value_fptr(f->next);
   free_func_simple(f);
@@ -135,41 +130,40 @@ ANN static void free_nspc_value(const Nspc a) {
   const Vector v = scope_get(&a->value);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->m_type, t_class) > 0) {
-      if(GET_FLAG(value->m_type->d.base_type, ae_flag_template)) {
-        UNSET_FLAG(value->m_type->d.base_type, ae_flag_template);
-        if(GET_FLAG(value->m_type->d.base_type, ae_flag_ref)) {
-          if(!GET_FLAG(value->m_type->d.base_type, ae_flag_builtin)) {
-            free_class_def(value->m_type->d.base_type->def);
-            REM_REF(value->m_type->d.base_type)
+    if(isa(value->type, t_class) > 0) {
+      if(GET_FLAG(value->type->d.base_type, ae_flag_template)) {
+        UNSET_FLAG(value->type->d.base_type, ae_flag_template);
+        if(GET_FLAG(value->type->d.base_type, ae_flag_ref)) {
+          if(!GET_FLAG(value->type->d.base_type, ae_flag_builtin)) {
+            free_class_def(value->type->d.base_type->def);
+            REM_REF(value->type->d.base_type)
           } else {
-            if(value->m_type->d.base_type->def->tmpl)
-              free_tmpl_class(value->m_type->d.base_type->def->tmpl);
-            free_id_list(value->m_type->d.base_type->def->name);
-            free_class_def_simple(value->m_type->d.base_type->def);
-            SET_FLAG(value->m_type->d.base_type, ae_flag_template);
-            REM_REF(value->m_type->d.base_type)
+            if(value->type->d.base_type->def->tmpl)
+              free_tmpl_class(value->type->d.base_type->def->tmpl);
+            free_id_list(value->type->d.base_type->def->name);
+            free_class_def_simple(value->type->d.base_type->def);
+            SET_FLAG(value->type->d.base_type, ae_flag_template);
+            REM_REF(value->type->d.base_type)
           }
         } else
-          free_class_def(value->m_type->d.base_type->def);
+          free_class_def(value->type->d.base_type->def);
       }
-      REM_REF(value->m_type)
-    } else if(isa(value->m_type, t_union) > 0) {
+      REM_REF(value->type)
+    } else if(isa(value->type, t_union) > 0) {
       if(GET_FLAG(value, ae_flag_static))
         nspc_release_object(a, value);
-      REM_REF(value->m_type)
+      REM_REF(value->type)
     }
-    else if(isa(value->m_type, t_object) > 0)
+    else if(isa(value->type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->m_type, t_func_ptr) > 0 && value->d.func_ref)
+    else if(isa(value->type, t_func_ptr) > 0 && value->d.func_ref)
       free_nspc_value_fptr(value->d.func_ref);
-    else if(isa(value->m_type, t_function) > 0) {
+    else if(isa(value->type, t_function) > 0) {
       if(GET_FLAG(value, ae_flag_template)) {
-        REM_REF(value->m_type)
+        REM_REF(value->type)
         REM_REF(value->d.func_ref)
-      }
-      else
-        REM_REF(value->m_type)
+      } else
+        REM_REF(value->type)
     }
     REM_REF(value);
   }

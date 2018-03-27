@@ -12,8 +12,8 @@ ANN m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
   if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
   sp_createn(&vm->sp, di->out);
-  vm->sp->out   = xrealloc(vm->sp->out, di->out * SZ_FLOAT);
-  vm->in   = xcalloc(di->in, SZ_FLOAT);
+  vm->sp->out   = (m_float*)xrealloc(vm->sp->out, di->out * SZ_FLOAT);
+  vm->in   = (m_float*)xcalloc(di->in, SZ_FLOAT);
   vm->n_in = di->in;
   vm->sp->sr = di->sr;
   sp_srand(vm->sp, time(NULL));
@@ -81,6 +81,10 @@ void select_driver(DriverInfo* di, const m_str d) {
 #ifdef HAVE_PLOT
   else if(!strcmp("plot", d))
     di->func = plot_driver;
+#endif
+#ifdef HAVE_PLOT
+  else if(!strcmp("sles", d))
+    di->func = sles_driver;
 #endif
   else
     gw_err("invalid driver specified. using default.\n");

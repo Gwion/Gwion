@@ -26,16 +26,15 @@ INSTR(Vararg_start) { GWDEBUG_EXE
 
 INSTR(MkVararg) { GWDEBUG_EXE
   POP_REG(shred,  instr->m_val);
-  m_uint i;
-  Vector kinds = (Vector)instr->m_val2;
+  const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
-    arg->d = xmalloc(instr->m_val);
+    arg->d = (char*)xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
   arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? xcalloc(arg->s, SZ_INT) : NULL;
-  for(i = 0; i < arg->s; i++) {
+  arg->k = arg->s ? (m_uint*)xcalloc(arg->s, SZ_INT) : NULL;
+  for(m_uint i = 0; i < arg->s; i++) {
     arg->k[i] = vector_at(kinds, i);
   }
   arg->o = 0;
@@ -62,13 +61,13 @@ INSTR(Vararg_end) { GWDEBUG_EXE
 }
 
 INSTR(Vararg_Member) { GWDEBUG_EXE
-  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
+  const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }
 
 static OP_CHECK(at_varobj) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   return bin->rhs->type;
 }
 
@@ -78,7 +77,7 @@ INSTR(varobj_assign) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_INT);
 }
 
-m_bool import_vararg(Gwi gwi) {
+ANN m_bool import_vararg(const Gwi gwi) {
   Type t_varobj, t_varloop;
   CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
   CHECK_OB((t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg)))

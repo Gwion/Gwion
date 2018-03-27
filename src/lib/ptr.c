@@ -11,7 +11,7 @@ m_str get_type_name(const m_str s, const m_uint index) {
   m_uint i = 0;
   m_uint lvl = 0;
   m_uint n = 1;
-  size_t len = name ? strlen(name) : 0;
+  const size_t len = name ? strlen(name) : 0;
   char c[strlen(s)];
 
   if(!name)
@@ -37,7 +37,7 @@ m_str get_type_name(const m_str s, const m_uint index) {
 }
 
 static OP_CHECK(opck_ptr_assign) {
-  Exp_Binary* bin = (Exp_Binary*)data;
+  const Exp_Binary* bin = (Exp_Binary*)data;
   if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {
     if(bin->lhs->meta != ae_meta_var) {
       err_msg(INSTR_, 0, "left side operand is constant");
@@ -51,20 +51,20 @@ static OP_CHECK(opck_ptr_assign) {
 
 static INSTR(instr_ptr_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2)
-  M_Object o = *(M_Object*)REG(SZ_INT);
+  const M_Object o = *(M_Object*)REG(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
   PUSH_REG(shred, SZ_INT)
 }
 
 static OP_CHECK(opck_ptr_deref) {
-  Exp_Unary* unary = (Exp_Unary*)data;
+  const Exp_Unary* unary = (Exp_Unary*)data;
   unary->self->type = nspc_lookup_type1(unary->exp->type->owner, insert_symbol(get_type_name(unary->exp->type->name, 1)));
   return unary->self->type;
 }
 
 static OP_CHECK(opck_implicit_ptr) {
-  struct Implicit* imp = (struct Implicit*)data;
-  Exp e = (Exp)imp->e;
+  const struct Implicit* imp = (struct Implicit*)data;
+  const Exp e = (Exp)imp->e;
   if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
     if(e->meta == ae_meta_value) {
       err_msg(INSTR_, 0, "can't cast constant to Ptr");
@@ -79,7 +79,7 @@ static OP_CHECK(opck_implicit_ptr) {
 
 static INSTR(instr_ptr_deref) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = *(M_Object*)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   if(instr->m_val2)
     memcpy(REG(0), o->data, SZ_INT);
   else
@@ -88,8 +88,8 @@ static INSTR(instr_ptr_deref) { GWDEBUG_EXE
 }
 
 static OP_EMIT(opem_ptr_deref) {
-  Exp_Unary* unary = (Exp_Unary*)data;
-  Instr instr = emitter_add_instr(emit, instr_ptr_deref);
+  const Exp_Unary* unary = (Exp_Unary*)data;
+  const Instr instr = emitter_add_instr(emit, instr_ptr_deref);
   instr->m_val = unary->self->type->size;
   instr->m_val2 = unary->self->emit_var;
   return 1;
@@ -97,14 +97,14 @@ static OP_EMIT(opem_ptr_deref) {
 
 INSTR(Cast2Ptr) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  M_Object o = new_M_Object(shred);
-  o->data = xmalloc(SZ_INT);
+  const M_Object o = new_M_Object(shred);
+  o->data = (unsigned char*)xmalloc(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)
 }
 
-m_bool import_ptr(Gwi gwi) {
+ANN m_bool import_ptr(const Gwi gwi) {
   const m_str list[] = { "A" };
   CHECK_OB((t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, t_object)))
   CHECK_BB(gwi_tmpl_ini(gwi, 1, list))

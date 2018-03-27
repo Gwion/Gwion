@@ -5,7 +5,7 @@
 POOL_HANDLE(Type, 2048)
 __attribute__((nonnull(2)))
 Type new_type(const m_uint xid, const m_str name, const Type parent) {
-  Type type    = mp_alloc(Type);
+  const Type type = mp_alloc(Type);
   type->xid    = xid;
   type->name   = name;
   type->parent = parent;
@@ -29,7 +29,7 @@ ANN void free_type(Type a) {
 }
 
 ANN Type type_copy(const Type type) {
-  Type a = new_type(type->xid, type->name, type->parent);
+  const Type a = new_type(type->xid, type->name, type->parent);
   a->info          = type->info;
   a->owner         = type->owner;
   a->size          = type->size;

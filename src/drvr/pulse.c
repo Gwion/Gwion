@@ -19,8 +19,8 @@ static pa_simple* pulse_open(m_uint direction, pa_sample_spec* ss) {
     NULL, "Gwion", ss, NULL, NULL, NULL);
 }
 
-static m_bool pulse_ini(VM* vm, DriverInfo* di) {
-  struct PaInfo* info = xmalloc(sizeof(struct PaInfo));
+static m_bool pulse_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
+  struct PaInfo* info = (struct PaInfo*)xmalloc(sizeof(struct PaInfo));
   pa_sample_spec ss = { PA_SAMPLE_FLOAT32NE, 48000, 2};
   CHECK_OB((info->out = pulse_open(PA_STREAM_PLAYBACK, &ss)))
   CHECK_OB((info->in  = pulse_open(PA_STREAM_RECORD,   &ss)))
@@ -39,10 +39,10 @@ static void pulse_run(VM* vm, DriverInfo* di) {
     if(pa_simple_read(info->in, in_data, sizeof(in_data), &error) < 0)
       return;
     for(frame = 0; frame < BUFSIZE; frame++) {
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         vm->in[chan] = in_data[frame * sp->nchan + chan];
       di->run(vm);
-      for(chan = 0; chan < sp->nchan; chan++)
+      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         out_data[frame * sp->nchan + chan] = (float)sp->out[chan];
       sp->pos++;
     }
@@ -53,7 +53,7 @@ static void pulse_run(VM* vm, DriverInfo* di) {
     return;
 }
 
-static void pulse_del(VM* vm, DriverInfo* di) {
+static void pulse_del(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct PaInfo* info = (struct PaInfo*)di->data;
   if(info->in)
     pa_simple_free(info->in);

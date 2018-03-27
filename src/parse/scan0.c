@@ -26,46 +26,48 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   t->info = new_nspc(name);
   nspc_add_type(env->curr, ptr->xid, t);
   ptr->value = mk_class(env, t);
+  if(env->class_def)
+    ADD_REF(t);
   return 1;
 }
 
-ANN static m_bool scan0_stmt_typedef(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
-  const Type base = type_decl_resolve(env, stmt->type);
+ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+  const Type base = type_decl_resolve(env, stmt->td);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
-    CHECK_BB(type_unknown(stmt->type->xid, "typedef"))
+    CHECK_BB(type_unknown(stmt->td->xid, "typedef"))
   if(v)
-    CHECK_BB(err_msg(SCAN0_, stmt->type->pos,
+    CHECK_BB(err_msg(SCAN0_, stmt->td->pos,
           "value '%s' already defined in this scope"
-          " with type '%s'.", s_name(stmt->xid), v->m_type->name))
-  if(!stmt->type->array || (stmt->type->array && !stmt->type->array->exp_list)) {
+          " with type '%s'.", s_name(stmt->xid), v->type->name))
+  if(!stmt->td->array || (stmt->td->array && !stmt->td->array->exp)) {
     Type t = NULL;
     t = new_type(env->type_xid++, s_name(stmt->xid), base);
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
-    if(stmt->type->array && !stmt->type->array->exp_list)
+    if(stmt->td->array && !stmt->td->array->exp)
       SET_FLAG(t, ae_flag_empty);
     nspc_add_type(env->curr, stmt->xid, t);
-    stmt->m_type = t;
+    stmt->type = t;
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
-    const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->pos),
-      stmt->type, NULL, stmt->pos);
+    const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
+      stmt->td, NULL);
     CHECK_BB(scan0_class_def(env, def))
     REM_REF(base) // because it get's over referenced it scan_type for now
-    stmt->m_type = def->type;
+    stmt->type = def->type;
   }
-  SET_FLAG(stmt->m_type, ae_flag_typedef);
+  SET_FLAG(stmt->type, ae_flag_typedef);
   return 1;
 }
 
 ANN static m_bool check_enum_xid(const Env env, const Stmt_Enum stmt) {
   if(stmt->xid) {
     if(nspc_lookup_type0(env->curr, stmt->xid))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+      CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
             "type '%s' already declared", s_name(stmt->xid)))
     if(nspc_lookup_value0(env->curr, stmt->xid))
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+      CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
             "'%s' already declared as variable", s_name(stmt->xid)))
   }
   return 1;
@@ -74,7 +76,7 @@ ANN static m_bool check_enum_xid(const Env env, const Stmt_Enum stmt) {
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   Type t;
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
-    CHECK_BB(err_msg(SCAN1_, stmt->pos, "'private' can only be used at class scope."))
+    CHECK_BB(err_msg(SCAN0_, stmt->self->pos, "'private' can only be used at class scope."))
   CHECK_BB(check_enum_xid(env, stmt))
   t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
@@ -87,7 +89,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
       !env->class_def)
-      CHECK_BB(err_msg(SCAN1_, stmt->pos,
+      CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
             "'static' and 'private' can only be used at class scope."))
   if(stmt->xid) {
     const m_str name = s_name(stmt->xid);
@@ -110,7 +112,7 @@ ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
   if(stmt->stmt_type == ae_stmt_funcptr)
     CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
   else if(stmt->stmt_type == ae_stmt_typedef)
-    CHECK_BB(scan0_stmt_typedef(env, &stmt->d.stmt_type))
+    CHECK_BB(scan0_stmt_type(env, &stmt->d.stmt_type))
   else if(stmt->stmt_type == ae_stmt_enum)
     CHECK_BB(scan0_stmt_enum(env, &stmt->d.stmt_enum))
   else if(stmt->stmt_type == ae_stmt_union)
@@ -127,7 +129,7 @@ ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
 ANN static m_bool scan0_class_def_public(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(GET_FLAG(class_def, ae_flag_global)) {
     if(env_class_def(env, NULL))
-      CHECK_BB(err_msg(SCAN0_, class_def->pos,
+      CHECK_BB(err_msg(SCAN0_, class_def->name->pos,
             "more than one 'public' class defined..."))
     env_class_def(env, class_def);
     vector_add(&env->nspc_stack, (vtype)env->curr);
