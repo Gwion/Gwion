@@ -31,7 +31,9 @@ struct pool {
 __attribute__((constructor(200)))
 void mpool_ini() {
   map_init(&map);
+#ifdef OBSTACK
   obstack_init(&obs);
+#endif
 }
 
 __attribute__((destructor(200)))
