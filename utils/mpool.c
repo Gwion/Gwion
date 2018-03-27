@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <obstack.h>
 #include "defs.h"
 #include "mpool.h"
 #include "map.h"
@@ -10,6 +9,7 @@
 #define obstack_chunk_free xfree
 
 #ifdef OBSTACK
+#include <obstack.h>
 static struct obstack obs;
 #endif
 static struct Map_ map;
