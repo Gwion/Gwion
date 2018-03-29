@@ -11,7 +11,7 @@
 m_int o_object_array;
 
 struct M_Vector_ {
-  char*  ptr;   // data
+  m_bit*  ptr;   // data
   m_uint len;   // number of elements * size
   m_uint size;  // size of objects
   m_uint depth;
@@ -41,7 +41,7 @@ ANN M_Object new_M_Array(const Type t, const m_uint size,
   while(cap < length)
     cap *= 2;
   ARRAY(a)  	  = mp_alloc(M_Vector);
-  ARRAY(a)->ptr   = (char*)xcalloc(cap, size);
+  ARRAY(a)->ptr   = (m_bit*)xcalloc(cap, size);
   ARRAY(a)->cap   = cap;
   ARRAY(a)->size  = size;
   ARRAY(a)->len   = length;
@@ -56,7 +56,7 @@ ANN void m_vector_get(const M_Vector v, const m_uint i, void* c) {
 ANN void m_vector_add(const M_Vector v, const void* data) {
   if(++v->len >= v->cap) {
     v->cap *=2;
-    v->ptr = (char*)xrealloc(v->ptr, v->cap * v->size);
+    v->ptr = (m_bit*)xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy((v->ptr + (v->len - 1)*v->size), data,v->size);
 }
@@ -73,7 +73,7 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
   memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
   if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
-    v->ptr = (char*)xrealloc(v->ptr, v->cap * v->size);
+    v->ptr = (m_bit*)xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy(v->ptr, c, v->cap * v->size);
 }
@@ -91,8 +91,8 @@ static MFUN(vm_vector_rem) {
   m_vector_rem(v, index);
 }
 
-ANN char* m_vector_addr(const M_Vector v, const m_uint i) {
-  return &*(char*)(v->ptr + i * v->size);
+ANN m_bit* m_vector_addr(const M_Vector v, const m_uint i) {
+  return &*(m_bit*)(v->ptr + i * v->size);
 }
 
 static MFUN(vm_vector_size) {
@@ -209,10 +209,10 @@ ANN m_bool import_array(const Gwi gwi) {
 }
 
 INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_EXE
-  if(*(m_uint*)REG(-SZ_INT * 2) >= *(m_uint*)REG(-SZ_INT))
-    shred->next_pc = instr->m_val;
-  else
+  if(*(m_uint*)REG(-SZ_INT * 2) < *(m_uint*)REG(-SZ_INT))
     instantiate_object(shred, *(Type*)instr->ptr);
+  else
+    shred->next_pc = instr->m_val;
 }
 
 INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
@@ -284,14 +284,14 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, const struct Array
 }
 
 ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAllocInfo* info) {
-  M_Object base;
-  m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
-  if(!(base = do_alloc_array_object(info, cap)))
+  const m_int cap = *(m_int*)REG(info->capacity * SZ_INT);
+  const M_Object base = do_alloc_array_object(info, cap);
+  if(!base)
     return NULL;
-  if(info->capacity >= info->top)
-    return do_alloc_array_init(info, cap, base);
-  else
+  if(info->capacity < info->top)
     return do_alloc_array_loop(shred, info, cap, base);
+  else
+    return do_alloc_array_init(info, cap, base);
   return base;
 }
 
@@ -359,7 +359,7 @@ error:
 ANN static void array_push(const VM_Shred shred, const M_Vector a,
     const m_uint i, const m_uint size, const m_bool emit_var) {
   if(emit_var)
-      *(char**)REG(0) = m_vector_addr(a, i);
+      *(m_bit**)REG(0) = m_vector_addr(a, i);
   else
     m_vector_get(a, i, REG(0));
   PUSH_REG(shred,  size);

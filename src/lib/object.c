@@ -36,7 +36,7 @@ ANN m_bool initialize_object(const M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
   if(type->info->offset) {
-    if(!(object->data = (unsigned char*)xcalloc(1, type->info->offset)))
+    if(!(object->data = (m_bit*)xcalloc(1, type->info->offset)))
       CHECK_BB(err_msg(TYPE_, 0,
           "OutOfMemory: while instantiating object '%s'\n", type->name))
   }
@@ -64,15 +64,14 @@ ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   vm_add_shred(shred->vm_ref, sh);
 }
 
-__attribute__((nonnull(2)))
-void release(const M_Object obj, const VM_Shred shred) {
+ANN2(2) void release(const M_Object obj, const VM_Shred shred) {
   if(!obj)
     return;
   if(!--obj->ref) {
     Type t = obj->type_ref;
     while(t) {
       m_uint i;
-      Vector v = nspc_get_value(t->info);
+      Vector v = scope_get(&t->info->value);
       for(i = 0; i < vector_size(v); i++) {
         Value value = (Value)vector_at(v, i);
         if(!GET_FLAG(value, ae_flag_static) && isa(value->type, t_object) > 0)

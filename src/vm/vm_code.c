@@ -19,18 +19,16 @@ VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
   return code;
 }
 
-static void free_code_instr_gack(Instr instr) {
-  m_uint j;
-  Vector v = *(Vector*)instr->ptr;
-  for(j = vector_size(v) + 1; --j;)
-    REM_REF(((Type)vector_at(v, j - 1)));
+ANN static void free_code_instr_gack(const Instr instr) {
+  const Vector v = *(Vector*)instr->ptr;
+  for(m_uint i = vector_size(v) + 1; --i;)
+    REM_REF(((Type)vector_at(v, i - 1)));
   free_vector(v);
 }
 
-static void free_code_instr(Vector v) {
-  m_uint i;
-  for(i = vector_size(v) + 1; --i;) {
-    Instr instr = (Instr)vector_at(v, i - 1);
+ANN static void free_code_instr(Vector v) {
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    const Instr instr = (Instr)vector_at(v, i - 1);
     if(instr->execute == Instr_Array_Init ||
         instr->execute == Instr_Array_Alloc) {
       VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;

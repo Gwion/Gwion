@@ -20,7 +20,7 @@ ANN void free_func(Func a) {
     if(GET_FLAG(a, ae_flag_template)) {
       free_tmpl_list(a->def->tmpl);
       free_func_def_simple(a->def);
-    } //else puts(a->name);
+    }
   } else if(a->def)
     free_func_def(a->def);
   if(a->code)

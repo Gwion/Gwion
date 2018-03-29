@@ -10,5 +10,5 @@ ANN m_uint     m_vector_size(const M_Vector v);
 ANN void       m_vector_set(const M_Vector v,  const m_uint i, const void* data);
 ANN void       m_vector_get(const M_Vector v,  const m_uint i, void* data);
 ANN void       m_vector_add(const M_Vector v,  const void* data);
-ANN char*      m_vector_addr(const M_Vector v, const m_uint i);
+ANN m_bit*      m_vector_addr(const M_Vector v, const m_uint i);
 ANN void m_vector_rem(const M_Vector v, const m_uint index);

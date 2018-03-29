@@ -83,7 +83,7 @@ static INSTR(instr_ptr_deref) { GWDEBUG_EXE
   if(instr->m_val2)
     memcpy(REG(0), o->data, SZ_INT);
   else
-  memcpy(REG(0), *(char**)o->data, instr->m_val);
+  memcpy(REG(0), *(m_bit**)o->data, instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -98,7 +98,7 @@ static OP_EMIT(opem_ptr_deref) {
 INSTR(Cast2Ptr) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   const M_Object o = new_M_Object(shred);
-  o->data = (unsigned char*)xmalloc(SZ_INT);
+  o->data = (m_bit*)xmalloc(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(0);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT)

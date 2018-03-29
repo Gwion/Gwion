@@ -8,7 +8,7 @@
 #include "ugen.h"
 #include "func.h"
 
-typedef struct {
+typedef struct SP_osc_ {
   sp_data* sp;
   sp_osc* osc;
   m_bool is_init;
@@ -41,7 +41,7 @@ static CTOR(sinosc_ctor) {
   sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->sp, ug->tbl);
   sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
-  assign_ugen(UGEN(o), 0, 1, 0, ug);
+  assign_ugen(UGEN(o), 0, 1, ug);
   UGEN(o)->tick = sinosc_tick;
   ug->is_init = 1;
 }
@@ -122,7 +122,7 @@ static TICK(gain_tick) {
 }
 
 static CTOR(gain_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = gain_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -155,7 +155,7 @@ static TICK(impulse_tick) {
 }
 
 static CTOR(impulse_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 0, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = impulse_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -187,7 +187,7 @@ static TICK(fullrect_tick) {
 }
 
 static CTOR(fullrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = fullrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -209,7 +209,7 @@ static TICK(halfrect_tick) {
 }
 
 static CTOR(halfrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = halfrect_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }
@@ -227,7 +227,7 @@ static TICK(step_tick) {
 }
 
 static CTOR(step_ctor) {
-  assign_ugen(UGEN(o), 0, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 0, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = step_tick;
   *(m_float*)UGEN(o)->ug = 0;
 }
@@ -262,7 +262,7 @@ static TICK(zerox_tick) {
 }
 
 static CTOR(zerox_ctor) {
-  assign_ugen(UGEN(o), 1, 1, 0, (m_float*)xmalloc(SZ_FLOAT));
+  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
   UGEN(o)->tick = zerox_tick;
   *(m_float*)UGEN(o)->ug = 1;
 }

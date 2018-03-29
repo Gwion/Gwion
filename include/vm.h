@@ -49,11 +49,11 @@ typedef struct VM_Shred_* VM_Shred;
 struct VM_Shred_ {
   VM_Code code;
   VM_Shred parent;
-  char* reg;
-  char* mem;
-  char* _reg;
-  char* _mem;
-  char* base;
+  m_bit* reg;
+  m_bit* mem;
+  m_bit* _reg;
+  m_bit* _mem;
+  m_bit* base;
   m_uint pc, next_pc, xid;
   m_str name;
   VM* vm_ref;
@@ -65,26 +65,24 @@ struct VM_Shred_ {
   struct Vector_ sporks;
   m_float wake_time;
 };
-__attribute__((nonnull(4)))
-ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
-ANN void free_vm_code(VM_Code a);
+ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
+ANN void free_vm_code(const VM_Code a);
 
-VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
-void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase)__attribute__((hot, nonnull));
-VM_Shred shreduler_get(Shreduler s) __attribute__((hot, nonnull));
-m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time)__attribute__((hot, nonnull));
-void shreduler_set_loop(Shreduler s, m_bool loop);
+ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
+ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
+ANN m_bool shredule(const Shreduler s, const VM_Shred shred, m_float wake_time)__attribute__((hot));
+void shreduler_set_loop(const Shreduler s, const m_bool loop);
 
-ANEW VM_Shred new_vm_shred(VM_Code code) __attribute__((hot, nonnull));
-__attribute__((hot, nonnull))
-static inline void vm_shred_exit(VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
-void free_vm_shred(VM_Shred shred)__attribute__((hot, nonnull));
+ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
+__attribute__((hot))
+ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
+void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
-void vm_run(VM* vm) __attribute__((hot, nonnull));
-ANEW VM* new_vm(m_bool loop);
-void free_vm(VM* vm)__attribute__((nonnull));
-void vm_add_shred(VM* vm, VM_Shred shred)__attribute__((hot, nonnull));
-void vm_remove(VM* vm, m_uint index)__attribute__((hot, nonnull));
-m_str code_name_set(const m_str, const m_str)__attribute__((hot, nonnull(1)));
-m_str code_name(const m_str, const m_bool)__attribute__((hot, nonnull));
+ANN void vm_run(VM* vm) __attribute__((hot));
+ANEW VM* new_vm(const m_bool loop);
+ANN void free_vm(VM* vm);
+ANN void vm_add_shred(VM* vm, VM_Shred shred)__attribute__((hot));
+ANN void vm_remove(VM* vm, m_uint index)__attribute__((hot));
+ANN m_str code_name_set(const m_str, const m_str);
+ANN m_str code_name(const m_str, const m_bool);
 #endif

@@ -5,8 +5,8 @@
 #include "type.h"
 #include "value.h"
 #include "func.h"
-
 #include "traverse.h"
+#include "optim.h"
 
 ANN static m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
@@ -14,12 +14,9 @@ ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
 
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  const Type type = decl->type;
-  if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2)) {
-    CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
-    CHECK_BB(scan2_class_def(env, type->def))
-    nspc_pop_type(env->curr);
-  }
+  CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
+  CHECK_BB(scan2_class_def(env, decl->type->def))
+  nspc_pop_type(env->curr);
   return 1;
 }
 
@@ -30,10 +27,12 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(GET_FLAG(type, ae_flag_abstract) && !GET_FLAG(decl->td, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
         ". (use @)", type->name))
-  CHECK_BB(scan2_exp_decl_template(env, decl))
+  if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2))
+    CHECK_BB(scan2_exp_decl_template(env, decl))
   while(list) {
-    if(list->self->array && list->self->array->exp)
-        CHECK_BB(scan2_exp(env, list->self->array->exp))
+    const Array_Sub array = list->self->array;
+    if(array && array->exp)
+        CHECK_BB(scan2_exp(env, array->exp))
     list = list->next;
   }
   return 1;
@@ -55,8 +54,7 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
   return 1;
 }
 
-__attribute__((nonnull(1)))
-static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
   m_uint count = 1;
   nspc_push_value(env->curr);
@@ -167,8 +165,7 @@ ANN static m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   return scan2_exp(env, dur->unit);
 }
 
-__attribute__((nonnull(1,2)))
-static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
+ANN2(1,2) static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, func))
   return args ? scan2_exp(env, args) : 1;
 }
@@ -234,9 +231,7 @@ static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
       case ae_exp_dur:
         CHECK_BB(scan2_exp_dur(env, &exp->d.exp_dur))
         break;
-#ifdef OPTIMIZE
-      default: break;
-#endif
+      OPTIMIZE_DEFAULT
     }
   } while((exp = exp->next));
   return 1;
@@ -419,19 +414,14 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
     CHECK_BB(err_msg(SCAN2_, f->td->pos,
           "function name '%s' is already used by another value",
           s_name(f->name)))
-  else if(!overload->d.func_ref)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
-          "internal error: missing function '%s'",
-          overload->name))
-  if((!tmpl &&  base) ||
+  if((!tmpl && base) ||
       (tmpl && !base && !GET_FLAG(f, ae_flag_template)))
     CHECK_BB(err_msg(SCAN2_, f->td->pos,
           "must override template function with template"))
   return 1;
 }
 
-__attribute__((nonnull(1,2)))
-static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
+ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = new_func(func_name, f);
   Value value;
@@ -509,8 +499,7 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
   return 1;
 }
 
-__attribute__((nonnull(1, 2)))
-static m_bool scan2_func_def_add(const Env env, const Value value, const Value overload) { GWDEBUG_EXE
+ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, const Value overload) { GWDEBUG_EXE
   const m_str name = s_name(value->d.func_ref->def->name);
   const Func func = value->d.func_ref;
 
@@ -578,8 +567,7 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
   return s_name(insert_symbol(name));
 }
 
-__attribute__((nonnull(1,2,4)))
-static Value func_create(const Env env, const Func_Def f,
+ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     const Value overload, const m_str func_name) {
   const Func func = new_func(func_name, f);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
@@ -615,13 +603,11 @@ static Value func_create(const Env env, const Func_Def f,
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
-  Func  base;
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   const m_uint len = strlen(func_name) +
     num_digit(overload ? overload->func_num_overloads + 1 : 0) +
     strlen(env->curr->name) + 3;
-
 
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
@@ -629,19 +615,19 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
 
-  if(f->tmpl) {
-    Func func;
-    func_name = func_tmpl_name(env, f, len);
-    if((func = nspc_lookup_func1(env->curr, insert_symbol(func_name)))) {
-      return scan2_arg_def(env, f);
-    }
-  } else {
+  if(!f->tmpl) {
     char name[len];
     snprintf(name, len, "%s@%" INT_F "@%s", func_name,
            overload ? ++overload->func_num_overloads : 0, env->curr->name);
     func_name = s_name(insert_symbol(name));
+  } else {
+    func_name = func_tmpl_name(env, f, len);
+    const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
+    if(func)
+      return scan2_arg_def(env, f);
   }
-  if(!(base = get_func(env, f)))
+  const Func base = get_func(env, f);
+  if(!base)
     CHECK_OB((value = func_create(env, f, overload, func_name)))
   else
     f->func = base;

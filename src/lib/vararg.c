@@ -29,7 +29,7 @@ INSTR(MkVararg) { GWDEBUG_EXE
   const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
-    arg->d = (char*)xmalloc(instr->m_val);
+    arg->d = (m_bit*)xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
   }  else arg->d = NULL;
   arg->s = kinds ? vector_size(kinds) : 0;

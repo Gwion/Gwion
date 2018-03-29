@@ -60,8 +60,7 @@ static m_bool op_match(const Type t, const Type mo) {
   return 0;
 }
 
-__attribute__((nonnull(1)))
-static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs) {
+ANN2(1) static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))

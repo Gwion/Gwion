@@ -62,8 +62,8 @@ m_uint compile(VM* vm, const m_str filename) {
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   code = emit_code(vm->emit);
-  if(GET_FLAG(code, ae_flag_recurs))
-    code_optim(vm->emit);
+//  if(GET_FLAG(code, ae_flag_recurs))
+//    code_optim(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);
   shred->args = args;
@@ -125,6 +125,9 @@ int main(int argc, char** argv) {
 #endif
   srand(time(NULL));
 
+//#include <sys/mman.h>
+//mlockall(MCL_CURRENT|MCL_FUTURE);
+
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
 
@@ -140,6 +143,7 @@ int main(int argc, char** argv) {
 #endif
   GWREPL_INI(vm, &repl_thread)
   d.run(vm, &di);
+//munlockall();
   GWREPL_END(repl_thread)
 
 #ifdef GWUDP

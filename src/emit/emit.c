@@ -43,10 +43,8 @@ ANN static inline f_instr get_goto(Env env) {
 
 
 ANN static void coverage(const Emitter emit, const m_uint pos) {
-  Instr cov;
-
   fprintf(emit->cov_file, "%" INT_F " ini\n", pos);
-  cov = emitter_add_instr(emit, InstrCoverage);
+  Instr cov = emitter_add_instr(emit, InstrCoverage);
   cov->m_val = pos;
 }
 #else
@@ -118,7 +116,7 @@ ANN static void frame_push_scope(Frame* frame) {
 
 ANN static void frame_pop_scope(Frame* frame, Vector v) {
   m_uint i;
-  while((i = vector_size(&frame->stack) && vector_back(&frame->stack))) {
+  while((i = vector_size(&frame->stack)) && vector_back(&frame->stack)) {
     Local* local = (Local*)vector_pop(&frame->stack);
     frame->curr_offset -= local->size;
     vector_add(v, (vtype)local);
@@ -154,8 +152,8 @@ ANN void free_emitter(Emitter a) {
 ANEW Instr new_instr() { return mp_alloc(Instr); }
 ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
 
-__attribute__((returns_nonnull, nonnull(1)))
-Instr emitter_add_instr(const Emitter emit, const f_instr f) {
+__attribute__((returns_nonnull))
+ANN2(1) Instr emitter_add_instr(const Emitter emit, const f_instr f) {
   Instr instr = mp_alloc(Instr);
   instr->execute = f;
   vector_add(&emit->code->code, (vtype)instr);
@@ -295,8 +293,7 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GW
 }
 
 
-__attribute__((nonnull(1,2)))
-m_bool emit_instantiate_object(const Emitter emit, const Type type,
+ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     const Array_Sub array, const m_bool is_ref) {
   if(type->array_depth) {
     VM_Array_Info* info = emit_array_extend_inner(emit, type, array->exp);
@@ -333,9 +330,7 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
   dot.d.exp_dot.t_base = v->owner_class;
   dot.d.exp_dot.xid = prim->d.var;
   dot.emit_var = prim->self->emit_var;
-  if(emit_exp_dot(emit, &dot.d.exp_dot) < 0)
-    CHECK_BB(err_msg(EMIT_, prim->self->pos,
-          "(emit): internal error: symbol transformation failed..."))
+  CHECK_BB(emit_exp_dot(emit, &dot.d.exp_dot))
   return 1;
 }
 
@@ -658,8 +653,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   while(list) {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
-if(isa(list->self->value->type, t_func_ptr) > 0)
-REM_REF(list->self->value->type)
+    if(isa(list->self->value->type, t_func_ptr) > 0)
+      REM_REF(list->self->value->type)
 
     if(GET_FLAG(decl->td, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r))
@@ -697,21 +692,17 @@ ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Func* exp_f
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(exp_func->args && emit_exp(emit, exp_func->args, 1) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->self->pos,
-          "(emit): internal error in emitting function call arguments..."))
+  if(exp_func->args)
+    CHECK_BB(emit_exp(emit, exp_func->args, 1))
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic))
     CHECK_BB(emit_func_arg_vararg(emit, exp_func))
   return 1;
 }
 
 ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
-  if(exp_func->args && !spork && emit_func_args(emit, exp_func) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->self->pos,
-          "internal error in evaluating function arguments..."))
-  if(emit_exp(emit, exp_func->func, 0) < 0)
-    CHECK_BB(err_msg(EMIT_, exp_func->self->pos,
-          "internal error in evaluating function call..."))
+  if(exp_func->args && !spork)
+    CHECK_BB(emit_func_args(emit, exp_func))
+  CHECK_BB(emit_exp(emit, exp_func->func, 0))
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
     // handle empty call to variadic functions
     emitter_add_instr(emit, MkVararg);
@@ -738,10 +729,10 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Func* exp
 }
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
-  if(exp_func->tmpl)
-    CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
-  else
+  if(!exp_func->tmpl)
     CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
+  else
+    CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
   return emit_exp_call1(emit, exp_func->m_func);
 }
 
@@ -903,7 +894,6 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
   GWCGRAPH_INI
 #ifdef OPTIMIZE
   if(GET_FLAG(func, ae_flag_inline)) {
-puts("set recurs");
     SET_FLAG(func, ae_flag_recurs);
     SET_FLAG(emit->code, ae_flag_recurs);
     Instr instr = emitter_add_instr(emit, INSTR_INLINE);
@@ -930,8 +920,7 @@ puts("set recurs");
   return 1;
 }
 
-__attribute__((nonnull(1,2)))
-static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code, const Func f,
+ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code, const Func f,
     const m_uint arg_size, const m_uint stack_depth) {
   Instr push_code, spork;
 
@@ -958,18 +947,15 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp) { GWDEBUG_EXE
   m_uint size;
 
   CHECK_BB(emit_func_args(emit, exp))
-  if(emit_exp(emit, exp->func, 0) < 0)
-    CHECK_BB(err_msg(EMIT_, exp->self->pos, "(emit): internal error in evaluating function call...")) // LCOV_EXCL_LINE
+  CHECK_BB(emit_exp(emit, exp->func, 0))
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code();
   emitter_add_instr(emit, start_gc);
   if(GET_FLAG(exp->m_func, ae_flag_member))
     SET_FLAG(emit->code, ae_flag_member);
 #ifdef OPTIMIZE
-  if(GET_FLAG(exp->m_func, ae_flag_inline)) {
-puts("set spork recurs");
+  if(GET_FLAG(exp->m_func, ae_flag_inline))
     SET_FLAG(emit->code, ae_flag_recurs);
-}
 #endif
   char c[11 + num_digit(exp->self->pos)];
   sprintf(c, "spork~exp:%i", exp->self->pos);
@@ -1091,8 +1077,7 @@ ANN static void emit_exp_constprop(const Emitter emit, const Exp e) {
 }
 #endif
 
-__attribute__((nonnull(1)))
-static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_EXE
+ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_EXE
   do {
     switch(exp->exp_type) {
       case ae_exp_decl:
@@ -1480,7 +1465,7 @@ ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
   else {
     if(!GET_FLAG(prim->value, ae_flag_const))
       CHECK_BB(err_msg(EMIT_, prim->self->pos,
-            "value is not const. this is not allowed for now"))
+            "value is not constant."))
     *value = (m_uint)prim->value->d.ptr; // assume enum.
   }
   return 1;
@@ -1550,7 +1535,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   if(stmt->xid) {
     if(!stmt->value->type->info->class_data)
       stmt->value->type->info->class_data =
-        (char*)xcalloc(1, stmt->value->type->info->class_data_size);
+        (m_bit*)xcalloc(1, stmt->value->type->info->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
@@ -2036,7 +2021,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
     CHECK_BB(emit_class_def(emit, base->def))
   }
   if(nspc->class_data_size)
-    nspc->class_data = (char*)xcalloc(1, nspc->class_data_size);
+    nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
   CHECK_BB(emit_class_push(emit, type))
   CHECK_OB((emit->code = emit_class_code(emit, type->name)))
 
@@ -2089,27 +2074,25 @@ ANN static void handle_code(const VM_Code c) {
     }
 #ifdef OPTIMIZE
 else if(instr->execute == INSTR_INLINE) {
-  Vector tmp = new_vector();
-  for(m_uint j = i +1; j < vector_size(c->instr); j++)
-    vector_add(tmp, vector_at(c->instr, j));
-  m_uint size = vector_size(c->instr);
-  for(m_uint j = i + 1; j < size; j++)
-    vector_pop(c->instr);
-  Func f = *(Func*)instr->ptr;
+  const Func f = *(Func*)instr->ptr;
+  const m_uint j = i + 1, c_size = vector_size(c->instr), f_size = vector_size(f->code->instr),
+    size = c_size + f_size;
   instr->execute = InlineStart;
   *(VM_Code*)instr->ptr = f->code;
-  instr->m_val2 = i + 1;
-  if(vector_size(f->code->instr)) // TODO func code size
-    for(m_uint j = 0; j < vector_size(f->code->instr) - 1; j++)
-      vector_add(c->instr, vector_at(f->code->instr, j));
+  instr->m_val2 = j;
+  Instr* code = (Instr*)xmalloc((OFFSET + size) * SZ_INT);
   Instr inlinestop = new_instr();
   inlinestop->execute = InlineStop;
   inlinestop->m_val = instr->m_val;
   inlinestop->m_val2 = f->code->stack_depth;
-  vector_add(c->instr, (vtype)inlinestop);
-  for(m_uint j = 0; j < vector_size(tmp); j++)
-    vector_add(c->instr, vector_at(tmp, j));
-  free_vector(tmp);
+  code[i + f_size + OFFSET] = inlinestop;
+  memcpy(code + OFFSET, c->instr->ptr + OFFSET, j * SZ_INT);
+  memcpy(code + OFFSET + j + f_size, c->instr->ptr + j + OFFSET,  (c_size - j) * SZ_INT);
+  memcpy(code + OFFSET + j, f->code->instr->ptr + OFFSET, (f_size - 1)* SZ_INT);
+  free(c->instr->ptr);
+  c->instr->ptr = (m_uint*)code;
+  VLEN(c->instr) = size;
+  VCAP(c->instr) = size + OFFSET;
     }
 #endif
   }

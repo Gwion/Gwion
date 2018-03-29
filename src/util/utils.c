@@ -137,10 +137,10 @@ m_int get_escape(const char c, const int linepos) {
 }
 
 ANN m_int str2char(const m_str c, const m_int linepos) {
-  if(c[0] == '\\')
-    return get_escape(c[1], linepos);
-  else
+  if(c[0] != '\\')
     return c[0];
+  else
+    return get_escape(c[1], linepos);
 }
 
 ANN m_bool type_unknown(const ID_List id, const m_str orig) {

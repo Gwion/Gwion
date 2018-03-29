@@ -60,7 +60,7 @@ drvr_src +=src/drvr/pulse.c
 endif
 endif
 ifeq (${SNDFILE_D}, 1)
-LDFLAGS += -lsndfile
+#LDFLAGS += -lsndfile
 CFLAGS +=-DHAVE_SNDFILE
 drvr_src +=src/drvr/sndfile.c
 endif
@@ -111,10 +111,8 @@ TOOL_OBJ += utils/mpool.o src/util/map.o
 util_src += utils/mpool.c
 endif
 ifeq (${USE_OPTIMIZE}, 1)
+util_src += utils/optim.c
 CFLAGS+= -DOPTIMIZE
-endif
-ifeq (${USE_OBSTACK}, 1)
-CFLAGS+= -DOBSTACK
 endif
 ifeq (${USE_COLOR}, 1)
 CFLAGS+= -DCOLOR
@@ -127,6 +125,7 @@ CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
 # add soundpipe
 LDFLAGS += ${SOUNDPIPE_LIB}
+LDFLAGS += -lsndfile # and sndfile
 CFLAGS  += ${SOUNDPIPE_INC}
 
 # initialize object lists

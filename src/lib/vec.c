@@ -7,21 +7,21 @@
 INSTR(vec_member) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    *(m_float**)REG(0) = &*(m_float*)(*(char**)shred->reg + instr->m_val2);
+    *(m_float**)REG(0) = &*(m_float*)(*(m_bit**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_INT);
   } else {
-    *(m_float*)REG(0) = *(m_float*)(*(char**)shred->reg + instr->m_val2);
+    *(m_float*)REG(0) = *(m_float*)(*(m_bit**)shred->reg + instr->m_val2);
     PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
-static void vec_times(char* v, short int size, m_float f) {
-  for(short int i = size + 1; --i;)
+ANN static void vec_times(const m_bit* v, const int size, const m_float f) {
+  for(int i = size + 1; --i;)
     *(m_float*)(v + (i-1) * SZ_FLOAT) *= f;
 }
 
-static void vec_divide(char* v, short int size, m_float f) {
-  for(short int i = size + 1; --i;)
+ANN static void vec_divide(const m_bit* v, const int size, const m_float f) {
+  for(int i = size + 1; --i;)
     *(m_float*)(v + (i-1) * SZ_FLOAT) /= f;
 }
 
@@ -48,7 +48,7 @@ static MFUN(vec3_normalize) {
   const m_vec3* v =  &**(m_vec3**)MEM(0);
   const m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
   if(mag  > 0)
-    vec_divide((char*)v, 3, mag);
+    vec_divide((m_bit*)v, 3, mag);
 }
 
 static MFUN(vec3_interp) {
@@ -128,7 +128,7 @@ static INSTR(float_times_vec3) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_float f = *(m_float*)REG(0);
   m_vec3 r = *(m_vec3*)REG(SZ_FLOAT);
-  vec_times((char*)&r, 3, f);
+  vec_times((m_bit*)&r, 3, f);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC3);
 }
@@ -137,7 +137,7 @@ static INSTR(vec3_times_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_vec3 r = *(m_vec3*)REG(0);
   const m_float f = *(m_float*)REG(SZ_VEC3);
-  vec_times((char*)&r, 3, f);
+  vec_times((m_bit*)&r, 3, f);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC3);
 }
@@ -146,7 +146,7 @@ static INSTR(vec3_divide_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC3);
   m_vec3 r = *(m_vec3*)REG(0);
   const m_float f = *(m_float*)REG(SZ_VEC3);
-  vec_divide((char*)&r, 3, f);
+  vec_divide((m_bit*)&r, 3, f);
   *(m_vec3*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC3);
 }
@@ -255,7 +255,7 @@ static MFUN(vec4_normalize) {
   m_vec4* v =  &**(m_vec4**)MEM(0);
   m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
   if(mag  > 0)
-    vec_divide((char*)v, 4, mag);
+    vec_divide((m_bit*)v, 4, mag);
 }
 
 static INSTR(vec4_add) { GWDEBUG_EXE
@@ -295,7 +295,7 @@ static INSTR(float_times_vec4) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   m_float f = *(m_float*)REG(0);
   m_vec4 r = *(m_vec4*)REG(SZ_FLOAT);
-  vec_times((char*)&r, 4, f);
+  vec_times((m_bit*)&r, 4, f);
   *(m_vec4*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC4);
 }
@@ -304,7 +304,7 @@ static INSTR(vec4_times_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   m_vec4 r = *(m_vec4*)REG(0);
   m_float f = *(m_float*)REG(SZ_VEC4);
-  vec_times((char*)&r, 4, f);
+  vec_times((m_bit*)&r, 4, f);
   *(m_vec4*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC4);
 }
@@ -313,7 +313,7 @@ static INSTR(vec4_divide_float) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT + SZ_VEC4);
   m_vec4 r = *(m_vec4*)REG(0);
   m_float f = *(m_float*)REG(SZ_VEC4);
-  vec_divide((char*)&r, 4, f);
+  vec_divide((m_bit*)&r, 4, f);
   *(m_vec4*)REG(0) = r;
   PUSH_REG(shred,  SZ_VEC4);
 }

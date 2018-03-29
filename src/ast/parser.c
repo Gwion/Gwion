@@ -379,7 +379,7 @@ int gwion_parse (Scanner* arg);
 #ifdef YYTYPE_UINT8
 typedef YYTYPE_UINT8 yytype_uint8;
 #else
-typedef unsigned char yytype_uint8;
+typedef m_bit yytype_uint8;
 #endif
 
 #ifdef YYTYPE_INT8

@@ -13,6 +13,6 @@ extern m_int o_shred_me;
 
 ANN void broadcast(M_Object o);
 __attribute__((nonnull(2)))
-void release(M_Object obj, VM_Shred shred);
-m_bool initialize_object(M_Object object, Type type)__attribute__((hot, nonnull));
+ANN2(2) void release(M_Object obj, VM_Shred shred);
+ANN m_bool initialize_object(M_Object object, Type type)__attribute__((hot));
 #endif

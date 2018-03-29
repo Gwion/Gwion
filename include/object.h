@@ -2,7 +2,7 @@ struct M_Object_ {
   Vector vtable; // pointer reference to type->info->obj_v_table
   Type type_ref;
   m_uint ref;
-  unsigned char* data;
+  m_bit* data;
 };
 
 ANN m_bool initialize_object(const M_Object o, const Type type);
@@ -13,8 +13,7 @@ ANEW M_Object new_M_UGen();
 ANEW M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth);
 ANEW M_Object new_String(const VM_Shred shred, const m_str str);
 
-__attribute__((nonnull(2)))
-void release(M_Object obj, const VM_Shred shred);
+ANN2(2) void release(M_Object obj, const VM_Shred shred);
 ANN void NullException(const VM_Shred shred, const m_str c);
 
 m_int o_object_ugen;

@@ -8,10 +8,6 @@
 #include "type.h"
 #include "env.h"
 
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-
-
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
@@ -23,9 +19,6 @@ Env new_env() {
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
-#ifdef OBSTACK
-  obstack_init(&env->obs);
-#endif
   env->type_xid = 0;
   env_reset(env);
   return env;
@@ -51,7 +44,7 @@ ANN void env_reset(const Env env) {
   env->class_scope = 0;
 }
 
-ANN void free_env(Env a) {
+ANN void free_env(const Env a) {
   Context ctx;
   while((ctx = (Context)vector_pop(&a->known_ctx)))
     REM_REF(ctx)
@@ -62,9 +55,6 @@ ANN void free_env(Env a) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
-#ifdef OBSTACK
-  obstack_free(&a->obs, NULL);
-#endif
   free(a);
 }
 
@@ -84,8 +74,7 @@ ANN m_bool env_pop_class(const Env env) {
 }
 
 
-__attribute__((nonnull(1,2)))
-m_bool env_add_value(const Env env, const m_str name, const Type type,
+ANN2(1,2) m_bool env_add_value(const Env env, const m_str name, const Type type,
       const m_bool is_const, void* data) {
   const Value v = new_value(type, name);
   ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
@@ -118,8 +107,7 @@ ANN Nspc env_nspc(const Env env) {
   return env->context->nspc;
 }
 
-__attribute__((nonnull(1)))
-Class_Def env_class_def(const Env env, const Class_Def def) {
+ANN2(1) Class_Def env_class_def(const Env env, const Class_Def def) {
   if(def)
     env->context->public_class_def = def;
   return env->context ? env->context->public_class_def : NULL;

@@ -27,8 +27,7 @@ struct Array_Sub_ {
   int pos;
 };
 ANEW Array_Sub new_array_sub(const Exp, const int);
-__attribute__((nonnull(1)))
-Array_Sub prepend_array_sub(const Array_Sub, const Exp);
+ANN2(1) Array_Sub prepend_array_sub(const Array_Sub, const Exp);
 ANN void free_array_sub(Array_Sub);
 
 typedef struct {
@@ -46,15 +45,13 @@ struct Var_Decl_ {
   void* addr;
   int pos;
 };
-__attribute__((nonnull(1)))
-ANEW Var_Decl new_var_decl(const Symbol, const Array_Sub, const int);
+ANN2(1) ANEW Var_Decl new_var_decl(const Symbol, const Array_Sub, const int);
 
 struct Var_Decl_List_ {
   Var_Decl self;
   Var_Decl_List next;
 };
-__attribute__((nonnull(1)))
-ANEW Var_Decl_List new_var_decl_list(const Var_Decl, const Var_Decl_List);
+ANN2(1) ANEW Var_Decl_List new_var_decl_list(const Var_Decl, const Var_Decl_List);
 
 typedef struct Type_Decl_ {
   ID_List xid;
@@ -83,8 +80,7 @@ struct Type_List_  {
   Type_Decl* td;
   Type_List next;
 };
-__attribute__((nonnull(1)))
-ANEW Type_List new_type_list(Type_Decl*, const Type_List);
+ANN2(1) ANEW Type_List new_type_list(Type_Decl*, const Type_List);
 ANN void free_type_list(Type_List a);
 
 typedef struct {
@@ -98,8 +94,7 @@ struct Arg_List_ {
   Type type;
   Arg_List  next;
 };
-__attribute__((nonnull(1, 2)))
-ANEW Arg_List new_arg_list(Type_Decl*, const Var_Decl, const Arg_List);
+ANN2(1,2) ANEW Arg_List new_arg_list(Type_Decl*, const Var_Decl, const Arg_List);
 ANN void free_arg_list(Arg_List a);
 
 typedef enum { ae_exp_decl, ae_exp_binary, ae_exp_unary, ae_exp_primary,
@@ -237,11 +232,9 @@ ANEW Exp new_exp_prim_nil(const int pos);
 ANEW ANN Exp new_exp_decl(Type_Decl*, const Var_Decl_List, const int);
 ANEW ANN Exp new_exp_binary(const Exp, const Operator, const Exp, const int);
 ANEW ANN Exp new_exp_post(const Exp, const Operator, const int);
-__attribute__((nonnull(1)))
-ANEW Exp new_exp_call(const Exp, const Exp args, const int pos);
+ANN2(1) ANEW Exp new_exp_call(const Exp, const Exp args, const int pos);
 ANEW ANN Exp new_exp_cast(Type_Decl*, const Exp, const int);
-__attribute__((nonnull(1,2)))
-ANEW Exp new_exp_if(const Exp, const Exp, const Exp, const int);
+ANN2(1,2) ANEW Exp new_exp_if(const Exp, const Exp, const Exp, const int);
 ANEW ANN Exp new_exp_dur(const Exp, const Exp, const int);
 ANEW ANN Exp new_exp_dot(const Exp, const Symbol, const int);
 ANEW ANN Exp new_exp_unary(const Operator, const Exp, const int);
@@ -256,8 +249,7 @@ struct Decl_List_ {
   Decl_List next;
 };
 
-__attribute__((nonnull(1)))
-ANEW Decl_List new_decl_list(Exp d, Decl_List l);
+ANN2(1) ANEW Decl_List new_decl_list(Exp d, Decl_List l);
 
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_auto, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
@@ -392,16 +384,13 @@ struct Stmt_ {
 ANEW Stmt new_stmt(const ae_Stmt_Type, const int);
 ANEW Stmt new_stmt_exp(const ae_Stmt_Type, const Exp, const int);
 ANEW Stmt new_stmt_code(const Stmt_List, const int);
-__attribute__((nonnull(1,2)))
-ANEW Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
+ANN2(1,2) ANEW Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
 ANEW ANN Stmt new_stmt_flow(const ae_Stmt_Type, const Exp, const Stmt, const m_bool, const int);
-__attribute__((nonnull(1,2,4)))
-ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
+ANN2(1,2,4) ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
 ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const int);
 ANEW ANN Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
 ANEW ANN Stmt new_stmt_gotolabel(const Symbol, const m_bool, const int);
-__attribute__((nonnull(1)))
-ANEW Stmt new_stmt_enum(const ID_List, const Symbol, const int);
+ANN2(1) ANEW Stmt new_stmt_enum(const ID_List, const Symbol, const int);
 ANEW ANN Stmt new_stmt_switch(Exp, Stmt, const int);
 ANEW ANN Stmt new_stmt_union(const Decl_List, const int);
 ANEW ANN Stmt new_func_ptr_stmt(const ae_flag, const Symbol, Type_Decl*, const Arg_List, const int);
@@ -412,6 +401,7 @@ struct Stmt_List_ {
   Stmt_List next;
 };
 ANEW Stmt_List new_stmt_list(Stmt stmt, Stmt_List next);
+ANN void free_stmt_list(Stmt_List);
 
 typedef struct Class_Body_ * Class_Body;
 
@@ -474,21 +464,18 @@ struct Class_Def_ {
   Type type;
   Tmpl_Class*  tmpl;
 };
-__attribute__((nonnull(2)))
-ANEW Class_Def new_class_def(const ae_flag, const ID_List,
+ANN2(2) ANEW Class_Def new_class_def(const ae_flag, const ID_List,
                         Type_Decl*, const Class_Body);
 ANN void free_class_def(Class_Def);
 ANN void free_class_def_simple(Class_Def);
-__attribute__((nonnull(1)))
-ANEW Class_Body new_class_body(Section*, const Class_Body);
+ANN2(1) ANEW Class_Body new_class_body(Section*, const Class_Body);
 ANN void free_class_body(Class_Body);
 
 struct Ast_ {
   Section* section;
   Ast next;
 };
-__attribute__((nonnull(1)))
-ANEW Ast new_ast(Section*, const Ast);
+ANN2(1) ANEW Ast new_ast(Section*, const Ast);
 ANN Ast parse(const m_str, FILE*);
 ANN void free_ast(Ast);
 #endif

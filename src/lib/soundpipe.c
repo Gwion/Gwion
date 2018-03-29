@@ -34,7 +34,7 @@ CTOR(adsr_ctor) {
 	sp_adsr_create(&ug->osc);
 	sp_adsr_init(ug->sp, ug->osc);
 	UGEN(o)->tick = adsr_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(adsr_dtor) {
@@ -114,7 +114,7 @@ CTOR(allpass_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = allpass_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(allpass_dtor) {
@@ -170,7 +170,7 @@ CTOR(atone_ctor) {
 	sp_atone_create(&ug->osc);
 	sp_atone_init(ug->sp, ug->osc);
 	UGEN(o)->tick = atone_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(atone_dtor) {
@@ -209,7 +209,7 @@ CTOR(autowah_ctor) {
 	sp_autowah_create(&ug->osc);
 	sp_autowah_init(ug->sp, ug->osc);
 	UGEN(o)->tick = autowah_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(autowah_dtor) {
@@ -273,7 +273,7 @@ CTOR(bal_ctor) {
 	sp_bal_create(&ug->osc);
 	sp_bal_init(ug->sp, ug->osc);
 	UGEN(o)->tick = bal_tick;
-	assign_ugen(UGEN(o), 2, 1, 0, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(bal_dtor) {
@@ -306,7 +306,8 @@ CTOR(bar_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = bar_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(bar_dtor) {
@@ -436,7 +437,7 @@ CTOR(biquad_ctor) {
 	sp_biquad_create(&ug->osc);
 	sp_biquad_init(ug->sp, ug->osc);
 	UGEN(o)->tick = biquad_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(biquad_dtor) {
@@ -535,7 +536,7 @@ CTOR(biscale_ctor) {
 	sp_biscale_create(&ug->osc);
 	sp_biscale_init(ug->sp, ug->osc);
 	UGEN(o)->tick = biscale_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(biscale_dtor) {
@@ -586,7 +587,7 @@ CTOR(bitcrush_ctor) {
 	sp_bitcrush_create(&ug->osc);
 	sp_bitcrush_init(ug->sp, ug->osc);
 	UGEN(o)->tick = bitcrush_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(bitcrush_dtor) {
@@ -636,7 +637,7 @@ CTOR(blsaw_ctor) {
 	sp_blsaw_create(&ug->osc);
 	sp_blsaw_init(ug->sp, ug->osc);
 	UGEN(o)->tick = blsaw_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(blsaw_dtor) {
@@ -686,7 +687,7 @@ CTOR(blsquare_ctor) {
 	sp_blsquare_create(&ug->osc);
 	sp_blsquare_init(ug->sp, ug->osc);
 	UGEN(o)->tick = blsquare_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(blsquare_dtor) {
@@ -748,7 +749,7 @@ CTOR(bltriangle_ctor) {
 	sp_bltriangle_create(&ug->osc);
 	sp_bltriangle_init(ug->sp, ug->osc);
 	UGEN(o)->tick = bltriangle_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(bltriangle_dtor) {
@@ -798,7 +799,7 @@ CTOR(brown_ctor) {
 	sp_brown_create(&ug->osc);
 	sp_brown_init(ug->sp, ug->osc);
 	UGEN(o)->tick = brown_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(brown_dtor) {
@@ -825,7 +826,7 @@ CTOR(butbp_ctor) {
 	sp_butbp_create(&ug->osc);
 	sp_butbp_init(ug->sp, ug->osc);
 	UGEN(o)->tick = butbp_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butbp_dtor) {
@@ -876,7 +877,7 @@ CTOR(butbr_ctor) {
 	sp_butbr_create(&ug->osc);
 	sp_butbr_init(ug->sp, ug->osc);
 	UGEN(o)->tick = butbr_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butbr_dtor) {
@@ -927,7 +928,7 @@ CTOR(buthp_ctor) {
 	sp_buthp_create(&ug->osc);
 	sp_buthp_init(ug->sp, ug->osc);
 	UGEN(o)->tick = buthp_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(buthp_dtor) {
@@ -966,7 +967,7 @@ CTOR(butlp_ctor) {
 	sp_butlp_create(&ug->osc);
 	sp_butlp_init(ug->sp, ug->osc);
 	UGEN(o)->tick = butlp_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butlp_dtor) {
@@ -1005,7 +1006,7 @@ CTOR(clip_ctor) {
 	sp_clip_create(&ug->osc);
 	sp_clip_init(ug->sp, ug->osc);
 	UGEN(o)->tick = clip_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(clip_dtor) {
@@ -1045,7 +1046,8 @@ CTOR(clock_ctor) {
 	sp_clock_create(&ug->osc);
 	sp_clock_init(ug->sp, ug->osc);
 	UGEN(o)->tick = clock_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(clock_dtor) {
@@ -1101,7 +1103,7 @@ CTOR(comb_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = comb_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(comb_dtor) {
@@ -1157,7 +1159,7 @@ CTOR(compressor_ctor) {
 	sp_compressor_create(&ug->osc);
 	sp_compressor_init(ug->sp, ug->osc);
 	UGEN(o)->tick = compressor_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(compressor_dtor) {
@@ -1237,7 +1239,7 @@ CTOR(conv_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = conv_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(conv_dtor) {
@@ -1286,7 +1288,8 @@ CTOR(count_ctor) {
 	sp_count_create(&ug->osc);
 	sp_count_init(ug->sp, ug->osc);
 	UGEN(o)->tick = count_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(count_dtor) {
@@ -1338,7 +1341,7 @@ CTOR(crossfade_ctor) {
 	sp_crossfade_create(&ug->osc);
 	sp_crossfade_init(ug->sp, ug->osc);
 	UGEN(o)->tick = crossfade_tick;
-	assign_ugen(UGEN(o), 2, 1, 0, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(crossfade_dtor) {
@@ -1377,7 +1380,7 @@ CTOR(dcblock_ctor) {
 	sp_dcblock_create(&ug->osc);
 	sp_dcblock_init(ug->sp, ug->osc);
 	UGEN(o)->tick = dcblock_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(dcblock_dtor) {
@@ -1409,7 +1412,7 @@ CTOR(delay_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = delay_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(delay_dtor) {
@@ -1465,7 +1468,7 @@ CTOR(diode_ctor) {
 	sp_diode_create(&ug->osc);
 	sp_diode_init(ug->sp, ug->osc);
 	UGEN(o)->tick = diode_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(diode_dtor) {
@@ -1520,7 +1523,7 @@ CTOR(diskin_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = diskin_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(diskin_dtor) {
@@ -1566,7 +1569,7 @@ CTOR(dist_ctor) {
 	sp_dist_create(&ug->osc);
 	sp_dist_init(ug->sp, ug->osc);
 	UGEN(o)->tick = dist_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(dist_dtor) {
@@ -1640,7 +1643,7 @@ CTOR(dmetro_ctor) {
 	sp_dmetro_create(&ug->osc);
 	sp_dmetro_init(ug->sp, ug->osc);
 	UGEN(o)->tick = dmetro_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(dmetro_dtor) {
@@ -1685,7 +1688,8 @@ CTOR(drip_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = drip_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(drip_dtor) {
@@ -1819,7 +1823,8 @@ CTOR(dtrig_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = dtrig_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(dtrig_dtor) {
@@ -1900,7 +1905,7 @@ CTOR(dust_ctor) {
 	sp_dust_create(&ug->osc);
 	sp_dust_init(ug->sp, ug->osc);
 	UGEN(o)->tick = dust_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(dust_dtor) {
@@ -1963,7 +1968,7 @@ CTOR(eqfil_ctor) {
 	sp_eqfil_create(&ug->osc);
 	sp_eqfil_init(ug->sp, ug->osc);
 	UGEN(o)->tick = eqfil_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(eqfil_dtor) {
@@ -2027,7 +2032,8 @@ CTOR(expon_ctor) {
 	sp_expon_create(&ug->osc);
 	sp_expon_init(ug->sp, ug->osc);
 	UGEN(o)->tick = expon_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(expon_dtor) {
@@ -2094,7 +2100,7 @@ CTOR(fof_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = fof_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fof_dtor) {
@@ -2244,7 +2250,7 @@ CTOR(fofilt_ctor) {
 	sp_fofilt_create(&ug->osc);
 	sp_fofilt_init(ug->sp, ug->osc);
 	UGEN(o)->tick = fofilt_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(fofilt_dtor) {
@@ -2311,7 +2317,7 @@ CTOR(fog_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = fog_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fog_dtor) {
@@ -2473,7 +2479,7 @@ CTOR(fold_ctor) {
 	sp_fold_create(&ug->osc);
 	sp_fold_init(ug->sp, ug->osc);
 	UGEN(o)->tick = fold_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(fold_dtor) {
@@ -2516,7 +2522,7 @@ CTOR(fosc_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = fosc_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fosc_dtor) {
@@ -2626,7 +2632,7 @@ CTOR(gbuzz_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = gbuzz_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(gbuzz_dtor) {
@@ -2883,7 +2889,7 @@ CTOR(hilbert_ctor) {
 	sp_hilbert_create(&ug->osc);
 	sp_hilbert_init(ug->sp, ug->osc);
 	UGEN(o)->tick = hilbert_tick;
-	assign_ugen(UGEN(o), 1, 2, 0, ug);
+	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(hilbert_dtor) {
@@ -2909,7 +2915,7 @@ CTOR(in_ctor) {
 	sp_in_create(&ug->osc);
 	sp_in_init(ug->sp, ug->osc);
 	UGEN(o)->tick = in_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(in_dtor) {
@@ -2942,7 +2948,8 @@ CTOR(incr_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = incr_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(incr_dtor) {
@@ -3022,7 +3029,7 @@ CTOR(jcrev_ctor) {
 	sp_jcrev_create(&ug->osc);
 	sp_jcrev_init(ug->sp, ug->osc);
 	UGEN(o)->tick = jcrev_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(jcrev_dtor) {
@@ -3048,7 +3055,7 @@ CTOR(jitter_ctor) {
 	sp_jitter_create(&ug->osc);
 	sp_jitter_init(ug->sp, ug->osc);
 	UGEN(o)->tick = jitter_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(jitter_dtor) {
@@ -3112,7 +3119,8 @@ CTOR(line_ctor) {
 	sp_line_create(&ug->osc);
 	sp_line_init(ug->sp, ug->osc);
 	UGEN(o)->tick = line_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(line_dtor) {
@@ -3180,7 +3188,7 @@ CTOR(lpc_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = lpc_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(lpc_dtor) {
@@ -3224,7 +3232,7 @@ CTOR(lpf18_ctor) {
 	sp_lpf18_create(&ug->osc);
 	sp_lpf18_init(ug->sp, ug->osc);
 	UGEN(o)->tick = lpf18_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(lpf18_dtor) {
@@ -3288,7 +3296,8 @@ CTOR(maygate_ctor) {
 	sp_maygate_create(&ug->osc);
 	sp_maygate_init(ug->sp, ug->osc);
 	UGEN(o)->tick = maygate_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(maygate_dtor) {
@@ -3338,7 +3347,7 @@ CTOR(metro_ctor) {
 	sp_metro_create(&ug->osc);
 	sp_metro_init(ug->sp, ug->osc);
 	UGEN(o)->tick = metro_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(metro_dtor) {
@@ -3381,7 +3390,7 @@ CTOR(mincer_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = mincer_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(mincer_dtor) {
@@ -3465,7 +3474,7 @@ CTOR(mode_ctor) {
 	sp_mode_create(&ug->osc);
 	sp_mode_init(ug->sp, ug->osc);
 	UGEN(o)->tick = mode_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(mode_dtor) {
@@ -3516,7 +3525,7 @@ CTOR(moogladder_ctor) {
 	sp_moogladder_create(&ug->osc);
 	sp_moogladder_init(ug->sp, ug->osc);
 	UGEN(o)->tick = moogladder_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(moogladder_dtor) {
@@ -3566,7 +3575,7 @@ CTOR(noise_ctor) {
 	sp_noise_create(&ug->osc);
 	sp_noise_init(ug->sp, ug->osc);
 	UGEN(o)->tick = noise_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(noise_dtor) {
@@ -3611,7 +3620,8 @@ CTOR(nsmp_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = nsmp_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(nsmp_dtor) {
@@ -3679,7 +3689,7 @@ CTOR(osc_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = osc_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(osc_dtor) {
@@ -3757,7 +3767,7 @@ CTOR(oscmorph_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = oscmorph_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(oscmorph_dtor) {
@@ -3853,7 +3863,7 @@ CTOR(pan2_ctor) {
 	sp_pan2_create(&ug->osc);
 	sp_pan2_init(ug->sp, ug->osc);
 	UGEN(o)->tick = pan2_tick;
-	assign_ugen(UGEN(o), 1, 2, 0, ug);
+	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(pan2_dtor) {
@@ -3905,7 +3915,7 @@ CTOR(panst_ctor) {
 	sp_panst_create(&ug->osc);
 	sp_panst_init(ug->sp, ug->osc);
 	UGEN(o)->tick = panst_tick;
-	assign_ugen(UGEN(o), 2, 2, 0, ug);
+	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(panst_dtor) {
@@ -3956,7 +3966,7 @@ CTOR(pareq_ctor) {
 	sp_pareq_create(&ug->osc);
 	sp_pareq_init(ug->sp, ug->osc);
 	UGEN(o)->tick = pareq_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pareq_dtor) {
@@ -4035,7 +4045,7 @@ CTOR(paulstretch_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = paulstretch_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(paulstretch_dtor) {
@@ -4085,7 +4095,7 @@ CTOR(pdhalf_ctor) {
 	sp_pdhalf_create(&ug->osc);
 	sp_pdhalf_init(ug->sp, ug->osc);
 	UGEN(o)->tick = pdhalf_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pdhalf_dtor) {
@@ -4124,7 +4134,7 @@ CTOR(peaklim_ctor) {
 	sp_peaklim_create(&ug->osc);
 	sp_peaklim_init(ug->sp, ug->osc);
 	UGEN(o)->tick = peaklim_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(peaklim_dtor) {
@@ -4188,7 +4198,7 @@ CTOR(phaser_ctor) {
 	sp_phaser_create(&ug->osc);
 	sp_phaser_init(ug->sp, ug->osc);
 	UGEN(o)->tick = phaser_tick;
-	assign_ugen(UGEN(o), 2, 2, 0, ug);
+	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(phaser_dtor) {
@@ -4339,7 +4349,7 @@ CTOR(phasor_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = phasor_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(phasor_dtor) {
@@ -4394,7 +4404,7 @@ CTOR(pinknoise_ctor) {
 	sp_pinknoise_create(&ug->osc);
 	sp_pinknoise_init(ug->sp, ug->osc);
 	UGEN(o)->tick = pinknoise_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(pinknoise_dtor) {
@@ -4437,7 +4447,7 @@ CTOR(pitchamdf_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = pitchamdf_tick;
-	assign_ugen(UGEN(o), 1, 2, 0, ug);
+	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(pitchamdf_dtor) {
@@ -4489,7 +4499,8 @@ CTOR(pluck_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = pluck_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(pluck_dtor) {
@@ -4562,7 +4573,7 @@ CTOR(port_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = port_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(port_dtor) {
@@ -4610,7 +4621,7 @@ CTOR(posc3_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = posc3_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(posc3_dtor) {
@@ -4679,7 +4690,7 @@ CTOR(progress_ctor) {
 	sp_progress_create(&ug->osc);
 	sp_progress_init(ug->sp, ug->osc);
 	UGEN(o)->tick = progress_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(progress_dtor) {
@@ -4734,7 +4745,7 @@ CTOR(prop_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = prop_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(prop_dtor) {
@@ -4792,7 +4803,7 @@ CTOR(pshift_ctor) {
 	sp_pshift_create(&ug->osc);
 	sp_pshift_init(ug->sp, ug->osc);
 	UGEN(o)->tick = pshift_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pshift_dtor) {
@@ -4859,7 +4870,7 @@ CTOR(ptrack_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = ptrack_tick;
-	assign_ugen(UGEN(o), 1, 2, 0, ug);
+	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(ptrack_dtor) {
@@ -4904,7 +4915,7 @@ CTOR(randh_ctor) {
 	sp_randh_create(&ug->osc);
 	sp_randh_init(ug->sp, ug->osc);
 	UGEN(o)->tick = randh_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(randh_dtor) {
@@ -4966,7 +4977,7 @@ CTOR(randi_ctor) {
 	sp_randi_create(&ug->osc);
 	sp_randi_init(ug->sp, ug->osc);
 	UGEN(o)->tick = randi_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(randi_dtor) {
@@ -5040,7 +5051,7 @@ CTOR(random_ctor) {
 	sp_random_create(&ug->osc);
 	sp_random_init(ug->sp, ug->osc);
 	UGEN(o)->tick = random_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(random_dtor) {
@@ -5091,7 +5102,7 @@ CTOR(reson_ctor) {
 	sp_reson_create(&ug->osc);
 	sp_reson_init(ug->sp, ug->osc);
 	UGEN(o)->tick = reson_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(reson_dtor) {
@@ -5147,7 +5158,7 @@ CTOR(reverse_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = reverse_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(reverse_dtor) {
@@ -5192,7 +5203,7 @@ CTOR(revsc_ctor) {
 	sp_revsc_create(&ug->osc);
 	sp_revsc_init(ug->sp, ug->osc);
 	UGEN(o)->tick = revsc_tick;
-	assign_ugen(UGEN(o), 2, 2, 0, ug);
+	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(revsc_dtor) {
@@ -5243,7 +5254,7 @@ CTOR(rms_ctor) {
 	sp_rms_create(&ug->osc);
 	sp_rms_init(ug->sp, ug->osc);
 	UGEN(o)->tick = rms_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(rms_dtor) {
@@ -5289,7 +5300,8 @@ CTOR(rpt_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = rpt_tick;
-	assign_ugen(UGEN(o), 2, 1, 1, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(rpt_dtor) {
@@ -5332,7 +5344,7 @@ CTOR(rspline_ctor) {
 	sp_rspline_create(&ug->osc);
 	sp_rspline_init(ug->sp, ug->osc);
 	UGEN(o)->tick = rspline_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(rspline_dtor) {
@@ -5409,7 +5421,8 @@ CTOR(samphold_ctor) {
 	sp_samphold_create(&ug->osc);
 	sp_samphold_init(ug->sp, ug->osc);
 	UGEN(o)->tick = samphold_tick;
-	assign_ugen(UGEN(o), 2, 1, 1, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(samphold_dtor) {
@@ -5436,7 +5449,7 @@ CTOR(saturator_ctor) {
 	sp_saturator_create(&ug->osc);
 	sp_saturator_init(ug->sp, ug->osc);
 	UGEN(o)->tick = saturator_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(saturator_dtor) {
@@ -5487,7 +5500,7 @@ CTOR(scale_ctor) {
 	sp_scale_create(&ug->osc);
 	sp_scale_init(ug->sp, ug->osc);
 	UGEN(o)->tick = scale_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(scale_dtor) {
@@ -5543,7 +5556,7 @@ CTOR(sdelay_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = sdelay_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(sdelay_dtor) {
@@ -5593,7 +5606,8 @@ CTOR(slice_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = slice_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(slice_dtor) {
@@ -5660,7 +5674,7 @@ CTOR(smoothdelay_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = smoothdelay_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(smoothdelay_dtor) {
@@ -5734,7 +5748,7 @@ CTOR(spa_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = spa_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(spa_dtor) {
@@ -5785,7 +5799,7 @@ CTOR(sparec_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = sparec_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(sparec_dtor) {
@@ -5831,7 +5845,7 @@ CTOR(streson_ctor) {
 	sp_streson_create(&ug->osc);
 	sp_streson_init(ug->sp, ug->osc);
 	UGEN(o)->tick = streson_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(streson_dtor) {
@@ -5885,7 +5899,8 @@ CTOR(switch_ctor) {
 	sp_switch_create(&ug->osc);
 	sp_switch_init(ug->sp, ug->osc);
 	UGEN(o)->tick = switch_tick;
-	assign_ugen(UGEN(o), 3, 1, 1, ug);
+	assign_ugen(UGEN(o), 3, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(switch_dtor) {
@@ -5916,7 +5931,7 @@ CTOR(tabread_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = tabread_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(tabread_dtor) {
@@ -6001,7 +6016,8 @@ CTOR(tadsr_ctor) {
 	sp_tadsr_create(&ug->osc);
 	sp_tadsr_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tadsr_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tadsr_dtor) {
@@ -6077,7 +6093,7 @@ CTOR(talkbox_ctor) {
 	sp_talkbox_create(&ug->osc);
 	sp_talkbox_init(ug->sp, ug->osc);
 	UGEN(o)->tick = talkbox_tick;
-	assign_ugen(UGEN(o), 2, 1, 0, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(talkbox_dtor) {
@@ -6123,7 +6139,8 @@ CTOR(tblrec_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = tblrec_tick;
-	assign_ugen(UGEN(o), 2, 1, 1, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tblrec_dtor) {
@@ -6169,7 +6186,7 @@ CTOR(tbvcf_ctor) {
 	sp_tbvcf_create(&ug->osc);
 	sp_tbvcf_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tbvcf_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(tbvcf_dtor) {
@@ -6245,7 +6262,8 @@ CTOR(tdiv_ctor) {
 	sp_tdiv_create(&ug->osc);
 	sp_tdiv_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tdiv_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tdiv_dtor) {
@@ -6297,7 +6315,8 @@ CTOR(tenv_ctor) {
 	sp_tenv_create(&ug->osc);
 	sp_tenv_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tenv_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tenv_dtor) {
@@ -6361,7 +6380,8 @@ CTOR(tenv2_ctor) {
 	sp_tenv2_create(&ug->osc);
 	sp_tenv2_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tenv2_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tenv2_dtor) {
@@ -6413,7 +6433,8 @@ CTOR(tenvx_ctor) {
 	sp_tenvx_create(&ug->osc);
 	sp_tenvx_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tenvx_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tenvx_dtor) {
@@ -6477,7 +6498,8 @@ CTOR(tgate_ctor) {
 	sp_tgate_create(&ug->osc);
 	sp_tgate_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tgate_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tgate_dtor) {
@@ -6516,7 +6538,7 @@ CTOR(thresh_ctor) {
 	sp_thresh_create(&ug->osc);
 	sp_thresh_init(ug->sp, ug->osc);
 	UGEN(o)->tick = thresh_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(thresh_dtor) {
@@ -6567,7 +6589,7 @@ CTOR(timer_ctor) {
 	sp_timer_create(&ug->osc);
 	sp_timer_init(ug->sp, ug->osc);
 	UGEN(o)->tick = timer_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(timer_dtor) {
@@ -6595,7 +6617,8 @@ CTOR(tin_ctor) {
 	sp_tin_create(&ug->osc);
 	sp_tin_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tin_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tin_dtor) {
@@ -6622,7 +6645,7 @@ CTOR(tone_ctor) {
 	sp_tone_create(&ug->osc);
 	sp_tone_init(ug->sp, ug->osc);
 	UGEN(o)->tick = tone_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(tone_dtor) {
@@ -6662,7 +6685,8 @@ CTOR(trand_ctor) {
 	sp_trand_create(&ug->osc);
 	sp_trand_init(ug->sp, ug->osc);
 	UGEN(o)->tick = trand_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(trand_dtor) {
@@ -6719,7 +6743,8 @@ CTOR(tseg_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = tseg_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tseg_dtor) {
@@ -6805,7 +6830,8 @@ CTOR(tseq_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = tseq_tick;
-	assign_ugen(UGEN(o), 1, 1, 1, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
+	assign_trig(UGEN(o));
 }
 
 DTOR(tseq_dtor) {
@@ -6868,7 +6894,7 @@ CTOR(vdelay_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = vdelay_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(vdelay_dtor) {
@@ -6923,7 +6949,7 @@ CTOR(voc_ctor) {
 	sp_voc_create(&ug->osc);
 	sp_voc_init(ug->sp, ug->osc);
 	UGEN(o)->tick = voc_tick;
-	assign_ugen(UGEN(o), 0, 1, 0, ug);
+	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(voc_dtor) {
@@ -6951,7 +6977,7 @@ CTOR(vocoder_ctor) {
 	sp_vocoder_create(&ug->osc);
 	sp_vocoder_init(ug->sp, ug->osc);
 	UGEN(o)->tick = vocoder_tick;
-	assign_ugen(UGEN(o), 2, 1, 0, ug);
+	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(vocoder_dtor) {
@@ -7019,7 +7045,7 @@ CTOR(waveset_ctor) {
 	ug->is_init = 0;
 	ug->osc = NULL;
 	UGEN(o)->tick = waveset_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(waveset_dtor) {
@@ -7075,7 +7101,7 @@ CTOR(wpkorg35_ctor) {
 	sp_wpkorg35_create(&ug->osc);
 	sp_wpkorg35_init(ug->sp, ug->osc);
 	UGEN(o)->tick = wpkorg35_tick;
-	assign_ugen(UGEN(o), 1, 1, 0, ug);
+	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(wpkorg35_dtor) {
@@ -7139,7 +7165,7 @@ CTOR(zitarev_ctor) {
 	sp_zitarev_create(&ug->osc);
 	sp_zitarev_init(ug->sp, ug->osc);
 	UGEN(o)->tick = zitarev_tick;
-	assign_ugen(UGEN(o), 2, 2, 0, ug);
+	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(zitarev_dtor) {

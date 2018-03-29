@@ -26,9 +26,9 @@ VM_Shred new_vm_shred(VM_Code c) {
 }
 
 static void vm_shred_free_args(Vector v) {
-  m_uint i;
-  for(i = 0; i < vector_size(v); i++)
-    free((void*)vector_at(v, i));
+  LOOP_OPTIM
+  for(m_uint i = vector_size(v) + 1; --i;)
+    free((void*)vector_at(v, i - 1));
   free_vector(v);
 }
 
@@ -36,19 +36,19 @@ static void free_shred_code(VM_Shred shred) {
   if(strncmp(shred->name, "spork~exp", 9))
     REM_REF(shred->code)
   if(shred->sporks.ptr) {
-    m_uint i;
-    for(i = 0; i < vector_size(&shred->sporks); i++) // optimize ?
-       REM_REF(((VM_Code)vector_at(&shred->sporks, i)))
+    LOOP_OPTIM
+    for(m_uint i = vector_size(&shred->sporks) + 1; --i;)
+       REM_REF(((VM_Code)vector_at(&shred->sporks, i - 1)))
     vector_release(&shred->sporks);
   }
 }
 
 void free_vm_shred(VM_Shred shred) {
   release(shred->me, shred);
-  if(strstr(shred->name, "spork~"))
-    mp_free(MemStack, shred->_mem);
-  else
+  if(!strstr(shred->name, "spork~"))
     mp_free(MemStack, shred->base);
+  else
+    mp_free(MemStack, shred->_mem);
   mp_free(RegStack, shred->_reg);
   free_shred_code(shred);
   free(shred->name);

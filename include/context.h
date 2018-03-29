@@ -7,8 +7,7 @@ struct Context_ {
   struct VM_Object_ obj;
 };
 
-__attribute__((nonnull(2)))
-ANEW Context new_context(const Ast, const m_str);
+ANN2(2) ANEW Context new_context(const Ast, const m_str);
 ANN  m_bool load_context(const Context, const Env);
 ANN  m_bool unload_context(const Context, const Env);
 ANN void free_context(const Context);

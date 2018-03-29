@@ -2,6 +2,7 @@
 #define __DEF
 
 #define ANN __attribute__((nonnull))
+#define ANN2(...) __attribute__((nonnull(__VA_ARGS__)))
 #define ANEW __attribute__((returns_nonnull,malloc))
 
 #ifdef __GNUC__

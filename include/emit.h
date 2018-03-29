@@ -42,12 +42,11 @@ ANN void free_emitter(Emitter);
 ANEW ANN VM_Code emit_code(const Emitter);
 ANN m_bool emit_ast(const Emitter emit, Ast ast, m_str filename);
 ANN m_bool emit_exp_call1(const Emitter, const Func);
-Instr emitter_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull, nonnull(1)));
+ANN2(1) Instr emitter_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull));
 ANN Code* emit_class_code(const Emitter, const m_str);
 ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
 ANN void emit_class_finish(const Emitter, const Nspc);
 ANN m_bool emit_ext_ctor(const Emitter, const VM_Code);
 ANN void emit_union_offset(Decl_List, const m_uint);
-m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool)
-__attribute__((nonnull(1,2)));
+ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool);
 #endif

@@ -3,8 +3,8 @@
 #include "mpool.h"
 
 POOL_HANDLE(Type, 2048)
-__attribute__((nonnull(2)))
-Type new_type(const m_uint xid, const m_str name, const Type parent) {
+
+ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   const Type type = mp_alloc(Type);
   type->xid    = xid;
   type->name   = name;

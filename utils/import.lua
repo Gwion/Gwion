@@ -151,6 +151,7 @@ function print_mod_func(name, mod)
     args = string.format("%s, &u->out", args)
   end
   if ntrig > 0 then
+--    print("\tif(!UGEN(u->trig)->done)\n\t\tugen_compute(UGEN(u->trig));")
     print("\tugen_compute(UGEN(u->trig));")
   end
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
@@ -171,7 +172,10 @@ function print_mod_func(name, mod)
     print("\tsp_"..name.."_init(ug->sp, ug->osc);")
   end
   print("\tUGEN(o)->tick = "..name.."_tick;")
-  print("\tassign_ugen(UGEN(o), "..mod.ninputs..", "..mod.noutputs..", "..ntrig..", ug);")
+  print("\tassign_ugen(UGEN(o), "..mod.ninputs..", "..mod.noutputs..", ug);")
+  if ntrig > 0 then
+  print("\tassign_trig(UGEN(o));")
+  end
   print("}\n")
   print("DTOR("..name.."_dtor) {\n\tGW_"..name.."* ug = UGEN(o)->ug;")
   if(nmandatory > 0) then

@@ -7,8 +7,8 @@
 #include "mpool.h"
 
 POOL_HANDLE(Context, 32)
-__attribute__((nonnull(2)))
-Context new_context(const Ast prog, const m_str filename) {
+
+ANN2(2) Context new_context(const Ast prog, const m_str filename) {
   const Context context = mp_alloc(Context);
   context->nspc = new_nspc(filename);
   context->tree = prog;
@@ -17,7 +17,7 @@ Context new_context(const Ast prog, const m_str filename) {
   return context;
 }
 
-ANN void free_context(Context a) {
+ANN void free_context(const Context a) {
   REM_REF(a->nspc);
   mp_free(Context, a);
 }

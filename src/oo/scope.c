@@ -5,15 +5,15 @@
 
 ANN vtype scope_lookup0(const Scope scope, const Symbol xid) {
   const Map map = (Map)vector_back(&scope->vector);
-  vtype ret = map_get(map, (vtype)xid);
+  const vtype ret = map_get(map, (vtype)xid);
   if(!ret && vector_back(&scope->vector) == vector_front(&scope->vector))
-    ret = map_get(&scope->commit_map, (vtype)xid);
+    return map_get(&scope->commit_map, (vtype)xid);
   return ret;
 }
 
 ANN vtype scope_lookup1(const Scope scope, const Symbol xid) {
   for(m_uint i = vector_size(&scope->vector) + 1; --i;) {
-    Map map = (Map)vector_at(&scope->vector, i - 1);
+    const Map map = (Map)vector_at(&scope->vector, i - 1);
     const vtype ret = map_get(map, (vtype)xid);
     if(ret)
       return ret;
@@ -41,14 +41,6 @@ ANN void scope_commit(const Scope scope) {
   map_clear(&scope->commit_map);
 }
 
-ANN void scope_push(const Scope scope) {
-  vector_add(&scope->vector, (vtype)new_map());
-}
-
-ANN void scope_pop(const Scope scope) {
-  free_map((Map)vector_pop(&scope->vector));
-}
-
 ANN void scope_init(Scope a) {
   vector_init((Vector)&a->commit_map);
   vector_init(&a->vector);
@@ -64,7 +56,7 @@ ANN void scope_release(Scope a) {
 ANN Vector scope_get(const Scope s) {
   const Vector ret = new_vector();
   for(m_uint j = 0; j < vector_size(&s->vector); j++) {
-    Map map = (Map)vector_at(&s->vector, j);
+    const Map map = (Map)vector_at(&s->vector, j);
     for(m_uint i = 0; i < VLEN(map); i++)
       vector_add(ret, VVAL(map, i));
   }

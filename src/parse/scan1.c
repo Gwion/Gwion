@@ -3,10 +3,8 @@
 #include "absyn.h"
 #include "type.h"
 #include "value.h"
-#include "traverse.h"
-#ifdef OPTIMIZE
-#include <string.h>
-#endif
+#include "optim.h"
+
 #define FAKE_FUNC ((Func)1)
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
@@ -15,17 +13,14 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static m_bool scan1_exp_decl_template(const Type t, const Exp_Decl* decl) { GWDEBUG_EXE
-  if(GET_FLAG(t, ae_flag_template)) {
-    Exp_Decl* d = (Exp_Decl*)decl;
-    d->base = t->def;
-    d->type = t;
-  }
-  return 1;
+ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
+  Exp_Decl* d = (Exp_Decl*)decl;
+  d->base = t->def;
+  d->type = t;
 }
 
-ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  const Type t = type_decl_resolve(env, decl->td);
+ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
+  Type t = type_decl_resolve(env, decl->td);
   if(!t)
     CHECK_BO(type_unknown(decl->td->xid, "declaration"))
   if(!t->size)
@@ -40,47 +35,61 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) { GWDEB
   if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
       CHECK_BO(err_msg(SCAN1_, decl->self->pos,
             "must declare private variables at class scope..."))
+  if(GET_FLAG(t, ae_flag_template))
+    scan1_exp_decl_template(t, decl);
+/*
+//    t = decl->type;
+  if(decl->type && !env->func &&
+//    !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
+    !SAFE_FLAG(env->class_def, ae_flag_builtin))
+    t = decl->type;
+  else
+    ((Exp_Decl*)decl)->type = t;
+  }
+*/
   return t;
 }
 
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
+  const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, ae_flag_template);
   CHECK_OB(t)
-  CHECK_BB(scan1_exp_decl_template(t, decl))
   if(decl->type && !env->func &&
-    !(env->class_def && GET_FLAG(env->class_def, ae_flag_template) && GET_FLAG(env->class_def, ae_flag_builtin)))
+    !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->type;
   else
     ((Exp_Decl*)decl)->type = t;
   while(list) {
-    Value value;
     const Var_Decl v = list->self;
+    const Value value = nspc_lookup_value0(env->curr, v->xid);
     if(isres(v->xid) > 0)
       CHECK_BB(err_msg(SCAN1_, v->pos,
             "\t... in variable declaration", s_name(v->xid)))
-    if((value = nspc_lookup_value0(env->curr, v->xid)) &&
-      (!(env->class_def && GET_FLAG(env->class_def, ae_flag_template)) ||
-      (env->class_def && GET_FLAG(env->class_def, ae_flag_template) &&
-        !GET_FLAG(env->class_def, ae_flag_scan1))))
-        CHECK_BB(err_msg(SCAN1_, v->pos,
+    if(value && (!is_tmpl_class ||
+        (is_tmpl_class && !GET_FLAG(env->class_def, ae_flag_scan1))))
+      CHECK_BB(err_msg(SCAN1_, v->pos,
               "variable %s has already been defined in the same scope...",
               s_name(v->xid)))
-    if(v->array) {
+    if(!v->array)
+      t = decl->type;
+    else {
       if(v->array->exp)
         CHECK_BB(scan1_exp(env, v->array->exp))
       t = array_type(decl->type, v->array->depth);
-    } else
-      t = decl->type;
+    }
     v->value = value ? value : new_value(t, s_name(v->xid));
     nspc_add_value(env->curr, v->xid, v->value);
     v->value->flag = decl->td->flag;
     if(v->array && !v->array->exp)
       SET_FLAG(v->value, ae_flag_ref);
-    if(env->class_def && !env->class_scope && !env->func && !GET_FLAG(decl->td, ae_flag_static))
-      SET_FLAG(v->value, ae_flag_member);
-    if(!env->class_def && !env->func && !env->class_scope)
-      SET_FLAG(v->value, ae_flag_global);
+    if(!env->func && !env->class_scope) {
+      if(env->class_def) {
+        if(!GET_FLAG(decl->td, ae_flag_static))
+          SET_FLAG(v->value, ae_flag_member);
+      } else
+        SET_FLAG(v->value, ae_flag_global);
+    }
     v->value->d.ptr = v->addr;
     v->value->owner = env->curr;
     v->value->owner_class = env->func ? NULL : env->class_def;
@@ -187,10 +196,7 @@ ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
       case ae_exp_if:
         CHECK_BB(scan1_exp_if(env, &exp->d.exp_if))
         break;
-#ifdef OPTIMIZE
-      default:
-         break;
-#endif
+      OPTIMIZE_DEFAULT
     }
   } while((exp = exp->next));
   return 1;
@@ -408,24 +414,20 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
-#ifdef OPTIMIZE
   do {
     CHECK_BB(scan1_stmt(env, l->stmt))
     if(l->next) {
-      if(l->stmt->stmt_type == ae_stmt_return) {
+      if(l->stmt->stmt_type != ae_stmt_return) {
+        if(l->next->stmt->stmt_type == ae_stmt_exp &&
+          !l->next->stmt->d.stmt_exp.val)
+        l->next = l->next->next;
+      } else {
         Stmt_List tmp = l->next;
         l->next = NULL;
         free_stmt_list(tmp);
-      } else if(l->next->stmt->stmt_type == ae_stmt_exp &&
-          !l->next->stmt->d.stmt_exp.val) {
-        l->next = l->next->next;
       }
     }
   }while((l = l->next));
-#else
-  do CHECK_BB(scan1_stmt(env, l->stmt))
-  while((l = l->next));
-#endif
   return 1;
 }
 

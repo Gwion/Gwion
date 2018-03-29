@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
   }
   fprintf(file,
           "#include <inttypes.h>\n/* common typedefs */\ntypedef intptr_t m_int;\ntypedef uintptr_t m_uint;\n\
-typedef short         int m_bool;\ntypedef %s            m_float;\ntypedef char *            m_str;\n\
+typedef unsigned char m_bit;\n\
+typedef        int m_bool;\ntypedef %s            m_float;\ntypedef char *            m_str;\n\
 typedef struct { m_float x, y, z; }  m_vec3;\ntypedef struct { m_float x, y, z, w; } m_vec4;\n\
 typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_INT     %zu\n", sizeof(uintptr_t));

@@ -1,8 +1,5 @@
-#include "defs.h"
 #include "vm.h"
 #include "operator.h"
-#include "oo.h"
-#include "map_private.h"
 
 struct Nspc_ {
   m_str     name;
@@ -10,7 +7,7 @@ struct Nspc_ {
   Nspc parent;
   VM_Code   pre_ctor;
   VM_Code   dtor;
-  char*		class_data;
+  m_bit* class_data;
   m_uint    class_data_size;
   struct Vector_    vtable;
   struct Map_      	op_map;
@@ -20,32 +17,44 @@ struct Nspc_ {
   struct VM_Object_ obj;
 };
 
-extern ANEW Nspc new_nspc(const m_str name);
-extern void free_nspc(Nspc a);
+extern ANEW ANN Nspc new_nspc(const m_str name);
+extern ANN void free_nspc(const Nspc a);
 
-extern Value nspc_lookup_value0(const Nspc nspc, const Symbol xid) ANN;
-extern Value nspc_lookup_value1(const Nspc nspc, const Symbol xid) ANN;
-extern Value nspc_lookup_value2(const Nspc nspc, const Symbol xid) ANN;
-extern Type  nspc_lookup_type0(const Nspc nspc, const Symbol xid)  ANN;
-extern Type  nspc_lookup_type1(const Nspc nspc, const Symbol xid)  ANN;
-extern Type  nspc_lookup_type2(const Nspc nspc, const Symbol xid)  ANN;
-extern Func  nspc_lookup_func0(const Nspc nspc, const Symbol xid)  ANN;
-extern Func  nspc_lookup_func1(const Nspc nspc, const Symbol xid)  ANN;
-extern Func  nspc_lookup_func2(const Nspc nspc, const Symbol xid)  ANN;
+extern ANN void nspc_commit(const Nspc);
+extern ANN void nspc_rollback(const Nspc);
 
-extern ANEW Vector nspc_get_value(const Nspc);
+#define describe_lookup0(A, b)                                                 \
+static inline ANN A nspc_lookup_##b##0(const Nspc n, const Symbol s){          \
+  return (A)scope_lookup0(&n->b, s);                                           \
+}
 
-extern void  nspc_commit(const Nspc) ANN;
-extern void  nspc_rollback(const Nspc) ANN;
+#define describe_lookup1(A, b)                                                 \
+static inline ANN A nspc_lookup_##b##1(const Nspc n, const Symbol s) {         \
+  const A a = (A)scope_lookup1(&n->b, s);                                      \
+  if(!a && n->parent)                                                          \
+    return nspc_lookup_##b##1(n->parent, s);                                   \
+  return a;                                                                    \
+}
 
-void nspc_add_value(const Nspc, const Symbol, const Value) ANN;
-void nspc_push_value(const Nspc) ANN;
-void nspc_pop_value(const Nspc) ANN;
+#define describe_lookup2(A, b)                                                 \
+static inline ANN A nspc_lookup_##b##2(const Nspc n, const Symbol s) {         \
+  return (A)scope_lookup2(&n->b, s);                                           \
+}
 
-void nspc_add_func(const Nspc, const Symbol, const Func) ANN;
-void nspc_push_func(const Nspc) ANN;
-void nspc_pop_func(const Nspc) ANN;
+#define describe_lookups(A, b)                                                 \
+describe_lookup0(A, b)                                                         \
+describe_lookup1(A, b)                                                         \
+describe_lookup2(A, b)
 
-void nspc_add_type(const Nspc, const Symbol, const Type) ANN;
-void nspc_push_type(const Nspc) ANN;
-void nspc_pop_type(const Nspc) ANN;
+#define describe_nspc_func(A, b)                                               \
+static inline ANN void nspc_add_##b(const Nspc n, const Symbol s, const A a) { \
+  scope_add(&n->b, s, (vtype)a);                                               \
+}                                                                              \
+ANN static inline void nspc_push_##b(const Nspc n) { scope_push(&n->b); }      \
+ANN inline static void nspc_pop_##b (const Nspc n) { scope_pop (&n->b); }      \
+describe_lookups(A, b)
+
+describe_nspc_func(Value, value)
+describe_nspc_func(Type, type)
+describe_nspc_func(Func, func)
+/* howere there is no need for lokkup_func0, push_func, pop_func */

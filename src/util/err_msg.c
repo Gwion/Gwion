@@ -18,12 +18,14 @@ enum dbg_t{
   DBG_FLOAT,
 };
 
-struct BP {
+struct BP_ {
   char    c[256];
   regex_t r;
 };
+POOL_HANDLE(BP, 16)
+
 static m_uint dbg_sz, dbg_max_sz;
-struct ShredInfo {
+struct ShredInfo_ {
   enum dbg_t t;
   char func[256];
   m_uint index;
@@ -32,8 +34,9 @@ struct ShredInfo {
   int pos;
 };
 
+POOL_HANDLE(ShredInfo, 16)
 
-static struct ShredInfo* curr;
+static struct ShredInfo_* curr;
 static WINDOW* wout;
 static WINDOW* werr;
 static WINDOW* wexe;
@@ -97,7 +100,7 @@ void end_curses() {
   free_vector(shreds);
   free_vector(infos);
   for(m_uint i = 0; i < vector_size(breaks); i++) {
-    struct BP* bp = (struct BP*)vector_at(breaks, i);
+    struct BP_* bp = (struct BP_*)vector_at(breaks, i);
     regfree(&bp->r);
     free(bp);
   }
@@ -123,7 +126,7 @@ m_bool gw_exe(const m_str func, char* fmt, ...) {
   return -1;
 }
 
-static void do_stack(struct ShredInfo* info, m_uint i, m_uint stdscr, char* data) {
+static void do_stack(struct ShredInfo_* info, m_uint i, m_uint stdscr, char* data) {
   if(info->t == DBG_FLOAT) {
     mvwprintw(info->pad, i, stdscr, "% 20.4f", *(m_float*)(data+i*dbg_sz));
   } else if(info->t == DBG_INT) {
@@ -134,7 +137,7 @@ static void do_stack(struct ShredInfo* info, m_uint i, m_uint stdscr, char* data
  waddch(info->pad, ' ' | A_BOLD);
 }
 
-static void display(VM_Shred shred, struct ShredInfo* info) {
+static void display(VM_Shred shred, struct ShredInfo_* info) {
   m_int mpos = (shred->mem - shred->_mem)/dbg_sz;
   m_int rpos = (shred->reg - shred->_reg)/dbg_sz;
 
@@ -165,7 +168,7 @@ static void bp_add() {
   echo();
   getnstr(s, 256);
   noecho();
-  struct BP* bp = xmalloc(sizeof(struct BP));
+  struct BP_* bp = mp_alloc(BP);
   strcpy(bp->c, s);
   regcomp(&bp->r, s, 0);
   vector_add(breaks, (vtype)bp);
@@ -181,7 +184,7 @@ static void bp_rem() {
   getnstr(s, 256);
   noecho();
   for(m_uint i = 0; i < vector_size(breaks); i++) {
-    struct BP* bp = (struct BP*)vector_at(breaks, i);
+    struct BP_* bp = (struct BP_*)vector_at(breaks, i);
     if(!strcmp(bp->c, s)) {
       vector_rem(breaks, i);
       regfree(&bp->r);
@@ -191,7 +194,7 @@ static void bp_rem() {
   }
 }
 
-static void handle(VM_Shred shred, struct ShredInfo* info) {
+static void handle(VM_Shred shred, struct ShredInfo_* info) {
   int key = getch();
   switch(key) {
     case KEY_RESIZE:
@@ -294,11 +297,11 @@ void gw_shred(VM_Shred shred) {
   m_int index = vector_find(shreds, (vtype)shred);
   if(index == -1) {
     vector_add(shreds, (vtype)shred);
-    curr = xcalloc(1, sizeof(struct ShredInfo));
+    curr = mp_alloc(ShredInfo);
     vector_add(infos, (vtype)curr);
     curr->pad = newpad(10000, 256);
   } else
-    curr = (struct ShredInfo*)vector_at(infos, index);
+    curr = (struct ShredInfo_*)vector_at(infos, index);
   mvwin(stdscr, (LINES-1)/2*2, 0);
   deleteln();
   mvwprintw(stdscr, (LINES-1)/2*2, 0, "%s [%" INT_F"] [%" INT_F"->%"INT_F"] %i", shred->name, shred->xid,
@@ -306,7 +309,7 @@ void gw_shred(VM_Shred shred) {
   display(shred, curr);
   if(vector_size(breaks)) {
     for(m_uint i = 0; i < vector_size(breaks); i++) {
-      struct BP* bp = (struct BP*)vector_at(breaks, i);
+      struct BP_* bp = (struct BP_*)vector_at(breaks, i);
       if(!regexec(&bp->r, curr->func, 0, NULL, 0)) {
         handle(shred, curr);
         break;
@@ -372,7 +375,6 @@ m_bool gw_out(const char* fmt, ...) {
   va_end(arg);
 #ifdef CURSES
   prefresh(wout, hout, 0, (LINES-1)/2 + 1, 0, (LINES-1)/2*2, COLS/2 - 1);
-  getch();
 #endif
   return -1;
 }

@@ -65,7 +65,7 @@ static void print_polar(m_complex c) {
   gw_out("*pi)");
 }
 
-static void print_vec(char* f, m_uint size) {
+static void print_vec(m_bit* f, m_uint size) {
   m_uint i;
   gw_out("@(");
   for(i = 0; i < size; i++) {
@@ -91,14 +91,14 @@ static void print_object(Type type, M_Object obj) {
     gw_out(BOLD "%p" CLEAR, (void*)obj);
 }
 
-static void print_func(Type type, char* stack) {
+static void print_func(Type type, m_bit* stack) {
     if(isa(type, t_func_ptr) > 0)
       gw_out(BOLD "%p" CLEAR, (void*) * (Func*)stack);
     else
       gw_out(BOLD "%s" CLEAR, type->name);
 }
 
-static void print_prim(Type type, char* stack) {
+static void print_prim(Type type, m_bit* stack) {
     if(isa(type, t_int) > 0)
       print_int(*(m_int*)stack);
     else if(isa(type, t_complex) > 0)

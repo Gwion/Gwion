@@ -10,10 +10,10 @@
 #include "mpool.h"
 
 #define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array->info->offset))
-#define MAP_KEY(p) ((char*)(p->data))
-#define MAP_VAL(p, o) ((char*)(p->data + MAP_INFO(o)->key_size))
+#define MAP_KEY(p) ((m_bit*)(p->data))
+#define MAP_VAL(p, o) ((m_bit*)(p->data + MAP_INFO(o)->key_size))
 
-typedef m_bool (*f_cmp)(const char* restrict , const char* restrict , const m_uint);
+typedef m_bool (*f_cmp)(const m_bit* restrict , const unsigned char* restrict , const m_uint);
 
 struct Map_Info_ {
   Type t;
@@ -23,14 +23,14 @@ struct Map_Info_ {
 };
 POOL_HANDLE(Map_Info, 16)
 
-static m_bool string_cmp(const char *restrict a, const char*restrict b, const m_uint size __attribute__((unused))) {
-  M_Object o = (M_Object)b;
+static m_bool string_cmp(const m_bit* restrict a, const unsigned char* restrict b, const m_uint size __attribute__((unused))) {
+  const M_Object o = (M_Object)b;
   if(!o && !a)
     return 1;
-  return o ? !strcmp(a, STRING(o)) : 1;
+  return o ? !strcmp((char*)a, STRING(o)) : 1;
 }
 
-static m_bool cmp(const char *restrict a, const char*restrict b, const m_uint size) {
+static m_bool cmp(const m_bit* restrict a, const unsigned char*restrict b, const m_uint size) {
   return !memcmp(a, b, size);
 }
 
@@ -71,17 +71,17 @@ static MFUN(gw_map_get) {
     M_Object p;
     m_vector_get(v, i, &p);
     if(MAP_INFO(o)->cmp(MAP_KEY(p), MEM(SZ_INT), MAP_INFO(o)->key_size)) {
-      memcpy(RETURN, MAP_VAL(p, o), MAP_INFO(o)->key_size);
+      memcpy((m_bit*)RETURN, MAP_VAL(p, o), MAP_INFO(o)->key_size);
       return;
     }
   }
-  memset(RETURN, 0, MAP_INFO(o)->key_size);
+  memset((m_bit*)RETURN, 0, MAP_INFO(o)->key_size);
 }
 
 static MFUN(gw_map_set) {
   M_Vector v = ARRAY(o);
   m_uint size = m_vector_size(v);
-  memcpy(RETURN, MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->val_size);
+  memcpy((m_bit*)RETURN, MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->val_size);
   for(m_uint i = 0; i < size; i++) {
     M_Object p;
     m_vector_get(v, i, &p);
@@ -93,7 +93,7 @@ static MFUN(gw_map_set) {
   M_Object pair = new_M_Object(NULL);
   initialize_object(pair, MAP_INFO(o)->t);
   memcpy(pair->data, MEM(SZ_INT), MAP_INFO(o)->key_size + MAP_INFO(o)->val_size);
-  m_vector_add(v, (char*)&pair);
+  m_vector_add(v, (m_bit*)&pair);
 }
 
 m_bool import_map(Gwi gwi) {

@@ -10,6 +10,7 @@
 #include "import.h"
 #include "gwi.h"
 #include "emit.h"
+#include "func.h"
 
 struct Path {
   m_str path, curr;
@@ -42,8 +43,7 @@ ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str* list) {
   return 1;
 }
 
-__attribute__((nonnull(1,2,3)))
-static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
+ANN2(1,2,3) static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
@@ -170,16 +170,8 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
   return 1;
 }
 
-__attribute__((nonnull(1,2)))
-Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
-#ifdef OBSTACK
-  const Type t = obstack_alloc(&gwi->env->obs, sizeof(struct Type_));
-  memset(t, 0, sizeof(struct Type_));
-  t->name = s_name(insert_symbol(name));
-  t->parent = parent;
-#else
+ANN2(1,2) Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
   const Type t = new_type(0, name, parent);
-#endif
   t->size = size;
   return t;
 }
@@ -191,8 +183,7 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   return type->xid;
 }
 
-__attribute__((nonnull(1,2)))
-static m_bool import_class_ini(const Env env, const Type type,
+ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
     const f_xtor pre_ctor, const f_xtor dtor) {
   type->info = new_nspc(type->name);
   type->info->parent = env->curr;
@@ -211,8 +202,7 @@ static m_bool import_class_ini(const Env env, const Type type,
   return 1;
 }
 
-__attribute__((nonnull(1,2)))
-m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
+ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
   if(type->info)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
@@ -268,7 +258,7 @@ ANN static m_int import_class_end(const Env env) {
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
   const Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
-    nspc->class_data = (char*)xcalloc(1, nspc->class_data_size);
+    nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
   CHECK_BB(env_pop_class(env))
   return 1;
 }
@@ -314,8 +304,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name) {
 }
 
 #undef gwi_item_end
-__attribute__((nonnull(1)))
-m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
+ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
@@ -443,7 +432,6 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
 }
 
 ANN static Func_Def import_fun(const Env env, DL_Func * mfun, const ae_flag flag) {
-//  CHECK_OO(mfun) // probably deserve an err msg or attr non-null
   CHECK_BO(name_valid(mfun->name));
   return make_dll_as_fun(env, mfun, flag);
 }
@@ -485,8 +473,7 @@ static Type get_type(const Env env, const m_str str) {
   return t ? (depth ? array_type(t, depth) : t) : NULL;
 }
 
-__attribute__((nonnull(1,2)))
-static m_int import_op(const Env env, const DL_Oper* op,
+ANN2(1,2) static m_int import_op(const Env env, const DL_Oper* op,
     const f_instr f) {
   const Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
@@ -497,8 +484,7 @@ static m_int import_op(const Env env, const DL_Oper* op,
 }
 
 
-__attribute__((nonnull(1)))
-m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t) {
+ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t) {
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
@@ -541,8 +527,6 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }
 
-#include "func.h"
-
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
   CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
@@ -572,8 +556,7 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
   return new_exp_decl(type_decl, var_decl_list, 0);
 }
 
-__attribute__((nonnull(1)))
-m_int gwi_union_ini(const Gwi gwi, const m_str name) {
+ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   if(name)
     gwi->union_data.xid = insert_symbol(name);
   return 1;
@@ -599,8 +582,7 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   return 1;
 }
 
-__attribute__((nonnull(1)))
-m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
+ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   gwi->enum_data.t = type;
   vector_init(&gwi->enum_data.addr);
   return 1;

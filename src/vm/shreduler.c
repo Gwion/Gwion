@@ -11,13 +11,12 @@ ANN Shreduler new_shreduler(VM* vm) {
   return s;
 }
 
-ANN void shreduler_set_loop(Shreduler s, m_bool loop) {
+ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;
 }
 
-__attribute__((hot, nonnull))
-VM_Shred shreduler_get(Shreduler s) {
-  VM_Shred shred = s->list;
+VM_Shred shreduler_get(const Shreduler s) {
+  const VM_Shred shred = s->list;
   if(!shred) {
     if(!vector_size(&s->vm->shred) && !s->loop)
       s->vm->is_running = 0;
@@ -35,8 +34,8 @@ VM_Shred shreduler_get(Shreduler s) {
   return NULL;
 }
 
-ANN static void shreduler_parent(VM_Shred out, Vector v) {
-  m_uint index = vector_find(v, (vtype)out);
+ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
+  const m_uint index = vector_find(v, (vtype)out);
   vector_rem(v, index);
   if(!vector_size(v)) {
     vector_release(v);
@@ -44,10 +43,10 @@ ANN static void shreduler_parent(VM_Shred out, Vector v) {
   }
 }
 
-ANN static void shreduler_child(Shreduler s, Vector v) {
+ANN static void shreduler_child(const Shreduler s, const Vector v) {
   m_uint size = vector_size(v) + 1;
   while(--size) {
-    VM_Shred child = (VM_Shred)vector_pop(v);
+    const VM_Shred child = (VM_Shred)vector_at(v, size - 1);
     if(child == s->list)
       s->list = child->next;
     if(child->prev)
@@ -62,26 +61,25 @@ ANN static void shreduler_child(Shreduler s, Vector v) {
 ANN static void shreduler_gc(VM_Shred out) {
   m_uint size = vector_size(&out->gc) + 1;
   while(--size) {
-    M_Object o = (M_Object)vector_pop(&out->gc);
+    const M_Object o = (M_Object)vector_at(&out->gc, size - 1);
     if(o)
       release(o, out);
   }
   vector_release(&out->gc);
 }
 
-ANN static void shreduler_erase(Shreduler s, VM_Shred out) {
-  vtype index;
+ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
   if(out->parent)
     shreduler_parent(out, &out->parent->child);
   if(out->child.ptr)
     shreduler_child(s, &out->child);
-  index = vector_find(&s->vm->shred, (vtype)out);
+  const vtype index = vector_find(&s->vm->shred, (vtype)out);
   vector_rem(&s->vm->shred, index);
   if(out->gc.ptr)
     shreduler_gc(out);
 }
 
-ANN void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
+ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
   s->curr = (s->curr == out) ? NULL : s->curr;
   s->list = (s->list == out) ? NULL : s->list;
   if(erase) {
@@ -91,14 +89,11 @@ ANN void shreduler_remove(Shreduler s, VM_Shred out, m_bool erase) {
   return;
 }
 
-__attribute__((hot, nonnull))
-m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
+m_bool shredule(const Shreduler s, const VM_Shred shred, m_float wake_time) {
   VM_Shred curr, prev;
 
   shred->wake_time = (wake_time += s->vm->sp->pos);
-  if(!s->list)
-    s->list = shred;
-  else {
+  if(s->list) {
     curr = s->list;
     prev = NULL;
     while(curr) {
@@ -119,7 +114,8 @@ m_bool shredule(Shreduler s, VM_Shred shred, m_float wake_time) {
         prev->next->prev = shred;
       prev->next = shred;
     }
-  }
+  } else
+    s->list = shred;
   if(s->curr == shred)
     s->curr = NULL;
   return 1;
