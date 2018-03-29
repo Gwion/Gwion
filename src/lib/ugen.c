@@ -195,7 +195,7 @@ static CTOR(ugen_ctor) {
 ANN static void ugen_unref(const UGen ug) {
   for(m_uint i = vector_size(&ug->to) + 1; --i;) {
     const UGen u = (UGen)vector_at(&ug->to, i - 1);
-    m_int index = vector_find(&u->ugen, (vtype)ug);
+    const m_int index = vector_find(&u->ugen, (vtype)ug);
     if(index > -1)
       vector_rem(&u->ugen, index);
   }

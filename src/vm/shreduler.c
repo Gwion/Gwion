@@ -3,19 +3,11 @@
 #include "object.h"
 #include "shreduler_private.h"
 
-ANN Shreduler new_shreduler(VM* vm) {
-  Shreduler s = (Shreduler)xmalloc(sizeof(struct Shreduler_));
-  s->curr = s->list = NULL;
-  s->vm = vm;
-  s->n_shred = 0;
-  return s;
-}
-
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;
 }
 
-VM_Shred shreduler_get(const Shreduler s) {
+ANN VM_Shred shreduler_get(const Shreduler s) {
   const VM_Shred shred = s->list;
   if(!shred) {
     if(!vector_size(&s->vm->shred) && !s->loop)
@@ -24,8 +16,7 @@ VM_Shred shreduler_get(const Shreduler s) {
   }
   if(shred->wake_time <= (s->vm->sp->pos + .5)) {
     s->list = shred->next;
-    shred->next = NULL;
-    shred->prev = NULL;
+    shred->next = shred->prev = NULL;
     if(s->list)
       s->list->prev = NULL;
     s->curr = shred;
@@ -86,18 +77,15 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool er
     shreduler_erase(s, out);
     free_vm_shred(out);
   }
-  return;
 }
 
-m_bool shredule(const Shreduler s, const VM_Shred shred, m_float wake_time) {
-  VM_Shred curr, prev;
-
-  shred->wake_time = (wake_time += s->vm->sp->pos);
+ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time) {
+  const m_float time = wake_time + s->vm->sp->pos;
+  shred->wake_time = time;
   if(s->list) {
-    curr = s->list;
-    prev = NULL;
+    VM_Shred curr = s->list, prev = NULL;
     while(curr) {
-      if(curr->wake_time > wake_time)
+      if(curr->wake_time > time)
         break;
       prev = curr;
       curr = curr->next;
@@ -118,5 +106,4 @@ m_bool shredule(const Shreduler s, const VM_Shred shred, m_float wake_time) {
     s->list = shred;
   if(s->curr == shred)
     s->curr = NULL;
-  return 1;
 }

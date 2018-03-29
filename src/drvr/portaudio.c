@@ -31,7 +31,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
     vm_run(vm);
     for(j = 0; j < (m_uint)sp->nchan; j++)
       *out++ = sp->out[j];
-    sp->pos++;
+    ++sp->pos;
   }
   return paContinue;
 }

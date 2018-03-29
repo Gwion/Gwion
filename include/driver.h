@@ -9,7 +9,7 @@ typedef struct containing_driver_info {
   m_uint backend;
   m_uint format;
   void (*func)(Driver_);
-  void (*run)(VM*);
+  void (*run)(const VM*);
   void* data;
   m_bool raw;
 } DriverInfo;

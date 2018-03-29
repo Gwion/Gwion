@@ -70,19 +70,19 @@ ANN void free_vm_code(const VM_Code a);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
-ANN m_bool shredule(const Shreduler s, const VM_Shred shred, m_float wake_time)__attribute__((hot));
-void shreduler_set_loop(const Shreduler s, const m_bool loop);
+ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time)__attribute__((hot));
+ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
 ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
-ANN void vm_run(VM* vm) __attribute__((hot));
+ANN void vm_run(const VM* vm) __attribute__((hot));
 ANEW VM* new_vm(const m_bool loop);
 ANN void free_vm(VM* vm);
-ANN void vm_add_shred(VM* vm, VM_Shred shred)__attribute__((hot));
-ANN void vm_remove(VM* vm, m_uint index)__attribute__((hot));
+ANN void vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
+ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));
 ANN m_str code_name_set(const m_str, const m_str);
 ANN m_str code_name(const m_str, const m_bool);
 #endif

@@ -30,6 +30,7 @@ void free_symbols(void) {
   }
 }
 
+__attribute__((pure))
 ANN static unsigned int hash(const char *s0) {
   unsigned int h = 0;
   const char *s;

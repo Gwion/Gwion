@@ -133,7 +133,7 @@ static void alsa_run_non_interleaved(VM* vm, DriverInfo* di) {
       LOOP_OPTIM
       for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         info->out_buf[chan][i] = sp->out[chan];
-      sp->pos++;
+      ++sp->pos;
     }
     if(snd_pcm_writen(info->out, info->_out_buf, di->bufsize) < 0)
       snd_pcm_prepare(info->out);
@@ -156,7 +156,7 @@ static void alsa_run_interleaved(VM* vm, DriverInfo* di) {
       LOOP_OPTIM
       for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         ((m_float*)info->out_bufi)[k++] = sp->out[chan];
-      sp->pos++;
+      ++sp->pos;
     }
     if(snd_pcm_writei(info->out, info->out_bufi, di->bufsize) < 0)
       snd_pcm_prepare(info->out);

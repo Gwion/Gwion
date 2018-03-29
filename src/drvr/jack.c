@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <jack/jack.h>
 
@@ -31,7 +32,7 @@ static void inner_cb(struct JackInfo* info, jack_default_audio_sample_t** in,
     vm_run(vm);
     for(chan = 0; chan < (m_uint)sp->nchan; chan++)
       out[chan][frame] = sp->out[chan];
-    sp->pos++;
+    ++sp->pos;
   }
 }
 

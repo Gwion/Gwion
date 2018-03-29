@@ -44,7 +44,7 @@ static void pulse_run(VM* vm, DriverInfo* di) {
       di->run(vm);
       for(chan = 0; chan < (m_uint)sp->nchan; chan++)
         out_data[frame * sp->nchan + chan] = (float)sp->out[chan];
-      sp->pos++;
+      ++sp->pos;
     }
     if(pa_simple_write(info->out, out_data, sizeof(out_data), &error) < 0)
       return;

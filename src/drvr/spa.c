@@ -21,7 +21,7 @@ static void spa_run(VM* vm, DriverInfo* di) {
   while(vm->is_running) {
     di->run(vm);
     spa_write_buf(vm->sp, spa, sp->out, sp->nchan);
-    sp->pos++;
+    ++sp->pos;
   }
 }
 

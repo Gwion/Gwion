@@ -12,12 +12,10 @@
 extern void gw_shred(VM_Shred shred);
 #endif
 
-Shreduler new_shreduler(VM* vm);
-Shreduler free_shreduler(Shreduler s);
-
-VM* new_vm(m_bool loop) {
+VM* new_vm(const m_bool loop) {
   VM* vm = (VM*)xcalloc(1, sizeof(VM));
-  vm->shreduler  = new_shreduler(vm);
+  vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
+  vm->shreduler->vm = vm;
   vector_init(&vm->shred);
   vector_init(&vm->ugen);
   vector_init(&vm->plug);
@@ -25,15 +23,17 @@ VM* new_vm(m_bool loop) {
   return vm;
 }
 
-void vm_remove(VM* vm, m_uint index) {
+void vm_remove(const VM* vm, const m_uint index) {
+  const Vector v = (Vector)&vm->shred;
   LOOP_OPTIM
-  for(m_uint i = vector_size(&vm->shred) + 1; i--;) {
-    const VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i - 1);
+  for(m_uint i = vector_size(v) + 1; i--;) {
+    const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
+    const Vector w = (Vector)&sh->child;
     if(sh->xid == index) {
       if(sh->child.ptr)
         LOOP_OPTIM
-        for(m_uint j = vector_size(&sh->child) + 1; --j;)
-          NullException((VM_Shred)vector_at(&sh->child, j - 1), "MsgRemove");
+        for(m_uint j = vector_size(w) + 1; --j;)
+          NullException((VM_Shred)vector_at(w, j - 1), "MsgRemove");
        NullException(sh, "MsgRemove");
        return;
     }
@@ -57,36 +57,38 @@ ANN void free_vm(VM* vm) {
   free_symbols();
 }
 
-ANN void vm_add_shred(VM* vm, VM_Shred shred) {
-  shred->vm_ref = vm;
+ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
+  const Vector v = (Vector)&vm->shred;
+  shred->vm_ref = (VM*)vm;
   if(!shred->me)
     shred->me = new_shred(shred);
   if(!shred->xid) {
-    vector_add(&vm->shred, (vtype)shred);
+    vector_add(v, (vtype)shred);
     shred->xid = ++vm->shreduler->n_shred;
   }
   shredule(vm->shreduler, shred, .5);
 }
 
 __attribute__((hot))
-ANN static inline void vm_ugen_init(VM* vm) {
+ANN static inline void vm_ugen_init(const VM* vm) {
+  const Vector v = (Vector)&vm->ugen;
   LOOP_OPTIM
-  for(m_uint i = vector_size(&vm->ugen) + 1; --i;) {
-    const UGen u = (UGen)vector_at(&vm->ugen, i - 1);
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    const UGen u = (UGen)vector_at(v, i - 1);
     u->done = 0;
     if(u->channel)
       LOOP_OPTIM
       for(m_uint j = u->n_chan + 1; --j;)
         UGEN(u->channel[j - 1])->done = 0;
-    if(u->trig)
-      UGEN(u->trig)->done = 0;
+//    if(u->trig)
+//      UGEN(u->trig)->done = 0;
   }
   ugen_compute(UGEN(vm->adc));
   ugen_compute(UGEN(vm->dac));
   ugen_compute(UGEN(vm->blackhole));
 }
 
-void vm_run(VM* vm) {
+void vm_run(const VM* vm) {
   const Shreduler s = vm->shreduler;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {

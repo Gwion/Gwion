@@ -8,7 +8,7 @@ static void dummy_run(VM* vm, DriverInfo* di) {
   sp_data* sp = vm->sp;
   while(vm->is_running) {
     di->run(vm);
-    sp->pos++;
+    ++sp->pos;
   }
 }
 
@@ -17,7 +17,8 @@ static void silent_run(VM* vm, DriverInfo* di) {
   m_uint timer = (vm->sp->sr / 100000);
   while(vm->is_running) {
     di->run(vm);
-    sp->pos++;
+    vm_run(vm);
+    ++sp->pos;
     usleep(timer);
   }
 }

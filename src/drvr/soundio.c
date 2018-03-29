@@ -126,7 +126,7 @@ static void write_callback(Out stream, int min __attribute__((unused)), int left
         info->write_sample(areas[channel].ptr, sp->out[channel]);
         areas[channel].ptr += areas[channel].step;
       }
-      sp->pos++;
+      ++sp->pos;
     }
     check_cb_error2(info->vm, stream, (int (*)(void*))soundio_outstream_end_write);
     left -= count;

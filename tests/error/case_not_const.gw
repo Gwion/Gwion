@@ -1,4 +1,4 @@
-// [contains] value is not const. this is not allowed for now
+// [contains] value is not const
 int i;
 switch(maybe) {
 	case i:
