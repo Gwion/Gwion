@@ -118,14 +118,9 @@ ANN static m_bool check_exp_prim_array_inner(const Type t, Type type, const Exp 
 }
 
 ANN static Type check_exp_prim_array_match(Exp e) { GWDEBUG_EXE
-  Type type = NULL;
-  do {
-    const Type t = e->type;
-    if(type)
-      CHECK_BO(check_exp_prim_array_inner(t, type, e))
-    else
-      type = t;
-  } while((e = e->next));
+  Type type = e->type;
+  do CHECK_BO(check_exp_prim_array_inner(e->type, type, e))
+  while((e = e->next));
   return array_type(type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
