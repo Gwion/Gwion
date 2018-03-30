@@ -23,7 +23,6 @@ typedef struct {
 
 static TICK(adsr_tick) {
 	GW_adsr* ug = (GW_adsr*)u->ug;
-	base_tick(u);
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -103,7 +102,6 @@ static TICK(allpass_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -159,7 +157,6 @@ typedef struct {
 
 static TICK(atone_tick) {
 	GW_atone* ug = (GW_atone*)u->ug;
-	base_tick(u);
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -198,7 +195,6 @@ typedef struct {
 
 static TICK(autowah_tick) {
 	GW_autowah* ug = (GW_autowah*)u->ug;
-	base_tick(u);
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -261,8 +257,6 @@ typedef struct {
 
 static TICK(bal_tick) {
 	GW_bal* ug = (GW_bal*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_bal_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
@@ -294,7 +288,6 @@ static TICK(bar_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_bar_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -426,7 +419,6 @@ typedef struct {
 
 static TICK(biquad_tick) {
 	GW_biquad* ug = (GW_biquad*)u->ug;
-	base_tick(u);
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -525,7 +517,6 @@ typedef struct {
 
 static TICK(biscale_tick) {
 	GW_biscale* ug = (GW_biscale*)u->ug;
-	base_tick(u);
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -576,7 +567,6 @@ typedef struct {
 
 static TICK(bitcrush_tick) {
 	GW_bitcrush* ug = (GW_bitcrush*)u->ug;
-	base_tick(u);
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -815,7 +805,6 @@ typedef struct {
 
 static TICK(butbp_tick) {
 	GW_butbp* ug = (GW_butbp*)u->ug;
-	base_tick(u);
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -866,7 +855,6 @@ typedef struct {
 
 static TICK(butbr_tick) {
 	GW_butbr* ug = (GW_butbr*)u->ug;
-	base_tick(u);
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -917,7 +905,6 @@ typedef struct {
 
 static TICK(buthp_tick) {
 	GW_buthp* ug = (GW_buthp*)u->ug;
-	base_tick(u);
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -956,7 +943,6 @@ typedef struct {
 
 static TICK(butlp_tick) {
 	GW_butlp* ug = (GW_butlp*)u->ug;
-	base_tick(u);
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -995,7 +981,6 @@ typedef struct {
 
 static TICK(clip_tick) {
 	GW_clip* ug = (GW_clip*)u->ug;
-	base_tick(u);
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1034,7 +1019,6 @@ typedef struct {
 
 static TICK(clock_tick) {
 	GW_clock* ug = (GW_clock*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_clock_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -1092,7 +1076,6 @@ static TICK(comb_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1148,7 +1131,6 @@ typedef struct {
 
 static TICK(compressor_tick) {
 	GW_compressor* ug = (GW_compressor*)u->ug;
-	base_tick(u);
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1228,7 +1210,6 @@ static TICK(conv_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1276,7 +1257,6 @@ typedef struct {
 
 static TICK(count_tick) {
 	GW_count* ug = (GW_count*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_count_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -1329,8 +1309,6 @@ typedef struct {
 
 static TICK(crossfade_tick) {
 	GW_crossfade* ug = (GW_crossfade*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_crossfade_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
@@ -1369,7 +1347,6 @@ typedef struct {
 
 static TICK(dcblock_tick) {
 	GW_dcblock* ug = (GW_dcblock*)u->ug;
-	base_tick(u);
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1401,7 +1378,6 @@ static TICK(delay_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1457,7 +1433,6 @@ typedef struct {
 
 static TICK(diode_tick) {
 	GW_diode* ug = (GW_diode*)u->ug;
-	base_tick(u);
 	sp_diode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1558,7 +1533,6 @@ typedef struct {
 
 static TICK(dist_tick) {
 	GW_dist* ug = (GW_dist*)u->ug;
-	base_tick(u);
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1676,7 +1650,6 @@ static TICK(drip_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_drip_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -1811,7 +1784,6 @@ static TICK(dtrig_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_dtrig_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -1957,7 +1929,6 @@ typedef struct {
 
 static TICK(eqfil_tick) {
 	GW_eqfil* ug = (GW_eqfil*)u->ug;
-	base_tick(u);
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2020,7 +1991,6 @@ typedef struct {
 
 static TICK(expon_tick) {
 	GW_expon* ug = (GW_expon*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_expon_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -2239,7 +2209,6 @@ typedef struct {
 
 static TICK(fofilt_tick) {
 	GW_fofilt* ug = (GW_fofilt*)u->ug;
-	base_tick(u);
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2468,7 +2437,6 @@ typedef struct {
 
 static TICK(fold_tick) {
 	GW_fold* ug = (GW_fold*)u->ug;
-	base_tick(u);
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2936,7 +2904,6 @@ static TICK(incr_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_incr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -3018,7 +2985,6 @@ typedef struct {
 
 static TICK(jcrev_tick) {
 	GW_jcrev* ug = (GW_jcrev*)u->ug;
-	base_tick(u);
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3107,7 +3073,6 @@ typedef struct {
 
 static TICK(line_tick) {
 	GW_line* ug = (GW_line*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_line_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -3177,7 +3142,6 @@ static TICK(lpc_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_lpc_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3221,7 +3185,6 @@ typedef struct {
 
 static TICK(lpf18_tick) {
 	GW_lpf18* ug = (GW_lpf18*)u->ug;
-	base_tick(u);
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3284,7 +3247,6 @@ typedef struct {
 
 static TICK(maygate_tick) {
 	GW_maygate* ug = (GW_maygate*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_maygate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -3463,7 +3425,6 @@ typedef struct {
 
 static TICK(mode_tick) {
 	GW_mode* ug = (GW_mode*)u->ug;
-	base_tick(u);
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3514,7 +3475,6 @@ typedef struct {
 
 static TICK(moogladder_tick) {
 	GW_moogladder* ug = (GW_moogladder*)u->ug;
-	base_tick(u);
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3608,7 +3568,6 @@ static TICK(nsmp_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_nsmp_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -3903,8 +3862,6 @@ typedef struct {
 
 static TICK(panst_tick) {
 	GW_panst* ug = (GW_panst*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_panst_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
@@ -3955,7 +3912,6 @@ typedef struct {
 
 static TICK(pareq_tick) {
 	GW_pareq* ug = (GW_pareq*)u->ug;
-	base_tick(u);
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4084,7 +4040,6 @@ typedef struct {
 
 static TICK(pdhalf_tick) {
 	GW_pdhalf* ug = (GW_pdhalf*)u->ug;
-	base_tick(u);
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4123,7 +4078,6 @@ typedef struct {
 
 static TICK(peaklim_tick) {
 	GW_peaklim* ug = (GW_peaklim*)u->ug;
-	base_tick(u);
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4186,8 +4140,6 @@ typedef struct {
 
 static TICK(phaser_tick) {
 	GW_phaser* ug = (GW_phaser*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_phaser_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
@@ -4487,7 +4439,6 @@ static TICK(pluck_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_pluck_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -4562,7 +4513,6 @@ static TICK(port_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4792,7 +4742,6 @@ typedef struct {
 
 static TICK(pshift_tick) {
 	GW_pshift* ug = (GW_pshift*)u->ug;
-	base_tick(u);
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5091,7 +5040,6 @@ typedef struct {
 
 static TICK(reson_tick) {
 	GW_reson* ug = (GW_reson*)u->ug;
-	base_tick(u);
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5147,7 +5095,6 @@ static TICK(reverse_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5191,8 +5138,6 @@ typedef struct {
 
 static TICK(revsc_tick) {
 	GW_revsc* ug = (GW_revsc*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_revsc_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
@@ -5243,7 +5188,6 @@ typedef struct {
 
 static TICK(rms_tick) {
 	GW_rms* ug = (GW_rms*)u->ug;
-	base_tick(u);
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5287,8 +5231,6 @@ static TICK(rpt_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_rpt_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
 
@@ -5408,8 +5350,6 @@ typedef struct {
 
 static TICK(samphold_tick) {
 	GW_samphold* ug = (GW_samphold*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_samphold_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
 
@@ -5438,7 +5378,6 @@ typedef struct {
 
 static TICK(saturator_tick) {
 	GW_saturator* ug = (GW_saturator*)u->ug;
-	base_tick(u);
 	sp_saturator_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5489,7 +5428,6 @@ typedef struct {
 
 static TICK(scale_tick) {
 	GW_scale* ug = (GW_scale*)u->ug;
-	base_tick(u);
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5545,7 +5483,6 @@ static TICK(sdelay_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5594,7 +5531,6 @@ static TICK(slice_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_slice_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -5663,7 +5599,6 @@ static TICK(smoothdelay_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5788,7 +5723,6 @@ static TICK(sparec_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_sparec_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5834,7 +5768,6 @@ typedef struct {
 
 static TICK(streson_tick) {
 	GW_streson* ug = (GW_streson*)u->ug;
-	base_tick(u);
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5885,9 +5818,6 @@ typedef struct {
 
 static TICK(switch_tick) {
 	GW_switch* ug = (GW_switch*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
-	base_tick(UGEN(u->channel[2]));
 	ugen_compute(UGEN(u->trig));
 	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->trig)->out, &u->out);
 
@@ -6004,7 +5934,6 @@ typedef struct {
 
 static TICK(tadsr_tick) {
 	GW_tadsr* ug = (GW_tadsr*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tadsr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6081,8 +6010,6 @@ typedef struct {
 
 static TICK(talkbox_tick) {
 	GW_talkbox* ug = (GW_talkbox*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
@@ -6126,8 +6053,6 @@ static TICK(tblrec_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
 	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
 
@@ -6175,7 +6100,6 @@ typedef struct {
 
 static TICK(tbvcf_tick) {
 	GW_tbvcf* ug = (GW_tbvcf*)u->ug;
-	base_tick(u);
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6250,7 +6174,6 @@ typedef struct {
 
 static TICK(tdiv_tick) {
 	GW_tdiv* ug = (GW_tdiv*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tdiv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6303,7 +6226,6 @@ typedef struct {
 
 static TICK(tenv_tick) {
 	GW_tenv* ug = (GW_tenv*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6368,7 +6290,6 @@ typedef struct {
 
 static TICK(tenv2_tick) {
 	GW_tenv2* ug = (GW_tenv2*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenv2_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6421,7 +6342,6 @@ typedef struct {
 
 static TICK(tenvx_tick) {
 	GW_tenvx* ug = (GW_tenvx*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tenvx_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6486,7 +6406,6 @@ typedef struct {
 
 static TICK(tgate_tick) {
 	GW_tgate* ug = (GW_tgate*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tgate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6527,7 +6446,6 @@ typedef struct {
 
 static TICK(thresh_tick) {
 	GW_thresh* ug = (GW_thresh*)u->ug;
-	base_tick(u);
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6578,7 +6496,6 @@ typedef struct {
 
 static TICK(timer_tick) {
 	GW_timer* ug = (GW_timer*)u->ug;
-	base_tick(u);
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6605,7 +6522,6 @@ typedef struct {
 
 static TICK(tin_tick) {
 	GW_tin* ug = (GW_tin*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tin_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6634,7 +6550,6 @@ typedef struct {
 
 static TICK(tone_tick) {
 	GW_tone* ug = (GW_tone*)u->ug;
-	base_tick(u);
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6673,7 +6588,6 @@ typedef struct {
 
 static TICK(trand_tick) {
 	GW_trand* ug = (GW_trand*)u->ug;
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_trand_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6731,7 +6645,6 @@ static TICK(tseg_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tseg_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6818,7 +6731,6 @@ static TICK(tseq_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
 	sp_tseq_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
 
@@ -6883,7 +6795,6 @@ static TICK(vdelay_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6965,8 +6876,6 @@ typedef struct {
 
 static TICK(vocoder_tick) {
 	GW_vocoder* ug = (GW_vocoder*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_vocoder_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
@@ -7034,7 +6943,6 @@ static TICK(waveset_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -7090,7 +6998,6 @@ typedef struct {
 
 static TICK(wpkorg35_tick) {
 	GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
-	base_tick(u);
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -7153,8 +7060,6 @@ typedef struct {
 
 static TICK(zitarev_tick) {
 	GW_zitarev* ug = (GW_zitarev*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	sp_zitarev_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }

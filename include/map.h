@@ -41,7 +41,7 @@ ANEW extern Map new_map(void);
 extern     void map_init(const Map);
 extern ANN vtype map_get(const Map, const vtype);
 extern ANN vtype map_at(const Map, const vtype);
-extern ANN void map_set(const Map, const vtype, const vtype);
+extern ANN void map_set(const Map, const vtype, const vtype) __attribute__((hot));
 extern ANN void map_remove(const Map, const vtype);
 extern ANN void map_commit(const __restrict__ Map, __restrict__ const Map);
 extern ANN void map_clear(const Map);

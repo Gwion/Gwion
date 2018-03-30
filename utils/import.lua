@@ -123,13 +123,14 @@ function print_mod_func(name, mod)
   if(nmandatory > 0) then
     print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
-  if mod.ninputs == 1 and mod.noutputs == 1 then
-    print("\tbase_tick(u);");
-  elseif mod.ninputs > 1 then
-    for i = 1, mod.ninputs do
-      print("\tbase_tick(UGEN(u->channel["..(i - 1).."]));");
-    end
-  end
+
+--  if mod.ninputs == 1 and mod.noutputs == 1 then
+--    print("\tbase_tick(u);");
+--  elseif mod.ninputs > 1 then
+--    for i = 1, mod.ninputs do
+--      print("\tbase_tick(UGEN(u->channel["..(i - 1).."]));");
+--    end
+--  end
   local args = ""
   if ninputs > 1 then
     for i = 1, ninputs do
