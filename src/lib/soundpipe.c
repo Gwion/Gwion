@@ -22,14 +22,13 @@ typedef struct {
 } GW_adsr;
 
 static TICK(adsr_tick) {
-	GW_adsr* ug = (GW_adsr*)u->ug;
-	base_tick(u);
+	const GW_adsr* ug = (GW_adsr*)u->ug;
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(adsr_ctor) {
-	GW_adsr* ug = malloc(sizeof(GW_adsr));
+	GW_adsr* ug = (GW_adsr*)xcalloc(1, sizeof(GW_adsr));
 	ug->sp = shred->vm_ref->sp;
 	sp_adsr_create(&ug->osc);
 	sp_adsr_init(ug->sp, ug->osc);
@@ -98,18 +97,17 @@ typedef struct {
 } GW_allpass;
 
 static TICK(allpass_tick) {
-	GW_allpass* ug = (GW_allpass*)u->ug;
+	const GW_allpass* ug = (GW_allpass*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_allpass_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(allpass_ctor) {
-	GW_allpass* ug = malloc(sizeof(GW_allpass));
+	GW_allpass* ug = (GW_allpass*)xcalloc(1, sizeof(GW_allpass));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -158,14 +156,13 @@ typedef struct {
 } GW_atone;
 
 static TICK(atone_tick) {
-	GW_atone* ug = (GW_atone*)u->ug;
-	base_tick(u);
+	const GW_atone* ug = (GW_atone*)u->ug;
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(atone_ctor) {
-	GW_atone* ug = malloc(sizeof(GW_atone));
+	GW_atone* ug = (GW_atone*)xcalloc(1, sizeof(GW_atone));
 	ug->sp = shred->vm_ref->sp;
 	sp_atone_create(&ug->osc);
 	sp_atone_init(ug->sp, ug->osc);
@@ -197,14 +194,13 @@ typedef struct {
 } GW_autowah;
 
 static TICK(autowah_tick) {
-	GW_autowah* ug = (GW_autowah*)u->ug;
-	base_tick(u);
+	const GW_autowah* ug = (GW_autowah*)u->ug;
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(autowah_ctor) {
-	GW_autowah* ug = malloc(sizeof(GW_autowah));
+	GW_autowah* ug = (GW_autowah*)xcalloc(1, sizeof(GW_autowah));
 	ug->sp = shred->vm_ref->sp;
 	sp_autowah_create(&ug->osc);
 	sp_autowah_init(ug->sp, ug->osc);
@@ -260,15 +256,13 @@ typedef struct {
 } GW_bal;
 
 static TICK(bal_tick) {
-	GW_bal* ug = (GW_bal*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_bal* ug = (GW_bal*)u->ug;
 	sp_bal_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
 
 CTOR(bal_ctor) {
-	GW_bal* ug = malloc(sizeof(GW_bal));
+	GW_bal* ug = (GW_bal*)xcalloc(1, sizeof(GW_bal));
 	ug->sp = shred->vm_ref->sp;
 	sp_bal_create(&ug->osc);
 	sp_bal_init(ug->sp, ug->osc);
@@ -289,19 +283,18 @@ typedef struct {
 } GW_bar;
 
 static TICK(bar_tick) {
-	GW_bar* ug = (GW_bar*)u->ug;
+	const GW_bar* ug = (GW_bar*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_bar_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_bar_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(bar_ctor) {
-	GW_bar* ug = malloc(sizeof(GW_bar));
+	GW_bar* ug = (GW_bar*)xcalloc(1, sizeof(GW_bar));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -425,14 +418,13 @@ typedef struct {
 } GW_biquad;
 
 static TICK(biquad_tick) {
-	GW_biquad* ug = (GW_biquad*)u->ug;
-	base_tick(u);
+	const GW_biquad* ug = (GW_biquad*)u->ug;
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(biquad_ctor) {
-	GW_biquad* ug = malloc(sizeof(GW_biquad));
+	GW_biquad* ug = (GW_biquad*)xcalloc(1, sizeof(GW_biquad));
 	ug->sp = shred->vm_ref->sp;
 	sp_biquad_create(&ug->osc);
 	sp_biquad_init(ug->sp, ug->osc);
@@ -524,14 +516,13 @@ typedef struct {
 } GW_biscale;
 
 static TICK(biscale_tick) {
-	GW_biscale* ug = (GW_biscale*)u->ug;
-	base_tick(u);
+	const GW_biscale* ug = (GW_biscale*)u->ug;
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(biscale_ctor) {
-	GW_biscale* ug = malloc(sizeof(GW_biscale));
+	GW_biscale* ug = (GW_biscale*)xcalloc(1, sizeof(GW_biscale));
 	ug->sp = shred->vm_ref->sp;
 	sp_biscale_create(&ug->osc);
 	sp_biscale_init(ug->sp, ug->osc);
@@ -575,14 +566,13 @@ typedef struct {
 } GW_bitcrush;
 
 static TICK(bitcrush_tick) {
-	GW_bitcrush* ug = (GW_bitcrush*)u->ug;
-	base_tick(u);
+	const GW_bitcrush* ug = (GW_bitcrush*)u->ug;
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(bitcrush_ctor) {
-	GW_bitcrush* ug = malloc(sizeof(GW_bitcrush));
+	GW_bitcrush* ug = (GW_bitcrush*)xcalloc(1, sizeof(GW_bitcrush));
 	ug->sp = shred->vm_ref->sp;
 	sp_bitcrush_create(&ug->osc);
 	sp_bitcrush_init(ug->sp, ug->osc);
@@ -626,13 +616,13 @@ typedef struct {
 } GW_blsaw;
 
 static TICK(blsaw_tick) {
-	GW_blsaw* ug = (GW_blsaw*)u->ug;
+	const GW_blsaw* ug = (GW_blsaw*)u->ug;
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(blsaw_ctor) {
-	GW_blsaw* ug = malloc(sizeof(GW_blsaw));
+	GW_blsaw* ug = (GW_blsaw*)xcalloc(1, sizeof(GW_blsaw));
 	ug->sp = shred->vm_ref->sp;
 	sp_blsaw_create(&ug->osc);
 	sp_blsaw_init(ug->sp, ug->osc);
@@ -676,13 +666,13 @@ typedef struct {
 } GW_blsquare;
 
 static TICK(blsquare_tick) {
-	GW_blsquare* ug = (GW_blsquare*)u->ug;
+	const GW_blsquare* ug = (GW_blsquare*)u->ug;
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(blsquare_ctor) {
-	GW_blsquare* ug = malloc(sizeof(GW_blsquare));
+	GW_blsquare* ug = (GW_blsquare*)xcalloc(1, sizeof(GW_blsquare));
 	ug->sp = shred->vm_ref->sp;
 	sp_blsquare_create(&ug->osc);
 	sp_blsquare_init(ug->sp, ug->osc);
@@ -738,13 +728,13 @@ typedef struct {
 } GW_bltriangle;
 
 static TICK(bltriangle_tick) {
-	GW_bltriangle* ug = (GW_bltriangle*)u->ug;
+	const GW_bltriangle* ug = (GW_bltriangle*)u->ug;
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(bltriangle_ctor) {
-	GW_bltriangle* ug = malloc(sizeof(GW_bltriangle));
+	GW_bltriangle* ug = (GW_bltriangle*)xcalloc(1, sizeof(GW_bltriangle));
 	ug->sp = shred->vm_ref->sp;
 	sp_bltriangle_create(&ug->osc);
 	sp_bltriangle_init(ug->sp, ug->osc);
@@ -788,13 +778,13 @@ typedef struct {
 } GW_brown;
 
 static TICK(brown_tick) {
-	GW_brown* ug = (GW_brown*)u->ug;
+	const GW_brown* ug = (GW_brown*)u->ug;
 	sp_brown_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(brown_ctor) {
-	GW_brown* ug = malloc(sizeof(GW_brown));
+	GW_brown* ug = (GW_brown*)xcalloc(1, sizeof(GW_brown));
 	ug->sp = shred->vm_ref->sp;
 	sp_brown_create(&ug->osc);
 	sp_brown_init(ug->sp, ug->osc);
@@ -814,14 +804,13 @@ typedef struct {
 } GW_butbp;
 
 static TICK(butbp_tick) {
-	GW_butbp* ug = (GW_butbp*)u->ug;
-	base_tick(u);
+	const GW_butbp* ug = (GW_butbp*)u->ug;
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(butbp_ctor) {
-	GW_butbp* ug = malloc(sizeof(GW_butbp));
+	GW_butbp* ug = (GW_butbp*)xcalloc(1, sizeof(GW_butbp));
 	ug->sp = shred->vm_ref->sp;
 	sp_butbp_create(&ug->osc);
 	sp_butbp_init(ug->sp, ug->osc);
@@ -865,14 +854,13 @@ typedef struct {
 } GW_butbr;
 
 static TICK(butbr_tick) {
-	GW_butbr* ug = (GW_butbr*)u->ug;
-	base_tick(u);
+	const GW_butbr* ug = (GW_butbr*)u->ug;
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(butbr_ctor) {
-	GW_butbr* ug = malloc(sizeof(GW_butbr));
+	GW_butbr* ug = (GW_butbr*)xcalloc(1, sizeof(GW_butbr));
 	ug->sp = shred->vm_ref->sp;
 	sp_butbr_create(&ug->osc);
 	sp_butbr_init(ug->sp, ug->osc);
@@ -916,14 +904,13 @@ typedef struct {
 } GW_buthp;
 
 static TICK(buthp_tick) {
-	GW_buthp* ug = (GW_buthp*)u->ug;
-	base_tick(u);
+	const GW_buthp* ug = (GW_buthp*)u->ug;
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(buthp_ctor) {
-	GW_buthp* ug = malloc(sizeof(GW_buthp));
+	GW_buthp* ug = (GW_buthp*)xcalloc(1, sizeof(GW_buthp));
 	ug->sp = shred->vm_ref->sp;
 	sp_buthp_create(&ug->osc);
 	sp_buthp_init(ug->sp, ug->osc);
@@ -955,14 +942,13 @@ typedef struct {
 } GW_butlp;
 
 static TICK(butlp_tick) {
-	GW_butlp* ug = (GW_butlp*)u->ug;
-	base_tick(u);
+	const GW_butlp* ug = (GW_butlp*)u->ug;
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(butlp_ctor) {
-	GW_butlp* ug = malloc(sizeof(GW_butlp));
+	GW_butlp* ug = (GW_butlp*)xcalloc(1, sizeof(GW_butlp));
 	ug->sp = shred->vm_ref->sp;
 	sp_butlp_create(&ug->osc);
 	sp_butlp_init(ug->sp, ug->osc);
@@ -994,14 +980,13 @@ typedef struct {
 } GW_clip;
 
 static TICK(clip_tick) {
-	GW_clip* ug = (GW_clip*)u->ug;
-	base_tick(u);
+	const GW_clip* ug = (GW_clip*)u->ug;
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(clip_ctor) {
-	GW_clip* ug = malloc(sizeof(GW_clip));
+	GW_clip* ug = (GW_clip*)xcalloc(1, sizeof(GW_clip));
 	ug->sp = shred->vm_ref->sp;
 	sp_clip_create(&ug->osc);
 	sp_clip_init(ug->sp, ug->osc);
@@ -1033,15 +1018,14 @@ typedef struct {
 } GW_clock;
 
 static TICK(clock_tick) {
-	GW_clock* ug = (GW_clock*)u->ug;
-	base_tick(u);
+	const GW_clock* ug = (GW_clock*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_clock_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_clock_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(clock_ctor) {
-	GW_clock* ug = malloc(sizeof(GW_clock));
+	GW_clock* ug = (GW_clock*)xcalloc(1, sizeof(GW_clock));
 	ug->sp = shred->vm_ref->sp;
 	sp_clock_create(&ug->osc);
 	sp_clock_init(ug->sp, ug->osc);
@@ -1087,18 +1071,17 @@ typedef struct {
 } GW_comb;
 
 static TICK(comb_tick) {
-	GW_comb* ug = (GW_comb*)u->ug;
+	const GW_comb* ug = (GW_comb*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_comb_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(comb_ctor) {
-	GW_comb* ug = malloc(sizeof(GW_comb));
+	GW_comb* ug = (GW_comb*)xcalloc(1, sizeof(GW_comb));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1147,14 +1130,13 @@ typedef struct {
 } GW_compressor;
 
 static TICK(compressor_tick) {
-	GW_compressor* ug = (GW_compressor*)u->ug;
-	base_tick(u);
+	const GW_compressor* ug = (GW_compressor*)u->ug;
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(compressor_ctor) {
-	GW_compressor* ug = malloc(sizeof(GW_compressor));
+	GW_compressor* ug = (GW_compressor*)xcalloc(1, sizeof(GW_compressor));
 	ug->sp = shred->vm_ref->sp;
 	sp_compressor_create(&ug->osc);
 	sp_compressor_init(ug->sp, ug->osc);
@@ -1223,18 +1205,17 @@ typedef struct {
 } GW_conv;
 
 static TICK(conv_tick) {
-	GW_conv* ug = (GW_conv*)u->ug;
+	const GW_conv* ug = (GW_conv*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_conv_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(conv_ctor) {
-	GW_conv* ug = malloc(sizeof(GW_conv));
+	GW_conv* ug = (GW_conv*)xcalloc(1, sizeof(GW_conv));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1275,15 +1256,14 @@ typedef struct {
 } GW_count;
 
 static TICK(count_tick) {
-	GW_count* ug = (GW_count*)u->ug;
-	base_tick(u);
+	const GW_count* ug = (GW_count*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_count_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_count_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(count_ctor) {
-	GW_count* ug = malloc(sizeof(GW_count));
+	GW_count* ug = (GW_count*)xcalloc(1, sizeof(GW_count));
 	ug->sp = shred->vm_ref->sp;
 	sp_count_create(&ug->osc);
 	sp_count_init(ug->sp, ug->osc);
@@ -1328,15 +1308,13 @@ typedef struct {
 } GW_crossfade;
 
 static TICK(crossfade_tick) {
-	GW_crossfade* ug = (GW_crossfade*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_crossfade* ug = (GW_crossfade*)u->ug;
 	sp_crossfade_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
 
 CTOR(crossfade_ctor) {
-	GW_crossfade* ug = malloc(sizeof(GW_crossfade));
+	GW_crossfade* ug = (GW_crossfade*)xcalloc(1, sizeof(GW_crossfade));
 	ug->sp = shred->vm_ref->sp;
 	sp_crossfade_create(&ug->osc);
 	sp_crossfade_init(ug->sp, ug->osc);
@@ -1368,14 +1346,13 @@ typedef struct {
 } GW_dcblock;
 
 static TICK(dcblock_tick) {
-	GW_dcblock* ug = (GW_dcblock*)u->ug;
-	base_tick(u);
+	const GW_dcblock* ug = (GW_dcblock*)u->ug;
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(dcblock_ctor) {
-	GW_dcblock* ug = malloc(sizeof(GW_dcblock));
+	GW_dcblock* ug = (GW_dcblock*)xcalloc(1, sizeof(GW_dcblock));
 	ug->sp = shred->vm_ref->sp;
 	sp_dcblock_create(&ug->osc);
 	sp_dcblock_init(ug->sp, ug->osc);
@@ -1396,18 +1373,17 @@ typedef struct {
 } GW_delay;
 
 static TICK(delay_tick) {
-	GW_delay* ug = (GW_delay*)u->ug;
+	const GW_delay* ug = (GW_delay*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_delay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(delay_ctor) {
-	GW_delay* ug = malloc(sizeof(GW_delay));
+	GW_delay* ug = (GW_delay*)xcalloc(1, sizeof(GW_delay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1456,14 +1432,13 @@ typedef struct {
 } GW_diode;
 
 static TICK(diode_tick) {
-	GW_diode* ug = (GW_diode*)u->ug;
-	base_tick(u);
+	const GW_diode* ug = (GW_diode*)u->ug;
 	sp_diode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(diode_ctor) {
-	GW_diode* ug = malloc(sizeof(GW_diode));
+	GW_diode* ug = (GW_diode*)xcalloc(1, sizeof(GW_diode));
 	ug->sp = shred->vm_ref->sp;
 	sp_diode_create(&ug->osc);
 	sp_diode_init(ug->sp, ug->osc);
@@ -1508,7 +1483,7 @@ typedef struct {
 } GW_diskin;
 
 static TICK(diskin_tick) {
-	GW_diskin* ug = (GW_diskin*)u->ug;
+	const GW_diskin* ug = (GW_diskin*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -1518,7 +1493,7 @@ static TICK(diskin_tick) {
 }
 
 CTOR(diskin_ctor) {
-	GW_diskin* ug = malloc(sizeof(GW_diskin));
+	GW_diskin* ug = (GW_diskin*)xcalloc(1, sizeof(GW_diskin));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1557,14 +1532,13 @@ typedef struct {
 } GW_dist;
 
 static TICK(dist_tick) {
-	GW_dist* ug = (GW_dist*)u->ug;
-	base_tick(u);
+	const GW_dist* ug = (GW_dist*)u->ug;
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(dist_ctor) {
-	GW_dist* ug = malloc(sizeof(GW_dist));
+	GW_dist* ug = (GW_dist*)xcalloc(1, sizeof(GW_dist));
 	ug->sp = shred->vm_ref->sp;
 	sp_dist_create(&ug->osc);
 	sp_dist_init(ug->sp, ug->osc);
@@ -1632,13 +1606,13 @@ typedef struct {
 } GW_dmetro;
 
 static TICK(dmetro_tick) {
-	GW_dmetro* ug = (GW_dmetro*)u->ug;
+	const GW_dmetro* ug = (GW_dmetro*)u->ug;
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(dmetro_ctor) {
-	GW_dmetro* ug = malloc(sizeof(GW_dmetro));
+	GW_dmetro* ug = (GW_dmetro*)xcalloc(1, sizeof(GW_dmetro));
 	ug->sp = shred->vm_ref->sp;
 	sp_dmetro_create(&ug->osc);
 	sp_dmetro_init(ug->sp, ug->osc);
@@ -1671,19 +1645,18 @@ typedef struct {
 } GW_drip;
 
 static TICK(drip_tick) {
-	GW_drip* ug = (GW_drip*)u->ug;
+	const GW_drip* ug = (GW_drip*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_drip_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_drip_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(drip_ctor) {
-	GW_drip* ug = malloc(sizeof(GW_drip));
+	GW_drip* ug = (GW_drip*)xcalloc(1, sizeof(GW_drip));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1806,19 +1779,18 @@ typedef struct {
 } GW_dtrig;
 
 static TICK(dtrig_tick) {
-	GW_dtrig* ug = (GW_dtrig*)u->ug;
+	const GW_dtrig* ug = (GW_dtrig*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_dtrig_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_dtrig_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(dtrig_ctor) {
-	GW_dtrig* ug = malloc(sizeof(GW_dtrig));
+	GW_dtrig* ug = (GW_dtrig*)xcalloc(1, sizeof(GW_dtrig));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -1894,13 +1866,13 @@ typedef struct {
 } GW_dust;
 
 static TICK(dust_tick) {
-	GW_dust* ug = (GW_dust*)u->ug;
+	const GW_dust* ug = (GW_dust*)u->ug;
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(dust_ctor) {
-	GW_dust* ug = malloc(sizeof(GW_dust));
+	GW_dust* ug = (GW_dust*)xcalloc(1, sizeof(GW_dust));
 	ug->sp = shred->vm_ref->sp;
 	sp_dust_create(&ug->osc);
 	sp_dust_init(ug->sp, ug->osc);
@@ -1956,14 +1928,13 @@ typedef struct {
 } GW_eqfil;
 
 static TICK(eqfil_tick) {
-	GW_eqfil* ug = (GW_eqfil*)u->ug;
-	base_tick(u);
+	const GW_eqfil* ug = (GW_eqfil*)u->ug;
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(eqfil_ctor) {
-	GW_eqfil* ug = malloc(sizeof(GW_eqfil));
+	GW_eqfil* ug = (GW_eqfil*)xcalloc(1, sizeof(GW_eqfil));
 	ug->sp = shred->vm_ref->sp;
 	sp_eqfil_create(&ug->osc);
 	sp_eqfil_init(ug->sp, ug->osc);
@@ -2019,15 +1990,14 @@ typedef struct {
 } GW_expon;
 
 static TICK(expon_tick) {
-	GW_expon* ug = (GW_expon*)u->ug;
-	base_tick(u);
+	const GW_expon* ug = (GW_expon*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_expon_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_expon_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(expon_ctor) {
-	GW_expon* ug = malloc(sizeof(GW_expon));
+	GW_expon* ug = (GW_expon*)xcalloc(1, sizeof(GW_expon));
 	ug->sp = shred->vm_ref->sp;
 	sp_expon_create(&ug->osc);
 	sp_expon_init(ug->sp, ug->osc);
@@ -2085,7 +2055,7 @@ typedef struct {
 } GW_fof;
 
 static TICK(fof_tick) {
-	GW_fof* ug = (GW_fof*)u->ug;
+	const GW_fof* ug = (GW_fof*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2095,7 +2065,7 @@ static TICK(fof_tick) {
 }
 
 CTOR(fof_ctor) {
-	GW_fof* ug = malloc(sizeof(GW_fof));
+	GW_fof* ug = (GW_fof*)xcalloc(1, sizeof(GW_fof));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2238,14 +2208,13 @@ typedef struct {
 } GW_fofilt;
 
 static TICK(fofilt_tick) {
-	GW_fofilt* ug = (GW_fofilt*)u->ug;
-	base_tick(u);
+	const GW_fofilt* ug = (GW_fofilt*)u->ug;
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(fofilt_ctor) {
-	GW_fofilt* ug = malloc(sizeof(GW_fofilt));
+	GW_fofilt* ug = (GW_fofilt*)xcalloc(1, sizeof(GW_fofilt));
 	ug->sp = shred->vm_ref->sp;
 	sp_fofilt_create(&ug->osc);
 	sp_fofilt_init(ug->sp, ug->osc);
@@ -2302,7 +2271,7 @@ typedef struct {
 } GW_fog;
 
 static TICK(fog_tick) {
-	GW_fog* ug = (GW_fog*)u->ug;
+	const GW_fog* ug = (GW_fog*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2312,7 +2281,7 @@ static TICK(fog_tick) {
 }
 
 CTOR(fog_ctor) {
-	GW_fog* ug = malloc(sizeof(GW_fog));
+	GW_fog* ug = (GW_fog*)xcalloc(1, sizeof(GW_fog));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2467,14 +2436,13 @@ typedef struct {
 } GW_fold;
 
 static TICK(fold_tick) {
-	GW_fold* ug = (GW_fold*)u->ug;
-	base_tick(u);
+	const GW_fold* ug = (GW_fold*)u->ug;
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(fold_ctor) {
-	GW_fold* ug = malloc(sizeof(GW_fold));
+	GW_fold* ug = (GW_fold*)xcalloc(1, sizeof(GW_fold));
 	ug->sp = shred->vm_ref->sp;
 	sp_fold_create(&ug->osc);
 	sp_fold_init(ug->sp, ug->osc);
@@ -2507,7 +2475,7 @@ typedef struct {
 } GW_fosc;
 
 static TICK(fosc_tick) {
-	GW_fosc* ug = (GW_fosc*)u->ug;
+	const GW_fosc* ug = (GW_fosc*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2517,7 +2485,7 @@ static TICK(fosc_tick) {
 }
 
 CTOR(fosc_ctor) {
-	GW_fosc* ug = malloc(sizeof(GW_fosc));
+	GW_fosc* ug = (GW_fosc*)xcalloc(1, sizeof(GW_fosc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2617,7 +2585,7 @@ typedef struct {
 } GW_gbuzz;
 
 static TICK(gbuzz_tick) {
-	GW_gbuzz* ug = (GW_gbuzz*)u->ug;
+	const GW_gbuzz* ug = (GW_gbuzz*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2627,7 +2595,7 @@ static TICK(gbuzz_tick) {
 }
 
 CTOR(gbuzz_ctor) {
-	GW_gbuzz* ug = malloc(sizeof(GW_gbuzz));
+	GW_gbuzz* ug = (GW_gbuzz*)xcalloc(1, sizeof(GW_gbuzz));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -2878,13 +2846,13 @@ typedef struct {
 } GW_hilbert;
 
 static TICK(hilbert_tick) {
-	GW_hilbert* ug = (GW_hilbert*)u->ug;
+	const GW_hilbert* ug = (GW_hilbert*)u->ug;
 	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(hilbert_ctor) {
-	GW_hilbert* ug = malloc(sizeof(GW_hilbert));
+	GW_hilbert* ug = (GW_hilbert*)xcalloc(1, sizeof(GW_hilbert));
 	ug->sp = shred->vm_ref->sp;
 	sp_hilbert_create(&ug->osc);
 	sp_hilbert_init(ug->sp, ug->osc);
@@ -2904,13 +2872,13 @@ typedef struct {
 } GW_in;
 
 static TICK(in_tick) {
-	GW_in* ug = (GW_in*)u->ug;
+	const GW_in* ug = (GW_in*)u->ug;
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(in_ctor) {
-	GW_in* ug = malloc(sizeof(GW_in));
+	GW_in* ug = (GW_in*)xcalloc(1, sizeof(GW_in));
 	ug->sp = shred->vm_ref->sp;
 	sp_in_create(&ug->osc);
 	sp_in_init(ug->sp, ug->osc);
@@ -2931,19 +2899,18 @@ typedef struct {
 } GW_incr;
 
 static TICK(incr_tick) {
-	GW_incr* ug = (GW_incr*)u->ug;
+	const GW_incr* ug = (GW_incr*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_incr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_incr_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(incr_ctor) {
-	GW_incr* ug = malloc(sizeof(GW_incr));
+	GW_incr* ug = (GW_incr*)xcalloc(1, sizeof(GW_incr));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3017,14 +2984,13 @@ typedef struct {
 } GW_jcrev;
 
 static TICK(jcrev_tick) {
-	GW_jcrev* ug = (GW_jcrev*)u->ug;
-	base_tick(u);
+	const GW_jcrev* ug = (GW_jcrev*)u->ug;
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(jcrev_ctor) {
-	GW_jcrev* ug = malloc(sizeof(GW_jcrev));
+	GW_jcrev* ug = (GW_jcrev*)xcalloc(1, sizeof(GW_jcrev));
 	ug->sp = shred->vm_ref->sp;
 	sp_jcrev_create(&ug->osc);
 	sp_jcrev_init(ug->sp, ug->osc);
@@ -3044,13 +3010,13 @@ typedef struct {
 } GW_jitter;
 
 static TICK(jitter_tick) {
-	GW_jitter* ug = (GW_jitter*)u->ug;
+	const GW_jitter* ug = (GW_jitter*)u->ug;
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(jitter_ctor) {
-	GW_jitter* ug = malloc(sizeof(GW_jitter));
+	GW_jitter* ug = (GW_jitter*)xcalloc(1, sizeof(GW_jitter));
 	ug->sp = shred->vm_ref->sp;
 	sp_jitter_create(&ug->osc);
 	sp_jitter_init(ug->sp, ug->osc);
@@ -3106,15 +3072,14 @@ typedef struct {
 } GW_line;
 
 static TICK(line_tick) {
-	GW_line* ug = (GW_line*)u->ug;
-	base_tick(u);
+	const GW_line* ug = (GW_line*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_line_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_line_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(line_ctor) {
-	GW_line* ug = malloc(sizeof(GW_line));
+	GW_line* ug = (GW_line*)xcalloc(1, sizeof(GW_line));
 	ug->sp = shred->vm_ref->sp;
 	sp_line_create(&ug->osc);
 	sp_line_init(ug->sp, ug->osc);
@@ -3172,18 +3137,17 @@ typedef struct {
 } GW_lpc;
 
 static TICK(lpc_tick) {
-	GW_lpc* ug = (GW_lpc*)u->ug;
+	const GW_lpc* ug = (GW_lpc*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_lpc_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(lpc_ctor) {
-	GW_lpc* ug = malloc(sizeof(GW_lpc));
+	GW_lpc* ug = (GW_lpc*)xcalloc(1, sizeof(GW_lpc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3220,14 +3184,13 @@ typedef struct {
 } GW_lpf18;
 
 static TICK(lpf18_tick) {
-	GW_lpf18* ug = (GW_lpf18*)u->ug;
-	base_tick(u);
+	const GW_lpf18* ug = (GW_lpf18*)u->ug;
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(lpf18_ctor) {
-	GW_lpf18* ug = malloc(sizeof(GW_lpf18));
+	GW_lpf18* ug = (GW_lpf18*)xcalloc(1, sizeof(GW_lpf18));
 	ug->sp = shred->vm_ref->sp;
 	sp_lpf18_create(&ug->osc);
 	sp_lpf18_init(ug->sp, ug->osc);
@@ -3283,15 +3246,14 @@ typedef struct {
 } GW_maygate;
 
 static TICK(maygate_tick) {
-	GW_maygate* ug = (GW_maygate*)u->ug;
-	base_tick(u);
+	const GW_maygate* ug = (GW_maygate*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_maygate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_maygate_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(maygate_ctor) {
-	GW_maygate* ug = malloc(sizeof(GW_maygate));
+	GW_maygate* ug = (GW_maygate*)xcalloc(1, sizeof(GW_maygate));
 	ug->sp = shred->vm_ref->sp;
 	sp_maygate_create(&ug->osc);
 	sp_maygate_init(ug->sp, ug->osc);
@@ -3336,13 +3298,13 @@ typedef struct {
 } GW_metro;
 
 static TICK(metro_tick) {
-	GW_metro* ug = (GW_metro*)u->ug;
+	const GW_metro* ug = (GW_metro*)u->ug;
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(metro_ctor) {
-	GW_metro* ug = malloc(sizeof(GW_metro));
+	GW_metro* ug = (GW_metro*)xcalloc(1, sizeof(GW_metro));
 	ug->sp = shred->vm_ref->sp;
 	sp_metro_create(&ug->osc);
 	sp_metro_init(ug->sp, ug->osc);
@@ -3375,7 +3337,7 @@ typedef struct {
 } GW_mincer;
 
 static TICK(mincer_tick) {
-	GW_mincer* ug = (GW_mincer*)u->ug;
+	const GW_mincer* ug = (GW_mincer*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3385,7 +3347,7 @@ static TICK(mincer_tick) {
 }
 
 CTOR(mincer_ctor) {
-	GW_mincer* ug = malloc(sizeof(GW_mincer));
+	GW_mincer* ug = (GW_mincer*)xcalloc(1, sizeof(GW_mincer));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3462,14 +3424,13 @@ typedef struct {
 } GW_mode;
 
 static TICK(mode_tick) {
-	GW_mode* ug = (GW_mode*)u->ug;
-	base_tick(u);
+	const GW_mode* ug = (GW_mode*)u->ug;
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(mode_ctor) {
-	GW_mode* ug = malloc(sizeof(GW_mode));
+	GW_mode* ug = (GW_mode*)xcalloc(1, sizeof(GW_mode));
 	ug->sp = shred->vm_ref->sp;
 	sp_mode_create(&ug->osc);
 	sp_mode_init(ug->sp, ug->osc);
@@ -3513,14 +3474,13 @@ typedef struct {
 } GW_moogladder;
 
 static TICK(moogladder_tick) {
-	GW_moogladder* ug = (GW_moogladder*)u->ug;
-	base_tick(u);
+	const GW_moogladder* ug = (GW_moogladder*)u->ug;
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(moogladder_ctor) {
-	GW_moogladder* ug = malloc(sizeof(GW_moogladder));
+	GW_moogladder* ug = (GW_moogladder*)xcalloc(1, sizeof(GW_moogladder));
 	ug->sp = shred->vm_ref->sp;
 	sp_moogladder_create(&ug->osc);
 	sp_moogladder_init(ug->sp, ug->osc);
@@ -3564,13 +3524,13 @@ typedef struct {
 } GW_noise;
 
 static TICK(noise_tick) {
-	GW_noise* ug = (GW_noise*)u->ug;
+	const GW_noise* ug = (GW_noise*)u->ug;
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(noise_ctor) {
-	GW_noise* ug = malloc(sizeof(GW_noise));
+	GW_noise* ug = (GW_noise*)xcalloc(1, sizeof(GW_noise));
 	ug->sp = shred->vm_ref->sp;
 	sp_noise_create(&ug->osc);
 	sp_noise_init(ug->sp, ug->osc);
@@ -3603,19 +3563,18 @@ typedef struct {
 } GW_nsmp;
 
 static TICK(nsmp_tick) {
-	GW_nsmp* ug = (GW_nsmp*)u->ug;
+	const GW_nsmp* ug = (GW_nsmp*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_nsmp_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_nsmp_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(nsmp_ctor) {
-	GW_nsmp* ug = malloc(sizeof(GW_nsmp));
+	GW_nsmp* ug = (GW_nsmp*)xcalloc(1, sizeof(GW_nsmp));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3674,7 +3633,7 @@ typedef struct {
 } GW_osc;
 
 static TICK(osc_tick) {
-	GW_osc* ug = (GW_osc*)u->ug;
+	const GW_osc* ug = (GW_osc*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3684,7 +3643,7 @@ static TICK(osc_tick) {
 }
 
 CTOR(osc_ctor) {
-	GW_osc* ug = malloc(sizeof(GW_osc));
+	GW_osc* ug = (GW_osc*)xcalloc(1, sizeof(GW_osc));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3752,7 +3711,7 @@ typedef struct {
 } GW_oscmorph;
 
 static TICK(oscmorph_tick) {
-	GW_oscmorph* ug = (GW_oscmorph*)u->ug;
+	const GW_oscmorph* ug = (GW_oscmorph*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3762,7 +3721,7 @@ static TICK(oscmorph_tick) {
 }
 
 CTOR(oscmorph_ctor) {
-	GW_oscmorph* ug = malloc(sizeof(GW_oscmorph));
+	GW_oscmorph* ug = (GW_oscmorph*)xcalloc(1, sizeof(GW_oscmorph));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -3791,7 +3750,7 @@ MFUN(oscmorph_init) {
 	}
 	M_Object tbl_ptr = *(M_Object*)(shred->mem + gw_offset);
 	m_uint tbl_iter;
-	sp_ftbl** tbl = malloc(m_vector_size(ARRAY(tbl_ptr)) * SZ_INT);
+	sp_ftbl** tbl = (sp_ftbl**)xmalloc(m_vector_size(ARRAY(tbl_ptr)) * SZ_INT);
 	for(tbl_iter = 0; tbl_iter < m_vector_size(ARRAY(tbl_ptr)); tbl_iter++) {
 			M_Object tbl_ftl_obj;
 			m_vector_get(ARRAY(tbl_ptr), tbl_iter, &tbl_ftl_obj);
@@ -3852,13 +3811,13 @@ typedef struct {
 } GW_pan2;
 
 static TICK(pan2_tick) {
-	GW_pan2* ug = (GW_pan2*)u->ug;
+	const GW_pan2* ug = (GW_pan2*)u->ug;
 	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(pan2_ctor) {
-	GW_pan2* ug = malloc(sizeof(GW_pan2));
+	GW_pan2* ug = (GW_pan2*)xcalloc(1, sizeof(GW_pan2));
 	ug->sp = shred->vm_ref->sp;
 	sp_pan2_create(&ug->osc);
 	sp_pan2_init(ug->sp, ug->osc);
@@ -3902,15 +3861,13 @@ typedef struct {
 } GW_panst;
 
 static TICK(panst_tick) {
-	GW_panst* ug = (GW_panst*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_panst* ug = (GW_panst*)u->ug;
 	sp_panst_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(panst_ctor) {
-	GW_panst* ug = malloc(sizeof(GW_panst));
+	GW_panst* ug = (GW_panst*)xcalloc(1, sizeof(GW_panst));
 	ug->sp = shred->vm_ref->sp;
 	sp_panst_create(&ug->osc);
 	sp_panst_init(ug->sp, ug->osc);
@@ -3954,14 +3911,13 @@ typedef struct {
 } GW_pareq;
 
 static TICK(pareq_tick) {
-	GW_pareq* ug = (GW_pareq*)u->ug;
-	base_tick(u);
+	const GW_pareq* ug = (GW_pareq*)u->ug;
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(pareq_ctor) {
-	GW_pareq* ug = malloc(sizeof(GW_pareq));
+	GW_pareq* ug = (GW_pareq*)xcalloc(1, sizeof(GW_pareq));
 	ug->sp = shred->vm_ref->sp;
 	sp_pareq_create(&ug->osc);
 	sp_pareq_init(ug->sp, ug->osc);
@@ -4030,7 +3986,7 @@ typedef struct {
 } GW_paulstretch;
 
 static TICK(paulstretch_tick) {
-	GW_paulstretch* ug = (GW_paulstretch*)u->ug;
+	const GW_paulstretch* ug = (GW_paulstretch*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4040,7 +3996,7 @@ static TICK(paulstretch_tick) {
 }
 
 CTOR(paulstretch_ctor) {
-	GW_paulstretch* ug = malloc(sizeof(GW_paulstretch));
+	GW_paulstretch* ug = (GW_paulstretch*)xcalloc(1, sizeof(GW_paulstretch));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4083,14 +4039,13 @@ typedef struct {
 } GW_pdhalf;
 
 static TICK(pdhalf_tick) {
-	GW_pdhalf* ug = (GW_pdhalf*)u->ug;
-	base_tick(u);
+	const GW_pdhalf* ug = (GW_pdhalf*)u->ug;
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(pdhalf_ctor) {
-	GW_pdhalf* ug = malloc(sizeof(GW_pdhalf));
+	GW_pdhalf* ug = (GW_pdhalf*)xcalloc(1, sizeof(GW_pdhalf));
 	ug->sp = shred->vm_ref->sp;
 	sp_pdhalf_create(&ug->osc);
 	sp_pdhalf_init(ug->sp, ug->osc);
@@ -4122,14 +4077,13 @@ typedef struct {
 } GW_peaklim;
 
 static TICK(peaklim_tick) {
-	GW_peaklim* ug = (GW_peaklim*)u->ug;
-	base_tick(u);
+	const GW_peaklim* ug = (GW_peaklim*)u->ug;
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(peaklim_ctor) {
-	GW_peaklim* ug = malloc(sizeof(GW_peaklim));
+	GW_peaklim* ug = (GW_peaklim*)xcalloc(1, sizeof(GW_peaklim));
 	ug->sp = shred->vm_ref->sp;
 	sp_peaklim_create(&ug->osc);
 	sp_peaklim_init(ug->sp, ug->osc);
@@ -4185,15 +4139,13 @@ typedef struct {
 } GW_phaser;
 
 static TICK(phaser_tick) {
-	GW_phaser* ug = (GW_phaser*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_phaser* ug = (GW_phaser*)u->ug;
 	sp_phaser_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(phaser_ctor) {
-	GW_phaser* ug = malloc(sizeof(GW_phaser));
+	GW_phaser* ug = (GW_phaser*)xcalloc(1, sizeof(GW_phaser));
 	ug->sp = shred->vm_ref->sp;
 	sp_phaser_create(&ug->osc);
 	sp_phaser_init(ug->sp, ug->osc);
@@ -4334,7 +4286,7 @@ typedef struct {
 } GW_phasor;
 
 static TICK(phasor_tick) {
-	GW_phasor* ug = (GW_phasor*)u->ug;
+	const GW_phasor* ug = (GW_phasor*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4344,7 +4296,7 @@ static TICK(phasor_tick) {
 }
 
 CTOR(phasor_ctor) {
-	GW_phasor* ug = malloc(sizeof(GW_phasor));
+	GW_phasor* ug = (GW_phasor*)xcalloc(1, sizeof(GW_phasor));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4393,13 +4345,13 @@ typedef struct {
 } GW_pinknoise;
 
 static TICK(pinknoise_tick) {
-	GW_pinknoise* ug = (GW_pinknoise*)u->ug;
+	const GW_pinknoise* ug = (GW_pinknoise*)u->ug;
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(pinknoise_ctor) {
-	GW_pinknoise* ug = malloc(sizeof(GW_pinknoise));
+	GW_pinknoise* ug = (GW_pinknoise*)xcalloc(1, sizeof(GW_pinknoise));
 	ug->sp = shred->vm_ref->sp;
 	sp_pinknoise_create(&ug->osc);
 	sp_pinknoise_init(ug->sp, ug->osc);
@@ -4432,7 +4384,7 @@ typedef struct {
 } GW_pitchamdf;
 
 static TICK(pitchamdf_tick) {
-	GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
+	const GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4442,7 +4394,7 @@ static TICK(pitchamdf_tick) {
 }
 
 CTOR(pitchamdf_ctor) {
-	GW_pitchamdf* ug = malloc(sizeof(GW_pitchamdf));
+	GW_pitchamdf* ug = (GW_pitchamdf*)xcalloc(1, sizeof(GW_pitchamdf));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4482,19 +4434,18 @@ typedef struct {
 } GW_pluck;
 
 static TICK(pluck_tick) {
-	GW_pluck* ug = (GW_pluck*)u->ug;
+	const GW_pluck* ug = (GW_pluck*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_pluck_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_pluck_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(pluck_ctor) {
-	GW_pluck* ug = malloc(sizeof(GW_pluck));
+	GW_pluck* ug = (GW_pluck*)xcalloc(1, sizeof(GW_pluck));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4557,18 +4508,17 @@ typedef struct {
 } GW_port;
 
 static TICK(port_tick) {
-	GW_port* ug = (GW_port*)u->ug;
+	const GW_port* ug = (GW_port*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_port_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(port_ctor) {
-	GW_port* ug = malloc(sizeof(GW_port));
+	GW_port* ug = (GW_port*)xcalloc(1, sizeof(GW_port));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4606,7 +4556,7 @@ typedef struct {
 } GW_posc3;
 
 static TICK(posc3_tick) {
-	GW_posc3* ug = (GW_posc3*)u->ug;
+	const GW_posc3* ug = (GW_posc3*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4616,7 +4566,7 @@ static TICK(posc3_tick) {
 }
 
 CTOR(posc3_ctor) {
-	GW_posc3* ug = malloc(sizeof(GW_posc3));
+	GW_posc3* ug = (GW_posc3*)xcalloc(1, sizeof(GW_posc3));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4679,13 +4629,13 @@ typedef struct {
 } GW_progress;
 
 static TICK(progress_tick) {
-	GW_progress* ug = (GW_progress*)u->ug;
+	const GW_progress* ug = (GW_progress*)u->ug;
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(progress_ctor) {
-	GW_progress* ug = malloc(sizeof(GW_progress));
+	GW_progress* ug = (GW_progress*)xcalloc(1, sizeof(GW_progress));
 	ug->sp = shred->vm_ref->sp;
 	sp_progress_create(&ug->osc);
 	sp_progress_init(ug->sp, ug->osc);
@@ -4730,7 +4680,7 @@ typedef struct {
 } GW_prop;
 
 static TICK(prop_tick) {
-	GW_prop* ug = (GW_prop*)u->ug;
+	const GW_prop* ug = (GW_prop*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4740,7 +4690,7 @@ static TICK(prop_tick) {
 }
 
 CTOR(prop_ctor) {
-	GW_prop* ug = malloc(sizeof(GW_prop));
+	GW_prop* ug = (GW_prop*)xcalloc(1, sizeof(GW_prop));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4791,14 +4741,13 @@ typedef struct {
 } GW_pshift;
 
 static TICK(pshift_tick) {
-	GW_pshift* ug = (GW_pshift*)u->ug;
-	base_tick(u);
+	const GW_pshift* ug = (GW_pshift*)u->ug;
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(pshift_ctor) {
-	GW_pshift* ug = malloc(sizeof(GW_pshift));
+	GW_pshift* ug = (GW_pshift*)xcalloc(1, sizeof(GW_pshift));
 	ug->sp = shred->vm_ref->sp;
 	sp_pshift_create(&ug->osc);
 	sp_pshift_init(ug->sp, ug->osc);
@@ -4855,7 +4804,7 @@ typedef struct {
 } GW_ptrack;
 
 static TICK(ptrack_tick) {
-	GW_ptrack* ug = (GW_ptrack*)u->ug;
+	const GW_ptrack* ug = (GW_ptrack*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4865,7 +4814,7 @@ static TICK(ptrack_tick) {
 }
 
 CTOR(ptrack_ctor) {
-	GW_ptrack* ug = malloc(sizeof(GW_ptrack));
+	GW_ptrack* ug = (GW_ptrack*)xcalloc(1, sizeof(GW_ptrack));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -4904,13 +4853,13 @@ typedef struct {
 } GW_randh;
 
 static TICK(randh_tick) {
-	GW_randh* ug = (GW_randh*)u->ug;
+	const GW_randh* ug = (GW_randh*)u->ug;
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(randh_ctor) {
-	GW_randh* ug = malloc(sizeof(GW_randh));
+	GW_randh* ug = (GW_randh*)xcalloc(1, sizeof(GW_randh));
 	ug->sp = shred->vm_ref->sp;
 	sp_randh_create(&ug->osc);
 	sp_randh_init(ug->sp, ug->osc);
@@ -4966,13 +4915,13 @@ typedef struct {
 } GW_randi;
 
 static TICK(randi_tick) {
-	GW_randi* ug = (GW_randi*)u->ug;
+	const GW_randi* ug = (GW_randi*)u->ug;
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(randi_ctor) {
-	GW_randi* ug = malloc(sizeof(GW_randi));
+	GW_randi* ug = (GW_randi*)xcalloc(1, sizeof(GW_randi));
 	ug->sp = shred->vm_ref->sp;
 	sp_randi_create(&ug->osc);
 	sp_randi_init(ug->sp, ug->osc);
@@ -5040,13 +4989,13 @@ typedef struct {
 } GW_random;
 
 static TICK(random_tick) {
-	GW_random* ug = (GW_random*)u->ug;
+	const GW_random* ug = (GW_random*)u->ug;
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(random_ctor) {
-	GW_random* ug = malloc(sizeof(GW_random));
+	GW_random* ug = (GW_random*)xcalloc(1, sizeof(GW_random));
 	ug->sp = shred->vm_ref->sp;
 	sp_random_create(&ug->osc);
 	sp_random_init(ug->sp, ug->osc);
@@ -5090,14 +5039,13 @@ typedef struct {
 } GW_reson;
 
 static TICK(reson_tick) {
-	GW_reson* ug = (GW_reson*)u->ug;
-	base_tick(u);
+	const GW_reson* ug = (GW_reson*)u->ug;
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(reson_ctor) {
-	GW_reson* ug = malloc(sizeof(GW_reson));
+	GW_reson* ug = (GW_reson*)xcalloc(1, sizeof(GW_reson));
 	ug->sp = shred->vm_ref->sp;
 	sp_reson_create(&ug->osc);
 	sp_reson_init(ug->sp, ug->osc);
@@ -5142,18 +5090,17 @@ typedef struct {
 } GW_reverse;
 
 static TICK(reverse_tick) {
-	GW_reverse* ug = (GW_reverse*)u->ug;
+	const GW_reverse* ug = (GW_reverse*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_reverse_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(reverse_ctor) {
-	GW_reverse* ug = malloc(sizeof(GW_reverse));
+	GW_reverse* ug = (GW_reverse*)xcalloc(1, sizeof(GW_reverse));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5190,15 +5137,13 @@ typedef struct {
 } GW_revsc;
 
 static TICK(revsc_tick) {
-	GW_revsc* ug = (GW_revsc*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_revsc* ug = (GW_revsc*)u->ug;
 	sp_revsc_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(revsc_ctor) {
-	GW_revsc* ug = malloc(sizeof(GW_revsc));
+	GW_revsc* ug = (GW_revsc*)xcalloc(1, sizeof(GW_revsc));
 	ug->sp = shred->vm_ref->sp;
 	sp_revsc_create(&ug->osc);
 	sp_revsc_init(ug->sp, ug->osc);
@@ -5242,14 +5187,13 @@ typedef struct {
 } GW_rms;
 
 static TICK(rms_tick) {
-	GW_rms* ug = (GW_rms*)u->ug;
-	base_tick(u);
+	const GW_rms* ug = (GW_rms*)u->ug;
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(rms_ctor) {
-	GW_rms* ug = malloc(sizeof(GW_rms));
+	GW_rms* ug = (GW_rms*)xcalloc(1, sizeof(GW_rms));
 	ug->sp = shred->vm_ref->sp;
 	sp_rms_create(&ug->osc);
 	sp_rms_init(ug->sp, ug->osc);
@@ -5282,20 +5226,18 @@ typedef struct {
 } GW_rpt;
 
 static TICK(rpt_tick) {
-	GW_rpt* ug = (GW_rpt*)u->ug;
+	const GW_rpt* ug = (GW_rpt*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
-	sp_rpt_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
+	sp_rpt_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(rpt_ctor) {
-	GW_rpt* ug = malloc(sizeof(GW_rpt));
+	GW_rpt* ug = (GW_rpt*)xcalloc(1, sizeof(GW_rpt));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5333,13 +5275,13 @@ typedef struct {
 } GW_rspline;
 
 static TICK(rspline_tick) {
-	GW_rspline* ug = (GW_rspline*)u->ug;
+	const GW_rspline* ug = (GW_rspline*)u->ug;
 	sp_rspline_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
 
 CTOR(rspline_ctor) {
-	GW_rspline* ug = malloc(sizeof(GW_rspline));
+	GW_rspline* ug = (GW_rspline*)xcalloc(1, sizeof(GW_rspline));
 	ug->sp = shred->vm_ref->sp;
 	sp_rspline_create(&ug->osc);
 	sp_rspline_init(ug->sp, ug->osc);
@@ -5407,16 +5349,14 @@ typedef struct {
 } GW_samphold;
 
 static TICK(samphold_tick) {
-	GW_samphold* ug = (GW_samphold*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_samphold* ug = (GW_samphold*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_samphold_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
+	sp_samphold_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(samphold_ctor) {
-	GW_samphold* ug = malloc(sizeof(GW_samphold));
+	GW_samphold* ug = (GW_samphold*)xcalloc(1, sizeof(GW_samphold));
 	ug->sp = shred->vm_ref->sp;
 	sp_samphold_create(&ug->osc);
 	sp_samphold_init(ug->sp, ug->osc);
@@ -5437,14 +5377,13 @@ typedef struct {
 } GW_saturator;
 
 static TICK(saturator_tick) {
-	GW_saturator* ug = (GW_saturator*)u->ug;
-	base_tick(u);
+	const GW_saturator* ug = (GW_saturator*)u->ug;
 	sp_saturator_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(saturator_ctor) {
-	GW_saturator* ug = malloc(sizeof(GW_saturator));
+	GW_saturator* ug = (GW_saturator*)xcalloc(1, sizeof(GW_saturator));
 	ug->sp = shred->vm_ref->sp;
 	sp_saturator_create(&ug->osc);
 	sp_saturator_init(ug->sp, ug->osc);
@@ -5488,14 +5427,13 @@ typedef struct {
 } GW_scale;
 
 static TICK(scale_tick) {
-	GW_scale* ug = (GW_scale*)u->ug;
-	base_tick(u);
+	const GW_scale* ug = (GW_scale*)u->ug;
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(scale_ctor) {
-	GW_scale* ug = malloc(sizeof(GW_scale));
+	GW_scale* ug = (GW_scale*)xcalloc(1, sizeof(GW_scale));
 	ug->sp = shred->vm_ref->sp;
 	sp_scale_create(&ug->osc);
 	sp_scale_init(ug->sp, ug->osc);
@@ -5540,18 +5478,17 @@ typedef struct {
 } GW_sdelay;
 
 static TICK(sdelay_tick) {
-	GW_sdelay* ug = (GW_sdelay*)u->ug;
+	const GW_sdelay* ug = (GW_sdelay*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_sdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(sdelay_ctor) {
-	GW_sdelay* ug = malloc(sizeof(GW_sdelay));
+	GW_sdelay* ug = (GW_sdelay*)xcalloc(1, sizeof(GW_sdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5589,19 +5526,18 @@ typedef struct {
 } GW_slice;
 
 static TICK(slice_tick) {
-	GW_slice* ug = (GW_slice*)u->ug;
+	const GW_slice* ug = (GW_slice*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_slice_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_slice_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(slice_ctor) {
-	GW_slice* ug = malloc(sizeof(GW_slice));
+	GW_slice* ug = (GW_slice*)xcalloc(1, sizeof(GW_slice));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5658,18 +5594,17 @@ typedef struct {
 } GW_smoothdelay;
 
 static TICK(smoothdelay_tick) {
-	GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
+	const GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_smoothdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(smoothdelay_ctor) {
-	GW_smoothdelay* ug = malloc(sizeof(GW_smoothdelay));
+	GW_smoothdelay* ug = (GW_smoothdelay*)xcalloc(1, sizeof(GW_smoothdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5733,7 +5668,7 @@ typedef struct {
 } GW_spa;
 
 static TICK(spa_tick) {
-	GW_spa* ug = (GW_spa*)u->ug;
+	const GW_spa* ug = (GW_spa*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5743,7 +5678,7 @@ static TICK(spa_tick) {
 }
 
 CTOR(spa_ctor) {
-	GW_spa* ug = malloc(sizeof(GW_spa));
+	GW_spa* ug = (GW_spa*)xcalloc(1, sizeof(GW_spa));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5783,18 +5718,17 @@ typedef struct {
 } GW_sparec;
 
 static TICK(sparec_tick) {
-	GW_sparec* ug = (GW_sparec*)u->ug;
+	const GW_sparec* ug = (GW_sparec*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_sparec_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(sparec_ctor) {
-	GW_sparec* ug = malloc(sizeof(GW_sparec));
+	GW_sparec* ug = (GW_sparec*)xcalloc(1, sizeof(GW_sparec));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -5833,14 +5767,13 @@ typedef struct {
 } GW_streson;
 
 static TICK(streson_tick) {
-	GW_streson* ug = (GW_streson*)u->ug;
-	base_tick(u);
+	const GW_streson* ug = (GW_streson*)u->ug;
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(streson_ctor) {
-	GW_streson* ug = malloc(sizeof(GW_streson));
+	GW_streson* ug = (GW_streson*)xcalloc(1, sizeof(GW_streson));
 	ug->sp = shred->vm_ref->sp;
 	sp_streson_create(&ug->osc);
 	sp_streson_init(ug->sp, ug->osc);
@@ -5884,17 +5817,14 @@ typedef struct {
 } GW_switch;
 
 static TICK(switch_tick) {
-	GW_switch* ug = (GW_switch*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
-	base_tick(UGEN(u->channel[2]));
+	const GW_switch* ug = (GW_switch*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->trig)->out, &u->out);
+	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(switch_ctor) {
-	GW_switch* ug = malloc(sizeof(GW_switch));
+	GW_switch* ug = (GW_switch*)xcalloc(1, sizeof(GW_switch));
 	ug->sp = shred->vm_ref->sp;
 	sp_switch_create(&ug->osc);
 	sp_switch_init(ug->sp, ug->osc);
@@ -5916,7 +5846,7 @@ typedef struct {
 } GW_tabread;
 
 static TICK(tabread_tick) {
-	GW_tabread* ug = (GW_tabread*)u->ug;
+	const GW_tabread* ug = (GW_tabread*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5926,7 +5856,7 @@ static TICK(tabread_tick) {
 }
 
 CTOR(tabread_ctor) {
-	GW_tabread* ug = malloc(sizeof(GW_tabread));
+	GW_tabread* ug = (GW_tabread*)xcalloc(1, sizeof(GW_tabread));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6003,15 +5933,14 @@ typedef struct {
 } GW_tadsr;
 
 static TICK(tadsr_tick) {
-	GW_tadsr* ug = (GW_tadsr*)u->ug;
-	base_tick(u);
+	const GW_tadsr* ug = (GW_tadsr*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tadsr_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tadsr_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tadsr_ctor) {
-	GW_tadsr* ug = malloc(sizeof(GW_tadsr));
+	GW_tadsr* ug = (GW_tadsr*)xcalloc(1, sizeof(GW_tadsr));
 	ug->sp = shred->vm_ref->sp;
 	sp_tadsr_create(&ug->osc);
 	sp_tadsr_init(ug->sp, ug->osc);
@@ -6080,15 +6009,13 @@ typedef struct {
 } GW_talkbox;
 
 static TICK(talkbox_tick) {
-	GW_talkbox* ug = (GW_talkbox*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_talkbox* ug = (GW_talkbox*)u->ug;
 	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
 
 CTOR(talkbox_ctor) {
-	GW_talkbox* ug = malloc(sizeof(GW_talkbox));
+	GW_talkbox* ug = (GW_talkbox*)xcalloc(1, sizeof(GW_talkbox));
 	ug->sp = shred->vm_ref->sp;
 	sp_talkbox_create(&ug->osc);
 	sp_talkbox_init(ug->sp, ug->osc);
@@ -6121,20 +6048,18 @@ typedef struct {
 } GW_tblrec;
 
 static TICK(tblrec_tick) {
-	GW_tblrec* ug = (GW_tblrec*)u->ug;
+	const GW_tblrec* ug = (GW_tblrec*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
 	ugen_compute(UGEN(u->trig));
-	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->out, &u->out);
+	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tblrec_ctor) {
-	GW_tblrec* ug = malloc(sizeof(GW_tblrec));
+	GW_tblrec* ug = (GW_tblrec*)xcalloc(1, sizeof(GW_tblrec));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6174,14 +6099,13 @@ typedef struct {
 } GW_tbvcf;
 
 static TICK(tbvcf_tick) {
-	GW_tbvcf* ug = (GW_tbvcf*)u->ug;
-	base_tick(u);
+	const GW_tbvcf* ug = (GW_tbvcf*)u->ug;
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(tbvcf_ctor) {
-	GW_tbvcf* ug = malloc(sizeof(GW_tbvcf));
+	GW_tbvcf* ug = (GW_tbvcf*)xcalloc(1, sizeof(GW_tbvcf));
 	ug->sp = shred->vm_ref->sp;
 	sp_tbvcf_create(&ug->osc);
 	sp_tbvcf_init(ug->sp, ug->osc);
@@ -6249,15 +6173,14 @@ typedef struct {
 } GW_tdiv;
 
 static TICK(tdiv_tick) {
-	GW_tdiv* ug = (GW_tdiv*)u->ug;
-	base_tick(u);
+	const GW_tdiv* ug = (GW_tdiv*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tdiv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tdiv_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tdiv_ctor) {
-	GW_tdiv* ug = malloc(sizeof(GW_tdiv));
+	GW_tdiv* ug = (GW_tdiv*)xcalloc(1, sizeof(GW_tdiv));
 	ug->sp = shred->vm_ref->sp;
 	sp_tdiv_create(&ug->osc);
 	sp_tdiv_init(ug->sp, ug->osc);
@@ -6302,15 +6225,14 @@ typedef struct {
 } GW_tenv;
 
 static TICK(tenv_tick) {
-	GW_tenv* ug = (GW_tenv*)u->ug;
-	base_tick(u);
+	const GW_tenv* ug = (GW_tenv*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tenv_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tenv_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tenv_ctor) {
-	GW_tenv* ug = malloc(sizeof(GW_tenv));
+	GW_tenv* ug = (GW_tenv*)xcalloc(1, sizeof(GW_tenv));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv_create(&ug->osc);
 	sp_tenv_init(ug->sp, ug->osc);
@@ -6367,15 +6289,14 @@ typedef struct {
 } GW_tenv2;
 
 static TICK(tenv2_tick) {
-	GW_tenv2* ug = (GW_tenv2*)u->ug;
-	base_tick(u);
+	const GW_tenv2* ug = (GW_tenv2*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tenv2_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tenv2_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tenv2_ctor) {
-	GW_tenv2* ug = malloc(sizeof(GW_tenv2));
+	GW_tenv2* ug = (GW_tenv2*)xcalloc(1, sizeof(GW_tenv2));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv2_create(&ug->osc);
 	sp_tenv2_init(ug->sp, ug->osc);
@@ -6420,15 +6341,14 @@ typedef struct {
 } GW_tenvx;
 
 static TICK(tenvx_tick) {
-	GW_tenvx* ug = (GW_tenvx*)u->ug;
-	base_tick(u);
+	const GW_tenvx* ug = (GW_tenvx*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tenvx_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tenvx_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tenvx_ctor) {
-	GW_tenvx* ug = malloc(sizeof(GW_tenvx));
+	GW_tenvx* ug = (GW_tenvx*)xcalloc(1, sizeof(GW_tenvx));
 	ug->sp = shred->vm_ref->sp;
 	sp_tenvx_create(&ug->osc);
 	sp_tenvx_init(ug->sp, ug->osc);
@@ -6485,15 +6405,14 @@ typedef struct {
 } GW_tgate;
 
 static TICK(tgate_tick) {
-	GW_tgate* ug = (GW_tgate*)u->ug;
-	base_tick(u);
+	const GW_tgate* ug = (GW_tgate*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tgate_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tgate_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tgate_ctor) {
-	GW_tgate* ug = malloc(sizeof(GW_tgate));
+	GW_tgate* ug = (GW_tgate*)xcalloc(1, sizeof(GW_tgate));
 	ug->sp = shred->vm_ref->sp;
 	sp_tgate_create(&ug->osc);
 	sp_tgate_init(ug->sp, ug->osc);
@@ -6526,14 +6445,13 @@ typedef struct {
 } GW_thresh;
 
 static TICK(thresh_tick) {
-	GW_thresh* ug = (GW_thresh*)u->ug;
-	base_tick(u);
+	const GW_thresh* ug = (GW_thresh*)u->ug;
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(thresh_ctor) {
-	GW_thresh* ug = malloc(sizeof(GW_thresh));
+	GW_thresh* ug = (GW_thresh*)xcalloc(1, sizeof(GW_thresh));
 	ug->sp = shred->vm_ref->sp;
 	sp_thresh_create(&ug->osc);
 	sp_thresh_init(ug->sp, ug->osc);
@@ -6577,14 +6495,13 @@ typedef struct {
 } GW_timer;
 
 static TICK(timer_tick) {
-	GW_timer* ug = (GW_timer*)u->ug;
-	base_tick(u);
+	const GW_timer* ug = (GW_timer*)u->ug;
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(timer_ctor) {
-	GW_timer* ug = malloc(sizeof(GW_timer));
+	GW_timer* ug = (GW_timer*)xcalloc(1, sizeof(GW_timer));
 	ug->sp = shred->vm_ref->sp;
 	sp_timer_create(&ug->osc);
 	sp_timer_init(ug->sp, ug->osc);
@@ -6604,15 +6521,14 @@ typedef struct {
 } GW_tin;
 
 static TICK(tin_tick) {
-	GW_tin* ug = (GW_tin*)u->ug;
-	base_tick(u);
+	const GW_tin* ug = (GW_tin*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_tin_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tin_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tin_ctor) {
-	GW_tin* ug = malloc(sizeof(GW_tin));
+	GW_tin* ug = (GW_tin*)xcalloc(1, sizeof(GW_tin));
 	ug->sp = shred->vm_ref->sp;
 	sp_tin_create(&ug->osc);
 	sp_tin_init(ug->sp, ug->osc);
@@ -6633,14 +6549,13 @@ typedef struct {
 } GW_tone;
 
 static TICK(tone_tick) {
-	GW_tone* ug = (GW_tone*)u->ug;
-	base_tick(u);
+	const GW_tone* ug = (GW_tone*)u->ug;
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(tone_ctor) {
-	GW_tone* ug = malloc(sizeof(GW_tone));
+	GW_tone* ug = (GW_tone*)xcalloc(1, sizeof(GW_tone));
 	ug->sp = shred->vm_ref->sp;
 	sp_tone_create(&ug->osc);
 	sp_tone_init(ug->sp, ug->osc);
@@ -6672,15 +6587,14 @@ typedef struct {
 } GW_trand;
 
 static TICK(trand_tick) {
-	GW_trand* ug = (GW_trand*)u->ug;
-	base_tick(u);
+	const GW_trand* ug = (GW_trand*)u->ug;
 	ugen_compute(UGEN(u->trig));
-	sp_trand_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_trand_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(trand_ctor) {
-	GW_trand* ug = malloc(sizeof(GW_trand));
+	GW_trand* ug = (GW_trand*)xcalloc(1, sizeof(GW_trand));
 	ug->sp = shred->vm_ref->sp;
 	sp_trand_create(&ug->osc);
 	sp_trand_init(ug->sp, ug->osc);
@@ -6726,19 +6640,18 @@ typedef struct {
 } GW_tseg;
 
 static TICK(tseg_tick) {
-	GW_tseg* ug = (GW_tseg*)u->ug;
+	const GW_tseg* ug = (GW_tseg*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_tseg_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tseg_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tseg_ctor) {
-	GW_tseg* ug = malloc(sizeof(GW_tseg));
+	GW_tseg* ug = (GW_tseg*)xcalloc(1, sizeof(GW_tseg));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6813,19 +6726,18 @@ typedef struct {
 } GW_tseq;
 
 static TICK(tseq_tick) {
-	GW_tseq* ug = (GW_tseq*)u->ug;
+	const GW_tseq* ug = (GW_tseq*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	ugen_compute(UGEN(u->trig));
-	sp_tseq_compute(ug->sp, ug->osc, &UGEN(u->trig)->out, &u->out);
+	sp_tseq_compute(ug->sp, ug->osc, &UGEN(u->trig)->in, &u->out);
 
 }
 
 CTOR(tseq_ctor) {
-	GW_tseq* ug = malloc(sizeof(GW_tseq));
+	GW_tseq* ug = (GW_tseq*)xcalloc(1, sizeof(GW_tseq));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6878,18 +6790,17 @@ typedef struct {
 } GW_vdelay;
 
 static TICK(vdelay_tick) {
-	GW_vdelay* ug = (GW_vdelay*)u->ug;
+	const GW_vdelay* ug = (GW_vdelay*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_vdelay_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(vdelay_ctor) {
-	GW_vdelay* ug = malloc(sizeof(GW_vdelay));
+	GW_vdelay* ug = (GW_vdelay*)xcalloc(1, sizeof(GW_vdelay));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -6938,13 +6849,13 @@ typedef struct {
 } GW_voc;
 
 static TICK(voc_tick) {
-	GW_voc* ug = (GW_voc*)u->ug;
+	const GW_voc* ug = (GW_voc*)u->ug;
 	sp_voc_compute(ug->sp, ug->osc, &u->out);
 
 }
 
 CTOR(voc_ctor) {
-	GW_voc* ug = malloc(sizeof(GW_voc));
+	GW_voc* ug = (GW_voc*)xcalloc(1, sizeof(GW_voc));
 	ug->sp = shred->vm_ref->sp;
 	sp_voc_create(&ug->osc);
 	sp_voc_init(ug->sp, ug->osc);
@@ -6964,15 +6875,13 @@ typedef struct {
 } GW_vocoder;
 
 static TICK(vocoder_tick) {
-	GW_vocoder* ug = (GW_vocoder*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_vocoder* ug = (GW_vocoder*)u->ug;
 	sp_vocoder_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
 
 }
 
 CTOR(vocoder_ctor) {
-	GW_vocoder* ug = malloc(sizeof(GW_vocoder));
+	GW_vocoder* ug = (GW_vocoder*)xcalloc(1, sizeof(GW_vocoder));
 	ug->sp = shred->vm_ref->sp;
 	sp_vocoder_create(&ug->osc);
 	sp_vocoder_init(ug->sp, ug->osc);
@@ -7029,18 +6938,17 @@ typedef struct {
 } GW_waveset;
 
 static TICK(waveset_tick) {
-	GW_waveset* ug = (GW_waveset*)u->ug;
+	const GW_waveset* ug = (GW_waveset*)u->ug;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	base_tick(u);
 	sp_waveset_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(waveset_ctor) {
-	GW_waveset* ug = malloc(sizeof(GW_waveset));
+	GW_waveset* ug = (GW_waveset*)xcalloc(1, sizeof(GW_waveset));
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
@@ -7089,14 +6997,13 @@ typedef struct {
 } GW_wpkorg35;
 
 static TICK(wpkorg35_tick) {
-	GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
-	base_tick(u);
+	const GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
 
 CTOR(wpkorg35_ctor) {
-	GW_wpkorg35* ug = malloc(sizeof(GW_wpkorg35));
+	GW_wpkorg35* ug = (GW_wpkorg35*)xcalloc(1, sizeof(GW_wpkorg35));
 	ug->sp = shred->vm_ref->sp;
 	sp_wpkorg35_create(&ug->osc);
 	sp_wpkorg35_init(ug->sp, ug->osc);
@@ -7152,15 +7059,13 @@ typedef struct {
 } GW_zitarev;
 
 static TICK(zitarev_tick) {
-	GW_zitarev* ug = (GW_zitarev*)u->ug;
-	base_tick(UGEN(u->channel[0]));
-	base_tick(UGEN(u->channel[1]));
+	const GW_zitarev* ug = (GW_zitarev*)u->ug;
 	sp_zitarev_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
 
 }
 
 CTOR(zitarev_ctor) {
-	GW_zitarev* ug = malloc(sizeof(GW_zitarev));
+	GW_zitarev* ug = (GW_zitarev*)xcalloc(1, sizeof(GW_zitarev));
 	ug->sp = shred->vm_ref->sp;
 	sp_zitarev_create(&ug->osc);
 	sp_zitarev_init(ug->sp, ug->osc);
@@ -7309,242 +7214,7 @@ MFUN(zitarev_set_level) {
 
 m_bool import_soundpipe(Gwi gwi) {
 
-	Type t_ftbl;
-	Type t_adsr;
-	CHECK_OB((t_adsr = gwi_mk_type(gwi, "Adsr", SZ_INT, t_ugen)))
-	Type t_allpass;
-	CHECK_OB((t_allpass = gwi_mk_type(gwi, "Allpass", SZ_INT, t_ugen)))
-	Type t_atone;
-	CHECK_OB((t_atone = gwi_mk_type(gwi, "Atone", SZ_INT, t_ugen)))
-	Type t_autowah;
-	CHECK_OB((t_autowah = gwi_mk_type(gwi, "Autowah", SZ_INT, t_ugen)))
-	Type t_bal;
-	CHECK_OB((t_bal = gwi_mk_type(gwi, "Bal", SZ_INT, t_ugen)))
-	Type t_bar;
-	CHECK_OB((t_bar = gwi_mk_type(gwi, "Bar", SZ_INT, t_ugen)))
-	Type t_biquad;
-	CHECK_OB((t_biquad = gwi_mk_type(gwi, "Biquad", SZ_INT, t_ugen)))
-	Type t_biscale;
-	CHECK_OB((t_biscale = gwi_mk_type(gwi, "Biscale", SZ_INT, t_ugen)))
-	Type t_bitcrush;
-	CHECK_OB((t_bitcrush = gwi_mk_type(gwi, "Bitcrush", SZ_INT, t_ugen)))
-	Type t_blsaw;
-	CHECK_OB((t_blsaw = gwi_mk_type(gwi, "Blsaw", SZ_INT, t_ugen)))
-	Type t_blsquare;
-	CHECK_OB((t_blsquare = gwi_mk_type(gwi, "Blsquare", SZ_INT, t_ugen)))
-	Type t_bltriangle;
-	CHECK_OB((t_bltriangle = gwi_mk_type(gwi, "Bltriangle", SZ_INT, t_ugen)))
-	Type t_brown;
-	CHECK_OB((t_brown = gwi_mk_type(gwi, "Brown", SZ_INT, t_ugen)))
-	Type t_butbp;
-	CHECK_OB((t_butbp = gwi_mk_type(gwi, "Butbp", SZ_INT, t_ugen)))
-	Type t_butbr;
-	CHECK_OB((t_butbr = gwi_mk_type(gwi, "Butbr", SZ_INT, t_ugen)))
-	Type t_buthp;
-	CHECK_OB((t_buthp = gwi_mk_type(gwi, "Buthp", SZ_INT, t_ugen)))
-	Type t_butlp;
-	CHECK_OB((t_butlp = gwi_mk_type(gwi, "Butlp", SZ_INT, t_ugen)))
-	Type t_clip;
-	CHECK_OB((t_clip = gwi_mk_type(gwi, "Clip", SZ_INT, t_ugen)))
-	Type t_clock;
-	CHECK_OB((t_clock = gwi_mk_type(gwi, "Clock", SZ_INT, t_ugen)))
-	Type t_comb;
-	CHECK_OB((t_comb = gwi_mk_type(gwi, "Comb", SZ_INT, t_ugen)))
-	Type t_compressor;
-	CHECK_OB((t_compressor = gwi_mk_type(gwi, "Compressor", SZ_INT, t_ugen)))
-	Type t_conv;
-	CHECK_OB((t_conv = gwi_mk_type(gwi, "Conv", SZ_INT, t_ugen)))
-	Type t_count;
-	CHECK_OB((t_count = gwi_mk_type(gwi, "Count", SZ_INT, t_ugen)))
-	Type t_crossfade;
-	CHECK_OB((t_crossfade = gwi_mk_type(gwi, "Crossfade", SZ_INT, t_ugen)))
-	Type t_dcblock;
-	CHECK_OB((t_dcblock = gwi_mk_type(gwi, "Dcblock", SZ_INT, t_ugen)))
-	Type t_delay;
-	CHECK_OB((t_delay = gwi_mk_type(gwi, "Delay", SZ_INT, t_ugen)))
-	Type t_diode;
-	CHECK_OB((t_diode = gwi_mk_type(gwi, "Diode", SZ_INT, t_ugen)))
-	Type t_diskin;
-	CHECK_OB((t_diskin = gwi_mk_type(gwi, "Diskin", SZ_INT, t_ugen)))
-	Type t_dist;
-	CHECK_OB((t_dist = gwi_mk_type(gwi, "Dist", SZ_INT, t_ugen)))
-	Type t_dmetro;
-	CHECK_OB((t_dmetro = gwi_mk_type(gwi, "Dmetro", SZ_INT, t_ugen)))
-	Type t_drip;
-	CHECK_OB((t_drip = gwi_mk_type(gwi, "Drip", SZ_INT, t_ugen)))
-	Type t_dtrig;
-	CHECK_OB((t_dtrig = gwi_mk_type(gwi, "Dtrig", SZ_INT, t_ugen)))
-	Type t_dust;
-	CHECK_OB((t_dust = gwi_mk_type(gwi, "Dust", SZ_INT, t_ugen)))
-	Type t_eqfil;
-	CHECK_OB((t_eqfil = gwi_mk_type(gwi, "Eqfil", SZ_INT, t_ugen)))
-	Type t_expon;
-	CHECK_OB((t_expon = gwi_mk_type(gwi, "Expon", SZ_INT, t_ugen)))
-	Type t_fof;
-	CHECK_OB((t_fof = gwi_mk_type(gwi, "Fof", SZ_INT, t_ugen)))
-	Type t_fofilt;
-	CHECK_OB((t_fofilt = gwi_mk_type(gwi, "Fofilt", SZ_INT, t_ugen)))
-	Type t_fog;
-	CHECK_OB((t_fog = gwi_mk_type(gwi, "Fog", SZ_INT, t_ugen)))
-	Type t_fold;
-	CHECK_OB((t_fold = gwi_mk_type(gwi, "Fold", SZ_INT, t_ugen)))
-	Type t_fosc;
-	CHECK_OB((t_fosc = gwi_mk_type(gwi, "Fosc", SZ_INT, t_ugen)))
-	Type t_gbuzz;
-	CHECK_OB((t_gbuzz = gwi_mk_type(gwi, "Gbuzz", SZ_INT, t_ugen)))
-	Type t_hilbert;
-	CHECK_OB((t_hilbert = gwi_mk_type(gwi, "Hilbert", SZ_INT, t_ugen)))
-	Type t_in;
-	CHECK_OB((t_in = gwi_mk_type(gwi, "In", SZ_INT, t_ugen)))
-	Type t_incr;
-	CHECK_OB((t_incr = gwi_mk_type(gwi, "Incr", SZ_INT, t_ugen)))
-	Type t_jcrev;
-	CHECK_OB((t_jcrev = gwi_mk_type(gwi, "Jcrev", SZ_INT, t_ugen)))
-	Type t_jitter;
-	CHECK_OB((t_jitter = gwi_mk_type(gwi, "Jitter", SZ_INT, t_ugen)))
-	Type t_line;
-	CHECK_OB((t_line = gwi_mk_type(gwi, "Line", SZ_INT, t_ugen)))
-	Type t_lpc;
-	CHECK_OB((t_lpc = gwi_mk_type(gwi, "Lpc", SZ_INT, t_ugen)))
-	Type t_lpf18;
-	CHECK_OB((t_lpf18 = gwi_mk_type(gwi, "Lpf18", SZ_INT, t_ugen)))
-	Type t_maygate;
-	CHECK_OB((t_maygate = gwi_mk_type(gwi, "Maygate", SZ_INT, t_ugen)))
-	Type t_metro;
-	CHECK_OB((t_metro = gwi_mk_type(gwi, "Metro", SZ_INT, t_ugen)))
-	Type t_mincer;
-	CHECK_OB((t_mincer = gwi_mk_type(gwi, "Mincer", SZ_INT, t_ugen)))
-	Type t_mode;
-	CHECK_OB((t_mode = gwi_mk_type(gwi, "Mode", SZ_INT, t_ugen)))
-	Type t_moogladder;
-	CHECK_OB((t_moogladder = gwi_mk_type(gwi, "Moogladder", SZ_INT, t_ugen)))
-	Type t_noise;
-	CHECK_OB((t_noise = gwi_mk_type(gwi, "Noise", SZ_INT, t_ugen)))
-	Type t_nsmp;
-	CHECK_OB((t_nsmp = gwi_mk_type(gwi, "Nsmp", SZ_INT, t_ugen)))
-	Type t_osc;
-	CHECK_OB((t_osc = gwi_mk_type(gwi, "Osc", SZ_INT, t_ugen)))
-	Type t_oscmorph;
-	CHECK_OB((t_oscmorph = gwi_mk_type(gwi, "Oscmorph", SZ_INT, t_ugen)))
-	Type t_pan2;
-	CHECK_OB((t_pan2 = gwi_mk_type(gwi, "Pan2", SZ_INT, t_ugen)))
-	Type t_panst;
-	CHECK_OB((t_panst = gwi_mk_type(gwi, "Panst", SZ_INT, t_ugen)))
-	Type t_pareq;
-	CHECK_OB((t_pareq = gwi_mk_type(gwi, "Pareq", SZ_INT, t_ugen)))
-	Type t_paulstretch;
-	CHECK_OB((t_paulstretch = gwi_mk_type(gwi, "Paulstretch", SZ_INT, t_ugen)))
-	Type t_pdhalf;
-	CHECK_OB((t_pdhalf = gwi_mk_type(gwi, "Pdhalf", SZ_INT, t_ugen)))
-	Type t_peaklim;
-	CHECK_OB((t_peaklim = gwi_mk_type(gwi, "Peaklim", SZ_INT, t_ugen)))
-	Type t_phaser;
-	CHECK_OB((t_phaser = gwi_mk_type(gwi, "Phaser", SZ_INT, t_ugen)))
-	Type t_phasor;
-	CHECK_OB((t_phasor = gwi_mk_type(gwi, "Phasor", SZ_INT, t_ugen)))
-	Type t_pinknoise;
-	CHECK_OB((t_pinknoise = gwi_mk_type(gwi, "Pinknoise", SZ_INT, t_ugen)))
-	Type t_pitchamdf;
-	CHECK_OB((t_pitchamdf = gwi_mk_type(gwi, "Pitchamdf", SZ_INT, t_ugen)))
-	Type t_pluck;
-	CHECK_OB((t_pluck = gwi_mk_type(gwi, "Pluck", SZ_INT, t_ugen)))
-	Type t_port;
-	CHECK_OB((t_port = gwi_mk_type(gwi, "Port", SZ_INT, t_ugen)))
-	Type t_posc3;
-	CHECK_OB((t_posc3 = gwi_mk_type(gwi, "Posc3", SZ_INT, t_ugen)))
-	Type t_progress;
-	CHECK_OB((t_progress = gwi_mk_type(gwi, "Progress", SZ_INT, t_ugen)))
-	Type t_prop;
-	CHECK_OB((t_prop = gwi_mk_type(gwi, "Prop", SZ_INT, t_ugen)))
-	Type t_pshift;
-	CHECK_OB((t_pshift = gwi_mk_type(gwi, "Pshift", SZ_INT, t_ugen)))
-	Type t_ptrack;
-	CHECK_OB((t_ptrack = gwi_mk_type(gwi, "Ptrack", SZ_INT, t_ugen)))
-	Type t_randh;
-	CHECK_OB((t_randh = gwi_mk_type(gwi, "Randh", SZ_INT, t_ugen)))
-	Type t_randi;
-	CHECK_OB((t_randi = gwi_mk_type(gwi, "Randi", SZ_INT, t_ugen)))
-	Type t_random;
-	CHECK_OB((t_random = gwi_mk_type(gwi, "Random", SZ_INT, t_ugen)))
-	Type t_reson;
-	CHECK_OB((t_reson = gwi_mk_type(gwi, "Reson", SZ_INT, t_ugen)))
-	Type t_reverse;
-	CHECK_OB((t_reverse = gwi_mk_type(gwi, "Reverse", SZ_INT, t_ugen)))
-	Type t_revsc;
-	CHECK_OB((t_revsc = gwi_mk_type(gwi, "Revsc", SZ_INT, t_ugen)))
-	Type t_rms;
-	CHECK_OB((t_rms = gwi_mk_type(gwi, "Rms", SZ_INT, t_ugen)))
-	Type t_rpt;
-	CHECK_OB((t_rpt = gwi_mk_type(gwi, "Rpt", SZ_INT, t_ugen)))
-	Type t_rspline;
-	CHECK_OB((t_rspline = gwi_mk_type(gwi, "Rspline", SZ_INT, t_ugen)))
-	Type t_samphold;
-	CHECK_OB((t_samphold = gwi_mk_type(gwi, "Samphold", SZ_INT, t_ugen)))
-	Type t_saturator;
-	CHECK_OB((t_saturator = gwi_mk_type(gwi, "Saturator", SZ_INT, t_ugen)))
-	Type t_scale;
-	CHECK_OB((t_scale = gwi_mk_type(gwi, "Scale", SZ_INT, t_ugen)))
-	Type t_sdelay;
-	CHECK_OB((t_sdelay = gwi_mk_type(gwi, "Sdelay", SZ_INT, t_ugen)))
-	Type t_slice;
-	CHECK_OB((t_slice = gwi_mk_type(gwi, "Slice", SZ_INT, t_ugen)))
-	Type t_smoothdelay;
-	CHECK_OB((t_smoothdelay = gwi_mk_type(gwi, "Smoothdelay", SZ_INT, t_ugen)))
-	Type t_spa;
-	CHECK_OB((t_spa = gwi_mk_type(gwi, "Spa", SZ_INT, t_ugen)))
-	Type t_sparec;
-	CHECK_OB((t_sparec = gwi_mk_type(gwi, "Sparec", SZ_INT, t_ugen)))
-	Type t_streson;
-	CHECK_OB((t_streson = gwi_mk_type(gwi, "Streson", SZ_INT, t_ugen)))
-	Type t_switch;
-	CHECK_OB((t_switch = gwi_mk_type(gwi, "Switch", SZ_INT, t_ugen)))
-	Type t_tabread;
-	CHECK_OB((t_tabread = gwi_mk_type(gwi, "Tabread", SZ_INT, t_ugen)))
-	Type t_tadsr;
-	CHECK_OB((t_tadsr = gwi_mk_type(gwi, "Tadsr", SZ_INT, t_ugen)))
-	Type t_talkbox;
-	CHECK_OB((t_talkbox = gwi_mk_type(gwi, "Talkbox", SZ_INT, t_ugen)))
-	Type t_tblrec;
-	CHECK_OB((t_tblrec = gwi_mk_type(gwi, "Tblrec", SZ_INT, t_ugen)))
-	Type t_tbvcf;
-	CHECK_OB((t_tbvcf = gwi_mk_type(gwi, "Tbvcf", SZ_INT, t_ugen)))
-	Type t_tdiv;
-	CHECK_OB((t_tdiv = gwi_mk_type(gwi, "Tdiv", SZ_INT, t_ugen)))
-	Type t_tenv;
-	CHECK_OB((t_tenv = gwi_mk_type(gwi, "Tenv", SZ_INT, t_ugen)))
-	Type t_tenv2;
-	CHECK_OB((t_tenv2 = gwi_mk_type(gwi, "Tenv2", SZ_INT, t_ugen)))
-	Type t_tenvx;
-	CHECK_OB((t_tenvx = gwi_mk_type(gwi, "Tenvx", SZ_INT, t_ugen)))
-	Type t_tgate;
-	CHECK_OB((t_tgate = gwi_mk_type(gwi, "Tgate", SZ_INT, t_ugen)))
-	Type t_thresh;
-	CHECK_OB((t_thresh = gwi_mk_type(gwi, "Thresh", SZ_INT, t_ugen)))
-	Type t_timer;
-	CHECK_OB((t_timer = gwi_mk_type(gwi, "Timer", SZ_INT, t_ugen)))
-	Type t_tin;
-	CHECK_OB((t_tin = gwi_mk_type(gwi, "Tin", SZ_INT, t_ugen)))
-	Type t_tone;
-	CHECK_OB((t_tone = gwi_mk_type(gwi, "Tone", SZ_INT, t_ugen)))
-	Type t_trand;
-	CHECK_OB((t_trand = gwi_mk_type(gwi, "Trand", SZ_INT, t_ugen)))
-	Type t_tseg;
-	CHECK_OB((t_tseg = gwi_mk_type(gwi, "Tseg", SZ_INT, t_ugen)))
-	Type t_tseq;
-	CHECK_OB((t_tseq = gwi_mk_type(gwi, "Tseq", SZ_INT, t_ugen)))
-	Type t_vdelay;
-	CHECK_OB((t_vdelay = gwi_mk_type(gwi, "Vdelay", SZ_INT, t_ugen)))
-	Type t_voc;
-	CHECK_OB((t_voc = gwi_mk_type(gwi, "Voc", SZ_INT, t_ugen)))
-	Type t_vocoder;
-	CHECK_OB((t_vocoder = gwi_mk_type(gwi, "Vocoder", SZ_INT, t_ugen)))
-	Type t_waveset;
-	CHECK_OB((t_waveset = gwi_mk_type(gwi, "Waveset", SZ_INT, t_ugen)))
-	Type t_wpkorg35;
-	CHECK_OB((t_wpkorg35 = gwi_mk_type(gwi, "Wpkorg35", SZ_INT, t_ugen)))
-	Type t_zitarev;
-	CHECK_OB((t_zitarev = gwi_mk_type(gwi, "Zitarev", SZ_INT, t_ugen)))
-	CHECK_OB((t_ftbl = gwi_mk_type(gwi, "ftbl", SZ_INT, t_object)))
+	Type t_ftbl = gwi_mk_type(gwi, "ftbl", SZ_INT, t_object);
 	CHECK_BB(gwi_class_ini(gwi, t_ftbl, NULL, ftbl_dtor))
 	CHECK_BB(gwi_item_ini(gwi, "int", "@ftbl"))
 	o_ftbl_data = gwi_item_end(gwi, 0, NULL);
@@ -7592,6 +7262,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_adsr = gwi_mk_type(gwi, "Adsr", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_adsr, adsr_ctor, adsr_dtor))
 	gwi_func_ini(gwi, "float", "atk", adsr_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7615,6 +7286,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_allpass = gwi_mk_type(gwi, "Allpass", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_allpass, allpass_ctor, allpass_dtor))
 	gwi_func_ini(gwi, "void", "init", allpass_init);
 		 gwi_func_arg(gwi, "float", "looptime");
@@ -7626,6 +7298,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_atone = gwi_mk_type(gwi, "Atone", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_atone, atone_ctor, atone_dtor))
 	gwi_func_ini(gwi, "float", "hp", atone_get_hp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7634,6 +7307,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_autowah = gwi_mk_type(gwi, "Autowah", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_autowah, autowah_ctor, autowah_dtor))
 	gwi_func_ini(gwi, "float", "level", autowah_get_level);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7652,9 +7326,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_bal = gwi_mk_type(gwi, "Bal", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_bal, bal_ctor, bal_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_bar = gwi_mk_type(gwi, "Bar", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_bar, bar_ctor, bar_dtor))
 	gwi_func_ini(gwi, "void", "init", bar_init);
 		 gwi_func_arg(gwi, "float", "iK");
@@ -7697,6 +7373,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_biquad = gwi_mk_type(gwi, "Biquad", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_biquad, biquad_ctor, biquad_dtor))
 	gwi_func_ini(gwi, "float", "b0", biquad_get_b0);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7730,6 +7407,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_biscale = gwi_mk_type(gwi, "Biscale", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_biscale, biscale_ctor, biscale_dtor))
 	gwi_func_ini(gwi, "float", "min", biscale_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7743,6 +7421,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_bitcrush = gwi_mk_type(gwi, "Bitcrush", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_bitcrush, bitcrush_ctor, bitcrush_dtor))
 	gwi_func_ini(gwi, "float", "bitdepth", bitcrush_get_bitdepth);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7756,6 +7435,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_blsaw = gwi_mk_type(gwi, "Blsaw", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_blsaw, blsaw_ctor, blsaw_dtor))
 	gwi_func_ini(gwi, "float", "freq", blsaw_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7769,6 +7449,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_blsquare = gwi_mk_type(gwi, "Blsquare", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_blsquare, blsquare_ctor, blsquare_dtor))
 	gwi_func_ini(gwi, "float", "freq", blsquare_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7787,6 +7468,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_bltriangle = gwi_mk_type(gwi, "Bltriangle", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_bltriangle, bltriangle_ctor, bltriangle_dtor))
 	gwi_func_ini(gwi, "float", "freq", bltriangle_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7800,9 +7482,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_brown = gwi_mk_type(gwi, "Brown", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_brown, brown_ctor, brown_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_butbp = gwi_mk_type(gwi, "Butbp", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_butbp, butbp_ctor, butbp_dtor))
 	gwi_func_ini(gwi, "float", "freq", butbp_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7816,6 +7500,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_butbr = gwi_mk_type(gwi, "Butbr", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_butbr, butbr_ctor, butbr_dtor))
 	gwi_func_ini(gwi, "float", "freq", butbr_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7829,6 +7514,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_buthp = gwi_mk_type(gwi, "Buthp", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_buthp, buthp_ctor, buthp_dtor))
 	gwi_func_ini(gwi, "float", "freq", buthp_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7837,6 +7523,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_butlp = gwi_mk_type(gwi, "Butlp", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_butlp, butlp_ctor, butlp_dtor))
 	gwi_func_ini(gwi, "float", "freq", butlp_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7845,6 +7532,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_clip = gwi_mk_type(gwi, "Clip", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_clip, clip_ctor, clip_dtor))
 	gwi_func_ini(gwi, "float", "lim", clip_get_lim);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7853,6 +7541,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_clock = gwi_mk_type(gwi, "Clock", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_clock, clock_ctor, clock_dtor))
 	gwi_func_ini(gwi, "float", "bpm", clock_get_bpm);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7866,6 +7555,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_comb = gwi_mk_type(gwi, "Comb", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_comb, comb_ctor, comb_dtor))
 	gwi_func_ini(gwi, "void", "init", comb_init);
 		 gwi_func_arg(gwi, "float", "looptime");
@@ -7877,6 +7567,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_compressor = gwi_mk_type(gwi, "Compressor", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_compressor, compressor_ctor, compressor_dtor))
 	gwi_func_ini(gwi, "float", "ratio", compressor_get_ratio);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7900,6 +7591,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_conv = gwi_mk_type(gwi, "Conv", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_conv, conv_ctor, conv_dtor))
 	gwi_func_ini(gwi, "void", "init", conv_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -7907,6 +7599,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_count = gwi_mk_type(gwi, "Count", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_count, count_ctor, count_dtor))
 	gwi_func_ini(gwi, "float", "count", count_get_count);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7920,6 +7613,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_crossfade = gwi_mk_type(gwi, "Crossfade", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_crossfade, crossfade_ctor, crossfade_dtor))
 	gwi_func_ini(gwi, "float", "pos", crossfade_get_pos);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7928,9 +7622,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_dcblock = gwi_mk_type(gwi, "Dcblock", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_dcblock, dcblock_ctor, dcblock_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_delay = gwi_mk_type(gwi, "Delay", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_delay, delay_ctor, delay_dtor))
 	gwi_func_ini(gwi, "void", "init", delay_init);
 		 gwi_func_arg(gwi, "float", "time");
@@ -7942,6 +7638,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_diode = gwi_mk_type(gwi, "Diode", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_diode, diode_ctor, diode_dtor))
 	gwi_func_ini(gwi, "float", "freq", diode_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7955,12 +7652,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_diskin = gwi_mk_type(gwi, "Diskin", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_diskin, diskin_ctor, diskin_dtor))
 	gwi_func_ini(gwi, "void", "init", diskin_init);
 		 gwi_func_arg(gwi, "string", "filename");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_dist = gwi_mk_type(gwi, "Dist", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_dist, dist_ctor, dist_dtor))
 	gwi_func_ini(gwi, "float", "pregain", dist_get_pregain);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7984,6 +7683,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_dmetro = gwi_mk_type(gwi, "Dmetro", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_dmetro, dmetro_ctor, dmetro_dtor))
 	gwi_func_ini(gwi, "float", "time", dmetro_get_time);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -7992,6 +7692,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_drip = gwi_mk_type(gwi, "Drip", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_drip, drip_ctor, drip_dtor))
 	gwi_func_ini(gwi, "void", "init", drip_init);
 		 gwi_func_arg(gwi, "float", "dettack");
@@ -8033,6 +7734,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_dtrig = gwi_mk_type(gwi, "Dtrig", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_dtrig, dtrig_ctor, dtrig_dtor))
 	gwi_func_ini(gwi, "void", "init", dtrig_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -8054,6 +7756,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_dust = gwi_mk_type(gwi, "Dust", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_dust, dust_ctor, dust_dtor))
 	gwi_func_ini(gwi, "float", "amp", dust_get_amp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8072,6 +7775,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_eqfil = gwi_mk_type(gwi, "Eqfil", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_eqfil, eqfil_ctor, eqfil_dtor))
 	gwi_func_ini(gwi, "float", "freq", eqfil_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8090,6 +7794,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_expon = gwi_mk_type(gwi, "Expon", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_expon, expon_ctor, expon_dtor))
 	gwi_func_ini(gwi, "float", "a", expon_get_a);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8108,6 +7813,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_fof = gwi_mk_type(gwi, "Fof", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_fof, fof_ctor, fof_dtor))
 	gwi_func_ini(gwi, "void", "init", fof_init);
 		 gwi_func_arg(gwi, "ftbl", "sine");
@@ -8157,6 +7863,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_fofilt = gwi_mk_type(gwi, "Fofilt", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_fofilt, fofilt_ctor, fofilt_dtor))
 	gwi_func_ini(gwi, "float", "freq", fofilt_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8175,6 +7882,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_fog = gwi_mk_type(gwi, "Fog", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_fog, fog_ctor, fog_dtor))
 	gwi_func_ini(gwi, "void", "init", fog_init);
 		 gwi_func_arg(gwi, "ftbl", "wav");
@@ -8229,6 +7937,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_fold = gwi_mk_type(gwi, "Fold", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_fold, fold_ctor, fold_dtor))
 	gwi_func_ini(gwi, "float", "incr", fold_get_incr);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8237,6 +7946,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_fosc = gwi_mk_type(gwi, "Fosc", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_fosc, fosc_ctor, fosc_dtor))
 	gwi_func_ini(gwi, "void", "init", fosc_init);
 		 gwi_func_arg(gwi, "ftbl", "tbl");
@@ -8268,6 +7978,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_gbuzz = gwi_mk_type(gwi, "Gbuzz", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_gbuzz, gbuzz_ctor, gbuzz_dtor))
 	gwi_func_ini(gwi, "void", "init", gbuzz_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -8300,12 +8011,15 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_hilbert = gwi_mk_type(gwi, "Hilbert", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_hilbert, hilbert_ctor, hilbert_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_in = gwi_mk_type(gwi, "In", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_in, in_ctor, in_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_incr = gwi_mk_type(gwi, "Incr", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_incr, incr_ctor, incr_dtor))
 	gwi_func_ini(gwi, "void", "init", incr_init);
 		 gwi_func_arg(gwi, "float", "val");
@@ -8327,9 +8041,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_jcrev = gwi_mk_type(gwi, "Jcrev", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_jcrev, jcrev_ctor, jcrev_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_jitter = gwi_mk_type(gwi, "Jitter", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_jitter, jitter_ctor, jitter_dtor))
 	gwi_func_ini(gwi, "float", "amp", jitter_get_amp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8348,6 +8064,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_line = gwi_mk_type(gwi, "Line", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_line, line_ctor, line_dtor))
 	gwi_func_ini(gwi, "float", "a", line_get_a);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8366,12 +8083,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_lpc = gwi_mk_type(gwi, "Lpc", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_lpc, lpc_ctor, lpc_dtor))
 	gwi_func_ini(gwi, "void", "init", lpc_init);
 		 gwi_func_arg(gwi, "int", "framesize");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_lpf18 = gwi_mk_type(gwi, "Lpf18", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_lpf18, lpf18_ctor, lpf18_dtor))
 	gwi_func_ini(gwi, "float", "cutoff", lpf18_get_cutoff);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8390,6 +8109,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_maygate = gwi_mk_type(gwi, "Maygate", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_maygate, maygate_ctor, maygate_dtor))
 	gwi_func_ini(gwi, "float", "prob", maygate_get_prob);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8403,6 +8123,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_metro = gwi_mk_type(gwi, "Metro", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_metro, metro_ctor, metro_dtor))
 	gwi_func_ini(gwi, "float", "freq", metro_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8411,6 +8132,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_mincer = gwi_mk_type(gwi, "Mincer", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_mincer, mincer_ctor, mincer_dtor))
 	gwi_func_ini(gwi, "void", "init", mincer_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -8433,6 +8155,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_mode = gwi_mk_type(gwi, "Mode", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_mode, mode_ctor, mode_dtor))
 	gwi_func_ini(gwi, "float", "freq", mode_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8446,6 +8169,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_moogladder = gwi_mk_type(gwi, "Moogladder", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_moogladder, moogladder_ctor, moogladder_dtor))
 	gwi_func_ini(gwi, "float", "freq", moogladder_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8459,6 +8183,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_noise = gwi_mk_type(gwi, "Noise", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_noise, noise_ctor, noise_dtor))
 	gwi_func_ini(gwi, "float", "amp", noise_get_amp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8467,6 +8192,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_nsmp = gwi_mk_type(gwi, "Nsmp", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_nsmp, nsmp_ctor, nsmp_dtor))
 	gwi_func_ini(gwi, "void", "init", nsmp_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -8480,6 +8206,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_osc = gwi_mk_type(gwi, "Osc", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_osc, osc_ctor, osc_dtor))
 	gwi_func_ini(gwi, "void", "init", osc_init);
 		 gwi_func_arg(gwi, "ftbl", "tbl");
@@ -8497,6 +8224,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_oscmorph = gwi_mk_type(gwi, "Oscmorph", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_oscmorph, oscmorph_ctor, oscmorph_dtor))
 	gwi_func_ini(gwi, "void", "init", oscmorph_init);
 		 gwi_func_arg(gwi, "ftbl[]", "tbl");
@@ -8520,6 +8248,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pan2 = gwi_mk_type(gwi, "Pan2", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pan2, pan2_ctor, pan2_dtor))
 	gwi_func_ini(gwi, "int", "type", pan2_get_type);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8533,6 +8262,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_panst = gwi_mk_type(gwi, "Panst", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_panst, panst_ctor, panst_dtor))
 	gwi_func_ini(gwi, "int", "type", panst_get_type);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8546,6 +8276,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pareq = gwi_mk_type(gwi, "Pareq", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pareq, pareq_ctor, pareq_dtor))
 	gwi_func_ini(gwi, "float", "fc", pareq_get_fc);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8569,6 +8300,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_paulstretch = gwi_mk_type(gwi, "Paulstretch", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_paulstretch, paulstretch_ctor, paulstretch_dtor))
 	gwi_func_ini(gwi, "void", "init", paulstretch_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -8577,6 +8309,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pdhalf = gwi_mk_type(gwi, "Pdhalf", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pdhalf, pdhalf_ctor, pdhalf_dtor))
 	gwi_func_ini(gwi, "float", "amount", pdhalf_get_amount);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8585,6 +8318,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_peaklim = gwi_mk_type(gwi, "Peaklim", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_peaklim, peaklim_ctor, peaklim_dtor))
 	gwi_func_ini(gwi, "float", "atk", peaklim_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8603,6 +8337,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_phaser = gwi_mk_type(gwi, "Phaser", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_phaser, phaser_ctor, phaser_dtor))
 	gwi_func_ini(gwi, "float", "MaxNotch1Freq", phaser_get_MaxNotch1Freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8656,6 +8391,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_phasor = gwi_mk_type(gwi, "Phasor", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_phasor, phasor_ctor, phasor_dtor))
 	gwi_func_ini(gwi, "void", "init", phasor_init);
 		 gwi_func_arg(gwi, "float", "iphs");
@@ -8667,6 +8403,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pinknoise = gwi_mk_type(gwi, "Pinknoise", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pinknoise, pinknoise_ctor, pinknoise_dtor))
 	gwi_func_ini(gwi, "float", "amp", pinknoise_get_amp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8675,6 +8412,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pitchamdf = gwi_mk_type(gwi, "Pitchamdf", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pitchamdf, pitchamdf_ctor, pitchamdf_dtor))
 	gwi_func_ini(gwi, "void", "init", pitchamdf_init);
 		 gwi_func_arg(gwi, "float", "min");
@@ -8682,6 +8420,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pluck = gwi_mk_type(gwi, "Pluck", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pluck, pluck_ctor, pluck_dtor))
 	gwi_func_ini(gwi, "void", "init", pluck_init);
 		 gwi_func_arg(gwi, "float", "ifreq");
@@ -8698,12 +8437,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_port = gwi_mk_type(gwi, "Port", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_port, port_ctor, port_dtor))
 	gwi_func_ini(gwi, "void", "init", port_init);
 		 gwi_func_arg(gwi, "float", "htime");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_posc3 = gwi_mk_type(gwi, "Posc3", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_posc3, posc3_ctor, posc3_dtor))
 	gwi_func_ini(gwi, "void", "init", posc3_init);
 		 gwi_func_arg(gwi, "ftbl", "tbl");
@@ -8720,6 +8461,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_progress = gwi_mk_type(gwi, "Progress", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_progress, progress_ctor, progress_dtor))
 	gwi_func_ini(gwi, "int", "nbars", progress_get_nbars);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8733,6 +8475,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_prop = gwi_mk_type(gwi, "Prop", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_prop, prop_ctor, prop_dtor))
 	gwi_func_ini(gwi, "void", "init", prop_init);
 		 gwi_func_arg(gwi, "string", "str");
@@ -8744,6 +8487,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_pshift = gwi_mk_type(gwi, "Pshift", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_pshift, pshift_ctor, pshift_dtor))
 	gwi_func_ini(gwi, "float", "shift", pshift_get_shift);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8762,6 +8506,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_ptrack = gwi_mk_type(gwi, "Ptrack", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_ptrack, ptrack_ctor, ptrack_dtor))
 	gwi_func_ini(gwi, "void", "init", ptrack_init);
 		 gwi_func_arg(gwi, "int", "ihopsize");
@@ -8769,6 +8514,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_randh = gwi_mk_type(gwi, "Randh", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_randh, randh_ctor, randh_dtor))
 	gwi_func_ini(gwi, "float", "min", randh_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8787,6 +8533,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_randi = gwi_mk_type(gwi, "Randi", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_randi, randi_ctor, randi_dtor))
 	gwi_func_ini(gwi, "float", "min", randi_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8810,6 +8557,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_random = gwi_mk_type(gwi, "Random", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_random, random_ctor, random_dtor))
 	gwi_func_ini(gwi, "float", "min", random_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8823,6 +8571,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_reson = gwi_mk_type(gwi, "Reson", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_reson, reson_ctor, reson_dtor))
 	gwi_func_ini(gwi, "float", "freq", reson_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8836,12 +8585,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_reverse = gwi_mk_type(gwi, "Reverse", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_reverse, reverse_ctor, reverse_dtor))
 	gwi_func_ini(gwi, "void", "init", reverse_init);
 		 gwi_func_arg(gwi, "float", "delay");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_revsc = gwi_mk_type(gwi, "Revsc", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_revsc, revsc_ctor, revsc_dtor))
 	gwi_func_ini(gwi, "float", "feedback", revsc_get_feedback);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8855,6 +8606,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_rms = gwi_mk_type(gwi, "Rms", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_rms, rms_ctor, rms_dtor))
 	gwi_func_ini(gwi, "float", "ihp", rms_get_ihp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8863,12 +8615,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_rpt = gwi_mk_type(gwi, "Rpt", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_rpt, rpt_ctor, rpt_dtor))
 	gwi_func_ini(gwi, "void", "init", rpt_init);
 		 gwi_func_arg(gwi, "float", "maxdur");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_rspline = gwi_mk_type(gwi, "Rspline", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_rspline, rspline_ctor, rspline_dtor))
 	gwi_func_ini(gwi, "float", "min", rspline_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8892,9 +8646,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_samphold = gwi_mk_type(gwi, "Samphold", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_samphold, samphold_ctor, samphold_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_saturator = gwi_mk_type(gwi, "Saturator", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_saturator, saturator_ctor, saturator_dtor))
 	gwi_func_ini(gwi, "float", "drive", saturator_get_drive);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8908,6 +8664,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_scale = gwi_mk_type(gwi, "Scale", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_scale, scale_ctor, scale_dtor))
 	gwi_func_ini(gwi, "float", "min", scale_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8921,12 +8678,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_sdelay = gwi_mk_type(gwi, "Sdelay", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_sdelay, sdelay_ctor, sdelay_dtor))
 	gwi_func_ini(gwi, "void", "init", sdelay_init);
 		 gwi_func_arg(gwi, "float", "size");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_slice = gwi_mk_type(gwi, "Slice", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_slice, slice_ctor, slice_dtor))
 	gwi_func_ini(gwi, "void", "init", slice_init);
 		 gwi_func_arg(gwi, "ftbl", "vals");
@@ -8939,6 +8698,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_smoothdelay = gwi_mk_type(gwi, "Smoothdelay", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_smoothdelay, smoothdelay_ctor, smoothdelay_dtor))
 	gwi_func_ini(gwi, "void", "init", smoothdelay_init);
 		 gwi_func_arg(gwi, "float", "maxdel");
@@ -8956,18 +8716,21 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_spa = gwi_mk_type(gwi, "Spa", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_spa, spa_ctor, spa_dtor))
 	gwi_func_ini(gwi, "void", "init", spa_init);
 		 gwi_func_arg(gwi, "string", "filename");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_sparec = gwi_mk_type(gwi, "Sparec", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_sparec, sparec_ctor, sparec_dtor))
 	gwi_func_ini(gwi, "void", "init", sparec_init);
 		 gwi_func_arg(gwi, "string", "filename");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_streson = gwi_mk_type(gwi, "Streson", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_streson, streson_ctor, streson_dtor))
 	gwi_func_ini(gwi, "float", "freq", streson_get_freq);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -8981,9 +8744,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_switch = gwi_mk_type(gwi, "Switch", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_switch, switch_ctor, switch_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tabread = gwi_mk_type(gwi, "Tabread", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tabread, tabread_ctor, tabread_dtor))
 	gwi_func_ini(gwi, "void", "init", tabread_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -9006,6 +8771,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tadsr = gwi_mk_type(gwi, "Tadsr", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tadsr, tadsr_ctor, tadsr_dtor))
 	gwi_func_ini(gwi, "float", "atk", tadsr_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9029,6 +8795,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_talkbox = gwi_mk_type(gwi, "Talkbox", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_talkbox, talkbox_ctor, talkbox_dtor))
 	gwi_func_ini(gwi, "float", "quality", talkbox_get_quality);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9037,12 +8804,14 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tblrec = gwi_mk_type(gwi, "Tblrec", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tblrec, tblrec_ctor, tblrec_dtor))
 	gwi_func_ini(gwi, "void", "init", tblrec_init);
 		 gwi_func_arg(gwi, "ftbl", "bar");
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tbvcf = gwi_mk_type(gwi, "Tbvcf", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tbvcf, tbvcf_ctor, tbvcf_dtor))
 	gwi_func_ini(gwi, "float", "fco", tbvcf_get_fco);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9066,6 +8835,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tdiv = gwi_mk_type(gwi, "Tdiv", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tdiv, tdiv_ctor, tdiv_dtor))
 	gwi_func_ini(gwi, "float", "num", tdiv_get_num);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9079,6 +8849,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tenv = gwi_mk_type(gwi, "Tenv", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tenv, tenv_ctor, tenv_dtor))
 	gwi_func_ini(gwi, "float", "atk", tenv_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9097,6 +8868,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tenv2 = gwi_mk_type(gwi, "Tenv2", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tenv2, tenv2_ctor, tenv2_dtor))
 	gwi_func_ini(gwi, "float", "atk", tenv2_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9110,6 +8882,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tenvx = gwi_mk_type(gwi, "Tenvx", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tenvx, tenvx_ctor, tenvx_dtor))
 	gwi_func_ini(gwi, "float", "atk", tenvx_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9128,6 +8901,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tgate = gwi_mk_type(gwi, "Tgate", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tgate, tgate_ctor, tgate_dtor))
 	gwi_func_ini(gwi, "float", "time", tgate_get_time);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9136,6 +8910,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_thresh = gwi_mk_type(gwi, "Thresh", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_thresh, thresh_ctor, thresh_dtor))
 	gwi_func_ini(gwi, "float", "thresh", thresh_get_thresh);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9149,12 +8924,15 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_timer = gwi_mk_type(gwi, "Timer", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_timer, timer_ctor, timer_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tin = gwi_mk_type(gwi, "Tin", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tin, tin_ctor, tin_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tone = gwi_mk_type(gwi, "Tone", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tone, tone_ctor, tone_dtor))
 	gwi_func_ini(gwi, "float", "hp", tone_get_hp);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9163,6 +8941,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_trand = gwi_mk_type(gwi, "Trand", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_trand, trand_ctor, trand_dtor))
 	gwi_func_ini(gwi, "float", "min", trand_get_min);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9176,6 +8955,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tseg = gwi_mk_type(gwi, "Tseg", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tseg, tseg_ctor, tseg_dtor))
 	gwi_func_ini(gwi, "void", "init", tseg_init);
 		 gwi_func_arg(gwi, "float", "ibeg");
@@ -9197,6 +8977,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_tseq = gwi_mk_type(gwi, "Tseq", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_tseq, tseq_ctor, tseq_dtor))
 	gwi_func_ini(gwi, "void", "init", tseq_init);
 		 gwi_func_arg(gwi, "ftbl", "ft");
@@ -9208,6 +8989,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_vdelay = gwi_mk_type(gwi, "Vdelay", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_vdelay, vdelay_ctor, vdelay_dtor))
 	gwi_func_ini(gwi, "void", "init", vdelay_init);
 		 gwi_func_arg(gwi, "float", "maxdel");
@@ -9219,9 +9001,11 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_voc = gwi_mk_type(gwi, "Voc", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_voc, voc_ctor, voc_dtor))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_vocoder = gwi_mk_type(gwi, "Vocoder", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_vocoder, vocoder_ctor, vocoder_dtor))
 	gwi_func_ini(gwi, "float", "atk", vocoder_get_atk);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9240,6 +9024,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_waveset = gwi_mk_type(gwi, "Waveset", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_waveset, waveset_ctor, waveset_dtor))
 	gwi_func_ini(gwi, "void", "init", waveset_init);
 		 gwi_func_arg(gwi, "float", "ilen");
@@ -9251,6 +9036,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_wpkorg35 = gwi_mk_type(gwi, "Wpkorg35", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_wpkorg35, wpkorg35_ctor, wpkorg35_dtor))
 	gwi_func_ini(gwi, "float", "cutoff", wpkorg35_get_cutoff);
 	CHECK_BB(gwi_func_end(gwi, 0))
@@ -9269,6 +9055,7 @@ m_bool import_soundpipe(Gwi gwi) {
 	CHECK_BB(gwi_func_end(gwi, 0))
 	CHECK_BB(gwi_class_end(gwi))
 
+	const Type t_zitarev = gwi_mk_type(gwi, "Zitarev", SZ_INT, t_ugen);
 	CHECK_BB(gwi_class_ini(gwi, t_zitarev, zitarev_ctor, zitarev_dtor))
 	gwi_func_ini(gwi, "float", "in_delay", zitarev_get_in_delay);
 	CHECK_BB(gwi_func_end(gwi, 0))

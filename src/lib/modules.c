@@ -182,7 +182,6 @@ ANN static m_bool import_impulse(const Gwi gwi) {
 }
 
 static TICK(fullrect_tick) {
-  base_tick(u);
   u->out = fabs(u->in);
 }
 
@@ -201,7 +200,6 @@ ANN static m_bool import_fullrect(const Gwi gwi) {
 }
 
 static TICK(halfrect_tick) {
-  base_tick(u);
   if(u->in > 0)
     u->out = u->in;
   else
@@ -254,7 +252,6 @@ ANN static m_bool import_step(const Gwi gwi) {
 }
 
 static TICK(zerox_tick) {
-  base_tick(u);
   m_float in = (u->in < 0) ? -1 : (u->in > 0);
   m_float f = *(m_float*)u->ug;
   u->out = f == in ? 1 : 0;

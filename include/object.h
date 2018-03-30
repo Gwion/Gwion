@@ -9,7 +9,7 @@ ANN m_bool initialize_object(const M_Object o, const Type type);
 void instantiate_object(const VM_Shred, const Type);
 void free_object(const M_Object);
 ANEW M_Object new_M_Object(const VM_Shred shred);
-ANEW M_Object new_M_UGen();
+//ANEW M_Object new_M_UGen();
 ANEW M_Object new_M_Array(Type t, m_uint size, m_uint length, m_uint depth);
 ANEW M_Object new_String(const VM_Shred shred, const m_str str);
 

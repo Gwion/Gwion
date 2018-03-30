@@ -25,4 +25,3 @@ ANN static inline void ugop_divide (const UGen u, const m_float f) { u->in /= f;
 ANN2(1) void assign_ugen(const UGen, const m_uint, const m_uint, void* ug);
 ANN void assign_trig(UGen);
 ANN void ugen_compute(const UGen u) __attribute__((hot));
-static TICK(base_tick) { u->out = u->in; }

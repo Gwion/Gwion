@@ -80,13 +80,22 @@ ANN static inline void vm_ugen_init(const VM* vm) {
       LOOP_OPTIM
       for(m_uint j = u->n_chan + 1; --j;)
         UGEN(u->channel[j - 1])->done = 0;
-//    if(u->trig)
-//      UGEN(u->trig)->done = 0;
   }
-  ugen_compute(UGEN(vm->adc));
-  ugen_compute(UGEN(vm->dac));
   ugen_compute(UGEN(vm->blackhole));
 }
+
+#ifdef CURSES
+#define VM_INFO gw_shred(s->curr);
+#else
+#ifdef DEBUG_STACK
+#define VM_INFO                                                              \
+  if(s->curr)                                                                \
+    gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid, \
+    shred->mem - shred->_mem, shred->reg - shred->_reg);
+#else
+#define VM_INFO
+#endif
+#endif
 
 void vm_run(const VM* vm) {
   const Shreduler s = vm->shreduler;
@@ -96,14 +105,7 @@ void vm_run(const VM* vm) {
       shred->pc = shred->next_pc++;
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc);
       instr->execute(vm, shred, instr);
-#ifdef DEBUG_STACK
-    if(s->curr)
-        gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid,
-        shred->mem - shred->_mem, shred->reg - shred->_reg);
-#endif
-#ifdef CURSES
-      gw_shred(s->curr);
-#endif
+      VM_INFO;
     }
   }
   if(!vm->is_running)

@@ -16,7 +16,7 @@ function declare_c_param(param, offset)
   elseif string.match(param.type, "sp_ftbl%s%*%*") then
     print("\tM_Object "..param.name.."_ptr = *(M_Object*)(shred->mem + gw_offset);")
     print("\tm_uint "..param.name.."_iter;")
-    print("\tsp_ftbl** "..param.name.." = malloc(m_vector_size(ARRAY("..param.name.."_ptr)) * SZ_INT);")
+    print("\tsp_ftbl** "..param.name.." = (sp_ftbl**)xmalloc(m_vector_size(ARRAY("..param.name.."_ptr)) * SZ_INT);")
     print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size(ARRAY("..param.name.."_ptr)); "..param.name.."_iter++) {")
 --    print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at(ARRAY("..param.name.."_ptr), "..param.name.."_iter));")
     print("\t\t\tM_Object "..param.name.."_ftl_obj;")
@@ -119,17 +119,17 @@ function print_mod_func(name, mod)
   end
   print("} GW_"..name..";\n")
   print("static TICK("..name.."_tick) {")
-  print("\tGW_"..name.."* ug = (GW_"..name.."*)u->ug;")
+  print("\tconst GW_"..name.."* ug = (GW_"..name.."*)u->ug;")
   if(nmandatory > 0) then
     print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
-  if mod.ninputs == 1 and mod.noutputs == 1 then
-    print("\tbase_tick(u);");
-  elseif mod.ninputs > 1 then
-    for i = 1, mod.ninputs do
-      print("\tbase_tick(UGEN(u->channel["..(i - 1).."]));");
-    end
-  end
+--  if mod.ninputs == 1 and mod.noutputs == 1 then
+--    print("\tbase_tick(u);");
+--  elseif mod.ninputs > 1 then
+--    for i = 1, mod.ninputs do
+--      print("\tbase_tick(UGEN(u->channel["..(i - 1).."]));");
+--    end
+--  end
   local args = ""
   if ninputs > 1 then
     for i = 1, ninputs do
@@ -141,7 +141,7 @@ function print_mod_func(name, mod)
     args = ", NULL"
   end
   if ntrig > 0 then
-    args = string.format("%s, &UGEN(u->trig)->out", args)
+    args = string.format("%s, &UGEN(u->trig)->in", args)
   end
   if mod.noutputs > 1 then
     for i = 1, mod.noutputs do
@@ -157,7 +157,7 @@ function print_mod_func(name, mod)
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 --  print("\treturn;\n}\n")
   print("\n}\n")
-  print("CTOR("..name.."_ctor) {\n\tGW_"..name.."* ug = malloc(sizeof(GW_"..name.."));")
+  print("CTOR("..name.."_ctor) {\n\tGW_"..name.."* ug = (GW_"..name.."*)xcalloc(1, sizeof(GW_"..name.."));")
   print("\tug->sp = shred->vm_ref->sp;")
   if(nmandatory > 0) then
     print("\tug->is_init = 0;")
@@ -344,21 +344,9 @@ for n in ipairs(a) do
   end
 end
 
---
---print("struct Type_ t_ftbl = {\"ftbl\", SZ_INT, &t_object};")
 print("")
 print("m_bool import_soundpipe(Gwi gwi) {\n")
-print("\tType t_ftbl;")
-for n in ipairs(a) do
-  local name = a[n]
-  local object = sptbl[name]
-  local title = string.format("%s%s", string.upper(name:sub(1, 1)), string.sub(name, 2))
-  if not string.match(object.modtype, "gen") and not string.match(name, "foo") then
-    print("\tType t_"..name..";")-- = {\""..title.."\", SZ_INT, &t_ugen};")
-    print("\tCHECK_OB((t_"..name.." = gwi_mk_type(gwi, \""..title.."\", SZ_INT, t_ugen)))")
-  end
-end
-print("\tCHECK_OB((t_ftbl = gwi_mk_type(gwi, \"ftbl\", SZ_INT, t_object)))")
+print("\tType t_ftbl = gwi_mk_type(gwi, \"ftbl\", SZ_INT, t_object);")
 print("\tCHECK_BB(gwi_class_ini(gwi, t_ftbl, NULL, ftbl_dtor))")
 print("\tCHECK_BB(gwi_item_ini(gwi, \"int\", \"@ftbl\"))")
 print("\to_ftbl_data = gwi_item_end(gwi, 0, NULL);")
@@ -384,6 +372,8 @@ for n in ipairs(a) do
   local mod_name = a[n]
   local object = sptbl[mod_name]
   if not string.match(object.modtype, "gen") and not string.match(mod_name, "foo")then
+    local title = string.format("%s%s", string.upper(mod_name:sub(1, 1)), string.sub(mod_name, 2))
+    print("\tconst Type t_"..mod_name.." = gwi_mk_type(gwi, \""..title.."\", SZ_INT, t_ugen);")
     print("\tCHECK_BB(gwi_class_ini(gwi, t_"..mod_name..", "..mod_name.."_ctor, "..mod_name.."_dtor))")
     local nmandatory = 0
     local tbl = object.params.mandatory
