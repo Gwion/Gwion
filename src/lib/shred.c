@@ -40,13 +40,16 @@ static MFUN(shred_yield) {
 }
 
 static SFUN(vm_shred_from_id) {
-  const VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, *(m_uint*)MEM(SZ_INT) - 1);
-  if(s) {
-    *(m_uint*)RETURN = (m_uint)s->me;
-    s->me->ref++;
-    vector_add(&shred->gc, (vtype) s->me);
-  } else
-    *(m_uint*)RETURN = 0;
+  const m_int index =  *(m_uint*)MEM(SZ_INT);
+  *(m_uint*)RETURN = 0;
+  if(index > 0) {
+    const VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, index);
+    if(s) {
+      *(m_uint*)RETURN = (m_uint)s->me;
+      s->me->ref++;
+      vector_add(&shred->gc, (vtype) s->me);
+    }
+  }
 }
 
 static MFUN(shred_args) {
