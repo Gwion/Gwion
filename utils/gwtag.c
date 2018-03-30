@@ -96,7 +96,7 @@ static void tag_exp_decl(Tagger* tagger, Exp_Decl* decl) {
     tag_type_decl(tagger, decl->td);
     if(list->self->array)
       tag_array(tagger, list->self->array);
-    tag_print(tagger, "$/;\"\t%s\n", vector_at(tagger->class_stack, 0) ?
+    tag_print(tagger, "$/;\"\t%s\n", vector_front(tagger->class_stack) ?
         "m" : "v");
     list = list->next;
   }
