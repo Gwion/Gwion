@@ -11,6 +11,7 @@
 #include "operator.h"
 #include "vm.h"
 #include "instr.h"
+#include "mpool.h"
 
 enum dbg_t{
   DBG_PTR,
@@ -81,7 +82,7 @@ void init_curses() {
 
   _init();
   wexe = newpad(10000, 256);
-  scrollok(wexe, 1);
+//  scrollok(wexe, 1);
 
   wout = newpad(10000, 256);
   scrollok(wout, 1);
@@ -102,7 +103,7 @@ void end_curses() {
   for(m_uint i = 0; i < vector_size(breaks); i++) {
     struct BP_* bp = (struct BP_*)vector_at(breaks, i);
     regfree(&bp->r);
-    free(bp);
+    mp_free(BP, bp);
   }
   free_vector(breaks);
 }
@@ -122,11 +123,11 @@ m_bool gw_exe(const m_str func, char* fmt, ...) {
   vfprintf(wexe, fmt, arg);
   va_end(arg);
 
-  prefresh(wexe, hexe++, 0, 0, COLS/2 + 1, (LINES-1)/2 - 1, COLS);
+  prefresh(wexe, ++hexe, 0, 0, COLS/2 + 1, (LINES-1)/2 - 1, COLS);
   return -1;
 }
 
-static void do_stack(struct ShredInfo_* info, m_uint i, m_uint stdscr, char* data) {
+static void do_stack(struct ShredInfo_* info, m_uint i, m_uint stdscr, m_bit* data) {
   if(info->t == DBG_FLOAT) {
     mvwprintw(info->pad, i, stdscr, "% 20.4f", *(m_float*)(data+i*dbg_sz));
   } else if(info->t == DBG_INT) {
@@ -141,7 +142,7 @@ static void display(VM_Shred shred, struct ShredInfo_* info) {
   m_int mpos = (shred->mem - shred->_mem)/dbg_sz;
   m_int rpos = (shred->reg - shred->_reg)/dbg_sz;
 
-  for(m_uint i = 0; i < (LINES-1)/2; i++) {
+  for(m_int i = 0; i < (LINES-1)/2; i++) {
     mvwprintw(info->pad, i, 0, "% 5lu", (info->offset+i)*dbg_sz);
     mvwaddch(info->pad, i, 5, ':');
     do_stack(info, info->offset + i, 6, shred->_mem);
@@ -149,9 +150,9 @@ static void display(VM_Shred shred, struct ShredInfo_* info) {
     do_stack(info, info->offset + i, (COLS-10)/4, shred->_reg);
   }
   mvwchgat(info->pad, (info->index % (LINES-1)/2), 0, -1, A_BOLD, 0, NULL);
-  if(mpos >= info->offset)
+  if(mpos >= (m_int)info->offset)
     mvwaddch(info->pad, (mpos% (LINES-1)/2), COLS/4+6, '<' | A_BOLD | COLOR_PAIR(2));
-  if(rpos >= info->offset)
+  if(rpos >= (m_int)info->offset)
     mvwaddch(info->pad, (rpos% (LINES-1)/2), COLS/2, '<' | A_BOLD | COLOR_PAIR(2));
   prefresh(info->pad, 0, 0, 0, 0, (LINES-1)/2 - 1, COLS/2 -1);
   prefresh(wexe, hexe, 0, 0, COLS/2 + 1, (LINES-1)/2 - 1, COLS-1);
@@ -188,7 +189,7 @@ static void bp_rem() {
     if(!strcmp(bp->c, s)) {
       vector_rem(breaks, i);
       regfree(&bp->r);
-      free(bp);
+      mp_free(BP, bp);
       break;
     }
   }
@@ -288,7 +289,7 @@ void gw_shred(VM_Shred shred) {
     m_int index = vector_find(infos, (vtype)curr);
     vector_rem(infos, index);
     vector_rem(shreds, index);
-    free(curr);
+    mp_free(ShredInfo, curr);
     return;
   } else
     mvwprintw(stdscr, (LINES-1)/2*2, COLS-14, "               ");
