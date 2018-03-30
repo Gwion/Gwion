@@ -11,24 +11,14 @@ m_int o_object_ugen;
 
 static TICK(dac_tick) {
   m_float* out = ((VM*)u->ug)->sp->out;
-//  for(m_uint i = 0; i < u->n_out; ++i)
-//    out[i] = UGEN(u->channel[i])->out;
-//  for(m_uint i = u->n_out + 1; --i;)
-//    out[i - 1] = UGEN(u->channel[i - 1])->out;
-  m_uint i = u->n_out;
-  while(--i)
-    out[i] = UGEN(u->channel[i])->out;
+  for(m_uint i = u->n_out + 1; --i;)
+    out[i - 1] = UGEN(u->channel[i - 1])->out;
 }
 
 static TICK(adc_tick) {
   const m_float* in = ((VM*)u->ug)->in;
-//  for(m_uint i = 0; i < u->n_out; ++i)
-//    UGEN(u->channel[i])->out = in[i];
-//  for(m_uint i = u->n_out + 1; --i;)
-//    UGEN(u->channel[i - 1])->out = in[i - 1];
-  m_uint i = u->n_out;
-  while(--i)
-    UGEN(u->channel[i - 1])->out = in[i - 1];
+  for(m_uint i = u->n_out + 1; --i;)
+    UGEN(u->channel[i- 1])->out = in[i - 1];
 }
 
 __attribute__((hot))
@@ -36,33 +26,27 @@ ANN void ugen_compute(const UGen u) {
   u->done = 1;
   u->last = u->out;
   if(u->channel) {
-    m_uint i = u->n_chan;
-    while(--i) {
-      const UGen chan = UGEN(u->channel[i]);
-      if(!chan->done)
-        ugen_compute(chan);
+    for(m_uint i = u->n_chan + 1; --i;) {
+      const UGen v = UGEN(u->channel[i - 1]);
+      if(!v->done)
+        ugen_compute(v);
     }
   } else {
     const m_uint size = vector_size(&u->ugen);
     if(size) {
-      const UGen v = (UGen)vector_front(&u->ugen);
+      const UGen v = (UGen)vector_at(&u->ugen, size - 1);
       if(!v->done)
         ugen_compute(v);
       u->in = v->out;
-//      for(m_uint i = 0; i < size; ++i) {
-      m_uint i = 0;
-      do {
-        const UGen v = (UGen)vector_at(&u->ugen, i);
+      for(m_uint i = size; --i;) {
+        const UGen v = (UGen)vector_at(&u->ugen, i - 1);
         if(!v->done)
           ugen_compute(v);
         u->op(u, v->out);
-//      }
-      } while(++i < size);
-      u->out = u->in;
+      }
     }
-    if(u->ref) {
-      if(!u->ref->done)
-        ugen_compute(u->ref);
+    if(u->ref && !u->ref->done) {
+      ugen_compute(u->ref);
       return;
     }
   }
@@ -90,13 +74,14 @@ ANN void assign_channel(const UGen u) {
     const M_Object chan = new_M_UGen();
     assign_ugen(UGEN(chan), u->n_in > j, u->n_out > j, NULL);
     UGEN(chan)->ref = u;
+    UGEN(chan)->tick = base_tick;
     u->channel[j] =  chan;
   }
 }
 
 ANN void assign_trig(const UGen u) {
   u->trig = new_M_UGen();
-  UGEN(u->trig)->ref = u;
+  UGEN(u->trig)->tick = base_tick;
   assign_ugen(UGEN(u->trig), 1, 1, NULL);
 }
 
@@ -134,6 +119,8 @@ ANN static m_bool connect_init(const VM_Shred shred, M_Object* lhs, M_Object* rh
   *lhs = *(M_Object*)REG(0);
   *rhs = *(M_Object*)REG(SZ_INT);
   if(!*lhs || !*rhs) {
+    release(*lhs, shred);
+    release(*rhs, shred);
     NullException(shred, "UgenConnectException");
     return -1;
   }
@@ -163,40 +150,40 @@ ANN static void do_disconnect(const UGen lhs, const UGen rhs) {
 static INSTR(ugen_connect) { GWDEBUG_EXE
   M_Object lhs, rhs;
 
-  if(connect_init(shred, &lhs, &rhs) > 0) {
-    if(UGEN(rhs)->n_in)
-      do_connect(UGEN(lhs), UGEN(rhs));
-  }
+  if(connect_init(shred, &lhs, &rhs) < 0)
+    return;
+  if(UGEN(rhs)->n_in)
+    do_connect(UGEN(lhs), UGEN(rhs));
   release_connect(shred);
 }
 
 static INSTR(ugen_disconnect) { GWDEBUG_EXE
   M_Object lhs, rhs;
 
-  if(connect_init(shred, &lhs, &rhs) > 0) {
-    if(UGEN(rhs)->n_in)
-      do_disconnect(UGEN(lhs), UGEN(rhs));
-  }
+  if(connect_init(shred, &lhs, &rhs) < 0)
+    return;
+  if(UGEN(rhs)->n_in)
+    do_disconnect(UGEN(lhs), UGEN(rhs));
   release_connect(shred);
 }
 
 static INSTR(trig_connect) { GWDEBUG_EXE
   M_Object lhs, rhs;
 
-  if(connect_init(shred, &lhs, &rhs) > 0) {
-    if(UGEN(rhs)->trig)
-      connect(UGEN(lhs), UGEN(UGEN(rhs)->trig));
-  }
+  if(connect_init(shred, &lhs, &rhs) < 0)
+    return;
+  if(UGEN(rhs)->trig)
+    connect(UGEN(lhs), UGEN(UGEN(rhs)->trig));
   release_connect(shred);
 }
 
 static INSTR(trig_disconnect) { GWDEBUG_EXE
   M_Object lhs, rhs;
 
-  if(connect_init(shred, &lhs, &rhs) > 0) {
-    if(UGEN(rhs)->trig)
-      disconnect(UGEN(lhs), UGEN(UGEN(rhs)->trig));
-  }
+  if(connect_init(shred, &lhs, &rhs) < 0)
+    return;
+  if(UGEN(rhs)->trig)
+    disconnect(UGEN(lhs), UGEN(UGEN(rhs)->trig));
   release_connect(shred);
 }
 
@@ -215,7 +202,7 @@ ANN static void ugen_unref(const UGen ug) {
 }
 
 ANN static void ugen_release(const UGen ug, const VM_Shred shred) {
-  if(!ug->channel) {
+  if(ug->n_chan == 1) {
     for(m_uint i = vector_size(&ug->ugen) + 1; --i;) {
       const UGen u = (UGen)vector_at(&ug->ugen, i - 1);
       const m_int index = vector_find(&u->to, (vtype)ug);
@@ -285,16 +272,15 @@ ANN static m_bool import_global_ugens(const Gwi gwi) {
   VM* vm = gwi_vm(gwi);
 
   vm->dac       = new_M_UGen();
-  assign_ugen(UGEN(vm->dac), 2, 2, vm);
-  UGEN(vm->dac)->tick = dac_tick;
   vm->adc       = new_M_UGen();
-  UGEN(vm->adc)->tick = adc_tick;
-  assign_ugen(UGEN(vm->adc), 2, 2, vm);
-
   vm->blackhole = new_M_UGen();
-  assign_ugen(UGEN(vm->blackhole), 1, 1, vm);
-  UGEN(vm->blackhole)->ref = UGEN(vm->dac);
 
+  assign_ugen(UGEN(vm->dac), 2, 2, vm);
+  assign_ugen(UGEN(vm->adc), 2, 2, vm);
+  assign_ugen(UGEN(vm->blackhole), 1, 1, vm);
+  UGEN(vm->dac)->tick = dac_tick;
+  UGEN(vm->adc)->tick = adc_tick;
+  UGEN(vm->blackhole)->tick = base_tick;
   vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
