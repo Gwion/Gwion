@@ -147,6 +147,7 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
     depth++;
     p.len -= 2;
   }
+  *array_depth = depth;
   if(path_valid(&list, &p) < 0) {
     if(list)
       free_id_list(list);
@@ -155,7 +156,6 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
   CHECK_OO(list)
   strncpy(curr, path, p.len);
   list->xid = insert_symbol(curr);
-  *array_depth = depth;
   return list;
 }
 
