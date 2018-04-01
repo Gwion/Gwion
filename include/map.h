@@ -18,10 +18,10 @@ ANN static inline void vector_set(const Vector v, const vtype i, const vtype arg
   VPTR(v, i) = arg;
 }
 ANN static inline vtype vector_front(const Vector v) {
-  return VLEN(v) ? VPTR(v, 0) : 0;
+  return VPTR(v, 0);
 }
 ANN static inline vtype vector_at(const Vector v, const vtype i) {
-  return (i >= VLEN(v)) ? 0 : VPTR(v, i);
+  return VPTR(v, i);
 }
 ANN static inline vtype vector_back(const Vector v) {
   return VPTR(v, VLEN(v) - 1);

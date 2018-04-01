@@ -16,14 +16,10 @@ ANEW M_Object new_String(const VM_Shred shred, const m_str str);
 ANN2(2) void release(M_Object obj, const VM_Shred shred);
 ANN void NullException(const VM_Shred shred, const m_str c);
 
-m_int o_object_ugen;
-m_int o_object_array;
-
-
-#define STRING(o) *((m_str*)((M_Object)o)->data + o_string_data)
-#define ME(o) *((VM_Shred*)((M_Object)o)->data + o_shred_me)
-#define EV_SHREDS(o) *((Vector*)((M_Object)o)->data + o_event_shred)
-#define IO_FILE(o)  *(FILE**)(((M_Object)o)->data + o_fileio_file)
-#define UGEN(o) (*(UGen*)(((M_Object)o)->data + o_object_ugen))
-#define ARRAY(o) (*(M_Vector*)(((M_Object)o)->data + o_object_array))
+#define STRING(o) *((m_str*)((M_Object)o)->data)
+#define ME(o) *((VM_Shred*)((M_Object)o)->data)
+#define EV_SHREDS(o) *((Vector*)((M_Object)o)->data)
+#define IO_FILE(o)  *(FILE**)(((M_Object)o)->data + SZ_INT)
+#define UGEN(o) (*(UGen*)(((M_Object)o)->data))
+#define ARRAY(o) (*(M_Vector*)(((M_Object)o)->data))
 #define Except(s, c) { NullException(s, c); return; }

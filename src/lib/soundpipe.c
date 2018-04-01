@@ -22,7 +22,7 @@ typedef struct {
 } GW_adsr;
 
 static TICK(adsr_tick) {
-	const GW_adsr* ug = (GW_adsr*)u->ug;
+	const GW_adsr* ug = (GW_adsr*)u->gen.data;
 	sp_adsr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -32,60 +32,60 @@ CTOR(adsr_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_adsr_create(&ug->osc);
 	sp_adsr_init(ug->sp, ug->osc);
-	UGEN(o)->tick = adsr_tick;
+	UGEN(o)->gen.tick = adsr_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(adsr_dtor) {
-	GW_adsr* ug = UGEN(o)->ug;
+	GW_adsr* ug = UGEN(o)->gen.data;
 	sp_adsr_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(adsr_get_atk) {
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(adsr_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(adsr_get_dec) {
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dec;
 }
 
 MFUN(adsr_set_dec) {
 	m_uint gw_offset = SZ_INT;
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dec = dec);
 }
 
 MFUN(adsr_get_sus) {
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->sus;
 }
 
 MFUN(adsr_set_sus) {
 	m_uint gw_offset = SZ_INT;
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	m_float sus = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->sus = sus);
 }
 
 MFUN(adsr_get_rel) {
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(adsr_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_adsr* ug = (GW_adsr*)UGEN(o)->ug;
+	GW_adsr* ug = (GW_adsr*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
@@ -97,7 +97,7 @@ typedef struct {
 } GW_allpass;
 
 static TICK(allpass_tick) {
-	const GW_allpass* ug = (GW_allpass*)u->ug;
+	const GW_allpass* ug = (GW_allpass*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -111,12 +111,12 @@ CTOR(allpass_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = allpass_tick;
+	UGEN(o)->gen.tick = allpass_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(allpass_dtor) {
-	GW_allpass* ug = UGEN(o)->ug;
+	GW_allpass* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_allpass_destroy(&ug->osc);
@@ -126,7 +126,7 @@ DTOR(allpass_dtor) {
 
 MFUN(allpass_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_allpass* ug = (GW_allpass*)UGEN(o)->ug;
+	GW_allpass* ug = (GW_allpass*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_allpass_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -139,13 +139,13 @@ MFUN(allpass_init) {
 }
 
 MFUN(allpass_get_revtime) {
-	GW_allpass* ug = (GW_allpass*)UGEN(o)->ug;
+	GW_allpass* ug = (GW_allpass*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->revtime;
 }
 
 MFUN(allpass_set_revtime) {
 	m_uint gw_offset = SZ_INT;
-	GW_allpass* ug = (GW_allpass*)UGEN(o)->ug;
+	GW_allpass* ug = (GW_allpass*)UGEN(o)->gen.data;
 	m_float revtime = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->revtime = revtime);
 }
@@ -156,7 +156,7 @@ typedef struct {
 } GW_atone;
 
 static TICK(atone_tick) {
-	const GW_atone* ug = (GW_atone*)u->ug;
+	const GW_atone* ug = (GW_atone*)u->gen.data;
 	sp_atone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -166,24 +166,24 @@ CTOR(atone_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_atone_create(&ug->osc);
 	sp_atone_init(ug->sp, ug->osc);
-	UGEN(o)->tick = atone_tick;
+	UGEN(o)->gen.tick = atone_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(atone_dtor) {
-	GW_atone* ug = UGEN(o)->ug;
+	GW_atone* ug = UGEN(o)->gen.data;
 	sp_atone_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(atone_get_hp) {
-	GW_atone* ug = (GW_atone*)UGEN(o)->ug;
+	GW_atone* ug = (GW_atone*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->hp;
 }
 
 MFUN(atone_set_hp) {
 	m_uint gw_offset = SZ_INT;
-	GW_atone* ug = (GW_atone*)UGEN(o)->ug;
+	GW_atone* ug = (GW_atone*)UGEN(o)->gen.data;
 	m_float hp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->hp = hp);
 }
@@ -194,7 +194,7 @@ typedef struct {
 } GW_autowah;
 
 static TICK(autowah_tick) {
-	const GW_autowah* ug = (GW_autowah*)u->ug;
+	const GW_autowah* ug = (GW_autowah*)u->gen.data;
 	sp_autowah_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -204,48 +204,48 @@ CTOR(autowah_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_autowah_create(&ug->osc);
 	sp_autowah_init(ug->sp, ug->osc);
-	UGEN(o)->tick = autowah_tick;
+	UGEN(o)->gen.tick = autowah_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(autowah_dtor) {
-	GW_autowah* ug = UGEN(o)->ug;
+	GW_autowah* ug = UGEN(o)->gen.data;
 	sp_autowah_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(autowah_get_level) {
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->level;
 }
 
 MFUN(autowah_set_level) {
 	m_uint gw_offset = SZ_INT;
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->level = level);
 }
 
 MFUN(autowah_get_wah) {
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->wah;
 }
 
 MFUN(autowah_set_wah) {
 	m_uint gw_offset = SZ_INT;
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	m_float wah = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->wah = wah);
 }
 
 MFUN(autowah_get_mix) {
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->mix;
 }
 
 MFUN(autowah_set_mix) {
 	m_uint gw_offset = SZ_INT;
-	GW_autowah* ug = (GW_autowah*)UGEN(o)->ug;
+	GW_autowah* ug = (GW_autowah*)UGEN(o)->gen.data;
 	m_float mix = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->mix = mix);
 }
@@ -256,8 +256,8 @@ typedef struct {
 } GW_bal;
 
 static TICK(bal_tick) {
-	const GW_bal* ug = (GW_bal*)u->ug;
-	sp_bal_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
+	const GW_bal* ug = (GW_bal*)u->gen.data;
+	sp_bal_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &u->out);
 
 }
 
@@ -266,12 +266,12 @@ CTOR(bal_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_bal_create(&ug->osc);
 	sp_bal_init(ug->sp, ug->osc);
-	UGEN(o)->tick = bal_tick;
+	UGEN(o)->gen.tick = bal_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(bal_dtor) {
-	GW_bal* ug = UGEN(o)->ug;
+	GW_bal* ug = UGEN(o)->gen.data;
 	sp_bal_destroy(&ug->osc);
 	free(ug);
 }
@@ -283,12 +283,12 @@ typedef struct {
 } GW_bar;
 
 static TICK(bar_tick) {
-	const GW_bar* ug = (GW_bar*)u->ug;
+	const GW_bar* ug = (GW_bar*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_bar_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_bar_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -297,13 +297,13 @@ CTOR(bar_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = bar_tick;
+	UGEN(o)->gen.tick = bar_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(bar_dtor) {
-	GW_bar* ug = UGEN(o)->ug;
+	GW_bar* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_bar_destroy(&ug->osc);
@@ -313,7 +313,7 @@ DTOR(bar_dtor) {
 
 MFUN(bar_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_bar_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -328,85 +328,85 @@ MFUN(bar_init) {
 }
 
 MFUN(bar_get_bcL) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bcL;
 }
 
 MFUN(bar_set_bcL) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float bcL = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bcL = bcL);
 }
 
 MFUN(bar_get_bcR) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bcR;
 }
 
 MFUN(bar_set_bcR) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float bcR = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bcR = bcR);
 }
 
 MFUN(bar_get_T30) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->T30;
 }
 
 MFUN(bar_set_T30) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float T30 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->T30 = T30);
 }
 
 MFUN(bar_get_scan) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->scan;
 }
 
 MFUN(bar_set_scan) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float scan = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->scan = scan);
 }
 
 MFUN(bar_get_pos) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pos;
 }
 
 MFUN(bar_set_pos) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float pos = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pos = pos);
 }
 
 MFUN(bar_get_vel) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->vel;
 }
 
 MFUN(bar_set_vel) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float vel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->vel = vel);
 }
 
 MFUN(bar_get_wid) {
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->wid;
 }
 
 MFUN(bar_set_wid) {
 	m_uint gw_offset = SZ_INT;
-	GW_bar* ug = (GW_bar*)UGEN(o)->ug;
+	GW_bar* ug = (GW_bar*)UGEN(o)->gen.data;
 	m_float wid = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->wid = wid);
 }
@@ -417,7 +417,7 @@ typedef struct {
 } GW_biquad;
 
 static TICK(biquad_tick) {
-	const GW_biquad* ug = (GW_biquad*)u->ug;
+	const GW_biquad* ug = (GW_biquad*)u->gen.data;
 	sp_biquad_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -427,84 +427,84 @@ CTOR(biquad_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_biquad_create(&ug->osc);
 	sp_biquad_init(ug->sp, ug->osc);
-	UGEN(o)->tick = biquad_tick;
+	UGEN(o)->gen.tick = biquad_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(biquad_dtor) {
-	GW_biquad* ug = UGEN(o)->ug;
+	GW_biquad* ug = UGEN(o)->gen.data;
 	sp_biquad_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(biquad_get_b0) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->b0;
 }
 
 MFUN(biquad_set_b0) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float b0 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->b0 = b0);
 }
 
 MFUN(biquad_get_b1) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->b1;
 }
 
 MFUN(biquad_set_b1) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float b1 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->b1 = b1);
 }
 
 MFUN(biquad_get_b2) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->b2;
 }
 
 MFUN(biquad_set_b2) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float b2 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->b2 = b2);
 }
 
 MFUN(biquad_get_a0) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->a0;
 }
 
 MFUN(biquad_set_a0) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float a0 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->a0 = a0);
 }
 
 MFUN(biquad_get_a1) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->a1;
 }
 
 MFUN(biquad_set_a1) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float a1 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->a1 = a1);
 }
 
 MFUN(biquad_get_a2) {
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->a2;
 }
 
 MFUN(biquad_set_a2) {
 	m_uint gw_offset = SZ_INT;
-	GW_biquad* ug = (GW_biquad*)UGEN(o)->ug;
+	GW_biquad* ug = (GW_biquad*)UGEN(o)->gen.data;
 	m_float a2 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->a2 = a2);
 }
@@ -515,7 +515,7 @@ typedef struct {
 } GW_biscale;
 
 static TICK(biscale_tick) {
-	const GW_biscale* ug = (GW_biscale*)u->ug;
+	const GW_biscale* ug = (GW_biscale*)u->gen.data;
 	sp_biscale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -525,36 +525,36 @@ CTOR(biscale_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_biscale_create(&ug->osc);
 	sp_biscale_init(ug->sp, ug->osc);
-	UGEN(o)->tick = biscale_tick;
+	UGEN(o)->gen.tick = biscale_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(biscale_dtor) {
-	GW_biscale* ug = UGEN(o)->ug;
+	GW_biscale* ug = UGEN(o)->gen.data;
 	sp_biscale_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(biscale_get_min) {
-	GW_biscale* ug = (GW_biscale*)UGEN(o)->ug;
+	GW_biscale* ug = (GW_biscale*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(biscale_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_biscale* ug = (GW_biscale*)UGEN(o)->ug;
+	GW_biscale* ug = (GW_biscale*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(biscale_get_max) {
-	GW_biscale* ug = (GW_biscale*)UGEN(o)->ug;
+	GW_biscale* ug = (GW_biscale*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(biscale_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_biscale* ug = (GW_biscale*)UGEN(o)->ug;
+	GW_biscale* ug = (GW_biscale*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
@@ -565,7 +565,7 @@ typedef struct {
 } GW_bitcrush;
 
 static TICK(bitcrush_tick) {
-	const GW_bitcrush* ug = (GW_bitcrush*)u->ug;
+	const GW_bitcrush* ug = (GW_bitcrush*)u->gen.data;
 	sp_bitcrush_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -575,36 +575,36 @@ CTOR(bitcrush_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_bitcrush_create(&ug->osc);
 	sp_bitcrush_init(ug->sp, ug->osc);
-	UGEN(o)->tick = bitcrush_tick;
+	UGEN(o)->gen.tick = bitcrush_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(bitcrush_dtor) {
-	GW_bitcrush* ug = UGEN(o)->ug;
+	GW_bitcrush* ug = UGEN(o)->gen.data;
 	sp_bitcrush_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(bitcrush_get_bitdepth) {
-	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->ug;
+	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bitdepth;
 }
 
 MFUN(bitcrush_set_bitdepth) {
 	m_uint gw_offset = SZ_INT;
-	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->ug;
+	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->gen.data;
 	m_float bitdepth = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bitdepth = bitdepth);
 }
 
 MFUN(bitcrush_get_srate) {
-	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->ug;
+	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->srate;
 }
 
 MFUN(bitcrush_set_srate) {
 	m_uint gw_offset = SZ_INT;
-	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->ug;
+	GW_bitcrush* ug = (GW_bitcrush*)UGEN(o)->gen.data;
 	m_float srate = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->srate = srate);
 }
@@ -615,7 +615,7 @@ typedef struct {
 } GW_blsaw;
 
 static TICK(blsaw_tick) {
-	const GW_blsaw* ug = (GW_blsaw*)u->ug;
+	const GW_blsaw* ug = (GW_blsaw*)u->gen.data;
 	sp_blsaw_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -625,36 +625,36 @@ CTOR(blsaw_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_blsaw_create(&ug->osc);
 	sp_blsaw_init(ug->sp, ug->osc);
-	UGEN(o)->tick = blsaw_tick;
+	UGEN(o)->gen.tick = blsaw_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(blsaw_dtor) {
-	GW_blsaw* ug = UGEN(o)->ug;
+	GW_blsaw* ug = UGEN(o)->gen.data;
 	sp_blsaw_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(blsaw_get_freq) {
-	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->ug;
+	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->freq;
 }
 
 MFUN(blsaw_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->ug;
+	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->freq = freq);
 }
 
 MFUN(blsaw_get_amp) {
-	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->ug;
+	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->amp;
 }
 
 MFUN(blsaw_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->ug;
+	GW_blsaw* ug = (GW_blsaw*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->amp = amp);
 }
@@ -665,7 +665,7 @@ typedef struct {
 } GW_blsquare;
 
 static TICK(blsquare_tick) {
-	const GW_blsquare* ug = (GW_blsquare*)u->ug;
+	const GW_blsquare* ug = (GW_blsquare*)u->gen.data;
 	sp_blsquare_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -675,48 +675,48 @@ CTOR(blsquare_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_blsquare_create(&ug->osc);
 	sp_blsquare_init(ug->sp, ug->osc);
-	UGEN(o)->tick = blsquare_tick;
+	UGEN(o)->gen.tick = blsquare_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(blsquare_dtor) {
-	GW_blsquare* ug = UGEN(o)->ug;
+	GW_blsquare* ug = UGEN(o)->gen.data;
 	sp_blsquare_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(blsquare_get_freq) {
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->freq;
 }
 
 MFUN(blsquare_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->freq = freq);
 }
 
 MFUN(blsquare_get_amp) {
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->amp;
 }
 
 MFUN(blsquare_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->amp = amp);
 }
 
 MFUN(blsquare_get_width) {
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->width;
 }
 
 MFUN(blsquare_set_width) {
 	m_uint gw_offset = SZ_INT;
-	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->ug;
+	GW_blsquare* ug = (GW_blsquare*)UGEN(o)->gen.data;
 	m_float width = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->width = width);
 }
@@ -727,7 +727,7 @@ typedef struct {
 } GW_bltriangle;
 
 static TICK(bltriangle_tick) {
-	const GW_bltriangle* ug = (GW_bltriangle*)u->ug;
+	const GW_bltriangle* ug = (GW_bltriangle*)u->gen.data;
 	sp_bltriangle_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -737,36 +737,36 @@ CTOR(bltriangle_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_bltriangle_create(&ug->osc);
 	sp_bltriangle_init(ug->sp, ug->osc);
-	UGEN(o)->tick = bltriangle_tick;
+	UGEN(o)->gen.tick = bltriangle_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(bltriangle_dtor) {
-	GW_bltriangle* ug = UGEN(o)->ug;
+	GW_bltriangle* ug = UGEN(o)->gen.data;
 	sp_bltriangle_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(bltriangle_get_freq) {
-	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->ug;
+	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->freq;
 }
 
 MFUN(bltriangle_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->ug;
+	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->freq = freq);
 }
 
 MFUN(bltriangle_get_amp) {
-	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->ug;
+	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->amp;
 }
 
 MFUN(bltriangle_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->ug;
+	GW_bltriangle* ug = (GW_bltriangle*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->amp = amp);
 }
@@ -777,7 +777,7 @@ typedef struct {
 } GW_brown;
 
 static TICK(brown_tick) {
-	const GW_brown* ug = (GW_brown*)u->ug;
+	const GW_brown* ug = (GW_brown*)u->gen.data;
 	sp_brown_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -787,12 +787,12 @@ CTOR(brown_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_brown_create(&ug->osc);
 	sp_brown_init(ug->sp, ug->osc);
-	UGEN(o)->tick = brown_tick;
+	UGEN(o)->gen.tick = brown_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(brown_dtor) {
-	GW_brown* ug = UGEN(o)->ug;
+	GW_brown* ug = UGEN(o)->gen.data;
 	sp_brown_destroy(&ug->osc);
 	free(ug);
 }
@@ -803,7 +803,7 @@ typedef struct {
 } GW_butbp;
 
 static TICK(butbp_tick) {
-	const GW_butbp* ug = (GW_butbp*)u->ug;
+	const GW_butbp* ug = (GW_butbp*)u->gen.data;
 	sp_butbp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -813,36 +813,36 @@ CTOR(butbp_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_butbp_create(&ug->osc);
 	sp_butbp_init(ug->sp, ug->osc);
-	UGEN(o)->tick = butbp_tick;
+	UGEN(o)->gen.tick = butbp_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butbp_dtor) {
-	GW_butbp* ug = UGEN(o)->ug;
+	GW_butbp* ug = UGEN(o)->gen.data;
 	sp_butbp_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(butbp_get_freq) {
-	GW_butbp* ug = (GW_butbp*)UGEN(o)->ug;
+	GW_butbp* ug = (GW_butbp*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(butbp_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_butbp* ug = (GW_butbp*)UGEN(o)->ug;
+	GW_butbp* ug = (GW_butbp*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(butbp_get_bw) {
-	GW_butbp* ug = (GW_butbp*)UGEN(o)->ug;
+	GW_butbp* ug = (GW_butbp*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bw;
 }
 
 MFUN(butbp_set_bw) {
 	m_uint gw_offset = SZ_INT;
-	GW_butbp* ug = (GW_butbp*)UGEN(o)->ug;
+	GW_butbp* ug = (GW_butbp*)UGEN(o)->gen.data;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bw = bw);
 }
@@ -853,7 +853,7 @@ typedef struct {
 } GW_butbr;
 
 static TICK(butbr_tick) {
-	const GW_butbr* ug = (GW_butbr*)u->ug;
+	const GW_butbr* ug = (GW_butbr*)u->gen.data;
 	sp_butbr_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -863,36 +863,36 @@ CTOR(butbr_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_butbr_create(&ug->osc);
 	sp_butbr_init(ug->sp, ug->osc);
-	UGEN(o)->tick = butbr_tick;
+	UGEN(o)->gen.tick = butbr_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butbr_dtor) {
-	GW_butbr* ug = UGEN(o)->ug;
+	GW_butbr* ug = UGEN(o)->gen.data;
 	sp_butbr_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(butbr_get_freq) {
-	GW_butbr* ug = (GW_butbr*)UGEN(o)->ug;
+	GW_butbr* ug = (GW_butbr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(butbr_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_butbr* ug = (GW_butbr*)UGEN(o)->ug;
+	GW_butbr* ug = (GW_butbr*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(butbr_get_bw) {
-	GW_butbr* ug = (GW_butbr*)UGEN(o)->ug;
+	GW_butbr* ug = (GW_butbr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bw;
 }
 
 MFUN(butbr_set_bw) {
 	m_uint gw_offset = SZ_INT;
-	GW_butbr* ug = (GW_butbr*)UGEN(o)->ug;
+	GW_butbr* ug = (GW_butbr*)UGEN(o)->gen.data;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bw = bw);
 }
@@ -903,7 +903,7 @@ typedef struct {
 } GW_buthp;
 
 static TICK(buthp_tick) {
-	const GW_buthp* ug = (GW_buthp*)u->ug;
+	const GW_buthp* ug = (GW_buthp*)u->gen.data;
 	sp_buthp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -913,24 +913,24 @@ CTOR(buthp_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_buthp_create(&ug->osc);
 	sp_buthp_init(ug->sp, ug->osc);
-	UGEN(o)->tick = buthp_tick;
+	UGEN(o)->gen.tick = buthp_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(buthp_dtor) {
-	GW_buthp* ug = UGEN(o)->ug;
+	GW_buthp* ug = UGEN(o)->gen.data;
 	sp_buthp_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(buthp_get_freq) {
-	GW_buthp* ug = (GW_buthp*)UGEN(o)->ug;
+	GW_buthp* ug = (GW_buthp*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(buthp_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_buthp* ug = (GW_buthp*)UGEN(o)->ug;
+	GW_buthp* ug = (GW_buthp*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
@@ -941,7 +941,7 @@ typedef struct {
 } GW_butlp;
 
 static TICK(butlp_tick) {
-	const GW_butlp* ug = (GW_butlp*)u->ug;
+	const GW_butlp* ug = (GW_butlp*)u->gen.data;
 	sp_butlp_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -951,24 +951,24 @@ CTOR(butlp_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_butlp_create(&ug->osc);
 	sp_butlp_init(ug->sp, ug->osc);
-	UGEN(o)->tick = butlp_tick;
+	UGEN(o)->gen.tick = butlp_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(butlp_dtor) {
-	GW_butlp* ug = UGEN(o)->ug;
+	GW_butlp* ug = UGEN(o)->gen.data;
 	sp_butlp_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(butlp_get_freq) {
-	GW_butlp* ug = (GW_butlp*)UGEN(o)->ug;
+	GW_butlp* ug = (GW_butlp*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(butlp_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_butlp* ug = (GW_butlp*)UGEN(o)->ug;
+	GW_butlp* ug = (GW_butlp*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
@@ -979,7 +979,7 @@ typedef struct {
 } GW_clip;
 
 static TICK(clip_tick) {
-	const GW_clip* ug = (GW_clip*)u->ug;
+	const GW_clip* ug = (GW_clip*)u->gen.data;
 	sp_clip_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -989,24 +989,24 @@ CTOR(clip_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_clip_create(&ug->osc);
 	sp_clip_init(ug->sp, ug->osc);
-	UGEN(o)->tick = clip_tick;
+	UGEN(o)->gen.tick = clip_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(clip_dtor) {
-	GW_clip* ug = UGEN(o)->ug;
+	GW_clip* ug = UGEN(o)->gen.data;
 	sp_clip_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(clip_get_lim) {
-	GW_clip* ug = (GW_clip*)UGEN(o)->ug;
+	GW_clip* ug = (GW_clip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->lim;
 }
 
 MFUN(clip_set_lim) {
 	m_uint gw_offset = SZ_INT;
-	GW_clip* ug = (GW_clip*)UGEN(o)->ug;
+	GW_clip* ug = (GW_clip*)UGEN(o)->gen.data;
 	m_float lim = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->lim = lim);
 }
@@ -1017,8 +1017,8 @@ typedef struct {
 } GW_clock;
 
 static TICK(clock_tick) {
-	const GW_clock* ug = (GW_clock*)u->ug;
-	sp_clock_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_clock* ug = (GW_clock*)u->gen.data;
+	sp_clock_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -1027,37 +1027,37 @@ CTOR(clock_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_clock_create(&ug->osc);
 	sp_clock_init(ug->sp, ug->osc);
-	UGEN(o)->tick = clock_tick;
+	UGEN(o)->gen.tick = clock_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(clock_dtor) {
-	GW_clock* ug = UGEN(o)->ug;
+	GW_clock* ug = UGEN(o)->gen.data;
 	sp_clock_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(clock_get_bpm) {
-	GW_clock* ug = (GW_clock*)UGEN(o)->ug;
+	GW_clock* ug = (GW_clock*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bpm;
 }
 
 MFUN(clock_set_bpm) {
 	m_uint gw_offset = SZ_INT;
-	GW_clock* ug = (GW_clock*)UGEN(o)->ug;
+	GW_clock* ug = (GW_clock*)UGEN(o)->gen.data;
 	m_float bpm = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bpm = bpm);
 }
 
 MFUN(clock_get_subdiv) {
-	GW_clock* ug = (GW_clock*)UGEN(o)->ug;
+	GW_clock* ug = (GW_clock*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->subdiv;
 }
 
 MFUN(clock_set_subdiv) {
 	m_uint gw_offset = SZ_INT;
-	GW_clock* ug = (GW_clock*)UGEN(o)->ug;
+	GW_clock* ug = (GW_clock*)UGEN(o)->gen.data;
 	m_float subdiv = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->subdiv = subdiv);
 }
@@ -1069,7 +1069,7 @@ typedef struct {
 } GW_comb;
 
 static TICK(comb_tick) {
-	const GW_comb* ug = (GW_comb*)u->ug;
+	const GW_comb* ug = (GW_comb*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -1083,12 +1083,12 @@ CTOR(comb_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = comb_tick;
+	UGEN(o)->gen.tick = comb_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(comb_dtor) {
-	GW_comb* ug = UGEN(o)->ug;
+	GW_comb* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_comb_destroy(&ug->osc);
@@ -1098,7 +1098,7 @@ DTOR(comb_dtor) {
 
 MFUN(comb_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_comb* ug = (GW_comb*)UGEN(o)->ug;
+	GW_comb* ug = (GW_comb*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_comb_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1111,13 +1111,13 @@ MFUN(comb_init) {
 }
 
 MFUN(comb_get_revtime) {
-	GW_comb* ug = (GW_comb*)UGEN(o)->ug;
+	GW_comb* ug = (GW_comb*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->revtime;
 }
 
 MFUN(comb_set_revtime) {
 	m_uint gw_offset = SZ_INT;
-	GW_comb* ug = (GW_comb*)UGEN(o)->ug;
+	GW_comb* ug = (GW_comb*)UGEN(o)->gen.data;
 	m_float revtime = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->revtime = revtime);
 }
@@ -1128,7 +1128,7 @@ typedef struct {
 } GW_compressor;
 
 static TICK(compressor_tick) {
-	const GW_compressor* ug = (GW_compressor*)u->ug;
+	const GW_compressor* ug = (GW_compressor*)u->gen.data;
 	sp_compressor_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1138,60 +1138,60 @@ CTOR(compressor_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_compressor_create(&ug->osc);
 	sp_compressor_init(ug->sp, ug->osc);
-	UGEN(o)->tick = compressor_tick;
+	UGEN(o)->gen.tick = compressor_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(compressor_dtor) {
-	GW_compressor* ug = UGEN(o)->ug;
+	GW_compressor* ug = UGEN(o)->gen.data;
 	sp_compressor_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(compressor_get_ratio) {
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->ratio;
 }
 
 MFUN(compressor_set_ratio) {
 	m_uint gw_offset = SZ_INT;
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	m_float ratio = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->ratio = ratio);
 }
 
 MFUN(compressor_get_thresh) {
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->thresh;
 }
 
 MFUN(compressor_set_thresh) {
 	m_uint gw_offset = SZ_INT;
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->thresh = thresh);
 }
 
 MFUN(compressor_get_atk) {
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->atk;
 }
 
 MFUN(compressor_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->atk = atk);
 }
 
 MFUN(compressor_get_rel) {
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->rel;
 }
 
 MFUN(compressor_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_compressor* ug = (GW_compressor*)UGEN(o)->ug;
+	GW_compressor* ug = (GW_compressor*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->rel = rel);
 }
@@ -1203,7 +1203,7 @@ typedef struct {
 } GW_conv;
 
 static TICK(conv_tick) {
-	const GW_conv* ug = (GW_conv*)u->ug;
+	const GW_conv* ug = (GW_conv*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -1217,12 +1217,12 @@ CTOR(conv_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = conv_tick;
+	UGEN(o)->gen.tick = conv_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(conv_dtor) {
-	GW_conv* ug = UGEN(o)->ug;
+	GW_conv* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_conv_destroy(&ug->osc);
@@ -1232,7 +1232,7 @@ DTOR(conv_dtor) {
 
 MFUN(conv_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_conv* ug = (GW_conv*)UGEN(o)->ug;
+	GW_conv* ug = (GW_conv*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_conv_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1254,8 +1254,8 @@ typedef struct {
 } GW_count;
 
 static TICK(count_tick) {
-	const GW_count* ug = (GW_count*)u->ug;
-	sp_count_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_count* ug = (GW_count*)u->gen.data;
+	sp_count_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -1264,37 +1264,37 @@ CTOR(count_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_count_create(&ug->osc);
 	sp_count_init(ug->sp, ug->osc);
-	UGEN(o)->tick = count_tick;
+	UGEN(o)->gen.tick = count_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(count_dtor) {
-	GW_count* ug = UGEN(o)->ug;
+	GW_count* ug = UGEN(o)->gen.data;
 	sp_count_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(count_get_count) {
-	GW_count* ug = (GW_count*)UGEN(o)->ug;
+	GW_count* ug = (GW_count*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->count;
 }
 
 MFUN(count_set_count) {
 	m_uint gw_offset = SZ_INT;
-	GW_count* ug = (GW_count*)UGEN(o)->ug;
+	GW_count* ug = (GW_count*)UGEN(o)->gen.data;
 	m_float count = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->count = count);
 }
 
 MFUN(count_get_mode) {
-	GW_count* ug = (GW_count*)UGEN(o)->ug;
+	GW_count* ug = (GW_count*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->mode;
 }
 
 MFUN(count_set_mode) {
 	m_uint gw_offset = SZ_INT;
-	GW_count* ug = (GW_count*)UGEN(o)->ug;
+	GW_count* ug = (GW_count*)UGEN(o)->gen.data;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->mode = mode);
 }
@@ -1305,8 +1305,8 @@ typedef struct {
 } GW_crossfade;
 
 static TICK(crossfade_tick) {
-	const GW_crossfade* ug = (GW_crossfade*)u->ug;
-	sp_crossfade_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
+	const GW_crossfade* ug = (GW_crossfade*)u->gen.data;
+	sp_crossfade_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &u->out);
 
 }
 
@@ -1315,24 +1315,24 @@ CTOR(crossfade_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_crossfade_create(&ug->osc);
 	sp_crossfade_init(ug->sp, ug->osc);
-	UGEN(o)->tick = crossfade_tick;
+	UGEN(o)->gen.tick = crossfade_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(crossfade_dtor) {
-	GW_crossfade* ug = UGEN(o)->ug;
+	GW_crossfade* ug = UGEN(o)->gen.data;
 	sp_crossfade_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(crossfade_get_pos) {
-	GW_crossfade* ug = (GW_crossfade*)UGEN(o)->ug;
+	GW_crossfade* ug = (GW_crossfade*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pos;
 }
 
 MFUN(crossfade_set_pos) {
 	m_uint gw_offset = SZ_INT;
-	GW_crossfade* ug = (GW_crossfade*)UGEN(o)->ug;
+	GW_crossfade* ug = (GW_crossfade*)UGEN(o)->gen.data;
 	m_float pos = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pos = pos);
 }
@@ -1343,7 +1343,7 @@ typedef struct {
 } GW_dcblock;
 
 static TICK(dcblock_tick) {
-	const GW_dcblock* ug = (GW_dcblock*)u->ug;
+	const GW_dcblock* ug = (GW_dcblock*)u->gen.data;
 	sp_dcblock_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1353,12 +1353,12 @@ CTOR(dcblock_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_dcblock_create(&ug->osc);
 	sp_dcblock_init(ug->sp, ug->osc);
-	UGEN(o)->tick = dcblock_tick;
+	UGEN(o)->gen.tick = dcblock_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(dcblock_dtor) {
-	GW_dcblock* ug = UGEN(o)->ug;
+	GW_dcblock* ug = UGEN(o)->gen.data;
 	sp_dcblock_destroy(&ug->osc);
 	free(ug);
 }
@@ -1370,7 +1370,7 @@ typedef struct {
 } GW_delay;
 
 static TICK(delay_tick) {
-	const GW_delay* ug = (GW_delay*)u->ug;
+	const GW_delay* ug = (GW_delay*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -1384,12 +1384,12 @@ CTOR(delay_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = delay_tick;
+	UGEN(o)->gen.tick = delay_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(delay_dtor) {
-	GW_delay* ug = UGEN(o)->ug;
+	GW_delay* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_delay_destroy(&ug->osc);
@@ -1399,7 +1399,7 @@ DTOR(delay_dtor) {
 
 MFUN(delay_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_delay* ug = (GW_delay*)UGEN(o)->ug;
+	GW_delay* ug = (GW_delay*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_delay_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1412,13 +1412,13 @@ MFUN(delay_init) {
 }
 
 MFUN(delay_get_feedback) {
-	GW_delay* ug = (GW_delay*)UGEN(o)->ug;
+	GW_delay* ug = (GW_delay*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->feedback;
 }
 
 MFUN(delay_set_feedback) {
 	m_uint gw_offset = SZ_INT;
-	GW_delay* ug = (GW_delay*)UGEN(o)->ug;
+	GW_delay* ug = (GW_delay*)UGEN(o)->gen.data;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->feedback = feedback);
 }
@@ -1429,7 +1429,7 @@ typedef struct {
 } GW_diode;
 
 static TICK(diode_tick) {
-	const GW_diode* ug = (GW_diode*)u->ug;
+	const GW_diode* ug = (GW_diode*)u->gen.data;
 	sp_diode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1439,36 +1439,36 @@ CTOR(diode_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_diode_create(&ug->osc);
 	sp_diode_init(ug->sp, ug->osc);
-	UGEN(o)->tick = diode_tick;
+	UGEN(o)->gen.tick = diode_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(diode_dtor) {
-	GW_diode* ug = UGEN(o)->ug;
+	GW_diode* ug = UGEN(o)->gen.data;
 	sp_diode_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(diode_get_freq) {
-	GW_diode* ug = (GW_diode*)UGEN(o)->ug;
+	GW_diode* ug = (GW_diode*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(diode_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_diode* ug = (GW_diode*)UGEN(o)->ug;
+	GW_diode* ug = (GW_diode*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(diode_get_res) {
-	GW_diode* ug = (GW_diode*)UGEN(o)->ug;
+	GW_diode* ug = (GW_diode*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->res;
 }
 
 MFUN(diode_set_res) {
 	m_uint gw_offset = SZ_INT;
-	GW_diode* ug = (GW_diode*)UGEN(o)->ug;
+	GW_diode* ug = (GW_diode*)UGEN(o)->gen.data;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->res = res);
 }
@@ -1480,7 +1480,7 @@ typedef struct {
 } GW_diskin;
 
 static TICK(diskin_tick) {
-	const GW_diskin* ug = (GW_diskin*)u->ug;
+	const GW_diskin* ug = (GW_diskin*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -1494,12 +1494,12 @@ CTOR(diskin_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = diskin_tick;
+	UGEN(o)->gen.tick = diskin_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(diskin_dtor) {
-	GW_diskin* ug = UGEN(o)->ug;
+	GW_diskin* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_diskin_destroy(&ug->osc);
@@ -1509,7 +1509,7 @@ DTOR(diskin_dtor) {
 
 MFUN(diskin_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_diskin* ug = (GW_diskin*)UGEN(o)->ug;
+	GW_diskin* ug = (GW_diskin*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_diskin_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1529,7 +1529,7 @@ typedef struct {
 } GW_dist;
 
 static TICK(dist_tick) {
-	const GW_dist* ug = (GW_dist*)u->ug;
+	const GW_dist* ug = (GW_dist*)u->gen.data;
 	sp_dist_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1539,60 +1539,60 @@ CTOR(dist_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_dist_create(&ug->osc);
 	sp_dist_init(ug->sp, ug->osc);
-	UGEN(o)->tick = dist_tick;
+	UGEN(o)->gen.tick = dist_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(dist_dtor) {
-	GW_dist* ug = UGEN(o)->ug;
+	GW_dist* ug = UGEN(o)->gen.data;
 	sp_dist_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(dist_get_pregain) {
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pregain;
 }
 
 MFUN(dist_set_pregain) {
 	m_uint gw_offset = SZ_INT;
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	m_float pregain = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pregain = pregain);
 }
 
 MFUN(dist_get_postgain) {
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->postgain;
 }
 
 MFUN(dist_set_postgain) {
 	m_uint gw_offset = SZ_INT;
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	m_float postgain = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->postgain = postgain);
 }
 
 MFUN(dist_get_shape1) {
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->shape1;
 }
 
 MFUN(dist_set_shape1) {
 	m_uint gw_offset = SZ_INT;
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	m_float shape1 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->shape1 = shape1);
 }
 
 MFUN(dist_get_shape2) {
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->shape2;
 }
 
 MFUN(dist_set_shape2) {
 	m_uint gw_offset = SZ_INT;
-	GW_dist* ug = (GW_dist*)UGEN(o)->ug;
+	GW_dist* ug = (GW_dist*)UGEN(o)->gen.data;
 	m_float shape2 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->shape2 = shape2);
 }
@@ -1603,7 +1603,7 @@ typedef struct {
 } GW_dmetro;
 
 static TICK(dmetro_tick) {
-	const GW_dmetro* ug = (GW_dmetro*)u->ug;
+	const GW_dmetro* ug = (GW_dmetro*)u->gen.data;
 	sp_dmetro_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -1613,24 +1613,24 @@ CTOR(dmetro_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_dmetro_create(&ug->osc);
 	sp_dmetro_init(ug->sp, ug->osc);
-	UGEN(o)->tick = dmetro_tick;
+	UGEN(o)->gen.tick = dmetro_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(dmetro_dtor) {
-	GW_dmetro* ug = UGEN(o)->ug;
+	GW_dmetro* ug = UGEN(o)->gen.data;
 	sp_dmetro_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(dmetro_get_time) {
-	GW_dmetro* ug = (GW_dmetro*)UGEN(o)->ug;
+	GW_dmetro* ug = (GW_dmetro*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->time;
 }
 
 MFUN(dmetro_set_time) {
 	m_uint gw_offset = SZ_INT;
-	GW_dmetro* ug = (GW_dmetro*)UGEN(o)->ug;
+	GW_dmetro* ug = (GW_dmetro*)UGEN(o)->gen.data;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->time = time);
 }
@@ -1642,12 +1642,12 @@ typedef struct {
 } GW_drip;
 
 static TICK(drip_tick) {
-	const GW_drip* ug = (GW_drip*)u->ug;
+	const GW_drip* ug = (GW_drip*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_drip_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_drip_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -1656,13 +1656,13 @@ CTOR(drip_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = drip_tick;
+	UGEN(o)->gen.tick = drip_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(drip_dtor) {
-	GW_drip* ug = UGEN(o)->ug;
+	GW_drip* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_drip_destroy(&ug->osc);
@@ -1672,7 +1672,7 @@ DTOR(drip_dtor) {
 
 MFUN(drip_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_drip_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1685,85 +1685,85 @@ MFUN(drip_init) {
 }
 
 MFUN(drip_get_num_tubes) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->num_tubes;
 }
 
 MFUN(drip_set_num_tubes) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float num_tubes = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->num_tubes = num_tubes);
 }
 
 MFUN(drip_get_amp) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(drip_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(drip_get_damp) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->damp;
 }
 
 MFUN(drip_set_damp) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float damp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->damp = damp);
 }
 
 MFUN(drip_get_shake_max) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->shake_max;
 }
 
 MFUN(drip_set_shake_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float shake_max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->shake_max = shake_max);
 }
 
 MFUN(drip_get_freq) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(drip_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(drip_get_freq1) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq1;
 }
 
 MFUN(drip_set_freq1) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float freq1 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq1 = freq1);
 }
 
 MFUN(drip_get_freq2) {
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq2;
 }
 
 MFUN(drip_set_freq2) {
 	m_uint gw_offset = SZ_INT;
-	GW_drip* ug = (GW_drip*)UGEN(o)->ug;
+	GW_drip* ug = (GW_drip*)UGEN(o)->gen.data;
 	m_float freq2 = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq2 = freq2);
 }
@@ -1775,12 +1775,12 @@ typedef struct {
 } GW_dtrig;
 
 static TICK(dtrig_tick) {
-	const GW_dtrig* ug = (GW_dtrig*)u->ug;
+	const GW_dtrig* ug = (GW_dtrig*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_dtrig_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_dtrig_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -1789,13 +1789,13 @@ CTOR(dtrig_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = dtrig_tick;
+	UGEN(o)->gen.tick = dtrig_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(dtrig_dtor) {
-	GW_dtrig* ug = UGEN(o)->ug;
+	GW_dtrig* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_dtrig_destroy(&ug->osc);
@@ -1805,7 +1805,7 @@ DTOR(dtrig_dtor) {
 
 MFUN(dtrig_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_dtrig_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -1820,37 +1820,37 @@ MFUN(dtrig_init) {
 }
 
 MFUN(dtrig_get_loop) {
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->loop;
 }
 
 MFUN(dtrig_set_loop) {
 	m_uint gw_offset = SZ_INT;
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	m_int loop = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->loop = loop);
 }
 
 MFUN(dtrig_get_delay) {
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->delay;
 }
 
 MFUN(dtrig_set_delay) {
 	m_uint gw_offset = SZ_INT;
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	m_float delay = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->delay = delay);
 }
 
 MFUN(dtrig_get_scale) {
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->scale;
 }
 
 MFUN(dtrig_set_scale) {
 	m_uint gw_offset = SZ_INT;
-	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->ug;
+	GW_dtrig* ug = (GW_dtrig*)UGEN(o)->gen.data;
 	m_float scale = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->scale = scale);
 }
@@ -1861,7 +1861,7 @@ typedef struct {
 } GW_dust;
 
 static TICK(dust_tick) {
-	const GW_dust* ug = (GW_dust*)u->ug;
+	const GW_dust* ug = (GW_dust*)u->gen.data;
 	sp_dust_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -1871,48 +1871,48 @@ CTOR(dust_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_dust_create(&ug->osc);
 	sp_dust_init(ug->sp, ug->osc);
-	UGEN(o)->tick = dust_tick;
+	UGEN(o)->gen.tick = dust_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(dust_dtor) {
-	GW_dust* ug = UGEN(o)->ug;
+	GW_dust* ug = UGEN(o)->gen.data;
 	sp_dust_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(dust_get_amp) {
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(dust_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(dust_get_density) {
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->density;
 }
 
 MFUN(dust_set_density) {
 	m_uint gw_offset = SZ_INT;
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	m_float density = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->density = density);
 }
 
 MFUN(dust_get_bipolar) {
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->bipolar;
 }
 
 MFUN(dust_set_bipolar) {
 	m_uint gw_offset = SZ_INT;
-	GW_dust* ug = (GW_dust*)UGEN(o)->ug;
+	GW_dust* ug = (GW_dust*)UGEN(o)->gen.data;
 	m_int bipolar = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->bipolar = bipolar);
 }
@@ -1923,7 +1923,7 @@ typedef struct {
 } GW_eqfil;
 
 static TICK(eqfil_tick) {
-	const GW_eqfil* ug = (GW_eqfil*)u->ug;
+	const GW_eqfil* ug = (GW_eqfil*)u->gen.data;
 	sp_eqfil_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -1933,48 +1933,48 @@ CTOR(eqfil_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_eqfil_create(&ug->osc);
 	sp_eqfil_init(ug->sp, ug->osc);
-	UGEN(o)->tick = eqfil_tick;
+	UGEN(o)->gen.tick = eqfil_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(eqfil_dtor) {
-	GW_eqfil* ug = UGEN(o)->ug;
+	GW_eqfil* ug = UGEN(o)->gen.data;
 	sp_eqfil_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(eqfil_get_freq) {
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(eqfil_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(eqfil_get_bw) {
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bw;
 }
 
 MFUN(eqfil_set_bw) {
 	m_uint gw_offset = SZ_INT;
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bw = bw);
 }
 
 MFUN(eqfil_get_gain) {
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->gain;
 }
 
 MFUN(eqfil_set_gain) {
 	m_uint gw_offset = SZ_INT;
-	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->ug;
+	GW_eqfil* ug = (GW_eqfil*)UGEN(o)->gen.data;
 	m_float gain = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->gain = gain);
 }
@@ -1985,8 +1985,8 @@ typedef struct {
 } GW_expon;
 
 static TICK(expon_tick) {
-	const GW_expon* ug = (GW_expon*)u->ug;
-	sp_expon_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_expon* ug = (GW_expon*)u->gen.data;
+	sp_expon_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -1995,49 +1995,49 @@ CTOR(expon_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_expon_create(&ug->osc);
 	sp_expon_init(ug->sp, ug->osc);
-	UGEN(o)->tick = expon_tick;
+	UGEN(o)->gen.tick = expon_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(expon_dtor) {
-	GW_expon* ug = UGEN(o)->ug;
+	GW_expon* ug = UGEN(o)->gen.data;
 	sp_expon_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(expon_get_a) {
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->a;
 }
 
 MFUN(expon_set_a) {
 	m_uint gw_offset = SZ_INT;
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	m_float a = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->a = a);
 }
 
 MFUN(expon_get_dur) {
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dur;
 }
 
 MFUN(expon_set_dur) {
 	m_uint gw_offset = SZ_INT;
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dur = dur);
 }
 
 MFUN(expon_get_b) {
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->b;
 }
 
 MFUN(expon_set_b) {
 	m_uint gw_offset = SZ_INT;
-	GW_expon* ug = (GW_expon*)UGEN(o)->ug;
+	GW_expon* ug = (GW_expon*)UGEN(o)->gen.data;
 	m_float b = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->b = b);
 }
@@ -2049,7 +2049,7 @@ typedef struct {
 } GW_fof;
 
 static TICK(fof_tick) {
-	const GW_fof* ug = (GW_fof*)u->ug;
+	const GW_fof* ug = (GW_fof*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2063,12 +2063,12 @@ CTOR(fof_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = fof_tick;
+	UGEN(o)->gen.tick = fof_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fof_dtor) {
-	GW_fof* ug = UGEN(o)->ug;
+	GW_fof* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_fof_destroy(&ug->osc);
@@ -2078,7 +2078,7 @@ DTOR(fof_dtor) {
 
 MFUN(fof_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_fof_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -2101,97 +2101,97 @@ MFUN(fof_init) {
 }
 
 MFUN(fof_get_amp) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(fof_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(fof_get_fund) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->fund;
 }
 
 MFUN(fof_set_fund) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float fund = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->fund = fund);
 }
 
 MFUN(fof_get_form) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->form;
 }
 
 MFUN(fof_set_form) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float form = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->form = form);
 }
 
 MFUN(fof_get_oct) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->oct;
 }
 
 MFUN(fof_set_oct) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float oct = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->oct = oct);
 }
 
 MFUN(fof_get_band) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->band;
 }
 
 MFUN(fof_set_band) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float band = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->band = band);
 }
 
 MFUN(fof_get_ris) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->ris;
 }
 
 MFUN(fof_set_ris) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float ris = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->ris = ris);
 }
 
 MFUN(fof_get_dec) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dec;
 }
 
 MFUN(fof_set_dec) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dec = dec);
 }
 
 MFUN(fof_get_dur) {
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dur;
 }
 
 MFUN(fof_set_dur) {
 	m_uint gw_offset = SZ_INT;
-	GW_fof* ug = (GW_fof*)UGEN(o)->ug;
+	GW_fof* ug = (GW_fof*)UGEN(o)->gen.data;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dur = dur);
 }
@@ -2202,7 +2202,7 @@ typedef struct {
 } GW_fofilt;
 
 static TICK(fofilt_tick) {
-	const GW_fofilt* ug = (GW_fofilt*)u->ug;
+	const GW_fofilt* ug = (GW_fofilt*)u->gen.data;
 	sp_fofilt_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2212,48 +2212,48 @@ CTOR(fofilt_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_fofilt_create(&ug->osc);
 	sp_fofilt_init(ug->sp, ug->osc);
-	UGEN(o)->tick = fofilt_tick;
+	UGEN(o)->gen.tick = fofilt_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(fofilt_dtor) {
-	GW_fofilt* ug = UGEN(o)->ug;
+	GW_fofilt* ug = UGEN(o)->gen.data;
 	sp_fofilt_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(fofilt_get_freq) {
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(fofilt_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(fofilt_get_atk) {
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(fofilt_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(fofilt_get_dec) {
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dec;
 }
 
 MFUN(fofilt_set_dec) {
 	m_uint gw_offset = SZ_INT;
-	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->ug;
+	GW_fofilt* ug = (GW_fofilt*)UGEN(o)->gen.data;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dec = dec);
 }
@@ -2265,7 +2265,7 @@ typedef struct {
 } GW_fog;
 
 static TICK(fog_tick) {
-	const GW_fog* ug = (GW_fog*)u->ug;
+	const GW_fog* ug = (GW_fog*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2279,12 +2279,12 @@ CTOR(fog_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = fog_tick;
+	UGEN(o)->gen.tick = fog_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fog_dtor) {
-	GW_fog* ug = UGEN(o)->ug;
+	GW_fog* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_fog_destroy(&ug->osc);
@@ -2294,7 +2294,7 @@ DTOR(fog_dtor) {
 
 MFUN(fog_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_fog_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -2317,109 +2317,109 @@ MFUN(fog_init) {
 }
 
 MFUN(fog_get_amp) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(fog_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(fog_get_dens) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dens;
 }
 
 MFUN(fog_set_dens) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float dens = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dens = dens);
 }
 
 MFUN(fog_get_trans) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->trans;
 }
 
 MFUN(fog_set_trans) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float trans = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->trans = trans);
 }
 
 MFUN(fog_get_spd) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->spd;
 }
 
 MFUN(fog_set_spd) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float spd = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->spd = spd);
 }
 
 MFUN(fog_get_oct) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->oct;
 }
 
 MFUN(fog_set_oct) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float oct = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->oct = oct);
 }
 
 MFUN(fog_get_band) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->band;
 }
 
 MFUN(fog_set_band) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float band = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->band = band);
 }
 
 MFUN(fog_get_ris) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->ris;
 }
 
 MFUN(fog_set_ris) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float ris = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->ris = ris);
 }
 
 MFUN(fog_get_dec) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dec;
 }
 
 MFUN(fog_set_dec) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dec = dec);
 }
 
 MFUN(fog_get_dur) {
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dur;
 }
 
 MFUN(fog_set_dur) {
 	m_uint gw_offset = SZ_INT;
-	GW_fog* ug = (GW_fog*)UGEN(o)->ug;
+	GW_fog* ug = (GW_fog*)UGEN(o)->gen.data;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dur = dur);
 }
@@ -2430,7 +2430,7 @@ typedef struct {
 } GW_fold;
 
 static TICK(fold_tick) {
-	const GW_fold* ug = (GW_fold*)u->ug;
+	const GW_fold* ug = (GW_fold*)u->gen.data;
 	sp_fold_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2440,24 +2440,24 @@ CTOR(fold_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_fold_create(&ug->osc);
 	sp_fold_init(ug->sp, ug->osc);
-	UGEN(o)->tick = fold_tick;
+	UGEN(o)->gen.tick = fold_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(fold_dtor) {
-	GW_fold* ug = UGEN(o)->ug;
+	GW_fold* ug = UGEN(o)->gen.data;
 	sp_fold_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(fold_get_incr) {
-	GW_fold* ug = (GW_fold*)UGEN(o)->ug;
+	GW_fold* ug = (GW_fold*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->incr;
 }
 
 MFUN(fold_set_incr) {
 	m_uint gw_offset = SZ_INT;
-	GW_fold* ug = (GW_fold*)UGEN(o)->ug;
+	GW_fold* ug = (GW_fold*)UGEN(o)->gen.data;
 	m_float incr = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->incr = incr);
 }
@@ -2469,7 +2469,7 @@ typedef struct {
 } GW_fosc;
 
 static TICK(fosc_tick) {
-	const GW_fosc* ug = (GW_fosc*)u->ug;
+	const GW_fosc* ug = (GW_fosc*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2483,12 +2483,12 @@ CTOR(fosc_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = fosc_tick;
+	UGEN(o)->gen.tick = fosc_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(fosc_dtor) {
-	GW_fosc* ug = UGEN(o)->ug;
+	GW_fosc* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_fosc_destroy(&ug->osc);
@@ -2498,7 +2498,7 @@ DTOR(fosc_dtor) {
 
 MFUN(fosc_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_fosc_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -2513,61 +2513,61 @@ MFUN(fosc_init) {
 }
 
 MFUN(fosc_get_freq) {
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(fosc_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(fosc_get_amp) {
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(fosc_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(fosc_get_car) {
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->car;
 }
 
 MFUN(fosc_set_car) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	m_float car = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->car = car);
 }
 
 MFUN(fosc_get_mod) {
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->mod;
 }
 
 MFUN(fosc_set_mod) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	m_float mod = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->mod = mod);
 }
 
 MFUN(fosc_get_indx) {
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->indx;
 }
 
 MFUN(fosc_set_indx) {
 	m_uint gw_offset = SZ_INT;
-	GW_fosc* ug = (GW_fosc*)UGEN(o)->ug;
+	GW_fosc* ug = (GW_fosc*)UGEN(o)->gen.data;
 	m_float indx = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->indx = indx);
 }
@@ -2579,7 +2579,7 @@ typedef struct {
 } GW_gbuzz;
 
 static TICK(gbuzz_tick) {
-	const GW_gbuzz* ug = (GW_gbuzz*)u->ug;
+	const GW_gbuzz* ug = (GW_gbuzz*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -2593,12 +2593,12 @@ CTOR(gbuzz_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = gbuzz_tick;
+	UGEN(o)->gen.tick = gbuzz_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(gbuzz_dtor) {
-	GW_gbuzz* ug = UGEN(o)->ug;
+	GW_gbuzz* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_gbuzz_destroy(&ug->osc);
@@ -2608,7 +2608,7 @@ DTOR(gbuzz_dtor) {
 
 MFUN(gbuzz_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_gbuzz_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -2625,61 +2625,61 @@ MFUN(gbuzz_init) {
 }
 
 MFUN(gbuzz_get_freq) {
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(gbuzz_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(gbuzz_get_amp) {
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(gbuzz_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(gbuzz_get_nharm) {
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->nharm;
 }
 
 MFUN(gbuzz_set_nharm) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	m_float nharm = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->nharm = nharm);
 }
 
 MFUN(gbuzz_get_lharm) {
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->lharm;
 }
 
 MFUN(gbuzz_set_lharm) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	m_float lharm = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->lharm = lharm);
 }
 
 MFUN(gbuzz_get_mul) {
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->mul;
 }
 
 MFUN(gbuzz_set_mul) {
 	m_uint gw_offset = SZ_INT;
-	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->ug;
+	GW_gbuzz* ug = (GW_gbuzz*)UGEN(o)->gen.data;
 	m_float mul = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->mul = mul);
 }
@@ -2840,8 +2840,8 @@ typedef struct {
 } GW_hilbert;
 
 static TICK(hilbert_tick) {
-	const GW_hilbert* ug = (GW_hilbert*)u->ug;
-	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_hilbert* ug = (GW_hilbert*)u->gen.data;
+	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -2850,12 +2850,12 @@ CTOR(hilbert_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_hilbert_create(&ug->osc);
 	sp_hilbert_init(ug->sp, ug->osc);
-	UGEN(o)->tick = hilbert_tick;
+	UGEN(o)->gen.tick = hilbert_tick;
 	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(hilbert_dtor) {
-	GW_hilbert* ug = UGEN(o)->ug;
+	GW_hilbert* ug = UGEN(o)->gen.data;
 	sp_hilbert_destroy(&ug->osc);
 	free(ug);
 }
@@ -2866,7 +2866,7 @@ typedef struct {
 } GW_in;
 
 static TICK(in_tick) {
-	const GW_in* ug = (GW_in*)u->ug;
+	const GW_in* ug = (GW_in*)u->gen.data;
 	sp_in_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -2876,12 +2876,12 @@ CTOR(in_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_in_create(&ug->osc);
 	sp_in_init(ug->sp, ug->osc);
-	UGEN(o)->tick = in_tick;
+	UGEN(o)->gen.tick = in_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(in_dtor) {
-	GW_in* ug = UGEN(o)->ug;
+	GW_in* ug = UGEN(o)->gen.data;
 	sp_in_destroy(&ug->osc);
 	free(ug);
 }
@@ -2893,12 +2893,12 @@ typedef struct {
 } GW_incr;
 
 static TICK(incr_tick) {
-	const GW_incr* ug = (GW_incr*)u->ug;
+	const GW_incr* ug = (GW_incr*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_incr_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_incr_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -2907,13 +2907,13 @@ CTOR(incr_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = incr_tick;
+	UGEN(o)->gen.tick = incr_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(incr_dtor) {
-	GW_incr* ug = UGEN(o)->ug;
+	GW_incr* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_incr_destroy(&ug->osc);
@@ -2923,7 +2923,7 @@ DTOR(incr_dtor) {
 
 MFUN(incr_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_incr_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -2936,37 +2936,37 @@ MFUN(incr_init) {
 }
 
 MFUN(incr_get_step) {
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->step;
 }
 
 MFUN(incr_set_step) {
 	m_uint gw_offset = SZ_INT;
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	m_float step = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->step = step);
 }
 
 MFUN(incr_get_min) {
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(incr_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(incr_get_max) {
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(incr_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_incr* ug = (GW_incr*)UGEN(o)->ug;
+	GW_incr* ug = (GW_incr*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
@@ -2977,7 +2977,7 @@ typedef struct {
 } GW_jcrev;
 
 static TICK(jcrev_tick) {
-	const GW_jcrev* ug = (GW_jcrev*)u->ug;
+	const GW_jcrev* ug = (GW_jcrev*)u->gen.data;
 	sp_jcrev_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -2987,12 +2987,12 @@ CTOR(jcrev_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_jcrev_create(&ug->osc);
 	sp_jcrev_init(ug->sp, ug->osc);
-	UGEN(o)->tick = jcrev_tick;
+	UGEN(o)->gen.tick = jcrev_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(jcrev_dtor) {
-	GW_jcrev* ug = UGEN(o)->ug;
+	GW_jcrev* ug = UGEN(o)->gen.data;
 	sp_jcrev_destroy(&ug->osc);
 	free(ug);
 }
@@ -3003,7 +3003,7 @@ typedef struct {
 } GW_jitter;
 
 static TICK(jitter_tick) {
-	const GW_jitter* ug = (GW_jitter*)u->ug;
+	const GW_jitter* ug = (GW_jitter*)u->gen.data;
 	sp_jitter_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -3013,48 +3013,48 @@ CTOR(jitter_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_jitter_create(&ug->osc);
 	sp_jitter_init(ug->sp, ug->osc);
-	UGEN(o)->tick = jitter_tick;
+	UGEN(o)->gen.tick = jitter_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(jitter_dtor) {
-	GW_jitter* ug = UGEN(o)->ug;
+	GW_jitter* ug = UGEN(o)->gen.data;
 	sp_jitter_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(jitter_get_amp) {
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(jitter_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(jitter_get_cpsMin) {
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cpsMin;
 }
 
 MFUN(jitter_set_cpsMin) {
 	m_uint gw_offset = SZ_INT;
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	m_float cpsMin = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cpsMin = cpsMin);
 }
 
 MFUN(jitter_get_cpsMax) {
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cpsMax;
 }
 
 MFUN(jitter_set_cpsMax) {
 	m_uint gw_offset = SZ_INT;
-	GW_jitter* ug = (GW_jitter*)UGEN(o)->ug;
+	GW_jitter* ug = (GW_jitter*)UGEN(o)->gen.data;
 	m_float cpsMax = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cpsMax = cpsMax);
 }
@@ -3065,8 +3065,8 @@ typedef struct {
 } GW_line;
 
 static TICK(line_tick) {
-	const GW_line* ug = (GW_line*)u->ug;
-	sp_line_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_line* ug = (GW_line*)u->gen.data;
+	sp_line_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -3075,49 +3075,49 @@ CTOR(line_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_line_create(&ug->osc);
 	sp_line_init(ug->sp, ug->osc);
-	UGEN(o)->tick = line_tick;
+	UGEN(o)->gen.tick = line_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(line_dtor) {
-	GW_line* ug = UGEN(o)->ug;
+	GW_line* ug = UGEN(o)->gen.data;
 	sp_line_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(line_get_a) {
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->a;
 }
 
 MFUN(line_set_a) {
 	m_uint gw_offset = SZ_INT;
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	m_float a = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->a = a);
 }
 
 MFUN(line_get_dur) {
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dur;
 }
 
 MFUN(line_set_dur) {
 	m_uint gw_offset = SZ_INT;
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dur = dur);
 }
 
 MFUN(line_get_b) {
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->b;
 }
 
 MFUN(line_set_b) {
 	m_uint gw_offset = SZ_INT;
-	GW_line* ug = (GW_line*)UGEN(o)->ug;
+	GW_line* ug = (GW_line*)UGEN(o)->gen.data;
 	m_float b = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->b = b);
 }
@@ -3129,7 +3129,7 @@ typedef struct {
 } GW_lpc;
 
 static TICK(lpc_tick) {
-	const GW_lpc* ug = (GW_lpc*)u->ug;
+	const GW_lpc* ug = (GW_lpc*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3143,12 +3143,12 @@ CTOR(lpc_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = lpc_tick;
+	UGEN(o)->gen.tick = lpc_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(lpc_dtor) {
-	GW_lpc* ug = UGEN(o)->ug;
+	GW_lpc* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_lpc_destroy(&ug->osc);
@@ -3158,7 +3158,7 @@ DTOR(lpc_dtor) {
 
 MFUN(lpc_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_lpc* ug = (GW_lpc*)UGEN(o)->ug;
+	GW_lpc* ug = (GW_lpc*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_lpc_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -3176,7 +3176,7 @@ typedef struct {
 } GW_lpf18;
 
 static TICK(lpf18_tick) {
-	const GW_lpf18* ug = (GW_lpf18*)u->ug;
+	const GW_lpf18* ug = (GW_lpf18*)u->gen.data;
 	sp_lpf18_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3186,48 +3186,48 @@ CTOR(lpf18_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_lpf18_create(&ug->osc);
 	sp_lpf18_init(ug->sp, ug->osc);
-	UGEN(o)->tick = lpf18_tick;
+	UGEN(o)->gen.tick = lpf18_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(lpf18_dtor) {
-	GW_lpf18* ug = UGEN(o)->ug;
+	GW_lpf18* ug = UGEN(o)->gen.data;
 	sp_lpf18_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(lpf18_get_cutoff) {
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cutoff;
 }
 
 MFUN(lpf18_set_cutoff) {
 	m_uint gw_offset = SZ_INT;
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	m_float cutoff = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cutoff = cutoff);
 }
 
 MFUN(lpf18_get_res) {
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->res;
 }
 
 MFUN(lpf18_set_res) {
 	m_uint gw_offset = SZ_INT;
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->res = res);
 }
 
 MFUN(lpf18_get_dist) {
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dist;
 }
 
 MFUN(lpf18_set_dist) {
 	m_uint gw_offset = SZ_INT;
-	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->ug;
+	GW_lpf18* ug = (GW_lpf18*)UGEN(o)->gen.data;
 	m_float dist = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dist = dist);
 }
@@ -3238,8 +3238,8 @@ typedef struct {
 } GW_maygate;
 
 static TICK(maygate_tick) {
-	const GW_maygate* ug = (GW_maygate*)u->ug;
-	sp_maygate_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_maygate* ug = (GW_maygate*)u->gen.data;
+	sp_maygate_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -3248,37 +3248,37 @@ CTOR(maygate_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_maygate_create(&ug->osc);
 	sp_maygate_init(ug->sp, ug->osc);
-	UGEN(o)->tick = maygate_tick;
+	UGEN(o)->gen.tick = maygate_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(maygate_dtor) {
-	GW_maygate* ug = UGEN(o)->ug;
+	GW_maygate* ug = UGEN(o)->gen.data;
 	sp_maygate_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(maygate_get_prob) {
-	GW_maygate* ug = (GW_maygate*)UGEN(o)->ug;
+	GW_maygate* ug = (GW_maygate*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->prob;
 }
 
 MFUN(maygate_set_prob) {
 	m_uint gw_offset = SZ_INT;
-	GW_maygate* ug = (GW_maygate*)UGEN(o)->ug;
+	GW_maygate* ug = (GW_maygate*)UGEN(o)->gen.data;
 	m_float prob = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->prob = prob);
 }
 
 MFUN(maygate_get_mode) {
-	GW_maygate* ug = (GW_maygate*)UGEN(o)->ug;
+	GW_maygate* ug = (GW_maygate*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->mode;
 }
 
 MFUN(maygate_set_mode) {
 	m_uint gw_offset = SZ_INT;
-	GW_maygate* ug = (GW_maygate*)UGEN(o)->ug;
+	GW_maygate* ug = (GW_maygate*)UGEN(o)->gen.data;
 	m_int mode = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->mode = mode);
 }
@@ -3289,7 +3289,7 @@ typedef struct {
 } GW_metro;
 
 static TICK(metro_tick) {
-	const GW_metro* ug = (GW_metro*)u->ug;
+	const GW_metro* ug = (GW_metro*)u->gen.data;
 	sp_metro_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -3299,24 +3299,24 @@ CTOR(metro_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_metro_create(&ug->osc);
 	sp_metro_init(ug->sp, ug->osc);
-	UGEN(o)->tick = metro_tick;
+	UGEN(o)->gen.tick = metro_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(metro_dtor) {
-	GW_metro* ug = UGEN(o)->ug;
+	GW_metro* ug = UGEN(o)->gen.data;
 	sp_metro_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(metro_get_freq) {
-	GW_metro* ug = (GW_metro*)UGEN(o)->ug;
+	GW_metro* ug = (GW_metro*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(metro_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_metro* ug = (GW_metro*)UGEN(o)->ug;
+	GW_metro* ug = (GW_metro*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
@@ -3328,7 +3328,7 @@ typedef struct {
 } GW_mincer;
 
 static TICK(mincer_tick) {
-	const GW_mincer* ug = (GW_mincer*)u->ug;
+	const GW_mincer* ug = (GW_mincer*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3342,12 +3342,12 @@ CTOR(mincer_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = mincer_tick;
+	UGEN(o)->gen.tick = mincer_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(mincer_dtor) {
-	GW_mincer* ug = UGEN(o)->ug;
+	GW_mincer* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_mincer_destroy(&ug->osc);
@@ -3357,7 +3357,7 @@ DTOR(mincer_dtor) {
 
 MFUN(mincer_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_mincer_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -3374,37 +3374,37 @@ MFUN(mincer_init) {
 }
 
 MFUN(mincer_get_time) {
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->time;
 }
 
 MFUN(mincer_set_time) {
 	m_uint gw_offset = SZ_INT;
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->time = time);
 }
 
 MFUN(mincer_get_amp) {
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(mincer_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(mincer_get_pitch) {
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pitch;
 }
 
 MFUN(mincer_set_pitch) {
 	m_uint gw_offset = SZ_INT;
-	GW_mincer* ug = (GW_mincer*)UGEN(o)->ug;
+	GW_mincer* ug = (GW_mincer*)UGEN(o)->gen.data;
 	m_float pitch = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pitch = pitch);
 }
@@ -3415,7 +3415,7 @@ typedef struct {
 } GW_mode;
 
 static TICK(mode_tick) {
-	const GW_mode* ug = (GW_mode*)u->ug;
+	const GW_mode* ug = (GW_mode*)u->gen.data;
 	sp_mode_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3425,36 +3425,36 @@ CTOR(mode_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_mode_create(&ug->osc);
 	sp_mode_init(ug->sp, ug->osc);
-	UGEN(o)->tick = mode_tick;
+	UGEN(o)->gen.tick = mode_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(mode_dtor) {
-	GW_mode* ug = UGEN(o)->ug;
+	GW_mode* ug = UGEN(o)->gen.data;
 	sp_mode_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(mode_get_freq) {
-	GW_mode* ug = (GW_mode*)UGEN(o)->ug;
+	GW_mode* ug = (GW_mode*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(mode_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_mode* ug = (GW_mode*)UGEN(o)->ug;
+	GW_mode* ug = (GW_mode*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(mode_get_q) {
-	GW_mode* ug = (GW_mode*)UGEN(o)->ug;
+	GW_mode* ug = (GW_mode*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->q;
 }
 
 MFUN(mode_set_q) {
 	m_uint gw_offset = SZ_INT;
-	GW_mode* ug = (GW_mode*)UGEN(o)->ug;
+	GW_mode* ug = (GW_mode*)UGEN(o)->gen.data;
 	m_float q = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->q = q);
 }
@@ -3465,7 +3465,7 @@ typedef struct {
 } GW_moogladder;
 
 static TICK(moogladder_tick) {
-	const GW_moogladder* ug = (GW_moogladder*)u->ug;
+	const GW_moogladder* ug = (GW_moogladder*)u->gen.data;
 	sp_moogladder_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3475,36 +3475,36 @@ CTOR(moogladder_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_moogladder_create(&ug->osc);
 	sp_moogladder_init(ug->sp, ug->osc);
-	UGEN(o)->tick = moogladder_tick;
+	UGEN(o)->gen.tick = moogladder_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(moogladder_dtor) {
-	GW_moogladder* ug = UGEN(o)->ug;
+	GW_moogladder* ug = UGEN(o)->gen.data;
 	sp_moogladder_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(moogladder_get_freq) {
-	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->ug;
+	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(moogladder_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->ug;
+	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(moogladder_get_res) {
-	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->ug;
+	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->res;
 }
 
 MFUN(moogladder_set_res) {
 	m_uint gw_offset = SZ_INT;
-	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->ug;
+	GW_moogladder* ug = (GW_moogladder*)UGEN(o)->gen.data;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->res = res);
 }
@@ -3515,7 +3515,7 @@ typedef struct {
 } GW_noise;
 
 static TICK(noise_tick) {
-	const GW_noise* ug = (GW_noise*)u->ug;
+	const GW_noise* ug = (GW_noise*)u->gen.data;
 	sp_noise_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -3525,24 +3525,24 @@ CTOR(noise_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_noise_create(&ug->osc);
 	sp_noise_init(ug->sp, ug->osc);
-	UGEN(o)->tick = noise_tick;
+	UGEN(o)->gen.tick = noise_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(noise_dtor) {
-	GW_noise* ug = UGEN(o)->ug;
+	GW_noise* ug = UGEN(o)->gen.data;
 	sp_noise_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(noise_get_amp) {
-	GW_noise* ug = (GW_noise*)UGEN(o)->ug;
+	GW_noise* ug = (GW_noise*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(noise_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_noise* ug = (GW_noise*)UGEN(o)->ug;
+	GW_noise* ug = (GW_noise*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -3554,12 +3554,12 @@ typedef struct {
 } GW_nsmp;
 
 static TICK(nsmp_tick) {
-	const GW_nsmp* ug = (GW_nsmp*)u->ug;
+	const GW_nsmp* ug = (GW_nsmp*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_nsmp_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_nsmp_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -3568,13 +3568,13 @@ CTOR(nsmp_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = nsmp_tick;
+	UGEN(o)->gen.tick = nsmp_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(nsmp_dtor) {
-	GW_nsmp* ug = UGEN(o)->ug;
+	GW_nsmp* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_nsmp_destroy(&ug->osc);
@@ -3584,7 +3584,7 @@ DTOR(nsmp_dtor) {
 
 MFUN(nsmp_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->ug;
+	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_nsmp_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -3605,13 +3605,13 @@ MFUN(nsmp_init) {
 }
 
 MFUN(nsmp_get_index) {
-	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->ug;
+	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->index;
 }
 
 MFUN(nsmp_set_index) {
 	m_uint gw_offset = SZ_INT;
-	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->ug;
+	GW_nsmp* ug = (GW_nsmp*)UGEN(o)->gen.data;
 	m_int index = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->index = index);
 }
@@ -3623,7 +3623,7 @@ typedef struct {
 } GW_osc;
 
 static TICK(osc_tick) {
-	const GW_osc* ug = (GW_osc*)u->ug;
+	const GW_osc* ug = (GW_osc*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3637,12 +3637,12 @@ CTOR(osc_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = osc_tick;
+	UGEN(o)->gen.tick = osc_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(osc_dtor) {
-	GW_osc* ug = UGEN(o)->ug;
+	GW_osc* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_osc_destroy(&ug->osc);
@@ -3652,7 +3652,7 @@ DTOR(osc_dtor) {
 
 MFUN(osc_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_osc* ug = (GW_osc*)UGEN(o)->ug;
+	GW_osc* ug = (GW_osc*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_osc_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -3669,25 +3669,25 @@ MFUN(osc_init) {
 }
 
 MFUN(osc_get_freq) {
-	GW_osc* ug = (GW_osc*)UGEN(o)->ug;
+	GW_osc* ug = (GW_osc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(osc_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_osc* ug = (GW_osc*)UGEN(o)->ug;
+	GW_osc* ug = (GW_osc*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(osc_get_amp) {
-	GW_osc* ug = (GW_osc*)UGEN(o)->ug;
+	GW_osc* ug = (GW_osc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(osc_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_osc* ug = (GW_osc*)UGEN(o)->ug;
+	GW_osc* ug = (GW_osc*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -3701,7 +3701,7 @@ typedef struct {
 } GW_oscmorph;
 
 static TICK(oscmorph_tick) {
-	const GW_oscmorph* ug = (GW_oscmorph*)u->ug;
+	const GW_oscmorph* ug = (GW_oscmorph*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3715,12 +3715,12 @@ CTOR(oscmorph_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = oscmorph_tick;
+	UGEN(o)->gen.tick = oscmorph_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(oscmorph_dtor) {
-	GW_oscmorph* ug = UGEN(o)->ug;
+	GW_oscmorph* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		free(ug->osc->tbl);
@@ -3732,7 +3732,7 @@ DTOR(oscmorph_dtor) {
 
 MFUN(oscmorph_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_oscmorph_destroy(&ug->osc);
 		free(ug->tbl);
@@ -3760,37 +3760,37 @@ MFUN(oscmorph_init) {
 }
 
 MFUN(oscmorph_get_freq) {
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(oscmorph_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(oscmorph_get_amp) {
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(oscmorph_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
 
 MFUN(oscmorph_get_wtpos) {
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->wtpos;
 }
 
 MFUN(oscmorph_set_wtpos) {
 	m_uint gw_offset = SZ_INT;
-	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->ug;
+	GW_oscmorph* ug = (GW_oscmorph*)UGEN(o)->gen.data;
 	m_float wtpos = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->wtpos = wtpos);
 }
@@ -3801,8 +3801,8 @@ typedef struct {
 } GW_pan2;
 
 static TICK(pan2_tick) {
-	const GW_pan2* ug = (GW_pan2*)u->ug;
-	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_pan2* ug = (GW_pan2*)u->gen.data;
+	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -3811,36 +3811,36 @@ CTOR(pan2_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_pan2_create(&ug->osc);
 	sp_pan2_init(ug->sp, ug->osc);
-	UGEN(o)->tick = pan2_tick;
+	UGEN(o)->gen.tick = pan2_tick;
 	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(pan2_dtor) {
-	GW_pan2* ug = UGEN(o)->ug;
+	GW_pan2* ug = UGEN(o)->gen.data;
 	sp_pan2_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(pan2_get_type) {
-	GW_pan2* ug = (GW_pan2*)UGEN(o)->ug;
+	GW_pan2* ug = (GW_pan2*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->type;
 }
 
 MFUN(pan2_set_type) {
 	m_uint gw_offset = SZ_INT;
-	GW_pan2* ug = (GW_pan2*)UGEN(o)->ug;
+	GW_pan2* ug = (GW_pan2*)UGEN(o)->gen.data;
 	m_int type = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->type = type);
 }
 
 MFUN(pan2_get_pan) {
-	GW_pan2* ug = (GW_pan2*)UGEN(o)->ug;
+	GW_pan2* ug = (GW_pan2*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pan;
 }
 
 MFUN(pan2_set_pan) {
 	m_uint gw_offset = SZ_INT;
-	GW_pan2* ug = (GW_pan2*)UGEN(o)->ug;
+	GW_pan2* ug = (GW_pan2*)UGEN(o)->gen.data;
 	m_float pan = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pan = pan);
 }
@@ -3851,8 +3851,8 @@ typedef struct {
 } GW_panst;
 
 static TICK(panst_tick) {
-	const GW_panst* ug = (GW_panst*)u->ug;
-	sp_panst_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_panst* ug = (GW_panst*)u->gen.data;
+	sp_panst_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -3861,36 +3861,36 @@ CTOR(panst_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_panst_create(&ug->osc);
 	sp_panst_init(ug->sp, ug->osc);
-	UGEN(o)->tick = panst_tick;
+	UGEN(o)->gen.tick = panst_tick;
 	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(panst_dtor) {
-	GW_panst* ug = UGEN(o)->ug;
+	GW_panst* ug = UGEN(o)->gen.data;
 	sp_panst_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(panst_get_type) {
-	GW_panst* ug = (GW_panst*)UGEN(o)->ug;
+	GW_panst* ug = (GW_panst*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->type;
 }
 
 MFUN(panst_set_type) {
 	m_uint gw_offset = SZ_INT;
-	GW_panst* ug = (GW_panst*)UGEN(o)->ug;
+	GW_panst* ug = (GW_panst*)UGEN(o)->gen.data;
 	m_int type = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->type = type);
 }
 
 MFUN(panst_get_pan) {
-	GW_panst* ug = (GW_panst*)UGEN(o)->ug;
+	GW_panst* ug = (GW_panst*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->pan;
 }
 
 MFUN(panst_set_pan) {
 	m_uint gw_offset = SZ_INT;
-	GW_panst* ug = (GW_panst*)UGEN(o)->ug;
+	GW_panst* ug = (GW_panst*)UGEN(o)->gen.data;
 	m_float pan = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->pan = pan);
 }
@@ -3901,7 +3901,7 @@ typedef struct {
 } GW_pareq;
 
 static TICK(pareq_tick) {
-	const GW_pareq* ug = (GW_pareq*)u->ug;
+	const GW_pareq* ug = (GW_pareq*)u->gen.data;
 	sp_pareq_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -3911,60 +3911,60 @@ CTOR(pareq_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_pareq_create(&ug->osc);
 	sp_pareq_init(ug->sp, ug->osc);
-	UGEN(o)->tick = pareq_tick;
+	UGEN(o)->gen.tick = pareq_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pareq_dtor) {
-	GW_pareq* ug = UGEN(o)->ug;
+	GW_pareq* ug = UGEN(o)->gen.data;
 	sp_pareq_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(pareq_get_fc) {
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->fc;
 }
 
 MFUN(pareq_set_fc) {
 	m_uint gw_offset = SZ_INT;
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	m_float fc = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->fc = fc);
 }
 
 MFUN(pareq_get_v) {
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->v;
 }
 
 MFUN(pareq_set_v) {
 	m_uint gw_offset = SZ_INT;
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	m_float v = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->v = v);
 }
 
 MFUN(pareq_get_q) {
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->q;
 }
 
 MFUN(pareq_set_q) {
 	m_uint gw_offset = SZ_INT;
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	m_float q = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->q = q);
 }
 
 MFUN(pareq_get_mode) {
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->mode;
 }
 
 MFUN(pareq_set_mode) {
 	m_uint gw_offset = SZ_INT;
-	GW_pareq* ug = (GW_pareq*)UGEN(o)->ug;
+	GW_pareq* ug = (GW_pareq*)UGEN(o)->gen.data;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->mode = mode);
 }
@@ -3976,7 +3976,7 @@ typedef struct {
 } GW_paulstretch;
 
 static TICK(paulstretch_tick) {
-	const GW_paulstretch* ug = (GW_paulstretch*)u->ug;
+	const GW_paulstretch* ug = (GW_paulstretch*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -3990,12 +3990,12 @@ CTOR(paulstretch_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = paulstretch_tick;
+	UGEN(o)->gen.tick = paulstretch_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(paulstretch_dtor) {
-	GW_paulstretch* ug = UGEN(o)->ug;
+	GW_paulstretch* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_paulstretch_destroy(&ug->osc);
@@ -4005,7 +4005,7 @@ DTOR(paulstretch_dtor) {
 
 MFUN(paulstretch_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_paulstretch* ug = (GW_paulstretch*)UGEN(o)->ug;
+	GW_paulstretch* ug = (GW_paulstretch*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_paulstretch_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4029,7 +4029,7 @@ typedef struct {
 } GW_pdhalf;
 
 static TICK(pdhalf_tick) {
-	const GW_pdhalf* ug = (GW_pdhalf*)u->ug;
+	const GW_pdhalf* ug = (GW_pdhalf*)u->gen.data;
 	sp_pdhalf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4039,24 +4039,24 @@ CTOR(pdhalf_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_pdhalf_create(&ug->osc);
 	sp_pdhalf_init(ug->sp, ug->osc);
-	UGEN(o)->tick = pdhalf_tick;
+	UGEN(o)->gen.tick = pdhalf_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pdhalf_dtor) {
-	GW_pdhalf* ug = UGEN(o)->ug;
+	GW_pdhalf* ug = UGEN(o)->gen.data;
 	sp_pdhalf_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(pdhalf_get_amount) {
-	GW_pdhalf* ug = (GW_pdhalf*)UGEN(o)->ug;
+	GW_pdhalf* ug = (GW_pdhalf*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amount;
 }
 
 MFUN(pdhalf_set_amount) {
 	m_uint gw_offset = SZ_INT;
-	GW_pdhalf* ug = (GW_pdhalf*)UGEN(o)->ug;
+	GW_pdhalf* ug = (GW_pdhalf*)UGEN(o)->gen.data;
 	m_float amount = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amount = amount);
 }
@@ -4067,7 +4067,7 @@ typedef struct {
 } GW_peaklim;
 
 static TICK(peaklim_tick) {
-	const GW_peaklim* ug = (GW_peaklim*)u->ug;
+	const GW_peaklim* ug = (GW_peaklim*)u->gen.data;
 	sp_peaklim_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4077,48 +4077,48 @@ CTOR(peaklim_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_peaklim_create(&ug->osc);
 	sp_peaklim_init(ug->sp, ug->osc);
-	UGEN(o)->tick = peaklim_tick;
+	UGEN(o)->gen.tick = peaklim_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(peaklim_dtor) {
-	GW_peaklim* ug = UGEN(o)->ug;
+	GW_peaklim* ug = UGEN(o)->gen.data;
 	sp_peaklim_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(peaklim_get_atk) {
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(peaklim_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(peaklim_get_rel) {
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(peaklim_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
 
 MFUN(peaklim_get_thresh) {
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->thresh;
 }
 
 MFUN(peaklim_set_thresh) {
 	m_uint gw_offset = SZ_INT;
-	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->ug;
+	GW_peaklim* ug = (GW_peaklim*)UGEN(o)->gen.data;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->thresh = thresh);
 }
@@ -4129,8 +4129,8 @@ typedef struct {
 } GW_phaser;
 
 static TICK(phaser_tick) {
-	const GW_phaser* ug = (GW_phaser*)u->ug;
-	sp_phaser_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_phaser* ug = (GW_phaser*)u->gen.data;
+	sp_phaser_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -4139,132 +4139,132 @@ CTOR(phaser_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_phaser_create(&ug->osc);
 	sp_phaser_init(ug->sp, ug->osc);
-	UGEN(o)->tick = phaser_tick;
+	UGEN(o)->gen.tick = phaser_tick;
 	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(phaser_dtor) {
-	GW_phaser* ug = UGEN(o)->ug;
+	GW_phaser* ug = UGEN(o)->gen.data;
 	sp_phaser_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(phaser_get_MaxNotch1Freq) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->MaxNotch1Freq;
 }
 
 MFUN(phaser_set_MaxNotch1Freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float MaxNotch1Freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->MaxNotch1Freq = MaxNotch1Freq);
 }
 
 MFUN(phaser_get_MinNotch1Freq) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->MinNotch1Freq;
 }
 
 MFUN(phaser_set_MinNotch1Freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float MinNotch1Freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->MinNotch1Freq = MinNotch1Freq);
 }
 
 MFUN(phaser_get_Notch_width) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->Notch_width;
 }
 
 MFUN(phaser_set_Notch_width) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float Notch_width = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->Notch_width = Notch_width);
 }
 
 MFUN(phaser_get_NotchFreq) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->NotchFreq;
 }
 
 MFUN(phaser_set_NotchFreq) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float NotchFreq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->NotchFreq = NotchFreq);
 }
 
 MFUN(phaser_get_VibratoMode) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->VibratoMode;
 }
 
 MFUN(phaser_set_VibratoMode) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float VibratoMode = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->VibratoMode = VibratoMode);
 }
 
 MFUN(phaser_get_depth) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->depth;
 }
 
 MFUN(phaser_set_depth) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float depth = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->depth = depth);
 }
 
 MFUN(phaser_get_feedback_gain) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->feedback_gain;
 }
 
 MFUN(phaser_set_feedback_gain) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float feedback_gain = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->feedback_gain = feedback_gain);
 }
 
 MFUN(phaser_get_invert) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->invert;
 }
 
 MFUN(phaser_set_invert) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float invert = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->invert = invert);
 }
 
 MFUN(phaser_get_level) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->level;
 }
 
 MFUN(phaser_set_level) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->level = level);
 }
 
 MFUN(phaser_get_lfobpm) {
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->lfobpm;
 }
 
 MFUN(phaser_set_lfobpm) {
 	m_uint gw_offset = SZ_INT;
-	GW_phaser* ug = (GW_phaser*)UGEN(o)->ug;
+	GW_phaser* ug = (GW_phaser*)UGEN(o)->gen.data;
 	m_float lfobpm = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->lfobpm = lfobpm);
 }
@@ -4276,7 +4276,7 @@ typedef struct {
 } GW_phasor;
 
 static TICK(phasor_tick) {
-	const GW_phasor* ug = (GW_phasor*)u->ug;
+	const GW_phasor* ug = (GW_phasor*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4290,12 +4290,12 @@ CTOR(phasor_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = phasor_tick;
+	UGEN(o)->gen.tick = phasor_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(phasor_dtor) {
-	GW_phasor* ug = UGEN(o)->ug;
+	GW_phasor* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_phasor_destroy(&ug->osc);
@@ -4305,7 +4305,7 @@ DTOR(phasor_dtor) {
 
 MFUN(phasor_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_phasor* ug = (GW_phasor*)UGEN(o)->ug;
+	GW_phasor* ug = (GW_phasor*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_phasor_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4318,13 +4318,13 @@ MFUN(phasor_init) {
 }
 
 MFUN(phasor_get_freq) {
-	GW_phasor* ug = (GW_phasor*)UGEN(o)->ug;
+	GW_phasor* ug = (GW_phasor*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(phasor_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_phasor* ug = (GW_phasor*)UGEN(o)->ug;
+	GW_phasor* ug = (GW_phasor*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
@@ -4335,7 +4335,7 @@ typedef struct {
 } GW_pinknoise;
 
 static TICK(pinknoise_tick) {
-	const GW_pinknoise* ug = (GW_pinknoise*)u->ug;
+	const GW_pinknoise* ug = (GW_pinknoise*)u->gen.data;
 	sp_pinknoise_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -4345,24 +4345,24 @@ CTOR(pinknoise_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_pinknoise_create(&ug->osc);
 	sp_pinknoise_init(ug->sp, ug->osc);
-	UGEN(o)->tick = pinknoise_tick;
+	UGEN(o)->gen.tick = pinknoise_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(pinknoise_dtor) {
-	GW_pinknoise* ug = UGEN(o)->ug;
+	GW_pinknoise* ug = UGEN(o)->gen.data;
 	sp_pinknoise_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(pinknoise_get_amp) {
-	GW_pinknoise* ug = (GW_pinknoise*)UGEN(o)->ug;
+	GW_pinknoise* ug = (GW_pinknoise*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(pinknoise_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_pinknoise* ug = (GW_pinknoise*)UGEN(o)->ug;
+	GW_pinknoise* ug = (GW_pinknoise*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -4374,12 +4374,12 @@ typedef struct {
 } GW_pitchamdf;
 
 static TICK(pitchamdf_tick) {
-	const GW_pitchamdf* ug = (GW_pitchamdf*)u->ug;
+	const GW_pitchamdf* ug = (GW_pitchamdf*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -4388,12 +4388,12 @@ CTOR(pitchamdf_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = pitchamdf_tick;
+	UGEN(o)->gen.tick = pitchamdf_tick;
 	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(pitchamdf_dtor) {
-	GW_pitchamdf* ug = UGEN(o)->ug;
+	GW_pitchamdf* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_pitchamdf_destroy(&ug->osc);
@@ -4403,7 +4403,7 @@ DTOR(pitchamdf_dtor) {
 
 MFUN(pitchamdf_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_pitchamdf* ug = (GW_pitchamdf*)UGEN(o)->ug;
+	GW_pitchamdf* ug = (GW_pitchamdf*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_pitchamdf_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4424,12 +4424,12 @@ typedef struct {
 } GW_pluck;
 
 static TICK(pluck_tick) {
-	const GW_pluck* ug = (GW_pluck*)u->ug;
+	const GW_pluck* ug = (GW_pluck*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_pluck_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_pluck_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -4438,13 +4438,13 @@ CTOR(pluck_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = pluck_tick;
+	UGEN(o)->gen.tick = pluck_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(pluck_dtor) {
-	GW_pluck* ug = UGEN(o)->ug;
+	GW_pluck* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_pluck_destroy(&ug->osc);
@@ -4454,7 +4454,7 @@ DTOR(pluck_dtor) {
 
 MFUN(pluck_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_pluck* ug = (GW_pluck*)UGEN(o)->ug;
+	GW_pluck* ug = (GW_pluck*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_pluck_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4467,25 +4467,25 @@ MFUN(pluck_init) {
 }
 
 MFUN(pluck_get_freq) {
-	GW_pluck* ug = (GW_pluck*)UGEN(o)->ug;
+	GW_pluck* ug = (GW_pluck*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(pluck_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_pluck* ug = (GW_pluck*)UGEN(o)->ug;
+	GW_pluck* ug = (GW_pluck*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(pluck_get_amp) {
-	GW_pluck* ug = (GW_pluck*)UGEN(o)->ug;
+	GW_pluck* ug = (GW_pluck*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(pluck_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_pluck* ug = (GW_pluck*)UGEN(o)->ug;
+	GW_pluck* ug = (GW_pluck*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -4497,7 +4497,7 @@ typedef struct {
 } GW_port;
 
 static TICK(port_tick) {
-	const GW_port* ug = (GW_port*)u->ug;
+	const GW_port* ug = (GW_port*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4511,12 +4511,12 @@ CTOR(port_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = port_tick;
+	UGEN(o)->gen.tick = port_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(port_dtor) {
-	GW_port* ug = UGEN(o)->ug;
+	GW_port* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_port_destroy(&ug->osc);
@@ -4526,7 +4526,7 @@ DTOR(port_dtor) {
 
 MFUN(port_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_port* ug = (GW_port*)UGEN(o)->ug;
+	GW_port* ug = (GW_port*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_port_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4545,7 +4545,7 @@ typedef struct {
 } GW_posc3;
 
 static TICK(posc3_tick) {
-	const GW_posc3* ug = (GW_posc3*)u->ug;
+	const GW_posc3* ug = (GW_posc3*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4559,12 +4559,12 @@ CTOR(posc3_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = posc3_tick;
+	UGEN(o)->gen.tick = posc3_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(posc3_dtor) {
-	GW_posc3* ug = UGEN(o)->ug;
+	GW_posc3* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_posc3_destroy(&ug->osc);
@@ -4574,7 +4574,7 @@ DTOR(posc3_dtor) {
 
 MFUN(posc3_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_posc3* ug = (GW_posc3*)UGEN(o)->ug;
+	GW_posc3* ug = (GW_posc3*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_posc3_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4589,25 +4589,25 @@ MFUN(posc3_init) {
 }
 
 MFUN(posc3_get_freq) {
-	GW_posc3* ug = (GW_posc3*)UGEN(o)->ug;
+	GW_posc3* ug = (GW_posc3*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(posc3_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_posc3* ug = (GW_posc3*)UGEN(o)->ug;
+	GW_posc3* ug = (GW_posc3*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(posc3_get_amp) {
-	GW_posc3* ug = (GW_posc3*)UGEN(o)->ug;
+	GW_posc3* ug = (GW_posc3*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->amp;
 }
 
 MFUN(posc3_set_amp) {
 	m_uint gw_offset = SZ_INT;
-	GW_posc3* ug = (GW_posc3*)UGEN(o)->ug;
+	GW_posc3* ug = (GW_posc3*)UGEN(o)->gen.data;
 	m_float amp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -4618,7 +4618,7 @@ typedef struct {
 } GW_progress;
 
 static TICK(progress_tick) {
-	const GW_progress* ug = (GW_progress*)u->ug;
+	const GW_progress* ug = (GW_progress*)u->gen.data;
 	sp_progress_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -4628,36 +4628,36 @@ CTOR(progress_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_progress_create(&ug->osc);
 	sp_progress_init(ug->sp, ug->osc);
-	UGEN(o)->tick = progress_tick;
+	UGEN(o)->gen.tick = progress_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(progress_dtor) {
-	GW_progress* ug = UGEN(o)->ug;
+	GW_progress* ug = UGEN(o)->gen.data;
 	sp_progress_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(progress_get_nbars) {
-	GW_progress* ug = (GW_progress*)UGEN(o)->ug;
+	GW_progress* ug = (GW_progress*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->nbars;
 }
 
 MFUN(progress_set_nbars) {
 	m_uint gw_offset = SZ_INT;
-	GW_progress* ug = (GW_progress*)UGEN(o)->ug;
+	GW_progress* ug = (GW_progress*)UGEN(o)->gen.data;
 	m_int nbars = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->nbars = nbars);
 }
 
 MFUN(progress_get_skip) {
-	GW_progress* ug = (GW_progress*)UGEN(o)->ug;
+	GW_progress* ug = (GW_progress*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->skip;
 }
 
 MFUN(progress_set_skip) {
 	m_uint gw_offset = SZ_INT;
-	GW_progress* ug = (GW_progress*)UGEN(o)->ug;
+	GW_progress* ug = (GW_progress*)UGEN(o)->gen.data;
 	m_int skip = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->skip = skip);
 }
@@ -4669,7 +4669,7 @@ typedef struct {
 } GW_prop;
 
 static TICK(prop_tick) {
-	const GW_prop* ug = (GW_prop*)u->ug;
+	const GW_prop* ug = (GW_prop*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -4683,12 +4683,12 @@ CTOR(prop_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = prop_tick;
+	UGEN(o)->gen.tick = prop_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(prop_dtor) {
-	GW_prop* ug = UGEN(o)->ug;
+	GW_prop* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_prop_destroy(&ug->osc);
@@ -4698,7 +4698,7 @@ DTOR(prop_dtor) {
 
 MFUN(prop_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_prop* ug = (GW_prop*)UGEN(o)->ug;
+	GW_prop* ug = (GW_prop*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_prop_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4713,13 +4713,13 @@ MFUN(prop_init) {
 }
 
 MFUN(prop_get_bpm) {
-	GW_prop* ug = (GW_prop*)UGEN(o)->ug;
+	GW_prop* ug = (GW_prop*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bpm;
 }
 
 MFUN(prop_set_bpm) {
 	m_uint gw_offset = SZ_INT;
-	GW_prop* ug = (GW_prop*)UGEN(o)->ug;
+	GW_prop* ug = (GW_prop*)UGEN(o)->gen.data;
 	m_float bpm = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bpm = bpm);
 }
@@ -4730,7 +4730,7 @@ typedef struct {
 } GW_pshift;
 
 static TICK(pshift_tick) {
-	const GW_pshift* ug = (GW_pshift*)u->ug;
+	const GW_pshift* ug = (GW_pshift*)u->gen.data;
 	sp_pshift_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -4740,48 +4740,48 @@ CTOR(pshift_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_pshift_create(&ug->osc);
 	sp_pshift_init(ug->sp, ug->osc);
-	UGEN(o)->tick = pshift_tick;
+	UGEN(o)->gen.tick = pshift_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(pshift_dtor) {
-	GW_pshift* ug = UGEN(o)->ug;
+	GW_pshift* ug = UGEN(o)->gen.data;
 	sp_pshift_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(pshift_get_shift) {
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->shift;
 }
 
 MFUN(pshift_set_shift) {
 	m_uint gw_offset = SZ_INT;
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	m_float shift = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->shift = shift);
 }
 
 MFUN(pshift_get_window) {
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->window;
 }
 
 MFUN(pshift_set_window) {
 	m_uint gw_offset = SZ_INT;
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	m_float window = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->window = window);
 }
 
 MFUN(pshift_get_xfade) {
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->xfade;
 }
 
 MFUN(pshift_set_xfade) {
 	m_uint gw_offset = SZ_INT;
-	GW_pshift* ug = (GW_pshift*)UGEN(o)->ug;
+	GW_pshift* ug = (GW_pshift*)UGEN(o)->gen.data;
 	m_float xfade = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->xfade = xfade);
 }
@@ -4793,12 +4793,12 @@ typedef struct {
 } GW_ptrack;
 
 static TICK(ptrack_tick) {
-	const GW_ptrack* ug = (GW_ptrack*)u->ug;
+	const GW_ptrack* ug = (GW_ptrack*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -4807,12 +4807,12 @@ CTOR(ptrack_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = ptrack_tick;
+	UGEN(o)->gen.tick = ptrack_tick;
 	assign_ugen(UGEN(o), 1, 2, ug);
 }
 
 DTOR(ptrack_dtor) {
-	GW_ptrack* ug = UGEN(o)->ug;
+	GW_ptrack* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_ptrack_destroy(&ug->osc);
@@ -4822,7 +4822,7 @@ DTOR(ptrack_dtor) {
 
 MFUN(ptrack_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_ptrack* ug = (GW_ptrack*)UGEN(o)->ug;
+	GW_ptrack* ug = (GW_ptrack*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_ptrack_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -4842,7 +4842,7 @@ typedef struct {
 } GW_randh;
 
 static TICK(randh_tick) {
-	const GW_randh* ug = (GW_randh*)u->ug;
+	const GW_randh* ug = (GW_randh*)u->gen.data;
 	sp_randh_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -4852,48 +4852,48 @@ CTOR(randh_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_randh_create(&ug->osc);
 	sp_randh_init(ug->sp, ug->osc);
-	UGEN(o)->tick = randh_tick;
+	UGEN(o)->gen.tick = randh_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(randh_dtor) {
-	GW_randh* ug = UGEN(o)->ug;
+	GW_randh* ug = UGEN(o)->gen.data;
 	sp_randh_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(randh_get_min) {
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(randh_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(randh_get_max) {
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(randh_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
 
 MFUN(randh_get_freq) {
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(randh_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_randh* ug = (GW_randh*)UGEN(o)->ug;
+	GW_randh* ug = (GW_randh*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
@@ -4904,7 +4904,7 @@ typedef struct {
 } GW_randi;
 
 static TICK(randi_tick) {
-	const GW_randi* ug = (GW_randi*)u->ug;
+	const GW_randi* ug = (GW_randi*)u->gen.data;
 	sp_randi_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -4914,60 +4914,60 @@ CTOR(randi_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_randi_create(&ug->osc);
 	sp_randi_init(ug->sp, ug->osc);
-	UGEN(o)->tick = randi_tick;
+	UGEN(o)->gen.tick = randi_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(randi_dtor) {
-	GW_randi* ug = UGEN(o)->ug;
+	GW_randi* ug = UGEN(o)->gen.data;
 	sp_randi_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(randi_get_min) {
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(randi_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(randi_get_max) {
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(randi_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
 
 MFUN(randi_get_cps) {
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cps;
 }
 
 MFUN(randi_set_cps) {
 	m_uint gw_offset = SZ_INT;
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	m_float cps = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cps = cps);
 }
 
 MFUN(randi_get_mode) {
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->mode;
 }
 
 MFUN(randi_set_mode) {
 	m_uint gw_offset = SZ_INT;
-	GW_randi* ug = (GW_randi*)UGEN(o)->ug;
+	GW_randi* ug = (GW_randi*)UGEN(o)->gen.data;
 	m_float mode = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->mode = mode);
 }
@@ -4978,7 +4978,7 @@ typedef struct {
 } GW_random;
 
 static TICK(random_tick) {
-	const GW_random* ug = (GW_random*)u->ug;
+	const GW_random* ug = (GW_random*)u->gen.data;
 	sp_random_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -4988,36 +4988,36 @@ CTOR(random_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_random_create(&ug->osc);
 	sp_random_init(ug->sp, ug->osc);
-	UGEN(o)->tick = random_tick;
+	UGEN(o)->gen.tick = random_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(random_dtor) {
-	GW_random* ug = UGEN(o)->ug;
+	GW_random* ug = UGEN(o)->gen.data;
 	sp_random_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(random_get_min) {
-	GW_random* ug = (GW_random*)UGEN(o)->ug;
+	GW_random* ug = (GW_random*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(random_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_random* ug = (GW_random*)UGEN(o)->ug;
+	GW_random* ug = (GW_random*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(random_get_max) {
-	GW_random* ug = (GW_random*)UGEN(o)->ug;
+	GW_random* ug = (GW_random*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(random_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_random* ug = (GW_random*)UGEN(o)->ug;
+	GW_random* ug = (GW_random*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
@@ -5028,7 +5028,7 @@ typedef struct {
 } GW_reson;
 
 static TICK(reson_tick) {
-	const GW_reson* ug = (GW_reson*)u->ug;
+	const GW_reson* ug = (GW_reson*)u->gen.data;
 	sp_reson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5038,36 +5038,36 @@ CTOR(reson_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_reson_create(&ug->osc);
 	sp_reson_init(ug->sp, ug->osc);
-	UGEN(o)->tick = reson_tick;
+	UGEN(o)->gen.tick = reson_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(reson_dtor) {
-	GW_reson* ug = UGEN(o)->ug;
+	GW_reson* ug = UGEN(o)->gen.data;
 	sp_reson_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(reson_get_freq) {
-	GW_reson* ug = (GW_reson*)UGEN(o)->ug;
+	GW_reson* ug = (GW_reson*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(reson_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_reson* ug = (GW_reson*)UGEN(o)->ug;
+	GW_reson* ug = (GW_reson*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(reson_get_bw) {
-	GW_reson* ug = (GW_reson*)UGEN(o)->ug;
+	GW_reson* ug = (GW_reson*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->bw;
 }
 
 MFUN(reson_set_bw) {
 	m_uint gw_offset = SZ_INT;
-	GW_reson* ug = (GW_reson*)UGEN(o)->ug;
+	GW_reson* ug = (GW_reson*)UGEN(o)->gen.data;
 	m_float bw = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->bw = bw);
 }
@@ -5079,7 +5079,7 @@ typedef struct {
 } GW_reverse;
 
 static TICK(reverse_tick) {
-	const GW_reverse* ug = (GW_reverse*)u->ug;
+	const GW_reverse* ug = (GW_reverse*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5093,12 +5093,12 @@ CTOR(reverse_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = reverse_tick;
+	UGEN(o)->gen.tick = reverse_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(reverse_dtor) {
-	GW_reverse* ug = UGEN(o)->ug;
+	GW_reverse* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_reverse_destroy(&ug->osc);
@@ -5108,7 +5108,7 @@ DTOR(reverse_dtor) {
 
 MFUN(reverse_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_reverse* ug = (GW_reverse*)UGEN(o)->ug;
+	GW_reverse* ug = (GW_reverse*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_reverse_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5126,8 +5126,8 @@ typedef struct {
 } GW_revsc;
 
 static TICK(revsc_tick) {
-	const GW_revsc* ug = (GW_revsc*)u->ug;
-	sp_revsc_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_revsc* ug = (GW_revsc*)u->gen.data;
+	sp_revsc_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -5136,36 +5136,36 @@ CTOR(revsc_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_revsc_create(&ug->osc);
 	sp_revsc_init(ug->sp, ug->osc);
-	UGEN(o)->tick = revsc_tick;
+	UGEN(o)->gen.tick = revsc_tick;
 	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(revsc_dtor) {
-	GW_revsc* ug = UGEN(o)->ug;
+	GW_revsc* ug = UGEN(o)->gen.data;
 	sp_revsc_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(revsc_get_feedback) {
-	GW_revsc* ug = (GW_revsc*)UGEN(o)->ug;
+	GW_revsc* ug = (GW_revsc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->feedback;
 }
 
 MFUN(revsc_set_feedback) {
 	m_uint gw_offset = SZ_INT;
-	GW_revsc* ug = (GW_revsc*)UGEN(o)->ug;
+	GW_revsc* ug = (GW_revsc*)UGEN(o)->gen.data;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->feedback = feedback);
 }
 
 MFUN(revsc_get_lpfreq) {
-	GW_revsc* ug = (GW_revsc*)UGEN(o)->ug;
+	GW_revsc* ug = (GW_revsc*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->lpfreq;
 }
 
 MFUN(revsc_set_lpfreq) {
 	m_uint gw_offset = SZ_INT;
-	GW_revsc* ug = (GW_revsc*)UGEN(o)->ug;
+	GW_revsc* ug = (GW_revsc*)UGEN(o)->gen.data;
 	m_float lpfreq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->lpfreq = lpfreq);
 }
@@ -5176,7 +5176,7 @@ typedef struct {
 } GW_rms;
 
 static TICK(rms_tick) {
-	const GW_rms* ug = (GW_rms*)u->ug;
+	const GW_rms* ug = (GW_rms*)u->gen.data;
 	sp_rms_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5186,24 +5186,24 @@ CTOR(rms_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_rms_create(&ug->osc);
 	sp_rms_init(ug->sp, ug->osc);
-	UGEN(o)->tick = rms_tick;
+	UGEN(o)->gen.tick = rms_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(rms_dtor) {
-	GW_rms* ug = UGEN(o)->ug;
+	GW_rms* ug = UGEN(o)->gen.data;
 	sp_rms_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(rms_get_ihp) {
-	GW_rms* ug = (GW_rms*)UGEN(o)->ug;
+	GW_rms* ug = (GW_rms*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->ihp;
 }
 
 MFUN(rms_set_ihp) {
 	m_uint gw_offset = SZ_INT;
-	GW_rms* ug = (GW_rms*)UGEN(o)->ug;
+	GW_rms* ug = (GW_rms*)UGEN(o)->gen.data;
 	m_float ihp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->ihp = ihp);
 }
@@ -5215,12 +5215,12 @@ typedef struct {
 } GW_rpt;
 
 static TICK(rpt_tick) {
-	const GW_rpt* ug = (GW_rpt*)u->ug;
+	const GW_rpt* ug = (GW_rpt*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->trig->in, &u->out);
+	sp_rpt_compute(ug->sp, ug->osc, &u->in, &u->gen.trig->in, &u->out);
 
 }
 
@@ -5229,13 +5229,13 @@ CTOR(rpt_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = rpt_tick;
+	UGEN(o)->gen.tick = rpt_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(rpt_dtor) {
-	GW_rpt* ug = UGEN(o)->ug;
+	GW_rpt* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_rpt_destroy(&ug->osc);
@@ -5245,7 +5245,7 @@ DTOR(rpt_dtor) {
 
 MFUN(rpt_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_rpt* ug = (GW_rpt*)UGEN(o)->ug;
+	GW_rpt* ug = (GW_rpt*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_rpt_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5263,7 +5263,7 @@ typedef struct {
 } GW_rspline;
 
 static TICK(rspline_tick) {
-	const GW_rspline* ug = (GW_rspline*)u->ug;
+	const GW_rspline* ug = (GW_rspline*)u->gen.data;
 	sp_rspline_compute(ug->sp, ug->osc, NULL, &u->out);
 
 }
@@ -5273,60 +5273,60 @@ CTOR(rspline_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_rspline_create(&ug->osc);
 	sp_rspline_init(ug->sp, ug->osc);
-	UGEN(o)->tick = rspline_tick;
+	UGEN(o)->gen.tick = rspline_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(rspline_dtor) {
-	GW_rspline* ug = UGEN(o)->ug;
+	GW_rspline* ug = UGEN(o)->gen.data;
 	sp_rspline_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(rspline_get_min) {
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(rspline_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(rspline_get_max) {
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(rspline_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
 
 MFUN(rspline_get_cps_min) {
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cps_min;
 }
 
 MFUN(rspline_set_cps_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	m_float cps_min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cps_min = cps_min);
 }
 
 MFUN(rspline_get_cps_max) {
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cps_max;
 }
 
 MFUN(rspline_set_cps_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_rspline* ug = (GW_rspline*)UGEN(o)->ug;
+	GW_rspline* ug = (GW_rspline*)UGEN(o)->gen.data;
 	m_float cps_max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cps_max = cps_max);
 }
@@ -5337,8 +5337,8 @@ typedef struct {
 } GW_samphold;
 
 static TICK(samphold_tick) {
-	const GW_samphold* ug = (GW_samphold*)u->ug;
-	sp_samphold_compute(ug->sp, ug->osc, &u->in, &u->trig->in, &u->out);
+	const GW_samphold* ug = (GW_samphold*)u->gen.data;
+	sp_samphold_compute(ug->sp, ug->osc, &u->in, &u->gen.trig->in, &u->out);
 
 }
 
@@ -5347,13 +5347,13 @@ CTOR(samphold_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_samphold_create(&ug->osc);
 	sp_samphold_init(ug->sp, ug->osc);
-	UGEN(o)->tick = samphold_tick;
+	UGEN(o)->gen.tick = samphold_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(samphold_dtor) {
-	GW_samphold* ug = UGEN(o)->ug;
+	GW_samphold* ug = UGEN(o)->gen.data;
 	sp_samphold_destroy(&ug->osc);
 	free(ug);
 }
@@ -5364,7 +5364,7 @@ typedef struct {
 } GW_saturator;
 
 static TICK(saturator_tick) {
-	const GW_saturator* ug = (GW_saturator*)u->ug;
+	const GW_saturator* ug = (GW_saturator*)u->gen.data;
 	sp_saturator_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5374,36 +5374,36 @@ CTOR(saturator_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_saturator_create(&ug->osc);
 	sp_saturator_init(ug->sp, ug->osc);
-	UGEN(o)->tick = saturator_tick;
+	UGEN(o)->gen.tick = saturator_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(saturator_dtor) {
-	GW_saturator* ug = UGEN(o)->ug;
+	GW_saturator* ug = UGEN(o)->gen.data;
 	sp_saturator_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(saturator_get_drive) {
-	GW_saturator* ug = (GW_saturator*)UGEN(o)->ug;
+	GW_saturator* ug = (GW_saturator*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->drive;
 }
 
 MFUN(saturator_set_drive) {
 	m_uint gw_offset = SZ_INT;
-	GW_saturator* ug = (GW_saturator*)UGEN(o)->ug;
+	GW_saturator* ug = (GW_saturator*)UGEN(o)->gen.data;
 	m_float drive = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->drive = drive);
 }
 
 MFUN(saturator_get_dcoffset) {
-	GW_saturator* ug = (GW_saturator*)UGEN(o)->ug;
+	GW_saturator* ug = (GW_saturator*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dcoffset;
 }
 
 MFUN(saturator_set_dcoffset) {
 	m_uint gw_offset = SZ_INT;
-	GW_saturator* ug = (GW_saturator*)UGEN(o)->ug;
+	GW_saturator* ug = (GW_saturator*)UGEN(o)->gen.data;
 	m_float dcoffset = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dcoffset = dcoffset);
 }
@@ -5414,7 +5414,7 @@ typedef struct {
 } GW_scale;
 
 static TICK(scale_tick) {
-	const GW_scale* ug = (GW_scale*)u->ug;
+	const GW_scale* ug = (GW_scale*)u->gen.data;
 	sp_scale_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5424,36 +5424,36 @@ CTOR(scale_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_scale_create(&ug->osc);
 	sp_scale_init(ug->sp, ug->osc);
-	UGEN(o)->tick = scale_tick;
+	UGEN(o)->gen.tick = scale_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(scale_dtor) {
-	GW_scale* ug = UGEN(o)->ug;
+	GW_scale* ug = UGEN(o)->gen.data;
 	sp_scale_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(scale_get_min) {
-	GW_scale* ug = (GW_scale*)UGEN(o)->ug;
+	GW_scale* ug = (GW_scale*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(scale_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_scale* ug = (GW_scale*)UGEN(o)->ug;
+	GW_scale* ug = (GW_scale*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(scale_get_max) {
-	GW_scale* ug = (GW_scale*)UGEN(o)->ug;
+	GW_scale* ug = (GW_scale*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(scale_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_scale* ug = (GW_scale*)UGEN(o)->ug;
+	GW_scale* ug = (GW_scale*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
@@ -5465,7 +5465,7 @@ typedef struct {
 } GW_sdelay;
 
 static TICK(sdelay_tick) {
-	const GW_sdelay* ug = (GW_sdelay*)u->ug;
+	const GW_sdelay* ug = (GW_sdelay*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5479,12 +5479,12 @@ CTOR(sdelay_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = sdelay_tick;
+	UGEN(o)->gen.tick = sdelay_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(sdelay_dtor) {
-	GW_sdelay* ug = UGEN(o)->ug;
+	GW_sdelay* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_sdelay_destroy(&ug->osc);
@@ -5494,7 +5494,7 @@ DTOR(sdelay_dtor) {
 
 MFUN(sdelay_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_sdelay* ug = (GW_sdelay*)UGEN(o)->ug;
+	GW_sdelay* ug = (GW_sdelay*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_sdelay_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5513,12 +5513,12 @@ typedef struct {
 } GW_slice;
 
 static TICK(slice_tick) {
-	const GW_slice* ug = (GW_slice*)u->ug;
+	const GW_slice* ug = (GW_slice*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_slice_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_slice_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -5527,13 +5527,13 @@ CTOR(slice_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = slice_tick;
+	UGEN(o)->gen.tick = slice_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(slice_dtor) {
-	GW_slice* ug = UGEN(o)->ug;
+	GW_slice* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_slice_destroy(&ug->osc);
@@ -5543,7 +5543,7 @@ DTOR(slice_dtor) {
 
 MFUN(slice_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_slice* ug = (GW_slice*)UGEN(o)->ug;
+	GW_slice* ug = (GW_slice*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_slice_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5562,13 +5562,13 @@ MFUN(slice_init) {
 }
 
 MFUN(slice_get_id) {
-	GW_slice* ug = (GW_slice*)UGEN(o)->ug;
+	GW_slice* ug = (GW_slice*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->id;
 }
 
 MFUN(slice_set_id) {
 	m_uint gw_offset = SZ_INT;
-	GW_slice* ug = (GW_slice*)UGEN(o)->ug;
+	GW_slice* ug = (GW_slice*)UGEN(o)->gen.data;
 	m_float id = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->id = id);
 }
@@ -5580,7 +5580,7 @@ typedef struct {
 } GW_smoothdelay;
 
 static TICK(smoothdelay_tick) {
-	const GW_smoothdelay* ug = (GW_smoothdelay*)u->ug;
+	const GW_smoothdelay* ug = (GW_smoothdelay*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5594,12 +5594,12 @@ CTOR(smoothdelay_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = smoothdelay_tick;
+	UGEN(o)->gen.tick = smoothdelay_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(smoothdelay_dtor) {
-	GW_smoothdelay* ug = UGEN(o)->ug;
+	GW_smoothdelay* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_smoothdelay_destroy(&ug->osc);
@@ -5609,7 +5609,7 @@ DTOR(smoothdelay_dtor) {
 
 MFUN(smoothdelay_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->ug;
+	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_smoothdelay_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5624,25 +5624,25 @@ MFUN(smoothdelay_init) {
 }
 
 MFUN(smoothdelay_get_feedback) {
-	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->ug;
+	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->feedback;
 }
 
 MFUN(smoothdelay_set_feedback) {
 	m_uint gw_offset = SZ_INT;
-	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->ug;
+	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->gen.data;
 	m_float feedback = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->feedback = feedback);
 }
 
 MFUN(smoothdelay_get_del) {
-	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->ug;
+	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->del;
 }
 
 MFUN(smoothdelay_set_del) {
 	m_uint gw_offset = SZ_INT;
-	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->ug;
+	GW_smoothdelay* ug = (GW_smoothdelay*)UGEN(o)->gen.data;
 	m_float del = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->del = del);
 }
@@ -5654,7 +5654,7 @@ typedef struct {
 } GW_spa;
 
 static TICK(spa_tick) {
-	const GW_spa* ug = (GW_spa*)u->ug;
+	const GW_spa* ug = (GW_spa*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5668,12 +5668,12 @@ CTOR(spa_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = spa_tick;
+	UGEN(o)->gen.tick = spa_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(spa_dtor) {
-	GW_spa* ug = UGEN(o)->ug;
+	GW_spa* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_spa_destroy(&ug->osc);
@@ -5683,7 +5683,7 @@ DTOR(spa_dtor) {
 
 MFUN(spa_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_spa* ug = (GW_spa*)UGEN(o)->ug;
+	GW_spa* ug = (GW_spa*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_spa_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5704,7 +5704,7 @@ typedef struct {
 } GW_sparec;
 
 static TICK(sparec_tick) {
-	const GW_sparec* ug = (GW_sparec*)u->ug;
+	const GW_sparec* ug = (GW_sparec*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5718,12 +5718,12 @@ CTOR(sparec_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = sparec_tick;
+	UGEN(o)->gen.tick = sparec_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(sparec_dtor) {
-	GW_sparec* ug = UGEN(o)->ug;
+	GW_sparec* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_sparec_destroy(&ug->osc);
@@ -5733,7 +5733,7 @@ DTOR(sparec_dtor) {
 
 MFUN(sparec_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_sparec* ug = (GW_sparec*)UGEN(o)->ug;
+	GW_sparec* ug = (GW_sparec*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_sparec_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5753,7 +5753,7 @@ typedef struct {
 } GW_streson;
 
 static TICK(streson_tick) {
-	const GW_streson* ug = (GW_streson*)u->ug;
+	const GW_streson* ug = (GW_streson*)u->gen.data;
 	sp_streson_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -5763,36 +5763,36 @@ CTOR(streson_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_streson_create(&ug->osc);
 	sp_streson_init(ug->sp, ug->osc);
-	UGEN(o)->tick = streson_tick;
+	UGEN(o)->gen.tick = streson_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(streson_dtor) {
-	GW_streson* ug = UGEN(o)->ug;
+	GW_streson* ug = UGEN(o)->gen.data;
 	sp_streson_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(streson_get_freq) {
-	GW_streson* ug = (GW_streson*)UGEN(o)->ug;
+	GW_streson* ug = (GW_streson*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->freq;
 }
 
 MFUN(streson_set_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_streson* ug = (GW_streson*)UGEN(o)->ug;
+	GW_streson* ug = (GW_streson*)UGEN(o)->gen.data;
 	m_float freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 MFUN(streson_get_fdbgain) {
-	GW_streson* ug = (GW_streson*)UGEN(o)->ug;
+	GW_streson* ug = (GW_streson*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->fdbgain;
 }
 
 MFUN(streson_set_fdbgain) {
 	m_uint gw_offset = SZ_INT;
-	GW_streson* ug = (GW_streson*)UGEN(o)->ug;
+	GW_streson* ug = (GW_streson*)UGEN(o)->gen.data;
 	m_float fdbgain = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->fdbgain = fdbgain);
 }
@@ -5803,8 +5803,8 @@ typedef struct {
 } GW_switch;
 
 static TICK(switch_tick) {
-	const GW_switch* ug = (GW_switch*)u->ug;
-	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->trig->in, &u->out);
+	const GW_switch* ug = (GW_switch*)u->gen.data;
+	sp_switch_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &u->gen.trig->in, &u->out);
 
 }
 
@@ -5813,13 +5813,13 @@ CTOR(switch_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_switch_create(&ug->osc);
 	sp_switch_init(ug->sp, ug->osc);
-	UGEN(o)->tick = switch_tick;
+	UGEN(o)->gen.tick = switch_tick;
 	assign_ugen(UGEN(o), 3, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(switch_dtor) {
-	GW_switch* ug = UGEN(o)->ug;
+	GW_switch* ug = UGEN(o)->gen.data;
 	sp_switch_destroy(&ug->osc);
 	free(ug);
 }
@@ -5831,7 +5831,7 @@ typedef struct {
 } GW_tabread;
 
 static TICK(tabread_tick) {
-	const GW_tabread* ug = (GW_tabread*)u->ug;
+	const GW_tabread* ug = (GW_tabread*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -5845,12 +5845,12 @@ CTOR(tabread_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = tabread_tick;
+	UGEN(o)->gen.tick = tabread_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(tabread_dtor) {
-	GW_tabread* ug = UGEN(o)->ug;
+	GW_tabread* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_tabread_destroy(&ug->osc);
@@ -5860,7 +5860,7 @@ DTOR(tabread_dtor) {
 
 MFUN(tabread_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_tabread_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -5877,37 +5877,37 @@ MFUN(tabread_init) {
 }
 
 MFUN(tabread_get_index) {
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->index;
 }
 
 MFUN(tabread_set_index) {
 	m_uint gw_offset = SZ_INT;
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	m_float index = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->index = index);
 }
 
 MFUN(tabread_get_offset) {
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->offset;
 }
 
 MFUN(tabread_set_offset) {
 	m_uint gw_offset = SZ_INT;
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	m_float offset = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->offset = offset);
 }
 
 MFUN(tabread_get_wrap) {
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->wrap;
 }
 
 MFUN(tabread_set_wrap) {
 	m_uint gw_offset = SZ_INT;
-	GW_tabread* ug = (GW_tabread*)UGEN(o)->ug;
+	GW_tabread* ug = (GW_tabread*)UGEN(o)->gen.data;
 	m_float wrap = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->wrap = wrap);
 }
@@ -5918,8 +5918,8 @@ typedef struct {
 } GW_tadsr;
 
 static TICK(tadsr_tick) {
-	const GW_tadsr* ug = (GW_tadsr*)u->ug;
-	sp_tadsr_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tadsr* ug = (GW_tadsr*)u->gen.data;
+	sp_tadsr_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -5928,61 +5928,61 @@ CTOR(tadsr_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tadsr_create(&ug->osc);
 	sp_tadsr_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tadsr_tick;
+	UGEN(o)->gen.tick = tadsr_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tadsr_dtor) {
-	GW_tadsr* ug = UGEN(o)->ug;
+	GW_tadsr* ug = UGEN(o)->gen.data;
 	sp_tadsr_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tadsr_get_atk) {
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(tadsr_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(tadsr_get_dec) {
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dec;
 }
 
 MFUN(tadsr_set_dec) {
 	m_uint gw_offset = SZ_INT;
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	m_float dec = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dec = dec);
 }
 
 MFUN(tadsr_get_sus) {
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->sus;
 }
 
 MFUN(tadsr_set_sus) {
 	m_uint gw_offset = SZ_INT;
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	m_float sus = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->sus = sus);
 }
 
 MFUN(tadsr_get_rel) {
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(tadsr_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->ug;
+	GW_tadsr* ug = (GW_tadsr*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
@@ -5993,8 +5993,8 @@ typedef struct {
 } GW_talkbox;
 
 static TICK(talkbox_tick) {
-	const GW_talkbox* ug = (GW_talkbox*)u->ug;
-	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
+	const GW_talkbox* ug = (GW_talkbox*)u->gen.data;
+	sp_talkbox_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &u->out);
 
 }
 
@@ -6003,24 +6003,24 @@ CTOR(talkbox_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_talkbox_create(&ug->osc);
 	sp_talkbox_init(ug->sp, ug->osc);
-	UGEN(o)->tick = talkbox_tick;
+	UGEN(o)->gen.tick = talkbox_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(talkbox_dtor) {
-	GW_talkbox* ug = UGEN(o)->ug;
+	GW_talkbox* ug = UGEN(o)->gen.data;
 	sp_talkbox_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(talkbox_get_quality) {
-	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->ug;
+	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->quality;
 }
 
 MFUN(talkbox_set_quality) {
 	m_uint gw_offset = SZ_INT;
-	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->ug;
+	GW_talkbox* ug = (GW_talkbox*)UGEN(o)->gen.data;
 	m_float quality = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->quality = quality);
 }
@@ -6032,12 +6032,12 @@ typedef struct {
 } GW_tblrec;
 
 static TICK(tblrec_tick) {
-	const GW_tblrec* ug = (GW_tblrec*)u->ug;
+	const GW_tblrec* ug = (GW_tblrec*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->trig->in, &u->out);
+	sp_tblrec_compute(ug->sp, ug->osc, &u->in, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6046,13 +6046,13 @@ CTOR(tblrec_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = tblrec_tick;
+	UGEN(o)->gen.tick = tblrec_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tblrec_dtor) {
-	GW_tblrec* ug = UGEN(o)->ug;
+	GW_tblrec* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_tblrec_destroy(&ug->osc);
@@ -6062,7 +6062,7 @@ DTOR(tblrec_dtor) {
 
 MFUN(tblrec_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_tblrec* ug = (GW_tblrec*)UGEN(o)->ug;
+	GW_tblrec* ug = (GW_tblrec*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_tblrec_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -6082,7 +6082,7 @@ typedef struct {
 } GW_tbvcf;
 
 static TICK(tbvcf_tick) {
-	const GW_tbvcf* ug = (GW_tbvcf*)u->ug;
+	const GW_tbvcf* ug = (GW_tbvcf*)u->gen.data;
 	sp_tbvcf_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6092,60 +6092,60 @@ CTOR(tbvcf_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tbvcf_create(&ug->osc);
 	sp_tbvcf_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tbvcf_tick;
+	UGEN(o)->gen.tick = tbvcf_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(tbvcf_dtor) {
-	GW_tbvcf* ug = UGEN(o)->ug;
+	GW_tbvcf* ug = UGEN(o)->gen.data;
 	sp_tbvcf_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tbvcf_get_fco) {
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->fco;
 }
 
 MFUN(tbvcf_set_fco) {
 	m_uint gw_offset = SZ_INT;
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	m_float fco = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->fco = fco);
 }
 
 MFUN(tbvcf_get_res) {
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->res;
 }
 
 MFUN(tbvcf_set_res) {
 	m_uint gw_offset = SZ_INT;
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->res = res);
 }
 
 MFUN(tbvcf_get_dist) {
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dist;
 }
 
 MFUN(tbvcf_set_dist) {
 	m_uint gw_offset = SZ_INT;
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	m_float dist = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dist = dist);
 }
 
 MFUN(tbvcf_get_asym) {
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->asym;
 }
 
 MFUN(tbvcf_set_asym) {
 	m_uint gw_offset = SZ_INT;
-	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->ug;
+	GW_tbvcf* ug = (GW_tbvcf*)UGEN(o)->gen.data;
 	m_float asym = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->asym = asym);
 }
@@ -6156,8 +6156,8 @@ typedef struct {
 } GW_tdiv;
 
 static TICK(tdiv_tick) {
-	const GW_tdiv* ug = (GW_tdiv*)u->ug;
-	sp_tdiv_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tdiv* ug = (GW_tdiv*)u->gen.data;
+	sp_tdiv_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6166,37 +6166,37 @@ CTOR(tdiv_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tdiv_create(&ug->osc);
 	sp_tdiv_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tdiv_tick;
+	UGEN(o)->gen.tick = tdiv_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tdiv_dtor) {
-	GW_tdiv* ug = UGEN(o)->ug;
+	GW_tdiv* ug = UGEN(o)->gen.data;
 	sp_tdiv_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tdiv_get_num) {
-	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->ug;
+	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->num;
 }
 
 MFUN(tdiv_set_num) {
 	m_uint gw_offset = SZ_INT;
-	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->ug;
+	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->gen.data;
 	m_float num = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->num = num);
 }
 
 MFUN(tdiv_get_offset) {
-	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->ug;
+	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->offset;
 }
 
 MFUN(tdiv_set_offset) {
 	m_uint gw_offset = SZ_INT;
-	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->ug;
+	GW_tdiv* ug = (GW_tdiv*)UGEN(o)->gen.data;
 	m_float offset = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->offset = offset);
 }
@@ -6207,8 +6207,8 @@ typedef struct {
 } GW_tenv;
 
 static TICK(tenv_tick) {
-	const GW_tenv* ug = (GW_tenv*)u->ug;
-	sp_tenv_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tenv* ug = (GW_tenv*)u->gen.data;
+	sp_tenv_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6217,49 +6217,49 @@ CTOR(tenv_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv_create(&ug->osc);
 	sp_tenv_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tenv_tick;
+	UGEN(o)->gen.tick = tenv_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tenv_dtor) {
-	GW_tenv* ug = UGEN(o)->ug;
+	GW_tenv* ug = UGEN(o)->gen.data;
 	sp_tenv_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tenv_get_atk) {
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(tenv_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(tenv_get_hold) {
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->hold;
 }
 
 MFUN(tenv_set_hold) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	m_float hold = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->hold = hold);
 }
 
 MFUN(tenv_get_rel) {
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(tenv_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenv* ug = (GW_tenv*)UGEN(o)->ug;
+	GW_tenv* ug = (GW_tenv*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
@@ -6270,8 +6270,8 @@ typedef struct {
 } GW_tenv2;
 
 static TICK(tenv2_tick) {
-	const GW_tenv2* ug = (GW_tenv2*)u->ug;
-	sp_tenv2_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tenv2* ug = (GW_tenv2*)u->gen.data;
+	sp_tenv2_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6280,37 +6280,37 @@ CTOR(tenv2_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tenv2_create(&ug->osc);
 	sp_tenv2_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tenv2_tick;
+	UGEN(o)->gen.tick = tenv2_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tenv2_dtor) {
-	GW_tenv2* ug = UGEN(o)->ug;
+	GW_tenv2* ug = UGEN(o)->gen.data;
 	sp_tenv2_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tenv2_get_atk) {
-	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->ug;
+	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(tenv2_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->ug;
+	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(tenv2_get_rel) {
-	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->ug;
+	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(tenv2_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->ug;
+	GW_tenv2* ug = (GW_tenv2*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
@@ -6321,8 +6321,8 @@ typedef struct {
 } GW_tenvx;
 
 static TICK(tenvx_tick) {
-	const GW_tenvx* ug = (GW_tenvx*)u->ug;
-	sp_tenvx_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tenvx* ug = (GW_tenvx*)u->gen.data;
+	sp_tenvx_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6331,49 +6331,49 @@ CTOR(tenvx_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tenvx_create(&ug->osc);
 	sp_tenvx_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tenvx_tick;
+	UGEN(o)->gen.tick = tenvx_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tenvx_dtor) {
-	GW_tenvx* ug = UGEN(o)->ug;
+	GW_tenvx* ug = UGEN(o)->gen.data;
 	sp_tenvx_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tenvx_get_atk) {
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->atk;
 }
 
 MFUN(tenvx_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->atk = atk);
 }
 
 MFUN(tenvx_get_hold) {
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->hold;
 }
 
 MFUN(tenvx_set_hold) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	m_float hold = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->hold = hold);
 }
 
 MFUN(tenvx_get_rel) {
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rel;
 }
 
 MFUN(tenvx_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->ug;
+	GW_tenvx* ug = (GW_tenvx*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rel = rel);
 }
@@ -6384,8 +6384,8 @@ typedef struct {
 } GW_tgate;
 
 static TICK(tgate_tick) {
-	const GW_tgate* ug = (GW_tgate*)u->ug;
-	sp_tgate_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tgate* ug = (GW_tgate*)u->gen.data;
+	sp_tgate_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6394,25 +6394,25 @@ CTOR(tgate_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tgate_create(&ug->osc);
 	sp_tgate_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tgate_tick;
+	UGEN(o)->gen.tick = tgate_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tgate_dtor) {
-	GW_tgate* ug = UGEN(o)->ug;
+	GW_tgate* ug = UGEN(o)->gen.data;
 	sp_tgate_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tgate_get_time) {
-	GW_tgate* ug = (GW_tgate*)UGEN(o)->ug;
+	GW_tgate* ug = (GW_tgate*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->time;
 }
 
 MFUN(tgate_set_time) {
 	m_uint gw_offset = SZ_INT;
-	GW_tgate* ug = (GW_tgate*)UGEN(o)->ug;
+	GW_tgate* ug = (GW_tgate*)UGEN(o)->gen.data;
 	m_float time = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->time = time);
 }
@@ -6423,7 +6423,7 @@ typedef struct {
 } GW_thresh;
 
 static TICK(thresh_tick) {
-	const GW_thresh* ug = (GW_thresh*)u->ug;
+	const GW_thresh* ug = (GW_thresh*)u->gen.data;
 	sp_thresh_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6433,36 +6433,36 @@ CTOR(thresh_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_thresh_create(&ug->osc);
 	sp_thresh_init(ug->sp, ug->osc);
-	UGEN(o)->tick = thresh_tick;
+	UGEN(o)->gen.tick = thresh_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(thresh_dtor) {
-	GW_thresh* ug = UGEN(o)->ug;
+	GW_thresh* ug = UGEN(o)->gen.data;
 	sp_thresh_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(thresh_get_thresh) {
-	GW_thresh* ug = (GW_thresh*)UGEN(o)->ug;
+	GW_thresh* ug = (GW_thresh*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->thresh;
 }
 
 MFUN(thresh_set_thresh) {
 	m_uint gw_offset = SZ_INT;
-	GW_thresh* ug = (GW_thresh*)UGEN(o)->ug;
+	GW_thresh* ug = (GW_thresh*)UGEN(o)->gen.data;
 	m_float thresh = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->thresh = thresh);
 }
 
 MFUN(thresh_get_mode) {
-	GW_thresh* ug = (GW_thresh*)UGEN(o)->ug;
+	GW_thresh* ug = (GW_thresh*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->mode;
 }
 
 MFUN(thresh_set_mode) {
 	m_uint gw_offset = SZ_INT;
-	GW_thresh* ug = (GW_thresh*)UGEN(o)->ug;
+	GW_thresh* ug = (GW_thresh*)UGEN(o)->gen.data;
 	m_int mode = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->mode = mode);
 }
@@ -6473,7 +6473,7 @@ typedef struct {
 } GW_timer;
 
 static TICK(timer_tick) {
-	const GW_timer* ug = (GW_timer*)u->ug;
+	const GW_timer* ug = (GW_timer*)u->gen.data;
 	sp_timer_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6483,12 +6483,12 @@ CTOR(timer_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_timer_create(&ug->osc);
 	sp_timer_init(ug->sp, ug->osc);
-	UGEN(o)->tick = timer_tick;
+	UGEN(o)->gen.tick = timer_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(timer_dtor) {
-	GW_timer* ug = UGEN(o)->ug;
+	GW_timer* ug = UGEN(o)->gen.data;
 	sp_timer_destroy(&ug->osc);
 	free(ug);
 }
@@ -6499,8 +6499,8 @@ typedef struct {
 } GW_tin;
 
 static TICK(tin_tick) {
-	const GW_tin* ug = (GW_tin*)u->ug;
-	sp_tin_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_tin* ug = (GW_tin*)u->gen.data;
+	sp_tin_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6509,13 +6509,13 @@ CTOR(tin_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tin_create(&ug->osc);
 	sp_tin_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tin_tick;
+	UGEN(o)->gen.tick = tin_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tin_dtor) {
-	GW_tin* ug = UGEN(o)->ug;
+	GW_tin* ug = UGEN(o)->gen.data;
 	sp_tin_destroy(&ug->osc);
 	free(ug);
 }
@@ -6526,7 +6526,7 @@ typedef struct {
 } GW_tone;
 
 static TICK(tone_tick) {
-	const GW_tone* ug = (GW_tone*)u->ug;
+	const GW_tone* ug = (GW_tone*)u->gen.data;
 	sp_tone_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6536,24 +6536,24 @@ CTOR(tone_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_tone_create(&ug->osc);
 	sp_tone_init(ug->sp, ug->osc);
-	UGEN(o)->tick = tone_tick;
+	UGEN(o)->gen.tick = tone_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(tone_dtor) {
-	GW_tone* ug = UGEN(o)->ug;
+	GW_tone* ug = UGEN(o)->gen.data;
 	sp_tone_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(tone_get_hp) {
-	GW_tone* ug = (GW_tone*)UGEN(o)->ug;
+	GW_tone* ug = (GW_tone*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->hp;
 }
 
 MFUN(tone_set_hp) {
 	m_uint gw_offset = SZ_INT;
-	GW_tone* ug = (GW_tone*)UGEN(o)->ug;
+	GW_tone* ug = (GW_tone*)UGEN(o)->gen.data;
 	m_float hp = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->hp = hp);
 }
@@ -6564,8 +6564,8 @@ typedef struct {
 } GW_trand;
 
 static TICK(trand_tick) {
-	const GW_trand* ug = (GW_trand*)u->ug;
-	sp_trand_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	const GW_trand* ug = (GW_trand*)u->gen.data;
+	sp_trand_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6574,37 +6574,37 @@ CTOR(trand_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_trand_create(&ug->osc);
 	sp_trand_init(ug->sp, ug->osc);
-	UGEN(o)->tick = trand_tick;
+	UGEN(o)->gen.tick = trand_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(trand_dtor) {
-	GW_trand* ug = UGEN(o)->ug;
+	GW_trand* ug = UGEN(o)->gen.data;
 	sp_trand_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(trand_get_min) {
-	GW_trand* ug = (GW_trand*)UGEN(o)->ug;
+	GW_trand* ug = (GW_trand*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->min;
 }
 
 MFUN(trand_set_min) {
 	m_uint gw_offset = SZ_INT;
-	GW_trand* ug = (GW_trand*)UGEN(o)->ug;
+	GW_trand* ug = (GW_trand*)UGEN(o)->gen.data;
 	m_float min = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->min = min);
 }
 
 MFUN(trand_get_max) {
-	GW_trand* ug = (GW_trand*)UGEN(o)->ug;
+	GW_trand* ug = (GW_trand*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->max;
 }
 
 MFUN(trand_set_max) {
 	m_uint gw_offset = SZ_INT;
-	GW_trand* ug = (GW_trand*)UGEN(o)->ug;
+	GW_trand* ug = (GW_trand*)UGEN(o)->gen.data;
 	m_float max = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->max = max);
 }
@@ -6616,12 +6616,12 @@ typedef struct {
 } GW_tseg;
 
 static TICK(tseg_tick) {
-	const GW_tseg* ug = (GW_tseg*)u->ug;
+	const GW_tseg* ug = (GW_tseg*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_tseg_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_tseg_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6630,13 +6630,13 @@ CTOR(tseg_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = tseg_tick;
+	UGEN(o)->gen.tick = tseg_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tseg_dtor) {
-	GW_tseg* ug = UGEN(o)->ug;
+	GW_tseg* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_tseg_destroy(&ug->osc);
@@ -6646,7 +6646,7 @@ DTOR(tseg_dtor) {
 
 MFUN(tseg_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_tseg_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -6659,37 +6659,37 @@ MFUN(tseg_init) {
 }
 
 MFUN(tseg_get_end) {
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->end;
 }
 
 MFUN(tseg_set_end) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	m_float end = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->end = end);
 }
 
 MFUN(tseg_get_dur) {
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->dur;
 }
 
 MFUN(tseg_set_dur) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	m_float dur = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->dur = dur);
 }
 
 MFUN(tseg_get_type) {
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->type;
 }
 
 MFUN(tseg_set_type) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseg* ug = (GW_tseg*)UGEN(o)->ug;
+	GW_tseg* ug = (GW_tseg*)UGEN(o)->gen.data;
 	m_float type = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->type = type);
 }
@@ -6701,12 +6701,12 @@ typedef struct {
 } GW_tseq;
 
 static TICK(tseq_tick) {
-	const GW_tseq* ug = (GW_tseq*)u->ug;
+	const GW_tseq* ug = (GW_tseq*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_tseq_compute(ug->sp, ug->osc, &u->trig->in, &u->out);
+	sp_tseq_compute(ug->sp, ug->osc, &u->gen.trig->in, &u->out);
 
 }
 
@@ -6715,13 +6715,13 @@ CTOR(tseq_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = tseq_tick;
+	UGEN(o)->gen.tick = tseq_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 	assign_trig(UGEN(o));
 }
 
 DTOR(tseq_dtor) {
-	GW_tseq* ug = UGEN(o)->ug;
+	GW_tseq* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_tseq_destroy(&ug->osc);
@@ -6731,7 +6731,7 @@ DTOR(tseq_dtor) {
 
 MFUN(tseq_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseq* ug = (GW_tseq*)UGEN(o)->ug;
+	GW_tseq* ug = (GW_tseq*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_tseq_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -6746,13 +6746,13 @@ MFUN(tseq_init) {
 }
 
 MFUN(tseq_get_shuf) {
-	GW_tseq* ug = (GW_tseq*)UGEN(o)->ug;
+	GW_tseq* ug = (GW_tseq*)UGEN(o)->gen.data;
 	*(m_uint*)RETURN = ug->osc->shuf;
 }
 
 MFUN(tseq_set_shuf) {
 	m_uint gw_offset = SZ_INT;
-	GW_tseq* ug = (GW_tseq*)UGEN(o)->ug;
+	GW_tseq* ug = (GW_tseq*)UGEN(o)->gen.data;
 	m_int shuf = *(m_int*)(shred->mem + gw_offset);
 	*(m_uint*)RETURN = (ug->osc->shuf = shuf);
 }
@@ -6764,7 +6764,7 @@ typedef struct {
 } GW_vdelay;
 
 static TICK(vdelay_tick) {
-	const GW_vdelay* ug = (GW_vdelay*)u->ug;
+	const GW_vdelay* ug = (GW_vdelay*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -6778,12 +6778,12 @@ CTOR(vdelay_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = vdelay_tick;
+	UGEN(o)->gen.tick = vdelay_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(vdelay_dtor) {
-	GW_vdelay* ug = UGEN(o)->ug;
+	GW_vdelay* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_vdelay_destroy(&ug->osc);
@@ -6793,7 +6793,7 @@ DTOR(vdelay_dtor) {
 
 MFUN(vdelay_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->ug;
+	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_vdelay_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -6806,13 +6806,13 @@ MFUN(vdelay_init) {
 }
 
 MFUN(vdelay_get_del) {
-	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->ug;
+	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->del;
 }
 
 MFUN(vdelay_set_del) {
 	m_uint gw_offset = SZ_INT;
-	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->ug;
+	GW_vdelay* ug = (GW_vdelay*)UGEN(o)->gen.data;
 	m_float del = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->del = del);
 }
@@ -6823,7 +6823,7 @@ typedef struct {
 } GW_voc;
 
 static TICK(voc_tick) {
-	const GW_voc* ug = (GW_voc*)u->ug;
+	const GW_voc* ug = (GW_voc*)u->gen.data;
 	sp_voc_compute(ug->sp, ug->osc, &u->out);
 
 }
@@ -6833,12 +6833,12 @@ CTOR(voc_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_voc_create(&ug->osc);
 	sp_voc_init(ug->sp, ug->osc);
-	UGEN(o)->tick = voc_tick;
+	UGEN(o)->gen.tick = voc_tick;
 	assign_ugen(UGEN(o), 0, 1, ug);
 }
 
 DTOR(voc_dtor) {
-	GW_voc* ug = UGEN(o)->ug;
+	GW_voc* ug = UGEN(o)->gen.data;
 	sp_voc_destroy(&ug->osc);
 	free(ug);
 }
@@ -6849,8 +6849,8 @@ typedef struct {
 } GW_vocoder;
 
 static TICK(vocoder_tick) {
-	const GW_vocoder* ug = (GW_vocoder*)u->ug;
-	sp_vocoder_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &u->out);
+	const GW_vocoder* ug = (GW_vocoder*)u->gen.data;
+	sp_vocoder_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &u->out);
 
 }
 
@@ -6859,48 +6859,48 @@ CTOR(vocoder_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_vocoder_create(&ug->osc);
 	sp_vocoder_init(ug->sp, ug->osc);
-	UGEN(o)->tick = vocoder_tick;
+	UGEN(o)->gen.tick = vocoder_tick;
 	assign_ugen(UGEN(o), 2, 1, ug);
 }
 
 DTOR(vocoder_dtor) {
-	GW_vocoder* ug = UGEN(o)->ug;
+	GW_vocoder* ug = UGEN(o)->gen.data;
 	sp_vocoder_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(vocoder_get_atk) {
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->atk;
 }
 
 MFUN(vocoder_set_atk) {
 	m_uint gw_offset = SZ_INT;
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	m_float atk = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->atk = atk);
 }
 
 MFUN(vocoder_get_rel) {
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->rel;
 }
 
 MFUN(vocoder_set_rel) {
 	m_uint gw_offset = SZ_INT;
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	m_float rel = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->rel = rel);
 }
 
 MFUN(vocoder_get_bwratio) {
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->bwratio;
 }
 
 MFUN(vocoder_set_bwratio) {
 	m_uint gw_offset = SZ_INT;
-	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->ug;
+	GW_vocoder* ug = (GW_vocoder*)UGEN(o)->gen.data;
 	m_float bwratio = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->bwratio = bwratio);
 }
@@ -6912,7 +6912,7 @@ typedef struct {
 } GW_waveset;
 
 static TICK(waveset_tick) {
-	const GW_waveset* ug = (GW_waveset*)u->ug;
+	const GW_waveset* ug = (GW_waveset*)u->gen.data;
 	if(!ug->is_init) { // LCOV_EXCL_START
 		u->out = 0;
 		return;
@@ -6926,12 +6926,12 @@ CTOR(waveset_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	ug->is_init = 0;
 	ug->osc = NULL;
-	UGEN(o)->tick = waveset_tick;
+	UGEN(o)->gen.tick = waveset_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(waveset_dtor) {
-	GW_waveset* ug = UGEN(o)->ug;
+	GW_waveset* ug = UGEN(o)->gen.data;
 	if(ug->is_init) {
 
 		sp_waveset_destroy(&ug->osc);
@@ -6941,7 +6941,7 @@ DTOR(waveset_dtor) {
 
 MFUN(waveset_init) {
 	m_uint gw_offset = SZ_INT;
-	GW_waveset* ug = (GW_waveset*)UGEN(o)->ug;
+	GW_waveset* ug = (GW_waveset*)UGEN(o)->gen.data;
 	if(ug->osc) {
 		sp_waveset_destroy(&ug->osc);
 		ug->osc = NULL;
@@ -6954,13 +6954,13 @@ MFUN(waveset_init) {
 }
 
 MFUN(waveset_get_rep) {
-	GW_waveset* ug = (GW_waveset*)UGEN(o)->ug;
+	GW_waveset* ug = (GW_waveset*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->rep;
 }
 
 MFUN(waveset_set_rep) {
 	m_uint gw_offset = SZ_INT;
-	GW_waveset* ug = (GW_waveset*)UGEN(o)->ug;
+	GW_waveset* ug = (GW_waveset*)UGEN(o)->gen.data;
 	m_float rep = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->rep = rep);
 }
@@ -6971,7 +6971,7 @@ typedef struct {
 } GW_wpkorg35;
 
 static TICK(wpkorg35_tick) {
-	const GW_wpkorg35* ug = (GW_wpkorg35*)u->ug;
+	const GW_wpkorg35* ug = (GW_wpkorg35*)u->gen.data;
 	sp_wpkorg35_compute(ug->sp, ug->osc, &u->in, &u->out);
 
 }
@@ -6981,48 +6981,48 @@ CTOR(wpkorg35_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_wpkorg35_create(&ug->osc);
 	sp_wpkorg35_init(ug->sp, ug->osc);
-	UGEN(o)->tick = wpkorg35_tick;
+	UGEN(o)->gen.tick = wpkorg35_tick;
 	assign_ugen(UGEN(o), 1, 1, ug);
 }
 
 DTOR(wpkorg35_dtor) {
-	GW_wpkorg35* ug = UGEN(o)->ug;
+	GW_wpkorg35* ug = UGEN(o)->gen.data;
 	sp_wpkorg35_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(wpkorg35_get_cutoff) {
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->cutoff;
 }
 
 MFUN(wpkorg35_set_cutoff) {
 	m_uint gw_offset = SZ_INT;
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	m_float cutoff = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->cutoff = cutoff);
 }
 
 MFUN(wpkorg35_get_res) {
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->res;
 }
 
 MFUN(wpkorg35_set_res) {
 	m_uint gw_offset = SZ_INT;
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	m_float res = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->res = res);
 }
 
 MFUN(wpkorg35_get_saturation) {
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = ug->osc->saturation;
 }
 
 MFUN(wpkorg35_set_saturation) {
 	m_uint gw_offset = SZ_INT;
-	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->ug;
+	GW_wpkorg35* ug = (GW_wpkorg35*)UGEN(o)->gen.data;
 	m_float saturation = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (ug->osc->saturation = saturation);
 }
@@ -7033,8 +7033,8 @@ typedef struct {
 } GW_zitarev;
 
 static TICK(zitarev_tick) {
-	const GW_zitarev* ug = (GW_zitarev*)u->ug;
-	sp_zitarev_compute(ug->sp, ug->osc, &UGEN(u->channel[0])->in, &UGEN(u->channel[1])->in, &UGEN(u->channel[0])->out, &UGEN(u->channel[1])->out);
+	const GW_zitarev* ug = (GW_zitarev*)u->gen.data;
+	sp_zitarev_compute(ug->sp, ug->osc, &UGEN(u->multi.channel[0])->in, &UGEN(u->multi.channel[1])->in, &UGEN(u->multi.channel[0])->out, &UGEN(u->multi.channel[1])->out);
 
 }
 
@@ -7043,144 +7043,144 @@ CTOR(zitarev_ctor) {
 	ug->sp = shred->vm_ref->sp;
 	sp_zitarev_create(&ug->osc);
 	sp_zitarev_init(ug->sp, ug->osc);
-	UGEN(o)->tick = zitarev_tick;
+	UGEN(o)->gen.tick = zitarev_tick;
 	assign_ugen(UGEN(o), 2, 2, ug);
 }
 
 DTOR(zitarev_dtor) {
-	GW_zitarev* ug = UGEN(o)->ug;
+	GW_zitarev* ug = UGEN(o)->gen.data;
 	sp_zitarev_destroy(&ug->osc);
 	free(ug);
 }
 
 MFUN(zitarev_get_in_delay) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->in_delay;
 }
 
 MFUN(zitarev_set_in_delay) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float in_delay = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->in_delay = in_delay);
 }
 
 MFUN(zitarev_get_lf_x) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->lf_x;
 }
 
 MFUN(zitarev_set_lf_x) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float lf_x = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->lf_x = lf_x);
 }
 
 MFUN(zitarev_get_rt60_low) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->rt60_low;
 }
 
 MFUN(zitarev_set_rt60_low) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float rt60_low = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->rt60_low = rt60_low);
 }
 
 MFUN(zitarev_get_rt60_mid) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->rt60_mid;
 }
 
 MFUN(zitarev_set_rt60_mid) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float rt60_mid = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->rt60_mid = rt60_mid);
 }
 
 MFUN(zitarev_get_hf_damping) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->hf_damping;
 }
 
 MFUN(zitarev_set_hf_damping) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float hf_damping = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->hf_damping = hf_damping);
 }
 
 MFUN(zitarev_get_eq1_freq) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->eq1_freq;
 }
 
 MFUN(zitarev_set_eq1_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float eq1_freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->eq1_freq = eq1_freq);
 }
 
 MFUN(zitarev_get_eq1_level) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->eq1_level;
 }
 
 MFUN(zitarev_set_eq1_level) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float eq1_level = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->eq1_level = eq1_level);
 }
 
 MFUN(zitarev_get_eq2_freq) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->eq2_freq;
 }
 
 MFUN(zitarev_set_eq2_freq) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float eq2_freq = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->eq2_freq = eq2_freq);
 }
 
 MFUN(zitarev_get_eq2_level) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->eq2_level;
 }
 
 MFUN(zitarev_set_eq2_level) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float eq2_level = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->eq2_level = eq2_level);
 }
 
 MFUN(zitarev_get_mix) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->mix;
 }
 
 MFUN(zitarev_set_mix) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float mix = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->mix = mix);
 }
 
 MFUN(zitarev_get_level) {
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	*(m_float*)RETURN = *ug->osc->level;
 }
 
 MFUN(zitarev_set_level) {
 	m_uint gw_offset = SZ_INT;
-	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->ug;
+	GW_zitarev* ug = (GW_zitarev*)UGEN(o)->gen.data;
 	m_float level = *(m_float*)(shred->mem + gw_offset);
 	*(m_float*)RETURN = (*ug->osc->level = level);
 }

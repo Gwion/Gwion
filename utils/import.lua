@@ -118,14 +118,14 @@ function print_mod_func(name, mod)
   end
   print("} GW_"..name..";\n")
   print("static TICK("..name.."_tick) {")
-  print("\tconst GW_"..name.."* ug = (GW_"..name.."*)u->ug;")
+  print("\tconst GW_"..name.."* ug = (GW_"..name.."*)u->gen.data;")
   if(nmandatory > 0) then
     print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
   local args = ""
   if ninputs > 1 then
     for i = 1, ninputs do
-      args = string.format("%s, &UGEN(u->channel["..(i - 1).."])->in", args)
+      args = string.format("%s, &UGEN(u->multi.channel["..(i - 1).."])->in", args)
     end
   elseif ninputs == 1 then
     args = string.format("%s, &u->in", args)
@@ -133,11 +133,11 @@ function print_mod_func(name, mod)
     args = ", NULL"
   end
   if ntrig > 0 then
-    args = string.format("%s, &u->trig->in", args)
+    args = string.format("%s, &u->gen.trig->in", args)
   end
   if mod.noutputs > 1 then
     for i = 1, mod.noutputs do
-      args = string.format("%s, &UGEN(u->channel["..(i - 1).."])->out", args)
+      args = string.format("%s, &UGEN(u->multi.channel["..(i - 1).."])->out", args)
     end
   elseif mod.noutputs == 1 then
     args = string.format("%s, &u->out", args)
@@ -158,13 +158,13 @@ function print_mod_func(name, mod)
     print("\tsp_"..name.."_create(&ug->osc);")
     print("\tsp_"..name.."_init(ug->sp, ug->osc);")
   end
-  print("\tUGEN(o)->tick = "..name.."_tick;")
+  print("\tUGEN(o)->gen.tick = "..name.."_tick;")
   print("\tassign_ugen(UGEN(o), "..mod.ninputs..", "..mod.noutputs..", ug);")
   if ntrig > 0 then
   print("\tassign_trig(UGEN(o));")
   end
   print("}\n")
-  print("DTOR("..name.."_dtor) {\n\tGW_"..name.."* ug = UGEN(o)->ug;")
+  print("DTOR("..name.."_dtor) {\n\tGW_"..name.."* ug = UGEN(o)->gen.data;")
   if(nmandatory > 0) then
     print("\tif(ug->is_init) {\n")
     local  arg = mod.params.mandatory
@@ -184,7 +184,7 @@ function print_mod_func(name, mod)
   if nmandatory > 0 then
     print("MFUN("..name.."_init) {")
     print("\tm_uint gw_offset = SZ_INT;")
-    print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
+    print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->gen.data;")
     local args = ""
     local tbl = mod.params.mandatory
     print("\tif(ug->osc) {\n\t\tsp_"..name.."_destroy(&ug->osc);")
@@ -231,7 +231,7 @@ function print_mod_func(name, mod)
   if opt then
     for _, v in pairs(opt) do
       print("MFUN("..name.."_get_"..v.name..") {")
-      print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
+      print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->gen.data;")
       if string.match(v.type, "int") then
         print("\t*(m_uint*)RETURN = ug->osc->"..v.name..";")
       elseif string.match(v.type, "SPFLOAT$") then
@@ -249,7 +249,7 @@ function print_mod_func(name, mod)
       print("}\n")
       print("MFUN("..name.."_set_"..v.name..") {")
       print("\tm_uint gw_offset = SZ_INT;")
-      print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->ug;")
+      print("\tGW_"..name.."* ug = (GW_"..name.."*)UGEN(o)->gen.data;")
       declare_c_param(v, true)
       if string.match(v.type, "int") then
         print("\t*(m_uint*)RETURN = (ug->osc->"..v.name.." = "..v.name..");")
