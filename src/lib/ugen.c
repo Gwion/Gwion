@@ -77,9 +77,9 @@ ANN void assign_channel(const UGen u) {
 }
 
 ANN void assign_trig(const UGen u) {
-  u->trig = new_M_UGen();
-  UGEN(u->trig)->ref = u;
-  assign_ugen(UGEN(u->trig), 1, 1, NULL);
+  u->trig = new_UGen();
+  u->trig->ref = u; // won't be neccesarray anymore
+  assign_ugen(u->trig, 1, 1, NULL);
 }
 
 ANN2(1) void assign_ugen(const UGen u, const m_uint n_in, const m_uint n_out, void* ug) {
@@ -147,7 +147,7 @@ static INSTR(ugen_##func) { GWDEBUG_EXE \
 static INSTR(trig_##func) { GWDEBUG_EXE \
   M_Object lhs, rhs; \
   if(connect_init(shred, &lhs, &rhs) > 0 && UGEN(rhs)->trig) {\
-    _do_(func, UGEN(lhs), UGEN(UGEN(rhs)->trig)); } \
+    _do_(func, UGEN(lhs), UGEN(rhs)->trig); } \
   release_connect(shred);\
 }
 
@@ -193,7 +193,10 @@ static DTOR(ugen_dtor) {
     release_mono(ug);
   else
     release_multi(ug, shred);
-  release(ug->trig, shred);
+  if(ug->trig) {
+    release_mono(ug->trig);
+    mp_free(UGen, ug->trig);
+  }
   mp_free(UGen, ug);
 }
 

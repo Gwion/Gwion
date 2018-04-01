@@ -141,7 +141,7 @@ function print_mod_func(name, mod)
     args = ", NULL"
   end
   if ntrig > 0 then
-    args = string.format("%s, &UGEN(u->trig)->in", args)
+    args = string.format("%s, &u->trig->in", args)
   end
   if mod.noutputs > 1 then
     for i = 1, mod.noutputs do
@@ -151,8 +151,7 @@ function print_mod_func(name, mod)
     args = string.format("%s, &u->out", args)
   end
   if ntrig > 0 then
---    print("\tif(!UGEN(u->trig)->done)\n\t\tugen_compute(UGEN(u->trig));")
-    print("\tugen_compute(UGEN(u->trig));")
+    print("\tugen_compute(u->trig);")
   end
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
 --  print("\treturn;\n}\n")

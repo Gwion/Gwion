@@ -10,7 +10,7 @@ struct UGen_ {
   struct Vector_ from, to; // store connected UGens
   M_Object* channel;
 //  };
-  M_Object trig;
+  UGen trig;
   f_tick tick;
   UGen ref;
   void* ug;
