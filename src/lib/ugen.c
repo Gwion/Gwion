@@ -116,23 +116,6 @@ ANN2(1) void assign_ugen(const UGen u, const m_uint n_in, const m_uint n_out, vo
     assign_channel(u);
 }
 
-ANN static void release_connect(const VM_Shred shred) {
-  release(*(M_Object*)REG(0), shred);
-  release(*(M_Object*)REG(SZ_INT), shred);
-  *(M_Object*)REG(0) = *(M_Object*)REG(SZ_INT);
-  PUSH_REG(shred, SZ_INT);
-}
-
-ANN static inline void connect(const UGen lhs, const UGen rhs) {
-  vector_add(&rhs->from, (vtype)lhs);
-  vector_add(&lhs->to,   (vtype)rhs);
-}
-
-ANN static inline void disconnect(const UGen lhs, const UGen rhs) {
-  vector_rem2(&rhs->from, (vtype)lhs);
-  vector_rem2(&lhs->to,   (vtype)rhs);
-}
-
 ANN static m_bool connect_init(const VM_Shred shred, M_Object* lhs, M_Object* rhs) {
   POP_REG(shred, SZ_INT * 2);
   *lhs = *(M_Object*)REG(0);
@@ -142,6 +125,21 @@ ANN static m_bool connect_init(const VM_Shred shred, M_Object* lhs, M_Object* rh
     return -1;
   }
   return 1;
+}
+
+#define describe_connect(name, func)                                   \
+ANN static inline void name##connect(const UGen lhs, const UGen rhs) { \
+  func(&rhs->from, (vtype)lhs);                                        \
+  func(&lhs->to,   (vtype)rhs);                                        \
+}
+describe_connect(,vector_add)
+describe_connect(dis,vector_rem2)
+
+ANN static void release_connect(const VM_Shred shred) {
+  release(*(M_Object*)REG(0), shred);
+  release(*(M_Object*)REG(SZ_INT), shred);
+  *(M_Object*)REG(0) = *(M_Object*)REG(SZ_INT);
+  PUSH_REG(shred, SZ_INT);
 }
 
 typedef ANN void (*f_connect)(const UGen lhs, const UGen rhs);
