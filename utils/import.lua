@@ -18,7 +18,6 @@ function declare_c_param(param, offset)
     print("\tm_uint "..param.name.."_iter;")
     print("\tsp_ftbl** "..param.name.." = (sp_ftbl**)xmalloc(m_vector_size(ARRAY("..param.name.."_ptr)) * SZ_INT);")
     print("\tfor("..param.name.."_iter = 0; "..param.name.."_iter < m_vector_size(ARRAY("..param.name.."_ptr)); "..param.name.."_iter++) {")
---    print("\t\t"..param.name.."["..param.name.."_iter] = FTBL((M_Object)i_vector_at(ARRAY("..param.name.."_ptr), "..param.name.."_iter));")
     print("\t\t\tM_Object "..param.name.."_ftl_obj;")
     print("\t\t\tm_vector_get(ARRAY("..param.name.."_ptr), "..param.name.."_iter, &"..param.name.."_ftl_obj);")
     print("\t\t\t"..param.name.."["..param.name.."_iter] = FTBL("..param.name.."_ftl_obj);\n\t}")
@@ -123,13 +122,6 @@ function print_mod_func(name, mod)
   if(nmandatory > 0) then
     print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
---  if mod.ninputs == 1 and mod.noutputs == 1 then
---    print("\tbase_tick(u);");
---  elseif mod.ninputs > 1 then
---    for i = 1, mod.ninputs do
---      print("\tbase_tick(UGEN(u->channel["..(i - 1).."]));");
---    end
---  end
   local args = ""
   if ninputs > 1 then
     for i = 1, ninputs do
@@ -150,11 +142,7 @@ function print_mod_func(name, mod)
   elseif mod.noutputs == 1 then
     args = string.format("%s, &u->out", args)
   end
-  if ntrig > 0 then
-    print("\tugen_compute(u->trig);")
-  end
   print("\tsp_"..name.."_compute(ug->sp, ug->osc"..args..");")
---  print("\treturn;\n}\n")
   print("\n}\n")
   print("CTOR("..name.."_ctor) {\n\tGW_"..name.."* ug = (GW_"..name.."*)xcalloc(1, sizeof(GW_"..name.."));")
   print("\tug->sp = shred->vm_ref->sp;")
@@ -239,20 +227,6 @@ function print_mod_func(name, mod)
     end
     print("\tug->is_init = 1;\n}\n")
   end
-  -- helper
-  --	if nmandatory == 1 then
-  --		local tbl = mod.params.mandatory
-  --		if tbl then
-  --			for _, v in pairs(tbl) do
-  --				print("MFUN("..name.."_"..v.name..") {")
-  --				print("\tm_uint gw_offset = SZ_INT;")
-  --				print("\tGW_"..name.."* ug = (GW_"..name.."*)o->ugen->ug;")
-  --				declare_c_param(v)
-  --				print("\tsp_"..name.."_init(ug->sp, ug->osc, "..v.name..");")
-  --				print("}\n")
-  --			end
-  --		end
-  --	end
   local opt = mod.params.optional
   if opt then
     for _, v in pairs(opt) do

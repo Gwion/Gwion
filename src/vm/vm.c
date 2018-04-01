@@ -81,7 +81,10 @@ ANN static inline void vm_ugen_init(const VM* vm) {
       for(m_uint j = u->n_chan + 1; --j;)
         UGEN(u->channel[j - 1])->done = 0;
   }
-  ugen_compute(UGEN(vm->blackhole));
+  const UGen hole = UGEN(vm->blackhole);
+  hole->compute(hole);
+  const UGen dac = UGEN(vm->dac);
+  dac->compute(dac);
 }
 
 #ifdef CURSES

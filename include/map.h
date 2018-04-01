@@ -32,6 +32,7 @@ ANN static inline vtype vector_size(const Vector v) {
 
 extern ANN       void  vector_add(const Vector, const vtype);
 extern ANN       void  vector_rem(const Vector, const vtype);
+extern ANN       void  vector_rem2(const Vector, const vtype);
 extern ANN       vtype vector_pop(const Vector);
 extern ANN       void  vector_clear(const Vector);
 extern ANN       void  free_vector(const Vector);

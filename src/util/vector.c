@@ -56,6 +56,11 @@ ANN void vector_rem(const Vector v, const vtype index) {
     v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) /= 2) * SZ_INT);
 }
 
+ANN void vector_rem2(const Vector v, const vtype data) {
+  const vtype index = vector_find(v, data);
+  vector_rem(v, index);
+}
+
 ANN vtype vector_pop(const Vector v) {
   if(!VLEN(v))
     return 0;
