@@ -29,13 +29,13 @@ ANN void ugen_compute(const UGen u) {
   u->done = 1;
   u->last = u->out;
   if(!u->channel) {
-    const m_uint size = vector_size(&u->ugen);
+    const m_uint size = vector_size(&u->from);
     if(size) {
-      const UGen v = (UGen)vector_front(&u->ugen);
+      const UGen v = (UGen)vector_front(&u->from);
       COMPUTE(v)
       u->in = v->out;
       for(m_uint i = 1; i < size; ++i) {
-        const UGen v = (UGen)vector_at(&u->ugen, i);
+        const UGen v = (UGen)vector_at(&u->from, i);
         COMPUTE(v)
         u->op(u, v->out);
       }
@@ -54,7 +54,6 @@ ANN void ugen_compute(const UGen u) {
 
 ANEW static UGen new_UGen() {
   const UGen u = mp_alloc(UGen);
-  vector_init(&u->to);
   u->op = ugop_plus;
   return u;
 }
@@ -89,9 +88,10 @@ ANN2(1) void assign_ugen(const UGen u, const m_uint n_in, const m_uint n_out, vo
   u->n_in   = n_in;
   u->n_out  = n_out;
   u->ug     = ug;
-  if(u->n_chan == 1)
-    vector_init(&u->ugen);
-  else
+  if(u->n_chan == 1) {
+    vector_init(&u->from);
+    vector_init(&u->to);
+  } else
     assign_channel(u);
 }
 
@@ -103,12 +103,12 @@ ANN static void release_connect(const VM_Shred shred) {
 }
 
 ANN static inline void connect(const UGen lhs, const UGen rhs) {
-  vector_add(&rhs->ugen, (vtype)lhs);
+  vector_add(&rhs->from, (vtype)lhs);
   vector_add(&lhs->to,   (vtype)rhs);
 }
 
 ANN static inline void disconnect(const UGen lhs, const UGen rhs) {
-  vector_rem(&rhs->ugen, vector_find(&rhs->ugen, (vtype)lhs));
+  vector_rem(&rhs->from, vector_find(&rhs->from, (vtype)lhs));
   vector_rem(&lhs->to,   vector_find(&lhs->to,   (vtype)rhs));
 }
 
@@ -123,40 +123,31 @@ ANN static m_bool connect_init(const VM_Shred shred, M_Object* lhs, M_Object* rh
   return 1;
 }
 
-#define CONNECT(func,a, b)    \
-  if(!UGEN((b))->channel)      \
-    func(UGEN((a)), UGEN((b)));   \
-  else                   \
-    do_##func(UGEN((a)), UGEN((b)));
-
-ANN static void do_connect(const UGen lhs, const UGen rhs) {
+typedef ANN void (*f_connect)(const UGen lhs, const UGen rhs);
+ANN static void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
+  const m_uint l_max = lhs->channel  ? lhs->n_out : 1;
+  const m_uint r_max = rhs->channel  ? rhs->n_in  : 1;
+  const m_uint max   = l_max < r_max ? r_max : l_max;
   m_uint i = 0;
-  const m_bool multi = lhs->n_out > 1;
   do {
-    const UGen l  = multi ? UGEN(lhs->channel[i % lhs->n_out]) :lhs;
-    const UGen r = UGEN(rhs->channel[i]);
-    connect(l, r);
-  }while(++i < rhs->n_in);
-}
-
-ANN static inline void do_disconnect(const UGen lhs, const UGen rhs) {
-  m_uint i = 0;
-  do disconnect(lhs, UGEN(rhs->channel[i]));
-  while(++i < rhs->n_out);
+    const UGen l = lhs->channel ? UGEN(lhs->channel[i % l_max]) : lhs;
+    const UGen r = rhs->channel ? UGEN(rhs->channel[i % r_max]) : rhs;
+    f(l, r);
+  }while(++i < max);
 }
 
 #define describe_ugen_connect(func) \
 static INSTR(ugen_##func) { GWDEBUG_EXE \
   M_Object lhs, rhs; \
   if(connect_init(shred, &lhs, &rhs) > 0) {\
-    CONNECT(func, lhs, rhs) }\
+    _do_(func, UGEN(lhs), UGEN(rhs)); }\
   release_connect(shred);\
 }
 #define describe_trig_connect(func) \
 static INSTR(trig_##func) { GWDEBUG_EXE \
   M_Object lhs, rhs; \
   if(connect_init(shred, &lhs, &rhs) > 0 && UGEN(rhs)->trig) {\
-    CONNECT(func, lhs, UGEN(rhs)->trig) } \
+    _do_(func, UGEN(lhs), UGEN(UGEN(rhs)->trig)); } \
   release_connect(shred);\
 }
 
@@ -170,27 +161,27 @@ static CTOR(ugen_ctor) {
   vector_add(&shred->vm_ref->ugen, (vtype)UGEN(o));
 }
 
-ANN static void ugen_unref(const UGen ug) {
-  for(m_uint i = vector_size(&ug->to) + 1; --i;) {
-    const UGen u = (UGen)vector_at(&ug->to, i - 1);
-    const m_int index = vector_find(&u->ugen, (vtype)ug);
-    vector_rem(&u->ugen, index);
-  }
+#define describe_release_func(src, tgt)                  \
+ANN static void release_##src(const UGen ug) {           \
+  for(m_uint i = vector_size(&ug->src) + 1; --i;) {      \
+    const UGen u = (UGen)vector_at(&ug->src, i - 1);     \
+    const m_int index = vector_find(&u->tgt, (vtype)ug); \
+    vector_rem(&u->tgt, index);                          \
+  }                                                      \
+  vector_release(&ug->src);                              \
+}
+describe_release_func(from, to)
+describe_release_func(to, from)
+
+ANN static void release_mono(const UGen ug) {
+  release_to(ug);
+  release_from(ug);
 }
 
-ANN static void ugen_release(const UGen ug, const VM_Shred shred) {
-  if(ug->n_chan == 1) {
-    for(m_uint i = vector_size(&ug->ugen) + 1; --i;) {
-      const UGen u = (UGen)vector_at(&ug->ugen, i - 1);
-      const m_int index = vector_find(&u->to, (vtype)ug);
-      vector_rem(&u->to, index);
-    }
-    vector_release(&ug->ugen);
-  } else {
-    for(m_uint i = ug->n_chan + 1; --i;)
-      release(ug->channel[i - 1], shred);
-    free(ug->channel);
-  }
+ANN static void release_multi(const UGen ug, const VM_Shred shred) {
+  for(m_uint i = ug->n_chan + 1; --i;)
+    release(ug->channel[i - 1], shred);
+  free(ug->channel);
 }
 
 static DTOR(ugen_dtor) {
@@ -198,10 +189,11 @@ static DTOR(ugen_dtor) {
   const m_int j = vector_find(&shred->vm_ref->ugen, (vtype)ug);
 
   vector_rem(&shred->vm_ref->ugen, j);
-  ugen_unref(ug);
-  ugen_release(ug, shred);
+  if(!ug->channel)
+    release_mono(ug);
+  else
+    release_multi(ug, shred);
   release(ug->trig, shred);
-  vector_release(&ug->to);
   mp_free(UGen, ug);
 }
 

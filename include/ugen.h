@@ -7,7 +7,7 @@ struct UGen_ {
   m_float in, out, last;
   f_ugop op;
 //  union {
-  struct Vector_ ugen, to; // store connected UGens
+  struct Vector_ from, to; // store connected UGens
   M_Object* channel;
 //  };
   M_Object trig;
