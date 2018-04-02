@@ -8,7 +8,7 @@ struct ugen_net {
   m_uint size;
 };
 
-struct ugen_multi {
+struct ugen_multi_ {
   m_uint    n_in;
   m_uint    n_out;
   m_uint    n_chan;
@@ -21,20 +21,21 @@ struct ugen_gen {
   UGen   trig;
 };
 
+enum ugen_flag { UGEN_MULTI = 1 << 1 };
 struct UGen_ {
   f_tick compute;
   f_ugop op;
   union {
     struct ugen_net net;
-    struct ugen_multi multi;
-  };
+    struct ugen_multi_* multi;
+  } connect;
   union {
     struct ugen_gen gen;
     UGen ref;
-  };
+  } module;
   m_float in, out, last;
   m_bool done;
-//  enum ugen_flag flag;
+  enum ugen_flag flag;
 };
 ANN void ugen_ini(const UGen, const m_uint, const m_uint);
-ANN void ugen_gen(const UGen, const f_tick, const void*, const m_bool);
+ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);

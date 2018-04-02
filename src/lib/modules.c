@@ -17,7 +17,7 @@ typedef struct SP_osc_ {
 } SP_osc; // copied from ge nerated osc.c
 
 static TICK(sinosc_tick) {
-  const SP_osc* ug = (SP_osc*)u->gen.data;
+  const SP_osc* ug = (SP_osc*)u->module.gen.data;
   sp_osc_compute(ug->sp, ug->osc, NULL, &u->out);
 }
 
@@ -41,13 +41,13 @@ static CTOR(sinosc_ctor) {
   sp_ftbl_create(shred->vm_ref->sp, &ug->tbl, 2048);
   sp_gen_sine(shred->vm_ref->sp, ug->tbl);
   sp_osc_init(shred->vm_ref->sp, ug->osc, ug->tbl, 0.);
-  assign_ugen(UGEN(o), 0, 1, ug);
-  UGEN(o)->gen.tick = sinosc_tick;
+  ugen_ini(UGEN(o), 0, 1);
+  ugen_gen(UGEN(o), sinosc_tick, ug, 0);
   ug->is_init = 1;
 }
 
 static DTOR(sinosc_dtor) {
-  SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   sp_osc_destroy(&ug->osc);
   sp_ftbl_destroy(&ug->tbl);
   free(ug);
@@ -55,35 +55,35 @@ static DTOR(sinosc_dtor) {
 
 static MFUN(sinosc_size) {
   const m_int size = *(m_int*)(shred->mem + SZ_INT);
-  SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   refresh_sine(shred->vm_ref, ug, size, 0);
 }
 
 static MFUN(sinosc_size_phase) {
   const m_int size    = *(m_int*)(shred->mem + SZ_INT);
   const float phase = *(m_int*)(shred->mem + SZ_INT * 2);
-  SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   refresh_sine(shred->vm_ref, ug, size, phase);
 }
 
 static MFUN(sinosc_get_freq) {
-  const SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  const SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   *(m_float*)RETURN = ug->osc->freq;
 }
 
 static MFUN(sinosc_set_freq) {
-  const SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  const SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   const m_float freq = *(m_float*)(shred->mem + SZ_INT);
   *(m_float*)RETURN = (ug->osc->freq = freq);
 }
 
 static MFUN(sinosc_get_amp) {
-  const SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  const SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   *(m_float*)RETURN = ug->osc->amp;
 }
 
 static MFUN(sinosc_set_amp) {
-  const SP_osc* ug = (SP_osc*)UGEN(o)->gen.data;
+  const SP_osc* ug = (SP_osc*)UGEN(o)->module.gen.data;
   const m_float amp = *(m_float*)(shred->mem + SZ_INT);
   *(m_float*)RETURN = (ug->osc->amp = amp);
 }
@@ -114,26 +114,27 @@ ANN static m_bool import_sinosc(const Gwi gwi) {
 }
 
 static DTOR(basic_dtor) {
-  free(UGEN(o)->gen.data);
+  free(UGEN(o)->module.gen.data);
 }
 
 static TICK(gain_tick) {
-  u->out = (u->in * *(m_float*)u->gen.data);
+  u->out = (u->in * *(m_float*)u->module.gen.data);
 }
 
 static CTOR(gain_ctor) {
-  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = gain_tick;
-  *(m_float*)UGEN(o)->gen.data = 1;
+  ugen_ini(UGEN(o), 1, 1);
+  ugen_gen(UGEN(o), gain_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  UGEN(o)->module.gen.tick = gain_tick;
+  *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
 
 static MFUN(gain_get_gain) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->gen.data;
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->module.gen.data;
 }
 
 static MFUN(gain_set_gain) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->gen.data = *(m_float*)MEM(SZ_INT);
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->module.gen.data = *(m_float*)MEM(SZ_INT);
 }
 
 ANN static m_bool import_gain(const Gwi gwi) {
@@ -150,22 +151,22 @@ ANN static m_bool import_gain(const Gwi gwi) {
 }
 
 static TICK(impulse_tick) {
-  u->out = *(m_float*)u->gen.data;
-  *(m_float*)u->gen.data = 0;
+  u->out = *(m_float*)u->module.gen.data;
+  *(m_float*)u->module.gen.data = 0;
 }
 
 static CTOR(impulse_ctor) {
-  assign_ugen(UGEN(o), 0, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = impulse_tick;
-  *(m_float*)UGEN(o)->gen.data = 0;
+  ugen_ini(UGEN(o), 0, 1);
+  ugen_gen(UGEN(o), impulse_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  *(m_float*)UGEN(o)->module.gen.data = 0;
 }
 
 static MFUN(impulse_get_next) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->gen.data;
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->module.gen.data;
 }
 
 static MFUN(impulse_set_next) {
-  *(m_float*)RETURN = (*(m_float*)UGEN(o)->gen.data = *(m_float*)MEM(SZ_INT));
+  *(m_float*)RETURN = (*(m_float*)UGEN(o)->module.gen.data = *(m_float*)MEM(SZ_INT));
 }
 
 ANN static m_bool import_impulse(const Gwi gwi) {
@@ -186,9 +187,9 @@ static TICK(fullrect_tick) {
 }
 
 static CTOR(fullrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = fullrect_tick;
-  *(m_float*)UGEN(o)->gen.data = 1;
+  ugen_ini(UGEN(o), 1, 1);
+  ugen_gen(UGEN(o), fullrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
 ANN static m_bool import_fullrect(const Gwi gwi) {
@@ -207,9 +208,9 @@ static TICK(halfrect_tick) {
 }
 
 static CTOR(halfrect_ctor) {
-  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = halfrect_tick;
-  *(m_float*)UGEN(o)->gen.data = 1;
+  ugen_ini(UGEN(o), 1, 1);
+  ugen_gen(UGEN(o), halfrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
 ANN static m_bool import_halfrect(const Gwi gwi) {
@@ -221,21 +222,21 @@ ANN static m_bool import_halfrect(const Gwi gwi) {
 }
 
 static TICK(step_tick) {
-  u->out = *(m_float*)u->gen.data;
+  u->out = *(m_float*)u->module.gen.data;
 }
 
 static CTOR(step_ctor) {
-  assign_ugen(UGEN(o), 0, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = step_tick;
-  *(m_float*)UGEN(o)->gen.data = 0;
+  ugen_ini(UGEN(o), 0, 1);
+  ugen_gen(UGEN(o), step_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  *(m_float*)UGEN(o)->module.gen.data = 0;
 }
 
 static MFUN(step_get_next) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->gen.data;
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->module.gen.data;
 }
 
 static MFUN(step_set_next) {
-  *(m_float*)RETURN = *(m_float*)UGEN(o)->gen.data = *(m_float*)(shred->mem + SZ_INT);
+  *(m_float*)RETURN = *(m_float*)UGEN(o)->module.gen.data = *(m_float*)(shred->mem + SZ_INT);
 }
 
 ANN static m_bool import_step(const Gwi gwi) {
@@ -253,15 +254,15 @@ ANN static m_bool import_step(const Gwi gwi) {
 
 static TICK(zerox_tick) {
   m_float in = (u->in < 0) ? -1 : (u->in > 0);
-  m_float f = *(m_float*)u->gen.data;
+  m_float f = *(m_float*)u->module.gen.data;
   u->out = f == in ? 1 : 0;
-  *(m_float*) u->gen.data = in;
+  *(m_float*) u->module.gen.data = in;
 }
 
 static CTOR(zerox_ctor) {
-  assign_ugen(UGEN(o), 1, 1, (m_float*)xmalloc(SZ_FLOAT));
-  UGEN(o)->gen.tick = zerox_tick;
-  *(m_float*)UGEN(o)->gen.data = 1;
+  ugen_ini(UGEN(o), 1, 1);
+  ugen_gen(UGEN(o), zerox_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
 ANN static m_bool import_zerox(const Gwi gwi) {

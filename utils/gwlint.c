@@ -17,21 +17,21 @@ typedef struct {
   m_bool nonl;
 } Linter;
 
-static void lint_type_decl(Linter* linter, Type_Decl* type);
-static void lint_exp(Linter* linter, Exp exp);
-static void lint_stmt(Linter* linter, Stmt stmt);
-static void lint_stmt_if(Linter* linter, Stmt_If stmt);
-static void lint_stmt_list(Linter* linter, Stmt_List list);
-static void lint_class_def(Linter* linter, Class_Def class_def);
+ANN static void lint_type_decl(Linter* linter, Type_Decl* type);
+ANN static void lint_exp(Linter* linter, Exp exp);
+ANN static void lint_stmt(Linter* linter, Stmt stmt);
+ANN static void lint_stmt_if(Linter* linter, Stmt_If stmt);
+ANN static void lint_stmt_list(Linter* linter, Stmt_List list);
+ANN static void lint_class_def(Linter* linter, Class_Def class_def);
 
-static void lint_print(Linter* linter, const char* fmt, ...) {
+ANN static void lint_print(Linter* linter, const char* fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
   vfprintf(linter->file, fmt, arg);
   va_end(arg);
 }
 
-static void lint_nl(Linter* linter) {
+ANN static void lint_nl(Linter* linter) {
   m_uint pos = linter->pos;
   fprintf(linter->file, "\n");
   linter->pos = ftell(linter->file);
@@ -41,20 +41,19 @@ static void lint_nl(Linter* linter) {
   linter->line++;
 }
 
-static void lint_indent(Linter* linter) {
-  m_uint i, j;
+ANN static void lint_indent(Linter* linter) {
   if(linter->skip) {
     lint_print(linter, " ");
     linter->skip--;
     return;
   }
-  for(i = 0; i < linter->indent; i++)
-    for(j = 0; j < TABLEN; j++)
+  for(m_uint i = 0; i < linter->indent; i++)
+    for(m_uint j = 0; j < TABLEN; j++)
       lint_print(linter, " ");
 }
 
-static void lint_id_list(Linter* linter, ID_List list) {
-  m_bool next = list->next ? 1 : 0;
+ANN static void lint_id_list(Linter* linter, ID_List list) {
+  const m_bool next = list->next ? 1 : 0;
   if(next)
     lint_print(linter, "<");
   while(list) {
@@ -67,10 +66,9 @@ static void lint_id_list(Linter* linter, ID_List list) {
     lint_print(linter, ">");
 }
 
-static void lint_array(Linter* linter, Array_Sub array) {
-  m_uint i;
+ANN static void lint_array(Linter* linter, Array_Sub array) {
   Exp exp = array->exp;
-  for(i = 0; i < array->depth; i++) {
+  for(m_uint i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     if(exp)
       exp->next = NULL;
@@ -85,10 +83,9 @@ static void lint_array(Linter* linter, Array_Sub array) {
   }
 }
 
-static void lint_array_lit(Linter* linter, Array_Sub array) {
-  m_uint i;
+ANN static void lint_array_lit(Linter* linter, Array_Sub array) {
   Exp exp = array->exp;
-  for(i = 0; i < array->depth; i++) {
+  for(m_uint i = 0; i < array->depth; i++) {
     Exp tmp = exp ? exp->next : NULL;
     lint_print(linter, "[");
     if(exp) {
@@ -107,7 +104,7 @@ static void lint_array_lit(Linter* linter, Array_Sub array) {
   }
 }
 
-static void lint_type_list(Linter* linter, Type_List list) {
+ANN static void lint_type_list(Linter* linter, Type_List list) {
   lint_print(linter, "<{");
   while(list) {
     lint_type_decl(linter, list->td);
@@ -118,7 +115,7 @@ static void lint_type_list(Linter* linter, Type_List list) {
   lint_print(linter, "}>");
 }
 
-static void lint_type_decl(Linter* linter, Type_Decl* type) {
+ANN static void lint_type_decl(Linter* linter, Type_Decl* type) {
   if(GET_FLAG(type, ae_flag_private))
     lint_print(linter, "private ");
   if(GET_FLAG(type, ae_flag_static))
@@ -152,7 +149,7 @@ static void lint_stmt_indent(Linter* linter, Stmt stmt) {
     linter->indent--;
 }
 
-static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
+ANN static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   lint_type_decl(linter, decl->td);
   lint_print(linter, " ");
@@ -166,7 +163,7 @@ static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
   }
 }
 
-static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
+ANN static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
   lint_print(linter, "%s", op2str(unary->op));
   switch(unary->op) {
     case op_plusplus:
@@ -187,13 +184,13 @@ static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
   }
 }
 
-static void lint_exp_binary(Linter* linter, Exp_Binary* binary) {
+ANN static void lint_exp_binary(Linter* linter, Exp_Binary* binary) {
   lint_exp(linter, binary->lhs);
   lint_print(linter, " %s ", op2str(binary->op));
   lint_exp(linter, binary->rhs);
 }
 
-static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
+ANN static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
   switch(exp->primary_type) {
     case ae_primary_id:
       lint_print(linter, "%s", s_name(exp->d.var));
@@ -243,29 +240,29 @@ static void lint_exp_primary(Linter* linter, Exp_Primary* exp) {
   }
 }
 
-static void lint_exp_array(Linter* linter, Exp_Array* array) {
+ANN static void lint_exp_array(Linter* linter, Exp_Array* array) {
   lint_exp(linter, array->base);
   lint_exp(linter, array->array->exp);
 }
 
-static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
+ANN static void lint_exp_cast(Linter* linter, Exp_Cast* cast) {
   lint_exp(linter, cast->exp);
   lint_print(linter, "$ ");
   lint_type_decl(linter, cast->td);
 }
 
-static void lint_exp_post(Linter* linter, Exp_Postfix* post) {
+ANN static void lint_exp_post(Linter* linter, Exp_Postfix* post) {
   lint_exp(linter, post->exp);
   lint_print(linter, "%s", op2str(post->op));
 }
 
-static void lint_exp_dur(Linter* linter, Exp_Dur* dur) {
+ANN static void lint_exp_dur(Linter* linter, Exp_Dur* dur) {
   lint_exp(linter, dur->base);
   lint_print(linter, "::");
   lint_exp(linter, dur->unit);
 }
 
-static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
+ANN static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
   if(exp_func->tmpl)
     lint_type_list(linter, exp_func->tmpl->types);
   lint_exp(linter, exp_func->func);
@@ -275,12 +272,12 @@ static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
   lint_print(linter, ")");
 }
 
-static void  lint_exp_dot(Linter* linter, Exp_Dot* member) {
+ANN static void  lint_exp_dot(Linter* linter, Exp_Dot* member) {
   lint_exp(linter, member->base);
   lint_print(linter, ".%s", s_name(member->xid));
 }
 
-static void lint_exp_if(Linter* linter, Exp_If* exp_if) {
+ANN static void lint_exp_if(Linter* linter, Exp_If* exp_if) {
   lint_exp(linter, exp_if->cond);
   lint_print(linter, " ? ");
   lint_exp(linter, exp_if->if_exp);
@@ -333,7 +330,7 @@ static void lint_exp(Linter* linter,  Exp exp) {
   }
 }
 
-static void lint_stmt_code(Linter* linter, Stmt_Code stmt) {
+ANN static void lint_stmt_code(Linter* linter, Stmt_Code stmt) {
   if(!stmt->stmt_list) {
     lint_print(linter, "{}");
     return;
@@ -348,7 +345,7 @@ static void lint_stmt_code(Linter* linter, Stmt_Code stmt) {
   lint_print(linter, "}");
 }
 
-static void lint_stmt_return(Linter* linter, Stmt_Exp stmt) {
+ANN static void lint_stmt_return(Linter* linter, Stmt_Exp stmt) {
   lint_print(linter, "return");
   if(stmt->val) {
     lint_print(linter, " ");
@@ -358,7 +355,7 @@ static void lint_stmt_return(Linter* linter, Stmt_Exp stmt) {
   lint_nl(linter);
 }
 
-static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str str) {
+ANN static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str str) {
   if(!stmt->is_do) {
     lint_print(linter, "%s(", str);
     lint_exp(linter, stmt->cond);
@@ -376,20 +373,21 @@ static void lint_stmt_flow(Linter* linter, struct Stmt_Flow_* stmt, const m_str 
   }
 }
 
-static void lint_stmt_for(Linter* linter, Stmt_For stmt) {
+ANN static void lint_stmt_for(Linter* linter, Stmt_For stmt) {
   lint_print(linter, "for(");
   linter->nonl++;
   lint_stmt(linter, stmt->c1);
   lint_print(linter, " ");
   lint_stmt(linter, stmt->c2);
   lint_print(linter, " ");
-  lint_exp(linter, stmt->c3);
+  if(stmt->c3)
+    lint_exp(linter, stmt->c3);
   lint_print(linter, ")");
   linter->nonl--;
   lint_stmt_indent(linter, stmt->body);
 }
 
-static void lint_stmt_auto(Linter* linter, Stmt_Auto stmt) {
+ANN static void lint_stmt_auto(Linter* linter, Stmt_Auto stmt) {
   lint_print(linter, "for(");
   lint_print(linter, "auto ");
   lint_print(linter, s_name(stmt->sym));
@@ -399,27 +397,27 @@ static void lint_stmt_auto(Linter* linter, Stmt_Auto stmt) {
   lint_stmt_indent(linter, stmt->body);
 }
 
-static void lint_stmt_loop(Linter* linter, Stmt_Loop stmt) {
+ANN static void lint_stmt_loop(Linter* linter, Stmt_Loop stmt) {
   lint_print(linter, "repeat(");
   lint_exp(linter, stmt->cond);
   lint_print(linter, ")");
   lint_stmt(linter, stmt->body);
 }
 
-static void lint_stmt_switch(Linter* linter, Stmt_Switch stmt) {
+ANN static void lint_stmt_switch(Linter* linter, Stmt_Switch stmt) {
   lint_print(linter, "switch(");
   lint_exp(linter, stmt->val);
   lint_print(linter, ")");
 }
 
-static void lint_stmt_case(Linter* linter, Stmt_Exp stmt) {
+ANN static void lint_stmt_case(Linter* linter, Stmt_Exp stmt) {
   lint_print(linter, "case ");
   lint_exp(linter, stmt->val);
   lint_print(linter, ":");
   lint_nl(linter);
 }
 
-static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
+ANN static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
   lint_print(linter, "if(");
   lint_exp(linter, stmt->cond);
   lint_print(linter, ")");
@@ -440,7 +438,7 @@ static void lint_stmt_if(Linter* linter, Stmt_If stmt) {
   }
 }
 
-void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
+ANN void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
   ID_List list = stmt->list;
   lint_print(linter, "enum {");
   lint_nl(linter);
@@ -462,7 +460,7 @@ void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
   lint_nl(linter);
 }
 
-void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
+ANN void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
   Arg_List list = ptr->args;
   lint_print(linter, "typedef ");
   lint_print(linter, "%s", GET_FLAG(ptr->td, ae_flag_variadic) ?
@@ -482,7 +480,7 @@ void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
   lint_nl(linter);
 }
 
-void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
+ANN void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
   lint_print(linter, "typedef ");
   lint_type_decl(linter, ptr->td);
   lint_print(linter, " ");
@@ -490,7 +488,8 @@ void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
   lint_print(linter, ";");
   lint_nl(linter);
 }
-void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
+
+ANN void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   Decl_List l = stmt->l;
   if(GET_FLAG(stmt, ae_flag_private))
     lint_print(linter, "private ");
@@ -511,7 +510,7 @@ void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   lint_nl(linter);
 }
 
-void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
+ANN void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
   if(stmt->is_label)
     lint_print(linter, "%s:", s_name(stmt->name));
   else
@@ -519,17 +518,17 @@ void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
   lint_nl(linter);
 }
 
-void lint_stmt_continue(Linter* linter, Stmt stmt __attribute__((unused))) {
+ANN void lint_stmt_continue(Linter* linter, Stmt stmt __attribute__((unused))) {
   lint_print(linter, "continue;");
   lint_nl(linter);
 }
 
-void lint_stmt_break(Linter* linter, Stmt stmt __attribute__((unused))) {
+ANN void lint_stmt_break(Linter* linter, Stmt stmt __attribute__((unused))) {
   lint_print(linter, "break;");
   lint_nl(linter);
 }
 
-static void lint_stmt(Linter* linter, Stmt stmt) {
+ANN static void lint_stmt(Linter* linter, Stmt stmt) {
   if(stmt->stmt_type == ae_stmt_exp && !stmt->d.stmt_exp.val)
     return;
   lint_indent(linter);
@@ -594,14 +593,14 @@ static void lint_stmt(Linter* linter, Stmt stmt) {
   }
 }
 
-static void lint_stmt_list(Linter* linter, Stmt_List list) {
+ANN static void lint_stmt_list(Linter* linter, Stmt_List list) {
   while(list) {
     lint_stmt(linter, list->stmt);
     list = list->next;
   }
 }
 
-static void lint_func_def(Linter* linter, Func_Def f) {
+ANN static void lint_func_def(Linter* linter, Func_Def f) {
   Arg_List list = f->arg_list;
   lint_indent(linter);
   if(GET_FLAG(f, ae_flag_inline))
@@ -628,7 +627,7 @@ static void lint_func_def(Linter* linter, Func_Def f) {
   f->flag &= ~ae_flag_template;
 }
 
-static void lint_section(Linter* linter, Section* section) {
+ANN static void lint_section(Linter* linter, Section* section) {
   ae_Section_Type t = section->section_type;
   if(t == ae_section_stmt)
     lint_stmt_list(linter, section->d.stmt_list);
@@ -638,7 +637,7 @@ static void lint_section(Linter* linter, Section* section) {
     lint_class_def(linter, section->d.class_def);
 }
 
-static void lint_class_def(Linter* linter, Class_Def class_def) {
+ANN static void lint_class_def(Linter* linter, Class_Def class_def) {
   Class_Body body = class_def->body;
   lint_indent(linter);
   if(class_def->tmpl) {
@@ -664,7 +663,7 @@ static void lint_class_def(Linter* linter, Class_Def class_def) {
   lint_nl(linter);
 }
 
-void lint_ast(Linter* linter, Ast ast) {
+ANN void lint_ast(Linter* linter, Ast ast) {
   while(ast) {
     lint_section(linter, ast->section);
     ast = ast->next;
@@ -679,14 +678,14 @@ int main(int argc, char** argv) {
     char c[strlen(*argv) + 6];
     sprintf(c, "%s.lint", *argv);
     FILE* f = fopen(*argv, "r");
-    if(!f)continue;
-    if(!(ast = parse(*argv++, f)))
-      continue;
+    if(!f || !(ast = parse(*argv++, f)))
+      goto close;
     linter.file = fopen(c, "w");
     lint_ast(&linter, ast);
     free_ast(ast);
-    fclose(f);
     fclose(linter.file);
+close:
+    fclose(f);
   }
   free_symbols();
   return 0;

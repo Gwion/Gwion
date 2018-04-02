@@ -76,10 +76,10 @@ ANN static inline void vm_ugen_init(const VM* vm) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const UGen u = (UGen)vector_at(v, i - 1);
     u->done = 0;
-    if(u->multi.channel)
+    if(GET_FLAG(u, UGEN_MULTI))
       LOOP_OPTIM
-      for(m_uint j = u->multi.n_chan + 1; --j;)
-        UGEN(u->multi.channel[j - 1])->done = 0;
+      for(m_uint j = u->connect.multi->n_chan + 1; --j;)
+        UGEN(u->connect.multi->channel[j - 1])->done = 0;
   }
   const UGen hole = UGEN(vm->blackhole);
   hole->compute(hole);
