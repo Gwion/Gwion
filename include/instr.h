@@ -33,8 +33,8 @@ INSTR(Reg_Push_Now);
 INSTR(Reg_Push_Maybe);
 
 /* staking */
-INSTR(Reg_Pop_Word4);
-INSTR(Reg_PushImm);
+INSTR(Reg_Pop_Word);
+INSTR(Reg_Push_Imm);
 INSTR(Reg_Push_Mem_Addr);
 INSTR(Mem_Push_Imm);
 INSTR(Mem_Set_Imm);
@@ -42,7 +42,7 @@ INSTR(Reg_Push_Mem);
 INSTR(Reg_Push_Ptr);
 INSTR(Reg_Push_Code);
 INSTR(Reg_Dup_Last);
-INSTR(Reg_AddRef_Object3);
+INSTR(Reg_Add_Ref);
 
 /* branching */
 INSTR(Branch_Switch);
@@ -77,8 +77,8 @@ INSTR(Spork);
 INSTR(Instr_Exp_Func);
 INSTR(Dot_Static_Func);
 INSTR(Exp_Dot_Func);
-INSTR(Instr_Exp_Func_Static);
-INSTR(Instr_Exp_Func_Member);
+INSTR(Func_Static);
+INSTR(Func_Member);
 INSTR(Func_Return);
 
 /* object */
@@ -90,7 +90,7 @@ INSTR(Alloc_Member);
 INSTR(Dot_Static_Data);
 INSTR(Dot_Static_Import_Data);
 INSTR(Exp_Dot_Data);
-INSTR(Release_Object2);
+INSTR(Release_Object);
 
 /* array */
 INSTR(Instr_Pre_Ctor_Array_Top);
@@ -112,7 +112,7 @@ INSTR(Vararg_Member);
 INSTR(member_function);
 INSTR(vec_member);
 
-INSTR(Instr_Op_Call_Binary);
+INSTR(Call_Binary);
 
 INSTR(start_gc);
 INSTR(stop_gc);

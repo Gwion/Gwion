@@ -165,7 +165,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
 
 ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    Instr instr = emitter_add_instr(emit, Reg_PushImm);
+    Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
     instr->m_val = SZ_INT;
     CHECK_BB(emit_exp_call1(emit, mo->func))
     return 1;
