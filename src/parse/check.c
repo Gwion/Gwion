@@ -351,7 +351,6 @@ ANN m_bool compat_func(const Func_Def lhs, const Func_Def rhs) {
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {
-  m_uint i;
   Nspc nspc = type->info;
   struct Vector_ v;
   vector_init(&v);
@@ -363,7 +362,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   }
   ID_List id = NULL;
   Type_Decl* td = NULL;
-  for(i = vector_size(&v) + 1; --i;)
+  for(m_uint i = vector_size(&v) + 1; --i;)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
   vector_release(&v);
   td = new_type_decl(id, 0, 0);
@@ -456,7 +455,6 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
   const Exp args = exp_func->args;
   const Type_List types = exp_func->tmpl ? exp_func->tmpl->types : NULL; // check me
   Func m_func = exp_func->m_func;
-  m_uint i;
   m_int mismatch = 0;
   const m_uint digit = num_digit(v->func_num_overloads + 1);
   const m_uint len = strlen(v->name) + strlen(env->curr->name);
@@ -465,7 +463,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
 
 
   template_set_env(env, v);
-  for(i = 0; i < v->func_num_overloads + 1; i++) {
+  for(m_uint i = 0; i < v->func_num_overloads + 1; i++) {
     Func_Def def = NULL;
     Func_Def base = NULL;
     Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
@@ -680,7 +678,6 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
 
 ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
   Type r_nspc, l_nspc = NULL;
-  m_uint i;
   Func f1 = NULL;
   Func f2 = NULL;
   Value v = NULL;
@@ -727,7 +724,7 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
     if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
       CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
            f1->def->ret_type->name, f2->def->ret_type->name))
-    for(i = 0; i <= v->func_num_overloads; i++) {
+    for(m_uint i = 0; i <= v->func_num_overloads; i++) {
       if(bin->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
@@ -892,11 +889,11 @@ ANN static Value get_dot_value(const Exp_Dot* member, const Type the_base) {
   const Value value = find_value(the_base, member->xid);
 
   if(!value) {
-    m_uint i, len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
+    const m_uint len = strlen(the_base->name) + the_base->array_depth * 2 + 1;
     char s[len];
     memset(s, 0, len);
     strcpy(s, the_base->name);
-    for(i = 0; i < the_base->array_depth; i++)
+    for(m_uint i = 0; i < the_base->array_depth; i++)
       strcat(s, "[]");
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
           "class '%s' has no member '%s'", s, s_name(member->xid)))
@@ -1207,8 +1204,7 @@ ANN static m_bool check_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt
     CHECK_BB(err_msg(TYPE_, stmt->self->pos,
                      "label '%s' used but not defined", s_name(stmt->name)))
     if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
-      m_uint i;
-      for(i = 0; i < map_size(m); i++) {
+      for(m_uint i = 0; i < map_size(m); i++) {
         ref = (Stmt_Goto_Label)map_at(m, i);
         vector_release(&ref->data.v);
       }
@@ -1405,15 +1401,14 @@ ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
 }
 
 ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG_EXE
-  m_uint i, j;
   const Value v = f->func->value_ref;
   if(!f->tmpl || !f->tmpl->base) {
     char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
                                       num_digit(v->func_num_overloads) + 3];
-    for(i = 0; i <= v->func_num_overloads; i++) {
+    for(m_uint i = 0; i <= v->func_num_overloads; i++) {
       sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
-      Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
-      for(j = 1; j <= v->func_num_overloads; j++) {
+      const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
+      for(m_uint j = 1; j <= v->func_num_overloads; j++) {
         if(i != j)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
       }
@@ -1423,7 +1418,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
 }
 
 ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWDEBUG_EXE
-  Value override = NULL;
+ Value override = NULL;
   Func func = f->func;
   if(env->class_def)
     override = find_value(env->class_def->parent, f->name);
