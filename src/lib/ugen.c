@@ -123,13 +123,11 @@ ANN void ugen_ini(const UGen u, const m_uint in, const m_uint out) {
     vector_init(&u->connect.net.from);
     vector_init(&u->connect.net.to);
   } else {
-puts("alloc multi");
     u->connect.multi = mp_alloc(ugen_multi);
     u->connect.multi->n_in   = in;
     u->connect.multi->n_out  = out;
     u->connect.multi->n_chan = chan;
     assign_channel(u);
-puts("alloc multi end");
   }
 }
 
