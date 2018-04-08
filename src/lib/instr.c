@@ -108,7 +108,7 @@ INSTR(Reg_Push_Now) { GWDEBUG_EXE
 }
 
 INSTR(Reg_Push_Maybe) { GWDEBUG_EXE
-  *(m_uint*)REG(0) = (sp_rand(shred->vm_ref->sp) > (RAND_MAX / 2)) ? 1 : 0;
+  *(m_uint*)REG(0) = (sp_rand(shred->vm_ref->sp) > (SP_RANDMAX / 2));
   PUSH_REG(shred, SZ_INT);
 }
 
