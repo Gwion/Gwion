@@ -5,17 +5,14 @@
 #include "instr.h"
 #include "mpool.h"
 
-struct MemStack_ { char c[SIZEOF_MEM]; };
-struct RegStack_ { char c[SIZEOF_REG]; };
-
+struct Stack_ { char c[SIZEOF_REG]; char d[SIZEOF_MEM]; };
 POOL_HANDLE(VM_Shred, 512)
-POOL_HANDLE(MemStack, 512)
-POOL_HANDLE(RegStack, 512)
+POOL_HANDLE(Stack, 512)
 
 VM_Shred new_vm_shred(VM_Code c) {
   VM_Shred shred    = mp_alloc(VM_Shred);
-  shred->base       = mp_alloc(MemStack);
-  shred->_reg       = mp_alloc(RegStack);
+  shred->_reg       = mp_alloc(Stack);
+  shred->base       = shred->_reg + SIZEOF_REG;
   shred->reg        = shred->_reg;
   shred->mem        = shred->base;
   shred->_mem       = shred->base;
@@ -32,25 +29,10 @@ static void vm_shred_free_args(Vector v) {
   free_vector(v);
 }
 
-static void free_shred_code(VM_Shred shred) {
-  if(strncmp(shred->name, "spork~exp", 9))
-    REM_REF(shred->code)
-  if(shred->sporks.ptr) {
-    LOOP_OPTIM
-    for(m_uint i = vector_size(&shred->sporks) + 1; --i;)
-       REM_REF(((VM_Code)vector_at(&shred->sporks, i - 1)))
-    vector_release(&shred->sporks);
-  }
-}
-
 void free_vm_shred(VM_Shred shred) {
   release(shred->me, shred);
-  if(!strstr(shred->name, "spork~"))
-    mp_free(MemStack, shred->base);
-  else
-    mp_free(MemStack, shred->_mem);
-  mp_free(RegStack, shred->_reg);
-  free_shred_code(shred);
+  mp_free(Stack, shred->_reg);
+  REM_REF(shred->code);
   free(shred->name);
   vector_release(&shred->gc1);
   if(shred->args)

@@ -62,7 +62,6 @@ struct VM_Shred_ {
   M_Object me;
   struct Vector_ child;
   struct Vector_ gc, gc1;
-  struct Vector_ sporks;
   m_float wake_time;
 };
 ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
