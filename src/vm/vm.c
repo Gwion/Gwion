@@ -107,7 +107,7 @@ void vm_run(const VM* vm) {
     while(s->curr) {
       shred->pc = shred->next_pc++;
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc);
-      instr->execute(vm, shred, instr);
+      instr->execute(shred, instr);
       VM_INFO;
     }
   }

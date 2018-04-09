@@ -166,7 +166,7 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT);
   m_float f = *(m_float*)REG(-SZ_FLOAT);
   *(m_float*)REG(-SZ_FLOAT) = (shred->wake_time += f);
-  shredule(vm->shreduler, shred, f);
+  shredule(shred->vm_ref->shreduler, shred, f);
 }
 
 

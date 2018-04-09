@@ -18,7 +18,7 @@ static INSTR(Event_Wait) { GWDEBUG_EXE
   const M_Object event = *(M_Object*)REG(0);
   if(!event)
     Except(shred, "NullEventWait");
-  shreduler_remove(vm->shreduler, shred, 0);
+  shreduler_remove(shred->vm_ref->shreduler, shred, 0);
   const Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int*)REG(0) = 1;

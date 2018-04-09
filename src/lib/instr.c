@@ -102,7 +102,7 @@ INSTR(Reg_Push_Me) { GWDEBUG_EXE
 }
 
 INSTR(Reg_Push_Now) { GWDEBUG_EXE
-  *(m_float*)REG(0) = vm->sp->pos;
+  *(m_float*)REG(0) = shred->vm_ref->sp->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
@@ -360,16 +360,16 @@ INSTR(Func_Return) { GWDEBUG_EXE
   shred->code = func;
 }
 
-ANN static void call_pre_constructor(const VM * vm, const VM_Shred shred,
+ANN static void call_pre_constructor(const VM_Shred shred,
   const VM_Code pre_ctor, const m_uint stack_offset) {
   *(m_uint*)REG(0) = *(m_uint*)REG(-SZ_INT); // ref dup last
   *(VM_Code*)REG(SZ_INT) = pre_ctor;
   *(m_uint*)REG(SZ_INT*2) = stack_offset;
   PUSH_REG(shred,  SZ_INT*3);
   if(!GET_FLAG(pre_ctor, NATIVE_NOT))
-    Func_Member(vm, shred, NULL);
+    Func_Member(shred, NULL);
   else
-    Instr_Exp_Func(vm, shred, NULL);
+    Instr_Exp_Func(shred, NULL);
 }
 
 INSTR(Reg_Push_This) { GWDEBUG_EXE
@@ -378,7 +378,7 @@ INSTR(Reg_Push_This) { GWDEBUG_EXE
 }
 
 INSTR(Pre_Constructor) { GWDEBUG_EXE
-  call_pre_constructor(vm, shred, (VM_Code)instr->m_val, instr->m_val2);
+  call_pre_constructor(shred, (VM_Code)instr->m_val, instr->m_val2);
 }
 
 INSTR(Instantiate_Object) { GWDEBUG_EXE
