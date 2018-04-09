@@ -225,11 +225,11 @@ ANN static void handle_overflow(const VM_Shred shred) {
 }
 // LCOV_EXCL_STOP
 
-ANN2(1) static void shred_func_prepare(const VM_Shred shred, const Instr instr) {
+ANN static void shred_func_prepare(const VM_Shred shred) {
   POP_REG(shred,  SZ_INT * 2);
   const VM_Code code = *(VM_Code*)REG(0);
   const m_uint local_depth = *(m_uint*)REG(SZ_INT);
-  const m_uint prev_stack = instr ? instr->m_val : shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
+  const m_uint prev_stack = shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
   const m_uint push = prev_stack + local_depth;
 
   PUSH_MEM(shred, push + SZ_INT*4);
@@ -254,7 +254,7 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
 }
 
 INSTR(Instr_Exp_Func) { GWDEBUG_EXE
-  shred_func_prepare(shred, instr);
+  shred_func_prepare(shred);
   const VM_Code code = shred->code;
   const m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
@@ -271,7 +271,7 @@ INSTR(Instr_Exp_Func) { GWDEBUG_EXE
 INSTR(Call_Binary) { GWDEBUG_EXE
   const Type l = (Type)instr->m_val2;
   const Type r = *(Type*)instr->ptr;
-  shred_func_prepare(shred, instr);
+  shred_func_prepare(shred);
   POP_REG(shred,  l->size + (r ? r->size : 0));
   if(GET_FLAG(shred->code, _NEED_THIS_))
     shred_func_need_this(shred);

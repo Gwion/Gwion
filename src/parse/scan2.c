@@ -82,7 +82,7 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
     }
     nspc_add_value(env->curr, list->var_decl->xid, v);
     list->var_decl->value = v;
-    count++;
+    ++count;
     list = list->next;
   }
   nspc_pop_value(env->curr);
@@ -240,13 +240,13 @@ static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
 ANN static m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
   if(!stmt->stmt_list)
    return 1;
-  env->class_scope++;
+  ++env->class_scope;
   if(push)
     nspc_push_value(env->curr);
   const m_bool t = scan2_stmt_list(env, stmt->stmt_list);
   if(push)
     nspc_pop_value(env->curr);
-  env->class_scope--;
+  --env->class_scope;
   return t;
 }
 
@@ -447,7 +447,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   if(GET_FLAG(f, ae_flag_private))
     SET_FLAG(value, ae_flag_private);
   if(overload)
-    overload->func_num_overloads++;
+    ++overload->func_num_overloads;
   else {
     ADD_REF(type);
     ADD_REF(value);
@@ -548,14 +548,14 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
     tlen += strlen (t->name);
     id = id->next;
     if(id)
-      tlen++;
+      ++tlen;
   }
   char name[len + tlen + 3];
   char tmpl_name[tlen + 1];
   memset(name, 0, len + tlen + 3);
   memset(tmpl_name, 0, tlen + 1);
   tmpl_name[0] = '\0';
-  for(m_uint i = 0; i < vector_size(&v); i++) {
+  for(m_uint i = 0; i < vector_size(&v); ++i) {
     strcat(tmpl_name, ((Type)vector_at(&v, i))->name);
     if(i + 1 < vector_size(&v))
       strcat(tmpl_name, ",");

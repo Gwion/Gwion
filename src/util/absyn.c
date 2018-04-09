@@ -102,7 +102,7 @@ Array_Sub prepend_array_sub(const Array_Sub a, const Exp exp) {
     exp->next = a->exp;
     a->exp = exp;
   }
-  a->depth++;
+  ++a->depth;
   return a;
 }
 
@@ -310,8 +310,7 @@ Exp new_exp_prim_vec(const ae_Exp_Primary_Type t, Exp e, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = t;
   a->d.exp_primary.d.vec.exp = e;
-  do
-    a->d.exp_primary.d.vec.dim++;
+  do ++a->d.exp_primary.d.vec.dim;
   while((e = e->next));
   a->d.exp_primary.self = a;
   return a;

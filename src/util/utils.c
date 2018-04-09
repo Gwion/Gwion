@@ -74,7 +74,7 @@ ANN m_uint id_list_len(ID_List l) {
   do {
     len += strlen(s_name(l->xid));
     if(l->next)
-      len++;
+      ++len;
   }
   while((l = l->next));
   return len + 1;
@@ -96,11 +96,11 @@ ANN Type array_base(Type t) {
 }
 
 ANN Type array_type(const Type base, const m_uint depth) {
-  m_uint i = depth;
+  m_uint i = depth + 1;
   char name[strlen(base->name) + 2* depth + 1];
 
   strcpy(name, base->name);
-  while(i--)
+  while(--i)
     strcat(name, "[]");
   const Symbol sym = insert_symbol(name);
   Type t = nspc_lookup_type1(base->owner, sym);
@@ -130,7 +130,7 @@ m_int get_escape(const char c, const int linepos) {
   while(escape1[i] != '\0') {
     if(c == escape1[i])
       return escape2[i];
-    i++;
+    ++i;
   }
   CHECK_BB(err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c))
   return -1;

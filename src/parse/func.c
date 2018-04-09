@@ -37,7 +37,7 @@ ANN Func get_func(const Env env, const Func_Def def) {
   CHECK_OO(f)
   m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
   if(end && env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
-    end++;
+    ++end;
     const size_t len = strlen(f->name) - strlen(end);
     char c[len + strlen(env->class_def->name) + 1];
     memset(c, 0, len + strlen(env->class_def->name) + 1);

@@ -206,13 +206,13 @@ ANN static m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt, const m_b
   m_bool ret;
   if(!stmt->stmt_list)
     return 1;
-  env->class_scope++;
+  ++env->class_scope;
   if(push)
     nspc_push_value(env->curr);
   ret = scan1_stmt_list(env, stmt->stmt_list);
   if(push)
     nspc_pop_value(env->curr);
-  env->class_scope--;
+  --env->class_scope;
   return ret;
 }
 
@@ -287,7 +287,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     nspc_add_value(env->curr, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
     list = list->next;
-    count++;
+    ++count;
   }
   return 1;
 }
@@ -443,7 +443,7 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
   m_int count = 0;
   Arg_List list = f->arg_list;
   while(list) {
-    count++;
+    ++count;
     list = list->next;
   }
   if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)

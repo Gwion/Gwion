@@ -64,7 +64,7 @@ ANN static m_uint template_size(const Env env, const Class_Def c,
     call = call->next;
     base = base->next;
     if(base)
-      size++;
+      ++size;
   }
   return size;
 }

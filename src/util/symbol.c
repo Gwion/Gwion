@@ -34,7 +34,7 @@ __attribute__((pure))
 ANN static unsigned int hash(const char *s0) {
   unsigned int h = 0;
   const char *s;
-  for(s = s0; *s; s++)
+  for(s = s0; *s; ++s)
     h = h * 65599 + *s;
   return h;
 }

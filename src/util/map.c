@@ -30,12 +30,6 @@ ANN vtype map_get(const Map map, const vtype key) {
   return 0;
 }
 
-ANN vtype map_at(const Map map, const vtype index) {
-  if(index > VLEN(map))
-    return 0;
-  return VVAL(map, index);
-}
-
 ANN void map_set(const Map map, const vtype key, const vtype ptr) {
   for(vtype i = VLEN(map) + 1; --i;) {
     if(VKEY(map, i - 1) == key) {
@@ -49,23 +43,21 @@ ANN void map_set(const Map map, const vtype key, const vtype ptr) {
   }
   VKEY(map, VLEN(map)) = key;
   VVAL(map, VLEN(map)) = ptr;
-  VLEN(map)++;
+  ++VLEN(map);
 }
 
 ANN void map_remove(const Map map, const vtype key) {
   struct Map_ tmp;
   map_init(&tmp);
-  for(vtype i = 0; i < VLEN(map); i++)
+  for(vtype i = 0; i < VLEN(map); ++i)
     if(VKEY(map, i) != key)
       map_set(&tmp, key, VVAL(map, i));
   free(map->ptr);
   map->ptr = tmp.ptr;
-  VLEN(map) = VLEN(&tmp);
-  VCAP(map) = VCAP(&tmp);
 }
 
 ANN void map_commit(const restrict Map map, const restrict Map commit) {
-  for(vtype i = 0; i < VLEN(commit); i++)
+  for(vtype i = 0; i < VLEN(commit); ++i)
     map_set(map, VKEY(commit, i), VVAL(commit, i));
 }
 

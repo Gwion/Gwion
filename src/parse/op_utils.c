@@ -18,7 +18,7 @@ ANN m_int name2op(const m_str name) {
   while(op_str[i]) {
     if(!strcmp(name, op_str[i]))
       return i;
-    i++;
+    ++i;
   }
   return -1;
 }

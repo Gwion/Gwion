@@ -50,7 +50,7 @@ ANN m_int vector_find(const Vector v, const vtype data) {
 ANN void vector_rem(const Vector v, const vtype index) {
   if(index >= VLEN(v))
     return;
-  for(vtype i = index + 1; i < VLEN(v); i++)
+  for(vtype i = index + 1; i < VLEN(v); ++i)
     VPTR(v, i - 1) = VPTR(v, i);
   if(--VLEN(v) + OFFSET < VCAP(v) / 2)
     v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) /= 2) * SZ_INT);

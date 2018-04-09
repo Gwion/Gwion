@@ -30,12 +30,12 @@ ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
-  m_uint depth = td->array ? td->array->depth : 0;
+  m_uint depth = 1 + (td->array ? td->array->depth : 0);
   m_uint l = id_list_len(td->xid) + depth *2;
   const m_uint m = l;
   const m_str s = (m_str)xmalloc(m);
   type_path(s, td->xid);
-  while(depth--)
+  while(--depth)
     strcat(s, "[]");
   Type_List tl = td->types;
   if(tl) {

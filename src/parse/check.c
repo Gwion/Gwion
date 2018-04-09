@@ -221,7 +221,7 @@ ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
               "invalid type '%s' in %s value #%d...\n"
               "    (must be of type 'int' or 'float')", t->name, s, count))
     }
-    count++;
+    ++count;
   } while((e = e->next));
   return 1;
 }
@@ -310,7 +310,7 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   CHECK_OO((t_base = check_exp(env, array->base)))
   CHECK_OO(check_exp(env, array->array->exp))
   while(e) {
-    depth++;
+    ++depth;
     if(isa(e->type, t_int) < 0)
       CHECK_BO(err_msg(TYPE_,  e->pos, "array index %i must be of type 'int', not '%s'",
             depth, e->type->name))
@@ -463,7 +463,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
 
 
   template_set_env(env, v);
-  for(m_uint i = 0; i < v->func_num_overloads + 1; i++) {
+  for(m_uint i = 0; i < v->func_num_overloads + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
     Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
@@ -570,7 +570,7 @@ ANN static Value get_template_value(const Env env, const Exp exp_func) {
 
 ANN static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
-  do type_number++;
+  do ++type_number;
   while((list = list->next));
   return type_number;
 }
@@ -607,7 +607,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
         tl[args_number] = mk_type_list(env, template_arg->type);
         if(args_number)
           tl[args_number - 1]->next = tl[args_number];
-        args_number++;
+        ++args_number;
         break;
       }
       arg = arg->next;
@@ -724,7 +724,7 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
     if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
       CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
            f1->def->ret_type->name, f2->def->ret_type->name))
-    for(m_uint i = 0; i <= v->func_num_overloads; i++) {
+    for(m_uint i = 0; i <= v->func_num_overloads; ++i) {
       if(bin->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
         char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
@@ -836,11 +836,11 @@ ANN static Type check_exp_call(const Env env, Exp_Func* call) { GWDEBUG_EXE
 ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
   CHECK_BO(check_stmt(env, code))
   if(env->func) {
-    env->class_scope++;
+    ++env->class_scope;
     nspc_push_value(env->curr);
     m_bool ret = check_stmt(env, code);
     nspc_pop_value(env->curr);
-    env->class_scope--;
+    --env->class_scope;
     return (ret > 0) ? t_shred : NULL;
   } else if(check_stmt(env, code) < 0) { GWDEBUG_EXE
     CHECK_BO(err_msg(TYPE_, code->pos, "problem in evaluating sporked code"))
@@ -893,7 +893,7 @@ ANN static Value get_dot_value(const Exp_Dot* member, const Type the_base) {
     char s[len];
     memset(s, 0, len);
     strcpy(s, the_base->name);
-    for(m_uint i = 0; i < the_base->array_depth; i++)
+    for(m_uint i = 0; i < the_base->array_depth; ++i)
       strcat(s, "[]");
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
           "class '%s' has no member '%s'", s, s_name(member->xid)))
@@ -1010,13 +1010,13 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt, const m_b
   m_bool ret;
   if(!stmt->stmt_list)
     return 1;
-  env->class_scope++;
+  ++env->class_scope;
   if(push)
     nspc_push_value(env->curr);
   ret = check_stmt_list(env, stmt->stmt_list);
   if(push)
     nspc_pop_value(env->curr);
-  env->class_scope--;
+  --env->class_scope;
   return ret;
 }
 
@@ -1204,7 +1204,7 @@ ANN static m_bool check_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt
     CHECK_BB(err_msg(TYPE_, stmt->self->pos,
                      "label '%s' used but not defined", s_name(stmt->name)))
     if(!(ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name))) {
-      for(m_uint i = 0; i < map_size(m); i++) {
+      for(m_uint i = 0; i < map_size(m); ++i) {
         ref = (Stmt_Goto_Label)map_at(m, i);
         vector_release(&ref->data.v);
       }
@@ -1383,7 +1383,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
                     count, s_name(arg_list->var_decl->xid)))
     SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
-    count++;
+    ++count;
   } while((arg_list = arg_list->next));
   return 1;
 }
@@ -1405,10 +1405,10 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
   if(!f->tmpl || !f->tmpl->base) {
     char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
                                       num_digit(v->func_num_overloads) + 3];
-    for(m_uint i = 0; i <= v->func_num_overloads; i++) {
+    for(m_uint i = 0; i <= v->func_num_overloads; ++i) {
       sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
       const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
-      for(m_uint j = 1; j <= v->func_num_overloads; j++) {
+      for(m_uint j = 1; j <= v->func_num_overloads; ++j) {
         if(i != j)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
       }

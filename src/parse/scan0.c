@@ -42,7 +42,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDE
           " with type '%s'.", s_name(stmt->xid), v->type->name))
   if(!stmt->td->array || (stmt->td->array && !stmt->td->array->exp)) {
     Type t = NULL;
-    t = new_type(env->type_xid++, s_name(stmt->xid), base);
+    t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
     if(stmt->td->array && !stmt->td->array->exp)
