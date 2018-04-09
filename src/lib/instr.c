@@ -297,7 +297,7 @@ INSTR(Exp_Dot_Func) { GWDEBUG_EXE
 }
 
 INSTR(Func_Static) { GWDEBUG_EXE
-  const m_bit retval[SZ_VEC4];
+  const m_bit retval[instr->m_val];
 
   POP_REG(shred,  SZ_INT * 2);
   const VM_Code func = *(VM_Code*)REG(0);
@@ -345,7 +345,7 @@ INSTR(Func_Member) { GWDEBUG_EXE
     const f_xtor f = (f_xtor)func->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
-    const m_bit retval[SZ_VEC4];
+    const m_bit retval[instr->m_val];
     const f_mfun f = (f_mfun)func->native_func;
     f((*(M_Object*)MEM(0)), retval, shred);
     dl_return_push(retval, shred, instr->m_val);

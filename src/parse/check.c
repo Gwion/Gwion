@@ -33,11 +33,9 @@ ANN m_bool check_exp_array_subscripts(Exp exp) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  if(!GET_FLAG(decl->type, ae_flag_check)) {
-    CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
-    CHECK_BB(check_class_def(env, decl->type->def))
-    nspc_pop_type(env->curr);
-  }
+  CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
+  CHECK_BB(check_class_def(env, decl->type->def))
+  nspc_pop_type(env->curr);
   return 1;
 }
 
@@ -80,7 +78,7 @@ ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol 
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-  if(GET_FLAG(decl->type , ae_flag_template))
+  if(GET_FLAG(decl->type , ae_flag_template) && !GET_FLAG(decl->type, ae_flag_check))
     CHECK_BO(check_exp_decl_template(env, decl))
   while(list) {
     const Var_Decl var = list->self;

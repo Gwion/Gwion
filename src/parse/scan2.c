@@ -59,19 +59,13 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
-    Value v;
-    if(list->var_decl->array) {
-      if(check_array_empty(list->var_decl->array, "argument") < 0) {
-        nspc_pop_value(env->curr);
-        return -1;
-      }
-    }
+    if(list->var_decl->array)
+      CHECK_BB(check_array_empty(list->var_decl->array, "argument"))
     if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
-      nspc_pop_value(env->curr);
       return -1;
     }
-    v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
+    const Value v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
     v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     if(GET_FLAG(list->td, ae_flag_const))
@@ -237,17 +231,8 @@ static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
-  if(!stmt->stmt_list)
-   return 1;
-  ++env->class_scope;
-  if(push)
-    nspc_push_value(env->curr);
-  const m_bool t = scan2_stmt_list(env, stmt->stmt_list);
-  if(push)
-    nspc_pop_value(env->curr);
-  --env->class_scope;
-  return t;
+ANN static m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
+  return scan2_stmt_list(env, stmt->stmt_list);
 }
 
 ANN static m_bool scan2_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
@@ -344,61 +329,62 @@ ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  m_bool ret = 1;
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
-      ret = stmt->d.stmt_exp.val ? scan2_exp(env, stmt->d.stmt_exp.val) : 1;
+      if(stmt->d.stmt_exp.val)
+        CHECK_BB(scan2_exp(env, stmt->d.stmt_exp.val));
       break;
     case ae_stmt_return:
-      ret = scan2_stmt_return(env, &stmt->d.stmt_exp);
+      CHECK_BB(scan2_stmt_return(env, &stmt->d.stmt_exp))
       break;
     case ae_stmt_code:
-      SCOPE(ret = scan2_stmt_code(env, &stmt->d.stmt_code, 1))
+      if(stmt->d.stmt_code.stmt_list)
+        NSPC(CHECK_BB(scan2_stmt_code(env, &stmt->d.stmt_code)))
       break;
     case ae_stmt_if:
-      NSPC(ret = scan2_stmt_if(env, &stmt->d.stmt_if))
+      NSPC(CHECK_BB(scan2_stmt_if(env, &stmt->d.stmt_if)))
       break;
     case ae_stmt_while:
-      NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_flow))
+      NSPC(CHECK_BB(scan2_stmt_flow(env, &stmt->d.stmt_flow)))
       break;
     case ae_stmt_until:
-      NSPC(ret = scan2_stmt_flow(env, &stmt->d.stmt_flow))
+      NSPC(CHECK_BB(scan2_stmt_flow(env, &stmt->d.stmt_flow)))
       break;
     case ae_stmt_for:
-      NSPC(ret = scan2_stmt_for(env, &stmt->d.stmt_for))
+      NSPC(CHECK_BB(scan2_stmt_for(env, &stmt->d.stmt_for)))
       break;
     case ae_stmt_auto:
-      NSPC(ret = scan2_stmt_auto(env, &stmt->d.stmt_auto))
+      NSPC(CHECK_BB(scan2_stmt_auto(env, &stmt->d.stmt_auto)))
       break;
     case ae_stmt_loop:
-      NSPC(ret = scan2_stmt_loop(env, &stmt->d.stmt_loop))
+      NSPC(CHECK_BB(scan2_stmt_loop(env, &stmt->d.stmt_loop)))
       break;
     case ae_stmt_switch:
-      NSPC(ret = scan2_stmt_switch(env, &stmt->d.stmt_switch))
+      NSPC(CHECK_BB(scan2_stmt_switch(env, &stmt->d.stmt_switch)))
       break;
     case ae_stmt_case:
-      ret = scan2_stmt_case(env, &stmt->d.stmt_exp);
+      CHECK_BB(scan2_stmt_case(env, &stmt->d.stmt_exp))
       break;
     case ae_stmt_gotolabel:
-      ret = scan2_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
+      CHECK_BB(scan2_stmt_gotolabel(env, &stmt->d.stmt_gotolabel))
       break;
     case ae_stmt_continue:
     case ae_stmt_break:
       break;
     case ae_stmt_enum:
-      ret = scan2_stmt_enum(env, &stmt->d.stmt_enum);
+      CHECK_BB(scan2_stmt_enum(env, &stmt->d.stmt_enum))
       break;
     case ae_stmt_funcptr:
-      ret = scan2_stmt_fptr(env, &stmt->d.stmt_ptr);
+      CHECK_BB(scan2_stmt_fptr(env, &stmt->d.stmt_ptr))
       break;
     case ae_stmt_typedef:
-      ret = scan2_stmt_type(env, &stmt->d.stmt_type);
+      CHECK_BB(scan2_stmt_type(env, &stmt->d.stmt_type))
       break;
     case ae_stmt_union:
-      ret = scan2_stmt_union(env, &stmt->d.stmt_union);
+      CHECK_BB(scan2_stmt_union(env, &stmt->d.stmt_union))
       break;
   }
-  return ret;
+  return 1;
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
@@ -492,7 +478,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = f->func;
   nspc_push_value(env->curr);
-  if(scan2_stmt_code(env, &f->d.code->d.stmt_code, 0) < 0)
+  if(scan2_stmt_code(env, &f->d.code->d.stmt_code) < 0)
     CHECK_BB(err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name)))
   nspc_pop_value(env->curr);
   env->func = NULL;
@@ -639,7 +625,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       return scan2_func_def_op(env, f);
     CHECK_BB(scan2_func_def_add(env, value, overload))
   }
-  return !GET_FLAG(f, ae_flag_builtin) ? scan2_func_def_code(env, f) : 1;
+  return (!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list) ?
+      scan2_func_def_code(env, f) : 1;
 }
 
 ANN static m_bool scan2_section(const Env env, const Section* section) { GWDEBUG_EXE

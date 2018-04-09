@@ -1121,9 +1121,8 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
   return 1;
 }
 
-//ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) { GWDEBUG_EXE
-  return stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
+  return emit_stmt_list(emit, stmt->stmt_list);
 }
 
 ANN static void emit_func_release(const Emitter emit) { GWDEBUG_EXE
@@ -1551,8 +1550,7 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool po
       return stmt->d.stmt_exp.val ?
           emit_stmt_exp(emit, &stmt->d.stmt_exp, pop) : 1;
     case ae_stmt_code:
-//      return emit_stmt_code(emit, &stmt->d.stmt_code, 1);
-      return emit_stmt_code(emit, &stmt->d.stmt_code);
+      return stmt->d.stmt_code.stmt_list ? emit_stmt_code(emit, &stmt->d.stmt_code) : 1;
     case ae_stmt_if:
       return emit_stmt_if(emit, &stmt->d.stmt_if);
     case ae_stmt_return:
@@ -1864,7 +1862,8 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
     emit_alloc_local(emit, SZ_INT, IS_REF);
     emit->code->stack_depth += SZ_INT;
   }
-  CHECK_BB(emit_stmt(emit, func_def->d.code, 0))
+  if(func_def->d.code->d.stmt_code.stmt_list)
+    CHECK_BB(emit_stmt_code(emit, &func_def->d.code->d.stmt_code))
   emit_func_def_ensure(emit, func_def->ret_type->size);
   return 1;
 }
