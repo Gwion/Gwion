@@ -164,14 +164,14 @@ ANN static void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
   const m_bool l_multi = GET_FLAG(lhs, UGEN_MULTI);
   const m_bool r_multi = GET_FLAG(rhs, UGEN_MULTI);
   const m_uint l_max = l_multi ? lhs->connect.multi->n_out : 1;
-  const m_uint r_max = l_multi ? rhs->connect.multi->n_in  : 1;
-  const m_uint max   = l_max < r_max ? r_max : l_max;
+  const m_uint r_max = r_multi ? rhs->connect.multi->n_in  : 1;
+  const m_uint max   = l_max < r_max ? l_max : r_max;
   m_uint i = 0;
   do {
     const UGen l = l_multi ? UGEN(lhs->connect.multi->channel[i % l_max]) : lhs;
     const UGen r = r_multi ? UGEN(rhs->connect.multi->channel[i % r_max]) : rhs;
     f(l, r);
-  }while(++i < max);
+  }while(++i <= max);
 }
 
 #define describe_connect_instr(name, func, opt) \
