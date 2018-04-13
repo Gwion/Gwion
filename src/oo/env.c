@@ -136,6 +136,5 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   const Nspc nspc = env->curr;
   if(!nspc->op_map.ptr)
     map_init(&nspc->op_map);
-  CHECK_BB(add_op(nspc, opi))
-  return 1;
+  return add_op(nspc, opi);
 }

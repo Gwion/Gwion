@@ -261,12 +261,11 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   m_uint count = 1;
   while(list) {
-    Value v;
     if(nspc_lookup_value0(env->curr, list->xid))
       CHECK_BB(err_msg(SCAN1_, stmt->self->pos,
             "in enum argument %i '%s' already declared as variable",
             count, s_name(list->xid)))
-    v = new_value(stmt->t, s_name(list->xid));
+    const Value v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, ae_flag_static);
