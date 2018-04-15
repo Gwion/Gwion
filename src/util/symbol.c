@@ -5,7 +5,6 @@
 #include "mpool.h"
 #define SIZE 65347  /* should be prime */
 
-
 struct Symbol_ {
   m_str name;
   Symbol next;
@@ -30,7 +29,7 @@ void free_symbols(void) {
   }
 }
 
-__attribute__((pure))
+__attribute__((hot,pure))
 ANN static unsigned int hash(const char *s0) {
   unsigned int h = 0;
   const char *s;
@@ -39,6 +38,7 @@ ANN static unsigned int hash(const char *s0) {
   return h;
 }
 
+__attribute__((hot))
 ANN2(1) static Symbol mksymbol(const m_str name, const Symbol next) {
   const Symbol s = mp_alloc(Symbol);
   s->name = strdup(name);
@@ -46,6 +46,7 @@ ANN2(1) static Symbol mksymbol(const m_str name, const Symbol next) {
   return s;
 }
 
+__attribute__((hot))
 ANN Symbol insert_symbol(const m_str name) {
   const unsigned int index = hash(name) % SIZE;
   const Symbol syms = hashtable[index];

@@ -372,7 +372,7 @@ ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >=  ARRAY(obj)->len) { \
+#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >  ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
