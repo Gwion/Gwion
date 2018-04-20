@@ -71,8 +71,10 @@ ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
-  s->curr = (s->curr == out) ? NULL : s->curr;
-  s->list = (s->list == out) ? NULL : s->list;
+  if(s->curr == out)
+    s->curr = NULL;
+  else if(s->list == out)
+    s->list = NULL;
   if(erase) {
     shreduler_erase(s, out);
     free_vm_shred(out);
@@ -84,16 +86,14 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
   shred->wake_time = time;
   if(s->list) {
     VM_Shred curr = s->list, prev = NULL;
-    while(curr) {
+    do {
       if(curr->wake_time > time)
         break;
       prev = curr;
-      curr = curr->next;
-    }
+    } while((curr = curr->next));
     if(!prev) {
       shred->next = s->list;
-      if(s->list)
-        s->list->prev = shred;
+      s->list->prev = shred;
       s->list = shred;
     } else {
       shred->next = prev->next;

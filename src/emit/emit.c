@@ -698,7 +698,8 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
   CHECK_BB(emit_exp(emit, exp_func->func, 0))
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
     // handle empty call to variadic functions
-    emitter_add_instr(emit, MkVararg);
+    Instr mk = emitter_add_instr(emit, MkVararg);
+    *(m_uint*)mk->ptr = 1;
     const Instr push = emitter_add_instr(emit, Reg_Push_Imm);
     push->m_val = SZ_INT;
   }

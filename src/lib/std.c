@@ -175,8 +175,8 @@ static SFUN(std_lintodb) {
 }
 
 ANN m_bool import_std(const Gwi gwi) {
-  Type t_std;
-  CHECK_OB((t_std = gwi_mk_type(gwi, "Std", 0, NULL)))
+  const Type t_std = gwi_mk_type(gwi, "Std", 0, NULL);
+  CHECK_OB(t_std)
   CHECK_BB(gwi_class_ini(gwi,  t_std, NULL, NULL))
 
   gwi_func_ini(gwi, "int", "clamp", std_clamp);
@@ -264,7 +264,5 @@ ANN m_bool import_std(const Gwi gwi) {
   gwi_func_arg(gwi, "float", "value");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
   CHECK_BB(gwi_class_end(gwi))
-
   return 1;
-
 }

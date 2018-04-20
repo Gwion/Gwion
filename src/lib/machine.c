@@ -63,9 +63,9 @@ static SFUN(machine_compile) {
     goto close;
   const m_str str = strdup("Machine.compile");
   if(traverse_ast(shred->vm_ref->emit->env, ast) < 0) {
-free(str);
+    free(str);
     goto close;
-}
+  }
   *(m_uint*)RETURN = emit_ast(shred->vm_ref->emit, ast, str);
   emitter_add_instr(shred->vm_ref->emit, EOC);
   shred->vm_ref->emit->code->name = strdup(str);

@@ -221,7 +221,7 @@ Exp new_exp_post(const Exp exp, const Operator op, const int pos) {
   return a;
 }
 
-ANN static void free_exp_post(Exp_Postfix* post) {
+ANN static inline void free_exp_post(Exp_Postfix* post) {
   free_exp(post->exp);
 }
 
@@ -746,7 +746,7 @@ Stmt new_stmt_switch(const Exp val, Stmt stmt, const int pos) {
   return a;
 }
 
-ANN __inline static void free_stmt_switch(Stmt_Switch a) {
+ANN inline static void free_stmt_switch(Stmt_Switch a) {
   free_exp(a->val);
   free_stmt(a->stmt);
 }
@@ -862,9 +862,9 @@ Stmt_List new_stmt_list(Stmt stmt, Stmt_List next) {
 }
 
 void free_stmt_list(Stmt_List list) {
-  free_stmt(list->stmt);
   if(list->next)
     free_stmt_list(list->next);
+  free_stmt(list->stmt);
   mp_free(Stmt_List, list);
 }
 

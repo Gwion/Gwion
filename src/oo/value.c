@@ -8,9 +8,9 @@
 POOL_HANDLE(Value, 2048)
 
 ANN Value new_value(const Type type, const m_str name) {
-  const Value a               = mp_alloc(Value);
-  a->type             = type;
-  a->name               = name;
+  const Value a = mp_alloc(Value);
+  a->type       = type;
+  a->name       = name;
   INIT_OO(a, e_value_obj);
   return a;
 }

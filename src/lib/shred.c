@@ -15,7 +15,7 @@ M_Object new_shred(VM_Shred shred) {
 }
 
 static MFUN(gw_shred_exit) {
-  const VM_Shred  s = ME(o);
+  const VM_Shred s = ME(o);
   shred->next_pc = vector_size(s->code->instr) -2;
 }
 
@@ -41,15 +41,13 @@ static MFUN(shred_yield) {
 
 static SFUN(vm_shred_from_id) {
   const m_int index =  *(m_uint*)MEM(SZ_INT);
-  *(m_uint*)RETURN = 0;
-  if(index > 0) {
-    const VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, index);
-    if(s) {
-      *(m_uint*)RETURN = (m_uint)s->me;
-      s->me->ref++;
-      vector_add(&shred->gc, (vtype) s->me);
-    }
-  }
+  const VM_Shred s = (VM_Shred)vector_at(&shred->vm_ref->shred, index);
+  if(s) {
+    *(m_uint*)RETURN = (m_uint)s->me;
+    s->me->ref++;
+    vector_add(&shred->gc, (vtype) s->me);
+  } else
+    *(m_uint*)RETURN = 0;
 }
 
 static MFUN(shred_args) {
@@ -58,13 +56,12 @@ static MFUN(shred_args) {
 }
 
 static MFUN(shred_arg) {
-  const VM_Shred  s = ME(o);
-  if(!s->args) {
+  const VM_Shred s = ME(o);
+  if(s->args) {
+    const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
+    *(m_uint*)RETURN = str ? (m_uint)new_String(shred, str) : 0;
+  } else
     *(m_uint*)RETURN = 0;
-    return;
-  }
-  const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
-  *(m_uint*)RETURN = str ? (m_uint)new_String(shred, str) : 0;
 }
 
 static MFUN(shred_path) {

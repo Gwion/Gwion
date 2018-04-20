@@ -38,9 +38,8 @@ ANN m_bool unload_context(const Context context, const Env env) {
       free_map((Map)map_at(&context->label, i));
     map_release(&context->label);
   }
+  REM_REF(context);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  REM_REF(env->context);
   env->context = (Context)vector_pop(&env->contexts);
   return 1;
 }
-

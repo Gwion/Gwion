@@ -11,16 +11,15 @@ ANN void map_clear(const Map v) {
   VLEN(v) = 0;
 }
 
-ANEW Map new_map() {
-  const Map map  = mp_alloc(Map);
-  map->ptr = (m_uint*)xcalloc(MAP_CAP, SZ_INT);
-  VCAP(map) = MAP_CAP;
-  return map;
-}
-
-ANN void map_init(const Map a) {
+ANN inline void map_init(const Map a) {
   a->ptr = (m_uint*)xcalloc(MAP_CAP, SZ_INT);
   VCAP(a) = MAP_CAP;
+}
+
+ANEW Map new_map() {
+  const Map map  = mp_alloc(Map);
+  map_init(map);
+  return map;
 }
 
 ANN vtype map_get(const Map map, const vtype key) {
@@ -57,8 +56,8 @@ ANN void map_remove(const Map map, const vtype key) {
 }
 
 ANN void map_commit(const restrict Map map, const restrict Map commit) {
-  for(vtype i = 0; i < VLEN(commit); ++i)
-    map_set(map, VKEY(commit, i), VVAL(commit, i));
+  map->ptr = realloc(map->ptr, VCAP(commit) * SZ_INT);
+  memcpy(map->ptr, commit->ptr, VCAP(commit) * SZ_INT);
 }
 
 ANN void free_map(const Map map) {

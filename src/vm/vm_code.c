@@ -44,6 +44,10 @@ ANN static void free_code_instr(Vector v) {
         REM_REF(((Func)instr->m_val2))
     else if(instr->execute == Init_Loop_Counter)
       free((m_int*)instr->m_val);
+    else if(instr->execute == MkVararg) {
+      if(instr->m_val2)
+      free_vector((Vector)instr->m_val2);
+    }
     free_instr(instr);
   }
   free_vector(v);

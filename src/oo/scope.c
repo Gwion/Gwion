@@ -24,9 +24,7 @@ ANN vtype scope_lookup1(const Scope scope, const Symbol xid) {
 ANN vtype scope_lookup2(const Scope scope, const Symbol xid) {
   const Map map = (Map)vector_front(&scope->vector);
   const vtype ret = map_get(map, (vtype)xid);
-  if(ret)
-    return ret;
-  return map_get(&scope->commit_map, (vtype)xid);
+  return ret ? ret : map_get(&scope->commit_map, (vtype)xid);
 }
 
 ANN void scope_add(const Scope scope, const Symbol xid, const vtype value) {
@@ -64,4 +62,3 @@ ANN Vector scope_get(const Scope s) {
     vector_add(ret, VVAL(&s->commit_map, i));
   return ret;
 }
-

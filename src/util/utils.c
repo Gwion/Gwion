@@ -11,7 +11,6 @@ m_uint num_digit(const m_uint i) {
 }
 
 ANN static Type find_typeof(const Env env, ID_List path) {
-  path = path->ref;
   Value v = nspc_lookup_value2(env->curr, path->xid);
   Type t = (isa(v->type, t_class) > 0) ? v->type->d.base_type : v->type;
   path = path->next;
@@ -27,7 +26,7 @@ ANN Type find_type(const Env env, ID_List path) {
   Type type;
 
   if(path->ref)
-    return find_typeof(env, path);
+    return find_typeof(env, path->ref);
   CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
   Nspc nspc = type->info;
   path = path->next;
@@ -49,44 +48,28 @@ ANN Type find_type(const Env env, ID_List path) {
   return type;
 }
 
-ANN Value find_value(const Type type, const Symbol xid) {
-  if(!type->info)
-    return NULL;
-  const Value value = nspc_lookup_value2(type->info, xid);
-  if(value)
-    return value;
-  if(type->parent)
-    return find_value(type->parent, xid);
-  return NULL;
-}
 
-ANN Func find_func(const Type type, const Symbol xid) {
-  const Func func = nspc_lookup_func2(type->info, xid);
-  if(func)
-    return func;
-  if(type->parent)
-    return find_func(type->parent, xid);
-  return NULL;
+#define describe_find(name, t)                                 \
+ANN t find_##name(const Type type, const Symbol xid) {         \
+  const t val = nspc_lookup_##name##2(type->info, xid);        \
+  if(val)                                                      \
+    return val;                                                \
+  return type->parent ? find_##name(type->parent, xid) : NULL; \
 }
+describe_find(value, Value)
+describe_find(func,  Func)
 
 ANN m_uint id_list_len(ID_List l) {
   m_uint len = 0;
-  do {
-    len += strlen(s_name(l->xid));
-    if(l->next)
-      ++len;
-  }
-  while((l = l->next));
+  do len += strlen(s_name(l->xid));
+  while((l = l->next) && ++len);
   return len + 1;
 }
 
 ANN void type_path(const m_str s, ID_List l) {
   s[0] = '\0';
-  do {
-    strcat(s, s_name(l->xid));
-    if(l->next)
-      strcat(s, ".");
-  } while((l = l->next));
+  do strcat(s, s_name(l->xid));
+  while((l = l->next) && strcat(s, "."));
 }
 
 ANN Type array_base(Type t) {
@@ -103,12 +86,12 @@ ANN Type array_type(const Type base, const m_uint depth) {
   while(--i)
     strcat(name, "[]");
   const Symbol sym = insert_symbol(name);
-  Type t = nspc_lookup_type1(base->owner, sym);
-  if(t) {
-    ADD_REF(t)
-    return t;
+  const Type type = nspc_lookup_type1(base->owner, sym);
+  if(type) {
+    ADD_REF(type)
+    return type;
   }
-  t = new_type(t_array->xid, base->name, t_array);
+  const Type t = new_type(t_array->xid, base->name, t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth;
@@ -132,8 +115,7 @@ m_int get_escape(const char c, const int linepos) {
       return escape2[i];
     ++i;
   }
-  CHECK_BB(err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c))
-  return -1;
+  return err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c);
 }
 
 ANN m_int str2char(const m_str c, const m_int linepos) {
@@ -155,14 +137,15 @@ m_bool check_array_empty(const Array_Sub a, const m_str orig) {
   if(a->exp)
     CHECK_BB(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
           " in %s declaration", orig))
-   return 1;
+  return 1;
 }
 
 ANN m_bool type_ref(Type t) {
   do {
-    if(GET_FLAG(t, ae_flag_empty))return 1;
-    if(GET_FLAG(t, ae_flag_typedef))
-      if(t->def && (t->def->ext && t->def->ext->array && !t->def->ext->array->exp))
+    if(GET_FLAG(t, ae_flag_empty))
+      return 1;
+    if(GET_FLAG(t, ae_flag_typedef) && t->def)
+      if(t->def->ext && t->def->ext->array && !t->def->ext->array->exp)
         return 1;
   } while((t = t->parent));
   return 0;

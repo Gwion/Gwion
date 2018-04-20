@@ -4,7 +4,6 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "vm.h"
-#include "absyn.h"
 #include "type.h"
 #include "instr.h"
 #include "import.h"
@@ -59,8 +58,8 @@ INSTR(assign_func) { GWDEBUG_EXE
     **(m_uint**)REG(0) = *(m_uint*)REG(-SZ_INT);
   } else {
     POP_REG(shred,  SZ_INT * 3);
-    Func f = (Func) * (m_uint*)REG(0);
-    M_Object obj = *(M_Object*)REG(SZ_INT);
+    Func f = (Func)*(m_uint*)REG(0);
+    const M_Object obj = *(M_Object*)REG(SZ_INT);
     *(Func*)(obj->data + instr->m_val2) = f;
     *(m_uint*)REG(-SZ_INT) = *(m_uint*)REG(0);
     *(Func**)REG(SZ_INT * 3) = &f;
@@ -124,36 +123,23 @@ INSTR(Alloc_Word) { GWDEBUG_EXE
 
 /* branching */
 INSTR(Branch_Switch) { GWDEBUG_EXE
-  const Map map = *(Map*)instr->ptr;
   POP_REG(shred,  SZ_INT);
-  shred->next_pc = (m_int)map_get(map, (vtype) * (m_int*)REG(0));
+  const Map map = *(Map*)instr->ptr;
+  shred->next_pc = (m_int)map_get(map, *(m_int*)REG(0));
   if(!shred->next_pc)
     shred->next_pc = instr->m_val;
 }
 
-INSTR(Branch_Eq_Int) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_INT * 2);
-  if(*(m_uint*)REG(0) == *(m_uint*)REG(SZ_INT))
-    shred->next_pc = instr->m_val;
+#define branch(name, type, sz, op)          \
+INSTR(Branch_##name) { GWDEBUG_EXE          \
+  POP_REG(shred, sz * 2);                   \
+  if(*(type*)REG(0) == *(type*)REG(sz)) \
+    shred->next_pc = instr->m_val;          \
 }
-
-INSTR(Branch_Neq_Int) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_INT * 2);
-  if(*(m_uint*)REG(0) != *(m_uint*)REG(SZ_INT))
-    shred->next_pc = instr->m_val;
-}
-
-INSTR(Branch_Eq_Float) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_FLOAT * 2);
-  if(*(m_float*)REG(0) == *(m_float*)REG(SZ_FLOAT))
-    shred->next_pc = instr->m_val;
-}
-
-INSTR(Branch_Neq_Float) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_FLOAT * 2);
-  if(*(m_float*)REG(0) != *(m_float*)REG(SZ_FLOAT))
-    shred->next_pc = instr->m_val;
-}
+branch(Eq_Int, m_int, SZ_INT, ==)
+branch(Neq_Int, m_int, SZ_INT, !=)
+branch(Eq_Float, m_float, SZ_FLOAT, ==)
+branch(Neq_Float, m_float, SZ_FLOAT, !=)
 
 INSTR(Init_Loop_Counter) { GWDEBUG_EXE
   POP_REG(shred,  SZ_INT);
@@ -297,14 +283,12 @@ INSTR(Exp_Dot_Func) { GWDEBUG_EXE
 }
 
 INSTR(Func_Static) { GWDEBUG_EXE
-  const m_bit retval[instr->m_val];
-
   POP_REG(shred,  SZ_INT * 2);
   const VM_Code func = *(VM_Code*)REG(0);
   const f_sfun f     = (f_sfun)func->native_func;
   const m_uint local_depth = *(m_uint*)REG(SZ_INT);
-  const m_uint stack_depth = func->stack_depth;
   PUSH_MEM(shred,  local_depth);
+  const m_uint stack_depth = func->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
     memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
@@ -313,6 +297,7 @@ INSTR(Func_Static) { GWDEBUG_EXE
     handle_overflow(shred);
     return;
   }
+  const m_bit retval[instr->m_val];
   f(retval, shred);
   dl_return_push(retval, shred, instr->m_val);
   POP_MEM(shred, local_depth);
@@ -450,6 +435,8 @@ INSTR(stop_gc) { GWDEBUG_EXE
 
 INSTR(AutoLoopStart) { GWDEBUG_EXE
   const M_Object o =  *(M_Object*)REG(-SZ_INT);
+  if(!o)
+    Except(shred, "NullPtrException");
   M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
   const Type t = *(Type*)instr->ptr;
   if(t) {
@@ -464,16 +451,16 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
 }
 
 INSTR(AutoLoopEnd) { GWDEBUG_EXE
-  const M_Object o =  *(M_Object*)REG(-SZ_INT);
-  const M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
-  const Type t = *(Type*)instr->ptr;
+  if(*(Type*)instr->ptr) {
+    const M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
+    release(ptr, shred);
+  }
   ++(*(m_uint*)MEM(instr->m_val));
+  const M_Object o =  *(M_Object*)REG(-SZ_INT);
   if(*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
     shred->next_pc = instr->m_val2;
     POP_REG(shred, SZ_INT);
   }
-  if(t)
-    release(ptr, shred);
 }
 
 #ifdef GWCOV

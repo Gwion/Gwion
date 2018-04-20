@@ -18,7 +18,7 @@ ANEW const void* xmalloc(const m_uint sz) {
 
 ANEW const void* xcalloc(const m_uint n, const m_uint sz) {
 //  const void* a = aligned_alloc(64, n * sz); //should be a macro getconf LEVEL1_DCACHE_LINESIZE
-//memset(a, 0, sz);
+//  memset(a, 0, sz);
   void* a = calloc(n, sz);
   return xcheck(a);
 }

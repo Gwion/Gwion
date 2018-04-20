@@ -29,15 +29,16 @@ static INSTR(Event_Wait) { GWDEBUG_EXE
 static MFUN(event_signal) {
   const Vector v = EV_SHREDS(o);
   const VM_Shred sh = (VM_Shred)vector_front(v);
-  if(sh)
+  if(sh) {
     shredule(shred->vm_ref->shreduler, sh, .5);
+    vector_rem(v, 0);
+  }
   *(m_uint*)RETURN = sh ? 1 : 0;
-  vector_rem(v, 0);
 }
 
 ANN void broadcast(const M_Object o) {
   for(m_uint i = 0; i < vector_size(EV_SHREDS(o)); i++) {
-    VM_Shred sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
+    const VM_Shred sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
     shredule(sh->vm_ref->shreduler, sh, .5);
   }
   vector_clear(EV_SHREDS(o));

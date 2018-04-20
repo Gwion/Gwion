@@ -12,51 +12,51 @@ POOL_HANDLE(Vararg, 4)
 
 INSTR(Vararg_start) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
-  if(!arg->d)
+  if(arg->d)
+    PUSH_REG(shred, SZ_INT)
+  else {
     shred->next_pc = instr->m_val2 + 1;
-  if(!arg->s) {
-    if(arg->k)
-      POP_REG(shred, SZ_INT); // pop vararg
     mp_free(Vararg, arg);
     return;
   }
-  PUSH_REG(shred, SZ_INT);
-  *(m_uint*)REG(- SZ_INT) = 0;
 }
 
 INSTR(MkVararg) { GWDEBUG_EXE
-  POP_REG(shred,  instr->m_val);
   const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
+    POP_REG(shred,  instr->m_val)
     arg->d = (m_bit*)xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
-  }  else arg->d = NULL;
-  arg->s = kinds ? vector_size(kinds) : 0;
-  arg->k = arg->s ? (m_uint*)xcalloc(arg->s, SZ_INT) : NULL;
-  for(m_uint i = 0; i < arg->s; i++) {
-    arg->k[i] = vector_at(kinds, i);
+  } else {
+    if(*(m_uint*)instr->ptr)
+      POP_REG(shred, SZ_INT)
+    arg->d = NULL;
+  }
+  if(kinds) {
+    arg->s = vector_size(kinds);
+    arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
+    memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
+  } else {
+    arg->s = 0;
+    arg->k = NULL;
   }
   arg->o = 0;
   arg->i = 0;
-  if(kinds)
-    free_vector(kinds);
   *(struct Vararg_**)REG(0) = arg;
   PUSH_REG(shred,  SZ_INT);
 }
 
 INSTR(Vararg_end) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
-  arg->o += arg->k[arg->i];
   PUSH_REG(shred, SZ_INT);
-  arg->i++;
-  if(arg->i == arg->s) {
+  arg->o += arg->k[arg->i];
+  if(++arg->i < arg->s)
+    shred->next_pc = instr->m_val2;
+  else {
     free(arg->d);
     free(arg->k);
     mp_free(Vararg, arg);
-  } else {
-    *(m_uint*)REG(-SZ_INT) = 0;
-    shred->next_pc = instr->m_val2;
   }
 }
 
@@ -72,17 +72,17 @@ static OP_CHECK(at_varobj) {
 }
 
 INSTR(varobj_assign) { GWDEBUG_EXE
-  POP_REG(shred, 2 * SZ_INT);
-  *(M_Object**)REG(SZ_INT) = &*(M_Object*)REG(0);
-  PUSH_REG(shred, SZ_INT);
+  POP_REG(shred, SZ_INT);
+  *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
 }
 
 ANN m_bool import_vararg(const Gwi gwi) {
-  Type t_varobj, t_varloop;
   CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
-  CHECK_OB((t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg)))
-  CHECK_OB((t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL)))
+  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
+  CHECK_OB(t_varobj)
   SET_FLAG(t_varobj, ae_flag_abstract);
+  const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
+  CHECK_OB(t_varloop)
   CHECK_BB(gwi_add_type(gwi,  t_varobj))
   CHECK_BB(gwi_add_type(gwi,  t_varloop))
   CHECK_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
@@ -93,21 +93,21 @@ ANN m_bool import_vararg(const Gwi gwi) {
   CHECK_BB(gwi_item_ini(gwi, "int",       "i"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "float",     "f"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "time",      "t"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "dur",       "d"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "complex",   "c"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "polar",     "p"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "Vec3",      "v3"))
-  CHECK_BB(gwi_item_end(gwi,    ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "Vec4",      "v4"))
-  CHECK_BB(gwi_item_end(gwi,    ae_flag_const, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const, NULL))
   CHECK_BB(gwi_item_ini(gwi, "VarObject", "o"))
-  CHECK_BB(gwi_item_end(gwi,     ae_flag_const | ae_flag_ref, NULL))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_const | ae_flag_ref, NULL))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))

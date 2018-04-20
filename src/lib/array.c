@@ -211,12 +211,15 @@ ANN m_bool import_array(const Gwi gwi) {
 INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_EXE
   if(*(m_uint*)REG(-SZ_INT * 2) < *(m_uint*)REG(-SZ_INT))
     instantiate_object(shred, *(Type*)instr->ptr);
-  else
+  else {
+    if(!*(m_uint*)REG(-SZ_INT))
+      *(m_uint*)REG(-SZ_INT * 3) = 0;
     shred->next_pc = instr->m_val;
+  }
 }
 
 INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_INT);
+  POP_REG(shred, SZ_INT);
   M_Object obj = *(M_Object*)REG(0);
   m_uint * array = *(m_uint**)REG(-SZ_INT * 3);
   m_int i = *(m_int*)REG(-SZ_INT * 2);
@@ -226,9 +229,9 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
 }
 
 INSTR(Instr_Pre_Ctor_Array_Post) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_INT * 3);
+  POP_REG(shred, SZ_INT * 3);
   m_uint* array = *(m_uint**)REG(0);
-  if(array && array != (m_uint*)1) // shit happens (array pluin extend related)
+  if(array)
     free(array);
 }
 
@@ -303,7 +306,7 @@ INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
   for(m_uint i = 0; i < info->length; ++i)
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
-  PUSH_REG(shred,  SZ_INT);
+  PUSH_REG(shred, SZ_INT);
   instr->m_val = 1;
 }
 
@@ -336,14 +339,14 @@ INSTR(Instr_Array_Alloc) { GWDEBUG_EXE
     goto error;
   POP_REG(shred, SZ_INT * info->depth);
   *(M_Object*)REG(0) = ref;
-  PUSH_REG(shred,  SZ_INT);
+  PUSH_REG(shred, SZ_INT);
   if(info->is_obj && !info->is_ref) {
     *(m_uint**)REG(0) = aai.objs;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred, SZ_INT);
     *(m_uint*) REG(0) = 0;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred, SZ_INT);
     *(m_uint*) REG(0) = num_obj;
-    PUSH_REG(shred,  SZ_INT);
+    PUSH_REG(shred, SZ_INT);
   }
   REM_REF(info->type);
   instr->m_val = 1;
@@ -362,7 +365,7 @@ ANN static void array_push(const VM_Shred shred, const M_Vector a,
       *(m_bit**)REG(0) = m_vector_addr(a, i);
   else
     m_vector_get(a, i, REG(0));
-  PUSH_REG(shred,  size);
+  PUSH_REG(shred, size);
 }
 
 ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
@@ -372,11 +375,11 @@ ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >  ARRAY(obj)->len) { \
+#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
-  POP_REG(shred,  SZ_INT * 2);
+  POP_REG(shred, SZ_INT * 2);
   const M_Object obj = *(M_Object*)REG(0);
   if(!obj)
     Except(shred, "NullPtrException");
@@ -386,22 +389,20 @@ INSTR(Instr_Array_Access) { GWDEBUG_EXE
 }
 
 INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
-  m_int i;
-  m_uint j;
-  POP_REG(shred,  SZ_INT * (instr->m_val + 1));
+  POP_REG(shred, SZ_INT * (instr->m_val + 1));
   M_Object obj, *base = (M_Object*)REG(0);
   if(!(obj = *base))
     Except(shred, "NullPtrException");
-  for(j = 0; j < instr->m_val - 1; ++j) {
-    i = *(m_int*)REG(SZ_INT * (j + 1));
-    OOB(shred, *base, *(m_int*)REG(SZ_INT * (j + 1)))
+  for(m_uint j = 1; j < instr->m_val; ++j) {
+    const m_int i = *(m_int*)REG(SZ_INT * j);
+    OOB(shred, obj, i)
     m_vector_get(ARRAY(obj), i, &obj);
     if(!obj) {
       release(*base, shred);
       Except(shred, "NullPtrException");
     }
   }
-  i = *(m_int*)REG(SZ_INT * (j + 1));
-  OOB(shred, *base,*(m_int*)REG(SZ_INT * (j + 1)))
+  const m_int i = *(m_int*)REG(SZ_INT * instr->m_val);
+  OOB(shred, obj, i)
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }

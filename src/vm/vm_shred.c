@@ -10,14 +10,14 @@ POOL_HANDLE(VM_Shred, 512)
 POOL_HANDLE(Stack, 512)
 
 VM_Shred new_vm_shred(VM_Code c) {
-  VM_Shred shred    = mp_alloc(VM_Shred);
-  shred->_reg       = mp_alloc(Stack);
-  shred->base       = shred->_reg + SIZEOF_REG;
-  shred->reg        = shred->_reg;
-  shred->mem        = shred->base;
-  shred->_mem       = shred->base;
-  shred->code       = c;
-  shred->name       = strdup(c->name);
+  const VM_Shred shred = mp_alloc(VM_Shred);
+  shred->_reg          = mp_alloc(Stack);
+  shred->base          = shred->_reg + SIZEOF_REG;
+  shred->reg           = shred->_reg;
+  shred->mem           = shred->base;
+  shred->_mem          = shred->base;
+  shred->code          = c;
+  shred->name          = strdup(c->name);
   vector_init(&shred->gc1);
   return shred;
 }
