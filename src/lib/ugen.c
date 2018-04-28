@@ -30,15 +30,10 @@ static TICK(adc_tick) {
 }
 
 #define COMPUTE(a) if(!(a)->done)(a)->compute(a);
-__attribute__((hot))
-ANN static inline void ugen_done(const UGen u) {
-  u->done = 1;
-  u->last = u->out;
-}
 
 __attribute__((hot))
 ANN void compute_mono(const UGen u) {
-  ugen_done(u);
+  u->done = 1;
   const m_uint size = u->connect.net.size;
   if(size) {
     const Vector vec = &u->connect.net.from;
@@ -55,7 +50,7 @@ ANN void compute_mono(const UGen u) {
 
 __attribute__((hot))
 ANN void compute_multi(const UGen u) {
-  ugen_done(u);
+  u->done = 1;
   m_uint i = 0;
   do compute_mono(UGEN(u->connect.multi->channel[i]));
   while(++i < u->connect.multi->n_chan);
@@ -265,7 +260,7 @@ static MFUN(ugen_set_op) {
 }
 
 static MFUN(ugen_get_last) {
-  *(m_float*)RETURN = UGEN(o)->last;
+  *(m_float*)RETURN = UGEN(o)->out;
 }
 
 ANN static m_bool import_global_ugens(const Gwi gwi) {

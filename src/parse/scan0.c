@@ -40,9 +40,8 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDE
     CHECK_BB(err_msg(SCAN0_, stmt->td->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->type->name))
-  if(!stmt->td->array || (stmt->td->array && !stmt->td->array->exp)) {
-    Type t = NULL;
-    t = new_type(++env->type_xid, s_name(stmt->xid), base);
+  if(stmt->td->array && !stmt->td->array->exp) {
+    const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
     SET_FLAG(t, ae_flag_checked);
     if(stmt->td->array && !stmt->td->array->exp)
@@ -54,7 +53,8 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDE
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
       stmt->td, NULL);
     CHECK_BB(scan0_class_def(env, def))
-    REM_REF(base) // because it get's over referenced it scan_type for now
+    if(stmt->td->array)
+      REM_REF(base)
     stmt->type = def->type;
   }
   SET_FLAG(stmt->type, ae_flag_typedef);

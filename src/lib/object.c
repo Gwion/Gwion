@@ -35,11 +35,8 @@ M_Object new_String(const VM_Shred shred, const m_str str) {
 ANN m_bool initialize_object(const M_Object object, const Type type) {
   object->vtable = &type->info->vtable;
   object->type_ref = type;
-  if(type->info->offset) {
-    if(!(object->data = (m_bit*)xcalloc(1, type->info->offset)))
-      CHECK_BB(err_msg(TYPE_, 0,
-          "OutOfMemory: while instantiating object '%s'\n", type->name))
-  }
+  if(type->info->offset)
+    object->data = (m_bit*)xcalloc(1, type->info->offset);
   return 1;
 }
 
@@ -58,7 +55,7 @@ ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
-  Instr eoc = new_instr();
+  const Instr eoc = new_instr();
   eoc->execute = EOC;
   vector_add(code->instr, (vtype)eoc);
   vm_add_shred(shred->vm_ref, sh);
@@ -99,26 +96,24 @@ static DTOR(object_dtor) {
 }
 
 INSTR(Assign_Object) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 2);
-  const M_Object src = *(M_Object*)REG(0);
-  M_Object tgt = **(M_Object**)REG(SZ_INT);
+  POP_REG(shred, SZ_INT);
+  const M_Object src = *(M_Object*)REG(-SZ_INT);
+  const M_Object tgt = **(M_Object**)REG(0);
   if(tgt)
     release(tgt, shred);
   release(tgt, shred);
-  **(M_Object**)REG((instr->m_val ? 0 : SZ_INT)) = src;
-  **(M_Object**)REG(SZ_INT) = src;
-  PUSH_REG(shred, SZ_INT);
+  **(M_Object**)REG((instr->m_val ? -SZ_INT : 0)) = src;
+  **(M_Object**)REG(0) = src;
 }
 
-#define describe_logical(name, op) \
-static INSTR(name##_Object) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT * 2); \
-  const M_Object lhs = *(M_Object*)REG(0); \
-  const M_Object rhs = *(M_Object*)REG(SZ_INT); \
-  *(m_uint*)REG(0) = (lhs == rhs); \
-  release(lhs, shred); \
-  release(rhs, shred); \
-  PUSH_REG(shred, SZ_INT); \
+#define describe_logical(name, op)               \
+static INSTR(name##_Object) { GWDEBUG_EXE        \
+  POP_REG(shred, SZ_INT);                        \
+  const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
+  const M_Object rhs = *(M_Object*)REG(0);       \
+  *(m_uint*)REG(-SZ_INT) = (lhs == rhs);         \
+  release(lhs, shred);                           \
+  release(rhs, shred);                           \
 }
 
 describe_logical(eq,  ==)

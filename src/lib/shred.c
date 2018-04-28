@@ -35,7 +35,6 @@ static MFUN(vm_shred_is_done) {
 static MFUN(shred_yield) {
   const VM_Shred  s = ME(o);
   const Shreduler sh = shred->vm_ref->shreduler;
-  shreduler_remove(sh, s, 0);
   shredule(sh, s, .5);
 }
 

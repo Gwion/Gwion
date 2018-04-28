@@ -82,7 +82,6 @@ INSTR(Func_Member);
 INSTR(Func_Return);
 
 /* object */
-INSTR(Reg_Push_This);
 INSTR(Pre_Constructor);
 INSTR(Instantiate_Object);
 INSTR(Assign_Object);

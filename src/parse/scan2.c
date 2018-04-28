@@ -59,10 +59,13 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
   m_uint count = 1;
   nspc_push_value(env->curr);
   while(list) {
-    if(list->var_decl->array)
-      CHECK_BB(check_array_empty(list->var_decl->array, "argument"))
+    if(list->var_decl->array && check_array_empty(list->var_decl->array, "argument") < 0) {
+      nspc_pop_value(env->curr);
+      return -1;
+    }
     if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
+      nspc_pop_value(env->curr);
       return -1;
     }
     const Value v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
@@ -86,10 +89,15 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
   v->owner = env->curr;
-  if(GET_FLAG(f, ae_flag_member))
-    SET_FLAG(v, ae_flag_member);
   if(!(v->owner_class = env->class_def))
     SET_FLAG(v, ae_flag_global);
+  else {
+    if(GET_FLAG(f, ae_flag_member))
+      SET_FLAG(v, ae_flag_member);
+    else SET_FLAG(v, ae_flag_static);
+    if(GET_FLAG(d, ae_flag_private))
+      SET_FLAG(v, ae_flag_private);
+  }
   d->func = v->d.func_ref = f;
   return f->value_ref = v;
 }
@@ -116,7 +124,8 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
     if(!GET_FLAG(ptr, ae_flag_static)) {
       SET_FLAG(ptr->value, ae_flag_member);
       SET_FLAG(ptr->func, ae_flag_member);
-    }
+    } else
+      SET_FLAG(ptr->value, ae_flag_static);
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(env->curr, ptr->xid, ptr->func);
@@ -146,8 +155,7 @@ ANN static m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) { GWDEB
 }
 
 ANN static m_bool scan2_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, cast->exp))
-  return 1;
+  return scan2_exp(env, cast->exp);
 }
 
 ANN static m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
@@ -413,16 +421,18 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   Value value;
   Type type;
   const m_uint len = strlen(func_name) +
-    num_digit(overload ? overload->func_num_overloads + 1 : 0) +
+    num_digit(overload ? overload->offset + 1 : 0) +
     strlen(env->curr->name) + 13;
 
   char name[len];
   if(overload)
     func->next = overload->d.func_ref->next;
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    SET_FLAG(func, ae_flag_ref);
-  if(env->class_def && !GET_FLAG(f, ae_flag_static))
-    SET_FLAG(func, ae_flag_member);
+  if(env->class_def) {
+    if(GET_FLAG(env->class_def, ae_flag_template))
+      SET_FLAG(func, ae_flag_ref);
+    if(!GET_FLAG(f, ae_flag_static))
+      SET_FLAG(func, ae_flag_member);
+  }
   type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
@@ -430,10 +440,8 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   SET_FLAG(value, ae_flag_func);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
-  if(GET_FLAG(f, ae_flag_private))
-    SET_FLAG(value, ae_flag_private);
   if(overload)
-    ++overload->func_num_overloads;
+    ++overload->offset;
   else {
     ADD_REF(type);
     ADD_REF(value);
@@ -441,7 +449,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
     nspc_add_value(env->curr, f->name, value);
   }
   snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
-           overload ? overload->func_num_overloads : 0, env->curr->name);
+           overload ? overload->offset : 0, env->curr->name);
   nspc_add_value(env->curr, insert_symbol(name), value);
   return 1;
 }
@@ -478,11 +486,12 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = f->func;
   nspc_push_value(env->curr);
-  if(scan2_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name)))
+  const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
+  if(ret < 0)
+    err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name));
   nspc_pop_value(env->curr);
   env->func = NULL;
-  return 1;
+  return ret;
 }
 
 ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, const Value overload) { GWDEBUG_EXE
@@ -557,10 +566,12 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     const Value overload, const m_str func_name) {
   const Func func = new_func(func_name, f);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
-  if(env->class_def && GET_FLAG(env->class_def, ae_flag_template))
-    SET_FLAG(func, ae_flag_ref);
-  if(env->class_def && !GET_FLAG(f, ae_flag_static))
-    SET_FLAG(func, ae_flag_member);
+  if(env->class_def) {
+    if(GET_FLAG(env->class_def, ae_flag_template))
+      SET_FLAG(func, ae_flag_ref);
+    if(!GET_FLAG(f, ae_flag_static))
+      SET_FLAG(func, ae_flag_member);
+  }
   if(GET_FLAG(f, ae_flag_builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = new_type(t_function->xid, func_name, t_function);
@@ -570,8 +581,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   type->d.func = func;
   const Value value = new_value(type, func_name);
   SET_FLAG(value, ae_flag_func);
-  if(GET_FLAG(f, ae_flag_private))
-    SET_FLAG(value, ae_flag_private);
   nspc_add_value(env->curr, !overload ?
       f->name : insert_symbol(func->name), value);
   CHECK_OO(scan2_func_assign(env, f, func, value))
@@ -592,7 +601,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   const m_uint len = strlen(func_name) +
-    num_digit(overload ? overload->func_num_overloads + 1 : 0) +
+    num_digit(overload ? overload->offset + 1 : 0) +
     strlen(env->curr->name) + 3;
 
   if(overload)
@@ -604,7 +613,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!f->tmpl) {
     char name[len];
     snprintf(name, len, "%s@%" INT_F "@%s", func_name,
-           overload ? ++overload->func_num_overloads : 0, env->curr->name);
+           overload ? ++overload->offset : 0, env->curr->name);
     func_name = s_name(insert_symbol(name));
   } else {
     func_name = func_tmpl_name(env, f, len);

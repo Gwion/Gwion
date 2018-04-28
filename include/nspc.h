@@ -21,7 +21,7 @@ extern ANEW ANN Nspc new_nspc(const m_str name);
 extern ANN void free_nspc(const Nspc a);
 
 extern ANN void nspc_commit(const Nspc);
-extern ANN void nspc_rollback(const Nspc);
+//extern ANN void nspc_rollback(const Nspc);
 
 #define describe_lookup0(A, b)                                                 \
 static inline ANN A nspc_lookup_##b##0(const Nspc n, const Symbol s){          \

@@ -35,8 +35,10 @@ INSTR(MkVararg) { GWDEBUG_EXE
   }
   if(kinds) {
     arg->s = vector_size(kinds);
-    arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
-    memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
+    if(arg->s) {
+      arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
+      memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
+    }
   } else {
     arg->s = 0;
     arg->k = NULL;

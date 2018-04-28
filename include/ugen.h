@@ -9,10 +9,10 @@ struct ugen_net {
 };
 
 struct ugen_multi_ {
+  M_Object* channel;
   m_uint    n_in;
   m_uint    n_out;
   m_uint    n_chan;
-  M_Object* channel;
 };
 
 struct ugen_gen {
@@ -33,7 +33,7 @@ struct UGen_ {
     struct ugen_gen gen;
     UGen ref;
   } module;
-  m_float in, out, last;
+  m_float in, out;
   m_bool done;
   enum ugen_flag flag;
 };

@@ -369,13 +369,13 @@ ANN static void array_push(const VM_Shred shred, const M_Vector a,
 }
 
 ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
-  gw_err("[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" UINT_F "]\n",
+  gw_err("[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" INT_F "]\n",
          shred->xid, shred->name, shred->pc, i);
   release(obj, shred);
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i)  if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
+#define OOB(shred, obj, i) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
   oob(obj, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE

@@ -450,9 +450,9 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
 
 ANN static m_bool scan1_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_push_value(env->curr);
-  CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
+  const m_bool ret = scan1_stmt_code(env, &f->d.code->d.stmt_code);
   nspc_pop_value(env->curr);
-  return 1;
+  return ret;
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
@@ -498,8 +498,10 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
         CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend"))
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
-    if(type_ref(class_def->type->parent))
-        CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
+    if(type_ref(class_def->type->parent)) {
+      REM_REF(t_array->info)
+      CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
+    }
   }
   CHECK_BB(env_push_class(env, class_def->type))
   while(body) {

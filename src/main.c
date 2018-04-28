@@ -21,7 +21,6 @@
 
 extern void parse_args(Arg*, DriverInfo*);
 
-volatile m_bool signaled = 0;
 VM* vm;
 
 static void sig(int unused __attribute__((unused))) {

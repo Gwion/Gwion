@@ -441,13 +441,13 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
   const Type_List types = exp_func->tmpl ? exp_func->tmpl->types : NULL; // check me
   Func m_func = exp_func->m_func;
   m_int mismatch = 0;
-  const m_uint digit = num_digit(v->func_num_overloads + 1);
+  const m_uint digit = num_digit(v->offset + 1);
   const m_uint len = strlen(v->name) + strlen(env->curr->name);
   const m_str tmpl_name = tl2str(env, types);
   const m_uint tlen = strlen(tmpl_name);
 
   template_set_env(env, v);
-  for(m_uint i = 0; i < v->func_num_overloads + 1; ++i) {
+  for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
     Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
@@ -470,8 +470,10 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       if((mismatch = template_match(base->tmpl->list, types)) < 0)
         goto next;
     }
-    if(template_push_types(env, base->tmpl->list, types) < 0)
+    if(template_push_types(env, base->tmpl->list, types) < 0) {
+      nspc_pop_type(env->curr);
       goto next;
+    }
     if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
     Func next = def->func->next;
@@ -705,10 +707,10 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
     if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
       CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
            f1->def->ret_type->name, f2->def->ret_type->name))
-    for(m_uint i = 0; i <= v->func_num_overloads; ++i) {
+    for(m_uint i = 0; i <= v->offset; ++i) {
       if(bin->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
-        char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->func_num_overloads) + 3];
+        char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->offset) + 3];
         sprintf(name, "%s@%" INT_F "@%s", c, i, env->curr->name);
         f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
       }
@@ -1336,11 +1338,11 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
   const Value v = f->func->value_ref;
   if(!f->tmpl || !f->tmpl->base) {
     char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
-                                      num_digit(v->func_num_overloads) + 3];
-    for(m_uint i = 0; i <= v->func_num_overloads; ++i) {
+                                      num_digit(v->offset) + 3];
+    for(m_uint i = 0; i <= v->offset; ++i) {
       sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
       const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
-      for(m_uint j = 1; j <= v->func_num_overloads; ++j) {
+      for(m_uint j = 1; j <= v->offset; ++j) {
         if(i != j)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
       }
@@ -1364,7 +1366,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
       func->next = override->d.func_ref;
 
     }
-  } else if(func->value_ref->func_num_overloads && (!f->tmpl || !f->tmpl->base))
+  } else if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
   return 1;
 }

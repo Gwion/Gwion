@@ -430,9 +430,14 @@ ANN static m_bool emit_exp_prim_vec(const Emitter emit, const Vec* vec, const ae
   return 1;
 }
 
+ANN static inline void push_this(const Emitter emit) {
+  const Instr instr = emitter_add_instr(emit, Reg_Push_Mem);
+  instr->m_val2 = SZ_INT;
+}
+
 ANN static m_bool emit_exp_prim_id(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->d.var == insert_symbol("this"))
-    emitter_add_instr(emit, Reg_Push_This);
+    push_this(emit);
   else if(prim->d.var == insert_symbol("me"))
     emitter_add_instr(emit, Reg_Push_Me);
   else if(prim->d.var == insert_symbol("now"))
@@ -962,7 +967,7 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   const Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt));
 
   if(emit->env->class_def)
-    emitter_add_instr(emit, Reg_Push_This);
+    push_this(emit);
   const Instr push = emitter_add_instr(emit, Reg_Push_Imm);
   push->m_val = SZ_INT;
   *(Func*)push->ptr = f;
@@ -1871,6 +1876,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
   const Func func = get_func(emit->env, func_def);
+  if(func->code)return 1;
   if(tmpl_list_base(func_def->tmpl)) { // don't check template definition
     func_def->flag &= ~ae_flag_template;
     return 1;
@@ -1948,7 +1954,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
       GET_FLAG(class_def->ext, ae_flag_typedef)) || class_def->ext->types)) {
     const Type base = class_def->ext->array ?
              array_base(type->parent) : type->parent;
-    CHECK_BB(emit_class_def(emit, base->def))
+    if(!base->info->pre_ctor)
+      CHECK_BB(emit_class_def(emit, base->def))
   }
   if(nspc->class_data_size)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
