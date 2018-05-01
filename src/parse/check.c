@@ -1020,9 +1020,7 @@ ANN static m_bool check_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG
   if(!t || !ptr || isa(t, t_array) < 0)
     CHECK_BB(err_msg(TYPE_, stmt->self->pos, "type '%s' is not array.\n"
           " This is not allowed in auto loop", stmt->exp->type->name))
-  if(!stmt->is_ptr)
-    t = depth ? array_type(ptr, depth) : ptr;
-  else {
+  if(stmt->is_ptr) {
     struct ID_List_   id0, id;
     struct Type_List_ tl;
     struct Array_Sub_ array;
@@ -1047,6 +1045,7 @@ ANN static m_bool check_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG
     if(!GET_FLAG(ptr, ae_flag_checked))
       check_class_def(env, ptr->def);
   }
+  t = depth ? array_type(ptr, depth) : ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, ae_flag_checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
