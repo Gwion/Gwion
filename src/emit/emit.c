@@ -253,7 +253,7 @@ ANN VM_Array_Info* emit_array_extend_inner(const Emitter emit, const Type t, con
   info->depth = t->array_depth;
   info->type = t;
   info->base = base;
-  Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
+  const Instr alloc = emitter_add_instr(emit, Instr_Array_Alloc);
   *(VM_Array_Info**)alloc->ptr = info;
   if(isa(base, t_object) > 0) {
     CHECK_BO(emit_pre_constructor_array(emit, base))
@@ -296,7 +296,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     VM_Array_Info* info = emit_array_extend_inner(emit, type, array->exp);
     CHECK_OB(info)
     info->is_ref = is_ref;
-  } else if(isa(type, t_object) > 0 && !is_ref) {
+  } else if(!is_ref) {
     const Instr instr = emitter_add_instr(emit, Instantiate_Object);
     *(Type*)instr->ptr = type;
     emit_pre_ctor(emit, type);
