@@ -983,7 +983,6 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   emit->code->name = code_name_set(c, emit->filename);
   const Instr op = emitter_add_instr(emit, Mem_Push_Imm);
   emit_push_scope(emit);
-
   emitter_add_instr(emit, start_gc);
   CHECK_BB(emit_stmt(emit, stmt, 0))
   emitter_add_instr(emit, stop_gc);
@@ -1002,7 +1001,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { G
   memset(&opi, 0, sizeof(struct Op_Import));
   opi.op = unary->op;
   opi.data = (uintptr_t)unary;
-  if(unary->exp) {
+  if(unary->op != op_spork && unary->exp) {
     CHECK_BB(emit_exp(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }
