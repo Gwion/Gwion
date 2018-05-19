@@ -26,13 +26,31 @@ ANN static void free_code_instr_gack(const Instr instr) {
   free_vector(v);
 }
 
+ANN void jit_instr(const Instr);
 ANN static void free_code_instr(Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
+/*
+#ifdef JIT
+    Instr instr = (Instr)vector_at(v, i - 1);
+    if(instr->execute == execute_jit) {
+      const Instr base  = *(Instr*)instr->ptr;
+    memcpy(instr, base, sizeof(struct Instr_));
+    free_jit_instr(base);
+    }
+#else
+*/
     const Instr instr = (Instr)vector_at(v, i - 1);
+//#endif
+
+#ifdef JIT
+    if(instr->execute == execute_jit)
+jit_instr(instr);
+#endif
+
     if(instr->execute == Instr_Array_Init ||
         instr->execute == Instr_Array_Alloc) {
       VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
-      if(!instr->m_val)
+      if(!info->init)
         REM_REF(info->type)
       free_array_info(info);
     }
