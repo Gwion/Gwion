@@ -171,19 +171,19 @@ ANN static inline m_uint emit_alloc_local(const Emitter emit, const m_uint size,
 
 ANN static void emit_pre_ctor_inner(const Emitter emit, const Type type) { GWDEBUG_EXE
   const Instr instr = emitter_add_instr(emit, Pre_Constructor);
-  instr->m_val = (m_uint)type->info->pre_ctor;
+  instr->m_val = (m_uint)type->nspc->pre_ctor;
   instr->m_val2 = (m_uint)emit_code_offset(emit);
 }
 
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) { GWDEBUG_EXE
   if(type->parent)
     emit_pre_ctor(emit, type->parent);
-  if(type->info->pre_ctor)
+  if(type->nspc->pre_ctor)
     emit_pre_ctor_inner(emit, type);
   if(GET_FLAG(type, ae_flag_template) && GET_FLAG(type, ae_flag_builtin)) {
     const m_str name = get_type_name(type->name, 0);
-    const Type t = nspc_lookup_type1(type->info->parent, insert_symbol(name));
-    if(t->info->pre_ctor)
+    const Type t = nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
+    if(t->nspc->pre_ctor)
       emit_pre_ctor_inner(emit, t);
   }
 }
@@ -1334,7 +1334,7 @@ ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
         stmt->val->d.exp_dot.t_base;
     const Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
-      (m_uint)t->info->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr;
+      (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr;
   }
   return 1;
 }
@@ -1369,7 +1369,7 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
       v->offset = offset;
       v->d.ptr = (m_uint*)i;
     } else
-      emit->env->class_def->info->class_data[v->offset] = i;
+      emit->env->class_def->nspc->class_data[v->offset] = i;
   }
   return 1;
 }
@@ -1386,9 +1386,9 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   Decl_List l = stmt->l;
 
   if(stmt->xid) {
-    if(!stmt->value->type->info->class_data)
-      stmt->value->type->info->class_data =
-        (m_bit*)xcalloc(1, stmt->value->type->info->class_data_size);
+    if(!stmt->value->type->nspc->class_data)
+      stmt->value->type->nspc->class_data =
+        (m_bit*)xcalloc(1, stmt->value->type->nspc->class_data_size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
@@ -1554,7 +1554,7 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
 ANN static m_bool emit_vec_func(const Emitter emit, const Value v) { GWDEBUG_EXE
   emitter_add_instr(emit, Reg_Dup_Last);
   const Instr instr = emitter_add_instr(emit, member_function);
-  *(Vector*)instr->ptr = &v->owner_class->info->vtable;
+  *(Vector*)instr->ptr = &v->owner_class->nspc->vtable;
   instr->m_val = v->d.func_ref->vt_index;
   return 1;
 }
@@ -1747,7 +1747,7 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
 ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBUG_EXE
   func->code = emit_code(emit);
   if(GET_FLAG(func->def, ae_flag_dtor)) {
-    emit->env->class_def->info->dtor = func->code;
+    emit->env->class_def->nspc->dtor = func->code;
     ADD_REF(func->code)
   } else if(GET_FLAG(func->def, ae_flag_op)) {
     const Arg_List a = func->def->arg_list;
@@ -1843,14 +1843,14 @@ ANN static void emit_class_pop(const Emitter emit) { GWDEBUG_EXE
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) { GWDEBUG_EXE
   const Type type = class_def->type;
-  const Nspc nspc = type->info;
+  const Nspc nspc = type->nspc;
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext && ((!GET_FLAG(type->parent, ae_flag_emit) &&
       GET_FLAG(class_def->ext, ae_flag_typedef)) || class_def->ext->types)) {
     const Type base = class_def->ext->array ?
              array_base(type->parent) : type->parent;
-    if(!base->info->pre_ctor)
+    if(!base->nspc->pre_ctor)
       CHECK_BB(emit_class_def(emit, base->def))
   }
   if(nspc->class_data_size)

@@ -43,7 +43,7 @@ ANN Func get_func(const Env env, const Func_Def def) {
     memset(c, 0, len + strlen(env->class_def->name) + 1);
     strncpy(c, f->name, len);
     strcat(c, env->class_def->name);
-    f = nspc_lookup_func1(env->class_def->info, insert_symbol(c));
+    f = nspc_lookup_func1(env->class_def->nspc, insert_symbol(c));
   }
   return f;
 }

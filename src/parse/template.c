@@ -6,8 +6,10 @@
 #include "env.h"
 
 ANN static Type owner_type(const Type t) {
-  Nspc nspc = t->info;
-  if(!nspc || !(nspc = nspc->parent) || !nspc->parent)
+  if(!t->nspc)
+    return NULL;
+  const Nspc nspc = t->nspc->parent;
+  if(!nspc || !nspc->parent)
     return NULL;
   return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
 }
@@ -155,10 +157,10 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
       SET_FLAG(a->type, ae_flag_builtin);
     CHECK_BO(scan1_class_def(env, a))
     nspc_pop_type(env->curr);
-    if(t->info->dtor) {
-      a->type->info->dtor = t->info->dtor;
+    if(t->nspc->dtor) {
+      a->type->nspc->dtor = t->nspc->dtor;
       SET_FLAG(a->type, ae_flag_dtor);
-      ADD_REF(t->info->dtor)
+      ADD_REF(t->nspc->dtor)
     }
     ID_List list = get_total_type_list(t);
     a->tmpl = new_tmpl_class(list, 0);

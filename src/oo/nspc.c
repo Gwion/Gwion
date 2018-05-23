@@ -45,7 +45,7 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
   else if(GET_FLAG(value->type, ae_flag_builtin) && GET_FLAG(value->type, ae_flag_typedef))
     REM_REF(value->type->parent)
   else if(GET_FLAG(value->type, ae_flag_typedef))
-    REM_REF(t_array->info)
+    REM_REF(t_array->nspc)
 }
 
 ANN static void free_nspc_value_fptr(Func f) {

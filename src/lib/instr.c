@@ -266,7 +266,7 @@ INSTR(Exp_Dot_Func) { GWDEBUG_EXE
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
-  *(Func*)REG(-SZ_INT) = (Func)vector_at(&obj->type_ref->info->vtable, instr->m_val);
+  *(Func*)REG(-SZ_INT) = (Func)vector_at(&obj->type_ref->nspc->vtable, instr->m_val);
 }
 
 INSTR(Func_Static) { GWDEBUG_EXE
@@ -363,7 +363,7 @@ INSTR(Alloc_Member) { GWDEBUG_EXE
 
 INSTR(Dot_Static_Data) { GWDEBUG_EXE
   const Type t = *(Type*)REG(-SZ_INT);
-  m_bit* data = t->info->class_data + instr->m_val;
+  m_bit* data = t->nspc->class_data + instr->m_val;
   if(*(m_uint*)instr->ptr)
     *(m_bit**)REG(-SZ_INT) = &*data;
   else

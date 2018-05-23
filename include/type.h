@@ -8,7 +8,7 @@ struct Type_ {
   m_uint    xid;
   m_uint    size;
   m_str     name;
-  Nspc      info;
+  Nspc      nspc;
   Type      parent;
   Nspc      owner;
   m_uint    array_depth;

@@ -9,7 +9,7 @@
 #include "type.h"
 #include "mpool.h"
 
-#define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array->info->offset))
+#define MAP_INFO(o) (*(struct Map_Info_**)(o->data + t_array->nspc->offset))
 #define MAP_KEY(p) ((m_bit*)(p->data))
 #define MAP_VAL(p, o) ((m_bit*)(p->data + MAP_INFO(o)->key_size))
 

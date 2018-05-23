@@ -338,10 +338,10 @@ ANN m_bool compat_func(const restrict Func_Def lhs, const restrict Func_Def rhs)
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {
-  Nspc nspc = type->info;
+  Nspc nspc = type->nspc;
   struct Vector_ v;
   vector_init(&v);
-  if(!type->info)
+  if(!nspc)
     vector_add(&v, (vtype)type->name);
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     vector_add(&v, (vtype)s_name(insert_symbol((nspc->name))));
@@ -852,7 +852,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   CHECK_OO((member->t_base = check_exp(env, member->base)))
   const m_bool base_static = isa(member->t_base, t_class) > 0;
   const Type the_base = base_static ? member->t_base->d.base_type : member->t_base;
-  if(!the_base->info)
+  if(!the_base->nspc)
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
           "type '%s' does not have members - invalid use in dot expression of %s",
           the_base->name, str))
@@ -943,8 +943,8 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     do {
       const Value v = nspc_lookup_value0(env->curr, list->xid);
       SET_FLAG(v, ae_flag_static);
-      v->offset = env->class_def->info->class_data_size;
-      env->class_def->info->class_data_size += SZ_INT;
+      v->offset = env->class_def->nspc->class_data_size;
+      env->class_def->nspc->class_data_size += SZ_INT;
     } while((list = list->next));
   }
   return 1;
@@ -1154,10 +1154,10 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     env_push_class(env, stmt->value->type);
   } else if(env->class_def)  {
       if(!GET_FLAG(stmt, ae_flag_static))
-        stmt->o = env->class_def->info->offset;
+        stmt->o = env->class_def->nspc->offset;
       else {
-        env->class_def->info->class_data_size += SZ_INT;
-        env->class_def->info->offset += SZ_INT;
+        env->class_def->nspc->class_data_size += SZ_INT;
+        env->class_def->nspc->offset += SZ_INT;
       }
   }
   do {
@@ -1445,9 +1445,9 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     CHECK_BB(check_class_parent(env, class_def))
   else
     the_class->parent = t_object;
-  the_class->info->offset = the_class->parent->info->offset;
-  if(the_class->parent->info->vtable.ptr)
-    vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
+  the_class->nspc->offset = the_class->parent->nspc->offset;
+  if(the_class->parent->nspc->vtable.ptr)
+    vector_copy2(&the_class->parent->nspc->vtable, &the_class->nspc->vtable);
   if(class_def->body) {
     Class_Body body = class_def->body;
     env_push_class(env, the_class);

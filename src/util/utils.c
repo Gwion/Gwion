@@ -28,21 +28,21 @@ ANN Type find_type(const Env env, ID_List path) {
   if(path->ref)
     return find_typeof(env, path->ref);
   CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
-  Nspc nspc = type->info;
+  Nspc nspc = type->nspc;
   path = path->next;
 
   while(path) {
     const Symbol xid = path->xid;
     Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
-      t = nspc_lookup_type2(type->parent->info, xid);
+      t = nspc_lookup_type2(type->parent->nspc, xid);
       type = type->parent;
     }
     if(!t)
       CHECK_BO(err_msg(UTIL_, path->pos,
             "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name))
     type = t;
-    nspc = type->info;
+    nspc = type->nspc;
     path = path->next;
   }
   return type;
@@ -51,7 +51,7 @@ ANN Type find_type(const Env env, ID_List path) {
 
 #define describe_find(name, t)                                 \
 ANN t find_##name(const Type type, const Symbol xid) {         \
-  const t val = nspc_lookup_##name##2(type->info, xid);        \
+  const t val = nspc_lookup_##name##2(type->nspc, xid);        \
   if(val)                                                      \
     return val;                                                \
   return type->parent ? find_##name(type->parent, xid) : NULL; \
@@ -96,8 +96,8 @@ ANN Type array_type(const Type base, const m_uint depth) {
   t->size = SZ_INT;
   t->array_depth = depth;
   t->d.base_type = base;
-  t->info = t_array->info;
-  ADD_REF(t->info);
+  t->nspc = t_array->nspc;
+  ADD_REF(t->nspc);
   ADD_REF(t);
   SET_FLAG(t, ae_flag_checked);
   t->owner = base->owner;

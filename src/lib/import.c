@@ -160,7 +160,7 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
 }
 
 ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
-  VM_Code* code = e == NATIVE_CTOR ? &type->info->pre_ctor : &type->info->dtor;
+  VM_Code* code = e == NATIVE_CTOR ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
 
   SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
@@ -185,16 +185,16 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
 
 ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
     const f_xtor pre_ctor, const f_xtor dtor) {
-  type->info = new_nspc(type->name);
-  type->info->parent = env->curr;
+  type->nspc = new_nspc(type->name);
+  type->nspc->parent = env->curr;
   if(pre_ctor)
     mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
   if(dtor)
     mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
   if(type->parent) {
-    type->info->offset = type->parent->info->offset;
-    if(type->parent->info->vtable.ptr)
-      vector_copy2(&type->parent->info->vtable, &type->info->vtable);
+    type->nspc->offset = type->parent->nspc->offset;
+    if(type->parent->nspc->vtable.ptr)
+      vector_copy2(&type->parent->nspc->vtable, &type->nspc->vtable);
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);
@@ -203,7 +203,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
 }
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
-  if(type->info)
+  if(type->nspc)
     CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
   if(gwi->templater.n) {
     const ID_List types = templater_def(&gwi->templater);
@@ -222,7 +222,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "gwi_class_ext invoked before "
           "gwi_class_ini"))
-  const VM_Code ctor = gwi->env->class_def->info->pre_ctor;
+  const VM_Code ctor = gwi->env->class_def->nspc->pre_ctor;
   if(gwi->env->class_def->parent ||
       (gwi->env->class_def->def && gwi->env->class_def->def->ext))
     CHECK_BB(err_msg(TYPE_, 0, "class extend already set"))
@@ -235,16 +235,16 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     if(td->array)
       SET_FLAG(gwi->env->class_def, ae_flag_typedef);
     gwi->env->class_def->parent = t;
-    gwi->env->class_def->info->offset = t->info->offset;
-    if(t->info->vtable.ptr)
-      vector_copy2(&t->info->vtable, &gwi->env->class_def->info->vtable);
+    gwi->env->class_def->nspc->offset = t->nspc->offset;
+    if(t->nspc->vtable.ptr)
+      vector_copy2(&t->nspc->vtable, &gwi->env->class_def->nspc->vtable);
     CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
           gwi->env->class_def->name)))
     if(td->array)
       CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp))
     if(ctor)
       emit_ext_ctor(gwi->emit, ctor);
-    emit_class_finish(gwi->emit, gwi->env->class_def->info);
+    emit_class_finish(gwi->emit, gwi->env->class_def->nspc);
     free_type_decl(td);
   } else {
     SET_FLAG(td, ae_flag_typedef);
@@ -256,7 +256,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
     CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
-  const Nspc nspc = env->class_def->info;
+  const Nspc nspc = env->class_def->nspc;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
   env_pop_class(env);
@@ -574,7 +574,7 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
-    gwi->env->class_def->info->offset =
+    gwi->env->class_def->nspc->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
   gwi->union_data.list = NULL;
