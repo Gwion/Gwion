@@ -5,11 +5,11 @@
 #include "env.h"
 
 struct Type_ {
-  m_str     name;
-  m_uint    size;
-  Type      parent;
   m_uint    xid;
+  m_uint    size;
+  m_str     name;
   Nspc      info;
+  Type      parent;
   Nspc      owner;
   m_uint    array_depth;
   Class_Def def;
@@ -18,7 +18,7 @@ struct Type_ {
     Type      base_type;
   } d;
   ae_flag flag;
-  struct VM_Object_ obj;
+  HAS_OBJ
 };
 
 Type t_void, t_int, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,

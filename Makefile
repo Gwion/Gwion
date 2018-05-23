@@ -82,10 +82,7 @@ ifeq (${USE_GWCOV}, 1)
 CFLAGS += -DGWCOV
 endif
 ifeq (${USE_MEMCHECK}, 1)
-CFLAGS += -g
-endif
-ifeq (${USE_GWCGRAPH}, 1)
-CFLAGS += -DGWCGRAPH
+CFLAGS += -g -Og
 endif
 
 ifeq (${USE_DOUBLE}, 1)
@@ -116,6 +113,9 @@ CFLAGS+= -DOPTIMIZE
 endif
 ifeq (${USE_COLOR}, 1)
 CFLAGS+= -DCOLOR
+endif
+ifeq (${USE_JIT}, 1)
+include jit.mk
 endif
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}

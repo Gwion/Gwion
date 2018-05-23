@@ -20,9 +20,6 @@ typedef struct {
 #ifdef GWCOV
   m_bool coverage;
 #endif
-#ifdef GWCGRAPH
-  m_bool profile;
-#endif
 #ifdef GWREPL
   m_bool repl;
 #endif

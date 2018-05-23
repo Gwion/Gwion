@@ -74,11 +74,10 @@ ANN static m_bool check_enum_xid(const Env env, const Stmt_Enum stmt) {
 }
 
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  Type t;
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN0_, stmt->self->pos, "'private' can only be used at class scope."))
   CHECK_BB(check_enum_xid(env, stmt))
-  t = type_copy(t_int);
+  const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
   nspc_add_type(env->curr, stmt->xid, t);
@@ -110,13 +109,13 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
 
 ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
   if(stmt->stmt_type == ae_stmt_funcptr)
-    CHECK_BB(scan0_stmt_fptr(env, &stmt->d.stmt_ptr))
-  else if(stmt->stmt_type == ae_stmt_typedef)
-    CHECK_BB(scan0_stmt_type(env, &stmt->d.stmt_type))
-  else if(stmt->stmt_type == ae_stmt_enum)
-    CHECK_BB(scan0_stmt_enum(env, &stmt->d.stmt_enum))
-  else if(stmt->stmt_type == ae_stmt_union)
-    CHECK_BB(scan0_stmt_union(env, &stmt->d.stmt_union))
+    return scan0_stmt_fptr(env, &stmt->d.stmt_ptr);
+  if(stmt->stmt_type == ae_stmt_typedef)
+    return scan0_stmt_type(env, &stmt->d.stmt_type);
+  if(stmt->stmt_type == ae_stmt_enum)
+    return scan0_stmt_enum(env, &stmt->d.stmt_enum);
+  if(stmt->stmt_type == ae_stmt_union)
+    return scan0_stmt_union(env, &stmt->d.stmt_union);
   return 1;
 }
 
@@ -168,33 +167,27 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
   return the_class;
 }
 
-ANN static m_bool scan0_class_def_post(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  (void)mk_class(env, class_def->type);
-  if(env->curr == env->global_nspc)
-    env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  return 1;
-}
-
 ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG_EXE
   if(section->section_type == ae_section_stmt)
-    CHECK_BB(scan0_Stmt_List(env, section->d.stmt_list))
-  else if(section->section_type == ae_section_class)
-      CHECK_BB(scan0_class_def(env, section->d.class_def))
+    return scan0_Stmt_List(env, section->d.stmt_list);
+  if(section->section_type == ae_section_class)
+      return scan0_class_def(env, section->d.class_def);
   return 1;
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  Class_Body body = class_def->body;
-
   CHECK_BB(scan0_class_def_pre(env, class_def))
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
-  CHECK_BB(env_push_class(env, class_def->type))
-  while(body) {
-    CHECK_BB(scan0_section(env, body->section))
-    body = body->next;
+  if(class_def->body) {
+    Class_Body body = class_def->body;
+    env_push_class(env, class_def->type);
+    do CHECK_BB(scan0_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
-  CHECK_BB(env_pop_class(env))
-  CHECK_BB(scan0_class_def_post(env, class_def))
+  (void)mk_class(env, class_def->type);
+  if(env->curr == env->global_nspc)
+    env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
 }
 

@@ -15,7 +15,6 @@ Env new_env() {
   env->context = NULL;
   vector_init(&env->breaks);
   vector_init(&env->conts);
-  vector_init(&env->contexts);
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
@@ -53,7 +52,6 @@ ANN void free_env(const Env a) {
 //  while((ctx = (Context)vector_pop(&a->known_ctx)))
 //    REM_REF(ctx)
   REM_REF(a->global_nspc);
-  vector_release(&a->contexts);
   vector_release(&a->known_ctx);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
@@ -62,21 +60,18 @@ ANN void free_env(const Env a) {
   free(a);
 }
 
-ANN m_bool env_push_class(const Env env, const Type type) {
+ANN void env_push_class(const Env env, const Type type) {
   vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = type->info;
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
   env->class_scope = 0;
-  return 1;
 }
 
-ANN m_bool env_pop_class(const Env env) {
+ANN void env_pop_class(const Env env) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  return 1;
 }
-
 
 ANN2(1,2) m_bool env_add_value(const Env env, const m_str name, const Type type,
       const m_bool is_const, void* data) {
@@ -104,7 +99,7 @@ ANN m_bool env_add_type(const Env env, const Type type) {
 }
 
 ANN Map env_label(const Env env) {
-  return &env->context->label;
+  return &env->context->lbls;
 }
 
 ANN Nspc env_nspc(const Env env) {
@@ -113,25 +108,25 @@ ANN Nspc env_nspc(const Env env) {
 
 ANN2(1) Class_Def env_class_def(const Env env, const Class_Def def) {
   if(def)
-    env->context->public_class_def = def;
-  return env->context ? env->context->public_class_def : NULL;
+    env->context->cdef = def;
+  return env->context ? env->context->cdef : NULL;
 }
 
-ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
-  const Context context = new_context(ast, filename);
+ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str) {
+  const Context ctx = new_context(ast, str);
   env_reset(env);
-  CHECK_BB(load_context(context, env))
+  CHECK_BB(load_context(ctx, env))
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
-    vector_add(&env->known_ctx, (vtype)context);
+    vector_add(&env->known_ctx, (vtype)ctx);
   } // else { nspc_rollback(env->global_nspc); }
-  CHECK_BB(unload_context(context, env)) // no real need to check that
+  CHECK_BB(unload_context(ctx, env)) // no real need to check that
   if(ret < 0) {
-    gw_err("in file '%s'\n", context->filename);
+    gw_err("in file '%s'\n", str);
     free_ast(ast);
-    REM_REF(context);
-    free(filename);
+    REM_REF(ctx);
+    free(str);
   }
   return ret;
 }

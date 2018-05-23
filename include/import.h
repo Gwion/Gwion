@@ -57,6 +57,7 @@ ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 
 OP_CHECK(opck_const_lhs);
+OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
 OP_CHECK(opck_unary);
 OP_CHECK(opck_post);

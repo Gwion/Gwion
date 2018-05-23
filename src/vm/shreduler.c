@@ -49,16 +49,6 @@ ANN static void shreduler_child(const Shreduler s, const Vector v) {
   }
 }
 
-ANN static void shreduler_gc(VM_Shred out) {
-  m_uint size = vector_size(&out->gc) + 1;
-  while(--size) {
-    const M_Object o = (M_Object)vector_at(&out->gc, size - 1);
-    if(o)
-      release(o, out);
-  }
-  vector_release(&out->gc);
-}
-
 ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
   if(out->parent)
     shreduler_parent(out, &out->parent->child);
@@ -66,8 +56,6 @@ ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
     shreduler_child(s, &out->child);
   const vtype index = vector_find(&s->vm->shred, (vtype)out);
   vector_rem(&s->vm->shred, index);
-  if(out->gc.ptr)
-    shreduler_gc(out);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {

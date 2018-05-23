@@ -628,7 +628,7 @@ ANN static void free_stmt_code(Stmt_Code a) {
     free_stmt_list(a->stmt_list);
 }
 
-ANN __inline static void free_stmt_exp(struct Stmt_Exp_* a) {
+ANN inline static void free_stmt_exp(struct Stmt_Exp_* a) {
   if(a->val)
     free_exp(a->val);
 }
@@ -793,7 +793,7 @@ ANN static void free_decl_list(Decl_List a) {
   mp_free(Decl_List, a);
 }
 
-ANN __inline static void free_stmt_union(Stmt_Union a) {
+ANN inline static void free_stmt_union(Stmt_Union a) {
   free_decl_list(a->l);
   vector_release(&a->v);
 }

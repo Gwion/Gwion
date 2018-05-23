@@ -12,6 +12,9 @@ struct Symbol_ {
 
 POOL_HANDLE(Symbol, 2048)
 static Symbol hashtable[SIZE];
+//static Symbol* hashtable;
+
+//void init_symbols() { hashtable = calloc(SIZE, sizeof(struct Symbol_)); }
 
 ANN static void free_symbol(const Symbol s) {
   if(s->next)

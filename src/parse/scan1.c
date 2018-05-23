@@ -60,7 +60,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     t = decl->type;
   else
     ((Exp_Decl*)decl)->type = t;
-  while(list) {
+  do {
     const Var_Decl v = list->self;
     const Value value = nspc_lookup_value0(env->curr, v->xid);
     if(isres(v->xid) > 0)
@@ -93,8 +93,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     v->value->d.ptr = v->addr;
     v->value->owner = env->curr;
     v->value->owner_class = env->func ? NULL : env->class_def;
-    list = list->next;
-  }
+  } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   return 1;
 }
@@ -203,7 +202,7 @@ ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
 }
 
 ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
-  return scan1_stmt_list(env, stmt->stmt_list);
+  return stmt->stmt_list ? scan1_stmt_list(env, stmt->stmt_list) : 1;
 }
 
 ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
@@ -260,7 +259,7 @@ ANN static m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
 ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   m_uint count = 1;
-  while(list) {
+  do {
     if(nspc_lookup_value0(env->curr, list->xid))
       CHECK_BB(err_msg(SCAN1_, stmt->self->pos,
             "in enum argument %i '%s' already declared as variable",
@@ -275,9 +274,8 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(env->curr, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
-    list = list->next;
     ++count;
-  }
+  } while((list = list->next));
   return 1;
 }
 
@@ -323,7 +321,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     UNSET_FLAG(stmt, ae_flag_private);
     env_push_class(env, stmt->value->type);
   }
-  while(l) {
+  do {
     Var_Decl_List list = l->self->d.exp_decl.list;
 
     if(l->self->exp_type != ae_exp_decl)
@@ -332,15 +330,13 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     SET_FLAG(l->self->d.exp_decl.td, ae_flag_checked | stmt->flag);
     if(GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(l->self->d.exp_decl.td, ae_flag_static);
-    while(list) {
+    do {
       const Var_Decl var_decl = list->self;
       if(var_decl->array)
         CHECK_BB(scan1_stmt_union_array(var_decl->array))
-      list = list->next;
-    }
+    } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
-    l = l->next;
-  }
+  } while((l = l->next));
   if(stmt->xid)
     env_pop_class(env);
   return 1;
@@ -353,7 +349,6 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
         CHECK_BB(scan1_exp(env, stmt->d.stmt_exp.val))
       break;
     case ae_stmt_code:
-      if(stmt->d.stmt_code.stmt_list)
       NSPC(CHECK_BB(scan1_stmt_code(env, &stmt->d.stmt_code)))
       break;
     case ae_stmt_return:
@@ -484,8 +479,6 @@ ANN static m_bool scan1_section(const Env env, const Section* section) { GWDEBUG
 }
 
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  Class_Body body = class_def->body;
-
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
@@ -503,13 +496,15 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
       CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
     }
   }
-  CHECK_BB(env_push_class(env, class_def->type))
-  while(body) {
-    CHECK_BB(scan1_section(env, body->section))
-    body = body->next;
+  if(class_def->body) {
+    Class_Body body = class_def->body;
+    env_push_class(env, class_def->type);
+    do CHECK_BB(scan1_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
   SET_FLAG(class_def->type, ae_flag_scan1);
-  return env_pop_class(env);
+  return 1;
 }
 
 ANN m_bool scan1_ast(const Env env, Ast ast) { GWDEBUG_EXE

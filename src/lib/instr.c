@@ -21,7 +21,7 @@ INSTR(EOC) { GWDEBUG_EXE
 }
 
 INSTR(EOC2) { GWDEBUG_EXE
-  shred->next_pc = shred->pc = 0;
+  shred->pc = 0;
   shreduler_remove(shred->vm_ref->shreduler, shred, 0);
 }
 
@@ -122,16 +122,16 @@ INSTR(Alloc_Word) { GWDEBUG_EXE
 INSTR(Branch_Switch) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const Map map = *(Map*)instr->ptr;
-  shred->next_pc = (m_int)map_get(map, *(m_int*)REG(0));
-  if(!shred->next_pc)
-    shred->next_pc = instr->m_val;
+  shred->pc = (m_int)map_get(map, *(m_int*)REG(0));
+  if(!shred->pc)
+    shred->pc = instr->m_val;
 }
 
 #define branch(name, type, sz, op)      \
 INSTR(Branch_##name) { GWDEBUG_EXE      \
   POP_REG(shred, sz * 2);               \
-  if(*(type*)REG(0) == *(type*)REG(sz)) \
-    shred->next_pc = instr->m_val;      \
+  if(*(type*)REG(0) op *(type*)REG(sz)) \
+    shred->pc = instr->m_val;           \
 }
 branch(Eq_Int, m_int, SZ_INT, ==)
 branch(Neq_Int, m_int, SZ_INT, !=)
@@ -154,7 +154,7 @@ INSTR(Dec_int_Addr) { GWDEBUG_EXE
 }
 
 INSTR(Goto) { GWDEBUG_EXE
-  shred->next_pc = instr->m_val;
+  shred->pc = instr->m_val;
 }
 
 ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
@@ -199,15 +199,6 @@ INSTR(Spork) { GWDEBUG_EXE
   }
 }
 
-// LCOV_EXCL_START
-// IMPROVE ME
-ANN static void handle_overflow(const VM_Shred shred) {
-  gw_err("[Gwion](VM): StackOverflow: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
-         shred->xid, shred->name, shred->pc);
-  vm_shred_exit(shred);
-}
-// LCOV_EXCL_STOP
-
 ANN static void shred_func_prepare(const VM_Shred shred) {
   POP_REG(shred, SZ_INT * 2);
   const VM_Code code = *(VM_Code*)REG(0);
@@ -218,9 +209,9 @@ ANN static void shred_func_prepare(const VM_Shred shred) {
   PUSH_MEM(shred, push + SZ_INT*4);
   *(m_uint*)MEM(-SZ_INT*4)  = push;
   *(m_uint*)MEM(-SZ_INT*3)  = (m_uint)shred->code;
-  *(m_uint*)MEM(-SZ_INT*2)  = shred->pc + 1;
+  *(m_uint*)MEM(-SZ_INT*2)  = shred->pc; // was pc + 1;
   *(m_uint*)MEM(-SZ_INT)  = (m_uint)code->stack_depth;
-  shred->next_pc = 0;
+  shred->pc = 0;
   shred->code = code;
 }
 
@@ -233,7 +224,7 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
   if(GET_FLAG(shred->code, _NEED_THIS_))
     POP_MEM(shred, SZ_INT);
   if(overflow_(shred))
-    handle_overflow(shred);
+    Except(shred, "StackOverflow");
 }
 
 INSTR(Instr_Exp_Func) { GWDEBUG_EXE
@@ -275,7 +266,7 @@ INSTR(Exp_Dot_Func) { GWDEBUG_EXE
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
-  *(Func*)REG(-SZ_INT) = (Func)vector_at(obj->vtable, instr->m_val);
+  *(Func*)REG(-SZ_INT) = (Func)vector_at(&obj->type_ref->info->vtable, instr->m_val);
 }
 
 INSTR(Func_Static) { GWDEBUG_EXE
@@ -289,10 +280,8 @@ INSTR(Func_Static) { GWDEBUG_EXE
     POP_REG(shred, stack_depth);
     memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
   }
-  if(overflow_(shred)) {
-    handle_overflow(shred);
-    return;
-  }
+  if(overflow_(shred))
+    Except(shred, "StackOverflow");
   const m_bit retval[instr->m_val];
   f(retval, shred);
   dl_return_push(retval, shred, instr->m_val);
@@ -318,10 +307,8 @@ INSTR(Func_Member) { GWDEBUG_EXE
   PUSH_MEM(shred, local_depth);
   if(func->stack_depth)
     copy_member_args(shred, func);
-  if(overflow_(shred)) {
-    handle_overflow(shred);
-    return;
-  }
+  if(overflow_(shred))
+    Except(shred, "StackOverflow");
   if(GET_FLAG(func, NATIVE_CTOR)) {
     const f_xtor f = (f_xtor)func->native_func;
     f(*(M_Object*)MEM(0), shred);
@@ -335,7 +322,7 @@ INSTR(Func_Member) { GWDEBUG_EXE
 }
 
 INSTR(Func_Return) { GWDEBUG_EXE
-  shred->next_pc = *(m_uint*)MEM(-SZ_INT*2);
+  shred->pc = *(m_uint*)MEM(-SZ_INT*2);
   shred->code = *(VM_Code*)MEM(-SZ_INT*3);
   POP_MEM(shred, *(m_uint*)MEM(-SZ_INT*4) + SZ_INT*4);
 }
@@ -358,18 +345,20 @@ INSTR(Pre_Constructor) { GWDEBUG_EXE
 
 INSTR(Instantiate_Object) { GWDEBUG_EXE
   instantiate_object(shred, *(Type*)instr->ptr);
-  vector_add(&shred->gc1, *(vtype*)REG(-SZ_INT));
+  vector_add(&shred->gc, *(vtype*)REG(-SZ_INT));
 }
 
 INSTR(Alloc_Member) { GWDEBUG_EXE
   const M_Object obj = *(M_Object*)MEM(0);
   m_bit* data = obj->data + instr->m_val;
   memset(data, 0, instr->m_val2);
-  if(*(m_uint*)instr->ptr)
+  if(*(m_uint*)instr->ptr) {
     *(m_bit**)REG(0) = &*data;
-  else
+    PUSH_REG(shred, SZ_INT);
+  } else {
     memset(REG(0), *data, instr->m_val2);
-  PUSH_REG(shred, instr->m_val2);
+    PUSH_REG(shred, instr->m_val2);
+  }
 }
 
 INSTR(Dot_Static_Data) { GWDEBUG_EXE
@@ -420,7 +409,7 @@ INSTR(add2gc) { GWDEBUG_EXE
 INSTR(stop_gc) { GWDEBUG_EXE
   M_Object o;
   while((o = (M_Object)vector_pop(&shred->gc)))
-    release(o, shred);
+    _release(o, shred);
 }
 
 INSTR(AutoLoopStart) { GWDEBUG_EXE
@@ -443,12 +432,12 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
 INSTR(AutoLoopEnd) { GWDEBUG_EXE
   if(*(Type*)instr->ptr) {
     const M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
-    release(ptr, shred);
+    _release(ptr, shred);
   }
   ++(*(m_uint*)MEM(instr->m_val));
   const M_Object o =  *(M_Object*)REG(-SZ_INT);
   if(*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
-    shred->next_pc = instr->m_val2;
+    shred->pc = instr->m_val2;
     POP_REG(shred, SZ_INT);
   }
 }
@@ -497,31 +486,5 @@ INSTR(ConstPropGet) { GWDEBUG_EXE
 //    *(m_uint*)instr->ptr = 0;
   }
   PUSH_REG(shred, SZ_INT);
-}
-
-
-INSTR(InlineStart) { GWDEBUG_EXE
-  const VM_Code f =  *(VM_Code*)instr->ptr;
-  m_uint offset = f->stack_depth;
-
-  PUSH_MEM(shred, instr->m_val + offset + SZ_INT);
-  *(m_uint*)MEM(-SZ_INT) = instr->m_val2;
-  POP_REG(shred, offset + SZ_INT)
-  if(GET_FLAG(f, _NEED_THIS_)) {
-    *(M_Object*)MEM(0) =  *(M_Object*)REG(instr->m_val-SZ_INT);
-    offset -= SZ_INT;
-    PUSH_MEM(shred, SZ_INT);
-  }
-  memcpy(shred->mem, shred->reg, offset);
-  if(GET_FLAG(f, _NEED_THIS_))
-    POP_MEM(shred, SZ_INT);
-}
-
-INSTR(InlineStop) { GWDEBUG_EXE
-  POP_MEM(shred, instr->m_val + instr->m_val2 + SZ_INT)
-}
-
-INSTR(InlineGoto) { GWDEBUG_EXE
-  shred->next_pc = instr->m_val + *(m_uint*)MEM(-SZ_INT);
 }
 #endif

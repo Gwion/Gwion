@@ -24,7 +24,7 @@ static INSTR(my_ret) { GWDEBUG_EXE
     POP_REG(shred, SZ_INT)
   POP_REG(shred, shred->code->stack_depth);
   
-  shred->next_pc = instr->m_val2;
+  shred->pc = instr->m_val2;
   free(info);
   free_instr(instr);
   *(m_int*)shred->reg = 2;
@@ -47,19 +47,18 @@ static SFUN(cb_func) {
   instr->execute = my_ret;
   *(VM_Code*)instr->ptr = shred->code;
   instr->m_val = (m_uint)info;
-  instr->m_val2 = shred->pc + 1;
-  /*instr->m_val2 = shred->pc;*/
-  /*instr->m_val2 = shred->next_pc;*/
+//  instr->m_val2 = shred->pc + 1;
+  instr->m_val2 = shred->pc;
   for(i = 0; i < vector_size(f->code->instr); i++) {
     Instr in = (Instr)vector_at(f->code->instr, i);
     if(in->execute == Func_Return ||
       in->execute == my_ret) {
-      info->instr = in; 
+      info->instr = in;
       vector_set(f->code->instr, i, (vtype)instr);
     }
   }
   *(m_int*)RETURN = 1;
-  shred->next_pc = 0;
+  shred->pc = 0;
   shred->code = f->code;
 }
 

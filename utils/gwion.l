@@ -144,7 +144,6 @@ ANN static int adjust(const void* data);
 "const"                             { adjust(yyscanner); return CONST;}
 "auto_ptr"                          { adjust(yyscanner); return AUTO_PTR;}
 "auto"                              { adjust(yyscanner); return AUTO;}
-"inline"                            { adjust(yyscanner); return INLINE;}
 
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }

@@ -18,10 +18,12 @@
 #define LOGTEN log(10)
 
 static double mtof(const double f) {
-  if(f <= -1500) return (0);
-  else if(f > 1499) return (mtof(1499));
+  if(f <= -1500)
+    return 0.0;
+  if(f > 1499)
+    return mtof(1499);
 // else return (8.17579891564 * exp(.0577622650 * f));
-  else return (pow(2, (f - 69) / 12.0) * 440.0);
+  return (pow(2, (f - 69) / 12.0) * 440.0);
 }
 
 static double ftom(const double f) {
@@ -29,97 +31,86 @@ static double ftom(const double f) {
   return (f > 0 ? (log(f / 440.0) / LOGTWO) * 12.0 + 69 : -1500);
 }
 static double powtodb(const double f) {
-  if(f <= 0) return (0);
-  else {
-    const double val = 100 + 10. / LOGTEN * log(f);
-    return (val < 0 ? 0 : val);
-  }
+  if(f <= 0)
+    return (0);
+  const double val = 100 + 10. / LOGTEN * log(f);
+  return (val < 0 ? 0 : val);
 }
 
 static double rmstodb(const double f) {
-  if(f <= 0) return (0);
-  else {
-    const double val = 100 + 20. / LOGTEN * log(f);
-    return (val < 0 ? 0 : val);
-  }
+  if(f <= 0)
+    return (0);
+  const double val = 100 + 20. / LOGTEN * log(f);
+  return (val < 0 ? 0 : val);
 }
 
 static double dbtopow(double f) {
   if(f <= 0)
     return (0);
-  else {
-    if(f > 870) f = 870;
+  if(f > 870) f = 870;
     return (exp((LOGTEN * 0.1) * (f - 100.)));
-  }
 }
 static double dbtorms(double f) {
   if(f <= 0)
     return (0);
-  else {
-    if(f > 485) f = 485;
+  if(f > 485) f = 485;
     return (exp((LOGTEN * 0.05) * (f - 100.)));
-  }
 }
+
+#define GETSTRING(a, b)                          \
+  const M_Object a##_obj = *(M_Object*)MEM((b)); \
+  if(!a##_obj)                                   \
+    Except(shred, "NullPtrException");           \
+  const m_str a = STRING(a##_obj);               \
+  release(a##_obj, shred);
 
 static SFUN(std_system) {
-  const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str str = STRING(obj);
+  GETSTRING(str, SZ_INT);
   *(m_uint*)RETURN = system(str);
-  release(obj, shred);
 }
 
+#define STDGET                                \
+  const m_int ret = *(m_int*)MEM(SZ_INT);     \
+  const m_int min = *(m_int*)MEM(SZ_INT * 2); \
+  const m_int max = *(m_int*)MEM(SZ_INT * 3); \
+
 static SFUN(std_clamp) {
-  const m_int ret = *(m_int*)MEM(SZ_INT);
-  const m_int min = *(m_int*)MEM(SZ_INT * 2);
-  const m_int max = *(m_int*)MEM(SZ_INT * 3);
+  STDGET
   *(m_uint*)RETURN = ret < min ? min : ret > max ? max : ret;
 }
 
 static SFUN(std_clampf) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  const m_float min = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  const m_float max = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 2);
+  STDGET
   *(m_float*)RETURN = ret < min ? min : ret > max ? max : ret;
 }
 
 static SFUN(std_scale) {
-  const m_float ret  = *(m_float*)MEM(SZ_INT);
-  const m_float min1 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  const m_float max1 = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 2);
+  STDGET
   const m_float min2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 3);
   const m_float max2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 4);
-  *(m_float*)RETURN = min2 + (max2 - min2) * ((ret - min1) / (max1 - min1));
+  *(m_float*)RETURN = min2 + (max2 - min2) * ((ret - min) / (max - min));
 }
 
 static SFUN(std_getenv) {
-  const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str str = getenv(STRING(obj));
-  release(obj, shred);
+  GETSTRING(env, SZ_INT)
+  const m_str str = getenv(env);
   *(M_Object*)RETURN = str ? new_String(shred, str) : 0;
 }
 
 static SFUN(std_setenv) {
-  const M_Object keyobj = *(M_Object*)MEM(SZ_INT);
-  const m_str key = STRING(keyobj);
-  release(keyobj, shred);
-  const M_Object valobj = *(M_Object*)MEM(SZ_INT * 2);
-  const m_str val = STRING(valobj);
-  release(valobj, shred);
+  GETSTRING(key, SZ_INT)
+  GETSTRING(val, SZ_INT * 2)
   *(m_uint*)RETURN = setenv(key, val, 1);
 }
 
 static SFUN(std_atoi) {
-  const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str value = STRING(obj);
-  release(obj, shred);
-  *(m_uint*)RETURN = strtol(value, NULL, 10);
+  GETSTRING(val, SZ_INT)
+  *(m_uint*)RETURN = strtol(val, NULL, 10);
 }
 
 static SFUN(std_atof) {
-  const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str value = STRING(obj);
-  release(obj, shred);
-  *(m_float*)RETURN = atof(value);
+  GETSTRING(val, SZ_INT)
+  *(m_float*)RETURN = atof(val);
 }
 
 static SFUN(std_itoa) {
@@ -136,43 +127,19 @@ static SFUN(std_ftoa) {
   *(M_Object*)RETURN = new_String(shred, c);
 }
 
-static SFUN(std_ftoi) {
-  const m_float value = *(m_float*)MEM(SZ_INT);
-  const m_int ret = value;
-  *(m_uint*)RETURN = ret;
+#define pow10(a) pow(10.0, (a) / 20.0)
+#define std(name, func)\
+static SFUN(std_##name) {\
+  *(m_float*)RETURN = func(*(m_float*)MEM(SZ_INT));\
 }
-
-static SFUN(std_mtof) {
-  *(m_float*)RETURN = mtof(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_ftom) {
-  *(m_float*)RETURN = ftom(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_powtodb) {
-  *(m_float*)RETURN = powtodb(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_rmstodb) {
-  *(m_float*)RETURN = rmstodb(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_dbtopow) {
-  *(m_float*)RETURN = dbtopow(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_dbtorms) {
-  *(m_float*)RETURN = dbtorms(*(m_float*)MEM(SZ_INT));
-}
-
-static SFUN(std_dbtolin) {
-  *(m_float*)RETURN = pow(10.0, *(m_float*)MEM(SZ_INT) / 20.0);
-}
-
-static SFUN(std_lintodb) {
-  *(m_float*)RETURN = 20.0 * log10(*(m_float*)MEM(SZ_INT));
-}
+std(mtof, mtof)
+std(ftom, ftom)
+std(powtodb, powtodb)
+std(rmstodb, rmstodb)
+std(dbtopow, dbtopow)
+std(dbtorms, dbtorms)
+std(dbtolin, pow10)
+std(lintodb, 20.0 * log10)
 
 ANN m_bool import_std(const Gwi gwi) {
   const Type t_std = gwi_mk_type(gwi, "Std", 0, NULL);
@@ -225,10 +192,6 @@ ANN m_bool import_std(const Gwi gwi) {
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
   gwi_func_ini(gwi, "string", "ftoa", std_ftoa);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "int", "ftoi", std_ftoi);
   gwi_func_arg(gwi, "float", "value");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 

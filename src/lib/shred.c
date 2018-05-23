@@ -5,8 +5,6 @@
 #include "instr.h"
 #include "import.h"
 
-m_int o_shred_me;
-
 M_Object new_shred(VM_Shred shred) {
   const M_Object obj = new_M_Object(NULL);
   initialize_object(obj, t_shred);
@@ -15,8 +13,7 @@ M_Object new_shred(VM_Shred shred) {
 }
 
 static MFUN(gw_shred_exit) {
-  const VM_Shred s = ME(o);
-  shred->next_pc = vector_size(s->code->instr) -2;
+  vm_shred_exit(shred);
 }
 
 static MFUN(vm_shred_id) {
@@ -56,7 +53,8 @@ static MFUN(shred_args) {
 
 static MFUN(shred_arg) {
   const VM_Shred s = ME(o);
-  if(s->args) {
+  const m_int idx = *(m_int*)MEM(SZ_INT);
+  if(s->args && idx >= 0) {
     const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
     *(m_uint*)RETURN = str ? (m_uint)new_String(shred, str) : 0;
   } else
@@ -79,18 +77,13 @@ static MFUN(shred_dir) {
   *(m_uint*)RETURN = (m_uint)new_String(shred, dirname(c));
 }
 
-static DTOR(shred_dtor) {
-  release(o, shred);
-}
-
 ANN m_bool import_shred(const Gwi gwi) {
   CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
   SET_FLAG((t_shred), ae_flag_abstract);
-  CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, NULL))
 
-	gwi_item_ini(gwi, "int", "@me");
-  o_shred_me = gwi_item_end(gwi, ae_flag_member, NULL);
-  CHECK_BB(o_shred_me)
+  gwi_item_ini(gwi, "int", "@me");
+  CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
 
   gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
   CHECK_BB(gwi_func_end(gwi, 0))

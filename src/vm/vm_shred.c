@@ -18,7 +18,7 @@ VM_Shred new_vm_shred(VM_Code c) {
   shred->_mem          = shred->base;
   shred->code          = c;
   shred->name          = strdup(c->name);
-  vector_init(&shred->gc1);
+  vector_init(&shred->gc);
   return shred;
 }
 
@@ -30,11 +30,13 @@ static void vm_shred_free_args(Vector v) {
 }
 
 void free_vm_shred(VM_Shred shred) {
+  for(m_uint i = vector_size(&shred->gc) + 1; --i;)
+    release((M_Object)vector_at(&shred->gc, i - 1), shred);
+  vector_release(&shred->gc);
   release(shred->me, shred);
   mp_free(Stack, shred->_reg);
   REM_REF(shred->code);
   free(shred->name);
-  vector_release(&shred->gc1);
   if(shred->args)
     vm_shred_free_args(shred->args);
   mp_free(VM_Shred, shred);

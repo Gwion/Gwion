@@ -24,7 +24,7 @@ typedef struct {
   m_str ret, lhs, rhs;
   Type   (*ck)(Env, void*);
   m_bool (*em)(Emitter, void*);
- } DL_Oper;
+} DL_Oper;
 
 typedef struct {
   m_uint n;

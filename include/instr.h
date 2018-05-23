@@ -19,9 +19,10 @@ struct Instr_ {
   m_bit ptr[SZ_VEC4];
 };
 
-ANEW Instr new_instr();
+ANEW Instr new_instr(void);
 ANN void free_instr(Instr instr);
 INSTR(EOC);
+INSTR(Dtor_Return);
 
 
 #ifdef GWREPL
@@ -80,6 +81,7 @@ INSTR(Exp_Dot_Func);
 INSTR(Func_Static);
 INSTR(Func_Member);
 INSTR(Func_Return);
+INSTR(Dtor_Return);
 
 /* object */
 INSTR(Pre_Constructor);
@@ -119,7 +121,6 @@ INSTR(add2gc);
 
 INSTR(AutoLoopStart);
 INSTR(AutoLoopEnd);
-INSTR(Cast2Ptr);
 
 #ifdef GWCOV
 INSTR(InstrCoverage);
@@ -130,9 +131,15 @@ INSTR(InstrCoverage);
 INSTR(PutArgsInMem);
 INSTR(ConstPropSet);
 INSTR(ConstPropGet);
-INSTR(InlineStart);
-INSTR(InlineStop);
-INSTR(InlineGoto);
 #endif
 
-
+#ifdef JIT
+#ifdef JIT_DEV
+#undef INSTR
+#define INSTR(a)  \
+void a(const VM_Shred, const Instr); \
+__attribute__((constructor(400))) void print_##a() { printf("%s %p\n", __func__, (void*)(m_uint)a); } \
+__attribute__((hot))\
+ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
+#endif
+#endif

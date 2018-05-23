@@ -603,8 +603,6 @@ ANN static void lint_stmt_list(Linter* linter, Stmt_List list) {
 ANN static void lint_func_def(Linter* linter, Func_Def f) {
   Arg_List list = f->arg_list;
   lint_indent(linter);
-  if(GET_FLAG(f, ae_flag_inline))
-    lint_print(linter, "inline ");
   lint_print(linter, "%s", GET_FLAG(f, ae_flag_variadic) ?
       "variadic " : "function ");
   if(GET_FLAG(f, ae_flag_static))

@@ -33,8 +33,8 @@ void vm_remove(const VM* vm, const m_uint index) {
       if(sh->child.ptr)
         LOOP_OPTIM
         for(m_uint j = vector_size(w) + 1; --j;)
-          NullException((VM_Shred)vector_at(w, j - 1), "MsgRemove");
-       NullException(sh, "MsgRemove");
+          exception((VM_Shred)vector_at(w, j - 1), "MsgRemove");
+       exception(sh, "MsgRemove");
        return;
     }
   }
@@ -54,17 +54,15 @@ ANN void free_vm(VM* vm) {
   free(vm->in);
   free(vm->shreduler);
   free(vm);
-  free_symbols();
 }
 
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   const Vector v = (Vector)&vm->shred;
   shred->vm_ref = (VM*)vm;
-  if(!shred->me)
-    shred->me = new_shred(shred);
   if(!shred->xid) {
     vector_add(v, (vtype)shred);
     shred->xid = ++vm->shreduler->n_shred;
+    shred->me = new_shred(shred);
   }
   shredule(vm->shreduler, shred, .5);
 }
@@ -105,8 +103,7 @@ void vm_run(const VM* vm) {
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
     while(s->curr) {
-      shred->pc = shred->next_pc++;
-      const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc);
+      const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
       instr->execute(shred, instr);
       VM_INFO;
     }

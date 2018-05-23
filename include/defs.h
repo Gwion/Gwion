@@ -68,17 +68,16 @@ typedef enum {
   ae_flag_unary  = 1 << 18,
   ae_flag_func  = 1 << 19, // for value holding func
   ae_flag_empty  = 1 << 20, // for typedef with empty array
+  ae_flag_flow  = 1 << 21,
 
 // parsing flags for class_def->type
-  ae_flag_scan1 = 1 << 21,
-  ae_flag_scan2 = 1 << 22,
-  ae_flag_check = 1 << 23,
-  ae_flag_emit  = 1 << 24,
-
-ae_flag_inline = 1 << 25,
-ae_flag_constprop = 1 << 26,
-
-  ae_flag_recurs = 1 << 30
+  ae_flag_scan1 = 1 << 22,
+  ae_flag_scan2 = 1 << 23,
+  ae_flag_check = 1 << 24,
+  ae_flag_emit  = 1 << 25,
+  ae_flag_constprop = 1 << 26,
+  ae_flag_inline = 1 << 27,
+  ae_flag_recurs = 1 << 28
 } ae_flag;
 
 typedef enum {

@@ -15,11 +15,6 @@
 m_int o_fileio_file;
 static M_Object gw_cin, gw_cout, gw_cerr;
 
-static CTOR(fileio_ctor) {
-  IO_FILE(o)  = NULL;
-
-}
-
 static DTOR(fileio_dtor) {
   if(IO_FILE(o))
     fclose(IO_FILE(o));
@@ -31,7 +26,7 @@ static DTOR(static_fileio_dtor) {
 
 static INSTR(int_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%" INT_F "", *(m_int*)REG(- SZ_INT));
@@ -40,7 +35,7 @@ static INSTR(int_to_file) { GWDEBUG_EXE
 
 static INSTR(float_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   release(o, shred);
   CHECK_FIO(o)
   fprintf(IO_FILE(o), "%f", *(m_float*)REG(- SZ_FLOAT));
@@ -50,7 +45,7 @@ static INSTR(float_to_file) { GWDEBUG_EXE
 
 static INSTR(string_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
   release(o, shred);
@@ -61,7 +56,7 @@ static INSTR(string_to_file) { GWDEBUG_EXE
 
 static INSTR(object_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const M_Object lhs = *(M_Object*)REG(- SZ_INT);
   release(lhs, shred);
   release(o, shred);
@@ -72,7 +67,7 @@ static INSTR(object_to_file) { GWDEBUG_EXE
 
 static INSTR(complex_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
   release(o, shred);
   CHECK_FIO(o)
@@ -82,7 +77,7 @@ static INSTR(complex_to_file) { GWDEBUG_EXE
 
 static INSTR(polar_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const m_complex lhs = *(m_complex*)REG(- SZ_COMPLEX);
   release(o, shred);
   CHECK_FIO(o)
@@ -92,7 +87,7 @@ static INSTR(polar_to_file) { GWDEBUG_EXE
 
 static INSTR(vec3_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const m_vec3 lhs = *(m_vec3*)REG(- SZ_VEC3);
   release(o, shred);
   CHECK_FIO(o)
@@ -103,7 +98,7 @@ static INSTR(vec3_to_file) { GWDEBUG_EXE
 
 static INSTR(vec4_to_file) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
-  const M_Object o = **(M_Object**)REG(0);
+  const M_Object o = *(M_Object*)REG(0);
   const m_vec4 lhs = *(m_vec4*)REG(- SZ_VEC4);
   release(o, shred);
   CHECK_FIO(o)
@@ -166,7 +161,7 @@ m_bool inputAvailable(FILE* f)
 static INSTR(file_to_string) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   const M_Object o    = *(M_Object*)REG(- SZ_INT);
-  const M_Object s    = **(M_Object**)REG(0);
+  const M_Object s    = *(M_Object*)REG(0);
   if(!o) {
     Except(shred, "EmptyFileException");
   }
@@ -254,7 +249,7 @@ ANN m_bool import_fileio(const Gwi gwi) {
   CHECK_OB((t_cout    = gwi_mk_type(gwi, "@Cout",  SZ_INT, t_fileio)))
   CHECK_OB((t_cerr    = gwi_mk_type(gwi, "@Cerr",  SZ_INT, t_fileio)))
   CHECK_OB((t_cin     = gwi_mk_type(gwi, "@Cin",   SZ_INT, t_fileio)))
-  CHECK_BB(gwi_class_ini(gwi,  t_fileio, fileio_ctor, fileio_dtor))
+  CHECK_BB(gwi_class_ini(gwi,  t_fileio, NULL, fileio_dtor))
 
   // import vars
 	gwi_item_ini(gwi, "int", "@file");
@@ -280,34 +275,35 @@ ANN m_bool import_fileio(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   // import operators
   CHECK_BB(gwi_oper_ini(gwi, "int",    "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, int_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "float",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, float_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "complex",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, complex_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "polar",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, polar_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "Vec3",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, vec3_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, vec4_to_file))
   CHECK_BB(gwi_oper_ini(gwi,"string", "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, string_to_file))
   CHECK_BB(gwi_oper_ini(gwi,"Object", "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, object_to_file))
   CHECK_BB(gwi_oper_ini(gwi,"@null",  "FileIO", "FileIO"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, object_to_file))
   CHECK_BB(gwi_oper_ini(gwi, "FileIO", "string", "string"))
-  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+//  CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))
+  CHECK_BB(gwi_oper_add(gwi, opck_const_rhs))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, file_to_string))
   CHECK_BB(gwi_oper_ini(gwi, "FileIO", "int",    "int"))
   CHECK_BB(gwi_oper_add(gwi, opck_rhs_emit_var))

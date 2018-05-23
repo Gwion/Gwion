@@ -3,8 +3,7 @@
 #include "absyn.h"
 
 #define SCOPE(a) { ++env->class_scope;a;--env->class_scope; }
-#define NSPC(a) { ++env->class_scope;nspc_push_value(env->curr);a;\
-  nspc_pop_value(env->curr); --env->class_scope; }
+#define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
 
 struct Env_ {
@@ -17,7 +16,6 @@ struct Env_ {
   Func      func;
   Exp_Func* current; // template helper
   m_uint type_xid;
-  struct Vector_    contexts;
   struct Vector_    nspc_stack;
   struct Vector_    class_stack;
   struct Vector_    breaks;
@@ -28,8 +26,8 @@ struct Env_ {
 ANEW Env new_env();
 ANN void env_reset(const Env);
 ANN void free_env(Env);
-ANN m_bool env_push_class(const Env, const Type);
-ANN m_bool env_pop_class(const Env);
+ANN void env_push_class(const Env, const Type);
+ANN void env_pop_class(const Env);
 ANN Map env_label(const Env);
 ANN Nspc env_nspc(const Env);
 ANN2(1) Class_Def env_class_def(const Env, const Class_Def);

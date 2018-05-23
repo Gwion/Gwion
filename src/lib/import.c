@@ -198,7 +198,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);
-  CHECK_BB(env_push_class(env, type))
+  env_push_class(env, type);
   return 1;
 }
 
@@ -243,7 +243,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     if(td->array)
       CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp))
     if(ctor)
-      CHECK_BB(emit_ext_ctor(gwi->emit, ctor))
+      emit_ext_ctor(gwi->emit, ctor);
     emit_class_finish(gwi->emit, gwi->env->class_def->info);
     free_type_decl(td);
   } else {
@@ -259,7 +259,7 @@ ANN static m_int import_class_end(const Env env) {
   const Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
-  CHECK_BB(env_pop_class(env))
+  env_pop_class(env);
   return 1;
 }
 
@@ -639,6 +639,17 @@ OP_CHECK(opck_const_lhs) {
   return bin->lhs->type;
 }
 
+OP_CHECK(opck_const_rhs) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->meta != ae_meta_var) {
+    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and'%s'..."
+          "...(reason: --- rigth-side operand is not mutable)",
+          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
+    return t_null;
+  }
+  return bin->rhs->type;
+}
+
 OP_CHECK(opck_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_lhs(env, data) == t_null)
@@ -734,10 +745,25 @@ OP_CHECK(opck_post) {
 if(post->exp->exp_type == ae_exp_primary &&
     GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop)) {
     UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+//    post->exp->d.exp_primary.primary_type = (m_uint)ae_primary_id;
+//    post->exp->d.exp_primary.d.var = insert_symbol(post->exp->d.exp_primary.value->name);
+printf("value -- %p %i\n",post->exp->d.exp_primary.value, 
+GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop));
+printf("%i %s\n",post->exp->d.exp_primary.value->d.ptr, 
+post->exp->d.exp_primary.value->name);
     post->exp->d.exp_primary.value->d.ptr = 0;
+
+//exit(3);
   return post->exp->type;
 }
-  if(post->exp->exp_type == ae_exp_constprop2) {
+  if(post->exp->exp_type == ae_exp_constprop2) {exit(3);
+    post->exp->exp_type =ae_exp_primary;
+    post->exp->d.exp_primary.primary_type = ae_primary_constprop;
+    post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
+    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    post->exp->d.exp_primary.value->d.ptr = 0;
+}
+  if(post->exp->exp_type == ae_exp_constprop) {exit(2);
     post->exp->exp_type =ae_exp_primary;
     post->exp->d.exp_primary.primary_type = ae_primary_constprop;
     post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;

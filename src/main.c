@@ -107,6 +107,7 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
+//  init_symbols();
   vm = new_vm(arg.loop);
   if(init_bbq(vm, &di, &d) < 0)
     goto clean;
@@ -116,16 +117,7 @@ int main(int argc, char** argv) {
   if(arg.coverage)
     vm->emit->coverage = 1;
 #endif
-#ifdef GWCGRAPH
-  if(arg.profile) {
-    vm->emit->profile = 1;
-    vm->emit->call_file = fopen("gwmon.out", "w");
-  }
-#endif
   srand(time(NULL));
-
-//#include <sys/mman.h>
-//mlockall(MCL_CURRENT|MCL_FUTURE);
 
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
@@ -159,5 +151,6 @@ clean:
     if(!vm->emit && env)
       free(env);
     free_vm(vm);
+  free_symbols();
   return 0;
 }

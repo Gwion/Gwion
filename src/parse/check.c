@@ -148,7 +148,7 @@ ANN static Type check_exp_prim_id_non_res(const Env env, const Exp_Primary* prim
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;
-  OPTIMIZE_PRIM_CONST(primary, v->d.ptr)
+//  OPTIMIZE_PRIM_CONST(primary, v->d.ptr)
   return v->type;
 }
 
@@ -836,7 +836,7 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
   CHECK_OO(if_exp)
   const Type else_exp = check_exp(env, exp_if->else_exp);
   CHECK_OO(else_exp)
-  if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0)
+  if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
     CHECK_BO(err_msg(TYPE_, exp_if->self->pos,
           "Invalid type '%s' in if expression condition.", cond->name))
   const Type ret = find_common_anc(if_exp, else_exp);
@@ -893,8 +893,7 @@ ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDE
 
 ANN Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
-  while(curr) {
-    curr->type = NULL;
+  do {
     switch(curr->exp_type) {
       case ae_exp_primary:
         curr->type = check_exp_primary(env, &curr->d.exp_primary);
@@ -934,42 +933,29 @@ ANN Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
 #endif
     }
     CHECK_OO(curr->type)
-    curr = curr->next;
-  }
+  } while((curr = curr->next));
   return exp->type;
 }
 
 ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  ID_List list = stmt->list;
-  while(list) {
-    const Value v = nspc_lookup_value0(env->curr, list->xid);
-    if(env->class_def) {
+  if(env->class_def) {
+    ID_List list = stmt->list;
+    do {
+      const Value v = nspc_lookup_value0(env->curr, list->xid);
       SET_FLAG(v, ae_flag_static);
       v->offset = env->class_def->info->class_data_size;
       env->class_def->info->class_data_size += SZ_INT;
-    }
-    list = list->next;
+    } while((list = list->next));
   }
   return 1;
-
 }
 
-ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt, const m_bool push) { GWDEBUG_EXE
-  m_bool ret;
-  if(!stmt->stmt_list)
-    return 1;
-  ++env->class_scope;
-  if(push)
-    nspc_push_value(env->curr);
-  ret = check_stmt_list(env, stmt->stmt_list);
-  if(push)
-    nspc_pop_value(env->curr);
-  --env->class_scope;
-  return ret;
+ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
+  return stmt->stmt_list ? check_stmt_list(env, stmt->stmt_list) : 1;
 }
 
 ANN static m_bool check_flow(const Exp exp) { GWDEBUG_EXE
-  if(isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
+  if(isa(exp->type, t_object) > 0 || isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
      isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
     return 1;
   CHECK_BB(err_msg(TYPE_,  exp->pos,
@@ -977,14 +963,19 @@ ANN static m_bool check_flow(const Exp exp) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool check_stmt_while(const Env env, const Stmt_Flow stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_flow(const Env env, const Stmt_Flow stmt) { GWDEBUG_EXE
 const m_str str = stmt->self->stmt_type == ae_stmt_while ? "while" : "until";
-  CHECK_OB(check_exp(env, stmt->cond))
-  if(check_flow(stmt->cond) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in '%s' condition.", str))
+  if(!stmt->is_do)
+    CHECK_OB(check_exp(env, stmt->cond))
   vector_add(&env->breaks, (vtype)stmt->self);
   vector_add(&env->conts, (vtype)stmt->self);
+  nspc_push_value(env->curr);
   CHECK_BB(check_stmt(env, stmt->body))
+  nspc_pop_value(env->curr);
+  if(stmt->is_do)
+    CHECK_OB(check_exp(env, stmt->cond))
+  if(check_flow(stmt->cond) < 0)
+    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in '%s' condition.", str))
   vector_pop(&env->breaks);
   vector_pop(&env->conts);
   return 1;
@@ -1096,14 +1087,14 @@ ANN static m_bool check_stmt_continue(const Env env, const Stmt stmt) { GWDEBUG_
   if(!vector_size(&env->conts))
     CHECK_BB(err_msg(TYPE_, stmt->pos,
              "'continue' found outside of for/while/until..."))
-    return 1;
+  return 1;
 }
 
 ANN static m_bool check_stmt_break(const Env env, const Stmt stmt) { GWDEBUG_EXE
   if(!vector_size(&env->breaks))
     CHECK_BB(err_msg(TYPE_,  stmt->pos,
              "'break' found outside of for/while/until..."))
-    return 1;
+  return 1;
 }
 
 ANN static m_bool check_stmt_switch(const Env env, const Stmt_Switch a) { GWDEBUG_EXE
@@ -1189,7 +1180,7 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
         ret = (check_exp(env, stmt->d.stmt_exp.val) ? 1 : -1);
       break;
     case ae_stmt_code:
-      SCOPE(ret = check_stmt_code(env, &stmt->d.stmt_code, 1))
+      NSPC(ret = check_stmt_code(env, &stmt->d.stmt_code))
       break;
     case ae_stmt_return:
       ret = check_stmt_return(env, &stmt->d.stmt_exp);
@@ -1204,11 +1195,10 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       NSPC(ret = check_stmt_if(env, &stmt->d.stmt_if));
       break;
     case ae_stmt_while:
-      NSPC(ret = check_stmt_while(env, &stmt->d.stmt_flow))
+      NSPC(ret = check_stmt_flow(env, &stmt->d.stmt_flow))
       break;
     case ae_stmt_until:
-//      NSPC(ret = check_stmt_until(env, &stmt->d.stmt_flow))
-      NSPC(ret = check_stmt_while(env, &stmt->d.stmt_flow))
+      NSPC(ret = check_stmt_flow(env, &stmt->d.stmt_flow))
       break;
     case ae_stmt_for:
       NSPC(ret = check_stmt_for(env, &stmt->d.stmt_for))
@@ -1292,9 +1282,8 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
     const Value v = find_value(parent, f->name);
     if(v) {
       const m_bool match = parent_match_actual(env, f, v->d.func_ref);
-      CHECK_BB(match);
       if(match)
-        return 1;
+        return match;
     }
   }
   if(GET_FLAG(func, ae_flag_member)) {
@@ -1392,7 +1381,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->arg_list)
     ret = check_func_args(env, f->arg_list);
   const Value variadic = GET_FLAG(f, ae_flag_variadic) ? set_variadic(env) : NULL;
-  if(!GET_FLAG(f, ae_flag_builtin) && check_stmt_code(env, &f->d.code->d.stmt_code, 0) < 0)
+  if(!GET_FLAG(f, ae_flag_builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
     ret = err_msg(TYPE_, f->td->pos,
                   "...in function '%s'", s_name(f->name));
   if(variadic)
@@ -1461,11 +1450,10 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
   if(class_def->body) {
     Class_Body body = class_def->body;
-    CHECK_BB(env_push_class(env, the_class))
-    do {
-      CHECK_BB(check_section(env, body->section))
-    } while((body = body->next));
-    CHECK_BB(env_pop_class(env))
+    env_push_class(env, the_class);
+    do CHECK_BB(check_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
   SET_FLAG(the_class, ae_flag_checked);
   SET_FLAG(class_def->type, ae_flag_check);

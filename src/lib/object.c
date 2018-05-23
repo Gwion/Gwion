@@ -9,11 +9,9 @@
 #include "mpool.h"
 POOL_HANDLE(M_Object, 512)
 
-ANN void NullException(const VM_Shred shred, const m_str c) {
-  for(m_uint i = vector_size(&shred->gc1) + 1; --i;)
-    release((M_Object)vector_at(&shred->gc1, i-1), shred);
+ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
-          c, shred->xid, shred->name, shred->pc);
+          c, shred->xid, shred->name, shred->pc - 1);
   vm_shred_exit(shred);
 }
 
@@ -32,17 +30,14 @@ M_Object new_String(const VM_Shred shred, const m_str str) {
   return o;
 }
 
-ANN m_bool initialize_object(const M_Object object, const Type type) {
-  object->vtable = &type->info->vtable;
-  object->type_ref = type;
-  if(type->info->offset)
-    object->data = (m_bit*)xcalloc(1, type->info->offset);
-  return 1;
+ANN void initialize_object(const M_Object o, const Type t) {
+  o->type_ref = t;
+  if(t->info->offset)
+    o->data = (m_bit*)xcalloc(1, t->info->offset);
 }
 
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
   const M_Object object = new_M_Object(NULL);
-  if(!object) Except(shred, "NullPtrException");
   initialize_object(object, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred,  SZ_INT);
@@ -52,7 +47,6 @@ ANN void instantiate_object(const VM_Shred shred, const Type type) {
 ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   const VM_Code code = new_vm_code(t->info->dtor->instr, SZ_INT, 1, "[dtor]");
   const VM_Shred sh = new_vm_shred(code);
-  vector_init(&sh->gc);
   memcpy(sh->mem, shred->mem, SIZEOF_MEM);
   vector_pop(code->instr);
   const Instr eoc = new_instr();
@@ -61,9 +55,7 @@ ANN static void handle_dtor(const Type t, const VM_Shred shred) {
   vm_add_shred(shred->vm_ref, sh);
 }
 
-ANN2(2) void release(const M_Object obj, const VM_Shred shred) {
-  if(!obj)
-    return;
+ANN void _release(const M_Object obj, const VM_Shred shred) {
   if(!--obj->ref) {
     Type t = obj->type_ref;
     while(t) {
@@ -111,7 +103,7 @@ static INSTR(name##_Object) { GWDEBUG_EXE        \
   POP_REG(shred, SZ_INT);                        \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \
-  *(m_uint*)REG(-SZ_INT) = (lhs == rhs);         \
+  *(m_uint*)REG(-SZ_INT) = (lhs op rhs);         \
   release(lhs, shred);                           \
   release(rhs, shred);                           \
 }

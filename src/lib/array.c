@@ -213,7 +213,7 @@ INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_EXE
   else {
     if(!*(m_uint*)REG(-SZ_INT))
       *(m_uint*)REG(-SZ_INT * 3) = 0;
-    shred->next_pc = instr->m_val;
+    shred->pc = instr->m_val;
   }
 }
 
@@ -224,7 +224,7 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
   m_int i = *(m_int*)REG(-SZ_INT * 2);
   *(m_uint*)array[i] = (m_uint)obj;
   ++(*(m_int*)REG(-SZ_INT * 2));
-  shred->next_pc = instr->m_val;
+  shred->pc = instr->m_val;
 }
 
 INSTR(Instr_Pre_Ctor_Array_Post) { GWDEBUG_EXE
@@ -277,7 +277,7 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, const struct Array
       info->base, info->objs, info->index, info->is_obj };
     const M_Object next = do_alloc_array(shred, &aai);
     if(!next) {
-      release(base, shred);
+      _release(base, shred);
       return NULL;
     }
     m_vector_set(ARRAY(base), i, &next);
@@ -368,14 +368,13 @@ ANN static void array_push(const VM_Shred shred, const M_Vector a,
 }
 
 ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
-  gw_err("[Gwion](VM): ArrayOutofBounds: in shred[id=%" UINT_F ":%s], PC=[%" UINT_F "], index=[%" INT_F "]\n",
-         shred->xid, shred->name, shred->pc, i);
-  release(obj, shred);
-  vm_shred_exit(shred);
+  _release(obj, shred);
+  exception(shred, "ArrayOutofBounds");
+  gw_err("\t... at index [%" INT_F "]\n", i);
 }
 
-#define OOB(shred, obj, i) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
-  oob(obj, shred, i); return; }
+#define OOB(shred, obj, i, base) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
+  oob(base, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
@@ -383,7 +382,7 @@ INSTR(Instr_Array_Access) { GWDEBUG_EXE
   if(!obj)
     Except(shred, "NullPtrException");
   const m_int i = *(m_int*)REG(SZ_INT);
-  OOB(shred, obj, i)
+  OOB(shred, obj, i, obj)
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }
 
@@ -394,7 +393,7 @@ INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
     Except(shred, "NullPtrException");
   for(m_uint j = 1; j < instr->m_val; ++j) {
     const m_int i = *(m_int*)REG(SZ_INT * j);
-    OOB(shred, obj, i)
+    OOB(shred, obj, i, *base)
     m_vector_get(ARRAY(obj), i, &obj);
     if(!obj) {
       release(*base, shred);
@@ -402,6 +401,6 @@ INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
     }
   }
   const m_int i = *(m_int*)REG(SZ_INT * instr->m_val);
-  OOB(shred, obj, i)
+  OOB(shred, obj, i, *base)
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }

@@ -20,7 +20,7 @@ static INSTR(Event_Wait) { GWDEBUG_EXE
   const Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int*)REG(-SZ_INT) = 1;
-  release(event, shred);
+  _release(event, shred);
 }
 
 static MFUN(event_signal) {

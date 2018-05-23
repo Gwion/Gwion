@@ -28,7 +28,7 @@ struct VM_Code_ {
   m_uint stack_depth;
   m_uint native_func;
   e_func flag;
-  struct VM_Object_ obj;
+  HAS_OBJ
 };
 
 typedef struct Shreduler_* Shreduler;
@@ -37,7 +37,7 @@ typedef struct {
   SPFLOAT* in;
   sp_data* sp;
   Shreduler shreduler;
-  M_Object adc, dac, blackhole;
+  M_Object adc, dac, blackhole; // in a struct with ugen
   Emitter emit;
   struct Vector_ shred;
   struct Vector_ ugen;
@@ -54,14 +54,14 @@ struct VM_Shred_ {
   m_bit* _reg;
   m_bit* _mem;
   m_bit* base;
-  m_uint pc, next_pc, xid;
+  m_uint pc, xid;
   m_str name;
   VM* vm_ref;
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
   M_Object me;
   struct Vector_ child;
-  struct Vector_ gc, gc1;
+  struct Vector_ gc;//, gc1;
   m_float wake_time;
 };
 ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);

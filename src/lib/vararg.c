@@ -15,7 +15,7 @@ INSTR(Vararg_start) { GWDEBUG_EXE
   if(arg->d)
     PUSH_REG(shred, SZ_INT)
   else {
-    shred->next_pc = instr->m_val2 + 1;
+    shred->pc = instr->m_val2 + 1;
     mp_free(Vararg, arg);
     return;
   }
@@ -54,7 +54,7 @@ INSTR(Vararg_end) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_INT);
   arg->o += arg->k[arg->i];
   if(++arg->i < arg->s)
-    shred->next_pc = instr->m_val2;
+    shred->pc = instr->m_val2;
   else {
     free(arg->d);
     free(arg->k);

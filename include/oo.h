@@ -11,6 +11,8 @@ struct VM_Object_ {
   m_uint ref_count;
 };
 
+
+#define HAS_OBJ struct VM_Object_ obj;
 #ifndef GWLINT
 #define INIT_OO(a, b) { (a)->obj.type = b; (a)->obj.ref_count = 1; }
 #define REM_REF(a)    { rem_ref(&(a)->obj, (a)); }

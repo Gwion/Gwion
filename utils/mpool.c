@@ -25,8 +25,10 @@ static struct Map_ map;
 ANN static void mp_set(struct pool* p, const uint32_t obj_sz, const uint32_t blk_sz) {
   const uint32_t sz = (obj_sz + 3) & 0xfffffffc;
   p->obj_sz = sz;
-  p->blk_sz = blk_sz;
-  p->obj_id = blk_sz - 1;
+//  p->blk_sz = blk_sz;
+//  p->obj_id = blk_sz - 1;
+  p->blk_sz = 256;
+  p->obj_id = 256 - 1;
   p->blk_id = -1;
   p->nblk   = 1;
   p->next   = NULL;
@@ -80,9 +82,8 @@ void *mp_alloc(struct pool *p) {
   if(++p->obj_id == p->blk_sz) {
     p->obj_id = 0;
     if(++p->blk_id == (int32_t)p->nblk) {
-      p->nblk <<= 1;
+      ++p->nblk;// p->nblk <<= 1;
       p->data = (uint8_t**)xrealloc(p->data, sizeof(uint8_t*)* p->nblk);
-      memset(p->data + (p->nblk >> 1), 0, (p->nblk - (p->nblk >> 1)) * sizeof(uint8_t*));
     }
     p->data[p->blk_id] = calloc(p->obj_sz, p->blk_sz);
   }

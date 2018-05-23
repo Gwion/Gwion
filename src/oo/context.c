@@ -8,11 +8,11 @@
 
 POOL_HANDLE(Context, 32)
 
-ANN2(2) Context new_context(const Ast prog, const m_str filename) {
+ANN2(2) Context new_context(const Ast ast, const m_str str) {
   const Context context = mp_alloc(Context);
-  context->nspc = new_nspc(filename);
-  context->tree = prog;
-  context->filename = filename;
+  context->nspc = new_nspc(str);
+  context->tree = ast;
+  context->name = str;
   INIT_OO(context, e_context_obj);
   return context;
 }
@@ -23,7 +23,6 @@ ANN void free_context(const Context a) {
 }
 
 ANN m_bool load_context(const Context context, const Env env) {
-  vector_add(&env->contexts, (vtype)env->context);
   ADD_REF((env->context = context))
   vector_add(&env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
@@ -32,14 +31,13 @@ ANN m_bool load_context(const Context context, const Env env) {
 }
 
 ANN m_bool unload_context(const Context context, const Env env) {
-  if(context->label.ptr) {
+  if(context->lbls.ptr) {
     LOOP_OPTIM
-    for(m_uint i = 0; i < map_size(&context->label); i++)
-      free_map((Map)map_at(&context->label, i));
-    map_release(&context->label);
+    for(m_uint i = 0; i < map_size(&context->lbls); i++)
+      free_map((Map)map_at(&context->lbls, i));
+    map_release(&context->lbls);
   }
   REM_REF(context);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  env->context = (Context)vector_pop(&env->contexts);
   return 1;
 }

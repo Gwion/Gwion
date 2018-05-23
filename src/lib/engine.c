@@ -134,6 +134,7 @@ ANN static void handle_plug(const Gwi gwi, const m_str c) {
         nspc_commit(gwi->env->curr);
       } else { // maybe we should rollback
         env_reset(gwi->env);
+// remove it here
         vector_add(&gwi->vm->plug, (vtype)handler);
        }
     } else {

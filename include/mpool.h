@@ -3,6 +3,12 @@
 #define mp_alloc(name) calloc(1, sizeof(struct name##_))
 #define mp_free(p, d) free((d))
 #else
+//#define POOL_HANDLE(name, nelem)
+//#define mp_alloc(name) _mp_alloc(sizeof(struct name##_))
+//#define mp_free(name, a) _mp_free(sizeof(struct name##_), (a))
+//ANEW ANN void *_mp_alloc(const size_t) __attribute__((hot));
+//ANN void _mp_free(const size_t, void*);
+
 #define POOL_HANDLE(name, nelem)\
 static struct pool* name##_pool;\
 __attribute__((constructor(900)))\

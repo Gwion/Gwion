@@ -22,7 +22,7 @@ static SFUN(machine_add) {
   if(!obj)
     return;
   const m_str str = STRING(obj);
-  release(obj, shred);
+  _release(obj, shred);
   if(!str)
     return;
   *(m_uint*)RETURN = compile(shred->vm_ref, str);

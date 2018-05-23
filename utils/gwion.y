@@ -56,7 +56,7 @@ m_str op2str(const Operator op);
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR INLINE
+  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
@@ -314,8 +314,6 @@ func_def_base
     { $$ = new_func_def($1 | $2, $3, $4, $5, $6); }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
-  | INLINE func_def_base
-    { CHECK_FLAG(arg, $2, ae_flag_inline); $$ = $2; }
   | decl_template func_def_base
     { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
 

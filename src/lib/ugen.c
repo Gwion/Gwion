@@ -131,7 +131,7 @@ ANN static m_bool connect_init(const VM_Shred shred, restrict M_Object* lhs, res
   *lhs = *(M_Object*)REG(0);
   *rhs = *(M_Object*)REG(SZ_INT);
   if(!*lhs || !*rhs) {
-    NullException(shred, "UgenConnectException");
+    exception(shred, "UgenConnectException");
     return -1;
   }
   return 1;

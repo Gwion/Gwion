@@ -9,7 +9,7 @@ typedef struct Frame_ {
 typedef struct Code_ {
   m_str  name;
   m_uint stack_depth;
-  struct Vector_ code;
+  struct Vector_ instr;
   struct Vector_ stack_cont, stack_break, stack_return;
   Frame* frame;
   ae_flag flag;
@@ -25,15 +25,7 @@ struct Emitter_ {
   struct Vector_    codes;
 #ifdef GWCOV
   FILE* cov_file;
-#endif
-#ifdef GWCGRAPH
-  FILE* call_file;
-#endif
-#ifdef GWCOV
   m_bool coverage;
-#endif
-#ifdef GWCGRAPH
-  m_bool profile;
 #endif
 };
 
@@ -46,7 +38,7 @@ ANN2(1) Instr emitter_add_instr(const Emitter, const f_instr) __attribute__((ret
 ANN Code* emit_class_code(const Emitter, const m_str);
 ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
 ANN void emit_class_finish(const Emitter, const Nspc);
-ANN m_bool emit_ext_ctor(const Emitter, const VM_Code);
+ANN void emit_ext_ctor(const Emitter, const VM_Code);
 ANN void emit_union_offset(Decl_List, const m_uint);
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool);
 #endif
