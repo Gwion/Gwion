@@ -1460,6 +1460,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
+  Class_Body body = class_def->body;
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   const Type the_class = class_def->type;
@@ -1471,12 +1472,10 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(the_class->parent->info->vtable.ptr)
     vector_copy2(&the_class->parent->info->vtable, &the_class->info->vtable);
   if(class_def->body) {
-    Class_Body body = class_def->body;
-    CHECK_BB(env_push_class(env, the_class))
-    do {
-      CHECK_BB(check_section(env, body->section))
-    } while((body = body->next));
-    CHECK_BB(env_pop_class(env))
+    env_push_class(env, the_class);
+    do CHECK_BB(check_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
   SET_FLAG(the_class, ae_flag_checked);
   SET_FLAG(class_def->type, ae_flag_check);

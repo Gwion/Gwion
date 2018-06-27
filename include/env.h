@@ -28,8 +28,8 @@ struct Env_ {
 ANEW Env new_env();
 ANN void env_reset(const Env);
 ANN void free_env(Env);
-ANN m_bool env_push_class(const Env, const Type);
-ANN m_bool env_pop_class(const Env);
+ANN void env_push_class(const Env, const Type);
+ANN void env_pop_class(const Env);
 ANN Map env_label(const Env);
 ANN Nspc env_nspc(const Env);
 ANN2(1) Class_Def env_class_def(const Env, const Class_Def);

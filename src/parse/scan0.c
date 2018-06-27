@@ -188,12 +188,12 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
 
   CHECK_BB(scan0_class_def_pre(env, class_def))
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
-  CHECK_BB(env_push_class(env, class_def->type))
-  while(body) {
-    CHECK_BB(scan0_section(env, body->section))
-    body = body->next;
+  if(body) {
+    env_push_class(env, class_def->type);
+    do CHECK_BB(scan0_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
-  CHECK_BB(env_pop_class(env))
   CHECK_BB(scan0_class_def_post(env, class_def))
   return 1;
 }

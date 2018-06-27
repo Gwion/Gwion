@@ -179,7 +179,7 @@ ANN2(1,2) Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str na
 ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
-  CHECK_BB(env_add_type(gwi->env, type))
+  env_add_type(gwi->env, type);
   return type->xid;
 }
 
@@ -198,7 +198,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);
-  CHECK_BB(env_push_class(env, type))
+  env_push_class(env, type);
   return 1;
 }
 
@@ -213,7 +213,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     SET_FLAG(type, ae_flag_template);
   } else
     SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
-  CHECK_BB(gwi_add_type(gwi, type))
+  gwi_add_type(gwi, type);
   CHECK_BB(import_class_ini(gwi->env, type, pre_ctor, dtor))
   return type->xid;
 }
@@ -259,7 +259,7 @@ ANN static m_int import_class_end(const Env env) {
   const Nspc nspc = env->class_def->info;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
-  CHECK_BB(env_pop_class(env))
+  env_pop_class(env);
   return 1;
 }
 
@@ -625,7 +625,8 @@ ANN m_int gwi_enum_end(const Gwi gwi) {
 }
 
 m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* value) {
-  return env_add_value(gwi->env, name, type, is_const, value);
+  env_add_value(gwi->env, name, type, is_const, value);
+  return 1;
 }
 
 OP_CHECK(opck_const_lhs) {

@@ -662,13 +662,14 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     if(class_def->ext->array)
       CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
   }
-  CHECK_BB(env_push_class(env, class_def->type))
-  while(body) {
-    CHECK_BB(scan2_section(env, body->section))
-    body = body->next;
+  if(body) {
+    env_push_class(env, class_def->type);
+    do CHECK_BB(scan2_section(env, body->section))
+    while((body = body->next));
+    env_pop_class(env);
   }
   SET_FLAG(class_def->type, ae_flag_scan2);
-  return env_pop_class(env);
+  return 1;
 }
 
 ANN m_bool scan2_ast(const Env env, Ast ast) { GWDEBUG_EXE
