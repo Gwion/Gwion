@@ -214,7 +214,7 @@ INSTR(Instr_Pre_Ctor_Array_Top) { GWDEBUG_EXE
   else {
     if(!*(m_uint*)REG(-SZ_INT))
       *(m_uint*)REG(-SZ_INT * 3) = 0;
-    shred->next_pc = instr->m_val;
+    shred->pc = instr->m_val;
   }
 }
 
@@ -225,7 +225,7 @@ INSTR(Instr_Pre_Ctor_Array_Bottom) { GWDEBUG_EXE
   m_int i = *(m_int*)REG(-SZ_INT * 2);
   *(m_uint*)array[i] = (m_uint)obj;
   ++(*(m_int*)REG(-SZ_INT * 2));
-  shred->next_pc = instr->m_val;
+  shred->pc = instr->m_val;
 }
 
 INSTR(Instr_Pre_Ctor_Array_Post) { GWDEBUG_EXE

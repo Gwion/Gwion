@@ -21,7 +21,7 @@ INSTR(EOC) { GWDEBUG_EXE
 }
 
 INSTR(EOC2) { GWDEBUG_EXE
-  shred->next_pc = shred->pc = 0;
+  shred->pc = 0;
   shreduler_remove(shred->vm_ref->shreduler, shred, 0);
 }
 
@@ -122,16 +122,16 @@ INSTR(Alloc_Word) { GWDEBUG_EXE
 INSTR(Branch_Switch) { GWDEBUG_EXE
   POP_REG(shred,  SZ_INT);
   const Map map = *(Map*)instr->ptr;
-  shred->next_pc = (m_int)map_get(map, *(m_int*)REG(0));
-  if(!shred->next_pc)
-    shred->next_pc = instr->m_val;
+  shred->pc = (m_int)map_get(map, *(m_int*)REG(0));
+  if(!shred->pc)
+    shred->pc = instr->m_val;
 }
 
 #define branch(name, type, sz, op)      \
 INSTR(Branch_##name) { GWDEBUG_EXE      \
   POP_REG(shred, sz * 2);               \
   if(*(type*)REG(0) == *(type*)REG(sz)) \
-    shred->next_pc = instr->m_val;      \
+    shred->pc = instr->m_val;      \
 }
 branch(Eq_Int, m_int, SZ_INT, ==)
 branch(Neq_Int, m_int, SZ_INT, !=)
@@ -154,7 +154,7 @@ INSTR(Dec_int_Addr) { GWDEBUG_EXE
 }
 
 INSTR(Goto) { GWDEBUG_EXE
-  shred->next_pc = instr->m_val;
+  shred->pc = instr->m_val;
 }
 
 ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
@@ -215,9 +215,9 @@ ANN static void shred_func_prepare(const VM_Shred shred) {
   PUSH_MEM(shred, push + SZ_INT*4);
   *(m_uint*)MEM(-SZ_INT*4)  = push;
   *(m_uint*)MEM(-SZ_INT*3)  = (m_uint)shred->code;
-  *(m_uint*)MEM(-SZ_INT*2)  = shred->pc + 1;
+  *(m_uint*)MEM(-SZ_INT*2)  = shred->pc;
   *(m_uint*)MEM(-SZ_INT)  = (m_uint)code->stack_depth;
-  shred->next_pc = 0;
+  shred->pc = 0;
   shred->code = code;
 }
 
@@ -332,7 +332,7 @@ INSTR(Func_Member) { GWDEBUG_EXE
 }
 
 INSTR(Func_Return) { GWDEBUG_EXE
-  shred->next_pc = *(m_uint*)MEM(-SZ_INT*2);
+  shred->pc = *(m_uint*)MEM(-SZ_INT*2);
   shred->code = *(VM_Code*)MEM(-SZ_INT*3);
   POP_MEM(shred, *(m_uint*)MEM(-SZ_INT*4) + SZ_INT*4);
 }
@@ -445,7 +445,7 @@ INSTR(AutoLoopEnd) { GWDEBUG_EXE
   ++(*(m_uint*)MEM(instr->m_val));
   const M_Object o =  *(M_Object*)REG(-SZ_INT);
   if(*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
-    shred->next_pc = instr->m_val2;
+    shred->pc = instr->m_val2;
     POP_REG(shred, SZ_INT);
   }
 }
@@ -519,6 +519,6 @@ INSTR(InlineStop) { GWDEBUG_EXE
 }
 
 INSTR(InlineGoto) { GWDEBUG_EXE
-  shred->next_pc = instr->m_val + *(m_uint*)MEM(-SZ_INT);
+  shred->pc = instr->m_val + *(m_uint*)MEM(-SZ_INT);
 }
 #endif

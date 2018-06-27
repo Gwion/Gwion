@@ -101,7 +101,7 @@ ANN static struct Repl* new_repl(const m_str name) {
 ANN static void free_repl(struct Repl* repl, VM* vm) {
   if(repl->shred->code->instr) {
     ((Instr)vector_back(repl->shred->code->instr))->execute = EOC;
-    repl->shred->next_pc = vector_size(repl->shred->code->instr) - 2;
+    repl->shred->pc = vector_size(repl->shred->code->instr) - 2;
     vm_add_shred(vm, repl->shred);
   } else
     shreduler_remove(vm->shreduler, repl->shred, 1);

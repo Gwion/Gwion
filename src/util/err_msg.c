@@ -306,7 +306,7 @@ void gw_shred(VM_Shred shred) {
   mvwin(stdscr, (LINES-1)/2*2, 0);
   deleteln();
   mvwprintw(stdscr, (LINES-1)/2*2, 0, "%s [%" INT_F"] [%" INT_F"->%"INT_F"] %i", shred->name, shred->xid,
-    shred->pc, shred->next_pc, curr->pos);
+    shred->pc, shred->pc, curr->pos);
   display(shred, curr);
   if(vector_size(breaks)) {
     for(m_uint i = 0; i < vector_size(breaks); i++) {

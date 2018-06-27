@@ -16,7 +16,7 @@ M_Object new_shred(VM_Shred shred) {
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
-  shred->next_pc = vector_size(s->code->instr) -2;
+  shred->pc = vector_size(s->code->instr) -2;
 }
 
 static MFUN(vm_shred_id) {
