@@ -696,17 +696,27 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
     l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
   } else
     CHECK_BO(err_msg(TYPE_, bin->self->pos, "unhandled function pointer assignement (lhs)."))
-    if((r_nspc && l_nspc) && (r_nspc != l_nspc))
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign member function to member function pointer of an other class"))
-    if(!r_nspc && l_nspc)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign member function to non member function pointer"))
-    if(r_nspc && !l_nspc)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign non member function to member function pointer"))
-    if(!f1 || !f2)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "function not found."))
-    if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
-      CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
-           f1->def->ret_type->name, f2->def->ret_type->name))
+    if((r_nspc && l_nspc) && (r_nspc != l_nspc)) {
+      err_msg(TYPE_, bin->self->pos, "can't assign member function to member function pointer of an other class");
+      return t_null;
+    }
+    if(!r_nspc && l_nspc) {
+      err_msg(TYPE_, bin->self->pos, "can't assign member function to non member function pointer");
+      return t_null;
+    }
+    if(r_nspc && !l_nspc) {
+      err_msg(TYPE_, bin->self->pos, "can't assign non member function to member function pointer");
+      return t_null;
+    }
+    if(!f1 || !f2) {
+      err_msg(TYPE_, bin->self->pos, "function not found.");
+      return t_null;
+    }
+    if(isa(f1->def->ret_type, f2->def->ret_type) < 0) {
+      err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+           f1->def->ret_type->name, f2->def->ret_type->name);
+      return t_null;
+    }
     for(m_uint i = 0; i <= v->offset; ++i) {
       if(bin->lhs->exp_type == ae_exp_primary) {
         m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
@@ -720,12 +730,12 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
         return ret_type;
       }
     }
-  CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
-  return NULL;
+  err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]");
+  return t_null;
 }
 
 ANN static m_bool multi_decl(const Exp e, const Operator op) {
-  if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.list->next)
+  if(e->exp_type == ae_exp_decl && e->d.exp_decl.list->next)
     CHECK_BB(err_msg(TYPE_, e->pos,
           "cant '%s' from/to a multi-variable declaration.", op2str(op)))
   return 1;

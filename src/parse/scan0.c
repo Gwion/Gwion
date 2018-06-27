@@ -26,8 +26,8 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   t->info = new_nspc(name);
   nspc_add_type(env->curr, ptr->xid, t);
   ptr->value = mk_class(env, t);
-  if(env->class_def)
-    ADD_REF(t);
+//  if(env->class_def)
+//    ADD_REF(t);
   return 1;
 }
 
