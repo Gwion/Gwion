@@ -375,8 +375,8 @@ ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
   vm_shred_exit(shred);
 }
 
-#define OOB(shred, obj, i) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
-  oob(obj, shred, i); return; }
+#define OOB(shred, obj, base, i) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
+  oob(base, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
@@ -384,7 +384,7 @@ INSTR(Instr_Array_Access) { GWDEBUG_EXE
   if(!obj)
     Except(shred, "NullPtrException");
   const m_int i = *(m_int*)REG(SZ_INT);
-  OOB(shred, obj, i)
+  OOB(shred, obj, obj, i)
   array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }
 
@@ -395,7 +395,7 @@ INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
     Except(shred, "NullPtrException");
   for(m_uint j = 1; j < instr->m_val; ++j) {
     const m_int i = *(m_int*)REG(SZ_INT * j);
-    OOB(shred, obj, i)
+    OOB(shred, obj, *base, i)
     m_vector_get(ARRAY(obj), i, &obj);
     if(!obj) {
       release(*base, shred);
@@ -403,6 +403,6 @@ INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
     }
   }
   const m_int i = *(m_int*)REG(SZ_INT * instr->m_val);
-  OOB(shred, obj, i)
+  OOB(shred, obj, *base, i)
   array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }
