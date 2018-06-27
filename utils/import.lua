@@ -58,7 +58,6 @@ function declare_gw_param(param)
   else print("unknown "..param.type)
     os.exit(1);
   end
-  -- make_doc("\t\targ", param)
 end
 
 function print_gen_func(name, func)
@@ -72,7 +71,6 @@ function print_gen_func(name, func)
   local args = "";
   if(func.params ~= nil) then
     for i, v in pairs(func.params) do
-      --		while func.params[i]  do
       declare_c_param(v, i == #func.params)
       args =	string.format("%s, %s", args , v.name)
     end
@@ -81,7 +79,6 @@ function print_gen_func(name, func)
   print("\tsp_ftbl_create(shred->vm_ref->sp, &ftbl, size);")
   print("\tsp_"..name.."(shred->vm_ref->sp, ftbl"..args..");")
   print("\tFTBL(o) = ftbl;")
-  --	print("error:\n\tsp_ftbl_destroy(&ftbl);")
   print("}\n")
 end
 
@@ -224,7 +221,6 @@ function print_mod_func(name, mod)
       end
     end
     print("\tug->is_init = 1;\n}\n")
---    print("#ifdef JIT\nJIT_MFUN("..name.."_init)\n#endif\n")
   end
   local opt = mod.params.optional
   if opt then
@@ -273,7 +269,6 @@ if not arg[1] then
   os.exit(1)
 end
 
---local dir = io.popen("dir "..arg[1])
 local dir = io.popen("ls "..arg[1])
 if dir then
   for filename in string.gmatch(dir:read("*a"), '([^%s]+)') do
