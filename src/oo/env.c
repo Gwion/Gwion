@@ -120,13 +120,13 @@ ANN2(1) Class_Def env_class_def(const Env env, const Class_Def def) {
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
   const Context context = new_context(ast, filename);
   env_reset(env);
-  CHECK_BB(load_context(context, env))
+  load_context(context, env);
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)context);
   } // else { nspc_rollback(env->global_nspc); }
-  CHECK_BB(unload_context(context, env)) // no real need to check that
+  unload_context(context, env);
   if(ret < 0) {
     gw_err("in file '%s'\n", context->filename);
     free_ast(ast);
