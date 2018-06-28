@@ -44,9 +44,10 @@ ANN void free_op_map(Map map) {
 ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
     const m_str post = strstr(t->name, "<");
-    char c[strlen(t->name) - strlen(post) + 1];
-    memset(c, 0, strlen(t->name) - strlen(post) + 1);
-    strncpy(c, t->name, strlen(t->name) - strlen(post));
+    const m_uint len = strlen(t->name) -strlen(post);
+    char c[len + 1];
+    memset(c, 0, len + 1);
+    strncpy(c, t->name, len);
     return nspc_lookup_type1(env->curr, insert_symbol(c));
   }
   return t->parent;
