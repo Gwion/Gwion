@@ -129,13 +129,9 @@ ANN static void handle_plug(const Gwi gwi, const m_str c) {
   if((handler = dlopen(c, RTLD_LAZY))) {
     m_bool(*import)(Gwi) = (m_bool(*)(Gwi))(intptr_t)dlsym(handler, "import");
     if(import) {
-      if(import(gwi) > 0) {
-        vector_add(&gwi->vm->plug, (vtype)handler);
-        nspc_commit(gwi->env->curr);
-      } else { // maybe we should rollback
+      if(import(gwi) < 0)
         env_reset(gwi->env);
-        vector_add(&gwi->vm->plug, (vtype)handler);
-       }
+       vector_add(&gwi->vm->plug, (vtype)handler);
     } else {
       const char* err = dlerror();
       if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
