@@ -17,7 +17,7 @@ m_str get_type_name(const m_str s, const m_uint index) {
   if(!name)
     return index ? NULL : s_name(insert_symbol(s));
   memset(c, 0, strlen(s));
-  if(index == 0) {
+  if(!index) {
     strncpy(c, s, strlen(s) - len);
     return s_name(insert_symbol(c));
   }

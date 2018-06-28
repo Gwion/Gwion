@@ -4,6 +4,7 @@ typedef struct VM_Array_Info_ {
   m_uint depth;
   m_bool is_obj;
   m_bool is_ref;
+  m_bool init;
 } VM_Array_Info;
 ANN void free_array_info(VM_Array_Info* info);
 ANN m_uint     m_vector_size(const M_Vector v);

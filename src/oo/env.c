@@ -45,7 +45,6 @@ ANN void env_reset(const Env env) {
 }
 
 ANN void free_env(const Env a) {
-
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = 0; i < size; i++)
     REM_REF((Context)vector_at(&a->known_ctx, i));
@@ -88,10 +87,9 @@ ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(t_class);
   v_type->d.base_type = type;
-  INIT_OO(type, e_type_obj);
   SET_FLAG(type, ae_flag_builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
-  Value v = new_value(v_type, type->name);
+  const Value v = new_value(v_type, type->name);
   SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
