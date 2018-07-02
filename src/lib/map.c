@@ -13,7 +13,7 @@
 #define MAP_KEY(p) ((m_bit*)(p->data))
 #define MAP_VAL(p, o) ((m_bit*)(p->data + MAP_INFO(o)->key_size))
 
-typedef m_bool (*f_cmp)(const m_bit* restrict , const unsigned char* restrict , const m_uint);
+typedef m_bool (*f_cmp)(const m_bit* restrict , const m_bit* restrict , const m_uint);
 
 struct Map_Info_ {
   Type t;
@@ -23,14 +23,14 @@ struct Map_Info_ {
 };
 POOL_HANDLE(Map_Info, 16)
 
-static m_bool string_cmp(const m_bit* restrict a, const unsigned char* restrict b, const m_uint size __attribute__((unused))) {
+static m_bool string_cmp(const m_bit* restrict a, const m_bit* restrict b, const m_uint size __attribute__((unused))) {
   const M_Object o = (M_Object)b;
   if(!o && !a)
     return 1;
   return o ? !strcmp((char*)a, STRING(o)) : 1;
 }
 
-static m_bool cmp(const m_bit* restrict a, const unsigned char*restrict b, const m_uint size) {
+static m_bool cmp(const m_bit* restrict a, const m_bit *restrict b, const m_uint size) {
   return !memcmp(a, b, size);
 }
 
